@@ -1,0 +1,59 @@
+{
+    "parserOptions": {
+        "ecmaVersion": 2018
+    },
+    "env": {
+        "browser": true,
+        "node": true
+    },
+    "extends": "eslint:recommended",
+    "rules": {
+        "indent": [
+            "error",
+            4,
+            {
+                "SwitchCase": 1
+            }
+        ],
+        "linebreak-style": [
+            "error",
+            "unix"
+        ],
+        "quotes": [
+            "error",
+            "double",
+            {
+                "allowTemplateLiterals": true,
+                "avoidEscape": true
+            }
+        ],
+        "semi": [
+            "error",
+            "never"
+        ],
+        "no-console": "warn",
+        "arrow-parens": [
+            "error",
+            "as-needed"
+        ],
+        "arrow-spacing": "error",
+        "no-unused-vars": "warn",
+        "strict": [
+            "error",
+            "global"
+        ],
+        "dot-notation": "error",
+        "eqeqeq": "error",
+        "yoda": "error",
+        "no-var": "error",
+        "prefer-const": "error",
+        "camelcase": "error",
+        "comma-spacing": "error",
+        "keyword-spacing": "error",
+        "max-len": "error",
+        "no-lonely-if": "error",
+        "no-trailing-spaces": "error",
+        "prefer-arrow-callback": "error",
+        "comma-dangle": "error"
+    }
+}

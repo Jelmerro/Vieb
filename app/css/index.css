@@ -1,0 +1,27 @@
+/*
+* Vieb - Vim Inspired Electron Browser
+* Copyright (C) 2019 Jelmer van Arnhem
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+/* Global */
+body {color: #eee;font: 14px monospace;background: #333;padding: 0;margin: 0;height: 100vh;width: 100vw;overflow: hidden;user-select: none;}
+img {pointer-events: none;height: 48px;}
+.hidden {display: none !important;}
+/* Nav bar */
+#navbar {width: 100vw;height: 56px;display: flex;}
+#logo {-webkit-app-region: drag;height: 48px;width: 48px;padding: 4px;}
+#menu, #tabs {display: flex;right: 0;left: 0;height: 28px;width: calc(100vw - 56px);}
+#mode {font-size: 18px;margin-top: 5px;}
+#url {display: inline-block;flex: 1;border: solid 2px red;margin: 2px;padding: 3px;}
