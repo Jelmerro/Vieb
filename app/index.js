@@ -17,7 +17,7 @@
 */
 "use strict"
 
-const {app, BrowserWindow, nativeImage} = require("electron")
+const {app, session, BrowserWindow, nativeImage} = require("electron")
 const path = require("path")
 const url = require("url")
 let mainWindow
@@ -47,22 +47,31 @@ app.on("ready", () => {
         windowData.icon = image
     }
     mainWindow = new BrowserWindow(windowData)
+    session.defaultSession
+        .setPermissionRequestHandler((webContents, permission, callback) => {
+            //console.log(webContents, permission)
+            if (permission === "fullscreen") {
+                callback(true)
+            }
+            //This is the proper way to allow fullscreen in Electron,
+            //but it doesn't change anything and still doesn't work :(
+        })
     mainWindow.setMenu(null)
     mainWindow.setMinimumSize(400, 400)
-    /*mainWindow.on("close", e => {
+    mainWindow.on("close", e => {
         e.preventDefault()
     })
     mainWindow.on("closed", () => {
-        electron.app.exit(0)
-    })*/
+        app.exit(0)
+    })
     mainWindow.loadURL(url.format({
         pathname: path.join(__dirname, "index.html"),
         protocol: "file:",
         slashes: true
     }))
     mainWindow.webContents.on("did-finish-load", () => {
-        const args = process.argv.slice(1)
+        //const args = process.argv.slice(1)
         // TODO parse arguments
     })
-    mainWindow.webContents.openDevTools()
+    mainWindow.webContents.openDevTools() //TODO remove this or add a shortcut
 })

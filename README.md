@@ -1,17 +1,22 @@
 Vieb
 ====
 
-![](build/icons/128x128.png)
+![icon](build/icons/128x128.png)
 
 Vim Inspired Electron Browser - [github](https://github.com/VimprovedVenture/Vieb)
-
-(In it's current form could also be: Very Incomplete, Extremely Basic)
 
 Where Vim bindings are a design choice and not an afterthought.
 
 # Features
 
-- None
+- Browse the web with Vim-bindings
+- Enter a url or search with `e`, the navbar color will change accordingly
+- Switch to insert mode with `i`, to interact with the website like usual
+- Enter commands with `:`, to enter commands such as `:q`
+- Search through the page with `/`, then find with `n` and `N`
+- Open a new tab with `t` and close the current one with `d`
+- Go to the next and previous open tab with `w` and `b`
+- Reload the page with `r` and reload without cache using `R`
 
 Planned features and ideas related to the development are explained in the [ideas file](Ideas.md) for now.
 In the future the github issue tracker will be used for missing features or known bugs.

@@ -1,0 +1,69 @@
+/*
+* Vieb - Vim Inspired Electron Browser
+* Copyright (C) 2019 Jelmer van Arnhem
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+/* global TABS INPUT */
+"use strict"
+
+const colors = {
+    "normal": "#eee",
+    "insert": "#3f3",
+    "command": "#f33",
+    "search": "#ff3",
+    "nav": "#3ff"
+}
+
+const setMode = mode => {
+    mode = mode.trim().toLowerCase()
+    if (colors[mode] === undefined) {
+        return
+    }
+    document.getElementById("mode").textContent = mode
+    document.getElementById("mode").style.color = colors[mode]
+    // Mode specific changes
+    if (mode === "normal") {
+        TABS.listPages().forEach(page => {
+            page.style.pointerEvents = "none"
+        })
+    }
+    if (mode === "insert") {
+        TABS.listPages().forEach(page => {
+            page.style.pointerEvents = "auto"
+            page.getWebContents().on("before-input-event", (e, input) => {
+                if (!input.alt && !input.meta && !input.shift) {
+                    if (input.control && input.code === "BracketLeft") {
+                        setMode("normal")
+                    }
+                    if (!input.control && input.code === "Escape") {
+                        setMode("normal")
+                    }
+                } else if (input.code === "Tab") {
+                    TABS.currentPage().focus()
+                }
+            })
+        })
+    }
+    INPUT.setFocus()
+}
+
+const currentMode = () => {
+    return document.getElementById("mode").textContent.trim()
+}
+
+module.exports = {
+    setMode,
+    currentMode
+}
