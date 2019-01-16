@@ -25,17 +25,20 @@
         <img src="img/icon.png" id="logo">
         <div>
             <div id="menu">
-                <span id="mode">Normal</span>
-                <span id="url">TODO: URL</span>
+                <span id="mode">normal</span>
+                <input id="url" type="text">
             </div>
-            <div id="tabs">
-                - - - - - - - - - - TODO: Tabs - - - - - - - - -
-            </div>
+            <div id="tabs"></div>
         </div>
     </div>
-    <div id="pages">
-        TODO: all else here
-    </div>
-    <!-- TODO: script tags to actually make Vieb do anything Vim related -->
+    <div id="pages"></div>
+    <script>
+        const TABS = require("./js/tabs.js")
+        const MODES = require("./js/modes.js")
+        const INPUT = require("./js/input.js")
+        const COMMAND = require("./js/command.js")
+        TABS.init()
+        INPUT.init()
+    </script>
 </body>
 </html>

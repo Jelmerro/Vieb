@@ -17,11 +17,20 @@
 */
 /* Global */
 body {color: #eee;font: 14px monospace;background: #333;padding: 0;margin: 0;height: 100vh;width: 100vw;overflow: hidden;user-select: none;}
-img {pointer-events: none;height: 48px;}
-.hidden {display: none !important;}
+img {pointer-events: none;height: 16px;}
 /* Nav bar */
 #navbar {width: 100vw;height: 56px;display: flex;}
 #logo {-webkit-app-region: drag;height: 48px;width: 48px;padding: 4px;}
 #menu, #tabs {display: flex;right: 0;left: 0;height: 28px;width: calc(100vw - 56px);}
-#mode {font-size: 18px;margin-top: 5px;}
-#url {display: inline-block;flex: 1;border: solid 2px red;margin: 2px;padding: 3px;}
+#mode {text-transform: capitalize;font-size: 18px;margin: 5px 0px;font-weight: bold;}
+/* Nav tabs */
+#tabs > span {color: #ccc;background-color: #444;display: flex;margin-right: 2px;padding-right: 6px;flex: 1;overflow: hidden;white-space: nowrap;}
+#tabs > span > img {padding: 6px;}
+#tabs > span > span {padding-top: 6px;overflow: hidden;white-space: nowrap;}
+#tabs > #current-tab {color: #eee;background-color: #666;}
+/* Nav url/search/command */
+#url {display: inline-block;flex: 1;border: solid 2px #666;margin: 2px;padding: 3px;background-color: #333;color: #eee;outline: none;pointer-events: none;}
+#url.search {border-color: #fa0;}
+#url.url {border-color: #3ff;}
+/* pages */
+webview {height: calc(100vh - 56px);width: 100vw;display: flex;pointer-events: none;}
