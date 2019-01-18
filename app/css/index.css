@@ -32,5 +32,16 @@ img {pointer-events: none;height: 16px;}
 #url {display: inline-block;flex: 1;border: solid 2px #666;margin: 2px;padding: 3px;background-color: #333;color: #eee;outline: none;pointer-events: none;}
 #url.search {border-color: #fa0;}
 #url.url {border-color: #3ff;}
+/* follow */
+#follow {height: calc(100vh - 56px);position: fixed;top: 56px;left: 0;width: 100vw;display: none;pointer-events: none;}
+.follow-url, .follow-inputs-click, .follow-inputs-insert, .follow-onclick {z-index: 1;position: absolute;color: #111;font-weight: bold;}
+.follow-url {background-color: #cff;border: solid 2px #5cc;}
+.follow-inputs-click {background-color: #fcc;border: solid 2px #c55;}
+.follow-inputs-insert {background-color: #cfc;border: solid 2px #5c5;}
+.follow-onclick {background-color: #ffc;border: solid 2px #cc5;}
+.follow-url-border {border: solid 1px #5cc;position: absolute;}
+.follow-inputs-click-border {border: solid 1px #c55;position: absolute;}
+.follow-inputs-insert-border {border: solid 1px #5c5;position: absolute;}
+.follow-onclick-border {border: solid 1px #cc5;position: absolute;}
 /* pages */
 webview {height: calc(100vh - 56px);width: 100vw;display: flex;pointer-events: none;}

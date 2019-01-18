@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global MODES COMMAND */
+/* global MODES FOLLOW */
 "use strict"
 
 const init = () => {
@@ -60,23 +60,23 @@ const addTab = (url=null) => {
     if (url !== null) {
         webview.src = url
     }
+    webview.setAttribute("preload", "./js/preload.js")
     addWebviewListeners(webview)
     pages.appendChild(webview)
     switchToTab(listTabs().length - 1)
 }
 
 const closeTab = () => {
-    if (listTabs().length > 1) {
-        const oldTabIndex = listTabs().indexOf(currentTab())
-        document.getElementById("tabs").removeChild(currentTab())
-        document.getElementById("pages").removeChild(currentPage())
-        if (oldTabIndex === 0) {
-            switchToTab(0)
-        } else {
-            switchToTab(oldTabIndex - 1)
-        }
+    const oldTabIndex = listTabs().indexOf(currentTab())
+    document.getElementById("tabs").removeChild(currentTab())
+    document.getElementById("pages").removeChild(currentPage())
+    if (listTabs().length === 0) {
+        addTab()
+    }
+    if (oldTabIndex === 0) {
+        switchToTab(0)
     } else {
-        COMMAND.quit()
+        switchToTab(oldTabIndex - 1)
     }
 }
 
@@ -97,10 +97,14 @@ const switchToTab = index => {
     })
     tabs[index].id = "current-tab"
     pages[index].style.display = "flex"
-    updateUrl()
+    updateUrl(currentPage())
 }
 
-const updateUrl = () => {
+const updateUrl = webview => {
+    const skip = ["command", "search", "nav"]
+    if (webview !== currentPage() || skip.indexOf(MODES.currentMode()) !== -1) {
+        return
+    }
     if (currentPage().src !== undefined) {
         document.getElementById("url").value = currentPage().src
     } else {
@@ -110,20 +114,29 @@ const updateUrl = () => {
 
 const addWebviewListeners = webview => {
     webview.addEventListener("did-start-loading", () => {
-        listTabs()[listPages().indexOf(webview)]
-            .querySelector("img").src = "img/spinner.gif"
-        updateUrl()
+        const tab = listTabs()[listPages().indexOf(webview)]
+        tab.querySelector("img").src = "img/spinner.gif"
+        updateUrl(webview)
         webview.getWebContents().removeAllListeners("login")
         webview.getWebContents()
             .on("login", (e, request, auth, callback)  => {
                 e.preventDefault()
                 //TODO ask nicely for username and password here
-                console.log(e, request, auth, callback)
+                //console.log(e, request, auth, callback)
                 callback("username", "password")
             })
     })
     webview.addEventListener("did-fail-load", e => {
-        console.log(e) //TODO
+        //TODO make a setting for this:
+        //It will go to the http version of a website when no https is detected
+        /*if (e.errorDescription === "ERR_CERT_COMMON_NAME_INVALID") {
+            webview.src = webview.src.replace("https://", "http://")
+            return
+        }*/
+        const tab = listTabs()[listPages().indexOf(webview)]
+        tab.querySelector("img").src = "img/error.png"
+        tab.querySelector("span").textContent = e.errorDescription
+        //TODO maybe also show a notification for it
     })
     webview.addEventListener("did-stop-loading", () => {
         const tab = listTabs()[listPages().indexOf(webview)]
@@ -132,35 +145,35 @@ const addWebviewListeners = webview => {
                 tab.querySelector("img").src = "img/nofavicon.png"
             }
         }
+        if (tab.querySelector("span").textContent === "Loading...") {
+            tab.querySelector("span").textContent = ""
+        }
     })
     webview.addEventListener("page-title-updated", e => {
-        listTabs()[listPages().indexOf(webview)]
-            .querySelector("span").textContent = e.title
-        updateUrl()
+        const tab = listTabs()[listPages().indexOf(webview)]
+        tab.querySelector("span").textContent = e.title
+        updateUrl(webview)
     })
     webview.addEventListener("page-favicon-updated", e => {
+        const tab = listTabs()[listPages().indexOf(webview)]
         if (e.favicons.length > 0) {
-            listTabs()[listPages().indexOf(webview)]
-                .querySelector("img").src = e.favicons[0]
+            tab.querySelector("img").src = e.favicons[0]
         } else {
-            listTabs()[listPages().indexOf(webview)]
-                .querySelector("img").src = "img/nofavicon.png"
+            tab.querySelector("img").src = "img/nofavicon.png"
         }
-        updateUrl()
-    })
-    webview.addEventListener("enter-html-full-screen", e => {
-        console.log(e) //TODO
-        //Electron made it impossible to actually enter fullscreen though...
-    })
-    webview.addEventListener("leave-html-full-screen", e => {
-        console.log(e) //TODO
+        updateUrl(webview)
     })
     webview.addEventListener("new-window", e => {
-        webview.src = e.url
+        navigateTo(e.url)
     })
     webview.addEventListener("found-in-page", e => {
         if (e.result.matches === 0) {
-            //TODO no matches found
+            //TODO no matches found, inform using notifications
+        }
+    })
+    webview.addEventListener("ipc-message", e => {
+        if (e.channel === "follow-response") {
+            FOLLOW.parseAndDisplayLinks(e.args[0])
         }
     })
     webview.onblur = () => {
@@ -168,6 +181,11 @@ const addWebviewListeners = webview => {
             webview.focus()
         }
     }
+}
+
+const navigateTo = location => {
+    currentPage().src = location
+    currentTab().querySelector("span").textContent = "Loading..."
 }
 
 module.exports = {
@@ -178,5 +196,7 @@ module.exports = {
     currentPage,
     addTab,
     closeTab,
-    switchToTab
+    switchToTab,
+    updateUrl,
+    navigateTo
 }

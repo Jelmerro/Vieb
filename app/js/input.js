@@ -15,254 +15,177 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global MODES TABS COMMAND */
+/* global MODES ACTIONS FOLLOW COMMAND */
 "use strict"
 
-const urlLib = require("url")
-const remoteLib = require("electron").remote
-let currentSearch = ""
+const bindings = {
+    "normal": {
+        "KeyB": "ACTIONS.previousTab",
+        "KeyD": "ACTIONS.closeTab",
+        "KeyE": "ACTIONS.toNavMode",
+        "KeyF": "FOLLOW.startFollowCurrentTab",
+        "KeyG": "ACTIONS.scrollTop",
+        "KeyH": "ACTIONS.scrollLeft",
+        "KeyI": "ACTIONS.toInsertMode",
+        "KeyJ": "ACTIONS.scrollDown",
+        "KeyK": "ACTIONS.scrollUp",
+        "KeyL": "ACTIONS.scrollRight",
+        "KeyN": "ACTIONS.nextSearchMatch",
+        "KeyR": "ACTIONS.reload",
+        "KeyT": "ACTIONS.openNewTab",
+        "KeyW": "ACTIONS.nextTab",
+        "Slash": "ACTIONS.toSearchMode",
+        "S-KeyF": "FOLLOW.startFollowNewTab",
+        "S-KeyG": "ACTIONS.scrollBottom",
+        "S-KeyH": "ACTIONS.backInHistory",
+        "S-KeyL": "ACTIONS.forwardInHistory",
+        "S-KeyN": "ACTIONS.previousSearchMatch",
+        "S-KeyR": "ACTIONS.reloadWithoutCache",
+        "S-Semicolon": "ACTIONS.toCommandMode",
+        "C-Digit0": "ACTIONS.zoomReset",
+        "C-Minus": "ACTIONS.zoomOut",
+        "C-Equal": "ACTIONS.zoomIn",
+        "CS-Digit0": "ACTIONS.zoomReset",
+        "CS-Minus": "ACTIONS.zoomOut",
+        "CS-Equal": "ACTIONS.zoomIn"
+    },
+    "insert": {
+        "Escape": "ACTIONS.toNormalMode",
+        "C-BracketLeft": "ACTIONS.toNormalMode"
+    },
+    "command": {
+        "Escape": "ACTIONS.toNormalMode",
+        "C-BracketLeft": "ACTIONS.toNormalMode",
+        "Enter": "ACTIONS.useEnteredData"
+    },
+    "search": {
+        "Escape": "ACTIONS.toNormalMode",
+        "C-BracketLeft": "ACTIONS.toNormalMode",
+        "Enter": "ACTIONS.useEnteredData"
+    },
+    "nav": {
+        "Escape": "ACTIONS.toNormalMode",
+        "C-BracketLeft": "ACTIONS.toNormalMode",
+        "Enter": "ACTIONS.useEnteredData"
+    },
+    "follow": {
+        "Escape": "FOLLOW.cancelFollow",
+        "C-BracketLeft": "FOLLOW.cancelFollow"
+    }
+}
 
 const init = () => {
     window.addEventListener("keydown", handleKeyboard)
     window.addEventListener("keypress", handleUserInput)
     window.addEventListener("keyup", handleUserInput)
-    window.addEventListener("click", () => {
-        setFocus()
-    })
-    remoteLib.getCurrentWindow().on("close", e => {
+    window.addEventListener("click", e => {
         e.preventDefault()
-        COMMAND.quit()
+        ACTIONS.setFocusCorrectly()
     })
+    window.addEventListener("contextmenu", e => {
+        e.preventDefault()
+        ACTIONS.setFocusCorrectly()
+    })
+    window.addEventListener("resize", () => {
+        if (MODES.currentMode() === "follow") {
+            FOLLOW.startFollow()
+        }
+    })
+    ACTIONS.setFocusCorrectly()
+}
+
+const toIdentifier = e => {
+    if (e.ctrlKey || e.shiftKey || e.metaKey || e.altKey) {
+        let identifier = ""
+        if (e.ctrlKey) {
+            identifier += "C"
+        }
+        if (e.shiftKey) {
+            identifier += "S"
+        }
+        if (e.metaKey) {
+            identifier += "M"
+        }
+        if (e.altKey) {
+            identifier += "A"
+        }
+        return `${identifier}-${e.code}`
+    }
+    return e.code
+}
+
+const eventToAction = e => {
+    //TODO merge local bindings object with a custom one defined in settings
+    const allBindings = JSON.parse(JSON.stringify(bindings))
+    return allBindings[MODES.currentMode()][toIdentifier(e)]
 }
 
 const handleKeyboard = e => {
-    if (e.altKey || e.metaKey) {
+    const action = eventToAction(e)
+    const isAction = executeAction(action)
+    if (isAction) {
         e.preventDefault()
         return
-    }
-    if (MODES.currentMode() === "normal") {
-        if (!e.shiftKey && !e.ctrlKey) {
-            if (e.code === "KeyB") {
-                TABS.switchToTab(TABS.listTabs().indexOf(TABS.currentTab()) - 1)
-                e.preventDefault()
-                return
-            }
-            if (e.code === "KeyD") {
-                TABS.closeTab()
-                e.preventDefault()
-                return
-            }
-            if (e.code === "KeyE") {
-                MODES.setMode("nav")
-                e.preventDefault()
-                return
-            }
-            if (e.code === "KeyI") {
-                MODES.setMode("insert")
-                e.preventDefault()
-                return
-            }
-            if (e.code === "KeyN") {
-                if (currentSearch !== "") {
-                    try {
-                        TABS.currentPage().findInPage(currentSearch, {
-                            findNext: true,
-                            matchCase: true
-                        })
-                    } catch (e) {
-                        //Searching an empty tab with an existing search
-                    }
-                }
-                e.preventDefault()
-                return
-            }
-            if (e.code === "KeyR") {
-                TABS.currentPage().reload()
-                e.preventDefault()
-                return
-            }
-            if (e.code === "KeyT") {
-                TABS.addTab()
-                MODES.setMode("nav")
-                e.preventDefault()
-                return
-            }
-            if (e.code === "KeyW") {
-                TABS.switchToTab(TABS.listTabs().indexOf(TABS.currentTab()) + 1)
-                e.preventDefault()
-                return
-            }
-            if (e.code === "Slash") {
-                MODES.setMode("search")
-                e.preventDefault()
-                return
-            }
-        }
-        if (e.shiftKey && !e.ctrlKey) {
-            if (e.code === "KeyN") {
-                if (currentSearch !== "") {
-                    try {
-                        TABS.currentPage().findInPage(currentSearch, {
-                            forward: false,
-                            findNext: true,
-                            matchCase: true
-                        })
-                    } catch (e) {
-                        //Searching an empty tab with an existing search
-                    }
-                }
-                e.preventDefault()
-                return
-            }
-            if (e.code === "KeyR") {
-                TABS.currentPage().reloadIgnoringCache()
-                e.preventDefault()
-                return
-            }
-            if (e.code === "Semicolon") {
-                MODES.setMode("command")
-                e.preventDefault()
-                return
-            }
-        }
-    }
-    const escapableModes = ["insert", "command", "search", "nav"]
-    if (escapableModes.indexOf(MODES.currentMode()) !== -1) {
-        if (!e.shiftKey && !e.ctrlKey) {
-            if (e.code === "Escape") {
-                //TODO setting to disable this when in insert mode
-                MODES.setMode("normal")
-                e.preventDefault()
-                return
-            }
-        }
-        if (!e.shiftKey && e.ctrlKey) {
-            if (e.code === "BracketLeft") {
-                MODES.setMode("normal")
-                e.preventDefault()
-                return
-            }
-        }
     }
     handleUserInput(e)
 }
 
-const handleUserInput = e => {
-    if (e.ctrlKey || e.altKey || e.metaKey) {
-        e.preventDefault()
-        return
-    }
-    if (MODES.currentMode() === "command") {
-        if (e.code === "Tab") {
-            e.preventDefault()
-        }
-        if (e.code === "Enter") {
-            COMMAND.execute(document.getElementById("url").value.trim())
-            MODES.setMode("normal")
-        }
-    }
-    if (MODES.currentMode() === "search") {
-        if (e.code === "Tab") {
-            e.preventDefault()
-        }
-        if (e.code === "Enter") {
-            currentSearch = document.getElementById("url").value
-            try {
-                TABS.currentPage().stopFindInPage("clearSelection")
-                TABS.currentPage().findInPage(currentSearch, {matchCase: true})
-            } catch (e) {
-                //Not a problem, will be catched when pressing n or N
-            }
-            MODES.setMode("normal")
-            e.preventDefault()
-            return
-        }
-    }
-    if (MODES.currentMode() === "nav") {
-        if (e.code === "Tab") {
-            e.preventDefault()
-        }
-        if (e.code === "Enter") {
-            const urlElement = document.getElementById("url")
-            if (urlElement.value.trim() !== "") {
-                if (isUrl(urlElement.value.trim())) {
-                    const parsed = urlLib.parse(urlElement.value.trim())
-                    if (parsed.protocol === null) {
-                        TABS.currentPage().src = `https://${parsed.href}`
-                    } else {
-                        TABS.currentPage().src = parsed.href
-                    }
-                } else {
-                    TABS.currentPage().src =
-                        `https://duckduckgo.com/?q=${urlElement.value.trim()}`
-                }
-            }
-            urlElement.className = ""
-            MODES.setMode("normal")
-            e.preventDefault()
-            return
-        }
-    }
-    setFocus()
-}
-
-const isUrl = location => {
-    if (location.indexOf(".") === -1) {
+const executeAction = action => {
+    if (typeof action !== "string") {
         return false
     }
-    //TODO more conditions
+    const actionParts = action.split(".")
+    if (actionParts.length !== 2) {
+        return false
+    }
+    const categories = {
+        "ACTIONS": ACTIONS,
+        "FOLLOW": FOLLOW,
+        "COMMAND": COMMAND
+    }
+    const categoryName = actionParts[0]
+    if (categories[categoryName] === undefined) {
+        return false
+    }
+    const category = categories[categoryName]
+    const func = actionParts[1]
+    if (category[func] === undefined) {
+        return false
+    }
+    category[func]()
     return true
 }
 
-const setFocus = () => {
-    const urlElement = document.getElementById("url")
-    if (MODES.currentMode() === "normal") {
-        window.focus()
-        urlElement.className = ""
-        urlElement.blur()
-        urlElement.value = TABS.currentPage().src
-        window.focus()
+const handleUserInput = e => {
+    if (e.code === "Tab") {
+        e.preventDefault()
+        return
     }
-    if (MODES.currentMode() === "insert") {
-        TABS.currentPage().focus()
-        TABS.currentPage().click()
+    const id = toIdentifier(e)
+    if (MODES.currentMode() === "follow") {
+        if (e.type === "keydown") {
+            FOLLOW.enterKey(id)
+        }
+        e.preventDefault()
+        return
     }
-    if (document.activeElement !== urlElement) {
-        if (MODES.currentMode() === "command") {
-            window.focus()
-            urlElement.focus()
-            if (urlElement.value === TABS.currentPage().src) {
-                urlElement.value = ""
-            }
-        }
-        if (MODES.currentMode() === "search") {
-            window.focus()
-            urlElement.focus()
-            if (urlElement.value === TABS.currentPage().src) {
-                urlElement.value = currentSearch
-                urlElement.select()
-            }
-        }
-        if (MODES.currentMode() === "nav") {
-            window.focus()
-            urlElement.focus()
-            if (urlElement.value === TABS.currentPage().src) {
-                urlElement.select()
-            }
-        }
+    const allowedUserInput = [
+        "C-KeyC", "C-KeyV", "C-KeyA",
+        "C-Backspace", "C-ArrowLeft", "C-ArrowRight"
+    ]
+    if (id.startsWith("S-")) {
+        //Regular keys and shift keys are okay
+    } else if (allowedUserInput.indexOf(id) === -1 && id.indexOf("-") !== -1) {
+        //Other modifiers are not allowed and will be blocked,
+        //if the shortcut is not in the allowedUserInput array
+        e.preventDefault()
+        return
     }
-    if (MODES.currentMode() === "nav") {
-        if (urlElement.value.trim() === "") {
-            urlElement.className = ""
-        } else if (isUrl(urlElement.value.trim())) {
-            urlElement.className = "url"
-        } else {
-            urlElement.className = "search"
-        }
-    }
+    ACTIONS.setFocusCorrectly()
 }
 
 module.exports = {
     init,
-    setFocus
+    eventToAction,
+    executeAction
 }
