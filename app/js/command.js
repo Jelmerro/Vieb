@@ -17,7 +17,7 @@
 */
 "use strict"
 
-const remoteLib = require("electron").remote
+const { remote } = require("electron")
 
 const execute = command => {
     if (["q", "quit"].indexOf(command) !== -1) {
@@ -29,8 +29,8 @@ const execute = command => {
 
 const quit = () => {
     //TODO save settings
-    remoteLib.getCurrentWindow().destroy()
-    remoteLib.app.exit(0)
+    remote.getCurrentWindow().destroy()
+    remote.app.exit(0)
 }
 
 module.exports = {

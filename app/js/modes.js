@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global TABS INPUT */
+/* global TABS ACTIONS INPUT */
 "use strict"
 
 const colors = {
@@ -23,7 +23,8 @@ const colors = {
     "insert": "#3f3",
     "command": "#f33",
     "search": "#ff3",
-    "nav": "#3ff"
+    "nav": "#3ff",
+    "follow": "#f3f"
 }
 
 const setMode = mode => {
@@ -43,20 +44,23 @@ const setMode = mode => {
         TABS.listPages().forEach(page => {
             page.style.pointerEvents = "auto"
             page.getWebContents().on("before-input-event", (e, input) => {
-                if (!input.alt && !input.meta && !input.shift) {
-                    if (input.control && input.code === "BracketLeft") {
-                        setMode("normal")
-                    }
-                    if (!input.control && input.code === "Escape") {
-                        setMode("normal")
-                    }
-                } else if (input.code === "Tab") {
+                if (input.code === "Tab") {
                     TABS.currentPage().focus()
                 }
+                //Translate to regular keyboard event
+                const keyEvent = {
+                    "ctrlKey": input.control,
+                    "shiftKey": input.shift,
+                    "metaKey": input.meta,
+                    "altKey": input.alt,
+                    "code": input.code
+                }
+                //Find the action
+                INPUT.executeAction(INPUT.eventToAction(keyEvent))
             })
         })
     }
-    INPUT.setFocus()
+    ACTIONS.setFocusCorrectly()
 }
 
 const currentMode = () => {
