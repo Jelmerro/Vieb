@@ -71,7 +71,7 @@ const parseAndDisplayLinks = l => {
         const linkElement = document.createElement("span")
         linkElement.textContent = numberToLetter(index, links.length)
         linkElement.className = `follow-${link.type}`
-        //TODO sometimes they are not visible when to the right (
+        //TODO sometimes they are not visible on the complete right of the page
         linkElement.style.left = `${link.x+link.width}px`
         linkElement.style.top = `${link.y}px`
         linkElement.setAttribute("link-id", index)
@@ -109,7 +109,7 @@ const enterKey = identifier => {
     }
     if (matches.length === 1) {
         const link = links[matches[0].getAttribute("link-id")]
-        //TODO improve url check and color them differenly?
+        //TODO improve url check to work for more urls
         if (link.url.trim() !== "") {
             if (followNewtab) {
                 TABS.addTab(link.url)
