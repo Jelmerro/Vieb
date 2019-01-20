@@ -5,7 +5,7 @@ This file contains an incomplete list of ideas related to Vieb.
 Ideas in this file come in two categories:
 
 - Essential features, which should be included before any release will be considered
-- Possible nice to have features, mostly related to a form edit mode and multiple tab window management
+- Nice to have features
 
 When most/all (essential) features described below are implemented,
 the remaining ones will be added to the issue tracker.
@@ -14,62 +14,33 @@ as they can be changed or dropped at any time.
 
 # Essential features
 
-## General
+Some features already have references in the current source code.
+You can search for them using `grep -nr TODO app`.
 
-- Separate command, normal and insert mode, to avoid conflicting shortcuts (e.g. with youtube or webgames)
-- A normal mode with a large collection of single key shortcuts to interact with the webpage (when done, this readme will have a list of them)
-- An insert mode which allows full interaction with the webpage, except when pressing `escape` or `ctrl+[`
-- Vieb should have commands for "complex" functionality and should at minimum include :help and :set commands
+## Settings module
 
-## Modes
+To view, modify and reset settings.
+It should also allow the user to modify the keybindings,
+by overwriting the existing ones.
+This way new custom ones can be added,
+while at the same time allowing existing ones to be disabled (by setting the action to undefined).
 
-Just like Vim, Vieb interaction will be separated into modes:
+Maybe it would also be cool to configure all settings using some sort of .viebrc file.
+The syntax would probably be json, but I haven't given this option much thought yet.
 
-- Insert mode
-- Command mode
-- Normal mode
-- Visual mode
-- Search mode
+## More commands
 
-### Insert mode
+- `:help` - For ANY/ALL help with using, changing or mastering Vieb (general help also using F1 in normal mode)
+- `:version` - Display version information about: Vieb, electron, Chromium and such
 
-This is by far the least complex mode in Vieb, because it allows full interaction with the webpage like any normal browser would.
-Sites such as youtube have lots of single-key shortcuts on the site,
-which could conflict with Vim binding add-ons/plugins.
-Vieb should aim to resolve this problem by having a separate Insert mode,
-which could be entered by pressing any of the following keys when in Normal mode:
+## Normal mode shortcuts
 
-`i, a, I, A`
-
-Exiting back to normal mode will be possible by default with `escape` or the `ctrl+[` combination.
-There are not many websites which would not work without `ctrl+[`,
-which is recommended over `escape` for that reason.
-It should be possible to choose a custom shortcut,
-if either of these conflict with a website you regularly visit.
-
-### Command mode
-
-When in normal mode, command mode can be entered after pressing `:`.
-These are some of the planned commands:
-
-- `:help` - For ANY/ALL help with using, changing or mastering Vieb
-- `:q` - Quit Vieb
-
-### Normal mode
-
-Just like regular Vim, this will be the mode used for most tasks.
-It allows the user to navigate pages by entirely using the keyboard.
-Most shortcuts should eventually have their own section dedicated in the help pages,
-but a summary for each planned key is displayed below:
-
-- f to follow links
-- F to open links in a new tab
-- hjkl to scroll
-- gg top of the page
-- G bottom of the page
-- v to enter visual mode (for selecting text mainly)
+- u to open a recently closed tab (requires history management, or settings related to this)
 
 # Nice to haves
+
+None of these features are planned for the near future,
+but some of these will probably be added to Vieb eventually.
 
 ## Possible form edit mode
 
@@ -90,4 +61,42 @@ but it's not planned to be implemented in Vieb anytime soon.
 It could be nice to display multiple tabs next to each other, similar to using separate windows in Vim.
 Opening new windows could be done by changing the F key to open a link in a new window instead of a new tab.
 Additionally, a new window could be opened after entering commands, similar to using `:Vex` in Vim.
-After pressing `ctrl+w` and pressing `h`, `j`, `k`, or `l` it should between them.
+After pressing `ctrl+w` and pressing `h`, `j`, `k`, or `l` it should switch between them.
+
+## Visual mode
+
+Selecting text in the browser is almost always done with the mouse.
+Vieb could have a visual mode similar to Vim,
+which would allow text selection by using the keyboard.
+
+## Optional adblocker/addons
+
+A major drawback of building a custom browser, is that the user loses the ability to install custom addons.
+One of the most used addons is an adblocker.
+Therefor Vieb should have it's own adblocker integrated as an OPTIONAL feature.
+Alternatively, Vieb could allow the user to install existing addons for Chromium or similar.
+The first option could be achieved by optionally filtering the domains with [this](https://github.com/Kikobeats/is-tracking-domain) or a proper adblocker such as [this one](https://github.com/brave/ad-block/).
+
+## Select link mode or Url preview option
+
+It could be nice to have a modified version of the `f` shortcut,
+possibly mapped to `s`, with the following differences:
+
+- It will NOT open links DIRECTLY after picking a link
+- It WILL show the complete url for the chosen link
+- Give the user the CHOICE to open the link after looking at the complete url
+- It WILL trigger the hover of the link/element, so no mouse is needed to activate that
+
+To make this possible, a hover needs to be simulated with javascript, this has two required steps:
+- Call the mouseenter/mouseleave functions
+- Copy the :hover css and apply it temporarily to the chosen element
+OR figure out if it's possible with [this electron API](https://electronjs.org/docs/api/web-contents#contentssendinputeventevent).
+
+Additionally, maybe the url could be shown in the bottom left on hover when in insert mode,
+similar to existing browsers.
+
+## Devtools with Vim bindings
+
+This is probably twice if not triple the work of the entire Vieb project,
+but it would be really nice to have.
+An example of a webview based devtools implementation can be found [here](https://github.com/electron/electron/blob/master/docs/api/web-contents.md#contentssetdevtoolswebcontentsdevtoolswebcontents).
