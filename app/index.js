@@ -49,20 +49,20 @@ app.on("ready", () => {
     mainWindow = new BrowserWindow(windowData)
     mainWindow.setMenu(null)
     mainWindow.setMinimumSize(400, 400)
-    /*mainWindow.on("close", e => {
+    mainWindow.on("close", e => {
         e.preventDefault()
     })
     mainWindow.on("closed", () => {
-        electron.app.exit(0)
-    })*/
+        app.exit(0)
+    })
     mainWindow.loadURL(url.format({
         pathname: path.join(__dirname, "index.html"),
         protocol: "file:",
         slashes: true
     }))
     mainWindow.webContents.on("did-finish-load", () => {
-        const args = process.argv.slice(1)
+        //const args = process.argv.slice(1)
         // TODO parse arguments
     })
-    mainWindow.webContents.openDevTools()
+    mainWindow.webContents.openDevTools() //TODO remove this or add a shortcut
 })
