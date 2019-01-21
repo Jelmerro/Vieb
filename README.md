@@ -85,21 +85,18 @@ The selectors could also be improved and are devided in the following colors:
 - Red for clickable buttons and boxes, these will be clicked automatically without entering insert mode
 - Orange for inline onclick handlers, event listeners can not be detected
 
-## Notes
-
-Planned features and ideas related to the development are explained in the [ideas file](Ideas.md) for now.
-In the future the github issue tracker will be used for missing features or known bugs.
-
 # Improving Vieb
 
-Feel free to report issues, or even open a pull request to solve something.
-If you have any interest in contributing code,
+Feel free to report issues for feature requests, bugs or any other changes.
+If you are interested in contributing code,
 make sure to follow these guidelines when working on it:
 
 - Use Vim to edit :)
 - Follow the included eslint style guide (using [ALE](https://github.com/w0rp/ale) or similar)
 - Use editorconfig (there is a [Vim plugin available](https://github.com/editorconfig/editorconfig-vim))
-- Probably more, but the above is good enough for now
+
+If you are looking for anything specific to improve,
+check the [unassigned issues](https://github.com/VimprovedVenture/Vieb/issues?q=is%3Aopen+no%3Aassignee) or [nice to haves](https://github.com/VimprovedVenture/Vieb/milestone/2).
 
 # LICENSE
 
