@@ -68,7 +68,7 @@ In this mode, the user can enter a url or a search request to navigate to.
 To enter search mode, press `e` or open a new tab with `t`.
 When in this mode, the navigation bar will change color depending on the entered data.
 Cyan means the entered data will directly requested as a website (or a local file using `file://`).
-When the navigation bar turns orange, the entered data will be directed to the configred search engine.
+When the navigation bar turns orange, the entered data will be directed to the configured search engine.
 The search engine can be changed in the viebrc.json file,
 see the chapter "Configuring Vieb" for details.
 
@@ -92,7 +92,7 @@ The selectors are divided in the following colors:
 
 To change the keybindings or any other setting of Vieb,
 the viebrc.json file should be created and/or changed.
-The file should be created in the Appdata/.confg folder of Vieb,
+The file should be created in the AppData or .config folder of Vieb,
 on linux this results in `/home/user/.config/Vieb/viebrc.json`.
 
 There should be chromium/electron related files in this directory,
