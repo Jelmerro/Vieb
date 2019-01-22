@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND MODES TABS */
+/* global COMMAND MODES TABS SETTINGS */
 "use strict"
 
 const url = require("url")
@@ -227,9 +227,7 @@ const useEnteredData = () => {
                     TABS.navigateTo(parsed.href)
                 }
             } else {
-                //TODO search engine setting
-                const search = "https://duckduckgo.com/?q="
-                TABS.navigateTo(search + urlElement.value.trim())
+                TABS.navigateTo(SETTINGS.get().search + urlElement.value.trim())
             }
         }
         urlElement.className = ""

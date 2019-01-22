@@ -44,7 +44,10 @@
         const TABS = require("./js/tabs.js")
         //Listen to all input to block them or connect them to specific actions
         const INPUT = require("./js/input.js")
+        //Load custom settings from disk
+        const SETTINGS = require("./js/settings.js")
         //Some modules require initialisation
+        SETTINGS.init()
         TABS.init()
         INPUT.init()
     </script>
