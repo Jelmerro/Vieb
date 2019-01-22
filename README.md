@@ -13,6 +13,7 @@ Vim bindings for the web by design
 - Switch between insert, command, normal mode and more
 - Dark theme
 - Default to https
+- Custom keybindings and other settings, see "Configuring Vieb" for details
 - The paragraphs below will highlight the features separated by mode
 
 ## Normal mode
@@ -31,21 +32,22 @@ Vim bindings for the web by design
 - Follow links using the keyboard with `f` or `F`, see follow mode for details
 
 By default, both `Escape` and `ctrl+[` will always go back to normal mode,
-even when insert mode is active.
-
-Proper custom keyboard shortcuts are planned, but currently only possible by editing the source code.
-Vieb currently has no settings either, which are also planned.
+even when insert mode is active, but this can be changed with custom keybindings.
 
 ## Insert mode
 
 Insert mode in Vieb is used to allow regular interaction with the website.
 When insert mode is active, all keyboard and mouse inputs are sent to the website.
 It is the only mode which supports mouse interaction.
+Some websites could conflict with the default `Escape` binding to go back to normal mode,
+but this can be changed as described below in "Configuring Vieb".
 
 ## Command mode
 
-Only the `:q` (or `:quit`) is currently supported.
-It is the only way to properly quit Vieb.
+Vieb supports the following commands:
+
+- `:q` or `:quit` will quit Vieb, and is the recommended way to do so
+- `:r` or `:reload` will reload the settings from the viebrc.json file
 
 ## Search mode
 
@@ -64,26 +66,62 @@ In this mode, the user can enter a url or a search request to navigate to.
 To enter search mode, press `e` or open a new tab with `t`.
 When in this mode, the navigation bar will change color depending on the entered data.
 Cyan means the entered data will directly requested as a website (or a local file using `file://`).
-When the navigation bar turns orange, the entered data will be directed to the default search engine.
-The search engine is currently hard-coded as duckduckgo.
+When the navigation bar turns orange, the entered data will be directed to the configred search engine.
+The search engine can be changed in the viebrc.json file,
+see the chapter "Configuring Vieb" for details.
 
 ## Follow mode
 
 This mode is essential for browsing the web using the keyboard.
 When entering this mode, all clickable elements, such as buttons or links,
-will be outlined and marked with a letter next to it.
-Upon pressing the letter, Vieb will either click the element with JavaScript,
-or go to the requested link in the current or a new tab.
+will be outlined and marked with a key next to it.
+Upon pressing the key, Vieb will click the element with JavaScript to activate it.
 When there are a lot of elements on the page, it might be needed to press two keys.
 To follow a link in the current tab, press `f` when in normal mode.
 Regular anchor tag links can also be opened in a new tab with `F`.
-Using the zoom in and out options currently break the follow mode.
-The selectors could also be improved and are devided in the following colors:
+The selectors are divided in the following colors:
 
 - Blue for regular links, these will be opened normally or in a new tab with `F`
 - Green for text-like input fields, choosing any of these will go to insert mode with the field focussed
 - Red for clickable buttons and boxes, these will be clicked automatically without entering insert mode
-- Orange for inline onclick handlers, event listeners can not be detected
+- Orange for inline onclick handlers, these will be clicked to trigger the onclick
+
+# Configuring Vieb
+
+To change the keybindings or any other setting of Vieb,
+the viebrc.json file should be created and/or changed.
+The file should be created in the Appdata/.confg folder of Vieb,
+on linux this results in `/home/user/.config/Vieb/viebrc.json`.
+
+There should be chromium/electron related files in this directory,
+if Vieb was started at least once.
+
+An example viebrc.json might look like this:
+
+```json
+{
+    "keybindings": {
+        "insert": {
+            "Escape": ""
+        },
+        "normal": {
+            "C-KeyQ": "COMMAND.quit"
+        }
+    },
+    "redirectToHttp": true,
+    "search": "https://google.com/search?q="
+}
+```
+
+This results in the following changes:
+
+- `Escape` can not be used to exit insert mode, but `ctrl+[` will still work
+- `ctrl+q` can be used to quit Vieb when in normal mode
+- Https connections will now be downgraded to http if the server has no certificate
+- The search engine will be google instead of the default duckduckgo
+
+The settings file is loaded on startup,
+and can be reloaded at anytime with the `:r` or `:reload` command.
 
 # Improving Vieb
 
@@ -96,7 +134,7 @@ make sure to follow these guidelines when working on it:
 - Use editorconfig (there is a [Vim plugin available](https://github.com/editorconfig/editorconfig-vim))
 
 If you are looking for anything specific to improve,
-check the [unassigned issues](https://github.com/VimprovedVenture/Vieb/issues?q=is%3Aopen+no%3Aassignee) or [nice to haves](https://github.com/VimprovedVenture/Vieb/milestone/2).
+check the [unassigned issues](https://github.com/VimprovedVenture/Vieb/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee) or [nice to haves](https://github.com/VimprovedVenture/Vieb/milestone/2).
 
 # LICENSE
 
