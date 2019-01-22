@@ -47,7 +47,7 @@ const cancelFollow = () => {
     document.getElementById("follow").innerHTML = ""
 }
 
-const numberToLetter = (number, total) => {
+const numberToKeys = (number, total) => {
     if (total < 26 || (number < 26 && number > Math.floor(total / 26))) {
         return String.fromCharCode(65 + number)
     }
@@ -69,7 +69,7 @@ const parseAndDisplayLinks = l => {
     //Regular anchor tags
     links.forEach((link, index) => {
         const linkElement = document.createElement("span")
-        linkElement.textContent = numberToLetter(index, links.length)
+        linkElement.textContent = numberToKeys(index, links.length)
         linkElement.className = `follow-${link.type}`
         //TODO sometimes they are not visible on the complete right of the page
         linkElement.style.left = `${link.x+link.width}px`
