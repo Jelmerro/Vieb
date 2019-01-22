@@ -24,7 +24,8 @@ const { remote } = require("electron")
 const defaultSettings = {
     "keybindings": {},
     "redirectToHttp": false,
-    "search": "https://duckduckgo.com/?q="
+    "search": "https://duckduckgo.com/?q=",
+    "caseSensitiveSearch": true
 }
 let allSettings = {}
 
@@ -48,6 +49,9 @@ const loadFromDisk = () => {
             if (typeof parsed.search === "string") {
                 allSettings.search = parsed.search
             }
+            if (typeof parsed.caseSensitiveSearch === "boolean") {
+                allSettings.caseSensitiveSearch = parsed.caseSensitiveSearch
+            }
         } catch (e) {
             //TODO notify the user that the config is corrupt (not json)
         }
@@ -58,8 +62,50 @@ const get = () => {
     return allSettings
 }
 
+const set = (setting, value) => {
+    setting = setting.toLowerCase()
+    if (setting === "keybindings") {
+        //TODO notify the user that these can't be changed with the set command
+        //Refer to the viebrc.json file and the reload command
+        return
+    }
+    if (setting === "redirecttohttp") {
+        if (value === "true") {
+            allSettings.redirectToHttp = true
+            return
+        }
+        if (value === "false") {
+            allSettings.redirectToHttp = false
+            return
+        }
+        //TODO notify the user that the value is not valid for this setting
+        return
+    }
+    if (setting === "search") {
+        if (!value.startsWith("http://") && !value.startsWith("https://")) {
+            value = "https://" + value
+        }
+        allSettings.search = value
+        return
+    }
+    if (setting === "casesensitivesearch") {
+        if (value === "true") {
+            allSettings.caseSensitiveSearch = true
+            return
+        }
+        if (value === "false") {
+            allSettings.caseSensitiveSearch = false
+            return
+        }
+        //TODO notify the user that the value is not valid for this setting
+        return
+    }
+    //TODO notify that the chosen setting does not exist
+}
+
 module.exports = {
     init,
     loadFromDisk,
-    get
+    get,
+    set
 }

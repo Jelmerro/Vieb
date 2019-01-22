@@ -82,7 +82,7 @@ const nextSearchMatch = () => {
         try {
             TABS.currentPage().findInPage(currentSearch, {
                 findNext: true,
-                matchCase: true
+                matchCase: SETTINGS.get().caseSensitiveSearch
             })
         } catch (e) {
             //No page is available, not an issue
@@ -143,7 +143,7 @@ const previousSearchMatch = () => {
             TABS.currentPage().findInPage(currentSearch, {
                 forward: false,
                 findNext: true,
-                matchCase: true
+                matchCase: SETTINGS.get().caseSensitiveSearch
             })
         } catch (e) {
             //No page is available, not an issue
@@ -210,7 +210,9 @@ const useEnteredData = () => {
         currentSearch = document.getElementById("url").value
         try {
             TABS.currentPage().stopFindInPage("clearSelection")
-            TABS.currentPage().findInPage(currentSearch, {matchCase: true})
+            TABS.currentPage().findInPage(currentSearch, {
+                matchCase: SETTINGS.get().caseSensitiveSearch
+            })
         } catch (e) {
             //No page is available, not an issue
         }

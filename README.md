@@ -48,16 +48,18 @@ Vieb supports the following commands:
 
 - `:q` or `:quit` will quit Vieb, and is the recommended way to do so
 - `:r` or `:reload` will reload the settings from the viebrc.json file
+- `:set` will change a setting for as long as Vieb is opened
 
 ## Search mode
 
 To search for a string on the website, press `/` and type the search string.
 Vieb will return to normal mode after you press `Enter`.
 Now the `n` and `N` keys can be used to search forward and backwards.
-Only case-sensitive search is currently implemented,
-as there are no settings in Vieb to change this yet.
-No patterns are currently supported yet,
-because the electron API has no implementation for them.
+By default, all searches are case sensitive.
+To change this for the current Vieb session only,
+use the following command: `set caseSensitiveSearch false`.
+To change this permanently, add `"caseSensitiveSearch": false` to the settings file,
+see the chapter "Configuring Vieb" for details.
 
 ## Nav mode
 
@@ -96,7 +98,7 @@ on linux this results in `/home/user/.config/Vieb/viebrc.json`.
 There should be chromium/electron related files in this directory,
 if Vieb was started at least once.
 
-An example viebrc.json might look like this:
+An example viebrc.json that changes most settings could look like this:
 
 ```json
 {
@@ -109,19 +111,32 @@ An example viebrc.json might look like this:
         }
     },
     "redirectToHttp": true,
-    "search": "https://google.com/search?q="
+    "search": "https://google.com/search?q=",
+    "caseSensitiveSearch": false
 }
 ```
 
-This results in the following changes:
+This example results in the following changes:
 
 - `Escape` can not be used to exit insert mode, but `ctrl+[` will still work
 - `ctrl+q` can be used to quit Vieb when in normal mode
 - Https connections will now be downgraded to http if the server has no certificate
 - The search engine will be google instead of the default duckduckgo
+- Change the search mode to be case-insensitive
 
 The settings file is loaded on startup,
 and can be reloaded at anytime with the `:r` or `:reload` command.
+All settings in this file are optional and will override the default setting.
+Alternatively, settings can be changed for the current session with the `:set` command.
+For example, to allow http redirects for as long as Vieb is running,
+open command mode with `:` and enter this command:
+
+`set redirectToHttp true`
+
+Vieb's set command syntax is different as compared to regular Vim,
+and always has the form of `set <setting> <value>`.
+The settings file is case sensitive, but the setting argument of the set command isn't.
+The keybindings can only be changed with the settings file and not with the set command.
 
 # Improving Vieb
 
