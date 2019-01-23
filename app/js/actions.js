@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND MODES TABS */
+/* global COMMAND MODES TABS SETTINGS */
 "use strict"
 
 const url = require("url")
@@ -82,7 +82,7 @@ const nextSearchMatch = () => {
         try {
             TABS.currentPage().findInPage(currentSearch, {
                 findNext: true,
-                matchCase: true
+                matchCase: SETTINGS.get().caseSensitiveSearch
             })
         } catch (e) {
             //No page is available, not an issue
@@ -143,7 +143,7 @@ const previousSearchMatch = () => {
             TABS.currentPage().findInPage(currentSearch, {
                 forward: false,
                 findNext: true,
-                matchCase: true
+                matchCase: SETTINGS.get().caseSensitiveSearch
             })
         } catch (e) {
             //No page is available, not an issue
@@ -210,7 +210,9 @@ const useEnteredData = () => {
         currentSearch = document.getElementById("url").value
         try {
             TABS.currentPage().stopFindInPage("clearSelection")
-            TABS.currentPage().findInPage(currentSearch, {matchCase: true})
+            TABS.currentPage().findInPage(currentSearch, {
+                matchCase: SETTINGS.get().caseSensitiveSearch
+            })
         } catch (e) {
             //No page is available, not an issue
         }
@@ -227,9 +229,7 @@ const useEnteredData = () => {
                     TABS.navigateTo(parsed.href)
                 }
             } else {
-                //TODO search engine setting
-                const search = "https://duckduckgo.com/?q="
-                TABS.navigateTo(search + urlElement.value.trim())
+                TABS.navigateTo(SETTINGS.get().search + urlElement.value.trim())
             }
         }
         urlElement.className = ""
