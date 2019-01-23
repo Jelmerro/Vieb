@@ -15,20 +15,36 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+/* global SETTINGS */
 "use strict"
 
 const { remote } = require("electron")
 
 const execute = command => {
+    while (command.indexOf("  ") !== -1) {
+        command = command.replace("  ", " ")
+    }
+    command = command.trim()
     if (["q", "quit"].indexOf(command) !== -1) {
         quit()
+        return
     }
-    //TODO more commands
-    //TODO unknown command handling, maybe with a notification manager
+    if (["r", "reload"].indexOf(command) !== -1) {
+        SETTINGS.loadFromDisk()
+        return
+    }
+    if (command.startsWith("set ") || command === "set") {
+        const parts = command.split(" ")
+        if (parts.length !== 3) {
+            //TODO notification for invalid usage
+            return
+        }
+        SETTINGS.set(parts[1], parts[2])
+        return
+    }
 }
 
 const quit = () => {
-    //TODO save settings
     remote.getCurrentWindow().destroy()
     remote.app.exit(0)
 }

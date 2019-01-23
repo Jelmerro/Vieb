@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global MODES ACTIONS FOLLOW COMMAND */
+/* global MODES ACTIONS FOLLOW COMMAND SETTINGS */
 "use strict"
 
 const bindings = {
@@ -115,8 +115,12 @@ const toIdentifier = e => {
 }
 
 const eventToAction = e => {
-    //TODO merge local bindings object with a custom one defined in settings
     const allBindings = JSON.parse(JSON.stringify(bindings))
+    const customBindings = SETTINGS.get().keybindings
+    Object.keys(allBindings).forEach(mode => {
+        allBindings[mode] = Object.assign(
+            allBindings[mode], customBindings[mode])
+    })
     return allBindings[MODES.currentMode()][toIdentifier(e)]
 }
 

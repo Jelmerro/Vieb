@@ -15,12 +15,13 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global MODES FOLLOW */
+/* global MODES FOLLOW SETTINGS */
 "use strict"
 
 const init = () => {
     addTab()
     //TODO maybe add a keep tabs option here
+    //Although this could be a setting, it also requires history management
 }
 
 const listTabs = () => {
@@ -127,12 +128,12 @@ const addWebviewListeners = webview => {
             })
     })
     webview.addEventListener("did-fail-load", e => {
-        //TODO make a setting for this:
         //It will go to the http version of a website when no https is detected
-        /*if (e.errorDescription === "ERR_CERT_COMMON_NAME_INVALID") {
+        const redirect = SETTINGS.get().redirectToHttp
+        if (e.errorDescription === "ERR_CERT_COMMON_NAME_INVALID" && redirect) {
             webview.src = webview.src.replace("https://", "http://")
             return
-        }*/
+        }
         const tab = listTabs()[listPages().indexOf(webview)]
         tab.querySelector("img").src = "img/error.png"
         tab.querySelector("span").textContent = e.errorDescription
