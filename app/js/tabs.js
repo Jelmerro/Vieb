@@ -130,7 +130,11 @@ const addWebviewListeners = webview => {
     webview.addEventListener("did-fail-load", e => {
         //It will go to the http version of a website when no https is detected
         const redirect = SETTINGS.get().redirectToHttp
-        if (e.errorDescription === "ERR_CERT_COMMON_NAME_INVALID" && redirect) {
+        const sslErrors = [
+            "ERR_CERT_COMMON_NAME_INVALID",
+            "ERR_SSL_PROTOCOL_ERROR"
+        ]
+        if (sslErrors.indexOf(e.errorDescription) !== -1 && redirect) {
             webview.src = webview.src.replace("https://", "http://")
             return
         }
