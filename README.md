@@ -88,6 +88,55 @@ The selectors are divided in the following colors:
 - Red for clickable buttons and boxes, these will be clicked automatically without entering insert mode
 - Orange for inline onclick handlers, these will be clicked to trigger the onclick
 
+# Starting Vieb
+
+There are two ways to get started with Vieb,
+both will be explained below.
+
+## Releases
+
+Stable releases can be found on the [github release page](https://github.com/VimprovedVenture/Vieb/releases).
+These releases require no special setup and can be downloaded for a specific platform.
+
+## From source
+
+The other option is to download/clone the repository and use npm, for example:
+
+```bash
+git clone https://github.com/VimprovedVenture/Vieb.git
+cd Vieb
+npm install
+npm start
+```
+
+## Startup
+
+Vieb can be started without any required arguments,
+but it does support them when needed.
+Running Vieb with `--help` should show the following output:
+
+```
+Vieb: Vim Inspired Electron Browser
+
+Usage: Vieb [options] <URLs>
+
+Options:
+ --help     Show this help and exit
+ --version  Display license and version information and exit
+ --debug    Start Vieb with the developer console open
+ --console  Same as --debug
+
+All arguments not starting with -- will be opened as a url
+```
+
+When starting Vieb with npm, it's required to enter the arguments like this:
+
+`npm start -- --help`
+
+It should be noted that de developer console is not the one linked to any websites,
+but is the internal console of the Vieb application.
+Opening the developer tools for the current website is not supported yet.
+
 # Configuring Vieb
 
 To change the keybindings or any other setting of Vieb,
