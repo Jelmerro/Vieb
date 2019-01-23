@@ -62,10 +62,10 @@ const parseAndDisplayLinks = l => {
     }
     //The maximum amount of links is 26 * 26,
     //therefor the slice index is 0 to 26^2 - 1
-    links = l.slice(0, 675)
     if (followNewtab) {
-        links = links.filter(link => UTIL.isUrl(link.url))
+        l = l.filter(link => UTIL.isUrl(link.url))
     }
+    links = l.slice(0, 675)
     if (links.length === 0) {
         //TODO notification for no available links
         cancelFollow()

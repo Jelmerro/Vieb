@@ -42,6 +42,6 @@ const isUrl = location => {
     //- Single number sign with anything behind it
 }
 module.exports = {
-    isUrl,
-    hasProtocol
+    hasProtocol,
+    isUrl
 }

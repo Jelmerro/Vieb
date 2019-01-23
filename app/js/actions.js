@@ -18,7 +18,6 @@
 /* global COMMAND MODES TABS SETTINGS UTIL */
 "use strict"
 
-const url = require("url")
 let currentSearch = ""
 
 const previousTab = () => {
