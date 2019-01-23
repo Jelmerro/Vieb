@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND MODES TABS SETTINGS */
+/* global COMMAND MODES TABS SETTINGS UTIL */
 "use strict"
 
 const url = require("url")
@@ -220,32 +220,19 @@ const useEnteredData = () => {
     }
     if (MODES.currentMode() === "nav") {
         const urlElement = document.getElementById("url")
-        if (urlElement.value.trim() !== "") {
-            if (isUrl(urlElement.value.trim())) {
-                const parsed = url.parse(urlElement.value.trim())
-                if (parsed.protocol === null) {
-                    TABS.navigateTo("https://" + parsed.href)
-                } else {
-                    TABS.navigateTo(parsed.href)
-                }
+        const location = urlElement.value.trim()
+        if (location !== "") {
+            if (UTIL.hasProtocol(location)) {
+                TABS.navigateTo(location)
+            } else if (UTIL.isUrl(location)) {
+                TABS.navigateTo("https://" + location)
             } else {
-                TABS.navigateTo(SETTINGS.get().search + urlElement.value.trim())
+                TABS.navigateTo(SETTINGS.get().search + location)
             }
         }
         urlElement.className = ""
         MODES.setMode("normal")
     }
-}
-
-const isUrl = location => {
-    if (url.parse(location).protocol !== null) {
-        return true
-    }
-    if (location.indexOf(".") === -1) {
-        return false
-    }
-    //TODO more conditions
-    return true
 }
 
 const setFocusCorrectly = () => {
@@ -288,7 +275,7 @@ const setFocusCorrectly = () => {
     if (MODES.currentMode() === "nav") {
         if (urlElement.value.trim() === "") {
             urlElement.className = ""
-        } else if (isUrl(urlElement.value.trim())) {
+        } else if (UTIL.isUrl(urlElement.value.trim())) {
             urlElement.className = "url"
         } else {
             urlElement.className = "search"
