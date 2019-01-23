@@ -15,19 +15,19 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global MODES TABS */
+/* global MODES TABS UTIL */
 "use strict"
 let followNewtab = true
 let links = []
 
 const startFollowCurrentTab = () => {
-    startFollow()
     followNewtab = false
+    startFollow()
 }
 
 const startFollowNewTab = () => {
-    startFollow()
     followNewtab = true
+    startFollow()
 }
 
 const startFollow = () => {
@@ -62,8 +62,12 @@ const parseAndDisplayLinks = l => {
     }
     //The maximum amount of links is 26 * 26,
     //therefor the slice index is 0 to 26^2 - 1
+    if (followNewtab) {
+        l = l.filter(link => UTIL.isUrl(link.url))
+    }
     links = l.slice(0, 675)
     if (links.length === 0) {
+        //TODO notification for no available links
         cancelFollow()
         return
     }
@@ -126,13 +130,8 @@ const enterKey = identifier => {
     }
     if (matches.length === 1) {
         const link = links[matches[0].getAttribute("link-id")]
-        //TODO improve url check to work for more urls
-        if (link.url.trim() !== "") {
-            if (followNewtab) {
-                TABS.addTab(link.url)
-            } else {
-                TABS.navigateTo(link.url)
-            }
+        if (followNewtab) {
+            TABS.addTab(link.url)
             cancelFollow()
             return
         }
