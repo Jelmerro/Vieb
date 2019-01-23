@@ -174,7 +174,7 @@ const zoomReset = () => {
 const zoomOut = () => {
     try {
         TABS.currentPage().getZoomLevel(level => {
-            if (level <= -8) {
+            if (level <= -7) {
                 return
             }
             TABS.currentPage().setZoomLevel(level - 1)
@@ -187,7 +187,7 @@ const zoomOut = () => {
 const zoomIn = () => {
     try {
         TABS.currentPage().getZoomLevel(level => {
-            if (level >= 8) {
+            if (level >= 7) {
                 return
             }
             TABS.currentPage().setZoomLevel(level + 1)

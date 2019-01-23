@@ -60,29 +60,46 @@ const parseAndDisplayLinks = l => {
     if (MODES.currentMode() !== "follow") {
         return
     }
-    links = l
+    //The maximum amount of links is 26 * 26,
+    //therefor the slice index is 0 to 26^2 - 1
+    links = l.slice(0, 675)
     if (links.length === 0) {
         cancelFollow()
         return
     }
-    const followElement = document.getElementById("follow")
-    //Regular anchor tags
-    links.forEach((link, index) => {
-        const linkElement = document.createElement("span")
-        linkElement.textContent = numberToKeys(index, links.length)
-        linkElement.className = `follow-${link.type}`
-        //TODO sometimes they are not visible on the complete right of the page
-        linkElement.style.left = `${link.x+link.width}px`
-        linkElement.style.top = `${link.y}px`
-        linkElement.setAttribute("link-id", index)
-        followElement.appendChild(linkElement)
-        const borderElement = document.createElement("span")
-        borderElement.className = `follow-${link.type}-border`
-        borderElement.style.left = `${link.x}px`
-        borderElement.style.top = `${link.y}px`
-        borderElement.style.width = `${link.width}px`
-        borderElement.style.height = `${link.height}px`
-        followElement.appendChild(borderElement)
+    TABS.currentPage().getZoomFactor(factor => {
+        const followElement = document.getElementById("follow")
+        links.forEach((link, index) => {
+            //Show the link key in the top right
+            const linkElement = document.createElement("span")
+            linkElement.textContent = numberToKeys(index, links.length)
+            linkElement.className = `follow-${link.type}`
+            let borderRightMargin = 12
+            if (linkElement.textContent.length === 2) {
+                borderRightMargin = 21
+            }
+            let left = ((link.x + link.width) * factor) + 1
+            if (left > window.innerWidth - borderRightMargin) {
+                left = window.innerWidth - borderRightMargin
+            }
+            linkElement.style.left = `${left}px`
+            const top = link.y * factor
+            linkElement.style.top = `${top}px`
+            linkElement.setAttribute("link-id", index)
+            followElement.appendChild(linkElement)
+            //Show a border around the link
+            const borderElement = document.createElement("span")
+            borderElement.className = `follow-${link.type}-border`
+            const x = link.x * factor
+            borderElement.style.left = `${x}px`
+            const y = link.y * factor
+            borderElement.style.top = `${y}px`
+            const width = link.width * factor
+            borderElement.style.width = `${width}px`
+            const height = link.height * factor
+            borderElement.style.height = `${height}px`
+            followElement.appendChild(borderElement)
+        })
     })
 }
 
@@ -119,37 +136,39 @@ const enterKey = identifier => {
             cancelFollow()
             return
         }
-        if (link.type === "inputs-insert") {
-            cancelFollow()
-        }
-        MODES.setMode("insert")
-        TABS.currentPage().sendInputEvent({
-            "type": "mouseEnter",
-            "x": link.x,
-            "y": link.y
+        TABS.currentPage().getZoomFactor(factor => {
+            if (link.type === "inputs-insert") {
+                cancelFollow()
+            }
+            MODES.setMode("insert")
+            TABS.currentPage().sendInputEvent({
+                "type": "mouseEnter",
+                "x": link.x * factor,
+                "y": link.y * factor
+            })
+            TABS.currentPage().sendInputEvent({
+                "type": "mouseDown",
+                "x": (link.x + (link.width / 2)) * factor,
+                "y": (link.y + (link.height / 2)) * factor,
+                "button": "left",
+                "clickCount": 1
+            })
+            TABS.currentPage().sendInputEvent({
+                "type": "mouseUp",
+                "x": (link.x + (link.width / 2)) * factor,
+                "y": (link.y + (link.height / 2)) * factor,
+                "button": "left",
+                "clickCount": 1
+            })
+            TABS.currentPage().sendInputEvent({
+                "type": "mouseLeave",
+                "x": link.x * factor,
+                "y": link.y * factor
+            })
+            if (link.type !== "inputs-insert") {
+                cancelFollow()
+            }
         })
-        TABS.currentPage().sendInputEvent({
-            "type": "mouseDown",
-            "x": link.x + (link.width / 2),
-            "y": link.y + (link.height / 2),
-            "button": "left",
-            "clickCount": 1
-        })
-        TABS.currentPage().sendInputEvent({
-            "type": "mouseUp",
-            "x": link.x + (link.width / 2),
-            "y": link.y + (link.height / 2),
-            "button": "left",
-            "clickCount": 1
-        })
-        TABS.currentPage().sendInputEvent({
-            "type": "mouseLeave",
-            "x": link.x,
-            "y": link.y
-        })
-        if (link.type !== "inputs-insert") {
-            cancelFollow()
-        }
     }
 }
 
