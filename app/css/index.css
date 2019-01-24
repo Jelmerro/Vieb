@@ -45,3 +45,11 @@ img {pointer-events: none;height: 16px;}
 .follow-onclick-border {border: solid 1px #cc5;position: absolute;}
 /* pages */
 webview {height: calc(100vh - 56px);width: 100vw;display: flex;pointer-events: none;}
+/* notifications */
+#notifications {display: flex;position: fixed;flex-direction: column;}
+#notifications > span {background-color: #00007777;margin-bottom: 10px;padding: 20px;display: flex;}
+#notifications > span > img {height: 32px;width: 32px;min-width: 32px;}
+.bottom-right {right: 5px;bottom: 0;}
+.bottom-left {left: 5px;bottom: 0;}
+.top-right {right: 5px;top: 61px;}
+.top-left {left: 5px;top: 61px;}

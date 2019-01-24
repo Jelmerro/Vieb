@@ -15,6 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+/* global UTIL */
 "use strict"
 
 const fs = require("fs")
@@ -25,7 +26,12 @@ const defaultSettings = {
     "keybindings": {},
     "redirectToHttp": false,
     "search": "https://duckduckgo.com/?q=",
-    "caseSensitiveSearch": true
+    "caseSensitiveSearch": true,
+    "notification": {
+        "system": false,
+        "position": "bottom-right",
+        "duration": 5000
+    }
 }
 let allSettings = {}
 
@@ -52,8 +58,24 @@ const loadFromDisk = () => {
             if (typeof parsed.caseSensitiveSearch === "boolean") {
                 allSettings.caseSensitiveSearch = parsed.caseSensitiveSearch
             }
+            if (typeof parsed.notification === "object") {
+                if (typeof parsed.notification.system === "boolean") {
+                    allSettings.notification.system = parsed.notification.system
+                }
+                const positions = [
+                    "bottom-right", "bottom-left", "top-right", "top-left"]
+                if (positions.indexOf(parsed.notification.position) !== -1) {
+                    allSettings.notification.position =
+                        parsed.notification.position
+                }
+                if (typeof parsed.notification.duration === "number") {
+                    allSettings.notification.duration =
+                        Math.max(Number(parsed.notification.duration), 100)
+                }
+            }
         } catch (e) {
-            //TODO notify the user that the config is corrupt (not json)
+            UTIL.notify(
+                `The config file located at '${config}' is corrupt`, "err")
         }
     }
 }
@@ -65,8 +87,9 @@ const get = () => {
 const set = (setting, value) => {
     setting = setting.toLowerCase()
     if (setting === "keybindings") {
-        //TODO notify the user that these can't be changed with the set command
-        //Refer to the viebrc.json file and the reload command
+        UTIL.notify("The keybindings can't be changed with the set command\n"
+            + "Instead, open the config file, edit the bindings and "
+            + "use the reload command to load them from disk again")
         return
     }
     if (setting === "redirecttohttp") {
@@ -78,7 +101,8 @@ const set = (setting, value) => {
             allSettings.redirectToHttp = false
             return
         }
-        //TODO notify the user that the value is not valid for this setting
+        UTIL.notify("This is an invalid value for this setting, only "
+            + "true and false are accepted here", "warn")
         return
     }
     if (setting === "search") {
@@ -97,10 +121,45 @@ const set = (setting, value) => {
             allSettings.caseSensitiveSearch = false
             return
         }
-        //TODO notify the user that the value is not valid for this setting
+        UTIL.notify("This is an invalid value for this setting, only "
+            + "true and false are accepted here", "warn")
         return
     }
-    //TODO notify that the chosen setting does not exist
+    if (setting === "notification.system") {
+        if (value === "true") {
+            allSettings.notification.system = true
+            return
+        }
+        if (value === "false") {
+            allSettings.notification.system = false
+            return
+        }
+        UTIL.notify("This is an invalid value for this setting, only "
+            + "true and false are accepted here", "warn")
+        return
+    }
+    const positions = [
+        "bottom-right", "bottom-left", "top-right", "top-left"]
+    if (setting === "notification.position") {
+        if (positions.indexOf(value) === -1) {
+            UTIL.notify("This is an invalid value for this setting, only "
+                + "the following options are available: "
+                + positions.join(", "), "warn")
+        } else {
+            allSettings.notification.position = value
+        }
+        return
+    }
+    if (setting === "notification.duration") {
+        if (/^[0-9]+$/.test(value)) {
+            allSettings.notification.duration = Math.max(Number(value), 100)
+        } else {
+            UTIL.notify("This is an invalid value for this setting, only "
+                + "numbers are accepted here", "warn")
+        }
+        return
+    }
+    UTIL.notify(`The requested setting '${setting}' does not exist`, "warn")
 }
 
 module.exports = {

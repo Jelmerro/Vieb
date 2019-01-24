@@ -34,8 +34,8 @@ ipcRenderer.on("follow-mode-request", e => {
 })
 
 const isVisible = (element, doSizeCheck=true) => {
-    if (element.offsetWidth <= 0 && element.offsetHeight <= 0) {
-        if (element.getClientRects().length === 0 && doSizeCheck) {
+    if (element.offsetWidth <= 1 || element.offsetHeight <= 1) {
+        if (doSizeCheck) {
             return false
         }
     }
@@ -45,7 +45,9 @@ const isVisible = (element, doSizeCheck=true) => {
     if (element.style.visibility === "hidden") {
         return false
     }
-    //TODO more hidden element checks, to prevent useless follow suggestions
+    if (element.style.opacity === 0) {
+        return false
+    }
     const dimensions = element.getBoundingClientRect()
     const viewHeight = Math.max(
         document.documentElement.clientHeight, window.innerHeight)
@@ -66,13 +68,17 @@ const gatherAnchorTags = () => {
     elements.forEach(element => {
         if (isVisible(element, false)) {
             let dimensions = element.getBoundingClientRect()
-            if (dimensions.width === 0 || dimensions.height === 0) {
-                const anchorImage = element.querySelector("img")
-                if (anchorImage !== null) {
-                    dimensions = anchorImage.getBoundingClientRect()
+            const anchorImage = element.querySelector("img, svg")
+            if (anchorImage !== null) {
+                const imageDimensions = anchorImage.getBoundingClientRect()
+                if (imageDimensions.width > dimensions.width) {
+                    dimensions = imageDimensions
+                }
+                if (imageDimensions.height > dimensions.height) {
+                    dimensions = imageDimensions
                 }
             }
-            if (dimensions.width > 0 && dimensions.height > 0) {
+            if (dimensions.width > 1 && dimensions.height > 1) {
                 tags.push({
                     "url": element.href,
                     "x": dimensions.x,
@@ -96,8 +102,6 @@ const gatherClickableInputs = () => {
     elements.push(...document.querySelectorAll("input[type=\"radio\"]"))
     elements.push(...document.querySelectorAll("input[type=\"checkbox\"]"))
     elements.push(...document.querySelectorAll("input[type=\"submit\"]"))
-    //This won't access onclick added by javascript,
-    //but that seems to be impossible though the DOM API.
     const tags = []
     elements.forEach(element => {
         if (isVisible(element)) {
@@ -116,11 +120,10 @@ const gatherClickableInputs = () => {
 }
 
 const gatherTextLikeInputs = () => {
+    //Input fields with text input or similar
     const elements = [...document.querySelectorAll(
         "input:not([type=\"radio\"]):not([type=\"checkbox\"])"
         + ":not([type=\"submit\"]):not([type=\"button\"])")]
-    //This won't access onclick added by javascript,
-    //but that seems to be impossible though the DOM API.
     const tags = []
     elements.forEach(element => {
         if (isVisible(element)) {
@@ -141,7 +144,7 @@ const gatherTextLikeInputs = () => {
 const gatherOnclickElements = () => {
     const elements = [...document.querySelectorAll("*[onclick]")]
     //This won't access onclick added by javascript,
-    //but that seems to be impossible though the DOM API.
+    //but there is a separate issue for that (#9)
     const tags = []
     elements.forEach(element => {
         if (isVisible(element)) {
