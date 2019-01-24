@@ -33,7 +33,8 @@ const startFollowNewTab = () => {
 const startFollow = () => {
     document.getElementById("follow").innerHTML = ""
     if (TABS.currentPage().src === "" || TABS.currentPage().isLoading()) {
-        //TODO notify the user that follow mode is unavailable during loads
+        UTIL.notify(
+            "Follow mode will be available when the page is done loading")
     } else {
         MODES.setMode("follow")
         TABS.currentPage().getWebContents().send("follow-mode-request", "hi")
@@ -67,7 +68,7 @@ const parseAndDisplayLinks = l => {
     }
     links = l.slice(0, 675)
     if (links.length === 0) {
-        //TODO notification for no available links
+        UTIL.notify("No links are visible on the page to follow", "warn")
         cancelFollow()
         return
     }

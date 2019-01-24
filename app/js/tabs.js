@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global MODES FOLLOW SETTINGS */
+/* global MODES FOLLOW SETTINGS UTIL */
 "use strict"
 
 const init = () => {
@@ -138,10 +138,8 @@ const addWebviewListeners = webview => {
             webview.src = webview.src.replace("https://", "http://")
             return
         }
-        const tab = listTabs()[listPages().indexOf(webview)]
-        tab.querySelector("img").src = "img/error.png"
-        tab.querySelector("span").textContent = e.errorDescription
-        //TODO maybe also show a notification for it
+        UTIL.notify("The page encountered the following error while loading: "
+            + e.errorDescription + `. url: '${e.validatedURL}'`, "err")
     })
     webview.addEventListener("did-stop-loading", () => {
         const tab = listTabs()[listPages().indexOf(webview)]
@@ -149,9 +147,6 @@ const addWebviewListeners = webview => {
             if (tab.querySelector("img").src.startsWith("file://")) {
                 tab.querySelector("img").src = "img/nofavicon.png"
             }
-        }
-        if (tab.querySelector("span").textContent === "Loading...") {
-            tab.querySelector("span").textContent = ""
         }
     })
     webview.addEventListener("page-title-updated", e => {
@@ -173,7 +168,7 @@ const addWebviewListeners = webview => {
     })
     webview.addEventListener("found-in-page", e => {
         if (e.result.matches === 0) {
-            //TODO no matches found, inform using notifications
+            UTIL.notify("The search could not find any matches on the page")
         }
     })
     webview.addEventListener("ipc-message", e => {
@@ -190,7 +185,7 @@ const addWebviewListeners = webview => {
 
 const navigateTo = location => {
     currentPage().src = location
-    currentTab().querySelector("span").textContent = "Loading..."
+    currentTab().querySelector("span").textContent = location
 }
 
 module.exports = {
