@@ -88,7 +88,7 @@ const parseAndDisplayLinks = l => {
                 left = window.innerWidth - borderRightMargin
             }
             linkElement.style.left = `${left}px`
-            const top = link.y * factor
+            const top = Math.max(link.y * factor, 0)
             linkElement.style.top = `${top}px`
             linkElement.setAttribute("link-id", index)
             followElement.appendChild(linkElement)

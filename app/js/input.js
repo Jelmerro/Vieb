@@ -38,6 +38,8 @@ const bindings = {
         "S-KeyF": "FOLLOW.startFollowNewTab",
         "S-KeyG": "ACTIONS.scrollBottom",
         "S-KeyH": "ACTIONS.backInHistory",
+        "S-KeyJ": "ACTIONS.nextTab",
+        "S-KeyK": "ACTIONS.previousTab",
         "S-KeyL": "ACTIONS.forwardInHistory",
         "S-KeyN": "ACTIONS.previousSearchMatch",
         "S-KeyR": "ACTIONS.reloadWithoutCache",

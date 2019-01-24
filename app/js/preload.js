@@ -124,6 +124,7 @@ const gatherTextLikeInputs = () => {
     const elements = [...document.querySelectorAll(
         "input:not([type=\"radio\"]):not([type=\"checkbox\"])"
         + ":not([type=\"submit\"]):not([type=\"button\"])")]
+    elements.push(...document.getElementsByTagName("textarea"))
     const tags = []
     elements.forEach(element => {
         if (isVisible(element)) {
