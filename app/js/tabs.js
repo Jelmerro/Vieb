@@ -128,6 +128,9 @@ const addWebviewListeners = webview => {
             })
     })
     webview.addEventListener("did-fail-load", e => {
+        if (e.errorDescription === "") {
+            return //Request was aborted before another error could occur
+        }
         //It will go to the http version of a website when no https is detected
         const redirect = SETTINGS.get().redirectToHttp
         const sslErrors = [
