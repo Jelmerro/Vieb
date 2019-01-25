@@ -15,6 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+/* eslint-disable no-console */
 "use strict"
 
 const {app, BrowserWindow, nativeImage} = require("electron")
@@ -28,6 +29,31 @@ app.setPath("userData", app.getPath("appData"))
 
 // When the app is ready to start, open the main window
 app.on("ready", () => {
+    //Parse arguments
+    const args = process.argv.slice(1)
+    const urls = []
+    let enableDevTools = false
+    args.forEach(arg => {
+        arg = arg.trim()
+        if (arg.startsWith("--")) {
+            if (arg === "--help") {
+                printUsage()
+                app.exit(0)
+            } else if (arg === "--version") {
+                printVersion()
+                app.exit(0)
+            } else if (arg === "--debug" || arg === "--console") {
+                enableDevTools = true
+            } else {
+                console.log(`Unsupported argument: ${arg}`)
+                printUsage()
+                app.exit(1)
+            }
+        } else {
+            urls.push(arg)
+        }
+    })
+    //Init mainWindow
     const windowData = {
         title: "Vieb",
         width: 800,
@@ -55,14 +81,43 @@ app.on("ready", () => {
     mainWindow.on("closed", () => {
         app.exit(0)
     })
+    //Load app and send urls when ready
     mainWindow.loadURL(url.format({
         pathname: path.join(__dirname, "index.html"),
         protocol: "file:",
         slashes: true
     }))
     mainWindow.webContents.on("did-finish-load", () => {
-        //const args = process.argv.slice(1)
-        // TODO parse arguments
+        if (enableDevTools) {
+            mainWindow.webContents.openDevTools()
+        }
+        mainWindow.webContents.send("urls", urls)
     })
-    mainWindow.webContents.openDevTools() //TODO remove this or add a shortcut
 })
+
+const printUsage = () => {
+    console.log("Vieb: Vim Inspired Electron Browser\n")
+    console.log("Usage: Vieb [options] <URLs>\n")
+    console.log("Options:")
+    console.log(" --help     Show this help and exit")
+    console.log(" --version  Display license and version information and exit")
+    console.log(" --debug    Start Vieb with the developer console open")
+    console.log(" --console  Same as --debug")
+    console.log("\nAll arguments not starting with -- will be opened as a url")
+}
+
+const printVersion = () => {
+    console.log("Vieb: Vim Inspired Electron Browser\n")
+    console.log(`This is version ${process.env.npm_package_version} of Vieb.`)
+    console.log("This program is based on Electron and inspired by Vim.")
+    console.log("It can be used to browse the web entirely with the keyboard.")
+    console.log("Vieb was created by Jelmer van Arnhem & Ian Baremans.")
+    console.log("\nSee the following link for more information:")
+    console.log(process.env.npm_package_homepage)
+    console.log("\nLicense GPLv3+: GNU GPL version 3 or "
+        + "later <http://gnu.org/licenses/gpl.html>")
+    console.log("This is free software; you are free to change and "
+        + "redistribute it.")
+    console.log("There is NO WARRANTY, to the extent permitted by law.")
+    console.log("See the LICENSE file or the GNU website for details.")
+}
