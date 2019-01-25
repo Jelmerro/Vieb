@@ -6,7 +6,7 @@
   "build": {
     "appId": "com.github.VimprovedVenture.Vieb",
     "linux": {
-      "executableName": "Vieb",
+      "executableName": "vieb",
       "icon": "build/icons",
       "category": "Network;WebBrowser;",
       "maintainer": "Vimproved Venture",

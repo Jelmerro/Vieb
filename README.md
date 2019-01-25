@@ -161,7 +161,11 @@ An example viebrc.json that changes most settings could look like this:
     },
     "redirectToHttp": true,
     "search": "https://google.com/search?q=",
-    "caseSensitiveSearch": false
+    "caseSensitiveSearch": false,
+    "notification": {
+        "duration": 3000,
+        "position": "bottom-left"
+    }
 }
 ```
 
@@ -172,20 +176,30 @@ This example results in the following changes:
 - Https connections will now be downgraded to http if the server has no certificate
 - The search engine will be google instead of the default duckduckgo
 - Change the search mode to be case-insensitive
+- Reduce the notification duration to 3 seconds instead of 5
+- Display the notification in the bottom left instead of the bottom right
 
 The settings file is loaded on startup,
 and can be reloaded at anytime with the `:r` or `:reload` command.
 All settings in this file are optional and will override the default setting.
 Alternatively, settings can be changed for the current session with the `:set` command.
-For example, to allow http redirects for as long as Vieb is running,
+For example, to use system notifications for as long as Vieb is running,
 open command mode with `:` and enter this command:
 
-`set redirectToHttp true`
+`set notification.system true`
 
 Vieb's set command syntax is different as compared to regular Vim,
 and always has the form of `set <setting> <value>`.
 The settings file is case sensitive, but the setting argument of the set command isn't.
 The keybindings can only be changed with the settings file and not with the set command.
+Running the `:reload` command will reset any prior `:set` commands,
+because all settings will be reset and reapplied from the settings file.
+
+[Default settings](https://github.com/VimprovedVenture/Vieb/blob/master/app/js/settings.js#L25)
+
+[Default keybindings](https://github.com/VimprovedVenture/Vieb/blob/master/app/js/input.js#L21)
+
+The syntax of the viebrc.json is identical to these defaults.
 
 # Improving Vieb
 

@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global SETTINGS */
+/* global SETTINGS UTIL */
 "use strict"
 
 const { remote } = require("electron")
@@ -29,19 +29,30 @@ const execute = command => {
         quit()
         return
     }
+    if (command.startsWith("q ") || command.startsWith("quit ")) {
+        UTIL.notify("The quit command takes no arguments", "warn")
+        return
+    }
     if (["r", "reload"].indexOf(command) !== -1) {
         SETTINGS.loadFromDisk()
+        return
+    }
+    if (command.startsWith("r ") || command.startsWith("reload ")) {
+        UTIL.notify("The reload command takes no arguments", "warn")
         return
     }
     if (command.startsWith("set ") || command === "set") {
         const parts = command.split(" ")
         if (parts.length !== 3) {
-            //TODO notification for invalid usage
+            UTIL.notify(
+                "The set command always takes two arguments like this:\n"
+                + "'set <setting> <value>'", "warn")
             return
         }
         SETTINGS.set(parts[1], parts[2])
         return
     }
+    UTIL.notify(`The command '${command}' can not be found`, "warn")
 }
 
 const quit = () => {

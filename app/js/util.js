@@ -15,6 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+/* global SETTINGS */
 "use strict"
 
 //This regex will be compiled when the file is loaded, so it's pretty fast
@@ -41,7 +42,41 @@ const isUrl = location => {
     //- Single question mark with anything behind it
     //- Single number sign with anything behind it
 }
+
+const notify = (message, type="info") => {
+    let properType = "info"
+    if (type.startsWith("warn")) {
+        properType = "warning"
+    }
+    if (type.startsWith("err")) {
+        properType = "error"
+    }
+    const image = `img/notifications/${properType}.svg`
+    if (SETTINGS.get().notification.system) {
+        new Notification(`Vieb ${properType}`, {
+            "body": message,
+            "image": image,
+            "icon": image
+        })
+        return
+    }
+    const notificationsElement = document.getElementById("notifications")
+    notificationsElement.className = SETTINGS.get().notification.position
+    const notification = document.createElement("span")
+    const iconElement = document.createElement("img")
+    iconElement.src = image
+    notification.appendChild(iconElement)
+    const textElement = document.createElement("span")
+    textElement.textContent = message
+    notification.appendChild(textElement)
+    notificationsElement.appendChild(notification)
+    setTimeout(() => {
+        notificationsElement.removeChild(notification)
+    }, SETTINGS.get().notification.duration)
+}
+
 module.exports = {
     hasProtocol,
-    isUrl
+    isUrl,
+    notify
 }
