@@ -51,7 +51,7 @@ const notify = (message, type="info") => {
     if (type.startsWith("err")) {
         properType = "error"
     }
-    const image = `img/notifications/${properType}.png`
+    const image = `img/notifications/${properType}.svg`
     if (SETTINGS.get().notification.system) {
         new Notification(`Vieb ${properType}`, {
             "body": message,
