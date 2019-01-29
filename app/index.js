@@ -27,6 +27,11 @@ let mainWindow
 app.setPath("appData", path.join(app.getPath("appData"), "Vieb"))
 app.setPath("userData", app.getPath("appData"))
 
+//Allow the app to change the login credentials
+app.on("login", e => {
+    e.preventDefault()
+})
+
 // When the app is ready to start, open the main window
 app.on("ready", () => {
     //Parse arguments
