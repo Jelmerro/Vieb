@@ -33,19 +33,74 @@ ipcRenderer.on("follow-mode-request", e => {
     e.sender.sendToHost("follow-response", allLinks)
 })
 
+const parseElement = (element, type) => {
+    const rects = [...element.getClientRects()]
+    let dimensions = element.getBoundingClientRect()
+    let embeddedImageLink = false
+    if (type === "url") {
+        if (!isVisible(element, false)) {
+            return null
+        }
+        const anchorImage = element.querySelector("img, svg")
+        if (anchorImage !== null) {
+            const imageDimensions = anchorImage.getBoundingClientRect()
+            if (imageDimensions.width > dimensions.width) {
+                dimensions = imageDimensions
+                embeddedImageLink = true
+            }
+            if (imageDimensions.height > dimensions.height) {
+                dimensions = imageDimensions
+                embeddedImageLink = true
+            }
+        }
+    } else if (!isVisible(element)) {
+        return null
+    }
+    if (!embeddedImageLink) {
+        if (rects.length === 0) {
+            return null
+        }
+        //Check if the center of the boundingrect is actually clickable
+        const clickX = dimensions.x + (dimensions.width / 2)
+        const clickY = dimensions.y + (dimensions.height / 2)
+        let clickable = false
+        rects.forEach(rect => {
+            if (rect.x < clickX && rect.x + rect.width > clickX) {
+                if (rect.y < clickY && rect.y + rect.height > clickY) {
+                    clickable = true
+                }
+            }
+        })
+        if (!clickable) {
+            dimensions = rects[0]
+        }
+    }
+    if (dimensions.width <= 1 || dimensions.height <= 1) {
+        return null
+    }
+    return {
+        "url": element.href || "",
+        "x": dimensions.x,
+        "y": dimensions.y,
+        "width": dimensions.width,
+        "height": dimensions.height,
+        "type": type
+    }
+}
+
 const isVisible = (element, doSizeCheck=true) => {
     if (element.offsetWidth <= 1 || element.offsetHeight <= 1) {
         if (doSizeCheck) {
             return false
         }
     }
-    if (element.style.display === "none") {
+    if (getComputedStyle(element).display === "none") {
         return false
     }
-    if (element.style.visibility === "hidden") {
+    if (getComputedStyle(element).visibility === "hidden") {
         return false
     }
-    if (element.style.opacity === 0) {
+    if (getComputedStyle(element).opacity === 0) {
         return false
     }
     const dimensions = element.getBoundingClientRect()
@@ -66,28 +121,9 @@ const gatherAnchorTags = () => {
     const elements = [...document.getElementsByTagName("a")]
     const tags = []
     elements.forEach(element => {
-        if (isVisible(element, false)) {
-            let dimensions = element.getBoundingClientRect()
-            const anchorImage = element.querySelector("img, svg")
-            if (anchorImage !== null) {
-                const imageDimensions = anchorImage.getBoundingClientRect()
-                if (imageDimensions.width > dimensions.width) {
-                    dimensions = imageDimensions
-                }
-                if (imageDimensions.height > dimensions.height) {
-                    dimensions = imageDimensions
-                }
-            }
-            if (dimensions.width > 1 && dimensions.height > 1) {
-                tags.push({
-                    "url": element.href,
-                    "x": dimensions.x,
-                    "y": dimensions.y,
-                    "width": dimensions.width,
-                    "height": dimensions.height,
-                    "type": "url"
-                })
-            }
+        const clickableElement = parseElement(element, "url")
+        if (clickableElement !== null) {
+            tags.push(clickableElement)
         }
     })
     return tags
@@ -104,16 +140,9 @@ const gatherClickableInputs = () => {
     elements.push(...document.querySelectorAll("input[type=\"submit\"]"))
     const tags = []
     elements.forEach(element => {
-        if (isVisible(element)) {
-            const dimensions = element.getBoundingClientRect()
-            tags.push({
-                "url": "",
-                "x": dimensions.x,
-                "y": dimensions.y,
-                "width": dimensions.width,
-                "height": dimensions.height,
-                "type": "inputs-click"
-            })
+        const clickableElement = parseElement(element, "inputs-click")
+        if (clickableElement !== null) {
+            tags.push(clickableElement)
         }
     })
     return tags
@@ -127,16 +156,9 @@ const gatherTextLikeInputs = () => {
     elements.push(...document.getElementsByTagName("textarea"))
     const tags = []
     elements.forEach(element => {
-        if (isVisible(element)) {
-            const dimensions = element.getBoundingClientRect()
-            tags.push({
-                "url": "",
-                "x": dimensions.x,
-                "y": dimensions.y,
-                "width": dimensions.width,
-                "height": dimensions.height,
-                "type": "inputs-insert"
-            })
+        const clickableElement = parseElement(element, "inputs-insert")
+        if (clickableElement !== null) {
+            tags.push(clickableElement)
         }
     })
     return tags
@@ -148,16 +170,9 @@ const gatherOnclickElements = () => {
     //but there is a separate issue for that (#9)
     const tags = []
     elements.forEach(element => {
-        if (isVisible(element)) {
-            const dimensions = element.getBoundingClientRect()
-            tags.push({
-                "url": "",
-                "x": dimensions.x,
-                "y": dimensions.y,
-                "width": dimensions.width,
-                "height": dimensions.height,
-                "type": "onclick"
-            })
+        const clickableElement = parseElement(element, "onclick")
+        if (clickableElement !== null) {
+            tags.push(clickableElement)
         }
     })
     return tags
