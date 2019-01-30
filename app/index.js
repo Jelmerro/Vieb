@@ -74,7 +74,7 @@ app.on("ready", () => {
     }
     mainWindow = new BrowserWindow(windowData)
     mainWindow.setMenu(null)
-    mainWindow.setMinimumSize(400, 400)
+    mainWindow.setMinimumSize(500, 500)
     mainWindow.on("close", e => {
         e.preventDefault()
     })

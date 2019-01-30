@@ -1,0 +1,73 @@
+{
+    "keybindings": {
+        "normal": {
+            "F1": "COMMAND.help",
+            "KeyB": "ACTIONS.previousTab",
+            "KeyD": "ACTIONS.closeTab",
+            "KeyE": "ACTIONS.toNavMode",
+            "KeyF": "FOLLOW.startFollowCurrentTab",
+            "KeyG": "ACTIONS.scrollTop",
+            "KeyH": "ACTIONS.scrollLeft",
+            "KeyI": "ACTIONS.toInsertMode",
+            "KeyJ": "ACTIONS.scrollDown",
+            "KeyK": "ACTIONS.scrollUp",
+            "KeyL": "ACTIONS.scrollRight",
+            "KeyN": "ACTIONS.nextSearchMatch",
+            "KeyR": "ACTIONS.reload",
+            "KeyT": "ACTIONS.openNewTab",
+            "KeyW": "ACTIONS.nextTab",
+            "Slash": "ACTIONS.toSearchMode",
+            "S-KeyF": "FOLLOW.startFollowNewTab",
+            "S-KeyG": "ACTIONS.scrollBottom",
+            "S-KeyH": "ACTIONS.backInHistory",
+            "S-KeyJ": "ACTIONS.nextTab",
+            "S-KeyK": "ACTIONS.previousTab",
+            "S-KeyL": "ACTIONS.forwardInHistory",
+            "S-KeyN": "ACTIONS.previousSearchMatch",
+            "S-KeyR": "ACTIONS.reloadWithoutCache",
+            "S-Semicolon": "ACTIONS.toCommandMode",
+            "C-Digit0": "ACTIONS.zoomReset",
+            "C-Minus": "ACTIONS.zoomOut",
+            "C-Equal": "ACTIONS.zoomIn",
+            "CS-Digit0": "ACTIONS.zoomReset",
+            "CS-Minus": "ACTIONS.zoomOut",
+            "CS-Equal": "ACTIONS.zoomIn"
+        },
+        "insert": {
+            "F1": "COMMAND.help",
+            "Escape": "ACTIONS.toNormalMode",
+            "C-BracketLeft": "ACTIONS.toNormalMode"
+        },
+        "command": {
+            "F1": "COMMAND.help",
+            "Escape": "ACTIONS.toNormalMode",
+            "C-BracketLeft": "ACTIONS.toNormalMode",
+            "Enter": "ACTIONS.useEnteredData"
+        },
+        "search": {
+            "F1": "COMMAND.help",
+            "Escape": "ACTIONS.toNormalMode",
+            "C-BracketLeft": "ACTIONS.toNormalMode",
+            "Enter": "ACTIONS.useEnteredData"
+        },
+        "nav": {
+            "F1": "COMMAND.help",
+            "Escape": "ACTIONS.toNormalMode",
+            "C-BracketLeft": "ACTIONS.toNormalMode",
+            "Enter": "ACTIONS.useEnteredData"
+        },
+        "follow": {
+            "F1": "COMMAND.help",
+            "Escape": "FOLLOW.cancelFollow",
+            "C-BracketLeft": "FOLLOW.cancelFollow"
+        }
+    },
+    "redirectToHttp": false,
+    "search": "https://duckduckgo.com/?q=",
+    "caseSensitiveSearch": true,
+    "notification": {
+        "system": false,
+        "position": "bottom-right",
+        "duration": 5000
+    }
+}

@@ -20,6 +20,7 @@
 
 const bindings = {
     "normal": {
+        "F1": "COMMAND.help",
         "KeyB": "ACTIONS.previousTab",
         "KeyD": "ACTIONS.closeTab",
         "KeyE": "ACTIONS.toNavMode",
@@ -52,25 +53,30 @@ const bindings = {
         "CS-Equal": "ACTIONS.zoomIn"
     },
     "insert": {
+        "F1": "COMMAND.help",
         "Escape": "ACTIONS.toNormalMode",
         "C-BracketLeft": "ACTIONS.toNormalMode"
     },
     "command": {
+        "F1": "COMMAND.help",
         "Escape": "ACTIONS.toNormalMode",
         "C-BracketLeft": "ACTIONS.toNormalMode",
         "Enter": "ACTIONS.useEnteredData"
     },
     "search": {
+        "F1": "COMMAND.help",
         "Escape": "ACTIONS.toNormalMode",
         "C-BracketLeft": "ACTIONS.toNormalMode",
         "Enter": "ACTIONS.useEnteredData"
     },
     "nav": {
+        "F1": "COMMAND.help",
         "Escape": "ACTIONS.toNormalMode",
         "C-BracketLeft": "ACTIONS.toNormalMode",
         "Enter": "ACTIONS.useEnteredData"
     },
     "follow": {
+        "F1": "COMMAND.help",
         "Escape": "FOLLOW.cancelFollow",
         "C-BracketLeft": "FOLLOW.cancelFollow"
     }

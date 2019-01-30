@@ -1,0 +1,48 @@
+/*
+* Vieb - Vim Inspired Electron Browser
+* Copyright (C) 2019 Jelmer van Arnhem
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+/* General */
+body {color: #eee;font: 14px monospace;background: #333;padding: 0;margin: 3%;user-select: none;}
+.header {font-size: 60px;max-width: 700px;}
+img {height: 64px;width: 64px;margin: auto;}
+kbd {background: #111;color: #fff;padding: 0.1em;}
+button, span[onclick] {border-width: 2px;border-style: solid;border-color: #555;}
+iframe, pre {min-width: 450px;width: 100%;background: #222;color: #cff;padding: 0;margin: 10px 0;}
+pre {padding: 8px 0;font-size: 13px;}
+/* Section header */
+a {color: #0cf;}
+li {line-height: 1.5em;}
+.side-by-side {display: flex;}
+.side-by-side > h1 {flex: 1;}
+.side-by-side > h2 {flex: 1;}
+.side-by-side > h3 {flex: 1;}
+.side-by-side > a {margin: auto;}
+h1 {font-size: 32px;margin: 20px 0;}
+h2 {font-size: 24px;margin: 15px 0;}
+h3 {font-size: 18px;margin: 10px 0;}
+/* toc */
+.toc > a::after {content: "";display: block;}
+.toc-h1 {font-size: 20px;}
+.toc-h2 {margin-left: 30px;font-size: 17px;}
+.toc-h3 {margin-left: 60px;font-size: 14px;}
+/* colors */
+.command-block {color: #faa;}
+.command {color: #f33;}
+.insert {color: #3f3;}
+.follow {color: #f3f;}
+.nav {color: #3ff;}
+.search {color: #ff3;}

@@ -152,7 +152,13 @@ const set = (setting, value) => {
     }
     if (setting === "notification.duration") {
         if (/^[0-9]+$/.test(value)) {
-            allSettings.notification.duration = Math.max(Number(value), 100)
+            const numberValue = Number(value)
+            if (numberValue < 100) {
+                UTIL.notify(
+                    "The duration must be at least a 100 milliseconds", "warn")
+            } else {
+                allSettings.notification.duration = numberValue
+            }
         } else {
             UTIL.notify("This is an invalid value for this setting, only "
                 + "numbers are accepted here", "warn")

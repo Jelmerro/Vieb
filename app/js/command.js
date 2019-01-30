@@ -15,16 +15,20 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global SETTINGS UTIL */
+/* global MODES SETTINGS TABS UTIL */
 "use strict"
 
 const { remote } = require("electron")
+const url = require("url")
+const path = require("path")
 
 const execute = command => {
+    //remove all redundant spaces
     while (command.indexOf("  ") !== -1) {
         command = command.replace("  ", " ")
     }
     command = command.trim()
+    //quit command
     if (["q", "quit"].indexOf(command) !== -1) {
         quit()
         return
@@ -33,6 +37,7 @@ const execute = command => {
         UTIL.notify("The quit command takes no arguments", "warn")
         return
     }
+    //reload command
     if (["r", "reload"].indexOf(command) !== -1) {
         SETTINGS.loadFromDisk()
         return
@@ -41,6 +46,21 @@ const execute = command => {
         UTIL.notify("The reload command takes no arguments", "warn")
         return
     }
+    //help command
+    if (["h", "help"].indexOf(command) !== -1) {
+        help()
+        return
+    }
+    if (command.startsWith("h ") || command.startsWith("help ")) {
+        const parts = command.split(" ")
+        if (parts.length > 2) {
+            UTIL.notify("The help command only takes a single argument")
+            return
+        }
+        help(parts[1].toLowerCase())
+        return
+    }
+    //set command
     if (command.startsWith("set ") || command === "set") {
         const parts = command.split(" ")
         if (parts.length !== 3) {
@@ -52,6 +72,7 @@ const execute = command => {
         SETTINGS.set(parts[1], parts[2])
         return
     }
+    //no command
     UTIL.notify(`The command '${command}' can not be found`, "warn")
 }
 
@@ -60,7 +81,38 @@ const quit = () => {
     remote.app.exit(0)
 }
 
+const help = (section=null) => {
+    MODES.setMode("normal")
+    let helpUrl = url.format({
+        pathname: path.join(__dirname, "../help.html"),
+        protocol: "file:",
+        slashes: true
+    })
+    //Switch to already open help if available
+    let alreadyOpen = false
+    TABS.listPages().forEach((page, index) => {
+        if (page.src.startsWith(helpUrl)) {
+            alreadyOpen = true
+            TABS.switchToTab(index)
+        }
+    })
+    //Append section to the helpUrl
+    if (section !== null) {
+        if (section.startsWith("#")) {
+            section = section.slice(1, -1)
+        }
+        helpUrl += `#${section}`
+    }
+    //Open the url in the current or new tab, depending on currently open page
+    if (TABS.currentPage().src === "" || alreadyOpen) {
+        TABS.navigateTo(helpUrl)
+    } else {
+        TABS.addTab(helpUrl)
+    }
+}
+
 module.exports = {
     execute,
-    quit
+    quit,
+    help
 }

@@ -1,0 +1,373 @@
+<!--
+    Vieb - Vim Inspired Electron Browser
+    Copyright (C) 2019 Jelmer van Arnhem
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="css/help.css" rel="stylesheet" type="text/css">
+    <title>Vieb documentation</title>
+    <link rel="shortcut icon" type="image/png" href="img/icon.png">
+</head>
+<body>
+    <div class="side-by-side header">
+        <img src="img/icon.png">
+        <div>Welcome to Vieb</div>
+    </div>
+    <h1 id="intro">Intro</h1>
+    Welcome to Vieb's official, complete and offline documentation.
+    You can ALWAYS come back to this page using <kbd>F1</kbd> from ANY mode.
+    The documentation consists of a single page, separated into sections.
+    These sections can be accessed using the table of contents,
+    or by using the help command with the section as the first argument.
+    If you don't understand what commands are,
+    please read the first chapter called "Basics" to get started with Vieb.
+    You can go there with two simple steps:
+    <ul>
+        <li>Press <kbd>Escape</kbd> once to make sure you are in normal mode.</li>
+        <li>Now scroll up and down with <kbd>j</kbd> and <kbd>k</kbd>.</li>
+    </ul>
+    Please make sure to read that chapter if you are confused by anything so far.
+    <h1 id="contents">Contents</h1>
+    <div class="toc">
+    </div>
+    <h1 id="basics">Basics</h1>
+    Interaction with Vieb is heavily focussed on the keyboard,
+    and is mostly inspired by the popular text editor Vim.
+    If you think a key is mapped to a weird keyboard combination,
+    it's probably because it's also weird in Vim.
+    Clicking links, scrolling, navigating,
+    and most other tasks have a dedicated keyboard shortcuts.
+    The most important ones will be explained in this chapter.
+    If a key such as <kbd>f</kbd> is displayed as <kbd>F</kbd>,
+    you are expected to press shift and f together.
+    Other modifiers such as ctrl will be displayed like so: <kbd>Ctrl with [</kbd>.
+    <h2 id="basics-modes">modes</h2>
+    Vieb uses different modes to separate functionality.
+    By default, you should be in normal mode,
+    but you can go back to normal mode at any time by pressing <kbd>Escape</kbd>.
+    The mode is always prominently displayed in the navbar,
+    between the Vieb logo and the url input.
+    Modes can be switched to by pressing a certain key from normal mode.
+    Aside from normal mode, the following modes are available:
+    <ul>
+        <li>
+            <span class="nav">Nav</span>
+            - Upon pressing <kbd>e</kbd> you can enter a url to navigate to,
+            and press <kbd>Enter</kbd> to navigate or as always <kbd>Escape</kbd> to cancel.
+        </li>
+        <li>
+            <span class="insert">Insert</span>
+            - This mode is used to interact with the website normally.
+            It brings back mouse interaction and passes all keyboard inputs to the website.
+            This mode shouldn't be used by default,
+            because a lot of the advantages Vieb has to offer are unavailable in this mode.
+            If you really need or want to enter insert mode, press <kbd>i</kbd>.
+            The follow(ing) mode describes a much faster way to use insert mode.
+        </li>
+        <li>
+            <span class="follow">Follow</span>
+            - Upon pressing <kbd>f</kbd> all links on the page will be assigned a key.
+            When pressing the key next to a link, Vieb will click on the link.
+            If there are a lot of links on the page, sometimes two keys are needed.
+            You don't need to press these together, but simply after each other.
+            To open links in a new tab, use <kbd>F</kbd> instead of <kbd>f</kbd>.
+            Some buttons and other type of links can't be opened in a new tab.
+            The different colors indicate the different type of links:
+            <ul>
+                <li>
+                    <a href="#basics">Regular link to this chapter</a>
+                    will be outlined in blue.
+                </li>
+                <li>
+                    Checkboxes and buttons
+                    <input type="checkbox">
+                    <button onclick="changeColor(this);">
+                        Button
+                    </button>
+                    will be outlined in red.
+                </li>
+                <li>
+                    <input type="text">
+                    Text input fields will enter insert mode and will be outlined in green.
+                </li>
+                <li>
+                    <span onclick="changeColor(this);">
+                        Elements with javascript onclick
+                    </span>
+                    will be outlined in yellow.
+                </li>
+            </ul>
+            Press <kbd>f</kbd> to see the difference for the examples above.
+            Remember that you can always go back to normal mode with <kbd>Escape</kbd>.
+        </li>
+        <li>
+            <span class="command">Command</span>
+            - Some functionality is accessed by executing commands.
+            These can be entered after pressing <kbd>:</kbd> (this requires shift).
+            A very important command is the quit command,
+            as it's the only way to properly quit Vieb.
+        </li>
+        <li>
+            <span class="search">Search</span>
+            - This mode can be entered with <kbd>/</kbd>.
+            After entering a string, press enter to search for it.
+            You can now press <kbd>n</kbd> or <kbd>N</kbd> to find next or previous matches.
+            Searching is by default case-sensitive.
+        </li>
+    </ul>
+    Now that all the different special modes have been explained,
+    a separate paragraph will explain how to use normal mode.
+    <h2 id="basics-normal">normal mode</h2>
+    Most functionality is accessed from normal mode,
+    and all modes can be entered from normal mode.
+    It offers a large list of shortcuts to interact with the website.
+    Aside from the keys to switch modes mentioned in the previous paragraph,
+    these keybindings are important when in normal mode:
+    <ul>
+        <li>Moving around with a single press of <kbd>h j k l</kbd>.</li>
+        <li>Zoom in and out with <kbd>Ctrl with +</kbd> or <kbd>Ctrl with -</kbd>.</li>
+        <li>Reset to the normal zoom level with <kbd>Ctrl with 0</kbd>.</li>
+        <li>Go back and forward in history using <kbd>H</kbd> and <kbd>L</kbd>.</li>
+        <li>Open a new tab with <kbd>t</kbd>, which will enter nav mode.</li>
+        <li>
+            Switch between tabs with <kbd>w</kbd> and <kbd>b</kbd>
+            or with <kbd>J</kbd> and <kbd>K</kbd>.
+        </li>
+        <li>Reload the page with <kbd>r</kbd> and without cache using <kbd>R</kbd>.</li>
+        <li>Close a tab with the <kbd>d</kbd> key.</li>
+    </ul>
+    <h2 id="basics-summary">summary</h2>
+    This concludes the basic usage of Vieb.
+    If anything is still unclear after reading this chapter,
+    just try it out or read the dedicated chapter for it.
+    If it's too much to remember at once, start with these:
+    <ul>
+        <li>This help page can ALWAYS be found by pressing <kbd>F1</kbd>.</li>
+        <li>You can ALWAYS go back to normal mode with <kbd>Escape</kbd>.</li>
+    </ul>
+    <h1 id="settings">Settings</h1>
+    An important part of Vieb that was skipped in the basics chapter,
+    is the ability to change the settings.
+    This is because most users won't need to change them,
+    and because the keybindings can be changed, removed or added,
+    which would make the basics chapter a lot more complex than it needs to be.
+    There are two ways to change the settings:
+    <ul>
+        <li>Change the defaults using a viebrc.json file.</li>
+        <li>Change a setting for just the current session, with :set.</li>
+    </ul>
+    Both of these options will now be explained in detail.
+    <h2 id="settings-viebrc">viebrc.json</h2>
+    In this file you can change settings and the keybindings of Vieb.
+    By default, this file does not exist and the original value for all settings will be used.
+    Depending on your operating system, the location of this file will be different:
+    <ul>
+        <li>Windows - <kbd>%APPDATA%\Vieb\viebrc.json</kbd>
+        <li>Mac - <kbd>~/Library/Application Support/viebrc.json</kbd>
+        <li>Linux - <kbd>~/.config/Vieb/viebrc.json</kbd>
+    </ul>
+    The same folder is used for all other information that Vieb stores,
+    which means there should be electron/chromium related files there.
+    You can create the viebrc.json file there if you haven't already.
+    <h3 id="settings-viebrc-syntax">syntax</h3>
+    The syntax of the settings file is json, as the name would suggest.
+    This is very different from Vim for the following reasons:
+    <ul>
+        <li>Writing a vimscript parser would be a tedious task</li>
+        <li>Most settings for Vim aren't present in Vieb and vice versa</li>
+        <li>Support for it would never be as good as Vim</li>
+    </ul>
+    Basically, there are little advantages here staying true to Vim,
+    while at the same time adding a lot of extra work.
+    JSON can be parsed natively by JavaScript and is easy to understand,
+    which is why all configuration of Vieb is done with it.
+    <h3 id="settings-viebrc-defaults">defaults</h3>
+    Looking at the default settings is really useful.
+    It gives you an idea of all the available options,
+    and which of them you actually want to change.
+    <br>
+    <iframe src="default-settings.json" frameborder="0"
+        scrolling="no" onload="configureIframe(this)">
+    </iframe>
+    <br>
+    Your own viebrc.json file only needs to override these settings where needed,
+    to change them to your liking.
+    Note that by default <kbd>Ctrl with [</kbd> can be used as an alternative to <kbd>Escape</kbd>,
+    to return to normal mode.
+    <h3 id="settings-viebrc-keybindings">keybindings</h3>
+    The viebrc is is the only place to change the keybindings.
+    Changing them can be done by overwriting existing ones,
+    or by adding completely new bindings.
+    To remap a certain action, simply overwrite the old one with ""
+    and create a new one with the same functionality.
+    The identifiers for the keys are Vieb specific,
+    and are a combination of the active modifiers and the JavaScript key.code.
+    There is a website where you can check the code for the key being pressed,
+    which can be found <a href="https://keycode.info">here</a>.
+    Make sure to enter insert mode and look at the "event.code" field.
+    Once you know the keycode, you can combine it with the modifiers like so:
+    <ul>
+        <li><kbd>C-KeyQ</kbd> means to press Ctrl with q.</li>
+        <li><kbd>CS-KeyT</kbd> means to press Ctrl and Shift with t.</li>
+        <li><kbd>F1</kbd> means to only press F1 without any other key.</li>
+        <li>
+            <kbd>CSMA-F2</kbd>
+            means to hold Ctrl, Shift, Meta and Alt while pressing F2.
+        </li>
+    </ul>
+    Please note that the order of the modifiers is important,
+    and that they are always in uppercase.
+    This means that <kbd>sc-KeyT</kbd> and <kbd>SC-KeyT</kbd> won't work,
+    but <kbd>CS-KeyT</kbd> will.
+    <h3 id="settings-viebrc-example">example</h3>
+    <pre>
+{
+    "keybindings": {
+        "insert": {
+            "F1": "",
+            "Escape": ""
+        },
+        "normal": {
+            "C-KeyQ": "COMMAND.quit"
+        }
+    },
+    "redirectToHttp": true,
+    "search": "https://google.com/search?q=",
+    "caseSensitiveSearch": false,
+    "notification": {
+        "duration": 3000,
+        "position": "bottom-left"
+    }
+}</pre>
+    This example is also found in the README, and changes most default settings.
+    This example results in the following changes:
+    <ul>
+        <li>
+            The help page can't be accessed directly from insert mode with the
+            <kbd>F1</kbd> key anymore.
+        </li>
+        <li>
+            <kbd>Escape</kbd> can not be used to exit insert mode,
+            but <kbd>Ctrl with [</kbd> will still work.
+        </li>
+        <li><kbd>Ctrl with q</kbd> can be used to quit Vieb when in normal mode.</li>
+        <li>Https connections will now be downgraded to http if the server has no certificate.</li>
+        <li>
+            The search engine will be google instead of the default duckduckgo.
+            Please note that the search string will be pasted at the end of the search setting.
+        </li>
+        <li>Change the search mode to be case-insensitive.</li>
+        <li>Reduce the notification duration to 3 seconds instead of 5.</li>
+        <li>Display the notification in the bottom left instead of the bottom right.</li>
+    </ul>
+    This concludes the documentation regarding the viebrc file.
+    In the next paragraph, the set command will be explained.
+    <h2 id="settings-set">set command</h2>
+    The set command can be used to change the settings after startup.
+    When starting Vieb, the settings file is loaded and merged with the defaults.
+    After that, all settings (not the keybindings) can be changed using the set command.
+    For example, to use system notifications instead of Vieb's own notification system,
+    go to command mode with <kbd>:</kbd> and enter this command:
+    <pre class="command-block">set notifications.system true</pre>
+    The set command always takes two arguments;
+    one for the setting name and the other for the new value.
+    Settings can be changed as many times as you like,
+    and can be reset and reloaded from the settings file with:
+    <pre class="command-block">reload</pre> or just "r" for short.
+    If the settings file was not changed after startup,
+    running this command will results in the settings being reset to startup configuration.
+    This means that it's a fast way to undo any set commands,
+    but it can also be used to change the keybindings at runtime.
+    To achieve this, simple edit the viebrc.json after Vieb was started,
+    and use the reload command to apply all changes.
+    Vieb only reads the settings file on startup and with the reload command,
+    and never writes to the file as the set command is for runtime only.
+    This means it's always safe to edit the viebrc file.
+    <h3 id="settings-set-validation">validation</h3>
+    The set command can be a useful tool to help with finding the right settings.
+    Unlike the settings file, which will simply ignore errors and use the default,
+    the set command informs the user of any mistakes made.
+    For example, to disable the case sensitive search,
+    the correct command would be:
+    <pre class="command-block">set caseSensitiveSearch false</pre>
+    If we would try to set the value to anything other than true or false,
+    a warning would be displayed that only true and false are accepted values.
+    The first argument is case insensitive, while the value is case sensitive.
+    This means that the previous set command could also be entered like this:
+    <pre class="command-block">set casesensitiveSEARCH false</pre>
+    But writing false in uppercase would result in a warning.
+    Lastly, if a command does not show a notification,
+    it means that the command was succesfully executed and applied.
+    <h1 id="startup">Startup</h1>
+    TODO
+    <h1 id="follow">Follow</h1>
+    TODO
+    <h1 id="commands">Commands</h1>
+    TODO
+    <h1 id="license">License</h1>
+    GPL3.0+, more info is TODO
+    <script>
+        const changeColor = element => {
+            if (element.style.borderColor === "rgb(0, 51, 255)") {
+                element.style.borderColor = "rgb(0, 255, 51)"
+            } else {
+                element.style.borderColor = "rgb(0, 51, 255)"
+            }
+        }
+        const configureIframe = frame => {
+            frame.style.height = frame.contentWindow.document.body.scrollHeight + "px"
+            frame.contentWindow.document.body.style.color = "#cff"
+            frame.contentWindow.document.body.style.background = "#222"
+        }
+        window.onload = () => {
+            //After loading, this will add the ids to the table of contents
+            //It also will display the section id for all sections that have one
+            const sections = [...document.querySelectorAll("*[id]")]
+            sections.forEach(section => {
+                createTOCEntry(section)
+                createIdLabel(section)
+            })
+            //Set focus to correct part of the page after it's done loading
+            setTimeout(() => {
+                if (window.location.hash !== "") {
+                    document.querySelector(`a[href='${window.location.hash}']`).click()
+                }
+            }, 50)
+        }
+        const createTOCEntry = element => {
+            const link = document.createElement("a")
+            link.textContent = element.textContent
+            link.className = `toc-${element.tagName.toLowerCase()}`
+            link.href = `#${element.id}`
+            document.querySelector(".toc").appendChild(link)
+        }
+        const createIdLabel = element => {
+            const section = document.createElement("div")
+            section.className = "side-by-side"
+            const header = document.createElement(element.tagName)
+            header.id = element.id
+            header.textContent = element.textContent
+            section.appendChild(header)
+            const label = document.createElement("a")
+            label.textContent = `#${element.id}`
+            label.href = `#${element.id}`
+            section.appendChild(label)
+            document.body.replaceChild(section, element)
+        }
+    </script>
+</body>
+</html>
