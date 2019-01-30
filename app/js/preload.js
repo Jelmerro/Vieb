@@ -143,7 +143,8 @@ const gatherTextLikeInputs = () => {
 }
 
 const gatherOnclickElements = () => {
-    const elements = [...document.querySelectorAll("*[onclick]")]
+    const elements = [...document.querySelectorAll(
+        "*:not(button):not(input)[onclick]")]
     //This won't access onclick added by javascript,
     //but there is a separate issue for that (#9)
     const tags = []

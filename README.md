@@ -13,6 +13,7 @@ Vim bindings for the web by design
 - Switch between insert, command, normal mode and more
 - Dark theme
 - Default to https
+- Very detailed offline documentation/help always available upon pressing `F1`
 - Custom keybindings and other settings, see "Configuring Vieb" for details
 - The paragraphs below will highlight the features separated by mode
 
@@ -26,13 +27,15 @@ Vim bindings for the web by design
 - Go back and forward in history for the current tab with `H` and `L`
 - Enter command mode with `:`, see dedicated paragraph for details
 - Open a new tab with `t` and close the current one with `d`
-- Go to the next and previous open tab with `w` and `b`
+- Go to the next and previous open tab with `w` and `b` or with `J` and `K`
 - Enter search mode with `/`, see dedicated paragraph for details
 - Reload the page with `r` and reload without cache using `R`
 - Follow links using the keyboard with `f` or `F`, see follow mode for details
 
 By default, both `Escape` and `ctrl+[` will always go back to normal mode,
 even when insert mode is active, but this can be changed with custom keybindings.
+All modes come with a default binding to `F1` to open the help page,
+this is mostly for new users and can also be disabled or changed with custom keybindings.
 
 ## Insert mode
 
@@ -48,6 +51,8 @@ Vieb supports the following commands:
 
 - `:q` or `:quit` will quit Vieb, and is the recommended way to do so
 - `:r` or `:reload` will reload the settings from the viebrc.json file
+- `:h` or `:help` to display the help documentation,
+  a single optional argument can be given to go to a specific section, such as `:help basics`
 - `:set` will change a setting for as long as Vieb is opened
 
 ## Search mode
@@ -84,7 +89,7 @@ Regular anchor tag links can also be opened in a new tab with `F`.
 The selectors are divided in the following colors:
 
 - Blue for regular links, these will be opened normally or in a new tab with `F`
-- Green for text-like input fields, choosing any of these will go to insert mode with the field focussed
+- Green for text-like input fields, choosing any of these will go to insert mode with the field focused
 - Red for clickable buttons and boxes, these will be clicked automatically without entering insert mode
 - Orange for inline onclick handlers, these will be clicked to trigger the onclick
 
@@ -133,7 +138,7 @@ When starting Vieb with npm, it's required to enter the arguments like this:
 
 `npm start -- --help`
 
-It should be noted that de developer console is not the one linked to any websites,
+It should be noted that the developer console is not the one linked to any websites,
 but is the internal console of the Vieb application.
 Opening the developer tools for the current website is not supported yet.
 
@@ -153,6 +158,7 @@ An example viebrc.json that changes most settings could look like this:
 {
     "keybindings": {
         "insert": {
+            "F1": "",
             "Escape": ""
         },
         "normal": {
@@ -171,8 +177,9 @@ An example viebrc.json that changes most settings could look like this:
 
 This example results in the following changes:
 
-- `Escape` can not be used to exit insert mode, but `ctrl+[` will still work
-- `ctrl+q` can be used to quit Vieb when in normal mode
+- The help page can't be accessed directly from insert mode with the `F1` key anymore
+- `Escape` can not be used to exit insert mode, but `Ctrl with [` will still work
+- `Ctrl with q` can be used to quit Vieb when in normal mode
 - Https connections will now be downgraded to http if the server has no certificate
 - The search engine will be google instead of the default duckduckgo
 - Change the search mode to be case-insensitive
@@ -195,11 +202,10 @@ The keybindings can only be changed with the settings file and not with the set 
 Running the `:reload` command will reset any prior `:set` commands,
 because all settings will be reset and reapplied from the settings file.
 
-[Default settings](https://github.com/VimprovedVenture/Vieb/blob/master/app/js/settings.js#L25)
-
-[Default keybindings](https://github.com/VimprovedVenture/Vieb/blob/master/app/js/input.js#L21)
-
-The syntax of the viebrc.json is identical to these defaults.
+Please see the [Default settings](app/default-settings.json) for all options,
+the syntax of the viebrc.json is identical to these defaults.
+For more details about settings, usage or anything else,
+read the built-in offline documentation using `:help`, `:help settings` or the `F1` key.
 
 # Improving Vieb
 
