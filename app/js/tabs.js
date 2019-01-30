@@ -15,13 +15,31 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global MODES FOLLOW SETTINGS UTIL */
+/* global COMMAND FOLLOW MODES SETTINGS UTIL */
 "use strict"
 
+const { ipcRenderer } = require("electron")
+
 const init = () => {
-    addTab()
-    //TODO maybe add a keep tabs option here
-    //Although this could be a setting, it also requires history management
+    //TODO setting for startup process, each of these is an option
+    // - restore previous tabs (maybe default)
+    // - open a startup page
+    // - open the docs/help (default on first startup?)
+    //One of these should open before the urls parsed from the cli below
+    ipcRenderer.on("urls", (event, urls) => {
+        urls.forEach(url => {
+            if (UTIL.hasProtocol(url)) {
+                addTab(url)
+            } else {
+                addTab("https://" + url)
+            }
+        })
+        if (listTabs().length === 0) {
+            addTab()
+            //TODO if help at startup instead of empty page or previous tabs
+            COMMAND.help()
+        }
+    })
 }
 
 const listTabs = () => {
@@ -106,7 +124,7 @@ const updateUrl = webview => {
     if (webview !== currentPage() || skip.indexOf(MODES.currentMode()) !== -1) {
         return
     }
-    if (currentPage().src !== undefined) {
+    if (currentPage() && currentPage().src !== undefined) {
         document.getElementById("url").value = currentPage().src
     } else {
         document.getElementById("url").value = ""

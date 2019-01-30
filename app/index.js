@@ -30,7 +30,11 @@ app.setPath("userData", app.getPath("appData"))
 // When the app is ready to start, open the main window
 app.on("ready", () => {
     //Parse arguments
-    const args = process.argv.slice(1)
+    let args = process.argv
+    if (app.isPackaged) {
+        args.unshift("")
+    }
+    args = args.slice(2)
     const urls = []
     let enableDevTools = false
     args.forEach(arg => {
