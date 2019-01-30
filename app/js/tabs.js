@@ -18,7 +18,11 @@
 /* global COMMAND FOLLOW MODES SETTINGS UTIL */
 "use strict"
 
-const { ipcRenderer } = require("electron")
+const { ipcRenderer, remote } = require("electron")
+const path = require("path")
+const url = require("url")
+
+let loggingIn = false
 
 const init = () => {
     //TODO setting for startup process, each of these is an option
@@ -137,17 +141,53 @@ const addWebviewListeners = webview => {
         tab.querySelector("img").src = "img/spinner.gif"
         updateUrl(webview)
         webview.getWebContents().removeAllListeners("login")
-        webview.getWebContents()
-            .on("login", (e, request, auth, callback)  => {
-                e.preventDefault()
-                //TODO ask nicely for username and password here
-                //console.log(e, request, auth, callback)
-                callback("username", "password")
+        webview.getWebContents().on("login", (e, request, auth, callback) => {
+            e.preventDefault()
+            if (loggingIn) {
+                UTIL.notify("Credentials seem to be incorrect", "warn")
+                webview.stop()
+                return
+            }
+            loggingIn = true
+            const windowData = {
+                width: 300,
+                height: 300,
+                parent: remote.getCurrentWindow(),
+                modal: true,
+                frame: false,
+                title: `${auth.host}: ${auth.realm}`,
+                resizable: false
+            }
+            const loginWindow = new remote.BrowserWindow(windowData)
+            loginWindow.on("close", () => {
+                try {
+                    callback("", "")
+                } catch (e) {
+                    //Callback was already called
+                }
             })
+            loginWindow.loadURL(url.format({
+                pathname: path.join(__dirname, "../login.html"),
+                protocol: "file:",
+                slashes: true
+            }))
+            remote.ipcMain.once("login-credentials", (e, credentials) => {
+                try {
+                    callback(credentials[0], credentials[1])
+                    loginWindow.close()
+                } catch (e) {
+                    //Window is already being closed
+                }
+            })
+        })
     })
     webview.addEventListener("did-fail-load", e => {
         if (e.errorDescription === "") {
             return //Request was aborted before another error could occur
+        }
+        if (e.errorDescription === "ERR_INVALID_URL") {
+            webview.src = webview.src || ""
+            return
         }
         //It will go to the http version of a website when no https is detected
         const redirect = SETTINGS.get().redirectToHttp
@@ -169,6 +209,7 @@ const addWebviewListeners = webview => {
                 tab.querySelector("img").src = "img/nofavicon.png"
             }
         }
+        loggingIn = false
     })
     webview.addEventListener("page-title-updated", e => {
         const tab = listTabs()[listPages().indexOf(webview)]
