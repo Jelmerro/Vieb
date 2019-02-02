@@ -23,7 +23,7 @@
     <link rel="shortcut icon" type="image/png" href="img/icon.png">
 </head>
 <body>
-    <div class="side-by-side header">
+    <div class="header">
         <img src="img/icon.png">
         <div>Welcome to Vieb</div>
     </div>
@@ -38,19 +38,24 @@
     You can go there with two simple steps:
     <ul>
         <li>Press <kbd>Escape</kbd> once to make sure you are in normal mode.</li>
-        <li>Now scroll up and down with <kbd>j</kbd> and <kbd>k</kbd>.</li>
+        <li>Now scroll up and down with <kbd>k</kbd> and <kbd>j</kbd>.</li>
     </ul>
-    Please make sure to read that chapter if you are confused by anything so far.
+    Please make sure to read that chapter if you are confused by anything so far,
+    such as the lack of mouse interaction with the webpage.
+    <p>
+        Vieb is short for "Vim Inspired Electron Browser" and can be found on
+        <a href="https://github.com/VimprovedVenture/Vieb">github</a>.
+    </p>file:///home/jelmerro/projects/Vieb/app/help.html
     <h1 id="contents">Contents</h1>
     <div class="toc">
     </div>
     <h1 id="basics">Basics</h1>
-    Interaction with Vieb is heavily focussed on the keyboard,
+    Interaction with Vieb is heavily focused on the keyboard,
     and is mostly inspired by the popular text editor Vim.
     If you think a key is mapped to a weird keyboard combination,
     it's probably because it's also weird in Vim.
     Clicking links, scrolling, navigating,
-    and most other tasks have a dedicated keyboard shortcuts.
+    and most other tasks have dedicated keyboard shortcuts.
     The most important ones will be explained in this chapter.
     If a key such as <kbd>f</kbd> is displayed as <kbd>F</kbd>,
     you are expected to press shift and f together.
@@ -120,6 +125,8 @@
             These can be entered after pressing <kbd>:</kbd> (this requires shift).
             A very important command is the quit command,
             as it's the only way to properly quit Vieb.
+            For more detailed instructions on how to use this command,
+            please refer to the dedicated paragraph <a href="#commands-quit">here</a>.
         </li>
         <li>
             <span class="search">Search</span>
@@ -150,6 +157,8 @@
         <li>Reload the page with <kbd>r</kbd> and without cache using <kbd>R</kbd>.</li>
         <li>Close a tab with the <kbd>d</kbd> key.</li>
     </ul>
+    When you are done mastering these, please take a look at the
+    <a href="#normal">complete list of them here</a>.
     <h2 id="basics-summary">summary</h2>
     This concludes the basic usage of Vieb.
     If anything is still unclear after reading this chapter,
@@ -216,7 +225,7 @@
     and create a new one with the same functionality.
     The identifiers for the keys are Vieb specific,
     and are a combination of the active modifiers and the JavaScript key.code.
-    There is a website where you can check the code for the key being pressed,
+    There is a third-party website where you can check the code for the key being pressed,
     which can be found <a href="https://keycode.info">here</a>.
     Make sure to enter insert mode and look at the "event.code" field.
     Once you know the keycode, you can combine it with the modifiers like so:
@@ -313,13 +322,191 @@
     Lastly, if a command does not show a notification,
     it means that the command was succesfully executed and applied.
     <h1 id="startup">Startup</h1>
-    TODO
+    Vieb can be started without any required arguments.
+    This will result in this help page being opened,
+    because there is no history management yet to (optionally) restore the previous tabs from.
+    There is already the option to add startup arguments,
+    which can be used for a couple of different things.
+    First there is "--help" to display information about all the startup options.
+    There is also a "--version" argument, to display the version and exit.
+    Lastly, you can provide "--debug" or "--console" to open the Vieb debug console,
+    which is the internal console of Vieb and not the one used to debug websites.
+    Aside from these arguments the remaining ones will be opened as a url.
+    These urls can take any form if you include the protocol/schema,
+    or will automatically be prefixed with "https://".
+    You can provide as many urls as you want,
+    as each of them will be opened in a separate tab.
+    <h2 id="startup-examples">examples</h2>
+    The first example shows how to add arguments to Vieb,
+    when started from npm or as an executable.
+    If you start Vieb with with npm,
+    make sure you have already done "npm install" and run the following:
+    <pre class="command-block">npm start -- --help</pre>
+    This will passs the "--help" argument to Vieb,
+    which should now display all the available startup arguments.
+    Note that with npm it's required to separate the npm arguments from the Vieb arguments,
+    by adding the extra "--" between them.
+    To add arguments to a regular Vieb executable,
+    simply add them like so:
+    <pre class="command-block">vieb --help</pre>
+    Where "vieb" should be the name of the executable,
+    such as "Vieb.exe" on Windows.
+    To open two websites on startup with Vieb's internal console open,
+    you can do the following:
+    <pre class="command-block">
+        vieb --console "http://example.com" "github.com/VimprovedVenture/Vieb"
+    </pre>
+    <h1 id="normal">Normal mode</h1>
+    In the basics chapter the most useful keyboard shortcuts are mentioned,
+    but this chapter lists all of the default normal mode actions available:
+    <ul>
+        <li><kbd>F1</kbd> Opens this help page, similar to the help command.</li>
+        <li><kbd>b</kbd> and <kbd>w</kbd> to switch to the previous and next tab</kbd>.</li>
+        <li>Alternatively, <kbd>J</kbd> and <kbd>K</kbd> can be used to switch tabs.</li>
+        <li>Go to nav mode with <kbd>e</kbd>.</li>
+        <li>Start the regular follow mode for the current tab with <kbd>f</kbd>.</li>
+        <li>
+            Use <kbd>F</kbd> to open supported links in a new tab.
+            The <a href="#follow">follow</a> chapter explains the differences.
+        </li>
+        <li>Go to the top or the bottom of the page with <kbd>G</kbd> or <kbd>g</kbd>.</li>
+        <li>Move around on the page with the keys <kbd>h j k l</kbd>.</li>
+        <li>Enter insert mode with <kbd>I</kbd>.</li>
+        <li>
+            Find the next or previous match when searching with
+            <kbd>n</kbd> and <kbd>N</kbd>.
+        </li>
+        <li>Reload the page with or without cache using <kbd>r</kbd> and <kbd>R</kbd>.</li>
+        <li>Open a new tab and enter nav mode in the new tab with <kbd>t</kbd>.</li>
+        <li>Switch to search mode with <kbd>/</kbd>.</li>
+        <li>
+            Go forward or backwards in the tab browsing history with
+            <kbd>L</kbd> and <kbd>H</kbd>.
+        </li>
+        <li>Go to command mode with <kbd>:</kbd>.</li>
+        <li>Zoom in or out using <kbd>Ctrl with +</kbd> and <kbd>Ctrl with -</kbd>.</li>
+        <li>Reset the zoom to 100% again using <kbd>Ctrl with 0</kbd>.</li>
+    </ul>
     <h1 id="follow">Follow</h1>
-    TODO
+    This mode is a very important aspect of Vieb,
+    as it allows you to click on links or other elements using the keyboard.
+    There are two versions with very different implementations,
+    one for the current tab with <kbd>f</kbd> and one for new tab with <kbd>F</kbd>.
+    These will be explained in separate paragraphs,
+    as the underlying implementations are very different,
+    even if the differences are not immediately visible to the user.
+    <h2 id="follow-click">follow by click</h2>
+    After pressing <kbd>f</kbd> from normal mode,
+    all clickable elements should be assigned a key next to them.
+    After choosing the key, Vieb will emulate a click on the chosen element.
+    For the regular follow mode, these come in four flavours:
+    <ul>
+        <li>
+            Regular anchor tags (a) outlined in blue -
+            These will be clickable in regardless of the href attribute's value,
+            even for href values such as "#".
+            The result will be no different from clicking a link using a regular browser.
+        </li>
+        <li>
+            Clickable input elements (checkboxes, radio and other buttons) outlined in red -
+            These will be clicked on with no real differences compared to a regular browser.
+        </li>
+        <li>
+            Input fields (textarea and inputs) outlined in green -
+            These will be focused by clicking on them.
+            Unlike other follow mode types,
+            Vieb will not bo back to normal mode but enter Insert mode directly.
+            This allows you to start typing in the input field after choosing it with follow mode.
+        </li>
+        <li>
+            Onclick handlers (all elements with an onclick attribute) outlined in yellow -
+            Elements with onclick attributes present will be made clickable,
+            using this last type of follow mode link.
+            Currently this won't detect elements with eventHandlers added by JavaScript.
+        </li>
+    </ul>
+    Clicking links with the mouse when using insert mode will mostly do the same thing.
+    <h2 id="follow-newtab">follow in new tab</h2>
+    The <kbd>F</kbd> key allows you to open links in a new tab.
+    Unlike the regular follow mode, only anchor tabs will be available to click on.
+    Aside from that, all the href attributes are filtered.
+    The filter will disable the keys for links with no valid url,
+    as these couldn't be opened in a new tab.
+    This means only anchor tags with valid urls will be made clickable.
+    Finally these links will not be opened by emulating a mouse click,
+    but by opening a new tab with the href attribute as the url.
     <h1 id="commands">Commands</h1>
-    TODO
+    In this chapter all the available commands will be listed and explained.
+    <h2 id="commands-help">help</h2>
+    The help command can be used as an alternative for the <kbd>F1</kbd> key.
+    It will open the help in the current tab,
+    unless you are already on a different website.
+    Optionally, the help command takes a single argument,
+    which can be used to refer to a section of this help page.
+    For example, to navigate to the basics chapter:
+    <pre class="command-block">help basics</pre>
+    This command can also be used when this help page is already open,
+    as it will simply move the page to the right section.
+    The help command can be shortened by only using "h".
+    All paragraphs are prefixed with the chapter they are in,
+    and as a result the current paragraph can be opened directly with:
+    <pre class="command-block">h commands-help</pre>
+    <h2 id="commands-set">set</h2>
+    This command has already been mostly explained in <a href="#settings-set">this paragraph</a>.
+    To summarize, this command can be used to set any setting during runtime,
+    without saving it to the viebrc.json settings/config file.
+    It is always in the form of:
+    <pre class="command-block">set setting value</pre>
+    For example, to increase the notification duration for the current session,
+    use the following command (from 3 seconds to 5 seconds):
+    <pre class="command-block">set notification.duration 5000</pre>
+    If no notification is shown, the setting was succesfully applied.
+    Note that the duration and position of the notifications can only be changed
+    if the Vieb notification is used instead of system notifications.
+    Lastly, Vieb will automatically block websites with an invalid or missing certificate.
+    To bypass this, either enter the url with the full protocol (http://),
+    or change the following setting:
+    <pre class="command-block">set redirectToHttp true</pre>
+    The setting argument is case-insensitive when using the set command,
+    but the value is always case-sensitive.
+    <h2 id="commands-reload">reload</h2>
+    The reload command can be used to reload the settings from the settings file.
+    It takes no arguments, required or optional.
+    This command is implemented in Vieb according to these steps:
+    <ul>
+        <li>All settings are reset to the defaults hard-coded in the Vieb source.</li>
+        <li>
+            The user settings are merged with these default settings,
+            which means only settings present in the viebrc.json are changed.
+        </li>
+    </ul>
+    As a result of this, all previous set command changes are reset by using reload.
+    This can be used to undo any wrong changes, to quickly change back,
+    or to change the <a href="#settings-viebrc-keybindings">keybindings</a>.
+    The viebrc file is not locked by Vieb and you are free to change it any time.
+    It can be used to change the keybindings without restarting Vieb,
+    or to change the settings permanently (instead of the temporary set command).
+    A short version of the reload command is just using "r".
+    <h2 id="commands-quit">quit</h2>
+    Last but not least is the quit command.
+    This simple command takes no arguments,
+    and is the proper way to quit Vieb.
+    For beginners who haven't changed the related keybindings,
+    these are the steps to quit Vieb regardless of mode:
+    <ul>
+        <li>Press <kbd>Escape</kbd> to go back to normal mode.</li>
+        <li>Enter <kbd>:</kbd> or "Shift with ;" to enter command mode.</li>
+        <li>Type "quit" into the navbar and press <kbd>Enter</kbd>.</li>
+    </ul>
+    The short version of the quit command is "q".
     <h1 id="license">License</h1>
-    GPL3.0+, more info is TODO
+    Vieb is created by <a href="https://github.com/VimprovedVenture">Vimproved Venture</a>
+    and <a href="https://github.com/VimprovedVenture/Vieb/graphs/contributors">contributors</a>.
+    The source files contain the license headers with the individual authors,
+    mostly <a href="https://github.com/Jelmerro">Jelmer van Arnhem</a>
+    and <a href="https://github.com/ianbaremans">Ian Baremans</a>.
+    You can copy or modify the code/program under the terms of the GPL3.0 or higher.
+    For more information and legal terms see the <a href="../LICENSE">LICENSE</a> file.
     <script>
         const changeColor = element => {
             if (element.style.borderColor === "rgb(0, 51, 255)") {
@@ -357,7 +544,7 @@
         }
         const createIdLabel = element => {
             const section = document.createElement("div")
-            section.className = "side-by-side"
+            section.className = "section"
             const header = document.createElement(element.tagName)
             header.id = element.id
             header.textContent = element.textContent
