@@ -17,20 +17,22 @@
 */
 /* General */
 body {color: #eee;font: 14px monospace;background: #333;padding: 0;margin: 3%;user-select: none;}
-.header {font-size: 60px;max-width: 700px;}
-img {height: 64px;width: 64px;margin: auto;}
 kbd {background: #111;color: #fff;padding: 0.1em;}
 button, span[onclick] {border-width: 2px;border-style: solid;border-color: #555;}
 iframe, pre {min-width: 450px;width: 100%;background: #222;color: #cff;padding: 0;margin: 10px 0;}
 pre {padding: 8px 0;font-size: 13px;}
+/* Top header */
+.header {font-size: 5vw;display: flex;}
+.header > img {height: 10vw;}
+.header > div {margin: auto;}
 /* Section header */
 a {color: #0cf;}
 li {line-height: 1.5em;}
-.side-by-side {display: flex;}
-.side-by-side > h1 {flex: 1;}
-.side-by-side > h2 {flex: 1;}
-.side-by-side > h3 {flex: 1;}
-.side-by-side > a {margin: auto;}
+.section {display: flex;}
+.section > h1 {flex: 1;}
+.section > h2 {flex: 1;}
+.section > h3 {flex: 1;}
+.section > a {margin: auto;}
 h1 {font-size: 32px;margin: 20px 0;}
 h2 {font-size: 24px;margin: 15px 0;}
 h3 {font-size: 18px;margin: 10px 0;}
@@ -40,7 +42,7 @@ h3 {font-size: 18px;margin: 10px 0;}
 .toc-h2 {margin-left: 30px;font-size: 17px;}
 .toc-h3 {margin-left: 60px;font-size: 14px;}
 /* colors */
-.command-block {color: #faa;}
+.command-block {color: #faa;white-space: normal;word-break: break-all;}
 .command {color: #f33;}
 .insert {color: #3f3;}
 .follow {color: #f3f;}
