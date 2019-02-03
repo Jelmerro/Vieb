@@ -45,7 +45,7 @@
     <p>
         Vieb is short for "Vim Inspired Electron Browser" and can be found on
         <a href="https://github.com/VimprovedVenture/Vieb">github</a>.
-    </p>file:///home/jelmerro/projects/Vieb/app/help.html
+    </p>
     <h1 id="contents">Contents</h1>
     <div class="toc">
     </div>
@@ -337,8 +337,8 @@
     You can provide as many urls as you want,
     as each of them will be opened in a separate tab.
     <h2 id="startup-examples">examples</h2>
-    The first example shows how to add arguments to Vieb,
-    when started from npm or as an executable.
+    To get a better understanding of these arguments,
+    there are a couple of examples shown in this paragraph.
     If you start Vieb with with npm,
     make sure you have already done "npm install" and run the following:
     <pre class="command-block">npm start -- --help</pre>
@@ -352,10 +352,12 @@
     Where "vieb" should be the name of the executable,
     such as "Vieb.exe" on Windows.
     To open two websites on startup with Vieb's internal console open,
-    you can do the following:
+    you can start vieb with the following arguments:
     <pre class="command-block">
         vieb --console "http://example.com" "github.com/VimprovedVenture/Vieb"
     </pre>
+    Note that the github url will be prefixed with "https://",
+    because we omitted the schema/protocol from the url.
     <h1 id="normal">Normal mode</h1>
     In the basics chapter the most useful keyboard shortcuts are mentioned,
     but this chapter lists all of the default normal mode actions available:
@@ -383,6 +385,11 @@
             Go forward or backwards in the tab browsing history with
             <kbd>L</kbd> and <kbd>H</kbd>.
         </li>
+        <li>
+            Scroll half a page up or down using
+            <kbd>Ctrl with u</kbd> or <kbd>Ctrl with d</kbd>.
+        </li>
+        <li>Or an entire page by pressing <kbd>Ctrl with B</kbd> and <kbd>Ctrl with F</kbd>.</li>
         <li>Go to command mode with <kbd>:</kbd>.</li>
         <li>Zoom in or out using <kbd>Ctrl with +</kbd> and <kbd>Ctrl with -</kbd>.</li>
         <li>Reset the zoom to 100% again using <kbd>Ctrl with 0</kbd>.</li>
@@ -506,7 +513,9 @@
     mostly <a href="https://github.com/Jelmerro">Jelmer van Arnhem</a>
     and <a href="https://github.com/ianbaremans">Ian Baremans</a>.
     You can copy or modify the code/program under the terms of the GPL3.0 or higher.
-    For more information and legal terms see the <a href="../LICENSE">LICENSE</a> file.
+    For more information and legal terms see the
+    <a href="https://github.com/VimprovedVenture/Vieb/blob/master/LICENSE">LICENSE</a>.
+    All the links in this paragraph connect to some part of the github repository.
     <script>
         const changeColor = element => {
             if (element.style.borderColor === "rgb(0, 51, 255)") {

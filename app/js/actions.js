@@ -162,6 +162,42 @@ const toCommandMode = () => {
     MODES.setMode("command")
 }
 
+const scrollPageUp = () => {
+    try {
+        TABS.currentPage().executeJavaScript(
+            "window.scrollBy(0, -window.innerHeight + 50)", true)
+    } catch (e) {
+        //No page is available, not an issue
+    }
+}
+
+const scrollPageDownHalf = () => {
+    try {
+        TABS.currentPage().executeJavaScript(
+            "window.scrollBy(0, window.innerHeight / 2 - 25)", true)
+    } catch (e) {
+        //No page is available, not an issue
+    }
+}
+
+const scrollPageDown = () => {
+    try {
+        TABS.currentPage().executeJavaScript(
+            "window.scrollBy(0, window.innerHeight - 50)", true)
+    } catch (e) {
+        //No page is available, not an issue
+    }
+}
+
+const scrollPageUpHalf = () => {
+    try {
+        TABS.currentPage().executeJavaScript(
+            "window.scrollBy(0, -window.innerHeight / 2 + 25)", true)
+    } catch (e) {
+        //No page is available, not an issue
+    }
+}
+
 const zoomReset = () => {
     try {
         TABS.currentPage().setZoomLevel(0)
@@ -303,6 +339,10 @@ module.exports = {
     previousSearchMatch,
     reloadWithoutCache,
     toCommandMode,
+    scrollPageUp,
+    scrollPageDownHalf,
+    scrollPageDown,
+    scrollPageUpHalf,
     zoomReset,
     zoomIn,
     zoomOut,
