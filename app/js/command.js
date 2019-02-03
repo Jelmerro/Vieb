@@ -91,7 +91,7 @@ const help = (section=null) => {
     //Switch to already open help if available
     let alreadyOpen = false
     TABS.listPages().forEach((page, index) => {
-        if (!page.src || page.src.startsWith(helpUrl)) {
+        if (!page.src || decodeURIComponent(page.src).startsWith(helpUrl)) {
             alreadyOpen = true
             TABS.switchToTab(index)
         }
