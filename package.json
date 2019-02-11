@@ -4,12 +4,12 @@
   "description": "Vim Inspired Electron Browser",
   "main": "app/index.js",
   "build": {
-    "appId": "com.github.VimprovedVenture.Vieb",
+    "appId": "com.github.Jelmerro.Vieb",
     "linux": {
       "executableName": "vieb",
       "icon": "build/icons",
       "category": "Network;WebBrowser;",
-      "maintainer": "Vimproved Venture",
+      "maintainer": "Jelmer van Arnhem",
       "target": [
         {
           "target": "AppImage",
@@ -24,7 +24,19 @@
           ]
         },
         {
+          "target": "freebsd",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
           "target": "rpm",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "snap",
           "arch": [
             "x64"
           ]
@@ -46,11 +58,21 @@
             "x64"
           ]
         }
+      ],
+      "extraFiles": [
+        {
+          "from": "README.md",
+          "to": "../../README.md"
+        },
+        {
+          "from": "LICENSE",
+          "to": "../../LICENSE"
+        }
       ]
     },
     "win": {
       "icon": "build/icons",
-      "legalTrademarks": "Copyright @ Vimproved Venture | Licensed as free software (GPL-3.0+)",
+      "legalTrademarks": "Copyright @ Jelmer van Arnhem | Licensed as free software (GPL-3.0+)",
       "target": [
         {
           "target": "nsis",
@@ -84,7 +106,7 @@
         ]
       }
     ],
-    "copyright": "Copyright @ Vimproved Venture | Licensed as free software (GPL-3.0+)",
+    "copyright": "Copyright @ Jelmer van Arnhem | Licensed as free software (GPL-3.0+)",
     "extraFiles": [
       "README.md",
       "LICENSE"
@@ -97,18 +119,19 @@
     "buildmac": "electron-builder --mac",
     "buildwin": "electron-builder --win"
   },
-  "repository": "https://github.com/VimprovedVenture/Vieb",
-  "homepage": "https://github.com/VimprovedVenture/Vieb",
+  "repository": "https://github.com/Jelmerro/Vieb",
+  "homepage": "https://github.com/Jelmerro/Vieb",
   "keywords": [
     "Electron",
     "Browser",
     "Internet"
   ],
-  "author": "Vimproved Venture",
+  "author": "Jelmer van Arnhem",
+  "email": "Jelmerro@users.noreply.github.com",
   "license": "GPL-3.0+",
   "devDependencies": {
-    "electron": "^4.0.1",
+    "electron": "^4.0.4",
     "electron-builder": "^20.38.5",
-    "eslint": "^5.12.1"
+    "eslint": "^5.13.0"
   }
 }

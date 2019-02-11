@@ -3,7 +3,7 @@ Vieb
 
 ![icon](build/icons/128x128.png)
 
-Vim Inspired Electron Browser - [github](https://github.com/VimprovedVenture/Vieb)
+Vim Inspired Electron Browser - [github](https://github.com/Jelmerro/Vieb)
 
 Vim bindings for the web by design
 
@@ -100,7 +100,7 @@ both will be explained below.
 
 ## Releases
 
-Stable releases can be found on the [github release page](https://github.com/VimprovedVenture/Vieb/releases).
+Stable releases can be found on the [github release page](https://github.com/Jelmerro/Vieb/releases).
 These releases require no special setup and can be downloaded for a specific platform.
 
 ## From source
@@ -108,7 +108,7 @@ These releases require no special setup and can be downloaded for a specific pla
 The other option is to download/clone the repository and use npm, for example:
 
 ```bash
-git clone https://github.com/VimprovedVenture/Vieb.git
+git clone https://github.com/Jelmerro/Vieb.git
 cd Vieb
 npm install
 npm start
@@ -218,14 +218,14 @@ make sure to follow these guidelines when working on it:
 - Use editorconfig (there is a [Vim plugin available](https://github.com/editorconfig/editorconfig-vim))
 
 If you are looking for anything specific to improve,
-check the [unassigned issues](https://github.com/VimprovedVenture/Vieb/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee) or [nice to haves](https://github.com/VimprovedVenture/Vieb/milestone/2).
+check the [unassigned issues](https://github.com/Jelmerro/Vieb/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee) or [nice to haves](https://github.com/Jelmerro/Vieb/milestone/2).
 
 # LICENSE
 
 ## Program/source
 
-Vieb is created by [Vimproved Venture](https://github.com/VimprovedVenture) and [contributors](https://github.com/VimprovedVenture/Vieb/graphs/contributors).
-See the source files for individual authors (mostly [Ian Baremans](https://github.com/ianbaremans) & [Jelmer van Arnhem](https://github.com/Jelmerro)).
+Vieb is created by [Jelmer van Arnhem](https://github.com/Jelmerro) and [contributors](https://github.com/Jelmerro/Vieb/graphs/contributors).
+See the source files for individual authors.
 
 You can copy or modify the code/program under the terms of the GPL3.0 or higher.
 For more information and legal terms see the LICENSE file.
