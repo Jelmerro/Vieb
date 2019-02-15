@@ -46,6 +46,15 @@ const execute = command => {
         UTIL.notify("The reload command takes no arguments", "warn")
         return
     }
+    //reload command
+    if (["v", "version"].indexOf(command) !== -1) {
+        version()
+        return
+    }
+    if (command.startsWith("v ") || command.startsWith("version ")) {
+        UTIL.notify("The version command takes no arguments", "warn")
+        return
+    }
     //help command
     if (["h", "help"].indexOf(command) !== -1) {
         help()
@@ -81,6 +90,32 @@ const quit = () => {
     remote.app.exit(0)
 }
 
+const version = () => {
+    MODES.setMode("normal")
+    const versionUrl = url.format({
+        pathname: path.join(__dirname, "../version.html"),
+        protocol: "file:",
+        slashes: true
+    })
+    //Switch to already open help if available
+    let alreadyOpen = false
+    TABS.listPages().forEach((page, index) => {
+        if (!page.src || decodeURIComponent(page.src).startsWith(versionUrl)) {
+            alreadyOpen = true
+            TABS.switchToTab(index)
+        }
+    })
+    //Open the url in the current or new tab, depending on currently open page
+    if (TABS.currentPage().src === "" || alreadyOpen) {
+        TABS.navigateTo(versionUrl)
+    } else {
+        TABS.addTab(versionUrl)
+    }
+    const version = "0.1.0"
+    TABS.currentPage().executeJavaScript(
+        `document.getElementById('version').textContent = "${version}"`)
+}
+
 const help = (section=null) => {
     MODES.setMode("normal")
     let helpUrl = url.format({
@@ -114,5 +149,6 @@ const help = (section=null) => {
 module.exports = {
     execute,
     quit,
+    version,
     help
 }
