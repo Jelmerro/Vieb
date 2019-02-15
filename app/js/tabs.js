@@ -21,6 +21,8 @@
 const { ipcRenderer, remote } = require("electron")
 const path = require("path")
 const url = require("url")
+const useragent = remote.session.defaultSession.getUserAgent()
+    .replace(/Electron\/.* /, "")
 
 let loggingIn = false
 
@@ -80,12 +82,13 @@ const addTab = (url=null) => {
     tab.appendChild(title)
     tabs.appendChild(tab)
     const webview = document.createElement("webview")
-    if (url !== null) {
-        webview.src = url
-    }
     webview.setAttribute("preload", "./js/preload.js")
     addWebviewListeners(webview)
     pages.appendChild(webview)
+    webview.getWebContents().setUserAgent(useragent)
+    if (url !== null) {
+        webview.src = url
+    }
     switchToTab(listTabs().length - 1)
 }
 
