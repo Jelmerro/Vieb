@@ -1,0 +1,77 @@
+<!--
+    Vieb - Vim Inspired Electron Browser
+    Copyright (C) 2019 Jelmer van Arnhem
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="css/version.css" rel="stylesheet" type="text/css">
+    <title>Vieb Version</title>
+    <link rel="shortcut icon" type="image/png" href="img/icon.png">
+</head>
+<body>
+    <div class="header">
+        <img src="img/icon.png">
+        <div>
+            <div id="title">Vieb <span id="version"></span></div>
+            <div id="subtitle">Vim Inspired Electron Browser</div>
+            Vieb is made by <a href="https://github.com/Jelmerro">Jelmer van Arnhem</a>
+            and <a href="https://github.com/Jelmerro/Vieb/graphs/contributors">contributors</a>.
+            It enables you to interact with the web using Vim inspired keybindings.
+            Vieb runs on Electron and the Chrome version is <span id="chromium-version"></span>.
+            <div id="update-check">
+                <div>Check Vieb updates <button>here</button></div>
+                <div id="version-check">Not checked yet.</div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const version = "0.1.0"
+        const url = "https://api.github.com/repos/Jelmerro/Vieb/releases/latest"
+        const versionCheck = document.getElementById("version-check")
+        window.onload = () => {
+            document.querySelector("button").onclick = () => {
+                versionCheck.textContent = "Loading..."
+                const req = new XMLHttpRequest()
+                req.onreadystatechange = () => {
+                    if (req.readyState === 4) {
+                        if (req.status === 200) {
+                            try {
+                                const release = JSON.parse(req.responseText)
+                                if (release["tag_name"] !== version) {
+                                    versionCheck.textContent =
+                                        `Version ${release["tag_name"]}`
+                                        + ` available`
+                                    return
+                                }
+                            } catch (e) {
+                            }
+                            versionCheck.textContent = "Your Vieb is up to date."
+                            return
+                        }
+                        versionCheck.textContent = "Failed to fetch updates."
+                    }
+                }
+                req.open("GET", url, true)
+                req.send(null)
+            }
+            document.getElementById('version').textContent = version
+            document.getElementById('chromium-version')
+                .textContent = /Chrome\/(.*) /.exec(navigator.userAgent)[1]
+        }
+    </script>
+</body>
+</html>

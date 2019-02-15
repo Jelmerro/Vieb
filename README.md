@@ -51,6 +51,7 @@ Vieb supports the following commands:
 
 - `:q` or `:quit` will quit Vieb, and is the recommended way to do so
 - `:r` or `:reload` will reload the settings from the viebrc.json file
+- `:v` or `:version` to display all version and release information
 - `:h` or `:help` to display the help documentation,
   a single optional argument can be given to go to a specific section, such as `:help basics`
 - `:set` will change a setting for as long as Vieb is opened
