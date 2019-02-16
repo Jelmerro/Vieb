@@ -37,7 +37,16 @@ const execute = command => {
         UTIL.notify("The quit command takes no arguments", "warn")
         return
     }
-    //reload command
+    //devtools command
+    if (["dev", "devtools"].indexOf(command) !== -1) {
+        devtools()
+        return
+    }
+    if (command.startsWith("dev ") || command.startsWith("devtools ")) {
+        UTIL.notify("The devtools command takes no arguments", "warn")
+        return
+    }
+    //version command
     if (["r", "reload"].indexOf(command) !== -1) {
         SETTINGS.loadFromDisk()
         return
@@ -46,7 +55,7 @@ const execute = command => {
         UTIL.notify("The reload command takes no arguments", "warn")
         return
     }
-    //reload command
+    //version command
     if (["v", "version"].indexOf(command) !== -1) {
         version()
         return
@@ -88,6 +97,10 @@ const execute = command => {
 const quit = () => {
     remote.getCurrentWindow().destroy()
     remote.app.exit(0)
+}
+
+const devtools = () => {
+    TABS.currentPage().openDevTools()
 }
 
 const version = () => {

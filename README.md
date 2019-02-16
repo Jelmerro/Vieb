@@ -50,6 +50,7 @@ but this can be changed as described below in "Configuring Vieb".
 Vieb supports the following commands:
 
 - `:q` or `:quit` will quit Vieb, and is the recommended way to do so
+- `:dev` or `:devtools` open the devtools for the current website in a new window
 - `:r` or `:reload` will reload the settings from the viebrc.json file
 - `:v` or `:version` to display all version and release information
 - `:h` or `:help` to display the help documentation,
@@ -141,7 +142,7 @@ When starting Vieb with npm, it's required to enter the arguments like this:
 
 It should be noted that the developer console is not the one linked to any websites,
 but is the internal console of the Vieb application.
-Opening the developer tools for the current website is not supported yet.
+Opening the developer tools for the current website can be done with the `:dev` command.
 
 # Configuring Vieb
 
