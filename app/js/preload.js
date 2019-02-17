@@ -19,19 +19,60 @@
 
 const { ipcRenderer } = require("electron")
 
+const urls = ["a"]
+const clickableInputs = ["button", "input[type=\"button\"]",
+    "input[type=\"radio\"]", "input[type=\"checkbox\"]",
+    "input[type=\"submit\"]", "summary"]
+const textlikeInputs = ["input:not([type=\"radio\"]):not([type=\"checkbox\"])"
+    + ":not([type=\"submit\"]):not([type=\"button\"])", "textarea", "select"]
+const onclickElements = "*:not(button):not(input)[onclick]"
+
 ipcRenderer.on("follow-mode-request", e => {
     const allLinks = []
     //a tags with href as the link, can be opened in new tab or current tab
-    allLinks.push(...gatherAnchorTags())
+    allLinks.push(...allElementsBySelectors("url", urls))
     //input tags such as checkboxes, can be clicked but have no text input
-    allLinks.push(...gatherClickableInputs())
+    allLinks.push(...allElementsBySelectors("inputs-click", clickableInputs))
     //input tags such as email and text, can have text inserted
-    allLinks.push(...gatherTextLikeInputs())
+    allLinks.push(...allElementsBySelectors("inputs-insert", textlikeInputs))
     //All other elements with onclick listeners
-    allLinks.push(...gatherOnclickElements())
+    const clickableElements = [...document.querySelectorAll(onclickElements)]
+    clickableElements.push(...elementsWithClickListener)
+    clickableElements.forEach(element => {
+        const clickable = parseElement(element, "onclick")
+        if (clickable !== null) {
+            //Only show onclick elements for which there is no existing link
+            const similarExistingLinks = allLinks.filter(link => {
+                return checkForDuplicateLink(clickable, link)
+            })
+            if (similarExistingLinks.length === 0) {
+                allLinks.push(clickable)
+            }
+        }
+    })
     //Send response back to webview, which will forward it to follow.js
     e.sender.sendToHost("follow-response", allLinks)
 })
+
+const checkForDuplicateLink = (element, existing) => {
+    //check for exactly the same dimensions
+    if (element.height === existing.height) {
+        if (element.x === existing.x && element.y === existing.y) {
+            if (element.width === existing.width) {
+                return true
+            }
+        }
+    }
+    //check if the new element is overlapping an existing link
+    if (element.height + element.y >= existing.height + existing.y) {
+        if (element.width + element.x >= existing.width + existing.x) {
+            if (element.x <= existing.x && element.y <= existing.y) {
+                return true
+            }
+        }
+    }
+    return false
+}
 
 const parseElement = (element, type) => {
     const rects = [...element.getClientRects()]
@@ -117,30 +158,21 @@ const isVisible = (element, doSizeCheck=true) => {
     return true
 }
 
-const gatherAnchorTags = () => {
-    const elements = [...document.getElementsByTagName("a")]
-    const tags = []
-    elements.forEach(element => {
-        const clickableElement = parseElement(element, "url")
-        if (clickableElement !== null) {
-            tags.push(clickableElement)
-        }
-    })
-    return tags
-}
-
-const gatherClickableInputs = () => {
-    //Only easily clickable inputs will be matched with this function:
-    //buttons, checkboxes, submit and radiobuttons
+const allElementsBySelectors = (type, selectors) => {
     const elements = []
-    elements.push(...document.getElementsByTagName("button"))
-    elements.push(...document.querySelectorAll("input[type=\"button\"]"))
-    elements.push(...document.querySelectorAll("input[type=\"radio\"]"))
-    elements.push(...document.querySelectorAll("input[type=\"checkbox\"]"))
-    elements.push(...document.querySelectorAll("input[type=\"submit\"]"))
+    const iframes = [...document.getElementsByTagName("iframe")]
+    selectors.forEach(selector => {
+        elements.push(...document.querySelectorAll(selector))
+        iframes.forEach(frame => {
+            if (frame.contentDocument) {
+                elements.push(
+                    ...frame.contentDocument.querySelectorAll(selector))
+            }
+        })
+    })
     const tags = []
     elements.forEach(element => {
-        const clickableElement = parseElement(element, "inputs-click")
+        const clickableElement = parseElement(element, type)
         if (clickableElement !== null) {
             tags.push(clickableElement)
         }
@@ -148,34 +180,27 @@ const gatherClickableInputs = () => {
     return tags
 }
 
-const gatherTextLikeInputs = () => {
-    //Input fields with text input or similar
-    const elements = [...document.querySelectorAll(
-        "input:not([type=\"radio\"]):not([type=\"checkbox\"])"
-        + ":not([type=\"submit\"]):not([type=\"button\"])")]
-    elements.push(...document.getElementsByTagName("textarea"))
-    const tags = []
-    elements.forEach(element => {
-        const clickableElement = parseElement(element, "inputs-insert")
-        if (clickableElement !== null) {
-            tags.push(clickableElement)
-        }
-    })
-    return tags
-}
+const elementsWithClickListener = []
 
-const gatherOnclickElements = () => {
-    const elements = [...document.querySelectorAll(
-        "*:not(button):not(input)[onclick]")]
-    //This won't access onclick added by javascript,
-    //but there is a separate issue for that (#9)
-    const tags = []
-    elements.forEach(element => {
-        const clickableElement = parseElement(element, "onclick")
-        if (clickableElement !== null) {
-            tags.push(clickableElement)
-        }
-    })
-    return tags
+Node.prototype.realAddEventListener = Node.prototype.addEventListener
+Node.prototype.addEventListener = function(type, listener, options) {
+    this.realAddEventListener(type, listener, options)
+    if (type === "click" && this !== document) {
+        elementsWithClickListener.push(this)
+    }
 }
-
+Node.prototype.realRemoveEventListener = Node.prototype.removeEventListener
+Node.prototype.removeEventListener = function(type, listener, options) {
+    try {
+        this.realRemoveEventListener(type, listener, options)
+    } catch (e)  {
+        //This is a bug in the underlying website
+    }
+    if (type === "click" && this !== document) {
+        try {
+            elementsWithClickListener.remove(this)
+        } catch (e) {
+            //The element was already removed from the list before
+        }
+    }
+}
