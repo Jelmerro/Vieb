@@ -130,8 +130,8 @@
   "email": "Jelmerro@users.noreply.github.com",
   "license": "GPL-3.0+",
   "devDependencies": {
-    "electron": "^4.0.4",
+    "electron": "^4.0.5",
     "electron-builder": "^20.38.5",
-    "eslint": "^5.13.0"
+    "eslint": "^5.14.0"
   }
 }

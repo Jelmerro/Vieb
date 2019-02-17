@@ -32,7 +32,8 @@ const startFollowNewTab = () => {
 
 const startFollow = () => {
     document.getElementById("follow").innerHTML = ""
-    if (TABS.currentPage().src === "" || TABS.currentPage().isLoading()) {
+    if (TABS.currentPage().src === "" ||
+            TABS.currentPage().isLoadingMainFrame()) {
         UTIL.notify(
             "Follow mode will be available when the page is done loading")
     } else {
@@ -159,11 +160,6 @@ const enterKey = identifier => {
                 "y": (link.y + (link.height / 2)) * factor,
                 "button": "left",
                 "clickCount": 1
-            })
-            TABS.currentPage().sendInputEvent({
-                "type": "mouseLeave",
-                "x": link.x * factor,
-                "y": link.y * factor
             })
             if (link.type !== "inputs-insert") {
                 cancelFollow()

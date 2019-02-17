@@ -93,7 +93,7 @@ The selectors are divided in the following colors:
 - Blue for regular links, these will be opened normally or in a new tab with `F`
 - Green for text-like input fields, choosing any of these will go to insert mode with the field focused
 - Red for clickable buttons and boxes, these will be clicked automatically without entering insert mode
-- Orange for inline onclick handlers, these will be clicked to trigger the onclick
+- Orange for JavaScript event handlers, these will be clicked to trigger the event
 
 # Starting Vieb
 
