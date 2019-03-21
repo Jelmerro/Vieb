@@ -159,7 +159,10 @@ const addWebviewListeners = webview => {
                 modal: true,
                 frame: false,
                 title: `${auth.host}: ${auth.realm}`,
-                resizable: false
+                resizable: false,
+                webPreferences: {
+                    nodeIntegration: true
+                }
             }
             const loginWindow = new remote.BrowserWindow(windowData)
             loginWindow.on("close", () => {
