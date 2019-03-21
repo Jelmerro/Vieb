@@ -208,12 +208,11 @@ const zoomReset = () => {
 
 const zoomOut = () => {
     try {
-        TABS.currentPage().getZoomLevel(level => {
-            if (level <= -7) {
-                return
-            }
-            TABS.currentPage().setZoomLevel(level - 1)
-        })
+        const level = TABS.currentPage().getZoomLevel()
+        if (level <= -7) {
+            return
+        }
+        TABS.currentPage().setZoomLevel(level - 1)
     } catch (e) {
         //No page is available, not an issue
     }
@@ -221,12 +220,11 @@ const zoomOut = () => {
 
 const zoomIn = () => {
     try {
-        TABS.currentPage().getZoomLevel(level => {
-            if (level >= 7) {
-                return
-            }
-            TABS.currentPage().setZoomLevel(level + 1)
-        })
+        const level = TABS.currentPage().getZoomLevel()
+        if (level >= 7) {
+            return
+        }
+        TABS.currentPage().setZoomLevel(level + 1)
     } catch (e) {
         //No page is available, not an issue
     }
