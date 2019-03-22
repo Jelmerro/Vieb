@@ -21,9 +21,9 @@
 const { ipcRenderer, remote } = require("electron")
 const path = require("path")
 const url = require("url")
+
 const useragent = remote.session.defaultSession.getUserAgent()
     .replace(/Electron\/.* /, "")
-
 let loggingIn = false
 
 const init = () => {

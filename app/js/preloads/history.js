@@ -17,22 +17,4 @@
 */
 "use strict"
 
-require("./preloads/follow.js")
-const path = require("path")
-const url = require("url")
-
-const loadPageSpecificJS = page => {
-    const pageUrl = url.format({
-        pathname: path.join(__dirname, `../${page}.html`),
-        protocol: "file:",
-        slashes: true
-    })
-    if (window.location.href.startsWith(pageUrl)) {
-        require(`./preloads/${page}.js`)
-    }
-}
-
-loadPageSpecificJS("downloads")
-loadPageSpecificJS("help")
-loadPageSpecificJS("history")
-loadPageSpecificJS("version")
+//TODO

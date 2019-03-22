@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global MODES SETTINGS TABS UTIL */
+/* global DOWNLOADS MODES SETTINGS TABS UTIL */
 "use strict"
 
 const { remote } = require("electron")
@@ -90,6 +90,24 @@ const execute = command => {
         SETTINGS.set(parts[1], parts[2])
         return
     }
+    //accept/confirm command
+    if (["accept", "confirm"].indexOf(command) !== -1) {
+        DOWNLOADS.confirmRequest()
+        return
+    }
+    if (command.startsWith("accept ") || command.startsWith("confirm ")) {
+        UTIL.notify("The accept command takes no arguments", "warn")
+        return
+    }
+    //deny/reject command
+    if (["deny", "reject"].indexOf(command) !== -1) {
+        DOWNLOADS.rejectRequest()
+        return
+    }
+    if (command.startsWith("deny ") || command.startsWith("reject ")) {
+        UTIL.notify("The deny command takes no arguments", "warn")
+        return
+    }
     //no command
     UTIL.notify(`The command '${command}' can not be found`, "warn")
 }
@@ -124,9 +142,6 @@ const version = () => {
     } else {
         TABS.addTab(versionUrl)
     }
-    const version = "0.1.0"
-    TABS.currentPage().executeJavaScript(
-        `document.getElementById('version').textContent = "${version}"`)
 }
 
 const help = (section=null) => {

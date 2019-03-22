@@ -67,7 +67,7 @@ const notify = (message, type="info") => {
     iconElement.src = image
     notification.appendChild(iconElement)
     const textElement = document.createElement("span")
-    textElement.textContent = message
+    textElement.innerHTML = message.replace(/\n/g, "<br>")
     notification.appendChild(textElement)
     notificationsElement.appendChild(notification)
     setTimeout(() => {

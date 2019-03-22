@@ -18,18 +18,29 @@
 /* eslint-disable no-console */
 "use strict"
 
-const {app, BrowserWindow, nativeImage} = require("electron")
+const {app, BrowserWindow, ipcMain, nativeImage} = require("electron")
 const path = require("path")
 const url = require("url")
+
+let downloadBehaviour = "automatic"
+let confirmedDownload = ""
 let mainWindow
 
 // Set storage location to Vieb regardless of startup method
 app.setPath("appData", path.join(app.getPath("appData"), "Vieb"))
 app.setPath("userData", app.getPath("appData"))
 
-//Allow the app to change the login credentials
+// Allow the app to change the login credentials
 app.on("login", e => {
     e.preventDefault()
+})
+
+ipcMain.on("download-settings-change", (e, downloadSetting) => {
+    downloadBehaviour = downloadSetting
+})
+
+ipcMain.on("download-confirm-url", (e, confirmedUrl) => {
+    confirmedDownload = confirmedUrl
 })
 
 // When the app is ready to start, open the main window
@@ -101,6 +112,26 @@ app.on("ready", () => {
             mainWindow.webContents.openDevTools()
         }
         mainWindow.webContents.send("urls", urls)
+        mainWindow.webContents.session.on("will-download", (e, item) => {
+            if (downloadBehaviour === "confirm") {
+                if (item.getURL() === confirmedDownload) {
+                    item.setSavePath(path.join(
+                        app.getPath("downloads"), item.getFilename()))
+                    confirmedDownload = ""
+                } else {
+                    const info = {
+                        url: item.getURL(),
+                        name: item.getFilename()
+                    }
+                    e.preventDefault()
+                    mainWindow.webContents.send("prevented-download", info)
+                }
+            } else if (downloadBehaviour === "automatic") {
+                item.setSavePath(path.join(
+                    app.getPath("downloads"), item.getFilename()))
+            }
+            // The "ask" behaviour is the default if no save path is set
+        })
     })
 })
 
@@ -116,13 +147,14 @@ const printUsage = () => {
 }
 
 const printVersion = () => {
+    const version = process.env.npm_package_version || app.getVersion()
     console.log("Vieb: Vim Inspired Electron Browser\n")
-    console.log(`This is version ${process.env.npm_package_version} of Vieb.`)
+    console.log(`This is version ${version} of Vieb.`)
     console.log("This program is based on Electron and inspired by Vim.")
     console.log("It can be used to browse the web entirely with the keyboard.")
-    console.log("Vieb was created by Jelmer van Arnhem & Ian Baremans.")
+    console.log("Vieb was created by Jelmer van Arnhem and contributors")
     console.log("\nSee the following link for more information:")
-    console.log(process.env.npm_package_homepage)
+    console.log("https://github.com/Jelmerro/Vieb")
     console.log("\nLicense GPLv3+: GNU GPL version 3 or "
         + "later <http://gnu.org/licenses/gpl.html>")
     console.log("This is free software; you are free to change and "
