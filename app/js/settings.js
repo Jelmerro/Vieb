@@ -19,8 +19,9 @@
 "use strict"
 
 const fs = require("fs")
+const os = require("os")
 const path = require("path")
-const { remote } = require("electron")
+const { ipcRenderer, remote } = require("electron")
 
 const defaultSettings = {
     "keybindings": {},
@@ -31,12 +32,27 @@ const defaultSettings = {
         "system": false,
         "position": "bottom-right",
         "duration": 5000
+    },
+    "downloads": {
+        "path": "~/Downloads/",
+        "method": "automatic"
     }
 }
 let allSettings = {}
 
 const init = () => {
     loadFromDisk()
+    updateDownloadSettingsInMain()
+}
+
+const updateDownloadSettingsInMain = () => {
+    if (allSettings.downloads.path.startsWith("~")) {
+        remote.app.setPath(
+            "downloads", allSettings.downloads.path.replace("~", os.homedir()))
+    } else {
+        remote.app.setPath("downloads", allSettings.downloads.path)
+    }
+    ipcRenderer.send("download-settings-change", allSettings.downloads.method)
 }
 
 const loadFromDisk = () => {
@@ -71,6 +87,19 @@ const loadFromDisk = () => {
                 if (typeof parsed.notification.duration === "number") {
                     allSettings.notification.duration =
                         Math.max(Number(parsed.notification.duration), 100)
+                }
+            }
+            if (typeof parsed.downloads === "object") {
+                if (typeof parsed.downloads.path === "string") {
+                    if (fs.existsSync(parsed.downloads.path)) {
+                        if (fs.statSync(parsed.downloads.path).isDirectory()) {
+                            allSettings.downloads.path = parsed.downloads.path
+                        }
+                    }
+                }
+                const methods = ["automatic", "confirm", "ask"]
+                if (methods.indexOf(parsed.downloads.method) !== -1) {
+                    allSettings.downloads.method = parsed.downloads.method
                 }
             }
         } catch (e) {
