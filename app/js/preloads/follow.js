@@ -145,14 +145,12 @@ const isVisible = (element, doSizeCheck=true) => {
         return false
     }
     const dimensions = element.getBoundingClientRect()
-    const viewHeight = Math.max(
-        document.body.clientHeight, window.innerHeight)
-    const viewWidth = Math.max(
-        document.body.clientWidth, window.innerWidth)
-    if (dimensions.bottom < 0 || dimensions.top > viewHeight) {
+    // TODO maybe window.innerHeight is not the right way to go,
+    // but it's by far the best working option I have found for now
+    if (dimensions.bottom < 0 || dimensions.top > window.innerHeight) {
         return false
     }
-    if (dimensions.right < 0 || dimensions.left > viewWidth) {
+    if (dimensions.right < 0 || dimensions.left > window.innerWidth) {
         return false
     }
     return true

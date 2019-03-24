@@ -102,11 +102,8 @@ app.on("ready", () => {
         app.exit(0)
     })
     //Load app and send urls when ready
-    mainWindow.loadURL(url.format({
-        pathname: path.join(__dirname, "index.html"),
-        protocol: "file:",
-        slashes: true
-    }))
+    const mainUrl = url.pathToFileURL(path.join(__dirname, "index.html"))
+    mainWindow.loadURL(mainUrl.href)
     mainWindow.webContents.on("did-finish-load", () => {
         if (enableDevTools) {
             mainWindow.webContents.openDevTools()

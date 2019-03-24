@@ -45,13 +45,15 @@ const init = () => {
     updateDownloadSettingsInMain()
 }
 
-const updateDownloadSettingsInMain = () => {
-    if (allSettings.downloads.path.startsWith("~")) {
-        remote.app.setPath(
-            "downloads", allSettings.downloads.path.replace("~", os.homedir()))
-    } else {
-        remote.app.setPath("downloads", allSettings.downloads.path)
+const expandPath = path => {
+    if (path.startsWith("~")) {
+        return path.replace("~", os.homedir())
     }
+    return path
+}
+
+const updateDownloadSettingsInMain = () => {
+    remote.app.setPath("downloads", expandPath(allSettings.downloads.path))
     ipcRenderer.send("download-settings-change", allSettings.downloads.method)
 }
 
@@ -91,9 +93,10 @@ const loadFromDisk = () => {
             }
             if (typeof parsed.downloads === "object") {
                 if (typeof parsed.downloads.path === "string") {
-                    if (fs.existsSync(parsed.downloads.path)) {
-                        if (fs.statSync(parsed.downloads.path).isDirectory()) {
-                            allSettings.downloads.path = parsed.downloads.path
+                    const expandedPath = expandPath(parsed.downloads.path)
+                    if (fs.existsSync(expandedPath)) {
+                        if (fs.statSync(expandedPath).isDirectory()) {
+                            allSettings.downloads.path = expandedPath
                         }
                     }
                 }
@@ -109,8 +112,12 @@ const loadFromDisk = () => {
     }
 }
 
-const get = () => {
-    return allSettings
+const get = setting => {
+    if (setting.indexOf(".") === -1) {
+        return allSettings[setting]
+    }
+    const parts = setting.split(".")
+    return allSettings[parts[0]][parts[1]]
 }
 
 const set = (setting, value) => {

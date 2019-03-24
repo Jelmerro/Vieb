@@ -73,5 +73,9 @@
         "system": false,
         "position": "bottom-right",
         "duration": 5000
+    },
+    "downloads": {
+        "path": "~/Downloads/",
+        "method": "automatic"
     }
 }
