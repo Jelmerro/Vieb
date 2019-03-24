@@ -81,7 +81,7 @@ const nextSearchMatch = () => {
         try {
             TABS.currentPage().findInPage(currentSearch, {
                 findNext: true,
-                matchCase: SETTINGS.get().caseSensitiveSearch
+                matchCase: SETTINGS.get("caseSensitiveSearch")
             })
         } catch (e) {
             //No page is available, not an issue
@@ -142,7 +142,7 @@ const previousSearchMatch = () => {
             TABS.currentPage().findInPage(currentSearch, {
                 forward: false,
                 findNext: true,
-                matchCase: SETTINGS.get().caseSensitiveSearch
+                matchCase: SETTINGS.get("caseSensitiveSearch")
             })
         } catch (e) {
             //No page is available, not an issue
@@ -244,7 +244,7 @@ const useEnteredData = () => {
         try {
             TABS.currentPage().stopFindInPage("clearSelection")
             TABS.currentPage().findInPage(currentSearch, {
-                matchCase: SETTINGS.get().caseSensitiveSearch
+                matchCase: SETTINGS.get("caseSensitiveSearch")
             })
         } catch (e) {
             //No page is available, not an issue
@@ -255,12 +255,25 @@ const useEnteredData = () => {
         const urlElement = document.getElementById("url")
         const location = urlElement.value.trim()
         if (location !== "") {
-            if (UTIL.hasProtocol(location)) {
+            if (location.startsWith("vieb://")) {
+                const specialPage = location.replace(
+                    "vieb://", "").split("#")[0]
+                let section = location.split("#").slice(1).join("#")
+                if (section !== "") {
+                    section = "#" + section
+                }
+                if (TABS.specialPagesList().indexOf(specialPage) !== -1) {
+                    TABS.navigateTo(UTIL.getAbsoluteFilePath(
+                        `../${specialPage}.html`) + section)
+                } else {
+                    TABS.navigateTo(UTIL.getAbsoluteFilePath(`../help.html`))
+                }
+            } else if (UTIL.hasProtocol(location)) {
                 TABS.navigateTo(location)
             } else if (UTIL.isUrl(location)) {
                 TABS.navigateTo("https://" + location)
             } else {
-                TABS.navigateTo(SETTINGS.get().search + location)
+                TABS.navigateTo(SETTINGS.get("search") + location)
             }
         }
         urlElement.className = ""
@@ -288,6 +301,9 @@ const setFocusCorrectly = () => {
             if (urlElement.value === TABS.currentPage().src) {
                 urlElement.value = ""
             }
+            if (urlElement.value.startsWith("vieb://")) {
+                urlElement.value = ""
+            }
         }
         if (MODES.currentMode() === "search") {
             window.focus()
@@ -296,11 +312,17 @@ const setFocusCorrectly = () => {
                 urlElement.value = currentSearch
                 urlElement.select()
             }
+            if (urlElement.value.startsWith("vieb://")) {
+                urlElement.value = ""
+            }
         }
         if (MODES.currentMode() === "nav") {
             window.focus()
             urlElement.focus()
             if (urlElement.value === TABS.currentPage().src) {
+                urlElement.select()
+            }
+            if (urlElement.value.startsWith("vieb://")) {
                 urlElement.select()
             }
         }

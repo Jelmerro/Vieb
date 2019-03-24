@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global TABS UTIL */
+/* global SETTINGS TABS UTIL */
 "use strict"
 
 const { ipcRenderer, remote } = require("electron")
@@ -72,9 +72,9 @@ const downloadList = () => {
     return downloads
 }
 
-const downloadFile = (name, url) => {
-    ipcRenderer.send("download-confirm-url", url)
-    const escapedUrl = url.replace(/"/g, '\\"')
+const downloadFile = (name, downloadUrl) => {
+    ipcRenderer.send("download-confirm-url", downloadUrl)
+    const escapedUrl = downloadUrl.replace(/"/g, '\\"')
     const escapedName = name.replace(/"/g, '\\"')
     TABS.currentPage().executeJavaScript(`
         window.anchorDownloadElement = document.createElement("a")
@@ -87,6 +87,11 @@ const downloadFile = (name, url) => {
 }
 
 const confirmRequest = () => {
+    if (SETTINGS.get("downloads.method") !== "confirm") {
+        UTIL.notify("Confirm mode is not enabled, there is no need to "
+            + "use this command", "warn")
+        return
+    }
     if (Object.keys(unconfirmedDownload).length > 0) {
         downloadFile(unconfirmedDownload.name, unconfirmedDownload.url)
         unconfirmedDownload = {}
@@ -97,6 +102,11 @@ const confirmRequest = () => {
 }
 
 const rejectRequest = () => {
+    if (SETTINGS.get("downloads.method") !== "confirm") {
+        UTIL.notify("Confirm mode is not enabled, there is no need to "
+            + "use this command", "warn")
+        return
+    }
     if (Object.keys(unconfirmedDownload).length === 0) {
         UTIL.notify("No download requested, nothing to deny/reject", "warn")
     }

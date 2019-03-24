@@ -19,9 +19,12 @@
 "use strict"
 
 const { ipcRenderer, remote } = require("electron")
-const path = require("path")
-const url = require("url")
 
+const specialPages = {
+    "help": UTIL.getAbsoluteFilePath("../help.html"),
+    "version": UTIL.getAbsoluteFilePath("../version.html"),
+    "downloads": UTIL.getAbsoluteFilePath("../downloads.html")
+}
 const useragent = remote.session.defaultSession.getUserAgent()
     .replace(/Electron\/.* /, "")
 let loggingIn = false
@@ -132,7 +135,20 @@ const updateUrl = webview => {
         return
     }
     if (currentPage() && currentPage().src !== undefined) {
-        document.getElementById("url").value = currentPage().src
+        const pageUrl = currentPage().src
+        let section = pageUrl.split("#").slice(1).join("#")
+        if (section !== "") {
+            section = "#" + section
+        }
+        const decodedPageUrl = decodeURIComponent(pageUrl)
+        for (const specialPage of Object.keys(specialPages)) {
+            if (decodedPageUrl.startsWith(specialPages[specialPage])) {
+                document.getElementById("url").value =
+                    `vieb://${specialPage}` + section
+                return
+            }
+        }
+        document.getElementById("url").value = pageUrl
     } else {
         document.getElementById("url").value = ""
     }
@@ -172,11 +188,7 @@ const addWebviewListeners = webview => {
                     //Callback was already called
                 }
             })
-            loginWindow.loadURL(url.format({
-                pathname: path.join(__dirname, "../login.html"),
-                protocol: "file:",
-                slashes: true
-            }))
+            loginWindow.loadURL(UTIL.getAbsoluteFilePath("../login.html"))
             remote.ipcMain.once("login-credentials", (e, credentials) => {
                 try {
                     callback(credentials[0], credentials[1])
@@ -196,7 +208,7 @@ const addWebviewListeners = webview => {
             return
         }
         //It will go to the http version of a website when no https is detected
-        const redirect = SETTINGS.get().redirectToHttp
+        const redirect = SETTINGS.get("redirectToHttp")
         const sslErrors = [
             "ERR_CERT_COMMON_NAME_INVALID",
             "ERR_SSL_PROTOCOL_ERROR"
@@ -256,6 +268,10 @@ const navigateTo = location => {
     currentTab().querySelector("span").textContent = location
 }
 
+const specialPagesList = () => {
+    return Object.keys(specialPages)
+}
+
 module.exports = {
     init,
     listTabs,
@@ -266,5 +282,6 @@ module.exports = {
     closeTab,
     switchToTab,
     updateUrl,
-    navigateTo
+    navigateTo,
+    specialPagesList
 }

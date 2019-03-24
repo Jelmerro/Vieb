@@ -128,7 +128,7 @@ const toIdentifier = e => {
 
 const eventToAction = e => {
     const allBindings = JSON.parse(JSON.stringify(bindings))
-    const customBindings = SETTINGS.get().keybindings
+    const customBindings = SETTINGS.get("keybindings")
     Object.keys(allBindings).forEach(mode => {
         allBindings[mode] = Object.assign(
             allBindings[mode], customBindings[mode])

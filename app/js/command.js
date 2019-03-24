@@ -19,8 +19,6 @@
 "use strict"
 
 const { remote } = require("electron")
-const url = require("url")
-const path = require("path")
 
 const execute = command => {
     //remove all redundant spaces
@@ -78,6 +76,15 @@ const execute = command => {
         help(parts[1].toLowerCase())
         return
     }
+    //version command
+    if (["d", "downloads"].indexOf(command) !== -1) {
+        downloads()
+        return
+    }
+    if (command.startsWith("d ") || command.startsWith("downloads ")) {
+        UTIL.notify("The downloads command takes no arguments", "warn")
+        return
+    }
     //set command
     if (command.startsWith("set ") || command === "set") {
         const parts = command.split(" ")
@@ -121,40 +128,13 @@ const devtools = () => {
     TABS.currentPage().openDevTools()
 }
 
-const version = () => {
+const openSpecialPage = (page, section=null) => {
     MODES.setMode("normal")
-    const versionUrl = url.format({
-        pathname: path.join(__dirname, "../version.html"),
-        protocol: "file:",
-        slashes: true
-    })
+    let pageUrl = UTIL.getAbsoluteFilePath(page)
     //Switch to already open help if available
     let alreadyOpen = false
     TABS.listPages().forEach((page, index) => {
-        if (!page.src || decodeURIComponent(page.src).startsWith(versionUrl)) {
-            alreadyOpen = true
-            TABS.switchToTab(index)
-        }
-    })
-    //Open the url in the current or new tab, depending on currently open page
-    if (TABS.currentPage().src === "" || alreadyOpen) {
-        TABS.navigateTo(versionUrl)
-    } else {
-        TABS.addTab(versionUrl)
-    }
-}
-
-const help = (section=null) => {
-    MODES.setMode("normal")
-    let helpUrl = url.format({
-        pathname: path.join(__dirname, "../help.html"),
-        protocol: "file:",
-        slashes: true
-    })
-    //Switch to already open help if available
-    let alreadyOpen = false
-    TABS.listPages().forEach((page, index) => {
-        if (!page.src || decodeURIComponent(page.src).startsWith(helpUrl)) {
+        if (!page.src || decodeURIComponent(page.src).startsWith(pageUrl)) {
             alreadyOpen = true
             TABS.switchToTab(index)
         }
@@ -162,16 +142,28 @@ const help = (section=null) => {
     //Append section to the helpUrl
     if (section !== null) {
         if (section.startsWith("#")) {
-            section = section.slice(1, -1)
+            section = section.slice(1)
         }
-        helpUrl += `#${section}`
+        pageUrl += `#${section}`
     }
     //Open the url in the current or new tab, depending on currently open page
     if (TABS.currentPage().src === "" || alreadyOpen) {
-        TABS.navigateTo(helpUrl)
+        TABS.navigateTo(pageUrl)
     } else {
-        TABS.addTab(helpUrl)
+        TABS.addTab(pageUrl)
     }
+}
+
+const version = () => {
+    openSpecialPage("../version.html")
+}
+
+const help = (section=null) => {
+    openSpecialPage("../help.html", section)
+}
+
+const downloads = (section=null) => {
+    openSpecialPage("../downloads.html", section)
 }
 
 module.exports = {
