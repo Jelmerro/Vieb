@@ -19,7 +19,7 @@
 <html>
 <head>
     <link href="css/help.css" rel="stylesheet" type="text/css">
-    <title>Vieb documentation</title>
+    <title>Help</title>
     <link rel="shortcut icon" type="image/png" href="img/icon.png">
 </head>
 <body>
@@ -246,11 +246,15 @@
     <pre>
 {
     "keybindings": {
+        "nav": {
+            "F6": "ACTIONS.toNormalMode"
+        },
         "insert": {
             "F1": "",
             "Escape": ""
         },
         "normal": {
+            "F6": "ACTIONS.toNavMode",
             "C-KeyQ": "COMMAND.quit"
         }
     },
@@ -260,6 +264,10 @@
     "notification": {
         "duration": 3000,
         "position": "bottom-left"
+    },
+    "downloads": {
+        "method": "confirm",
+        "path": "~/Documents"
     }
 }</pre>
     This example is also found in the README, and changes most default settings.
@@ -269,6 +277,9 @@
             The help page can't be accessed directly from insert mode with the
             <kbd>F1</kbd> key anymore.
         </li>
+        <li>
+            Toggle between nav and normal mode with
+            <kbd>F6</kbd> (similar to regular browsers)
         <li>
             <kbd>Escape</kbd> can not be used to exit insert mode,
             but <kbd>Ctrl with [</kbd> will still work.
@@ -282,6 +293,8 @@
         <li>Change the search mode to be case-insensitive.</li>
         <li>Reduce the notification duration to 3 seconds instead of 5.</li>
         <li>Display the notification in the bottom left instead of the bottom right.</li>
+        <li>Change the download method to "confirm" instead of "automatic"</li>
+        <li>Downloads will be stored in the documents folder, except if method would be "ask"
     </ul>
     This concludes the documentation regarding the viebrc file.
     In the next paragraph, the set command will be explained.

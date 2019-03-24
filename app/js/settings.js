@@ -26,7 +26,7 @@ const { ipcRenderer, remote } = require("electron")
 const defaultSettings = {
     "keybindings": {},
     "redirectToHttp": false,
-    "search": "https://duckduckgo.com/?q=",
+    "search": "https://duckduckgo.com/?kae=d&q=",
     "caseSensitiveSearch": true,
     "notification": {
         "system": false,

@@ -41,7 +41,8 @@ const init = () => {
             total: item.getTotalBytes(),
             current: 0,
             file: item.getSavePath(),
-            name: item.getFilename()
+            name: item.getFilename(),
+            date: new Date()
         }
         downloads.push(info)
         UTIL.notify(`Download started:\n${info.name}`)
@@ -66,10 +67,6 @@ const init = () => {
             info.state = state
         })
     })
-}
-
-const downloadList = () => {
-    return downloads
 }
 
 const downloadFile = (name, downloadUrl) => {
@@ -114,9 +111,13 @@ const rejectRequest = () => {
     unconfirmedDownload = {}
 }
 
+const sendDownloadList = () => {
+    TABS.currentPage().getWebContents().send("download-list", downloads)
+}
+
 module.exports = {
     init,
-    downloadList,
     confirmRequest,
-    rejectRequest
+    rejectRequest,
+    sendDownloadList
 }
