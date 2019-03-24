@@ -35,6 +35,7 @@ app.on("login", e => {
     e.preventDefault()
 })
 
+// Set the download location and method
 ipcMain.on("download-settings-change", (e, downloadSetting) => {
     downloadBehaviour = downloadSetting
 })
@@ -45,7 +46,7 @@ ipcMain.on("download-confirm-url", (e, confirmedUrl) => {
 
 // When the app is ready to start, open the main window
 app.on("ready", () => {
-    //Parse arguments
+    // Parse arguments
     let args = process.argv
     if (app.isPackaged) {
         args.unshift("")
@@ -73,7 +74,24 @@ app.on("ready", () => {
             urls.push(arg)
         }
     })
-    //Init mainWindow
+    // Request single instance lock and quit if that fails
+    if (app.requestSingleInstanceLock()) {
+        app.on("second-instance", (event, commandLine) => {
+            if (mainWindow.isMinimized()) {
+                mainWindow.restore()
+            }
+            if (app.isPackaged) {
+                commandLine.unshift("")
+            }
+            commandLine = commandLine.slice(2)
+            mainWindow.webContents.send("urls", commandLine.filter(arg => {
+                return !arg.startsWith("--")
+            }))
+        })
+    } else {
+        app.quit()
+    }
+    // Init mainWindow
     const windowData = {
         title: "Vieb",
         width: 800,
@@ -101,7 +119,7 @@ app.on("ready", () => {
     mainWindow.on("closed", () => {
         app.exit(0)
     })
-    //Load app and send urls when ready
+    // Load app and send urls when ready
     const mainUrl = url.pathToFileURL(path.join(__dirname, "index.html"))
     mainWindow.loadURL(mainUrl.href)
     mainWindow.webContents.on("did-finish-load", () => {

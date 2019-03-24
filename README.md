@@ -201,7 +201,7 @@ This example results in the following changes:
 - Reduce the notification duration to 3 seconds instead of 5
 - Display the notification in the bottom left instead of the bottom right
 - Change the download method to "confirm" instead of "automatic"
-- Downloads will be stored in the documents folder, expect if method would be "ask"
+- Downloads will be stored in the documents folder, except if method would be "ask"
 
 The settings file is loaded on startup,
 and can be reloaded at anytime with the `:r` or `:reload` command.

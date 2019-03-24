@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND FOLLOW MODES SETTINGS UTIL */
+/* global COMMAND DOWNLOADS FOLLOW MODES SETTINGS UTIL */
 "use strict"
 
 const { ipcRenderer, remote } = require("electron")
@@ -91,6 +91,7 @@ const addTab = (url=null) => {
     webview.getWebContents().setUserAgent(useragent)
     if (url !== null) {
         webview.src = url
+        title.textContent = url
     }
     switchToTab(listTabs().length - 1)
 }
@@ -167,6 +168,7 @@ const addWebviewListeners = webview => {
                 webview.stop()
                 return
             }
+            FOLLOW.cancelFollow()
             loggingIn = true
             const windowData = {
                 width: 300,
@@ -228,6 +230,7 @@ const addWebviewListeners = webview => {
             }
         }
         loggingIn = false
+        updateUrl(webview)
     })
     webview.addEventListener("page-title-updated", e => {
         const tab = listTabs()[listPages().indexOf(webview)]
@@ -243,6 +246,10 @@ const addWebviewListeners = webview => {
         }
         updateUrl(webview)
     })
+    webview.addEventListener("will-navigate", e => {
+        const tab = listTabs()[listPages().indexOf(webview)]
+        tab.querySelector("span").textContent = e.url
+    })
     webview.addEventListener("new-window", e => {
         navigateTo(e.url)
     })
@@ -254,6 +261,9 @@ const addWebviewListeners = webview => {
     webview.addEventListener("ipc-message", e => {
         if (e.channel === "follow-response") {
             FOLLOW.parseAndDisplayLinks(e.args[0])
+        }
+        if (e.channel === "download-list-request") {
+            DOWNLOADS.sendDownloadList()
         }
     })
     webview.onblur = () => {

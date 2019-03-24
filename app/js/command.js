@@ -44,7 +44,7 @@ const execute = command => {
         UTIL.notify("The devtools command takes no arguments", "warn")
         return
     }
-    //version command
+    //reload command
     if (["r", "reload"].indexOf(command) !== -1) {
         SETTINGS.loadFromDisk()
         return
@@ -76,7 +76,7 @@ const execute = command => {
         help(parts[1].toLowerCase())
         return
     }
-    //version command
+    //downloads command
     if (["d", "downloads"].indexOf(command) !== -1) {
         downloads()
         return

@@ -22,15 +22,15 @@ window.configureIframe = frame => {
     frame.contentWindow.document.body.style.color = "#cff"
     frame.contentWindow.document.body.style.background = "#222"
 }
+window.changeColor = element => {
+    if (element.style.borderColor === "rgb(0, 51, 255)") {
+        element.style.borderColor = "rgb(0, 255, 51)"
+    } else {
+        element.style.borderColor = "rgb(0, 51, 255)"
+    }
+}
 
 window.addEventListener("load", () => {
-    window.changeColor = element => {
-        if (element.style.borderColor === "rgb(0, 51, 255)") {
-            element.style.borderColor = "rgb(0, 255, 51)"
-        } else {
-            element.style.borderColor = "rgb(0, 51, 255)"
-        }
-    }
     const createTOCEntry = element => {
         const link = document.createElement("a")
         link.textContent = element.textContent
@@ -66,7 +66,3 @@ window.addEventListener("load", () => {
         }
     }, 50)
 })
-
-module.exports = {
-    configureIframe: window.configureIframe
-}
