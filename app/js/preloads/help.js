@@ -22,6 +22,7 @@ window.configureIframe = frame => {
     frame.contentWindow.document.body.style.color = "#cff"
     frame.contentWindow.document.body.style.background = "#222"
 }
+
 window.changeColor = element => {
     if (element.style.borderColor === "rgb(0, 51, 255)") {
         element.style.borderColor = "rgb(0, 255, 51)"

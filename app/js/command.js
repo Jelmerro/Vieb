@@ -130,7 +130,7 @@ const devtools = () => {
 
 const openSpecialPage = (page, section=null) => {
     MODES.setMode("normal")
-    let pageUrl = UTIL.getAbsoluteFilePath(page)
+    let pageUrl = UTIL.specialPage(page)
     //Switch to already open help if available
     let alreadyOpen = false
     TABS.listPages().forEach((page, index) => {
@@ -155,15 +155,15 @@ const openSpecialPage = (page, section=null) => {
 }
 
 const version = () => {
-    openSpecialPage("../version.html")
+    openSpecialPage("version")
 }
 
 const help = (section=null) => {
-    openSpecialPage("../help.html", section)
+    openSpecialPage("help", section)
 }
 
-const downloads = (section=null) => {
-    openSpecialPage("../downloads.html", section)
+const downloads = () => {
+    openSpecialPage("downloads")
 }
 
 module.exports = {

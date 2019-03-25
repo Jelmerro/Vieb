@@ -21,7 +21,7 @@
 const { ipcRenderer, remote } = require("electron")
 
 let unconfirmedDownload = {}
-const downloads = []
+let downloads = []
 
 const init = () => {
     //TODO load downloads from previous sessions, requires some sort of history
@@ -49,22 +49,24 @@ const init = () => {
         item.on("updated", (event, state) => {
             try {
                 info.current = item.getReceivedBytes()
-                if (state === "progressing" && item.isPaused()) {
-                    info.state = "paused"
+                if (state === "progressing" && !item.isPaused()) {
+                    info.state = "downloading"
                 } else {
-                    info.state = state
+                    info.state = "paused"
                 }
             } catch (e) {
                 //Download is done and the item is destroyed automatically
+                info.state = "cancelled"
             }
         })
         item.once("done", (event, state) => {
             if (state === "completed") {
                 UTIL.notify(`Download complete:\n${info.name}`)
+                info.state = "completed"
             } else {
                 UTIL.notify(`Download failed:\n${info.name}`, "warn")
+                info.state = "cancelled"
             }
-            info.state = state
         })
     })
 }
@@ -111,7 +113,43 @@ const rejectRequest = () => {
     unconfirmedDownload = {}
 }
 
-const sendDownloadList = () => {
+const sendDownloadList = (action, downloadId) => {
+    if (action === "removeall") {
+        downloads.forEach(download => {
+            try {
+                download.item.cancel()
+            } catch (e) {
+                // Download was already removed or is already done
+            }
+        })
+        downloads = []
+    }
+    if (action === "pause") {
+        try {
+            downloads[downloadId].item.pause()
+        } catch (e) {
+            // Download just finished or some other silly reason
+        }
+    }
+    if (action === "resume") {
+        try {
+            downloads[downloadId].item.resume()
+        } catch (e) {
+            // Download can't be resumed
+        }
+    }
+    if (action === "remove") {
+        try {
+            downloads[downloadId].item.cancel()
+        } catch (e) {
+            // Download was already removed from the list or something
+        }
+        try {
+            downloads.splice(downloadId, 1)
+        } catch (e) {
+            // Download was already removed from the list or something
+        }
+    }
     TABS.currentPage().getWebContents().send("download-list", downloads)
 }
 

@@ -160,6 +160,7 @@ const enterKey = identifier => {
             "button": "left",
             "clickCount": 1
         })
+        //TODO add a mouseLeave event when there is a proper way to hover links
         if (link.type !== "inputs-insert") {
             cancelFollow()
         }

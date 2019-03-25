@@ -22,7 +22,8 @@ const path = require("path")
 const url = require("url")
 
 const loadPageSpecificJS = page => {
-    const pageUrl = url.pathToFileURL(path.join(__dirname, `../${page}.html`))
+    const pageUrl = url.pathToFileURL(
+        path.join(__dirname, `../pages/${page}.html`))
     if (window.location.href.startsWith(pageUrl.href)) {
         require(`./preloads/${page}.js`)
     }

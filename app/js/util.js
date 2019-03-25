@@ -70,7 +70,8 @@ const notify = (message, type="info") => {
     iconElement.src = image
     notification.appendChild(iconElement)
     const textElement = document.createElement("span")
-    textElement.innerHTML = message.replace(/\n/g, "<br>")
+    textElement.innerHTML = message
+        .replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/\n/g, "<br>")
     notification.appendChild(textElement)
     notificationsElement.appendChild(notification)
     setTimeout(() => {
@@ -78,13 +79,13 @@ const notify = (message, type="info") => {
     }, SETTINGS.get("notification.duration"))
 }
 
-const getAbsoluteFilePath = file => {
-    return url.pathToFileURL(path.join(__dirname, file)).href
+const specialPage = page => {
+    return url.pathToFileURL(path.join(__dirname, `../pages/${page}.html`)).href
 }
 
 module.exports = {
     hasProtocol,
     isUrl,
     notify,
-    getAbsoluteFilePath
+    specialPage
 }

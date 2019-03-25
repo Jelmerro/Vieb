@@ -19,10 +19,42 @@
 
 const { ipcRenderer } = require("electron")
 
-ipcRenderer.sendToHost("download-list-request")
-setInterval(() => {
-    ipcRenderer.sendToHost("download-list-request")
-}, 500)
+let lastUpdate = new Date()
+
+window.update = (action=null, downloadId=null) => {
+    ipcRenderer.sendToHost("download-list-request", action, downloadId)
+}
+
+window.removeAll = () => {
+    document.getElementById("list").textContent = ""
+    window.update("removeall")
+}
+
+window.remove = id => {
+    window.update("remove", id)
+    document.getElementById("list").removeChild(
+        document.querySelectorAll("#list .download")[id])
+}
+
+window.pause = id => {
+    window.update("pause", id)
+}
+
+window.resume = id => {
+    window.update("resume", id)
+}
+
+window.addEventListener("load", () => {
+    const removeAll = document.createElement("img")
+    removeAll.id = "remove-all"
+    removeAll.style.display = "none"
+    removeAll.src = __dirname + "../../../img/trash.png"
+    removeAll.setAttribute("onclick", "window.removeAll()")
+    document.body.insertBefore(removeAll, document.body.firstChild)
+    lastUpdate = new Date()
+    setInterval(window.update, 500)
+    window.update()
+})
 
 ipcRenderer.on("download-list", (e, list) => {
     const listOnPage = [...document.querySelectorAll("#list .download")]
@@ -30,22 +62,38 @@ ipcRenderer.on("download-list", (e, list) => {
         if (list.length === 0) {
             document.getElementById("list").textContent =
                 "Nothing has been downloaded during the current session."
+            const removeAll = document.getElementById("remove-all")
+            removeAll.style.display = "none"
         } else {
             document.getElementById("list").textContent = ""
+            const removeAll = document.getElementById("remove-all")
+            removeAll.style.display = ""
         }
     }
     for (let i = 0;i < list.length;i++) {
         if (listOnPage[i] === undefined) {
-            addDownload(list[i])
+            addDownload(list[i], i)
         } else {
-            updateDownload(list[i], listOnPage[i])
+            updateDownload(list[i], listOnPage[i], i)
         }
     }
+    lastUpdate = new Date()
 })
 
-const addDownload = download => {
+const addDownload = (download, id) => {
     const element = document.createElement("div")
     element.className = "download"
+    // toggle pause and remove buttons
+    const remove = document.createElement("img")
+    remove.className = "remove"
+    remove.src = __dirname + "../../../img/trash.png"
+    remove.setAttribute("onclick", `window.remove(${id})`)
+    element.appendChild(remove)
+    const togglePause = document.createElement("img")
+    togglePause.className = "toggle-pause"
+    togglePause.src = __dirname + "../../../img/pause.png"
+    togglePause.setAttribute("onclick", `window.pause(${id})`)
+    element.appendChild(togglePause)
     // title
     const title = document.createElement("div")
     title.textContent = download.name
@@ -60,8 +108,21 @@ const addDownload = download => {
     }
     progress.value = download.current
     element.appendChild(progress)
+    // change looks depending on the state
     if (download.state === "completed") {
+        title.style.color = "lime"
         progress.style.display = "none"
+        togglePause.style.display = "none"
+    }
+    if (download.state === "cancelled") {
+        title.style.color = "red"
+        progress.style.display = "none"
+        togglePause.style.display = "none"
+    }
+    if (download.state === "paused") {
+        title.style.color = "orange"
+        togglePause.src = __dirname + "../../../img/resume.png"
+        togglePause.setAttribute("onclick", `window.resume(${id})`)
     }
     // other info
     const misc = document.createElement("div")
@@ -92,10 +153,12 @@ const addDownload = download => {
     document.getElementById("list").appendChild(element)
 }
 
-const updateDownload = (download, element) => {
+const updateDownload = (download, element, id) => {
     const progress = element.querySelector("progress")
     // speed
-    const speed = formatSize((download.current - progress.value) * 2)
+    const timeSinceUpdate = ((new Date()).getTime() - lastUpdate) / 1000
+    const speed = formatSize(
+        (download.current - progress.value) / timeSinceUpdate)
     const done = download.state === "completed"
     if (download.total === 0) {
         if (done) {
@@ -115,15 +178,35 @@ const updateDownload = (download, element) => {
             `${formatSize(download.current)} / ${formatSize(download.total)}
             - ${speed}/s`
     }
-    // progress
+    // progress & title color
     if (download.current > download.total) {
         progress.max = download.current
     } else {
         progress.max = download.total
     }
     progress.value = download.current
+    // change looks depending on the state
+    const title = element.querySelector(".title")
+    title.style.color = ""
+    const togglePause = element.querySelector(".toggle-pause")
+    const remove = element.querySelector(".remove")
+    remove.setAttribute("onclick", `window.remove(${id})`)
+    togglePause.src = __dirname + "../../../img/pause.png"
+    togglePause.setAttribute("onclick", `window.pause(${id})`)
     if (download.state === "completed") {
+        title.style.color = "lime"
         progress.style.display = "none"
+        togglePause.style.display = "none"
+    }
+    if (download.state === "cancelled") {
+        title.style.color = "red"
+        progress.style.display = "none"
+        togglePause.style.display = "none"
+    }
+    if (download.state === "paused") {
+        title.style.color = "orange"
+        togglePause.src = __dirname + "../../../img/resume.png"
+        togglePause.setAttribute("onclick", `window.resume(${id})`)
     }
     // state
     element.querySelector(".state").textContent = download.state
