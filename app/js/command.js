@@ -137,6 +137,9 @@ const openSpecialPage = (page, section=null) => {
         if (!page.src || decodeURIComponent(page.src).startsWith(pageUrl)) {
             alreadyOpen = true
             TABS.switchToTab(index)
+        } else if (page.src.startsWith(pageUrl)) {
+            alreadyOpen = true
+            TABS.switchToTab(index)
         }
     })
     //Append section to the helpUrl
