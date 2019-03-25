@@ -263,10 +263,9 @@ const useEnteredData = () => {
                     section = "#" + section
                 }
                 if (TABS.specialPagesList().indexOf(specialPage) !== -1) {
-                    TABS.navigateTo(UTIL.getAbsoluteFilePath(
-                        `../${specialPage}.html`) + section)
+                    TABS.navigateTo(UTIL.specialPage(specialPage) + section)
                 } else {
-                    TABS.navigateTo(UTIL.getAbsoluteFilePath(`../help.html`))
+                    TABS.navigateTo(UTIL.specialPage("help"))
                 }
             } else if (UTIL.hasProtocol(location)) {
                 TABS.navigateTo(location)

@@ -20,11 +20,8 @@
 
 const { ipcRenderer, remote } = require("electron")
 
-const specialPages = {
-    "help": UTIL.getAbsoluteFilePath("../help.html"),
-    "version": UTIL.getAbsoluteFilePath("../version.html"),
-    "downloads": UTIL.getAbsoluteFilePath("../downloads.html")
-}
+const specialPages = ["help", "downloads", "version"]
+
 const useragent = remote.session.defaultSession.getUserAgent()
     .replace(/Electron\/.* /, "")
 let loggingIn = false
@@ -142,8 +139,13 @@ const updateUrl = webview => {
             section = "#" + section
         }
         const decodedPageUrl = decodeURIComponent(pageUrl)
-        for (const specialPage of Object.keys(specialPages)) {
-            if (decodedPageUrl.startsWith(specialPages[specialPage])) {
+        for (const specialPage of specialPages) {
+            if (pageUrl.startsWith(UTIL.specialPage(specialPage))) {
+                document.getElementById("url").value =
+                    `vieb://${specialPage}` + section
+                return
+            }
+            if (decodedPageUrl.startsWith(UTIL.specialPage(specialPage))) {
                 document.getElementById("url").value =
                     `vieb://${specialPage}` + section
                 return
@@ -190,7 +192,7 @@ const addWebviewListeners = webview => {
                     //Callback was already called
                 }
             })
-            loginWindow.loadURL(UTIL.getAbsoluteFilePath("../login.html"))
+            loginWindow.loadURL(UTIL.specialPage("login"))
             remote.ipcMain.once("login-credentials", (e, credentials) => {
                 try {
                     callback(credentials[0], credentials[1])
@@ -263,7 +265,7 @@ const addWebviewListeners = webview => {
             FOLLOW.parseAndDisplayLinks(e.args[0])
         }
         if (e.channel === "download-list-request") {
-            DOWNLOADS.sendDownloadList()
+            DOWNLOADS.sendDownloadList(e.args[0], e.args[1])
         }
     })
     webview.onblur = () => {
@@ -279,7 +281,7 @@ const navigateTo = location => {
 }
 
 const specialPagesList = () => {
-    return Object.keys(specialPages)
+    return specialPages
 }
 
 module.exports = {

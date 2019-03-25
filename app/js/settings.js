@@ -201,6 +201,31 @@ const set = (setting, value) => {
         }
         return
     }
+    if (setting === "downloads.path") {
+        const expandedPath = expandPath(value)
+        if (fs.existsSync(expandedPath)) {
+            if (fs.statSync(expandedPath).isDirectory()) {
+                allSettings.downloads.path = expandedPath
+                updateDownloadSettingsInMain()
+            } else {
+                UTIL.notify("The given path is not a directory", "warn")
+            }
+        } else {
+            UTIL.notify("The given path does not exist", "warn")
+        }
+        return
+    }
+    if (setting === "downloads.method") {
+        const options = ["ask", "automatic", "confirm"]
+        if (options.indexOf(value) === -1) {
+            UTIL.notify("The download method must be one of:\n"
+                + options.join(", "))
+        } else {
+            allSettings.downloads.method = value
+            updateDownloadSettingsInMain()
+        }
+        return
+    }
     UTIL.notify(`The requested setting '${setting}' does not exist`, "warn")
 }
 
