@@ -63,7 +63,7 @@ const init = () => {
             if (state === "completed") {
                 UTIL.notify(`Download complete:\n${info.name}`)
                 info.state = "completed"
-            } else {
+            } else if (info.state !== "removed") {
                 UTIL.notify(`Download failed:\n${info.name}`, "warn")
                 info.state = "cancelled"
             }
@@ -117,6 +117,7 @@ const sendDownloadList = (action, downloadId) => {
     if (action === "removeall") {
         downloads.forEach(download => {
             try {
+                download.state = "removed"
                 download.item.cancel()
             } catch (e) {
                 // Download was already removed or is already done
@@ -140,6 +141,7 @@ const sendDownloadList = (action, downloadId) => {
     }
     if (action === "remove") {
         try {
+            downloads[downloadId].state = "removed"
             downloads[downloadId].item.cancel()
         } catch (e) {
             // Download was already removed from the list or something
@@ -150,7 +152,14 @@ const sendDownloadList = (action, downloadId) => {
             // Download was already removed from the list or something
         }
     }
-    TABS.currentPage().getWebContents().send("download-list", downloads)
+    if (Object.keys(unconfirmedDownload).length === 0) {
+        TABS.currentPage().getWebContents().send("download-list", downloads)
+    } else if (SETTINGS.get("downloads.method") === "confirm") {
+        TABS.currentPage().getWebContents().send(
+            "download-list", downloads, unconfirmedDownload)
+    } else {
+        TABS.currentPage().getWebContents().send("download-list", downloads)
+    }
 }
 
 module.exports = {

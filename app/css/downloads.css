@@ -28,3 +28,5 @@ progress::-webkit-progress-value {color: #eee;background-color: #eee;}
 img {height: 24px;margin: 5px;float: right;}
 h1 {font-size: 2em; margin: 30px 0;padding: 0;}
 #remove-all {height: 2em;}
+#unconfirmed {font-size: .7em;display: none;border: 2px solid orange;flex-direction: column;margin-bottom: 1em;padding: 5px;}
+.unconfirmed-header {font-size: 18px;margin-bottom: 5px;}

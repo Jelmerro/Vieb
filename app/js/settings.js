@@ -219,7 +219,7 @@ const set = (setting, value) => {
         const options = ["ask", "automatic", "confirm"]
         if (options.indexOf(value) === -1) {
             UTIL.notify("The download method must be one of:\n"
-                + options.join(", "))
+                + options.join(", "), "warn")
         } else {
             allSettings.downloads.method = value
             updateDownloadSettingsInMain()

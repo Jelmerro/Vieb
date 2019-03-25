@@ -56,7 +56,17 @@ window.addEventListener("load", () => {
     window.update()
 })
 
-ipcRenderer.on("download-list", (e, list) => {
+ipcRenderer.on("download-list", (e, list, unconfirmed) => {
+    //unconfirmed
+    const unconfirmedElement = document.getElementById("unconfirmed")
+    if (unconfirmed) {
+        unconfirmedElement.style.display = "flex"
+        unconfirmedElement.querySelector(".name").textContent = unconfirmed.name
+        unconfirmedElement.querySelector(".url").textContent = unconfirmed.url
+    } else {
+        unconfirmedElement.style.display = ""
+    }
+    //list
     const listOnPage = [...document.querySelectorAll("#list .download")]
     if (listOnPage.length === 0) {
         if (list.length === 0) {

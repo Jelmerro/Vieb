@@ -62,8 +62,7 @@ window.addEventListener("load", () => {
     //Set focus to correct part of the page after it's done loading
     setTimeout(() => {
         if (window.location.hash !== "") {
-            document.querySelector(
-                `a[href='${window.location.hash}']`).click()
+            document.querySelector(`a[href='${window.location.hash}']`).click()
         }
     }, 50)
 })
