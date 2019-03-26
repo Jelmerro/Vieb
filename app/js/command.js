@@ -134,7 +134,7 @@ const openSpecialPage = (page, section=null) => {
     //Switch to already open help if available
     let alreadyOpen = false
     TABS.listPages().forEach((page, index) => {
-        if (!page.src || decodeURIComponent(page.src).startsWith(pageUrl)) {
+        if (decodeURIComponent(page.src).startsWith(pageUrl)) {
             alreadyOpen = true
             TABS.switchToTab(index)
         } else if (page.src.startsWith(pageUrl)) {
@@ -172,6 +172,9 @@ const downloads = () => {
 module.exports = {
     execute,
     quit,
+    devtools,
+    openSpecialPage,
     version,
-    help
+    help,
+    downloads
 }
