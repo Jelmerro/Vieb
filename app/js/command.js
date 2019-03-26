@@ -15,12 +15,10 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global MODES SETTINGS TABS UTIL */
+/* global DOWNLOADS MODES SETTINGS TABS UTIL */
 "use strict"
 
 const { remote } = require("electron")
-const url = require("url")
-const path = require("path")
 
 const execute = command => {
     //remove all redundant spaces
@@ -46,7 +44,7 @@ const execute = command => {
         UTIL.notify("The devtools command takes no arguments", "warn")
         return
     }
-    //version command
+    //reload command
     if (["r", "reload"].indexOf(command) !== -1) {
         SETTINGS.loadFromDisk()
         return
@@ -78,6 +76,15 @@ const execute = command => {
         help(parts[1].toLowerCase())
         return
     }
+    //downloads command
+    if (["d", "downloads"].indexOf(command) !== -1) {
+        downloads()
+        return
+    }
+    if (command.startsWith("d ") || command.startsWith("downloads ")) {
+        UTIL.notify("The downloads command takes no arguments", "warn")
+        return
+    }
     //set command
     if (command.startsWith("set ") || command === "set") {
         const parts = command.split(" ")
@@ -88,6 +95,24 @@ const execute = command => {
             return
         }
         SETTINGS.set(parts[1], parts[2])
+        return
+    }
+    //accept/confirm command
+    if (["accept", "confirm"].indexOf(command) !== -1) {
+        DOWNLOADS.confirmRequest()
+        return
+    }
+    if (command.startsWith("accept ") || command.startsWith("confirm ")) {
+        UTIL.notify("The accept command takes no arguments", "warn")
+        return
+    }
+    //deny/reject command
+    if (["deny", "reject"].indexOf(command) !== -1) {
+        DOWNLOADS.rejectRequest()
+        return
+    }
+    if (command.startsWith("deny ") || command.startsWith("reject ")) {
+        UTIL.notify("The deny command takes no arguments", "warn")
         return
     }
     //no command
@@ -103,43 +128,16 @@ const devtools = () => {
     TABS.currentPage().openDevTools()
 }
 
-const version = () => {
+const openSpecialPage = (page, section=null) => {
     MODES.setMode("normal")
-    const versionUrl = url.format({
-        pathname: path.join(__dirname, "../version.html"),
-        protocol: "file:",
-        slashes: true
-    })
+    let pageUrl = UTIL.specialPage(page)
     //Switch to already open help if available
     let alreadyOpen = false
     TABS.listPages().forEach((page, index) => {
-        if (!page.src || decodeURIComponent(page.src).startsWith(versionUrl)) {
+        if (decodeURIComponent(page.src).startsWith(pageUrl)) {
             alreadyOpen = true
             TABS.switchToTab(index)
-        }
-    })
-    //Open the url in the current or new tab, depending on currently open page
-    if (TABS.currentPage().src === "" || alreadyOpen) {
-        TABS.navigateTo(versionUrl)
-    } else {
-        TABS.addTab(versionUrl)
-    }
-    const version = "0.1.0"
-    TABS.currentPage().executeJavaScript(
-        `document.getElementById('version').textContent = "${version}"`)
-}
-
-const help = (section=null) => {
-    MODES.setMode("normal")
-    let helpUrl = url.format({
-        pathname: path.join(__dirname, "../help.html"),
-        protocol: "file:",
-        slashes: true
-    })
-    //Switch to already open help if available
-    let alreadyOpen = false
-    TABS.listPages().forEach((page, index) => {
-        if (!page.src || decodeURIComponent(page.src).startsWith(helpUrl)) {
+        } else if (page.src.startsWith(pageUrl)) {
             alreadyOpen = true
             TABS.switchToTab(index)
         }
@@ -147,21 +145,36 @@ const help = (section=null) => {
     //Append section to the helpUrl
     if (section !== null) {
         if (section.startsWith("#")) {
-            section = section.slice(1, -1)
+            section = section.slice(1)
         }
-        helpUrl += `#${section}`
+        pageUrl += `#${section}`
     }
     //Open the url in the current or new tab, depending on currently open page
     if (TABS.currentPage().src === "" || alreadyOpen) {
-        TABS.navigateTo(helpUrl)
+        TABS.navigateTo(pageUrl)
     } else {
-        TABS.addTab(helpUrl)
+        TABS.addTab(pageUrl)
     }
+}
+
+const version = () => {
+    openSpecialPage("version")
+}
+
+const help = (section=null) => {
+    openSpecialPage("help", section)
+}
+
+const downloads = () => {
+    openSpecialPage("downloads")
 }
 
 module.exports = {
     execute,
     quit,
+    devtools,
+    openSpecialPage,
     version,
-    help
+    help,
+    downloads
 }

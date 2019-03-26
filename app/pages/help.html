@@ -18,13 +18,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link href="css/help.css" rel="stylesheet" type="text/css">
-    <title>Vieb documentation</title>
-    <link rel="shortcut icon" type="image/png" href="img/icon.png">
+    <link href="../css/help.css" rel="stylesheet" type="text/css">
+    <title>Help</title>
+    <link rel="shortcut icon" type="image/png" href="../img/icon.png">
 </head>
 <body>
     <div class="header">
-        <img src="img/icon.png">
+        <img src="../img/icon.png">
         <div>Welcome to Vieb</div>
     </div>
     <h1 id="intro">Intro</h1>
@@ -100,7 +100,7 @@
                 <li>
                     Checkboxes and buttons
                     <input type="checkbox">
-                    <button onclick="changeColor(this);">
+                    <button onclick="changeColor(this)">
                         Button
                     </button>
                     will be outlined in red.
@@ -110,7 +110,7 @@
                     Text input fields will enter insert mode and will be outlined in green.
                 </li>
                 <li>
-                    <span onclick="changeColor(this);">
+                    <span onclick="changeColor(this)">
                         Elements with javascript event handlers
                     </span>
                     will be outlined in orange.
@@ -209,7 +209,7 @@
     It gives you an idea of all the available options,
     and which of them you actually want to change.
     <br>
-    <iframe src="default-settings.json" frameborder="0"
+    <iframe src="../default-settings.json" frameborder="0"
         scrolling="no" onload="configureIframe(this)">
     </iframe>
     <br>
@@ -246,11 +246,15 @@
     <pre>
 {
     "keybindings": {
+        "nav": {
+            "F6": "ACTIONS.toNormalMode"
+        },
         "insert": {
             "F1": "",
             "Escape": ""
         },
         "normal": {
+            "F6": "ACTIONS.toNavMode",
             "C-KeyQ": "COMMAND.quit"
         }
     },
@@ -260,6 +264,10 @@
     "notification": {
         "duration": 3000,
         "position": "bottom-left"
+    },
+    "downloads": {
+        "method": "confirm",
+        "path": "~/Documents"
     }
 }</pre>
     This example is also found in the README, and changes most default settings.
@@ -269,6 +277,9 @@
             The help page can't be accessed directly from insert mode with the
             <kbd>F1</kbd> key anymore.
         </li>
+        <li>
+            Toggle between nav and normal mode with
+            <kbd>F6</kbd> (similar to regular browsers)
         <li>
             <kbd>Escape</kbd> can not be used to exit insert mode,
             but <kbd>Ctrl with [</kbd> will still work.
@@ -282,6 +293,8 @@
         <li>Change the search mode to be case-insensitive.</li>
         <li>Reduce the notification duration to 3 seconds instead of 5.</li>
         <li>Display the notification in the bottom left instead of the bottom right.</li>
+        <li>Change the download method to "confirm" instead of "automatic"</li>
+        <li>Downloads will be stored in the documents folder, except if method would be "ask"
     </ul>
     This concludes the documentation regarding the viebrc file.
     In the next paragraph, the set command will be explained.
@@ -390,7 +403,7 @@
             Scroll half a page up or down using
             <kbd>Ctrl with u</kbd> or <kbd>Ctrl with d</kbd>.
         </li>
-        <li>Or an entire page by pressing <kbd>Ctrl with B</kbd> and <kbd>Ctrl with F</kbd>.</li>
+        <li>Or an entire page by pressing <kbd>Ctrl with b</kbd> and <kbd>Ctrl with f</kbd>.</li>
         <li>Go to command mode with <kbd>:</kbd>.</li>
         <li>Zoom in or out using <kbd>Ctrl with +</kbd> and <kbd>Ctrl with -</kbd>.</li>
         <li>Reset the zoom to 100% again using <kbd>Ctrl with 0</kbd>.</li>
@@ -464,6 +477,25 @@
     There are versions listed for Vieb and Chromium,
     and you can also navigate to the github repository from the version page.
     The version command is also available as "v".
+    <h2 id="commands-downloads">downloads</h2>
+    The downloads command takes no arguments.
+    The short version of this command is "d".
+    This page can be used to view all the downloaded files.
+    To learn more about the download page, different download methods and other special pages,
+    check out the <a href="#special">Special pages</a>.
+    <h2 id="commands-accept">accept</h2>
+    This command can be used to confirm a download request.
+    It can only be used if the "confirm" download method is used.
+    When this mode is active, no files will automatically download,
+    but you will be asked to accept or reject the file.
+    This command can also be called as: <pre class="command-block">confirm</pre>
+    On the <a href="#special-downloads">downloads page</a> you can view a list of downloaded files,
+    and also view the current unconfirmed download.
+    <h2 id="commands-reject">reject</h2>
+    This command can be used to reject the current unconfirmed download.
+    It's usually not required to call this command,
+    because new download requests will replace the old one.
+    This command can also be called as: <pre class="command-block">deny</pre>
     <h2 id="commands-devtools">devtools</h2>
     The devtools command takes no arguments.
     This command can be used to open to open the developer tools for the current website.
@@ -517,6 +549,41 @@
         <li>Type "quit" into the navbar and press <kbd>Enter</kbd>.</li>
     </ul>
     The short version of the quit command is "q".
+    <h1 id="special">Special pages</h1>
+    Vieb has a couple of special pages that can be accessed like so "vieb://help".
+    Most of these pages also have a dedicated command to navigate to them,
+    but using nav mode to go there is possible as well.
+    Each special page will be explained below.
+    <h2 id="special-help">help page</h2>
+    This is the current page and also a complete reference of Vieb's functionality.
+    The location of this special page is <a href="">"vieb://help"</a>.
+    You can link to specific section of this page using "vieb://help#basics",
+    or by calling the <a href="#commands-help">help command</a> with extra arguments.
+    <h2 id="special-downloads">downloads page</h2>
+    This page displays a list of all the downloaded files for the current session.
+    If/when history management is done and released,
+    there will be an option to store downloads beyond the current session.
+    There are three download methods in Vieb (setting: "downloads.method"):
+    <ul>
+        <li>
+            automatic (default) - which will download all files automatically similar to chrome,
+            the configured "downloads.path" will be used to store all downloads.
+        </li>
+        <li>
+            ask - when this mode is active, the download path will not be used,
+            but instead a file explorer will be displayed to ask for the download location.
+        </li>
+        <li>
+            confirm - in this mode the :accept and :reject commands are used to confirm a download.
+            On the downloads page the current unconfirmed download is shown.
+            As with the automatic download setting, the "downloads.path" location is used to store the download.
+        </li>
+    </ul>
+    All downloads regardless of mode will be displayed on the downloads page,
+    which can also be accsed as "vieb://downloads" or with the <a href="#commands-downloads">downloads command</a>.
+    <h2 id="special-version">version page</h2>
+    This page contains the current Vieb version and a button to check for updates.
+    It can be accessed with the :version command (:v), or as "vieb://version".
     <h1 id="license">License</h1>
     Vieb is created by <a href="https://github.com/Jelmerro">Jelmer van Arnhem</a>
     and <a href="https://github.com/Jelmerro/Vieb/graphs/contributors">contributors</a>.
@@ -524,55 +591,7 @@
     You can copy or modify the code/program under the terms of the GPL3.0 or higher.
     For more information and legal terms see the
     <a href="https://github.com/Jelmerro/Vieb/blob/master/LICENSE">LICENSE</a>.
-    All the links in this paragraph connect to some part of the github repository.
-    <script>
-        const changeColor = element => {
-            if (element.style.borderColor === "rgb(0, 51, 255)") {
-                element.style.borderColor = "rgb(0, 255, 51)"
-            } else {
-                element.style.borderColor = "rgb(0, 51, 255)"
-            }
-        }
-        const configureIframe = frame => {
-            frame.style.height = frame.contentWindow.document.body.scrollHeight + "px"
-            frame.contentWindow.document.body.style.color = "#cff"
-            frame.contentWindow.document.body.style.background = "#222"
-        }
-        window.onload = () => {
-            //After loading, this will add the ids to the table of contents
-            //It also will display the section id for all sections that have one
-            const sections = [...document.querySelectorAll("*[id]")]
-            sections.forEach(section => {
-                createTOCEntry(section)
-                createIdLabel(section)
-            })
-            //Set focus to correct part of the page after it's done loading
-            setTimeout(() => {
-                if (window.location.hash !== "") {
-                    document.querySelector(`a[href='${window.location.hash}']`).click()
-                }
-            }, 50)
-        }
-        const createTOCEntry = element => {
-            const link = document.createElement("a")
-            link.textContent = element.textContent
-            link.className = `toc-${element.tagName.toLowerCase()}`
-            link.href = `#${element.id}`
-            document.querySelector(".toc").appendChild(link)
-        }
-        const createIdLabel = element => {
-            const section = document.createElement("div")
-            section.className = "section"
-            const header = document.createElement(element.tagName)
-            header.id = element.id
-            header.textContent = element.textContent
-            section.appendChild(header)
-            const label = document.createElement("a")
-            label.textContent = `#${element.id}`
-            label.href = `#${element.id}`
-            section.appendChild(label)
-            document.body.replaceChild(section, element)
-        }
-    </script>
+    All the links in this paragraph connect to some part of the
+    <a href="https://github.com/Jelmerro/Vieb">github repo</a>.
 </body>
 </html>

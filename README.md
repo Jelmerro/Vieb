@@ -35,7 +35,8 @@ Vim bindings for the web by design
 By default, both `Escape` and `ctrl+[` will always go back to normal mode,
 even when insert mode is active, but this can be changed with custom keybindings.
 All modes come with a default binding to `F1` to open the help page,
-this is mostly for new users and can also be disabled or changed with custom keybindings.
+this keybinding is mostly for new users and can also be disabled or changed with custom keybindings.
+The help page itself contains useful information for all users.
 
 ## Insert mode
 
@@ -55,6 +56,9 @@ Vieb supports the following commands:
 - `:v` or `:version` to display all version and release information
 - `:h` or `:help` to display the help documentation,
   a single optional argument can be given to go to a specific section, such as `:help basics`
+- `:d` or `:downloads` to view a list of all the downloaded files
+- `:accept` or `:confirm` can be used to start a requested download for the confirm download mode
+- `:reject` or `:deny` to reject the latest download request for the confirm download method
 - `:set` will change a setting for as long as Vieb is opened
 
 ## Search mode
@@ -159,11 +163,15 @@ An example viebrc.json that changes most settings could look like this:
 ```json
 {
     "keybindings": {
+        "nav": {
+            "F6": "ACTIONS.toNormalMode"
+        },
         "insert": {
             "F1": "",
             "Escape": ""
         },
         "normal": {
+            "F6": "ACTIONS.toNavMode",
             "C-KeyQ": "COMMAND.quit"
         }
     },
@@ -173,6 +181,10 @@ An example viebrc.json that changes most settings could look like this:
     "notification": {
         "duration": 3000,
         "position": "bottom-left"
+    },
+    "downloads": {
+        "method": "confirm",
+        "path": "~/Documents"
     }
 }
 ```
@@ -180,6 +192,7 @@ An example viebrc.json that changes most settings could look like this:
 This example results in the following changes:
 
 - The help page can't be accessed directly from insert mode with the `F1` key anymore
+- Toggle between nav and normal mode with F6 (similar to regular browsers)
 - `Escape` can not be used to exit insert mode, but `Ctrl with [` will still work
 - `Ctrl with q` can be used to quit Vieb when in normal mode
 - Https connections will now be downgraded to http if the server has no certificate
@@ -187,6 +200,8 @@ This example results in the following changes:
 - Change the search mode to be case-insensitive
 - Reduce the notification duration to 3 seconds instead of 5
 - Display the notification in the bottom left instead of the bottom right
+- Change the download method to "confirm" instead of "automatic"
+- Downloads will be stored in the documents folder, except if method would be "ask"
 
 The settings file is loaded on startup,
 and can be reloaded at anytime with the `:r` or `:reload` command.

@@ -18,23 +18,35 @@
 /* eslint-disable no-console */
 "use strict"
 
-const {app, BrowserWindow, nativeImage} = require("electron")
+const {app, BrowserWindow, ipcMain, nativeImage} = require("electron")
 const path = require("path")
 const url = require("url")
+
+let downloadBehaviour = "automatic"
+let confirmedDownload = ""
 let mainWindow
 
 // Set storage location to Vieb regardless of startup method
 app.setPath("appData", path.join(app.getPath("appData"), "Vieb"))
 app.setPath("userData", app.getPath("appData"))
 
-//Allow the app to change the login credentials
+// Allow the app to change the login credentials
 app.on("login", e => {
     e.preventDefault()
 })
 
+// Set the download location and method
+ipcMain.on("download-settings-change", (e, downloadSetting) => {
+    downloadBehaviour = downloadSetting
+})
+
+ipcMain.on("download-confirm-url", (e, confirmedUrl) => {
+    confirmedDownload = confirmedUrl
+})
+
 // When the app is ready to start, open the main window
 app.on("ready", () => {
-    //Parse arguments
+    // Parse arguments
     let args = process.argv
     if (app.isPackaged) {
         args.unshift("")
@@ -62,7 +74,24 @@ app.on("ready", () => {
             urls.push(arg)
         }
     })
-    //Init mainWindow
+    // Request single instance lock and quit if that fails
+    if (app.requestSingleInstanceLock()) {
+        app.on("second-instance", (event, commandLine) => {
+            if (mainWindow.isMinimized()) {
+                mainWindow.restore()
+            }
+            if (app.isPackaged) {
+                commandLine.unshift("")
+            }
+            commandLine = commandLine.slice(2)
+            mainWindow.webContents.send("urls", commandLine.filter(arg => {
+                return !arg.startsWith("--")
+            }))
+        })
+    } else {
+        app.quit()
+    }
+    // Init mainWindow
     const windowData = {
         title: "Vieb",
         width: 800,
@@ -90,17 +119,34 @@ app.on("ready", () => {
     mainWindow.on("closed", () => {
         app.exit(0)
     })
-    //Load app and send urls when ready
-    mainWindow.loadURL(url.format({
-        pathname: path.join(__dirname, "index.html"),
-        protocol: "file:",
-        slashes: true
-    }))
+    // Load app and send urls when ready
+    const mainUrl = url.pathToFileURL(path.join(__dirname, "index.html"))
+    mainWindow.loadURL(mainUrl.href)
     mainWindow.webContents.on("did-finish-load", () => {
         if (enableDevTools) {
             mainWindow.webContents.openDevTools()
         }
         mainWindow.webContents.send("urls", urls)
+        mainWindow.webContents.session.on("will-download", (e, item) => {
+            if (downloadBehaviour === "confirm") {
+                if (item.getURL() === confirmedDownload) {
+                    item.setSavePath(path.join(
+                        app.getPath("downloads"), item.getFilename()))
+                    confirmedDownload = ""
+                } else {
+                    const info = {
+                        url: item.getURL(),
+                        name: item.getFilename()
+                    }
+                    e.preventDefault()
+                    mainWindow.webContents.send("prevented-download", info)
+                }
+            } else if (downloadBehaviour === "automatic") {
+                item.setSavePath(path.join(
+                    app.getPath("downloads"), item.getFilename()))
+            }
+            // The "ask" behaviour is the default if no save path is set
+        })
     })
 })
 
@@ -116,13 +162,14 @@ const printUsage = () => {
 }
 
 const printVersion = () => {
+    const version = process.env.npm_package_version || app.getVersion()
     console.log("Vieb: Vim Inspired Electron Browser\n")
-    console.log(`This is version ${process.env.npm_package_version} of Vieb.`)
+    console.log(`This is version ${version} of Vieb.`)
     console.log("This program is based on Electron and inspired by Vim.")
     console.log("It can be used to browse the web entirely with the keyboard.")
-    console.log("Vieb was created by Jelmer van Arnhem & Ian Baremans.")
+    console.log("Vieb was created by Jelmer van Arnhem and contributors")
     console.log("\nSee the following link for more information:")
-    console.log(process.env.npm_package_homepage)
+    console.log("https://github.com/Jelmerro/Vieb")
     console.log("\nLicense GPLv3+: GNU GPL version 3 or "
         + "later <http://gnu.org/licenses/gpl.html>")
     console.log("This is free software; you are free to change and "

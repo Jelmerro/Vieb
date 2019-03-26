@@ -15,15 +15,15 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND FOLLOW MODES SETTINGS UTIL */
+/* global COMMAND DOWNLOADS FOLLOW MODES SETTINGS UTIL */
 "use strict"
 
 const { ipcRenderer, remote } = require("electron")
-const path = require("path")
-const url = require("url")
+
+const specialPages = ["help", "downloads", "version"]
+
 const useragent = remote.session.defaultSession.getUserAgent()
     .replace(/Electron\/.* /, "")
-
 let loggingIn = false
 
 const init = () => {
@@ -88,6 +88,7 @@ const addTab = (url=null) => {
     webview.getWebContents().setUserAgent(useragent)
     if (url !== null) {
         webview.src = url
+        title.textContent = url
     }
     switchToTab(listTabs().length - 1)
 }
@@ -132,7 +133,25 @@ const updateUrl = webview => {
         return
     }
     if (currentPage() && currentPage().src !== undefined) {
-        document.getElementById("url").value = currentPage().src
+        const pageUrl = currentPage().src
+        let section = pageUrl.split("#").slice(1).join("#")
+        if (section !== "") {
+            section = "#" + section
+        }
+        const decodedPageUrl = decodeURIComponent(pageUrl)
+        for (const specialPage of specialPages) {
+            if (pageUrl.startsWith(UTIL.specialPage(specialPage))) {
+                document.getElementById("url").value =
+                    `vieb://${specialPage}` + section
+                return
+            }
+            if (decodedPageUrl.startsWith(UTIL.specialPage(specialPage))) {
+                document.getElementById("url").value =
+                    `vieb://${specialPage}` + section
+                return
+            }
+        }
+        document.getElementById("url").value = pageUrl
     } else {
         document.getElementById("url").value = ""
     }
@@ -151,6 +170,7 @@ const addWebviewListeners = webview => {
                 webview.stop()
                 return
             }
+            FOLLOW.cancelFollow()
             loggingIn = true
             const windowData = {
                 width: 300,
@@ -172,11 +192,7 @@ const addWebviewListeners = webview => {
                     //Callback was already called
                 }
             })
-            loginWindow.loadURL(url.format({
-                pathname: path.join(__dirname, "../login.html"),
-                protocol: "file:",
-                slashes: true
-            }))
+            loginWindow.loadURL(UTIL.specialPage("login"))
             remote.ipcMain.once("login-credentials", (e, credentials) => {
                 try {
                     callback(credentials[0], credentials[1])
@@ -196,7 +212,7 @@ const addWebviewListeners = webview => {
             return
         }
         //It will go to the http version of a website when no https is detected
-        const redirect = SETTINGS.get().redirectToHttp
+        const redirect = SETTINGS.get("redirectToHttp")
         const sslErrors = [
             "ERR_CERT_COMMON_NAME_INVALID",
             "ERR_SSL_PROTOCOL_ERROR"
@@ -216,6 +232,7 @@ const addWebviewListeners = webview => {
             }
         }
         loggingIn = false
+        updateUrl(webview)
     })
     webview.addEventListener("page-title-updated", e => {
         const tab = listTabs()[listPages().indexOf(webview)]
@@ -231,6 +248,10 @@ const addWebviewListeners = webview => {
         }
         updateUrl(webview)
     })
+    webview.addEventListener("will-navigate", e => {
+        const tab = listTabs()[listPages().indexOf(webview)]
+        tab.querySelector("span").textContent = e.url
+    })
     webview.addEventListener("new-window", e => {
         navigateTo(e.url)
     })
@@ -242,6 +263,9 @@ const addWebviewListeners = webview => {
     webview.addEventListener("ipc-message", e => {
         if (e.channel === "follow-response") {
             FOLLOW.parseAndDisplayLinks(e.args[0])
+        }
+        if (e.channel === "download-list-request") {
+            DOWNLOADS.sendDownloadList(e.args[0], e.args[1])
         }
     })
     webview.onblur = () => {
@@ -256,6 +280,10 @@ const navigateTo = location => {
     currentTab().querySelector("span").textContent = location
 }
 
+const specialPagesList = () => {
+    return specialPages
+}
+
 module.exports = {
     init,
     listTabs,
@@ -266,5 +294,6 @@ module.exports = {
     closeTab,
     switchToTab,
     updateUrl,
-    navigateTo
+    navigateTo,
+    specialPagesList
 }
