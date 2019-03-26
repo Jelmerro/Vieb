@@ -258,14 +258,11 @@ const useEnteredData = () => {
             if (location.startsWith("vieb://")) {
                 const specialPage = location.replace(
                     "vieb://", "").split("#")[0]
-                let section = location.split("#").slice(1).join("#")
-                if (section !== "") {
-                    section = "#" + section
-                }
+                const section = location.split("#").slice(1).join("#")
                 if (TABS.specialPagesList().indexOf(specialPage) !== -1) {
-                    TABS.navigateTo(UTIL.specialPage(specialPage) + section)
+                    COMMAND.openSpecialPage(specialPage, section || null)
                 } else {
-                    TABS.navigateTo(UTIL.specialPage("help"))
+                    COMMAND.openSpecialPage("help")
                 }
             } else if (UTIL.hasProtocol(location)) {
                 TABS.navigateTo(location)
@@ -304,18 +301,7 @@ const setFocusCorrectly = () => {
                 urlElement.value = ""
             }
         }
-        if (MODES.currentMode() === "search") {
-            window.focus()
-            urlElement.focus()
-            if (urlElement.value === TABS.currentPage().src) {
-                urlElement.value = currentSearch
-                urlElement.select()
-            }
-            if (urlElement.value.startsWith("vieb://")) {
-                urlElement.value = ""
-            }
-        }
-        if (MODES.currentMode() === "nav") {
+        if (MODES.currentMode() === "search" || MODES.currentMode() === "nav") {
             window.focus()
             urlElement.focus()
             if (urlElement.value === TABS.currentPage().src) {
