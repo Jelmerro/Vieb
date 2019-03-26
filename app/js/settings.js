@@ -19,24 +19,42 @@
 "use strict"
 
 const fs = require("fs")
+const os = require("os")
 const path = require("path")
-const { remote } = require("electron")
+const { ipcRenderer, remote } = require("electron")
 
 const defaultSettings = {
     "keybindings": {},
     "redirectToHttp": false,
-    "search": "https://duckduckgo.com/?q=",
+    "search": "https://duckduckgo.com/?kae=d&q=",
     "caseSensitiveSearch": true,
     "notification": {
         "system": false,
         "position": "bottom-right",
         "duration": 5000
+    },
+    "downloads": {
+        "path": "~/Downloads/",
+        "method": "automatic"
     }
 }
 let allSettings = {}
 
 const init = () => {
     loadFromDisk()
+    updateDownloadSettingsInMain()
+}
+
+const expandPath = path => {
+    if (path.startsWith("~")) {
+        return path.replace("~", os.homedir())
+    }
+    return path
+}
+
+const updateDownloadSettingsInMain = () => {
+    remote.app.setPath("downloads", expandPath(allSettings.downloads.path))
+    ipcRenderer.send("download-settings-change", allSettings.downloads.method)
 }
 
 const loadFromDisk = () => {
@@ -73,6 +91,20 @@ const loadFromDisk = () => {
                         Math.max(Number(parsed.notification.duration), 100)
                 }
             }
+            if (typeof parsed.downloads === "object") {
+                if (typeof parsed.downloads.path === "string") {
+                    const expandedPath = expandPath(parsed.downloads.path)
+                    if (fs.existsSync(expandedPath)) {
+                        if (fs.statSync(expandedPath).isDirectory()) {
+                            allSettings.downloads.path = expandedPath
+                        }
+                    }
+                }
+                const methods = ["automatic", "confirm", "ask"]
+                if (methods.indexOf(parsed.downloads.method) !== -1) {
+                    allSettings.downloads.method = parsed.downloads.method
+                }
+            }
         } catch (e) {
             UTIL.notify(
                 `The config file located at '${config}' is corrupt`, "err")
@@ -80,8 +112,12 @@ const loadFromDisk = () => {
     }
 }
 
-const get = () => {
-    return allSettings
+const get = setting => {
+    if (setting.indexOf(".") === -1) {
+        return allSettings[setting]
+    }
+    const parts = setting.split(".")
+    return allSettings[parts[0]][parts[1]]
 }
 
 const set = (setting, value) => {
@@ -162,6 +198,31 @@ const set = (setting, value) => {
         } else {
             UTIL.notify("This is an invalid value for this setting, only "
                 + "numbers are accepted here", "warn")
+        }
+        return
+    }
+    if (setting === "downloads.path") {
+        const expandedPath = expandPath(value)
+        if (fs.existsSync(expandedPath)) {
+            if (fs.statSync(expandedPath).isDirectory()) {
+                allSettings.downloads.path = expandedPath
+                updateDownloadSettingsInMain()
+            } else {
+                UTIL.notify("The given path is not a directory", "warn")
+            }
+        } else {
+            UTIL.notify("The given path does not exist", "warn")
+        }
+        return
+    }
+    if (setting === "downloads.method") {
+        const options = ["ask", "automatic", "confirm"]
+        if (options.indexOf(value) === -1) {
+            UTIL.notify("The download method must be one of:\n"
+                + options.join(", "), "warn")
+        } else {
+            allSettings.downloads.method = value
+            updateDownloadSettingsInMain()
         }
         return
     }

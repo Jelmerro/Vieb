@@ -18,19 +18,22 @@
 /* global SETTINGS */
 "use strict"
 
+const path = require("path")
+const url = require("url")
+
 //This regex will be compiled when the file is loaded, so it's pretty fast
 //eslint-disable-next-line max-len
-const url = /^(([a-zA-Z-]+\.)+[a-zA-Z]{2,}|localhost|(\d{1,3}\.){3}\d{1,3})(:\d{2,5})?(|\/.*|\?.*|#.*)$/
-const protocol = /^[a-z][a-z0-9-+.]+:\/\//
+const urlRegex = /^(([a-zA-Z-]+\.)+[a-zA-Z]{2,}|localhost|(\d{1,3}\.){3}\d{1,3})(:\d{2,5})?(|\/.*|\?.*|#.*)$/
+const protocolRegex = /^[a-z][a-z0-9-+.]+:\/\//
 
 const hasProtocol = location => {
     //Check for a valid protocol at the start
     //This will ALWAYS result in the url being valid
-    return protocol.test(location)
+    return protocolRegex.test(location)
 }
 
 const isUrl = location => {
-    return hasProtocol(location) || url.test(location)
+    return hasProtocol(location) || urlRegex.test(location)
     //Checks if the location starts with one of the following:
     //- Valid domain with 0 or more subdomains
     //- localhost
@@ -52,7 +55,7 @@ const notify = (message, type="info") => {
         properType = "error"
     }
     const image = `img/notifications/${properType}.svg`
-    if (SETTINGS.get().notification.system) {
+    if (SETTINGS.get("notification.system")) {
         new Notification(`Vieb ${properType}`, {
             "body": message,
             "image": image,
@@ -61,22 +64,28 @@ const notify = (message, type="info") => {
         return
     }
     const notificationsElement = document.getElementById("notifications")
-    notificationsElement.className = SETTINGS.get().notification.position
+    notificationsElement.className = SETTINGS.get("notification.position")
     const notification = document.createElement("span")
     const iconElement = document.createElement("img")
     iconElement.src = image
     notification.appendChild(iconElement)
     const textElement = document.createElement("span")
-    textElement.textContent = message
+    textElement.innerHTML = message
+        .replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/\n/g, "<br>")
     notification.appendChild(textElement)
     notificationsElement.appendChild(notification)
     setTimeout(() => {
         notificationsElement.removeChild(notification)
-    }, SETTINGS.get().notification.duration)
+    }, SETTINGS.get("notification.duration"))
+}
+
+const specialPage = page => {
+    return url.pathToFileURL(path.join(__dirname, `../pages/${page}.html`)).href
 }
 
 module.exports = {
     hasProtocol,
     isUrl,
-    notify
+    notify,
+    specialPage
 }

@@ -67,11 +67,15 @@
         }
     },
     "redirectToHttp": false,
-    "search": "https://duckduckgo.com/?q=",
+    "search": "https://duckduckgo.com/?kae=d&q=",
     "caseSensitiveSearch": true,
     "notification": {
         "system": false,
         "position": "bottom-right",
         "duration": 5000
+    },
+    "downloads": {
+        "path": "~/Downloads/",
+        "method": "automatic"
     }
 }
