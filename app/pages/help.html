@@ -403,7 +403,7 @@
             Scroll half a page up or down using
             <kbd>Ctrl with u</kbd> or <kbd>Ctrl with d</kbd>.
         </li>
-        <li>Or an entire page by pressing <kbd>Ctrl with B</kbd> and <kbd>Ctrl with F</kbd>.</li>
+        <li>Or an entire page by pressing <kbd>Ctrl with b</kbd> and <kbd>Ctrl with f</kbd>.</li>
         <li>Go to command mode with <kbd>:</kbd>.</li>
         <li>Zoom in or out using <kbd>Ctrl with +</kbd> and <kbd>Ctrl with -</kbd>.</li>
         <li>Reset the zoom to 100% again using <kbd>Ctrl with 0</kbd>.</li>
@@ -477,6 +477,25 @@
     There are versions listed for Vieb and Chromium,
     and you can also navigate to the github repository from the version page.
     The version command is also available as "v".
+    <h2 id="commands-downloads">downloads</h2>
+    The downloads command takes no arguments.
+    The short version of this command is "d".
+    This page can be used to view all the downloaded files.
+    To learn more about the download page, different download methods and other special pages,
+    check out the <a href="#special">Special pages</a>.
+    <h2 id="commands-accept">accept</h2>
+    This command can be used to confirm a download request.
+    It can only be used if the "confirm" download method is used.
+    When this mode is active, no files will automatically download,
+    but you will be asked to accept or reject the file.
+    This command can also be called as: <pre class="command-block">confirm</pre>
+    On the <a href="#special-downloads">downloads page</a> you can view a list of downloaded files,
+    and also view the current unconfirmed download.
+    <h2 id="commands-reject">reject</h2>
+    This command can be used to reject the current unconfirmed download.
+    It's usually not required to call this command,
+    because new download requests will replace the old one.
+    This command can also be called as: <pre class="command-block">deny</pre>
     <h2 id="commands-devtools">devtools</h2>
     The devtools command takes no arguments.
     This command can be used to open to open the developer tools for the current website.
@@ -530,6 +549,41 @@
         <li>Type "quit" into the navbar and press <kbd>Enter</kbd>.</li>
     </ul>
     The short version of the quit command is "q".
+    <h1 id="special">Special pages</h1>
+    Vieb has a couple of special pages that can be accessed like so "vieb://help".
+    Most of these pages also have a dedicated command to navigate to them,
+    but using nav mode to go there is possible as well.
+    Each special page will be explained below.
+    <h2 id="special-help">help page</h2>
+    This is the current page and also a complete reference of Vieb's functionality.
+    The location of this special page is <a href="">"vieb://help"</a>.
+    You can link to specific section of this page using "vieb://help#basics",
+    or by calling the <a href="#commands-help">help command</a> with extra arguments.
+    <h2 id="special-downloads">downloads page</h2>
+    This page displays a list of all the downloaded files for the current session.
+    If/when history management is done and released,
+    there will be an option to store downloads beyond the current session.
+    There are three download methods in Vieb (setting: "downloads.method"):
+    <ul>
+        <li>
+            automatic (default) - which will download all files automatically similar to chrome,
+            the configured "downloads.path" will be used to store all downloads.
+        </li>
+        <li>
+            ask - when this mode is active, the download path will not be used,
+            but instead a file explorer will be displayed to ask for the download location.
+        </li>
+        <li>
+            confirm - in this mode the :accept and :reject commands are used to confirm a download.
+            On the downloads page the current unconfirmed download is shown.
+            As with the automatic download setting, the "downloads.path" location is used to store the download.
+        </li>
+    </ul>
+    All downloads regardless of mode will be displayed on the downloads page,
+    which can also be accsed as "vieb://downloads" or with the <a href="#commands-downloads">downloads command</a>.
+    <h2 id="special-version">version page</h2>
+    This page contains the current Vieb version and a button to check for updates.
+    It can be accessed with the :version command (:v), or as "vieb://version".
     <h1 id="license">License</h1>
     Vieb is created by <a href="https://github.com/Jelmerro">Jelmer van Arnhem</a>
     and <a href="https://github.com/Jelmerro/Vieb/graphs/contributors">contributors</a>.
@@ -537,6 +591,7 @@
     You can copy or modify the code/program under the terms of the GPL3.0 or higher.
     For more information and legal terms see the
     <a href="https://github.com/Jelmerro/Vieb/blob/master/LICENSE">LICENSE</a>.
-    All the links in this paragraph connect to some part of the github repository.
+    All the links in this paragraph connect to some part of the
+    <a href="https://github.com/Jelmerro/Vieb">github repo</a>.
 </body>
 </html>
