@@ -260,6 +260,14 @@ const addWebviewListeners = webview => {
             UTIL.notify("The search could not find any matches on the page")
         }
     })
+    webview.addEventListener("enter-html-full-screen", () => {
+        document.body.className = "fullscreen"
+        MODES.setMode("insert")
+    })
+    webview.addEventListener("leave-html-full-screen", () => {
+        document.body.className = ""
+        MODES.setMode("normal")
+    })
     webview.addEventListener("ipc-message", e => {
         if (e.channel === "follow-response") {
             FOLLOW.parseAndDisplayLinks(e.args[0])

@@ -43,11 +43,24 @@ const setMode = mode => {
     if (mode === "insert") {
         TABS.listPages().forEach(page => {
             page.style.pointerEvents = "auto"
+            page.getWebContents().removeAllListeners("before-input-event")
             page.getWebContents().on("before-input-event", (e, input) => {
                 if (input.code === "Tab") {
                     TABS.currentPage().focus()
                 }
-                //Translate to regular keyboard event
+                // Check if fullscreen should be disabled
+                const noMods = !input.shift && !input.meta && !input.alt
+                const ctrl = input.control
+                const escapeKey = input.code === "Escape" && noMods && !ctrl
+                const ctrlBrack = input.code === "BracketLeft" && noMods && ctrl
+                if (escapeKey || ctrlBrack) {
+                    if (document.body.className === "fullscreen") {
+                        TABS.currentPage().executeJavaScript(
+                            "document.webkitExitFullscreen()")
+                        return
+                    }
+                }
+                // Translate to regular keyboard event
                 const keyEvent = {
                     "ctrlKey": input.control,
                     "shiftKey": input.shift,
@@ -55,7 +68,7 @@ const setMode = mode => {
                     "altKey": input.alt,
                     "code": input.code
                 }
-                //Find the action
+                // Find the action
                 INPUT.executeAction(INPUT.eventToAction(keyEvent))
             })
         })
