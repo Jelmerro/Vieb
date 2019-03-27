@@ -127,6 +127,10 @@ const toIdentifier = e => {
 }
 
 const eventToAction = e => {
+    if (document.body.className === "fullscreen") {
+        MODES.setMode("insert")
+        return
+    }
     const allBindings = JSON.parse(JSON.stringify(bindings))
     const customBindings = SETTINGS.get("keybindings")
     Object.keys(allBindings).forEach(mode => {
@@ -137,6 +141,10 @@ const eventToAction = e => {
 }
 
 const handleKeyboard = e => {
+    if (document.body.className === "fullscreen") {
+        MODES.setMode("insert")
+        return
+    }
     const action = eventToAction(e)
     const isAction = executeAction(action)
     if (isAction) {
