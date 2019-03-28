@@ -51,5 +51,7 @@ window.addEventListener("load", () => {
         req.send(null)
     }
     document.getElementById("chromium-version")
-        .textContent = /Chrome\/(.*) /.exec(navigator.userAgent)[1]
+        .textContent = process.versions.chrome
+    document.getElementById("electron-version")
+        .textContent = process.versions.electron
 })

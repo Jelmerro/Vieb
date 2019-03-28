@@ -179,7 +179,19 @@
         <li>Change the defaults using a viebrc.json file.</li>
         <li>Change a setting for just the current session, with :set.</li>
     </ul>
-    Both of these options will now be explained in detail.
+    The settings file is loaded on startup,
+    and can be reloaded at anytime with the `:r` or `:reload` command.
+    All settings in this file are optional and will override the default setting.
+    Alternatively, settings can be changed for the current session with the `:set` command.
+    For example, to use system notifications for as long as Vieb is running,
+    open command mode with `:` and enter this command:
+    <pre class="command-block">set notification.system true</pre>
+    Vieb's set command syntax is different as compared to regular Vim,
+    and always has the form of "set setting value".
+    The settings file is case sensitive, but the setting argument of the set command isn't.
+    The keybindings can only be changed with the settings file and not with the set command.
+    Running the `:reload` command will reset any prior `:set` commands,
+    because all settings will be reset and reapplied from the settings file.
     <h2 id="settings-viebrc">viebrc.json</h2>
     In this file you can change settings and the keybindings of Vieb.
     By default, this file does not exist and the original value for all settings will be used.
@@ -217,6 +229,8 @@
     to change them to your liking.
     Note that by default <kbd>Ctrl with [</kbd> can be used as an alternative to <kbd>Escape</kbd>,
     to return to normal mode.
+    Finally, there are also example configs to replicate Firefox or Chromium.
+    Please check the <a href="https://github.com/Jelmerro/Vieb">github page</a> for examples.
     <h3 id="settings-viebrc-keybindings">keybindings</h3>
     The viebrc is is the only place to change the keybindings.
     Changing them can be done by overwriting existing ones,
@@ -270,7 +284,7 @@
         "path": "~/Documents"
     }
 }</pre>
-    This example is also found in the README, and changes most default settings.
+
     This example results in the following changes:
     <ul>
         <li>
