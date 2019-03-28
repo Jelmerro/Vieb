@@ -1,0 +1,42 @@
+{
+    "keybindings": {
+        "normal": {
+            "ArrowUp": "ACTIONS.scrollUp",
+            "ArrowDown": "ACTIONS.scrollDown",
+            "ArrowLeft": "ACTIONS.scrollLeft",
+            "ArrowRight": "ACTIONS.scrollRight",
+            "PageUp": "ACTIONS.scrollPageUp",
+            "PageDown": "ACTIONS.scrollPageDown",
+            "Home": "ACTIONS.scrollTop",
+            "End": "ACTIONS.scrollBottom",
+            "F3": "ACTIONS.toSearchMode",
+            "F5": "ACTIONS.reload",
+            "F6": "ACTIONS.toNavMode",
+            "F12": "COMMAND.devtools",
+            "C-PageUp": "ACTIONS.previousTab",
+            "C-PageDown": "ACTIONS.nextTab",
+            "C-F4": "ACTIONS.closeTab",
+            "C-F5": "ACTIONS.reloadWithoutCache",
+            "C-KeyF": "ACTIONS.toSearchMode",
+            "C-KeyJ": "COMMAND.downloads",
+            "C-KeyK": "ACTIONS.toNavMode",
+            "C-KeyL": "ACTIONS.toNavMode",
+            "C-KeyT": "ACTIONS.openNewTab",
+            "C-KeyW": "ACTIONS.closeTab",
+            "C-Tab": "ACTIONS.nextTab",
+            "CS-Tab": "ACTIONS.previousTab",
+            "CS-KeyI": "COMMAND.devtools",
+            "CS-KeyY": "COMMAND.downloads",
+            "A-ArrowLeft": "ACTIONS.backInHistory",
+            "A-ArrowRight": "ACTIONS.forwardInHistory"
+        },
+        "nav": {
+            "F6": "ACTIONS.toNormalMode"
+        }
+    },
+    "redirectToHttp": true,
+    "caseSensitiveSearch": false,
+    "downloads": {
+        "method": "confirm"
+    }
+}

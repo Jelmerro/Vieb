@@ -101,17 +101,11 @@ The selectors are divided in the following colors:
 
 # Starting Vieb
 
-There are two ways to get started with Vieb,
-both will be explained below.
+To get started with Vieb, download a stable release from the
+[github release page](https://github.com/Jelmerro/Vieb/releases).
+These releases require no additional software and can be downloaded for a specific platform.
 
-## Releases
-
-Stable releases can be found on the [github release page](https://github.com/Jelmerro/Vieb/releases).
-These releases require no special setup and can be downloaded for a specific platform.
-
-## From source
-
-The other option is to download/clone the repository and use npm, for example:
+Alternatively you can download/clone the repo and use Vieb like this:
 
 ```bash
 git clone https://github.com/Jelmerro/Vieb.git
@@ -120,107 +114,37 @@ npm install
 npm start
 ```
 
-## Startup
-
 Vieb can be started without any required arguments,
 but it does support them when needed.
-Running Vieb with `--help` should show the following output:
-
-```
-Vieb: Vim Inspired Electron Browser
-
-Usage: Vieb [options] <URLs>
-
-Options:
- --help     Show this help and exit
- --version  Display license and version information and exit
- --debug    Start Vieb with the developer console open
- --console  Same as --debug
-
-All arguments not starting with -- will be opened as a url
-```
-
+Use the `--help` argument for more information.
 When starting Vieb with npm, it's required to enter the arguments like this:
 
 `npm start -- --help`
 
-It should be noted that the developer console is not the one linked to any websites,
-but is the internal console of the Vieb application.
-Opening the developer tools for the current website can be done with the `:dev` command.
+The most common use case for arguments would be to open urls on startup.
 
 # Configuring Vieb
 
 To change the keybindings or any other setting of Vieb,
 the viebrc.json file should be created and/or changed.
-The file should be created in the AppData or .config folder of Vieb,
-on linux this results in `/home/user/.config/Vieb/viebrc.json`.
+The file should be created in the AppData or .config folder of Vieb:
+
+- Windows - %APPDATA%\Vieb\viebrc.json
+- Mac - ~/Library/Application Support/viebrc.json
+- Linux - ~/.config/Vieb/viebrc.json
 
 There should be chromium/electron related files in this directory,
 if Vieb was started at least once.
 
-An example viebrc.json that changes most settings could look like this:
-
-```json
-{
-    "keybindings": {
-        "nav": {
-            "F6": "ACTIONS.toNormalMode"
-        },
-        "insert": {
-            "F1": "",
-            "Escape": ""
-        },
-        "normal": {
-            "F6": "ACTIONS.toNavMode",
-            "C-KeyQ": "COMMAND.quit"
-        }
-    },
-    "redirectToHttp": true,
-    "search": "https://google.com/search?q=",
-    "caseSensitiveSearch": false,
-    "notification": {
-        "duration": 3000,
-        "position": "bottom-left"
-    },
-    "downloads": {
-        "method": "confirm",
-        "path": "~/Documents"
-    }
-}
-```
-
-This example results in the following changes:
-
-- The help page can't be accessed directly from insert mode with the `F1` key anymore
-- Toggle between nav and normal mode with F6 (similar to regular browsers)
-- `Escape` can not be used to exit insert mode, but `Ctrl with [` will still work
-- `Ctrl with q` can be used to quit Vieb when in normal mode
-- Https connections will now be downgraded to http if the server has no certificate
-- The search engine will be google instead of the default duckduckgo
-- Change the search mode to be case-insensitive
-- Reduce the notification duration to 3 seconds instead of 5
-- Display the notification in the bottom left instead of the bottom right
-- Change the download method to "confirm" instead of "automatic"
-- Downloads will be stored in the documents folder, except if method would be "ask"
-
-The settings file is loaded on startup,
-and can be reloaded at anytime with the `:r` or `:reload` command.
-All settings in this file are optional and will override the default setting.
-Alternatively, settings can be changed for the current session with the `:set` command.
-For example, to use system notifications for as long as Vieb is running,
-open command mode with `:` and enter this command:
-
-`set notification.system true`
-
-Vieb's set command syntax is different as compared to regular Vim,
-and always has the form of `set <setting> <value>`.
-The settings file is case sensitive, but the setting argument of the set command isn't.
-The keybindings can only be changed with the settings file and not with the set command.
-Running the `:reload` command will reset any prior `:set` commands,
-because all settings will be reset and reapplied from the settings file.
-
 Please see the [Default settings](app/default-settings.json) for all options,
 the syntax of the viebrc.json is identical to these defaults.
+Settings can be changed at runtime with the `:set` command.
+
+There are examples to make Vieb behave more like
+[Chromium](examples/chromium.json) and [Firefox](examples/firefox.json).
+These examples can be used as the starting point for your own config.
+Feel free to change these to your liking, or even make a pull request to improve them.
+
 For more details about settings, usage or anything else,
 read the built-in offline documentation using `:help`, `:help settings` or the `F1` key.
 
