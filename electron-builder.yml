@@ -1,10 +1,6 @@
-directories:
-  output: dist
-  buildResources: build
 appId: com.github.Jelmerro.Vieb
 linux:
   executableName: vieb
-  icon: build/icons
   category: Network;WebBrowser;
   maintainer: Jelmer van Arnhem
   target:
@@ -26,8 +22,9 @@ linux:
     - target: tar.gz
       arch:
         - x64
+appImage:
+  systemIntegration: doNotAsk
 mac:
-  icon: build/icons
   target:
     - target: zip
       arch:
@@ -38,7 +35,6 @@ mac:
     - from: LICENSE
       to: ../../LICENSE
 win:
-  icon: build/icons
   legalTrademarks: Copyright @ Jelmer van Arnhem | Licensed as free software (GPL-3.0+)
   target:
     - target: nsis

@@ -18,7 +18,7 @@
 /* eslint-disable no-console */
 "use strict"
 
-const {app, BrowserWindow, ipcMain, nativeImage} = require("electron")
+const {app, BrowserWindow, ipcMain} = require("electron")
 const path = require("path")
 const url = require("url")
 
@@ -105,10 +105,8 @@ app.on("ready", () => {
         }
     }
     const isDev = process.execPath.indexOf("node_modules") !== -1
-    if (isDev || process.execPath.indexOf("/app/") !== -1) {
-        const image = nativeImage.createFromPath(
-            path.join(__dirname, "img/icon.png"))
-        windowData.icon = image
+    if (isDev || process.platform === "linux") {
+        windowData.icon = path.join(__dirname, "img/icon.png")
     }
     mainWindow = new BrowserWindow(windowData)
     mainWindow.setMenu(null)
