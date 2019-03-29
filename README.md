@@ -130,7 +130,7 @@ the viebrc.json file should be created and/or changed.
 The file should be created in the AppData or .config folder of Vieb:
 
 - Windows - %APPDATA%\Vieb\viebrc.json
-- Mac - ~/Library/Application Support/viebrc.json
+- Mac - ~/Library/Application Support/Vieb/viebrc.json
 - Linux - ~/.config/Vieb/viebrc.json
 
 There should be chromium/electron related files in this directory,
