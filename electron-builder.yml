@@ -1,5 +1,6 @@
 appId: com.github.Jelmerro.Vieb
 linux:
+  icon: app/img/icon.png
   executableName: vieb
   category: Network;WebBrowser;
   maintainer: Jelmer van Arnhem
@@ -25,6 +26,7 @@ linux:
 appImage:
   systemIntegration: doNotAsk
 mac:
+  icon: app/img/icon.png
   target:
     - target: zip
       arch:
@@ -35,6 +37,7 @@ mac:
     - from: LICENSE
       to: ../../LICENSE
 win:
+  icon: app/img/icon.png
   legalTrademarks: Copyright @ Jelmer van Arnhem | Licensed as free software (GPL-3.0+)
   target:
     - target: nsis
