@@ -104,10 +104,7 @@ app.on("ready", () => {
             webviewTag: true
         }
     }
-    const isDev = process.execPath.indexOf("node_modules") !== -1
-    if (isDev || process.platform === "linux") {
-        windowData.icon = path.join(__dirname, "img/icon.png")
-    }
+    windowData.icon = path.join(__dirname, "img/icon.png")
     mainWindow = new BrowserWindow(windowData)
     mainWindow.setMenu(null)
     mainWindow.setMinimumSize(500, 500)
