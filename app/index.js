@@ -20,7 +20,6 @@
 
 const {app, BrowserWindow, ipcMain} = require("electron")
 const path = require("path")
-const url = require("url")
 
 let downloadBehaviour = "automatic"
 let confirmedDownload = ""
@@ -115,8 +114,7 @@ app.on("ready", () => {
         app.exit(0)
     })
     // Load app and send urls when ready
-    const mainUrl = url.pathToFileURL(path.join(__dirname, "index.html"))
-    mainWindow.loadURL(mainUrl.href)
+    mainWindow.loadURL("file://" + path.join(__dirname, "index.html"))
     mainWindow.webContents.on("did-finish-load", () => {
         if (enableDevTools) {
             mainWindow.webContents.openDevTools()

@@ -18,6 +18,7 @@
 "use strict"
 
 const { ipcRenderer } = require("electron")
+const path = require("path")
 
 let lastUpdate = new Date()
 
@@ -48,7 +49,7 @@ window.addEventListener("load", () => {
     const removeAll = document.createElement("img")
     removeAll.id = "remove-all"
     removeAll.style.display = "none"
-    removeAll.src = __dirname + "../../../img/trash.png"
+    removeAll.src = path.join(__dirname, "../../img/trash.png")
     removeAll.setAttribute("onclick", "window.removeAll()")
     document.body.insertBefore(removeAll, document.body.firstChild)
     lastUpdate = new Date()
@@ -96,12 +97,12 @@ const addDownload = (download, id) => {
     // toggle pause and remove buttons
     const remove = document.createElement("img")
     remove.className = "remove"
-    remove.src = __dirname + "../../../img/trash.png"
+    remove.src = path.join(__dirname, "../../img/trash.png")
     remove.setAttribute("onclick", `window.remove(${id})`)
     element.appendChild(remove)
     const togglePause = document.createElement("img")
     togglePause.className = "toggle-pause"
-    togglePause.src = __dirname + "../../../img/pause.png"
+    togglePause.src = path.join(__dirname, "../../img/pause.png")
     togglePause.setAttribute("onclick", `window.pause(${id})`)
     element.appendChild(togglePause)
     // title
@@ -131,7 +132,7 @@ const addDownload = (download, id) => {
     }
     if (download.state === "paused") {
         title.style.color = "orange"
-        togglePause.src = __dirname + "../../../img/resume.png"
+        togglePause.src = path.join(__dirname, "../../img/resume.png")
         togglePause.setAttribute("onclick", `window.resume(${id})`)
     }
     // other info
@@ -201,7 +202,7 @@ const updateDownload = (download, element, id) => {
     const togglePause = element.querySelector(".toggle-pause")
     const remove = element.querySelector(".remove")
     remove.setAttribute("onclick", `window.remove(${id})`)
-    togglePause.src = __dirname + "../../../img/pause.png"
+    togglePause.src = path.join(__dirname, "../../img/pause.png")
     togglePause.setAttribute("onclick", `window.pause(${id})`)
     if (download.state === "completed") {
         title.style.color = "lime"
@@ -215,7 +216,7 @@ const updateDownload = (download, element, id) => {
     }
     if (download.state === "paused") {
         title.style.color = "orange"
-        togglePause.src = __dirname + "../../../img/resume.png"
+        togglePause.src = path.join(__dirname, "../../img/resume.png")
         togglePause.setAttribute("onclick", `window.resume(${id})`)
     }
     // state
