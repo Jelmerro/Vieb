@@ -255,11 +255,6 @@ const addWebviewListeners = webview => {
     webview.addEventListener("new-window", e => {
         navigateTo(e.url)
     })
-    webview.addEventListener("found-in-page", e => {
-        if (e.result.matches === 0) {
-            UTIL.notify("The search could not find any matches on the page")
-        }
-    })
     webview.addEventListener("enter-html-full-screen", () => {
         document.body.className = "fullscreen"
         MODES.setMode("insert")
