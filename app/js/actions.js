@@ -291,7 +291,7 @@ const setFocusCorrectly = () => {
         TABS.currentPage().click()
     }
     if (document.activeElement !== urlElement) {
-        if (MODES.currentMode() === "command") {
+        if (["search", "command"].indexOf(MODES.currentMode()) !== -1) {
             window.focus()
             urlElement.focus()
             if (urlElement.value === TABS.currentPage().src) {
@@ -301,7 +301,7 @@ const setFocusCorrectly = () => {
                 urlElement.value = ""
             }
         }
-        if (MODES.currentMode() === "search" || MODES.currentMode() === "nav") {
+        if (MODES.currentMode() === "nav") {
             window.focus()
             urlElement.focus()
             if (urlElement.value === TABS.currentPage().src) {
