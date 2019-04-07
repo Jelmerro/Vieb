@@ -19,12 +19,10 @@
 
 require("./preloads/follow.js")
 const path = require("path")
-const url = require("url")
 
 const loadPageSpecificJS = page => {
-    const pageUrl = url.pathToFileURL(
-        path.join(__dirname, `../pages/${page}.html`))
-    if (window.location.href.startsWith(pageUrl.href)) {
+    const pageUrl = "file://" + path.join(__dirname, `../pages/${page}.html`)
+    if (window.location.href.startsWith(pageUrl)) {
         require(`./preloads/${page}.js`)
     }
 }

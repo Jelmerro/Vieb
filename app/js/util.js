@@ -19,7 +19,6 @@
 "use strict"
 
 const path = require("path")
-const url = require("url")
 
 //This regex will be compiled when the file is loaded, so it's pretty fast
 //eslint-disable-next-line max-len
@@ -80,7 +79,7 @@ const notify = (message, type="info") => {
 }
 
 const specialPage = page => {
-    return url.pathToFileURL(path.join(__dirname, `../pages/${page}.html`)).href
+    return `file://` + path.join(__dirname, `../pages/${page}.html`)
 }
 
 module.exports = {
