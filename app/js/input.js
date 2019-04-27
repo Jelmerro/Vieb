@@ -48,6 +48,8 @@ const bindings = {
         "C-KeyB": "ACTIONS.scrollPageUp",
         "C-KeyD": "ACTIONS.scrollPageDownHalf",
         "C-KeyF": "ACTIONS.scrollPageDown",
+        "C-KeyI": "ACTIONS.forwardInHistory",
+        "C-KeyO": "ACTIONS.backInHistory",
         "C-KeyU": "ACTIONS.scrollPageUpHalf",
         "C-Digit0": "ACTIONS.zoomReset",
         "C-Minus": "ACTIONS.zoomOut",

@@ -141,6 +141,9 @@ const isVisible = (element, doSizeCheck=true) => {
     if (getComputedStyle(element).visibility === "hidden") {
         return false
     }
+    if (getComputedStyle(element).visibility === "collapse") {
+        return false
+    }
     if (getComputedStyle(element).opacity === 0) {
         return false
     }
@@ -158,19 +161,8 @@ const isVisible = (element, doSizeCheck=true) => {
 
 const allElementsBySelectors = (type, selectors) => {
     const elements = []
-    // Iframe lookups are disabled for 2 reasons:
-    // - It doesn't work cross-site
-    // - On some pages the element locations are relative to the body,
-    //   even though they should be relative to the iframe
-    //const iframes = [...document.getElementsByTagName("iframe")]
     selectors.forEach(selector => {
         elements.push(...document.querySelectorAll(selector))
-        /*iframes.forEach(frame => {
-            if (frame.contentDocument) {
-                elements.push(
-                    ...frame.contentDocument.querySelectorAll(selector))
-            }
-        })*/
     })
     const tags = []
     elements.forEach(element => {

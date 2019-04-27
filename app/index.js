@@ -79,6 +79,7 @@ app.on("ready", () => {
             if (mainWindow.isMinimized()) {
                 mainWindow.restore()
             }
+            mainWindow.focus()
             if (app.isPackaged) {
                 commandLine.unshift("")
             }
