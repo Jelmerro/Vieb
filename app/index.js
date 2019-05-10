@@ -69,7 +69,7 @@ app.on("ready", () => {
                 printUsage()
                 app.exit(1)
             }
-        } else {
+        } else if (!arg.startsWith("-")) {
             urls.push(arg)
         }
     })
@@ -152,7 +152,7 @@ const printUsage = () => {
     console.log(" --version  Display license and version information and exit")
     console.log(" --debug    Start Vieb with the developer console open")
     console.log(" --console  Same as --debug")
-    console.log("\nAll arguments not starting with -- will be opened as a url")
+    console.log("\nAll arguments not starting with - will be opened as a url")
 }
 
 const printVersion = () => {
