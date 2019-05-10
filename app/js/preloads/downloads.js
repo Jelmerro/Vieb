@@ -17,7 +17,7 @@
 */
 "use strict"
 
-const { ipcRenderer } = require("electron")
+const {ipcRenderer} = require("electron")
 const path = require("path")
 
 let lastUpdate = new Date()
@@ -71,8 +71,8 @@ ipcRenderer.on("download-list", (e, list, unconfirmed) => {
     const listOnPage = [...document.querySelectorAll("#list .download")]
     if (listOnPage.length === 0) {
         if (list.length === 0) {
-            document.getElementById("list").textContent =
-                "Nothing has been downloaded during the current session."
+            document.getElementById("list").textContent
+                = "Nothing has been downloaded during the current session."
             const removeAll = document.getElementById("remove-all")
             removeAll.style.display = "none"
         } else {
@@ -173,20 +173,20 @@ const updateDownload = (download, element, id) => {
     const done = download.state === "completed"
     if (download.total === 0) {
         if (done) {
-            element.querySelector(".speed").textContent =
-                formatSize(download.current)
+            element.querySelector(".speed").textContent
+                = formatSize(download.current)
         } else {
-            element.querySelector(".speed").textContent =
-                `${formatSize(download.current)} / ??? - ${speed}/s`
+            element.querySelector(".speed").textContent
+                = `${formatSize(download.current)} / ??? - ${speed}/s`
         }
     } else if (download.current === download.total || done) {
         element.querySelector(".speed").textContent = formatSize(download.total)
     } else if (download.current === progress.value) {
-        element.querySelector(".speed").textContent =
-            `${formatSize(download.current)} / ${formatSize(download.total)}`
+        element.querySelector(".speed").textContent
+            = `${formatSize(download.current)} / ${formatSize(download.total)}`
     } else {
-        element.querySelector(".speed").textContent =
-            `${formatSize(download.current)} / ${formatSize(download.total)}
+        element.querySelector(".speed").textContent
+            = `${formatSize(download.current)} / ${formatSize(download.total)}
             - ${speed}/s`
     }
     // progress & title color
@@ -233,7 +233,7 @@ const formatDate = date => {
 
 const formatSize = size => {
     if (size < 1024) {
-        return size + " B"
+        return `${size} B`
     }
     const exp = Math.floor(Math.log(size) / Math.log(1024))
     return `${(size / Math.pow(1024, exp)).toFixed(2)} ${"KMGTPE"[exp - 1]}B`

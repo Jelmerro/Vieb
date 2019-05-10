@@ -18,7 +18,7 @@
 "use strict"
 
 window.configureIframe = frame => {
-    frame.style.height = frame.contentWindow.document.body.scrollHeight + "px"
+    frame.style.height = `${frame.contentWindow.document.body.scrollHeight}px`
     frame.contentWindow.document.body.style.color = "#cff"
     frame.contentWindow.document.body.style.background = "#222"
 }

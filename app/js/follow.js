@@ -32,8 +32,8 @@ const startFollowNewTab = () => {
 
 const startFollow = () => {
     document.getElementById("follow").innerHTML = ""
-    if (TABS.currentPage().src === "" ||
-            TABS.currentPage().isLoadingMainFrame()) {
+    if (TABS.currentPage().src === ""
+            || TABS.currentPage().isLoadingMainFrame()) {
         UTIL.notify(
             "Follow mode will be available when the page is done loading")
     } else {
@@ -50,11 +50,11 @@ const cancelFollow = () => {
 }
 
 const numberToKeys = (number, total) => {
-    if (total < 26 || (number < 26 && number > Math.floor(total / 26))) {
+    if (total < 26 || number < 26 && number > Math.floor(total / 26)) {
         return String.fromCharCode(65 + number)
     }
     const first = String.fromCharCode(65 + Math.floor(number / 26))
-    const second = String.fromCharCode(65 + (number % 26))
+    const second = String.fromCharCode(65 + number % 26)
     return first + second
 }
 
@@ -84,7 +84,7 @@ const parseAndDisplayLinks = l => {
         if (linkElement.textContent.length === 2) {
             borderRightMargin = 21
         }
-        let left = ((link.x + link.width) * factor) + 1
+        let left = (link.x + link.width) * factor + 1
         if (left > window.innerWidth - borderRightMargin) {
             left = window.innerWidth - borderRightMargin
         }
@@ -148,15 +148,15 @@ const enterKey = identifier => {
         })
         TABS.currentPage().sendInputEvent({
             "type": "mouseDown",
-            "x": (link.x + (link.width / 2)) * factor,
-            "y": (link.y + (link.height / 2)) * factor,
+            "x": (link.x + link.width / 2) * factor,
+            "y": (link.y + link.height / 2) * factor,
             "button": "left",
             "clickCount": 1
         })
         TABS.currentPage().sendInputEvent({
             "type": "mouseUp",
-            "x": (link.x + (link.width / 2)) * factor,
-            "y": (link.y + (link.height / 2)) * factor,
+            "x": (link.x + link.width / 2) * factor,
+            "y": (link.y + link.height / 2) * factor,
             "button": "left",
             "clickCount": 1
         })

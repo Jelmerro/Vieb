@@ -21,7 +21,7 @@
 const fs = require("fs")
 const os = require("os")
 const path = require("path")
-const { ipcRenderer, remote } = require("electron")
+const {ipcRenderer, remote} = require("electron")
 
 const defaultSettings = {
     "keybindings": {},
@@ -45,11 +45,11 @@ const init = () => {
     updateDownloadSettingsInMain()
 }
 
-const expandPath = path => {
-    if (path.startsWith("~")) {
-        return path.replace("~", os.homedir())
+const expandPath = homePath => {
+    if (homePath.startsWith("~")) {
+        return homePath.replace("~", os.homedir())
     }
-    return path
+    return homePath
 }
 
 const updateDownloadSettingsInMain = () => {
@@ -81,14 +81,15 @@ const loadFromDisk = () => {
                     allSettings.notification.system = parsed.notification.system
                 }
                 const positions = [
-                    "bottom-right", "bottom-left", "top-right", "top-left"]
+                    "bottom-right", "bottom-left", "top-right", "top-left"
+                ]
                 if (positions.indexOf(parsed.notification.position) !== -1) {
-                    allSettings.notification.position =
-                        parsed.notification.position
+                    allSettings.notification.position
+                        = parsed.notification.position
                 }
                 if (typeof parsed.notification.duration === "number") {
-                    allSettings.notification.duration =
-                        Math.max(Number(parsed.notification.duration), 100)
+                    allSettings.notification.duration
+                        = Math.max(Number(parsed.notification.duration), 100)
                 }
             }
             if (typeof parsed.downloads === "object") {
@@ -143,7 +144,7 @@ const set = (setting, value) => {
     }
     if (setting === "search") {
         if (!value.startsWith("http://") && !value.startsWith("https://")) {
-            value = "https://" + value
+            value = `https://${value}`
         }
         allSettings.search = value
         return
@@ -174,13 +175,12 @@ const set = (setting, value) => {
             + "true and false are accepted here", "warn")
         return
     }
-    const positions = [
-        "bottom-right", "bottom-left", "top-right", "top-left"]
+    const positions = ["bottom-right", "bottom-left", "top-right", "top-left"]
     if (setting === "notification.position") {
         if (positions.indexOf(value) === -1) {
-            UTIL.notify("This is an invalid value for this setting, only "
-                + "the following options are available: "
-                + positions.join(", "), "warn")
+            UTIL.notify(`${"This is an invalid value for this setting, only "
+                + "the following options are available: "}
+                ${positions.join(", ")}`, "warn")
         } else {
             allSettings.notification.position = value
         }
@@ -218,8 +218,8 @@ const set = (setting, value) => {
     if (setting === "downloads.method") {
         const options = ["ask", "automatic", "confirm"]
         if (options.indexOf(value) === -1) {
-            UTIL.notify("The download method must be one of:\n"
-                + options.join(", "), "warn")
+            UTIL.notify(`The download method must be one of:\n
+                ${options.join(", ")}`, "warn")
         } else {
             allSettings.downloads.method = value
             updateDownloadSettingsInMain()

@@ -18,7 +18,7 @@
 /* global DOWNLOADS MODES SETTINGS TABS UTIL */
 "use strict"
 
-const { remote } = require("electron")
+const {remote} = require("electron")
 
 const execute = command => {
     //remove all redundant spaces
@@ -128,9 +128,9 @@ const devtools = () => {
     TABS.currentPage().openDevTools()
 }
 
-const openSpecialPage = (page, section=null) => {
+const openSpecialPage = (specialPage, section=null) => {
     MODES.setMode("normal")
-    let pageUrl = UTIL.specialPage(page)
+    let pageUrl = UTIL.specialPage(specialPage)
     //Switch to already open help if available
     let alreadyOpen = false
     TABS.listPages().forEach((page, index) => {

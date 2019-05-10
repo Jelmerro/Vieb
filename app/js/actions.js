@@ -111,8 +111,9 @@ const toSearchMode = () => {
 }
 
 const scrollBottom = () => {
-    const javascript =
-        "window.scrollTo(document.body.scrollWidth, document.body.scrollHeight)"
+    const javascript
+        = "window.scrollTo(document.body.scrollWidth, "
+        + "document.body.scrollHeight)"
     try {
         TABS.currentPage().executeJavaScript(javascript, true)
     } catch (e) {
@@ -259,15 +260,15 @@ const useEnteredData = () => {
                 const specialPage = location.replace(
                     "vieb://", "").split("#")[0]
                 const section = location.split("#").slice(1).join("#")
-                if (TABS.specialPagesList().indexOf(specialPage) !== -1) {
-                    COMMAND.openSpecialPage(specialPage, section || null)
-                } else {
+                if (TABS.specialPagesList().indexOf(specialPage) === -1) {
                     COMMAND.openSpecialPage("help")
+                } else {
+                    COMMAND.openSpecialPage(specialPage, section || null)
                 }
             } else if (UTIL.hasProtocol(location)) {
                 TABS.navigateTo(location)
             } else if (UTIL.isUrl(location)) {
-                TABS.navigateTo("https://" + location)
+                TABS.navigateTo(`https://${location}`)
             } else {
                 TABS.navigateTo(SETTINGS.get("search") + location)
             }

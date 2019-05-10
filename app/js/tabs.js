@@ -18,7 +18,7 @@
 /* global COMMAND DOWNLOADS FOLLOW MODES SETTINGS UTIL */
 "use strict"
 
-const { ipcRenderer, remote } = require("electron")
+const {ipcRenderer, remote} = require("electron")
 
 const specialPages = ["help", "downloads", "version"]
 
@@ -37,7 +37,7 @@ const init = () => {
             if (UTIL.hasProtocol(url)) {
                 addTab(url)
             } else {
-                addTab("https://" + url)
+                addTab(`https://${url}`)
             }
         })
         if (listTabs().length === 0) {
@@ -61,13 +61,13 @@ const currentTab = () => {
 }
 
 const currentPage = () => {
-    let currentPage = null
+    let currentPageElement = null
     listPages().forEach(page => {
         if (page.style.display === "flex") {
-            currentPage = page
+            currentPageElement = page
         }
     })
-    return currentPage
+    return currentPageElement
 }
 
 const addTab = (url=null) => {
@@ -136,18 +136,18 @@ const updateUrl = webview => {
         const pageUrl = currentPage().src
         let section = pageUrl.split("#").slice(1).join("#")
         if (section !== "") {
-            section = "#" + section
+            section = `#${section}`
         }
         const decodedPageUrl = decodeURIComponent(pageUrl)
         for (const specialPage of specialPages) {
             if (pageUrl.startsWith(UTIL.specialPage(specialPage))) {
-                document.getElementById("url").value =
-                    `vieb://${specialPage}` + section
+                document.getElementById("url").value
+                    = `vieb://${specialPage}${section}`
                 return
             }
             if (decodedPageUrl.startsWith(UTIL.specialPage(specialPage))) {
-                document.getElementById("url").value =
-                    `vieb://${specialPage}` + section
+                document.getElementById("url").value
+                    = `vieb://${specialPage}${section}`
                 return
             }
         }
@@ -188,16 +188,16 @@ const addWebviewListeners = webview => {
             loginWindow.on("close", () => {
                 try {
                     callback("", "")
-                } catch (e) {
+                } catch (err) {
                     //Callback was already called
                 }
             })
             loginWindow.loadURL(UTIL.specialPage("login"))
-            remote.ipcMain.once("login-credentials", (e, credentials) => {
+            remote.ipcMain.once("login-credentials", (_e, credentials) => {
                 try {
                     callback(credentials[0], credentials[1])
                     loginWindow.close()
-                } catch (e) {
+                } catch (err) {
                     //Window is already being closed
                 }
             })
@@ -221,8 +221,8 @@ const addWebviewListeners = webview => {
             webview.src = webview.src.replace("https://", "http://")
             return
         }
-        UTIL.notify("The page encountered the following error while loading: "
-            + e.errorDescription + `. url: '${e.validatedURL}'`, "err")
+        UTIL.notify(`The page encountered the following error while loading: ${
+            e.errorDescription}. url: '${e.validatedURL}'`, "err")
     })
     webview.addEventListener("did-stop-loading", () => {
         const tab = listTabs()[listPages().indexOf(webview)]

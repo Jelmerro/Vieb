@@ -23,7 +23,7 @@ const path = require("path")
 
 let downloadBehaviour = "automatic"
 let confirmedDownload = ""
-let mainWindow
+let mainWindow = null
 
 // Set storage location to Vieb regardless of startup method
 app.setPath("appData", path.join(app.getPath("appData"), "Vieb"))
@@ -115,7 +115,7 @@ app.on("ready", () => {
         app.exit(0)
     })
     // Load app and send urls when ready
-    mainWindow.loadURL("file://" + path.join(__dirname, "index.html"))
+    mainWindow.loadURL(`file://${path.join(__dirname, "index.html")}`)
     mainWindow.webContents.on("did-finish-load", () => {
         if (enableDevTools) {
             mainWindow.webContents.openDevTools()
