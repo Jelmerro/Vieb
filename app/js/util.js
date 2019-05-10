@@ -79,7 +79,7 @@ const notify = (message, type="info") => {
 }
 
 const specialPage = page => {
-    return `file://` + path.join(__dirname, `../pages/${page}.html`)
+    return `file://${path.join(__dirname, `../pages/${page}.html`)}`
 }
 
 module.exports = {

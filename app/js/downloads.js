@@ -18,7 +18,7 @@
 /* global SETTINGS TABS UTIL */
 "use strict"
 
-const { ipcRenderer, remote } = require("electron")
+const {ipcRenderer, remote} = require("electron")
 
 let unconfirmedDownload = {}
 let downloads = []
@@ -46,7 +46,7 @@ const init = () => {
         }
         downloads.push(info)
         UTIL.notify(`Download started:\n${info.name}`)
-        item.on("updated", (event, state) => {
+        item.on("updated", (_event, state) => {
             try {
                 info.current = item.getReceivedBytes()
                 if (state === "progressing" && !item.isPaused()) {
@@ -59,7 +59,7 @@ const init = () => {
                 info.state = "cancelled"
             }
         })
-        item.once("done", (event, state) => {
+        item.once("done", (_event, state) => {
             if (state === "completed") {
                 UTIL.notify(`Download complete:\n${info.name}`)
                 info.state = "completed"

@@ -196,8 +196,12 @@ const handleUserInput = e => {
         return
     }
     const allowedUserInput = [
-        "C-KeyC", "C-KeyV", "C-KeyA",
-        "C-Backspace", "C-ArrowLeft", "C-ArrowRight"
+        "C-KeyC",
+        "C-KeyV",
+        "C-KeyA",
+        "C-Backspace",
+        "C-ArrowLeft",
+        "C-ArrowRight"
     ]
     if (id.startsWith("S-")) {
         //Regular keys and shift keys are okay

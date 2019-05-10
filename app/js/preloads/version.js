@@ -17,7 +17,7 @@
 */
 "use strict"
 
-const { remote } = require("electron")
+const {remote} = require("electron")
 
 window.addEventListener("load", () => {
     const version = process.env.npm_package_version || remote.app.getVersion()
@@ -33,8 +33,8 @@ window.addEventListener("load", () => {
                     try {
                         const release = JSON.parse(req.responseText)
                         if (release.tag_name !== version) {
-                            versionCheck.textContent =
-                                `Version ${release.tag_name} available!`
+                            versionCheck.textContent
+                                = `Version ${release.tag_name} available!`
                             return
                         }
                     } catch (e) {

@@ -17,12 +17,17 @@
 */
 "use strict"
 
-const { ipcRenderer } = require("electron")
+const {ipcRenderer} = require("electron")
 
 const urls = ["a"]
-const clickableInputs = ["button", "input[type=\"button\"]",
-    "input[type=\"radio\"]", "input[type=\"checkbox\"]",
-    "input[type=\"submit\"]", "summary"]
+const clickableInputs = [
+    "button",
+    "input[type=\"button\"]",
+    "input[type=\"radio\"]",
+    "input[type=\"checkbox\"]",
+    "input[type=\"submit\"]",
+    "summary"
+]
 const textlikeInputs = ["input:not([type=\"radio\"]):not([type=\"checkbox\"])"
     + ":not([type=\"submit\"]):not([type=\"button\"])", "textarea", "select"]
 const onclickElements = "*:not(button):not(input)[onclick]"
@@ -102,8 +107,8 @@ const parseElement = (element, type) => {
             return null
         }
         //Check if the center of the boundingrect is actually clickable
-        const clickX = dimensions.x + (dimensions.width / 2)
-        const clickY = dimensions.y + (dimensions.height / 2)
+        const clickX = dimensions.x + dimensions.width / 2
+        const clickY = dimensions.y + dimensions.height / 2
         let clickable = false
         rects.forEach(rect => {
             if (rect.x < clickX && rect.x + rect.width > clickX) {
@@ -187,7 +192,7 @@ Node.prototype.realRemoveEventListener = Node.prototype.removeEventListener
 Node.prototype.removeEventListener = function(type, listener, options) {
     try {
         this.realRemoveEventListener(type, listener, options)
-    } catch (e)  {
+    } catch (e) {
         //This is a bug in the underlying website
     }
     if (type === "click" && this !== document) {
