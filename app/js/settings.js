@@ -30,6 +30,7 @@ const defaultSettings = {
     "caseSensitiveSearch": true,
     "clearCacheOnQuit": true,
     "clearLocalStorageOnQuit": false,
+    "suggestCommands": true,
     "notification": {
         "system": false,
         "position": "bottom-right",
@@ -232,6 +233,19 @@ const set = (setting, value) => {
         }
         if (value === "false") {
             allSettings.clearLocalStorageOnQuit = false
+            return
+        }
+        UTIL.notify("This is an invalid value for this setting, only "
+            + "true and false are accepted here", "warn")
+        return
+    }
+    if (setting === "suggestcommands") {
+        if (value === "true") {
+            allSettings.suggestCommands = true
+            return
+        }
+        if (value === "false") {
+            allSettings.suggestCommands = false
             return
         }
         UTIL.notify("This is an invalid value for this setting, only "

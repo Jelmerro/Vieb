@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global SETTINGS */
+/* global SETTINGS SUGGEST */
 "use strict"
 
 const fs = require("fs")
@@ -37,13 +37,11 @@ const parseHistLine = line => {
 
 let histStream = null
 
-let suggestions = []
-
 const suggestHist = search => {
     const histFile = path.join(remote.app.getPath("appData"), "hist")
     if (!fs.existsSync(histFile) || !fs.statSync(histFile).isFile()) {
         document.getElementById("suggest-dropdown").innerHTML = ""
-        suggestions = []
+        SUGGEST.clear()
         return
     }
     if (!SETTINGS.get("history.suggest")) {
@@ -51,7 +49,7 @@ const suggestHist = search => {
             histStream.destroy()
         }
         document.getElementById("suggest-dropdown").innerHTML = ""
-        suggestions = []
+        SUGGEST.clear()
         return
     }
     search = search.replace(/\W/g, "").trim().toLowerCase()
@@ -62,7 +60,7 @@ const suggestHist = search => {
     if (histStream) {
         histStream.destroy()
         document.getElementById("suggest-dropdown").innerHTML = ""
-        suggestions = []
+        SUGGEST.clear()
     }
     histStream = fs.createReadStream(histFile)
     const rl = readline.createInterface({
@@ -72,20 +70,20 @@ const suggestHist = search => {
         const hist = parseHistLine(line)
         if (!hist) {
             //Invalid hist line
-        } else if (suggestions.indexOf(hist.url) === -1) {
+        } else if (SUGGEST.indexOf(hist.url) === -1) {
             const simpleUrl = hist.url.replace(/\W/g, "").toLowerCase()
             const simpleTitle = hist.title.replace(/\W/g, "").toLowerCase()
             if (simpleUrl.indexOf(search) !== -1) {
-                addToHistSuggest(hist)
+                SUGGEST.addHist(hist)
             } else if (simpleTitle.indexOf(search) !== -1) {
-                addToHistSuggest(hist)
+                SUGGEST.addHist(hist)
             }
         } else {
             //Update existings urls in the suggestions list,
             //with more up to date titles (duplicate urls later in history)
             //And increase the visit counter to move frequent sites to the top
             const list = document.querySelectorAll("#suggest-dropdown div")
-            const duplicate = list[suggestions.indexOf(hist.url)]
+            const duplicate = list[SUGGEST.indexOf(hist.url)]
             if (duplicate && hist.title !== hist.url) {
                 duplicate.querySelector(".title").textContent = hist.title
                 const visits = Number(duplicate.getAttribute("visit-count"))
@@ -96,14 +94,14 @@ const suggestHist = search => {
 }
 
 const orderSuggestions = () => {
-    suggestions = []
+    SUGGEST.clear()
     const list = [...document.querySelectorAll("#suggest-dropdown div")]
     list.sort((a, b) => {
         return Number(b.getAttribute("visit-count"))
             - Number(a.getAttribute("visit-count"))
     }).forEach(el => {
         document.getElementById("suggest-dropdown").appendChild(el)
-        suggestions.push(el.querySelector(".url").textContent)
+        SUGGEST.addToList(el.querySelector(".url").textContent)
     })
 }
 
@@ -117,72 +115,11 @@ const addToHist = (title, url) => {
     fs.appendFileSync(histFile, line)
 }
 
-const addToHistSuggest = hist => {
-    suggestions.push(hist.url)
-    const element = document.createElement("div")
-    element.setAttribute("visit-count", "1")
-    const title = document.createElement("span")
-    title.className = "title"
-    title.textContent = hist.title
-    element.appendChild(title)
-    element.appendChild(document.createTextNode(" - "))
-    const url = document.createElement("span")
-    url.className = "url"
-    url.textContent = hist.url
-    element.appendChild(url)
-    document.getElementById("suggest-dropdown").appendChild(element)
-}
-
 const cancelSuggest = () => {
-    document.getElementById("suggest-dropdown").innerHTML = ""
     if (histStream) {
         histStream.destroy()
     }
     histStream = null
-}
-
-const prevSuggestion = () => {
-    const list = [...document.querySelectorAll("#suggest-dropdown div")]
-    if (list.length === 0) {
-        return
-    }
-    const selected = document.querySelector("#suggest-dropdown div.selected")
-    if (selected) {
-        const id = list.indexOf(selected)
-        list.forEach(l => {
-            l.className = ""
-        })
-        if (id !== 0) {
-            list[id - 1].className = "selected"
-        }
-    } else {
-        list.forEach(l => {
-            l.className = ""
-        })
-        list[list.length - 1].className = "selected"
-    }
-}
-
-const nextSuggestion = () => {
-    const list = [...document.querySelectorAll("#suggest-dropdown div")]
-    if (list.length === 0) {
-        return
-    }
-    const selected = document.querySelector("#suggest-dropdown div.selected")
-    if (selected) {
-        const id = list.indexOf(selected)
-        list.forEach(l => {
-            l.className = ""
-        })
-        if (id < list.length - 1) {
-            list[id + 1].className = "selected"
-        }
-    } else {
-        list.forEach(l => {
-            l.className = ""
-        })
-        list[0].className = "selected"
-    }
 }
 
 const clearHistory = () => {
@@ -198,7 +135,5 @@ module.exports = {
     addToHist,
     suggestHist,
     cancelSuggest,
-    prevSuggestion,
-    nextSuggestion,
     clearHistory
 }

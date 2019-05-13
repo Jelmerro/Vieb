@@ -74,6 +74,7 @@
     "caseSensitiveSearch": true,
     "clearCacheOnQuit": true,
     "clearLocalStorageOnQuit": false,
+    "suggestCommands": true,
     "notification": {
         "system": false,
         "position": "bottom-right",
