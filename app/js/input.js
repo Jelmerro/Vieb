@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global HISTORY MODES ACTIONS FOLLOW COMMAND SETTINGS */
+/* global HISTORY MODES ACTIONS FOLLOW COMMAND SETTINGS SUGGEST */
 "use strict"
 
 const bindings = {
@@ -56,8 +56,8 @@ const bindings = {
         "C-Minus": "ACTIONS.zoomOut",
         "C-Equal": "ACTIONS.zoomIn",
         "CS-Digit0": "ACTIONS.zoomReset",
-        "CS-Minus": "ACTIONS.zoomOut",
-        "CS-Equal": "ACTIONS.zoomIn"
+        "CS-Equal": "ACTIONS.zoomIn",
+        "CS-Minus": "ACTIONS.zoomOut"
     },
     "insert": {
         "F1": "COMMAND.help",
@@ -67,6 +67,8 @@ const bindings = {
     "command": {
         "F1": "COMMAND.help",
         "Escape": "ACTIONS.toNormalMode",
+        "Tab": "ACTIONS.nextSuggestion",
+        "S-Tab": "ACTIONS.prevSuggestion",
         "C-BracketLeft": "ACTIONS.toNormalMode",
         "Enter": "ACTIONS.useEnteredData"
     },
@@ -79,6 +81,8 @@ const bindings = {
     "nav": {
         "F1": "COMMAND.help",
         "Escape": "ACTIONS.toNormalMode",
+        "Tab": "ACTIONS.nextSuggestion",
+        "S-Tab": "ACTIONS.prevSuggestion",
         "C-BracketLeft": "ACTIONS.toNormalMode",
         "Enter": "ACTIONS.useEnteredData"
     },
@@ -191,7 +195,9 @@ const handleUserInput = e => {
         "C-KeyA",
         "C-Backspace",
         "C-ArrowLeft",
-        "C-ArrowRight"
+        "C-ArrowRight",
+        "Space",
+        "Backspace"
     ]
     if (MODES.currentMode() === "follow") {
         if (e.type === "keydown") {
@@ -200,22 +206,17 @@ const handleUserInput = e => {
         e.preventDefault()
         return
     }
-    if (MODES.currentMode() === "nav") {
-        if (e.type === "keyup") {
-            if (e.code === "Tab") {
-                if (e.shiftKey) {
-                    HISTORY.prevSuggestion()
-                } else {
-                    HISTORY.nextSuggestion()
-                }
-            } else if (id === "Backspace" || id.startsWith("Key")) {
+    if (e.type === "keyup") {
+        if (id.startsWith("Key") || allowedUserInput.indexOf(id) !== -1) {
+            if (MODES.currentMode() === "nav") {
                 HISTORY.suggestHist(document.getElementById("url").value)
-            } else if (allowedUserInput.indexOf(id) !== -1 || id === "Space") {
-                HISTORY.suggestHist(document.getElementById("url").value)
+            } else if (MODES.currentMode() === "command") {
+                SUGGEST.suggestCommand(document.getElementById("url").value)
             }
         }
-    } else {
-        HISTORY.cancelSuggest()
+    }
+    if (MODES.currentMode() !== "nav" && MODES.currentMode() !== "command") {
+        SUGGEST.cancelSuggestions()
     }
     if (id.startsWith("S-")) {
         //Regular keys and shift keys are okay

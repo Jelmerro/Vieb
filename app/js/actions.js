@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND MODES TABS SETTINGS UTIL */
+/* global COMMAND MODES SETTINGS SUGGEST TABS UTIL */
 "use strict"
 
 let currentSearch = ""
@@ -258,12 +258,7 @@ const useEnteredData = () => {
     }
     if (MODES.currentMode() === "nav") {
         const urlElement = document.getElementById("url")
-        let location = urlElement.value.trim()
-        const selectedSuggestion = document.querySelector(
-            "#suggest-dropdown div.selected")
-        if (selectedSuggestion) {
-            location = selectedSuggestion.querySelector(".url").textContent
-        }
+        const location = urlElement.value.trim()
         if (location !== "") {
             if (location.startsWith("vieb://")) {
                 const specialPage = location.replace(
@@ -335,6 +330,16 @@ const setFocusCorrectly = () => {
     }
 }
 
+const nextSuggestion = () => {
+    SUGGEST.nextSuggestion()
+    setFocusCorrectly()
+}
+
+const prevSuggestion = () => {
+    SUGGEST.prevSuggestion()
+    setFocusCorrectly()
+}
+
 module.exports = {
     previousTab,
     closeTab,
@@ -365,6 +370,8 @@ module.exports = {
     zoomIn,
     zoomOut,
     toNormalMode,
+    nextSuggestion,
+    prevSuggestion,
     useEnteredData,
     setFocusCorrectly
 }
