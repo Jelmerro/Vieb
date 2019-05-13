@@ -15,6 +15,7 @@
             "KeyN": "ACTIONS.nextSearchMatch",
             "KeyR": "ACTIONS.reload",
             "KeyT": "ACTIONS.openNewTab",
+            "KeyU": "ACTIONS.reopenTab",
             "KeyW": "ACTIONS.nextTab",
             "Slash": "ACTIONS.toSearchMode",
             "S-KeyF": "FOLLOW.startFollowNewTab",
@@ -71,6 +72,8 @@
     "redirectToHttp": false,
     "search": "https://duckduckgo.com/?kae=d&q=",
     "caseSensitiveSearch": true,
+    "clearCacheOnQuit": true,
+    "clearLocalStorageOnQuit": false,
     "notification": {
         "system": false,
         "position": "bottom-right",
@@ -78,6 +81,18 @@
     },
     "downloads": {
         "path": "~/Downloads/",
-        "method": "automatic"
+        "method": "automatic",
+        "removeCompleted": false,
+        "clearOnQuit": false
+    },
+    "history": {
+        "suggest": true,
+        "clearOnQuit": false,
+        "storeNewVisits": true
+    },
+    "tabs": {
+        "restore": true,
+        "keepRecentlyClosed": true,
+        "startup": []
     }
 }

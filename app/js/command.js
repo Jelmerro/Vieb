@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global DOWNLOADS MODES SETTINGS TABS UTIL */
+/* global DOWNLOADS HISTORY MODES SETTINGS TABS UTIL */
 "use strict"
 
 const {remote} = require("electron")
@@ -120,6 +120,18 @@ const execute = command => {
 }
 
 const quit = () => {
+    if (SETTINGS.get("history.clearOnQuit")) {
+        HISTORY.clearHistory()
+    }
+    TABS.saveTabs()
+    DOWNLOADS.cancelAll()
+    DOWNLOADS.writeToFile()
+    if (SETTINGS.get("clearCacheOnQuit")) {
+        UTIL.clearCache()
+    }
+    if (SETTINGS.get("clearLocalStorageOnQuit")) {
+        UTIL.clearLocalStorage()
+    }
     remote.getCurrentWindow().destroy()
     remote.app.exit(0)
 }

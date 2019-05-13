@@ -26,12 +26,13 @@ img {pointer-events: none;height: 16px;}
 /* Nav tabs */
 #tabs > span {color: #ccc;background-color: #444;display: flex;margin-right: 2px;padding-right: 6px;flex: 1;overflow: hidden;white-space: nowrap;}
 #tabs > span > img {padding: 6px;}
-#tabs > span > span {padding-top: 6px;overflow: hidden;white-space: nowrap;}
+#tabs > span > span {margin: auto 0;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
 #tabs > #current-tab {color: #eee;background-color: #666;}
 /* Nav url/search/command */
 #url {display: inline-block;flex: 1;border: solid 2px #666;margin: 2px;padding: 3px;background-color: #333;color: #eee;outline: none;pointer-events: none;}
 #url.search {border-color: #fa0;}
 #url.url {border-color: #3ff;}
+#url.suggest {border-color: #3f3;}
 /* follow */
 #follow {height: calc(100vh - 56px);position: fixed;top: 56px;left: 0;width: 100vw;display: none;pointer-events: none;}
 .follow-url, .follow-inputs-click, .follow-inputs-insert, .follow-onclick {z-index: 1;position: absolute;color: #111;font-weight: bold;}
@@ -43,6 +44,10 @@ img {pointer-events: none;height: 16px;}
 .follow-inputs-click-border {border: solid 1px #c55;position: absolute;}
 .follow-inputs-insert-border {border: solid 1px #5c5;position: absolute;}
 .follow-onclick-border {border: solid 1px #cc5;position: absolute;}
+/* suggestions */
+#suggest-dropdown {z-index: 10;position: fixed;top: 26px;left: 56px;width: calc(100vw - 56px);background-color: #777;}
+#suggest-dropdown div {padding: 5px;margin: 5px 2.5px;background-color: #555;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
+#suggest-dropdown div.selected {background-color: #777;}
 /* pages */
 webview {height: calc(100vh - 56px);width: 100vw;display: flex;pointer-events: none;}
 /* fullscreen */
