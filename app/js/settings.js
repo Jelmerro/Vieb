@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global UTIL */
+/* global DOWNLOADS UTIL */
 "use strict"
 
 const fs = require("fs")
@@ -28,6 +28,8 @@ const defaultSettings = {
     "redirectToHttp": false,
     "search": "https://duckduckgo.com/?kae=d&q=",
     "caseSensitiveSearch": true,
+    "clearCacheOnQuit": true,
+    "clearLocalStorageOnQuit": false,
     "notification": {
         "system": false,
         "position": "bottom-right",
@@ -35,7 +37,19 @@ const defaultSettings = {
     },
     "downloads": {
         "path": "~/Downloads/",
-        "method": "automatic"
+        "method": "automatic",
+        "removeCompleted": false,
+        "clearOnQuit": false
+    },
+    "history": {
+        "suggest": true,
+        "clearOnQuit": false,
+        "storeNewVisits": true
+    },
+    "tabs": {
+        "restore": true,
+        "keepRecentlyClosed": true,
+        "startup": []
     }
 }
 let allSettings = {}
@@ -61,8 +75,8 @@ const loadFromDisk = () => {
     allSettings = JSON.parse(JSON.stringify(defaultSettings))
     const config = path.join(remote.app.getPath("appData"), "viebrc.json")
     if (fs.existsSync(config) && fs.statSync(config).isFile()) {
-        const contents = fs.readFileSync(config, {encoding: "utf8"}).toString()
         try {
+            const contents = fs.readFileSync(config).toString()
             const parsed = JSON.parse(contents)
             if (typeof parsed.keybindings === "object") {
                 allSettings.keybindings = parsed.keybindings
@@ -104,6 +118,42 @@ const loadFromDisk = () => {
                 const methods = ["automatic", "confirm", "ask"]
                 if (methods.indexOf(parsed.downloads.method) !== -1) {
                     allSettings.downloads.method = parsed.downloads.method
+                }
+                if (typeof parsed.downloads.removeCompleted === "boolean") {
+                    allSettings.downloads.removeCompleted
+                        = parsed.downloads.removeCompleted
+                }
+                if (typeof parsed.downloads.clearOnQuit === "boolean") {
+                    allSettings.downloads.clearOnQuit
+                        = parsed.downloads.clearOnQuit
+                }
+            }
+            if (typeof parsed.history === "object") {
+                if (typeof parsed.history.suggest === "boolean") {
+                    allSettings.history.suggest = parsed.history.suggest
+                }
+                if (typeof parsed.history.clearOnQuit === "boolean") {
+                    allSettings.history.clearOnQuit = parsed.history.clearOnQuit
+                }
+                if (typeof parsed.history.suggest === "boolean") {
+                    allSettings.history.storeNewVisits
+                        = parsed.history.storeNewVisits
+                }
+            }
+            if (typeof parsed.tabs === "object") {
+                if (typeof parsed.tabs.restore === "boolean") {
+                    allSettings.tabs.restore = parsed.tabs.restore
+                }
+                if (typeof parsed.tabs.keepRecentlyClosed === "boolean") {
+                    allSettings.tabs.keepRecentlyClosed
+                        = parsed.tabs.keepRecentlyClosed
+                }
+                if (Array.isArray(parsed.tabs.startup)) {
+                    for (const url of parsed.tabs.startup) {
+                        if (UTIL.isUrl(url)) {
+                            allSettings.tabs.startup.push(url)
+                        }
+                    }
                 }
             }
         } catch (e) {
@@ -156,6 +206,32 @@ const set = (setting, value) => {
         }
         if (value === "false") {
             allSettings.caseSensitiveSearch = false
+            return
+        }
+        UTIL.notify("This is an invalid value for this setting, only "
+            + "true and false are accepted here", "warn")
+        return
+    }
+    if (setting === "clearcacheonquit") {
+        if (value === "true") {
+            allSettings.clearCacheOnQuit = true
+            return
+        }
+        if (value === "false") {
+            allSettings.clearCacheOnQuit = false
+            return
+        }
+        UTIL.notify("This is an invalid value for this setting, only "
+            + "true and false are accepted here", "warn")
+        return
+    }
+    if (setting === "clearlocalstorageonquit") {
+        if (value === "true") {
+            allSettings.clearLocalStorageOnQuit = true
+            return
+        }
+        if (value === "false") {
+            allSettings.clearLocalStorageOnQuit = false
             return
         }
         UTIL.notify("This is an invalid value for this setting, only "
@@ -224,6 +300,104 @@ const set = (setting, value) => {
             allSettings.downloads.method = value
             updateDownloadSettingsInMain()
         }
+        return
+    }
+    if (setting === "downloads.removecompleted") {
+        if (value === "true") {
+            allSettings.downloads.removeCompleted = true
+            DOWNLOADS.clearCompleted()
+            return
+        }
+        if (value === "false") {
+            allSettings.downloads.removeCompleted = false
+            return
+        }
+        UTIL.notify("This is an invalid value for this setting, only "
+            + "true and false are accepted here", "warn")
+        return
+    }
+    if (setting === "downloads.clearonquit") {
+        if (value === "true") {
+            allSettings.downloads.clearOnQuit = true
+            return
+        }
+        if (value === "false") {
+            allSettings.downloads.clearOnQuit = false
+            return
+        }
+        UTIL.notify("This is an invalid value for this setting, only "
+            + "true and false are accepted here", "warn")
+        return
+    }
+    if (setting === "history.suggest") {
+        if (value === "true") {
+            allSettings.history.suggest = true
+            return
+        }
+        if (value === "false") {
+            allSettings.history.suggest = false
+            return
+        }
+        UTIL.notify("This is an invalid value for this setting, only "
+            + "true and false are accepted here", "warn")
+        return
+    }
+    if (setting === "history.clearonquit ") {
+        if (value === "true") {
+            allSettings.history.clearOnQuit = true
+            return
+        }
+        if (value === "false") {
+            allSettings.history.clearOnQuit = false
+            return
+        }
+        UTIL.notify("This is an invalid value for this setting, only "
+            + "true and false are accepted here", "warn")
+        return
+    }
+    if (setting === "history.storenewvisits") {
+        if (value === "true") {
+            allSettings.history.storeNewVisits = true
+            return
+        }
+        if (value === "false") {
+            allSettings.history.storeNewVisits = false
+            return
+        }
+        UTIL.notify("This is an invalid value for this setting, only "
+            + "true and false are accepted here", "warn")
+        return
+    }
+    if (setting === "tabs.restore") {
+        if (value === "true") {
+            allSettings.tabs.restore = true
+            return
+        }
+        if (value === "false") {
+            allSettings.tabs.restore = false
+            return
+        }
+        UTIL.notify("This is an invalid value for this setting, only "
+            + "true and false are accepted here", "warn")
+        return
+    }
+    if (setting === "tabs.keeprecentlyclosed") {
+        if (value === "true") {
+            allSettings.tabs.keepRecentlyClosed = true
+            return
+        }
+        if (value === "false") {
+            allSettings.tabs.keepRecentlyClosed = false
+            return
+        }
+        UTIL.notify("This is an invalid value for this setting, only "
+            + "true and false are accepted here", "warn")
+        return
+    }
+    if (setting === "tabs.startup") {
+        UTIL.notify("The startup pages can't be changed with the set command\n"
+            + "Instead, open the config file, edit the page list and "
+            + "the startup pages will open the next time Vieb is started")
         return
     }
     UTIL.notify(`The requested setting '${setting}' does not exist`, "warn")

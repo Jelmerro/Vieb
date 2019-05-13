@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global MODES ACTIONS FOLLOW COMMAND SETTINGS */
+/* global HISTORY MODES ACTIONS FOLLOW COMMAND SETTINGS */
 "use strict"
 
 const bindings = {
@@ -34,6 +34,7 @@ const bindings = {
         "KeyN": "ACTIONS.nextSearchMatch",
         "KeyR": "ACTIONS.reload",
         "KeyT": "ACTIONS.openNewTab",
+        "KeyU": "ACTIONS.reopenTab",
         "KeyW": "ACTIONS.nextTab",
         "Slash": "ACTIONS.toSearchMode",
         "S-KeyF": "FOLLOW.startFollowNewTab",
@@ -183,18 +184,7 @@ const executeAction = action => {
 }
 
 const handleUserInput = e => {
-    if (e.code === "Tab") {
-        e.preventDefault()
-        return
-    }
     const id = toIdentifier(e)
-    if (MODES.currentMode() === "follow") {
-        if (e.type === "keydown") {
-            FOLLOW.enterKey(id)
-        }
-        e.preventDefault()
-        return
-    }
     const allowedUserInput = [
         "C-KeyC",
         "C-KeyV",
@@ -203,6 +193,30 @@ const handleUserInput = e => {
         "C-ArrowLeft",
         "C-ArrowRight"
     ]
+    if (MODES.currentMode() === "follow") {
+        if (e.type === "keydown") {
+            FOLLOW.enterKey(id)
+        }
+        e.preventDefault()
+        return
+    }
+    if (MODES.currentMode() === "nav") {
+        if (e.type === "keyup") {
+            if (e.code === "Tab") {
+                if (e.shiftKey) {
+                    HISTORY.prevSuggestion()
+                } else {
+                    HISTORY.nextSuggestion()
+                }
+            } else if (id === "Backspace" || id.startsWith("Key")) {
+                HISTORY.suggestHist(document.getElementById("url").value)
+            } else if (allowedUserInput.indexOf(id) !== -1 || id === "Space") {
+                HISTORY.suggestHist(document.getElementById("url").value)
+            }
+        }
+    } else {
+        HISTORY.cancelSuggest()
+    }
     if (id.startsWith("S-")) {
         //Regular keys and shift keys are okay
     } else if (allowedUserInput.indexOf(id) === -1 && id.indexOf("-") !== -1) {
@@ -210,6 +224,9 @@ const handleUserInput = e => {
         //if the shortcut is not in the allowedUserInput array
         e.preventDefault()
         return
+    }
+    if (e.code === "Tab") {
+        e.preventDefault()
     }
     ACTIONS.setFocusCorrectly()
 }

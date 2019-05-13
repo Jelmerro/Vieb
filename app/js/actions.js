@@ -102,6 +102,10 @@ const openNewTab = () => {
     MODES.setMode("nav")
 }
 
+const reopenTab = () => {
+    TABS.reopenTab()
+}
+
 const nextTab = () => {
     TABS.switchToTab(TABS.listTabs().indexOf(TABS.currentTab()) + 1)
 }
@@ -254,7 +258,12 @@ const useEnteredData = () => {
     }
     if (MODES.currentMode() === "nav") {
         const urlElement = document.getElementById("url")
-        const location = urlElement.value.trim()
+        let location = urlElement.value.trim()
+        const selectedSuggestion = document.querySelector(
+            "#suggest-dropdown div.selected")
+        if (selectedSuggestion) {
+            location = selectedSuggestion.querySelector(".url").textContent
+        }
         if (location !== "") {
             if (location.startsWith("vieb://")) {
                 const specialPage = location.replace(
@@ -316,6 +325,8 @@ const setFocusCorrectly = () => {
     if (MODES.currentMode() === "nav") {
         if (urlElement.value.trim() === "") {
             urlElement.className = ""
+        } else if (document.querySelector("#suggest-dropdown div.selected")) {
+            urlElement.className = "suggest"
         } else if (UTIL.isUrl(urlElement.value.trim())) {
             urlElement.className = "url"
         } else {
@@ -337,6 +348,7 @@ module.exports = {
     nextSearchMatch,
     reload,
     openNewTab,
+    reopenTab,
     nextTab,
     toSearchMode,
     scrollBottom,

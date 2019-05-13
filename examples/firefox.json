@@ -26,6 +26,7 @@
             "C-Tab": "ACTIONS.nextTab",
             "CS-Tab": "ACTIONS.previousTab",
             "CS-KeyI": "COMMAND.devtools",
+            "CS-KeyT": "ACTIONS.reopenTab",
             "CS-KeyY": "COMMAND.downloads",
             "A-ArrowLeft": "ACTIONS.backInHistory",
             "A-ArrowRight": "ACTIONS.forwardInHistory"

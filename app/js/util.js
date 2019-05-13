@@ -19,6 +19,8 @@
 "use strict"
 
 const path = require("path")
+const rimraf = require("rimraf").sync
+const {remote} = require("electron")
 
 //This regex will be compiled when the file is loaded, so it's pretty fast
 //eslint-disable-next-line max-len
@@ -82,9 +84,23 @@ const specialPage = page => {
     return `file://${path.join(__dirname, `../pages/${page}.html`)}`
 }
 
+const clearCache = () => {
+    rimraf(path.join(remote.app.getPath("appData"), "Cache"))
+    rimraf(path.join(remote.app.getPath("appData"), "Code Cache"))
+    rimraf(path.join(remote.app.getPath("appData"), "GPUCache"))
+    rimraf(path.join(remote.app.getPath("appData"), "File System"))
+}
+
+const clearLocalStorage = () => {
+    rimraf(path.join(remote.app.getPath("appData"), "IndexedDB"))
+    rimraf(path.join(remote.app.getPath("appData"), "Local Storage"))
+}
+
 module.exports = {
     hasProtocol,
     isUrl,
     notify,
-    specialPage
+    specialPage,
+    clearCache,
+    clearLocalStorage
 }
