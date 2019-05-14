@@ -22,7 +22,7 @@ const fs = require("fs")
 const path = require("path")
 const {ipcRenderer, remote} = require("electron")
 
-const specialPages = ["help", "downloads", "version"]
+const specialPages = ["help", "history", "downloads", "version"]
 
 let recentlyClosed = []
 

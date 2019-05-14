@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global SETTINGS SUGGEST */
+/* global SETTINGS SUGGEST TABS UTIL */
 "use strict"
 
 const fs = require("fs")
@@ -107,6 +107,19 @@ const orderSuggestions = () => {
 
 const addToHist = (title, url) => {
     if (!SETTINGS.get("history.storeNewVisits")) {
+        return
+    }
+    let isSpecialPage = false
+    for (const specialPage of TABS.specialPagesList()) {
+        if (url.startsWith(UTIL.specialPage(specialPage))) {
+            isSpecialPage = true
+        }
+        const decodedPageUrl = decodeURIComponent(url)
+        if (decodedPageUrl.startsWith(UTIL.specialPage(specialPage))) {
+            isSpecialPage = true
+        }
+    }
+    if (isSpecialPage) {
         return
     }
     const histFile = path.join(remote.app.getPath("appData"), "hist")

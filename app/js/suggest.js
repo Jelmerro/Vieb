@@ -115,6 +115,7 @@ const commandList = [
     "version",
     "help",
     "help basics",
+    "history",
     "downloads",
     "accept",
     "confirm",
