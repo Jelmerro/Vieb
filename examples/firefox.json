@@ -32,7 +32,9 @@
             "A-ArrowRight": "ACTIONS.forwardInHistory"
         },
         "nav": {
-            "F6": "ACTIONS.toNormalMode"
+            "F6": "ACTIONS.toNormalMode",
+            "ArrowUp": "ACTIONS.prevSuggestion",
+            "ArrowDown": "ACTIONS.nextSuggestion"
         }
     },
     "redirectToHttp": true,

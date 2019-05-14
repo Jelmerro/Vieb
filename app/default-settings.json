@@ -37,8 +37,8 @@
             "C-Minus": "ACTIONS.zoomOut",
             "C-Equal": "ACTIONS.zoomIn",
             "CS-Digit0": "ACTIONS.zoomReset",
-            "CS-Minus": "ACTIONS.zoomOut",
-            "CS-Equal": "ACTIONS.zoomIn"
+            "CS-Equal": "ACTIONS.zoomIn",
+            "CS-Minus": "ACTIONS.zoomOut"
         },
         "insert": {
             "F1": "COMMAND.help",
@@ -48,6 +48,8 @@
         "command": {
             "F1": "COMMAND.help",
             "Escape": "ACTIONS.toNormalMode",
+            "Tab": "ACTIONS.nextSuggestion",
+            "S-Tab": "ACTIONS.prevSuggestion",
             "C-BracketLeft": "ACTIONS.toNormalMode",
             "Enter": "ACTIONS.useEnteredData"
         },
@@ -60,6 +62,8 @@
         "nav": {
             "F1": "COMMAND.help",
             "Escape": "ACTIONS.toNormalMode",
+            "Tab": "ACTIONS.nextSuggestion",
+            "S-Tab": "ACTIONS.prevSuggestion",
             "C-BracketLeft": "ACTIONS.toNormalMode",
             "Enter": "ACTIONS.useEnteredData"
         },
