@@ -76,6 +76,15 @@ const execute = command => {
         help(parts[1].toLowerCase())
         return
     }
+    //history command
+    if (command === "history") {
+        history()
+        return
+    }
+    if (command.startsWith("history ")) {
+        UTIL.notify("The history command takes no arguments", "warn")
+        return
+    }
     //downloads command
     if (["d", "downloads"].indexOf(command) !== -1) {
         downloads()
@@ -177,6 +186,10 @@ const help = (section=null) => {
     openSpecialPage("help", section)
 }
 
+const history = () => {
+    openSpecialPage("history")
+}
+
 const downloads = () => {
     openSpecialPage("downloads")
 }
@@ -188,5 +201,6 @@ module.exports = {
     openSpecialPage,
     version,
     help,
+    history,
     downloads
 }
