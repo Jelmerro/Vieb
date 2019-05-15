@@ -60,13 +60,9 @@ const init = () => {
                     parsed.tabs.forEach(tab => {
                         addTab(tab)
                     })
-                    if (listTabs().length === 0) {
-                        addTab()
-                    } else {
+                    if (!listTabs().length === 0) {
                         switchToTab(parsed.id || 0)
                     }
-                } else if (listTabs().length === 0) {
-                    addTab()
                 }
                 if (Array.isArray(parsed.closed)) {
                     recentlyClosed = parsed.closed
@@ -77,9 +73,6 @@ const init = () => {
                 }
                 if (Array.isArray(parsed.closed)) {
                     recentlyClosed.concat(parsed.closed)
-                }
-                if (listTabs().length === 0) {
-                    addTab()
                 }
             } else {
                 try {
@@ -99,10 +92,13 @@ const init = () => {
         }
         ipcRenderer.on("urls", (event, urls) => {
             urls.forEach(url => {
-                if (UTIL.hasProtocol(url)) {
+                if (!UTIL.hasProtocol(url)) {
+                    url = `https://${url}`
+                }
+                if (currentPage().src) {
                     addTab(url)
                 } else {
-                    addTab(`https://${url}`)
+                    navigateTo(url)
                 }
             })
         })

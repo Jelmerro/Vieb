@@ -31,6 +31,7 @@ const defaultSettings = {
     "clearCacheOnQuit": true,
     "clearLocalStorageOnQuit": false,
     "suggestCommands": true,
+    "fontSize": 14,
     "notification": {
         "system": false,
         "position": "bottom-right",
@@ -90,6 +91,20 @@ const loadFromDisk = () => {
             }
             if (typeof parsed.caseSensitiveSearch === "boolean") {
                 allSettings.caseSensitiveSearch = parsed.caseSensitiveSearch
+            }
+            if (typeof parsed.clearCacheOnQuit === "boolean") {
+                allSettings.clearCacheOnQuit = parsed.clearCacheOnQuit
+            }
+            if (typeof parsed.clearLocalStorageOnQuit === "boolean") {
+                allSettings.clearLocalStorageOnQuit = parsed.clearLocalStorageOnQuit
+            }
+            if (typeof parsed.suggestCommands === "boolean") {
+                allSettings.suggestCommands = parsed.suggestCommands
+            }
+            if (typeof parsed.fontSize === "number") {
+                allSettings.fontSize
+                    = Math.min(Math.max(Number(parsed.fontSize), 8), 20)
+                document.body.style.fontSize = `${allSettings.fontSize}px`
             }
             if (typeof parsed.notification === "object") {
                 if (typeof parsed.notification.system === "boolean") {
@@ -250,6 +265,25 @@ const set = (setting, value) => {
         }
         UTIL.notify("This is an invalid value for this setting, only "
             + "true and false are accepted here", "warn")
+        return
+    }
+    if (setting === "fontsize") {
+        if (/^[0-9]+$/.test(value)) {
+            const numberValue = Number(value)
+            if (numberValue < 8) {
+                UTIL.notify(
+                    "The fontsize can not be smaller than 8", "warn")
+            } else if (numberValue > 20) {
+                UTIL.notify(
+                    "The fontsize can not be larger than 20", "warn")
+            } else {
+                allSettings.fontSize = numberValue
+                document.body.style.fontSize = `${numberValue}px`
+            }
+        } else {
+            UTIL.notify("This is an invalid value for this setting, only "
+                + "numbers are accepted here", "warn")
+        }
         return
     }
     if (setting === "notification.system") {

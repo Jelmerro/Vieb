@@ -139,6 +139,8 @@ const commandList = [
     "set suggestCommands",
     "set suggestCommands true",
     "set suggestCommands false",
+    "set fontSize",
+    "set fontSize 14",
     "set notification.system",
     "set notification.system true",
     "set notification.system false",

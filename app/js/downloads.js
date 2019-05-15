@@ -187,6 +187,7 @@ const sendDownloadList = (action, downloadId) => {
     } else {
         TABS.currentPage().getWebContents().send("download-list", downloads)
     }
+    writeToFile()
 }
 
 const cancelAll = () => {
