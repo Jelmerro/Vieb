@@ -110,7 +110,7 @@ const parseHistory = () => {
             document.getElementById("list").textContent
                 = "No pages have been visited yet"
         } else if (currentBreakpointIndex >= dateBreakpoints.length) {
-            addBreakpoint(currentBreakpointIndex - 1)
+            addBreakpoint(dateBreakpoints.length - 1)
         } else {
             addBreakpoint(currentBreakpointIndex)
         }
