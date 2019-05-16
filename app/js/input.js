@@ -110,6 +110,13 @@ const init = () => {
             FOLLOW.startFollow()
         }
     })
+    document.getElementById("url").addEventListener("input", () => {
+        if (MODES.currentMode() === "nav") {
+            HISTORY.suggestHist(document.getElementById("url").value)
+        } else if (MODES.currentMode() === "command") {
+            SUGGEST.suggestCommand(document.getElementById("url").value)
+        }
+    })
     ACTIONS.setFocusCorrectly()
 }
 
@@ -189,16 +196,6 @@ const executeAction = action => {
 
 const handleUserInput = e => {
     const id = toIdentifier(e)
-    const allowedUserInput = [
-        "C-KeyC",
-        "C-KeyV",
-        "C-KeyA",
-        "C-Backspace",
-        "C-ArrowLeft",
-        "C-ArrowRight",
-        "Space",
-        "Backspace"
-    ]
     if (MODES.currentMode() === "follow") {
         if (e.type === "keydown") {
             FOLLOW.enterKey(id)
@@ -206,27 +203,21 @@ const handleUserInput = e => {
         e.preventDefault()
         return
     }
-    if (e.type === "keyup") {
-        if (id.startsWith("Key") || allowedUserInput.indexOf(id) !== -1) {
-            if (MODES.currentMode() === "nav") {
-                HISTORY.suggestHist(document.getElementById("url").value)
-            } else if (MODES.currentMode() === "command") {
-                SUGGEST.suggestCommand(document.getElementById("url").value)
-            }
-        }
-    }
-    if (MODES.currentMode() !== "nav" && MODES.currentMode() !== "command") {
-        SUGGEST.cancelSuggestions()
-    }
-    if (id.startsWith("S-")) {
-        //Regular keys and shift keys are okay
-    } else if (allowedUserInput.indexOf(id) === -1 && id.indexOf("-") !== -1) {
-        //Other modifiers are not allowed and will be blocked,
-        //if the shortcut is not in the allowedUserInput array
-        e.preventDefault()
-        return
-    }
-    if (e.code === "Tab") {
+    const allowedUserInput = [
+        "C-KeyX",
+        "C-KeyC",
+        "C-KeyV",
+        "C-KeyA",
+        "C-Backspace",
+        "C-ArrowLeft",
+        "C-ArrowRight",
+        "CS-ArrowLeft",
+        "CS-ArrowRight"
+    ]
+    const shift = id.startsWith("S-")
+    const allowedInput = allowedUserInput.indexOf(id) !== -1
+    const hasModifier = id.indexOf("-") !== -1
+    if (!shift && !allowedInput && hasModifier || e.code === "Tab") {
         e.preventDefault()
     }
     ACTIONS.setFocusCorrectly()

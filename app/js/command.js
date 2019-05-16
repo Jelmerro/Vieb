@@ -26,6 +26,9 @@ const execute = command => {
         command = command.replace("  ", " ")
     }
     command = command.trim()
+    if (!command) {
+        return
+    }
     //quit command
     if (["q", "quit"].indexOf(command) !== -1) {
         quit()

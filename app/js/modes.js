@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global TABS ACTIONS INPUT */
+/* global ACTIONS INPUT SUGGEST TABS */
 "use strict"
 
 const colors = {
@@ -28,6 +28,9 @@ const colors = {
 }
 
 const setMode = mode => {
+    if (mode !== "nav" && mode !== "command") {
+        SUGGEST.cancelSuggestions()
+    }
     mode = mode.trim().toLowerCase()
     if (colors[mode] === undefined) {
         return
