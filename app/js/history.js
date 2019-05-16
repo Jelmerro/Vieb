@@ -40,7 +40,7 @@ let histStream = null
 const suggestHist = search => {
     const histFile = path.join(remote.app.getPath("appData"), "hist")
     if (!fs.existsSync(histFile) || !fs.statSync(histFile).isFile()) {
-        document.getElementById("suggest-dropdown").innerHTML = ""
+        document.getElementById("suggest-dropdown").textContent = ""
         SUGGEST.clear()
         return
     }
@@ -48,18 +48,23 @@ const suggestHist = search => {
         if (histStream) {
             histStream.destroy()
         }
-        document.getElementById("suggest-dropdown").innerHTML = ""
+        document.getElementById("suggest-dropdown").textContent = ""
         SUGGEST.clear()
         return
     }
-    search = search.replace(/\W/g, "").trim().toLowerCase()
+    //Simplify the search to a list of words, or an ordered list of words,
+    //ordered matches take priority over unordered matches only.
+    //In turn, exact matches get priority over ordered matches.
+    search = search.toLowerCase()
+    const simpleSearch = search.split(/\W/g).filter(w => w)
+    const orderedSearch = RegExp(simpleSearch.join(".*"))
     if (!search) {
-        document.getElementById("suggest-dropdown").innerHTML = ""
+        document.getElementById("suggest-dropdown").textContent = ""
         return
     }
     if (histStream) {
         histStream.destroy()
-        document.getElementById("suggest-dropdown").innerHTML = ""
+        document.getElementById("suggest-dropdown").textContent = ""
         SUGGEST.clear()
     }
     histStream = fs.createReadStream(histFile)
@@ -73,10 +78,14 @@ const suggestHist = search => {
         } else if (SUGGEST.indexOf(hist.url) === -1) {
             const simpleUrl = hist.url.replace(/\W/g, "").toLowerCase()
             const simpleTitle = hist.title.replace(/\W/g, "").toLowerCase()
-            if (simpleUrl.indexOf(search) !== -1) {
-                SUGGEST.addHist(hist)
-            } else if (simpleTitle.indexOf(search) !== -1) {
-                SUGGEST.addHist(hist)
+            if (simpleSearch.every(w => simpleUrl.indexOf(w) !== -1)) {
+                SUGGEST.addHist(hist,
+                    orderedSearch.test(hist.url.toLowerCase()),
+                    hist.url.toLowerCase().indexOf(search) !== -1)
+            } else if (simpleSearch.every(w => simpleTitle.indexOf(w) !== -1)) {
+                SUGGEST.addHist(hist,
+                    orderedSearch.test(hist.title.toLowerCase()),
+                    hist.title.toLowerCase().indexOf(search) !== -1)
             }
         } else {
             //Update existings urls in the suggestions list,
@@ -84,8 +93,16 @@ const suggestHist = search => {
             //And increase the visit counter to move frequent sites to the top
             const list = document.querySelectorAll("#suggest-dropdown div")
             const duplicate = list[SUGGEST.indexOf(hist.url)]
-            if (duplicate && hist.title !== hist.url) {
-                duplicate.querySelector(".title").textContent = hist.title
+            if (duplicate) {
+                //If the title is currently not a url, but the new one is,
+                //the "new" title is not considered an upgrade,
+                //even if the title is newer (usually because of failed loads)
+                const titleNow = duplicate.querySelector(".title").textContent
+                const fromTitleToUrl = UTIL.isUrl(hist.title)
+                    && !UTIL.isUrl(titleNow)
+                if (hist.title !== hist.url && !fromTitleToUrl) {
+                    duplicate.querySelector(".title").textContent = hist.title
+                }
                 const visits = Number(duplicate.getAttribute("visit-count"))
                 duplicate.setAttribute("visit-count", String(visits + 1))
             }
@@ -97,8 +114,22 @@ const orderSuggestions = () => {
     SUGGEST.clear()
     const list = [...document.querySelectorAll("#suggest-dropdown div")]
     list.sort((a, b) => {
-        return Number(b.getAttribute("visit-count"))
-            - Number(a.getAttribute("visit-count"))
+        let modA = 1
+        let modB = 1
+        if (a.getAttribute("exact-match") === "yes") {
+            modA /= 100
+        }
+        if (b.getAttribute("exact-match") === "yes") {
+            modB /= 100
+        }
+        if (a.getAttribute("priority-match") === "yes") {
+            modA /= 10
+        }
+        if (b.getAttribute("priority-match") === "yes") {
+            modB /= 10
+        }
+        return Number(b.getAttribute("visit-count")) * modA
+            - Number(a.getAttribute("visit-count")) * modB
     }).forEach(el => {
         document.getElementById("suggest-dropdown").appendChild(el)
         SUGGEST.addToList(el.querySelector(".url").textContent)

@@ -76,7 +76,7 @@ const nextSuggestion = () => {
 }
 
 const cancelSuggestions = () => {
-    document.getElementById("suggest-dropdown").innerHTML = ""
+    document.getElementById("suggest-dropdown").textContent = ""
     HISTORY.cancelSuggest()
 }
 
@@ -92,10 +92,15 @@ const indexOf = suggestion => {
     return suggestions.indexOf(suggestion)
 }
 
-const addHist = hist => {
+const addHist = (hist, priority, exact) => {
     addToList(hist.url)
     const element = document.createElement("div")
     element.setAttribute("visit-count", "1")
+    if (exact) {
+        element.setAttribute("exact-match", "yes")
+    } else if (priority) {
+        element.setAttribute("priority-match", "yes")
+    }
     const title = document.createElement("span")
     title.className = "title"
     title.textContent = hist.title
@@ -121,67 +126,67 @@ const commandList = [
     "confirm",
     "reject",
     "deny",
-    "set",
-    "set redirectToHttp",
+    "set ",
+    "set redirectToHttp ",
     "set redirectToHttp true",
     "set redirectToHttp false",
-    "set search",
+    "set search ",
     "set search https://duckduckgo.com/?kae=d&q=",
-    "set caseSensitiveSearch",
+    "set caseSensitiveSearch ",
     "set caseSensitiveSearch true",
     "set caseSensitiveSearch false",
-    "set clearCacheOnQuit",
+    "set clearCacheOnQuit ",
     "set clearCacheOnQuit true",
     "set clearCacheOnQuit false",
-    "set clearLocalStorageOnQuit",
+    "set clearLocalStorageOnQuit ",
     "set clearLocalStorageOnQuit true",
     "set clearLocalStorageOnQuit false",
-    "set suggestCommands",
+    "set suggestCommands ",
     "set suggestCommands true",
     "set suggestCommands false",
-    "set fontSize",
+    "set fontSize ",
     "set fontSize 14",
-    "set notification.system",
+    "set notification.system ",
     "set notification.system true",
     "set notification.system false",
-    "set notification.position",
+    "set notification.position ",
     "set notification.position bottom-right",
     "set notification.position bottom-left",
     "set notification.position top-right",
     "set notification.position top-left",
-    "set notification.duration",
+    "set notification.duration ",
     "set notification.duration 5000",
-    "set downloads.path",
+    "set downloads.path ",
     "set downloads.path ~/Downloads/",
-    "set downloads.method",
+    "set downloads.method ",
     "set downloads.method automatic",
     "set downloads.method ask",
     "set downloads.method confirm",
-    "set downloads.removeCompleted",
+    "set downloads.removeCompleted ",
     "set downloads.removeCompleted true",
     "set downloads.removeCompleted false",
-    "set downloads.clearOnQuit",
+    "set downloads.clearOnQuit ",
     "set downloads.clearOnQuit true",
     "set downloads.clearOnQuit false",
-    "set history.suggest",
+    "set history.suggest ",
     "set history.suggest true",
     "set history.suggest false",
-    "set history.clearOnQuit",
+    "set history.clearOnQuit ",
     "set history.clearOnQuit true",
     "set history.clearOnQuit false",
-    "set history.storeNewVisits",
+    "set history.storeNewVisits ",
     "set history.storeNewVisits true",
     "set history.storeNewVisits false",
-    "set tabs.restore",
+    "set tabs.restore ",
     "set tabs.restore true",
     "set tabs.restore false",
-    "set tabs.keepRecentlyClosed",
+    "set tabs.keepRecentlyClosed ",
     "set tabs.keepRecentlyClosed true",
     "set tabs.keepRecentlyClosed false"
 ]
 
 const suggestCommand = search => {
-    document.getElementById("suggest-dropdown").innerHTML = ""
+    document.getElementById("suggest-dropdown").textContent = ""
     clear()
     if (!SETTINGS.get("suggestCommands") || !search) {
         return

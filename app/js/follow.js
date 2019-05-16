@@ -31,7 +31,7 @@ const startFollowNewTab = () => {
 }
 
 const startFollow = () => {
-    document.getElementById("follow").innerHTML = ""
+    document.getElementById("follow").textContent = ""
     if (TABS.currentPage().src === ""
             || TABS.currentPage().isLoadingMainFrame()) {
         UTIL.notify(
@@ -46,7 +46,7 @@ const startFollow = () => {
 const cancelFollow = () => {
     MODES.setMode("normal")
     document.getElementById("follow").style.display = ""
-    document.getElementById("follow").innerHTML = ""
+    document.getElementById("follow").textContent = ""
 }
 
 const numberToKeys = (number, total) => {

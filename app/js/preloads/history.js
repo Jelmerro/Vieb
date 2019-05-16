@@ -84,13 +84,17 @@ const dateBreakpoints = [
     }
 ].reverse().filter(b => b.enabled)
 let currentBreakpointIndex = 0
+let lineNumberBreakpoint = 0
 
 // Actually parse the list and use the breakpoints
 
 const parseHistory = () => {
-    document.getElementById("breakpoints").innerHTML = ""
-    document.getElementById("list").innerHTML = ""
+    const scrollPosition = window.scrollY
+    document.getElementById("remove-all").style.display = "none"
+    document.getElementById("breakpoints").textContent = ""
+    document.getElementById("list").textContent = ""
     currentBreakpointIndex = 0
+    lineNumberBreakpoint = 0
     if (!fs.existsSync(histFile) || !fs.statSync(histFile).isFile()) {
         document.getElementById("list").textContent
             = "No pages have been visited yet"
@@ -100,28 +104,34 @@ const parseHistory = () => {
     const rl = readline.createInterface({
         input: histStream
     })
+    let lineNumber = 0
     rl.on("line", line => {
         const hist = parseHistLine(line)
         if (hist) {
+            hist.line = lineNumber
             addHistToList(hist)
+            document.getElementById("remove-all").style.display = ""
         }
+        lineNumber += 1
     }).on("close", () => {
-        if (document.getElementById("list").innerHTML === "") {
+        if (document.getElementById("list").textContent === "") {
             document.getElementById("list").textContent
                 = "No pages have been visited yet"
         } else if (currentBreakpointIndex >= dateBreakpoints.length) {
-            addBreakpoint(dateBreakpoints.length - 1)
+            addBreakpoint(dateBreakpoints.length - 1, lineNumber)
         } else {
-            addBreakpoint(currentBreakpointIndex)
+            addBreakpoint(currentBreakpointIndex, lineNumber)
         }
-        if (window.location.hash !== "") {
+        if (scrollPosition) {
+            window.scrollTo(0, scrollPosition)
+        } else if (window.location.hash !== "") {
             document.querySelector(`a[href='${window.location.hash}']`).click()
         }
     })
 }
 
-const addBreakpoint = index => {
-    if (document.getElementById("list").innerHTML === "") {
+const addBreakpoint = (index, lineNumber) => {
+    if (document.getElementById("list").textContent === "") {
         return
     }
     const breakpoint = dateBreakpoints[index]
@@ -137,6 +147,13 @@ const addBreakpoint = index => {
     h2.textContent = breakpoint.title
     document.getElementById("list").insertBefore(
         h2, document.getElementById("list").firstChild)
+    const img = document.createElement("img")
+    img.src = path.join(__dirname, "../../img/trash.png")
+    img.setAttribute("onclick",
+        `window.clearLinesFromHistory(${lineNumberBreakpoint}, ${lineNumber})`)
+    document.getElementById("list").insertBefore(
+        img, document.getElementById("list").firstChild)
+    lineNumberBreakpoint = lineNumber + 1
 }
 
 const addHistToList = hist => {
@@ -150,13 +167,18 @@ const addHistToList = hist => {
     }
     //And show only the revelant breakpoint if multiple are skipped
     if (previousBreakpoint !== currentBreakpointIndex) {
-        addBreakpoint(previousBreakpoint)
+        addBreakpoint(previousBreakpoint, hist.line - 1)
     }
     //Finally show the history entry (possibly after new breakpoint)
     const histElement = document.createElement("div")
     histElement.className = "hist-entry"
+    const img = document.createElement("img")
+    img.src = path.join(__dirname, "../../img/trash.png")
+    img.setAttribute("onclick", `window.clearLinesFromHistory(${hist.line})`)
+    histElement.appendChild(img)
     const date = document.createElement("span")
     date.textContent = formatDate(hist.date)
+    date.className = "hist-date"
     histElement.appendChild(date)
     const title = document.createElement("span")
     title.textContent = hist.title
@@ -169,7 +191,31 @@ const addHistToList = hist => {
         histElement, document.getElementById("list").firstChild)
 }
 
-const clearHistory = () => {
+window.clearLinesFromHistory = (start, end=null) => {
+    if (!end || end < start) {
+        end = start
+    }
+    const lines = []
+    const histStream = fs.createReadStream(histFile)
+    const rl = readline.createInterface({
+        input: histStream
+    })
+    rl.on("line", line => {
+        lines.push(line)
+    }).on("close", () => {
+        const contents = lines.filter((l, index) => {
+            return index < start || index > end
+        }).join("\n")
+        try {
+            fs.writeFileSync(histFile, `${contents}\n`)
+        } catch (e) {
+            //Failed to write changes to history file
+        }
+        parseHistory()
+    })
+}
+
+window.clearHistory = () => {
     try {
         fs.unlinkSync(histFile)
     } catch (e) {
@@ -205,5 +251,11 @@ const formatDate = date => {
 }
 
 window.addEventListener("load", () => {
+    const removeAll = document.createElement("img")
+    removeAll.id = "remove-all"
+    removeAll.style.display = "none"
+    removeAll.src = path.join(__dirname, "../../img/trash.png")
+    removeAll.setAttribute("onclick", "window.clearHistory()")
+    document.body.insertBefore(removeAll, document.body.firstChild)
     parseHistory()
 })
