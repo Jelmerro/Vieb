@@ -38,6 +38,16 @@ const parseHistLine = line => {
 let histStream = null
 
 const suggestHist = search => {
+    //Simplify the search to a list of words, or an ordered list of words,
+    //ordered matches take priority over unordered matches only.
+    //In turn, exact matches get priority over ordered matches.
+    search = search.toLowerCase().trim()
+    const simpleSearch = search.split(/\W/g).filter(w => w)
+    const orderedSearch = RegExp(simpleSearch.join(".*"))
+    if (!search) {
+        document.getElementById("suggest-dropdown").textContent = ""
+        return
+    }
     const histFile = path.join(remote.app.getPath("appData"), "hist")
     if (!fs.existsSync(histFile) || !fs.statSync(histFile).isFile()) {
         document.getElementById("suggest-dropdown").textContent = ""
@@ -50,16 +60,6 @@ const suggestHist = search => {
         }
         document.getElementById("suggest-dropdown").textContent = ""
         SUGGEST.clear()
-        return
-    }
-    //Simplify the search to a list of words, or an ordered list of words,
-    //ordered matches take priority over unordered matches only.
-    //In turn, exact matches get priority over ordered matches.
-    search = search.toLowerCase()
-    const simpleSearch = search.split(/\W/g).filter(w => w)
-    const orderedSearch = RegExp(simpleSearch.join(".*"))
-    if (!search) {
-        document.getElementById("suggest-dropdown").textContent = ""
         return
     }
     if (histStream) {

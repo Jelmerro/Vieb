@@ -50,8 +50,16 @@ const cancelFollow = () => {
 }
 
 const numberToKeys = (number, total) => {
-    if (total < 26 || number < 26 && number > Math.floor(total / 26)) {
+    if (total < 27 || number < 26 && number > Math.floor(total / 26)) {
         return String.fromCharCode(65 + number)
+    }
+    if (number + 1 === total && number % 26 === 0) {
+        return String.fromCharCode(65 + Math.floor(number / 26))
+    }
+    if (number % 26 === Math.floor(total / 26)) {
+        if (number < 26 && total % 26 === 0) {
+            return String.fromCharCode(65 + number % 26)
+        }
     }
     const first = String.fromCharCode(65 + Math.floor(number / 26))
     const second = String.fromCharCode(65 + number % 26)

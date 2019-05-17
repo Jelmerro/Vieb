@@ -389,7 +389,7 @@
     The first argument is case insensitive, while the value is case sensitive.
     This means that the previous set command could also be entered like this:
     <pre class="command-block">set casesensitiveSEARCH false</pre>
-    But writing false in uppercase wouldn't work and show give a warning notification.
+    But writing false in uppercase wouldn't work and show a warning notification.
     Lastly, if a command does not show a notification,
     it means that the command was successfully executed and applied.
     <h1 id="startup">Startup</h1>
@@ -565,7 +565,7 @@
     The history command takes no arguments.
     This command will open a list of all the website visisted.
     To learn more about Vieb's history settings and configurations,
-    see <a href="#settings">all settings</a> or <a href="#history">the history chapter</a>.
+    see <a href="#special-history">history page info</a> or <a href="#history">the history chapter</a>.
     <h2 id="commands-accept">accept</h2>
     This command can be used to confirm a download request.
     It can only be used if the "confirm" download method is used.
@@ -605,20 +605,10 @@
     <h2 id="commands-reload">reload</h2>
     The reload command can be used to reload the settings from the settings file.
     It takes no arguments, required or optional.
-    This command is implemented in Vieb according to these steps:
-    <ul>
-        <li>All settings are reset to the defaults hard-coded in the Vieb source.</li>
-        <li>
-            The user settings are merged with these default settings,
-            which means only settings present in the viebrc.json are changed.
-        </li>
-    </ul>
-    As a result of this, all previous set command changes are reset by using reload.
-    This can be used to undo any wrong changes, to quickly change back,
-    or to change the <a href="#settings-viebrc-keybindings">keybindings</a>.
-    The viebrc file is not locked by Vieb and you are free to change it any time.
-    It can be used to change the keybindings without restarting Vieb,
-    or to change the settings permanently (instead of the temporary set command).
+    All previous "set" command changes are reset by using reload,
+    so it can be used to undo any unwanted changes made using the set command.
+    It can also be used to change the <a href="#settings-viebrc-keybindings">keybindings</a>.
+    or to change the settings permanently (instead of temporary using the "set" command).
     A short version of the reload command is just using "r".
     <h2 id="commands-quit">quit</h2>
     Last but not least is the quit command.
@@ -736,7 +726,7 @@
     It can be accessed with the :version command (:v), or as "vieb://version".
     <h2 id="special-history">history page</h2>
     On this page you can find all your browsing history.
-    The page is stored by date and contains breakpoints such as "Today" or "This hour",
+    The page is sorted by date and contains breakpoints such as "Today" or "This hour",
     which you can jump to directly using the links at the top.
     There is also the option to delete specific pages from your history,
     or you can delete an entire day, week or everything.

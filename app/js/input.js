@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global HISTORY MODES ACTIONS FOLLOW COMMAND SETTINGS SUGGEST */
+/* global ACTIONS COMMAND FOLLOW HISTORY MODES SETTINGS SUGGEST */
 "use strict"
 
 const bindings = {
