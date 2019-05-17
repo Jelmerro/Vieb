@@ -85,7 +85,7 @@ app.on("ready", () => {
             }
             commandLine = commandLine.slice(2)
             mainWindow.webContents.send("urls", commandLine.filter(arg => {
-                return !arg.startsWith("--")
+                return !arg.startsWith("-")
             }))
         })
     } else {

@@ -15,6 +15,7 @@
             "KeyN": "ACTIONS.nextSearchMatch",
             "KeyR": "ACTIONS.reload",
             "KeyT": "ACTIONS.openNewTab",
+            "KeyU": "ACTIONS.reopenTab",
             "KeyW": "ACTIONS.nextTab",
             "Slash": "ACTIONS.toSearchMode",
             "S-KeyF": "FOLLOW.startFollowNewTab",
@@ -36,8 +37,8 @@
             "C-Minus": "ACTIONS.zoomOut",
             "C-Equal": "ACTIONS.zoomIn",
             "CS-Digit0": "ACTIONS.zoomReset",
-            "CS-Minus": "ACTIONS.zoomOut",
-            "CS-Equal": "ACTIONS.zoomIn"
+            "CS-Equal": "ACTIONS.zoomIn",
+            "CS-Minus": "ACTIONS.zoomOut"
         },
         "insert": {
             "F1": "COMMAND.help",
@@ -47,6 +48,8 @@
         "command": {
             "F1": "COMMAND.help",
             "Escape": "ACTIONS.toNormalMode",
+            "Tab": "ACTIONS.nextSuggestion",
+            "S-Tab": "ACTIONS.prevSuggestion",
             "C-BracketLeft": "ACTIONS.toNormalMode",
             "Enter": "ACTIONS.useEnteredData"
         },
@@ -59,6 +62,8 @@
         "nav": {
             "F1": "COMMAND.help",
             "Escape": "ACTIONS.toNormalMode",
+            "Tab": "ACTIONS.nextSuggestion",
+            "S-Tab": "ACTIONS.prevSuggestion",
             "C-BracketLeft": "ACTIONS.toNormalMode",
             "Enter": "ACTIONS.useEnteredData"
         },
@@ -71,6 +76,9 @@
     "redirectToHttp": false,
     "search": "https://duckduckgo.com/?kae=d&q=",
     "caseSensitiveSearch": true,
+    "clearCacheOnQuit": true,
+    "clearLocalStorageOnQuit": false,
+    "suggestCommands": true,
     "notification": {
         "system": false,
         "position": "bottom-right",
@@ -78,6 +86,18 @@
     },
     "downloads": {
         "path": "~/Downloads/",
-        "method": "automatic"
+        "method": "automatic",
+        "removeCompleted": false,
+        "clearOnQuit": false
+    },
+    "history": {
+        "suggest": true,
+        "clearOnQuit": false,
+        "storeNewVisits": true
+    },
+    "tabs": {
+        "restore": true,
+        "keepRecentlyClosed": true,
+        "startup": []
     }
 }

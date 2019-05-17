@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global DOWNLOADS MODES SETTINGS TABS UTIL */
+/* global DOWNLOADS HISTORY MODES SETTINGS TABS UTIL */
 "use strict"
 
 const {remote} = require("electron")
@@ -26,6 +26,9 @@ const execute = command => {
         command = command.replace("  ", " ")
     }
     command = command.trim()
+    if (!command) {
+        return
+    }
     //quit command
     if (["q", "quit"].indexOf(command) !== -1) {
         quit()
@@ -76,6 +79,15 @@ const execute = command => {
         help(parts[1].toLowerCase())
         return
     }
+    //history command
+    if (command === "history") {
+        history()
+        return
+    }
+    if (command.startsWith("history ")) {
+        UTIL.notify("The history command takes no arguments", "warn")
+        return
+    }
     //downloads command
     if (["d", "downloads"].indexOf(command) !== -1) {
         downloads()
@@ -120,6 +132,18 @@ const execute = command => {
 }
 
 const quit = () => {
+    if (SETTINGS.get("history.clearOnQuit")) {
+        HISTORY.clearHistory()
+    }
+    TABS.saveTabs()
+    DOWNLOADS.cancelAll()
+    DOWNLOADS.writeToFile()
+    if (SETTINGS.get("clearCacheOnQuit")) {
+        UTIL.clearCache()
+    }
+    if (SETTINGS.get("clearLocalStorageOnQuit")) {
+        UTIL.clearLocalStorage()
+    }
     remote.getCurrentWindow().destroy()
     remote.app.exit(0)
 }
@@ -165,6 +189,10 @@ const help = (section=null) => {
     openSpecialPage("help", section)
 }
 
+const history = () => {
+    openSpecialPage("history")
+}
+
 const downloads = () => {
     openSpecialPage("downloads")
 }
@@ -176,5 +204,6 @@ module.exports = {
     openSpecialPage,
     version,
     help,
+    history,
     downloads
 }

@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND MODES TABS SETTINGS UTIL */
+/* global COMMAND MODES SETTINGS SUGGEST TABS UTIL */
 "use strict"
 
 let currentSearch = ""
@@ -100,6 +100,10 @@ const reload = () => {
 const openNewTab = () => {
     TABS.addTab()
     MODES.setMode("nav")
+}
+
+const reopenTab = () => {
+    TABS.reopenTab()
 }
 
 const nextTab = () => {
@@ -316,12 +320,24 @@ const setFocusCorrectly = () => {
     if (MODES.currentMode() === "nav") {
         if (urlElement.value.trim() === "") {
             urlElement.className = ""
+        } else if (document.querySelector("#suggest-dropdown div.selected")) {
+            urlElement.className = "suggest"
         } else if (UTIL.isUrl(urlElement.value.trim())) {
             urlElement.className = "url"
         } else {
             urlElement.className = "search"
         }
     }
+}
+
+const nextSuggestion = () => {
+    SUGGEST.nextSuggestion()
+    setFocusCorrectly()
+}
+
+const prevSuggestion = () => {
+    SUGGEST.prevSuggestion()
+    setFocusCorrectly()
 }
 
 module.exports = {
@@ -337,6 +353,7 @@ module.exports = {
     nextSearchMatch,
     reload,
     openNewTab,
+    reopenTab,
     nextTab,
     toSearchMode,
     scrollBottom,
@@ -353,6 +370,8 @@ module.exports = {
     zoomIn,
     zoomOut,
     toNormalMode,
+    nextSuggestion,
+    prevSuggestion,
     useEnteredData,
     setFocusCorrectly
 }

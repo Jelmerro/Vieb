@@ -31,6 +31,7 @@
             <div id="tabs"></div>
         </div>
     </div>
+    <div id="suggest-dropdown"></div>
     <div id="follow"></div>
     <div id="notifications"></div>
     <div id="pages"></div>
@@ -51,11 +52,15 @@
         const SETTINGS = require("./js/settings.js")
         //Download manager
         const DOWNLOADS = require("./js/downloads.js")
+        //History manager
+        const HISTORY = require("./js/history.js")
+        //Suggestions for the navbar
+        const SUGGEST = require("./js/suggest.js")
         //Some modules require initialisation
         SETTINGS.init()
-        TABS.init()
         INPUT.init()
         DOWNLOADS.init()
+        TABS.init()
     </script>
 </body>
 </html>

@@ -26,12 +26,15 @@
             "C-Tab": "ACTIONS.nextTab",
             "CS-Tab": "ACTIONS.previousTab",
             "CS-KeyI": "COMMAND.devtools",
+            "CS-KeyT": "ACTIONS.reopenTab",
             "CS-KeyY": "COMMAND.downloads",
             "A-ArrowLeft": "ACTIONS.backInHistory",
             "A-ArrowRight": "ACTIONS.forwardInHistory"
         },
         "nav": {
-            "F6": "ACTIONS.toNormalMode"
+            "F6": "ACTIONS.toNormalMode",
+            "ArrowUp": "ACTIONS.prevSuggestion",
+            "ArrowDown": "ACTIONS.nextSuggestion"
         }
     },
     "redirectToHttp": true,

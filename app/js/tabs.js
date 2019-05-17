@@ -15,37 +15,143 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND DOWNLOADS FOLLOW MODES SETTINGS UTIL */
+/* global DOWNLOADS FOLLOW HISTORY MODES SETTINGS UTIL */
 "use strict"
 
+const fs = require("fs")
+const path = require("path")
 const {ipcRenderer, remote} = require("electron")
 
-const specialPages = ["help", "downloads", "version"]
+const specialPages = ["help", "history", "downloads", "version"]
+
+let recentlyClosed = []
 
 const useragent = remote.session.defaultSession.getUserAgent()
     .replace(/Electron\/.* /, "")
-let loggingIn = false
 
 const init = () => {
-    //TODO setting for startup process, each of these is an option
-    // - restore previous tabs (maybe default)
-    // - open a startup page
-    // - open the docs/help (default on first startup?)
-    //One of these should open before the urls parsed from the cli below
-    ipcRenderer.on("urls", (event, urls) => {
-        urls.forEach(url => {
-            if (UTIL.hasProtocol(url)) {
-                addTab(url)
+    window.addEventListener("load", () => {
+        const startup = SETTINGS.get("tabs.startup")
+        const tabFile = path.join(remote.app.getPath("appData"), "tabs")
+        let parsed = null
+        if (fs.existsSync(tabFile) && fs.statSync(tabFile).isFile()) {
+            try {
+                const contents = fs.readFileSync(tabFile).toString()
+                parsed = JSON.parse(contents)
+            } catch (e) {
+                //No tab history yet
+            }
+        }
+        for (const tab of startup) {
+            if (tab.startsWith("vieb://")) {
+                const pageTitle = tab.replace("vieb://", "")
+                if (specialPages.indexOf(pageTitle) !== -1) {
+                    addTab(UTIL.specialPage(pageTitle))
+                    parsed.id += 1
+                }
+            } else if (UTIL.isUrl(tab)) {
+                addTab(tab)
+                parsed.id += 1
+            }
+        }
+        if (parsed) {
+            if (SETTINGS.get("tabs.restore")) {
+                if (Array.isArray(parsed.tabs)) {
+                    parsed.tabs.forEach(tab => {
+                        addTab(tab)
+                    })
+                    if (!listTabs().length === 0) {
+                        switchToTab(parsed.id || 0)
+                    }
+                }
+                if (Array.isArray(parsed.closed)) {
+                    recentlyClosed = parsed.closed
+                }
+            } else if (SETTINGS.get("tabs.keepRecentlyClosed")) {
+                if (Array.isArray(parsed.tabs)) {
+                    recentlyClosed = parsed.tabs
+                }
+                if (Array.isArray(parsed.closed)) {
+                    recentlyClosed.concat(parsed.closed)
+                }
             } else {
-                addTab(`https://${url}`)
+                try {
+                    fs.unlinkSync(tabFile)
+                } catch (e) {
+                    //Failed to delete, might not exist
+                }
+            }
+        }
+        if (listTabs().length === 0) {
+            if (parsed) {
+                addTab()
+            } else {
+                //Probably first startup ever (no configured or stored pages)
+                addTab(UTIL.specialPage("help"))
+            }
+        }
+        ipcRenderer.on("urls", (event, urls) => {
+            urls.forEach(url => {
+                if (!UTIL.hasProtocol(url)) {
+                    url = `https://${url}`
+                }
+                if (currentPage().src) {
+                    addTab(url)
+                } else {
+                    navigateTo(url)
+                }
+            })
+        })
+    })
+}
+
+const saveTabs = () => {
+    const data = {
+        tabs: [],
+        id: 0,
+        closed: []
+    }
+    const tabFile = path.join(remote.app.getPath("appData"), "tabs")
+    if (SETTINGS.get("tabs.restore")) {
+        listPages().forEach(webview => {
+            let isSpecialPage = false
+            for (const specialPage of specialPages) {
+                if (webview.src.startsWith(UTIL.specialPage(specialPage))) {
+                    isSpecialPage = true
+                }
+                const decodedPageUrl = decodeURIComponent(webview.src)
+                if (decodedPageUrl.startsWith(UTIL.specialPage(specialPage))) {
+                    isSpecialPage = true
+                }
+            }
+            if (!isSpecialPage && webview.src) {
+                data.tabs.push(webview.src)
+                if (webview.style.display === "flex") {
+                    data.id = data.tabs.length - 1
+                }
             }
         })
-        if (listTabs().length === 0) {
-            addTab()
-            //TODO if help at startup instead of empty page or previous tabs
-            COMMAND.help()
+        if (SETTINGS.get("tabs.keepRecentlyClosed")) {
+            data.closed = recentlyClosed
         }
-    })
+    } else if (SETTINGS.get("tabs.keepRecentlyClosed")) {
+        listPages().forEach(webview => {
+            data.closed.push(webview.src)
+        })
+        data.closed.concat(recentlyClosed)
+    } else {
+        try {
+            fs.unlinkSync(tabFile)
+        } catch (e) {
+            //Failed to delete, might not exist
+        }
+        return
+    }
+    try {
+        fs.writeFileSync(tabFile, JSON.stringify(data))
+    } catch (e) {
+        UTIL.notify("Failed to write current tabs to disk", "err")
+    }
 }
 
 const listTabs = () => {
@@ -86,14 +192,28 @@ const addTab = (url=null) => {
     addWebviewListeners(webview)
     pages.appendChild(webview)
     webview.getWebContents().setUserAgent(useragent)
-    if (url !== null) {
+    if (url) {
         webview.src = url
         title.textContent = url
     }
     switchToTab(listTabs().length - 1)
 }
 
+const reopenTab = () => {
+    if (recentlyClosed.length === 0) {
+        return
+    }
+    if (currentPage().src) {
+        addTab(recentlyClosed.pop())
+    } else {
+        navigateTo(recentlyClosed.pop())
+    }
+}
+
 const closeTab = () => {
+    if (currentPage().src) {
+        recentlyClosed.push(currentPage().src)
+    }
     const oldTabIndex = listTabs().indexOf(currentTab())
     document.getElementById("tabs").removeChild(currentTab())
     document.getElementById("pages").removeChild(currentPage())
@@ -125,6 +245,7 @@ const switchToTab = index => {
     tabs[index].id = "current-tab"
     pages[index].style.display = "flex"
     updateUrl(currentPage())
+    saveTabs()
 }
 
 const updateUrl = webview => {
@@ -165,13 +286,13 @@ const addWebviewListeners = webview => {
         webview.getWebContents().removeAllListeners("login")
         webview.getWebContents().on("login", (e, request, auth, callback) => {
             e.preventDefault()
-            if (loggingIn) {
+            if (webview.getAttribute("logging-in") === "yes") {
                 UTIL.notify("Credentials seem to be incorrect", "warn")
                 webview.stop()
                 return
             }
             FOLLOW.cancelFollow()
-            loggingIn = true
+            webview.setAttribute("logging-in", "yes")
             const windowData = {
                 width: 300,
                 height: 300,
@@ -231,8 +352,10 @@ const addWebviewListeners = webview => {
                 tab.querySelector("img").src = "img/nofavicon.png"
             }
         }
-        loggingIn = false
+        webview.removeAttribute("logging-in")
         updateUrl(webview)
+        HISTORY.addToHist(tab.querySelector("span").textContent, webview.src)
+        saveTabs()
     })
     webview.addEventListener("page-title-updated", e => {
         const tab = listTabs()[listPages().indexOf(webview)]
@@ -289,11 +412,13 @@ const specialPagesList = () => {
 
 module.exports = {
     init,
+    saveTabs,
     listTabs,
     listPages,
     currentTab,
     currentPage,
     addTab,
+    reopenTab,
     closeTab,
     switchToTab,
     updateUrl,
