@@ -31,7 +31,7 @@ const startFollowNewTab = () => {
 }
 
 const startFollow = () => {
-    document.getElementById("follow").innerHTML = ""
+    document.getElementById("follow").textContent = ""
     if (TABS.currentPage().src === ""
             || TABS.currentPage().isLoadingMainFrame()) {
         UTIL.notify(
@@ -46,12 +46,20 @@ const startFollow = () => {
 const cancelFollow = () => {
     MODES.setMode("normal")
     document.getElementById("follow").style.display = ""
-    document.getElementById("follow").innerHTML = ""
+    document.getElementById("follow").textContent = ""
 }
 
 const numberToKeys = (number, total) => {
-    if (total < 26 || number < 26 && number > Math.floor(total / 26)) {
+    if (total < 27 || number < 26 && number > Math.floor(total / 26)) {
         return String.fromCharCode(65 + number)
+    }
+    if (number + 1 === total && number % 26 === 0) {
+        return String.fromCharCode(65 + Math.floor(number / 26))
+    }
+    if (number % 26 === Math.floor(total / 26)) {
+        if (number < 26 && total % 26 === 0) {
+            return String.fromCharCode(65 + number % 26)
+        }
     }
     const first = String.fromCharCode(65 + Math.floor(number / 26))
     const second = String.fromCharCode(65 + number % 26)

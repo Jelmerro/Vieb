@@ -18,13 +18,39 @@
 /* global SETTINGS TABS UTIL */
 "use strict"
 
+const fs = require("fs")
+const path = require("path")
 const {ipcRenderer, remote} = require("electron")
 
 let unconfirmedDownload = {}
 let downloads = []
 
 const init = () => {
-    //TODO load downloads from previous sessions, requires some sort of history
+    const dlsFile = path.join(remote.app.getPath("appData"), "dls")
+    if (SETTINGS.get("downloads.clearOnQuit")) {
+        try {
+            fs.unlinkSync(dlsFile)
+        } catch (e) {
+            //Failed to delete, might not exist
+        }
+    } else if (fs.existsSync(dlsFile) && fs.statSync(dlsFile).isFile()) {
+        try {
+            const contents = fs.readFileSync(dlsFile).toString()
+            const parsed = JSON.parse(contents)
+            for (const download of parsed) {
+                if (download.state === "completed") {
+                    if (!SETTINGS.get("downloads.removeCompleted")) {
+                        download.push(download)
+                    }
+                } else {
+                    download.state = "cancelled"
+                    downloads.push(download)
+                }
+            }
+        } catch (e) {
+            //No downloads file yet
+        }
+    }
     ipcRenderer.on("prevented-download", (event, download) => {
         UTIL.notify(`New download request:\n${download.name}\n`
             + "Use :accept or :deny to answer.\nSee :downloads for a list.")
@@ -58,11 +84,13 @@ const init = () => {
                 //Download is done and the item is destroyed automatically
                 info.state = "cancelled"
             }
+            writeToFile()
         })
         item.once("done", (_event, state) => {
             if (state === "completed") {
                 UTIL.notify(`Download complete:\n${info.name}`)
                 info.state = "completed"
+                clearCompleted()
             } else if (info.state !== "removed") {
                 UTIL.notify(`Download failed:\n${info.name}`, "warn")
                 info.state = "cancelled"
@@ -117,7 +145,6 @@ const sendDownloadList = (action, downloadId) => {
     if (action === "removeall") {
         downloads.forEach(download => {
             try {
-                download.state = "removed"
                 download.item.cancel()
             } catch (e) {
                 // Download was already removed or is already done
@@ -160,11 +187,51 @@ const sendDownloadList = (action, downloadId) => {
     } else {
         TABS.currentPage().getWebContents().send("download-list", downloads)
     }
+    writeToFile()
+}
+
+const cancelAll = () => {
+    downloads.forEach(download => {
+        try {
+            if (download.state !== "completed") {
+                download.state = "cancelled"
+            }
+            download.item.cancel()
+        } catch (e) {
+            // Download was already removed or is already done
+        }
+    })
+}
+
+const clearCompleted = () => {
+    if (SETTINGS.get("downloads.removeCompleted")) {
+        downloads = downloads.filter(d => d.state !== "completed")
+    }
+}
+
+const writeToFile = () => {
+    const dlsFile = path.join(remote.app.getPath("appData"), "dls")
+    if (SETTINGS.get("downloads.clearOnQuit")) {
+        try {
+            fs.unlinkSync(dlsFile)
+        } catch (e) {
+            //Failed to delete, might not exist
+        }
+    } else {
+        try {
+            fs.writeFileSync(dlsFile, JSON.stringify(downloads))
+        } catch (e) {
+            UTIL.notify("Failed to write download list to disk", "err")
+        }
+    }
 }
 
 module.exports = {
     init,
     confirmRequest,
     rejectRequest,
-    sendDownloadList
+    sendDownloadList,
+    cancelAll,
+    clearCompleted,
+    writeToFile
 }

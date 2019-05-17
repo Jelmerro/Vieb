@@ -33,15 +33,13 @@
     The documentation consists of a single page, separated into sections.
     These sections can be accessed using the table of contents,
     or by using the help command with the section as the first argument.
-    If you don't understand what commands are,
-    please read the first chapter called "Basics" to get started with Vieb.
-    You can go there with two simple steps:
+    Please make sure to read the first chapter called "Basics" to get started with Vieb,
+    which will explain what commands are and why there is no mouse interaction.
+    Use these steps to scroll the webpage:
     <ul>
         <li>Press <kbd>Escape</kbd> once to make sure you are in normal mode.</li>
         <li>Now scroll up and down with <kbd>k</kbd> and <kbd>j</kbd>.</li>
     </ul>
-    Please make sure to read that chapter if you are confused by anything so far,
-    such as the lack of mouse interaction with the webpage.
     <p>
         Vieb is short for "Vim Inspired Electron Browser" and can be found on
         <a href="https://github.com/Jelmerro/Vieb">github</a>.
@@ -57,9 +55,8 @@
     Clicking links, scrolling, navigating,
     and most other tasks have dedicated keyboard shortcuts.
     The most important ones will be explained in this chapter.
-    If a key such as <kbd>f</kbd> is displayed as <kbd>F</kbd>,
-    you are expected to press shift and f together.
-    Other modifiers such as ctrl will be displayed like so: <kbd>Ctrl with [</kbd>.
+    Single key actions will be listed like this <kbd>f</kbd>,
+    modifiers such as ctrl will be displayed as: <kbd>Shift with f</kbd>.
     <h2 id="basics-modes">modes</h2>
     Vieb uses different modes to separate functionality.
     By default, you should be in normal mode,
@@ -73,6 +70,15 @@
             <span class="nav">Nav</span>
             - Upon pressing <kbd>e</kbd> you can enter a url to navigate to,
             and press <kbd>Enter</kbd> to navigate or as always <kbd>Escape</kbd> to cancel.
+            The navigation bar will change color when text is entered.
+            An orange border indicates the user input will be used to search with the search engine.
+            A cyan border indicates that the entered text is detected as a website,
+            which will result in a direct navigation.
+            Suggestions from your browsing history will appear when typing.
+            Webpages you visit often or those that match more closely with your search will appear at the top of the list.
+            A green border is shown when a suggestion is selected, which also results in direct navigation.
+            You can switch between the suggestions with <kbd>Tab</kbd> and <kbd>Shift with Tab</kbd>,
+            after which you can select a suggestion by pressing <kbd>Enter</kbd>.
         </li>
         <li>
             <span class="insert">Insert</span>
@@ -89,7 +95,7 @@
             When pressing the key next to a link, Vieb will click on the link.
             If there are a lot of links on the page, sometimes two keys are needed.
             You don't need to press these together, but simply after each other.
-            To open links in a new tab, use <kbd>F</kbd> instead of <kbd>f</kbd>.
+            To open links in a new tab, use <kbd>Shift with f</kbd> instead of <kbd>f</kbd>.
             Some buttons and other type of links can't be opened in a new tab.
             The different colors indicate the different type of links:
             <ul>
@@ -122,7 +128,7 @@
         <li>
             <span class="command">Command</span>
             - Some functionality is accessed by executing commands.
-            These can be entered after pressing <kbd>:</kbd> (this requires shift).
+            These can be entered after pressing <kbd>Shift with ;</kbd> (also known as <kbd>:</kbd>).
             A very important command is the quit command,
             as it's the only way to properly quit Vieb.
             For more detailed instructions on how to use this command,
@@ -132,7 +138,7 @@
             <span class="search">Search</span>
             - This mode can be entered with <kbd>/</kbd>.
             After entering a string, press enter to search for it.
-            You can now press <kbd>n</kbd> or <kbd>N</kbd> to find next or previous matches.
+            You can now press <kbd>n</kbd> or <kbd>Shift with n</kbd> to find next or previous matches.
             Searching is by default case-sensitive.
         </li>
     </ul>
@@ -146,16 +152,17 @@
     these keybindings are important when in normal mode:
     <ul>
         <li>Moving around with a single press of <kbd>h j k l</kbd>.</li>
-        <li>Zoom in and out with <kbd>Ctrl with +</kbd> or <kbd>Ctrl with -</kbd>.</li>
-        <li>Reset to the normal zoom level with <kbd>Ctrl with 0</kbd>.</li>
-        <li>Go back and forward in history using <kbd>H</kbd> and <kbd>L</kbd>.</li>
+        <li>Zoom in and out using <kbd>Ctrl with +</kbd> or <kbd>Ctrl with -</kbd>.</li>
+        <li>Reset to the normal zoom level by pressing <kbd>Ctrl with 0</kbd>.</li>
+        <li>Go back and forward in history using <kbd>Shift with h</kbd> and <kbd>Shift with l</kbd>.</li>
         <li>Open a new tab with <kbd>t</kbd>, which will enter nav mode.</li>
         <li>
             Switch between tabs with <kbd>w</kbd> and <kbd>b</kbd>
-            or with <kbd>J</kbd> and <kbd>K</kbd>.
+            or using <kbd>Shift with j</kbd> and <kbd>Shift with k</kbd>.
         </li>
-        <li>Reload the page with <kbd>r</kbd> and without cache using <kbd>R</kbd>.</li>
+        <li>Reload the page with <kbd>r</kbd> and without cache using <kbd>Shift with r</kbd>.</li>
         <li>Close a tab with the <kbd>d</kbd> key.</li>
+        <li>Reopen a previously closed tab with <kbd>u</kbd>.</li>
     </ul>
     When you are done mastering these, please take a look at the
     <a href="#normal">complete list of them here</a>.
@@ -169,11 +176,10 @@
         <li>You can ALWAYS go back to normal mode with <kbd>Escape</kbd>.</li>
     </ul>
     <h1 id="settings">Settings</h1>
-    An important part of Vieb that was skipped in the basics chapter,
-    is the ability to change the settings.
+    Vieb has a lot of settings, including custom keybindings.
+    The basics chapter assumes the keybindings mentioned are unchanged.
     This is because most users won't need to change them,
-    and because the keybindings can be changed, removed or added,
-    which would make the basics chapter a lot more complex than it needs to be.
+    and because it would make the basics chapter a lot more complex than it needs to be.
     There are two ways to change the settings:
     <ul>
         <li>Change the defaults using a viebrc.json file.</li>
@@ -189,7 +195,7 @@
     Vieb's set command syntax is different as compared to regular Vim,
     and always has the form of "set setting value".
     The settings file is case sensitive, but the setting argument of the set command isn't.
-    The keybindings can only be changed with the settings file and not with the set command.
+    The keybindings and startup pages can only be changed with the settings file and not with the set command.
     Running the `:reload` command will reset any prior `:set` commands,
     because all settings will be reset and reapplied from the settings file.
     <h2 id="settings-viebrc">viebrc.json</h2>
@@ -204,6 +210,8 @@
     The same folder is used for all other information that Vieb stores,
     which means there should be electron/chromium related files there.
     You can create the viebrc.json file there if you haven't already.
+    Your browsing and download history will also be saved in this folder by default.
+    See the <a href="#history">history chapter</a> for more details and instructions how to configure the related settings.
     <h3 id="settings-viebrc-syntax">syntax</h3>
     The syntax of the settings file is json, as the name would suggest.
     This is very different from Vim for the following reasons:
@@ -227,10 +235,11 @@
     <br>
     Your own viebrc.json file only needs to override these settings where needed,
     to change them to your liking.
-    Note that by default <kbd>Ctrl with [</kbd> can be used as an alternative to <kbd>Escape</kbd>,
-    to return to normal mode.
+    Note that by default <kbd>Ctrl with [</kbd> can be used as an alternative to
+    <kbd>Escape</kbd> to return to normal mode.
     Finally, there are also example configs to replicate Firefox or Chromium.
     Please check the <a href="https://github.com/Jelmerro/Vieb">github page</a> for examples.
+    They are stored in the examples folder and improvements are always welcome.
     <h3 id="settings-viebrc-keybindings">keybindings</h3>
     The viebrc is is the only place to change the keybindings.
     Changing them can be done by overwriting existing ones,
@@ -275,52 +284,87 @@
     "redirectToHttp": true,
     "search": "https://google.com/search?q=",
     "caseSensitiveSearch": false,
+    "clearCacheOnQuit": false,
+    "clearLocalStorageOnQuit": true,
+    "suggestCommands": false,
     "notification": {
         "duration": 3000,
         "position": "bottom-left"
     },
     "downloads": {
+        "path": "~/Documents",
         "method": "confirm",
-        "path": "~/Documents"
+        "removeCompleted": true,
+        "clearOnQuit": true
+    },
+    "history": {
+        "suggest": false,
+        "clearOnQuit": true,
+        "storeNewVisits": false
+    },
+    "tabs": {
+        "restore": false,
+        "keepRecentlyClosed": false,
+        "startup": [
+            "vieb://help"
+        ]
     }
 }</pre>
 
-    This example results in the following changes:
+    This example results in the following changes as compared to the defaults,
+    with the setting name listed between brackets:
     <ul>
         <li>
             The help page can't be accessed directly from insert mode with the
-            <kbd>F1</kbd> key anymore.
+            <kbd>F1</kbd> key anymore (keybindings.insert.F1)
         </li>
         <li>
             Toggle between nav and normal mode with
-            <kbd>F6</kbd> (similar to regular browsers)
+            <kbd>F6</kbd>, similar to regular browsers (keybindings.nav.F6 and keybindings.normal.F6)
+        </li>
         <li>
             <kbd>Escape</kbd> can not be used to exit insert mode,
-            but <kbd>Ctrl with [</kbd> will still work.
+            but <kbd>Ctrl with [</kbd> will still work (keybindings.insert.Escape)
         </li>
-        <li><kbd>Ctrl with q</kbd> can be used to quit Vieb when in normal mode.</li>
-        <li>Https connections will now be downgraded to http if the server has no certificate.</li>
+        <li><kbd>Ctrl with q</kbd> can be used to quit Vieb when in normal mode (keybindings.normal.C-KeyQ)</li>
+        <li>Https connections will now be downgraded to http if the server has no certificate (redirectToHttp)</li>
         <li>
             The search engine will be google instead of the default duckduckgo.
-            Please note that the search string will be pasted at the end of the search setting.
+            Please note that the search string will be pasted at the end of the search setting (search)
         </li>
-        <li>Change the search mode to be case-insensitive.</li>
-        <li>Reduce the notification duration to 3 seconds instead of 5.</li>
-        <li>Display the notification in the bottom left instead of the bottom right.</li>
-        <li>Change the download method to "confirm" instead of "automatic"</li>
-        <li>Downloads will be stored in the documents folder, except if method would be "ask"
+        <li>Change the search mode to be case-insensitive (caseSensitiveSearch)</li>
+        <li>Don't clear the cache when quiting Vieb (clearCacheOnQuit)</li>
+        <li>Clear the localstorage when exiting Vieb (clearLocalStorageOnQuit)</li>
+        <li>Don't suggest/autocomplete commands when in command mode (suggestCommands)</li>
+        <li>Reduce the notification duration to 3 seconds instead of 5 (notification.duration)</li>
+        <li>Display the notification in the bottom left instead of the bottom right (notification.position)</li>
+        <li>Downloads will be stored in the documents folder, except if method is set be "ask" (downloads.path)</li>
+        <li>Change the download method to "confirm" instead of "automatic" (downloads.method)</li>
+        <li>Automatically remove downloads from the download history once they are completely downloaded (downloads.removeCompleted)</li>
+        <li>Clear the entire download history when quiting Vieb (downloads.clearOnQuit)</li>
+        <li>Don't suggest previously visited websites from the browsing history when in nav mode (history.suggest)</li>
+        <li>Clear the browsing history when exiting Vieb (history.clearOnQuit)</li>
+        <li>Stop adding newly visited webpages to the browsing history (history.storeNewVisits)</li>
+        <li>Don't restore the previously open tabs when restarting Vieb (tabs.restore)</li>
+        <li>The recently closed tabs will no longer be restorable with the <kbd>u</kbd> key (tabs.keepRecentlyClosed)</li>
+        <li>Open this help page on startup, which can be expanded with other urls (tabs.startup)</li>
     </ul>
+    Please note that the download, tab and browsing history are separately configured.
+    Therefor it's possible to keep and restore the open tabs without keeping the other browsing history.
+    To find the right setting for you, the set command can be used at runtime to test a specific setting.
     This concludes the documentation regarding the viebrc file.
     In the next paragraph, the set command will be explained.
     <h2 id="settings-set">set command</h2>
     The set command can be used to change the settings after startup.
     When starting Vieb, the settings file is loaded and merged with the defaults.
-    After that, all settings (not the keybindings) can be changed using the set command.
+    After that, most settings can be changed using the set command.
     For example, to use system notifications instead of Vieb's own notification system,
-    go to command mode with <kbd>:</kbd> and enter this command:
-    <pre class="command-block">set notifications.system true</pre>
+    go to command mode using <kbd>Shift with ;</kbd> (or <kbd>:</kbd>) and enter this command:
+    <pre class="command-block">set notification.system true</pre>
     The set command always takes two arguments;
     one for the setting name and the other for the new value.
+    The set command along with other commands has autocompletion by default,
+    which helps with finding the right setting name.
     Settings can be changed as many times as you like,
     and can be reset and reloaded from the settings file with:
     <pre class="command-block">reload</pre> or just "r" for short.
@@ -345,25 +389,35 @@
     The first argument is case insensitive, while the value is case sensitive.
     This means that the previous set command could also be entered like this:
     <pre class="command-block">set casesensitiveSEARCH false</pre>
-    But writing false in uppercase would result in a warning.
+    But writing false in uppercase wouldn't work and show a warning notification.
     Lastly, if a command does not show a notification,
-    it means that the command was succesfully executed and applied.
+    it means that the command was successfully executed and applied.
     <h1 id="startup">Startup</h1>
-    Vieb can be started without any required arguments.
-    This will result in this help page being opened,
-    because there is no history management yet to (optionally) restore the previous tabs from.
-    There is already the option to add startup arguments,
-    which can be used for a couple of different things.
-    First there is "--help" to display information about all the startup options.
+    By default, all the tabs from the previous session will be opened (tabs.restore),
+    along with the configured startup tabs (tabs.startup).
+    This behaviour can be changed in settings as listed between the brackets.
+    By default, your tabs will also be stored when closed (tabs.keepRecentlyClosed),
+    so you can reopen them with <kbd>u</kbd>.
+    When "tabs.restore" is disabled, but "tabs.keepRecentlyClosed" is enabled,
+    all your open tabs will be moved to the recently closed tab list when quiting Vieb.
+    When both settings are set to false, no tab history is preserved,
+    and no closed tabs can be reopened as a result.
+    These settings do not influence the other history settings,
+    just like the history settings don't change the tab and startup behaviour.
+    You can learn more about the history settings in <a href="#history">the history chapter</a>.
+    <h2 id="startup-arguments">arguments</h2>
+    Vieb can be started without any command-line arguments,
+    but there are some available to use.
+    First there is "--help" to display information about all the startup arguments.
     There is also a "--version" argument, to display the version and exit.
     Lastly, you can provide "--debug" or "--console" to open the Vieb debug console,
     which is the internal console of Vieb and not the one used to debug websites.
-    Aside from these arguments the remaining ones will be opened as a url.
     For the website console, see the <a href="#commands-devtools">devtools command</a>.
+    Arguments not starting with "-" will be parsed and opened as a url.
     These urls can take any form if you include the protocol/schema,
     or will automatically be prefixed with "https://".
     You can provide as many urls as you want,
-    as each of them will be opened in a separate tab.
+    as each of them will be opened in a separate tab, similar to the tabs.startup setting.
     <h2 id="startup-examples">examples</h2>
     To get a better understanding of these arguments,
     there are a couple of examples shown in this paragraph.
@@ -392,26 +446,28 @@
     <ul>
         <li><kbd>F1</kbd> Opens this help page, similar to the help command.</li>
         <li><kbd>b</kbd> and <kbd>w</kbd> to switch to the previous and next tab</kbd>.</li>
-        <li>Alternatively, <kbd>J</kbd> and <kbd>K</kbd> can be used to switch tabs.</li>
+        <li>Alternatively, <kbd>Shift with j</kbd> and <kbd>Shift with k</kbd> can be used to switch tabs.</li>
         <li>Go to nav mode with <kbd>e</kbd>.</li>
         <li>Start the regular follow mode for the current tab with <kbd>f</kbd>.</li>
         <li>
             Use <kbd>F</kbd> to open supported links in a new tab.
             The <a href="#follow">follow</a> chapter explains the differences.
         </li>
-        <li>Go to the top or the bottom of the page with <kbd>G</kbd> or <kbd>g</kbd>.</li>
+        <li>Go to the top or the bottom of the page using <kbd>Shift with g</kbd> or <kbd>g</kbd>.</li>
         <li>Move around on the page with the keys <kbd>h j k l</kbd>.</li>
-        <li>Enter insert mode with <kbd>I</kbd>.</li>
+        <li>Enter insert mode with <kbd>i</kbd>.</li>
         <li>
-            Find the next or previous match when searching with
-            <kbd>n</kbd> and <kbd>N</kbd>.
+            Find the next or previous match when searching using
+            <kbd>n</kbd> and <kbd>Shift with n</kbd>.
         </li>
-        <li>Reload the page with or without cache using <kbd>r</kbd> and <kbd>R</kbd>.</li>
+        <li>Reload the page with or without cache using <kbd>r</kbd> and <kbd>Shift with r</kbd>.</li>
         <li>Open a new tab and enter nav mode in the new tab with <kbd>t</kbd>.</li>
+        <li>Close the current tab with <kbd>d</kbd>.</li>
+        <li>Reopen previously closed tabs with <kbd>u</kbd>.</li>
         <li>Switch to search mode with <kbd>/</kbd>.</li>
         <li>
-            Go forward or backwards in the tab browsing history with
-            <kbd>L</kbd> and <kbd>H</kbd>.
+            Go forward or backwards in the tab browsing history using
+            <kbd>Shift with l</kbd> and <kbd>Shift with h</kbd>.
         </li>
         <li>
             Alternatively, you can use
@@ -422,15 +478,15 @@
             <kbd>Ctrl with u</kbd> or <kbd>Ctrl with d</kbd>.
         </li>
         <li>Or an entire page by pressing <kbd>Ctrl with b</kbd> and <kbd>Ctrl with f</kbd>.</li>
-        <li>Go to command mode with <kbd>:</kbd>.</li>
-        <li>Zoom in or out using <kbd>Ctrl with +</kbd> and <kbd>Ctrl with -</kbd>.</li>
+        <li>Go to command mode using <kbd>Shift with ;</kbd> (also known as <kbd>:</kbd>).</li>
+        <li>Zoom in or out by pressing <kbd>Ctrl with +</kbd> and <kbd>Ctrl with -</kbd>.</li>
         <li>Reset the zoom to 100% again using <kbd>Ctrl with 0</kbd>.</li>
     </ul>
     <h1 id="follow">Follow</h1>
     This mode is a very important aspect of Vieb,
     as it allows you to click on links or other elements using the keyboard.
     There are two versions with very different implementations,
-    one for the current tab with <kbd>f</kbd> and one for new tab with <kbd>F</kbd>.
+    one for the current tab with <kbd>f</kbd> and one for new tab using <kbd>Shift with f</kbd>.
     These will be explained in separate paragraphs,
     as the underlying implementations are very different,
     even if the differences are not immediately visible to the user.
@@ -465,7 +521,7 @@
     </ul>
     Clicking links with the mouse when using insert mode will mostly do the same thing.
     <h2 id="follow-newtab">follow in new tab</h2>
-    The <kbd>F</kbd> key allows you to open links in a new tab.
+    The <kbd>Shift with f</kbd> key allows you to open links in a new tab.
     Unlike the regular follow mode, only anchor tabs will be available to click on.
     Aside from that, all the href attributes are filtered.
     The filter will disable the keys for links with no valid url,
@@ -475,6 +531,10 @@
     but by opening a new tab with the href attribute as the url.
     <h1 id="commands">Commands</h1>
     In this chapter all the available commands will be listed and explained.
+    By default, all supported commands will be autocompleted using a suggestions dropdown menu,
+    similar to the nav mode suggestions.
+    These suggestions can be disabled for commands by setting "suggestCommands" to false.
+    Each paragraph will explain a single command:
     <h2 id="commands-help">help</h2>
     The help command can be used as an alternative for the <kbd>F1</kbd> key.
     It will open the help in the current tab,
@@ -501,6 +561,11 @@
     This page can be used to view all the downloaded files.
     To learn more about the download page, different download methods and other special pages,
     check out the <a href="#special">Special pages</a>.
+    <h2 id="commands-history">history</h2>
+    The history command takes no arguments.
+    This command will open a list of all the website visisted.
+    To learn more about Vieb's history settings and configurations,
+    see <a href="#special-history">history page info</a> or <a href="#history">the history chapter</a>.
     <h2 id="commands-accept">accept</h2>
     This command can be used to confirm a download request.
     It can only be used if the "confirm" download method is used.
@@ -528,7 +593,7 @@
     For example, to increase the notification duration for the current session,
     use the following command (from 3 seconds to 5 seconds):
     <pre class="command-block">set notification.duration 5000</pre>
-    If no notification is shown, the setting was succesfully applied.
+    If no notification is shown, the setting was successfully applied.
     Note that the duration and position of the notifications can only be changed
     if the Vieb notification is used instead of system notifications.
     Lastly, Vieb will automatically block websites with an invalid or missing certificate.
@@ -540,20 +605,10 @@
     <h2 id="commands-reload">reload</h2>
     The reload command can be used to reload the settings from the settings file.
     It takes no arguments, required or optional.
-    This command is implemented in Vieb according to these steps:
-    <ul>
-        <li>All settings are reset to the defaults hard-coded in the Vieb source.</li>
-        <li>
-            The user settings are merged with these default settings,
-            which means only settings present in the viebrc.json are changed.
-        </li>
-    </ul>
-    As a result of this, all previous set command changes are reset by using reload.
-    This can be used to undo any wrong changes, to quickly change back,
-    or to change the <a href="#settings-viebrc-keybindings">keybindings</a>.
-    The viebrc file is not locked by Vieb and you are free to change it any time.
-    It can be used to change the keybindings without restarting Vieb,
-    or to change the settings permanently (instead of the temporary set command).
+    All previous "set" command changes are reset by using reload,
+    so it can be used to undo any unwanted changes made using the set command.
+    It can also be used to change the <a href="#settings-viebrc-keybindings">keybindings</a>.
+    or to change the settings permanently (instead of temporary using the "set" command).
     A short version of the reload command is just using "r".
     <h2 id="commands-quit">quit</h2>
     Last but not least is the quit command.
@@ -562,11 +617,63 @@
     For beginners who haven't changed the related keybindings,
     these are the steps to quit Vieb regardless of mode:
     <ul>
-        <li>Press <kbd>Escape</kbd> to go back to normal mode.</li>
-        <li>Enter <kbd>:</kbd> or "Shift with ;" to enter command mode.</li>
+        <li>Press <kbd>Escape</kbd> to go back to normal mode (Escape does nothing when already in normal mode).</li>
+        <li>Use <kbd>Shift with ;</kbd> or <kbd>:</kbd> to enter command mode.</li>
         <li>Type "quit" into the navbar and press <kbd>Enter</kbd>.</li>
     </ul>
     The short version of the quit command is "q".
+    <h1 id="history">History</h1>
+    Your browsing, download and tab history are automatically stored when using Vieb with the default settings.
+    Each of these parts have separate settings to configure how and if they should store your history.
+    <h2 id="history-browsing">browsing history</h2>
+    All websites you visit are stored in a "hist" file inside Vieb's config folder.
+    Everytime a page is loaded, the hist file is appended with a single line.
+    By default, suggestions will be displayed when in nav mode.
+    These suggestions are entirely based on websites you have previously visited.
+    The navigation bar will turn green when a suggestion is selected,
+    cyan for direct navigations and orange for search.
+    Webpages you visit often or those that match more closely with your search will appear at the top of the list.
+    These suggestions can be disabled by setting "history.suggest" to false.
+    To change or disable the browsing history, there are two other settings:
+    <ul>
+        <li>
+            history.clearOnQuit - when this setting is set to true,
+            the browsing history is cleared when quiting Vieb.
+            This will not clear the currently opened tabs or the download history,
+            but only influences if the browsing history should be cleared on exit.
+        </li>
+        <li>
+            history.storeNewVisits - when this setting is true,
+            your browsing history is extended for every page you visit.
+            This means that once a page is loaded, the url, the title and the date of the visit will be stored.
+            When this setting is set to false, no new entries will be added for new site visits.
+            This setting does not influence the previously stored history,
+            or the download and tab history.
+        </li>
+    </ul>
+    <h2 id="history-other">other history stored</h2>
+    The download settings are explained in the <a href="#special-downloads">special page</a> section.
+    To learn more about the tab history settings, see the <a href="#startup">startup chapter</a>.
+    Because these settings are split between downloads, tabs and browsing history,
+    you can finetune what you want to store and when to clear it automatically.
+    <h2 id="history-private">private mode</h2>
+    Having separate history settings means that there is no traditional private window available in Vieb,
+    but by configuring the right settings, something equivalent can be achieved.
+    An example for this based on the default settings can be something like this:
+    <ul>
+        <li>Set "downloads.removeCompleted" to true</li>
+        <li>Set "history.storeNewVisits" to false</li>
+        <li>Set "tabs.keepRecentlyClosed" to false</li>
+    </ul>
+    The combination of these settings means that once a tab is closed, or a download is completed,
+    Vieb has no history stored in any of the three categories.
+    You can of course expand these three settings with more strict settings,
+    such as the option to clear any download regardless of progress when quiting,
+    or the setting to never store the tabs at all by disabling the "tabs.restore" setting.
+    By default, command mode will suggest and autocomplete settings your configure,
+    which aims to make it easier to set these settings are runtime.
+    Of course it's also possible to store these settings permanently in the viebrc config file.
+    Both of these ways to change the settings are explained <a href="#settings">settings chapter</a>.
     <h1 id="special">Special pages</h1>
     Vieb has a couple of special pages that can be accessed like so "vieb://help".
     Most of these pages also have a dedicated command to navigate to them,
@@ -578,13 +685,28 @@
     You can link to specific section of this page using "vieb://help#basics",
     or by calling the <a href="#commands-help">help command</a> with extra arguments.
     <h2 id="special-downloads">downloads page</h2>
-    This page displays a list of all the downloaded files for the current session.
-    If/when history management is done and released,
-    there will be an option to store downloads beyond the current session.
-    There are three download methods in Vieb (setting: "downloads.method"):
+    This page displays a list of all the downloaded files using Vieb.
+    The list is stored between sessions by default,
+    but there are two related settings to change this behaviour:
     <ul>
         <li>
-            automatic (default) - which will download all files automatically similar to chrome,
+            downloads.removeCompleted -
+            This setting can be set to true in case you want to remove all completed downloads from the list.
+            You will still get a notification when a download is done,
+            but it won't stay in the download history.
+            Progressing or cancelled downloads will still be listed, even between sessions.
+        </li>
+        <li>
+            downloads.clearOnQuit -
+            This setting can be set to true if you want to clear the list on quit.
+            When set to true, no download history will be saved to disk.
+            The tab and browsing history are configured separately.
+        </li>
+    </ul>
+    There are three different download methods in Vieb (setting: "downloads.method"):
+    <ul>
+        <li>
+            automatic (default) - which will download all files automatically similar to chromium,
             the configured "downloads.path" will be used to store all downloads.
         </li>
         <li>
@@ -602,6 +724,14 @@
     <h2 id="special-version">version page</h2>
     This page contains the current Vieb version and a button to check for updates.
     It can be accessed with the :version command (:v), or as "vieb://version".
+    <h2 id="special-history">history page</h2>
+    On this page you can find all your browsing history.
+    The page is sorted by date and contains breakpoints such as "Today" or "This hour",
+    which you can jump to directly using the links at the top.
+    There is also the option to delete specific pages from your history,
+    or you can delete an entire day, week or everything.
+    The history page can be opened using the <a href="#commands-history">history command</a>, or as "vieb://history".
+    To change the history settings, see the <a href="#history">history chapter</a>.
     <h1 id="license">License</h1>
     Vieb is created by <a href="https://github.com/Jelmerro">Jelmer van Arnhem</a>
     and <a href="https://github.com/Jelmerro/Vieb/graphs/contributors">contributors</a>.

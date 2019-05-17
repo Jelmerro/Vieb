@@ -27,14 +27,11 @@ window.update = (action=null, downloadId=null) => {
 }
 
 window.removeAll = () => {
-    document.getElementById("list").textContent = ""
     window.update("removeall")
 }
 
 window.remove = id => {
     window.update("remove", id)
-    document.getElementById("list").removeChild(
-        document.querySelectorAll("#list .download")[id])
 }
 
 window.pause = id => {
@@ -68,24 +65,39 @@ ipcRenderer.on("download-list", (e, list, unconfirmed) => {
         unconfirmedElement.style.display = ""
     }
     //list
+    if (list.length === 0) {
+        document.getElementById("list").textContent
+            = "Nothing has been downloaded yet."
+        const removeAll = document.getElementById("remove-all")
+        removeAll.style.display = "none"
+        return
+    }
     const listOnPage = [...document.querySelectorAll("#list .download")]
     if (listOnPage.length === 0) {
-        if (list.length === 0) {
-            document.getElementById("list").textContent
-                = "Nothing has been downloaded during the current session."
-            const removeAll = document.getElementById("remove-all")
-            removeAll.style.display = "none"
-        } else {
-            document.getElementById("list").textContent = ""
-            const removeAll = document.getElementById("remove-all")
-            removeAll.style.display = ""
-        }
+        document.getElementById("list").textContent = ""
+        const removeAll = document.getElementById("remove-all")
+        removeAll.style.display = ""
     }
-    for (let i = 0;i < list.length;i++) {
-        if (listOnPage[i] === undefined) {
-            addDownload(list[i], i)
-        } else {
-            updateDownload(list[i], listOnPage[i], i)
+    if (listOnPage.length > list.length) {
+        for (let i = 0;i < listOnPage.length;i++) {
+            if (list[i] === undefined) {
+                try {
+                    document.getElementById("list").removeChild(
+                        document.querySelectorAll("#list .download")[i])
+                } catch (err) {
+                    //List might be shorter the second time this is called
+                }
+            } else {
+                updateDownload(list[i], listOnPage[i], i)
+            }
+        }
+    } else {
+        for (let i = 0;i < list.length;i++) {
+            if (listOnPage[i] === undefined) {
+                addDownload(list[i], i)
+            } else {
+                updateDownload(list[i], listOnPage[i], i)
+            }
         }
     }
     lastUpdate = new Date()
@@ -227,8 +239,10 @@ const formatDate = date => {
     if (typeof date === "string") {
         date = new Date(date)
     }
-    return `${date.toISOString().slice(0, -14)}
-        ${date.toTimeString().slice(0, 8)}`
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")
+    }-${String(date.getDate()).padStart(2, "0")} ${String(date.getHours())
+        .padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${
+        String(date.getSeconds()).padStart(2, "0")}`
 }
 
 const formatSize = size => {

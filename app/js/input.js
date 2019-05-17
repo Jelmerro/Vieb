@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global MODES ACTIONS FOLLOW COMMAND SETTINGS */
+/* global ACTIONS COMMAND FOLLOW HISTORY MODES SETTINGS SUGGEST */
 "use strict"
 
 const bindings = {
@@ -34,6 +34,7 @@ const bindings = {
         "KeyN": "ACTIONS.nextSearchMatch",
         "KeyR": "ACTIONS.reload",
         "KeyT": "ACTIONS.openNewTab",
+        "KeyU": "ACTIONS.reopenTab",
         "KeyW": "ACTIONS.nextTab",
         "Slash": "ACTIONS.toSearchMode",
         "S-KeyF": "FOLLOW.startFollowNewTab",
@@ -55,8 +56,8 @@ const bindings = {
         "C-Minus": "ACTIONS.zoomOut",
         "C-Equal": "ACTIONS.zoomIn",
         "CS-Digit0": "ACTIONS.zoomReset",
-        "CS-Minus": "ACTIONS.zoomOut",
-        "CS-Equal": "ACTIONS.zoomIn"
+        "CS-Equal": "ACTIONS.zoomIn",
+        "CS-Minus": "ACTIONS.zoomOut"
     },
     "insert": {
         "F1": "COMMAND.help",
@@ -66,6 +67,8 @@ const bindings = {
     "command": {
         "F1": "COMMAND.help",
         "Escape": "ACTIONS.toNormalMode",
+        "Tab": "ACTIONS.nextSuggestion",
+        "S-Tab": "ACTIONS.prevSuggestion",
         "C-BracketLeft": "ACTIONS.toNormalMode",
         "Enter": "ACTIONS.useEnteredData"
     },
@@ -78,6 +81,8 @@ const bindings = {
     "nav": {
         "F1": "COMMAND.help",
         "Escape": "ACTIONS.toNormalMode",
+        "Tab": "ACTIONS.nextSuggestion",
+        "S-Tab": "ACTIONS.prevSuggestion",
         "C-BracketLeft": "ACTIONS.toNormalMode",
         "Enter": "ACTIONS.useEnteredData"
     },
@@ -103,6 +108,13 @@ const init = () => {
     window.addEventListener("resize", () => {
         if (MODES.currentMode() === "follow") {
             FOLLOW.startFollow()
+        }
+    })
+    document.getElementById("url").addEventListener("input", () => {
+        if (MODES.currentMode() === "nav") {
+            HISTORY.suggestHist(document.getElementById("url").value)
+        } else if (MODES.currentMode() === "command") {
+            SUGGEST.suggestCommand(document.getElementById("url").value)
         }
     })
     ACTIONS.setFocusCorrectly()
@@ -183,10 +195,6 @@ const executeAction = action => {
 }
 
 const handleUserInput = e => {
-    if (e.code === "Tab") {
-        e.preventDefault()
-        return
-    }
     const id = toIdentifier(e)
     if (MODES.currentMode() === "follow") {
         if (e.type === "keydown") {
@@ -196,20 +204,21 @@ const handleUserInput = e => {
         return
     }
     const allowedUserInput = [
+        "C-KeyX",
         "C-KeyC",
         "C-KeyV",
         "C-KeyA",
         "C-Backspace",
         "C-ArrowLeft",
-        "C-ArrowRight"
+        "C-ArrowRight",
+        "CS-ArrowLeft",
+        "CS-ArrowRight"
     ]
-    if (id.startsWith("S-")) {
-        //Regular keys and shift keys are okay
-    } else if (allowedUserInput.indexOf(id) === -1 && id.indexOf("-") !== -1) {
-        //Other modifiers are not allowed and will be blocked,
-        //if the shortcut is not in the allowedUserInput array
+    const shift = id.startsWith("S-")
+    const allowedInput = allowedUserInput.indexOf(id) !== -1
+    const hasModifier = id.indexOf("-") !== -1
+    if (!shift && !allowedInput && hasModifier || e.code === "Tab") {
         e.preventDefault()
-        return
     }
     ACTIONS.setFocusCorrectly()
 }
