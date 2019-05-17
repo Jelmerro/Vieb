@@ -44,28 +44,17 @@ const suggestHist = search => {
     search = search.toLowerCase().trim()
     const simpleSearch = search.split(/\W/g).filter(w => w)
     const orderedSearch = RegExp(simpleSearch.join(".*"))
-    if (!search) {
-        document.getElementById("suggest-dropdown").textContent = ""
-        return
-    }
     const histFile = path.join(remote.app.getPath("appData"), "hist")
-    if (!fs.existsSync(histFile) || !fs.statSync(histFile).isFile()) {
-        document.getElementById("suggest-dropdown").textContent = ""
-        SUGGEST.clear()
-        return
-    }
-    if (!SETTINGS.get("history.suggest")) {
-        if (histStream) {
-            histStream.destroy()
-        }
-        document.getElementById("suggest-dropdown").textContent = ""
-        SUGGEST.clear()
-        return
-    }
+    document.getElementById("suggest-dropdown").textContent = ""
+    SUGGEST.clear()
     if (histStream) {
         histStream.destroy()
-        document.getElementById("suggest-dropdown").textContent = ""
-        SUGGEST.clear()
+    }
+    if (!SETTINGS.get("history.suggest") || !search) {
+        return
+    }
+    if (!fs.existsSync(histFile) || !fs.statSync(histFile).isFile()) {
+        return
     }
     histStream = fs.createReadStream(histFile)
     const rl = readline.createInterface({
@@ -140,18 +129,14 @@ const addToHist = (title, url) => {
     if (!SETTINGS.get("history.storeNewVisits")) {
         return
     }
-    let isSpecialPage = false
     for (const specialPage of TABS.specialPagesList()) {
         if (url.startsWith(UTIL.specialPage(specialPage))) {
-            isSpecialPage = true
+            return
         }
         const decodedPageUrl = decodeURIComponent(url)
         if (decodedPageUrl.startsWith(UTIL.specialPage(specialPage))) {
-            isSpecialPage = true
+            return
         }
-    }
-    if (isSpecialPage) {
-        return
     }
     const histFile = path.join(remote.app.getPath("appData"), "hist")
     const date = new Date().toISOString()
