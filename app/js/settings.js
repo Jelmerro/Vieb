@@ -96,7 +96,8 @@ const loadFromDisk = () => {
                 allSettings.clearCacheOnQuit = parsed.clearCacheOnQuit
             }
             if (typeof parsed.clearLocalStorageOnQuit === "boolean") {
-                allSettings.clearLocalStorageOnQuit = parsed.clearLocalStorageOnQuit
+                allSettings.clearLocalStorageOnQuit
+                    = parsed.clearLocalStorageOnQuit
             }
             if (typeof parsed.suggestCommands === "boolean") {
                 allSettings.suggestCommands = parsed.suggestCommands

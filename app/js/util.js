@@ -23,8 +23,9 @@ const rimraf = require("rimraf").sync
 const {remote} = require("electron")
 
 //This regex will be compiled when the file is loaded, so it's pretty fast
+//The regex is explained in the isUrl function below
 //eslint-disable-next-line max-len
-const urlRegex = /^(([a-zA-Z-]+\.)+[a-zA-Z]{2,}|localhost|(\d{1,3}\.){3}\d{1,3})(:\d{2,5})?(|\/.*|\?.*|#.*)$/
+const urlRegex = /^(([a-zA-Z\d]+\.|([a-zA-Z\d]+[a-zA-Z\d-][a-zA-Z\d]+)+\.)+[a-zA-Z]{2,}|localhost|(\d{1,3}\.){3}\d{1,3})(:\d{2,5})?(|\/.*|\?.*|#.*)$/
 const protocolRegex = /^[a-z][a-z0-9-+.]+:\/\//
 
 const hasProtocol = location => {
@@ -37,6 +38,9 @@ const isUrl = location => {
     return hasProtocol(location) || urlRegex.test(location)
     //Checks if the location starts with one of the following:
     //- Valid domain with 0 or more subdomains
+    //  - subdomains can have letters, digits and hyphens
+    //  - hyphens cannot be at the end or the start of the subdomain
+    //  - toplevel domains can only contain letters
     //- localhost
     //- An ipv4 address
     //After that, an optional port in the form of :22 or up to :22222

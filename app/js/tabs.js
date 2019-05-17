@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global DOWNLOADS HISTORY FOLLOW MODES SETTINGS UTIL */
+/* global DOWNLOADS FOLLOW HISTORY MODES SETTINGS UTIL */
 "use strict"
 
 const fs = require("fs")
