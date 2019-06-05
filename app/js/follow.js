@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global MODES TABS UTIL */
+/* global MODES TABS SETTINGS UTIL */
 "use strict"
 let followNewtab = true
 let links = []
@@ -32,15 +32,18 @@ const startFollowNewTab = () => {
 
 const startFollow = () => {
     document.getElementById("follow").textContent = ""
-    if (TABS.currentPage().src === ""
-            || TABS.currentPage().isLoadingMainFrame()) {
-        UTIL.notify(
-            "Follow mode will be available when the page is done loading")
-    } else {
-        MODES.setMode("follow")
-        TABS.currentPage().getWebContents().send("follow-mode-request", "hi")
-        document.getElementById("follow").style.display = "flex"
+    if (!SETTINGS.get("allowFollowModeDuringLoad")) {
+        if (TABS.currentPage().src === ""
+                || TABS.currentPage().isLoadingMainFrame()) {
+            UTIL.notify("Follow mode will be available when the page is "
+                + "done loading\nOr you could change the setting"
+                + "'allowFollowModeDuringLoad'")
+            return
+        }
     }
+    MODES.setMode("follow")
+    TABS.currentPage().getWebContents().send("follow-mode-request", "hi")
+    document.getElementById("follow").style.display = "flex"
 }
 
 const cancelFollow = () => {
@@ -88,9 +91,10 @@ const parseAndDisplayLinks = l => {
         const linkElement = document.createElement("span")
         linkElement.textContent = numberToKeys(index, links.length)
         linkElement.className = `follow-${link.type}`
-        let borderRightMargin = 12
+        const characterWidth = SETTINGS.get("fontSize") / 1.3
+        let borderRightMargin = characterWidth + 4
         if (linkElement.textContent.length === 2) {
-            borderRightMargin = 21
+            borderRightMargin += characterWidth
         }
         let left = (link.x + link.width) * factor + 1
         if (left > window.innerWidth - borderRightMargin) {

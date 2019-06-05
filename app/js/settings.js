@@ -31,6 +31,7 @@ const defaultSettings = {
     "clearCacheOnQuit": true,
     "clearLocalStorageOnQuit": false,
     "suggestCommands": true,
+    "allowFollowModeDuringLoad": false,
     "fontSize": 14,
     "notification": {
         "system": false,
@@ -102,6 +103,10 @@ const loadFromDisk = () => {
             if (typeof parsed.suggestCommands === "boolean") {
                 allSettings.suggestCommands = parsed.suggestCommands
             }
+            if (typeof parsed.allowFollowModeDuringLoad === "boolean") {
+                allSettings.allowFollowModeDuringLoad
+                    = parsed.allowFollowModeDuringLoad
+            }
             if (typeof parsed.fontSize === "number") {
                 allSettings.fontSize
                     = Math.min(Math.max(Number(parsed.fontSize), 8), 20)
@@ -152,7 +157,7 @@ const loadFromDisk = () => {
                 if (typeof parsed.history.clearOnQuit === "boolean") {
                     allSettings.history.clearOnQuit = parsed.history.clearOnQuit
                 }
-                if (typeof parsed.history.suggest === "boolean") {
+                if (typeof parsed.history.storeNewVisits === "boolean") {
                     allSettings.history.storeNewVisits
                         = parsed.history.storeNewVisits
                 }
@@ -262,6 +267,19 @@ const set = (setting, value) => {
         }
         if (value === "false") {
             allSettings.suggestCommands = false
+            return
+        }
+        UTIL.notify("This is an invalid value for this setting, only "
+            + "true and false are accepted here", "warn")
+        return
+    }
+    if (setting === "allowfollowmodeduringload") {
+        if (value === "true") {
+            allSettings.allowFollowModeDuringLoad = true
+            return
+        }
+        if (value === "false") {
+            allSettings.allowFollowModeDuringLoad = false
             return
         }
         UTIL.notify("This is an invalid value for this setting, only "

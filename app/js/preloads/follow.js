@@ -26,10 +26,13 @@ const clickableInputs = [
     "input[type=\"radio\"]",
     "input[type=\"checkbox\"]",
     "input[type=\"submit\"]",
+    "input[type=\"color\"]",
     "summary"
 ]
 const textlikeInputs = ["input:not([type=\"radio\"]):not([type=\"checkbox\"])"
-    + ":not([type=\"submit\"]):not([type=\"button\"])", "textarea", "select"]
+    + ":not([type=\"submit\"]):not([type=\"button\"]):not([type=\"color\"])",
+"textarea",
+"select"]
 const onclickElements = "*:not(button):not(input)[onclick]:not([onclick=\"\"])"
 
 ipcRenderer.on("follow-mode-request", e => {

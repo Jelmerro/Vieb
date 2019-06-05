@@ -29,7 +29,7 @@ img {pointer-events: none;height: 16px;}
 #tabs > span > span {margin: auto 0;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
 #tabs > #current-tab {color: #eee;background-color: #666;}
 /* Nav url/search/command */
-#url {display: inline-block;flex: 1;border: solid 2px #666;margin: 2px;padding: 3px;background-color: #333;color: #eee;outline: none;pointer-events: none;font-size: 1em;}
+#url {display: inline-block;flex: 1;border: solid 2px #666;margin: 2px;padding: 3px;background-color: #333;color: #eee;outline: none;pointer-events: none;font: inherit;}
 #url.search {border-color: #fa0;}
 #url.url {border-color: #3ff;}
 #url.suggest {border-color: #3f3;}
