@@ -294,6 +294,7 @@ const addWebviewListeners = webview => {
             FOLLOW.cancelFollow()
             webview.setAttribute("logging-in", "yes")
             const windowData = {
+                backgroundColor: "#333333",
                 width: 300,
                 height: 300,
                 parent: remote.getCurrentWindow(),
@@ -306,6 +307,11 @@ const addWebviewListeners = webview => {
                 }
             }
             const loginWindow = new remote.BrowserWindow(windowData)
+            loginWindow.webContents.on("dom-ready", () => {
+                loginWindow.webContents.executeJavaScript(
+                    `document.body.style.fontSize =
+                    "${SETTINGS.get("fontSize")}px"`)
+            })
             loginWindow.on("close", () => {
                 try {
                     callback("", "")
@@ -336,7 +342,8 @@ const addWebviewListeners = webview => {
         const redirect = SETTINGS.get("redirectToHttp")
         const sslErrors = [
             "ERR_CERT_COMMON_NAME_INVALID",
-            "ERR_SSL_PROTOCOL_ERROR"
+            "ERR_SSL_PROTOCOL_ERROR",
+            "ERR_CERT_AUTHORITY_INVALID"
         ]
         if (sslErrors.indexOf(e.errorDescription) !== -1 && redirect) {
             webview.src = webview.src.replace("https://", "http://")

@@ -79,6 +79,8 @@
     "clearCacheOnQuit": true,
     "clearLocalStorageOnQuit": false,
     "suggestCommands": true,
+    "allowFollowModeDuringLoad": false,
+    "fontSize": 14,
     "notification": {
         "system": false,
         "position": "bottom-right",

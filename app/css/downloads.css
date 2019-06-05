@@ -24,9 +24,9 @@ progress {-webkit-appearance: none;width: calc(100% - 10px);margin: 5px;}
 progress[value] {color: #eee;background-color: #999;}
 progress::-moz-progress-bar {color: #eee;background-color: #eee;}
 progress::-webkit-progress-value {color: #eee;background-color: #eee;}
-.misc {display: flex;margin: 5px;flex-direction: column;font-size: .7em;color: #ccc;width: calc(100% - 10px);}
+.misc {display: flex;margin: 5px;flex-direction: column;font-size: .8em;color: #ccc;width: calc(100% - 10px);}
 img {height: 24px;margin: 5px;float: right;}
 h1 {font-size: 2em; margin: 30px 0;padding: 0;}
 #remove-all {height: 2em;margin: 5px 0;}
-#unconfirmed {font-size: .7em;display: none;border: 2px solid orange;flex-direction: column;margin-bottom: 1em;padding: 5px;}
+#unconfirmed {font-size: .8em;display: none;border: 2px solid orange;flex-direction: column;margin-bottom: 1em;padding: 5px;}
 .unconfirmed-header {font-size: 18px;margin-bottom: 5px;}
