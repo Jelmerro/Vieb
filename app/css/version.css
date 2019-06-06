@@ -23,4 +23,4 @@ body {color: #eee;max-width: 1000px;font: 18px monospace;background: #333;paddin
 .header > div {margin: auto;}
 a {color: #0cf;}
 #update-check {border: 1px solid #555;margin-top: 2px;margin-right: 5px;padding: 3px;}
-button {background: #333;color: #fff;border: 2px solid #eee;font-size: 14px;}
+button {background: #333;color: #fff;border: 2px solid #eee;font: 14px monospace;}

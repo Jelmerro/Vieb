@@ -17,22 +17,15 @@
 */
 "use strict"
 
+// Always load follow mode specific javascript
 require("./preloads/follow.js")
-const path = require("path")
 
-const loadPageSpecificJS = page => {
-    const pageUrl = `file://${path.join(__dirname, `../pages/${page}.html`)}`
-    if (window.location.href.startsWith(pageUrl)) {
-        require(`./preloads/${page}.js`)
-    } else if (decodeURIComponent(window.location.href).startsWith(pageUrl)) {
-        require(`./preloads/${page}.js`)
-    }
+// Load the special page specific javascript
+const util = require("./util.js")
+const specialPage = util.pathToSpecialPageName(window.location.href)
+if (specialPage.name) {
+    require(`./preloads/${specialPage.name}.js`)
 }
-
-loadPageSpecificJS("downloads")
-loadPageSpecificJS("help")
-loadPageSpecificJS("history")
-loadPageSpecificJS("version")
 
 // Change the background to white for pages with no explicit background styling
 window.addEventListener("load", () => {

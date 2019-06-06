@@ -22,8 +22,6 @@ const fs = require("fs")
 const path = require("path")
 const {ipcRenderer, remote} = require("electron")
 
-const specialPages = ["help", "history", "downloads", "version"]
-
 let recentlyClosed = []
 
 const useragent = remote.session.defaultSession.getUserAgent()
@@ -43,12 +41,11 @@ const init = () => {
             }
         }
         for (const tab of startup) {
-            if (tab.startsWith("vieb://")) {
-                const pageTitle = tab.replace("vieb://", "")
-                if (specialPages.indexOf(pageTitle) !== -1) {
-                    addTab(UTIL.specialPage(pageTitle))
-                    parsed.id += 1
-                }
+            const specialPage = UTIL.pathToSpecialPageName(tab)
+            if (specialPage.name) {
+                addTab(UTIL.specialPagePath(
+                    specialPage.name, specialPage.section))
+                parsed.id += 1
             } else if (UTIL.isUrl(tab)) {
                 addTab(tab)
                 parsed.id += 1
@@ -87,7 +84,7 @@ const init = () => {
                 addTab()
             } else {
                 //Probably first startup ever (no configured or stored pages)
-                addTab(UTIL.specialPage("help"))
+                addTab(UTIL.specialPagePath("help"))
             }
         }
         ipcRenderer.on("urls", (event, urls) => {
@@ -114,17 +111,7 @@ const saveTabs = () => {
     const tabFile = path.join(remote.app.getPath("appData"), "tabs")
     if (SETTINGS.get("tabs.restore")) {
         listPages().forEach(webview => {
-            let isSpecialPage = false
-            for (const specialPage of specialPages) {
-                if (webview.src.startsWith(UTIL.specialPage(specialPage))) {
-                    isSpecialPage = true
-                }
-                const decodedPageUrl = decodeURIComponent(webview.src)
-                if (decodedPageUrl.startsWith(UTIL.specialPage(specialPage))) {
-                    isSpecialPage = true
-                }
-            }
-            if (!isSpecialPage && webview.src) {
+            if (!UTIL.pathToSpecialPageName(webview.src).name && webview.src) {
                 data.tabs.push(webview.src)
                 if (webview.style.display === "flex") {
                     data.id = data.tabs.length - 1
@@ -212,7 +199,9 @@ const reopenTab = () => {
 
 const closeTab = () => {
     if (currentPage().src) {
-        recentlyClosed.push(currentPage().src)
+        if (!UTIL.pathToSpecialPageName(currentPage().src).name) {
+            recentlyClosed.push(currentPage().src)
+        }
     }
     const oldTabIndex = listTabs().indexOf(currentTab())
     document.getElementById("tabs").removeChild(currentTab())
@@ -254,25 +243,15 @@ const updateUrl = webview => {
         return
     }
     if (currentPage() && currentPage().src !== undefined) {
-        const pageUrl = currentPage().src
-        let section = pageUrl.split("#").slice(1).join("#")
-        if (section !== "") {
-            section = `#${section}`
+        const specialPage = UTIL.pathToSpecialPageName(currentPage().src)
+        if (!specialPage.name) {
+            document.getElementById("url").value = currentPage().src
+        } else if (specialPage.section) {
+            document.getElementById("url").value
+                = `vieb://${specialPage.name}#${specialPage.section}`
+        } else {
+            document.getElementById("url").value = `vieb://${specialPage.name}`
         }
-        const decodedPageUrl = decodeURIComponent(pageUrl)
-        for (const specialPage of specialPages) {
-            if (pageUrl.startsWith(UTIL.specialPage(specialPage))) {
-                document.getElementById("url").value
-                    = `vieb://${specialPage}${section}`
-                return
-            }
-            if (decodedPageUrl.startsWith(UTIL.specialPage(specialPage))) {
-                document.getElementById("url").value
-                    = `vieb://${specialPage}${section}`
-                return
-            }
-        }
-        document.getElementById("url").value = pageUrl
     } else {
         document.getElementById("url").value = ""
     }
@@ -319,7 +298,7 @@ const addWebviewListeners = webview => {
                     //Callback was already called
                 }
             })
-            loginWindow.loadURL(UTIL.specialPage("login"))
+            loginWindow.loadURL(UTIL.specialPagePath("login", null, true))
             remote.ipcMain.once("login-credentials", (_e, credentials) => {
                 try {
                     callback(credentials[0], credentials[1])
@@ -413,10 +392,6 @@ const navigateTo = location => {
     currentTab().querySelector("span").textContent = location
 }
 
-const specialPagesList = () => {
-    return specialPages
-}
-
 module.exports = {
     init,
     saveTabs,
@@ -429,6 +404,5 @@ module.exports = {
     closeTab,
     switchToTab,
     updateUrl,
-    navigateTo,
-    specialPagesList
+    navigateTo
 }

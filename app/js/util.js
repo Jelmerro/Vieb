@@ -28,6 +28,8 @@ const {remote} = require("electron")
 const urlRegex = /^(([a-zA-Z\d]+\.|([a-zA-Z\d]+[a-zA-Z\d-][a-zA-Z\d]+)+\.)+[a-zA-Z]{2,}|localhost|(\d{1,3}\.){3}\d{1,3})(:\d{2,5})?(|\/.*|\?.*|#.*)$/
 const protocolRegex = /^[a-z][a-z0-9-+.]+:\/\//
 
+const specialPages = ["help", "history", "downloads", "version"]
+
 const hasProtocol = location => {
     //Check for a valid protocol at the start
     //This will ALWAYS result in the url being valid
@@ -84,27 +86,81 @@ const notify = (message, type="info") => {
     }, SETTINGS.get("notification.duration"))
 }
 
-const specialPage = page => {
-    return `file://${path.join(__dirname, `../pages/${page}.html`)}`
+const specialPagePath = (page, section=null, skipExistCheck=false) => {
+    if (specialPages.indexOf(page) === -1 && !skipExistCheck) {
+        page = "help"
+    }
+    const url = path.join(__dirname, `../pages/${page}.html`)
+        .replace(/\\/g, "/").replace(/^\/*/g, "")
+    if (section) {
+        if (section.startsWith("#")) {
+            return `file:///${url}${section}`
+        }
+        return `file:///${url}#${section}`
+    }
+    return `file:///${url}`
+}
+
+const pathToSpecialPageName = urlPath => {
+    if (urlPath.startsWith("vieb://")) {
+        const parts = urlPath.replace("vieb://", "").split("#")
+        let name = parts[0]
+        if (specialPages.indexOf(name) === -1) {
+            name = "help"
+        }
+        return {"name": name, "section": parts.slice(1).join("#") || ""}
+    }
+    if (urlPath.startsWith("file://")) {
+        for (const page of specialPages) {
+            const specialPage = specialPagePath(page).replace(/^file:\/*/g, "")
+            const normalizedUrl = path.posix.normalize(
+                urlPath.replace(/^file:\/*/g, ""))
+            if (normalizedUrl.startsWith(specialPage)) {
+                return {
+                    "name": page,
+                    "section": urlPath.split("#").slice(1).join("#")
+                }
+            }
+            const decodedPath = decodeURIComponent(urlPath)
+            const decodedNormalizedUrl = path.posix.normalize(
+                decodedPath.replace(/^file:\/*/g, ""))
+            if (decodedNormalizedUrl.startsWith(specialPage)) {
+                return {
+                    "name": page,
+                    "section": urlPath.split("#").slice(1).join("#")
+                }
+            }
+        }
+    }
+    return {"name": "", "section": ""}
+}
+
+const rimrafFolder = folder => {
+    try {
+        rimraf(path.join(remote.app.getPath("appData"), folder))
+    } catch (e) {
+        //Rimraf errors
+    }
 }
 
 const clearCache = () => {
-    rimraf(path.join(remote.app.getPath("appData"), "Cache"))
-    rimraf(path.join(remote.app.getPath("appData"), "Code Cache"))
-    rimraf(path.join(remote.app.getPath("appData"), "GPUCache"))
-    rimraf(path.join(remote.app.getPath("appData"), "File System"))
+    rimrafFolder("Cache")
+    rimrafFolder("Code Cache")
+    rimrafFolder("GPUCache")
+    rimrafFolder("FIle System")
 }
 
 const clearLocalStorage = () => {
-    rimraf(path.join(remote.app.getPath("appData"), "IndexedDB"))
-    rimraf(path.join(remote.app.getPath("appData"), "Local Storage"))
+    rimrafFolder("IndexedDB")
+    rimrafFolder("Local Storage")
 }
 
 module.exports = {
     hasProtocol,
     isUrl,
     notify,
-    specialPage,
+    specialPagePath,
+    pathToSpecialPageName,
     clearCache,
     clearLocalStorage
 }
