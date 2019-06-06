@@ -22,10 +22,15 @@ const {remote} = require("electron")
 
 const execute = command => {
     //remove all redundant spaces
+    //allow commands prefixed with :
+    //and return if the command is empty
     while (command.indexOf("  ") !== -1) {
         command = command.replace("  ", " ")
     }
     command = command.trim()
+    if (command.startsWith(":")) {
+        command = command.replace(":", "")
+    }
     if (!command) {
         return
     }
@@ -154,26 +159,16 @@ const devtools = () => {
 
 const openSpecialPage = (specialPage, section=null) => {
     MODES.setMode("normal")
-    let pageUrl = UTIL.specialPage(specialPage)
-    //Switch to already open help if available
+    //Switch to already open special page if available
     let alreadyOpen = false
     TABS.listPages().forEach((page, index) => {
-        if (decodeURIComponent(page.src).startsWith(pageUrl)) {
-            alreadyOpen = true
-            TABS.switchToTab(index)
-        } else if (page.src.startsWith(pageUrl)) {
+        if (UTIL.pathToSpecialPageName(page.src).name === specialPage) {
             alreadyOpen = true
             TABS.switchToTab(index)
         }
     })
-    //Append section to the helpUrl
-    if (section !== null) {
-        if (section.startsWith("#")) {
-            section = section.slice(1)
-        }
-        pageUrl += `#${section}`
-    }
     //Open the url in the current or new tab, depending on currently open page
+    const pageUrl = UTIL.specialPagePath(specialPage, section)
     if (TABS.currentPage().src === "" || alreadyOpen) {
         TABS.navigateTo(pageUrl)
     } else {

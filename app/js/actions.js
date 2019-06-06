@@ -260,15 +260,9 @@ const useEnteredData = () => {
         const urlElement = document.getElementById("url")
         const location = urlElement.value.trim()
         if (location !== "") {
-            if (location.startsWith("vieb://")) {
-                const specialPage = location.replace(
-                    "vieb://", "").split("#")[0]
-                const section = location.split("#").slice(1).join("#")
-                if (TABS.specialPagesList().indexOf(specialPage) === -1) {
-                    COMMAND.openSpecialPage("help")
-                } else {
-                    COMMAND.openSpecialPage(specialPage, section || null)
-                }
+            const specialPage = UTIL.pathToSpecialPageName(location)
+            if (specialPage.name) {
+                COMMAND.openSpecialPage(specialPage.name, specialPage.section)
             } else if (UTIL.hasProtocol(location)) {
                 TABS.navigateTo(location)
             } else if (UTIL.isUrl(location)) {
