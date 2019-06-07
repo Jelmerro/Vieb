@@ -92,7 +92,7 @@ const parseAndDisplayLinks = l => {
         linkElement.textContent = numberToKeys(index, links.length)
         linkElement.className = `follow-${link.type}`
         const characterWidth = SETTINGS.get("fontSize") / 1.3
-        let borderRightMargin = characterWidth + 4
+        let borderRightMargin = characterWidth + SETTINGS.get("fontSize") * 0.2
         if (linkElement.textContent.length === 2) {
             borderRightMargin += characterWidth
         }

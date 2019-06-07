@@ -274,8 +274,8 @@ const addWebviewListeners = webview => {
             webview.setAttribute("logging-in", "yes")
             const windowData = {
                 backgroundColor: "#333333",
-                width: 300,
-                height: 300,
+                width: SETTINGS.get("fontSize") * 21,
+                height: SETTINGS.get("fontSize") * 21,
                 parent: remote.getCurrentWindow(),
                 modal: true,
                 frame: false,
