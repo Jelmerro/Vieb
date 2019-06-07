@@ -18,8 +18,8 @@
 /* Global */
 * {pointer-events: none;}
 body {color: #eee;font: 14px monospace;background: #333;padding: 0;margin: 0;height: 100vh;width: 100vw;overflow: hidden;user-select: none;}
-h3 {margin: 20px;}
-input {background: #555;border: solid 2px #777;color: #eee;width: 260px;height: 30px;margin-left: 20px;margin-bottom: 20px;outline: none;font: inherit;}
-input:focus {border: solid 2px #eee;}
-p {margin: 0 20px;word-wrap: break-word;overflow: hidden;}
+h3 {margin: 1.4em;}
+input {background: #555;border: solid .1em #777;color: #eee;width: 18em;height: 2em;margin-left: 1.4em;margin-bottom: 1.4em;outline: none;font: inherit;}
+input:focus {border: solid .1em #eee;}
+p {margin: 0 1.4em;word-wrap: break-word;overflow: hidden;}
 ::placeholder {color: #ccc;}
