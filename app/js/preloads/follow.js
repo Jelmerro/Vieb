@@ -75,7 +75,7 @@ ipcRenderer.on("follow-mode-request", e => {
     //Send response back to webview, which will forward it to follow.js
     //Ordered by the position on the page from the top
     e.sender.sendToHost("follow-response", allLinks.sort((el1, el2) => {
-        return el1.y - el2.y
+        return Math.floor(el1.y) - Math.floor(el2.y) || el1.x - el2.x
     }))
 })
 
