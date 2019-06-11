@@ -96,7 +96,7 @@ const parseAndDisplayLinks = l => {
         if (linkElement.textContent.length === 2) {
             borderRightMargin += characterWidth
         }
-        let left = (link.x + link.width) * factor + 1
+        let left = (link.x + link.width) * factor
         if (left > window.innerWidth - borderRightMargin) {
             left = window.innerWidth - borderRightMargin
         }

@@ -35,17 +35,18 @@ img {pointer-events: none;height: 1.5em;width: 1.5em;}
 #url.suggest {border-color: #3f3;}
 /* follow */
 #follow {height: calc(100vh - 4em);position: fixed;top: 4em;left: 0;width: 100vw;display: none;pointer-events: none;}
-.follow-url, .follow-inputs-click, .follow-inputs-insert, .follow-onclick {z-index: 1;position: absolute;color: #111;font-weight: bold;}
-.follow-url {background-color: #cff;border: solid .15em #5cc;}
-.follow-inputs-click {background-color: #fcc;border: solid .15em #c55;}
-.follow-inputs-insert {background-color: #cfc;border: solid .15em #5c5;}
-.follow-onclick {background-color: #ffc;border: solid .15em #cc5;}
-.follow-url-border {border: solid .07em #5cc;position: absolute;}
-.follow-inputs-click-border {border: solid .07em #c55;position: absolute;}
-.follow-inputs-insert-border {border: solid .07em #5c5;position: absolute;}
-.follow-onclick-border {border: solid .07em #cc5;position: absolute;}
+.follow-url, .follow-inputs-click, .follow-inputs-insert, .follow-onclick {position: absolute;color: #111;font-weight: bold;}
+.follow-url-border, .follow-inputs-click-border, .follow-inputs-insert-border, .follow-onclick-border {position: absolute;box-sizing: border-box;}
+.follow-url {background-color: #cff;border: solid .15em #5cc;z-index: 13;}
+.follow-inputs-click {background-color: #fcc;border: solid .15em #c55;z-index: 12;}
+.follow-inputs-insert {background-color: #cfc;border: solid .15em #5c5;z-index: 11;}
+.follow-onclick {background-color: #ffc;border: solid .15em #cc5;z-index: 10;}
+.follow-url-border {border: solid .07em #5cc;z-index: 9;}
+.follow-inputs-click-border {border: solid .07em #c55;z-index: 8;}
+.follow-inputs-insert-border {border: solid .07em #5c5;z-index: 7;}
+.follow-onclick-border {border: solid .07em #cc5;z-index: 6;}
 /* suggestions */
-#suggest-dropdown {z-index: 10;position: fixed;top: 2em;left: 4em;width: calc(100vw - 4.2em);background-color: #777;}
+#suggest-dropdown {z-index: 15;position: fixed;top: 2em;left: 4em;width: calc(100vw - 4.2em);background-color: #777;}
 #suggest-dropdown div {padding: 0.4em;margin: 0.4em;background-color: #555;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
 #suggest-dropdown div.selected {background-color: #777;}
 /* pages */
