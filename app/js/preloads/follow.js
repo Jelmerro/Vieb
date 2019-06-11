@@ -34,21 +34,35 @@ const textlikeInputs = ["input:not([type=\"radio\"]):not([type=\"checkbox\"])"
 "textarea",
 "select"]
 const onclickElements = "*:not(button):not(input)[onclick]:not([onclick=\"\"])"
+    + ", *:not(button):not(input)[onmousedown]:not([onmousedown=\"\"])"
 
 ipcRenderer.on("follow-mode-request", e => {
     const allLinks = []
     //a tags with href as the link, can be opened in new tab or current tab
     allLinks.push(...allElementsBySelectors("url", urls))
     //input tags such as checkboxes, can be clicked but have no text input
-    allLinks.push(...allElementsBySelectors("inputs-click", clickableInputs))
+    const inputs = [...document.querySelectorAll(clickableInputs)]
+    inputs.forEach(element => {
+        const clickable = parseElement(element, "inputs-click")
+        if (clickable) {
+            //Only show input elements for which there is no existing url
+            const similarExistingLinks = allLinks.filter(link => {
+                return checkForDuplicateLink(clickable, link)
+            })
+            if (similarExistingLinks.length === 0) {
+                allLinks.push(clickable)
+            }
+        }
+    })
     //input tags such as email and text, can have text inserted
     allLinks.push(...allElementsBySelectors("inputs-insert", textlikeInputs))
     //All other elements with onclick listeners
     const clickableElements = [...document.querySelectorAll(onclickElements)]
     clickableElements.push(...elementsWithClickListener)
+    clickableElements.push(...elementsWithMouseDownListener)
     clickableElements.forEach(element => {
         const clickable = parseElement(element, "onclick")
-        if (clickable !== null) {
+        if (clickable) {
             //Only show onclick elements for which there is no existing link
             const similarExistingLinks = allLinks.filter(link => {
                 return checkForDuplicateLink(clickable, link)
@@ -59,74 +73,93 @@ ipcRenderer.on("follow-mode-request", e => {
         }
     })
     //Send response back to webview, which will forward it to follow.js
-    e.sender.sendToHost("follow-response", allLinks)
+    //Ordered by the position on the page from the top
+    e.sender.sendToHost("follow-response", allLinks.sort((el1, el2) => {
+        return el1.y - el2.y
+    }))
 })
 
 const checkForDuplicateLink = (element, existing) => {
-    //check for exactly the same dimensions
-    if (element.height === existing.height) {
-        if (element.x === existing.x && element.y === existing.y) {
-            if (element.width === existing.width) {
-                return true
-            }
-        }
-    }
-    //check if the new element is overlapping an existing link
-    if (element.height + element.y >= existing.height + existing.y) {
-        if (element.width + element.x >= existing.width + existing.x) {
-            if (element.x <= existing.x && element.y <= existing.y) {
-                return true
-            }
+    //Check for similar click positions and remove them as a duplicate
+    const elementX = element.x + element.width / 2
+    const elementY = element.y + element.height / 2
+    const existingX = existing.x + existing.width / 2
+    const existingY = existing.y + existing.height / 2
+    if (elementX >= existingX - 2 && elementX <= existingX + 2) {
+        if (elementY >= existingY - 2 && elementY <= existingY + 2) {
+            return true
         }
     }
     return false
 }
 
+const elementClickableAtPosition = (element, x, y) => {
+    //Check if an element can be found in a given position.
+    //Also checks if any of the children are visible instead.
+    const elementAtPosition = document.elementFromPoint(x, y)
+    if (elementAtPosition === element) {
+        return true
+    }
+    return [...element.querySelectorAll("*")].indexOf(elementAtPosition) !== -1
+}
+
 const parseElement = (element, type) => {
-    const rects = [...element.getClientRects()]
-    let dimensions = element.getBoundingClientRect()
-    let embeddedImageLink = false
+    //The body shouldn't be considered clickable on it's own,
+    //even if listeners are added to it.
+    if (element === document.querySelector("html")
+            || element === document.body) {
+        return null
+    }
+    //Make a list of all possible bouding rects for the element
+    let rects = [...element.getClientRects()]
     if (type === "url") {
-        if (!isVisible(element, false)) {
-            return null
+        for (const subImage of element.querySelectorAll("img, svg")) {
+            rects = rects.concat([...subImage.getClientRects()])
         }
-        const anchorImage = element.querySelector("img, svg")
-        if (anchorImage !== null) {
-            const imageDimensions = anchorImage.getBoundingClientRect()
-            if (imageDimensions.width > dimensions.width) {
-                dimensions = imageDimensions
-                embeddedImageLink = true
-            }
-            if (imageDimensions.height > dimensions.height) {
-                dimensions = imageDimensions
-                embeddedImageLink = true
+    }
+    let dimensions = element.getBoundingClientRect()
+    //Check if the center of the boundingrect is actually clickable,
+    //for every possible rect of the element and it's sub images.
+    const clickX = dimensions.x + dimensions.width / 2
+    const clickY = dimensions.y + dimensions.height / 2
+    let clickable = elementClickableAtPosition(element, clickX, clickY)
+    for (const rect of rects) {
+        const rectX = rect.x + rect.width / 2
+        const rectY = rect.y + rect.height / 2
+        if (elementClickableAtPosition(element, rectX, rectY)) {
+            //Update the region if it's larger or the first region found
+            if (rect.width > dimensions.width
+                    || rect.height > dimensions.height
+                    || !clickable) {
+                clickable = true
+                dimensions = rect
             }
         }
-    } else if (!isVisible(element)) {
+    }
+    //Return if not a single clickable region could be found
+    if (!clickable) {
         return null
     }
-    if (!embeddedImageLink) {
-        if (rects.length === 0) {
-            return null
-        }
-        //Check if the center of the boundingrect is actually clickable
-        const clickX = dimensions.x + dimensions.width / 2
-        const clickY = dimensions.y + dimensions.height / 2
-        let clickable = false
-        rects.forEach(rect => {
-            if (rect.x < clickX && rect.x + rect.width > clickX) {
-                if (rect.y < clickY && rect.y + rect.height > clickY) {
-                    clickable = true
-                }
-            }
-        })
-        if (!clickable) {
-            dimensions = rects[0]
-        }
-    }
-    if (dimensions.width <= 1 || dimensions.height <= 1) {
+    //Too small to properly click on using a regular browser,
+    //thus should not be expected to be clicked on using follow mode.
+    if (dimensions.width <= 2 || dimensions.height <= 2) {
         return null
     }
+    //The element isn't actually visible on the user's current window
+    if (dimensions.bottom < 0 || dimensions.top > window.innerHeight) {
+        return false
+    }
+    if (dimensions.right < 0 || dimensions.left > window.innerWidth) {
+        return false
+    }
+    //The element is too big to actually make sense to click on by choice
+    if (dimensions.width >= window.innerWidth) {
+        return false
+    }
+    if (dimensions.height >= window.innerHeight) {
+        return false
+    }
+    //The element should be clickable and is returned in a parsed format
     return {
         "url": element.href || "",
         "x": dimensions.x,
@@ -135,36 +168,6 @@ const parseElement = (element, type) => {
         "height": dimensions.height,
         "type": type
     }
-}
-
-const isVisible = (element, doSizeCheck=true) => {
-    if (element.offsetWidth <= 1 || element.offsetHeight <= 1) {
-        if (doSizeCheck) {
-            return false
-        }
-    }
-    if (getComputedStyle(element).display === "none") {
-        return false
-    }
-    if (getComputedStyle(element).visibility === "hidden") {
-        return false
-    }
-    if (getComputedStyle(element).visibility === "collapse") {
-        return false
-    }
-    if (getComputedStyle(element).opacity === 0) {
-        return false
-    }
-    const dimensions = element.getBoundingClientRect()
-    // TODO maybe window.innerHeight is not the right way to go,
-    // but it's by far the best working option I have found for now
-    if (dimensions.bottom < 0 || dimensions.top > window.innerHeight) {
-        return false
-    }
-    if (dimensions.right < 0 || dimensions.left > window.innerWidth) {
-        return false
-    }
-    return true
 }
 
 const allElementsBySelectors = (type, selectors) => {
@@ -183,12 +186,16 @@ const allElementsBySelectors = (type, selectors) => {
 }
 
 const elementsWithClickListener = []
+const elementsWithMouseDownListener = []
 
 Node.prototype.realAddEventListener = Node.prototype.addEventListener
 Node.prototype.addEventListener = function(type, listener, options) {
     this.realAddEventListener(type, listener, options)
     if (type === "click" && this !== document) {
         elementsWithClickListener.push(this)
+    }
+    if (type === "mousedown" && this !== document) {
+        elementsWithMouseDownListener.push(this)
     }
 }
 Node.prototype.realRemoveEventListener = Node.prototype.removeEventListener
@@ -201,6 +208,13 @@ Node.prototype.removeEventListener = function(type, listener, options) {
     if (type === "click" && this !== document) {
         try {
             elementsWithClickListener.remove(this)
+        } catch (e) {
+            //The element was already removed from the list before
+        }
+    }
+    if (type === "mousedown" && this !== document) {
+        try {
+            elementsWithMouseDownListener.remove(this)
         } catch (e) {
             //The element was already removed from the list before
         }
