@@ -25,6 +25,7 @@ const clickableInputs = [
     "input[type=\"button\"]",
     "input[type=\"radio\"]",
     "input[type=\"checkbox\"]",
+    "label[for]:not([for=\"\"])",
     "input[type=\"submit\"]",
     "input[type=\"color\"]",
     "summary"
