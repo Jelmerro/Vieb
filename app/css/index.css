@@ -17,7 +17,7 @@
 */
 /* Global */
 body {color: #eee;font: 14px monospace;background: #333;padding: 0;margin: 0;height: 100vh;width: 100vw;overflow: hidden;user-select: none;}
-img {pointer-events: none;height: 1.5em;width: 1.5em;}
+img {pointer-events: none;height: 1.5em;width: 1.5em;padding: .25em;min-height: 1.5em;min-width: 1.5em;}
 /* Nav bar */
 #navbar {width: 100vw;height: 4em;display: flex;z-index: 1;background-color: #333;position: relative;}
 #logo {-webkit-app-region: drag;height: 3.6em;width: 3.6em;padding: .2em;}
