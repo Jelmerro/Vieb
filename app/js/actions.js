@@ -115,11 +115,9 @@ const toSearchMode = () => {
 }
 
 const scrollBottom = () => {
-    const javascript
-        = "window.scrollTo(document.body.scrollWidth, "
-        + "document.body.scrollHeight)"
     try {
-        TABS.currentPage().executeJavaScript(javascript, true)
+        TABS.currentPage().executeJavaScript(
+            "window.scrollTo(100000000, 100000000)", true)
     } catch (e) {
         //No page is available, not an issue
     }
