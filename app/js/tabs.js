@@ -69,7 +69,7 @@ const init = () => {
                     recentlyClosed = parsed.tabs
                 }
                 if (Array.isArray(parsed.closed)) {
-                    recentlyClosed.concat(parsed.closed)
+                    recentlyClosed = parsed.closed.concat(recentlyClosed)
                 }
             } else {
                 try {
@@ -122,10 +122,10 @@ const saveTabs = () => {
             data.closed = recentlyClosed
         }
     } else if (SETTINGS.get("tabs.keepRecentlyClosed")) {
+        data.closed = [...recentlyClosed]
         listPages().forEach(webview => {
             data.closed.push(webview.src)
         })
-        data.closed.concat(recentlyClosed)
     } else {
         try {
             fs.unlinkSync(tabFile)
@@ -366,6 +366,10 @@ const addWebviewListeners = webview => {
     })
     webview.addEventListener("enter-html-full-screen", () => {
         document.body.className = "fullscreen"
+        webview.blur()
+        webview.focus()
+        webview.executeJavaScript(
+            "document.elementFromPoint(0,0).focus()")
         MODES.setMode("insert")
     })
     webview.addEventListener("leave-html-full-screen", () => {
