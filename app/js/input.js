@@ -45,6 +45,8 @@ const bindings = {
         "S-KeyL": "ACTIONS.forwardInHistory",
         "S-KeyN": "ACTIONS.previousSearchMatch",
         "S-KeyR": "ACTIONS.reloadWithoutCache",
+        "S-Digit4": "ACTIONS.scrollPageRight",
+        "S-Digit6": "ACTIONS.scrollPageLeft",
         "S-Semicolon": "ACTIONS.toCommandMode",
         "C-KeyB": "ACTIONS.scrollPageUp",
         "C-KeyD": "ACTIONS.scrollPageDownHalf",

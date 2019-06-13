@@ -161,6 +161,24 @@ const reloadWithoutCache = () => {
     }
 }
 
+const scrollPageRight = () => {
+    try {
+        TABS.currentPage().executeJavaScript(
+            "window.scrollBy(window.innerWidth - 50, 0)", true)
+    } catch (e) {
+        //No page is available, not an issue
+    }
+}
+
+const scrollPageLeft = () => {
+    try {
+        TABS.currentPage().executeJavaScript(
+            "window.scrollBy(-window.innerWidth + 50, 0)", true)
+    } catch (e) {
+        //No page is available, not an issue
+    }
+}
+
 const toCommandMode = () => {
     MODES.setMode("command")
 }
@@ -353,6 +371,8 @@ module.exports = {
     forwardInHistory,
     previousSearchMatch,
     reloadWithoutCache,
+    scrollPageRight,
+    scrollPageLeft,
     toCommandMode,
     scrollPageUp,
     scrollPageDownHalf,
