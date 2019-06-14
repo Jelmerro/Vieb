@@ -99,6 +99,22 @@ const init = () => {
                 }
             })
         })
+        //This forces the webview to update on sites which wait for the mouse
+        //It will also enable the pointer events when in insert or cursor mode
+        setInterval(() => {
+            currentPage().style.pointerEvents = "auto"
+            if (MODES.currentMode() === "insert") {
+                return
+            }
+            if (MODES.currentMode() === "cursor") {
+                return
+            }
+            setTimeout(() => {
+                listPages().forEach(page => {
+                    page.style.pointerEvents = "none"
+                })
+            }, 10)
+        }, 100)
     })
 }
 
@@ -179,11 +195,17 @@ const addTab = (url=null) => {
     addWebviewListeners(webview)
     pages.appendChild(webview)
     webview.getWebContents().setUserAgent(useragent)
+    webview.addEventListener("focus", () => {
+        if (MODES.currentMode() !== "insert") {
+            webview.blur()
+        }
+    })
     if (url) {
         webview.src = url
         title.textContent = url
     }
     switchToTab(listTabs().length - 1)
+    MODES.setMode("normal")
 }
 
 const reopenTab = () => {
@@ -360,6 +382,9 @@ const addWebviewListeners = webview => {
     webview.addEventListener("will-navigate", e => {
         const tab = listTabs()[listPages().indexOf(webview)]
         tab.querySelector("span").textContent = e.url
+        if (MODES.currentMode() === "cursor") {
+            MODES.setMode("normal")
+        }
     })
     webview.addEventListener("new-window", e => {
         navigateTo(e.url)

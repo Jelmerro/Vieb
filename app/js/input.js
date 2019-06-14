@@ -15,13 +15,14 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS COMMAND FOLLOW HISTORY MODES SETTINGS SUGGEST */
+/* global ACTIONS COMMAND CURSOR FOLLOW HISTORY MODES SETTINGS SUGGEST */
 "use strict"
 
 const bindings = {
     "normal": {
         "F1": "COMMAND.help",
         "KeyB": "ACTIONS.previousTab",
+        "KeyC": "CURSOR.start",
         "KeyD": "ACTIONS.closeTab",
         "KeyE": "ACTIONS.toNavMode",
         "KeyF": "FOLLOW.startFollowCurrentTab",
@@ -33,8 +34,10 @@ const bindings = {
         "KeyL": "ACTIONS.scrollRight",
         "KeyN": "ACTIONS.nextSearchMatch",
         "KeyR": "ACTIONS.reload",
+        "KeyS": "CURSOR.start",
         "KeyT": "ACTIONS.openNewTab",
         "KeyU": "ACTIONS.reopenTab",
+        "KeyV": "CURSOR.start",
         "KeyW": "ACTIONS.nextTab",
         "Slash": "ACTIONS.toSearchMode",
         "S-KeyF": "FOLLOW.startFollowNewTab",
@@ -92,6 +95,54 @@ const bindings = {
         "F1": "COMMAND.help",
         "Escape": "FOLLOW.cancelFollow",
         "C-BracketLeft": "FOLLOW.cancelFollow"
+    },
+    "cursor": {
+        "F1": "COMMAND.help",
+        "KeyB": "CURSOR.moveFastLeft",
+        "KeyF": "CURSOR.leftClick",
+        "KeyG": "CURSOR.startOfPage",
+        "KeyH": "CURSOR.moveLeft",
+        "KeyJ": "CURSOR.moveDown",
+        "KeyK": "CURSOR.moveUp",
+        "KeyL": "CURSOR.moveRight",
+        "KeyM": "CURSOR.middleClick",
+        "KeyR": "CURSOR.rightClick",
+        "KeyV": "CURSOR.startVisualSelect",
+        "KeyW": "CURSOR.moveFastRight",
+        "Escape": "ACTIONS.toNormalMode",
+        "S-KeyH": "CURSOR.moveSlowLeft",
+        "S-KeyJ": "CURSOR.moveSlowDown",
+        "S-KeyK": "CURSOR.moveSlowUp",
+        "S-KeyL": "CURSOR.moveSlowRight",
+        "S-KeyG": "CURSOR.endOfPage",
+        "S-Digit4": "CURSOR.moveLeftMax",
+        "S-Digit6": "CURSOR.moveRightMax",
+        "C-KeyD": "CURSOR.moveFastDown",
+        "C-KeyU": "CURSOR.moveFastUp",
+        "C-BracketLeft": "ACTIONS.toNormalMode"
+    },
+    "visual": {
+        "F1": "COMMAND.help",
+        "KeyB": "CURSOR.moveFastLeft",
+        "KeyC": "CURSOR.copyAndStop",
+        "KeyG": "CURSOR.startOfPage",
+        "KeyH": "CURSOR.moveLeft",
+        "KeyJ": "CURSOR.moveDown",
+        "KeyK": "CURSOR.moveUp",
+        "KeyL": "CURSOR.moveRight",
+        "KeyW": "CURSOR.moveFastRight",
+        "KeyY": "CURSOR.copyAndStop",
+        "Escape": "ACTIONS.toNormalMode",
+        "S-KeyH": "CURSOR.moveSlowLeft",
+        "S-KeyJ": "CURSOR.moveSlowDown",
+        "S-KeyK": "CURSOR.moveSlowUp",
+        "S-KeyL": "CURSOR.moveSlowRight",
+        "S-KeyG": "CURSOR.endOfPage",
+        "S-Digit4": "CURSOR.moveRightMax",
+        "S-Digit6": "CURSOR.moveLeftMax",
+        "C-KeyD": "CURSOR.moveFastDown",
+        "C-KeyU": "CURSOR.moveFastUp",
+        "C-BracketLeft": "ACTIONS.toNormalMode"
     }
 }
 
@@ -110,6 +161,9 @@ const init = () => {
     window.addEventListener("resize", () => {
         if (MODES.currentMode() === "follow") {
             FOLLOW.startFollow()
+        }
+        if (MODES.currentMode() === "cursor") {
+            CURSOR.updateCursorElement()
         }
     })
     document.getElementById("url").addEventListener("input", () => {
@@ -181,7 +235,8 @@ const executeAction = action => {
     const categories = {
         "ACTIONS": ACTIONS,
         "FOLLOW": FOLLOW,
-        "COMMAND": COMMAND
+        "COMMAND": COMMAND,
+        "CURSOR": CURSOR
     }
     const categoryName = actionParts[0]
     if (categories[categoryName] === undefined) {

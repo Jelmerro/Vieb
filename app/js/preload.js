@@ -17,8 +17,10 @@
 */
 "use strict"
 
-// Always load follow mode specific javascript
+// Always load follow mode javascript
 require("./preloads/follow.js")
+// Always load selection function code (for visual mode)
+require("./preloads/select.js")
 
 // Load the special page specific javascript
 const util = require("./util.js")
