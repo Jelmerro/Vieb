@@ -64,19 +64,7 @@ const suggestHist = search => {
         const hist = parseHistLine(line)
         if (!hist) {
             //Invalid hist line
-        } else if (SUGGEST.indexOf(hist.url) === -1) {
-            const simpleUrl = hist.url.replace(/\W/g, "").toLowerCase()
-            const simpleTitle = hist.title.replace(/\W/g, "").toLowerCase()
-            if (simpleSearch.every(w => simpleUrl.indexOf(w) !== -1)) {
-                SUGGEST.addHist(hist,
-                    orderedSearch.test(hist.url.toLowerCase()),
-                    hist.url.toLowerCase().indexOf(search) !== -1)
-            } else if (simpleSearch.every(w => simpleTitle.indexOf(w) !== -1)) {
-                SUGGEST.addHist(hist,
-                    orderedSearch.test(hist.title.toLowerCase()),
-                    hist.title.toLowerCase().indexOf(search) !== -1)
-            }
-        } else {
+        } else if (SUGGEST.includes(hist.url)) {
             //Update existings urls in the suggestions list,
             //with more up to date titles (duplicate urls later in history)
             //And increase the visit counter to move frequent sites to the top
@@ -94,6 +82,18 @@ const suggestHist = search => {
                 }
                 const visits = Number(duplicate.getAttribute("visit-count"))
                 duplicate.setAttribute("visit-count", String(visits + 1))
+            }
+        } else {
+            const simpleUrl = hist.url.replace(/\W/g, "").toLowerCase()
+            const simpleTitle = hist.title.replace(/\W/g, "").toLowerCase()
+            if (simpleSearch.every(w => simpleUrl.includes(w))) {
+                SUGGEST.addHist(hist,
+                    orderedSearch.test(hist.url.toLowerCase()),
+                    hist.url.toLowerCase().includes(search))
+            } else if (simpleSearch.every(w => simpleTitle.includes(w))) {
+                SUGGEST.addHist(hist,
+                    orderedSearch.test(hist.title.toLowerCase()),
+                    hist.title.toLowerCase().includes(search))
             }
         }
     }).on("close", orderSuggestions)

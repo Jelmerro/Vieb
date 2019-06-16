@@ -61,7 +61,7 @@ const setMode = mode => {
     if (mode !== "cursor") {
         CURSOR.releaseKeys(mode === "visual")
     }
-    if (modes[mode] === undefined) {
+    if (!modes[mode]) {
         return
     }
     if (mode === "insert") {
@@ -100,7 +100,11 @@ const setMode = mode => {
                     "code": input.code
                 }
                 // Find the action
-                INPUT.executeAction(INPUT.eventToAction(keyEvent))
+                const actionFunction = INPUT.actionToFunction(
+                    INPUT.eventToAction(keyEvent))
+                if (actionFunction) {
+                    actionFunction()
+                }
             })
         }
     })

@@ -121,7 +121,7 @@ const parseAndDisplayLinks = l => {
 }
 
 const enterKey = identifier => {
-    if (identifier.indexOf("-") !== -1) {
+    if (identifier.includes("-")) {
         return
     }
     if (!identifier.startsWith("Key")) {

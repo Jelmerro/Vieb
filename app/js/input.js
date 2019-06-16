@@ -146,6 +146,8 @@ const bindings = {
     }
 }
 
+let repeatCounter = 0
+
 const init = () => {
     window.addEventListener("keydown", handleKeyboard)
     window.addEventListener("keypress", handleUserInput)
@@ -216,39 +218,52 @@ const handleKeyboard = e => {
         return
     }
     const action = eventToAction(e)
-    const isAction = executeAction(action)
-    if (isAction) {
+    const actionFunction = actionToFunction(action)
+    if (actionFunction) {
+        actionFunction()
+        if (["normal", "cursor", "visual"].includes(MODES.currentMode())) {
+            while (repeatCounter > 1) {
+                actionFunction()
+                repeatCounter -= 1
+            }
+            repeatCounter = 0
+        }
         e.preventDefault()
         return
+    }
+    const id = toIdentifier(e)
+    if (id.startsWith("Digit") && SETTINGS.get("digitsRepeatActions")) {
+        if (["normal", "cursor", "visual"].includes(MODES.currentMode())) {
+            const keyNumber = Number(id.replace("Digit", ""))
+            if (!isNaN(keyNumber)) {
+                repeatCounter = Number(String(repeatCounter) + keyNumber)
+                if (repeatCounter > 100) {
+                    repeatCounter = 100
+                }
+            }
+        } else {
+            repeatCounter = 0
+        }
     }
     handleUserInput(e)
 }
 
-const executeAction = action => {
+const actionToFunction = action => {
     if (typeof action !== "string") {
-        return false
+        return null
     }
-    const actionParts = action.split(".")
-    if (actionParts.length !== 2) {
-        return false
-    }
+    const [categoryName, func] = action.split(".")
     const categories = {
         "ACTIONS": ACTIONS,
         "FOLLOW": FOLLOW,
         "COMMAND": COMMAND,
         "CURSOR": CURSOR
     }
-    const categoryName = actionParts[0]
-    if (categories[categoryName] === undefined) {
-        return false
-    }
     const category = categories[categoryName]
-    const func = actionParts[1]
-    if (category[func] === undefined) {
-        return false
+    if (!category) {
+        return null
     }
-    category[func]()
-    return true
+    return category[func]
 }
 
 const handleUserInput = e => {
@@ -272,8 +287,8 @@ const handleUserInput = e => {
         "CS-ArrowRight"
     ]
     const shift = id.startsWith("S-")
-    const allowedInput = allowedUserInput.indexOf(id) !== -1
-    const hasModifier = id.indexOf("-") !== -1
+    const allowedInput = allowedUserInput.includes(id)
+    const hasModifier = id.includes("-")
     if (!shift && !allowedInput && hasModifier || e.code === "Tab") {
         e.preventDefault()
     }
@@ -283,5 +298,5 @@ const handleUserInput = e => {
 module.exports = {
     init,
     eventToAction,
-    executeAction
+    actionToFunction
 }

@@ -101,7 +101,7 @@ const elementClickableAtPosition = (element, x, y) => {
     if (elementAtPosition === element) {
         return true
     }
-    return [...element.querySelectorAll("*")].indexOf(elementAtPosition) !== -1
+    return [...element.querySelectorAll("*")].includes(elementAtPosition)
 }
 
 const parseElement = (element, type) => {
@@ -148,17 +148,17 @@ const parseElement = (element, type) => {
     }
     //The element isn't actually visible on the user's current window
     if (dimensions.bottom < 0 || dimensions.top > window.innerHeight) {
-        return false
+        return null
     }
     if (dimensions.right < 0 || dimensions.left > window.innerWidth) {
-        return false
+        return null
     }
     //The element is too big to actually make sense to click on by choice
     if (dimensions.width >= window.innerWidth) {
-        return false
+        return null
     }
     if (dimensions.height >= window.innerHeight) {
-        return false
+        return null
     }
     //The element should be clickable and is returned in a parsed format
     return {
@@ -179,7 +179,7 @@ const allElementsBySelectors = (type, selectors) => {
     const tags = []
     elements.forEach(element => {
         const clickableElement = parseElement(element, type)
-        if (clickableElement !== null) {
+        if (clickableElement) {
             tags.push(clickableElement)
         }
     })

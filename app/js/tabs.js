@@ -261,10 +261,10 @@ const switchToTab = index => {
 
 const updateUrl = webview => {
     const skip = ["command", "search", "nav"]
-    if (webview !== currentPage() || skip.indexOf(MODES.currentMode()) !== -1) {
+    if (webview !== currentPage() || skip.includes(MODES.currentMode())) {
         return
     }
-    if (currentPage() && currentPage().src !== undefined) {
+    if (currentPage() && currentPage().src) {
         const specialPage = UTIL.pathToSpecialPageName(currentPage().src)
         if (!specialPage.name) {
             document.getElementById("url").value = currentPage().src
@@ -346,7 +346,7 @@ const addWebviewListeners = webview => {
             "ERR_SSL_PROTOCOL_ERROR",
             "ERR_CERT_AUTHORITY_INVALID"
         ]
-        if (sslErrors.indexOf(e.errorDescription) !== -1 && redirect) {
+        if (sslErrors.includes(e.errorDescription) && redirect) {
             webview.src = webview.src.replace("https://", "http://")
             return
         }
