@@ -289,6 +289,7 @@
     "suggestCommands": false,
     "allowFollowModeDuringLoad": true,
     "fontSize": 20,
+    "digitsRepeatActions": false,
     "notification": {
         "duration": 3000,
         "position": "bottom-left"
@@ -340,6 +341,7 @@
         <li>Don't suggest/autocomplete commands when in command mode (suggestCommands)</li>
         <li>Allow the entering of follow mode during page loads, even if elements might move around (allowFollowModeDuringLoad)</li>
         <li>Increase the font size of all UI elements to 20px instead of 14px (fontSize)</li>
+        <li>Stop the digit keys from repeating actions (digitsRepeatActions)</li>
         <li>Reduce the notification duration to 3 seconds instead of 5 (notification.duration)</li>
         <li>Display the notification in the bottom left instead of the bottom right (notification.position)</li>
         <li>Downloads will be stored in the documents folder, except if method is set be "ask" (downloads.path)</li>
@@ -355,6 +357,7 @@
     </ul>
     Please note that the download, tab and browsing history are separately configured.
     Therefor it's possible to keep and restore the open tabs without keeping the other browsing history.
+    More information about the history settings can be found in <a href="#history">the history chapter</a>.
     To find the right setting for you, the set command can be used at runtime to test a specific setting.
     This concludes the documentation regarding the viebrc file.
     In the next paragraph, the set command will be explained.
@@ -486,6 +489,12 @@
         <li>Zoom in or out by pressing <kbd>Ctrl with +</kbd> and <kbd>Ctrl with -</kbd>.</li>
         <li>Reset the zoom to 100% again using <kbd>Ctrl with 0</kbd>.</li>
     </ul>
+    Aside from these, any number of digits can be entered before executing an action,
+    which will result in the action being executed for the number of times entered.
+    For example, pressing <kbd>2</kbd> and then <kbd>j</kbd> will result in scrolling down twice.
+    This can be disabled by overwriting the action for any of the digits.
+    To disable the repeat action behavior entirely, set "digitsRepeatActions" to false in the settings.
+    This repeat action behavior is also present in cursor and visual mode.
     <h1 id="follow">Follow</h1>
     This mode is a very important aspect of Vieb,
     as it allows you to click on links or other elements using the keyboard.

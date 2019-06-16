@@ -32,7 +32,7 @@ if (specialPage.name) {
 // Change the background to white for pages with no explicit background styling
 window.addEventListener("load", () => {
     const background = getComputedStyle(document.body).background
-    if (background.indexOf("rgba(0, 0, 0, 0)") !== -1) {
+    if (background.includes("rgba(0, 0, 0, 0)")) {
         document.body.style.background = "white"
     }
 })

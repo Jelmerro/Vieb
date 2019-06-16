@@ -83,6 +83,7 @@
     "suggestCommands": true,
     "allowFollowModeDuringLoad": false,
     "fontSize": 14,
+    "digitsRepeatActions": true,
     "notification": {
         "system": false,
         "position": "bottom-right",

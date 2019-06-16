@@ -306,7 +306,7 @@ const setFocusCorrectly = () => {
         TABS.currentPage().click()
     }
     if (document.activeElement !== urlElement) {
-        if (["search", "command"].indexOf(MODES.currentMode()) !== -1) {
+        if (["search", "command"].includes(MODES.currentMode())) {
             window.focus()
             urlElement.focus()
             if (urlElement.value === TABS.currentPage().src) {

@@ -88,6 +88,10 @@ const addToList = suggestion => {
     suggestions.push(suggestion)
 }
 
+const includes = suggestion => {
+    return suggestions.includes(suggestion)
+}
+
 const indexOf = suggestion => {
     return suggestions.indexOf(suggestion)
 }
@@ -215,6 +219,7 @@ module.exports = {
     cancelSuggestions,
     clear,
     addToList,
+    includes,
     indexOf,
     addHist,
     suggestCommand

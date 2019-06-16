@@ -33,6 +33,7 @@ const defaultSettings = {
     "suggestCommands": true,
     "allowFollowModeDuringLoad": false,
     "fontSize": 14,
+    "digitsRepeatActions": true,
     "notification": {
         "system": false,
         "position": "bottom-right",
@@ -59,7 +60,6 @@ let allSettings = {}
 
 const init = () => {
     loadFromDisk()
-    updateDownloadSettingsInMain()
 }
 
 const expandPath = homePath => {
@@ -109,8 +109,7 @@ const loadFromDisk = () => {
             }
             if (typeof parsed.fontSize === "number") {
                 allSettings.fontSize
-                    = Math.min(Math.max(Number(parsed.fontSize), 8), 20)
-                document.body.style.fontSize = `${allSettings.fontSize}px`
+                    = Math.min(Math.max(Number(parsed.fontSize), 8), 30)
             }
             if (typeof parsed.notification === "object") {
                 if (typeof parsed.notification.system === "boolean") {
@@ -119,7 +118,7 @@ const loadFromDisk = () => {
                 const positions = [
                     "bottom-right", "bottom-left", "top-right", "top-left"
                 ]
-                if (positions.indexOf(parsed.notification.position) !== -1) {
+                if (positions.includes(parsed.notification.position)) {
                     allSettings.notification.position
                         = parsed.notification.position
                 }
@@ -138,7 +137,7 @@ const loadFromDisk = () => {
                     }
                 }
                 const methods = ["automatic", "confirm", "ask"]
-                if (methods.indexOf(parsed.downloads.method) !== -1) {
+                if (methods.includes(parsed.downloads.method)) {
                     allSettings.downloads.method = parsed.downloads.method
                 }
                 if (typeof parsed.downloads.removeCompleted === "boolean") {
@@ -183,14 +182,19 @@ const loadFromDisk = () => {
                 `The config file located at '${config}' is corrupt`, "err")
         }
     }
+    document.body.style.fontSize = `${allSettings.fontSize}px`
+    updateDownloadSettingsInMain()
 }
 
 const get = setting => {
-    if (setting.indexOf(".") === -1) {
+    if (!setting.includes(".")) {
         return allSettings[setting]
     }
-    const parts = setting.split(".")
-    return allSettings[parts[0]][parts[1]]
+    const [group, config] = setting.split(".")
+    if (!allSettings[group]) {
+        return null
+    }
+    return allSettings[group][config]
 }
 
 const set = (setting, value) => {
@@ -292,9 +296,9 @@ const set = (setting, value) => {
             if (numberValue < 8) {
                 UTIL.notify(
                     "The fontsize can not be smaller than 8", "warn")
-            } else if (numberValue > 20) {
+            } else if (numberValue > 30) {
                 UTIL.notify(
-                    "The fontsize can not be larger than 20", "warn")
+                    "The fontsize can not be larger than 30", "warn")
             } else {
                 allSettings.fontSize = numberValue
                 document.body.style.fontSize = `${numberValue}px`
@@ -320,12 +324,12 @@ const set = (setting, value) => {
     }
     const positions = ["bottom-right", "bottom-left", "top-right", "top-left"]
     if (setting === "notification.position") {
-        if (positions.indexOf(value) === -1) {
+        if (positions.includes(value)) {
+            allSettings.notification.position = value
+        } else {
             UTIL.notify(`${"This is an invalid value for this setting, only "
                 + "the following options are available: "}
                 ${positions.join(", ")}`, "warn")
-        } else {
-            allSettings.notification.position = value
         }
         return
     }
@@ -360,12 +364,12 @@ const set = (setting, value) => {
     }
     if (setting === "downloads.method") {
         const options = ["ask", "automatic", "confirm"]
-        if (options.indexOf(value) === -1) {
-            UTIL.notify(`The download method must be one of:\n
-                ${options.join(", ")}`, "warn")
-        } else {
+        if (options.includes(value)) {
             allSettings.downloads.method = value
             updateDownloadSettingsInMain()
+        } else {
+            UTIL.notify(`The download method must be one of:\n
+                ${options.join(", ")}`, "warn")
         }
         return
     }

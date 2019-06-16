@@ -80,23 +80,23 @@ ipcRenderer.on("download-list", (e, list, unconfirmed) => {
     }
     if (listOnPage.length > list.length) {
         for (let i = 0;i < listOnPage.length;i++) {
-            if (list[i] === undefined) {
+            if (list[i]) {
+                updateDownload(list[i], listOnPage[i], i)
+            } else {
                 try {
                     document.getElementById("list").removeChild(
                         document.querySelectorAll("#list .download")[i])
                 } catch (err) {
                     //List might be shorter the second time this is called
                 }
-            } else {
-                updateDownload(list[i], listOnPage[i], i)
             }
         }
     } else {
         for (let i = 0;i < list.length;i++) {
-            if (listOnPage[i] === undefined) {
-                addDownload(list[i], i)
-            } else {
+            if (listOnPage[i]) {
                 updateDownload(list[i], listOnPage[i], i)
+            } else {
+                addDownload(list[i], i)
             }
         }
     }
