@@ -15,14 +15,26 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global MODES SETTINGS TABS */
+/* global ACTIONS MODES SETTINGS TABS */
 "use strict"
 
-let selectStartX = 0
-let selectStartY = 0
 let X = 0
 let Y = 0
 let cursor = null
+let listenForScroll = false
+
+const init = () => {
+    setInterval(() => {
+        if (["cursor", "visual"].includes(MODES.currentMode())) {
+            document.getElementById("cursor").style.backgroundColor = "#fff"
+        }
+        setTimeout(() => {
+            if (["cursor", "visual"].includes(MODES.currentMode())) {
+                document.getElementById("cursor").style.backgroundColor = "#0ff"
+            }
+        }, 1000)
+    }, 1500)
+}
 
 const start = () => {
     MODES.setMode("cursor")
@@ -36,6 +48,14 @@ const start = () => {
     updateCursorElement()
 }
 
+const handleScrollDiffEvent = diff => {
+    if (listenForScroll) {
+        Y += diff
+        updateCursorElement()
+        listenForScroll = false
+    }
+}
+
 const updateCursorElement = () => {
     if (X < 0) {
         X = 0
@@ -43,8 +63,8 @@ const updateCursorElement = () => {
     if (Y < 0) {
         Y = 0
     }
-    if (X > window.innerWidth - SETTINGS.get("fontSize") * 0.7) {
-        X = window.innerWidth - SETTINGS.get("fontSize") * 0.7
+    if (X > window.innerWidth - SETTINGS.get("fontSize") * 1.4) {
+        X = window.innerWidth - SETTINGS.get("fontSize") * 1.4
     }
     if (Y > window.innerHeight - SETTINGS.get("fontSize") * 5) {
         Y = window.innerHeight - SETTINGS.get("fontSize") * 5
@@ -66,8 +86,7 @@ const updateCursorElement = () => {
     if (MODES.currentMode() === "visual") {
         const factor = TABS.currentPage().getZoomFactor()
         TABS.currentPage().getWebContents().send(
-            "selection-request", selectStartX / factor, selectStartY / factor,
-            X / factor, Y / factor)
+            "selection-request", X / factor, Y / factor)
     }
 }
 
@@ -127,7 +146,7 @@ const leftClick = () => {
 }
 
 const startOfPage = () => {
-    X = 0
+    ACTIONS.scrollTop()
     Y = 0
     updateCursorElement()
 }
@@ -138,12 +157,22 @@ const moveLeft = () => {
 }
 
 const moveDown = () => {
-    Y += 10
+    if (Y === window.innerHeight - SETTINGS.get("fontSize") * 5) {
+        ACTIONS.scrollDown()
+        listenForScroll = true
+    } else {
+        Y += 10
+    }
     updateCursorElement()
 }
 
 const moveUp = () => {
-    Y -= 10
+    if (Y === 0) {
+        ACTIONS.scrollUp()
+        listenForScroll = true
+    } else {
+        Y -= 10
+    }
     updateCursorElement()
 }
 
@@ -161,13 +190,46 @@ const rightClick = () => {
 }
 
 const startVisualSelect = () => {
-    selectStartX = X
-    selectStartY = Y
+    const factor = TABS.currentPage().getZoomFactor()
+    TABS.currentPage().getWebContents().send(
+        "selection-start-location", X / factor, Y / factor)
     MODES.setMode("visual")
 }
 
 const moveFastRight = () => {
     X += 100
+    updateCursorElement()
+}
+
+const centerOfView = () => {
+    Y = window.innerHeight / 2
+    updateCursorElement()
+}
+
+const scrollDown = () => {
+    TABS.currentPage().getWebContents().sendInputEvent({
+        "type": "mouseWheel",
+        "x": X,
+        "y": Y,
+        "deltaX": 0,
+        "deltaY": -100
+    })
+    updateCursorElement()
+}
+
+const scrollUp = () => {
+    TABS.currentPage().getWebContents().sendInputEvent({
+        "type": "mouseWheel",
+        "x": X,
+        "y": Y,
+        "deltaX": 0,
+        "deltaY": 100
+    })
+    updateCursorElement()
+}
+
+const startOfView = () => {
+    Y = 0
     updateCursorElement()
 }
 
@@ -191,8 +253,13 @@ const moveSlowRight = () => {
     updateCursorElement()
 }
 
+const endOfView = () => {
+    Y = window.innerHeight
+    updateCursorElement()
+}
+
 const endOfPage = () => {
-    X = window.innerWidth
+    ACTIONS.scrollBottom()
     Y = window.innerHeight
     updateCursorElement()
 }
@@ -208,17 +275,29 @@ const moveLeftMax = () => {
 }
 
 const moveFastDown = () => {
-    Y += 100
+    if (Y === window.innerHeight - SETTINGS.get("fontSize") * 5) {
+        ACTIONS.scrollDown()
+        listenForScroll = true
+    } else {
+        Y += 100
+    }
     updateCursorElement()
 }
 
 const moveFastUp = () => {
-    Y -= 100
+    if (Y === 0) {
+        ACTIONS.scrollUp()
+        listenForScroll = true
+    } else {
+        Y -= 100
+    }
     updateCursorElement()
 }
 
 module.exports = {
+    init,
     start,
+    handleScrollDiffEvent,
     updateCursorElement,
     moveFastLeft,
     releaseKeys,
@@ -232,7 +311,13 @@ module.exports = {
     rightClick,
     startVisualSelect,
     moveFastRight,
+    centerOfView,
+    scrollDown,
+    scrollUp,
     copyAndStop,
+    startOfView,
+    endOfView,
+    endOfPage,
     moveSlowLeft,
     moveSlowDown,
     moveSlowUp,
@@ -240,6 +325,5 @@ module.exports = {
     moveRightMax,
     moveLeftMax,
     moveFastDown,
-    moveFastUp,
-    endOfPage
+    moveFastUp
 }

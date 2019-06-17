@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global DOWNLOADS FOLLOW HISTORY MODES SETTINGS UTIL */
+/* global ACTIONS CURSOR DOWNLOADS FOLLOW HISTORY MODES SETTINGS UTIL */
 "use strict"
 
 const fs = require("fs")
@@ -140,7 +140,9 @@ const saveTabs = () => {
     } else if (SETTINGS.get("tabs.keepRecentlyClosed")) {
         data.closed = [...recentlyClosed]
         listPages().forEach(webview => {
-            data.closed.push(webview.src)
+            if (!UTIL.pathToSpecialPageName(webview.src).name && webview.src) {
+                data.closed.push(webview.src)
+            }
         })
     } else {
         try {
@@ -380,6 +382,7 @@ const addWebviewListeners = webview => {
         updateUrl(webview)
     })
     webview.addEventListener("will-navigate", e => {
+        ACTIONS.emptySearch()
         const tab = listTabs()[listPages().indexOf(webview)]
         tab.querySelector("span").textContent = e.url
         if (MODES.currentMode() === "cursor") {
@@ -408,6 +411,13 @@ const addWebviewListeners = webview => {
         if (e.channel === "download-list-request") {
             DOWNLOADS.sendDownloadList(e.args[0], e.args[1])
         }
+        if (e.channel === "scroll-height-diff") {
+            CURSOR.handleScrollDiffEvent(e.args[0])
+        }
+    })
+    webview.addEventListener("found-in-page", e => {
+        webview.getWebContents().send("search-element-location",
+            e.result.selectionArea)
     })
     webview.onblur = () => {
         if (MODES.currentMode() === "insert") {

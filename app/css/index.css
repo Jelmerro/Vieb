@@ -53,7 +53,7 @@ img {height: 1.5em;width: 1.5em;padding: .25em;min-height: 1.5em;min-width: 1.5e
 webview {height: calc(100vh - 4em);width: 100vw;display: flex;pointer-events: none;}
 #invisible-overlay {position: absolute;top: 0;left: 0;width: 100vw;height: 100vh;z-index:50;}
 /* cursor */
-#cursor {display: none;position: absolute;top: 0;left: 0;height: 1em;width: .7em;z-index: 20;background-color: #00f;}
+#cursor {display: none;position: absolute;top: 0;left: 0;height: 1em;width: .7em;z-index: 20;background-color: #fff;mix-blend-mode: difference;}
 /* fullscreen */
 body.fullscreen #navbar {display: none;}
 body.fullscreen webview {height: 100vh;}
