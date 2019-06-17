@@ -19,6 +19,8 @@
 
 const {ipcRenderer} = require("electron")
 
+let focussedSearchElement = null
+
 const urls = ["a"]
 const clickableInputs = [
     "button",
@@ -36,6 +38,17 @@ const textlikeInputs = ["input:not([type=\"radio\"]):not([type=\"checkbox\"])"
 "select"]
 const onclickElements = "*:not(button):not(input)[onclick]:not([onclick=\"\"])"
     + ", *:not(button):not(input)[onmousedown]:not([onmousedown=\"\"])"
+
+ipcRenderer.on("search-element-location", (e, pos) => {
+    focussedSearchElement = document.elementFromPoint(
+        pos.x + pos.width / 2, pos.y + pos.height / 2)
+})
+
+ipcRenderer.on("search-element-click", () => {
+    if (focussedSearchElement) {
+        focussedSearchElement.click()
+    }
+})
 
 ipcRenderer.on("follow-mode-request", e => {
     const allLinks = []

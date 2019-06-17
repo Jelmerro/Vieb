@@ -199,7 +199,12 @@ const suggestCommand = search => {
         return
     }
     const possibleCommands = commandList.filter(c => {
-        return c.toLowerCase().startsWith(search.toLowerCase())
+        if (c.toLowerCase().startsWith(search.toLowerCase())) {
+            if (c.toLowerCase().trim() !== search.toLowerCase().trim()) {
+                return true
+            }
+        }
+        return false
     })
     for (const command of possibleCommands.slice(0, 10)) {
         addCommand(command)

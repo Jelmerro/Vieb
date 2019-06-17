@@ -19,14 +19,29 @@
 
 const {ipcRenderer} = require("electron")
 
-ipcRenderer.on("selection-request", (e, startX, startY, endX, endY) => {
-    let startElement = document.elementFromPoint(startX, startY)
-    let endElement = document.elementFromPoint(endX, endY)
-    const startResult = calculateOffset(startElement, startX, startY)
-    startElement = startResult.node
+let startX = 0
+let startY = 0
+let scrollHeight = 0
+
+ipcRenderer.on("selection-start-location", (e, sX, sY) => {
+    startX = sX
+    startY = sY
+    scrollHeight = window.scrollY
+})
+
+window.addEventListener("scroll", () => {
+    const scrollDiff = scrollHeight - window.scrollY
+    startY += scrollDiff
+    scrollHeight = window.scrollY
+    ipcRenderer.sendToHost("scroll-height-diff", scrollDiff)
+})
+
+ipcRenderer.on("selection-request", (e, endX, endY) => {
+    const startResult = calculateOffset(document.body, startX, startY)
+    const startElement = startResult.node
     const startOffset = startResult.offset
-    const endResult = calculateOffset(endElement, endX, endY)
-    endElement = endResult.node
+    const endResult = calculateOffset(document.body, endX, endY)
+    const endElement = endResult.node
     const endOffset = endResult.offset
     const newSelectRange = document.createRange()
     newSelectRange.setStart(startElement, startOffset)

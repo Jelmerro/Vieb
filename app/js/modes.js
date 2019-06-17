@@ -58,7 +58,7 @@ const setMode = mode => {
     if (mode !== "nav" && mode !== "command") {
         SUGGEST.cancelSuggestions()
     }
-    if (mode !== "cursor") {
+    if (mode !== "cursor" && ["cursor", "visual"].includes(currentMode())) {
         CURSOR.releaseKeys(mode === "visual")
     }
     if (!modes[mode]) {
@@ -103,7 +103,10 @@ const setMode = mode => {
                 const actionFunction = INPUT.actionToFunction(
                     INPUT.eventToAction(keyEvent))
                 if (actionFunction) {
-                    actionFunction()
+                    e.preventDefault()
+                    if (currentMode() === "insert") {
+                        actionFunction()
+                    }
                 }
             })
         }
