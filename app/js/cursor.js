@@ -18,6 +18,8 @@
 /* global ACTIONS MODES SETTINGS TABS */
 "use strict"
 
+const {remote} = require("electron")
+
 let X = 0
 let Y = 0
 let cursor = null
@@ -30,7 +32,7 @@ const init = () => {
         }
         setTimeout(() => {
             if (["cursor", "visual"].includes(MODES.currentMode())) {
-                document.getElementById("cursor").style.backgroundColor = "#0ff"
+                document.getElementById("cursor").style.backgroundColor = "#3af"
             }
         }, 1000)
     }, 1500)
@@ -136,8 +138,20 @@ const moveFastLeft = () => {
     updateCursorElement()
 }
 
+const downloadImage = () => {
+    const factor = TABS.currentPage().getZoomFactor()
+    TABS.currentPage().getWebContents().send(
+        "download-image-request", X / factor, Y / factor)
+}
+
 const copyAndStop = () => {
-    TABS.currentPage().executeJavaScript("document.execCommand('copy')")
+    if (MODES.currentMode() === "cursor") {
+        remote.clipboard.write({
+            text: document.getElementById("url-hover").textContent
+        })
+    } else {
+        TABS.currentPage().executeJavaScript("document.execCommand('copy')")
+    }
     MODES.setMode("normal")
 }
 
@@ -299,8 +313,9 @@ module.exports = {
     start,
     handleScrollDiffEvent,
     updateCursorElement,
-    moveFastLeft,
     releaseKeys,
+    moveFastLeft,
+    downloadImage,
     leftClick,
     startOfPage,
     moveLeft,

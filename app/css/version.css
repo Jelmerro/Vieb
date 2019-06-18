@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-body {color: #eee;max-width: 1000px;font: 18px monospace;background: #333;padding: 0;margin: auto;user-select: none;}
+body {color: #eee;max-width: 1000px;font: 18px monospace;background: #333;padding: 0;margin: auto;}
 #title {font-size: 2.5em;}
 #subtitle {font-size: 1.5em;}
 .header {display: flex;}
