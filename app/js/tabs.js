@@ -419,6 +419,24 @@ const addWebviewListeners = webview => {
         webview.getWebContents().send("search-element-location",
             e.result.selectionArea)
     })
+    webview.addEventListener("update-target-url", e => {
+        if (e.url && ["insert", "cursor"].includes(MODES.currentMode())) {
+            const special = UTIL.pathToSpecialPageName(e.url)
+            if (!special.name) {
+                document.getElementById("url-hover").textContent = e.url
+            } else if (special.section) {
+                document.getElementById("url-hover").textContent
+                    = `vieb://${special.name}#${special.section}`
+            } else {
+                document.getElementById("url-hover").textContent
+                    = `vieb://${special.name}`
+            }
+            document.getElementById("url-hover").style.display = "flex"
+        } else {
+            document.getElementById("url-hover").textContent = ""
+            document.getElementById("url-hover").style.display = "none"
+        }
+    })
     webview.onblur = () => {
         if (MODES.currentMode() === "insert") {
             webview.focus()

@@ -36,6 +36,39 @@ window.addEventListener("scroll", () => {
     ipcRenderer.sendToHost("scroll-height-diff", scrollDiff)
 })
 
+const downloadImage = img => {
+    if (img) {
+        const el = document.createElement("a")
+        el.href = img
+        el.download = img.split("/")[img.split("/").length - 1]
+        document.body.appendChild(el)
+        el.click()
+        document.body.removeChild(el)
+    }
+}
+
+const downloadSVG = svg => {
+    const el = document.createElement("a")
+    el.href = window.URL.createObjectURL(
+        new Blob(svg.split(), {type: "img/svg"}))
+    el.download = `${window.location.hostname.replace("\\", "/")} vector.svg`
+    document.body.appendChild(el)
+    el.click()
+    document.body.removeChild(el)
+}
+
+ipcRenderer.on("download-image-request", (e, x, y) => {
+    const elements = [...document.elementsFromPoint(x, y)]
+    elements.forEach(el => {
+        if (el.tagName.toLowerCase() === "img") {
+            downloadImage(el.src)
+        }
+        if (el.tagName.toLowerCase() === "svg") {
+            downloadSVG(el.outerHTML)
+        }
+    })
+})
+
 ipcRenderer.on("selection-request", (e, endX, endY) => {
     const startResult = calculateOffset(document.body, startX, startY)
     const startElement = startResult.node

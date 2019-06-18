@@ -100,6 +100,7 @@ const bindings = {
     "cursor": {
         "F1": "COMMAND.help",
         "KeyB": "CURSOR.moveFastLeft",
+        "KeyD": "CURSOR.downloadImage",
         "KeyF": "CURSOR.leftClick",
         "KeyG": "CURSOR.startOfPage",
         "KeyH": "CURSOR.moveLeft",
@@ -110,6 +111,7 @@ const bindings = {
         "KeyR": "CURSOR.rightClick",
         "KeyV": "CURSOR.startVisualSelect",
         "KeyW": "CURSOR.moveFastRight",
+        "KeyY": "CURSOR.copyAndStop",
         "Escape": "ACTIONS.toNormalMode",
         "S-KeyG": "CURSOR.endOfPage",
         "S-KeyH": "CURSOR.startOfView",
