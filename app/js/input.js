@@ -107,7 +107,6 @@ const bindings = {
         "KeyJ": "CURSOR.moveDown",
         "KeyK": "CURSOR.moveUp",
         "KeyL": "CURSOR.moveRight",
-        "KeyM": "CURSOR.middleClick",
         "KeyR": "CURSOR.rightClick",
         "KeyV": "CURSOR.startVisualSelect",
         "KeyW": "CURSOR.moveFastRight",

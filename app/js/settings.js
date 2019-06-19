@@ -71,7 +71,7 @@ const expandPath = homePath => {
 
 const updateDownloadSettingsInMain = () => {
     remote.app.setPath("downloads", expandPath(allSettings.downloads.path))
-    ipcRenderer.send("download-settings-change", allSettings.downloads.method)
+    ipcRenderer.send("download-settings-change", allSettings.downloads)
 }
 
 const loadFromDisk = () => {
@@ -376,11 +376,12 @@ const set = (setting, value) => {
     if (setting === "downloads.removecompleted") {
         if (value === "true") {
             allSettings.downloads.removeCompleted = true
-            DOWNLOADS.clearCompleted()
+            updateDownloadSettingsInMain()
             return
         }
         if (value === "false") {
             allSettings.downloads.removeCompleted = false
+            updateDownloadSettingsInMain()
             return
         }
         UTIL.notify("This is an invalid value for this setting, only "
@@ -390,10 +391,12 @@ const set = (setting, value) => {
     if (setting === "downloads.clearonquit") {
         if (value === "true") {
             allSettings.downloads.clearOnQuit = true
+            updateDownloadSettingsInMain()
             return
         }
         if (value === "false") {
             allSettings.downloads.clearOnQuit = false
+            updateDownloadSettingsInMain()
             return
         }
         UTIL.notify("This is an invalid value for this setting, only "

@@ -27,10 +27,15 @@ let listenForScroll = false
 
 const init = () => {
     setInterval(() => {
+        ACTIONS.setFocusCorrectly()
         if (["cursor", "visual"].includes(MODES.currentMode())) {
             document.getElementById("cursor").style.backgroundColor = "#fff"
         }
         setTimeout(() => {
+            ACTIONS.setFocusCorrectly()
+        }, 500)
+        setTimeout(() => {
+            ACTIONS.setFocusCorrectly()
             if (["cursor", "visual"].includes(MODES.currentMode())) {
                 document.getElementById("cursor").style.backgroundColor = "#3af"
             }
@@ -113,7 +118,7 @@ const releaseKeys = stayVisble => {
     if (cursor && !stayVisble) {
         cursor.style.display = ""
     }
-    for (const button of ["left", "right", "middle"]) {
+    for (const button of ["left", "right"]) {
         TABS.currentPage().sendInputEvent({
             "type": "mouseUp",
             "x": X,
@@ -193,10 +198,6 @@ const moveUp = () => {
 const moveRight = () => {
     X += 10
     updateCursorElement()
-}
-
-const middleClick = () => {
-    click("middle")
 }
 
 const rightClick = () => {
@@ -322,7 +323,6 @@ module.exports = {
     moveDown,
     moveUp,
     moveRight,
-    middleClick,
     rightClick,
     startVisualSelect,
     moveFastRight,

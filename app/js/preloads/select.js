@@ -70,20 +70,30 @@ ipcRenderer.on("download-image-request", (e, x, y) => {
 })
 
 ipcRenderer.on("selection-request", (e, endX, endY) => {
-    const startResult = calculateOffset(document.body, startX, startY)
-    const startElement = startResult.node
-    const startOffset = startResult.offset
-    const endResult = calculateOffset(document.body, endX, endY)
-    const endElement = endResult.node
-    const endOffset = endResult.offset
+    let startNode = document.elementFromPoint(startX, startY)
+    if (startY < 0 || startY > window.innerHeight) {
+        startNode = document.body
+    }
+    const startResult = calculateOffset(
+        startNode, startX, startY)
+    const endResult = calculateOffset(
+        document.elementFromPoint(endX, endY), endX, endY)
     const newSelectRange = document.createRange()
-    newSelectRange.setStart(startElement, startOffset)
-    newSelectRange.setEnd(endElement, endOffset)
+    newSelectRange.setStart(startResult.node, startResult.offset)
+    if (isTextNode(endResult.node) && endResult.node.length > 1) {
+        newSelectRange.setEnd(endResult.node, endResult.offset + 1)
+    } else {
+        newSelectRange.setEnd(endResult.node, endResult.offset)
+    }
     window.getSelection().removeAllRanges()
     window.getSelection().addRange(newSelectRange)
     if (window.getSelection().isCollapsed) {
-        newSelectRange.setStart(endElement, endOffset)
-        newSelectRange.setEnd(startElement, startOffset)
+        newSelectRange.setStart(endResult.node, endResult.offset)
+        if (isTextNode(endResult.node) && endResult.node.length > 1) {
+            newSelectRange.setEnd(startResult.node, startResult.offset + 1)
+        } else {
+            newSelectRange.setEnd(startResult.node, startResult.offset)
+        }
         window.getSelection().removeAllRanges()
         window.getSelection().addRange(newSelectRange)
     }
@@ -105,7 +115,14 @@ const isTextNode = node => {
 const calculateOffset = (startNode, x, y) => {
     const range = document.createRange()
     range.setStart(startNode, 0)
-    range.setEnd(startNode, 1)
+    try {
+        range.setEnd(startNode, 1)
+    } catch (e) {
+        return {
+            node: startNode,
+            offset: 0
+        }
+    }
     let properNode = startNode
     let offset = 0
     const descendNodeTree = baseNode => {

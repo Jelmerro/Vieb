@@ -312,14 +312,14 @@ const useEnteredData = () => {
 
 const setFocusCorrectly = () => {
     const urlElement = document.getElementById("url")
-    if (MODES.currentMode() === "normal") {
+    if (["normal", "follow", "visual"].includes(MODES.currentMode())) {
         window.focus()
         urlElement.className = ""
         urlElement.blur()
         TABS.updateUrl(TABS.currentPage())
         window.focus()
     }
-    if (MODES.currentMode() === "insert") {
+    if (["cursor", "insert"].includes(MODES.currentMode())) {
         TABS.currentPage().focus()
         TABS.currentPage().click()
     }

@@ -23,7 +23,7 @@ const path = require("path")
 let lastUpdate = new Date()
 
 window.update = (action=null, downloadId=null) => {
-    ipcRenderer.sendToHost("download-list-request", action, downloadId)
+    ipcRenderer.send("download-list-request", action, downloadId)
 }
 
 window.removeAll = () => {
@@ -57,7 +57,7 @@ window.addEventListener("load", () => {
 ipcRenderer.on("download-list", (e, list, unconfirmed) => {
     //unconfirmed
     const unconfirmedElement = document.getElementById("unconfirmed")
-    if (unconfirmed) {
+    if (unconfirmed && unconfirmed.name) {
         unconfirmedElement.style.display = "flex"
         unconfirmedElement.querySelector(".name").textContent = unconfirmed.name
         unconfirmedElement.querySelector(".url").textContent = unconfirmed.url

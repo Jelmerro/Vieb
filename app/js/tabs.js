@@ -408,9 +408,6 @@ const addWebviewListeners = webview => {
         if (e.channel === "follow-response") {
             FOLLOW.parseAndDisplayLinks(e.args[0])
         }
-        if (e.channel === "download-list-request") {
-            DOWNLOADS.sendDownloadList(e.args[0], e.args[1])
-        }
         if (e.channel === "scroll-height-diff") {
             CURSOR.handleScrollDiffEvent(e.args[0])
         }
