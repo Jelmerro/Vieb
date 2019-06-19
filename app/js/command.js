@@ -141,8 +141,6 @@ const quit = () => {
         HISTORY.clearHistory()
     }
     TABS.saveTabs()
-    DOWNLOADS.cancelAll()
-    DOWNLOADS.writeToFile()
     if (SETTINGS.get("clearCacheOnQuit")) {
         UTIL.clearCache()
     }
