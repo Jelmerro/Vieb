@@ -44,18 +44,9 @@ const init = () => {
     })
 }
 
-const downloadFile = (name, downloadUrl) => {
-    ipcRenderer.send("download-confirm-url", downloadUrl)
-    const escapedUrl = downloadUrl.replace(/"/g, '\\"')
-    const escapedName = name.replace(/"/g, '\\"')
-    TABS.currentPage().executeJavaScript(`
-        window.anchorDownloadElement = document.createElement("a")
-        window.anchorDownloadElement.href = "${escapedUrl}"
-        window.anchorDownloadElement.download = "${escapedName}"
-        document.body.appendChild(window.anchorDownloadElement)
-        window.anchorDownloadElement.click()
-        document.body.removeChild(window.anchorDownloadElement)
-        window.anchorDownloadElement = undefined`)
+const downloadFile = (name, url) => {
+    ipcRenderer.send("download-confirm", name, url)
+    TABS.currentPage().downloadURL(url)
 }
 
 const confirmRequest = () => {
@@ -68,7 +59,7 @@ const confirmRequest = () => {
         downloadFile(unconfirmedDownload.name, unconfirmedDownload.url)
         unconfirmedDownload = {}
     } else {
-        ipcRenderer.send("download-confirm-url", "")
+        ipcRenderer.send("download-confirm", "", "")
         UTIL.notify("No download requested, nothing to accept/confirm", "warn")
     }
 }
@@ -82,12 +73,13 @@ const rejectRequest = () => {
     if (Object.keys(unconfirmedDownload).length === 0) {
         UTIL.notify("No download requested, nothing to deny/reject", "warn")
     }
-    ipcRenderer.send("download-confirm-url", "")
+    ipcRenderer.send("download-confirm", "", "")
     unconfirmedDownload = {}
 }
 
 module.exports = {
     init,
+    downloadFile,
     confirmRequest,
     rejectRequest
 }

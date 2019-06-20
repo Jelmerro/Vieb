@@ -158,6 +158,7 @@ let downloadSettings = {
     removeCompleted: false
 }
 let confirmedDownload = ""
+let confirmedDownloadName = ""
 let downloads = []
 let initialDownloadSettingsUpdate = true
 
@@ -166,29 +167,35 @@ const dlsFile = path.join(app.getPath("appData"), "dls")
 const handleDownload = (e, item) => {
     // Prevent overwriting existing files
     let filename = item.getFilename()
-    let save = path.join(app.getPath("downloads"), item.getFilename())
+    if (confirmedDownloadName && downloadSettings.method === "confirm") {
+        filename = confirmedDownloadName
+    }
+    let save = path.join(app.getPath("downloads"), filename)
     let duplicateNumber = 1
+    let newFilename = filename
     while (fs.existsSync(save) && fs.statSync(save).isFile()) {
         duplicateNumber += 1
-        const extStart = item.getFilename().lastIndexOf(".")
-        filename = `${item.getFilename().substring(0, extStart)
-        } (${duplicateNumber}).${
-            item.getFilename().substring(extStart + 1)}`
-        save = path.join(app.getPath("downloads"), filename)
+        const extStart = filename.lastIndexOf(".")
+        if (extStart === -1) {
+            newFilename = `${filename} (${duplicateNumber})`
+        } else {
+            newFilename = `${filename.substring(0, extStart)
+            } (${duplicateNumber}).${
+                filename.substring(extStart + 1)}`
+        }
+        save = path.join(app.getPath("downloads"), newFilename)
     }
+    filename = newFilename
     if (downloadSettings.method === "confirm") {
         item.setSavePath(path.join(
             app.getPath("downloads"), filename))
         if (item.getURL() === confirmedDownload) {
             confirmedDownload = ""
+            confirmedDownloadName = ""
         } else {
-            // The original filename is sent instead of the variable,
-            // because we won't be saving the file immediately.
-            // The handleDownload function will be called again,
-            // when the user decides to accept the download.
             const info = {
                 url: item.getURL(),
-                name: item.getFilename()
+                name: filename
             }
             e.preventDefault()
             mainWindow.webContents.send("prevented-download", info)
@@ -228,7 +235,7 @@ const handleDownload = (e, item) => {
     item.once("done", (_event, state) => {
         if (state === "completed") {
             info.state = "completed"
-            if (downloadSettings.clearCompleted) {
+            if (downloadSettings.removeCompleted) {
                 downloads = downloads.filter(d => d.state !== "completed")
             }
         } else if (info.state !== "removed") {
@@ -240,7 +247,7 @@ const handleDownload = (e, item) => {
 
 ipcMain.on("download-settings-change", (_e, newDownloadSettings) => {
     downloadSettings = newDownloadSettings
-    if (downloadSettings.clearCompleted) {
+    if (downloadSettings.removeCompleted) {
         downloads = downloads.filter(d => d.state !== "completed")
     }
     if (initialDownloadSettingsUpdate) {
@@ -272,8 +279,9 @@ ipcMain.on("download-settings-change", (_e, newDownloadSettings) => {
     }
 })
 
-ipcMain.on("download-confirm-url", (e, confirmedUrl) => {
-    confirmedDownload = confirmedUrl
+ipcMain.on("download-confirm", (e, name, url) => {
+    confirmedDownloadName = name
+    confirmedDownload = url
 })
 
 ipcMain.on("download-list-request", (_e, action, downloadId) => {
