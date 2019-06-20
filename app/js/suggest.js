@@ -153,6 +153,7 @@ const commandList = [
     "set allowFollowModeDuringLoad false",
     "set fontSize ",
     "set fontSize 14",
+    "set notification.",
     "set notification.system ",
     "set notification.system true",
     "set notification.system false",
@@ -163,6 +164,7 @@ const commandList = [
     "set notification.position top-left",
     "set notification.duration ",
     "set notification.duration 5000",
+    "set downloads.",
     "set downloads.path ",
     "set downloads.path ~/Downloads/",
     "set downloads.method ",
@@ -175,6 +177,7 @@ const commandList = [
     "set downloads.clearOnQuit ",
     "set downloads.clearOnQuit true",
     "set downloads.clearOnQuit false",
+    "set history.",
     "set history.suggest ",
     "set history.suggest true",
     "set history.suggest false",
@@ -184,6 +187,7 @@ const commandList = [
     "set history.storeNewVisits ",
     "set history.storeNewVisits true",
     "set history.storeNewVisits false",
+    "set tabs.",
     "set tabs.restore ",
     "set tabs.restore true",
     "set tabs.restore false",
@@ -195,6 +199,9 @@ const commandList = [
 const suggestCommand = search => {
     document.getElementById("suggest-dropdown").textContent = ""
     clear()
+    if (search.startsWith(":")) {
+        search = search.replace(":", "")
+    }
     if (!SETTINGS.get("suggestCommands") || !search) {
         return
     }

@@ -319,9 +319,15 @@ const setFocusCorrectly = () => {
         TABS.updateUrl(TABS.currentPage())
         window.focus()
     }
-    if (["cursor", "insert"].includes(MODES.currentMode())) {
+    if (MODES.currentMode() === "insert") {
         TABS.currentPage().focus()
         TABS.currentPage().click()
+    }
+    if (MODES.currentMode() === "cursor") {
+        TABS.currentPage().blur()
+        urlElement.blur()
+        window.focus()
+        document.getElementById("invisible-overlay").focus()
     }
     if (document.activeElement !== urlElement) {
         if (["search", "command"].includes(MODES.currentMode())) {

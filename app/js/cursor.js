@@ -175,6 +175,11 @@ const moveLeft = () => {
     updateCursorElement()
 }
 
+const insertAtPosition = () => {
+    leftClick()
+    MODES.setMode("insert")
+}
+
 const moveDown = () => {
     if (Y === window.innerHeight - SETTINGS.get("fontSize") * 5) {
         ACTIONS.scrollDown()
@@ -320,6 +325,7 @@ module.exports = {
     leftClick,
     startOfPage,
     moveLeft,
+    insertAtPosition,
     moveDown,
     moveUp,
     moveRight,

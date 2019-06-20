@@ -104,6 +104,7 @@ const bindings = {
         "KeyF": "CURSOR.leftClick",
         "KeyG": "CURSOR.startOfPage",
         "KeyH": "CURSOR.moveLeft",
+        "KeyI": "CURSOR.insertAtPosition",
         "KeyJ": "CURSOR.moveDown",
         "KeyK": "CURSOR.moveUp",
         "KeyL": "CURSOR.moveRight",

@@ -36,22 +36,12 @@ window.addEventListener("scroll", () => {
     ipcRenderer.sendToHost("scroll-height-diff", scrollDiff)
 })
 
-const downloadImage = img => {
-    if (img) {
-        const el = document.createElement("a")
-        el.href = img
-        el.download = img.split("/")[img.split("/").length - 1]
-        document.body.appendChild(el)
-        el.click()
-        document.body.removeChild(el)
-    }
-}
-
 const downloadSVG = svg => {
     const el = document.createElement("a")
     el.href = window.URL.createObjectURL(
         new Blob(svg.split(), {type: "img/svg"}))
     el.download = `${window.location.hostname.replace("\\", "/")} vector.svg`
+    ipcRenderer.send("download-confirm", el.download, el.href)
     document.body.appendChild(el)
     el.click()
     document.body.removeChild(el)
@@ -59,14 +49,21 @@ const downloadSVG = svg => {
 
 ipcRenderer.on("download-image-request", (e, x, y) => {
     const elements = [...document.elementsFromPoint(x, y)]
-    elements.forEach(el => {
-        if (el.tagName.toLowerCase() === "img") {
-            downloadImage(el.src)
+    for (const el of elements) {
+        if (el.tagName.toLowerCase() === "img" && el.src) {
+            let name = el.src.split("/")[el.src.split("/").length - 1]
+            name = name.split("?")[0]
+            if (!name) {
+                name = `${window.location.hostname.replace("\\", "/")} image`
+            }
+            ipcRenderer.sendToHost("download-image", name, el.src.split("?")[0])
+            break
         }
         if (el.tagName.toLowerCase() === "svg") {
             downloadSVG(el.outerHTML)
+            break
         }
-    })
+    }
 })
 
 ipcRenderer.on("selection-request", (e, endX, endY) => {
