@@ -40,9 +40,9 @@ Vieb has a lot of options when in normal mode including, but not limited to:
 By default, both `Escape` and `ctrl+[` will always go back to normal mode,
 even when insert mode is active, but this can be changed with custom keybindings.
 All modes come with a default binding to `F1` to open the help page,
-but can also be disabled or changed with custom keybindings.
+but this can also be disabled or changed with custom keybindings.
 The help page itself contains useful information for all users,
-and should the main reference for configuring Vieb.
+and should be your primary reference for configuring Vieb.
 
 ## Insert mode
 
