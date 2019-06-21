@@ -20,6 +20,8 @@ Vim bindings for the web by design
 
 ## Normal mode
 
+Vieb has a lot of options when in normal mode including, but not limited to:
+
 - Move the page left, down, up and right with `hjkl` respectively
 - Navigate to a url with Nav mode, see dedicated paragraph for details
 - Go to the top or bottom of the page with `g` and `G`
@@ -33,12 +35,14 @@ Vim bindings for the web by design
 - Enter search mode with `/`, see dedicated paragraph for details
 - Reload the page with `r` and reload without cache using `R`
 - Follow links using the keyboard with `f` or `F`, see follow mode for details
+- Cursor and visual modes for most mouse cursor actions and selections
 
 By default, both `Escape` and `ctrl+[` will always go back to normal mode,
 even when insert mode is active, but this can be changed with custom keybindings.
 All modes come with a default binding to `F1` to open the help page,
-this keybinding is mostly for new users and can also be disabled or changed with custom keybindings.
-The help page itself contains useful information for all users.
+but this can also be disabled or changed with custom keybindings.
+The help page itself contains useful information for all users,
+and should be your primary reference for configuring Vieb.
 
 ## Insert mode
 
@@ -69,6 +73,7 @@ For the set command, all settings can be autocompleted,
 including the default option for any given setting.
 With the default keybindings, `Tab` and `Shift+Tab` are used to choose a suggestion,
 and the `Enter` key is used to select and execute a suggestion.
+Suggestions can be disabled with the setting: `"suggestCommands": false`.
 
 ## Search mode
 
@@ -79,6 +84,8 @@ By default, all searches are case sensitive.
 To change this for the current Vieb session only,
 use the following command: `set caseSensitiveSearch false`.
 To change this permanently, add `"caseSensitiveSearch": false` to the settings file.
+The current search result can be clicked on when in normal mode with `Enter`,
+which can be used for quick navigation based on the search results.
 
 ## Nav mode
 
@@ -89,7 +96,7 @@ When in this mode, the navigation bar will change color depending on the entered
 Cyan means the entered data will directly requested as a website (or a local file using `file://`).
 When the navigation bar turns orange, the entered data will be directed to the configured search engine.
 The navigation bar also autocompletes from your browsing history,
-which can be disabled with the setting: `"suggestCommands": false`.
+which can be disabled with the setting: `"history.suggest": false`.
 The navigation bar will turn green when a suggestion is selected.
 The search engine and history settings can be changed in the viebrc.json file,
 see the Vieb help page for details (using the `F1` key or the `:help settings` command).
@@ -113,6 +120,20 @@ The selectors are divided in the following colors:
 You can modify the font size for all Vieb UI elements using the "fontSize" setting.
 To increase the font size to 20 for the current session: `set fontSize 20`.
 To make this permanent, edit the viebrc.json configuration file.
+
+# Cursor and visual mode
+
+After pressing `c`, `s` or `v` from normal mode, cursor mode will become active.
+In this mode, most regular vim movement options are available,
+but some of them are modified to make more sense in a browser context.
+For the full list, see the [default settings](app/default-settings.json) or the help page.
+Cursor mode can be used to download images, copy or preview urls,
+but also to hover the mouse cursor, enter insert mode at a specific location or to enter visual mode.
+
+After pressing `v` again, visual mode will be entered.
+When in this mode the cursor can still be moved,
+but text will be selected between the old and current position.
+You can copy the selection and return to normal mode with `y` or `c`.
 
 # Starting Vieb
 

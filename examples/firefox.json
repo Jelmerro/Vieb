@@ -12,6 +12,7 @@
             "F3": "ACTIONS.toSearchMode",
             "F5": "ACTIONS.reload",
             "F6": "ACTIONS.toNavMode",
+            "F7": "CURSOR.start",
             "F12": "COMMAND.devtools",
             "C-PageUp": "ACTIONS.previousTab",
             "C-PageDown": "ACTIONS.nextTab",
@@ -35,6 +36,9 @@
             "F6": "ACTIONS.toNormalMode",
             "ArrowUp": "ACTIONS.prevSuggestion",
             "ArrowDown": "ACTIONS.nextSuggestion"
+        },
+        "cursor": {
+            "F7": "ACTIONS.toNormalMode"
         }
     },
     "redirectToHttp": true,

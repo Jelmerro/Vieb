@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-body {color: #eee;width: 90vw;font: 18px monospace;background: #333;padding: 0;margin: auto;user-select: none;}
+body {color: #eee;width: 90vw;font: 18px monospace;background: #333;padding: 0;margin: auto;}
 a {color: #0cf;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;}
 #list {display: flex;flex-direction: column-reverse;}
 .download {background: #555;margin-bottom: 1em;}

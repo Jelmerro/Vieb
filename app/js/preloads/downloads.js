@@ -23,7 +23,7 @@ const path = require("path")
 let lastUpdate = new Date()
 
 window.update = (action=null, downloadId=null) => {
-    ipcRenderer.sendToHost("download-list-request", action, downloadId)
+    ipcRenderer.send("download-list-request", action, downloadId)
 }
 
 window.removeAll = () => {
@@ -57,7 +57,7 @@ window.addEventListener("load", () => {
 ipcRenderer.on("download-list", (e, list, unconfirmed) => {
     //unconfirmed
     const unconfirmedElement = document.getElementById("unconfirmed")
-    if (unconfirmed) {
+    if (unconfirmed && unconfirmed.name) {
         unconfirmedElement.style.display = "flex"
         unconfirmedElement.querySelector(".name").textContent = unconfirmed.name
         unconfirmedElement.querySelector(".url").textContent = unconfirmed.url
@@ -80,23 +80,23 @@ ipcRenderer.on("download-list", (e, list, unconfirmed) => {
     }
     if (listOnPage.length > list.length) {
         for (let i = 0;i < listOnPage.length;i++) {
-            if (list[i] === undefined) {
+            if (list[i]) {
+                updateDownload(list[i], listOnPage[i], i)
+            } else {
                 try {
                     document.getElementById("list").removeChild(
                         document.querySelectorAll("#list .download")[i])
                 } catch (err) {
                     //List might be shorter the second time this is called
                 }
-            } else {
-                updateDownload(list[i], listOnPage[i], i)
             }
         }
     } else {
         for (let i = 0;i < list.length;i++) {
-            if (listOnPage[i] === undefined) {
-                addDownload(list[i], i)
-            } else {
+            if (listOnPage[i]) {
                 updateDownload(list[i], listOnPage[i], i)
+            } else {
+                addDownload(list[i], i)
             }
         }
     }

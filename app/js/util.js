@@ -87,7 +87,7 @@ const notify = (message, type="info") => {
 }
 
 const specialPagePath = (page, section=null, skipExistCheck=false) => {
-    if (specialPages.indexOf(page) === -1 && !skipExistCheck) {
+    if (!specialPages.includes(page) && !skipExistCheck) {
         page = "help"
     }
     const url = path.join(__dirname, `../pages/${page}.html`)
@@ -105,7 +105,7 @@ const pathToSpecialPageName = urlPath => {
     if (urlPath.startsWith("vieb://")) {
         const parts = urlPath.replace("vieb://", "").split("#")
         let name = parts[0]
-        if (specialPages.indexOf(name) === -1) {
+        if (!specialPages.includes(name)) {
             name = "help"
         }
         return {"name": name, "section": parts.slice(1).join("#") || ""}

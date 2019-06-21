@@ -24,7 +24,7 @@ const execute = command => {
     //remove all redundant spaces
     //allow commands prefixed with :
     //and return if the command is empty
-    while (command.indexOf("  ") !== -1) {
+    while (command.includes("  ")) {
         command = command.replace("  ", " ")
     }
     command = command.trim()
@@ -35,7 +35,7 @@ const execute = command => {
         return
     }
     //quit command
-    if (["q", "quit"].indexOf(command) !== -1) {
+    if (["q", "quit"].includes(command)) {
         quit()
         return
     }
@@ -44,7 +44,7 @@ const execute = command => {
         return
     }
     //devtools command
-    if (["dev", "devtools"].indexOf(command) !== -1) {
+    if (["dev", "devtools"].includes(command)) {
         devtools()
         return
     }
@@ -53,7 +53,7 @@ const execute = command => {
         return
     }
     //reload command
-    if (["r", "reload"].indexOf(command) !== -1) {
+    if (["r", "reload"].includes(command)) {
         SETTINGS.loadFromDisk()
         return
     }
@@ -62,7 +62,7 @@ const execute = command => {
         return
     }
     //version command
-    if (["v", "version"].indexOf(command) !== -1) {
+    if (["v", "version"].includes(command)) {
         version()
         return
     }
@@ -71,7 +71,7 @@ const execute = command => {
         return
     }
     //help command
-    if (["h", "help"].indexOf(command) !== -1) {
+    if (["h", "help"].includes(command)) {
         help()
         return
     }
@@ -94,7 +94,7 @@ const execute = command => {
         return
     }
     //downloads command
-    if (["d", "downloads"].indexOf(command) !== -1) {
+    if (["d", "downloads"].includes(command)) {
         downloads()
         return
     }
@@ -115,7 +115,7 @@ const execute = command => {
         return
     }
     //accept/confirm command
-    if (["accept", "confirm"].indexOf(command) !== -1) {
+    if (["accept", "confirm"].includes(command)) {
         DOWNLOADS.confirmRequest()
         return
     }
@@ -124,7 +124,7 @@ const execute = command => {
         return
     }
     //deny/reject command
-    if (["deny", "reject"].indexOf(command) !== -1) {
+    if (["deny", "reject"].includes(command)) {
         DOWNLOADS.rejectRequest()
         return
     }
@@ -141,8 +141,6 @@ const quit = () => {
         HISTORY.clearHistory()
     }
     TABS.saveTabs()
-    DOWNLOADS.cancelAll()
-    DOWNLOADS.writeToFile()
     if (SETTINGS.get("clearCacheOnQuit")) {
         UTIL.clearCache()
     }

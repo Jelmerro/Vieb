@@ -17,8 +17,10 @@
 */
 "use strict"
 
-// Always load follow mode specific javascript
+// Always load follow mode javascript
 require("./preloads/follow.js")
+// Always load selection function code (for visual mode)
+require("./preloads/select.js")
 
 // Load the special page specific javascript
 const util = require("./util.js")
@@ -30,7 +32,7 @@ if (specialPage.name) {
 // Change the background to white for pages with no explicit background styling
 window.addEventListener("load", () => {
     const background = getComputedStyle(document.body).background
-    if (background.indexOf("rgba(0, 0, 0, 0)") !== -1) {
+    if (background.includes("rgba(0, 0, 0, 0)")) {
         document.body.style.background = "white"
     }
 })

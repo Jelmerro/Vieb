@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global DOWNLOADS FOLLOW HISTORY MODES SETTINGS UTIL */
+/* global ACTIONS CURSOR DOWNLOADS FOLLOW HISTORY MODES SETTINGS UTIL */
 "use strict"
 
 const fs = require("fs")
@@ -99,6 +99,22 @@ const init = () => {
                 }
             })
         })
+        //This forces the webview to update on sites which wait for the mouse
+        //It will also enable the pointer events when in insert or cursor mode
+        setInterval(() => {
+            currentPage().style.pointerEvents = "auto"
+            if (MODES.currentMode() === "insert") {
+                return
+            }
+            if (MODES.currentMode() === "cursor") {
+                return
+            }
+            setTimeout(() => {
+                listPages().forEach(page => {
+                    page.style.pointerEvents = "none"
+                })
+            }, 10)
+        }, 100)
     })
 }
 
@@ -124,7 +140,9 @@ const saveTabs = () => {
     } else if (SETTINGS.get("tabs.keepRecentlyClosed")) {
         data.closed = [...recentlyClosed]
         listPages().forEach(webview => {
-            data.closed.push(webview.src)
+            if (!UTIL.pathToSpecialPageName(webview.src).name && webview.src) {
+                data.closed.push(webview.src)
+            }
         })
     } else {
         try {
@@ -179,11 +197,17 @@ const addTab = (url=null) => {
     addWebviewListeners(webview)
     pages.appendChild(webview)
     webview.getWebContents().setUserAgent(useragent)
+    webview.addEventListener("focus", () => {
+        if (MODES.currentMode() !== "insert") {
+            webview.blur()
+        }
+    })
     if (url) {
         webview.src = url
         title.textContent = url
     }
     switchToTab(listTabs().length - 1)
+    MODES.setMode("normal")
 }
 
 const reopenTab = () => {
@@ -239,10 +263,10 @@ const switchToTab = index => {
 
 const updateUrl = webview => {
     const skip = ["command", "search", "nav"]
-    if (webview !== currentPage() || skip.indexOf(MODES.currentMode()) !== -1) {
+    if (webview !== currentPage() || skip.includes(MODES.currentMode())) {
         return
     }
-    if (currentPage() && currentPage().src !== undefined) {
+    if (currentPage() && currentPage().src) {
         const specialPage = UTIL.pathToSpecialPageName(currentPage().src)
         if (!specialPage.name) {
             document.getElementById("url").value = currentPage().src
@@ -324,7 +348,7 @@ const addWebviewListeners = webview => {
             "ERR_SSL_PROTOCOL_ERROR",
             "ERR_CERT_AUTHORITY_INVALID"
         ]
-        if (sslErrors.indexOf(e.errorDescription) !== -1 && redirect) {
+        if (sslErrors.includes(e.errorDescription) && redirect) {
             webview.src = webview.src.replace("https://", "http://")
             return
         }
@@ -358,8 +382,12 @@ const addWebviewListeners = webview => {
         updateUrl(webview)
     })
     webview.addEventListener("will-navigate", e => {
+        ACTIONS.emptySearch()
         const tab = listTabs()[listPages().indexOf(webview)]
         tab.querySelector("span").textContent = e.url
+        if (MODES.currentMode() === "cursor") {
+            MODES.setMode("normal")
+        }
     })
     webview.addEventListener("new-window", e => {
         navigateTo(e.url)
@@ -380,8 +408,33 @@ const addWebviewListeners = webview => {
         if (e.channel === "follow-response") {
             FOLLOW.parseAndDisplayLinks(e.args[0])
         }
-        if (e.channel === "download-list-request") {
-            DOWNLOADS.sendDownloadList(e.args[0], e.args[1])
+        if (e.channel === "download-image") {
+            DOWNLOADS.downloadFile(e.args[0], e.args[1])
+        }
+        if (e.channel === "scroll-height-diff") {
+            CURSOR.handleScrollDiffEvent(e.args[0])
+        }
+    })
+    webview.addEventListener("found-in-page", e => {
+        webview.getWebContents().send("search-element-location",
+            e.result.selectionArea)
+    })
+    webview.addEventListener("update-target-url", e => {
+        if (e.url && ["insert", "cursor"].includes(MODES.currentMode())) {
+            const special = UTIL.pathToSpecialPageName(e.url)
+            if (!special.name) {
+                document.getElementById("url-hover").textContent = e.url
+            } else if (special.section) {
+                document.getElementById("url-hover").textContent
+                    = `vieb://${special.name}#${special.section}`
+            } else {
+                document.getElementById("url-hover").textContent
+                    = `vieb://${special.name}`
+            }
+            document.getElementById("url-hover").style.display = "flex"
+        } else {
+            document.getElementById("url-hover").textContent = ""
+            document.getElementById("url-hover").style.display = "none"
         }
     })
     webview.onblur = () => {

@@ -15,38 +15,66 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS INPUT SUGGEST TABS */
+/* global ACTIONS CURSOR INPUT SUGGEST TABS */
 "use strict"
 
-const colors = {
-    "normal": "#eee",
-    "insert": "#3f3",
-    "command": "#f33",
-    "search": "#ff3",
-    "nav": "#3ff",
-    "follow": "#f3f"
+const modes = {
+    "normal": {
+        "fg": "#eee",
+        "bg": ""
+    },
+    "insert": {
+        "fg": "#3f3",
+        "bg": ""
+    },
+    "command": {
+        "fg": "#f33",
+        "bg": ""
+    },
+    "search": {
+        "fg": "#ff3",
+        "bg": ""
+    },
+    "nav": {
+        "fg": "#3ff",
+        "bg": ""
+    },
+    "follow": {
+        "fg": "#f3f",
+        "bg": ""
+    },
+    "cursor": {
+        "fg": "#777",
+        "bg": "#fff"
+    },
+    "visual": {
+        "fg": "#000",
+        "bg": "#3af"
+    }
 }
 
 const setMode = mode => {
+    mode = mode.trim().toLowerCase()
     if (mode !== "nav" && mode !== "command") {
         SUGGEST.cancelSuggestions()
     }
-    mode = mode.trim().toLowerCase()
-    if (colors[mode] === undefined) {
+    if (mode !== "cursor" && ["cursor", "visual"].includes(currentMode())) {
+        CURSOR.releaseKeys(mode === "visual")
+    }
+    if (!modes[mode]) {
         return
     }
-    document.getElementById("mode").textContent = mode
-    document.getElementById("mode").style.color = colors[mode]
-    // Mode specific changes
-    if (mode === "normal") {
-        TABS.listPages().forEach(page => {
-            page.style.pointerEvents = "none"
-        })
-    }
     if (mode === "insert") {
-        TABS.listPages().forEach(page => {
-            page.style.pointerEvents = "auto"
-            page.getWebContents().removeAllListeners("before-input-event")
+        document.getElementById("invisible-overlay").style.display = "none"
+    } else {
+        document.getElementById("invisible-overlay").style.display = ""
+    }
+    document.getElementById("mode").textContent = mode
+    document.getElementById("mode").style.color = modes[mode].fg
+    document.getElementById("mode").style.backgroundColor = modes[mode].bg
+    TABS.listPages().forEach(page => {
+        page.getWebContents().removeAllListeners("before-input-event")
+        if (mode === "insert") {
             page.getWebContents().on("before-input-event", (e, input) => {
                 if (input.code === "Tab") {
                     TABS.currentPage().focus()
@@ -72,10 +100,17 @@ const setMode = mode => {
                     "code": input.code
                 }
                 // Find the action
-                INPUT.executeAction(INPUT.eventToAction(keyEvent))
+                const actionFunction = INPUT.actionToFunction(
+                    INPUT.eventToAction(keyEvent))
+                if (actionFunction) {
+                    e.preventDefault()
+                    if (currentMode() === "insert") {
+                        actionFunction()
+                    }
+                }
             })
-        })
-    }
+        }
+    })
     ACTIONS.setFocusCorrectly()
 }
 
