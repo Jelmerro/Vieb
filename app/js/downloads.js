@@ -18,99 +18,35 @@
 /* global SETTINGS TABS UTIL */
 "use strict"
 
-const fs = require("fs")
-const path = require("path")
-const {ipcRenderer, remote} = require("electron")
+const {ipcRenderer} = require("electron")
 
 let unconfirmedDownload = {}
-let downloads = []
 
 const init = () => {
-    const dlsFile = path.join(remote.app.getPath("appData"), "dls")
-    if (SETTINGS.get("downloads.clearOnQuit")) {
-        try {
-            fs.unlinkSync(dlsFile)
-        } catch (e) {
-            //Failed to delete, might not exist
-        }
-    } else if (fs.existsSync(dlsFile) && fs.statSync(dlsFile).isFile()) {
-        try {
-            const contents = fs.readFileSync(dlsFile).toString()
-            const parsed = JSON.parse(contents)
-            for (const download of parsed) {
-                if (download.state === "completed") {
-                    if (!SETTINGS.get("downloads.removeCompleted")) {
-                        download.push(download)
-                    }
-                } else {
-                    download.state = "cancelled"
-                    downloads.push(download)
-                }
-            }
-        } catch (e) {
-            //No downloads file yet
-        }
-    }
     ipcRenderer.on("prevented-download", (event, download) => {
         UTIL.notify(`New download request:\n${download.name}\n`
             + "Use :accept or :deny to answer.\nSee :downloads for a list.")
         unconfirmedDownload = download
     })
-    remote.session.defaultSession.on("will-download", (event, item) => {
-        if (item.isDestroyed()) {
-            return
+    ipcRenderer.on("started-download", (event, name) => {
+        UTIL.notify(`Download started:\n${name}`)
+    })
+    ipcRenderer.on("finish-download", (event, name, state) => {
+        if (state === "completed") {
+            UTIL.notify(`Download finished:\n${name}`)
+        } else {
+            UTIL.notify(`Download failed:\n${name}`, "warn")
         }
-        const info = {
-            item: item,
-            state: "waiting_to_start",
-            url: item.getURL(),
-            total: item.getTotalBytes(),
-            current: 0,
-            file: item.getSavePath(),
-            name: item.getFilename(),
-            date: new Date()
-        }
-        downloads.push(info)
-        UTIL.notify(`Download started:\n${info.name}`)
-        item.on("updated", (_event, state) => {
-            try {
-                info.current = item.getReceivedBytes()
-                if (state === "progressing" && !item.isPaused()) {
-                    info.state = "downloading"
-                } else {
-                    info.state = "paused"
-                }
-            } catch (e) {
-                //Download is done and the item is destroyed automatically
-                info.state = "cancelled"
-            }
-            writeToFile()
-        })
-        item.once("done", (_event, state) => {
-            if (state === "completed") {
-                UTIL.notify(`Download complete:\n${info.name}`)
-                info.state = "completed"
-                clearCompleted()
-            } else if (info.state !== "removed") {
-                UTIL.notify(`Download failed:\n${info.name}`, "warn")
-                info.state = "cancelled"
-            }
-        })
+    })
+    ipcRenderer.on("download-list", (event, downloads) => {
+        TABS.currentPage().getWebContents().send(
+            "download-list", downloads, unconfirmedDownload)
     })
 }
 
-const downloadFile = (name, downloadUrl) => {
-    ipcRenderer.send("download-confirm-url", downloadUrl)
-    const escapedUrl = downloadUrl.replace(/"/g, '\\"')
-    const escapedName = name.replace(/"/g, '\\"')
-    TABS.currentPage().executeJavaScript(`
-        window.anchorDownloadElement = document.createElement("a")
-        window.anchorDownloadElement.href = "${escapedUrl}"
-        window.anchorDownloadElement.download = "${escapedName}"
-        document.body.appendChild(window.anchorDownloadElement)
-        window.anchorDownloadElement.click()
-        document.body.removeChild(window.anchorDownloadElement)
-        window.anchorDownloadElement = undefined`)
+const downloadFile = (name, url) => {
+    ipcRenderer.send("download-confirm", name, url)
+    TABS.currentPage().downloadURL(url)
 }
 
 const confirmRequest = () => {
@@ -123,7 +59,7 @@ const confirmRequest = () => {
         downloadFile(unconfirmedDownload.name, unconfirmedDownload.url)
         unconfirmedDownload = {}
     } else {
-        ipcRenderer.send("download-confirm-url", "")
+        ipcRenderer.send("download-confirm", "", "")
         UTIL.notify("No download requested, nothing to accept/confirm", "warn")
     }
 }
@@ -137,101 +73,13 @@ const rejectRequest = () => {
     if (Object.keys(unconfirmedDownload).length === 0) {
         UTIL.notify("No download requested, nothing to deny/reject", "warn")
     }
-    ipcRenderer.send("download-confirm-url", "")
+    ipcRenderer.send("download-confirm", "", "")
     unconfirmedDownload = {}
-}
-
-const sendDownloadList = (action, downloadId) => {
-    if (action === "removeall") {
-        downloads.forEach(download => {
-            try {
-                download.item.cancel()
-            } catch (e) {
-                // Download was already removed or is already done
-            }
-        })
-        downloads = []
-    }
-    if (action === "pause") {
-        try {
-            downloads[downloadId].item.pause()
-        } catch (e) {
-            // Download just finished or some other silly reason
-        }
-    }
-    if (action === "resume") {
-        try {
-            downloads[downloadId].item.resume()
-        } catch (e) {
-            // Download can't be resumed
-        }
-    }
-    if (action === "remove") {
-        try {
-            downloads[downloadId].state = "removed"
-            downloads[downloadId].item.cancel()
-        } catch (e) {
-            // Download was already removed from the list or something
-        }
-        try {
-            downloads.splice(downloadId, 1)
-        } catch (e) {
-            // Download was already removed from the list or something
-        }
-    }
-    if (Object.keys(unconfirmedDownload).length === 0) {
-        TABS.currentPage().getWebContents().send("download-list", downloads)
-    } else if (SETTINGS.get("downloads.method") === "confirm") {
-        TABS.currentPage().getWebContents().send(
-            "download-list", downloads, unconfirmedDownload)
-    } else {
-        TABS.currentPage().getWebContents().send("download-list", downloads)
-    }
-    writeToFile()
-}
-
-const cancelAll = () => {
-    downloads.forEach(download => {
-        try {
-            if (download.state !== "completed") {
-                download.state = "cancelled"
-            }
-            download.item.cancel()
-        } catch (e) {
-            // Download was already removed or is already done
-        }
-    })
-}
-
-const clearCompleted = () => {
-    if (SETTINGS.get("downloads.removeCompleted")) {
-        downloads = downloads.filter(d => d.state !== "completed")
-    }
-}
-
-const writeToFile = () => {
-    const dlsFile = path.join(remote.app.getPath("appData"), "dls")
-    if (SETTINGS.get("downloads.clearOnQuit")) {
-        try {
-            fs.unlinkSync(dlsFile)
-        } catch (e) {
-            //Failed to delete, might not exist
-        }
-    } else {
-        try {
-            fs.writeFileSync(dlsFile, JSON.stringify(downloads))
-        } catch (e) {
-            UTIL.notify("Failed to write download list to disk", "err")
-        }
-    }
 }
 
 module.exports = {
     init,
+    downloadFile,
     confirmRequest,
-    rejectRequest,
-    sendDownloadList,
-    cancelAll,
-    clearCompleted,
-    writeToFile
+    rejectRequest
 }

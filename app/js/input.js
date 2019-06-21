@@ -15,13 +15,15 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS COMMAND FOLLOW HISTORY MODES SETTINGS SUGGEST */
+/* global ACTIONS COMMAND CURSOR FOLLOW HISTORY MODES SETTINGS SUGGEST */
 "use strict"
 
 const bindings = {
     "normal": {
+        "Enter": "ACTIONS.clickOnSearch",
         "F1": "COMMAND.help",
         "KeyB": "ACTIONS.previousTab",
+        "KeyC": "CURSOR.start",
         "KeyD": "ACTIONS.closeTab",
         "KeyE": "ACTIONS.toNavMode",
         "KeyF": "FOLLOW.startFollowCurrentTab",
@@ -33,8 +35,10 @@ const bindings = {
         "KeyL": "ACTIONS.scrollRight",
         "KeyN": "ACTIONS.nextSearchMatch",
         "KeyR": "ACTIONS.reload",
+        "KeyS": "CURSOR.start",
         "KeyT": "ACTIONS.openNewTab",
         "KeyU": "ACTIONS.reopenTab",
+        "KeyV": "CURSOR.start",
         "KeyW": "ACTIONS.nextTab",
         "Slash": "ACTIONS.toSearchMode",
         "S-KeyF": "FOLLOW.startFollowNewTab",
@@ -92,8 +96,70 @@ const bindings = {
         "F1": "COMMAND.help",
         "Escape": "FOLLOW.cancelFollow",
         "C-BracketLeft": "FOLLOW.cancelFollow"
+    },
+    "cursor": {
+        "F1": "COMMAND.help",
+        "KeyB": "CURSOR.moveFastLeft",
+        "KeyD": "CURSOR.downloadImage",
+        "KeyF": "CURSOR.leftClick",
+        "KeyG": "CURSOR.startOfPage",
+        "KeyH": "CURSOR.moveLeft",
+        "KeyI": "CURSOR.insertAtPosition",
+        "KeyJ": "CURSOR.moveDown",
+        "KeyK": "CURSOR.moveUp",
+        "KeyL": "CURSOR.moveRight",
+        "KeyR": "CURSOR.rightClick",
+        "KeyV": "CURSOR.startVisualSelect",
+        "KeyW": "CURSOR.moveFastRight",
+        "KeyY": "CURSOR.copyAndStop",
+        "Escape": "ACTIONS.toNormalMode",
+        "S-KeyG": "CURSOR.endOfPage",
+        "S-KeyH": "CURSOR.startOfView",
+        "S-KeyJ": "CURSOR.scrollDown",
+        "S-KeyK": "CURSOR.scrollUp",
+        "S-KeyL": "CURSOR.endOfView",
+        "S-KeyM": "CURSOR.centerOfView",
+        "S-Digit4": "CURSOR.moveRightMax",
+        "S-Digit6": "CURSOR.moveLeftMax",
+        "C-KeyD": "CURSOR.moveFastDown",
+        "C-KeyH": "CURSOR.moveSlowLeft",
+        "C-KeyJ": "CURSOR.moveSlowDown",
+        "C-KeyK": "CURSOR.moveSlowUp",
+        "C-KeyL": "CURSOR.moveSlowRight",
+        "C-KeyU": "CURSOR.moveFastUp",
+        "C-BracketLeft": "ACTIONS.toNormalMode"
+    },
+    "visual": {
+        "F1": "COMMAND.help",
+        "KeyB": "CURSOR.moveFastLeft",
+        "KeyC": "CURSOR.copyAndStop",
+        "KeyG": "CURSOR.startOfPage",
+        "KeyH": "CURSOR.moveLeft",
+        "KeyJ": "CURSOR.moveDown",
+        "KeyK": "CURSOR.moveUp",
+        "KeyL": "CURSOR.moveRight",
+        "KeyW": "CURSOR.moveFastRight",
+        "KeyY": "CURSOR.copyAndStop",
+        "Escape": "ACTIONS.toNormalMode",
+        "S-KeyG": "CURSOR.endOfPage",
+        "S-KeyH": "CURSOR.startOfView",
+        "S-KeyJ": "CURSOR.scrollDown",
+        "S-KeyK": "CURSOR.scrollUp",
+        "S-KeyL": "CURSOR.endOfView",
+        "S-KeyM": "CURSOR.centerOfView",
+        "S-Digit4": "CURSOR.moveRightMax",
+        "S-Digit6": "CURSOR.moveLeftMax",
+        "C-KeyD": "CURSOR.moveFastDown",
+        "C-KeyH": "CURSOR.moveSlowLeft",
+        "C-KeyJ": "CURSOR.moveSlowDown",
+        "C-KeyK": "CURSOR.moveSlowUp",
+        "C-KeyL": "CURSOR.moveSlowRight",
+        "C-KeyU": "CURSOR.moveFastUp",
+        "C-BracketLeft": "ACTIONS.toNormalMode"
     }
 }
+
+let repeatCounter = 0
 
 const init = () => {
     window.addEventListener("keydown", handleKeyboard)
@@ -110,6 +176,9 @@ const init = () => {
     window.addEventListener("resize", () => {
         if (MODES.currentMode() === "follow") {
             FOLLOW.startFollow()
+        }
+        if (MODES.currentMode() === "cursor") {
+            CURSOR.updateCursorElement()
         }
     })
     document.getElementById("url").addEventListener("input", () => {
@@ -162,38 +231,52 @@ const handleKeyboard = e => {
         return
     }
     const action = eventToAction(e)
-    const isAction = executeAction(action)
-    if (isAction) {
+    const actionFunction = actionToFunction(action)
+    if (actionFunction) {
+        actionFunction()
+        if (["normal", "cursor", "visual"].includes(MODES.currentMode())) {
+            while (repeatCounter > 1) {
+                actionFunction()
+                repeatCounter -= 1
+            }
+            repeatCounter = 0
+        }
         e.preventDefault()
         return
+    }
+    const id = toIdentifier(e)
+    if (id.startsWith("Digit") && SETTINGS.get("digitsRepeatActions")) {
+        if (["normal", "cursor", "visual"].includes(MODES.currentMode())) {
+            const keyNumber = Number(id.replace("Digit", ""))
+            if (!isNaN(keyNumber)) {
+                repeatCounter = Number(String(repeatCounter) + keyNumber)
+                if (repeatCounter > 100) {
+                    repeatCounter = 100
+                }
+            }
+        } else {
+            repeatCounter = 0
+        }
     }
     handleUserInput(e)
 }
 
-const executeAction = action => {
+const actionToFunction = action => {
     if (typeof action !== "string") {
-        return false
+        return null
     }
-    const actionParts = action.split(".")
-    if (actionParts.length !== 2) {
-        return false
-    }
+    const [categoryName, func] = action.split(".")
     const categories = {
         "ACTIONS": ACTIONS,
         "FOLLOW": FOLLOW,
-        "COMMAND": COMMAND
-    }
-    const categoryName = actionParts[0]
-    if (categories[categoryName] === undefined) {
-        return false
+        "COMMAND": COMMAND,
+        "CURSOR": CURSOR
     }
     const category = categories[categoryName]
-    const func = actionParts[1]
-    if (category[func] === undefined) {
-        return false
+    if (!category) {
+        return null
     }
-    category[func]()
-    return true
+    return category[func]
 }
 
 const handleUserInput = e => {
@@ -217,8 +300,8 @@ const handleUserInput = e => {
         "CS-ArrowRight"
     ]
     const shift = id.startsWith("S-")
-    const allowedInput = allowedUserInput.indexOf(id) !== -1
-    const hasModifier = id.indexOf("-") !== -1
+    const allowedInput = allowedUserInput.includes(id)
+    const hasModifier = id.includes("-")
     if (!shift && !allowedInput && hasModifier || e.code === "Tab") {
         e.preventDefault()
     }
@@ -228,5 +311,5 @@ const handleUserInput = e => {
 module.exports = {
     init,
     eventToAction,
-    executeAction
+    actionToFunction
 }

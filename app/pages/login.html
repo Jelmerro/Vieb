@@ -58,7 +58,7 @@
                 }
             })
             input.addEventListener("focusout", e => {
-                if (inputs.indexOf(e.relatedTarget) === -1) {
+                if (!inputs.includes(e.relatedTarget)) {
                     input.focus()
                     input.click()
                 }

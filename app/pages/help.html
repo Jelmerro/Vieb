@@ -84,14 +84,15 @@
             <span class="insert">Insert</span>
             - This mode is used to interact with the website normally.
             It brings back mouse interaction and passes all keyboard inputs to the website.
-            This mode shouldn't be used by default,
+            If the cursor is pointing at a url, the url will be shown at the bottom of the screen.
+            However, insert mode should not be overused in Vieb,
             because a lot of the advantages Vieb has to offer are unavailable in this mode.
             If you really need or want to enter insert mode, press <kbd>i</kbd>.
-            The follow(ing) mode describes a much faster way to use insert mode.
+            The follow(ing) mode describes a much faster way to follow links or buttons.
         </li>
         <li>
             <span class="follow">Follow</span>
-            - Upon pressing <kbd>f</kbd> all links on the page will be assigned a key.
+            - Upon pressing <kbd>f</kbd> all links and buttons on the page will be assigned a key.
             When pressing the key next to a link, Vieb will click on the link.
             If there are a lot of links on the page, sometimes two keys are needed.
             You don't need to press these together, but simply after each other.
@@ -100,7 +101,7 @@
             The different colors indicate the different type of links:
             <ul>
                 <li>
-                    <a href="#basics">Regular link to this chapter</a>
+                    <a href="#follow">Regular link to the follow mode chapter</a>
                     will be outlined in blue.
                 </li>
                 <li>
@@ -141,15 +142,32 @@
             You can now press <kbd>n</kbd> or <kbd>Shift with n</kbd> to find next or previous matches.
             Searching is by default case-sensitive.
         </li>
+        <li>
+            <span class="cursor">Cursor</span>
+            - In this mode a blinking cursor will appear which can be moved around using Vim keybindings.
+            If can also be used to hover over links or to scroll inside smaller scrollboxes.
+            It's also possible to save images or preview url locations from this mode.
+            It can be entered by pressing <kbd>c</kbd>.
+            The complete list of movement options can be found <a href="#cursor">here</a>.
+        </li>
+        <li>
+            <span class="visual">Visual</span>
+            - This mode can only be entered from cursor mode using the <kbd>v</kbd> key.
+            It can be used to select and copy text using the keyboad.
+            When switching from cursor mode to visual mode,
+            the exising location will be saved as the starting point for the selection.
+            The cursor can then be moved freely similar to cursor mode,
+            with text being selected between the two locations.
+            Similar to all other modes, you can exit this mode using <kbd>Escape</kbd>,
+            or by pressing <kbd>y</kbd> to copy the selected text.
     </ul>
-    Now that all the different special modes have been explained,
-    a separate paragraph will explain how to use normal mode.
+    Now that all the different modes have been explained,
+    a separate paragraph will explain how to use the basics of normal mode.
     <h2 id="basics-normal">normal mode</h2>
-    Most functionality is accessed from normal mode,
-    and all modes can be entered from normal mode.
+    Most functionality is accessed from normal mode using the keyboard.
     It offers a large list of shortcuts to interact with the website.
     Aside from the keys to switch modes mentioned in the previous paragraph,
-    these keybindings are important when in normal mode:
+    these are the most important when in normal mode:
     <ul>
         <li>Moving around with a single press of <kbd>h j k l</kbd>.</li>
         <li>Zoom in and out using <kbd>Ctrl with +</kbd> or <kbd>Ctrl with -</kbd>.</li>
@@ -289,6 +307,7 @@
     "suggestCommands": false,
     "allowFollowModeDuringLoad": true,
     "fontSize": 20,
+    "digitsRepeatActions": false,
     "notification": {
         "duration": 3000,
         "position": "bottom-left"
@@ -340,6 +359,7 @@
         <li>Don't suggest/autocomplete commands when in command mode (suggestCommands)</li>
         <li>Allow the entering of follow mode during page loads, even if elements might move around (allowFollowModeDuringLoad)</li>
         <li>Increase the font size of all UI elements to 20px instead of 14px (fontSize)</li>
+        <li>Stop the digit keys from repeating actions (digitsRepeatActions)</li>
         <li>Reduce the notification duration to 3 seconds instead of 5 (notification.duration)</li>
         <li>Display the notification in the bottom left instead of the bottom right (notification.position)</li>
         <li>Downloads will be stored in the documents folder, except if method is set be "ask" (downloads.path)</li>
@@ -355,6 +375,7 @@
     </ul>
     Please note that the download, tab and browsing history are separately configured.
     Therefor it's possible to keep and restore the open tabs without keeping the other browsing history.
+    More information about the history settings can be found in <a href="#history">the history chapter</a>.
     To find the right setting for you, the set command can be used at runtime to test a specific setting.
     This concludes the documentation regarding the viebrc file.
     In the next paragraph, the set command will be explained.
@@ -460,15 +481,16 @@
         <li>Go to the top or the bottom of the page using <kbd>Shift with g</kbd> or <kbd>g</kbd>.</li>
         <li>Move around on the page with the keys <kbd>h j k l</kbd>.</li>
         <li>Enter insert mode with <kbd>i</kbd>.</li>
-        <li>
-            Find the next or previous match when searching using
-            <kbd>n</kbd> and <kbd>Shift with n</kbd>.
-        </li>
         <li>Reload the page with or without cache using <kbd>r</kbd> and <kbd>Shift with r</kbd>.</li>
         <li>Open a new tab and enter nav mode in the new tab with <kbd>t</kbd>.</li>
         <li>Close the current tab with <kbd>d</kbd>.</li>
         <li>Reopen previously closed tabs with <kbd>u</kbd>.</li>
         <li>Switch to search mode with <kbd>/</kbd>.</li>
+        <li>
+            Find the next or previous match when searching using
+            <kbd>n</kbd> and <kbd>Shift with n</kbd>.
+        </li>
+        <li>When a search match is selected, press <kbd>Enter</kbd> to click on the selected search.</li>
         <li>
             Go forward or backwards in the tab browsing history using
             <kbd>Shift with l</kbd> and <kbd>Shift with h</kbd>.
@@ -482,12 +504,20 @@
             <kbd>Ctrl with u</kbd> or <kbd>Ctrl with d</kbd>.
         </li>
         <li>Or an entire page by pressing <kbd>Ctrl with b</kbd> and <kbd>Ctrl with f</kbd>.</li>
+        <li>To scrol an entire page horizontally, use <kbd>^</kbd> and <kbd>$</kbd> (shift 4 and 6).</li>
         <li>Go to command mode using <kbd>Shift with ;</kbd> (also known as <kbd>:</kbd>).</li>
         <li>Zoom in or out by pressing <kbd>Ctrl with +</kbd> and <kbd>Ctrl with -</kbd>.</li>
         <li>Reset the zoom to 100% again using <kbd>Ctrl with 0</kbd>.</li>
+        <li>Enter <a href="#cursor">cursor mode</a> using <kbd>c</kbd>, <kbd>s</kbd> or <kbd>v</kbd>.</li>
     </ul>
-    <h1 id="follow">Follow</h1>
-    This mode is a very important aspect of Vieb,
+    Aside from these, any number of digits can be entered before executing an action,
+    which will result in the action being executed for the number of times entered.
+    For example, pressing <kbd>2</kbd> and then <kbd>j</kbd> will result in scrolling down twice.
+    This can be disabled by overwriting the action for any of the digits.
+    To disable the repeat action behaviour entirely, set "digitsRepeatActions" to false in the settings.
+    This repeat action behaviour is also present in <a href="#cursor">cursor</a> and <a href="#visual">visual</a> mode.
+    <h1 id="follow">Follow mode</h1>
+    This mode is a very important mode of Vieb,
     as it allows you to click on links or other elements using the keyboard.
     There are two versions with very different implementations,
     one for the current tab with <kbd>f</kbd> and one for new tab using <kbd>Shift with f</kbd>.
@@ -533,6 +563,50 @@
     This means only anchor tags with valid urls will be made clickable.
     Finally these links will not be opened by emulating a mouse click,
     but by opening a new tab with the href attribute as the url.
+    <h1 id="cursor">Cursor mode</h1>
+    Cursor mode can be used to move "cursor" using the keyboard.
+    It is required to enter cursor mode before going to visual mode.
+    To enter cursor mode, press <kbd>c</kbd>, <kbd>s</kbd> or <kbd>v</kbd> when in normal mode.
+    When in cursor mode, hover events will be triggered when moving the cursor.
+    If the cursor is pointing at a url, the url will be shown at the bottom of the screen.
+    Aside from that, images can be downloaded and urls can be copied.
+    Lastly, cursor mode can be used to scroll inside scrollable elements smaller than the main window.
+    The following actions are available by default in cursor mode:
+    <ul>
+        <li>Use <kbd>h j k l</kbd> to move the cursor around.</li>
+        <li>Press <kbd>y</kbd> to copy the current url under the cursor to the clipboard.</li>
+        <li>You can download the image or svg at the current position using <kbd>d</kbd>.</li>
+        <li>Execute a regular mouse click by pressing <kbd>f</kbd>.</li>
+        <li>Click and enter insert mode at the cursor location using <kbd>i</kbd>.</li>
+        <li>For middle and right-click, use <kbd>m</kbd> and <kbd>r</kbd> respectively.</li>
+        <li>To jump a larger distance horizontally, use <kbd>w</kbd> and <kbd>b</kbd>.</li>
+        <li>Press <kbd>g</kbd> or <kbd>Shift with g</kbd> to scroll to the top or bottom of the page.</li>
+        <li>Entering <kbd>Shift with h</kbd> or <kbd>Shift with l</kbd> will move the cursor to the top or bottom of the view.</li>
+        <li>To execute a scrolling action at the current position, use <kbd>Shift with j</kbd> or <kbd>Shift with k</kbd>.</li>
+        <li>The keys <kbd>^</kbd> and <kbd>$</kbd> will move the cursor to the end or the beginning of the view.</li>
+        <li>Combining <kbd>Ctrl</kbd> with <kbd>h j k l</kbd> will move the cursor by one pixel in each direction.</li>
+        <li>To move fast up and down, use <kbd>Ctrl with u</kbd> and <kbd>Ctrl with d</kbd>.</li>
+        <li>Finally, pressing <kbd>v</kbd> when in cursor mode, will enter visual mode.</li>
+    </ul>
+    By default, <kbd>F1</kbd> is mapped to this help page for this and all other modes,
+    similar to the default binding to go back to normal mode (<kbd>Escape</kbd> or <kbd>Ctrl with [</kbd>).
+    Some movemement actions will also scroll the window when reaching the bottom or top of the current view.
+    <h1 id="visual">Visual mode</h1>
+    This is the only mode than can not be directly entered from normal mode,
+    but is instead entered after pressing <kbd>v</kbd> from cursor mode.
+    The main purpose of this mode is to select and copy text.
+    The full list of options looks like this:
+    <ul>
+        <li>Use <kbd>h j k l</kbd> to move the cursor around.</li>
+        <li>To jump a larger distance horizontally, use <kbd>w</kbd> and <kbd>b</kbd>.</li>
+        <li>Press <kbd>g</kbd> or <kbd>Shift with g</kbd> to scroll to the top or bottom of the page.</li>
+        <li>Entering <kbd>Shift with h</kbd> or <kbd>Shift with l</kbd> will move the cursor to the top or bottom of the view.</li>
+        <li>To execute a scrolling action at the current position, use <kbd>Shift with j</kbd> or <kbd>Shift with k</kbd>.</li>
+        <li>The keys <kbd>^</kbd> and <kbd>$</kbd> will move the cursor to the end or the beginning of the view.</li>
+        <li>Combining <kbd>Ctrl</kbd> with <kbd>h j k l</kbd> will move the cursor by one pixel in each direction.</li>
+        <li>To move fast up and down, use <kbd>Ctrl with u</kbd> and <kbd>Ctrl with d</kbd>.</li>
+        <li>Finally, pressing <kbd>y</kbd> or <kbd>c</kbd> will copy the selection to the system clipboard.</li>
+    </ul>
     <h1 id="commands">Commands</h1>
     In this chapter all the available commands will be listed and explained.
     By default, all supported commands will be autocompleted using a suggestions dropdown menu,

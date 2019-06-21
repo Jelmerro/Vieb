@@ -21,6 +21,7 @@
     <link href="css/index.css" rel="stylesheet" type="text/css">
 </head>
 <body>
+    <div id="invisible-overlay"></div>
     <div id="navbar">
         <img src="img/icon.png" id="logo">
         <div>
@@ -33,7 +34,9 @@
     </div>
     <div id="suggest-dropdown"></div>
     <div id="follow"></div>
+    <div id="cursor"></div>
     <div id="notifications"></div>
+    <div id="url-hover"></div>
     <div id="pages"></div>
     <script>
         //Utility functions not related to any other topic, but used in many
@@ -56,11 +59,14 @@
         const HISTORY = require("./js/history.js")
         //Suggestions for the navbar
         const SUGGEST = require("./js/suggest.js")
+        //Cursor based navigation mode (hover, visual, drag, rightlclick etc.)
+        const CURSOR = require("./js/cursor.js")
         //Some modules require initialisation
         SETTINGS.init()
         INPUT.init()
         DOWNLOADS.init()
         TABS.init()
+        CURSOR.init()
     </script>
 </body>
 </html>

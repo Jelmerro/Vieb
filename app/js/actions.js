@@ -20,6 +20,18 @@
 
 let currentSearch = ""
 
+const emptySearch = () => {
+    TABS.currentPage().stopFindInPage("clearSelection")
+    currentSearch = ""
+}
+
+const clickOnSearch = () => {
+    if (currentSearch) {
+        TABS.currentPage().getWebContents().send("search-element-click", "hi")
+        emptySearch()
+    }
+}
+
 const previousTab = () => {
     TABS.switchToTab(TABS.listTabs().indexOf(TABS.currentTab()) - 1)
 }
@@ -34,7 +46,8 @@ const toNavMode = () => {
 
 const scrollTop = () => {
     try {
-        TABS.currentPage().executeJavaScript("window.scrollTo(0, 0)", true)
+        TABS.currentPage().executeJavaScript(
+            "window.scrollBy(0, -1000000000)", true)
     } catch (e) {
         //No page is available, not an issue
     }
@@ -77,7 +90,7 @@ const scrollRight = () => {
 }
 
 const nextSearchMatch = () => {
-    if (currentSearch !== "") {
+    if (currentSearch) {
         try {
             TABS.currentPage().findInPage(currentSearch, {
                 findNext: true,
@@ -117,7 +130,7 @@ const toSearchMode = () => {
 const scrollBottom = () => {
     try {
         TABS.currentPage().executeJavaScript(
-            "window.scrollTo(100000000, 100000000)", true)
+            "window.scrollBy(0, 1000000000)", true)
     } catch (e) {
         //No page is available, not an issue
     }
@@ -140,7 +153,7 @@ const forwardInHistory = () => {
 }
 
 const previousSearchMatch = () => {
-    if (currentSearch !== "") {
+    if (currentSearch) {
         try {
             TABS.currentPage().findInPage(currentSearch, {
                 forward: false,
@@ -262,13 +275,18 @@ const useEnteredData = () => {
     }
     if (MODES.currentMode() === "search") {
         currentSearch = document.getElementById("url").value
-        try {
+        if (currentSearch.trim()) {
+            try {
+                TABS.currentPage().stopFindInPage("clearSelection")
+                TABS.currentPage().findInPage(currentSearch, {
+                    matchCase: SETTINGS.get("caseSensitiveSearch")
+                })
+            } catch (e) {
+                //No page is available, not an issue
+            }
+        } else {
+            currentSearch = ""
             TABS.currentPage().stopFindInPage("clearSelection")
-            TABS.currentPage().findInPage(currentSearch, {
-                matchCase: SETTINGS.get("caseSensitiveSearch")
-            })
-        } catch (e) {
-            //No page is available, not an issue
         }
         MODES.setMode("normal")
     }
@@ -294,7 +312,7 @@ const useEnteredData = () => {
 
 const setFocusCorrectly = () => {
     const urlElement = document.getElementById("url")
-    if (MODES.currentMode() === "normal") {
+    if (["normal", "follow", "visual"].includes(MODES.currentMode())) {
         window.focus()
         urlElement.className = ""
         urlElement.blur()
@@ -305,8 +323,14 @@ const setFocusCorrectly = () => {
         TABS.currentPage().focus()
         TABS.currentPage().click()
     }
+    if (MODES.currentMode() === "cursor") {
+        TABS.currentPage().blur()
+        urlElement.blur()
+        window.focus()
+        document.getElementById("invisible-overlay").focus()
+    }
     if (document.activeElement !== urlElement) {
-        if (["search", "command"].indexOf(MODES.currentMode()) !== -1) {
+        if (["search", "command"].includes(MODES.currentMode())) {
             window.focus()
             urlElement.focus()
             if (urlElement.value === TABS.currentPage().src) {
@@ -351,6 +375,8 @@ const prevSuggestion = () => {
 }
 
 module.exports = {
+    emptySearch,
+    clickOnSearch,
     previousTab,
     closeTab,
     toNavMode,
