@@ -176,8 +176,8 @@ const moveLeft = () => {
 }
 
 const insertAtPosition = () => {
-    leftClick()
     MODES.setMode("insert")
+    leftClick()
 }
 
 const moveDown = () => {
