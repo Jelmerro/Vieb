@@ -309,6 +309,19 @@ const set = (setting, value) => {
         }
         return
     }
+    if (setting === "digitsrepeatactions") {
+        if (value === "true") {
+            allSettings.digitsRepeatActions = true
+            return
+        }
+        if (value === "false") {
+            allSettings.digitsRepeatActions = false
+            return
+        }
+        UTIL.notify("This is an invalid value for this setting, only "
+            + "true and false are accepted here", "warn")
+        return
+    }
     if (setting === "notification.system") {
         if (value === "true") {
             allSettings.notification.system = true
