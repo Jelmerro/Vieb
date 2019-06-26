@@ -94,7 +94,9 @@ app.on("ready", () => {
             webviewTag: true
         }
     }
-    windowData.icon = path.join(__dirname, "img/icon.png")
+    if (!app.isPackaged) {
+        windowData.icon = path.join(__dirname, "img/icons/512x512.png")
+    }
     mainWindow = new BrowserWindow(windowData)
     mainWindow.setMenu(null)
     mainWindow.setMinimumSize(500, 500)

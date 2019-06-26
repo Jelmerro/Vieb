@@ -1,7 +1,7 @@
 Vieb
 ====
 
-![icon](app/img/icon-small.png)
+![icon](app/img/icons/128x128.png)
 
 Vim Inspired Electron Browser - [github](https://github.com/Jelmerro/Vieb)
 
