@@ -152,6 +152,9 @@ const saveTabs = () => {
         }
         return
     }
+    // Only keep the 100 most recently closed tabs,
+    // more is probably never needed but would keep increasing the file size.
+    data.closed = data.closed.slice(-100)
     try {
         fs.writeFileSync(tabFile, JSON.stringify(data))
     } catch (e) {
