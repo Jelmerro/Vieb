@@ -81,6 +81,8 @@ const dateBreakpoints = [
 ].reverse().filter(b => b.enabled)
 let currentBreakpointIndex = 0
 let lineNumberBreakpoint = 0
+let list = document.createElement("div")
+list.id = "list"
 
 // Actually parse the list and use the breakpoints
 
@@ -88,7 +90,8 @@ const receiveHistory = history => {
     const scrollPosition = window.scrollY
     document.getElementById("remove-all").style.display = "none"
     document.getElementById("breakpoints").textContent = ""
-    document.getElementById("list").textContent = ""
+    list = document.createElement("div")
+    list.id = "list"
     currentBreakpointIndex = 0
     lineNumberBreakpoint = 0
     let lineNumber = 0
@@ -99,14 +102,15 @@ const receiveHistory = history => {
         document.getElementById("remove-all").style.display = ""
         lineNumber += 1
     })
-    if (document.getElementById("list").textContent === "") {
-        document.getElementById("list").textContent
-            = "No pages have been visited yet"
+    if (history.length === 0) {
+        list.textContent = "No pages have been visited yet"
     } else if (currentBreakpointIndex >= dateBreakpoints.length) {
         addBreakpoint(dateBreakpoints.length - 1, lineNumber)
     } else {
         addBreakpoint(currentBreakpointIndex, lineNumber)
     }
+    document.getElementById("list").parentNode.replaceChild(
+        list, document.getElementById("list"))
     if (scrollPosition) {
         window.scrollTo(0, scrollPosition)
     } else if (window.location.hash !== "") {
@@ -115,7 +119,7 @@ const receiveHistory = history => {
 }
 
 const addBreakpoint = (index, lineNumber) => {
-    if (document.getElementById("list").textContent === "") {
+    if (list.textContent === "") {
         return
     }
     const breakpoint = dateBreakpoints[index]
@@ -129,14 +133,12 @@ const addBreakpoint = (index, lineNumber) => {
     const h2 = document.createElement("h2")
     h2.setAttribute("id", breakpoint.link)
     h2.textContent = breakpoint.title
-    document.getElementById("list").insertBefore(
-        h2, document.getElementById("list").firstChild)
+    list.insertBefore(h2, list.firstChild)
     const img = document.createElement("img")
     img.src = path.join(__dirname, "../../img/trash.png")
     img.setAttribute("onclick",
         `window.clearLinesFromHistory(${lineNumberBreakpoint}, ${lineNumber})`)
-    document.getElementById("list").insertBefore(
-        img, document.getElementById("list").firstChild)
+    list.insertBefore(img, list.firstChild)
     lineNumberBreakpoint = lineNumber + 1
 }
 
@@ -170,8 +172,7 @@ const addHistToList = hist => {
     url.textContent = hist.url
     url.setAttribute("href", hist.url)
     histElement.appendChild(url)
-    document.getElementById("list").insertBefore(
-        histElement, document.getElementById("list").firstChild)
+    list.insertBefore(histElement, list.firstChild)
 }
 
 window.clearHistory = () => {
@@ -202,6 +203,6 @@ window.addEventListener("load", () => {
     ipcRenderer.sendToHost("history-list-request")
 })
 
-ipcRenderer.on("history-list", (e, list) => {
-    receiveHistory(list)
+ipcRenderer.on("history-list", (e, historyList) => {
+    receiveHistory(historyList)
 })
