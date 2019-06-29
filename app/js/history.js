@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global SETTINGS SUGGEST UTIL */
+/* global SETTINGS SUGGEST TABS UTIL */
 "use strict"
 
 const fs = require("fs")
@@ -93,7 +93,7 @@ const suggestHist = search => {
         if (simpleSearch.every(w => simpleUrl.includes(w))) {
             relevance = 5
         }
-        if (simpleSearch.every(w => simpleTitle.includes(w)) || relevance > 1) {
+        if (relevance > 1 || simpleSearch.every(w => simpleTitle.includes(w))) {
             if (orderedSearch.test(url.toLowerCase())) {
                 relevance *= 10
             }
@@ -152,9 +152,45 @@ const clearHistory = () => {
     groupedHistory = {}
 }
 
+const removeFromHistory = (start, end=null) => {
+    if (!end || end < start) {
+        end = start
+    }
+    for (let i = start;i <= end;i++) {
+        const url = history[i].url
+        groupedHistory[url].visits -= 1
+        if (groupedHistory[url].visits === 0) {
+            groupedHistory[url] = undefined
+        }
+    }
+    history = history.filter((l, index) => {
+        return index < start || index > end
+    })
+    const historyString = history.map(h => {
+        return `${h.date.toISOString()}\t${h.title.replace(/\t/g, " ")
+        }\t${h.url}`
+    }).join("\n")
+    if (history.length === 0) {
+        clearHistory()
+    } else {
+        fs.writeFileSync(histFile, `${historyString}\n`)
+    }
+}
+
+const handleRequest = (type, start, end) => {
+    if (type === "range") {
+        removeFromHistory(start, end)
+    } else if (type === "all") {
+        clearHistory()
+    }
+    TABS.currentPage().getWebContents().send("history-list", history)
+}
+
 module.exports = {
     init,
     addToHist,
     suggestHist,
-    clearHistory
+    clearHistory,
+    removeFromHistory,
+    handleRequest
 }
