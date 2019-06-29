@@ -36,7 +36,7 @@ const startFollow = () => {
         if (TABS.currentPage().src === ""
                 || TABS.currentPage().isLoadingMainFrame()) {
             UTIL.notify("Follow mode will be available when the page is "
-                + "done loading\nOr you could change the setting"
+                + "done loading\nOr you could change the setting "
                 + "'allowFollowModeDuringLoad'")
             return
         }
