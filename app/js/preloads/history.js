@@ -17,12 +17,8 @@
 */
 "use strict"
 
-const {remote} = require("electron")
+const {ipcRenderer} = require("electron")
 const path = require("path")
-const fs = require("fs")
-const readline = require("readline")
-
-const histFile = path.join(remote.app.getPath("appData"), "hist")
 
 //Configure breakpoints to make searching easier
 const now = new Date()
@@ -88,46 +84,34 @@ let lineNumberBreakpoint = 0
 
 // Actually parse the list and use the breakpoints
 
-const parseHistory = () => {
+const receiveHistory = history => {
     const scrollPosition = window.scrollY
     document.getElementById("remove-all").style.display = "none"
     document.getElementById("breakpoints").textContent = ""
     document.getElementById("list").textContent = ""
     currentBreakpointIndex = 0
     lineNumberBreakpoint = 0
-    if (!fs.existsSync(histFile) || !fs.statSync(histFile).isFile()) {
+    let lineNumber = 0
+    history.forEach(hist => {
+        hist.date = new Date(hist.date)
+        hist.line = lineNumber
+        addHistToList(hist)
+        document.getElementById("remove-all").style.display = ""
+        lineNumber += 1
+    })
+    if (document.getElementById("list").textContent === "") {
         document.getElementById("list").textContent
             = "No pages have been visited yet"
-        return
+    } else if (currentBreakpointIndex >= dateBreakpoints.length) {
+        addBreakpoint(dateBreakpoints.length - 1, lineNumber)
+    } else {
+        addBreakpoint(currentBreakpointIndex, lineNumber)
     }
-    const histStream = fs.createReadStream(histFile)
-    const rl = readline.createInterface({
-        input: histStream
-    })
-    let lineNumber = 0
-    rl.on("line", line => {
-        const hist = parseHistLine(line)
-        if (hist) {
-            hist.line = lineNumber
-            addHistToList(hist)
-            document.getElementById("remove-all").style.display = ""
-        }
-        lineNumber += 1
-    }).on("close", () => {
-        if (document.getElementById("list").textContent === "") {
-            document.getElementById("list").textContent
-                = "No pages have been visited yet"
-        } else if (currentBreakpointIndex >= dateBreakpoints.length) {
-            addBreakpoint(dateBreakpoints.length - 1, lineNumber)
-        } else {
-            addBreakpoint(currentBreakpointIndex, lineNumber)
-        }
-        if (scrollPosition) {
-            window.scrollTo(0, scrollPosition)
-        } else if (window.location.hash !== "") {
-            document.querySelector(`a[href='${window.location.hash}']`).click()
-        }
-    })
+    if (scrollPosition) {
+        window.scrollTo(0, scrollPosition)
+    } else if (window.location.hash !== "") {
+        document.querySelector(`a[href='${window.location.hash}']`).click()
+    }
 }
 
 const addBreakpoint = (index, lineNumber) => {
@@ -157,7 +141,6 @@ const addBreakpoint = (index, lineNumber) => {
 }
 
 const addHistToList = hist => {
-    hist.date = new Date(hist.date)
     //Shift the breakpoint to the next one
     const previousBreakpoint = currentBreakpointIndex
     let breakpoint = dateBreakpoints[currentBreakpointIndex + 1]
@@ -191,53 +174,12 @@ const addHistToList = hist => {
         histElement, document.getElementById("list").firstChild)
 }
 
-window.clearLinesFromHistory = (start, end=null) => {
-    if (!end || end < start) {
-        end = start
-    }
-    const lines = []
-    const histStream = fs.createReadStream(histFile)
-    const rl = readline.createInterface({
-        input: histStream
-    })
-    rl.on("line", line => {
-        lines.push(line)
-    }).on("close", () => {
-        const contents = lines.filter((l, index) => {
-            return index < start || index > end
-        }).join("\n")
-        try {
-            fs.writeFileSync(histFile, `${contents}\n`)
-        } catch (e) {
-            //Failed to write changes to history file
-        }
-        parseHistory()
-    })
-}
-
 window.clearHistory = () => {
-    try {
-        fs.unlinkSync(histFile)
-    } catch (e) {
-        //Failed to delete, might not exist
-    }
-    parseHistory()
+    ipcRenderer.sendToHost("history-list-request", "all")
 }
 
-const parseHistLine = line => {
-    const parts = line.split("\t")
-    if (parts.length < 3) {
-        return false
-    }
-    const date = new Date(parts[0])
-    if (!date) {
-        return false
-    }
-    return {
-        date: date,
-        title: parts[1],
-        url: parts.slice(2).join("")
-    }
+window.clearLinesFromHistory = (start, end=null) => {
+    ipcRenderer.sendToHost("history-list-request", "range", start, end)
 }
 
 const formatDate = date => {
@@ -257,5 +199,9 @@ window.addEventListener("load", () => {
     removeAll.src = path.join(__dirname, "../../img/trash.png")
     removeAll.setAttribute("onclick", "window.clearHistory()")
     document.body.insertBefore(removeAll, document.body.firstChild)
-    parseHistory()
+    ipcRenderer.sendToHost("history-list-request")
+})
+
+ipcRenderer.on("history-list", (e, list) => {
+    receiveHistory(list)
 })

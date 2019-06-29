@@ -417,6 +417,9 @@ const addWebviewListeners = webview => {
         if (e.channel === "scroll-height-diff") {
             CURSOR.handleScrollDiffEvent(e.args[0])
         }
+        if (e.channel === "history-list-request") {
+            HISTORY.handleRequest(...e.args)
+        }
     })
     webview.addEventListener("found-in-page", e => {
         webview.getWebContents().send("search-element-location",
