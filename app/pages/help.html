@@ -56,7 +56,7 @@
     and most other tasks have dedicated keyboard shortcuts.
     The most important ones will be explained in this chapter.
     Single key actions will be listed like this <kbd>f</kbd>,
-    modifiers such as ctrl will be displayed as: <kbd>Shift with f</kbd>.
+    modifiers such as shift will be displayed as: <kbd>Shift with f</kbd>.
     <h2 id="basics-modes">modes</h2>
     Vieb uses different modes to separate functionality.
     By default, you should be in normal mode,
@@ -138,9 +138,10 @@
         <li>
             <span class="search">Search</span>
             - This mode can be entered with <kbd>/</kbd>.
-            After entering a string, press enter to search for it.
+            After entering a string, press <kbd>Enter</kbd> to search for it.
             You can now press <kbd>n</kbd> or <kbd>Shift with n</kbd> to find next or previous matches.
             Searching is by default case-sensitive.
+            When focussed on an element after searching, you can press <kbd>Enter</kbd> again to click on it.
         </li>
         <li>
             <span class="cursor">Cursor</span>
@@ -160,6 +161,7 @@
             with text being selected between the two locations.
             Similar to all other modes, you can exit this mode using <kbd>Escape</kbd>,
             or by pressing <kbd>y</kbd> to copy the selected text.
+        </li>
     </ul>
     Now that all the different modes have been explained,
     a separate paragraph will explain how to use the basics of normal mode.
@@ -470,7 +472,7 @@
     but this chapter lists all of the default normal mode actions available:
     <ul>
         <li><kbd>F1</kbd> Opens this help page, similar to the help command.</li>
-        <li><kbd>b</kbd> and <kbd>w</kbd> to switch to the previous and next tab</kbd>.</li>
+        <li><kbd>b</kbd> and <kbd>w</kbd> to switch to the previous and next tab.</li>
         <li>Alternatively, <kbd>Shift with j</kbd> and <kbd>Shift with k</kbd> can be used to switch tabs.</li>
         <li>Go to nav mode with <kbd>e</kbd>.</li>
         <li>Start the regular follow mode for the current tab with <kbd>f</kbd>.</li>

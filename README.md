@@ -121,7 +121,7 @@ You can modify the font size for all Vieb UI elements using the "fontSize" setti
 To increase the font size to 20 for the current session: `set fontSize 20`.
 To make this permanent, edit the viebrc.json configuration file.
 
-# Cursor and visual mode
+## Cursor and visual mode
 
 After pressing `c`, `s` or `v` from normal mode, cursor mode will become active.
 In this mode, most regular vim movement options are available,

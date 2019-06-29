@@ -25,7 +25,7 @@ const {ipcRenderer, remote} = require("electron")
 let recentlyClosed = []
 
 const useragent = remote.session.defaultSession.getUserAgent()
-    .replace(/Electron\/.* /, "")
+    .replace(/Electron\/(\d|\.)* /, "").replace(/Vieb\/(\d|\.)* /, "")
 
 const init = () => {
     window.addEventListener("load", () => {
@@ -200,6 +200,8 @@ const addTab = (url=null) => {
     addWebviewListeners(webview)
     pages.appendChild(webview)
     webview.getWebContents().setUserAgent(useragent)
+    webview.getWebContents().setWebRTCIPHandlingPolicy(
+        "default_public_interface_only")
     webview.addEventListener("focus", () => {
         if (MODES.currentMode() !== "insert") {
             webview.blur()
