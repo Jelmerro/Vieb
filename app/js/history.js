@@ -86,6 +86,9 @@ const suggestHist = search => {
         return
     }
     const suggestions = Object.keys(groupedHistory).map(url => {
+        if (!groupedHistory[url]) {
+            return null
+        }
         const simpleUrl = url.replace(/\W/g, "").toLowerCase()
         const simpleTitle = groupedHistory[url].title
             .replace(/\W/g, "").toLowerCase()
@@ -157,10 +160,15 @@ const removeFromHistory = (start, end=null) => {
         end = start
     }
     for (let i = start;i <= end;i++) {
+        if (i >= history.length) {
+            break
+        }
         const url = history[i].url
-        groupedHistory[url].visits -= 1
-        if (groupedHistory[url].visits === 0) {
-            groupedHistory[url] = undefined
+        if (groupedHistory[url]) {
+            groupedHistory[url].visits -= 1
+            if (groupedHistory[url].visits === 0) {
+                groupedHistory[url] = undefined
+            }
         }
     }
     history = history.filter((l, index) => {
