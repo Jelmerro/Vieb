@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global SETTINGS SUGGEST UTIL */
+/* global SETTINGS SUGGEST TABS UTIL */
 "use strict"
 
 const fs = require("fs")
@@ -23,19 +23,52 @@ const path = require("path")
 const readline = require("readline")
 const {remote} = require("electron")
 
+const histFile = path.join(remote.app.getPath("appData"), "hist")
+let history = []
+let groupedHistory = {}
+
+const init = () => {
+    if (!fs.existsSync(histFile) || !fs.statSync(histFile).isFile()) {
+        return
+    }
+    const histStream = fs.createReadStream(histFile)
+    const rl = readline.createInterface({
+        input: histStream
+    })
+    rl.on("line", line => {
+        const hist = parseHistLine(line)
+        if (hist) {
+            history.push(hist)
+        }
+    }).on("close", () => {
+        groupedHistory = history.reduce((list, hist) => {
+            if (!list[hist.url]) {
+                list[hist.url] = {title: hist.title, visits: 0}
+            }
+            list[hist.url].visits += 1
+            if (!UTIL.hasProtocol(hist.title)) {
+                list[hist.url].title = hist.title
+            }
+            return list
+        }, {})
+    })
+}
+
 const parseHistLine = line => {
     const parts = line.split("\t")
     if (parts.length < 3) {
-        return false
+        return null
+    }
+    const date = new Date(parts[0])
+    if (!date) {
+        return null
     }
     return {
-        date: parts[0],
+        date: date,
         title: parts[1],
         url: parts.slice(2).join("")
     }
 }
-
-let histStream = null
 
 const suggestHist = search => {
     //Simplify the search to a list of words, or an ordered list of words,
@@ -43,86 +76,45 @@ const suggestHist = search => {
     //In turn, exact matches get priority over ordered matches.
     search = search.toLowerCase().trim()
     const simpleSearch = search.split(/\W/g).filter(w => w)
-    const orderedSearch = RegExp(simpleSearch.join(".*"))
-    const histFile = path.join(remote.app.getPath("appData"), "hist")
     document.getElementById("suggest-dropdown").textContent = ""
     SUGGEST.clear()
-    if (histStream) {
-        histStream.destroy()
-    }
     if (!SETTINGS.get("history.suggest") || !search) {
         return
     }
     if (!fs.existsSync(histFile) || !fs.statSync(histFile).isFile()) {
         return
     }
-    histStream = fs.createReadStream(histFile)
-    const rl = readline.createInterface({
-        input: histStream
-    })
-    rl.on("line", line => {
-        const hist = parseHistLine(line)
-        if (!hist) {
-            //Invalid hist line
-        } else if (SUGGEST.includes(hist.url)) {
-            //Update existings urls in the suggestions list,
-            //with more up to date titles (duplicate urls later in history)
-            //And increase the visit counter to move frequent sites to the top
-            const list = document.querySelectorAll("#suggest-dropdown div")
-            const duplicate = list[SUGGEST.indexOf(hist.url)]
-            if (duplicate) {
-                //If the title is currently not a url, but the new one is,
-                //the "new" title is not considered an upgrade,
-                //even if the title is newer (usually because of failed loads)
-                const titleNow = duplicate.querySelector(".title").textContent
-                const fromTitleToUrl = UTIL.isUrl(hist.title)
-                    && !UTIL.isUrl(titleNow)
-                if (hist.title !== hist.url && !fromTitleToUrl) {
-                    duplicate.querySelector(".title").textContent = hist.title
-                }
-                const visits = Number(duplicate.getAttribute("visit-count"))
-                duplicate.setAttribute("visit-count", String(visits + 1))
+    const suggestions = Object.keys(groupedHistory).map(url => {
+        if (!groupedHistory[url]) {
+            return null
+        }
+        const simpleUrl = url.replace(/\W/g, "").toLowerCase()
+        const simpleTitle = groupedHistory[url].title
+            .replace(/\W/g, "").toLowerCase()
+        let relevance = 1
+        if (simpleSearch.every(w => simpleUrl.includes(w))) {
+            relevance = 5
+        }
+        if (relevance > 1 || simpleSearch.every(w => simpleTitle.includes(w))) {
+            if (url.toLowerCase().includes(search)) {
+                relevance *= 10
             }
-        } else {
-            const simpleUrl = hist.url.replace(/\W/g, "").toLowerCase()
-            const simpleTitle = hist.title.replace(/\W/g, "").toLowerCase()
-            if (simpleSearch.every(w => simpleUrl.includes(w))) {
-                SUGGEST.addHist(hist,
-                    orderedSearch.test(hist.url.toLowerCase()),
-                    hist.url.toLowerCase().includes(search))
-            } else if (simpleSearch.every(w => simpleTitle.includes(w))) {
-                SUGGEST.addHist(hist,
-                    orderedSearch.test(hist.title.toLowerCase()),
-                    hist.title.toLowerCase().includes(search))
+            return {
+                url: url,
+                title: groupedHistory[url].title,
+                relevance: relevance * groupedHistory[url].visits
             }
         }
-    }).on("close", orderSuggestions)
+        return null
+    }).filter(h => h)
+    orderSuggestions(suggestions)
 }
 
-const orderSuggestions = () => {
+const orderSuggestions = suggestions => {
     SUGGEST.clear()
-    const list = [...document.querySelectorAll("#suggest-dropdown div")]
-    list.sort((a, b) => {
-        let modA = 1
-        let modB = 1
-        if (a.getAttribute("exact-match") === "yes") {
-            modA /= 100
-        }
-        if (b.getAttribute("exact-match") === "yes") {
-            modB /= 100
-        }
-        if (a.getAttribute("priority-match") === "yes") {
-            modA /= 10
-        }
-        if (b.getAttribute("priority-match") === "yes") {
-            modB /= 10
-        }
-        return Number(b.getAttribute("visit-count")) * modA
-            - Number(a.getAttribute("visit-count")) * modB
-    }).forEach(el => {
-        document.getElementById("suggest-dropdown").appendChild(el)
-        SUGGEST.addToList(el.querySelector(".url").textContent)
-    })
+    suggestions.sort((a, b) => {
+        return b.visits * b.relevance- a.visits * a.relevance
+    }).forEach(SUGGEST.addHist)
 }
 
 const addToHist = (title, url) => {
@@ -132,31 +124,76 @@ const addToHist = (title, url) => {
     if (UTIL.pathToSpecialPageName(url).name) {
         return
     }
-    const histFile = path.join(remote.app.getPath("appData"), "hist")
-    const date = new Date().toISOString()
-    const line = `${date}\t${title.replace(/\t/g, " ")}\t${url}\n`
+    const date = new Date()
+    history.push({
+        date: date,
+        title: title,
+        url: url
+    })
+    if (!groupedHistory[url]) {
+        groupedHistory[url] = {title: title, visits: 0}
+    }
+    groupedHistory[url].visits += 1
+    if (!UTIL.hasProtocol(title)) {
+        groupedHistory[url].title = title
+    }
+    const line = `${date.toISOString()}\t${title.replace(/\t/g, " ")}\t${url}\n`
     fs.appendFileSync(histFile, line)
 }
 
-const cancelSuggest = () => {
-    if (histStream) {
-        histStream.destroy()
-    }
-    histStream = null
-}
-
 const clearHistory = () => {
-    const histFile = path.join(remote.app.getPath("appData"), "hist")
     try {
         fs.unlinkSync(histFile)
     } catch (e) {
         //Failed to delete, might not exist
     }
+    history = []
+    groupedHistory = {}
+}
+
+const removeFromHistory = (start, end=null) => {
+    if (!end || end < start) {
+        end = start
+    }
+    for (let i = start;i <= end;i++) {
+        if (i >= history.length) {
+            break
+        }
+        const url = history[i].url
+        if (groupedHistory[url]) {
+            groupedHistory[url].visits -= 1
+            if (groupedHistory[url].visits === 0) {
+                groupedHistory[url] = undefined
+            }
+        }
+    }
+    history = history.filter((l, index) => {
+        return index < start || index > end
+    })
+    const historyString = history.map(h => {
+        return `${h.date.toISOString()}\t${h.title.replace(/\t/g, " ")
+        }\t${h.url}`
+    }).join("\n")
+    if (history.length === 0) {
+        clearHistory()
+    } else {
+        fs.writeFileSync(histFile, `${historyString}\n`)
+    }
+}
+
+const handleRequest = (type, start, end) => {
+    if (type === "range") {
+        removeFromHistory(start, end)
+    } else if (type === "all") {
+        clearHistory()
+    }
+    TABS.currentPage().getWebContents().send("history-list", history)
 }
 
 module.exports = {
+    init,
     addToHist,
     suggestHist,
-    cancelSuggest,
-    clearHistory
+    clearHistory,
+    handleRequest
 }

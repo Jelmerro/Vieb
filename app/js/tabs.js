@@ -25,7 +25,7 @@ const {ipcRenderer, remote} = require("electron")
 let recentlyClosed = []
 
 const useragent = remote.session.defaultSession.getUserAgent()
-    .replace(/Electron\/.* /, "")
+    .replace(/Electron\/(\d|\.)* /, "").replace(/Vieb\/(\d|\.)* /, "")
 
 const init = () => {
     window.addEventListener("load", () => {
@@ -152,6 +152,9 @@ const saveTabs = () => {
         }
         return
     }
+    // Only keep the 100 most recently closed tabs,
+    // more is probably never needed but would keep increasing the file size.
+    data.closed = data.closed.slice(-100)
     try {
         fs.writeFileSync(tabFile, JSON.stringify(data))
     } catch (e) {
@@ -197,6 +200,8 @@ const addTab = (url=null) => {
     addWebviewListeners(webview)
     pages.appendChild(webview)
     webview.getWebContents().setUserAgent(useragent)
+    webview.getWebContents().setWebRTCIPHandlingPolicy(
+        "default_public_interface_only")
     webview.addEventListener("focus", () => {
         if (MODES.currentMode() !== "insert") {
             webview.blur()
@@ -413,6 +418,9 @@ const addWebviewListeners = webview => {
         }
         if (e.channel === "scroll-height-diff") {
             CURSOR.handleScrollDiffEvent(e.args[0])
+        }
+        if (e.channel === "history-list-request") {
+            HISTORY.handleRequest(...e.args)
         }
     })
     webview.addEventListener("found-in-page", e => {
