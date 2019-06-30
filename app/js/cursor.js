@@ -149,6 +149,12 @@ const downloadImage = () => {
         "download-image-request", X / factor, Y / factor)
 }
 
+const inspectElement = () => {
+    const factor = TABS.currentPage().getZoomFactor()
+    TABS.currentPage().getWebContents().inspectElement(
+        X / factor, (Y + SETTINGS.get("fontSize") * 4) / factor)
+}
+
 const copyAndStop = () => {
     if (MODES.currentMode() === "cursor") {
         remote.clipboard.write({
@@ -322,6 +328,7 @@ module.exports = {
     releaseKeys,
     moveFastLeft,
     downloadImage,
+    inspectElement,
     leftClick,
     startOfPage,
     moveLeft,

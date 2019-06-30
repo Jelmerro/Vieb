@@ -76,7 +76,6 @@ const suggestHist = search => {
     //In turn, exact matches get priority over ordered matches.
     search = search.toLowerCase().trim()
     const simpleSearch = search.split(/\W/g).filter(w => w)
-    const orderedSearch = RegExp(simpleSearch.join(".*"))
     document.getElementById("suggest-dropdown").textContent = ""
     SUGGEST.clear()
     if (!SETTINGS.get("history.suggest") || !search) {
@@ -97,9 +96,6 @@ const suggestHist = search => {
             relevance = 5
         }
         if (relevance > 1 || simpleSearch.every(w => simpleTitle.includes(w))) {
-            if (orderedSearch.test(url.toLowerCase())) {
-                relevance *= 10
-            }
             if (url.toLowerCase().includes(search)) {
                 relevance *= 10
             }
@@ -199,6 +195,5 @@ module.exports = {
     addToHist,
     suggestHist,
     clearHistory,
-    removeFromHistory,
     handleRequest
 }
