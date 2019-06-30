@@ -101,6 +101,7 @@ const bindings = {
         "F1": "COMMAND.help",
         "KeyB": "CURSOR.moveFastLeft",
         "KeyD": "CURSOR.downloadImage",
+        "KeyE": "CURSOR.inspectElement",
         "KeyF": "CURSOR.leftClick",
         "KeyG": "CURSOR.startOfPage",
         "KeyH": "CURSOR.moveLeft",

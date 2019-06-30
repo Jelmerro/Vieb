@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global HISTORY SETTINGS */
+/* global SETTINGS */
 "use strict"
 
 let suggestions = []
@@ -77,7 +77,6 @@ const nextSuggestion = () => {
 
 const cancelSuggestions = () => {
     document.getElementById("suggest-dropdown").textContent = ""
-    HISTORY.cancelSuggest()
 }
 
 const clear = () => {
@@ -96,15 +95,12 @@ const indexOf = suggestion => {
     return suggestions.indexOf(suggestion)
 }
 
-const addHist = (hist, priority, exact) => {
+const addHist = hist => {
+    if (suggestions.length > 20) {
+        return
+    }
     addToList(hist.url)
     const element = document.createElement("div")
-    element.setAttribute("visit-count", "1")
-    if (exact) {
-        element.setAttribute("exact-match", "yes")
-    } else if (priority) {
-        element.setAttribute("priority-match", "yes")
-    }
     const title = document.createElement("span")
     title.className = "title"
     title.textContent = hist.title

@@ -22,12 +22,7 @@ const path = require("path")
 const rimraf = require("rimraf").sync
 const {remote} = require("electron")
 
-//This regex will be compiled when the file is loaded, so it's pretty fast
-//The regex is explained in the isUrl function below
-//eslint-disable-next-line max-len
-const urlRegex = /^(([a-zA-Z\d]+\.|([a-zA-Z\d]+[a-zA-Z\d-][a-zA-Z\d]+)+\.)+[a-zA-Z]{2,}|localhost|(\d{1,3}\.){3}\d{1,3})(:\d{2,5})?(|\/.*|\?.*|#.*)$/
 const protocolRegex = /^[a-z][a-z0-9-+.]+:\/\//
-
 const specialPages = ["help", "history", "downloads", "version"]
 
 const hasProtocol = location => {
@@ -37,14 +32,50 @@ const hasProtocol = location => {
 }
 
 const isUrl = location => {
-    return hasProtocol(location) || urlRegex.test(location)
+    if (hasProtocol(location)) {
+        return true
+    }
+    if (/^localhost(:\d{2,5})?(|\/.*|\?.*|#.*)$/.test(location)) {
+        return true
+    }
+    if (/^(\d{1,3}\.){3}\d{1,3}(:\d{2,5})?(|\/.*|\?.*|#.*)$/.test(location)) {
+        return true
+    }
+    const domainName = location.split(/\/|\?|#/)[0]
+    if (domainName.includes("..")) {
+        return false
+    }
+    const names = domainName.split(".")
+    if (names.length < 2) {
+        return false
+    }
+    const tldAndPort = names.pop()
+    if (tldAndPort.includes("::") || tldAndPort.split(":").length > 2) {
+        return false
+    }
+    if (tldAndPort.startsWith(":") || tldAndPort.endsWith(":")) {
+        return false
+    }
+    const [tld, port] = tldAndPort.split(":")
+    if (port && !/^\d{2,5}$/.test(port)) {
+        return false
+    }
+    if (/^[a-zA-Z]{2,}$/.test(tld)) {
+        const invalidDashes = names.some(n => {
+            return n.includes("--") || n.startsWith("-") || n.endsWith("-")
+        })
+        if (!invalidDashes && names.every(n => /^[a-zA-Z\d-]+$/.test(n))) {
+            return true
+        }
+    }
+    return false
     //Checks if the location starts with one of the following:
+    //- localhost
+    //- An ipv4 address
     //- Valid domain with 0 or more subdomains
     //  - subdomains can have letters, digits and hyphens
     //  - hyphens cannot be at the end or the start of the subdomain
     //  - toplevel domains can only contain letters
-    //- localhost
-    //- An ipv4 address
     //After that, an optional port in the form of :22 or up to :22222
     //Lastly, it checks if the location ends with one of the following:
     //- Nothing
