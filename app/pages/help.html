@@ -331,6 +331,11 @@
         "startup": [
             "vieb://help"
         ]
+    },
+    "windowstate": {
+        "position": false,
+        "size": false,
+        "maximized": false
     }
 }</pre>
 
@@ -374,6 +379,9 @@
         <li>Don't restore the previously open tabs when restarting Vieb (tabs.restore)</li>
         <li>The recently closed tabs will no longer be restorable with the <kbd>u</kbd> key (tabs.keepRecentlyClosed)</li>
         <li>Open this help page on startup, which can be expanded with other urls (tabs.startup)</li>
+        <li>The position of the window when not maximized will not be remembered and restored after restarting (windowstate.position)</li>
+        <li>The size of the window when not maximized will not be restored after restarting (windowstate.size)</li>
+        <li>After restarting, Vieb will no longer remember if the window was maximized (windowstate.maximized)</li>
     </ul>
     Please note that the download, tab and browsing history are separately configured.
     Therefor it's possible to keep and restore the open tabs without keeping the other browsing history.
