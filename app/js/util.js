@@ -178,12 +178,24 @@ const clearCache = () => {
     rimrafFolder("Cache")
     rimrafFolder("Code Cache")
     rimrafFolder("GPUCache")
-    rimrafFolder("FIle System")
+    rimrafFolder("File System")
+    rimrafFolder("MANIFEST")
+    rimrafFolder("Service Worker")
+    rimrafFolder("VideoDecodeStats")
+    rimrafFolder("blob_storage")
+    rimrafFolder("databases")
+    rimrafFolder("*.log")
+}
+
+const clearCookies = () => {
+    rimrafFolder("Cookies*")
+    rimrafFolder("QuotaManager*")
 }
 
 const clearLocalStorage = () => {
     rimrafFolder("IndexedDB")
     rimrafFolder("Local Storage")
+    rimrafFolder("*.ldb")
 }
 
 module.exports = {
@@ -193,5 +205,6 @@ module.exports = {
     specialPagePath,
     pathToSpecialPageName,
     clearCache,
+    clearCookies,
     clearLocalStorage
 }

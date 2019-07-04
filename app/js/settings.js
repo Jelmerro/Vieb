@@ -54,6 +54,11 @@ const defaultSettings = {
         "restore": true,
         "keepRecentlyClosed": true,
         "startup": []
+    },
+    "windowstate": {
+        "position": true,
+        "size": true,
+        "maximized": true
     }
 }
 let allSettings = {}
@@ -110,6 +115,9 @@ const loadFromDisk = () => {
             if (typeof parsed.fontSize === "number") {
                 allSettings.fontSize
                     = Math.min(Math.max(Number(parsed.fontSize), 8), 30)
+            }
+            if (typeof parsed.digitsRepeatActions === "boolean") {
+                allSettings.digitsRepeatActions = parsed.digitsRepeatActions
             }
             if (typeof parsed.notification === "object") {
                 if (typeof parsed.notification.system === "boolean") {
@@ -175,6 +183,19 @@ const loadFromDisk = () => {
                             allSettings.tabs.startup.push(url)
                         }
                     }
+                }
+            }
+            if (typeof parsed.windowstate === "object") {
+                if (typeof parsed.windowstate.position === "boolean") {
+                    allSettings.windowstate.position
+                        = parsed.windowstate.position
+                }
+                if (typeof parsed.windowstate.size === "boolean") {
+                    allSettings.windowstate.size = parsed.windowstate.size
+                }
+                if (typeof parsed.windowstate.maximized === "boolean") {
+                    allSettings.windowstate.maximized
+                        = parsed.windowstate.maximized
                 }
             }
         } catch (e) {
@@ -486,6 +507,16 @@ const set = (setting, value) => {
             + "Instead, open the config file, edit the page list and "
             + "the startup pages will open the next time Vieb is started")
         return
+    }
+    const states = [
+        "windowstate.position",
+        "windowstate.size",
+        "windowstate.maximized"
+    ]
+    if (states.includes(setting)) {
+        UTIL.notify("The window state settings are applied on startup,"
+            + "therefor they can't be edited with the set command"
+            + "Instead, open the config file, edit the settings there")
     }
     UTIL.notify(`The requested setting '${setting}' does not exist`, "warn")
 }
