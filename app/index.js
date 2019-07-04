@@ -22,11 +22,10 @@ const {app, BrowserWindow, ipcMain} = require("electron")
 const path = require("path")
 const fs = require("fs")
 
-let mainWindow = null
-
 // Set storage location to Vieb regardless of startup method
 app.setPath("appData", path.join(app.getPath("appData"), "Vieb"))
 app.setPath("userData", app.getPath("appData"))
+let mainWindow = null
 
 // Allow the app to change the login credentials
 app.on("login", e => {
@@ -42,7 +41,8 @@ app.on("ready", () => {
     }
     args = args.slice(2)
     const urls = []
-    let enableDevTools = false
+    let enableDebugMode = false
+    let showInternalConsole = false
     args.forEach(arg => {
         arg = arg.trim()
         if (arg.startsWith("--")) {
@@ -52,8 +52,10 @@ app.on("ready", () => {
             } else if (arg === "--version") {
                 printVersion()
                 app.exit(0)
-            } else if (arg === "--debug" || arg === "--console") {
-                enableDevTools = true
+            } else if (arg === "--debug") {
+                enableDebugMode = true
+            } else if (arg === "--console") {
+                showInternalConsole = true
             } else {
                 console.log(`Unsupported argument: ${arg}`)
                 printUsage()
@@ -63,6 +65,9 @@ app.on("ready", () => {
             urls.push(arg)
         }
     })
+    if (showInternalConsole && enableDebugMode) {
+        console.log("the --debug argument always opens the internal console")
+    }
     // Request single instance lock and quit if that fails
     if (app.requestSingleInstanceLock()) {
         app.on("second-instance", (event, commandLine) => {
@@ -86,8 +91,9 @@ app.on("ready", () => {
         title: "Vieb",
         width: 800,
         height: 600,
-        frame: false,
-        transparent: true,
+        frame: enableDebugMode,
+        transparent: !enableDebugMode,
+        show: enableDebugMode,
         webPreferences: {
             plugins: true,
             nodeIntegration: true,
@@ -113,7 +119,7 @@ app.on("ready", () => {
     // Load app and send urls when ready
     mainWindow.loadURL(`file://${path.join(__dirname, "index.html")}`)
     mainWindow.webContents.on("did-finish-load", () => {
-        if (enableDevTools) {
+        if (enableDebugMode || showInternalConsole) {
             mainWindow.webContents.openDevTools()
         }
         mainWindow.webContents.send("urls", urls)
@@ -125,11 +131,13 @@ const printUsage = () => {
     console.log("Vieb: Vim Inspired Electron Browser\n")
     console.log("Usage: Vieb [options] <URLs>\n")
     console.log("Options:")
-    console.log(" --help     Show this help and exit")
-    console.log(" --version  Display license and version information and exit")
-    console.log(" --debug    Start Vieb with the developer console open")
-    console.log(" --console  Same as --debug")
-    console.log("\nAll arguments not starting with - will be opened as a url")
+    console.log(" --help     Print this help and exit")
+    console.log(" --version  Print program info with version and exit")
+    console.log(" --debug    Open with Chromium and Electron debugging tools")
+    console.log(" --console  Open with the Vieb console (implied by --debug)")
+    console.log("\nAll arguments not starting with - will be opened as a url.")
+    console.log("Vieb was created by Jelmer van Arnhem and contributors.")
+    printLicense()
 }
 
 const printVersion = () => {
@@ -138,9 +146,12 @@ const printVersion = () => {
     console.log(`This is version ${version} of Vieb.`)
     console.log("This program is based on Electron and inspired by Vim.")
     console.log("It can be used to browse the web entirely with the keyboard.")
-    console.log("Vieb was created by Jelmer van Arnhem and contributors")
-    console.log("\nSee the following link for more information:")
-    console.log("https://github.com/Jelmerro/Vieb")
+    console.log("Vieb was created by Jelmer van Arnhem and contributors.")
+    printLicense()
+}
+
+const printLicense = () => {
+    console.log("For more info go here - https://github.com/Jelmerro/Vieb")
     console.log("\nLicense GPLv3+: GNU GPL version 3 or "
         + "later <http://gnu.org/licenses/gpl.html>")
     console.log("This is free software; you are free to change and "

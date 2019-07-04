@@ -61,6 +61,8 @@
         const SUGGEST = require("./js/suggest.js")
         //Cursor based navigation mode (hover, visual, drag, rightlclick etc.)
         const CURSOR = require("./js/cursor.js")
+        //Save and restore the window position, size and maximized state
+        const WINDOWSTATE = require("./js/windowstate.js")
         //Some modules require initialisation
         SETTINGS.init()
         INPUT.init()
@@ -68,6 +70,7 @@
         TABS.init()
         CURSOR.init()
         HISTORY.init()
+        WINDOWSTATE.init()
     </script>
 </body>
 </html>
