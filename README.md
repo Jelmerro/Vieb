@@ -3,7 +3,9 @@ Vieb
 
 ![icon](app/img/icons/128x128.png)
 
-Vim Inspired Electron Browser - [github](https://github.com/Jelmerro/Vieb)
+Vim Inspired Electron Browser
+
+[github](https://github.com/Jelmerro/Vieb) - [releases](https://github.com/Jelmerro/Vieb/releases) - [changelog](CHANGELOG.md) - [donate](https://ko-fi.com/Jelmerro)
 
 Vim bindings for the web by design
 
