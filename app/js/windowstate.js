@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global SETTINGS UTIL */
+/* global SETTINGS */
 "use strict"
 
 const {remote, screen} = require("electron")
@@ -125,7 +125,6 @@ const saveWindowState = (maximizeOnly=false) => {
         }
     }
     state.maximized = remote.getCurrentWindow().isMaximized()
-    console.log(state)
     try {
         fs.writeFileSync(windowStateFile, JSON.stringify(state))
     } catch (e) {
