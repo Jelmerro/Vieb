@@ -104,7 +104,7 @@ app.on("ready", () => {
         windowData.icon = path.join(__dirname, "img/icons/512x512.png")
     }
     mainWindow = new BrowserWindow(windowData)
-    mainWindow.setMenu(null)
+    mainWindow.removeMenu()
     mainWindow.setMinimumSize(500, 500)
     mainWindow.on("close", e => {
         e.preventDefault()

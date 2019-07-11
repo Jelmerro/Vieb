@@ -18,7 +18,7 @@
 /* global SETTINGS */
 "use strict"
 
-const {remote, screen} = require("electron")
+const {remote} = require("electron")
 const path = require("path")
 const fs = require("fs")
 
@@ -109,7 +109,7 @@ const saveWindowState = (maximizeOnly=false) => {
     }
     if (!maximizeOnly && !remote.getCurrentWindow().isMaximized()) {
         const newBounds = remote.getCurrentWindow().getBounds()
-        const currentScreen = screen.getDisplayMatching(newBounds).bounds
+        const currentScreen = remote.screen.getDisplayMatching(newBounds).bounds
         if (newBounds.width < currentScreen.width * 0.8) {
             if (newBounds.height < currentScreen.height * 0.8) {
                 if (newBounds.width !== currentScreen.width / 2) {

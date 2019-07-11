@@ -208,7 +208,7 @@ const addTab = (url=null) => {
         }
     })
     if (url) {
-        webview.src = url
+        webview.loadURL(url)
         title.textContent = url
     }
     switchToTab(listTabs().length - 1)
@@ -343,7 +343,7 @@ const addWebviewListeners = webview => {
             return //Request was aborted before another error could occur
         }
         if (e.errorDescription === "ERR_INVALID_URL") {
-            webview.src = webview.src || ""
+            webview.loadURL(webview.src || "")
             return
         }
         //It will go to the http version of a website when no https is detected
@@ -354,7 +354,7 @@ const addWebviewListeners = webview => {
             "ERR_CERT_AUTHORITY_INVALID"
         ]
         if (sslErrors.includes(e.errorDescription) && redirect) {
-            webview.src = webview.src.replace("https://", "http://")
+            webview.loadURL(webview.src.replace("https://", "http://"))
             return
         }
         UTIL.notify(`The page encountered the following error while loading: ${
@@ -453,7 +453,7 @@ const addWebviewListeners = webview => {
 }
 
 const navigateTo = location => {
-    currentPage().src = location
+    currentPage().loadURL(location)
     currentTab().querySelector("span").textContent = location
 }
 
