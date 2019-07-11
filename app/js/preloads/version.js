@@ -19,37 +19,96 @@
 
 const {remote} = require("electron")
 
-window.addEventListener("load", () => {
-    const version = process.env.npm_package_version || remote.app.getVersion()
-    document.getElementById("version").textContent = version
-    const apiUrl = "https://api.github.com/repos/Jelmerro/Vieb/releases/latest"
+const apiUrl = "https://api.github.com/repos/Jelmerro/Vieb/releases/latest"
+const version = process.env.npm_package_version || remote.app.getVersion()
+
+const compareVersions = (v1, v2) => {
+    v1 = v1.replace(/^v/g, "").trim()
+    v2 = v2.replace(/^v/g, "").trim()
+    if (v1 === v2) {
+        return "even"
+    }
+    const [v1num, v1ext] = v1.split("-")
+    const [v2num, v2ext] = v2.split("-")
+    // Same number, but one of them has a suffix such as "-dev"
+    if (v1num === v2num) {
+        if (v1ext && !v2ext) {
+            return "older"
+        }
+        if (!v1ext && v2ext) {
+            return "newer"
+        }
+    }
+    // Test if the version number is actually formatted like "1.1.1" or similar
+    if (!/^\d*\.\d*\.\d*$/.test(v1num) || !/^\d*\.\d*\.\d*$/.test(v2num)) {
+        return "unknown"
+    }
+    let [v1major, v1minor, v1patch] = v1num.split(".")
+    v1major = Number(v1major)
+    v1minor = Number(v1minor)
+    v1patch = Number(v1patch)
+    let [v2major, v2minor, v2patch] = v2num.split(".")
+    v2major = Number(v2major)
+    v2minor = Number(v2minor)
+    v2patch = Number(v2patch)
+    if (v1major > v2major) {
+        return "newer"
+    }
+    if (v1major < v2major) {
+        return "older"
+    }
+    if (v1minor > v2minor) {
+        return "newer"
+    }
+    if (v1minor < v2minor) {
+        return "older"
+    }
+    if (v1patch > v2patch) {
+        return "newer"
+    }
+    if (v1patch < v2patch) {
+        return "older"
+    }
+    return "even"
+}
+
+const checkForUpdates = () => {
     const versionCheck = document.getElementById("version-check")
-    document.querySelector("button").onclick = () => {
-        versionCheck.textContent = "Loading..."
-        const req = new XMLHttpRequest()
-        req.onreadystatechange = () => {
-            if (req.readyState === 4) {
-                if (req.status === 200) {
-                    try {
-                        const release = JSON.parse(req.responseText)
-                        if (release.tag_name !== version) {
-                            versionCheck.textContent
-                                = `Version ${release.tag_name} available!`
-                            return
-                        }
-                    } catch (e) {
+    versionCheck.textContent = "Loading..."
+    const req = new XMLHttpRequest()
+    req.onreadystatechange = () => {
+        if (req.readyState === 4) {
+            if (req.status === 200) {
+                try {
+                    const release = JSON.parse(req.responseText)
+                    const diff = compareVersions(version, release.tag_name)
+                    if (diff === "older") {
+                        versionCheck.textContent
+                            = `New version ${release.tag_name} is available!`
+                    } else if (diff === "newer") {
+                        versionCheck.textContent
+                            = `Latest stable ${release.tag_name} is older.`
+                    } else if (diff === "even") {
+                        versionCheck.textContent
+                            = "Your Vieb is up to date."
+                    } else {
                         versionCheck.textContent = "Failed to fetch updates."
-                        return
                     }
-                    versionCheck.textContent = "Your Vieb is up to date."
-                    return
+                } catch (e) {
+                    versionCheck.textContent = "Failed to fetch updates."
                 }
+            } else {
                 versionCheck.textContent = "Failed to fetch updates."
             }
         }
-        req.open("GET", apiUrl, true)
-        req.send(null)
     }
+    req.open("GET", apiUrl, true)
+    req.send(null)
+}
+
+window.addEventListener("load", () => {
+    document.getElementById("version").textContent = version
+    document.querySelector("button").onclick = checkForUpdates
     document.getElementById("chromium-version")
         .textContent = process.versions.chrome
     document.getElementById("electron-version")
