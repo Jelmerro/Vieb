@@ -23,6 +23,7 @@ but the list below contains much more technical details.
 - Made version and help output from the CLI more consistent
 - Argument --debug now also shows the Electron frame and toolbar (--console remains unchanged)
 - Simplified the readme by moving more info to the help page
+- Improved the styling and update check of the version page
 
 ### Fixed
 
