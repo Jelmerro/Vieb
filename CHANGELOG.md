@@ -29,6 +29,7 @@ but the list below contains much more technical details.
 
 - Missing folders and files from cache clear and localstorage clear
 - Actually apply the digitsRepeatActions settings on startup (set command already worked)
+- Always hide the hover url when leaving insert or cursor mode
 
 ## [0.4.0](https://github.com/Jelmerro/Vieb/compare/0.3.0...0.4.0) - 2019-07-01
 

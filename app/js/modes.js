@@ -61,6 +61,10 @@ const setMode = mode => {
     if (mode !== "cursor" && ["cursor", "visual"].includes(currentMode())) {
         CURSOR.releaseKeys(mode === "visual")
     }
+    if (!["cursor", "insert"].includes(mode)) {
+        document.getElementById("url-hover").textContent = ""
+        document.getElementById("url-hover").style.display = "none"
+    }
     if (!modes[mode]) {
         return
     }
