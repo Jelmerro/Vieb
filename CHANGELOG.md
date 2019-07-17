@@ -30,6 +30,7 @@ but the list below contains much more technical details.
 - Missing folders and files from cache clear and localstorage clear
 - Actually apply the digitsRepeatActions settings on startup (set command already worked)
 - Always hide the hover url when leaving insert or cursor mode
+- Allow escape to reset the digit repeat counter (also don't trigger other actions when doing so)
 
 ### Security
 

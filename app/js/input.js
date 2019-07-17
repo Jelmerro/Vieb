@@ -231,6 +231,13 @@ const handleKeyboard = e => {
         MODES.setMode("insert")
         return
     }
+    const id = toIdentifier(e)
+    if (SETTINGS.get("digitsRepeatActions") && id === "Escape") {
+        if (repeatCounter !== 0) {
+            repeatCounter = 0
+            return
+        }
+    }
     const action = eventToAction(e)
     const actionFunction = actionToFunction(action)
     if (actionFunction) {
@@ -245,7 +252,6 @@ const handleKeyboard = e => {
         e.preventDefault()
         return
     }
-    const id = toIdentifier(e)
     if (id.startsWith("Digit") && SETTINGS.get("digitsRepeatActions")) {
         if (["normal", "cursor", "visual"].includes(MODES.currentMode())) {
             const keyNumber = Number(id.replace("Digit", ""))
