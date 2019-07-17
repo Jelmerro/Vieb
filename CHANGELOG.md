@@ -31,6 +31,11 @@ but the list below contains much more technical details.
 - Actually apply the digitsRepeatActions settings on startup (set command already worked)
 - Always hide the hover url when leaving insert or cursor mode
 
+### Security
+
+- Electron 6.0.0-beta.14 (was 5.0.6)
+- Chromium 76.0.3809.68 (was 73.0.3683.121)
+
 ## [0.4.0](https://github.com/Jelmerro/Vieb/compare/0.3.0...0.4.0) - 2019-07-01
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/0.3.0...0.4.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/0.4.0)
