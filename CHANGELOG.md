@@ -25,6 +25,7 @@ but the list below contains much more technical details.
 - Argument --debug now also shows the Electron frame and toolbar (--console remains unchanged)
 - Simplified the readme by moving more info to the help page
 - Improved the styling and update check of the version page
+- Made follow in new tab slightly faster
 
 ### Fixed
 
@@ -32,6 +33,7 @@ but the list below contains much more technical details.
 - Actually apply the digitsRepeatActions settings on startup (set command already worked)
 - Always hide the hover url when leaving insert or cursor mode
 - Allow escape to reset the digit repeat counter (also don't trigger other actions when doing so)
+- Follow mode not working on pages with text nodes (getClientRects is not a function on those)
 
 ### Security
 

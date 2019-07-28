@@ -124,6 +124,10 @@ const parseElement = (element, type) => {
             || element === document.body) {
         return null
     }
+    //Check if the element actually has rects
+    if (!element.getClientRects) {
+        return null
+    }
     //Make a list of all possible bouding rects for the element
     let rects = [...element.getClientRects()]
     if (type === "url") {

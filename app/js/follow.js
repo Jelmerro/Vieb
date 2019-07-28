@@ -76,7 +76,7 @@ const parseAndDisplayLinks = l => {
     //The maximum amount of links is 26 * 26,
     //therefor the slice index is 0 to 26^2 - 1
     if (followNewtab) {
-        l = l.filter(link => UTIL.isUrl(link.url))
+        l = l.filter(link => UTIL.hasProtocol(link.url))
     }
     links = l.slice(0, 675)
     if (links.length === 0) {
