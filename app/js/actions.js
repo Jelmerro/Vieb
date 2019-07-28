@@ -174,6 +174,25 @@ const reloadWithoutCache = () => {
     }
 }
 
+const openNewTabWithCurrentUrl = () => {
+    let url = ""
+    try {
+        url = TABS.currentPage().src
+    } catch (e) {
+        //No page is available, not an issue
+    }
+    const specialPage = UTIL.pathToSpecialPageName(url)
+    if (specialPage.name) {
+        url = `vieb://${specialPage.name}`
+        if (specialPage.section) {
+            url += `#${specialPage.section}`
+        }
+    }
+    TABS.addTab()
+    MODES.setMode("nav")
+    document.getElementById("url").value = url
+}
+
 const scrollPageRight = () => {
     try {
         TABS.currentPage().executeJavaScript(
@@ -397,6 +416,7 @@ module.exports = {
     forwardInHistory,
     previousSearchMatch,
     reloadWithoutCache,
+    openNewTabWithCurrentUrl,
     scrollPageRight,
     scrollPageLeft,
     toCommandMode,

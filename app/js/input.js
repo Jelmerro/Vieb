@@ -49,6 +49,7 @@ const bindings = {
         "S-KeyL": "ACTIONS.forwardInHistory",
         "S-KeyN": "ACTIONS.previousSearchMatch",
         "S-KeyR": "ACTIONS.reloadWithoutCache",
+        "S-KeyT": "ACTIONS.openNewTabWithCurrentUrl",
         "S-Digit4": "ACTIONS.scrollPageRight",
         "S-Digit6": "ACTIONS.scrollPageLeft",
         "S-Semicolon": "ACTIONS.toCommandMode",
