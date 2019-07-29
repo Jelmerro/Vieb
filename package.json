@@ -1,6 +1,6 @@
 {
   "name": "Vieb",
-  "version": "0.5.0-dev",
+  "version": "0.5.0",
   "description": "Vim Inspired Electron Browser",
   "main": "app/index.js",
   "scripts": {

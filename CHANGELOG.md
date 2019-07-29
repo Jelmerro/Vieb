@@ -10,7 +10,9 @@ Links in the changelog are part of [github.com/Jelmerro/Vieb](https://github.com
 The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the most important changes per release,
 but the list below contains much more technical details.
 
-## [Unreleased](https://github.com/Jelmerro/Vieb/compare/0.4.0...master)
+## [0.5.0](https://github.com/Jelmerro/Vieb/compare/0.4.0...0.5.0) - 2019-07-29
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/0.4.0...0.5.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/0.5.0)
 
 ### Added
 
@@ -38,8 +40,8 @@ but the list below contains much more technical details.
 
 ### Security
 
-- Electron 6.0.0-beta.14 (was 5.0.6)
-- Chromium 76.0.3809.68 (was 73.0.3683.121)
+- Electron 6.0.0-beta.15 (was 5.0.6)
+- Chromium 76.0.3809.74 (was 73.0.3683.121)
 
 ## [0.4.0](https://github.com/Jelmerro/Vieb/compare/0.3.0...0.4.0) - 2019-07-01
 

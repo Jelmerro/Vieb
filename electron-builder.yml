@@ -23,8 +23,6 @@ linux:
     - target: tar.gz
       arch:
         - x64
-appImage:
-  systemIntegration: doNotAsk
 rpm:
   fpm:
     - --rpm-rpmbuild-define=_build_id_links none
