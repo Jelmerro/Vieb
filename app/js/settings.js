@@ -29,6 +29,7 @@ const defaultSettings = {
     "search": "https://duckduckgo.com/?kae=d&q=",
     "caseSensitiveSearch": true,
     "clearCacheOnQuit": true,
+    "clearCookiesOnQuit": false,
     "clearLocalStorageOnQuit": false,
     "suggestCommands": true,
     "allowFollowModeDuringLoad": false,
@@ -100,6 +101,9 @@ const loadFromDisk = () => {
             }
             if (typeof parsed.clearCacheOnQuit === "boolean") {
                 allSettings.clearCacheOnQuit = parsed.clearCacheOnQuit
+            }
+            if (typeof parsed.clearCookiesOnQuit === "boolean") {
+                allSettings.clearCookiesOnQuit = parsed.clearCookiesOnQuit
             }
             if (typeof parsed.clearLocalStorageOnQuit === "boolean") {
                 allSettings.clearLocalStorageOnQuit
@@ -266,6 +270,19 @@ const set = (setting, value) => {
         }
         if (value === "false") {
             allSettings.clearCacheOnQuit = false
+            return
+        }
+        UTIL.notify("This is an invalid value for this setting, only "
+            + "true and false are accepted here", "warn")
+        return
+    }
+    if (setting === "clearcookiesonquit") {
+        if (value === "true") {
+            allSettings.clearCookiesOnQuit = true
+            return
+        }
+        if (value === "false") {
+            allSettings.clearCookiesOnQuit = false
             return
         }
         UTIL.notify("This is an invalid value for this setting, only "

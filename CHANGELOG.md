@@ -18,6 +18,7 @@ but the list below contains much more technical details.
 - Save and restore the window state by default
 - Allow specific window properties to be kept or ignored (position, size, maximized state)
 - Press "Shift with t" to open a new tab with the current url prefilled in nav mode
+- Simple setting to clear all cookies on quit
 
 ### Changed
 
