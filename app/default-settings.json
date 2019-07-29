@@ -145,6 +145,7 @@
     "search": "https://duckduckgo.com/?kae=d&q=",
     "caseSensitiveSearch": true,
     "clearCacheOnQuit": true,
+    "clearCookiesOnQuit": false,
     "clearLocalStorageOnQuit": false,
     "suggestCommands": true,
     "allowFollowModeDuringLoad": false,

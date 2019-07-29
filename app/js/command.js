@@ -144,6 +144,9 @@ const quit = () => {
     if (SETTINGS.get("clearCacheOnQuit")) {
         UTIL.clearCache()
     }
+    if (SETTINGS.get("clearCookiesOnQuit")) {
+        UTIL.clearCookies()
+    }
     if (SETTINGS.get("clearLocalStorageOnQuit")) {
         UTIL.clearLocalStorage()
     }
