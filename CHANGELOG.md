@@ -16,6 +16,10 @@ but the list below contains much more technical details.
 
 - Tabs not requested to open in the foreground are now opened in a new tab
 
+### Fixed
+
+- Location not displaying during load (and staying empty on failed page loads)
+
 ### Security
 
 - Electron 6.0.2 (was 6.0.0-beta.15)
