@@ -312,6 +312,8 @@ const useEnteredData = () => {
     if (MODES.currentMode() === "nav") {
         const urlElement = document.getElementById("url")
         const location = urlElement.value.trim()
+        urlElement.className = ""
+        MODES.setMode("normal")
         if (location !== "") {
             const specialPage = UTIL.pathToSpecialPageName(location)
             if (specialPage.name) {
@@ -324,8 +326,6 @@ const useEnteredData = () => {
                 TABS.navigateTo(SETTINGS.get("search") + location)
             }
         }
-        urlElement.className = ""
-        MODES.setMode("normal")
     }
 }
 
