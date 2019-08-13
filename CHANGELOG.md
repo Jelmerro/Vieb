@@ -10,6 +10,17 @@ Links in the changelog are part of [github.com/Jelmerro/Vieb](https://github.com
 The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the most important changes per release,
 but the list below contains much more technical details.
 
+## [Unreleased](https://github.com/Jelmerro/Vieb/compare/0.5.0...master)
+
+### Changed
+
+- Tabs not requested to open in the foreground are now opened in a new tab
+
+### Security
+
+- Electron 6.0.2 (was 6.0.0-beta.15)
+- Chromium 76.0.3809.110 (was 76.0.3809.74)
+
 ## [0.5.0](https://github.com/Jelmerro/Vieb/compare/0.4.0...0.5.0) - 2019-07-29
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/0.4.0...0.5.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/0.5.0)

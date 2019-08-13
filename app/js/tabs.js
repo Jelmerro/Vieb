@@ -395,7 +395,11 @@ const addWebviewListeners = webview => {
         }
     })
     webview.addEventListener("new-window", e => {
-        navigateTo(e.url)
+        if (e.disposition === "foregroud-tab") {
+            navigateTo(e.url)
+        } else {
+            addTab(e.url)
+        }
     })
     webview.addEventListener("enter-html-full-screen", () => {
         document.body.className = "fullscreen"
