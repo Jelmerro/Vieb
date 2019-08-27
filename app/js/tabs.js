@@ -395,7 +395,7 @@ const addWebviewListeners = webview => {
         }
     })
     webview.addEventListener("new-window", e => {
-        if (e.disposition === "foregroud-tab") {
+        if (e.disposition === "foreground-tab") {
             navigateTo(e.url)
         } else {
             addTab(e.url)
