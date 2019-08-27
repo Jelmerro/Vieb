@@ -15,6 +15,7 @@ but the list below contains much more technical details.
 ### Changed
 
 - Tabs not requested to open in the foreground are now opened in a new tab
+- Improved support for onclick and onmousedown elements in follow mode
 
 ### Fixed
 

@@ -36,8 +36,6 @@ const textlikeInputs = ["input:not([type=\"radio\"]):not([type=\"checkbox\"])"
     + ":not([type=\"submit\"]):not([type=\"button\"]):not([type=\"color\"])",
 "textarea",
 "select"]
-const onclickElements = "*:not(button):not(input)[onclick]:not([onclick=\"\"])"
-    + ", *:not(button):not(input)[onmousedown]:not([onmousedown=\"\"])"
 
 ipcRenderer.on("search-element-location", (e, pos) => {
     focussedSearchElement = document.elementFromPoint(
@@ -71,7 +69,8 @@ ipcRenderer.on("follow-mode-request", e => {
     //input tags such as email and text, can have text inserted
     allLinks.push(...allElementsBySelectors("inputs-insert", textlikeInputs))
     //All other elements with onclick listeners
-    const clickableElements = [...document.querySelectorAll(onclickElements)]
+    const clickableElements = [...document.querySelectorAll("*")]
+        .filter(el => el.onclick || el.onmousedown)
     clickableElements.push(...elementsWithClickListener)
     clickableElements.push(...elementsWithMouseDownListener)
     clickableElements.forEach(element => {
