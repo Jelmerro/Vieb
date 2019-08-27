@@ -18,11 +18,11 @@
   "email": "Jelmerro@users.noreply.github.com",
   "license": "GPL-3.0+",
   "devDependencies": {
-    "electron": "^6.0.2",
+    "electron": "^6.0.4",
     "electron-builder": "^21.2.0",
-    "eslint": "^6.1.0"
+    "eslint": "^6.2.2"
   },
   "dependencies": {
-    "rimraf": "^2.6.3"
+    "rimraf": "^3.0.0"
   }
 }
