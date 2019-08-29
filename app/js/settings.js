@@ -35,7 +35,7 @@ const defaultSettings = {
     "allowFollowModeDuringLoad": false,
     "fontSize": 14,
     "digitsRepeatActions": true,
-    "adblocker": true,
+    "adblocker": "static",
     "notification": {
         "system": false,
         "position": "bottom-right",
@@ -76,9 +76,9 @@ const expandPath = homePath => {
     return homePath
 }
 
-const optionallyEanbleAdblocker = () => {
-    if (allSettings.adblocker) {
-        ipcRenderer.send("enable-adblocker")
+const optionallyEnableAdblocker = () => {
+    if (allSettings.adblocker !== "off") {
+        ipcRenderer.send("enable-adblocker", allSettings.adblocker === "update")
     }
 }
 
@@ -130,7 +130,7 @@ const loadFromDisk = () => {
             if (typeof parsed.digitsRepeatActions === "boolean") {
                 allSettings.digitsRepeatActions = parsed.digitsRepeatActions
             }
-            if (typeof parsed.adblocker === "boolean") {
+            if (["off", "static", "update"].includes(parsed.adblocker)) {
                 allSettings.adblocker = parsed.adblocker
             }
             if (typeof parsed.notification === "object") {
@@ -219,7 +219,7 @@ const loadFromDisk = () => {
     }
     document.body.style.fontSize = `${allSettings.fontSize}px`
     updateDownloadSettingsInMain()
-    optionallyEanbleAdblocker()
+    optionallyEnableAdblocker()
 }
 
 const get = setting => {

@@ -12,6 +12,13 @@ but the list below contains much more technical details.
 
 ## [Unreleased](https://github.com/Jelmerro/Vieb/compare/0.5.0...master)
 
+### Added
+
+- Block ads and trackers with easylist and easyprivacy
+- Optionally auto-update these included filter lists directly from easylist.to
+- Related settings for the new adblocker: off, static (enabled, but no updates) and update (enabled with updates)
+- Custom lists that can be added manually in the blocklists subfolder inside the config folder
+
 ### Changed
 
 - Tabs not requested to open in the foreground are now opened in a new tab
@@ -23,8 +30,8 @@ but the list below contains much more technical details.
 
 ### Security
 
-- Electron 6.0.4 (was 6.0.0-beta.15)
-- Chromium 76.0.3809.131 (was 76.0.3809.74)
+- Electron 6.0.5 (was 6.0.0-beta.15)
+- Chromium 76.0.3809.136 (was 76.0.3809.74)
 
 ## [0.5.0](https://github.com/Jelmerro/Vieb/compare/0.4.0...0.5.0) - 2019-07-29
 
