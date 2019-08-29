@@ -34,9 +34,9 @@ li {line-height: 1.5em;}
 .section > h2 {flex: 1;}
 .section > h3 {flex: 1;}
 .section > a {margin: auto;}
-h1 {font-size: 32px;margin: 20px 0;}
-h2 {font-size: 24px;margin: 15px 0;}
-h3 {font-size: 18px;margin: 10px 0;}
+h1 {font-size: 32px;margin: 40px 0 30px;}
+h2 {font-size: 24px;margin: 20px 0;}
+h3 {font-size: 18px;margin: 15px 0;}
 /* toc */
 .toc > a::after {content: "";display: block;}
 .toc-h1 {font-size: 20px;}

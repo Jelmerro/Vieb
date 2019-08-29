@@ -14,19 +14,22 @@ but the list below contains much more technical details.
 
 ### Added
 
-- Block ads and trackers with easylist and easyprivacy
-- Optionally auto-update these included filter lists directly from easylist.to
-- Related settings for the new adblocker: off, static (enabled, but no updates) and update (enabled with updates)
-- Custom lists that can be added manually in the blocklists subfolder inside the config folder
+- Block ads and trackers with easylist and easyprivacy (set "adblocker" to "static" or "update")
+- Optionally auto-update these included filter lists directly from easylist.to (set "adblocker" to "update")
+- Related settings for the new adblocker (aside from options mentioned, can also be turned "off" or set to "custom")
+- Additional lists that can be added manually in the blocklists subfolder inside the config folder
+- Projects that are important to Vieb are mentioned at the bottom of the help page
 
 ### Changed
 
 - Tabs not requested to open in the foreground are now opened in a new tab
 - Improved support for onclick and onmousedown elements in follow mode
+- Add more vertical space between headers on the help page
 
 ### Fixed
 
 - Location not displaying during load (and staying empty on failed page loads)
+- Default settings something displaying in black text on help page
 
 ### Security
 

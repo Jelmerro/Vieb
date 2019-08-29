@@ -142,7 +142,7 @@ const defaultBlocklists = {
     "easyprivacy": "https://easylist.to/easylist/easyprivacy.txt"
 }
 
-const loadAdblocker = (event, update) => {
+const loadAdblocker = (event, setting) => {
     const blocklistsFolder = path.join(app.getPath("appData"), "blocklists")
     const shouldCopyEasylist = !isDir(blocklistsFolder)
     // Copy the default and included blocklists to the appdata folder
@@ -150,8 +150,10 @@ const loadAdblocker = (event, update) => {
         try {
             fs.mkdirSync(blocklistsFolder)
         } catch (e) {
-            console.log("Failed to create directory, adblocker won't load", e)
+            console.log("Failed to create directory", e)
         }
+    }
+    if (shouldCopyEasylist || setting === "static") {
         for (const list of Object.keys(defaultBlocklists)) {
             copyBlocklist(list)
         }
@@ -159,7 +161,7 @@ const loadAdblocker = (event, update) => {
     // Apply all local filter lists immediately
     readAndApplyFilterLists()
     // And update default blocklists to the latest version if enabled
-    if (update) {
+    if (setting === "update") {
         for (const list of Object.keys(defaultBlocklists)) {
             console.log(`Updating ${list} to the latest version`)
             const req = https.request(defaultBlocklists[list], res => {
