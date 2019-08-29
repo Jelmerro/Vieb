@@ -33,9 +33,6 @@ Vieb
 
 Press `F1` at any time when using Vieb to find out more.
 
-You can view the [default settings and keybindings](app/default-settings.json) directly,
-but these are also found in the help documentation inside Vieb.
-
 # Starting Vieb
 
 To get started with Vieb, download a stable release from the
@@ -69,10 +66,6 @@ There should be chromium/electron related files in this directory,
 if Vieb was started at least once.
 It is also the location of the download and browsing history,
 but these can be disabled separately in the settings.
-
-Please see the [Default settings](app/default-settings.json) for all options,
-the syntax of the viebrc.json is identical to these defaults.
-Settings can be changed at runtime with the `:set` command.
 
 There are examples to make Vieb behave more like
 [Chromium](examples/chromium.json) and [Firefox](examples/firefox.json).

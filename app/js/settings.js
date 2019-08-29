@@ -78,7 +78,7 @@ const expandPath = homePath => {
 
 const optionallyEnableAdblocker = () => {
     if (allSettings.adblocker !== "off") {
-        ipcRenderer.send("enable-adblocker", allSettings.adblocker === "update")
+        ipcRenderer.send("enable-adblocker", allSettings.adblocker)
     }
 }
 
@@ -130,7 +130,8 @@ const loadFromDisk = () => {
             if (typeof parsed.digitsRepeatActions === "boolean") {
                 allSettings.digitsRepeatActions = parsed.digitsRepeatActions
             }
-            if (["off", "static", "update"].includes(parsed.adblocker)) {
+            const adblockerOptions = ["off", "static", "update", "custom"]
+            if (adblockerOptions.includes(parsed.adblocker)) {
                 allSettings.adblocker = parsed.adblocker
             }
             if (typeof parsed.notification === "object") {
