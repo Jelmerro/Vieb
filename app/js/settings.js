@@ -35,6 +35,7 @@ const defaultSettings = {
     "allowFollowModeDuringLoad": false,
     "fontSize": 14,
     "digitsRepeatActions": true,
+    "adblocker": true,
     "notification": {
         "system": false,
         "position": "bottom-right",
@@ -73,6 +74,12 @@ const expandPath = homePath => {
         return homePath.replace("~", os.homedir())
     }
     return homePath
+}
+
+const optionallyEanbleAdblocker = () => {
+    if (allSettings.adblocker) {
+        ipcRenderer.send("enable-adblocker")
+    }
 }
 
 const updateDownloadSettingsInMain = () => {
@@ -122,6 +129,9 @@ const loadFromDisk = () => {
             }
             if (typeof parsed.digitsRepeatActions === "boolean") {
                 allSettings.digitsRepeatActions = parsed.digitsRepeatActions
+            }
+            if (typeof parsed.adblocker === "boolean") {
+                allSettings.adblocker = parsed.adblocker
             }
             if (typeof parsed.notification === "object") {
                 if (typeof parsed.notification.system === "boolean") {
@@ -209,6 +219,7 @@ const loadFromDisk = () => {
     }
     document.body.style.fontSize = `${allSettings.fontSize}px`
     updateDownloadSettingsInMain()
+    optionallyEanbleAdblocker()
 }
 
 const get = setting => {
@@ -358,6 +369,11 @@ const set = (setting, value) => {
         }
         UTIL.notify("This is an invalid value for this setting, only "
             + "true and false are accepted here", "warn")
+        return
+    }
+    if (setting === "adblocker") {
+        UTIL.notify("The adblocker can't be enabled or disabled when running"
+            + "\nInstead, open the config file, edit the setting there")
         return
     }
     if (setting === "notification.system") {
@@ -532,7 +548,7 @@ const set = (setting, value) => {
     ]
     if (states.includes(setting)) {
         UTIL.notify("The window state settings are applied on startup,"
-            + "therefor they can't be edited with the set command"
+            + "therefor they can't be edited with the set command\n"
             + "Instead, open the config file, edit the settings there")
     }
     UTIL.notify(`The requested setting '${setting}' does not exist`, "warn")

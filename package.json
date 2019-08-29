@@ -23,6 +23,7 @@
     "eslint": "^6.2.2"
   },
   "dependencies": {
+    "@cliqz/adblocker-electron": "^1.0.0",
     "rimraf": "^3.0.0"
   }
 }

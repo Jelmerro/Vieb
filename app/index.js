@@ -18,9 +18,10 @@
 /* eslint-disable no-console */
 "use strict"
 
-const {app, BrowserWindow, ipcMain} = require("electron")
+const {app, BrowserWindow, ipcMain, session} = require("electron")
 const path = require("path")
 const fs = require("fs")
+const {ElectronBlocker} = require("@cliqz/adblocker-electron")
 
 // Set storage location to Vieb regardless of startup method
 app.setPath("appData", path.join(app.getPath("appData"), "Vieb"))
@@ -126,6 +127,64 @@ app.on("ready", () => {
         mainWindow.webContents.session.on("will-download", handleDownload)
     })
 })
+
+const isDir = dir => {
+    try {
+        return fs.existsSync(dir) && fs.statSync(dir).isDirectory()
+    } catch (e) {
+        return false
+    }
+}
+
+const loadAdblocker = () => {
+    const blocklistsFolder = path.join(app.getPath("appData"), "blocklists")
+    const shouldCopyEasylist = !isDir(blocklistsFolder)
+    let filters = ""
+    if (shouldCopyEasylist) {
+        try {
+            fs.mkdirSync(blocklistsFolder)
+        } catch (e) {
+            console.log("Failed to create directory, adblocker won't load", e)
+        }
+        copyBlocklist("easylist")
+        copyBlocklist("easyprivacy")
+    }
+    try {
+        for (const file of fs.readdirSync(blocklistsFolder)) {
+            filters += loadBlocklist(file)
+        }
+    } catch (e) {
+        console.log("Failed to read the files from blocklists folder", e)
+    }
+    try {
+        ElectronBlocker.parse(filters)
+            .enableBlockingInSession(session.defaultSession)
+    } catch (e) {
+        console.log("Failed to initialize adblocker", e)
+    }
+}
+
+const copyBlocklist = name => {
+    const packagedName = path.join(__dirname, `blocklists/${name}.txt`)
+    const appdataName = path.join(
+        app.getPath("appData"), `blocklists/${name}.txt`)
+    try {
+        fs.copyFileSync(packagedName, appdataName)
+    } catch (e) {
+        console.log(`Failed to copy ${name} to blocklists folder`, e)
+    }
+}
+
+const loadBlocklist = file => {
+    const appdataName = path.join(app.getPath("appData"), `blocklists/${file}`)
+    try {
+        return `${fs.readFileSync(appdataName).toString()}\n`
+    } catch (e) {
+        return ""
+    }
+}
+
+ipcMain.on("enable-adblocker", loadAdblocker)
 
 const printUsage = () => {
     console.log("Vieb: Vim Inspired Electron Browser\n")

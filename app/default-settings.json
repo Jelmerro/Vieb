@@ -151,6 +151,7 @@
     "allowFollowModeDuringLoad": false,
     "fontSize": 14,
     "digitsRepeatActions": true,
+    "adblocker": true,
     "notification": {
         "system": false,
         "position": "bottom-right",
