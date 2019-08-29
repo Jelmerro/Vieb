@@ -14,6 +14,7 @@ Vieb
 - Browse the web with Vim-bindings
 - Switch between insert, command, normal mode and more
 - Dark theme with custom font size for all UI elements
+- Automatically block advertisements and trackers using easylist and easyprivacy
 - Change many other settings, such as history management or download behaviour
 - Default to https (and optionally configure Vieb to redirect when https is unavailable)
 - Very detailed offline documentation/help always available upon pressing `F1`

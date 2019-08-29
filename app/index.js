@@ -21,6 +21,7 @@
 const {app, BrowserWindow, ipcMain, session} = require("electron")
 const path = require("path")
 const fs = require("fs")
+const https = require("https")
 const {ElectronBlocker} = require("@cliqz/adblocker-electron")
 
 // Set storage location to Vieb regardless of startup method
@@ -136,26 +137,68 @@ const isDir = dir => {
     }
 }
 
-const loadAdblocker = () => {
+const defaultBlocklists = {
+    "easylist": "https://easylist.to/easylist/easylist.txt",
+    "easyprivacy": "https://easylist.to/easylist/easyprivacy.txt"
+}
+
+const loadAdblocker = (event, update) => {
     const blocklistsFolder = path.join(app.getPath("appData"), "blocklists")
     const shouldCopyEasylist = !isDir(blocklistsFolder)
-    let filters = ""
+    // Copy the default and included blocklists to the appdata folder
     if (shouldCopyEasylist) {
         try {
             fs.mkdirSync(blocklistsFolder)
         } catch (e) {
             console.log("Failed to create directory, adblocker won't load", e)
         }
-        copyBlocklist("easylist")
-        copyBlocklist("easyprivacy")
+        for (const list of Object.keys(defaultBlocklists)) {
+            copyBlocklist(list)
+        }
     }
+    // Apply all local filter lists immediately
+    readAndApplyFilterLists()
+    // And update default blocklists to the latest version if enabled
+    if (update) {
+        for (const list of Object.keys(defaultBlocklists)) {
+            console.log(`Updating ${list} to the latest version`)
+            const req = https.request(defaultBlocklists[list], res => {
+                let body = ""
+                res.on("data", chunk => {
+                    body += chunk
+                })
+                res.on("end", () => {
+                    try {
+                        fs.writeFileSync(
+                            path.join(blocklistsFolder, `${list}.txt`), body)
+                    } catch (e) {
+                        console.log(`Failed to update ${list}`, e)
+                    }
+                    readAndApplyFilterLists()
+                })
+            })
+            req.on("error", e => {
+                console.log(e)
+            })
+            req.end()
+        }
+    }
+}
+
+const readAndApplyFilterLists = () => {
+    const blocklistsFolder = path.join(app.getPath("appData"), "blocklists")
+    // Read all filter files from the blocklists folder (including user added)
+    let filters = ""
     try {
         for (const file of fs.readdirSync(blocklistsFolder)) {
-            filters += loadBlocklist(file)
+            if (file.endsWith(".txt")) {
+                filters += loadBlocklist(file)
+            }
         }
     } catch (e) {
         console.log("Failed to read the files from blocklists folder", e)
     }
+    // Parse all and inject the succesfully read filter files
     try {
         ElectronBlocker.parse(filters)
             .enableBlockingInSession(session.defaultSession)
