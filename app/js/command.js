@@ -105,13 +105,26 @@ const execute = command => {
     //set command
     if (command.startsWith("set ") || command === "set") {
         const parts = command.split(" ")
-        if (parts.length !== 3) {
-            UTIL.notify(
-                "The set command always takes two arguments like this:\n"
-                + "'set <setting> <value>'", "warn")
+        if (parts.length === 2) {
+            if (parts[1].endsWith("?")) {
+                const setting = parts[1].slice(0, -1)
+                const value = SETTINGS.get(setting)
+                if (value === undefined) {
+                    UTIL.notify(
+                        "Unknown setting, try using the suggestions", "warn")
+                } else {
+                    UTIL.notify(
+                        `The setting '${setting}' has the value '${value}'`)
+                }
+                return
+            }
+        } else if (parts.length === 3) {
+            SETTINGS.set(parts[1], parts[2])
             return
         }
-        SETTINGS.set(parts[1], parts[2])
+        UTIL.notify(
+            "Invalid usage, you could try:\nReading: 'set <setting>?'\n"
+            + "Writing: 'set <setting> <value>'", "warn")
         return
     }
     //accept/confirm command

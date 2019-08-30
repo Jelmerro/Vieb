@@ -39,7 +39,7 @@ const defaultSettings = {
     "notification": {
         "system": false,
         "position": "bottom-right",
-        "duration": 5000
+        "duration": 6000
     },
     "downloads": {
         "path": "~/Downloads/",
@@ -229,7 +229,7 @@ const get = setting => {
     }
     const [group, config] = setting.split(".")
     if (!allSettings[group]) {
-        return null
+        return undefined
     }
     return allSettings[group][config]
 }

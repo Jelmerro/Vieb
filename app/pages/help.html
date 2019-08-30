@@ -407,7 +407,7 @@
     "notification": {
         "system": false,
         "position": "bottom-right",
-        "duration": 5000
+        "duration": 6000
     },
     "downloads": {
         "path": "~/Downloads/",
@@ -551,7 +551,7 @@
         <li>Increase the font size of all UI elements to 20px instead of 14px (fontSize)</li>
         <li>Stop the digit keys from repeating actions (digitsRepeatActions)</li>
         <li>Ads and trackers will still be blocked, but the lists will be automatically updated (adblocker)</li>
-        <li>Reduce the notification duration to 3 seconds instead of 5 (notification.duration)</li>
+        <li>Reduce the notification duration to 3 seconds instead of 6 (notification.duration)</li>
         <li>Display the notification in the bottom left instead of the bottom right (notification.position)</li>
         <li>Downloads will be stored in the documents folder, except if method is set be "ask" (downloads.path)</li>
         <li>Change the download method to "confirm" instead of "automatic" (downloads.method)</li>
@@ -878,8 +878,8 @@
     It is always in the form of:
     <pre class="command-block">set setting value</pre>
     For example, to increase the notification duration for the current session,
-    use the following command (from 3 seconds to 5 seconds):
-    <pre class="command-block">set notification.duration 5000</pre>
+    use the following command (from 6 seconds to 10 seconds):
+    <pre class="command-block">set notification.duration 10000</pre>
     If no notification is shown, the setting was successfully applied.
     Note that the duration and position of the notifications can only be changed
     if the Vieb notification is used instead of system notifications.
