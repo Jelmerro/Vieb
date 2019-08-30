@@ -19,12 +19,14 @@ but the list below contains much more technical details.
 - Related settings for the new adblocker (aside from options mentioned, can also be turned "off" or set to "custom")
 - Additional lists that can be added manually in the blocklists subfolder inside the config folder
 - Projects that are important to Vieb are mentioned at the bottom of the help page
+- Set command support for reading a setting, for example "set adblocker?"
 
 ### Changed
 
 - Tabs not requested to open in the foreground are now opened in a new tab
 - Improved support for onclick and onmousedown elements in follow mode
 - Add more vertical space between headers on the help page
+- Increased the default notification duration from 5 to 6 seconds
 
 ### Fixed
 
