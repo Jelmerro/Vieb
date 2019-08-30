@@ -189,10 +189,16 @@ const addTab = (url=null) => {
     const pages = document.getElementById("pages")
     const tab = document.createElement("span")
     const favicon = document.createElement("img")
+    const statusIcon = document.createElement("img")
     const title = document.createElement("span")
-    favicon.src = "img/newtab.png"
+    favicon.src = "img/empty.png"
+    favicon.className = "favicon"
+    statusIcon.src = "img/spinner.gif"
+    statusIcon.className = "status"
+    statusIcon.style.display = "none"
     title.textContent = "New tab"
     tab.appendChild(favicon)
+    tab.appendChild(statusIcon)
     tab.appendChild(title)
     tabs.appendChild(tab)
     const webview = document.createElement("webview")
@@ -289,7 +295,9 @@ const updateUrl = webview => {
 const addWebviewListeners = webview => {
     webview.addEventListener("did-start-loading", () => {
         const tab = listTabs()[listPages().indexOf(webview)]
-        tab.querySelector("img").src = "img/spinner.gif"
+        tab.querySelector(".status").style.display = null
+        tab.querySelector(".favicon").style.display = "none"
+        tab.querySelector(".favicon").src = "img/empty.png"
         updateUrl(webview)
         webview.getWebContents().removeAllListeners("login")
         webview.getWebContents().on("login", (e, request, auth, callback) => {
@@ -362,11 +370,8 @@ const addWebviewListeners = webview => {
     })
     webview.addEventListener("did-stop-loading", () => {
         const tab = listTabs()[listPages().indexOf(webview)]
-        if (tab.querySelector("img").src.endsWith("img/spinner.gif")) {
-            if (tab.querySelector("img").src.startsWith("file://")) {
-                tab.querySelector("img").src = "img/nofavicon.png"
-            }
-        }
+        tab.querySelector(".status").style.display = "none"
+        tab.querySelector(".favicon").style.display = null
         webview.removeAttribute("logging-in")
         updateUrl(webview)
         HISTORY.addToHist(tab.querySelector("span").textContent, webview.src)
@@ -380,9 +385,9 @@ const addWebviewListeners = webview => {
     webview.addEventListener("page-favicon-updated", e => {
         const tab = listTabs()[listPages().indexOf(webview)]
         if (e.favicons.length > 0) {
-            tab.querySelector("img").src = e.favicons[0]
+            tab.querySelector(".favicon").src = e.favicons[0]
         } else {
-            tab.querySelector("img").src = "img/nofavicon.png"
+            tab.querySelector(".favicon").src = "img/empty.png"
         }
         updateUrl(webview)
     })
