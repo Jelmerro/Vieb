@@ -1,6 +1,6 @@
 {
   "name": "Vieb",
-  "version": "0.6.0-dev",
+  "version": "0.6.0",
   "description": "Vim Inspired Electron Browser",
   "main": "app/index.js",
   "scripts": {
@@ -18,7 +18,7 @@
   "email": "Jelmerro@users.noreply.github.com",
   "license": "GPL-3.0+",
   "devDependencies": {
-    "electron": "^6.0.5",
+    "electron": "^6.0.6",
     "electron-builder": "^21.2.0",
     "eslint": "^6.2.2"
   },

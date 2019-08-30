@@ -10,7 +10,9 @@ Links in the changelog are part of [github.com/Jelmerro/Vieb](https://github.com
 The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the most important changes per release,
 but the list below contains much more technical details.
 
-## [Unreleased](https://github.com/Jelmerro/Vieb/compare/0.5.0...master)
+## [0.6.0](https://github.com/Jelmerro/Vieb/compare/0.5.0...0.6.0) - 2019-08-30
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/0.5.0...0.6.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/0.6.0)
 
 ### Added
 
@@ -32,11 +34,12 @@ but the list below contains much more technical details.
 
 - Location not displaying during load (and staying empty on failed page loads)
 - Default settings something displaying in black text on help page
+- Buggy favicon on some sites after navigating on the same page
 
 ### Security
 
-- Electron 6.0.5 (was 6.0.0-beta.15)
-- Chromium 76.0.3809.136 (was 76.0.3809.74)
+- Electron 6.0.6 (was 6.0.0-beta.15)
+- Chromium 76.0.3809.138 (was 76.0.3809.74)
 
 ## [0.5.0](https://github.com/Jelmerro/Vieb/compare/0.4.0...0.5.0) - 2019-07-29
 
