@@ -60,6 +60,8 @@ const bindings = {
         "C-KeyD": "ACTIONS.scrollPageDownHalf",
         "C-KeyF": "ACTIONS.scrollPageDown",
         "C-KeyI": "ACTIONS.forwardInHistory",
+        "C-KeyJ": "ACTIONS.moveTabForward",
+        "C-KeyK": "ACTIONS.moveTabBackward",
         "C-KeyO": "ACTIONS.backInHistory",
         "C-KeyT": "ACTIONS.openNewTabAtAlternativePosition",
         "C-KeyU": "ACTIONS.scrollPageUpHalf",

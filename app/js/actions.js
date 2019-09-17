@@ -255,6 +255,14 @@ const scrollPageDown = () => {
     }
 }
 
+const moveTabForward = () => {
+    TABS.moveTabForward()
+}
+
+const moveTabBackward = () => {
+    TABS.moveTabBackward()
+}
+
 const scrollPageUpHalf = () => {
     try {
         TABS.currentPage().executeJavaScript(
@@ -438,6 +446,8 @@ module.exports = {
     scrollPageUp,
     scrollPageDownHalf,
     scrollPageDown,
+    moveTabForward,
+    moveTabBackward,
     scrollPageUpHalf,
     zoomReset,
     zoomIn,

@@ -10,7 +10,7 @@ Links in the changelog are part of [github.com/Jelmerro/Vieb](https://github.com
 The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the most important changes per release,
 but the list below contains much more technical details.
 
-## Unreleased
+## [Unreleased](https://github.com/Jelmerro/Vieb/compare/0.6.0...master)
 
 ### Added
 
@@ -18,6 +18,7 @@ but the list below contains much more technical details.
 - Shortcut to enter insert mode at the first text input using 'g i'
 - New option to open tabs next to the current one (using t and u) (now the new default)
 - Keybinding to open tabs at the inverted position to the setting configured (so at the end by default)
+- Keybindings to move the current tab left or right in the tab navigation bar (ctrl-j or ctrl-k)
 
 ### Fixed
 
