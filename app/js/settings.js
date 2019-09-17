@@ -36,6 +36,7 @@ const defaultSettings = {
     "fontSize": 14,
     "digitsRepeatActions": true,
     "adblocker": "static",
+    "addTabsNextToCurrentOne": true,
     "notification": {
         "system": false,
         "position": "bottom-right",
@@ -133,6 +134,10 @@ const loadFromDisk = () => {
             const adblockerOptions = ["off", "static", "update", "custom"]
             if (adblockerOptions.includes(parsed.adblocker)) {
                 allSettings.adblocker = parsed.adblocker
+            }
+            if (typeof parsed.addTabsNextToCurrentOne === "boolean") {
+                allSettings.addTabsNextToCurrentOne
+                    = parsed.addTabsNextToCurrentOne
             }
             if (typeof parsed.notification === "object") {
                 if (typeof parsed.notification.system === "boolean") {
@@ -375,6 +380,19 @@ const set = (setting, value) => {
     if (setting === "adblocker") {
         UTIL.notify("The adblocker can't be enabled or disabled when running"
             + "\nInstead, open the config file, edit the setting there")
+        return
+    }
+    if (setting === "addtabsnexttocurrentone") {
+        if (value === "true") {
+            allSettings.addTabsNextToCurrentOne = true
+            return
+        }
+        if (value === "false") {
+            allSettings.addTabsNextToCurrentOne = false
+            return
+        }
+        UTIL.notify("This is an invalid value for this setting, only "
+            + "true and false are accepted here", "warn")
         return
     }
     if (setting === "notification.system") {
