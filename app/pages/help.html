@@ -294,6 +294,7 @@
             "C-KeyF": "ACTIONS.scrollPageDown",
             "C-KeyI": "ACTIONS.forwardInHistory",
             "C-KeyO": "ACTIONS.backInHistory",
+            "C-KeyT": "ACTIONS.openNewTabAtAlternativePosition",
             "C-KeyU": "ACTIONS.scrollPageUpHalf",
             "C-Digit0": "ACTIONS.zoomReset",
             "C-Minus": "ACTIONS.zoomOut",
@@ -411,6 +412,7 @@
     "fontSize": 14,
     "digitsRepeatActions": true,
     "adblocker": "static",
+    "addTabsNextToCurrentOne": true,
     "notification": {
         "system": false,
         "position": "bottom-right",
@@ -499,6 +501,7 @@
     "fontSize": 20,
     "digitsRepeatActions": false,
     "adblocker": "update",
+    "addTabsNextToCurrentOne": false,
     "notification": {
         "duration": 3000,
         "position": "bottom-left"
@@ -558,6 +561,7 @@
         <li>Increase the font size of all UI elements to 20px instead of 14px (fontSize)</li>
         <li>Stop the digit keys from repeating actions (digitsRepeatActions)</li>
         <li>Ads and trackers will still be blocked, but the lists will be automatically updated (adblocker)</li>
+        <li>This will stop the tabs from opening next to the current one using <kbd>t</kbd>, <kbd>Ctrl with t</kbd> will do the opposite of the current setting (addTabsNextToCurrentOne)</li>
         <li>Reduce the notification duration to 3 seconds instead of 6 (notification.duration)</li>
         <li>Display the notification in the bottom left instead of the bottom right (notification.position)</li>
         <li>Downloads will be stored in the documents folder, except if method is set be "ask" (downloads.path)</li>
@@ -684,10 +688,23 @@
         <li>Move around on the page with the keys <kbd>h j k l</kbd>.</li>
         <li>Enter insert mode with <kbd>i</kbd>.</li>
         <li>Reload the page with or without cache using <kbd>r</kbd> and <kbd>Shift with r</kbd>.</li>
-        <li>Open a new tab and enter nav mode in the new tab with <kbd>t</kbd>.</li>
+        <li>
+            Open a new tab and enter nav mode in the new tab with <kbd>t</kbd>.
+            By default this binding will open a new tab next to the current one.
+            The position of the new tab can be configured with the setting (addTabsNextToCurrentOne).
+        </li>
+        <li>
+            <kbd>Ctrl with t</kbd> can be used to open the tabs at the alternative position without changing the setting each time.
+            By default this will open the new tab at the end of all the open tabs.
+            If the alternative position (at the end instead of next to the current one) is preferred,
+            you can change it by setting addTabsNextToCurrentOne to false.
+        </li>
         <li>Open a new tab with the current website location prefilled in nav mode using <kbd>Shift with t</kbd>.</li>
         <li>Close the current tab with <kbd>d</kbd>.</li>
-        <li>Reopen previously closed tabs with <kbd>u</kbd>.</li>
+        <li>
+            Reopen previously closed tabs with <kbd>u</kbd>.
+            The position of the restored tab can be configured with the setting (addTabsNextToCurrentOne).
+        </li>
         <li>Switch to search mode with <kbd>/</kbd>.</li>
         <li>
             Find the next or previous match when searching using

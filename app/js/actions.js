@@ -152,6 +152,11 @@ const backInHistory = () => {
     }
 }
 
+const openNewTabAtAlternativePosition = () => {
+    TABS.addTab(null, true)
+    MODES.setMode("nav")
+}
+
 const forwardInHistory = () => {
     try {
         TABS.currentPage().goForward()
@@ -422,6 +427,7 @@ module.exports = {
     toSearchMode,
     scrollBottom,
     backInHistory,
+    openNewTabAtAlternativePosition,
     forwardInHistory,
     previousSearchMatch,
     reloadWithoutCache,

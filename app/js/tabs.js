@@ -184,7 +184,12 @@ const currentPage = () => {
     return currentPageElement
 }
 
-const addTab = (url=null) => {
+const addTab = (url=null, inverted=false) => {
+    let addNextToCurrent = SETTINGS.get("addTabsNextToCurrentOne")
+    addNextToCurrent = addNextToCurrent && listTabs().length > 0
+    if (inverted) {
+        addNextToCurrent = !addNextToCurrent
+    }
     const tabs = document.getElementById("tabs")
     const pages = document.getElementById("pages")
     const tab = document.createElement("span")
@@ -200,11 +205,19 @@ const addTab = (url=null) => {
     tab.appendChild(favicon)
     tab.appendChild(statusIcon)
     tab.appendChild(title)
-    tabs.appendChild(tab)
+    if (addNextToCurrent) {
+        tabs.insertBefore(tab, currentTab().nextSibling)
+    } else {
+        tabs.appendChild(tab)
+    }
     const webview = document.createElement("webview")
     webview.setAttribute("preload", "./js/preload.js")
     addWebviewListeners(webview)
-    pages.appendChild(webview)
+    if (addNextToCurrent) {
+        pages.insertBefore(webview, currentPage().nextSibling)
+    } else {
+        pages.appendChild(webview)
+    }
     webview.getWebContents().setUserAgent(useragent)
     webview.getWebContents().setWebRTCIPHandlingPolicy(
         "default_public_interface_only")
@@ -217,7 +230,11 @@ const addTab = (url=null) => {
         webview.src = url
         title.textContent = url
     }
-    switchToTab(listTabs().length - 1)
+    if (addNextToCurrent) {
+        switchToTab(listTabs().indexOf(currentTab()) + 1)
+    } else {
+        switchToTab(listTabs().length - 1)
+    }
     MODES.setMode("normal")
 }
 

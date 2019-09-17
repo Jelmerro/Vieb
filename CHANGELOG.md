@@ -16,6 +16,8 @@ but the list below contains much more technical details.
 
 - Support for keys being pressed in order with different actions (such as 'g g' or the new 'g i')
 - Shortcut to enter insert mode at the first text input using 'g i'
+- New option to open tabs next to the current one (using t and u) (now the new default)
+- Keybinding to open tabs at the inverted position to the setting configured (so at the end by default)
 
 ### Fixed
 
