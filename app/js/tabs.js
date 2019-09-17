@@ -23,6 +23,7 @@ const path = require("path")
 const {ipcRenderer, remote} = require("electron")
 
 let recentlyClosed = []
+let linkId = 0
 
 const useragent = remote.session.defaultSession.getUserAgent()
     .replace(/Electron\/(\d|\.)* /, "").replace(/Vieb\/(\d|\.)* /, "")
@@ -126,7 +127,9 @@ const saveTabs = () => {
     }
     const tabFile = path.join(remote.app.getPath("appData"), "tabs")
     if (SETTINGS.get("tabs.restore")) {
-        listPages().forEach(webview => {
+        listTabs().forEach(tab => {
+            // The list of tabs is ordered, the list of pages isn't
+            const webview = tabOrPageMatching(tab)
             if (!UTIL.pathToSpecialPageName(webview.src).name && webview.src) {
                 data.tabs.push(webview.src)
                 if (webview.style.display === "flex") {
@@ -139,7 +142,9 @@ const saveTabs = () => {
         }
     } else if (SETTINGS.get("tabs.keepRecentlyClosed")) {
         data.closed = [...recentlyClosed]
-        listPages().forEach(webview => {
+        listTabs().forEach(tab => {
+            // The list of tabs is ordered, the list of pages isn't
+            const webview = tabOrPageMatching(tab)
             if (!UTIL.pathToSpecialPageName(webview.src).name && webview.src) {
                 data.closed.push(webview.src)
             }
@@ -211,13 +216,12 @@ const addTab = (url=null, inverted=false) => {
         tabs.appendChild(tab)
     }
     const webview = document.createElement("webview")
+    webview.setAttribute("link-id", linkId)
+    tab.setAttribute("link-id", linkId)
+    linkId += 1
     webview.setAttribute("preload", "./js/preload.js")
     addWebviewListeners(webview)
-    if (addNextToCurrent) {
-        pages.insertBefore(webview, currentPage().nextSibling)
-    } else {
-        pages.appendChild(webview)
-    }
+    pages.appendChild(webview)
     webview.getWebContents().setUserAgent(useragent)
     webview.getWebContents().setWebRTCIPHandlingPolicy(
         "default_public_interface_only")
@@ -268,6 +272,20 @@ const closeTab = () => {
     }
 }
 
+const tabOrPageMatching = el => {
+    if (listTabs().indexOf(el) !== -1) {
+        return listPages().find(e => {
+            return e.getAttribute("link-id") === el.getAttribute("link-id")
+        })
+    }
+    if (listPages().indexOf(el) !== -1) {
+        return listTabs().find(e => {
+            return e.getAttribute("link-id") === el.getAttribute("link-id")
+        })
+    }
+    return null
+}
+
 const switchToTab = index => {
     if (index < 0) {
         return
@@ -279,12 +297,11 @@ const switchToTab = index => {
     tabs.forEach(tab => {
         tab.id = ""
     })
-    const pages = listPages()
-    pages.forEach(page => {
+    listPages().forEach(page => {
         page.style.display = "none"
     })
     tabs[index].id = "current-tab"
-    pages[index].style.display = "flex"
+    tabOrPageMatching(tabs[index]).style.display = "flex"
     updateUrl(currentPage())
     saveTabs()
 }
@@ -311,7 +328,7 @@ const updateUrl = webview => {
 
 const addWebviewListeners = webview => {
     webview.addEventListener("did-start-loading", () => {
-        const tab = listTabs()[listPages().indexOf(webview)]
+        const tab = tabOrPageMatching(webview)
         tab.querySelector(".status").style.display = null
         tab.querySelector(".favicon").style.display = "none"
         tab.querySelector(".favicon").src = "img/empty.png"
@@ -386,7 +403,7 @@ const addWebviewListeners = webview => {
             e.errorDescription}. url: '${e.validatedURL}'`, "err")
     })
     webview.addEventListener("did-stop-loading", () => {
-        const tab = listTabs()[listPages().indexOf(webview)]
+        const tab = tabOrPageMatching(webview)
         tab.querySelector(".status").style.display = "none"
         tab.querySelector(".favicon").style.display = null
         webview.removeAttribute("logging-in")
@@ -395,12 +412,12 @@ const addWebviewListeners = webview => {
         saveTabs()
     })
     webview.addEventListener("page-title-updated", e => {
-        const tab = listTabs()[listPages().indexOf(webview)]
+        const tab = tabOrPageMatching(webview)
         tab.querySelector("span").textContent = e.title
         updateUrl(webview)
     })
     webview.addEventListener("page-favicon-updated", e => {
-        const tab = listTabs()[listPages().indexOf(webview)]
+        const tab = tabOrPageMatching(webview)
         if (e.favicons.length > 0) {
             tab.querySelector(".favicon").src = e.favicons[0]
         } else {
@@ -410,7 +427,7 @@ const addWebviewListeners = webview => {
     })
     webview.addEventListener("will-navigate", e => {
         ACTIONS.emptySearch()
-        const tab = listTabs()[listPages().indexOf(webview)]
+        const tab = tabOrPageMatching(webview)
         tab.querySelector("span").textContent = e.url
         if (MODES.currentMode() === "cursor") {
             MODES.setMode("normal")
@@ -486,6 +503,24 @@ const navigateTo = location => {
     currentPage().src = location
 }
 
+const moveTabForward = () => {
+    const tabs = document.getElementById("tabs")
+    const index = listTabs().indexOf(currentTab())
+    if (index >= listTabs().length - 1) {
+        return
+    }
+    tabs.insertBefore(currentTab(), currentTab().nextSibling.nextSibling)
+}
+
+const moveTabBackward = () => {
+    const tabs = document.getElementById("tabs")
+    const index = listTabs().indexOf(currentTab())
+    if (index === 0) {
+        return
+    }
+    tabs.insertBefore(currentTab(), currentTab().previousSibling)
+}
+
 module.exports = {
     init,
     saveTabs,
@@ -498,5 +533,7 @@ module.exports = {
     closeTab,
     switchToTab,
     updateUrl,
-    navigateTo
+    navigateTo,
+    moveTabForward,
+    moveTabBackward
 }
