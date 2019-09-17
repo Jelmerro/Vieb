@@ -48,6 +48,22 @@ ipcRenderer.on("search-element-click", () => {
     }
 })
 
+ipcRenderer.on("focus-first-text-input", e => {
+    const links = [...allElementsBySelectors("inputs-insert", textlikeInputs)]
+    if (links.length > 0) {
+        const pos = links.sort((el1, el2) => {
+            return Math.floor(el1.y) - Math.floor(el2.y) || el1.x - el2.x
+        })[0]
+        const element = document.elementFromPoint(
+            pos.x + pos.width / 2, pos.y + pos.height / 2)
+        if (element && element.click && element.focus) {
+            element.click()
+            element.focus()
+            e.sender.sendToHost("switch-to-insert")
+        }
+    }
+})
+
 ipcRenderer.on("follow-mode-request", e => {
     const allLinks = []
     //a tags with href as the link, can be opened in new tab or current tab
