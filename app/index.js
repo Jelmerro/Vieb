@@ -322,7 +322,7 @@ const handleDownload = (e, item) => {
         item.setSavePath(path.join(app.getPath("downloads"), filename))
     }
     // The "ask" behaviour is the default if no save path is set
-    // Initiate download object and send it mainWindow on updates
+    // Initiate download object and send it to the mainWindow on updates
     const info = {
         item: item,
         state: "waiting_to_start",

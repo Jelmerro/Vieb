@@ -12,9 +12,19 @@ but the list below contains much more technical details.
 
 ## Unreleased
 
+### Added
+
+- Support for keys being pressed in order with different actions (such as 'g g' or the new 'g i')
+- Shortcut to enter insert mode at the first text input using 'g i'
+
 ### Fixed
 
 - Also make Control-BracketLeft reset the repeating digits counter to zero
+
+### Security
+
+- Electron 6.0.9 (was 6.0.6)
+- Chromium 76.0.3809.146 (was 76.0.3809.138)
 
 ## [0.6.0](https://github.com/Jelmerro/Vieb/compare/0.5.0...0.6.0) - 2019-08-30
 

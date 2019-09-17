@@ -260,7 +260,10 @@
             "KeyD": "ACTIONS.closeTab",
             "KeyE": "ACTIONS.toNavMode",
             "KeyF": "FOLLOW.startFollowCurrentTab",
-            "KeyG": "ACTIONS.scrollTop",
+            "KeyG": {
+                "KeyG": "ACTIONS.scrollTop",
+                "KeyI": "ACTIONS.insertAtFirstInput"
+            },
             "KeyH": "ACTIONS.scrollLeft",
             "KeyI": "ACTIONS.toInsertMode",
             "KeyJ": "ACTIONS.scrollDown",
@@ -337,7 +340,9 @@
             "KeyD": "CURSOR.downloadImage",
             "KeyE": "CURSOR.inspectElement",
             "KeyF": "CURSOR.leftClick",
-            "KeyG": "CURSOR.startOfPage",
+            "KeyG": {
+                "KeyG": "CURSOR.startOfPage"
+            },
             "KeyH": "CURSOR.moveLeft",
             "KeyI": "CURSOR.insertAtPosition",
             "KeyJ": "CURSOR.moveDown",
@@ -368,7 +373,9 @@
             "F1": "COMMAND.help",
             "KeyB": "CURSOR.moveFastLeft",
             "KeyC": "CURSOR.copyAndStop",
-            "KeyG": "CURSOR.startOfPage",
+            "KeyG": {
+                "KeyG": "CURSOR.startOfPage"
+            },
             "KeyH": "CURSOR.moveLeft",
             "KeyJ": "CURSOR.moveDown",
             "KeyK": "CURSOR.moveUp",
@@ -672,7 +679,8 @@
             Use <kbd>F</kbd> to open supported links in a new tab.
             The <a href="#follow">follow</a> chapter explains the differences.
         </li>
-        <li>Go to the top or the bottom of the page using <kbd>Shift with g</kbd> or <kbd>g</kbd>.</li>
+        <li>Go to the top or the bottom of the page using <kbd>Shift with g</kbd> or <kbd>g g</kbd>.</li>
+        <li>Jump to insert mode at the first text input by pressing <kbd>g i</kbd>.</li>
         <li>Move around on the page with the keys <kbd>h j k l</kbd>.</li>
         <li>Enter insert mode with <kbd>i</kbd>.</li>
         <li>Reload the page with or without cache using <kbd>r</kbd> and <kbd>Shift with r</kbd>.</li>
@@ -739,8 +747,9 @@
             Input fields (textarea and inputs) outlined in green -
             These will be focused by clicking on them.
             Unlike other follow mode types,
-            Vieb will not bo back to normal mode but enter Insert mode directly.
+            Vieb will not go back to normal mode but enter Insert mode directly.
             This allows you to start typing in the input field after choosing it with follow mode.
+            When in normal mode, you can also jump to the first text input using <kbd>g i</kbd>.
         </li>
         <li>
             Onclick handlers outlined in orange -
@@ -776,7 +785,7 @@
         <li>Click and enter insert mode at the cursor location using <kbd>i</kbd>.</li>
         <li>For middle and right-click, use <kbd>m</kbd> and <kbd>r</kbd> respectively.</li>
         <li>To jump a larger distance horizontally, use <kbd>w</kbd> and <kbd>b</kbd>.</li>
-        <li>Press <kbd>g</kbd> or <kbd>Shift with g</kbd> to scroll to the top or bottom of the page.</li>
+        <li>Press <kbd>g g</kbd> or <kbd>Shift with g</kbd> to scroll to the top or bottom of the page.</li>
         <li>Entering <kbd>Shift with h</kbd> or <kbd>Shift with l</kbd> will move the cursor to the top or bottom of the view.</li>
         <li>To execute a scrolling action at the current position, use <kbd>Shift with j</kbd> or <kbd>Shift with k</kbd>.</li>
         <li>The keys <kbd>^</kbd> and <kbd>$</kbd> will move the cursor to the end or the beginning of the view.</li>
@@ -795,7 +804,7 @@
     <ul>
         <li>Use <kbd>h j k l</kbd> to move the cursor around.</li>
         <li>To jump a larger distance horizontally, use <kbd>w</kbd> and <kbd>b</kbd>.</li>
-        <li>Press <kbd>g</kbd> or <kbd>Shift with g</kbd> to scroll to the top or bottom of the page.</li>
+        <li>Press <kbd>g g</kbd> or <kbd>Shift with g</kbd> to scroll to the top or bottom of the page.</li>
         <li>Entering <kbd>Shift with h</kbd> or <kbd>Shift with l</kbd> will move the cursor to the top or bottom of the view.</li>
         <li>To execute a scrolling action at the current position, use <kbd>Shift with j</kbd> or <kbd>Shift with k</kbd>.</li>
         <li>The keys <kbd>^</kbd> and <kbd>$</kbd> will move the cursor to the end or the beginning of the view.</li>

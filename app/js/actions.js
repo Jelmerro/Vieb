@@ -53,6 +53,14 @@ const scrollTop = () => {
     }
 }
 
+const insertAtFirstInput = () => {
+    try {
+        TABS.currentPage().getWebContents().send("focus-first-text-input", "")
+    } catch (e) {
+        //No page is available, not an issue
+    }
+}
+
 const scrollLeft = () => {
     try {
         TABS.currentPage().executeJavaScript("window.scrollBy(-100, 0)", true)
@@ -400,6 +408,7 @@ module.exports = {
     closeTab,
     toNavMode,
     scrollTop,
+    insertAtFirstInput,
     scrollLeft,
     toInsertMode,
     scrollDown,

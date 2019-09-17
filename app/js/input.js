@@ -27,7 +27,10 @@ const bindings = {
         "KeyD": "ACTIONS.closeTab",
         "KeyE": "ACTIONS.toNavMode",
         "KeyF": "FOLLOW.startFollowCurrentTab",
-        "KeyG": "ACTIONS.scrollTop",
+        "KeyG": {
+            "KeyG": "ACTIONS.scrollTop",
+            "KeyI": "ACTIONS.insertAtFirstInput"
+        },
         "KeyH": "ACTIONS.scrollLeft",
         "KeyI": "ACTIONS.toInsertMode",
         "KeyJ": "ACTIONS.scrollDown",
@@ -104,7 +107,9 @@ const bindings = {
         "KeyD": "CURSOR.downloadImage",
         "KeyE": "CURSOR.inspectElement",
         "KeyF": "CURSOR.leftClick",
-        "KeyG": "CURSOR.startOfPage",
+        "KeyG": {
+            "KeyG": "CURSOR.startOfPage"
+        },
         "KeyH": "CURSOR.moveLeft",
         "KeyI": "CURSOR.insertAtPosition",
         "KeyJ": "CURSOR.moveDown",
@@ -135,7 +140,9 @@ const bindings = {
         "F1": "COMMAND.help",
         "KeyB": "CURSOR.moveFastLeft",
         "KeyC": "CURSOR.copyAndStop",
-        "KeyG": "CURSOR.startOfPage",
+        "KeyG": {
+            "KeyG": "CURSOR.startOfPage"
+        },
         "KeyH": "CURSOR.moveLeft",
         "KeyJ": "CURSOR.moveDown",
         "KeyK": "CURSOR.moveUp",
@@ -162,6 +169,7 @@ const bindings = {
 }
 
 let repeatCounter = 0
+let currentSubKey = null
 
 const init = () => {
     window.addEventListener("keydown", handleKeyboard)
@@ -227,12 +235,62 @@ const eventToAction = e => {
     return allBindings[MODES.currentMode()][toIdentifier(e)]
 }
 
+const idToActionSet = id => {
+    if (document.body.className === "fullscreen") {
+        MODES.setMode("insert")
+        return
+    }
+    const allBindings = JSON.parse(JSON.stringify(bindings))
+    const customBindings = SETTINGS.get("keybindings")
+    Object.keys(allBindings).forEach(mode => {
+        allBindings[mode] = Object.assign(
+            allBindings[mode], customBindings[mode])
+    })
+    return allBindings[MODES.currentMode()][id]
+}
+
 const handleKeyboard = e => {
     if (document.body.className === "fullscreen") {
         MODES.setMode("insert")
         return
     }
+    const ignoredKeys = [
+        "ControlLeft",
+        "ControlRight",
+        "ShiftLeft",
+        "ShiftRight",
+        "AltLeft",
+        "AltRight",
+        "MetaLeft",
+        "MetaRight",
+        "NumLock",
+        "CapsLock",
+        "ScrollLock"
+    ]
+    if (ignoredKeys.includes(e.code)) {
+        // Keys such as control should not be registered on their own,
+        // this will prevent the cancellation of bindings like 'g g',
+        // after pressing just a single g and then control.
+        e.preventDefault()
+        return
+    }
     const id = toIdentifier(e)
+    let action = eventToAction(e)
+    if (currentSubKey) {
+        const actionSet = idToActionSet(currentSubKey)
+        if (actionSet) {
+            action = actionSet[toIdentifier(e)]
+        }
+        currentSubKey = null
+        document.getElementById("mode").style.textDecoration = ""
+        document.getElementById("mode").style.fontStyle = ""
+    } else if (typeof action === "object") {
+        currentSubKey = id
+        document.getElementById("mode").style.textDecoration = "underline"
+        document.getElementById("mode").style.fontStyle = "italic"
+        e.preventDefault()
+        return
+    }
     if (SETTINGS.get("digitsRepeatActions")) {
         if (id === "Escape" || id === "C-BracketLeft") {
             if (repeatCounter !== 0) {
@@ -241,7 +299,6 @@ const handleKeyboard = e => {
             }
         }
     }
-    const action = eventToAction(e)
     const actionFunction = actionToFunction(action)
     if (actionFunction) {
         actionFunction()
@@ -263,6 +320,8 @@ const handleKeyboard = e => {
                 if (repeatCounter > 100) {
                     repeatCounter = 100
                 }
+                e.preventDefault()
+                return
             }
         } else {
             repeatCounter = 0

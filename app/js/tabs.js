@@ -431,6 +431,9 @@ const addWebviewListeners = webview => {
         if (e.channel === "history-list-request") {
             HISTORY.handleRequest(...e.args)
         }
+        if (e.channel === "switch-to-insert") {
+            MODES.setMode("insert")
+        }
     })
     webview.addEventListener("found-in-page", e => {
         webview.getWebContents().send("search-element-location",
