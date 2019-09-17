@@ -233,10 +233,12 @@ const handleKeyboard = e => {
         return
     }
     const id = toIdentifier(e)
-    if (SETTINGS.get("digitsRepeatActions") && id === "Escape") {
-        if (repeatCounter !== 0) {
-            repeatCounter = 0
-            return
+    if (SETTINGS.get("digitsRepeatActions")) {
+        if (id === "Escape" || id === "C-BracketLeft") {
+            if (repeatCounter !== 0) {
+                repeatCounter = 0
+                return
+            }
         }
     }
     const action = eventToAction(e)
