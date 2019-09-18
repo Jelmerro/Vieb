@@ -79,10 +79,20 @@ let allSettings = {}
 const windowstateMessage = "The window state settings are applied on startup,"
     + "therefor they can't be edited with the set command\n"
     + "Instead, open the config file, edit the settings there"
+const collectionMessage = "This collection of settings should be"
+    + " updated one field at the time"
 const readOnly = {
     "keybindings": "The keybindings can't be changed with the set command\n"
         + "Instead, open the config file, edit the bindings and "
         + "use the reload command to load them from disk again",
+    "adblocker": "The adblocker can't be enabled or disabled when running"
+        + "\nInstead, open the config file, edit the setting there",
+    "notification": collectionMessage,
+    "downloads": collectionMessage,
+    "history": collectionMessage,
+    "tabs": collectionMessage,
+    "windowstate": collectionMessage,
+    "permissions": collectionMessage,
     "tabs.startup": "The startup pages can't be changed with the set command\n"
         + "Instead, open the config file, edit the page list and "
         + "the startup pages will open the next time Vieb is started",
@@ -115,18 +125,18 @@ const init = () => {
     loadFromDisk()
 }
 
-const checkForValidSetting = (setting, value, castValueFromString=false) => {
+const checkForValidSetting = (setting, value, startup) => {
     if (get(setting) === undefined) {
         UTIL.notify(`The setting '${setting}' doesn't exist`, "warn")
         return false
     }
     const readOnlyMessage = readOnly[setting]
-    if (readOnlyMessage) {
+    if (!startup && readOnlyMessage) {
         UTIL.notify(readOnlyMessage, "warn")
         return false
     }
     const expectedType = typeof get(setting)
-    if (castValueFromString && typeof value === "string") {
+    if (!startup && typeof value === "string") {
         if (expectedType !== typeof value) {
             if (expectedType === "number" && !isNaN(Number(value))) {
                 value = Number(value)
@@ -210,6 +220,53 @@ const updateDownloadSettingsInMain = () => {
     ipcRenderer.send("download-settings-change", allSettings.downloads)
 }
 
+const listSettingsAsArray = () => {
+    const listOfSettings = []
+    for (const topLevel of Object.keys(defaultSettings)) {
+        if (defaultSettings[topLevel].length === undefined) {
+            if (typeof defaultSettings[topLevel] === "object") {
+                for (const subLevel of Object.keys(defaultSettings[topLevel])) {
+                    listOfSettings.push(`${topLevel}.${subLevel}`)
+                }
+                continue
+            }
+        }
+        listOfSettings.push(topLevel)
+    }
+    listOfSettings.push("keybindings")
+    return listOfSettings
+}
+
+const suggestionList = () => {
+    const listOfSuggestions = ["set "]
+    for (const setting of listSettingsAsArray()) {
+        if (setting.includes(".")) {
+            const prefix = `set ${setting.split(".")[0]}.`
+            const previous = listOfSuggestions[listOfSuggestions.length - 1]
+            if (!previous.startsWith(prefix)) {
+                listOfSuggestions.push(prefix)
+                listOfSuggestions.push(`${prefix.slice(0, -1)}?`)
+            }
+        }
+        if (!readOnly[setting]) {
+            listOfSuggestions.push(`set ${setting} `)
+            if (typeof get(setting, defaultSettings) === "boolean") {
+                listOfSuggestions.push(`set ${setting} true`)
+                listOfSuggestions.push(`set ${setting} false`)
+            } else if (validOptions[setting]) {
+                for (const option of validOptions[setting]) {
+                    listOfSuggestions.push(`set ${setting} ${option}`)
+                }
+            } else {
+                listOfSuggestions.push(
+                    `set ${setting} ${get(setting, defaultSettings)}`)
+            }
+        }
+        listOfSuggestions.push(`set ${setting}?`)
+    }
+    return listOfSuggestions
+}
+
 const loadFromDisk = () => {
     allSettings = JSON.parse(JSON.stringify(defaultSettings))
     const config = path.join(remote.app.getPath("appData"), "viebrc.json")
@@ -217,7 +274,12 @@ const loadFromDisk = () => {
         try {
             const contents = fs.readFileSync(config).toString()
             const parsed = JSON.parse(contents)
-            //TODO loop over the default settings and read them from parsed
+            for (const setting of listSettingsAsArray()) {
+                const configuredValue = get(setting, parsed)
+                if (configuredValue !== undefined) {
+                    set(setting, configuredValue, true)
+                }
+            }
         } catch (e) {
             UTIL.notify(
                 `The config file located at '${config}' is corrupt`, "err")
@@ -228,19 +290,19 @@ const loadFromDisk = () => {
     optionallyEnableAdblocker()
 }
 
-const get = setting => {
+const get = (setting, settingObject=allSettings) => {
     if (!setting.includes(".")) {
-        return allSettings[setting]
+        return settingObject[setting]
     }
     const [group, config] = setting.split(".")
-    if (!allSettings[group]) {
+    if (!settingObject[group]) {
         return undefined
     }
-    return allSettings[group][config]
+    return settingObject[group][config]
 }
 
-const set = (setting, value) => {
-    if (checkForValidSetting(setting, value, true)) {
+const set = (setting, value, startup=false) => {
+    if (checkForValidSetting(setting, value, startup)) {
         if (setting.includes(".")) {
             const [group, config] = setting.split(".")
             if (typeof allSettings[group][config] === "boolean") {
@@ -273,6 +335,7 @@ const set = (setting, value) => {
 
 module.exports = {
     init,
+    suggestionList,
     loadFromDisk,
     get,
     set
