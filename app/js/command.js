@@ -31,6 +31,7 @@ const execute = command => {
     if (command.startsWith(":")) {
         command = command.replace(":", "")
     }
+    command = command.trim()
     if (!command) {
         return
     }
@@ -175,7 +176,9 @@ const openSpecialPage = (specialPage, section=null) => {
     MODES.setMode("normal")
     //Switch to already open special page if available
     let alreadyOpen = false
-    TABS.listPages().forEach((page, index) => {
+    TABS.listTabs().forEach((tab, index) => {
+        // The list of tabs is ordered, the list of pages isn't
+        const page = TABS.tabOrPageMatching(tab)
         if (UTIL.pathToSpecialPageName(page.src).name === specialPage) {
             alreadyOpen = true
             TABS.switchToTab(index)
