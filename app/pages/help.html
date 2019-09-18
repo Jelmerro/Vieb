@@ -214,7 +214,7 @@
     <pre class="command-block">set notification.system true</pre>
     Vieb's set command syntax is different as compared to regular Vim,
     and always has the form of "set setting value".
-    The settings file is case sensitive, but the setting argument of the set command isn't.
+    The settings file is case sensitive, just like the set command arguments.
     The keybindings and startup pages can only be changed with the settings file and not with the set command.
     Running the `:reload` command will reset any prior `:set` commands,
     because all settings will be reset and reapplied from the settings file.
@@ -617,11 +617,8 @@
     the correct command would be:
     <pre class="command-block">set caseSensitiveSearch false</pre>
     If we would try to set the value to anything other than true or false,
-    a warning would be displayed that only true and false are accepted values.
-    The first argument is case insensitive, while the value is case sensitive.
-    This means that the previous set command could also be entered like this:
-    <pre class="command-block">set casesensitiveSEARCH false</pre>
-    But writing false in uppercase wouldn't work and show a warning notification.
+    a warning would be displayed that a boolean is expected.
+    All arguments are case sensitive, similar to the settings file.
     Lastly, if a command does not show a notification,
     it means that the command was successfully executed and applied.
     <h1 id="startup">Startup</h1>
@@ -915,8 +912,6 @@
     To bypass this, either enter the url with the full protocol (http://),
     or change the following setting:
     <pre class="command-block">set redirectToHttp true</pre>
-    The setting argument is case-insensitive when using the set command,
-    but the value is always case-sensitive.
     <h2 id="commands-reload">reload</h2>
     The reload command can be used to reload the settings from the settings file.
     It takes no arguments, required or optional.
