@@ -531,6 +531,7 @@ module.exports = {
     addTab,
     reopenTab,
     closeTab,
+    tabOrPageMatching,
     switchToTab,
     updateUrl,
     navigateTo,
