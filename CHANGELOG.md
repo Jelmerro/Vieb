@@ -19,6 +19,11 @@ but the list below contains much more technical details.
 - New option to open tabs next to the current one (using t and u) (now the new default)
 - Keybinding to open tabs at the inverted position to the setting configured (so at the end by default)
 - Keybindings to move the current tab left or right in the tab navigation bar (ctrl-j or ctrl-k)
+- Settings to configure permissions such as microphone or camera access, options are: block, allow or ask
+
+### Changed
+
+- Set command suggestions are no longer hard-coded
 
 ### Fixed
 
@@ -28,6 +33,7 @@ but the list below contains much more technical details.
 
 - Electron 6.0.9 (was 6.0.6)
 - Chromium 76.0.3809.146 (was 76.0.3809.138)
+- Permissions changed to block access by default for most permissions
 
 ## [0.6.0](https://github.com/Jelmerro/Vieb/compare/0.5.0...0.6.0) - 2019-08-30
 
