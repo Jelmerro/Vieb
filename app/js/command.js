@@ -113,6 +113,12 @@ const execute = command => {
                 if (value === undefined) {
                     UTIL.notify(
                         "Unknown setting, try using the suggestions", "warn")
+                } else if (value.length === undefined
+                        && typeof value === "object") {
+                    UTIL.notify(
+                        `The setting '${setting}' has the value `
+                        + `'${JSON.stringify(value, null, 2)
+                            .replace(/ /g, "&nbsp;")}'`)
                 } else {
                     UTIL.notify(
                         `The setting '${setting}' has the value '${value}'`)
