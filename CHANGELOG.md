@@ -28,6 +28,7 @@ but the list below contains much more technical details.
 - Set command suggestions are no longer hard-coded
 - Set command write syntax is now similar to Vim: `set permissions.camera=ask`
 - The question mark for the set command read option is now optional: `set permissions?` now equals `set permissions`
+- User agent replacement to work for beta/dev versions
 
 ### Fixed
 
