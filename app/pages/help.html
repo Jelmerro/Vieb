@@ -440,6 +440,17 @@
         "position": true,
         "size": true,
         "maximized": true
+    },
+    "permissions": {
+        "camera": "block",
+        "fullscreen": "allow",
+        "geolocation": "block",
+        "microphone": "block",
+        "midiSysex": "block",
+        "notifications": "ask",
+        "openExternal": "block",
+        "pointerLock": "block",
+        "unknown": "block"
     }
 }
     </pre>
@@ -593,8 +604,9 @@
     For example, to use system notifications instead of Vieb's own notification system,
     go to command mode using <kbd>Shift with ;</kbd> (or <kbd>:</kbd>) and enter this command:
     <pre class="command-block">set notification.system true</pre>
-    The set command always takes two arguments;
+    The set command always takes two arguments when writing a new setting;
     one for the setting name and the other for the new value.
+    Unlike Vim, only a single setting can be changed per command.
     The set command along with other commands has autocompletion by default,
     which helps with finding the right setting name.
     Settings can be changed as many times as you like,
@@ -609,6 +621,14 @@
     Vieb only reads the settings file on startup and with the reload command,
     and never writes to the file as the set command is for runtime only.
     This means it's always safe to edit the viebrc file.
+    <h3 id="settings-set-reading">reading</h3>
+    It's also possible to find the current setting value.
+    To find out if system notifications are in use,
+    execute the following command:
+    <pre class="command-block">set notification.system?</pre>
+    You can also read an entire collection of settings at once,
+    the next command will list all the permission settings:
+    <pre class="command-block">set permissions?</pre>
     <h3 id="settings-set-validation">validation</h3>
     The set command can be a useful tool to help with finding the right settings.
     Unlike the settings file, which will simply ignore errors and use the default,
@@ -625,7 +645,7 @@
     By default, all the tabs from the previous session will be opened (tabs.restore),
     along with the configured startup tabs (tabs.startup).
     This behaviour can be changed in settings as listed between the brackets.
-    By default, your tabs will also be stored when closed (tabs.keepRecentlyClosed),
+    Your tabs will also be stored when closed (tabs.keepRecentlyClosed),
     so you can reopen them with <kbd>u</kbd>.
     When "tabs.restore" is disabled, but "tabs.keepRecentlyClosed" is enabled,
     all your open tabs will be moved to the recently closed tab list when quiting Vieb.
@@ -669,6 +689,8 @@
     </pre>
     Note that the github url will be prefixed with "https://",
     because we omitted the schema/protocol from the url.
+    If you want always want to open these pages on startup,
+    add them to the list of startup tabs (tabs.startup).
     <h1 id="normal">Normal mode</h1>
     In the basics chapter the most useful keyboard shortcuts are mentioned,
     but this chapter lists all of the default normal mode actions available:
