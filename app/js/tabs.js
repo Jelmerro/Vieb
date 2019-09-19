@@ -26,7 +26,7 @@ let recentlyClosed = []
 let linkId = 0
 
 const useragent = remote.session.defaultSession.getUserAgent()
-    .replace(/Electron\/(\d|\.)* /, "").replace(/Vieb\/(\d|\.)* /, "")
+    .replace(/Electron\/\S* /, "").replace(/Vieb\/\S* /, "")
 
 remote.session.defaultSession.setPermissionRequestHandler(
     (_, permission, callback, details) => {
