@@ -211,10 +211,11 @@
     Alternatively, settings can be changed for the current session with the `:set` command.
     For example, to use system notifications for as long as Vieb is running,
     open command mode with `:` and enter this command:
-    <pre class="command-block">set notification.system true</pre>
-    Vieb's set command syntax is different as compared to regular Vim,
-    and always has the form of "set setting value".
-    The settings file is case sensitive, but the setting argument of the set command isn't.
+    <pre class="command-block">set notification.system=true</pre>
+    Vieb's set command syntax is very similar to regular Vim.
+    You can read settings using "set setting?" or toggle booleans with "set setting!", for example:
+    <pre class="command-block">set notification.system! notification?</pre>
+    The settings file is case sensitive, just like the set command arguments.
     The keybindings and startup pages can only be changed with the settings file and not with the set command.
     Running the `:reload` command will reset any prior `:set` commands,
     because all settings will be reset and reapplied from the settings file.
@@ -440,6 +441,17 @@
         "position": true,
         "size": true,
         "maximized": true
+    },
+    "permissions": {
+        "camera": "block",
+        "fullscreen": "allow",
+        "geolocation": "block",
+        "microphone": "block",
+        "midiSysex": "block",
+        "notifications": "ask",
+        "openExternal": "block",
+        "pointerLock": "block",
+        "unknown": "block"
     }
 }
     </pre>
@@ -592,9 +604,7 @@
     After that, most settings can be changed using the set command.
     For example, to use system notifications instead of Vieb's own notification system,
     go to command mode using <kbd>Shift with ;</kbd> (or <kbd>:</kbd>) and enter this command:
-    <pre class="command-block">set notification.system true</pre>
-    The set command always takes two arguments;
-    one for the setting name and the other for the new value.
+    <pre class="command-block">set notification.system=true</pre>
     The set command along with other commands has autocompletion by default,
     which helps with finding the right setting name.
     Settings can be changed as many times as you like,
@@ -609,26 +619,37 @@
     Vieb only reads the settings file on startup and with the reload command,
     and never writes to the file as the set command is for runtime only.
     This means it's always safe to edit the viebrc file.
+    <h3 id="settings-set-reading">reading</h3>
+    It's also possible to find the current setting value.
+    To find out if system notifications are in use,
+    execute the following command:
+    <pre class="command-block">set notification.system?</pre>
+    You can also read an entire collection of settings at once,
+    the next command will list all the permission settings:
+    <pre class="command-block">set permissions?</pre>
+    The question mark can also be left out, if that's preferred.
     <h3 id="settings-set-validation">validation</h3>
     The set command can be a useful tool to help with finding the right settings.
-    Unlike the settings file, which will simply ignore errors and use the default,
-    the set command informs the user of any mistakes made.
+    On startup, Vieb informs the user of any mistakes made,
+    and the set command will show the same warnings.
     For example, to disable the case sensitive search,
     the correct command would be:
-    <pre class="command-block">set caseSensitiveSearch false</pre>
+    <pre class="command-block">set caseSensitiveSearch=false</pre>
     If we would try to set the value to anything other than true or false,
-    a warning would be displayed that only true and false are accepted values.
-    The first argument is case insensitive, while the value is case sensitive.
-    This means that the previous set command could also be entered like this:
-    <pre class="command-block">set casesensitiveSEARCH false</pre>
-    But writing false in uppercase wouldn't work and show a warning notification.
-    Lastly, if a command does not show a notification,
-    it means that the command was successfully executed and applied.
+    a warning would be displayed that a boolean is expected.
+    Boolean values can also be toggled with:
+    <pre class="command-block">set addTabsNextToCurrentOne!</pre>
+    All arguments are case sensitive, similar to the settings file.
+    If a command does not show a notification,
+    it means that the setting was successfully executed and applied.
+    Similar to Vim, it's also possible to input multiple arguments to set, for example:
+    <pre class="command-block">set notification.system! notification</pre>
+    This will toggle the use of system notification and show the current notification settings.
     <h1 id="startup">Startup</h1>
     By default, all the tabs from the previous session will be opened (tabs.restore),
     along with the configured startup tabs (tabs.startup).
     This behaviour can be changed in settings as listed between the brackets.
-    By default, your tabs will also be stored when closed (tabs.keepRecentlyClosed),
+    Your tabs will also be stored when closed (tabs.keepRecentlyClosed),
     so you can reopen them with <kbd>u</kbd>.
     When "tabs.restore" is disabled, but "tabs.keepRecentlyClosed" is enabled,
     all your open tabs will be moved to the recently closed tab list when quiting Vieb.
@@ -672,6 +693,8 @@
     </pre>
     Note that the github url will be prefixed with "https://",
     because we omitted the schema/protocol from the url.
+    If you want always want to open these pages on startup,
+    add them to the list of startup tabs (tabs.startup).
     <h1 id="normal">Normal mode</h1>
     In the basics chapter the most useful keyboard shortcuts are mentioned,
     but this chapter lists all of the default normal mode actions available:
@@ -903,20 +926,23 @@
     This command has already been mostly explained in <a href="#settings-set">this paragraph</a>.
     To summarize, this command can be used to set any setting during runtime,
     without saving it to the viebrc.json settings/config file.
-    It is always in the form of:
-    <pre class="command-block">set setting value</pre>
+    Wrinting a new setting with the set command works like this:
+    <pre class="command-block">set downloads.method=ask</pre>
+    Boolean values can also be toggled like this:
+    <pre class="command-block">set history.storeNewVisits!</pre>
     For example, to increase the notification duration for the current session,
     use the following command (from 6 seconds to 10 seconds):
-    <pre class="command-block">set notification.duration 10000</pre>
+    <pre class="command-block">set notification.duration=10000</pre>
     If no notification is shown, the setting was successfully applied.
     Note that the duration and position of the notifications can only be changed
-    if the Vieb notification is used instead of system notifications.
-    Lastly, Vieb will automatically block websites with an invalid or missing certificate.
+    if the Vieb notifications are used instead of system notifications.
+    Vieb will automatically block websites with an invalid or missing certificate.
     To bypass this, either enter the url with the full protocol (http://),
     or change the following setting:
-    <pre class="command-block">set redirectToHttp true</pre>
-    The setting argument is case-insensitive when using the set command,
-    but the value is always case-sensitive.
+    <pre class="command-block">set redirectToHttp=true</pre>
+    The set command can also be used to read the current value of a setting:
+    <pre class="command-block">set notification.duration?</pre>
+    The question mark at the end is optional, similar to Vim.
     <h2 id="commands-reload">reload</h2>
     The reload command can be used to reload the settings from the settings file.
     It takes no arguments, required or optional.
