@@ -52,7 +52,7 @@ remote.session.defaultSession.setPermissionRequestHandler(
                     + "the current session when sites ask for this permission."
                     + " You can always change this using the settings file,"
                     + " or at runtime with the set command like so: "
-                    + "'set permissions.<name> <value>'"
+                    + "'set permissions.<name>=<value>'"
             }).then(e => {
                 callback(e.response === 0)
                 if (e.checkboxChecked) {
