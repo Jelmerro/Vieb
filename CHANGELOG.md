@@ -36,7 +36,7 @@ but the list below contains much more technical details.
 
 ### Security
 
-- Electron 6.0.9 (was 6.0.6)
+- Electron 6.0.10 (was 6.0.6)
 - Chromium 76.0.3809.146 (was 76.0.3809.138)
 - Permissions changed to block access by default for most permissions
 
