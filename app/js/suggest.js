@@ -20,6 +20,25 @@
 
 let suggestions = []
 let originalValue = ""
+let commandList = [
+    "quit",
+    "devtools",
+    "reload",
+    "version",
+    "help",
+    "help basics",
+    "history",
+    "downloads",
+    "accept",
+    "confirm",
+    "reject",
+    "deny"
+]
+
+const init = () => {
+    commandList = commandList.concat(SETTINGS.suggestionList()
+        .map(s => `set ${s}`))
+}
 
 const prevSuggestion = () => {
     const list = [...document.querySelectorAll("#suggest-dropdown div")]
@@ -113,138 +132,22 @@ const addHist = hist => {
     document.getElementById("suggest-dropdown").appendChild(element)
 }
 
-const commandList = [
-    "quit",
-    "devtools",
-    "reload",
-    "version",
-    "help",
-    "help basics",
-    "history",
-    "downloads",
-    "accept",
-    "confirm",
-    "reject",
-    "deny",
-    "set ",
-    "set redirectToHttp ",
-    "set redirectToHttp true",
-    "set redirectToHttp false",
-    "set redirectToHttp?",
-    "set search ",
-    "set search https://duckduckgo.com/?kae=d&q=",
-    "set search?",
-    "set caseSensitiveSearch ",
-    "set caseSensitiveSearch true",
-    "set caseSensitiveSearch false",
-    "set caseSensitiveSearch?",
-    "set clearCacheOnQuit ",
-    "set clearCacheOnQuit true",
-    "set clearCacheOnQuit false",
-    "set clearCacheOnQuit?",
-    "set clearCookiesOnQuit ",
-    "set clearCookiesOnQuit true",
-    "set clearCookiesOnQuit false",
-    "set clearCookiesOnQuit?",
-    "set clearLocalStorageOnQuit ",
-    "set clearLocalStorageOnQuit true",
-    "set clearLocalStorageOnQuit false",
-    "set clearLocalStorageOnQuit?",
-    "set suggestCommands ",
-    "set suggestCommands true",
-    "set suggestCommands false",
-    "set suggestCommands?",
-    "set allowFollowModeDuringLoad ",
-    "set allowFollowModeDuringLoad true",
-    "set allowFollowModeDuringLoad false",
-    "set allowFollowModeDuringLoad?",
-    "set fontSize ",
-    "set fontSize 14",
-    "set fontSize?",
-    "set digitsRepeatActions ",
-    "set digitsRepeatActions true",
-    "set digitsRepeatActions false",
-    "set digitsRepeatActions?",
-    "set adblocker?",
-    "set addTabsNextToCurrentOne",
-    "set addTabsNextToCurrentOne true",
-    "set addTabsNextToCurrentOne false",
-    "set addTabsNextToCurrentOne?",
-    "set notification.",
-    "set notification.system ",
-    "set notification.system true",
-    "set notification.system false",
-    "set notification.system?",
-    "set notification.position ",
-    "set notification.position bottom-right",
-    "set notification.position bottom-left",
-    "set notification.position top-right",
-    "set notification.position top-left",
-    "set notification.position?",
-    "set notification.duration ",
-    "set notification.duration 6000",
-    "set notification.duration?",
-    "set downloads.",
-    "set downloads.path ",
-    "set downloads.path ~/Downloads/",
-    "set downloads.path?",
-    "set downloads.method ",
-    "set downloads.method automatic",
-    "set downloads.method ask",
-    "set downloads.method confirm",
-    "set downloads.method?",
-    "set downloads.removeCompleted ",
-    "set downloads.removeCompleted true",
-    "set downloads.removeCompleted false",
-    "set downloads.removeCompleted?",
-    "set downloads.clearOnQuit ",
-    "set downloads.clearOnQuit true",
-    "set downloads.clearOnQuit false",
-    "set downloads.clearOnQuit?",
-    "set history.",
-    "set history.suggest ",
-    "set history.suggest true",
-    "set history.suggest false",
-    "set history.suggest?",
-    "set history.clearOnQuit ",
-    "set history.clearOnQuit true",
-    "set history.clearOnQuit false",
-    "set history.clearOnQuit?",
-    "set history.storeNewVisits ",
-    "set history.storeNewVisits true",
-    "set history.storeNewVisits false",
-    "set history.storeNewVisits?",
-    "set tabs.",
-    "set tabs.restore ",
-    "set tabs.restore true",
-    "set tabs.restore false",
-    "set tabs.restore?",
-    "set tabs.keepRecentlyClosed ",
-    "set tabs.keepRecentlyClosed true",
-    "set tabs.keepRecentlyClosed false",
-    "set tabs.keepRecentlyClosed?",
-    "set tabs.startup?",
-    "set windowstate.position?",
-    "set windowstate.size?",
-    "set windowstate.maximized?"
-]
-
 const suggestCommand = search => {
     document.getElementById("suggest-dropdown").textContent = ""
     clear()
-    if (search.startsWith(":")) {
-        search = search.replace(":", "")
-    }
+    //remove all redundant spaces
+    //allow commands prefixed with :
+    search = search.replace(/^\s*:?\s*/, "").replace(/ +/g, " ")
     if (!SETTINGS.get("suggestCommands") || !search) {
         return
     }
-    const possibleCommands = commandList.filter(c => {
-        if (c.toLowerCase().startsWith(search.toLowerCase())) {
-            if (c.toLowerCase().trim() !== search.toLowerCase().trim()) {
-                return true
-            }
-        }
-        return false
+    let setCommandExtras = []
+    if (search.startsWith("set ") && search.split(" ").length > 2) {
+        setCommandExtras = SETTINGS.suggestionList()
+            .map(s => `${search.split(" ").slice(0, -1).join(" ")} ${s}`)
+    }
+    const possibleCommands = commandList.concat(setCommandExtras).filter(c => {
+        return c.toLowerCase().startsWith(search.toLowerCase())
     })
     for (const command of possibleCommands.slice(0, 10)) {
         addCommand(command)
@@ -259,6 +162,7 @@ const addCommand = command => {
 }
 
 module.exports = {
+    init,
     prevSuggestion,
     nextSuggestion,
     cancelSuggestions,

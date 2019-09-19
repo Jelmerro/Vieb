@@ -28,6 +28,46 @@ let linkId = 0
 const useragent = remote.session.defaultSession.getUserAgent()
     .replace(/Electron\/(\d|\.)* /, "").replace(/Vieb\/(\d|\.)* /, "")
 
+remote.session.defaultSession.setPermissionRequestHandler(
+    (_, permission, callback, details) => {
+        if (permission === "media") {
+            if (details.mediaTypes && details.mediaTypes.includes("video")) {
+                permission = "camera"
+            } else {
+                permission = "microphone"
+            }
+        }
+        const setting = SETTINGS.get(`permissions.${permission}`)
+        if (setting === "ask") {
+            remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+                "type": "question",
+                "buttons": ["Allow", "Deny"],
+                "defaultId": 0,
+                "cancelId": 1,
+                "checkboxLabel": "Remember for this session",
+                "title": `Allow this page to access '${permission}'?`,
+                "message": "The page has requested access to the permission "
+                    + `'${permission}'. You can allow or deny this below, `
+                    + "and choose if you want to make this the default for "
+                    + "the current session when sites ask for this permission."
+                    + " You can always change this using the settings file,"
+                    + " or at runtime with the set command like so: "
+                    + "'set permissions.<name>=<value>'"
+            }).then(e => {
+                callback(e.response === 0)
+                if (e.checkboxChecked) {
+                    if (e.response === 0) {
+                        SETTINGS.set(`permissions.${permission}`, "allow")
+                    } else {
+                        SETTINGS.set(`permissions.${permission}`, "block")
+                    }
+                }
+            })
+        } else {
+            callback(setting === "allow")
+        }
+    })
+
 const init = () => {
     window.addEventListener("load", () => {
         const startup = SETTINGS.get("tabs.startup")
