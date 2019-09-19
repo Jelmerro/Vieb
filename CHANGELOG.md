@@ -20,10 +20,14 @@ but the list below contains much more technical details.
 - Keybinding to open tabs at the inverted position to the setting configured (so at the end by default)
 - Keybindings to move the current tab left or right in the tab navigation bar (ctrl-j or ctrl-k)
 - Settings to configure permissions such as microphone or camera access, options are: block, allow or ask
+- Boolean toggle for settings, for example: `set caseSensitiveSearch!`
+- Support for multiple set command arguments, such as: `set caseSensitiveSearch! notifications.system=true notifications?`
 
 ### Changed
 
 - Set command suggestions are no longer hard-coded
+- Set command write syntax is now similar to Vim: `set permissions.camera=ask`
+- The question mark for the set command read option is now optional: `set permissions?` now equals `set permissions`
 
 ### Fixed
 
