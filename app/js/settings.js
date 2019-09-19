@@ -305,7 +305,9 @@ const set = (setting, value, startup=false) => {
     if (checkForValidSetting(setting, value, startup)) {
         if (setting.includes(".")) {
             const [group, config] = setting.split(".")
-            if (typeof allSettings[group][config] === "boolean") {
+            if (startup) {
+                allSettings[group][config] = value
+            } else if (typeof allSettings[group][config] === "boolean") {
                 allSettings[group][config] = value === "true"
             } else if (typeof allSettings[group][config] === "number") {
                 allSettings[group][config] = Number(value)
@@ -317,6 +319,8 @@ const set = (setting, value, startup=false) => {
                 value = `https://${value}`
             }
             allSettings.search = value
+        } else if (startup) {
+            allSettings[setting] = value
         } else if (typeof allSettings[setting] === "boolean") {
             allSettings[setting] = value === "true"
         } else if (typeof allSettings[setting] === "number") {
