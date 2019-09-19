@@ -135,6 +135,10 @@ const checkForValidSetting = (setting, value, startup) => {
         UTIL.notify(readOnlyMessage, "warn")
         return false
     }
+    if (!startup && !value) {
+        UTIL.notify(`The new '${setting}' value may not be empty`, "warn")
+        return false
+    }
     const expectedType = typeof get(setting)
     if (!startup && typeof value === "string") {
         if (expectedType !== typeof value) {
@@ -238,31 +242,32 @@ const listSettingsAsArray = () => {
 }
 
 const suggestionList = () => {
-    const listOfSuggestions = ["set "]
+    const listOfSuggestions = listSettingsAsArray()
     for (const setting of listSettingsAsArray()) {
         if (setting.includes(".")) {
-            const prefix = `set ${setting.split(".")[0]}.`
+            const prefix = setting.split(".")[0]
             const previous = listOfSuggestions[listOfSuggestions.length - 1]
-            if (!previous.startsWith(prefix)) {
+            if (!previous.startsWith(`${prefix}.`)) {
                 listOfSuggestions.push(prefix)
-                listOfSuggestions.push(`${prefix.slice(0, -1)}?`)
+                listOfSuggestions.push(`${prefix}?`)
             }
         }
         if (!readOnly[setting]) {
-            listOfSuggestions.push(`set ${setting} `)
+            listOfSuggestions.push(`${setting}=`)
             if (typeof get(setting, defaultSettings) === "boolean") {
-                listOfSuggestions.push(`set ${setting} true`)
-                listOfSuggestions.push(`set ${setting} false`)
+                listOfSuggestions.push(`${setting}!`)
+                listOfSuggestions.push(`${setting}=true`)
+                listOfSuggestions.push(`${setting}=false`)
             } else if (validOptions[setting]) {
                 for (const option of validOptions[setting]) {
-                    listOfSuggestions.push(`set ${setting} ${option}`)
+                    listOfSuggestions.push(`${setting}=${option}`)
                 }
             } else {
                 listOfSuggestions.push(
-                    `set ${setting} ${get(setting, defaultSettings)}`)
+                    `${setting}=${get(setting, defaultSettings)}`)
             }
         }
-        listOfSuggestions.push(`set ${setting}?`)
+        listOfSuggestions.push(`${setting}?`)
     }
     return listOfSuggestions
 }

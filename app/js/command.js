@@ -24,14 +24,7 @@ const execute = command => {
     //remove all redundant spaces
     //allow commands prefixed with :
     //and return if the command is empty
-    while (command.includes("  ")) {
-        command = command.replace("  ", " ")
-    }
-    command = command.trim()
-    if (command.startsWith(":")) {
-        command = command.replace(":", "")
-    }
-    command = command.trim()
+    command = command.replace(/^\s*:?/, "").trim().replace(/ +/g, " ")
     if (!command) {
         return
     }
@@ -106,13 +99,38 @@ const execute = command => {
     //set command
     if (command.startsWith("set ") || command === "set") {
         const parts = command.split(" ")
-        if (parts.length === 2) {
-            if (parts[1].endsWith("?")) {
-                const setting = parts[1].slice(0, -1)
+        if (parts.length === 1) {
+            UTIL.notify(
+                "Invalid usage, you could try:\nReading: 'set <setting>?'\n"
+                + "Writing: 'set <setting>=<value>'", "warn")
+            return
+        }
+        for (const part of parts.slice(1)) {
+            if (part.includes("=")) {
+                const setting = part.split("=")[0]
+                const value = part.split("=").slice(1).join("=")
+                SETTINGS.set(setting, value)
+            } else if (part.endsWith("!")) {
+                const setting = part.slice(0, -1)
                 const value = SETTINGS.get(setting)
                 if (value === undefined) {
+                    UTIL.notify(`Unknown setting '${setting}, try using `
+                        + "the suggestions", "warn")
+                } else if (typeof value === "boolean") {
+                    SETTINGS.set(setting, String(!value))
+                } else {
                     UTIL.notify(
-                        "Unknown setting, try using the suggestions", "warn")
+                        `The setting '${setting}' can not be flipped`, "warn")
+                }
+            } else {
+                let setting = part
+                if (part.endsWith("?")) {
+                    setting = part.slice(0, -1)
+                }
+                const value = SETTINGS.get(setting)
+                if (value === undefined) {
+                    UTIL.notify(`Unknown setting '${setting}, try using `
+                        + "the suggestions", "warn")
                 } else if (value.length === undefined
                         && typeof value === "object") {
                     UTIL.notify(
@@ -123,15 +141,8 @@ const execute = command => {
                     UTIL.notify(
                         `The setting '${setting}' has the value '${value}'`)
                 }
-                return
             }
-        } else if (parts.length === 3) {
-            SETTINGS.set(parts[1], parts[2])
-            return
         }
-        UTIL.notify(
-            "Invalid usage, you could try:\nReading: 'set <setting>?'\n"
-            + "Writing: 'set <setting> <value>'", "warn")
         return
     }
     //accept/confirm command

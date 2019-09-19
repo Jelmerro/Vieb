@@ -36,7 +36,8 @@ let commandList = [
 ]
 
 const init = () => {
-    commandList = commandList.concat(SETTINGS.suggestionList())
+    commandList = commandList.concat(SETTINGS.suggestionList()
+        .map(s => `set ${s}`))
 }
 
 const prevSuggestion = () => {
@@ -134,19 +135,19 @@ const addHist = hist => {
 const suggestCommand = search => {
     document.getElementById("suggest-dropdown").textContent = ""
     clear()
-    if (search.startsWith(":")) {
-        search = search.replace(":", "")
-    }
+    //remove all redundant spaces
+    //allow commands prefixed with :
+    search = search.replace(/^\s*:?\s*/, "").replace(/ +/g, " ")
     if (!SETTINGS.get("suggestCommands") || !search) {
         return
     }
-    const possibleCommands = commandList.filter(c => {
-        if (c.toLowerCase().startsWith(search.toLowerCase())) {
-            if (c.toLowerCase().trim() !== search.toLowerCase().trim()) {
-                return true
-            }
-        }
-        return false
+    let setCommandExtras = []
+    if (search.startsWith("set ") && search.split(" ").length > 2) {
+        setCommandExtras = SETTINGS.suggestionList()
+            .map(s => `${search.split(" ").slice(0, -1).join(" ")} ${s}`)
+    }
+    const possibleCommands = commandList.concat(setCommandExtras).filter(c => {
+        return c.toLowerCase().startsWith(search.toLowerCase())
     })
     for (const command of possibleCommands.slice(0, 10)) {
         addCommand(command)
