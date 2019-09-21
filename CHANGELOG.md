@@ -10,6 +10,12 @@ Links in the changelog are part of [github.com/Jelmerro/Vieb](https://github.com
 The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the most important changes per release,
 but the list below contains much more technical details.
 
+## Unreleased
+
+### Fixed
+
+- Sort all html input fields correctly by type in follow mode (input file, image and reset)
+
 ## [0.7.0](https://github.com/Jelmerro/Vieb/compare/0.6.0...0.7.0) - 2019-09-19
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/0.6.0...0.7.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/0.7.0)
