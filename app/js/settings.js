@@ -36,7 +36,6 @@ const defaultSettings = {
     "fontSize": 14,
     "digitsRepeatActions": true,
     "adblocker": "static",
-    "addTabsNextToCurrentOne": true,
     "notification": {
         "system": false,
         "position": "bottom-right",
@@ -73,6 +72,11 @@ const defaultSettings = {
         "openExternal": "block",
         "pointerLock": "block",
         "unknown": "block"
+    },
+    "newtab": {
+        "nextToCurrentOne": true,
+        "enterNavMode": false,
+        "showTopSites": true
     }
 }
 let allSettings = {}
@@ -93,6 +97,7 @@ const readOnly = {
     "tabs": collectionMessage,
     "windowstate": collectionMessage,
     "permissions": collectionMessage,
+    "newtab": collectionMessage,
     "tabs.startup": "The startup pages can't be changed with the set command\n"
         + "Instead, open the config file, edit the page list and "
         + "the startup pages will open the next time Vieb is started",

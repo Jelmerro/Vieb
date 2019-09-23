@@ -230,7 +230,7 @@ const currentPage = () => {
 }
 
 const addTab = (url=null, inverted=false) => {
-    let addNextToCurrent = SETTINGS.get("addTabsNextToCurrentOne")
+    let addNextToCurrent = SETTINGS.get("newtab.nextToCurrentOne")
     addNextToCurrent = addNextToCurrent && listTabs().length > 0
     if (inverted) {
         addNextToCurrent = !addNextToCurrent
@@ -265,14 +265,11 @@ const addTab = (url=null, inverted=false) => {
     webview.getWebContents().setUserAgent(useragent)
     webview.getWebContents().setWebRTCIPHandlingPolicy(
         "default_public_interface_only")
-    webview.addEventListener("focus", () => {
-        if (MODES.currentMode() !== "insert") {
-            webview.blur()
-        }
-    })
     if (url) {
         webview.src = url
         title.textContent = url
+    } else {
+        webview.src = UTIL.specialPagePath("newtab")
     }
     if (addNextToCurrent) {
         switchToTab(listTabs().indexOf(currentTab()) + 1)
@@ -355,6 +352,8 @@ const updateUrl = webview => {
         const specialPage = UTIL.pathToSpecialPageName(currentPage().src)
         if (!specialPage.name) {
             document.getElementById("url").value = currentPage().src
+        } else if (specialPage.name === "newtab") {
+            document.getElementById("url").value = ""
         } else if (specialPage.section) {
             document.getElementById("url").value
                 = `vieb://${specialPage.name}#${specialPage.section}`
@@ -367,6 +366,11 @@ const updateUrl = webview => {
 }
 
 const addWebviewListeners = webview => {
+    webview.addEventListener("focus", () => {
+        if (MODES.currentMode() !== "insert") {
+            webview.blur()
+        }
+    })
     webview.addEventListener("did-start-loading", () => {
         const tab = tabOrPageMatching(webview)
         tab.querySelector(".status").style.display = null
@@ -421,14 +425,12 @@ const addWebviewListeners = webview => {
         })
     })
     webview.addEventListener("did-fail-load", e => {
-        if (e.errorDescription === "") {
-            return //Request was aborted before another error could occur
-        }
-        if (e.errorDescription === "ERR_INVALID_URL") {
-            webview.src = webview.src || ""
+        if (e.errorDescription === "" || !e.isMainFrame) {
+            // Request was aborted before another error could occur
+            // or some request made by the page failed (which can be ignored)
             return
         }
-        //It will go to the http version of a website when no https is detected
+        //It will go to the http version of a website, when no https is detected
         const redirect = SETTINGS.get("redirectToHttp")
         const sslErrors = [
             "ERR_CERT_COMMON_NAME_INVALID",
@@ -439,8 +441,7 @@ const addWebviewListeners = webview => {
             webview.src = webview.src.replace("https://", "http://")
             return
         }
-        UTIL.notify(`The page encountered the following error while loading: ${
-            e.errorDescription}. url: '${e.validatedURL}'`, "err")
+        webview.send("insert-failed-page-info", e)
     })
     webview.addEventListener("did-stop-loading", () => {
         const tab = tabOrPageMatching(webview)
@@ -508,10 +509,14 @@ const addWebviewListeners = webview => {
         if (e.channel === "switch-to-insert") {
             MODES.setMode("insert")
         }
+        if (e.channel === "new-tab-info-request") {
+            if (SETTINGS.get("newtab.showTopSites")) {
+                webview.send("insert-new-tab-info", HISTORY.topSites())
+            }
+        }
     })
     webview.addEventListener("found-in-page", e => {
-        webview.getWebContents().send("search-element-location",
-            e.result.selectionArea)
+        webview.send("search-element-location", e.result.selectionArea)
     })
     webview.addEventListener("update-target-url", e => {
         if (e.url && ["insert", "cursor"].includes(MODES.currentMode())) {

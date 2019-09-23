@@ -107,14 +107,13 @@ const suggestHist = search => {
         }
         return null
     }).filter(h => h)
-    orderSuggestions(suggestions)
+    orderAndAddSuggestions(suggestions)
 }
 
-const orderSuggestions = suggestions => {
+const orderAndAddSuggestions = suggestions => {
     SUGGEST.clear()
-    suggestions.sort((a, b) => {
-        return b.visits * b.relevance- a.visits * a.relevance
-    }).forEach(SUGGEST.addHist)
+    suggestions.sort((a, b) => b.relevance - a.relevance)
+        .forEach(SUGGEST.addHist)
 }
 
 const addToHist = (title, url) => {
@@ -190,10 +189,22 @@ const handleRequest = (type, start, end) => {
     TABS.currentPage().getWebContents().send("history-list", history)
 }
 
+const topSites = () => {
+    return Object.keys(groupedHistory).sort((a, b) => {
+        return groupedHistory[b].visits - groupedHistory[a].visits
+    }).slice(0, 10).map(site => {
+        return {
+            url: site,
+            name: groupedHistory[site].title
+        }
+    })
+}
+
 module.exports = {
     init,
     addToHist,
     suggestHist,
     clearHistory,
-    handleRequest
+    handleRequest,
+    topSites
 }

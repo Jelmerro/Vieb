@@ -23,7 +23,7 @@ const rimraf = require("rimraf").sync
 const {remote} = require("electron")
 
 const protocolRegex = /^[a-z][a-z0-9-+.]+:\/\//
-const specialPages = ["help", "history", "downloads", "version"]
+const specialPages = ["help", "history", "downloads", "newtab", "version"]
 
 const hasProtocol = location => {
     //Check for a valid protocol at the start
