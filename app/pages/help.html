@@ -154,7 +154,7 @@
         <li>
             <span class="visual">Visual</span>
             - This mode can only be entered from cursor mode using the <kbd>v</kbd> key.
-            It can be used to select and copy text using the keyboad.
+            It can be used to select and copy text using the keyboard.
             When switching from cursor mode to visual mode,
             the exising location will be saved as the starting point for the selection.
             The cursor can then be moved freely similar to cursor mode,
@@ -175,7 +175,7 @@
         <li>Zoom in and out using <kbd>Ctrl with +</kbd> or <kbd>Ctrl with -</kbd>.</li>
         <li>Reset to the normal zoom level by pressing <kbd>Ctrl with 0</kbd>.</li>
         <li>Go back and forward in history using <kbd>Shift with h</kbd> and <kbd>Shift with l</kbd>.</li>
-        <li>Open a new tab with <kbd>t</kbd>, which will enter nav mode.</li>
+        <li>Open a new tab with <kbd>t</kbd>.</li>
         <li>
             Switch between tabs with <kbd>w</kbd> and <kbd>b</kbd>
             or using <kbd>Shift with j</kbd> and <kbd>Shift with k</kbd>.
@@ -197,9 +197,6 @@
     </ul>
     <h1 id="settings">Settings</h1>
     Vieb has a lot of settings, including custom keybindings.
-    The basics chapter assumes the keybindings mentioned are unchanged.
-    This is because most users won't need to change them,
-    and because it would make the basics chapter a lot more complex than it needs to be.
     There are two ways to change the settings:
     <ul>
         <li>Change the defaults using a viebrc.json file.</li>
@@ -229,7 +226,7 @@
         <li>Linux - <kbd>~/.config/Vieb/viebrc.json</kbd>
     </ul>
     The same folder is used for all other information that Vieb stores,
-    which means there should be electron/chromium related files there.
+    which means there should be Electron/Chromium related files there.
     You can create the viebrc.json file there if you haven't already.
     Your browsing and download history will also be saved in this folder by default.
     See the <a href="#history">history chapter</a> for more details and instructions how to configure the related settings.
@@ -415,7 +412,6 @@
     "fontSize": 14,
     "digitsRepeatActions": true,
     "adblocker": "static",
-    "addTabsNextToCurrentOne": true,
     "notification": {
         "system": false,
         "position": "bottom-right",
@@ -452,6 +448,11 @@
         "openExternal": "block",
         "pointerLock": "block",
         "unknown": "block"
+    },
+    "newtab": {
+        "nextToCurrentOne": true,
+        "enterNavMode": false,
+        "showTopSites": true
     }
 }
     </pre>
@@ -515,7 +516,6 @@
     "fontSize": 20,
     "digitsRepeatActions": false,
     "adblocker": "update",
-    "addTabsNextToCurrentOne": false,
     "notification": {
         "duration": 3000,
         "position": "bottom-left"
@@ -542,6 +542,10 @@
         "position": false,
         "size": false,
         "maximized": false
+    },
+    "newtab": {
+        "nextToCurrentOne": false,
+        "showTopSites": false
     }
 }</pre>
 
@@ -575,7 +579,6 @@
         <li>Increase the font size of all UI elements to 20px instead of 14px (fontSize)</li>
         <li>Stop the digit keys from repeating actions (digitsRepeatActions)</li>
         <li>Ads and trackers will still be blocked, but the lists will be automatically updated (adblocker)</li>
-        <li>This will stop the tabs from opening next to the current one using <kbd>t</kbd>, <kbd>Ctrl with t</kbd> will do the opposite of the current setting (addTabsNextToCurrentOne)</li>
         <li>Reduce the notification duration to 3 seconds instead of 6 (notification.duration)</li>
         <li>Display the notification in the bottom left instead of the bottom right (notification.position)</li>
         <li>Downloads will be stored in the documents folder, except if method is set be "ask" (downloads.path)</li>
@@ -591,6 +594,8 @@
         <li>The position of the window when not maximized will not be remembered and restored after restarting (windowstate.position)</li>
         <li>The size of the window when not maximized will not be restored after restarting (windowstate.size)</li>
         <li>After restarting, Vieb will no longer remember if the window was maximized (windowstate.maximized)</li>
+        <li>This will stop the tabs from opening next to the current one using <kbd>t</kbd>, <kbd>Ctrl with t</kbd> will do the opposite of the current setting (newtab.nextToCurrentOne)</li>
+        <li>New tabs will no longer display the top visited sites as suggestions (newtab.showTopSites)</li>
     </ul>
     Please note that the download, tab and browsing history are separately configured.
     Therefor it's possible to keep and restore the open tabs without keeping the other browsing history.
@@ -638,7 +643,7 @@
     If we would try to set the value to anything other than true or false,
     a warning would be displayed that a boolean is expected.
     Boolean values can also be toggled with:
-    <pre class="command-block">set addTabsNextToCurrentOne!</pre>
+    <pre class="command-block">set newtab.nextToCurrentOne!</pre>
     All arguments are case sensitive, similar to the settings file.
     If a command does not show a notification,
     it means that the setting was successfully executed and applied.
@@ -714,21 +719,23 @@
         <li>Enter insert mode with <kbd>i</kbd>.</li>
         <li>Reload the page with or without cache using <kbd>r</kbd> and <kbd>Shift with r</kbd>.</li>
         <li>
-            Open a new tab and enter nav mode in the new tab with <kbd>t</kbd>.
+            Open a new tab with <kbd>t</kbd>.
             By default this binding will open a new tab next to the current one.
-            The position of the new tab can be configured with the setting (addTabsNextToCurrentOne).
+            The position of the new tab can be configured with the setting "newtab.nextToCurrentOne".
+            You can also disable the top visited site suggestions with "newtab.showTopSites".
+            Finally, you can also automatically switch to nav mode when opening a new tab, by setting "newtab.enterNavMode" to true.
         </li>
         <li>
             <kbd>Ctrl with t</kbd> can be used to open the tabs at the alternative position without changing the setting each time.
             By default this will open the new tab at the end of all the open tabs.
             If the alternative position (at the end instead of next to the current one) is preferred,
-            you can change it by setting addTabsNextToCurrentOne to false.
+            you can change it by setting "newtab.nextToCurrentOne" to false.
         </li>
         <li>Open a new tab with the current website location prefilled in nav mode using <kbd>Shift with t</kbd>.</li>
         <li>Close the current tab with <kbd>d</kbd>.</li>
         <li>
             Reopen previously closed tabs with <kbd>u</kbd>.
-            The position of the restored tab can be configured with the setting (addTabsNextToCurrentOne).
+            The position of the restored tab can be configured with the setting "newtab.nextToCurrentOne".
         </li>
         <li>Switch to search mode with <kbd>/</kbd>.</li>
         <li>
@@ -835,8 +842,6 @@
         <li>To move fast up and down, use <kbd>Ctrl with u</kbd> and <kbd>Ctrl with d</kbd>.</li>
         <li>Finally, pressing <kbd>v</kbd> when in cursor mode, will enter visual mode.</li>
     </ul>
-    By default, <kbd>F1</kbd> is mapped to this help page for this and all other modes,
-    similar to the default binding to go back to normal mode (<kbd>Escape</kbd> or <kbd>Ctrl with [</kbd>).
     Some movemement actions will also scroll the window when reaching the bottom or top of the current view.
     <h1 id="visual">Visual mode</h1>
     This is the only mode than can not be directly entered from normal mode,
@@ -875,8 +880,6 @@
     Each paragraph in this chapter will explain a single command from the list above.
     <h2 id="commands-help">help</h2>
     The help command can be used as an alternative for the <kbd>F1</kbd> key.
-    It will open the help in the current tab,
-    unless you are already on a different website.
     Optionally, the help command takes a single argument,
     which can be used to refer to a section of this help page.
     For example, to navigate to the basics chapter:
@@ -936,12 +939,11 @@
     If no notification is shown, the setting was successfully applied.
     Note that the duration and position of the notifications can only be changed
     if the Vieb notifications are used instead of system notifications.
-    Vieb will automatically block websites with an invalid or missing certificate.
-    To bypass this, either enter the url with the full protocol (http://),
-    or change the following setting:
-    <pre class="command-block">set redirectToHttp=true</pre>
+    Vieb will automatically block websites with an invalid or missing certificate,
+    and display an error page when this happens, similar to unreachable pages.
+    If you prefer to be redirected automatically, set "redirectToHttp" to true.
     The set command can also be used to read the current value of a setting:
-    <pre class="command-block">set notification.duration?</pre>
+    <pre class="command-block">set redirectToHttp?</pre>
     The question mark at the end is optional, similar to Vim.
     <h2 id="commands-reload">reload</h2>
     The reload command can be used to reload the settings from the settings file.
@@ -955,8 +957,7 @@
     Last but not least is the quit command.
     This simple command takes no arguments,
     and is the proper way to quit Vieb.
-    For beginners who haven't changed the related keybindings,
-    these are the steps to quit Vieb regardless of mode:
+    These are the steps to quit Vieb regardless of mode:
     <ul>
         <li>Press <kbd>Escape</kbd> to go back to normal mode (Escape does nothing when already in normal mode).</li>
         <li>Use <kbd>Shift with ;</kbd> or <kbd>:</kbd> to enter command mode.</li>
@@ -1080,7 +1081,7 @@
     There are three different download methods in Vieb (setting: "downloads.method"):
     <ul>
         <li>
-            automatic (default) - which will download all files automatically similar to chromium,
+            automatic (default) - which will download all files automatically similar to Chromium,
             the configured "downloads.path" will be used to store all downloads.
         </li>
         <li>
@@ -1094,7 +1095,7 @@
         </li>
     </ul>
     All downloads regardless of mode will be displayed on the downloads page,
-    which can also be accsed as "vieb://downloads" or with the <a href="#commands-downloads">downloads command</a>.
+    which can be accessed as "vieb://downloads" or with the <a href="#commands-downloads">downloads command</a>.
     <h2 id="special-version">version page</h2>
     This page contains the current Vieb version and a button to check for updates.
     It can be accessed with the :version command (:v), or as "vieb://version".

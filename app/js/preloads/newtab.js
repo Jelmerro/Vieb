@@ -17,24 +17,25 @@
 */
 "use strict"
 
-// Always load follow mode javascript
-require("./preloads/follow.js")
-// Always load selection function code (for visual mode)
-require("./preloads/select.js")
-// Always load the failed page information handler
-require("./preloads/failedload.js")
+const {ipcRenderer} = require("electron")
 
-// Load the special page specific javascript
-const util = require("./util.js")
-const specialPage = util.pathToSpecialPageName(window.location.href)
-if (specialPage.name) {
-    require(`./preloads/${specialPage.name}.js`)
-}
-
-// Change the background to white for pages with no explicit background styling
-window.addEventListener("load", () => {
-    const background = getComputedStyle(document.body).background
-    if (background.includes("rgba(0, 0, 0, 0)")) {
-        document.body.style.background = "white"
+ipcRenderer.on("insert-new-tab-info", (_, sites) => {
+    document.body.style.display = "flex"
+    if (sites && sites.length > 0) {
+        document.getElementById("topsites").innerHTML = ""
     }
+    for (const site of sites) {
+        const link = document.createElement("a")
+        link.href = site.url
+        link.textContent = site.name
+        link.appendChild(document.createElement("br"))
+        const url = document.createElement("small")
+        url.textContent = site.url
+        link.appendChild(url)
+        document.getElementById("topsites").appendChild(link)
+    }
+})
+
+window.addEventListener("load", () => {
+    ipcRenderer.sendToHost("new-tab-info-request")
 })

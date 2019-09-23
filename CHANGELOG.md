@@ -12,9 +12,22 @@ but the list below contains much more technical details.
 
 ## Unreleased
 
+### Added
+
+- Unreachable pages now show an error page with instructions
+- Blocked HTTP redirects now show an error page with instructions
+- New tab page with top visited sites listed
+- Setting to disable the added new tab page
+- Setting to automatically enter nav mode in new tabs (or not)
+
+### Changed
+
+- Moved the setting for new tab position to the newtab collection (newtab.nextToCurrentOne)
+
 ### Fixed
 
 - Sort all html input fields correctly by type in follow mode (input file, image and reset)
+- History suggestions not sorting by visits correctly
 
 ## [0.7.0](https://github.com/Jelmerro/Vieb/compare/0.6.0...0.7.0) - 2019-09-19
 

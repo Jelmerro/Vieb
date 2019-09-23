@@ -120,7 +120,9 @@ const reload = () => {
 
 const openNewTab = () => {
     TABS.addTab()
-    MODES.setMode("nav")
+    if (SETTINGS.get("newtab.enterNavMode")) {
+        MODES.setMode("nav")
+    }
 }
 
 const reopenTab = () => {
@@ -154,7 +156,9 @@ const backInHistory = () => {
 
 const openNewTabAtAlternativePosition = () => {
     TABS.addTab(null, true)
-    MODES.setMode("nav")
+    if (SETTINGS.get("newtab.enterNavMode")) {
+        MODES.setMode("nav")
+    }
 }
 
 const forwardInHistory = () => {
@@ -195,7 +199,9 @@ const openNewTabWithCurrentUrl = () => {
         //No page is available, not an issue
     }
     const specialPage = UTIL.pathToSpecialPageName(url)
-    if (specialPage.name) {
+    if (specialPage.name === "newtab") {
+        url = ""
+    } else if (specialPage.name) {
         url = `vieb://${specialPage.name}`
         if (specialPage.section) {
             url += `#${specialPage.section}`
