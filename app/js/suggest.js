@@ -15,30 +15,11 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global SETTINGS */
+/* global COMMAND SETTINGS */
 "use strict"
 
 let suggestions = []
 let originalValue = ""
-let commandList = [
-    "quit",
-    "devtools",
-    "reload",
-    "version",
-    "help",
-    "help basics",
-    "history",
-    "downloads",
-    "accept",
-    "confirm",
-    "reject",
-    "deny"
-]
-
-const init = () => {
-    commandList = commandList.concat(SETTINGS.suggestionList()
-        .map(s => `set ${s}`))
-}
 
 const prevSuggestion = () => {
     const list = [...document.querySelectorAll("#suggest-dropdown div")]
@@ -142,13 +123,14 @@ const suggestCommand = search => {
         return
     }
     let setCommandExtras = []
-    if (search.startsWith("set ") && search.split(" ").length > 2) {
+    if (search.startsWith("s")) {
         setCommandExtras = SETTINGS.suggestionList()
             .map(s => `${search.split(" ").slice(0, -1).join(" ")} ${s}`)
     }
-    const possibleCommands = commandList.concat(setCommandExtras).filter(c => {
-        return c.toLowerCase().startsWith(search.toLowerCase())
-    })
+    const possibleCommands = COMMAND.commandList().concat(setCommandExtras)
+        .filter(c => {
+            return c.toLowerCase().startsWith(search.toLowerCase())
+        })
     for (const command of possibleCommands.slice(0, 10)) {
         addCommand(command)
     }
@@ -162,7 +144,6 @@ const addCommand = command => {
 }
 
 module.exports = {
-    init,
     prevSuggestion,
     nextSuggestion,
     cancelSuggestions,

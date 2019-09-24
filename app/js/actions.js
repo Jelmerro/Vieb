@@ -112,7 +112,9 @@ const nextSearchMatch = () => {
 
 const reload = () => {
     try {
-        TABS.currentPage().reload()
+        if (!TABS.currentPage().isCrashed()) {
+            TABS.currentPage().reload()
+        }
     } catch (e) {
         //No page is available, not an issue
     }
@@ -185,7 +187,9 @@ const previousSearchMatch = () => {
 
 const reloadWithoutCache = () => {
     try {
-        TABS.currentPage().reloadIgnoringCache()
+        if (!TABS.currentPage().isCrashed()) {
+            TABS.currentPage().reloadIgnoringCache()
+        }
     } catch (e) {
         //No page is available, not an issue
     }

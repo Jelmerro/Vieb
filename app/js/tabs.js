@@ -371,6 +371,9 @@ const addWebviewListeners = webview => {
             webview.blur()
         }
     })
+    webview.addEventListener("crashed", () => {
+        tabOrPageMatching(webview).className = "crashed"
+    })
     webview.addEventListener("did-start-loading", () => {
         const tab = tabOrPageMatching(webview)
         tab.querySelector(".status").style.display = null
@@ -544,6 +547,9 @@ const addWebviewListeners = webview => {
 }
 
 const navigateTo = location => {
+    if (currentPage().isCrashed()) {
+        return
+    }
     currentTab().querySelector("span").textContent = location
     currentPage().src = location
 }
