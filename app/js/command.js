@@ -20,151 +20,51 @@
 
 const {remote} = require("electron")
 
-const execute = command => {
-    //remove all redundant spaces
-    //allow commands prefixed with :
-    //and return if the command is empty
-    command = command.replace(/^\s*:?/, "").trim().replace(/ +/g, " ")
-    if (!command) {
+const set = (...args) => {
+    if (args.length === 0) {
+        UTIL.notify(
+            "Invalid usage, you could try:\nReading: 'set <setting>?'\n"
+            + "Writing: 'set <setting>=<value>'", "warn")
         return
     }
-    //quit command
-    if (["q", "quit"].includes(command)) {
-        quit()
-        return
-    }
-    if (command.startsWith("q ") || command.startsWith("quit ")) {
-        UTIL.notify("The quit command takes no arguments", "warn")
-        return
-    }
-    //devtools command
-    if (["dev", "devtools"].includes(command)) {
-        devtools()
-        return
-    }
-    if (command.startsWith("dev ") || command.startsWith("devtools ")) {
-        UTIL.notify("The devtools command takes no arguments", "warn")
-        return
-    }
-    //reload command
-    if (["r", "reload"].includes(command)) {
-        SETTINGS.loadFromDisk()
-        return
-    }
-    if (command.startsWith("r ") || command.startsWith("reload ")) {
-        UTIL.notify("The reload command takes no arguments", "warn")
-        return
-    }
-    //version command
-    if (["v", "version"].includes(command)) {
-        version()
-        return
-    }
-    if (command.startsWith("v ") || command.startsWith("version ")) {
-        UTIL.notify("The version command takes no arguments", "warn")
-        return
-    }
-    //help command
-    if (["h", "help"].includes(command)) {
-        help()
-        return
-    }
-    if (command.startsWith("h ") || command.startsWith("help ")) {
-        const parts = command.split(" ")
-        if (parts.length > 2) {
-            UTIL.notify("The help command only takes a single argument")
-            return
-        }
-        help(parts[1].toLowerCase())
-        return
-    }
-    //history command
-    if (command === "history") {
-        history()
-        return
-    }
-    if (command.startsWith("history ")) {
-        UTIL.notify("The history command takes no arguments", "warn")
-        return
-    }
-    //downloads command
-    if (["d", "downloads"].includes(command)) {
-        downloads()
-        return
-    }
-    if (command.startsWith("d ") || command.startsWith("downloads ")) {
-        UTIL.notify("The downloads command takes no arguments", "warn")
-        return
-    }
-    //set command
-    if (command.startsWith("set ") || command === "set") {
-        const parts = command.split(" ")
-        if (parts.length === 1) {
-            UTIL.notify(
-                "Invalid usage, you could try:\nReading: 'set <setting>?'\n"
-                + "Writing: 'set <setting>=<value>'", "warn")
-            return
-        }
-        for (const part of parts.slice(1)) {
-            if (part.includes("=")) {
-                const setting = part.split("=")[0]
-                const value = part.split("=").slice(1).join("=")
-                SETTINGS.set(setting, value)
-            } else if (part.endsWith("!")) {
-                const setting = part.slice(0, -1)
-                const value = SETTINGS.get(setting)
-                if (value === undefined) {
-                    UTIL.notify(`Unknown setting '${setting}, try using `
-                        + "the suggestions", "warn")
-                } else if (typeof value === "boolean") {
-                    SETTINGS.set(setting, String(!value))
-                } else {
-                    UTIL.notify(
-                        `The setting '${setting}' can not be flipped`, "warn")
-                }
+    for (const part of args) {
+        if (part.includes("=")) {
+            const setting = part.split("=")[0]
+            const value = part.split("=").slice(1).join("=")
+            SETTINGS.set(setting, value)
+        } else if (part.endsWith("!")) {
+            const setting = part.slice(0, -1)
+            const value = SETTINGS.get(setting)
+            if (value === undefined) {
+                UTIL.notify(`Unknown setting '${setting}, try using `
+                    + "the suggestions", "warn")
+            } else if (typeof value === "boolean") {
+                SETTINGS.set(setting, String(!value))
             } else {
-                let setting = part
-                if (part.endsWith("?")) {
-                    setting = part.slice(0, -1)
-                }
-                const value = SETTINGS.get(setting)
-                if (value === undefined) {
-                    UTIL.notify(`Unknown setting '${setting}, try using `
-                        + "the suggestions", "warn")
-                } else if (value.length === undefined
-                        && typeof value === "object") {
-                    UTIL.notify(
-                        `The setting '${setting}' has the value `
-                        + `'${JSON.stringify(value, null, 2)
-                            .replace(/ /g, "&nbsp;")}'`)
-                } else {
-                    UTIL.notify(
-                        `The setting '${setting}' has the value '${value}'`)
-                }
+                UTIL.notify(
+                    `The setting '${setting}' can not be flipped`, "warn")
+            }
+        } else {
+            let setting = part
+            if (part.endsWith("?")) {
+                setting = part.slice(0, -1)
+            }
+            const value = SETTINGS.get(setting)
+            if (value === undefined) {
+                UTIL.notify(`Unknown setting '${setting}, try using `
+                    + "the suggestions", "warn")
+            } else if (value.length === undefined
+                    && typeof value === "object") {
+                UTIL.notify(
+                    `The setting '${setting}' has the value `
+                    + `'${JSON.stringify(value, null, 2)
+                        .replace(/ /g, "&nbsp;")}'`)
+            } else {
+                UTIL.notify(
+                    `The setting '${setting}' has the value '${value}'`)
             }
         }
-        return
     }
-    //accept/confirm command
-    if (["accept", "confirm"].includes(command)) {
-        DOWNLOADS.confirmRequest()
-        return
-    }
-    if (command.startsWith("accept ") || command.startsWith("confirm ")) {
-        UTIL.notify("The accept command takes no arguments", "warn")
-        return
-    }
-    //deny/reject command
-    if (["deny", "reject"].includes(command)) {
-        DOWNLOADS.rejectRequest()
-        return
-    }
-    if (command.startsWith("deny ") || command.startsWith("reject ")) {
-        UTIL.notify("The deny command takes no arguments", "warn")
-        return
-    }
-    //no command
-    UTIL.notify(`The command '${command}' can not be found`, "warn")
 }
 
 const quit = () => {
@@ -214,7 +114,11 @@ const version = () => {
     openSpecialPage("version")
 }
 
-const help = (section=null) => {
+const help = (section=null, trailingArgs=false) => {
+    if (trailingArgs) {
+        UTIL.notify("The help command takes a single optional argument", "warn")
+        return
+    }
     openSpecialPage("help", section)
 }
 
@@ -226,13 +130,95 @@ const downloads = () => {
     openSpecialPage("downloads")
 }
 
+const reload = () => {
+    SETTINGS.loadFromDisk()
+}
+
+const accept = () => {
+    DOWNLOADS.confirmRequest()
+}
+
+const deny = () => {
+    DOWNLOADS.rejectRequest()
+}
+
+const commands = {
+    "q": quit,
+    "quit": quit,
+    "devtools": devtools,
+    "reload": reload,
+    "v": version,
+    "version": version,
+    "history": history,
+    "d": downloads,
+    "downloads": downloads,
+    "accept": accept,
+    "confirm": accept,
+    "deny": deny,
+    "reject": deny,
+    "h": help,
+    "help": help,
+    "s": set,
+    "set": set
+}
+
+const noArgumentComands = [
+    "q",
+    "quit",
+    "devtools",
+    "reload",
+    "v",
+    "version",
+    "history",
+    "d",
+    "downloads",
+    "accept",
+    "confirm",
+    "deny",
+    "reject"
+]
+
+const execute = command => {
+    //remove all redundant spaces
+    //allow commands prefixed with :
+    //and return if the command is empty
+    command = command.replace(/^\s*:?/, "").trim().replace(/ +/g, " ")
+    if (!command) {
+        return
+    }
+    const args = command.split(" ").slice(1)
+    command = command.split(" ")[0]
+    const matches = Object.keys(commands).filter(c => c.startsWith(command))
+    if (matches.length === 1 || commands[command]) {
+        if (matches.length === 1) {
+            command = matches[0]
+        }
+        if (noArgumentComands.includes(command) && args.length > 0) {
+            UTIL.notify(`The ${command} command takes no arguments`, "warn")
+        } else {
+            commands[command](...args)
+        }
+    } else if (matches.length > 1) {
+        UTIL.notify(
+            `Ambiguous command '${command}', please be more specific`, "warn")
+    } else {
+        //no command
+        UTIL.notify(`The '${command}' command can not be found`, "warn")
+    }
+}
+
+const commandList = () => {
+    return Object.keys(commands).filter(c => c.length > 1)
+}
+
 module.exports = {
-    execute,
     quit,
     devtools,
     openSpecialPage,
     version,
     help,
     history,
-    downloads
+    downloads,
+    execute,
+    commandList
 }

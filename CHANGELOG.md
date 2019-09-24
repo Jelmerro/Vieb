@@ -19,10 +19,13 @@ but the list below contains much more technical details.
 - New tab page with top visited sites listed
 - Setting to disable the added new tab page
 - Setting to automatically enter nav mode in new tabs (or not)
+- Tabs are now bright red when they have crashed
 
 ### Changed
 
 - Moved the setting for new tab position to the newtab collection (newtab.nextToCurrentOne)
+- Reduce duplicate code to execute commands by grouping them in an object
+- Commands can now be entered partially to execute them (if only 1 command matches)
 
 ### Fixed
 

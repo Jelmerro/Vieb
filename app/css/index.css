@@ -28,6 +28,8 @@ img {height: 1.5em;width: 1.5em;padding: .25em;min-height: 1.5em;min-width: 1.5e
 #tabs > span > img {padding: 0.25em;}
 #tabs > span > span {margin: auto 0;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
 #tabs > #current-tab {color: #eee;background-color: #666;}
+#tabs > .crashed {background: #b00;}
+#tabs > #current-tab.crashed {background: #f00;}
 /* Nav url/search/command */
 #url {display: inline-block;flex: 1;border: solid .1em #666;margin: .1em;background-color: #333;color: #eee;outline: none;font: inherit;}
 #url.search {border-color: #fa0;}
