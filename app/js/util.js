@@ -175,27 +175,25 @@ const rimrafFolder = folder => {
 }
 
 const clearCache = () => {
-    rimrafFolder("Cache")
-    rimrafFolder("Code Cache")
-    rimrafFolder("GPUCache")
-    rimrafFolder("File System")
-    rimrafFolder("MANIFEST")
-    rimrafFolder("Service Worker")
-    rimrafFolder("VideoDecodeStats")
-    rimrafFolder("blob_storage")
-    rimrafFolder("databases")
-    rimrafFolder("*.log")
+    rimrafFolder("**/*Cache/")
+    rimrafFolder("**/File System/")
+    rimrafFolder("**/MANIFEST")
+    rimrafFolder("**/Service Worker/")
+    rimrafFolder("**/VideoDecodeStats/")
+    rimrafFolder("**/blob_storage/")
+    rimrafFolder("**/databases/")
+    rimrafFolder("**/*.log")
 }
 
 const clearCookies = () => {
-    rimrafFolder("Cookies*")
-    rimrafFolder("QuotaManager*")
+    rimrafFolder("**/Cookies*")
+    rimrafFolder("**/QuotaManager*")
 }
 
 const clearLocalStorage = () => {
-    rimrafFolder("IndexedDB")
-    rimrafFolder("Local Storage")
-    rimrafFolder("*.ldb")
+    rimrafFolder("**/IndexedDB/")
+    rimrafFolder("**/*Storage/")
+    rimrafFolder("**/*.ldb")
 }
 
 module.exports = {

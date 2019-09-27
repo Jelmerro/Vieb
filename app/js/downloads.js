@@ -18,68 +18,166 @@
 /* global SETTINGS TABS UTIL */
 "use strict"
 
-const {ipcRenderer} = require("electron")
+const {remote} = require("electron")
+const path = require("path")
+const fs = require("fs")
 
-let unconfirmedDownload = {}
+const dlsFile = path.join(remote.app.getPath("appData"), "dls")
+let downloads = []
 
 const init = () => {
-    ipcRenderer.on("prevented-download", (event, download) => {
-        UTIL.notify(`New download request:\n${download.name}\n`
-            + "Use :accept or :deny to answer.\nSee :downloads for a list.")
-        unconfirmedDownload = download
+    if (SETTINGS.get("downloads.clearOnQuit")) {
+        try {
+            fs.unlinkSync(dlsFile)
+        } catch (e) {
+            // Failed to delete, might not exist
+        }
+    } else if (fs.existsSync(dlsFile) && fs.statSync(dlsFile).isFile()) {
+        try {
+            const contents = fs.readFileSync(dlsFile).toString()
+            const parsed = JSON.parse(contents)
+            for (const download of parsed) {
+                if (download.state === "completed") {
+                    if (!SETTINGS.get("downloads.removeCompleted")) {
+                        downloads.push(download)
+                    }
+                } else {
+                    download.state = "cancelled"
+                    downloads.push(download)
+                }
+            }
+        } catch (e) {
+            // No downloads file yet
+        }
+    }
+}
+
+const handleDownload = (e, item) => {
+    const info = {
+        item: item,
+        state: "waiting_to_start",
+        url: item.getURL(),
+        total: item.getTotalBytes(),
+        current: 0,
+        file: item.getSavePath(),
+        name: item.getFilename(),
+        date: new Date()
+    }
+    downloads.push(info)
+    UTIL.notify(`Download started:\n${info.name}`)
+    item.on("updated", (_event, state) => {
+        try {
+            info.current = item.getReceivedBytes()
+            if (state === "progressing" && !item.isPaused()) {
+                info.state = "downloading"
+            } else {
+                info.state = "paused"
+            }
+        } catch (_e) {
+            // Download is done and the item is destroyed automatically
+            info.state = "cancelled"
+        }
+        writeToFile()
     })
-    ipcRenderer.on("started-download", (event, name) => {
-        UTIL.notify(`Download started:\n${name}`)
-    })
-    ipcRenderer.on("finish-download", (event, name, state) => {
+    item.once("done", (_event, state) => {
         if (state === "completed") {
-            UTIL.notify(`Download finished:\n${name}`)
+            info.state = "completed"
+            if (SETTINGS.get("downloads.removeCompleted")) {
+                downloads = downloads.filter(d => d.state !== "completed")
+            }
+        } else if (info.state !== "removed") {
+            info.state = "cancelled"
+        }
+        if (info.state === "completed") {
+            UTIL.notify(`Download finished:\n${info.name}`)
         } else {
-            UTIL.notify(`Download failed:\n${name}`, "warn")
+            UTIL.notify(`Download failed:\n${info.name}`, "warn")
         }
     })
-    ipcRenderer.on("download-list", (event, downloads) => {
-        TABS.currentPage().getWebContents().send(
-            "download-list", downloads, unconfirmedDownload)
-    })
 }
 
-const downloadFile = (name, url) => {
-    ipcRenderer.send("download-confirm", name, url)
-    TABS.currentPage().downloadURL(url)
-}
-
-const confirmRequest = () => {
-    if (SETTINGS.get("downloads.method") !== "confirm") {
-        UTIL.notify("Confirm mode is not enabled, there is no need to "
-            + "use this command", "warn")
-        return
+const sendDownloadList = (action, downloadId) => {
+    if (action === "removeall") {
+        downloads.forEach(download => {
+            try {
+                download.item.cancel()
+            } catch (e) {
+                // Download was already removed or is already done
+            }
+        })
+        downloads = []
     }
-    if (Object.keys(unconfirmedDownload).length > 0) {
-        downloadFile(unconfirmedDownload.name, unconfirmedDownload.url)
-        unconfirmedDownload = {}
+    if (action === "pause") {
+        try {
+            downloads[downloadId].item.pause()
+        } catch (e) {
+            // Download just finished or some other silly reason
+        }
+    }
+    if (action === "resume") {
+        try {
+            downloads[downloadId].item.resume()
+        } catch (e) {
+            // Download can't be resumed
+        }
+    }
+    if (action === "remove") {
+        try {
+            downloads[downloadId].state = "removed"
+            downloads[downloadId].item.cancel()
+        } catch (e) {
+            // Download was already removed from the list or something
+        }
+        try {
+            downloads.splice(downloadId, 1)
+        } catch (e) {
+            // Download was already removed from the list or something
+        }
+    }
+    TABS.currentPage().getWebContents().send("download-list", downloads)
+    writeToFile()
+}
+
+const writeToFile = () => {
+    if (SETTINGS.get("downloads.clearOnQuit")) {
+        try {
+            fs.unlinkSync(dlsFile)
+        } catch (e) {
+            //Failed to delete, might not exist
+        }
     } else {
-        ipcRenderer.send("download-confirm", "", "")
-        UTIL.notify("No download requested, nothing to accept/confirm", "warn")
+        try {
+            fs.writeFileSync(dlsFile, JSON.stringify(downloads))
+        } catch (e) {
+            //Failed to write, try again later
+        }
     }
 }
 
-const rejectRequest = () => {
-    if (SETTINGS.get("downloads.method") !== "confirm") {
-        UTIL.notify("Confirm mode is not enabled, there is no need to "
-            + "use this command", "warn")
-        return
+const cancelAll = () => {
+    downloads.forEach(download => {
+        try {
+            if (download.state !== "completed") {
+                download.state = "cancelled"
+            }
+            download.item.cancel()
+        } catch (e) {
+            // Download was already removed or is already done
+        }
+    })
+    writeToFile()
+}
+
+const removeCompletedIfDesired = () => {
+    if (SETTINGS.get("downloads.removeCompleted")) {
+        downloads = downloads.filter(d => d.state !== "completed")
     }
-    if (Object.keys(unconfirmedDownload).length === 0) {
-        UTIL.notify("No download requested, nothing to deny/reject", "warn")
-    }
-    ipcRenderer.send("download-confirm", "", "")
-    unconfirmedDownload = {}
 }
 
 module.exports = {
     init,
-    downloadFile,
-    confirmRequest,
-    rejectRequest
+    handleDownload,
+    sendDownloadList,
+    cancelAll,
+    removeCompletedIfDesired
 }

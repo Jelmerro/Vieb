@@ -23,7 +23,7 @@ const path = require("path")
 let lastUpdate = new Date()
 
 window.update = (action=null, downloadId=null) => {
-    ipcRenderer.send("download-list-request", action, downloadId)
+    ipcRenderer.sendToHost("download-list-request", action, downloadId)
 }
 
 window.removeAll = () => {

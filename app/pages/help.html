@@ -419,7 +419,6 @@
     },
     "downloads": {
         "path": "~/Downloads/",
-        "method": "automatic",
         "removeCompleted": false,
         "clearOnQuit": false
     },
@@ -452,7 +451,8 @@
     "newtab": {
         "nextToCurrentOne": true,
         "enterNavMode": false,
-        "showTopSites": true
+        "showTopSites": true,
+        "container": false
     }
 }
     </pre>
@@ -522,7 +522,6 @@
     },
     "downloads": {
         "path": "~/Documents",
-        "method": "confirm",
         "removeCompleted": true,
         "clearOnQuit": true
     },
@@ -545,7 +544,8 @@
     },
     "newtab": {
         "nextToCurrentOne": false,
-        "showTopSites": false
+        "showTopSites": false,
+        "container": true
     }
 }</pre>
 
@@ -581,8 +581,7 @@
         <li>Ads and trackers will still be blocked, but the lists will be automatically updated (adblocker)</li>
         <li>Reduce the notification duration to 3 seconds instead of 6 (notification.duration)</li>
         <li>Display the notification in the bottom left instead of the bottom right (notification.position)</li>
-        <li>Downloads will be stored in the documents folder, except if method is set be "ask" (downloads.path)</li>
-        <li>Change the download method to "confirm" instead of "automatic" (downloads.method)</li>
+        <li>Downloads will now be stored in the documents folder (downloads.path)</li>
         <li>Automatically remove downloads from the download history once they are completely downloaded (downloads.removeCompleted)</li>
         <li>Clear the entire download history when quiting Vieb (downloads.clearOnQuit)</li>
         <li>Don't suggest previously visited websites from the browsing history when in nav mode (history.suggest)</li>
@@ -596,6 +595,7 @@
         <li>After restarting, Vieb will no longer remember if the window was maximized (windowstate.maximized)</li>
         <li>This will stop the tabs from opening next to the current one using <kbd>t</kbd>, <kbd>Ctrl with t</kbd> will do the opposite of the current setting (newtab.nextToCurrentOne)</li>
         <li>New tabs will no longer display the top visited sites as suggestions (newtab.showTopSites)</li>
+        <li>New tabs now store all of the data in a separate container per tab, these tabs will have a yellow title in the navigation bar (newtab.container)</li>
     </ul>
     Please note that the download, tab and browsing history are separately configured.
     Therefor it's possible to keep and restore the open tabs without keeping the other browsing history.
@@ -865,15 +865,13 @@
     similar to the nav mode suggestions.
     These suggestions can be disabled for commands by setting "suggestCommands" to false.
     It's also possible to type only the first part of a command name,
-    if that's the only one starting with the entered text (for example, ":acc" will execute accept).
+    if that's the only one starting with the entered text (for example, ":dev" will execute devtools).
     The full list of commands is as follows:
     <ul>
         <li>help (or h)</li>
         <li>version (or v)</li>
         <li>downloads (or d)</li>
         <li>history</li>
-        <li>accept (or confirm)</li>
-        <li>reject (or deny)</li>
         <li>devtools</li>
         <li>set (or s)</li>
         <li>reload</li>
@@ -902,26 +900,13 @@
     The downloads command takes no arguments.
     The short version of this command is "d".
     This page can be used to view all the downloaded files.
-    To learn more about the download page, different download methods and other special pages,
+    To learn more about the download page and other special pages,
     check out the <a href="#special">Special pages</a>.
     <h2 id="commands-history">history</h2>
     The history command takes no arguments.
     This command will open a list of all the website visisted.
     To learn more about Vieb's history settings and configurations,
     see <a href="#special-history">history page info</a> or <a href="#history">the history chapter</a>.
-    <h2 id="commands-accept">accept</h2>
-    This command can be used to confirm a download request.
-    It can only be used if the "confirm" download method is used.
-    When this mode is active, no files will automatically download,
-    but you will be asked to accept or reject the file.
-    This command can also be called as: <pre class="command-block">confirm</pre>
-    On the <a href="#special-downloads">downloads page</a> you can view a list of downloaded files,
-    and also view the current unconfirmed download.
-    <h2 id="commands-reject">reject</h2>
-    This command can be used to reject the current unconfirmed download.
-    It's usually not required to call this command,
-    because new download requests will replace the old one.
-    This command can also be called as: <pre class="command-block">deny</pre>
     <h2 id="commands-devtools">devtools</h2>
     The devtools command takes no arguments.
     This command can be used to open to open the developer tools for the current website.
@@ -932,7 +917,7 @@
     To summarize, this command can be used to set any setting during runtime,
     without saving it to the viebrc.json settings/config file.
     Wrinting a new setting with the set command works like this:
-    <pre class="command-block">set downloads.method=ask</pre>
+    <pre class="command-block">set downloads.path=~/Documents</pre>
     Boolean values can also be toggled like this:
     <pre class="command-block">set history.storeNewVisits!</pre>
     For example, to increase the notification duration for the current session,
@@ -1014,10 +999,9 @@
     You can of course expand these three settings with more strict settings,
     such as the option to clear any download regardless of progress when quiting,
     or the setting to never store the tabs at all by disabling the "tabs.restore" setting.
-    By default, command mode will suggest and autocomplete settings that can be configured,
-    which aims to make it easier to set these settings at runtime.
-    Of course it's also possible to store these settings permanently in the viebrc config file.
-    Both of these ways to change the settings are explained <a href="#settings">settings chapter</a>.
+    It's also possible to open each tab in it's own container by setting "newtab.container" to true.
+    Container tabs have a yellow title in the navigation bar and don't share data with any other tab.
+    For more information on how to change the settings can be found in the <a href="#settings">settings chapter</a>.
     <h1 id="adblocker">Adblocker</h1>
     Vieb includes an adblocker made by cliqz (see <a href="#mentions">mentions</a> for details).
     By default, the easylist and easyprivacy filter lists are included and enabled with Vieb.
@@ -1080,24 +1064,7 @@
             The tab and browsing history are configured separately.
         </li>
     </ul>
-    There are three different download methods in Vieb (setting: "downloads.method"):
-    <ul>
-        <li>
-            automatic (default) - which will download all files automatically similar to Chromium,
-            the configured "downloads.path" will be used to store all downloads.
-        </li>
-        <li>
-            ask - when this mode is active, the download path will not be used,
-            but instead a file explorer will be displayed to ask for the download location.
-        </li>
-        <li>
-            confirm - in this mode the :accept and :reject commands are used to confirm a download.
-            On the downloads page the current unconfirmed download is shown.
-            As with the automatic download setting, the "downloads.path" location is used to store the download.
-        </li>
-    </ul>
-    All downloads regardless of mode will be displayed on the downloads page,
-    which can be accessed as "vieb://downloads" or with the <a href="#commands-downloads">downloads command</a>.
+    The download page can be accessed at "vieb://downloads" or with the <a href="#commands-downloads">downloads command</a>.
     <h2 id="special-version">version page</h2>
     This page contains the current Vieb version and a button to check for updates.
     It can be accessed with the :version command (:v), or as "vieb://version".

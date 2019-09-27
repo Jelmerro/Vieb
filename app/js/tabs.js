@@ -15,7 +15,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS CURSOR DOWNLOADS FOLLOW HISTORY MODES SETTINGS UTIL */
+/* global ACTIONS CURSOR DOWNLOADS FOLLOW HISTORY MODES SESSIONS
+ SETTINGS UTIL */
 "use strict"
 
 const fs = require("fs")
@@ -27,46 +28,6 @@ let linkId = 0
 
 const useragent = remote.session.defaultSession.getUserAgent()
     .replace(/Electron\/\S* /, "").replace(/Vieb\/\S* /, "")
-
-remote.session.defaultSession.setPermissionRequestHandler(
-    (_, permission, callback, details) => {
-        if (permission === "media") {
-            if (details.mediaTypes && details.mediaTypes.includes("video")) {
-                permission = "camera"
-            } else {
-                permission = "microphone"
-            }
-        }
-        const setting = SETTINGS.get(`permissions.${permission}`)
-        if (setting === "ask") {
-            remote.dialog.showMessageBox(remote.getCurrentWindow(), {
-                "type": "question",
-                "buttons": ["Allow", "Deny"],
-                "defaultId": 0,
-                "cancelId": 1,
-                "checkboxLabel": "Remember for this session",
-                "title": `Allow this page to access '${permission}'?`,
-                "message": "The page has requested access to the permission "
-                    + `'${permission}'. You can allow or deny this below, `
-                    + "and choose if you want to make this the default for "
-                    + "the current session when sites ask for this permission."
-                    + " You can always change this using the settings file,"
-                    + " or at runtime with the set command like so: "
-                    + "'set permissions.<name>=<value>'"
-            }).then(e => {
-                callback(e.response === 0)
-                if (e.checkboxChecked) {
-                    if (e.response === 0) {
-                        SETTINGS.set(`permissions.${permission}`, "allow")
-                    } else {
-                        SETTINGS.set(`permissions.${permission}`, "block")
-                    }
-                }
-            })
-        } else {
-            callback(setting === "allow")
-        }
-    })
 
 const init = () => {
     window.addEventListener("load", () => {
@@ -258,8 +219,15 @@ const addTab = (url=null, inverted=false) => {
     const webview = document.createElement("webview")
     webview.setAttribute("link-id", linkId)
     tab.setAttribute("link-id", linkId)
-    linkId += 1
     webview.setAttribute("preload", "./js/preload.js")
+    let sessionName = "persist:main"
+    if (SETTINGS.get("newtab.container")) {
+        sessionName = `container-${linkId}`
+        tab.className = "container"
+    }
+    SESSIONS.create(sessionName)
+    webview.setAttribute("partition", sessionName)
+    linkId += 1
     addWebviewListeners(webview)
     pages.appendChild(webview)
     webview.getWebContents().setUserAgent(useragent)
@@ -511,6 +479,9 @@ const addWebviewListeners = webview => {
         }
         if (e.channel === "switch-to-insert") {
             MODES.setMode("insert")
+        }
+        if (e.channel === "download-list-request") {
+            DOWNLOADS.sendDownloadList(e.args[0], e.args[1])
         }
         if (e.channel === "new-tab-info-request") {
             if (SETTINGS.get("newtab.showTopSites")) {
