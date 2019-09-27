@@ -53,6 +53,8 @@
         const INPUT = require("./js/input.js")
         //Load custom settings from disk
         const SETTINGS = require("./js/settings.js")
+        //Create and manage sessions (container, downloads, adblocking etc.)
+        const SESSIONS = require("./js/sessions.js")
         //Download manager
         const DOWNLOADS = require("./js/downloads.js")
         //History manager
@@ -65,6 +67,7 @@
         const WINDOWSTATE = require("./js/windowstate.js")
         //Some modules require initialisation
         SETTINGS.init()
+        SESSIONS.init()
         INPUT.init()
         DOWNLOADS.init()
         TABS.init()

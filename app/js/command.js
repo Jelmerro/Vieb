@@ -81,6 +81,7 @@ const quit = () => {
     if (SETTINGS.get("clearLocalStorageOnQuit")) {
         UTIL.clearLocalStorage()
     }
+    DOWNLOADS.cancelAll()
     remote.getCurrentWindow().destroy()
     remote.app.exit(0)
 }
@@ -134,14 +135,6 @@ const reload = () => {
     SETTINGS.loadFromDisk()
 }
 
-const accept = () => {
-    DOWNLOADS.confirmRequest()
-}
-
-const deny = () => {
-    DOWNLOADS.rejectRequest()
-}
-
 const commands = {
     "q": quit,
     "quit": quit,
@@ -152,10 +145,6 @@ const commands = {
     "history": history,
     "d": downloads,
     "downloads": downloads,
-    "accept": accept,
-    "confirm": accept,
-    "deny": deny,
-    "reject": deny,
     "h": help,
     "help": help,
     "s": set,
@@ -171,11 +160,7 @@ const noArgumentComands = [
     "version",
     "history",
     "d",
-    "downloads",
-    "accept",
-    "confirm",
-    "deny",
-    "reject"
+    "downloads"
 ]
 
 const execute = command => {

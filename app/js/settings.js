@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global UTIL */
+/* global DOWNLOADS SESSIONS UTIL */
 "use strict"
 
 const fs = require("fs")
@@ -43,7 +43,6 @@ const defaultSettings = {
     },
     "downloads": {
         "path": "~/Downloads/",
-        "method": "automatic",
         "removeCompleted": false,
         "clearOnQuit": false
     },
@@ -76,7 +75,8 @@ const defaultSettings = {
     "newtab": {
         "nextToCurrentOne": true,
         "enterNavMode": false,
-        "showTopSites": true
+        "showTopSites": true,
+        "container": false
     }
 }
 let allSettings = {}
@@ -89,8 +89,6 @@ const readOnly = {
     "keybindings": "The keybindings can't be changed with the set command\n"
         + "Instead, open the config file, edit the bindings and "
         + "use the reload command to load them from disk again",
-    "adblocker": "The adblocker can't be enabled or disabled when running"
-        + "\nInstead, open the config file, edit the setting there",
     "notification": collectionMessage,
     "downloads": collectionMessage,
     "history": collectionMessage,
@@ -110,7 +108,6 @@ const validOptions = {
     "notification.position": [
         "bottom-right", "bottom-left", "top-right", "top-left"
     ],
-    "downloads.method": ["automatic", "ask", "confirm"],
     "permissions.camera": ["block", "ask", "allow"],
     "permissions.fullscreen": ["block", "ask", "allow"],
     "permissions.geolocation": ["block", "ask", "allow"],
@@ -224,9 +221,9 @@ const optionallyEnableAdblocker = () => {
     }
 }
 
-const updateDownloadSettingsInMain = () => {
+const updateDownloadSettings = () => {
     remote.app.setPath("downloads", expandPath(allSettings.downloads.path))
-    ipcRenderer.send("download-settings-change", allSettings.downloads)
+    DOWNLOADS.removeCompletedIfDesired()
 }
 
 const listSettingsAsArray = () => {
@@ -296,7 +293,7 @@ const loadFromDisk = () => {
         }
     }
     document.body.style.fontSize = `${allSettings.fontSize}px`
-    updateDownloadSettingsInMain()
+    updateDownloadSettings()
     optionallyEnableAdblocker()
 }
 
@@ -338,11 +335,19 @@ const set = (setting, value, startup=false) => {
         } else {
             allSettings[setting] = value
         }
+        // Update settings elsewhere
         if (setting === "fontSize") {
             document.body.style.fontSize = `${allSettings.fontSize}px`
         }
+        if (setting === "adblocker") {
+            if (value === "off") {
+                SESSIONS.disableAdblocker()
+            } else {
+                SESSIONS.enableAdblocker()
+            }
+        }
         if (setting.startsWith("downloads.")) {
-            updateDownloadSettingsInMain()
+            updateDownloadSettings()
         }
     }
 }
