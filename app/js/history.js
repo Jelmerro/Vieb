@@ -191,7 +191,10 @@ const handleRequest = (type, start, end) => {
 
 const topSites = () => {
     return Object.keys(groupedHistory).sort((a, b) => {
-        return groupedHistory[b].visits - groupedHistory[a].visits
+        if (groupedHistory[a] && groupedHistory[b]) {
+            return groupedHistory[b].visits - groupedHistory[a].visits
+        }
+        return 0
     }).slice(0, 10).map(site => {
         return {
             url: site,
