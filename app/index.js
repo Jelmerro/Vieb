@@ -192,23 +192,29 @@ const copyBlocklist = name => {
 ipcMain.on("enable-adblocker", loadAdblocker)
 ipcMain.on("set-download-path-for-session", (_, name) => {
     session.fromPartition(name).on("will-download", (e, item) => {
-        const filename = item.getFilename()
-        let save = path.join(app.getPath("downloads"), filename)
-        let duplicateNumber = 1
-        let newFilename = item.getFilename()
-        while (fs.existsSync(save) && fs.statSync(save).isFile()) {
-            duplicateNumber += 1
-            const extStart = filename.lastIndexOf(".")
-            if (extStart === -1) {
-                newFilename = `${filename} (${duplicateNumber})`
-            } else {
-                newFilename = `${filename.substring(0, extStart)
-                } (${duplicateNumber}).${
-                    filename.substring(extStart + 1)}`
+        try {
+            const filename = item.getFilename()
+            let save = path.join(app.getPath("downloads"), filename)
+            let duplicateNumber = 1
+            let newFilename = item.getFilename()
+            while (fs.existsSync(save) && fs.statSync(save).isFile()) {
+                duplicateNumber += 1
+                const extStart = filename.lastIndexOf(".")
+                if (extStart === -1) {
+                    newFilename = `${filename} (${duplicateNumber})`
+                } else {
+                    newFilename = `${filename.substring(0, extStart)
+                    } (${duplicateNumber}).${
+                        filename.substring(extStart + 1)}`
+                }
+                save = path.join(app.getPath("downloads"), newFilename)
             }
-            save = path.join(app.getPath("downloads"), newFilename)
+            item.setSavePath(save)
+        } catch (err) {
+            console.log(err)
+            // When a download is finished before the event is detected,
+            // the item will throw an error for all the mapped functions.
         }
-        item.setSavePath(save)
     })
 })
 
@@ -221,7 +227,6 @@ const printUsage = () => {
     console.log(" --debug    Open with Chromium and Electron debugging tools")
     console.log(" --console  Open with the Vieb console (implied by --debug)")
     console.log("\nAll arguments not starting with - will be opened as a url.")
-    console.log("Vieb was created by Jelmer van Arnhem and contributors.")
     printLicense()
 }
 
@@ -231,11 +236,11 @@ const printVersion = () => {
     console.log(`This is version ${version} of Vieb.`)
     console.log("This program is based on Electron and inspired by Vim.")
     console.log("It can be used to browse the web entirely with the keyboard.")
-    console.log("Vieb was created by Jelmer van Arnhem and contributors.")
     printLicense()
 }
 
 const printLicense = () => {
+    console.log("Vieb was created by Jelmer van Arnhem and contributors.")
     console.log("For more info go here - https://github.com/Jelmerro/Vieb")
     console.log("\nLicense GPLv3+: GNU GPL version 3 or "
         + "later <http://gnu.org/licenses/gpl.html>")

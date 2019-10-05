@@ -159,9 +159,11 @@ const addDownload = (download, id) => {
     downloadUrl.textContent = decodeURIComponent(download.url)
     misc.appendChild(downloadUrl)
     const file = document.createElement("span")
+    file.className = "filelocation"
     file.textContent = download.file
     misc.appendChild(file)
     const date = document.createElement("span")
+    date.className = "date"
     date.textContent = formatDate(download.date)
     misc.appendChild(date)
     const speed = document.createElement("span")
@@ -179,7 +181,7 @@ const addDownload = (download, id) => {
 const updateDownload = (download, element, id) => {
     const progress = element.querySelector("progress")
     // speed
-    const timeSinceUpdate = ((new Date()).getTime() - lastUpdate) / 1000
+    const timeSinceUpdate = (new Date().getTime() - lastUpdate) / 1000
     const speed = formatSize(
         (download.current - progress.value) / timeSinceUpdate)
     const done = download.state === "completed"
@@ -201,16 +203,23 @@ const updateDownload = (download, element, id) => {
             = `${formatSize(download.current)} / ${formatSize(download.total)}
             - ${speed}/s`
     }
-    // progress & title color
+    // update progress
     if (download.current > download.total) {
         progress.max = download.current
     } else {
         progress.max = download.total
     }
     progress.value = download.current
-    // change looks depending on the state
+    // update other info (for when other downloads are removed)
     const title = element.querySelector(".title")
     title.style.color = ""
+    title.textContent = download.name
+    const downloadUrl = element.querySelector("a")
+    downloadUrl.href = download.url
+    downloadUrl.textContent= decodeURIComponent(download.url)
+    element.querySelector(".filelocation").textContent = download.file
+    element.querySelector(".date").textContent = formatDate(download.date)
+    // change looks depending on the state
     const togglePause = element.querySelector(".toggle-pause")
     const remove = element.querySelector(".remove")
     remove.setAttribute("onclick", `window.remove(${id})`)
