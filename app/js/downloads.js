@@ -24,6 +24,7 @@ const fs = require("fs")
 
 const dlsFile = path.join(remote.app.getPath("appData"), "dls")
 let downloads = []
+let downloadCounter = 0
 
 const init = () => {
     if (SETTINGS.get("downloads.clearOnQuit")) {
@@ -53,47 +54,58 @@ const init = () => {
 }
 
 const handleDownload = (e, item) => {
-    const info = {
-        item: item,
-        state: "waiting_to_start",
-        url: item.getURL(),
-        total: item.getTotalBytes(),
-        current: 0,
-        file: item.getSavePath(),
-        name: item.getFilename(),
-        date: new Date()
-    }
-    downloads.push(info)
-    UTIL.notify(`Download started:\n${info.name}`)
-    item.on("updated", (_event, state) => {
-        try {
-            info.current = item.getReceivedBytes()
-            if (state === "progressing" && !item.isPaused()) {
-                info.state = "downloading"
+    downloadCounter += 1
+    const downloadIndex = Number(downloadCounter)
+    try {
+        const info = {
+            index: downloadIndex,
+            item: item,
+            state: "waiting_to_start",
+            url: item.getURL(),
+            total: item.getTotalBytes(),
+            current: 0,
+            file: item.getSavePath(),
+            name: item.getFilename(),
+            date: new Date()
+        }
+        downloads.push(info)
+        UTIL.notify(`Download started:\n${info.name}`)
+        item.on("updated", (_event, state) => {
+            try {
+                info.current = item.getReceivedBytes()
+                if (state === "progressing" && !item.isPaused()) {
+                    info.state = "downloading"
+                } else {
+                    info.state = "paused"
+                }
+            } catch (_e) {
+                // The download was already destroyed automatically by electron,
+                // therefor we simply remove it from the list to avoid confusion
+                downloads = downloads.filter(d => d.id !== downloadIndex)
+            }
+            writeToFile()
+        })
+        item.once("done", (_event, state) => {
+            if (state === "completed") {
+                info.state = "completed"
+                if (SETTINGS.get("downloads.removeCompleted")) {
+                    downloads = downloads.filter(d => d.state !== "completed")
+                }
+            } else if (info.state !== "removed") {
+                info.state = "cancelled"
+            }
+            if (info.state === "completed") {
+                UTIL.notify(`Download finished:\n${info.name}`)
             } else {
-                info.state = "paused"
+                UTIL.notify(`Download failed:\n${info.name}`, "warn")
             }
-        } catch (_e) {
-            // Download is done and the item is destroyed automatically
-            info.state = "cancelled"
-        }
-        writeToFile()
-    })
-    item.once("done", (_event, state) => {
-        if (state === "completed") {
-            info.state = "completed"
-            if (SETTINGS.get("downloads.removeCompleted")) {
-                downloads = downloads.filter(d => d.state !== "completed")
-            }
-        } else if (info.state !== "removed") {
-            info.state = "cancelled"
-        }
-        if (info.state === "completed") {
-            UTIL.notify(`Download finished:\n${info.name}`)
-        } else {
-            UTIL.notify(`Download failed:\n${info.name}`, "warn")
-        }
-    })
+        })
+    } catch (err) {
+        // When a download is finished before the event is detected by electron,
+        // the item will throw an error for all the mapped functions.
+        UTIL.notify("Download finished")
+        downloads = downloads.filter(d => d.id !== downloadIndex)
+    }
 }
 
 const sendDownloadList = (action, downloadId) => {
@@ -134,11 +146,21 @@ const sendDownloadList = (action, downloadId) => {
             // Download was already removed from the list or something
         }
     }
-    TABS.currentPage().getWebContents().send("download-list", downloads)
     writeToFile()
+    TABS.currentPage().getWebContents().send("download-list", downloads)
 }
 
 const writeToFile = () => {
+    downloads = downloads.filter(d => {
+        // Remove downloads that are stuck on waiting to start,
+        // but have already been destroyed by electron.
+        try {
+            d.item.getFilename()
+        } catch (_) {
+            return d.state !== "waiting_to_start"
+        }
+        return true
+    })
     if (SETTINGS.get("downloads.clearOnQuit")) {
         try {
             fs.unlinkSync(dlsFile)
