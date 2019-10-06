@@ -22,6 +22,7 @@ but the list below contains much more technical details.
 - Container tabs, which don't share any data with other tabs (such as cookies or cache)
 - Tabs titles are now yellow when they are container tabs
 - Tabs are now bright red when they have crashed
+- Keys can now be mapped to any supported command, such as "F1": ":help" (previously "F1": "COMMAND.help")
 
 ### Changed
 

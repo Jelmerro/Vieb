@@ -197,13 +197,7 @@ const commandList = () => {
 }
 
 module.exports = {
-    quit,
-    devtools,
     openSpecialPage,
-    version,
-    help,
-    history,
-    downloads,
     execute,
     commandList
 }

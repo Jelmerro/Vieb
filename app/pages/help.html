@@ -252,7 +252,7 @@
     "keybindings": {
         "normal": {
             "Enter": "ACTIONS.clickOnSearch",
-            "F1": "COMMAND.help",
+            "F1": ":help",
             "KeyB": "ACTIONS.previousTab",
             "KeyC": "CURSOR.start",
             "KeyD": "ACTIONS.closeTab",
@@ -304,12 +304,12 @@
             "CS-Minus": "ACTIONS.zoomOut"
         },
         "insert": {
-            "F1": "COMMAND.help",
+            "F1": ":help",
             "Escape": "ACTIONS.toNormalMode",
             "C-BracketLeft": "ACTIONS.toNormalMode"
         },
         "command": {
-            "F1": "COMMAND.help",
+            "F1": ":help",
             "Escape": "ACTIONS.toNormalMode",
             "Tab": "ACTIONS.nextSuggestion",
             "S-Tab": "ACTIONS.prevSuggestion",
@@ -317,13 +317,13 @@
             "Enter": "ACTIONS.useEnteredData"
         },
         "search": {
-            "F1": "COMMAND.help",
+            "F1": ":help",
             "Escape": "ACTIONS.toNormalMode",
             "C-BracketLeft": "ACTIONS.toNormalMode",
             "Enter": "ACTIONS.useEnteredData"
         },
         "nav": {
-            "F1": "COMMAND.help",
+            "F1": ":help",
             "Escape": "ACTIONS.toNormalMode",
             "Tab": "ACTIONS.nextSuggestion",
             "S-Tab": "ACTIONS.prevSuggestion",
@@ -331,12 +331,12 @@
             "Enter": "ACTIONS.useEnteredData"
         },
         "follow": {
-            "F1": "COMMAND.help",
+            "F1": ":help",
             "Escape": "FOLLOW.cancelFollow",
             "C-BracketLeft": "FOLLOW.cancelFollow"
         },
         "cursor": {
-            "F1": "COMMAND.help",
+            "F1": ":help",
             "KeyB": "CURSOR.moveFastLeft",
             "KeyD": "CURSOR.downloadImage",
             "KeyE": "CURSOR.inspectElement",
@@ -371,7 +371,7 @@
             "C-BracketLeft": "ACTIONS.toNormalMode"
         },
         "visual": {
-            "F1": "COMMAND.help",
+            "F1": ":help",
             "KeyB": "CURSOR.moveFastLeft",
             "KeyC": "CURSOR.copyAndStop",
             "KeyG": {
@@ -502,7 +502,8 @@
         },
         "normal": {
             "F6": "ACTIONS.toNavMode",
-            "C-KeyQ": "COMMAND.quit"
+            "F9": ":set newtab.container!",
+            "C-KeyQ": ":quit"
         }
     },
     "redirectToHttp": true,
@@ -556,6 +557,7 @@
             The help page can't be accessed directly from insert mode with the
             <kbd>F1</kbd> key anymore (keybindings.insert.F1)
         </li>
+        <li><kbd>F9</kbd> will now toggle between container tabs (keybindings.normal.F9)</li>
         <li>
             Toggle between nav and normal mode with
             <kbd>F6</kbd>, similar to regular browsers (keybindings.nav.F6 and keybindings.normal.F6)
@@ -1001,6 +1003,21 @@
     or the setting to never store the tabs at all by disabling the "tabs.restore" setting.
     It's also possible to open each tab in it's own container by setting "newtab.container" to true.
     Container tabs have a yellow title in the navigation bar and don't share data with any other tab.
+    To make it easy to toggle between "private" mode and your regular settings,
+    a custom keybinding could be added to the viebrc like this:
+    <pre class="wrap">
+{
+    "keybindings": {
+        "normal": {
+            "KeyP": ":set downloads.removeCompleted! downloads.clearOnQuit! history.storeNewVisits! tabs.keepRecentlyClosed! tabs.restore! newtab.container!",
+            "BracketLeft": ":set downloads.removeCompleted=false downloads.clearOnQuit=false history.storeNewVisits=true tabs.keepRecentlyClosed=true tabs.restore=true newtab.container=false",
+            "BracketRight": ":set downloads.removeCompleted=true downloads.clearOnQuit=true history.storeNewVisits=false tabs.keepRecentlyClosed=false tabs.restore=false newtab.container=true"
+        }
+    }
+}
+</pre>
+    From normal mode, <kbd>p</kbd> will now toggle between private and regular mode for all components.
+    Also, <kbd>{</kbd> and <kbd>}</kbd> can be used to switch between them with separate keys.
     For more information on how to change the settings can be found in the <a href="#settings">settings chapter</a>.
     <h1 id="adblocker">Adblocker</h1>
     Vieb includes an adblocker made by cliqz (see <a href="#mentions">mentions</a> for details).
