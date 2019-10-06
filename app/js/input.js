@@ -21,7 +21,7 @@
 const bindings = {
     "normal": {
         "Enter": "ACTIONS.clickOnSearch",
-        "F1": "COMMAND.help",
+        "F1": ":help",
         "KeyB": "ACTIONS.previousTab",
         "KeyC": "CURSOR.start",
         "KeyD": "ACTIONS.closeTab",
@@ -73,12 +73,12 @@ const bindings = {
         "CS-Minus": "ACTIONS.zoomOut"
     },
     "insert": {
-        "F1": "COMMAND.help",
+        "F1": ":help",
         "Escape": "ACTIONS.toNormalMode",
         "C-BracketLeft": "ACTIONS.toNormalMode"
     },
     "command": {
-        "F1": "COMMAND.help",
+        "F1": ":help",
         "Escape": "ACTIONS.toNormalMode",
         "Tab": "ACTIONS.nextSuggestion",
         "S-Tab": "ACTIONS.prevSuggestion",
@@ -86,13 +86,13 @@ const bindings = {
         "Enter": "ACTIONS.useEnteredData"
     },
     "search": {
-        "F1": "COMMAND.help",
+        "F1": ":help",
         "Escape": "ACTIONS.toNormalMode",
         "C-BracketLeft": "ACTIONS.toNormalMode",
         "Enter": "ACTIONS.useEnteredData"
     },
     "nav": {
-        "F1": "COMMAND.help",
+        "F1": ":help",
         "Escape": "ACTIONS.toNormalMode",
         "Tab": "ACTIONS.nextSuggestion",
         "S-Tab": "ACTIONS.prevSuggestion",
@@ -100,12 +100,12 @@ const bindings = {
         "Enter": "ACTIONS.useEnteredData"
     },
     "follow": {
-        "F1": "COMMAND.help",
+        "F1": ":help",
         "Escape": "FOLLOW.cancelFollow",
         "C-BracketLeft": "FOLLOW.cancelFollow"
     },
     "cursor": {
-        "F1": "COMMAND.help",
+        "F1": ":help",
         "KeyB": "CURSOR.moveFastLeft",
         "KeyD": "CURSOR.downloadImage",
         "KeyE": "CURSOR.inspectElement",
@@ -140,7 +140,7 @@ const bindings = {
         "C-BracketLeft": "ACTIONS.toNormalMode"
     },
     "visual": {
-        "F1": "COMMAND.help",
+        "F1": ":help",
         "KeyB": "CURSOR.moveFastLeft",
         "KeyC": "CURSOR.copyAndStop",
         "KeyG": {
@@ -337,11 +337,15 @@ const actionToFunction = action => {
     if (typeof action !== "string") {
         return null
     }
+    if (action.startsWith(":")) {
+        return () => {
+            COMMAND.execute(action.replace(":", ""))
+        }
+    }
     const [categoryName, func] = action.split(".")
     const categories = {
         "ACTIONS": ACTIONS,
         "FOLLOW": FOLLOW,
-        "COMMAND": COMMAND,
         "CURSOR": CURSOR
     }
     const category = categories[categoryName]

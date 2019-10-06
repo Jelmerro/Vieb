@@ -22,6 +22,7 @@ button, input {font-family: monospace;}
 button, span[onclick] {border-width: 2px;border-style: solid;border-color: #555;}
 iframe, pre {min-width: 450px;width: 100%;background: #222;color: #cff;padding: 0;margin: 10px 0;}
 pre {padding: 8px 0;font-size: 13px;}
+pre.wrap {white-space: pre-wrap;}
 /* Top header */
 .header {font-size: 5vw;display: flex;}
 .header > img {height: 10vw;}
