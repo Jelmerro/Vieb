@@ -16,10 +16,10 @@ but the list below contains much more technical details.
 
 - Unreachable pages now show an error page with instructions
 - Blocked HTTP redirects now show an error page with instructions
-- New tab page with top visited sites listed
+- New tab page with top visited sites listed (newtab.showTopSites)
 - Setting to disable the added new tab page
 - Setting to automatically enter nav mode in new tabs (or not)
-- Container tabs, which don't share any data with other tabs (such as cookies)
+- Container tabs, which don't share any data with other tabs (such as cookies or cache)
 - Tabs titles are now yellow when they are container tabs
 - Tabs are now bright red when they have crashed
 
@@ -28,10 +28,17 @@ but the list below contains much more technical details.
 - Moved the setting for new tab position to the newtab collection (newtab.nextToCurrentOne)
 - Reduce duplicate code to execute commands by grouping them in an object
 - Commands can now be entered partially to execute them (if only 1 command matches)
+- The setting "clearCacheOnQuit" is now "cache": "clearonquit" (default)
+- Cache setting is now simply named cache and has an additional "none" setting to disable cache completely
+
+### Fixed
+
+- Downloads are much more consistent and less prone to race conditions
+- Removing active downloads no longer mismatches the info with the progress of another download
 
 ### Removed
 
-- Downloads method settings, because it didn't work out combined with container tabs
+- Download method setting: confirm and ask are gone, automatic (previous default) is now the only download mode
 
 ### Fixed
 

@@ -72,7 +72,7 @@ const quit = () => {
         HISTORY.clearHistory()
     }
     TABS.saveTabs()
-    if (SETTINGS.get("clearCacheOnQuit")) {
+    if (SETTINGS.get("cache") !== "full") {
         UTIL.clearCache()
     }
     if (SETTINGS.get("clearCookiesOnQuit")) {

@@ -15,16 +15,20 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global DOWNLOADS SETTINGS */
+/* global DOWNLOADS SETTINGS UTIL */
 "use strict"
 
 const {ipcRenderer, remote} = require("electron")
 const path = require("path")
 const fs = require("fs")
-const {ElectronBlocker} = require("@cliqz/adblocker-electron")
+const https = require("https")
 
 const sessions = {}
-let blocker = null
+
+const init = () => {
+    enableAdblocker()
+    create("persist:main")
+}
 
 const permissionHandler = (_, permission, callback, details) => {
     if (permission === "media") {
@@ -65,80 +69,86 @@ const permissionHandler = (_, permission, callback, details) => {
     }
 }
 
-const init = () => {
-    create("persist:main")
-}
-
 const create = name => {
     if (Object.keys(sessions).includes(name)) {
         return
     }
     const session = remote.session.fromPartition(name, {
-        cache: SETTINGS.get("cache") === "none"
+        cache: SETTINGS.get("cache") !== "none"
     })
     session.setPermissionRequestHandler(permissionHandler)
     if (SETTINGS.get("adblocker") !== "off") {
-        enableAdblocker(session)
+        ipcRenderer.send("adblock-enable", [name])
     }
     session.on("will-download", DOWNLOADS.handleDownload)
-    ipcRenderer.send("set-download-path-for-session", name)
+    ipcRenderer.send("downloads-path-for-session", name)
     sessions[name] = session
 }
 
-const loadBlocklist = file => {
-    const appdataName = path.join(
-        remote.app.getPath("appData"), `blocklists/${file}`)
-    try {
-        return `${fs.readFileSync(appdataName).toString()}\n`
-    } catch (e) {
-        return ""
-    }
+const disableAdblocker = () => {
+    ipcRenderer.send("adblock-disable", Object.keys(sessions))
 }
 
-const createBlocker = () => {
+const recreateAdblocker = () => {
+    ipcRenderer.send("adblock-recreate", Object.keys(sessions))
+}
+
+const defaultBlocklists = {
+    "easylist": "https://easylist.to/easylist/easylist.txt",
+    "easyprivacy": "https://easylist.to/easylist/easyprivacy.txt"
+}
+
+const enableAdblocker = () => {
     const blocklistsFolder = path.join(
         remote.app.getPath("appData"), "blocklists")
-    // Read all filter files from the blocklists folder (including user added)
-    let filters = ""
     try {
-        for (const file of fs.readdirSync(blocklistsFolder)) {
-            if (file.endsWith(".txt")) {
-                filters += loadBlocklist(file)
-            }
-        }
+        fs.mkdirSync(blocklistsFolder)
     } catch (e) {
-        console.log("Failed to read the files from blocklists folder", e)
+        // Directory probably already exists
     }
-    return ElectronBlocker.parse(filters)
-}
-
-const enableAdblocker = (session=null) => {
-    try {
-        if (session) {
-            if (!blocker) {
-                blocker = createBlocker()
-            }
-            blocker.enableBlockingInSession(session)
-        } else {
-            // Recreate blocker to reload filters
-            blocker = createBlocker()
-            Object.values(sessions).forEach(
-                s => blocker.enableBlockingInSession(s))
+    // Copy the default and included blocklists to the appdata folder
+    if (SETTINGS.get("adblocker") !== "custom") {
+        for (const list of Object.keys(defaultBlocklists)) {
+            copyBlocklist(list)
         }
-    } catch (e) {
-        console.log("Failed to initialize adblocker", e)
     }
-}
-
-const disableAdblocker = (session=null) => {
-    if (!blocker) {
-        return
-    }
-    if (session) {
-        blocker.disableBlockingInSession(session)
+    // And update default blocklists to the latest version if enabled
+    if (SETTINGS.get("adblocker") === "update") {
+        for (const list of Object.keys(defaultBlocklists)) {
+            UTIL.notify(`Updating ${list} to the latest version`)
+            const req = https.request(defaultBlocklists[list], res => {
+                let body = ""
+                res.on("data", chunk => {
+                    body += chunk
+                })
+                res.on("end", () => {
+                    try {
+                        fs.writeFileSync(
+                            path.join(blocklistsFolder, `${list}.txt`), body)
+                        recreateAdblocker()
+                    } catch (e) {
+                        UTIL.notify(`Failed to update ${list}`, "err")
+                    }
+                })
+            })
+            req.on("error", () => {
+                UTIL.notify(`Failed to update ${list}`, "err")
+            })
+            req.end()
+        }
     } else {
-        Object.values(sessions).forEach(
-            s => blocker.disableBlockingInSession(s))
+        recreateAdblocker()
+    }
+}
+
+const copyBlocklist = name => {
+    const packagedName = path.join(__dirname, `../blocklists/${name}.txt`)
+    const appdataName = path.join(
+        remote.app.getPath("appData"), `blocklists/${name}.txt`)
+    try {
+        fs.copyFileSync(packagedName, appdataName)
+    } catch (e) {
+        UTIL.notify(`Failed to copy ${name}`, "err")
     }
 }
 

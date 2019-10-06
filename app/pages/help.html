@@ -404,7 +404,6 @@
     "redirectToHttp": false,
     "search": "https://duckduckgo.com/?kae=d&q=",
     "caseSensitiveSearch": true,
-    "clearCacheOnQuit": true,
     "clearCookiesOnQuit": false,
     "clearLocalStorageOnQuit": false,
     "suggestCommands": true,
@@ -412,6 +411,7 @@
     "fontSize": 14,
     "digitsRepeatActions": true,
     "adblocker": "static",
+    "cache": "clearonquit",
     "notification": {
         "system": false,
         "position": "bottom-right",
@@ -508,7 +508,6 @@
     "redirectToHttp": true,
     "search": "https://google.com/search?q=",
     "caseSensitiveSearch": false,
-    "clearCacheOnQuit": false,
     "clearCookiesOnQuit": false,
     "clearLocalStorageOnQuit": true,
     "suggestCommands": false,
@@ -516,6 +515,7 @@
     "fontSize": 20,
     "digitsRepeatActions": false,
     "adblocker": "update",
+    "cache": "none",
     "notification": {
         "duration": 3000,
         "position": "bottom-left"
@@ -571,7 +571,6 @@
             Please note that the search string will be pasted at the end of the search setting (search)
         </li>
         <li>Change the search mode to be case-insensitive (caseSensitiveSearch)</li>
-        <li>Don't clear the cache when quiting Vieb (clearCacheOnQuit)</li>
         <li>Clear all cookies when exiting Vieb (clearCookiesOnQuit)</li>
         <li>Clear the localstorage when exiting Vieb (clearLocalStorageOnQuit)</li>
         <li>Don't suggest/autocomplete commands when in command mode (suggestCommands)</li>
@@ -579,6 +578,7 @@
         <li>Increase the font size of all UI elements to 20px instead of 14px (fontSize)</li>
         <li>Stop the digit keys from repeating actions (digitsRepeatActions)</li>
         <li>Ads and trackers will still be blocked, but the lists will be automatically updated (adblocker)</li>
+        <li>Disable caching completely, requires restart or the use of container tabs (cache)</li>
         <li>Reduce the notification duration to 3 seconds instead of 6 (notification.duration)</li>
         <li>Display the notification in the bottom left instead of the bottom right (notification.position)</li>
         <li>Downloads will now be stored in the documents folder (downloads.path)</li>
@@ -1007,7 +1007,7 @@
     By default, the easylist and easyprivacy filter lists are included and enabled with Vieb.
     The lists will only be updated when a new Vieb released,
     unless you change the adblocker setting.
-    The adblocker setting can only be changed using the viebrc config file.
+    The adblocker setting can be changed both with the viebrc and with the set command.
     There are four different options for the adblocker setting:
     <ul>
         <li>off - The adblocker won't be loaded, and no ads will be blocked</li>
@@ -1027,14 +1027,16 @@
             custom - The adblocker will only load when lists are added manually.
             This option should be used in case you don't want to use the easylist and easyprivacy lists,
             but still want Vieb to block ads and/or trackers based on other filter lists.
-            If this option is chosen after Vieb was started with this setting on "static" or "update",
-            you should check the "blocklists" folder for lists you might not want to use.
+            This option will not remove lists added by the other modes.
+            You should check the "blocklists" folder for lists you might not want to use.
         </li>
     </ul>
     Regardless of the chosen option, you can add new lists to the "blocklists" subfolder inside the Vieb config folder,
     but only "custom" allows you to remove the easylist and easyprivacy filter lists.
     In case you want to add a different filter list, make sure it has the right extension and syntax,
     or go to <a href="https://easylist.to">easylist.to</a> for more information about these lists.
+    It's also possible to update the easylist and easyprivacy filter lists just once,
+    by switching to update mode and then back to static or custom mode.
     <h1 id="special">Special pages</h1>
     Vieb has a couple of special pages that can be accessed like so "vieb://help".
     Most of these pages also have a dedicated command to navigate to them,
