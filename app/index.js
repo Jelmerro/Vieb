@@ -21,7 +21,7 @@
 const {app, BrowserWindow, ipcMain, session} = require("electron")
 const path = require("path")
 const fs = require("fs")
-const https = require("https")
+const {ElectronBlocker} = require("@cliqz/adblocker-electron")
 
 // Set storage location to Vieb regardless of startup method
 app.setPath("appData", path.join(app.getPath("appData"), "Vieb"))
@@ -123,101 +123,6 @@ app.on("ready", () => {
     })
 })
 
-const isDir = dir => {
-    try {
-        return fs.existsSync(dir) && fs.statSync(dir).isDirectory()
-    } catch (e) {
-        return false
-    }
-}
-
-const defaultBlocklists = {
-    "easylist": "https://easylist.to/easylist/easylist.txt",
-    "easyprivacy": "https://easylist.to/easylist/easyprivacy.txt"
-}
-
-const loadAdblocker = (event, setting) => {
-    const blocklistsFolder = path.join(app.getPath("appData"), "blocklists")
-    const shouldCopyEasylist = !isDir(blocklistsFolder)
-    // Copy the default and included blocklists to the appdata folder
-    if (shouldCopyEasylist) {
-        try {
-            fs.mkdirSync(blocklistsFolder)
-        } catch (e) {
-            console.log("Failed to create directory", e)
-        }
-    }
-    if (shouldCopyEasylist || setting === "static") {
-        for (const list of Object.keys(defaultBlocklists)) {
-            copyBlocklist(list)
-        }
-    }
-    // And update default blocklists to the latest version if enabled
-    if (setting === "update") {
-        for (const list of Object.keys(defaultBlocklists)) {
-            console.log(`Updating ${list} to the latest version`)
-            const req = https.request(defaultBlocklists[list], res => {
-                let body = ""
-                res.on("data", chunk => {
-                    body += chunk
-                })
-                res.on("end", () => {
-                    try {
-                        fs.writeFileSync(
-                            path.join(blocklistsFolder, `${list}.txt`), body)
-                    } catch (e) {
-                        console.log(`Failed to update ${list}`, e)
-                    }
-                })
-            })
-            req.on("error", e => {
-                console.log(e)
-            })
-            req.end()
-        }
-    }
-}
-
-const copyBlocklist = name => {
-    const packagedName = path.join(__dirname, `blocklists/${name}.txt`)
-    const appdataName = path.join(
-        app.getPath("appData"), `blocklists/${name}.txt`)
-    try {
-        fs.copyFileSync(packagedName, appdataName)
-    } catch (e) {
-        console.log(`Failed to copy ${name} to blocklists folder`, e)
-    }
-}
-
-ipcMain.on("enable-adblocker", loadAdblocker)
-ipcMain.on("set-download-path-for-session", (_, name) => {
-    session.fromPartition(name).on("will-download", (e, item) => {
-        try {
-            const filename = item.getFilename()
-            let save = path.join(app.getPath("downloads"), filename)
-            let duplicateNumber = 1
-            let newFilename = item.getFilename()
-            while (fs.existsSync(save) && fs.statSync(save).isFile()) {
-                duplicateNumber += 1
-                const extStart = filename.lastIndexOf(".")
-                if (extStart === -1) {
-                    newFilename = `${filename} (${duplicateNumber})`
-                } else {
-                    newFilename = `${filename.substring(0, extStart)
-                    } (${duplicateNumber}).${
-                        filename.substring(extStart + 1)}`
-                }
-                save = path.join(app.getPath("downloads"), newFilename)
-            }
-            item.setSavePath(save)
-        } catch (err) {
-            console.log(err)
-            // When a download is finished before the event is detected,
-            // the item will throw an error for all the mapped functions.
-        }
-    })
-})
-
 const printUsage = () => {
     console.log("Vieb: Vim Inspired Electron Browser\n")
     console.log("Usage: Vieb [options] <URLs>\n")
@@ -248,4 +153,85 @@ const printLicense = () => {
         + "redistribute it.")
     console.log("There is NO WARRANTY, to the extent permitted by law.")
     console.log("See the LICENSE file or the GNU website for details.")
+}
+
+// Set correct download path (must be in main)
+
+ipcMain.on("downloads-path-for-session", (_, name) => {
+    session.fromPartition(name).on("will-download", (e, item) => {
+        try {
+            const filename = item.getFilename()
+            let save = path.join(app.getPath("downloads"), filename)
+            let duplicateNumber = 1
+            let newFilename = item.getFilename()
+            while (fs.existsSync(save) && fs.statSync(save).isFile()) {
+                duplicateNumber += 1
+                const extStart = filename.lastIndexOf(".")
+                if (extStart === -1) {
+                    newFilename = `${filename} (${duplicateNumber})`
+                } else {
+                    newFilename = `${filename.substring(0, extStart)
+                    } (${duplicateNumber}).${
+                        filename.substring(extStart + 1)}`
+                }
+                save = path.join(app.getPath("downloads"), newFilename)
+            }
+            item.setSavePath(save)
+        } catch (err) {
+            // When a download is finished before the event is detected,
+            // the item will throw an error for all the mapped functions.
+        }
+    })
+})
+
+// Enable or disable adblocker for a list of sessions (must be in main)
+
+let blocker = null
+
+const enableAdblocker = sessionList => {
+    sessionList.forEach(
+        s => blocker.enableBlockingInSession(session.fromPartition(s)))
+}
+
+const disableAdblocker = sessionList => {
+    sessionList.forEach(
+        s => blocker.disableBlockingInSession(session.fromPartition(s)))
+}
+
+const createAdblocker = sessionList => {
+    const blocklistsFolder = path.join(app.getPath("appData"), "blocklists")
+    // Read all filter files from the blocklists folder (including user added)
+    let filters = ""
+    try {
+        for (const file of fs.readdirSync(blocklistsFolder)) {
+            if (file.endsWith(".txt")) {
+                filters += loadBlocklist(file)
+            }
+        }
+    } catch (e) {
+        console.log("Failed to read the files from blocklists folder", e)
+    }
+    blocker = ElectronBlocker.parse(filters)
+    enableAdblocker(sessionList)
+}
+
+ipcMain.on("adblock-enable", (_, sessionList) => {
+    enableAdblocker(sessionList)
+})
+
+ipcMain.on("adblock-disable", (_, sessionList) => {
+    disableAdblocker(sessionList)
+})
+
+ipcMain.on("adblock-recreate", (_, sessionList) => {
+    createAdblocker(sessionList)
+})
+
+const loadBlocklist = file => {
+    const appdataName = path.join(app.getPath("appData"), `blocklists/${file}`)
+    try {
+        return `${fs.readFileSync(appdataName).toString()}\n`
+    } catch (e) {
+        return ""
+    }
 }

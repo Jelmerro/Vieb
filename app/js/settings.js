@@ -21,14 +21,13 @@
 const fs = require("fs")
 const os = require("os")
 const path = require("path")
-const {ipcRenderer, remote} = require("electron")
+const {remote} = require("electron")
 
 const defaultSettings = {
     "keybindings": {},
     "redirectToHttp": false,
     "search": "https://duckduckgo.com/?kae=d&q=",
     "caseSensitiveSearch": true,
-    "clearCacheOnQuit": true,
     "clearCookiesOnQuit": false,
     "clearLocalStorageOnQuit": false,
     "suggestCommands": true,
@@ -36,6 +35,7 @@ const defaultSettings = {
     "fontSize": 14,
     "digitsRepeatActions": true,
     "adblocker": "static",
+    "cache": "clearonquit",
     "notification": {
         "system": false,
         "position": "bottom-right",
@@ -105,6 +105,7 @@ const readOnly = {
 }
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
+    "cache": ["none", "clearonquit", "full"],
     "notification.position": [
         "bottom-right", "bottom-left", "top-right", "top-left"
     ],
@@ -215,12 +216,6 @@ const expandPath = homePath => {
     return homePath
 }
 
-const optionallyEnableAdblocker = () => {
-    if (allSettings.adblocker !== "off") {
-        ipcRenderer.send("enable-adblocker", allSettings.adblocker)
-    }
-}
-
 const updateDownloadSettings = () => {
     remote.app.setPath("downloads", expandPath(allSettings.downloads.path))
     DOWNLOADS.removeCompletedIfDesired()
@@ -294,7 +289,6 @@ const loadFromDisk = () => {
     }
     document.body.style.fontSize = `${allSettings.fontSize}px`
     updateDownloadSettings()
-    optionallyEnableAdblocker()
 }
 
 const get = (setting, settingObject=allSettings) => {
