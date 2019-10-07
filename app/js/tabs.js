@@ -356,7 +356,7 @@ const addWebviewListeners = webview => {
                 webview.stop()
                 return
             }
-            FOLLOW.cancelFollow()
+            MODES.setMode("normal")
             webview.setAttribute("logging-in", "yes")
             const windowData = {
                 backgroundColor: "#333333",

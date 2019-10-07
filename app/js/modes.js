@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS CURSOR INPUT SUGGEST TABS */
+/* global ACTIONS CURSOR FOLLOW INPUT SUGGEST TABS */
 "use strict"
 
 const modes = {
@@ -55,6 +55,9 @@ const modes = {
 
 const setMode = mode => {
     mode = mode.trim().toLowerCase()
+    if (mode !== "follow") {
+        FOLLOW.cancelFollow()
+    }
     if (mode !== "nav" && mode !== "command") {
         SUGGEST.cancelSuggestions()
     }

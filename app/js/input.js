@@ -26,7 +26,7 @@ const bindings = {
         "KeyC": "CURSOR.start",
         "KeyD": "ACTIONS.closeTab",
         "KeyE": "ACTIONS.toNavMode",
-        "KeyF": "FOLLOW.startFollowCurrentTab",
+        "KeyF": "ACTIONS.startFollowCurrentTab",
         "KeyG": {
             "KeyG": "ACTIONS.scrollTop",
             "KeyI": "ACTIONS.insertAtFirstInput"
@@ -44,7 +44,7 @@ const bindings = {
         "KeyV": "CURSOR.start",
         "KeyW": "ACTIONS.nextTab",
         "Slash": "ACTIONS.toSearchMode",
-        "S-KeyF": "FOLLOW.startFollowNewTab",
+        "S-KeyF": "ACTIONS.startFollowNewTab",
         "S-KeyG": "ACTIONS.scrollBottom",
         "S-KeyH": "ACTIONS.backInHistory",
         "S-KeyJ": "ACTIONS.nextTab",
@@ -101,8 +101,8 @@ const bindings = {
     },
     "follow": {
         "F1": ":help",
-        "Escape": "FOLLOW.cancelFollow",
-        "C-BracketLeft": "FOLLOW.cancelFollow"
+        "Escape": "ACTIONS.toNormalMode",
+        "C-BracketLeft": "ACTIONS.toNormalMode"
     },
     "cursor": {
         "F1": ":help",
@@ -343,7 +343,6 @@ const actionToFunction = action => {
     const [categoryName, func] = action.split(".")
     const categories = {
         "ACTIONS": ACTIONS,
-        "FOLLOW": FOLLOW,
         "CURSOR": CURSOR
     }
     const category = categories[categoryName]

@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND MODES SETTINGS SUGGEST TABS UTIL */
+/* global COMMAND FOLLOW MODES SETTINGS SUGGEST TABS UTIL */
 "use strict"
 
 let currentSearch = ""
@@ -42,6 +42,10 @@ const closeTab = () => {
 
 const toNavMode = () => {
     MODES.setMode("nav")
+}
+
+const startFollowCurrentTab = () => {
+    FOLLOW.startFollow(false)
 }
 
 const scrollTop = () => {
@@ -137,6 +141,10 @@ const nextTab = () => {
 
 const toSearchMode = () => {
     MODES.setMode("search")
+}
+
+const startFollowNewTab = () => {
+    FOLLOW.startFollow(true)
 }
 
 const scrollBottom = () => {
@@ -430,6 +438,7 @@ module.exports = {
     previousTab,
     closeTab,
     toNavMode,
+    startFollowCurrentTab,
     scrollTop,
     insertAtFirstInput,
     scrollLeft,
@@ -443,6 +452,7 @@ module.exports = {
     reopenTab,
     nextTab,
     toSearchMode,
+    startFollowNewTab,
     scrollBottom,
     backInHistory,
     openNewTabAtAlternativePosition,
