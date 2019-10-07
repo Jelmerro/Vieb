@@ -93,7 +93,7 @@ const updateCursorElement = () => {
     if (MODES.currentMode() === "visual") {
         const factor = TABS.currentPage().getZoomFactor()
         TABS.currentPage().getWebContents().send(
-            "selection-request", X / factor, Y / factor)
+            "selection-request", Math.round(X / factor), Math.round(Y / factor))
     }
 }
 
@@ -146,13 +146,16 @@ const moveFastLeft = () => {
 const downloadImage = () => {
     const factor = TABS.currentPage().getZoomFactor()
     TABS.currentPage().getWebContents().send(
-        "download-image-request", X / factor, Y / factor)
+        "download-image-request",
+        Math.round(X / factor),
+        Math.round(Y / factor))
 }
 
 const inspectElement = () => {
     const factor = TABS.currentPage().getZoomFactor()
     TABS.currentPage().getWebContents().inspectElement(
-        X / factor, (Y + SETTINGS.get("fontSize") * 4) / factor)
+        Math.round(X / factor),
+        Math.round((Y + SETTINGS.get("fontSize") * 4) / factor))
 }
 
 const copyAndStop = () => {
