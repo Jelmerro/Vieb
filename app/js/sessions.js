@@ -40,6 +40,30 @@ const permissionHandler = (_, permission, callback, details) => {
     }
     const setting = SETTINGS.get(`permissions.${permission}`)
     if (setting === "ask") {
+        let url = details.requestingUrl
+        if (url.length > 100) {
+            url = url.replace(/.{50}/g, "$&\n")
+        }
+        let message = "The page has requested access to the permission "
+                + `'${permission}'. You can allow or deny this below, `
+                + "and choose if you want to make this the default for "
+                + "the current session when sites ask for this permission."
+                + " You can always change this using the settings file,"
+                + " or at runtime with the set command like so: "
+                + `'set permissions.${permission}=<value>'\n\npage:\n${url}`
+        if (permission === "openExternal") {
+            let exturl = details.externalURL
+            if (exturl.length > 100) {
+                exturl = exturl.replace(/.{50}/g, "$&\n")
+            }
+            message = "The page has requested to open an external application."
+                + " You can allow or deny this below, and choose if you want to"
+                + " make this the default for the current session when sites "
+                + "ask to open urls in external programs. You can always change"
+                + " this using the settings file, or at runtime with the set "
+                + "command like so: 'set permissions.openExternal=<value>\n\n"
+                + `page:\n${details.requestingUrl}\n\nexternal:\n${exturl}`
+        }
         remote.dialog.showMessageBox(remote.getCurrentWindow(), {
             "type": "question",
             "buttons": ["Allow", "Deny"],
@@ -47,13 +71,7 @@ const permissionHandler = (_, permission, callback, details) => {
             "cancelId": 1,
             "checkboxLabel": "Remember for this session",
             "title": `Allow this page to access '${permission}'?`,
-            "message": "The page has requested access to the permission "
-                + `'${permission}'. You can allow or deny this below, `
-                + "and choose if you want to make this the default for "
-                + "the current session when sites ask for this permission."
-                + " You can always change this using the settings file,"
-                + " or at runtime with the set command like so: "
-                + "'set permissions.<name>=<value>'"
+            "message": message
         }).then(e => {
             callback(e.response === 0)
             if (e.checkboxChecked) {

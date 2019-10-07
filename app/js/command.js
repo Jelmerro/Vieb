@@ -167,7 +167,7 @@ const execute = command => {
     //remove all redundant spaces
     //allow commands prefixed with :
     //and return if the command is empty
-    command = command.replace(/^\s*:?/, "").trim().replace(/ +/g, " ")
+    command = command.replace(/^[\s|:]*/, "").trim().replace(/ +/g, " ")
     if (!command) {
         return
     }

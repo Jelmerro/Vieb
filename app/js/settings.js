@@ -68,7 +68,7 @@ const defaultSettings = {
         "microphone": "block",
         "midiSysex": "block",
         "notifications": "ask",
-        "openExternal": "block",
+        "openExternal": "ask",
         "pointerLock": "block",
         "unknown": "block"
     },
