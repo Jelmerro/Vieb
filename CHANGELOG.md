@@ -23,6 +23,7 @@ but the list below contains much more technical details.
 - Tab titles are now yellow when they are container tabs
 - Tabs are now bright red when they have crashed
 - Keys can now be mapped to any supported command, such as "F1": ":help" (previously "F1": "COMMAND.help")
+- Hardcopy (or print) command to print the current page with a printer
 
 ### Changed
 
@@ -34,21 +35,26 @@ but the list below contains much more technical details.
 - Permissions now show the page url in the ask dialog
 - The openExternal permission is now by default on ask, which shows the external url that will be opened
 - Rework the follow mode invocation to simplify the keybindings and fix some specific mode switches
-
-### Fixed
-
-- Downloads are much more consistent and less prone to race conditions
-- Removing active downloads no longer mismatches the info with the progress of another download
-- Rounding issues with selecting or inspecting elements using the cursor mode
+- Follow mode is now always allowed (no more setting), and will update the visible links by listening to mutations
 
 ### Removed
 
 - Download method setting: confirm and ask are gone, automatic (previous default) is now the only download mode
+- The setting allowFollowModeDuringLoad is removed because the links are now auto-updating
 
 ### Fixed
 
 - Sort all html input fields correctly by type in follow mode (input file, image and reset)
 - History suggestions not sorting by visits correctly
+- Downloads are much more consistent and less prone to race conditions
+- Removing active downloads no longer mismatches the info with the progress of another download
+- Rounding issues with selecting or inspecting elements using the cursor mode
+
+### Security
+
+- Electron 6.0.11 (was 6.0.10)
+- Chromium 76.0.3809.146 (was 76.0.3809.146)
+- Permission for openExternal is now set to "ask" by default instead of the setting "block"
 
 ## [0.7.0](https://github.com/Jelmerro/Vieb/compare/0.6.0...0.7.0) - 2019-09-19
 

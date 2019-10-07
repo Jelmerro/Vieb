@@ -20,6 +20,7 @@
 const {ipcRenderer} = require("electron")
 
 let focussedSearchElement = null
+let inFollowMode = false
 
 const urls = ["a"]
 const clickableInputs = [
@@ -52,7 +53,7 @@ ipcRenderer.on("search-element-click", () => {
     }
 })
 
-ipcRenderer.on("focus-first-text-input", e => {
+ipcRenderer.on("focus-first-text-input", () => {
     const links = [...allElementsBySelectors("inputs-insert", textlikeInputs)]
     if (links.length > 0) {
         const pos = links.sort((el1, el2) => {
@@ -63,12 +64,15 @@ ipcRenderer.on("focus-first-text-input", e => {
         if (element && element.click && element.focus) {
             element.click()
             element.focus()
-            e.sender.sendToHost("switch-to-insert")
+            ipcRenderer.sendToHost("switch-to-insert")
         }
     }
 })
 
-ipcRenderer.on("follow-mode-request", e => {
+const sendFollowLinks = () => {
+    if (!inFollowMode) {
+        return
+    }
     const allLinks = []
     //a tags with href as the link, can be opened in new tab or current tab
     allLinks.push(...allElementsBySelectors("url", urls))
@@ -107,10 +111,17 @@ ipcRenderer.on("follow-mode-request", e => {
     })
     //Send response back to webview, which will forward it to follow.js
     //Ordered by the position on the page from the top
-    e.sender.sendToHost("follow-response", allLinks.sort((el1, el2) => {
+    ipcRenderer.sendToHost("follow-response", allLinks.sort((el1, el2) => {
         return Math.floor(el1.y) - Math.floor(el2.y) || el1.x - el2.x
     }))
+}
+
+ipcRenderer.on("follow-mode-start", () => {
+    inFollowMode = true
+    sendFollowLinks()
 })
+
+ipcRenderer.on("follow-mode-stop", () => { inFollowMode = false })
 
 const checkForDuplicateLink = (element, existing) => {
     //Check for similar click positions and remove them as a duplicate
@@ -170,6 +181,7 @@ const parseElement = (element, type) => {
                     || !clickable) {
                 clickable = true
                 dimensions = rect
+                break
             }
         }
     }
@@ -257,3 +269,13 @@ Node.prototype.removeEventListener = function(type, listener, options) {
         }
     }
 }
+
+const observer = new window.MutationObserver(sendFollowLinks)
+
+observer.observe(document, {
+    childList: true,
+    attributes: true,
+    characterData: true,
+    subtree: true,
+    attributeFilter: ["class", "id", "style"]
+})

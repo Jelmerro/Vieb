@@ -31,7 +31,6 @@ const defaultSettings = {
     "clearCookiesOnQuit": false,
     "clearLocalStorageOnQuit": false,
     "suggestCommands": true,
-    "allowFollowModeDuringLoad": false,
     "fontSize": 14,
     "digitsRepeatActions": true,
     "adblocker": "static",
@@ -79,6 +78,7 @@ const defaultSettings = {
         "container": false
     }
 }
+
 let allSettings = {}
 const windowstateMessage = "The window state settings are applied on startup,"
     + "therefor they can't be edited with the set command\n"
