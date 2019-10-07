@@ -31,6 +31,8 @@ but the list below contains much more technical details.
 - Commands can now be entered partially to execute them (if only 1 command matches)
 - The setting "clearCacheOnQuit" is now "cache": "clearonquit" (default)
 - Cache setting is now simply named cache and has an additional "none" setting to disable cache completely
+- Permissions now show the page url in the ask dialog
+- The openExternal permission is now by default on ask, which shows the external url that will be opened
 
 ### Fixed
 

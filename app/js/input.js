@@ -338,9 +338,7 @@ const actionToFunction = action => {
         return null
     }
     if (action.startsWith(":")) {
-        return () => {
-            COMMAND.execute(action.replace(":", ""))
-        }
+        return () => COMMAND.execute(action)
     }
     const [categoryName, func] = action.split(".")
     const categories = {
