@@ -17,29 +17,25 @@
 */
 /* global MODES TABS SETTINGS UTIL */
 "use strict"
+
 let followNewtab = true
+let alreadyFollowing = false
 let links = []
 
 const startFollow = (newtab=followNewtab) => {
     followNewtab = newtab
     document.getElementById("follow").textContent = ""
-    if (!SETTINGS.get("allowFollowModeDuringLoad")) {
-        if (TABS.currentPage().src === ""
-                || TABS.currentPage().isLoadingMainFrame()) {
-            UTIL.notify("Follow mode will be available when the page is "
-                + "done loading\nOr you could change the setting "
-                + "'allowFollowModeDuringLoad'")
-            return
-        }
-    }
     MODES.setMode("follow")
-    TABS.currentPage().getWebContents().send("follow-mode-request", "hi")
+    alreadyFollowing = false
+    TABS.currentPage().getWebContents().send("follow-mode-start")
     document.getElementById("follow").style.display = "flex"
 }
 
 const cancelFollow = () => {
+    alreadyFollowing = false
     document.getElementById("follow").style.display = ""
     document.getElementById("follow").textContent = ""
+    TABS.currentPage().getWebContents().send("follow-mode-stop")
 }
 
 const numberToKeys = (number, total) => {
@@ -60,7 +56,7 @@ const numberToKeys = (number, total) => {
 }
 
 const parseAndDisplayLinks = l => {
-    if (MODES.currentMode() !== "follow") {
+    if (MODES.currentMode() !== "follow" || alreadyFollowing) {
         return
     }
     //The maximum amount of links is 26 * 26,
@@ -76,6 +72,7 @@ const parseAndDisplayLinks = l => {
     }
     const factor = TABS.currentPage().getZoomFactor()
     const followElement = document.getElementById("follow")
+    followElement.textContent = ""
     links.forEach((link, index) => {
         //Show the link key in the top right
         const linkElement = document.createElement("span")
@@ -111,6 +108,7 @@ const parseAndDisplayLinks = l => {
 }
 
 const enterKey = identifier => {
+    alreadyFollowing = true
     if (identifier.includes("-")) {
         return
     }
@@ -134,8 +132,8 @@ const enterKey = identifier => {
     if (matches.length === 1) {
         const link = links[matches[0].getAttribute("link-id")]
         if (followNewtab) {
-            TABS.addTab(link.url)
             MODES.setMode("normal")
+            TABS.addTab(link.url)
             return
         }
         const factor = TABS.currentPage().getZoomFactor()

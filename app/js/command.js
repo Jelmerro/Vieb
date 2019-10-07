@@ -135,6 +135,10 @@ const reload = () => {
     SETTINGS.loadFromDisk()
 }
 
+const hardcopy = () => {
+    TABS.currentPage().print()
+}
+
 const commands = {
     "q": quit,
     "quit": quit,
@@ -148,7 +152,9 @@ const commands = {
     "h": help,
     "help": help,
     "s": set,
-    "set": set
+    "set": set,
+    "hardcopy": hardcopy,
+    "print": hardcopy
 }
 
 const noArgumentComands = [

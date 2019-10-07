@@ -407,7 +407,6 @@
     "clearCookiesOnQuit": false,
     "clearLocalStorageOnQuit": false,
     "suggestCommands": true,
-    "allowFollowModeDuringLoad": false,
     "fontSize": 14,
     "digitsRepeatActions": true,
     "adblocker": "static",
@@ -503,6 +502,7 @@
         "normal": {
             "F6": "ACTIONS.toNavMode",
             "F9": ":set newtab.container!",
+            "C-KeyP": ":hardcopy",
             "C-KeyQ": ":quit"
         }
     },
@@ -512,7 +512,6 @@
     "clearCookiesOnQuit": false,
     "clearLocalStorageOnQuit": true,
     "suggestCommands": false,
-    "allowFollowModeDuringLoad": true,
     "fontSize": 20,
     "digitsRepeatActions": false,
     "adblocker": "update",
@@ -566,6 +565,10 @@
             <kbd>Escape</kbd> can not be used to exit insert mode,
             but <kbd>Ctrl with [</kbd> will still work (keybindings.insert.Escape)
         </li>
+        <li>
+            The page can now be printed using <kbd>Ctrl with p</kbd>,
+            see <a href="#commands-hardcopy">hardcopy</a> for details (keybindings.normal.C-KeyP)
+        </li>
         <li><kbd>Ctrl with q</kbd> can be used to quit Vieb when in normal mode (keybindings.normal.C-KeyQ)</li>
         <li>Https connections will now be downgraded to http if the server has no certificate (redirectToHttp)</li>
         <li>
@@ -576,7 +579,6 @@
         <li>Clear all cookies when exiting Vieb (clearCookiesOnQuit)</li>
         <li>Clear the localstorage when exiting Vieb (clearLocalStorageOnQuit)</li>
         <li>Don't suggest/autocomplete commands when in command mode (suggestCommands)</li>
-        <li>Allow the entering of follow mode during page loads, even if elements might move around (allowFollowModeDuringLoad)</li>
         <li>Increase the font size of all UI elements to 20px instead of 14px (fontSize)</li>
         <li>Stop the digit keys from repeating actions (digitsRepeatActions)</li>
         <li>Ads and trackers will still be blocked, but the lists will be automatically updated (adblocker)</li>
@@ -778,6 +780,7 @@
     These will be explained in separate paragraphs,
     as the underlying implementations are very different,
     even if the differences are not immediately visible to the user.
+    Both variations will automatically update the follow links when the page is updated.
     <h2 id="follow-click">follow by click</h2>
     After pressing <kbd>f</kbd> from normal mode,
     all clickable elements should be assigned a key next to them.
@@ -877,6 +880,7 @@
         <li>devtools</li>
         <li>set (or s)</li>
         <li>reload</li>
+        <li>hardcopy (or print)</li>
         <li>quit (or q)</li>
     </ul>
     Each paragraph in this chapter will explain a single command from the list above.
@@ -942,6 +946,10 @@
     It can also be used to change the <a href="#settings-viebrc-keybindings">keybindings</a>.
     or to change the settings permanently (instead of temporary using the "set" command).
     A short version of the reload command is just using "r".
+    <h2 id="commands-hardcopy">hardcopy</h2>
+    The hardcopy command can be used to print the current page.
+    There are no arguments for this command.
+    The alternative name for this command is print.
     <h2 id="commands-quit">quit</h2>
     Last but not least is the quit command.
     This simple command takes no arguments,
