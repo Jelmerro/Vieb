@@ -72,7 +72,7 @@ const quit = () => {
         HISTORY.clearHistory()
     }
     TABS.saveTabs()
-    if (SETTINGS.get("clearCacheOnQuit")) {
+    if (SETTINGS.get("cache") !== "full") {
         UTIL.clearCache()
     }
     if (SETTINGS.get("clearCookiesOnQuit")) {
@@ -81,6 +81,7 @@ const quit = () => {
     if (SETTINGS.get("clearLocalStorageOnQuit")) {
         UTIL.clearLocalStorage()
     }
+    DOWNLOADS.cancelAll()
     remote.getCurrentWindow().destroy()
     remote.app.exit(0)
 }
@@ -134,14 +135,6 @@ const reload = () => {
     SETTINGS.loadFromDisk()
 }
 
-const accept = () => {
-    DOWNLOADS.confirmRequest()
-}
-
-const deny = () => {
-    DOWNLOADS.rejectRequest()
-}
-
 const commands = {
     "q": quit,
     "quit": quit,
@@ -152,10 +145,6 @@ const commands = {
     "history": history,
     "d": downloads,
     "downloads": downloads,
-    "accept": accept,
-    "confirm": accept,
-    "deny": deny,
-    "reject": deny,
     "h": help,
     "help": help,
     "s": set,
@@ -171,18 +160,14 @@ const noArgumentComands = [
     "version",
     "history",
     "d",
-    "downloads",
-    "accept",
-    "confirm",
-    "deny",
-    "reject"
+    "downloads"
 ]
 
 const execute = command => {
     //remove all redundant spaces
     //allow commands prefixed with :
     //and return if the command is empty
-    command = command.replace(/^\s*:?/, "").trim().replace(/ +/g, " ")
+    command = command.replace(/^[\s|:]*/, "").trim().replace(/ +/g, " ")
     if (!command) {
         return
     }
@@ -212,13 +197,7 @@ const commandList = () => {
 }
 
 module.exports = {
-    quit,
-    devtools,
     openSpecialPage,
-    version,
-    help,
-    history,
-    downloads,
     execute,
     commandList
 }

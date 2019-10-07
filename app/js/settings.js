@@ -15,20 +15,19 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global UTIL */
+/* global DOWNLOADS SESSIONS UTIL */
 "use strict"
 
 const fs = require("fs")
 const os = require("os")
 const path = require("path")
-const {ipcRenderer, remote} = require("electron")
+const {remote} = require("electron")
 
 const defaultSettings = {
     "keybindings": {},
     "redirectToHttp": false,
     "search": "https://duckduckgo.com/?kae=d&q=",
     "caseSensitiveSearch": true,
-    "clearCacheOnQuit": true,
     "clearCookiesOnQuit": false,
     "clearLocalStorageOnQuit": false,
     "suggestCommands": true,
@@ -36,6 +35,7 @@ const defaultSettings = {
     "fontSize": 14,
     "digitsRepeatActions": true,
     "adblocker": "static",
+    "cache": "clearonquit",
     "notification": {
         "system": false,
         "position": "bottom-right",
@@ -43,7 +43,6 @@ const defaultSettings = {
     },
     "downloads": {
         "path": "~/Downloads/",
-        "method": "automatic",
         "removeCompleted": false,
         "clearOnQuit": false
     },
@@ -69,14 +68,15 @@ const defaultSettings = {
         "microphone": "block",
         "midiSysex": "block",
         "notifications": "ask",
-        "openExternal": "block",
+        "openExternal": "ask",
         "pointerLock": "block",
         "unknown": "block"
     },
     "newtab": {
         "nextToCurrentOne": true,
         "enterNavMode": false,
-        "showTopSites": true
+        "showTopSites": true,
+        "container": false
     }
 }
 let allSettings = {}
@@ -89,8 +89,6 @@ const readOnly = {
     "keybindings": "The keybindings can't be changed with the set command\n"
         + "Instead, open the config file, edit the bindings and "
         + "use the reload command to load them from disk again",
-    "adblocker": "The adblocker can't be enabled or disabled when running"
-        + "\nInstead, open the config file, edit the setting there",
     "notification": collectionMessage,
     "downloads": collectionMessage,
     "history": collectionMessage,
@@ -107,10 +105,10 @@ const readOnly = {
 }
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
+    "cache": ["none", "clearonquit", "full"],
     "notification.position": [
         "bottom-right", "bottom-left", "top-right", "top-left"
     ],
-    "downloads.method": ["automatic", "ask", "confirm"],
     "permissions.camera": ["block", "ask", "allow"],
     "permissions.fullscreen": ["block", "ask", "allow"],
     "permissions.geolocation": ["block", "ask", "allow"],
@@ -218,15 +216,9 @@ const expandPath = homePath => {
     return homePath
 }
 
-const optionallyEnableAdblocker = () => {
-    if (allSettings.adblocker !== "off") {
-        ipcRenderer.send("enable-adblocker", allSettings.adblocker)
-    }
-}
-
-const updateDownloadSettingsInMain = () => {
+const updateDownloadSettings = () => {
     remote.app.setPath("downloads", expandPath(allSettings.downloads.path))
-    ipcRenderer.send("download-settings-change", allSettings.downloads)
+    DOWNLOADS.removeCompletedIfDesired()
 }
 
 const listSettingsAsArray = () => {
@@ -296,8 +288,7 @@ const loadFromDisk = () => {
         }
     }
     document.body.style.fontSize = `${allSettings.fontSize}px`
-    updateDownloadSettingsInMain()
-    optionallyEnableAdblocker()
+    updateDownloadSettings()
 }
 
 const get = (setting, settingObject=allSettings) => {
@@ -338,11 +329,19 @@ const set = (setting, value, startup=false) => {
         } else {
             allSettings[setting] = value
         }
+        // Update settings elsewhere
         if (setting === "fontSize") {
             document.body.style.fontSize = `${allSettings.fontSize}px`
         }
+        if (setting === "adblocker") {
+            if (value === "off") {
+                SESSIONS.disableAdblocker()
+            } else {
+                SESSIONS.enableAdblocker()
+            }
+        }
         if (setting.startsWith("downloads.")) {
-            updateDownloadSettingsInMain()
+            updateDownloadSettings()
         }
     }
 }

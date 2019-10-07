@@ -21,12 +21,12 @@
 const bindings = {
     "normal": {
         "Enter": "ACTIONS.clickOnSearch",
-        "F1": "COMMAND.help",
+        "F1": ":help",
         "KeyB": "ACTIONS.previousTab",
         "KeyC": "CURSOR.start",
         "KeyD": "ACTIONS.closeTab",
         "KeyE": "ACTIONS.toNavMode",
-        "KeyF": "FOLLOW.startFollowCurrentTab",
+        "KeyF": "ACTIONS.startFollowCurrentTab",
         "KeyG": {
             "KeyG": "ACTIONS.scrollTop",
             "KeyI": "ACTIONS.insertAtFirstInput"
@@ -44,7 +44,7 @@ const bindings = {
         "KeyV": "CURSOR.start",
         "KeyW": "ACTIONS.nextTab",
         "Slash": "ACTIONS.toSearchMode",
-        "S-KeyF": "FOLLOW.startFollowNewTab",
+        "S-KeyF": "ACTIONS.startFollowNewTab",
         "S-KeyG": "ACTIONS.scrollBottom",
         "S-KeyH": "ACTIONS.backInHistory",
         "S-KeyJ": "ACTIONS.nextTab",
@@ -73,12 +73,12 @@ const bindings = {
         "CS-Minus": "ACTIONS.zoomOut"
     },
     "insert": {
-        "F1": "COMMAND.help",
+        "F1": ":help",
         "Escape": "ACTIONS.toNormalMode",
         "C-BracketLeft": "ACTIONS.toNormalMode"
     },
     "command": {
-        "F1": "COMMAND.help",
+        "F1": ":help",
         "Escape": "ACTIONS.toNormalMode",
         "Tab": "ACTIONS.nextSuggestion",
         "S-Tab": "ACTIONS.prevSuggestion",
@@ -86,13 +86,13 @@ const bindings = {
         "Enter": "ACTIONS.useEnteredData"
     },
     "search": {
-        "F1": "COMMAND.help",
+        "F1": ":help",
         "Escape": "ACTIONS.toNormalMode",
         "C-BracketLeft": "ACTIONS.toNormalMode",
         "Enter": "ACTIONS.useEnteredData"
     },
     "nav": {
-        "F1": "COMMAND.help",
+        "F1": ":help",
         "Escape": "ACTIONS.toNormalMode",
         "Tab": "ACTIONS.nextSuggestion",
         "S-Tab": "ACTIONS.prevSuggestion",
@@ -100,12 +100,12 @@ const bindings = {
         "Enter": "ACTIONS.useEnteredData"
     },
     "follow": {
-        "F1": "COMMAND.help",
-        "Escape": "FOLLOW.cancelFollow",
-        "C-BracketLeft": "FOLLOW.cancelFollow"
+        "F1": ":help",
+        "Escape": "ACTIONS.toNormalMode",
+        "C-BracketLeft": "ACTIONS.toNormalMode"
     },
     "cursor": {
-        "F1": "COMMAND.help",
+        "F1": ":help",
         "KeyB": "CURSOR.moveFastLeft",
         "KeyD": "CURSOR.downloadImage",
         "KeyE": "CURSOR.inspectElement",
@@ -140,7 +140,7 @@ const bindings = {
         "C-BracketLeft": "ACTIONS.toNormalMode"
     },
     "visual": {
-        "F1": "COMMAND.help",
+        "F1": ":help",
         "KeyB": "CURSOR.moveFastLeft",
         "KeyC": "CURSOR.copyAndStop",
         "KeyG": {
@@ -337,11 +337,12 @@ const actionToFunction = action => {
     if (typeof action !== "string") {
         return null
     }
+    if (action.startsWith(":")) {
+        return () => COMMAND.execute(action)
+    }
     const [categoryName, func] = action.split(".")
     const categories = {
         "ACTIONS": ACTIONS,
-        "FOLLOW": FOLLOW,
-        "COMMAND": COMMAND,
         "CURSOR": CURSOR
     }
     const category = categories[categoryName]
