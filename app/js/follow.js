@@ -20,17 +20,8 @@
 let followNewtab = true
 let links = []
 
-const startFollowCurrentTab = () => {
-    followNewtab = false
-    startFollow()
-}
-
-const startFollowNewTab = () => {
-    followNewtab = true
-    startFollow()
-}
-
-const startFollow = () => {
+const startFollow = (newtab=followNewtab) => {
+    followNewtab = newtab
     document.getElementById("follow").textContent = ""
     if (!SETTINGS.get("allowFollowModeDuringLoad")) {
         if (TABS.currentPage().src === ""
@@ -47,7 +38,6 @@ const startFollow = () => {
 }
 
 const cancelFollow = () => {
-    MODES.setMode("normal")
     document.getElementById("follow").style.display = ""
     document.getElementById("follow").textContent = ""
 }
@@ -81,7 +71,7 @@ const parseAndDisplayLinks = l => {
     links = l.slice(0, 675)
     if (links.length === 0) {
         UTIL.notify("No links are visible on the page to follow", "warn")
-        cancelFollow()
+        MODES.setMode("normal")
         return
     }
     const factor = TABS.currentPage().getZoomFactor()
@@ -139,18 +129,18 @@ const enterKey = identifier => {
         }
     })
     if (matches.length === 0) {
-        cancelFollow()
+        MODES.setMode("normal")
     }
     if (matches.length === 1) {
         const link = links[matches[0].getAttribute("link-id")]
         if (followNewtab) {
             TABS.addTab(link.url)
-            cancelFollow()
+            MODES.setMode("normal")
             return
         }
         const factor = TABS.currentPage().getZoomFactor()
         if (link.type === "inputs-insert") {
-            cancelFollow()
+            MODES.setMode("normal")
         }
         MODES.setMode("insert")
         TABS.currentPage().sendInputEvent({
@@ -178,14 +168,12 @@ const enterKey = identifier => {
             "y": link.y * factor
         })
         if (link.type !== "inputs-insert") {
-            cancelFollow()
+            MODES.setMode("normal")
         }
     }
 }
 
 module.exports = {
-    startFollowCurrentTab,
-    startFollowNewTab,
     startFollow,
     cancelFollow,
     parseAndDisplayLinks,

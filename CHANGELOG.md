@@ -10,22 +10,39 @@ Links in the changelog are part of [github.com/Jelmerro/Vieb](https://github.com
 The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the most important changes per release,
 but the list below contains much more technical details.
 
-## Unreleased
+## [Unreleased](https://github.com/Jelmerro/Vieb/compare/0.7.0...master)
 
 ### Added
 
 - Unreachable pages now show an error page with instructions
 - Blocked HTTP redirects now show an error page with instructions
-- New tab page with top visited sites listed
+- New tab page with top visited sites listed (newtab.showTopSites)
 - Setting to disable the added new tab page
 - Setting to automatically enter nav mode in new tabs (or not)
+- Container tabs, which don't share any data with other tabs (such as cookies or cache)
+- Tab titles are now yellow when they are container tabs
 - Tabs are now bright red when they have crashed
+- Keys can now be mapped to any supported command, such as "F1": ":help" (previously "F1": "COMMAND.help")
 
 ### Changed
 
 - Moved the setting for new tab position to the newtab collection (newtab.nextToCurrentOne)
 - Reduce duplicate code to execute commands by grouping them in an object
 - Commands can now be entered partially to execute them (if only 1 command matches)
+- The setting "clearCacheOnQuit" is now "cache": "clearonquit" (default)
+- Cache setting is now simply named cache and has an additional "none" setting to disable cache completely
+- Permissions now show the page url in the ask dialog
+- The openExternal permission is now by default on ask, which shows the external url that will be opened
+- Rework the follow mode invocation to simplify the keybindings and fix some specific mode switches
+
+### Fixed
+
+- Downloads are much more consistent and less prone to race conditions
+- Removing active downloads no longer mismatches the info with the progress of another download
+
+### Removed
+
+- Download method setting: confirm and ask are gone, automatic (previous default) is now the only download mode
 
 ### Fixed
 

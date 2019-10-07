@@ -252,12 +252,12 @@
     "keybindings": {
         "normal": {
             "Enter": "ACTIONS.clickOnSearch",
-            "F1": "COMMAND.help",
+            "F1": ":help",
             "KeyB": "ACTIONS.previousTab",
             "KeyC": "CURSOR.start",
             "KeyD": "ACTIONS.closeTab",
             "KeyE": "ACTIONS.toNavMode",
-            "KeyF": "FOLLOW.startFollowCurrentTab",
+            "KeyF": "ACTIONS.startFollowCurrentTab",
             "KeyG": {
                 "KeyG": "ACTIONS.scrollTop",
                 "KeyI": "ACTIONS.insertAtFirstInput"
@@ -275,7 +275,7 @@
             "KeyV": "CURSOR.start",
             "KeyW": "ACTIONS.nextTab",
             "Slash": "ACTIONS.toSearchMode",
-            "S-KeyF": "FOLLOW.startFollowNewTab",
+            "S-KeyF": "ACTIONS.startFollowNewTab",
             "S-KeyG": "ACTIONS.scrollBottom",
             "S-KeyH": "ACTIONS.backInHistory",
             "S-KeyJ": "ACTIONS.nextTab",
@@ -304,12 +304,12 @@
             "CS-Minus": "ACTIONS.zoomOut"
         },
         "insert": {
-            "F1": "COMMAND.help",
+            "F1": ":help",
             "Escape": "ACTIONS.toNormalMode",
             "C-BracketLeft": "ACTIONS.toNormalMode"
         },
         "command": {
-            "F1": "COMMAND.help",
+            "F1": ":help",
             "Escape": "ACTIONS.toNormalMode",
             "Tab": "ACTIONS.nextSuggestion",
             "S-Tab": "ACTIONS.prevSuggestion",
@@ -317,13 +317,13 @@
             "Enter": "ACTIONS.useEnteredData"
         },
         "search": {
-            "F1": "COMMAND.help",
+            "F1": ":help",
             "Escape": "ACTIONS.toNormalMode",
             "C-BracketLeft": "ACTIONS.toNormalMode",
             "Enter": "ACTIONS.useEnteredData"
         },
         "nav": {
-            "F1": "COMMAND.help",
+            "F1": ":help",
             "Escape": "ACTIONS.toNormalMode",
             "Tab": "ACTIONS.nextSuggestion",
             "S-Tab": "ACTIONS.prevSuggestion",
@@ -331,12 +331,12 @@
             "Enter": "ACTIONS.useEnteredData"
         },
         "follow": {
-            "F1": "COMMAND.help",
-            "Escape": "FOLLOW.cancelFollow",
-            "C-BracketLeft": "FOLLOW.cancelFollow"
+            "F1": ":help",
+            "Escape": "ACTIONS.toNormalMode",
+            "C-BracketLeft": "ACTIONS.toNormalMode"
         },
         "cursor": {
-            "F1": "COMMAND.help",
+            "F1": ":help",
             "KeyB": "CURSOR.moveFastLeft",
             "KeyD": "CURSOR.downloadImage",
             "KeyE": "CURSOR.inspectElement",
@@ -371,7 +371,7 @@
             "C-BracketLeft": "ACTIONS.toNormalMode"
         },
         "visual": {
-            "F1": "COMMAND.help",
+            "F1": ":help",
             "KeyB": "CURSOR.moveFastLeft",
             "KeyC": "CURSOR.copyAndStop",
             "KeyG": {
@@ -404,7 +404,6 @@
     "redirectToHttp": false,
     "search": "https://duckduckgo.com/?kae=d&q=",
     "caseSensitiveSearch": true,
-    "clearCacheOnQuit": true,
     "clearCookiesOnQuit": false,
     "clearLocalStorageOnQuit": false,
     "suggestCommands": true,
@@ -412,6 +411,7 @@
     "fontSize": 14,
     "digitsRepeatActions": true,
     "adblocker": "static",
+    "cache": "clearonquit",
     "notification": {
         "system": false,
         "position": "bottom-right",
@@ -419,7 +419,6 @@
     },
     "downloads": {
         "path": "~/Downloads/",
-        "method": "automatic",
         "removeCompleted": false,
         "clearOnQuit": false
     },
@@ -445,14 +444,15 @@
         "microphone": "block",
         "midiSysex": "block",
         "notifications": "ask",
-        "openExternal": "block",
+        "openExternal": "ask",
         "pointerLock": "block",
         "unknown": "block"
     },
     "newtab": {
         "nextToCurrentOne": true,
         "enterNavMode": false,
-        "showTopSites": true
+        "showTopSites": true,
+        "container": false
     }
 }
     </pre>
@@ -502,13 +502,13 @@
         },
         "normal": {
             "F6": "ACTIONS.toNavMode",
-            "C-KeyQ": "COMMAND.quit"
+            "F9": ":set newtab.container!",
+            "C-KeyQ": ":quit"
         }
     },
     "redirectToHttp": true,
     "search": "https://google.com/search?q=",
     "caseSensitiveSearch": false,
-    "clearCacheOnQuit": false,
     "clearCookiesOnQuit": false,
     "clearLocalStorageOnQuit": true,
     "suggestCommands": false,
@@ -516,13 +516,13 @@
     "fontSize": 20,
     "digitsRepeatActions": false,
     "adblocker": "update",
+    "cache": "none",
     "notification": {
         "duration": 3000,
         "position": "bottom-left"
     },
     "downloads": {
         "path": "~/Documents",
-        "method": "confirm",
         "removeCompleted": true,
         "clearOnQuit": true
     },
@@ -545,7 +545,8 @@
     },
     "newtab": {
         "nextToCurrentOne": false,
-        "showTopSites": false
+        "showTopSites": false,
+        "container": true
     }
 }</pre>
 
@@ -556,6 +557,7 @@
             The help page can't be accessed directly from insert mode with the
             <kbd>F1</kbd> key anymore (keybindings.insert.F1)
         </li>
+        <li><kbd>F9</kbd> will now toggle between container tabs (keybindings.normal.F9)</li>
         <li>
             Toggle between nav and normal mode with
             <kbd>F6</kbd>, similar to regular browsers (keybindings.nav.F6 and keybindings.normal.F6)
@@ -571,7 +573,6 @@
             Please note that the search string will be pasted at the end of the search setting (search)
         </li>
         <li>Change the search mode to be case-insensitive (caseSensitiveSearch)</li>
-        <li>Don't clear the cache when quiting Vieb (clearCacheOnQuit)</li>
         <li>Clear all cookies when exiting Vieb (clearCookiesOnQuit)</li>
         <li>Clear the localstorage when exiting Vieb (clearLocalStorageOnQuit)</li>
         <li>Don't suggest/autocomplete commands when in command mode (suggestCommands)</li>
@@ -579,10 +580,10 @@
         <li>Increase the font size of all UI elements to 20px instead of 14px (fontSize)</li>
         <li>Stop the digit keys from repeating actions (digitsRepeatActions)</li>
         <li>Ads and trackers will still be blocked, but the lists will be automatically updated (adblocker)</li>
+        <li>Disable caching completely, requires restart or the use of container tabs (cache)</li>
         <li>Reduce the notification duration to 3 seconds instead of 6 (notification.duration)</li>
         <li>Display the notification in the bottom left instead of the bottom right (notification.position)</li>
-        <li>Downloads will be stored in the documents folder, except if method is set be "ask" (downloads.path)</li>
-        <li>Change the download method to "confirm" instead of "automatic" (downloads.method)</li>
+        <li>Downloads will now be stored in the documents folder (downloads.path)</li>
         <li>Automatically remove downloads from the download history once they are completely downloaded (downloads.removeCompleted)</li>
         <li>Clear the entire download history when quiting Vieb (downloads.clearOnQuit)</li>
         <li>Don't suggest previously visited websites from the browsing history when in nav mode (history.suggest)</li>
@@ -596,6 +597,7 @@
         <li>After restarting, Vieb will no longer remember if the window was maximized (windowstate.maximized)</li>
         <li>This will stop the tabs from opening next to the current one using <kbd>t</kbd>, <kbd>Ctrl with t</kbd> will do the opposite of the current setting (newtab.nextToCurrentOne)</li>
         <li>New tabs will no longer display the top visited sites as suggestions (newtab.showTopSites)</li>
+        <li>New tabs now store all of the data in a separate container per tab, these tabs will have a yellow title in the navigation bar (newtab.container)</li>
     </ul>
     Please note that the download, tab and browsing history are separately configured.
     Therefor it's possible to keep and restore the open tabs without keeping the other browsing history.
@@ -865,15 +867,13 @@
     similar to the nav mode suggestions.
     These suggestions can be disabled for commands by setting "suggestCommands" to false.
     It's also possible to type only the first part of a command name,
-    if that's the only one starting with the entered text (for example, ":acc" will execute accept).
+    if that's the only one starting with the entered text (for example, ":dev" will execute devtools).
     The full list of commands is as follows:
     <ul>
         <li>help (or h)</li>
         <li>version (or v)</li>
         <li>downloads (or d)</li>
         <li>history</li>
-        <li>accept (or confirm)</li>
-        <li>reject (or deny)</li>
         <li>devtools</li>
         <li>set (or s)</li>
         <li>reload</li>
@@ -902,26 +902,13 @@
     The downloads command takes no arguments.
     The short version of this command is "d".
     This page can be used to view all the downloaded files.
-    To learn more about the download page, different download methods and other special pages,
+    To learn more about the download page and other special pages,
     check out the <a href="#special">Special pages</a>.
     <h2 id="commands-history">history</h2>
     The history command takes no arguments.
     This command will open a list of all the website visisted.
     To learn more about Vieb's history settings and configurations,
     see <a href="#special-history">history page info</a> or <a href="#history">the history chapter</a>.
-    <h2 id="commands-accept">accept</h2>
-    This command can be used to confirm a download request.
-    It can only be used if the "confirm" download method is used.
-    When this mode is active, no files will automatically download,
-    but you will be asked to accept or reject the file.
-    This command can also be called as: <pre class="command-block">confirm</pre>
-    On the <a href="#special-downloads">downloads page</a> you can view a list of downloaded files,
-    and also view the current unconfirmed download.
-    <h2 id="commands-reject">reject</h2>
-    This command can be used to reject the current unconfirmed download.
-    It's usually not required to call this command,
-    because new download requests will replace the old one.
-    This command can also be called as: <pre class="command-block">deny</pre>
     <h2 id="commands-devtools">devtools</h2>
     The devtools command takes no arguments.
     This command can be used to open to open the developer tools for the current website.
@@ -932,7 +919,7 @@
     To summarize, this command can be used to set any setting during runtime,
     without saving it to the viebrc.json settings/config file.
     Wrinting a new setting with the set command works like this:
-    <pre class="command-block">set downloads.method=ask</pre>
+    <pre class="command-block">set downloads.path=~/Documents</pre>
     Boolean values can also be toggled like this:
     <pre class="command-block">set history.storeNewVisits!</pre>
     For example, to increase the notification duration for the current session,
@@ -1014,16 +1001,30 @@
     You can of course expand these three settings with more strict settings,
     such as the option to clear any download regardless of progress when quiting,
     or the setting to never store the tabs at all by disabling the "tabs.restore" setting.
-    By default, command mode will suggest and autocomplete settings that can be configured,
-    which aims to make it easier to set these settings at runtime.
-    Of course it's also possible to store these settings permanently in the viebrc config file.
-    Both of these ways to change the settings are explained <a href="#settings">settings chapter</a>.
+    It's also possible to open each tab in it's own container by setting "newtab.container" to true.
+    Container tabs have a yellow title in the navigation bar and don't share data with any other tab.
+    To make it easy to toggle between "private" mode and your regular settings,
+    a custom keybinding could be added to the viebrc like this:
+    <pre class="wrap">
+{
+    "keybindings": {
+        "normal": {
+            "KeyP": ":set downloads.removeCompleted! downloads.clearOnQuit! history.storeNewVisits! tabs.keepRecentlyClosed! tabs.restore! newtab.container!",
+            "BracketLeft": ":set downloads.removeCompleted=false downloads.clearOnQuit=false history.storeNewVisits=true tabs.keepRecentlyClosed=true tabs.restore=true newtab.container=false",
+            "BracketRight": ":set downloads.removeCompleted=true downloads.clearOnQuit=true history.storeNewVisits=false tabs.keepRecentlyClosed=false tabs.restore=false newtab.container=true"
+        }
+    }
+}
+</pre>
+    From normal mode, <kbd>p</kbd> will now toggle between private and regular mode for all components.
+    Also, <kbd>{</kbd> and <kbd>}</kbd> can be used to switch between them with separate keys.
+    For more information on how to change the settings can be found in the <a href="#settings">settings chapter</a>.
     <h1 id="adblocker">Adblocker</h1>
     Vieb includes an adblocker made by cliqz (see <a href="#mentions">mentions</a> for details).
     By default, the easylist and easyprivacy filter lists are included and enabled with Vieb.
     The lists will only be updated when a new Vieb released,
     unless you change the adblocker setting.
-    The adblocker setting can only be changed using the viebrc config file.
+    The adblocker setting can be changed both with the viebrc and with the set command.
     There are four different options for the adblocker setting:
     <ul>
         <li>off - The adblocker won't be loaded, and no ads will be blocked</li>
@@ -1043,14 +1044,16 @@
             custom - The adblocker will only load when lists are added manually.
             This option should be used in case you don't want to use the easylist and easyprivacy lists,
             but still want Vieb to block ads and/or trackers based on other filter lists.
-            If this option is chosen after Vieb was started with this setting on "static" or "update",
-            you should check the "blocklists" folder for lists you might not want to use.
+            This option will not remove lists added by the other modes.
+            You should check the "blocklists" folder for lists you might not want to use.
         </li>
     </ul>
     Regardless of the chosen option, you can add new lists to the "blocklists" subfolder inside the Vieb config folder,
     but only "custom" allows you to remove the easylist and easyprivacy filter lists.
     In case you want to add a different filter list, make sure it has the right extension and syntax,
     or go to <a href="https://easylist.to">easylist.to</a> for more information about these lists.
+    It's also possible to update the easylist and easyprivacy filter lists just once,
+    by switching to update mode and then back to static or custom mode.
     <h1 id="special">Special pages</h1>
     Vieb has a couple of special pages that can be accessed like so "vieb://help".
     Most of these pages also have a dedicated command to navigate to them,
@@ -1080,24 +1083,7 @@
             The tab and browsing history are configured separately.
         </li>
     </ul>
-    There are three different download methods in Vieb (setting: "downloads.method"):
-    <ul>
-        <li>
-            automatic (default) - which will download all files automatically similar to Chromium,
-            the configured "downloads.path" will be used to store all downloads.
-        </li>
-        <li>
-            ask - when this mode is active, the download path will not be used,
-            but instead a file explorer will be displayed to ask for the download location.
-        </li>
-        <li>
-            confirm - in this mode the :accept and :reject commands are used to confirm a download.
-            On the downloads page the current unconfirmed download is shown.
-            As with the automatic download setting, the "downloads.path" location is used to store the download.
-        </li>
-    </ul>
-    All downloads regardless of mode will be displayed on the downloads page,
-    which can be accessed as "vieb://downloads" or with the <a href="#commands-downloads">downloads command</a>.
+    The download page can be accessed at "vieb://downloads" or with the <a href="#commands-downloads">downloads command</a>.
     <h2 id="special-version">version page</h2>
     This page contains the current Vieb version and a button to check for updates.
     It can be accessed with the :version command (:v), or as "vieb://version".
