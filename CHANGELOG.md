@@ -33,6 +33,7 @@ but the list below contains much more technical details.
 - Cache setting is now simply named cache and has an additional "none" setting to disable cache completely
 - Permissions now show the page url in the ask dialog
 - The openExternal permission is now by default on ask, which shows the external url that will be opened
+- Rework the follow mode invocation to simplify the keybindings and fix some specific mode switches
 
 ### Fixed
 
