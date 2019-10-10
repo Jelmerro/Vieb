@@ -36,11 +36,10 @@ app.on("login", e => {
 // When the app is ready to start, open the main window
 app.on("ready", () => {
     // Parse arguments
-    let args = process.argv
-    if (app.isPackaged) {
-        args.unshift("")
+    let args = process.argv.slice(1)
+    if (args[0] === "app") {
+        args = args.slice(1)
     }
-    args = args.slice(2)
     const urls = []
     let enableDebugMode = false
     let showInternalConsole = false
@@ -76,10 +75,10 @@ app.on("ready", () => {
                 mainWindow.restore()
             }
             mainWindow.focus()
-            if (app.isPackaged) {
-                commandLine.unshift("")
+            commandLine = commandLine.slice(1)
+            if (commandLine[0] === "app") {
+                commandLine = commandLine.slice(1)
             }
-            commandLine = commandLine.slice(2)
             mainWindow.webContents.send("urls", commandLine.filter(arg => {
                 return !arg.startsWith("-")
             }))
