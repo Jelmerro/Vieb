@@ -18,13 +18,12 @@
 /* global SETTINGS TABS UTIL */
 "use strict"
 
-const {remote} = require("electron")
+const {ipcRenderer, remote} = require("electron")
 const path = require("path")
 const fs = require("fs")
 
 const dlsFile = path.join(remote.app.getPath("appData"), "dls")
 let downloads = []
-let downloadCounter = 0
 
 const init = () => {
     if (SETTINGS.get("downloads.clearOnQuit")) {
@@ -51,24 +50,38 @@ const init = () => {
             // No downloads file yet
         }
     }
+    ipcRenderer.on("downloads-details", (_, details) => {
+        // If the download item was already destroyed when it arrived,
+        // try to update the fields with the details from main.
+        const info = downloads[downloads.length - 1]
+        for (const field of ["name", "url", "total", "file"]) {
+            info[field] = info[field] || details[field]
+        }
+    })
 }
 
 const handleDownload = (e, item) => {
-    downloadCounter += 1
-    const downloadIndex = Number(downloadCounter)
+    const info = {
+        name: "",
+        url: "",
+        total: 0,
+        file: "",
+        item: item,
+        state: "waiting_to_start",
+        current: 0,
+        date: new Date()
+    }
+    downloads.push(info)
     try {
-        const info = {
-            index: downloadIndex,
-            item: item,
-            state: "waiting_to_start",
-            url: item.getURL(),
-            total: item.getTotalBytes(),
-            current: 0,
-            file: item.getSavePath(),
-            name: item.getFilename(),
-            date: new Date()
-        }
-        downloads.push(info)
+        info.name = item.getFilename()
+        info.url = item.getURL()
+        info.file = item.getSavePath()
+        info.total = item.getTotalBytes()
+    } catch (err) {
+        // When a download is finished before the event is detected by electron,
+        // the item will throw an error for all the mapped functions.
+    }
+    try {
         UTIL.notify(`Download started:\n${info.name}`)
         item.on("updated", (_event, state) => {
             try {
@@ -79,9 +92,8 @@ const handleDownload = (e, item) => {
                     info.state = "paused"
                 }
             } catch (_e) {
-                // The download was already destroyed automatically by electron,
-                // therefor we simply remove it from the list to avoid confusion
-                downloads = downloads.filter(d => d.id !== downloadIndex)
+                // When a download is finished before the event is detected,
+                // the item will throw an error for all the mapped functions.
             }
             writeToFile()
         })
@@ -103,8 +115,6 @@ const handleDownload = (e, item) => {
     } catch (err) {
         // When a download is finished before the event is detected by electron,
         // the item will throw an error for all the mapped functions.
-        UTIL.notify("Download finished")
-        downloads = downloads.filter(d => d.id !== downloadIndex)
     }
 }
 
@@ -151,15 +161,16 @@ const sendDownloadList = (action, downloadId) => {
 }
 
 const writeToFile = () => {
-    downloads = downloads.filter(d => {
-        // Remove downloads that are stuck on waiting to start,
+    downloads.forEach(d => {
+        // Update downloads that are stuck on waiting to start,
         // but have already been destroyed by electron.
         try {
             d.item.getFilename()
-        } catch (_) {
-            return d.state !== "waiting_to_start"
+        } catch (e) {
+            if (d.state === "waiting_to_start") {
+                d.state = "completed"
+            }
         }
-        return true
     })
     if (SETTINGS.get("downloads.clearOnQuit")) {
         try {

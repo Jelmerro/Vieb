@@ -89,7 +89,7 @@ const init = () => {
                 addTab(UTIL.specialPagePath("help"))
             }
         }
-        ipcRenderer.on("urls", (event, urls) => {
+        ipcRenderer.on("urls", (_, urls) => {
             urls.forEach(url => {
                 if (!UTIL.hasProtocol(url)) {
                     url = `https://${url}`
