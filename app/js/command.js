@@ -54,7 +54,7 @@ const set = (...args) => {
                 UTIL.notify(`Unknown setting '${setting}, try using `
                     + "the suggestions", "warn")
             } else if (value.length === undefined
-                    && typeof value === "object") {
+                    && typeof value === "object" || setting === "redirects") {
                 UTIL.notify(
                     `The setting '${setting}' has the value `
                     + `'${JSON.stringify(value, null, 2)

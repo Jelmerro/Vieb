@@ -234,6 +234,7 @@ const addTab = (url=null, inverted=false) => {
     webview.getWebContents().setWebRTCIPHandlingPolicy(
         "default_public_interface_only")
     if (url) {
+        url = UTIL.redirect(url)
         webview.src = url
         title.textContent = url
     } else {
@@ -438,11 +439,24 @@ const addWebviewListeners = webview => {
         updateUrl(webview)
     })
     webview.addEventListener("will-navigate", e => {
+        const redirect = UTIL.redirect(e.url)
+        if (e.url !== redirect) {
+            webview.src = redirect
+            return
+        }
         ACTIONS.emptySearch()
         const tab = tabOrPageMatching(webview)
         tab.querySelector("span").textContent = e.url
         if (MODES.currentMode() === "cursor") {
             MODES.setMode("normal")
+        }
+    })
+    webview.addEventListener("did-navigate-in-page", e => {
+        if (e.isMainFrame) {
+            const redirect = UTIL.redirect(e.url)
+            if (e.url !== redirect) {
+                webview.src = redirect
+            }
         }
     })
     webview.addEventListener("new-window", e => {
@@ -521,6 +535,7 @@ const navigateTo = location => {
     if (currentPage().isCrashed()) {
         return
     }
+    location = UTIL.redirect(location)
     currentTab().querySelector("span").textContent = location
     currentPage().src = location
 }
