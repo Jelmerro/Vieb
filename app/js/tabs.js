@@ -94,10 +94,11 @@ const init = () => {
                 if (!UTIL.hasProtocol(url)) {
                     url = `https://${url}`
                 }
-                if (currentPage().src) {
-                    addTab(url)
-                } else {
+                const special = UTIL.pathToSpecialPageName(currentPage().src)
+                if (special.name === "newtab" || !currentPage().src) {
                     navigateTo(url)
+                } else {
+                    addTab(url)
                 }
             })
         })
@@ -252,7 +253,9 @@ const reopenTab = () => {
     if (recentlyClosed.length === 0) {
         return
     }
-    if (currentPage().src) {
+    if (UTIL.pathToSpecialPageName(currentPage().src).name === "newtab") {
+        navigateTo(recentlyClosed.pop())
+    } else if (currentPage().src) {
         addTab(recentlyClosed.pop())
     } else {
         navigateTo(recentlyClosed.pop())
