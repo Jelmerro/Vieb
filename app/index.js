@@ -158,28 +158,31 @@ const printLicense = () => {
 
 ipcMain.on("downloads-path-for-session", (_, name) => {
     session.fromPartition(name).on("will-download", (e, item) => {
-        try {
-            const filename = item.getFilename()
-            let save = path.join(app.getPath("downloads"), filename)
-            let duplicateNumber = 1
-            let newFilename = item.getFilename()
-            while (fs.existsSync(save) && fs.statSync(save).isFile()) {
-                duplicateNumber += 1
-                const extStart = filename.lastIndexOf(".")
-                if (extStart === -1) {
-                    newFilename = `${filename} (${duplicateNumber})`
-                } else {
-                    newFilename = `${filename.substring(0, extStart)
-                    } (${duplicateNumber}).${
-                        filename.substring(extStart + 1)}`
-                }
-                save = path.join(app.getPath("downloads"), newFilename)
+        const filename = item.getFilename()
+        let save = path.join(app.getPath("downloads"), filename)
+        let duplicateNumber = 1
+        let newFilename = item.getFilename()
+        while (fs.existsSync(save) && fs.statSync(save).isFile()) {
+            duplicateNumber += 1
+            const extStart = filename.lastIndexOf(".")
+            if (extStart === -1) {
+                newFilename = `${filename} (${duplicateNumber})`
+            } else {
+                newFilename = `${filename.substring(0, extStart)
+                } (${duplicateNumber}).${
+                    filename.substring(extStart + 1)}`
             }
-            item.setSavePath(save)
-        } catch (err) {
-            // When a download is finished before the event is detected,
-            // the item will throw an error for all the mapped functions.
+            save = path.join(app.getPath("downloads"), newFilename)
         }
+        // Send the details to the renderer process as a fallback,
+        // so there are still details for destoyed download items.
+        mainWindow.webContents.send("downloads-details", {
+            name: item.getFilename(),
+            url: item.getURL(),
+            total: item.getTotalBytes(),
+            file: save
+        })
+        item.setSavePath(save)
     })
 })
 
