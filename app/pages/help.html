@@ -452,7 +452,8 @@
         "enterNavMode": false,
         "showTopSites": true,
         "container": false
-    }
+    },
+    "redirects": []
 }
     </pre>
     <br>
@@ -546,7 +547,13 @@
         "nextToCurrentOne": false,
         "showTopSites": false,
         "container": true
-    }
+    },
+    "redirects": [
+        {
+            "match": "^https?://(www.)?(reddit.com.*)",
+            "replace": "https://old.$2"
+        }
+    ]
 }</pre>
 
     This example results in the following changes as compared to the defaults,
@@ -600,6 +607,7 @@
         <li>This will stop the tabs from opening next to the current one using <kbd>t</kbd>, <kbd>Ctrl with t</kbd> will do the opposite of the current setting (newtab.nextToCurrentOne)</li>
         <li>New tabs will no longer display the top visited sites as suggestions (newtab.showTopSites)</li>
         <li>New tabs now store all of the data in a separate container per tab, these tabs will have a yellow title in the navigation bar (newtab.container)</li>
+        <li>All requests to reddit will now be redirected to old.reddit.com, you can add any redirect you want here using regex (redirects)</li>
     </ul>
     Please note that the download, tab and browsing history are separately configured.
     Therefor it's possible to keep and restore the open tabs without keeping the other browsing history.

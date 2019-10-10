@@ -196,6 +196,19 @@ const clearLocalStorage = () => {
     rimrafFolder("**/*.ldb")
 }
 
+const redirect = url => {
+    SETTINGS.get("redirects").forEach(r => {
+        if (r && r.match && r.replace) {
+            try {
+                url = url.replace(RegExp(r.match), r.replace)
+            } catch (e) {
+                //Invalid regex, ignore
+            }
+        }
+    })
+    return url
+}
+
 module.exports = {
     hasProtocol,
     isUrl,
@@ -204,5 +217,6 @@ module.exports = {
     pathToSpecialPageName,
     clearCache,
     clearCookies,
-    clearLocalStorage
+    clearLocalStorage,
+    redirect
 }

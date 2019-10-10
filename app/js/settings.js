@@ -76,7 +76,8 @@ const defaultSettings = {
         "enterNavMode": false,
         "showTopSites": true,
         "container": false
-    }
+    },
+    "redirects": []
 }
 
 let allSettings = {}
@@ -101,7 +102,10 @@ const readOnly = {
         + "the startup pages will open the next time Vieb is started",
     "windowstate.position": windowstateMessage,
     "windowstate.size": windowstateMessage,
-    "windowstate.maximized": windowstateMessage
+    "windowstate.maximized": windowstateMessage,
+    "redirects": "The redirects can't be changed with the set command\n"
+        + "Instead, open the config file, edit the redirects and "
+        + "use the reload command to load them from disk again"
 }
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
