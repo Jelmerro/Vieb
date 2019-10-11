@@ -22,7 +22,7 @@ const {ipcRenderer} = require("electron")
 // Some styling is flagged with important, because of the default light theme
 const styling = `
 body {background: #333 !important;color: #eee !important;display: flex;
-    font-family: monospace;line-height: 2;}
+    font-family: monospace;line-height: 2;margin: 0;}
 #main {margin: auto;width: 50vw;background: #444;padding: 50px;
     min-width: 300px;overflow: hidden;text-overflow: ellipsis;}
 a {color: #0cf;}
