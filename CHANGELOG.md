@@ -51,6 +51,7 @@ but the list below contains much more technical details.
 - Removing active downloads no longer mismatches the info with the progress of another download
 - Rounding issues with selecting or inspecting elements using the cursor mode
 - Argument issue when running Vieb using npm start and opening links with it when Vieb was already open
+- Check the html element styling when detecting an unset background color (not only the body)
 
 ### Security
 
