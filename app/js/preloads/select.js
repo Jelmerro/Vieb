@@ -45,7 +45,7 @@ ipcRenderer.on("download-image-request", (e, x, y) => {
         }
         if (el.tagName.toLowerCase() === "svg") {
             ipcRenderer.sendToHost("download-image", window.URL.createObjectURL(
-                new Blob(el.outerHTML.split(), {type: "img/svg"})))
+                new Blob(el.outerHTML.split(), {"type": "img/svg"})))
             break
         }
     }
@@ -101,8 +101,8 @@ const calculateOffset = (startNode, x, y) => {
         range.setEnd(startNode, 1)
     } catch (e) {
         return {
-            node: startNode,
-            offset: 0
+            "node": startNode,
+            "offset": 0
         }
     }
     let properNode = startNode
@@ -150,7 +150,7 @@ const calculateOffset = (startNode, x, y) => {
     descendNodeTree(startNode)
     range.detach()
     return {
-        node: properNode,
-        offset: offset
+        "node": properNode,
+        "offset": offset
     }
 }

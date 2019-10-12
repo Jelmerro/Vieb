@@ -90,9 +90,9 @@ const devtools = () => {
     TABS.currentPage().openDevTools()
 }
 
-const openSpecialPage = (specialPage, section=null) => {
+const openSpecialPage = (specialPage, section = null) => {
     MODES.setMode("normal")
-    //Switch to already open special page if available
+    // Switch to already open special page if available
     let alreadyOpen = false
     TABS.listTabs().forEach((tab, index) => {
         // The list of tabs is ordered, the list of pages isn't
@@ -102,7 +102,7 @@ const openSpecialPage = (specialPage, section=null) => {
             TABS.switchToTab(index)
         }
     })
-    //Open the url in the current or new tab, depending on currently open page
+    // Open the url in the current or new tab, depending on currently open page
     const pageUrl = UTIL.specialPagePath(specialPage, section)
     const isNewtab = UTIL.pathToSpecialPageName(
         TABS.currentPage().src).name === "newtab"
@@ -117,7 +117,7 @@ const version = () => {
     openSpecialPage("version")
 }
 
-const help = (section=null, trailingArgs=false) => {
+const help = (section = null, trailingArgs = false) => {
     if (trailingArgs) {
         UTIL.notify("The help command takes a single optional argument", "warn")
         return
@@ -172,9 +172,9 @@ const noArgumentComands = [
 ]
 
 const execute = command => {
-    //remove all redundant spaces
-    //allow commands prefixed with :
-    //and return if the command is empty
+    // Remove all redundant spaces
+    // Allow commands prefixed with :
+    // And return if the command is empty
     command = command.replace(/^[\s|:]*/, "").trim().replace(/ +/g, " ")
     if (!command) {
         return
@@ -195,7 +195,7 @@ const execute = command => {
         UTIL.notify(
             `Ambiguous command '${command}', please be more specific`, "warn")
     } else {
-        //no command
+        // No command
         UTIL.notify(`The '${command}' command can not be found`, "warn")
     }
 }

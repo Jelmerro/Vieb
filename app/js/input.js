@@ -272,8 +272,8 @@ const handleKeyboard = e => {
     ]
     if (ignoredKeys.includes(e.code)) {
         // Keys such as control should not be registered on their own,
-        // this will prevent the cancellation of bindings like 'g g',
-        // after pressing just a single g and then control.
+        // This will prevent the cancellation of bindings like 'g g',
+        // After pressing just a single g and then control.
         e.preventDefault()
         return
     }

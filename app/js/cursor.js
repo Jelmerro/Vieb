@@ -136,7 +136,7 @@ const releaseKeys = stayVisble => {
         "window.getSelection().removeAllRanges();")
 }
 
-//ACTIONS
+// ACTIONS
 
 const moveFastLeft = () => {
     X -= 100
@@ -161,7 +161,7 @@ const inspectElement = () => {
 const copyAndStop = () => {
     if (MODES.currentMode() === "cursor") {
         remote.clipboard.write({
-            text: document.getElementById("url-hover").textContent
+            "text": document.getElementById("url-hover").textContent
         })
     } else {
         TABS.currentPage().executeJavaScript("document.execCommand('copy')")

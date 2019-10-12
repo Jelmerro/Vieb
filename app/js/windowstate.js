@@ -72,7 +72,7 @@ const load = () => {
                 bounds.height = Number(parsed.height)
                 bounds.maximized = !!parsed.maximized
             } catch (e) {
-                // no windowstate has been saved
+                // No windowstate has been saved
             }
             if (SETTINGS.get("windowstate.position")) {
                 if (bounds.x > 0 && bounds.y > 0) {
@@ -94,7 +94,7 @@ const load = () => {
     remote.getCurrentWindow().show()
 }
 
-const saveWindowState = (maximizeOnly=false) => {
+const saveWindowState = (maximizeOnly = false) => {
     let state = {}
     if (fs.existsSync(windowStateFile)) {
         if (fs.statSync(windowStateFile).isFile()) {
@@ -103,7 +103,7 @@ const saveWindowState = (maximizeOnly=false) => {
                     windowStateFile).toString()
                 state = JSON.parse(contents)
             } catch (e) {
-                // no dimensions yet
+                // No dimensions yet
             }
         }
     }
@@ -128,7 +128,7 @@ const saveWindowState = (maximizeOnly=false) => {
     try {
         fs.writeFileSync(windowStateFile, JSON.stringify(state))
     } catch (e) {
-        // not a problem, will try again later
+        // Not a problem, will try again later
     }
 }
 

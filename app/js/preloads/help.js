@@ -46,14 +46,14 @@ window.addEventListener("load", () => {
         section.appendChild(label)
         document.body.replaceChild(section, element)
     }
-    //After loading, this will add the ids to the table of contents
-    //It also will display the section id for all sections that have one
+    // After loading, this will add the ids to the table of contents
+    // It also will display the section id for all sections that have one
     const sections = [...document.querySelectorAll("*[id]")]
     sections.forEach(section => {
         createTOCEntry(section)
         createIdLabel(section)
     })
-    //Set focus to correct part of the page after it's done loading
+    // Set focus to correct part of the page after it's done loading
     setTimeout(() => {
         if (window.location.hash !== "") {
             document.querySelector(`a[href='${window.location.hash}']`).click()

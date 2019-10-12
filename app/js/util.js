@@ -26,8 +26,8 @@ const protocolRegex = /^[a-z][a-z0-9-+.]+:\/\//
 const specialPages = ["help", "history", "downloads", "newtab", "version"]
 
 const hasProtocol = location => {
-    //Check for a valid protocol at the start
-    //This will ALWAYS result in the url being valid
+    // Check for a valid protocol at the start
+    // This will ALWAYS result in the url being valid
     return protocolRegex.test(location)
 }
 
@@ -69,22 +69,22 @@ const isUrl = location => {
         }
     }
     return false
-    //Checks if the location starts with one of the following:
-    //- localhost
-    //- An ipv4 address
-    //- Valid domain with 0 or more subdomains
-    //  - subdomains can have letters, digits and hyphens
-    //  - hyphens cannot be at the end or the start of the subdomain
-    //  - toplevel domains can only contain letters
-    //After that, an optional port in the form of :22 or up to :22222
-    //Lastly, it checks if the location ends with one of the following:
-    //- Nothing
-    //- Single slash character with anything behind it
-    //- Single question mark with anything behind it
-    //- Single number sign with anything behind it
+    // Checks if the location starts with one of the following:
+    // - localhost
+    // - An ipv4 address
+    // - Valid domain with 0 or more subdomains
+    //   - subdomains can have letters, digits and hyphens
+    //   - hyphens cannot be at the end or the start of the subdomain
+    //   - toplevel domains can only contain letters
+    // After that, an optional port in the form of :22 or up to :22222
+    // Lastly, it checks if the location ends with one of the following:
+    // - Nothing
+    // - Single slash character with anything behind it
+    // - Single question mark with anything behind it
+    // - Single number sign with anything behind it
 }
 
-const notify = (message, type="info") => {
+const notify = (message, type = "info") => {
     let properType = "info"
     if (type.startsWith("warn")) {
         properType = "warning"
@@ -117,7 +117,7 @@ const notify = (message, type="info") => {
     }, SETTINGS.get("notification.duration"))
 }
 
-const specialPagePath = (page, section=null, skipExistCheck=false) => {
+const specialPagePath = (page, section = null, skipExistCheck = false) => {
     if (!specialPages.includes(page) && !skipExistCheck) {
         page = "help"
     }
@@ -170,7 +170,7 @@ const rimrafFolder = folder => {
     try {
         rimraf(path.join(remote.app.getPath("appData"), folder))
     } catch (e) {
-        //Rimraf errors
+        // Rimraf errors
     }
 }
 
@@ -202,7 +202,7 @@ const redirect = url => {
             try {
                 url = url.replace(RegExp(r.match), r.replace)
             } catch (e) {
-                //Invalid regex, ignore
+                // Invalid regex, ignore
             }
         }
     })

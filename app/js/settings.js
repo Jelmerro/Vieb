@@ -295,7 +295,7 @@ const loadFromDisk = () => {
     updateDownloadSettings()
 }
 
-const get = (setting, settingObject=allSettings) => {
+const get = (setting, settingObject = allSettings) => {
     if (!setting.includes(".")) {
         return settingObject[setting]
     }
@@ -306,7 +306,7 @@ const get = (setting, settingObject=allSettings) => {
     return settingObject[group][config]
 }
 
-const set = (setting, value, startup=false) => {
+const set = (setting, value, startup = false) => {
     if (checkForValidSetting(setting, value, startup)) {
         if (setting.includes(".")) {
             const [group, config] = setting.split(".")
