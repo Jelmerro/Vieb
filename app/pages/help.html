@@ -433,6 +433,7 @@
     },
     "tabs": {
         "restore": true,
+        "minwidth": 22,
         "keepRecentlyClosed": true,
         "startup": []
     },
@@ -538,6 +539,7 @@
     },
     "tabs": {
         "restore": false,
+        "minwidth": 250,
         "keepRecentlyClosed": false,
         "startup": [
             "vieb://help"
@@ -604,6 +606,7 @@
         <li>Clear the browsing history when exiting Vieb (history.clearOnQuit)</li>
         <li>Stop adding newly visited webpages to the browsing history (history.storeNewVisits)</li>
         <li>Don't restore the previously open tabs when restarting Vieb (tabs.restore)</li>
+        <li>Tabs now have a minimal width of 250px instead of 22, a cyan scrollbar will appear when the tabs don't fit on the navbar, set to 0 for no minimum (tabs.minwidth)</li>
         <li>The recently closed tabs will no longer be restorable with the <kbd>u</kbd> key (tabs.keepRecentlyClosed)</li>
         <li>Open this help page on startup, which can be expanded with other urls (tabs.startup)</li>
         <li>The position of the window when not maximized will not be remembered and restored after restarting (windowstate.position)</li>

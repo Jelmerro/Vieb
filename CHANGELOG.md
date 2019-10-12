@@ -26,6 +26,7 @@ but the list below contains much more technical details.
 - Hardcopy (or print) command to print the current page with a printer
 - Configure custom redirects in the settings with regex patterns
 - History of previously executed commands during the current session
+- Minimal width setting for tabs which by default is set to 22 (just the icon)
 
 ### Changed
 

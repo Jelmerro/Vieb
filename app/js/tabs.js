@@ -203,6 +203,7 @@ const addTab = (url = null, inverted = false) => {
     const favicon = document.createElement("img")
     const statusIcon = document.createElement("img")
     const title = document.createElement("span")
+    tab.style.minWidth = `${SETTINGS.get("tabs.minwidth")}px`
     favicon.src = "img/empty.png"
     favicon.className = "favicon"
     statusIcon.src = "img/spinner.gif"
@@ -310,6 +311,9 @@ const switchToTab = index => {
         page.style.display = "none"
     })
     tabs[index].id = "current-tab"
+    tabs[index].scrollIntoView({
+        "inline": "center"
+    })
     tabOrPageMatching(tabs[index]).style.display = "flex"
     updateUrl(currentPage())
     saveTabs()
@@ -553,6 +557,9 @@ const moveTabForward = () => {
         return
     }
     tabs.insertBefore(currentTab(), currentTab().nextSibling.nextSibling)
+    currentTab().scrollIntoView({
+        "inline": "center"
+    })
 }
 
 const moveTabBackward = () => {
@@ -562,6 +569,9 @@ const moveTabBackward = () => {
         return
     }
     tabs.insertBefore(currentTab(), currentTab().previousSibling)
+    currentTab().scrollIntoView({
+        "inline": "center"
+    })
 }
 
 module.exports = {
