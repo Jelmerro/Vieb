@@ -25,6 +25,7 @@ but the list below contains much more technical details.
 - Keys can now be mapped to any supported command, such as "F1": ":help" (previously "F1": "COMMAND.help")
 - Hardcopy (or print) command to print the current page with a printer
 - Configure custom redirects in the settings with regex patterns
+- History of previously executed commands during the current session
 
 ### Changed
 

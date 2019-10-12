@@ -134,6 +134,9 @@
             as it's the only way to properly quit Vieb.
             For more detailed instructions on how to use this command,
             please refer to the dedicated paragraph <a href="#commands-quit">here</a>.
+            You can switch between the suggestions with <kbd>Tab</kbd> and <kbd>Shift with Tab</kbd>,
+            after which you can select a suggestion by pressing <kbd>Enter</kbd>.
+            You can also access previously executed commands with <kbd>Ctrl with b</kbd> and <kbd>Ctrl with f</kbd>.
         </li>
         <li>
             <span class="search">Search</span>
@@ -314,6 +317,8 @@
             "Tab": "ACTIONS.nextSuggestion",
             "S-Tab": "ACTIONS.prevSuggestion",
             "C-BracketLeft": "ACTIONS.toNormalMode",
+            "C-KeyB": "ACTIONS.commandHistoryPrevious",
+            "C-KeyF": "ACTIONS.commandHistoryNext",
             "Enter": "ACTIONS.useEnteredData"
         },
         "search": {
@@ -877,6 +882,10 @@
     By default, all supported commands will be autocompleted using a suggestions dropdown menu,
     similar to the nav mode suggestions.
     These suggestions can be disabled for commands by setting "suggestCommands" to false.
+    You can switch between suggestions using <kbd>Tab</kbd> and <kbd>Shift with Tab</kbd>,
+    after which you can execute the command using <kbd>Enter</kbd>.
+    Previously executed commands are stored during the current session,
+    and can be accessed using <kbd>Ctrl with b</kbd> and <kbd>Ctrl with f</kbd>.
     It's also possible to type only the first part of a command name,
     if that's the only one starting with the entered text (for example, ":dev" will execute devtools).
     The full list of commands is as follows:
