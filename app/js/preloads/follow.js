@@ -151,30 +151,11 @@ const elementClickableAtPosition = (element, x, y) => {
     return [...element.querySelectorAll("*")].includes(elementAtPosition)
 }
 
-const parseElement = (element, type) => {
-    // The body shouldn't be considered clickable on it's own,
-    // Even if listeners are added to it.
-    if (element === document.querySelector("html")
-            || element === document.body) {
-        return null
-    }
-    // Check if the element actually has rects
-    if (!element.getClientRects) {
-        return null
-    }
-    // Make a list of all possible bouding rects for the element
-    let rects = [...element.getClientRects()]
-    if (type === "url") {
-        for (const subImage of element.querySelectorAll("img, svg")) {
-            rects = rects.concat([...subImage.getClientRects()])
-        }
-    }
-    let dimensions = element.getBoundingClientRect()
+const findClickPosition = (element, rects) => {
+    let dimensions = {}
+    let clickable = false
     // Check if the center of the boundingrect is actually clickable,
     // For every possible rect of the element and it's sub images.
-    const clickX = dimensions.x + dimensions.width / 2
-    const clickY = dimensions.y + dimensions.height / 2
-    let clickable = elementClickableAtPosition(element, clickX, clickY)
     for (const rect of rects) {
         const rectX = rect.x + rect.width / 2
         const rectY = rect.y + rect.height / 2
@@ -189,27 +170,38 @@ const parseElement = (element, type) => {
             }
         }
     }
-    // Return if not a single clickable region could be found
-    if (!clickable) {
+    return {clickable, dimensions}
+}
+
+const parseElement = (element, type) => {
+    // The body shouldn't be considered clickable on it's own,
+    // Even if listeners are added to it.
+    // Also checks if the element actually has rects.
+    if (element === document.querySelector("html")
+            || element === document.body || !element.getClientRects) {
         return null
     }
-    // Too small to properly click on using a regular browser,
-    // Thus should not be expected to be clicked on using follow mode.
-    if (dimensions.width <= 2 || dimensions.height <= 2) {
-        return null
+    // Make a list of all possible bouding rects for the element
+    let rects = [element.getBoundingClientRect(), ...element.getClientRects()]
+    if (type === "url") {
+        for (const subImage of element.querySelectorAll("img, svg")) {
+            rects = rects.concat([...subImage.getClientRects()])
+        }
     }
-    // The element isn't actually visible on the user's current window
-    if (dimensions.bottom < 0 || dimensions.top > window.innerHeight) {
-        return null
-    }
-    if (dimensions.right < 0 || dimensions.left > window.innerWidth) {
-        return null
-    }
-    // The element is too big to actually make sense to click on by choice
-    if (dimensions.width >= window.innerWidth) {
-        return null
-    }
-    if (dimensions.height >= window.innerHeight) {
+    // Find a clickable area and position for the given element
+    const {dimensions, clickable} = findClickPosition(element, rects)
+    // Return null if any of the check below fail
+    // - Not detected as clickable in the above loop
+    // - Too small to properly click on using a regular browser
+    const tooSmall = dimensions.width <= 2 || dimensions.height <= 2
+    // - The element isn't actually visible on the user's current window
+    const outsideWindow = dimensions.bottom < 0
+        || dimensions.top > window.innerHeight
+        || dimensions.right < 0 || dimensions.left > window.innerWidth
+    // - The element is too big to actually make sense to click on by choice
+    const tooBig = dimensions.width >= window.innerWidth
+        || dimensions.height >= window.innerHeight
+    if (!clickable || tooSmall || outsideWindow || tooBig) {
         return null
     }
     // The element should be clickable and is returned in a parsed format
