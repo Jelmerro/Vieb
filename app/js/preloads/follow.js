@@ -166,7 +166,6 @@ const findClickPosition = (element, rects) => {
                     || !clickable) {
                 clickable = true
                 dimensions = rect
-                break
             }
         }
     }
