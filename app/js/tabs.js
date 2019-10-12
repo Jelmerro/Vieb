@@ -39,7 +39,7 @@ const init = () => {
                 const contents = fs.readFileSync(tabFile).toString()
                 parsed = JSON.parse(contents)
             } catch (e) {
-                //No tab history yet
+                // No tab history yet
             }
         }
         for (const tab of startup) {
@@ -77,7 +77,7 @@ const init = () => {
                 try {
                     fs.unlinkSync(tabFile)
                 } catch (e) {
-                    //Failed to delete, might not exist
+                    // Failed to delete, might not exist
                 }
             }
         }
@@ -85,7 +85,7 @@ const init = () => {
             if (parsed) {
                 addTab()
             } else {
-                //Probably first startup ever (no configured or stored pages)
+                // Probably first startup ever (no configured or stored pages)
                 addTab(UTIL.specialPagePath("help"))
             }
         }
@@ -102,8 +102,8 @@ const init = () => {
                 }
             })
         })
-        //This forces the webview to update on sites which wait for the mouse
-        //It will also enable the pointer events when in insert or cursor mode
+        // This forces the webview to update on sites which wait for the mouse
+        // It will also enable the pointer events when in insert or cursor mode
         setInterval(() => {
             currentPage().style.pointerEvents = "auto"
             if (MODES.currentMode() === "insert") {
@@ -123,9 +123,9 @@ const init = () => {
 
 const saveTabs = () => {
     const data = {
-        tabs: [],
-        id: 0,
-        closed: []
+        "tabs": [],
+        "id": 0,
+        "closed": []
     }
     const tabFile = path.join(remote.app.getPath("appData"), "tabs")
     if (SETTINGS.get("tabs.restore")) {
@@ -155,12 +155,12 @@ const saveTabs = () => {
         try {
             fs.unlinkSync(tabFile)
         } catch (e) {
-            //Failed to delete, might not exist
+            // Failed to delete, might not exist
         }
         return
     }
     // Only keep the 100 most recently closed tabs,
-    // more is probably never needed but would keep increasing the file size.
+    // More is probably never needed but would keep increasing the file size.
     data.closed = data.closed.slice(-100)
     try {
         fs.writeFileSync(tabFile, JSON.stringify(data))
@@ -191,7 +191,7 @@ const currentPage = () => {
     return currentPageElement
 }
 
-const addTab = (url=null, inverted=false) => {
+const addTab = (url = null, inverted = false) => {
     let addNextToCurrent = SETTINGS.get("newtab.nextToCurrentOne")
     addNextToCurrent = addNextToCurrent && listTabs().length > 0
     if (inverted) {
@@ -363,16 +363,16 @@ const addWebviewListeners = webview => {
             MODES.setMode("normal")
             webview.setAttribute("logging-in", "yes")
             const windowData = {
-                backgroundColor: "#333333",
-                width: SETTINGS.get("fontSize") * 21,
-                height: SETTINGS.get("fontSize") * 21,
-                parent: remote.getCurrentWindow(),
-                modal: true,
-                frame: false,
-                title: `${auth.host}: ${auth.realm}`,
-                resizable: false,
-                webPreferences: {
-                    nodeIntegration: true
+                "backgroundColor": "#333333",
+                "width": SETTINGS.get("fontSize") * 21,
+                "height": SETTINGS.get("fontSize") * 21,
+                "parent": remote.getCurrentWindow(),
+                "modal": true,
+                "frame": false,
+                "title": `${auth.host}: ${auth.realm}`,
+                "resizable": false,
+                "webPreferences": {
+                    "nodeIntegration": true
                 }
             }
             const loginWindow = new remote.BrowserWindow(windowData)
@@ -385,7 +385,7 @@ const addWebviewListeners = webview => {
                 try {
                     callback("", "")
                 } catch (err) {
-                    //Callback was already called
+                    // Callback was already called
                 }
             })
             loginWindow.loadURL(UTIL.specialPagePath("login", null, true))
@@ -394,7 +394,7 @@ const addWebviewListeners = webview => {
                     callback(credentials[0], credentials[1])
                     loginWindow.close()
                 } catch (err) {
-                    //Window is already being closed
+                    // Window is already being closed
                 }
             })
         })
@@ -402,10 +402,11 @@ const addWebviewListeners = webview => {
     webview.addEventListener("did-fail-load", e => {
         if (e.errorDescription === "" || !e.isMainFrame) {
             // Request was aborted before another error could occur
-            // or some request made by the page failed (which can be ignored)
+            // Or some request made by the page failed (which can be ignored)
             return
         }
-        //It will go to the http version of a website, when no https is detected
+        // It will go to the http version of a website, when no https is present
+        // But only when the redirectToHttp setting is active
         const redirect = SETTINGS.get("redirectToHttp")
         const sslErrors = [
             "ERR_CERT_COMMON_NAME_INVALID",

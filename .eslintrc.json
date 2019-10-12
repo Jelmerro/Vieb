@@ -13,6 +13,7 @@
             "consistent"
         ],
         "array-bracket-spacing": "error",
+        "array-callback-return": "error",
         "array-element-newline": [
             "error",
             "consistent"
@@ -22,6 +23,7 @@
             "as-needed"
         ],
         "arrow-spacing": "error",
+        "block-scoped-var": "error",
         "block-spacing": "error",
         "brace-style": [
             "error",
@@ -31,12 +33,16 @@
             }
         ],
         "camelcase": "error",
+        "capitalized-comments": "error",
         "comma-dangle": "error",
         "comma-spacing": "error",
         "comma-style": "error",
+        "complexity": "error",
         "computed-property-spacing": "error",
         "curly": "error",
+        "default-param-last": "error",
         "dot-notation": "error",
+        "eol-last": "error",
         "eqeqeq": "error",
         "for-direction": "error",
         "func-call-spacing": "error",
@@ -53,11 +59,11 @@
         "init-declarations": "error",
         "key-spacing": "error",
         "keyword-spacing": "error",
-        "linebreak-style": [
-            "error",
-            "unix"
-        ],
+        "linebreak-style": "error",
         "max-len": "warn",
+        "max-statements-per-line": "error",
+        "new-cap": "error",
+        "new-parens": "error",
         "no-alert": "error",
         "no-compare-neg-zero": "error",
         "no-cond-assign": "error",
@@ -66,6 +72,7 @@
         "no-constant-condition": "error",
         "no-control-regex": "error",
         "no-debugger": "error",
+        "no-dupe-args": "error",
         "no-dupe-keys": "error",
         "no-duplicate-case": "error",
         "no-else-return": [
@@ -75,6 +82,7 @@
             }
         ],
         "no-empty": "error",
+        "no-empty-function": "error",
         "no-empty-pattern": "error",
         "no-eval": "error",
         "no-ex-assign": "error",
@@ -83,16 +91,23 @@
         "no-func-assign": "error",
         "no-global-assign": "error",
         "no-implied-eval": "error",
+        "no-import-assign": "error",
+        "no-inline-comments": "error",
+        "no-inner-declarations": "error",
         "no-invalid-regexp": "error",
         "no-irregular-whitespace": "error",
         "no-labels": "error",
         "no-lonely-if": "error",
+        "no-mixed-requires": "error",
+        "no-multi-assign": "error",
         "no-multi-spaces": "error",
         "no-multi-str": "error",
+        "no-multiple-empty-lines": "error",
         "no-negated-condition": "error",
         "no-new-func": "error",
         "no-new-wrappers": "error",
         "no-obj-calls": "error",
+        "no-path-concat": "error",
         "no-plusplus": [
             "error",
             {
@@ -112,9 +127,11 @@
             }
         ],
         "no-return-assign": "error",
+        "no-return-await": "error",
         "no-shadow": "error",
         "no-shadow-restricted-names": "error",
         "no-sparse-arrays": "error",
+        "no-tabs": "error",
         "no-ternary": "error",
         "no-trailing-spaces": "error",
         "no-undef": "error",
@@ -125,8 +142,10 @@
         "no-unused-vars": "warn",
         "no-useless-concat": "error",
         "no-useless-escape": "error",
+        "no-useless-rename": "error",
         "no-useless-return": "error",
         "no-var": "error",
+        "no-warning-comments": "error",
         "no-whitespace-before-property": "error",
         "no-with": "error",
         "object-curly-newline": "error",
@@ -146,28 +165,42 @@
         ],
         "prefer-arrow-callback": "error",
         "prefer-const": "error",
+        "prefer-destructuring": [
+            "error",
+            {
+                "array": false
+            }
+        ],
+        "prefer-object-spread": "error",
         "prefer-rest-params": "error",
         "prefer-spread": "error",
         "prefer-template": "error",
+        "quote-props": "error",
         "quotes": [
             "error",
             "double",
             {
-                "allowTemplateLiterals": true,
-                "avoidEscape": true
+                "allowTemplateLiterals": true
             }
         ],
+        "require-await": "error",
         "rest-spread-spacing": "error",
         "semi": [
             "error",
             "never"
         ],
+        "sort-imports": "error",
         "space-before-blocks": "error",
         "space-in-parens": "error",
+        "space-infix-ops": "error",
+        "space-unary-ops": "error",
+        "spaced-comment": "error",
         "strict": [
             "error",
             "global"
         ],
+        "template-curly-spacing": "error",
+        "use-isnan": "error",
         "valid-typeof": "error",
         "yoda": "error"
     }

@@ -20,7 +20,7 @@
 const {ipcRenderer} = require("electron")
 const path = require("path")
 
-//Configure breakpoints to make searching easier
+// Configure breakpoints to make searching easier
 const now = new Date()
 const anHourAgo = new Date(now.getTime() - 3600000)
 const todayStartTime = new Date(now)
@@ -32,51 +32,51 @@ pastSevenDays.setDate(pastSevenDays.getDate() - 7)
 const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1)
 const pastYear = new Date()
 pastYear.setFullYear(pastYear.getFullYear() - 1)
-//"enabled" is there to calculate if the breakpoint makes sense at this time
-//If true, the breakpoint might have no entries in case it still won't be shown
-//Only breakpoints that make sense AND contain history entries will be visible
+// "enabled" is there to calculate if the breakpoint makes sense at this time
+// If true, the breakpoint might have no entries in case it still won't be shown
+// Only breakpoints that make sense AND contain history entries will be visible
 const dateBreakpoints = [
     {
-        title: "Past hour",
-        link: "hour",
-        date: anHourAgo,
-        enabled: true
+        "title": "Past hour",
+        "link": "hour",
+        "date": anHourAgo,
+        "enabled": true
     },
     {
-        title: "Today",
-        link: "day",
-        date: todayStartTime,
-        enabled: anHourAgo.getTime() > todayStartTime.getTime()
+        "title": "Today",
+        "link": "day",
+        "date": todayStartTime,
+        "enabled": anHourAgo.getTime() > todayStartTime.getTime()
     },
     {
-        title: "Yesterday",
-        link: "yesterday",
-        date: yesterdayStartTime,
-        enabled: true
+        "title": "Yesterday",
+        "link": "yesterday",
+        "date": yesterdayStartTime,
+        "enabled": true
     },
     {
-        title: "Past 7 days",
-        link: "week",
-        date: pastSevenDays,
-        enabled: true
+        "title": "Past 7 days",
+        "link": "week",
+        "date": pastSevenDays,
+        "enabled": true
     },
     {
-        title: "This month",
-        link: "month",
-        date: thisMonth,
-        enabled: pastSevenDays.getTime() > thisMonth.getTime()
+        "title": "This month",
+        "link": "month",
+        "date": thisMonth,
+        "enabled": pastSevenDays.getTime() > thisMonth.getTime()
     },
     {
-        title: "Past year",
-        link: "year",
-        date: pastYear,
-        enabled: true
+        "title": "Past year",
+        "link": "year",
+        "date": pastYear,
+        "enabled": true
     },
     {
-        title: "Older than a year",
-        link: "old",
-        date: null,
-        enabled: true
+        "title": "Older than a year",
+        "link": "old",
+        "date": null,
+        "enabled": true
     }
 ].reverse().filter(b => b.enabled)
 let currentBreakpointIndex = 0
@@ -123,13 +123,13 @@ const addBreakpoint = (index, lineNumber) => {
         return
     }
     const breakpoint = dateBreakpoints[index]
-    //Add link to the top of the page
+    // Add link to the top of the page
     const link = document.createElement("a")
     link.textContent = breakpoint.title
     link.setAttribute("href", `#${breakpoint.link}`)
     document.getElementById("breakpoints").insertBefore(
         link, document.getElementById("breakpoints").firstChild)
-    //Add header to the list
+    // Add header to the list
     const h2 = document.createElement("h2")
     h2.setAttribute("id", breakpoint.link)
     h2.textContent = breakpoint.title
@@ -143,18 +143,18 @@ const addBreakpoint = (index, lineNumber) => {
 }
 
 const addHistToList = hist => {
-    //Shift the breakpoint to the next one
+    // Shift the breakpoint to the next one
     const previousBreakpoint = currentBreakpointIndex
     let breakpoint = dateBreakpoints[currentBreakpointIndex + 1]
     while (breakpoint && breakpoint.date.getTime() < hist.date.getTime()) {
         currentBreakpointIndex += 1
         breakpoint = dateBreakpoints[currentBreakpointIndex + 1]
     }
-    //And show only the revelant breakpoint if multiple are skipped
+    // And show only the revelant breakpoint if multiple are skipped
     if (previousBreakpoint !== currentBreakpointIndex) {
         addBreakpoint(previousBreakpoint, hist.line - 1)
     }
-    //Finally show the history entry (possibly after new breakpoint)
+    // Finally show the history entry (possibly after new breakpoint)
     const histElement = document.createElement("div")
     histElement.className = "hist-entry"
     const img = document.createElement("img")
@@ -179,7 +179,7 @@ window.clearHistory = () => {
     ipcRenderer.sendToHost("history-list-request", "all")
 }
 
-window.clearLinesFromHistory = (start, end=null) => {
+window.clearLinesFromHistory = (start, end = null) => {
     ipcRenderer.sendToHost("history-list-request", "range", start, end)
 }
 

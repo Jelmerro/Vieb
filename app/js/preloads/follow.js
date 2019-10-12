@@ -74,14 +74,14 @@ const sendFollowLinks = () => {
         return
     }
     const allLinks = []
-    //a tags with href as the link, can be opened in new tab or current tab
+    // A tags with href as the link, can be opened in new tab or current tab
     allLinks.push(...allElementsBySelectors("url", urls))
-    //input tags such as checkboxes, can be clicked but have no text input
+    // Input tags such as checkboxes, can be clicked but have no text input
     const inputs = [...document.querySelectorAll(clickableInputs)]
     inputs.forEach(element => {
         const clickable = parseElement(element, "inputs-click")
         if (clickable) {
-            //Only show input elements for which there is no existing url
+            // Only show input elements for which there is no existing url
             const similarExistingLinks = allLinks.filter(link => {
                 return checkForDuplicateLink(clickable, link)
             })
@@ -90,9 +90,9 @@ const sendFollowLinks = () => {
             }
         }
     })
-    //input tags such as email and text, can have text inserted
+    // Input tags such as email and text, can have text inserted
     allLinks.push(...allElementsBySelectors("inputs-insert", textlikeInputs))
-    //All other elements with onclick listeners
+    // All other elements with onclick listeners
     const clickableElements = [...document.querySelectorAll("*")]
         .filter(el => el.onclick || el.onmousedown)
     clickableElements.push(...elementsWithClickListener)
@@ -100,7 +100,7 @@ const sendFollowLinks = () => {
     clickableElements.forEach(element => {
         const clickable = parseElement(element, "onclick")
         if (clickable) {
-            //Only show onclick elements for which there is no existing link
+            // Only show onclick elements for which there is no existing link
             const similarExistingLinks = allLinks.filter(link => {
                 return checkForDuplicateLink(clickable, link)
             })
@@ -109,8 +109,8 @@ const sendFollowLinks = () => {
             }
         }
     })
-    //Send response back to webview, which will forward it to follow.js
-    //Ordered by the position on the page from the top
+    // Send response back to webview, which will forward it to follow.js
+    // Ordered by the position on the page from the top
     ipcRenderer.sendToHost("follow-response", allLinks.sort((el1, el2) => {
         return Math.floor(el1.y) - Math.floor(el2.y) || el1.x - el2.x
     }))
@@ -128,7 +128,7 @@ ipcRenderer.on("follow-mode-stop", () => {
 })
 
 const checkForDuplicateLink = (element, existing) => {
-    //Check for similar click positions and remove them as a duplicate
+    // Check for similar click positions and remove them as a duplicate
     const elementX = element.x + element.width / 2
     const elementY = element.y + element.height / 2
     const existingX = existing.x + existing.width / 2
@@ -142,8 +142,8 @@ const checkForDuplicateLink = (element, existing) => {
 }
 
 const elementClickableAtPosition = (element, x, y) => {
-    //Check if an element can be found in a given position.
-    //Also checks if any of the children are visible instead.
+    // Check if an element can be found in a given position.
+    // Also checks if any of the children are visible instead.
     const elementAtPosition = document.elementFromPoint(x, y)
     if (elementAtPosition === element) {
         return true
@@ -152,17 +152,17 @@ const elementClickableAtPosition = (element, x, y) => {
 }
 
 const parseElement = (element, type) => {
-    //The body shouldn't be considered clickable on it's own,
-    //even if listeners are added to it.
+    // The body shouldn't be considered clickable on it's own,
+    // Even if listeners are added to it.
     if (element === document.querySelector("html")
             || element === document.body) {
         return null
     }
-    //Check if the element actually has rects
+    // Check if the element actually has rects
     if (!element.getClientRects) {
         return null
     }
-    //Make a list of all possible bouding rects for the element
+    // Make a list of all possible bouding rects for the element
     let rects = [...element.getClientRects()]
     if (type === "url") {
         for (const subImage of element.querySelectorAll("img, svg")) {
@@ -170,8 +170,8 @@ const parseElement = (element, type) => {
         }
     }
     let dimensions = element.getBoundingClientRect()
-    //Check if the center of the boundingrect is actually clickable,
-    //for every possible rect of the element and it's sub images.
+    // Check if the center of the boundingrect is actually clickable,
+    // For every possible rect of the element and it's sub images.
     const clickX = dimensions.x + dimensions.width / 2
     const clickY = dimensions.y + dimensions.height / 2
     let clickable = elementClickableAtPosition(element, clickX, clickY)
@@ -179,7 +179,7 @@ const parseElement = (element, type) => {
         const rectX = rect.x + rect.width / 2
         const rectY = rect.y + rect.height / 2
         if (elementClickableAtPosition(element, rectX, rectY)) {
-            //Update the region if it's larger or the first region found
+            // Update the region if it's larger or the first region found
             if (rect.width > dimensions.width
                     || rect.height > dimensions.height
                     || !clickable) {
@@ -189,30 +189,30 @@ const parseElement = (element, type) => {
             }
         }
     }
-    //Return if not a single clickable region could be found
+    // Return if not a single clickable region could be found
     if (!clickable) {
         return null
     }
-    //Too small to properly click on using a regular browser,
-    //thus should not be expected to be clicked on using follow mode.
+    // Too small to properly click on using a regular browser,
+    // Thus should not be expected to be clicked on using follow mode.
     if (dimensions.width <= 2 || dimensions.height <= 2) {
         return null
     }
-    //The element isn't actually visible on the user's current window
+    // The element isn't actually visible on the user's current window
     if (dimensions.bottom < 0 || dimensions.top > window.innerHeight) {
         return null
     }
     if (dimensions.right < 0 || dimensions.left > window.innerWidth) {
         return null
     }
-    //The element is too big to actually make sense to click on by choice
+    // The element is too big to actually make sense to click on by choice
     if (dimensions.width >= window.innerWidth) {
         return null
     }
     if (dimensions.height >= window.innerHeight) {
         return null
     }
-    //The element should be clickable and is returned in a parsed format
+    // The element should be clickable and is returned in a parsed format
     return {
         "url": element.href || "",
         "x": dimensions.x,
@@ -256,20 +256,20 @@ Node.prototype.removeEventListener = function(type, listener, options) {
     try {
         this.realRemoveEventListener(type, listener, options)
     } catch (e) {
-        //This is a bug in the underlying website
+        // This is a bug in the underlying website
     }
     if (type === "click" && this !== document) {
         try {
             elementsWithClickListener.remove(this)
         } catch (e) {
-            //The element was already removed from the list before
+            // The element was already removed from the list before
         }
     }
     if (type === "mousedown" && this !== document) {
         try {
             elementsWithMouseDownListener.remove(this)
         } catch (e) {
-            //The element was already removed from the list before
+            // The element was already removed from the list before
         }
     }
 }
@@ -277,11 +277,11 @@ Node.prototype.removeEventListener = function(type, listener, options) {
 // Send the follow links to the renderer if dom is changed in any way
 const observer = new window.MutationObserver(sendFollowLinks)
 observer.observe(document, {
-    childList: true,
-    attributes: true,
-    characterData: true,
-    subtree: true,
-    attributeFilter: ["class", "id", "style"]
+    "childList": true,
+    "attributes": true,
+    "characterData": true,
+    "subtree": true,
+    "attributeFilter": ["class", "id", "style"]
 })
 // And also once every few seconds in case of transitions or animations
 setInterval(sendFollowLinks, 2000)

@@ -92,7 +92,7 @@ const create = name => {
         return
     }
     const session = remote.session.fromPartition(name, {
-        cache: SETTINGS.get("cache") !== "none"
+        "cache": SETTINGS.get("cache") !== "none"
     })
     session.setPermissionRequestHandler(permissionHandler)
     if (SETTINGS.get("adblocker") !== "off") {

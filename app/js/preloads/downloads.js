@@ -22,7 +22,7 @@ const path = require("path")
 
 let lastUpdate = new Date()
 
-window.update = (action=null, downloadId=null) => {
+window.update = (action = null, downloadId = null) => {
     ipcRenderer.sendToHost("download-list-request", action, downloadId)
 }
 
@@ -55,7 +55,7 @@ window.addEventListener("load", () => {
 })
 
 ipcRenderer.on("download-list", (e, list) => {
-    //list
+    // List
     if (list.length === 0) {
         document.getElementById("list").textContent
             = "Nothing has been downloaded yet."
@@ -78,7 +78,7 @@ ipcRenderer.on("download-list", (e, list) => {
                     document.getElementById("list").removeChild(
                         document.querySelectorAll("#list .download")[i])
                 } catch (err) {
-                    //List might be shorter the second time this is called
+                    // List might be shorter the second time this is called
                 }
             }
         }
@@ -97,7 +97,7 @@ ipcRenderer.on("download-list", (e, list) => {
 const addDownload = (download, id) => {
     const element = document.createElement("div")
     element.className = "download"
-    // toggle pause and remove buttons
+    // Toggle pause and remove buttons
     const remove = document.createElement("img")
     remove.className = "remove"
     remove.src = path.join(__dirname, "../../img/trash.png")
@@ -108,12 +108,12 @@ const addDownload = (download, id) => {
     togglePause.src = path.join(__dirname, "../../img/pause.png")
     togglePause.setAttribute("onclick", `window.pause(${id})`)
     element.appendChild(togglePause)
-    // title
+    // Title
     const title = document.createElement("div")
     title.textContent = download.name
     title.className = "title"
     element.appendChild(title)
-    // progress
+    // Progress
     const progress = document.createElement("progress")
     if (download.current > download.total) {
         progress.max = download.current
@@ -122,7 +122,7 @@ const addDownload = (download, id) => {
     }
     progress.value = download.current
     element.appendChild(progress)
-    // change looks depending on the state
+    // Change looks depending on the state
     if (download.state === "completed") {
         title.style.color = "lime"
         progress.style.display = "none"
@@ -138,7 +138,7 @@ const addDownload = (download, id) => {
         togglePause.src = path.join(__dirname, "../../img/resume.png")
         togglePause.setAttribute("onclick", `window.resume(${id})`)
     }
-    // other info
+    // Other info
     const misc = document.createElement("div")
     misc.className = "misc"
     const state = document.createElement("span")
@@ -171,7 +171,7 @@ const addDownload = (download, id) => {
 
 const updateDownload = (download, element, id) => {
     const progress = element.querySelector("progress")
-    // speed
+    // Speed
     const timeSinceUpdate = (new Date().getTime() - lastUpdate) / 1000
     const speed = formatSize(
         (download.current - progress.value) / timeSinceUpdate)
@@ -194,23 +194,23 @@ const updateDownload = (download, element, id) => {
             = `${formatSize(download.current)} / ${formatSize(download.total)}
             - ${speed}/s`
     }
-    // update progress
+    // Update progress
     if (download.current > download.total) {
         progress.max = download.current
     } else {
         progress.max = download.total
     }
     progress.value = download.current
-    // update other info (for when other downloads are removed)
+    // Update other info (for when other downloads are removed)
     const title = element.querySelector(".title")
     title.style.color = ""
     title.textContent = download.name
     const downloadUrl = element.querySelector("a")
     downloadUrl.href = download.url
-    downloadUrl.textContent= decodeURIComponent(download.url)
+    downloadUrl.textContent = decodeURIComponent(download.url)
     element.querySelector(".filelocation").textContent = download.file
     element.querySelector(".date").textContent = formatDate(download.date)
-    // change looks depending on the state
+    // Change looks depending on the state
     const togglePause = element.querySelector(".toggle-pause")
     const remove = element.querySelector(".remove")
     remove.setAttribute("onclick", `window.remove(${id})`)
@@ -231,7 +231,7 @@ const updateDownload = (download, element, id) => {
         togglePause.src = path.join(__dirname, "../../img/resume.png")
         togglePause.setAttribute("onclick", `window.resume(${id})`)
     }
-    // state
+    // State
     element.querySelector(".state").textContent = download.state
 }
 

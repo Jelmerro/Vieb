@@ -33,7 +33,7 @@ const init = () => {
     }
     const histStream = fs.createReadStream(histFile)
     const rl = readline.createInterface({
-        input: histStream
+        "input": histStream
     })
     rl.on("line", line => {
         const hist = parseHistLine(line)
@@ -43,7 +43,7 @@ const init = () => {
     }).on("close", () => {
         groupedHistory = history.reduce((list, hist) => {
             if (!list[hist.url]) {
-                list[hist.url] = {title: hist.title, visits: 0}
+                list[hist.url] = {"title": hist.title, "visits": 0}
             }
             list[hist.url].visits += 1
             if (!UTIL.hasProtocol(hist.title)) {
@@ -64,16 +64,16 @@ const parseHistLine = line => {
         return null
     }
     return {
-        date: date,
-        title: parts[1],
-        url: parts.slice(2).join("")
+        "date": date,
+        "title": parts[1],
+        "url": parts.slice(2).join("")
     }
 }
 
 const suggestHist = search => {
-    //Simplify the search to a list of words, or an ordered list of words,
-    //ordered matches take priority over unordered matches only.
-    //In turn, exact matches get priority over ordered matches.
+    // Simplify the search to a list of words, or an ordered list of words,
+    // Ordered matches take priority over unordered matches only.
+    // In turn, exact matches get priority over ordered matches.
     search = search.toLowerCase().trim()
     const simpleSearch = search.split(/\W/g).filter(w => w)
     document.getElementById("suggest-dropdown").textContent = ""
@@ -100,9 +100,9 @@ const suggestHist = search => {
                 relevance *= 10
             }
             return {
-                url: url,
-                title: groupedHistory[url].title,
-                relevance: relevance * groupedHistory[url].visits
+                "url": url,
+                "title": groupedHistory[url].title,
+                "relevance": relevance * groupedHistory[url].visits
             }
         }
         return null
@@ -125,12 +125,12 @@ const addToHist = (title, url) => {
     }
     const date = new Date()
     history.push({
-        date: date,
-        title: title,
-        url: url
+        "date": date,
+        "title": title,
+        "url": url
     })
     if (!groupedHistory[url]) {
-        groupedHistory[url] = {title: title, visits: 0}
+        groupedHistory[url] = {"title": title, "visits": 0}
     }
     groupedHistory[url].visits += 1
     if (!UTIL.hasProtocol(title)) {
@@ -144,13 +144,13 @@ const clearHistory = () => {
     try {
         fs.unlinkSync(histFile)
     } catch (e) {
-        //Failed to delete, might not exist
+        // Failed to delete, might not exist
     }
     history = []
     groupedHistory = {}
 }
 
-const removeFromHistory = (start, end=null) => {
+const removeFromHistory = (start, end = null) => {
     if (!end || end < start) {
         end = start
     }
@@ -197,8 +197,8 @@ const topSites = () => {
         return 0
     }).slice(0, 10).map(site => {
         return {
-            url: site,
-            name: groupedHistory[site].title
+            "url": site,
+            "name": groupedHistory[site].title
         }
     })
 }

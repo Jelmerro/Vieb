@@ -116,8 +116,8 @@ const addHist = hist => {
 const suggestCommand = search => {
     document.getElementById("suggest-dropdown").textContent = ""
     clear()
-    //remove all redundant spaces
-    //allow commands prefixed with :
+    // Remove all redundant spaces
+    // Allow commands prefixed with :
     search = search.replace(/^[\s|:]*/, "").replace(/ +/g, " ")
     if (!SETTINGS.get("suggestCommands") || !search) {
         return

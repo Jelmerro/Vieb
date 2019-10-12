@@ -33,7 +33,7 @@ const informPreload = () => {
     }, 100)
 }
 
-const startFollow = (newtab=followNewtab) => {
+const startFollow = (newtab = followNewtab) => {
     followNewtab = newtab
     document.getElementById("follow").textContent = ""
     MODES.setMode("follow")
@@ -83,8 +83,8 @@ const parseAndDisplayLinks = newLinks => {
     if (MODES.currentMode() !== "follow" || alreadyFollowing) {
         return
     }
-    //The maximum amount of links is 26 * 26,
-    //therefor the slice index is 0 to 26^2 - 1
+    // The maximum amount of links is 26 * 26,
+    // Therefor the slice index is 0 to 26^2 - 1
     if (followNewtab) {
         newLinks = newLinks.filter(link => UTIL.hasProtocol(link.url))
     }
@@ -119,7 +119,7 @@ const parseAndDisplayLinks = newLinks => {
         if (!link) {
             return
         }
-        //Show the link key in the top right
+        // Show the link key in the top right
         const linkElement = document.createElement("span")
         linkElement.textContent = numberToKeys(index, links.length)
         linkElement.className = `follow-${link.type}`
@@ -137,7 +137,7 @@ const parseAndDisplayLinks = newLinks => {
         linkElement.style.top = `${top}px`
         linkElement.setAttribute("link-id", index)
         followElement.appendChild(linkElement)
-        //Show a border around the link
+        // Show a border around the link
         const borderElement = document.createElement("span")
         borderElement.className = `follow-${link.type}-border`
         const x = link.x * factor

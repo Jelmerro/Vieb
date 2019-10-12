@@ -88,16 +88,16 @@ app.on("ready", () => {
     }
     // Init mainWindow
     const windowData = {
-        title: "Vieb",
-        width: 800,
-        height: 600,
-        frame: enableDebugMode,
-        transparent: !enableDebugMode,
-        show: enableDebugMode,
-        webPreferences: {
-            plugins: true,
-            nodeIntegration: true,
-            webviewTag: true
+        "title": "Vieb",
+        "width": 800,
+        "height": 600,
+        "frame": enableDebugMode,
+        "transparent": !enableDebugMode,
+        "show": enableDebugMode,
+        "webPreferences": {
+            "plugins": true,
+            "nodeIntegration": true,
+            "webviewTag": true
         }
     }
     if (!app.isPackaged) {
@@ -175,12 +175,12 @@ ipcMain.on("downloads-path-for-session", (_, name) => {
             save = path.join(app.getPath("downloads"), newFilename)
         }
         // Send the details to the renderer process as a fallback,
-        // so there are still details for destoyed download items.
+        // So there are still details for destoyed download items.
         mainWindow.webContents.send("downloads-details", {
-            name: item.getFilename(),
-            url: item.getURL(),
-            total: item.getTotalBytes(),
-            file: save
+            "name": item.getFilename(),
+            "url": item.getURL(),
+            "total": item.getTotalBytes(),
+            "file": save
         })
         item.setSavePath(save)
     })

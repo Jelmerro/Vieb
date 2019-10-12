@@ -52,7 +52,7 @@ const init = () => {
     }
     ipcRenderer.on("downloads-details", (_, details) => {
         // If the download item was already destroyed when it arrived,
-        // try to update the fields with the details from main.
+        // Try to update the fields with the details from main.
         const info = downloads[downloads.length - 1]
         for (const field of ["name", "url", "total", "file"]) {
             info[field] = info[field] || details[field]
@@ -62,14 +62,14 @@ const init = () => {
 
 const handleDownload = (e, item) => {
     const info = {
-        name: "",
-        url: "",
-        total: 0,
-        file: "",
-        item: item,
-        state: "waiting_to_start",
-        current: 0,
-        date: new Date()
+        "name": "",
+        "url": "",
+        "total": 0,
+        "file": "",
+        "item": item,
+        "state": "waiting_to_start",
+        "current": 0,
+        "date": new Date()
     }
     downloads.push(info)
     try {
@@ -79,7 +79,7 @@ const handleDownload = (e, item) => {
         info.total = item.getTotalBytes()
     } catch (err) {
         // When a download is finished before the event is detected by electron,
-        // the item will throw an error for all the mapped functions.
+        // The item will throw an error for all the mapped functions.
     }
     try {
         UTIL.notify(`Download started:\n${info.name}`)
@@ -93,7 +93,7 @@ const handleDownload = (e, item) => {
                 }
             } catch (_e) {
                 // When a download is finished before the event is detected,
-                // the item will throw an error for all the mapped functions.
+                // The item will throw an error for all the mapped functions.
             }
             writeToFile()
         })
@@ -114,7 +114,7 @@ const handleDownload = (e, item) => {
         })
     } catch (err) {
         // When a download is finished before the event is detected by electron,
-        // the item will throw an error for all the mapped functions.
+        // The item will throw an error for all the mapped functions.
     }
 }
 
@@ -163,7 +163,7 @@ const sendDownloadList = (action, downloadId) => {
 const writeToFile = () => {
     downloads.forEach(d => {
         // Update downloads that are stuck on waiting to start,
-        // but have already been destroyed by electron.
+        // But have already been destroyed by electron.
         try {
             d.item.getFilename()
         } catch (e) {
@@ -176,13 +176,13 @@ const writeToFile = () => {
         try {
             fs.unlinkSync(dlsFile)
         } catch (e) {
-            //Failed to delete, might not exist
+            // Failed to delete, might not exist
         }
     } else {
         try {
             fs.writeFileSync(dlsFile, JSON.stringify(downloads))
         } catch (e) {
-            //Failed to write, try again later
+            // Failed to write, try again later
         }
     }
 }

@@ -3,9 +3,9 @@
 const builder = require("electron-builder")
 
 builder.build({
-    win: [],
-    mac: [],
-    linux: []
+    "win": [],
+    "mac": [],
+    "linux": []
 }).then(e => {
     console.log(e)
 }).catch(e => {
