@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global DOWNLOADS HISTORY MODES SETTINGS TABS UTIL */
+/* global COMMANDHISTORY DOWNLOADS HISTORY MODES SETTINGS TABS UTIL */
 "use strict"
 
 const {remote} = require("electron")
@@ -181,6 +181,7 @@ const execute = command => {
     }
     const args = command.split(" ").slice(1)
     command = command.split(" ")[0]
+    COMMANDHISTORY.push([command, ...args].join(" "))
     const matches = Object.keys(commands).filter(c => c.startsWith(command))
     if (matches.length === 1 || commands[command]) {
         if (matches.length === 1) {

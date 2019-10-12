@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND FOLLOW MODES SETTINGS SUGGEST TABS UTIL */
+/* global COMMAND COMMANDHISTORY FOLLOW MODES SETTINGS SUGGEST TABS UTIL */
 "use strict"
 
 let currentSearch = ""
@@ -432,6 +432,14 @@ const prevSuggestion = () => {
     setFocusCorrectly()
 }
 
+const commandHistoryPrevious = () => {
+    COMMANDHISTORY.previous()
+}
+
+const commandHistoryNext = () => {
+    COMMANDHISTORY.next()
+}
+
 module.exports = {
     emptySearch,
     clickOnSearch,
@@ -475,6 +483,8 @@ module.exports = {
     toNormalMode,
     nextSuggestion,
     prevSuggestion,
+    commandHistoryPrevious,
+    commandHistoryNext,
     useEnteredData,
     setFocusCorrectly
 }
