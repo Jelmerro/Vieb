@@ -132,7 +132,61 @@ const init = () => {
     loadFromDisk()
 }
 
-const checkForValidSetting = (setting, value, startup) => {
+const setOption = (setting, value) => {
+    const optionList = validOptions[setting]
+    if (optionList) {
+        const valid = optionList.includes(value)
+        if (!valid) {
+            const lastOption = optionList.pop()
+            const text = `'${optionList.join("', '")}' or '${lastOption}'`
+            UTIL.notify(`The value of setting '${setting}' can only be one of:`
+                + ` ${text}`, "warn")
+        }
+        return valid
+    }
+    return false
+}
+
+const setNumber = (setting, value) => {
+    const numberRange = numberRanges[setting]
+    if (numberRange[0] > value || numberRange[1] < value) {
+        UTIL.notify(`The value of setting '${setting}' must be between `
+            + `${numberRange[0]} and ${numberRange[1]}`, "warn")
+        return false
+    }
+    return true
+}
+
+const setOther = (setting, value) => {
+    // Special cases
+    if (setting === "search") {
+        if (value.startsWith("http://") || value.startsWith("https://")) {
+            value = value.replace(/^https?:\/\//g, "")
+        }
+        if (UTIL.hasProtocol(value) || !UTIL.isUrl(value)) {
+            UTIL.notify("The value of the search setting must be a valid url",
+                "warn")
+            return false
+        }
+        return true
+    }
+    if (setting === "downloads.path") {
+        const expandedPath = expandPath(value)
+        if (fs.existsSync(expandedPath)) {
+            if (fs.statSync(expandedPath).isDirectory()) {
+                allSettings.downloads.path = expandedPath
+                return true
+            }
+            UTIL.notify("The download path is not a directory", "warn")
+            return false
+        }
+        UTIL.notify("The download path does not exist", "warn")
+        return false
+    }
+    return true
+}
+
+const isValidSetting = (setting, value, startup) => {
     if (get(setting) === undefined) {
         UTIL.notify(`The setting '${setting}' doesn't exist`, "warn")
         return false
@@ -165,52 +219,13 @@ const checkForValidSetting = (setting, value, startup) => {
             + `'${typeof value}' instead.`, "warn")
         return false
     }
-    const optionList = validOptions[setting]
-    if (optionList) {
-        const valid = optionList.includes(value)
-        if (!valid) {
-            const lastOption = optionList.pop()
-            const text = `'${optionList.join("', '")}' or '${lastOption}'`
-            UTIL.notify(`The value of setting '${setting}' can only be one of:`
-                + ` ${text}`, "warn")
-        }
-        return valid
+    if (validOptions[setting]) {
+        return setOption(setting, value)
     }
-    const numberRange = numberRanges[setting]
-    if (numberRange) {
-        if (numberRange[0] > value || numberRange[1] < value) {
-            UTIL.notify(`The value of setting '${setting}' must be between `
-                + `${numberRange[0]} and ${numberRange[1]}`, "warn")
-            return false
-        }
-        return true
+    if (numberRanges[setting]) {
+        return setNumber(setting, value)
     }
-    // Special cases
-    if (setting === "search") {
-        if (value.startsWith("http://") || value.startsWith("https://")) {
-            value = value.replace(/^https?:\/\//g, "")
-        }
-        if (UTIL.hasProtocol(value) || !UTIL.isUrl(value)) {
-            UTIL.notify("The value of the search setting must be a valid url",
-                "warn")
-            return false
-        }
-        return true
-    }
-    if (setting === "downloads.path") {
-        const expandedPath = expandPath(value)
-        if (fs.existsSync(expandedPath)) {
-            if (fs.statSync(expandedPath).isDirectory()) {
-                allSettings.downloads.path = expandedPath
-                return true
-            }
-            UTIL.notify("The download path is not a directory", "warn")
-            return false
-        }
-        UTIL.notify("The download path does not exist", "warn")
-        return false
-    }
-    return true
+    return setOther(setting, value)
 }
 
 const expandPath = homePath => {
@@ -307,7 +322,7 @@ const get = (setting, settingObject = allSettings) => {
 }
 
 const set = (setting, value, startup = false) => {
-    if (checkForValidSetting(setting, value, startup)) {
+    if (isValidSetting(setting, value, startup)) {
         if (setting.includes(".")) {
             const [group, config] = setting.split(".")
             if (startup) {
