@@ -22,6 +22,7 @@
             "C-KeyH": ":history",
             "C-KeyJ": ":downloads",
             "C-KeyK": "ACTIONS.toNavMode",
+            "C-KeyP": ":hardcopy",
             "C-KeyL": "ACTIONS.toNavMode",
             "C-KeyW": "ACTIONS.closeTab",
             "C-Tab": "ACTIONS.nextTab",
@@ -45,7 +46,7 @@
     },
     "redirectToHttp": true,
     "caseSensitiveSearch": false,
-    "downloads": {
-        "method": "confirm"
+    "tabs": {
+        "minwidth": 250
     }
 }

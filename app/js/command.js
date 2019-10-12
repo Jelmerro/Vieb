@@ -168,7 +168,8 @@ const noArgumentComands = [
     "version",
     "history",
     "d",
-    "downloads"
+    "downloads",
+    "hardcopy"
 ]
 
 const execute = command => {

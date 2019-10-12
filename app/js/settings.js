@@ -15,11 +15,10 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global DOWNLOADS SESSIONS UTIL */
+/* global DOWNLOADS SESSIONS TABS UTIL */
 "use strict"
 
 const fs = require("fs")
-const os = require("os")
 const path = require("path")
 const {remote} = require("electron")
 
@@ -52,6 +51,7 @@ const defaultSettings = {
     },
     "tabs": {
         "restore": true,
+        "minwidth": 22,
         "keepRecentlyClosed": true,
         "startup": []
     },
@@ -125,14 +125,15 @@ const validOptions = {
 }
 const numberRanges = {
     "fontSize": [8, 30],
-    "notification.duration": [100, 30000]
+    "notification.duration": [0, 30000],
+    "tabs.minwidth": [0, 10000]
 }
 
 const init = () => {
     loadFromDisk()
 }
 
-const setOption = (setting, value) => {
+const checkOption = (setting, value) => {
     const optionList = validOptions[setting]
     if (optionList) {
         const valid = optionList.includes(value)
@@ -147,7 +148,7 @@ const setOption = (setting, value) => {
     return false
 }
 
-const setNumber = (setting, value) => {
+const checkNumber = (setting, value) => {
     const numberRange = numberRanges[setting]
     if (numberRange[0] > value || numberRange[1] < value) {
         UTIL.notify(`The value of setting '${setting}' must be between `
@@ -157,7 +158,7 @@ const setNumber = (setting, value) => {
     return true
 }
 
-const setOther = (setting, value) => {
+const checkOther = (setting, value) => {
     // Special cases
     if (setting === "search") {
         if (value.startsWith("http://") || value.startsWith("https://")) {
@@ -171,7 +172,7 @@ const setOther = (setting, value) => {
         return true
     }
     if (setting === "downloads.path") {
-        const expandedPath = expandPath(value)
+        const expandedPath = UTIL.expandPath(value)
         if (fs.existsSync(expandedPath)) {
             if (fs.statSync(expandedPath).isDirectory()) {
                 allSettings.downloads.path = expandedPath
@@ -220,23 +221,16 @@ const isValidSetting = (setting, value, startup) => {
         return false
     }
     if (validOptions[setting]) {
-        return setOption(setting, value)
+        return checkOption(setting, value)
     }
     if (numberRanges[setting]) {
-        return setNumber(setting, value)
+        return checkNumber(setting, value)
     }
-    return setOther(setting, value)
-}
-
-const expandPath = homePath => {
-    if (homePath.startsWith("~")) {
-        return homePath.replace("~", os.homedir())
-    }
-    return homePath
+    return checkOther(setting, value)
 }
 
 const updateDownloadSettings = () => {
-    remote.app.setPath("downloads", expandPath(allSettings.downloads.path))
+    remote.app.setPath("downloads", UTIL.expandPath(allSettings.downloads.path))
     DOWNLOADS.removeCompletedIfDesired()
 }
 
@@ -358,6 +352,14 @@ const set = (setting, value, startup = false) => {
             } else {
                 SESSIONS.enableAdblocker()
             }
+        }
+        if (setting === "tabs.minwidth") {
+            TABS.listTabs().forEach(tab => {
+                tab.style.minWidth = `${allSettings.tabs.minwidth}px`
+            })
+            TABS.currentTab().scrollIntoView({
+                "inline": "center"
+            })
         }
         if (setting.startsWith("downloads.")) {
             updateDownloadSettings()

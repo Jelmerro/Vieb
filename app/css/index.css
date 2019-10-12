@@ -17,15 +17,15 @@
 */
 /* Global */
 body {color: #eee;font: 14px monospace;background: #333;padding: 0;margin: 0;height: 100vh;width: 100vw;overflow: hidden;user-select: none;}
-img {height: 1.5em;width: 1.5em;padding: .25em;min-height: 1.5em;min-width: 1.5em;pointer-events: none;}
+img {height: 1.5em;width: 1.5em;min-height: 1.5em;min-width: 1.5em;pointer-events: none;}
 /* Nav bar */
 #navbar {width: 100vw;height: 4em;display: flex;z-index: 1;background-color: #333;position: relative;pointer-events: none;}
-#logo {-webkit-app-region: drag;height: 3.6em;width: 3.6em;padding: .2em;}
-#menu, #tabs {display: flex;right: 0;left: 0;height: 2em;width: calc(100vw - 4em);}
+#logo {-webkit-app-region: drag;height: 3.6em;width: 3.6em;padding: .2em;min-width: 3.6em;min-height: 3.6em;}
+#menu, #tabs {display: flex;right: 0;left: 0;height: 2em;width: calc(100vw - 4em);overflow-x: auto;}
 #mode {text-transform: capitalize;font-size: 1.3em;margin: auto 0;font-weight: bold;}
 /* Nav tabs */
 #tabs > span {color: #ccc;background-color: #444;display: flex;margin-right: .1em;padding-right: .4em;flex: 1;overflow: hidden;white-space: nowrap;}
-#tabs > span > img {padding: 0.25em;}
+#tabs > span > img {margin: auto .25em;padding: 0;}
 #tabs > span > span {margin: auto 0;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
 #tabs > #current-tab {color: #eee;background-color: #666;}
 #tabs > .container {color: #ff0;}
@@ -68,6 +68,9 @@ body.fullscreen webview {height: 100vh;}
 .bottom-left {left: .7em;bottom: 0;}
 .top-right {right: .7em;top: 4.7em;}
 .top-left {left: .7em;top: 4.7em;}
+/* scrollbar for overflowing tabs */
+::-webkit-scrollbar {height: 3px;}
+::-webkit-scrollbar-thumb {background: #5ff;}
 /* other */
 #cursor {display: none;position: absolute;top: 0;left: 0;height: 1em;width: .7em;z-index: 20;background-color: #fff;mix-blend-mode: difference;}
 #url-hover {display: none;position: absolute;background-color: #fff9;color: #000;bottom: 0;left: 0;right: 0;pointer-events: none;padding: 2px;white-space: nowrap;width: fit-content;margin: auto;}

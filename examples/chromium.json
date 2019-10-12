@@ -21,6 +21,7 @@
             "C-KeyH": ":history",
             "C-KeyJ": ":downloads",
             "C-KeyL": "ACTIONS.toNavMode",
+            "C-KeyP": ":hardcopy",
             "C-KeyW": "ACTIONS.closeTab",
             "C-Tab": "ACTIONS.nextTab",
             "CS-PageUp": "ACTIONS.moveTabBackward",
@@ -39,5 +40,8 @@
     },
     "redirectToHttp": true,
     "search": "https://google.com/search?q=",
-    "caseSensitiveSearch": false
+    "caseSensitiveSearch": false,
+    "tabs": {
+        "minwidth": 0
+    }
 }

@@ -18,9 +18,10 @@
 /* global SETTINGS */
 "use strict"
 
+const {remote} = require("electron")
 const path = require("path")
 const rimraf = require("rimraf").sync
-const {remote} = require("electron")
+const os = require("os")
 
 const protocolRegex = /^[a-z][a-z0-9-+.]+:\/\//
 const specialPages = ["help", "history", "downloads", "newtab", "version"]
@@ -209,6 +210,13 @@ const redirect = url => {
     return url
 }
 
+const expandPath = homePath => {
+    if (homePath.startsWith("~")) {
+        return homePath.replace("~", os.homedir())
+    }
+    return homePath
+}
+
 module.exports = {
     hasProtocol,
     isUrl,
@@ -218,5 +226,6 @@ module.exports = {
     clearCache,
     clearCookies,
     clearLocalStorage,
-    redirect
+    redirect,
+    expandPath
 }
