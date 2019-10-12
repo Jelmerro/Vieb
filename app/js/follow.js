@@ -22,13 +22,26 @@ let followNewtab = true
 let alreadyFollowing = false
 let links = []
 
+const informPreload = () => {
+    setTimeout(() => {
+        if (MODES.currentMode() === "follow" && !alreadyFollowing) {
+            TABS.currentPage().getWebContents().send("follow-mode-start")
+            informPreload()
+        } else {
+            TABS.currentPage().getWebContents().send("follow-mode-stop")
+        }
+    }, 100)
+}
+
 const startFollow = (newtab=followNewtab) => {
     followNewtab = newtab
     document.getElementById("follow").textContent = ""
     MODES.setMode("follow")
     alreadyFollowing = false
+    informPreload()
     TABS.currentPage().getWebContents().send("follow-mode-start")
     document.getElementById("follow").style.display = "flex"
+    links = []
 }
 
 const cancelFollow = () => {
@@ -36,6 +49,7 @@ const cancelFollow = () => {
     document.getElementById("follow").style.display = ""
     document.getElementById("follow").textContent = ""
     TABS.currentPage().getWebContents().send("follow-mode-stop")
+    links = []
 }
 
 const numberToKeys = (number, total) => {
@@ -55,25 +69,56 @@ const numberToKeys = (number, total) => {
     return first + second
 }
 
-const parseAndDisplayLinks = l => {
+const linkInList = (list, link) => {
+    return list.find(l => {
+        if (!l || !link) {
+            return false
+        }
+        return l.x === link.x && l.y === link.y && l.type === link.type
+            && l.height === link.height && l.width === link.width
+    })
+}
+
+const parseAndDisplayLinks = newLinks => {
     if (MODES.currentMode() !== "follow" || alreadyFollowing) {
         return
     }
     //The maximum amount of links is 26 * 26,
     //therefor the slice index is 0 to 26^2 - 1
     if (followNewtab) {
-        l = l.filter(link => UTIL.hasProtocol(link.url))
+        newLinks = newLinks.filter(link => UTIL.hasProtocol(link.url))
     }
-    links = l.slice(0, 675)
-    if (links.length === 0) {
-        UTIL.notify("No links are visible on the page to follow", "warn")
-        MODES.setMode("normal")
-        return
+    if (links.length) {
+        for (let i = 0;i < links.length;i++) {
+            if (!linkInList(newLinks, links[i])) {
+                links[i] = null
+            }
+        }
+        newLinks.filter(l => !linkInList(links, l)).forEach(newLink => {
+            for (let i = 0;i < links.length;i++) {
+                if (!links[i]) {
+                    links[i] = newLink
+                    return
+                }
+            }
+            if (!linkInList(links, newLink)) {
+                links.push(newLink)
+            }
+        })
+    } else {
+        links = newLinks
     }
+    while (!links[links.length - 1] && links.length) {
+        links.pop()
+    }
+    links = links.slice(0, 675)
     const factor = TABS.currentPage().getZoomFactor()
     const followElement = document.getElementById("follow")
     followElement.textContent = ""
     links.forEach((link, index) => {
+        if (!link) {
+            return
+        }
         //Show the link key in the top right
         const linkElement = document.createElement("span")
         linkElement.textContent = numberToKeys(index, links.length)
