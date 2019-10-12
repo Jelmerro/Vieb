@@ -117,11 +117,15 @@ const sendFollowLinks = () => {
 }
 
 ipcRenderer.on("follow-mode-start", () => {
-    inFollowMode = true
-    sendFollowLinks()
+    if (!inFollowMode) {
+        inFollowMode = true
+        sendFollowLinks()
+    }
 })
 
-ipcRenderer.on("follow-mode-stop", () => { inFollowMode = false })
+ipcRenderer.on("follow-mode-stop", () => {
+    inFollowMode = false
+})
 
 const checkForDuplicateLink = (element, existing) => {
     //Check for similar click positions and remove them as a duplicate
@@ -270,8 +274,8 @@ Node.prototype.removeEventListener = function(type, listener, options) {
     }
 }
 
+// Send the follow links to the renderer if dom is changed in any way
 const observer = new window.MutationObserver(sendFollowLinks)
-
 observer.observe(document, {
     childList: true,
     attributes: true,
@@ -279,3 +283,5 @@ observer.observe(document, {
     subtree: true,
     attributeFilter: ["class", "id", "style"]
 })
+// And also once every few seconds in case of transitions or animations
+setInterval(sendFollowLinks, 2000)
