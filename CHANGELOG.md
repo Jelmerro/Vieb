@@ -37,7 +37,6 @@ but the list below contains much more technical details.
 - The openExternal permission is now by default on ask, which shows the external url that will be opened
 - Rework the follow mode invocation to simplify the keybindings and fix some specific mode switches
 - Follow mode is now always allowed (no more setting), and will update the visible links by listening to mutations
-
 ### Removed
 
 - Download method setting: confirm and ask are gone, automatic (previous default) is now the only download mode
@@ -55,7 +54,7 @@ but the list below contains much more technical details.
 
 ### Security
 
-- Electron 6.0.11 (was 6.0.10)
+- Electron 6.0.12 (was 6.0.10)
 - Chromium 76.0.3809.146 (was 76.0.3809.146)
 - Permission for openExternal is now set to "ask" by default instead of the setting "block"
 
