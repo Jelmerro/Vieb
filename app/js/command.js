@@ -19,6 +19,8 @@
 "use strict"
 
 const {remote} = require("electron")
+const path = require("path")
+const fs = require("fs")
 
 const set = (...args) => {
     if (args.length === 0) {
@@ -141,6 +143,57 @@ const hardcopy = () => {
     TABS.currentPage().print()
 }
 
+const write = (...args) => {
+    if (args.length > 2) {
+        UTIL.notify("The write command takes a maximum of two arguments:\n"
+            + "'full' to save the full page and an optional path", "warn")
+        return
+    }
+    if (args.length === 2 && args[0] !== "full" && args[1] !== "full") {
+        UTIL.notify("Only one save path can be specified", "warn")
+        return
+    }
+    let title = TABS.currentTab().querySelector("span").textContent
+    while (title.includes(path.sep)) {
+        title = title.replace(path.sep, "_")
+    }
+    const name = `${title}.html`
+    let saveType = "HTMLOnly"
+    let loc = path.join(remote.app.getPath("downloads"), name)
+    for (let arg of args) {
+        if (arg === "full") {
+            saveType = "HTMLComplete"
+            continue
+        }
+        if (!path.isAbsolute(arg)) {
+            arg = UTIL.expandPath(arg)
+            if (!path.isAbsolute(arg)) {
+                arg = path.join(remote.app.getPath("downloads"), arg)
+            }
+        }
+        const folder = path.dirname(arg)
+        if (fs.existsSync(folder) && fs.statSync(folder).isDirectory()) {
+            if (fs.existsSync(arg)) {
+                if (fs.statSync(arg).isDirectory()) {
+                    loc = path.join(arg, name)
+                } else {
+                    loc = arg
+                }
+            } else {
+                loc = arg
+            }
+        } else {
+            UTIL.notify(`The folder '${folder}' does not exist`, "warn")
+            return
+        }
+    }
+    TABS.currentPage().getWebContents().savePage(loc, saveType).then(() => {
+        UTIL.notify(`Page succesfully saved at '${loc}'`)
+    }).catch(err => {
+        UTIL.notify(`Could not save the page:\n${err}`, "err")
+    })
+}
+
 const commands = {
     "q": quit,
     "quit": quit,
@@ -156,7 +209,9 @@ const commands = {
     "s": set,
     "set": set,
     "hardcopy": hardcopy,
-    "print": hardcopy
+    "print": hardcopy,
+    "w": write,
+    "write": write
 }
 
 const noArgumentComands = [

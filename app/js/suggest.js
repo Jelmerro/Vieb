@@ -123,14 +123,23 @@ const suggestCommand = search => {
         return
     }
     let setCommandExtras = []
-    if (search.startsWith("s")) {
+    let writeCommandExtras = []
+    if ("set".startsWith(search.split(" ")[0])) {
         setCommandExtras = SETTINGS.suggestionList()
             .map(s => `${search.split(" ").slice(0, -1).join(" ")} ${s}`)
     }
-    const possibleCommands = COMMAND.commandList().concat(setCommandExtras)
-        .filter(c => {
-            return c.toLowerCase().startsWith(search.toLowerCase())
-        })
+    if ("write".startsWith(search.split(" ")[0])) {
+        writeCommandExtras = [
+            "full",
+            "~/Downloads/newfile",
+            "full ~/Downloads",
+            "saved.html full"
+        ].map(s => `${search.split(" ")[0]} ${s}`)
+    }
+    const possibleCommands = COMMAND.commandList()
+        .concat(setCommandExtras)
+        .concat(writeCommandExtras)
+        .filter(c => c.toLowerCase().startsWith(search.toLowerCase()))
     for (const command of possibleCommands.slice(0, 10)) {
         addCommand(command)
     }

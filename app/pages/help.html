@@ -901,6 +901,7 @@
         <li>set (or s)</li>
         <li>reload</li>
         <li>hardcopy (or print)</li>
+        <li>write (or w)</li>
         <li>quit (or q)</li>
     </ul>
     Each paragraph in this chapter will explain a single command from the list above.
@@ -970,6 +971,38 @@
     The hardcopy command can be used to print the current page.
     There are no arguments for this command.
     The alternative name for this command is print.
+    <h2 id="commands-write">write</h2>
+    This command can be used to write the HTML of the current page to a file.
+    The short version of this command is "w".
+    It has two optional arguments which can be in any order:
+    <ul>
+        <li>
+            full - when one of the arguments of the write command is simply set to "full",
+            the entire page will be downloaded, including css and other resources.
+            When not included, only the base HTML file will be saved.
+        </li>
+        <li>
+            location - the other argument is the location where to save the page to.
+            If not set, the downloads folder and current page title are combined to form the name.
+            Relative paths will be prefixed with the downloads folder, so only the name will be changed.
+            If the location is set to a folder instead of a file,
+            the page title will still be used as the save location in the specified folder.
+            Finally, it's also possible to provide and absolute path to a file,
+            in which case the exact path entered will be used to save the page to.
+        </li>
+    </ul>
+    The basic usage without any arguments (w is short for write):
+    <pre class="command-block">w</pre>
+    Save the entire page including resources to the default download location:
+    <pre class="command-block">w full</pre>
+    Download the page to the documents folder with the page title as the filename:
+    <pre class="command-block">w ~/Documents</pre>
+    Note that if there is no folder named Documents inside the home folder,
+    the save location will be the home directory with Documents as the file name.
+    To save the full page to the default downloads directory with a different name:
+    <pre class="command-block">w saved.html full</pre>
+    The argument order of the write command is irrelevant, so this command will do the same as the one above:
+    <pre class="command-block">write full saved.html</pre>
     <h2 id="commands-quit">quit</h2>
     Last but not least is the quit command.
     This simple command takes no arguments,
