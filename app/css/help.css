@@ -16,7 +16,7 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 /* General */
-body {color: #eee;font: 14px monospace;background: #333;padding: 0;margin: 3%;}
+body {color: #eee;font: 14px monospace;background: #333;padding: 0;margin: 3%;line-height: 1.5;}
 kbd {background: #111;color: #fff;padding: 0.1em;}
 button, input {font-family: monospace;}
 button, span[onclick] {border-width: 2px;border-style: solid;border-color: #555;}

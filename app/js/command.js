@@ -194,6 +194,25 @@ const write = (...args) => {
     })
 }
 
+const mkviebrc = (full = false, trailingArgs = false) => {
+    if (trailingArgs) {
+        UTIL.notify(
+            "The mkviebrc command takes a single optional argument", "warn")
+        return
+    }
+    let exportAll = false
+    if (full) {
+        if (full === "full") {
+            exportAll = true
+        } else {
+            UTIL.notify(
+                "The only optional argument supported is: 'full'", "warn")
+            return
+        }
+    }
+    SETTINGS.saveToDisk(exportAll)
+}
+
 const commands = {
     "q": quit,
     "quit": quit,
@@ -211,7 +230,9 @@ const commands = {
     "hardcopy": hardcopy,
     "print": hardcopy,
     "w": write,
-    "write": write
+    "write": write,
+    "mkv": mkviebrc,
+    "mkviebrc": mkviebrc
 }
 
 const noArgumentComands = [

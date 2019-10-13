@@ -136,6 +136,9 @@ const suggestCommand = search => {
             "saved.html full"
         ].map(s => `${search.split(" ")[0]} ${s}`)
     }
+    if ("mkviebrc".startsWith(search.split(" ")[0])) {
+        writeCommandExtras = ["mkv full", "mkviebrc full"]
+    }
     const possibleCommands = COMMAND.commandList()
         .concat(setCommandExtras)
         .concat(writeCommandExtras)

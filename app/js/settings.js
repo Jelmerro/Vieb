@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global DOWNLOADS SESSIONS TABS UTIL */
+/* global DOWNLOADS INPUT SESSIONS TABS UTIL */
 "use strict"
 
 const fs = require("fs")
@@ -357,13 +357,49 @@ const set = (setting, value, startup = false) => {
             TABS.listTabs().forEach(tab => {
                 tab.style.minWidth = `${allSettings.tabs.minwidth}px`
             })
-            TABS.currentTab().scrollIntoView({
-                "inline": "center"
-            })
+            try {
+                TABS.currentTab().scrollIntoView({
+                    "inline": "center"
+                })
+            } catch (e) {
+                // No page yet, not a problem
+            }
         }
         if (setting.startsWith("downloads.")) {
             updateDownloadSettings()
         }
+    }
+}
+
+const removeDefaults = (settings, defaults) => {
+    Object.keys(settings).forEach(t => {
+        if (!defaults) {
+            return
+        }
+        if (JSON.stringify(settings[t]) === JSON.stringify(defaults[t])) {
+            delete settings[t]
+        } else if (UTIL.isObject(settings[t])) {
+            settings[t] = removeDefaults(settings[t], defaults[t])
+        }
+    })
+    return settings
+}
+
+const saveToDisk = full => {
+    let settings = JSON.parse(JSON.stringify(allSettings))
+    settings.keybindings = UTIL.merge(
+        JSON.parse(JSON.stringify(INPUT.bindings)), allSettings.keybindings)
+    if (!full) {
+        const defaults = JSON.parse(JSON.stringify(defaultSettings))
+        defaults.keybindings = JSON.parse(JSON.stringify(INPUT.bindings))
+        settings = removeDefaults(settings, defaults)
+    }
+    const config = path.join(remote.app.getPath("appData"), "viebrc.json")
+    try {
+        fs.writeFileSync(config, JSON.stringify(settings, null, 4))
+        UTIL.notify(`Viebrc saved to '${config}'`)
+    } catch (e) {
+        UTIL.notify(`Could not write to '${config}'`, "err")
     }
 }
 
@@ -372,5 +408,6 @@ module.exports = {
     suggestionList,
     loadFromDisk,
     get,
-    set
+    set,
+    saveToDisk
 }

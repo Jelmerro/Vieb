@@ -56,7 +56,8 @@ Use the `--help` argument for more information.
 
 To change the keybindings or any other setting of Vieb,
 the viebrc.json file should be created and/or changed.
-The file should be created in the AppData or .config folder of Vieb:
+You can create a viebrc using `:mkviebrc`, which stores the current settings.
+The location of the viebrc file will be one of these, depening on your OS:
 
 - Windows - `%APPDATA%\Vieb\viebrc.json`
 - Mac - `~/Library/Application Support/Vieb/viebrc.json`
