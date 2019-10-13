@@ -28,6 +28,7 @@ but the list below contains much more technical details.
 - History of previously executed commands during the current session
 - Minimal width setting for tabs which by default is set to 22 (just the icon)
 - Write command to save the current page as HTML, optionally including resources (full) or to a custom location
+- Mkviebrc command to save the current settings to the viebrc.json, optionally including the defaults
 
 ### Changed
 
@@ -54,6 +55,7 @@ but the list below contains much more technical details.
 - Rounding issues with selecting or inspecting elements using the cursor mode
 - Argument issue when running Vieb using npm start and opening links with it when Vieb was already open
 - Check the html element styling when detecting an unset background color (not only the body)
+- Keybindings bug for chained keys being overwritten when adding new ones to the same key
 
 ### Security
 

@@ -217,6 +217,21 @@ const expandPath = homePath => {
     return homePath
 }
 
+const isObject = o => {
+    return o === Object(o)
+}
+
+const merge = (main, extra) => {
+    Object.keys(extra).forEach(key => {
+        if (isObject(main[key]) && isObject(extra[key])) {
+            merge(main[key], extra[key])
+        } else {
+            main[key] = extra[key]
+        }
+    })
+    return main
+}
+
 module.exports = {
     hasProtocol,
     isUrl,
@@ -227,5 +242,7 @@ module.exports = {
     clearCookies,
     clearLocalStorage,
     redirect,
-    expandPath
+    expandPath,
+    isObject,
+    merge
 }

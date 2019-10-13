@@ -230,7 +230,7 @@
     </ul>
     The same folder is used for all other information that Vieb stores,
     which means there should be Electron/Chromium related files there.
-    You can create the viebrc.json file there if you haven't already.
+    You can generate a viebrc.json with the current settings using <a href="#commands-mkviebrc">mkviebrc</a>.
     Your browsing and download history will also be saved in this folder by default.
     See the <a href="#history">history chapter</a> for more details and instructions how to configure the related settings.
     <h3 id="settings-viebrc-syntax">syntax</h3>
@@ -249,224 +249,10 @@
     Looking at the default settings is really useful.
     It gives you an idea of all the available options,
     and which of them you actually want to change.
-    <br>
-    <pre>
-{
-    "keybindings": {
-        "normal": {
-            "Enter": "ACTIONS.clickOnSearch",
-            "F1": ":help",
-            "KeyB": "ACTIONS.previousTab",
-            "KeyC": "CURSOR.start",
-            "KeyD": "ACTIONS.closeTab",
-            "KeyE": "ACTIONS.toNavMode",
-            "KeyF": "ACTIONS.startFollowCurrentTab",
-            "KeyG": {
-                "KeyG": "ACTIONS.scrollTop",
-                "KeyI": "ACTIONS.insertAtFirstInput"
-            },
-            "KeyH": "ACTIONS.scrollLeft",
-            "KeyI": "ACTIONS.toInsertMode",
-            "KeyJ": "ACTIONS.scrollDown",
-            "KeyK": "ACTIONS.scrollUp",
-            "KeyL": "ACTIONS.scrollRight",
-            "KeyN": "ACTIONS.nextSearchMatch",
-            "KeyR": "ACTIONS.reload",
-            "KeyS": "CURSOR.start",
-            "KeyT": "ACTIONS.openNewTab",
-            "KeyU": "ACTIONS.reopenTab",
-            "KeyV": "CURSOR.start",
-            "KeyW": "ACTIONS.nextTab",
-            "Slash": "ACTIONS.toSearchMode",
-            "S-KeyF": "ACTIONS.startFollowNewTab",
-            "S-KeyG": "ACTIONS.scrollBottom",
-            "S-KeyH": "ACTIONS.backInHistory",
-            "S-KeyJ": "ACTIONS.nextTab",
-            "S-KeyK": "ACTIONS.previousTab",
-            "S-KeyL": "ACTIONS.forwardInHistory",
-            "S-KeyN": "ACTIONS.previousSearchMatch",
-            "S-KeyR": "ACTIONS.reloadWithoutCache",
-            "S-KeyT": "ACTIONS.openNewTabWithCurrentUrl",
-            "S-Digit4": "ACTIONS.scrollPageRight",
-            "S-Digit6": "ACTIONS.scrollPageLeft",
-            "S-Semicolon": "ACTIONS.toCommandMode",
-            "C-KeyB": "ACTIONS.scrollPageUp",
-            "C-KeyD": "ACTIONS.scrollPageDownHalf",
-            "C-KeyF": "ACTIONS.scrollPageDown",
-            "C-KeyI": "ACTIONS.forwardInHistory",
-            "C-KeyJ": "ACTIONS.moveTabForward",
-            "C-KeyK": "ACTIONS.moveTabBackward",
-            "C-KeyO": "ACTIONS.backInHistory",
-            "C-KeyT": "ACTIONS.openNewTabAtAlternativePosition",
-            "C-KeyU": "ACTIONS.scrollPageUpHalf",
-            "C-Digit0": "ACTIONS.zoomReset",
-            "C-Minus": "ACTIONS.zoomOut",
-            "C-Equal": "ACTIONS.zoomIn",
-            "CS-Digit0": "ACTIONS.zoomReset",
-            "CS-Equal": "ACTIONS.zoomIn",
-            "CS-Minus": "ACTIONS.zoomOut"
-        },
-        "insert": {
-            "F1": ":help",
-            "Escape": "ACTIONS.toNormalMode",
-            "C-BracketLeft": "ACTIONS.toNormalMode"
-        },
-        "command": {
-            "F1": ":help",
-            "Escape": "ACTIONS.toNormalMode",
-            "Tab": "ACTIONS.nextSuggestion",
-            "S-Tab": "ACTIONS.prevSuggestion",
-            "C-BracketLeft": "ACTIONS.toNormalMode",
-            "C-KeyB": "ACTIONS.commandHistoryPrevious",
-            "C-KeyF": "ACTIONS.commandHistoryNext",
-            "Enter": "ACTIONS.useEnteredData"
-        },
-        "search": {
-            "F1": ":help",
-            "Escape": "ACTIONS.toNormalMode",
-            "C-BracketLeft": "ACTIONS.toNormalMode",
-            "Enter": "ACTIONS.useEnteredData"
-        },
-        "nav": {
-            "F1": ":help",
-            "Escape": "ACTIONS.toNormalMode",
-            "Tab": "ACTIONS.nextSuggestion",
-            "S-Tab": "ACTIONS.prevSuggestion",
-            "C-BracketLeft": "ACTIONS.toNormalMode",
-            "Enter": "ACTIONS.useEnteredData"
-        },
-        "follow": {
-            "F1": ":help",
-            "Escape": "ACTIONS.toNormalMode",
-            "C-BracketLeft": "ACTIONS.toNormalMode"
-        },
-        "cursor": {
-            "F1": ":help",
-            "KeyB": "CURSOR.moveFastLeft",
-            "KeyD": "CURSOR.downloadImage",
-            "KeyE": "CURSOR.inspectElement",
-            "KeyF": "CURSOR.leftClick",
-            "KeyG": {
-                "KeyG": "CURSOR.startOfPage"
-            },
-            "KeyH": "CURSOR.moveLeft",
-            "KeyI": "CURSOR.insertAtPosition",
-            "KeyJ": "CURSOR.moveDown",
-            "KeyK": "CURSOR.moveUp",
-            "KeyL": "CURSOR.moveRight",
-            "KeyR": "CURSOR.rightClick",
-            "KeyV": "CURSOR.startVisualSelect",
-            "KeyW": "CURSOR.moveFastRight",
-            "KeyY": "CURSOR.copyAndStop",
-            "Escape": "ACTIONS.toNormalMode",
-            "S-KeyG": "CURSOR.endOfPage",
-            "S-KeyH": "CURSOR.startOfView",
-            "S-KeyJ": "CURSOR.scrollDown",
-            "S-KeyK": "CURSOR.scrollUp",
-            "S-KeyL": "CURSOR.endOfView",
-            "S-KeyM": "CURSOR.centerOfView",
-            "S-Digit4": "CURSOR.moveRightMax",
-            "S-Digit6": "CURSOR.moveLeftMax",
-            "C-KeyD": "CURSOR.moveFastDown",
-            "C-KeyH": "CURSOR.moveSlowLeft",
-            "C-KeyJ": "CURSOR.moveSlowDown",
-            "C-KeyK": "CURSOR.moveSlowUp",
-            "C-KeyL": "CURSOR.moveSlowRight",
-            "C-KeyU": "CURSOR.moveFastUp",
-            "C-BracketLeft": "ACTIONS.toNormalMode"
-        },
-        "visual": {
-            "F1": ":help",
-            "KeyB": "CURSOR.moveFastLeft",
-            "KeyC": "CURSOR.copyAndStop",
-            "KeyG": {
-                "KeyG": "CURSOR.startOfPage"
-            },
-            "KeyH": "CURSOR.moveLeft",
-            "KeyJ": "CURSOR.moveDown",
-            "KeyK": "CURSOR.moveUp",
-            "KeyL": "CURSOR.moveRight",
-            "KeyW": "CURSOR.moveFastRight",
-            "KeyY": "CURSOR.copyAndStop",
-            "Escape": "ACTIONS.toNormalMode",
-            "S-KeyG": "CURSOR.endOfPage",
-            "S-KeyH": "CURSOR.startOfView",
-            "S-KeyJ": "CURSOR.scrollDown",
-            "S-KeyK": "CURSOR.scrollUp",
-            "S-KeyL": "CURSOR.endOfView",
-            "S-KeyM": "CURSOR.centerOfView",
-            "S-Digit4": "CURSOR.moveRightMax",
-            "S-Digit6": "CURSOR.moveLeftMax",
-            "C-KeyD": "CURSOR.moveFastDown",
-            "C-KeyH": "CURSOR.moveSlowLeft",
-            "C-KeyJ": "CURSOR.moveSlowDown",
-            "C-KeyK": "CURSOR.moveSlowUp",
-            "C-KeyL": "CURSOR.moveSlowRight",
-            "C-KeyU": "CURSOR.moveFastUp",
-            "C-BracketLeft": "ACTIONS.toNormalMode"
-        }
-    },
-    "redirectToHttp": false,
-    "search": "https://duckduckgo.com/?kae=d&q=",
-    "caseSensitiveSearch": true,
-    "clearCookiesOnQuit": false,
-    "clearLocalStorageOnQuit": false,
-    "suggestCommands": true,
-    "fontSize": 14,
-    "digitsRepeatActions": true,
-    "adblocker": "static",
-    "cache": "clearonquit",
-    "notification": {
-        "system": false,
-        "position": "bottom-right",
-        "duration": 6000
-    },
-    "downloads": {
-        "path": "~/Downloads/",
-        "removeCompleted": false,
-        "clearOnQuit": false
-    },
-    "history": {
-        "suggest": true,
-        "clearOnQuit": false,
-        "storeNewVisits": true
-    },
-    "tabs": {
-        "restore": true,
-        "minwidth": 22,
-        "keepRecentlyClosed": true,
-        "startup": []
-    },
-    "windowstate": {
-        "position": true,
-        "size": true,
-        "maximized": true
-    },
-    "permissions": {
-        "camera": "block",
-        "fullscreen": "allow",
-        "geolocation": "block",
-        "microphone": "block",
-        "midiSysex": "block",
-        "notifications": "ask",
-        "openExternal": "ask",
-        "pointerLock": "block",
-        "unknown": "block"
-    },
-    "newtab": {
-        "nextToCurrentOne": true,
-        "enterNavMode": false,
-        "showTopSites": true,
-        "container": false
-    },
-    "redirects": []
-}
-    </pre>
-    <br>
-    Your own viebrc.json file only needs to override these settings where needed,
-    to change them to your liking.
-    Note that by default <kbd>Ctrl with [</kbd> can be used as an alternative to
-    <kbd>Escape</kbd> to return to normal mode.
+    You can create a viebrc file with all your current settings using ":mkviebrc".
+    To also store the defaults using this command, execute it like so: ":mkviebrc full".
+    Once you're done with your changes, you can always generate a config with only the changed values,
+    by running the "mkviebrc" command again without the "full" argument.
     Finally, there are also example configs to replicate Firefox or Chromium.
     Please check the <a href="https://github.com/Jelmerro/Vieb">github page</a> for examples.
     They are stored in the examples folder and improvements are always welcome.
@@ -510,6 +296,7 @@
             "F6": "ACTIONS.toNavMode",
             "F9": ":set newtab.container!",
             "C-KeyP": ":hardcopy",
+            "C-KeyS": ":write full",
             "C-KeyQ": ":quit"
         }
     },
@@ -583,6 +370,10 @@
             The page can now be printed using <kbd>Ctrl with p</kbd>,
             see <a href="#commands-hardcopy">hardcopy</a> for details (keybindings.normal.C-KeyP)
         </li>
+        <li>
+            The page can now be saved as html using <kbd>Ctrl with s</kbd>,
+            see <a href="#commands-write">write</a> for details (keybindings.normal.C-KeyS)
+        </li>
         <li><kbd>Ctrl with q</kbd> can be used to quit Vieb when in normal mode (keybindings.normal.C-KeyQ)</li>
         <li>Https connections will now be downgraded to http if the server has no certificate (redirectToHttp)</li>
         <li>
@@ -642,7 +433,7 @@
     To achieve this, simple edit the viebrc.json after Vieb was started,
     and use the reload command to apply all changes.
     Vieb only reads the settings file on startup and with the reload command,
-    and never writes to the file as the set command is for runtime only.
+    and only writes to the file when explicitly asked to do so with the <a href="#commands-mkviebrc">mkviebrc</a> command.
     This means it's always safe to edit the viebrc file.
     <h3 id="settings-set-reading">reading</h3>
     It's also possible to find the current setting value.
@@ -900,6 +691,7 @@
         <li>devtools</li>
         <li>set (or s)</li>
         <li>reload</li>
+        <li>mkviebrc (or mkv)</li>
         <li>hardcopy (or print)</li>
         <li>write (or w)</li>
         <li>quit (or q)</li>
@@ -967,6 +759,21 @@
     It can also be used to change the <a href="#settings-viebrc-keybindings">keybindings</a>.
     or to change the settings permanently (instead of temporary using the "set" command).
     A short version of the reload command is just using "r".
+    <h2 id="commands-mkviebrc">mkviebrc</h2>
+    This command can be used to write all the current settings to the viebrc file.
+    When this commands is run without any arguments,
+    it only includes the settings that have been changed compared to their default setting.
+    The short version of the command is "mkv".
+    <pre class="command-block">mkv</pre>
+    It can be used to write the changes made by the set command back to the config.
+    Mkviebrc has a single optional argument that must be set to "full" if provided.
+    The difference is that all settings will be written to the viebrc,
+    including those with the default value.
+    <pre class="command-block">mkviebrc full</pre>
+    This can be used in case you never want the current defaults to change,
+    or because you want to get more familiar with all the different settings.
+    It's always possible to run the command again without the "full" argument,
+    to remove the settings with defaults from the config again.
     <h2 id="commands-hardcopy">hardcopy</h2>
     The hardcopy command can be used to print the current page.
     There are no arguments for this command.
@@ -1103,8 +910,8 @@
         </li>
         <li>
             custom - The adblocker will only load when lists are added manually.
-            This option should be used in case you don't want to use the easylist and easyprivacy lists,
-            but still want Vieb to block ads and/or trackers based on other filter lists.
+            This option should be used in case you don't want Vieb to manage the easylist and easyprivacy lists,
+            but still want to block ads and/or trackers based on other filter lists.
             This option will not remove lists added by the other modes.
             You should check the "blocklists" folder for lists you might not want to use.
         </li>
@@ -1114,7 +921,7 @@
     In case you want to add a different filter list, make sure it has the right extension and syntax,
     or go to <a href="https://easylist.to">easylist.to</a> for more information about these lists.
     It's also possible to update the easylist and easyprivacy filter lists just once,
-    by switching to update mode and then back to static or custom mode.
+    by switching to update mode and then switch to custom mode.
     <h1 id="special">Special pages</h1>
     Vieb has a couple of special pages that can be accessed like so "vieb://help".
     Most of these pages also have a dedicated command to navigate to them,

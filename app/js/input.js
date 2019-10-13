@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS COMMAND CURSOR FOLLOW HISTORY MODES SETTINGS SUGGEST */
+/* global ACTIONS COMMAND CURSOR FOLLOW HISTORY MODES SETTINGS SUGGEST UTIL */
 "use strict"
 
 const bindings = {
@@ -227,30 +227,17 @@ const toIdentifier = e => {
 }
 
 const eventToAction = e => {
-    if (document.body.className === "fullscreen") {
-        MODES.setMode("insert")
-        return
-    }
-    const allBindings = JSON.parse(JSON.stringify(bindings))
-    const customBindings = SETTINGS.get("keybindings")
-    Object.keys(allBindings).forEach(mode => {
-        allBindings[mode] = Object.assign(
-            allBindings[mode], customBindings[mode])
-    })
-    return allBindings[MODES.currentMode()][toIdentifier(e)]
+    return idToAction(toIdentifier(e))
 }
 
-const idToActionSet = id => {
+const idToAction = id => {
     if (document.body.className === "fullscreen") {
         MODES.setMode("insert")
         return
     }
-    const allBindings = JSON.parse(JSON.stringify(bindings))
-    const customBindings = SETTINGS.get("keybindings")
-    Object.keys(allBindings).forEach(mode => {
-        allBindings[mode] = Object.assign(
-            allBindings[mode], customBindings[mode])
-    })
+    const allBindings = UTIL.merge(
+        JSON.parse(JSON.stringify(bindings)),
+        SETTINGS.get("keybindings"))
     return allBindings[MODES.currentMode()][id]
 }
 
@@ -282,7 +269,7 @@ const handleKeyboard = e => {
     const id = toIdentifier(e)
     let action = eventToAction(e)
     if (currentSubKey) {
-        const actionSet = idToActionSet(currentSubKey)
+        const actionSet = idToAction(currentSubKey)
         if (actionSet) {
             action = actionSet[toIdentifier(e)]
         }
@@ -386,5 +373,6 @@ const handleUserInput = e => {
 module.exports = {
     init,
     eventToAction,
-    actionToFunction
+    actionToFunction,
+    bindings
 }

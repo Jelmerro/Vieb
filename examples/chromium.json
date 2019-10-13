@@ -22,6 +22,7 @@
             "C-KeyJ": ":downloads",
             "C-KeyL": "ACTIONS.toNavMode",
             "C-KeyP": ":hardcopy",
+            "C-KeyS": ":write full",
             "C-KeyW": "ACTIONS.closeTab",
             "C-Tab": "ACTIONS.nextTab",
             "CS-PageUp": "ACTIONS.moveTabBackward",
