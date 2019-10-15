@@ -37,6 +37,7 @@ img {height: 1.5em;width: 1.5em;min-height: 1.5em;min-width: 1.5em;pointer-event
 #url.search {border-color: #fa0;}
 #url.url {border-color: #3ff;}
 #url.suggest {border-color: #3f3;}
+#url.file {border-color: #ff9;}
 /* follow */
 #follow {height: calc(100vh - 4em);position: fixed;top: 4em;left: 0;width: 100vw;display: none;}
 .follow-url, .follow-inputs-click, .follow-inputs-insert, .follow-onclick {position: absolute;color: #111;font-weight: bold;}

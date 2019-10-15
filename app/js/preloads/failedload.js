@@ -23,11 +23,10 @@ const {ipcRenderer} = require("electron")
 const styling = `
 body {background: #333 !important;color: #eee !important;display: flex;
     font-family: monospace;line-height: 2;margin: 0;}
-#main {margin: auto;width: 50vw;background: #444;padding: 50px;
+main {margin: auto;width: 50vw;background: #444;padding: 50px;
     min-width: 300px;overflow: hidden;text-overflow: ellipsis;}
 a {color: #0cf;}
 kbd {background: #111;color: #fff;padding: 0.1em;}
- {
 `
 const sslErrors = [
     "ERR_CERT_COMMON_NAME_INVALID",
@@ -39,7 +38,7 @@ ipcRenderer.on("insert-failed-page-info", (_, e) => {
     const styleElement = document.createElement("style")
     styleElement.textContent = styling
     document.head.appendChild(styleElement)
-    const mainInfo = document.createElement("div")
+    const mainInfo = document.createElement("main")
     if (sslErrors.includes(e.errorDescription)) {
         const http = e.validatedURL.replace("https://", "http://")
         mainInfo.innerHTML += `<h1>Redirect to HTTP Blocked</h1>
@@ -62,6 +61,5 @@ ipcRenderer.on("insert-failed-page-info", (_, e) => {
             make sure you typed the url correctly. Finally,
             please check your internet connection and DNS settings.`
     }
-    mainInfo.id = "main"
     document.body.appendChild(mainInfo)
 })

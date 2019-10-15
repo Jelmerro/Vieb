@@ -33,15 +33,7 @@ const init = () => {
     window.addEventListener("load", () => {
         const startup = SETTINGS.get("tabs.startup")
         const tabFile = path.join(remote.app.getPath("appData"), "tabs")
-        let parsed = null
-        if (fs.existsSync(tabFile) && fs.statSync(tabFile).isFile()) {
-            try {
-                const contents = fs.readFileSync(tabFile).toString()
-                parsed = JSON.parse(contents)
-            } catch (e) {
-                // No tab history yet
-            }
-        }
+        const parsed = UTIL.readJSON(tabFile)
         for (const tab of startup) {
             const specialPage = UTIL.pathToSpecialPageName(tab)
             if (specialPage.name) {
@@ -92,7 +84,13 @@ const init = () => {
         ipcRenderer.on("urls", (_, urls) => {
             urls.forEach(url => {
                 if (!UTIL.hasProtocol(url)) {
-                    url = `https://${url}`
+                    const local = UTIL.expandPath(url)
+                    if (path.isAbsolute(local) && fs.existsSync(local)) {
+                        // File protocol locations should always have 3 slashes
+                        url = `file:${local}`.replace(/^file:\/*/, "file:///")
+                    } else {
+                        url = `https://${url}`
+                    }
                 }
                 const special = UTIL.pathToSpecialPageName(currentPage().src)
                 if (special.name === "newtab" || !currentPage().src) {
@@ -421,6 +419,34 @@ const addWebviewListeners = webview => {
             webview.src = webview.src.replace("https://", "http://")
             return
         }
+        if (webview.src !== e.validatedURL) {
+            webview.src = e.validatedURL
+            tabOrPageMatching(webview).querySelector("span")
+                .textContent = e.validatedURL
+        }
+        // If the path is a directory, show a list of files instead of an error
+        if (e.errorDescription === "ERR_FILE_NOT_FOUND") {
+            // Any number of slashes after file is fine for now
+            if (webview.src.startsWith("file:/")) {
+                const local = decodeURIComponent(webview.src)
+                    .replace(/file:\/*/, "/")
+                if (UTIL.isDir(local)) {
+                    let paths = []
+                    let directoryAllowed = true
+                    try {
+                        paths = fs.readdirSync(local)
+                            .map(p => path.join(local, p))
+                    } catch (_) {
+                        directoryAllowed = false
+                    }
+                    const dirs = paths.filter(p => UTIL.isDir(p))
+                    const files = paths.filter(p => UTIL.isFile(p))
+                    webview.send("insert-current-directory-files",
+                        dirs, files, directoryAllowed, local)
+                    return
+                }
+            }
+        }
         webview.send("insert-failed-page-info", e)
     })
     webview.addEventListener("did-stop-loading", () => {
@@ -503,6 +529,11 @@ const addWebviewListeners = webview => {
         }
         if (e.channel === "switch-to-insert") {
             MODES.setMode("insert")
+        }
+        if (e.channel === "navigate-to") {
+            const url = UTIL.redirect(e.args[0])
+            webview.src = url
+            tabOrPageMatching(webview).querySelector("span").textContent = url
         }
         if (e.channel === "download-list-request") {
             DOWNLOADS.sendDownloadList(e.args[0], e.args[1])

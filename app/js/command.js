@@ -20,7 +20,6 @@
 
 const {remote} = require("electron")
 const path = require("path")
-const fs = require("fs")
 
 const set = (...args) => {
     if (args.length === 0) {
@@ -153,11 +152,11 @@ const write = (...args) => {
         UTIL.notify("Only one save path can be specified", "warn")
         return
     }
-    let title = TABS.currentTab().querySelector("span").textContent
-    while (title.includes(path.sep)) {
-        title = title.replace(path.sep, "_")
+    let name = path.basename(TABS.currentPage().src).split("?")[0]
+    if (!name.includes(".")) {
+        name += ".html"
     }
-    const name = `${title}.html`
+    name = `${new URL(TABS.currentPage().src).hostname} ${name}`.trim()
     let saveType = "HTMLOnly"
     let loc = path.join(remote.app.getPath("downloads"), name)
     for (let arg of args) {
@@ -172,9 +171,9 @@ const write = (...args) => {
             }
         }
         const folder = path.dirname(arg)
-        if (fs.existsSync(folder) && fs.statSync(folder).isDirectory()) {
-            if (fs.existsSync(arg)) {
-                if (fs.statSync(arg).isDirectory()) {
+        if (UTIL.isDir(folder)) {
+            if (UTIL.pathExists(arg)) {
+                if (UTIL.isDir(arg)) {
                     loc = path.join(arg, name)
                 } else {
                     loc = arg
