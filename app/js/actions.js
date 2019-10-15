@@ -18,6 +18,8 @@
 /* global COMMAND COMMANDHISTORY FOLLOW MODES SETTINGS SUGGEST TABS UTIL */
 "use strict"
 
+const path = require("path")
+
 let currentSearch = ""
 
 const emptySearch = () => {
@@ -355,10 +357,14 @@ const useEnteredData = () => {
         MODES.setMode("normal")
         if (location !== "") {
             const specialPage = UTIL.pathToSpecialPageName(location)
+            const local = UTIL.expandPath(location)
             if (specialPage.name) {
                 COMMAND.openSpecialPage(specialPage.name, specialPage.section)
             } else if (UTIL.hasProtocol(location)) {
                 TABS.navigateTo(location)
+            } else if (UTIL.isDir(local) || UTIL.isFile(local)) {
+                TABS.navigateTo(
+                    `file:${local}`.replace(/^file:\/*/, "file:///"))
             } else if (UTIL.isUrl(location)) {
                 TABS.navigateTo(`https://${location}`)
             } else {
@@ -410,12 +416,17 @@ const setFocusCorrectly = () => {
         }
     }
     if (MODES.currentMode() === "nav") {
+        const local = UTIL.expandPath(urlElement.value)
         if (urlElement.value.trim() === "") {
             urlElement.className = ""
         } else if (document.querySelector("#suggest-dropdown div.selected")) {
             urlElement.className = "suggest"
+        } else if (urlElement.value.startsWith("file://")) {
+            urlElement.className = "file"
         } else if (UTIL.isUrl(urlElement.value.trim())) {
             urlElement.className = "url"
+        } else if (path.isAbsolute(local) && UTIL.pathExists(local)) {
+            urlElement.className = "file"
         } else {
             urlElement.className = "search"
         }

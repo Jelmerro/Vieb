@@ -28,7 +28,7 @@ let history = []
 let groupedHistory = {}
 
 const init = () => {
-    if (!fs.existsSync(histFile) || !fs.statSync(histFile).isFile()) {
+    if (!UTIL.isFile(histFile)) {
         return
     }
     const histStream = fs.createReadStream(histFile)
@@ -78,10 +78,7 @@ const suggestHist = search => {
     const simpleSearch = search.split(/\W/g).filter(w => w)
     document.getElementById("suggest-dropdown").textContent = ""
     SUGGEST.clear()
-    if (!SETTINGS.get("history.suggest") || !search) {
-        return
-    }
-    if (!fs.existsSync(histFile) || !fs.statSync(histFile).isFile()) {
+    if (!SETTINGS.get("history.suggest") || !search || !UTIL.isFile(histFile)) {
         return
     }
     const suggestions = Object.keys(groupedHistory).map(url => {

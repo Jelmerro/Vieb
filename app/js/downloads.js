@@ -32,22 +32,17 @@ const init = () => {
         } catch (e) {
             // Failed to delete, might not exist
         }
-    } else if (fs.existsSync(dlsFile) && fs.statSync(dlsFile).isFile()) {
-        try {
-            const contents = fs.readFileSync(dlsFile).toString()
-            const parsed = JSON.parse(contents)
-            for (const download of parsed) {
-                if (download.state === "completed") {
-                    if (!SETTINGS.get("downloads.removeCompleted")) {
-                        downloads.push(download)
-                    }
-                } else {
-                    download.state = "cancelled"
+    } else if (UTIL.isFile(dlsFile)) {
+        const parsed = UTIL.readJSON(dlsFile)
+        for (const download of parsed) {
+            if (download.state === "completed") {
+                if (!SETTINGS.get("downloads.removeCompleted")) {
                     downloads.push(download)
                 }
+            } else {
+                download.state = "cancelled"
+                downloads.push(download)
             }
-        } catch (e) {
-            // No downloads file yet
         }
     }
     ipcRenderer.on("downloads-details", (_, details) => {

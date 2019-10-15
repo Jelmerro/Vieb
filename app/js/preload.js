@@ -23,6 +23,8 @@ require("./preloads/follow.js")
 require("./preloads/select.js")
 // Always load the failed page information handler
 require("./preloads/failedload.js")
+// Always load the local directory browser
+require("./preloads/filebrowser.js")
 
 // Load the special page specific javascript
 const util = require("./util.js")
@@ -31,8 +33,13 @@ if (specialPage.name) {
     require(`./preloads/${specialPage.name}.js`)
 }
 
+// Change the colors to white text on black for plain text pages
 // Change the background to white for pages with no explicit background styling
 window.addEventListener("load", () => {
+    if (document.head && document.head.innerText === "") {
+        document.querySelector("html").style.color = "white"
+        return
+    }
     const html = getComputedStyle(document.querySelector("html")).background
     const body = getComputedStyle(document.body).background
     const unset = "rgba(0, 0, 0, 0)"

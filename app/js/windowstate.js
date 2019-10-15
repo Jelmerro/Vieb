@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global SETTINGS */
+/* global SETTINGS UTIL */
 "use strict"
 
 const {remote} = require("electron")
@@ -61,52 +61,34 @@ const init = () => {
 const load = () => {
     // Load the window state
     const bounds = {}
-    if (fs.existsSync(windowStateFile)) {
-        if (fs.statSync(windowStateFile).isFile()) {
-            try {
-                const contents = fs.readFileSync(windowStateFile).toString()
-                const parsed = JSON.parse(contents)
-                bounds.x = Number(parsed.x)
-                bounds.y = Number(parsed.y)
-                bounds.width = Number(parsed.width)
-                bounds.height = Number(parsed.height)
-                bounds.maximized = !!parsed.maximized
-            } catch (e) {
-                // No windowstate has been saved
-            }
-            if (SETTINGS.get("windowstate.position")) {
-                if (bounds.x > 0 && bounds.y > 0) {
-                    remote.getCurrentWindow().setPosition(
-                        bounds.x, bounds.y)
-                }
-            }
-            if (SETTINGS.get("windowstate.size")) {
-                if (bounds.width > 500 && bounds.height > 500) {
-                    remote.getCurrentWindow().setSize(
-                        bounds.width, bounds.height)
-                }
-            }
-            if (bounds.maximized && SETTINGS.get("windowstate.maximized")) {
-                remote.getCurrentWindow().maximize()
-            }
+    const parsed = UTIL.readJSON(windowStateFile)
+    if (parsed) {
+        bounds.x = Number(parsed.x)
+        bounds.y = Number(parsed.y)
+        bounds.width = Number(parsed.width)
+        bounds.height = Number(parsed.height)
+        bounds.maximized = !!parsed.maximized
+    }
+    if (SETTINGS.get("windowstate.position")) {
+        if (bounds.x > 0 && bounds.y > 0) {
+            remote.getCurrentWindow().setPosition(
+                bounds.x, bounds.y)
         }
+    }
+    if (SETTINGS.get("windowstate.size")) {
+        if (bounds.width > 500 && bounds.height > 500) {
+            remote.getCurrentWindow().setSize(
+                bounds.width, bounds.height)
+        }
+    }
+    if (bounds.maximized && SETTINGS.get("windowstate.maximized")) {
+        remote.getCurrentWindow().maximize()
     }
     remote.getCurrentWindow().show()
 }
 
 const saveWindowState = (maximizeOnly = false) => {
-    let state = {}
-    if (fs.existsSync(windowStateFile)) {
-        if (fs.statSync(windowStateFile).isFile()) {
-            try {
-                const contents = fs.readFileSync(
-                    windowStateFile).toString()
-                state = JSON.parse(contents)
-            } catch (e) {
-                // No dimensions yet
-            }
-        }
-    }
+    let state = UTIL.readJSON(windowStateFile)
     if (!maximizeOnly && !remote.getCurrentWindow().isMaximized()) {
         const newBounds = remote.getCurrentWindow().getBounds()
         const currentScreen = remote.screen.getDisplayMatching(newBounds).bounds

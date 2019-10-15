@@ -173,8 +173,8 @@ const checkOther = (setting, value) => {
     }
     if (setting === "downloads.path") {
         const expandedPath = UTIL.expandPath(value)
-        if (fs.existsSync(expandedPath)) {
-            if (fs.statSync(expandedPath).isDirectory()) {
+        if (UTIL.pathExists(expandedPath)) {
+            if (UTIL.isDir(expandedPath)) {
                 allSettings.downloads.path = expandedPath
                 return true
             }
@@ -285,17 +285,16 @@ const suggestionList = () => {
 const loadFromDisk = () => {
     allSettings = JSON.parse(JSON.stringify(defaultSettings))
     const config = path.join(remote.app.getPath("appData"), "viebrc.json")
-    if (fs.existsSync(config) && fs.statSync(config).isFile()) {
-        try {
-            const contents = fs.readFileSync(config).toString()
-            const parsed = JSON.parse(contents)
+    if (UTIL.isFile(config)) {
+        const parsed = UTIL.readJSON(config)
+        if (parsed) {
             for (const setting of listSettingsAsArray()) {
                 const configuredValue = get(setting, parsed)
                 if (configuredValue !== undefined) {
                     set(setting, configuredValue, true)
                 }
             }
-        } catch (e) {
+        } else {
             UTIL.notify(
                 `The config file located at '${config}' is corrupt`, "err")
         }

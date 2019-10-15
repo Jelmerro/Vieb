@@ -26,10 +26,10 @@ Vieb
 - Insert mode: Regular interaction with the webpage, only mode with mouse support, also used for typing text
 - Command mode: Access more complex functionality by entering commands with auto-completion
 - Search mode: Enter a search string and easily jump to next and previous matches
-- Nav mode: Enter a url (blue border) or a search request (orange border) with auto-completion from history
+- Nav mode: Enter a search (orange), navigate to websites (cyan) or browse files (yellow) with auto-completion
 - Follow mode: Simulate click events on urls, buttons, input fields and more
 - Cursor mode: Move a simulated cursor using the keyboard and execute clicks, hovers, image downloads and more
-- Visual mode: Select any text on the page using familiar Vim bindings
+- Visual mode: Select (and optionally copy) any text on the page using familiar Vim bindings
 
 Press `F1` at any time when using Vieb to find out more.
 

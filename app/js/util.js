@@ -19,6 +19,7 @@
 "use strict"
 
 const {remote} = require("electron")
+const fs = require("fs")
 const path = require("path")
 const rimraf = require("rimraf").sync
 const os = require("os")
@@ -232,6 +233,39 @@ const merge = (main, extra) => {
     return main
 }
 
+const pathExists = loc => {
+    try {
+        return fs.existsSync(loc)
+    } catch (e) {
+        return false
+    }
+}
+
+const isDir = loc => {
+    try {
+        return fs.statSync(loc).isDirectory()
+    } catch (e) {
+        return false
+    }
+}
+
+const isFile = loc => {
+    try {
+        return fs.statSync(loc).isFile()
+    } catch (e) {
+        return false
+    }
+}
+
+const readJSON = loc => {
+    try {
+        const contents = fs.readFileSync(loc).toString()
+        return JSON.parse(contents)
+    } catch (e) {
+        return null
+    }
+}
+
 module.exports = {
     hasProtocol,
     isUrl,
@@ -244,5 +278,9 @@ module.exports = {
     redirect,
     expandPath,
     isObject,
-    merge
+    merge,
+    pathExists,
+    isDir,
+    isFile,
+    readJSON
 }

@@ -29,6 +29,7 @@ but the list below contains much more technical details.
 - Minimal width setting for tabs which by default is set to 22 (just the icon)
 - Write command to save the current page as HTML, optionally including resources (full) or to a custom location
 - Mkviebrc command to save the current settings to the viebrc.json, optionally including the defaults
+- Local file browser for directories with improved file navigation
 
 ### Changed
 
@@ -41,6 +42,8 @@ but the list below contains much more technical details.
 - The openExternal permission is now by default on ask, which shows the external url that will be opened
 - Rework the follow mode invocation to simplify the keybindings and fix some specific mode switches
 - Follow mode is now always allowed (no more setting), and will update the visible links by listening to mutations
+- Show plain text pages with a dark background and white text
+
 ### Removed
 
 - Download method setting: confirm and ask are gone, automatic (previous default) is now the only download mode
