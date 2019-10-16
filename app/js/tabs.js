@@ -448,6 +448,10 @@ const addWebviewListeners = webview => {
             }
         }
         webview.send("insert-failed-page-info", e)
+        webview.setAttribute("failed-to-load", "true")
+        webview.getWebContents().executeJavaScript(
+            `document.body.style.fontSize =
+            "${SETTINGS.get("fontSize")}px"`)
     })
     webview.addEventListener("did-stop-loading", () => {
         const tab = tabOrPageMatching(webview)
@@ -456,6 +460,14 @@ const addWebviewListeners = webview => {
         webview.removeAttribute("logging-in")
         updateUrl(webview)
         HISTORY.addToHist(tab.querySelector("span").textContent, webview.src)
+        const isSpecialPage = UTIL.pathToSpecialPageName(webview.src).name
+        const isLocal = webview.src.startsWith("file:/")
+        const isErrorPage = webview.getAttribute("failed-to-load")
+        if (isSpecialPage || isLocal || isErrorPage) {
+            webview.getWebContents().executeJavaScript(
+                `document.body.style.fontSize =
+                "${SETTINGS.get("fontSize")}px"`)
+        }
         saveTabs()
     })
     webview.addEventListener("page-title-updated", e => {
@@ -579,6 +591,7 @@ const navigateTo = location => {
     location = UTIL.redirect(location)
     currentTab().querySelector("span").textContent = location
     currentPage().src = location
+    currentPage().removeAttribute("failed-to-load")
 }
 
 const moveTabForward = () => {

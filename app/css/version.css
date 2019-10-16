@@ -15,12 +15,12 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-body {display: flex;color: #eee;width: 80vw;min-width: 500px;font: 18px monospace;background: #333;padding: 0;margin: auto;height: 100vh;text-align: center;}
+body {display: flex;color: #eee;width: 80vw;min-width: 450px;font: 14px monospace;background: #333;padding: 0;margin: auto;height: 100vh;text-align: center;}
 #title {font-size: 2.5em;}
 #subtitle {font-size: 1.5em;}
 .header {display: flex;flex-direction: column;margin: auto;}
 .header > img {width: 30vmin;height: 30vmin;margin: auto;}
-.info {width: 30vw;min-width: 500px;}
+.info {width: 40em;min-width: 450px;max-width: 80vw;}
 a {color: #0cf;}
-#update-check {margin-top: 2px;margin-right: 5px;padding: 3px;}
-button {background: #333;color: #fff;border: 2px solid #eee;font: 14px monospace;}
+#update-check {margin: .7em;}
+button {background: #333;color: #fff;border: .1em solid #eee;font: inherit;}

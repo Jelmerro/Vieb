@@ -229,6 +229,24 @@ const isValidSetting = (setting, value, startup) => {
     return checkOther(setting, value)
 }
 
+const updateFontSize = () => {
+    document.body.style.fontSize = `${allSettings.fontSize}px`
+    TABS.listPages().forEach(p => {
+        try {
+            const isSpecialPage = UTIL.pathToSpecialPageName(p.src).name
+            const isLocal = p.src.startsWith("file:/")
+            const isErrorPage = p.getAttribute("failed-to-load")
+            if (isSpecialPage || isLocal || isErrorPage) {
+                p.getWebContents().executeJavaScript(
+                    `document.body.style.fontSize =
+                    "${allSettings.fontSize}px"`)
+            }
+        } catch (e) {
+            // Page not loaded, will be updated later
+        }
+    })
+}
+
 const updateDownloadSettings = () => {
     remote.app.setPath("downloads", UTIL.expandPath(allSettings.downloads.path))
     DOWNLOADS.removeCompletedIfDesired()
@@ -299,7 +317,7 @@ const loadFromDisk = () => {
                 `The config file located at '${config}' is corrupt`, "err")
         }
     }
-    document.body.style.fontSize = `${allSettings.fontSize}px`
+    updateFontSize()
     updateDownloadSettings()
 }
 
@@ -343,7 +361,7 @@ const set = (setting, value, startup = false) => {
         }
         // Update settings elsewhere
         if (setting === "fontSize") {
-            document.body.style.fontSize = `${allSettings.fontSize}px`
+            updateFontSize()
         }
         if (setting === "adblocker") {
             if (value === "off") {

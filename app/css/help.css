@@ -17,11 +17,10 @@
 */
 /* General */
 body {color: #eee;font: 14px monospace;background: #333;padding: 0;margin: 3%;line-height: 1.5;}
-kbd {background: #111;color: #fff;padding: 0.1em;}
-button, input {font-family: monospace;}
-button, span[onclick] {border-width: 2px;border-style: solid;border-color: #555;}
-iframe, pre {min-width: 450px;width: 100%;background: #222;color: #cff;padding: 0;margin: 10px 0;}
-pre {padding: 8px 0;font-size: 13px;}
+kbd {background: #111;color: #fff;padding: .1em;}
+button, input {font: inherit;}
+button, span[onclick] {border-width: .15em;border-style: solid;border-color: #555;}
+pre {min-width: 450px;width: 100%;background: #222;color: #cff;padding: .5em;margin: .5em 0;}
 pre.wrap {white-space: pre-wrap;}
 /* Top header */
 .header {font-size: 5vw;display: flex;}
@@ -35,14 +34,14 @@ li {line-height: 1.5em;}
 .section > h2 {flex: 1;}
 .section > h3 {flex: 1;}
 .section > a {margin: auto;}
-h1 {font-size: 32px;margin: 40px 0 30px;}
-h2 {font-size: 24px;margin: 20px 0;}
-h3 {font-size: 18px;margin: 15px 0;}
+h1 {font-size: 3em;margin: .7em 0 .5em;}
+h2 {font-size: 2em;margin: .7em 0;}
+h3 {font-size: 1.5em;margin: .7em 0;}
 /* toc */
 .toc > a::after {content: "";display: block;}
-.toc-h1 {font-size: 20px;}
-.toc-h2 {margin-left: 30px;font-size: 17px;}
-.toc-h3 {margin-left: 60px;font-size: 14px;}
+.toc-h1 {font-size: 1.5em;}
+.toc-h2 {margin-left: 2em;font-size: 1.3em;}
+.toc-h3 {margin-left: 4em;}
 /* colors */
 .command-block {color: #faa;white-space: normal;word-break: break-all;}
 .command {color: #f33;}

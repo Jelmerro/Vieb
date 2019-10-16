@@ -22,9 +22,11 @@ const {ipcRenderer} = require("electron")
 // Some styling is flagged with important, because of the default light theme
 const styling = `
 body {background: #333 !important;color: #eee !important;display: flex;
-    font-family: monospace;line-height: 2;margin: 0;}
-main {margin: auto;width: 50vw;background: #444;padding: 50px;
+    font: 14px monospace;line-height: 2;margin: 0;height: 100vh;width: 100vw;}
+main {margin: auto;width: 50vw;background: #444;padding: 3em;
     min-width: 300px;overflow: hidden;text-overflow: ellipsis;}
+h2 {font-size: 2em;margin: 0 0 .5em;}
+h3 {font-size: 1.2em;margin: 1em 0;font-weight: bold;}
 a {color: #0cf;}
 kbd {background: #111;color: #fff;padding: 0.1em;}
 `
@@ -35,13 +37,19 @@ const sslErrors = [
 ]
 
 ipcRenderer.on("insert-failed-page-info", (_, e) => {
+    try {
+        document.body.innerHTML = ""
+        document.head.innerHTML = ""
+    } catch (err) {
+        // Try clearing the existing left over page elements
+    }
     const styleElement = document.createElement("style")
     styleElement.textContent = styling
     document.head.appendChild(styleElement)
     const mainInfo = document.createElement("main")
     if (sslErrors.includes(e.errorDescription)) {
         const http = e.validatedURL.replace("https://", "http://")
-        mainInfo.innerHTML += `<h1>Redirect to HTTP Blocked</h1>
+        mainInfo.innerHTML += `<h2>Redirect to HTTP Blocked</h2>
             The page could not be loaded succesfully,
             because HTTP redirects are disabled.
             You can enabled them with this command:
@@ -52,7 +60,7 @@ ipcRenderer.on("insert-failed-page-info", (_, e) => {
             The exact error that caused this request to be blocked:
             </kbd>${e.errorDescription}</kbd>`
     } else {
-        mainInfo.innerHTML += `<h1>Unreachable page</h1>
+        mainInfo.innerHTML += `<h2>Unreachable page</h2>
             The page could not be loaded succesfully.
             The following error occured:<br>
             <h3>${e.errorDescription}</h3>
