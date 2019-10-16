@@ -23,12 +23,12 @@ const path = require("path")
 // Some styling is flagged with important, because of the default light theme
 const styling = `
 body {background: #333 !important;color: #eee !important;display: flex;
-    font-family: monospace;line-height: 1.5;margin: 0;}
-main {margin: 50px auto;width: 50vw;background: #444;padding: 50px;
+    font: 14px monospace;line-height: 1.5;margin: 0;}
+main {margin: 3em auto;width: 50vw;background: #444;padding: 3em;
     min-width: 300px;overflow: hidden;text-overflow: ellipsis;}
 a {color: #eee;}
-h2 {font-size: 2em;margin: 1em 0;}
-.dir, .file {margin: 10px;cursor: pointer;}
+h2 {font-size: 2em;margin: 0 0 1em;}
+.dir, .file {margin: .7em;cursor: pointer;}
 .dir {font-weight: bold;color: #ffc;}
 .file {color: #cff;}
 .error {color: #fcc;}

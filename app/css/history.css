@@ -15,14 +15,14 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-body {color: #eee;width: 90vw;font: 18px monospace;background: #333;padding: 0;margin: auto;}
+body {color: #eee;width: 90vw;font: 14px monospace;background: #333;padding: 0;margin: auto;}
 a {color: #0cf;white-space: nowrap;overflow: hidden;}
-h1 {font-size: 2em; margin: 30px 0;padding: 0;}
+h1 {font-size: 2em;margin: 1em 0;padding: 0;}
 #breakpoints {display: flex;flex-direction: column;}
-.hist-entry {background-color: #444;margin: 10px;padding: 5px;}
-.hist-entry .hist-date {width: 250px;color: #aaa;}
-.hist-entry span {display: inline-block;width: calc(100% - 285px);overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
+.hist-entry {background-color: #444;margin: .7em;padding: .35em;}
+.hist-entry .hist-date {width: auto;color: #aaa;margin-right: 1em;}
+.hist-entry span {display: inline-block;width: calc(100% - 15em);overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
 .hist-entry a {display: block;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;width: 100%;}
-img {height: 1.5em;float: right;margin: 5px 11px;}
-.hist-entry img {height: 16px;margin: 2px;}
-#remove-all {height: 2em;margin: 5px;}
+img {height: 1.5em;float: right;margin: .35em .9em;}
+.hist-entry img {height: 1em;margin: .1em;}
+#remove-all {height: 2em;margin: .4em;}

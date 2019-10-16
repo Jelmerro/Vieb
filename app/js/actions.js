@@ -161,6 +161,7 @@ const scrollBottom = () => {
 const backInHistory = () => {
     try {
         TABS.currentPage().goBack()
+        TABS.currentPage().removeAttribute("failed-to-load")
     } catch (e) {
         // No page is available, not an issue
     }
@@ -176,6 +177,7 @@ const openNewTabAtAlternativePosition = () => {
 const forwardInHistory = () => {
     try {
         TABS.currentPage().goForward()
+        TABS.currentPage().removeAttribute("failed-to-load")
     } catch (e) {
         // No page is available, not an issue
     }

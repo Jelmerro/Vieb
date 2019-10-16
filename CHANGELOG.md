@@ -43,6 +43,7 @@ but the list below contains much more technical details.
 - Rework the follow mode invocation to simplify the keybindings and fix some specific mode switches
 - Follow mode is now always allowed (no more setting), and will update the visible links by listening to mutations
 - Show plain text pages with a dark background and white text
+- Also respect font sizes for special pages such as help, version or history
 
 ### Removed
 
