@@ -120,6 +120,7 @@ const reload = () => {
     try {
         if (!TABS.currentPage().isCrashed()) {
             TABS.currentPage().reload()
+            TABS.currentPage().removeAttribute("failed-to-load")
         }
     } catch (e) {
         // No page is available, not an issue
@@ -201,6 +202,7 @@ const reloadWithoutCache = () => {
     try {
         if (!TABS.currentPage().isCrashed()) {
             TABS.currentPage().reloadIgnoringCache()
+            TABS.currentPage().removeAttribute("failed-to-load")
         }
     } catch (e) {
         // No page is available, not an issue
