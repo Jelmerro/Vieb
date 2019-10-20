@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND SETTINGS */
+/* global COMMAND FAVICONS SETTINGS */
 "use strict"
 
 let suggestions = []
@@ -101,13 +101,21 @@ const addHist = hist => {
     }
     addToList(hist.url)
     const element = document.createElement("div")
+    const icon = FAVICONS.forSite(hist.url)
+    if (icon && SETTINGS.get("favicons") !== "disabled") {
+        const thumbnail = document.createElement("img")
+        thumbnail.src = icon
+        element.appendChild(thumbnail)
+    }
     const title = document.createElement("span")
     title.className = "title"
     title.textContent = hist.title
     element.appendChild(title)
-    element.appendChild(document.createTextNode(" - "))
     const url = document.createElement("span")
     url.className = "url"
+    if (hist.url.startsWith("file://")) {
+        url.className = "url file"
+    }
     url.textContent = hist.url
     element.appendChild(url)
     document.getElementById("suggest-dropdown").appendChild(element)

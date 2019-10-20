@@ -77,7 +77,8 @@ const defaultSettings = {
         "showTopSites": true,
         "container": false
     },
-    "redirects": []
+    "redirects": [],
+    "favicons": "session"
 }
 
 let allSettings = {}
@@ -121,7 +122,10 @@ const validOptions = {
     "permissions.notifications": ["block", "ask", "allow"],
     "permissions.openExternal": ["block", "ask", "allow"],
     "permissions.pointerLock": ["block", "ask", "allow"],
-    "permissions.unknown": ["block", "ask", "allow"]
+    "permissions.unknown": ["block", "ask", "allow"],
+    "favicons": [
+        "disabled", "nocache", "session", "1day", "5day", "30day", "forever"
+    ]
 }
 const numberRanges = {
     "fontSize": [8, 30],

@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMANDHISTORY DOWNLOADS HISTORY MODES SETTINGS TABS UTIL */
+/* global COMMANDHISTORY DOWNLOADS FAVICONS HISTORY MODES SETTINGS TABS UTIL */
 "use strict"
 
 const {remote} = require("electron")
@@ -69,6 +69,7 @@ const set = (...args) => {
 }
 
 const quit = () => {
+    remote.getCurrentWindow().hide()
     if (SETTINGS.get("history.clearOnQuit")) {
         HISTORY.clearHistory()
     }
@@ -83,6 +84,7 @@ const quit = () => {
         UTIL.clearLocalStorage()
     }
     DOWNLOADS.cancelAll()
+    FAVICONS.updateMappings()
     remote.getCurrentWindow().destroy()
     remote.app.exit(0)
 }
