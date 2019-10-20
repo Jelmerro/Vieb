@@ -61,6 +61,7 @@ but the list below contains much more technical details.
 - Argument issue when running Vieb using npm start and opening links with it when Vieb was already open
 - Check the html element styling when detecting an unset background color (not only the body)
 - Keybindings bug for chained keys being overwritten when adding new ones to the same key
+- Tabs not switching to the correct tab on startup
 
 ### Security
 

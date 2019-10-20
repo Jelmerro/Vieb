@@ -51,7 +51,7 @@ const init = () => {
                     parsed.tabs.forEach(tab => {
                         addTab(tab)
                     })
-                    if (!listTabs().length === 0) {
+                    if (listTabs().length !== 0) {
                         switchToTab(parsed.id || 0)
                     }
                 }
