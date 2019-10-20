@@ -136,9 +136,6 @@ const enableAdblocker = () => {
             UTIL.notify(`Updating ${list} to the latest version`)
             const req = https.request(defaultBlocklists[list], res => {
                 let body = ""
-                res.on("data", chunk => {
-                    body += chunk
-                })
                 res.on("end", () => {
                     try {
                         fs.writeFileSync(
@@ -147,6 +144,9 @@ const enableAdblocker = () => {
                     } catch (e) {
                         UTIL.notify(`Failed to update ${list}`, "err")
                     }
+                })
+                res.on("data", chunk => {
+                    body += chunk
                 })
             })
             req.on("error", () => {

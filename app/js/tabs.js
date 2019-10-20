@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS CURSOR DOWNLOADS FOLLOW HISTORY MODES SESSIONS
+/* global ACTIONS CURSOR DOWNLOADS FAVICONS FOLLOW HISTORY MODES SESSIONS
  SETTINGS UTIL */
 "use strict"
 
@@ -28,11 +28,11 @@ let linkId = 0
 
 const useragent = remote.session.defaultSession.getUserAgent()
     .replace(/Electron\/\S* /, "").replace(/Vieb\/\S* /, "")
+const tabFile = path.join(remote.app.getPath("appData"), "tabs")
 
 const init = () => {
     window.addEventListener("load", () => {
         const startup = SETTINGS.get("tabs.startup")
-        const tabFile = path.join(remote.app.getPath("appData"), "tabs")
         const parsed = UTIL.readJSON(tabFile)
         for (const tab of startup) {
             const specialPage = UTIL.pathToSpecialPageName(tab)
@@ -125,7 +125,6 @@ const saveTabs = () => {
         "id": 0,
         "closed": []
     }
-    const tabFile = path.join(remote.app.getPath("appData"), "tabs")
     if (SETTINGS.get("tabs.restore")) {
         listTabs().forEach(tab => {
             // The list of tabs is ordered, the list of pages isn't
@@ -340,6 +339,12 @@ const updateUrl = webview => {
 }
 
 const addWebviewListeners = webview => {
+    webview.addEventListener("load-commit", e => {
+        if (e.isMainFrame) {
+            FAVICONS.empty(webview)
+            webview.removeAttribute("failed-to-load")
+        }
+    })
     webview.addEventListener("focus", () => {
         if (MODES.currentMode() !== "insert") {
             webview.blur()
@@ -349,10 +354,7 @@ const addWebviewListeners = webview => {
         tabOrPageMatching(webview).className = "crashed"
     })
     webview.addEventListener("did-start-loading", () => {
-        const tab = tabOrPageMatching(webview)
-        tab.querySelector(".status").style.display = null
-        tab.querySelector(".favicon").style.display = "none"
-        tab.querySelector(".favicon").src = "img/empty.png"
+        FAVICONS.loading(webview)
         updateUrl(webview)
         webview.getWebContents().removeAllListeners("login")
         webview.getWebContents().on("login", (e, request, auth, callback) => {
@@ -455,10 +457,9 @@ const addWebviewListeners = webview => {
     })
     webview.addEventListener("did-stop-loading", () => {
         const tab = tabOrPageMatching(webview)
-        tab.querySelector(".status").style.display = "none"
-        tab.querySelector(".favicon").style.display = null
-        webview.removeAttribute("logging-in")
+        FAVICONS.show(webview)
         updateUrl(webview)
+        webview.removeAttribute("logging-in")
         HISTORY.addToHist(tab.querySelector("span").textContent, webview.src)
         const isSpecialPage = UTIL.pathToSpecialPageName(webview.src).name
         const isLocal = webview.src.startsWith("file:/")
@@ -476,12 +477,7 @@ const addWebviewListeners = webview => {
         updateUrl(webview)
     })
     webview.addEventListener("page-favicon-updated", e => {
-        const tab = tabOrPageMatching(webview)
-        if (e.favicons.length > 0) {
-            tab.querySelector(".favicon").src = e.favicons[0]
-        } else {
-            tab.querySelector(".favicon").src = "img/empty.png"
-        }
+        FAVICONS.update(webview, e.favicons)
         updateUrl(webview)
     })
     webview.addEventListener("will-navigate", e => {
@@ -490,6 +486,8 @@ const addWebviewListeners = webview => {
             webview.src = redirect
             return
         }
+        FAVICONS.empty(webview)
+        webview.removeAttribute("failed-to-load")
         ACTIONS.emptySearch()
         const tab = tabOrPageMatching(webview)
         tab.querySelector("span").textContent = e.url
@@ -591,6 +589,7 @@ const navigateTo = location => {
     location = UTIL.redirect(location)
     currentTab().querySelector("span").textContent = location
     currentPage().src = location
+    FAVICONS.empty(currentPage())
     currentPage().removeAttribute("failed-to-load")
 }
 

@@ -15,8 +15,12 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-body {display: none;flex-direction: column;color: #eee;width: 80vw;min-width: 450px;font: 14px monospace;background: #333;padding: 0;margin: auto;text-align: center;}
-a {color: #0cf;display: block;padding: .5em;font-size: 1.4em;text-decoration: none;}
-#topsites {margin: 1em 0;overflow: hidden;word-break: break-all;}
+body {display: none;flex-direction: column;color: #eee;font: 14px monospace;background: #333;padding: 0;margin: 0;height: 100vh;}
+main {margin: auto;width: 80vw;min-width: 450px;}
+img {height: 2em;width: 2em;min-height: 2em;min-width: 2em;margin-right: .5em;}
+a {color: #0cf;display: flex;padding: .5em;font-size: 1.4em;text-decoration: none;}
+a div {display: flex;flex-direction: column;}
+a div, a div * {overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
+#topsites {margin: 1em 0;}
 small {font-size: .7em;text-decoration: underline;}
 kbd {background: #111;color: #fff;padding: .1em;}
