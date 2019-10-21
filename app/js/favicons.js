@@ -34,10 +34,10 @@ const init = () => {
     }
 }
 
-const updateMappings = () => {
+const updateMappings = (currentUrl = null) => {
     // Delete mappings for urls that aren't present in the history
     Object.keys(mappings).forEach(m => {
-        if (HISTORY.visitCount(m) === 0) {
+        if (HISTORY.visitCount(m) === 0 && m !== currentUrl) {
             delete mappings[m]
         }
     })
@@ -97,18 +97,18 @@ const update = (webview, urls) => {
         return
     }
     const favicon = urls[0]
-    if (!UTIL.isUrl(favicon)) {
+    if (!favicon) {
         return
     }
     const currentUrl = String(webview.src)
     const tab = TABS.tabOrPageMatching(webview)
-    if (favicon.startsWith("file:/")) {
+    mappings[currentUrl] = favicon
+    updateMappings(currentUrl)
+    if (favicon.startsWith("file:/") || favicon.startsWith("data:")) {
         tab.querySelector(".favicon").src = favicon
         tab.querySelector(".favicon").style.display = null
         return
     }
-    mappings[currentUrl] = favicon
-    updateMappings()
     deleteIfTooOld(urlToPath(favicon))
     if (UTIL.isFile(urlToPath(favicon))) {
         tab.querySelector(".favicon").src = urlToPath(favicon)
@@ -180,6 +180,9 @@ const deleteIfTooOld = loc => {
 const forSite = url => {
     const mapping = mappings[url]
     if (mapping) {
+        if (mapping.startsWith("data:") || mapping.startsWith("file:/")) {
+            return mapping
+        }
         return urlToPath(mapping)
     }
     return ""
