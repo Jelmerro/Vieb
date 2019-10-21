@@ -16,7 +16,7 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 body {display: none;flex-direction: column;color: #eee;font: 14px monospace;background: #333;padding: 0;margin: 0;height: 100vh;}
-main {margin: auto;width: 80vw;min-width: 450px;}
+main {margin: auto;max-width: 80vw;min-width: 450px;}
 img {height: 2em;width: 2em;min-height: 2em;min-width: 2em;margin-right: .5em;}
 a {color: #0cf;display: flex;padding: .5em;font-size: 1.4em;text-decoration: none;}
 a div {display: flex;flex-direction: column;}
