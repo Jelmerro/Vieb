@@ -157,6 +157,12 @@ const addHistToList = hist => {
     // Finally show the history entry (possibly after new breakpoint)
     const histElement = document.createElement("div")
     histElement.className = "hist-entry"
+    if (hist.icon) {
+        const icon = document.createElement("img")
+        icon.src = hist.icon
+        icon.className = "favicon"
+        histElement.appendChild(icon)
+    }
     const img = document.createElement("img")
     img.src = path.join(__dirname, "../../img/trash.png")
     img.setAttribute("onclick", `window.clearLinesFromHistory(${hist.line})`)

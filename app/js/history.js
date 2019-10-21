@@ -183,7 +183,10 @@ const handleRequest = (type, start, end) => {
     } else if (type === "all") {
         clearHistory()
     }
-    TABS.currentPage().getWebContents().send("history-list", history)
+    TABS.currentPage().getWebContents().send("history-list", history.map(h => {
+        h.icon = FAVICONS.forSite(h.url)
+        return h
+    }))
 }
 
 const topSites = () => {

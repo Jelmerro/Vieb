@@ -21,8 +21,9 @@ h1 {font-size: 2em;margin: 1em 0;padding: 0;}
 #breakpoints {display: flex;flex-direction: column;}
 .hist-entry {background-color: #444;margin: .7em;padding: .35em;}
 .hist-entry .hist-date {width: auto;color: #aaa;margin-right: 1em;}
-.hist-entry span {display: inline-block;width: calc(100% - 15em);overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
+.hist-entry span {display: inline-block;width: calc(100% - 16em);overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
 .hist-entry a {display: block;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;width: 100%;}
 img {height: 1.5em;float: right;margin: .35em .9em;}
 .hist-entry img {height: 1em;margin: .1em;}
+.hist-entry .favicon {float: none;margin: 0 .3em .1em 0;}
 #remove-all {height: 2em;margin: .4em;}
