@@ -587,9 +587,6 @@
     as it allows you to click on links or other elements using the keyboard.
     There are two versions with very different implementations,
     one for the current tab with <kbd>f</kbd> and one for new tab using <kbd>Shift with f</kbd>.
-    These will be explained in separate paragraphs,
-    as the underlying implementations are very different,
-    even if the differences are not immediately visible to the user.
     Both variations will automatically update the follow links when the page is updated.
     <h2 id="follow-click">follow by click</h2>
     After pressing <kbd>f</kbd> from normal mode,
@@ -624,13 +621,14 @@
     Clicking links with the mouse when using insert mode will mostly do the same thing.
     <h2 id="follow-newtab">follow in new tab</h2>
     The <kbd>Shift with f</kbd> key allows you to open links in a new tab.
-    Unlike the regular follow mode, only anchor tabs will be available to click on.
-    Aside from that, all the href attributes are filtered.
-    The filter will disable the keys for links with no valid url,
-    as these couldn't be opened in a new tab.
-    This means only anchor tags with valid urls will be made clickable.
-    Finally these links will not be opened by emulating a mouse click,
+    Unlike the regular follow mode, only direct links will be available to click on.
+    These links will not be opened by emulating a mouse click,
     but by opening a new tab with the href attribute as the url.
+    Therefor only anchor tags with valid urls will be made clickable.
+    To open pages in a new tab without switching to them,
+    enter the keys while holding Shift.
+    This can be used to open multiple links on the page before switching,
+    because follow mode will stay active when opening links with Shift down.
     <h1 id="cursor">Cursor mode</h1>
     Cursor mode can be used to move "cursor" using the keyboard.
     It is required to enter cursor mode before going to visual mode.
