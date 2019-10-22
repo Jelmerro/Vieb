@@ -106,13 +106,17 @@ const update = (webview, urls) => {
     updateMappings(currentUrl)
     if (favicon.startsWith("file:/") || favicon.startsWith("data:")) {
         tab.querySelector(".favicon").src = favicon
-        tab.querySelector(".favicon").style.display = null
+        if (tab.querySelector(".status").style.display === "none") {
+            tab.querySelector(".favicon").style.display = null
+        }
         return
     }
     deleteIfTooOld(urlToPath(favicon))
     if (UTIL.isFile(urlToPath(favicon))) {
         tab.querySelector(".favicon").src = urlToPath(favicon)
-        tab.querySelector(".favicon").style.display = null
+        if (tab.querySelector(".status").style.display === "none") {
+            tab.querySelector(".favicon").style.display = null
+        }
         return
     }
     try {
@@ -129,7 +133,9 @@ const update = (webview, urls) => {
             fs.writeFileSync(urlToPath(favicon), Buffer.concat(data))
             if (webview.src === currentUrl) {
                 tab.querySelector(".favicon").src = urlToPath(favicon)
-                tab.querySelector(".favicon").style.display = null
+                if (tab.querySelector(".status").style.display === "none") {
+                    tab.querySelector(".favicon").style.display = null
+                }
             }
         })
         res.on("data", chunk => {

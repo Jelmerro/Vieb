@@ -31,6 +31,7 @@ but the list below contains much more technical details.
 - Mkviebrc command to save the current settings to the viebrc.json, optionally including the defaults
 - Local file browser for directories with improved file navigation
 - Favicon setting to disable favicons or configure the cache duration for favicons (cache per session by default)
+- Favicons are now present on the new tab and history pages
 
 ### Changed
 

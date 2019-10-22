@@ -137,7 +137,7 @@
             please refer to the dedicated paragraph <a href="#commands-quit">here</a>.
             You can switch between the suggestions with <kbd>Tab</kbd> and <kbd>Shift with Tab</kbd>,
             after which you can select a suggestion by pressing <kbd>Enter</kbd>.
-            You can also access previously executed commands with <kbd>Ctrl with b</kbd> and <kbd>Ctrl with f</kbd>.
+            You can also access previously executed commands with <kbd>Ctrl with n</kbd> and <kbd>Ctrl with p</kbd>.
         </li>
         <li>
             <span class="search">Search</span>
@@ -348,7 +348,8 @@
             "match": "^https?://(www.)?(reddit.com.*)",
             "replace": "https://old.$2"
         }
-    ]
+    ],
+    "favicons": "30day"
 }</pre>
 
     This example results in the following changes as compared to the defaults,
@@ -408,6 +409,7 @@
         <li>New tabs will no longer display the top visited sites as suggestions (newtab.showTopSites)</li>
         <li>New tabs now store all of the data in a separate container per tab, these tabs will have a yellow title in the navigation bar (newtab.container)</li>
         <li>All requests to reddit will now be redirected to old.reddit.com, you can add any redirect you want here using regex (redirects)</li>
+        <li>Favicons will now be updated once every 30 days instead of being refreshed once per session (favicons)</li>
     </ul>
     Please note that the download, tab and browsing history are separately configured.
     Therefor it's possible to keep and restore the open tabs without keeping the other browsing history.
@@ -680,7 +682,7 @@
     You can switch between suggestions using <kbd>Tab</kbd> and <kbd>Shift with Tab</kbd>,
     after which you can execute the command using <kbd>Enter</kbd>.
     Previously executed commands are stored during the current session,
-    and can be accessed using <kbd>Ctrl with b</kbd> and <kbd>Ctrl with f</kbd>.
+    and can be accessed using <kbd>Ctrl with n</kbd> and <kbd>Ctrl with p</kbd>.
     It's also possible to type only the first part of a command name,
     if that's the only one starting with the entered text (for example, ":dev" will execute devtools).
     The full list of commands is as follows:
@@ -823,7 +825,7 @@
     </ul>
     The short version of the quit command is "q".
     <h1 id="history">History</h1>
-    Your browsing, download and tab history are automatically stored when using Vieb with the default settings.
+    Your browsing, download, favicon and tab history are automatically stored when using Vieb with the default settings.
     Each of these parts have separate settings to configure how and if they should store your history.
     <h2 id="history-browsing">browsing history</h2>
     All websites you visit are stored in a "hist" file inside Vieb's config folder.
@@ -851,10 +853,26 @@
             or the download and tab history.
         </li>
     </ul>
-    <h2 id="history-other">other history stored</h2>
+    <h2 id="history-favicons">favicon history</h2>
+    When navigating to pages, the small tab icon will be downloaded with it (favicon).
+    Similar to other browsers, Vieb will only download these icons when they become outdated.
+    You can configure the interval at which these favicons will be updated,
+    by default they are updated once per session.
+    There is also an option to disable the use of favicons completely.
+    The favicons are used to show an icon in the tab bar,
+    but also on the new tab page and on the history page.
+    The favicons setting does not influence when these icons are removed again,
+    but only when they should be updated again.
+    The favicons will only be deleted when there are no pages in your history using that specific icon.
+    For example, if you visisted a website and you want to delete it's favicon,
+    simply remove all the site visits from your history.
+    Keep in mind that this process is not needed to refresh the favicons,
+    as that is exactly what the favicons setting is used for.
+    The favicons are stored in the folder of the same name in the Vieb data folder.
+    <h2 id="history-other">download and tab history</h2>
     The download settings are explained in the <a href="#special-downloads">special page</a> section.
     To learn more about the tab history settings, see the <a href="#startup">startup chapter</a>.
-    Because these settings are split between downloads, tabs and browsing history,
+    Because these settings are split between downloads, favicons, tabs and browsing history,
     you can finetune what you want to store and when to clear it automatically.
     <h2 id="history-private">private mode</h2>
     Having separate history settings means that there is no traditional private window available in Vieb,
@@ -887,7 +905,7 @@
 </pre>
     From normal mode, <kbd>p</kbd> will now toggle between private and regular mode for all components.
     Also, <kbd>{</kbd> and <kbd>}</kbd> can be used to switch between them with separate keys.
-    For more information on how to change the settings can be found in the <a href="#settings">settings chapter</a>.
+    More information on how to change the settings can be found in the <a href="#settings">settings chapter</a>.
     <h1 id="adblocker">Adblocker</h1>
     Vieb includes an adblocker made by cliqz (see <a href="#mentions">mentions</a> for details).
     By default, the easylist and easyprivacy filter lists are included and enabled with Vieb.
@@ -933,6 +951,7 @@
     The location of this special page is <a href="">"vieb://help"</a>.
     You can link to specific section of this page using "vieb://help#basics",
     or by calling the <a href="#commands-help">help command</a> with extra arguments.
+    Simply pressing F1 will also open this help page at any time.
     <h2 id="special-downloads">downloads page</h2>
     This page displays a list of all the downloaded files using Vieb.
     The list is stored between sessions by default,
