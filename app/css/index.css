@@ -26,8 +26,8 @@ img {height: 1.5em;width: 1.5em;min-height: 1.5em;min-width: 1.5em;pointer-event
 #mode {text-transform: capitalize;font-size: 1.3em;margin: auto 0;font-weight: bold;}
 /* Nav tabs */
 #tabs > span {color: #ccc;background-color: #444;display: flex;margin-right: .1em;padding-right: .4em;flex: 1;overflow: hidden;white-space: nowrap;}
-#tabs > span > img {margin: auto .25em;padding: 0;}
-#tabs > span > span {margin: auto 0;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
+#tabs > span > img {margin: auto 0 auto .25em;padding: 0;}
+#tabs > span > span {margin: auto 0 auto .25em;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
 #tabs > #current-tab {color: #eee;background-color: #666;}
 #tabs > .container {color: #ff0;}
 #tabs > #current-tab.container {color: #ff0;}
@@ -53,8 +53,11 @@ img {height: 1.5em;width: 1.5em;min-height: 1.5em;min-width: 1.5em;pointer-event
 .follow-onclick-border {border: solid .07em #cc5;z-index: 6;}
 /* suggestions */
 #suggest-dropdown {z-index: 15;position: fixed;top: 2em;left: 4em;width: calc(100vw - 4.2em);background-color: #777;}
-#suggest-dropdown div {padding: .4em;margin: .4em;background-color: #555;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
-#suggest-dropdown div.selected {background-color: #777;}
+#suggest-dropdown div {display: flex;padding: .4em;margin: .2em;background-color: #444;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
+#suggest-dropdown div .title, #suggest-dropdown div .url {padding: 0;margin: auto .5em;}
+#suggest-dropdown div .url {color: #bff;}
+#suggest-dropdown div .url.file {color: #ffb;}
+#suggest-dropdown div.selected {background-color: #666;}
 /* pages */
 webview {height: calc(100vh - 4em);width: 100vw;display: flex;pointer-events: none;}
 #invisible-overlay {position: absolute;top: 0;left: 0;width: 100vw;height: 100vh;z-index: 50;}

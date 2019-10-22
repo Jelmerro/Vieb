@@ -275,6 +275,7 @@ module.exports = {
     clearCache,
     clearCookies,
     clearLocalStorage,
+    rimrafFolder,
     redirect,
     expandPath,
     isObject,

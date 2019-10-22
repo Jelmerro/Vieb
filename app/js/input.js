@@ -83,8 +83,8 @@ const bindings = {
         "Tab": "ACTIONS.nextSuggestion",
         "S-Tab": "ACTIONS.prevSuggestion",
         "C-BracketLeft": "ACTIONS.toNormalMode",
-        "C-KeyB": "ACTIONS.commandHistoryPrevious",
-        "C-KeyF": "ACTIONS.commandHistoryNext",
+        "C-KeyN": "ACTIONS.commandHistoryNext",
+        "C-KeyP": "ACTIONS.commandHistoryPrevious",
         "Enter": "ACTIONS.useEnteredData"
     },
     "search": {

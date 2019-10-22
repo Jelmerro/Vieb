@@ -66,15 +66,18 @@
         const CURSOR = require("./js/cursor.js")
         //Save and restore the window position, size and maximized state
         const WINDOWSTATE = require("./js/windowstate.js")
+        //Load favicon handler
+        const FAVICONS = require("./js/favicons.js")
         //Some modules require initialisation
         SETTINGS.init()
         SESSIONS.init()
         INPUT.init()
         DOWNLOADS.init()
+        HISTORY.init()
         TABS.init()
         CURSOR.init()
-        HISTORY.init()
         WINDOWSTATE.init()
+        FAVICONS.init()
     </script>
 </body>
 </html>

@@ -30,6 +30,8 @@ but the list below contains much more technical details.
 - Write command to save the current page as HTML, optionally including resources (full) or to a custom location
 - Mkviebrc command to save the current settings to the viebrc.json, optionally including the defaults
 - Local file browser for directories with improved file navigation
+- Favicon setting to disable favicons or configure the cache duration for favicons (cache per session by default)
+- Favicons are now present on the new tab and history pages
 
 ### Changed
 
@@ -60,6 +62,7 @@ but the list below contains much more technical details.
 - Argument issue when running Vieb using npm start and opening links with it when Vieb was already open
 - Check the html element styling when detecting an unset background color (not only the body)
 - Keybindings bug for chained keys being overwritten when adding new ones to the same key
+- Tabs not switching to the correct tab on startup
 
 ### Security
 
