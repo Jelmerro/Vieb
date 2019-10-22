@@ -154,6 +154,11 @@ const parseAndDisplayLinks = newLinks => {
 
 const enterKey = identifier => {
     alreadyFollowing = true
+    let stayInFollowMode = false
+    if (identifier.startsWith("S-")) {
+        stayInFollowMode = true
+        identifier = identifier.replace("S-", "")
+    }
     if (identifier.includes("-")) {
         return
     }
@@ -177,8 +182,13 @@ const enterKey = identifier => {
     if (matches.length === 1) {
         const link = links[matches[0].getAttribute("link-id")]
         if (followNewtab) {
-            MODES.setMode("normal")
-            TABS.addTab(link.url)
+            if (stayInFollowMode) {
+                cancelFollow()
+                startFollow()
+            } else {
+                MODES.setMode("normal")
+            }
+            TABS.addTab(link.url, false, !stayInFollowMode)
             return
         }
         const factor = TABS.currentPage().getZoomFactor()

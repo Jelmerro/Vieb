@@ -188,7 +188,7 @@ const currentPage = () => {
     return currentPageElement
 }
 
-const addTab = (url = null, inverted = false) => {
+const addTab = (url = null, inverted = false, switchTo = true) => {
     let addNextToCurrent = SETTINGS.get("newtab.nextToCurrentOne")
     addNextToCurrent = addNextToCurrent && listTabs().length > 0
     if (inverted) {
@@ -239,12 +239,14 @@ const addTab = (url = null, inverted = false) => {
     } else {
         webview.src = UTIL.specialPagePath("newtab")
     }
-    if (addNextToCurrent) {
-        switchToTab(listTabs().indexOf(currentTab()) + 1)
-    } else {
-        switchToTab(listTabs().length - 1)
+    if (switchTo) {
+        if (addNextToCurrent) {
+            switchToTab(listTabs().indexOf(currentTab()) + 1)
+        } else {
+            switchToTab(listTabs().length - 1)
+        }
+        MODES.setMode("normal")
     }
-    MODES.setMode("normal")
 }
 
 const reopenTab = () => {
