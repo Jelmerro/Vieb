@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global SETTINGS SUGGEST TABS UTIL */
+/* global FAVICONS SETTINGS SUGGEST TABS UTIL */
 "use strict"
 
 const fs = require("fs")
@@ -183,7 +183,10 @@ const handleRequest = (type, start, end) => {
     } else if (type === "all") {
         clearHistory()
     }
-    TABS.currentPage().getWebContents().send("history-list", history)
+    TABS.currentPage().getWebContents().send("history-list", history.map(h => {
+        h.icon = FAVICONS.forSite(h.url)
+        return h
+    }))
 }
 
 const topSites = () => {
@@ -193,11 +196,22 @@ const topSites = () => {
         }
         return 0
     }).slice(0, 10).map(site => {
+        if (SETTINGS.get("favicons") === "disabled") {
+            return {"url": site, "name": groupedHistory[site].title}
+        }
         return {
             "url": site,
-            "name": groupedHistory[site].title
+            "name": groupedHistory[site].title,
+            "icon": FAVICONS.forSite(site)
         }
     })
+}
+
+const visitCount = url => {
+    if (groupedHistory[url] && groupedHistory[url].visits) {
+        return groupedHistory[url].visits
+    }
+    return 0
 }
 
 module.exports = {
@@ -206,5 +220,6 @@ module.exports = {
     suggestHist,
     clearHistory,
     handleRequest,
-    topSites
+    topSites,
+    visitCount
 }

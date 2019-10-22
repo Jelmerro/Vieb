@@ -92,8 +92,8 @@ const saveWindowState = (maximizeOnly = false) => {
     if (!maximizeOnly && !remote.getCurrentWindow().isMaximized()) {
         const newBounds = remote.getCurrentWindow().getBounds()
         const currentScreen = remote.screen.getDisplayMatching(newBounds).bounds
-        if (newBounds.width < currentScreen.width * 0.8) {
-            if (newBounds.height < currentScreen.height * 0.8) {
+        if (newBounds.width !== currentScreen.width) {
+            if (newBounds.height !== currentScreen.height) {
                 if (newBounds.width !== currentScreen.width / 2) {
                     if (newBounds.height !== currentScreen.height / 2) {
                         if (newBounds.x !== currentScreen.x / 2) {

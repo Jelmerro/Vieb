@@ -15,7 +15,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND COMMANDHISTORY FOLLOW MODES SETTINGS SUGGEST TABS UTIL */
+/* global COMMAND COMMANDHISTORY FAVICONS FOLLOW MODES SETTINGS SUGGEST TABS
+ UTIL */
 "use strict"
 
 const path = require("path")
@@ -121,6 +122,7 @@ const reload = () => {
         if (!TABS.currentPage().isCrashed()) {
             TABS.currentPage().reload()
             TABS.currentPage().removeAttribute("failed-to-load")
+            FAVICONS.empty(TABS.currentPage())
         }
     } catch (e) {
         // No page is available, not an issue
@@ -163,6 +165,7 @@ const backInHistory = () => {
     try {
         TABS.currentPage().goBack()
         TABS.currentPage().removeAttribute("failed-to-load")
+        FAVICONS.empty(TABS.currentPage())
     } catch (e) {
         // No page is available, not an issue
     }
@@ -179,6 +182,7 @@ const forwardInHistory = () => {
     try {
         TABS.currentPage().goForward()
         TABS.currentPage().removeAttribute("failed-to-load")
+        FAVICONS.empty(TABS.currentPage())
     } catch (e) {
         // No page is available, not an issue
     }
@@ -203,6 +207,7 @@ const reloadWithoutCache = () => {
         if (!TABS.currentPage().isCrashed()) {
             TABS.currentPage().reloadIgnoringCache()
             TABS.currentPage().removeAttribute("failed-to-load")
+            FAVICONS.empty(TABS.currentPage())
         }
     } catch (e) {
         // No page is available, not an issue

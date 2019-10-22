@@ -27,11 +27,17 @@ ipcRenderer.on("insert-new-tab-info", (_, sites) => {
     for (const site of sites) {
         const link = document.createElement("a")
         link.href = site.url
-        link.textContent = site.name
-        link.appendChild(document.createElement("br"))
+        const icon = document.createElement("img")
+        icon.src = site.icon || "../img/empty.png"
+        link.appendChild(icon)
+        const text = document.createElement("div")
+        const title = document.createElement("span")
+        title.textContent = site.name
+        text.appendChild(title)
         const url = document.createElement("small")
         url.textContent = site.url
-        link.appendChild(url)
+        text.appendChild(url)
+        link.appendChild(text)
         document.getElementById("topsites").appendChild(link)
     }
 })
