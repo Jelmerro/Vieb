@@ -179,7 +179,6 @@ const checkOther = (setting, value) => {
         const expandedPath = UTIL.expandPath(value)
         if (UTIL.pathExists(expandedPath)) {
             if (UTIL.isDir(expandedPath)) {
-                allSettings.downloads.path = expandedPath
                 return true
             }
             UTIL.notify("The download path is not a directory", "warn")

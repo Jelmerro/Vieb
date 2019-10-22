@@ -182,9 +182,6 @@ const enterKey = identifier => {
             return
         }
         const factor = TABS.currentPage().getZoomFactor()
-        if (link.type === "inputs-insert") {
-            MODES.setMode("normal")
-        }
         MODES.setMode("insert")
         TABS.currentPage().sendInputEvent({
             "type": "mouseEnter",
