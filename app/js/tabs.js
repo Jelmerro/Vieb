@@ -66,11 +66,7 @@ const init = () => {
                     recentlyClosed = parsed.closed.concat(recentlyClosed)
                 }
             } else {
-                try {
-                    fs.unlinkSync(tabFile)
-                } catch (e) {
-                    // Failed to delete, might not exist
-                }
+                UTIL.deleteFile(tabFile)
             }
         }
         if (listTabs().length === 0) {
@@ -85,7 +81,7 @@ const init = () => {
             urls.forEach(url => {
                 if (!UTIL.hasProtocol(url)) {
                     const local = UTIL.expandPath(url)
-                    if (path.isAbsolute(local) && fs.existsSync(local)) {
+                    if (path.isAbsolute(local) && UTIL.pathExists(local)) {
                         // File protocol locations should always have 3 slashes
                         url = `file:${local}`.replace(/^file:\/*/, "file:///")
                     } else {
@@ -149,21 +145,13 @@ const saveTabs = () => {
             }
         })
     } else {
-        try {
-            fs.unlinkSync(tabFile)
-        } catch (e) {
-            // Failed to delete, might not exist
-        }
+        UTIL.deleteFile(tabFile)
         return
     }
     // Only keep the 100 most recently closed tabs,
     // More is probably never needed but would keep increasing the file size.
     data.closed = data.closed.slice(-100)
-    try {
-        fs.writeFileSync(tabFile, JSON.stringify(data))
-    } catch (e) {
-        UTIL.notify("Failed to write current tabs to disk", "err")
-    }
+    UTIL.writeJSON(tabFile, data, "Failed to write current tabs to disk")
 }
 
 const listTabs = () => {
