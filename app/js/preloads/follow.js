@@ -34,11 +34,15 @@ const clickableInputs = [
     "input[type=\"file\"]",
     "input[type=\"image\"]",
     "input[type=\"reset\"]",
+    "*[role=\"button\"]",
+    "*[role=\"radio\"]",
+    "*[role=\"checkbox\"]",
     "summary"
 ]
 const textlikeInputs = ["input:not([type=\"radio\"]):not([type=\"checkbox\"])"
     + ":not([type=\"submit\"]):not([type=\"button\"]):not([type=\"color\"])"
     + ":not([type=\"file\"]):not([type=\"image\"]):not([type=\"reset\"])",
+"*[role=\"textbox\"",
 "textarea",
 "select"]
 
@@ -93,8 +97,8 @@ const sendFollowLinks = () => {
     // Input tags such as email and text, can have text inserted
     allLinks.push(...allElementsBySelectors("inputs-insert", textlikeInputs))
     // All other elements with onclick listeners
-    const clickableElements = [...document.querySelectorAll("*")]
-        .filter(el => el.onclick || el.onmousedown)
+    const clickableElements = [...document.querySelectorAll("*")].filter(
+        el => el.onclick || el.onmousedown || el.getAttribute("jsaction"))
     clickableElements.push(...elementsWithClickListener)
     clickableElements.push(...elementsWithMouseDownListener)
     clickableElements.forEach(element => {

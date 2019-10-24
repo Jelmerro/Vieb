@@ -65,6 +65,7 @@ but the list below contains much more technical details.
 - Check the html element styling when detecting an unset background color (not only the body)
 - Keybindings bug for chained keys being overwritten when adding new ones to the same key
 - Tabs not switching to the correct tab on startup
+- Missing elements in follow mode using jsaction and/or ARIA roles
 
 ### Security
 
