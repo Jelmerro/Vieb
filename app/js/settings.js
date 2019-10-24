@@ -18,7 +18,6 @@
 /* global DOWNLOADS INPUT SESSIONS TABS UTIL */
 "use strict"
 
-const fs = require("fs")
 const path = require("path")
 const {remote} = require("electron")
 
@@ -415,12 +414,8 @@ const saveToDisk = full => {
         settings = removeDefaults(settings, defaults)
     }
     const config = path.join(remote.app.getPath("appData"), "viebrc.json")
-    try {
-        fs.writeFileSync(config, JSON.stringify(settings, null, 4))
-        UTIL.notify(`Viebrc saved to '${config}'`)
-    } catch (e) {
-        UTIL.notify(`Could not write to '${config}'`, "err")
-    }
+    UTIL.writeJSON(config, settings, `Could not write to '${config}'`,
+        `Viebrc saved to '${config}'`, 4)
 }
 
 module.exports = {

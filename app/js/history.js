@@ -138,11 +138,7 @@ const addToHist = (title, url) => {
 }
 
 const clearHistory = () => {
-    try {
-        fs.unlinkSync(histFile)
-    } catch (e) {
-        // Failed to delete, might not exist
-    }
+    UTIL.deleteFile(histFile)
     history = []
     groupedHistory = {}
 }

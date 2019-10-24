@@ -20,18 +20,13 @@
 
 const {ipcRenderer, remote} = require("electron")
 const path = require("path")
-const fs = require("fs")
 
 const dlsFile = path.join(remote.app.getPath("appData"), "dls")
 let downloads = []
 
 const init = () => {
     if (SETTINGS.get("downloads.clearOnQuit")) {
-        try {
-            fs.unlinkSync(dlsFile)
-        } catch (e) {
-            // Failed to delete, might not exist
-        }
+        UTIL.deleteFile(dlsFile)
     } else if (UTIL.isFile(dlsFile)) {
         const parsed = UTIL.readJSON(dlsFile)
         for (const download of parsed) {
@@ -168,17 +163,9 @@ const writeToFile = () => {
         }
     })
     if (SETTINGS.get("downloads.clearOnQuit")) {
-        try {
-            fs.unlinkSync(dlsFile)
-        } catch (e) {
-            // Failed to delete, might not exist
-        }
+        UTIL.deleteFile(dlsFile)
     } else {
-        try {
-            fs.writeFileSync(dlsFile, JSON.stringify(downloads))
-        } catch (e) {
-            // Failed to write, try again later
-        }
+        UTIL.writeJSON(dlsFile, downloads)
     }
 }
 

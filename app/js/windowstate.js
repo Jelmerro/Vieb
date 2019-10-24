@@ -20,7 +20,6 @@
 
 const {remote} = require("electron")
 const path = require("path")
-const fs = require("fs")
 
 const windowStateFile = path.join(remote.app.getPath("appData"), "windowstate")
 
@@ -107,11 +106,7 @@ const saveWindowState = (maximizeOnly = false) => {
         }
     }
     state.maximized = remote.getCurrentWindow().isMaximized()
-    try {
-        fs.writeFileSync(windowStateFile, JSON.stringify(state))
-    } catch (e) {
-        // Not a problem, will try again later
-    }
+    UTIL.writeJSON(windowStateFile, state)
 }
 
 module.exports = {

@@ -266,6 +266,29 @@ const readJSON = loc => {
     }
 }
 
+const writeJSON = (loc, data, err = null, success = null, indent = null) => {
+    try {
+        fs.writeFileSync(loc, JSON.stringify(data, null, indent))
+        if (success) {
+            notify(success)
+        }
+    } catch (e) {
+        if (err) {
+            notify(err, "err")
+        }
+    }
+}
+
+const deleteFile = (loc, err = null) => {
+    try {
+        fs.unlinkSync(loc)
+    } catch (e) {
+        if (err) {
+            notify(err, "warn")
+        }
+    }
+}
+
 module.exports = {
     hasProtocol,
     isUrl,
@@ -283,5 +306,7 @@ module.exports = {
     pathExists,
     isDir,
     isFile,
-    readJSON
+    readJSON,
+    writeJSON,
+    deleteFile
 }

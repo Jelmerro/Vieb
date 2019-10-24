@@ -49,22 +49,14 @@ const updateMappings = (currentUrl = null) => {
             .map(p => path.join(faviconFolder, p))
             .forEach(img => {
                 if (!mappedFavicons.includes(img)) {
-                    try {
-                        fs.unlinkSync(img)
-                    } catch (e) {
-                        // Could not delete cached favicon
-                    }
+                    UTIL.deleteFile(img)
                 }
             })
     } catch (e) {
         // Failed to list files, folder might not exist (no favicons yet)
     }
     // Write changes to mapping file
-    try {
-        fs.writeFileSync(mappingFile, JSON.stringify(mappings))
-    } catch (e) {
-        // Could not write, will try again for next favicon update
-    }
+    UTIL.writeJSON(mappingFile, mappings)
 }
 
 const urlToPath = url => {
@@ -92,6 +84,13 @@ const show = webview => {
     }
 }
 
+const setPath = (tab, loc) => {
+    tab.querySelector(".favicon").src = loc
+    if (tab.querySelector(".status").style.display === "none") {
+        tab.querySelector(".favicon").style.display = null
+    }
+}
+
 const update = (webview, urls) => {
     if (SETTINGS.get("favicons") === "disabled") {
         return
@@ -105,18 +104,12 @@ const update = (webview, urls) => {
     mappings[currentUrl] = favicon
     updateMappings(currentUrl)
     if (favicon.startsWith("file:/") || favicon.startsWith("data:")) {
-        tab.querySelector(".favicon").src = favicon
-        if (tab.querySelector(".status").style.display === "none") {
-            tab.querySelector(".favicon").style.display = null
-        }
+        setPath(tab, favicon)
         return
     }
     deleteIfTooOld(urlToPath(favicon))
     if (UTIL.isFile(urlToPath(favicon))) {
-        tab.querySelector(".favicon").src = urlToPath(favicon)
-        if (tab.querySelector(".status").style.display === "none") {
-            tab.querySelector(".favicon").style.display = null
-        }
+        setPath(tab, urlToPath(favicon))
         return
     }
     try {
@@ -132,10 +125,7 @@ const update = (webview, urls) => {
         res.on("end", () => {
             fs.writeFileSync(urlToPath(favicon), Buffer.concat(data))
             if (webview.src === currentUrl) {
-                tab.querySelector(".favicon").src = urlToPath(favicon)
-                if (tab.querySelector(".status").style.display === "none") {
-                    tab.querySelector(".favicon").style.display = null
-                }
+                setPath(tab, urlToPath(favicon))
             }
         })
         res.on("data", chunk => {
@@ -151,11 +141,7 @@ const deleteIfTooOld = loc => {
         return
     }
     if (setting === "nocache") {
-        try {
-            fs.unlinkSync(loc)
-        } catch (e) {
-            // Could not delete cached favicon
-        }
+        UTIL.deleteFile(loc)
         return
     }
     if (setting === "session") {
