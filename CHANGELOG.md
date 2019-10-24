@@ -33,6 +33,7 @@ but the list below contains much more technical details.
 - Favicon setting to disable favicons or configure the cache duration for favicons (cache per session by default)
 - Favicons are now present on the new tab and history pages
 - Open pages in a new tab without directly switching to them (while holding Shift in newtab follow mode)
+- Buffer command to easily switch between all the open tabs (with autocompletion)
 
 ### Changed
 
