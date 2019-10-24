@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND FAVICONS SETTINGS */
+/* global COMMAND FAVICONS SETTINGS TABS */
 "use strict"
 
 let suggestions = []
@@ -114,7 +114,7 @@ const addHist = hist => {
     const url = document.createElement("span")
     url.className = "url"
     if (hist.url.startsWith("file://")) {
-        url.className = "url file"
+        url.className = "file"
     }
     url.textContent = hist.url
     element.appendChild(url)
@@ -147,6 +147,23 @@ const suggestCommand = search => {
     if ("mkviebrc".startsWith(search.split(" ")[0])) {
         writeCommandExtras = ["mkv full", "mkviebrc full"]
     }
+    if ("buffer".startsWith(search.split(" ")[0])) {
+        TABS.listTabs().map((t, index) => {
+            return {
+                "command": `${search.split(" ")[0]} ${index}`,
+                "subtext": `${t.querySelector("span").textContent}`
+            }
+        }).filter(t => {
+            if (t.command.startsWith(search)) {
+                return true
+            }
+            const simpleTabTitle = t.subtext.replace(/\W/g, "").toLowerCase()
+            const simpleSearch = search.split(" ").slice(1).join("")
+                .replace(/\W/g, "").toLowerCase()
+            return simpleTabTitle.includes(simpleSearch)
+        }).slice(0, 10).forEach(t => { addCommand(t.command, t.subtext) })
+        return
+    }
     const possibleCommands = COMMAND.commandList()
         .concat(setCommandExtras)
         .concat(writeCommandExtras)
@@ -156,10 +173,16 @@ const suggestCommand = search => {
     }
 }
 
-const addCommand = command => {
+const addCommand = (command, subtext) => {
     addToList(command)
     const element = document.createElement("div")
-    element.textContent = command
+    const commandElement = document.createElement("span")
+    commandElement.textContent = command
+    element.appendChild(commandElement)
+    const subtextElement = document.createElement("span")
+    subtextElement.textContent = subtext
+    subtextElement.className = "file"
+    element.appendChild(subtextElement)
     document.getElementById("suggest-dropdown").appendChild(element)
 }
 

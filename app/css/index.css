@@ -54,9 +54,10 @@ img {height: 1.5em;width: 1.5em;min-height: 1.5em;min-width: 1.5em;pointer-event
 /* suggestions */
 #suggest-dropdown {z-index: 15;position: fixed;top: 2em;left: 4em;width: calc(100vw - 4.2em);background-color: #777;}
 #suggest-dropdown div {display: flex;padding: .4em;margin: .2em;background-color: #444;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
-#suggest-dropdown div .title, #suggest-dropdown div .url {padding: 0;margin: auto .5em;}
+#suggest-dropdown div .title, #suggest-dropdown div .file, #suggest-dropdown div .url {margin: auto .5em;}
+#suggest-dropdown div .icon {margin: .5em;}
 #suggest-dropdown div .url {color: #bff;}
-#suggest-dropdown div .url.file {color: #ffb;}
+#suggest-dropdown div .file {color: #ffb;}
 #suggest-dropdown div.selected {background-color: #666;}
 /* pages */
 webview {height: calc(100vh - 4em);width: 100vw;display: flex;pointer-events: none;}

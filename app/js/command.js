@@ -214,6 +214,29 @@ const mkviebrc = (full = false, trailingArgs = false) => {
     SETTINGS.saveToDisk(exportAll)
 }
 
+const buffer = (...args) => {
+    if (args.length === 0) {
+        UTIL.notify("The buffer command requires a buffer name or id", "warn")
+        return
+    }
+    if (args.length === 1) {
+        const number = Number(args[0])
+        if (!isNaN(number)) {
+            TABS.switchToTab(number)
+            return
+        }
+    }
+    const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
+    const tab = TABS.listTabs().find(t => {
+        const simpleTitle = t.querySelector("span").textContent
+            .replace(/\W/g, "").toLowerCase()
+        return simpleTitle.includes(simpleSearch)
+    })
+    if (tab) {
+        TABS.switchToTab(TABS.listTabs().indexOf(tab))
+    }
+}
+
 const commands = {
     "q": quit,
     "quit": quit,
@@ -233,7 +256,9 @@ const commands = {
     "w": write,
     "write": write,
     "mkv": mkviebrc,
-    "mkviebrc": mkviebrc
+    "mkviebrc": mkviebrc,
+    "b": buffer,
+    "buffer": buffer
 }
 
 const noArgumentComands = [
