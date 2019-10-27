@@ -694,6 +694,7 @@
         <li>reload</li>
         <li>mkviebrc (or mkv)</li>
         <li>hardcopy (or print)</li>
+        <li>buffer (or b)</li>
         <li>write (or w)</li>
         <li>quit (or q)</li>
     </ul>
@@ -779,6 +780,20 @@
     The hardcopy command can be used to print the current page.
     There are no arguments for this command.
     The alternative name for this command is print.
+    <h2 id="commands-buffer">buffer</h2>
+    The buffer command is used to quickly switch between tabs by name.
+    The short version of this command is "b".
+    For example, to quickly switch to an open tab of the vieb github page,
+    the following command could be used:
+    <pre class="command-block">b github vieb</pre>
+    You don't have type this out completely, the first match will be selected.
+    Depending on the tabs you have open, only typing "b gi" could be enough.
+    If your preferred tab is not the first suggestion, you can tab between suggestions.
+    Each tab is numbered, and the number can also be used to switch to a certain tab.
+    For example, the following command switches to the 1st tab (index starts at 0):
+    <pre class="command-block">b 0</pre>
+    Using this command, you can also map keyboard shortcuts to switch to specific tabs.
+    The search is based on the page title, url and the tab index.
     <h2 id="commands-write">write</h2>
     This command can be used to write the HTML of the current page to a file.
     The short version of this command is "w".

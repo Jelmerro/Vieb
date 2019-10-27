@@ -228,6 +228,11 @@ const buffer = (...args) => {
     }
     const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
     const tab = TABS.listTabs().find(t => {
+        const simpleTabUrl = TABS.tabOrPageMatching(t).src
+            .replace(/\W/g, "").toLowerCase()
+        if (simpleTabUrl.includes(simpleSearch)) {
+            return true
+        }
         const simpleTitle = t.querySelector("span").textContent
             .replace(/\W/g, "").toLowerCase()
         return simpleTitle.includes(simpleSearch)
