@@ -148,18 +148,23 @@ const suggestCommand = search => {
         writeCommandExtras = ["mkv full", "mkviebrc full"]
     }
     if ("buffer".startsWith(search.split(" ")[0])) {
+        const simpleSearch = search.split(" ").slice(1).join("")
+            .replace(/\W/g, "").toLowerCase()
         TABS.listTabs().map((t, index) => {
             return {
                 "command": `${search.split(" ")[0]} ${index}`,
-                "subtext": `${t.querySelector("span").textContent}`
+                "subtext": `${t.querySelector("span").textContent}`,
+                "url": TABS.tabOrPageMatching(t).src
             }
         }).filter(t => {
             if (t.command.startsWith(search)) {
                 return true
             }
+            const simpleTabUrl = t.url.replace(/\W/g, "").toLowerCase()
+            if (simpleTabUrl.includes(simpleSearch)) {
+                return true
+            }
             const simpleTabTitle = t.subtext.replace(/\W/g, "").toLowerCase()
-            const simpleSearch = search.split(" ").slice(1).join("")
-                .replace(/\W/g, "").toLowerCase()
             return simpleTabTitle.includes(simpleSearch)
         }).slice(0, 10).forEach(t => { addCommand(t.command, t.subtext) })
         return
