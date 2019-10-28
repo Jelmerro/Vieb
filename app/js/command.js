@@ -242,6 +242,10 @@ const buffer = (...args) => {
     }
 }
 
+const cookies = () => {
+    openSpecialPage("cookies")
+}
+
 const commands = {
     "q": quit,
     "quit": quit,
@@ -263,7 +267,8 @@ const commands = {
     "mkv": mkviebrc,
     "mkviebrc": mkviebrc,
     "b": buffer,
-    "buffer": buffer
+    "buffer": buffer,
+    "cookies": cookies
 }
 
 const noArgumentComands = [

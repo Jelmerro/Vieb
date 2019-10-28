@@ -695,6 +695,7 @@
         <li>mkviebrc (or mkv)</li>
         <li>hardcopy (or print)</li>
         <li>buffer (or b)</li>
+        <li>cookies</li>
         <li>write (or w)</li>
         <li>quit (or q)</li>
     </ul>
@@ -794,6 +795,11 @@
     <pre class="command-block">b 0</pre>
     Using this command, you can also map keyboard shortcuts to switch to specific tabs.
     The search is based on the page title, url and the tab index.
+    <h2 id="commands-cookies">cookies</h2>
+    The cookies command is used to open the special page named cookies.
+    It can also be accessed at "vieb://cookies".
+    Only the cookies of the main session will be listed.
+    See the <a href="#special-cookies">cookies page info</a> for more details.
     <h2 id="commands-write">write</h2>
     This command can be used to write the HTML of the current page to a file.
     The short version of this command is "w".
@@ -996,6 +1002,21 @@
     or you can delete an entire day, week or everything.
     The history page can be opened using the <a href="#commands-history">history command</a>, or as "vieb://history".
     To change the history settings, see the <a href="#history">history chapter</a>.
+    <h2 id="special-cookies">cookies page</h2>
+    On the cookies page all cookies of the main session are listed.
+    Container tabs use their own set of cookies, stored separately from these ones.
+    To open a new tab in a separate container, use the following command:
+    <pre class="command-block">set newtab.container=true</pre>
+    Cookies of container tabs will be cleared when quitting Vieb or when closing the tab.
+    The cookies of the main session can be edited on the cookie page,
+    which can be found at "vieb://cookies" or can be opened with:
+    <pre class="command-block">cookies</pre>
+    On the cookies page there is an input field to filter the listed cookies.
+    When filtering, only the listed cookies will be deleted by the remove all button,
+    otherwise all cookies will be deleted when clicking it.
+    Cookies can aslo be deleted individually using the small trash bins.
+    Finally you can also configure Vieb to delete all cookies on quit:
+    <pre class="command-block">set clearCookiesOnQuit=true</pre>
     <h1 id="license">License</h1>
     Vieb is created by <a href="https://github.com/Jelmerro">Jelmer van Arnhem</a>
     and <a href="https://github.com/Jelmerro/Vieb/graphs/contributors">contributors</a>.

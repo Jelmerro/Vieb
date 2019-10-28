@@ -25,7 +25,9 @@ const rimraf = require("rimraf").sync
 const os = require("os")
 
 const protocolRegex = /^[a-z][a-z0-9-+.]+:\/\//
-const specialPages = ["help", "history", "downloads", "newtab", "version"]
+const specialPages = [
+    "cookies", "help", "history", "downloads", "newtab", "version"
+]
 
 const hasProtocol = location => {
     // Check for a valid protocol at the start
