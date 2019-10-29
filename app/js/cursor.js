@@ -132,8 +132,7 @@ const releaseKeys = stayVisble => {
         "x": X,
         "y": Y
     })
-    TABS.currentPage().executeJavaScript(
-        "window.getSelection().removeAllRanges();")
+    TABS.currentPage().getWebContents().send("selection-remove")
 }
 
 // ACTIONS
@@ -164,7 +163,7 @@ const copyAndStop = () => {
             "text": document.getElementById("url-hover").textContent
         })
     } else {
-        TABS.currentPage().executeJavaScript("document.execCommand('copy')")
+        TABS.currentPage().getWebContents().send("selection-copy")
     }
     MODES.setMode("normal")
 }

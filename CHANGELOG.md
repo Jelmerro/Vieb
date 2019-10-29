@@ -34,6 +34,7 @@ but the list below contains much more technical details.
 - Favicons are now present on the new tab and history pages
 - Open pages in a new tab without directly switching to them (while holding Shift in newtab follow mode)
 - Buffer command to easily switch between all the open tabs (with autocompletion)
+- Roboto Mono font for all UI elements (with fallback to system monospace)
 
 ### Changed
 
@@ -66,6 +67,7 @@ but the list below contains much more technical details.
 - Keybindings bug for chained keys being overwritten when adding new ones to the same key
 - Tabs not switching to the correct tab on startup
 - Missing elements in follow mode using jsaction and/or ARIA roles
+- Page scrolling not working when the page is still loading
 
 ### Security
 

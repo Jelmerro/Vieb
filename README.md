@@ -15,10 +15,11 @@ Vieb
 - Dark theme with custom font size for all UI elements
 - Customisable by dozens of settings for permissions, cache, cookies, redirects and more
 - History management, container tabs, download management and default to HTTPS
-- Offline auto-completion for websites and commands
+- Fast auto-completion for websites and commands
 - Automatically block advertisements and trackers using easylist and easyprivacy
-- Very detailed offline documentation/help always available upon pressing `F1`
-- Custom keybindings can be configured for most actions
+- Very detailed documentation/help always available upon pressing `F1`
+- Custom keybindings can be configured for most actions and all commands
+- No internet required for: suggestions, adblocker, file browsing and documentation
 
 ## Modes
 
