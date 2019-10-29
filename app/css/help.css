@@ -16,7 +16,8 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 /* General */
-body {color: #eee;font: 14px monospace;background: #333;padding: 0;margin: 3%;line-height: 1.5;}
+@font-face {font-family: RobotoMono;src: url("./font/RobotoMono-Regular.ttf");}
+body {color: #eee;font: 14px RobotoMono, monospace;background: #333;padding: 0;margin: 3%;line-height: 1.5;}
 kbd {background: #111;color: #fff;padding: .1em;}
 button, input {font: inherit;}
 button, span[onclick] {border-width: .15em;border-style: solid;border-color: #555;}

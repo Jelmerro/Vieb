@@ -16,8 +16,9 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 /* Global */
+@font-face {font-family: RobotoMono;src: url("./font/RobotoMono-Regular.ttf");}
 * {pointer-events: none;}
-body {color: #eee;font: 14px monospace;background: #333;padding: 0;margin: 0;height: 100vh;width: 100vw;overflow: hidden;user-select: none;}
+body {color: #eee;font: 14px RobotoMono, monospace;background: #333;padding: 0;margin: 0;height: 100vh;width: 100vw;overflow: hidden;user-select: none;}
 h3 {margin: 1.4em;}
 input {background: #555;border: solid .1em #777;color: #eee;width: 18em;height: 2em;margin-left: 1.4em;margin-bottom: 1.4em;outline: none;font: inherit;}
 input:focus {border: solid .1em #eee;}

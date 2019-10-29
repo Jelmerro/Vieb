@@ -16,14 +16,15 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 /* Global */
-body {color: #eee;font: 14px monospace;background: #333;padding: 0;margin: 0;height: 100vh;width: 100vw;overflow: hidden;user-select: none;}
+@font-face {font-family: RobotoMono;src: url("./font/RobotoMono-Regular.ttf");}
+body {color: #eee;font: 14px RobotoMono, monospace;background: #333;padding: 0;margin: 0;height: 100vh;width: 100vw;overflow: hidden;user-select: none;}
 img {height: 1.5em;width: 1.5em;min-height: 1.5em;min-width: 1.5em;pointer-events: none;}
 /* Nav bar */
 #navbar {width: 100vw;height: 4em;display: flex;z-index: 1;background-color: #333;position: relative;pointer-events: none;}
 #logo {-webkit-app-region: drag;height: 3.6em;width: 3.6em;padding: .2em;min-width: 3.6em;min-height: 3.6em;}
 #menu, #tabs {display: flex;right: 0;left: 0;height: 2em;width: calc(100vw - 4em);overflow: hidden;}
 #tabs {overflow-x: auto;}
-#mode {text-transform: capitalize;font-size: 1.3em;margin: auto 0;font-weight: bold;}
+#mode {text-transform: capitalize;font-size: 1.3em;margin: auto 0;font-weight: bold;padding: 0 .2em;}
 /* Nav tabs */
 #tabs > span {color: #ccc;background-color: #444;display: flex;margin-right: .1em;padding-right: .4em;flex: 1;overflow: hidden;white-space: nowrap;}
 #tabs > span > img {margin: auto 0 auto .25em;padding: 0;}
@@ -41,7 +42,7 @@ img {height: 1.5em;width: 1.5em;min-height: 1.5em;min-width: 1.5em;pointer-event
 #url.file {border-color: #ff9;}
 /* follow */
 #follow {height: calc(100vh - 4em);position: fixed;top: 4em;left: 0;width: 100vw;display: none;}
-.follow-url, .follow-inputs-click, .follow-inputs-insert, .follow-onclick {position: absolute;color: #111;font-weight: bold;}
+.follow-url, .follow-inputs-click, .follow-inputs-insert, .follow-onclick {position: absolute;color: #111;}
 .follow-url-border, .follow-inputs-click-border, .follow-inputs-insert-border, .follow-onclick-border {position: absolute;box-sizing: border-box;}
 .follow-url {background-color: #cff;border: solid .15em #5cc;z-index: 13;}
 .follow-inputs-click {background-color: #fcc;border: solid .15em #c55;z-index: 12;}
@@ -54,7 +55,7 @@ img {height: 1.5em;width: 1.5em;min-height: 1.5em;min-width: 1.5em;pointer-event
 /* suggestions */
 #suggest-dropdown {z-index: 15;position: fixed;top: 2em;left: 4em;width: calc(100vw - 4.2em);background-color: #777;}
 #suggest-dropdown div {display: flex;padding: .4em;margin: .2em;background-color: #444;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
-#suggest-dropdown div .title, #suggest-dropdown div .file, #suggest-dropdown div .url {margin: auto .5em;}
+#suggest-dropdown div .title, #suggest-dropdown div .file, #suggest-dropdown div .url {margin: auto .5em;min-width: 0;text-overflow: ellipsis;overflow: hidden;}
 #suggest-dropdown div .icon {margin: .5em;}
 #suggest-dropdown div .url {color: #bff;}
 #suggest-dropdown div .file {color: #ffb;}
