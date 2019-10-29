@@ -96,8 +96,7 @@ const setMode = mode => {
                 const ctrlBrack = input.code === "BracketLeft" && noMods && ctrl
                 if (escapeKey || ctrlBrack) {
                     if (document.body.className === "fullscreen") {
-                        page.executeJavaScript(
-                            "document.webkitExitFullscreen()")
+                        page.getWebContents().send("action", "exitFullscreen")
                         return
                     }
                 }

@@ -234,17 +234,11 @@ const isValidSetting = (setting, value, startup) => {
 const updateFontSize = () => {
     document.body.style.fontSize = `${allSettings.fontSize}px`
     TABS.listPages().forEach(p => {
-        try {
-            const isSpecialPage = UTIL.pathToSpecialPageName(p.src).name
-            const isLocal = p.src.startsWith("file:/")
-            const isErrorPage = p.getAttribute("failed-to-load")
-            if (isSpecialPage || isLocal || isErrorPage) {
-                p.getWebContents().executeJavaScript(
-                    `document.body.style.fontSize =
-                    "${allSettings.fontSize}px"`)
-            }
-        } catch (e) {
-            // Page not loaded, will be updated later
+        const isSpecialPage = UTIL.pathToSpecialPageName(p.src).name
+        const isLocal = p.src.startsWith("file:/")
+        const isErrorPage = p.getAttribute("failed-to-load")
+        if (isSpecialPage || isLocal || isErrorPage) {
+            p.getWebContents().send("fontsize", get("fontSize"))
         }
     })
 }

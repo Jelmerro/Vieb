@@ -29,6 +29,14 @@ ipcRenderer.on("selection-start-location", (e, sX, sY) => {
     scrollHeight = window.scrollY
 })
 
+ipcRenderer.on("selection-copy", () => {
+    document.execCommand("copy")
+})
+
+ipcRenderer.on("selection-remove", () => {
+    window.getSelection().removeAllRanges()
+})
+
 window.addEventListener("scroll", () => {
     const scrollDiff = scrollHeight - window.scrollY
     startY += scrollDiff

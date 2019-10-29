@@ -441,9 +441,7 @@ const addWebviewListeners = webview => {
         }
         webview.send("insert-failed-page-info", e)
         webview.setAttribute("failed-to-load", "true")
-        webview.getWebContents().executeJavaScript(
-            `document.body.style.fontSize =
-            "${SETTINGS.get("fontSize")}px"`)
+        webview.getWebContents().send("fontsize", SETTINGS.get("fontSize"))
     })
     webview.addEventListener("did-stop-loading", () => {
         const tab = tabOrPageMatching(webview)
@@ -455,9 +453,7 @@ const addWebviewListeners = webview => {
         const isLocal = webview.src.startsWith("file:/")
         const isErrorPage = webview.getAttribute("failed-to-load")
         if (isSpecialPage || isLocal || isErrorPage) {
-            webview.getWebContents().executeJavaScript(
-                `document.body.style.fontSize =
-                "${SETTINGS.get("fontSize")}px"`)
+            webview.getWebContents().send("fontsize", SETTINGS.get("fontSize"))
         }
         saveTabs()
     })
@@ -506,8 +502,7 @@ const addWebviewListeners = webview => {
         document.body.className = "fullscreen"
         webview.blur()
         webview.focus()
-        webview.executeJavaScript(
-            "document.elementFromPoint(0,0).focus()")
+        webview.getWebContents().send("action", "focusTopLeftCorner")
         MODES.setMode("insert")
     })
     webview.addEventListener("leave-html-full-screen", () => {

@@ -17,6 +17,8 @@
 */
 "use strict"
 
+// Always load the misc action functions (such as scrolling before page loads)
+require("./preloads/actions.js")
 // Always load follow mode javascript
 require("./preloads/follow.js")
 // Always load selection function code (for visual mode)

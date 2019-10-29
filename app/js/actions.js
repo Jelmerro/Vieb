@@ -30,7 +30,7 @@ const emptySearch = () => {
 
 const clickOnSearch = () => {
     if (currentSearch) {
-        TABS.currentPage().getWebContents().send("search-element-click", "hi")
+        TABS.currentPage().getWebContents().send("search-element-click")
         emptySearch()
     }
 }
@@ -52,28 +52,15 @@ const startFollowCurrentTab = () => {
 }
 
 const scrollTop = () => {
-    try {
-        TABS.currentPage().executeJavaScript(
-            "window.scrollBy(0, -1000000000)", true)
-    } catch (e) {
-        // No page is available, not an issue
-    }
+    TABS.currentPage().getWebContents().send("action", "scrollTop")
 }
 
 const insertAtFirstInput = () => {
-    try {
-        TABS.currentPage().getWebContents().send("focus-first-text-input", "")
-    } catch (e) {
-        // No page is available, not an issue
-    }
+    TABS.currentPage().getWebContents().send("focus-first-text-input")
 }
 
 const scrollLeft = () => {
-    try {
-        TABS.currentPage().executeJavaScript("window.scrollBy(-100, 0)", true)
-    } catch (e) {
-        // No page is available, not an issue
-    }
+    TABS.currentPage().getWebContents().send("action", "scrollLeft")
 }
 
 const toInsertMode = () => {
@@ -81,51 +68,31 @@ const toInsertMode = () => {
 }
 
 const scrollDown = () => {
-    try {
-        TABS.currentPage().executeJavaScript("window.scrollBy(0, 100)", true)
-    } catch (e) {
-        // No page is available, not an issue
-    }
+    TABS.currentPage().getWebContents().send("action", "scrollDown")
 }
 
 const scrollUp = () => {
-    try {
-        TABS.currentPage().executeJavaScript("window.scrollBy(0, -100)", true)
-    } catch (e) {
-        // No page is available, not an issue
-    }
+    TABS.currentPage().getWebContents().send("action", "scrollUp")
 }
 
 const scrollRight = () => {
-    try {
-        TABS.currentPage().executeJavaScript("window.scrollBy(100, 0)", true)
-    } catch (e) {
-        // No page is available, not an issue
-    }
+    TABS.currentPage().getWebContents().send("action", "scrollRight")
 }
 
 const nextSearchMatch = () => {
     if (currentSearch) {
-        try {
-            TABS.currentPage().findInPage(currentSearch, {
-                "findNext": true,
-                "matchCase": SETTINGS.get("caseSensitiveSearch")
-            })
-        } catch (e) {
-            // No page is available, not an issue
-        }
+        TABS.currentPage().findInPage(currentSearch, {
+            "findNext": true,
+            "matchCase": SETTINGS.get("caseSensitiveSearch")
+        })
     }
 }
 
 const reload = () => {
-    try {
-        if (!TABS.currentPage().isCrashed()) {
-            TABS.currentPage().reload()
-            TABS.currentPage().removeAttribute("failed-to-load")
-            FAVICONS.empty(TABS.currentPage())
-        }
-    } catch (e) {
-        // No page is available, not an issue
+    if (!TABS.currentPage().isCrashed()) {
+        TABS.currentPage().reload()
+        TABS.currentPage().removeAttribute("failed-to-load")
+        FAVICONS.empty(TABS.currentPage())
     }
 }
 
@@ -153,22 +120,13 @@ const startFollowNewTab = () => {
 }
 
 const scrollBottom = () => {
-    try {
-        TABS.currentPage().executeJavaScript(
-            "window.scrollBy(0, 1000000000)", true)
-    } catch (e) {
-        // No page is available, not an issue
-    }
+    TABS.currentPage().getWebContents().send("action", "scrollBottom")
 }
 
 const backInHistory = () => {
-    try {
-        TABS.currentPage().goBack()
-        TABS.currentPage().removeAttribute("failed-to-load")
-        FAVICONS.empty(TABS.currentPage())
-    } catch (e) {
-        // No page is available, not an issue
-    }
+    TABS.currentPage().goBack()
+    TABS.currentPage().removeAttribute("failed-to-load")
+    FAVICONS.empty(TABS.currentPage())
 }
 
 const openNewTabAtAlternativePosition = () => {
@@ -179,48 +137,31 @@ const openNewTabAtAlternativePosition = () => {
 }
 
 const forwardInHistory = () => {
-    try {
-        TABS.currentPage().goForward()
-        TABS.currentPage().removeAttribute("failed-to-load")
-        FAVICONS.empty(TABS.currentPage())
-    } catch (e) {
-        // No page is available, not an issue
-    }
+    TABS.currentPage().goForward()
+    TABS.currentPage().removeAttribute("failed-to-load")
+    FAVICONS.empty(TABS.currentPage())
 }
 
 const previousSearchMatch = () => {
     if (currentSearch) {
-        try {
-            TABS.currentPage().findInPage(currentSearch, {
-                "forward": false,
-                "findNext": true,
-                "matchCase": SETTINGS.get("caseSensitiveSearch")
-            })
-        } catch (e) {
-            // No page is available, not an issue
-        }
+        TABS.currentPage().findInPage(currentSearch, {
+            "forward": false,
+            "findNext": true,
+            "matchCase": SETTINGS.get("caseSensitiveSearch")
+        })
     }
 }
 
 const reloadWithoutCache = () => {
-    try {
-        if (!TABS.currentPage().isCrashed()) {
-            TABS.currentPage().reloadIgnoringCache()
-            TABS.currentPage().removeAttribute("failed-to-load")
-            FAVICONS.empty(TABS.currentPage())
-        }
-    } catch (e) {
-        // No page is available, not an issue
+    if (!TABS.currentPage().isCrashed()) {
+        TABS.currentPage().reloadIgnoringCache()
+        TABS.currentPage().removeAttribute("failed-to-load")
+        FAVICONS.empty(TABS.currentPage())
     }
 }
 
 const openNewTabWithCurrentUrl = () => {
-    let url = ""
-    try {
-        url = TABS.currentPage().src
-    } catch (e) {
-        // No page is available, not an issue
-    }
+    let url = TABS.currentPage().src
     const specialPage = UTIL.pathToSpecialPageName(url)
     if (specialPage.name === "newtab") {
         url = ""
@@ -236,21 +177,11 @@ const openNewTabWithCurrentUrl = () => {
 }
 
 const scrollPageRight = () => {
-    try {
-        TABS.currentPage().executeJavaScript(
-            "window.scrollBy(window.innerWidth - 50, 0)", true)
-    } catch (e) {
-        // No page is available, not an issue
-    }
+    TABS.currentPage().getWebContents().send("action", "scrollPageRight")
 }
 
 const scrollPageLeft = () => {
-    try {
-        TABS.currentPage().executeJavaScript(
-            "window.scrollBy(-window.innerWidth + 50, 0)", true)
-    } catch (e) {
-        // No page is available, not an issue
-    }
+    TABS.currentPage().getWebContents().send("action", "scrollPageLeft")
 }
 
 const toCommandMode = () => {
@@ -258,30 +189,15 @@ const toCommandMode = () => {
 }
 
 const scrollPageUp = () => {
-    try {
-        TABS.currentPage().executeJavaScript(
-            "window.scrollBy(0, -window.innerHeight + 50)", true)
-    } catch (e) {
-        // No page is available, not an issue
-    }
+    TABS.currentPage().getWebContents().send("action", "scrollPageUp")
 }
 
 const scrollPageDownHalf = () => {
-    try {
-        TABS.currentPage().executeJavaScript(
-            "window.scrollBy(0, window.innerHeight / 2 - 25)", true)
-    } catch (e) {
-        // No page is available, not an issue
-    }
+    TABS.currentPage().getWebContents().send("action", "scrollPageDownHalf")
 }
 
 const scrollPageDown = () => {
-    try {
-        TABS.currentPage().executeJavaScript(
-            "window.scrollBy(0, window.innerHeight - 50)", true)
-    } catch (e) {
-        // No page is available, not an issue
-    }
+    TABS.currentPage().getWebContents().send("action", "scrollPageDown")
 }
 
 const moveTabForward = () => {
@@ -293,44 +209,27 @@ const moveTabBackward = () => {
 }
 
 const scrollPageUpHalf = () => {
-    try {
-        TABS.currentPage().executeJavaScript(
-            "window.scrollBy(0, -window.innerHeight / 2 + 25)", true)
-    } catch (e) {
-        // No page is available, not an issue
-    }
+    TABS.currentPage().getWebContents().send("action", "scrollPageUpHalf")
 }
 
 const zoomReset = () => {
-    try {
-        TABS.currentPage().setZoomLevel(0)
-    } catch (e) {
-        // No page is available, not an issue
-    }
+    TABS.currentPage().setZoomLevel(0)
 }
 
 const zoomOut = () => {
-    try {
-        const level = TABS.currentPage().getZoomLevel()
-        if (level <= -7) {
-            return
-        }
-        TABS.currentPage().setZoomLevel(level - 1)
-    } catch (e) {
-        // No page is available, not an issue
+    const level = TABS.currentPage().getZoomLevel()
+    if (level <= -7) {
+        return
     }
+    TABS.currentPage().setZoomLevel(level - 1)
 }
 
 const zoomIn = () => {
-    try {
-        const level = TABS.currentPage().getZoomLevel()
-        if (level >= 7) {
-            return
-        }
-        TABS.currentPage().setZoomLevel(level + 1)
-    } catch (e) {
-        // No page is available, not an issue
+    const level = TABS.currentPage().getZoomLevel()
+    if (level >= 7) {
+        return
     }
+    TABS.currentPage().setZoomLevel(level + 1)
 }
 
 const toNormalMode = () => {
@@ -345,14 +244,10 @@ const useEnteredData = () => {
     if (MODES.currentMode() === "search") {
         currentSearch = document.getElementById("url").value
         if (currentSearch.trim()) {
-            try {
-                TABS.currentPage().stopFindInPage("clearSelection")
-                TABS.currentPage().findInPage(currentSearch, {
-                    "matchCase": SETTINGS.get("caseSensitiveSearch")
-                })
-            } catch (e) {
-                // No page is available, not an issue
-            }
+            TABS.currentPage().stopFindInPage("clearSelection")
+            TABS.currentPage().findInPage(currentSearch, {
+                "matchCase": SETTINGS.get("caseSensitiveSearch")
+            })
         } else {
             currentSearch = ""
             TABS.currentPage().stopFindInPage("clearSelection")
