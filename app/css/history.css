@@ -15,7 +15,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-body {color: #eee;width: 90vw;font: 14px monospace;background: #333;padding: 0;margin: auto;}
+@font-face {font-family: RobotoMono;src: url("./font/RobotoMono-Regular.ttf");}
+body {color: #eee;width: 90vw;font: 14px RobotoMono, monospace;background: #333;padding: 0;margin: auto;}
 a {color: #0cf;white-space: nowrap;overflow: hidden;}
 h1 {font-size: 2em;margin: 1em 0;padding: 0;}
 #breakpoints {display: flex;flex-direction: column;}
