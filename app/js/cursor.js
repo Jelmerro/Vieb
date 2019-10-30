@@ -25,24 +25,6 @@ let Y = 0
 let cursor = null
 let listenForScroll = false
 
-const init = () => {
-    setInterval(() => {
-        ACTIONS.setFocusCorrectly()
-        if (["cursor", "visual"].includes(MODES.currentMode())) {
-            document.getElementById("cursor").style.backgroundColor = "#fff"
-        }
-        setTimeout(() => {
-            ACTIONS.setFocusCorrectly()
-        }, 500)
-        setTimeout(() => {
-            ACTIONS.setFocusCorrectly()
-            if (["cursor", "visual"].includes(MODES.currentMode())) {
-                document.getElementById("cursor").style.backgroundColor = "#3af"
-            }
-        }, 1000)
-    }, 1500)
-}
-
 const start = () => {
     MODES.setMode("cursor")
     cursor = document.getElementById("cursor")
@@ -323,7 +305,6 @@ const moveFastUp = () => {
 }
 
 module.exports = {
-    init,
     start,
     handleScrollDiffEvent,
     updateCursorElement,

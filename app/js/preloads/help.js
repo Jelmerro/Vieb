@@ -17,6 +17,8 @@
 */
 "use strict"
 
+const {ipcRenderer} = require("electron")
+
 window.changeColor = element => {
     if (element.style.borderColor === "rgb(0, 51, 255)") {
         element.style.borderColor = "rgb(0, 255, 51)"
@@ -24,6 +26,13 @@ window.changeColor = element => {
         element.style.borderColor = "rgb(0, 51, 255)"
     }
 }
+
+ipcRenderer.on("settings", (_, currentSettings, supportedActions) => {
+    document.querySelector(".current-settings").textContent
+        = JSON.stringify(currentSettings, null, 4)
+    document.querySelector(".supported-actions").textContent
+        = supportedActions.join(", ")
+})
 
 window.addEventListener("load", () => {
     const createTOCEntry = element => {

@@ -172,9 +172,9 @@ const bindings = {
         "C-BracketLeft": "ACTIONS.toNormalMode"
     }
 }
-
 let repeatCounter = 0
 let currentSubKey = null
+let supportedActions = []
 
 const init = () => {
     window.addEventListener("keydown", handleKeyboard)
@@ -203,7 +203,26 @@ const init = () => {
             SUGGEST.suggestCommand(document.getElementById("url").value)
         }
     })
+    setInterval(() => {
+        ACTIONS.setFocusCorrectly()
+        if (["cursor", "visual"].includes(MODES.currentMode())) {
+            document.getElementById("cursor").style.backgroundColor = "#fff"
+        }
+        setTimeout(() => {
+            ACTIONS.setFocusCorrectly()
+        }, 500)
+        setTimeout(() => {
+            ACTIONS.setFocusCorrectly()
+            if (["cursor", "visual"].includes(MODES.currentMode())) {
+                document.getElementById("cursor").style.backgroundColor = "#3af"
+            }
+        }, 1000)
+    }, 1500)
     ACTIONS.setFocusCorrectly()
+    supportedActions = [
+        ...Object.keys(ACTIONS).map(a => `ACTIONS.${a}`),
+        ...Object.keys(CURSOR).map(c => `CURSOR.${c}`)
+    ]
 }
 
 const toIdentifier = e => {
@@ -323,22 +342,15 @@ const handleKeyboard = e => {
 }
 
 const actionToFunction = action => {
-    if (typeof action !== "string") {
-        return null
-    }
-    if (action.startsWith(":")) {
+    if (action && action.startsWith && action.startsWith(":")) {
         return () => COMMAND.execute(action)
     }
-    const [categoryName, func] = action.split(".")
-    const categories = {
-        "ACTIONS": ACTIONS,
-        "CURSOR": CURSOR
+    if (supportedActions.includes(action)) {
+        const categories = {"ACTIONS": ACTIONS, "CURSOR": CURSOR}
+        const [categoryName, func] = action.split(".")
+        return categories[categoryName][func]
     }
-    const category = categories[categoryName]
-    if (!category) {
-        return null
-    }
-    return category[func]
+    return null
 }
 
 const handleUserInput = e => {
@@ -370,9 +382,14 @@ const handleUserInput = e => {
     ACTIONS.setFocusCorrectly()
 }
 
+const listSupportedActions = () => {
+    return supportedActions
+}
+
 module.exports = {
     init,
     eventToAction,
     actionToFunction,
-    bindings
+    bindings,
+    listSupportedActions
 }

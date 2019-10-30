@@ -217,12 +217,14 @@
     You can read settings using "set setting?" or toggle booleans with "set setting!", for example:
     <pre class="command-block">set notification.system! notification?</pre>
     The settings file is case sensitive, just like the set command arguments.
-    The keybindings and startup pages can only be changed with the settings file and not with the set command.
+    Some settings can only be changed on startup or using the viebrc config,
+    you will get a notification for these settings with instructions.
     Running the `:reload` command will reset any prior `:set` commands,
     because all settings will be reset and reapplied from the settings file.
-    <h2 id="settings-viebrc">viebrc.json</h2>
+    <h2 id="settings-viebrc">viebrc</h2>
     In this file you can change settings and the keybindings of Vieb.
     By default, this file does not exist and the original value for all settings will be used.
+    You can generate a viebrc.json with the current settings using <a href="#commands-mkviebrc">mkviebrc</a>.
     Depending on your operating system, the location of this file will be different:
     <ul>
         <li>Windows - <kbd>%APPDATA%\Vieb\viebrc.json</kbd>
@@ -231,33 +233,21 @@
     </ul>
     The same folder is used for all other information that Vieb stores,
     which means there should be Electron/Chromium related files there.
-    You can generate a viebrc.json with the current settings using <a href="#commands-mkviebrc">mkviebrc</a>.
-    Your browsing and download history will also be saved in this folder by default.
-    See the <a href="#history">history chapter</a> for more details and instructions how to configure the related settings.
-    <h3 id="settings-viebrc-syntax">syntax</h3>
-    The syntax of the settings file is json, as the name would suggest.
-    This is very different from Vim for the following reasons:
-    <ul>
-        <li>Writing a vimscript parser would be a tedious task</li>
-        <li>Most settings for Vim aren't present in Vieb and vice versa</li>
-        <li>Support for it would never be as good as Vim</li>
-    </ul>
-    Basically, there are little advantages here staying true to Vim,
-    while at the same time adding a lot of extra work.
-    JSON can be parsed natively by JavaScript and is easy to understand,
-    which is why all configuration of Vieb is done with it.
-    <h3 id="settings-viebrc-defaults">defaults</h3>
-    Looking at the default settings is really useful.
-    It gives you an idea of all the available options,
-    and which of them you actually want to change.
+    The settings previewed below will update when executing :set and :reload commands.
     You can create a viebrc file with all your current settings using ":mkviebrc".
     To also store the defaults using this command, execute it like so: ":mkviebrc full".
     Once you're done with your changes, you can always generate a config with only the changed values,
     by running the "mkviebrc" command again without the "full" argument.
-    Finally, there are also example configs to replicate Firefox or Chromium.
-    Please check the <a href="https://github.com/Jelmerro/Vieb">github page</a> for examples.
+    Finally, there are also example configs to replicate Firefox or Chromium on
+    <a href="https://github.com/Jelmerro/Vieb">github</a>.
     They are stored in the examples folder and improvements are always welcome.
-    <h3 id="settings-viebrc-keybindings">keybindings</h3>
+    Below is a valid viebrc.json file containing of all your current settings including defaults.
+    <pre class="current-settings wrap"></pre>
+    Please note that the download, tab and browsing history are separately configured.
+    Therefor it's possible to keep and restore the open tabs without keeping the other browsing history.
+    More information about the history settings can be found in <a href="#history">the history chapter</a>.
+    To find the right setting for you, the set command can be used at runtime to test a specific setting.
+    <h2 id="settings-keybindings">keybindings</h2>
     The viebrc is is the only place to change the keybindings.
     Changing them can be done by overwriting existing ones,
     or by adding completely new bindings.
@@ -282,140 +272,11 @@
     and that they are always in uppercase.
     This means that <kbd>sc-KeyT</kbd> and <kbd>SC-KeyT</kbd> won't work,
     but <kbd>CS-KeyT</kbd> will.
-    <h3 id="settings-viebrc-example">example</h3>
-    <pre>
-{
-    "keybindings": {
-        "nav": {
-            "F6": "ACTIONS.toNormalMode"
-        },
-        "insert": {
-            "F1": "",
-            "Escape": ""
-        },
-        "normal": {
-            "F6": "ACTIONS.toNavMode",
-            "F9": ":set newtab.container!",
-            "C-KeyP": ":hardcopy",
-            "C-KeyS": ":write full",
-            "C-KeyQ": ":quit"
-        }
-    },
-    "redirectToHttp": true,
-    "search": "https://google.com/search?q=",
-    "caseSensitiveSearch": false,
-    "clearCookiesOnQuit": false,
-    "clearLocalStorageOnQuit": true,
-    "suggestCommands": false,
-    "fontSize": 20,
-    "digitsRepeatActions": false,
-    "adblocker": "update",
-    "cache": "none",
-    "notification": {
-        "duration": 3000,
-        "position": "bottom-left"
-    },
-    "downloads": {
-        "path": "~/Documents",
-        "removeCompleted": true,
-        "clearOnQuit": true
-    },
-    "history": {
-        "suggest": false,
-        "clearOnQuit": true,
-        "storeNewVisits": false
-    },
-    "tabs": {
-        "restore": false,
-        "minwidth": 250,
-        "keepRecentlyClosed": false,
-        "startup": [
-            "vieb://help"
-        ]
-    },
-    "windowstate": {
-        "position": false,
-        "size": false,
-        "maximized": false
-    },
-    "newtab": {
-        "nextToCurrentOne": false,
-        "showTopSites": false,
-        "container": true
-    },
-    "redirects": [
-        {
-            "match": "^https?://(www.)?(reddit.com.*)",
-            "replace": "https://old.$2"
-        }
-    ],
-    "favicons": "30day"
-}</pre>
-
-    This example results in the following changes as compared to the defaults,
-    with the setting name listed between brackets:
-    <ul>
-        <li>
-            The help page can't be accessed directly from insert mode with the
-            <kbd>F1</kbd> key anymore (keybindings.insert.F1)
-        </li>
-        <li><kbd>F9</kbd> will now toggle between container tabs (keybindings.normal.F9)</li>
-        <li>
-            Toggle between nav and normal mode with
-            <kbd>F6</kbd>, similar to regular browsers (keybindings.nav.F6 and keybindings.normal.F6)
-        </li>
-        <li>
-            <kbd>Escape</kbd> can not be used to exit insert mode,
-            but <kbd>Ctrl with [</kbd> will still work (keybindings.insert.Escape)
-        </li>
-        <li>
-            The page can now be printed using <kbd>Ctrl with p</kbd>,
-            see <a href="#commands-hardcopy">hardcopy</a> for details (keybindings.normal.C-KeyP)
-        </li>
-        <li>
-            The page can now be saved as html using <kbd>Ctrl with s</kbd>,
-            see <a href="#commands-write">write</a> for details (keybindings.normal.C-KeyS)
-        </li>
-        <li><kbd>Ctrl with q</kbd> can be used to quit Vieb when in normal mode (keybindings.normal.C-KeyQ)</li>
-        <li>Https connections will now be downgraded to http if the server has no certificate (redirectToHttp)</li>
-        <li>
-            The search engine will be google instead of the default duckduckgo.
-            Please note that the search string will be pasted at the end of the search setting (search)
-        </li>
-        <li>Change the search mode to be case-insensitive (caseSensitiveSearch)</li>
-        <li>Clear all cookies when exiting Vieb (clearCookiesOnQuit)</li>
-        <li>Clear the localstorage when exiting Vieb (clearLocalStorageOnQuit)</li>
-        <li>Don't suggest/autocomplete commands when in command mode (suggestCommands)</li>
-        <li>Increase the font size of all UI elements to 20px instead of 14px (fontSize)</li>
-        <li>Stop the digit keys from repeating actions (digitsRepeatActions)</li>
-        <li>Ads and trackers will still be blocked, but the lists will be automatically updated (adblocker)</li>
-        <li>Disable caching completely, requires restart or the use of container tabs (cache)</li>
-        <li>Reduce the notification duration to 3 seconds instead of 6 (notification.duration)</li>
-        <li>Display the notification in the bottom left instead of the bottom right (notification.position)</li>
-        <li>Downloads will now be stored in the documents folder (downloads.path)</li>
-        <li>Automatically remove downloads from the download history once they are completely downloaded (downloads.removeCompleted)</li>
-        <li>Clear the entire download history when quiting Vieb (downloads.clearOnQuit)</li>
-        <li>Don't suggest previously visited websites from the browsing history when in nav mode (history.suggest)</li>
-        <li>Clear the browsing history when exiting Vieb (history.clearOnQuit)</li>
-        <li>Stop adding newly visited webpages to the browsing history (history.storeNewVisits)</li>
-        <li>Don't restore the previously open tabs when restarting Vieb (tabs.restore)</li>
-        <li>Tabs now have a minimal width of 250px instead of 22, a cyan scrollbar will appear when the tabs don't fit on the navbar, set to 0 for no minimum (tabs.minwidth)</li>
-        <li>The recently closed tabs will no longer be restorable with the <kbd>u</kbd> key (tabs.keepRecentlyClosed)</li>
-        <li>Open this help page on startup, which can be expanded with other urls (tabs.startup)</li>
-        <li>The position of the window when not maximized will not be remembered and restored after restarting (windowstate.position)</li>
-        <li>The size of the window when not maximized will not be restored after restarting (windowstate.size)</li>
-        <li>After restarting, Vieb will no longer remember if the window was maximized (windowstate.maximized)</li>
-        <li>This will stop the tabs from opening next to the current one using <kbd>t</kbd>, <kbd>Ctrl with t</kbd> will do the opposite of the current setting (newtab.nextToCurrentOne)</li>
-        <li>New tabs will no longer display the top visited sites as suggestions (newtab.showTopSites)</li>
-        <li>New tabs now store all of the data in a separate container per tab, these tabs will have a yellow title in the navigation bar (newtab.container)</li>
-        <li>All requests to reddit will now be redirected to old.reddit.com, you can add any redirect you want here using regex (redirects)</li>
-        <li>Favicons will now be updated once every 30 days instead of being refreshed once per session (favicons)</li>
-    </ul>
-    Please note that the download, tab and browsing history are separately configured.
-    Therefor it's possible to keep and restore the open tabs without keeping the other browsing history.
-    More information about the history settings can be found in <a href="#history">the history chapter</a>.
-    To find the right setting for you, the set command can be used at runtime to test a specific setting.
-    This concludes the documentation regarding the viebrc file.
+    Below is a list of all the possible actions you can choose:
+    <pre class="supported-actions wrap"></pre>
+    You can also bind keys to commands, this example toggles container tabs using F9:
+    <pre>"F9": ":set newtab.container!"</pre>
+    For a list of all the available commands, please check the <a href="#commands">commands chapter</a>.
     In the next paragraph, the set command will be explained.
     <h2 id="settings-set">set command</h2>
     The set command can be used to change the settings after startup.
@@ -513,7 +374,7 @@
     Note that the github url will be prefixed with "https://",
     because we omitted the schema/protocol from the url.
     If you want always want to open these pages on startup,
-    add them to the list of startup tabs (tabs.startup).
+    add them to the list of startup tabs (tabs.startup) in your viebrc.json config.
     <h1 id="normal">Normal mode</h1>
     In the basics chapter the most useful keyboard shortcuts are mentioned,
     but this chapter lists all of the default normal mode actions available:
@@ -967,7 +828,7 @@
     Each special page will be explained below.
     <h2 id="special-help">help page</h2>
     This is the current page and also a complete reference of Vieb's functionality.
-    The location of this special page is <a href="">"vieb://help"</a>.
+    The location of this special page is "vieb://help".
     You can link to specific section of this page using "vieb://help#basics",
     or by calling the <a href="#commands-help">help command</a> with extra arguments.
     Simply pressing F1 will also open this help page at any time.
