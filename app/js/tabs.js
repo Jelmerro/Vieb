@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS CURSOR DOWNLOADS FAVICONS FOLLOW HISTORY MODES SESSIONS
+/* global ACTIONS CURSOR DOWNLOADS FAVICONS FOLLOW HISTORY INPUT MODES SESSIONS
  SETTINGS UTIL */
 "use strict"
 
@@ -449,11 +449,16 @@ const addWebviewListeners = webview => {
         updateUrl(webview)
         webview.removeAttribute("logging-in")
         HISTORY.addToHist(tab.querySelector("span").textContent, webview.src)
-        const isSpecialPage = UTIL.pathToSpecialPageName(webview.src).name
+        const specialPageName = UTIL.pathToSpecialPageName(webview.src).name
         const isLocal = webview.src.startsWith("file:/")
         const isErrorPage = webview.getAttribute("failed-to-load")
-        if (isSpecialPage || isLocal || isErrorPage) {
+        if (specialPageName || isLocal || isErrorPage) {
             webview.getWebContents().send("fontsize", SETTINGS.get("fontSize"))
+        }
+        if (specialPageName === "help") {
+            webview.getWebContents().send(
+                "settings", SETTINGS.listCurrentSettings(true),
+                INPUT.listSupportedActions())
         }
         saveTabs()
     })

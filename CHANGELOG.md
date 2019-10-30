@@ -49,6 +49,7 @@ but the list below contains much more technical details.
 - Follow mode is now always allowed (no more setting), and will update the visible links by listening to mutations
 - Show plain text pages with a dark background and white text
 - Also respect font sizes for special pages such as help, version or history
+- Rewrite of settings chapter in the help page, including realtime preview of your settings
 
 ### Removed
 

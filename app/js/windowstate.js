@@ -87,7 +87,7 @@ const load = () => {
 }
 
 const saveWindowState = (maximizeOnly = false) => {
-    let state = UTIL.readJSON(windowStateFile)
+    let state = UTIL.readJSON(windowStateFile) || {}
     if (!maximizeOnly && !remote.getCurrentWindow().isMaximized()) {
         const newBounds = remote.getCurrentWindow().getBounds()
         const currentScreen = remote.screen.getDisplayMatching(newBounds).bounds

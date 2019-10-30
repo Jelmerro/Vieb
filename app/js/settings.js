@@ -366,20 +366,23 @@ const set = (setting, value, startup = false) => {
                 SESSIONS.enableAdblocker()
             }
         }
-        if (setting === "tabs.minwidth") {
-            TABS.listTabs().forEach(tab => {
-                tab.style.minWidth = `${allSettings.tabs.minwidth}px`
-            })
-            try {
-                TABS.currentTab().scrollIntoView({
-                    "inline": "center"
-                })
-            } catch (e) {
-                // No page yet, not a problem
-            }
-        }
         if (setting.startsWith("downloads.")) {
             updateDownloadSettings()
+        }
+        if (!startup) {
+            if (setting === "tabs.minwidth") {
+                TABS.listTabs().forEach(tab => {
+                    tab.style.minWidth = `${allSettings.tabs.minwidth}px`
+                })
+                TABS.currentTab().scrollIntoView({"inline": "center"})
+            }
+            TABS.listPages().forEach(p => {
+                if (UTIL.pathToSpecialPageName(p.src).name === "help") {
+                    p.getWebContents().send(
+                        "settings", listCurrentSettings(true),
+                        INPUT.listSupportedActions())
+                }
+            })
         }
     }
 }
@@ -398,7 +401,7 @@ const removeDefaults = (settings, defaults) => {
     return settings
 }
 
-const saveToDisk = full => {
+const listCurrentSettings = full => {
     let settings = JSON.parse(JSON.stringify(allSettings))
     settings.keybindings = UTIL.merge(
         JSON.parse(JSON.stringify(INPUT.bindings)), allSettings.keybindings)
@@ -407,9 +410,13 @@ const saveToDisk = full => {
         defaults.keybindings = JSON.parse(JSON.stringify(INPUT.bindings))
         settings = removeDefaults(settings, defaults)
     }
+    return settings
+}
+
+const saveToDisk = full => {
     const config = path.join(remote.app.getPath("appData"), "viebrc.json")
-    UTIL.writeJSON(config, settings, `Could not write to '${config}'`,
-        `Viebrc saved to '${config}'`, 4)
+    UTIL.writeJSON(config, listCurrentSettings(full),
+        `Could not write to '${config}'`, `Viebrc saved to '${config}'`, 4)
 }
 
 module.exports = {
@@ -418,5 +425,6 @@ module.exports = {
     loadFromDisk,
     get,
     set,
+    listCurrentSettings,
     saveToDisk
 }

@@ -15,7 +15,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMANDHISTORY DOWNLOADS FAVICONS HISTORY MODES SETTINGS TABS UTIL */
+/* global COMMANDHISTORY DOWNLOADS FAVICONS HISTORY INPUT MODES SETTINGS TABS
+ UTIL */
 "use strict"
 
 const {remote} = require("electron")
@@ -138,6 +139,13 @@ const downloads = () => {
 
 const reload = () => {
     SETTINGS.loadFromDisk()
+    TABS.listPages().forEach(p => {
+        if (UTIL.pathToSpecialPageName(p.src).name === "help") {
+            p.getWebContents().send(
+                "settings", SETTINGS.listCurrentSettings(true),
+                INPUT.listSupportedActions())
+        }
+    })
 }
 
 const hardcopy = () => {
