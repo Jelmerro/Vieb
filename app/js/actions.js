@@ -192,6 +192,10 @@ const scrollPageUp = () => {
     TABS.currentPage().getWebContents().send("action", "scrollPageUp")
 }
 
+const stopLoadingPage = () => {
+    TABS.currentPage().stop()
+}
+
 const scrollPageDownHalf = () => {
     TABS.currentPage().getWebContents().send("action", "scrollPageDownHalf")
 }
@@ -234,6 +238,14 @@ const zoomIn = () => {
 
 const toNormalMode = () => {
     MODES.setMode("normal")
+}
+
+const stopFollowMode = () => {
+    if (MODES.currentMode() === "follow") {
+        MODES.setMode(FOLLOW.getModeBeforeFollow())
+    } else {
+        MODES.setMode("normal")
+    }
 }
 
 const useEnteredData = () => {
@@ -387,6 +399,7 @@ module.exports = {
     scrollPageLeft,
     toCommandMode,
     scrollPageUp,
+    stopLoadingPage,
     scrollPageDownHalf,
     scrollPageDown,
     moveTabForward,
@@ -396,6 +409,7 @@ module.exports = {
     zoomIn,
     zoomOut,
     toNormalMode,
+    stopFollowMode,
     nextSuggestion,
     prevSuggestion,
     commandHistoryPrevious,

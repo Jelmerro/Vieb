@@ -426,6 +426,7 @@
             Alternatively, you can use
             <kbd>Ctrl with i</kbd> and <kbd>Ctrl with o</kbd> to navigate the history.
         </li>
+        <li>Press <kbd>Ctrl with c</kbd> to stop loading the current page</li>
         <li>
             Scroll half a page up or down using
             <kbd>Ctrl with u</kbd> or <kbd>Ctrl with d</kbd>.
@@ -446,9 +447,8 @@
     <h1 id="follow">Follow mode</h1>
     This mode is a very important mode of Vieb,
     as it allows you to click on links or other elements using the keyboard.
-    There are two versions with very different implementations,
-    one for the current tab with <kbd>f</kbd> and one for new tab using <kbd>Shift with f</kbd>.
-    Both variations will automatically update the follow links when the page is updated.
+    There are three versions of follow mode, each with a different use case.
+    All variations will automatically update the follow links when the page is updated.
     <h2 id="follow-click">follow by click</h2>
     After pressing <kbd>f</kbd> from normal mode,
     all clickable elements should be assigned a key next to them.
@@ -490,6 +490,26 @@
     enter the keys while holding Shift.
     This can be used to open multiple links on the page before switching,
     because follow mode will stay active when opening links with Shift down.
+    <h2 id="follow-cursor">follow mode to move the cursor</h2>
+    Finally you can use follow mode to move the cursor when in cursor or visual mode.
+    Just like in normal mode, you need to press <kbd>f</kbd> to start follow mode.
+    Instead of clicking on the element you select, the cursor will move to the selected element.
+    The link will not be clicked or opened immediately, but the cursor will hover over it.
+    After choosing a link, you will return to the mode you were originally in.
+    An example of how to use this follow mode to move the cursor:
+    <ul>
+        <li>You want to select and copy text between element A and element B.</li>
+        <li>From normal mode, we press <kbd>c</kbd> to enter cursor mode.</li>
+        <li>Now press <kbd>f</kbd> to select an element on the page to move to.</li>
+        <li>Select element A by pressing the keys next to element A.</li>
+        <li>Vieb will return to cursor mode and move the cursor to element A.</li>
+        <li>Element A will now be hovered by the cursor, but has not been clicked.</li>
+        <li>Now go to visual mode using <kbd>v</kbd> to start selecting text.</li>
+        <li>Press <kbd>f</kbd> again to activate follow mode, this time from visual mode.</li>
+        <li>Select element B by pressing the keys next to element B.</li>
+        <li>Vieb will now go back to visual mode.</li>
+        <li>The text between element A and element B is now selected, you can copy it using <kbd>y</kbd>.</li>
+    </ul>
     <h1 id="cursor">Cursor mode</h1>
     Cursor mode can be used to move "cursor" using the keyboard.
     It is required to enter cursor mode before going to visual mode.
@@ -501,22 +521,34 @@
     The following actions are available by default in cursor mode:
     <ul>
         <li>Use <kbd>h j k l</kbd> to move the cursor around.</li>
-        <li>Press <kbd>y</kbd> to copy the current url under the cursor to the clipboard.</li>
+        <li>Press <kbd>f</kbd> to move the cursor to the location of an element on the page, see <a href="#follow-cursor">follow cursor</a> for details.</li>
         <li>You can download the image or svg at the current position using <kbd>d</kbd>.</li>
-        <li>Execute a regular mouse click by pressing <kbd>f</kbd>.</li>
+        <li>Press <kbd>y</kbd> to copy the current url under the cursor to the clipboard.</li>
+        <li>Execute a regular mouse click by pressing <kbd>Enter</kbd>.</li>
         <li>Start inspecting at the current cursor location with <kbd>e</kbd>.</li>
         <li>Click and enter insert mode at the cursor location using <kbd>i</kbd>.</li>
         <li>For middle and right-click, use <kbd>m</kbd> and <kbd>r</kbd> respectively.</li>
         <li>To jump a larger distance horizontally, use <kbd>w</kbd> and <kbd>b</kbd>.</li>
         <li>Press <kbd>g g</kbd> or <kbd>Shift with g</kbd> to scroll to the top or bottom of the page.</li>
         <li>Entering <kbd>Shift with h</kbd> or <kbd>Shift with l</kbd> will move the cursor to the top or bottom of the view.</li>
-        <li>To execute a scrolling action at the current position, use <kbd>Shift with j</kbd> or <kbd>Shift with k</kbd>.</li>
+        <li>To execute a vertical scrolling action at the current position, use <kbd>Shift with j</kbd> or <kbd>Shift with k</kbd>.</li>
+        <li>Alternatively, you can also use the <kbd>BracketLeft</kbd> and <kbd>BracketRight</kbd> keys to scroll vertically.</li>
+        <li>For horizontal scrolling use <kbd>Shift with Comma</kbd> and <kbd>Shift with Dot</kbd> (the horizontal carets on your keyboard).</li>
         <li>The keys <kbd>^</kbd> and <kbd>$</kbd> will move the cursor to the end or the beginning of the view.</li>
         <li>Combining <kbd>Ctrl</kbd> with <kbd>h j k l</kbd> will move the cursor by one pixel in each direction.</li>
         <li>To move fast up and down, use <kbd>Ctrl with u</kbd> and <kbd>Ctrl with d</kbd>.</li>
         <li>Finally, pressing <kbd>v</kbd> when in cursor mode, will enter visual mode.</li>
     </ul>
     Some movemement actions will also scroll the window when reaching the bottom or top of the current view.
+    <h2 id="cursor-scrolling">scrolling</h2>
+    When scrolling in cursor mode, the page will scroll by executing mouse scroll events at the cursor location.
+    Unlike the regular scrolling in normal mode, this results in smooth scrolling.
+    Another difference, is that the scroll event will target the current element instead of the window.
+    This means that you can scroll inside any scrollable element with cursor mode.
+    It's also an option to execute the cursor scroll from other modes,
+    by changing the keybindings to "CURSOR.-something-" (see <a href="#settings-keybindings">keybindings</a> for a list).
+    Keep in mind that the smooth scroll of cursor mode will always be executed at the cursor location,
+    even when the cursor isn't shown in the current mode (for example normal mode).
     <h1 id="visual">Visual mode</h1>
     This is the only mode than can not be directly entered from normal mode,
     but is instead entered after pressing <kbd>v</kbd> from cursor mode.
@@ -524,10 +556,13 @@
     The full list of options looks like this:
     <ul>
         <li>Use <kbd>h j k l</kbd> to move the cursor around.</li>
+        <li>Press <kbd>f</kbd> to move the cursor to the location of an element on the page, see <a href="#follow-cursor">follow cursor</a> for details.</li>
         <li>To jump a larger distance horizontally, use <kbd>w</kbd> and <kbd>b</kbd>.</li>
         <li>Press <kbd>g g</kbd> or <kbd>Shift with g</kbd> to scroll to the top or bottom of the page.</li>
         <li>Entering <kbd>Shift with h</kbd> or <kbd>Shift with l</kbd> will move the cursor to the top or bottom of the view.</li>
-        <li>To execute a scrolling action at the current position, use <kbd>Shift with j</kbd> or <kbd>Shift with k</kbd>.</li>
+        <li>To execute a vertical scrolling action at the current position, use <kbd>Shift with j</kbd> or <kbd>Shift with k</kbd>.</li>
+        <li>Alternatively, you can also use the <kbd>BracketLeft</kbd> and <kbd>BracketRight</kbd> keys to scroll vertically.</li>
+        <li>For horizontal scrolling use <kbd>Shift with Comma</kbd> and <kbd>Shift with Dot</kbd> (the horizontal carets on your keyboard).</li>
         <li>The keys <kbd>^</kbd> and <kbd>$</kbd> will move the cursor to the end or the beginning of the view.</li>
         <li>Combining <kbd>Ctrl</kbd> with <kbd>h j k l</kbd> will move the cursor by one pixel in each direction.</li>
         <li>To move fast up and down, use <kbd>Ctrl with u</kbd> and <kbd>Ctrl with d</kbd>.</li>

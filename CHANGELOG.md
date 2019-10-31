@@ -35,6 +35,8 @@ but the list below contains much more technical details.
 - Open pages in a new tab without directly switching to them (while holding Shift in newtab follow mode)
 - Buffer command to easily switch between all the open tabs (with autocompletion)
 - Roboto Mono font for all UI elements (with fallback to system monospace)
+- Horizontal scroll actions for cursor and visual mode (with added default bindings for it)
+- Shortcut to stop the page from loading (by default mapped to Ctrl-C from normal mode)
 
 ### Changed
 
@@ -50,6 +52,8 @@ but the list below contains much more technical details.
 - Show plain text pages with a dark background and white text
 - Also respect font sizes for special pages such as help, version or history
 - Rewrite of settings chapter in the help page, including realtime preview of your settings
+- Follow mode can now be combined with cursor and visual mode, to move the cursor to the element location
+- Cursor now changes color gradually over time so it's more visible on conflicting background colors
 
 ### Removed
 

@@ -37,6 +37,12 @@ const start = () => {
     updateCursorElement()
 }
 
+const move = (x, y) => {
+    X = x
+    Y = y
+    updateCursorElement()
+}
+
 const handleScrollDiffEvent = diff => {
     if (listenForScroll) {
         Y += diff
@@ -212,7 +218,7 @@ const moveFastRight = () => {
 }
 
 const centerOfView = () => {
-    Y = window.innerHeight / 2
+    Y = (window.innerHeight - SETTINGS.get("fontSize") * 5) / 2
     updateCursorElement()
 }
 
@@ -234,6 +240,28 @@ const scrollUp = () => {
         "y": Y,
         "deltaX": 0,
         "deltaY": 100
+    })
+    updateCursorElement()
+}
+
+const scrollLeft = () => {
+    TABS.currentPage().getWebContents().sendInputEvent({
+        "type": "mouseWheel",
+        "x": X,
+        "y": Y,
+        "deltaX": 100,
+        "deltaY": 0
+    })
+    updateCursorElement()
+}
+
+const scrollRight = () => {
+    TABS.currentPage().getWebContents().sendInputEvent({
+        "type": "mouseWheel",
+        "x": X,
+        "y": Y,
+        "deltaX": -100,
+        "deltaY": 0
     })
     updateCursorElement()
 }
@@ -306,6 +334,7 @@ const moveFastUp = () => {
 
 module.exports = {
     start,
+    move,
     handleScrollDiffEvent,
     updateCursorElement,
     releaseKeys,
@@ -325,6 +354,8 @@ module.exports = {
     centerOfView,
     scrollDown,
     scrollUp,
+    scrollLeft,
+    scrollRight,
     copyAndStop,
     startOfView,
     endOfView,

@@ -15,8 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMANDHISTORY DOWNLOADS FAVICONS HISTORY INPUT MODES SETTINGS TABS
- UTIL */
+/* global COMMANDHISTORY DOWNLOADS FAVICONS HISTORY INPUT SETTINGS TABS UTIL */
 "use strict"
 
 const {remote} = require("electron")
@@ -95,7 +94,6 @@ const devtools = () => {
 }
 
 const openSpecialPage = (specialPage, section = null) => {
-    MODES.setMode("normal")
     // Switch to already open special page if available
     let alreadyOpen = false
     TABS.listTabs().forEach((tab, index) => {
