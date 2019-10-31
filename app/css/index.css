@@ -79,5 +79,5 @@ body.fullscreen webview {height: 100vh;}
 ::-webkit-scrollbar {height: .2em;}
 ::-webkit-scrollbar-thumb {background: #5ff;}
 /* other */
-#cursor {display: none;position: absolute;top: 0;left: 0;height: 1em;width: .7em;z-index: 20;background-color: #fff;mix-blend-mode: difference;}
+#cursor {display: none;position: absolute;top: 0;left: 0;height: 1em;width: .7em;z-index: 20;backdrop-filter: invert(100%);transition: background .5s linear;}
 #url-hover {display: none;position: absolute;background-color: #fff9;color: #000;bottom: 0;left: 0;right: 0;pointer-events: none;padding: .1em;white-space: nowrap;width: fit-content;margin: auto;}

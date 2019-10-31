@@ -482,9 +482,6 @@ const addWebviewListeners = webview => {
         ACTIONS.emptySearch()
         const tab = tabOrPageMatching(webview)
         tab.querySelector("span").textContent = e.url
-        if (MODES.currentMode() === "cursor") {
-            MODES.setMode("normal")
-        }
     })
     webview.addEventListener("did-navigate-in-page", e => {
         if (e.isMainFrame) {

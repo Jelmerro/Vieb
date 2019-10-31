@@ -57,6 +57,7 @@ const bindings = {
         "S-Digit6": "ACTIONS.scrollPageLeft",
         "S-Semicolon": "ACTIONS.toCommandMode",
         "C-KeyB": "ACTIONS.scrollPageUp",
+        "C-KeyC": "ACTIONS.stopLoadingPage",
         "C-KeyD": "ACTIONS.scrollPageDownHalf",
         "C-KeyF": "ACTIONS.scrollPageDown",
         "C-KeyI": "ACTIONS.forwardInHistory",
@@ -103,15 +104,18 @@ const bindings = {
     },
     "follow": {
         "F1": ":help",
-        "Escape": "ACTIONS.toNormalMode",
-        "C-BracketLeft": "ACTIONS.toNormalMode"
+        "Escape": "ACTIONS.stopFollowMode",
+        "C-BracketLeft": "ACTIONS.stopFollowMode"
     },
     "cursor": {
         "F1": ":help",
+        "Enter": "CURSOR.leftClick",
+        "BracketLeft": "CURSOR.scrollUp",
+        "BracketRight": "CURSOR.scrollDown",
         "KeyB": "CURSOR.moveFastLeft",
         "KeyD": "CURSOR.downloadImage",
         "KeyE": "CURSOR.inspectElement",
-        "KeyF": "CURSOR.leftClick",
+        "KeyF": "ACTIONS.startFollowCurrentTab",
         "KeyG": {
             "KeyG": "CURSOR.startOfPage"
         },
@@ -125,6 +129,8 @@ const bindings = {
         "KeyW": "CURSOR.moveFastRight",
         "KeyY": "CURSOR.copyAndStop",
         "Escape": "ACTIONS.toNormalMode",
+        "S-Comma": "CURSOR.scrollLeft",
+        "S-Period": "CURSOR.scrollRight",
         "S-KeyG": "CURSOR.endOfPage",
         "S-KeyH": "CURSOR.startOfView",
         "S-KeyJ": "CURSOR.scrollDown",
@@ -143,8 +149,11 @@ const bindings = {
     },
     "visual": {
         "F1": ":help",
+        "BracketLeft": "CURSOR.scrollUp",
+        "BracketRight": "CURSOR.scrollDown",
         "KeyB": "CURSOR.moveFastLeft",
         "KeyC": "CURSOR.copyAndStop",
+        "KeyF": "ACTIONS.startFollowCurrentTab",
         "KeyG": {
             "KeyG": "CURSOR.startOfPage"
         },
@@ -155,6 +164,8 @@ const bindings = {
         "KeyW": "CURSOR.moveFastRight",
         "KeyY": "CURSOR.copyAndStop",
         "Escape": "ACTIONS.toNormalMode",
+        "S-Comma": "CURSOR.scrollLeft",
+        "S-Period": "CURSOR.scrollRight",
         "S-KeyG": "CURSOR.endOfPage",
         "S-KeyH": "CURSOR.startOfView",
         "S-KeyJ": "CURSOR.scrollDown",
@@ -205,24 +216,28 @@ const init = () => {
     })
     setInterval(() => {
         ACTIONS.setFocusCorrectly()
-        if (["cursor", "visual"].includes(MODES.currentMode())) {
-            document.getElementById("cursor").style.backgroundColor = "#fff"
-        }
+        document.getElementById("cursor").style.backgroundColor = "#ff07"
         setTimeout(() => {
             ACTIONS.setFocusCorrectly()
+            document.getElementById("cursor").style.backgroundColor = "#f0f7"
         }, 500)
         setTimeout(() => {
             ACTIONS.setFocusCorrectly()
-            if (["cursor", "visual"].includes(MODES.currentMode())) {
-                document.getElementById("cursor").style.backgroundColor = "#3af"
-            }
+            document.getElementById("cursor").style.backgroundColor = "#0ff7"
         }, 1000)
     }, 1500)
     ACTIONS.setFocusCorrectly()
+    const unSupportedActions = [
+        "ACTIONS.setFocusCorrectly",
+        "CURSOR.move",
+        "CURSOR.handleScrollDiffEvent",
+        "CURSOR.updateCursorElement",
+        "CURSOR.releaseKeys"
+    ]
     supportedActions = [
         ...Object.keys(ACTIONS).map(a => `ACTIONS.${a}`),
         ...Object.keys(CURSOR).map(c => `CURSOR.${c}`)
-    ]
+    ].filter(m => !unSupportedActions.includes(m))
 }
 
 const toIdentifier = e => {

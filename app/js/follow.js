@@ -15,12 +15,13 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global MODES TABS SETTINGS UTIL */
+/* global CURSOR MODES TABS SETTINGS UTIL */
 "use strict"
 
 let followNewtab = true
 let alreadyFollowing = false
 let links = []
+let modeBeforeFollow = "normal"
 
 const informPreload = () => {
     setTimeout(() => {
@@ -36,6 +37,10 @@ const informPreload = () => {
 const startFollow = (newtab = followNewtab) => {
     followNewtab = newtab
     document.getElementById("follow").textContent = ""
+    modeBeforeFollow = MODES.currentMode()
+    if (modeBeforeFollow === "follow") {
+        modeBeforeFollow = "normal"
+    }
     MODES.setMode("follow")
     alreadyFollowing = false
     informPreload()
@@ -50,6 +55,10 @@ const cancelFollow = () => {
     document.getElementById("follow").textContent = ""
     TABS.currentPage().getWebContents().send("follow-mode-stop")
     links = []
+}
+
+const getModeBeforeFollow = () => {
+    return modeBeforeFollow
 }
 
 const numberToKeys = (number, total) => {
@@ -177,7 +186,7 @@ const enterKey = identifier => {
         }
     })
     if (matches.length === 0) {
-        MODES.setMode("normal")
+        MODES.setMode(modeBeforeFollow)
     }
     if (matches.length === 1) {
         const link = links[matches[0].getAttribute("link-id")]
@@ -192,6 +201,16 @@ const enterKey = identifier => {
             return
         }
         const factor = TABS.currentPage().getZoomFactor()
+        if (["cursor", "visual"].includes(modeBeforeFollow)) {
+            CURSOR.start()
+            if (modeBeforeFollow === "visual") {
+                MODES.setMode("visual")
+            }
+            CURSOR.move(
+                (link.x + link.width / 2) * factor,
+                (link.y + link.height / 2) * factor)
+            return
+        }
         MODES.setMode("insert")
         TABS.currentPage().sendInputEvent({
             "type": "mouseEnter",
@@ -218,7 +237,7 @@ const enterKey = identifier => {
             "y": link.y * factor
         })
         if (link.type !== "inputs-insert") {
-            MODES.setMode("normal")
+            MODES.setMode(modeBeforeFollow)
         }
     }
 }
@@ -227,5 +246,6 @@ module.exports = {
     startFollow,
     cancelFollow,
     parseAndDisplayLinks,
-    enterKey
+    enterKey,
+    getModeBeforeFollow
 }

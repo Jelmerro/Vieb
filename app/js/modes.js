@@ -64,7 +64,11 @@ const setMode = mode => {
     if (mode !== "nav" && mode !== "command") {
         SUGGEST.cancelSuggestions()
     }
-    if (mode !== "cursor" && ["cursor", "visual"].includes(currentMode())) {
+    if (["cursor", "visual"].includes(currentMode())) {
+        if (mode !== "follow") {
+            CURSOR.releaseKeys(mode === "visual")
+        }
+    } else if (!["cursor", "visual"].includes(mode)) {
         CURSOR.releaseKeys(mode === "visual")
     }
     if (!["cursor", "insert"].includes(mode)) {
