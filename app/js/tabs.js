@@ -331,8 +331,11 @@ const updateUrl = webview => {
 const addWebviewListeners = webview => {
     webview.addEventListener("load-commit", e => {
         if (e.isMainFrame) {
-            FAVICONS.empty(webview)
-            webview.removeAttribute("failed-to-load")
+            resetTabInfo(webview)
+            const title = tabOrPageMatching(webview).querySelector("span")
+            if (!title.textContent) {
+                title.textContent = e.url
+            }
         }
     })
     webview.addEventListener("focus", () => {
@@ -415,6 +418,7 @@ const addWebviewListeners = webview => {
             webview.src = e.validatedURL
             tabOrPageMatching(webview).querySelector("span")
                 .textContent = e.validatedURL
+            return
         }
         // If the path is a directory, show a list of files instead of an error
         if (e.errorDescription === "ERR_FILE_NOT_FOUND") {
@@ -448,7 +452,11 @@ const addWebviewListeners = webview => {
         FAVICONS.show(webview)
         updateUrl(webview)
         webview.removeAttribute("logging-in")
-        HISTORY.addToHist(tab.querySelector("span").textContent, webview.src)
+        if (!webview.getAttribute("added-to-hist")) {
+            webview.setAttribute("added-to-hist", "true")
+            HISTORY.addToHist(
+                tab.querySelector("span").textContent, webview.src)
+        }
         const specialPageName = UTIL.pathToSpecialPageName(webview.src).name
         const isLocal = webview.src.startsWith("file:/")
         const isErrorPage = webview.getAttribute("failed-to-load")
@@ -466,22 +474,25 @@ const addWebviewListeners = webview => {
         const tab = tabOrPageMatching(webview)
         tab.querySelector("span").textContent = e.title
         updateUrl(webview)
+        if (!webview.getAttribute("added-to-hist")) {
+            webview.setAttribute("added-to-hist", "true")
+            HISTORY.addToHist(
+                tab.querySelector("span").textContent, webview.src)
+        }
     })
     webview.addEventListener("page-favicon-updated", e => {
         FAVICONS.update(webview, e.favicons)
         updateUrl(webview)
     })
     webview.addEventListener("will-navigate", e => {
+        ACTIONS.emptySearch()
         const redirect = UTIL.redirect(e.url)
         if (e.url !== redirect) {
             webview.src = redirect
             return
         }
-        FAVICONS.empty(webview)
-        webview.removeAttribute("failed-to-load")
-        ACTIONS.emptySearch()
-        const tab = tabOrPageMatching(webview)
-        tab.querySelector("span").textContent = e.url
+        resetTabInfo(webview)
+        tabOrPageMatching(webview).querySelector("span").textContent = e.url
     })
     webview.addEventListener("did-navigate-in-page", e => {
         if (e.isMainFrame) {
@@ -569,15 +580,20 @@ const addWebviewListeners = webview => {
     }
 }
 
+const resetTabInfo = webview => {
+    webview.removeAttribute("failed-to-load")
+    webview.removeAttribute("added-to-hist")
+    FAVICONS.empty(webview)
+}
+
 const navigateTo = location => {
     if (currentPage().isCrashed()) {
         return
     }
     location = UTIL.redirect(location)
-    currentTab().querySelector("span").textContent = location
     currentPage().src = location
-    FAVICONS.empty(currentPage())
-    currentPage().removeAttribute("failed-to-load")
+    resetTabInfo(currentPage())
+    currentTab().querySelector("span").textContent = location
 }
 
 const moveTabForward = () => {
@@ -617,6 +633,7 @@ module.exports = {
     tabOrPageMatching,
     switchToTab,
     updateUrl,
+    resetTabInfo,
     navigateTo,
     moveTabForward,
     moveTabBackward
