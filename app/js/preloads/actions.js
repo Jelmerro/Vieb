@@ -19,6 +19,82 @@
 
 const {ipcRenderer} = require("electron")
 
+const movePageNumber = movement => {
+    const path = window.location.pathname + window.location.search
+    const next = path.replace(/(\?|&)p(age)?=(\d)/g, (match, p1, p2, p3) => {
+        if (Number(p3) + movement < 1) {
+            return `${p1}p${p2}=1`
+        }
+        return `${p1}p${p2}=${Number(p3) + movement}`
+    })
+    if (next !== path) {
+        window.location = window.location.origin + next
+    }
+}
+
+const movePageNumberNaive = movement => {
+    const path = window.location.pathname + window.location.search
+    const simpleNext = path.replace(/\d+/, match => {
+        if (Number(match) + movement < 1) {
+            return "1"
+        }
+        return `${Number(match) + movement}`
+    })
+    if (simpleNext !== path) {
+        window.location = window.location.origin + simpleNext
+        return
+    }
+    movePortNumber(movement)
+}
+
+const movePortNumber = movement => {
+    if (!window.location.port) {
+        return
+    }
+    const url = window.location.toString()
+        .replace(/(^.*:)(\d+)(.*$)/, (match, p1, p2, p3) => {
+            if (Number(p2) + movement < 1) {
+                return `${p1}1${p3}`
+            }
+            return `${p1}${Number(p2) + movement}${p3}`
+        })
+    if (url !== window.location.toString()) {
+        window.location = url
+    }
+}
+
+const increasePageNumber = count => {
+    if (isNaN(count)) {
+        count = 1
+    }
+    movePageNumber(Math.abs(count))
+    const paginations = [...document.querySelectorAll(".pagination")]
+    for (const pagination of paginations) {
+        const next = pagination.querySelector("*[rel=next]")
+        if (next && next.href) {
+            window.location = next.href
+            return
+        }
+    }
+    movePageNumberNaive(Math.abs(count))
+}
+
+const decreasePageNumber = count => {
+    if (isNaN(count)) {
+        count = 1
+    }
+    movePageNumber(-Math.abs(count))
+    const paginations = [...document.querySelectorAll(".pagination")]
+    for (const pagination of paginations) {
+        const prev = pagination.querySelector("*[rel=prev]")
+        if (prev && prev.href) {
+            window.location = prev.href
+            return
+        }
+    }
+    movePageNumberNaive(-Math.abs(count))
+}
+
 const scrollTop = () => {
     window.scrollBy(0, -1000000000)
 }
@@ -77,6 +153,8 @@ const exitFullscreen = () => {
 }
 
 const functions = {
+    increasePageNumber,
+    decreasePageNumber,
     scrollTop,
     scrollLeft,
     scrollDown,
@@ -93,12 +171,25 @@ const functions = {
     exitFullscreen
 }
 
-ipcRenderer.on("action", (_, name) => {
+ipcRenderer.on("action", (_, name, ...args) => {
     if (functions[name]) {
-        functions[name]()
+        functions[name](...args)
     }
 })
 
 ipcRenderer.on("fontsize", (_, size) => {
     document.body.style.fontSize = `${size}px`
+})
+
+let focussedSearchElement = null
+
+ipcRenderer.on("search-element-location", (e, pos) => {
+    focussedSearchElement = document.elementFromPoint(
+        pos.x + pos.width / 2, pos.y + pos.height / 2)
+})
+
+ipcRenderer.on("search-element-click", () => {
+    if (focussedSearchElement) {
+        focussedSearchElement.click()
+    }
 })

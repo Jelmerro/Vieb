@@ -19,7 +19,6 @@
 
 const {ipcRenderer} = require("electron")
 
-let focussedSearchElement = null
 let inFollowMode = false
 
 const urls = ["a"]
@@ -45,17 +44,6 @@ const textlikeInputs = ["input:not([type=\"radio\"]):not([type=\"checkbox\"])"
 "*[role=\"textbox\"",
 "textarea",
 "select"]
-
-ipcRenderer.on("search-element-location", (e, pos) => {
-    focussedSearchElement = document.elementFromPoint(
-        pos.x + pos.width / 2, pos.y + pos.height / 2)
-})
-
-ipcRenderer.on("search-element-click", () => {
-    if (focussedSearchElement) {
-        focussedSearchElement.click()
-    }
-})
 
 ipcRenderer.on("focus-first-text-input", () => {
     const links = [...allElementsBySelectors("inputs-insert", textlikeInputs)]

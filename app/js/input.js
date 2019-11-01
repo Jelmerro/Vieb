@@ -22,6 +22,7 @@ const bindings = {
     "normal": {
         "Enter": "ACTIONS.clickOnSearch",
         "F1": ":help",
+        "C-KeyA": "ACTIONS.increasePageNumber",
         "KeyB": "ACTIONS.previousTab",
         "KeyC": "CURSOR.start",
         "KeyD": "ACTIONS.closeTab",
@@ -43,6 +44,7 @@ const bindings = {
         "KeyU": "ACTIONS.reopenTab",
         "KeyV": "CURSOR.start",
         "KeyW": "ACTIONS.nextTab",
+        "C-KeyX": "ACTIONS.decreasePageNumber",
         "Slash": "ACTIONS.toSearchMode",
         "S-KeyF": "ACTIONS.startFollowNewTab",
         "S-KeyG": "ACTIONS.scrollBottom",
@@ -275,6 +277,11 @@ const idToAction = id => {
     return allBindings[MODES.currentMode()][id]
 }
 
+const countableActions = [
+    "ACTIONS.increasePageNumber",
+    "ACTIONS.decreasePageNumber"
+]
+
 const handleKeyboard = e => {
     if (document.body.className === "fullscreen") {
         MODES.setMode("insert")
@@ -327,6 +334,12 @@ const handleKeyboard = e => {
     }
     const actionFunction = actionToFunction(action)
     if (actionFunction) {
+        if (countableActions.includes(action)) {
+            actionFunction(repeatCounter || 1)
+            e.preventDefault()
+            repeatCounter = 0
+            return
+        }
         actionFunction()
         if (["normal", "cursor", "visual"].includes(MODES.currentMode())) {
             while (repeatCounter > 1) {

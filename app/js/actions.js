@@ -33,6 +33,11 @@ const clickOnSearch = () => {
     }
 }
 
+const increasePageNumber = (count = 1) => {
+    TABS.currentPage().getWebContents().send(
+        "action", "increasePageNumber", count)
+}
+
 const previousTab = () => {
     TABS.switchToTab(TABS.listTabs().indexOf(TABS.currentTab()) - 1)
 }
@@ -106,6 +111,11 @@ const reopenTab = () => {
 
 const nextTab = () => {
     TABS.switchToTab(TABS.listTabs().indexOf(TABS.currentTab()) + 1)
+}
+
+const decreasePageNumber = (count = 1) => {
+    TABS.currentPage().getWebContents().send(
+        "action", "decreasePageNumber", count)
 }
 
 const toSearchMode = () => {
@@ -370,6 +380,7 @@ const commandHistoryNext = () => {
 module.exports = {
     emptySearch,
     clickOnSearch,
+    increasePageNumber,
     previousTab,
     closeTab,
     toNavMode,
@@ -386,6 +397,7 @@ module.exports = {
     openNewTab,
     reopenTab,
     nextTab,
+    decreasePageNumber,
     toSearchMode,
     startFollowNewTab,
     scrollBottom,
