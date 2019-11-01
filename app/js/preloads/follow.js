@@ -146,7 +146,7 @@ const elementClickableAtPosition = (element, x, y) => {
 const findClickPosition = (element, rects) => {
     let dimensions = {}
     let clickable = false
-    // Check if the center of the boundingrect is actually clickable,
+    // Check if the center of the bounding rect is actually clickable,
     // For every possible rect of the element and it's sub images.
     for (const rect of rects) {
         const rectX = rect.x + rect.width / 2
@@ -257,7 +257,7 @@ Node.prototype.removeEventListener = function(type, listener, options) {
     }
 }
 
-// Send the follow links to the renderer if dom is changed in any way
+// Send the follow links to the renderer if DOM is changed in any way
 const observer = new window.MutationObserver(sendFollowLinks)
 observer.observe(document, {
     "childList": true,

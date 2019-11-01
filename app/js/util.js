@@ -79,7 +79,7 @@ const isUrl = location => {
     // - Valid domain with 0 or more subdomains
     //   - subdomains can have letters, digits and hyphens
     //   - hyphens cannot be at the end or the start of the subdomain
-    //   - toplevel domains can only contain letters
+    //   - top level domains can only contain letters
     // After that, an optional port in the form of :22 or up to :22222
     // Lastly, it checks if the location ends with one of the following:
     // - Nothing

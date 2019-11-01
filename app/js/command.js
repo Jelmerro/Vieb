@@ -195,7 +195,7 @@ const write = (...args) => {
         }
     }
     TABS.currentPage().getWebContents().savePage(loc, saveType).then(() => {
-        UTIL.notify(`Page succesfully saved at '${loc}'`)
+        UTIL.notify(`Page successfully saved at '${loc}'`)
     }).catch(err => {
         UTIL.notify(`Could not save the page:\n${err}`, "err")
     })

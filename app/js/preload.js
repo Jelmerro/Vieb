@@ -19,7 +19,7 @@
 
 // Always load the misc action functions (such as scrolling before page loads)
 require("./preloads/actions.js")
-// Always load follow mode javascript
+// Always load follow mode JavaScript
 require("./preloads/follow.js")
 // Always load selection function code (for visual mode)
 require("./preloads/select.js")
@@ -28,7 +28,7 @@ require("./preloads/failedload.js")
 // Always load the local directory browser
 require("./preloads/filebrowser.js")
 
-// Load the special page specific javascript
+// Load the special page specific JavaScript
 const util = require("./util.js")
 const specialPage = util.pathToSpecialPageName(window.location.href)
 if (specialPage.name) {

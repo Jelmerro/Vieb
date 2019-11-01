@@ -119,7 +119,7 @@
                 </li>
                 <li>
                     <span onclick="changeColor(this)">
-                        Elements with javascript event handlers
+                        Elements with JavaScript event handlers
                     </span>
                     will be outlined in orange.
                 </li>
@@ -160,7 +160,7 @@
             - This mode can only be entered from cursor mode using the <kbd>v</kbd> key.
             It can be used to select and copy text using the keyboard.
             When switching from cursor mode to visual mode,
-            the exising location will be saved as the starting point for the selection.
+            the existing location will be saved as the starting point for the selection.
             The cursor can then be moved freely similar to cursor mode,
             with text being selected between the two locations.
             Similar to all other modes, you can exit this mode using <kbd>Escape</kbd>,
@@ -332,7 +332,7 @@
     Your tabs will also be stored when closed (tabs.keepRecentlyClosed),
     so you can reopen them with <kbd>u</kbd>.
     When "tabs.restore" is disabled, but "tabs.keepRecentlyClosed" is enabled,
-    all your open tabs will be moved to the recently closed tab list when quiting Vieb.
+    all your open tabs will be moved to the recently closed tab list when quitting Vieb.
     When both settings are set to false, no tab history is preserved,
     and no closed tabs can be reopened as a result.
     These settings do not influence the other history settings,
@@ -406,7 +406,7 @@
             If the alternative position (at the end instead of next to the current one) is preferred,
             you can change it by setting "newtab.nextToCurrentOne" to false.
         </li>
-        <li>Open a new tab with the current website location prefilled in nav mode using <kbd>Shift with t</kbd>.</li>
+        <li>Open a new tab with the current website location pre-filled in nav mode using <kbd>Shift with t</kbd>.</li>
         <li>Close the current tab with <kbd>d</kbd>.</li>
         <li>
             Reopen previously closed tabs with <kbd>u</kbd>.
@@ -426,7 +426,12 @@
             Alternatively, you can use
             <kbd>Ctrl with i</kbd> and <kbd>Ctrl with o</kbd> to navigate the history.
         </li>
-        <li>Press <kbd>Ctrl with c</kbd> to stop loading the current page</li>
+        <li>
+            Use <kbd>Ctrl with x</kbd> and <kbd>Ctrl with a</kbd> to decrease or increment the page number.
+            For example, urls with "page=5" can be incremented to "page=6".
+            If no supported attributes are found, the first number in the url is incremented or decreased.
+        </li>
+        <li>Press <kbd>Ctrl with c</kbd> to stop loading the current page.</li>
         <li>
             Scroll half a page up or down using
             <kbd>Ctrl with u</kbd> or <kbd>Ctrl with d</kbd>.
@@ -539,7 +544,7 @@
         <li>To move fast up and down, use <kbd>Ctrl with u</kbd> and <kbd>Ctrl with d</kbd>.</li>
         <li>Finally, pressing <kbd>v</kbd> when in cursor mode, will enter visual mode.</li>
     </ul>
-    Some movemement actions will also scroll the window when reaching the bottom or top of the current view.
+    Some movement actions will also scroll the window when reaching the bottom or top of the current view.
     <h2 id="cursor-scrolling">scrolling</h2>
     When scrolling in cursor mode, the page will scroll by executing mouse scroll events at the cursor location.
     Unlike the regular scrolling in normal mode, this results in smooth scrolling.
@@ -610,7 +615,7 @@
     <pre class="command-block">h commands-help</pre>
     <h2 id="commands-version">version</h2>
     The version command takes no arguments.
-    It is used to diplay version information about Vieb.
+    It is used to display version information about Vieb.
     There are versions listed for Vieb and Chromium,
     and you can also navigate to the github repository from the version page.
     The version command is also available as "v".
@@ -622,7 +627,7 @@
     check out the <a href="#special">Special pages</a>.
     <h2 id="commands-history">history</h2>
     The history command takes no arguments.
-    This command will open a list of all the website visisted.
+    This command will open a list of all the website visited.
     To learn more about Vieb's history settings and configurations,
     see <a href="#special-history">history page info</a> or <a href="#history">the history chapter</a>.
     <h2 id="commands-devtools">devtools</h2>
@@ -634,7 +639,7 @@
     This command has already been mostly explained in <a href="#settings-set">this paragraph</a>.
     To summarize, this command can be used to set any setting during runtime,
     without saving it to the viebrc.json settings/config file.
-    Wrinting a new setting with the set command works like this:
+    Writing a new setting with the set command works like this:
     <pre class="command-block">set downloads.path=~/Documents</pre>
     Boolean values can also be toggled like this:
     <pre class="command-block">set history.storeNewVisits!</pre>
@@ -703,7 +708,7 @@
     <ul>
         <li>
             full - when one of the arguments of the write command is simply set to "full",
-            the entire page will be downloaded, including css and other resources.
+            the entire page will be downloaded, including CSS and other resources.
             When not included, only the base HTML file will be saved.
         </li>
         <li>
@@ -744,7 +749,7 @@
     Each of these parts have separate settings to configure how and if they should store your history.
     <h2 id="history-browsing">browsing history</h2>
     All websites you visit are stored in a "hist" file inside Vieb's config folder.
-    Everytime a page is loaded, the hist file is appended with a single line.
+    Every time a page is loaded, the hist file is appended with a single line.
     By default, suggestions will be displayed when in nav mode.
     These suggestions are entirely based on websites you have previously visited.
     The navigation bar will turn green when a suggestion is selected,
@@ -755,7 +760,7 @@
     <ul>
         <li>
             history.clearOnQuit - when this setting is set to true,
-            the browsing history is cleared when quiting Vieb.
+            the browsing history is cleared when quitting Vieb.
             This will not clear the currently opened tabs or the download history,
             but only influences if the browsing history should be cleared on exit.
         </li>
@@ -779,7 +784,7 @@
     The favicons setting does not influence when these icons are removed again,
     but only when they should be updated again.
     The favicons will only be deleted when there are no pages in your history using that specific icon.
-    For example, if you visisted a website and you want to delete it's favicon,
+    For example, if you visited a website and you want to delete it's favicon,
     simply remove all the site visits from your history.
     Keep in mind that this process is not needed to refresh the favicons,
     as that is exactly what the favicons setting is used for.
@@ -788,7 +793,7 @@
     The download settings are explained in the <a href="#special-downloads">special page</a> section.
     To learn more about the tab history settings, see the <a href="#startup">startup chapter</a>.
     Because these settings are split between downloads, favicons, tabs and browsing history,
-    you can finetune what you want to store and when to clear it automatically.
+    you can fine-tune what you want to store and when to clear it automatically.
     <h2 id="history-private">private mode</h2>
     Having separate history settings means that there is no traditional private window available in Vieb,
     but by configuring the right settings, something equivalent can be achieved.
@@ -801,7 +806,7 @@
     The combination of these settings means that once a tab is closed, or a download is completed,
     Vieb has no history stored in any of the three categories.
     You can of course expand these three settings with more strict settings,
-    such as the option to clear any download regardless of progress when quiting,
+    such as the option to clear any download regardless of progress when quitting,
     or the setting to never store the tabs at all by disabling the "tabs.restore" setting.
     It's also possible to open each tab in it's own container by setting "newtab.container" to true.
     Container tabs have a yellow title in the navigation bar and don't share data with any other tab.
@@ -910,7 +915,7 @@
     On the cookies page there is an input field to filter the listed cookies.
     When filtering, only the listed cookies will be deleted by the remove all button,
     otherwise all cookies will be deleted when clicking it.
-    Cookies can aslo be deleted individually using the small trash bins.
+    Cookies can also be deleted individually using the small trash bins.
     Finally you can also configure Vieb to delete all cookies on quit:
     <pre class="command-block">set clearCookiesOnQuit=true</pre>
     <h1 id="license">License</h1>
