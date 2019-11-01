@@ -73,6 +73,7 @@ but the list below contains much more technical details.
 - Tabs not switching to the correct tab on startup
 - Missing elements in follow mode using jsaction and/or ARIA roles
 - Page scrolling not working when the page is still loading
+- Incorrect page titles when navigating tab history
 
 ### Security
 

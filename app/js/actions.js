@@ -15,8 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND COMMANDHISTORY FAVICONS FOLLOW MODES SETTINGS SUGGEST TABS
- UTIL */
+/* global COMMAND COMMANDHISTORY FOLLOW MODES SETTINGS SUGGEST TABS UTIL */
 "use strict"
 
 const path = require("path")
@@ -31,7 +30,6 @@ const emptySearch = () => {
 const clickOnSearch = () => {
     if (currentSearch) {
         TABS.currentPage().getWebContents().send("search-element-click")
-        emptySearch()
     }
 }
 
@@ -91,8 +89,7 @@ const nextSearchMatch = () => {
 const reload = () => {
     if (!TABS.currentPage().isCrashed()) {
         TABS.currentPage().reload()
-        TABS.currentPage().removeAttribute("failed-to-load")
-        FAVICONS.empty(TABS.currentPage())
+        TABS.resetTabInfo(TABS.currentPage())
     }
 }
 
@@ -124,9 +121,11 @@ const scrollBottom = () => {
 }
 
 const backInHistory = () => {
-    TABS.currentPage().goBack()
-    TABS.currentPage().removeAttribute("failed-to-load")
-    FAVICONS.empty(TABS.currentPage())
+    if (TABS.currentPage().canGoBack()) {
+        TABS.currentTab().querySelector("span").textContent = ""
+        TABS.currentPage().goBack()
+        TABS.resetTabInfo(TABS.currentPage())
+    }
 }
 
 const openNewTabAtAlternativePosition = () => {
@@ -137,9 +136,11 @@ const openNewTabAtAlternativePosition = () => {
 }
 
 const forwardInHistory = () => {
-    TABS.currentPage().goForward()
-    TABS.currentPage().removeAttribute("failed-to-load")
-    FAVICONS.empty(TABS.currentPage())
+    if (TABS.currentPage().canGoForward()) {
+        TABS.currentTab().querySelector("span").textContent = ""
+        TABS.currentPage().goForward()
+        TABS.resetTabInfo(TABS.currentPage())
+    }
 }
 
 const previousSearchMatch = () => {
@@ -155,8 +156,7 @@ const previousSearchMatch = () => {
 const reloadWithoutCache = () => {
     if (!TABS.currentPage().isCrashed()) {
         TABS.currentPage().reloadIgnoringCache()
-        TABS.currentPage().removeAttribute("failed-to-load")
-        FAVICONS.empty(TABS.currentPage())
+        TABS.resetTabInfo(TABS.currentPage())
     }
 }
 
