@@ -50,7 +50,7 @@ ipcRenderer.on("insert-failed-page-info", (_, e) => {
     if (sslErrors.includes(e.errorDescription)) {
         const http = e.validatedURL.replace("https://", "http://")
         mainInfo.innerHTML += `<h2>Redirect to HTTP Blocked</h2>
-            The page could not be loaded succesfully,
+            The page could not be loaded successfully,
             because HTTP redirects are disabled.
             You can enabled them with this command:
             <kbd>set redirectToHttp=true</kbd><br>
@@ -61,8 +61,8 @@ ipcRenderer.on("insert-failed-page-info", (_, e) => {
             </kbd>${e.errorDescription}</kbd>`
     } else {
         mainInfo.innerHTML += `<h2>Unreachable page</h2>
-            The page could not be loaded succesfully.
-            The following error occured:<br>
+            The page could not be loaded successfully.
+            The following error occurred:<br>
             <h3>${e.errorDescription}</h3>
             The first step you could try is reloading the page by pressing the
             <kbd>r</kbd> key from normal mode. If the error persists,

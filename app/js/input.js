@@ -218,16 +218,7 @@ const init = () => {
     })
     setInterval(() => {
         ACTIONS.setFocusCorrectly()
-        document.getElementById("cursor").style.backgroundColor = "#ff07"
-        setTimeout(() => {
-            ACTIONS.setFocusCorrectly()
-            document.getElementById("cursor").style.backgroundColor = "#f0f7"
-        }, 500)
-        setTimeout(() => {
-            ACTIONS.setFocusCorrectly()
-            document.getElementById("cursor").style.backgroundColor = "#0ff7"
-        }, 1000)
-    }, 1500)
+    }, 500)
     ACTIONS.setFocusCorrectly()
     const unSupportedActions = [
         "ACTIONS.setFocusCorrectly",
