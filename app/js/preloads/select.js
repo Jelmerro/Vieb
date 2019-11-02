@@ -56,6 +56,19 @@ ipcRenderer.on("download-image-request", (e, x, y) => {
                 new Blob(el.outerHTML.split(), {"type": "img/svg"})))
             break
         }
+        if (getComputedStyle(el).backgroundImage) {
+            if (getComputedStyle(el).backgroundImage.startsWith("url")) {
+                let url = getComputedStyle(el).backgroundImage.slice(4, -1)
+                if (url.startsWith("\"") || url.startsWith("'")) {
+                    url = url.slice(1)
+                }
+                if (url.endsWith("\"") || url.endsWith("'")) {
+                    url = url.slice(0, -1)
+                }
+                ipcRenderer.sendToHost("download-image", url, true)
+                break
+            }
+        }
     }
 })
 

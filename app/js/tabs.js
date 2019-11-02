@@ -527,7 +527,14 @@ const addWebviewListeners = webview => {
             FOLLOW.parseAndDisplayLinks(e.args[0])
         }
         if (e.channel === "download-image") {
-            currentPage().downloadURL(e.args[0])
+            const checkForValidUrl = e.args[1]
+            if (checkForValidUrl) {
+                if (UTIL.isUrl(e.args[0])) {
+                    currentPage().downloadURL(e.args[0])
+                }
+            } else {
+                currentPage().downloadURL(e.args[0])
+            }
         }
         if (e.channel === "scroll-height-diff") {
             CURSOR.handleScrollDiffEvent(e.args[0])
