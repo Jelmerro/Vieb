@@ -72,7 +72,11 @@ const handleDownload = (e, item) => {
         // The item will throw an error for all the mapped functions.
     }
     try {
-        UTIL.notify(`Download started:\n${info.name}`)
+        if (info.name) {
+            UTIL.notify(`Download started:\n${info.name}`)
+        } else {
+            UTIL.notify("Download started")
+        }
         item.on("updated", (_event, state) => {
             try {
                 info.current = item.getReceivedBytes()
