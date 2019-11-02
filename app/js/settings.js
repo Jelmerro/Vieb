@@ -322,10 +322,7 @@ const get = (setting, settingObject = allSettings) => {
         return settingObject[setting]
     }
     const [group, config] = setting.split(".")
-    if (!settingObject[group]) {
-        return undefined
-    }
-    return settingObject[group][config]
+    return settingObject[group] && settingObject[group][config]
 }
 
 const set = (setting, value, startup = false) => {

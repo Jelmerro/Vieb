@@ -155,7 +155,7 @@ const removeFromHistory = (start, end = null) => {
         if (groupedHistory[url]) {
             groupedHistory[url].visits -= 1
             if (groupedHistory[url].visits === 0) {
-                groupedHistory[url] = undefined
+                delete groupedHistory[url]
             }
         }
     }
@@ -186,7 +186,9 @@ const handleRequest = (type, start, end) => {
 }
 
 const topSites = () => {
-    return Object.keys(groupedHistory).sort((a, b) => {
+    return Object.keys(groupedHistory).filter(g => {
+        return groupedHistory[g]
+    }).sort((a, b) => {
         if (groupedHistory[a] && groupedHistory[b]) {
             return groupedHistory[b].visits - groupedHistory[a].visits
         }
