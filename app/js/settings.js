@@ -77,7 +77,8 @@ const defaultSettings = {
         "container": false
     },
     "redirects": [],
-    "favicons": "session"
+    "favicons": "session",
+    "vimcommand": "gvim"
 }
 
 let allSettings = {}

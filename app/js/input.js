@@ -78,7 +78,8 @@ const bindings = {
     "insert": {
         "F1": ":help",
         "Escape": "ACTIONS.toNormalMode",
-        "C-BracketLeft": "ACTIONS.toNormalMode"
+        "C-BracketLeft": "ACTIONS.toNormalMode",
+        "C-KeyI": "ACTIONS.editWithVim"
     },
     "command": {
         "F1": ":help",

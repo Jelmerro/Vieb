@@ -247,6 +247,20 @@
     Therefor it's possible to keep and restore the open tabs without keeping the other browsing history.
     More information about the history settings can be found in <a href="#history">the history chapter</a>.
     To find the right setting for you, the set command can be used at runtime to test a specific setting.
+    <h2 id="settings-vimmode">vim mode</h2>
+    Vieb has an option to edit form fields using Vim.
+    By default you can open Vim from insert mode using <kbd>Ctrl with i</kbd>.
+    When no input field is focussed, the shortcut will not open Vim.
+    The setting "vimcommand" is used to execute Vim on your system.
+    This setting is set to "gvim" by default for cross-system compatibility,
+    but it can be changed to any command you want.
+    On systems with gnome-terminal installed you could set it to:
+    <pre class="command-block">gnome-terminal -- vim</pre>
+    This will open a new gnome-terminal with Vim.
+    The form edit mode watches the file for changes, and inserts text based on that.
+    The recommended way to quit Vim when combined with the form input edit mode is ":x".
+    It's also entirely possible to use any other editor here,
+    as long as it takes the filename as an argument.
     <h2 id="settings-keybindings">keybindings</h2>
     The viebrc is is the only place to change the keybindings.
     Changing them can be done by overwriting existing ones,

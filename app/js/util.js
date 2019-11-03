@@ -187,6 +187,7 @@ const clearCache = () => {
     rimrafFolder("**/blob_storage/")
     rimrafFolder("**/databases/")
     rimrafFolder("**/*.log")
+    rimrafFolder("vimformedits")
 }
 
 const clearCookies = () => {

@@ -18,6 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const fs = require("fs")
 
 const movePageNumber = movement => {
     const path = window.location.pathname + window.location.search
@@ -152,6 +153,28 @@ const exitFullscreen = () => {
     document.exitFullscreen()
 }
 
+
+const setInputFieldText = text => {
+    if (document.activeElement) {
+        if (document.activeElement.tagName.toLowerCase() === "input") {
+            document.activeElement.value = text
+        }
+        if (document.activeElement.tagName.toLowerCase() === "textarea") {
+            document.activeElement.textContent = text
+        }
+    }
+}
+const writeInputToFile = filename => {
+    if (document.activeElement) {
+        if (document.activeElement.tagName.toLowerCase() === "input") {
+            fs.writeFileSync(filename, document.activeElement.value)
+        }
+        if (document.activeElement.tagName.toLowerCase() === "textarea") {
+            fs.writeFileSync(filename, document.activeElement.textContent)
+        }
+    }
+}
+
 const functions = {
     increasePageNumber,
     decreasePageNumber,
@@ -168,7 +191,9 @@ const functions = {
     scrollPageDown,
     scrollPageUpHalf,
     focusTopLeftCorner,
-    exitFullscreen
+    exitFullscreen,
+    setInputFieldText,
+    writeInputToFile
 }
 
 ipcRenderer.on("action", (_, name, ...args) => {

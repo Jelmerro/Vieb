@@ -18,7 +18,10 @@
 /* global COMMAND COMMANDHISTORY FOLLOW MODES SETTINGS SUGGEST TABS UTIL */
 "use strict"
 
+const {exec} = require("child_process")
+const {remote} = require("electron")
 const path = require("path")
+const fs = require("fs")
 
 let currentSearch = ""
 
@@ -359,6 +362,43 @@ const setFocusCorrectly = () => {
     }
 }
 
+const editWithVim = () => {
+    const fileFolder = path.join(
+        remote.app.getPath("appData"), "vimformedits")
+    const tempFile = path.join(fileFolder, String(Number(new Date())))
+    try {
+        fs.mkdirSync(fileFolder)
+    } catch (e) {
+        // Probably already exists
+    }
+    try {
+        fs.writeFileSync(tempFile, "")
+    } catch (e) {
+        UTIL.notify("Could not start vim edit mode", "err")
+        return
+    }
+    let command = null
+    fs.watchFile(tempFile, {"interval": 500}, () => {
+        if (command) {
+            try {
+                TABS.currentPage().getWebContents().send("action",
+                    "setInputFieldText", fs.readFileSync(tempFile).toString())
+            } catch (e) {
+                UTIL.notify("Failed to read temp file to fill form", "err")
+            }
+        } else {
+            command = exec(`${SETTINGS.get("vimcommand")} ${tempFile}`, err => {
+                if (err) {
+                    UTIL.notify("Command to edit files with vim failed, "
+                        + "please update the 'vimcommand' setting", "err")
+                }
+            })
+        }
+    })
+    TABS.currentPage().getWebContents().send(
+        "action", "writeInputToFile", tempFile)
+}
+
 const nextSuggestion = () => {
     SUGGEST.nextSuggestion()
     setFocusCorrectly()
@@ -422,6 +462,7 @@ module.exports = {
     zoomOut,
     toNormalMode,
     stopFollowMode,
+    editWithVim,
     nextSuggestion,
     prevSuggestion,
     commandHistoryPrevious,
