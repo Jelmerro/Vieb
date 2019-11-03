@@ -38,6 +38,7 @@ but the list below contains much more technical details.
 - Horizontal scroll actions for cursor and visual mode (with added default bindings for it)
 - Shortcut to stop the page from loading (by default mapped to Ctrl-C from normal mode)
 - Number increment keys to modify page or port numbers using Ctrl-X and Ctrl-A
+- Vim form edit mode to edit form fields using vim or any other editor (gvim by default for cross-system compatibility)
 
 ### Changed
 

@@ -104,6 +104,9 @@ const setMode = mode => {
                         return
                     }
                 }
+                if (input.type.toLowerCase() === "keydown") {
+                    return
+                }
                 // Translate to regular keyboard event
                 const keyEvent = {
                     "ctrlKey": input.control,
