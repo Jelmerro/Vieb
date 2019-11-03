@@ -23,51 +23,87 @@ const path = require("path")
 const fs = require("fs")
 const {ElectronBlocker} = require("@cliqz/adblocker-electron")
 
-// Set storage location to Vieb regardless of startup method
-app.setPath("appData", path.join(app.getPath("appData"), "Vieb"))
-app.setPath("userData", app.getPath("appData"))
-let mainWindow = null
+const printUsage = () => {
+    console.log("Vieb: Vim Inspired Electron Browser\n")
+    console.log("Usage: Vieb [options] <URLs>\n")
+    console.log("Options:")
+    console.log(" --help     Print this help and exit")
+    console.log(" --version  Print program info with version and exit")
+    console.log(" --portable Store ALL Vieb data in a relative ViebData folder")
+    console.log(" --debug    Open with Chromium and Electron debugging tools")
+    console.log(" --console  Open with the Vieb console (implied by --debug)")
+    console.log("\nAll arguments not starting with - will be opened as a url.")
+    printLicense()
+}
+const printVersion = () => {
+    const version = process.env.npm_package_version || app.getVersion()
+    console.log("Vieb: Vim Inspired Electron Browser\n")
+    console.log(`This is version ${version} of Vieb.`)
+    console.log("This program is based on Electron and inspired by Vim.")
+    console.log("It can be used to browse the web entirely with the keyboard.")
+    printLicense()
+}
+const printLicense = () => {
+    console.log("Vieb was created by Jelmer van Arnhem and contributors.")
+    console.log("For more info go here - https://github.com/Jelmerro/Vieb")
+    console.log("\nLicense GPLv3+: GNU GPL version 3 or "
+        + "later <http://gnu.org/licenses/gpl.html>")
+    console.log("This is free software; you are free to change and "
+        + "redistribute it.")
+    console.log("There is NO WARRANTY, to the extent permitted by law.")
+    console.log("See the LICENSE file or the GNU website for details.")
+}
+
+// Parse arguments
+let args = process.argv.slice(1)
+if (args[0] === "app") {
+    args = args.slice(1)
+}
+const urls = []
+let enableDebugMode = false
+let showInternalConsole = false
+let portable = false
+args.forEach(arg => {
+    arg = arg.trim()
+    if (arg.startsWith("--")) {
+        if (arg === "--help") {
+            printUsage()
+            app.exit(0)
+        } else if (arg === "--version") {
+            printVersion()
+            app.exit(0)
+        } else if (arg === "--portable") {
+            portable = true
+        } else if (arg === "--debug") {
+            enableDebugMode = true
+        } else if (arg === "--console") {
+            showInternalConsole = true
+        } else {
+            console.log(`Unsupported argument: ${arg}`)
+            printUsage()
+            app.exit(1)
+        }
+    } else if (!arg.startsWith("-")) {
+        urls.push(arg)
+    }
+})
+if (portable) {
+    app.setPath("appData", path.join(process.cwd(), "ViebData"))
+    app.setPath("userData", path.join(process.cwd(), "ViebData"))
+} else {
+    app.setPath("appData", path.join(app.getPath("appData"), "Vieb"))
+    app.setPath("userData", app.getPath("appData"))
+}
+if (showInternalConsole && enableDebugMode) {
+    console.log("the --debug argument always opens the internal console")
+}
 
 // Allow the app to change the login credentials
-app.on("login", e => {
-    e.preventDefault()
-})
+app.on("login", e => e.preventDefault())
 
 // When the app is ready to start, open the main window
+let mainWindow = null
 app.on("ready", () => {
-    // Parse arguments
-    let args = process.argv.slice(1)
-    if (args[0] === "app") {
-        args = args.slice(1)
-    }
-    const urls = []
-    let enableDebugMode = false
-    let showInternalConsole = false
-    args.forEach(arg => {
-        arg = arg.trim()
-        if (arg.startsWith("--")) {
-            if (arg === "--help") {
-                printUsage()
-                app.exit(0)
-            } else if (arg === "--version") {
-                printVersion()
-                app.exit(0)
-            } else if (arg === "--debug") {
-                enableDebugMode = true
-            } else if (arg === "--console") {
-                showInternalConsole = true
-            } else {
-                console.log(`Unsupported argument: ${arg}`)
-                printUsage()
-                app.exit(1)
-            }
-        } else if (!arg.startsWith("-")) {
-            urls.push(arg)
-        }
-    })
-    if (showInternalConsole && enableDebugMode) {
-        console.log("the --debug argument always opens the internal console")
-    }
     // Request single instance lock and quit if that fails
     if (app.requestSingleInstanceLock()) {
         app.on("second-instance", (event, commandLine) => {
@@ -84,7 +120,7 @@ app.on("ready", () => {
             }))
         })
     } else {
-        app.quit()
+        app.exit(0)
     }
     // Init mainWindow
     const windowData = {
@@ -122,40 +158,7 @@ app.on("ready", () => {
     })
 })
 
-const printUsage = () => {
-    console.log("Vieb: Vim Inspired Electron Browser\n")
-    console.log("Usage: Vieb [options] <URLs>\n")
-    console.log("Options:")
-    console.log(" --help     Print this help and exit")
-    console.log(" --version  Print program info with version and exit")
-    console.log(" --debug    Open with Chromium and Electron debugging tools")
-    console.log(" --console  Open with the Vieb console (implied by --debug)")
-    console.log("\nAll arguments not starting with - will be opened as a url.")
-    printLicense()
-}
-
-const printVersion = () => {
-    const version = process.env.npm_package_version || app.getVersion()
-    console.log("Vieb: Vim Inspired Electron Browser\n")
-    console.log(`This is version ${version} of Vieb.`)
-    console.log("This program is based on Electron and inspired by Vim.")
-    console.log("It can be used to browse the web entirely with the keyboard.")
-    printLicense()
-}
-
-const printLicense = () => {
-    console.log("Vieb was created by Jelmer van Arnhem and contributors.")
-    console.log("For more info go here - https://github.com/Jelmerro/Vieb")
-    console.log("\nLicense GPLv3+: GNU GPL version 3 or "
-        + "later <http://gnu.org/licenses/gpl.html>")
-    console.log("This is free software; you are free to change and "
-        + "redistribute it.")
-    console.log("There is NO WARRANTY, to the extent permitted by law.")
-    console.log("See the LICENSE file or the GNU website for details.")
-}
-
 // Set correct download path (must be in main)
-
 ipcMain.on("downloads-path-for-session", (_, name) => {
     session.fromPartition(name).on("will-download", (e, item) => {
         const filename = item.getFilename()
@@ -187,19 +190,15 @@ ipcMain.on("downloads-path-for-session", (_, name) => {
 })
 
 // Enable or disable adblocker for a list of sessions (must be in main)
-
 let blocker = null
-
 const enableAdblocker = sessionList => {
     sessionList.forEach(
         s => blocker.enableBlockingInSession(session.fromPartition(s)))
 }
-
 const disableAdblocker = sessionList => {
     sessionList.forEach(
         s => blocker.disableBlockingInSession(session.fromPartition(s)))
 }
-
 const createAdblocker = sessionList => {
     const blocklistsFolder = path.join(app.getPath("appData"), "blocklists")
     // Read all filter files from the blocklists folder (including user added)
@@ -216,19 +215,15 @@ const createAdblocker = sessionList => {
     blocker = ElectronBlocker.parse(filters)
     enableAdblocker(sessionList)
 }
-
 ipcMain.on("adblock-enable", (_, sessionList) => {
     enableAdblocker(sessionList)
 })
-
 ipcMain.on("adblock-disable", (_, sessionList) => {
     disableAdblocker(sessionList)
 })
-
 ipcMain.on("adblock-recreate", (_, sessionList) => {
     createAdblocker(sessionList)
 })
-
 const loadBlocklist = file => {
     const appdataName = path.join(app.getPath("appData"), `blocklists/${file}`)
     try {

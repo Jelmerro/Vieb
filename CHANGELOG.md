@@ -39,6 +39,7 @@ but the list below contains much more technical details.
 - Shortcut to stop the page from loading (by default mapped to Ctrl-C from normal mode)
 - Number increment keys to modify page or port numbers using Ctrl-X and Ctrl-A
 - Vim form edit mode to edit form fields using vim or any other editor (gvim by default for cross-system compatibility)
+- Portable run option to startup arguments (--portable) to store all Vieb data inside a local ViebData folder
 
 ### Changed
 
