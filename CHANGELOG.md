@@ -52,7 +52,7 @@ but the list below contains much more technical details.
 - Follow mode is now always allowed (no more setting), and will update the visible links by listening to mutations
 - Show plain text pages with a dark background and white text
 - Also respect font sizes for special pages such as help, version or history
-- Rewrite of settings chapter in the help page, including realtime preview of your settings
+- Rewrite of settings chapter in the help page, including real-time preview of your settings
 - Follow mode can now be combined with cursor and visual mode, to move the cursor to the element location
 - Cursor now changes color gradually over time so it's more visible on conflicting background colors
 
@@ -155,7 +155,7 @@ but the list below contains much more technical details.
 - CHANGELOG file to keep a full list of changes
 - Save and restore the window state by default
 - Allow specific window properties to be kept or ignored (position, size, maximized state)
-- Press "Shift with t" to open a new tab with the current url prefilled in nav mode
+- Press "Shift with t" to open a new tab with the current url pre-filled in nav mode
 - Simple setting to clear all cookies on quit
 
 ### Changed
@@ -231,7 +231,7 @@ but the list below contains much more technical details.
 
 - Electron 5.0.6 (was 5.0.2)
 - Chromium 73.0.3683.121 (unchanged)
-- Remove Vieb and Electron info more reliably from the useragent (should now be similar to chrome)
+- Remove Vieb and Electron info more reliably from the useragent (should now be similar to Chrome)
 - Disable the sharing of local WebRTC ip addresses, only public ips are now shared
 
 ## [0.3.0](https://github.com/Jelmerro/Vieb/compare/0.2.2...0.3.0) - 2019-06-07
