@@ -39,36 +39,36 @@
     <div id="url-hover"></div>
     <div id="pages"></div>
     <script>
-        //Utility functions not related to any other topic, but used in many
+        // Utility functions not related to any other topic, but used in many
         const UTIL = require("./js/util.js")
-        //Static action implementations, input will call them
+        // Static action implementations, input will call them
         const ACTIONS = require("./js/actions.js")
-        //Mode specific code
+        // Mode specific code
         const MODES = require("./js/modes.js")
         const COMMAND = require("./js/command.js")
         const COMMANDHISTORY = require("./js/commandhistory.js")
         const FOLLOW = require("./js/follow.js")
-        //Tabs and webview handler
+        // Tabs and webview handler
         const TABS = require("./js/tabs.js")
-        //Listen to all input to block them or connect them to specific actions
+        // Listen to all input to block them or connect them to specific actions
         const INPUT = require("./js/input.js")
-        //Load custom settings from disk
+        // Load custom settings from disk
         const SETTINGS = require("./js/settings.js")
-        //Create and manage sessions (container, downloads, adblocking etc.)
+        // Create and manage sessions (container, downloads, adblocking etc.)
         const SESSIONS = require("./js/sessions.js")
-        //Download manager
+        // Download manager
         const DOWNLOADS = require("./js/downloads.js")
-        //History manager
+        // History manager
         const HISTORY = require("./js/history.js")
-        //Suggestions for the navbar
+        // Suggestions for the navigation bar
         const SUGGEST = require("./js/suggest.js")
-        //Cursor based navigation mode (hover, visual, drag, rightlclick etc.)
+        // Cursor based navigation mode (hover, visual, drag, right-click etc.)
         const CURSOR = require("./js/cursor.js")
-        //Save and restore the window position, size and maximized state
+        // Save and restore the window position, size and maximized state
         const WINDOWSTATE = require("./js/windowstate.js")
-        //Load favicon handler
+        // Load favicon handler
         const FAVICONS = require("./js/favicons.js")
-        //Some modules require initialisation
+        // Some modules require initialisation
         SETTINGS.init()
         SESSIONS.init()
         INPUT.init()
