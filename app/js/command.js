@@ -37,7 +37,7 @@ const set = (...args) => {
             const setting = part.slice(0, -1)
             const value = SETTINGS.get(setting)
             if (value === undefined) {
-                UTIL.notify(`Unknown setting '${setting}, try using `
+                UTIL.notify(`Unknown setting '${setting}', try using `
                     + "the suggestions", "warn")
             } else if (typeof value === "boolean") {
                 SETTINGS.set(setting, String(!value))
@@ -52,7 +52,7 @@ const set = (...args) => {
             }
             const value = SETTINGS.get(setting)
             if (value === undefined) {
-                UTIL.notify(`Unknown setting '${setting}, try using `
+                UTIL.notify(`Unknown setting '${setting}', try using `
                     + "the suggestions", "warn")
             } else if (value.length === undefined
                     && typeof value === "object" || setting === "redirects") {

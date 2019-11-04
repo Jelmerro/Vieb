@@ -233,7 +233,6 @@ const addTab = (url = null, inverted = false, switchTo = true) => {
         } else {
             switchToTab(listTabs().length - 1)
         }
-        MODES.setMode("normal")
     }
 }
 
@@ -304,6 +303,7 @@ const switchToTab = index => {
     tabOrPageMatching(tabs[index]).style.display = "flex"
     updateUrl(currentPage())
     saveTabs()
+    MODES.setMode("normal")
 }
 
 const updateUrl = webview => {
