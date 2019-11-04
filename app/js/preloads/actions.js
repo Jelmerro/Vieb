@@ -153,24 +153,24 @@ const exitFullscreen = () => {
     document.exitFullscreen()
 }
 
-
 const setInputFieldText = text => {
-    if (document.activeElement) {
-        if (document.activeElement.tagName.toLowerCase() === "input") {
-            document.activeElement.value = text
-        }
-        if (document.activeElement.tagName.toLowerCase() === "textarea") {
-            document.activeElement.textContent = text
+    const el = document.activeElement
+    if (el) {
+        if (["input", "textarea"].includes(el.tagName.toLowerCase())) {
+            el.value = text
+        } else if (el.getAttribute("contenteditable") === "true") {
+            el.textContent = text
         }
     }
 }
+
 const writeInputToFile = filename => {
-    if (document.activeElement) {
-        if (document.activeElement.tagName.toLowerCase() === "input") {
-            fs.writeFileSync(filename, document.activeElement.value)
-        }
-        if (document.activeElement.tagName.toLowerCase() === "textarea") {
-            fs.writeFileSync(filename, document.activeElement.textContent)
+    const el = document.activeElement
+    if (el) {
+        if (["input", "textarea"].includes(el.tagName.toLowerCase())) {
+            fs.writeFileSync(filename, el.value)
+        } else if (el.getAttribute("contenteditable") === "true") {
+            fs.writeFileSync(filename, el.textContent)
         }
     }
 }

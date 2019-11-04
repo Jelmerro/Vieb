@@ -66,6 +66,7 @@ but the list below contains much more technical details.
 ### Fixed
 
 - Sort all html input fields correctly by type in follow mode (input file, image and reset)
+- Missing elements in follow mode using jsaction, ARIA roles or contenteditable
 - History suggestions not sorting by visits correctly
 - Downloads are much more consistent and less prone to race conditions
 - Removing active downloads no longer mismatches the info with the progress of another download
@@ -74,14 +75,13 @@ but the list below contains much more technical details.
 - Check the html element styling when detecting an unset background color (not only the body)
 - Keybindings bug for chained keys being overwritten when adding new ones to the same key
 - Tabs not switching to the correct tab on startup
-- Missing elements in follow mode using jsaction and/or ARIA roles
 - Page scrolling not working when the page is still loading
 - Incorrect page titles when navigating tab history
 - Cursor mode not detecting background images to download (when pressing "d")
 
 ### Security
 
-- Electron 6.1.2 (was 6.0.10)
+- Electron 6.1.3 (was 6.0.10)
 - Chromium 76.0.3809.146 (was 76.0.3809.146)
 - Permission for openExternal is now set to "ask" by default instead of the setting "block"
 

@@ -378,11 +378,12 @@ const editWithVim = () => {
         return
     }
     let command = null
+    const webcontents = TABS.currentPage().getWebContents()
     fs.watchFile(tempFile, {"interval": 500}, () => {
         if (command) {
             try {
-                TABS.currentPage().getWebContents().send("action",
-                    "setInputFieldText", fs.readFileSync(tempFile).toString())
+                webcontents.send("action", "setInputFieldText",
+                    fs.readFileSync(tempFile).toString())
             } catch (e) {
                 UTIL.notify("Failed to read temp file to fill form", "err")
             }
@@ -395,8 +396,7 @@ const editWithVim = () => {
             })
         }
     })
-    TABS.currentPage().getWebContents().send(
-        "action", "writeInputToFile", tempFile)
+    webcontents.send("action", "writeInputToFile", tempFile)
 }
 
 const nextSuggestion = () => {

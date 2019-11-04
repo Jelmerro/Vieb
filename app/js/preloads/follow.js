@@ -41,7 +41,8 @@ const clickableInputs = [
 const textlikeInputs = ["input:not([type=\"radio\"]):not([type=\"checkbox\"])"
     + ":not([type=\"submit\"]):not([type=\"button\"]):not([type=\"color\"])"
     + ":not([type=\"file\"]):not([type=\"image\"]):not([type=\"reset\"])",
-"*[role=\"textbox\"",
+"*[role=\"textbox\"]",
+"*[contenteditable=\"true\"]",
 "textarea",
 "select"]
 
@@ -54,9 +55,9 @@ ipcRenderer.on("focus-first-text-input", () => {
         const element = document.elementFromPoint(
             pos.x + pos.width / 2, pos.y + pos.height / 2)
         if (element && element.click && element.focus) {
+            ipcRenderer.sendToHost("switch-to-insert")
             element.click()
             element.focus()
-            ipcRenderer.sendToHost("switch-to-insert")
         }
     }
 })
