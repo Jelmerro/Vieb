@@ -5,7 +5,11 @@
   "main": "app/index.js",
   "scripts": {
     "start": "electron app",
-    "build": "node build.js"
+    "build": "node build.js",
+    "buildall": "node build.js --linux --win --mac",
+    "buildlinux": "node build.js --linux",
+    "buildwin": "node build.js --win",
+    "buildmac": "node build.js --mac"
   },
   "repository": "https://github.com/Jelmerro/Vieb",
   "homepage": "https://github.com/Jelmerro/Vieb",
