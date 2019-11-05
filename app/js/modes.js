@@ -104,7 +104,7 @@ const setMode = mode => {
                         return
                     }
                 }
-                if (input.type.toLowerCase() === "keydown") {
+                if (input.type.toLowerCase() !== "keydown") {
                     return
                 }
                 // Translate to regular keyboard event
