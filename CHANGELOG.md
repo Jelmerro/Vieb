@@ -57,6 +57,7 @@ but the list below contains much more technical details.
 - Rewrite of settings chapter in the help page, including real-time preview of your settings
 - Follow mode can now be combined with cursor and visual mode, to move the cursor to the element location
 - Cursor now changes color gradually over time so it's more visible on conflicting background colors
+- Digits repeating actions are now only applied when needed, and are executed in one go wherever possible
 
 ### Removed
 

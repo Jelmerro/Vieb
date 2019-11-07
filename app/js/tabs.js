@@ -284,11 +284,11 @@ const tabOrPageMatching = el => {
 
 const switchToTab = index => {
     if (index < 0) {
-        return
+        index = 0
     }
     const tabs = listTabs()
     if (tabs.length <= index) {
-        return
+        index = tabs.length - 1
     }
     tabs.forEach(tab => {
         tab.id = ""
