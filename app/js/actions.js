@@ -36,13 +36,13 @@ const clickOnSearch = () => {
     }
 }
 
-const increasePageNumber = (count = 1) => {
+const increasePageNumber = count => {
     TABS.currentPage().getWebContents().send(
         "action", "increasePageNumber", count)
 }
 
-const previousTab = () => {
-    TABS.switchToTab(TABS.listTabs().indexOf(TABS.currentTab()) - 1)
+const previousTab = count => {
+    TABS.switchToTab(TABS.listTabs().indexOf(TABS.currentTab()) - count)
 }
 
 const closeTab = () => {
@@ -112,11 +112,11 @@ const reopenTab = () => {
     TABS.reopenTab()
 }
 
-const nextTab = () => {
-    TABS.switchToTab(TABS.listTabs().indexOf(TABS.currentTab()) + 1)
+const nextTab = count => {
+    TABS.switchToTab(TABS.listTabs().indexOf(TABS.currentTab()) + count)
 }
 
-const decreasePageNumber = (count = 1) => {
+const decreasePageNumber = count => {
     TABS.currentPage().getWebContents().send(
         "action", "decreasePageNumber", count)
 }
@@ -233,20 +233,20 @@ const zoomReset = () => {
     TABS.currentPage().setZoomLevel(0)
 }
 
-const zoomOut = () => {
-    const level = TABS.currentPage().getZoomLevel()
-    if (level <= -7) {
-        return
+const zoomOut = count => {
+    let level = TABS.currentPage().getZoomLevel() - count
+    if (level < -7) {
+        level = -7
     }
-    TABS.currentPage().setZoomLevel(level - 1)
+    TABS.currentPage().setZoomLevel(level)
 }
 
-const zoomIn = () => {
-    const level = TABS.currentPage().getZoomLevel()
-    if (level >= 7) {
-        return
+const zoomIn = count => {
+    let level = TABS.currentPage().getZoomLevel() + count
+    if (level > 7) {
+        level = 7
     }
-    TABS.currentPage().setZoomLevel(level + 1)
+    TABS.currentPage().setZoomLevel(level)
 }
 
 const toNormalMode = () => {

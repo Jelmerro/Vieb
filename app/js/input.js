@@ -269,9 +269,46 @@ const idToAction = id => {
     return allBindings[MODES.currentMode()][id]
 }
 
+// This is a list of actions that can be counted in advance by a count argument
+// Functions not listed will be executed for x times using a while loop
 const countableActions = [
+    // Actually countable with notable speed increase
     "ACTIONS.increasePageNumber",
-    "ACTIONS.decreasePageNumber"
+    "ACTIONS.decreasePageNumber",
+    "ACTIONS.previousTab",
+    "ACTIONS.nextTab",
+    "ACTIONS.zoomOut",
+    "ACTIONS.zoomIn",
+    // Single use actions that ignore the count and only execute once
+    "ACTIONS.emptySearch",
+    "ACTIONS.toNavMode",
+    "ACTIONS.startFollowCurrentTab",
+    "ACTIONS.scrollTop",
+    "ACTIONS.insertAtFirstInput",
+    "ACTIONS.toInsertMode",
+    "ACTIONS.reload",
+    "ACTIONS.toSearchMode",
+    "ACTIONS.startFollowNewTab",
+    "ACTIONS.scrollBottom",
+    "ACTIONS.openNewTabWithCurrentUrl",
+    "ACTIONS.toCommandMode",
+    "ACTIONS.stopLoadingPage",
+    "ACTIONS.zoomReset",
+    "ACTIONS.toNormalMode",
+    "ACTIONS.stopFollowMode",
+    "ACTIONS.useEnteredData",
+    "ACTIONS.editWithVim",
+    "CURSOR.start",
+    "CURSOR.inspectElement",
+    "CURSOR.copyAndStop",
+    "CURSOR.startOfPage",
+    "CURSOR.insertAtPosition",
+    "CURSOR.centerOfView",
+    "CURSOR.startOfView",
+    "CURSOR.endOfView",
+    "CURSOR.endOfPage",
+    "CURSOR.moveRightMax",
+    "CURSOR.moveLeftMax"
 ]
 
 const handleKeyboard = e => {
@@ -320,6 +357,7 @@ const handleKeyboard = e => {
         if (id === "Escape" || id === "C-BracketLeft") {
             if (repeatCounter !== 0) {
                 repeatCounter = 0
+                e.preventDefault()
                 return
             }
         }
@@ -327,7 +365,7 @@ const handleKeyboard = e => {
     const actionFunction = actionToFunction(action)
     if (actionFunction) {
         if (countableActions.includes(action)) {
-            actionFunction(repeatCounter || 1)
+            actionFunction(Math.max(repeatCounter, 1))
             e.preventDefault()
             repeatCounter = 0
             return

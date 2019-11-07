@@ -22,7 +22,7 @@ const fs = require("fs")
 
 const movePageNumber = movement => {
     const path = window.location.pathname + window.location.search
-    const next = path.replace(/(\?|&)p(age)?=(\d)/g, (match, p1, p2, p3) => {
+    const next = path.replace(/(\?|&)p(age)?=(\d+)/g, (match, p1, p2, p3) => {
         if (Number(p3) + movement < 1) {
             return `${p1}p${p2}=1`
         }
@@ -31,6 +31,7 @@ const movePageNumber = movement => {
     if (next !== path) {
         window.location = window.location.origin + next
     }
+    return next !== path
 }
 
 const movePageNumberNaive = movement => {
@@ -68,7 +69,10 @@ const increasePageNumber = count => {
     if (isNaN(count)) {
         count = 1
     }
-    movePageNumber(Math.abs(count))
+    const moved = movePageNumber(Math.abs(count))
+    if (moved) {
+        return
+    }
     const paginations = [...document.querySelectorAll(".pagination")]
     for (const pagination of paginations) {
         const next = pagination.querySelector("*[rel=next]")
@@ -84,7 +88,10 @@ const decreasePageNumber = count => {
     if (isNaN(count)) {
         count = 1
     }
-    movePageNumber(-Math.abs(count))
+    const moved = movePageNumber(-Math.abs(count))
+    if (moved) {
+        return
+    }
     const paginations = [...document.querySelectorAll(".pagination")]
     for (const pagination of paginations) {
         const prev = pagination.querySelector("*[rel=prev]")
