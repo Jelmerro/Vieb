@@ -26,6 +26,7 @@ const {remote} = require("electron")
 const histFile = path.join(remote.app.getPath("appData"), "hist")
 let history = []
 let groupedHistory = {}
+let finishedLoading = false
 
 const init = () => {
     if (!UTIL.isFile(histFile)) {
@@ -51,6 +52,7 @@ const init = () => {
             }
             return list
         }, {})
+        finishedLoading = true
     })
 }
 
@@ -212,6 +214,10 @@ const visitCount = url => {
     return 0
 }
 
+const isFinishedLoading = () => {
+    return finishedLoading
+}
+
 module.exports = {
     init,
     addToHist,
@@ -219,5 +225,6 @@ module.exports = {
     clearHistory,
     handleRequest,
     topSites,
-    visitCount
+    visitCount,
+    isFinishedLoading
 }
