@@ -26,15 +26,21 @@ const faviconFolder = path.join(remote.app.getPath("appData"), "favicons")
 const mappingFile = path.join(faviconFolder, "mappings")
 let mappings = {}
 const sessionStart = new Date()
+let isParsed = false
 
 const init = () => {
     const parsed = UTIL.readJSON(mappingFile)
     if (parsed) {
         mappings = parsed
     }
+    isParsed = true
 }
 
 const updateMappings = (currentUrl = null) => {
+    // Don't update the mappings before they are done loading
+    if (!isParsed || !HISTORY.isFinishedLoading()) {
+        return
+    }
     // Delete mappings for urls that aren't present in the history
     Object.keys(mappings).forEach(m => {
         if (HISTORY.visitCount(m) === 0 && m !== currentUrl) {
