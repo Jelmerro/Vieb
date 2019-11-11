@@ -29,15 +29,19 @@
                 <span id="mode">normal</span>
                 <input id="url" type="text">
             </div>
-            <div id="tabs"></div>
+            <div id="tabs">
+                <span class="spacer"></span>
+            </div>
         </div>
     </div>
     <div id="suggest-dropdown"></div>
-    <div id="follow"></div>
-    <div id="cursor"></div>
     <div id="notifications"></div>
     <div id="url-hover"></div>
-    <div id="pages"></div>
+    <div id="page-container">
+        <div id="follow"></div>
+        <div id="cursor"></div>
+        <div id="pages"></div>
+    </div>
     <script>
         // Utility functions not related to any other topic, but used in many
         const UTIL = require("./js/util.js")
