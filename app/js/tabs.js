@@ -155,7 +155,7 @@ const saveTabs = () => {
 }
 
 const listTabs = () => {
-    return [...document.querySelectorAll("#tabs > span")]
+    return [...document.querySelectorAll("#tabs > span[link-id]")]
 }
 
 const listPages = () => {
@@ -297,9 +297,7 @@ const switchToTab = index => {
         page.style.display = "none"
     })
     tabs[index].id = "current-tab"
-    tabs[index].scrollIntoView({
-        "inline": "center"
-    })
+    tabs[index].scrollIntoView({"inline": "center"})
     tabOrPageMatching(tabs[index]).style.display = "flex"
     updateUrl(currentPage())
     saveTabs()

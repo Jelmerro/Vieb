@@ -51,6 +51,7 @@ const defaultSettings = {
     "tabs": {
         "restore": true,
         "minwidth": 22,
+        "overflow": "scroll",
         "keepRecentlyClosed": true,
         "startup": []
     },
@@ -114,6 +115,7 @@ const validOptions = {
     "notification.position": [
         "bottom-right", "bottom-left", "top-right", "top-left"
     ],
+    "tabs.overflow": ["hidden", "scroll", "wrap"],
     "permissions.camera": ["block", "ask", "allow"],
     "permissions.fullscreen": ["block", "ask", "allow"],
     "permissions.geolocation": ["block", "ask", "allow"],
@@ -249,6 +251,31 @@ const updateDownloadSettings = () => {
     DOWNLOADS.removeCompletedIfDesired()
 }
 
+const updateTabOverflow = () => {
+    const setting = allSettings.tabs.overflow
+    const tabs = document.getElementById("tabs")
+    const spacer = document.querySelector("#tabs > .spacer")
+    tabs.style.overflowX = ""
+    tabs.style.flexWrap = ""
+    tabs.style.marginLeft = "4em"
+    tabs.style.width = "calc(100vw - 4em)"
+    spacer.style.display = "none"
+    if (setting === "scroll") {
+        tabs.style.overflowX = "auto"
+    }
+    if (setting === "wrap") {
+        tabs.style.flexWrap = "wrap"
+        tabs.style.marginLeft = "0"
+        tabs.style.width = "100vw"
+        spacer.style.display = "inline-block"
+    }
+    try {
+        TABS.currentTab().scrollIntoView({"inline": "center"})
+    } catch (e) {
+        // No tabs present yet
+    }
+}
+
 const listSettingsAsArray = () => {
     const listOfSettings = []
     for (const topLevel of Object.keys(defaultSettings)) {
@@ -316,6 +343,7 @@ const loadFromDisk = () => {
     }
     updateFontSize()
     updateDownloadSettings()
+    updateTabOverflow()
 }
 
 const get = (setting, settingObject = allSettings) => {
@@ -366,6 +394,9 @@ const set = (setting, value, startup = false) => {
         }
         if (setting.startsWith("downloads.")) {
             updateDownloadSettings()
+        }
+        if (setting === "tabs.overflow") {
+            updateTabOverflow()
         }
         if (!startup) {
             if (setting === "tabs.minwidth") {

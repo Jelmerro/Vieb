@@ -61,11 +61,11 @@ const updateCursorElement = () => {
     if (X > window.innerWidth - SETTINGS.get("fontSize") * 1.4) {
         X = window.innerWidth - SETTINGS.get("fontSize") * 1.4
     }
-    if (Y > window.innerHeight - SETTINGS.get("fontSize") * 5) {
-        Y = window.innerHeight - SETTINGS.get("fontSize") * 5
+    if (Y > window.innerHeight - navbarHeight() - SETTINGS.get("fontSize")) {
+        Y = window.innerHeight - navbarHeight() - SETTINGS.get("fontSize")
     }
     cursor.style.left = `${X}px`
-    cursor.style.top = `${Y + SETTINGS.get("fontSize") * 4}px`
+    cursor.style.top = `${Y + navbarHeight()}px`
     if (MODES.currentMode() === "cursor") {
         TABS.currentPage().sendInputEvent({
             "type": "mouseEnter",
@@ -123,6 +123,10 @@ const releaseKeys = stayVisble => {
     TABS.currentPage().getWebContents().send("selection-remove")
 }
 
+const navbarHeight = () => {
+    return document.getElementById("navbar").clientHeight
+}
+
 // ACTIONS
 
 const moveFastLeft = () => {
@@ -142,7 +146,7 @@ const inspectElement = () => {
     const factor = TABS.currentPage().getZoomFactor()
     TABS.currentPage().getWebContents().inspectElement(
         Math.round(X / factor),
-        Math.round((Y + SETTINGS.get("fontSize") * 4) / factor))
+        Math.round((Y + navbarHeight()) / factor))
 }
 
 const copyAndStop = () => {
@@ -177,7 +181,7 @@ const insertAtPosition = () => {
 }
 
 const moveDown = () => {
-    if (Y === window.innerHeight - SETTINGS.get("fontSize") * 5) {
+    if (Y === window.innerHeight - navbarHeight() - SETTINGS.get("fontSize")) {
         ACTIONS.scrollDown()
         listenForScroll = true
     } else {
@@ -218,7 +222,7 @@ const moveFastRight = () => {
 }
 
 const centerOfView = () => {
-    Y = (window.innerHeight - SETTINGS.get("fontSize") * 5) / 2
+    Y = (window.innerHeight - navbarHeight() - SETTINGS.get("fontSize")) / 2
     updateCursorElement()
 }
 
@@ -313,7 +317,7 @@ const moveLeftMax = () => {
 }
 
 const moveFastDown = () => {
-    if (Y === window.innerHeight - SETTINGS.get("fontSize") * 5) {
+    if (Y === window.innerHeight - navbarHeight() - SETTINGS.get("fontSize")) {
         ACTIONS.scrollDown()
         listenForScroll = true
     } else {

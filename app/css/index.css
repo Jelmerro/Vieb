@@ -17,16 +17,18 @@
 */
 /* Global */
 @font-face {font-family: RobotoMono;src: url("./font/RobotoMono-Regular.ttf");}
-body {color: #eee;font: 14px RobotoMono, monospace;background: #333;padding: 0;margin: 0;height: 100vh;width: 100vw;overflow: hidden;user-select: none;}
+body {color: #eee;font: 14px RobotoMono, monospace;background: #333;padding: 0;margin: 0;height: 100vh;width: 100vw;overflow: hidden;user-select: none;display: flex;flex-direction: column;}
 img {height: 1.5em;width: 1.5em;min-height: 1.5em;min-width: 1.5em;pointer-events: none;}
 /* Nav bar */
-#navbar {width: 100vw;height: 4em;display: flex;z-index: 1;background-color: #333;position: relative;pointer-events: none;}
-#logo {-webkit-app-region: drag;height: 3.6em;width: 3.6em;padding: .2em;min-width: 3.6em;min-height: 3.6em;}
-#menu, #tabs {display: flex;right: 0;left: 0;height: 2em;width: calc(100vw - 4em);overflow: hidden;}
-#tabs {overflow-x: auto;}
+#navbar {width: 100vw;display: flex;z-index: 1;background-color: #333;position: relative;pointer-events: none;}
+#navbar > div {flex: 1;}
+#logo {-webkit-app-region: drag;height: 3.6em;width: 3.6em;padding: .2em;min-width: 3.6em;min-height: 3.6em;position: absolute;}
+#menu {display: flex;overflow: hidden;height: 2em;margin-left: 4em;}
 #mode {text-transform: capitalize;font-size: 1.3em;margin: auto 0;font-weight: bold;padding: 0 .2em;}
 /* Nav tabs */
-#tabs > span {color: #ccc;background-color: #444;display: flex;margin-right: .1em;padding-right: .4em;flex: 1;overflow: hidden;white-space: nowrap;}
+#tabs {display: flex;overflow: hidden;}
+#tabs > .spacer {width: 4em;min-width: 4em;max-width: 4em;background-color: #333;margin: 0;padding: 0;}
+#tabs > span {color: #ccc;background-color: #444;display: flex;margin: 0 .1em .1em 0;padding-right: .4em;flex: 1;overflow: hidden;white-space: nowrap;height: 1.9em;}
 #tabs > span > img {margin: auto 0 auto .25em;padding: 0;}
 #tabs > span > span {margin: auto 0 auto .25em;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
 #tabs > #current-tab {color: #eee;background-color: #666;}
@@ -41,7 +43,7 @@ img {height: 1.5em;width: 1.5em;min-height: 1.5em;min-width: 1.5em;pointer-event
 #url.suggest {border-color: #3f3;}
 #url.file {border-color: #ff9;}
 /* follow */
-#follow {height: calc(100vh - 4em);position: fixed;top: 4em;left: 0;width: 100vw;display: none;}
+#follow {position: fixed;display: none;}
 .follow-url, .follow-inputs-click, .follow-inputs-insert, .follow-onclick {position: absolute;color: #111;}
 .follow-url-border, .follow-inputs-click-border, .follow-inputs-insert-border, .follow-onclick-border {position: absolute;box-sizing: border-box;}
 .follow-url {background-color: #cff;border: solid .15em #5cc;z-index: 13;}
@@ -61,7 +63,8 @@ img {height: 1.5em;width: 1.5em;min-height: 1.5em;min-width: 1.5em;pointer-event
 #suggest-dropdown div .file {color: #ffb;}
 #suggest-dropdown div.selected {background-color: #666;}
 /* pages */
-webview {height: calc(100vh - 4em);width: 100vw;display: flex;pointer-events: none;}
+#page-container, #pages {display: flex;flex: 1;}
+webview {width: 100vw;display: flex;pointer-events: none;}
 #invisible-overlay {position: absolute;top: 0;left: 0;width: 100vw;height: 100vh;z-index: 50;}
 /* fullscreen */
 body.fullscreen #navbar {display: none;}
@@ -80,5 +83,5 @@ body.fullscreen webview {height: 100vh;}
 ::-webkit-scrollbar-thumb {background: #5ff;}
 /* other */
 @keyframes cursor {0% {background: #f007;} 17% {background: #ff07;} 33% {background: #0f07;} 49% {background: #0ff7;} 66% {background: #00f7;} 83% {background: #f0f7;} 100% {background: #f007;}}
-#cursor {display: none;position: absolute;top: 0;left: 0;height: 1em;width: .7em;z-index: 20;backdrop-filter: invert(100%);animation: 1s infinite cursor;}
+#cursor {display: none;position: absolute;height: 1em;width: .7em;z-index: 20;backdrop-filter: invert(100%);animation: 1s infinite cursor;}
 #url-hover {display: none;position: absolute;background-color: #fff9;color: #000;bottom: 0;left: 0;right: 0;pointer-events: none;padding: .1em;white-space: nowrap;width: fit-content;margin: auto;}

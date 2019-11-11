@@ -40,6 +40,7 @@ but the list below contains much more technical details.
 - Number increment keys to modify page or port numbers using Ctrl-X and Ctrl-A
 - Vim form edit mode to edit form fields using vim or any other editor (gvim by default for cross-system compatibility)
 - Portable run option to startup arguments (--portable) to store all Vieb data inside a local ViebData folder
+- Overflow setting for the tabs, which can be used to wrap, scroll or hide them when they overflow
 
 ### Changed
 
@@ -82,7 +83,7 @@ but the list below contains much more technical details.
 
 ### Security
 
-- Electron 6.1.3 (was 6.0.10)
+- Electron 6.1.4 (was 6.0.10)
 - Chromium 76.0.3809.146 (was 76.0.3809.146)
 - Permission for openExternal is now set to "ask" by default instead of the setting "block"
 
