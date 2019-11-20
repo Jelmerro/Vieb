@@ -92,8 +92,6 @@ const parseAndDisplayLinks = newLinks => {
     if (MODES.currentMode() !== "follow" || alreadyFollowing) {
         return
     }
-    // The maximum amount of links is 26 * 26,
-    // Therefor the slice index is 0 to 26^2 - 1
     if (followNewtab) {
         newLinks = newLinks.filter(link => UTIL.hasProtocol(link.url))
     }
@@ -120,6 +118,8 @@ const parseAndDisplayLinks = newLinks => {
     while (!links[links.length - 1] && links.length) {
         links.pop()
     }
+    // The maximum amount of links is 26 * 26,
+    // Therefor the slice index is 0 to 26^2 - 1
     links = links.slice(0, 675)
     const factor = TABS.currentPage().getZoomFactor()
     const followElement = document.getElementById("follow")

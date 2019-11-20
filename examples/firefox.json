@@ -34,7 +34,17 @@
             "CS-KeyT": "ACTIONS.reopenTab",
             "CS-KeyY": ":downloads",
             "A-ArrowLeft": "ACTIONS.backInHistory",
-            "A-ArrowRight": "ACTIONS.forwardInHistory"
+            "A-ArrowRight": "ACTIONS.forwardInHistory",
+            "A-Digit0": ":b 9999",
+            "A-Digit1": ":b 0",
+            "A-Digit2": ":b 1",
+            "A-Digit3": ":b 2",
+            "A-Digit4": ":b 3",
+            "A-Digit5": ":b 4",
+            "A-Digit6": ":b 5",
+            "A-Digit7": ":b 6",
+            "A-Digit8": ":b 7",
+            "A-Digit9": ":b 8"
         },
         "nav": {
             "F6": "ACTIONS.toNormalMode",
