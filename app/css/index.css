@@ -58,6 +58,7 @@ img {height: 1.5em;width: 1.5em;min-height: 1.5em;min-width: 1.5em;pointer-event
 #suggest-dropdown {z-index: 15;position: fixed;top: 2em;left: 4em;width: calc(100vw - 4.2em);background-color: #777;}
 #suggest-dropdown div {display: flex;padding: .4em;margin: .2em;background-color: #444;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
 #suggest-dropdown div .title, #suggest-dropdown div .file, #suggest-dropdown div .url {margin: auto .5em;min-width: 0;text-overflow: ellipsis;overflow: hidden;}
+#suggest-dropdown div .title {flex-shrink: 0;max-width: 50%;}
 #suggest-dropdown div .icon {margin: .5em;}
 #suggest-dropdown div .url {color: #bff;}
 #suggest-dropdown div .file {color: #ffb;}
