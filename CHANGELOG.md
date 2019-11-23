@@ -83,7 +83,7 @@ but the list below contains much more technical details.
 
 ### Security
 
-- Electron 6.1.4 (was 6.0.10)
+- Electron 6.1.5 (was 6.0.10)
 - Chromium 76.0.3809.146 (was 76.0.3809.146)
 - Permission for openExternal is now set to "ask" by default instead of the setting "block"
 
