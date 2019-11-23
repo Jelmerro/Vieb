@@ -345,7 +345,7 @@ const setFocusCorrectly = () => {
         }
     }
     if (MODES.currentMode() === "nav") {
-        const local = UTIL.expandPath(urlElement.value)
+        const local = UTIL.expandPath(urlElement.value.trim())
         if (urlElement.value.trim() === "") {
             urlElement.className = ""
         } else if (document.querySelector("#suggest-dropdown div.selected")) {
