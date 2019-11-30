@@ -50,7 +50,7 @@ const init = () => {
     })
 }
 
-const handleDownload = (e, item) => {
+const handleDownload = (_, item) => {
     const info = {
         "name": "",
         "url": "",
@@ -77,7 +77,7 @@ const handleDownload = (e, item) => {
         } else {
             UTIL.notify("Download started")
         }
-        item.on("updated", (_event, state) => {
+        item.on("updated", (__, state) => {
             try {
                 info.current = item.getReceivedBytes()
                 if (state === "progressing" && !item.isPaused()) {
@@ -85,13 +85,13 @@ const handleDownload = (e, item) => {
                 } else {
                     info.state = "paused"
                 }
-            } catch (_e) {
+            } catch (___) {
                 // When a download is finished before the event is detected,
                 // The item will throw an error for all the mapped functions.
             }
             writeToFile()
         })
-        item.once("done", (_event, state) => {
+        item.once("done", (__, state) => {
             if (state === "completed") {
                 info.state = "completed"
                 if (SETTINGS.get("downloads.removeCompleted")) {

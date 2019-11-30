@@ -161,7 +161,7 @@ const removeFromHistory = (start, end = null) => {
             }
         }
     }
-    history = history.filter((l, index) => {
+    history = history.filter((_, index) => {
         return index < start || index > end
     })
     const historyString = history.map(h => {

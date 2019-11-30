@@ -106,7 +106,7 @@ let mainWindow = null
 app.on("ready", () => {
     // Request single instance lock and quit if that fails
     if (app.requestSingleInstanceLock()) {
-        app.on("second-instance", (event, commandLine) => {
+        app.on("second-instance", (_, commandLine) => {
             if (mainWindow.isMinimized()) {
                 mainWindow.restore()
             }
@@ -160,7 +160,7 @@ app.on("ready", () => {
 
 // Set correct download path (must be in main)
 ipcMain.on("downloads-path-for-session", (_, name) => {
-    session.fromPartition(name).on("will-download", (e, item) => {
+    session.fromPartition(name).on("will-download", (__, item) => {
         const filename = item.getFilename()
         let save = path.join(app.getPath("downloads"), filename)
         let duplicateNumber = 1
