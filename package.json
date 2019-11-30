@@ -23,8 +23,8 @@
   "license": "GPL-3.0+",
   "devDependencies": {
     "electron": "^6.1.5",
-    "electron-builder": "^22.1.0",
-    "eslint": "^6.7.0"
+    "electron-builder": "^22.2.0",
+    "eslint": "^6.7.1"
   },
   "dependencies": {
     "@cliqz/adblocker-electron": "^1.4.0",
