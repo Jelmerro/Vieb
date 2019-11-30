@@ -55,6 +55,9 @@ const modes = {
 
 const setMode = mode => {
     mode = mode.trim().toLowerCase()
+    if (mode === "normal") {
+        TABS.currentPage().getWebContents().send("action", "blur")
+    }
     if (mode !== "follow") {
         FOLLOW.cancelFollow()
     }

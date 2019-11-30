@@ -23,7 +23,7 @@ let startX = 0
 let startY = 0
 let scrollHeight = 0
 
-ipcRenderer.on("selection-start-location", (e, sX, sY) => {
+ipcRenderer.on("selection-start-location", (_, sX, sY) => {
     startX = sX
     startY = sY
     scrollHeight = window.scrollY
@@ -44,7 +44,7 @@ window.addEventListener("scroll", () => {
     ipcRenderer.sendToHost("scroll-height-diff", scrollDiff)
 })
 
-ipcRenderer.on("download-image-request", (e, x, y) => {
+ipcRenderer.on("download-image-request", (_, x, y) => {
     const elements = [...document.elementsFromPoint(x, y)]
     for (const el of elements) {
         if (el.tagName.toLowerCase() === "img" && el.src) {
@@ -72,7 +72,7 @@ ipcRenderer.on("download-image-request", (e, x, y) => {
     }
 })
 
-ipcRenderer.on("selection-request", (e, endX, endY) => {
+ipcRenderer.on("selection-request", (_, endX, endY) => {
     let startNode = document.elementFromPoint(startX, startY)
     if (startY < 0 || startY > window.innerHeight) {
         startNode = document.body

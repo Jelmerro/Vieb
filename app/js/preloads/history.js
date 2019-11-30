@@ -209,6 +209,6 @@ window.addEventListener("load", () => {
     ipcRenderer.sendToHost("history-list-request")
 })
 
-ipcRenderer.on("history-list", (e, historyList) => {
+ipcRenderer.on("history-list", (_, historyList) => {
     receiveHistory(historyList)
 })

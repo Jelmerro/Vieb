@@ -22,7 +22,7 @@ const fs = require("fs")
 
 const movePageNumber = movement => {
     const path = window.location.pathname + window.location.search
-    const next = path.replace(/(\?|&)p(age)?=(\d+)/g, (match, p1, p2, p3) => {
+    const next = path.replace(/(\?|&)p(age)?=(\d+)/g, (_, p1, p2, p3) => {
         if (Number(p3) + movement < 1) {
             return `${p1}p${p2}=1`
         }
@@ -54,7 +54,7 @@ const movePortNumber = movement => {
         return
     }
     const url = window.location.toString()
-        .replace(/(^.*:)(\d+)(.*$)/, (match, p1, p2, p3) => {
+        .replace(/(^.*:)(\d+)(.*$)/, (_, p1, p2, p3) => {
             if (Number(p2) + movement < 1) {
                 return `${p1}1${p3}`
             }
@@ -62,6 +62,12 @@ const movePortNumber = movement => {
         })
     if (url !== window.location.toString()) {
         window.location = url
+    }
+}
+
+const blur = () => {
+    if (document.activeElement && document.activeElement.blur) {
+        document.activeElement.blur()
     }
 }
 
@@ -183,6 +189,7 @@ const writeInputToFile = filename => {
 }
 
 const functions = {
+    blur,
     increasePageNumber,
     decreasePageNumber,
     scrollTop,
@@ -215,7 +222,7 @@ ipcRenderer.on("fontsize", (_, size) => {
 
 let focussedSearchElement = null
 
-ipcRenderer.on("search-element-location", (e, pos) => {
+ipcRenderer.on("search-element-location", (_, pos) => {
     focussedSearchElement = document.elementFromPoint(
         pos.x + pos.width / 2, pos.y + pos.height / 2)
 })

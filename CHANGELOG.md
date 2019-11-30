@@ -10,7 +10,9 @@ Links in the changelog are part of [github.com/Jelmerro/Vieb](https://github.com
 The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the most important changes per release,
 but the list below contains much more technical details.
 
-## [Unreleased](https://github.com/Jelmerro/Vieb/compare/0.7.0...master)
+## [1.0.0](https://github.com/Jelmerro/Vieb/compare/0.7.0...1.0.0) - 2019-11-30
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/0.7.0...1.0.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/1.0.0)
 
 ### Added
 
@@ -80,11 +82,12 @@ but the list below contains much more technical details.
 - Page scrolling not working when the page is still loading
 - Incorrect page titles when navigating tab history
 - Cursor mode not detecting background images to download (when pressing "d")
+- Scrolling to previous input when re-entering insert mode (now using blur)
 
 ### Security
 
 - Electron 6.1.5 (was 6.0.10)
-- Chromium 76.0.3809.146 (was 76.0.3809.146)
+- Chromium 76.0.3809.146 (unchanged)
 - Permission for openExternal is now set to "ask" by default instead of the setting "block"
 
 ## [0.7.0](https://github.com/Jelmerro/Vieb/compare/0.6.0...0.7.0) - 2019-09-19

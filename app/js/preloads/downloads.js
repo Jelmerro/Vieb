@@ -54,7 +54,7 @@ window.addEventListener("load", () => {
     window.update()
 })
 
-ipcRenderer.on("download-list", (e, list) => {
+ipcRenderer.on("download-list", (_, list) => {
     // List
     if (list.length === 0) {
         document.getElementById("list").textContent
