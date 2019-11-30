@@ -45,11 +45,17 @@ const isUrl = location => {
     if (/^(\d{1,3}\.){3}\d{1,3}(:\d{2,5})?(|\/.*|\?.*|#.*)$/.test(location)) {
         return true
     }
+    if (location.includes("@") && isUrl(location.split("@")[1])) {
+        return true
+    }
     const domainName = location.split(/\/|\?|#/)[0]
     if (domainName.includes("..")) {
         return false
     }
     const names = domainName.split(".")
+    if (/^[a-zA-Z0-9-]+$/.test(domainName)) {
+        return true
+    }
     if (names.length < 2) {
         return false
     }
@@ -80,6 +86,7 @@ const isUrl = location => {
     //   - subdomains can have letters, digits and hyphens
     //   - hyphens cannot be at the end or the start of the subdomain
     //   - top level domains can only contain letters
+    //   - it may have a password in the form user:pass@host.com
     // After that, an optional port in the form of :22 or up to :22222
     // Lastly, it checks if the location ends with one of the following:
     // - Nothing
