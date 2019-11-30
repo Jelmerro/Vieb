@@ -80,6 +80,7 @@ but the list below contains much more technical details.
 - Page scrolling not working when the page is still loading
 - Incorrect page titles when navigating tab history
 - Cursor mode not detecting background images to download (when pressing "d")
+- Scrolling to previous input when re-entering insert mode (now using blur)
 
 ### Security
 
