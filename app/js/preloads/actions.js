@@ -65,6 +65,12 @@ const movePortNumber = movement => {
     }
 }
 
+const blur = () => {
+    if (document.activeElement && document.activeElement.blur) {
+        document.activeElement.blur()
+    }
+}
+
 const increasePageNumber = count => {
     if (isNaN(count)) {
         count = 1
@@ -183,6 +189,7 @@ const writeInputToFile = filename => {
 }
 
 const functions = {
+    blur,
     increasePageNumber,
     decreasePageNumber,
     scrollTop,
