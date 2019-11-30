@@ -363,8 +363,7 @@ const setFocusCorrectly = () => {
 }
 
 const editWithVim = () => {
-    const fileFolder = path.join(
-        remote.app.getPath("appData"), "vimformedits")
+    const fileFolder = path.join(remote.app.getPath("appData"), "vimformedits")
     const tempFile = path.join(fileFolder, String(Number(new Date())))
     try {
         fs.mkdirSync(fileFolder)

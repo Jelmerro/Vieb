@@ -348,7 +348,7 @@ const addWebviewListeners = webview => {
         FAVICONS.loading(webview)
         updateUrl(webview)
         webview.getWebContents().removeAllListeners("login")
-        webview.getWebContents().on("login", (e, request, auth, callback) => {
+        webview.getWebContents().on("login", (e, _, auth, callback) => {
             e.preventDefault()
             if (webview.getAttribute("logging-in") === "yes") {
                 UTIL.notify("Credentials seem to be incorrect", "warn")
@@ -384,7 +384,7 @@ const addWebviewListeners = webview => {
                 }
             })
             loginWindow.loadURL(UTIL.specialPagePath("login", null, true))
-            remote.ipcMain.once("login-credentials", (_e, credentials) => {
+            remote.ipcMain.once("login-credentials", (__, credentials) => {
                 try {
                     callback(credentials[0], credentials[1])
                     loginWindow.close()
