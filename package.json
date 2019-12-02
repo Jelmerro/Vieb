@@ -4,6 +4,7 @@
   "description": "Vim Inspired Electron Browser",
   "main": "app/index.js",
   "scripts": {
+    "test": "./test.sh", 
     "start": "electron app",
     "build": "node build.js",
     "buildall": "node build.js --linux --win --mac",

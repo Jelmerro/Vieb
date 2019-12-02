@@ -11,9 +11,8 @@ const urls = [["google.com", true, "No www."],
     ["www.youtube.com/test?id=1&uid=1", true, "2 get parameters"],
     ["raspberrypi/test", true, "A hostname and page"],
     ["hoi:test@www.*.com", false, "invalid with login"],
-    [":@:@:@:@:@:@:@:@:@:@:@:@:@:@:@:@:@:@:@:@lol.com",
-        false,
-        "attempt to screw with it"]]
+    ["roger:@lol.com", false, "invalid due to no password"],
+    ["roger@lol.com", true, "username only but valid"]]
 // Tests for isUrl()
 // Checks if the location starts with one of the following:
 // - localhost

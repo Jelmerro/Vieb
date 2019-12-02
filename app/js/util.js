@@ -45,6 +45,9 @@ const isUrl = location => {
     if (/^(\d{1,3}\.){3}\d{1,3}(:\d{2,5})?(|\/.*|\?.*|#.*)$/.test(location)) {
         return true
     }
+    if (location.includes(":@")) {
+        return false
+    }
     if (location.includes("@") && isUrl(location.split("@")[1])) {
         return true
     }
