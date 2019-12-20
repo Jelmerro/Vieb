@@ -10,6 +10,17 @@ Links in the changelog are part of [github.com/Jelmerro/Vieb](https://github.com
 The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the most important changes per release,
 but the list below contains much more technical details.
 
+## Unreleased
+
+### Fixed
+
+- Popup dialog for failed favicon downloads (now ignored)
+
+### Security
+
+- Electron 6.1.5 (unchanged)
+- Chromium 76.0.3809.146 (unchanged)
+
 ## [1.0.0](https://github.com/Jelmerro/Vieb/compare/0.7.0...1.0.0) - 2019-11-30
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/0.7.0...1.0.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/1.0.0)
