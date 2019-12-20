@@ -15,6 +15,7 @@ but the list below contains much more technical details.
 ### Fixed
 
 - Popup dialog for failed favicon downloads (now ignored)
+- Empty title in history overriding the older proper title
 
 ### Security
 
