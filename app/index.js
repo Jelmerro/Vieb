@@ -98,11 +98,9 @@ if (showInternalConsole && enableDebugMode) {
     console.log("the --debug argument always opens the internal console")
 }
 
-// Allow the app to change the login credentials
-app.on("login", e => e.preventDefault())
-
 // When the app is ready to start, open the main window
 let mainWindow = null
+let loginWindow = null
 app.on("ready", () => {
     // Request single instance lock and quit if that fails
     if (app.requestSingleInstanceLock()) {
@@ -155,6 +153,57 @@ app.on("ready", () => {
             mainWindow.webContents.openDevTools()
         }
         mainWindow.webContents.send("urls", urls)
+    })
+    // Show a dialog for sites requiring Basic HTTP authentication
+    const loginWindowData = {
+        "backgroundColor": "#333333",
+        "modal": true,
+        "frame": false,
+        "show": false,
+        "parent": mainWindow,
+        "webPreferences": {
+            "nodeIntegration": true
+        }
+    }
+    loginWindow = new BrowserWindow(loginWindowData)
+    const loginPage = `file:///${path.join(__dirname, "./pages/login.html")}`
+    loginWindow.loadURL(loginPage)
+    loginWindow.on("close", e => {
+        e.preventDefault()
+        loginWindow.hide()
+    })
+})
+
+// Handle Basic HTTP login attempts (must be in main)
+const loginAttempts = []
+app.on("login", (e, webContents, __, auth, callback) => {
+    if (loginWindow.isVisible()) {
+        return
+    }
+    if (loginAttempts.includes(webContents.id)) {
+        webContents.stop()
+        loginAttempts.splice(loginAttempts.indexOf(webContents.id), 1)
+        return
+    }
+    e.preventDefault()
+    loginAttempts.push(webContents.id)
+    loginWindow.setTitle(`${auth.host}: ${auth.realm}`)
+    ipcMain.removeAllListeners("hide")
+    loginWindow.once("hide", () => {
+        try {
+            callback("", "")
+        } catch (err) {
+            // Window was already closed
+        }
+    })
+    ipcMain.removeAllListeners("login-credentials")
+    ipcMain.once("login-credentials", (___, credentials) => {
+        try {
+            callback(credentials[0], credentials[1])
+            loginWindow.hide()
+        } catch (err) {
+            // Window is already being closed
+        }
     })
 })
 
