@@ -347,51 +347,20 @@ const addWebviewListeners = webview => {
     webview.addEventListener("did-start-loading", () => {
         FAVICONS.loading(webview)
         updateUrl(webview)
-        webview.getWebContents().removeAllListeners("login")
-        webview.getWebContents().on("login", (e, _, auth, callback) => {
-            e.preventDefault()
-            if (webview.getAttribute("logging-in") === "yes") {
-                UTIL.notify("Credentials seem to be incorrect", "warn")
-                webview.stop()
-                return
-            }
-            MODES.setMode("normal")
-            webview.setAttribute("logging-in", "yes")
-            const windowData = {
-                "backgroundColor": "#333333",
-                "width": SETTINGS.get("fontSize") * 21,
-                "height": SETTINGS.get("fontSize") * 21,
-                "parent": remote.getCurrentWindow(),
-                "modal": true,
-                "frame": false,
-                "title": `${auth.host}: ${auth.realm}`,
-                "resizable": false,
-                "webPreferences": {
-                    "nodeIntegration": true
+        webview.getWebContents().once("login", () => {
+            for (const browserWindow of remote.BrowserWindow.getAllWindows()) {
+                if (browserWindow.getURL().endsWith("login.html")) {
+                    MODES.setMode("normal")
+                    browserWindow.show()
+                    browserWindow.setSize(
+                        SETTINGS.get("fontSize") * 21,
+                        SETTINGS.get("fontSize") * 21)
+                    browserWindow.resizable = false
+                    browserWindow.webContents.executeJavaScript(
+                        "document.body.style.fontSize = "
+                        + `'${SETTINGS.get("fontSize")}px'`)
                 }
             }
-            const loginWindow = new remote.BrowserWindow(windowData)
-            loginWindow.webContents.on("dom-ready", () => {
-                loginWindow.webContents.executeJavaScript(
-                    `document.body.style.fontSize =
-                    "${SETTINGS.get("fontSize")}px"`)
-            })
-            loginWindow.on("close", () => {
-                try {
-                    callback("", "")
-                } catch (err) {
-                    // Callback was already called
-                }
-            })
-            loginWindow.loadURL(UTIL.specialPagePath("login", null, true))
-            remote.ipcMain.once("login-credentials", (__, credentials) => {
-                try {
-                    callback(credentials[0], credentials[1])
-                    loginWindow.close()
-                } catch (err) {
-                    // Window is already being closed
-                }
-            })
         })
     })
     webview.addEventListener("did-fail-load", e => {
@@ -449,7 +418,6 @@ const addWebviewListeners = webview => {
         const tab = tabOrPageMatching(webview)
         FAVICONS.show(webview)
         updateUrl(webview)
-        webview.removeAttribute("logging-in")
         if (!webview.getAttribute("added-to-hist")) {
             webview.setAttribute("added-to-hist", "true")
             HISTORY.addToHist(

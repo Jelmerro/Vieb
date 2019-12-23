@@ -12,6 +12,10 @@ but the list below contains much more technical details.
 
 ## Unreleased
 
+### Changed
+
+- Update to the http basic login system to work with the new electron versions
+
 ### Fixed
 
 - Popup dialog for failed favicon downloads (now ignored)
@@ -19,8 +23,8 @@ but the list below contains much more technical details.
 
 ### Security
 
-- Electron 6.1.5 (unchanged)
-- Chromium 76.0.3809.146 (unchanged)
+- Electron 6.1.5 (8.0.0-beta.5)
+- Chromium 76.0.3809.146 (80.0.3987.14)
 
 ## [1.0.0](https://github.com/Jelmerro/Vieb/compare/0.7.0...1.0.0) - 2019-11-30
 
