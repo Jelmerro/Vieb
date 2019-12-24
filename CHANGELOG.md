@@ -15,6 +15,7 @@ but the list below contains much more technical details.
 ### Changed
 
 - Update to the http basic login system to work with the new electron versions
+- Open the login dialog in the center of the Vieb browser window
 
 ### Fixed
 

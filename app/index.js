@@ -138,7 +138,9 @@ app.on("ready", () => {
         windowData.icon = path.join(__dirname, "img/icons/512x512.png")
     }
     mainWindow = new BrowserWindow(windowData)
-    mainWindow.removeMenu()
+    if (!enableDebugMode) {
+        mainWindow.removeMenu()
+    }
     mainWindow.setMinimumSize(500, 500)
     mainWindow.on("close", e => {
         e.preventDefault()
@@ -161,6 +163,7 @@ app.on("ready", () => {
         "frame": false,
         "show": false,
         "parent": mainWindow,
+        "alwaysOnTop": true,
         "webPreferences": {
             "nodeIntegration": true
         }

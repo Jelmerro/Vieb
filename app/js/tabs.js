@@ -351,14 +351,20 @@ const addWebviewListeners = webview => {
             for (const browserWindow of remote.BrowserWindow.getAllWindows()) {
                 if (browserWindow.getURL().endsWith("login.html")) {
                     MODES.setMode("normal")
-                    browserWindow.show()
-                    browserWindow.setSize(
-                        SETTINGS.get("fontSize") * 21,
-                        SETTINGS.get("fontSize") * 21)
+                    const bounds = remote.getCurrentWindow().getBounds()
+                    const size = Math.round(SETTINGS.get("fontSize") * 21)
+                    const position = [
+                        Math.round(bounds.x + bounds.width / 2 - size / 2),
+                        Math.round(bounds.y + bounds.height / 2 - size / 2)
+                    ]
+                    browserWindow.setMinimumSize(size, size)
+                    browserWindow.setSize(size, size)
+                    browserWindow.setPosition(...position)
                     browserWindow.resizable = false
                     browserWindow.webContents.executeJavaScript(
                         "document.body.style.fontSize = "
                         + `'${SETTINGS.get("fontSize")}px'`)
+                    browserWindow.show()
                 }
             }
         })
