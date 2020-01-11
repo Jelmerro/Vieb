@@ -147,7 +147,7 @@ const reload = () => {
 }
 
 const hardcopy = () => {
-    TABS.currentPage().print()
+    TABS.currentPage().send("action", "print")
 }
 
 const write = (...args) => {

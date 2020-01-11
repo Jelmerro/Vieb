@@ -138,6 +138,12 @@ const update = (webview, urls) => {
             data.push(Buffer.from(chunk, "binary"))
         })
     })
+    request.on("abort", () => {
+        // Failed to download favicon
+    })
+    request.on("error", () => {
+        // Failed to download favicon
+    })
     request.end()
 }
 

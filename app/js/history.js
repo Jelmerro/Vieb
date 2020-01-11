@@ -47,7 +47,7 @@ const init = () => {
                 list[hist.url] = {"title": hist.title, "visits": 0}
             }
             list[hist.url].visits += 1
-            if (!UTIL.hasProtocol(hist.title)) {
+            if (!UTIL.hasProtocol(hist.title) && hist.title.trim()) {
                 list[hist.url].title = hist.title
             }
             return list
@@ -132,7 +132,7 @@ const addToHist = (title, url) => {
         groupedHistory[url] = {"title": title, "visits": 0}
     }
     groupedHistory[url].visits += 1
-    if (!UTIL.hasProtocol(title)) {
+    if (!UTIL.hasProtocol(title) && title.trim()) {
         groupedHistory[url].title = title
     }
     const line = `${date.toISOString()}\t${title.replace(/\t/g, " ")}\t${url}\n`

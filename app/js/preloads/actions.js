@@ -188,6 +188,10 @@ const writeInputToFile = filename => {
     }
 }
 
+const print = () => {
+    document.execCommand("print")
+}
+
 const functions = {
     blur,
     increasePageNumber,
@@ -207,7 +211,8 @@ const functions = {
     focusTopLeftCorner,
     exitFullscreen,
     setInputFieldText,
-    writeInputToFile
+    writeInputToFile,
+    print
 }
 
 ipcRenderer.on("action", (_, name, ...args) => {

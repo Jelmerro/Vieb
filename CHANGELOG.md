@@ -10,6 +10,24 @@ Links in the changelog are part of [github.com/Jelmerro/Vieb](https://github.com
 The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the most important changes per release,
 but the list below contains much more technical details.
 
+## Unreleased
+
+### Changed
+
+- Update to the http basic login system to work with the new electron versions
+- Open the login dialog in the center of the Vieb browser window
+
+### Fixed
+
+- Popup dialog for failed favicon downloads (now ignored)
+- Empty title in history overriding the older proper title
+- Print command only working once without reloading
+
+### Security
+
+- Electron 6.1.5 (8.0.0-beta.5)
+- Chromium 76.0.3809.146 (80.0.3987.14)
+
 ## [1.0.0](https://github.com/Jelmerro/Vieb/compare/0.7.0...1.0.0) - 2019-11-30
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/0.7.0...1.0.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/1.0.0)
