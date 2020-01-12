@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -353,13 +353,11 @@ const addWebviewListeners = webview => {
                     MODES.setMode("normal")
                     const bounds = remote.getCurrentWindow().getBounds()
                     const size = Math.round(SETTINGS.get("fontSize") * 21)
-                    const position = [
-                        Math.round(bounds.x + bounds.width / 2 - size / 2),
-                        Math.round(bounds.y + bounds.height / 2 - size / 2)
-                    ]
                     browserWindow.setMinimumSize(size, size)
                     browserWindow.setSize(size, size)
-                    browserWindow.setPosition(...position)
+                    browserWindow.setPosition(
+                        Math.round(bounds.x + bounds.width / 2 - size / 2),
+                        Math.round(bounds.y + bounds.height / 2 - size / 2))
                     browserWindow.resizable = false
                     browserWindow.webContents.executeJavaScript(
                         "document.body.style.fontSize = "
