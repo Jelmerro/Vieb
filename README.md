@@ -55,23 +55,21 @@ Use the `--help` argument for more information.
 
 # Configuring Vieb
 
-To change the keybindings or any other setting of Vieb,
+The `:set` command can be used to change the settings for the current session.
+To change the keybindings or other settings across sessions,
 the viebrc.json file should be created and/or changed.
 You can create a viebrc using `:mkviebrc`, which stores the current settings.
-The location of the viebrc file will be one of these, depening on your OS:
+The location of the viebrc file will be one of these, depending on your OS:
 
 - Windows - `%APPDATA%\Vieb\viebrc.json`
 - Mac - `~/Library/Application Support/Vieb/viebrc.json`
 - Linux - `~/.config/Vieb/viebrc.json`
 
-There should be chromium/electron related files in this directory,
-if Vieb was started at least once.
-It is also the location of the download and browsing history,
-but these can be disabled separately in the settings.
+This folder is used for all Vieb data.
 
-There are examples to make Vieb behave more like
+There are viebrc example files to make Vieb behave more like
 [Chromium](examples/chromium.json) and [Firefox](examples/firefox.json).
-These examples can be used as the starting point for your own config.
+These examples could be used as the starting point for your own config.
 Feel free to change these to your liking, or even make a pull request to improve them.
 
 For more details about settings, usage or anything else,

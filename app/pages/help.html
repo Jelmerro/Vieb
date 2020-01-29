@@ -1,6 +1,6 @@
 <!--
     Vieb - Vim Inspired Electron Browser
-    Copyright (C) 2019 Jelmer van Arnhem
+    Copyright (C) 2019-2020 Jelmer van Arnhem
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -262,7 +262,7 @@
     It's also entirely possible to use any other editor here,
     as long as it takes the filename as an argument.
     <h2 id="settings-keybindings">keybindings</h2>
-    The viebrc is is the only place to change the keybindings.
+    The viebrc is the only place to change the keybindings.
     Changing them can be done by overwriting existing ones,
     or by adding completely new bindings.
     To remap a certain action, simply overwrite the old one with ""
@@ -677,8 +677,7 @@
     It takes no arguments, required or optional.
     All previous "set" command changes are reset by using reload,
     so it can be used to undo any unwanted changes made using the set command.
-    It can also be used to change the <a href="#settings-viebrc-keybindings">keybindings</a>.
-    or to change the settings permanently (instead of temporary using the "set" command).
+    It can also be used to change the <a href="#settings-viebrc-keybindings">keybindings</a> at runtime.
     A short version of the reload command is just using "r".
     <h2 id="commands-mkviebrc">mkviebrc</h2>
     This command can be used to write all the current settings to the viebrc file.
@@ -713,6 +712,8 @@
     <pre class="command-block">b 0</pre>
     Using this command, you can also map keyboard shortcuts to switch to specific tabs.
     The search is based on the page title, url and the tab index.
+    If the search string only includes numbers, you will switch to the tab by index,
+    regardless of the order in which the suggestions are shown.
     <h2 id="commands-cookies">cookies</h2>
     The cookies command is used to open the special page named cookies.
     It can also be accessed at "vieb://cookies".
