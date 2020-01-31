@@ -39,30 +39,20 @@ const isUrl = location => {
     if (hasProtocol(location)) {
         return true
     }
-    if (/^localhost(:\d{2,5})?(|\/.*|\?.*|#.*)$/.test(location)) {
-        return true
-    }
-    if (/^(\d{1,3}\.){3}\d{1,3}(:\d{2,5})?(|\/.*|\?.*|#.*)$/.test(location)) {
-        return true
-    }
-    if (location.includes(":@")) {
+    const domainName = location.split(/\/|\?|#/)[0]
+    if (domainName.includes(":@")) {
         return false
     }
-    if (location.includes("@")) {
-	return isUrl(location.split("@")[1]) && /^[a-zA-Z0-9]/.test(location.split("@")[0]) //&& location.count("@") === 1
+    if (domainName.includes("@")) {
+        return (domainName.match(/@/g) || []).length === 1
+            && /^[a-zA-Z0-9]+$/.test(domainName.split("@")[0])
+            && isUrl(domainName.split("@")[1])
     }
-    const domainName = location.split(/\/|\?|#/)[0]
     if (domainName.includes("..")) {
         return false
     }
     const names = domainName.split(".")
-    if (/^[a-zA-Z0-9-]+$/.test(domainName)) {
-        return true
-    }
-    if (names.length < 2) {
-        return false
-    }
-    const tldAndPort = names.pop()
+    const tldAndPort = names[names.length - 1]
     if (tldAndPort.includes("::") || tldAndPort.split(":").length > 2) {
         return false
     }
@@ -70,32 +60,35 @@ const isUrl = location => {
         return false
     }
     const [tld, port] = tldAndPort.split(":")
+    names[names.length - 1] = tld
     if (port && !/^\d{2,5}$/.test(port)) {
+        return false
+    }
+    if (port && (Number(port) <= 10 || Number(port) > 65535)) {
+        return false
+    }
+    if (names.length === 1 && tld === "localhost") {
+        return true
+    }
+    if (names.length === 4) {
+        if (names.every(n => /^\d{1,3}$/.test(n))) {
+            if (names.every(n => Number(n) <= 255)) {
+                return true
+            }
+        }
+    }
+    if (names.length < 2) {
         return false
     }
     if (/^[a-zA-Z]{2,}$/.test(tld)) {
         const invalidDashes = names.some(n => {
-            return n.includes("--") || n.startsWith("-") || n.endsWith("-")
+            return n.includes("---") || n.startsWith("-") || n.endsWith("-")
         })
         if (!invalidDashes && names.every(n => /^[a-zA-Z\d-]+$/.test(n))) {
             return true
         }
     }
     return false
-    // Checks if the location starts with one of the following:
-    // - localhost
-    // - An ipv4 address
-    // - Valid domain with 0 or more subdomains
-    //   - subdomains can have letters, digits and hyphens
-    //   - hyphens cannot be at the end or the start of the subdomain
-    //   - top level domains can only contain letters
-    //   - it may have a password in the form user:pass@host.com
-    // After that, an optional port in the form of :22 or up to :22222
-    // Lastly, it checks if the location ends with one of the following:
-    // - Nothing
-    // - Single slash character with anything behind it
-    // - Single question mark with anything behind it
-    // - Single number sign with anything behind it
 }
 
 const notify = (message, type = "info") => {
