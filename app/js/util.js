@@ -48,8 +48,8 @@ const isUrl = location => {
     if (location.includes(":@")) {
         return false
     }
-    if (location.includes("@") && isUrl(location.split("@")[1])) {
-        return true
+    if (location.includes("@")) {
+	return isUrl(location.split("@")[1]) && /^[a-zA-Z0-9]/.test(location.split("@")[0]) && location.count("@") === 1
     }
     const domainName = location.split(/\/|\?|#/)[0]
     if (domainName.includes("..")) {
