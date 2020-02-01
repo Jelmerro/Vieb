@@ -18,6 +18,10 @@ but the list below contains much more technical details.
 - Open the login dialog in the center of the Vieb browser window
 - Running the last command again no longer adds a duplicate to the command history
 
+### Removed
+
+- The optional 'full' argument of the write command, the full page is now always saved
+
 ### Fixed
 
 - Popup dialog for failed favicon downloads (now ignored)

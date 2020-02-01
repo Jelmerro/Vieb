@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -137,12 +137,7 @@ const suggestCommand = search => {
             .map(s => `${search.split(" ").slice(0, -1).join(" ")} ${s}`)
     }
     if ("write".startsWith(search.split(" ")[0])) {
-        writeCommandExtras = [
-            "full",
-            "~/Downloads/newfile",
-            "full ~/Downloads",
-            "saved.html full"
-        ].map(s => `${search.split(" ")[0]} ${s}`)
+        writeCommandExtras = ["write ~/Downloads/newfile"]
     }
     if ("mkviebrc".startsWith(search.split(" ")[0])) {
         writeCommandExtras = ["mkv full", "mkviebrc full"]
