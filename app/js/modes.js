@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 
 const modes = {
     "normal": {
-        "fg": "#eee",
+        "fg": "#ddd",
         "bg": ""
     },
     "insert": {
@@ -53,9 +53,36 @@ const modes = {
     }
 }
 
+const init = () => {
+    const modeList = document.getElementById("mode-suggestions")
+    Object.keys(modes).forEach(mode => {
+        const modeEntry = document.createElement("div")
+        modeEntry.textContent = mode
+        modeEntry.className = "no-focus-reset"
+        modeEntry.addEventListener("click", e => {
+            if (currentMode() === mode) {
+                return
+            }
+            if (mode === "follow") {
+                FOLLOW.startFollow(false)
+            } else if (mode === "cursor") {
+                CURSOR.start()
+            } else if (mode === "visual") {
+                CURSOR.startVisualSelect()
+            } else {
+                setMode(mode)
+            }
+            e.preventDefault()
+        })
+        modeEntry.style.backgroundColor = modes[mode].bg
+        modeEntry.style.color = modes[mode].fg
+        modeList.appendChild(modeEntry)
+    })
+}
+
 const setMode = mode => {
     mode = mode.trim().toLowerCase()
-    if (mode === "normal") {
+    if (currentMode() === "insert" && mode !== "insert") {
         TABS.currentPage().getWebContents().send("action", "blur")
     }
     if (mode !== "follow") {
@@ -68,11 +95,14 @@ const setMode = mode => {
         SUGGEST.cancelSuggestions()
     }
     if (["cursor", "visual"].includes(currentMode())) {
-        if (mode !== "follow") {
+        if (!["cursor", "visual"].includes(mode)) {
             CURSOR.releaseKeys(mode === "visual")
         }
-    } else if (!["cursor", "visual"].includes(mode)) {
-        CURSOR.releaseKeys(mode === "visual")
+    }
+    if (["cursor", "visual"].includes(mode)) {
+        document.getElementById("cursor").style.display = "block"
+    } else {
+        document.getElementById("cursor").style.display = "none"
     }
     if (!["cursor", "insert"].includes(mode)) {
         document.getElementById("url-hover").textContent = ""
@@ -88,7 +118,8 @@ const setMode = mode => {
     }
     document.getElementById("mode").textContent = mode
     document.getElementById("mode").style.color = modes[mode].fg
-    document.getElementById("mode").style.backgroundColor = modes[mode].bg
+    document.getElementById("mode-container")
+        .style.backgroundColor = modes[mode].bg
     TABS.listPages().forEach(page => {
         page.getWebContents().removeAllListeners("before-input-event")
         if (mode === "insert") {
@@ -102,7 +133,7 @@ const setMode = mode => {
                 const escapeKey = input.code === "Escape" && noMods && !ctrl
                 const ctrlBrack = input.code === "BracketLeft" && noMods && ctrl
                 if (escapeKey || ctrlBrack) {
-                    if (document.body.className === "fullscreen") {
+                    if (document.body.classList.contains("fullscreen")) {
                         page.getWebContents().send("action", "exitFullscreen")
                         return
                     }
@@ -138,6 +169,7 @@ const currentMode = () => {
 }
 
 module.exports = {
+    init,
     setMode,
     currentMode
 }

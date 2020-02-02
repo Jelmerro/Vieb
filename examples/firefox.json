@@ -55,8 +55,9 @@
             "F7": "ACTIONS.toNormalMode"
         }
     },
+    "ignorecase": true,
+    "mouse": true,
     "redirectToHttp": true,
-    "caseSensitiveSearch": false,
     "tabs": {
         "minwidth": 250
     }

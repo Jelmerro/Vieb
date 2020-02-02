@@ -12,11 +12,17 @@ but the list below contains much more technical details.
 
 ## Unreleased
 
+### Added
+
+- Mouse setting to enable mouse support outside of insert mode
+- When the mouse is enabled, switch tabs, modes or focus by clicking on it
+
 ### Changed
 
 - Update to the http basic login system to work with the new electron versions
 - Open the login dialog in the center of the Vieb browser window
 - Running the last command again no longer adds a duplicate to the command history
+- The caseSensitiveSearch has been renamed to ignorecase to be more similar to Vim
 
 ### Removed
 

@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -22,43 +22,36 @@ const path = require("path")
 const {remote} = require("electron")
 
 const defaultSettings = {
-    "keybindings": {},
-    "redirectToHttp": false,
-    "search": "https://duckduckgo.com/?kae=d&q=",
-    "caseSensitiveSearch": true,
-    "clearCookiesOnQuit": false,
-    "clearLocalStorageOnQuit": false,
-    "suggestCommands": true,
-    "fontSize": 14,
-    "digitsRepeatActions": true,
     "adblocker": "static",
     "cache": "clearonquit",
-    "notification": {
-        "system": false,
-        "position": "bottom-right",
-        "duration": 6000
-    },
+    "clearCookiesOnQuit": false,
+    "clearLocalStorageOnQuit": false,
+    "digitsRepeatActions": true,
     "downloads": {
         "path": "~/Downloads/",
         "removeCompleted": false,
         "clearOnQuit": false
     },
+    "favicons": "session",
+    "fontSize": 14,
     "history": {
         "suggest": true,
         "clearOnQuit": false,
         "storeNewVisits": true
     },
-    "tabs": {
-        "restore": true,
-        "minwidth": 22,
-        "overflow": "scroll",
-        "keepRecentlyClosed": true,
-        "startup": []
+    "ignorecase": false,
+    "keybindings": {},
+    "mouse": false,
+    "newtab": {
+        "nextToCurrentOne": true,
+        "enterNavMode": false,
+        "showTopSites": true,
+        "container": false
     },
-    "windowstate": {
-        "position": true,
-        "size": true,
-        "maximized": true
+    "notification": {
+        "system": false,
+        "position": "bottom-right",
+        "duration": 6000
     },
     "permissions": {
         "camera": "block",
@@ -71,15 +64,23 @@ const defaultSettings = {
         "pointerLock": "block",
         "unknown": "block"
     },
-    "newtab": {
-        "nextToCurrentOne": true,
-        "enterNavMode": false,
-        "showTopSites": true,
-        "container": false
-    },
     "redirects": [],
-    "favicons": "session",
-    "vimcommand": "gvim"
+    "redirectToHttp": false,
+    "search": "https://duckduckgo.com/?kae=d&q=",
+    "suggestCommands": true,
+    "tabs": {
+        "restore": true,
+        "minwidth": 22,
+        "overflow": "scroll",
+        "keepRecentlyClosed": true,
+        "startup": []
+    },
+    "vimcommand": "gvim",
+    "windowstate": {
+        "position": true,
+        "size": true,
+        "maximized": true
+    }
 }
 
 let allSettings = {}
@@ -276,6 +277,14 @@ const updateTabOverflow = () => {
     }
 }
 
+const updateMouseSettings = () => {
+    if (allSettings.mouse) {
+        document.body.classList.add("mouse")
+    } else {
+        document.body.classList.remove("mouse")
+    }
+}
+
 const listSettingsAsArray = () => {
     const listOfSettings = []
     for (const topLevel of Object.keys(defaultSettings)) {
@@ -344,6 +353,7 @@ const loadFromDisk = () => {
     updateFontSize()
     updateDownloadSettings()
     updateTabOverflow()
+    updateMouseSettings()
 }
 
 const get = (setting, settingObject = allSettings) => {
@@ -394,6 +404,9 @@ const set = (setting, value, startup = false) => {
         }
         if (setting.startsWith("downloads.")) {
             updateDownloadSettings()
+        }
+        if (setting === "mouse") {
+            updateMouseSettings()
         }
         if (setting === "tabs.overflow") {
             updateTabOverflow()

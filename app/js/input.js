@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -194,7 +194,24 @@ const init = () => {
     window.addEventListener("keydown", handleKeyboard)
     window.addEventListener("keypress", handleUserInput)
     window.addEventListener("keyup", handleUserInput)
+    window.addEventListener("auxclick", e => {
+        e.preventDefault()
+        ACTIONS.setFocusCorrectly()
+    })
     window.addEventListener("click", e => {
+        if (e.target.classList.contains("no-focus-reset")) {
+            e.preventDefault()
+            return
+        }
+        if (SETTINGS.get("mouse")) {
+            if (e.target === document.getElementById("url")) {
+                if (!["nav", "command"].includes(MODES.currentMode())) {
+                    ACTIONS.toNavMode()
+                }
+            } else if (["nav", "command"].includes(MODES.currentMode())) {
+                ACTIONS.toNormalMode()
+            }
+        }
         e.preventDefault()
         ACTIONS.setFocusCorrectly()
     })
@@ -259,7 +276,7 @@ const eventToAction = e => {
 }
 
 const idToAction = id => {
-    if (document.body.className === "fullscreen") {
+    if (document.body.classList.contains("fullscreen")) {
         MODES.setMode("insert")
         return
     }
@@ -312,7 +329,7 @@ const countableActions = [
 ]
 
 const handleKeyboard = e => {
-    if (document.body.className === "fullscreen") {
+    if (document.body.classList.contains("fullscreen")) {
         MODES.setMode("insert")
         return
     }
