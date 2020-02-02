@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -89,7 +89,7 @@ const nextSearchMatch = () => {
     if (currentSearch) {
         TABS.currentPage().findInPage(currentSearch, {
             "findNext": true,
-            "matchCase": SETTINGS.get("caseSensitiveSearch")
+            "matchCase": !SETTINGS.get("ignorecase")
         })
     }
 }
@@ -161,7 +161,7 @@ const previousSearchMatch = () => {
         TABS.currentPage().findInPage(currentSearch, {
             "forward": false,
             "findNext": true,
-            "matchCase": SETTINGS.get("caseSensitiveSearch")
+            "matchCase": !SETTINGS.get("ignorecase")
         })
     }
 }
@@ -271,7 +271,7 @@ const useEnteredData = () => {
         if (currentSearch.trim()) {
             TABS.currentPage().stopFindInPage("clearSelection")
             TABS.currentPage().findInPage(currentSearch, {
-                "matchCase": SETTINGS.get("caseSensitiveSearch")
+                "matchCase": !SETTINGS.get("ignorecase")
             })
         } else {
             currentSearch = ""
@@ -305,20 +305,17 @@ const useEnteredData = () => {
 
 const setFocusCorrectly = () => {
     const urlElement = document.getElementById("url")
-    if (["normal", "follow", "visual"].includes(MODES.currentMode())) {
-        window.focus()
+    if (MODES.currentMode() === "insert") {
         urlElement.className = ""
         urlElement.blur()
-        TABS.updateUrl(TABS.currentPage())
-        window.focus()
-    }
-    if (MODES.currentMode() === "insert") {
         TABS.currentPage().focus()
         TABS.currentPage().click()
-    }
-    if (MODES.currentMode() === "cursor") {
-        TABS.currentPage().blur()
-        urlElement.blur()
+    } else {
+        if (!["nav", "command"].includes(MODES.currentMode())) {
+            urlElement.className = ""
+            urlElement.blur()
+            TABS.updateUrl(TABS.currentPage())
+        }
         window.focus()
         document.getElementById("invisible-overlay").focus()
     }

@@ -99,18 +99,22 @@ const init = () => {
         // This forces the webview to update on sites which wait for the mouse
         // It will also enable the pointer events when in insert or cursor mode
         setInterval(() => {
-            currentPage().style.pointerEvents = "auto"
-            if (MODES.currentMode() === "insert") {
-                return
+            if (SETTINGS.get("mouse")) {
+                currentPage().style.pointerEvents = null
+            } else {
+                currentPage().style.pointerEvents = "auto"
+                if (MODES.currentMode() === "insert") {
+                    return
+                }
+                if (MODES.currentMode() === "cursor") {
+                    return
+                }
+                setTimeout(() => {
+                    listPages().forEach(page => {
+                        page.style.pointerEvents = "none"
+                    })
+                }, 10)
             }
-            if (MODES.currentMode() === "cursor") {
-                return
-            }
-            setTimeout(() => {
-                listPages().forEach(page => {
-                    page.style.pointerEvents = "none"
-                })
-            }, 10)
         }, 100)
     })
 }
@@ -189,6 +193,20 @@ const addTab = (url = null, inverted = false, switchTo = true) => {
     const statusIcon = document.createElement("img")
     const title = document.createElement("span")
     tab.style.minWidth = `${SETTINGS.get("tabs.minwidth")}px`
+    tab.addEventListener("click", () => {
+        switchToTab(listTabs().indexOf(tab))
+    })
+    tab.addEventListener("auxclick", () => {
+        const currentlyOpenendTab = currentTab()
+        MODES.setMode("normal")
+        if (tab === currentlyOpenendTab) {
+            closeTab()
+        } else {
+            switchToTab(listTabs().indexOf(tab))
+            closeTab()
+            switchToTab(listTabs().indexOf(currentlyOpenendTab))
+        }
+    })
     favicon.src = "img/empty.png"
     favicon.className = "favicon"
     statusIcon.src = "img/spinner.gif"
@@ -336,11 +354,25 @@ const addWebviewListeners = webview => {
             }
         }
     })
-    webview.addEventListener("focus", () => {
+    const mouseClickInWebview = e => {
         if (MODES.currentMode() !== "insert") {
-            webview.blur()
+            if (SETTINGS.get("mouse")) {
+                if (["cursor", "visual"].includes(MODES.currentMode())) {
+                    if (e.tovisual) {
+                        CURSOR.startVisualSelect()
+                    }
+                    if (e.x && e.y) {
+                        CURSOR.move(e.x, e.y)
+                    }
+                } else if (e.toinsert) {
+                    MODES.setMode("insert")
+                }
+            } else {
+                webview.blur()
+            }
         }
-    })
+    }
+    webview.addEventListener("focus", mouseClickInWebview)
     webview.addEventListener("crashed", () => {
         tabOrPageMatching(webview).className = "crashed"
     })
@@ -482,17 +514,20 @@ const addWebviewListeners = webview => {
         }
     })
     webview.addEventListener("enter-html-full-screen", () => {
-        document.body.className = "fullscreen"
+        document.body.classList.add("fullscreen")
         webview.blur()
         webview.focus()
         webview.getWebContents().send("action", "focusTopLeftCorner")
         MODES.setMode("insert")
     })
     webview.addEventListener("leave-html-full-screen", () => {
-        document.body.className = ""
+        document.body.classList.remove("fullscreen")
         MODES.setMode("normal")
     })
     webview.addEventListener("ipc-message", e => {
+        if (e.channel === "mouse-click-info") {
+            mouseClickInWebview(e.args[0])
+        }
         if (e.channel === "follow-response") {
             FOLLOW.parseAndDisplayLinks(e.args[0])
         }
@@ -533,7 +568,8 @@ const addWebviewListeners = webview => {
         webview.send("search-element-location", e.result.selectionArea)
     })
     webview.addEventListener("update-target-url", e => {
-        if (e.url && ["insert", "cursor"].includes(MODES.currentMode())) {
+        const correctMode = ["insert", "cursor"].includes(MODES.currentMode())
+        if (e.url && (correctMode || SETTINGS.get("mouse"))) {
             const special = UTIL.pathToSpecialPageName(e.url)
             if (!special.name) {
                 document.getElementById("url-hover").textContent = e.url

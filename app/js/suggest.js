@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND FAVICONS SETTINGS TABS */
+/* global COMMAND FAVICONS MODES SETTINGS TABS */
 "use strict"
 
 let suggestions = []
@@ -101,6 +101,10 @@ const addHist = hist => {
     }
     addToList(hist.url)
     const element = document.createElement("div")
+    element.addEventListener("click", () => {
+        MODES.setMode("normal")
+        TABS.navigateTo(hist.url)
+    })
     const icon = FAVICONS.forSite(hist.url)
     if (icon && SETTINGS.get("favicons") !== "disabled") {
         const thumbnail = document.createElement("img")
@@ -176,6 +180,10 @@ const suggestCommand = search => {
 const addCommand = (command, subtext) => {
     addToList(command)
     const element = document.createElement("div")
+    element.addEventListener("click", () => {
+        COMMAND.execute(command)
+        MODES.setMode("normal")
+    })
     const commandElement = document.createElement("span")
     commandElement.textContent = command
     element.appendChild(commandElement)

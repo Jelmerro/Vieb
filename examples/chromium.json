@@ -49,9 +49,10 @@
             "ArrowDown": "ACTIONS.nextSuggestion"
         }
     },
+    "ignorecase": true,
+    "mouse": true,
     "redirectToHttp": true,
     "search": "https://google.com/search?q=",
-    "caseSensitiveSearch": false,
     "tabs": {
         "minwidth": 0
     }

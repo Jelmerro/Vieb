@@ -258,6 +258,23 @@ Node.prototype.removeEventListener = function(type, listener, options) {
     }
 }
 
+const isTextElement = el => {
+    for (const selector of textlikeInputs) {
+        if (el.matches(selector)) {
+            return true
+        }
+    }
+    return false
+}
+
+window.addEventListener("click", e => {
+    ipcRenderer.sendToHost("mouse-click-info", {
+        "x": e.x, "y": e.y,
+        "tovisual": !window.getSelection().isCollapsed,
+        "toinsert": isTextElement(e.target)
+    })
+})
+
 // Send the follow links to the renderer if DOM is changed in any way
 const observer = new window.MutationObserver(sendFollowLinks)
 observer.observe(document, {
