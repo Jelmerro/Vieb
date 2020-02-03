@@ -70,17 +70,17 @@ const set = (...args) => {
 
 const quit = () => {
     remote.getCurrentWindow().hide()
-    if (SETTINGS.get("history.clearOnQuit")) {
+    if (SETTINGS.get("clearhistoryonquit")) {
         HISTORY.clearHistory()
     }
     TABS.saveTabs()
     if (SETTINGS.get("cache") !== "full") {
         UTIL.clearCache()
     }
-    if (SETTINGS.get("clearCookiesOnQuit")) {
+    if (SETTINGS.get("clearcookiesonquit")) {
         UTIL.clearCookies()
     }
-    if (SETTINGS.get("clearLocalStorageOnQuit")) {
+    if (SETTINGS.get("clearlocalstorageonquit")) {
         UTIL.clearLocalStorage()
     }
     DOWNLOADS.cancelAll()

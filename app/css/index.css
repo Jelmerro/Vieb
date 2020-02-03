@@ -87,10 +87,10 @@ body.fullscreen webview {height: 100vh;}
 #notifications > span {background-color: #0007;margin-bottom: .7em;padding: 1em;display: flex;width: 25em;}
 #notifications > span > span {word-wrap: break-word;white-space: normal;width: 22em;}
 #notifications > span > img {height: 2.3em;width: 2.3em;min-width: 2.3em;margin: auto;margin-right: 1em;}
-.bottom-right {right: .7em;bottom: 0;}
-.bottom-left {left: .7em;bottom: 0;}
-.top-right {right: .7em;top: 4.7em;}
-.top-left {left: .7em;top: 4.7em;}
+.bottomright {right: .7em;bottom: 0;}
+.bottomleft {left: .7em;bottom: 0;}
+.topright {right: .7em;top: 4.7em;}
+.topleft {left: .7em;top: 4.7em;}
 /* scrollbar for overflowing tabs */
 ::-webkit-scrollbar {height: .2em;}
 ::-webkit-scrollbar-thumb {background: #5ff;}

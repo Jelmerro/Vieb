@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -132,8 +132,8 @@ const parseAndDisplayLinks = newLinks => {
         const linkElement = document.createElement("span")
         linkElement.textContent = numberToKeys(index, links.length)
         linkElement.className = `follow-${link.type}`
-        const characterWidth = SETTINGS.get("fontSize") / 1.3
-        let borderRightMargin = characterWidth + SETTINGS.get("fontSize") * 0.2
+        const characterWidth = SETTINGS.get("fontsize") / 1.3
+        let borderRightMargin = characterWidth + SETTINGS.get("fontsize") * 0.2
         if (linkElement.textContent.length === 2) {
             borderRightMargin += characterWidth
         }

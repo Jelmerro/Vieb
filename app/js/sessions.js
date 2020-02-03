@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ const permissionHandler = (_, permission, callback, details) => {
             permission = "microphone"
         }
     }
-    const setting = SETTINGS.get(`permissions.${permission}`)
+    const setting = SETTINGS.get(`permission${permission.toLowerCase()}`)
     if (setting === "ask") {
         let url = details.requestingUrl
         if (url.length > 100) {
@@ -50,7 +50,7 @@ const permissionHandler = (_, permission, callback, details) => {
                 + "the current session when sites ask for this permission."
                 + " You can always change this using the settings file,"
                 + " or at runtime with the set command like so: "
-                + `'set permissions.${permission}=<value>'\n\npage:\n${url}`
+                + `'set permission${permission.toLowerCase()}=<value>'\n\npage:\n${url}`
         if (permission === "openExternal") {
             let exturl = details.externalURL
             if (exturl.length > 100) {
@@ -61,7 +61,7 @@ const permissionHandler = (_, permission, callback, details) => {
                 + " make this the default for the current session when sites "
                 + "ask to open urls in external programs. You can always change"
                 + " this using the settings file, or at runtime with the set "
-                + "command like so: 'set permissions.openExternal=<value>\n\n"
+                + "command like so: 'set permissionopenexternal=<value>\n\n"
                 + `page:\n${details.requestingUrl}\n\nexternal:\n${exturl}`
         }
         remote.dialog.showMessageBox(remote.getCurrentWindow(), {
@@ -76,9 +76,9 @@ const permissionHandler = (_, permission, callback, details) => {
             callback(e.response === 0)
             if (e.checkboxChecked) {
                 if (e.response === 0) {
-                    SETTINGS.set(`permissions.${permission}`, "allow")
+                    SETTINGS.set(`permission${permission.toLowerCase()}`, "allow")
                 } else {
-                    SETTINGS.set(`permissions.${permission}`, "block")
+                    SETTINGS.set(`permission${permission.toLowerCase()}`, "block")
                 }
             }
         })

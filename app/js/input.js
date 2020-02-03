@@ -18,7 +18,7 @@
 /* global ACTIONS COMMAND CURSOR FOLLOW HISTORY MODES SETTINGS SUGGEST UTIL */
 "use strict"
 
-const bindings = {
+const defaultBindings = {
     "normal": {
         "Enter": "ACTIONS.clickOnSearch",
         "F1": ":help",
@@ -186,6 +186,7 @@ const bindings = {
         "C-BracketLeft": "ACTIONS.toNormalMode"
     }
 }
+let bindings = {}
 let repeatCounter = 0
 let currentSubKey = null
 let supportedActions = []
@@ -249,6 +250,7 @@ const init = () => {
         ...Object.keys(ACTIONS).map(a => `ACTIONS.${a}`),
         ...Object.keys(CURSOR).map(c => `CURSOR.${c}`)
     ].filter(m => !unSupportedActions.includes(m))
+    bindings = JSON.parse(JSON.stringify(defaultBindings))
 }
 
 const toIdentifier = e => {
@@ -280,10 +282,7 @@ const idToAction = id => {
         MODES.setMode("insert")
         return
     }
-    const allBindings = UTIL.merge(
-        JSON.parse(JSON.stringify(bindings)),
-        SETTINGS.get("keybindings"))
-    return allBindings[MODES.currentMode()][id]
+    return bindings[MODES.currentMode()][id]
 }
 
 // This is a list of actions that can be counted in advance by a count argument
@@ -370,13 +369,11 @@ const handleKeyboard = e => {
         e.preventDefault()
         return
     }
-    if (SETTINGS.get("digitsRepeatActions")) {
-        if (id === "Escape" || id === "C-BracketLeft") {
-            if (repeatCounter !== 0) {
-                repeatCounter = 0
-                e.preventDefault()
-                return
-            }
+    if (id === "Escape" || id === "C-BracketLeft") {
+        if (repeatCounter !== 0) {
+            repeatCounter = 0
+            e.preventDefault()
+            return
         }
     }
     const actionFunction = actionToFunction(action)
@@ -398,7 +395,7 @@ const handleKeyboard = e => {
         e.preventDefault()
         return
     }
-    if (id.startsWith("Digit") && SETTINGS.get("digitsRepeatActions")) {
+    if (id.startsWith("Digit")) {
         if (["normal", "cursor", "visual"].includes(MODES.currentMode())) {
             const keyNumber = Number(id.replace("Digit", ""))
             if (!isNaN(keyNumber)) {

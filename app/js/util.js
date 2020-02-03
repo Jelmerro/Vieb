@@ -97,7 +97,7 @@ const notify = (message, type = "info") => {
         properType = "error"
     }
     const image = `img/notifications/${properType}.svg`
-    if (SETTINGS.get("notification.system")) {
+    if (SETTINGS.get("notificationnative")) {
         new Notification(`Vieb ${properType}`, {
             "body": message,
             "image": image,
@@ -106,7 +106,7 @@ const notify = (message, type = "info") => {
         return
     }
     const notificationsElement = document.getElementById("notifications")
-    notificationsElement.className = SETTINGS.get("notification.position")
+    notificationsElement.className = SETTINGS.get("notificationposition")
     const notification = document.createElement("span")
     const iconElement = document.createElement("img")
     iconElement.src = image
@@ -118,7 +118,7 @@ const notify = (message, type = "info") => {
     notificationsElement.appendChild(notification)
     setTimeout(() => {
         notificationsElement.removeChild(notification)
-    }, SETTINGS.get("notification.duration"))
+    }, SETTINGS.get("notificationduration"))
 }
 
 const specialPagePath = (page, section = null, skipExistCheck = false) => {
@@ -225,17 +225,6 @@ const isObject = o => {
     return o === Object(o)
 }
 
-const merge = (main, extra) => {
-    Object.keys(extra).forEach(key => {
-        if (isObject(main[key]) && isObject(extra[key])) {
-            merge(main[key], extra[key])
-        } else {
-            main[key] = extra[key]
-        }
-    })
-    return main
-}
-
 const pathExists = loc => {
     try {
         return fs.existsSync(loc)
@@ -257,6 +246,14 @@ const isFile = loc => {
         return fs.statSync(loc).isFile()
     } catch (e) {
         return false
+    }
+}
+
+const readFile = loc => {
+    try {
+        return fs.readFileSync(loc).toString()
+    } catch (e) {
+        return null
     }
 }
 
@@ -304,10 +301,10 @@ module.exports = {
     redirect,
     expandPath,
     isObject,
-    merge,
     pathExists,
     isDir,
     isFile,
+    readFile,
     readJSON,
     writeJSON,
     deleteFile
