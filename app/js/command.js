@@ -55,7 +55,7 @@ const set = (...args) => {
                 UTIL.notify(`Unknown setting '${setting}', try using `
                     + "the suggestions", "warn")
             } else if (value.length === undefined
-                    && typeof value === "object" || setting === "redirects") {
+                && typeof value === "object" || setting === "redirects") {
                 UTIL.notify(
                     `The setting '${setting}' has the value `
                     + `'${JSON.stringify(value, null, 2)
@@ -188,11 +188,13 @@ const write = (file, trailingArgs = false) => {
             return
         }
     }
-    TABS.currentPage().getWebContents().savePage(loc, "HTMLComplete").then(() => {
-        UTIL.notify(`Page successfully saved at '${loc}'`)
-    }).catch(err => {
-        UTIL.notify(`Could not save the page:\n${err}`, "err")
-    })
+    TABS.currentPage().getWebContents().savePage(loc, "HTMLComplete")
+        .then(() => {
+            UTIL.notify(`Page successfully saved at '${loc}'`)
+        })
+        .catch(err => {
+            UTIL.notify(`Could not save the page:\n${err}`, "err")
+        })
 }
 
 const mkviebrc = (full = false, trailingArgs = false) => {
