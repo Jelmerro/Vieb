@@ -38,7 +38,7 @@ const defaultSettings = {
     "ignorecase": false,
     "mintabwidth": 22,
     "mouse": false,
-    "notificationnative": false,
+    "nativenotification": false,
     "notificationposition": "bottomright",
     "notificationduration": 6000,
     "permissioncamera": "block",
@@ -50,7 +50,7 @@ const defaultSettings = {
     "permissionopenexternal": "ask",
     "permissionpointerlock": "block",
     "permissionunknown": "block",
-    "redirects": [],
+    "redirects": "",
     "redirecttohttp": false,
     "restoretabs": true,
     "restorewindowmaximize": true,
@@ -58,7 +58,7 @@ const defaultSettings = {
     "restorewindowsize": true,
     "search": "https://duckduckgo.com/?kae=d&q=",
     "showtopsites": true,
-    "startuppages": [],
+    "startuppages": "",
     "storenewvisists": true,
     "suggestcommands": true,
     "suggesthistory": true,
@@ -93,6 +93,7 @@ const numberRanges = {
     "notificationduration": [0, 30000],
     "mintabwidth": [0, 10000]
 }
+const config = path.join(remote.app.getPath("appData"), "viebrc")
 
 const init = () => {
     loadFromDisk()
@@ -287,7 +288,6 @@ const suggestionList = () => {
 
 const loadFromDisk = () => {
     allSettings = JSON.parse(JSON.stringify(defaultSettings))
-    const config = path.join(remote.app.getPath("appData"), "viebrc")
     if (UTIL.isFile(config)) {
         const parsed = UTIL.readFile(config)
         if (parsed) {
@@ -309,6 +309,16 @@ const loadFromDisk = () => {
 
 const get = (setting, settingObject = allSettings) => {
     return settingObject[setting]
+}
+
+const reset = setting => {
+    if (setting === "all") {
+        allSettings = JSON.parse(JSON.stringify(defaultSettings))
+    } else if (allSettings[setting] === undefined) {
+        UTIL.notify(`The setting '${setting}' doesn't exist`, "warn")
+    } else {
+        allSettings[setting] = defaultSettings[setting]
+    }
 }
 
 const set = (setting, value, startup = false) => {
@@ -388,13 +398,27 @@ const listCurrentSettings = full => {
         const defaults = JSON.parse(JSON.stringify(defaultSettings))
         settings = removeDefaults(settings, defaults)
     }
-    return settings
+    let setCommands = ""
+    Object.keys(settings).forEach(setting => {
+        if (typeof settings[setting] === "boolean") {
+            if (settings[setting]) {
+                setCommands += `${setting}\n`
+            } else {
+                setCommands += `no${setting}\n`
+            }
+        } else {
+            setCommands += `${setting}=${settings[setting]}\n`
+        }
+    })
+    return setCommands
 }
 
 const saveToDisk = full => {
-    const config = path.join(remote.app.getPath("appData"), "viebrc.json")
-    // TODO migrate this back to commands and include keybindings
-    UTIL.writeJSON(config, listCurrentSettings(full),
+    let settingsAsCommands = "\" Options\n"
+    settingsAsCommands += listCurrentSettings(full).split("\n")
+        .map(s => `set ${s}`).join("\n")
+    // TODO include keybindings here once they are done
+    UTIL.writeJSON(config, settingsAsCommands,
         `Could not write to '${config}'`, `Viebrc saved to '${config}'`, 4)
 }
 
@@ -403,6 +427,7 @@ module.exports = {
     suggestionList,
     loadFromDisk,
     get,
+    reset,
     set,
     listCurrentSettings,
     saveToDisk

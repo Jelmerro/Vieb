@@ -24,6 +24,9 @@ but the list below contains much more technical details.
 - Running the last command again no longer adds a duplicate to the command history
 - The caseSensitiveSearch has been renamed to ignorecase to be more similar to Vim
 - Rename all settings to be lowercase and without dots
+- Set command syntax is now much more similar to Vim with support for &, inv and all
+- Booleans can now be set and unset using "ignorecase" or "noignorecase", again, similar to Vim
+- Viebrc is now named 'viebrc' instead of 'viebrc.json' and is configured by Vim commands instead of JSON
 
 ### Removed
 

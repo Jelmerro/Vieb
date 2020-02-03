@@ -34,6 +34,7 @@ const init = () => {
     window.addEventListener("load", () => {
         const startup = SETTINGS.get("startuppages")
         const parsed = UTIL.readJSON(tabFile)
+        // TODO fix the startup pages setting to be a string with separator
         for (const tab of startup) {
             const specialPage = UTIL.pathToSpecialPageName(tab)
             if (specialPage.name) {
@@ -357,6 +358,7 @@ const addWebviewListeners = webview => {
     const mouseClickInWebview = e => {
         if (MODES.currentMode() !== "insert") {
             if (SETTINGS.get("mouse")) {
+                const modesWithTyping = ["command", "nav", "search"]
                 if (["cursor", "visual"].includes(MODES.currentMode())) {
                     if (e.tovisual) {
                         CURSOR.startVisualSelect()
@@ -366,7 +368,7 @@ const addWebviewListeners = webview => {
                     }
                 } else if (e.toinsert) {
                     MODES.setMode("insert")
-                } else if (["command", "nav", "search"].includes(MODES.currentMode())) {
+                } else if (modesWithTyping.includes(MODES.currentMode())) {
                     MODES.setMode("normal")
                 }
             } else {

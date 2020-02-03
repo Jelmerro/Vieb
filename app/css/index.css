@@ -97,4 +97,4 @@ body.fullscreen webview {height: 100vh;}
 /* other */
 @keyframes cursor {0% {background: #f007;} 17% {background: #ff07;} 33% {background: #0f07;} 49% {background: #0ff7;} 66% {background: #00f7;} 83% {background: #f0f7;} 100% {background: #f007;}}
 #cursor {display: none;position: absolute;height: 1em;width: .7em;z-index: 20;backdrop-filter: invert(100%);animation: 1s infinite cursor;}
-#url-hover {display: none;position: absolute;background-color: #fff9;color: #000;bottom: 0;left: 0;right: 0;pointer-events: none;padding: .1em;white-space: nowrap;width: fit-content;margin: auto;}
+#url-hover {display: none;position: absolute;background-color: #fff9;color: #000;bottom: 0;left: 0;right: 0;pointer-events: none;padding: .1em;width: fit-content;margin: auto;max-width: 80vw;word-break: break-all;text-align: center;}
