@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -80,7 +80,7 @@ const suggestHist = search => {
     const simpleSearch = search.split(/\W/g).filter(w => w)
     document.getElementById("suggest-dropdown").textContent = ""
     SUGGEST.clear()
-    if (!SETTINGS.get("history.suggest") || !search || !UTIL.isFile(histFile)) {
+    if (!SETTINGS.get("suggesthistory") || !search || !UTIL.isFile(histFile)) {
         return
     }
     const suggestions = Object.keys(groupedHistory).map(url => {
@@ -116,7 +116,7 @@ const orderAndAddSuggestions = suggestions => {
 }
 
 const addToHist = (title, url) => {
-    if (!SETTINGS.get("history.storeNewVisits")) {
+    if (!SETTINGS.get("storenewvisists")) {
         return
     }
     if (UTIL.pathToSpecialPageName(url).name) {

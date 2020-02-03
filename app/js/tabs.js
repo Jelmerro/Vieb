@@ -32,7 +32,7 @@ const tabFile = path.join(remote.app.getPath("appData"), "tabs")
 
 const init = () => {
     window.addEventListener("load", () => {
-        const startup = SETTINGS.get("tabs.startup")
+        const startup = SETTINGS.get("startuppages")
         const parsed = UTIL.readJSON(tabFile)
         for (const tab of startup) {
             const specialPage = UTIL.pathToSpecialPageName(tab)
@@ -46,7 +46,7 @@ const init = () => {
             }
         }
         if (parsed) {
-            if (SETTINGS.get("tabs.restore")) {
+            if (SETTINGS.get("restoretabs")) {
                 if (Array.isArray(parsed.tabs)) {
                     parsed.tabs.forEach(tab => {
                         addTab(tab)
@@ -58,7 +58,7 @@ const init = () => {
                 if (Array.isArray(parsed.closed)) {
                     recentlyClosed = parsed.closed
                 }
-            } else if (SETTINGS.get("tabs.keepRecentlyClosed")) {
+            } else if (SETTINGS.get("keeprecentlyclosed")) {
                 if (Array.isArray(parsed.tabs)) {
                     recentlyClosed = parsed.tabs
                 }
@@ -125,7 +125,7 @@ const saveTabs = () => {
         "id": 0,
         "closed": []
     }
-    if (SETTINGS.get("tabs.restore")) {
+    if (SETTINGS.get("restoretabs")) {
         listTabs().forEach(tab => {
             // The list of tabs is ordered, the list of pages isn't
             const webview = tabOrPageMatching(tab)
@@ -136,10 +136,10 @@ const saveTabs = () => {
                 }
             }
         })
-        if (SETTINGS.get("tabs.keepRecentlyClosed")) {
+        if (SETTINGS.get("keeprecentlyclosed")) {
             data.closed = recentlyClosed
         }
-    } else if (SETTINGS.get("tabs.keepRecentlyClosed")) {
+    } else if (SETTINGS.get("keeprecentlyclosed")) {
         data.closed = [...recentlyClosed]
         listTabs().forEach(tab => {
             // The list of tabs is ordered, the list of pages isn't
@@ -181,7 +181,7 @@ const currentPage = () => {
 }
 
 const addTab = (url = null, inverted = false, switchTo = true) => {
-    let addNextToCurrent = SETTINGS.get("newtab.nextToCurrentOne")
+    let addNextToCurrent = SETTINGS.get("tabnexttocurrent")
     addNextToCurrent = addNextToCurrent && listTabs().length > 0
     if (inverted) {
         addNextToCurrent = !addNextToCurrent
@@ -192,7 +192,7 @@ const addTab = (url = null, inverted = false, switchTo = true) => {
     const favicon = document.createElement("img")
     const statusIcon = document.createElement("img")
     const title = document.createElement("span")
-    tab.style.minWidth = `${SETTINGS.get("tabs.minwidth")}px`
+    tab.style.minWidth = `${SETTINGS.get("mintabwidth")}px`
     tab.addEventListener("click", () => {
         switchToTab(listTabs().indexOf(tab))
     })
@@ -226,7 +226,7 @@ const addTab = (url = null, inverted = false, switchTo = true) => {
     tab.setAttribute("link-id", linkId)
     webview.setAttribute("preload", "./js/preload.js")
     let sessionName = "persist:main"
-    if (SETTINGS.get("newtab.container")) {
+    if (SETTINGS.get("containertabs")) {
         sessionName = `container-${linkId}`
         tab.className = "container"
     }
@@ -366,6 +366,8 @@ const addWebviewListeners = webview => {
                     }
                 } else if (e.toinsert) {
                     MODES.setMode("insert")
+                } else if (["command", "nav", "search"].includes(MODES.currentMode())) {
+                    MODES.setMode("normal")
                 }
             } else {
                 webview.blur()
@@ -384,7 +386,7 @@ const addWebviewListeners = webview => {
                 if (browserWindow.getURL().endsWith("login.html")) {
                     MODES.setMode("normal")
                     const bounds = remote.getCurrentWindow().getBounds()
-                    const size = Math.round(SETTINGS.get("fontSize") * 21)
+                    const size = Math.round(SETTINGS.get("fontsize") * 21)
                     browserWindow.setMinimumSize(size, size)
                     browserWindow.setSize(size, size)
                     browserWindow.setPosition(
@@ -393,7 +395,7 @@ const addWebviewListeners = webview => {
                     browserWindow.resizable = false
                     browserWindow.webContents.executeJavaScript(
                         "document.body.style.fontSize = "
-                        + `'${SETTINGS.get("fontSize")}px'`)
+                        + `'${SETTINGS.get("fontsize")}px'`)
                     browserWindow.show()
                 }
             }
@@ -406,8 +408,8 @@ const addWebviewListeners = webview => {
             return
         }
         // It will go to the http version of a website, when no https is present
-        // But only when the redirectToHttp setting is active
-        const redirect = SETTINGS.get("redirectToHttp")
+        // But only when the redirecttoHttp setting is active
+        const redirect = SETTINGS.get("redirecttohttp")
         const sslErrors = [
             "ERR_CERT_COMMON_NAME_INVALID",
             "ERR_SSL_PROTOCOL_ERROR",
@@ -448,7 +450,7 @@ const addWebviewListeners = webview => {
         }
         webview.send("insert-failed-page-info", e)
         webview.setAttribute("failed-to-load", "true")
-        webview.getWebContents().send("fontsize", SETTINGS.get("fontSize"))
+        webview.getWebContents().send("fontsize", SETTINGS.get("fontsize"))
     })
     webview.addEventListener("did-stop-loading", () => {
         const tab = tabOrPageMatching(webview)
@@ -463,7 +465,7 @@ const addWebviewListeners = webview => {
         const isLocal = webview.src.startsWith("file:/")
         const isErrorPage = webview.getAttribute("failed-to-load")
         if (specialPageName || isLocal || isErrorPage) {
-            webview.getWebContents().send("fontsize", SETTINGS.get("fontSize"))
+            webview.getWebContents().send("fontsize", SETTINGS.get("fontsize"))
         }
         if (specialPageName === "help") {
             webview.getWebContents().send(
@@ -559,7 +561,7 @@ const addWebviewListeners = webview => {
             DOWNLOADS.sendDownloadList(e.args[0], e.args[1])
         }
         if (e.channel === "new-tab-info-request") {
-            if (SETTINGS.get("newtab.showTopSites")) {
+            if (SETTINGS.get("showtopsites")) {
                 webview.send("insert-new-tab-info", HISTORY.topSites())
             }
         }

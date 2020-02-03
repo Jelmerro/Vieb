@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -25,13 +25,13 @@ const dlsFile = path.join(remote.app.getPath("appData"), "dls")
 let downloads = []
 
 const init = () => {
-    if (SETTINGS.get("downloads.clearOnQuit")) {
+    if (SETTINGS.get("cleardownloadsonquit")) {
         UTIL.deleteFile(dlsFile)
     } else if (UTIL.isFile(dlsFile)) {
         const parsed = UTIL.readJSON(dlsFile)
         for (const download of parsed) {
             if (download.state === "completed") {
-                if (!SETTINGS.get("downloads.removeCompleted")) {
+                if (!SETTINGS.get("cleardownloadsoncompleted")) {
                     downloads.push(download)
                 }
             } else {
@@ -94,7 +94,7 @@ const handleDownload = (_, item) => {
         item.once("done", (__, state) => {
             if (state === "completed") {
                 info.state = "completed"
-                if (SETTINGS.get("downloads.removeCompleted")) {
+                if (SETTINGS.get("cleardownloadsoncompleted")) {
                     downloads = downloads.filter(d => d.state !== "completed")
                 }
             } else if (info.state !== "removed") {
@@ -166,7 +166,7 @@ const writeToFile = () => {
             }
         }
     })
-    if (SETTINGS.get("downloads.clearOnQuit")) {
+    if (SETTINGS.get("cleardownloadsonquit")) {
         UTIL.deleteFile(dlsFile)
     } else {
         UTIL.writeJSON(dlsFile, downloads)
@@ -188,7 +188,7 @@ const cancelAll = () => {
 }
 
 const removeCompletedIfDesired = () => {
-    if (SETTINGS.get("downloads.removeCompleted")) {
+    if (SETTINGS.get("cleardownloadsoncompleted")) {
         downloads = downloads.filter(d => d.state !== "completed")
     }
 }

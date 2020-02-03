@@ -131,7 +131,7 @@ const suggestCommand = search => {
     // Remove all redundant spaces
     // Allow commands prefixed with :
     search = search.replace(/^[\s|:]*/, "").replace(/ +/g, " ")
-    if (!SETTINGS.get("suggestCommands") || !search) {
+    if (!SETTINGS.get("suggestcommands") || !search) {
         return
     }
     let setCommandExtras = []

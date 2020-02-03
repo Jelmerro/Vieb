@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global DOWNLOADS INPUT SESSIONS TABS UTIL */
+/* global COMMAND DOWNLOADS INPUT SESSIONS TABS UTIL */
 "use strict"
 
 const path = require("path")
@@ -23,117 +23,75 @@ const {remote} = require("electron")
 
 const defaultSettings = {
     "adblocker": "static",
+    "automaticnavmode": true,
     "cache": "clearonquit",
-    "clearCookiesOnQuit": false,
-    "clearLocalStorageOnQuit": false,
-    "digitsRepeatActions": true,
-    "downloads": {
-        "path": "~/Downloads/",
-        "removeCompleted": false,
-        "clearOnQuit": false
-    },
+    "clearcookiesonquit": false,
+    "cleardownloadsoncompleted": false,
+    "cleardownloadsonquit": false,
+    "clearhistoryonquit": false,
+    "clearlocalstorageonquit": false,
+    "containertabs": false,
+    "downloadpath": "~/Downloads/",
     "favicons": "session",
-    "fontSize": 14,
-    "history": {
-        "suggest": true,
-        "clearOnQuit": false,
-        "storeNewVisits": true
-    },
+    "fontsize": 14,
+    "keeprecentlyclosed": true,
     "ignorecase": false,
-    "keybindings": {},
+    "mintabwidth": 22,
     "mouse": false,
-    "newtab": {
-        "nextToCurrentOne": true,
-        "enterNavMode": false,
-        "showTopSites": true,
-        "container": false
-    },
-    "notification": {
-        "system": false,
-        "position": "bottom-right",
-        "duration": 6000
-    },
-    "permissions": {
-        "camera": "block",
-        "fullscreen": "allow",
-        "geolocation": "block",
-        "microphone": "block",
-        "midiSysex": "block",
-        "notifications": "ask",
-        "openExternal": "ask",
-        "pointerLock": "block",
-        "unknown": "block"
-    },
+    "notificationnative": false,
+    "notificationposition": "bottomright",
+    "notificationduration": 6000,
+    "permissioncamera": "block",
+    "permissionfullscreen": "allow",
+    "permissiongeolocation": "block",
+    "permissionmicrophone": "block",
+    "permissionmidisysex": "block",
+    "permissionnotifications": "ask",
+    "permissionopenexternal": "ask",
+    "permissionpointerlock": "block",
+    "permissionunknown": "block",
     "redirects": [],
-    "redirectToHttp": false,
+    "redirecttohttp": false,
+    "restoretabs": true,
+    "restorewindowmaximize": true,
+    "restorewindowposition": true,
+    "restorewindowsize": true,
     "search": "https://duckduckgo.com/?kae=d&q=",
-    "suggestCommands": true,
-    "tabs": {
-        "restore": true,
-        "minwidth": 22,
-        "overflow": "scroll",
-        "keepRecentlyClosed": true,
-        "startup": []
-    },
-    "vimcommand": "gvim",
-    "windowstate": {
-        "position": true,
-        "size": true,
-        "maximized": true
-    }
+    "showtopsites": true,
+    "startuppages": [],
+    "storenewvisists": true,
+    "suggestcommands": true,
+    "suggesthistory": true,
+    "tabnexttocurrent": true,
+    "taboverflow": "scroll",
+    "vimcommand": "gvim"
 }
 
 let allSettings = {}
-const windowstateMessage = "The window state settings are applied on startup,"
-    + "therefor they can't be edited with the set command\n"
-    + "Instead, open the config file, edit the settings there"
-const collectionMessage = "This collection of settings should be"
-    + " updated one field at the time"
-const readOnly = {
-    "keybindings": "The keybindings can't be changed with the set command\n"
-        + "Instead, open the config file, edit the bindings and "
-        + "use the reload command to load them from disk again",
-    "notification": collectionMessage,
-    "downloads": collectionMessage,
-    "history": collectionMessage,
-    "tabs": collectionMessage,
-    "windowstate": collectionMessage,
-    "permissions": collectionMessage,
-    "newtab": collectionMessage,
-    "tabs.startup": "The startup pages can't be changed with the set command\n"
-        + "Instead, open the config file, edit the page list and "
-        + "the startup pages will open the next time Vieb is started",
-    "windowstate.position": windowstateMessage,
-    "windowstate.size": windowstateMessage,
-    "windowstate.maximized": windowstateMessage,
-    "redirects": "The redirects can't be changed with the set command\n"
-        + "Instead, open the config file, edit the redirects and "
-        + "use the reload command to load them from disk again"
-}
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
     "cache": ["none", "clearonquit", "full"],
-    "notification.position": [
-        "bottom-right", "bottom-left", "top-right", "top-left"
+    "notificationposition": [
+        "bottomright", "bottomleft", "topright", "topleft"
     ],
-    "tabs.overflow": ["hidden", "scroll", "wrap"],
-    "permissions.camera": ["block", "ask", "allow"],
-    "permissions.fullscreen": ["block", "ask", "allow"],
-    "permissions.geolocation": ["block", "ask", "allow"],
-    "permissions.microphone": ["block", "ask", "allow"],
-    "permissions.midiSysex": ["block", "ask", "allow"],
-    "permissions.notifications": ["block", "ask", "allow"],
-    "permissions.openExternal": ["block", "ask", "allow"],
-    "permissions.pointerLock": ["block", "ask", "allow"],
-    "permissions.unknown": ["block", "ask", "allow"],
+    "taboverflow": ["hidden", "scroll", "wrap"],
+    "permissioncamera": ["block", "ask", "allow"],
+    "permissionfullscreen": ["block", "ask", "allow"],
+    "permissiongeolocation": ["block", "ask", "allow"],
+    "permissionmicrophone": ["block", "ask", "allow"],
+    "permissionmidisysex": ["block", "ask", "allow"],
+    "permissionnotifications": ["block", "ask", "allow"],
+    "permissionopenexternal": ["block", "ask", "allow"],
+    "permissionpointerlock": ["block", "ask", "allow"],
+    "permissionunknown": ["block", "ask", "allow"],
     "favicons": [
         "disabled", "nocache", "session", "1day", "5day", "30day", "forever"
     ]
 }
 const numberRanges = {
-    "fontSize": [8, 30],
-    "notification.duration": [0, 30000],
-    "tabs.minwidth": [0, 10000]
+    "fontsize": [8, 30],
+    "notificationduration": [0, 30000],
+    "mintabwidth": [0, 10000]
 }
 
 const init = () => {
@@ -178,7 +136,7 @@ const checkOther = (setting, value) => {
         }
         return true
     }
-    if (setting === "downloads.path") {
+    if (setting === "downloadpath") {
         const expandedPath = UTIL.expandPath(value)
         if (UTIL.pathExists(expandedPath)) {
             if (UTIL.isDir(expandedPath)) {
@@ -196,11 +154,6 @@ const checkOther = (setting, value) => {
 const isValidSetting = (setting, value, startup) => {
     if (get(setting) === undefined) {
         UTIL.notify(`The setting '${setting}' doesn't exist`, "warn")
-        return false
-    }
-    const readOnlyMessage = readOnly[setting]
-    if (!startup && readOnlyMessage) {
-        UTIL.notify(readOnlyMessage, "warn")
         return false
     }
     if (!startup && !value) {
@@ -236,24 +189,24 @@ const isValidSetting = (setting, value, startup) => {
 }
 
 const updateFontSize = () => {
-    document.body.style.fontSize = `${allSettings.fontSize}px`
+    document.body.style.fontSize = `${get("fontsize")}px`
     TABS.listPages().forEach(p => {
         const isSpecialPage = UTIL.pathToSpecialPageName(p.src).name
         const isLocal = p.src.startsWith("file:/")
         const isErrorPage = p.getAttribute("failed-to-load")
         if (isSpecialPage || isLocal || isErrorPage) {
-            p.getWebContents().send("fontsize", get("fontSize"))
+            p.getWebContents().send("fontsize", get("fontsize"))
         }
     })
 }
 
 const updateDownloadSettings = () => {
-    remote.app.setPath("downloads", UTIL.expandPath(allSettings.downloads.path))
+    remote.app.setPath("downloads", UTIL.expandPath(get("downloadpath")))
     DOWNLOADS.removeCompletedIfDesired()
 }
 
 const updateTabOverflow = () => {
-    const setting = allSettings.tabs.overflow
+    const setting = get("taboverflow")
     const tabs = document.getElementById("tabs")
     const spacer = document.querySelector("#tabs > .spacer")
     tabs.style.overflowX = ""
@@ -278,7 +231,7 @@ const updateTabOverflow = () => {
 }
 
 const updateMouseSettings = () => {
-    if (allSettings.mouse) {
+    if (get("mouse")) {
         document.body.classList.add("mouse")
     } else {
         document.body.classList.remove("mouse")
@@ -311,22 +264,21 @@ const suggestionList = () => {
             if (!previous.startsWith(`${prefix}.`)) {
                 listOfSuggestions.push(prefix)
                 listOfSuggestions.push(`${prefix}?`)
+                listOfSuggestions.push(`${prefix}&`)
             }
         }
-        if (!readOnly[setting]) {
+        if (typeof get(setting, defaultSettings) === "boolean") {
+            listOfSuggestions.push(`${setting}!`)
+            listOfSuggestions.push(`${setting}`)
+            listOfSuggestions.push(`no${setting}`)
+        } else if (validOptions[setting]) {
             listOfSuggestions.push(`${setting}=`)
-            if (typeof get(setting, defaultSettings) === "boolean") {
-                listOfSuggestions.push(`${setting}!`)
-                listOfSuggestions.push(`${setting}=true`)
-                listOfSuggestions.push(`${setting}=false`)
-            } else if (validOptions[setting]) {
-                for (const option of validOptions[setting]) {
-                    listOfSuggestions.push(`${setting}=${option}`)
-                }
-            } else {
-                listOfSuggestions.push(
-                    `${setting}=${get(setting, defaultSettings)}`)
+            for (const option of validOptions[setting]) {
+                listOfSuggestions.push(`${setting}=${option}`)
             }
+        } else {
+            listOfSuggestions.push(
+                `${setting}=${get(setting, defaultSettings)}`)
         }
         listOfSuggestions.push(`${setting}?`)
     }
@@ -335,19 +287,18 @@ const suggestionList = () => {
 
 const loadFromDisk = () => {
     allSettings = JSON.parse(JSON.stringify(defaultSettings))
-    const config = path.join(remote.app.getPath("appData"), "viebrc.json")
+    const config = path.join(remote.app.getPath("appData"), "viebrc")
     if (UTIL.isFile(config)) {
-        const parsed = UTIL.readJSON(config)
+        const parsed = UTIL.readFile(config)
         if (parsed) {
-            for (const setting of listSettingsAsArray()) {
-                const configuredValue = get(setting, parsed)
-                if (configuredValue !== undefined) {
-                    set(setting, configuredValue, true)
+            for (const line of parsed.split("\n")) {
+                if (line && !line.trim().startsWith("\"")) {
+                    COMMAND.execute(line)
                 }
             }
         } else {
             UTIL.notify(
-                `The config file located at '${config}' is corrupt`, "err")
+                `Read error for config file located at '${config}'`, "err")
         }
     }
     updateFontSize()
@@ -357,27 +308,12 @@ const loadFromDisk = () => {
 }
 
 const get = (setting, settingObject = allSettings) => {
-    if (!setting.includes(".")) {
-        return settingObject[setting]
-    }
-    const [group, config] = setting.split(".")
-    return settingObject[group] && settingObject[group][config]
+    return settingObject[setting]
 }
 
 const set = (setting, value, startup = false) => {
     if (isValidSetting(setting, value, startup)) {
-        if (setting.includes(".")) {
-            const [group, config] = setting.split(".")
-            if (startup) {
-                allSettings[group][config] = value
-            } else if (typeof allSettings[group][config] === "boolean") {
-                allSettings[group][config] = value === "true"
-            } else if (typeof allSettings[group][config] === "number") {
-                allSettings[group][config] = Number(value)
-            } else {
-                allSettings[group][config] = value
-            }
-        } else if (setting === "search") {
+        if (setting === "search") {
             if (!value.startsWith("http://") && !value.startsWith("https://")) {
                 value = `https://${value}`
             }
@@ -392,7 +328,7 @@ const set = (setting, value, startup = false) => {
             allSettings[setting] = value
         }
         // Update settings elsewhere
-        if (setting === "fontSize") {
+        if (setting === "fontsize") {
             updateFontSize()
         }
         if (setting === "adblocker") {
@@ -402,19 +338,22 @@ const set = (setting, value, startup = false) => {
                 SESSIONS.enableAdblocker()
             }
         }
-        if (setting.startsWith("downloads.")) {
+        const downloadSettings = [
+            "downloadpath", "cleardownloadsonquit", "cleardownloadsoncompleted"
+        ]
+        if (downloadSettings.includes(setting)) {
             updateDownloadSettings()
         }
         if (setting === "mouse") {
             updateMouseSettings()
         }
-        if (setting === "tabs.overflow") {
+        if (setting === "taboverflow") {
             updateTabOverflow()
         }
         if (!startup) {
-            if (setting === "tabs.minwidth") {
+            if (setting === "mintabwidth") {
                 TABS.listTabs().forEach(tab => {
-                    tab.style.minWidth = `${allSettings.tabs.minwidth}px`
+                    tab.style.minWidth = `${allSettings.mintabwidth}px`
                 })
                 TABS.currentTab().scrollIntoView({"inline": "center"})
             }
@@ -445,11 +384,8 @@ const removeDefaults = (settings, defaults) => {
 
 const listCurrentSettings = full => {
     let settings = JSON.parse(JSON.stringify(allSettings))
-    settings.keybindings = UTIL.merge(
-        JSON.parse(JSON.stringify(INPUT.bindings)), allSettings.keybindings)
     if (!full) {
         const defaults = JSON.parse(JSON.stringify(defaultSettings))
-        defaults.keybindings = JSON.parse(JSON.stringify(INPUT.bindings))
         settings = removeDefaults(settings, defaults)
     }
     return settings
@@ -457,6 +393,7 @@ const listCurrentSettings = full => {
 
 const saveToDisk = full => {
     const config = path.join(remote.app.getPath("appData"), "viebrc.json")
+    // TODO migrate this back to commands and include keybindings
     UTIL.writeJSON(config, listCurrentSettings(full),
         `Could not write to '${config}'`, `Viebrc saved to '${config}'`, 4)
 }

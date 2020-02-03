@@ -23,6 +23,7 @@ but the list below contains much more technical details.
 - Open the login dialog in the center of the Vieb browser window
 - Running the last command again no longer adds a duplicate to the command history
 - The caseSensitiveSearch has been renamed to ignorecase to be more similar to Vim
+- Rename all settings to be lowercase and without dots
 
 ### Removed
 

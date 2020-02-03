@@ -103,7 +103,7 @@ const reload = () => {
 
 const openNewTab = () => {
     TABS.addTab()
-    if (SETTINGS.get("newtab.enterNavMode")) {
+    if (SETTINGS.get("automaticnavmode")) {
         MODES.setMode("nav")
     }
 }
@@ -143,7 +143,7 @@ const backInHistory = () => {
 
 const openNewTabAtAlternativePosition = () => {
     TABS.addTab(null, true)
-    if (SETTINGS.get("newtab.enterNavMode")) {
+    if (SETTINGS.get("automaticnavmode")) {
         MODES.setMode("nav")
     }
 }

@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -58,11 +58,11 @@ const updateCursorElement = () => {
     if (Y < 0) {
         Y = 0
     }
-    if (X > window.innerWidth - SETTINGS.get("fontSize") * 1.4) {
-        X = window.innerWidth - SETTINGS.get("fontSize") * 1.4
+    if (X > window.innerWidth - SETTINGS.get("fontsize") * 1.4) {
+        X = window.innerWidth - SETTINGS.get("fontsize") * 1.4
     }
-    if (Y > window.innerHeight - navbarHeight() - SETTINGS.get("fontSize")) {
-        Y = window.innerHeight - navbarHeight() - SETTINGS.get("fontSize")
+    if (Y > window.innerHeight - navbarHeight() - SETTINGS.get("fontsize")) {
+        Y = window.innerHeight - navbarHeight() - SETTINGS.get("fontsize")
     }
     cursor.style.left = `${X}px`
     cursor.style.top = `${Y + navbarHeight()}px`
@@ -181,7 +181,7 @@ const insertAtPosition = () => {
 }
 
 const moveDown = () => {
-    if (Y === window.innerHeight - navbarHeight() - SETTINGS.get("fontSize")) {
+    if (Y === window.innerHeight - navbarHeight() - SETTINGS.get("fontsize")) {
         ACTIONS.scrollDown()
         listenForScroll = true
     } else {
@@ -222,7 +222,7 @@ const moveFastRight = () => {
 }
 
 const centerOfView = () => {
-    Y = (window.innerHeight - navbarHeight() - SETTINGS.get("fontSize")) / 2
+    Y = (window.innerHeight - navbarHeight() - SETTINGS.get("fontsize")) / 2
     updateCursorElement()
 }
 
@@ -317,7 +317,7 @@ const moveLeftMax = () => {
 }
 
 const moveFastDown = () => {
-    if (Y === window.innerHeight - navbarHeight() - SETTINGS.get("fontSize")) {
+    if (Y === window.innerHeight - navbarHeight() - SETTINGS.get("fontsize")) {
         ACTIONS.scrollDown()
         listenForScroll = true
     } else {
