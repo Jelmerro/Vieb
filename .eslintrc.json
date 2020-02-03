@@ -38,7 +38,6 @@
         "comma-dangle": "error",
         "comma-spacing": "error",
         "comma-style": "error",
-        "complexity": "error",
         "computed-property-spacing": "error",
         "curly": "error",
         "default-param-last": "error",

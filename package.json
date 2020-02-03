@@ -4,6 +4,7 @@
   "description": "Vim Inspired Electron Browser",
   "main": "app/index.js",
   "scripts": {
+    "test": "./test.sh",
     "start": "electron app",
     "build": "node build.js",
     "buildall": "node build.js --linux --win --mac",
@@ -24,7 +25,8 @@
   "devDependencies": {
     "electron": "^8.0.0-beta.7",
     "electron-builder": "^22.3.2",
-    "eslint": "^6.8.0"
+    "eslint": "^6.8.0",
+    "jest": "^24.9.0"
   },
   "dependencies": {
     "@cliqz/adblocker-electron": "^1.5.0",
