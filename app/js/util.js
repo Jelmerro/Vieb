@@ -281,6 +281,19 @@ const writeJSON = (loc, data, err = null, success = null, indent = null) => {
     }
 }
 
+const writeFile = (loc, data, err = null, success = null) => {
+    try {
+        fs.writeFileSync(loc, data)
+        if (success) {
+            notify(success)
+        }
+    } catch (e) {
+        if (err) {
+            notify(err, "err")
+        }
+    }
+}
+
 const deleteFile = (loc, err = null) => {
     try {
         fs.unlinkSync(loc)
@@ -309,5 +322,6 @@ module.exports = {
     readFile,
     readJSON,
     writeJSON,
+    writeFile,
     deleteFile
 }
