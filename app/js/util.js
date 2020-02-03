@@ -97,7 +97,7 @@ const notify = (message, type = "info") => {
         properType = "error"
     }
     const image = `img/notifications/${properType}.svg`
-    if (SETTINGS.get("notificationnative")) {
+    if (SETTINGS.get("nativenotification")) {
         new Notification(`Vieb ${properType}`, {
             "body": message,
             "image": image,
@@ -202,6 +202,8 @@ const clearLocalStorage = () => {
 }
 
 const redirect = url => {
+    return url
+    // TODO fix this function after changing this to a string with separators
     SETTINGS.get("redirects").forEach(r => {
         if (r && r.match && r.replace) {
             try {

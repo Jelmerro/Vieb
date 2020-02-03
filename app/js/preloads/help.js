@@ -28,8 +28,7 @@ window.changeColor = element => {
 }
 
 ipcRenderer.on("settings", (_, currentSettings, supportedActions) => {
-    document.querySelector(".current-settings").textContent
-        = JSON.stringify(currentSettings, null, 4)
+    document.querySelector(".current-settings").textContent = currentSettings
     document.querySelector(".supported-actions").textContent
         = supportedActions.join(", ")
 })

@@ -21,11 +21,27 @@
 const {remote} = require("electron")
 const path = require("path")
 
+const listSetting = setting => {
+    if (setting === "all") {
+        UTIL.notify(SETTINGS.listCurrentSettings(true))
+        return
+    }
+    const value = SETTINGS.get(setting)
+    if (value === undefined) {
+        UTIL.notify(`The setting '${setting}' doesn't exist`, "warn")
+    } else {
+        UTIL.notify(`The setting '${setting}' has the value '${value}'`)
+    }
+}
+
 const set = (...args) => {
     if (args.length === 0) {
-        UTIL.notify(
-            "Invalid usage, you could try:\nReading: 'set <setting>?'\n"
-            + "Writing: 'set <setting>=<value>'", "warn")
+        const allChanges = SETTINGS.listCurrentSettings()
+        if (allChanges) {
+            UTIL.notify(`--- Options ---\n${allChanges}`)
+        } else {
+            UTIL.notify("No settings have been changed compared to the default")
+        }
         return
     }
     for (const part of args) {
@@ -33,37 +49,37 @@ const set = (...args) => {
             const setting = part.split("=")[0]
             const value = part.split("=").slice(1).join("=")
             SETTINGS.set(setting, value)
+        } else if (part.endsWith("&")) {
+            SETTINGS.reset(part.slice(0, -1))
         } else if (part.endsWith("!")) {
             const setting = part.slice(0, -1)
             const value = SETTINGS.get(setting)
-            if (value === undefined) {
-                UTIL.notify(`Unknown setting '${setting}', try using `
-                    + "the suggestions", "warn")
-            } else if (typeof value === "boolean") {
+            if (["boolean", "undefined"].includes(typeof value)) {
                 SETTINGS.set(setting, String(!value))
             } else {
                 UTIL.notify(
                     `The setting '${setting}' can not be flipped`, "warn")
             }
-        } else {
-            let setting = part
-            if (part.endsWith("?")) {
-                setting = part.slice(0, -1)
-            }
-            const value = SETTINGS.get(setting)
-            if (value === undefined) {
-                UTIL.notify(`Unknown setting '${setting}', try using `
-                    + "the suggestions", "warn")
-            } else if (value.length === undefined
-                && typeof value === "object" || setting === "redirects") {
-                UTIL.notify(
-                    `The setting '${setting}' has the value `
-                    + `'${JSON.stringify(value, null, 2)
-                        .replace(/ /g, "&nbsp;")}'`)
+        } else if (part.endsWith("?")) {
+            listSetting(part.slice(0, -1))
+        } else if (typeof SETTINGS.get(part) === "boolean") {
+            SETTINGS.set(part, "true")
+        } else if (part.startsWith("inv")) {
+            const value = SETTINGS.get(part.replace("inv", ""))
+            if (typeof value === "boolean") {
+                SETTINGS.set(part.replace("inv", ""), String(!value))
             } else {
-                UTIL.notify(
-                    `The setting '${setting}' has the value '${value}'`)
+                listSetting(part)
             }
+        } else if (part.startsWith("no")) {
+            const value = SETTINGS.get(part.replace("no", ""))
+            if (typeof value === "boolean") {
+                SETTINGS.set(part.replace("no", ""), "false")
+            } else {
+                listSetting(part)
+            }
+        } else {
+            listSetting(part)
         }
     }
 }
@@ -282,7 +298,8 @@ const noArgumentComands = [
     "history",
     "d",
     "downloads",
-    "hardcopy"
+    "hardcopy",
+    "print"
 ]
 
 const execute = command => {
