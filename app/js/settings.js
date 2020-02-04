@@ -23,7 +23,7 @@ const {remote} = require("electron")
 
 const defaultSettings = {
     "adblocker": "static",
-    "automaticnavmode": true,
+    "automaticnavmode": false,
     "cache": "clearonquit",
     "clearcookiesonquit": false,
     "cleardownloadsoncompleted": false,
@@ -57,16 +57,15 @@ const defaultSettings = {
     "restorewindowposition": true,
     "restorewindowsize": true,
     "search": "https://duckduckgo.com/?kae=d&q=",
-    "showtopsites": true,
     "startuppages": "",
     "storenewvisists": true,
-    "suggestcommands": true,
-    "suggesthistory": true,
+    "suggestcommands": 20,
+    "suggesthistory": 20,
+    "suggesttopsites": 10,
     "tabnexttocurrent": true,
     "taboverflow": "scroll",
     "vimcommand": "gvim"
 }
-
 let allSettings = {}
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
@@ -91,7 +90,10 @@ const validOptions = {
 const numberRanges = {
     "fontsize": [8, 30],
     "notificationduration": [0, 30000],
-    "mintabwidth": [0, 10000]
+    "mintabwidth": [0, 10000],
+    "suggestcommands": [0, 100],
+    "suggesthistory": [0, 100],
+    "suggesttopsites": [0, 1000]
 }
 const config = path.join(remote.app.getPath("appData"), "viebrc")
 
@@ -257,30 +259,25 @@ const listSettingsAsArray = () => {
 }
 
 const suggestionList = () => {
-    const listOfSuggestions = listSettingsAsArray()
+    const listOfSuggestions = ["all", ...listSettingsAsArray()]
+    listOfSuggestions.push("all&")
+    listOfSuggestions.push("all?")
     for (const setting of listSettingsAsArray()) {
-        if (setting.includes(".")) {
-            const prefix = setting.split(".")[0]
-            const previous = listOfSuggestions[listOfSuggestions.length - 1]
-            if (!previous.startsWith(`${prefix}.`)) {
-                listOfSuggestions.push(prefix)
-                listOfSuggestions.push(`${prefix}?`)
-                listOfSuggestions.push(`${prefix}&`)
-            }
-        }
         if (typeof get(setting, defaultSettings) === "boolean") {
             listOfSuggestions.push(`${setting}!`)
-            listOfSuggestions.push(`${setting}`)
             listOfSuggestions.push(`no${setting}`)
+            listOfSuggestions.push(`inv${setting}`)
         } else if (validOptions[setting]) {
             listOfSuggestions.push(`${setting}=`)
             for (const option of validOptions[setting]) {
                 listOfSuggestions.push(`${setting}=${option}`)
             }
         } else {
+            listOfSuggestions.push(`${setting}=`)
             listOfSuggestions.push(
                 `${setting}=${get(setting, defaultSettings)}`)
         }
+        listOfSuggestions.push(`${setting}&`)
         listOfSuggestions.push(`${setting}?`)
     }
     return listOfSuggestions

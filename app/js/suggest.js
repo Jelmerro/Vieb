@@ -96,7 +96,7 @@ const indexOf = suggestion => {
 }
 
 const addHist = hist => {
-    if (suggestions.length > 20) {
+    if (suggestions.length > SETTINGS.get("suggesthistory")) {
         return
     }
     addToList(hist.url)
@@ -131,20 +131,21 @@ const suggestCommand = search => {
     // Remove all redundant spaces
     // Allow commands prefixed with :
     search = search.replace(/^[\s|:]*/, "").replace(/ +/g, " ")
-    if (!SETTINGS.get("suggestcommands") || !search) {
+    const limit = SETTINGS.get("suggestcommands")
+    if (!limit || !search) {
+        // No search or limited to zero = don't suggest
         return
     }
-    let setCommandExtras = []
-    let writeCommandExtras = []
+    let subCommandSuggestions = []
     if ("set".startsWith(search.split(" ")[0])) {
-        setCommandExtras = SETTINGS.suggestionList()
+        subCommandSuggestions = SETTINGS.suggestionList()
             .map(s => `${search.split(" ").slice(0, -1).join(" ")} ${s}`)
     }
     if ("write".startsWith(search.split(" ")[0])) {
-        writeCommandExtras = ["write ~/Downloads/newfile"]
+        subCommandSuggestions = ["write ~/Downloads/newfile"]
     }
     if ("mkviebrc".startsWith(search.split(" ")[0])) {
-        writeCommandExtras = ["mkv full", "mkviebrc full"]
+        subCommandSuggestions = ["mkv full", "mkviebrc full"]
     }
     if ("buffer".startsWith(search.split(" ")[0])) {
         const simpleSearch = search.split(" ").slice(1).join("")
@@ -165,14 +166,12 @@ const suggestCommand = search => {
             }
             const simpleTabTitle = t.subtext.replace(/\W/g, "").toLowerCase()
             return simpleTabTitle.includes(simpleSearch)
-        }).slice(0, 10).forEach(t => { addCommand(t.command, t.subtext) })
+        }).slice(0, limit).forEach(t => { addCommand(t.command, t.subtext) })
         return
     }
-    const possibleCommands = COMMAND.commandList()
-        .concat(setCommandExtras)
-        .concat(writeCommandExtras)
+    const possibleCommands = COMMAND.commandList().concat(subCommandSuggestions)
         .filter(c => c.toLowerCase().startsWith(search.toLowerCase()))
-    for (const command of possibleCommands.slice(0, 10)) {
+    for (const command of possibleCommands.slice(0, limit)) {
         addCommand(command)
     }
 }
