@@ -28,6 +28,7 @@ but the list below contains much more technical details.
 - Set command syntax is now much more similar to Vim with support for &, inv and all
 - Booleans can now be set and unset using "ignorecase" or "noignorecase", again, similar to Vim
 - Viebrc is now named 'viebrc' instead of 'viebrc.json' and is configured by Vim commands instead of JSON
+- All suggestion settings are now of the number type instead of boolean, and specify the number of entries to suggest (0 to disable)
 
 ### Removed
 
@@ -41,8 +42,8 @@ but the list below contains much more technical details.
 
 ### Security
 
-- Electron 8.0.0-beta.7 (was 6.1.5)
-- Chromium 80.0.3987.59 (was 76.0.3809.146)
+- Electron 8.0.0-beta.9 (was 6.1.5)
+- Chromium 80.0.3987.75 (was 76.0.3809.146)
 
 ## [1.0.0](https://github.com/Jelmerro/Vieb/compare/0.7.0...1.0.0) - 2019-11-30
 

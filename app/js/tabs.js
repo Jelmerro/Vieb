@@ -563,8 +563,8 @@ const addWebviewListeners = webview => {
             DOWNLOADS.sendDownloadList(e.args[0], e.args[1])
         }
         if (e.channel === "new-tab-info-request") {
-            if (SETTINGS.get("showtopsites")) {
-                webview.send("insert-new-tab-info", HISTORY.topSites())
+            if (SETTINGS.get("suggesttopsites")) {
+                webview.send("insert-new-tab-info", HISTORY.suggestTopSites())
             }
         }
     })

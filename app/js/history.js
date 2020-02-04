@@ -81,6 +81,7 @@ const suggestHist = search => {
     document.getElementById("suggest-dropdown").textContent = ""
     SUGGEST.clear()
     if (!SETTINGS.get("suggesthistory") || !search || !UTIL.isFile(histFile)) {
+        // Limit set to zero, no search or no history yet = don't suggest
         return
     }
     const suggestions = Object.keys(groupedHistory).map(url => {
@@ -187,7 +188,7 @@ const handleRequest = (type, start, end) => {
     }))
 }
 
-const topSites = () => {
+const suggestTopSites = () => {
     return Object.keys(groupedHistory).filter(g => {
         return groupedHistory[g]
     }).sort((a, b) => {
@@ -195,7 +196,7 @@ const topSites = () => {
             return groupedHistory[b].visits - groupedHistory[a].visits
         }
         return 0
-    }).slice(0, 10).map(site => {
+    }).slice(0, SETTINGS.get("suggesttopsites")).map(site => {
         if (SETTINGS.get("favicons") === "disabled") {
             return {"url": site, "name": groupedHistory[site].title}
         }
@@ -224,7 +225,7 @@ module.exports = {
     suggestHist,
     clearHistory,
     handleRequest,
-    topSites,
+    suggestTopSites,
     visitCount,
     isFinishedLoading
 }
