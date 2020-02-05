@@ -31,18 +31,18 @@
                     <span id="mode-suggestions"></span>
                 </span>
                 <input id="url" type="text">
+                <div id="suggest-dropdown"></div>
             </div>
             <div id="tabs">
                 <span class="spacer"></span>
             </div>
         </div>
     </div>
-    <div id="suggest-dropdown"></div>
     <div id="notifications"></div>
     <div id="url-hover"></div>
     <div id="page-container">
         <div id="follow"></div>
-        <div id="cursor"></div>
+        <div id="pointer"></div>
         <div id="pages"></div>
     </div>
     <script>
@@ -69,8 +69,8 @@
         const HISTORY = require("./js/history.js")
         // Suggestions for the navigation bar
         const SUGGEST = require("./js/suggest.js")
-        // Cursor based navigation mode (hover, visual, drag, right-click etc.)
-        const CURSOR = require("./js/cursor.js")
+        // Pointer based navigation mode (hover, visual, drag, right-click etc.)
+        const POINTER = require("./js/pointer.js")
         // Save and restore the window position, size and maximized state
         const WINDOWSTATE = require("./js/windowstate.js")
         // Load favicon handler

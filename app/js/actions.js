@@ -32,12 +32,12 @@ const emptySearch = () => {
 
 const clickOnSearch = () => {
     if (currentSearch) {
-        TABS.currentPage().getWebContents().send("search-element-click")
+        TABS.webContents(TABS.currentPage()).send("search-element-click")
     }
 }
 
 const increasePageNumber = count => {
-    TABS.currentPage().getWebContents().send(
+    TABS.webContents(TABS.currentPage()).send(
         "action", "increasePageNumber", count)
 }
 
@@ -49,8 +49,8 @@ const closeTab = () => {
     TABS.closeTab()
 }
 
-const toNavMode = () => {
-    MODES.setMode("nav")
+const toExploreMode = () => {
+    MODES.setMode("explore")
 }
 
 const startFollowCurrentTab = () => {
@@ -58,15 +58,15 @@ const startFollowCurrentTab = () => {
 }
 
 const scrollTop = () => {
-    TABS.currentPage().getWebContents().send("action", "scrollTop")
+    TABS.webContents(TABS.currentPage()).send("action", "scrollTop")
 }
 
 const insertAtFirstInput = () => {
-    TABS.currentPage().getWebContents().send("focus-first-text-input")
+    TABS.webContents(TABS.currentPage()).send("focus-first-text-input")
 }
 
 const scrollLeft = () => {
-    TABS.currentPage().getWebContents().send("action", "scrollLeft")
+    TABS.webContents(TABS.currentPage()).send("action", "scrollLeft")
 }
 
 const toInsertMode = () => {
@@ -74,15 +74,15 @@ const toInsertMode = () => {
 }
 
 const scrollDown = () => {
-    TABS.currentPage().getWebContents().send("action", "scrollDown")
+    TABS.webContents(TABS.currentPage()).send("action", "scrollDown")
 }
 
 const scrollUp = () => {
-    TABS.currentPage().getWebContents().send("action", "scrollUp")
+    TABS.webContents(TABS.currentPage()).send("action", "scrollUp")
 }
 
 const scrollRight = () => {
-    TABS.currentPage().getWebContents().send("action", "scrollRight")
+    TABS.webContents(TABS.currentPage()).send("action", "scrollRight")
 }
 
 const nextSearchMatch = () => {
@@ -103,8 +103,8 @@ const reload = () => {
 
 const openNewTab = () => {
     TABS.addTab()
-    if (SETTINGS.get("automaticnavmode")) {
-        MODES.setMode("nav")
+    if (SETTINGS.get("automaticexploremode")) {
+        MODES.setMode("explore")
     }
 }
 
@@ -117,7 +117,7 @@ const nextTab = count => {
 }
 
 const decreasePageNumber = count => {
-    TABS.currentPage().getWebContents().send(
+    TABS.webContents(TABS.currentPage()).send(
         "action", "decreasePageNumber", count)
 }
 
@@ -130,7 +130,7 @@ const startFollowNewTab = () => {
 }
 
 const scrollBottom = () => {
-    TABS.currentPage().getWebContents().send("action", "scrollBottom")
+    TABS.webContents(TABS.currentPage()).send("action", "scrollBottom")
 }
 
 const backInHistory = () => {
@@ -143,8 +143,8 @@ const backInHistory = () => {
 
 const openNewTabAtAlternativePosition = () => {
     TABS.addTab(null, true)
-    if (SETTINGS.get("automaticnavmode")) {
-        MODES.setMode("nav")
+    if (SETTINGS.get("automaticexploremode")) {
+        MODES.setMode("explore")
     }
 }
 
@@ -185,16 +185,16 @@ const openNewTabWithCurrentUrl = () => {
         }
     }
     TABS.addTab()
-    MODES.setMode("nav")
+    MODES.setMode("explore")
     document.getElementById("url").value = url
 }
 
 const scrollPageRight = () => {
-    TABS.currentPage().getWebContents().send("action", "scrollPageRight")
+    TABS.webContents(TABS.currentPage()).send("action", "scrollPageRight")
 }
 
 const scrollPageLeft = () => {
-    TABS.currentPage().getWebContents().send("action", "scrollPageLeft")
+    TABS.webContents(TABS.currentPage()).send("action", "scrollPageLeft")
 }
 
 const toCommandMode = () => {
@@ -202,7 +202,7 @@ const toCommandMode = () => {
 }
 
 const scrollPageUp = () => {
-    TABS.currentPage().getWebContents().send("action", "scrollPageUp")
+    TABS.webContents(TABS.currentPage()).send("action", "scrollPageUp")
 }
 
 const stopLoadingPage = () => {
@@ -210,11 +210,11 @@ const stopLoadingPage = () => {
 }
 
 const scrollPageDownHalf = () => {
-    TABS.currentPage().getWebContents().send("action", "scrollPageDownHalf")
+    TABS.webContents(TABS.currentPage()).send("action", "scrollPageDownHalf")
 }
 
 const scrollPageDown = () => {
-    TABS.currentPage().getWebContents().send("action", "scrollPageDown")
+    TABS.webContents(TABS.currentPage()).send("action", "scrollPageDown")
 }
 
 const moveTabForward = () => {
@@ -226,7 +226,7 @@ const moveTabBackward = () => {
 }
 
 const scrollPageUpHalf = () => {
-    TABS.currentPage().getWebContents().send("action", "scrollPageUpHalf")
+    TABS.webContents(TABS.currentPage()).send("action", "scrollPageUpHalf")
 }
 
 const zoomReset = () => {
@@ -279,10 +279,9 @@ const useEnteredData = () => {
         }
         MODES.setMode("normal")
     }
-    if (MODES.currentMode() === "nav") {
+    if (MODES.currentMode() === "explore") {
         const urlElement = document.getElementById("url")
         const location = urlElement.value.trim()
-        urlElement.className = ""
         MODES.setMode("normal")
         if (location !== "") {
             const specialPage = UTIL.pathToSpecialPageName(location)
@@ -305,43 +304,22 @@ const useEnteredData = () => {
 
 const setFocusCorrectly = () => {
     const urlElement = document.getElementById("url")
+    TABS.updateUrl(TABS.currentPage())
     if (MODES.currentMode() === "insert") {
-        urlElement.className = ""
         urlElement.blur()
         TABS.currentPage().focus()
         TABS.currentPage().click()
-    } else {
-        if (!["nav", "command"].includes(MODES.currentMode())) {
-            urlElement.className = ""
-            urlElement.blur()
-            TABS.updateUrl(TABS.currentPage())
+    } else if (["search", "explore", "command"].includes(MODES.currentMode())) {
+        if (document.activeElement !== urlElement) {
+            window.focus()
+            urlElement.focus()
         }
+    } else {
+        urlElement.blur()
         window.focus()
         document.getElementById("invisible-overlay").focus()
     }
-    if (document.activeElement !== urlElement) {
-        if (["search", "command"].includes(MODES.currentMode())) {
-            window.focus()
-            urlElement.focus()
-            if (urlElement.value === TABS.currentPage().src) {
-                urlElement.value = ""
-            }
-            if (urlElement.value.startsWith("vieb://")) {
-                urlElement.value = ""
-            }
-        }
-        if (MODES.currentMode() === "nav") {
-            window.focus()
-            urlElement.focus()
-            if (urlElement.value === TABS.currentPage().src) {
-                urlElement.select()
-            }
-            if (urlElement.value.startsWith("vieb://")) {
-                urlElement.select()
-            }
-        }
-    }
-    if (MODES.currentMode() === "nav") {
+    if (MODES.currentMode() === "explore") {
         const local = UTIL.expandPath(urlElement.value.trim())
         if (urlElement.value.trim() === "") {
             urlElement.className = ""
@@ -374,7 +352,7 @@ const editWithVim = () => {
         return
     }
     let command = null
-    const webcontents = TABS.currentPage().getWebContents()
+    const webcontents = TABS.webcontents(TABS.currentPage())
     fs.watchFile(tempFile, {"interval": 500}, () => {
         if (command) {
             try {
@@ -419,7 +397,7 @@ module.exports = {
     increasePageNumber,
     previousTab,
     closeTab,
-    toNavMode,
+    toExploreMode,
     startFollowCurrentTab,
     scrollTop,
     insertAtFirstInput,

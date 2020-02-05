@@ -22,36 +22,33 @@ const {remote} = require("electron")
 
 let X = 0
 let Y = 0
-let cursor = null
 let listenForScroll = false
 
 const start = () => {
-    MODES.setMode("cursor")
-    cursor = document.getElementById("cursor")
-    cursor.style.display = "block"
+    MODES.setMode("pointer")
     TABS.currentPage().sendInputEvent({
         "type": "mouseEnter",
         "x": X,
         "y": Y
     })
-    updateCursorElement()
+    updateElement()
 }
 
 const move = (x, y) => {
     X = x
     Y = y
-    updateCursorElement()
+    updateElement()
 }
 
 const handleScrollDiffEvent = diff => {
     if (listenForScroll) {
         Y += diff
-        updateCursorElement()
+        updateElement()
         listenForScroll = false
     }
 }
 
-const updateCursorElement = () => {
+const updateElement = () => {
     if (X < 0) {
         X = 0
     }
@@ -64,9 +61,9 @@ const updateCursorElement = () => {
     if (Y > window.innerHeight - navbarHeight() - SETTINGS.get("fontsize")) {
         Y = window.innerHeight - navbarHeight() - SETTINGS.get("fontsize")
     }
-    cursor.style.left = `${X}px`
-    cursor.style.top = `${Y + navbarHeight()}px`
-    if (MODES.currentMode() === "cursor") {
+    document.getElementById("pointer").style.left = `${X}px`
+    document.getElementById("pointer").style.top = `${Y + navbarHeight()}px`
+    if (MODES.currentMode() === "pointer") {
         TABS.currentPage().sendInputEvent({
             "type": "mouseEnter",
             "x": X,
@@ -80,7 +77,7 @@ const updateCursorElement = () => {
     }
     if (MODES.currentMode() === "visual") {
         const factor = TABS.currentPage().getZoomFactor()
-        TABS.currentPage().getWebContents().send(
+        TABS.webContents(TABS.currentPage()).send(
             "selection-request", Math.round(X / factor), Math.round(Y / factor))
     }
 }
@@ -102,10 +99,7 @@ const click = button => {
     })
 }
 
-const releaseKeys = stayVisble => {
-    if (cursor && !stayVisble) {
-        cursor.style.display = ""
-    }
+const releaseKeys = () => {
     for (const button of ["left", "right"]) {
         TABS.currentPage().sendInputEvent({
             "type": "mouseUp",
@@ -120,7 +114,7 @@ const releaseKeys = stayVisble => {
         "x": X,
         "y": Y
     })
-    TABS.currentPage().getWebContents().send("selection-remove")
+    TABS.webContents(TABS.currentPage()).send("selection-remove")
 }
 
 const navbarHeight = () => {
@@ -131,12 +125,12 @@ const navbarHeight = () => {
 
 const moveFastLeft = () => {
     X -= 100
-    updateCursorElement()
+    updateElement()
 }
 
 const downloadImage = () => {
     const factor = TABS.currentPage().getZoomFactor()
-    TABS.currentPage().getWebContents().send(
+    TABS.webContents(TABS.currentPage()).send(
         "download-image-request",
         Math.round(X / factor),
         Math.round(Y / factor))
@@ -144,18 +138,18 @@ const downloadImage = () => {
 
 const inspectElement = () => {
     const factor = TABS.currentPage().getZoomFactor()
-    TABS.currentPage().getWebContents().inspectElement(
+    TABS.webContents(TABS.currentPage()).inspectElement(
         Math.round(X / factor),
         Math.round((Y + navbarHeight()) / factor))
 }
 
 const copyAndStop = () => {
-    if (MODES.currentMode() === "cursor") {
+    if (MODES.currentMode() === "pointer") {
         remote.clipboard.write({
             "text": document.getElementById("url-hover").textContent
         })
     } else {
-        TABS.currentPage().getWebContents().send("selection-copy")
+        TABS.webContents(TABS.currentPage()).send("selection-copy")
     }
     MODES.setMode("normal")
 }
@@ -167,12 +161,12 @@ const leftClick = () => {
 const startOfPage = () => {
     ACTIONS.scrollTop()
     Y = 0
-    updateCursorElement()
+    updateElement()
 }
 
 const moveLeft = () => {
     X -= 10
-    updateCursorElement()
+    updateElement()
 }
 
 const insertAtPosition = () => {
@@ -187,7 +181,7 @@ const moveDown = () => {
     } else {
         Y += 10
     }
-    updateCursorElement()
+    updateElement()
 }
 
 const moveUp = () => {
@@ -197,12 +191,12 @@ const moveUp = () => {
     } else {
         Y -= 10
     }
-    updateCursorElement()
+    updateElement()
 }
 
 const moveRight = () => {
     X += 10
-    updateCursorElement()
+    updateElement()
 }
 
 const rightClick = () => {
@@ -211,109 +205,109 @@ const rightClick = () => {
 
 const startVisualSelect = () => {
     const factor = TABS.currentPage().getZoomFactor()
-    TABS.currentPage().getWebContents().send(
+    TABS.webContents(TABS.currentPage()).send(
         "selection-start-location", X / factor, Y / factor)
     MODES.setMode("visual")
 }
 
 const moveFastRight = () => {
     X += 100
-    updateCursorElement()
+    updateElement()
 }
 
 const centerOfView = () => {
     Y = (window.innerHeight - navbarHeight() - SETTINGS.get("fontsize")) / 2
-    updateCursorElement()
+    updateElement()
 }
 
 const scrollDown = () => {
-    TABS.currentPage().getWebContents().sendInputEvent({
+    TABS.webContents(TABS.currentPage()).sendInputEvent({
         "type": "mouseWheel",
         "x": X,
         "y": Y,
         "deltaX": 0,
         "deltaY": -100
     })
-    updateCursorElement()
+    updateElement()
 }
 
 const scrollUp = () => {
-    TABS.currentPage().getWebContents().sendInputEvent({
+    TABS.webContents(TABS.currentPage()).sendInputEvent({
         "type": "mouseWheel",
         "x": X,
         "y": Y,
         "deltaX": 0,
         "deltaY": 100
     })
-    updateCursorElement()
+    updateElement()
 }
 
 const scrollLeft = () => {
-    TABS.currentPage().getWebContents().sendInputEvent({
+    TABS.webContents(TABS.currentPage()).sendInputEvent({
         "type": "mouseWheel",
         "x": X,
         "y": Y,
         "deltaX": 100,
         "deltaY": 0
     })
-    updateCursorElement()
+    updateElement()
 }
 
 const scrollRight = () => {
-    TABS.currentPage().getWebContents().sendInputEvent({
+    TABS.webContents(TABS.currentPage()).sendInputEvent({
         "type": "mouseWheel",
         "x": X,
         "y": Y,
         "deltaX": -100,
         "deltaY": 0
     })
-    updateCursorElement()
+    updateElement()
 }
 
 const startOfView = () => {
     Y = 0
-    updateCursorElement()
+    updateElement()
 }
 
 const moveSlowLeft = () => {
     X -= 1
-    updateCursorElement()
+    updateElement()
 }
 
 const moveSlowDown = () => {
     Y += 1
-    updateCursorElement()
+    updateElement()
 }
 
 const moveSlowUp = () => {
     Y -= 1
-    updateCursorElement()
+    updateElement()
 }
 
 const moveSlowRight = () => {
     X += 1
-    updateCursorElement()
+    updateElement()
 }
 
 const endOfView = () => {
     Y = window.innerHeight
-    updateCursorElement()
+    updateElement()
 }
 
 const endOfPage = () => {
     ACTIONS.scrollBottom()
     Y = window.innerHeight
-    updateCursorElement()
+    updateElement()
 }
 
 const moveRightMax = () => {
     X = window.innerWidth
-    updateCursorElement()
+    updateElement()
 }
 
 const moveLeftMax = () => {
     X = 0
-    updateCursorElement()
+    updateElement()
 }
 
 const moveFastDown = () => {
@@ -323,7 +317,7 @@ const moveFastDown = () => {
     } else {
         Y += 100
     }
-    updateCursorElement()
+    updateElement()
 }
 
 const moveFastUp = () => {
@@ -333,14 +327,14 @@ const moveFastUp = () => {
     } else {
         Y -= 100
     }
-    updateCursorElement()
+    updateElement()
 }
 
 module.exports = {
     start,
     move,
     handleScrollDiffEvent,
-    updateCursorElement,
+    updateElement,
     releaseKeys,
     moveFastLeft,
     downloadImage,

@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global CURSOR MODES TABS SETTINGS UTIL */
+/* global POINTER MODES TABS SETTINGS UTIL */
 "use strict"
 
 let followNewtab = true
@@ -26,10 +26,10 @@ let modeBeforeFollow = "normal"
 const informPreload = () => {
     setTimeout(() => {
         if (MODES.currentMode() === "follow" && !alreadyFollowing) {
-            TABS.currentPage().getWebContents().send("follow-mode-start")
+            TABS.webContents(TABS.currentPage()).send("follow-mode-start")
             informPreload()
         } else {
-            TABS.currentPage().getWebContents().send("follow-mode-stop")
+            TABS.webContents(TABS.currentPage()).send("follow-mode-stop")
         }
     }, 100)
 }
@@ -44,7 +44,7 @@ const startFollow = (newtab = followNewtab) => {
     MODES.setMode("follow")
     alreadyFollowing = false
     informPreload()
-    TABS.currentPage().getWebContents().send("follow-mode-start")
+    TABS.webContents(TABS.currentPage()).send("follow-mode-start")
     document.getElementById("follow").style.display = "flex"
     links = []
 }
@@ -53,7 +53,7 @@ const cancelFollow = () => {
     alreadyFollowing = false
     document.getElementById("follow").style.display = ""
     document.getElementById("follow").textContent = ""
-    TABS.currentPage().getWebContents().send("follow-mode-stop")
+    TABS.webContents(TABS.currentPage()).send("follow-mode-stop")
     links = []
 }
 
@@ -201,12 +201,12 @@ const enterKey = identifier => {
             return
         }
         const factor = TABS.currentPage().getZoomFactor()
-        if (["cursor", "visual"].includes(modeBeforeFollow)) {
-            CURSOR.start()
+        if (["pointer", "visual"].includes(modeBeforeFollow)) {
+            POINTER.start()
             if (modeBeforeFollow === "visual") {
                 MODES.setMode("visual")
             }
-            CURSOR.move(
+            POINTER.move(
                 (link.x + link.width / 2) * factor,
                 (link.y + link.height / 2) * factor)
             return

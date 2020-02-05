@@ -151,7 +151,7 @@ const sendDownloadList = (action, downloadId) => {
         }
     }
     writeToFile()
-    TABS.currentPage().getWebContents().send("download-list", downloads)
+    TABS.webContents(TABS.currentPage()).send("download-list", downloads)
 }
 
 const writeToFile = () => {
