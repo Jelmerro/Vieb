@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS CURSOR DOWNLOADS FAVICONS FOLLOW HISTORY INPUT MODES SESSIONS
+/* global ACTIONS POINTER DOWNLOADS FAVICONS FOLLOW HISTORY INPUT MODES SESSIONS
  SETTINGS UTIL */
 "use strict"
 
@@ -34,15 +34,14 @@ const init = () => {
     window.addEventListener("load", () => {
         const startup = SETTINGS.get("startuppages")
         const parsed = UTIL.readJSON(tabFile)
-        // TODO fix the startup pages setting to be a string with separator
-        for (const tab of startup) {
+        for (const tab of startup.split(",")) {
             const specialPage = UTIL.pathToSpecialPageName(tab)
             if (specialPage.name) {
-                addTab(UTIL.specialPagePath(
+                openSavedPage(UTIL.specialPagePath(
                     specialPage.name, specialPage.section))
                 parsed.id += 1
             } else if (UTIL.isUrl(tab)) {
-                addTab(tab)
+                openSavedPage(tab)
                 parsed.id += 1
             }
         }
@@ -50,14 +49,16 @@ const init = () => {
             if (SETTINGS.get("restoretabs")) {
                 if (Array.isArray(parsed.tabs)) {
                     parsed.tabs.forEach(tab => {
-                        addTab(tab)
+                        openSavedPage(tab)
                     })
                     if (listTabs().length !== 0) {
                         switchToTab(parsed.id || 0)
                     }
                 }
                 if (Array.isArray(parsed.closed)) {
-                    recentlyClosed = parsed.closed
+                    if (SETTINGS.get("keeprecentlyclosed")) {
+                        recentlyClosed = parsed.closed
+                    }
                 }
             } else if (SETTINGS.get("keeprecentlyclosed")) {
                 if (Array.isArray(parsed.tabs)) {
@@ -79,45 +80,46 @@ const init = () => {
             }
         }
         ipcRenderer.on("urls", (_, urls) => {
-            urls.forEach(url => {
-                if (!UTIL.hasProtocol(url)) {
-                    const local = UTIL.expandPath(url)
-                    if (path.isAbsolute(local) && UTIL.pathExists(local)) {
-                        // File protocol locations should always have 3 slashes
-                        url = `file:${local}`.replace(/^file:\/*/, "file:///")
-                    } else {
-                        url = `https://${url}`
-                    }
-                }
-                const special = UTIL.pathToSpecialPageName(currentPage().src)
-                if (special.name === "newtab" || !currentPage().src) {
-                    navigateTo(url)
-                } else {
-                    addTab(url)
-                }
-            })
+            urls.forEach(openSavedPage)
         })
         // This forces the webview to update on sites which wait for the mouse
-        // It will also enable the pointer events when in insert or cursor mode
+        // It will also enable the pointer events when in insert or pointer mode
         setInterval(() => {
-            if (SETTINGS.get("mouse")) {
-                currentPage().style.pointerEvents = null
-            } else {
-                currentPage().style.pointerEvents = "auto"
-                if (MODES.currentMode() === "insert") {
-                    return
+            try {
+                if (SETTINGS.get("mouse")) {
+                    currentPage().style.pointerEvents = null
+                } else {
+                    currentPage().style.pointerEvents = "auto"
+                    if (MODES.currentMode() === "insert") {
+                        return
+                    }
+                    if (MODES.currentMode() === "pointer") {
+                        return
+                    }
+                    setTimeout(() => {
+                        listPages().forEach(page => {
+                            page.style.pointerEvents = "none"
+                        })
+                    }, 10)
                 }
-                if (MODES.currentMode() === "cursor") {
-                    return
-                }
-                setTimeout(() => {
-                    listPages().forEach(page => {
-                        page.style.pointerEvents = "none"
-                    })
-                }, 10)
+            } catch (e) {
+                // Page not available, retry later
             }
         }, 100)
     })
+}
+
+const openSavedPage = url => {
+    if (!UTIL.hasProtocol(url)) {
+        const local = UTIL.expandPath(url)
+        if (path.isAbsolute(local) && UTIL.pathExists(local)) {
+            // File protocol locations should always have 3 slashes
+            url = `file:${local}`.replace(/^file:\/*/, "file:///")
+        } else {
+            url = `https://${url}`
+        }
+    }
+    addTab(url)
 }
 
 const saveTabs = () => {
@@ -194,18 +196,19 @@ const addTab = (url = null, inverted = false, switchTo = true) => {
     const statusIcon = document.createElement("img")
     const title = document.createElement("span")
     tab.style.minWidth = `${SETTINGS.get("mintabwidth")}px`
-    tab.addEventListener("click", () => {
-        switchToTab(listTabs().indexOf(tab))
-    })
-    tab.addEventListener("auxclick", () => {
-        const currentlyOpenendTab = currentTab()
-        MODES.setMode("normal")
-        if (tab === currentlyOpenendTab) {
-            closeTab()
+    tab.addEventListener("mouseup", e => {
+        if (e.button === 1) {
+            const currentlyOpenendTab = currentTab()
+            MODES.setMode("normal")
+            if (tab === currentlyOpenendTab) {
+                closeTab()
+            } else {
+                switchToTab(listTabs().indexOf(tab))
+                closeTab()
+                switchToTab(listTabs().indexOf(currentlyOpenendTab))
+            }
         } else {
             switchToTab(listTabs().indexOf(tab))
-            closeTab()
-            switchToTab(listTabs().indexOf(currentlyOpenendTab))
         }
     })
     favicon.src = "img/empty.png"
@@ -234,18 +237,7 @@ const addTab = (url = null, inverted = false, switchTo = true) => {
     SESSIONS.create(sessionName)
     webview.setAttribute("partition", sessionName)
     linkId += 1
-    addWebviewListeners(webview)
     pages.appendChild(webview)
-    webview.getWebContents().setUserAgent(useragent)
-    webview.getWebContents().setWebRTCIPHandlingPolicy(
-        "default_public_interface_only")
-    if (url) {
-        url = UTIL.redirect(url)
-        webview.src = url
-        title.textContent = url
-    } else {
-        webview.src = UTIL.specialPagePath("newtab")
-    }
     if (switchTo) {
         if (addNextToCurrent) {
             switchToTab(listTabs().indexOf(currentTab()) + 1)
@@ -253,6 +245,22 @@ const addTab = (url = null, inverted = false, switchTo = true) => {
             switchToTab(listTabs().length - 1)
         }
     }
+    webview.src = UTIL.specialPagePath("newtab")
+    webview.setAttribute("useragent", useragent)
+    webview.addEventListener("dom-ready", () => {
+        if (webview.getAttribute("useragent")) {
+            addWebviewListeners(webview)
+            webContents(webview).userAgent = useragent
+            webContents(webview).setWebRTCIPHandlingPolicy(
+                "default_public_interface_only")
+            if (url) {
+                url = UTIL.redirect(url)
+                webview.src = url
+                title.textContent = url
+            }
+            webview.removeAttribute("useragent")
+        }
+    })
 }
 
 const reopenTab = () => {
@@ -285,6 +293,13 @@ const closeTab = () => {
     } else {
         switchToTab(oldTabIndex - 1)
     }
+}
+
+const webContents = webview => {
+    if (!webview.getAttribute("webview-id")) {
+        webview.setAttribute("webview-id", webview.getWebContentsId())
+    }
+    return remote.webContents.fromId(Number(webview.getAttribute("webview-id")))
 }
 
 const tabOrPageMatching = el => {
@@ -324,7 +339,7 @@ const switchToTab = index => {
 }
 
 const updateUrl = webview => {
-    const skip = ["command", "search", "nav"]
+    const skip = ["command", "search", "explore"]
     if (webview !== currentPage() || skip.includes(MODES.currentMode())) {
         return
     }
@@ -358,13 +373,13 @@ const addWebviewListeners = webview => {
     const mouseClickInWebview = e => {
         if (MODES.currentMode() !== "insert") {
             if (SETTINGS.get("mouse")) {
-                const modesWithTyping = ["command", "nav", "search"]
-                if (["cursor", "visual"].includes(MODES.currentMode())) {
+                const modesWithTyping = ["command", "explore", "search"]
+                if (["pointer", "visual"].includes(MODES.currentMode())) {
                     if (e.tovisual) {
-                        CURSOR.startVisualSelect()
+                        POINTER.startVisualSelect()
                     }
                     if (e.x && e.y) {
-                        CURSOR.move(e.x, e.y)
+                        POINTER.move(e.x, e.y)
                     }
                 } else if (e.toinsert) {
                     MODES.setMode("insert")
@@ -383,7 +398,7 @@ const addWebviewListeners = webview => {
     webview.addEventListener("did-start-loading", () => {
         FAVICONS.loading(webview)
         updateUrl(webview)
-        webview.getWebContents().once("login", () => {
+        webContents(webview).once("login", () => {
             for (const browserWindow of remote.BrowserWindow.getAllWindows()) {
                 if (browserWindow.getURL().endsWith("login.html")) {
                     MODES.setMode("normal")
@@ -452,7 +467,7 @@ const addWebviewListeners = webview => {
         }
         webview.send("insert-failed-page-info", e)
         webview.setAttribute("failed-to-load", "true")
-        webview.getWebContents().send("fontsize", SETTINGS.get("fontsize"))
+        webContents(webview).send("fontsize", SETTINGS.get("fontsize"))
     })
     webview.addEventListener("did-stop-loading", () => {
         const tab = tabOrPageMatching(webview)
@@ -467,10 +482,10 @@ const addWebviewListeners = webview => {
         const isLocal = webview.src.startsWith("file:/")
         const isErrorPage = webview.getAttribute("failed-to-load")
         if (specialPageName || isLocal || isErrorPage) {
-            webview.getWebContents().send("fontsize", SETTINGS.get("fontsize"))
+            webContents(webview).send("fontsize", SETTINGS.get("fontsize"))
         }
         if (specialPageName === "help") {
-            webview.getWebContents().send(
+            webContents(webview).send(
                 "settings", SETTINGS.listCurrentSettings(true),
                 INPUT.listSupportedActions())
         }
@@ -521,7 +536,7 @@ const addWebviewListeners = webview => {
         document.body.classList.add("fullscreen")
         webview.blur()
         webview.focus()
-        webview.getWebContents().send("action", "focusTopLeftCorner")
+        webContents(webview).send("action", "focusTopLeftCorner")
         MODES.setMode("insert")
     })
     webview.addEventListener("leave-html-full-screen", () => {
@@ -546,7 +561,7 @@ const addWebviewListeners = webview => {
             }
         }
         if (e.channel === "scroll-height-diff") {
-            CURSOR.handleScrollDiffEvent(e.args[0])
+            POINTER.handleScrollDiffEvent(e.args[0])
         }
         if (e.channel === "history-list-request") {
             HISTORY.handleRequest(...e.args)
@@ -572,7 +587,7 @@ const addWebviewListeners = webview => {
         webview.send("search-element-location", e.result.selectionArea)
     })
     webview.addEventListener("update-target-url", e => {
-        const correctMode = ["insert", "cursor"].includes(MODES.currentMode())
+        const correctMode = ["insert", "pointer"].includes(MODES.currentMode())
         if (e.url && (correctMode || SETTINGS.get("mouse"))) {
             const special = UTIL.pathToSpecialPageName(e.url)
             if (!special.name) {
@@ -647,6 +662,7 @@ module.exports = {
     addTab,
     reopenTab,
     closeTab,
+    webContents,
     tabOrPageMatching,
     switchToTab,
     updateUrl,

@@ -124,7 +124,7 @@ const update = (webview, urls) => {
         // Directory probably already exists
     }
     const request = remote.net.request({
-        "url": favicon, "session": webview.getWebContents().session
+        "url": favicon, "session": TABS.webContents(webview).session
     })
     request.on("response", res => {
         const data = []

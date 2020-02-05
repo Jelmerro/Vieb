@@ -23,7 +23,7 @@ const {remote} = require("electron")
 
 const defaultSettings = {
     "adblocker": "static",
-    "automaticnavmode": false,
+    "automaticexploremode": false,
     "cache": "clearonquit",
     "clearcookiesonquit": false,
     "cleardownloadsoncompleted": false,
@@ -67,6 +67,8 @@ const defaultSettings = {
     "vimcommand": "gvim"
 }
 let allSettings = {}
+const freeText = ["downloadpath", "search", "vimcommand"]
+const listLike = ["redirects", "startuppages"]
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
     "cache": ["none", "clearonquit", "full"],
@@ -151,20 +153,47 @@ const checkOther = (setting, value) => {
         UTIL.notify("The download path does not exist", "warn")
         return false
     }
+    if (setting === "redirects") {
+        for (const redirect of value.split(",")) {
+            if (!redirect.trim()) {
+                continue
+            }
+            if ((redirect.match(/~/g) || []).length === 1) {
+                UTIL.notify(`Invalid redirect entry: ${redirect}\n`
+                    + "Entries must have exactly one ~ to separate the "
+                    + "regular expression from the replacement", "warn")
+                return false
+            }
+            const match = redirect.split("~")[0]
+            try {
+                RegExp(match)
+            } catch (e) {
+                UTIL.notify(
+                    `Invalid regular expression in redirect: ${match}`, "warn")
+                return false
+            }
+        }
+    }
+    if (setting === "startuppages") {
+        for (const startupPage of value.split(",")) {
+            if (startupPage.trim() && !UTIL.isUrl(startupPage)) {
+                UTIL.notify(
+                    `Invalid URL passed to startuppages: ${startupPage}`,
+                    "warn")
+                return false
+            }
+        }
+    }
     return true
 }
 
-const isValidSetting = (setting, value, startup) => {
+const isValidSetting = (setting, value) => {
     if (get(setting) === undefined) {
         UTIL.notify(`The setting '${setting}' doesn't exist`, "warn")
         return false
     }
-    if (!startup && !value) {
-        UTIL.notify(`The new '${setting}' value may not be empty`, "warn")
-        return false
-    }
     const expectedType = typeof get(setting)
-    if (!startup && typeof value === "string") {
+    if (typeof value === "string") {
         if (expectedType !== typeof value) {
             if (expectedType === "number" && !isNaN(Number(value))) {
                 value = Number(value)
@@ -198,7 +227,7 @@ const updateFontSize = () => {
         const isLocal = p.src.startsWith("file:/")
         const isErrorPage = p.getAttribute("failed-to-load")
         if (isSpecialPage || isLocal || isErrorPage) {
-            p.getWebContents().send("fontsize", get("fontsize"))
+            TABS.webContents(p).send("fontsize", get("fontsize"))
         }
     })
 }
@@ -277,6 +306,14 @@ const suggestionList = () => {
             listOfSuggestions.push(
                 `${setting}=${get(setting, defaultSettings)}`)
         }
+        const isNumber = typeof get(setting, defaultSettings) === "number"
+        const isFreeText = freeText.includes(setting)
+        const isListLike = listLike.includes(setting)
+        if (isNumber || isFreeText || isListLike) {
+            listOfSuggestions.push(`${setting}+=`)
+            listOfSuggestions.push(`${setting}^=`)
+            listOfSuggestions.push(`${setting}-=`)
+        }
         listOfSuggestions.push(`${setting}&`)
         listOfSuggestions.push(`${setting}?`)
     }
@@ -320,19 +357,20 @@ const reset = setting => {
     }
 }
 
-const set = (setting, value, startup = false) => {
-    if (isValidSetting(setting, value, startup)) {
+const set = (setting, value) => {
+    if (isValidSetting(setting, value)) {
         if (setting === "search") {
             if (!value.startsWith("http://") && !value.startsWith("https://")) {
                 value = `https://${value}`
             }
             allSettings.search = value
-        } else if (startup) {
-            allSettings[setting] = value
         } else if (typeof allSettings[setting] === "boolean") {
             allSettings[setting] = value === "true"
         } else if (typeof allSettings[setting] === "number") {
             allSettings[setting] = Number(value)
+        } else if (listLike.includes(setting)) {
+            // Remove empty elements from the comma seperated list
+            allSettings[setting] = value.split(",").filter(e => e).join(",")
         } else {
             allSettings[setting] = value
         }
@@ -359,21 +397,19 @@ const set = (setting, value, startup = false) => {
         if (setting === "taboverflow") {
             updateTabOverflow()
         }
-        if (!startup) {
-            if (setting === "mintabwidth") {
-                TABS.listTabs().forEach(tab => {
-                    tab.style.minWidth = `${allSettings.mintabwidth}px`
-                })
-                TABS.currentTab().scrollIntoView({"inline": "center"})
-            }
-            TABS.listPages().forEach(p => {
-                if (UTIL.pathToSpecialPageName(p.src).name === "help") {
-                    p.getWebContents().send(
-                        "settings", listCurrentSettings(true),
-                        INPUT.listSupportedActions())
-                }
+        if (setting === "mintabwidth") {
+            TABS.listTabs().forEach(tab => {
+                tab.style.minWidth = `${allSettings.mintabwidth}px`
             })
+            TABS.currentTab().scrollIntoView({"inline": "center"})
         }
+        TABS.listPages().forEach(p => {
+            if (UTIL.pathToSpecialPageName(p.src).name === "help") {
+                TABS.webContents(p).send(
+                    "settings", listCurrentSettings(true),
+                    INPUT.listSupportedActions())
+            }
+        })
     }
 }
 
@@ -426,6 +462,8 @@ const saveToDisk = full => {
 
 module.exports = {
     init,
+    freeText,
+    listLike,
     suggestionList,
     loadFromDisk,
     get,

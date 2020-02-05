@@ -15,41 +15,87 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS COMMANDHISTORY CURSOR FOLLOW INPUT SUGGEST TABS */
+/* global ACTIONS COMMANDHISTORY POINTER FOLLOW INPUT SUGGEST TABS */
 "use strict"
 
 const modes = {
     "normal": {
-        "fg": "#ddd",
-        "bg": ""
+        "fg": "#ddd"
     },
     "insert": {
         "fg": "#3f3",
-        "bg": ""
+        "onEnter": () => {
+            document.getElementById("invisible-overlay").style.display = "none"
+        },
+        "onLeave": newMode => {
+            TABS.webContents(TABS.currentPage()).send("action", "blur")
+            document.getElementById("invisible-overlay").style.display = ""
+            document.getElementById("url-hover").textContent = ""
+            if (newMode !== "pointer") {
+                document.getElementById("url-hover").style.display = "none"
+            }
+        }
     },
     "command": {
         "fg": "#f33",
-        "bg": ""
+        "onEnter": () => {
+            document.getElementById("url").value = ""
+            COMMANDHISTORY.resetPosition()
+        },
+        "onLeave": () => {
+            SUGGEST.cancelSuggestions()
+        }
     },
     "search": {
         "fg": "#ff3",
-        "bg": ""
+        "onEnter": () => {
+            document.getElementById("url").value = ""
+        }
     },
-    "nav": {
+    "explore": {
         "fg": "#3ff",
-        "bg": ""
+        "onEnter": () => {
+            document.getElementById("url").select()
+        },
+        "onLeave": () => {
+            SUGGEST.cancelSuggestions()
+            document.getElementById("url").className = ""
+        }
     },
     "follow": {
         "fg": "#f3f",
-        "bg": ""
+        "onLeave": () => {
+            FOLLOW.cancelFollow()
+        }
     },
-    "cursor": {
+    "pointer": {
         "fg": "#777",
-        "bg": "#fff"
+        "bg": "#fff",
+        "onEnter": () => {
+            document.getElementById("pointer").style.display = "block"
+        },
+        "onLeave": newMode => {
+            if (newMode !== "visual") {
+                document.getElementById("pointer").style.display = "none"
+                POINTER.releaseKeys()
+            }
+            if (newMode !== "insert") {
+                document.getElementById("url-hover").style.display = "none"
+            }
+        }
     },
     "visual": {
         "fg": "#000",
-        "bg": "#3af"
+        "bg": "#3af",
+        "onEnter": () => {
+            document.getElementById("pointer").style.display = "block"
+        },
+        "onLeave": newMode => {
+            if (newMode !== "pointer") {
+                document.getElementById("pointer").style.display = "none"
+            }
+            POINTER.releaseKeys()
+        }
     }
 }
 
@@ -65,10 +111,10 @@ const init = () => {
             }
             if (mode === "follow") {
                 FOLLOW.startFollow(false)
-            } else if (mode === "cursor") {
-                CURSOR.start()
+            } else if (mode === "pointer") {
+                POINTER.start()
             } else if (mode === "visual") {
-                CURSOR.startVisualSelect()
+                POINTER.startVisualSelect()
             } else {
                 setMode(mode)
             }
@@ -82,48 +128,23 @@ const init = () => {
 
 const setMode = mode => {
     mode = mode.trim().toLowerCase()
-    if (currentMode() === "insert" && mode !== "insert") {
-        TABS.currentPage().getWebContents().send("action", "blur")
-    }
-    if (mode !== "follow") {
-        FOLLOW.cancelFollow()
-    }
-    if (mode === "command") {
-        COMMANDHISTORY.resetPosition()
-    }
-    if (mode !== "nav" && mode !== "command") {
-        SUGGEST.cancelSuggestions()
-    }
-    if (["cursor", "visual"].includes(currentMode())) {
-        if (!["cursor", "visual"].includes(mode)) {
-            CURSOR.releaseKeys(mode === "visual")
-        }
-    }
-    if (["cursor", "visual"].includes(mode)) {
-        document.getElementById("cursor").style.display = "block"
-    } else {
-        document.getElementById("cursor").style.display = "none"
-    }
-    if (!["cursor", "insert"].includes(mode)) {
-        document.getElementById("url-hover").textContent = ""
-        document.getElementById("url-hover").style.display = "none"
-    }
-    if (!modes[mode]) {
+    if (!modes[mode] || currentMode() === mode) {
         return
     }
-    if (mode === "insert") {
-        document.getElementById("invisible-overlay").style.display = "none"
-    } else {
-        document.getElementById("invisible-overlay").style.display = ""
+    if (modes[currentMode()].onLeave) {
+        modes[currentMode()].onLeave(mode)
+    }
+    if (modes[mode].onEnter) {
+        modes[mode].onEnter(currentMode())
     }
     document.getElementById("mode").textContent = mode
-    document.getElementById("mode").style.color = modes[mode].fg
+    document.getElementById("mode").style.color = modes[mode].fg || ""
     document.getElementById("mode-container")
-        .style.backgroundColor = modes[mode].bg
+        .style.backgroundColor = modes[mode].bg || ""
     TABS.listPages().forEach(page => {
-        page.getWebContents().removeAllListeners("before-input-event")
+        TABS.webContents(page).removeAllListeners("before-input-event")
         if (mode === "insert") {
-            page.getWebContents().on("before-input-event", (e, input) => {
+            TABS.webContents(page).on("before-input-event", (e, input) => {
                 if (input.code === "Tab") {
                     TABS.currentPage().focus()
                 }
@@ -134,7 +155,7 @@ const setMode = mode => {
                 const ctrlBrack = input.code === "BracketLeft" && noMods && ctrl
                 if (escapeKey || ctrlBrack) {
                     if (document.body.classList.contains("fullscreen")) {
-                        page.getWebContents().send("action", "exitFullscreen")
+                        TABS.webContents(page).send("action", "exitFullscreen")
                         return
                     }
                 }

@@ -34,6 +34,58 @@ const listSetting = setting => {
     }
 }
 
+const splitSettingAndValue = (part, seperator) => {
+    const setting = part.split(seperator)[0]
+    const value = part.split(seperator).slice(1).join(seperator)
+    return [setting, value]
+}
+
+const modifyListOrNumber = (setting, value, method) => {
+    const isNumber = typeof SETTINGS.get(setting) === "number"
+    const isFreeText = SETTINGS.freeText.includes(setting)
+    const isListLike = SETTINGS.listLike.includes(setting)
+    if (!isNumber && !isFreeText && !isListLike) {
+        UTIL.notify(
+            `Can't modify '${setting}' as if it were a number or list`, "warn")
+        return
+    }
+    if (method === "append") {
+        if (isListLike) {
+            SETTINGS.set(setting, `${SETTINGS.get(setting)},${value}`)
+        }
+        if (isNumber) {
+            SETTINGS.set(setting, SETTINGS.get(setting) + Number(value))
+        }
+        if (isFreeText) {
+            SETTINGS.set(setting, SETTINGS.get(setting) + value)
+        }
+    }
+    if (method === "remove") {
+        if (isListLike) {
+            const current = SETTINGS.get(setting).split(",")
+            const newValue = current.filter(e => e && e !== value).join(",")
+            SETTINGS.set(setting, newValue)
+        }
+        if (isNumber) {
+            SETTINGS.set(setting, SETTINGS.get(setting) - Number(value))
+        }
+        if (isFreeText) {
+            SETTINGS.set(setting, SETTINGS.get(setting).replace(value, ""))
+        }
+    }
+    if (method === "special") {
+        if (isListLike) {
+            SETTINGS.set(setting, `${value},${SETTINGS.get(setting)}`)
+        }
+        if (isNumber) {
+            SETTINGS.set(setting, SETTINGS.get(setting) * Number(value))
+        }
+        if (isFreeText) {
+            SETTINGS.set(setting, value + SETTINGS.get(setting))
+        }
+    }
+}
+
 const set = (...args) => {
     if (args.length === 0) {
         const allChanges = SETTINGS.listCurrentSettings()
@@ -45,10 +97,20 @@ const set = (...args) => {
         return
     }
     for (const part of args) {
-        if (part.includes("=")) {
-            const setting = part.split("=")[0]
-            const value = part.split("=").slice(1).join("=")
-            SETTINGS.set(setting, value)
+        if (/^\w+\+=/.test(part)) {
+            modifyListOrNumber(...splitSettingAndValue(part, "+="), "append")
+        } else if (/^\w+-=/.test(part)) {
+            modifyListOrNumber(...splitSettingAndValue(part, "-="), "remove")
+        } else if (/^\w+\^=/.test(part)) {
+            modifyListOrNumber(...splitSettingAndValue(part, "^="), "special")
+        } else if (/^\w+=/.test(part)) {
+            SETTINGS.set(...splitSettingAndValue(part, "="))
+        } else if (/^\w+:/.test(part)) {
+            SETTINGS.set(...splitSettingAndValue(part, ":"))
+        } else if (part.includes("=") || part.includes(":")) {
+            UTIL.notify(
+                `The setting '${part.replace(/[+-^:=].*/, "")}' contains `
+                    + "invalid characters", "warn")
         } else if (part.endsWith("&")) {
             SETTINGS.reset(part.slice(0, -1))
         } else if (part.endsWith("!")) {
@@ -155,7 +217,7 @@ const reload = () => {
     SETTINGS.loadFromDisk()
     TABS.listPages().forEach(p => {
         if (UTIL.pathToSpecialPageName(p.src).name === "help") {
-            p.getWebContents().send(
+            TABS.webContents(p).send(
                 "settings", SETTINGS.listCurrentSettings(true),
                 INPUT.listSupportedActions())
         }
@@ -204,7 +266,7 @@ const write = (file, trailingArgs = false) => {
             return
         }
     }
-    TABS.currentPage().getWebContents().savePage(
+    TABS.webContents(TABS.currentPage()).savePage(
         loc, "HTMLComplete").then(() => {
         UTIL.notify(`Page successfully saved at '${loc}'`)
     }).catch(err => {
@@ -287,6 +349,9 @@ const commands = {
     "buffer": buffer,
     "cookies": cookies
 }
+// TODO add a function to automatically convert nmap, imap etc. to a generic function,
+// Based on the modes from the MODES object, which should have a modeList function.
+// Use the first character of the mode name to generate these commands.
 
 const noArgumentComands = [
     "q",

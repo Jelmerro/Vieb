@@ -202,15 +202,10 @@ const clearLocalStorage = () => {
 }
 
 const redirect = url => {
-    return url
-    // TODO fix this function after changing this to a string with separators
-    SETTINGS.get("redirects").forEach(r => {
-        if (r && r.match && r.replace) {
-            try {
-                url = url.replace(RegExp(r.match), r.replace)
-            } catch (e) {
-                // Invalid regex, ignore
-            }
+    SETTINGS.get("redirects").split(",").forEach(r => {
+        if (r.trim()) {
+            const [match, replace] = r.split("~")
+            url = url.replace(RegExp(match), replace)
         }
     })
     return url

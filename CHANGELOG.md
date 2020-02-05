@@ -25,10 +25,14 @@ but the list below contains much more technical details.
 - Running the last command again no longer adds a duplicate to the command history
 - The caseSensitiveSearch has been renamed to ignorecase to be more similar to Vim
 - Rename all settings to be lowercase and without dots
-- Set command syntax is now much more similar to Vim with support for &, inv and all
+- Set command syntax is now much more similar to Vim with support for all of Vim's set operators
 - Booleans can now be set and unset using "ignorecase" or "noignorecase", again, similar to Vim
+- Allow all settings to be changed at runtime, as they can be saved for the next startup with :mkv
+- List-like settings are now much more similar to Vim, as they are a comma seperated string, with += and -= support
 - Viebrc is now named 'viebrc' instead of 'viebrc.json' and is configured by Vim commands instead of JSON
 - All suggestion settings are now of the number type instead of boolean, and specify the number of entries to suggest (0 to disable)
+- Rename the modes: nav to explore and cursor to pointer, to allow for single key identifiers of the modes
+- Improvements to mode switching by centralizing mode switching code in the modes file
 
 ### Removed
 

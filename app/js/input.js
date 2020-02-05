@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS COMMAND CURSOR FOLLOW HISTORY MODES SETTINGS SUGGEST */
+/* global ACTIONS COMMAND POINTER FOLLOW HISTORY MODES SETTINGS SUGGEST */
 "use strict"
 
 const defaultBindings = {
@@ -24,9 +24,9 @@ const defaultBindings = {
         "F1": ":help",
         "C-KeyA": "ACTIONS.increasePageNumber",
         "KeyB": "ACTIONS.previousTab",
-        "KeyC": "CURSOR.start",
+        "KeyC": "POINTER.start",
         "KeyD": "ACTIONS.closeTab",
-        "KeyE": "ACTIONS.toNavMode",
+        "KeyE": "ACTIONS.toExploreMode",
         "KeyF": "ACTIONS.startFollowCurrentTab",
         "KeyG": {
             "KeyG": "ACTIONS.scrollTop",
@@ -39,10 +39,10 @@ const defaultBindings = {
         "KeyL": "ACTIONS.scrollRight",
         "KeyN": "ACTIONS.nextSearchMatch",
         "KeyR": "ACTIONS.reload",
-        "KeyS": "CURSOR.start",
+        "KeyS": "POINTER.start",
         "KeyT": "ACTIONS.openNewTab",
         "KeyU": "ACTIONS.reopenTab",
-        "KeyV": "CURSOR.start",
+        "KeyV": "POINTER.start",
         "KeyW": "ACTIONS.nextTab",
         "C-KeyX": "ACTIONS.decreasePageNumber",
         "Slash": "ACTIONS.toSearchMode",
@@ -97,7 +97,7 @@ const defaultBindings = {
         "C-BracketLeft": "ACTIONS.toNormalMode",
         "Enter": "ACTIONS.useEnteredData"
     },
-    "nav": {
+    "explore": {
         "F1": ":help",
         "Escape": "ACTIONS.toNormalMode",
         "Tab": "ACTIONS.nextSuggestion",
@@ -110,84 +110,86 @@ const defaultBindings = {
         "Escape": "ACTIONS.stopFollowMode",
         "C-BracketLeft": "ACTIONS.stopFollowMode"
     },
-    "cursor": {
+    "pointer": {
         "F1": ":help",
-        "Enter": "CURSOR.leftClick",
-        "BracketLeft": "CURSOR.scrollUp",
-        "BracketRight": "CURSOR.scrollDown",
-        "KeyB": "CURSOR.moveFastLeft",
-        "KeyD": "CURSOR.downloadImage",
-        "KeyE": "CURSOR.inspectElement",
+        "Enter": "POINTER.leftClick",
+        "BracketLeft": "POINTER.scrollUp",
+        "BracketRight": "POINTER.scrollDown",
+        "KeyB": "POINTER.moveFastLeft",
+        "KeyD": "POINTER.downloadImage",
+        "KeyE": "POINTER.inspectElement",
         "KeyF": "ACTIONS.startFollowCurrentTab",
         "KeyG": {
-            "KeyG": "CURSOR.startOfPage"
+            "KeyG": "POINTER.startOfPage"
         },
-        "KeyH": "CURSOR.moveLeft",
-        "KeyI": "CURSOR.insertAtPosition",
-        "KeyJ": "CURSOR.moveDown",
-        "KeyK": "CURSOR.moveUp",
-        "KeyL": "CURSOR.moveRight",
-        "KeyR": "CURSOR.rightClick",
-        "KeyV": "CURSOR.startVisualSelect",
-        "KeyW": "CURSOR.moveFastRight",
-        "KeyY": "CURSOR.copyAndStop",
+        "KeyH": "POINTER.moveLeft",
+        "KeyI": "POINTER.insertAtPosition",
+        "KeyJ": "POINTER.moveDown",
+        "KeyK": "POINTER.moveUp",
+        "KeyL": "POINTER.moveRight",
+        "KeyR": "POINTER.rightClick",
+        "KeyV": "POINTER.startVisualSelect",
+        "KeyW": "POINTER.moveFastRight",
+        "KeyY": "POINTER.copyAndStop",
         "Escape": "ACTIONS.toNormalMode",
-        "S-Comma": "CURSOR.scrollLeft",
-        "S-Period": "CURSOR.scrollRight",
-        "S-KeyG": "CURSOR.endOfPage",
-        "S-KeyH": "CURSOR.startOfView",
-        "S-KeyJ": "CURSOR.scrollDown",
-        "S-KeyK": "CURSOR.scrollUp",
-        "S-KeyL": "CURSOR.endOfView",
-        "S-KeyM": "CURSOR.centerOfView",
-        "S-Digit4": "CURSOR.moveRightMax",
-        "S-Digit6": "CURSOR.moveLeftMax",
-        "C-KeyD": "CURSOR.moveFastDown",
-        "C-KeyH": "CURSOR.moveSlowLeft",
-        "C-KeyJ": "CURSOR.moveSlowDown",
-        "C-KeyK": "CURSOR.moveSlowUp",
-        "C-KeyL": "CURSOR.moveSlowRight",
-        "C-KeyU": "CURSOR.moveFastUp",
+        "S-Comma": "POINTER.scrollLeft",
+        "S-Period": "POINTER.scrollRight",
+        "S-KeyG": "POINTER.endOfPage",
+        "S-KeyH": "POINTER.startOfView",
+        "S-KeyJ": "POINTER.scrollDown",
+        "S-KeyK": "POINTER.scrollUp",
+        "S-KeyL": "POINTER.endOfView",
+        "S-KeyM": "POINTER.centerOfView",
+        "S-Digit4": "POINTER.moveRightMax",
+        "S-Digit6": "POINTER.moveLeftMax",
+        "C-KeyD": "POINTER.moveFastDown",
+        "C-KeyH": "POINTER.moveSlowLeft",
+        "C-KeyJ": "POINTER.moveSlowDown",
+        "C-KeyK": "POINTER.moveSlowUp",
+        "C-KeyL": "POINTER.moveSlowRight",
+        "C-KeyU": "POINTER.moveFastUp",
         "C-BracketLeft": "ACTIONS.toNormalMode"
     },
     "visual": {
         "F1": ":help",
-        "BracketLeft": "CURSOR.scrollUp",
-        "BracketRight": "CURSOR.scrollDown",
-        "KeyB": "CURSOR.moveFastLeft",
-        "KeyC": "CURSOR.copyAndStop",
+        "BracketLeft": "POINTER.scrollUp",
+        "BracketRight": "POINTER.scrollDown",
+        "KeyB": "POINTER.moveFastLeft",
+        "KeyC": "POINTER.copyAndStop",
         "KeyF": "ACTIONS.startFollowCurrentTab",
         "KeyG": {
-            "KeyG": "CURSOR.startOfPage"
+            "KeyG": "POINTER.startOfPage"
         },
-        "KeyH": "CURSOR.moveLeft",
-        "KeyJ": "CURSOR.moveDown",
-        "KeyK": "CURSOR.moveUp",
-        "KeyL": "CURSOR.moveRight",
-        "KeyW": "CURSOR.moveFastRight",
-        "KeyY": "CURSOR.copyAndStop",
+        "KeyH": "POINTER.moveLeft",
+        "KeyJ": "POINTER.moveDown",
+        "KeyK": "POINTER.moveUp",
+        "KeyL": "POINTER.moveRight",
+        "KeyW": "POINTER.moveFastRight",
+        "KeyY": "POINTER.copyAndStop",
         "Escape": "ACTIONS.toNormalMode",
-        "S-Comma": "CURSOR.scrollLeft",
-        "S-Period": "CURSOR.scrollRight",
-        "S-KeyG": "CURSOR.endOfPage",
-        "S-KeyH": "CURSOR.startOfView",
-        "S-KeyJ": "CURSOR.scrollDown",
-        "S-KeyK": "CURSOR.scrollUp",
-        "S-KeyL": "CURSOR.endOfView",
-        "S-KeyM": "CURSOR.centerOfView",
-        "S-Digit4": "CURSOR.moveRightMax",
-        "S-Digit6": "CURSOR.moveLeftMax",
-        "C-KeyD": "CURSOR.moveFastDown",
-        "C-KeyH": "CURSOR.moveSlowLeft",
-        "C-KeyJ": "CURSOR.moveSlowDown",
-        "C-KeyK": "CURSOR.moveSlowUp",
-        "C-KeyL": "CURSOR.moveSlowRight",
-        "C-KeyU": "CURSOR.moveFastUp",
+        "S-Comma": "POINTER.scrollLeft",
+        "S-Period": "POINTER.scrollRight",
+        "S-KeyG": "POINTER.endOfPage",
+        "S-KeyH": "POINTER.startOfView",
+        "S-KeyJ": "POINTER.scrollDown",
+        "S-KeyK": "POINTER.scrollUp",
+        "S-KeyL": "POINTER.endOfView",
+        "S-KeyM": "POINTER.centerOfView",
+        "S-Digit4": "POINTER.moveRightMax",
+        "S-Digit6": "POINTER.moveLeftMax",
+        "C-KeyD": "POINTER.moveFastDown",
+        "C-KeyH": "POINTER.moveSlowLeft",
+        "C-KeyJ": "POINTER.moveSlowDown",
+        "C-KeyK": "POINTER.moveSlowUp",
+        "C-KeyL": "POINTER.moveSlowRight",
+        "C-KeyU": "POINTER.moveFastUp",
         "C-BracketLeft": "ACTIONS.toNormalMode"
     }
 }
 let bindings = {}
 let repeatCounter = 0
+// TODO replace currentSubKey with a list of pressed keys without an action being triggered
+// This will only happen if there are actions bound to recursive bindings.
 let currentSubKey = null
 let supportedActions = []
 
@@ -206,10 +208,10 @@ const init = () => {
         }
         if (SETTINGS.get("mouse")) {
             if (e.target === document.getElementById("url")) {
-                if (!["nav", "command"].includes(MODES.currentMode())) {
-                    ACTIONS.toNavMode()
+                if (!["explore", "command"].includes(MODES.currentMode())) {
+                    ACTIONS.toExploreMode()
                 }
-            } else if (["nav", "command"].includes(MODES.currentMode())) {
+            } else if (["explore", "command"].includes(MODES.currentMode())) {
                 ACTIONS.toNormalMode()
             }
         }
@@ -224,12 +226,12 @@ const init = () => {
         if (MODES.currentMode() === "follow") {
             FOLLOW.startFollow()
         }
-        if (MODES.currentMode() === "cursor") {
-            CURSOR.updateCursorElement()
+        if (MODES.currentMode() === "pointer") {
+            POINTER.updateElement()
         }
     })
     document.getElementById("url").addEventListener("input", () => {
-        if (MODES.currentMode() === "nav") {
+        if (MODES.currentMode() === "explore") {
             HISTORY.suggestHist(document.getElementById("url").value)
         } else if (MODES.currentMode() === "command") {
             SUGGEST.suggestCommand(document.getElementById("url").value)
@@ -239,16 +241,18 @@ const init = () => {
         ACTIONS.setFocusCorrectly()
     }, 500)
     ACTIONS.setFocusCorrectly()
+    // TODO rethink this list now that functions can very well have arguments,
+    // This also includes simplifying the ACTIONS based on the now supported arguments.
     const unSupportedActions = [
         "ACTIONS.setFocusCorrectly",
-        "CURSOR.move",
-        "CURSOR.handleScrollDiffEvent",
-        "CURSOR.updateCursorElement",
-        "CURSOR.releaseKeys"
+        "POINTER.move",
+        "POINTER.handleScrollDiffEvent",
+        "POINTER.updateElement",
+        "POINTER.releaseKeys"
     ]
     supportedActions = [
         ...Object.keys(ACTIONS).map(a => `ACTIONS.${a}`),
-        ...Object.keys(CURSOR).map(c => `CURSOR.${c}`)
+        ...Object.keys(POINTER).map(c => `POINTER.${c}`)
     ].filter(m => !unSupportedActions.includes(m))
     bindings = JSON.parse(JSON.stringify(defaultBindings))
 }
@@ -297,7 +301,7 @@ const countableActions = [
     "ACTIONS.zoomIn",
     // Single use actions that ignore the count and only execute once
     "ACTIONS.emptySearch",
-    "ACTIONS.toNavMode",
+    "ACTIONS.toExploreMode",
     "ACTIONS.startFollowCurrentTab",
     "ACTIONS.scrollTop",
     "ACTIONS.insertAtFirstInput",
@@ -314,17 +318,17 @@ const countableActions = [
     "ACTIONS.stopFollowMode",
     "ACTIONS.useEnteredData",
     "ACTIONS.editWithVim",
-    "CURSOR.start",
-    "CURSOR.inspectElement",
-    "CURSOR.copyAndStop",
-    "CURSOR.startOfPage",
-    "CURSOR.insertAtPosition",
-    "CURSOR.centerOfView",
-    "CURSOR.startOfView",
-    "CURSOR.endOfView",
-    "CURSOR.endOfPage",
-    "CURSOR.moveRightMax",
-    "CURSOR.moveLeftMax"
+    "POINTER.start",
+    "POINTER.inspectElement",
+    "POINTER.copyAndStop",
+    "POINTER.startOfPage",
+    "POINTER.insertAtPosition",
+    "POINTER.centerOfView",
+    "POINTER.startOfView",
+    "POINTER.endOfView",
+    "POINTER.endOfPage",
+    "POINTER.moveRightMax",
+    "POINTER.moveLeftMax"
 ]
 
 const handleKeyboard = e => {
@@ -385,7 +389,7 @@ const handleKeyboard = e => {
             return
         }
         actionFunction()
-        if (["normal", "cursor", "visual"].includes(MODES.currentMode())) {
+        if (["normal", "pointer", "visual"].includes(MODES.currentMode())) {
             while (repeatCounter > 1) {
                 actionFunction()
                 repeatCounter -= 1
@@ -396,7 +400,7 @@ const handleKeyboard = e => {
         return
     }
     if (id.startsWith("Digit")) {
-        if (["normal", "cursor", "visual"].includes(MODES.currentMode())) {
+        if (["normal", "pointer", "visual"].includes(MODES.currentMode())) {
             const keyNumber = Number(id.replace("Digit", ""))
             if (!isNaN(keyNumber)) {
                 repeatCounter = Number(String(repeatCounter) + keyNumber)
@@ -418,7 +422,7 @@ const actionToFunction = action => {
         return () => COMMAND.execute(action)
     }
     if (supportedActions.includes(action)) {
-        const categories = {"ACTIONS": ACTIONS, "CURSOR": CURSOR}
+        const categories = {"ACTIONS": ACTIONS, "POINTER": POINTER}
         const [categoryName, func] = action.split(".")
         return categories[categoryName][func]
     }

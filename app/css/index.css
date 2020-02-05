@@ -74,7 +74,7 @@ body.mouse webview {pointer-events: all;}
 body.mouse #invisible-overlay {display: none;}
 body.mouse #navbar {pointer-events: all;}
 body.mouse #suggest-dropdown div:hover {background-color: #666;cursor: pointer;}
-#mode-suggestions {background-color: #333;max-height: 0;position: absolute;left: 4em;top:2em;z-index: 1;transition: .5s all;overflow: hidden;display: inline-block;width: 6em;text-transform: capitalize;}
+#mode-suggestions {background-color: #333;max-height: 0;position: absolute;left: 4em;top:2em;z-index: 20;transition: .5s all;overflow: hidden;display: inline-block;width: 6em;text-transform: capitalize;}
 #mode-suggestions:hover {max-height: 100vw;}
 body.mouse #mode-container:hover #mode-suggestions {max-height: 100vw;}
 #mode-suggestions div {font-size: 1.3em;transition: .1s all;}
@@ -95,6 +95,6 @@ body.fullscreen webview {height: 100vh;}
 ::-webkit-scrollbar {height: .2em;}
 ::-webkit-scrollbar-thumb {background: #5ff;}
 /* other */
-@keyframes cursor {0% {background: #f007;} 17% {background: #ff07;} 33% {background: #0f07;} 49% {background: #0ff7;} 66% {background: #00f7;} 83% {background: #f0f7;} 100% {background: #f007;}}
-#cursor {display: none;position: absolute;height: 1em;width: .7em;z-index: 20;backdrop-filter: invert(100%);animation: 1s infinite cursor;}
+@keyframes pointer {0% {background: #f007;} 17% {background: #ff07;} 33% {background: #0f07;} 49% {background: #0ff7;} 66% {background: #00f7;} 83% {background: #f0f7;} 100% {background: #f007;}}
+#pointer {display: none;position: absolute;height: 1em;width: .7em;z-index: 20;backdrop-filter: invert(100%);animation: 1s infinite pointer;}
 #url-hover {display: none;position: absolute;background-color: #fff9;color: #000;bottom: 0;left: 0;right: 0;pointer-events: none;padding: .1em;width: fit-content;margin: auto;max-width: 80vw;word-break: break-all;text-align: center;}
