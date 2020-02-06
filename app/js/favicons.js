@@ -27,6 +27,8 @@ const mappingFile = path.join(faviconFolder, "mappings")
 let mappings = {}
 const sessionStart = new Date()
 let isParsed = false
+const viebIcon = `file:///${path.join(
+    __dirname, "../img/icons/256x256.png").replace(/^\/*/g, "")}`
 
 const init = () => {
     const parsed = UTIL.readJSON(mappingFile)
@@ -103,6 +105,10 @@ const update = (webview, urls) => {
     }
     const favicon = urls[0]
     if (!favicon) {
+        return
+    }
+    if (viebIcon === favicon && !UTIL.pathToSpecialPageName(webview.src).name) {
+        // Don't allow non-special pages to use the built-in favicon
         return
     }
     const currentUrl = String(webview.src)

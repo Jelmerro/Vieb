@@ -191,11 +191,9 @@ const enterKey = identifier => {
     if (matches.length === 1) {
         const link = links[matches[0].getAttribute("link-id")]
         if (followNewtab) {
+            MODES.setMode("normal")
             if (stayInFollowMode) {
-                cancelFollow()
                 startFollow()
-            } else {
-                MODES.setMode("normal")
             }
             TABS.addTab(link.url, false, !stayInFollowMode)
             return
@@ -236,7 +234,10 @@ const enterKey = identifier => {
             "x": link.x * factor,
             "y": link.y * factor
         })
-        if (link.type !== "inputs-insert") {
+        if (stayInFollowMode) {
+            MODES.setMode(modeBeforeFollow)
+            startFollow()
+        } else if (link.type !== "inputs-insert") {
             MODES.setMode(modeBeforeFollow)
         }
     }

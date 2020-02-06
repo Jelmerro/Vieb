@@ -226,7 +226,7 @@ const init = () => {
         if (MODES.currentMode() === "follow") {
             FOLLOW.startFollow()
         }
-        if (MODES.currentMode() === "pointer") {
+        if (["pointer", "visual"].includes(MODES.currentMode())) {
             POINTER.updateElement()
         }
     })
