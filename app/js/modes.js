@@ -126,6 +126,43 @@ const init = () => {
     })
 }
 
+const insertModeHandler = (page, e, input) => {
+    if (input.code === "Tab") {
+        TABS.currentPage().focus()
+    }
+    // Check if fullscreen should be disabled
+    const noMods = !input.shift && !input.meta && !input.alt
+    const ctrl = input.control
+    const escapeKey = input.code === "Escape" && noMods && !ctrl
+    const ctrlBrack = input.code === "BracketLeft" && noMods && ctrl
+    if (escapeKey || ctrlBrack) {
+        if (document.body.classList.contains("fullscreen")) {
+            TABS.webContents(page).send("action", "exitFullscreen")
+            return
+        }
+    }
+    if (input.type.toLowerCase() !== "keydown") {
+        return
+    }
+    // Translate to regular keyboard event
+    const keyEvent = {
+        "ctrlKey": input.control,
+        "shiftKey": input.shift,
+        "metaKey": input.meta,
+        "altKey": input.alt,
+        "code": input.code
+    }
+    // Find the action
+    const actionFunction = INPUT.actionToFunction(
+        INPUT.eventToAction(keyEvent))
+    if (actionFunction) {
+        e.preventDefault()
+        if (currentMode() === "insert") {
+            actionFunction()
+        }
+    }
+}
+
 const setMode = mode => {
     mode = mode.trim().toLowerCase()
     if (!modes[mode] || currentMode() === mode) {
@@ -142,51 +179,20 @@ const setMode = mode => {
     document.getElementById("mode-container")
         .style.backgroundColor = modes[mode].bg || ""
     TABS.listPages().forEach(page => {
-        TABS.webContents(page).removeAllListeners("before-input-event")
-        if (mode === "insert") {
-            TABS.webContents(page).on("before-input-event", (e, input) => {
-                if (input.code === "Tab") {
-                    TABS.currentPage().focus()
-                }
-                // Check if fullscreen should be disabled
-                const noMods = !input.shift && !input.meta && !input.alt
-                const ctrl = input.control
-                const escapeKey = input.code === "Escape" && noMods && !ctrl
-                const ctrlBrack = input.code === "BracketLeft" && noMods && ctrl
-                if (escapeKey || ctrlBrack) {
-                    if (document.body.classList.contains("fullscreen")) {
-                        TABS.webContents(page).send("action", "exitFullscreen")
-                        return
-                    }
-                }
-                if (input.type.toLowerCase() !== "keydown") {
-                    return
-                }
-                // Translate to regular keyboard event
-                const keyEvent = {
-                    "ctrlKey": input.control,
-                    "shiftKey": input.shift,
-                    "metaKey": input.meta,
-                    "altKey": input.alt,
-                    "code": input.code
-                }
-                // Find the action
-                const actionFunction = INPUT.actionToFunction(
-                    INPUT.eventToAction(keyEvent))
-                if (actionFunction) {
-                    e.preventDefault()
-                    if (currentMode() === "insert") {
-                        actionFunction()
-                    }
-                }
-            })
+        if (page.getAttribute("webview-id")) {
+            TABS.webContents(page).removeAllListeners("before-input-event")
+            if (mode === "insert") {
+                TABS.webContents(page).on("before-input-event", (e, input) => {
+                    insertModeHandler(page, e, input)
+                })
+            }
         }
     })
     ACTIONS.setFocusCorrectly()
 }
 
 const currentMode = () => {
-    return document.getElementById("mode").textContent.trim()
+    return document.getElementById("mode").textContent.trim().toLowerCase()
 }
 
 module.exports = {

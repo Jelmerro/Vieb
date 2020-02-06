@@ -33,6 +33,7 @@ but the list below contains much more technical details.
 - All suggestion settings are now of the number type instead of boolean, and specify the number of entries to suggest (0 to disable)
 - Rename the modes: nav to explore and cursor to pointer, to allow for single key identifiers of the modes
 - Improvements to mode switching by centralizing mode switching code in the modes file
+- Click on multiple elements without re-entering follow mode by holding Shift
 
 ### Removed
 

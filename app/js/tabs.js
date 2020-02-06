@@ -256,6 +256,7 @@ const addTab = (url = null, inverted = false, switchTo = true) => {
             if (url) {
                 url = UTIL.redirect(url)
                 webview.src = url
+                resetTabInfo(webview)
                 title.textContent = url
             }
             webview.removeAttribute("useragent")
@@ -578,7 +579,8 @@ const addWebviewListeners = webview => {
             DOWNLOADS.sendDownloadList(e.args[0], e.args[1])
         }
         if (e.channel === "new-tab-info-request") {
-            if (SETTINGS.get("suggesttopsites")) {
+            const special = UTIL.pathToSpecialPageName(webview.src)
+            if (SETTINGS.get("suggesttopsites") && special.name === "newtab") {
                 webview.send("insert-new-tab-info", HISTORY.suggestTopSites())
             }
         }
