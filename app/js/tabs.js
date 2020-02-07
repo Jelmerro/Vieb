@@ -339,10 +339,12 @@ const switchToTab = index => {
     MODES.setMode("normal")
 }
 
-const updateUrl = webview => {
+const updateUrl = (webview, force = false) => {
     const skip = ["command", "search", "explore"]
     if (webview !== currentPage() || skip.includes(MODES.currentMode())) {
-        return
+        if (!force) {
+            return
+        }
     }
     if (currentPage() && currentPage().src) {
         const specialPage = UTIL.pathToSpecialPageName(currentPage().src)
