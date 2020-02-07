@@ -229,6 +229,9 @@ const addTab = (url = null, inverted = false, switchTo = true) => {
     webview.setAttribute("link-id", linkId)
     tab.setAttribute("link-id", linkId)
     webview.setAttribute("preload", "./js/preload.js")
+    if (SETTINGS.get("spell")) {
+        webview.setAttribute("webpreferences", "spellcheck=yes")
+    }
     let sessionName = "persist:main"
     if (SETTINGS.get("containertabs")) {
         sessionName = `container-${linkId}`

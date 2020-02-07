@@ -34,6 +34,7 @@ but the list below contains much more technical details.
 - Rename the modes: nav to explore and cursor to pointer, to allow for single key identifiers of the modes
 - Improvements to mode switching by centralizing mode switching code in the modes file
 - Click on multiple elements without re-entering follow mode by holding Shift
+- Add spellcheck integration (on by default), use spell and spelllang to configure
 
 ### Removed
 
