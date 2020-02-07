@@ -57,6 +57,8 @@ const defaultSettings = {
     "restorewindowposition": true,
     "restorewindowsize": true,
     "search": "https://duckduckgo.com/?kae=d&q=",
+    "spell": true,
+    "spelllang": "system",
     "startuppages": "",
     "storenewvisists": true,
     "suggestcommands": 20,
@@ -72,8 +74,16 @@ const listLike = ["redirects", "startuppages"]
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
     "cache": ["none", "clearonquit", "full"],
+    "favicons": [
+        "disabled", "nocache", "session", "1day", "5day", "30day", "forever"
+    ],
     "notificationposition": [
         "bottomright", "bottomleft", "topright", "topleft"
+    ],
+    "spelllang": [
+        "system",
+        ...JSON.parse(JSON.stringify(
+            remote.session.defaultSession.availableSpellCheckerLanguages))
     ],
     "taboverflow": ["hidden", "scroll", "wrap"],
     "permissioncamera": ["block", "ask", "allow"],
@@ -84,10 +94,7 @@ const validOptions = {
     "permissionnotifications": ["block", "ask", "allow"],
     "permissionopenexternal": ["block", "ask", "allow"],
     "permissionpointerlock": ["block", "ask", "allow"],
-    "permissionunknown": ["block", "ask", "allow"],
-    "favicons": [
-        "disabled", "nocache", "session", "1day", "5day", "30day", "forever"
-    ]
+    "permissionunknown": ["block", "ask", "allow"]
 }
 const numberRanges = {
     "fontsize": [8, 30],
@@ -104,7 +111,7 @@ const init = () => {
 }
 
 const checkOption = (setting, value) => {
-    const optionList = validOptions[setting]
+    const optionList = JSON.parse(JSON.stringify(validOptions[setting]))
     if (optionList) {
         const valid = optionList.includes(value)
         if (!valid) {
@@ -341,6 +348,7 @@ const loadFromDisk = () => {
     updateDownloadSettings()
     updateTabOverflow()
     updateMouseSettings()
+    SESSIONS.setSpellLang(get("spelllang"))
 }
 
 const get = (setting, settingObject = allSettings) => {
@@ -391,17 +399,20 @@ const set = (setting, value) => {
         if (downloadSettings.includes(setting)) {
             updateDownloadSettings()
         }
-        if (setting === "mouse") {
-            updateMouseSettings()
-        }
-        if (setting === "taboverflow") {
-            updateTabOverflow()
-        }
         if (setting === "mintabwidth") {
             TABS.listTabs().forEach(tab => {
                 tab.style.minWidth = `${allSettings.mintabwidth}px`
             })
             TABS.currentTab().scrollIntoView({"inline": "center"})
+        }
+        if (setting === "mouse") {
+            updateMouseSettings()
+        }
+        if (setting === "spelllang") {
+            SESSIONS.setSpellLang(get("spelllang"))
+        }
+        if (setting === "taboverflow") {
+            updateTabOverflow()
         }
         TABS.listPages().forEach(p => {
             if (UTIL.pathToSpecialPageName(p.src).name === "help") {

@@ -170,9 +170,20 @@ const copyBlocklist = name => {
     }
 }
 
+const setSpellLang = lang => {
+    Object.keys(sessions).forEach(ses => {
+        if (lang === "system") {
+            remote.session.fromPartition(ses).setSpellCheckerLanguages([])
+        } else {
+            remote.session.fromPartition(ses).setSpellCheckerLanguages([lang])
+        }
+    })
+}
+
 module.exports = {
     init,
     create,
     enableAdblocker,
-    disableAdblocker
+    disableAdblocker,
+    setSpellLang
 }
