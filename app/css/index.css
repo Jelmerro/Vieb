@@ -46,8 +46,8 @@ img {height: 1.5em;width: 1.5em;min-height: 1.5em;min-width: 1.5em;pointer-event
 #url.file {border-color: #ff9;}
 /* follow */
 #follow {position: fixed;display: none;}
-.follow-url, .follow-inputs-click, .follow-inputs-insert, .follow-onclick {position: absolute;color: #111;}
-.follow-url-border, .follow-inputs-click-border, .follow-inputs-insert-border, .follow-onclick-border {position: absolute;box-sizing: border-box;}
+.follow-url, .follow-inputs-click, .follow-inputs-insert, .follow-onclick {position: absolute;color: #111;cursor: pointer;}
+.follow-url-border, .follow-inputs-click-border, .follow-inputs-insert-border, .follow-onclick-border {position: absolute;box-sizing: border-box;cursor: pointer;}
 .follow-url {background-color: #cff;border: solid .15em #5cc;z-index: 13;}
 .follow-inputs-click {background-color: #fcc;border: solid .15em #c55;z-index: 12;}
 .follow-inputs-insert {background-color: #cfc;border: solid .15em #5c5;z-index: 11;}

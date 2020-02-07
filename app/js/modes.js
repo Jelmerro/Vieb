@@ -55,6 +55,7 @@ const modes = {
     "explore": {
         "fg": "#3ff",
         "onEnter": () => {
+            TABS.updateUrl(TABS.currentPage(), true)
             document.getElementById("url").select()
         },
         "onLeave": () => {

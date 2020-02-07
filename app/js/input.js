@@ -206,6 +206,10 @@ const init = () => {
             e.preventDefault()
             return
         }
+        e.preventDefault()
+        ACTIONS.setFocusCorrectly()
+    })
+    window.addEventListener("mouseup", e => {
         if (SETTINGS.get("mouse")) {
             if (e.target === document.getElementById("url")) {
                 if (!["explore", "command"].includes(MODES.currentMode())) {
