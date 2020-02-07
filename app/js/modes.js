@@ -28,7 +28,9 @@ const modes = {
             document.getElementById("invisible-overlay").style.display = "none"
         },
         "onLeave": newMode => {
-            TABS.webContents(TABS.currentPage()).send("action", "blur")
+            if (TABS.currentPage().getAttribute("webview-id")) {
+                TABS.webContents(TABS.currentPage()).send("action", "blur")
+            }
             document.getElementById("invisible-overlay").style.display = ""
             document.getElementById("url-hover").textContent = ""
             if (newMode !== "pointer") {

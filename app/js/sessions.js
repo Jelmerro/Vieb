@@ -45,12 +45,12 @@ const permissionHandler = (_, permission, callback, details) => {
             url = url.replace(/.{50}/g, "$&\n")
         }
         let message = "The page has requested access to the permission "
-                + `'${permission}'. You can allow or deny this below, `
-                + "and choose if you want to make this the default for "
-                + "the current session when sites ask for this permission."
-                + " You can always change this using the settings file,"
-                + " or at runtime with the set command like so: "
-                + `'set permission${permission.toLowerCase()}=<value>'\n\npage:\n${url}`
+            + `'${permission}'. You can allow or deny this below, `
+            + "and choose if you want to make this the default for "
+            + "the current session when sites ask for this permission."
+            + " You can always change this using the settings file,"
+            + " or at runtime with the set command like so: "
+            + `'set permission${permission.toLowerCase()}=<value>'\n\npage:\n${url}`
         if (permission === "openExternal") {
             let exturl = details.externalURL
             if (exturl.length > 100) {
