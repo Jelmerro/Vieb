@@ -225,9 +225,9 @@ const allElementsBySelectors = (type, selectors) => {
 const elementsWithClickListener = []
 const elementsWithMouseDownListener = []
 
-Node.prototype.realAddEventListener = Node.prototype.addEventListener
-Node.prototype.addEventListener = function(type, listener, options) {
-    this.realAddEventListener(type, listener, options)
+EventTarget.prototype.realAddListener = EventTarget.prototype.addEventListener
+EventTarget.prototype.addEventListener = function(type, listener, options) {
+    this.realAddListener(type, listener, options)
     if (type === "click" && this !== document) {
         elementsWithClickListener.push(this)
     }
@@ -235,10 +235,11 @@ Node.prototype.addEventListener = function(type, listener, options) {
         elementsWithMouseDownListener.push(this)
     }
 }
-Node.prototype.realRemoveEventListener = Node.prototype.removeEventListener
-Node.prototype.removeEventListener = function(type, listener, options) {
+EventTarget.prototype.realRemoveListener
+    = EventTarget.prototype.removeEventListener
+EventTarget.prototype.removeEventListener = function(type, listener, options) {
     try {
-        this.realRemoveEventListener(type, listener, options)
+        this.realRemoveListener(type, listener, options)
     } catch (e) {
         // This is a bug in the underlying website
     }

@@ -334,6 +334,8 @@ const switchToTab = index => {
     listPages().forEach(page => {
         page.style.display = "none"
     })
+    document.getElementById("url-hover").textContent = ""
+    document.getElementById("url-hover").style.display = "none"
     tabs[index].id = "current-tab"
     tabs[index].scrollIntoView({"inline": "center"})
     tabOrPageMatching(tabs[index]).style.display = "flex"
@@ -391,6 +393,8 @@ const addWebviewListeners = webview => {
                     MODES.setMode("insert")
                 } else if (modesWithTyping.includes(MODES.currentMode())) {
                     MODES.setMode("normal")
+                } else {
+                    ACTIONS.setFocusCorrectly()
                 }
             } else {
                 webview.blur()
