@@ -166,7 +166,7 @@ const writeToFile = () => {
             }
         }
     })
-    if (SETTINGS.get("cleardownloadsonquit")) {
+    if (SETTINGS.get("cleardownloadsonquit") || downloads.length === 0) {
         UTIL.deleteFile(dlsFile)
     } else {
         UTIL.writeJSON(dlsFile, downloads)

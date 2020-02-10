@@ -24,49 +24,49 @@ const readline = require("readline")
 const {remote} = require("electron")
 
 const histFile = path.join(remote.app.getPath("appData"), "hist")
-let history = []
 let groupedHistory = {}
+let lastWrite = new Date().getTime()
 let finishedLoading = false
 
 const init = () => {
     if (!UTIL.isFile(histFile)) {
         return
     }
+    groupedHistory = UTIL.readJSON(histFile) || {}
+    if (Object.keys(groupedHistory).length > 0) {
+        finishedLoading = true
+        return
+    }
+    // NOTE: deprecated code for reading old format, will be removed in 3.0.0
     const histStream = fs.createReadStream(histFile)
     const rl = readline.createInterface({
         "input": histStream
     })
     rl.on("line", line => {
         const hist = parseHistLine(line)
-        if (hist) {
-            history.push(hist)
+        if (!groupedHistory[hist.url]) {
+            groupedHistory[hist.url] = {
+                "title": hist.title,
+                "visits": []
+            }
+        }
+        groupedHistory[hist.url].visits.push(hist.date)
+        if (!UTIL.hasProtocol(hist.title) && hist.title.trim()) {
+            groupedHistory[hist.url].title = hist.title
         }
     }).on("close", () => {
-        groupedHistory = history.reduce((list, hist) => {
-            if (!list[hist.url]) {
-                list[hist.url] = {"title": hist.title, "visits": 0}
-            }
-            list[hist.url].visits += 1
-            if (!UTIL.hasProtocol(hist.title) && hist.title.trim()) {
-                list[hist.url].title = hist.title
-            }
-            return list
-        }, {})
         finishedLoading = true
     })
 }
 
 const parseHistLine = line => {
+    // Deprecated, will be unused and removed in 3.0.0
     const parts = line.split("\t")
     if (parts.length < 3) {
         return null
     }
-    const date = new Date(parts[0])
-    if (!date) {
-        return null
-    }
     return {
-        "date": date,
+        "date": parts[0],
         "title": parts[1],
         "url": parts.slice(2).join("")
     }
@@ -102,7 +102,7 @@ const suggestHist = search => {
             return {
                 "url": url,
                 "title": groupedHistory[url].title,
-                "relevance": relevance * groupedHistory[url].visits
+                "relevance": relevance * visitCount(url)
             }
         }
         return null
@@ -116,76 +116,90 @@ const orderAndAddSuggestions = suggestions => {
         .forEach(SUGGEST.addHist)
 }
 
-const addToHist = (title, url) => {
+const addToHist = url => {
     if (!SETTINGS.get("storenewvisists")) {
         return
     }
     if (UTIL.pathToSpecialPageName(url).name) {
         return
     }
-    const date = new Date()
-    history.push({
-        "date": date,
-        "title": title,
-        "url": url
-    })
+    url = url.replace(/\t/g, "")
+    const date = new Date().toISOString()
     if (!groupedHistory[url]) {
-        groupedHistory[url] = {"title": title, "visits": 0}
+        groupedHistory[url] = {"title": url, "visits": []}
     }
-    groupedHistory[url].visits += 1
-    if (!UTIL.hasProtocol(title) && title.trim()) {
-        groupedHistory[url].title = title
-    }
-    const line = `${date.toISOString()}\t${title.replace(/\t/g, " ")}\t${url}\n`
-    fs.appendFileSync(histFile, line)
+    groupedHistory[url].visits.push(date)
+    writeHistToFile()
 }
 
 const clearHistory = () => {
-    UTIL.deleteFile(histFile)
-    history = []
     groupedHistory = {}
+    return UTIL.deleteFile(histFile)
 }
 
-const removeFromHistory = (start, end = null) => {
-    if (!end || end < start) {
-        end = start
+const writeHistToFile = (now = false) => {
+    if (Object.keys(groupedHistory).length === 0) {
+        UTIL.deleteFile(histFile)
+        return
     }
-    for (let i = start;i <= end;i++) {
-        if (i >= history.length) {
-            break
+    Object.keys(groupedHistory).forEach(url => {
+        if (visitCount(url) === 0) {
+            delete groupedHistory[url]
         }
-        const url = history[i].url
+    })
+    if (now) {
+        return UTIL.writeJSON(histFile, groupedHistory)
+    }
+    if (new Date().getTime() - lastWrite > 10000) {
+        lastWrite = new Date().getTime()
+        setTimeout(() => {
+            UTIL.writeJSON(histFile, groupedHistory)
+        }, 1000)
+    } else {
+        setTimeout(writeHistToFile, 5000)
+    }
+}
+
+const removeFromHistory = entries => {
+    entries.forEach(entry => {
+        const url = entry.url
         if (groupedHistory[url]) {
-            groupedHistory[url].visits -= 1
-            if (groupedHistory[url].visits === 0) {
+            groupedHistory[url].visits = groupedHistory[url].visits
+                .filter(d => d !== entry.date)
+            if (visitCount(url) === 0) {
                 delete groupedHistory[url]
             }
         }
-    }
-    history = history.filter((_, index) => {
-        return index < start || index > end
     })
-    const historyString = history.map(h => {
-        return `${h.date.toISOString()}\t${h.title.replace(/\t/g, " ")
-        }\t${h.url}`
-    }).join("\n")
-    if (history.length === 0) {
-        clearHistory()
-    } else {
-        fs.writeFileSync(histFile, `${historyString}\n`)
-    }
+    return writeHistToFile(true)
 }
 
-const handleRequest = (type, start, end) => {
-    if (type === "range") {
-        removeFromHistory(start, end)
-    } else if (type === "all") {
-        clearHistory()
+const handleRequest = (action = "", entries = []) => {
+    if (!action) {
+        let history = []
+        Object.keys(groupedHistory).forEach(site => {
+            groupedHistory[site].visits.forEach(visit => {
+                history.push({
+                    "url": site,
+                    "title": groupedHistory[site].title,
+                    "icon": FAVICONS.forSite(site),
+                    "date": new Date(visit),
+                    "visits": groupedHistory[site].visits.length
+                })
+            })
+        })
+        history = history.sort((a, b) => a.date.getTime() - b.date.getTime())
+        TABS.webContents(TABS.currentPage()).send("history-list", history)
+        return
     }
-    TABS.webContents(TABS.currentPage()).send("history-list", history.map(h => {
-        h.icon = FAVICONS.forSite(h.url)
-        return h
-    }))
+    let success = false
+    if (action === "range" && entries.length > 0) {
+        success = removeFromHistory(entries)
+    }
+    if (action === "all") {
+        success = clearHistory()
+    }
+    TABS.webContents(TABS.currentPage()).send("history-removal-status", success)
 }
 
 const suggestTopSites = () => {
@@ -193,16 +207,19 @@ const suggestTopSites = () => {
         return groupedHistory[g]
     }).sort((a, b) => {
         if (groupedHistory[a] && groupedHistory[b]) {
-            return groupedHistory[b].visits - groupedHistory[a].visits
+            return visitCount(b) - visitCount(a)
         }
         return 0
     }).slice(0, SETTINGS.get("suggesttopsites")).map(site => {
         if (SETTINGS.get("favicons") === "disabled") {
-            return {"url": site, "name": groupedHistory[site].title}
+            return {
+                "url": site,
+                "name": groupedHistory[site] && groupedHistory[site].title
+            }
         }
         return {
             "url": site,
-            "name": groupedHistory[site].title,
+            "name": groupedHistory[site] && groupedHistory[site].title,
             "icon": FAVICONS.forSite(site)
         }
     })
@@ -210,9 +227,35 @@ const suggestTopSites = () => {
 
 const visitCount = url => {
     if (groupedHistory[url] && groupedHistory[url].visits) {
-        return groupedHistory[url].visits
+        return groupedHistory[url].visits.length
     }
     return 0
+}
+
+const updateTitle = (url, title) => {
+    if (!SETTINGS.get("storenewvisists")) {
+        return
+    }
+    if (UTIL.pathToSpecialPageName(url).name) {
+        return
+    }
+    url = url.replace(/\t/g, "")
+    title = title.replace(/\t/g, "")
+    if (groupedHistory[url]) {
+        if (groupedHistory[url].title === title) {
+            return
+        }
+        if (groupedHistory[url].title && UTIL.hasProtocol(title)) {
+            return
+        }
+        groupedHistory[url].title = title
+    } else {
+        groupedHistory[url] = {
+            "visits": [],
+            "title": title
+        }
+    }
+    writeHistToFile()
 }
 
 const isFinishedLoading = () => {
@@ -224,8 +267,10 @@ module.exports = {
     addToHist,
     suggestHist,
     clearHistory,
+    writeHistToFile,
     handleRequest,
     suggestTopSites,
     visitCount,
+    updateTitle,
     isFinishedLoading
 }

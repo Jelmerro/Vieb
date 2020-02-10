@@ -269,11 +269,13 @@ const writeJSON = (loc, data, err = null, success = null, indent = null) => {
         if (success) {
             notify(success)
         }
+        return true
     } catch (e) {
         if (err) {
             notify(err, "err")
         }
     }
+    return false
 }
 
 const writeFile = (loc, data, err = null, success = null) => {
@@ -282,21 +284,25 @@ const writeFile = (loc, data, err = null, success = null) => {
         if (success) {
             notify(success)
         }
+        return true
     } catch (e) {
         if (err) {
             notify(err, "err")
         }
     }
+    return false
 }
 
 const deleteFile = (loc, err = null) => {
     try {
         fs.unlinkSync(loc)
+        return true
     } catch (e) {
         if (err) {
             notify(err, "warn")
         }
     }
+    return false
 }
 
 module.exports = {
