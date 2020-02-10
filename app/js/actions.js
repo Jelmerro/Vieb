@@ -352,7 +352,7 @@ const editWithVim = () => {
         return
     }
     let command = null
-    const webcontents = TABS.webcontents(TABS.currentPage())
+    const webcontents = TABS.webContents(TABS.currentPage())
     fs.watchFile(tempFile, {"interval": 500}, () => {
         if (command) {
             try {
