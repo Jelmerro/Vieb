@@ -23,10 +23,17 @@ const path = require("path")
 const fs = require("fs")
 const https = require("https")
 
+const blocklistDir = path.join(remote.app.getPath("appData"), "blocklists")
+const defaultBlocklists = {
+    "easylist": "https://easylist.to/easylist/easylist.txt",
+    "easyprivacy": "https://easylist.to/easylist/easyprivacy.txt"
+}
 const sessions = {}
 
 const init = () => {
-    enableAdblocker()
+    if (SETTINGS.get("adblocker") !== "off") {
+        enableAdblocker()
+    }
     create("persist:main")
 }
 
@@ -38,7 +45,8 @@ const permissionHandler = (_, permission, callback, details) => {
             permission = "microphone"
         }
     }
-    const setting = SETTINGS.get(`permission${permission.toLowerCase()}`)
+    const permissionName = `permission${permission.toLowerCase()}`
+    const setting = SETTINGS.get(permissionName)
     if (setting === "ask") {
         let url = details.requestingUrl
         if (url.length > 100) {
@@ -50,7 +58,7 @@ const permissionHandler = (_, permission, callback, details) => {
             + "the current session when sites ask for this permission."
             + " You can always change this using the settings file,"
             + " or at runtime with the set command like so: "
-            + `'set permission${permission.toLowerCase()}=<value>'\n\npage:\n${url}`
+            + `'set ${permissionName}=<value>'\n\npage:\n${url}`
         if (permission === "openExternal") {
             let exturl = details.externalURL
             if (exturl.length > 100) {
@@ -76,9 +84,9 @@ const permissionHandler = (_, permission, callback, details) => {
             callback(e.response === 0)
             if (e.checkboxChecked) {
                 if (e.response === 0) {
-                    SETTINGS.set(`permission${permission.toLowerCase()}`, "allow")
+                    SETTINGS.set(permissionName, "allow")
                 } else {
-                    SETTINGS.set(`permission${permission.toLowerCase()}`, "block")
+                    SETTINGS.set(permissionName, "block")
                 }
             }
         })
@@ -111,23 +119,21 @@ const recreateAdblocker = () => {
     ipcRenderer.send("adblock-recreate", Object.keys(sessions))
 }
 
-const defaultBlocklists = {
-    "easylist": "https://easylist.to/easylist/easylist.txt",
-    "easyprivacy": "https://easylist.to/easylist/easyprivacy.txt"
-}
-
 const enableAdblocker = () => {
-    const blocklistsFolder = path.join(
-        remote.app.getPath("appData"), "blocklists")
     try {
-        fs.mkdirSync(blocklistsFolder)
+        fs.mkdirSync(blocklistDir)
     } catch (e) {
         // Directory probably already exists
     }
     // Copy the default and included blocklists to the appdata folder
     if (SETTINGS.get("adblocker") !== "custom") {
-        for (const list of Object.keys(defaultBlocklists)) {
-            copyBlocklist(list)
+        for (const name of Object.keys(defaultBlocklists)) {
+            const list = path.join(__dirname, `../blocklists/${name}.txt`)
+            try {
+                fs.copyFileSync(list, path.join(blocklistDir, `${name}.txt`))
+            } catch (e) {
+                UTIL.notify(`Failed to copy ${name}`, "err")
+            }
         }
     }
     // And update default blocklists to the latest version if enabled
@@ -139,7 +145,7 @@ const enableAdblocker = () => {
                 res.on("end", () => {
                     try {
                         fs.writeFileSync(
-                            path.join(blocklistsFolder, `${list}.txt`), body)
+                            path.join(blocklistDir, `${list}.txt`), body)
                         recreateAdblocker()
                     } catch (e) {
                         UTIL.notify(`Failed to update ${list}`, "err")
@@ -156,17 +162,6 @@ const enableAdblocker = () => {
         }
     } else {
         recreateAdblocker()
-    }
-}
-
-const copyBlocklist = name => {
-    const packagedName = path.join(__dirname, `../blocklists/${name}.txt`)
-    const appdataName = path.join(
-        remote.app.getPath("appData"), `blocklists/${name}.txt`)
-    try {
-        fs.copyFileSync(packagedName, appdataName)
-    } catch (e) {
-        UTIL.notify(`Failed to copy ${name}`, "err")
     }
 }
 

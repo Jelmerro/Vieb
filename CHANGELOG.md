@@ -52,6 +52,7 @@ but the list below contains much more technical details.
 - Popup dialog for failed favicon downloads (now ignored)
 - Empty title in history overriding the older proper title
 - Print command only working once without reloading
+- Broken page loads for sites using custom EventTarget instead of only DOM Nodes
 
 ### Security
 

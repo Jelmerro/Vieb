@@ -18,9 +18,13 @@
 /* global MODES SUGGEST */
 "use strict"
 
-const previousCommands = []
+let previousCommands = []
 let previousIndex = -1
 let originalCommand = ""
+
+const init = () => {
+    previousCommands = []
+}
 
 const updateNavWithHistory = () => {
     let commandText = originalCommand
@@ -75,6 +79,7 @@ const push = command => {
 }
 
 module.exports = {
+    init,
     previous,
     next,
     resetPosition,
