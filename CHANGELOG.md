@@ -35,6 +35,13 @@ but the list below contains much more technical details.
 - Improvements to mode switching by centralizing mode switching code in the modes file
 - Click on multiple elements without re-entering follow mode by holding Shift
 - Add spellcheck integration (on by default), use spell and spelllang to configure
+- History storage format is now JSON, for easier parsing and better title storing
+- Entries on the history page can now be removed without reloading all history again
+
+### Deprecated
+
+- Old history storage format (TSV has been replaced with JSON), filename remains "hist"
+- Convertion from old to new history format, will be removed in 3.0.0
 
 ### Removed
 

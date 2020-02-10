@@ -150,6 +150,8 @@ const quit = () => {
     remote.getCurrentWindow().hide()
     if (SETTINGS.get("clearhistoryonquit")) {
         HISTORY.clearHistory()
+    } else {
+        HISTORY.writeHistToFile(true)
     }
     TABS.saveTabs()
     if (SETTINGS.get("cache") !== "full") {

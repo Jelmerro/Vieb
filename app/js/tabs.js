@@ -476,14 +476,8 @@ const addWebviewListeners = webview => {
         webContents(webview).send("fontsize", SETTINGS.get("fontsize"))
     })
     webview.addEventListener("did-stop-loading", () => {
-        const tab = tabOrPageMatching(webview)
         FAVICONS.show(webview)
         updateUrl(webview)
-        if (!webview.getAttribute("added-to-hist")) {
-            webview.setAttribute("added-to-hist", "true")
-            HISTORY.addToHist(
-                tab.querySelector("span").textContent, webview.src)
-        }
         const specialPageName = UTIL.pathToSpecialPageName(webview.src).name
         const isLocal = webview.src.startsWith("file:/")
         const isErrorPage = webview.getAttribute("failed-to-load")
@@ -496,16 +490,18 @@ const addWebviewListeners = webview => {
                 INPUT.listSupportedActions())
         }
         saveTabs()
+        HISTORY.addToHist(webview.src)
+        const tab = tabOrPageMatching(webview)
+        HISTORY.updateTitle(webview.src, tab.querySelector("span").textContent)
     })
     webview.addEventListener("page-title-updated", e => {
+        if (e.title.startsWith("magnet:") || e.title.startsWith("mailto:")) {
+            return
+        }
         const tab = tabOrPageMatching(webview)
         tab.querySelector("span").textContent = e.title
         updateUrl(webview)
-        if (!webview.getAttribute("added-to-hist")) {
-            webview.setAttribute("added-to-hist", "true")
-            HISTORY.addToHist(
-                tab.querySelector("span").textContent, webview.src)
-        }
+        HISTORY.updateTitle(webview.src, tab.querySelector("span").textContent)
     })
     webview.addEventListener("page-favicon-updated", e => {
         FAVICONS.update(webview, e.favicons)
@@ -621,7 +617,6 @@ const addWebviewListeners = webview => {
 
 const resetTabInfo = webview => {
     webview.removeAttribute("failed-to-load")
-    webview.removeAttribute("added-to-hist")
     FAVICONS.empty(webview)
 }
 
