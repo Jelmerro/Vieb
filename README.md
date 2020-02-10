@@ -9,6 +9,13 @@ Vieb
 
 ### Vim bindings for the web by design
 
+![Download counter](https://img.shields.io/github/downloads/Jelmerro/Vieb/total?style=flat-square)
+![Latest release](https://img.shields.io/github/v/release/Jelmerro/Vieb?sort=semver&style=flat-square)
+![Electron version](https://img.shields.io/github/package-json/dependency-version/Jelmerro/Vieb/dev/electron?style=flat-square)
+![Repo size](https://img.shields.io/github/repo-size/Jelmerro/Vieb?color=blue&style=flat-square)
+![License](https://img.shields.io/github/license/Jelmerro/Vieb?style=flat-square)
+[![Donate](https://img.shields.io/static/v1?label=ko-fi&message=donate&color=red&logo=ko-fi&style=flat-square)](https://ko-fi.com/Jelmerro)
+
 # Features
 
 - Browse the web with Vim-bindings
