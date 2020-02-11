@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -30,12 +30,15 @@ const compareVersions = (v1, v2) => {
     }
     const [v1num, v1ext] = v1.split("-")
     const [v2num, v2ext] = v2.split("-")
-    // Same number, but one of them has a suffix such as "-dev"
+    // Same number and at least one of them has a suffix such as "-dev"
     if (v1num === v2num) {
-        if (v1ext && !v2ext) {
+        if (v1ext && v2ext) {
+            return "unknown"
+        }
+        if (v1ext) {
             return "older"
         }
-        if (!v1ext && v2ext) {
+        if (v2ext) {
             return "newer"
         }
     }
@@ -43,36 +46,19 @@ const compareVersions = (v1, v2) => {
     if (!/^\d*\.\d*\.\d*$/.test(v1num) || !/^\d*\.\d*\.\d*$/.test(v2num)) {
         return "unknown"
     }
-    let [v1major, v1minor, v1patch] = v1num.split(".")
-    v1major = Number(v1major)
-    v1minor = Number(v1minor)
-    v1patch = Number(v1patch)
-    let [v2major, v2minor, v2patch] = v2num.split(".")
-    v2major = Number(v2major)
-    v2minor = Number(v2minor)
-    v2patch = Number(v2patch)
-    if (v1major > v2major) {
-        return "newer"
-    }
-    if (v1major < v2major) {
-        return "older"
-    }
-    if (v1minor > v2minor) {
-        return "newer"
-    }
-    if (v1minor < v2minor) {
-        return "older"
-    }
-    if (v1patch > v2patch) {
-        return "newer"
-    }
-    if (v1patch < v2patch) {
-        return "older"
+    for (let i = 0;i < 3;i++) {
+        if (Number(v1num.split(".")[i]) > Number(v2num.split(".")[i])) {
+            return "newer"
+        }
+        if (Number(v1num.split(".")[i]) < Number(v2num.split(".")[i])) {
+            return "older"
+        }
     }
     return "even"
 }
 
 const checkForUpdates = () => {
+    document.querySelector("button").disabled = "disabled"
     const versionCheck = document.getElementById("version-check")
     versionCheck.textContent = "Loading..."
     const req = new XMLHttpRequest()
@@ -87,7 +73,7 @@ const checkForUpdates = () => {
                             = `New version ${release.tag_name} is available!`
                     } else if (diff === "newer") {
                         versionCheck.textContent
-                            = `Latest stable ${release.tag_name} is older.`
+                            = `Latest release ${release.tag_name} is older.`
                     } else if (diff === "even") {
                         versionCheck.textContent
                             = "Your Vieb is up to date."
@@ -100,6 +86,7 @@ const checkForUpdates = () => {
             } else {
                 versionCheck.textContent = "Failed to fetch updates."
             }
+            document.querySelector("button").disabled = false
         }
     }
     req.open("GET", apiUrl, true)

@@ -101,9 +101,11 @@ const addHist = hist => {
     }
     addToList(hist.url)
     const element = document.createElement("div")
-    element.addEventListener("click", () => {
+    element.className = "no-focus-reset"
+    element.addEventListener("mouseup", e => {
         MODES.setMode("normal")
         TABS.navigateTo(hist.url)
+        e.preventDefault()
     })
     const icon = FAVICONS.forSite(hist.url)
     if (icon && SETTINGS.get("favicons") !== "disabled") {
@@ -179,9 +181,11 @@ const suggestCommand = search => {
 const addCommand = (command, subtext) => {
     addToList(command)
     const element = document.createElement("div")
-    element.addEventListener("click", () => {
+    element.className = "no-focus-reset"
+    element.addEventListener("mouseup", e => {
         COMMAND.execute(command)
         MODES.setMode("normal")
+        e.preventDefault()
     })
     const commandElement = document.createElement("span")
     commandElement.textContent = command

@@ -44,6 +44,9 @@ const init = () => {
     })
     rl.on("line", line => {
         const hist = parseHistLine(line)
+        if (!hist) {
+            return
+        }
         if (!groupedHistory[hist.url]) {
             groupedHistory[hist.url] = {
                 "title": hist.title,
