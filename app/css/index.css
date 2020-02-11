@@ -24,13 +24,12 @@ img {height: 1.5em;width: 1.5em;min-height: 1.5em;min-width: 1.5em;pointer-event
 #navbar > div {flex: 1;}
 #logo {-webkit-app-region: drag;height: 3.6em;width: 3.6em;padding: .2em;min-width: 3.6em;min-height: 3.6em;position: absolute;}
 #menu {display: flex;overflow: hidden;height: 2em;margin-left: 4em;}
-#mode-container {display: flex;width: 6em;text-align: center;margin: .1em 0;background: #222;}
+#mode-container {display: flex;width: 7em;text-align: center;margin: .1em 0;background: #222;}
 #mode {text-transform: capitalize;font-size: 1.3em;margin: auto;font-weight: bold;display: flex;}
 /* Nav tabs */
 #tabs {display: flex;overflow: hidden;}
 #tabs > .spacer {width: 4em;min-width: 4em;max-width: 4em;background-color: #333;margin: 0;padding: 0;}
 #tabs > span {color: #ccc;background-color: #444;display: flex;margin: 0 .1em .1em 0;padding-right: .4em;flex: 1;overflow: hidden;white-space: nowrap;height: 1.9em;}
-#tabs > span:hover {cursor: pointer;}
 #tabs > span > img {margin: auto 0 auto .25em;padding: 0;}
 #tabs > span > span {margin: auto 0 auto .25em;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
 #tabs > #current-tab {color: #eee;background-color: #666;}
@@ -73,12 +72,11 @@ webview {width: 100vw;display: flex;pointer-events: none;}
 body.mouse webview {pointer-events: all;}
 body.mouse #invisible-overlay {display: none;}
 body.mouse #navbar {pointer-events: all;}
-body.mouse #suggest-dropdown div:hover {background-color: #666;cursor: pointer;}
-#mode-suggestions {background-color: #333;max-height: 0;position: absolute;left: 4em;top:2em;z-index: 20;transition: .5s all;overflow: hidden;display: inline-block;width: 6em;text-transform: capitalize;}
+#mode-suggestions {background-color: #333;max-height: 0;position: absolute;left: 4em;top:2em;z-index: 20;transition: .5s all;overflow: hidden;display: inline-block;width: 7em;text-transform: capitalize;}
 #mode-suggestions:hover {max-height: 100vw;}
 body.mouse #mode-container:hover #mode-suggestions {max-height: 100vw;}
 #mode-suggestions div {font-size: 1.3em;transition: .1s all;}
-#mode-suggestions div:hover {text-decoration: underline;font-weight: bold;}
+body.mouse #suggest-dropdown div:hover, #mode-suggestions div:hover, #tabs > span:hover {font-weight: bold;cursor: pointer;}
 /* fullscreen */
 body.fullscreen #navbar {display: none;}
 body.fullscreen webview {height: 100vh;}
