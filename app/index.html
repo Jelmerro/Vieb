@@ -44,6 +44,7 @@
         <div id="follow"></div>
         <div id="pointer"></div>
         <div id="pages"></div>
+        <div id="pagelayout"></div>
     </div>
     <script>
         // Utility functions not related to any other topic, but used in many
@@ -75,6 +76,8 @@
         const WINDOWSTATE = require("./js/windowstate.js")
         // Load favicon handler
         const FAVICONS = require("./js/favicons.js")
+        // Load the layout manager, for splitting multiple webviews
+        const PAGELAYOUT = require("./js/pagelayout.js")
         // Some modules require initialisation
         INPUT.init()
         SETTINGS.init()

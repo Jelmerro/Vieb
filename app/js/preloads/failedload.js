@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ main {margin: auto;width: 50vw;background: #444;padding: 3em;
 h2 {font-size: 2em;margin: 0 0 .5em;}
 h3 {font-size: 1.2em;margin: 1em 0;font-weight: bold;}
 a {color: #0cf;}
-kbd {background: #111;color: #fff;padding: 0.1em;}
+kbd {background: #111;color: #fff;padding: .1em;}
 `
 const sslErrors = [
     "ERR_CERT_COMMON_NAME_INVALID",

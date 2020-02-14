@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND DOWNLOADS INPUT SESSIONS TABS UTIL */
+/* global COMMAND DOWNLOADS INPUT PAGELAYOUT SESSIONS TABS UTIL */
 "use strict"
 
 const path = require("path")
@@ -59,6 +59,8 @@ const defaultSettings = {
     "search": "https://duckduckgo.com/?kae=d&q=",
     "spell": true,
     "spelllang": "system",
+    "splitbelow": false,
+    "splitright": false,
     "startuppages": "",
     "storenewvisists": true,
     "suggestcommands": 20,
@@ -165,7 +167,7 @@ const checkOther = (setting, value) => {
             if (!redirect.trim()) {
                 continue
             }
-            if ((redirect.match(/~/g) || []).length === 1) {
+            if ((redirect.match(/~/g) || []).length !== 1) {
                 UTIL.notify(`Invalid redirect entry: ${redirect}\n`
                     + "Entries must have exactly one ~ to separate the "
                     + "regular expression from the replacement", "warn")
@@ -237,6 +239,7 @@ const updateFontSize = () => {
             TABS.webContents(p).send("fontsize", get("fontsize"))
         }
     })
+    PAGELAYOUT.applyLayout()
 }
 
 const updateDownloadSettings = () => {
@@ -360,9 +363,15 @@ const reset = setting => {
         allSettings = JSON.parse(JSON.stringify(defaultSettings))
     } else if (allSettings[setting] === undefined) {
         UTIL.notify(`The setting '${setting}' doesn't exist`, "warn")
+        return
     } else {
         allSettings[setting] = defaultSettings[setting]
     }
+    updateFontSize()
+    updateDownloadSettings()
+    updateTabOverflow()
+    updateMouseSettings()
+    SESSIONS.setSpellLang(get("spelllang"))
 }
 
 const set = (setting, value) => {

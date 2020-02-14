@@ -25,12 +25,10 @@ let Y = 0
 let listenForScroll = false
 
 const start = () => {
+    X = Number(TABS.currentPage().getAttribute("pointer-x")) || X
+    Y = Number(TABS.currentPage().getAttribute("pointer-y")) || Y
     MODES.setMode("pointer")
-    TABS.currentPage().sendInputEvent({
-        "type": "mouseEnter",
-        "x": X,
-        "y": Y
-    })
+    TABS.currentPage().sendInputEvent({"type": "mouseEnter", "x": X, "y": Y})
     updateElement()
 }
 
@@ -38,6 +36,8 @@ const move = (x, y) => {
     X = x
     Y = y
     updateElement()
+    TABS.currentPage().setAttribute("pointer-x", X)
+    TABS.currentPage().setAttribute("pointer-y", Y)
 }
 
 const handleScrollDiffEvent = diff => {
@@ -48,31 +48,47 @@ const handleScrollDiffEvent = diff => {
     }
 }
 
+const offset = () => {
+    let top = Number(TABS.currentPage().style.top.split(/[.px]/g)[0])
+    let left = Number(TABS.currentPage().style.left.split(/[.px]/g)[0])
+    let bottom = top + Number(TABS.currentPage()
+        .style.height.split(/[.px]/g)[0])
+    let right = left + Number(TABS.currentPage()
+        .style.width.split(/[.px]/g)[0])
+    if (document.getElementById("pages").classList.contains("multiple")) {
+        top += SETTINGS.get("fontsize") * .15
+        left += SETTINGS.get("fontsize") * .15
+        bottom -= SETTINGS.get("fontsize") * .15
+        right -= SETTINGS.get("fontsize") * .15
+    }
+    return {
+        "top": Math.round(top), "left": Math.round(left),
+        "bottom": Math.round(bottom), "right": Math.round(right)
+    }
+}
+
 const updateElement = () => {
+    const {top, left, bottom, right} = offset()
     if (X < 0) {
         X = 0
     }
     if (Y < 0) {
         Y = 0
     }
-    if (X > window.innerWidth - SETTINGS.get("fontsize") * 1.4) {
-        X = window.innerWidth - SETTINGS.get("fontsize") * 1.4
+    if (X > right - left - SETTINGS.get("fontsize") * 1.4) {
+        X = right - left - SETTINGS.get("fontsize") * 1.4
     }
-    if (Y > window.innerHeight - navbarHeight() - SETTINGS.get("fontsize")) {
-        Y = window.innerHeight - navbarHeight() - SETTINGS.get("fontsize")
+    if (Y > bottom - top - SETTINGS.get("fontsize")) {
+        Y = bottom - top - SETTINGS.get("fontsize")
     }
-    document.getElementById("pointer").style.left = `${X}px`
-    document.getElementById("pointer").style.top = `${Y + navbarHeight()}px`
+    document.getElementById("pointer").style.left = `${X + left}px`
+    document.getElementById("pointer").style.top = `${Y + top}px`
     if (MODES.currentMode() === "pointer") {
         TABS.currentPage().sendInputEvent({
-            "type": "mouseEnter",
-            "x": X,
-            "y": Y
+            "type": "mouseEnter", "x": X, "y": Y
         })
         TABS.currentPage().sendInputEvent({
-            "type": "mouseMove",
-            "x": X,
-            "y": Y
+            "type": "mouseMove", "x": X, "y": Y
         })
     }
     if (MODES.currentMode() === "visual") {
@@ -84,41 +100,21 @@ const updateElement = () => {
 
 const click = button => {
     TABS.currentPage().sendInputEvent({
-        "type": "mouseDown",
-        "x": X,
-        "y": Y,
-        "button": button,
-        "clickCount": 1
+        "type": "mouseDown", "x": X, "y": Y, "button": button, "clickCount": 1
     })
     TABS.currentPage().sendInputEvent({
-        "type": "mouseUp",
-        "x": X,
-        "y": Y,
-        "button": button,
-        "clickCount": 1
+        "type": "mouseUp", "x": X, "y": Y, "button": button, "clickCount": 1
     })
 }
 
 const releaseKeys = () => {
     for (const button of ["left", "right"]) {
         TABS.currentPage().sendInputEvent({
-            "type": "mouseUp",
-            "x": X,
-            "y": Y,
-            "button": button,
-            "clickCount": 1
+            "type": "mouseUp", "x": X, "y": Y, "button": button, "clickCount": 1
         })
     }
-    TABS.currentPage().sendInputEvent({
-        "type": "mouseLeave",
-        "x": X,
-        "y": Y
-    })
+    TABS.currentPage().sendInputEvent({"type": "mouseLeave", "x": X, "y": Y})
     TABS.webContents(TABS.currentPage()).send("selection-remove")
-}
-
-const navbarHeight = () => {
-    return document.getElementById("navbar").clientHeight
 }
 
 // ACTIONS
@@ -130,17 +126,15 @@ const moveFastLeft = () => {
 
 const downloadImage = () => {
     const factor = TABS.currentPage().getZoomFactor()
-    TABS.webContents(TABS.currentPage()).send(
-        "download-image-request",
-        Math.round(X / factor),
-        Math.round(Y / factor))
+    TABS.webContents(TABS.currentPage()).send("download-image-request",
+        Math.round(X / factor), Math.round(Y / factor))
 }
 
 const inspectElement = () => {
+    const {top, left} = offset()
     const factor = TABS.currentPage().getZoomFactor()
     TABS.webContents(TABS.currentPage()).inspectElement(
-        Math.round(X / factor),
-        Math.round((Y + navbarHeight()) / factor))
+        Math.round((X + left) / factor), Math.round((Y + top) / factor))
 }
 
 const copyAndStop = () => {
@@ -175,7 +169,8 @@ const insertAtPosition = () => {
 }
 
 const moveDown = () => {
-    if (Y === window.innerHeight - navbarHeight() - SETTINGS.get("fontsize")) {
+    const {bottom, top} = offset()
+    if (Y === bottom - top - SETTINGS.get("fontsize")) {
         ACTIONS.scrollDown()
         listenForScroll = true
     } else {
@@ -216,50 +211,35 @@ const moveFastRight = () => {
 }
 
 const centerOfView = () => {
-    Y = (window.innerHeight - navbarHeight() - SETTINGS.get("fontsize")) / 2
+    const {top, bottom} = offset()
+    Y = (bottom - top) / 2
     updateElement()
 }
 
 const scrollDown = () => {
     TABS.webContents(TABS.currentPage()).sendInputEvent({
-        "type": "mouseWheel",
-        "x": X,
-        "y": Y,
-        "deltaX": 0,
-        "deltaY": -100
+        "type": "mouseWheel", "x": X, "y": Y, "deltaX": 0, "deltaY": -100
     })
     updateElement()
 }
 
 const scrollUp = () => {
     TABS.webContents(TABS.currentPage()).sendInputEvent({
-        "type": "mouseWheel",
-        "x": X,
-        "y": Y,
-        "deltaX": 0,
-        "deltaY": 100
+        "type": "mouseWheel", "x": X, "y": Y, "deltaX": 0, "deltaY": 100
     })
     updateElement()
 }
 
 const scrollLeft = () => {
     TABS.webContents(TABS.currentPage()).sendInputEvent({
-        "type": "mouseWheel",
-        "x": X,
-        "y": Y,
-        "deltaX": 100,
-        "deltaY": 0
+        "type": "mouseWheel", "x": X, "y": Y, "deltaX": 100, "deltaY": 0
     })
     updateElement()
 }
 
 const scrollRight = () => {
     TABS.webContents(TABS.currentPage()).sendInputEvent({
-        "type": "mouseWheel",
-        "x": X,
-        "y": Y,
-        "deltaX": -100,
-        "deltaY": 0
+        "type": "mouseWheel", "x": X, "y": Y, "deltaX": -100, "deltaY": 0
     })
     updateElement()
 }
@@ -311,7 +291,8 @@ const moveLeftMax = () => {
 }
 
 const moveFastDown = () => {
-    if (Y === window.innerHeight - navbarHeight() - SETTINGS.get("fontsize")) {
+    const {bottom, top} = offset()
+    if (Y === bottom - top - SETTINGS.get("fontsize")) {
         ACTIONS.scrollDown()
         listenForScroll = true
     } else {

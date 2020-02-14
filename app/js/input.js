@@ -15,7 +15,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS COMMAND POINTER FOLLOW HISTORY MODES SETTINGS SUGGEST */
+/* global ACTIONS COMMAND POINTER FOLLOW HISTORY MODES PAGELAYOUT SETTINGS
+ SUGGEST */
 "use strict"
 
 const defaultBindings = {
@@ -233,6 +234,7 @@ const init = () => {
         if (["pointer", "visual"].includes(MODES.currentMode())) {
             POINTER.updateElement()
         }
+        PAGELAYOUT.applyLayout()
     })
     document.getElementById("url").addEventListener("input", () => {
         if (MODES.currentMode() === "explore") {

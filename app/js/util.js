@@ -89,6 +89,9 @@ const isUrl = location => {
 }
 
 const notify = (message, type = "info") => {
+    if (SETTINGS.get("notificationduration") < 100) {
+        return
+    }
     let properType = "info"
     if (type.startsWith("warn")) {
         properType = "warning"

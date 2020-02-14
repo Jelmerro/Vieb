@@ -32,8 +32,8 @@ const modes = {
                 TABS.webContents(TABS.currentPage()).send("action", "blur")
             }
             document.getElementById("invisible-overlay").style.display = ""
-            document.getElementById("url-hover").textContent = ""
             if (newMode !== "pointer") {
+                document.getElementById("url-hover").textContent = ""
                 document.getElementById("url-hover").style.display = "none"
             }
         }
@@ -67,8 +67,11 @@ const modes = {
     },
     "follow": {
         "fg": "#f3f",
-        "onLeave": () => {
+        "onLeave": newMode => {
             FOLLOW.cancelFollow()
+            if (!["visual", "pointer"].includes(newMode)) {
+                POINTER.releaseKeys()
+            }
         }
     },
     "pointer": {
@@ -80,7 +83,9 @@ const modes = {
         "onLeave": newMode => {
             if (newMode !== "visual") {
                 document.getElementById("pointer").style.display = "none"
-                POINTER.releaseKeys()
+                if (newMode !== "follow") {
+                    POINTER.releaseKeys()
+                }
             }
             if (newMode !== "insert") {
                 document.getElementById("url-hover").style.display = "none"
@@ -97,7 +102,9 @@ const modes = {
             if (newMode !== "pointer") {
                 document.getElementById("pointer").style.display = "none"
             }
-            POINTER.releaseKeys()
+            if (!["pointer", "follow"].includes(newMode)) {
+                POINTER.releaseKeys()
+            }
         }
     }
 }

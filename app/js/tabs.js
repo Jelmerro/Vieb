@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS POINTER DOWNLOADS FAVICONS FOLLOW HISTORY INPUT MODES SESSIONS
- SETTINGS UTIL */
+/* global ACTIONS POINTER DOWNLOADS FAVICONS FOLLOW HISTORY INPUT MODES
+ PAGELAYOUT SESSIONS SETTINGS UTIL */
 "use strict"
 
 const fs = require("fs")
@@ -134,7 +134,7 @@ const saveTabs = () => {
             const webview = tabOrPageMatching(tab)
             if (!UTIL.pathToSpecialPageName(webview.src).name && webview.src) {
                 data.tabs.push(webview.src)
-                if (webview.style.display === "flex") {
+                if (webview === currentPage()) {
                     data.id = data.tabs.length - 1
                 }
             }
@@ -174,13 +174,7 @@ const currentTab = () => {
 }
 
 const currentPage = () => {
-    let currentPageElement = null
-    listPages().forEach(page => {
-        if (page.style.display === "flex") {
-            currentPageElement = page
-        }
-    })
-    return currentPageElement
+    return document.getElementById("current-page")
 }
 
 const addTab = (url = null, inverted = false, switchTo = true) => {
@@ -235,7 +229,7 @@ const addTab = (url = null, inverted = false, switchTo = true) => {
     let sessionName = "persist:main"
     if (SETTINGS.get("containertabs")) {
         sessionName = `container-${linkId}`
-        tab.className = "container"
+        tab.classList.add("container")
     }
     SESSIONS.create(sessionName)
     webview.setAttribute("partition", sessionName)
@@ -328,20 +322,22 @@ const switchToTab = index => {
     if (tabs.length <= index) {
         index = tabs.length - 1
     }
+    const oldPage = currentPage()
     tabs.forEach(tab => {
         tab.id = ""
     })
     listPages().forEach(page => {
-        page.style.display = "none"
+        page.id = ""
     })
-    document.getElementById("url-hover").textContent = ""
-    document.getElementById("url-hover").style.display = "none"
     tabs[index].id = "current-tab"
+    tabOrPageMatching(tabs[index]).id = "current-page"
     tabs[index].scrollIntoView({"inline": "center"})
-    tabOrPageMatching(tabs[index]).style.display = "flex"
+    PAGELAYOUT.switchView(oldPage, currentPage())
     updateUrl(currentPage())
     saveTabs()
     MODES.setMode("normal")
+    document.getElementById("url-hover").textContent = ""
+    document.getElementById("url-hover").style.display = "none"
 }
 
 const updateUrl = (webview, force = false) => {
@@ -400,10 +396,13 @@ const addWebviewListeners = webview => {
                 webview.blur()
             }
         }
+        if (webview !== currentPage()) {
+            switchToTab(listTabs().indexOf(tabOrPageMatching(webview)))
+        }
     }
     webview.addEventListener("focus", mouseClickInWebview)
     webview.addEventListener("crashed", () => {
-        tabOrPageMatching(webview).className = "crashed"
+        tabOrPageMatching(webview).classList.add("crashed")
     })
     webview.addEventListener("did-start-loading", () => {
         FAVICONS.loading(webview)

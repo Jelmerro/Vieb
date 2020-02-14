@@ -147,6 +147,14 @@ const set = (...args) => {
 }
 
 const quit = () => {
+    if (document.getElementById("tabs").classList.contains("multiple")) {
+        TABS.closeTab()
+    } else {
+        quitall()
+    }
+}
+
+const quitall = () => {
     remote.getCurrentWindow().hide()
     if (SETTINGS.get("clearhistoryonquit")) {
         HISTORY.clearHistory()
@@ -328,6 +336,8 @@ const cookies = () => {
 }
 
 const commands = {
+    "qa": quitall,
+    "quitall": quitall,
     "q": quit,
     "quit": quit,
     "devtools": devtools,
@@ -356,6 +366,8 @@ const commands = {
 // Use the first character of the mode name to generate these commands.
 
 const noArgumentComands = [
+    "qa",
+    "quitall",
     "q",
     "quit",
     "devtools",
