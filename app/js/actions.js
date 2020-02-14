@@ -70,7 +70,9 @@ const scrollLeft = () => {
 }
 
 const toInsertMode = () => {
-    MODES.setMode("insert")
+    if (!TABS.currentPage().isCrashed()) {
+        MODES.setMode("insert")
+    }
 }
 
 const scrollDown = () => {

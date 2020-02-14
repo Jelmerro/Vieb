@@ -55,7 +55,13 @@ const cancelFollow = () => {
     alreadyFollowing = false
     document.getElementById("follow").style.display = ""
     document.getElementById("follow").textContent = ""
-    TABS.webContents(TABS.currentPage()).send("follow-mode-stop")
+    TABS.listPages().forEach(page => {
+        try {
+            TABS.webContents(page).send("follow-mode-stop")
+        } catch (e) {
+            // Cancel follow mode in all tabs
+        }
+    })
     links = []
 }
 
@@ -174,7 +180,7 @@ const parseAndDisplayLinks = newLinks => {
         linkElement.textContent = numberToKeys(index, links.length)
         linkElement.className = `follow-${link.type}`
         const characterWidth = SETTINGS.get("fontsize") / 1.3
-        let borderRightMargin = characterWidth + SETTINGS.get("fontsize") * 0.2
+        let borderRightMargin = characterWidth + SETTINGS.get("fontsize") * .2
         if (linkElement.textContent.length === 2) {
             borderRightMargin += characterWidth
         }
