@@ -15,7 +15,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMANDHISTORY DOWNLOADS FAVICONS HISTORY INPUT SETTINGS TABS UTIL */
+/* global COMMANDHISTORY DOWNLOADS FAVICONS HISTORY INPUT PAGELAYOUT SETTINGS
+ TABS UTIL */
 "use strict"
 
 const {remote} = require("electron")
@@ -304,20 +305,20 @@ const mkviebrc = (full = false, trailingArgs = false) => {
     SETTINGS.saveToDisk(exportAll)
 }
 
-const buffer = (...args) => {
+const tabForBufferArg = (command, args) => {
     if (args.length === 0) {
-        UTIL.notify("The buffer command requires a buffer name or id", "warn")
-        return
+        UTIL.notify(
+            `The ${command} command requires a buffer name or id`, "warn")
+        return null
     }
     if (args.length === 1) {
         const number = Number(args[0])
         if (!isNaN(number)) {
-            TABS.switchToTab(number)
-            return
+            return TABS.listTabs()[number]
         }
     }
     const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
-    const tab = TABS.listTabs().find(t => {
+    return TABS.listTabs().find(t => {
         const simpleTabUrl = TABS.tabOrPageMatching(t).src
             .replace(/\W/g, "").toLowerCase()
         if (simpleTabUrl.includes(simpleSearch)) {
@@ -327,8 +328,58 @@ const buffer = (...args) => {
             .replace(/\W/g, "").toLowerCase()
         return simpleTitle.includes(simpleSearch)
     })
+}
+
+const buffer = (...args) => {
+    const tab = tabForBufferArg("buffer", args)
     if (tab) {
         TABS.switchToTab(TABS.listTabs().indexOf(tab))
+    }
+}
+
+const hide = (...args) => {
+    let tab = null
+    if (args.length === 0) {
+        tab = TABS.currentTab()
+    } else {
+        tab = tabForBufferArg("hide", args)
+    }
+    if (tab) {
+        if (tab.classList.contains("visible-tab")) {
+            PAGELAYOUT.hide(TABS.tabOrPageMatching(tab))
+        } else {
+            UTIL.notify("Only visible pages can be hidden", "warn")
+        }
+    }
+}
+
+const vexplore = (...args) => {
+    if (args.length === 0) {
+        // TODO open new empty tab and vsplit
+        return
+    }
+    const tab = tabForBufferArg("vexplore", args)
+    if (tab) {
+        if (tab.classList.contains("visible-tab")) {
+            UTIL.notify("Page is already visible", "warn")
+        } else {
+            PAGELAYOUT.addLeftOrRight(TABS.tabOrPageMatching(tab))
+        }
+    }
+}
+
+const sexplore = (...args) => {
+    if (args.length === 0) {
+        // TODO open new empty tab and split
+        return
+    }
+    const tab = tabForBufferArg("vexplore", args)
+    if (tab) {
+        if (tab.classList.contains("visible-tab")) {
+            UTIL.notify("Page is already visible", "warn")
+        } else {
+            PAGELAYOUT.addAboveOrBelow(TABS.tabOrPageMatching(tab))
+        }
     }
 }
 
@@ -360,6 +411,12 @@ const commands = {
     "mkviebrc": mkviebrc,
     "b": buffer,
     "buffer": buffer,
+    "hide": hide,
+    // "close": close,
+    "Vexplore": vexplore,
+    "Sexplore": sexplore,
+    "split": sexplore,
+    "vsplit": vexplore,
     "cookies": cookies
 }
 // TODO add a function to automatically convert nmap, imap etc. to a generic function,
