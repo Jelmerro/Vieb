@@ -10,7 +10,9 @@ Links in the changelog are part of [github.com/Jelmerro/Vieb](https://github.com
 The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the most important changes per release,
 but the list below contains much more technical details.
 
-## Unreleased
+## [1.1.0](https://github.com/Jelmerro/Vieb/compare/1.0.0...1.1.0) - 2020-02-15
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/1.0.0...1.1.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/1.1.0)
 
 ### Added
 
