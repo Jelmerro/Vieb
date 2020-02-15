@@ -31,6 +31,7 @@ const defaultBlocklists = {
 const sessions = {}
 
 const init = () => {
+    UTIL.clearContainerTabs()
     if (SETTINGS.get("adblocker") !== "off") {
         enableAdblocker()
     }
@@ -99,6 +100,7 @@ const create = name => {
     if (Object.keys(sessions).includes(name)) {
         return
     }
+    applyDevtoolsSettings(name.split(":")[1] || name)
     const session = remote.session.fromPartition(name, {
         "cache": SETTINGS.get("cache") !== "none"
     })
@@ -109,6 +111,40 @@ const create = name => {
     session.on("will-download", DOWNLOADS.handleDownload)
     ipcRenderer.send("downloads-path-for-session", name)
     sessions[name] = session
+}
+
+const applyDevtoolsSettings = session => {
+    const sessionFolder = path.join(
+        remote.app.getPath("appData"), "Partitions", session)
+    const preferencesFile = path.join(sessionFolder, "Preferences")
+    try {
+        fs.mkdirSync(sessionFolder)
+    } catch (e) {
+        // Directory probably already exists
+    }
+    let preferences = UTIL.readJSON(preferencesFile)
+    if (!preferences) {
+        preferences = {}
+    }
+    if (!preferences.electron) {
+        preferences.electron = {}
+    }
+    if (!preferences.electron.devtools) {
+        preferences.electron.devtools = {}
+    }
+    if (!preferences.electron.devtools.preferences) {
+        preferences.electron.devtools.preferences = {}
+    }
+    // Disable source maps as they leak internal structure to the webserver
+    preferences.electron.devtools.preferences.cssSourceMapsEnabled = false
+    preferences.electron.devtools.preferences.jsSourceMapsEnabled = false
+    // Disable release notes, most are not relevant for Vieb
+    preferences.electron.devtools.preferences["help.show-release-note"] = false
+    // Show timestamps in the console
+    preferences.electron.devtools.preferences.consoleTimestampsEnabled = true
+    // Enable dark theme
+    preferences.electron.devtools.preferences.uiTheme = "\"dark\""
+    UTIL.writeJSON(preferencesFile, preferences)
 }
 
 const disableAdblocker = () => {
