@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@ const set = (...args) => {
                 UTIL.notify(`Unknown setting '${setting}', try using `
                     + "the suggestions", "warn")
             } else if (value.length === undefined
-                    && typeof value === "object" || setting === "redirects") {
+                && typeof value === "object" || setting === "redirects") {
                 UTIL.notify(
                     `The setting '${setting}' has the value `
                     + `'${JSON.stringify(value, null, 2)
@@ -150,14 +150,10 @@ const hardcopy = () => {
     TABS.currentPage().send("action", "print")
 }
 
-const write = (...args) => {
-    if (args.length > 2) {
-        UTIL.notify("The write command takes a maximum of two arguments:\n"
-            + "'full' to save the full page and an optional path", "warn")
-        return
-    }
-    if (args.length === 2 && args[0] !== "full" && args[1] !== "full") {
-        UTIL.notify("Only one save path can be specified", "warn")
+const write = (file, trailingArgs = false) => {
+    if (trailingArgs) {
+        UTIL.notify("The write command takes only a single optional argument:\n"
+            + "the location where to write the page", "warn")
         return
     }
     let name = path.basename(TABS.currentPage().src).split("?")[0]
@@ -165,40 +161,40 @@ const write = (...args) => {
         name += ".html"
     }
     name = `${new URL(TABS.currentPage().src).hostname} ${name}`.trim()
-    let saveType = "HTMLOnly"
     let loc = path.join(remote.app.getPath("downloads"), name)
-    for (let arg of args) {
-        if (arg === "full") {
-            saveType = "HTMLComplete"
-            continue
-        }
-        if (!path.isAbsolute(arg)) {
-            arg = UTIL.expandPath(arg)
-            if (!path.isAbsolute(arg)) {
-                arg = path.join(remote.app.getPath("downloads"), arg)
+    if (file) {
+        if (!path.isAbsolute(file)) {
+            file = UTIL.expandPath(file)
+            if (!path.isAbsolute(file)) {
+                file = path.join(remote.app.getPath("downloads"), file)
             }
         }
-        const folder = path.dirname(arg)
+        const folder = path.dirname(file)
         if (UTIL.isDir(folder)) {
-            if (UTIL.pathExists(arg)) {
-                if (UTIL.isDir(arg)) {
-                    loc = path.join(arg, name)
+            if (UTIL.pathExists(file)) {
+                if (UTIL.isDir(file)) {
+                    loc = path.join(file, name)
                 } else {
-                    loc = arg
+                    loc = file
                 }
+            } else if (file.endsWith("/")) {
+                UTIL.notify(`The folder '${file}' does not exist`, "warn")
+                return
             } else {
-                loc = arg
+                loc = file
             }
         } else {
             UTIL.notify(`The folder '${folder}' does not exist`, "warn")
             return
         }
     }
-    TABS.currentPage().getWebContents().savePage(loc, saveType).then(() => {
-        UTIL.notify(`Page successfully saved at '${loc}'`)
-    }).catch(err => {
-        UTIL.notify(`Could not save the page:\n${err}`, "err")
-    })
+    TABS.currentPage().getWebContents().savePage(loc, "HTMLComplete")
+        .then(() => {
+            UTIL.notify(`Page successfully saved at '${loc}'`)
+        })
+        .catch(err => {
+            UTIL.notify(`Could not save the page:\n${err}`, "err")
+        })
 }
 
 const mkviebrc = (full = false, trailingArgs = false) => {
