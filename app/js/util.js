@@ -181,6 +181,13 @@ const rimrafFolder = folder => {
     }
 }
 
+const clearContainerTabs = () => {
+    document.querySelectorAll("webview").forEach(view => {
+        view.parentNode.removeChild(view)
+    })
+    rimrafFolder("Partitions/!(main)")
+}
+
 const clearCache = () => {
     rimrafFolder("**/*Cache/")
     rimrafFolder("**/File System/")
@@ -315,6 +322,7 @@ module.exports = {
     notify,
     specialPagePath,
     pathToSpecialPageName,
+    clearContainerTabs,
     clearCache,
     clearCookies,
     clearLocalStorage,

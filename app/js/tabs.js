@@ -228,7 +228,7 @@ const addTab = (url = null, inverted = false, switchTo = true) => {
     }
     let sessionName = "persist:main"
     if (SETTINGS.get("containertabs")) {
-        sessionName = `container-${linkId}`
+        sessionName = `persist:container${linkId}`
         tab.classList.add("container")
     }
     SESSIONS.create(sessionName)

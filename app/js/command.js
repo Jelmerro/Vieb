@@ -162,6 +162,7 @@ const quitall = () => {
         HISTORY.writeHistToFile(true)
     }
     TABS.saveTabs()
+    UTIL.clearContainerTabs()
     if (SETTINGS.get("cache") !== "full") {
         UTIL.clearCache()
     }
