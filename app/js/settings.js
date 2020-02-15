@@ -293,7 +293,6 @@ const listSettingsAsArray = () => {
         }
         listOfSettings.push(topLevel)
     }
-    listOfSettings.push("keybindings")
     return listOfSettings
 }
 

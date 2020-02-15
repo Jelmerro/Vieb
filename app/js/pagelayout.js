@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global SETTINGS */
+/* global SETTINGS TABS */
 "use strict"
 
 const layoutDivById = id => {
@@ -35,6 +35,22 @@ const switchView = (oldView, newView) => {
         const singleView = document.createElement("div")
         singleView.setAttribute("link-id", newView.getAttribute("link-id"))
         document.querySelector("#pagelayout").appendChild(singleView)
+    }
+    applyLayout()
+}
+
+const hide = view => {
+    if (!document.getElementById("pages").classList.contains("multiple")) {
+        return
+    }
+    const inLayout = layoutDivById(view.getAttribute("link-id"))
+    inLayout.parentNode.removeChild(inLayout)
+    if (view.id === "current-page") {
+        const visibleTabs = [...document.querySelectorAll("#tabs .visible-tab")]
+        const newTab = visibleTabs.find(t => {
+            return t.getAttribute("link-id") !== view.getAttribute("link-id")
+        })
+        TABS.switchToTab(TABS.listTabs().indexOf(newTab))
     }
     applyLayout()
 }
@@ -169,6 +185,7 @@ const applyLayout = () => {
 
 module.exports = {
     switchView,
+    hide,
     addAboveOrBelow,
     addLeftOrRight,
     applyLayout

@@ -138,23 +138,27 @@ const suggestCommand = search => {
         // No search or limited to zero = don't suggest
         return
     }
+    const commandName = search.split(" ")[0]
     let subCommandSuggestions = []
-    if ("set".startsWith(search.split(" ")[0])) {
+    if ("set".startsWith(commandName)) {
         subCommandSuggestions = SETTINGS.suggestionList()
             .map(s => `${search.split(" ").slice(0, -1).join(" ")} ${s}`)
     }
-    if ("write".startsWith(search.split(" ")[0])) {
+    if ("write".startsWith(commandName)) {
         subCommandSuggestions = ["write ~/Downloads/newfile"]
     }
-    if ("mkviebrc".startsWith(search.split(" ")[0])) {
+    if ("mkviebrc".startsWith(commandName)) {
         subCommandSuggestions = ["mkv full", "mkviebrc full"]
     }
-    if ("buffer".startsWith(search.split(" ")[0])) {
+    const isBufferCommand = [
+        "buffer", "hide", "close", "Vexplore", "Sexplore", "split", "vsplit"
+    ].some(b => b.startsWith(commandName))
+    if (isBufferCommand && (commandName.length > 1 || commandName === "b")) {
         const simpleSearch = search.split(" ").slice(1).join("")
             .replace(/\W/g, "").toLowerCase()
         TABS.listTabs().map((t, index) => {
             return {
-                "command": `${search.split(" ")[0]} ${index}`,
+                "command": `${commandName} ${index}`,
                 "subtext": `${t.querySelector("span").textContent}`,
                 "url": TABS.tabOrPageMatching(t).src
             }

@@ -36,8 +36,6 @@ const move = (x, y) => {
     X = x
     Y = y
     updateElement()
-    TABS.currentPage().setAttribute("pointer-x", X)
-    TABS.currentPage().setAttribute("pointer-y", Y)
 }
 
 const handleScrollDiffEvent = diff => {
@@ -83,6 +81,8 @@ const updateElement = () => {
     }
     document.getElementById("pointer").style.left = `${X + left}px`
     document.getElementById("pointer").style.top = `${Y + top}px`
+    TABS.currentPage().setAttribute("pointer-x", X)
+    TABS.currentPage().setAttribute("pointer-y", Y)
     if (MODES.currentMode() === "pointer") {
         TABS.currentPage().sendInputEvent({
             "type": "mouseEnter", "x": X, "y": Y
