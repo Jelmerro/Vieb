@@ -294,9 +294,38 @@ const execute = command => {
     if (!command) {
         return
     }
-    const args = command.split(" ").slice(1)
+    COMMANDHISTORY.push(command)
+    const argsString = command.split(" ").slice(1).join(" ")
+    const args = []
+    let currentArg = ""
+    let escapedDouble = false
+    let escapedSingle = false
+    for (const char of argsString) {
+        if (char === "'" && !escapedDouble) {
+            escapedSingle = !escapedSingle
+            continue
+        }
+        if (char === "\"" && !escapedSingle) {
+            escapedDouble = !escapedDouble
+            continue
+        }
+        if (char === " " && !escapedDouble && !escapedSingle) {
+            args.push(currentArg)
+            currentArg = ""
+            continue
+        }
+        currentArg += char
+    }
+    if (escapedSingle || escapedDouble) {
+        UTIL.notify(
+            `Could not execute command, unescaped parameters:\n${command}`,
+            "warn")
+        return
+    }
+    if (currentArg) {
+        args.push(currentArg)
+    }
     command = command.split(" ")[0]
-    COMMANDHISTORY.push([command, ...args].join(" "))
     const matches = Object.keys(commands).filter(c => c.startsWith(command))
     if (matches.length === 1 || commands[command]) {
         if (matches.length === 1) {
