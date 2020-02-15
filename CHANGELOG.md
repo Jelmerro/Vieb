@@ -32,6 +32,7 @@ but the list below contains much more technical details.
 - Popup dialog for failed favicon downloads (now ignored)
 - Empty title in history overriding the older proper title
 - Print command only working once without reloading
+- Commands not supporting escaping of spaces using quotes
 
 ### Security
 
