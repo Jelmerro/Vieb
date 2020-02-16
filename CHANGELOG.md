@@ -10,7 +10,13 @@ Links in the changelog are part of [github.com/Jelmerro/Vieb](https://github.com
 The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the most important changes per release,
 but the list below contains much more technical details.
 
-## Unreleased
+## [1.1.0](https://github.com/Jelmerro/Vieb/compare/1.0.0...1.1.0) - 2020-02-15
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/1.0.0...1.1.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/1.1.0)
+
+### Added
+
+- Tests for isUrl function
 
 ### Added
 
@@ -24,6 +30,7 @@ but the list below contains much more technical details.
 - Update to the http basic login system to work with the new electron versions
 - Open the login dialog in the center of the Vieb browser window
 - Running the last command again no longer adds a duplicate to the command history
+- Improved url detection as a result of testing the function properly
 - The caseSensitiveSearch has been renamed to ignorecase to be more similar to Vim
 - Rename all settings to be lowercase and without dots
 - Set command syntax is now much more similar to Vim with support for all of Vim's set operators
@@ -53,11 +60,12 @@ but the list below contains much more technical details.
 - Popup dialog for failed favicon downloads (now ignored)
 - Empty title in history overriding the older proper title
 - Print command only working once without reloading
+- Commands not supporting escaping of spaces using quotes
 - Broken page loads for sites using custom EventTarget instead of only DOM Nodes
 
 ### Security
 
-- Electron 8.0.0 (was 6.1.5)
+- Electron 8.0.1 (was 6.1.5)
 - Chromium 80.0.3987.86 (was 76.0.3809.146)
 
 ## [1.0.0](https://github.com/Jelmerro/Vieb/compare/0.7.0...1.0.0) - 2019-11-30
