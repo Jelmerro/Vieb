@@ -10,13 +10,7 @@ Links in the changelog are part of [github.com/Jelmerro/Vieb](https://github.com
 The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the most important changes per release,
 but the list below contains much more technical details.
 
-## [1.1.0](https://github.com/Jelmerro/Vieb/compare/1.0.0...1.1.0) - 2020-02-15
-
-[code diff](https://github.com/Jelmerro/Vieb/compare/1.0.0...1.1.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/1.1.0)
-
-### Added
-
-- Tests for isUrl function
+## Unreleased
 
 ### Added
 
@@ -27,10 +21,6 @@ but the list below contains much more technical details.
 
 ### Changed
 
-- Update to the http basic login system to work with the new electron versions
-- Open the login dialog in the center of the Vieb browser window
-- Running the last command again no longer adds a duplicate to the command history
-- Improved url detection as a result of testing the function properly
 - The caseSensitiveSearch has been renamed to ignorecase to be more similar to Vim
 - Rename all settings to be lowercase and without dots
 - Set command syntax is now much more similar to Vim with support for all of Vim's set operators
@@ -53,6 +43,34 @@ but the list below contains much more technical details.
 
 ### Removed
 
+- Support for parsing the "viebrc.json" file, settings are now configured with Vieb commands in "viebrc" or "~/.viebrc"
+
+### Fixed
+
+- Broken page loads for sites using custom EventTargets instead of only DOM Nodes
+
+### Security
+
+- Electron 8.0.1 (unchanged)
+- Chromium 80.0.3987.86 (unchanged)
+
+## [1.1.0](https://github.com/Jelmerro/Vieb/compare/1.0.0...1.1.0) - 2020-02-15
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/1.0.0...1.1.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/1.1.0)
+
+### Added
+
+- Tests for isUrl function
+
+### Changed
+
+- Update to the http basic login system to work with the new electron versions
+- Open the login dialog in the center of the Vieb browser window
+- Running the last command again no longer adds a duplicate to the command history
+- Improved url detection as a result of testing the function properly
+
+### Removed
+
 - The optional 'full' argument of the write command, the full page is now always saved
 
 ### Fixed
@@ -61,7 +79,6 @@ but the list below contains much more technical details.
 - Empty title in history overriding the older proper title
 - Print command only working once without reloading
 - Commands not supporting escaping of spaces using quotes
-- Broken page loads for sites using custom EventTarget instead of only DOM Nodes
 
 ### Security
 
