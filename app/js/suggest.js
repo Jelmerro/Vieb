@@ -134,8 +134,8 @@ const suggestCommand = search => {
     // Allow commands prefixed with :
     search = search.replace(/^[\s|:]*/, "").replace(/ +/g, " ")
     const limit = SETTINGS.get("suggestcommands")
-    if (!limit || !search) {
-        // No search or limited to zero = don't suggest
+    if (!limit || !search || !COMMAND.parseAndValidateArgs(search).valid) {
+        // Limited to zero, no search or invalid = don't suggest
         return
     }
     const commandName = search.split(" ")[0]
@@ -153,7 +153,7 @@ const suggestCommand = search => {
     const isBufferCommand = [
         "buffer", "hide", "close", "Vexplore", "Sexplore", "split", "vsplit"
     ].some(b => b.startsWith(commandName))
-    if (isBufferCommand && (commandName.length > 1 || commandName === "b")) {
+    if (isBufferCommand && !"hcsv".split("").includes(commandName)) {
         const simpleSearch = search.split(" ").slice(1).join("")
             .replace(/\W/g, "").toLowerCase()
         TABS.listTabs().map((t, index) => {
@@ -173,7 +173,6 @@ const suggestCommand = search => {
             const simpleTabTitle = t.subtext.replace(/\W/g, "").toLowerCase()
             return simpleTabTitle.includes(simpleSearch)
         }).slice(0, limit).forEach(t => { addCommand(t.command, t.subtext) })
-        return
     }
     const possibleCommands = COMMAND.commandList().concat(subCommandSuggestions)
         .filter(c => c.toLowerCase().startsWith(search.toLowerCase()))

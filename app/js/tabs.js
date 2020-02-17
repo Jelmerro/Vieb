@@ -76,7 +76,7 @@ const init = () => {
                 addTab()
             } else {
                 // Probably first startup ever (no configured or stored pages)
-                addTab(UTIL.specialPagePath("help"))
+                addTab({"url": UTIL.specialPagePath("help")})
             }
         }
         ipcRenderer.on("urls", (_, urls) => {
@@ -119,7 +119,7 @@ const openSavedPage = url => {
             url = `https://${url}`
         }
     }
-    addTab(url)
+    addTab({"url": url})
 }
 
 const saveTabs = () => {
@@ -177,10 +177,17 @@ const currentPage = () => {
     return document.getElementById("current-page")
 }
 
-const addTab = (url = null, inverted = false, switchTo = true) => {
+const addTab = options => {
+    // Valid options are: url, inverted, switchTo and callback
+    if (!options) {
+        options = {}
+    }
+    if (options.switchTo === undefined) {
+        options.switchTo = true
+    }
     let addNextToCurrent = SETTINGS.get("tabnexttocurrent")
     addNextToCurrent = addNextToCurrent && listTabs().length > 0
-    if (inverted) {
+    if (options.inverted) {
         addNextToCurrent = !addNextToCurrent
     }
     const tabs = document.getElementById("tabs")
@@ -235,7 +242,7 @@ const addTab = (url = null, inverted = false, switchTo = true) => {
     webview.setAttribute("partition", sessionName)
     linkId += 1
     pages.appendChild(webview)
-    if (switchTo) {
+    if (options.switchTo) {
         if (addNextToCurrent) {
             switchToTab(listTabs().indexOf(currentTab()) + 1)
         } else {
@@ -250,13 +257,16 @@ const addTab = (url = null, inverted = false, switchTo = true) => {
             webContents(webview).userAgent = useragent
             webContents(webview).setWebRTCIPHandlingPolicy(
                 "default_public_interface_only")
-            if (url) {
-                url = UTIL.redirect(url)
-                webview.src = url
+            if (options.url) {
+                options.url = UTIL.redirect(options.url)
+                webview.src = options.url
                 resetTabInfo(webview)
-                title.textContent = url
+                title.textContent = options.url
             }
             webview.removeAttribute("useragent")
+            if (options.callback) {
+                options.callback(webview.getAttribute("link-id"))
+            }
         }
     })
 }
@@ -268,7 +278,7 @@ const reopenTab = () => {
     if (UTIL.pathToSpecialPageName(currentPage().src).name === "newtab") {
         navigateTo(recentlyClosed.pop())
     } else if (currentPage().src) {
-        addTab(recentlyClosed.pop())
+        addTab({"url": recentlyClosed.pop()})
     } else {
         navigateTo(recentlyClosed.pop())
     }
@@ -280,8 +290,13 @@ const closeTab = () => {
             recentlyClosed.push(currentPage().src)
         }
     }
-    PAGELAYOUT.hide(currentPage())
     const oldTabIndex = listTabs().indexOf(currentTab())
+    const multiple = document.getElementById("pages")
+        .classList.contains("multiple")
+    if (multiple) {
+        PAGELAYOUT.hide(currentPage(), close)
+        return
+    }
     document.getElementById("tabs").removeChild(currentTab())
     document.getElementById("pages").removeChild(currentPage())
     if (listTabs().length === 0) {
@@ -343,8 +358,8 @@ const switchToTab = index => {
 
 const updateUrl = (webview, force = false) => {
     const skip = ["command", "search", "explore"]
-    if (webview !== currentPage() || skip.includes(MODES.currentMode())) {
-        if (!force) {
+    if (!force) {
+        if (webview !== currentPage() || skip.includes(MODES.currentMode())) {
             return
         }
     }
@@ -535,7 +550,7 @@ const addWebviewListeners = webview => {
         } else if (e.disposition === "foreground-tab") {
             navigateTo(e.url)
         } else {
-            addTab(e.url)
+            addTab({"url": e.url})
         }
     })
     webview.addEventListener("enter-html-full-screen", () => {

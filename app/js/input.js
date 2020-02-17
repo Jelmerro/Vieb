@@ -228,13 +228,10 @@ const init = () => {
         ACTIONS.setFocusCorrectly()
     })
     window.addEventListener("resize", () => {
-        if (MODES.currentMode() === "follow") {
-            FOLLOW.startFollow()
-        }
+        PAGELAYOUT.applyLayout()
         if (["pointer", "visual"].includes(MODES.currentMode())) {
             POINTER.updateElement()
         }
-        PAGELAYOUT.applyLayout()
     })
     document.getElementById("url").addEventListener("input", () => {
         if (MODES.currentMode() === "explore") {

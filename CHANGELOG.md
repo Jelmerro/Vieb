@@ -18,6 +18,7 @@ but the list below contains much more technical details.
 - When the mouse is enabled, switch tabs, modes or focus by clicking on it
 - New location from where the viebrc file will be read: ~/.viebrc (aside from the viebrc in Vieb's data folder)
 - Dark theme and security settings for the website developer tools (:devtools)
+- Window splitting using Vexplore, vsplit, Sexplore, split and Explore to display multiple sites at the same time
 
 ### Changed
 
@@ -35,6 +36,7 @@ but the list below contains much more technical details.
 - Add spellcheck integration (on by default), use spell and spelllang to configure
 - History storage format is now JSON, for easier parsing and better title storing
 - Entries on the history page can now be removed without reloading all history again
+- Buffer command can now be used to navigate to new locations (this is also true for the new split and Explore commands)
 
 ### Deprecated
 
