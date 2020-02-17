@@ -13,7 +13,7 @@
     "buildmac": "node build.js --mac"
   },
   "repository": "https://github.com/Jelmerro/Vieb",
-  "homepage": "https://github.com/Jelmerro/Vieb",
+  "homepage": "https://vieb.dev",
   "keywords": [
     "Electron",
     "Browser",

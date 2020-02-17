@@ -280,6 +280,7 @@ const closeTab = () => {
             recentlyClosed.push(currentPage().src)
         }
     }
+    PAGELAYOUT.hide(currentPage())
     const oldTabIndex = listTabs().indexOf(currentTab())
     document.getElementById("tabs").removeChild(currentTab())
     document.getElementById("pages").removeChild(currentPage())
