@@ -5,10 +5,11 @@ Vieb
 
 ### Vim Inspired Electron Browser
 
-### [github](https://github.com/Jelmerro/Vieb) - [releases](https://github.com/Jelmerro/Vieb/releases) - [changelog](CHANGELOG.md) - [donate](https://ko-fi.com/Jelmerro)
+### [website](https://vieb.dev) - [github](https://github.com/Jelmerro/Vieb) - [releases](https://github.com/Jelmerro/Vieb/releases) - [changelog](CHANGELOG.md) - [donate](https://ko-fi.com/Jelmerro)
 
 ### Vim bindings for the web by design
 
+[![Website](https://img.shields.io/static/v1?label=website&message=vieb.dev&color=f5002e&style=flat-square)](https://vieb.dev)
 [![Download counter](https://img.shields.io/github/downloads/Jelmerro/Vieb/total?style=flat-square)](https://github.com/Jelmerro/Vieb/releases)
 [![Latest release](https://img.shields.io/github/v/release/Jelmerro/Vieb?sort=semver&style=flat-square)](https://github.com/Jelmerro/Vieb/releases/latest)
 [![Electron version](https://img.shields.io/github/package-json/dependency-version/Jelmerro/Vieb/dev/electron?style=flat-square)](https://github.com/electron/electron)
