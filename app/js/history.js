@@ -48,10 +48,7 @@ const init = () => {
             return
         }
         if (!groupedHistory[hist.url]) {
-            groupedHistory[hist.url] = {
-                "title": hist.title,
-                "visits": []
-            }
+            groupedHistory[hist.url] = {"title": hist.title, "visits": []}
         }
         groupedHistory[hist.url].visits.push(hist.date)
         if (!UTIL.hasProtocol(hist.title) && hist.title.trim()) {
@@ -69,9 +66,7 @@ const parseHistLine = line => {
         return null
     }
     return {
-        "date": parts[0],
-        "title": parts[1],
-        "url": parts.slice(2).join("")
+        "date": parts[0], "title": parts[1], "url": parts.slice(2).join("")
     }
 }
 
@@ -98,13 +93,15 @@ const suggestHist = search => {
         if (simpleSearch.every(w => simpleUrl.includes(w))) {
             relevance = 5
         }
-        if (relevance > 1 || simpleSearch.every(w => simpleTitle.includes(w))) {
-            if (url.toLowerCase().includes(search)) {
-                relevance *= 10
-            }
+        if (url.toLowerCase().includes(search)) {
+            relevance *= 10
+        }
+        const allWordsInTitleOrUrl = simpleSearch.every(w => {
+            return simpleTitle.includes(w) || simpleUrl.includes(w)
+        })
+        if (relevance > 1 || allWordsInTitleOrUrl) {
             return {
-                "url": url,
-                "title": groupedHistory[url].title,
+                "url": url, "title": groupedHistory[url].title,
                 "relevance": relevance * visitCount(url)
             }
         }
@@ -183,10 +180,8 @@ const handleRequest = (action = "", entries = []) => {
         Object.keys(groupedHistory).forEach(site => {
             groupedHistory[site].visits.forEach(visit => {
                 history.push({
-                    "url": site,
-                    "title": groupedHistory[site].title,
-                    "icon": FAVICONS.forSite(site),
-                    "date": new Date(visit),
+                    "url": site, "title": groupedHistory[site].title,
+                    "icon": FAVICONS.forSite(site), "date": new Date(visit),
                     "visits": groupedHistory[site].visits.length
                 })
             })
@@ -221,9 +216,8 @@ const suggestTopSites = () => {
             }
         }
         return {
-            "url": site,
-            "name": groupedHistory[site] && groupedHistory[site].title,
-            "icon": FAVICONS.forSite(site)
+            "url": site, "icon": FAVICONS.forSite(site),
+            "name": groupedHistory[site] && groupedHistory[site].title
         }
     })
 }
@@ -253,10 +247,7 @@ const updateTitle = (url, title) => {
         }
         groupedHistory[url].title = title
     } else {
-        groupedHistory[url] = {
-            "visits": [],
-            "title": title
-        }
+        groupedHistory[url] = {"visits": [], "title": title}
     }
     writeHistToFile()
 }

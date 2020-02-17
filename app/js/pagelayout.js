@@ -22,24 +22,29 @@ const layoutDivById = id => {
     return document.querySelector(`#pagelayout div[link-id='${id}']`)
 }
 
-const switchView = (oldView, newView) => {
-    if (oldView) {
-        if (!layoutDivById(newView.getAttribute("link-id"))) {
-            if (layoutDivById(oldView.getAttribute("link-id"))) {
-                layoutDivById(oldView.getAttribute("link-id"))
-                    .setAttribute("link-id", newView.getAttribute("link-id"))
+const switchView = (oldViewOrId, newView) => {
+    let oldId = oldViewOrId
+    if (oldViewOrId && !["number", "string"].includes(typeof oldViewOrId)) {
+        oldId = oldViewOrId.getAttribute("link-id")
+    }
+    const newId = newView.getAttribute("link-id")
+    console.log(oldId, newId)
+    if (oldId) {
+        if (!layoutDivById(newId)) {
+            if (layoutDivById(oldId)) {
+                layoutDivById(oldId).setAttribute("link-id", newId)
             }
         }
     } else if (document.getElementById("pagelayout").children.length === 0) {
         document.getElementById("pagelayout").classList.add("hor")
         const singleView = document.createElement("div")
-        singleView.setAttribute("link-id", newView.getAttribute("link-id"))
+        singleView.setAttribute("link-id", newId)
         document.querySelector("#pagelayout").appendChild(singleView)
     }
     applyLayout()
 }
 
-const hide = view => {
+const hide = (view, close = false) => {
     if (!document.getElementById("pages").classList.contains("multiple")) {
         return
     }
@@ -47,31 +52,32 @@ const hide = view => {
     inLayout.parentNode.removeChild(inLayout)
     if (view.id === "current-page") {
         const visibleTabs = [...document.querySelectorAll("#tabs .visible-tab")]
+        // TODO possibly find closest sibling instead of the first one
         const newTab = visibleTabs.find(t => {
             return t.getAttribute("link-id") !== view.getAttribute("link-id")
         })
+        if (close) {
+            document.getElementById("tabs").removeChild(TABS.currentTab())
+            document.getElementById("pages").removeChild(TABS.currentPage())
+        }
         TABS.switchToTab(TABS.listTabs().indexOf(newTab))
     }
     applyLayout()
 }
 
-const addAboveOrBelow = view => {
-    add(view, "ver", !SETTINGS.get("splitbelow"))
-}
-
-const addLeftOrRight = view => {
-    add(view, "hor", !SETTINGS.get("splitright"))
-}
-
-const add = (view, method, leftOrAbove) => {
-    const currentPage = document.getElementById("current-page")
+const add = (viewOrId, method, leftOrAbove) => {
+    let id = viewOrId
+    if (!["number", "string"].includes(typeof viewOrId)) {
+        id = viewOrId.getAttribute("link-id")
+    }
+    const currentPage = TABS.currentPage()
     const inLayout = layoutDivById(currentPage.getAttribute("link-id"))
     if ([...document.querySelectorAll("#pagelayout *[link-id]")].length === 1) {
         document.getElementById("pagelayout").className = method
     }
     if (inLayout.parentNode.classList.contains(method)) {
         const singleView = document.createElement("div")
-        singleView.setAttribute("link-id", view.getAttribute("link-id"))
+        singleView.setAttribute("link-id", id)
         if (leftOrAbove) {
             inLayout.parentNode.insertBefore(singleView, inLayout)
         } else {
@@ -82,7 +88,7 @@ const add = (view, method, leftOrAbove) => {
         verContainer.className = method
         if (leftOrAbove) {
             const singleView = document.createElement("div")
-            singleView.setAttribute("link-id", view.getAttribute("link-id"))
+            singleView.setAttribute("link-id", id)
             verContainer.appendChild(singleView)
         }
         const existingView = document.createElement("div")
@@ -90,7 +96,7 @@ const add = (view, method, leftOrAbove) => {
         verContainer.appendChild(existingView)
         if (!leftOrAbove) {
             const singleView = document.createElement("div")
-            singleView.setAttribute("link-id", view.getAttribute("link-id"))
+            singleView.setAttribute("link-id", id)
             verContainer.appendChild(singleView)
         }
         inLayout.parentNode.insertBefore(verContainer, inLayout)
@@ -153,21 +159,21 @@ const applyLayout = () => {
         document.getElementById("pages").classList.remove("multiple")
         document.getElementById("tabs").classList.remove("multiple")
     }
-    document.querySelectorAll("#pages > webview").forEach(page => {
+    TABS.listPages().forEach(page => {
         if (visiblePages.includes(page)) {
             page.classList.add("visible-page")
         } else {
             page.classList.remove("visible-page")
         }
     })
-    document.querySelectorAll("#tabs > span[link-id]").forEach(tab => {
+    TABS.listTabs().forEach(tab => {
         if (visibleTabs.includes(tab)) {
             tab.classList.add("visible-tab")
         } else {
             tab.classList.remove("visible-tab")
         }
     })
-    const cur = document.getElementById("current-page")
+    const cur = TABS.currentPage()
     if (cur) {
         const follow = document.getElementById("follow")
         if (document.getElementById("pages").classList.contains("multiple")) {
@@ -186,7 +192,6 @@ const applyLayout = () => {
 module.exports = {
     switchView,
     hide,
-    addAboveOrBelow,
-    addLeftOrRight,
+    add,
     applyLayout
 }

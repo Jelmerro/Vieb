@@ -227,7 +227,11 @@ const elementsWithMouseDownListener = []
 
 EventTarget.prototype.realAddListener = EventTarget.prototype.addEventListener
 EventTarget.prototype.addEventListener = function(type, listener, options) {
-    this.realAddListener(type, listener, options)
+    try {
+        this.realAddListener(type, listener, options)
+    } catch (e) {
+        // This is a bug in the underlying website
+    }
     if (type === "click" && this !== document) {
         elementsWithClickListener.push(this)
     }
@@ -275,6 +279,8 @@ window.addEventListener("click", e => {
         "toinsert": isTextElement(e.target)
     })
 })
+
+window.addEventListener("resize", sendFollowLinks)
 
 // Send the follow links to the renderer if DOM is changed in any way
 const observer = new window.MutationObserver(sendFollowLinks)

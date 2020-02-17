@@ -195,7 +195,7 @@ const parseAndDisplayLinks = newLinks => {
         const onclickListener = e => {
             if (e.button === 1 && UTIL.hasProtocol(link.url)) {
                 MODES.setMode(modeBeforeFollow)
-                TABS.addTab(link.url)
+                TABS.addTab({"url": link.url})
             } else {
                 clickAtLink(link)
                 if (link.type !== "inputs-insert") {
@@ -255,7 +255,10 @@ const enterKey = identifier => {
             if (stayInFollowMode) {
                 startFollow()
             }
-            TABS.addTab(link.url, false, !stayInFollowMode)
+            TABS.addTab({
+                "url": link.url, "inverted": false,
+                "switchTo": !stayInFollowMode
+            })
             return
         }
         clickAtLink(link)

@@ -319,6 +319,24 @@ const deleteFile = (loc, err = null) => {
     return false
 }
 
+const stringToUrl = location => {
+    const specialPage = pathToSpecialPageName(location)
+    const local = expandPath(location)
+    if (specialPage.name) {
+        return specialPagePath(specialPage.name, specialPage.section)
+    }
+    if (hasProtocol(location)) {
+        return location
+    }
+    if (isDir(local) || isFile(local)) {
+        return `file:${local}`.replace(/^file:\/*/, "file:///")
+    }
+    if (isUrl(location)) {
+        return `https://${location}`
+    }
+    return SETTINGS.get("search") + location
+}
+
 module.exports = {
     hasProtocol,
     isUrl,
@@ -339,5 +357,6 @@ module.exports = {
     readJSON,
     writeJSON,
     writeFile,
-    deleteFile
+    deleteFile,
+    stringToUrl
 }

@@ -201,7 +201,7 @@ const openSpecialPage = (specialPage, section = null) => {
     if (TABS.currentPage().src === "" || alreadyOpen || isNewtab) {
         TABS.navigateTo(pageUrl)
     } else {
-        TABS.addTab(pageUrl)
+        TABS.addTab({"url": pageUrl})
     }
 }
 
@@ -305,16 +305,15 @@ const mkviebrc = (full = false, trailingArgs = false) => {
     SETTINGS.saveToDisk(exportAll)
 }
 
-const tabForBufferArg = (command, args) => {
-    if (args.length === 0) {
-        UTIL.notify(
-            `The ${command} command requires a buffer name or id`, "warn")
-        return null
-    }
+const tabForBufferArg = args => {
     if (args.length === 1) {
         const number = Number(args[0])
         if (!isNaN(number)) {
-            return TABS.listTabs()[number]
+            const tabs = TABS.listTabs()
+            if (number < 0) {
+                return tabs[0]
+            }
+            return tabs[number] || tabs.pop()
         }
     }
     const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
@@ -331,10 +330,15 @@ const tabForBufferArg = (command, args) => {
 }
 
 const buffer = (...args) => {
-    const tab = tabForBufferArg("buffer", args)
+    if (args.length === 0) {
+        return
+    }
+    const tab = tabForBufferArg(args)
     if (tab) {
         TABS.switchToTab(TABS.listTabs().indexOf(tab))
+        return
     }
+    TABS.navigateTo(UTIL.stringToUrl(args.join(" ")))
 }
 
 const hide = (...args) => {
@@ -342,7 +346,7 @@ const hide = (...args) => {
     if (args.length === 0) {
         tab = TABS.currentTab()
     } else {
-        tab = tabForBufferArg("hide", args)
+        tab = tabForBufferArg(args)
     }
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
@@ -353,33 +357,35 @@ const hide = (...args) => {
     }
 }
 
-const vexplore = (...args) => {
-    if (args.length === 0) {
-        // TODO open new empty tab and vsplit
-        return
-    }
-    const tab = tabForBufferArg("vexplore", args)
-    if (tab) {
-        if (tab.classList.contains("visible-tab")) {
-            UTIL.notify("Page is already visible", "warn")
-        } else {
-            PAGELAYOUT.addLeftOrRight(TABS.tabOrPageMatching(tab))
-        }
-    }
+const tabIndexById = id => {
+    return TABS.listTabs().indexOf(TABS.listTabs().find(
+        t => t.getAttribute("link-id") === id))
 }
 
-const sexplore = (...args) => {
+const addSplit = (method, leftOrAbove, args) => {
     if (args.length === 0) {
-        // TODO open new empty tab and split
+        TABS.addTab({"switchTo": false, "callback": id => {
+            PAGELAYOUT.add(id, method, leftOrAbove)
+            TABS.switchToTab(tabIndexById(id))
+        }})
         return
     }
-    const tab = tabForBufferArg("vexplore", args)
+    const tab = tabForBufferArg(args)
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
             UTIL.notify("Page is already visible", "warn")
         } else {
-            PAGELAYOUT.addAboveOrBelow(TABS.tabOrPageMatching(tab))
+            PAGELAYOUT.add(TABS.tabOrPageMatching(tab), method, leftOrAbove)
+            TABS.switchToTab(TABS.listTabs().indexOf(tab))
         }
+    } else {
+        TABS.addTab({
+            "url": UTIL.stringToUrl(args.join(" ")), "switchTo": false,
+            "callback": id => {
+                PAGELAYOUT.add(id, method, leftOrAbove)
+                TABS.switchToTab(tabIndexById(id))
+            }
+        })
     }
 }
 
@@ -388,10 +394,10 @@ const cookies = () => {
 }
 
 const commands = {
-    "qa": quitall,
-    "quitall": quitall,
     "q": quit,
     "quit": quit,
+    "qa": quitall,
+    "quitall": quitall,
     "devtools": devtools,
     "reload": reload,
     "v": version,
@@ -413,10 +419,18 @@ const commands = {
     "buffer": buffer,
     "hide": hide,
     // "close": close,
-    "Vexplore": vexplore,
-    "Sexplore": sexplore,
-    "split": sexplore,
-    "vsplit": vexplore,
+    "Vexplore": (...args) => {
+        addSplit("hor", !SETTINGS.get("splitbelow"), args)
+    },
+    "Sexplore": (...args) => {
+        addSplit("ver", !SETTINGS.get("splitright"), args)
+    },
+    "split": (...args) => {
+        addSplit("ver", !SETTINGS.get("splitright"), args)
+    },
+    "vsplit": (...args) => {
+        addSplit("hor", !SETTINGS.get("splitbelow"), args)
+    },
     "cookies": cookies
 }
 // TODO add a function to automatically convert nmap, imap etc. to a generic function,
@@ -424,10 +438,10 @@ const commands = {
 // Use the first character of the mode name to generate these commands.
 
 const noArgumentComands = [
-    "qa",
-    "quitall",
     "q",
     "quit",
+    "qa",
+    "quitall",
     "devtools",
     "reload",
     "v",
@@ -439,15 +453,7 @@ const noArgumentComands = [
     "print"
 ]
 
-const execute = command => {
-    // Remove all redundant spaces
-    // Allow commands prefixed with :
-    // And return if the command is empty
-    command = command.replace(/^[\s|:]*/, "").trim().replace(/ +/g, " ")
-    if (!command) {
-        return
-    }
-    COMMANDHISTORY.push(command)
+const parseAndValidateArgs = command => {
     const argsString = command.split(" ").slice(1).join(" ")
     const args = []
     let currentArg = ""
@@ -469,16 +475,31 @@ const execute = command => {
         }
         currentArg += char
     }
-    if (escapedSingle || escapedDouble) {
-        UTIL.notify(
-            `Could not execute command, unescaped parameters:\n${command}`,
-            "warn")
-        return
-    }
     if (currentArg) {
         args.push(currentArg)
     }
     command = command.split(" ")[0]
+    return {command, args, "valid": !escapedSingle && !escapedDouble}
+}
+
+const execute = command => {
+    // Remove all redundant spaces
+    // Allow commands prefixed with :
+    // And return if the command is empty
+    command = command.replace(/^[\s|:]*/, "").trim().replace(/ +/g, " ")
+    if (!command) {
+        return
+    }
+    COMMANDHISTORY.push(command)
+    const parsed = parseAndValidateArgs(command)
+    if (!parsed.valid) {
+        UTIL.notify(
+            `Could not execute command, unmatched escape quotes:\n${command}`,
+            "warn")
+        return
+    }
+    command = parsed.command
+    const args = parsed.args
     const matches = Object.keys(commands).filter(c => c.startsWith(command))
     if (matches.length === 1 || commands[command]) {
         if (matches.length === 1) {
@@ -499,11 +520,12 @@ const execute = command => {
 }
 
 const commandList = () => {
-    return Object.keys(commands).filter(c => c.length > 1)
+    return Object.keys(commands).filter(c => c.length > 2)
 }
 
 module.exports = {
     openSpecialPage,
+    parseAndValidateArgs,
     execute,
     commandList
 }

@@ -144,7 +144,7 @@ const backInHistory = () => {
 }
 
 const openNewTabAtAlternativePosition = () => {
-    TABS.addTab(null, true)
+    TABS.addTab({"inverted": true})
     if (SETTINGS.get("automaticexploremode")) {
         MODES.setMode("explore")
     }
@@ -286,20 +286,7 @@ const useEnteredData = () => {
         const location = urlElement.value.trim()
         MODES.setMode("normal")
         if (location !== "") {
-            const specialPage = UTIL.pathToSpecialPageName(location)
-            const local = UTIL.expandPath(location)
-            if (specialPage.name) {
-                COMMAND.openSpecialPage(specialPage.name, specialPage.section)
-            } else if (UTIL.hasProtocol(location)) {
-                TABS.navigateTo(location)
-            } else if (UTIL.isDir(local) || UTIL.isFile(local)) {
-                TABS.navigateTo(
-                    `file:${local}`.replace(/^file:\/*/, "file:///"))
-            } else if (UTIL.isUrl(location)) {
-                TABS.navigateTo(`https://${location}`)
-            } else {
-                TABS.navigateTo(SETTINGS.get("search") + location)
-            }
+            TABS.navigateTo(UTIL.stringToUrl(location))
         }
     }
 }
