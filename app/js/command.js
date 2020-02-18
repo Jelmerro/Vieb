@@ -364,10 +364,13 @@ const tabIndexById = id => {
 
 const addSplit = (method, leftOrAbove, args) => {
     if (args.length === 0) {
-        TABS.addTab({"switchTo": false, "callback": id => {
-            PAGELAYOUT.add(id, method, leftOrAbove)
-            TABS.switchToTab(tabIndexById(id))
-        }})
+        TABS.addTab({
+            "switchTo": false,
+            "callback": id => {
+                PAGELAYOUT.add(id, method, leftOrAbove)
+                TABS.switchToTab(tabIndexById(id))
+            }
+        })
         return
     }
     const tab = tabForBufferArg(args)
@@ -380,7 +383,8 @@ const addSplit = (method, leftOrAbove, args) => {
         }
     } else {
         TABS.addTab({
-            "url": UTIL.stringToUrl(args.join(" ")), "switchTo": false,
+            "url": UTIL.stringToUrl(args.join(" ")),
+            "switchTo": false,
             "callback": id => {
                 PAGELAYOUT.add(id, method, leftOrAbove)
                 TABS.switchToTab(tabIndexById(id))
@@ -520,7 +524,7 @@ const execute = command => {
 }
 
 const commandList = () => {
-    return Object.keys(commands).filter(c => c.length > 2)
+    return Object.keys(commands).filter(c => c.length > 2 && c !== "mkv")
 }
 
 module.exports = {

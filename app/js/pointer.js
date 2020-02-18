@@ -60,8 +60,10 @@ const offset = () => {
         right -= SETTINGS.get("fontsize") * .15
     }
     return {
-        "top": Math.round(top), "left": Math.round(left),
-        "bottom": Math.round(bottom), "right": Math.round(right)
+        "top": Math.round(top),
+        "left": Math.round(left),
+        "bottom": Math.round(bottom),
+        "right": Math.round(right)
     }
 }
 

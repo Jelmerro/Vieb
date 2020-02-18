@@ -150,6 +150,12 @@
         "no-with": "error",
         "object-curly-newline": "error",
         "object-curly-spacing": "error",
+        "object-property-newline": [
+            "error",
+            {
+                "allowAllPropertiesOnSameLine": true
+            }
+        ],
         "one-var": [
             "error",
             "never"

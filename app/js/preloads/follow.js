@@ -274,7 +274,8 @@ const isTextElement = el => {
 
 window.addEventListener("click", e => {
     ipcRenderer.sendToHost("mouse-click-info", {
-        "x": e.x, "y": e.y,
+        "x": e.x,
+        "y": e.y,
         "tovisual": !window.getSelection().isCollapsed,
         "toinsert": isTextElement(e.target)
     })

@@ -96,7 +96,7 @@ const indexOf = suggestion => {
 }
 
 const addHist = hist => {
-    if (suggestions.length > SETTINGS.get("suggesthistory")) {
+    if (suggestions.length + 1 > SETTINGS.get("suggesthistory")) {
         return
     }
     addToList(hist.url)
@@ -125,6 +125,9 @@ const addHist = hist => {
     url.textContent = hist.url
     element.appendChild(url)
     document.getElementById("suggest-dropdown").appendChild(element)
+    setTimeout(() => {
+        element.style.pointerEvents = "auto"
+    }, 100)
 }
 
 const suggestCommand = search => {
@@ -133,32 +136,38 @@ const suggestCommand = search => {
     // Remove all redundant spaces
     // Allow commands prefixed with :
     search = search.replace(/^[\s|:]*/, "").replace(/ +/g, " ")
-    const limit = SETTINGS.get("suggestcommands")
-    if (!limit || !search || !COMMAND.parseAndValidateArgs(search).valid) {
+    const {valid, command, args} = COMMAND.parseAndValidateArgs(search)
+    if (!SETTINGS.get("suggestcommands") || !search || !valid) {
         // Limited to zero, no search or invalid = don't suggest
         return
     }
-    const commandName = search.split(" ")[0]
-    let subCommandSuggestions = []
-    if ("set".startsWith(commandName)) {
-        subCommandSuggestions = SETTINGS.suggestionList()
-            .map(s => `${search.split(" ").slice(0, -1).join(" ")} ${s}`)
+    COMMAND.commandList().filter(
+        c => c.startsWith(search)).forEach(c => addCommand(c))
+    if ("set".startsWith(command)) {
+        if (args.length) {
+            SETTINGS.suggestionList()
+                .filter(s => s.startsWith(args[args.length - 1]))
+                .map(s => `${command} ${args.slice(0, -1).join(" ")} ${s}`)
+                .forEach(c => addCommand(c))
+        } else {
+            SETTINGS.suggestionList().map(s => `${command} ${s}`)
+                .forEach(c => addCommand(c))
+        }
     }
-    if ("write".startsWith(commandName)) {
-        subCommandSuggestions = ["write ~/Downloads/newfile"]
+    if ("write ~/Downloads/newfile".startsWith(search)) {
+        addCommand("write ~/Downloads/newfile")
     }
-    if ("mkviebrc".startsWith(commandName)) {
-        subCommandSuggestions = ["mkv full", "mkviebrc full"]
+    if ("mkviebrc full".startsWith(search)) {
+        addCommand("mkviebrc full")
     }
     const isBufferCommand = [
-        "buffer", "hide", "close", "Vexplore", "Sexplore", "split", "vsplit"
-    ].some(b => b.startsWith(commandName))
-    if (isBufferCommand && !"hcsv".split("").includes(commandName)) {
-        const simpleSearch = search.split(" ").slice(1).join("")
-            .replace(/\W/g, "").toLowerCase()
+        "buffer", "hide", "Vexplore", "Sexplore", "split", "vsplit"
+    ].some(b => b.startsWith(command))
+    if (isBufferCommand && !["h", "hi", "s", "v"].includes(command)) {
+        const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
         TABS.listTabs().map((t, index) => {
             return {
-                "command": `${commandName} ${index}`,
+                "command": `${command} ${index}`,
                 "subtext": `${t.querySelector("span").textContent}`,
                 "url": TABS.tabOrPageMatching(t).src
             }
@@ -172,16 +181,14 @@ const suggestCommand = search => {
             }
             const simpleTabTitle = t.subtext.replace(/\W/g, "").toLowerCase()
             return simpleTabTitle.includes(simpleSearch)
-        }).slice(0, limit).forEach(t => { addCommand(t.command, t.subtext) })
-    }
-    const possibleCommands = COMMAND.commandList().concat(subCommandSuggestions)
-        .filter(c => c.toLowerCase().startsWith(search.toLowerCase()))
-    for (const command of possibleCommands.slice(0, limit)) {
-        addCommand(command)
+        }).forEach(t => addCommand(t.command, t.subtext))
     }
 }
 
 const addCommand = (command, subtext) => {
+    if (suggestions.length + 1 > SETTINGS.get("suggestcommands")) {
+        return
+    }
     addToList(command)
     const element = document.createElement("div")
     element.className = "no-focus-reset"
@@ -198,6 +205,9 @@ const addCommand = (command, subtext) => {
     subtextElement.className = "file"
     element.appendChild(subtextElement)
     document.getElementById("suggest-dropdown").appendChild(element)
+    setTimeout(() => {
+        element.style.pointerEvents = "auto"
+    }, 100)
 }
 
 module.exports = {

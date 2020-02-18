@@ -256,7 +256,8 @@ const enterKey = identifier => {
                 startFollow()
             }
             TABS.addTab({
-                "url": link.url, "inverted": false,
+                "url": link.url,
+                "inverted": false,
                 "switchTo": !stayInFollowMode
             })
             return
