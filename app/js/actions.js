@@ -90,8 +90,7 @@ const scrollRight = () => {
 const nextSearchMatch = () => {
     if (currentSearch) {
         TABS.currentPage().findInPage(currentSearch, {
-            "findNext": true,
-            "matchCase": !SETTINGS.get("ignorecase")
+            "findNext": true, "matchCase": !SETTINGS.get("ignorecase")
         })
     }
 }

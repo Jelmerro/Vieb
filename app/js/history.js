@@ -101,7 +101,8 @@ const suggestHist = search => {
         })
         if (relevance > 1 || allWordsInTitleOrUrl) {
             return {
-                "url": url, "title": groupedHistory[url].title,
+                "url": url,
+                "title": groupedHistory[url].title,
                 "relevance": relevance * visitCount(url)
             }
         }
@@ -180,8 +181,10 @@ const handleRequest = (action = "", entries = []) => {
         Object.keys(groupedHistory).forEach(site => {
             groupedHistory[site].visits.forEach(visit => {
                 history.push({
-                    "url": site, "title": groupedHistory[site].title,
-                    "icon": FAVICONS.forSite(site), "date": new Date(visit),
+                    "url": site,
+                    "title": groupedHistory[site].title,
+                    "icon": FAVICONS.forSite(site),
+                    "date": new Date(visit),
                     "visits": groupedHistory[site].visits.length
                 })
             })
@@ -216,7 +219,8 @@ const suggestTopSites = () => {
             }
         }
         return {
-            "url": site, "icon": FAVICONS.forSite(site),
+            "url": site,
+            "icon": FAVICONS.forSite(site),
             "name": groupedHistory[site] && groupedHistory[site].title
         }
     })

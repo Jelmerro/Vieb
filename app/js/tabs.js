@@ -291,10 +291,8 @@ const closeTab = () => {
         }
     }
     const oldTabIndex = listTabs().indexOf(currentTab())
-    const multiple = document.getElementById("pages")
-        .classList.contains("multiple")
-    if (multiple) {
-        PAGELAYOUT.hide(currentPage(), close)
+    if (document.getElementById("pages").classList.contains("multiple")) {
+        PAGELAYOUT.hide(currentPage(), true)
         return
     }
     document.getElementById("tabs").removeChild(currentTab())

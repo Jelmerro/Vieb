@@ -18,7 +18,7 @@ but the list below contains much more technical details.
 - When the mouse is enabled, switch tabs, modes or focus by clicking on it
 - New location from where the viebrc file will be read: ~/.viebrc (aside from the viebrc in Vieb's data folder)
 - Dark theme and security settings for the website developer tools (:devtools)
-- Window splitting using Vexplore, vsplit, Sexplore, split and Explore to display multiple sites at the same time
+- Window splitting using Vexplore, vsplit, Sexplore and split to display multiple sites at the same time
 
 ### Changed
 

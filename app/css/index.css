@@ -67,7 +67,7 @@ body.fullscreen #current-page {display: flex;width: 100vw;height: 100vh;top: 0;b
 .follow-onclick-border {border: solid .07em #cc5;z-index: 6;}
 /* suggestions */
 #suggest-dropdown {z-index: 15;position: fixed;top: 2em;left: 4em;width: calc(100vw - 4.2em);background-color: #777;}
-#suggest-dropdown div {display: flex;padding: .4em;margin: .2em;background-color: #444;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
+#suggest-dropdown div {display: flex;padding: .4em;margin: .2em;background-color: #444;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;pointer-events: none;}
 #suggest-dropdown div .title, #suggest-dropdown div .file, #suggest-dropdown div .url {margin: auto .5em;min-width: 0;text-overflow: ellipsis;overflow: hidden;}
 #suggest-dropdown div .title {flex-shrink: 0;max-width: 50%;}
 #suggest-dropdown div .icon {margin: .5em;}

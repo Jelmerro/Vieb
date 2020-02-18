@@ -28,7 +28,6 @@ const switchView = (oldViewOrId, newView) => {
         oldId = oldViewOrId.getAttribute("link-id")
     }
     const newId = newView.getAttribute("link-id")
-    console.log(oldId, newId)
     if (oldId) {
         if (!layoutDivById(newId)) {
             if (layoutDivById(oldId)) {
@@ -49,13 +48,24 @@ const hide = (view, close = false) => {
         return
     }
     const inLayout = layoutDivById(view.getAttribute("link-id"))
-    inLayout.parentNode.removeChild(inLayout)
+    const parent = inLayout.parentNode
+    const sibling = inLayout.nextSibling
+    parent.removeChild(inLayout)
     if (view.id === "current-page") {
         const visibleTabs = [...document.querySelectorAll("#tabs .visible-tab")]
-        // TODO possibly find closest sibling instead of the first one
-        const newTab = visibleTabs.find(t => {
-            return t.getAttribute("link-id") !== view.getAttribute("link-id")
-        })
+        let newTab = null
+        if (sibling) {
+            newTab = visibleTabs.find(t => t.getAttribute("link-id")
+                === sibling.getAttribute("link-id"))
+        }
+        if (!newTab && parent.children[0]) {
+            newTab = visibleTabs.find(t => t.getAttribute("link-id")
+                === parent.children[0].getAttribute("link-id"))
+        }
+        if (!newTab) {
+            newTab = visibleTabs.find(t => t.getAttribute("link-id")
+                !== view.getAttribute("link-id"))
+        }
         if (close) {
             document.getElementById("tabs").removeChild(TABS.currentTab())
             document.getElementById("pages").removeChild(TABS.currentPage())
