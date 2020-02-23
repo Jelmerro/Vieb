@@ -497,7 +497,7 @@ const addWebviewListeners = webview => {
                 }
             }
         }
-        webview.send("insert-failed-page-info", e)
+        webview.send("insert-failed-page-info", JSON.stringify(e))
         webview.setAttribute("failed-to-load", "true")
         webContents(webview).send("fontsize", SETTINGS.get("fontsize"))
     })

@@ -91,7 +91,12 @@ const sendFollowLinks = () => {
     clickableElements.push(...elementsWithClickListener)
     clickableElements.push(...elementsWithMouseDownListener)
     clickableElements.forEach(element => {
-        const clickable = parseElement(element, "onclick")
+        let clickable = null
+        try {
+            clickable = parseElement(element, "onclick")
+        } catch (e) {
+            // Element might get deleted while parsing
+        }
         if (clickable) {
             // Only show onclick elements for which there is no existing link
             const similarExistingLinks = allLinks.filter(link => {

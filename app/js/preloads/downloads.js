@@ -55,6 +55,7 @@ window.addEventListener("load", () => {
 })
 
 ipcRenderer.on("download-list", (_, list) => {
+    list = JSON.parse(list)
     // List
     if (list.length === 0) {
         document.getElementById("list").textContent
@@ -216,6 +217,8 @@ const updateDownload = (download, element, id) => {
     remove.setAttribute("onclick", `window.remove(${id})`)
     togglePause.src = path.join(__dirname, "../../img/pause.png")
     togglePause.setAttribute("onclick", `window.pause(${id})`)
+    progress.style.display = ""
+    togglePause.style.display = ""
     if (download.state === "completed") {
         title.style.color = "lime"
         progress.style.display = "none"
