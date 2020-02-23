@@ -406,8 +406,8 @@ const addCommand = (overwrite, args) => {
     if (args.length === 0) {
         const commandString = Object.keys(userCommands).map(command => {
             return `${command} => ${userCommands[command]}`
-        }).join("\n")
-        if (commandString.trim()) {
+        }).join("\n").trim()
+        if (commandString) {
             UTIL.notify(`--- User defined commands ---\n${commandString}`)
         } else {
             UTIL.notify("There are no user defined commands")
@@ -635,9 +635,16 @@ const commandList = () => {
         .concat(Object.keys(userCommands))
 }
 
+const customCommandsAsCommandList = () => {
+    return Object.keys(userCommands).map(command => {
+        return `command ${command} ${userCommands[command]}`
+    }).join("\n")
+}
+
 module.exports = {
     openSpecialPage,
     parseAndValidateArgs,
     execute,
-    commandList
+    commandList,
+    customCommandsAsCommandList
 }

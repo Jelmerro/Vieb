@@ -268,8 +268,7 @@ const keyNames = [
     {"js": ["ArrowDown"], "vim": ["Down"]},
     {"js": ["Escape"], "vim": ["Esc"]},
     {"js": ["Delete"], "vim": ["Del"]},
-    {"js": [" "], "vim": ["Space"]},
-    {"js": [""], "vim": ["Nop"]}
+    {"js": [" "], "vim": ["Space"]}
 ]
 
 const toIdentifier = e => {
@@ -581,6 +580,47 @@ const listSupportedActions = () => {
     return supportedActions
 }
 
+const mappingModified = (mode, mapping) => {
+    const current = bindings[mode][mapping]
+    const original = defaultBindings[mode][mapping]
+    if (!current && !original) {
+        return false
+    }
+    if (current && original) {
+        if (current.mapping === original.mapping) {
+            if (current.noremap === original.noremap) {
+                return false
+            }
+        }
+    }
+    return true
+}
+
+const listMappingsAsCommandList = () => {
+    const mappings = []
+    Object.keys(defaultBindings).forEach(mode => {
+        const keys = [...new Set(Object.keys(defaultBindings[mode])
+            .concat(Object.keys(bindings[mode])))]
+        for (const key of keys) {
+            const mappingChanged = mappingModified(mode, key)
+            if (!mappingChanged) {
+                continue
+            }
+            const mapping = bindings[mode][key]
+            if (mapping) {
+                let noremap = ""
+                if (mapping.noremap) {
+                    noremap = "nore"
+                }
+                mappings.push(`${mode}${noremap}map ${key} ${mapping.mapping}`)
+            } else {
+                mappings.push(`${mode}unmap ${key}`)
+            }
+        }
+    })
+    return mappings.join("\n")
+}
+
 const listMapping = (mode, map, command) => {
     let remap = "&nbsp;"
     if (command.noremap) {
@@ -650,9 +690,6 @@ const mapOrList = (mode, args, noremap) => {
 }
 
 const mapSingle = (mode, args, noremap) => {
-    if (mode === "i") {
-        noremap = true
-    }
     const mapping = args.shift()
     const actions = args.join(" ").split(/(<.*?>|.)/g).filter(m => m).map(m => {
         keyNames.forEach(key => {
@@ -663,11 +700,15 @@ const mapSingle = (mode, args, noremap) => {
         return m
     }).join("")
     if (mode) {
-        bindings[mode][mapping] = {"mapping": actions, "noremap": noremap}
+        bindings[mode][mapping] = {
+            "mapping": actions, "noremap": noremap || mode === "i"
+        }
         return
     }
     Object.keys(bindings).forEach(bindMode => {
-        bindings[bindMode][mapping] = {"mapping": actions, "noremap": noremap}
+        bindings[bindMode][mapping] = {
+            "mapping": actions, "noremap": noremap || bindMode === "i"
+        }
     })
 }
 
@@ -708,6 +749,7 @@ module.exports = {
     doAction,
     handleKeyboard,
     listSupportedActions,
+    listMappingsAsCommandList,
     mapOrList,
     unmap,
     clearmap
