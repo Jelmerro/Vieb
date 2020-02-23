@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMANDHISTORY DOWNLOADS FAVICONS HISTORY INPUT PAGELAYOUT SETTINGS
- TABS UTIL */
+/* global COMMANDHISTORY DOWNLOADS FAVICONS HISTORY INPUT MODES PAGELAYOUT
+ SETTINGS TABS UTIL */
 "use strict"
 
 const {remote} = require("electron")
@@ -111,7 +111,7 @@ const set = (...args) => {
         } else if (part.includes("=") || part.includes(":")) {
             UTIL.notify(
                 `The setting '${part.replace(/[+-^:=].*/, "")}' contains `
-                    + "invalid characters", "warn")
+                + "invalid characters", "warn")
         } else if (part.endsWith("&")) {
             SETTINGS.reset(part.slice(0, -1))
         } else if (part.endsWith("!")) {
@@ -397,6 +397,68 @@ const cookies = () => {
     openSpecialPage("cookies")
 }
 
+const addCommand = (overwrite, args) => {
+    if (overwrite && args.length < 2) {
+        UTIL.notify(
+            "Can't combine overwrite request with reading a value", "warn")
+        return
+    }
+    if (args.length === 0) {
+        const commandString = Object.keys(userCommands).map(command => {
+            return `${command} => ${userCommands[command]}`
+        })
+        UTIL.notify(`--- User defined commands ---\n${commandString}`)
+        return
+    }
+    const command = args[0].replace(/^[:'" ]*/, "")
+    args = args.slice(1)
+    if (commands.includes(command)) {
+        UTIL.notify(`Command can not be a built-in command: ${command}`, "warn")
+        return
+    }
+    if (args.length === 0) {
+        if (userCommands[command]) {
+            UTIL.notify(`${command} => ${userCommands[command]}`)
+        } else {
+            UTIL.notify(`Not an editor command: ${command}`, "warn")
+        }
+        return
+    }
+    if (!overwrite && userCommands[command]) {
+        UTIL.notify(
+            "Duplicate custom command definition (add ! to overwrite)", "warn")
+        return
+    }
+    userCommands[command] = args.join("").replace(/ /g, "")
+}
+
+const deleteCommand = args => {
+    if (args.length !== 1) {
+        UTIL.notify(
+            "Exactly one command name is required for delcommand", "warn")
+        return
+    }
+    const command = args[0].replace(/^[:'" ]*/, "")
+    if (userCommands[command]) {
+        delete userCommands[args[0]]
+    } else {
+        UTIL.notify(`No such user-defined command: ${command}`, "warn")
+    }
+}
+
+const callAction = (...args) => {
+    if (args.length !== 1) {
+        UTIL.notify(
+            "Exactly one action name is required for the call command", "warn")
+        return
+    }
+    if (INPUT.listSupportedActions().includes(args[0])) {
+        INPUT.doAction(args[0])
+    } else {
+        UTIL.notify("Unsupported action provided, can't be called", "warn")
+    }
+}
+
 const commands = {
     "q": quit,
     "quit": quit,
@@ -422,24 +484,20 @@ const commands = {
     "b": buffer,
     "buffer": buffer,
     "hide": hide,
-    // "close": close,
-    "Vexplore": (...args) => {
-        addSplit("hor", !SETTINGS.get("splitbelow"), args)
+    "Vexplore": (...args) => addSplit("hor", !SETTINGS.get("splitbelow"), args),
+    "Sexplore": (...args) => addSplit("ver", !SETTINGS.get("splitright"), args),
+    "split": (...args) => addSplit("ver", !SETTINGS.get("splitright"), args),
+    "vsplit": (...args) => addSplit("hor", !SETTINGS.get("splitbelow"), args),
+    "cookies": cookies,
+    "command": (...args) => addCommand(false, args),
+    "command!": (...args) => addCommand(true, args),
+    "delcommand": deleteCommand,
+    "comclear": () => {
+        userCommands = {}
     },
-    "Sexplore": (...args) => {
-        addSplit("ver", !SETTINGS.get("splitright"), args)
-    },
-    "split": (...args) => {
-        addSplit("ver", !SETTINGS.get("splitright"), args)
-    },
-    "vsplit": (...args) => {
-        addSplit("hor", !SETTINGS.get("splitbelow"), args)
-    },
-    "cookies": cookies
+    "call": callAction
 }
-// TODO add a function to automatically convert nmap, imap etc. to a generic function,
-// Based on the modes from the MODES object, which should have a modeList function.
-// Use the first character of the mode name to generate these commands.
+let userCommands = {}
 
 const noArgumentComands = [
     "q",
@@ -454,21 +512,53 @@ const noArgumentComands = [
     "d",
     "downloads",
     "hardcopy",
-    "print"
+    "print",
+    "comclear"
 ]
+
+const noEscapeCommands = ["command", "delcommand"]
+
+const modes = ["all", ...MODES.allModes()]
+modes.forEach(mode => {
+    let prefix = mode[0]
+    if (mode === "all") {
+        prefix = ""
+    }
+    commands[`${prefix}map`] = (...args) => {
+        INPUT.mapOrList(prefix, args)
+    }
+    noEscapeCommands.push(`${prefix}map`)
+    commands[`${prefix}noremap`] = (...args) => {
+        INPUT.mapOrList(prefix, args, true)
+    }
+    noEscapeCommands.push(`${prefix}noremap`)
+    commands[`${prefix}unmap`] = (...args) => {
+        INPUT.unmap(prefix, args)
+    }
+    noEscapeCommands.push(`${prefix}unmap`)
+    commands[`${prefix}mapclear`] = () => {
+        INPUT.clearmap(prefix)
+    }
+    noArgumentComands.push(`${prefix}mapclear`)
+    commands[`${prefix}mapclear!`] = () => {
+        INPUT.clearmap(prefix, true)
+    }
+})
 
 const parseAndValidateArgs = command => {
     const argsString = command.split(" ").slice(1).join(" ")
+    command = command.split(" ")[0]
     const args = []
     let currentArg = ""
     let escapedDouble = false
     let escapedSingle = false
+    const noEscape = noEscapeCommands.includes(command)
     for (const char of argsString) {
-        if (char === "'" && !escapedDouble) {
+        if (char === "'" && !escapedDouble && !noEscape) {
             escapedSingle = !escapedSingle
             continue
         }
-        if (char === "\"" && !escapedSingle) {
+        if (char === "\"" && !escapedSingle && !noEscape) {
             escapedDouble = !escapedDouble
             continue
         }
@@ -482,8 +572,12 @@ const parseAndValidateArgs = command => {
     if (currentArg) {
         args.push(currentArg)
     }
-    command = command.split(" ")[0]
-    return {command, args, "valid": !escapedSingle && !escapedDouble}
+    let confirm = false
+    if (command.endsWith("!") && !command.endsWith("!!")) {
+        confirm = true
+        command = command.slice(0, -1)
+    }
+    return {command, confirm, args, "valid": !escapedSingle && !escapedDouble}
 }
 
 const execute = command => {
@@ -497,29 +591,46 @@ const execute = command => {
     COMMANDHISTORY.push(command)
     const parsed = parseAndValidateArgs(command)
     if (!parsed.valid) {
-        UTIL.notify(
-            `Could not execute command, unmatched escape quotes:\n${command}`,
-            "warn")
+        UTIL.notify(`Command could not be executed, unmatched escape quotes:\n${
+            command}`, "warn")
         return
     }
     command = parsed.command
     const args = parsed.args
-    const matches = Object.keys(commands).filter(c => c.startsWith(command))
+    const matches = Object.keys(commands).concat(Object.keys(userCommands))
+        .filter(c => c.startsWith(command) && !c.endsWith("!"))
     if (matches.length === 1 || commands[command]) {
         if (matches.length === 1) {
             command = matches[0]
         }
         if (noArgumentComands.includes(command) && args.length > 0) {
-            UTIL.notify(`The ${command} command takes no arguments`, "warn")
-        } else {
+            UTIL.notify(`Command takes no arguments: ${command}`, "warn")
+        } else if (commands[command]) {
+            if (parsed.confirm) {
+                command += "!"
+            }
             commands[command](...args)
+        } else {
+            userCommands[command].forEach(action => {
+                if (action.startsWith(":")) {
+                    const actionCommand = action.replace(/^:*/, "")
+                    execute(actionCommand)
+                    return
+                }
+                const func = INPUT.actionToFunction(action)
+                if (func) {
+                    func()
+                } else {
+                    UTIL.notify(`Action could not be found: ${action}`, "warn")
+                }
+            })
         }
     } else if (matches.length > 1) {
         UTIL.notify(
-            `Ambiguous command '${command}', please be more specific`, "warn")
+            `Command is ambiguous, please be more specific: ${command}`, "warn")
     } else {
         // No command
-        UTIL.notify(`The '${command}' command can not be found`, "warn")
+        UTIL.notify(`Not an editor command: ${command}`, "warn")
     }
 }
 
