@@ -5,7 +5,7 @@ This document aims to represent all notable changes to Vieb.
 
 Vieb is a Vim Inspired Electron Browser made by Jelmer van Arnhem and contributors,
 and can be copied under the terms of the GPL-3.0+ license.
-See the README.md or LICENSE file for more info and details about Vieb or it's license.
+See the README.md or LICENSE file for more info and details about Vieb and it's license.
 Links in the changelog are part of [github.com/Jelmerro/Vieb](https://github.com/Jelmerro/Vieb).
 The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the most important changes per release,
 but the list below contains much more technical details.
@@ -19,6 +19,8 @@ but the list below contains much more technical details.
 - New location from where the viebrc file will be read: ~/.viebrc (aside from the viebrc in Vieb's data folder)
 - Dark theme and security settings for the website developer tools (:devtools)
 - Window splitting using Vexplore, vsplit, Sexplore and split to display multiple sites at the same time
+- Map command for configuring keyboard mappings (including recursion, nmap, imap, mapclear, etc.)
+- Noremap command for non-recursive keyboard mappings (Refer to Vieb actions using <ACTIONS.reload>)
 
 ### Changed
 

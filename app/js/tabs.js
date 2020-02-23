@@ -119,7 +119,16 @@ const openSavedPage = url => {
             url = `https://${url}`
         }
     }
-    addTab({"url": url})
+    try {
+        if (UTIL.pathToSpecialPageName(currentPage().src).name === "newtab") {
+            navigateTo(url)
+        } else {
+            addTab({"url": url})
+        }
+    } catch (e) {
+        // Current page not ready yet, open in new tab instead
+        addTab({"url": url})
+    }
 }
 
 const saveTabs = () => {

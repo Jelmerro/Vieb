@@ -122,6 +122,9 @@ const removeSingleEntryContainers = () => {
                 const lonelyView = container.children[0]
                 if (lonelyView) {
                     const id = lonelyView.getAttribute("link-id")
+                    if (!id) {
+                        return
+                    }
                     const singleView = document.createElement("div")
                     singleView.setAttribute("link-id", id)
                     container.parentNode.insertBefore(singleView, container)
