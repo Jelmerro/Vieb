@@ -231,23 +231,23 @@ const scrollPageUpHalf = () => {
 }
 
 const zoomReset = () => {
-    TABS.currentPage().setZoomLevel(0)
+    TABS.webContents(TABS.currentPage()).zoomLevel = 0
 }
 
 const zoomOut = count => {
-    let level = TABS.currentPage().getZoomLevel() - count
+    let level = TABS.webContents(TABS.currentPage()).zoomLevel - count
     if (level < -7) {
         level = -7
     }
-    TABS.currentPage().setZoomLevel(level)
+    TABS.webContents(TABS.currentPage()).zoomLevel = level
 }
 
 const zoomIn = count => {
-    let level = TABS.currentPage().getZoomLevel() + count
+    let level = TABS.webContents(TABS.currentPage()).zoomLevel + count
     if (level > 7) {
         level = 7
     }
-    TABS.currentPage().setZoomLevel(level)
+    TABS.webContents(TABS.currentPage()).zoomLevel = level
 }
 
 const toNormalMode = () => {

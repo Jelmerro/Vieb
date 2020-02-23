@@ -94,7 +94,7 @@ const updateElement = () => {
         })
     }
     if (MODES.currentMode() === "visual") {
-        const factor = TABS.currentPage().getZoomFactor()
+        const factor = TABS.webContents(TABS.currentPage()).zoomFactor
         TABS.webContents(TABS.currentPage()).send(
             "selection-request", Math.round(X / factor), Math.round(Y / factor))
     }
@@ -110,13 +110,22 @@ const click = button => {
 }
 
 const releaseKeys = () => {
-    for (const button of ["left", "right"]) {
-        TABS.currentPage().sendInputEvent({
-            "type": "mouseUp", "x": X, "y": Y, "button": button, "clickCount": 1
-        })
+    try {
+        for (const button of ["left", "right"]) {
+            TABS.currentPage().sendInputEvent({
+                "type": "mouseUp",
+                "x": X,
+                "y": Y,
+                "button": button,
+                "clickCount": 1
+            })
+        }
+        TABS.currentPage().sendInputEvent(
+            {"type": "mouseLeave", "x": X, "y": Y})
+        TABS.webContents(TABS.currentPage()).send("selection-remove")
+    } catch (e) {
+        // Can't release keys, probably because of opening a new tab
     }
-    TABS.currentPage().sendInputEvent({"type": "mouseLeave", "x": X, "y": Y})
-    TABS.webContents(TABS.currentPage()).send("selection-remove")
 }
 
 // ACTIONS
@@ -127,16 +136,15 @@ const moveFastLeft = () => {
 }
 
 const downloadImage = () => {
-    const factor = TABS.currentPage().getZoomFactor()
+    const factor = TABS.webContents(TABS.currentPage()).zoomFactor
     TABS.webContents(TABS.currentPage()).send("download-image-request",
         Math.round(X / factor), Math.round(Y / factor))
 }
 
 const inspectElement = () => {
     const {top, left} = offset()
-    const factor = TABS.currentPage().getZoomFactor()
     TABS.webContents(TABS.currentPage()).inspectElement(
-        Math.round((X + left) / factor), Math.round((Y + top) / factor))
+        Math.round(X + left), Math.round(Y + top))
 }
 
 const copyAndStop = () => {
@@ -201,7 +209,7 @@ const rightClick = () => {
 }
 
 const startVisualSelect = () => {
-    const factor = TABS.currentPage().getZoomFactor()
+    const factor = TABS.webContents(TABS.currentPage()).zoomFactor
     TABS.webContents(TABS.currentPage()).send(
         "selection-start-location", X / factor, Y / factor)
     MODES.setMode("visual")

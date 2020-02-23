@@ -97,7 +97,7 @@ const linkInList = (list, link) => {
 }
 
 const clickAtLink = link => {
-    const factor = TABS.currentPage().getZoomFactor()
+    const factor = TABS.webContents(TABS.currentPage()).zoomFactor
     if (["pointer", "visual"].includes(modeBeforeFollow)) {
         POINTER.start()
         if (modeBeforeFollow === "visual") {
@@ -169,7 +169,7 @@ const parseAndDisplayLinks = newLinks => {
     // The maximum amount of links is 26 * 26,
     // Therefor the slice index is 0 to 26^2 - 1
     links = links.slice(0, 675)
-    const factor = TABS.currentPage().getZoomFactor()
+    const factor = TABS.webContents(TABS.currentPage()).zoomFactor
     const followElement = document.getElementById("follow")
     followElement.textContent = ""
     links.forEach((link, index) => {
