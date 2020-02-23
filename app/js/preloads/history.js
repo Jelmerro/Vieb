@@ -233,6 +233,7 @@ window.addEventListener("load", () => {
 })
 
 ipcRenderer.on("history-list", (_, historyList) => {
+    historyList = JSON.parse(historyList)
     receiveHistory(historyList)
 })
 

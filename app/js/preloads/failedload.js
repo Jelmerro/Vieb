@@ -37,6 +37,7 @@ const sslErrors = [
 ]
 
 ipcRenderer.on("insert-failed-page-info", (_, e) => {
+    e = JSON.parse(e)
     try {
         document.body.innerHTML = ""
         document.head.innerHTML = ""

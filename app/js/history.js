@@ -190,7 +190,8 @@ const handleRequest = (action = "", entries = []) => {
             })
         })
         history = history.sort((a, b) => a.date.getTime() - b.date.getTime())
-        TABS.webContents(TABS.currentPage()).send("history-list", history)
+        TABS.webContents(TABS.currentPage()).send(
+            "history-list", JSON.stringify(history))
         return
     }
     let success = false
