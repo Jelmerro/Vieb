@@ -55,8 +55,8 @@ but the list below contains much more technical details.
 
 ### Security
 
-- Electron 8.0.1 (unchanged)
-- Chromium 80.0.3987.86 (unchanged)
+- Electron 9.0.0-beta.2 (was 8.0.1)
+- Chromium 82.0.4048.0 (was 80.0.3987.86)
 
 ## [1.1.0](https://github.com/Jelmerro/Vieb/compare/1.0.0...1.1.0) - 2020-02-15
 
