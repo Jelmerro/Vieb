@@ -418,7 +418,11 @@ const set = (setting, value) => {
             TABS.listTabs().forEach(tab => {
                 tab.style.minWidth = `${allSettings.mintabwidth}px`
             })
-            TABS.currentTab().scrollIntoView({"inline": "center"})
+            try {
+                TABS.currentTab().scrollIntoView({"inline": "center"})
+            } catch (e) {
+                // No tabs present yet
+            }
         }
         if (setting === "mouse") {
             updateMouseSettings()

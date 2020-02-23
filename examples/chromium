@@ -1,55 +1,61 @@
-"normal"
-    "ArrowUp": "ACTIONS.scrollUp",
-    "ArrowDown": "ACTIONS.scrollDown",
-    "ArrowLeft": "ACTIONS.scrollLeft",
-    "ArrowRight": "ACTIONS.scrollRight",
-    "PageUp": "ACTIONS.scrollPageUp",
-    "PageDown": "ACTIONS.scrollPageDown",
-    "Home": "ACTIONS.scrollTop",
-    "End": "ACTIONS.scrollBottom",
-    "F3": "ACTIONS.toSearchMode",
-    "F5": "ACTIONS.reload",
-    "F6": "ACTIONS.toExploreMode",
-    "F12": ":devtools",
-    "C-PageUp": "ACTIONS.previousTab",
-    "C-PageDown": "ACTIONS.nextTab",
-    "C-F4": "ACTIONS.closeTab",
-    "C-F5": "ACTIONS.reloadWithoutCache",
-    "C-KeyF": "ACTIONS.toSearchMode",
-    "C-KeyH": ":history",
-    "C-KeyJ": ":downloads",
-    "C-KeyL": "ACTIONS.toExploreMode",
-    "C-KeyP": ":hardcopy",
-    "C-KeyS": ":write full",
-    "C-KeyW": "ACTIONS.closeTab",
-    "C-Tab": "ACTIONS.nextTab",
-    "CS-PageUp": "ACTIONS.moveTabBackward",
-    "CS-PageDown": "ACTIONS.moveTabForward",
-    "CS-Tab": "ACTIONS.previousTab",
-    "CS-KeyI": ":devtools",
-    "CS-KeyT": "ACTIONS.reopenTab",
-    "A-ArrowLeft": "ACTIONS.backInHistory",
-    "A-ArrowRight": "ACTIONS.forwardInHistory",
-    "A-Digit0": ":b 9999",
-    "A-Digit1": ":b 0",
-    "A-Digit2": ":b 1",
-    "A-Digit3": ":b 2",
-    "A-Digit4": ":b 3",
-    "A-Digit5": ":b 4",
-    "A-Digit6": ":b 5",
-    "A-Digit7": ":b 6",
-    "A-Digit8": ":b 7",
-    "A-Digit9": ":b 8"
-"nav":
-    "F6": "ACTIONS.toNormalMode",
-    "ArrowUp": "ACTIONS.prevSuggestion",
-    "ArrowDown": "ACTIONS.nextSuggestion"
-
 " Options
+set automaticexploremode
+set cache=full
+set favicons=30day
 set ignorecase
 set mouse
+set permissioncamera=ask
+set permissionmicrophone=ask
 set redirecttohttp
 set search=https://google.com/search?q=
 set mintabwidth=0
+
+" Mappings
+map <Up> <ACTIONS.scrollUp>
+map <Down> <ACTIONS.scrollDown>
+map <Left> <ACTIONS.scrollLeft>
+map <Right> <ACTIONS.scrollRight>
+map <PageUp> <ACTIONS.scrollPageUp>
+map <PageDown> <ACTIONS.scrollPageDown>
+map <Home> <ACTIONS.scrollTop>
+map <End> <ACTIONS.scrollBottom>
+map <F3> <ACTIONS.toSearchMode>
+map <F5> <ACTIONS.reload>
+map <F6> <ACTIONS.toExploreMode>
+map <F12> <:devtools>
+map <C-PageUp> <ACTIONS.previousTab>
+map <C-PageDown> <ACTIONS.nextTab>
+map <C-F4> <ACTIONS.closeTab>
+map <C-F5> <ACTIONS.reloadWithoutCache>
+map <C-f> <ACTIONS.toSearchMode>
+map <C-h> <:history>
+map <C-j> <:downloads>
+map <C-l> <ACTIONS.toExploreMode>
+map <C-p> <:hardcopy>
+map <C-w> <:write full>
+map <C-w> <ACTIONS.closeTab>
+map <C-Tab> <ACTIONS.nextTab>
+map <C-S-PageUp> <ACTIONS.moveTabBackward>
+map <C-S-PageDown> <ACTIONS.moveTabForward>
+map <C-S-Tab> <ACTIONS.previousTab>
+map <C-I> <:devtools>
+map <C-T> <ACTIONS.reopenTab>
+map <A-Left> <ACTIONS.backInHistory>
+map <A-Right> <ACTIONS.forwardInHistory>
+map <A-0> <:b 9999>
+map <A-1> <:b 0>
+map <A-2> <:b 1>
+map <A-3> <:b 2>
+map <A-4> <:b 3>
+map <A-5> <:b 4>
+map <A-6> <:b 5>
+map <A-7> <:b 6>
+map <A-8> <:b 7>
+map <A-9> <:b 8>
+emap <F6> <ACTIONS.toNormalMode>
+emap <Up> <ACTIONS.prevSuggestion>
+emap <Down> <ACTIONS.nextSuggestion>
+cmap <Up> <ACTIONS.commandHistoryPrevious>
+cmap <Down> <ACTIONS.commandHistoryNext>
 
 " vim: ft=vim
