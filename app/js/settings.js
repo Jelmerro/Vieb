@@ -31,6 +31,7 @@ const defaultSettings = {
     "clearhistoryonquit": false,
     "clearlocalstorageonquit": false,
     "containertabs": false,
+    "countlimit": 100,
     "downloadpath": "~/Downloads/",
     "favicons": "session",
     "fontsize": 14,
@@ -57,6 +58,7 @@ const defaultSettings = {
     "restorewindowposition": true,
     "restorewindowsize": true,
     "search": "https://duckduckgo.com/?kae=d&q=",
+    "showcmd": true,
     "spell": true,
     "spelllang": "system",
     "splitbelow": false,
@@ -68,6 +70,8 @@ const defaultSettings = {
     "suggesttopsites": 10,
     "tabnexttocurrent": true,
     "taboverflow": "scroll",
+    "timeout": true,
+    "timeoutlen": 1000,
     "vimcommand": "gvim"
 }
 let allSettings = {}
@@ -99,6 +103,7 @@ const validOptions = {
     "permissionunknown": ["block", "ask", "allow"]
 }
 const numberRanges = {
+    "countlimit": [0, 10000],
     "fontsize": [8, 30],
     "notificationduration": [0, 30000],
     "mintabwidth": [0, 10000],
@@ -432,25 +437,15 @@ const set = (setting, value) => {
     }
 }
 
-const removeDefaults = (settings, defaults) => {
-    Object.keys(settings).forEach(t => {
-        if (!defaults) {
-            return
-        }
-        if (JSON.stringify(settings[t]) === JSON.stringify(defaults[t])) {
-            delete settings[t]
-        } else if (UTIL.isObject(settings[t])) {
-            settings[t] = removeDefaults(settings[t], defaults[t])
-        }
-    })
-    return settings
-}
-
 const listCurrentSettings = full => {
-    let settings = JSON.parse(JSON.stringify(allSettings))
+    const settings = JSON.parse(JSON.stringify(allSettings))
     if (!full) {
         const defaults = JSON.parse(JSON.stringify(defaultSettings))
-        settings = removeDefaults(settings, defaults)
+        Object.keys(settings).forEach(t => {
+            if (JSON.stringify(settings[t] === JSON.stringify(defaults[t]))) {
+                delete settings[t]
+            }
+        })
     }
     let setCommands = ""
     Object.keys(settings).forEach(setting => {

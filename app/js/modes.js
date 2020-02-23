@@ -155,22 +155,15 @@ const insertModeHandler = (page, e, input) => {
         return
     }
     // Translate to regular keyboard event
-    const keyEvent = {
+    INPUT.handleKeyboard({
         "ctrlKey": input.control,
         "shiftKey": input.shift,
         "metaKey": input.meta,
         "altKey": input.alt,
-        "code": input.code
-    }
-    // Find the action
-    const actionFunction = INPUT.actionToFunction(
-        INPUT.eventToAction(keyEvent))
-    if (actionFunction) {
-        e.preventDefault()
-        if (currentMode() === "insert") {
-            actionFunction()
-        }
-    }
+        "key": input.key,
+        "isTrusted": true,
+        "preventDefault": e.preventDefault
+    })
 }
 
 const setMode = mode => {
@@ -205,8 +198,13 @@ const currentMode = () => {
     return document.getElementById("mode").textContent.trim().toLowerCase()
 }
 
+const allModes = () => {
+    return Object.keys(modes)
+}
+
 module.exports = {
     init,
     setMode,
-    currentMode
+    currentMode,
+    allModes
 }

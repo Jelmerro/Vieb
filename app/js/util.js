@@ -185,9 +185,7 @@ const rimrafFolder = folder => {
 }
 
 const clearContainerTabs = () => {
-    document.querySelectorAll("webview").forEach(view => {
-        view.parentNode.removeChild(view)
-    })
+    document.getElementById("pages").innerHTML = ""
     rimrafFolder("Partitions/!(main)")
 }
 

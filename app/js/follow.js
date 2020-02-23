@@ -133,6 +133,7 @@ const clickAtLink = link => {
         "x": link.x * factor,
         "y": link.y * factor
     })
+    document.getElementById("url-hover").style.display = "none"
 }
 
 const parseAndDisplayLinks = newLinks => {
@@ -221,20 +222,13 @@ const parseAndDisplayLinks = newLinks => {
     })
 }
 
-const enterKey = identifier => {
+const enterKey = id => {
     alreadyFollowing = true
-    let stayInFollowMode = false
-    if (identifier.startsWith("S-")) {
-        stayInFollowMode = true
-        identifier = identifier.replace("S-", "")
-    }
-    if (identifier.includes("-")) {
+    if (id.toLowerCase() === id.toUpperCase() || id.length > 1) {
         return
     }
-    if (!identifier.startsWith("Key")) {
-        return
-    }
-    const key = identifier.replace("Key", "")
+    const stayInFollowMode = id.toUpperCase() === id
+    const key = id.toUpperCase()
     const allLinkKeys = [...document.querySelectorAll("#follow span[link-id]")]
     const matches = []
     allLinkKeys.forEach(linkKey => {

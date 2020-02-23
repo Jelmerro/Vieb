@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND FAVICONS MODES SETTINGS TABS */
+/* global COMMAND FAVICONS INPUT MODES SETTINGS TABS */
 "use strict"
 
 let suggestions = []
@@ -147,7 +147,8 @@ const suggestCommand = search => {
         if (args.length) {
             SETTINGS.suggestionList()
                 .filter(s => s.startsWith(args[args.length - 1]))
-                .map(s => `${command} ${args.slice(0, -1).join(" ")} ${s}`)
+                .map(s => `${command} ${args.slice(0, -1).join(" ")} ${s}`
+                    .replace(/ +/g, " "))
                 .forEach(c => addCommand(c))
         } else {
             SETTINGS.suggestionList().map(s => `${command} ${s}`)
@@ -163,7 +164,7 @@ const suggestCommand = search => {
     const isBufferCommand = [
         "buffer", "hide", "Vexplore", "Sexplore", "split", "vsplit"
     ].some(b => b.startsWith(command))
-    if (isBufferCommand && !["h", "hi", "s", "v"].includes(command)) {
+    if (isBufferCommand && suggestions.length < 2) {
         const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
         TABS.listTabs().map((t, index) => {
             return {
@@ -182,6 +183,11 @@ const suggestCommand = search => {
             const simpleTabTitle = t.subtext.replace(/\W/g, "").toLowerCase()
             return simpleTabTitle.includes(simpleSearch)
         }).forEach(t => addCommand(t.command, t.subtext))
+    }
+    if (command === "call" && suggestions.length < 2) {
+        INPUT.listSupportedActions().forEach(action => {
+            addCommand(`call ${action}`)
+        })
     }
 }
 
