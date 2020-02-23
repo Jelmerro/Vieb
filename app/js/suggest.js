@@ -141,8 +141,10 @@ const suggestCommand = search => {
         // Limited to zero, no search or invalid = don't suggest
         return
     }
+    // List all commands unconditionally
     COMMAND.commandList().filter(
         c => c.startsWith(search)).forEach(c => addCommand(c))
+    // Command: set
     if ("set".startsWith(command)) {
         if (args.length) {
             SETTINGS.suggestionList()
@@ -155,20 +157,27 @@ const suggestCommand = search => {
                 .forEach(c => addCommand(c))
         }
     }
+    // Command: write
     if ("write ~/Downloads/newfile".startsWith(search)) {
         addCommand("write ~/Downloads/newfile")
     }
+    // Command: mkviebrc
     if ("mkviebrc full".startsWith(search)) {
         addCommand("mkviebrc full")
     }
-    const isBufferCommand = [
+    // Command: buffer, hide, Vexplore, Sexplore, split and vsplit
+    const bufferCommand = [
         "buffer", "hide", "Vexplore", "Sexplore", "split", "vsplit"
-    ].some(b => b.startsWith(command))
-    if (isBufferCommand && suggestions.length < 2) {
+    ].find(b => b.startsWith(command))
+    let suggestedCommandName = command
+    if (suggestions.length > 1) {
+        suggestedCommandName = bufferCommand
+    }
+    if (bufferCommand) {
         const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
         TABS.listTabs().map((t, index) => {
             return {
-                "command": `${command} ${index}`,
+                "command": `${suggestedCommandName} ${index}`,
                 "subtext": `${t.querySelector("span").textContent}`,
                 "url": TABS.tabOrPageMatching(t).src
             }
@@ -184,10 +193,16 @@ const suggestCommand = search => {
             return simpleTabTitle.includes(simpleSearch)
         }).forEach(t => addCommand(t.command, t.subtext))
     }
-    if (command === "call" && suggestions.length < 2) {
-        INPUT.listSupportedActions().forEach(action => {
-            addCommand(`call ${action}`)
-        })
+    // Command: call
+    suggestedCommandName = command
+    if (suggestions.length > 1) {
+        suggestedCommandName = "call"
+    }
+    if ("call".startsWith(command)) {
+        INPUT.listSupportedActions().filter(action => {
+            return `${command} ${action.replace(/(^<|>$)/g, "")}`
+                .startsWith(`${command} ${args.join(" ")}`.trim())
+        }).forEach(action => addCommand(`${suggestedCommandName} ${action}`))
     }
 }
 

@@ -406,13 +406,17 @@ const addCommand = (overwrite, args) => {
     if (args.length === 0) {
         const commandString = Object.keys(userCommands).map(command => {
             return `${command} => ${userCommands[command]}`
-        })
-        UTIL.notify(`--- User defined commands ---\n${commandString}`)
+        }).join("\n")
+        if (commandString.trim()) {
+            UTIL.notify(`--- User defined commands ---\n${commandString}`)
+        } else {
+            UTIL.notify("There are no user defined commands")
+        }
         return
     }
     const command = args[0].replace(/^[:'" ]*/, "")
     args = args.slice(1)
-    if (commands.includes(command)) {
+    if (commands[command]) {
         UTIL.notify(`Command can not be a built-in command: ${command}`, "warn")
         return
     }
@@ -429,10 +433,10 @@ const addCommand = (overwrite, args) => {
             "Duplicate custom command definition (add ! to overwrite)", "warn")
         return
     }
-    userCommands[command] = args.join("").replace(/ /g, "")
+    userCommands[command] = args.join(" ")
 }
 
-const deleteCommand = args => {
+const deleteCommand = (...args) => {
     if (args.length !== 1) {
         UTIL.notify(
             "Exactly one command name is required for delcommand", "warn")
@@ -442,7 +446,7 @@ const deleteCommand = args => {
     if (userCommands[command]) {
         delete userCommands[args[0]]
     } else {
-        UTIL.notify(`No such user-defined command: ${command}`, "warn")
+        UTIL.notify(`No such user defined command: ${command}`, "warn")
     }
 }
 
@@ -452,8 +456,9 @@ const callAction = (...args) => {
             "Exactly one action name is required for the call command", "warn")
         return
     }
-    if (INPUT.listSupportedActions().includes(args[0])) {
-        INPUT.doAction(args[0])
+    const action = args[0].replace(/(^<|>$)/g, "")
+    if (INPUT.listSupportedActions().includes(action)) {
+        setTimeout(() => INPUT.doAction(action), 0)
     } else {
         UTIL.notify("Unsupported action provided, can't be called", "warn")
     }
@@ -511,6 +516,7 @@ const noArgumentComands = [
     "history",
     "d",
     "downloads",
+    "cookies",
     "hardcopy",
     "print",
     "comclear"
@@ -599,7 +605,7 @@ const execute = command => {
     const args = parsed.args
     const matches = Object.keys(commands).concat(Object.keys(userCommands))
         .filter(c => c.startsWith(command) && !c.endsWith("!"))
-    if (matches.length === 1 || commands[command]) {
+    if (matches.length === 1 || commands[command] || userCommands[command]) {
         if (matches.length === 1) {
             command = matches[0]
         }
@@ -611,19 +617,9 @@ const execute = command => {
             }
             commands[command](...args)
         } else {
-            userCommands[command].forEach(action => {
-                if (action.startsWith(":")) {
-                    const actionCommand = action.replace(/^:*/, "")
-                    execute(actionCommand)
-                    return
-                }
-                const func = INPUT.actionToFunction(action)
-                if (func) {
-                    func()
-                } else {
-                    UTIL.notify(`Action could not be found: ${action}`, "warn")
-                }
-            })
+            setTimeout(() => {
+                INPUT.executeMapString(userCommands[command], true, true)
+            }, 0)
         }
     } else if (matches.length > 1) {
         UTIL.notify(
@@ -636,6 +632,7 @@ const execute = command => {
 
 const commandList = () => {
     return Object.keys(commands).filter(c => c.length > 2 && c !== "mkv")
+        .concat(Object.keys(userCommands))
 }
 
 module.exports = {

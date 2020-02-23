@@ -181,6 +181,7 @@ const defaultBindings = {
     }
 }
 let repeatCounter = 0
+let recursiveCounter = 0
 let pressedKeys = ""
 let bindings = {}
 let supportedActions = []
@@ -354,7 +355,11 @@ const actionBasedOnKeys = (mode, keys) => {
     return bindings[mode][mapping]
 }
 
-const executeMapString = (mapString, recursive) => {
+const executeMapString = (mapString, recursive, initial) => {
+    if (initial) {
+        recursiveCounter = 0
+    }
+    recursiveCounter += 1
     let repeater = Number(repeatCounter) || 1
     repeatCounter = 0
     updateKeysOnScreen()
@@ -408,6 +413,9 @@ const executeMapString = (mapString, recursive) => {
             window.dispatchEvent(new KeyboardEvent("keydown", options))
         })
     }
+    if (initial) {
+        recursiveCounter = 0
+    }
 }
 
 const doAction = (name, count) => {
@@ -436,6 +444,11 @@ const handleKeyboard = e => {
         "<C-CapsLock>",
         ""
     ]
+    if (recursiveCounter > SETTINGS.get("maxmapdepth")) {
+        recursiveCounter = 0
+        e.preventDefault()
+        return
+    }
     if (ignoredKeys.includes(e.key)) {
         // Keys such as control should not be registered on their own
         e.preventDefault()
@@ -475,16 +488,13 @@ const handleKeyboard = e => {
     }
     pressedKeys += id
     const action = actionBasedOnKeys(MODES.currentMode()[0], pressedKeys)
+    if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
+        pressedKeys = ""
+        updateKeysOnScreen()
+    }
     if (action && (e.isTrusted || e.bubbles)) {
         if (e.isTrusted) {
-            // TODO set a recursion limit, similar to Vim
-            // additionally, reset the recursive counter when executing a map command
-            // recursiveCounter = 0
-            if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
-                pressedKeys = ""
-                updateKeysOnScreen()
-            }
-            executeMapString(action.mapping, !action.noremap)
+            executeMapString(action.mapping, !action.noremap, true)
         } else {
             executeMapString(action.mapping, e.bubbles)
         }
@@ -591,6 +601,8 @@ const mapOrList = (mode, args, noremap) => {
             })
             if (mappings) {
                 UTIL.notify(mappings)
+            } else {
+                UTIL.notify("No mapping found")
             }
         } else {
             let mappings = ""
@@ -604,6 +616,8 @@ const mapOrList = (mode, args, noremap) => {
             })
             if (mappings) {
                 UTIL.notify(mappings)
+            } else {
+                UTIL.notify("No mapping found")
             }
         }
         return
@@ -613,6 +627,8 @@ const mapOrList = (mode, args, noremap) => {
             const command = actionBasedOnKeys(mode, args[0])
             if (command) {
                 UTIL.notify(listMapping(mode, args[0], command))
+            } else {
+                UTIL.notify("No mapping found for this sequence")
             }
         } else {
             let mappings = ""
@@ -624,6 +640,8 @@ const mapOrList = (mode, args, noremap) => {
             })
             if (mappings) {
                 UTIL.notify(mappings)
+            } else {
+                UTIL.notify("No mapping found for this sequence")
             }
         }
         return
@@ -686,6 +704,7 @@ const clearmap = (mode, removeDefaults) => {
 
 module.exports = {
     init,
+    executeMapString,
     doAction,
     handleKeyboard,
     listSupportedActions,
