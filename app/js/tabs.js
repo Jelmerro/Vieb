@@ -427,6 +427,12 @@ const addWebviewListeners = webview => {
     webview.addEventListener("crashed", () => {
         tabOrPageMatching(webview).classList.add("crashed")
     })
+    webview.addEventListener("media-started-playing", () => {
+        tabOrPageMatching(webview).classList.add("producing-sound")
+    })
+    webview.addEventListener("media-paused", () => {
+        tabOrPageMatching(webview).classList.remove("producing-sound")
+    })
     webview.addEventListener("did-start-loading", () => {
         FAVICONS.loading(webview)
         updateUrl(webview)
