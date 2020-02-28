@@ -202,9 +202,4 @@ const allModes = () => {
     return Object.keys(modes)
 }
 
-module.exports = {
-    init,
-    setMode,
-    currentMode,
-    allModes
-}
+module.exports = {init, setMode, currentMode, allModes}

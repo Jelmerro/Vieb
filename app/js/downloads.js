@@ -195,9 +195,5 @@ const removeCompletedIfDesired = () => {
 }
 
 module.exports = {
-    init,
-    handleDownload,
-    sendDownloadList,
-    cancelAll,
-    removeCompletedIfDesired
+    init, handleDownload, sendDownloadList, cancelAll, removeCompletedIfDesired
 }

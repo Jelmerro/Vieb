@@ -206,12 +206,4 @@ const forSite = url => {
     return ""
 }
 
-module.exports = {
-    init,
-    updateMappings,
-    loading,
-    empty,
-    show,
-    update,
-    forSite
-}
+module.exports = {init, updateMappings, loading, empty, show, update, forSite}

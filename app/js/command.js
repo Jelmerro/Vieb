@@ -473,18 +473,17 @@ const commands = {
     "reload": reload,
     "v": version,
     "version": version,
+    "h": help,
+    "help": help,
     "history": history,
     "d": downloads,
     "downloads": downloads,
-    "h": help,
-    "help": help,
     "s": set,
     "set": set,
     "hardcopy": hardcopy,
     "print": hardcopy,
     "w": write,
     "write": write,
-    "mkv": mkviebrc,
     "mkviebrc": mkviebrc,
     "b": buffer,
     "buffer": buffer,
@@ -631,7 +630,7 @@ const execute = command => {
 }
 
 const commandList = () => {
-    return Object.keys(commands).filter(c => c.length > 2 && c !== "mkv")
+    return Object.keys(commands).filter(c => c.length > 2)
         .concat(Object.keys(userCommands))
 }
 

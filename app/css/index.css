@@ -57,16 +57,18 @@ body.fullscreen #current-page {display: flex;width: 100vw;height: 100vh;top: 0;b
 #url.file {border-color: #ff9;}
 /* follow */
 #follow {position: fixed;display: none;z-index: 1;}
-.follow-url, .follow-inputs-click, .follow-inputs-insert, .follow-onclick {position: absolute;color: #111;cursor: pointer;}
-.follow-url-border, .follow-inputs-click-border, .follow-inputs-insert-border, .follow-onclick-border {position: absolute;box-sizing: border-box;cursor: pointer;}
+.follow-url, .follow-inputs-click, .follow-inputs-insert, .follow-onclick, .follow-other {position: absolute;color: #111;cursor: pointer;padding: 0 .1em;}
+.follow-url-border, .follow-inputs-click-border, .follow-inputs-insert-border, .follow-onclick-border, .follow-other-border {position: absolute;box-sizing: border-box;cursor: pointer;}
 .follow-url {background-color: #cff;border: solid .15em #5cc;z-index: 13;}
 .follow-inputs-click {background-color: #fcc;border: solid .15em #c55;z-index: 12;}
 .follow-inputs-insert {background-color: #cfc;border: solid .15em #5c5;z-index: 11;}
 .follow-onclick {background-color: #ffc;border: solid .15em #cc5;z-index: 10;}
-.follow-url-border {border: solid .07em #5cc;z-index: 9;}
-.follow-inputs-click-border {border: solid .07em #c55;z-index: 8;}
-.follow-inputs-insert-border {border: solid .07em #5c5;z-index: 7;}
-.follow-onclick-border {border: solid .07em #cc5;z-index: 6;}
+.follow-other {background-color: #ccc;border: solid .15em #aaa;z-index: 9;}
+.follow-url-border {border: solid .07em #5cc;z-index: 8;}
+.follow-inputs-click-border {border: solid .07em #c55;z-index: 7;}
+.follow-inputs-insert-border {border: solid .07em #5c5;z-index: 6;}
+.follow-onclick-border {border: solid .07em #cc5;z-index: 5;}
+.follow-other-border {border: solid .07em #aaa;z-index: 4;}
 /* suggestions */
 #suggest-dropdown {z-index: 15;position: fixed;top: 2em;left: 4em;width: calc(100vw - 4.2em);background-color: #777;}
 #suggest-dropdown div {display: flex;padding: .4em;margin: .2em;background-color: #444;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;pointer-events: none;}
