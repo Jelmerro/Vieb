@@ -202,9 +202,4 @@ const applyLayout = () => {
     }
 }
 
-module.exports = {
-    switchView,
-    hide,
-    add,
-    applyLayout
-}
+module.exports = {switchView, hide, add, applyLayout}

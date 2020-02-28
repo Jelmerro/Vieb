@@ -81,7 +81,7 @@ const isUrl = location => {
         return false
     }
     if (/^[a-zA-Z]{2,}$/.test(tld)) {
-        const invalidDashes = names.some(n => {
+        const invalidDashes = names.find(n => {
             return n.includes("---") || n.startsWith("-") || n.endsWith("-")
         })
         if (!invalidDashes && names.every(n => /^[a-zA-Z\d-]+$/.test(n))) {

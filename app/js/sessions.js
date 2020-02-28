@@ -211,10 +211,4 @@ const setSpellLang = lang => {
     })
 }
 
-module.exports = {
-    init,
-    create,
-    enableAdblocker,
-    disableAdblocker,
-    setSpellLang
-}
+module.exports = {init, create, enableAdblocker, disableAdblocker, setSpellLang}

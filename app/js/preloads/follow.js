@@ -38,13 +38,19 @@ const clickableInputs = [
     "*[role=\"checkbox\"]",
     "summary"
 ]
-const textlikeInputs = ["input:not([type=\"radio\"]):not([type=\"checkbox\"])"
+const textlikeInputs = [
+    "input:not([type=\"radio\"]):not([type=\"checkbox\"])"
     + ":not([type=\"submit\"]):not([type=\"button\"]):not([type=\"color\"])"
     + ":not([type=\"file\"]):not([type=\"image\"]):not([type=\"reset\"])",
-"*[role=\"textbox\"]",
-"*[contenteditable=\"true\"]",
-"textarea",
-"select"]
+    "*[role=\"textbox\"]",
+    "*[contenteditable=\"true\"]",
+    "textarea",
+    "select"
+]
+const clickEvents = ["click", "mousedown"]
+const otherEvents = [
+    "mouseenter", "mouseleave", "mousemove", "mouseout", "mouseover", "mouseup"
+]
 
 ipcRenderer.on("focus-first-text-input", () => {
     const links = [...allElementsBySelectors("inputs-insert", textlikeInputs)]
@@ -85,15 +91,11 @@ const sendFollowLinks = () => {
     })
     // Input tags such as email and text, can have text inserted
     allLinks.push(...allElementsBySelectors("inputs-insert", textlikeInputs))
-    // All other elements with onclick listeners
-    const clickableElements = [...document.querySelectorAll("*")].filter(
-        el => el.onclick || el.onmousedown || el.getAttribute("jsaction"))
-    clickableElements.push(...elementsWithClickListener)
-    clickableElements.push(...elementsWithMouseDownListener)
-    clickableElements.forEach(element => {
+    // Elements with some kind of mouse interaction, grouped by click and other
+    const addMouseEventElement = (element, type) => {
         let clickable = null
         try {
-            clickable = parseElement(element, "onclick")
+            clickable = parseElement(element, type)
         } catch (e) {
             // Element might get deleted while parsing
         }
@@ -106,10 +108,23 @@ const sendFollowLinks = () => {
                 allLinks.push(clickable)
             }
         }
-    })
+    }
+    [...document.querySelectorAll("*")].filter(el => {
+        return clickEvents.find(e => el[`on${e}`])
+            || clickEvents.map(e => eventListeners[e].includes(el)).find(e => e)
+            || el.getAttribute("jsaction")
+    }).forEach(element => addMouseEventElement(element, "onclick"))
+    ;[...document.querySelectorAll("*")].filter(el => {
+        return otherEvents.find(e => el[`on${e}`])
+            || otherEvents.map(e => eventListeners[e].includes(el)).find(e => e)
+    }).forEach(element => addMouseEventElement(element, "other"))
     // Send response back to webview, which will forward it to follow.js
     // Ordered by the position on the page from the top
+    // Uncategorised mouse events are less relevant and are moved to the end
     ipcRenderer.sendToHost("follow-response", allLinks.sort((el1, el2) => {
+        if (el1.type === "other") {
+            return 1000
+        }
         return Math.floor(el1.y) - Math.floor(el2.y) || el1.x - el2.x
     }))
 }
@@ -180,10 +195,8 @@ const parseElement = (element, type) => {
     }
     // Make a list of all possible bouding rects for the element
     let rects = [element.getBoundingClientRect(), ...element.getClientRects()]
-    if (type === "url") {
-        for (const subImage of element.querySelectorAll("img, svg")) {
-            rects = rects.concat([...subImage.getClientRects()])
-        }
+    for (const subImage of element.querySelectorAll("img, svg")) {
+        rects = rects.concat([...subImage.getClientRects()])
     }
     // Find a clickable area and position for the given element
     const {dimensions, clickable} = findClickPosition(element, rects)
@@ -227,54 +240,37 @@ const allElementsBySelectors = (type, selectors) => {
     return tags
 }
 
-const elementsWithClickListener = []
-const elementsWithMouseDownListener = []
+const eventListeners = {}
+;[...clickEvents, ...otherEvents].forEach(e => {
+    eventListeners[e] = []
+})
 
-EventTarget.prototype.realAddListener = EventTarget.prototype.addEventListener
+EventTarget.prototype._realAdd = EventTarget.prototype.addEventListener
 EventTarget.prototype.addEventListener = function(type, listener, options) {
     try {
-        this.realAddListener(type, listener, options)
+        this._realAdd(type, listener, options)
     } catch (e) {
         // This is a bug in the underlying website
+        return
     }
-    if (type === "click" && this !== document) {
-        elementsWithClickListener.push(this)
-    }
-    if (type === "mousedown" && this !== document) {
-        elementsWithMouseDownListener.push(this)
+    if (eventListeners[type]) {
+        eventListeners[type].push(this)
     }
 }
-EventTarget.prototype.realRemoveListener
-    = EventTarget.prototype.removeEventListener
+EventTarget.prototype._realRemove = EventTarget.prototype.removeEventListener
 EventTarget.prototype.removeEventListener = function(type, listener, options) {
     try {
-        this.realRemoveListener(type, listener, options)
+        this._realRemove(type, listener, options)
     } catch (e) {
         // This is a bug in the underlying website
     }
-    if (type === "click" && this !== document) {
+    if (eventListeners[type]) {
         try {
-            elementsWithClickListener.remove(this)
+            eventListeners[type].remove(this)
         } catch (e) {
             // The element was already removed from the list before
         }
     }
-    if (type === "mousedown" && this !== document) {
-        try {
-            elementsWithMouseDownListener.remove(this)
-        } catch (e) {
-            // The element was already removed from the list before
-        }
-    }
-}
-
-const isTextElement = el => {
-    for (const selector of textlikeInputs) {
-        if (el.matches(selector)) {
-            return true
-        }
-    }
-    return false
 }
 
 window.addEventListener("click", e => {
@@ -282,7 +278,7 @@ window.addEventListener("click", e => {
         "x": e.x,
         "y": e.y,
         "tovisual": !window.getSelection().isCollapsed,
-        "toinsert": isTextElement(e.target)
+        "toinsert": !!textlikeInputs.find(s => e.target.matches(s))
     })
 })
 

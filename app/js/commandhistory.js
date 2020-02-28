@@ -78,10 +78,4 @@ const push = command => {
     }
 }
 
-module.exports = {
-    init,
-    previous,
-    next,
-    resetPosition,
-    push
-}
+module.exports = {init, previous, next, resetPosition, push}

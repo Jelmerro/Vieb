@@ -22,6 +22,7 @@ but the list below contains much more technical details.
 - Map command for configuring keyboard mappings (including recursion, nmap, imap, mapclear, etc.)
 - Noremap command for non-recursive keyboard mappings (Refer to Vieb actions using <ACTIONS.reload>)
 - Tab status indicators, orange for current tab (in multiple layout) and blue for playing media
+- Elements with mouse hover actions are now available in follow mode (displayed in grey)
 
 ### Changed
 
