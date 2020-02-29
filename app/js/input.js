@@ -744,7 +744,7 @@ const mapOrList = (mode, args, noremap, includeDefault) => {
 const sanitiseMapString = mapString => {
     return mapString.split(/(<.*?>|.)/g).filter(m => m).map(m => {
         const splitKeys = m.replace(/(^<|>$)/g, "").split("-").filter(s => s)
-        const modifiers = splitKeys.slice(0, -1)
+        let modifiers = splitKeys.slice(0, -1)
         let key = splitKeys.slice(-1)[0]
         keyNames.forEach(name => {
             if (name.vim.includes(key)) {
@@ -752,6 +752,15 @@ const sanitiseMapString = mapString => {
             }
         })
         let modString = ""
+        if (key.length === 1) {
+            if (modifiers.includes("S") && key.toLowerCase() === key) {
+                modifiers = modifiers.filter(mod => mod !== "S")
+                key = key.toUpperCase()
+            }
+            if (modifiers.includes("S") && key.toLowerCase() !== key) {
+                modifiers = modifiers.filter(mod => mod !== "S")
+            }
+        }
         for (const mod of ["C", "M", "A", "S"]) {
             if (modifiers.includes(mod)) {
                 modString += `${mod}-`
