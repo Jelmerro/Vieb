@@ -90,7 +90,7 @@ const validOptions = {
     "spelllang": [
         "system",
         ...JSON.parse(JSON.stringify(
-            remote.session.defaultSession.availableSpellCheckerLanguages))
+            remote.session.defaultSession.availableSpellCheckerLanguages || []))
     ],
     "taboverflow": ["hidden", "scroll", "wrap"],
     "permissioncamera": ["block", "ask", "allow"],

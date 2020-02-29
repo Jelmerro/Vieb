@@ -249,6 +249,7 @@ const init = () => {
     // - only support <> notation and single digit characters
     //   - e.g. letters, !@#$%^&*()_+ and number
     // - no recursive mappings for insert mode, all of them are noremap
+    // - map! also lists built-in mappings, instead of applying a mapping
     supportedActions = [
         ...Object.keys(ACTIONS).map(a => `ACTIONS.${a}`),
         ...Object.keys(POINTER).map(c => `POINTER.${c}`)
@@ -284,6 +285,9 @@ const toIdentifier = e => {
         }
         if (e.altKey) {
             keyCode = `A-${keyCode}`
+        }
+        if (e.metaKey) {
+            keyCode = `M-${keyCode}`
         }
         if (e.ctrlKey) {
             keyCode = `C-${keyCode}`
@@ -383,11 +387,15 @@ const executeMapString = (mapString, recursive, initial) => {
             } else if (key.startsWith("<:")) {
                 COMMAND.execute(key.replace(/^<:|>$/g, ""))
                 return
-            } else if (key.match(/^<(C-)?(A-)?(S-)?.+>$/g)) {
+            } else if (key.match(/^<(C-)?(M-)?(A-)?(S-)?.+>$/g)) {
                 key = key.slice(1, -1)
                 if (key.startsWith("C-")) {
                     options.ctrlKey = true
                     key = key.replace("C-", "")
+                }
+                if (key.startsWith("M-")) {
+                    options.metaKey = true
+                    key = key.replace("M-", "")
                 }
                 if (key.startsWith("A-")) {
                     options.altKey = true
@@ -435,8 +443,9 @@ const handleKeyboard = e => {
     }
     const ignoredKeys = [
         "Control",
-        "Shift",
+        "Meta",
         "Alt",
+        "Shift",
         "NumLock",
         "CapsLock",
         "ScrollLock",
@@ -556,7 +565,7 @@ const handleUserInput = e => {
         e.preventDefault()
         return
     }
-    const allowedUserInput = [
+    let allowedUserInput = [
         "<C-x>",
         "<C-c>",
         "<C-v>",
@@ -567,10 +576,28 @@ const handleUserInput = e => {
         "<C-S-Left>",
         "<C-S-Right>"
     ]
-    const shift = id.startsWith("<S-")
+    if (process.platform === "darwin") {
+        allowedUserInput = [
+            "<M-x>",
+            "<M-c>",
+            "<M-v>",
+            "<M-a>",
+            "<M-BS>",
+            "<M-Left>",
+            "<M-Right>",
+            "<M-S-Left>",
+            "<M-S-Right>",
+            "<A-BS>",
+            "<A-Left>",
+            "<A-Right>",
+            "<A-S-Left>",
+            "<A-S-Right>"
+        ]
+    }
+    const shiftOnly = id.startsWith("<S-")
     const allowedInput = allowedUserInput.includes(id)
     const hasModifier = id.match(/^<.*-.*>$/)
-    if (!shift && !allowedInput && hasModifier || id.includes("Tab")) {
+    if (!shiftOnly && !allowedInput && hasModifier || id.includes("Tab")) {
         e.preventDefault()
     }
     ACTIONS.setFocusCorrectly()
@@ -621,28 +648,39 @@ const listMappingsAsCommandList = () => {
     return mappings.join("\n")
 }
 
-const listMapping = (mode, map, command) => {
+const listMapping = (mode, map, command, includeDefault) => {
     let remap = "&nbsp;"
     if (command.noremap) {
         remap = "*"
     }
+    if (!mappingModified(mode, map) && !includeDefault) {
+        return ""
+    }
     return `${mode}${remap}&nbsp;${map} => ${command.mapping}`
 }
 
-const mapOrList = (mode, args, noremap) => {
+const mapOrList = (mode, args, noremap, includeDefault) => {
+    if (includeDefault && args.length > 1) {
+        UTIL.notify("Mappings always overwrite, no need for !", "warn")
+        return
+    }
     if (args.length === 0) {
         if (mode) {
             let mappings = ""
             Object.keys(bindings[mode]).forEach(map => {
                 const command = actionBasedOnKeys(mode, map)
                 if (command) {
-                    mappings += `${listMapping(mode, map, command)}\n`
+                    mappings += `${listMapping(
+                        mode, map, command, includeDefault)}\n`
                 }
             })
+            mappings = mappings.replace(/[\r\n]+/g, "\n").trim()
             if (mappings) {
                 UTIL.notify(mappings)
+            } else if (includeDefault) {
+                UTIL.notify("No mappings found")
             } else {
-                UTIL.notify("No mapping found")
+                UTIL.notify("No custom mappings found")
             }
         } else {
             let mappings = ""
@@ -650,14 +688,18 @@ const mapOrList = (mode, args, noremap) => {
                 Object.keys(bindings[bindMode]).forEach(map => {
                     const command = actionBasedOnKeys(bindMode, map)
                     if (command) {
-                        mappings += `${listMapping(bindMode, map, command)}\n`
+                        mappings += `${listMapping(
+                            bindMode, map, command, includeDefault)}\n`
                     }
                 })
             })
+            mappings = mappings.replace(/[\r\n]+/g, "\n").trim()
             if (mappings) {
                 UTIL.notify(mappings)
+            } else if (includeDefault) {
+                UTIL.notify("No mappings found")
             } else {
-                UTIL.notify("No mapping found")
+                UTIL.notify("No custom mappings found")
             }
         }
         return
@@ -665,23 +707,33 @@ const mapOrList = (mode, args, noremap) => {
     if (args.length === 1) {
         if (mode) {
             const command = actionBasedOnKeys(mode, args[0])
+            let mapping = ""
             if (command) {
-                UTIL.notify(listMapping(mode, args[0], command))
-            } else {
+                mapping = listMapping(mode, args[0], command, includeDefault)
+            }
+            if (mapping.trim()) {
+                UTIL.notify(mapping)
+            } else if (includeDefault) {
                 UTIL.notify("No mapping found for this sequence")
+            } else {
+                UTIL.notify("No custom mapping found for this sequence")
             }
         } else {
             let mappings = ""
             Object.keys(bindings).forEach(bindMode => {
                 const command = actionBasedOnKeys(bindMode, args[0])
                 if (command) {
-                    mappings += `${listMapping(bindMode, args[0], command)}\n`
+                    mappings += `${listMapping(
+                        bindMode, args[0], command, includeDefault)}\n`
                 }
             })
+            mappings = mappings.replace(/[\r\n]+/g, "\n").trim()
             if (mappings) {
                 UTIL.notify(mappings)
-            } else {
+            } else if (includeDefault) {
                 UTIL.notify("No mapping found for this sequence")
+            } else {
+                UTIL.notify("No custom mapping found for this sequence")
             }
         }
         return
@@ -689,16 +741,32 @@ const mapOrList = (mode, args, noremap) => {
     mapSingle(mode, args, noremap)
 }
 
-const mapSingle = (mode, args, noremap) => {
-    const mapping = args.shift()
-    const actions = args.join(" ").split(/(<.*?>|.)/g).filter(m => m).map(m => {
-        keyNames.forEach(key => {
-            if (key.vim.includes(m.replace(/(^<|>$)/g, ""))) {
-                m = `<${key.vim[0]}>`
+const sanitiseMapString = mapString => {
+    return mapString.split(/(<.*?>|.)/g).filter(m => m).map(m => {
+        const splitKeys = m.replace(/(^<|>$)/g, "").split("-").filter(s => s)
+        const modifiers = splitKeys.slice(0, -1)
+        let key = splitKeys.slice(-1)[0]
+        keyNames.forEach(name => {
+            if (name.vim.includes(key)) {
+                key = name.vim[0]
             }
         })
-        return m
+        let modString = ""
+        for (const mod of ["C", "M", "A", "S"]) {
+            if (modifiers.includes(mod)) {
+                modString += `${mod}-`
+            }
+        }
+        if (modString || key.length > 1) {
+            return `<${modString}${key}>`
+        }
+        return key
     }).join("")
+}
+
+const mapSingle = (mode, args, noremap) => {
+    const mapping = sanitiseMapString(args.shift())
+    const actions = sanitiseMapString(args.join(" "))
     if (mode) {
         bindings[mode][mapping] = {
             "mapping": actions, "noremap": noremap || mode === "i"
