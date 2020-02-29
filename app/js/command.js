@@ -400,7 +400,7 @@ const cookies = () => {
 const addCommand = (overwrite, args) => {
     if (overwrite && args.length < 2) {
         UTIL.notify(
-            "Can't combine overwrite request with reading a value", "warn")
+            "Can't combine ! with reading a value", "warn")
         return
     }
     if (args.length === 0) {
@@ -529,6 +529,12 @@ modes.forEach(mode => {
     if (mode === "all") {
         prefix = ""
     }
+    commands[`${prefix}map!`] = (...args) => {
+        INPUT.mapOrList(prefix, args, false, true)
+    }
+    commands[`${prefix}noremap!`] = (...args) => {
+        INPUT.mapOrList(prefix, args, true, true)
+    }
     commands[`${prefix}map`] = (...args) => {
         INPUT.mapOrList(prefix, args)
     }
@@ -613,6 +619,10 @@ const execute = command => {
         } else if (commands[command]) {
             if (parsed.confirm) {
                 command += "!"
+                if (!commands[command]) {
+                    UTIL.notify("Command does not accept ! to be added", "warn")
+                    return
+                }
             }
             commands[command](...args)
         } else {

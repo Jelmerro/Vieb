@@ -54,6 +54,7 @@ but the list below contains much more technical details.
 ### Fixed
 
 - Broken page loads for sites using custom EventTargets instead of only DOM Nodes
+- Text input actions, such as select all, not working on Mac
 
 ### Security
 
