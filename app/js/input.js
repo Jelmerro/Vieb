@@ -63,6 +63,8 @@ const defaultBindings = {
         "v": {"mapping": "<POINTER.start>"},
         "w": {"mapping": "<ACTIONS.nextTab>"},
         "<C-x>": {"mapping": "<ACTIONS.decreasePageNumber>"},
+        "<C-w>r": {"mapping": "<ACTIONS.rotateSplitWindow>"},
+        "<C-w><C-r>": {"mapping": "<ACTIONS.rotateSplitWindow>"},
         "/": {"mapping": "<ACTIONS.toSearchMode>"},
         "$": {"mapping": "<ACTIONS.scrollPageRight>"},
         "^": {"mapping": "<ACTIONS.scrollPageLeft>"},
