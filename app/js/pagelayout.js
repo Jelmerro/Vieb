@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global SETTINGS TABS */
+/* global SETTINGS UTIL TABS */
 "use strict"
 
 const layoutDivById = id => {
@@ -115,6 +115,19 @@ const add = (viewOrId, method, leftOrAbove) => {
     applyLayout()
 }
 
+const rotate = () => {
+    removeSingleEntryContainers()
+    const currentId = TABS.currentPage().getAttribute("link-id")
+    const current = layoutDivById(currentId)
+    const parent = current.parentNode
+    if ([...parent.children].find(c => c.className)) {
+        UTIL.notify("Cannot rotate when another window is split", "warn")
+        return
+    }
+    parent.insertBefore([...parent.children].slice(-1)[0], parent.firstChild)
+    applyLayout()
+}
+
 const removeSingleEntryContainers = () => {
     [...document.querySelectorAll("#pagelayout .hor, #pagelayout .ver")]
         .forEach(container => {
@@ -202,4 +215,4 @@ const applyLayout = () => {
     }
 }
 
-module.exports = {switchView, hide, add, applyLayout}
+module.exports = {switchView, hide, add, rotate, applyLayout}

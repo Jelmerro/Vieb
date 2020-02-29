@@ -15,7 +15,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND COMMANDHISTORY FOLLOW MODES SETTINGS SUGGEST TABS UTIL */
+/* global COMMAND COMMANDHISTORY FOLLOW MODES PAGELAYOUT SETTINGS SUGGEST TABS
+ UTIL */
 "use strict"
 
 const {exec} = require("child_process")
@@ -262,6 +263,64 @@ const stopFollowMode = () => {
     }
 }
 
+const editWithVim = () => {
+    const fileFolder = path.join(remote.app.getPath("appData"), "vimformedits")
+    const tempFile = path.join(fileFolder, String(Number(new Date())))
+    try {
+        fs.mkdirSync(fileFolder)
+    } catch (e) {
+        // Probably already exists
+    }
+    try {
+        fs.writeFileSync(tempFile, "")
+    } catch (e) {
+        UTIL.notify("Could not start vim edit mode", "err")
+        return
+    }
+    let command = null
+    const webcontents = TABS.webContents(TABS.currentPage())
+    fs.watchFile(tempFile, {"interval": 500}, () => {
+        if (command) {
+            try {
+                webcontents.send("action", "setInputFieldText",
+                    fs.readFileSync(tempFile).toString())
+            } catch (e) {
+                UTIL.notify("Failed to read temp file to fill form", "err")
+            }
+        } else {
+            command = exec(`${SETTINGS.get("vimcommand")} ${tempFile}`, err => {
+                if (err) {
+                    UTIL.notify("Command to edit files with vim failed, "
+                        + "please update the 'vimcommand' setting", "err")
+                }
+            })
+        }
+    })
+    webcontents.send("action", "writeInputToFile", tempFile)
+}
+
+const nextSuggestion = () => {
+    SUGGEST.nextSuggestion()
+    setFocusCorrectly()
+}
+
+const prevSuggestion = () => {
+    SUGGEST.prevSuggestion()
+    setFocusCorrectly()
+}
+
+const commandHistoryPrevious = () => {
+    COMMANDHISTORY.previous()
+}
+
+const commandHistoryNext = () => {
+    COMMANDHISTORY.next()
+}
+
+const rotateSplitWindow = () => {
+    PAGELAYOUT.rotate()
+}
+
 const useEnteredData = () => {
     if (MODES.currentMode() === "command") {
         COMMAND.execute(document.getElementById("url").value.trim())
@@ -325,60 +384,6 @@ const setFocusCorrectly = () => {
     }
 }
 
-const editWithVim = () => {
-    const fileFolder = path.join(remote.app.getPath("appData"), "vimformedits")
-    const tempFile = path.join(fileFolder, String(Number(new Date())))
-    try {
-        fs.mkdirSync(fileFolder)
-    } catch (e) {
-        // Probably already exists
-    }
-    try {
-        fs.writeFileSync(tempFile, "")
-    } catch (e) {
-        UTIL.notify("Could not start vim edit mode", "err")
-        return
-    }
-    let command = null
-    const webcontents = TABS.webContents(TABS.currentPage())
-    fs.watchFile(tempFile, {"interval": 500}, () => {
-        if (command) {
-            try {
-                webcontents.send("action", "setInputFieldText",
-                    fs.readFileSync(tempFile).toString())
-            } catch (e) {
-                UTIL.notify("Failed to read temp file to fill form", "err")
-            }
-        } else {
-            command = exec(`${SETTINGS.get("vimcommand")} ${tempFile}`, err => {
-                if (err) {
-                    UTIL.notify("Command to edit files with vim failed, "
-                        + "please update the 'vimcommand' setting", "err")
-                }
-            })
-        }
-    })
-    webcontents.send("action", "writeInputToFile", tempFile)
-}
-
-const nextSuggestion = () => {
-    SUGGEST.nextSuggestion()
-    setFocusCorrectly()
-}
-
-const prevSuggestion = () => {
-    SUGGEST.prevSuggestion()
-    setFocusCorrectly()
-}
-
-const commandHistoryPrevious = () => {
-    COMMANDHISTORY.previous()
-}
-
-const commandHistoryNext = () => {
-    COMMANDHISTORY.next()
-}
-
 module.exports = {
     emptySearch,
     clickOnSearch,
@@ -429,6 +434,7 @@ module.exports = {
     prevSuggestion,
     commandHistoryPrevious,
     commandHistoryNext,
+    rotateSplitWindow,
     useEnteredData,
     setFocusCorrectly
 }
