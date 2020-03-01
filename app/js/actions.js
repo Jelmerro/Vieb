@@ -353,6 +353,26 @@ const toRightSplitWindow = () => {
     PAGELAYOUT.moveFocus("right")
 }
 
+const increaseHeightSplitWindow = count => {
+    PAGELAYOUT.resize("ver", "grow", count)
+}
+
+const decreaseHeightSplitWindow = count => {
+    PAGELAYOUT.resize("ver", "shrink", count)
+}
+
+const increaseWidthSplitWindow = count => {
+    PAGELAYOUT.resize("hor", "grow", count)
+}
+
+const decreaseWidthSplitWindow = count => {
+    PAGELAYOUT.resize("hor", "shrink", count)
+}
+
+const distrubuteSpaceSplitWindow = () => {
+    PAGELAYOUT.resetResizing()
+}
+
 const useEnteredData = () => {
     if (MODES.currentMode() === "command") {
         COMMAND.execute(document.getElementById("url").value.trim())
@@ -475,6 +495,11 @@ module.exports = {
     toBottomSplitWindow,
     toTopSplitWindow,
     toRightSplitWindow,
+    increaseHeightSplitWindow,
+    decreaseHeightSplitWindow,
+    increaseWidthSplitWindow,
+    decreaseWidthSplitWindow,
+    distrubuteSpaceSplitWindow,
     useEnteredData,
     setFocusCorrectly
 }
