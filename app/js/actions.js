@@ -337,6 +337,22 @@ const rightHalfSplitWindow = () => {
     PAGELAYOUT.toTop("right")
 }
 
+const toLeftSplitWindow = () => {
+    PAGELAYOUT.moveFocus("left")
+}
+
+const toBottomSplitWindow = () => {
+    PAGELAYOUT.moveFocus("bottom")
+}
+
+const toTopSplitWindow = () => {
+    PAGELAYOUT.moveFocus("top")
+}
+
+const toRightSplitWindow = () => {
+    PAGELAYOUT.moveFocus("right")
+}
+
 const useEnteredData = () => {
     if (MODES.currentMode() === "command") {
         COMMAND.execute(document.getElementById("url").value.trim())
@@ -455,6 +471,10 @@ module.exports = {
     bottomHalfSplitWindow,
     topHalfSplitWindow,
     rightHalfSplitWindow,
+    toLeftSplitWindow,
+    toBottomSplitWindow,
+    toTopSplitWindow,
+    toRightSplitWindow,
     useEnteredData,
     setFocusCorrectly
 }
