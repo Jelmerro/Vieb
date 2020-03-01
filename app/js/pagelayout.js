@@ -160,6 +160,37 @@ const toTop = direction => {
     applyLayout()
 }
 
+const moveFocus = direction => {
+    removeRedundantContainers()
+    const current = layoutDivById(TABS.currentPage().getAttribute("link-id"))
+    const id = current.getAttribute("link-id")
+    const dims = current.getBoundingClientRect()
+    let x = dims.x + dims.width / 2
+    let y = dims.y + dims.height / 2
+    let newView = document.elementFromPoint(x, y)
+    while (newView && newView.getAttribute("link-id") === id) {
+        if (direction === "left") {
+            x -= 10
+        } else if (direction === "top") {
+            y -= 10
+        } else if (direction === "bottom") {
+            y += 10
+        } else if (direction === "right") {
+            x += 10
+        } else {
+            break
+        }
+        newView = document.elementFromPoint(x, y)
+    }
+    if (newView && newView.matches("#pages webview")) {
+        const newId = newView.getAttribute("link-id")
+        if (newId && newId !== id) {
+            const tab = document.querySelector(`#tabs span[link-id='${newId}']`)
+            TABS.switchToTab(TABS.listTabs().indexOf(tab))
+        }
+    }
+}
+
 const removeRedundantContainers = () => {
     const base = document.getElementById("pagelayout")
     ;[...document.querySelectorAll("#pagelayout .hor, #pagelayout .ver"), base]
@@ -252,4 +283,4 @@ const applyLayout = () => {
     }
 }
 
-module.exports = {switchView, hide, add, rotate, toTop, applyLayout}
+module.exports = {switchView, hide, add, rotate, toTop, moveFocus, applyLayout}
