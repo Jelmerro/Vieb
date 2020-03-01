@@ -321,6 +321,22 @@ const rotateSplitWindow = () => {
     PAGELAYOUT.rotate()
 }
 
+const leftHalfSplitWindow = () => {
+    PAGELAYOUT.toTop("left")
+}
+
+const bottomHalfSplitWindow = () => {
+    PAGELAYOUT.toTop("bottom")
+}
+
+const topHalfSplitWindow = () => {
+    PAGELAYOUT.toTop("top")
+}
+
+const rightHalfSplitWindow = () => {
+    PAGELAYOUT.toTop("right")
+}
+
 const useEnteredData = () => {
     if (MODES.currentMode() === "command") {
         COMMAND.execute(document.getElementById("url").value.trim())
@@ -435,6 +451,10 @@ module.exports = {
     commandHistoryPrevious,
     commandHistoryNext,
     rotateSplitWindow,
+    leftHalfSplitWindow,
+    bottomHalfSplitWindow,
+    topHalfSplitWindow,
+    rightHalfSplitWindow,
     useEnteredData,
     setFocusCorrectly
 }
