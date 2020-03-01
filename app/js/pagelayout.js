@@ -116,9 +116,8 @@ const add = (viewOrId, method, leftOrAbove) => {
 }
 
 const rotate = () => {
-    removeSingleEntryContainers()
-    const currentId = TABS.currentPage().getAttribute("link-id")
-    const current = layoutDivById(currentId)
+    removeRedundantContainers()
+    const current = layoutDivById(TABS.currentPage().getAttribute("link-id"))
     const parent = current.parentNode
     if ([...parent.children].find(c => c.className)) {
         UTIL.notify("Cannot rotate when another window is split", "warn")
@@ -128,22 +127,60 @@ const rotate = () => {
     applyLayout()
 }
 
-const removeSingleEntryContainers = () => {
-    [...document.querySelectorAll("#pagelayout .hor, #pagelayout .ver")]
+const toTop = direction => {
+    removeRedundantContainers()
+    const current = layoutDivById(TABS.currentPage().getAttribute("link-id"))
+    const layout = document.getElementById("pagelayout")
+    const hor = layout.classList.contains("hor")
+    const ver = layout.classList.contains("ver")
+    if (direction === "left" && hor || direction === "top" && ver) {
+        layout.insertBefore(current, layout.firstChild)
+    } else if (direction === "right" && hor || direction === "bottom" && ver) {
+        layout.appendChild(current)
+    } else {
+        let pageLayoutClass = "hor"
+        let subLayoutClass = "ver"
+        if (["top", "bottom"].includes(direction)) {
+            pageLayoutClass = "ver"
+            subLayoutClass = "hor"
+        }
+        const subLayout = document.createElement("div")
+        subLayout.className = subLayoutClass
+        layout.className = pageLayoutClass
+        ;[...layout.children].forEach(child => {
+            subLayout.appendChild(child)
+        })
+        layout.appendChild(subLayout)
+        if (["left", "top"].includes(direction)) {
+            layout.insertBefore(current, layout.firstChild)
+        } else {
+            layout.appendChild(current)
+        }
+    }
+    applyLayout()
+}
+
+const removeRedundantContainers = () => {
+    const base = document.getElementById("pagelayout")
+    ;[...document.querySelectorAll("#pagelayout .hor, #pagelayout .ver"), base]
         .forEach(container => {
-            if (container.children.length < 2) {
+            if (container.children.length < 2 && container !== base) {
                 const lonelyView = container.children[0]
                 if (lonelyView) {
-                    const id = lonelyView.getAttribute("link-id")
-                    if (!id) {
-                        return
-                    }
-                    const singleView = document.createElement("div")
-                    singleView.setAttribute("link-id", id)
-                    container.parentNode.insertBefore(singleView, container)
+                    container.parentNode.insertBefore(lonelyView, container)
                 }
                 container.parentNode.removeChild(container)
             }
+            [...container.children].forEach(child => {
+                if (!child.getAttribute("link-id")) {
+                    if (child.className === container.className) {
+                        [...child.children].forEach(subChild => {
+                            container.insertBefore(subChild, child)
+                        })
+                        container.removeChild(child)
+                    }
+                }
+            })
         })
 }
 
@@ -155,7 +192,7 @@ const applyLayout = () => {
             element.parentNode.removeChild(element)
         }
     })
-    removeSingleEntryContainers()
+    removeRedundantContainers()
     if (document.getElementById("pagelayout").children.length === 0) {
         document.getElementById("pagelayout").classList.add("hor")
         const cur = document.getElementById("current-page")
@@ -215,4 +252,4 @@ const applyLayout = () => {
     }
 }
 
-module.exports = {switchView, hide, add, rotate, applyLayout}
+module.exports = {switchView, hide, add, rotate, toTop, applyLayout}
