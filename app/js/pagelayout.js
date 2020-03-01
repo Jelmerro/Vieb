@@ -44,6 +44,7 @@ const switchView = (oldViewOrId, newView) => {
 }
 
 const hide = (view, close = false) => {
+    removeRedundantContainers()
     if (!document.getElementById("pages").classList.contains("multiple")) {
         return
     }
@@ -51,6 +52,9 @@ const hide = (view, close = false) => {
     const parent = inLayout.parentNode
     const sibling = inLayout.nextSibling
     parent.removeChild(inLayout)
+    ;[...parent.children, parent].forEach(element => {
+        element.style.flexGrow = null
+    })
     if (view.id === "current-page") {
         const visibleTabs = [...document.querySelectorAll("#tabs .visible-tab")]
         let newTab = null
@@ -112,11 +116,18 @@ const add = (viewOrId, method, leftOrAbove) => {
         inLayout.parentNode.insertBefore(verContainer, inLayout)
         inLayout.parentNode.removeChild(inLayout)
     }
+    [...layoutDivById(id).parentNode.children, layoutDivById(id).parentNode]
+        .forEach(element => {
+            element.style.flexGrow = null
+        })
     applyLayout()
 }
 
 const rotate = () => {
     removeRedundantContainers()
+    if (!document.getElementById("pages").classList.contains("multiple")) {
+        return
+    }
     const current = layoutDivById(TABS.currentPage().getAttribute("link-id"))
     const parent = current.parentNode
     if ([...parent.children].find(c => c.className)) {
@@ -129,6 +140,9 @@ const rotate = () => {
 
 const toTop = direction => {
     removeRedundantContainers()
+    if (!document.getElementById("pages").classList.contains("multiple")) {
+        return
+    }
     const current = layoutDivById(TABS.currentPage().getAttribute("link-id"))
     const layout = document.getElementById("pagelayout")
     const hor = layout.classList.contains("hor")
@@ -157,11 +171,14 @@ const toTop = direction => {
             layout.appendChild(current)
         }
     }
-    applyLayout()
+    resetResizing()
 }
 
 const moveFocus = direction => {
     removeRedundantContainers()
+    if (!document.getElementById("pages").classList.contains("multiple")) {
+        return
+    }
     const current = layoutDivById(TABS.currentPage().getAttribute("link-id"))
     const id = current.getAttribute("link-id")
     const dims = current.getBoundingClientRect()
@@ -191,6 +208,54 @@ const moveFocus = direction => {
     }
 }
 
+const resize = (orientation, change, count) => {
+    removeRedundantContainers()
+    if (!document.getElementById("pages").classList.contains("multiple")) {
+        return
+    }
+    let element = layoutDivById(TABS.currentPage().getAttribute("link-id"))
+    const base = document.getElementById("pagelayout")
+    while (!element.parentNode.classList.contains(orientation)) {
+        element = element.parentNode
+        if (element === base) {
+            return
+        }
+    }
+    let flexGrow = Number(getComputedStyle(element).flexGrow) || 1
+    if (change === "grow") {
+        flexGrow *= 1.5 * count
+    } else if (change === "shrink") {
+        flexGrow /= 1.5 * count
+    }
+    if (flexGrow < 1) {
+        [...element.parentNode.children].forEach(child => {
+            const current = Number(getComputedStyle(child).flexGrow) || 1
+            child.style.flexGrow = current / flexGrow
+        })
+        flexGrow = 1
+    }
+    if (flexGrow > 10) {
+        [...element.parentNode.children].forEach(child => {
+            const current = Number(getComputedStyle(child).flexGrow) || 1
+            child.style.flexGrow = current / (flexGrow / 10)
+        })
+        flexGrow = 10
+    }
+    [...element.parentNode.children].forEach(child => {
+        const current = Number(getComputedStyle(child).flexGrow) || 1
+        child.style.flexGrow = Math.min(10, Math.max(1, current))
+    })
+    element.style.flexGrow = flexGrow
+    applyLayout()
+}
+
+const resetResizing = () => {
+    [...document.querySelectorAll("#pagelayout *")].forEach(element => {
+        element.style.flexGrow = null
+    })
+    applyLayout()
+}
+
 const removeRedundantContainers = () => {
     const base = document.getElementById("pagelayout")
     ;[...document.querySelectorAll("#pagelayout .hor, #pagelayout .ver"), base]
@@ -198,6 +263,7 @@ const removeRedundantContainers = () => {
             if (container.children.length < 2 && container !== base) {
                 const lonelyView = container.children[0]
                 if (lonelyView) {
+                    lonelyView.style.flexGrow = null
                     container.parentNode.insertBefore(lonelyView, container)
                 }
                 container.parentNode.removeChild(container)
@@ -283,4 +349,14 @@ const applyLayout = () => {
     }
 }
 
-module.exports = {switchView, hide, add, rotate, toTop, moveFocus, applyLayout}
+module.exports = {
+    switchView,
+    hide,
+    add,
+    rotate,
+    toTop,
+    moveFocus,
+    resize,
+    resetResizing,
+    applyLayout
+}

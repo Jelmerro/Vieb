@@ -81,6 +81,14 @@ const defaultBindings = {
         "<C-w><C-k>": {"mapping": "<ACTIONS.toTopSplitWindow>"},
         "<C-w>l": {"mapping": "<ACTIONS.toRightSplitWindow>"},
         "<C-w><C-l>": {"mapping": "<ACTIONS.toRightSplitWindow>"},
+        "<C-w>-": {"mapping": "<ACTIONS.decreaseHeightSplitWindow>"},
+        "<C-w>+": {"mapping": "<ACTIONS.increaseHeightSplitWindow>"},
+        "<C-w>=": {"mapping": "<ACTIONS.distrubuteSpaceSplitWindow>"},
+        "<C-w><C-=>": {"mapping": "<ACTIONS.distrubuteSpaceSplitWindow>"},
+        "<C-w><lt>": {"mapping": "<ACTIONS.decreaseWidthSplitWindow>"},
+        "<C-w>>": {"mapping": "<ACTIONS.increaseWidthSplitWindow>"},
+        "<C-w><C-lt>": {"mapping": "<ACTIONS.decreaseWidthSplitWindow>"},
+        "<C-w><C->>": {"mapping": "<ACTIONS.increaseWidthSplitWindow>"},
         "/": {"mapping": "<ACTIONS.toSearchMode>"},
         "$": {"mapping": "<ACTIONS.scrollPageRight>"},
         "^": {"mapping": "<ACTIONS.scrollPageLeft>"},
@@ -344,8 +352,13 @@ const countableActions = [
     "ACTIONS.zoomReset",
     "ACTIONS.toNormalMode",
     "ACTIONS.stopFollowMode",
-    "ACTIONS.useEnteredData",
     "ACTIONS.editWithVim",
+    "ACTIONS.leftHalfSplitWindow",
+    "ACTIONS.bottomHalfSplitWindow",
+    "ACTIONS.topHalfSplitWindow",
+    "ACTIONS.rightHalfSplitWindow",
+    "ACTIONS.distrubuteSpaceSplitWindow",
+    "ACTIONS.useEnteredData",
     "POINTER.start",
     "POINTER.inspectElement",
     "POINTER.copyAndStop",
@@ -385,7 +398,7 @@ const executeMapString = (mapString, recursive, initial) => {
     repeatCounter = 0
     updateKeysOnScreen()
     for (let i = 0;i < repeater;i++) {
-        mapString.split(/(<.*?>|.)/g).filter(m => m).forEach(key => {
+        mapString.split(/(<.*?[^-]>|<.*?->>|.)/g).filter(m => m).forEach(key => {
             const options = {"bubbles": recursive}
             if (key.length === 1) {
                 const isLetter = key.toLowerCase() !== key.toUpperCase()
@@ -760,7 +773,10 @@ const mapOrList = (mode, args, noremap, includeDefault) => {
 }
 
 const sanitiseMapString = mapString => {
-    return mapString.split(/(<.*?>|.)/g).filter(m => m).map(m => {
+    return mapString.split(/(<.*?[^-]>|<.*?->>|.)/g).filter(m => m).map(m => {
+        if (m === ">") {
+            return ">"
+        }
         const splitKeys = m.replace(/(^<|>$)/g, "").split("-").filter(s => s)
         let modifiers = splitKeys.slice(0, -1)
         let key = splitKeys.slice(-1)[0]
@@ -769,6 +785,9 @@ const sanitiseMapString = mapString => {
                 key = name.vim[0]
             }
         })
+        if (!key) {
+            return ""
+        }
         let modString = ""
         if (key.length === 1) {
             if (modifiers.includes("S") && key.toLowerCase() === key) {
