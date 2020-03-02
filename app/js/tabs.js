@@ -370,20 +370,9 @@ const updateUrl = (webview, force = false) => {
             return
         }
     }
-    if (currentPage() && currentPage().src) {
-        const specialPage = UTIL.pathToSpecialPageName(currentPage().src)
-        if (!specialPage.name) {
-            document.getElementById("url").value = currentPage().src
-        } else if (specialPage.name === "newtab") {
-            document.getElementById("url").value = ""
-        } else if (specialPage.section) {
-            document.getElementById("url").value
-                = `vieb://${specialPage.name}#${specialPage.section}`
-        } else {
-            document.getElementById("url").value = `vieb://${specialPage.name}`
-        }
-    } else {
-        document.getElementById("url").value = ""
+    if (currentPage()) {
+        document.getElementById("url").value
+            = UTIL.urlToString(currentPage().src)
     }
 }
 

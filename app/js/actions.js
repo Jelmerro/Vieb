@@ -176,19 +176,10 @@ const reloadWithoutCache = () => {
 }
 
 const openNewTabWithCurrentUrl = () => {
-    let url = TABS.currentPage().src
-    const specialPage = UTIL.pathToSpecialPageName(url)
-    if (specialPage.name === "newtab") {
-        url = ""
-    } else if (specialPage.name) {
-        url = `vieb://${specialPage.name}`
-        if (specialPage.section) {
-            url += `#${specialPage.section}`
-        }
-    }
+    const url = TABS.currentPage().src
     TABS.addTab()
     MODES.setMode("explore")
-    document.getElementById("url").value = url
+    document.getElementById("url").value = UTIL.urlToString(url)
 }
 
 const scrollPageRight = () => {
