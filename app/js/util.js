@@ -335,6 +335,19 @@ const stringToUrl = location => {
     return SETTINGS.get("search") + location
 }
 
+const urlToString = url => {
+    const special = pathToSpecialPageName(url)
+    if (special.name === "newtab") {
+        url = ""
+    } else if (special.name) {
+        url = `vieb://${special.name}`
+        if (special.section) {
+            url += `#${special.section}`
+        }
+    }
+    return url
+}
+
 module.exports = {
     hasProtocol,
     isUrl,
@@ -356,5 +369,6 @@ module.exports = {
     writeJSON,
     writeFile,
     deleteFile,
-    stringToUrl
+    stringToUrl,
+    urlToString
 }

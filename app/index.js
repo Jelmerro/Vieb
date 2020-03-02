@@ -129,7 +129,6 @@ app.on("ready", () => {
         "transparent": !enableDebugMode,
         "show": enableDebugMode,
         "webPreferences": {
-            "plugins": true,
             "nodeIntegration": true,
             "webviewTag": true,
             "enableRemoteModule": true
