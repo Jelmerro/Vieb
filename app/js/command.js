@@ -24,7 +24,7 @@ const path = require("path")
 
 const listSetting = setting => {
     if (setting === "all") {
-        UTIL.notify(SETTINGS.listCurrentSettings(true))
+        UTIL.notify(`--- Options ---\n${SETTINGS.listCurrentSettings(true)}`)
         return
     }
     const value = SETTINGS.get(setting)
