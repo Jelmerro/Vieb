@@ -53,10 +53,10 @@ ipcRenderer.on("insert-failed-page-info", (_, e) => {
         mainInfo.innerHTML += `<h2>Redirect to HTTP Blocked</h2>
             The page could not be loaded successfully,
             because HTTP redirects are disabled.
-            You can enabled them with this command:
-            <kbd>set redirectToHttp=true</kbd><br>
+            You can enable them with this command:
+            <kbd>set redirecttohttp</kbd><br>
             Alternatively, you can choose to go there just this once
-            by clicking the HTTP link:
+            by clicking this HTTP link:
             <a href=${http}>${http}</a><br>
             The exact error that caused this request to be blocked:
             </kbd>${e.errorDescription}</kbd>`
