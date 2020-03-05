@@ -19,6 +19,8 @@
  SUGGEST UTIL */
 "use strict"
 
+const {ipcRenderer} = require("electron")
+
 const defaultBindings = {
     "n": {
         "<CR>": {"mapping": "<ACTIONS.clickOnSearch>"},
@@ -259,6 +261,13 @@ const init = () => {
             SUGGEST.suggestCommand(document.getElementById("url").value)
         }
     })
+    ipcRenderer.on("window-close", () => {
+        if (process.platform === "darwin") {
+            executeMapString("<M-q>", true, true)
+        } else {
+            executeMapString("<A-F4>", true, true)
+        }
+    })
     setInterval(() => {
         ACTIONS.setFocusCorrectly()
     }, 500)
@@ -380,6 +389,9 @@ const hasFutureActionsBasedOnKeys = keys => {
 const executeMapString = (mapStr, recursive, initial) => {
     if (initial) {
         recursiveCounter = 0
+        if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
+            pressedKeys = ""
+        }
     }
     recursiveCounter += 1
     let repeater = Number(repeatCounter) || 1
@@ -441,6 +453,11 @@ const executeMapString = (mapStr, recursive, initial) => {
     }
     if (initial) {
         recursiveCounter = 0
+        if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
+            repeatCounter = 0
+            pressedKeys = ""
+            updateKeysOnScreen()
+        }
     }
 }
 
@@ -450,7 +467,6 @@ const doAction = (name, count) => {
     } else {
         ACTIONS[name.replace(/^.*\./g, "")](count || 1)
     }
-    pressedKeys = ""
     repeatCounter = 0
     updateKeysOnScreen()
 }
@@ -493,7 +509,8 @@ const handleKeyboard = e => {
     }
     if (["normal", "pointer", "visual"].includes(MODES.currentMode())) {
         const keyNumber = Number(id)
-        if (!isNaN(keyNumber)) {
+        const noFutureActions = !hasFutureActionsBasedOnKeys(pressedKeys + id)
+        if (!isNaN(keyNumber) && noFutureActions) {
             repeatCounter = Number(String(repeatCounter) + keyNumber)
             if (repeatCounter > SETTINGS.get("countlimit")) {
                 repeatCounter = SETTINGS.get("countlimit")
@@ -513,12 +530,11 @@ const handleKeyboard = e => {
     } else {
         repeatCounter = 0
     }
-    pressedKeys += id
-    const action = bindings[MODES.currentMode()[0]][pressedKeys]
     if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
         pressedKeys = ""
-        updateKeysOnScreen()
     }
+    pressedKeys += id
+    const action = bindings[MODES.currentMode()[0]][pressedKeys]
     if (action && (e.isTrusted || e.bubbles)) {
         if (e.isTrusted) {
             executeMapString(action.mapping, !action.noremap, true)
@@ -529,8 +545,8 @@ const handleKeyboard = e => {
         return
     }
     if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
+        repeatCounter = 0
         pressedKeys = ""
-        repeatCounter = ""
     }
     if (!e.isTrusted) {
         typeCharacterIntoNavbar(id)
@@ -585,10 +601,12 @@ const handleUserInput = e => {
         return
     }
     let allowedUserInput = [
-        "<C-x>",
-        "<C-c>",
-        "<C-v>",
         "<C-a>",
+        "<C-c>",
+        "<C-x>",
+        "<C-v>",
+        "<C-y>",
+        "<C-z>",
         "<C-BS>",
         "<C-Left>",
         "<C-Right>",
@@ -597,15 +615,17 @@ const handleUserInput = e => {
     ]
     if (process.platform === "darwin") {
         allowedUserInput = [
-            "<M-x>",
-            "<M-c>",
-            "<M-v>",
             "<M-a>",
+            "<M-c>",
+            "<M-x>",
+            "<M-v>",
+            "<M-z>",
             "<M-BS>",
             "<M-Left>",
             "<M-Right>",
             "<M-S-Left>",
             "<M-S-Right>",
+            "<M-Z>",
             "<A-BS>",
             "<A-Left>",
             "<A-Right>",
@@ -726,9 +746,14 @@ const sanitiseMapString = mapString => {
         if (m === ">") {
             return ">"
         }
-        const splitKeys = m.replace(/(^<|>$)/g, "").split("-").filter(s => s)
-        let modifiers = splitKeys.slice(0, -1)
-        let key = splitKeys.slice(-1)[0]
+        let key = m
+        let modifiers = []
+        if (m.length > 1) {
+            const splitKeys = m.replace(/(^<|>$)/g, "")
+                .split("-").filter(s => s)
+            modifiers = splitKeys.slice(0, -1)
+            key = splitKeys.slice(-1)[0]
+        }
         keyNames.forEach(name => {
             if (name.vim.includes(key)) {
                 key = name.vim[0]
