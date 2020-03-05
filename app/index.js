@@ -128,6 +128,7 @@ app.on("ready", () => {
         "frame": enableDebugMode,
         "transparent": !enableDebugMode,
         "show": enableDebugMode,
+        "closable": false,
         "webPreferences": {
             "nodeIntegration": true,
             "webviewTag": true,
