@@ -1,4 +1,4 @@
-appId: com.github.Jelmerro.Vieb
+appId: com.github.Jelmerro.vieb
 linux:
   icon: app/img/icons
   executableName: vieb
@@ -44,7 +44,7 @@ win:
     - target: nsis
       arch:
         - x64
-    - target: zip
+    - target: portable
       arch:
         - x64
 nsis:
