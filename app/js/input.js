@@ -377,19 +377,7 @@ const hasFutureActionsBasedOnKeys = keys => {
         map => map.startsWith(keys) && map !== keys)
 }
 
-const actionBasedOnKeys = (mode, keys) => {
-    const mapping = keys.split(/(<.*?>|.)/g).filter(m => m).map(m => {
-        keyNames.forEach(key => {
-            if (key.vim.includes(m.replace(/(^<|>$)/g, ""))) {
-                m = `<${key.vim[0]}>`
-            }
-        })
-        return m
-    }).join("")
-    return bindings[mode][mapping]
-}
-
-const executeMapString = (mapString, recursive, initial) => {
+const executeMapString = (mapStr, recursive, initial) => {
     if (initial) {
         recursiveCounter = 0
     }
@@ -398,7 +386,7 @@ const executeMapString = (mapString, recursive, initial) => {
     repeatCounter = 0
     updateKeysOnScreen()
     for (let i = 0;i < repeater;i++) {
-        mapString.split(/(<.*?[^-]>|<.*?->>|.)/g).filter(m => m).forEach(key => {
+        mapStr.split(/(<.*?[^-]>|<.*?->>|.)/g).filter(m => m).forEach(key => {
             const options = {"bubbles": recursive}
             if (key.length === 1) {
                 const isLetter = key.toLowerCase() !== key.toUpperCase()
@@ -526,7 +514,7 @@ const handleKeyboard = e => {
         repeatCounter = 0
     }
     pressedKeys += id
-    const action = actionBasedOnKeys(MODES.currentMode()[0], pressedKeys)
+    const action = bindings[MODES.currentMode()[0]][pressedKeys]
     if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
         pressedKeys = ""
         updateKeysOnScreen()
@@ -654,95 +642,59 @@ const mappingModified = (mode, mapping) => {
     return true
 }
 
-const listMappingsAsCommandList = () => {
+const listMappingsAsCommandList = (mode = false, includeDefault = false) => {
     const mappings = []
-    Object.keys(defaultBindings).forEach(mode => {
-        const keys = [...new Set(Object.keys(defaultBindings[mode])
-            .concat(Object.keys(bindings[mode])))]
+    let modes = Object.keys(defaultBindings)
+    if (mode) {
+        modes = [mode]
+    }
+    modes.forEach(bindMode => {
+        const keys = [...new Set(Object.keys(defaultBindings[bindMode])
+            .concat(Object.keys(bindings[bindMode])))]
         for (const key of keys) {
-            const mappingChanged = mappingModified(mode, key)
-            if (!mappingChanged) {
-                continue
-            }
-            const mapping = bindings[mode][key]
-            if (mapping) {
-                let noremap = ""
-                if (mapping.noremap) {
-                    noremap = "nore"
-                }
-                mappings.push(`${mode}${noremap}map ${key} ${mapping.mapping}`)
-            } else {
-                mappings.push(`${mode}unmap ${key}`)
-            }
+            mappings.push(listMapping(bindMode, key, includeDefault))
         }
     })
-    return mappings.join("\n")
+    return mappings.join("\n").replace(/[\r\n]+/g, "\n").trim()
 }
 
-const listMapping = (mode, map, command, includeDefault) => {
-    let remap = "&nbsp;"
-    if (command.noremap) {
-        remap = "*"
-    }
-    if (!mappingModified(mode, map) && !includeDefault) {
+const listMapping = (mode, key, includeDefault) => {
+    if (!mappingModified(mode, key) && !includeDefault) {
         return ""
     }
-    return `${mode}${remap}&nbsp;${map} => ${command.mapping}`
+    const mapping = bindings[mode][key]
+    if (mapping) {
+        if (mapping.noremap) {
+            return `${mode}noremap ${key} ${mapping.mapping}`
+        }
+        return `${mode}map ${key} ${mapping.mapping}`
+    }
+    if (defaultBindings[mode][key]) {
+        return `${mode}unmap ${key}`
+    }
+    return ""
 }
 
 const mapOrList = (mode, args, noremap, includeDefault) => {
     if (includeDefault && args.length > 1) {
-        UTIL.notify("Mappings always overwrite, no need for !", "warn")
+        UTIL.notify("Mappings are always overwritten, no need for !", "warn")
         return
     }
     if (args.length === 0) {
-        if (mode) {
-            let mappings = ""
-            Object.keys(bindings[mode]).forEach(map => {
-                const command = actionBasedOnKeys(mode, map)
-                if (command) {
-                    mappings += `${listMapping(
-                        mode, map, command, includeDefault)}\n`
-                }
-            })
-            mappings = mappings.replace(/[\r\n]+/g, "\n").trim()
-            if (mappings) {
-                UTIL.notify(mappings)
-            } else if (includeDefault) {
-                UTIL.notify("No mappings found")
-            } else {
-                UTIL.notify("No custom mappings found")
-            }
+        const mappings = listMappingsAsCommandList(mode, includeDefault)
+        if (mappings) {
+            UTIL.notify(mappings)
+        } else if (includeDefault) {
+            UTIL.notify("No mappings found")
         } else {
-            let mappings = ""
-            Object.keys(bindings).forEach(bindMode => {
-                Object.keys(bindings[bindMode]).forEach(map => {
-                    const command = actionBasedOnKeys(bindMode, map)
-                    if (command) {
-                        mappings += `${listMapping(
-                            bindMode, map, command, includeDefault)}\n`
-                    }
-                })
-            })
-            mappings = mappings.replace(/[\r\n]+/g, "\n").trim()
-            if (mappings) {
-                UTIL.notify(mappings)
-            } else if (includeDefault) {
-                UTIL.notify("No mappings found")
-            } else {
-                UTIL.notify("No custom mappings found")
-            }
+            UTIL.notify("No custom mappings found")
         }
         return
     }
     if (args.length === 1) {
         if (mode) {
-            const command = actionBasedOnKeys(mode, args[0])
-            let mapping = ""
-            if (command) {
-                mapping = listMapping(mode, args[0], command, includeDefault)
-            }
-            if (mapping.trim()) {
+            const mapping = listMapping(mode, args[0], includeDefault).trim()
+            if (mapping) {
                 UTIL.notify(mapping)
             } else if (includeDefault) {
                 UTIL.notify("No mapping found for this sequence")
@@ -752,11 +704,8 @@ const mapOrList = (mode, args, noremap, includeDefault) => {
         } else {
             let mappings = ""
             Object.keys(bindings).forEach(bindMode => {
-                const command = actionBasedOnKeys(bindMode, args[0])
-                if (command) {
-                    mappings += `${listMapping(
-                        bindMode, args[0], command, includeDefault)}\n`
-                }
+                mappings += `${listMapping(
+                    bindMode, args[0], includeDefault)}\n`
             })
             mappings = mappings.replace(/[\r\n]+/g, "\n").trim()
             if (mappings) {
@@ -832,12 +781,12 @@ const unmap = (mode, args) => {
             `The ${mode}unmap command requires exactly one mapping`, "warn")
         return
     }
-    if (mode === "all") {
+    if (mode) {
+        delete bindings[mode][args[0]]
+    } else {
         Object.keys(bindings).forEach(bindMode => {
             delete bindings[bindMode][args[0]]
         })
-    } else {
-        delete bindings[mode][args[0]]
     }
 }
 
