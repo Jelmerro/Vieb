@@ -452,7 +452,7 @@ const addWebviewListeners = webview => {
             return
         }
         // It will go to the http version of a website, when no https is present
-        // But only when the redirecttoHttp setting is active
+        // But only when the redirecttohttp setting is active
         const redirect = SETTINGS.get("redirecttohttp")
         const sslErrors = [
             "ERR_CERT_COMMON_NAME_INVALID",

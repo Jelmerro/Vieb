@@ -33,7 +33,6 @@ map <C-k> <ACTIONS.toExploreMode>
 map <C-p> <:hardcopy>
 map <C-s> <:write full>
 map <C-l> <ACTIONS.toExploreMode>
-map <C-w> <ACTIONS.closeTab>
 map <C-Tab> <ACTIONS.nextTab>
 map <C-S-PageUp> <ACTIONS.moveTabBackward>
 map <C-S-PageDown> <ACTIONS.moveTabForward>
@@ -41,6 +40,7 @@ map <C-S-Tab> <ACTIONS.previousTab>
 map <C-I> <:devtools>
 map <C-T> <ACTIONS.reopenTab>
 map <C-Y> <:downloads>
+map <C-Q> <:quit>
 map <A-Left> <ACTIONS.backInHistory>
 map <A-Right> <ACTIONS.forwardInHistory>
 map <A-0> <:b 9999>
@@ -53,6 +53,8 @@ map <A-6> <:b 5>
 map <A-7> <:b 6>
 map <A-8> <:b 7>
 map <A-9> <:b 8>
+map <A-F4> <:quit>
+map <M-Q> <:quit>
 emap <F6> <ACTIONS.toNormalMode>
 emap <Up> <ACTIONS.prevSuggestion>
 emap <Down> <ACTIONS.nextSuggestion>

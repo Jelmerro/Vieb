@@ -42,6 +42,7 @@ but the list below contains much more technical details.
 - History storage format is now JSON, for easier parsing and better title storing
 - Entries on the history page can now be removed without reloading all history again
 - Buffer command can now be used to navigate to new locations (this is also true for the new split and Explore commands)
+- Allow <A-F4> and <M-Q> to be mapped as if they are regular keys (most likely to the quit command)
 
 ### Deprecated
 
@@ -56,6 +57,7 @@ but the list below contains much more technical details.
 
 - Broken page loads for sites using custom EventTargets instead of only DOM Nodes
 - Text input actions, such as select all, not working on Mac
+- Undo and Redo not being enabled on any system for the navigation bar
 
 ### Security
 

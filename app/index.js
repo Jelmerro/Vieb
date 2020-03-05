@@ -144,6 +144,7 @@ app.on("ready", () => {
     mainWindow.setMinimumSize(500, 500)
     mainWindow.on("close", e => {
         e.preventDefault()
+        mainWindow.webContents.send("window-close")
     })
     mainWindow.on("closed", () => {
         app.exit(0)
