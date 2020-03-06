@@ -636,7 +636,8 @@ const handleUserInput = e => {
     const shiftOnly = id.startsWith("<S-")
     const allowedInput = allowedUserInput.includes(id)
     const hasModifier = id.match(/^<.*-.*>$/)
-    if (!shiftOnly && !allowedInput && hasModifier || id.includes("Tab")) {
+    const blockedKey = ["Tab", "F11"].find(key => id.includes(key))
+    if (!shiftOnly && !allowedInput && hasModifier || blockedKey) {
         e.preventDefault()
     }
     ACTIONS.setFocusCorrectly()

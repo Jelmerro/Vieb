@@ -565,6 +565,7 @@ const addWebviewListeners = webview => {
     webview.addEventListener("leave-html-full-screen", () => {
         document.body.classList.remove("fullscreen")
         MODES.setMode("normal")
+        PAGELAYOUT.applyLayout()
     })
     webview.addEventListener("ipc-message", e => {
         if (e.channel === "mouse-click-info") {
