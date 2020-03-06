@@ -9,6 +9,7 @@ See the README.md or LICENSE file for more info and details about Vieb and it's 
 Links in the changelog are part of [github.com/Jelmerro/Vieb](https://github.com/Jelmerro/Vieb).
 The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the most important changes per release,
 but the list below contains much more technical details.
+The releases of Vieb aim to follow [sematic versioning](https://semver.org).
 
 ## Unreleased
 
@@ -61,7 +62,7 @@ but the list below contains much more technical details.
 
 ### Security
 
-- Electron 9.0.0-beta.2 (was 8.0.1)
+- Electron 9.0.0-beta.5 (was 8.0.1)
 - Chromium 82.0.4048.0 (was 80.0.3987.86)
 
 ## [1.1.0](https://github.com/Jelmerro/Vieb/compare/1.0.0...1.1.0) - 2020-02-15
@@ -390,7 +391,7 @@ but the list below contains much more technical details.
 ### Changed
 
 - Use path module instead of url modifications for all paths
-- Show no output when a search results in zero matches
+- Show no output when a search result has zero matches
 
 ### Fixed
 
@@ -440,7 +441,7 @@ but the list below contains much more technical details.
 - Added settings to Vieb using the viebrc.json file
 - Follow mode to click on urls or buttons
 - Search mode to find text in the page
-- Insert mode to use to mouse in Vieb
+- Insert mode to use the mouse in Vieb
 - Command mode with implementations for: version, help, reload, devtools, set and quit
 - Support for CLI startup arguments
 - Notifications for failed commands or other errors
