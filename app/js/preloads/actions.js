@@ -237,3 +237,9 @@ ipcRenderer.on("search-element-click", () => {
         focussedSearchElement.click()
     }
 })
+
+window.addEventListener("keydown", e => {
+    if (e.code === "F11") {
+        e.preventDefault()
+    }
+})

@@ -181,7 +181,7 @@ app.on("ready", () => {
 
 // Handle Basic HTTP login attempts (must be in main)
 const loginAttempts = []
-app.on("login", (e, webContents, __, auth, callback) => {
+app.on("login", (e, webContents, _, auth, callback) => {
     if (loginWindow.isVisible()) {
         return
     }
@@ -202,7 +202,7 @@ app.on("login", (e, webContents, __, auth, callback) => {
         }
     })
     ipcMain.removeAllListeners("login-credentials")
-    ipcMain.once("login-credentials", (___, credentials) => {
+    ipcMain.once("login-credentials", (__, credentials) => {
         try {
             callback(credentials[0], credentials[1])
             loginWindow.hide()

@@ -200,7 +200,7 @@ const parseElement = (element, type) => {
     }
     // Find a clickable area and position for the given element
     const {dimensions, clickable} = findClickPosition(element, rects)
-    // Return null if any of the check below fail
+    // Return null if any of the checks below fail
     // - Not detected as clickable in the above loop
     // - Too small to properly click on using a regular browser
     const tooSmall = dimensions.width <= 2 || dimensions.height <= 2
