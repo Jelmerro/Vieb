@@ -241,8 +241,10 @@ const enterKey = id => {
     })
     if (matches.length === 0) {
         MODES.setMode(modeBeforeFollow)
-    }
-    if (matches.length === 1) {
+        if (stayInFollowMode) {
+            startFollow()
+        }
+    } else if (matches.length === 1) {
         const link = links[matches[0].getAttribute("link-id")]
         if (followNewtab) {
             MODES.setMode("normal")

@@ -221,8 +221,10 @@ ipcRenderer.on("action", (_, name, ...args) => {
     }
 })
 
-ipcRenderer.on("fontsize", (_, size) => {
-    document.body.style.fontSize = `${size}px`
+window.addEventListener("DOMContentLoaded", () => {
+    ipcRenderer.on("fontsize", (_, size) => {
+        document.body.style.fontSize = `${size}px`
+    })
 })
 
 let focussedSearchElement = null
