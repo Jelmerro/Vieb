@@ -1,0 +1,106 @@
+<!--
+    Vieb - Vim Inspired Electron Browser
+    Copyright (C) 2020 Jelmer van Arnhem
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="../css/notificationmessage.css" rel="stylesheet" type="text/css">
+    <title>Notification message</title>
+    <link rel="shortcut icon" type="image/png" href="../img/icons/256x256.png">
+</head>
+<body>
+    <div id="notification">Loading ...</div>
+    <footer>
+        SPACE/d/j: screen/page/line down, b/u/k: up, q: quit
+    </footer>
+    <script>
+        const { ipcRenderer, remote } = require("electron")
+        const fixScrollHeight = () => {
+            const notify = document.getElementById("notification")
+            notify.scrollTop -= notify.scrollTop % 14
+        }
+        window.fontsize = 14
+        remote.getCurrentWindow().on("show", () => {
+        })
+        remote.getCurrentWindow().on("hide", () => {
+            document.getElementById("notification").textContent = "Loading ..."
+        })
+        ipcRenderer.on("notification-fontsize", (_, fontsize) => {
+            window.fontsize = fontsize
+            document.body.style.fontSize = `${fontsize}px`
+        })
+        ipcRenderer.on("notification-contents", (_, message, fontsize, lvl) => {
+            document.getElementById("notification").scrollBy(0, -1000000000)
+            document.getElementById("notification").innerHTML = message
+            if (lvl === "error") {
+                document.querySelector("footer").style.color = "#f33"
+            } else if (lvl === "warning") {
+                document.querySelector("footer").style.color = "#fd0"
+            } else {
+                document.querySelector("footer").style.color = "#0cf"
+            }
+        })
+        window.addEventListener("keydown", e => {
+            if (e.metaKey || e.altKey) {
+                return
+            }
+            if (e.ctrlKey) {
+                if (e.code === "BracketLeft" && !e.shiftKey) {
+                    remote.getCurrentWindow().hide()
+                }
+                return
+            }
+            if (e.shiftKey) {
+                if (e.code === "KeyG") {
+                    document.getElementById("notification")
+                        .scrollBy(0, 1000000000)
+                    fixScrollHeight()
+                }
+                return
+            }
+            if (e.code === "KeyK") {
+                document.getElementById("notification").scrollBy(0, -fontsize)
+                fixScrollHeight()
+            } else if (e.code === "KeyJ") {
+                document.getElementById("notification").scrollBy(0, fontsize)
+                fixScrollHeight()
+            } else if (e.code === "KeyG") {
+                document.getElementById("notification").scrollBy(0, -1000000000)
+                fixScrollHeight()
+            } else if (e.code === "KeyU") {
+                document.getElementById("notification")
+                    .scrollBy(0, -window.innerHeight / 2 + fontsize)
+                fixScrollHeight()
+            } else if (e.code === "KeyD") {
+                document.getElementById("notification")
+                    .scrollBy(0, window.innerHeight / 2 - fontsize)
+                fixScrollHeight()
+            } else if (e.code === "KeyB") {
+                document.getElementById("notification")
+                    .scrollBy(0, -window.innerHeight + fontsize * 2)
+                fixScrollHeight()
+            } else if (e.code === "KeyF" || e.code === "Space") {
+                document.getElementById("notification")
+                    .scrollBy(0, window.innerHeight - fontsize * 2)
+                fixScrollHeight()
+            } else if (e.code === "Escape" || e.code === "KeyQ") {
+                remote.getCurrentWindow().hide()
+            }
+        })
+    </script>
+</body>
+</html>

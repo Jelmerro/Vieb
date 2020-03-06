@@ -90,9 +90,10 @@ body.mouse #mode-container:hover #mode-suggestions {max-height: 100vw;}
 body.mouse #suggest-dropdown div:hover, #mode-suggestions div:hover, #tabs > span:hover {font-weight: bold;cursor: pointer;}
 /* notifications */
 #notifications {display: flex;position: fixed;flex-direction: column;z-index: 2;}
-#notifications > span {background-color: #0007;margin-bottom: .7em;padding: 1em;display: flex;width: 25em;}
-#notifications > span > span {word-wrap: break-word;white-space: normal;width: 22em;}
-#notifications > span > img {height: 2.3em;width: 2.3em;min-width: 2.3em;margin: auto;margin-right: 1em;}
+#notifications > span {background-color: #333d;margin-bottom: .7em;padding: 1em;display: flex;width: 25em;border: .1em solid #111;overflow-wrap: anywhere;}
+#notifications > span.error {color: #f33;}
+#notifications > span.warning {color: #fd0;}
+#notifications > span.info {color: #0cf;}
 .bottomright {right: .7em;bottom: 0;}
 .bottomleft {left: .7em;bottom: 0;}
 .topright {right: .7em;top: 4.7em;}

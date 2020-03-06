@@ -101,6 +101,7 @@ if (showInternalConsole && enableDebugMode) {
 // When the app is ready to start, open the main window
 let mainWindow = null
 let loginWindow = null
+let notificationWindow = null
 app.on("ready", () => {
     // Request single instance lock and quit if that fails
     if (app.requestSingleInstanceLock()) {
@@ -176,6 +177,26 @@ app.on("ready", () => {
     loginWindow.on("close", e => {
         e.preventDefault()
         loginWindow.hide()
+    })
+    // Show a dialog for large notifications
+    const notificationWindowData = {
+        "backgroundColor": "#333333",
+        "modal": true,
+        "frame": false,
+        "show": false,
+        "parent": mainWindow,
+        "alwaysOnTop": true,
+        "webPreferences": {
+            "nodeIntegration": true
+        }
+    }
+    notificationWindow = new BrowserWindow(notificationWindowData)
+    const notificationPage = `file:///${path.join(
+        __dirname, "./pages/notificationmessage.html")}`
+    notificationWindow.loadURL(notificationPage)
+    notificationWindow.on("close", e => {
+        e.preventDefault()
+        notificationWindow.hide()
     })
 })
 

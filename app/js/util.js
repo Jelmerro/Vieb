@@ -18,7 +18,7 @@
 /* global SETTINGS */
 "use strict"
 
-const {remote} = require("electron")
+const {ipcRenderer, remote} = require("electron")
 const fs = require("fs")
 const path = require("path")
 const rimraf = require("rimraf").sync
@@ -102,25 +102,37 @@ const notify = (message, type = "info") => {
     if (type.startsWith("err")) {
         properType = "error"
     }
-    const image = `img/notifications/${properType}.svg`
     if (SETTINGS.get("nativenotification")) {
-        new Notification(`Vieb ${properType}`, {
-            "body": message,
-            "image": image,
-            "icon": image
-        })
+        new Notification(`Vieb ${properType}`, {"body": message})
+        return
+    }
+    message = message.replace(/>/g, "&gt;").replace(/</g, "&lt;")
+        .replace(/\n/g, "<br>")
+    if (message.split("<br>").length > 5 || message.length > 200) {
+        for (const browserWindow of remote.BrowserWindow.getAllWindows()) {
+            if (browserWindow.getURL().endsWith("notificationmessage.html")) {
+                ipcRenderer.sendTo(browserWindow.webContents.id,
+                    "notification-contents", message, SETTINGS.get("fontsize"),
+                    properType)
+                const bounds = remote.getCurrentWindow().getBounds()
+                const width = Math.round(bounds.width * .9)
+                let height = Math.round(bounds.height * .9)
+                height -= height % SETTINGS.get("fontsize")
+                browserWindow.setMinimumSize(width, height)
+                browserWindow.setSize(width, height)
+                browserWindow.setPosition(
+                    Math.round(bounds.x + bounds.width / 2 - width / 2),
+                    Math.round(bounds.y + bounds.height / 2 - height / 2))
+                browserWindow.show()
+            }
+        }
         return
     }
     const notificationsElement = document.getElementById("notifications")
     notificationsElement.className = SETTINGS.get("notificationposition")
     const notification = document.createElement("span")
-    const iconElement = document.createElement("img")
-    iconElement.src = image
-    notification.appendChild(iconElement)
-    const textElement = document.createElement("span")
-    textElement.innerHTML = message
-        .replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/\n/g, "<br>")
-    notification.appendChild(textElement)
+    notification.className = properType
+    notification.innerHTML = message
     notificationsElement.appendChild(notification)
     setTimeout(() => {
         notificationsElement.removeChild(notification)
