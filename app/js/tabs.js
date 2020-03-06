@@ -510,6 +510,10 @@ const addWebviewListeners = webview => {
                 "settings", SETTINGS.listCurrentSettings(true),
                 INPUT.listSupportedActions())
         }
+        if (specialPageName === "notifications") {
+            webContents(webview).send(
+                "notification-history", UTIL.listNotificationHistory())
+        }
         saveTabs()
         HISTORY.addToHist(webview.src)
         const tab = tabOrPageMatching(webview)

@@ -26,8 +26,15 @@ const os = require("os")
 
 const protocolRegex = /^[a-z][a-z0-9-+.]+:\/\//
 const specialPages = [
-    "cookies", "help", "history", "downloads", "newtab", "version"
+    "cookies",
+    "downloads",
+    "help",
+    "history",
+    "newtab",
+    "notifications",
+    "version"
 ]
+const notificationHistory = []
 
 const hasProtocol = location => {
     // Check for a valid protocol at the start
@@ -102,18 +109,21 @@ const notify = (message, type = "info") => {
     if (type.startsWith("err")) {
         properType = "error"
     }
+    const escapedMessage = message.replace(/>/g, "&gt;").replace(/</g, "&lt;")
+        .replace(/\n/g, "<br>")
+    notificationHistory.push({
+        "message": escapedMessage, "type": properType, "date": new Date()
+    })
     if (SETTINGS.get("nativenotification")) {
         new Notification(`Vieb ${properType}`, {"body": message})
         return
     }
-    message = message.replace(/>/g, "&gt;").replace(/</g, "&lt;")
-        .replace(/\n/g, "<br>")
     if (message.split("<br>").length > 5 || message.length > 200) {
         for (const browserWindow of remote.BrowserWindow.getAllWindows()) {
             if (browserWindow.getURL().endsWith("notificationmessage.html")) {
                 ipcRenderer.sendTo(browserWindow.webContents.id,
-                    "notification-contents", message, SETTINGS.get("fontsize"),
-                    properType)
+                    "notification-contents", escapedMessage,
+                    SETTINGS.get("fontsize"), properType)
                 const bounds = remote.getCurrentWindow().getBounds()
                 const width = Math.round(bounds.width * .9)
                 let height = Math.round(bounds.height * .9)
@@ -132,7 +142,7 @@ const notify = (message, type = "info") => {
     notificationsElement.className = SETTINGS.get("notificationposition")
     const notification = document.createElement("span")
     notification.className = properType
-    notification.innerHTML = message
+    notification.innerHTML = escapedMessage
     notificationsElement.appendChild(notification)
     setTimeout(() => {
         notificationsElement.removeChild(notification)
@@ -360,6 +370,10 @@ const urlToString = url => {
     return url
 }
 
+const listNotificationHistory = () => {
+    return notificationHistory
+}
+
 module.exports = {
     hasProtocol,
     isUrl,
@@ -382,5 +396,6 @@ module.exports = {
     writeFile,
     deleteFile,
     stringToUrl,
-    urlToString
+    urlToString,
+    listNotificationHistory
 }

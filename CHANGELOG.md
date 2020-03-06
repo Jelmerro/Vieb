@@ -26,6 +26,7 @@ The releases of Vieb aim to follow [sematic versioning](https://semver.org).
 - Tab status indicators, orange for current tab (in multiple layout) and blue for playing media
 - Elements with mouse hover actions are now available in follow mode (displayed in grey)
 - Popup message for long notifications, with Vim bindings to scroll and close
+- Notification special page to view a list of previous notifications of the current session
 
 ### Changed
 

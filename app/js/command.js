@@ -205,24 +205,12 @@ const openSpecialPage = (specialPage, section = null) => {
     }
 }
 
-const version = () => {
-    openSpecialPage("version")
-}
-
 const help = (section = null, trailingArgs = false) => {
     if (trailingArgs) {
         UTIL.notify("The help command takes a single optional argument", "warn")
         return
     }
     openSpecialPage("help", section)
-}
-
-const history = () => {
-    openSpecialPage("history")
-}
-
-const downloads = () => {
-    openSpecialPage("downloads")
 }
 
 const reload = () => {
@@ -393,10 +381,6 @@ const addSplit = (method, leftOrAbove, args) => {
     }
 }
 
-const cookies = () => {
-    openSpecialPage("cookies")
-}
-
 const addCommand = (overwrite, args) => {
     if (overwrite && args.length < 2) {
         UTIL.notify(
@@ -471,13 +455,14 @@ const commands = {
     "quitall": quitall,
     "devtools": devtools,
     "reload": reload,
-    "v": version,
-    "version": version,
+    "v": () => openSpecialPage("version"),
+    "version": () => openSpecialPage("version"),
     "h": help,
     "help": help,
-    "history": history,
-    "d": downloads,
-    "downloads": downloads,
+    "history": () => openSpecialPage("history"),
+    "d": () => openSpecialPage("downloads"),
+    "downloads": () => openSpecialPage("downloads"),
+    "notifications": () => openSpecialPage("notifications"),
     "s": set,
     "set": set,
     "hardcopy": hardcopy,
@@ -492,7 +477,7 @@ const commands = {
     "Sexplore": (...args) => addSplit("ver", !SETTINGS.get("splitright"), args),
     "split": (...args) => addSplit("ver", !SETTINGS.get("splitright"), args),
     "vsplit": (...args) => addSplit("hor", !SETTINGS.get("splitbelow"), args),
-    "cookies": cookies,
+    "cookies": () => openSpecialPage("cookies"),
     "command": (...args) => addCommand(false, args),
     "command!": (...args) => addCommand(true, args),
     "delcommand": deleteCommand,

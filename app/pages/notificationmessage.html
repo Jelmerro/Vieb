@@ -23,7 +23,7 @@
     <link rel="shortcut icon" type="image/png" href="../img/icons/256x256.png">
 </head>
 <body>
-    <div id="notification">Loading ...</div>
+    <div id="notification">Loading...</div>
     <footer>
         SPACE/d/j: screen/page/line down, b/u/k: up, q: quit
     </footer>
@@ -37,7 +37,7 @@
         remote.getCurrentWindow().on("show", () => {
         })
         remote.getCurrentWindow().on("hide", () => {
-            document.getElementById("notification").textContent = "Loading ..."
+            document.getElementById("notification").textContent = "Loading..."
         })
         ipcRenderer.on("notification-fontsize", (_, fontsize) => {
             window.fontsize = fontsize
