@@ -151,7 +151,7 @@ const addHistToList = hist => {
         currentBreakpointIndex += 1
         breakpoint = dateBreakpoints[currentBreakpointIndex + 1]
     }
-    // And show only the revelant breakpoint if multiple are skipped
+    // And show only the relevant breakpoint if multiple are skipped
     if (previousBreakpoint !== currentBreakpointIndex) {
         addBreakpoint(previousBreakpoint, hist.line - 1)
     }

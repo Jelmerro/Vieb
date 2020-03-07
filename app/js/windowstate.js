@@ -109,6 +109,4 @@ const saveWindowState = (maximizeOnly = false) => {
     UTIL.writeJSON(windowStateFile, state)
 }
 
-module.exports = {
-    init
-}
+module.exports = {init}

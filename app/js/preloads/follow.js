@@ -193,7 +193,7 @@ const parseElement = (element, type) => {
             || element === document.body || !element.getClientRects) {
         return null
     }
-    // Make a list of all possible bouding rects for the element
+    // Make a list of all possible bounding rects for the element
     let rects = [element.getBoundingClientRect(), ...element.getClientRects()]
     for (const subImage of element.querySelectorAll("img, svg")) {
         rects = rects.concat([...subImage.getClientRects()])
