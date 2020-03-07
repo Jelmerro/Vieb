@@ -32,9 +32,6 @@ const sessions = {}
 
 const init = () => {
     UTIL.clearContainerTabs()
-    if (SETTINGS.get("adblocker") !== "off") {
-        enableAdblocker()
-    }
     create("persist:main")
 }
 

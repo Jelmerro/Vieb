@@ -267,8 +267,12 @@ ipcMain.on("downloads-path-for-session", (_, name) => {
 // Enable or disable adblocker for a list of sessions (must be in main)
 let blocker = null
 const enableAdblocker = sessionList => {
-    sessionList.forEach(
-        s => blocker.enableBlockingInSession(session.fromPartition(s)))
+    if (blocker) {
+        sessionList.forEach(
+            s => blocker.enableBlockingInSession(session.fromPartition(s)))
+    } else {
+        createAdblocker(sessionList)
+    }
 }
 const disableAdblocker = sessionList => {
     sessionList.forEach(
