@@ -184,17 +184,23 @@
             <li>Vieb allows you to optionally list default mappings with the map command</li>
             <li>Vieb adds compatible map syntax to run actions or commands without remembering or preserving the original keys mapped to it</li>
         </ul>
-        Aside from these differences, the map commands are identical in usage as in Vim, with a command for each of these actions:
+        Aside from these differences, the map commands are mostly identical in usage compared to Vim, except for the function of the trailing "!":
         <ul>
             <li><span class="command-block">:map</span> - List custom mappings or add a new recursive mapping</li>
             <li><span class="command-block">:map!</span> - List all mappings including Vieb's defaults</li>
             <li><span class="command-block">:noremap</span> - List custom mappings or add a new non-recursive mapping</li>
             <li><span class="command-block">:noremap!</span> - List all mappings including Vieb's defaults</li>
             <li><span class="command-block">:unmap</span> - Remove a mapping based on the key(s) provided</li>
-            <li><span class="command-block">:mapclear</span> - Clear all custom mappings</li>
+            <li><span class="command-block">:mapclear</span> - Clear all custom mappings and restore the defaults</li>
             <li><span class="command-block">:mapclear!</span> - Clear every single mapping in Vieb, be warned that this is only recommended for usage in a viebrc file</li>
         </ul>
-        All of these commands can also be prefixed with a single character to indicate a mode. For example, to list all mappings for normal mode, including defaults, execute <span class="command-block">:nmap!</span>.
+        All of these commands can also be prefixed with a single character to indicate a mode, for example:
+        <ul>
+            <li><span class="command-block">:nmap!</span> - List all mappings including default for normal mode</li>
+            <li><span class="command-block">:cunmap &lt;C-p&gt;</span> - Remove the mapping of Ctrl with p for command mode</li>
+            <li><span class="command-block">:imapclear</span> - Clear all custom mappings for insert mode</li>
+        </ul>
+        All of these commands will be explained in more detail in their own paragraph below, you can jump there directly the help command like so: <span class="command-block">:help :cunmap</span>.
         <h3 id="key-codes">Key codes</h3>
         Some mappings require multiple keys to be pressed in order. If there are mappings that require multiple keys, and you only press the first one, Vieb will remember the keys you press for a while, which allows you to press the next keys required for the mapping to activate. If <a href="#showcmd">showcmd</a> is enabled, the pressed keys will be shown in the topright corner of the Vieb window. You can also configure the time it takes for pressed keys to be forgotten if no other keys are pressed using <a href="#timeout">timeout</a> and <a href="#timeoutlen">timeoutlen</a>. However, most default mappings of Vieb only require a single key to active, although sometimes while holding down a modifier, such as Control or Shift. The syntax for mappings keys can be easily summarized: it's the keys that would appear on screen if you were typing them out, so pressing <kbd>hjkl</kbd> would result in <kbd>hjkl</kbd>, which is also the map syntax from pressing them in order. Characters that are affected by Shift also work this way, so typing <kbd>hj</kbd> and then starting to hold shift while typing <kbd>KL</kbd> will result in <kbd>hjKL</kbd>, which is also the mapping sequence that Vieb and Vim will understand AND execute. This works for most of the single keys, including special characters such as <kbd>%</kbd> or <kbd>#</kbd>, but there are some exceptions:
         <ul>
@@ -273,6 +279,70 @@
             <li><span class="command-block">:mapclear!</span> - Remove every single mapping of Vieb, including defaults (executing this at runtime, WILL prevent you from using Vieb!)</li>
         </ul>
         The mapclear command is used to clear all custom mappings. It is recommended to only use this command from the <a href="#viebrc">viebrc</a> file, while also adding new mappings in the same file. It can offer you a clean starting point to start mapping your own keystrokes. To also clear built-in mappings with this command, you can append it with a <kbd>!</kbd>. Keep in mind that this will really remove ALL mappings for all modes, so there is no way back if you run this at runtime! It's therefor recommended to only use this command from a viebrc, after which you need to add your own custom keyboard sequences mapped to actions or commands.
+        <h3 id=":nmap">:nmap</h3>
+        Usage is identical to <a href="#:map">:map</a>, but this command only lists or adds recursive mappings for normal mode.
+        <h3 id=":nnoremap">:nnoremap</h3>
+        Usage is identical to <a href="#:noremap">:noremap</a>, but this command only lists or adds non-recursive mappings for normal mode.
+        <h3 id=":nunmap">:nunmap</h3>
+        Usage is identical to <a href="#:unmap">:unmap</a>, but this command only removes mappings for normal mode.
+        <h3 id=":nmapclear">:nmapclear</h3>
+        Usage is identical to <a href="#:mapclear">:mapclear</a>, but this command only clears mappings for normal mode.
+        <h3 id=":cmap">:cmap</h3>
+        Usage is identical to <a href="#:map">:map</a>, but this command only lists or adds recursive mappings for <a class="command" href="#action.toCommandMode">command mode</a>.
+        <h3 id=":cnoremap">:cnoremap</h3>
+        Usage is identical to <a href="#:noremap">:noremap</a>, but this command only lists or adds non-recursive mappings for <a class="command" href="#action.toCommandMode">command mode</a>.
+        <h3 id=":cunmap">:cunmap</h3>
+        Usage is identical to <a href="#:unmap">:unmap</a>, but this command only removes mappings for <a class="command" href="#action.toCommandMode">command mode</a>.
+        <h3 id=":cmapclear">:cmapclear</h3>
+        Usage is identical to <a href="#:mapclear">:mapclear</a>, but this command only clears mappings for <a class="command" href="#action.toCommandMode">command mode</a>.
+        <h3 id=":emap">:emap</h3>
+        Usage is identical to <a href="#:map">:map</a>, but this command only lists or adds recursive mappings for <a class="explore" href="#action.toExploreMode">explore mode</a>.
+        <h3 id=":enoremap">:enoremap</h3>
+        Usage is identical to <a href="#:noremap">:noremap</a>, but this command only lists or adds non-recursive mappings for <a class="explore" href="#action.toExploreMode">explore mode</a>.
+        <h3 id=":eunmap">:eunmap</h3>
+        Usage is identical to <a href="#:unmap">:unmap</a>, but this command only removes mappings for <a class="explore" href="#action.toExploreMode">explore mode</a>.
+        <h3 id=":emapclear">:emapclear</h3>
+        Usage is identical to <a href="#:mapclear">:mapclear</a>, but this command only clears mappings for <a class="explore" href="#action.toExploreMode">explore mode</a>.
+        <h3 id=":imap">:imap</h3>
+        Usage is identical to <a href="#:noremap">:noremap</a>, but this command only lists or adds non-recursive mappings for <a class="insert" href="#action.toInsertMode">insert mode</a>. Unlike other modes, <a class="insert" href="#action.toInsertMode">insert mode</a> does not support recursive mappings, thus this command is identical in function to <a href="#:inoremap">:inoremap</a>.
+        <h3 id=":inoremap">:inoremap</h3>
+        Usage is identical to <a href="#:noremap">:noremap</a>, but this command only lists or adds non-recursive mappings for <a class="insert" href="#action.toInsertMode">insert mode</a>.
+        <h3 id=":iunmap">:iunmap</h3>
+        Usage is identical to <a href="#:unmap">:unmap</a>, but this command only removes mappings for <a class="insert" href="#action.toInsertMode">insert mode</a>.
+        <h3 id=":imapclear">:imapclear</h3>
+        Usage is identical to <a href="#:mapclear">:mapclear</a>, but this command only clears mappings for <a class="insert" href="#action.toInsertMode">insert mode</a>.
+        <h3 id=":smap">:smap</h3>
+        Usage is identical to <a href="#:map">:map</a>, but this command only lists or adds recursive mappings for <a class="search" href="#action.toSearchMode">search mode</a>.
+        <h3 id=":snoremap">:snoremap</h3>
+        Usage is identical to <a href="#:noremap">:noremap</a>, but this command only lists or adds non-recursive mappings for <a class="search" href="#action.toSearchMode">search mode</a>.
+        <h3 id=":sunmap">:sunmap</h3>
+        Usage is identical to <a href="#:unmap">:unmap</a>, but this command only removes mappings for <a class="search" href="#action.toSearchMode">search mode</a>.
+        <h3 id=":smapclear">:smapclear</h3>
+        Usage is identical to <a href="#:mapclear">:mapclear</a>, but this command only clears mappings for <a class="search" href="#action.toSearchMode">search mode</a>.
+        <h3 id=":fmap">:fmap</h3>
+        Usage is identical to <a href="#:map">:map</a>, but this command only lists or adds recursive mappings for <a class="follow" href="#action.startFollowCurrentTab">follow mode</a>.
+        <h3 id=":fnoremap">:fnoremap</h3>
+        Usage is identical to <a href="#:noremap">:noremap</a>, but this command only lists or adds non-recursive mappings for <a class="follow" href="#action.startFollowCurrentTab">follow mode</a>.
+        <h3 id=":funmap">:funmap</h3>
+        Usage is identical to <a href="#:unmap">:unmap</a>, but this command only removes mappings for <a class="follow" href="#action.startFollowCurrentTab">follow mode</a>.
+        <h3 id=":fmapclear">:fmapclear</h3>
+        Usage is identical to <a href="#:mapclear">:mapclear</a>, but this command only clears mappings for <a class="follow" href="#action.startFollowCurrentTab">follow mode</a>.
+        <h3 id=":pmap">:pmap</h3>
+        Usage is identical to <a href="#:map">:map</a>, but this command only lists or adds recursive mappings for <a class="pointer" href="#pointer">pointer mode</a>.
+        <h3 id=":pnoremap">:pnoremap</h3>
+        Usage is identical to <a href="#:noremap">:noremap</a>, but this command only lists or adds non-recursive mappings for <a class="pointer" href="#pointer">pointer mode</a>.
+        <h3 id=":punmap">:punmap</h3>
+        Usage is identical to <a href="#:unmap">:unmap</a>, but this command only removes mappings for <a class="pointer" href="#pointer">pointer mode</a>.
+        <h3 id=":pmapclear">:pmapclear</h3>
+        Usage is identical to <a href="#:mapclear">:mapclear</a>, but this command only clears mappings for <a class="pointer" href="#pointer">pointer mode</a>.
+        <h3 id=":vmap">:vmap</h3>
+        Usage is identical to <a href="#:map">:map</a>, but this command only lists or adds recursive mappings for <a class="visual" href="#pointer">visual mode</a>.
+        <h3 id=":vnoremap">:vnoremap</h3>
+        Usage is identical to <a href="#:noremap">:noremap</a>, but this command only lists or adds non-recursive mappings for <a class="visual" href="#pointer">visual mode</a>.
+        <h3 id=":vunmap">:vunmap</h3>
+        Usage is identical to <a href="#:unmap">:unmap</a>, but this command only removes mappings for <a class="visual" href="#pointer">visual mode</a>.
+        <h3 id=":vmapclear">:vmapclear</h3>
+        Usage is identical to <a href="#:mapclear">:mapclear</a>, but this command only clears mappings for <a class="visual" href="#pointer">visual mode</a>.
         <h2 id="customcommands">Custom commands</h2>
         Vieb allows you to define custom commands. These commands can be used as an alternative to custom mappings, and can also be used within other mappings or commands. For example, to open vieb.dev with a homepage command, add a new command such as <span class="command-block">:command homepage &lt;Esc&gt;evieb.dev&lt;Enter&gt;</span>, which can also be written as <span class="command-block">:command homepage &lt;action.toExploreMode&gt;vieb.dev&lt;action.useEnteredData&gt;</span> using the actions. It's also possible to refer to other commands when defining a new command, similar to adding keyboard mappings. The command name must be unique and can not overwrite built-in commands.
         <h3 id=":command">:command</h3>
@@ -405,11 +475,11 @@
         <h3 id="clearcookiesonquit">clearcookiesonquit</h3>
         Toggle for clearing all of the cookies when quitting Vieb. To view and remove individual cookies, see the <a href="#:cookies">cookies</a> page.
         <h3 id="cleardownloadsoncompleted">cleardownloadsoncompleted</h3>
-        Toggle for clearing successfully completed downloads. When a download fails, it will not be cleared. This toggle will clear completed downloads as soon as they are done, unlike the <a href="cleardownloadsonquit">cleardownloadsonquit</a> setting, which will unconditionally clear all downloads when quitting Vieb regardless of download status.
+        Toggle for clearing successfully completed downloads. When a download fails, it will not be cleared. This toggle will clear completed downloads as soon as they are done, unlike the <a href="#cleardownloadsonquit">cleardownloadsonquit</a> setting, which will unconditionally clear all downloads when quitting Vieb regardless of download status.
         <h3 id="cleardownloadsonquit">cleardownloadsonquit</h3>
         Toggle for clearing all downloads regardless of status when quitting Vieb. This will not remove completed downloads from disk, but it will clear the download history.
         <h3 id="clearhistoryonquit">clearhistoryonquit</h3>
-        Toggle for clearing all browsing history on quit. This setting is connected to <a href="keeprecentlyclosed">keeprecentlyclosed</a> and <a href="restoretabs">restoretabs</a>. The browsing history can be viewed on the <a href="#:history">history</a> page. As a result of separating tab, download and browsing history, there is no traditional private mode in Vieb. The same can be achieved by toggling all these settings at once using <a href="#mappings">mappings</a> or <a href="#customcommands">custom commands</a>.
+        Toggle for clearing all browsing history on quit. This setting is connected to <a href="#keeprecentlyclosed">keeprecentlyclosed</a> and <a href="#restoretabs">restoretabs</a>. The browsing history can be viewed on the <a href="#:history">history</a> page. As a result of separating tab, download and browsing history, there is no traditional private mode in Vieb. The same can be achieved by toggling all these settings at once using <a href="#mappings">mappings</a> or <a href="#customcommands">custom commands</a>.
         <h3 id="clearlocalstorageonquit">clearlocalstorageonquit</h3>
         Toggle for clearing all of the localstorage when quitting Vieb.
         <h3 id="containertabs">containertabs</h3>
@@ -423,7 +493,7 @@
         <h3 id="fontsize">fontsize</h3>
         Change the font size for the entire Vieb interface. Changing the font size setting will also scale the navbar, built-in pages such as this help page, notifications and <a class="follow" href="#action.startFollowCurrentTab">follow mode</a> indicators. It will not automatically zoom websites, which can be done with <a href="#action.zoomIn">action.zoomIn</a> and related actions.
         <h3 id="keeprecentlyclosed">keeprecentlyclosed</h3>
-        Toggle whether to keep recently closed tabs and allow them to be restored. This setting is unaffected by other history settings. Disabling this setting will result in the <a href="#action.reopenTab">action.reopenTab</a> being unable to restore previously closed tabs. If <a href="restoretabs">restoretabs</a> is disabled, all open tabs will be moved to the list of recently closed tabs when quitting Vieb, unless this setting is also disabled (in which case they can not be restored).
+        Toggle whether to keep recently closed tabs and allow them to be restored. This setting is unaffected by other history settings. Disabling this setting will result in the <a href="#action.reopenTab">action.reopenTab</a> being unable to restore previously closed tabs. If <a href="#restoretabs">restoretabs</a> is disabled, all open tabs will be moved to the list of recently closed tabs when quitting Vieb, unless this setting is also disabled (in which case they can not be restored).
         <h3 id="ignorecase">ignorecase</h3>
         Toggle for case-sensitive searching in the page. This only affects newly made searches made.
         <h3 id="maxmapdepth">maxmapdepth</h3>
@@ -457,7 +527,7 @@
         <h3 id="permissionunknown">permissionunknown</h3>
         Permission setting to either allow or block websites from requesting permission not part of any of the other categories. When set to "ask", you will get a popup to ask if you want to allow the request just this once and optionally store the setting for this session.
         <h3 id="redirects">redirects</h3>
-        With this setting you can configure automatic redirects for navigating to websites. You can configure as many redirects as you want, using a comma separated list. As with other settings of this type, you can append new entries without typing out the current value, as explained in the <a href="#:set">:set</a> command paragraph. Every comma separated entry should also contain a ~ to separate the original and the replacement. These parts are configured using regular expression. For example, to redirect all reddit requests to old.reddit.com, run this command: <span class="command-block">:set redirects+=^https://(www.)?(reddit.com.*)~https://old.$2</span>. If you want to make this the only redirect and remove all existing ones, use "redirects=..." instead of "redirects+=...". Although regex might not be the most intuitive way to configure redirects, it does give you full flexibility. To automatically redirect to http for websites without https, see <a href="redirecttohttp">redirecttohttp</a>.
+        With this setting you can configure automatic redirects for navigating to websites. You can configure as many redirects as you want, using a comma separated list. As with other settings of this type, you can append new entries without typing out the current value, as explained in the <a href="#:set">:set</a> command paragraph. Every comma separated entry should also contain a ~ to separate the original and the replacement. These parts are configured using regular expression. For example, to redirect all reddit requests to old.reddit.com, run this command: <span class="command-block">:set redirects+=^https://(www.)?(reddit.com.*)~https://old.$2</span>. If you want to make this the only redirect and remove all existing ones, use "redirects=..." instead of "redirects+=...". Although regex might not be the most intuitive way to configure redirects, it does give you full flexibility. To automatically redirect to http for websites without https, see <a href="#redirecttohttp">redirecttohttp</a>.
         <h3 id="redirecttohttp">redirecttohttp</h3>
         Toggle for automatically redirecting to http for websites without https. Although technically possibly with the redirects setting, this option will only redirect for websites that do not have https. Vieb will assume all websites to have https, and this setting configures whether to redirect websites to http when the https version could not be loaded. If this option is disabled, you will be shown an error page for http-only websites with the exact cause of the error and a link to the http version. To directly visit a http-only website without enabling this setting, you need to specifiy the http:// protocol explicitly, otherwise Vieb will navigate to the https version automatically.
         <h3 id="restoretabs">restoretabs</h3>
@@ -522,9 +592,17 @@
         <h3 id="action.toNormalMode">action.toNormalMode</h3>
         Switch back to normal mode. Similar to other mode switch actions, it has no effect when the mode is already the current one.
         <h3 id="action.startFollowCurrentTab">action.startFollowCurrentTab</h3>
-        Switch to <span class="follow">follow mode</span> and start highlighting clickable elements. This version of <span class="follow">follow mode</span> will execute a mouse click on the element once picked. See <a href="#action.startFollowNewTab">action.startFollowNewTab</a> to open links in a new tab. To remain in <span class="follow">follow mode</span> after clicking on a link, hold Shift while pressing the appropriate key.
+        Switch to <span class="follow">follow mode</span> and start highlighting clickable elements. This version of <span class="follow">follow mode</span> will execute a mouse click on the element once picked. See <a href="#action.startFollowNewTab">action.startFollowNewTab</a> to open links in a new tab. To remain in <span class="follow">follow mode</span> after clicking on a link, hold Shift while pressing the appropriate key. While in <span class="follow">follow mode</span>, all clickable elements will be assigned a key (and sometimes two) that you can press to click on that element. You don't need to hold Shift, unless you want to stay in <span class="follow">follow mode</span> after clicking it. It is also possible to start <span class="follow">follow mode</span> from a different mode than normal mode, such as <a class="pointer" href="#pointer">pointer mode</a> or <a class="visual" href="#pointer">visual mode</a>, in which case the pointer will be moved to the location of the element you clicked. These are the different type of elements that will be detected, in order of detection priority:
+        <ul>
+            <li><span class="follow-url">Links</span> - Any anchor tag on the page will be highlighted for you to click on. Most of the time this will navigate you to the linked page.</li>
+            <li><span class="follow-inputs-click">Clickable input elements</span> - Any input element that is usually clicked on, such as checkboxes, (radio) buttons and labels.</li>
+            <li><span class="follow-inputs-insert">Text related input elements</span> - Any input element that requires subsequent interaction, such as textareas, dropdowns or regular text input fields. When <span class="follow">follow mode</span> was activated from normal mode and one of these elements is selected, you will automatically switch to <a class="insert" href="#action.toInsertMode">insert mode</a> focused on the input field.</span></li>
+            <li><span class="follow-onclick">Clickable elements</span> - Any element that is not one of the above, but was made clickable with a JavaScript event listener or similar.</li>
+            <li><span class="follow-other">Elements with other types of mouse interaction</span> - These type of elements do not appear clickable, but they do have other mouse action listeners, such as a hover or drag action. This type of element is mostly useful when <span class="follow">follow mode</span> is entered from <a class="pointer" href="#pointer">pointer mode</a> or <a class="visual" href="#pointer">visual mode</a> instead of from normal mode, as instead of clicking on it, the pointer will move to the selected element, which will then hover over it. In other words, it can be used to quickly move the pointer to a specific position on the screen by combining these modes.</li>
+        </ul>
+        </ul>
         <h3 id="action.startFollowNewTab">action.startFollowNewTab</h3>
-        Switch to <span class="follow">follow mode</span> and start highlighting anchor links. This version of <span class="follow">follow mode</span> will open the url of the link in a new tab once picked. It will switch to the newly opened tab. To stay in <span class="follow">follow mode</span> and prevent switching to the newly opened tab, hold Shift while picking the appropriate key, which will allow multiple tabs to be opened before switching to them or leaving <span class="follow">follow mode</span>. See <a href="#action.startFollowCurrentTab">action.startFollowCurrentTab</a> to click on any clickable element on the current page.
+        Switch to <span class="follow">follow mode</span> and start highlighting links with valid urls. This version of <span class="follow">follow mode</span> will open the url of the link in a new tab once picked. It will switch to the newly opened tab. To stay in <span class="follow">follow mode</span> and prevent switching to the newly opened tab, hold Shift while picking the appropriate key, which will allow multiple tabs to be opened before switching to them or leaving <span class="follow">follow mode</span>. See <a href="#action.startFollowCurrentTab">action.startFollowCurrentTab</a> to click on any clickable element on the current page.
         <h3 id="action.stopFollowMode">action.stopFollowMode</h3>
         Stop <span class="follow">follow mode</span> and go back to the previously active mode, which is not always normal mode. This is one of the actions that is automatically called after you have picked a link in <span class="follow">follow mode</span>.
         <h2 id="scrolling">Scrolling</h2>
@@ -623,7 +701,7 @@
         <h3 id="action.distrubuteSpaceSplitWindow">action.distrubuteSpaceSplitWindow</h3>
         Distribute the windows inside a split evenly. This does not necessarily mean that all windows will be of the same size, for example if you have a vertical split, with on the left side a window, but on the right side a horizontal sub-split with two windows.
         <h2 id="pointer">Pointer</h2>
-        Vieb has a <span class="pointer">pointer mode</span> to hover over links, download images or inspect an element at a position. The pointer can be moved in many different ways, most of which are by default mapped similar to Vim's normal mode. Additionally, after entering <span class="pointer">pointer mode</span>, it's also possible to start selected text using <span class="visual">visual mode</span>. By default, the bindings are similar, with the biggest difference being that text will be selected between the initial and current pointer position. See <a href="#pointer.startVisualSelect">pointer.startVisualSelect</a> and <a href="#pointer.copyAndStop">pointer.copyAndStop</a> for <span class="visual">visual mode</span> specific actions.
+        Vieb has a <span class="pointer">pointer mode</span> to hover over links, download images or inspect an element at a position. The pointer can be moved in many different ways, most of which are by default mapped similar to Vim's normal mode. Additionally, after entering <span class="pointer">pointer mode</span>, it's also possible to start selected text using <span class="visual">visual mode</span>. By default, the bindings of these two modes are similar, with the biggest difference being that text will be selected between the initial and current pointer position. See <a href="#pointer.startVisualSelect">pointer.startVisualSelect</a> and <a href="#pointer.copyAndStop">pointer.copyAndStop</a> for <span class="visual">visual mode</span> specific actions.
         <h3 id="pointer.leftClick">pointer.leftClick</h3>
         Simulate a left mouse click at the current pointer location. See also <a href="#pointer.rightClick">pointer.rightClick</a>.
         <h3 id="pointer.rightClick">pointer.rightClick</h3>
@@ -707,9 +785,9 @@
         <h3 id="action.prevSuggestion" countable="true">action.prevSuggestion</h3>
         Move to the previous suggestion shown while in <a class="explore" href="#action.toExploreMode">explore mode</a> or <a class="command" href="#action.toCommandMode">command mode</a>. If no sugestions are selected yet, this action will select the last suggestion. If this action is called while the first suggestion is already focussed, no suggestion will be selected and your original text will be restored in the navbar. Opposite of <a href="#action.nextSuggestion">action.nextSuggestion</a>.
         <h3 id="action.commandHistoryPrevious" countable="true">action.commandHistoryPrevious</h3>
-        Go back to previously executed commands of this session, by calling this action. Unlike the suggestions, these actions do not wrap back to the first or last when the end of the history is reached. Opposite of <a href="#action.commandHistoryNext">action.commandHistoryNext</a>.
+        Go back to previously executed commands of this session, by calling this action. Unlike the suggestions, these actions do not wrap back to the first or last when the end of the history is reached. Opposite of <a href="#action.commandHistoryNext">action.commandHistoryNext</a>. This action has no function outside of <a class="command" href="#action.toCommandMode">command mode</a>.
         <h3 id="action.commandHistoryNext" countable="true">action.commandHistoryNext</h3>
-        Go forward in history when viewing a previously executed command. If there are no more historic commands, it will restore the text that was typed before going back in history. Opposite of <a href="#action.commandHistoryPrevious">action.commandHistoryPrevious</a>.
+        Go forward in history when viewing a previously executed command. If there are no more historic commands, it will restore the text that was typed before going back in history. Opposite of <a href="#action.commandHistoryPrevious">action.commandHistoryPrevious</a>. This action has no function outside of <a class="command" href="#action.toCommandMode">command mode</a>.
         <h3 id="action.useEnteredData">action.useEnteredData</h3>
         After entering a search, command or url, use this action to use the entered data. For <a class="explore" href="#action.toExploreMode">explore mode</a>, this will navigate to the page provided, or append the entered text to the <a href="#search">search</a> setting. For <a class="command" href="#action.toCommandMode">command mode</a>, the command will be executed. For <a class="search" href="#action.toSearchMode">search mode</a>, the entered string will be searched for on the current page and matches will be hightlighted. This action will always go back the normal mode after it's done.
         <h1 id="license">License</h1>
