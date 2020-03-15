@@ -216,6 +216,7 @@ const suggestCommand = search => {
             "customcommands",
             "splits",
             "viebrc",
+            "datafolder",
             "modes",
             "scrolling",
             "navigation",

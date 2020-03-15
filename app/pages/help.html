@@ -129,7 +129,7 @@
             <li><span class="command-block">:mkviebrc</span> - Write all modified settings, custom mappings and custom commands to disk</li>
             <li><span class="command-block">:mkviebrc full</span> - Write all settings (with defaults), custom mappings and custom commands to disk</li>
         </ul>
-        This command can be used to write all runtime settings, <a href="#:map">keyboard mappings</a> and <a href="#:comamnd">custom commands</a> back to the viebrc file located in Vieb's data folder, see <a href="#viebrc">viebrc</a> for details.
+        This command can be used to write all runtime settings, <a href="#:map">keyboard mappings</a> and <a href="#:comamnd">custom commands</a> back to the <a href="#viebrc">viebrc</a> file located in Vieb's <a href="#datafolder">datafolder</a>.
         <h2 id="specialpages">Special pages</h2>
         Some commands are used to open special pages. This help page is one of them. In this paragraph all of them are listed.
         <h3 id=":version">:version</h3>
@@ -153,7 +153,7 @@
         <ul>
             <li><span class="command-block">:history</span> - Open the history page</li>
         </ul>
-        With this command you will be navigated to the history page, located at "vieb://history". On this page you will be presented with a list of all your local browsing history, sorted by date. This page allows you to remove site visits from you history and/or remove the history during specific ranges. The browsing history is only stored in Vieb's data folder. To disable new visits from being stored, see the <a href="#storenewvisists">storenewvisists</a> setting. This setting does not affect the history of previously closed tabs or the download history. It is also possible to disable or change the amount of suggestions shown based on the history with <a href="#suggesthistory">suggesthistory</a>. Finally you may want to clear the history when quitting Vieb with <a href="#clearhistoryonquit">clearhistoryonquit</a>.
+        With this command you will be navigated to the history page, located at "vieb://history". On this page you will be presented with a list of all your local browsing history, sorted by date. This page allows you to remove site visits from you history and/or remove the history during specific ranges. The browsing history is only stored in Vieb's <a href="#datafolder">datafolder</a>. To disable new visits from being stored, see the <a href="#storenewvisists">storenewvisists</a> setting. This setting does not affect the history of previously closed tabs or the download history. It is also possible to disable or change the amount of suggestions shown based on the history with <a href="#suggesthistory">suggesthistory</a>. Finally you may want to clear the history when quitting Vieb with <a href="#clearhistoryonquit">clearhistoryonquit</a>.
         <h3 id=":downloads">:downloads</h3>
         Examples
         <ul>
@@ -384,21 +384,24 @@
         To change settings for subsequent sessions, store them as commands in a viebrc file. There are two locations where you can store such a file:
         <ul>
             <li><kbd>~/.viebrc</kbd> - This user viebrc should be placed directly in the user directory and will always take priority over the system viebrc. Vieb will only every read this file, and will not write to it.</li>
-            <li>system viebrc - This system viebrc file will be stored in Vieb's data folder. The location depends on the operating system:
-            <ul>
-                <li>Linux - <kbd>~/.config/Vieb/viebrc</kbd>
-                <li>Windows - <kbd>%APPDATA%\Vieb\viebrc</kbd>
-                <li>Mac - <kbd>~/Library/Application Support/Vieb/viebrc</kbd>
-            </ul>
+            <li>system viebrc - This system viebrc file will be stored in Vieb's <a href="#datafolder">datafolder</a>.
             This configuration file will be read on startup, similar to the viebrc file in the user folder. However, the system viebrc file can also be generated with the current settings using the <a href="#:mkviebrc">:mkviebrc</a> command.</li>
         </ul>
         The viebrc file should contain a single command per line. Most regular commands are supported, such as set commands or map commands.
+        <h2 id="datafolder">Data folder</h2>
+        Vieb stores all of it's data inside a single folder, which is by default located in one of these locations:
+        <ul>
+            <li>Linux - <kbd>~/.config/Vieb/</kbd>
+            <li>Windows - <kbd>%APPDATA%\Vieb\</kbd>
+            <li>Mac - <kbd>~/Library/Application Support/Vieb/</kbd>
+        </ul>
+        All browsing history, cache, cookies, localstorage, favicons, preferences, blocklists, tab history and download history are stored in this folder. You can also run Vieb in portable mode, by starting it with the "--portable" argument, to use a relative "ViebData" folder. Since the system <a href="#viebrc">viebrc</a> is also inside this folder, you can use this to have a completely portable instance of Vieb.
         <h2>Setting list</h2>
         The rest of this chapter will focus on all the different settings of Vieb.
         <h3 id="adblocker">adblocker</h3>
-        Vieb has an integrated adblocker, which will block advertisements and trackers based on blocklists. These blocklists are by default set to easylist and easyprivacy. This setting is used to enable or disable the adblocker, but also to configure the update mechanism. The "static" value will use the integrated blocklists and will not check for updates. These integrated lists are only updated when a new Vieb release is made. To enable automatic updates of these lists without waiting for a new Vieb release, you can change this setting to "update". Keep in mind that this will periodically connect to the easylist website to download the latest version, which is also why this setting is set to "static" by default. The "custom" option allows you to implement your own external blocklist management and also to disable any of the built-in lists. Adding other lists can already be done without using the "custom" option, by adding lists to the blocklists folder. The location of the blocklists is a folder of the same name inside the Vieb data folder. See <a href="#viebrc">viebrc</a> for details on the location of that folder.
+        Vieb has an integrated adblocker, which will block advertisements and trackers based on blocklists. These blocklists are by default set to easylist and easyprivacy. This setting is used to enable or disable the adblocker, but also to configure the update mechanism. The "static" value will use the integrated blocklists and will not check for updates. These integrated lists are only updated when a new Vieb release is made. To enable automatic updates of these lists without waiting for a new Vieb release, you can change this setting to "update". Keep in mind that this will periodically connect to the easylist website to download the latest version, which is also why this setting is set to "static" by default. The "custom" option allows you to implement your own external blocklist management and also to disable any of the built-in lists. Adding other lists can already be done without using the "custom" option, by adding lists to the blocklists folder inside Vieb's <a href="#datafolder">datafolder</a>.
         <h3 id="cache">cache</h3>
-        This setting can be used to disable or automatically remove the browsing cache. Changing this setting from or to the value "off" only has effect at startup, due to Chromium limitations. The cache can always be set to "clearonquit" or "full", regardless of the initial value of this setting. It's recommended to at least clear the cache on quit, because the browsing cache can get very large of extended periods of use.
+        This setting can be used to disable or automatically remove the browsing cache. Changing this setting from or to the value "off" only has effect at startup, due to Chromium limitations. The cache can always be set to "clearonquit" or "full", regardless of the initial value of this setting. It's recommended to at least clear the cache on quit, because the browsing cache can get very large with extended periods of use.
         <h3 id="clearcookiesonquit">clearcookiesonquit</h3>
         Toggle for clearing all of the cookies when quitting Vieb. To view and remove individual cookies, see the <a href="#:cookies">cookies</a> page.
         <h3 id="cleardownloadsoncompleted">cleardownloadsoncompleted</h3>
