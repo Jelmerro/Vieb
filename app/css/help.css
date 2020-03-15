@@ -50,3 +50,8 @@ h5, h6 {font-size: 1;margin: .7em 0;}
 .url-url {color: #3ff;}
 .url-suggest {color: #3f3;}
 .url-file {color: #ff9;}
+.follow-url {background-color: #5cc;color: black;}
+.follow-inputs-click {background-color: #c55;color: black;}
+.follow-inputs-insert {background-color: #5c5;color: black;}
+.follow-onclick {background-color: #cc5;color: black;}
+.follow-other {background-color: #ccc;color: black;}

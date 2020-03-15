@@ -90,6 +90,26 @@ ipcRenderer.on("settings", (_, settings, mappings) => {
     })
 })
 
+const processHash = () => {
+    if (window.location.hash !== "") {
+        const hashVariations = [
+            window.location.hash,
+            window.location.hash.replace("#", "#:"),
+            window.location.hash.replace(/!$/, ""),
+            window.location.hash.replace("#", "#:").replace(/!$/, "")
+        ]
+        for (const h of hashVariations) {
+            if (document.querySelector(`a[href='${h}']`)) {
+                document.querySelector(`a[href='${h}']`).click()
+                return
+            }
+        }
+        window.history.pushState(null, null, " ")
+    }
+}
+
+window.addEventListener("hashchange", processHash)
+
 window.addEventListener("load", () => {
     const createIdLabel = element => {
         const section = document.createElement("div")
@@ -108,16 +128,5 @@ window.addEventListener("load", () => {
     const sections = [...document.querySelectorAll("*[id]")]
     sections.forEach(section => createIdLabel(section))
     // Set focus to correct part of the page after it's done loading
-    setTimeout(() => {
-        let hash = window.location.hash.toLowerCase()
-        if (hash !== "") {
-            if (document.querySelector(`a[href='${hash}']`)) {
-                document.querySelector(`a[href='${hash}']`).click()
-            }
-            hash = hash.replace("#", "#:")
-            if (document.querySelector(`a[href='${hash}']`)) {
-                document.querySelector(`a[href='${hash}']`).click()
-            }
-        }
-    }, 50)
+    setTimeout(processHash, 50)
 })
