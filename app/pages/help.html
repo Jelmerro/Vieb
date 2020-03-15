@@ -651,7 +651,7 @@
         Open a new tab with the newtab page, after which you will enter <a class="explore" href="#action.toExploreMode">explore mode</a> with the url of the current page pre-filled. This can be used to quickly open another page with a similar url, that is not linked on the current page. Another advantage is that this action will NOT use the system clipboard to copy the url.
         <h3 id="action.closeTab" countable="true">action.closeTab</h3>
         This action closes the current tab, and switches to the nearest opened tab. If the last tab is closed, the newtab page will (re)open as the only opened tab. Opposite of <a href="#action.reopenTab">action.reopenTab</a>.
-        <h3 id="action.reopenTab">action.reopenTab</h3>
+        <h3 id="action.reopenTab" countable="true">action.reopenTab</h3>
         Reopen a previously closed tab as a new tab. If the current page is empty (newtab) the previously closed page will be opened in the current tab. Opposite of <a href="#action.closeTab">action.closeTab</a>.
         <h3 id="action.nextTab" countable="true">action.nextTab</h3>
         Navigate to the previous tab (to the right) in the tab bar. Opposite of <a href="#action.previousTab">action.previousTab</a>.
@@ -661,7 +661,7 @@
         Move the current tab forward in the tab bar (to the right). This action does not switch between pages, but merely changes the order of appearance in the tab bar. Opposite of <a href="#action.moveTabBackward">action.moveTabBackward</a>. See <a href="#action.nextTab">action.nextTab</a> to actually switch between the tabs.
         <h3 id="action.moveTabBackward" countable="true">action.moveTabBackward</h3>
         Opposite of <a href="#action.moveTabForward">action.moveTabForward</a>.
-        <h3 id="action.backInHistory">action.backInHistory</h3>
+        <h3 id="action.backInHistory" countable="true">action.backInHistory</h3>
         Navigate to the previous page you visited in the current tab. The first page of the tab history will always be the newtab page. Opposite of <a href="#action.forwardInHistory">action.forwardInHistory</a>.
         <h3 id="action.forwardInHistory" countable="true">action.forwardInHistory</h3>
         Opposite of <a href="#action.backInHistory" countable="true">action.backInHistory</a>.
@@ -688,9 +688,9 @@
         <h3 id="action.toBottomSplitWindow" countable="true">action.toBottomSplitWindow</h3>
         Move to the split window directly below the currently focussed one. See <a href="#action.toLeftSplitWindow">action.toLeftSplitWindow</a> for more details.
         <h3 id="action.toTopSplitWindow" countable="true">action.toTopSplitWindow</h3>
-        Move to the split window directly below the currently focussed one. See <a href="#action.toLeftSplitWindow">action.toLeftSplitWindow</a> for more details.
+        Move to the split window directly above the currently focussed one. See <a href="#action.toLeftSplitWindow">action.toLeftSplitWindow</a> for more details.
         <h3 id="action.toRightSplitWindow" countable="true">action.toRightSplitWindow</h3>
-        Move to the split window directly below the currently focussed one. See <a href="#action.toLeftSplitWindow">action.toLeftSplitWindow</a> for more details.
+        Move to the split window directly to the right of the currently focussed one. See <a href="#action.toLeftSplitWindow">action.toLeftSplitWindow</a> for more details.
         <h3 id="action.increaseHeightSplitWindow" countable="true">action.increaseHeightSplitWindow</h3>
         Increase the height of the current split window by 10% up to a maximum ratio compared to it's siblings of 1 to 10. Similar actions to resize into other directions are <a href="#action.decreaseHeightSplitWindow">action.decreaseHeightSplitWindow</a>, <a href="#action.increaseWidthSplitWindow">action.increaseWidthSplitWindow</a> and <a href="#action.decreaseWidthSplitWindow">action.decreaseWidthSplitWindow</a>.
         <h3 id="action.decreaseHeightSplitWindow" countable="true">action.decreaseHeightSplitWindow</h3>
@@ -703,9 +703,9 @@
         Distribute the windows inside a split evenly. This does not necessarily mean that all windows will be of the same size, for example if you have a vertical split, with on the left side a window, but on the right side a horizontal sub-split with two windows.
         <h2 id="pointer">Pointer</h2>
         Vieb has a <span class="pointer">pointer mode</span> to hover over links, download images or inspect an element at a position. The pointer can be moved in many different ways, most of which are by default mapped similar to Vim's normal mode. Additionally, after entering <span class="pointer">pointer mode</span>, it's also possible to start selected text using <span class="visual">visual mode</span>. By default, the bindings of these two modes are similar, with the biggest difference being that text will be selected between the initial and current pointer position. See <a href="#pointer.startVisualSelect">pointer.startVisualSelect</a> and <a href="#pointer.copyAndStop">pointer.copyAndStop</a> for <span class="visual">visual mode</span> specific actions.
-        <h3 id="pointer.leftClick">pointer.leftClick</h3>
+        <h3 id="pointer.leftClick" countable="true">pointer.leftClick</h3>
         Simulate a left mouse click at the current pointer location. See also <a href="#pointer.rightClick">pointer.rightClick</a>.
-        <h3 id="pointer.rightClick">pointer.rightClick</h3>
+        <h3 id="pointer.rightClick" countable="true">pointer.rightClick</h3>
         Execute a right mouse click at the pointer position. Unless the website has implemented functionality for this, no right-click menu will open, as Vieb does not have a right-click menu.
         <h3 id="pointer.downloadImage">pointer.downloadImage</h3>
         Download an image at the current pointer position. If there are multiple images at the pointer location, only the first one will be downloaded. The name will be automatically set, and downloaded files will be stored in <a href="#downloadpath">downloadpath</a>. This action will search specifically for img and svg tags at a position.
@@ -717,41 +717,41 @@
         Switch to <span class="visual">visual mode</span>, which will start making a selection starting at the current pointer position, but once the pointer is moved again, all text between the original and current location will be selected. To copy the selected text, see <a href="#pointer.copyAndStop">pointer.copyAndStop</a>.
         <h3 id="pointer.copyAndStop">pointer.copyAndStop</h3>
         Copy the currently selected text (using <a class="visual" href="#pointer">visual mode</a>) to the system clipboard and return to normal mode.
-        <h3 id="pointer.moveUp">pointer.moveUp</h3>
+        <h3 id="pointer.moveUp" countable="true">pointer.moveUp</h3>
         Move the pointer up by 10 pixels, will scroll the page if needed.
-        <h3 id="pointer.moveDown">pointer.moveDown</h3>
+        <h3 id="pointer.moveDown" countable="true">pointer.moveDown</h3>
         Move the pointer down by 10 pixels, will scroll the page if needed.
-        <h3 id="pointer.moveLeft">pointer.moveLeft</h3>
+        <h3 id="pointer.moveLeft" countable="true">pointer.moveLeft</h3>
         Move the pointer left by 10 pixels, will scroll the page if needed.
-        <h3 id="pointer.moveRight">pointer.moveRight</h3>
+        <h3 id="pointer.moveRight" countable="true">pointer.moveRight</h3>
         Move the pointer right by 10 pixels, will scroll the page if needed.
-        <h3 id="pointer.moveSlowUp">pointer.moveSlowUp</h3>
+        <h3 id="pointer.moveSlowUp" countable="true">pointer.moveSlowUp</h3>
         Move the pointer up by 1 pixel, will scroll the page if needed.
-        <h3 id="pointer.moveSlowDown">pointer.moveSlowDown</h3>
+        <h3 id="pointer.moveSlowDown" countable="true">pointer.moveSlowDown</h3>
         Move the pointer down by 1 pixel, will scroll the page if needed.
-        <h3 id="pointer.moveSlowLeft">pointer.moveSlowLeft</h3>
+        <h3 id="pointer.moveSlowLeft" countable="true">pointer.moveSlowLeft</h3>
         Move the pointer left by 1 pixel, will scroll the page if needed.
-        <h3 id="pointer.moveSlowRight">pointer.moveSlowRight</h3>
+        <h3 id="pointer.moveSlowRight" countable="true">pointer.moveSlowRight</h3>
         Move the pointer right by 1 pixel, will scroll the page if needed.
-        <h3 id="pointer.moveFastUp">pointer.moveFastUp</h3>
+        <h3 id="pointer.moveFastUp" countable="true">pointer.moveFastUp</h3>
         Move the pointer up by 100 pixels, will scroll the page if needed.
-        <h3 id="pointer.moveFastDown">pointer.moveFastDown</h3>
+        <h3 id="pointer.moveFastDown" countable="true">pointer.moveFastDown</h3>
         Move the pointer down by 100 pixels, will scroll the page if needed.
-        <h3 id="pointer.moveFastLeft">pointer.moveFastLeft</h3>
+        <h3 id="pointer.moveFastLeft" countable="true">pointer.moveFastLeft</h3>
         Move the pointer left by 100 pixels, will scroll the page if needed.
-        <h3 id="pointer.moveFastRight">pointer.moveFastRight</h3>
+        <h3 id="pointer.moveFastRight" countable="true">pointer.moveFastRight</h3>
         Move the pointer right by 100 pixels, will scroll the page if needed.
         <h3 id="pointer.moveLeftMax">pointer.moveLeftMax</h3>
         Move the pointer all the way to the left of the current screen.
         <h3 id="pointer.moveRightMax">pointer.moveRightMax</h3>
         Move the pointer all the way to the right of the current screen.
-        <h3 id="pointer.scrollUp">pointer.scrollUp</h3>
+        <h3 id="pointer.scrollUp" countable="true">pointer.scrollUp</h3>
         Scroll 100 pixels up at the current pointer position, without changing the pointer position. See <a href="#scrolling">scrolling</a> for more details.
-        <h3 id="pointer.scrollDown">pointer.scrollDown</h3>
+        <h3 id="pointer.scrollDown" countable="true">pointer.scrollDown</h3>
         Scroll 100 pixels down at the current pointer position, without changing the pointer position. See <a href="#scrolling">scrolling</a> for more details.
-        <h3 id="pointer.scrollLeft">pointer.scrollLeft</h3>
+        <h3 id="pointer.scrollLeft" countable="true">pointer.scrollLeft</h3>
         Scroll 100 pixels left at the current pointer position, without changing the pointer position. See <a href="#scrolling">scrolling</a> for more details.
-        <h3 id="pointer.scrollRight">pointer.scrollRight</h3>
+        <h3 id="pointer.scrollRight" countable="true">pointer.scrollRight</h3>
         Scroll 100 pixels right at the current pointer position, without changing the pointer position. See <a href="#scrolling">scrolling</a> for more details.
         <h3 id="pointer.startOfView">pointer.startOfView</h3>
         Move the pointer to the top of the screen vertically, without scrolling the page in any way. See also <a href="#pointer.centerOfView">pointer.centerOfView</a> and <a href="#pointer.endOfView">pointer.endOfView</a>. To do the same but with scrolling, see <a href="#pointer.startOfPage">pointer.startOfPage</a>.

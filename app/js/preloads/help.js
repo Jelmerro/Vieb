@@ -21,7 +21,7 @@ const {ipcRenderer} = require("electron")
 
 ipcRenderer.on("settings", (_, settings, mappings) => {
     // Enrich the settings list with type, default, current and value lists
-    ;[...document.querySelectorAll(".setting-status, .map-status")]
+    ;[...document.querySelectorAll(".setting-status, .map-status, .countable")]
         .forEach(el => el.parentNode.removeChild(el))
     settings.forEach(setting => {
         if (document.getElementById(setting.name)) {
@@ -69,6 +69,7 @@ ipcRenderer.on("settings", (_, settings, mappings) => {
         ...document.querySelectorAll("h3[id^='action.']"),
         ...document.querySelectorAll("h3[id^='pointer.']")
     ].forEach(actionNode => {
+        // List mappings in which this action is used
         const mapList = document.createElement("div")
         mapList.className = "map-status"
         const actionMappings = mappings.split("\n").filter(map => {
@@ -87,6 +88,13 @@ ipcRenderer.on("settings", (_, settings, mappings) => {
         }
         actionNode.parentNode.parentNode.insertBefore(
             mapList, actionNode.parentNode.nextSibling)
+        // Countable action badge
+        if (actionNode.getAttribute("countable") === "true") {
+            const badge = document.createElement("kbd")
+            badge.className = "countable"
+            badge.textContent = "Countable"
+            actionNode.parentNode.insertBefore(badge, actionNode.nextSibling)
+        }
     })
 })
 
@@ -117,6 +125,7 @@ window.addEventListener("load", () => {
         const header = document.createElement(element.tagName)
         header.id = element.id
         header.textContent = element.textContent
+        header.setAttribute("countable", element.getAttribute("countable"))
         section.appendChild(header)
         const label = document.createElement("a")
         label.textContent = `#${element.id}`

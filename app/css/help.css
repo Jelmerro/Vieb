@@ -26,8 +26,9 @@ kbd {background: #111;color: #fff;padding: .1em;overflow-wrap: anywhere;}
 /* Section header */
 a {color: #0cf;overflow-wrap: anywhere;}
 li {line-height: 1.5em;}
-.section {display: flex;flex-wrap: wrap;}
-.section h1, .section h2, .section h3, .section h4, .section h5, .section h6 {margin: 0.7em 0;overflow-wrap: anywhere;}
+.section {display: flex;flex-wrap: wrap;align-items: center;}
+.section h1, .section h2, .section h3, .section h4, .section h5, .section h6 {margin: 0;overflow-wrap: anywhere;}
+.section {margin: 1em 0;}
 .section > a {margin: auto 0;overflow-wrap: anywhere;flex: 1;text-align: right;}
 h1 {font-size: 3em;margin: .7em 0 .5em;color: #d10;}
 h2 {font-size: 2em;margin: .7em 0;color: #f76;}
@@ -37,6 +38,7 @@ h5, h6 {font-size: 1;margin: .7em 0;}
 .setting-status {display: flex;flex-wrap: wrap;}
 .setting-status * {margin: 0 .5em;overflow-wrap: break-word;max-width: calc(100vw - 3em);}
 .map-status * {display: block;}
+.countable {height: 2em;margin: 0 1em;color: #fc0;}
 /* colors */
 .command-block {color: #faa;white-space: normal;overflow-wrap: anywhere;background: #222;padding: 0 .1em;}
 .command {color: #f33;}
