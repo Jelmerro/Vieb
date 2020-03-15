@@ -272,13 +272,7 @@ const reopenTab = () => {
     if (recentlyClosed.length === 0) {
         return
     }
-    if (UTIL.pathToSpecialPageName(currentPage().src).name === "newtab") {
-        navigateTo(UTIL.stringToUrl(recentlyClosed.pop()))
-    } else if (currentPage().src) {
-        addTab({"url": UTIL.stringToUrl(recentlyClosed.pop())})
-    } else {
-        navigateTo(UTIL.stringToUrl(recentlyClosed.pop()))
-    }
+    addTab({"url": UTIL.stringToUrl(recentlyClosed.pop())})
 }
 
 const closeTab = () => {
