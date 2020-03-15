@@ -9,7 +9,7 @@ See the README.md or LICENSE file for more info and details about Vieb and it's 
 Links in the changelog are part of [github.com/Jelmerro/Vieb](https://github.com/Jelmerro/Vieb).
 The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the most important changes per release,
 but the list below contains much more technical details.
-The releases of Vieb aim to follow [sematic versioning](https://semver.org).
+The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
@@ -20,13 +20,14 @@ The releases of Vieb aim to follow [sematic versioning](https://semver.org).
 - New location from where the viebrc file will be read: ~/.viebrc (aside from the viebrc in Vieb's data folder)
 - Dark theme and security settings for the website developer tools (:devtools)
 - Window splitting using Vexplore, vsplit, Sexplore and split to display multiple sites at the same time
-- Use <C-w> sub-bindings to move, relocate or rotate the window splits
+- Use \<C-w\> sub-bindings to move, relocate or rotate the window splits
 - Map command for configuring keyboard mappings (including recursion, nmap, imap, mapclear, etc.)
-- Noremap command for non-recursive keyboard mappings (Refer to Vieb actions using <ACTIONS.reload>)
+- Noremap command for non-recursive keyboard mappings (refer to Vieb actions using \<action.reload\>)
 - Tab status indicators, orange for current tab (in multiple layout) and blue for playing media
-- Elements with mouse hover actions are now available in follow mode (displayed in grey)
+- Elements with mouse hover actions are now available in follow mode (displayed in gray)
 - Popup message for long notifications, with Vim bindings to scroll and close
 - Notification special page to view a list of previous notifications of the current session
+- New help documentation with descriptions for all commands, settings and actions
 
 ### Changed
 
@@ -45,7 +46,7 @@ The releases of Vieb aim to follow [sematic versioning](https://semver.org).
 - History storage format is now JSON, for easier parsing and better title storing
 - Entries on the history page can now be removed without reloading all history again
 - Buffer command can now be used to navigate to new locations (this is also true for the new split and Explore commands)
-- Allow <A-F4> and <M-Q> to be mapped as if they are regular keys (most likely to the quit command)
+- Allow \<A-F4\> and \<M-Q\> to be mapped as if they are regular keys (most likely to the quit command)
 
 ### Deprecated
 

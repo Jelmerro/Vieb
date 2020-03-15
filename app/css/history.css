@@ -20,7 +20,7 @@ body {color: #eee;width: 90vw;font: 14px RobotoMono, monospace;background: #333;
 a {color: #0cf;white-space: nowrap;overflow: hidden;}
 h1 {font-size: 2em;margin: 1em 0;padding: 0;}
 #breakpoints {display: flex;flex-direction: column;}
-.hist-entry {background-color: #444;margin: .7em;padding: .35em;}
+.hist-entry {background-color: #444;margin: .7em 0;padding: .35em;border: .1em solid #222;}
 .hist-entry .hist-date {width: auto;color: #aaa;margin-right: 1em;}
 .hist-entry span {display: inline-block;width: calc(100% - 16em);overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
 .hist-entry a {display: block;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;width: 100%;}

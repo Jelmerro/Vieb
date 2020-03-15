@@ -234,6 +234,13 @@ const visitCount = url => {
     return 0
 }
 
+const titleForPage = url => {
+    if (groupedHistory[url] && groupedHistory[url].title) {
+        return groupedHistory[url].title
+    }
+    return ""
+}
+
 const updateTitle = (url, title) => {
     if (!SETTINGS.get("storenewvisists")) {
         return
@@ -270,6 +277,7 @@ module.exports = {
     handleRequest,
     suggestTopSites,
     visitCount,
+    titleForPage,
     updateTitle,
     isFinishedLoading
 }

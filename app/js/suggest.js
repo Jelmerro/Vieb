@@ -136,7 +136,7 @@ const suggestCommand = search => {
     // Remove all redundant spaces
     // Allow commands prefixed with :
     search = search.replace(/^[\s|:]*/, "").replace(/ +/g, " ")
-    const {valid, command, args} = COMMAND.parseAndValidateArgs(search)
+    const {valid, confirm, command, args} = COMMAND.parseAndValidateArgs(search)
     if (!SETTINGS.get("suggestcommands") || !search || !valid) {
         // Limited to zero, no search or invalid = don't suggest
         return
@@ -145,7 +145,7 @@ const suggestCommand = search => {
     COMMAND.commandList().filter(
         c => c.startsWith(search)).forEach(c => addCommand(c))
     // Command: set
-    if ("set".startsWith(command)) {
+    if ("set".startsWith(command) && !confirm) {
         if (args.length) {
             SETTINGS.suggestionList()
                 .filter(s => s.startsWith(args[args.length - 1]))
@@ -158,11 +158,11 @@ const suggestCommand = search => {
         }
     }
     // Command: write
-    if ("write ~/Downloads/newfile".startsWith(search)) {
+    if ("write ~/Downloads/newfile".startsWith(search) && !confirm) {
         addCommand("write ~/Downloads/newfile")
     }
     // Command: mkviebrc
-    if ("mkviebrc full".startsWith(search)) {
+    if ("mkviebrc full".startsWith(search) && !confirm) {
         addCommand("mkviebrc full")
     }
     // Command: buffer, hide, Vexplore, Sexplore, split and vsplit
@@ -173,7 +173,7 @@ const suggestCommand = search => {
     if (suggestions.length > 1) {
         suggestedCommandName = bufferCommand
     }
-    if (bufferCommand) {
+    if (bufferCommand && command !== "h" && !confirm) {
         const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
         TABS.listTabs().map((t, index) => {
             return {
@@ -198,11 +198,39 @@ const suggestCommand = search => {
     if (suggestions.length > 1) {
         suggestedCommandName = "call"
     }
-    if ("call".startsWith(command)) {
+    if ("call".startsWith(command) && !confirm) {
         INPUT.listSupportedActions().filter(action => {
             return `${command} ${action.replace(/(^<|>$)/g, "")}`
                 .startsWith(`${command} ${args.join(" ")}`.trim())
         }).forEach(action => addCommand(`${suggestedCommandName} ${action}`))
+    }
+    if ("help".startsWith(command) && !confirm) {
+        [
+            "intro",
+            "commands",
+            "settings",
+            "actions",
+            "settingcommands",
+            "specialpages",
+            "mappings",
+            "customcommands",
+            "splits",
+            "viebrc",
+            "modes",
+            "scrolling",
+            "navigation",
+            "splitting",
+            "pointer",
+            "license",
+            "mentions",
+            ...COMMAND.commandList(false).map(c => `:${c}`),
+            ...INPUT.listSupportedActions(),
+            ...Object.values(SETTINGS.settingsObjectWithDefaults())
+                .map(s => s.name)
+        ].filter(section => {
+            return `${command} ${section}`.startsWith(
+                `${command} ${args.join(" ")}`.trim())
+        }).forEach(section => addCommand(`help ${section}`))
     }
 }
 

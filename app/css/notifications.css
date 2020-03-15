@@ -20,7 +20,7 @@ body {color: #eee;width: 90vw;font: 14px RobotoMono, monospace;background: #333;
 h1 {font-size: 2em;margin: 1em 0;padding: 0;}
 #list {display: flex;flex-direction: column-reverse;margin: 2em 0;}
 .notification {border: .1em solid #222;background: #444;margin: 1em 0;padding: 1em;}
-.date {color: #777;}
+.date {color: #aaa;}
 .error {color: #f33;}
 .warning {color: #fd0;}
 .info {color: #0cf;}

@@ -1,6 +1,6 @@
 <!--
     Vieb - Vim Inspired Electron Browser
-    Copyright (C) 2019 Jelmer van Arnhem
+    Copyright (C) 2019-2020 Jelmer van Arnhem
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,8 +22,8 @@
 </head>
 <body>
     <h3>Login request</h3>
-    <input tabindex=0 placeholder="username" id="username" type="text" autofocus>
-    <input tabindex=1 placeholder="password" id="password" type="password">
+    <input tabindex=0 placeholder="username" id="username" spellcheck="false" type="text" autofocus>
+    <input tabindex=1 placeholder="password" id="password" spellcheck="false" type="password">
     <p id="info"></p>
     <script>
         const { ipcRenderer, remote } = require("electron")

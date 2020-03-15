@@ -349,12 +349,12 @@ const stringToUrl = location => {
         return location
     }
     if (isDir(local) || isFile(local)) {
-        return `file:${local}`.replace(/^file:\/*/, "file:///")
+        return `file:/${local}`.replace(/^file:\/*/, "file:///")
     }
     if (isUrl(location)) {
         return `https://${location}`
     }
-    return SETTINGS.get("search") + location
+    return SETTINGS.get("search") + encodeURIComponent(location)
 }
 
 const urlToString = url => {
@@ -372,6 +372,10 @@ const urlToString = url => {
 
 const listNotificationHistory = () => {
     return notificationHistory
+}
+
+const title = name => {
+    return name[0].toUpperCase() + name.slice(1).toLowerCase()
 }
 
 module.exports = {
@@ -397,5 +401,6 @@ module.exports = {
     deleteFile,
     stringToUrl,
     urlToString,
-    listNotificationHistory
+    listNotificationHistory,
+    title
 }

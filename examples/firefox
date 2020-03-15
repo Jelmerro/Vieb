@@ -1,5 +1,4 @@
 " Options
-set automaticexploremode
 set ignorecase
 set mouse
 set permissioncamera=ask
@@ -31,7 +30,8 @@ map <C-h> <:history>
 map <C-j> <:downloads>
 map <C-k> <action.toExploreMode>
 map <C-p> <:hardcopy>
-map <C-s> <:write full>
+map <C-s> <:write>
+map <C-t> <action.openNewTab><action.toExploreMode>
 map <C-l> <action.toExploreMode>
 map <C-Tab> <action.nextTab>
 map <C-S-PageUp> <action.moveTabBackward>
