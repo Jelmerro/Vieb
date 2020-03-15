@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -17,38 +17,36 @@
 */
 /* General */
 @font-face {font-family: RobotoMono;src: url("./font/RobotoMono-Regular.ttf");}
-body {color: #eee;font: 14px RobotoMono, monospace;background: #333;padding: 0;margin: 3%;line-height: 1.5;}
-kbd {background: #111;color: #fff;padding: .1em;}
-button, input {font: inherit;}
-button, span[onclick] {border-width: .15em;border-style: solid;border-color: #555;}
-pre {min-width: 450px;width: 100%;background: #222;color: #cff;padding: .5em;margin: .5em 0;}
-pre.wrap {white-space: pre-wrap;}
+body {color: #eee;font: 14px RobotoMono, monospace;background: #333;padding: 0;margin: 3vw;line-height: 2;}
+main {max-width: 1000px;margin: auto;}
+kbd {background: #111;color: #fff;padding: .1em;overflow-wrap: anywhere;}
 /* Top header */
-.header {font-size: 5vw;display: flex;}
-.header > img {height: 10vw;}
-.header > div {margin: auto;}
+.header, .header > div {font-size: 5vw;display: flex;flex: 1;justify-content: center;}
+.header > div > img {height: 10vw;margin-right: 1em;}
 /* Section header */
-a {color: #0cf;}
+a {color: #0cf;overflow-wrap: anywhere;}
 li {line-height: 1.5em;}
-.section {display: flex;}
-.section > h1 {flex: 1;}
-.section > h2 {flex: 1;}
-.section > h3 {flex: 1;}
-.section > a {margin: auto;}
-h1 {font-size: 3em;margin: .7em 0 .5em;}
-h2 {font-size: 2em;margin: .7em 0;}
-h3 {font-size: 1.5em;margin: .7em 0;}
-/* toc */
-.toc > a::after {content: "";display: block;}
-.toc-h1 {font-size: 1.5em;}
-.toc-h2 {margin-left: 2em;font-size: 1.3em;}
-.toc-h3 {margin-left: 4em;}
+.section {display: flex;flex-wrap: wrap;}
+.section h1, .section h2, .section h3, .section h4, .section h5, .section h6 {margin: 0.7em 0;overflow-wrap: anywhere;}
+.section > a {margin: auto 0;overflow-wrap: anywhere;flex: 1;text-align: right;}
+h1 {font-size: 3em;margin: .7em 0 .5em;color: #d10;}
+h2 {font-size: 2em;margin: .7em 0;color: #f76;}
+h3 {font-size: 1.5em;margin: .7em 0;color: #fb9;}
+h4 {font-size: 1.25em;margin: .7em 0;}
+h5, h6 {font-size: 1;margin: .7em 0;}
+.setting-status {display: flex;flex-wrap: wrap;}
+.setting-status * {margin: 0 .5em;overflow-wrap: break-word;max-width: calc(100vw - 3em);}
+.map-status * {display: block;}
 /* colors */
-.command-block {color: #faa;white-space: normal;word-break: break-all;}
+.command-block {color: #faa;white-space: normal;overflow-wrap: anywhere;background: #222;padding: 0 .1em;}
 .command {color: #f33;}
 .insert {color: #3f3;}
 .follow {color: #f3f;}
-.nav {color: #3ff;}
+.explore {color: #3ff;}
 .search {color: #ff3;}
-.cursor {color: #777;background-color: #fff;}
+.pointer {color: #777;background-color: #fff;}
 .visual {color: #000;background-color: #3af;}
+.url-search {color: #f90;}
+.url-url {color: #3ff;}
+.url-suggest {color: #3f3;}
+.url-file {color: #ff9;}

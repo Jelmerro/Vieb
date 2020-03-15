@@ -624,9 +624,12 @@ const execute = command => {
     }
 }
 
-const commandList = () => {
+const commandList = (includeCustom = true) => {
+    if (includeCustom) {
+        return Object.keys(commands).filter(c => c.length > 2)
+            .concat(Object.keys(userCommands))
+    }
     return Object.keys(commands).filter(c => c.length > 2)
-        .concat(Object.keys(userCommands))
 }
 
 const customCommandsAsCommandList = () => {

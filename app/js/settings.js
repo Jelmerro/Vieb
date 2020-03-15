@@ -23,7 +23,6 @@ const {remote} = require("electron")
 
 const defaultSettings = {
     "adblocker": "static",
-    "automaticexploremode": false,
     "cache": "clearonquit",
     "clearcookiesonquit": false,
     "cleardownloadsoncompleted": false,
@@ -111,7 +110,8 @@ const numberRanges = {
     "notificationduration": [0, 30000],
     "suggestcommands": [0, 100],
     "suggesthistory": [0, 100],
-    "suggesttopsites": [0, 1000]
+    "suggesttopsites": [0, 1000],
+    "timeoutlen": [0, 10000]
 }
 const config = path.join(remote.app.getPath("appData"), "viebrc")
 
@@ -433,14 +433,59 @@ const set = (setting, value) => {
         if (setting === "taboverflow") {
             updateTabOverflow()
         }
-        TABS.listPages().forEach(p => {
-            if (UTIL.pathToSpecialPageName(p.src).name === "help") {
-                TABS.webContents(p).send(
-                    "settings", listCurrentSettings(true),
-                    INPUT.listSupportedActions())
-            }
-        })
+        updateHelpPage()
     }
+}
+
+const updateHelpPage = () => {
+    TABS.listPages().forEach(p => {
+        if (UTIL.pathToSpecialPageName(p.src).name === "help") {
+            TABS.webContents(p).send(
+                "settings", settingsObjectWithDefaults(),
+                INPUT.listMappingsAsCommandList(false, true))
+        }
+    })
+}
+
+const settingsObjectWithDefaults = () => {
+    return Object.keys(allSettings).map(setting => {
+        let typeLabel = "String"
+        let allowedValues = ""
+        if (listLike.includes(setting)) {
+            typeLabel = "Like-like String"
+            allowedValues = "Comma-separated list"
+        }
+        if (validOptions[setting]) {
+            allowedValues = validOptions[setting]
+        }
+        if (typeof allSettings[setting] === "boolean") {
+            typeLabel = "Boolean flag"
+            allowedValues = "true,false"
+        }
+        if (setting === "downloadpath") {
+            allowedValues = "any directory on disk"
+        }
+        if (setting === "search") {
+            allowedValues = "any URL"
+        }
+        if (setting === "vimcommand") {
+            allowedValues = "any system command"
+        }
+        if (typeof allSettings[setting] === "number") {
+            typeLabel = "Number"
+            if (numberRanges[setting]) {
+                allowedValues = `from ${
+                    numberRanges[setting][0]} to ${numberRanges[setting][1]}`
+            }
+        }
+        return {
+            "name": setting,
+            "current": allSettings[setting],
+            "default": defaultSettings[setting],
+            "typeLabel": typeLabel,
+            "allowedValues": allowedValues
+        }
+    })
 }
 
 const listCurrentSettings = full => {
@@ -502,6 +547,8 @@ module.exports = {
     get,
     reset,
     set,
+    updateHelpPage,
+    settingsObjectWithDefaults,
     listCurrentSettings,
     saveToDisk
 }

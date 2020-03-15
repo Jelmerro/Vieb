@@ -110,15 +110,7 @@ const init = () => {
 }
 
 const openSavedPage = url => {
-    if (!UTIL.hasProtocol(url)) {
-        const local = UTIL.expandPath(url)
-        if (path.isAbsolute(local) && UTIL.pathExists(local)) {
-            // File protocol locations should always have 3 slashes
-            url = `file:${local}`.replace(/^file:\/*/, "file:///")
-        } else {
-            url = `https://${url}`
-        }
-    }
+    url = UTIL.stringToUrl(url)
     try {
         if (UTIL.pathToSpecialPageName(currentPage().src).name === "newtab") {
             navigateTo(url)
@@ -141,11 +133,9 @@ const saveTabs = () => {
         listTabs().forEach(tab => {
             // The list of tabs is ordered, the list of pages isn't
             const webview = tabOrPageMatching(tab)
-            if (!UTIL.pathToSpecialPageName(webview.src).name && webview.src) {
-                data.tabs.push(webview.src)
-                if (webview === currentPage()) {
-                    data.id = data.tabs.length - 1
-                }
+            data.tabs.push(UTIL.urlToString(webview.src))
+            if (webview === currentPage()) {
+                data.id = data.tabs.length - 1
             }
         })
         if (SETTINGS.get("keeprecentlyclosed")) {
@@ -156,9 +146,7 @@ const saveTabs = () => {
         listTabs().forEach(tab => {
             // The list of tabs is ordered, the list of pages isn't
             const webview = tabOrPageMatching(tab)
-            if (!UTIL.pathToSpecialPageName(webview.src).name && webview.src) {
-                data.closed.push(webview.src)
-            }
+            data.closed.push(UTIL.urlToString(webview.src))
         })
     } else {
         UTIL.deleteFile(tabFile)
@@ -226,7 +214,7 @@ const addTab = options => {
     statusIcon.src = "img/spinner.gif"
     statusIcon.className = "status"
     statusIcon.style.display = "none"
-    title.textContent = "New tab"
+    title.textContent = "Newtab"
     tab.appendChild(favicon)
     tab.appendChild(statusIcon)
     tab.appendChild(title)
@@ -285,19 +273,17 @@ const reopenTab = () => {
         return
     }
     if (UTIL.pathToSpecialPageName(currentPage().src).name === "newtab") {
-        navigateTo(recentlyClosed.pop())
+        navigateTo(UTIL.stringToUrl(recentlyClosed.pop()))
     } else if (currentPage().src) {
-        addTab({"url": recentlyClosed.pop()})
+        addTab({"url": UTIL.stringToUrl(recentlyClosed.pop())})
     } else {
-        navigateTo(recentlyClosed.pop())
+        navigateTo(UTIL.stringToUrl(recentlyClosed.pop()))
     }
 }
 
 const closeTab = () => {
-    if (currentPage().src) {
-        if (!UTIL.pathToSpecialPageName(currentPage().src).name) {
-            recentlyClosed.push(currentPage().src)
-        }
+    if (currentPage().src && UTIL.urlToString(currentPage().src)) {
+        recentlyClosed.push(UTIL.urlToString(currentPage().src))
     }
     const oldTabIndex = listTabs().indexOf(currentTab())
     if (document.getElementById("pages").classList.contains("multiple")) {
@@ -507,17 +493,29 @@ const addWebviewListeners = webview => {
         }
         if (specialPageName === "help") {
             webContents(webview).send(
-                "settings", SETTINGS.listCurrentSettings(true),
-                INPUT.listSupportedActions())
+                "settings", SETTINGS.settingsObjectWithDefaults(),
+                INPUT.listMappingsAsCommandList(false, true))
         }
         if (specialPageName === "notifications") {
             webContents(webview).send(
                 "notification-history", UTIL.listNotificationHistory())
         }
         saveTabs()
+        const title = tabOrPageMatching(webview).querySelector("span")
+        if (specialPageName) {
+            title.textContent = UTIL.title(specialPageName)
+            return
+        }
         HISTORY.addToHist(webview.src)
-        const tab = tabOrPageMatching(webview)
-        HISTORY.updateTitle(webview.src, tab.querySelector("span").textContent)
+        const existingTitle = HISTORY.titleForPage(webview.src)
+        const titleHasFlaws = UTIL.hasProtocol(title.textContent)
+            || title.textContent.startsWith("magnet:")
+            || title.textContent.startsWith("mailto:")
+        if (titleHasFlaws && existingTitle) {
+            title.textContent = existingTitle
+        } else {
+            HISTORY.updateTitle(webview.src, title.textContent)
+        }
     })
     webview.addEventListener("page-title-updated", e => {
         if (e.title.startsWith("magnet:") || e.title.startsWith("mailto:")) {

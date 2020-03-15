@@ -32,6 +32,7 @@ const sessions = {}
 
 const init = () => {
     UTIL.clearContainerTabs()
+    enableAdblocker()
     create("persist:main")
 }
 
@@ -193,7 +194,7 @@ const enableAdblocker = () => {
             })
             req.end()
         }
-    } else {
+    } else if (SETTINGS.get("adblocker") !== "off") {
         recreateAdblocker()
     }
 }

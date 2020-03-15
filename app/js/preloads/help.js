@@ -19,28 +19,78 @@
 
 const {ipcRenderer} = require("electron")
 
-window.changeColor = element => {
-    if (element.style.borderColor === "rgb(0, 51, 255)") {
-        element.style.borderColor = "rgb(0, 255, 51)"
-    } else {
-        element.style.borderColor = "rgb(0, 51, 255)"
-    }
-}
-
-ipcRenderer.on("settings", (_, currentSettings, supportedActions) => {
-    document.querySelector(".current-settings").textContent = currentSettings
-    document.querySelector(".supported-actions").textContent
-        = supportedActions.join(", ")
+ipcRenderer.on("settings", (_, settings, mappings) => {
+    // Enrich the settings list with type, default, current and value lists
+    ;[...document.querySelectorAll(".setting-status, .map-status")]
+        .forEach(el => el.parentNode.removeChild(el))
+    settings.forEach(setting => {
+        if (document.getElementById(setting.name)) {
+            const settingStatus = document.createElement("div")
+            settingStatus.className = "setting-status"
+            const typeLabel = document.createElement("span")
+            typeLabel.textContent = "Type:"
+            settingStatus.appendChild(typeLabel)
+            const type = document.createElement("kbd")
+            type.textContent = setting.typeLabel
+            settingStatus.appendChild(type)
+            const originalLabel = document.createElement("span")
+            originalLabel.textContent = "Default:"
+            settingStatus.appendChild(originalLabel)
+            const original = document.createElement("kbd")
+            if (typeof setting.default === "string") {
+                original.textContent = `"${setting.default}"`
+            } else {
+                original.textContent = setting.default
+            }
+            settingStatus.appendChild(original)
+            const currentLabel = document.createElement("span")
+            currentLabel.textContent = "Current:"
+            settingStatus.appendChild(currentLabel)
+            const current = document.createElement("kbd")
+            if (typeof setting.default === "string") {
+                current.textContent = `"${setting.current}"`
+            } else {
+                current.textContent = setting.current
+            }
+            settingStatus.appendChild(current)
+            const allowedValuesLabel = document.createElement("span")
+            allowedValuesLabel.textContent = "Accepted:"
+            settingStatus.appendChild(allowedValuesLabel)
+            const allowedValues = document.createElement("kbd")
+            allowedValues.textContent = setting.allowedValues
+            settingStatus.appendChild(allowedValues)
+            document.getElementById(setting.name).parentNode.parentNode
+                .insertBefore(settingStatus, document.getElementById(
+                    setting.name).parentNode.nextSibling)
+        }
+    })
+    // Enrich the action list with the keys that map to them
+    ;[
+        ...document.querySelectorAll("h3[id^='action.']"),
+        ...document.querySelectorAll("h3[id^='pointer.']")
+    ].forEach(actionNode => {
+        const mapList = document.createElement("div")
+        mapList.className = "map-status"
+        const actionMappings = mappings.split("\n").filter(map => {
+            return map.includes(`<${actionNode.id}>`)
+        })
+        actionMappings.forEach(mapping => {
+            const mappingKbd = document.createElement("kbd")
+            mappingKbd.textContent = mapping
+            mappingKbd.className = "command-block"
+            mapList.appendChild(mappingKbd)
+        })
+        if (!actionMappings.length) {
+            const noMappingsLabel = document.createElement("kbd")
+            noMappingsLabel.textContent = "No mappings with this action found"
+            mapList.appendChild(noMappingsLabel)
+        }
+        actionNode.parentNode.parentNode.insertBefore(
+            mapList, actionNode.parentNode.nextSibling)
+    })
 })
 
 window.addEventListener("load", () => {
-    const createTOCEntry = element => {
-        const link = document.createElement("a")
-        link.textContent = element.textContent
-        link.className = `toc-${element.tagName.toLowerCase()}`
-        link.href = `#${element.id}`
-        document.querySelector(".toc").appendChild(link)
-    }
     const createIdLabel = element => {
         const section = document.createElement("div")
         section.className = "section"
@@ -52,19 +102,22 @@ window.addEventListener("load", () => {
         label.textContent = `#${element.id}`
         label.href = `#${element.id}`
         section.appendChild(label)
-        document.body.replaceChild(section, element)
+        document.querySelector("main").replaceChild(section, element)
     }
-    // After loading, this will add the ids to the table of contents
-    // It also will display the section id for all sections that have one
+    // After loading, this will display the section id as a link
     const sections = [...document.querySelectorAll("*[id]")]
-    sections.forEach(section => {
-        createTOCEntry(section)
-        createIdLabel(section)
-    })
+    sections.forEach(section => createIdLabel(section))
     // Set focus to correct part of the page after it's done loading
     setTimeout(() => {
-        if (window.location.hash !== "") {
-            document.querySelector(`a[href='${window.location.hash}']`).click()
+        let hash = window.location.hash.toLowerCase()
+        if (hash !== "") {
+            if (document.querySelector(`a[href='${hash}']`)) {
+                document.querySelector(`a[href='${hash}']`).click()
+            }
+            hash = hash.replace("#", "#:")
+            if (document.querySelector(`a[href='${hash}']`)) {
+                document.querySelector(`a[href='${hash}']`).click()
+            }
         }
     }, 50)
 })

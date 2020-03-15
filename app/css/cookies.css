@@ -19,8 +19,9 @@
 body {color: #eee;width: 90vw;font: 14px RobotoMono, monospace;background: #333;padding: 0;margin: auto;}
 a {color: #0cf;white-space: nowrap;overflow: hidden;}
 h1 {font-size: 2em;margin: 1em 0;padding: 0;}
-input {background: #333;color: #eee;font: inherit;width: 100%;border: .1em solid #666;padding: .2em;margin-bottom: 1em;box-sizing: border-box;}
-.cookie {background: #555;margin: .5em 0;padding: .2em;display: flex;}
+input {background: #333;color: #eee;font: inherit;width: 100%;border: .1em solid #666;padding: .2em;margin-bottom: 1em;box-sizing: border-box;outline: none;}
+input:focus {border: .1em solid #aaa;}
+.cookie {background: #444;margin: .5em 0;padding: .2em;display: flex;border: .1em solid #222;}
 .cookie * {overflow: hidden;white-space: nowrap;text-overflow: ellipsis;width: 33%;padding: .2em 0;}
 img {height: 1.9em;margin: .5em;float: right;}
 #remove-all {height: 2.4em;margin: .2em;cursor: pointer;}

@@ -279,12 +279,6 @@ const init = () => {
         "pointer.updateElement",
         "pointer.releaseKeys"
     ]
-    // TODO document these changes to Vim in terms of supported mappings:
-    // - spaces not supplied as <Space>
-    // - only support <> notation and single digit characters
-    //   - e.g. letters, !@#$%^&*()_+ and number
-    // - no recursive mappings for insert mode, all of them are noremap
-    // - map! also lists built-in mappings, instead of applying a mapping
     supportedActions = [
         ...Object.keys(ACTIONS).map(a => `action.${a}`),
         ...Object.keys(POINTER).map(c => `pointer.${c}`)
@@ -293,9 +287,9 @@ const init = () => {
 }
 
 const keyNames = [
+    {"js": ["<"], "vim": ["lt"]},
     {"js": ["Backspace"], "vim": ["BS"]},
     {"js": ["Enter"], "vim": ["CR", "NL", "Return", "Enter"]},
-    {"js": ["<"], "vim": ["lt"]},
     {"js": ["|"], "vim": ["Bar"]},
     {"js": ["\\"], "vim": ["Bslash"]},
     {"js": ["ArrowLeft"], "vim": ["Left"]},
@@ -303,8 +297,8 @@ const keyNames = [
     {"js": ["ArrowUp"], "vim": ["Up"]},
     {"js": ["ArrowDown"], "vim": ["Down"]},
     {"js": ["Escape"], "vim": ["Esc"]},
-    {"js": ["Delete"], "vim": ["Del"]},
-    {"js": [" "], "vim": ["Space"]}
+    {"js": [" "], "vim": ["Space"]},
+    {"js": ["Delete"], "vim": ["Del"]}
 ]
 
 const toIdentifier = e => {
@@ -346,6 +340,7 @@ const countableActions = [
     "action.zoomIn",
     // Single use actions that ignore the count and only execute once
     "action.emptySearch",
+    "action.clickOnSearch",
     "action.toExploreMode",
     "action.startFollowCurrentTab",
     "action.scrollTop",
@@ -386,7 +381,7 @@ const hasFutureActionsBasedOnKeys = keys => {
         map => map.startsWith(keys) && map !== keys)
 }
 
-const executeMapString = (mapStr, recursive, initial) => {
+const executeMapString = async (mapStr, recursive, initial) => {
     if (initial) {
         recursiveCounter = 0
         if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
@@ -398,7 +393,13 @@ const executeMapString = (mapStr, recursive, initial) => {
     repeatCounter = 0
     updateKeysOnScreen()
     for (let i = 0;i < repeater;i++) {
-        mapStr.split(/(<.*?[^-]>|<.*?->>|.)/g).filter(m => m).forEach(key => {
+        if (recursiveCounter > SETTINGS.get("maxmapdepth")) {
+            break
+        }
+        for (let key of mapStr.split(/(<.*?[^-]>|<.*?->>|.)/g).filter(m => m)) {
+            if (recursiveCounter > SETTINGS.get("maxmapdepth")) {
+                break
+            }
             const options = {"bubbles": recursive}
             if (key.length === 1) {
                 const isLetter = key.toLowerCase() !== key.toUpperCase()
@@ -407,6 +408,7 @@ const executeMapString = (mapStr, recursive, initial) => {
                     options.shiftKey = true
                 }
                 options.key = key
+                window.dispatchEvent(new KeyboardEvent("keydown", options))
             } else if (supportedActions.includes(key.replace(/(^<|>$)/g, ""))) {
                 let count = null
                 if (countableActions.includes(key.replace(/(^<|>$)/g, ""))) {
@@ -414,10 +416,8 @@ const executeMapString = (mapStr, recursive, initial) => {
                     repeater = 0
                 }
                 doAction(key.replace(/(^<|>$)/g, ""), count)
-                return
             } else if (key.startsWith("<:")) {
                 COMMAND.execute(key.replace(/^<:|>$/g, ""))
-                return
             } else if (key.match(/^<(C-)?(M-)?(A-)?(S-)?.+>$/g)) {
                 key = key.slice(1, -1)
                 if (key.startsWith("C-")) {
@@ -444,12 +444,13 @@ const executeMapString = (mapStr, recursive, initial) => {
                 if (!options.key) {
                     options.key = key
                 }
+                window.dispatchEvent(new KeyboardEvent("keydown", options))
             } else {
                 UTIL.notify(`Unsupported key in mapping: ${key}`, "warn")
-                return
+                break
             }
-            window.dispatchEvent(new KeyboardEvent("keydown", options))
-        })
+            await new Promise(r => setTimeout(r, 2))
+        }
     }
     if (initial) {
         recursiveCounter = 0
@@ -488,7 +489,6 @@ const handleKeyboard = e => {
         ""
     ]
     if (recursiveCounter > SETTINGS.get("maxmapdepth")) {
-        recursiveCounter = 0
         e.preventDefault()
         return
     }
@@ -792,13 +792,14 @@ const mapSingle = (mode, args, noremap) => {
         bindings[mode][mapping] = {
             "mapping": actions, "noremap": noremap || mode === "i"
         }
-        return
+    } else {
+        Object.keys(bindings).forEach(bindMode => {
+            bindings[bindMode][mapping] = {
+                "mapping": actions, "noremap": noremap || bindMode === "i"
+            }
+        })
     }
-    Object.keys(bindings).forEach(bindMode => {
-        bindings[bindMode][mapping] = {
-            "mapping": actions, "noremap": noremap || bindMode === "i"
-        }
-    })
+    SETTINGS.updateHelpPage()
 }
 
 const unmap = (mode, args) => {
@@ -814,6 +815,7 @@ const unmap = (mode, args) => {
             delete bindings[bindMode][args[0]]
         })
     }
+    SETTINGS.updateHelpPage()
 }
 
 const clearmap = (mode, removeDefaults) => {
@@ -830,6 +832,7 @@ const clearmap = (mode, removeDefaults) => {
     } else {
         bindings = JSON.parse(JSON.stringify(defaultBindings))
     }
+    SETTINGS.updateHelpPage()
 }
 
 module.exports = {

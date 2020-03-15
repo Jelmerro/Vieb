@@ -105,9 +105,6 @@ const reload = () => {
 
 const openNewTab = () => {
     TABS.addTab()
-    if (SETTINGS.get("automaticexploremode")) {
-        MODES.setMode("explore")
-    }
 }
 
 const reopenTab = () => {
@@ -145,9 +142,6 @@ const backInHistory = () => {
 
 const openNewTabAtAlternativePosition = () => {
     TABS.addTab({"inverted": true})
-    if (SETTINGS.get("automaticexploremode")) {
-        MODES.setMode("explore")
-    }
 }
 
 const forwardInHistory = () => {
@@ -366,8 +360,9 @@ const distrubuteSpaceSplitWindow = () => {
 
 const useEnteredData = () => {
     if (MODES.currentMode() === "command") {
-        COMMAND.execute(document.getElementById("url").value.trim())
+        const command = document.getElementById("url").value.trim()
         MODES.setMode("normal")
+        COMMAND.execute(command)
     }
     if (MODES.currentMode() === "search") {
         currentSearch = document.getElementById("url").value
@@ -428,55 +423,43 @@ const setFocusCorrectly = () => {
 }
 
 module.exports = {
-    emptySearch,
-    clickOnSearch,
-    increasePageNumber,
-    previousTab,
-    closeTab,
+    toCommandMode,
     toExploreMode,
-    startFollowCurrentTab,
-    scrollTop,
-    insertAtFirstInput,
-    scrollLeft,
     toInsertMode,
-    scrollDown,
+    toSearchMode,
+    toNormalMode,
+    startFollowCurrentTab,
+    startFollowNewTab,
+    stopFollowMode,
+    scrollTop,
+    scrollBottom,
     scrollUp,
+    scrollDown,
+    scrollLeft,
     scrollRight,
-    nextSearchMatch,
+    scrollPageUp,
+    scrollPageDown,
+    scrollPageLeft,
+    scrollPageRight,
+    scrollPageUpHalf,
+    scrollPageDownHalf,
     reload,
+    reloadWithoutCache,
+    stopLoadingPage,
     openNewTab,
+    openNewTabAtAlternativePosition,
+    openNewTabWithCurrentUrl,
+    closeTab,
     reopenTab,
     nextTab,
-    decreasePageNumber,
-    toSearchMode,
-    startFollowNewTab,
-    scrollBottom,
-    backInHistory,
-    openNewTabAtAlternativePosition,
-    forwardInHistory,
-    previousSearchMatch,
-    reloadWithoutCache,
-    openNewTabWithCurrentUrl,
-    scrollPageRight,
-    scrollPageLeft,
-    toCommandMode,
-    scrollPageUp,
-    stopLoadingPage,
-    scrollPageDownHalf,
-    scrollPageDown,
+    previousTab,
     moveTabForward,
     moveTabBackward,
-    scrollPageUpHalf,
+    backInHistory,
+    forwardInHistory,
     zoomReset,
     zoomIn,
     zoomOut,
-    toNormalMode,
-    stopFollowMode,
-    editWithVim,
-    nextSuggestion,
-    prevSuggestion,
-    commandHistoryPrevious,
-    commandHistoryNext,
     rotateSplitWindow,
     leftHalfSplitWindow,
     bottomHalfSplitWindow,
@@ -491,6 +474,18 @@ module.exports = {
     increaseWidthSplitWindow,
     decreaseWidthSplitWindow,
     distrubuteSpaceSplitWindow,
+    emptySearch,
+    clickOnSearch,
+    nextSearchMatch,
+    previousSearchMatch,
+    increasePageNumber,
+    decreasePageNumber,
+    insertAtFirstInput,
+    editWithVim,
+    nextSuggestion,
+    prevSuggestion,
+    commandHistoryPrevious,
+    commandHistoryNext,
     useEnteredData,
     setFocusCorrectly
 }
