@@ -647,6 +647,8 @@
         Open a new tab with the newtab page. The position of the newly opened tab can be configured by the <a href="#tabnexttocurrent">tabnexttocurrent</a> setting. To open tabs at the opposite position of the configured position, use <a href="#action.openNewTabAtAlternativePosition">action.openNewTabAtAlternativePosition</a>. To open a new tab and switch to <a class="explore" href="#action.toExploreMode">explore mode</a> with the current url pre-filled in the bar, use <a href="#action.openNewTabWithCurrentUrl">action.openNewTabWithCurrentUrl</a>.
         <h3 id="action.openNewTabAtAlternativePosition" countable="true">action.openNewTabAtAlternativePosition</h3>
         Open a new tab with the newtab page. This tab will open at the opposite position of what is configured by the <a href="#tabnexttocurrent">tabnexttocurrent</a> setting. See <a href="#action.openNewTab">action.openNewTab</a> for more details.
+        <h3 id="action.openNewTabWithCurrentUrl">action.openNewTabWithCurrentUrl</h3>
+        Open a new tab with the newtab page, after which you will enter <a class="explore" href="#action.toExploreMode">explore mode</a> with the url of the current page pre-filled. This can be used to quickly open another page with a similar url, that is not linked on the current page. Another advantage is that this action will NOT use the system clipboard to copy the url.
         <h3 id="action.closeTab" countable="true">action.closeTab</h3>
         This action closes the current tab, and switches to the nearest opened tab. If the last tab is closed, the newtab page will (re)open as the only opened tab. Opposite of <a href="#action.reopenTab">action.reopenTab</a>.
         <h3 id="action.reopenTab">action.reopenTab</h3>
