@@ -59,7 +59,7 @@ ipcRenderer.on("download-list", (_, list) => {
     // List
     if (list.length === 0) {
         document.getElementById("list").textContent
-            = "Nothing has been downloaded yet."
+            = "Nothing has been downloaded yet"
         const removeAll = document.getElementById("remove-all")
         removeAll.style.display = "none"
         return

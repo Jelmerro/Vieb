@@ -18,7 +18,7 @@
 /* General */
 @font-face {font-family: RobotoMono;src: url("./font/RobotoMono-Regular.ttf");}
 body {color: #eee;font: 14px RobotoMono, monospace;background: #333;padding: 0;margin: 3vw;line-height: 2;}
-main {max-width: 1000px;margin: auto;}
+main {max-width: 65em;margin: auto;}
 kbd {background: #111;color: #fff;padding: .1em;overflow-wrap: anywhere;}
 /* Top header */
 .header, .header > div {font-size: 5vw;display: flex;flex: 1;justify-content: center;}
@@ -28,8 +28,9 @@ a {color: #0cf;overflow-wrap: anywhere;}
 li {line-height: 1.5em;}
 .section {display: flex;flex-wrap: wrap;align-items: center;}
 .section h1, .section h2, .section h3, .section h4, .section h5, .section h6 {margin: 0;overflow-wrap: anywhere;}
+.section .spacer {flex-grow: 1;}
 .section {margin: 1em 0;}
-.section > a {margin: auto 0;overflow-wrap: anywhere;flex: 1;text-align: right;}
+.section > a {margin: auto 0;overflow-wrap: anywhere;text-align: right;}
 h1 {font-size: 3em;margin: .7em 0 .5em;color: #d10;}
 h2 {font-size: 2em;margin: .7em 0;color: #f76;}
 h3 {font-size: 1.5em;margin: .7em 0;color: #fb9;}

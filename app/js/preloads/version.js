@@ -70,21 +70,21 @@ const checkForUpdates = () => {
                     const diff = compareVersions(version, release.tag_name)
                     if (diff === "older") {
                         versionCheck.textContent
-                            = `New version ${release.tag_name} is available!`
+                            = `New version ${release.tag_name} is available`
                     } else if (diff === "newer") {
                         versionCheck.textContent
-                            = `Latest release ${release.tag_name} is older.`
+                            = `Latest release ${release.tag_name} is older`
                     } else if (diff === "even") {
                         versionCheck.textContent
-                            = "Your Vieb is up to date."
+                            = "Your Vieb is up to date"
                     } else {
-                        versionCheck.textContent = "Failed to fetch updates."
+                        versionCheck.textContent = "Failed to fetch updates"
                     }
                 } catch (e) {
-                    versionCheck.textContent = "Failed to fetch updates."
+                    versionCheck.textContent = "Failed to fetch updates"
                 }
             } else {
-                versionCheck.textContent = "Failed to fetch updates."
+                versionCheck.textContent = "Failed to fetch updates"
             }
             document.querySelector("button").disabled = false
         }

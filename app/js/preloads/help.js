@@ -100,11 +100,16 @@ ipcRenderer.on("settings", (_, settings, mappings) => {
 
 const processHash = () => {
     if (window.location.hash !== "") {
+        if (window.location.hash === "#keycodes") {
+            document.querySelector("a[href='#key-codes']").click()
+            return
+        }
         const hashVariations = [
             window.location.hash,
             window.location.hash.replace("#", "#:"),
             window.location.hash.replace(/!$/, ""),
-            window.location.hash.replace("#", "#:").replace(/!$/, "")
+            window.location.hash.replace("#", "#:").replace(/!$/, ""),
+            window.location.hash.replace(/-/, "")
         ]
         for (const h of hashVariations) {
             if (document.querySelector(`a[href='${h}']`)) {
@@ -127,9 +132,12 @@ window.addEventListener("load", () => {
         header.textContent = element.textContent
         header.setAttribute("countable", element.getAttribute("countable"))
         section.appendChild(header)
+        const spacer = document.createElement("div")
+        spacer.className = "spacer"
+        section.appendChild(spacer)
         const label = document.createElement("a")
         label.textContent = `#${element.id}`
-        label.href = `#${element.id}`
+        label.href = `#${element.id.replace("<>", "%3C%3E")}`
         section.appendChild(label)
         document.querySelector("main").replaceChild(section, element)
     }
