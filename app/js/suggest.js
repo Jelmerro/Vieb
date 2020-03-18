@@ -213,6 +213,8 @@ const suggestCommand = search => {
             "settingcommands",
             "specialpages",
             "mappings",
+            "key-codes",
+            "<>",
             "customcommands",
             "splits",
             "viebrc",
@@ -224,10 +226,11 @@ const suggestCommand = search => {
             "pointer",
             "license",
             "mentions",
-            ...COMMAND.commandList(false).map(c => `:${c}`),
+            ...COMMAND.commandList().map(c => `:${c}`),
             ...INPUT.listSupportedActions(),
             ...Object.values(SETTINGS.settingsObjectWithDefaults())
-                .map(s => s.name)
+                .map(s => s.name),
+            ...COMMAND.commandList()
         ].filter(section => {
             return `${command} ${section}`.startsWith(
                 `${command} ${args.join(" ")}`.trim())

@@ -112,11 +112,16 @@ const create = name => {
 }
 
 const applyDevtoolsSettings = session => {
-    const sessionFolder = path.join(
-        remote.app.getPath("appData"), "Partitions", session)
-    const preferencesFile = path.join(sessionFolder, "Preferences")
+    const partitionDir = path.join(remote.app.getPath("appData"), "Partitions")
+    const sessionDir = path.join(partitionDir, session)
+    const preferencesFile = path.join(sessionDir, "Preferences")
     try {
-        fs.mkdirSync(sessionFolder)
+        fs.mkdirSync(partitionDir)
+    } catch (e) {
+        // Directory probably already exists
+    }
+    try {
+        fs.mkdirSync(sessionDir)
     } catch (e) {
         // Directory probably already exists
     }

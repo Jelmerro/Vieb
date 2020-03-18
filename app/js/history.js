@@ -25,7 +25,7 @@ const {remote} = require("electron")
 
 const histFile = path.join(remote.app.getPath("appData"), "hist")
 let groupedHistory = {}
-let lastWrite = new Date().getTime()
+let histWriteTimeout = null
 let finishedLoading = false
 
 const init = () => {
@@ -148,17 +148,13 @@ const writeHistToFile = (now = false) => {
             delete groupedHistory[url]
         }
     })
+    clearTimeout(histWriteTimeout)
     if (now) {
         return UTIL.writeJSON(histFile, groupedHistory)
     }
-    if (new Date().getTime() - lastWrite > 10000) {
-        lastWrite = new Date().getTime()
-        setTimeout(() => {
-            UTIL.writeJSON(histFile, groupedHistory)
-        }, 1000)
-    } else {
-        setTimeout(writeHistToFile, 5000)
-    }
+    histWriteTimeout = setTimeout(() => {
+        writeHistToFile(true)
+    }, 5000)
 }
 
 const removeFromHistory = entries => {

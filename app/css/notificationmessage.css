@@ -20,4 +20,4 @@
 html {margin: 0;padding: 0;}
 body {color: #eee;width: 100vw;height: 100vh;font: 14px RobotoMono, monospace;background: #333;margin: 0;overflow: hidden;}
 #notification {padding: 0;margin: 1em;height: calc(100% - 4em);overflow-wrap: break-word;overflow-x: hidden;overflow-y: auto;}
-footer {font-size: 1em;line-height: 2em;height: 2em;position: fixed;left: 0;bottom: 0; width: 100vw;background: #222;}
+footer {font-size: 1em;line-height: 2em;height: 2em;position: fixed;left: 0;bottom: 0; width: 100vw;background: #222;user-select: none;}

@@ -40,10 +40,10 @@
             <li><kbd>Esc</kbd> - Back to normal mode, this is where you want to be in most of the time</li>
             <li><kbd>j</kbd> and <kbd>k</kbd> - Scrolling the page</li>
             <li><kbd>F1</kbd> - Always opens this help page</li>
-            <li><kbd>:</kbd> - Switch to <a class="command" href="#action.toCommandMode">command mode</a> (for extending and configuring Vieb)</li>
+            <li><kbd>:</kbd> - Switch to <a class="command" href="#action.toCommandMode">command mode</a> (for executing commands or configuring settings)</li>
             <li><kbd>e</kbd> - Switch to <a class="explore" href="#action.toExploreMode">explore mode</a> (for navigating to websites or searching the web)</li>
             <li><kbd>f</kbd> - Switch to <a class="follow" href="#action.startFollowCurrentTab">follow mode</a> (for clicking buttons or links based on keys)</li>
-            <li><kbd>/</kbd> - Switch to <a class="search" href="#action.toSearchMode">search mode</a> (case-sensitive, use <kbd>n</kbd> and <kbd>N</kbd> to switch between matches)</li>
+            <li><kbd>/</kbd> - Switch to <a class="search" href="#action.toSearchMode">search mode</a> (for locating text in the page, use <kbd>n</kbd> and <kbd>N</kbd> to switch between matches)</li>
         </ul>
         You can see the current mode at all times in the navbar, next to the url.
         Vieb is separated into different modes, most importantly normal mode.
@@ -122,7 +122,7 @@
         <ul>
             <li><span class="command-block">:reload</span> - Reload all settings from disk</li>
         </ul>
-        This command will reload the settings from the defaults and your <a href="#viebrc">viebrc</a> files, in order. Effectively this will reload all the settings to the values just after starting Vieb. This is not the same as resetting all settings to Vieb's default, which can be done with <span class="command-block">:set all&</span>. Both the reload and set command only modify the settings for the current session, unless the changes are written back to the viebrc with the <a href="#:mkviebrc">:mkviebrc</a> command.
+        This command will reload the settings from the defaults and your <a href="#viebrc">viebrc</a> files, in order. Effectively this will reload all the settings to the values just after starting Vieb. This is not the same as resetting all settings to Vieb's default, which can be done with <span class="command-block">:set all&amp;</span>. Both the reload and set command only modify the settings for the current session, unless the changes are written back to the viebrc with the <a href="#:mkviebrc">:mkviebrc</a> command.
         <h3 id=":mkviebrc">:mkviebrc</h3>
         Examples
         <ul>
@@ -160,13 +160,13 @@
             <li><span class="command-block">:downloads</span> - Open the downloads page</li>
             <li><span class="command-block">:d</span> - Open the downloads page</li>
         </ul>
-        Use this command to open the download page, located at "vieb://downloads". This page contains a list of all the previously downloaded files, including those still in progress or cancelled. On this page you can pause or remove any of the downloads. There are also settings to automatically remove downloads, see <a href="#cleardownloadsoncompleted">cleardownloadsoncompleted</a> and <a href="#cleardownloadsonquit">cleardownloadsonquit</a> for details. Downloaded files are always started automatically, and will be stored in the folder configured by <a href="#downloadpath">downloadpath</a>.
+        Use this command to open the download page, located at "vieb://downloads". This page contains a list of all the previously downloaded files, including those still in progress or canceled. On this page you can pause or remove any of the downloads. There are also settings to automatically remove downloads, see <a href="#cleardownloadsoncompleted">cleardownloadsoncompleted</a> and <a href="#cleardownloadsonquit">cleardownloadsonquit</a> for details. Neither of these settings will remove downloaded files from disk. Downloads are always started automatically, and will be stored in the folder configured by <a href="#downloadpath">downloadpath</a>.
         <h3 id=":cookies">:cookies</h3>
         Examples
         <ul>
             <li><span class="command-block">:cookies</span> - Open the cookies page</li>
         </ul>
-        Open the special cookies page with this command, located at "vieb://cookies". On this page you can view all of Vieb's cookies. The cookies pages allows you to delete individual cookies, or all cookies (possibly based on a filter by name). Finally, it's also possible to delete cookies with <a href="#clearcookiesonquit">clearcookiesonquit</a>.
+        Open the cookies page with this command, located at "vieb://cookies". On this page you can view all of Vieb's cookies. The cookies pages allows you to delete individual cookies, or all cookies (possibly based on a filter by name). Finally, it's also possible to delete cookies with <a href="#clearcookiesonquit">clearcookiesonquit</a>.
         <h3 id=":notifications">:notifications</h3>
         Examples
         <ul>
@@ -176,10 +176,10 @@
         <h2 id="mappings">Mappings</h2>
         The keyboard mappings are completely dynamic in Vieb, meaning that you can change the behavior of all keyboard keys. To manage these mappings, Vieb implements a similar system to Vim, with support for recursion, multiple keystrokes, countable actions and similar features. These are all of the key differences of Vieb's mapping system compared to Vim:
         <ul>
-            <li>Only the &lt;&gt;-notification is supported for including modifiers or special keys</li>
+            <li>Only the &lt;&gt;-notation is supported for including modifiers or special keys</li>
             <li><a class="insert" href="#action.toInsertMode">Insert mode</a> does not support recursive mappings</li>
             <li>Spaces can only be supplied as <kbd>&lt;Space&gt;</kbd>, regular spaces are ignored</li>
-            <li>Adding a <kbd>!</kbd> to the map command indicates that it should also list default mappings, but does not map keys when added</li>
+            <li>Adding a <kbd>!</kbd> to the map command indicates that it should also read and list default mappings</li>
             <li>All keyboard shortcuts passed to Vieb are supported, there are no terminal or history related limitations. For example, in Vieb you can distinguish between Meta and Alt keyboard mappings, and also map sequences unavailable in Vim, such as &lt;C-c&gt; (Ctrl-c) or &lt;A-F4&gt; (Alt-F4).</li>
             <li>Vieb allows you to optionally list default mappings with the map command</li>
             <li>Vieb adds compatible map syntax to run actions or commands without remembering or preserving the original keys mapped to it</li>
@@ -202,14 +202,14 @@
         </ul>
         All of these commands will be explained in more detail in their own paragraph below, you can jump there directly the help command like so: <span class="command-block">:help :cunmap</span>.
         <h3 id="key-codes">Key codes</h3>
-        Some mappings require multiple keys to be pressed in order. If there are mappings that require multiple keys, and you only press the first one, Vieb will remember the keys you press for a while, which allows you to press the next keys required for the mapping to activate. If <a href="#showcmd">showcmd</a> is enabled, the pressed keys will be shown in the topright corner of the Vieb window. You can also configure the time it takes for pressed keys to be forgotten if no other keys are pressed using <a href="#timeout">timeout</a> and <a href="#timeoutlen">timeoutlen</a>. However, most default mappings of Vieb only require a single key to active, although sometimes while holding down a modifier, such as Control or Shift. The syntax for mappings keys can be easily summarized: it's the keys that would appear on screen if you were typing them out, so pressing <kbd>hjkl</kbd> would result in <kbd>hjkl</kbd>, which is also the map syntax from pressing them in order. Characters that are affected by Shift also work this way, so typing <kbd>hj</kbd> and then starting to hold shift while typing <kbd>KL</kbd> will result in <kbd>hjKL</kbd>, which is also the mapping sequence that Vieb and Vim will understand AND execute. This works for most of the single keys, including special characters such as <kbd>%</kbd> or <kbd>#</kbd>, but there are some exceptions:
+        Some mappings require multiple keys to be pressed in order. If there are mappings that require multiple keys, and you only press the first one, Vieb will remember the keys you just pressed for a while, which allows you to press the next keys required for the mapping to activate. If <a href="#showcmd">showcmd</a> is enabled, the pressed keys will be shown in the top-right corner of the Vieb window. You can also configure the time it takes for pressed keys to be forgotten if no other keys are pressed using <a href="#timeout">timeout</a> and <a href="#timeoutlen">timeoutlen</a>. However, most default mappings of Vieb only require a single key to active, although sometimes while holding down a modifier, such as Control or Shift. The syntax for mappings keys can be easily summarized: it's the keys that would appear on screen if you were typing them out, so pressing <kbd>hjkl</kbd> would result in <kbd>hjkl</kbd>, which is also the map syntax from pressing them in order. Characters that are affected by Shift also work this way, so typing <kbd>hj</kbd> and then starting to hold shift while typing <kbd>KL</kbd> will result in <kbd>hjKL</kbd>, which is also the mapping sequence that Vieb and Vim will understand AND execute. This works for most of the single keys, including special characters such as <kbd>%</kbd> or <kbd>#</kbd>, but there are some exceptions:
         <ul>
-            <li>Keys with modifiers (except those that are affected by Shift, such as <kbd>%</kbd> vs <kbd>5</kbd> or <kbd>U</kbd> vs <kbd>u</kbd>.</li>
+            <li>Keys with modifiers (except those that are affected by Shift, such as <kbd>%</kbd> vs <kbd>5</kbd> or <kbd>U</kbd> vs <kbd>u</kbd>).</li>
             <li>Special characters that are given a proper name, because they don't map to a key or are part of the map syntax</li>
         </ul>
         There is a separate syntax to map such exceptions, examples like <kbd>&lt;C-c&gt;</kbd> meaning Ctrl-c, which is called the &lt;&gt;-notation.
         <h4 id="<>">&lt;&gt;-notation</h4>
-        More advanced keys, such as the ones explained above, can be written using the &lt;&gt;-notation. These essentially means wrapping a written representation of the keys between &lt;&gt; signs. Here are some examples:
+        More advanced keys, such as the ones explained above, can be written using the &lt;&gt;-notation. This essentially means wrapping a written representation of the keys between &lt;&gt; signs. Here are some examples:
         <ul>
             <li><kbd>&lt;F12&gt;</kbd> - The F12 key, without holding modifiers</li>
             <li><kbd>&lt;S-Right&gt;</kbd> - Pressing the right arrow key while holding Shift</li>
@@ -221,12 +221,12 @@
         <h4>Named characters</h4>
         Similar tot the &lt;&gt;-notation, there are also keys that cannot be represented in a single character, one of which is &lt;, which is of course already part of the &lt;&gt;-notation syntax. These type of characters can be represented like so:
         <ul>
-            <li><kbd>&lt;lt&gt;</kbd> - This represents the &lt; character (the greater than sign is simply represented by <kbd>&gt;</kbd>, see last &lt;&gt;-notation example)</li>
+            <li><kbd>&lt;lt&gt;</kbd> - This represents the &lt; character (the greater than sign is simply represented by <kbd>&gt;</kbd>, see last example just above)</li>
             <li><kbd>&lt;BS&gt;</kbd> - This represents the Backspace key</li>
-            <li><kbd>&lt;CR&gt;</kbd>, <kbd>NL</kbd>, <kbd>Return</kbd> or <kbd>Enter</kbd> - This represents the Enter key</li>
+            <li><kbd>&lt;CR&gt;</kbd>, <kbd>&lt;NL&gt;</kbd>, <kbd>&lt;Return&gt;</kbd> or <kbd>&lt;Enter&gt;</kbd> - This represents the Enter key</li>
             <li><kbd>&lt;Bar&gt;</kbd> - This represents the | character</li>
             <li><kbd>&lt;Bslash&gt;</kbd> - This represents the \ character (forward slash is simply <kbd>/</kbd>)</li>
-            <li><kbd>&lt;Left&gt;</kbd> - This represents the left arrow key (similarly, there are <kbd>Right</kbd>, <kbd>Up</kbd> and <kbd>Down</kbd>)</li>
+            <li><kbd>&lt;Left&gt;</kbd> - This represents the left arrow key (similarly, you have <kbd>&lt;Right&gt;</kbd>, <kbd>&lt;Up&gt;</kbd> and <kbd>&lt;Down&gt;</kbd>)</li>
             <li><kbd>&lt;Esc&gt;</kbd> - This represents the Escape key</li>
             <li><kbd>&lt;Space&gt;</kbd> - This represents the spacebar (literal spaces are ignored in mappings)</li>
             <li><kbd>&lt;Del&gt;</kbd> - This represents the Delete key</li>
@@ -276,7 +276,7 @@
         Examples
         <ul>
             <li><span class="command-block">:mapclear</span> - Remove all custom mappings for all modes</li>
-            <li><span class="command-block">:mapclear!</span> - Remove every single mapping of Vieb, including defaults (executing this at runtime, WILL prevent you from using Vieb!)</li>
+            <li><span class="command-block">:mapclear!</span> - Remove every single mapping of Vieb, including defaults (executing this at runtime WILL prevent you from using Vieb!)</li>
         </ul>
         The mapclear command is used to clear all custom mappings. It is recommended to only use this command from the <a href="#viebrc">viebrc</a> file, while also adding new mappings in the same file. It can offer you a clean starting point to start mapping your own keystrokes. To also clear built-in mappings with this command, you can append it with a <kbd>!</kbd>. Keep in mind that this will really remove ALL mappings for all modes, so there is no way back if you run this at runtime! It's therefor recommended to only use this command from a viebrc, after which you need to add your own custom keyboard sequences mapped to actions or commands.
         <h3 id=":nmap">:nmap</h3>
@@ -351,7 +351,7 @@
             <li><span class="command-block">:command</span> - Show a list of all user defined commands</li>
             <li><span class="command-block">:command homepage &lt;action.toExploreMode&gt;vieb.dev&lt;Enter&gt;</span> - Add a custom command name homepage, to navigate to vieb.dev</li>
             <li><span class="command-block">:command homepage</span> - Show the actions bound to the homepage command, if it exists</li>
-            <li><span class="command-block">:command! clickonmenu &lt;action.toSearchMode&gt;Menu&lt;Enter&gt;n&lt;Enter&gt;</span> - Add a command to click on the first match on the page with the "Menu" text, overwriting any existing command with the same name</li>
+            <li><span class="command-block">:command! clickonmenu &lt;Esc&gt;/Menu&lt;Enter&gt;n&lt;Enter&gt;</span> - Add a command to click on the first match on the page with the "Menu" text, overwriting any existing command with the same name</li>
         </ul>
         The command to add custom commands is simply named "command". Without arguments, it will lists all previously added custom commands. With one argument, it will list one specific command and it's actions. With two or more arguments, it will add a new command, where the first argument is the command name and all other arguments are the mapping. To overwrite commands that you have already defined before, append a "!" at the end of the command.
         <h3 id=":delcommand">:delcommand</h3>
@@ -368,7 +368,7 @@
         </ul>
         The comclear command will unconditionally remove every single custom command that has been added. It will not remove built-in commands.
         <h2 id="splits">Splits</h2>
-        Vieb allows you to view multiple pages at once using window splits. This paragraph will explain which commands can be used to open split or how to switch between splits. For other window splitting related actions, see the <a href="#splitting">splitting</a> chapter.
+        Vieb allows you to view multiple pages at once using window splits. This paragraph will explain which commands can be used to open split windows or how to switch between splits. For other window splitting related actions, see the <a href="#splitting">splitting</a> chapter.
         <h3 id=":buffer">:buffer</h3>
         Examples
         <ul>
@@ -404,7 +404,7 @@
         <h3 id=":split">:split</h3>
         Identical to <a href="#:Sexplore">:Sexplore</a>.
         <h2>Other commands</h2>
-        The commands in this paragraph do not belong in a specific category, but are still a core part of Vieb. Commands included in this other group range from printing, to developer tools and to quitting Vieb.
+        The commands in this paragraph do not belong in a specific category, but are still a core part of Vieb. These commands range from printing, to developer tools and to quitting Vieb.
         <h3 id=":call">:call</h3>
         Examples
         <ul>
@@ -420,13 +420,13 @@
             <li><span class="command-block">:write savedpage/</span> - Save the current page the "savedpage" subfolder of <a href="#downloadpath">downloadpath</a> with the page name as the filename</li>
             <li><span class="command-block">:write ~/Documents/savedpage</span> - Save the current page to "~/Documents/" with "savedpage" as the filename</li>
         </ul>
-        With the write command you can save the current page to disk. There is one optional argument, which serves as both the filename and the location. The location is by default set to the <a href="#downloadpath">downloadpath</a> setting, but can be changed by including it in the filename argument. If the filename ends with a "/", it's assumed to be just the folder part, and the page will be saved in that folder with the default filename (the name of the page).
+        With the write command you can save the current page to disk. There is one optional argument, which serves as both the filename and the location. The location is by default set to the <a href="#downloadpath">downloadpath</a> setting, but can be changed by including it in the filename argument. If the filename ends with a "/", it's assumed to be just the folder part, and the page will be saved in that folder with the default filename (the name of the page). Lastly, absolute paths are saved in exactly that location.
         <h3 id=":hardcopy">:hardcopy</h3>
         Examples
         <ul>
             <li><span class="command-block">:hardcopy</span> - Open the print dialog, to print the current page</li>
         </ul>
-        With the hardcopy command you can make a hardcopy of the current page using a printer. This will open the print dialog similar to other programs. There are no arguments for this command.
+        With the hardcopy command you can make a hardcopy of the current page using a printer. This will open the print dialog similar to other programs. There are no arguments for this command. Tip: it's also possibly to do this for <a href="#specialpages">specialpages</a> such as this help page.
         <h3 id=":print">:print</h3>
         Identical to <a href="#:hardcopy">:hardcopy</a>.
         <h3 id=":devtools">:devtools</h3>
@@ -439,7 +439,7 @@
         <ul>
             <li><span class="command-block">:quit</span> - Close the current window split, or quit Vieb if only one is open</li>
         </ul>
-        The quit command works the same as in Vim and will only exit Vieb if there is only one window left. If there are multiple open, it will simply close the current window, similar to closing the tab. To unconditionally quit Vieb, see <a href="#:quitall">:quitall</a>.
+        The quit command will only exit Vieb if there is only one window left. If there are multiple open, it will simply close the current window. This logic is only applied to opened windows, the amount of tabs you have open is irrelevant for the quit command. To unconditionally quit Vieb, see <a href="#:quitall">:quitall</a>.
         <h3 id=":quitall">:quitall</h3>
         Examples
         <ul>
@@ -447,16 +447,16 @@
         </ul>
         With quitall you will unconditionally close and stop all of Vieb. To configure what gets clear on quit, see these settings, among others: <a href="#cache">cache</a>, <a href="#clearcookiesonquit">clearcookiesonquit</a>, <a href="#cleardownloadsonquit">cleardownloadsonquit</a>, <a href="#clearhistoryonquit">clearhistoryonquit</a>, <a href="#clearlocalstorageonquit">clearlocalstorageonquit</a>, <a href="#keeprecentlyclosed">keeprecentlyclosed</a>, <a href="#restoretabs">restoretabs</a> and <a href="#containertabs">containertabs</a>.
         <h1 id="settings">Settings</h1>
-        There are a lot of settings in Vieb and all of them can be changed at runtime, or using a settings file. The changes you make at runtime are not saved automatically for subsequent session, but they can be if you want to. This chapter provides introductions on how to do all this, and a list of all the settings Vieb has to offer.
+        There are a lot of settings in Vieb and all of them can be changed at runtime, or using a settings file. The changes you make at runtime are not saved automatically for subsequent sessions, but they can be if you want to. This chapter provides introductions on how to do all this, and a list of all the settings Vieb has to offer.
         <h2>Set command</h2>
         To change settings at runtime, the <a href="#:set">:set</a> command is used. This command can read, write and update any setting for the current session. See the command section for more details on how to do this. To change settings permanently, read the following paragraph, regarding the viebrc file.
         <h2 id="viebrc">Viebrc</h2>
         To change settings for subsequent sessions, store them as commands in a viebrc file. There are two locations where you can store such a file:
         <ul>
-            <li><kbd>~/.viebrc</kbd> - This user viebrc should be placed directly in the user directory and will always take priority over the system viebrc. Vieb will only every read this file, and will not write to it.</li>
-            <li>system viebrc - This system viebrc file will be stored in Vieb's <a href="#datafolder">datafolder</a>. This configuration file will be read on startup, similar to the viebrc file in the user folder. However, the system viebrc file can also be generated with the current settings using the <a href="#:mkviebrc">:mkviebrc</a> command.</li>
+            <li><kbd>~/.viebrc</kbd> - This user viebrc should be placed directly in the user directory and will always take priority over the system viebrc. Vieb will only read this file, and will never write to it.</li>
+            <li>system viebrc - This system viebrc file will be stored in Vieb's <a href="#datafolder">datafolder</a>. This configuration file will be read on startup, similar to the viebrc file in the user folder. However, the system viebrc file can also be generated based on the current settings using the <a href="#:mkviebrc">:mkviebrc</a> command.</li>
         </ul>
-        The viebrc file should contain a single command per line. Most regular commands are supported, such as set commands or map commands.
+        The viebrc file should contain a single command per line. Most regular commands are supported, such as set commands or map commands. Basically, the viebrc file should be a list of commands you want to execute every time Vieb is started.
         <h2 id="datafolder">Data folder</h2>
         Vieb stores all of it's data inside a single folder, which is by default located in one of these locations:
         <ul>
@@ -464,11 +464,11 @@
             <li>Windows - <kbd>%APPDATA%\Vieb\</kbd>
             <li>Mac - <kbd>~/Library/Application Support/Vieb/</kbd>
         </ul>
-        All browsing history, cache, cookies, localstorage, favicons, preferences, blocklists, tab history and download history are stored in this folder. You can also run Vieb in portable mode, by starting it with the "--portable" argument, to use a relative "ViebData" folder. Since the system <a href="#viebrc">viebrc</a> is also inside this folder, you can use this to have a completely portable instance of Vieb.
+        All browsing history, cache, cookies, localstorage, favicons, preferences, blocklists, tab history and download history are stored in this folder. You can also run Vieb in portable mode, by starting it with the "--portable" argument, to use a relative "ViebData" folder. Since the system <a href="#viebrc">viebrc</a> is also inside this folder, you can use this to have a completely portable instance of Vieb. Start Vieb with the "--help" argument to see other startup arguments.
         <h2>Setting list</h2>
         The rest of this chapter will focus on all the different settings of Vieb.
         <h3 id="adblocker">adblocker</h3>
-        Vieb has an integrated adblocker, which will block advertisements and trackers based on blocklists. These blocklists are by default set to easylist and easyprivacy. This setting is used to enable or disable the adblocker, but also to configure the update mechanism. The "static" value will use the integrated blocklists and will not check for updates. These integrated lists are only updated when a new Vieb release is made. To enable automatic updates of these lists without waiting for a new Vieb release, you can change this setting to "update". Keep in mind that this will periodically connect to the easylist website to download the latest version, which is also why this setting is set to "static" by default. The "custom" option allows you to implement your own external blocklist management and also to disable any of the built-in lists. Adding other lists can already be done without using the "custom" option, by adding lists to the blocklists folder inside Vieb's <a href="#datafolder">datafolder</a>.
+        Vieb has an integrated adblocker, which will block advertisements and trackers based on blocklists. These blocklists are by default set to easylist and easyprivacy. This setting is used to enable or disable the adblocker, but also to configure the update mechanism. The "static" value will use the integrated blocklists and will not check for updates. These integrated lists are only updated when a new Vieb release is made. To enable automatic updates of these lists without waiting for a new Vieb release, you can change this setting to "update". Keep in mind that this will periodically connect to the easylist website to download the latest version, which is also why this setting is set to "static" by default. The "custom" option allows you to implement your own external blocklist management and also to disable any of the built-in lists. Adding other lists can already be done without using the "custom" option, by adding lists to the "blocklists" folder inside Vieb's <a href="#datafolder">datafolder</a>.
         <h3 id="cache">cache</h3>
         This setting can be used to disable or automatically remove the browsing cache. Changing this setting from or to the value "off" only has effect at startup, due to Chromium limitations. The cache can always be set to "clearonquit" or "full", regardless of the initial value of this setting. It's recommended to at least clear the cache on quit, because the browsing cache can get very large with extended periods of use.
         <h3 id="clearcookiesonquit">clearcookiesonquit</h3>
@@ -476,17 +476,17 @@
         <h3 id="cleardownloadsoncompleted">cleardownloadsoncompleted</h3>
         Toggle for clearing successfully completed downloads. When a download fails, it will not be cleared. This toggle will clear completed downloads as soon as they are done, unlike the <a href="#cleardownloadsonquit">cleardownloadsonquit</a> setting, which will unconditionally clear all downloads when quitting Vieb regardless of download status.
         <h3 id="cleardownloadsonquit">cleardownloadsonquit</h3>
-        Toggle for clearing all downloads regardless of status when quitting Vieb. This will not remove completed downloads from disk, but it will clear the download history.
+        Toggle for clearing all downloads regardless of status when quitting Vieb. This will not remove downloaded files from disk, but it will clear the download history.
         <h3 id="clearhistoryonquit">clearhistoryonquit</h3>
-        Toggle for clearing all browsing history on quit. This setting is connected to <a href="#keeprecentlyclosed">keeprecentlyclosed</a> and <a href="#restoretabs">restoretabs</a>. The browsing history can be viewed on the <a href="#:history">history</a> page. As a result of separating tab, download and browsing history, there is no traditional private mode in Vieb. The same can be achieved by toggling all these settings at once using <a href="#mappings">mappings</a> or <a href="#customcommands">custom commands</a>.
+        Toggle for clearing all browsing history on quit. The browsing history can be viewed on the <a href="#:history">history</a> page. As a result of separating tab, download and browsing history, there is no traditional private mode in Vieb. The same can be achieved by toggling all these settings at once using <a href="#mappings">mappings</a> or <a href="#customcommands">custom commands</a>. See <a href="#storenewvisists">storenewvisists</a> for more details.
         <h3 id="clearlocalstorageonquit">clearlocalstorageonquit</h3>
         Toggle for clearing all of the localstorage when quitting Vieb.
         <h3 id="containertabs">containertabs</h3>
-        Toggle for running tabs in a separate container. When enabled, tabs will not share cache, cookies, localstorage or any other part of the browser settings. The browsing history will still be stored by Vieb, but all related cookies and such will only exist in memory for as long as Vieb is running.
+        Toggle for running tabs in a separate container. When enabled, tabs will not share cache, cookies, localstorage or any other part of the browser settings. The browsing history will still be stored by Vieb, but all related cookies and such will only be stored for as long as Vieb is running.
         <h3 id="countlimit">countlimit</h3>
-        This setting is used as an upper limit of the counter for repeating actions in normal mode, <a class="pointer" href="#pointer">pointer mode</a> and <a class="visual" href="#pointer">visual mode</a>. For example, pressing <kbd>50t</kbd> will open 50 new tabs. This setting limits the number of repeated actions, which you can visualize in the topright of the Vieb window if <a href="#showcmd">showcmd</a> is set.
+        This setting is used as an upper limit of the counter for repeating actions in normal mode, <a class="pointer" href="#pointer">pointer mode</a> and <a class="visual" href="#pointer">visual mode</a>. For example, pressing <kbd>50t</kbd> will usually open 50 new tabs, but only 10 if the countlimit is set to 10. This setting limits the number of repeated actions, which you can visualize in the top-right of the Vieb window if <a href="#showcmd">showcmd</a> is set. There is also a setting to limit the maximum recursion of a mapping, named <a href="#maxmapdepth">maxmapdepth</a>.
         <h3 id="downloadpath">downloadpath</h3>
-        The location of all downloaded files. Used as the default folder for the <a href="#:write">:write</a> command and as the location for all other downloaded files. Due to a technical limitation there is no option to ask for the location before downloading a file similar to Firefox.
+        The location of all downloaded files. Used as the default folder for the <a href="#:write">:write</a> command and as the location for all other downloaded files. Due to a technical limitation there is no option to ask for the location before downloading a file like in Firefox.
         <h3 id="favicons">favicons</h3>
         Change this setting to modify the favicon cache duration. This setting does not affect for how long favicons are stored on disk, but only affects the amount of time it takes in refresh them. A favicon will automatically be removed from disk when it is not used for any of the pages in the browsing history. This setting does not change this mechanism, and only modifies the length of time any favicon will be cached.
         <h3 id="fontsize">fontsize</h3>
@@ -494,9 +494,9 @@
         <h3 id="keeprecentlyclosed">keeprecentlyclosed</h3>
         Toggle whether to keep recently closed tabs and allow them to be restored. This setting is unaffected by other history settings. Disabling this setting will result in the <a href="#action.reopenTab">action.reopenTab</a> being unable to restore previously closed tabs. If <a href="#restoretabs">restoretabs</a> is disabled, all open tabs will be moved to the list of recently closed tabs when quitting Vieb, unless this setting is also disabled (in which case they can not be restored).
         <h3 id="ignorecase">ignorecase</h3>
-        Toggle for case-sensitive searching in the page. This only affects newly made searches made.
+        Toggle for case-sensitive searching in the page. Any existing search will be updated to match this setting when either <a href="#action.nextSearchMatch">action.nextSearchMatch</a> or <a href="#action.previousSearchMatch">action.previousSearchMatch</a> are called.
         <h3 id="maxmapdepth">maxmapdepth</h3>
-        The maximum amount of recursion for recursive <a href="#mappings">mappings</a>. After reaching this limit, all subsequent actions will be cancelled as part of the mapping.
+        The maximum amount of recursion for recursive <a href="#mappings">mappings</a>. After reaching this limit, all subsequent actions will be canceled as part of the mapping.
         <h3 id="mintabwidth">mintabwidth</h3>
         The minimum amount of pixels for a tab to be in the navbar. When there are too many tabs to fit with this minimum width, it will overflow according to the value of the <a href="#taboverflow">taboverflow</a> setting. If the minimum tab width is set to 0, the taboverflow setting is not used, as tabs will never overflow.
         <h3 id="mouse">mouse</h3>
@@ -504,7 +504,7 @@
         <h3 id="nativenotification">nativenotification</h3>
         Toggle for using native/system notifications instead of the Vieb notifications. The notification history can still be viewed on the <a href="#:notifications">notifications</a> page, regardless of this setting. When this setting is enabled, you will not get a scrollable popup for large notifications, as all notifications will be for unconditionally passed to your operating system to handle. When this setting is enabled, the other notification settings do not influence the position or duration.
         <h3 id="notificationposition">notificationposition</h3>
-        This setting sets the location of Vieb notifications. You can set it to any of the corners of the window. Long notifications will open in a scrollable popup similar to Vim. The value of this setting is ignored when native notifications are used.
+        This setting sets the location of Vieb notifications. You can set it to any corner of the window. Long notifications will open in a scrollable popup similar to Vim. The value of this setting is ignored when native notifications are used.
         <h3 id="notificationduration">notificationduration</h3>
         This settings configures the amount of milliseconds a notification should be shown for. Any value below 100 will disable notifications. The value of this setting is ignored when native notifications are used.
         <h3 id="permissioncamera">permissioncamera</h3>
@@ -538,7 +538,7 @@
         <h3 id="restorewindowsize">restorewindowsize</h3>
         Toggle for remembering and restoring the window size after restarting Vieb.
         <h3 id="search">search</h3>
-        Set the search engine. This setting is used to for prepending your requests that do not look like a url. When in <a class="explore" href="#action.toExploreMode">explore mode</a>, the bar will color depending on your entered data:
+        Set the search engine. This setting is used as the base url for requests that do not look like a url. When in <a class="explore" href="#action.toExploreMode">explore mode</a>, the bar will color depending on your entered data:
         <ul>
             <li><span class="url-url">url</span> - This will appear when entering a valid url, which will result in direct navigation to it</li>
             <li><span class="url-file">file</span> - This will appear when a local file path is entered, which will result in a local directory exploration or a textual representation of the file</li>
@@ -547,11 +547,11 @@
         </ul>
         The search setting must be set to a valid url and the encoded search string will always appear at the end of the search setting. To execute a search, call <a href="#action.useEnteredData">action.useEnteredData</a> after entering a search or url.
         <h3 id="showcmd">showcmd</h3>
-        Toggle for showing the history of recently pressed keys in the topright corner. The keys are reset when no more mappings exist that start with the currently pressed keys. The showcmd option also shows the repeat count for normal mode, <a class="pointer" href="#pointer">pointer mode</a> and <a class="visual" href="#pointer">visual mode</a>.
+        Toggle for showing the history of recently pressed keys in the top-right corner. The keys are reset when no more mappings exist that start with the currently pressed keys. The showcmd option also shows the repeat count for normal mode, <a class="pointer" href="#pointer">pointer mode</a> and <a class="visual" href="#pointer">visual mode</a>.
         <h3 id="spell">spell</h3>
         Toggle for enabling the spellchecker for text in input fields or textareas. Due to a technical limitation, changing this setting will only have an effect on new tabs (closing and reopening works as well). The language can be changed with the <a href="#spelllang">spelllang</a> setting.
         <h3 id="spelllang">spelllang</h3>
-        Set the language for the spellchecker. The list of languages is provided by Electron and depended on your operating system. On Mac, this setting has no effect, as the built-in languages are always used.
+        Set the language for the spellchecker. The list of languages is provided by Electron and depends on your operating system. On Mac, this setting has no effect, as the built-in languages are always used.
         <h3 id="splitbelow">splitbelow</h3>
         Toggle to split below or above the current window when invoking <a href="#:Sexplore">:Sexplore</a>.
         <h3 id="splitright">splitright</h3>
@@ -569,7 +569,7 @@
         <h3 id="tabnexttocurrent">tabnexttocurrent</h3>
         Toggle to open new tabs next to the current one. There are two actions for opening a new tab: one that will respect this setting and a different one that will do the opposite of this setting. When toggling this setting, these actions will toggle with it. The action for opening a new tab according to this setting is <a href="#action.openNewTab">action.openNewTab</a>. For opening at the alternative position, see <a href="#action.openNewTabAtAlternativePosition">action.openNewTabAtAlternativePosition</a>. This setting also affects <a href="#action.openNewTabWithCurrentUrl">action.openNewTabWithCurrentUrl</a>, for which there is no alternative position action.
         <h3 id="taboverflow">taboverflow</h3>
-        This setting is dependent on the <a href="#mintabwidth">mintabwidth</a> setting, because that influences if and when tabs will no longer fit in the tab bar. When the tabs do not fit in the bar, this setting will configure the appearance of the tabs that cannot fit. When set to "wrap", the tab bar will use multiple rows to make sure all tabs are always displayed. When set to "scroll", a scrollbar will appear to indicate that there are more tabs than the ones currently shown. When set to hidden, the same layout is used as with scroll, but the scrollbar will not be displayed.
+        This setting is dependent on the <a href="#mintabwidth">mintabwidth</a> setting, because that influences when tabs will no longer fit in the tab bar. The value of this setting will not be used if the mintabwidth is set to 0, because in that case tabs will never overflow. When the tabs do not fit in the bar, this setting will configure the appearance of the tabs that cannot fit. When set to "wrap", the tab bar will use multiple rows to make sure all tabs are always displayed. When set to "scroll", a scrollbar will appear to indicate that there are more tabs than the ones currently shown. When set to hidden, the same layout is used as with scroll, but the scrollbar will not be displayed.
         <h3 id="timeout">timeout</h3>
         Toggle to indicate if pressed keys that are part of a sequence should expire after <a href="#timeoutlen">timeoutlen</a>.
         <h3 id="timeoutlen">timeoutlen</h3>
@@ -577,7 +577,7 @@
         <h3 id="vimcommand">vimcommand</h3>
         With this setting, you can configure the command that will be used as the editor when invoking <a href="#action.editWithVim">editWithVim</a>. You can use it to edit input fields or textareas with any external editor. For compatibility across systems, this setting is by default set to "gvim". You can change it to use the terminal version of Vim, for example with gnome-terminal: <span class="command-block">set vimcommand="gnome-terminal -- vim"</span>. This setting can be set to any command, including an external prose/spellchecker, as long as it accepts a filename as an argument. The input field will be automatically updated based on any changes made to the file.
         <h1 id="actions">Actions</h1>
-        Actions are executed when you press the right keys. The keys you need to press for an action to execute are listed just below action name. These keys are updated dynamically based on your changes with the <a href="#:map">:map</a> command. Some actions can be repeated x amount of times, by typing a number before pressing the right keys. These type of actions are marked the "countable" badge. This behavior is only present normal mode, <a class="pointer" href="#pointer">pointer mode</a> and <a class="visual" href="#pointer">visual mode</a>.
+        Actions refer to built-in Vieb functionally that can be executed when you press the right keys. The keys you need to press for an action to execute are listed just below action name. These keys are updated dynamically based on your changes with the <a href="#:map">:map</a> command. Some actions can be repeated x amount of times, by typing a number before pressing the right keys. These type of actions are marked the "countable" badge. This behavior is only present in normal mode, <a class="pointer" href="#pointer">pointer mode</a> and <a class="visual" href="#pointer">visual mode</a>.
         <h2 id="modes">Modes</h2>
         These actions are related to mode switching. A summary of the mode's functionality and core features is also listed.
         <h3 id="action.toCommandMode">action.toCommandMode</h3>
@@ -648,13 +648,13 @@
         <h3 id="action.openNewTabAtAlternativePosition" countable="true">action.openNewTabAtAlternativePosition</h3>
         Open a new tab with the newtab page. This tab will open at the opposite position of what is configured by the <a href="#tabnexttocurrent">tabnexttocurrent</a> setting. See <a href="#action.openNewTab">action.openNewTab</a> for more details.
         <h3 id="action.openNewTabWithCurrentUrl">action.openNewTabWithCurrentUrl</h3>
-        Open a new tab with the newtab page, after which you will enter <a class="explore" href="#action.toExploreMode">explore mode</a> with the url of the current page pre-filled. This can be used to quickly open another page with a similar url, that is not linked on the current page. Another advantage is that this action will NOT use the system clipboard to copy the url.
+        Open a new tab with the newtab page, after which you will enter <a class="explore" href="#action.toExploreMode">explore mode</a> with the url of the current page pre-filled. This can be used to quickly open another page with a similar url, that is not linked on the current page. Another advantage is that this action will not use the system clipboard to copy the url.
         <h3 id="action.closeTab" countable="true">action.closeTab</h3>
         This action closes the current tab, and switches to the nearest opened tab. If the last tab is closed, the newtab page will (re)open as the only opened tab. Opposite of <a href="#action.reopenTab">action.reopenTab</a>.
         <h3 id="action.reopenTab" countable="true">action.reopenTab</h3>
-        Reopen a previously closed tab as a new tab. If the current page is empty (newtab) the previously closed page will be opened in the current tab. Opposite of <a href="#action.closeTab">action.closeTab</a>.
+        Reopen a previously closed tab as a new tab. Can be toggled with <a href="keeprecentlyclosed">keeprecentlyclosed</a>. Opposite of <a href="#action.closeTab">action.closeTab</a>.
         <h3 id="action.nextTab" countable="true">action.nextTab</h3>
-        Navigate to the previous tab (to the right) in the tab bar. Opposite of <a href="#action.previousTab">action.previousTab</a>.
+        Navigate to the next tab (to the right) in the tab bar. Opposite of <a href="#action.previousTab">action.previousTab</a>.
         <h3 id="action.previousTab" countable="true">action.previousTab</h3>
         Navigate to the previous tab (to the left) in the tab bar. Opposite of <a href="#action.nextTab">action.nextTab</a>.
         <h3 id="action.moveTabForward" countable="true">action.moveTabForward</h3>
@@ -670,27 +670,27 @@
         <h3 id="action.zoomIn" countable="true">action.zoomIn</h3>
         Increase the zoom percentage. The zoom percentage is increased by 10% every time this action is called, up to a maximum of 500%. Opposite of <a href="#action.zoomOut">action.zoomOut</a>. Use <a href="#action.zoomReset">action.zoomReset</a> to go back to 100%.
         <h3 id="action.zoomOut" countable="true">action.zoomOut</h3>
-        Decrease the zoom percentage. The zoom percentage is decreased by 10% every time this action is called, down to a minimum of 30%. Opposite of <a href="#action.zoomIn">action.zoomIn</a>. Use <a href="#action.zoomReset">action.zoomReset</a> to go back to 100%.
+        Decrease the zoom percentage. The zoom percentage is decreased by 10% every time this action is called, down to a minimum of 25%. Opposite of <a href="#action.zoomIn">action.zoomIn</a>. Use <a href="#action.zoomReset">action.zoomReset</a> to go back to 100%.
         <h2 id="splitting">Splitting</h2>
         Vieb supports window splitting, which means you can view multiple sites next to each other. There is no technical limit to how many sites you can split, and splitting works the same as in Vim. To open a new split, see <a href="#:Vexplore">:Vexplore</a> or <a href="#:split">:split</a>. Once you have multiple windows visible, you can switch between them by switching between tabs, or using the more Vim-like window split actions, which are listed below.
         <h3 id="action.rotateSplitWindow" countable="true">action.rotateSplitWindow</h3>
         Rotate the windows of the current split clockwise. If there are sub-splits in other windows, the current split cannot be rotated.
         <h3 id="action.leftHalfSplitWindow">action.leftHalfSplitWindow</h3>
-        Move the currently focussed split window to the left half of the screen. This effectively moves the split to the left of a toplevel vertical split, regardless of it's current position on the screen. Similar actions for the other directions are <a href="#action.bottomHalfSplitWindow">action.bottomHalfSplitWindow</a>, <a href="#action.topHalfSplitWindow">action.topHalfSplitWindow</a> and <a href="#action.rightHalfSplitWindow">action.rightHalfSplitWindow</a>.
+        Move the currently focused split window to the left half of the screen. This effectively moves the split to the left of a toplevel vertical split, regardless of it's current position on the screen. Similar actions for the other directions are <a href="#action.bottomHalfSplitWindow">action.bottomHalfSplitWindow</a>, <a href="#action.topHalfSplitWindow">action.topHalfSplitWindow</a> and <a href="#action.rightHalfSplitWindow">action.rightHalfSplitWindow</a>.
         <h3 id="action.bottomHalfSplitWindow">action.bottomHalfSplitWindow</h3>
-        Move the currently focussed split window to the bottom half of the screen. See <a href="#action.leftHalfSplitWindow">action.leftHalfSplitWindow</a> for more details.
+        Move the currently focused split window to the bottom half of the screen. See <a href="#action.leftHalfSplitWindow">action.leftHalfSplitWindow</a> for more details.
         <h3 id="action.topHalfSplitWindow">action.topHalfSplitWindow</h3>
-        Move the currently focussed split window to the top half of the screen. See <a href="#action.leftHalfSplitWindow">action.leftHalfSplitWindow</a> for more details.
+        Move the currently focused split window to the top half of the screen. See <a href="#action.leftHalfSplitWindow">action.leftHalfSplitWindow</a> for more details.
         <h3 id="action.rightHalfSplitWindow">action.rightHalfSplitWindow</h3>
-        Move the currently focussed split window to the right half of the screen. See <a href="#action.leftHalfSplitWindow">action.leftHalfSplitWindow</a> for more details.
+        Move the currently focused split window to the right half of the screen. See <a href="#action.leftHalfSplitWindow">action.leftHalfSplitWindow</a> for more details.
         <h3 id="action.toLeftSplitWindow" countable="true">action.toLeftSplitWindow</h3>
-        Move to the split window directly to the left of the currently focussed one. If there are multiple windows directly to the left of the current split, the one closest to the center of the current split is chosen. Similar actions for the other directions are <a href="#action.toBottomSplitWindow">action.toBottomSplitWindow</a>, <a href="#action.toTopSplitWindow">action.toTopSplitWindow</a> and <a href="#action.toRightSplitWindow">action.toRightSplitWindow</a>.
+        Switch the focus to the window directly left of the currently focused one. If there are multiple windows directly to the left of the current split, the one closest to the center of the current split is chosen. Similar actions for the other directions are <a href="#action.toBottomSplitWindow">action.toBottomSplitWindow</a>, <a href="#action.toTopSplitWindow">action.toTopSplitWindow</a> and <a href="#action.toRightSplitWindow">action.toRightSplitWindow</a>.
         <h3 id="action.toBottomSplitWindow" countable="true">action.toBottomSplitWindow</h3>
-        Move to the split window directly below the currently focussed one. See <a href="#action.toLeftSplitWindow">action.toLeftSplitWindow</a> for more details.
+        Switch the focus to the window directly below the currently focused one. See <a href="#action.toLeftSplitWindow">action.toLeftSplitWindow</a> for more details.
         <h3 id="action.toTopSplitWindow" countable="true">action.toTopSplitWindow</h3>
-        Move to the split window directly above the currently focussed one. See <a href="#action.toLeftSplitWindow">action.toLeftSplitWindow</a> for more details.
+        Switch the focus to the window directly above the currently focused one. See <a href="#action.toLeftSplitWindow">action.toLeftSplitWindow</a> for more details.
         <h3 id="action.toRightSplitWindow" countable="true">action.toRightSplitWindow</h3>
-        Move to the split window directly to the right of the currently focussed one. See <a href="#action.toLeftSplitWindow">action.toLeftSplitWindow</a> for more details.
+        Switch the focus to the window directly right of the currently focused one. See <a href="#action.toLeftSplitWindow">action.toLeftSplitWindow</a> for more details.
         <h3 id="action.increaseHeightSplitWindow" countable="true">action.increaseHeightSplitWindow</h3>
         Increase the height of the current split window by 10% up to a maximum ratio compared to it's siblings of 1 to 10. Similar actions to resize into other directions are <a href="#action.decreaseHeightSplitWindow">action.decreaseHeightSplitWindow</a>, <a href="#action.increaseWidthSplitWindow">action.increaseWidthSplitWindow</a> and <a href="#action.decreaseWidthSplitWindow">action.decreaseWidthSplitWindow</a>.
         <h3 id="action.decreaseHeightSplitWindow" countable="true">action.decreaseHeightSplitWindow</h3>
@@ -702,7 +702,7 @@
         <h3 id="action.distrubuteSpaceSplitWindow">action.distrubuteSpaceSplitWindow</h3>
         Distribute the windows inside a split evenly. This does not necessarily mean that all windows will be of the same size, for example if you have a vertical split, with on the left side a window, but on the right side a horizontal sub-split with two windows.
         <h2 id="pointer">Pointer</h2>
-        Vieb has a <span class="pointer">pointer mode</span> to hover over links, download images or inspect an element at a position. The pointer can be moved in many different ways, most of which are by default mapped similar to Vim's normal mode. Additionally, after entering <span class="pointer">pointer mode</span>, it's also possible to start selected text using <span class="visual">visual mode</span>. By default, the bindings of these two modes are similar, with the biggest difference being that text will be selected between the initial and current pointer position. See <a href="#pointer.startVisualSelect">pointer.startVisualSelect</a> and <a href="#pointer.copyAndStop">pointer.copyAndStop</a> for <span class="visual">visual mode</span> specific actions.
+        Vieb has a <span class="pointer">pointer mode</span> to hover over links, download images or inspect an element at a position. The pointer can be moved in many different ways, most of which are by default mapped similar to Vim's normal mode. Additionally, after entering <span class="pointer">pointer mode</span>, it's also possible to start selecting text using <span class="visual">visual mode</span>. By default, the bindings of these two modes are similar, with the biggest difference being that text will be selected between the initial and current pointer position. See <a href="#pointer.startVisualSelect">pointer.startVisualSelect</a> and <a href="#pointer.copyAndStop">pointer.copyAndStop</a> for <span class="visual">visual mode</span> specific actions.
         <h3 id="pointer.leftClick" countable="true">pointer.leftClick</h3>
         Simulate a left mouse click at the current pointer location. See also <a href="#pointer.rightClick">pointer.rightClick</a>.
         <h3 id="pointer.rightClick" countable="true">pointer.rightClick</h3>
@@ -710,11 +710,11 @@
         <h3 id="pointer.downloadImage">pointer.downloadImage</h3>
         Download an image at the current pointer position. If there are multiple images at the pointer location, only the first one will be downloaded. The name will be automatically set, and downloaded files will be stored in <a href="#downloadpath">downloadpath</a>. This action will search specifically for img and svg tags at a position.
         <h3 id="pointer.inspectElement">pointer.inspectElement</h3>
-        Inspect an element at the current pointer position. This action will open the devtools, if the devtools are not opened yet (either with <a href="#:devtools">:devtools</a> or by a previous inspectElement call).
+        Inspect an element at the current pointer position. This action will open the devtools if the devtools are not opened yet. The devtools can also be opened with the <a href="#:devtools">:devtools</a> command.
         <h3 id="pointer.insertAtPosition">pointer.insertAtPosition</h3>
         Enter <a class="insert" href="#action.toInsertMode">insert mode</a> at the pointer position. This can be used to click and immediately set focus to the element at a position, similar to an actual mouse click. Contrary to <a href="#pointer.leftClick">pointer.leftClick</a>, this type of click will also work for poorly programmed dropdowns and/or custom menus on websites: the ones that open with a click, but close automatically when focus is lost. Some Google websites use these type of inconsistent menus.
         <h3 id="pointer.startVisualSelect">pointer.startVisualSelect</h3>
-        Switch to <span class="visual">visual mode</span>, which will start making a selection starting at the current pointer position, but once the pointer is moved again, all text between the original and current location will be selected. To copy the selected text, see <a href="#pointer.copyAndStop">pointer.copyAndStop</a>.
+        Switch to <span class="visual">visual mode</span>, which will start making a selection starting at the current pointer position. In this mode the pointer is still visible, but once the pointer is moved again, all text between the original and current location will be selected. To copy the selected text, see <a href="#pointer.copyAndStop">pointer.copyAndStop</a>. Most movement options in <span class="visual">visual mode</span> are identical to those in <a class="pointer" href="#pointer">pointer mode</a> by default.
         <h3 id="pointer.copyAndStop">pointer.copyAndStop</h3>
         Copy the currently selected text (using <a class="visual" href="#pointer">visual mode</a>) to the system clipboard and return to normal mode.
         <h3 id="pointer.moveUp" countable="true">pointer.moveUp</h3>
@@ -726,13 +726,13 @@
         <h3 id="pointer.moveRight" countable="true">pointer.moveRight</h3>
         Move the pointer right by 10 pixels, will scroll the page if needed.
         <h3 id="pointer.moveSlowUp" countable="true">pointer.moveSlowUp</h3>
-        Move the pointer up by 1 pixel, will scroll the page if needed.
+        Move the pointer up by 1 pixel, will not scroll the page.
         <h3 id="pointer.moveSlowDown" countable="true">pointer.moveSlowDown</h3>
-        Move the pointer down by 1 pixel, will scroll the page if needed.
+        Move the pointer down by 1 pixel, will not scroll the page.
         <h3 id="pointer.moveSlowLeft" countable="true">pointer.moveSlowLeft</h3>
-        Move the pointer left by 1 pixel, will scroll the page if needed.
+        Move the pointer left by 1 pixel, will not scroll the page.
         <h3 id="pointer.moveSlowRight" countable="true">pointer.moveSlowRight</h3>
-        Move the pointer right by 1 pixel, will scroll the page if needed.
+        Move the pointer right by 1 pixel, will not scroll the page.
         <h3 id="pointer.moveFastUp" countable="true">pointer.moveFastUp</h3>
         Move the pointer up by 100 pixels, will scroll the page if needed.
         <h3 id="pointer.moveFastDown" countable="true">pointer.moveFastDown</h3>
@@ -778,13 +778,13 @@
         <h3 id="action.decreasePageNumber" countable="true">action.decreasePageNumber</h3>
         Opposite of <a href="#action.increasePageNumber">action.increasePageNumber</a>.
         <h3 id="action.insertAtFirstInput">action.insertAtFirstInput</h3>
-        This action will enter <a class="insert" href="#action.toInsertMode">insert mode</a> and focus the first input field on the page. Usually this will be a search field or dropdown. If no input fields are currently visible, this action will not enter insert.
+        This action will enter <a class="insert" href="#action.toInsertMode">insert mode</a> and focus the first input field on the page. Usually this will be a search field or dropdown. If no input fields are currently visible, this action will not enter <a class="insert" href="#action.toInsertMode">insert mode</a>.
         <h3 id="action.editWithVim">action.editWithVim</h3>
-        Open an external editor based on the currently focussed input field. This is one of the few actions that is supposed to be called while in <a class="insert" href="#action.toInsertMode">insert mode</a>. The editor that will be opened is configured by the <a href="#vimcommand">vimcommand</a> setting, and can also be set to a different editor if you would like to.
+        Open an external editor based on the currently focused input field. This is one of the few actions that is supposed to be called while in <a class="insert" href="#action.toInsertMode">insert mode</a>. The editor that will be opened is configured by the <a href="#vimcommand">vimcommand</a> setting, and can also be set to a different editor if you would like to.
         <h3 id="action.nextSuggestion" countable="true">action.nextSuggestion</h3>
-        Move to the next suggestion shown while in <a class="explore" href="#action.toExploreMode">explore mode</a> or <a class="command" href="#action.toCommandMode">command mode</a>. If no suggestions are selected yet, this action will select  the first suggestion. If this action is called while the last suggestion is already focussed, no suggestion will be selected and your original text will be restored in the navbar. Opposite of <a href="#action.prevSuggestion">action.prevSuggestion</a>.
+        Move to the next suggestion shown while in <a class="explore" href="#action.toExploreMode">explore mode</a> or <a class="command" href="#action.toCommandMode">command mode</a>. If no suggestion is selected yet, this action will select  the first suggestion. If this action is called while the last suggestion is already focused, no suggestion will be selected and your original text will be restored in the navbar. Opposite of <a href="#action.prevSuggestion">action.prevSuggestion</a>.
         <h3 id="action.prevSuggestion" countable="true">action.prevSuggestion</h3>
-        Move to the previous suggestion shown while in <a class="explore" href="#action.toExploreMode">explore mode</a> or <a class="command" href="#action.toCommandMode">command mode</a>. If no suggestions are selected yet, this action will select the last suggestion. If this action is called while the first suggestion is already focussed, no suggestion will be selected and your original text will be restored in the navbar. Opposite of <a href="#action.nextSuggestion">action.nextSuggestion</a>.
+        Move to the previous suggestion shown while in <a class="explore" href="#action.toExploreMode">explore mode</a> or <a class="command" href="#action.toCommandMode">command mode</a>. If no suggestion is selected yet, this action will select the last suggestion. If this action is called while the first suggestion is already focused, no suggestion will be selected and your original text will be restored in the navbar. Opposite of <a href="#action.nextSuggestion">action.nextSuggestion</a>.
         <h3 id="action.commandHistoryPrevious" countable="true">action.commandHistoryPrevious</h3>
         Go back to previously executed commands of this session, by calling this action. Unlike the suggestions, these actions do not wrap back to the first or last when the end of the history is reached. Opposite of <a href="#action.commandHistoryNext">action.commandHistoryNext</a>. This action has no function outside of <a class="command" href="#action.toCommandMode">command mode</a>.
         <h3 id="action.commandHistoryNext" countable="true">action.commandHistoryNext</h3>

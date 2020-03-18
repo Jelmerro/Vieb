@@ -499,7 +499,7 @@ const handleKeyboard = e => {
     }
     const id = toIdentifier(e)
     updateKeysOnScreen()
-    clearInterval(timeoutTimer)
+    clearTimeout(timeoutTimer)
     if (SETTINGS.get("timeout")) {
         timeoutTimer = setTimeout(() => {
             repeatCounter = 0
