@@ -123,6 +123,23 @@ const processHash = () => {
 
 window.addEventListener("hashchange", processHash)
 
+window.addEventListener("DOMContentLoaded", () => {
+    for (const example of ["chromium", "firefox"]) {
+        const button = document.createElement("button")
+        button.textContent = example[0].toUpperCase() + example.slice(1)
+        button.addEventListener("click", () => {
+            const link = document.createElement("a")
+            link.href = `../examples/${example}`
+            link.download = `${example}.viebrc`
+            link.style.display = "none"
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+        })
+        document.querySelector(".example-buttons").appendChild(button)
+    }
+})
+
 window.addEventListener("load", () => {
     const createIdLabel = element => {
         const section = document.createElement("div")
