@@ -110,7 +110,10 @@ const init = () => {
 }
 
 const openSavedPage = url => {
-    url = UTIL.stringToUrl(url)
+    if (!url.trim()) {
+        return
+    }
+    url = UTIL.stringToUrl(url.trim())
     try {
         if (UTIL.pathToSpecialPageName(currentPage().src).name === "newtab") {
             navigateTo(url)

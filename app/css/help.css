@@ -58,3 +58,7 @@ h5, h6 {font-size: 1;margin: .7em 0;}
 .follow-inputs-insert {background-color: #5c5;color: black;}
 .follow-onclick {background-color: #cc5;color: black;}
 .follow-other {background-color: #ccc;color: black;}
+/* examples */
+.example-buttons {margin: 1em;}
+.example-buttons button {font-size: 1em;margin: .5em 2em;padding: .5em 2em;background-color: #333;color: #fff;border: .1em solid #ccc;cursor: pointer;}
+.example-buttons button:hover {background-color: #777;}

@@ -1,4 +1,5 @@
 " Options
+set adblocker=update
 set ignorecase
 set mouse
 set permissioncamera=ask
@@ -29,10 +30,11 @@ map <C-f> <action.toSearchMode>
 map <C-h> <:history>
 map <C-j> <:downloads>
 map <C-k> <action.toExploreMode>
+map <C-l> <action.toExploreMode>
 map <C-p> <:hardcopy>
+map <C-q> <:quit>
 map <C-s> <:write>
 map <C-t> <action.openNewTab><action.toExploreMode>
-map <C-l> <action.toExploreMode>
 map <C-Tab> <action.nextTab>
 map <C-S-PageUp> <action.moveTabBackward>
 map <C-S-PageDown> <action.moveTabForward>
@@ -40,7 +42,6 @@ map <C-S-Tab> <action.previousTab>
 map <C-I> <:devtools>
 map <C-T> <action.reopenTab>
 map <C-Y> <:downloads>
-map <C-Q> <:quit>
 map <A-Left> <action.backInHistory>
 map <A-Right> <action.forwardInHistory>
 map <A-0> <:b 9999>
@@ -55,6 +56,8 @@ map <A-8> <:b 7>
 map <A-9> <:b 8>
 map <A-F4> <:quit>
 map <M-Q> <:quit>
+cmap <Up> <action.commandHistoryPrevious>
+cmap <Down> <action.commandHistoryNext>
 emap <F6> <action.toNormalMode>
 emap <Up> <action.prevSuggestion>
 emap <Down> <action.nextSuggestion>
