@@ -755,11 +755,12 @@ const sanitiseMapString = mapString => {
             modifiers = splitKeys.slice(0, -1)
             key = splitKeys.slice(-1)[0]
         }
-        keyNames.forEach(name => {
-            if (name.vim.includes(key)) {
+        for (const name of keyNames) {
+            if (name.vim.find(vk => vk.toUpperCase() === key.toUpperCase())) {
                 key = name.vim[0]
+                break
             }
-        })
+        }
         if (!key) {
             return ""
         }
