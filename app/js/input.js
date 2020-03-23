@@ -16,7 +16,7 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 /* global ACTIONS COMMAND POINTER FOLLOW HISTORY MODES PAGELAYOUT SETTINGS
- SUGGEST UTIL */
+ SUGGEST TABS UTIL */
 "use strict"
 
 const {ipcRenderer} = require("electron")
@@ -243,6 +243,21 @@ const init = () => {
         }
         e.preventDefault()
         ACTIONS.setFocusCorrectly()
+    })
+    window.addEventListener("mousemove", e => {
+        if (SETTINGS.get("mouse") && SETTINGS.get("mousefocus")) {
+            document.elementsFromPoint(e.x, e.y).forEach(el => {
+                if (el.matches("#pagelayout *[link-id], #tabs *[link-id]")) {
+                    const tab = TABS.listTabs().find(t => {
+                        return t.getAttribute("link-id")
+                            === el.getAttribute("link-id")
+                    })
+                    if (tab && TABS.currentTab() !== tab) {
+                        TABS.switchToTab(TABS.listTabs().indexOf(tab))
+                    }
+                }
+            })
+        }
     })
     window.addEventListener("contextmenu", e => {
         e.preventDefault()
