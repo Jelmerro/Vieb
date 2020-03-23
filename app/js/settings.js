@@ -39,6 +39,7 @@ const defaultSettings = {
     "maxmapdepth": 10,
     "mintabwidth": 22,
     "mouse": false,
+    "mousefocus": false,
     "nativenotification": false,
     "notificationposition": "bottomright",
     "notificationduration": 6000,

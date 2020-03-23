@@ -184,7 +184,9 @@ const moveFocus = direction => {
     const dims = current.getBoundingClientRect()
     let x = dims.x + dims.width / 2
     let y = dims.y + dims.height / 2
-    let newView = document.elementFromPoint(x, y)
+    let newView = document.elementsFromPoint(x, y).find(el => {
+        return el.matches("#pagelayout *[link-id]")
+    })
     while (newView && newView.getAttribute("link-id") === id) {
         if (direction === "left") {
             x -= 10
@@ -197,9 +199,11 @@ const moveFocus = direction => {
         } else {
             break
         }
-        newView = document.elementFromPoint(x, y)
+        newView = document.elementsFromPoint(x, y).find(el => {
+            return el.matches("#pagelayout *[link-id]")
+        })
     }
-    if (newView && newView.matches("#pages webview")) {
+    if (newView) {
         const newId = newView.getAttribute("link-id")
         if (newId && newId !== id) {
             const tab = document.querySelector(`#tabs span[link-id='${newId}']`)

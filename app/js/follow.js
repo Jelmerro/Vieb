@@ -186,8 +186,8 @@ const parseAndDisplayLinks = newLinks => {
             borderRightMargin += characterWidth
         }
         let left = (link.x + link.width) * factor
-        if (left > window.innerWidth - borderRightMargin) {
-            left = window.innerWidth - borderRightMargin
+        if (left > TABS.currentPage().scrollWidth - borderRightMargin) {
+            left = TABS.currentPage().scrollWidth - borderRightMargin
         }
         linkElement.style.left = `${left}px`
         const top = Math.max(link.y * factor, 0)
