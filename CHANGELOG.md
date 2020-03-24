@@ -65,8 +65,9 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Security
 
-- Electron 9.0.0-beta.5 (was 8.0.1)
-- Chromium 82.0.4048.0 (was 80.0.3987.86)
+- Electron 9.0.0-beta.10 (was 8.0.1)
+- Chromium 82.0.4085.10 (was 80.0.3987.86)
+- Browsing data of the login window is now stored in a separate memory-only partition
 
 ## [1.1.0](https://github.com/Jelmerro/Vieb/compare/1.0.0...1.1.0) - 2020-02-15
 
