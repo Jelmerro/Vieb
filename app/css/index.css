@@ -26,7 +26,7 @@ img {height: 1.5em;width: 1.5em;min-height: 1.5em;min-width: 1.5em;pointer-event
 #menu {display: flex;overflow: hidden;height: 2em;margin-left: 4em;}
 #mode-container {display: flex;width: 7em;text-align: center;margin: .1em 0;background: #222;}
 #mode {text-transform: capitalize;font-size: 1.3em;margin: auto;font-weight: bold;display: flex;}
-#repeat-counter, #pressed-keys {margin: auto .2em;line-height: 2em;}
+#repeat-counter, #pressed-keys {margin: auto .2em;line-height: 2em;display: none;}
 /* Nav tabs */
 #tabs {display: flex;overflow: hidden;}
 #tabs > span {color: #ccc;background-color: #444;display: flex;margin: 0 .1em .1em 0;padding-right: .4em;flex: 1;overflow: hidden;white-space: nowrap;height: 1.9em;}
