@@ -168,7 +168,8 @@ app.on("ready", () => {
         "parent": mainWindow,
         "alwaysOnTop": true,
         "webPreferences": {
-            "nodeIntegration": true
+            "nodeIntegration": true,
+            "partition": "login"
         }
     }
     loginWindow = new BrowserWindow(loginWindowData)
