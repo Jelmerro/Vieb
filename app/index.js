@@ -131,6 +131,9 @@ app.on("ready", () => {
         "show": enableDebugMode,
         "closable": false,
         "webPreferences": {
+            "sandbox": false,
+            "contextIsolation": false,
+            "disableBlinkFeatures": "Auxclick",
             "nodeIntegration": true,
             "webviewTag": true,
             "enableRemoteModule": true
@@ -153,7 +156,10 @@ app.on("ready", () => {
     })
     // Load app and send urls when ready
     mainWindow.loadURL(`file://${path.join(__dirname, "index.html")}`)
-    mainWindow.webContents.on("did-finish-load", () => {
+    mainWindow.webContents.once("did-finish-load", () => {
+        mainWindow.webContents.on("new-window", e => e.preventDefault())
+        mainWindow.webContents.on("will-navigate", e => e.preventDefault())
+        mainWindow.webContents.on("will-redirect", e => e.preventDefault())
         if (enableDebugMode || showInternalConsole) {
             mainWindow.webContents.openDevTools()
         }
@@ -168,6 +174,9 @@ app.on("ready", () => {
         "parent": mainWindow,
         "alwaysOnTop": true,
         "webPreferences": {
+            "sandbox": false,
+            "contextIsolation": false,
+            "disableBlinkFeatures": "Auxclick",
             "nodeIntegration": true,
             "partition": "login"
         }
@@ -188,7 +197,11 @@ app.on("ready", () => {
         "parent": mainWindow,
         "alwaysOnTop": true,
         "webPreferences": {
-            "nodeIntegration": true
+            "sandbox": false,
+            "contextIsolation": false,
+            "disableBlinkFeatures": "Auxclick",
+            "nodeIntegration": true,
+            "partition": "notification-window"
         }
     }
     notificationWindow = new BrowserWindow(notificationWindowData)

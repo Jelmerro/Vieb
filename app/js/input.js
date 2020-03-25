@@ -219,10 +219,6 @@ const init = () => {
     window.addEventListener("keydown", handleKeyboard)
     window.addEventListener("keypress", handleUserInput)
     window.addEventListener("keyup", handleUserInput)
-    window.addEventListener("auxclick", e => {
-        e.preventDefault()
-        ACTIONS.setFocusCorrectly()
-    })
     window.addEventListener("click", e => {
         if (e.target.classList.contains("no-focus-reset")) {
             e.preventDefault()
