@@ -18,21 +18,23 @@
 "use strict"
 
 // Always load the misc action functions (such as scrolling before page loads)
-require("./preloads/actions.js")
+require("./preloads/actions")
 // Always load follow mode JavaScript
-require("./preloads/follow.js")
+require("./preloads/follow")
 // Always load selection function code (for visual mode)
-require("./preloads/select.js")
+require("./preloads/select")
 // Always load the failed page information handler
-require("./preloads/failedload.js")
+require("./preloads/failedload")
 // Always load the local directory browser
-require("./preloads/filebrowser.js")
+require("./preloads/filebrowser")
+// Always load the custom media devices code
+require("./preloads/mediadevices")
 
 // Load the special page specific JavaScript
-const util = require("./util.js")
+const util = require("./util")
 const specialPage = util.pathToSpecialPageName(window.location.href)
 if (specialPage.name) {
-    require(`./preloads/${specialPage.name}.js`)
+    require(`./preloads/${specialPage.name}`)
 }
 
 // Change the colors to white text on black for plain text pages
