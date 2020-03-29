@@ -29,7 +29,6 @@ const clickableInputs = [
     "input[type=\"checkbox\"]",
     "label[for]:not([for=\"\"])",
     "input[type=\"submit\"]",
-    "input[type=\"color\"]",
     "input[type=\"file\"]",
     "input[type=\"image\"]",
     "input[type=\"reset\"]",
@@ -40,7 +39,7 @@ const clickableInputs = [
 ]
 const textlikeInputs = [
     "input:not([type=\"radio\"]):not([type=\"checkbox\"])"
-    + ":not([type=\"submit\"]):not([type=\"button\"]):not([type=\"color\"])"
+    + ":not([type=\"submit\"]):not([type=\"button\"])"
     + ":not([type=\"file\"]):not([type=\"image\"]):not([type=\"reset\"])",
     "*[role=\"textbox\"]",
     "*[contenteditable=\"true\"]",
