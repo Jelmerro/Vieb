@@ -54,9 +54,8 @@ const otherEvents = [
 ipcRenderer.on("focus-first-text-input", () => {
     const links = [...allElementsBySelectors("inputs-insert", textlikeInputs)]
     if (links.length > 0) {
-        const pos = links.sort((el1, el2) => {
-            return Math.floor(el1.y) - Math.floor(el2.y) || el1.x - el2.x
-        })[0]
+        const pos = links.sort((el1, el2) => Math.floor(el1.y)
+            - Math.floor(el2.y) || el1.x - el2.x)[0]
         const element = document.elementFromPoint(
             pos.x + pos.width / 2, pos.y + pos.height / 2)
         if (element && element.click && element.focus) {
@@ -80,9 +79,8 @@ const sendFollowLinks = () => {
         const clickable = parseElement(element, "inputs-click")
         if (clickable) {
             // Only show input elements for which there is no existing url
-            const similarExistingLinks = allLinks.filter(link => {
-                return checkForDuplicateLink(clickable, link)
-            })
+            const similarExistingLinks = allLinks.filter(
+                link => checkForDuplicateLink(clickable, link))
             if (similarExistingLinks.length === 0) {
                 allLinks.push(clickable)
             }
@@ -100,23 +98,22 @@ const sendFollowLinks = () => {
         }
         if (clickable) {
             // Only show onclick elements for which there is no existing link
-            const similarExistingLinks = allLinks.filter(link => {
-                return checkForDuplicateLink(clickable, link)
-            })
+            const similarExistingLinks = allLinks.filter(
+                link => checkForDuplicateLink(clickable, link))
             if (similarExistingLinks.length === 0) {
                 allLinks.push(clickable)
             }
         }
     }
-    [...document.querySelectorAll("*")].filter(el => {
-        return clickEvents.find(e => el[`on${e}`])
-            || clickEvents.map(e => eventListeners[e].includes(el)).find(e => e)
-            || el.getAttribute("jsaction")
-    }).forEach(element => addMouseEventElement(element, "onclick"))
-    ;[...document.querySelectorAll("*")].filter(el => {
-        return otherEvents.find(e => el[`on${e}`])
-            || otherEvents.map(e => eventListeners[e].includes(el)).find(e => e)
-    }).forEach(element => addMouseEventElement(element, "other"))
+    [...document.querySelectorAll("*")].filter(
+        el => clickEvents.find(e => el[`on${e}`])
+        || clickEvents.map(e => eventListeners[e].includes(el)).find(e => e)
+        || el.getAttribute("jsaction")).forEach(
+        element => addMouseEventElement(element, "onclick"))
+    ;[...document.querySelectorAll("*")].filter(
+        el => otherEvents.find(e => el[`on${e}`])
+        || otherEvents.map(e => eventListeners[e].includes(el)).find(e => e))
+        .forEach(element => addMouseEventElement(element, "other"))
     // Send response back to webview, which will forward it to follow.js
     // Ordered by the position on the page from the top
     // Uncategorised mouse events are less relevant and are moved to the end

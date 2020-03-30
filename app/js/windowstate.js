@@ -26,7 +26,7 @@ const windowStateFile = path.join(remote.app.getPath("appData"), "windowstate")
 const init = () => {
     load()
     // Save the window state when resizing or maximizing.
-    // Move and resize state are saved and checked to detect window snapping
+    // Move and resize state are saved and checked to detect window snapping.
     let justMoved = false
     let justResized = false
     remote.getCurrentWindow().on("maximize", saveWindowState)

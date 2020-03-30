@@ -36,11 +36,7 @@ const specialPages = [
 ]
 const notificationHistory = []
 
-const hasProtocol = location => {
-    // Check for a valid protocol at the start
-    // This will ALWAYS result in the url being valid
-    return protocolRegex.test(location)
-}
+const hasProtocol = location => protocolRegex.test(location)
 
 const isUrl = location => {
     if (hasProtocol(location)) {
@@ -88,9 +84,8 @@ const isUrl = location => {
         return false
     }
     if (/^[a-zA-Z]{2,}$/.test(tld)) {
-        const invalidDashes = names.find(n => {
-            return n.includes("---") || n.startsWith("-") || n.endsWith("-")
-        })
+        const invalidDashes = names.find(
+            n => n.includes("---") || n.startsWith("-") || n.endsWith("-"))
         if (!invalidDashes && names.every(n => /^[a-zA-Z\d-]+$/.test(n))) {
             return true
         }
@@ -252,9 +247,7 @@ const expandPath = homePath => {
     return homePath
 }
 
-const isObject = o => {
-    return o === Object(o)
-}
+const isObject = o => o === Object(o)
 
 const pathExists = loc => {
     try {
@@ -370,13 +363,9 @@ const urlToString = url => {
     return url
 }
 
-const listNotificationHistory = () => {
-    return notificationHistory
-}
+const listNotificationHistory = () => notificationHistory
 
-const title = name => {
-    return name[0].toUpperCase() + name.slice(1).toLowerCase()
-}
+const title = name => name[0].toUpperCase() + name.slice(1).toLowerCase()
 
 module.exports = {
     hasProtocol,

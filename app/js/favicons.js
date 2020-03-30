@@ -67,9 +67,8 @@ const updateMappings = (currentUrl = null) => {
     UTIL.writeJSON(mappingFile, mappings)
 }
 
-const urlToPath = url => {
-    return path.join(faviconFolder, encodeURIComponent(url).replace(/%/g, "_"))
-}
+const urlToPath = url => path.join(
+    faviconFolder, encodeURIComponent(url).replace(/%/g, "_"))
 
 const loading = webview => {
     const tab = TABS.tabOrPageMatching(webview)

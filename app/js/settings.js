@@ -361,9 +361,7 @@ const loadFromDisk = () => {
     SESSIONS.setSpellLang(get("spelllang"))
 }
 
-const get = (setting, settingObject = allSettings) => {
-    return settingObject[setting]
-}
+const get = (setting, settingObject = allSettings) => settingObject[setting]
 
 const reset = setting => {
     if (setting === "all") {
@@ -442,52 +440,50 @@ const updateHelpPage = () => {
     TABS.listPages().forEach(p => {
         if (UTIL.pathToSpecialPageName(p.src).name === "help") {
             TABS.webContents(p).send(
-                "settings", settingsObjectWithDefaults(),
+                "settings", settingsWithDefaults(),
                 INPUT.listMappingsAsCommandList(false, true))
         }
     })
 }
 
-const settingsObjectWithDefaults = () => {
-    return Object.keys(allSettings).map(setting => {
-        let typeLabel = "String"
-        let allowedValues = ""
-        if (listLike.includes(setting)) {
-            typeLabel = "Like-like String"
-            allowedValues = "Comma-separated list"
+const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
+    let typeLabel = "String"
+    let allowedValues = ""
+    if (listLike.includes(setting)) {
+        typeLabel = "Like-like String"
+        allowedValues = "Comma-separated list"
+    }
+    if (validOptions[setting]) {
+        allowedValues = validOptions[setting]
+    }
+    if (typeof allSettings[setting] === "boolean") {
+        typeLabel = "Boolean flag"
+        allowedValues = "true,false"
+    }
+    if (setting === "downloadpath") {
+        allowedValues = "any directory on disk"
+    }
+    if (setting === "search") {
+        allowedValues = "any URL"
+    }
+    if (setting === "vimcommand") {
+        allowedValues = "any system command"
+    }
+    if (typeof allSettings[setting] === "number") {
+        typeLabel = "Number"
+        if (numberRanges[setting]) {
+            allowedValues = `from ${
+                numberRanges[setting][0]} to ${numberRanges[setting][1]}`
         }
-        if (validOptions[setting]) {
-            allowedValues = validOptions[setting]
-        }
-        if (typeof allSettings[setting] === "boolean") {
-            typeLabel = "Boolean flag"
-            allowedValues = "true,false"
-        }
-        if (setting === "downloadpath") {
-            allowedValues = "any directory on disk"
-        }
-        if (setting === "search") {
-            allowedValues = "any URL"
-        }
-        if (setting === "vimcommand") {
-            allowedValues = "any system command"
-        }
-        if (typeof allSettings[setting] === "number") {
-            typeLabel = "Number"
-            if (numberRanges[setting]) {
-                allowedValues = `from ${
-                    numberRanges[setting][0]} to ${numberRanges[setting][1]}`
-            }
-        }
-        return {
-            "name": setting,
-            "current": allSettings[setting],
-            "default": defaultSettings[setting],
-            "typeLabel": typeLabel,
-            "allowedValues": allowedValues
-        }
-    })
-}
+    }
+    return {
+        "name": setting,
+        "current": allSettings[setting],
+        "default": defaultSettings[setting],
+        "typeLabel": typeLabel,
+        "allowedValues": allowedValues
+    }
+})
 
 const listCurrentSettings = full => {
     const settings = JSON.parse(JSON.stringify(allSettings))
@@ -549,7 +545,7 @@ module.exports = {
     reset,
     set,
     updateHelpPage,
-    settingsObjectWithDefaults,
+    settingsWithDefaults,
     listCurrentSettings,
     saveToDisk
 }

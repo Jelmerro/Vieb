@@ -177,7 +177,7 @@ const setMode = mode => {
     if (modes[mode].onEnter) {
         modes[mode].onEnter(currentMode())
     }
-    document.getElementById("mode").textContent = mode
+    document.getElementById("mode").textContent = mode.toLowerCase()
     document.getElementById("mode").style.color = modes[mode].fg || ""
     document.getElementById("mode-container")
         .style.backgroundColor = modes[mode].bg || ""
@@ -194,12 +194,8 @@ const setMode = mode => {
     ACTIONS.setFocusCorrectly()
 }
 
-const currentMode = () => {
-    return document.getElementById("mode").textContent.trim().toLowerCase()
-}
+const currentMode = () => document.getElementById("mode").textContent.trim()
 
-const allModes = () => {
-    return Object.keys(modes)
-}
+const allModes = () => Object.keys(modes)
 
 module.exports = {init, setMode, currentMode, allModes}

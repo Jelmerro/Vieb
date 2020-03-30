@@ -156,26 +156,18 @@ const saveTabs = () => {
         return
     }
     // Only keep the 100 most recently closed tabs,
-    // More is probably never needed but would keep increasing the file size.
+    // more is probably never needed but would keep increasing the file size.
     data.closed = data.closed.slice(-100)
     UTIL.writeJSON(tabFile, data, "Failed to write current tabs to disk")
 }
 
-const listTabs = () => {
-    return [...document.querySelectorAll("#tabs > span[link-id]")]
-}
+const listTabs = () => [...document.querySelectorAll("#tabs > span[link-id]")]
 
-const listPages = () => {
-    return [...document.querySelectorAll("#pages > webview")]
-}
+const listPages = () => [...document.querySelectorAll("#pages > webview")]
 
-const currentTab = () => {
-    return document.getElementById("current-tab")
-}
+const currentTab = () => document.getElementById("current-tab")
 
-const currentPage = () => {
-    return document.getElementById("current-page")
-}
+const currentPage = () => document.getElementById("current-page")
 
 const addTab = options => {
     // Valid options are: url, inverted, switchTo and callback
@@ -308,14 +300,12 @@ const webContents = webview => {
 
 const tabOrPageMatching = el => {
     if (listTabs().indexOf(el) !== -1) {
-        return listPages().find(e => {
-            return e.getAttribute("link-id") === el.getAttribute("link-id")
-        })
+        return listPages().find(
+            e => e.getAttribute("link-id") === el.getAttribute("link-id"))
     }
     if (listPages().indexOf(el) !== -1) {
-        return listTabs().find(e => {
-            return e.getAttribute("link-id") === el.getAttribute("link-id")
-        })
+        return listTabs().find(
+            e => e.getAttribute("link-id") === el.getAttribute("link-id"))
     }
     return null
 }
@@ -430,12 +420,12 @@ const addWebviewListeners = webview => {
     })
     webview.addEventListener("did-fail-load", e => {
         if (e.errorDescription === "" || !e.isMainFrame) {
-            // Request was aborted before another error could occur
-            // Or some request made by the page failed (which can be ignored)
+            // Request was aborted before another error could occur,
+            // or some request made by the page failed (which can be ignored).
             return
         }
-        // It will go to the http version of a website, when no https is present
-        // But only when the redirecttohttp setting is active
+        // It will go to the http website, when no https is present,
+        // but only when the redirecttohttp setting is active.
         const redirect = SETTINGS.get("redirecttohttp")
         const sslErrors = [
             "ERR_CERT_COMMON_NAME_INVALID",
@@ -490,7 +480,7 @@ const addWebviewListeners = webview => {
         }
         if (specialPageName === "help") {
             webContents(webview).send(
-                "settings", SETTINGS.settingsObjectWithDefaults(),
+                "settings", SETTINGS.settingsWithDefaults(),
                 INPUT.listMappingsAsCommandList(false, true))
         }
         if (specialPageName === "notifications") {

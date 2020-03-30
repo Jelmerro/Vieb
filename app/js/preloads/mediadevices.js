@@ -24,15 +24,12 @@ const ondevicechange = window.navigator.mediaDevices.ondevicechange
 
 window.navigator.mediaDevices.enumerateDevices = async () => {
     const devices = await enumerate.call(window.navigator.mediaDevices)
-    return devices.map(({deviceId, groupId, kind}) => {
-        return {deviceId, groupId, kind, "label": ""}
-    })
+    return devices.map(({deviceId, groupId, kind}) => (
+        {deviceId, groupId, kind, "label": ""}))
 }
-window.navigator.mediaDevices.getDisplayMedia = () => {
-    return new Promise(() => {
-        throw new DOMException("Permission denied", "NotAllowedError")
-    })
-}
+window.navigator.mediaDevices.getDisplayMedia = () => new Promise(() => {
+    throw new DOMException("Permission denied", "NotAllowedError")
+})
 window.navigator.mediaDevices.getSupportedConstraints = constraints
 window.navigator.mediaDevices.getUserMedia = usermedia
 window.navigator.mediaDevices.ondevicechange = ondevicechange

@@ -114,9 +114,8 @@ app.on("ready", () => {
             if (commandLine[0] === "app") {
                 commandLine = commandLine.slice(1)
             }
-            mainWindow.webContents.send("urls", commandLine.filter(arg => {
-                return !arg.startsWith("-")
-            }))
+            mainWindow.webContents.send("urls",
+                commandLine.filter(arg => !arg.startsWith("-")))
         })
     } else {
         app.exit(0)
@@ -267,7 +266,7 @@ ipcMain.on("downloads-path-for-session", (_, name) => {
             save = path.join(app.getPath("downloads"), newFilename)
         }
         // Send the details to the renderer process as a fallback,
-        // So there are still details for destoyed download items.
+        // so there are still details for destoyed download items.
         mainWindow.webContents.send("downloads-details", {
             "name": item.getFilename(),
             "url": item.getURL(),
