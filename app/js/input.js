@@ -244,10 +244,8 @@ const init = () => {
         if (SETTINGS.get("mouse") && SETTINGS.get("mousefocus")) {
             document.elementsFromPoint(e.x, e.y).forEach(el => {
                 if (el.matches("#pagelayout *[link-id], #tabs *[link-id]")) {
-                    const tab = TABS.listTabs().find(t => {
-                        return t.getAttribute("link-id")
-                            === el.getAttribute("link-id")
-                    })
+                    const tab = TABS.listTabs().find(t => t.getAttribute(
+                        "link-id") === el.getAttribute("link-id"))
                     if (tab && TABS.currentTab() !== tab) {
                         TABS.switchToTab(TABS.listTabs().indexOf(tab))
                     }
@@ -387,10 +385,8 @@ const countableActions = [
     "pointer.moveLeftMax"
 ]
 
-const hasFutureActionsBasedOnKeys = keys => {
-    return !!Object.keys(bindings[MODES.currentMode()[0]]).find(
-        map => map.startsWith(keys) && map !== keys)
-}
+const hasFutureActionsBasedOnKeys = keys => !!Object.keys(bindings[
+    MODES.currentMode()[0]]).find(map => map.startsWith(keys) && map !== keys)
 
 const executeMapString = async (mapStr, recursive, initial) => {
     if (initial) {
@@ -654,9 +650,7 @@ const handleUserInput = e => {
     ACTIONS.setFocusCorrectly()
 }
 
-const listSupportedActions = () => {
-    return supportedActions
-}
+const listSupportedActions = () => supportedActions
 
 const mappingModified = (mode, mapping) => {
     const current = bindings[mode][mapping]
@@ -753,8 +747,8 @@ const mapOrList = (mode, args, noremap, includeDefault) => {
     mapSingle(mode, args, noremap)
 }
 
-const sanitiseMapString = mapString => {
-    return mapString.split(/(<.*?[^-]>|<.*?->>|.)/g).filter(m => m).map(m => {
+const sanitiseMapString = mapString => mapString.split(/(<.*?[^-]>|<.*?->>|.)/g)
+    .filter(m => m).map(m => {
         if (m === ">") {
             return ">"
         }
@@ -795,7 +789,6 @@ const sanitiseMapString = mapString => {
         }
         return key
     }).join("")
-}
 
 const mapSingle = (mode, args, noremap) => {
     const mapping = sanitiseMapString(args.shift())

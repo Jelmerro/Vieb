@@ -345,10 +345,8 @@ const hide = (...args) => {
     }
 }
 
-const tabIndexById = id => {
-    return TABS.listTabs().indexOf(TABS.listTabs().find(
-        t => t.getAttribute("link-id") === id))
-}
+const tabIndexById = id => TABS.listTabs().indexOf(TABS.listTabs().find(
+    t => t.getAttribute("link-id") === id))
 
 const addSplit = (method, leftOrAbove, args) => {
     if (args.length === 0) {
@@ -388,9 +386,8 @@ const addCommand = (overwrite, args) => {
         return
     }
     if (args.length === 0) {
-        const commandString = Object.keys(userCommands).map(command => {
-            return `${command} => ${userCommands[command]}`
-        }).join("\n").trim()
+        const commandString = Object.keys(userCommands).map(
+            c => `${c} => ${userCommands[c]}`).join("\n").trim()
         if (commandString) {
             UTIL.notify(`--- User defined commands ---\n${commandString}`)
         } else {
@@ -632,11 +629,8 @@ const commandList = (includeCustom = true) => {
     return Object.keys(commands).filter(c => c.length > 2)
 }
 
-const customCommandsAsCommandList = () => {
-    return Object.keys(userCommands).map(command => {
-        return `command ${command} ${userCommands[command]}`
-    }).join("\n")
-}
+const customCommandsAsCommandList = () => Object.keys(userCommands).map(
+    command => `command ${command} ${userCommands[command]}`).join("\n")
 
 module.exports = {
     openSpecialPage,

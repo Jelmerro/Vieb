@@ -110,10 +110,8 @@ const parseList = cookies => {
 const refreshList = () => {
     remote.session.fromPartition("persist:main")
         .cookies.get({}).then(cookieList => {
-            parseList(cookieList.sort((a, b) => {
-                return a.domain.replace(/\W/, "")
-                    .localeCompare(b.domain.replace(/\W/, ""))
-            }))
+            parseList(cookieList.sort((a, b) => a.domain.replace(/\W/, "")
+                .localeCompare(b.domain.replace(/\W/, ""))))
             document.getElementById("filter")
                 .addEventListener("input", filterList)
         })

@@ -102,11 +102,9 @@ ipcRenderer.on("selection-request", (_, endX, endY) => {
     }
 })
 
-const isTextNode = node => {
-    return [
-        Node.TEXT_NODE, Node.COMMENT_NODE, Node.CDATA_SECTION_NODE
-    ].includes(node.nodeType)
-}
+const isTextNode = node => [
+    Node.TEXT_NODE, Node.COMMENT_NODE, Node.CDATA_SECTION_NODE
+].includes(node.nodeType)
 
 const calculateOffset = (startNode, x, y) => {
     const range = document.createRange()

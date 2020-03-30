@@ -87,13 +87,9 @@ const addToList = suggestion => {
     suggestions.push(suggestion)
 }
 
-const includes = suggestion => {
-    return suggestions.includes(suggestion)
-}
+const includes = suggestion => suggestions.includes(suggestion)
 
-const indexOf = suggestion => {
-    return suggestions.indexOf(suggestion)
-}
+const indexOf = suggestion => suggestions.indexOf(suggestion)
 
 const addHist = hist => {
     if (suggestions.length + 1 > SETTINGS.get("suggesthistory")) {
@@ -175,13 +171,11 @@ const suggestCommand = search => {
     }
     if (bufferCommand && command !== "h" && !confirm) {
         const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
-        TABS.listTabs().map((t, index) => {
-            return {
-                "command": `${suggestedCommandName} ${index}`,
-                "subtext": `${t.querySelector("span").textContent}`,
-                "url": TABS.tabOrPageMatching(t).src
-            }
-        }).filter(t => {
+        TABS.listTabs().map((t, index) => ({
+            "command": `${suggestedCommandName} ${index}`,
+            "subtext": `${t.querySelector("span").textContent}`,
+            "url": TABS.tabOrPageMatching(t).src
+        })).filter(t => {
             if (t.command.startsWith(search)) {
                 return true
             }
@@ -199,10 +193,10 @@ const suggestCommand = search => {
         suggestedCommandName = "call"
     }
     if ("call".startsWith(command) && !confirm) {
-        INPUT.listSupportedActions().filter(action => {
-            return `${command} ${action.replace(/(^<|>$)/g, "")}`
-                .startsWith(`${command} ${args.join(" ")}`.trim())
-        }).forEach(action => addCommand(`${suggestedCommandName} ${action}`))
+        INPUT.listSupportedActions().filter(
+            action => `${command} ${action.replace(/(^<|>$)/g, "")}`.startsWith(
+                `${command} ${args.join(" ")}`.trim()))
+            .forEach(action => addCommand(`${suggestedCommandName} ${action}`))
     }
     if ("help".startsWith(command) && !confirm) {
         [
@@ -228,13 +222,11 @@ const suggestCommand = search => {
             "mentions",
             ...COMMAND.commandList().map(c => `:${c}`),
             ...INPUT.listSupportedActions(),
-            ...Object.values(SETTINGS.settingsObjectWithDefaults())
-                .map(s => s.name),
+            ...Object.values(SETTINGS.settingsWithDefaults()).map(s => s.name),
             ...COMMAND.commandList()
-        ].filter(section => {
-            return `${command} ${section}`.startsWith(
-                `${command} ${args.join(" ")}`.trim())
-        }).forEach(section => addCommand(`help ${section}`))
+        ].filter(section => `${command} ${section}`.startsWith(
+            `${command} ${args.join(" ")}`.trim())
+        ).forEach(section => addCommand(`help ${section}`))
     }
 }
 

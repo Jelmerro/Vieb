@@ -65,9 +65,7 @@ const cancelFollow = () => {
     links = []
 }
 
-const getModeBeforeFollow = () => {
-    return modeBeforeFollow
-}
+const getModeBeforeFollow = () => modeBeforeFollow
 
 const numberToKeys = (number, total) => {
     if (total < 27 || number < 26 && number > Math.floor(total / 26)) {
@@ -86,15 +84,13 @@ const numberToKeys = (number, total) => {
     return first + second
 }
 
-const linkInList = (list, link) => {
-    return list.find(l => {
-        if (!l || !link) {
-            return false
-        }
-        return l.x === link.x && l.y === link.y && l.type === link.type
-            && l.height === link.height && l.width === link.width
-    })
-}
+const linkInList = (list, link) => list.find(l => {
+    if (!l || !link) {
+        return false
+    }
+    return l.x === link.x && l.y === link.y && l.type === link.type
+        && l.height === link.height && l.width === link.width
+})
 
 const clickAtLink = link => {
     const factor = TABS.webContents(TABS.currentPage()).zoomFactor
@@ -167,7 +163,7 @@ const parseAndDisplayLinks = newLinks => {
         links.pop()
     }
     // The maximum amount of links is 26 * 26,
-    // Therefor the slice index is 0 to 26^2 - 1
+    // therefor the slice index is 0 to 26^2 - 1.
     links = links.slice(0, 675)
     const factor = TABS.webContents(TABS.currentPage()).zoomFactor
     const followElement = document.getElementById("follow")

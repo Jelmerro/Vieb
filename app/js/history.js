@@ -72,7 +72,7 @@ const parseHistLine = line => {
 
 const suggestHist = search => {
     // Simplify the search to a list of words, or an ordered list of words,
-    // Ordered matches take priority over unordered matches only.
+    // ordered matches take priority over unordered matches only.
     // In turn, exact matches get priority over ordered matches.
     search = search.toLowerCase().trim()
     const simpleSearch = search.split(/\W/g).filter(w => w)
@@ -96,9 +96,8 @@ const suggestHist = search => {
         if (url.toLowerCase().includes(search)) {
             relevance *= 10
         }
-        const allWordsInTitleOrUrl = simpleSearch.every(w => {
-            return simpleTitle.includes(w) || simpleUrl.includes(w)
-        })
+        const allWordsInTitleOrUrl = simpleSearch.every(
+            w => simpleTitle.includes(w) || simpleUrl.includes(w))
         if (relevance > 1 || allWordsInTitleOrUrl) {
             return {
                 "url": url,
@@ -200,28 +199,25 @@ const handleRequest = (action = "", entries = []) => {
     TABS.webContents(TABS.currentPage()).send("history-removal-status", success)
 }
 
-const suggestTopSites = () => {
-    return Object.keys(groupedHistory).filter(g => {
-        return groupedHistory[g]
-    }).sort((a, b) => {
-        if (groupedHistory[a] && groupedHistory[b]) {
-            return visitCount(b) - visitCount(a)
-        }
-        return 0
-    }).slice(0, SETTINGS.get("suggesttopsites")).map(site => {
-        if (SETTINGS.get("favicons") === "disabled") {
-            return {
-                "url": site,
-                "name": groupedHistory[site] && groupedHistory[site].title
-            }
-        }
+const suggestTopSites = () => Object.keys(groupedHistory).filter(
+    g => groupedHistory[g]).sort((a, b) => {
+    if (groupedHistory[a] && groupedHistory[b]) {
+        return visitCount(b) - visitCount(a)
+    }
+    return 0
+}).slice(0, SETTINGS.get("suggesttopsites")).map(site => {
+    if (SETTINGS.get("favicons") === "disabled") {
         return {
             "url": site,
-            "icon": FAVICONS.forSite(site),
             "name": groupedHistory[site] && groupedHistory[site].title
         }
-    })
-}
+    }
+    return {
+        "url": site,
+        "icon": FAVICONS.forSite(site),
+        "name": groupedHistory[site] && groupedHistory[site].title
+    }
+})
 
 const visitCount = url => {
     if (groupedHistory[url] && groupedHistory[url].visits) {
@@ -260,9 +256,7 @@ const updateTitle = (url, title) => {
     writeHistToFile()
 }
 
-const isFinishedLoading = () => {
-    return finishedLoading
-}
+const isFinishedLoading = () => finishedLoading
 
 module.exports = {
     init,

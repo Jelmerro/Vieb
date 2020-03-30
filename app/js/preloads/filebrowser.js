@@ -44,13 +44,9 @@ const createElement = (type, loc, customTitle = "") => {
     return element
 }
 
-const toUrl = loc => {
-    return `file:${loc}`.replace(/^file:\/*/, "file:///")
-}
+const toUrl = loc => `file:${loc}`.replace(/^file:\/*/, "file:///")
 
-const isRoot = loc => {
-    return path.normalize(loc) === path.join(loc, "../")
-}
+const isRoot = loc => path.normalize(loc) === path.join(loc, "../")
 
 ipcRenderer.on("insert-current-directory-files",
     (_, directories, files, allowed, folder) => {
