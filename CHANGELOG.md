@@ -68,6 +68,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Electron 9.0.0-beta.12 (was 8.0.1)
 - Chromium 82.0.4085.14 (was 80.0.3987.86)
 - Browsing data of popup windows are now stored in a separate memory-only partitions
+- Hide hardware related information, such as GPU model, media ids and battery status
 
 ## [1.1.0](https://github.com/Jelmerro/Vieb/compare/1.0.0...1.1.0) - 2020-02-15
 

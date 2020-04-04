@@ -113,7 +113,7 @@ const notify = (message, type = "info") => {
         new Notification(`Vieb ${properType}`, {"body": message})
         return
     }
-    if (message.split("<br>").length > 5 || message.length > 200) {
+    if (escapedMessage.split("<br>").length > 5 || message.length > 200) {
         for (const browserWindow of remote.BrowserWindow.getAllWindows()) {
             if (browserWindow.getURL().endsWith("notificationmessage.html")) {
                 ipcRenderer.sendTo(browserWindow.webContents.id,
