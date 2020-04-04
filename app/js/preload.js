@@ -27,8 +27,8 @@ require("./preloads/select")
 require("./preloads/failedload")
 // Always load the local directory browser
 require("./preloads/filebrowser")
-// Always load the custom media devices code
-require("./preloads/mediadevices")
+// Always load the privacy related fixes
+require("./preloads/privacy")
 
 // Load the special page specific JavaScript
 const util = require("./util")
