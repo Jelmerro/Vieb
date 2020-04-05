@@ -33,7 +33,17 @@ const compareVersions = (v1, v2) => {
     // Same number and at least one of them has a suffix such as "-dev"
     if (v1num === v2num) {
         if (v1ext && v2ext) {
-            return "unknown"
+            // Do a simple comparison of named pre releases
+            const suffixMap = {"dev": 1, "alpha": 2, "beta": 3, "prerelease": 4}
+            const v1suffix = suffixMap[v1ext] || 0
+            const v2suffix = suffixMap[v2ext] || 0
+            if (v1suffix > v2suffix) {
+                return "newer"
+            }
+            if (v1suffix < v2suffix) {
+                return "older"
+            }
+            return "even"
         }
         if (v1ext) {
             return "older"
@@ -101,3 +111,9 @@ window.addEventListener("load", () => {
     document.getElementById("electron-version")
         .textContent = process.versions.electron
 })
+
+try {
+    module.exports = {compareVersions}
+} catch (e) {
+    // Not imported, but loaded as a script
+}

@@ -45,7 +45,7 @@ const printVersion = () => {
 }
 const printLicense = () => {
     console.log("Vieb was created by Jelmer van Arnhem and contributors.")
-    console.log("For more info go here - https://github.com/Jelmerro/Vieb")
+    console.log("Website: https://vieb.dev OR https://github.com/Jelmerro/Vieb")
     console.log("\nLicense GPLv3+: GNU GPL version 3 or "
         + "later <http://gnu.org/licenses/gpl.html>")
     console.log("This is free software; you are free to change and "
