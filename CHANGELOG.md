@@ -28,6 +28,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Popup message for long notifications, with Vim bindings to scroll and close
 - Notification special page to view a list of previous notifications of the current session
 - New help documentation with descriptions for all commands, settings and actions
+- Basic check and compare for prerelease part of semantic versions
+- Tests for the version compare function
 
 ### Changed
 
@@ -65,7 +67,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Security
 
-- Electron 9.0.0-beta.12 (was 8.0.1)
+- Electron 9.0.0-beta.13 (was 8.0.1)
 - Chromium 82.0.4085.14 (was 80.0.3987.86)
 - Browsing data of popup windows are now stored in a separate memory-only partitions
 - Hide hardware related information, such as GPU model, media ids and battery status
