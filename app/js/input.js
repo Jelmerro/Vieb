@@ -685,6 +685,7 @@ const listMappingsAsCommandList = (mode = false, includeDefault = false) => {
 }
 
 const listMapping = (mode, key, includeDefault) => {
+    key = sanitiseMapString(key)
     if (!mappingModified(mode, key) && !includeDefault) {
         return ""
     }
@@ -757,7 +758,7 @@ const sanitiseMapString = mapString => mapString.split(/(<.*?[^-]>|<.*?->>|.)/g)
         if (m.length > 1) {
             const splitKeys = m.replace(/(^<|>$)/g, "")
                 .split("-").filter(s => s)
-            modifiers = splitKeys.slice(0, -1)
+            modifiers = splitKeys.slice(0, -1).map(mod => mod.toUpperCase())
             key = splitKeys.slice(-1)[0]
         }
         for (const name of keyNames) {
@@ -792,7 +793,7 @@ const sanitiseMapString = mapString => mapString.split(/(<.*?[^-]>|<.*?->>|.)/g)
 
 const mapSingle = (mode, args, noremap) => {
     const mapping = sanitiseMapString(args.shift())
-    const actions = sanitiseMapString(args.join(" "))
+    const actions = sanitiseMapString(args.join(""))
     if (mode) {
         bindings[mode][mapping] = {
             "mapping": actions, "noremap": noremap || mode === "i"
@@ -814,10 +815,10 @@ const unmap = (mode, args) => {
         return
     }
     if (mode) {
-        delete bindings[mode][args[0]]
+        delete bindings[mode][sanitiseMapString(args[0])]
     } else {
         Object.keys(bindings).forEach(bindMode => {
-            delete bindings[bindMode][args[0]]
+            delete bindings[bindMode][sanitiseMapString(args[0])]
         })
     }
     SETTINGS.updateHelpPage()
