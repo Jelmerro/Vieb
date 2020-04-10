@@ -390,10 +390,19 @@ const addWebviewListeners = webview => {
         tabOrPageMatching(webview).classList.add("crashed")
     })
     webview.addEventListener("media-started-playing", () => {
-        tabOrPageMatching(webview).classList.add("producing-sound")
+        const tab = tabOrPageMatching(webview)
+        const counter = Number(tab.getAttribute("media-playing")) || 0
+        tab.setAttribute("media-playing", counter + 1)
     })
     webview.addEventListener("media-paused", () => {
-        tabOrPageMatching(webview).classList.remove("producing-sound")
+        const tab = tabOrPageMatching(webview)
+        let counter = Number(tab.getAttribute("media-playing")) || 0
+        counter -= 1
+        if (counter < 1) {
+            tab.removeAttribute("media-playing")
+        } else {
+            tab.setAttribute("media-playing", counter)
+        }
     })
     webview.addEventListener("did-start-loading", () => {
         FAVICONS.loading(webview)
