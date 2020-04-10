@@ -17,34 +17,64 @@
 */
 "use strict"
 
-// Hide device labels and ids from the list of media devices
+const {remote} = require("electron")
+const fs = require("fs")
+const path = require("path")
+
+const message = "The page has requested to view a list of all media devices."
+    + " You can allow or deny this below, and choose if you want the list to"
+    + " include the names (labels) of the media device in the response."
+    + " To prevent pages from asking this, change the permission like so:"
+    + " 'set permissionmediadevices=<value>'"
+const webviewSettingsFile = path.join(
+    remote.app.getPath("appData"), "webviewsettings")
+
+// Hide device labels from the list of media devices
 // Disable the screen share API, as electron has no support for it
-const generateRandomId = () => {
-    // Generate a random string of 64 characters as the device ids
-    const uints = new Uint8Array(32)
-    window.crypto.getRandomValues(uints)
-    return Array.from(uints, n => `0${n.toString(16)}`.substr(-2)).join("")
-}
 try {
     const enumerate = window.navigator.mediaDevices.enumerateDevices
     const constraints = window.navigator.mediaDevices.getSupportedConstraints
     const usermedia = window.navigator.mediaDevices.getUserMedia
     const ondevicechange = window.navigator.mediaDevices.ondevicechange
-
     window.navigator.mediaDevices.enumerateDevices = async () => {
-        const devices = await enumerate.call(window.navigator.mediaDevices)
-        const safeDeviceList = []
-        ;["audiooutput", "audioinput", "videoinput"].forEach(type => {
-            if (devices.find(d => d.kind === type)) {
-                safeDeviceList.push({
-                    "deviceId": generateRandomId(),
-                    "groupId": generateRandomId(),
-                    "label": "",
-                    "kind": type
-                })
+        let action = "ask"
+        try {
+            action = JSON.parse(fs.readFileSync(
+                webviewSettingsFile).toString()).permissionmediadevices
+            if (!["block", "ask", "allow", "allowfull"].includes(action)) {
+                action = "ask"
             }
-        })
-        return safeDeviceList
+        } catch (e) {
+            // No webview settings configured, assuming the default ask value
+        }
+        if (action === "ask") {
+            const ask = await remote.dialog.showMessageBox(
+                remote.getCurrentWindow(), {
+                    "type": "question",
+                    "buttons": ["Allow", "Deny"],
+                    "defaultId": 0,
+                    "cancelId": 1,
+                    "checkboxLabel": "Include media device name labels",
+                    "title": "Allow this page to view a list of media devices?",
+                    "message": `${message}\n\npage:\n${window.location.href}`
+                })
+            if (ask.response === 0 && ask.checkboxChecked) {
+                action = "allowfull"
+            }
+            if (ask.response === 1) {
+                action = "block"
+            }
+        }
+        if (action === "block") {
+            throw new DOMException("Permission denied", "NotAllowedError")
+        }
+        const devices = await enumerate.call(window.navigator.mediaDevices)
+        if (action === "allowfull") {
+            return devices
+        }
+        return devices.map(({deviceId, groupId, kind}) => ({
+            deviceId, groupId, "label": "", kind
+        }))
     }
     window.navigator.mediaDevices.getDisplayMedia = () => new Promise(() => {
         throw new DOMException("Permission denied", "NotAllowedError")
@@ -53,7 +83,7 @@ try {
     window.navigator.mediaDevices.getUserMedia = usermedia
     window.navigator.mediaDevices.ondevicechange = ondevicechange
 } catch (e) {
-    // Some devices and electron version don't expose these anyway
+    // Some devices and electron versions don't expose these anyway
     // Also does not seem to be added when page does not use https
 }
 
@@ -74,10 +104,10 @@ window.navigator.__defineGetter__("hardwareConcurrency", () => 8)
 window.navigator.__defineGetter__("deviceMemory", () => 8)
 
 // Hide graphics card information from the canvas API
-const getParam = WebGLRenderingContext.getParameter
-window.WebGLRenderingContext.prototype.getExtension = parameter => {
+const getParam = window.WebGLRenderingContext.prototype.getParameter
+window.WebGLRenderingContext.prototype.getParameter = function(parameter) {
     if ([37445, 37446].includes(parameter)) {
-        return null
+        return ""
     }
-    return getParam(parameter)
+    return getParam.call(this, parameter)
 }

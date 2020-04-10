@@ -3,6 +3,7 @@ set adblocker=update
 set ignorecase
 set mouse
 set permissioncamera=ask
+set permissionmediadevices=allow
 set permissionmicrophone=ask
 set redirecttohttp
 set norestoretabs

@@ -46,6 +46,7 @@ const defaultSettings = {
     "permissioncamera": "block",
     "permissionfullscreen": "allow",
     "permissiongeolocation": "block",
+    "permissionmediadevices": "ask",
     "permissionmicrophone": "block",
     "permissionmidisysex": "block",
     "permissionnotifications": "ask",
@@ -96,6 +97,7 @@ const validOptions = {
     "permissioncamera": ["block", "ask", "allow"],
     "permissionfullscreen": ["block", "ask", "allow"],
     "permissiongeolocation": ["block", "ask", "allow"],
+    "permissionmediadevices": ["block", "ask", "allow", "allowfull"],
     "permissionmicrophone": ["block", "ask", "allow"],
     "permissionmidisysex": ["block", "ask", "allow"],
     "permissionnotifications": ["block", "ask", "allow"],
@@ -288,6 +290,24 @@ const updateMouseSettings = () => {
     }
 }
 
+const updateWebviewSettings = () => {
+    const webviewSettingsFile = path.join(
+        remote.app.getPath("appData"), "webviewsettings")
+    UTIL.writeJSON(webviewSettingsFile, {
+        "permissionmediadevices": get("permissionmediadevices")
+    })
+}
+
+const updateHelpPage = () => {
+    TABS.listPages().forEach(p => {
+        if (UTIL.pathToSpecialPageName(p.src).name === "help") {
+            TABS.webContents(p).send(
+                "settings", settingsWithDefaults(),
+                INPUT.listMappingsAsCommandList(false, true))
+        }
+    })
+}
+
 const listSettingsAsArray = () => {
     const listOfSettings = []
     for (const topLevel of Object.keys(defaultSettings)) {
@@ -354,29 +374,20 @@ const loadFromDisk = () => {
             }
         }
     }
-    updateFontSize()
-    updateDownloadSettings()
-    updateTabOverflow()
-    updateMouseSettings()
-    SESSIONS.setSpellLang(get("spelllang"))
 }
 
 const get = (setting, settingObject = allSettings) => settingObject[setting]
 
 const reset = setting => {
     if (setting === "all") {
-        allSettings = JSON.parse(JSON.stringify(defaultSettings))
+        Object.keys(defaultSettings).forEach(s => {
+            set(s, defaultSettings[s])
+        })
     } else if (allSettings[setting] === undefined) {
         UTIL.notify(`The setting '${setting}' doesn't exist`, "warn")
-        return
     } else {
-        allSettings[setting] = defaultSettings[setting]
+        set(setting, defaultSettings[setting])
     }
-    updateFontSize()
-    updateDownloadSettings()
-    updateTabOverflow()
-    updateMouseSettings()
-    SESSIONS.setSpellLang(get("spelllang"))
 }
 
 const set = (setting, value) => {
@@ -387,7 +398,7 @@ const set = (setting, value) => {
             }
             allSettings.search = value
         } else if (typeof allSettings[setting] === "boolean") {
-            allSettings[setting] = value === "true"
+            allSettings[setting] = ["true", true].includes(value)
         } else if (typeof allSettings[setting] === "number") {
             allSettings[setting] = Number(value)
         } else if (listLike.includes(setting)) {
@@ -422,6 +433,7 @@ const set = (setting, value) => {
             } catch (e) {
                 // No tabs present yet
             }
+            PAGELAYOUT.applyLayout()
         }
         if (setting === "mouse") {
             updateMouseSettings()
@@ -431,19 +443,13 @@ const set = (setting, value) => {
         }
         if (setting === "taboverflow") {
             updateTabOverflow()
+            PAGELAYOUT.applyLayout()
+        }
+        if (setting === "permissionmediadevices") {
+            updateWebviewSettings()
         }
         updateHelpPage()
     }
-}
-
-const updateHelpPage = () => {
-    TABS.listPages().forEach(p => {
-        if (UTIL.pathToSpecialPageName(p.src).name === "help") {
-            TABS.webContents(p).send(
-                "settings", settingsWithDefaults(),
-                INPUT.listMappingsAsCommandList(false, true))
-        }
-    })
 }
 
 const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
