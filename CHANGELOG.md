@@ -67,8 +67,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Security
 
-- Electron 9.0.0-beta.13 (was 8.0.1)
-- Chromium 82.0.4085.14 (was 80.0.3987.86)
+- Electron 9.0.0-beta.15 (was 8.0.1)
+- Chromium 83.0.4102.3 (was 80.0.3987.86)
 - Browsing data of popup windows are now stored in a separate memory-only partitions
 - Hide hardware related info, such as GPU model and battery data
 - Add new permission for mediaDevices, new default is to ask the user instead of allowing all
