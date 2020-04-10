@@ -193,7 +193,7 @@ const pathToSpecialPageName = urlPath => {
     return {"name": "", "section": ""}
 }
 
-const rimrafFolder = folder => {
+const globDelete = folder => {
     try {
         rimraf(path.join(remote.app.getPath("appData"), folder))
     } catch (e) {
@@ -203,31 +203,32 @@ const rimrafFolder = folder => {
 
 const clearContainerTabs = () => {
     document.getElementById("pages").innerHTML = ""
-    rimrafFolder("Partitions/!(main)")
+    globDelete("Partitions/!(main)")
 }
 
 const clearCache = () => {
-    rimrafFolder("**/*Cache/")
-    rimrafFolder("**/File System/")
-    rimrafFolder("**/MANIFEST")
-    rimrafFolder("**/Service Worker/")
-    rimrafFolder("**/VideoDecodeStats/")
-    rimrafFolder("**/blob_storage/")
-    rimrafFolder("**/databases/")
-    rimrafFolder("**/*.log")
-    rimrafFolder("**/.org.chromium.Chromium.*")
-    rimrafFolder("vimformedits/")
+    globDelete("**/*Cache/")
+    globDelete("**/File System/")
+    globDelete("**/MANIFEST")
+    globDelete("**/Service Worker/")
+    globDelete("**/VideoDecodeStats/")
+    globDelete("**/blob_storage/")
+    globDelete("**/databases/")
+    globDelete("**/*.log")
+    globDelete("**/.org.chromium.Chromium.*")
+    globDelete("vimformedits/")
+    globDelete("webviewsettings")
 }
 
 const clearCookies = () => {
-    rimrafFolder("**/Cookies*")
-    rimrafFolder("**/QuotaManager*")
+    globDelete("**/Cookies*")
+    globDelete("**/QuotaManager*")
 }
 
 const clearLocalStorage = () => {
-    rimrafFolder("**/IndexedDB/")
-    rimrafFolder("**/*Storage/")
-    rimrafFolder("**/*.ldb")
+    globDelete("**/IndexedDB/")
+    globDelete("**/*Storage/")
+    globDelete("**/*.ldb")
 }
 
 const redirect = url => {
@@ -283,8 +284,7 @@ const readFile = loc => {
 
 const readJSON = loc => {
     try {
-        const contents = fs.readFileSync(loc).toString()
-        return JSON.parse(contents)
+        return JSON.parse(fs.readFileSync(loc).toString())
     } catch (e) {
         return null
     }
