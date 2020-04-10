@@ -24,13 +24,13 @@
   "email": "Jelmerro@users.noreply.github.com",
   "license": "GPL-3.0+",
   "devDependencies": {
-    "electron": "^9.0.0-beta.13",
+    "electron": "^9.0.0-beta.15",
     "electron-builder": "^22.4.1",
     "eslint": "^6.8.0",
-    "jest": "^25.2.7"
+    "jest": "^25.3.0"
   },
   "dependencies": {
-    "@cliqz/adblocker-electron": "^1.13.1",
+    "@cliqz/adblocker-electron": "^1.14.1",
     "rimraf": "^3.0.2"
   }
 }
