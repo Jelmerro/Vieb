@@ -367,6 +367,9 @@ const listNotificationHistory = () => notificationHistory
 
 const title = name => name[0].toUpperCase() + name.slice(1).toLowerCase()
 
+const useragent = () => remote.session.defaultSession.getUserAgent()
+    .replace(/Electron\/\S* /, "").replace(/Vieb\/\S* /, "")
+
 module.exports = {
     hasProtocol,
     isUrl,
@@ -391,5 +394,6 @@ module.exports = {
     stringToUrl,
     urlToString,
     listNotificationHistory,
-    title
+    title,
+    useragent
 }

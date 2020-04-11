@@ -72,6 +72,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Browsing data of popup windows are now stored in a separate memory-only partitions
 - Hide hardware related info, such as GPU model and battery data
 - Add new permission for mediaDevices, new default is to ask the user instead of allowing all
+- Also remove Vieb and Electron from the useragent when downloading favicons
 
 ## [1.1.0](https://github.com/Jelmerro/Vieb/compare/1.0.0...1.1.0) - 2020-02-15
 

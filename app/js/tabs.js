@@ -26,8 +26,6 @@ const {ipcRenderer, remote} = require("electron")
 let recentlyClosed = []
 let linkId = 0
 
-const useragent = remote.session.defaultSession.getUserAgent()
-    .replace(/Electron\/\S* /, "").replace(/Vieb\/\S* /, "")
 const tabFile = path.join(remote.app.getPath("appData"), "tabs")
 
 const init = () => {
@@ -242,11 +240,11 @@ const addTab = options => {
         }
     }
     webview.src = UTIL.specialPagePath("newtab")
-    webview.setAttribute("useragent", useragent)
+    webview.setAttribute("useragent", UTIL.useragent())
     webview.addEventListener("dom-ready", () => {
         if (webview.getAttribute("useragent")) {
             addWebviewListeners(webview)
-            webContents(webview).userAgent = useragent
+            webContents(webview).userAgent = UTIL.useragent()
             webContents(webview).setWebRTCIPHandlingPolicy(
                 "default_public_interface_only")
             if (options.url) {
