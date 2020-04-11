@@ -120,6 +120,9 @@ const config = path.join(remote.app.getPath("appData"), "viebrc")
 
 const init = () => {
     loadFromDisk()
+    updateDownloadSettings()
+    updateTabOverflow()
+    SESSIONS.setSpellLang(get("spelllang"))
 }
 
 const checkOption = (setting, value) => {
