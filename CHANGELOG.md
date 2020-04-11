@@ -49,6 +49,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Entries on the history page can now be removed without reloading all history again
 - Buffer command can now be used to navigate to new locations (this is also true for the new split and Explore commands)
 - Allow \<A-F4\> and \<M-Q\> to be mapped as if they are regular keys (most likely to the quit command)
+- Reload command no longer resets all settings before running the commands from the viebrc files
 
 ### Deprecated
 
