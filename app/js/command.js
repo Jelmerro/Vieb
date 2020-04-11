@@ -214,14 +214,9 @@ const help = (section = null, trailingArgs = false) => {
 }
 
 const reload = () => {
+    COMMANDHISTORY.pause()
     SETTINGS.loadFromDisk()
-    TABS.listPages().forEach(p => {
-        if (UTIL.pathToSpecialPageName(p.src).name === "help") {
-            TABS.webContents(p).send(
-                "settings", SETTINGS.listCurrentSettings(true),
-                INPUT.listSupportedActions())
-        }
-    })
+    COMMANDHISTORY.resume()
 }
 
 const hardcopy = () => {
