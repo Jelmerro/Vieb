@@ -107,6 +107,7 @@ const create = name => {
         ipcRenderer.send("adblock-enable", [name])
     }
     session.on("will-download", DOWNLOADS.handleDownload)
+    session.setUserAgent(UTIL.useragent())
     ipcRenderer.send("downloads-path-for-session", name)
     sessions[name] = session
 }
