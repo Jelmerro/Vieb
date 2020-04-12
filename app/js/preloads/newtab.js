@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,26 +19,40 @@
 
 const {ipcRenderer} = require("electron")
 
-ipcRenderer.on("insert-new-tab-info", (_, sites) => {
+const addSiteToList = (listname, site) => {
+    const link = document.createElement("a")
+    link.href = site.url
+    const icon = document.createElement("img")
+    icon.src = site.icon || "../img/empty.png"
+    link.appendChild(icon)
+    const text = document.createElement("div")
+    const title = document.createElement("span")
+    title.textContent = site.name
+    text.appendChild(title)
+    const url = document.createElement("small")
+    url.textContent = site.url
+    text.appendChild(url)
+    link.appendChild(text)
+    document.getElementById(listname).appendChild(link)
+}
+
+ipcRenderer.on("insert-new-tab-info", (_, topsites, favorites) => {
     document.body.style.display = "flex"
-    if (sites && sites.length > 0) {
-        document.getElementById("topsites").innerHTML = ""
+    if (topsites) {
+        document.getElementById("topsites").style.display = "inline-block"
+        if (topsites.length) {
+            document.getElementById("topsites").innerHTML = "<h2>Top sites</h2>"
+            for (const site of topsites) {
+                addSiteToList("topsites", site)
+            }
+        }
     }
-    for (const site of sites) {
-        const link = document.createElement("a")
-        link.href = site.url
-        const icon = document.createElement("img")
-        icon.src = site.icon || "../img/empty.png"
-        link.appendChild(icon)
-        const text = document.createElement("div")
-        const title = document.createElement("span")
-        title.textContent = site.name
-        text.appendChild(title)
-        const url = document.createElement("small")
-        url.textContent = site.url
-        text.appendChild(url)
-        link.appendChild(text)
-        document.getElementById("topsites").appendChild(link)
+    if (favorites.length) {
+        document.getElementById("favorites").style.display = "inline-block"
+        document.getElementById("favorites").innerHTML = "<h2>Favorites</h2>"
+        for (const site of favorites) {
+            addSiteToList("favorites", site)
+        }
     }
 })
 

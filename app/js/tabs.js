@@ -114,14 +114,15 @@ const openSavedPage = url => {
     url = UTIL.stringToUrl(url.trim())
     try {
         if (UTIL.pathToSpecialPageName(currentPage().src).name === "newtab") {
-            navigateTo(url)
-        } else {
-            addTab({"url": url})
+            if (!webContents(currentPage()).isLoading()) {
+                navigateTo(url)
+                return
+            }
         }
     } catch (e) {
         // Current page not ready yet, open in new tab instead
-        addTab({"url": url})
     }
+    addTab({"url": url})
 }
 
 const saveTabs = () => {
@@ -599,8 +600,27 @@ const addWebviewListeners = webview => {
         }
         if (e.channel === "new-tab-info-request") {
             const special = UTIL.pathToSpecialPageName(webview.src)
-            if (SETTINGS.get("suggesttopsites") && special.name === "newtab") {
-                webview.send("insert-new-tab-info", HISTORY.suggestTopSites())
+            if (special.name !== "newtab") {
+                return
+            }
+            const favoritePages = SETTINGS.get("favoritepages").split(",")
+                .filter(page => page).map(page => {
+                    if (!UTIL.hasProtocol(page)) {
+                        page = `https://${page}`
+                    }
+                    return {
+                        "name": HISTORY.titleForPage(page)
+                            || HISTORY.titleForPage(`${page}/`),
+                        "url": page,
+                        "icon": FAVICONS.forSite(page)
+                            || FAVICONS.forSite(`${page}/`)
+                    }
+                })
+            const topPages = HISTORY.suggestTopSites()
+            if (SETTINGS.get("suggesttopsites") && topPages.length) {
+                webview.send("insert-new-tab-info", topPages, favoritePages)
+            } else if (favoritePages.length > 0) {
+                webview.send("insert-new-tab-info", false, favoritePages)
             }
         }
     })

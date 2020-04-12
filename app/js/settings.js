@@ -33,6 +33,7 @@ const defaultSettings = {
     "countlimit": 100,
     "downloadpath": "~/Downloads/",
     "favicons": "session",
+    "favoritepages": "",
     "fontsize": 14,
     "keeprecentlyclosed": true,
     "ignorecase": false,
@@ -78,7 +79,7 @@ const defaultSettings = {
 }
 let allSettings = {}
 const freeText = ["downloadpath", "search", "vimcommand"]
-const listLike = ["redirects", "startuppages"]
+const listLike = ["favoritepages", "redirects", "startuppages"]
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
     "cache": ["none", "clearonquit", "full"],
@@ -196,12 +197,10 @@ const checkOther = (setting, value) => {
             }
         }
     }
-    if (setting === "startuppages") {
-        for (const startupPage of value.split(",")) {
-            if (startupPage.trim() && !UTIL.isUrl(startupPage)) {
-                UTIL.notify(
-                    `Invalid URL passed to startuppages: ${startupPage}`,
-                    "warn")
+    if (["favoritepages", "startuppages"].includes(setting)) {
+        for (const page of value.split(",")) {
+            if (page.trim() && !UTIL.isUrl(page)) {
+                UTIL.notify(`Invalid URL passed to ${setting}: ${page}`, "warn")
                 return false
             }
         }
