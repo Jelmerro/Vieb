@@ -30,16 +30,16 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - New help documentation with descriptions for all commands, settings and actions
 - Basic check and compare for prerelease part of semantic versions
 - Tests for the version compare function
+- Favorite pages setting for manually providing a list of pages that should always appear on the new tab page
 
 ### Changed
 
-- The caseSensitiveSearch has been renamed to ignorecase to be more similar to Vim
-- Rename all settings to be lowercase and without dots
+- Rename all settings to be lowercase and without dots, similar to Vim
 - Set command syntax is now much more similar to Vim with support for all of Vim's set operators
-- Booleans can now be set and unset using "ignorecase" or "noignorecase", again, similar to Vim
+- Booleans can now be set and unset using "ignorecase" or "noignorecase"
 - Allow all settings to be changed at runtime, as they can be saved for the next startup with :mkv
-- List-like settings are now much more similar to Vim, as they are a comma seperated string, with += and -= support
-- Viebrc is now named 'viebrc' instead of 'viebrc.json' and is configured by Vim commands instead of JSON
+- List-like settings are now much more similar to Vim, as they are a comma separated string, with += and -= support
+- Viebrc is now named 'viebrc' instead of 'viebrc.json' and is configured by Vieb/Vim commands instead of JSON
 - All suggestion settings are now of the number type instead of boolean, and specify the number of entries to suggest (0 to disable)
 - Rename the modes: nav to explore and cursor to pointer, to allow for single key identifiers of the modes
 - Improvements to mode switching by centralizing mode switching code in the modes file
@@ -54,7 +54,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Deprecated
 
 - Old history storage format (TSV has been replaced with JSON), filename remains "hist"
-- Convertion from old to new history format, will be removed in 3.0.0
+- Conversion from old to new history format, will be removed in 3.0.0
 
 ### Removed
 
@@ -335,7 +335,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Electron 5.0.6 (was 5.0.2)
 - Chromium 73.0.3683.121 (unchanged)
 - Remove Vieb and Electron info more reliably from the useragent (should now be similar to Chrome)
-- Disable the sharing of local WebRTC ip addresses, only public ips are now shared
+- Disable the sharing of local WebRTC ip addresses, only public ip addresses are now shared
 
 ## [0.3.0](https://github.com/Jelmerro/Vieb/compare/0.2.2...0.3.0) - 2019-06-07
 

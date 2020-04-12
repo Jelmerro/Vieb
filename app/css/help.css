@@ -37,7 +37,7 @@ h3 {font-size: 1.5em;margin: .7em 0;color: #fb9;}
 h4 {font-size: 1.25em;margin: .7em 0;}
 h5, h6 {font-size: 1;margin: .7em 0;}
 .setting-status {display: flex;flex-wrap: wrap;}
-.setting-status * {margin: 0 .5em;overflow-wrap: break-word;max-width: calc(100vw - 3em);}
+.setting-status * {margin: 0 .5em;overflow-wrap: anywhere;max-width: calc(100vw - 3em);}
 .map-status * {display: block;}
 .countable {height: 2em;margin: 0 1em;color: #fc0;}
 /* colors */
