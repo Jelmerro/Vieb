@@ -39,12 +39,14 @@ const printVersion = () => {
     const version = process.env.npm_package_version || app.getVersion()
     console.log("Vieb: Vim Inspired Electron Browser\n")
     console.log(`This is version ${version} of Vieb.`)
-    console.log("This program is based on Electron and inspired by Vim.")
+    console.log("Vieb is based on Electron and inspired by Vim.")
     console.log("It can be used to browse the web entirely with the keyboard.")
+    console.log(`This release uses Electron ${
+        process.versions.electron} and Chromium ${process.versions.chrome}`)
     printLicense()
 }
 const printLicense = () => {
-    console.log("Vieb was created by Jelmer van Arnhem and contributors.")
+    console.log("Vieb is created by Jelmer van Arnhem and contributors.")
     console.log("Website: https://vieb.dev OR https://github.com/Jelmerro/Vieb")
     console.log("\nLicense GPLv3+: GNU GPL version 3 or "
         + "later <http://gnu.org/licenses/gpl.html>")
