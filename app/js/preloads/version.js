@@ -43,14 +43,12 @@ const compareVersions = (v1, v2) => {
             if (v1suffix < v2suffix) {
                 return "older"
             }
-            return "even"
-        }
-        if (v1ext) {
+        } else if (v1ext) {
             return "older"
-        }
-        if (v2ext) {
+        } else if (v2ext) {
             return "newer"
         }
+        return "even"
     }
     // Test if the version number is actually formatted like "1.1.1" or similar
     if (!/^\d*\.\d*\.\d*$/.test(v1num) || !/^\d*\.\d*\.\d*$/.test(v2num)) {

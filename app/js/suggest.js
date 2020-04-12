@@ -171,8 +171,16 @@ const suggestCommand = search => {
     }
     if (bufferCommand && command !== "h" && !confirm) {
         const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
-        TABS.listTabs().map((t, index) => ({
-            "command": `${suggestedCommandName} ${index}`,
+        TABS.listTabs().filter(tab => {
+            if (bufferCommand === "buffer") {
+                return true
+            }
+            if (bufferCommand === "hide") {
+                return tab.classList.contains("visible-tab")
+            }
+            return !tab.classList.contains("visible-tab")
+        }).map(t => ({
+            "command": `${suggestedCommandName} ${TABS.listTabs().indexOf(t)}`,
             "subtext": `${t.querySelector("span").textContent}`,
             "url": TABS.tabOrPageMatching(t).src
         })).filter(t => {
