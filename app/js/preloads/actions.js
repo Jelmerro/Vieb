@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -221,8 +221,10 @@ ipcRenderer.on("action", (_, name, ...args) => {
     }
 })
 
-ipcRenderer.on("fontsize", (_, size) => {
-    document.body.style.fontSize = `${size}px`
+window.addEventListener("DOMContentLoaded", () => {
+    ipcRenderer.on("fontsize", (_, size) => {
+        document.body.style.fontSize = `${size}px`
+    })
 })
 
 let focussedSearchElement = null
@@ -235,5 +237,11 @@ ipcRenderer.on("search-element-location", (_, pos) => {
 ipcRenderer.on("search-element-click", () => {
     if (focussedSearchElement) {
         focussedSearchElement.click()
+    }
+})
+
+window.addEventListener("keydown", e => {
+    if (e.code === "F11") {
+        e.preventDefault()
     }
 })

@@ -1,6 +1,6 @@
 <!--
     Vieb - Vim Inspired Electron Browser
-    Copyright (C) 2019-2020 Jelmer van Arnhem
+    Copyright (C) 2020 Jelmer van Arnhem
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,18 +18,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link href="../css/newtab.css" rel="stylesheet" type="text/css">
-    <title>New tab</title>
+    <link href="../css/notifications.css" rel="stylesheet" type="text/css">
+    <title>Notifications</title>
     <link rel="shortcut icon" type="image/png" href="../img/icons/256x256.png">
 </head>
 <body>
-    <main>
-        <div>
-            <div id="favorites"></div>
-            <div id="topsites">Your top sites by visit count will appear here.</div>
-        </div>
-        <p>Alternatively, go to explore mode to search or navigate to other places.</p>
-        <p>Want your new tabs to be empty instead? <kbd>set favoritepages= suggesttopsites=0</kbd></p>
-    </main>
+    <h1>Notifications</h1>
+    <div id="list">Loading...</div>
 </body>
 </html>

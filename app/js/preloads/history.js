@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -83,6 +83,7 @@ let currentBreakpointIndex = 0
 let lineNumberBreakpoint = 0
 let list = document.createElement("div")
 list.id = "list"
+let currentlyRemoving = false
 
 // Actually parse the list and use the breakpoints
 
@@ -150,12 +151,13 @@ const addHistToList = hist => {
         currentBreakpointIndex += 1
         breakpoint = dateBreakpoints[currentBreakpointIndex + 1]
     }
-    // And show only the revelant breakpoint if multiple are skipped
+    // And show only the relevant breakpoint if multiple are skipped
     if (previousBreakpoint !== currentBreakpointIndex) {
         addBreakpoint(previousBreakpoint, hist.line - 1)
     }
     // Finally show the history entry (possibly after new breakpoint)
     const histElement = document.createElement("div")
+    histElement.setAttribute("hist-line", hist.line)
     histElement.className = "hist-entry"
     if (hist.icon) {
         const icon = document.createElement("img")
@@ -169,6 +171,7 @@ const addHistToList = hist => {
     histElement.appendChild(img)
     const date = document.createElement("span")
     date.textContent = formatDate(hist.date)
+    date.setAttribute("iso", hist.date.toISOString())
     date.className = "hist-date"
     histElement.appendChild(date)
     const title = document.createElement("span")
@@ -186,7 +189,27 @@ window.clearHistory = () => {
 }
 
 window.clearLinesFromHistory = (start, end = null) => {
-    ipcRenderer.sendToHost("history-list-request", "range", start, end)
+    if (currentlyRemoving) {
+        return
+    }
+    currentlyRemoving = true
+    const entries = []
+    if (!end) {
+        end = start
+    }
+    let num = start
+    while (num <= end) {
+        const element = document.querySelector(`*[hist-line="${num}"]`)
+        num += 1
+        if (!element) {
+            continue
+        }
+        element.classList.add("marked")
+        const date = element.querySelector(".hist-date").getAttribute("iso")
+        const url = element.querySelector("a").getAttribute("href")
+        entries.push({url, date})
+    }
+    ipcRenderer.sendToHost("history-list-request", "range", entries)
 }
 
 const formatDate = date => {
@@ -210,5 +233,17 @@ window.addEventListener("load", () => {
 })
 
 ipcRenderer.on("history-list", (_, historyList) => {
+    historyList = JSON.parse(historyList)
     receiveHistory(historyList)
+})
+
+ipcRenderer.on("history-removal-status", success => {
+    [...document.querySelectorAll(".marked")].forEach(m => {
+        if (success) {
+            m.parentNode.removeChild(m)
+        } else {
+            m.classList.remove("marked")
+        }
+    })
+    currentlyRemoving = false
 })

@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,8 @@ const mappingFile = path.join(faviconFolder, "mappings")
 let mappings = {}
 const sessionStart = new Date()
 let isParsed = false
+const viebIcon = `file:///${path.join(
+    __dirname, "../img/icons/256x256.png").replace(/^\/*/g, "")}`
 
 const init = () => {
     const parsed = UTIL.readJSON(mappingFile)
@@ -65,9 +67,8 @@ const updateMappings = (currentUrl = null) => {
     UTIL.writeJSON(mappingFile, mappings)
 }
 
-const urlToPath = url => {
-    return path.join(faviconFolder, encodeURIComponent(url).replace(/%/g, "_"))
-}
+const urlToPath = url => path.join(
+    faviconFolder, encodeURIComponent(url).replace(/%/g, "_"))
 
 const loading = webview => {
     const tab = TABS.tabOrPageMatching(webview)
@@ -105,6 +106,10 @@ const update = (webview, urls) => {
     if (!favicon) {
         return
     }
+    if (viebIcon === favicon && !UTIL.pathToSpecialPageName(webview.src).name) {
+        // Don't allow non-special pages to use the built-in favicon
+        return
+    }
     const currentUrl = String(webview.src)
     const tab = TABS.tabOrPageMatching(webview)
     mappings[currentUrl] = favicon
@@ -124,7 +129,7 @@ const update = (webview, urls) => {
         // Directory probably already exists
     }
     const request = remote.net.request({
-        "url": favicon, "session": webview.getWebContents().session
+        "url": favicon, "session": TABS.webContents(webview).session
     })
     request.on("response", res => {
         const data = []
@@ -184,20 +189,20 @@ const deleteIfTooOld = loc => {
 const forSite = url => {
     const mapping = mappings[url]
     if (mapping) {
-        if (mapping.startsWith("data:") || mapping.startsWith("file:/")) {
+        if (mapping.startsWith("data:")) {
             return mapping
         }
-        return urlToPath(mapping)
+        let file = ""
+        if (mapping.startsWith("file:/")) {
+            file = mapping.replace(/^file:\/+/g, "")
+        } else {
+            file = urlToPath(mapping)
+        }
+        if (UTIL.isFile(file)) {
+            return file
+        }
     }
     return ""
 }
 
-module.exports = {
-    init,
-    updateMappings,
-    loading,
-    empty,
-    show,
-    update,
-    forSite
-}
+module.exports = {init, updateMappings, loading, empty, show, update, forSite}

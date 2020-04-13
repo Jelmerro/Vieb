@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -23,9 +23,15 @@ const path = require("path")
 const fs = require("fs")
 const https = require("https")
 
+const blocklistDir = path.join(remote.app.getPath("appData"), "blocklists")
+const defaultBlocklists = {
+    "easylist": "https://easylist.to/easylist/easylist.txt",
+    "easyprivacy": "https://easylist.to/easylist/easyprivacy.txt"
+}
 const sessions = {}
 
 const init = () => {
+    UTIL.clearContainerTabs()
     enableAdblocker()
     create("persist:main")
 }
@@ -38,19 +44,20 @@ const permissionHandler = (_, permission, callback, details) => {
             permission = "microphone"
         }
     }
-    const setting = SETTINGS.get(`permissions.${permission}`)
+    const permissionName = `permission${permission.toLowerCase()}`
+    const setting = SETTINGS.get(permissionName)
     if (setting === "ask") {
         let url = details.requestingUrl
         if (url.length > 100) {
             url = url.replace(/.{50}/g, "$&\n")
         }
         let message = "The page has requested access to the permission "
-                + `'${permission}'. You can allow or deny this below, `
-                + "and choose if you want to make this the default for "
-                + "the current session when sites ask for this permission."
-                + " You can always change this using the settings file,"
-                + " or at runtime with the set command like so: "
-                + `'set permissions.${permission}=<value>'\n\npage:\n${url}`
+            + `'${permission}'. You can allow or deny this below, `
+            + "and choose if you want to make this the default for "
+            + "the current session when sites ask for this permission."
+            + " You can always change this using the settings file,"
+            + " or at runtime with the set command like so: "
+            + `'set ${permissionName}=<value>'\n\npage:\n${url}`
         if (permission === "openExternal") {
             let exturl = details.externalURL
             if (exturl.length > 100) {
@@ -61,7 +68,7 @@ const permissionHandler = (_, permission, callback, details) => {
                 + " make this the default for the current session when sites "
                 + "ask to open urls in external programs. You can always change"
                 + " this using the settings file, or at runtime with the set "
-                + "command like so: 'set permissions.openExternal=<value>\n\n"
+                + "command like so: 'set permissionopenexternal=<value>\n\n"
                 + `page:\n${details.requestingUrl}\n\nexternal:\n${exturl}`
         }
         remote.dialog.showMessageBox(remote.getCurrentWindow(), {
@@ -76,9 +83,9 @@ const permissionHandler = (_, permission, callback, details) => {
             callback(e.response === 0)
             if (e.checkboxChecked) {
                 if (e.response === 0) {
-                    SETTINGS.set(`permissions.${permission}`, "allow")
+                    SETTINGS.set(permissionName, "allow")
                 } else {
-                    SETTINGS.set(`permissions.${permission}`, "block")
+                    SETTINGS.set(permissionName, "block")
                 }
             }
         })
@@ -91,6 +98,7 @@ const create = name => {
     if (Object.keys(sessions).includes(name)) {
         return
     }
+    applyDevtoolsSettings(name.split(":")[1] || name)
     const session = remote.session.fromPartition(name, {
         "cache": SETTINGS.get("cache") !== "none"
     })
@@ -99,8 +107,48 @@ const create = name => {
         ipcRenderer.send("adblock-enable", [name])
     }
     session.on("will-download", DOWNLOADS.handleDownload)
+    session.setUserAgent(UTIL.useragent())
     ipcRenderer.send("downloads-path-for-session", name)
     sessions[name] = session
+}
+
+const applyDevtoolsSettings = session => {
+    const partitionDir = path.join(remote.app.getPath("appData"), "Partitions")
+    const sessionDir = path.join(partitionDir, session)
+    const preferencesFile = path.join(sessionDir, "Preferences")
+    try {
+        fs.mkdirSync(partitionDir)
+    } catch (e) {
+        // Directory probably already exists
+    }
+    try {
+        fs.mkdirSync(sessionDir)
+    } catch (e) {
+        // Directory probably already exists
+    }
+    let preferences = UTIL.readJSON(preferencesFile)
+    if (!preferences) {
+        preferences = {}
+    }
+    if (!preferences.electron) {
+        preferences.electron = {}
+    }
+    if (!preferences.electron.devtools) {
+        preferences.electron.devtools = {}
+    }
+    if (!preferences.electron.devtools.preferences) {
+        preferences.electron.devtools.preferences = {}
+    }
+    // Disable source maps as they leak internal structure to the webserver
+    preferences.electron.devtools.preferences.cssSourceMapsEnabled = false
+    preferences.electron.devtools.preferences.jsSourceMapsEnabled = false
+    // Disable release notes, most are not relevant for Vieb
+    preferences.electron.devtools.preferences["help.show-release-note"] = false
+    // Show timestamps in the console
+    preferences.electron.devtools.preferences.consoleTimestampsEnabled = true
+    // Enable dark theme
+    preferences.electron.devtools.preferences.uiTheme = "\"dark\""
+    UTIL.writeJSON(preferencesFile, preferences)
 }
 
 const disableAdblocker = () => {
@@ -111,23 +159,21 @@ const recreateAdblocker = () => {
     ipcRenderer.send("adblock-recreate", Object.keys(sessions))
 }
 
-const defaultBlocklists = {
-    "easylist": "https://easylist.to/easylist/easylist.txt",
-    "easyprivacy": "https://easylist.to/easylist/easyprivacy.txt"
-}
-
 const enableAdblocker = () => {
-    const blocklistsFolder = path.join(
-        remote.app.getPath("appData"), "blocklists")
     try {
-        fs.mkdirSync(blocklistsFolder)
+        fs.mkdirSync(blocklistDir)
     } catch (e) {
         // Directory probably already exists
     }
     // Copy the default and included blocklists to the appdata folder
     if (SETTINGS.get("adblocker") !== "custom") {
-        for (const list of Object.keys(defaultBlocklists)) {
-            copyBlocklist(list)
+        for (const name of Object.keys(defaultBlocklists)) {
+            const list = path.join(__dirname, `../blocklists/${name}.txt`)
+            try {
+                fs.copyFileSync(list, path.join(blocklistDir, `${name}.txt`))
+            } catch (e) {
+                UTIL.notify(`Failed to copy ${name}`, "err")
+            }
         }
     }
     // And update default blocklists to the latest version if enabled
@@ -139,7 +185,7 @@ const enableAdblocker = () => {
                 res.on("end", () => {
                     try {
                         fs.writeFileSync(
-                            path.join(blocklistsFolder, `${list}.txt`), body)
+                            path.join(blocklistDir, `${list}.txt`), body)
                         recreateAdblocker()
                     } catch (e) {
                         UTIL.notify(`Failed to update ${list}`, "err")
@@ -154,25 +200,19 @@ const enableAdblocker = () => {
             })
             req.end()
         }
-    } else {
+    } else if (SETTINGS.get("adblocker") !== "off") {
         recreateAdblocker()
     }
 }
 
-const copyBlocklist = name => {
-    const packagedName = path.join(__dirname, `../blocklists/${name}.txt`)
-    const appdataName = path.join(
-        remote.app.getPath("appData"), `blocklists/${name}.txt`)
-    try {
-        fs.copyFileSync(packagedName, appdataName)
-    } catch (e) {
-        UTIL.notify(`Failed to copy ${name}`, "err")
-    }
+const setSpellLang = lang => {
+    Object.keys(sessions).forEach(ses => {
+        if (lang === "system") {
+            remote.session.fromPartition(ses).setSpellCheckerLanguages([])
+        } else {
+            remote.session.fromPartition(ses).setSpellCheckerLanguages([lang])
+        }
+    })
 }
 
-module.exports = {
-    init,
-    create,
-    enableAdblocker,
-    disableAdblocker
-}
+module.exports = {init, create, enableAdblocker, disableAdblocker, setSpellLang}

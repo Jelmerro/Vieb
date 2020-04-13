@@ -5,10 +5,11 @@ Vieb
 
 ### Vim Inspired Electron Browser
 
-### [github](https://github.com/Jelmerro/Vieb) - [releases](https://github.com/Jelmerro/Vieb/releases) - [changelog](CHANGELOG.md) - [donate](https://ko-fi.com/Jelmerro)
+### [website](https://vieb.dev) - [github](https://github.com/Jelmerro/Vieb) - [releases](https://github.com/Jelmerro/Vieb/releases) - [changelog](CHANGELOG.md) - [donate](https://ko-fi.com/Jelmerro)
 
 ### Vim bindings for the web by design
 
+[![Website](https://img.shields.io/static/v1?label=website&message=vieb.dev&color=f5002e&style=flat-square)](https://vieb.dev)
 [![Download counter](https://img.shields.io/github/downloads/Jelmerro/Vieb/total?style=flat-square)](https://github.com/Jelmerro/Vieb/releases)
 [![Latest release](https://img.shields.io/github/v/release/Jelmerro/Vieb?sort=semver&style=flat-square)](https://github.com/Jelmerro/Vieb/releases/latest)
 [![Electron version](https://img.shields.io/github/package-json/dependency-version/Jelmerro/Vieb/dev/electron?style=flat-square)](https://github.com/electron/electron)
@@ -18,84 +19,61 @@ Vieb
 
 # Features
 
-- Browse the web with Vim-bindings
-- Dark theme with custom font size for all UI elements
-- Customisable by dozens of settings for permissions, cache, cookies, redirects and more
-- History management, container tabs, download management and default to HTTPS
-- Fast auto-completion for websites and commands
-- Automatically block advertisements and trackers using easylist and easyprivacy
-- Very detailed documentation/help always available upon pressing `F1`
-- Custom keybindings can be configured for most actions and all commands
-- No internet required for: suggestions, adblocker, file browsing and documentation
+- __Free__, open source, fast and secure
+- __Window splitting__ with split, Vexplore and Ctrl-w bindings
+- __Map commands__ for completely custom keyboard sequences, keystrokes, commands and actions
+- __Viebrc__ config file for all custom/Vim/Vieb commands to configure settings permanently
+- __Set command__ for runtime setting configuration exactly like Vim
+- __Vim-compatible options__ such as: showcmd, timeout, mouse, maxmapdepth, spelllang, splitright, ignorecase etc.
+- __Security settings__ for permissions, cache, cookies, redirects and more
+- __Accessible__ with dark theme, full interface & fontsize scaling, page zooming and optional mouse support
+- __History management__, container tabs, download management and remember previous session
+- __Fast offline auto-completion__ for websites and commands, with default to HTTPS
+- __Ad-blocker__ with optional updater and custom list support, default to: easylist and easyprivacy
+- __Tabs__ including audio indicator, a toggle for multi-line tabs and a configurable minimal tab width
+- __Offline help documentation__ always available upon pressing __F1__
+- __[And much, much more](https://vieb.dev/features)__
 
 ## Modes
 
-- Normal mode: Plenty of movement and switch options, most of them available by pressing a single key
-- Insert mode: Regular interaction with the webpage, only mode with mouse support, also used for typing text
-- Command mode: Access more complex functionality by entering commands with auto-completion
-- Search mode: Enter a search string and easily jump to next and previous matches
-- Nav mode: Enter a search (orange), navigate to websites (cyan) or browse files (yellow) with auto-completion
-- Follow mode: Simulate click events on urls, buttons, input fields and more
-- Cursor mode: Move a simulated cursor using the keyboard and execute clicks, hovers, image downloads and more
-- Visual mode: Select (and optionally copy) any text on the page using familiar Vim bindings
+- __Normal__: Plenty of movement and switch options, most of them available by pressing a single key
+- __Command__: Access more complex functionality by entering commands with auto-completion
+- __Explore__: Enter a search (orange), navigate to websites (cyan) or browse files (yellow) with auto-completion
+- __Follow__: Simulate click events on urls, buttons, input fields and more
+- __Search__: Enter a search string and easily jump to next and previous matches
+- __Pointer__: Move a simulated cursor using the keyboard and execute clicks, hovers, image downloads and more
+- __Visual__: Select (and optionally copy) any text on the page using familiar Vim bindings
+- __Insert__: Regular interaction with the webpage, mostly used for typing text
 
-Press `F1` at any time when using Vieb to find out more.
+Press `F1` at any time when using Vieb to find out more,
+or check the full list of Vieb's capabilities on the [website](https://vieb.dev/features).
 
-# Starting Vieb
+# Download
 
-To get started with Vieb, download a stable release from the
-[github release page](https://github.com/Jelmerro/Vieb/releases).
+To get started with Vieb, download a stable release from one of these locations:
+
+#### [Vieb website](https://vieb.dev/download) - [Github releases](https://github.com/Jelmerro/Vieb/releases)
+
 These releases require no additional software and can be downloaded for a specific platform.
 
-Alternatively you can download/clone the repo and use Vieb like this:
+# Contribute
 
-```bash
-git clone https://github.com/Jelmerro/Vieb.git
-cd Vieb
-npm install
-npm start
-```
-
-Vieb can be started without any required arguments,
-but it does support them when needed.
-Use the `--help` argument for more information.
-
-# Configuring Vieb
-
-The `:set` command can be used to change the settings for the current session.
-To change the keybindings or other settings across sessions,
-the viebrc.json file should be created and/or changed.
-You can create a viebrc using `:mkviebrc`, which stores the current settings.
-The location of the viebrc file will be one of these, depending on your OS:
-
-- Windows - `%APPDATA%\Vieb\viebrc.json`
-- Mac - `~/Library/Application Support/Vieb/viebrc.json`
-- Linux - `~/.config/Vieb/viebrc.json`
-
-This folder is used for all Vieb data.
-
-There are viebrc example files to make Vieb behave more like
-[Chromium](examples/chromium.json) and [Firefox](examples/firefox.json).
-These examples could be used as the starting point for your own config.
-Feel free to change these to your liking, or even make a pull request to improve them.
-
-For more details about settings, usage or anything else,
-read the built-in offline documentation using `:help`, `:help settings` or the `F1` key.
-
-# Improving Vieb
-
-Feel free to report issues for feature requests, bugs or any other changes.
-If you are interested in contributing code,
-make sure to follow these guidelines when working on it:
+You can help by reporting issues and suggesting new features on the [github issue tracker](https://github.com/Jelmerro/Vieb/issues).
+If you know how to write Electron applications, you can also help by writing code.
+Please try to follow these guidelines while working on Vieb:
 
 - Use Vim to edit :)
-- Follow the included eslint style guide (using [ALE](https://github.com/w0rp/ale) or similar)
+- Follow the included eslint style guide (using [ALE](https://github.com/dense-analysis/ale) or similar)
 - Use editorconfig (there is a [Vim plugin available](https://github.com/editorconfig/editorconfig-vim))
 
 If you are looking for anything specific to improve,
-check the [unassigned issues](https://github.com/Jelmerro/Vieb/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee) or [nice to haves](https://github.com/Jelmerro/Vieb/milestone/2).
+check the [unassigned issues](https://github.com/Jelmerro/Vieb/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee).
 
-# LICENSE
+Vieb is and always will be free and open source, but you can support it's development here:
+
+[![Donate](https://img.shields.io/static/v1?label=ko-fi&message=donate&color=red&logo=ko-fi&style=flat-square)](https://ko-fi.com/Jelmerro)
+
+# License
 
 ## Program/source
 

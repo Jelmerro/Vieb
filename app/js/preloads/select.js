@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -102,18 +102,9 @@ ipcRenderer.on("selection-request", (_, endX, endY) => {
     }
 })
 
-const isTextNode = node => {
-    if (node.nodeType === Node.TEXT_NODE) {
-        return true
-    }
-    if (node.nodeType === Node.COMMENT_NODE) {
-        return true
-    }
-    if (node.nodeType === Node.CDATA_SECTION_NODE) {
-        return true
-    }
-    return false
-}
+const isTextNode = node => [
+    Node.TEXT_NODE, Node.COMMENT_NODE, Node.CDATA_SECTION_NODE
+].includes(node.nodeType)
 
 const calculateOffset = (startNode, x, y) => {
     const range = document.createRange()
@@ -121,10 +112,7 @@ const calculateOffset = (startNode, x, y) => {
     try {
         range.setEnd(startNode, 1)
     } catch (e) {
-        return {
-            "node": startNode,
-            "offset": 0
-        }
+        return {"node": startNode, "offset": 0}
     }
     let properNode = startNode
     let offset = 0
@@ -170,8 +158,5 @@ const calculateOffset = (startNode, x, y) => {
     }
     descendNodeTree(startNode)
     range.detach()
-    return {
-        "node": properNode,
-        "offset": offset
-    }
+    return {"node": properNode, "offset": offset}
 }

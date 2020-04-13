@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2020 Jelmer van Arnhem
+* Copyright (C) 2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -17,16 +17,10 @@
 */
 @font-face {font-family: RobotoMono;src: url("./font/RobotoMono-Regular.ttf");}
 body {color: #eee;width: 90vw;font: 14px RobotoMono, monospace;background: #333;padding: 0;margin: auto;}
-a {color: #0cf;white-space: nowrap;overflow: hidden;}
 h1 {font-size: 2em;margin: 1em 0;padding: 0;}
-#breakpoints {display: flex;flex-direction: column;}
-.hist-entry {background-color: #444;margin: .7em 0;padding: .35em;border: .1em solid #222;}
-.hist-entry .hist-date {width: auto;color: #aaa;margin-right: 1em;}
-.hist-entry span {display: inline-block;width: calc(100% - 16em);overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
-.hist-entry a {display: block;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;width: 100%;}
-img {height: 1.5em;float: right;margin: .35em .9em;}
-.hist-entry img {height: 1em;margin: .1em;}
-.hist-entry .favicon {float: none;margin: 0 .3em .1em 0;}
-#remove-all {height: 2em;margin: .4em;}
-.hist-entry.marked {background: #000;}
-img[onclick] {cursor: pointer;}
+#list {display: flex;flex-direction: column-reverse;margin: 2em 0;}
+.notification {border: .1em solid #222;background: #444;margin: 1em 0;padding: 1em;}
+.date {color: #aaa;}
+.error {color: #f33;}
+.warning {color: #fd0;}
+.info {color: #0cf;}

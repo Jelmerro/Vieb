@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global CURSOR MODES TABS SETTINGS UTIL */
+/* global POINTER MODES TABS SETTINGS UTIL */
 "use strict"
 
 let followNewtab = true
@@ -25,11 +25,13 @@ let modeBeforeFollow = "normal"
 
 const informPreload = () => {
     setTimeout(() => {
-        if (MODES.currentMode() === "follow" && !alreadyFollowing) {
-            TABS.currentPage().getWebContents().send("follow-mode-start")
-            informPreload()
-        } else {
-            TABS.currentPage().getWebContents().send("follow-mode-stop")
+        if (TABS.currentPage().getAttribute("webview-id")) {
+            if (MODES.currentMode() === "follow" && !alreadyFollowing) {
+                TABS.webContents(TABS.currentPage()).send("follow-mode-start")
+                informPreload()
+            } else {
+                TABS.webContents(TABS.currentPage()).send("follow-mode-stop")
+            }
         }
     }, 100)
 }
@@ -44,7 +46,7 @@ const startFollow = (newtab = followNewtab) => {
     MODES.setMode("follow")
     alreadyFollowing = false
     informPreload()
-    TABS.currentPage().getWebContents().send("follow-mode-start")
+    TABS.webContents(TABS.currentPage()).send("follow-mode-start")
     document.getElementById("follow").style.display = "flex"
     links = []
 }
@@ -53,13 +55,17 @@ const cancelFollow = () => {
     alreadyFollowing = false
     document.getElementById("follow").style.display = ""
     document.getElementById("follow").textContent = ""
-    TABS.currentPage().getWebContents().send("follow-mode-stop")
+    TABS.listPages().forEach(page => {
+        try {
+            TABS.webContents(page).send("follow-mode-stop")
+        } catch (e) {
+            // Cancel follow mode in all tabs
+        }
+    })
     links = []
 }
 
-const getModeBeforeFollow = () => {
-    return modeBeforeFollow
-}
+const getModeBeforeFollow = () => modeBeforeFollow
 
 const numberToKeys = (number, total) => {
     if (total < 27 || number < 26 && number > Math.floor(total / 26)) {
@@ -78,14 +84,52 @@ const numberToKeys = (number, total) => {
     return first + second
 }
 
-const linkInList = (list, link) => {
-    return list.find(l => {
-        if (!l || !link) {
-            return false
+const linkInList = (list, link) => list.find(l => {
+    if (!l || !link) {
+        return false
+    }
+    return l.x === link.x && l.y === link.y && l.type === link.type
+        && l.height === link.height && l.width === link.width
+})
+
+const clickAtLink = link => {
+    const factor = TABS.webContents(TABS.currentPage()).zoomFactor
+    if (["pointer", "visual"].includes(modeBeforeFollow)) {
+        POINTER.start()
+        if (modeBeforeFollow === "visual") {
+            MODES.setMode("visual")
         }
-        return l.x === link.x && l.y === link.y && l.type === link.type
-            && l.height === link.height && l.width === link.width
+        POINTER.move(
+            (link.x + link.width / 2) * factor,
+            (link.y + link.height / 2) * factor)
+        return
+    }
+    MODES.setMode("insert")
+    TABS.currentPage().sendInputEvent({
+        "type": "mouseEnter",
+        "x": link.x * factor,
+        "y": link.y * factor
     })
+    TABS.currentPage().sendInputEvent({
+        "type": "mouseDown",
+        "x": (link.x + link.width / 2) * factor,
+        "y": (link.y + link.height / 2) * factor,
+        "button": "left",
+        "clickCount": 1
+    })
+    TABS.currentPage().sendInputEvent({
+        "type": "mouseUp",
+        "x": (link.x + link.width / 2) * factor,
+        "y": (link.y + link.height / 2) * factor,
+        "button": "left",
+        "clickCount": 1
+    })
+    TABS.currentPage().sendInputEvent({
+        "type": "mouseLeave",
+        "x": link.x * factor,
+        "y": link.y * factor
+    })
+    document.getElementById("url-hover").style.display = "none"
 }
 
 const parseAndDisplayLinks = newLinks => {
@@ -119,9 +163,9 @@ const parseAndDisplayLinks = newLinks => {
         links.pop()
     }
     // The maximum amount of links is 26 * 26,
-    // Therefor the slice index is 0 to 26^2 - 1
+    // therefor the slice index is 0 to 26^2 - 1.
     links = links.slice(0, 675)
-    const factor = TABS.currentPage().getZoomFactor()
+    const factor = TABS.webContents(TABS.currentPage()).zoomFactor
     const followElement = document.getElementById("follow")
     followElement.textContent = ""
     links.forEach((link, index) => {
@@ -132,19 +176,31 @@ const parseAndDisplayLinks = newLinks => {
         const linkElement = document.createElement("span")
         linkElement.textContent = numberToKeys(index, links.length)
         linkElement.className = `follow-${link.type}`
-        const characterWidth = SETTINGS.get("fontSize") / 1.3
-        let borderRightMargin = characterWidth + SETTINGS.get("fontSize") * 0.2
+        const characterWidth = SETTINGS.get("fontsize") / 1.3
+        let borderRightMargin = characterWidth + SETTINGS.get("fontsize") * .2
         if (linkElement.textContent.length === 2) {
             borderRightMargin += characterWidth
         }
         let left = (link.x + link.width) * factor
-        if (left > window.innerWidth - borderRightMargin) {
-            left = window.innerWidth - borderRightMargin
+        if (left > TABS.currentPage().scrollWidth - borderRightMargin) {
+            left = TABS.currentPage().scrollWidth - borderRightMargin
         }
         linkElement.style.left = `${left}px`
         const top = Math.max(link.y * factor, 0)
         linkElement.style.top = `${top}px`
         linkElement.setAttribute("link-id", index)
+        const onclickListener = e => {
+            if (e.button === 1 && UTIL.hasProtocol(link.url)) {
+                MODES.setMode(modeBeforeFollow)
+                TABS.addTab({"url": link.url})
+            } else {
+                clickAtLink(link)
+                if (link.type !== "inputs-insert") {
+                    MODES.setMode(modeBeforeFollow)
+                }
+            }
+        }
+        linkElement.addEventListener("mouseup", onclickListener)
         followElement.appendChild(linkElement)
         // Show a border around the link
         const borderElement = document.createElement("span")
@@ -157,24 +213,18 @@ const parseAndDisplayLinks = newLinks => {
         borderElement.style.width = `${width}px`
         const height = link.height * factor
         borderElement.style.height = `${height}px`
+        borderElement.addEventListener("mouseup", onclickListener)
         followElement.appendChild(borderElement)
     })
 }
 
-const enterKey = identifier => {
+const enterKey = id => {
     alreadyFollowing = true
-    let stayInFollowMode = false
-    if (identifier.startsWith("S-")) {
-        stayInFollowMode = true
-        identifier = identifier.replace("S-", "")
-    }
-    if (identifier.includes("-")) {
+    if (id.toLowerCase() === id.toUpperCase() || id.length > 1) {
         return
     }
-    if (!identifier.startsWith("Key")) {
-        return
-    }
-    const key = identifier.replace("Key", "")
+    const stayInFollowMode = id.toUpperCase() === id
+    const key = id.toUpperCase()
     const allLinkKeys = [...document.querySelectorAll("#follow span[link-id]")]
     const matches = []
     allLinkKeys.forEach(linkKey => {
@@ -187,56 +237,28 @@ const enterKey = identifier => {
     })
     if (matches.length === 0) {
         MODES.setMode(modeBeforeFollow)
-    }
-    if (matches.length === 1) {
+        if (stayInFollowMode) {
+            startFollow()
+        }
+    } else if (matches.length === 1) {
         const link = links[matches[0].getAttribute("link-id")]
         if (followNewtab) {
+            MODES.setMode("normal")
             if (stayInFollowMode) {
-                cancelFollow()
                 startFollow()
-            } else {
-                MODES.setMode("normal")
             }
-            TABS.addTab(link.url, false, !stayInFollowMode)
+            TABS.addTab({
+                "url": link.url,
+                "inverted": false,
+                "switchTo": !stayInFollowMode
+            })
             return
         }
-        const factor = TABS.currentPage().getZoomFactor()
-        if (["cursor", "visual"].includes(modeBeforeFollow)) {
-            CURSOR.start()
-            if (modeBeforeFollow === "visual") {
-                MODES.setMode("visual")
-            }
-            CURSOR.move(
-                (link.x + link.width / 2) * factor,
-                (link.y + link.height / 2) * factor)
-            return
-        }
-        MODES.setMode("insert")
-        TABS.currentPage().sendInputEvent({
-            "type": "mouseEnter",
-            "x": link.x * factor,
-            "y": link.y * factor
-        })
-        TABS.currentPage().sendInputEvent({
-            "type": "mouseDown",
-            "x": (link.x + link.width / 2) * factor,
-            "y": (link.y + link.height / 2) * factor,
-            "button": "left",
-            "clickCount": 1
-        })
-        TABS.currentPage().sendInputEvent({
-            "type": "mouseUp",
-            "x": (link.x + link.width / 2) * factor,
-            "y": (link.y + link.height / 2) * factor,
-            "button": "left",
-            "clickCount": 1
-        })
-        TABS.currentPage().sendInputEvent({
-            "type": "mouseLeave",
-            "x": link.x * factor,
-            "y": link.y * factor
-        })
-        if (link.type !== "inputs-insert") {
+        clickAtLink(link)
+        if (stayInFollowMode) {
+            MODES.setMode(modeBeforeFollow)
+            startFollow()
+        } else if (link.type !== "inputs-insert") {
             MODES.setMode(modeBeforeFollow)
         }
     }

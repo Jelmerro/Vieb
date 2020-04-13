@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ const windowStateFile = path.join(remote.app.getPath("appData"), "windowstate")
 const init = () => {
     load()
     // Save the window state when resizing or maximizing.
-    // Move and resize state are saved and checked to detect window snapping
+    // Move and resize state are saved and checked to detect window snapping.
     let justMoved = false
     let justResized = false
     remote.getCurrentWindow().on("maximize", saveWindowState)
@@ -68,19 +68,19 @@ const load = () => {
         bounds.height = Number(parsed.height)
         bounds.maximized = !!parsed.maximized
     }
-    if (SETTINGS.get("windowstate.position")) {
+    if (SETTINGS.get("restorewindowposition")) {
         if (bounds.x > 0 && bounds.y > 0) {
             remote.getCurrentWindow().setPosition(
                 bounds.x, bounds.y)
         }
     }
-    if (SETTINGS.get("windowstate.size")) {
+    if (SETTINGS.get("restorewindowsize")) {
         if (bounds.width > 500 && bounds.height > 500) {
             remote.getCurrentWindow().setSize(
                 bounds.width, bounds.height)
         }
     }
-    if (bounds.maximized && SETTINGS.get("windowstate.maximized")) {
+    if (bounds.maximized && SETTINGS.get("restorewindowmaximize")) {
         remote.getCurrentWindow().maximize()
     }
     remote.getCurrentWindow().show()
@@ -109,6 +109,4 @@ const saveWindowState = (maximizeOnly = false) => {
     UTIL.writeJSON(windowStateFile, state)
 }
 
-module.exports = {
-    init
-}
+module.exports = {init}

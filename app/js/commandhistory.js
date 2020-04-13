@@ -21,6 +21,19 @@
 const previousCommands = []
 let previousIndex = -1
 let originalCommand = ""
+let storeCommands = false
+
+const init = () => {
+    storeCommands = true
+}
+
+const pause = () => {
+    storeCommands = false
+}
+
+const resume = () => {
+    storeCommands = true
+}
 
 const updateNavWithHistory = () => {
     let commandText = originalCommand
@@ -65,6 +78,9 @@ const resetPosition = () => {
 }
 
 const push = command => {
+    if (!storeCommands) {
+        return
+    }
     if (previousCommands.length) {
         if (previousCommands[previousCommands.length - 1] !== command) {
             previousCommands.push(command)
@@ -74,9 +90,4 @@ const push = command => {
     }
 }
 
-module.exports = {
-    previous,
-    next,
-    resetPosition,
-    push
-}
+module.exports = {init, pause, resume, previous, next, resetPosition, push}
