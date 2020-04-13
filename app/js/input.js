@@ -1,5 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
+* Copyright (C) 2020 Wiebe Beeftink
 * Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
@@ -252,6 +253,11 @@ const init = () => {
                 }
             })
         }
+
+        // show mouse again
+        if(SETTINGS.get("mousehide")) {
+            document.body.classList.remove("mousehide")
+        }
     })
     window.addEventListener("contextmenu", e => {
         e.preventDefault()
@@ -480,6 +486,11 @@ const doAction = (name, count) => {
 }
 
 const handleKeyboard = e => {
+    // hide mouse when mousehide is enabled
+    if(SETTINGS.get("mousehide")) {
+        document.body.classList.add("mousehide")
+    }
+
     if (document.body.classList.contains("fullscreen")) {
         MODES.setMode("insert")
         return

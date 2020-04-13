@@ -1,5 +1,6 @@
 <!--
     Vieb - Vim Inspired Electron Browser
+    Copyright (C) 2020 Wiebe Beeftink
     Copyright (C) 2019-2020 Jelmer van Arnhem
 
     This program is free software: you can redistribute it and/or modify
@@ -516,6 +517,8 @@
         The mouse toggle influences if the Vieb interface should react to mouse actions. When this setting is off, you will still be able to use the mouse to interact with the page while in <a class="insert" href="#action.toInsertMode">insert mode</a>. When this setting is enabled, you can always interact with the webpage, even outside of <a class="insert" href="#action.toInsertMode">insert mode</a> (although you still need it for mouse focus). You will also be able to click on tabs to switch to them, middle click on them to close a tab, switch modes by using the mode dropdown when hovering over the current mode, switch to <a class="insert" href="#action.toInsertMode">insert mode</a> by clicking on an input field and switch to <a class="explore" href="#action.toExploreMode">explore mode</a> by clicking on the url bar. Vieb does not have a clickable menu, even when enabling this setting.
         <h3 id="mousefocus">mousefocus</h3>
         With the mousefocus toggle it's possible to focus a tab by hovering it with the mouse. This setting only has effect when <a href="#mouse">mouse</a> is also enabled. When mousefocus is enabled, you can switch between tabs by hovering over a tab or (in case of multiple splits) by hovering over the page.
+        <h3 id="mousehide">mousehide</h3>
+        When mousehide is toggled it hides the cursor on keypress and shows it again on mousemove, similar to Vim's mousehide. This option is overwritten by <a href="#mouse">mouse</a>, meaning it won't hide the cursor as long as <a href="#mouse">mouse</a> is enabled.
         <h3 id="nativenotification">nativenotification</h3>
         Toggle for using native/system notifications instead of the Vieb notifications. The notification history can still be viewed on the <a href="#:notifications">notifications</a> page, regardless of this setting. When this setting is enabled, you will not get a scrollable popup for large notifications, as all notifications will be for unconditionally passed to your operating system to handle. When this setting is enabled, the other notification settings do not influence the position or duration.
         <h3 id="notificationposition">notificationposition</h3>

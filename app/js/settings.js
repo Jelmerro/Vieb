@@ -1,5 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
+* Copyright (C) 2020 Wiebe Beeftink
 * Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
@@ -40,6 +41,7 @@ const defaultSettings = {
     "maxmapdepth": 10,
     "mintabwidth": 22,
     "mouse": false,
+    "mousehide": true,
     "mousefocus": false,
     "nativenotification": false,
     "notificationposition": "bottomright",
@@ -123,6 +125,7 @@ const init = () => {
     loadFromDisk()
     updateDownloadSettings()
     updateTabOverflow()
+    updateMouseHideSettings()
     SESSIONS.setSpellLang(get("spelllang"))
 }
 
@@ -285,10 +288,18 @@ const updateTabOverflow = () => {
 }
 
 const updateMouseSettings = () => {
-    if (get("mouse")) {
+    document.body.classList.remove("mouse")
+
+    if(get("mouse")) {
         document.body.classList.add("mouse")
+    }
+}
+
+const updateMouseHideSettings = () => {
+    if(get("mousehide")) {
+        document.body.classList.add("mousehide")
     } else {
-        document.body.classList.remove("mouse")
+        document.body.classList.remove("mousehide")
     }
 }
 
@@ -439,6 +450,9 @@ const set = (setting, value) => {
         }
         if (setting === "mouse") {
             updateMouseSettings()
+        }
+        if(setting === "mousehide") {
+            updateMouseHideSettings()
         }
         if (setting === "spelllang") {
             SESSIONS.setSpellLang(get("spelllang"))

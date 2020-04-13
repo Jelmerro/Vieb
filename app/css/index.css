@@ -88,6 +88,7 @@ body.mouse #navbar {pointer-events: all;}
 body.mouse #mode-container:hover #mode-suggestions {max-height: 100vw;}
 #mode-suggestions div {font-size: 1.3em;transition: .1s all;}
 body.mouse #suggest-dropdown div:hover, #mode-suggestions div:hover, #tabs > span:hover {font-weight: bold;cursor: pointer;}
+body.mousehide {cursor: none;}
 /* notifications */
 #notifications {display: flex;position: fixed;flex-direction: column;z-index: 2;}
 #notifications > span {background-color: #333d;margin-bottom: .7em;padding: 1em;display: flex;width: 25em;border: .1em solid #111;overflow-wrap: anywhere;}
