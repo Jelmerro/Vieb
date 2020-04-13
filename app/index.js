@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -39,13 +39,15 @@ const printVersion = () => {
     const version = process.env.npm_package_version || app.getVersion()
     console.log("Vieb: Vim Inspired Electron Browser\n")
     console.log(`This is version ${version} of Vieb.`)
-    console.log("This program is based on Electron and inspired by Vim.")
+    console.log("Vieb is based on Electron and inspired by Vim.")
     console.log("It can be used to browse the web entirely with the keyboard.")
+    console.log(`This release uses Electron ${
+        process.versions.electron} and Chromium ${process.versions.chrome}`)
     printLicense()
 }
 const printLicense = () => {
-    console.log("Vieb was created by Jelmer van Arnhem and contributors.")
-    console.log("For more info go here - https://github.com/Jelmerro/Vieb")
+    console.log("Vieb is created by Jelmer van Arnhem and contributors.")
+    console.log("Website: https://vieb.dev OR https://github.com/Jelmerro/Vieb")
     console.log("\nLicense GPLv3+: GNU GPL version 3 or "
         + "later <http://gnu.org/licenses/gpl.html>")
     console.log("This is free software; you are free to change and "
@@ -101,6 +103,7 @@ if (showInternalConsole && enableDebugMode) {
 // When the app is ready to start, open the main window
 let mainWindow = null
 let loginWindow = null
+let notificationWindow = null
 app.on("ready", () => {
     // Request single instance lock and quit if that fails
     if (app.requestSingleInstanceLock()) {
@@ -113,9 +116,8 @@ app.on("ready", () => {
             if (commandLine[0] === "app") {
                 commandLine = commandLine.slice(1)
             }
-            mainWindow.webContents.send("urls", commandLine.filter(arg => {
-                return !arg.startsWith("-")
-            }))
+            mainWindow.webContents.send("urls",
+                commandLine.filter(arg => !arg.startsWith("-")))
         })
     } else {
         app.exit(0)
@@ -128,10 +130,14 @@ app.on("ready", () => {
         "frame": enableDebugMode,
         "transparent": !enableDebugMode,
         "show": enableDebugMode,
+        "closable": false,
         "webPreferences": {
-            "plugins": true,
+            "sandbox": false,
+            "contextIsolation": false,
+            "disableBlinkFeatures": "Auxclick",
             "nodeIntegration": true,
-            "webviewTag": true
+            "webviewTag": true,
+            "enableRemoteModule": true
         }
     }
     if (!app.isPackaged) {
@@ -144,13 +150,17 @@ app.on("ready", () => {
     mainWindow.setMinimumSize(500, 500)
     mainWindow.on("close", e => {
         e.preventDefault()
+        mainWindow.webContents.send("window-close")
     })
     mainWindow.on("closed", () => {
         app.exit(0)
     })
     // Load app and send urls when ready
     mainWindow.loadURL(`file://${path.join(__dirname, "index.html")}`)
-    mainWindow.webContents.on("did-finish-load", () => {
+    mainWindow.webContents.once("did-finish-load", () => {
+        mainWindow.webContents.on("new-window", e => e.preventDefault())
+        mainWindow.webContents.on("will-navigate", e => e.preventDefault())
+        mainWindow.webContents.on("will-redirect", e => e.preventDefault())
         if (enableDebugMode || showInternalConsole) {
             mainWindow.webContents.openDevTools()
         }
@@ -165,7 +175,11 @@ app.on("ready", () => {
         "parent": mainWindow,
         "alwaysOnTop": true,
         "webPreferences": {
-            "nodeIntegration": true
+            "sandbox": false,
+            "contextIsolation": false,
+            "disableBlinkFeatures": "Auxclick",
+            "nodeIntegration": true,
+            "partition": "login"
         }
     }
     loginWindow = new BrowserWindow(loginWindowData)
@@ -175,11 +189,35 @@ app.on("ready", () => {
         e.preventDefault()
         loginWindow.hide()
     })
+    // Show a dialog for large notifications
+    const notificationWindowData = {
+        "backgroundColor": "#333333",
+        "modal": true,
+        "frame": false,
+        "show": false,
+        "parent": mainWindow,
+        "alwaysOnTop": true,
+        "webPreferences": {
+            "sandbox": false,
+            "contextIsolation": false,
+            "disableBlinkFeatures": "Auxclick",
+            "nodeIntegration": true,
+            "partition": "notification-window"
+        }
+    }
+    notificationWindow = new BrowserWindow(notificationWindowData)
+    const notificationPage = `file:///${path.join(
+        __dirname, "./pages/notificationmessage.html")}`
+    notificationWindow.loadURL(notificationPage)
+    notificationWindow.on("close", e => {
+        e.preventDefault()
+        notificationWindow.hide()
+    })
 })
 
 // Handle Basic HTTP login attempts (must be in main)
 const loginAttempts = []
-app.on("login", (e, webContents, __, auth, callback) => {
+app.on("login", (e, webContents, _, auth, callback) => {
     if (loginWindow.isVisible()) {
         return
     }
@@ -200,7 +238,7 @@ app.on("login", (e, webContents, __, auth, callback) => {
         }
     })
     ipcMain.removeAllListeners("login-credentials")
-    ipcMain.once("login-credentials", (___, credentials) => {
+    ipcMain.once("login-credentials", (__, credentials) => {
         try {
             callback(credentials[0], credentials[1])
             loginWindow.hide()
@@ -230,7 +268,7 @@ ipcMain.on("downloads-path-for-session", (_, name) => {
             save = path.join(app.getPath("downloads"), newFilename)
         }
         // Send the details to the renderer process as a fallback,
-        // So there are still details for destoyed download items.
+        // so there are still details for destoyed download items.
         mainWindow.webContents.send("downloads-details", {
             "name": item.getFilename(),
             "url": item.getURL(),
@@ -244,8 +282,12 @@ ipcMain.on("downloads-path-for-session", (_, name) => {
 // Enable or disable adblocker for a list of sessions (must be in main)
 let blocker = null
 const enableAdblocker = sessionList => {
-    sessionList.forEach(
-        s => blocker.enableBlockingInSession(session.fromPartition(s)))
+    if (blocker) {
+        sessionList.forEach(
+            s => blocker.enableBlockingInSession(session.fromPartition(s)))
+    } else {
+        createAdblocker(sessionList)
+    }
 }
 const disableAdblocker = sessionList => {
     sessionList.forEach(

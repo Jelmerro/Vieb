@@ -9,6 +9,7 @@
         "ecmaVersion": 2019
     },
     "rules": {
+        "arrow-body-style": "error",
         "array-bracket-newline": [
             "error",
             "consistent"
@@ -34,7 +35,13 @@
             }
         ],
         "camelcase": "error",
-        "capitalized-comments": "error",
+        "capitalized-comments": [
+            "error",
+            "always",
+            {
+                "ignoreConsecutiveComments": true
+            }
+        ],
         "comma-dangle": "error",
         "comma-spacing": "error",
         "comma-style": "error",
@@ -62,7 +69,6 @@
         "linebreak-style": "error",
         "max-len": "warn",
         "max-statements-per-line": "error",
-        "new-cap": "error",
         "new-parens": "error",
         "no-alert": "error",
         "no-compare-neg-zero": "error",
@@ -150,6 +156,12 @@
         "no-with": "error",
         "object-curly-newline": "error",
         "object-curly-spacing": "error",
+        "object-property-newline": [
+            "error",
+            {
+                "allowAllPropertiesOnSameLine": true
+            }
+        ],
         "one-var": [
             "error",
             "never"

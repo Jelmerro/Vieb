@@ -18,7 +18,7 @@
 /* global SETTINGS */
 "use strict"
 
-const {remote} = require("electron")
+const {ipcRenderer, remote} = require("electron")
 const fs = require("fs")
 const path = require("path")
 const rimraf = require("rimraf").sync
@@ -26,14 +26,17 @@ const os = require("os")
 
 const protocolRegex = /^[a-z][a-z0-9-+.]+:\/\//
 const specialPages = [
-    "cookies", "help", "history", "downloads", "newtab", "version"
+    "cookies",
+    "downloads",
+    "help",
+    "history",
+    "newtab",
+    "notifications",
+    "version"
 ]
+const notificationHistory = []
 
-const hasProtocol = location => {
-    // Check for a valid protocol at the start
-    // This will ALWAYS result in the url being valid
-    return protocolRegex.test(location)
-}
+const hasProtocol = location => protocolRegex.test(location)
 
 const isUrl = location => {
     if (hasProtocol(location)) {
@@ -81,9 +84,8 @@ const isUrl = location => {
         return false
     }
     if (/^[a-zA-Z]{2,}$/.test(tld)) {
-        const invalidDashes = names.some(n => {
-            return n.includes("---") || n.startsWith("-") || n.endsWith("-")
-        })
+        const invalidDashes = names.find(
+            n => n.includes("---") || n.startsWith("-") || n.endsWith("-"))
         if (!invalidDashes && names.every(n => /^[a-zA-Z\d-]+$/.test(n))) {
             return true
         }
@@ -92,6 +94,9 @@ const isUrl = location => {
 }
 
 const notify = (message, type = "info") => {
+    if (SETTINGS.get("notificationduration") < 100) {
+        return
+    }
     let properType = "info"
     if (type.startsWith("warn")) {
         properType = "warning"
@@ -99,29 +104,44 @@ const notify = (message, type = "info") => {
     if (type.startsWith("err")) {
         properType = "error"
     }
-    const image = `img/notifications/${properType}.svg`
-    if (SETTINGS.get("notification.system")) {
-        new Notification(`Vieb ${properType}`, {
-            "body": message,
-            "image": image,
-            "icon": image
-        })
+    const escapedMessage = message.replace(/>/g, "&gt;").replace(/</g, "&lt;")
+        .replace(/\n/g, "<br>")
+    notificationHistory.push({
+        "message": escapedMessage, "type": properType, "date": new Date()
+    })
+    if (SETTINGS.get("nativenotification")) {
+        new Notification(`Vieb ${properType}`, {"body": message})
+        return
+    }
+    if (escapedMessage.split("<br>").length > 5 || message.length > 200) {
+        for (const browserWindow of remote.BrowserWindow.getAllWindows()) {
+            if (browserWindow.getURL().endsWith("notificationmessage.html")) {
+                ipcRenderer.sendTo(browserWindow.webContents.id,
+                    "notification-contents", escapedMessage,
+                    SETTINGS.get("fontsize"), properType)
+                const bounds = remote.getCurrentWindow().getBounds()
+                const width = Math.round(bounds.width * .9)
+                let height = Math.round(bounds.height * .9)
+                height -= height % SETTINGS.get("fontsize")
+                browserWindow.setMinimumSize(width, height)
+                browserWindow.setSize(width, height)
+                browserWindow.setPosition(
+                    Math.round(bounds.x + bounds.width / 2 - width / 2),
+                    Math.round(bounds.y + bounds.height / 2 - height / 2))
+                browserWindow.show()
+            }
+        }
         return
     }
     const notificationsElement = document.getElementById("notifications")
-    notificationsElement.className = SETTINGS.get("notification.position")
+    notificationsElement.className = SETTINGS.get("notificationposition")
     const notification = document.createElement("span")
-    const iconElement = document.createElement("img")
-    iconElement.src = image
-    notification.appendChild(iconElement)
-    const textElement = document.createElement("span")
-    textElement.innerHTML = message
-        .replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/\n/g, "<br>")
-    notification.appendChild(textElement)
+    notification.className = properType
+    notification.innerHTML = escapedMessage
     notificationsElement.appendChild(notification)
     setTimeout(() => {
         notificationsElement.removeChild(notification)
-    }, SETTINGS.get("notification.duration"))
+    }, SETTINGS.get("notificationduration"))
 }
 
 const specialPagePath = (page, section = null, skipExistCheck = false) => {
@@ -173,7 +193,7 @@ const pathToSpecialPageName = urlPath => {
     return {"name": "", "section": ""}
 }
 
-const rimrafFolder = folder => {
+const globDelete = folder => {
     try {
         rimraf(path.join(remote.app.getPath("appData"), folder))
     } catch (e) {
@@ -181,37 +201,41 @@ const rimrafFolder = folder => {
     }
 }
 
+const clearContainerTabs = () => {
+    document.getElementById("pages").innerHTML = ""
+    globDelete("Partitions/!(main)")
+}
+
 const clearCache = () => {
-    rimrafFolder("**/*Cache/")
-    rimrafFolder("**/File System/")
-    rimrafFolder("**/MANIFEST")
-    rimrafFolder("**/Service Worker/")
-    rimrafFolder("**/VideoDecodeStats/")
-    rimrafFolder("**/blob_storage/")
-    rimrafFolder("**/databases/")
-    rimrafFolder("**/*.log")
-    rimrafFolder("vimformedits")
+    globDelete("**/*Cache/")
+    globDelete("**/File System/")
+    globDelete("**/MANIFEST")
+    globDelete("**/Service Worker/")
+    globDelete("**/VideoDecodeStats/")
+    globDelete("**/blob_storage/")
+    globDelete("**/databases/")
+    globDelete("**/*.log")
+    globDelete("**/.org.chromium.Chromium.*")
+    globDelete("vimformedits/")
+    globDelete("webviewsettings")
 }
 
 const clearCookies = () => {
-    rimrafFolder("**/Cookies*")
-    rimrafFolder("**/QuotaManager*")
+    globDelete("**/Cookies*")
+    globDelete("**/QuotaManager*")
 }
 
 const clearLocalStorage = () => {
-    rimrafFolder("**/IndexedDB/")
-    rimrafFolder("**/*Storage/")
-    rimrafFolder("**/*.ldb")
+    globDelete("**/IndexedDB/")
+    globDelete("**/*Storage/")
+    globDelete("**/*.ldb")
 }
 
 const redirect = url => {
-    SETTINGS.get("redirects").forEach(r => {
-        if (r && r.match && r.replace) {
-            try {
-                url = url.replace(RegExp(r.match), r.replace)
-            } catch (e) {
-                // Invalid regex, ignore
-            }
+    SETTINGS.get("redirects").split(",").forEach(r => {
+        if (r.trim()) {
+            const [match, replace] = r.split("~")
+            url = url.replace(RegExp(match), replace)
         }
     })
     return url
@@ -224,20 +248,7 @@ const expandPath = homePath => {
     return homePath
 }
 
-const isObject = o => {
-    return o === Object(o)
-}
-
-const merge = (main, extra) => {
-    Object.keys(extra).forEach(key => {
-        if (isObject(main[key]) && isObject(extra[key])) {
-            merge(main[key], extra[key])
-        } else {
-            main[key] = extra[key]
-        }
-    })
-    return main
-}
+const isObject = o => o === Object(o)
 
 const pathExists = loc => {
     try {
@@ -263,10 +274,17 @@ const isFile = loc => {
     }
 }
 
+const readFile = loc => {
+    try {
+        return fs.readFileSync(loc).toString()
+    } catch (e) {
+        return null
+    }
+}
+
 const readJSON = loc => {
     try {
-        const contents = fs.readFileSync(loc).toString()
-        return JSON.parse(contents)
+        return JSON.parse(fs.readFileSync(loc).toString())
     } catch (e) {
         return null
     }
@@ -278,22 +296,79 @@ const writeJSON = (loc, data, err = null, success = null, indent = null) => {
         if (success) {
             notify(success)
         }
+        return true
     } catch (e) {
         if (err) {
             notify(err, "err")
         }
     }
+    return false
+}
+
+const writeFile = (loc, data, err = null, success = null) => {
+    try {
+        fs.writeFileSync(loc, data)
+        if (success) {
+            notify(success)
+        }
+        return true
+    } catch (e) {
+        if (err) {
+            notify(err, "err")
+        }
+    }
+    return false
 }
 
 const deleteFile = (loc, err = null) => {
     try {
         fs.unlinkSync(loc)
+        return true
     } catch (e) {
         if (err) {
             notify(err, "warn")
         }
     }
+    return false
 }
+
+const stringToUrl = location => {
+    const specialPage = pathToSpecialPageName(location)
+    const local = expandPath(location)
+    if (specialPage.name) {
+        return specialPagePath(specialPage.name, specialPage.section)
+    }
+    if (hasProtocol(location)) {
+        return location
+    }
+    if (isDir(local) || isFile(local)) {
+        return `file:/${local}`.replace(/^file:\/*/, "file:///")
+    }
+    if (isUrl(location)) {
+        return `https://${location}`
+    }
+    return SETTINGS.get("search") + encodeURIComponent(location)
+}
+
+const urlToString = url => {
+    const special = pathToSpecialPageName(url)
+    if (special.name === "newtab") {
+        url = ""
+    } else if (special.name) {
+        url = `vieb://${special.name}`
+        if (special.section) {
+            url += `#${special.section}`
+        }
+    }
+    return url
+}
+
+const listNotificationHistory = () => notificationHistory
+
+const title = name => name[0].toUpperCase() + name.slice(1).toLowerCase()
+
+const useragent = () => remote.session.defaultSession.getUserAgent()
+    .replace(/Electron\/\S* /, "").replace(/Vieb\/\S* /, "")
 
 module.exports = {
     hasProtocol,
@@ -301,17 +376,24 @@ module.exports = {
     notify,
     specialPagePath,
     pathToSpecialPageName,
+    clearContainerTabs,
     clearCache,
     clearCookies,
     clearLocalStorage,
     redirect,
     expandPath,
     isObject,
-    merge,
     pathExists,
     isDir,
     isFile,
+    readFile,
     readJSON,
     writeJSON,
-    deleteFile
+    writeFile,
+    deleteFile,
+    stringToUrl,
+    urlToString,
+    listNotificationHistory,
+    title,
+    useragent
 }

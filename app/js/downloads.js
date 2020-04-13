@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -25,13 +25,13 @@ const dlsFile = path.join(remote.app.getPath("appData"), "dls")
 let downloads = []
 
 const init = () => {
-    if (SETTINGS.get("downloads.clearOnQuit")) {
+    if (SETTINGS.get("cleardownloadsonquit")) {
         UTIL.deleteFile(dlsFile)
     } else if (UTIL.isFile(dlsFile)) {
         const parsed = UTIL.readJSON(dlsFile)
         for (const download of parsed) {
             if (download.state === "completed") {
-                if (!SETTINGS.get("downloads.removeCompleted")) {
+                if (!SETTINGS.get("cleardownloadsoncompleted")) {
                     downloads.push(download)
                 }
             } else {
@@ -42,7 +42,7 @@ const init = () => {
     }
     ipcRenderer.on("downloads-details", (_, details) => {
         // If the download item was already destroyed when it arrived,
-        // Try to update the fields with the details from main.
+        // try to update the fields with the details from main.
         const info = downloads[downloads.length - 1]
         for (const field of ["name", "url", "total", "file"]) {
             info[field] = info[field] || details[field]
@@ -69,7 +69,7 @@ const handleDownload = (_, item) => {
         info.total = item.getTotalBytes()
     } catch (err) {
         // When a download is finished before the event is detected by electron,
-        // The item will throw an error for all the mapped functions.
+        // the item will throw an error for all the mapped functions.
     }
     try {
         if (info.name) {
@@ -87,14 +87,14 @@ const handleDownload = (_, item) => {
                 }
             } catch (___) {
                 // When a download is finished before the event is detected,
-                // The item will throw an error for all the mapped functions.
+                // the item will throw an error for all the mapped functions.
             }
             writeToFile()
         })
         item.once("done", (__, state) => {
             if (state === "completed") {
                 info.state = "completed"
-                if (SETTINGS.get("downloads.removeCompleted")) {
+                if (SETTINGS.get("cleardownloadsoncompleted")) {
                     downloads = downloads.filter(d => d.state !== "completed")
                 }
             } else if (info.state !== "removed") {
@@ -108,7 +108,7 @@ const handleDownload = (_, item) => {
         })
     } catch (err) {
         // When a download is finished before the event is detected by electron,
-        // The item will throw an error for all the mapped functions.
+        // the item will throw an error for all the mapped functions.
     }
 }
 
@@ -151,13 +151,14 @@ const sendDownloadList = (action, downloadId) => {
         }
     }
     writeToFile()
-    TABS.currentPage().getWebContents().send("download-list", downloads)
+    TABS.webContents(TABS.currentPage()).send(
+        "download-list", JSON.stringify(downloads))
 }
 
 const writeToFile = () => {
     downloads.forEach(d => {
         // Update downloads that are stuck on waiting to start,
-        // But have already been destroyed by electron.
+        // but have already been destroyed by electron.
         try {
             d.item.getFilename()
         } catch (e) {
@@ -166,7 +167,7 @@ const writeToFile = () => {
             }
         }
     })
-    if (SETTINGS.get("downloads.clearOnQuit")) {
+    if (SETTINGS.get("cleardownloadsonquit") || downloads.length === 0) {
         UTIL.deleteFile(dlsFile)
     } else {
         UTIL.writeJSON(dlsFile, downloads)
@@ -188,15 +189,11 @@ const cancelAll = () => {
 }
 
 const removeCompletedIfDesired = () => {
-    if (SETTINGS.get("downloads.removeCompleted")) {
+    if (SETTINGS.get("cleardownloadsoncompleted")) {
         downloads = downloads.filter(d => d.state !== "completed")
     }
 }
 
 module.exports = {
-    init,
-    handleDownload,
-    sendDownloadList,
-    cancelAll,
-    removeCompletedIfDesired
+    init, handleDownload, sendDownloadList, cancelAll, removeCompletedIfDesired
 }

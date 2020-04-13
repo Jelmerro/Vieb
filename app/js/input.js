@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -15,206 +15,266 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS COMMAND CURSOR FOLLOW HISTORY MODES SETTINGS SUGGEST UTIL */
+/* global ACTIONS COMMAND POINTER FOLLOW HISTORY MODES PAGELAYOUT SETTINGS
+ SUGGEST TABS UTIL */
 "use strict"
 
-const bindings = {
-    "normal": {
-        "Enter": "ACTIONS.clickOnSearch",
-        "F1": ":help",
-        "C-KeyA": "ACTIONS.increasePageNumber",
-        "KeyB": "ACTIONS.previousTab",
-        "KeyC": "CURSOR.start",
-        "KeyD": "ACTIONS.closeTab",
-        "KeyE": "ACTIONS.toNavMode",
-        "KeyF": "ACTIONS.startFollowCurrentTab",
-        "KeyG": {
-            "KeyG": "ACTIONS.scrollTop",
-            "KeyI": "ACTIONS.insertAtFirstInput"
-        },
-        "KeyH": "ACTIONS.scrollLeft",
-        "KeyI": "ACTIONS.toInsertMode",
-        "KeyJ": "ACTIONS.scrollDown",
-        "KeyK": "ACTIONS.scrollUp",
-        "KeyL": "ACTIONS.scrollRight",
-        "KeyN": "ACTIONS.nextSearchMatch",
-        "KeyR": "ACTIONS.reload",
-        "KeyS": "CURSOR.start",
-        "KeyT": "ACTIONS.openNewTab",
-        "KeyU": "ACTIONS.reopenTab",
-        "KeyV": "CURSOR.start",
-        "KeyW": "ACTIONS.nextTab",
-        "C-KeyX": "ACTIONS.decreasePageNumber",
-        "Slash": "ACTIONS.toSearchMode",
-        "S-KeyF": "ACTIONS.startFollowNewTab",
-        "S-KeyG": "ACTIONS.scrollBottom",
-        "S-KeyH": "ACTIONS.backInHistory",
-        "S-KeyJ": "ACTIONS.nextTab",
-        "S-KeyK": "ACTIONS.previousTab",
-        "S-KeyL": "ACTIONS.forwardInHistory",
-        "S-KeyN": "ACTIONS.previousSearchMatch",
-        "S-KeyR": "ACTIONS.reloadWithoutCache",
-        "S-KeyT": "ACTIONS.openNewTabWithCurrentUrl",
-        "S-Digit4": "ACTIONS.scrollPageRight",
-        "S-Digit6": "ACTIONS.scrollPageLeft",
-        "S-Semicolon": "ACTIONS.toCommandMode",
-        "C-KeyB": "ACTIONS.scrollPageUp",
-        "C-KeyC": "ACTIONS.stopLoadingPage",
-        "C-KeyD": "ACTIONS.scrollPageDownHalf",
-        "C-KeyF": "ACTIONS.scrollPageDown",
-        "C-KeyI": "ACTIONS.forwardInHistory",
-        "C-KeyJ": "ACTIONS.moveTabForward",
-        "C-KeyK": "ACTIONS.moveTabBackward",
-        "C-KeyO": "ACTIONS.backInHistory",
-        "C-KeyT": "ACTIONS.openNewTabAtAlternativePosition",
-        "C-KeyU": "ACTIONS.scrollPageUpHalf",
-        "C-Digit0": "ACTIONS.zoomReset",
-        "C-Minus": "ACTIONS.zoomOut",
-        "C-Equal": "ACTIONS.zoomIn",
-        "CS-Digit0": "ACTIONS.zoomReset",
-        "CS-Equal": "ACTIONS.zoomIn",
-        "CS-Minus": "ACTIONS.zoomOut"
+const {ipcRenderer} = require("electron")
+
+const defaultBindings = {
+    "n": {
+        "<CR>": {"mapping": "<action.clickOnSearch>"},
+        "<F1>": {"mapping": "<:help>"},
+        "<C-a>": {"mapping": "<action.increasePageNumber>"},
+        "b": {"mapping": "<action.previousTab>"},
+        "<C-b>": {"mapping": "<action.scrollPageUp>"},
+        "c": {"mapping": "<pointer.start>"},
+        "<C-c>": {"mapping": "<action.stopLoadingPage>"},
+        "d": {"mapping": "<action.closeTab>"},
+        "<C-d>": {"mapping": "<action.scrollPageDownHalf>"},
+        "e": {"mapping": "<action.toExploreMode>"},
+        "f": {"mapping": "<action.startFollowCurrentTab>"},
+        "F": {"mapping": "<action.startFollowNewTab>"},
+        "<C-f>": {"mapping": "<action.scrollPageDown>"},
+        "gg": {"mapping": "<action.scrollTop>"},
+        "gi": {"mapping": "<action.insertAtFirstInput>"},
+        "G": {"mapping": "<action.scrollBottom>"},
+        "h": {"mapping": "<action.scrollLeft>"},
+        "H": {"mapping": "<action.backInHistory>"},
+        "i": {"mapping": "<action.toInsertMode>"},
+        "<C-i>": {"mapping": "<action.forwardInHistory>"},
+        "j": {"mapping": "<action.scrollDown>"},
+        "J": {"mapping": "<action.nextTab>"},
+        "<C-j>": {"mapping": "<action.moveTabForward>"},
+        "k": {"mapping": "<action.scrollUp>"},
+        "K": {"mapping": "<action.previousTab>"},
+        "<C-k>": {"mapping": "<action.moveTabBackward>"},
+        "l": {"mapping": "<action.scrollRight>"},
+        "L": {"mapping": "<action.forwardInHistory>"},
+        "n": {"mapping": "<action.nextSearchMatch>"},
+        "N": {"mapping": "<action.previousSearchMatch>"},
+        "<C-o>": {"mapping": "<action.backInHistory>"},
+        "r": {"mapping": "<action.reload>"},
+        "R": {"mapping": "<action.reloadWithoutCache>"},
+        "s": {"mapping": "<pointer.start>"},
+        "t": {"mapping": "<action.openNewTab>"},
+        "T": {"mapping": "<action.openNewTabWithCurrentUrl>"},
+        "<C-t>": {"mapping": "<action.openNewTabAtAlternativePosition>"},
+        "u": {"mapping": "<action.reopenTab>"},
+        "<C-u>": {"mapping": "<action.scrollPageUpHalf>"},
+        "v": {"mapping": "<pointer.start>"},
+        "w": {"mapping": "<action.nextTab>"},
+        "<C-x>": {"mapping": "<action.decreasePageNumber>"},
+        "<C-w>r": {"mapping": "<action.rotateSplitWindow>"},
+        "<C-w><C-r>": {"mapping": "<action.rotateSplitWindow>"},
+        "<C-w>H": {"mapping": "<action.leftHalfSplitWindow>"},
+        "<C-w><C-H>": {"mapping": "<action.leftHalfSplitWindow>"},
+        "<C-w>J": {"mapping": "<action.bottomHalfSplitWindow>"},
+        "<C-w><C-J>": {"mapping": "<action.bottomHalfSplitWindow>"},
+        "<C-w>K": {"mapping": "<action.topHalfSplitWindow>"},
+        "<C-w><C-K>": {"mapping": "<action.topHalfSplitWindow>"},
+        "<C-w>L": {"mapping": "<action.rightHalfSplitWindow>"},
+        "<C-w><C-L>": {"mapping": "<action.rightHalfSplitWindow>"},
+        "<C-w>h": {"mapping": "<action.toLeftSplitWindow>"},
+        "<C-w><C-h>": {"mapping": "<action.toLeftSplitWindow>"},
+        "<C-w>j": {"mapping": "<action.toBottomSplitWindow>"},
+        "<C-w><C-j>": {"mapping": "<action.toBottomSplitWindow>"},
+        "<C-w>k": {"mapping": "<action.toTopSplitWindow>"},
+        "<C-w><C-k>": {"mapping": "<action.toTopSplitWindow>"},
+        "<C-w>l": {"mapping": "<action.toRightSplitWindow>"},
+        "<C-w><C-l>": {"mapping": "<action.toRightSplitWindow>"},
+        "<C-w>-": {"mapping": "<action.decreaseHeightSplitWindow>"},
+        "<C-w>+": {"mapping": "<action.increaseHeightSplitWindow>"},
+        "<C-w>=": {"mapping": "<action.distrubuteSpaceSplitWindow>"},
+        "<C-w><C-=>": {"mapping": "<action.distrubuteSpaceSplitWindow>"},
+        "<C-w><lt>": {"mapping": "<action.decreaseWidthSplitWindow>"},
+        "<C-w>>": {"mapping": "<action.increaseWidthSplitWindow>"},
+        "<C-w><C-lt>": {"mapping": "<action.decreaseWidthSplitWindow>"},
+        "<C-w><C->>": {"mapping": "<action.increaseWidthSplitWindow>"},
+        "/": {"mapping": "<action.toSearchMode>"},
+        "$": {"mapping": "<action.scrollPageRight>"},
+        "^": {"mapping": "<action.scrollPageLeft>"},
+        ":": {"mapping": "<action.toCommandMode>"},
+        "-": {"mapping": "<action.zoomOut>"},
+        "_": {"mapping": "<action.zoomOut>"},
+        "=": {"mapping": "<action.zoomIn>"},
+        "+": {"mapping": "<action.zoomIn>"},
+        "<C-0>": {"mapping": "<action.zoomReset>"}
     },
-    "insert": {
-        "F1": ":help",
-        "Escape": "ACTIONS.toNormalMode",
-        "C-BracketLeft": "ACTIONS.toNormalMode",
-        "C-KeyI": "ACTIONS.editWithVim"
+    "i": {
+        "<F1>": {"mapping": "<:help>", "noremap": true},
+        "<Esc>": {"mapping": "<action.toNormalMode>", "noremap": true},
+        "<C-i>": {"mapping": "<action.editWithVim>", "noremap": true},
+        "<C-[>": {"mapping": "<action.toNormalMode>", "noremap": true}
     },
-    "command": {
-        "F1": ":help",
-        "Escape": "ACTIONS.toNormalMode",
-        "Tab": "ACTIONS.nextSuggestion",
-        "S-Tab": "ACTIONS.prevSuggestion",
-        "C-BracketLeft": "ACTIONS.toNormalMode",
-        "C-KeyN": "ACTIONS.commandHistoryNext",
-        "C-KeyP": "ACTIONS.commandHistoryPrevious",
-        "Enter": "ACTIONS.useEnteredData"
+    "c": {
+        "<CR>": {"mapping": "<action.useEnteredData>"},
+        "<F1>": {"mapping": "<:help>"},
+        "<Esc>": {"mapping": "<action.toNormalMode>"},
+        "<Tab>": {"mapping": "<action.nextSuggestion>"},
+        "<S-Tab>": {"mapping": "<action.prevSuggestion>"},
+        "<C-n>": {"mapping": "<action.commandHistoryNext>"},
+        "<C-p>": {"mapping": "<action.commandHistoryPrevious>"},
+        "<C-[>": {"mapping": "<action.toNormalMode>"}
     },
-    "search": {
-        "F1": ":help",
-        "Escape": "ACTIONS.toNormalMode",
-        "C-BracketLeft": "ACTIONS.toNormalMode",
-        "Enter": "ACTIONS.useEnteredData"
+    "s": {
+        "<CR>": {"mapping": "<action.useEnteredData>"},
+        "<F1>": {"mapping": "<:help>"},
+        "<Esc>": {"mapping": "<action.toNormalMode>"},
+        "<C-[>": {"mapping": "<action.toNormalMode>"}
     },
-    "nav": {
-        "F1": ":help",
-        "Escape": "ACTIONS.toNormalMode",
-        "Tab": "ACTIONS.nextSuggestion",
-        "S-Tab": "ACTIONS.prevSuggestion",
-        "C-BracketLeft": "ACTIONS.toNormalMode",
-        "Enter": "ACTIONS.useEnteredData"
+    "e": {
+        "<CR>": {"mapping": "<action.useEnteredData>"},
+        "<F1>": {"mapping": "<:help>"},
+        "<Esc>": {"mapping": "<action.toNormalMode>"},
+        "<Tab>": {"mapping": "<action.nextSuggestion>"},
+        "<S-Tab>": {"mapping": "<action.prevSuggestion>"},
+        "<C-[>": {"mapping": "<action.toNormalMode>"}
     },
-    "follow": {
-        "F1": ":help",
-        "Escape": "ACTIONS.stopFollowMode",
-        "C-BracketLeft": "ACTIONS.stopFollowMode"
+    "f": {
+        "<F1>": {"mapping": "<:help>"},
+        "<Esc>": {"mapping": "<action.stopFollowMode>"},
+        "<C-[>": {"mapping": "<action.stopFollowMode>"}
     },
-    "cursor": {
-        "F1": ":help",
-        "Enter": "CURSOR.leftClick",
-        "BracketLeft": "CURSOR.scrollUp",
-        "BracketRight": "CURSOR.scrollDown",
-        "KeyB": "CURSOR.moveFastLeft",
-        "KeyD": "CURSOR.downloadImage",
-        "KeyE": "CURSOR.inspectElement",
-        "KeyF": "ACTIONS.startFollowCurrentTab",
-        "KeyG": {
-            "KeyG": "CURSOR.startOfPage"
-        },
-        "KeyH": "CURSOR.moveLeft",
-        "KeyI": "CURSOR.insertAtPosition",
-        "KeyJ": "CURSOR.moveDown",
-        "KeyK": "CURSOR.moveUp",
-        "KeyL": "CURSOR.moveRight",
-        "KeyR": "CURSOR.rightClick",
-        "KeyV": "CURSOR.startVisualSelect",
-        "KeyW": "CURSOR.moveFastRight",
-        "KeyY": "CURSOR.copyAndStop",
-        "Escape": "ACTIONS.toNormalMode",
-        "S-Comma": "CURSOR.scrollLeft",
-        "S-Period": "CURSOR.scrollRight",
-        "S-KeyG": "CURSOR.endOfPage",
-        "S-KeyH": "CURSOR.startOfView",
-        "S-KeyJ": "CURSOR.scrollDown",
-        "S-KeyK": "CURSOR.scrollUp",
-        "S-KeyL": "CURSOR.endOfView",
-        "S-KeyM": "CURSOR.centerOfView",
-        "S-Digit4": "CURSOR.moveRightMax",
-        "S-Digit6": "CURSOR.moveLeftMax",
-        "C-KeyD": "CURSOR.moveFastDown",
-        "C-KeyH": "CURSOR.moveSlowLeft",
-        "C-KeyJ": "CURSOR.moveSlowDown",
-        "C-KeyK": "CURSOR.moveSlowUp",
-        "C-KeyL": "CURSOR.moveSlowRight",
-        "C-KeyU": "CURSOR.moveFastUp",
-        "C-BracketLeft": "ACTIONS.toNormalMode"
+    "p": {
+        "<F1>": {"mapping": "<:help>"},
+        "<CR>": {"mapping": "<pointer.leftClick>"},
+        "<Esc>": {"mapping": "<action.toNormalMode>"},
+        "[": {"mapping": "<pointer.scrollUp>"},
+        "]": {"mapping": "<pointer.scrollDown>"},
+        "b": {"mapping": "<pointer.moveFastLeft>"},
+        "d": {"mapping": "<pointer.downloadImage>"},
+        "<C-d>": {"mapping": "<pointer.moveFastDown>"},
+        "e": {"mapping": "<pointer.inspectElement>"},
+        "f": {"mapping": "<action.startFollowCurrentTab>"},
+        "gg": {"mapping": "<pointer.startOfPage>"},
+        "G": {"mapping": "<pointer.endOfPage>"},
+        "h": {"mapping": "<pointer.moveLeft>"},
+        "H": {"mapping": "<pointer.startOfView>"},
+        "<C-h>": {"mapping": "<pointer.moveSlowLeft>"},
+        "i": {"mapping": "<pointer.insertAtPosition>"},
+        "j": {"mapping": "<pointer.moveDown>"},
+        "J": {"mapping": "<pointer.scrollDown>"},
+        "<C-j>": {"mapping": "<pointer.moveSlowDown>"},
+        "k": {"mapping": "<pointer.moveUp>"},
+        "K": {"mapping": "<pointer.scrollUp>"},
+        "<C-k>": {"mapping": "<pointer.moveSlowUp>"},
+        "l": {"mapping": "<pointer.moveRight>"},
+        "L": {"mapping": "<pointer.endOfView>"},
+        "<C-l>": {"mapping": "<pointer.moveSlowRight>"},
+        "M": {"mapping": "<pointer.centerOfView>"},
+        "r": {"mapping": "<pointer.rightClick>"},
+        "<C-u>": {"mapping": "<pointer.moveFastUp>"},
+        "v": {"mapping": "<pointer.startVisualSelect>"},
+        "w": {"mapping": "<pointer.moveFastRight>"},
+        "y": {"mapping": "<pointer.copyAndStop>"},
+        "<lt>": {"mapping": "<pointer.scrollLeft>"},
+        ">": {"mapping": "<pointer.scrollRight>"},
+        "$": {"mapping": "<pointer.moveRightMax>"},
+        "^": {"mapping": "<pointer.moveLeftMax>"},
+        "<C-[>": {"mapping": "<action.toNormalMode>"}
     },
-    "visual": {
-        "F1": ":help",
-        "BracketLeft": "CURSOR.scrollUp",
-        "BracketRight": "CURSOR.scrollDown",
-        "KeyB": "CURSOR.moveFastLeft",
-        "KeyC": "CURSOR.copyAndStop",
-        "KeyF": "ACTIONS.startFollowCurrentTab",
-        "KeyG": {
-            "KeyG": "CURSOR.startOfPage"
-        },
-        "KeyH": "CURSOR.moveLeft",
-        "KeyJ": "CURSOR.moveDown",
-        "KeyK": "CURSOR.moveUp",
-        "KeyL": "CURSOR.moveRight",
-        "KeyW": "CURSOR.moveFastRight",
-        "KeyY": "CURSOR.copyAndStop",
-        "Escape": "ACTIONS.toNormalMode",
-        "S-Comma": "CURSOR.scrollLeft",
-        "S-Period": "CURSOR.scrollRight",
-        "S-KeyG": "CURSOR.endOfPage",
-        "S-KeyH": "CURSOR.startOfView",
-        "S-KeyJ": "CURSOR.scrollDown",
-        "S-KeyK": "CURSOR.scrollUp",
-        "S-KeyL": "CURSOR.endOfView",
-        "S-KeyM": "CURSOR.centerOfView",
-        "S-Digit4": "CURSOR.moveRightMax",
-        "S-Digit6": "CURSOR.moveLeftMax",
-        "C-KeyD": "CURSOR.moveFastDown",
-        "C-KeyH": "CURSOR.moveSlowLeft",
-        "C-KeyJ": "CURSOR.moveSlowDown",
-        "C-KeyK": "CURSOR.moveSlowUp",
-        "C-KeyL": "CURSOR.moveSlowRight",
-        "C-KeyU": "CURSOR.moveFastUp",
-        "C-BracketLeft": "ACTIONS.toNormalMode"
+    "v": {
+        "<F1>": {"mapping": "<:help>"},
+        "<Esc>": {"mapping": "<action.toNormalMode>"},
+        "[": {"mapping": "<pointer.scrollUp>"},
+        "]": {"mapping": "<pointer.scrollDown>"},
+        "b": {"mapping": "<pointer.moveFastLeft>"},
+        "c": {"mapping": "<pointer.copyAndStop>"},
+        "<C-d>": {"mapping": "<pointer.moveFastDown>"},
+        "f": {"mapping": "<action.startFollowCurrentTab>"},
+        "gg": {"mapping": "<pointer.startOfPage>"},
+        "G": {"mapping": "<pointer.endOfPage>"},
+        "h": {"mapping": "<pointer.moveLeft>"},
+        "H": {"mapping": "<pointer.startOfView>"},
+        "<C-h>": {"mapping": "<pointer.moveSlowLeft>"},
+        "j": {"mapping": "<pointer.moveDown>"},
+        "J": {"mapping": "<pointer.scrollDown>"},
+        "<C-j>": {"mapping": "<pointer.moveSlowDown>"},
+        "k": {"mapping": "<pointer.moveUp>"},
+        "K": {"mapping": "<pointer.scrollUp>"},
+        "<C-k>": {"mapping": "<pointer.moveSlowUp>"},
+        "l": {"mapping": "<pointer.moveRight>"},
+        "L": {"mapping": "<pointer.endOfView>"},
+        "<C-l>": {"mapping": "<pointer.moveSlowRight>"},
+        "M": {"mapping": "<pointer.centerOfView>"},
+        "<C-u>": {"mapping": "<pointer.moveFastUp>"},
+        "w": {"mapping": "<pointer.moveFastRight>"},
+        "y": {"mapping": "<pointer.copyAndStop>"},
+        "<lt>": {"mapping": "<pointer.scrollLeft>"},
+        ">": {"mapping": "<pointer.scrollRight>"},
+        "$": {"mapping": "<pointer.moveRightMax>"},
+        "^": {"mapping": "<pointer.moveLeftMax>"},
+        "<C-[>": {"mapping": "<action.toNormalMode>"}
     }
 }
 let repeatCounter = 0
-let currentSubKey = null
+let recursiveCounter = 0
+let pressedKeys = ""
+let bindings = {}
 let supportedActions = []
+let timeoutTimer = null
 
 const init = () => {
     window.addEventListener("keydown", handleKeyboard)
     window.addEventListener("keypress", handleUserInput)
     window.addEventListener("keyup", handleUserInput)
     window.addEventListener("click", e => {
+        if (e.target.classList.contains("no-focus-reset")) {
+            e.preventDefault()
+            return
+        }
         e.preventDefault()
         ACTIONS.setFocusCorrectly()
+    })
+    window.addEventListener("mouseup", e => {
+        if (SETTINGS.get("mouse")) {
+            if (e.target === document.getElementById("url")) {
+                if (!["explore", "command"].includes(MODES.currentMode())) {
+                    ACTIONS.toExploreMode()
+                }
+            } else if (["explore", "command"].includes(MODES.currentMode())) {
+                ACTIONS.toNormalMode()
+            }
+        }
+        e.preventDefault()
+        ACTIONS.setFocusCorrectly()
+    })
+    window.addEventListener("mousemove", e => {
+        if (SETTINGS.get("mouse") && SETTINGS.get("mousefocus")) {
+            document.elementsFromPoint(e.x, e.y).forEach(el => {
+                if (el.matches("#pagelayout *[link-id], #tabs *[link-id]")) {
+                    const tab = TABS.listTabs().find(t => t.getAttribute(
+                        "link-id") === el.getAttribute("link-id"))
+                    if (tab && TABS.currentTab() !== tab) {
+                        TABS.switchToTab(TABS.listTabs().indexOf(tab))
+                    }
+                }
+            })
+        }
     })
     window.addEventListener("contextmenu", e => {
         e.preventDefault()
         ACTIONS.setFocusCorrectly()
     })
     window.addEventListener("resize", () => {
-        if (MODES.currentMode() === "follow") {
-            FOLLOW.startFollow()
-        }
-        if (MODES.currentMode() === "cursor") {
-            CURSOR.updateCursorElement()
+        PAGELAYOUT.applyLayout()
+        if (["pointer", "visual"].includes(MODES.currentMode())) {
+            POINTER.updateElement()
         }
     })
     document.getElementById("url").addEventListener("input", () => {
-        if (MODES.currentMode() === "nav") {
+        if (MODES.currentMode() === "explore") {
             HISTORY.suggestHist(document.getElementById("url").value)
         } else if (MODES.currentMode() === "command") {
             SUGGEST.suggestCommand(document.getElementById("url").value)
+        }
+    })
+    ipcRenderer.on("window-close", () => {
+        if (process.platform === "darwin") {
+            executeMapString("<M-q>", true, true)
+        } else {
+            executeMapString("<A-F4>", true, true)
         }
     })
     setInterval(() => {
@@ -222,193 +282,320 @@ const init = () => {
     }, 500)
     ACTIONS.setFocusCorrectly()
     const unSupportedActions = [
-        "ACTIONS.setFocusCorrectly",
-        "CURSOR.move",
-        "CURSOR.handleScrollDiffEvent",
-        "CURSOR.updateCursorElement",
-        "CURSOR.releaseKeys"
+        "action.setFocusCorrectly",
+        "pointer.move",
+        "pointer.handleScrollDiffEvent",
+        "pointer.updateElement",
+        "pointer.releaseKeys"
     ]
     supportedActions = [
-        ...Object.keys(ACTIONS).map(a => `ACTIONS.${a}`),
-        ...Object.keys(CURSOR).map(c => `CURSOR.${c}`)
+        ...Object.keys(ACTIONS).map(a => `action.${a}`),
+        ...Object.keys(POINTER).map(c => `pointer.${c}`)
     ].filter(m => !unSupportedActions.includes(m))
+    bindings = JSON.parse(JSON.stringify(defaultBindings))
 }
+
+const keyNames = [
+    {"js": ["<"], "vim": ["lt"]},
+    {"js": ["Backspace"], "vim": ["BS"]},
+    {"js": ["Enter"], "vim": ["CR", "NL", "Return", "Enter"]},
+    {"js": ["|"], "vim": ["Bar"]},
+    {"js": ["\\"], "vim": ["Bslash"]},
+    {"js": ["ArrowLeft"], "vim": ["Left"]},
+    {"js": ["ArrowRight"], "vim": ["Right"]},
+    {"js": ["ArrowUp"], "vim": ["Up"]},
+    {"js": ["ArrowDown"], "vim": ["Down"]},
+    {"js": ["Escape"], "vim": ["Esc"]},
+    {"js": [" "], "vim": ["Space"]},
+    {"js": ["Delete"], "vim": ["Del"]}
+]
 
 const toIdentifier = e => {
+    let keyCode = e.key
+    keyNames.forEach(key => {
+        if (key.js.includes(keyCode)) {
+            keyCode = key.vim[0]
+        }
+    })
     if (e.ctrlKey || e.shiftKey || e.metaKey || e.altKey) {
-        let identifier = ""
-        if (e.ctrlKey) {
-            identifier += "C"
-        }
-        if (e.shiftKey) {
-            identifier += "S"
-        }
-        if (e.metaKey) {
-            identifier += "M"
+        if (e.shiftKey && e.key.length > 1) {
+            keyCode = `S-${keyCode}`
         }
         if (e.altKey) {
-            identifier += "A"
+            keyCode = `A-${keyCode}`
         }
-        return `${identifier}-${e.code}`
+        if (e.metaKey) {
+            keyCode = `M-${keyCode}`
+        }
+        if (e.ctrlKey) {
+            keyCode = `C-${keyCode}`
+        }
     }
-    return e.code
-}
-
-const eventToAction = e => {
-    return idToAction(toIdentifier(e))
-}
-
-const idToAction = id => {
-    if (document.body.className === "fullscreen") {
-        MODES.setMode("insert")
-        return
+    if (keyCode.length > 1) {
+        keyCode = `<${keyCode}>`
     }
-    const allBindings = UTIL.merge(
-        JSON.parse(JSON.stringify(bindings)),
-        SETTINGS.get("keybindings"))
-    return allBindings[MODES.currentMode()][id]
+    return keyCode
 }
 
 // This is a list of actions that can be counted in advance by a count argument
 // Functions not listed will be executed for x times using a while loop
 const countableActions = [
     // Actually countable with notable speed increase
-    "ACTIONS.increasePageNumber",
-    "ACTIONS.decreasePageNumber",
-    "ACTIONS.previousTab",
-    "ACTIONS.nextTab",
-    "ACTIONS.zoomOut",
-    "ACTIONS.zoomIn",
+    "action.increasePageNumber",
+    "action.decreasePageNumber",
+    "action.previousTab",
+    "action.nextTab",
+    "action.zoomOut",
+    "action.zoomIn",
     // Single use actions that ignore the count and only execute once
-    "ACTIONS.emptySearch",
-    "ACTIONS.toNavMode",
-    "ACTIONS.startFollowCurrentTab",
-    "ACTIONS.scrollTop",
-    "ACTIONS.insertAtFirstInput",
-    "ACTIONS.toInsertMode",
-    "ACTIONS.reload",
-    "ACTIONS.toSearchMode",
-    "ACTIONS.startFollowNewTab",
-    "ACTIONS.scrollBottom",
-    "ACTIONS.openNewTabWithCurrentUrl",
-    "ACTIONS.toCommandMode",
-    "ACTIONS.stopLoadingPage",
-    "ACTIONS.zoomReset",
-    "ACTIONS.toNormalMode",
-    "ACTIONS.stopFollowMode",
-    "ACTIONS.useEnteredData",
-    "ACTIONS.editWithVim",
-    "CURSOR.start",
-    "CURSOR.inspectElement",
-    "CURSOR.copyAndStop",
-    "CURSOR.startOfPage",
-    "CURSOR.insertAtPosition",
-    "CURSOR.centerOfView",
-    "CURSOR.startOfView",
-    "CURSOR.endOfView",
-    "CURSOR.endOfPage",
-    "CURSOR.moveRightMax",
-    "CURSOR.moveLeftMax"
+    "action.emptySearch",
+    "action.clickOnSearch",
+    "action.toExploreMode",
+    "action.startFollowCurrentTab",
+    "action.scrollTop",
+    "action.insertAtFirstInput",
+    "action.toInsertMode",
+    "action.reload",
+    "action.toSearchMode",
+    "action.startFollowNewTab",
+    "action.scrollBottom",
+    "action.openNewTabWithCurrentUrl",
+    "action.toCommandMode",
+    "action.stopLoadingPage",
+    "action.zoomReset",
+    "action.toNormalMode",
+    "action.stopFollowMode",
+    "action.editWithVim",
+    "action.leftHalfSplitWindow",
+    "action.bottomHalfSplitWindow",
+    "action.topHalfSplitWindow",
+    "action.rightHalfSplitWindow",
+    "action.distrubuteSpaceSplitWindow",
+    "action.useEnteredData",
+    "pointer.start",
+    "pointer.inspectElement",
+    "pointer.copyAndStop",
+    "pointer.startOfPage",
+    "pointer.insertAtPosition",
+    "pointer.centerOfView",
+    "pointer.startOfView",
+    "pointer.endOfView",
+    "pointer.endOfPage",
+    "pointer.moveRightMax",
+    "pointer.moveLeftMax"
 ]
 
+const hasFutureActionsBasedOnKeys = keys => !!Object.keys(bindings[
+    MODES.currentMode()[0]]).find(map => map.startsWith(keys) && map !== keys)
+
+const executeMapString = async (mapStr, recursive, initial) => {
+    if (initial) {
+        recursiveCounter = 0
+        if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
+            pressedKeys = ""
+        }
+    }
+    recursiveCounter += 1
+    let repeater = Number(repeatCounter) || 1
+    repeatCounter = 0
+    updateKeysOnScreen()
+    for (let i = 0;i < repeater;i++) {
+        if (recursiveCounter > SETTINGS.get("maxmapdepth")) {
+            break
+        }
+        for (let key of mapStr.split(/(<.*?[^-]>|<.*?->>|.)/g).filter(m => m)) {
+            if (recursiveCounter > SETTINGS.get("maxmapdepth")) {
+                break
+            }
+            const options = {"bubbles": recursive}
+            if (key.length === 1) {
+                const isLetter = key.toLowerCase() !== key.toUpperCase()
+                const isUpper = key.toUpperCase() === key
+                if (isLetter && isUpper) {
+                    options.shiftKey = true
+                }
+                options.key = key
+                window.dispatchEvent(new KeyboardEvent("keydown", options))
+            } else if (supportedActions.includes(key.replace(/(^<|>$)/g, ""))) {
+                let count = null
+                if (countableActions.includes(key.replace(/(^<|>$)/g, ""))) {
+                    count = Number(repeater)
+                    repeater = 0
+                }
+                doAction(key.replace(/(^<|>$)/g, ""), count)
+            } else if (key.startsWith("<:")) {
+                COMMAND.execute(key.replace(/^<:|>$/g, ""))
+            } else if (key.match(/^<(C-)?(M-)?(A-)?(S-)?.+>$/g)) {
+                key = key.slice(1, -1)
+                if (key.startsWith("C-")) {
+                    options.ctrlKey = true
+                    key = key.replace("C-", "")
+                }
+                if (key.startsWith("M-")) {
+                    options.metaKey = true
+                    key = key.replace("M-", "")
+                }
+                if (key.startsWith("A-")) {
+                    options.altKey = true
+                    key = key.replace("A-", "")
+                }
+                if (key.startsWith("S-")) {
+                    options.shiftKey = true
+                    key = key.replace("S-", "")
+                }
+                keyNames.forEach(k => {
+                    if (k.vim.includes(key)) {
+                        options.key = k.js[0]
+                    }
+                })
+                if (!options.key) {
+                    options.key = key
+                }
+                window.dispatchEvent(new KeyboardEvent("keydown", options))
+            } else {
+                UTIL.notify(`Unsupported key in mapping: ${key}`, "warn")
+                break
+            }
+            await new Promise(r => setTimeout(r, 2))
+        }
+    }
+    if (initial) {
+        recursiveCounter = 0
+        if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
+            repeatCounter = 0
+            pressedKeys = ""
+            updateKeysOnScreen()
+        }
+    }
+}
+
+const doAction = (name, count) => {
+    if (name.startsWith("pointer")) {
+        POINTER[name.replace(/^.*\./g, "")](count || 1)
+    } else {
+        ACTIONS[name.replace(/^.*\./g, "")](count || 1)
+    }
+    repeatCounter = 0
+    updateKeysOnScreen()
+}
+
 const handleKeyboard = e => {
-    if (document.body.className === "fullscreen") {
+    if (document.body.classList.contains("fullscreen")) {
         MODES.setMode("insert")
         return
     }
     const ignoredKeys = [
-        "ControlLeft",
-        "ControlRight",
-        "ShiftLeft",
-        "ShiftRight",
-        "AltLeft",
-        "AltRight",
-        "MetaLeft",
-        "MetaRight",
+        "Control",
+        "Meta",
+        "Alt",
+        "Shift",
         "NumLock",
         "CapsLock",
-        "ScrollLock"
+        "ScrollLock",
+        "<C-CapsLock>",
+        ""
     ]
-    if (ignoredKeys.includes(e.code)) {
-        // Keys such as control should not be registered on their own,
-        // This will prevent the cancellation of bindings like 'g g',
-        // After pressing just a single g and then control.
+    if (recursiveCounter > SETTINGS.get("maxmapdepth")) {
+        e.preventDefault()
+        return
+    }
+    if (ignoredKeys.includes(e.key)) {
+        // Keys such as control should not be registered on their own
         e.preventDefault()
         return
     }
     const id = toIdentifier(e)
-    let action = eventToAction(e)
-    if (currentSubKey) {
-        const actionSet = idToAction(currentSubKey)
-        if (actionSet) {
-            action = actionSet[toIdentifier(e)]
-        }
-        currentSubKey = null
-        document.getElementById("mode").style.textDecoration = ""
-        document.getElementById("mode").style.fontStyle = ""
-    } else if (typeof action === "object") {
-        currentSubKey = id
-        document.getElementById("mode").style.textDecoration = "underline"
-        document.getElementById("mode").style.fontStyle = "italic"
-        e.preventDefault()
-        return
-    }
-    if (SETTINGS.get("digitsRepeatActions")) {
-        if (id === "Escape" || id === "C-BracketLeft") {
-            if (repeatCounter !== 0) {
-                repeatCounter = 0
-                e.preventDefault()
-                return
-            }
-        }
-    }
-    const actionFunction = actionToFunction(action)
-    if (actionFunction) {
-        if (countableActions.includes(action)) {
-            actionFunction(Math.max(repeatCounter, 1))
-            e.preventDefault()
+    updateKeysOnScreen()
+    clearTimeout(timeoutTimer)
+    if (SETTINGS.get("timeout")) {
+        timeoutTimer = setTimeout(() => {
             repeatCounter = 0
+            pressedKeys = ""
+            updateKeysOnScreen()
+        }, SETTINGS.get("timeoutlen"))
+    }
+    if (["normal", "pointer", "visual"].includes(MODES.currentMode())) {
+        const keyNumber = Number(id)
+        const noFutureActions = !hasFutureActionsBasedOnKeys(pressedKeys + id)
+        if (!isNaN(keyNumber) && noFutureActions) {
+            repeatCounter = Number(String(repeatCounter) + keyNumber)
+            if (repeatCounter > SETTINGS.get("countlimit")) {
+                repeatCounter = SETTINGS.get("countlimit")
+            }
+            updateKeysOnScreen()
+            e.preventDefault()
             return
         }
-        actionFunction()
-        if (["normal", "cursor", "visual"].includes(MODES.currentMode())) {
-            while (repeatCounter > 1) {
-                actionFunction()
-                repeatCounter -= 1
+        if (id === "<Esc>" || id === "<C-[>") {
+            if (repeatCounter !== 0) {
+                repeatCounter = 0
+                updateKeysOnScreen()
+                e.preventDefault()
+                return
             }
-            repeatCounter = 0
+        }
+    } else {
+        repeatCounter = 0
+    }
+    if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
+        pressedKeys = ""
+    }
+    pressedKeys += id
+    const action = bindings[MODES.currentMode()[0]][pressedKeys]
+    if (action && (e.isTrusted || e.bubbles)) {
+        if (e.isTrusted) {
+            executeMapString(action.mapping, !action.noremap, true)
+        } else {
+            executeMapString(action.mapping, e.bubbles)
         }
         e.preventDefault()
         return
     }
-    if (id.startsWith("Digit") && SETTINGS.get("digitsRepeatActions")) {
-        if (["normal", "cursor", "visual"].includes(MODES.currentMode())) {
-            const keyNumber = Number(id.replace("Digit", ""))
-            if (!isNaN(keyNumber)) {
-                repeatCounter = Number(String(repeatCounter) + keyNumber)
-                if (repeatCounter > 100) {
-                    repeatCounter = 100
-                }
-                e.preventDefault()
-                return
-            }
-        } else {
-            repeatCounter = 0
-        }
+    if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
+        repeatCounter = 0
+        pressedKeys = ""
     }
+    if (!e.isTrusted) {
+        typeCharacterIntoNavbar(id)
+    }
+    updateKeysOnScreen()
     handleUserInput(e)
 }
 
-const actionToFunction = action => {
-    if (action && action.startsWith && action.startsWith(":")) {
-        return () => COMMAND.execute(action)
+const typeCharacterIntoNavbar = id => {
+    if (!"ces".includes(MODES.currentMode()[0])) {
+        return
     }
-    if (supportedActions.includes(action)) {
-        const categories = {"ACTIONS": ACTIONS, "CURSOR": CURSOR}
-        const [categoryName, func] = action.split(".")
-        return categories[categoryName][func]
+    if (id.length === 1) {
+        document.getElementById("url").value += id
     }
-    return null
+    if (id === "<lt>") {
+        document.getElementById("url").value += "<"
+    }
+    if (id === "<Bar>") {
+        document.getElementById("url").value += "|"
+    }
+    if (id === "<Bslash>") {
+        document.getElementById("url").value += "\\"
+    }
+    if (id === "<Space>") {
+        document.getElementById("url").value += " "
+    }
+}
+
+const updateKeysOnScreen = () => {
+    document.getElementById("repeat-counter").textContent = repeatCounter
+    document.getElementById("pressed-keys").textContent = pressedKeys
+    if (repeatCounter && SETTINGS.get("showcmd")) {
+        document.getElementById("repeat-counter").style.display = "flex"
+    } else {
+        document.getElementById("repeat-counter").style.display = "none"
+    }
+    if (pressedKeys && SETTINGS.get("showcmd")) {
+        document.getElementById("pressed-keys").style.display = "flex"
+    } else {
+        document.getElementById("pressed-keys").style.display = "none"
+    }
 }
 
 const handleUserInput = e => {
@@ -420,34 +607,248 @@ const handleUserInput = e => {
         e.preventDefault()
         return
     }
-    const allowedUserInput = [
-        "C-KeyX",
-        "C-KeyC",
-        "C-KeyV",
-        "C-KeyA",
-        "C-Backspace",
-        "C-ArrowLeft",
-        "C-ArrowRight",
-        "CS-ArrowLeft",
-        "CS-ArrowRight"
+    let allowedUserInput = [
+        "<C-a>",
+        "<C-c>",
+        "<C-x>",
+        "<C-v>",
+        "<C-y>",
+        "<C-z>",
+        "<C-BS>",
+        "<C-Left>",
+        "<C-Right>",
+        "<C-S-Left>",
+        "<C-S-Right>"
     ]
-    const shift = id.startsWith("S-")
+    if (process.platform === "darwin") {
+        allowedUserInput = [
+            "<M-a>",
+            "<M-c>",
+            "<M-x>",
+            "<M-v>",
+            "<M-z>",
+            "<M-BS>",
+            "<M-Left>",
+            "<M-Right>",
+            "<M-S-Left>",
+            "<M-S-Right>",
+            "<M-Z>",
+            "<A-BS>",
+            "<A-Left>",
+            "<A-Right>",
+            "<A-S-Left>",
+            "<A-S-Right>"
+        ]
+    }
+    const shiftOnly = id.startsWith("<S-")
     const allowedInput = allowedUserInput.includes(id)
-    const hasModifier = id.includes("-")
-    if (!shift && !allowedInput && hasModifier || e.code === "Tab") {
+    const hasModifier = id.match(/^<.*-.*>$/)
+    const blockedKey = ["Tab", "F11"].find(key => id.includes(key))
+    if (!shiftOnly && !allowedInput && hasModifier || blockedKey) {
         e.preventDefault()
     }
     ACTIONS.setFocusCorrectly()
 }
 
-const listSupportedActions = () => {
-    return supportedActions
+const listSupportedActions = () => supportedActions
+
+const mappingModified = (mode, mapping) => {
+    const current = bindings[mode][mapping]
+    const original = defaultBindings[mode][mapping]
+    if (!current && !original) {
+        return false
+    }
+    if (current && original) {
+        if (current.mapping === original.mapping) {
+            if (current.noremap === original.noremap) {
+                return false
+            }
+        }
+    }
+    return true
+}
+
+const listMappingsAsCommandList = (mode = false, includeDefault = false) => {
+    const mappings = []
+    let modes = Object.keys(defaultBindings)
+    if (mode) {
+        modes = [mode]
+    }
+    modes.forEach(bindMode => {
+        const keys = [...new Set(Object.keys(defaultBindings[bindMode])
+            .concat(Object.keys(bindings[bindMode])))]
+        for (const key of keys) {
+            mappings.push(listMapping(bindMode, key, includeDefault))
+        }
+    })
+    return mappings.join("\n").replace(/[\r\n]+/g, "\n").trim()
+}
+
+const listMapping = (mode, key, includeDefault) => {
+    key = sanitiseMapString(key)
+    if (!mappingModified(mode, key) && !includeDefault) {
+        return ""
+    }
+    const mapping = bindings[mode][key]
+    if (mapping) {
+        if (mapping.noremap) {
+            return `${mode}noremap ${key} ${mapping.mapping}`
+        }
+        return `${mode}map ${key} ${mapping.mapping}`
+    }
+    if (defaultBindings[mode][key]) {
+        return `${mode}unmap ${key}`
+    }
+    return ""
+}
+
+const mapOrList = (mode, args, noremap, includeDefault) => {
+    if (includeDefault && args.length > 1) {
+        UTIL.notify("Mappings are always overwritten, no need for !", "warn")
+        return
+    }
+    if (args.length === 0) {
+        const mappings = listMappingsAsCommandList(mode, includeDefault)
+        if (mappings) {
+            UTIL.notify(mappings)
+        } else if (includeDefault) {
+            UTIL.notify("No mappings found")
+        } else {
+            UTIL.notify("No custom mappings found")
+        }
+        return
+    }
+    if (args.length === 1) {
+        if (mode) {
+            const mapping = listMapping(mode, args[0], includeDefault).trim()
+            if (mapping) {
+                UTIL.notify(mapping)
+            } else if (includeDefault) {
+                UTIL.notify("No mapping found for this sequence")
+            } else {
+                UTIL.notify("No custom mapping found for this sequence")
+            }
+        } else {
+            let mappings = ""
+            Object.keys(bindings).forEach(bindMode => {
+                mappings += `${listMapping(
+                    bindMode, args[0], includeDefault)}\n`
+            })
+            mappings = mappings.replace(/[\r\n]+/g, "\n").trim()
+            if (mappings) {
+                UTIL.notify(mappings)
+            } else if (includeDefault) {
+                UTIL.notify("No mapping found for this sequence")
+            } else {
+                UTIL.notify("No custom mapping found for this sequence")
+            }
+        }
+        return
+    }
+    mapSingle(mode, args, noremap)
+}
+
+const sanitiseMapString = mapString => mapString.split(/(<.*?[^-]>|<.*?->>|.)/g)
+    .filter(m => m).map(m => {
+        if (m === ">") {
+            return ">"
+        }
+        let key = m
+        let modifiers = []
+        if (m.length > 1) {
+            const splitKeys = m.replace(/(^<|>$)/g, "")
+                .split("-").filter(s => s)
+            modifiers = splitKeys.slice(0, -1).map(mod => mod.toUpperCase())
+            key = splitKeys.slice(-1)[0]
+        }
+        for (const name of keyNames) {
+            if (name.vim.find(vk => vk.toUpperCase() === key.toUpperCase())) {
+                key = name.vim[0]
+                break
+            }
+        }
+        if (!key) {
+            return ""
+        }
+        let modString = ""
+        if (key.length === 1) {
+            if (modifiers.includes("S") && key.toLowerCase() === key) {
+                modifiers = modifiers.filter(mod => mod !== "S")
+                key = key.toUpperCase()
+            }
+            if (modifiers.includes("S") && key.toLowerCase() !== key) {
+                modifiers = modifiers.filter(mod => mod !== "S")
+            }
+        }
+        for (const mod of ["C", "M", "A", "S"]) {
+            if (modifiers.includes(mod)) {
+                modString += `${mod}-`
+            }
+        }
+        if (modString || key.length > 1) {
+            return `<${modString}${key}>`
+        }
+        return key
+    }).join("")
+
+const mapSingle = (mode, args, noremap) => {
+    const mapping = sanitiseMapString(args.shift())
+    const actions = sanitiseMapString(args.join(""))
+    if (mode) {
+        bindings[mode][mapping] = {
+            "mapping": actions, "noremap": noremap || mode === "i"
+        }
+    } else {
+        Object.keys(bindings).forEach(bindMode => {
+            bindings[bindMode][mapping] = {
+                "mapping": actions, "noremap": noremap || bindMode === "i"
+            }
+        })
+    }
+    SETTINGS.updateHelpPage()
+}
+
+const unmap = (mode, args) => {
+    if (args.length !== 1) {
+        UTIL.notify(
+            `The ${mode}unmap command requires exactly one mapping`, "warn")
+        return
+    }
+    if (mode) {
+        delete bindings[mode][sanitiseMapString(args[0])]
+    } else {
+        Object.keys(bindings).forEach(bindMode => {
+            delete bindings[bindMode][sanitiseMapString(args[0])]
+        })
+    }
+    SETTINGS.updateHelpPage()
+}
+
+const clearmap = (mode, removeDefaults) => {
+    if (mode) {
+        if (removeDefaults) {
+            bindings[mode] = {}
+        } else {
+            bindings[mode] = JSON.parse(JSON.stringify(defaultBindings[mode]))
+        }
+    } else if (removeDefaults) {
+        Object.keys(bindings).forEach(bindMode => {
+            bindings[bindMode] = {}
+        })
+    } else {
+        bindings = JSON.parse(JSON.stringify(defaultBindings))
+    }
+    SETTINGS.updateHelpPage()
 }
 
 module.exports = {
     init,
-    eventToAction,
-    actionToFunction,
-    bindings,
-    listSupportedActions
+    executeMapString,
+    doAction,
+    handleKeyboard,
+    listSupportedActions,
+    listMappingsAsCommandList,
+    mapOrList,
+    unmap,
+    clearmap
 }

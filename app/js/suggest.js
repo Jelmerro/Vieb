@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND FAVICONS SETTINGS TABS */
+/* global COMMAND FAVICONS INPUT MODES SETTINGS TABS */
 "use strict"
 
 let suggestions = []
@@ -87,20 +87,22 @@ const addToList = suggestion => {
     suggestions.push(suggestion)
 }
 
-const includes = suggestion => {
-    return suggestions.includes(suggestion)
-}
+const includes = suggestion => suggestions.includes(suggestion)
 
-const indexOf = suggestion => {
-    return suggestions.indexOf(suggestion)
-}
+const indexOf = suggestion => suggestions.indexOf(suggestion)
 
 const addHist = hist => {
-    if (suggestions.length > 20) {
+    if (suggestions.length + 1 > SETTINGS.get("suggesthistory")) {
         return
     }
     addToList(hist.url)
     const element = document.createElement("div")
+    element.className = "no-focus-reset"
+    element.addEventListener("mouseup", e => {
+        MODES.setMode("normal")
+        TABS.navigateTo(hist.url)
+        e.preventDefault()
+    })
     const icon = FAVICONS.forSite(hist.url)
     if (icon && SETTINGS.get("favicons") !== "disabled") {
         const thumbnail = document.createElement("img")
@@ -119,6 +121,9 @@ const addHist = hist => {
     url.textContent = hist.url
     element.appendChild(url)
     document.getElementById("suggest-dropdown").appendChild(element)
+    setTimeout(() => {
+        element.style.pointerEvents = "auto"
+    }, 100)
 }
 
 const suggestCommand = search => {
@@ -127,31 +132,58 @@ const suggestCommand = search => {
     // Remove all redundant spaces
     // Allow commands prefixed with :
     search = search.replace(/^[\s|:]*/, "").replace(/ +/g, " ")
-    if (!SETTINGS.get("suggestCommands") || !search) {
+    const {valid, confirm, command, args} = COMMAND.parseAndValidateArgs(search)
+    if (!SETTINGS.get("suggestcommands") || !search || !valid) {
+        // Limited to zero, no search or invalid = don't suggest
         return
     }
-    let setCommandExtras = []
-    let writeCommandExtras = []
-    if ("set".startsWith(search.split(" ")[0])) {
-        setCommandExtras = SETTINGS.suggestionList()
-            .map(s => `${search.split(" ").slice(0, -1).join(" ")} ${s}`)
+    // List all commands unconditionally
+    COMMAND.commandList().filter(
+        c => c.startsWith(search)).forEach(c => addCommand(c))
+    // Command: set
+    if ("set".startsWith(command) && !confirm) {
+        if (args.length) {
+            SETTINGS.suggestionList()
+                .filter(s => s.startsWith(args[args.length - 1]))
+                .map(s => `${command} ${args.slice(0, -1).join(" ")} ${s}`
+                    .replace(/ +/g, " "))
+                .forEach(c => addCommand(c))
+        } else {
+            SETTINGS.suggestionList().map(s => `${command} ${s}`)
+                .forEach(c => addCommand(c))
+        }
     }
-    if ("write".startsWith(search.split(" ")[0])) {
-        writeCommandExtras = ["write ~/Downloads/newfile"]
+    // Command: write
+    if ("write ~/Downloads/newfile".startsWith(search) && !confirm) {
+        addCommand("write ~/Downloads/newfile")
     }
-    if ("mkviebrc".startsWith(search.split(" ")[0])) {
-        writeCommandExtras = ["mkv full", "mkviebrc full"]
+    // Command: mkviebrc
+    if ("mkviebrc full".startsWith(search) && !confirm) {
+        addCommand("mkviebrc full")
     }
-    if ("buffer".startsWith(search.split(" ")[0])) {
-        const simpleSearch = search.split(" ").slice(1).join("")
-            .replace(/\W/g, "").toLowerCase()
-        TABS.listTabs().map((t, index) => {
-            return {
-                "command": `${search.split(" ")[0]} ${index}`,
-                "subtext": `${t.querySelector("span").textContent}`,
-                "url": TABS.tabOrPageMatching(t).src
+    // Command: buffer, hide, Vexplore, Sexplore, split and vsplit
+    const bufferCommand = [
+        "buffer", "hide", "Vexplore", "Sexplore", "split", "vsplit"
+    ].find(b => b.startsWith(command))
+    let suggestedCommandName = command
+    if (suggestions.length > 1) {
+        suggestedCommandName = bufferCommand
+    }
+    if (bufferCommand && command !== "h" && !confirm) {
+        const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
+        TABS.listTabs().filter(tab => {
+            if (bufferCommand === "buffer") {
+                return true
             }
-        }).filter(t => {
+            if (bufferCommand === "hide") {
+                return tab.classList.contains("visible-tab")
+            }
+            return !tab.classList.contains("visible-tab")
+        }).map(t => ({
+            "command": `${suggestedCommandName} ${TABS.listTabs().indexOf(t)}`,
+            "subtext": `${t.querySelector("span").textContent}`,
+            "url": TABS.tabOrPageMatching(t).src
+        })).filter(t => {
             if (t.command.startsWith(search)) {
                 return true
             }
@@ -161,21 +193,63 @@ const suggestCommand = search => {
             }
             const simpleTabTitle = t.subtext.replace(/\W/g, "").toLowerCase()
             return simpleTabTitle.includes(simpleSearch)
-        }).slice(0, 10).forEach(t => { addCommand(t.command, t.subtext) })
-        return
+        }).forEach(t => addCommand(t.command, t.subtext))
     }
-    const possibleCommands = COMMAND.commandList()
-        .concat(setCommandExtras)
-        .concat(writeCommandExtras)
-        .filter(c => c.toLowerCase().startsWith(search.toLowerCase()))
-    for (const command of possibleCommands.slice(0, 10)) {
-        addCommand(command)
+    // Command: call
+    suggestedCommandName = command
+    if (suggestions.length > 1) {
+        suggestedCommandName = "call"
+    }
+    if ("call".startsWith(command) && !confirm) {
+        INPUT.listSupportedActions().filter(
+            action => `${command} ${action.replace(/(^<|>$)/g, "")}`.startsWith(
+                `${command} ${args.join(" ")}`.trim()))
+            .forEach(action => addCommand(`${suggestedCommandName} ${action}`))
+    }
+    if ("help".startsWith(command) && !confirm) {
+        [
+            "intro",
+            "commands",
+            "settings",
+            "actions",
+            "settingcommands",
+            "specialpages",
+            "mappings",
+            "key-codes",
+            "<>",
+            "customcommands",
+            "splits",
+            "viebrc",
+            "datafolder",
+            "modes",
+            "scrolling",
+            "navigation",
+            "splitting",
+            "pointer",
+            "license",
+            "mentions",
+            ...COMMAND.commandList().map(c => `:${c}`),
+            ...INPUT.listSupportedActions(),
+            ...Object.values(SETTINGS.settingsWithDefaults()).map(s => s.name),
+            ...COMMAND.commandList()
+        ].filter(section => `${command} ${section}`.startsWith(
+            `${command} ${args.join(" ")}`.trim())
+        ).forEach(section => addCommand(`help ${section}`))
     }
 }
 
 const addCommand = (command, subtext) => {
+    if (suggestions.length + 1 > SETTINGS.get("suggestcommands")) {
+        return
+    }
     addToList(command)
     const element = document.createElement("div")
+    element.className = "no-focus-reset"
+    element.addEventListener("mouseup", e => {
+        COMMAND.execute(command)
+        MODES.setMode("normal")
+        e.preventDefault()
+    })
     const commandElement = document.createElement("span")
     commandElement.textContent = command
     element.appendChild(commandElement)
@@ -184,6 +258,9 @@ const addCommand = (command, subtext) => {
     subtextElement.className = "file"
     element.appendChild(subtextElement)
     document.getElementById("suggest-dropdown").appendChild(element)
+    setTimeout(() => {
+        element.style.pointerEvents = "auto"
+    }, 100)
 }
 
 module.exports = {

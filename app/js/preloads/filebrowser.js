@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -44,13 +44,9 @@ const createElement = (type, loc, customTitle = "") => {
     return element
 }
 
-const toUrl = loc => {
-    return `file:${loc}`.replace(/^file:\/*/, "file:///")
-}
+const toUrl = loc => `file:${loc}`.replace(/^file:\/*/, "file:///")
 
-const isRoot = loc => {
-    return path.normalize(loc) === path.join(loc, "../")
-}
+const isRoot = loc => path.normalize(loc) === path.join(loc, "../")
 
 ipcRenderer.on("insert-current-directory-files",
     (_, directories, files, allowed, folder) => {

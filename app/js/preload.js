@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,26 +18,31 @@
 "use strict"
 
 // Always load the misc action functions (such as scrolling before page loads)
-require("./preloads/actions.js")
+require("./preloads/actions")
 // Always load follow mode JavaScript
-require("./preloads/follow.js")
+require("./preloads/follow")
 // Always load selection function code (for visual mode)
-require("./preloads/select.js")
+require("./preloads/select")
 // Always load the failed page information handler
-require("./preloads/failedload.js")
+require("./preloads/failedload")
 // Always load the local directory browser
-require("./preloads/filebrowser.js")
+require("./preloads/filebrowser")
+// Always load the privacy related fixes
+require("./preloads/privacy")
 
 // Load the special page specific JavaScript
-const util = require("./util.js")
+const util = require("./util")
 const specialPage = util.pathToSpecialPageName(window.location.href)
 if (specialPage.name) {
-    require(`./preloads/${specialPage.name}.js`)
+    require(`./preloads/${specialPage.name}`)
 }
 
 // Change the colors to white text on black for plain text pages
 // Change the background to white for pages with no explicit background styling
 window.addEventListener("load", () => {
+    if (!document.querySelector("html")) {
+        return
+    }
     if (document.head && document.head.innerText === "") {
         document.querySelector("html").style.color = "white"
         return

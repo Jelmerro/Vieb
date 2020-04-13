@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS CURSOR DOWNLOADS FAVICONS FOLLOW HISTORY INPUT MODES SESSIONS
- SETTINGS UTIL */
+/* global ACTIONS POINTER DOWNLOADS FAVICONS FOLLOW HISTORY INPUT MODES
+ PAGELAYOUT SESSIONS SETTINGS UTIL */
 "use strict"
 
 const fs = require("fs")
@@ -26,39 +26,39 @@ const {ipcRenderer, remote} = require("electron")
 let recentlyClosed = []
 let linkId = 0
 
-const useragent = remote.session.defaultSession.getUserAgent()
-    .replace(/Electron\/\S* /, "").replace(/Vieb\/\S* /, "")
 const tabFile = path.join(remote.app.getPath("appData"), "tabs")
 
 const init = () => {
     window.addEventListener("load", () => {
-        const startup = SETTINGS.get("tabs.startup")
+        const startup = SETTINGS.get("startuppages")
         const parsed = UTIL.readJSON(tabFile)
-        for (const tab of startup) {
+        for (const tab of startup.split(",")) {
             const specialPage = UTIL.pathToSpecialPageName(tab)
             if (specialPage.name) {
-                addTab(UTIL.specialPagePath(
+                openSavedPage(UTIL.specialPagePath(
                     specialPage.name, specialPage.section))
                 parsed.id += 1
             } else if (UTIL.isUrl(tab)) {
-                addTab(tab)
+                openSavedPage(tab)
                 parsed.id += 1
             }
         }
         if (parsed) {
-            if (SETTINGS.get("tabs.restore")) {
+            if (SETTINGS.get("restoretabs")) {
                 if (Array.isArray(parsed.tabs)) {
                     parsed.tabs.forEach(tab => {
-                        addTab(tab)
+                        openSavedPage(tab)
                     })
                     if (listTabs().length !== 0) {
                         switchToTab(parsed.id || 0)
                     }
                 }
                 if (Array.isArray(parsed.closed)) {
-                    recentlyClosed = parsed.closed
+                    if (SETTINGS.get("keeprecentlyclosed")) {
+                        recentlyClosed = parsed.closed
+                    }
                 }
-            } else if (SETTINGS.get("tabs.keepRecentlyClosed")) {
+            } else if (SETTINGS.get("keeprecentlyclosed")) {
                 if (Array.isArray(parsed.tabs)) {
                     recentlyClosed = parsed.tabs
                 }
@@ -74,45 +74,55 @@ const init = () => {
                 addTab()
             } else {
                 // Probably first startup ever (no configured or stored pages)
-                addTab(UTIL.specialPagePath("help"))
+                addTab({"url": UTIL.specialPagePath("help")})
             }
         }
         ipcRenderer.on("urls", (_, urls) => {
-            urls.forEach(url => {
-                if (!UTIL.hasProtocol(url)) {
-                    const local = UTIL.expandPath(url)
-                    if (path.isAbsolute(local) && UTIL.pathExists(local)) {
-                        // File protocol locations should always have 3 slashes
-                        url = `file:${local}`.replace(/^file:\/*/, "file:///")
-                    } else {
-                        url = `https://${url}`
-                    }
-                }
-                const special = UTIL.pathToSpecialPageName(currentPage().src)
-                if (special.name === "newtab" || !currentPage().src) {
-                    navigateTo(url)
-                } else {
-                    addTab(url)
-                }
-            })
+            urls.forEach(openSavedPage)
         })
         // This forces the webview to update on sites which wait for the mouse
-        // It will also enable the pointer events when in insert or cursor mode
+        // It will also enable the pointer events when in insert or pointer mode
         setInterval(() => {
-            currentPage().style.pointerEvents = "auto"
-            if (MODES.currentMode() === "insert") {
-                return
+            try {
+                if (SETTINGS.get("mouse")) {
+                    currentPage().style.pointerEvents = null
+                } else {
+                    currentPage().style.pointerEvents = "auto"
+                    if (MODES.currentMode() === "insert") {
+                        return
+                    }
+                    if (MODES.currentMode() === "pointer") {
+                        return
+                    }
+                    setTimeout(() => {
+                        listPages().forEach(page => {
+                            page.style.pointerEvents = "none"
+                        })
+                    }, 10)
+                }
+            } catch (e) {
+                // Page not available, retry later
             }
-            if (MODES.currentMode() === "cursor") {
-                return
-            }
-            setTimeout(() => {
-                listPages().forEach(page => {
-                    page.style.pointerEvents = "none"
-                })
-            }, 10)
         }, 100)
     })
+}
+
+const openSavedPage = url => {
+    if (!url.trim()) {
+        return
+    }
+    url = UTIL.stringToUrl(url.trim())
+    try {
+        if (UTIL.pathToSpecialPageName(currentPage().src).name === "newtab") {
+            if (!webContents(currentPage()).isLoading()) {
+                navigateTo(url)
+                return
+            }
+        }
+    } catch (e) {
+        // Current page not ready yet, open in new tab instead
+    }
+    addTab({"url": url})
 }
 
 const saveTabs = () => {
@@ -121,65 +131,54 @@ const saveTabs = () => {
         "id": 0,
         "closed": []
     }
-    if (SETTINGS.get("tabs.restore")) {
+    if (SETTINGS.get("restoretabs")) {
         listTabs().forEach(tab => {
             // The list of tabs is ordered, the list of pages isn't
             const webview = tabOrPageMatching(tab)
-            if (!UTIL.pathToSpecialPageName(webview.src).name && webview.src) {
-                data.tabs.push(webview.src)
-                if (webview.style.display === "flex") {
-                    data.id = data.tabs.length - 1
-                }
+            data.tabs.push(UTIL.urlToString(webview.src))
+            if (webview === currentPage()) {
+                data.id = data.tabs.length - 1
             }
         })
-        if (SETTINGS.get("tabs.keepRecentlyClosed")) {
+        if (SETTINGS.get("keeprecentlyclosed")) {
             data.closed = recentlyClosed
         }
-    } else if (SETTINGS.get("tabs.keepRecentlyClosed")) {
+    } else if (SETTINGS.get("keeprecentlyclosed")) {
         data.closed = [...recentlyClosed]
         listTabs().forEach(tab => {
             // The list of tabs is ordered, the list of pages isn't
             const webview = tabOrPageMatching(tab)
-            if (!UTIL.pathToSpecialPageName(webview.src).name && webview.src) {
-                data.closed.push(webview.src)
-            }
+            data.closed.push(UTIL.urlToString(webview.src))
         })
     } else {
         UTIL.deleteFile(tabFile)
         return
     }
     // Only keep the 100 most recently closed tabs,
-    // More is probably never needed but would keep increasing the file size.
+    // more is probably never needed but would keep increasing the file size.
     data.closed = data.closed.slice(-100)
     UTIL.writeJSON(tabFile, data, "Failed to write current tabs to disk")
 }
 
-const listTabs = () => {
-    return [...document.querySelectorAll("#tabs > span[link-id]")]
-}
+const listTabs = () => [...document.querySelectorAll("#tabs > span[link-id]")]
 
-const listPages = () => {
-    return [...document.querySelectorAll("#pages > webview")]
-}
+const listPages = () => [...document.querySelectorAll("#pages > webview")]
 
-const currentTab = () => {
-    return document.getElementById("current-tab")
-}
+const currentTab = () => document.getElementById("current-tab")
 
-const currentPage = () => {
-    let currentPageElement = null
-    listPages().forEach(page => {
-        if (page.style.display === "flex") {
-            currentPageElement = page
-        }
-    })
-    return currentPageElement
-}
+const currentPage = () => document.getElementById("current-page")
 
-const addTab = (url = null, inverted = false, switchTo = true) => {
-    let addNextToCurrent = SETTINGS.get("newtab.nextToCurrentOne")
+const addTab = options => {
+    // Valid options are: url, inverted, switchTo and callback
+    if (!options) {
+        options = {}
+    }
+    if (options.switchTo === undefined) {
+        options.switchTo = true
+    }
+    let addNextToCurrent = SETTINGS.get("tabnexttocurrent")
     addNextToCurrent = addNextToCurrent && listTabs().length > 0
-    if (inverted) {
+    if (options.inverted) {
         addNextToCurrent = !addNextToCurrent
     }
     const tabs = document.getElementById("tabs")
@@ -188,13 +187,28 @@ const addTab = (url = null, inverted = false, switchTo = true) => {
     const favicon = document.createElement("img")
     const statusIcon = document.createElement("img")
     const title = document.createElement("span")
-    tab.style.minWidth = `${SETTINGS.get("tabs.minwidth")}px`
+    tab.style.minWidth = `${SETTINGS.get("mintabwidth")}px`
+    tab.addEventListener("mouseup", e => {
+        if (e.button === 1) {
+            const currentlyOpenendTab = currentTab()
+            MODES.setMode("normal")
+            if (tab === currentlyOpenendTab) {
+                closeTab()
+            } else {
+                switchToTab(listTabs().indexOf(tab))
+                closeTab()
+                switchToTab(listTabs().indexOf(currentlyOpenendTab))
+            }
+        } else {
+            switchToTab(listTabs().indexOf(tab))
+        }
+    })
     favicon.src = "img/empty.png"
     favicon.className = "favicon"
     statusIcon.src = "img/spinner.gif"
     statusIcon.className = "status"
     statusIcon.style.display = "none"
-    title.textContent = "New tab"
+    title.textContent = "Newtab"
     tab.appendChild(favicon)
     tab.appendChild(statusIcon)
     tab.appendChild(title)
@@ -207,55 +221,63 @@ const addTab = (url = null, inverted = false, switchTo = true) => {
     webview.setAttribute("link-id", linkId)
     tab.setAttribute("link-id", linkId)
     webview.setAttribute("preload", "./js/preload.js")
+    if (SETTINGS.get("spell")) {
+        webview.setAttribute("webpreferences", "spellcheck=yes")
+    }
     let sessionName = "persist:main"
-    if (SETTINGS.get("newtab.container")) {
-        sessionName = `container-${linkId}`
-        tab.className = "container"
+    if (SETTINGS.get("containertabs")) {
+        sessionName = `persist:container${linkId}`
+        tab.classList.add("container")
     }
     SESSIONS.create(sessionName)
     webview.setAttribute("partition", sessionName)
     linkId += 1
-    addWebviewListeners(webview)
     pages.appendChild(webview)
-    webview.getWebContents().setUserAgent(useragent)
-    webview.getWebContents().setWebRTCIPHandlingPolicy(
-        "default_public_interface_only")
-    if (url) {
-        url = UTIL.redirect(url)
-        webview.src = url
-        title.textContent = url
-    } else {
-        webview.src = UTIL.specialPagePath("newtab")
-    }
-    if (switchTo) {
+    if (options.switchTo) {
         if (addNextToCurrent) {
             switchToTab(listTabs().indexOf(currentTab()) + 1)
         } else {
             switchToTab(listTabs().length - 1)
         }
     }
+    webview.src = UTIL.specialPagePath("newtab")
+    webview.setAttribute("useragent", UTIL.useragent())
+    webview.addEventListener("dom-ready", () => {
+        if (webview.getAttribute("useragent")) {
+            addWebviewListeners(webview)
+            webContents(webview).userAgent = UTIL.useragent()
+            webContents(webview).setWebRTCIPHandlingPolicy(
+                "default_public_interface_only")
+            if (options.url) {
+                options.url = UTIL.redirect(options.url)
+                webview.src = options.url
+                resetTabInfo(webview)
+                title.textContent = options.url
+            }
+            webview.removeAttribute("useragent")
+            if (options.callback) {
+                options.callback(webview.getAttribute("link-id"))
+            }
+        }
+    })
 }
 
 const reopenTab = () => {
     if (recentlyClosed.length === 0) {
         return
     }
-    if (UTIL.pathToSpecialPageName(currentPage().src).name === "newtab") {
-        navigateTo(recentlyClosed.pop())
-    } else if (currentPage().src) {
-        addTab(recentlyClosed.pop())
-    } else {
-        navigateTo(recentlyClosed.pop())
-    }
+    addTab({"url": UTIL.stringToUrl(recentlyClosed.pop())})
 }
 
 const closeTab = () => {
-    if (currentPage().src) {
-        if (!UTIL.pathToSpecialPageName(currentPage().src).name) {
-            recentlyClosed.push(currentPage().src)
-        }
+    if (currentPage().src && UTIL.urlToString(currentPage().src)) {
+        recentlyClosed.push(UTIL.urlToString(currentPage().src))
     }
     const oldTabIndex = listTabs().indexOf(currentTab())
+    if (document.getElementById("pages").classList.contains("multiple")) {
+        PAGELAYOUT.hide(currentPage(), true)
+        return
+    }
     document.getElementById("tabs").removeChild(currentTab())
     document.getElementById("pages").removeChild(currentPage())
     if (listTabs().length === 0) {
@@ -268,16 +290,21 @@ const closeTab = () => {
     }
 }
 
+const webContents = webview => {
+    if (!webview.getAttribute("webview-id")) {
+        webview.setAttribute("webview-id", webview.getWebContentsId())
+    }
+    return remote.webContents.fromId(Number(webview.getAttribute("webview-id")))
+}
+
 const tabOrPageMatching = el => {
     if (listTabs().indexOf(el) !== -1) {
-        return listPages().find(e => {
-            return e.getAttribute("link-id") === el.getAttribute("link-id")
-        })
+        return listPages().find(
+            e => e.getAttribute("link-id") === el.getAttribute("link-id"))
     }
     if (listPages().indexOf(el) !== -1) {
-        return listTabs().find(e => {
-            return e.getAttribute("link-id") === el.getAttribute("link-id")
-        })
+        return listTabs().find(
+            e => e.getAttribute("link-id") === el.getAttribute("link-id"))
     }
     return null
 }
@@ -290,39 +317,34 @@ const switchToTab = index => {
     if (tabs.length <= index) {
         index = tabs.length - 1
     }
+    const oldPage = currentPage()
     tabs.forEach(tab => {
         tab.id = ""
     })
     listPages().forEach(page => {
-        page.style.display = "none"
+        page.id = ""
     })
     tabs[index].id = "current-tab"
+    tabOrPageMatching(tabs[index]).id = "current-page"
     tabs[index].scrollIntoView({"inline": "center"})
-    tabOrPageMatching(tabs[index]).style.display = "flex"
+    PAGELAYOUT.switchView(oldPage, currentPage())
     updateUrl(currentPage())
     saveTabs()
     MODES.setMode("normal")
+    document.getElementById("url-hover").textContent = ""
+    document.getElementById("url-hover").style.display = "none"
 }
 
-const updateUrl = webview => {
-    const skip = ["command", "search", "nav"]
-    if (webview !== currentPage() || skip.includes(MODES.currentMode())) {
-        return
-    }
-    if (currentPage() && currentPage().src) {
-        const specialPage = UTIL.pathToSpecialPageName(currentPage().src)
-        if (!specialPage.name) {
-            document.getElementById("url").value = currentPage().src
-        } else if (specialPage.name === "newtab") {
-            document.getElementById("url").value = ""
-        } else if (specialPage.section) {
-            document.getElementById("url").value
-                = `vieb://${specialPage.name}#${specialPage.section}`
-        } else {
-            document.getElementById("url").value = `vieb://${specialPage.name}`
+const updateUrl = (webview, force = false) => {
+    const skip = ["command", "search", "explore"]
+    if (!force) {
+        if (webview !== currentPage() || skip.includes(MODES.currentMode())) {
+            return
         }
-    } else {
-        document.getElementById("url").value = ""
+    }
+    if (currentPage()) {
+        document.getElementById("url").value
+            = UTIL.urlToString(currentPage().src)
     }
 }
 
@@ -336,23 +358,60 @@ const addWebviewListeners = webview => {
             }
         }
     })
-    webview.addEventListener("focus", () => {
+    const mouseClickInWebview = e => {
         if (MODES.currentMode() !== "insert") {
-            webview.blur()
+            if (SETTINGS.get("mouse")) {
+                const modesWithTyping = ["command", "explore", "search"]
+                if (["pointer", "visual"].includes(MODES.currentMode())) {
+                    if (e.tovisual) {
+                        POINTER.startVisualSelect()
+                    }
+                    if (e.x && e.y) {
+                        POINTER.move(e.x, e.y)
+                    }
+                } else if (e.toinsert) {
+                    MODES.setMode("insert")
+                } else if (modesWithTyping.includes(MODES.currentMode())) {
+                    MODES.setMode("normal")
+                } else {
+                    ACTIONS.setFocusCorrectly()
+                }
+            } else {
+                webview.blur()
+            }
         }
-    })
+        if (webview !== currentPage()) {
+            switchToTab(listTabs().indexOf(tabOrPageMatching(webview)))
+        }
+    }
+    webview.addEventListener("focus", mouseClickInWebview)
     webview.addEventListener("crashed", () => {
-        tabOrPageMatching(webview).className = "crashed"
+        tabOrPageMatching(webview).classList.add("crashed")
+    })
+    webview.addEventListener("media-started-playing", () => {
+        const tab = tabOrPageMatching(webview)
+        const counter = Number(tab.getAttribute("media-playing")) || 0
+        tab.setAttribute("media-playing", counter + 1)
+    })
+    webview.addEventListener("media-paused", () => {
+        const tab = tabOrPageMatching(webview)
+        let counter = Number(tab.getAttribute("media-playing")) || 0
+        counter -= 1
+        if (counter < 1) {
+            tab.removeAttribute("media-playing")
+        } else {
+            tab.setAttribute("media-playing", counter)
+        }
     })
     webview.addEventListener("did-start-loading", () => {
         FAVICONS.loading(webview)
         updateUrl(webview)
-        webview.getWebContents().once("login", () => {
+        webContents(webview).once("login", () => {
             for (const browserWindow of remote.BrowserWindow.getAllWindows()) {
                 if (browserWindow.getURL().endsWith("login.html")) {
                     MODES.setMode("normal")
                     const bounds = remote.getCurrentWindow().getBounds()
-                    const size = Math.round(SETTINGS.get("fontSize") * 21)
+                    const size = Math.round(SETTINGS.get("fontsize") * 21)
                     browserWindow.setMinimumSize(size, size)
                     browserWindow.setSize(size, size)
                     browserWindow.setPosition(
@@ -361,7 +420,7 @@ const addWebviewListeners = webview => {
                     browserWindow.resizable = false
                     browserWindow.webContents.executeJavaScript(
                         "document.body.style.fontSize = "
-                        + `'${SETTINGS.get("fontSize")}px'`)
+                        + `'${SETTINGS.get("fontsize")}px'`)
                     browserWindow.show()
                 }
             }
@@ -369,13 +428,13 @@ const addWebviewListeners = webview => {
     })
     webview.addEventListener("did-fail-load", e => {
         if (e.errorDescription === "" || !e.isMainFrame) {
-            // Request was aborted before another error could occur
-            // Or some request made by the page failed (which can be ignored)
+            // Request was aborted before another error could occur,
+            // or some request made by the page failed (which can be ignored).
             return
         }
-        // It will go to the http version of a website, when no https is present
-        // But only when the redirectToHttp setting is active
-        const redirect = SETTINGS.get("redirectToHttp")
+        // It will go to the http website, when no https is present,
+        // but only when the redirecttohttp setting is active.
+        const redirect = SETTINGS.get("redirecttohttp")
         const sslErrors = [
             "ERR_CERT_COMMON_NAME_INVALID",
             "ERR_SSL_PROTOCOL_ERROR",
@@ -414,41 +473,53 @@ const addWebviewListeners = webview => {
                 }
             }
         }
-        webview.send("insert-failed-page-info", e)
+        webview.send("insert-failed-page-info", JSON.stringify(e))
         webview.setAttribute("failed-to-load", "true")
-        webview.getWebContents().send("fontsize", SETTINGS.get("fontSize"))
+        webContents(webview).send("fontsize", SETTINGS.get("fontsize"))
     })
     webview.addEventListener("did-stop-loading", () => {
-        const tab = tabOrPageMatching(webview)
         FAVICONS.show(webview)
         updateUrl(webview)
-        if (!webview.getAttribute("added-to-hist")) {
-            webview.setAttribute("added-to-hist", "true")
-            HISTORY.addToHist(
-                tab.querySelector("span").textContent, webview.src)
-        }
         const specialPageName = UTIL.pathToSpecialPageName(webview.src).name
         const isLocal = webview.src.startsWith("file:/")
         const isErrorPage = webview.getAttribute("failed-to-load")
         if (specialPageName || isLocal || isErrorPage) {
-            webview.getWebContents().send("fontsize", SETTINGS.get("fontSize"))
+            webContents(webview).send("fontsize", SETTINGS.get("fontsize"))
         }
         if (specialPageName === "help") {
-            webview.getWebContents().send(
-                "settings", SETTINGS.listCurrentSettings(true),
-                INPUT.listSupportedActions())
+            webContents(webview).send(
+                "settings", SETTINGS.settingsWithDefaults(),
+                INPUT.listMappingsAsCommandList(false, true))
+        }
+        if (specialPageName === "notifications") {
+            webContents(webview).send(
+                "notification-history", UTIL.listNotificationHistory())
         }
         saveTabs()
+        const title = tabOrPageMatching(webview).querySelector("span")
+        if (specialPageName) {
+            title.textContent = UTIL.title(specialPageName)
+            return
+        }
+        HISTORY.addToHist(webview.src)
+        const existingTitle = HISTORY.titleForPage(webview.src)
+        const titleHasFlaws = UTIL.hasProtocol(title.textContent)
+            || title.textContent.startsWith("magnet:")
+            || title.textContent.startsWith("mailto:")
+        if (titleHasFlaws && existingTitle) {
+            title.textContent = existingTitle
+        } else {
+            HISTORY.updateTitle(webview.src, title.textContent)
+        }
     })
     webview.addEventListener("page-title-updated", e => {
+        if (e.title.startsWith("magnet:") || e.title.startsWith("mailto:")) {
+            return
+        }
         const tab = tabOrPageMatching(webview)
         tab.querySelector("span").textContent = e.title
         updateUrl(webview)
-        if (!webview.getAttribute("added-to-hist")) {
-            webview.setAttribute("added-to-hist", "true")
-            HISTORY.addToHist(
-                tab.querySelector("span").textContent, webview.src)
-        }
+        HISTORY.updateTitle(webview.src, tab.querySelector("span").textContent)
     })
     webview.addEventListener("page-favicon-updated", e => {
         FAVICONS.update(webview, e.favicons)
@@ -478,21 +549,25 @@ const addWebviewListeners = webview => {
         } else if (e.disposition === "foreground-tab") {
             navigateTo(e.url)
         } else {
-            addTab(e.url)
+            addTab({"url": e.url})
         }
     })
     webview.addEventListener("enter-html-full-screen", () => {
-        document.body.className = "fullscreen"
+        document.body.classList.add("fullscreen")
         webview.blur()
         webview.focus()
-        webview.getWebContents().send("action", "focusTopLeftCorner")
+        webContents(webview).send("action", "focusTopLeftCorner")
         MODES.setMode("insert")
     })
     webview.addEventListener("leave-html-full-screen", () => {
-        document.body.className = ""
+        document.body.classList.remove("fullscreen")
         MODES.setMode("normal")
+        PAGELAYOUT.applyLayout()
     })
     webview.addEventListener("ipc-message", e => {
+        if (e.channel === "mouse-click-info") {
+            mouseClickInWebview(e.args[0])
+        }
         if (e.channel === "follow-response") {
             FOLLOW.parseAndDisplayLinks(e.args[0])
         }
@@ -507,7 +582,7 @@ const addWebviewListeners = webview => {
             }
         }
         if (e.channel === "scroll-height-diff") {
-            CURSOR.handleScrollDiffEvent(e.args[0])
+            POINTER.handleScrollDiffEvent(e.args[0])
         }
         if (e.channel === "history-list-request") {
             HISTORY.handleRequest(...e.args)
@@ -524,8 +599,28 @@ const addWebviewListeners = webview => {
             DOWNLOADS.sendDownloadList(e.args[0], e.args[1])
         }
         if (e.channel === "new-tab-info-request") {
-            if (SETTINGS.get("newtab.showTopSites")) {
-                webview.send("insert-new-tab-info", HISTORY.topSites())
+            const special = UTIL.pathToSpecialPageName(webview.src)
+            if (special.name !== "newtab") {
+                return
+            }
+            const favoritePages = SETTINGS.get("favoritepages").split(",")
+                .filter(page => page).map(page => {
+                    if (!UTIL.hasProtocol(page)) {
+                        page = `https://${page}`
+                    }
+                    return {
+                        "name": HISTORY.titleForPage(page)
+                            || HISTORY.titleForPage(`${page}/`),
+                        "url": page,
+                        "icon": FAVICONS.forSite(page)
+                            || FAVICONS.forSite(`${page}/`)
+                    }
+                })
+            const topPages = HISTORY.suggestTopSites()
+            if (SETTINGS.get("suggesttopsites") && topPages.length) {
+                webview.send("insert-new-tab-info", topPages, favoritePages)
+            } else if (favoritePages.length > 0) {
+                webview.send("insert-new-tab-info", false, favoritePages)
             }
         }
     })
@@ -533,7 +628,8 @@ const addWebviewListeners = webview => {
         webview.send("search-element-location", e.result.selectionArea)
     })
     webview.addEventListener("update-target-url", e => {
-        if (e.url && ["insert", "cursor"].includes(MODES.currentMode())) {
+        const correctMode = ["insert", "pointer"].includes(MODES.currentMode())
+        if (e.url && (correctMode || SETTINGS.get("mouse"))) {
             const special = UTIL.pathToSpecialPageName(e.url)
             if (!special.name) {
                 document.getElementById("url-hover").textContent = e.url
@@ -559,7 +655,6 @@ const addWebviewListeners = webview => {
 
 const resetTabInfo = webview => {
     webview.removeAttribute("failed-to-load")
-    webview.removeAttribute("added-to-hist")
     FAVICONS.empty(webview)
 }
 
@@ -607,6 +702,7 @@ module.exports = {
     addTab,
     reopenTab,
     closeTab,
+    webContents,
     tabOrPageMatching,
     switchToTab,
     updateUrl,

@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,6 @@ const clickableInputs = [
     "input[type=\"checkbox\"]",
     "label[for]:not([for=\"\"])",
     "input[type=\"submit\"]",
-    "input[type=\"color\"]",
     "input[type=\"file\"]",
     "input[type=\"image\"]",
     "input[type=\"reset\"]",
@@ -38,20 +37,25 @@ const clickableInputs = [
     "*[role=\"checkbox\"]",
     "summary"
 ]
-const textlikeInputs = ["input:not([type=\"radio\"]):not([type=\"checkbox\"])"
-    + ":not([type=\"submit\"]):not([type=\"button\"]):not([type=\"color\"])"
+const textlikeInputs = [
+    "input:not([type=\"radio\"]):not([type=\"checkbox\"])"
+    + ":not([type=\"submit\"]):not([type=\"button\"])"
     + ":not([type=\"file\"]):not([type=\"image\"]):not([type=\"reset\"])",
-"*[role=\"textbox\"]",
-"*[contenteditable=\"true\"]",
-"textarea",
-"select"]
+    "*[role=\"textbox\"]",
+    "*[contenteditable=\"true\"]",
+    "textarea",
+    "select"
+]
+const clickEvents = ["click", "mousedown"]
+const otherEvents = [
+    "mouseenter", "mouseleave", "mousemove", "mouseout", "mouseover", "mouseup"
+]
 
 ipcRenderer.on("focus-first-text-input", () => {
     const links = [...allElementsBySelectors("inputs-insert", textlikeInputs)]
     if (links.length > 0) {
-        const pos = links.sort((el1, el2) => {
-            return Math.floor(el1.y) - Math.floor(el2.y) || el1.x - el2.x
-        })[0]
+        const pos = links.sort((el1, el2) => Math.floor(el1.y)
+            - Math.floor(el2.y) || el1.x - el2.x)[0]
         const element = document.elementFromPoint(
             pos.x + pos.width / 2, pos.y + pos.height / 2)
         if (element && element.click && element.focus) {
@@ -75,9 +79,8 @@ const sendFollowLinks = () => {
         const clickable = parseElement(element, "inputs-click")
         if (clickable) {
             // Only show input elements for which there is no existing url
-            const similarExistingLinks = allLinks.filter(link => {
-                return checkForDuplicateLink(clickable, link)
-            })
+            const similarExistingLinks = allLinks.filter(
+                link => checkForDuplicateLink(clickable, link))
             if (similarExistingLinks.length === 0) {
                 allLinks.push(clickable)
             }
@@ -85,26 +88,39 @@ const sendFollowLinks = () => {
     })
     // Input tags such as email and text, can have text inserted
     allLinks.push(...allElementsBySelectors("inputs-insert", textlikeInputs))
-    // All other elements with onclick listeners
-    const clickableElements = [...document.querySelectorAll("*")].filter(
-        el => el.onclick || el.onmousedown || el.getAttribute("jsaction"))
-    clickableElements.push(...elementsWithClickListener)
-    clickableElements.push(...elementsWithMouseDownListener)
-    clickableElements.forEach(element => {
-        const clickable = parseElement(element, "onclick")
+    // Elements with some kind of mouse interaction, grouped by click and other
+    const addMouseEventElement = (element, type) => {
+        let clickable = null
+        try {
+            clickable = parseElement(element, type)
+        } catch (e) {
+            // Element might get deleted while parsing
+        }
         if (clickable) {
             // Only show onclick elements for which there is no existing link
-            const similarExistingLinks = allLinks.filter(link => {
-                return checkForDuplicateLink(clickable, link)
-            })
+            const similarExistingLinks = allLinks.filter(
+                link => checkForDuplicateLink(clickable, link))
             if (similarExistingLinks.length === 0) {
                 allLinks.push(clickable)
             }
         }
-    })
+    }
+    [...document.querySelectorAll("*")].filter(
+        el => clickEvents.find(e => el[`on${e}`])
+        || clickEvents.map(e => eventListeners[e].includes(el)).find(e => e)
+        || el.getAttribute("jsaction")).forEach(
+        element => addMouseEventElement(element, "onclick"))
+    ;[...document.querySelectorAll("*")].filter(
+        el => otherEvents.find(e => el[`on${e}`])
+        || otherEvents.map(e => eventListeners[e].includes(el)).find(e => e))
+        .forEach(element => addMouseEventElement(element, "other"))
     // Send response back to webview, which will forward it to follow.js
     // Ordered by the position on the page from the top
+    // Uncategorised mouse events are less relevant and are moved to the end
     ipcRenderer.sendToHost("follow-response", allLinks.sort((el1, el2) => {
+        if (el1.type === "other") {
+            return 1000
+        }
         return Math.floor(el1.y) - Math.floor(el2.y) || el1.x - el2.x
     }))
 }
@@ -173,16 +189,14 @@ const parseElement = (element, type) => {
             || element === document.body || !element.getClientRects) {
         return null
     }
-    // Make a list of all possible bouding rects for the element
+    // Make a list of all possible bounding rects for the element
     let rects = [element.getBoundingClientRect(), ...element.getClientRects()]
-    if (type === "url") {
-        for (const subImage of element.querySelectorAll("img, svg")) {
-            rects = rects.concat([...subImage.getClientRects()])
-        }
+    for (const subImage of element.querySelectorAll("img, svg")) {
+        rects = rects.concat([...subImage.getClientRects()])
     }
     // Find a clickable area and position for the given element
     const {dimensions, clickable} = findClickPosition(element, rects)
-    // Return null if any of the check below fail
+    // Return null if any of the checks below fail
     // - Not detected as clickable in the above loop
     // - Too small to properly click on using a regular browser
     const tooSmall = dimensions.width <= 2 || dimensions.height <= 2
@@ -222,41 +236,49 @@ const allElementsBySelectors = (type, selectors) => {
     return tags
 }
 
-const elementsWithClickListener = []
-const elementsWithMouseDownListener = []
+const eventListeners = {}
+;[...clickEvents, ...otherEvents].forEach(e => {
+    eventListeners[e] = []
+})
 
-Node.prototype.realAddEventListener = Node.prototype.addEventListener
-Node.prototype.addEventListener = function(type, listener, options) {
-    this.realAddEventListener(type, listener, options)
-    if (type === "click" && this !== document) {
-        elementsWithClickListener.push(this)
+EventTarget.prototype._realAdd = EventTarget.prototype.addEventListener
+EventTarget.prototype.addEventListener = function(type, listener, options) {
+    try {
+        this._realAdd(type, listener, options)
+    } catch (e) {
+        // This is a bug in the underlying website
+        return
     }
-    if (type === "mousedown" && this !== document) {
-        elementsWithMouseDownListener.push(this)
+    if (eventListeners[type]) {
+        eventListeners[type].push(this)
     }
 }
-Node.prototype.realRemoveEventListener = Node.prototype.removeEventListener
-Node.prototype.removeEventListener = function(type, listener, options) {
+EventTarget.prototype._realRemove = EventTarget.prototype.removeEventListener
+EventTarget.prototype.removeEventListener = function(type, listener, options) {
     try {
-        this.realRemoveEventListener(type, listener, options)
+        this._realRemove(type, listener, options)
     } catch (e) {
         // This is a bug in the underlying website
     }
-    if (type === "click" && this !== document) {
+    if (eventListeners[type]) {
         try {
-            elementsWithClickListener.remove(this)
-        } catch (e) {
-            // The element was already removed from the list before
-        }
-    }
-    if (type === "mousedown" && this !== document) {
-        try {
-            elementsWithMouseDownListener.remove(this)
+            eventListeners[type].remove(this)
         } catch (e) {
             // The element was already removed from the list before
         }
     }
 }
+
+window.addEventListener("click", e => {
+    ipcRenderer.sendToHost("mouse-click-info", {
+        "x": e.x,
+        "y": e.y,
+        "tovisual": !window.getSelection().isCollapsed,
+        "toinsert": !!textlikeInputs.find(s => e.target.matches(s))
+    })
+})
+
+window.addEventListener("resize", sendFollowLinks)
 
 // Send the follow links to the renderer if DOM is changed in any way
 const observer = new window.MutationObserver(sendFollowLinks)

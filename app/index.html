@@ -1,6 +1,6 @@
 <!--
     Vieb - Vim Inspired Electron Browser
-    Copyright (C) 2019 Jelmer van Arnhem
+    Copyright (C) 2019-2020 Jelmer van Arnhem
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 <html>
 <head>
     <link href="css/index.css" rel="stylesheet" type="text/css">
+    <meta http-equiv="Content-Security-Policy" content="font-src file://*; img-src file://* data:; style-src 'unsafe-inline' file://*; script-src 'unsafe-inline' file://*; default-src 'none'">
 </head>
 <body>
     <div id="invisible-overlay"></div>
@@ -26,61 +27,71 @@
         <img src="img/icons/1024x1024.png" id="logo">
         <div>
             <div id="menu">
-                <span id="mode">normal</span>
-                <input id="url" type="text">
+                <span id="mode-container">
+                    <span id="mode">normal</span>
+                    <span id="mode-suggestions"></span>
+                </span>
+                <input id="url" type="text" spellcheck="false">
+                <span id="repeat-counter"></span>
+                <span id="pressed-keys"></span>
+                <div id="suggest-dropdown"></div>
             </div>
             <div id="tabs">
                 <span class="spacer"></span>
             </div>
         </div>
     </div>
-    <div id="suggest-dropdown"></div>
     <div id="notifications"></div>
     <div id="url-hover"></div>
     <div id="page-container">
         <div id="follow"></div>
-        <div id="cursor"></div>
+        <div id="pointer"></div>
         <div id="pages"></div>
+        <div id="pagelayout"></div>
     </div>
     <script>
         // Utility functions not related to any other topic, but used in many
-        const UTIL = require("./js/util.js")
+        const UTIL = require("./js/util")
         // Static action implementations, input will call them
-        const ACTIONS = require("./js/actions.js")
+        const ACTIONS = require("./js/actions")
         // Mode specific code
-        const MODES = require("./js/modes.js")
-        const COMMAND = require("./js/command.js")
-        const COMMANDHISTORY = require("./js/commandhistory.js")
-        const FOLLOW = require("./js/follow.js")
+        const MODES = require("./js/modes")
+        const COMMAND = require("./js/command")
+        const COMMANDHISTORY = require("./js/commandhistory")
+        const FOLLOW = require("./js/follow")
         // Tabs and webview handler
-        const TABS = require("./js/tabs.js")
+        const TABS = require("./js/tabs")
         // Listen to all input to block them or connect them to specific actions
-        const INPUT = require("./js/input.js")
+        const INPUT = require("./js/input")
         // Load custom settings from disk
-        const SETTINGS = require("./js/settings.js")
+        const SETTINGS = require("./js/settings")
         // Create and manage sessions (container, downloads, adblocking etc.)
-        const SESSIONS = require("./js/sessions.js")
+        const SESSIONS = require("./js/sessions")
         // Download manager
-        const DOWNLOADS = require("./js/downloads.js")
+        const DOWNLOADS = require("./js/downloads")
         // History manager
-        const HISTORY = require("./js/history.js")
+        const HISTORY = require("./js/history")
         // Suggestions for the navigation bar
-        const SUGGEST = require("./js/suggest.js")
-        // Cursor based navigation mode (hover, visual, drag, right-click etc.)
-        const CURSOR = require("./js/cursor.js")
+        const SUGGEST = require("./js/suggest")
+        // Pointer based navigation mode (hover, visual, drag, right-click etc.)
+        const POINTER = require("./js/pointer")
         // Save and restore the window position, size and maximized state
-        const WINDOWSTATE = require("./js/windowstate.js")
+        const WINDOWSTATE = require("./js/windowstate")
         // Load favicon handler
-        const FAVICONS = require("./js/favicons.js")
+        const FAVICONS = require("./js/favicons")
+        // Load the layout manager, for splitting multiple webviews
+        const PAGELAYOUT = require("./js/pagelayout")
         // Some modules require initialisation
+        INPUT.init()
         SETTINGS.init()
         SESSIONS.init()
-        INPUT.init()
         DOWNLOADS.init()
         HISTORY.init()
         TABS.init()
         WINDOWSTATE.init()
         FAVICONS.init()
+        MODES.init()
+        COMMANDHISTORY.init()
     </script>
 </body>
 </html>

@@ -15,72 +15,162 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMANDHISTORY DOWNLOADS FAVICONS HISTORY INPUT SETTINGS TABS UTIL */
+/* global COMMANDHISTORY DOWNLOADS FAVICONS HISTORY INPUT MODES PAGELAYOUT
+ SETTINGS TABS UTIL */
 "use strict"
 
 const {remote} = require("electron")
 const path = require("path")
 
+const listSetting = setting => {
+    if (setting === "all") {
+        UTIL.notify(`--- Options ---\n${SETTINGS.listCurrentSettings(true)}`)
+        return
+    }
+    const value = SETTINGS.get(setting)
+    if (value === undefined) {
+        UTIL.notify(`The setting '${setting}' doesn't exist`, "warn")
+    } else {
+        UTIL.notify(`The setting '${setting}' has the value '${value}'`)
+    }
+}
+
+const splitSettingAndValue = (part, seperator) => {
+    const setting = part.split(seperator)[0]
+    const value = part.split(seperator).slice(1).join(seperator)
+    return [setting, value]
+}
+
+const modifyListOrNumber = (setting, value, method) => {
+    const isNumber = typeof SETTINGS.get(setting) === "number"
+    const isFreeText = SETTINGS.freeText.includes(setting)
+    const isListLike = SETTINGS.listLike.includes(setting)
+    if (!isNumber && !isFreeText && !isListLike) {
+        UTIL.notify(
+            `Can't modify '${setting}' as if it were a number or list`, "warn")
+        return
+    }
+    if (method === "append") {
+        if (isListLike) {
+            SETTINGS.set(setting, `${SETTINGS.get(setting)},${value}`)
+        }
+        if (isNumber) {
+            SETTINGS.set(setting, SETTINGS.get(setting) + Number(value))
+        }
+        if (isFreeText) {
+            SETTINGS.set(setting, SETTINGS.get(setting) + value)
+        }
+    }
+    if (method === "remove") {
+        if (isListLike) {
+            const current = SETTINGS.get(setting).split(",")
+            const newValue = current.filter(e => e && e !== value).join(",")
+            SETTINGS.set(setting, newValue)
+        }
+        if (isNumber) {
+            SETTINGS.set(setting, SETTINGS.get(setting) - Number(value))
+        }
+        if (isFreeText) {
+            SETTINGS.set(setting, SETTINGS.get(setting).replace(value, ""))
+        }
+    }
+    if (method === "special") {
+        if (isListLike) {
+            SETTINGS.set(setting, `${value},${SETTINGS.get(setting)}`)
+        }
+        if (isNumber) {
+            SETTINGS.set(setting, SETTINGS.get(setting) * Number(value))
+        }
+        if (isFreeText) {
+            SETTINGS.set(setting, value + SETTINGS.get(setting))
+        }
+    }
+}
+
 const set = (...args) => {
     if (args.length === 0) {
-        UTIL.notify(
-            "Invalid usage, you could try:\nReading: 'set <setting>?'\n"
-            + "Writing: 'set <setting>=<value>'", "warn")
+        const allChanges = SETTINGS.listCurrentSettings()
+        if (allChanges) {
+            UTIL.notify(`--- Options ---\n${allChanges}`)
+        } else {
+            UTIL.notify("No settings have been changed compared to the default")
+        }
         return
     }
     for (const part of args) {
-        if (part.includes("=")) {
-            const setting = part.split("=")[0]
-            const value = part.split("=").slice(1).join("=")
-            SETTINGS.set(setting, value)
+        if (/^\w+\+=/.test(part)) {
+            modifyListOrNumber(...splitSettingAndValue(part, "+="), "append")
+        } else if (/^\w+-=/.test(part)) {
+            modifyListOrNumber(...splitSettingAndValue(part, "-="), "remove")
+        } else if (/^\w+\^=/.test(part)) {
+            modifyListOrNumber(...splitSettingAndValue(part, "^="), "special")
+        } else if (/^\w+=/.test(part)) {
+            SETTINGS.set(...splitSettingAndValue(part, "="))
+        } else if (/^\w+:/.test(part)) {
+            SETTINGS.set(...splitSettingAndValue(part, ":"))
+        } else if (part.includes("=") || part.includes(":")) {
+            UTIL.notify(
+                `The setting '${part.replace(/[+-^:=].*/, "")}' contains `
+                + "invalid characters", "warn")
+        } else if (part.endsWith("&")) {
+            SETTINGS.reset(part.slice(0, -1))
         } else if (part.endsWith("!")) {
             const setting = part.slice(0, -1)
             const value = SETTINGS.get(setting)
-            if (value === undefined) {
-                UTIL.notify(`Unknown setting '${setting}', try using `
-                    + "the suggestions", "warn")
-            } else if (typeof value === "boolean") {
+            if (["boolean", "undefined"].includes(typeof value)) {
                 SETTINGS.set(setting, String(!value))
             } else {
                 UTIL.notify(
                     `The setting '${setting}' can not be flipped`, "warn")
             }
-        } else {
-            let setting = part
-            if (part.endsWith("?")) {
-                setting = part.slice(0, -1)
-            }
-            const value = SETTINGS.get(setting)
-            if (value === undefined) {
-                UTIL.notify(`Unknown setting '${setting}', try using `
-                    + "the suggestions", "warn")
-            } else if (value.length === undefined
-                && typeof value === "object" || setting === "redirects") {
-                UTIL.notify(
-                    `The setting '${setting}' has the value `
-                    + `'${JSON.stringify(value, null, 2)
-                        .replace(/ /g, "&nbsp;")}'`)
+        } else if (part.endsWith("?")) {
+            listSetting(part.slice(0, -1))
+        } else if (typeof SETTINGS.get(part) === "boolean") {
+            SETTINGS.set(part, "true")
+        } else if (part.startsWith("inv")) {
+            const value = SETTINGS.get(part.replace("inv", ""))
+            if (typeof value === "boolean") {
+                SETTINGS.set(part.replace("inv", ""), String(!value))
             } else {
-                UTIL.notify(
-                    `The setting '${setting}' has the value '${value}'`)
+                listSetting(part)
             }
+        } else if (part.startsWith("no")) {
+            const value = SETTINGS.get(part.replace("no", ""))
+            if (typeof value === "boolean") {
+                SETTINGS.set(part.replace("no", ""), "false")
+            } else {
+                listSetting(part)
+            }
+        } else {
+            listSetting(part)
         }
     }
 }
 
 const quit = () => {
+    if (document.getElementById("tabs").classList.contains("multiple")) {
+        TABS.closeTab()
+    } else {
+        quitall()
+    }
+}
+
+const quitall = () => {
     remote.getCurrentWindow().hide()
-    if (SETTINGS.get("history.clearOnQuit")) {
+    if (SETTINGS.get("clearhistoryonquit")) {
         HISTORY.clearHistory()
+    } else {
+        HISTORY.writeHistToFile(true)
     }
     TABS.saveTabs()
+    UTIL.clearContainerTabs()
     if (SETTINGS.get("cache") !== "full") {
         UTIL.clearCache()
     }
-    if (SETTINGS.get("clearCookiesOnQuit")) {
+    if (SETTINGS.get("clearcookiesonquit")) {
         UTIL.clearCookies()
     }
-    if (SETTINGS.get("clearLocalStorageOnQuit")) {
+    if (SETTINGS.get("clearlocalstorageonquit")) {
         UTIL.clearLocalStorage()
     }
     DOWNLOADS.cancelAll()
@@ -111,12 +201,8 @@ const openSpecialPage = (specialPage, section = null) => {
     if (TABS.currentPage().src === "" || alreadyOpen || isNewtab) {
         TABS.navigateTo(pageUrl)
     } else {
-        TABS.addTab(pageUrl)
+        TABS.addTab({"url": pageUrl})
     }
-}
-
-const version = () => {
-    openSpecialPage("version")
 }
 
 const help = (section = null, trailingArgs = false) => {
@@ -127,23 +213,10 @@ const help = (section = null, trailingArgs = false) => {
     openSpecialPage("help", section)
 }
 
-const history = () => {
-    openSpecialPage("history")
-}
-
-const downloads = () => {
-    openSpecialPage("downloads")
-}
-
 const reload = () => {
+    COMMANDHISTORY.pause()
     SETTINGS.loadFromDisk()
-    TABS.listPages().forEach(p => {
-        if (UTIL.pathToSpecialPageName(p.src).name === "help") {
-            p.getWebContents().send(
-                "settings", SETTINGS.listCurrentSettings(true),
-                INPUT.listSupportedActions())
-        }
-    })
+    COMMANDHISTORY.resume()
 }
 
 const hardcopy = () => {
@@ -188,13 +261,12 @@ const write = (file, trailingArgs = false) => {
             return
         }
     }
-    TABS.currentPage().getWebContents().savePage(loc, "HTMLComplete")
-        .then(() => {
-            UTIL.notify(`Page successfully saved at '${loc}'`)
-        })
-        .catch(err => {
-            UTIL.notify(`Could not save the page:\n${err}`, "err")
-        })
+    TABS.webContents(TABS.currentPage()).savePage(
+        loc, "HTMLComplete").then(() => {
+        UTIL.notify(`Page successfully saved at '${loc}'`)
+    }).catch(err => {
+        UTIL.notify(`Could not save the page:\n${err}`, "err")
+    })
 }
 
 const mkviebrc = (full = false, trailingArgs = false) => {
@@ -216,20 +288,19 @@ const mkviebrc = (full = false, trailingArgs = false) => {
     SETTINGS.saveToDisk(exportAll)
 }
 
-const buffer = (...args) => {
-    if (args.length === 0) {
-        UTIL.notify("The buffer command requires a buffer name or id", "warn")
-        return
-    }
+const tabForBufferArg = args => {
     if (args.length === 1) {
         const number = Number(args[0])
         if (!isNaN(number)) {
-            TABS.switchToTab(number)
-            return
+            const tabs = TABS.listTabs()
+            if (number < 0) {
+                return tabs[0]
+            }
+            return tabs[number] || tabs.pop()
         }
     }
     const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
-    const tab = TABS.listTabs().find(t => {
+    return TABS.listTabs().find(t => {
         const simpleTabUrl = TABS.tabOrPageMatching(t).src
             .replace(/\W/g, "").toLowerCase()
         if (simpleTabUrl.includes(simpleSearch)) {
@@ -239,43 +310,181 @@ const buffer = (...args) => {
             .replace(/\W/g, "").toLowerCase()
         return simpleTitle.includes(simpleSearch)
     })
+}
+
+const buffer = (...args) => {
+    if (args.length === 0) {
+        return
+    }
+    const tab = tabForBufferArg(args)
     if (tab) {
         TABS.switchToTab(TABS.listTabs().indexOf(tab))
+        return
+    }
+    TABS.navigateTo(UTIL.stringToUrl(args.join(" ")))
+}
+
+const hide = (...args) => {
+    let tab = null
+    if (args.length === 0) {
+        tab = TABS.currentTab()
+    } else {
+        tab = tabForBufferArg(args)
+    }
+    if (tab) {
+        if (tab.classList.contains("visible-tab")) {
+            PAGELAYOUT.hide(TABS.tabOrPageMatching(tab))
+        } else {
+            UTIL.notify("Only visible pages can be hidden", "warn")
+        }
     }
 }
 
-const cookies = () => {
-    openSpecialPage("cookies")
+const tabIndexById = id => TABS.listTabs().indexOf(TABS.listTabs().find(
+    t => t.getAttribute("link-id") === id))
+
+const addSplit = (method, leftOrAbove, args) => {
+    if (args.length === 0) {
+        TABS.addTab({
+            "switchTo": false,
+            "callback": id => {
+                PAGELAYOUT.add(id, method, leftOrAbove)
+                TABS.switchToTab(tabIndexById(id))
+            }
+        })
+        return
+    }
+    const tab = tabForBufferArg(args)
+    if (tab) {
+        if (tab.classList.contains("visible-tab")) {
+            UTIL.notify("Page is already visible", "warn")
+        } else {
+            PAGELAYOUT.add(TABS.tabOrPageMatching(tab), method, leftOrAbove)
+            TABS.switchToTab(TABS.listTabs().indexOf(tab))
+        }
+    } else {
+        TABS.addTab({
+            "url": UTIL.stringToUrl(args.join(" ")),
+            "switchTo": false,
+            "callback": id => {
+                PAGELAYOUT.add(id, method, leftOrAbove)
+                TABS.switchToTab(tabIndexById(id))
+            }
+        })
+    }
+}
+
+const addCommand = (overwrite, args) => {
+    if (overwrite && args.length < 2) {
+        UTIL.notify(
+            "Can't combine ! with reading a value", "warn")
+        return
+    }
+    if (args.length === 0) {
+        const commandString = Object.keys(userCommands).map(
+            c => `${c} => ${userCommands[c]}`).join("\n").trim()
+        if (commandString) {
+            UTIL.notify(`--- User defined commands ---\n${commandString}`)
+        } else {
+            UTIL.notify("There are no user defined commands")
+        }
+        return
+    }
+    const command = args[0].replace(/^[:'" ]*/, "")
+    args = args.slice(1)
+    if (commands[command]) {
+        UTIL.notify(`Command can not be a built-in command: ${command}`, "warn")
+        return
+    }
+    if (args.length === 0) {
+        if (userCommands[command]) {
+            UTIL.notify(`${command} => ${userCommands[command]}`)
+        } else {
+            UTIL.notify(`Not an editor command: ${command}`, "warn")
+        }
+        return
+    }
+    if (!overwrite && userCommands[command]) {
+        UTIL.notify(
+            "Duplicate custom command definition (add ! to overwrite)", "warn")
+        return
+    }
+    userCommands[command] = args.join(" ")
+}
+
+const deleteCommand = (...args) => {
+    if (args.length !== 1) {
+        UTIL.notify(
+            "Exactly one command name is required for delcommand", "warn")
+        return
+    }
+    const command = args[0].replace(/^[:'" ]*/, "")
+    if (userCommands[command]) {
+        delete userCommands[args[0]]
+    } else {
+        UTIL.notify(`No such user defined command: ${command}`, "warn")
+    }
+}
+
+const callAction = (...args) => {
+    if (args.length !== 1) {
+        UTIL.notify(
+            "Exactly one action name is required for the call command", "warn")
+        return
+    }
+    const action = args[0].replace(/(^<|>$)/g, "")
+    if (INPUT.listSupportedActions().includes(action)) {
+        setTimeout(() => INPUT.doAction(action), 0)
+    } else {
+        UTIL.notify("Unsupported action provided, can't be called", "warn")
+    }
 }
 
 const commands = {
     "q": quit,
     "quit": quit,
+    "qa": quitall,
+    "quitall": quitall,
     "devtools": devtools,
     "reload": reload,
-    "v": version,
-    "version": version,
-    "history": history,
-    "d": downloads,
-    "downloads": downloads,
+    "v": () => openSpecialPage("version"),
+    "version": () => openSpecialPage("version"),
     "h": help,
     "help": help,
+    "history": () => openSpecialPage("history"),
+    "d": () => openSpecialPage("downloads"),
+    "downloads": () => openSpecialPage("downloads"),
+    "notifications": () => openSpecialPage("notifications"),
     "s": set,
     "set": set,
     "hardcopy": hardcopy,
     "print": hardcopy,
     "w": write,
     "write": write,
-    "mkv": mkviebrc,
     "mkviebrc": mkviebrc,
     "b": buffer,
     "buffer": buffer,
-    "cookies": cookies
+    "hide": hide,
+    "Vexplore": (...args) => addSplit("hor", !SETTINGS.get("splitbelow"), args),
+    "Sexplore": (...args) => addSplit("ver", !SETTINGS.get("splitright"), args),
+    "split": (...args) => addSplit("ver", !SETTINGS.get("splitright"), args),
+    "vsplit": (...args) => addSplit("hor", !SETTINGS.get("splitbelow"), args),
+    "cookies": () => openSpecialPage("cookies"),
+    "command": (...args) => addCommand(false, args),
+    "command!": (...args) => addCommand(true, args),
+    "delcommand": deleteCommand,
+    "comclear": () => {
+        userCommands = {}
+    },
+    "call": callAction
 }
+let userCommands = {}
 
 const noArgumentComands = [
     "q",
     "quit",
+    "qa",
+    "quitall",
     "devtools",
     "reload",
     "v",
@@ -283,29 +492,61 @@ const noArgumentComands = [
     "history",
     "d",
     "downloads",
-    "hardcopy"
+    "cookies",
+    "hardcopy",
+    "print",
+    "comclear"
 ]
 
-const execute = command => {
-    // Remove all redundant spaces
-    // Allow commands prefixed with :
-    // And return if the command is empty
-    command = command.replace(/^[\s|:]*/, "").trim().replace(/ +/g, " ")
-    if (!command) {
-        return
+const noEscapeCommands = ["command", "delcommand"]
+
+const modes = ["all", ...MODES.allModes()]
+modes.forEach(mode => {
+    let prefix = mode[0]
+    if (mode === "all") {
+        prefix = ""
     }
-    COMMANDHISTORY.push(command)
+    commands[`${prefix}map!`] = (...args) => {
+        INPUT.mapOrList(prefix, args, false, true)
+    }
+    commands[`${prefix}noremap!`] = (...args) => {
+        INPUT.mapOrList(prefix, args, true, true)
+    }
+    commands[`${prefix}map`] = (...args) => {
+        INPUT.mapOrList(prefix, args)
+    }
+    noEscapeCommands.push(`${prefix}map`)
+    commands[`${prefix}noremap`] = (...args) => {
+        INPUT.mapOrList(prefix, args, true)
+    }
+    noEscapeCommands.push(`${prefix}noremap`)
+    commands[`${prefix}unmap`] = (...args) => {
+        INPUT.unmap(prefix, args)
+    }
+    noEscapeCommands.push(`${prefix}unmap`)
+    commands[`${prefix}mapclear`] = () => {
+        INPUT.clearmap(prefix)
+    }
+    noArgumentComands.push(`${prefix}mapclear`)
+    commands[`${prefix}mapclear!`] = () => {
+        INPUT.clearmap(prefix, true)
+    }
+})
+
+const parseAndValidateArgs = command => {
     const argsString = command.split(" ").slice(1).join(" ")
+    command = command.split(" ")[0]
     const args = []
     let currentArg = ""
     let escapedDouble = false
     let escapedSingle = false
+    const noEscape = noEscapeCommands.includes(command)
     for (const char of argsString) {
-        if (char === "'" && !escapedDouble) {
+        if (char === "'" && !escapedDouble && !noEscape) {
             escapedSingle = !escapedSingle
             continue
         }
-        if (char === "\"" && !escapedSingle) {
+        if (char === "\"" && !escapedSingle && !noEscape) {
             escapedDouble = !escapedDouble
             continue
         }
@@ -316,41 +557,80 @@ const execute = command => {
         }
         currentArg += char
     }
-    if (escapedSingle || escapedDouble) {
-        UTIL.notify(
-            `Could not execute command, unescaped parameters:\n${command}`,
-            "warn")
-        return
-    }
     if (currentArg) {
         args.push(currentArg)
     }
-    command = command.split(" ")[0]
-    const matches = Object.keys(commands).filter(c => c.startsWith(command))
-    if (matches.length === 1 || commands[command]) {
+    let confirm = false
+    if (command.endsWith("!") && !command.endsWith("!!")) {
+        confirm = true
+        command = command.slice(0, -1)
+    }
+    return {command, confirm, args, "valid": !escapedSingle && !escapedDouble}
+}
+
+const execute = command => {
+    // Remove all redundant spaces
+    // Allow commands prefixed with :
+    // And return if the command is empty
+    command = command.replace(/^[\s|:]*/, "").trim().replace(/ +/g, " ")
+    if (!command) {
+        return
+    }
+    COMMANDHISTORY.push(command)
+    const parsed = parseAndValidateArgs(command)
+    if (!parsed.valid) {
+        UTIL.notify(`Command could not be executed, unmatched escape quotes:\n${
+            command}`, "warn")
+        return
+    }
+    command = parsed.command
+    const args = parsed.args
+    const matches = Object.keys(commands).concat(Object.keys(userCommands))
+        .filter(c => c.startsWith(command) && !c.endsWith("!"))
+    if (matches.length === 1 || commands[command] || userCommands[command]) {
         if (matches.length === 1) {
             command = matches[0]
         }
         if (noArgumentComands.includes(command) && args.length > 0) {
-            UTIL.notify(`The ${command} command takes no arguments`, "warn")
-        } else {
+            UTIL.notify(`Command takes no arguments: ${command}`, "warn")
+        } else if (commands[command]) {
+            if (parsed.confirm) {
+                command += "!"
+                if (!commands[command]) {
+                    UTIL.notify("Command does not accept ! to be added", "warn")
+                    return
+                }
+            }
             commands[command](...args)
+        } else {
+            setTimeout(() => {
+                INPUT.executeMapString(userCommands[command], true, true)
+            }, 0)
         }
     } else if (matches.length > 1) {
         UTIL.notify(
-            `Ambiguous command '${command}', please be more specific`, "warn")
+            `Command is ambiguous, please be more specific: ${command}`, "warn")
     } else {
         // No command
-        UTIL.notify(`The '${command}' command can not be found`, "warn")
+        UTIL.notify(`Not an editor command: ${command}`, "warn")
     }
 }
 
-const commandList = () => {
-    return Object.keys(commands).filter(c => c.length > 1)
+const commandList = (includeCustom = true) => {
+    if (includeCustom) {
+        return Object.keys(commands).filter(c => c.length > 2)
+            .concat(Object.keys(userCommands))
+    }
+    return Object.keys(commands).filter(c => c.length > 2)
 }
+
+const customCommandsAsCommandList = () => Object.keys(userCommands).map(
+    command => `command ${command} ${userCommands[command]}`).join("\n")
 
 module.exports = {
     openSpecialPage,
+    parseAndValidateArgs,
     execute,
-    commandList
+    commandList,
+    customCommandsAsCommandList
 }

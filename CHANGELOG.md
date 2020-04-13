@@ -5,10 +5,75 @@ This document aims to represent all notable changes to Vieb.
 
 Vieb is a Vim Inspired Electron Browser made by Jelmer van Arnhem and contributors,
 and can be copied under the terms of the GPL-3.0+ license.
-See the README.md or LICENSE file for more info and details about Vieb or it's license.
+See the README.md or LICENSE file for more info and details about Vieb and it's license.
 Links in the changelog are part of [github.com/Jelmerro/Vieb](https://github.com/Jelmerro/Vieb).
 The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the most important changes per release,
 but the list below contains much more technical details.
+The releases of Vieb aim to follow [semantic versioning](https://semver.org).
+
+## Unreleased
+
+### Added
+
+- Mouse setting to enable mouse support outside of insert mode
+- When the mouse is enabled, switch tabs, modes or focus by clicking on it
+- New location from where the viebrc file will be read: ~/.viebrc (aside from the viebrc in Vieb's data folder)
+- Dark theme and security settings for the website developer tools (:devtools)
+- Window splitting using Vexplore, vsplit, Sexplore and split to display multiple sites at the same time
+- Use \<C-w\> sub-bindings to move, relocate or rotate the window splits
+- Map command for configuring keyboard mappings (including recursion, nmap, imap, mapclear, etc.)
+- Noremap command for non-recursive keyboard mappings (refer to Vieb actions using \<action.reload\>)
+- Tab status indicators, orange for current tab (in multiple layout) and blue for playing media
+- Elements with mouse hover actions are now available in follow mode (displayed in gray)
+- Popup message for long notifications, with Vim bindings to scroll and close
+- Notification special page to view a list of previous notifications of the current session
+- New help documentation with descriptions for all commands, settings and actions
+- Basic check and compare for prerelease part of semantic versions
+- Tests for the version compare function
+- Favorite pages setting for manually providing a list of pages that should always appear on the new tab page
+
+### Changed
+
+- Rename all settings to be lowercase and without dots, similar to Vim
+- Set command syntax is now much more similar to Vim with support for all of Vim's set operators
+- Booleans can now be set and unset using "ignorecase" or "noignorecase"
+- Allow all settings to be changed at runtime, as they can be saved for the next startup with :mkv
+- List-like settings are now much more similar to Vim, as they are a comma separated string, with += and -= support
+- Viebrc is now named 'viebrc' instead of 'viebrc.json' and is configured by Vieb/Vim commands instead of JSON
+- All suggestion settings are now of the number type instead of boolean, and specify the number of entries to suggest (0 to disable)
+- Rename the modes: nav to explore and cursor to pointer, to allow for single key identifiers of the modes
+- Improvements to mode switching by centralizing mode switching code in the modes file
+- Click on multiple elements without re-entering follow mode by holding Shift
+- Add spellcheck integration (on by default), use spell and spelllang to configure
+- History storage format is now JSON, for easier parsing and better title storing
+- Entries on the history page can now be removed without reloading all history again
+- Buffer command can now be used to navigate to new locations (this is also true for the new split and Explore commands)
+- Allow \<A-F4\> and \<M-Q\> to be mapped as if they are regular keys (most likely to the quit command)
+- Reload command no longer resets all settings before running the commands from the viebrc files
+
+### Deprecated
+
+- Old history storage format (TSV has been replaced with JSON), filename remains "hist"
+- Conversion from old to new history format, will be removed in 3.0.0
+
+### Removed
+
+- Support for parsing the "viebrc.json" file, settings are now configured with Vieb commands in "viebrc" or "~/.viebrc"
+
+### Fixed
+
+- Broken page loads for sites using custom EventTargets instead of only DOM Nodes
+- Text input actions, such as select all, not working on Mac
+- Undo and Redo not being enabled on any system for the navigation bar
+
+### Security
+
+- Electron 9.0.0-beta.15 (was 8.0.1)
+- Chromium 83.0.4102.3 (was 80.0.3987.86)
+- Browsing data of popup windows are now stored in a separate memory-only partitions
+- Hide hardware related info, such as GPU model and battery data
+- Add new permission for mediaDevices, new default is to ask the user instead of allowing all
+- Also remove Vieb and Electron from the useragent when downloading favicons
 
 ## [1.1.0](https://github.com/Jelmerro/Vieb/compare/1.0.0...1.1.0) - 2020-02-15
 
@@ -270,7 +335,7 @@ but the list below contains much more technical details.
 - Electron 5.0.6 (was 5.0.2)
 - Chromium 73.0.3683.121 (unchanged)
 - Remove Vieb and Electron info more reliably from the useragent (should now be similar to Chrome)
-- Disable the sharing of local WebRTC ip addresses, only public ips are now shared
+- Disable the sharing of local WebRTC ip addresses, only public ip addresses are now shared
 
 ## [0.3.0](https://github.com/Jelmerro/Vieb/compare/0.2.2...0.3.0) - 2019-06-07
 
@@ -336,7 +401,7 @@ but the list below contains much more technical details.
 ### Changed
 
 - Use path module instead of url modifications for all paths
-- Show no output when a search results in zero matches
+- Show no output when a search result has zero matches
 
 ### Fixed
 
@@ -386,7 +451,7 @@ but the list below contains much more technical details.
 - Added settings to Vieb using the viebrc.json file
 - Follow mode to click on urls or buttons
 - Search mode to find text in the page
-- Insert mode to use to mouse in Vieb
+- Insert mode to use the mouse in Vieb
 - Command mode with implementations for: version, help, reload, devtools, set and quit
 - Support for CLI startup arguments
 - Notifications for failed commands or other errors

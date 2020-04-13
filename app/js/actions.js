@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -15,7 +15,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND COMMANDHISTORY FOLLOW MODES SETTINGS SUGGEST TABS UTIL */
+/* global COMMAND COMMANDHISTORY FOLLOW MODES PAGELAYOUT SETTINGS SUGGEST TABS
+ UTIL */
 "use strict"
 
 const {exec} = require("child_process")
@@ -32,12 +33,12 @@ const emptySearch = () => {
 
 const clickOnSearch = () => {
     if (currentSearch) {
-        TABS.currentPage().getWebContents().send("search-element-click")
+        TABS.webContents(TABS.currentPage()).send("search-element-click")
     }
 }
 
 const increasePageNumber = count => {
-    TABS.currentPage().getWebContents().send(
+    TABS.webContents(TABS.currentPage()).send(
         "action", "increasePageNumber", count)
 }
 
@@ -49,8 +50,8 @@ const closeTab = () => {
     TABS.closeTab()
 }
 
-const toNavMode = () => {
-    MODES.setMode("nav")
+const toExploreMode = () => {
+    MODES.setMode("explore")
 }
 
 const startFollowCurrentTab = () => {
@@ -58,38 +59,39 @@ const startFollowCurrentTab = () => {
 }
 
 const scrollTop = () => {
-    TABS.currentPage().getWebContents().send("action", "scrollTop")
+    TABS.webContents(TABS.currentPage()).send("action", "scrollTop")
 }
 
 const insertAtFirstInput = () => {
-    TABS.currentPage().getWebContents().send("focus-first-text-input")
+    TABS.webContents(TABS.currentPage()).send("focus-first-text-input")
 }
 
 const scrollLeft = () => {
-    TABS.currentPage().getWebContents().send("action", "scrollLeft")
+    TABS.webContents(TABS.currentPage()).send("action", "scrollLeft")
 }
 
 const toInsertMode = () => {
-    MODES.setMode("insert")
+    if (!TABS.currentPage().isCrashed()) {
+        MODES.setMode("insert")
+    }
 }
 
 const scrollDown = () => {
-    TABS.currentPage().getWebContents().send("action", "scrollDown")
+    TABS.webContents(TABS.currentPage()).send("action", "scrollDown")
 }
 
 const scrollUp = () => {
-    TABS.currentPage().getWebContents().send("action", "scrollUp")
+    TABS.webContents(TABS.currentPage()).send("action", "scrollUp")
 }
 
 const scrollRight = () => {
-    TABS.currentPage().getWebContents().send("action", "scrollRight")
+    TABS.webContents(TABS.currentPage()).send("action", "scrollRight")
 }
 
 const nextSearchMatch = () => {
     if (currentSearch) {
         TABS.currentPage().findInPage(currentSearch, {
-            "findNext": true,
-            "matchCase": SETTINGS.get("caseSensitiveSearch")
+            "findNext": true, "matchCase": !SETTINGS.get("ignorecase")
         })
     }
 }
@@ -103,9 +105,6 @@ const reload = () => {
 
 const openNewTab = () => {
     TABS.addTab()
-    if (SETTINGS.get("newtab.enterNavMode")) {
-        MODES.setMode("nav")
-    }
 }
 
 const reopenTab = () => {
@@ -117,7 +116,7 @@ const nextTab = count => {
 }
 
 const decreasePageNumber = count => {
-    TABS.currentPage().getWebContents().send(
+    TABS.webContents(TABS.currentPage()).send(
         "action", "decreasePageNumber", count)
 }
 
@@ -130,7 +129,7 @@ const startFollowNewTab = () => {
 }
 
 const scrollBottom = () => {
-    TABS.currentPage().getWebContents().send("action", "scrollBottom")
+    TABS.webContents(TABS.currentPage()).send("action", "scrollBottom")
 }
 
 const backInHistory = () => {
@@ -142,10 +141,7 @@ const backInHistory = () => {
 }
 
 const openNewTabAtAlternativePosition = () => {
-    TABS.addTab(null, true)
-    if (SETTINGS.get("newtab.enterNavMode")) {
-        MODES.setMode("nav")
-    }
+    TABS.addTab({"inverted": true})
 }
 
 const forwardInHistory = () => {
@@ -161,7 +157,7 @@ const previousSearchMatch = () => {
         TABS.currentPage().findInPage(currentSearch, {
             "forward": false,
             "findNext": true,
-            "matchCase": SETTINGS.get("caseSensitiveSearch")
+            "matchCase": !SETTINGS.get("ignorecase")
         })
     }
 }
@@ -174,27 +170,18 @@ const reloadWithoutCache = () => {
 }
 
 const openNewTabWithCurrentUrl = () => {
-    let url = TABS.currentPage().src
-    const specialPage = UTIL.pathToSpecialPageName(url)
-    if (specialPage.name === "newtab") {
-        url = ""
-    } else if (specialPage.name) {
-        url = `vieb://${specialPage.name}`
-        if (specialPage.section) {
-            url += `#${specialPage.section}`
-        }
-    }
+    const url = TABS.currentPage().src
     TABS.addTab()
-    MODES.setMode("nav")
-    document.getElementById("url").value = url
+    MODES.setMode("explore")
+    document.getElementById("url").value = UTIL.urlToString(url)
 }
 
 const scrollPageRight = () => {
-    TABS.currentPage().getWebContents().send("action", "scrollPageRight")
+    TABS.webContents(TABS.currentPage()).send("action", "scrollPageRight")
 }
 
 const scrollPageLeft = () => {
-    TABS.currentPage().getWebContents().send("action", "scrollPageLeft")
+    TABS.webContents(TABS.currentPage()).send("action", "scrollPageLeft")
 }
 
 const toCommandMode = () => {
@@ -202,7 +189,7 @@ const toCommandMode = () => {
 }
 
 const scrollPageUp = () => {
-    TABS.currentPage().getWebContents().send("action", "scrollPageUp")
+    TABS.webContents(TABS.currentPage()).send("action", "scrollPageUp")
 }
 
 const stopLoadingPage = () => {
@@ -210,11 +197,11 @@ const stopLoadingPage = () => {
 }
 
 const scrollPageDownHalf = () => {
-    TABS.currentPage().getWebContents().send("action", "scrollPageDownHalf")
+    TABS.webContents(TABS.currentPage()).send("action", "scrollPageDownHalf")
 }
 
 const scrollPageDown = () => {
-    TABS.currentPage().getWebContents().send("action", "scrollPageDown")
+    TABS.webContents(TABS.currentPage()).send("action", "scrollPageDown")
 }
 
 const moveTabForward = () => {
@@ -226,27 +213,27 @@ const moveTabBackward = () => {
 }
 
 const scrollPageUpHalf = () => {
-    TABS.currentPage().getWebContents().send("action", "scrollPageUpHalf")
+    TABS.webContents(TABS.currentPage()).send("action", "scrollPageUpHalf")
 }
 
 const zoomReset = () => {
-    TABS.currentPage().setZoomLevel(0)
+    TABS.webContents(TABS.currentPage()).zoomLevel = 0
 }
 
 const zoomOut = count => {
-    let level = TABS.currentPage().getZoomLevel() - count
+    let level = TABS.webContents(TABS.currentPage()).zoomLevel - count
     if (level < -7) {
         level = -7
     }
-    TABS.currentPage().setZoomLevel(level)
+    TABS.webContents(TABS.currentPage()).zoomLevel = level
 }
 
 const zoomIn = count => {
-    let level = TABS.currentPage().getZoomLevel() + count
+    let level = TABS.webContents(TABS.currentPage()).zoomLevel + count
     if (level > 7) {
         level = 7
     }
-    TABS.currentPage().setZoomLevel(level)
+    TABS.webContents(TABS.currentPage()).zoomLevel = level
 }
 
 const toNormalMode = () => {
@@ -258,107 +245,6 @@ const stopFollowMode = () => {
         MODES.setMode(FOLLOW.getModeBeforeFollow())
     } else {
         MODES.setMode("normal")
-    }
-}
-
-const useEnteredData = () => {
-    if (MODES.currentMode() === "command") {
-        COMMAND.execute(document.getElementById("url").value.trim())
-        MODES.setMode("normal")
-    }
-    if (MODES.currentMode() === "search") {
-        currentSearch = document.getElementById("url").value
-        if (currentSearch.trim()) {
-            TABS.currentPage().stopFindInPage("clearSelection")
-            TABS.currentPage().findInPage(currentSearch, {
-                "matchCase": SETTINGS.get("caseSensitiveSearch")
-            })
-        } else {
-            currentSearch = ""
-            TABS.currentPage().stopFindInPage("clearSelection")
-        }
-        MODES.setMode("normal")
-    }
-    if (MODES.currentMode() === "nav") {
-        const urlElement = document.getElementById("url")
-        const location = urlElement.value.trim()
-        urlElement.className = ""
-        MODES.setMode("normal")
-        if (location !== "") {
-            const specialPage = UTIL.pathToSpecialPageName(location)
-            const local = UTIL.expandPath(location)
-            if (specialPage.name) {
-                COMMAND.openSpecialPage(specialPage.name, specialPage.section)
-            } else if (UTIL.hasProtocol(location)) {
-                TABS.navigateTo(location)
-            } else if (UTIL.isDir(local) || UTIL.isFile(local)) {
-                TABS.navigateTo(
-                    `file:${local}`.replace(/^file:\/*/, "file:///"))
-            } else if (UTIL.isUrl(location)) {
-                TABS.navigateTo(`https://${location}`)
-            } else {
-                TABS.navigateTo(SETTINGS.get("search") + location)
-            }
-        }
-    }
-}
-
-const setFocusCorrectly = () => {
-    const urlElement = document.getElementById("url")
-    if (["normal", "follow", "visual"].includes(MODES.currentMode())) {
-        window.focus()
-        urlElement.className = ""
-        urlElement.blur()
-        TABS.updateUrl(TABS.currentPage())
-        window.focus()
-    }
-    if (MODES.currentMode() === "insert") {
-        TABS.currentPage().focus()
-        TABS.currentPage().click()
-    }
-    if (MODES.currentMode() === "cursor") {
-        TABS.currentPage().blur()
-        urlElement.blur()
-        window.focus()
-        document.getElementById("invisible-overlay").focus()
-    }
-    if (document.activeElement !== urlElement) {
-        if (["search", "command"].includes(MODES.currentMode())) {
-            window.focus()
-            urlElement.focus()
-            if (urlElement.value === TABS.currentPage().src) {
-                urlElement.value = ""
-            }
-            if (urlElement.value.startsWith("vieb://")) {
-                urlElement.value = ""
-            }
-        }
-        if (MODES.currentMode() === "nav") {
-            window.focus()
-            urlElement.focus()
-            if (urlElement.value === TABS.currentPage().src) {
-                urlElement.select()
-            }
-            if (urlElement.value.startsWith("vieb://")) {
-                urlElement.select()
-            }
-        }
-    }
-    if (MODES.currentMode() === "nav") {
-        const local = UTIL.expandPath(urlElement.value.trim())
-        if (urlElement.value.trim() === "") {
-            urlElement.className = ""
-        } else if (document.querySelector("#suggest-dropdown div.selected")) {
-            urlElement.className = "suggest"
-        } else if (urlElement.value.startsWith("file://")) {
-            urlElement.className = "file"
-        } else if (UTIL.isUrl(urlElement.value.trim())) {
-            urlElement.className = "url"
-        } else if (path.isAbsolute(local) && UTIL.pathExists(local)) {
-            urlElement.className = "file"
-        } else {
-            urlElement.className = "search"
-        }
     }
 }
 
@@ -377,7 +263,7 @@ const editWithVim = () => {
         return
     }
     let command = null
-    const webcontents = TABS.currentPage().getWebContents()
+    const webcontents = TABS.webContents(TABS.currentPage())
     fs.watchFile(tempFile, {"interval": 500}, () => {
         if (command) {
             try {
@@ -416,51 +302,185 @@ const commandHistoryNext = () => {
     COMMANDHISTORY.next()
 }
 
+const rotateSplitWindow = () => {
+    PAGELAYOUT.rotate()
+}
+
+const leftHalfSplitWindow = () => {
+    PAGELAYOUT.toTop("left")
+}
+
+const bottomHalfSplitWindow = () => {
+    PAGELAYOUT.toTop("bottom")
+}
+
+const topHalfSplitWindow = () => {
+    PAGELAYOUT.toTop("top")
+}
+
+const rightHalfSplitWindow = () => {
+    PAGELAYOUT.toTop("right")
+}
+
+const toLeftSplitWindow = () => {
+    PAGELAYOUT.moveFocus("left")
+}
+
+const toBottomSplitWindow = () => {
+    PAGELAYOUT.moveFocus("bottom")
+}
+
+const toTopSplitWindow = () => {
+    PAGELAYOUT.moveFocus("top")
+}
+
+const toRightSplitWindow = () => {
+    PAGELAYOUT.moveFocus("right")
+}
+
+const increaseHeightSplitWindow = count => {
+    PAGELAYOUT.resize("ver", "grow", count)
+}
+
+const decreaseHeightSplitWindow = count => {
+    PAGELAYOUT.resize("ver", "shrink", count)
+}
+
+const increaseWidthSplitWindow = count => {
+    PAGELAYOUT.resize("hor", "grow", count)
+}
+
+const decreaseWidthSplitWindow = count => {
+    PAGELAYOUT.resize("hor", "shrink", count)
+}
+
+const distrubuteSpaceSplitWindow = () => {
+    PAGELAYOUT.resetResizing()
+}
+
+const useEnteredData = () => {
+    if (MODES.currentMode() === "command") {
+        const command = document.getElementById("url").value.trim()
+        MODES.setMode("normal")
+        COMMAND.execute(command)
+    }
+    if (MODES.currentMode() === "search") {
+        currentSearch = document.getElementById("url").value
+        if (currentSearch.trim()) {
+            TABS.currentPage().stopFindInPage("clearSelection")
+            TABS.currentPage().findInPage(currentSearch, {
+                "matchCase": !SETTINGS.get("ignorecase")
+            })
+        } else {
+            currentSearch = ""
+            TABS.currentPage().stopFindInPage("clearSelection")
+        }
+        MODES.setMode("normal")
+    }
+    if (MODES.currentMode() === "explore") {
+        const urlElement = document.getElementById("url")
+        const location = urlElement.value.trim()
+        MODES.setMode("normal")
+        if (location !== "") {
+            TABS.navigateTo(UTIL.stringToUrl(location))
+        }
+    }
+}
+
+const setFocusCorrectly = () => {
+    const urlElement = document.getElementById("url")
+    TABS.updateUrl(TABS.currentPage())
+    if (MODES.currentMode() === "insert") {
+        urlElement.blur()
+        TABS.currentPage().focus()
+        TABS.currentPage().click()
+    } else if (["search", "explore", "command"].includes(MODES.currentMode())) {
+        if (document.activeElement !== urlElement) {
+            window.focus()
+            urlElement.focus()
+        }
+    } else {
+        urlElement.blur()
+        window.focus()
+        document.getElementById("invisible-overlay").focus()
+    }
+    if (MODES.currentMode() === "explore") {
+        const local = UTIL.expandPath(urlElement.value.trim())
+        if (urlElement.value.trim() === "") {
+            urlElement.className = ""
+        } else if (document.querySelector("#suggest-dropdown div.selected")) {
+            urlElement.className = "suggest"
+        } else if (urlElement.value.startsWith("file://")) {
+            urlElement.className = "file"
+        } else if (UTIL.isUrl(urlElement.value.trim())) {
+            urlElement.className = "url"
+        } else if (path.isAbsolute(local) && UTIL.pathExists(local)) {
+            urlElement.className = "file"
+        } else {
+            urlElement.className = "search"
+        }
+    }
+}
+
 module.exports = {
-    emptySearch,
-    clickOnSearch,
-    increasePageNumber,
-    previousTab,
-    closeTab,
-    toNavMode,
-    startFollowCurrentTab,
-    scrollTop,
-    insertAtFirstInput,
-    scrollLeft,
+    toCommandMode,
+    toExploreMode,
     toInsertMode,
-    scrollDown,
+    toSearchMode,
+    toNormalMode,
+    startFollowCurrentTab,
+    startFollowNewTab,
+    stopFollowMode,
+    scrollTop,
+    scrollBottom,
     scrollUp,
+    scrollDown,
+    scrollLeft,
     scrollRight,
-    nextSearchMatch,
+    scrollPageUp,
+    scrollPageDown,
+    scrollPageLeft,
+    scrollPageRight,
+    scrollPageUpHalf,
+    scrollPageDownHalf,
     reload,
+    reloadWithoutCache,
+    stopLoadingPage,
     openNewTab,
+    openNewTabAtAlternativePosition,
+    openNewTabWithCurrentUrl,
+    closeTab,
     reopenTab,
     nextTab,
-    decreasePageNumber,
-    toSearchMode,
-    startFollowNewTab,
-    scrollBottom,
-    backInHistory,
-    openNewTabAtAlternativePosition,
-    forwardInHistory,
-    previousSearchMatch,
-    reloadWithoutCache,
-    openNewTabWithCurrentUrl,
-    scrollPageRight,
-    scrollPageLeft,
-    toCommandMode,
-    scrollPageUp,
-    stopLoadingPage,
-    scrollPageDownHalf,
-    scrollPageDown,
+    previousTab,
     moveTabForward,
     moveTabBackward,
-    scrollPageUpHalf,
+    backInHistory,
+    forwardInHistory,
     zoomReset,
     zoomIn,
     zoomOut,
-    toNormalMode,
-    stopFollowMode,
+    rotateSplitWindow,
+    leftHalfSplitWindow,
+    bottomHalfSplitWindow,
+    topHalfSplitWindow,
+    rightHalfSplitWindow,
+    toLeftSplitWindow,
+    toBottomSplitWindow,
+    toTopSplitWindow,
+    toRightSplitWindow,
+    increaseHeightSplitWindow,
+    decreaseHeightSplitWindow,
+    increaseWidthSplitWindow,
+    decreaseWidthSplitWindow,
+    distrubuteSpaceSplitWindow,
+    emptySearch,
+    clickOnSearch,
+    nextSearchMatch,
+    previousSearchMatch,
+    increasePageNumber,
+    decreasePageNumber,
+    insertAtFirstInput,
     editWithVim,
     nextSuggestion,
     prevSuggestion,

@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019 Jelmer van Arnhem
+* Copyright (C) 2019-2020 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -110,10 +110,8 @@ const parseList = cookies => {
 const refreshList = () => {
     remote.session.fromPartition("persist:main")
         .cookies.get({}).then(cookieList => {
-            parseList(cookieList.sort((a, b) => {
-                return a.domain.replace(/\W/, "")
-                    .localeCompare(b.domain.replace(/\W/, ""))
-            }))
+            parseList(cookieList.sort((a, b) => a.domain.replace(/\W/, "")
+                .localeCompare(b.domain.replace(/\W/, ""))))
             document.getElementById("filter")
                 .addEventListener("input", filterList)
         })
