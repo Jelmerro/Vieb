@@ -64,7 +64,7 @@ const handleDownload = (_, item) => {
     downloads.push(info)
     try {
         info.name = item.getFilename()
-        info.url = item.getURL()
+        info.url = UTIL.urlToString(item.getURL())
         info.file = item.getSavePath()
         info.total = item.getTotalBytes()
     } catch (err) {

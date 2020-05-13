@@ -208,12 +208,12 @@ const suggestTopSites = () => Object.keys(groupedHistory).filter(
 }).slice(0, SETTINGS.get("suggesttopsites")).map(site => {
     if (SETTINGS.get("favicons") === "disabled") {
         return {
-            "url": site,
+            "url": UTIL.urlToString(site),
             "name": groupedHistory[site] && groupedHistory[site].title
         }
     }
     return {
-        "url": site,
+        "url": UTIL.urlToString(site),
         "icon": FAVICONS.forSite(site),
         "name": groupedHistory[site] && groupedHistory[site].title
     }

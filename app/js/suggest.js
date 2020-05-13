@@ -15,11 +15,19 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND FAVICONS INPUT MODES SETTINGS TABS */
+/* global COMMAND FAVICONS INPUT MODES SETTINGS TABS UTIL */
 "use strict"
 
 let suggestions = []
 let originalValue = ""
+
+const setUrlValue = url => {
+    if (MODES.currentMode() === "explore") {
+        document.getElementById("url").value = UTIL.urlToString(url)
+    } else {
+        document.getElementById("url").value = url
+    }
+}
 
 const prevSuggestion = () => {
     const list = [...document.querySelectorAll("#suggest-dropdown div")]
@@ -36,7 +44,7 @@ const prevSuggestion = () => {
             document.getElementById("url").value = originalValue
         } else {
             list[id - 1].className = "selected"
-            document.getElementById("url").value = suggestions[id - 1]
+            setUrlValue(suggestions[id - 1])
         }
     } else {
         originalValue = document.getElementById("url").value
@@ -44,7 +52,7 @@ const prevSuggestion = () => {
             l.className = ""
         })
         list[list.length - 1].className = "selected"
-        document.getElementById("url").value = suggestions[list.length - 1]
+        setUrlValue(suggestions[list.length - 1])
     }
 }
 
@@ -61,7 +69,7 @@ const nextSuggestion = () => {
         })
         if (id < list.length - 1) {
             list[id + 1].className = "selected"
-            document.getElementById("url").value = suggestions[id + 1]
+            setUrlValue(suggestions[id + 1])
         } else {
             document.getElementById("url").value = originalValue
         }
@@ -71,7 +79,7 @@ const nextSuggestion = () => {
             l.className = ""
         })
         list[0].className = "selected"
-        document.getElementById("url").value = suggestions[0]
+        setUrlValue(suggestions[0])
     }
 }
 
@@ -118,7 +126,7 @@ const addHist = hist => {
     if (hist.url.startsWith("file://")) {
         url.className = "file"
     }
-    url.textContent = hist.url
+    url.textContent = UTIL.urlToString(hist.url)
     element.appendChild(url)
     document.getElementById("suggest-dropdown").appendChild(element)
     setTimeout(() => {

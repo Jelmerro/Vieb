@@ -1,7 +1,7 @@
 {
   "name": "vieb",
   "productName": "Vieb",
-  "version": "2.0.1-dev",
+  "version": "2.1.0-dev",
   "description": "Vim Inspired Electron Browser",
   "main": "app/index.js",
   "scripts": {
@@ -24,13 +24,13 @@
   "email": "Jelmerro@users.noreply.github.com",
   "license": "GPL-3.0+",
   "devDependencies": {
-    "electron": "^9.0.0-beta.15",
-    "electron-builder": "^22.4.1",
-    "eslint": "^6.8.0",
-    "jest": "^25.3.0"
+    "electron": "^9.0.0-beta.24",
+    "electron-builder": "^22.6.0",
+    "eslint": "^7.0.0",
+    "jest": "^26.0.1"
   },
   "dependencies": {
-    "@cliqz/adblocker-electron": "^1.14.1",
+    "@cliqz/adblocker-electron": "^1.14.4",
     "rimraf": "^3.0.2"
   }
 }

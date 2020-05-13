@@ -360,7 +360,7 @@ const urlToString = url => {
             url += `#${special.section}`
         }
     }
-    return url
+    return decodeURI(url)
 }
 
 const listNotificationHistory = () => notificationHistory
