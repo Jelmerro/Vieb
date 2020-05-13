@@ -48,6 +48,10 @@ try {
             // No webview settings configured, assuming the default ask value
         }
         if (action === "ask") {
+            let url = window.location.href
+            if (url.length > 100) {
+                url = url.replace(/.{50}/g, "$&\n")
+            }
             const ask = await remote.dialog.showMessageBox(
                 remote.getCurrentWindow(), {
                     "type": "question",
@@ -56,7 +60,7 @@ try {
                     "cancelId": 1,
                     "checkboxLabel": "Include media device name labels",
                     "title": "Allow this page to view a list of media devices?",
-                    "message": `${message}\n\npage:\n${window.location.href}`
+                    "message": `${message}\n\npage:\n${url}`
                 })
             if (ask.response === 0 && ask.checkboxChecked) {
                 action = "allowfull"

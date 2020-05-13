@@ -11,6 +11,17 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Fixed
+
+- Urls not being wrapped in the media device permission request dialog
+
+### Security
+
+- Electron 9.0.0-beta.15 (unchanged)
+- Chromium 83.0.4102.3 (unchanged)
+
 ## [2.0.0](https://github.com/Jelmerro/Vieb/compare/1.1.0...2.0.0) - 2020-04-13
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/1.1.0...2.0.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/2.0.0)
