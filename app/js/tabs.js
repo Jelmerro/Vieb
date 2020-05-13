@@ -611,7 +611,7 @@ const addWebviewListeners = webview => {
                     return {
                         "name": HISTORY.titleForPage(page)
                             || HISTORY.titleForPage(`${page}/`),
-                        "url": page,
+                        "url": UTIL.urlToString(page),
                         "icon": FAVICONS.forSite(page)
                             || FAVICONS.forSite(`${page}/`)
                     }
@@ -632,13 +632,14 @@ const addWebviewListeners = webview => {
         if (e.url && (correctMode || SETTINGS.get("mouse"))) {
             const special = UTIL.pathToSpecialPageName(e.url)
             if (!special.name) {
-                document.getElementById("url-hover").textContent = e.url
+                document.getElementById("url-hover")
+                    .textContent = UTIL.urlToString(e.url)
             } else if (special.section) {
-                document.getElementById("url-hover").textContent
-                    = `vieb://${special.name}#${special.section}`
+                document.getElementById("url-hover")
+                    .textContent = `vieb://${special.name}#${special.section}`
             } else {
-                document.getElementById("url-hover").textContent
-                    = `vieb://${special.name}`
+                document.getElementById("url-hover")
+                    .textContent = `vieb://${special.name}`
             }
             document.getElementById("url-hover").style.display = "flex"
         } else {

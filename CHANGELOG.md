@@ -13,14 +13,18 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Conversion from and to percent-encoding for urls in the navbar, the url hover and in special pages
+
 ### Fixed
 
 - Urls not being wrapped in the media device permission request dialog
 
 ### Security
 
-- Electron 9.0.0-beta.15 (unchanged)
-- Chromium 83.0.4102.3 (unchanged)
+- Electron 9.0.0-beta.24 (9.0.0-beta.15)
+- Chromium 83.0.4103.45 (83.0.4102.3)
 
 ## [2.0.0](https://github.com/Jelmerro/Vieb/compare/1.1.0...2.0.0) - 2020-04-13
 
