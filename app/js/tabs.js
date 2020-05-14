@@ -25,7 +25,7 @@ const {ipcRenderer, remote} = require("electron")
 
 let recentlyClosed = []
 let linkId = 0
-
+const timeouts = {}
 const tabFile = path.join(remote.app.getPath("appData"), "tabs")
 
 const init = () => {
@@ -356,6 +356,17 @@ const addWebviewListeners = webview => {
             if (!title.textContent) {
                 title.textContent = e.url
             }
+            const timeout = SETTINGS.get("requesttimeout")
+            if (webview.getAttribute("link-id") && timeout >= 1000) {
+                clearTimeout(timeouts[webview.getAttribute("link-id")])
+                timeouts[webview.getAttribute("link-id")] = setTimeout(() => {
+                    try {
+                        webview.stop()
+                    } catch (e) {
+                        // webview might be destroyed or unavailable, no issue
+                    }
+                }, timeout)
+            }
         }
     })
     const mouseClickInWebview = e => {
@@ -480,6 +491,7 @@ const addWebviewListeners = webview => {
     webview.addEventListener("did-stop-loading", () => {
         FAVICONS.show(webview)
         updateUrl(webview)
+        clearTimeout(timeouts[webview.getAttribute("link-id")])
         const specialPageName = UTIL.pathToSpecialPageName(webview.src).name
         const isLocal = webview.src.startsWith("file:/")
         const isErrorPage = webview.getAttribute("failed-to-load")

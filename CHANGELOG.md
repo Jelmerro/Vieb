@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Conversion from and to percent-encoding for urls in the navbar, the url hover and in special pages
+- New setting named requesttimeout, to stop a page from loading after a timeout (default is 20 seconds)
 
 ### Fixed
 
