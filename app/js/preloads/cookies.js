@@ -49,11 +49,10 @@ const filterList = () => {
 }
 
 const cookieToUrl = cookie => {
-    let url = "http"
+    let url = "http://"
     if (cookie.secure) {
-        url += "s"
+        url = "https://"
     }
-    url += "://"
     if (cookie.domain.charAt(0) === ".") {
         url += "www"
     }
