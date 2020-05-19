@@ -27,7 +27,7 @@ const histFile = path.join(remote.app.getPath("appData"), "hist")
 let groupedHistory = {}
 let histWriteTimeout = null
 let finishedLoading = false
-const specialChars = /[`~!@#$%^&*(),./;'[\]\\\-=<>?:"{}|_+ ]/g
+const specialChars = /[`~!@#$%^&*(),./;'[\]\\\-=<>?:"{}|_+\s]/g
 
 const init = () => {
     if (!UTIL.isFile(histFile)) {
