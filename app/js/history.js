@@ -27,6 +27,7 @@ const histFile = path.join(remote.app.getPath("appData"), "hist")
 let groupedHistory = {}
 let histWriteTimeout = null
 let finishedLoading = false
+const specialChars = /[`~!@#$%^&*(),./;'[\]\\\-=<>?:"{}|_+ ]/g
 
 const init = () => {
     if (!UTIL.isFile(histFile)) {
@@ -75,7 +76,7 @@ const suggestHist = search => {
     // ordered matches take priority over unordered matches only.
     // In turn, exact matches get priority over ordered matches.
     search = search.toLowerCase().trim()
-    const simpleSearch = search.split(/\W/g).filter(w => w)
+    const simpleSearch = search.split(specialChars).filter(w => w)
     document.getElementById("suggest-dropdown").textContent = ""
     SUGGEST.clear()
     if (!SETTINGS.get("suggesthistory") || !search || !UTIL.isFile(histFile)) {
@@ -86,9 +87,9 @@ const suggestHist = search => {
         if (!groupedHistory[url]) {
             return null
         }
-        const simpleUrl = url.replace(/\W/g, "").toLowerCase()
-        const simpleTitle = groupedHistory[url].title
-            .replace(/\W/g, "").toLowerCase()
+        const simpleUrl = decodeURI(url).replace(specialChars, "").toLowerCase()
+        const simpleTitle = groupedHistory[url].title.replace(
+            specialChars, "").toLowerCase()
         let relevance = 1
         if (simpleSearch.every(w => simpleUrl.includes(w))) {
             relevance = 5

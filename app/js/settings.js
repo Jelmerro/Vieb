@@ -407,7 +407,8 @@ const set = (setting, value) => {
             allSettings[setting] = Number(value)
         } else if (listLike.includes(setting)) {
             // Remove empty elements from the comma seperated list
-            allSettings[setting] = value.split(",").filter(e => e).join(",")
+            allSettings[setting] = value.split(",")
+                .map(e => e.trim()).filter(e => e).join(",")
         } else {
             allSettings[setting] = value
         }

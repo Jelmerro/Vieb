@@ -18,6 +18,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Conversion from and to percent-encoding for urls in the navbar, the url hover and in special pages
 - New setting named requesttimeout, to stop a page from loading after a timeout (default is 20 seconds)
 
+### Changed
+
+- Search string now excludes special characters, instead of only keeping the word characters (this affects non-latin writing scripts)
+
 ### Fixed
 
 - Urls not being wrapped in the media device permission request dialog
