@@ -17,6 +17,9 @@
 */
 "use strict"
 
+const {remote} = require("electron")
+const path = require("path")
+
 // Always load the misc action functions (such as scrolling before page loads)
 require("./preloads/actions")
 // Always load follow mode JavaScript
@@ -38,7 +41,7 @@ if (specialPage.name) {
 }
 
 // Change the colors to white text on black for plain text pages
-// Change the background to white for pages with no explicit background styling
+// Change the background to white for pages with no explicit background
 window.addEventListener("load", () => {
     if (!document.querySelector("html")) {
         return
@@ -54,3 +57,24 @@ window.addEventListener("load", () => {
         document.querySelector("html").style.background = "white"
     }
 })
+// Apply darkreader if enabled
+const webviewSettingsFile = path.join(
+    remote.app.getPath("appData"), "webviewsettings")
+const settings = util.readJSON(webviewSettingsFile)
+if (settings && settings.darkreader && !specialPage.name) {
+    // Darkreader
+    const darkreader = require("darkreader")
+    const interval = setInterval(() => {
+        try {
+            darkreader.setFetchMethod(window.fetch)
+            darkreader.enable()
+        } catch (_) {
+            // Document not ready yet, try again later
+        }
+    }, 10)
+    window.addEventListener("load", () => {
+        setTimeout(() => {
+            clearInterval(interval)
+        }, 1000)
+    })
+}

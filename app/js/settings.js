@@ -31,6 +31,7 @@ const defaultSettings = {
     "clearlocalstorageonquit": false,
     "containertabs": false,
     "countlimit": 100,
+    "darkreader": false,
     "downloadpath": "~/Downloads/",
     "favicons": "session",
     "favoritepages": "",
@@ -298,7 +299,8 @@ const updateWebviewSettings = () => {
     const webviewSettingsFile = path.join(
         remote.app.getPath("appData"), "webviewsettings")
     UTIL.writeJSON(webviewSettingsFile, {
-        "permissionmediadevices": get("permissionmediadevices")
+        "permissionmediadevices": get("permissionmediadevices"),
+        "darkreader": get("darkreader")
     })
 }
 
@@ -450,7 +452,7 @@ const set = (setting, value) => {
             updateTabOverflow()
             PAGELAYOUT.applyLayout()
         }
-        if (setting === "permissionmediadevices") {
+        if (setting === "darkreader" || setting === "permissionmediadevices") {
             updateWebviewSettings()
         }
         updateHelpPage()

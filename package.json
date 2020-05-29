@@ -1,7 +1,7 @@
 {
   "name": "vieb",
   "productName": "Vieb",
-  "version": "2.1.0",
+  "version": "2.2.0-dev",
   "description": "Vim Inspired Electron Browser",
   "main": "app/index.js",
   "scripts": {
@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@cliqz/adblocker-electron": "^1.14.4",
+    "darkreader": "^4.9.10",
     "rimraf": "^3.0.2"
   }
 }

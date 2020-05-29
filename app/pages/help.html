@@ -496,6 +496,8 @@
         Toggle for running tabs in a separate container. When enabled, tabs will not share cache, cookies, localstorage or any other part of the browser settings. The browsing history will still be stored by Vieb, but all related cookies and such will only be stored for as long as Vieb is running.
         <h3 id="countlimit">countlimit</h3>
         This setting is used as an upper limit of the counter for repeating actions in normal mode, <a class="pointer" href="#pointer">pointer mode</a> and <a class="visual" href="#pointer">visual mode</a>. For example, pressing <kbd>50t</kbd> will usually open 50 new tabs, but only 10 if the countlimit is set to 10. This setting limits the number of repeated actions, which you can visualize in the top-right of the Vieb window if <a href="#showcmd">showcmd</a> is set. There is also a setting to limit the maximum recursion of a mapping, named <a href="#maxmapdepth">maxmapdepth</a>.
+        <h3 id="darkreader">darkreader</h3>
+        With the darkreader setting, you can instruct Vieb to enable the darkreader plugin on all websites. This plugin is responsible for styling all supported websites in a dark theme. See the <a href="#mentions">mentions</a> for more information about the darkreader plugin.
         <h3 id="downloadpath">downloadpath</h3>
         The location of all downloaded files. Used as the default folder for the <a href="#:write">:write</a> command and as the location for all other downloaded files. Due to a technical limitation there is no option to ask for the location before downloading a file like in Firefox.
         <h3 id="favicons">favicons</h3>
@@ -822,7 +824,7 @@
         Vieb also uses third-party libraries, which are covered by different licenses.
         See the mentions in the chapter below for links and other info.
         <h1 id="mentions">Mentions</h1>
-        Projects which have influenced Vieb and/or have made Vieb what it is today.
+        These projects have been an essential part in making Vieb what it is today.
         <ul>
             <li>
                 <a href="https://github.com/vim/vim">Vim</a>
@@ -855,6 +857,10 @@
             <li>
                 <a href="https://github.com/google/fonts/tree/master/apache/robotomono">Roboto Mono</a>
                 is used to display text in a nice monospace font
+            </li>
+            <li>
+                <a href="https://github.com/darkreader/darkreader">Darkreader</a>
+                can be enabled to display all visited websites in a dark theme
             </li>
         </ul>
         Thanks to all the people involved for making Vieb possible.
