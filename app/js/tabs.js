@@ -362,8 +362,8 @@ const addWebviewListeners = webview => {
                 timeouts[webview.getAttribute("link-id")] = setTimeout(() => {
                     try {
                         webview.stop()
-                    } catch (e) {
-                        // webview might be destroyed or unavailable, no issue
+                    } catch (_) {
+                        // Webview might be destroyed or unavailable, no issue
                     }
                 }, timeout)
             }

@@ -11,6 +11,17 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Added
+
+- Darkreader setting to apply a dark theme to all websites visited (off by default)
+
+### Security
+
+- Electron 9.0.0 (unchanged)
+- Chromium 83.0.4103.64 (unchanged)
+
 ## [2.1.0](https://github.com/Jelmerro/Vieb/compare/2.0.0...2.1.0) - 2020-05-19
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/2.0.0...2.1.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/2.1.0)
