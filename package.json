@@ -25,12 +25,12 @@
   "license": "GPL-3.0+",
   "devDependencies": {
     "electron": "^9.0.0",
-    "electron-builder": "^22.6.1",
-    "eslint": "^7.0.0",
+    "electron-builder": "^22.7.0",
+    "eslint": "^7.1.0",
     "jest": "^26.0.1"
   },
   "dependencies": {
-    "@cliqz/adblocker-electron": "^1.14.4",
+    "@cliqz/adblocker-electron": "^1.15.1",
     "darkreader": "^4.9.10",
     "rimraf": "^3.0.2"
   }
