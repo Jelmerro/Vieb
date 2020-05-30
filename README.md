@@ -48,6 +48,10 @@ Vieb
 Press `F1` at any time when using Vieb to find out more,
 or check the full list of Vieb's capabilities on the [website](https://vieb.dev/features).
 
+[![screenshot](https://vieb.dev/img/1.png)](https://vieb.dev/screenshots)
+
+#### [More screenshots](https://vieb.dev/screenshots)
+
 # Download
 
 To get started with Vieb, download a stable release from one of these locations:
@@ -75,19 +79,8 @@ Vieb is and always will be free and open source, but you can support it's develo
 
 # License
 
-## Program/source
-
 Vieb is created by [Jelmer van Arnhem](https://github.com/Jelmerro) and [contributors](https://github.com/Jelmerro/Vieb/graphs/contributors).
 See the source files for individual authors.
 
 You can copy or modify the code/program under the terms of the GPL3.0 or higher.
 For more information and legal terms see the LICENSE file.
-
-## Logo
-
-Logo is created by [Jelmer van Arnhem](https://github.com/Jelmerro) and can also be copied/modified as described in the LICENSE file.
-It is clearly based on the original Vim logo,
-which can be found as an svg file [on Wikipedia](https://en.wikipedia.org/wiki/File:Vimlogo.svg).
-As is explained on [the official Vim website](https://www.vim.org/logos.php) the logo consists of a green diamond with the text Vim displayed above it.
-The Vieb logo (while based on the Vim logo) contains neither the green diamond nor the Vim text,
-and is therefor considered to be sufficiently different from the original Vim logo.
