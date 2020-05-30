@@ -16,6 +16,11 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Darkreader setting to apply a dark theme to all websites visited (off by default)
+- Pacman archive as a new included build target (for arch linux)
+
+### Changed
+
+- Allow the entire window to be used as a drag region if the mouse setting is off and you are not in insert mode
 
 ### Security
 

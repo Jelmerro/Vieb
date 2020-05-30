@@ -79,7 +79,7 @@ body.fullscreen #current-page {display: flex;width: 100vw;height: 100vh;top: 0;b
 #suggest-dropdown div .file {color: #ffb;}
 #suggest-dropdown div.selected {background-color: #666;}
 /* mouse related */
-#invisible-overlay {position: absolute;top: 0;left: 0;width: 100vw;height: 100vh;z-index: 50;}
+#invisible-overlay {-webkit-app-region: drag;position: absolute;top: 0;left: 0;width: 100vw;height: 100vh;z-index: 50;}
 body.mouse webview {pointer-events: all;}
 body.mouse #invisible-overlay {display: none;}
 body.mouse #navbar {pointer-events: all;}
