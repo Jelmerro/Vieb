@@ -77,7 +77,8 @@ const defaultSettings = {
     "taboverflow": "scroll",
     "timeout": true,
     "timeoutlen": 1000,
-    "vimcommand": "gvim"
+    "vimcommand": "gvim",
+    "windowtitle": "simple"
 }
 let allSettings = {}
 const freeText = ["downloadpath", "search", "vimcommand"]
@@ -106,7 +107,8 @@ const validOptions = {
     "permissionnotifications": ["block", "ask", "allow"],
     "permissionopenexternal": ["block", "ask", "allow"],
     "permissionpointerlock": ["block", "ask", "allow"],
-    "permissionunknown": ["block", "ask", "allow"]
+    "permissionunknown": ["block", "ask", "allow"],
+    "windowtitle": ["simple", "title", "url", "full"]
 }
 const numberRanges = {
     "countlimit": [0, 10000],
@@ -314,21 +316,7 @@ const updateHelpPage = () => {
     })
 }
 
-const listSettingsAsArray = () => {
-    const listOfSettings = []
-    for (const topLevel of Object.keys(defaultSettings)) {
-        if (defaultSettings[topLevel].length === undefined) {
-            if (typeof defaultSettings[topLevel] === "object") {
-                for (const subLevel of Object.keys(defaultSettings[topLevel])) {
-                    listOfSettings.push(`${topLevel}.${subLevel}`)
-                }
-                continue
-            }
-        }
-        listOfSettings.push(topLevel)
-    }
-    return listOfSettings
-}
+const listSettingsAsArray = () => Object.keys(defaultSettings)
 
 const suggestionList = () => {
     const listOfSuggestions = ["all", ...listSettingsAsArray()]
@@ -454,6 +442,9 @@ const set = (setting, value) => {
         }
         if (setting === "darkreader" || setting === "permissionmediadevices") {
             updateWebviewSettings()
+        }
+        if (setting === "windowtitle") {
+            TABS.updateWindowTitle()
         }
         updateHelpPage()
     }

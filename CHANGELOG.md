@@ -17,6 +17,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Darkreader setting to apply a dark theme to all websites visited (off by default)
 - Pacman archive as a new included build target (for arch linux)
+- Add windowtitle setting to optionally include the page title and/or url in Vieb's window title
 
 ### Changed
 

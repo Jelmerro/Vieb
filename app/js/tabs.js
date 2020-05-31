@@ -335,17 +335,46 @@ const switchToTab = index => {
     document.getElementById("url-hover").style.display = "none"
 }
 
-const updateUrl = (webview, force = false) => {
-    const skip = ["command", "search", "explore"]
-    if (!force) {
-        if (webview !== currentPage() || skip.includes(MODES.currentMode())) {
-            return
+const updateWindowTitle = () => {
+    for (const browserWindow of remote.BrowserWindow.getAllWindows()) {
+        if (browserWindow.getURL().endsWith("index.html")) {
+            if (SETTINGS.get("windowtitle") === "simple" || !currentPage()) {
+                browserWindow.title = "Vieb"
+                return
+            }
+            const title = tabOrPageMatching(currentPage())
+                .querySelector("span").textContent
+            if (SETTINGS.get("windowtitle") === "title" || !currentPage().src) {
+                browserWindow.title = `Vieb - ${title}`
+                return
+            }
+            let url = currentPage().src
+            const specialPage = UTIL.pathToSpecialPageName(url)
+            if (specialPage.name) {
+                url = `vieb://${specialPage.name}`
+                if (specialPage.section) {
+                    url += `#${specialPage.section}`
+                }
+            }
+            if (SETTINGS.get("windowtitle") === "url") {
+                browserWindow.title = `Vieb - ${url}`
+                return
+            }
+            browserWindow.title = `Vieb - ${title} - ${url}`
         }
     }
-    if (currentPage()) {
-        document.getElementById("url").value
-            = UTIL.urlToString(currentPage().src)
+}
+
+const updateUrl = (webview, force = false) => {
+    const skip = ["command", "search", "explore"]
+    if (webview !== currentPage() || !currentPage()) {
+        return
     }
+    updateWindowTitle()
+    if (!force && skip.includes(MODES.currentMode())) {
+        return
+    }
+    document.getElementById("url").value = UTIL.urlToString(currentPage().src)
 }
 
 const addWebviewListeners = webview => {
@@ -718,6 +747,7 @@ module.exports = {
     webContents,
     tabOrPageMatching,
     switchToTab,
+    updateWindowTitle,
     updateUrl,
     resetTabInfo,
     navigateTo,
