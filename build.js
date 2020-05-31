@@ -2,7 +2,10 @@
 "use strict"
 
 const builder = require("electron-builder")
+const rimraf = require("rimraf").sync
 const builds = {}
+
+rimraf("dist/")
 process.argv.slice(1).forEach(a => {
     if (a === "--linux") {
         builds.linux = []
