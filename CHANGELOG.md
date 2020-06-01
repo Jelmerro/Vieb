@@ -24,6 +24,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Allow the entire window to be used as a drag region if the mouse setting is off and you are not in insert mode
 
+### Fixed
+
+- Insert mode mappings not triggering built-in actions, such as Home or PageUp
+
 ### Security
 
 - Electron 9.0.0 (unchanged)
