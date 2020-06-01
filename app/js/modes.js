@@ -162,7 +162,8 @@ const insertModeHandler = (page, e, input) => {
         "altKey": input.alt,
         "key": input.key,
         "isTrusted": true,
-        "preventDefault": e.preventDefault
+        "preventDefault": e.preventDefault,
+        "passedOnFromInsert": true
     })
 }
 

@@ -214,6 +214,7 @@ let pressedKeys = ""
 let bindings = {}
 let supportedActions = []
 let timeoutTimer = null
+let blockNextInsertKey = false
 
 const init = () => {
     window.addEventListener("keydown", handleKeyboard)
@@ -415,7 +416,17 @@ const executeMapString = async (mapStr, recursive, initial) => {
                     options.shiftKey = true
                 }
                 options.key = key
-                window.dispatchEvent(new KeyboardEvent("keydown", options))
+                if (MODES.currentMode() === "insert") {
+                    blockNextInsertKey = true
+                    TABS.webContents(TABS.currentPage()).sendInputEvent({
+                        "type": "char", "keyCode": key
+                    })
+                    TABS.webContents(TABS.currentPage()).sendInputEvent({
+                        "type": "keyDown", "keyCode": key
+                    })
+                } else {
+                    window.dispatchEvent(new KeyboardEvent("keydown", options))
+                }
             } else if (supportedActions.includes(key.replace(/(^<|>$)/g, ""))) {
                 let count = null
                 if (countableActions.includes(key.replace(/(^<|>$)/g, ""))) {
@@ -451,7 +462,19 @@ const executeMapString = async (mapStr, recursive, initial) => {
                 if (!options.key) {
                     options.key = key
                 }
-                window.dispatchEvent(new KeyboardEvent("keydown", options))
+                if (MODES.currentMode() === "insert") {
+                    blockNextInsertKey = true
+                    if (key.length === 1) {
+                        TABS.webContents(TABS.currentPage()).sendInputEvent({
+                            "type": "char", "keyCode": key
+                        })
+                    }
+                    TABS.webContents(TABS.currentPage()).sendInputEvent({
+                        "type": "keyDown", "keyCode": key
+                    })
+                } else {
+                    window.dispatchEvent(new KeyboardEvent("keydown", options))
+                }
             } else {
                 UTIL.notify(`Unsupported key in mapping: ${key}`, "warn")
                 break
@@ -460,6 +483,9 @@ const executeMapString = async (mapStr, recursive, initial) => {
         }
     }
     if (initial) {
+        setTimeout(() => {
+            blockNextInsertKey = false
+        }, 100)
         recursiveCounter = 0
         if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
             repeatCounter = 0
@@ -492,10 +518,13 @@ const handleKeyboard = e => {
         "NumLock",
         "CapsLock",
         "ScrollLock",
-        "<C-CapsLock>",
         ""
     ]
     if (recursiveCounter > SETTINGS.get("maxmapdepth")) {
+        e.preventDefault()
+        return
+    }
+    if (e.passedOnFromInsert && blockNextInsertKey) {
         e.preventDefault()
         return
     }
