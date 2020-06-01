@@ -102,10 +102,10 @@ const defaultBindings = {
         "<C-0>": {"mapping": "<action.zoomReset>"}
     },
     "i": {
-        "<F1>": {"mapping": "<:help>", "noremap": true},
-        "<Esc>": {"mapping": "<action.toNormalMode>", "noremap": true},
-        "<C-i>": {"mapping": "<action.editWithVim>", "noremap": true},
-        "<C-[>": {"mapping": "<action.toNormalMode>", "noremap": true}
+        "<F1>": {"mapping": "<:help>"},
+        "<Esc>": {"mapping": "<action.toNormalMode>"},
+        "<C-i>": {"mapping": "<action.editWithVim>"},
+        "<C-[>": {"mapping": "<action.toNormalMode>"}
     },
     "c": {
         "<CR>": {"mapping": "<action.useEnteredData>"},
@@ -389,6 +389,25 @@ const countableActions = [
 const hasFutureActionsBasedOnKeys = keys => !!Object.keys(bindings[
     MODES.currentMode()[0]]).find(map => map.startsWith(keys) && map !== keys)
 
+const sendKeysToWebview = async (javascriptKey, mapStr, recursive) => {
+    blockNextInsertKey = true
+    if (javascriptKey.length === 1) {
+        TABS.webContents(TABS.currentPage()).sendInputEvent({
+            "type": "char", "keyCode": javascriptKey
+        })
+    }
+    TABS.webContents(TABS.currentPage()).sendInputEvent({
+        "type": "keyDown", "keyCode": javascriptKey
+    })
+    if (recursive) {
+        const action = bindings[MODES.currentMode()[0]][mapStr]
+        console.log(action)
+        if (action) {
+            await executeMapString(action.mapping, !action.noremap)
+        }
+    }
+}
+
 const executeMapString = async (mapStr, recursive, initial) => {
     if (initial) {
         recursiveCounter = 0
@@ -404,7 +423,8 @@ const executeMapString = async (mapStr, recursive, initial) => {
         if (recursiveCounter > SETTINGS.get("maxmapdepth")) {
             break
         }
-        for (let key of mapStr.split(/(<.*?[^-]>|<.*?->>|.)/g).filter(m => m)) {
+        const splitRegex = /(<.*?[^-]>|<.*?->>|.)/g
+        for (const key of mapStr.split(splitRegex).filter(m => m)) {
             if (recursiveCounter > SETTINGS.get("maxmapdepth")) {
                 break
             }
@@ -417,13 +437,7 @@ const executeMapString = async (mapStr, recursive, initial) => {
                 }
                 options.key = key
                 if (MODES.currentMode() === "insert") {
-                    blockNextInsertKey = true
-                    TABS.webContents(TABS.currentPage()).sendInputEvent({
-                        "type": "char", "keyCode": key
-                    })
-                    TABS.webContents(TABS.currentPage()).sendInputEvent({
-                        "type": "keyDown", "keyCode": key
-                    })
+                    await sendKeysToWebview(options.key, key, recursive)
                 } else {
                     window.dispatchEvent(new KeyboardEvent("keydown", options))
                 }
@@ -437,41 +451,30 @@ const executeMapString = async (mapStr, recursive, initial) => {
             } else if (key.startsWith("<:")) {
                 COMMAND.execute(key.replace(/^<:|>$/g, ""))
             } else if (key.match(/^<(C-)?(M-)?(A-)?(S-)?.+>$/g)) {
-                key = key.slice(1, -1)
-                if (key.startsWith("C-")) {
+                options.key = key.slice(1, -1)
+                if (options.key.startsWith("C-")) {
                     options.ctrlKey = true
-                    key = key.replace("C-", "")
+                    options.key = options.key.replace("C-", "")
                 }
-                if (key.startsWith("M-")) {
+                if (options.key.startsWith("M-")) {
                     options.metaKey = true
-                    key = key.replace("M-", "")
+                    options.key = options.key.replace("M-", "")
                 }
-                if (key.startsWith("A-")) {
+                if (options.key.startsWith("A-")) {
                     options.altKey = true
-                    key = key.replace("A-", "")
+                    options.key = options.key.replace("A-", "")
                 }
-                if (key.startsWith("S-")) {
+                if (options.key.startsWith("S-")) {
                     options.shiftKey = true
-                    key = key.replace("S-", "")
+                    options.key = options.key.replace("S-", "")
                 }
                 keyNames.forEach(k => {
-                    if (k.vim.includes(key)) {
+                    if (k.vim.includes(options.key)) {
                         options.key = k.js[0]
                     }
                 })
-                if (!options.key) {
-                    options.key = key
-                }
                 if (MODES.currentMode() === "insert") {
-                    blockNextInsertKey = true
-                    if (key.length === 1) {
-                        TABS.webContents(TABS.currentPage()).sendInputEvent({
-                            "type": "char", "keyCode": key
-                        })
-                    }
-                    TABS.webContents(TABS.currentPage()).sendInputEvent({
-                        "type": "keyDown", "keyCode": key
-                    })
+                    await sendKeysToWebview(options.key, key, recursive)
                 } else {
                     window.dispatchEvent(new KeyboardEvent("keydown", options))
                 }
@@ -824,13 +827,11 @@ const mapSingle = (mode, args, noremap) => {
     const mapping = sanitiseMapString(args.shift())
     const actions = sanitiseMapString(args.join(""))
     if (mode) {
-        bindings[mode][mapping] = {
-            "mapping": actions, "noremap": noremap || mode === "i"
-        }
+        bindings[mode][mapping] = {"mapping": actions, "noremap": noremap}
     } else {
         Object.keys(bindings).forEach(bindMode => {
             bindings[bindMode][mapping] = {
-                "mapping": actions, "noremap": noremap || bindMode === "i"
+                "mapping": actions, "noremap": noremap
             }
         })
     }

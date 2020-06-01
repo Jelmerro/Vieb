@@ -184,7 +184,6 @@
         The keyboard mappings are completely dynamic in Vieb, meaning that you can change the behavior of all keyboard keys. To manage these mappings, Vieb implements a similar system to Vim, with support for recursion, multiple keystrokes, countable actions and similar features. These are all of the key differences of Vieb's mapping system compared to Vim:
         <ul>
             <li>Only the &lt;&gt;-notation is supported for including modifiers or special keys</li>
-            <li><a class="insert" href="#action.toInsertMode">Insert mode</a> does not support recursive mappings</li>
             <li>Spaces can only be supplied as <kbd>&lt;Space&gt;</kbd>, regular spaces are ignored</li>
             <li>Adding a <kbd>!</kbd> to the map command indicates that it should also read and list default mappings</li>
             <li>All keyboard shortcuts passed to Vieb are supported, there are no terminal or history related limitations. For example, in Vieb you can distinguish between Meta and Alt keyboard mappings, and also map sequences unavailable in Vim, such as &lt;C-c&gt; (Ctrl-c) or &lt;A-F4&gt; (Alt-F4).</li>
@@ -271,7 +270,7 @@
             <li><span class="command-block">:noremap &lt;C-T&gt; &lt;action.reopenTab&gt;</span> - Make Ctrl-Shift-t reopen the previously closed tab</li>
             <li><span class="command-block">:noremap ??? &lt;:help&gt;</span> - When pressing three subsequent question marks, open the help page</li>
         </ul>
-        This command is similar to <a href="#:map">:map</a> and invoked with the same arguments, but does not recursively trigger other actions. This means that you can use it to type out characters that are otherwise mapped to actions. All <a class="insert" href="#action.toInsertMode">insert mode</a> mappings are non-recursive.
+        This command is similar to <a href="#:map">:map</a> and invoked with the same arguments, but does not recursively trigger other actions. This means that you can use it to type out characters that are otherwise mapped to actions.
         <h3 id=":unmap">:unmap</h3>
         <ul>
             <li><span class="command-block">:unmap F1</span> - Remove the mapping of the F1 key for all modes</li>
@@ -311,7 +310,7 @@
         <h3 id=":emapclear">:emapclear</h3>
         Usage is identical to <a href="#:mapclear">:mapclear</a>, but this command only clears mappings for <a class="explore" href="#action.toExploreMode">explore mode</a>.
         <h3 id=":imap">:imap</h3>
-        Usage is identical to <a href="#:noremap">:noremap</a>, but this command only lists or adds non-recursive mappings for <a class="insert" href="#action.toInsertMode">insert mode</a>. Unlike other modes, <a class="insert" href="#action.toInsertMode">insert mode</a> does not support recursive mappings, thus this command is identical in function to <a href="#:inoremap">:inoremap</a>.
+        Usage is identical to <a href="#:map">:map</a>, but this command only lists or adds recursive mappings for <a class="insert" href="#action.toInsertMode">insert mode</a>.
         <h3 id=":inoremap">:inoremap</h3>
         Usage is identical to <a href="#:noremap">:noremap</a>, but this command only lists or adds non-recursive mappings for <a class="insert" href="#action.toInsertMode">insert mode</a>.
         <h3 id=":iunmap">:iunmap</h3>
