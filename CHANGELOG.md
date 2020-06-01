@@ -28,6 +28,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Insert mode mappings not triggering built-in actions, such as Home or PageUp
+- Not all named keys being correctly detected and converted to the right casing
+- Digits to repeat actions not being applied when part of a mapping before a built-in action
 
 ### Security
 

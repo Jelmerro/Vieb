@@ -227,20 +227,25 @@
         <h4>Named characters</h4>
         Similar tot the &lt;&gt;-notation, there are also keys that cannot be represented in a single character, one of which is &lt;, which is of course already part of the &lt;&gt;-notation syntax. These type of characters can be represented like so:
         <ul>
-            <li><kbd>&lt;lt&gt;</kbd> - This represents the &lt; character (the greater than sign is simply represented by <kbd>&gt;</kbd>, see last example just above)</li>
-            <li><kbd>&lt;BS&gt;</kbd> - This represents the Backspace key</li>
-            <li><kbd>&lt;CR&gt;</kbd>, <kbd>&lt;NL&gt;</kbd>, <kbd>&lt;Return&gt;</kbd> or <kbd>&lt;Enter&gt;</kbd> - This represents the Enter key</li>
-            <li><kbd>&lt;Bar&gt;</kbd> - This represents the | character</li>
-            <li><kbd>&lt;Bslash&gt;</kbd> - This represents the \ character (forward slash is simply <kbd>/</kbd>)</li>
-            <li><kbd>&lt;Left&gt;</kbd> - This represents the left arrow key (similarly, you have <kbd>&lt;Right&gt;</kbd>, <kbd>&lt;Up&gt;</kbd> and <kbd>&lt;Down&gt;</kbd>)</li>
-            <li><kbd>&lt;Esc&gt;</kbd> - This represents the Escape key</li>
-            <li><kbd>&lt;Space&gt;</kbd> - This represents the spacebar (literal spaces are ignored in mappings)</li>
-            <li><kbd>&lt;Del&gt;</kbd> - This represents the Delete key</li>
-            <li><kbd>&lt;Insert&gt;</kbd> - This represents the Insert key</li>
-            <li><kbd>&lt;Home&gt;</kbd> - This represents the Home key</li>
-            <li><kbd>&lt;End&gt;</kbd> - This represents the End key</li>
-            <li><kbd>&lt;PageUp&gt;</kbd> - This represents the PageUp</li>
-            <li><kbd>&lt;PageDown&gt;</kbd> - This represents the PageDown</li>
+            <li><kbd>&lt;F1&gt;</kbd> - This represents the F1 key, all other F-keys work the same way up to F12.</li>
+            <li><kbd>&lt;lt&gt;</kbd> - This represents the &lt; character (the greater than sign is simply represented by <kbd>&gt;</kbd>, see last example just above).</li>
+            <li><kbd>&lt;BS&gt;</kbd> - This represents the Backspace key.</li>
+            <li><kbd>&lt;CR&gt;</kbd>, <kbd>&lt;NL&gt;</kbd>, <kbd>&lt;Return&gt;</kbd> or <kbd>&lt;Enter&gt;</kbd> - This represents the Enter key.</li>
+            <li><kbd>&lt;Bar&gt;</kbd> - This represents the | character.</li>
+            <li><kbd>&lt;Bslash&gt;</kbd> - This represents the \ character (forward slash is simply <kbd>/</kbd>).</li>
+            <li><kbd>&lt;Left&gt;</kbd> - This represents the left arrow key (similarly, you have <kbd>&lt;Right&gt;</kbd>, <kbd>&lt;Up&gt;</kbd> and <kbd>&lt;Down&gt;</kbd>).</li>
+            <li><kbd>&lt;Esc&gt;</kbd> - This represents the Escape key.</li>
+            <li><kbd>&lt;Space&gt;</kbd> - This represents the spacebar (literal spaces are ignored in mappings).</li>
+            <li><kbd>&lt;Del&gt;</kbd> - This represents the Delete key.</li>
+            <li><kbd>&lt;Insert&gt;</kbd> - This represents the Insert key.</li>
+            <li><kbd>&lt;Home&gt;</kbd> - This represents the Home key.</li>
+            <li><kbd>&lt;PageUp&gt;</kbd> - This represents the PageUp key.</li>
+            <li><kbd>&lt;End&gt;</kbd> - This represents the End key.</li>
+            <li><kbd>&lt;PageDown&gt;</kbd> - This represents the PageDown key.</li>
+            <li><kbd>&lt;Tab&gt;</kbd> - This represents the Tab key.</li>
+            <li><kbd>&lt;Help&gt;</kbd> - This represents a Help key if present on the keyboard.</li>
+            <li><kbd>&lt;Pause&gt;</kbd> - This represents the Pause key.</li>
+            <li><kbd>&lt;PrintScreen&gt;</kbd> or <kbd>&lt;PrtScr&gt;</kbd> - This represents the PrintScreen key.</li>
         </ul>
         All other characters do not have a special name you need to use, and can just be typed as is to refer to the key.
         <h4>Map actions</h4>
@@ -451,7 +456,7 @@
         <ul>
             <li><span class="command-block">:quitall</span> - Quit Vieb</li>
         </ul>
-        With quitall you will unconditionally close and stop all of Vieb. To configure what gets clear on quit, see these settings, among others: <a href="#cache">cache</a>, <a href="#clearcookiesonquit">clearcookiesonquit</a>, <a href="#cleardownloadsonquit">cleardownloadsonquit</a>, <a href="#clearhistoryonquit">clearhistoryonquit</a>, <a href="#clearlocalstorageonquit">clearlocalstorageonquit</a>, <a href="#keeprecentlyclosed">keeprecentlyclosed</a>, <a href="#restoretabs">restoretabs</a> and <a href="#containertabs">containertabs</a>.
+        With quitall you will unconditionally close and stop all of Vieb. To configure what gets cleared on quit, see these settings, among others: <a href="#cache">cache</a>, <a href="#clearcookiesonquit">clearcookiesonquit</a>, <a href="#cleardownloadsonquit">cleardownloadsonquit</a>, <a href="#clearhistoryonquit">clearhistoryonquit</a>, <a href="#clearlocalstorageonquit">clearlocalstorageonquit</a>, <a href="#keeprecentlyclosed">keeprecentlyclosed</a>, <a href="#restoretabs">restoretabs</a> and <a href="#containertabs">containertabs</a>.
         <h1 id="settings">Settings</h1>
         There are a lot of settings in Vieb and all of them can be changed at runtime, or using a settings file. The changes you make at runtime are not saved automatically for subsequent sessions, but they can be if you want to. This chapter provides introductions on how to do all this, and a list of all the settings Vieb has to offer.
         <h2>Set command</h2>
