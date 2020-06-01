@@ -308,7 +308,30 @@ const keyNames = [
     {"js": ["ArrowDown"], "vim": ["Down"]},
     {"js": ["Escape"], "vim": ["Esc"]},
     {"js": [" "], "vim": ["Space"]},
-    {"js": ["Delete"], "vim": ["Del"]}
+    {"js": ["Delete"], "vim": ["Del"]},
+    // Keys with the same names, which are listed here to detect incorrect names
+    // Note: some of these are not present in Vim and use the JavaScript name
+    {"js": ["F1"], "vim": ["F1"]},
+    {"js": ["F2"], "vim": ["F2"]},
+    {"js": ["F3"], "vim": ["F3"]},
+    {"js": ["F4"], "vim": ["F4"]},
+    {"js": ["F5"], "vim": ["F5"]},
+    {"js": ["F6"], "vim": ["F6"]},
+    {"js": ["F7"], "vim": ["F7"]},
+    {"js": ["F8"], "vim": ["F8"]},
+    {"js": ["F9"], "vim": ["F9"]},
+    {"js": ["F10"], "vim": ["F10"]},
+    {"js": ["F11"], "vim": ["F11"]},
+    {"js": ["F12"], "vim": ["F12"]},
+    {"js": ["Tab"], "vim": ["Tab"]},
+    {"js": ["Insert"], "vim": ["Insert"]},
+    {"js": ["Home"], "vim": ["Home"]},
+    {"js": ["PageUp"], "vim": ["PageUp"]},
+    {"js": ["End"], "vim": ["End"]},
+    {"js": ["PageDown"], "vim": ["PageDown"]},
+    {"js": ["Help"], "vim": ["Help"]},
+    {"js": ["Pause"], "vim": ["Pause"]},
+    {"js": ["PrintScreen"], "vim": ["PrintScreen", "PrtScr"]}
 ]
 
 const toIdentifier = e => {
@@ -401,7 +424,6 @@ const sendKeysToWebview = async (javascriptKey, mapStr, recursive) => {
     })
     if (recursive) {
         const action = bindings[MODES.currentMode()[0]][mapStr]
-        console.log(action)
         if (action) {
             await executeMapString(action.mapping, !action.noremap)
         }
@@ -416,7 +438,7 @@ const executeMapString = async (mapStr, recursive, initial) => {
         }
     }
     recursiveCounter += 1
-    let repeater = Number(repeatCounter) || 1
+    const repeater = Number(repeatCounter) || 1
     repeatCounter = 0
     updateKeysOnScreen()
     for (let i = 0;i < repeater;i++) {
@@ -442,11 +464,8 @@ const executeMapString = async (mapStr, recursive, initial) => {
                     window.dispatchEvent(new KeyboardEvent("keydown", options))
                 }
             } else if (supportedActions.includes(key.replace(/(^<|>$)/g, ""))) {
-                let count = null
-                if (countableActions.includes(key.replace(/(^<|>$)/g, ""))) {
-                    count = Number(repeater)
-                    repeater = 0
-                }
+                const count = Number(repeatCounter)
+                repeatCounter = 0
                 doAction(key.replace(/(^<|>$)/g, ""), count)
             } else if (key.startsWith("<:")) {
                 COMMAND.execute(key.replace(/^<:|>$/g, ""))
@@ -478,9 +497,6 @@ const executeMapString = async (mapStr, recursive, initial) => {
                 } else {
                     window.dispatchEvent(new KeyboardEvent("keydown", options))
                 }
-            } else {
-                UTIL.notify(`Unsupported key in mapping: ${key}`, "warn")
-                break
             }
             await new Promise(r => setTimeout(r, 2))
         }
@@ -499,10 +515,24 @@ const executeMapString = async (mapStr, recursive, initial) => {
 }
 
 const doAction = (name, count) => {
-    if (name.startsWith("pointer")) {
-        POINTER[name.replace(/^.*\./g, "")](count || 1)
+    count = count || 1
+    const pointer = name.toLowerCase().startsWith("pointer.")
+    const countable = countableActions.includes(name)
+    name = name.replace(/^.*\./g, "")
+    if (countable) {
+        if (pointer) {
+            POINTER[name](count)
+        } else {
+            ACTIONS[name](count)
+        }
     } else {
-        ACTIONS[name.replace(/^.*\./g, "")](count || 1)
+        for (let i = 0;i < count;i++) {
+            if (pointer) {
+                POINTER[name]()
+            } else {
+                ACTIONS[name]()
+            }
+        }
     }
     repeatCounter = 0
     updateKeysOnScreen()
@@ -780,8 +810,8 @@ const mapOrList = (mode, args, noremap, includeDefault) => {
     mapSingle(mode, args, noremap)
 }
 
-const sanitiseMapString = mapString => mapString.split(/(<.*?[^-]>|<.*?->>|.)/g)
-    .filter(m => m).map(m => {
+const sanitiseMapString = (mapString, allowSpecials = false) => mapString
+    .split(/(<.*?[^-]>|<.*?->>|.)/g).filter(m => m).map(m => {
         if (m === ">") {
             return ">"
         }
@@ -793,11 +823,29 @@ const sanitiseMapString = mapString => mapString.split(/(<.*?[^-]>|<.*?->>|.)/g)
             modifiers = splitKeys.slice(0, -1).map(mod => mod.toUpperCase())
             key = splitKeys.slice(-1)[0]
         }
+        let knownKey = false
         for (const name of keyNames) {
             if (name.vim.find(vk => vk.toUpperCase() === key.toUpperCase())) {
                 key = name.vim[0]
+                knownKey = true
                 break
             }
+        }
+        if (allowSpecials) {
+            if (ACTIONS[key.replace(/^action\./gi, "")]) {
+                knownKey = true
+            }
+            if (POINTER[key.replace(/^pointer\./gi, "")]) {
+                knownKey = true
+            }
+            if (key.startsWith(":")) {
+                knownKey = true
+            }
+        }
+        if (!knownKey && key.length > 1) {
+            UTIL.notify(
+                `Unsupported key in mapping which was skipped: ${key}`, "warn")
+            return ""
         }
         if (!key) {
             return ""
@@ -825,7 +873,10 @@ const sanitiseMapString = mapString => mapString.split(/(<.*?[^-]>|<.*?->>|.)/g)
 
 const mapSingle = (mode, args, noremap) => {
     const mapping = sanitiseMapString(args.shift())
-    const actions = sanitiseMapString(args.join(""))
+    const actions = sanitiseMapString(args.join(""), true)
+    if (!actions) {
+        return
+    }
     if (mode) {
         bindings[mode][mapping] = {"mapping": actions, "noremap": noremap}
     } else {
