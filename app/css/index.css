@@ -29,13 +29,15 @@ img {height: 1.5em;width: 1.5em;min-height: 1.5em;min-width: 1.5em;pointer-event
 #repeat-counter, #pressed-keys {margin: auto .2em;line-height: 2em;display: none;}
 /* Nav tabs */
 #tabs {display: flex;overflow: hidden;max-width: 100vw;}
-#tabs > span {color: #ccc;background-color: #444;display: flex;margin: 0 .1em .1em 0;padding-right: .4em;flex: 1;overflow: hidden;white-space: nowrap;height: 1.9em;}
+#tabs > span {color: #ccc;background-color: #444;display: flex;margin: 0 .1em .1em 0;flex: 1;overflow: hidden;white-space: nowrap;height: 1.9em;}
 #tabs > span > img {margin: auto 0 auto .25em;padding: 0;}
 #tabs > span > span {margin: auto 0 auto .25em;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
 #tabs .spacer {width: 4em;min-width: 4em;max-width: 4em;background-color: #333;margin: 0;padding: 0;}
 #tabs .visible-tab {color: #eee;background-color: #666;}
 #tabs.multiple #current-tab {border-left: solid .3em #f90;}
 #tabs .container {color: #ff0;}
+#tabs .pinned {min-width: 1.9em !important;max-width: 1.9em;width: 1.9em;padding: 0;}
+#tabs .pinned > img {padding: 0;margin: .2em;}
 #tabs .crashed {background-color: #f00;}
 #tabs [media-playing]::before {border-left: solid .3em #09f;content: "";}
 /* pages */
