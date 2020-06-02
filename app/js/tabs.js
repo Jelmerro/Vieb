@@ -310,12 +310,20 @@ const tabOrPageMatching = el => {
 }
 
 const switchToTab = index => {
-    if (index < 0) {
-        index = 0
-    }
     const tabs = listTabs()
+    if (index < 0) {
+        if (SETTINGS.get("tabcycle")) {
+            index = tabs.length + index
+        } else {
+            index = 0
+        }
+    }
     if (tabs.length <= index) {
-        index = tabs.length - 1
+        if (SETTINGS.get("tabcycle")) {
+            index -= tabs.length
+        } else {
+            index = tabs.length - 1
+        }
     }
     const oldPage = currentPage()
     tabs.forEach(tab => {

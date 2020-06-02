@@ -73,6 +73,7 @@ const defaultSettings = {
     "suggestcommands": 20,
     "suggesthistory": 20,
     "suggesttopsites": 10,
+    "tabcycle": true,
     "tabnexttocurrent": true,
     "taboverflow": "scroll",
     "timeout": true,

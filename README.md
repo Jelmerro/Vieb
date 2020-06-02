@@ -79,7 +79,7 @@ Vieb is and always will be free and open source, but you can support it's develo
 
 # Building
 
-To create your own builds or run Vieb from source, you need to install [Node.js](https:/nodejs.org).
+To create your own builds or run Vieb from source, you need to install [Node.js](https://nodejs.org).
 The next step is to clone the repository or download the source code.
 After downloading, make sure you are in cloned/extracted Vieb folder and run:
 
