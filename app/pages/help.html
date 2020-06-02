@@ -440,6 +440,11 @@
         With the hardcopy command you can make a hardcopy of the current page using a printer. This will open the print dialog similar to other programs. There are no arguments for this command. Tip: it's also possibly to do this for <a href="#specialpages">specialpages</a> such as this help page.
         <h3 id=":print">:print</h3>
         Identical to <a href="#:hardcopy">:hardcopy</a>.
+        <h3 id=":pin">:pin</h3>
+        <ul>
+            <li><span class="command-block">:pin</span> - Toggle the pinned status of the current tab</li>
+        </ul>
+        This command is used to pin or unpin the current tab. The pinned status of the current tab will be toggled. Pinned tabs have a fixed width of just the icon and will always be remembered on restart, regardless of the <a href="#restoretabs">restoretabs</a> setting. Pinned tabs are always displayed before regular tabs.
         <h3 id=":devtools">:devtools</h3>
         <ul>
             <li><span class="command-block">:devtools</span> - Open the developer tools of the current page in a new window</li>
@@ -555,7 +560,7 @@
         <h3 id="requesttimeout">requesttimeout</h3>
         Duration in milliseconds before stopping a page load automatically. The timer is reset upon navigation to any page and after the timeout duration is reached, the page load will be stopped automatically, similar to calling <a href="#action.stopLoadingPage">action.stopLoadingPage</a> manually. Any duration below 1000 milliseconds is ignored and will disable the timeout completely, which could mean that some websites will never stop loading.
         <h3 id="restoretabs">restoretabs</h3>
-        Toggle for restoring tabs you had open during the previous browsing session. If enabled, all tabs you had open when you quit Vieb last time, will automatically open again when you start Vieb. If you have configured any <a href="#startuppages">startuppages</a>, they will be opened after restoring the previous tabs. If this setting is disabled, tabs won't be restored, but will possibly be stored as recently closed tabs so you can reopen them, which is configured with <a href="#keeprecentlyclosed">keeprecentlyclosed</a>.
+        Toggle for restoring tabs you had open during the previous browsing session. If enabled, all tabs you had open when you quit Vieb last time, will automatically open again when you start Vieb. If you have configured any <a href="#startuppages">startuppages</a>, they will be opened after restoring the previous tabs. If this setting is disabled, tabs won't be restored, but will possibly be stored as recently closed tabs so you can reopen them, which is configured with <a href="#keeprecentlyclosed">keeprecentlyclosed</a>. Tabs which are pinned by the <a href="#:pin">:pin</a> command are always restored, regardless of the restoretabs setting.
         <h3 id="restorewindowmaximize">restorewindowmaximize</h3>
         Toggle for remembering and restoring the window maximization state after restarting Vieb.
         <h3 id="restorewindowposition">restorewindowposition</h3>

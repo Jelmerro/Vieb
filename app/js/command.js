@@ -340,6 +340,19 @@ const hide = (...args) => {
     }
 }
 
+const pin = () => {
+    const tabContainer = document.getElementById("tabs")
+    if (TABS.currentTab().classList.contains("pinned")) {
+        tabContainer.insertBefore(TABS.currentTab(), TABS.listTabs().find(
+            t => !t.classList.contains("pinned")))
+        TABS.currentTab().classList.remove("pinned")
+    } else {
+        TABS.currentTab().classList.add("pinned")
+        tabContainer.insertBefore(TABS.currentTab(), TABS.listTabs().find(
+            t => !t.classList.contains("pinned")))
+    }
+}
+
 const tabIndexById = id => TABS.listTabs().indexOf(TABS.listTabs().find(
     t => t.getAttribute("link-id") === id))
 
@@ -465,6 +478,7 @@ const commands = {
     "b": buffer,
     "buffer": buffer,
     "hide": hide,
+    "pin": pin,
     "Vexplore": (...args) => addSplit("hor", !SETTINGS.get("splitbelow"), args),
     "Sexplore": (...args) => addSplit("ver", !SETTINGS.get("splitright"), args),
     "split": (...args) => addSplit("ver", !SETTINGS.get("splitright"), args),
@@ -495,6 +509,7 @@ const noArgumentComands = [
     "cookies",
     "hardcopy",
     "print",
+    "pin",
     "comclear"
 ]
 

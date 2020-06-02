@@ -21,6 +21,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Add windowtitle setting to optionally include the page title and/or url in Vieb's window title
 - Recursive insert mode mappings are now possible
 - Tabcycle toggle to jump from the first or last tab with next and previous tab actions (on by default)
+- Pin command to toggle pinned tabs, which are exactly the width of the favicon and are always restored on restart
 
 ### Changed
 

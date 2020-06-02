@@ -38,6 +38,8 @@ const defaultBindings = {
         "<C-f>": {"mapping": "<action.scrollPageDown>"},
         "gg": {"mapping": "<action.scrollTop>"},
         "gi": {"mapping": "<action.insertAtFirstInput>"},
+        "gt": {"mapping": "<action.nextTab>"},
+        "gT": {"mapping": "<action.previousTab>"},
         "G": {"mapping": "<action.scrollBottom>"},
         "h": {"mapping": "<action.scrollLeft>"},
         "H": {"mapping": "<action.backInHistory>"},

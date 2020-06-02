@@ -30,28 +30,14 @@ const tabFile = path.join(remote.app.getPath("appData"), "tabs")
 
 const init = () => {
     window.addEventListener("load", () => {
-        const startup = SETTINGS.get("startuppages")
         const parsed = UTIL.readJSON(tabFile)
-        for (const tab of startup.split(",")) {
-            const specialPage = UTIL.pathToSpecialPageName(tab)
-            if (specialPage.name) {
-                openSavedPage(UTIL.specialPagePath(
-                    specialPage.name, specialPage.section))
-                parsed.id += 1
-            } else if (UTIL.isUrl(tab)) {
-                openSavedPage(tab)
-                parsed.id += 1
-            }
-        }
         if (parsed) {
+            if (Array.isArray(parsed.pinned)) {
+                parsed.pinned.forEach(tab => openSavedPage(tab, true))
+            }
             if (SETTINGS.get("restoretabs")) {
                 if (Array.isArray(parsed.tabs)) {
-                    parsed.tabs.forEach(tab => {
-                        openSavedPage(tab)
-                    })
-                    if (listTabs().length !== 0) {
-                        switchToTab(parsed.id || 0)
-                    }
+                    parsed.tabs.forEach(tab => openSavedPage(tab))
                 }
                 if (Array.isArray(parsed.closed)) {
                     if (SETTINGS.get("keeprecentlyclosed")) {
@@ -65,15 +51,28 @@ const init = () => {
                 if (Array.isArray(parsed.closed)) {
                     recentlyClosed = parsed.closed.concat(recentlyClosed)
                 }
-            } else {
-                UTIL.deleteFile(tabFile)
+            }
+            if (listTabs().length !== 0) {
+                switchToTab(parsed.id || 0)
+            }
+        }
+        const startup = SETTINGS.get("startuppages")
+        for (const tab of startup.split(",")) {
+            const specialPage = UTIL.pathToSpecialPageName(tab)
+            if (specialPage.name) {
+                openSavedPage(UTIL.specialPagePath(
+                    specialPage.name, specialPage.section))
+                parsed.id += 1
+            } else if (UTIL.isUrl(tab)) {
+                openSavedPage(tab)
+                parsed.id += 1
             }
         }
         if (listTabs().length === 0) {
             if (parsed) {
                 addTab()
             } else {
-                // Probably first startup ever (no configured or stored pages)
+                // The very first startup with this data folder, show help page
                 addTab({"url": UTIL.specialPagePath("help")})
             }
         }
@@ -107,7 +106,7 @@ const init = () => {
     })
 }
 
-const openSavedPage = url => {
+const openSavedPage = (url, pinned = false) => {
     if (!url.trim()) {
         return
     }
@@ -116,28 +115,44 @@ const openSavedPage = url => {
         if (UTIL.pathToSpecialPageName(currentPage().src).name === "newtab") {
             if (!webContents(currentPage()).isLoading()) {
                 navigateTo(url)
+                if (pinned) {
+                    currentTab().classList.add("pinned")
+                }
                 return
             }
         }
     } catch (e) {
         // Current page not ready yet, open in new tab instead
     }
-    addTab({"url": url})
+    addTab({url, pinned})
 }
 
 const saveTabs = () => {
     const data = {
+        "pinned": [],
         "tabs": [],
         "id": 0,
         "closed": []
     }
+    // The list of tabs is ordered, the list of pages isn't
+    // Pinned tabs are always saved to the file
+    listTabs().forEach(tab => {
+        if (tab.classList.contains("pinned")) {
+            const webview = tabOrPageMatching(tab)
+            data.pinned.push(UTIL.urlToString(webview.src))
+            if (webview === currentPage()) {
+                data.id = data.pinned.length - 1
+            }
+        }
+    })
     if (SETTINGS.get("restoretabs")) {
         listTabs().forEach(tab => {
-            // The list of tabs is ordered, the list of pages isn't
-            const webview = tabOrPageMatching(tab)
-            data.tabs.push(UTIL.urlToString(webview.src))
-            if (webview === currentPage()) {
-                data.id = data.tabs.length - 1
+            if (!tab.classList.contains("pinned")) {
+                const webview = tabOrPageMatching(tab)
+                data.tabs.push(UTIL.urlToString(webview.src))
+                if (webview === currentPage()) {
+                    data.id = data.pinned.length + data.tabs.length - 1
+                }
             }
         })
         if (SETTINGS.get("keeprecentlyclosed")) {
@@ -146,13 +161,9 @@ const saveTabs = () => {
     } else if (SETTINGS.get("keeprecentlyclosed")) {
         data.closed = [...recentlyClosed]
         listTabs().forEach(tab => {
-            // The list of tabs is ordered, the list of pages isn't
             const webview = tabOrPageMatching(tab)
             data.closed.push(UTIL.urlToString(webview.src))
         })
-    } else {
-        UTIL.deleteFile(tabFile)
-        return
     }
     // Only keep the 100 most recently closed tabs,
     // more is probably never needed but would keep increasing the file size.
@@ -169,7 +180,7 @@ const currentTab = () => document.getElementById("current-tab")
 const currentPage = () => document.getElementById("current-page")
 
 const addTab = options => {
-    // Valid options are: url, inverted, switchTo and callback
+    // Valid options are: url, inverted, switchTo, pinned and callback
     if (!options) {
         options = {}
     }
@@ -187,6 +198,9 @@ const addTab = options => {
     const favicon = document.createElement("img")
     const statusIcon = document.createElement("img")
     const title = document.createElement("span")
+    if (options.pinned) {
+        tab.classList.add("pinned")
+    }
     tab.style.minWidth = `${SETTINGS.get("mintabwidth")}px`
     tab.addEventListener("mouseup", e => {
         if (e.button === 1) {
@@ -720,9 +734,13 @@ const navigateTo = location => {
 
 const moveTabForward = () => {
     const tabs = document.getElementById("tabs")
-    const index = listTabs().indexOf(currentTab())
-    if (index >= listTabs().length - 1) {
+    if (!currentTab().nextSibling) {
         return
+    }
+    if (currentTab().classList.contains("pinned")) {
+        if (!currentTab().nextSibling.classList.contains("pinned")) {
+            return
+        }
     }
     tabs.insertBefore(currentTab(), currentTab().nextSibling.nextSibling)
     currentTab().scrollIntoView({
@@ -732,9 +750,13 @@ const moveTabForward = () => {
 
 const moveTabBackward = () => {
     const tabs = document.getElementById("tabs")
-    const index = listTabs().indexOf(currentTab())
-    if (index === 0) {
+    if (listTabs().indexOf(currentTab()) === 0) {
         return
+    }
+    if (!currentTab().classList.contains("pinned")) {
+        if (currentTab().previousSibling.classList.contains("pinned")) {
+            return
+        }
     }
     tabs.insertBefore(currentTab(), currentTab().previousSibling)
     currentTab().scrollIntoView({
