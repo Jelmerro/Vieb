@@ -20,6 +20,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Arm64 architecture builds for most Linux and Windows releases
 - Add windowtitle setting to optionally include the page title and/or url in Vieb's window title
 - Recursive insert mode mappings are now possible
+- Tabcycle toggle to jump from the first or last tab with next and previous tab actions (on by default)
 
 ### Changed
 
