@@ -30,7 +30,7 @@ Vieb
 - __History management__, container tabs, download management and remember previous session
 - __Fast offline auto-completion__ for websites and commands, with default to HTTPS
 - __Ad-blocker__ with optional updater and custom list support, default to: easylist and easyprivacy
-- __Tabs__ including audio indicator, a toggle for multi-line tabs and a configurable minimal tab width
+- __Tabs__ including audio indicator, a toggle for multi-line tabs, pinned tabs and a configurable minimal tab width
 - __Offline help documentation__ always available upon pressing __F1__
 - __[And much, much more](https://vieb.dev/features)__
 
