@@ -605,12 +605,12 @@ const handleKeyboard = e => {
     pressedKeys += id
     const action = bindings[MODES.currentMode()[0]][pressedKeys]
     if (action && (e.isTrusted || e.bubbles)) {
+        e.preventDefault()
         if (e.isTrusted) {
             executeMapString(action.mapping, !action.noremap, true)
         } else {
             executeMapString(action.mapping, e.bubbles)
         }
-        e.preventDefault()
         return
     }
     if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
@@ -705,8 +705,7 @@ const handleUserInput = e => {
     const shiftOnly = id.startsWith("<S-")
     const allowedInput = allowedUserInput.includes(id)
     const hasModifier = id.match(/^<.*-.*>$/)
-    const blockedKey = ["Tab", "F11"].find(key => id.includes(key))
-    if (!shiftOnly && !allowedInput && hasModifier || blockedKey) {
+    if (!shiftOnly && !allowedInput && hasModifier || id === "Tab") {
         e.preventDefault()
     }
     ACTIONS.setFocusCorrectly()

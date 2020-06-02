@@ -77,6 +77,26 @@ Vieb is and always will be free and open source, but you can support it's develo
 
 [![Donate](https://img.shields.io/static/v1?label=ko-fi&message=donate&color=red&logo=ko-fi&style=flat-square)](https://ko-fi.com/Jelmerro)
 
+# Building
+
+To create your own builds or run Vieb from source, you need to install [Node.js](https:/nodejs.org).
+The next step is to clone the repository or download the source code.
+After downloading, make sure you are in cloned/extracted Vieb folder and run:
+
+```bash
+npm install
+npm start
+```
+
+If this runs Vieb as expected, you can generate builds for your specific platform with:
+
+```bash
+npm ci
+npm run build
+```
+
+To see the full list of run and build options, simply execute `npm run`.
+
 # License
 
 Vieb is created by [Jelmer van Arnhem](https://github.com/Jelmerro) and [contributors](https://github.com/Jelmerro/Vieb/graphs/contributors).

@@ -212,7 +212,7 @@ const parseElement = (element, type) => {
     }
     // The element should be clickable and is returned in a parsed format
     return {
-        "url": element.href || "",
+        "url": String(element.href || ""),
         "x": dimensions.x,
         "y": dimensions.y,
         "width": dimensions.width,

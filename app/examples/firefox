@@ -8,6 +8,7 @@ set permissionmicrophone=ask
 set redirecttohttp
 set norestoretabs
 set mintabwidth=250
+set windowtitle=title
 
 " Mappings
 map <Up> <action.scrollUp>
