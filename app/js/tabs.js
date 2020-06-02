@@ -62,10 +62,8 @@ const init = () => {
             if (specialPage.name) {
                 openSavedPage(UTIL.specialPagePath(
                     specialPage.name, specialPage.section))
-                parsed.id += 1
             } else if (UTIL.isUrl(tab)) {
                 openSavedPage(tab)
-                parsed.id += 1
             }
         }
         if (listTabs().length === 0) {
