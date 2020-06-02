@@ -10,6 +10,7 @@ set permissionmicrophone=ask
 set redirecttohttp
 set search=https://google.com/search?q=
 set mintabwidth=0
+set windowtitle=title
 
 " Mappings
 map <Up> <action.scrollUp>

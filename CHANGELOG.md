@@ -30,6 +30,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Insert mode mappings not triggering built-in actions, such as Home or PageUp
 - Not all named keys being correctly detected and converted to the right casing
 - Digits to repeat actions not being applied when part of a mapping before a built-in action
+- Animated SVG images sometimes breaking follow mode (due to href being an object instead of a string)
 
 ### Security
 
