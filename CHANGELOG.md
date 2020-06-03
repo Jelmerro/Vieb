@@ -26,6 +26,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Allow the entire window to be used as a drag region if the mouse setting is off and you are not in insert mode
+- Update minimum tabwidth to 28, due to styling changes in the navigation bar (default behavior is still just the icon)
 
 ### Fixed
 
@@ -36,8 +37,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Security
 
-- Electron 9.0.0 (unchanged)
-- Chromium 83.0.4103.64 (unchanged)
+- Electron 9.0.2 (was 9.0.0)
+- Chromium 83.0.4103.94 (was 83.0.4103.64)
 
 ## [2.1.0](https://github.com/Jelmerro/Vieb/compare/2.0.0...2.1.0) - 2020-05-19
 
