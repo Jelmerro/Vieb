@@ -358,6 +358,11 @@ const distrubuteSpaceSplitWindow = () => {
     PAGELAYOUT.resetResizing()
 }
 
+const toggleFullscreen = () => {
+    UTIL.windowByName("main").fullScreen = !UTIL.windowByName("main").fullScreen
+    SETTINGS.updateGuiVisibility()
+}
+
 const useEnteredData = () => {
     if (MODES.currentMode() === "command") {
         const command = document.getElementById("url").value.trim()
@@ -486,6 +491,7 @@ module.exports = {
     prevSuggestion,
     commandHistoryPrevious,
     commandHistoryNext,
+    toggleFullscreen,
     useEnteredData,
     setFocusCorrectly
 }

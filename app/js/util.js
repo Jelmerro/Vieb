@@ -114,23 +114,20 @@ const notify = (message, type = "info") => {
         return
     }
     if (escapedMessage.split("<br>").length > 5 || message.length > 200) {
-        for (const browserWindow of remote.BrowserWindow.getAllWindows()) {
-            if (browserWindow.getURL().endsWith("notificationmessage.html")) {
-                ipcRenderer.sendTo(browserWindow.webContents.id,
-                    "notification-contents", escapedMessage,
-                    SETTINGS.get("fontsize"), properType)
-                const bounds = remote.getCurrentWindow().getBounds()
-                const width = Math.round(bounds.width * .9)
-                let height = Math.round(bounds.height * .9)
-                height -= height % SETTINGS.get("fontsize")
-                browserWindow.setMinimumSize(width, height)
-                browserWindow.setSize(width, height)
-                browserWindow.setPosition(
-                    Math.round(bounds.x + bounds.width / 2 - width / 2),
-                    Math.round(bounds.y + bounds.height / 2 - height / 2))
-                browserWindow.show()
-            }
-        }
+        const notificationWindow = windowByName("notifications")
+        ipcRenderer.sendTo(notificationWindow.webContents.id,
+            "notification-contents", escapedMessage,
+            SETTINGS.get("fontsize"), properType)
+        const bounds = windowByName("main").getBounds()
+        const width = Math.round(bounds.width * .9)
+        let height = Math.round(bounds.height * .9)
+        height -= height % SETTINGS.get("fontsize")
+        notificationWindow.setMinimumSize(width, height)
+        notificationWindow.setSize(width, height)
+        notificationWindow.setPosition(
+            Math.round(bounds.x + bounds.width / 2 - width / 2),
+            Math.round(bounds.y + bounds.height / 2 - height / 2))
+        notificationWindow.show()
         return
     }
     const notificationsElement = document.getElementById("notifications")
@@ -142,6 +139,16 @@ const notify = (message, type = "info") => {
     setTimeout(() => {
         notificationsElement.removeChild(notification)
     }, SETTINGS.get("notificationduration"))
+}
+
+const windowByName = name => {
+    const url = {
+        "main": "index.html",
+        "login": "login.html",
+        "notifications": "notificationmessage.html"
+    }[name] || "unknown"
+    return remote.BrowserWindow.getAllWindows().find(
+        b => b.getURL().endsWith(url))
 }
 
 const specialPagePath = (page, section = null, skipExistCheck = false) => {
@@ -374,6 +381,7 @@ module.exports = {
     hasProtocol,
     isUrl,
     notify,
+    windowByName,
     specialPagePath,
     pathToSpecialPageName,
     clearContainerTabs,

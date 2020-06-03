@@ -245,3 +245,7 @@ window.addEventListener("keydown", e => {
         e.preventDefault()
     }
 })
+
+window.addEventListener("mousemove", e => {
+    ipcRenderer.sendToHost("top-of-page-with-mouse", !e.clientY)
+})

@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS COMMANDHISTORY POINTER FOLLOW INPUT SUGGEST TABS */
+/* global ACTIONS COMMANDHISTORY POINTER FOLLOW INPUT SETTINGS SUGGEST TABS */
 "use strict"
 
 const modes = {
@@ -182,6 +182,7 @@ const setMode = mode => {
     document.getElementById("mode").style.color = modes[mode].fg || ""
     document.getElementById("mode-container")
         .style.backgroundColor = modes[mode].bg || ""
+    SETTINGS.guiRelatedUpdate("navbar")
     TABS.listPages().forEach(page => {
         if (page.getAttribute("webview-id")) {
             TABS.webContents(page).removeAllListeners("before-input-event")

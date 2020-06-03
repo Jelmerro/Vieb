@@ -22,6 +22,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Recursive insert mode mappings are now possible
 - Tabcycle toggle to jump from the first or last tab with next and previous tab actions (on by default)
 - Pin command to toggle pinned tabs, which are exactly the width of the favicon and are always restored on restart
+- GUI settings to autohide the navbar and/or tabbar depending on events or always
 
 ### Changed
 

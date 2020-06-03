@@ -25,6 +25,7 @@ const defaultBindings = {
     "n": {
         "<CR>": {"mapping": "<action.clickOnSearch>"},
         "<F1>": {"mapping": "<:help>"},
+        "<F11>": {"mapping": "<action.toggleFullscreen>"},
         "<C-a>": {"mapping": "<action.increasePageNumber>"},
         "b": {"mapping": "<action.previousTab>"},
         "<C-b>": {"mapping": "<action.scrollPageUp>"},
@@ -105,6 +106,7 @@ const defaultBindings = {
     },
     "i": {
         "<F1>": {"mapping": "<:help>"},
+        "<F11>": {"mapping": "<action.toggleFullscreen>"},
         "<Esc>": {"mapping": "<action.toNormalMode>"},
         "<C-i>": {"mapping": "<action.editWithVim>"},
         "<C-[>": {"mapping": "<action.toNormalMode>"}
@@ -112,6 +114,7 @@ const defaultBindings = {
     "c": {
         "<CR>": {"mapping": "<action.useEnteredData>"},
         "<F1>": {"mapping": "<:help>"},
+        "<F11>": {"mapping": "<action.toggleFullscreen>"},
         "<Esc>": {"mapping": "<action.toNormalMode>"},
         "<Tab>": {"mapping": "<action.nextSuggestion>"},
         "<S-Tab>": {"mapping": "<action.prevSuggestion>"},
@@ -122,12 +125,14 @@ const defaultBindings = {
     "s": {
         "<CR>": {"mapping": "<action.useEnteredData>"},
         "<F1>": {"mapping": "<:help>"},
+        "<F11>": {"mapping": "<action.toggleFullscreen>"},
         "<Esc>": {"mapping": "<action.toNormalMode>"},
         "<C-[>": {"mapping": "<action.toNormalMode>"}
     },
     "e": {
         "<CR>": {"mapping": "<action.useEnteredData>"},
         "<F1>": {"mapping": "<:help>"},
+        "<F11>": {"mapping": "<action.toggleFullscreen>"},
         "<Esc>": {"mapping": "<action.toNormalMode>"},
         "<Tab>": {"mapping": "<action.nextSuggestion>"},
         "<S-Tab>": {"mapping": "<action.prevSuggestion>"},
@@ -135,11 +140,13 @@ const defaultBindings = {
     },
     "f": {
         "<F1>": {"mapping": "<:help>"},
+        "<F11>": {"mapping": "<action.toggleFullscreen>"},
         "<Esc>": {"mapping": "<action.stopFollowMode>"},
         "<C-[>": {"mapping": "<action.stopFollowMode>"}
     },
     "p": {
         "<F1>": {"mapping": "<:help>"},
+        "<F11>": {"mapping": "<action.toggleFullscreen>"},
         "<CR>": {"mapping": "<pointer.leftClick>"},
         "<Esc>": {"mapping": "<action.toNormalMode>"},
         "[": {"mapping": "<pointer.scrollUp>"},
@@ -178,6 +185,7 @@ const defaultBindings = {
     },
     "v": {
         "<F1>": {"mapping": "<:help>"},
+        "<F11>": {"mapping": "<action.toggleFullscreen>"},
         "<Esc>": {"mapping": "<action.toNormalMode>"},
         "[": {"mapping": "<pointer.scrollUp>"},
         "]": {"mapping": "<pointer.scrollDown>"},
