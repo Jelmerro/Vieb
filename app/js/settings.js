@@ -39,7 +39,7 @@ const defaultSettings = {
     "keeprecentlyclosed": true,
     "ignorecase": false,
     "maxmapdepth": 10,
-    "mintabwidth": 22,
+    "mintabwidth": 28,
     "mouse": false,
     "mousefocus": false,
     "nativenotification": false,
