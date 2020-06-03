@@ -15,7 +15,7 @@ Vieb
 [![Electron version](https://img.shields.io/github/package-json/dependency-version/Jelmerro/Vieb/dev/electron?style=flat-square)](https://github.com/electron/electron)
 [![License](https://img.shields.io/github/license/Jelmerro/Vieb?style=flat-square)](https://github.com/Jelmerro/Vieb/blob/master/LICENSE)
 [![Donate](https://img.shields.io/static/v1?label=ko-fi&message=donate&color=red&logo=ko-fi&style=flat-square)](https://ko-fi.com/Jelmerro)
-[![Reddit](https://img.shields.io/reddit/subreddit-subscribers/vieb?style=social)](httsp://reddit.com/r/vieb)
+[![Reddit](https://img.shields.io/reddit/subreddit-subscribers/vieb?style=social)](https://reddit.com/r/vieb)
 
 # Features
 

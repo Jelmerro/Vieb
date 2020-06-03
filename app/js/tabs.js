@@ -353,36 +353,34 @@ const switchToTab = index => {
     MODES.setMode("normal")
     document.getElementById("url-hover").textContent = ""
     document.getElementById("url-hover").style.display = "none"
+    SETTINGS.guiRelatedUpdate("tabbar")
 }
 
 const updateWindowTitle = () => {
-    for (const browserWindow of remote.BrowserWindow.getAllWindows()) {
-        if (browserWindow.getURL().endsWith("index.html")) {
-            if (SETTINGS.get("windowtitle") === "simple" || !currentPage()) {
-                browserWindow.title = "Vieb"
-                return
-            }
-            const title = tabOrPageMatching(currentPage())
-                .querySelector("span").textContent
-            if (SETTINGS.get("windowtitle") === "title" || !currentPage().src) {
-                browserWindow.title = `Vieb - ${title}`
-                return
-            }
-            let url = currentPage().src
-            const specialPage = UTIL.pathToSpecialPageName(url)
-            if (specialPage.name) {
-                url = `vieb://${specialPage.name}`
-                if (specialPage.section) {
-                    url += `#${specialPage.section}`
-                }
-            }
-            if (SETTINGS.get("windowtitle") === "url") {
-                browserWindow.title = `Vieb - ${url}`
-                return
-            }
-            browserWindow.title = `Vieb - ${title} - ${url}`
+    const mainWindow = UTIL.windowByName("main")
+    if (SETTINGS.get("windowtitle") === "simple" || !currentPage()) {
+        mainWindow.title = "Vieb"
+        return
+    }
+    const title = tabOrPageMatching(currentPage())
+        .querySelector("span").textContent
+    if (SETTINGS.get("windowtitle") === "title" || !currentPage().src) {
+        mainWindow.title = `Vieb - ${title}`
+        return
+    }
+    let url = currentPage().src
+    const specialPage = UTIL.pathToSpecialPageName(url)
+    if (specialPage.name) {
+        url = `vieb://${specialPage.name}`
+        if (specialPage.section) {
+            url += `#${specialPage.section}`
         }
     }
+    if (SETTINGS.get("windowtitle") === "url") {
+        mainWindow.title = `Vieb - ${url}`
+        return
+    }
+    mainWindow.title = `Vieb - ${title} - ${url}`
 }
 
 const updateUrl = (webview, force = false) => {
@@ -470,7 +468,7 @@ const addWebviewListeners = webview => {
             for (const browserWindow of remote.BrowserWindow.getAllWindows()) {
                 if (browserWindow.getURL().endsWith("login.html")) {
                     MODES.setMode("normal")
-                    const bounds = remote.getCurrentWindow().getBounds()
+                    const bounds = UTIL.windowByName("main").getBounds()
                     const size = Math.round(SETTINGS.get("fontsize") * 21)
                     browserWindow.setMinimumSize(size, size)
                     browserWindow.setSize(size, size)
@@ -683,6 +681,9 @@ const addWebviewListeners = webview => {
             } else if (favoritePages.length > 0) {
                 webview.send("insert-new-tab-info", false, favoritePages)
             }
+        }
+        if (e.channel === "top-of-page-with-mouse") {
+            SETTINGS.setTopOfPageWithMouse(e.args[0])
         }
     })
     webview.addEventListener("found-in-page", e => {

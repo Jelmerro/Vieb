@@ -156,7 +156,7 @@ const quit = () => {
 }
 
 const quitall = () => {
-    remote.getCurrentWindow().hide()
+    UTIL.windowByName("main").hide()
     if (SETTINGS.get("clearhistoryonquit")) {
         HISTORY.clearHistory()
     } else {
@@ -175,7 +175,7 @@ const quitall = () => {
     }
     DOWNLOADS.cancelAll()
     FAVICONS.updateMappings()
-    remote.getCurrentWindow().destroy()
+    UTIL.windowByName("main").destroy()
     remote.app.exit(0)
 }
 

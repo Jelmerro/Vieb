@@ -29,11 +29,11 @@ const init = () => {
     // Move and resize state are saved and checked to detect window snapping.
     let justMoved = false
     let justResized = false
-    remote.getCurrentWindow().on("maximize", saveWindowState)
-    remote.getCurrentWindow().on("unmaximize", () => {
+    UTIL.windowByName("main").on("maximize", saveWindowState)
+    UTIL.windowByName("main").on("unmaximize", () => {
         saveWindowState(true)
     })
-    remote.getCurrentWindow().on("resize", () => {
+    UTIL.windowByName("main").on("resize", () => {
         justResized = true
         setTimeout(() => {
             if (!justMoved) {
@@ -44,7 +44,7 @@ const init = () => {
             justResized = false
         }, 30)
     })
-    remote.getCurrentWindow().on("move", () => {
+    UTIL.windowByName("main").on("move", () => {
         justMoved = true
         setTimeout(() => {
             if (!justResized) {
@@ -70,26 +70,26 @@ const load = () => {
     }
     if (SETTINGS.get("restorewindowposition")) {
         if (bounds.x > 0 && bounds.y > 0) {
-            remote.getCurrentWindow().setPosition(
+            UTIL.windowByName("main").setPosition(
                 bounds.x, bounds.y)
         }
     }
     if (SETTINGS.get("restorewindowsize")) {
         if (bounds.width > 500 && bounds.height > 500) {
-            remote.getCurrentWindow().setSize(
+            UTIL.windowByName("main").setSize(
                 bounds.width, bounds.height)
         }
     }
     if (bounds.maximized && SETTINGS.get("restorewindowmaximize")) {
-        remote.getCurrentWindow().maximize()
+        UTIL.windowByName("main").maximize()
     }
-    remote.getCurrentWindow().show()
+    UTIL.windowByName("main").show()
 }
 
 const saveWindowState = (maximizeOnly = false) => {
     let state = UTIL.readJSON(windowStateFile) || {}
-    if (!maximizeOnly && !remote.getCurrentWindow().isMaximized()) {
-        const newBounds = remote.getCurrentWindow().getBounds()
+    if (!maximizeOnly && !UTIL.windowByName("main").isMaximized()) {
+        const newBounds = UTIL.windowByName("main").getBounds()
         const currentScreen = remote.screen.getDisplayMatching(newBounds).bounds
         if (newBounds.width !== currentScreen.width) {
             if (newBounds.height !== currentScreen.height) {
@@ -105,7 +105,7 @@ const saveWindowState = (maximizeOnly = false) => {
             }
         }
     }
-    state.maximized = remote.getCurrentWindow().isMaximized()
+    state.maximized = UTIL.windowByName("main").isMaximized()
     UTIL.writeJSON(windowStateFile, state)
 }
 

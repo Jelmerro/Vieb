@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND DOWNLOADS INPUT PAGELAYOUT SESSIONS TABS UTIL */
+/* global COMMAND DOWNLOADS INPUT MODES PAGELAYOUT SESSIONS TABS UTIL */
 "use strict"
 
 const path = require("path")
@@ -36,6 +36,11 @@ const defaultSettings = {
     "favicons": "session",
     "favoritepages": "",
     "fontsize": 14,
+    "guifullscreennavbar": "oninput",
+    "guifullscreentabbar": "onupdate",
+    "guihidetimeout": 2000,
+    "guinavbar": "always",
+    "guitabbar": "always",
     "keeprecentlyclosed": true,
     "ignorecase": false,
     "maxmapdepth": 10,
@@ -90,6 +95,10 @@ const validOptions = {
     "favicons": [
         "disabled", "nocache", "session", "1day", "5day", "30day", "forever"
     ],
+    "guifullscreennavbar": ["always", "onupdate", "oninput", "never"],
+    "guifullscreentabbar": ["always", "onupdate", "never"],
+    "guinavbar": ["always", "onupdate", "oninput", "never"],
+    "guitabbar": ["always", "onupdate", "never"],
     "notificationposition": [
         "bottomright", "bottomleft", "topright", "topleft"
     ],
@@ -114,6 +123,7 @@ const validOptions = {
 const numberRanges = {
     "countlimit": [0, 10000],
     "fontsize": [8, 30],
+    "guihidetimeout": [0, 10000],
     "maxmapdepth": [1, 40],
     "mintabwidth": [0, 10000],
     "notificationduration": [0, 30000],
@@ -124,6 +134,9 @@ const numberRanges = {
     "timeoutlen": [0, 10000]
 }
 const config = path.join(remote.app.getPath("appData"), "viebrc")
+let navbarGuiTimer = null
+let tabbarGuiTimer = null
+let topOfPageWithMouse = false
 
 const init = () => {
     loadFromDisk()
@@ -260,6 +273,64 @@ const updateFontSize = () => {
     PAGELAYOUT.applyLayout()
 }
 
+const getGuiStatus = type => {
+    let setting = get(`gui${type}`)
+    if (UTIL.windowByName("main").fullScreen) {
+        setting = get(`guifullscreen${type}`)
+    }
+    if (topOfPageWithMouse && setting !== "never") {
+        setting = "always"
+    }
+    return setting
+}
+
+const setTopOfPageWithMouse = status => {
+    topOfPageWithMouse = status
+    updateGuiVisibility()
+}
+
+const guiRelatedUpdate = type => {
+    updateGuiVisibility()
+    if (type === "navbar" && getGuiStatus("navbar") === "onupdate") {
+        clearTimeout(navbarGuiTimer)
+        document.body.classList.remove("navigationhidden")
+        navbarGuiTimer = setTimeout(() => {
+            navbarGuiTimer = null
+            updateGuiVisibility()
+        }, get("guihidetimeout"))
+    }
+    if (type === "tabbar" && getGuiStatus("tabbar") === "onupdate") {
+        clearTimeout(tabbarGuiTimer)
+        document.body.classList.remove("tabshidden")
+        tabbarGuiTimer = setTimeout(() => {
+            tabbarGuiTimer = null
+            updateGuiVisibility()
+        }, get("guihidetimeout"))
+    }
+}
+
+const updateGuiVisibility = () => {
+    const navbar = getGuiStatus("navbar")
+    const tabbar = getGuiStatus("tabbar")
+    if (!navbarGuiTimer) {
+        const notTyping = !"ces".includes(MODES.currentMode()[0])
+        if (navbar === "never" || navbar !== "always" && notTyping) {
+            document.body.classList.add("navigationhidden")
+        } else {
+            document.body.classList.remove("navigationhidden")
+        }
+    }
+    if (!tabbarGuiTimer) {
+        if (tabbar === "always") {
+            document.body.classList.remove("tabshidden")
+        } else {
+            document.body.classList.add("tabshidden")
+        }
+    }
+    setTimeout(PAGELAYOUT.applyLayout, 1)
+}
+
+
 const updateDownloadSettings = () => {
     remote.app.setPath("downloads", UTIL.expandPath(get("downloadpath")))
     DOWNLOADS.removeCompletedIfDesired()
@@ -268,20 +339,10 @@ const updateDownloadSettings = () => {
 const updateTabOverflow = () => {
     const setting = get("taboverflow")
     const tabs = document.getElementById("tabs")
-    const spacer = document.querySelector("#tabs > .spacer")
-    tabs.style.overflowX = ""
-    tabs.style.flexWrap = ""
-    tabs.style.marginLeft = "4em"
-    tabs.style.width = "calc(100vw - 4em)"
-    spacer.style.display = "none"
-    if (setting === "scroll") {
-        tabs.style.overflowX = "auto"
-    }
-    if (setting === "wrap") {
-        tabs.style.flexWrap = "wrap"
-        tabs.style.marginLeft = "0"
-        tabs.style.width = "100vw"
-        spacer.style.display = "inline-block"
+    tabs.classList.remove("scroll")
+    tabs.classList.remove("wrap")
+    if (setting !== "hidden") {
+        tabs.classList.add(setting)
     }
     try {
         TABS.currentTab().scrollIntoView({"inline": "center"})
@@ -420,6 +481,9 @@ const set = (setting, value) => {
         if (downloadSettings.includes(setting)) {
             updateDownloadSettings()
         }
+        if (setting.startsWith("g")) {
+            updateGuiVisibility()
+        }
         if (setting === "mintabwidth") {
             TABS.listTabs().forEach(tab => {
                 tab.style.minWidth = `${allSettings.mintabwidth}px`
@@ -539,7 +603,6 @@ const saveToDisk = full => {
     UTIL.writeFile(config, settingsAsCommands,
         `Could not write to '${config}'`, `Viebrc saved to '${config}'`, 4)
 }
-
 module.exports = {
     init,
     freeText,
@@ -552,5 +615,8 @@ module.exports = {
     updateHelpPage,
     settingsWithDefaults,
     listCurrentSettings,
-    saveToDisk
+    saveToDisk,
+    setTopOfPageWithMouse,
+    guiRelatedUpdate,
+    updateGuiVisibility
 }

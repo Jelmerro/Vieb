@@ -71,7 +71,7 @@ const permissionHandler = (_, permission, callback, details) => {
                 + "command like so: 'set permissionopenexternal=<value>\n\n"
                 + `page:\n${details.requestingUrl}\n\nexternal:\n${exturl}`
         }
-        remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+        remote.dialog.showMessageBox(UTIL.windowByName("main"), {
             "type": "question",
             "buttons": ["Allow", "Deny"],
             "defaultId": 0,
