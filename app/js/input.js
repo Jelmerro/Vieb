@@ -405,6 +405,7 @@ const countableActions = [
     "action.topHalfSplitWindow",
     "action.rightHalfSplitWindow",
     "action.distrubuteSpaceSplitWindow",
+    "action.toggleFullscreen",
     "action.useEnteredData",
     "pointer.start",
     "pointer.inspectElement",
