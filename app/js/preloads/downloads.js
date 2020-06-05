@@ -23,24 +23,16 @@ const path = require("path")
 let lastUpdate = new Date()
 
 window.update = (action = null, downloadId = null) => {
-    ipcRenderer.sendToHost("download-list-request", action, downloadId)
+    ipcRenderer.send("download-list-request", action, downloadId)
 }
 
-window.removeAll = () => {
-    window.update("removeall")
-}
+window.removeAll = () => window.update("removeall")
 
-window.remove = id => {
-    window.update("remove", id)
-}
+window.remove = id => window.update("remove", id)
 
-window.pause = id => {
-    window.update("pause", id)
-}
+window.pause = id => window.update("pause", id)
 
-window.resume = id => {
-    window.update("resume", id)
-}
+window.resume = id => window.update("resume", id)
 
 window.addEventListener("load", () => {
     const removeAll = document.createElement("img")

@@ -91,9 +91,7 @@ const clear = () => {
     suggestions = []
 }
 
-const addToList = suggestion => {
-    suggestions.push(suggestion)
-}
+const addToList = suggestion => suggestions.push(suggestion)
 
 const includes = suggestion => suggestions.includes(suggestion)
 

@@ -67,16 +67,12 @@
         const SETTINGS = require("./js/settings")
         // Create and manage sessions (container, downloads, adblocking etc.)
         const SESSIONS = require("./js/sessions")
-        // Download manager
-        const DOWNLOADS = require("./js/downloads")
         // History manager
         const HISTORY = require("./js/history")
         // Suggestions for the navigation bar
         const SUGGEST = require("./js/suggest")
         // Pointer based navigation mode (hover, visual, drag, right-click etc.)
         const POINTER = require("./js/pointer")
-        // Save and restore the window position, size and maximized state
-        const WINDOWSTATE = require("./js/windowstate")
         // Load favicon handler
         const FAVICONS = require("./js/favicons")
         // Load the layout manager, for splitting multiple webviews
@@ -85,10 +81,8 @@
         INPUT.init()
         SETTINGS.init()
         SESSIONS.init()
-        DOWNLOADS.init()
         HISTORY.init()
         TABS.init()
-        WINDOWSTATE.init()
         FAVICONS.init()
         MODES.init()
         COMMANDHISTORY.init()

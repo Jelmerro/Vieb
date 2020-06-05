@@ -18,11 +18,11 @@
 /* globals HISTORY SETTINGS TABS UTIL */
 "use strict"
 
+const {ipcRenderer} = require("electron")
 const path = require("path")
 const fs = require("fs")
-const {remote} = require("electron")
 
-const faviconFolder = path.join(remote.app.getPath("appData"), "favicons")
+const faviconFolder = path.join(UTIL.appData(), "favicons")
 const mappingFile = path.join(faviconFolder, "mappings")
 let mappings = {}
 const sessionStart = new Date()
@@ -36,6 +36,12 @@ const init = () => {
         mappings = parsed
     }
     isParsed = true
+    ipcRenderer.on("favicon-downloaded", (_, linkId, currentUrl, favicon) => {
+        const webview = document.querySelector(`#pages [link-id='${linkId}']`)
+        if (webview && webview.src === currentUrl) {
+            setPath(TABS.tabOrPageMatching(webview), urlToPath(favicon))
+        }
+    })
 }
 
 const updateMappings = (currentUrl = null) => {
@@ -128,28 +134,8 @@ const update = (webview, urls) => {
     } catch (e) {
         // Directory probably already exists
     }
-    const request = remote.net.request({
-        "url": favicon, "session": TABS.webContents(webview).session
-    })
-    request.on("response", res => {
-        const data = []
-        res.on("end", () => {
-            fs.writeFileSync(urlToPath(favicon), Buffer.concat(data))
-            if (webview.src === currentUrl) {
-                setPath(tab, urlToPath(favicon))
-            }
-        })
-        res.on("data", chunk => {
-            data.push(Buffer.from(chunk, "binary"))
-        })
-    })
-    request.on("abort", () => {
-        // Failed to download favicon
-    })
-    request.on("error", () => {
-        // Failed to download favicon
-    })
-    request.end()
+    ipcRenderer.send("download-favicon", favicon, urlToPath(favicon),
+        webview.getWebContentsId(), webview.getAttribute("link-id"), currentUrl)
 }
 
 const deleteIfTooOld = loc => {

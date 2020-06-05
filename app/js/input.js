@@ -281,6 +281,35 @@ const init = () => {
             SUGGEST.suggestCommand(document.getElementById("url").value)
         }
     })
+    ipcRenderer.on("insert-mode-input-event", (_, input) => {
+        if (input.code === "Tab") {
+            TABS.currentPage().focus()
+        }
+        // Check if fullscreen should be disabled
+        const noMods = !input.shift && !input.meta && !input.alt
+        const ctrl = input.control
+        const escapeKey = input.code === "Escape" && noMods && !ctrl
+        const ctrlBrack = input.code === "BracketLeft" && noMods && ctrl
+        if (escapeKey || ctrlBrack) {
+            if (document.body.classList.contains("fullscreen")) {
+                TABS.currentPage().send("action", "exitFullscreen")
+                return
+            }
+        }
+        if (input.type.toLowerCase() !== "keydown") {
+            return
+        }
+        handleKeyboard({
+            "ctrlKey": input.control,
+            "shiftKey": input.shift,
+            "metaKey": input.meta,
+            "altKey": input.alt,
+            "key": input.key,
+            "isTrusted": true,
+            "preventDefault": () => undefined,
+            "passedOnFromInsert": true
+        })
+    })
     ipcRenderer.on("window-close", () => {
         if (process.platform === "darwin") {
             executeMapString("<M-q>", true, true)
@@ -426,11 +455,11 @@ const hasFutureActionsBasedOnKeys = keys => !!Object.keys(bindings[
 const sendKeysToWebview = async (javascriptKey, mapStr, recursive) => {
     blockNextInsertKey = true
     if (javascriptKey.length === 1) {
-        TABS.webContents(TABS.currentPage()).sendInputEvent({
+        TABS.currentPage().sendInputEvent({
             "type": "char", "keyCode": javascriptKey
         })
     }
-    TABS.webContents(TABS.currentPage()).sendInputEvent({
+    TABS.currentPage().sendInputEvent({
         "type": "keyDown", "keyCode": javascriptKey
     })
     if (recursive) {
@@ -555,14 +584,7 @@ const handleKeyboard = e => {
         return
     }
     const ignoredKeys = [
-        "Control",
-        "Meta",
-        "Alt",
-        "Shift",
-        "NumLock",
-        "CapsLock",
-        "ScrollLock",
-        ""
+        "Control", "Meta", "Alt", "Shift", "NumLock", "CapsLock", "ScrollLock"
     ]
     if (recursiveCounter > SETTINGS.get("maxmapdepth")) {
         e.preventDefault()
@@ -572,7 +594,7 @@ const handleKeyboard = e => {
         e.preventDefault()
         return
     }
-    if (ignoredKeys.includes(e.key)) {
+    if (ignoredKeys.includes(e.key) || !e.key) {
         // Keys such as control should not be registered on their own
         e.preventDefault()
         return

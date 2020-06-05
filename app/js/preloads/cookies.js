@@ -17,7 +17,7 @@
 */
 "use strict"
 
-const {remote} = require("electron")
+const {ipcRenderer} = require("electron")
 const path = require("path")
 
 const filterList = () => {
@@ -64,7 +64,7 @@ const removeAllCookies = () => {
     document.getElementById("remove-all").style.display = "none"
     cookieElements.forEach(async cookie => {
         if (cookie.style.display !== "none") {
-            await remote.session.fromPartition("persist:main").cookies.remove(
+            await ipcRenderer.invoke("remove-cookie",
                 cookie.getAttribute("cookie-url"),
                 cookie.getAttribute("cookie-name"))
         }
@@ -96,7 +96,7 @@ const parseList = cookies => {
         remove.src = path.join(__dirname, "../../img/trash.png")
         remove.className = "remove"
         remove.addEventListener("click", async () => {
-            await remote.session.fromPartition("persist:main").cookies.remove(
+            await ipcRenderer.invoke("remove-cookie",
                 cookieToUrl(cookie), cookie.name)
             refreshList()
         })
@@ -107,13 +107,12 @@ const parseList = cookies => {
 }
 
 const refreshList = () => {
-    remote.session.fromPartition("persist:main")
-        .cookies.get({}).then(cookieList => {
-            parseList(cookieList.sort((a, b) => a.domain.replace(/\W/, "")
-                .localeCompare(b.domain.replace(/\W/, ""))))
-            document.getElementById("filter")
-                .addEventListener("input", filterList)
-        })
+    ipcRenderer.invoke("list-cookies").then(cookieList => {
+        parseList(cookieList.sort((a, b) => a.domain.replace(/\W/, "")
+            .localeCompare(b.domain.replace(/\W/, ""))))
+        document.getElementById("filter")
+            .addEventListener("input", filterList)
+    })
 }
 
 window.addEventListener("load", () => {

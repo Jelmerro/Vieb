@@ -27,13 +27,13 @@
     <input tabindex=1 placeholder="password" id="password" spellcheck="false" type="password">
     <p id="info"></p>
     <script>
-        const { ipcRenderer, remote } = require("electron")
+        const {ipcRenderer} = require("electron")
         const username = document.getElementById("username")
         const password = document.getElementById("password")
         const inputs = [...document.getElementsByTagName("input")]
-        remote.getCurrentWindow().on("show", () => {
-            document.getElementById("info").textContent =
-                remote.getCurrentWindow().getTitle()
+        ipcRenderer.on("login-information", (_, fontsize, title) => {
+            document.body.style.fontSize = fontsize
+            document.getElementById("info").textContent = title
             username.focus()
             username.click()
             username.value = ""
@@ -54,14 +54,14 @@
         inputs.forEach(input => {
             input.addEventListener("keydown", e => {
                 if (e.code === "Enter") {
-                    ipcRenderer.send(
-                        "login-credentials", [username.value, password.value])
+                    ipcRenderer.send("login-credentials",
+                        [username.value, password.value])
                 } else if (e.shiftKey || e.metaKey || e.altKey) {
                     //Don't trigger the escape keys below
                 } else if (e.ctrlKey && e.code === "BracketLeft") {
-                    remote.getCurrentWindow().hide()
+                    window.close()
                 } else if (!e.ctrlKey && e.code === "Escape") {
-                    remote.getCurrentWindow().hide()
+                    window.close()
                 }
             })
             input.addEventListener("focusout", e => {

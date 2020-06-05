@@ -29,9 +29,7 @@ ipcRenderer.on("selection-start-location", (_, sX, sY) => {
     scrollHeight = window.scrollY
 })
 
-ipcRenderer.on("selection-copy", () => {
-    document.execCommand("copy")
-})
+ipcRenderer.on("selection-copy", () => document.execCommand("copy"))
 
 ipcRenderer.on("selection-remove", () => {
     window.getSelection().removeAllRanges()

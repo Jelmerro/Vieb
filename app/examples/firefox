@@ -1,5 +1,6 @@
 " Options
 set adblocker=update
+set downloadmethod=confirm
 set ignorecase
 set mouse
 set permissioncamera=ask

@@ -109,57 +109,31 @@ const decreasePageNumber = count => {
     movePageNumberNaive(-Math.abs(count))
 }
 
-const scrollTop = () => {
-    window.scrollBy(0, -1000000000)
-}
+const scrollTop = () => window.scrollBy(0, -1000000000)
 
-const scrollLeft = () => {
-    window.scrollBy(-100, 0)
-}
+const scrollLeft = () => window.scrollBy(-100, 0)
 
-const scrollDown = () => {
-    window.scrollBy(0, 100)
-}
+const scrollDown = () => window.scrollBy(0, 100)
 
-const scrollUp = () => {
-    window.scrollBy(0, -100)
-}
+const scrollUp = () => window.scrollBy(0, -100)
 
-const scrollRight = () => {
-    window.scrollBy(100, 0)
-}
+const scrollRight = () => window.scrollBy(100, 0)
 
-const scrollBottom = () => {
-    window.scrollBy(0, 1000000000)
-}
+const scrollBottom = () => window.scrollBy(0, 1000000000)
 
-const scrollPageRight = () => {
-    window.scrollBy(window.innerWidth - 50, 0)
-}
+const scrollPageRight = () => window.scrollBy(window.innerWidth - 50, 0)
 
-const scrollPageLeft = () => {
-    window.scrollBy(-window.innerWidth + 50, 0)
-}
+const scrollPageLeft = () => window.scrollBy(-window.innerWidth + 50, 0)
 
-const scrollPageUp = () => {
-    window.scrollBy(0, -window.innerHeight + 50)
-}
+const scrollPageUp = () => window.scrollBy(0, -window.innerHeight + 50)
 
-const scrollPageDownHalf = () => {
-    window.scrollBy(0, window.innerHeight / 2 - 25)
-}
+const scrollPageDownHalf = () => window.scrollBy(0, window.innerHeight / 2 - 25)
 
-const scrollPageDown = () => {
-    window.scrollBy(0, window.innerHeight - 50)
-}
+const scrollPageDown = () => window.scrollBy(0, window.innerHeight - 50)
 
-const scrollPageUpHalf = () => {
-    window.scrollBy(0, -window.innerHeight / 2 + 25)
-}
+const scrollPageUpHalf = () => window.scrollBy(0, -window.innerHeight / 2 + 25)
 
-const focusTopLeftCorner = () => {
-    document.elementFromPoint(0, 0).focus()
-}
+const focusTopLeftCorner = () => document.elementFromPoint(0, 0).focus()
 
 const exitFullscreen = () => {
     document.webkitExitFullscreen()
@@ -188,9 +162,7 @@ const writeInputToFile = filename => {
     }
 }
 
-const print = () => {
-    document.execCommand("print")
-}
+const print = () => document.execCommand("print")
 
 const functions = {
     blur,

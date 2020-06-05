@@ -18,11 +18,14 @@
 /* eslint-disable no-console */
 "use strict"
 
-const {app, BrowserWindow, ipcMain, session} = require("electron")
+const {
+    app, BrowserWindow, dialog, ipcMain, net, screen, session, webContents
+} = require("electron")
 const path = require("path")
 const fs = require("fs")
 const {ElectronBlocker} = require("@cliqz/adblocker-electron")
 
+const version = process.env.npm_package_version || app.getVersion()
 const printUsage = () => {
     console.log("Vieb: Vim Inspired Electron Browser\n")
     console.log("Usage: Vieb [options] <URLs>\n")
@@ -36,7 +39,6 @@ const printUsage = () => {
     printLicense()
 }
 const printVersion = () => {
-    const version = process.env.npm_package_version || app.getVersion()
     console.log("Vieb: Vim Inspired Electron Browser\n")
     console.log(`This is version ${version} of Vieb.`)
     console.log("Vieb is based on Electron and inspired by Vim.")
@@ -54,6 +56,62 @@ const printLicense = () => {
         + "redistribute it.")
     console.log("There is NO WARRANTY, to the extent permitted by law.")
     console.log("See the LICENSE file or the GNU website for details.")
+}
+const isFile = loc => {
+    try {
+        return fs.statSync(loc).isFile()
+    } catch (e) {
+        return false
+    }
+}
+const deleteFile = loc => {
+    try {
+        fs.unlinkSync(loc)
+    } catch (e) {
+        // Probably already deleted
+    }
+}
+const readJSON = loc => {
+    try {
+        return JSON.parse(fs.readFileSync(loc).toString())
+    } catch (e) {
+        return null
+    }
+}
+const writeJSON = (loc, data) => {
+    try {
+        fs.writeFileSync(loc, JSON.stringify(data))
+        return true
+    } catch (e) {
+        return false
+    }
+}
+const applyDevtoolsSettings = prefFile => {
+    try {
+        fs.mkdirSync(path.dirname(prefFile), {"recursive": true})
+    } catch (e) {
+        // Directory probably already exists
+    }
+    const preferences = readJSON(prefFile) || {}
+    if (!preferences.electron) {
+        preferences.electron = {}
+    }
+    if (!preferences.electron.devtools) {
+        preferences.electron.devtools = {}
+    }
+    if (!preferences.electron.devtools.preferences) {
+        preferences.electron.devtools.preferences = {}
+    }
+    // Disable source maps as they leak internal structure to the webserver
+    preferences.electron.devtools.preferences.cssSourceMapsEnabled = false
+    preferences.electron.devtools.preferences.jsSourceMapsEnabled = false
+    // Disable release notes, most are not relevant for Vieb
+    preferences.electron.devtools.preferences["help.show-release-note"] = false
+    // Show timestamps in the console
+    preferences.electron.devtools.preferences.consoleTimestampsEnabled = true
+    // Enable dark theme
+    preferences.electron.devtools.preferences.uiTheme = "\"dark\""
+    writeJSON(prefFile, preferences)
 }
 
 // Parse arguments
@@ -97,8 +155,9 @@ if (portable) {
     app.setPath("userData", app.getPath("appData"))
 }
 if (showInternalConsole && enableDebugMode) {
-    console.log("the --debug argument always opens the internal console")
+    console.log("The --debug argument always opens the internal console")
 }
+applyDevtoolsSettings(path.join(app.getPath("appData"), "Preferences"))
 
 // When the app is ready to start, open the main window
 let mainWindow = null
@@ -136,8 +195,7 @@ app.on("ready", () => {
             "contextIsolation": false,
             "disableBlinkFeatures": "Auxclick",
             "nodeIntegration": true,
-            "webviewTag": true,
-            "enableRemoteModule": true
+            "webviewTag": true
         }
     }
     if (!app.isPackaged) {
@@ -174,6 +232,7 @@ app.on("ready", () => {
         "show": false,
         "parent": mainWindow,
         "alwaysOnTop": true,
+        "resizable": false,
         "webPreferences": {
             "sandbox": false,
             "contextIsolation": false,
@@ -197,6 +256,7 @@ app.on("ready", () => {
         "show": false,
         "parent": mainWindow,
         "alwaysOnTop": true,
+        "resizable": false,
         "webPreferences": {
             "sandbox": false,
             "contextIsolation": false,
@@ -215,21 +275,26 @@ app.on("ready", () => {
     })
 })
 
-// Handle Basic HTTP login attempts (must be in main)
+// THIS ENDS THE MAIN SETUP, ACTIONS BELOW MUST BE IN MAIN FOR VARIOUS REASONS
+
+// Handle Basic HTTP login attempts
 const loginAttempts = []
-app.on("login", (e, webContents, _, auth, callback) => {
+let fontsize = 14
+ipcMain.on("set-fontsize", (_, size) => {
+    fontsize = size
+})
+app.on("login", (e, contents, _, auth, callback) => {
     if (loginWindow.isVisible()) {
         return
     }
-    if (loginAttempts.includes(webContents.id)) {
-        webContents.stop()
-        loginAttempts.splice(loginAttempts.indexOf(webContents.id), 1)
+    if (loginAttempts.includes(contents.id)) {
+        contents.stop()
+        loginAttempts.splice(loginAttempts.indexOf(contents.id), 1)
         return
     }
     e.preventDefault()
-    loginAttempts.push(webContents.id)
-    loginWindow.setTitle(`${auth.host}: ${auth.realm}`)
-    ipcMain.removeAllListeners("hide")
+    loginAttempts.push(contents.id)
+    loginWindow.removeAllListeners("hide")
     loginWindow.once("hide", () => {
         try {
             callback("", "")
@@ -246,13 +311,137 @@ app.on("login", (e, webContents, _, auth, callback) => {
             // Window is already being closed
         }
     })
+    const bounds = mainWindow.getBounds()
+    const size = Math.round(fontsize * 21)
+    loginWindow.setMinimumSize(size, size)
+    loginWindow.setSize(size, size)
+    loginWindow.setPosition(
+        Math.round(bounds.x + bounds.width / 2 - size / 2),
+        Math.round(bounds.y + bounds.height / 2 - size / 2))
+    loginWindow.resizable = false
+    loginWindow.show()
+    loginWindow.webContents.send("login-information",
+        fontsize, `${auth.host}: ${auth.realm}`)
 })
 
-// Set correct download path (must be in main)
-ipcMain.on("downloads-path-for-session", (_, name) => {
-    session.fromPartition(name).on("will-download", (__, item) => {
+// Show a scrollable notification popup for long notifications
+ipcMain.on("show-notification", (_, escapedMessage, properType) => {
+    const bounds = mainWindow.getBounds()
+    const width = Math.round(bounds.width * .9)
+    let height = Math.round(bounds.height * .9)
+    height -= height % fontsize
+    notificationWindow.setMinimumSize(width, height)
+    notificationWindow.setSize(width, height)
+    notificationWindow.setPosition(
+        Math.round(bounds.x + bounds.width / 2 - width / 2),
+        Math.round(bounds.y + bounds.height / 2 - height / 2))
+    notificationWindow.webContents.send("notification-details",
+        escapedMessage, fontsize, properType)
+    notificationWindow.show()
+})
+
+// Create and manage sessions, mostly downloads, adblocker and permissions
+const dlsFile = path.join(app.getPath("appData"), "dls")
+let downloadSettings = {}
+let downloads = []
+let blocker = null
+let permissions = {}
+const sessionList = []
+ipcMain.on("set-download-settings", (_, settings) => {
+    if (Object.keys(downloadSettings).length === 0) {
+        if (settings.cleardownloadsonquit) {
+            deleteFile(dlsFile)
+        } else if (isFile(dlsFile)) {
+            const parsed = readJSON(dlsFile)
+            for (const download of parsed) {
+                if (download.state === "completed") {
+                    if (!settings.cleardownloadsoncompleted) {
+                        downloads.push(download)
+                    }
+                } else {
+                    download.state = "cancelled"
+                    downloads.push(download)
+                }
+            }
+        }
+    }
+    downloadSettings = settings
+    if (downloadSettings.cleardownloadsoncompleted) {
+        downloads = downloads.filter(d => d.state !== "completed")
+    }
+})
+ipcMain.on("download-list-request", (e, action, downloadId) => {
+    if (action === "removeall") {
+        downloads.forEach(download => {
+            try {
+                download.item.cancel()
+            } catch (_) {
+                // Download was already removed or is already done
+            }
+        })
+        downloads = []
+    }
+    if (action === "pause") {
+        try {
+            downloads[downloadId].item.pause()
+        } catch (_) {
+            // Download just finished or some other silly reason
+        }
+    }
+    if (action === "resume") {
+        try {
+            downloads[downloadId].item.resume()
+        } catch (_) {
+            // Download can't be resumed
+        }
+    }
+    if (action === "remove") {
+        try {
+            downloads[downloadId].state = "removed"
+            downloads[downloadId].item.cancel()
+        } catch (_) {
+            // Download was already removed from the list or something
+        }
+        try {
+            downloads.splice(downloadId, 1)
+        } catch (_) {
+            // Download was already removed from the list or something
+        }
+    }
+    writeDownloadsToFile()
+    e.sender.send("download-list", JSON.stringify(downloads))
+})
+ipcMain.on("set-permissions", (_, permissionObject) => {
+    permissions = permissionObject
+})
+ipcMain.on("set-spelllang", (_, lang) => {
+    sessionList.forEach(ses => {
+        if (lang === "system") {
+            session.fromPartition(ses).setSpellCheckerLanguages([])
+        } else {
+            session.fromPartition(ses).setSpellCheckerLanguages([lang])
+        }
+    })
+})
+ipcMain.on("create-session", (_, name, adblock, cache) => {
+    if (sessionList.includes(name)) {
+        return
+    }
+    const partitionDir = path.join(app.getPath("appData"), "Partitions")
+    const sessionDir = path.join(partitionDir, name.split(":")[1] || name)
+    applyDevtoolsSettings(path.join(sessionDir, "Preferences"))
+    const newSession = session.fromPartition(name, {cache})
+    newSession.setPermissionRequestHandler(permissionHandler)
+    if (adblock !== "off") {
+        enableAdblocker([name])
+    }
+    newSession.on("will-download", (e, item) => {
+        if (downloadSettings.downloadmethod === "block") {
+            e.preventDefault()
+            return
+        }
         const filename = item.getFilename()
-        let save = path.join(app.getPath("downloads"), filename)
+        let save = path.join(downloadSettings.downloadpath, filename)
         let duplicateNumber = 1
         let newFilename = item.getFilename()
         while (fs.existsSync(save) && fs.statSync(save).isFile()) {
@@ -261,39 +450,187 @@ ipcMain.on("downloads-path-for-session", (_, name) => {
             if (extStart === -1) {
                 newFilename = `${filename} (${duplicateNumber})`
             } else {
-                newFilename = `${filename.substring(0, extStart)
-                } (${duplicateNumber}).${
-                    filename.substring(extStart + 1)}`
+                newFilename = `${filename.substring(0, extStart)} (${
+                    duplicateNumber}).${filename.substring(extStart + 1)}`
             }
-            save = path.join(app.getPath("downloads"), newFilename)
+            save = path.join(downloadSettings.downloadpath, newFilename)
         }
-        // Send the details to the renderer process as a fallback,
-        // so there are still details for destoyed download items.
-        mainWindow.webContents.send("downloads-details", {
-            "name": item.getFilename(),
+        if (downloadSettings.downloadmethod !== "ask") {
+            item.setSavePath(save)
+        }
+        if (downloadSettings.downloadmethod === "confirm") {
+            const wrappedFileName = filename.replace(/.{50}/g, "$&\n")
+            const wrappedUrl = decodeURIComponent(item.getURL())
+                .replace(/.{50}/g, "$&\n")
+            const button = dialog.showMessageBoxSync(mainWindow, {
+                "type": "question",
+                "buttons": ["Allow", "Deny"],
+                "defaultId": 0,
+                "cancelId": 1,
+                "title": "Download request from the website",
+                "message": `Do you want to download the following file?\n\n${
+                    wrappedFileName}\n\n${item.getMimeType()} - ${
+                    item.getTotalBytes()}\n\n${wrappedUrl}`
+            })
+            if (button === 1) {
+                e.preventDefault()
+                return
+            }
+        }
+        const info = {
+            "name": filename,
             "url": item.getURL(),
             "total": item.getTotalBytes(),
-            "file": save
+            "file": item.getSavePath(),
+            "item": item,
+            "state": "waiting_to_start",
+            "current": 0,
+            "date": new Date()
+        }
+        downloads.push(info)
+        mainWindow.webContents.send("notify", `Download started:\n${info.name}`)
+        item.on("updated", (__, state) => {
+            try {
+                info.current = item.getReceivedBytes()
+                info.file = item.getSavePath()
+                info.total = item.getTotalBytes()
+                if (state === "progressing" && !item.isPaused()) {
+                    info.state = "downloading"
+                } else {
+                    info.state = "paused"
+                }
+            } catch (___) {
+                // When a download is finished before the event is detected,
+                // the item will throw an error for all the mapped functions.
+            }
+            writeDownloadsToFile()
         })
-        item.setSavePath(save)
+        item.once("done", (__, state) => {
+            if (state === "completed") {
+                info.state = "completed"
+                if (downloadSettings.cleardownloadsoncompleted) {
+                    downloads = downloads.filter(d => d.state !== "completed")
+                }
+            } else if (info.state !== "removed") {
+                info.state = "cancelled"
+            }
+            if (info.state === "completed") {
+                mainWindow.webContents.send("notify",
+                    `Download finished:\n${info.name}`)
+            } else {
+                mainWindow.webContents.send("notify",
+                    `Download failed:\n${info.name}`, "warn")
+            }
+        })
     })
+    newSession.setUserAgent(useragent())
+    sessionList.push(name)
 })
-
-// Enable or disable adblocker for a list of sessions (must be in main)
-let blocker = null
-const enableAdblocker = sessionList => {
-    if (blocker) {
-        sessionList.forEach(
-            s => blocker.enableBlockingInSession(session.fromPartition(s)))
+const cancellAllDownloads = () => {
+    downloads.forEach(download => {
+        try {
+            if (download.state !== "completed") {
+                download.state = "cancelled"
+            }
+            download.item.cancel()
+        } catch (e) {
+            // Download was already removed or is already done
+        }
+    })
+    writeDownloadsToFile()
+}
+const writeDownloadsToFile = () => {
+    downloads.forEach(d => {
+        // Update downloads that are stuck on waiting to start,
+        // but have already been destroyed by electron.
+        try {
+            d.item.getFilename()
+        } catch (e) {
+            if (d.state === "waiting_to_start") {
+                d.state = "completed"
+            }
+        }
+    })
+    if (downloadSettings.cleardownloadsonquit || downloads.length === 0) {
+        deleteFile(dlsFile)
     } else {
-        createAdblocker(sessionList)
+        writeJSON(dlsFile, downloads)
     }
 }
-const disableAdblocker = sessionList => {
+const permissionHandler = (_, permission, callback, details) => {
+    if (permission === "media") {
+        if (details.mediaTypes && details.mediaTypes.includes("video")) {
+            permission = "camera"
+        } else {
+            permission = "microphone"
+        }
+    }
+    const permissionName = `permission${permission.toLowerCase()}`
+    const setting = permissions[permissionName]
+    if (setting === "ask") {
+        let url = details.requestingUrl
+        if (url.length > 100) {
+            url = url.replace(/.{50}/g, "$&\n")
+        }
+        let message = "The page has requested access to the permission "
+            + `'${permission}'. You can allow or deny this below, `
+            + "and choose if you want to make this the default for "
+            + "the current session when sites ask for this permission."
+            + " You can always change this using the settings file,"
+            + " or at runtime with the set command like so: "
+            + `'set ${permissionName}=<value>'\n\npage:\n${url}`
+        if (permission === "openExternal") {
+            let exturl = details.externalURL
+            if (exturl.length > 100) {
+                exturl = exturl.replace(/.{50}/g, "$&\n")
+            }
+            message = "The page has requested to open an external application."
+                + " You can allow or deny this below, and choose if you want to"
+                + " make this the default for the current session when sites "
+                + "ask to open urls in external programs. You can always change"
+                + " this using the settings file, or at runtime with the set "
+                + "command like so: 'set permissionopenexternal=<value>\n\n"
+                + `page:\n${details.requestingUrl}\n\nexternal:\n${exturl}`
+        }
+        dialog.showMessageBox(mainWindow, {
+            "type": "question",
+            "buttons": ["Allow", "Deny"],
+            "defaultId": 0,
+            "cancelId": 1,
+            "checkboxLabel": "Remember for this session",
+            "title": `Allow this page to access '${permission}'?`,
+            "message": message
+        }).then(e => {
+            callback(e.response === 0)
+            if (e.checkboxChecked) {
+                if (e.response === 0) {
+                    mainWindow.webContents.send("set-permission",
+                        permissionName, "allow")
+                    permissions[permissionName] = "allow"
+                } else {
+                    permissions[permissionName] = "block"
+                    mainWindow.webContents.send("set-permission",
+                        permissionName, "block")
+                }
+            }
+        })
+    } else {
+        callback(setting === "allow")
+    }
+}
+const enableAdblocker = list => {
+    if (blocker) {
+        list.forEach(
+            s => blocker.enableBlockingInSession(session.fromPartition(s)))
+    } else {
+        createAdblocker()
+    }
+}
+const disableAdblocker = () => {
     sessionList.forEach(
         s => blocker.disableBlockingInSession(session.fromPartition(s)))
 }
-const createAdblocker = sessionList => {
+const createAdblocker = () => {
     const blocklistsFolder = path.join(app.getPath("appData"), "blocklists")
     // Read all filter files from the blocklists folder (including user added)
     let filters = ""
@@ -309,13 +646,13 @@ const createAdblocker = sessionList => {
     blocker = ElectronBlocker.parse(filters)
     enableAdblocker(sessionList)
 }
-ipcMain.on("adblock-enable", (_, sessionList) => {
+ipcMain.on("adblock-enable", () => {
     enableAdblocker(sessionList)
 })
-ipcMain.on("adblock-disable", (_, sessionList) => {
+ipcMain.on("adblock-disable", () => {
     disableAdblocker(sessionList)
 })
-ipcMain.on("adblock-recreate", (_, sessionList) => {
+ipcMain.on("adblock-recreate", () => {
     createAdblocker(sessionList)
 })
 const loadBlocklist = file => {
@@ -326,3 +663,159 @@ const loadBlocklist = file => {
         return ""
     }
 }
+
+// Download favicons for websites
+ipcMain.on("download-favicon", (_, fav, location, webId, linkId, url) => {
+    const request = net.request({
+        "url": fav, "session": webContents.fromId(webId).session
+    })
+    request.on("response", res => {
+        const data = []
+        res.on("end", () => {
+            fs.writeFileSync(location, Buffer.concat(data))
+            mainWindow.webContents.send("favicon-downloaded", linkId, url, fav)
+        })
+        res.on("data", chunk => {
+            data.push(Buffer.from(chunk, "binary"))
+        })
+    })
+    request.on("abort", () => {
+        // Failed to download favicon
+    })
+    request.on("error", () => {
+        // Failed to download favicon
+    })
+    request.end()
+})
+
+// Window state save and restore
+const windowStateFile = path.join(app.getPath("appData"), "windowstate")
+ipcMain.on("window-state-init", (_, restorePos, restoreSize, restoreMax) => {
+    const bounds = {}
+    const parsed = readJSON(windowStateFile)
+    if (parsed) {
+        bounds.x = Number(parsed.x)
+        bounds.y = Number(parsed.y)
+        bounds.width = Number(parsed.width)
+        bounds.height = Number(parsed.height)
+        bounds.maximized = !!parsed.maximized
+    }
+    if (restorePos) {
+        if (bounds.x > 0 && bounds.y > 0) {
+            mainWindow.setPosition(bounds.x, bounds.y)
+        }
+    }
+    if (restoreSize) {
+        if (bounds.width > 500 && bounds.height > 500) {
+            mainWindow.setSize(bounds.width, bounds.height)
+        }
+    }
+    if (bounds.maximized && restoreMax) {
+        mainWindow.maximize()
+    }
+    mainWindow.show()
+    // Save the window state when resizing or maximizing.
+    // Move and resize state are saved and checked to detect window snapping.
+    let justMoved = false
+    let justResized = false
+    mainWindow.on("maximize", saveWindowState)
+    mainWindow.on("unmaximize", () => {
+        saveWindowState(true)
+    })
+    mainWindow.on("resize", () => {
+        justResized = true
+        setTimeout(() => {
+            if (!justMoved) {
+                saveWindowState()
+            }
+        }, 10)
+        setTimeout(() => {
+            justResized = false
+        }, 30)
+    })
+    mainWindow.on("move", () => {
+        justMoved = true
+        setTimeout(() => {
+            if (!justResized) {
+                saveWindowState()
+            }
+        }, 10)
+        setTimeout(() => {
+            justMoved = false
+        }, 30)
+    })
+})
+const saveWindowState = (maximizeOnly = false) => {
+    let state = readJSON(windowStateFile) || {}
+    if (!maximizeOnly && !mainWindow.isMaximized()) {
+        const newBounds = mainWindow.getBounds()
+        const currentScreen = screen.getDisplayMatching(newBounds).bounds
+        if (newBounds.width !== currentScreen.width) {
+            if (newBounds.height !== currentScreen.height) {
+                if (newBounds.width !== currentScreen.width / 2) {
+                    if (newBounds.height !== currentScreen.height / 2) {
+                        if (newBounds.x !== currentScreen.x / 2) {
+                            if (newBounds.y !== currentScreen.y / 2) {
+                                state = newBounds
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    state.maximized = mainWindow.isMaximized()
+    writeJSON(windowStateFile, state)
+}
+
+// Miscellaneous tasks
+ipcMain.on("disable-localrtc", (_, id) => {
+    webContents.fromId(id).setWebRTCIPHandlingPolicy(
+        "default_public_interface_only")
+})
+ipcMain.handle("save-page", (_, id, loc) => {
+    webContents.fromId(id).savePage(loc, "HTMLComplete")
+})
+ipcMain.on("hide-window", () => {
+    if (!enableDebugMode) {
+        mainWindow.hide()
+    }
+})
+ipcMain.on("destroy-window", () => {
+    cancellAllDownloads()
+    mainWindow.destroy()
+})
+ipcMain.handle("list-spelllangs",
+    () => session.defaultSession.availableSpellCheckerLanguages)
+ipcMain.handle("toggle-fullscreen", () => {
+    mainWindow.fullScreen = !mainWindow.fullScreen
+})
+ipcMain.on("insert-mode-listener", (_, id) => {
+    webContents.fromId(id).on("before-input-event", (__, input) => {
+        mainWindow.webContents.send("insert-mode-input-event", input)
+    })
+})
+ipcMain.on("set-window-title", (_, title) => {
+    mainWindow.title = title
+})
+ipcMain.handle("show-message-dialog", (_, options) => dialog.showMessageBox(
+    mainWindow, options))
+ipcMain.handle("list-cookies",
+    () => session.fromPartition("persist:main").cookies.get({}))
+ipcMain.handle("remove-cookie", (_, url, name) => session.fromPartition(
+    "persist:main").cookies.remove(url, name))
+// Operations below are sync
+ipcMain.on("app-version", e => {
+    e.returnValue = version
+})
+ipcMain.on("appdata-path", e => {
+    e.returnValue = app.getPath("appData")
+})
+ipcMain.on("is-fullscreen", e => {
+    e.returnValue = mainWindow.fullScreen
+})
+const useragent = () => session.defaultSession.getUserAgent()
+    .replace(/Electron\/\S* /, "").replace(/Vieb\/\S* /, "")
+ipcMain.on("useragent-string", e => {
+    e.returnValue = useragent()
+})
