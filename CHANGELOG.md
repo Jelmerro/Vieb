@@ -477,7 +477,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Confirm and automatic download configurations
 - Added a basic download history for the current session
 - Moved the new download page and existing help and version pages to special pages (vieb://help for example)
-- Support for fullscreen reuqests of pages (by hiding the navbar, entering insert mode and a new escape keybinding)
+- Support for fullscreen requests of pages (by hiding the navbar, entering insert mode and a new escape keybinding)
 - Added example keybinding and setting configurations for Firefox and Chromium
 
 ### Changed
