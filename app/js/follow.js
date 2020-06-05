@@ -27,10 +27,10 @@ const informPreload = () => {
     setTimeout(() => {
         if (TABS.currentPage().getAttribute("webview-id")) {
             if (MODES.currentMode() === "follow" && !alreadyFollowing) {
-                TABS.webContents(TABS.currentPage()).send("follow-mode-start")
+                TABS.currentPage().send("follow-mode-start")
                 informPreload()
             } else {
-                TABS.webContents(TABS.currentPage()).send("follow-mode-stop")
+                TABS.currentPage().send("follow-mode-stop")
             }
         }
     }, 100)
@@ -46,7 +46,7 @@ const startFollow = (newtab = followNewtab) => {
     MODES.setMode("follow")
     alreadyFollowing = false
     informPreload()
-    TABS.webContents(TABS.currentPage()).send("follow-mode-start")
+    TABS.currentPage().send("follow-mode-start")
     document.getElementById("follow").style.display = "flex"
     links = []
 }
@@ -57,7 +57,7 @@ const cancelFollow = () => {
     document.getElementById("follow").textContent = ""
     TABS.listPages().forEach(page => {
         try {
-            TABS.webContents(page).send("follow-mode-stop")
+            page.send("follow-mode-stop")
         } catch (e) {
             // Cancel follow mode in all tabs
         }
@@ -93,7 +93,7 @@ const linkInList = (list, link) => list.find(l => {
 })
 
 const clickAtLink = link => {
-    const factor = TABS.webContents(TABS.currentPage()).zoomFactor
+    const factor = TABS.currentPage().getZoomFactor()
     if (["pointer", "visual"].includes(modeBeforeFollow)) {
         POINTER.start()
         if (modeBeforeFollow === "visual") {
@@ -106,9 +106,7 @@ const clickAtLink = link => {
     }
     MODES.setMode("insert")
     TABS.currentPage().sendInputEvent({
-        "type": "mouseEnter",
-        "x": link.x * factor,
-        "y": link.y * factor
+        "type": "mouseEnter", "x": link.x * factor, "y": link.y * factor
     })
     TABS.currentPage().sendInputEvent({
         "type": "mouseDown",
@@ -125,9 +123,7 @@ const clickAtLink = link => {
         "clickCount": 1
     })
     TABS.currentPage().sendInputEvent({
-        "type": "mouseLeave",
-        "x": link.x * factor,
-        "y": link.y * factor
+        "type": "mouseLeave", "x": link.x * factor, "y": link.y * factor
     })
     document.getElementById("url-hover").style.display = "none"
 }
@@ -165,7 +161,7 @@ const parseAndDisplayLinks = newLinks => {
     // The maximum amount of links is 26 * 26,
     // therefor the slice index is 0 to 26^2 - 1.
     links = links.slice(0, 675)
-    const factor = TABS.webContents(TABS.currentPage()).zoomFactor
+    const factor = TABS.currentPage().getZoomFactor()
     const followElement = document.getElementById("follow")
     followElement.textContent = ""
     links.forEach((link, index) => {

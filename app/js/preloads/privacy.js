@@ -17,7 +17,7 @@
 */
 "use strict"
 
-const {remote} = require("electron")
+const {ipcRenderer} = require("electron")
 const fs = require("fs")
 const path = require("path")
 
@@ -27,7 +27,7 @@ const message = "The page has requested to view a list of all media devices."
     + " To prevent pages from asking this, change the permission like so:"
     + " 'set permissionmediadevices=<value>'"
 const webviewSettingsFile = path.join(
-    remote.app.getPath("appData"), "webviewsettings")
+    ipcRenderer.sendSync("appdata-path"), "webviewsettings")
 
 // Hide device labels from the list of media devices
 // Disable the screen share API, as electron has no support for it
@@ -52,16 +52,15 @@ try {
             if (url.length > 100) {
                 url = url.replace(/.{50}/g, "$&\n")
             }
-            const ask = await remote.dialog.showMessageBox(
-                remote.getCurrentWindow(), {
-                    "type": "question",
-                    "buttons": ["Allow", "Deny"],
-                    "defaultId": 0,
-                    "cancelId": 1,
-                    "checkboxLabel": "Include media device name labels",
-                    "title": "Allow this page to view a list of media devices?",
-                    "message": `${message}\n\npage:\n${url}`
-                })
+            const ask = await ipcRenderer.invoke("show-message-dialog", {
+                "type": "question",
+                "buttons": ["Allow", "Deny"],
+                "defaultId": 0,
+                "cancelId": 1,
+                "checkboxLabel": "Include media device name labels",
+                "title": "Allow this page to view a list of media devices?",
+                "message": `${message}\n\npage:\n${url}`
+            })
             if (ask.response === 0 && ask.checkboxChecked) {
                 action = "allowfull"
             }

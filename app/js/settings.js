@@ -15,11 +15,11 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND DOWNLOADS INPUT MODES PAGELAYOUT SESSIONS TABS UTIL */
+/* global COMMAND INPUT MODES PAGELAYOUT SESSIONS TABS UTIL */
 "use strict"
 
 const path = require("path")
-const {remote} = require("electron")
+const {ipcRenderer} = require("electron")
 
 const defaultSettings = {
     "adblocker": "static",
@@ -32,6 +32,7 @@ const defaultSettings = {
     "containertabs": false,
     "countlimit": 100,
     "darkreader": false,
+    "downloadmethod": "automatic",
     "downloadpath": "~/Downloads/",
     "favicons": "session",
     "favoritepages": "",
@@ -92,6 +93,7 @@ const listLike = ["favoritepages", "redirects", "startuppages"]
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
     "cache": ["none", "clearonquit", "full"],
+    "downloadmethod": ["automatic", "confirm", "ask", "block"],
     "favicons": [
         "disabled", "nocache", "session", "1day", "5day", "30day", "forever"
     ],
@@ -101,11 +103,6 @@ const validOptions = {
     "guitabbar": ["always", "onupdate", "never"],
     "notificationposition": [
         "bottomright", "bottomleft", "topright", "topleft"
-    ],
-    "spelllang": [
-        "system",
-        ...JSON.parse(JSON.stringify(
-            remote.session.defaultSession.availableSpellCheckerLanguages || []))
     ],
     "taboverflow": ["hidden", "scroll", "wrap"],
     "permissioncamera": ["block", "ask", "allow"],
@@ -133,16 +130,31 @@ const numberRanges = {
     "suggesttopsites": [0, 1000],
     "timeoutlen": [0, 10000]
 }
-const config = path.join(remote.app.getPath("appData"), "viebrc")
+const config = path.join(UTIL.appData(), "viebrc")
 let navbarGuiTimer = null
 let tabbarGuiTimer = null
 let topOfPageWithMouse = false
+const downloadSettings = [
+    "downloadmethod",
+    "downloadpath",
+    "cleardownloadsonquit",
+    "cleardownloadsoncompleted"
+]
 
 const init = () => {
     loadFromDisk()
     updateDownloadSettings()
     updateTabOverflow()
-    SESSIONS.setSpellLang(get("spelllang"))
+    updatePermissionSettings()
+    ipcRenderer.invoke("list-spelllangs").then(spelllangs => {
+        validOptions.spelllang = spelllangs || []
+        validOptions.spelllang.push("system")
+        if (!isValidSetting("spelllang", get("spelllang"))) {
+            set("spelllang", "system")
+        }
+        SESSIONS.setSpellLang(get("spelllang"))
+    })
+    ipcRenderer.on("set-permission", (_, name, value) => set(name, value))
 }
 
 const checkOption = (setting, value) => {
@@ -267,15 +279,16 @@ const updateFontSize = () => {
         const isLocal = p.src.startsWith("file:/")
         const isErrorPage = p.getAttribute("failed-to-load")
         if (isSpecialPage || isLocal || isErrorPage) {
-            TABS.webContents(p).send("fontsize", get("fontsize"))
+            p.send("fontsize", get("fontsize"))
         }
     })
     PAGELAYOUT.applyLayout()
+    ipcRenderer.send("set-fontsize", get("fontsize"))
 }
 
 const getGuiStatus = type => {
     let setting = get(`gui${type}`)
-    if (UTIL.windowByName("main").fullScreen) {
+    if (ipcRenderer.sendSync("is-fullscreen")) {
         setting = get(`guifullscreen${type}`)
     }
     if (topOfPageWithMouse && setting !== "never") {
@@ -332,8 +345,11 @@ const updateGuiVisibility = () => {
 
 
 const updateDownloadSettings = () => {
-    remote.app.setPath("downloads", UTIL.expandPath(get("downloadpath")))
-    DOWNLOADS.removeCompletedIfDesired()
+    const downloads = {}
+    downloadSettings.forEach(setting => {
+        downloads[setting] = get(setting)
+    })
+    ipcRenderer.send("set-download-settings", downloads)
 }
 
 const updateTabOverflow = () => {
@@ -361,18 +377,27 @@ const updateMouseSettings = () => {
 
 const updateWebviewSettings = () => {
     const webviewSettingsFile = path.join(
-        remote.app.getPath("appData"), "webviewsettings")
+        UTIL.appData(), "webviewsettings")
     UTIL.writeJSON(webviewSettingsFile, {
         "permissionmediadevices": get("permissionmediadevices"),
         "darkreader": get("darkreader")
     })
 }
 
+const updatePermissionSettings = () => {
+    const permissions = {}
+    Object.keys(allSettings).forEach(setting => {
+        if (setting.startsWith("permission")) {
+            permissions[setting] = get(setting)
+        }
+    })
+    ipcRenderer.send("set-permissions", permissions)
+}
+
 const updateHelpPage = () => {
     TABS.listPages().forEach(p => {
         if (UTIL.pathToSpecialPageName(p.src).name === "help") {
-            TABS.webContents(p).send(
-                "settings", settingsWithDefaults(),
+            p.send("settings", settingsWithDefaults(),
                 INPUT.listMappingsAsCommandList(false, true))
         }
     })
@@ -436,9 +461,7 @@ const get = (setting, settingObject = allSettings) => settingObject[setting]
 
 const reset = setting => {
     if (setting === "all") {
-        Object.keys(defaultSettings).forEach(s => {
-            set(s, defaultSettings[s])
-        })
+        Object.keys(defaultSettings).forEach(s => set(s, defaultSettings[s]))
     } else if (allSettings[setting] === undefined) {
         UTIL.notify(`The setting '${setting}' doesn't exist`, "warn")
     } else {
@@ -475,13 +498,10 @@ const set = (setting, value) => {
                 SESSIONS.enableAdblocker()
             }
         }
-        const downloadSettings = [
-            "downloadpath", "cleardownloadsonquit", "cleardownloadsoncompleted"
-        ]
         if (downloadSettings.includes(setting)) {
             updateDownloadSettings()
         }
-        if (setting.startsWith("g")) {
+        if (setting.startsWith("gui")) {
             updateGuiVisibility()
         }
         if (setting === "mintabwidth") {
@@ -507,6 +527,9 @@ const set = (setting, value) => {
         }
         if (setting === "darkreader" || setting === "permissionmediadevices") {
             updateWebviewSettings()
+        }
+        if (setting.startsWith("permission")) {
+            updatePermissionSettings()
         }
         if (setting === "windowtitle") {
             TABS.updateWindowTitle()

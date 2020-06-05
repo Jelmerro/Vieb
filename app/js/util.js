@@ -18,10 +18,9 @@
 /* global SETTINGS */
 "use strict"
 
-const {ipcRenderer, remote} = require("electron")
+const {ipcRenderer} = require("electron")
 const fs = require("fs")
 const path = require("path")
-const rimraf = require("rimraf").sync
 const os = require("os")
 
 const protocolRegex = /^[a-z][a-z0-9-+.]+:\/\//
@@ -35,6 +34,8 @@ const specialPages = [
     "version"
 ]
 const notificationHistory = []
+let appDataPath = ""
+let useragentString = ""
 
 const hasProtocol = location => protocolRegex.test(location)
 
@@ -114,20 +115,7 @@ const notify = (message, type = "info") => {
         return
     }
     if (escapedMessage.split("<br>").length > 5 || message.length > 200) {
-        const notificationWindow = windowByName("notifications")
-        ipcRenderer.sendTo(notificationWindow.webContents.id,
-            "notification-contents", escapedMessage,
-            SETTINGS.get("fontsize"), properType)
-        const bounds = windowByName("main").getBounds()
-        const width = Math.round(bounds.width * .9)
-        let height = Math.round(bounds.height * .9)
-        height -= height % SETTINGS.get("fontsize")
-        notificationWindow.setMinimumSize(width, height)
-        notificationWindow.setSize(width, height)
-        notificationWindow.setPosition(
-            Math.round(bounds.x + bounds.width / 2 - width / 2),
-            Math.round(bounds.y + bounds.height / 2 - height / 2))
-        notificationWindow.show()
+        ipcRenderer.send("show-notification", escapedMessage, properType)
         return
     }
     const notificationsElement = document.getElementById("notifications")
@@ -139,16 +127,6 @@ const notify = (message, type = "info") => {
     setTimeout(() => {
         notificationsElement.removeChild(notification)
     }, SETTINGS.get("notificationduration"))
-}
-
-const windowByName = name => {
-    const url = {
-        "main": "index.html",
-        "login": "login.html",
-        "notifications": "notificationmessage.html"
-    }[name] || "unknown"
-    return remote.BrowserWindow.getAllWindows().find(
-        b => b.getURL().endsWith(url))
 }
 
 const specialPagePath = (page, section = null, skipExistCheck = false) => {
@@ -202,7 +180,7 @@ const pathToSpecialPageName = urlPath => {
 
 const globDelete = folder => {
     try {
-        rimraf(path.join(remote.app.getPath("appData"), folder))
+        require("rimraf").sync(path.join(appData(), folder))
     } catch (e) {
         // Rimraf errors
     }
@@ -374,14 +352,26 @@ const listNotificationHistory = () => notificationHistory
 
 const title = name => name[0].toUpperCase() + name.slice(1).toLowerCase()
 
-const useragent = () => remote.session.defaultSession.getUserAgent()
-    .replace(/Electron\/\S* /, "").replace(/Vieb\/\S* /, "")
+const downloadPath = () => expandPath(SETTINGS.get("downloadpath"))
+
+const useragent = () => {
+    if (!useragentString) {
+        useragentString = ipcRenderer.sendSync("useragent-string")
+    }
+    return useragentString
+}
+
+const appData = () => {
+    if (!appDataPath) {
+        appDataPath = ipcRenderer.sendSync("appdata-path")
+    }
+    return appDataPath
+}
 
 module.exports = {
     hasProtocol,
     isUrl,
     notify,
-    windowByName,
     specialPagePath,
     pathToSpecialPageName,
     clearContainerTabs,
@@ -403,5 +393,7 @@ module.exports = {
     urlToString,
     listNotificationHistory,
     title,
-    useragent
+    downloadPath,
+    useragent,
+    appData
 }

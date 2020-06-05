@@ -20,7 +20,7 @@
 "use strict"
 
 const {exec} = require("child_process")
-const {remote} = require("electron")
+const {ipcRenderer} = require("electron")
 const path = require("path")
 const fs = require("fs")
 
@@ -33,42 +33,31 @@ const emptySearch = () => {
 
 const clickOnSearch = () => {
     if (currentSearch) {
-        TABS.webContents(TABS.currentPage()).send("search-element-click")
+        TABS.currentPage().send("search-element-click")
     }
 }
 
 const increasePageNumber = count => {
-    TABS.webContents(TABS.currentPage()).send(
-        "action", "increasePageNumber", count)
+    TABS.currentPage().send("action", "increasePageNumber", count)
 }
 
 const previousTab = count => {
     TABS.switchToTab(TABS.listTabs().indexOf(TABS.currentTab()) - count)
 }
 
-const closeTab = () => {
-    TABS.closeTab()
-}
+const closeTab = () => TABS.closeTab()
 
-const toExploreMode = () => {
-    MODES.setMode("explore")
-}
+const toExploreMode = () => MODES.setMode("explore")
 
-const startFollowCurrentTab = () => {
-    FOLLOW.startFollow(false)
-}
+const startFollowCurrentTab = () => FOLLOW.startFollow(false)
 
-const scrollTop = () => {
-    TABS.webContents(TABS.currentPage()).send("action", "scrollTop")
-}
+const scrollTop = () => TABS.currentPage().send("action", "scrollTop")
 
 const insertAtFirstInput = () => {
-    TABS.webContents(TABS.currentPage()).send("focus-first-text-input")
+    TABS.currentPage().send("focus-first-text-input")
 }
 
-const scrollLeft = () => {
-    TABS.webContents(TABS.currentPage()).send("action", "scrollLeft")
-}
+const scrollLeft = () => TABS.currentPage().send("action", "scrollLeft")
 
 const toInsertMode = () => {
     if (!TABS.currentPage().isCrashed()) {
@@ -76,17 +65,11 @@ const toInsertMode = () => {
     }
 }
 
-const scrollDown = () => {
-    TABS.webContents(TABS.currentPage()).send("action", "scrollDown")
-}
+const scrollDown = () => TABS.currentPage().send("action", "scrollDown")
 
-const scrollUp = () => {
-    TABS.webContents(TABS.currentPage()).send("action", "scrollUp")
-}
+const scrollUp = () => TABS.currentPage().send("action", "scrollUp")
 
-const scrollRight = () => {
-    TABS.webContents(TABS.currentPage()).send("action", "scrollRight")
-}
+const scrollRight = () => TABS.currentPage().send("action", "scrollRight")
 
 const nextSearchMatch = () => {
     if (currentSearch) {
@@ -103,34 +86,23 @@ const reload = () => {
     }
 }
 
-const openNewTab = () => {
-    TABS.addTab()
-}
+const openNewTab = () => TABS.addTab()
 
-const reopenTab = () => {
-    TABS.reopenTab()
-}
+const reopenTab = () => TABS.reopenTab()
 
 const nextTab = count => {
     TABS.switchToTab(TABS.listTabs().indexOf(TABS.currentTab()) + count)
 }
 
 const decreasePageNumber = count => {
-    TABS.webContents(TABS.currentPage()).send(
-        "action", "decreasePageNumber", count)
+    TABS.currentPage().send("action", "decreasePageNumber", count)
 }
 
-const toSearchMode = () => {
-    MODES.setMode("search")
-}
+const toSearchMode = () => MODES.setMode("search")
 
-const startFollowNewTab = () => {
-    FOLLOW.startFollow(true)
-}
+const startFollowNewTab = () => FOLLOW.startFollow(true)
 
-const scrollBottom = () => {
-    TABS.webContents(TABS.currentPage()).send("action", "scrollBottom")
-}
+const scrollBottom = () => TABS.currentPage().send("action", "scrollBottom")
 
 const backInHistory = () => {
     if (TABS.currentPage().canGoBack()) {
@@ -140,9 +112,7 @@ const backInHistory = () => {
     }
 }
 
-const openNewTabAtAlternativePosition = () => {
-    TABS.addTab({"inverted": true})
-}
+const openNewTabAtAlternativePosition = () => TABS.addTab({"inverted": true})
 
 const forwardInHistory = () => {
     if (TABS.currentPage().canGoForward()) {
@@ -177,68 +147,52 @@ const openNewTabWithCurrentUrl = () => {
 }
 
 const scrollPageRight = () => {
-    TABS.webContents(TABS.currentPage()).send("action", "scrollPageRight")
+    TABS.currentPage().send("action", "scrollPageRight")
 }
 
 const scrollPageLeft = () => {
-    TABS.webContents(TABS.currentPage()).send("action", "scrollPageLeft")
+    TABS.currentPage().send("action", "scrollPageLeft")
 }
 
-const toCommandMode = () => {
-    MODES.setMode("command")
-}
+const toCommandMode = () => MODES.setMode("command")
 
-const scrollPageUp = () => {
-    TABS.webContents(TABS.currentPage()).send("action", "scrollPageUp")
-}
+const scrollPageUp = () => TABS.currentPage().send("action", "scrollPageUp")
 
-const stopLoadingPage = () => {
-    TABS.currentPage().stop()
-}
+const stopLoadingPage = () => TABS.currentPage().stop()
 
 const scrollPageDownHalf = () => {
-    TABS.webContents(TABS.currentPage()).send("action", "scrollPageDownHalf")
+    TABS.currentPage().send("action", "scrollPageDownHalf")
 }
 
-const scrollPageDown = () => {
-    TABS.webContents(TABS.currentPage()).send("action", "scrollPageDown")
-}
+const scrollPageDown = () => TABS.currentPage().send("action", "scrollPageDown")
 
-const moveTabForward = () => {
-    TABS.moveTabForward()
-}
+const moveTabForward = () => TABS.moveTabForward()
 
-const moveTabBackward = () => {
-    TABS.moveTabBackward()
-}
+const moveTabBackward = () => TABS.moveTabBackward()
 
 const scrollPageUpHalf = () => {
-    TABS.webContents(TABS.currentPage()).send("action", "scrollPageUpHalf")
+    TABS.currentPage().send("action", "scrollPageUpHalf")
 }
 
-const zoomReset = () => {
-    TABS.webContents(TABS.currentPage()).zoomLevel = 0
-}
+const zoomReset = () => TABS.currentPage().setZoomLevel(0)
 
 const zoomOut = count => {
-    let level = TABS.webContents(TABS.currentPage()).zoomLevel - count
+    let level = TABS.currentPage().getZoomLevel() - count
     if (level < -7) {
         level = -7
     }
-    TABS.webContents(TABS.currentPage()).zoomLevel = level
+    TABS.currentPage().setZoomLevel(level)
 }
 
 const zoomIn = count => {
-    let level = TABS.webContents(TABS.currentPage()).zoomLevel + count
+    let level = TABS.currentPage().getZoomLevel() + count
     if (level > 7) {
         level = 7
     }
-    TABS.webContents(TABS.currentPage()).zoomLevel = level
+    TABS.currentPage().setZoomLevel(level)
 }
 
-const toNormalMode = () => {
-    MODES.setMode("normal")
-}
+const toNormalMode = () => MODES.setMode("normal")
 
 const stopFollowMode = () => {
     if (MODES.currentMode() === "follow") {
@@ -249,7 +203,7 @@ const stopFollowMode = () => {
 }
 
 const editWithVim = () => {
-    const fileFolder = path.join(remote.app.getPath("appData"), "vimformedits")
+    const fileFolder = path.join(UTIL.appData(), "vimformedits")
     const tempFile = path.join(fileFolder, String(Number(new Date())))
     try {
         fs.mkdirSync(fileFolder)
@@ -263,11 +217,11 @@ const editWithVim = () => {
         return
     }
     let command = null
-    const webcontents = TABS.webContents(TABS.currentPage())
+    const page = TABS.currentPage()
     fs.watchFile(tempFile, {"interval": 500}, () => {
         if (command) {
             try {
-                webcontents.send("action", "setInputFieldText",
+                page.send("action", "setInputFieldText",
                     fs.readFileSync(tempFile).toString())
             } catch (e) {
                 UTIL.notify("Failed to read temp file to fill form", "err")
@@ -281,7 +235,7 @@ const editWithVim = () => {
             })
         }
     })
-    webcontents.send("action", "writeInputToFile", tempFile)
+    page.send("action", "writeInputToFile", tempFile)
 }
 
 const nextSuggestion = () => {
@@ -294,49 +248,27 @@ const prevSuggestion = () => {
     setFocusCorrectly()
 }
 
-const commandHistoryPrevious = () => {
-    COMMANDHISTORY.previous()
-}
+const commandHistoryPrevious = () => COMMANDHISTORY.previous()
 
-const commandHistoryNext = () => {
-    COMMANDHISTORY.next()
-}
+const commandHistoryNext = () => COMMANDHISTORY.next()
 
-const rotateSplitWindow = () => {
-    PAGELAYOUT.rotate()
-}
+const rotateSplitWindow = () => PAGELAYOUT.rotate()
 
-const leftHalfSplitWindow = () => {
-    PAGELAYOUT.toTop("left")
-}
+const leftHalfSplitWindow = () => PAGELAYOUT.toTop("left")
 
-const bottomHalfSplitWindow = () => {
-    PAGELAYOUT.toTop("bottom")
-}
+const bottomHalfSplitWindow = () => PAGELAYOUT.toTop("bottom")
 
-const topHalfSplitWindow = () => {
-    PAGELAYOUT.toTop("top")
-}
+const topHalfSplitWindow = () => PAGELAYOUT.toTop("top")
 
-const rightHalfSplitWindow = () => {
-    PAGELAYOUT.toTop("right")
-}
+const rightHalfSplitWindow = () => PAGELAYOUT.toTop("right")
 
-const toLeftSplitWindow = () => {
-    PAGELAYOUT.moveFocus("left")
-}
+const toLeftSplitWindow = () => PAGELAYOUT.moveFocus("left")
 
-const toBottomSplitWindow = () => {
-    PAGELAYOUT.moveFocus("bottom")
-}
+const toBottomSplitWindow = () => PAGELAYOUT.moveFocus("bottom")
 
-const toTopSplitWindow = () => {
-    PAGELAYOUT.moveFocus("top")
-}
+const toTopSplitWindow = () => PAGELAYOUT.moveFocus("top")
 
-const toRightSplitWindow = () => {
-    PAGELAYOUT.moveFocus("right")
-}
+const toRightSplitWindow = () => PAGELAYOUT.moveFocus("right")
 
 const increaseHeightSplitWindow = count => {
     PAGELAYOUT.resize("ver", "grow", count)
@@ -354,13 +286,12 @@ const decreaseWidthSplitWindow = count => {
     PAGELAYOUT.resize("hor", "shrink", count)
 }
 
-const distrubuteSpaceSplitWindow = () => {
-    PAGELAYOUT.resetResizing()
-}
+const distrubuteSpaceSplitWindow = () => PAGELAYOUT.resetResizing()
 
 const toggleFullscreen = () => {
-    UTIL.windowByName("main").fullScreen = !UTIL.windowByName("main").fullScreen
-    SETTINGS.updateGuiVisibility()
+    ipcRenderer.invoke("toggle-fullscreen").then(() => {
+        SETTINGS.updateGuiVisibility()
+    })
 }
 
 const useEnteredData = () => {

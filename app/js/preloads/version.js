@@ -17,10 +17,10 @@
 */
 "use strict"
 
-const {remote} = require("electron")
+const {ipcRenderer} = require("electron")
 
 const apiUrl = "https://api.github.com/repos/Jelmerro/Vieb/releases/latest"
-const version = process.env.npm_package_version || remote.app.getVersion()
+const version = ipcRenderer && ipcRenderer.sendSync("app-version")
 
 const compareVersions = (v1, v2) => {
     v1 = v1.replace(/^v/g, "").trim()

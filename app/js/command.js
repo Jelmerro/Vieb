@@ -15,11 +15,11 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMANDHISTORY DOWNLOADS FAVICONS HISTORY INPUT MODES PAGELAYOUT
+/* global COMMANDHISTORY FAVICONS HISTORY INPUT MODES PAGELAYOUT
  SETTINGS TABS UTIL */
 "use strict"
 
-const {remote} = require("electron")
+const {ipcRenderer} = require("electron")
 const path = require("path")
 
 const listSetting = setting => {
@@ -156,7 +156,7 @@ const quit = () => {
 }
 
 const quitall = () => {
-    UTIL.windowByName("main").hide()
+    ipcRenderer.send("hide-window")
     if (SETTINGS.get("clearhistoryonquit")) {
         HISTORY.clearHistory()
     } else {
@@ -173,14 +173,8 @@ const quitall = () => {
     if (SETTINGS.get("clearlocalstorageonquit")) {
         UTIL.clearLocalStorage()
     }
-    DOWNLOADS.cancelAll()
     FAVICONS.updateMappings()
-    UTIL.windowByName("main").destroy()
-    remote.app.exit(0)
-}
-
-const devtools = () => {
-    TABS.currentPage().openDevTools()
+    ipcRenderer.send("destroy-window")
 }
 
 const openSpecialPage = (specialPage, section = null) => {
@@ -234,13 +228,11 @@ const write = (file, trailingArgs = false) => {
         name += ".html"
     }
     name = `${new URL(TABS.currentPage().src).hostname} ${name}`.trim()
-    let loc = path.join(remote.app.getPath("downloads"), name)
+    let loc = path.join(UTIL.downloadPath(), name)
     if (file) {
+        file = UTIL.expandPath(file)
         if (!path.isAbsolute(file)) {
-            file = UTIL.expandPath(file)
-            if (!path.isAbsolute(file)) {
-                file = path.join(remote.app.getPath("downloads"), file)
-            }
+            file = path.join(UTIL.downloadPath(), file)
         }
         const folder = path.dirname(file)
         if (UTIL.isDir(folder)) {
@@ -261,9 +253,9 @@ const write = (file, trailingArgs = false) => {
             return
         }
     }
-    TABS.webContents(TABS.currentPage()).savePage(
-        loc, "HTMLComplete").then(() => {
-        UTIL.notify(`Page successfully saved at '${loc}'`)
+    const webContentsId = TABS.currentPage().getWebContentsId()
+    ipcRenderer.invoke("save-page", webContentsId, loc).then(() => {
+        UTIL.notify(`Page saved at '${loc}'`)
     }).catch(err => {
         UTIL.notify(`Could not save the page:\n${err}`, "err")
     })
@@ -389,8 +381,7 @@ const addSplit = (method, leftOrAbove, args) => {
 
 const addCommand = (overwrite, args) => {
     if (overwrite && args.length < 2) {
-        UTIL.notify(
-            "Can't combine ! with reading a value", "warn")
+        UTIL.notify("Can't combine ! with reading a value", "warn")
         return
     }
     if (args.length === 0) {
@@ -458,7 +449,7 @@ const commands = {
     "quit": quit,
     "qa": quitall,
     "quitall": quitall,
-    "devtools": devtools,
+    "devtools": () => TABS.currentPage().openDevTools(),
     "reload": reload,
     "v": () => openSpecialPage("version"),
     "version": () => openSpecialPage("version"),

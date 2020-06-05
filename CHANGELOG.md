@@ -24,6 +24,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Pin command to toggle pinned tabs, which are exactly the width of the favicon and are always restored on restart
 - GUI settings to autohide the navbar and/or tabbar depending on events or always
 - User action for toggling fullscreen mode (different from webpage requested fullscreen)
+- Add downloadmethod setting to change the download behavior
 
 ### Changed
 
@@ -41,6 +42,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Electron 9.0.2 (was 9.0.0)
 - Chromium 83.0.4103.94 (was 83.0.4103.64)
+- Remove the usage of the remote module entirely
 
 ## [2.1.0](https://github.com/Jelmerro/Vieb/compare/2.0.0...2.1.0) - 2020-05-19
 

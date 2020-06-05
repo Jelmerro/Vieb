@@ -28,22 +28,13 @@
         SPACE/d/j: screen/page/line down, b/u/k: up, q: quit
     </footer>
     <script>
-        const { ipcRenderer, remote } = require("electron")
+        const {ipcRenderer} = require("electron")
+        window.fontsize = 14
         const fixScrollHeight = () => {
             const notify = document.getElementById("notification")
-            notify.scrollTop -= notify.scrollTop % 14
+            notify.scrollTop -= notify.scrollTop % window.fontsize
         }
-        window.fontsize = 14
-        remote.getCurrentWindow().on("show", () => {
-        })
-        remote.getCurrentWindow().on("hide", () => {
-            document.getElementById("notification").textContent = "Loading..."
-        })
-        ipcRenderer.on("notification-fontsize", (_, fontsize) => {
-            window.fontsize = fontsize
-            document.body.style.fontSize = `${fontsize}px`
-        })
-        ipcRenderer.on("notification-contents", (_, message, fontsize, lvl) => {
+        ipcRenderer.on("notification-details", (_, message, fontsize, lvl) => {
             document.getElementById("notification").scrollBy(0, -1000000000)
             document.getElementById("notification").innerHTML = message
             if (lvl === "error") {
@@ -53,6 +44,8 @@
             } else {
                 document.querySelector("footer").style.color = "#0cf"
             }
+            window.fontsize = fontsize
+            document.body.style.fontSize = `${fontsize}px`
         })
         window.addEventListener("keydown", e => {
             if (e.metaKey || e.altKey) {
@@ -60,7 +53,7 @@
             }
             if (e.ctrlKey) {
                 if (e.code === "BracketLeft" && !e.shiftKey) {
-                    remote.getCurrentWindow().hide()
+                    window.close()
                 }
                 return
             }
@@ -98,7 +91,7 @@
                     .scrollBy(0, window.innerHeight - fontsize * 2)
                 fixScrollHeight()
             } else if (e.code === "Escape" || e.code === "KeyQ") {
-                remote.getCurrentWindow().hide()
+                window.close()
             }
         })
     </script>

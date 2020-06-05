@@ -17,7 +17,6 @@
 */
 "use strict"
 
-const {remote} = require("electron")
 const path = require("path")
 
 // Always load the misc action functions (such as scrolling before page loads)
@@ -57,12 +56,10 @@ window.addEventListener("load", () => {
         document.querySelector("html").style.background = "white"
     }
 })
-// Apply darkreader if enabled
-const webviewSettingsFile = path.join(
-    remote.app.getPath("appData"), "webviewsettings")
+// Apply darkreader styling if enabled
+const webviewSettingsFile = path.join(util.appData(), "webviewsettings")
 const settings = util.readJSON(webviewSettingsFile)
 if (settings && settings.darkreader && !specialPage.name) {
-    // Darkreader
     const darkreader = require("darkreader")
     const interval = setInterval(() => {
         try {
@@ -73,8 +70,6 @@ if (settings && settings.darkreader && !specialPage.name) {
         }
     }, 10)
     window.addEventListener("load", () => {
-        setTimeout(() => {
-            clearInterval(interval)
-        }, 1000)
+        setTimeout(() => clearInterval(interval), 1000)
     })
 }

@@ -15,21 +15,19 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS COMMANDHISTORY POINTER FOLLOW INPUT SETTINGS SUGGEST TABS */
+/* global ACTIONS COMMANDHISTORY POINTER FOLLOW SETTINGS SUGGEST TABS */
 "use strict"
 
 const modes = {
-    "normal": {
-        "fg": "#ddd"
-    },
+    "normal": {"fg": "#ddd"},
     "insert": {
         "fg": "#3f3",
         "onEnter": () => {
             document.getElementById("invisible-overlay").style.display = "none"
         },
         "onLeave": newMode => {
-            if (TABS.currentPage().getAttribute("webview-id")) {
-                TABS.webContents(TABS.currentPage()).send("action", "blur")
+            if (TABS.currentPage().getAttribute("dom-ready")) {
+                TABS.currentPage().send("action", "blur")
             }
             document.getElementById("invisible-overlay").style.display = ""
             if (newMode !== "pointer") {
@@ -136,37 +134,6 @@ const init = () => {
     })
 }
 
-const insertModeHandler = (page, e, input) => {
-    if (input.code === "Tab") {
-        TABS.currentPage().focus()
-    }
-    // Check if fullscreen should be disabled
-    const noMods = !input.shift && !input.meta && !input.alt
-    const ctrl = input.control
-    const escapeKey = input.code === "Escape" && noMods && !ctrl
-    const ctrlBrack = input.code === "BracketLeft" && noMods && ctrl
-    if (escapeKey || ctrlBrack) {
-        if (document.body.classList.contains("fullscreen")) {
-            TABS.webContents(page).send("action", "exitFullscreen")
-            return
-        }
-    }
-    if (input.type.toLowerCase() !== "keydown") {
-        return
-    }
-    // Translate to regular keyboard event
-    INPUT.handleKeyboard({
-        "ctrlKey": input.control,
-        "shiftKey": input.shift,
-        "metaKey": input.meta,
-        "altKey": input.alt,
-        "key": input.key,
-        "isTrusted": true,
-        "preventDefault": e.preventDefault,
-        "passedOnFromInsert": true
-    })
-}
-
 const setMode = mode => {
     mode = mode.trim().toLowerCase()
     if (!modes[mode] || currentMode() === mode) {
@@ -183,16 +150,6 @@ const setMode = mode => {
     document.getElementById("mode-container")
         .style.backgroundColor = modes[mode].bg || ""
     SETTINGS.guiRelatedUpdate("navbar")
-    TABS.listPages().forEach(page => {
-        if (page.getAttribute("webview-id")) {
-            TABS.webContents(page).removeAllListeners("before-input-event")
-            if (mode === "insert") {
-                TABS.webContents(page).on("before-input-event", (e, input) => {
-                    insertModeHandler(page, e, input)
-                })
-            }
-        }
-    })
     ACTIONS.setFocusCorrectly()
 }
 

@@ -15,149 +15,35 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global DOWNLOADS SETTINGS UTIL */
+/* global SETTINGS UTIL */
 "use strict"
 
-const {ipcRenderer, remote} = require("electron")
+const {ipcRenderer} = require("electron")
 const path = require("path")
 const fs = require("fs")
 const https = require("https")
 
-const blocklistDir = path.join(remote.app.getPath("appData"), "blocklists")
+const blocklistDir = path.join(UTIL.appData(), "blocklists")
 const defaultBlocklists = {
     "easylist": "https://easylist.to/easylist/easylist.txt",
     "easyprivacy": "https://easylist.to/easylist/easyprivacy.txt"
 }
-const sessions = {}
 
 const init = () => {
     UTIL.clearContainerTabs()
     enableAdblocker()
     create("persist:main")
-}
-
-const permissionHandler = (_, permission, callback, details) => {
-    if (permission === "media") {
-        if (details.mediaTypes && details.mediaTypes.includes("video")) {
-            permission = "camera"
-        } else {
-            permission = "microphone"
-        }
-    }
-    const permissionName = `permission${permission.toLowerCase()}`
-    const setting = SETTINGS.get(permissionName)
-    if (setting === "ask") {
-        let url = details.requestingUrl
-        if (url.length > 100) {
-            url = url.replace(/.{50}/g, "$&\n")
-        }
-        let message = "The page has requested access to the permission "
-            + `'${permission}'. You can allow or deny this below, `
-            + "and choose if you want to make this the default for "
-            + "the current session when sites ask for this permission."
-            + " You can always change this using the settings file,"
-            + " or at runtime with the set command like so: "
-            + `'set ${permissionName}=<value>'\n\npage:\n${url}`
-        if (permission === "openExternal") {
-            let exturl = details.externalURL
-            if (exturl.length > 100) {
-                exturl = exturl.replace(/.{50}/g, "$&\n")
-            }
-            message = "The page has requested to open an external application."
-                + " You can allow or deny this below, and choose if you want to"
-                + " make this the default for the current session when sites "
-                + "ask to open urls in external programs. You can always change"
-                + " this using the settings file, or at runtime with the set "
-                + "command like so: 'set permissionopenexternal=<value>\n\n"
-                + `page:\n${details.requestingUrl}\n\nexternal:\n${exturl}`
-        }
-        remote.dialog.showMessageBox(UTIL.windowByName("main"), {
-            "type": "question",
-            "buttons": ["Allow", "Deny"],
-            "defaultId": 0,
-            "cancelId": 1,
-            "checkboxLabel": "Remember for this session",
-            "title": `Allow this page to access '${permission}'?`,
-            "message": message
-        }).then(e => {
-            callback(e.response === 0)
-            if (e.checkboxChecked) {
-                if (e.response === 0) {
-                    SETTINGS.set(permissionName, "allow")
-                } else {
-                    SETTINGS.set(permissionName, "block")
-                }
-            }
-        })
-    } else {
-        callback(setting === "allow")
-    }
+    ipcRenderer.on("notify", (_, message, type) => UTIL.notify(message, type))
 }
 
 const create = name => {
-    if (Object.keys(sessions).includes(name)) {
-        return
-    }
-    applyDevtoolsSettings(name.split(":")[1] || name)
-    const session = remote.session.fromPartition(name, {
-        "cache": SETTINGS.get("cache") !== "none"
-    })
-    session.setPermissionRequestHandler(permissionHandler)
-    if (SETTINGS.get("adblocker") !== "off") {
-        ipcRenderer.send("adblock-enable", [name])
-    }
-    session.on("will-download", DOWNLOADS.handleDownload)
-    session.setUserAgent(UTIL.useragent())
-    ipcRenderer.send("downloads-path-for-session", name)
-    sessions[name] = session
+    ipcRenderer.send("create-session", name, SETTINGS.get("adblock"),
+        SETTINGS.get("cache") !== "none")
 }
 
-const applyDevtoolsSettings = session => {
-    const partitionDir = path.join(remote.app.getPath("appData"), "Partitions")
-    const sessionDir = path.join(partitionDir, session)
-    const preferencesFile = path.join(sessionDir, "Preferences")
-    try {
-        fs.mkdirSync(partitionDir)
-    } catch (e) {
-        // Directory probably already exists
-    }
-    try {
-        fs.mkdirSync(sessionDir)
-    } catch (e) {
-        // Directory probably already exists
-    }
-    let preferences = UTIL.readJSON(preferencesFile)
-    if (!preferences) {
-        preferences = {}
-    }
-    if (!preferences.electron) {
-        preferences.electron = {}
-    }
-    if (!preferences.electron.devtools) {
-        preferences.electron.devtools = {}
-    }
-    if (!preferences.electron.devtools.preferences) {
-        preferences.electron.devtools.preferences = {}
-    }
-    // Disable source maps as they leak internal structure to the webserver
-    preferences.electron.devtools.preferences.cssSourceMapsEnabled = false
-    preferences.electron.devtools.preferences.jsSourceMapsEnabled = false
-    // Disable release notes, most are not relevant for Vieb
-    preferences.electron.devtools.preferences["help.show-release-note"] = false
-    // Show timestamps in the console
-    preferences.electron.devtools.preferences.consoleTimestampsEnabled = true
-    // Enable dark theme
-    preferences.electron.devtools.preferences.uiTheme = "\"dark\""
-    UTIL.writeJSON(preferencesFile, preferences)
-}
+const disableAdblocker = () => ipcRenderer.send("adblock-disable")
 
-const disableAdblocker = () => {
-    ipcRenderer.send("adblock-disable", Object.keys(sessions))
-}
-
-const recreateAdblocker = () => {
-    ipcRenderer.send("adblock-recreate", Object.keys(sessions))
-}
+const recreateAdblocker = () => ipcRenderer.send("adblock-recreate")
 
 const enableAdblocker = () => {
     try {
@@ -205,14 +91,6 @@ const enableAdblocker = () => {
     }
 }
 
-const setSpellLang = lang => {
-    Object.keys(sessions).forEach(ses => {
-        if (lang === "system") {
-            remote.session.fromPartition(ses).setSpellCheckerLanguages([])
-        } else {
-            remote.session.fromPartition(ses).setSpellCheckerLanguages([lang])
-        }
-    })
-}
+const setSpellLang = lang => ipcRenderer.send("set-spelllang", lang)
 
 module.exports = {init, create, enableAdblocker, disableAdblocker, setSpellLang}

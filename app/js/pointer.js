@@ -18,7 +18,7 @@
 /* global ACTIONS MODES SETTINGS TABS */
 "use strict"
 
-const {remote} = require("electron")
+const {clipboard} = require("electron")
 
 let X = 0
 let Y = 0
@@ -51,8 +51,7 @@ const offset = () => {
     let left = Number(TABS.currentPage().style.left.split(/[.px]/g)[0])
     let bottom = top + Number(TABS.currentPage()
         .style.height.split(/[.px]/g)[0])
-    let right = left + Number(TABS.currentPage()
-        .style.width.split(/[.px]/g)[0])
+    let right = left + Number(TABS.currentPage().style.width.split(/[.px]/g)[0])
     if (document.getElementById("pages").classList.contains("multiple")) {
         top += SETTINGS.get("fontsize") * .15
         left += SETTINGS.get("fontsize") * .15
@@ -86,17 +85,14 @@ const updateElement = () => {
     TABS.currentPage().setAttribute("pointer-x", X)
     TABS.currentPage().setAttribute("pointer-y", Y)
     if (MODES.currentMode() === "pointer") {
-        TABS.currentPage().sendInputEvent({
-            "type": "mouseEnter", "x": X, "y": Y
-        })
-        TABS.currentPage().sendInputEvent({
-            "type": "mouseMove", "x": X, "y": Y
-        })
+        TABS.currentPage().sendInputEvent(
+            {"type": "mouseEnter", "x": X, "y": Y})
+        TABS.currentPage().sendInputEvent({"type": "mouseMove", "x": X, "y": Y})
     }
     if (MODES.currentMode() === "visual") {
-        const factor = TABS.webContents(TABS.currentPage()).zoomFactor
-        TABS.webContents(TABS.currentPage()).send(
-            "selection-request", Math.round(X / factor), Math.round(Y / factor))
+        const factor = TABS.currentPage().getZoomFactor()
+        TABS.currentPage().send("selection-request",
+            Math.round(X / factor), Math.round(Y / factor))
     }
 }
 
@@ -122,7 +118,7 @@ const releaseKeys = () => {
         }
         TABS.currentPage().sendInputEvent(
             {"type": "mouseLeave", "x": X, "y": Y})
-        TABS.webContents(TABS.currentPage()).send("selection-remove")
+        TABS.currentPage().send("selection-remove")
     } catch (e) {
         // Can't release keys, probably because of opening a new tab
     }
@@ -136,31 +132,26 @@ const moveFastLeft = () => {
 }
 
 const downloadImage = () => {
-    const factor = TABS.webContents(TABS.currentPage()).zoomFactor
-    TABS.webContents(TABS.currentPage()).send("download-image-request",
+    const factor = TABS.currentPage().getZoomFactor()
+    TABS.currentPage().send("download-image-request",
         Math.round(X / factor), Math.round(Y / factor))
 }
 
 const inspectElement = () => {
     const {top, left} = offset()
-    TABS.webContents(TABS.currentPage()).inspectElement(
-        Math.round(X + left), Math.round(Y + top))
+    TABS.currentPage().inspectElement(Math.round(X + left), Math.round(Y + top))
 }
 
 const copyAndStop = () => {
     if (MODES.currentMode() === "pointer") {
-        remote.clipboard.write({
-            "text": document.getElementById("url-hover").textContent
-        })
+        clipboard.writeText(document.getElementById("url-hover").textContent)
     } else {
-        TABS.webContents(TABS.currentPage()).send("selection-copy")
+        TABS.currentPage().send("selection-copy")
     }
     MODES.setMode("normal")
 }
 
-const leftClick = () => {
-    click("left")
-}
+const leftClick = () => click("left")
 
 const startOfPage = () => {
     ACTIONS.scrollTop()
@@ -204,14 +195,11 @@ const moveRight = () => {
     updateElement()
 }
 
-const rightClick = () => {
-    click("right")
-}
+const rightClick = () => click("right")
 
 const startVisualSelect = () => {
-    const factor = TABS.webContents(TABS.currentPage()).zoomFactor
-    TABS.webContents(TABS.currentPage()).send(
-        "selection-start-location", X / factor, Y / factor)
+    const factor = TABS.currentPage().getZoomFactor()
+    TABS.currentPage().send("selection-start-location", X / factor, Y / factor)
     MODES.setMode("visual")
 }
 
@@ -227,28 +215,28 @@ const centerOfView = () => {
 }
 
 const scrollDown = () => {
-    TABS.webContents(TABS.currentPage()).sendInputEvent({
+    TABS.currentPage().sendInputEvent({
         "type": "mouseWheel", "x": X, "y": Y, "deltaX": 0, "deltaY": -100
     })
     updateElement()
 }
 
 const scrollUp = () => {
-    TABS.webContents(TABS.currentPage()).sendInputEvent({
+    TABS.currentPage().sendInputEvent({
         "type": "mouseWheel", "x": X, "y": Y, "deltaX": 0, "deltaY": 100
     })
     updateElement()
 }
 
 const scrollLeft = () => {
-    TABS.webContents(TABS.currentPage()).sendInputEvent({
+    TABS.currentPage().sendInputEvent({
         "type": "mouseWheel", "x": X, "y": Y, "deltaX": 100, "deltaY": 0
     })
     updateElement()
 }
 
 const scrollRight = () => {
-    TABS.webContents(TABS.currentPage()).sendInputEvent({
+    TABS.currentPage().sendInputEvent({
         "type": "mouseWheel", "x": X, "y": Y, "deltaX": -100, "deltaY": 0
     })
     updateElement()

@@ -15,18 +15,18 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS POINTER DOWNLOADS FAVICONS FOLLOW HISTORY INPUT MODES
+/* global ACTIONS POINTER FAVICONS FOLLOW HISTORY INPUT MODES
  PAGELAYOUT SESSIONS SETTINGS UTIL */
 "use strict"
 
 const fs = require("fs")
 const path = require("path")
-const {ipcRenderer, remote} = require("electron")
+const {ipcRenderer} = require("electron")
 
 let recentlyClosed = []
 let linkId = 0
 const timeouts = {}
-const tabFile = path.join(remote.app.getPath("appData"), "tabs")
+const tabFile = path.join(UTIL.appData(), "tabs")
 
 const init = () => {
     window.addEventListener("load", () => {
@@ -101,6 +101,10 @@ const init = () => {
                 // Page not available, retry later
             }
         }, 100)
+        ipcRenderer.send("window-state-init",
+            SETTINGS.get("restorewindowposition"),
+            SETTINGS.get("restorewindowsize"),
+            SETTINGS.get("restorewindowmaximize"))
     })
 }
 
@@ -111,7 +115,7 @@ const openSavedPage = (url, pinned = false) => {
     url = UTIL.stringToUrl(url.trim())
     try {
         if (UTIL.pathToSpecialPageName(currentPage().src).name === "newtab") {
-            if (!webContents(currentPage()).isLoading()) {
+            if (!currentPage().isLoading()) {
                 navigateTo(url)
                 if (pinned) {
                     currentTab().classList.add("pinned")
@@ -126,12 +130,7 @@ const openSavedPage = (url, pinned = false) => {
 }
 
 const saveTabs = () => {
-    const data = {
-        "pinned": [],
-        "tabs": [],
-        "id": 0,
-        "closed": []
-    }
+    const data = {"pinned": [], "tabs": [], "id": 0, "closed": []}
     // The list of tabs is ordered, the list of pages isn't
     // Pinned tabs are always saved to the file
     listTabs().forEach(tab => {
@@ -255,18 +254,18 @@ const addTab = options => {
     webview.src = UTIL.specialPagePath("newtab")
     webview.setAttribute("useragent", UTIL.useragent())
     webview.addEventListener("dom-ready", () => {
-        if (webview.getAttribute("useragent")) {
+        if (!webview.getAttribute("dom-ready")) {
+            ipcRenderer.send("disable-localrtc", webview.getWebContentsId())
+            ipcRenderer.send("insert-mode-listener", webview.getWebContentsId())
             addWebviewListeners(webview)
-            webContents(webview).userAgent = UTIL.useragent()
-            webContents(webview).setWebRTCIPHandlingPolicy(
-                "default_public_interface_only")
+            webview.setUserAgent(UTIL.useragent())
             if (options.url) {
                 options.url = UTIL.redirect(options.url)
                 webview.src = options.url
                 resetTabInfo(webview)
                 title.textContent = options.url
             }
-            webview.removeAttribute("useragent")
+            webview.setAttribute("dom-ready", true)
             if (options.callback) {
                 options.callback(webview.getAttribute("link-id"))
             }
@@ -300,13 +299,6 @@ const closeTab = () => {
     } else {
         switchToTab(oldTabIndex - 1)
     }
-}
-
-const webContents = webview => {
-    if (!webview.getAttribute("webview-id")) {
-        webview.setAttribute("webview-id", webview.getWebContentsId())
-    }
-    return remote.webContents.fromId(Number(webview.getAttribute("webview-id")))
 }
 
 const tabOrPageMatching = el => {
@@ -357,15 +349,14 @@ const switchToTab = index => {
 }
 
 const updateWindowTitle = () => {
-    const mainWindow = UTIL.windowByName("main")
     if (SETTINGS.get("windowtitle") === "simple" || !currentPage()) {
-        mainWindow.title = "Vieb"
+        ipcRenderer.send("set-window-title", "Vieb")
         return
     }
     const title = tabOrPageMatching(currentPage())
         .querySelector("span").textContent
     if (SETTINGS.get("windowtitle") === "title" || !currentPage().src) {
-        mainWindow.title = `Vieb - ${title}`
+        ipcRenderer.send("set-window-title", `Vieb - ${title}`)
         return
     }
     let url = currentPage().src
@@ -377,10 +368,10 @@ const updateWindowTitle = () => {
         }
     }
     if (SETTINGS.get("windowtitle") === "url") {
-        mainWindow.title = `Vieb - ${url}`
+        ipcRenderer.send("set-window-title", `Vieb - ${url}`)
         return
     }
-    mainWindow.title = `Vieb - ${title} - ${url}`
+    ipcRenderer.send("set-window-title", `Vieb - ${title} - ${url}`)
 }
 
 const updateUrl = (webview, force = false) => {
@@ -425,7 +416,8 @@ const addWebviewListeners = webview => {
                         POINTER.startVisualSelect()
                     }
                     if (e.x && e.y) {
-                        POINTER.move(e.x, e.y)
+                        POINTER.move(e.x * currentPage().getZoomFactor(),
+                            e.y * currentPage().getZoomFactor())
                     }
                 } else if (e.toinsert) {
                     MODES.setMode("insert")
@@ -464,25 +456,6 @@ const addWebviewListeners = webview => {
     webview.addEventListener("did-start-loading", () => {
         FAVICONS.loading(webview)
         updateUrl(webview)
-        webContents(webview).once("login", () => {
-            for (const browserWindow of remote.BrowserWindow.getAllWindows()) {
-                if (browserWindow.getURL().endsWith("login.html")) {
-                    MODES.setMode("normal")
-                    const bounds = UTIL.windowByName("main").getBounds()
-                    const size = Math.round(SETTINGS.get("fontsize") * 21)
-                    browserWindow.setMinimumSize(size, size)
-                    browserWindow.setSize(size, size)
-                    browserWindow.setPosition(
-                        Math.round(bounds.x + bounds.width / 2 - size / 2),
-                        Math.round(bounds.y + bounds.height / 2 - size / 2))
-                    browserWindow.resizable = false
-                    browserWindow.webContents.executeJavaScript(
-                        "document.body.style.fontSize = "
-                        + `'${SETTINGS.get("fontsize")}px'`)
-                    browserWindow.show()
-                }
-            }
-        })
     })
     webview.addEventListener("did-fail-load", e => {
         if (e.errorDescription === "" || !e.isMainFrame) {
@@ -533,7 +506,7 @@ const addWebviewListeners = webview => {
         }
         webview.send("insert-failed-page-info", JSON.stringify(e))
         webview.setAttribute("failed-to-load", "true")
-        webContents(webview).send("fontsize", SETTINGS.get("fontsize"))
+        webview.send("fontsize", SETTINGS.get("fontsize"))
     })
     webview.addEventListener("did-stop-loading", () => {
         FAVICONS.show(webview)
@@ -543,16 +516,14 @@ const addWebviewListeners = webview => {
         const isLocal = webview.src.startsWith("file:/")
         const isErrorPage = webview.getAttribute("failed-to-load")
         if (specialPageName || isLocal || isErrorPage) {
-            webContents(webview).send("fontsize", SETTINGS.get("fontsize"))
+            webview.send("fontsize", SETTINGS.get("fontsize"))
         }
         if (specialPageName === "help") {
-            webContents(webview).send(
-                "settings", SETTINGS.settingsWithDefaults(),
+            webview.send("settings", SETTINGS.settingsWithDefaults(),
                 INPUT.listMappingsAsCommandList(false, true))
         }
         if (specialPageName === "notifications") {
-            webContents(webview).send(
-                "notification-history", UTIL.listNotificationHistory())
+            webview.send("notification-history", UTIL.listNotificationHistory())
         }
         saveTabs()
         const title = tabOrPageMatching(webview).querySelector("span")
@@ -615,7 +586,7 @@ const addWebviewListeners = webview => {
         document.body.classList.add("fullscreen")
         webview.blur()
         webview.focus()
-        webContents(webview).send("action", "focusTopLeftCorner")
+        webview.send("action", "focusTopLeftCorner")
         MODES.setMode("insert")
     })
     webview.addEventListener("leave-html-full-screen", () => {
@@ -653,9 +624,6 @@ const addWebviewListeners = webview => {
             const url = UTIL.redirect(e.args[0])
             webview.src = url
             tabOrPageMatching(webview).querySelector("span").textContent = url
-        }
-        if (e.channel === "download-list-request") {
-            DOWNLOADS.sendDownloadList(e.args[0], e.args[1])
         }
         if (e.channel === "new-tab-info-request") {
             const special = UTIL.pathToSpecialPageName(webview.src)
@@ -742,9 +710,7 @@ const moveTabForward = () => {
         }
     }
     tabs.insertBefore(currentTab(), currentTab().nextSibling.nextSibling)
-    currentTab().scrollIntoView({
-        "inline": "center"
-    })
+    currentTab().scrollIntoView({"inline": "center"})
 }
 
 const moveTabBackward = () => {
@@ -758,9 +724,7 @@ const moveTabBackward = () => {
         }
     }
     tabs.insertBefore(currentTab(), currentTab().previousSibling)
-    currentTab().scrollIntoView({
-        "inline": "center"
-    })
+    currentTab().scrollIntoView({"inline": "center"})
 }
 
 module.exports = {
@@ -773,7 +737,6 @@ module.exports = {
     addTab,
     reopenTab,
     closeTab,
-    webContents,
     tabOrPageMatching,
     switchToTab,
     updateWindowTitle,

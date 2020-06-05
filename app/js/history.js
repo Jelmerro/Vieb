@@ -21,9 +21,8 @@
 const fs = require("fs")
 const path = require("path")
 const readline = require("readline")
-const {remote} = require("electron")
 
-const histFile = path.join(remote.app.getPath("appData"), "hist")
+const histFile = path.join(UTIL.appData(), "hist")
 let groupedHistory = {}
 let histWriteTimeout = null
 let finishedLoading = false
@@ -40,9 +39,7 @@ const init = () => {
     }
     // NOTE: deprecated code for reading old format, will be removed in 3.0.0
     const histStream = fs.createReadStream(histFile)
-    const rl = readline.createInterface({
-        "input": histStream
-    })
+    const rl = readline.createInterface({"input": histStream})
     rl.on("line", line => {
         const hist = parseHistLine(line)
         if (!hist) {
@@ -55,9 +52,7 @@ const init = () => {
         if (!UTIL.hasProtocol(hist.title) && hist.title.trim()) {
             groupedHistory[hist.url].title = hist.title
         }
-    }).on("close", () => {
-        finishedLoading = true
-    })
+    }).on("close", () => { finishedLoading = true })
 }
 
 const parseHistLine = line => {
@@ -66,9 +61,7 @@ const parseHistLine = line => {
     if (parts.length < 3) {
         return null
     }
-    return {
-        "date": parts[0], "title": parts[1], "url": parts.slice(2).join("")
-    }
+    return {"date": parts[0], "title": parts[1], "url": parts.slice(2).join("")}
 }
 
 const suggestHist = search => {
@@ -186,8 +179,7 @@ const handleRequest = (action = "", entries = []) => {
             })
         })
         history = history.sort((a, b) => a.date.getTime() - b.date.getTime())
-        TABS.webContents(TABS.currentPage()).send(
-            "history-list", JSON.stringify(history))
+        TABS.currentPage().send("history-list", JSON.stringify(history))
         return
     }
     let success = false
@@ -197,7 +189,7 @@ const handleRequest = (action = "", entries = []) => {
     if (action === "all") {
         success = clearHistory()
     }
-    TABS.webContents(TABS.currentPage()).send("history-removal-status", success)
+    TABS.currentPage().send("history-removal-status", success)
 }
 
 const suggestTopSites = () => Object.keys(groupedHistory).filter(
