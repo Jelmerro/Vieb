@@ -23,6 +23,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Tabcycle toggle to jump from the first or last tab with next and previous tab actions (on by default)
 - Pin command to toggle pinned tabs, which are exactly the width of the favicon and are always restored on restart
 - GUI settings to autohide the navbar and/or tabbar depending on events or always
+- User action for toggling fullscreen mode (different from webpage requested fullscreen)
 
 ### Changed
 
@@ -379,7 +380,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Scrolling to the top or bottom of the page on some pages not working
 - Losing focus when switching between certain modes
-- Same for possibly losing focus when entering fullscreen
+- Same for possibly losing focus when a website enters fullscreen
 - Periodically toggle mouse focus to fully load websites that wait for the mouse to move
 - Actually save the recently closed tabs when that setting is on, but tabs.restore is off
 - Missing or blurry icons on Windows and some Linux installers
@@ -476,7 +477,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Confirm and automatic download configurations
 - Added a basic download history for the current session
 - Moved the new download page and existing help and version pages to special pages (vieb://help for example)
-- Support for fullscreen mode (by hiding the navbar, entering insert mode and a new escape keybinding)
+- Support for fullscreen reuqests of pages (by hiding the navbar, entering insert mode and a new escape keybinding)
 - Added example keybinding and setting configurations for Firefox and Chromium
 
 ### Changed
