@@ -35,7 +35,6 @@ const specialPages = [
 ]
 const notificationHistory = []
 let appDataPath = ""
-let useragentString = ""
 
 const hasProtocol = location => protocolRegex.test(location)
 
@@ -354,13 +353,6 @@ const title = name => name[0].toUpperCase() + name.slice(1).toLowerCase()
 
 const downloadPath = () => expandPath(SETTINGS.get("downloadpath"))
 
-const useragent = () => {
-    if (!useragentString) {
-        useragentString = ipcRenderer.sendSync("useragent-string")
-    }
-    return useragentString
-}
-
 const appData = () => {
     if (!appDataPath) {
         appDataPath = ipcRenderer.sendSync("appdata-path")
@@ -394,6 +386,5 @@ module.exports = {
     listNotificationHistory,
     title,
     downloadPath,
-    useragent,
     appData
 }

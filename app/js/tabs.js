@@ -252,13 +252,11 @@ const addTab = options => {
         }
     }
     webview.src = UTIL.specialPagePath("newtab")
-    webview.setAttribute("useragent", UTIL.useragent())
     webview.addEventListener("dom-ready", () => {
         if (!webview.getAttribute("dom-ready")) {
             ipcRenderer.send("disable-localrtc", webview.getWebContentsId())
             ipcRenderer.send("insert-mode-listener", webview.getWebContentsId())
             addWebviewListeners(webview)
-            webview.setUserAgent(UTIL.useragent())
             if (options.url) {
                 options.url = UTIL.redirect(options.url)
                 webview.src = options.url
