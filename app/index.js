@@ -191,6 +191,7 @@ app.on("ready", () => {
         "show": enableDebugMode,
         "closable": false,
         "webPreferences": {
+            "preload": path.join(app.getAppPath(), "apploader.js"),
             "sandbox": false,
             "contextIsolation": false,
             "disableBlinkFeatures": "Auxclick",
@@ -235,7 +236,7 @@ app.on("ready", () => {
         "alwaysOnTop": true,
         "resizable": false,
         "webPreferences": {
-            "preload": path.join(app.getAppPath(), "./js/preloads/login.js"),
+            "preload": path.join(app.getAppPath(), "js/preloads/login.js"),
             "sandbox": true,
             "contextIsolation": true,
             "disableBlinkFeatures": "Auxclick",
@@ -244,7 +245,7 @@ app.on("ready", () => {
         }
     }
     loginWindow = new BrowserWindow(loginWindowData)
-    const loginPage = `file:///${path.join(__dirname, "./pages/login.html")}`
+    const loginPage = `file:///${path.join(__dirname, "pages/login.html")}`
     loginWindow.loadURL(loginPage)
     loginWindow.on("close", e => {
         e.preventDefault()
@@ -265,7 +266,7 @@ app.on("ready", () => {
         "resizable": false,
         "webPreferences": {
             "preload": path.join(app.getAppPath(),
-                "./js/preloads/notificationmessage.js"),
+                "js/preloads/notificationmessage.js"),
             "sandbox": true,
             "contextIsolation": true,
             "disableBlinkFeatures": "Auxclick",
@@ -275,7 +276,7 @@ app.on("ready", () => {
     }
     notificationWindow = new BrowserWindow(notificationWindowData)
     const notificationPage = `file:///${path.join(
-        __dirname, "./pages/notificationmessage.html")}`
+        __dirname, "pages/notificationmessage.html")}`
     notificationWindow.loadURL(notificationPage)
     notificationWindow.on("close", e => {
         e.preventDefault()
