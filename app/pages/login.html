@@ -26,51 +26,5 @@
     <input tabindex=0 placeholder="username" id="username" spellcheck="false" type="text" autofocus>
     <input tabindex=1 placeholder="password" id="password" spellcheck="false" type="password">
     <p id="info"></p>
-    <script>
-        const {ipcRenderer} = require("electron")
-        const username = document.getElementById("username")
-        const password = document.getElementById("password")
-        const inputs = [...document.getElementsByTagName("input")]
-        ipcRenderer.on("login-information", (_, fontsize, title) => {
-            document.body.style.fontSize = fontsize
-            document.getElementById("info").textContent = title
-            username.focus()
-            username.click()
-            username.value = ""
-            password.value = ""
-        })
-        window.addEventListener("keydown", e => {
-            if (e.code === "Tab" && !e.altKey) {
-                e.preventDefault()
-                if (document.activeElement === username) {
-                    password.focus()
-                    password.click()
-                } else {
-                    username.focus()
-                    username.click()
-                }
-            }
-        })
-        inputs.forEach(input => {
-            input.addEventListener("keydown", e => {
-                if (e.code === "Enter") {
-                    ipcRenderer.send("login-credentials",
-                        [username.value, password.value])
-                } else if (e.shiftKey || e.metaKey || e.altKey) {
-                    //Don't trigger the escape keys below
-                } else if (e.ctrlKey && e.code === "BracketLeft") {
-                    window.close()
-                } else if (!e.ctrlKey && e.code === "Escape") {
-                    window.close()
-                }
-            })
-            input.addEventListener("focusout", e => {
-                if (!inputs.includes(e.relatedTarget)) {
-                    input.focus()
-                    input.click()
-                }
-            })
-        })
-    </script>
 </body>
 </html>

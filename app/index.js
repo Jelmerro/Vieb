@@ -227,6 +227,7 @@ app.on("ready", () => {
     // Show a dialog for sites requiring Basic HTTP authentication
     const loginWindowData = {
         "backgroundColor": "#333333",
+        "fullscreenable": false,
         "modal": true,
         "frame": false,
         "show": false,
@@ -234,10 +235,11 @@ app.on("ready", () => {
         "alwaysOnTop": true,
         "resizable": false,
         "webPreferences": {
-            "sandbox": false,
-            "contextIsolation": false,
+            "preload": path.join(app.getAppPath(), "./js/preloads/login.js"),
+            "sandbox": true,
+            "contextIsolation": true,
             "disableBlinkFeatures": "Auxclick",
-            "nodeIntegration": true,
+            "nodeIntegration": false,
             "partition": "login"
         }
     }
@@ -248,9 +250,13 @@ app.on("ready", () => {
         e.preventDefault()
         loginWindow.hide()
     })
+    ipcMain.on("hide-login-window", () => {
+        loginWindow.hide()
+    })
     // Show a dialog for large notifications
     const notificationWindowData = {
         "backgroundColor": "#333333",
+        "fullscreenable": false,
         "modal": true,
         "frame": false,
         "show": false,
@@ -258,10 +264,12 @@ app.on("ready", () => {
         "alwaysOnTop": true,
         "resizable": false,
         "webPreferences": {
-            "sandbox": false,
-            "contextIsolation": false,
+            "preload": path.join(app.getAppPath(),
+                "./js/preloads/notificationmessage.js"),
+            "sandbox": true,
+            "contextIsolation": true,
             "disableBlinkFeatures": "Auxclick",
-            "nodeIntegration": true,
+            "nodeIntegration": false,
             "partition": "notification-window"
         }
     }
@@ -271,6 +279,9 @@ app.on("ready", () => {
     notificationWindow.loadURL(notificationPage)
     notificationWindow.on("close", e => {
         e.preventDefault()
+        notificationWindow.hide()
+    })
+    ipcMain.on("hide-notification-window", () => {
         notificationWindow.hide()
     })
 })
