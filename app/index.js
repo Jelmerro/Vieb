@@ -113,6 +113,8 @@ const applyDevtoolsSettings = prefFile => {
     preferences.electron.devtools.preferences.uiTheme = "\"dark\""
     writeJSON(prefFile, preferences)
 }
+const useragent = () => session.defaultSession.getUserAgent()
+    .replace(/Electron\/\S* /, "").replace(/Vieb\/\S* /, "")
 
 // Parse arguments
 let args = process.argv.slice(1)
@@ -164,6 +166,7 @@ let mainWindow = null
 let loginWindow = null
 let notificationWindow = null
 app.on("ready", () => {
+    app.userAgentFallback = useragent()
     // Request single instance lock and quit if that fails
     if (app.requestSingleInstanceLock()) {
         app.on("second-instance", (_, commandLine) => {
@@ -535,7 +538,6 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             }
         })
     })
-    newSession.setUserAgent(useragent())
     sessionList.push(name)
 })
 const cancellAllDownloads = () => {
@@ -825,9 +827,4 @@ ipcMain.on("appdata-path", e => {
 })
 ipcMain.on("is-fullscreen", e => {
     e.returnValue = mainWindow.fullScreen
-})
-const useragent = () => session.defaultSession.getUserAgent()
-    .replace(/Electron\/\S* /, "").replace(/Vieb\/\S* /, "")
-ipcMain.on("useragent-string", e => {
-    e.returnValue = useragent()
 })
