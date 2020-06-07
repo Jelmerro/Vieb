@@ -137,8 +137,11 @@ const addBreakpoint = (index, lineNumber) => {
     list.insertBefore(h2, list.firstChild)
     const img = document.createElement("img")
     img.src = path.join(__dirname, "../../img/trash.png")
-    img.setAttribute("onclick",
-        `window.clearLinesFromHistory(${lineNumberBreakpoint}, ${lineNumber})`)
+    const breakpointNm = Number(lineNumberBreakpoint)
+    const lineNm = Number(lineNumber)
+    img.addEventListener("click", () => {
+        clearLinesFromHistory(breakpointNm, lineNm)
+    })
     list.insertBefore(img, list.firstChild)
     lineNumberBreakpoint = lineNumber + 1
 }
@@ -167,7 +170,7 @@ const addHistToList = hist => {
     }
     const img = document.createElement("img")
     img.src = path.join(__dirname, "../../img/trash.png")
-    img.setAttribute("onclick", `window.clearLinesFromHistory(${hist.line})`)
+    img.addEventListener("click", () => clearLinesFromHistory(hist.line))
     histElement.appendChild(img)
     const date = document.createElement("span")
     date.textContent = formatDate(hist.date)
@@ -184,11 +187,11 @@ const addHistToList = hist => {
     list.insertBefore(histElement, list.firstChild)
 }
 
-window.clearHistory = () => {
+const clearHistory = () => {
     ipcRenderer.sendToHost("history-list-request", "all")
 }
 
-window.clearLinesFromHistory = (start, end = null) => {
+const clearLinesFromHistory = (start, end = null) => {
     if (currentlyRemoving) {
         return
     }
@@ -227,7 +230,7 @@ window.addEventListener("load", () => {
     removeAll.id = "remove-all"
     removeAll.style.display = "none"
     removeAll.src = path.join(__dirname, "../../img/trash.png")
-    removeAll.setAttribute("onclick", "window.clearHistory()")
+    removeAll.addEventListener("click", () => clearHistory())
     document.body.insertBefore(removeAll, document.body.firstChild)
     ipcRenderer.sendToHost("history-list-request")
 })
