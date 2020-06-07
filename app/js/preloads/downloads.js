@@ -22,28 +22,20 @@ const path = require("path")
 
 let lastUpdate = new Date()
 
-window.update = (action = null, downloadId = null) => {
+const update = (action = null, downloadId = null) => {
     ipcRenderer.send("download-list-request", action, downloadId)
 }
-
-window.removeAll = () => window.update("removeall")
-
-window.remove = id => window.update("remove", id)
-
-window.pause = id => window.update("pause", id)
-
-window.resume = id => window.update("resume", id)
 
 window.addEventListener("load", () => {
     const removeAll = document.createElement("img")
     removeAll.id = "remove-all"
     removeAll.style.display = "none"
     removeAll.src = path.join(__dirname, "../../img/trash.png")
-    removeAll.setAttribute("onclick", "window.removeAll()")
+    removeAll.addEventListener("click", () => update("removeall"))
     document.body.insertBefore(removeAll, document.body.firstChild)
     lastUpdate = new Date()
-    setInterval(window.update, 500)
-    window.update()
+    setInterval(update, 500)
+    update()
 })
 
 ipcRenderer.on("download-list", (_, list) => {
@@ -94,12 +86,12 @@ const addDownload = (download, id) => {
     const remove = document.createElement("img")
     remove.className = "remove"
     remove.src = path.join(__dirname, "../../img/trash.png")
-    remove.setAttribute("onclick", `window.remove(${id})`)
+    remove.addEventListener("click", () => update("remove", id))
     element.appendChild(remove)
-    const togglePause = document.createElement("img")
+    let togglePause = document.createElement("img")
     togglePause.className = "toggle-pause"
     togglePause.src = path.join(__dirname, "../../img/pause.png")
-    togglePause.setAttribute("onclick", `window.pause(${id})`)
+    togglePause.addEventListener("click", () => update("pause", id))
     element.appendChild(togglePause)
     // Title
     const title = document.createElement("div")
@@ -129,7 +121,10 @@ const addDownload = (download, id) => {
     if (download.state === "paused") {
         title.style.color = "orange"
         togglePause.src = path.join(__dirname, "../../img/resume.png")
-        togglePause.setAttribute("onclick", `window.resume(${id})`)
+        togglePause.parentNode.replaceChild(
+            togglePause.cloneNode(true), togglePause)
+        togglePause = document.createElement("img")
+        togglePause.addEventListener("click", () => update("resume", id))
     }
     // Other info
     const misc = document.createElement("div")
@@ -204,11 +199,16 @@ const updateDownload = (download, element, id) => {
     element.querySelector(".filelocation").textContent = download.file
     element.querySelector(".date").textContent = formatDate(download.date)
     // Change looks depending on the state
-    const togglePause = element.querySelector(".toggle-pause")
-    const remove = element.querySelector(".remove")
-    remove.setAttribute("onclick", `window.remove(${id})`)
+    let togglePause = element.querySelector(".toggle-pause")
+    let remove = element.querySelector(".remove")
+    remove.parentNode.replaceChild(remove.cloneNode(true), remove)
+    remove = element.querySelector(".remove")
+    remove.addEventListener("click", () => update("remove", id))
     togglePause.src = path.join(__dirname, "../../img/pause.png")
-    togglePause.setAttribute("onclick", `window.pause(${id})`)
+    togglePause.parentNode.replaceChild(
+        togglePause.cloneNode(true), togglePause)
+    togglePause = element.querySelector(".toggle-pause")
+    togglePause.addEventListener("click", () => update("pause", id))
     progress.style.display = ""
     togglePause.style.display = ""
     if (download.state === "completed") {
@@ -224,7 +224,10 @@ const updateDownload = (download, element, id) => {
     if (download.state === "paused") {
         title.style.color = "orange"
         togglePause.src = path.join(__dirname, "../../img/resume.png")
-        togglePause.setAttribute("onclick", `window.resume(${id})`)
+        togglePause.parentNode.replaceChild(
+            togglePause.cloneNode(true), togglePause)
+        togglePause = element.querySelector(".toggle-pause")
+        togglePause.addEventListener("click", () => update("resume", id))
     }
     // State
     element.querySelector(".state").textContent = download.state
