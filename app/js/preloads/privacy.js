@@ -100,7 +100,7 @@ window.navigator.__defineGetter__("connection", () => undefined)
 window.navigator.__defineGetter__("keyboard", () => undefined)
 
 // Disable the battery API entirely
-window.navigator.__proto__.getBattery = () => undefined
+window.navigator.__proto__.getBattery = undefined
 
 // Return the static maximum value for memory and thread count
 window.navigator.__defineGetter__("hardwareConcurrency", () => 8)
