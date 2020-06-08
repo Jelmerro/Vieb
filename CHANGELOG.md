@@ -25,6 +25,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - GUI settings to autohide the navbar and/or tabbar depending on events or always
 - User action for toggling fullscreen mode (different from webpage requested fullscreen)
 - Add downloadmethod setting to change the download behavior
+- Mouse specific setting to switch to newly opened tabs automatically (by default turned off, previously it would switch every time)
 
 ### Changed
 
