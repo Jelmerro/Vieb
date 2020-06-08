@@ -577,7 +577,9 @@ const addWebviewListeners = webview => {
         } else if (e.disposition === "foreground-tab") {
             navigateTo(e.url)
         } else {
-            addTab({"url": e.url})
+            addTab({
+                "url": e.url, "switchTo": SETTINGS.get("mousenewtabswitch")
+            })
         }
     })
     webview.addEventListener("enter-html-full-screen", () => {

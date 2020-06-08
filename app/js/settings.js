@@ -48,6 +48,7 @@ const defaultSettings = {
     "mintabwidth": 28,
     "mouse": false,
     "mousefocus": false,
+    "mousenewtabswitch": false,
     "nativenotification": false,
     "notificationposition": "bottomright",
     "notificationduration": 6000,
