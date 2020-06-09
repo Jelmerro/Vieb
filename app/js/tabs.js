@@ -133,35 +133,22 @@ const saveTabs = () => {
     const data = {"pinned": [], "tabs": [], "id": 0, "closed": []}
     // The list of tabs is ordered, the list of pages isn't
     // Pinned tabs are always saved to the file
+    if (SETTINGS.get("keeprecentlyclosed")) {
+        data.closed = recentlyClosed
+    }
+    if (SETTINGS.get("restoretabs")) {
+        data.id = listTabs().indexOf(currentTab())
+    }
     listTabs().forEach(tab => {
+        const url = UTIL.urlToString(tabOrPageMatching(tab).src)
         if (tab.classList.contains("pinned")) {
-            const webview = tabOrPageMatching(tab)
-            data.pinned.push(UTIL.urlToString(webview.src))
-            if (webview === currentPage()) {
-                data.id = data.pinned.length - 1
-            }
+            data.pinned.push(url)
+        } else if (SETTINGS.get("restoretabs")) {
+            data.tabs.push(url)
+        } else if (SETTINGS.get("keeprecentlyclosed")) {
+            data.closed.push(url)
         }
     })
-    if (SETTINGS.get("restoretabs")) {
-        listTabs().forEach(tab => {
-            if (!tab.classList.contains("pinned")) {
-                const webview = tabOrPageMatching(tab)
-                data.tabs.push(UTIL.urlToString(webview.src))
-                if (webview === currentPage()) {
-                    data.id = data.pinned.length + data.tabs.length - 1
-                }
-            }
-        })
-        if (SETTINGS.get("keeprecentlyclosed")) {
-            data.closed = recentlyClosed
-        }
-    } else if (SETTINGS.get("keeprecentlyclosed")) {
-        data.closed = [...recentlyClosed]
-        listTabs().forEach(tab => {
-            const webview = tabOrPageMatching(tab)
-            data.closed.push(UTIL.urlToString(webview.src))
-        })
-    }
     // Only keep the 100 most recently closed tabs,
     // more is probably never needed but would keep increasing the file size.
     data.closed = data.closed.slice(-100)
