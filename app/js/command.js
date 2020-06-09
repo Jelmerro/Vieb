@@ -343,6 +343,7 @@ const pin = () => {
         tabContainer.insertBefore(TABS.currentTab(), TABS.listTabs().find(
             t => !t.classList.contains("pinned")))
     }
+    TABS.saveTabs()
 }
 
 const tabIndexById = id => TABS.listTabs().indexOf(TABS.listTabs().find(
