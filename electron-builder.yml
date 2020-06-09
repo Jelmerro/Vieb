@@ -41,11 +41,6 @@ mac:
     - target: zip
       arch:
         - x64
-  extraFiles:
-    - from: README.md
-      to: ../../README.md
-    - from: LICENSE
-      to: ../../LICENSE
 win:
   icon: app/img/icons/512x512.png
   legalTrademarks: Copyright @ Jelmer van Arnhem | Licensed as free software (GPL-3.0+)
