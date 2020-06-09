@@ -41,8 +41,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Security
 
-- Electron 9.0.2 (was 9.0.0)
-- Chromium 83.0.4103.94 (was 83.0.4103.64)
+- Electron 9.0.3 (was 9.0.0)
+- Chromium 83.0.4103.100 (was 83.0.4103.64)
 - Remove the usage of the remote module entirely
 - Add strict CSP to all of Vieb's pages, which prevents all scripts from running outside of the webviews and preloads
 
