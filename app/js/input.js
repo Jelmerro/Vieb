@@ -410,6 +410,10 @@ const countableActions = [
     "action.nextTab",
     "action.zoomOut",
     "action.zoomIn",
+    "action.increaseHeightSplitWindow",
+    "action.decreaseHeightSplitWindow",
+    "action.increaseWidthSplitWindow",
+    "action.decreaseWidthSplitWindow",
     // Single use actions that ignore the count and only execute once
     "action.emptySearch",
     "action.clickOnSearch",
