@@ -194,7 +194,7 @@ app.on("ready", () => {
         "show": enableDebugMode,
         "closable": false,
         "webPreferences": {
-            "preload": path.join(app.getAppPath(), "apploader.js"),
+            "preload": path.join(__dirname, "apploader.js"),
             "sandbox": false,
             "contextIsolation": false,
             "disableBlinkFeatures": "Auxclick",
@@ -239,7 +239,7 @@ app.on("ready", () => {
         "alwaysOnTop": true,
         "resizable": false,
         "webPreferences": {
-            "preload": path.join(app.getAppPath(), "js/preloads/login.js"),
+            "preload": path.join(__dirname, "js/preloads/login.js"),
             "sandbox": true,
             "contextIsolation": true,
             "disableBlinkFeatures": "Auxclick",
@@ -268,7 +268,7 @@ app.on("ready", () => {
         "alwaysOnTop": true,
         "resizable": false,
         "webPreferences": {
-            "preload": path.join(app.getAppPath(),
+            "preload": path.join(__dirname,
                 "js/preloads/notificationmessage.js"),
             "sandbox": true,
             "contextIsolation": true,
