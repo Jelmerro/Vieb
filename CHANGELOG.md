@@ -11,13 +11,15 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
-## Unreleased
+## [2.2.1](https://github.com/Jelmerro/Vieb/compare/2.2.0...2.2.1) - 2020-06-11
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/2.2.0...2.2.1) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/2.2.1)
 
 ### Fixed
 
 - Data urls not being displayed on the new tab page
 
-## Security
+### Security
 
 - Electron 9.0.3 (unchanged)
 - Chromium 83.0.4103.100 (unchanged)
