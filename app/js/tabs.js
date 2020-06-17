@@ -211,7 +211,11 @@ const addTab = options => {
     tab.appendChild(statusIcon)
     tab.appendChild(title)
     if (addNextToCurrent) {
-        tabs.insertBefore(tab, currentTab().nextSibling)
+        let nextTab = currentTab().nextSibling
+        while (nextTab && nextTab.classList.contains("pinned")) {
+            nextTab = nextTab.nextSibling
+        }
+        tabs.insertBefore(tab, nextTab)
     } else {
         tabs.appendChild(tab)
     }
@@ -232,11 +236,7 @@ const addTab = options => {
     linkId += 1
     pages.appendChild(webview)
     if (options.switchTo) {
-        if (addNextToCurrent) {
-            switchToTab(listTabs().indexOf(currentTab()) + 1)
-        } else {
-            switchToTab(listTabs().length - 1)
-        }
+        switchToTab(listTabs().indexOf(tab))
     }
     webview.src = UTIL.specialPagePath("newtab")
     webview.addEventListener("dom-ready", () => {

@@ -11,6 +11,18 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Fixed
+
+- Width of the pinned tabs when playing media
+- Regular tabs not always opening to the right of all the pinned tabs
+
+### Security
+
+- Electron 9.0.3 (unchanged)
+- Chromium 83.0.4103.100 (unchanged)
+
 ## [2.2.1](https://github.com/Jelmerro/Vieb/compare/2.2.0...2.2.1) - 2020-06-11
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/2.2.0...2.2.1) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/2.2.1)
@@ -33,19 +45,19 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Darkreader setting to apply a dark theme to all websites visited (off by default)
 - Pacman archive as a new included build target (for Arch Linux)
 - Arm64 architecture builds for most Linux and Windows releases
-- Add windowtitle setting to optionally include the page title and/or url in Vieb's window title
+- Windowtitle setting to optionally include the page title and/or url in Vieb's window title
 - Recursive insert mode mappings are now possible
 - Tabcycle toggle to jump from the first or last tab with next and previous tab actions (on by default)
 - Pin command to toggle pinned tabs, which are exactly the width of the favicon and are always restored on restart
 - GUI settings to autohide the navbar and/or tabbar depending on events or always
 - User action for toggling fullscreen mode (different from webpage requested fullscreen)
-- Add downloadmethod setting to change the download behavior
+- Downloadmethod setting to change the download behavior
 - Mouse specific setting to switch to newly opened tabs automatically (by default turned off, previously it would switch every time)
 
 ### Changed
 
 - Allow the entire window to be used as a drag region if the mouse setting is off and you are not in insert mode
-- Update minimum tabwidth to 28, due to styling changes in the navigation bar (default behavior is still just the icon)
+- Minimum tabwidth to 28, due to styling changes in the navigation bar (default behavior is still just the icon)
 
 ### Fixed
 
@@ -68,7 +80,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Conversion from and to percent-encoding for urls in the navbar, the url hover and in special pages
-- New setting named requesttimeout, to stop a page from loading after a timeout (default is 20 seconds)
+- Setting named requesttimeout, to stop a page from loading after a timeout (default is 20 seconds)
 
 ### Changed
 

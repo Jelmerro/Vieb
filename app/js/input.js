@@ -317,9 +317,7 @@ const init = () => {
             executeMapString("<A-F4>", true, true)
         }
     })
-    setInterval(() => {
-        ACTIONS.setFocusCorrectly()
-    }, 500)
+    setInterval(() => ACTIONS.setFocusCorrectly(), 500)
     ACTIONS.setFocusCorrectly()
     const unSupportedActions = [
         "action.setFocusCorrectly",
@@ -456,16 +454,12 @@ const countableActions = [
 const hasFutureActionsBasedOnKeys = keys => !!Object.keys(bindings[
     MODES.currentMode()[0]]).find(map => map.startsWith(keys) && map !== keys)
 
-const sendKeysToWebview = async (javascriptKey, mapStr, recursive) => {
+const sendKeysToWebview = async (jsKey, mapStr, recursive) => {
     blockNextInsertKey = true
-    if (javascriptKey.length === 1) {
-        TABS.currentPage().sendInputEvent({
-            "type": "char", "keyCode": javascriptKey
-        })
+    if (jsKey.length === 1) {
+        TABS.currentPage().sendInputEvent({"type": "char", "keyCode": jsKey})
     }
-    TABS.currentPage().sendInputEvent({
-        "type": "keyDown", "keyCode": javascriptKey
-    })
+    TABS.currentPage().sendInputEvent({"type": "keyDown", "keyCode": jsKey})
     if (recursive) {
         const action = bindings[MODES.currentMode()[0]][mapStr]
         if (action) {
@@ -828,9 +822,8 @@ const mapOrList = (mode, args, noremap, includeDefault) => {
             }
         } else {
             let mappings = ""
-            Object.keys(bindings).forEach(bindMode => {
-                mappings += `${listMapping(
-                    bindMode, args[0], includeDefault)}\n`
+            Object.keys(bindings).forEach(m => {
+                mappings += `${listMapping(m, args[0], includeDefault)}\n`
             })
             mappings = mappings.replace(/[\r\n]+/g, "\n").trim()
             if (mappings) {
@@ -916,10 +909,8 @@ const mapSingle = (mode, args, noremap) => {
     if (mode) {
         bindings[mode][mapping] = {"mapping": actions, "noremap": noremap}
     } else {
-        Object.keys(bindings).forEach(bindMode => {
-            bindings[bindMode][mapping] = {
-                "mapping": actions, "noremap": noremap
-            }
+        Object.keys(bindings).forEach(m => {
+            bindings[m][mapping] = {"mapping": actions, "noremap": noremap}
         })
     }
     SETTINGS.updateHelpPage()
