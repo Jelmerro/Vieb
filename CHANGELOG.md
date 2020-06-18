@@ -21,6 +21,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Width of the pinned tabs when playing media
 - Regular tabs not always opening to the right of all the pinned tabs
+- Potential filename length issue for favicon storage
 
 ### Security
 
