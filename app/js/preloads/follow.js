@@ -50,8 +50,10 @@ const clickEvents = ["click", "mousedown"]
 const otherEvents = [
     "mouseenter", "mouseleave", "mousemove", "mouseout", "mouseover", "mouseup"
 ]
+let allElements = []
 
 ipcRenderer.on("focus-first-text-input", () => {
+    allElements = [...document.querySelectorAll("*")]
     const links = [...allElementsBySelectors("inputs-insert", textlikeInputs)]
     if (links.length > 0) {
         const pos = links.sort((el1, el2) => Math.floor(el1.y)
@@ -70,11 +72,13 @@ const sendFollowLinks = () => {
     if (!inFollowMode) {
         return
     }
+    allElements = [...document.querySelectorAll("*")]
     const allLinks = []
     // A tags with href as the link, can be opened in new tab or current tab
     allLinks.push(...allElementsBySelectors("url", urls))
     // Input tags such as checkboxes, can be clicked but have no text input
-    const inputs = [...document.querySelectorAll(clickableInputs)]
+    const inputs = allElements.filter(
+        element => clickableInputs.find(selector => element.matches(selector)))
     inputs.forEach(element => {
         const clickable = parseElement(element, "inputs-click")
         if (clickable) {
@@ -105,12 +109,12 @@ const sendFollowLinks = () => {
             }
         }
     }
-    [...document.querySelectorAll("*")].filter(
+    allElements.filter(
         el => clickEvents.find(e => el[`on${e}`])
         || clickEvents.map(e => eventListeners[e].includes(el)).find(e => e)
         || el.getAttribute("jsaction")).forEach(
         element => addMouseEventElement(element, "onclick"))
-    ;[...document.querySelectorAll("*")].filter(
+    allElements.filter(
         el => otherEvents.find(e => el[`on${e}`])
         || otherEvents.map(e => eventListeners[e].includes(el)).find(e => e))
         .forEach(element => addMouseEventElement(element, "other"))
@@ -154,10 +158,7 @@ const elementClickableAtPosition = (element, x, y) => {
     // Check if an element can be found in a given position.
     // Also checks if any of the children are visible instead.
     const elementAtPosition = document.elementFromPoint(x, y)
-    if (elementAtPosition === element) {
-        return true
-    }
-    return [...element.querySelectorAll("*")].includes(elementAtPosition)
+    return elementAtPosition === element || element.contains(elementAtPosition)
 }
 
 const findClickPosition = (element, rects) => {
@@ -185,8 +186,8 @@ const parseElement = (element, type) => {
     // The body shouldn't be considered clickable on it's own,
     // Even if listeners are added to it.
     // Also checks if the element actually has rects.
-    if (element === document.querySelector("html")
-            || element === document.body || !element.getClientRects) {
+    const excluded = [document.body, document.documentElement]
+    if (!element.getClientRects || excluded.includes(element)) {
         return null
     }
     // Make a list of all possible bounding rects for the element
@@ -221,20 +222,9 @@ const parseElement = (element, type) => {
     }
 }
 
-const allElementsBySelectors = (type, selectors) => {
-    const elements = []
-    selectors.forEach(selector => {
-        elements.push(...document.querySelectorAll(selector))
-    })
-    const tags = []
-    elements.forEach(element => {
-        const clickableElement = parseElement(element, type)
-        if (clickableElement) {
-            tags.push(clickableElement)
-        }
-    })
-    return tags
-}
+const allElementsBySelectors = (type, selectors) => allElements.filter(
+    element => selectors.find(selector => element.matches(selector))).map(
+    element => parseElement(element, type)).filter(e => e)
 
 const eventListeners = {}
 ;[...clickEvents, ...otherEvents].forEach(e => {
@@ -280,14 +270,6 @@ window.addEventListener("click", e => {
 
 window.addEventListener("resize", sendFollowLinks)
 
-// Send the follow links to the renderer if DOM is changed in any way
-const observer = new window.MutationObserver(sendFollowLinks)
-observer.observe(document, {
-    "childList": true,
-    "attributes": true,
-    "characterData": true,
-    "subtree": true,
-    "attributeFilter": ["class", "id", "style"]
-})
-// And also once every few seconds in case of transitions or animations
+// Send the page once every few seconds in case of transitions or animations
+// Could be done with a listener, but that drastically slows down on big pages
 setInterval(sendFollowLinks, 2000)
