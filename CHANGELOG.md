@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Changed
+
+- Improve the follow mode speed by reusing dom calls and only using an interval (no more page observers)
+
 ### Fixed
 
 - Width of the pinned tabs when playing media

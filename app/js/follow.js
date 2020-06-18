@@ -25,7 +25,7 @@ let modeBeforeFollow = "normal"
 
 const informPreload = () => {
     setTimeout(() => {
-        if (TABS.currentPage().getAttribute("webview-id")) {
+        if (TABS.currentPage().getAttribute("dom-ready")) {
             if (MODES.currentMode() === "follow" && !alreadyFollowing) {
                 TABS.currentPage().send("follow-mode-start")
                 informPreload()
