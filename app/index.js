@@ -198,7 +198,8 @@ app.on("ready", () => {
             "sandbox": false,
             "contextIsolation": false,
             "disableBlinkFeatures": "Auxclick",
-            "nodeIntegration": true,
+            "nodeIntegration": false,
+            "enableRemoteModule": false,
             "webviewTag": true
         }
     }
@@ -223,6 +224,12 @@ app.on("ready", () => {
         mainWindow.webContents.on("new-window", e => e.preventDefault())
         mainWindow.webContents.on("will-navigate", e => e.preventDefault())
         mainWindow.webContents.on("will-redirect", e => e.preventDefault())
+        mainWindow.webContents.on("will-attach-webview", (_, prefs) => {
+            delete prefs.preloadURL
+            prefs.preload = path.join(__dirname, "js/preload.js")
+            prefs.nodeIntegration = false
+            prefs.enableRemoteModule = false
+        })
         if (enableDebugMode || showInternalConsole) {
             mainWindow.webContents.openDevTools()
         }
@@ -244,6 +251,7 @@ app.on("ready", () => {
             "contextIsolation": true,
             "disableBlinkFeatures": "Auxclick",
             "nodeIntegration": false,
+            "enableRemoteModule": false,
             "partition": "login"
         }
     }
@@ -274,6 +282,7 @@ app.on("ready", () => {
             "contextIsolation": true,
             "disableBlinkFeatures": "Auxclick",
             "nodeIntegration": false,
+            "enableRemoteModule": false,
             "partition": "notification-window"
         }
     }
@@ -632,9 +641,9 @@ const permissionHandler = (_, permission, callback, details) => {
         callback(setting === "allow")
     }
 }
-const enableAdblocker = list => {
+const enableAdblocker = () => {
     if (blocker) {
-        list.forEach(
+        sessionList.forEach(
             s => blocker.enableBlockingInSession(session.fromPartition(s)))
     } else {
         createAdblocker()
@@ -661,13 +670,13 @@ const createAdblocker = () => {
     enableAdblocker(sessionList)
 }
 ipcMain.on("adblock-enable", () => {
-    enableAdblocker(sessionList)
+    enableAdblocker()
 })
 ipcMain.on("adblock-disable", () => {
-    disableAdblocker(sessionList)
+    disableAdblocker()
 })
 ipcMain.on("adblock-recreate", () => {
-    createAdblocker(sessionList)
+    createAdblocker()
 })
 const loadBlocklist = file => {
     const appdataName = path.join(app.getPath("appData"), `blocklists/${file}`)

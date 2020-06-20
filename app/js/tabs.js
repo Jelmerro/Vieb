@@ -222,7 +222,6 @@ const addTab = options => {
     const webview = document.createElement("webview")
     webview.setAttribute("link-id", linkId)
     tab.setAttribute("link-id", linkId)
-    webview.setAttribute("preload", "./js/preload.js")
     if (SETTINGS.get("spell")) {
         webview.setAttribute("webpreferences", "spellcheck=yes")
     }
