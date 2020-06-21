@@ -456,6 +456,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     applyDevtoolsSettings(path.join(sessionDir, "Preferences"))
     const newSession = session.fromPartition(name, {cache})
     newSession.setPermissionRequestHandler(permissionHandler)
+    sessionList.push(name)
     if (adblock !== "off") {
         enableAdblocker([name])
     }
@@ -547,7 +548,6 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             }
         })
     })
-    sessionList.push(name)
 })
 const cancellAllDownloads = () => {
     downloads.forEach(download => {
@@ -667,7 +667,7 @@ const createAdblocker = () => {
         console.log("Failed to read the files from blocklists folder", e)
     }
     blocker = ElectronBlocker.parse(filters)
-    enableAdblocker(sessionList)
+    enableAdblocker()
 }
 ipcMain.on("adblock-enable", () => {
     enableAdblocker()
