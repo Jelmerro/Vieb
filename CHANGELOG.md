@@ -11,7 +11,9 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
-## Unreleased
+## [2.2.2](https://github.com/Jelmerro/Vieb/compare/2.2.1...2.2.2) - 2020-06-21
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/2.2.1...2.2.2) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/2.2.2)
 
 ### Changed
 
