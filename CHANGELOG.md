@@ -11,6 +11,18 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Fixed
+
+- Default download path not saving files to the home directory ("~" was not correctly expanded)
+- Catch errors from the adblocker to prevent occasional error popups from cosmetic filtering
+
+### Security
+
+- Electron 9.0.5 (was 9.0.4)
+- Chromium 83.0.4103.119 (was 83.0.4103.104)
+
 ## [2.2.2](https://github.com/Jelmerro/Vieb/compare/2.2.1...2.2.2) - 2020-06-21
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/2.2.1...2.2.2) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/2.2.2)

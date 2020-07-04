@@ -21,8 +21,9 @@
 const {
     app, BrowserWindow, dialog, ipcMain, net, screen, session, webContents
 } = require("electron")
-const path = require("path")
 const fs = require("fs")
+const os = require("os")
+const path = require("path")
 const {ElectronBlocker} = require("@cliqz/adblocker-electron")
 
 const version = process.env.npm_package_version || app.getVersion()
@@ -85,6 +86,12 @@ const writeJSON = (loc, data) => {
     } catch (e) {
         return false
     }
+}
+const expandPath = homePath => {
+    if (homePath.startsWith("~")) {
+        return homePath.replace("~", os.homedir())
+    }
+    return homePath
 }
 const applyDevtoolsSettings = prefFile => {
     try {
@@ -393,6 +400,7 @@ ipcMain.on("set-download-settings", (_, settings) => {
     if (downloadSettings.cleardownloadsoncompleted) {
         downloads = downloads.filter(d => d.state !== "completed")
     }
+    downloadSettings.downloadpath = expandPath(downloadSettings.downloadpath)
 })
 ipcMain.on("download-list-request", (e, action, downloadId) => {
     if (action === "removeall") {
@@ -458,7 +466,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     newSession.setPermissionRequestHandler(permissionHandler)
     sessionList.push(name)
     if (adblock !== "off") {
-        enableAdblocker([name])
+        enableAdblocker()
     }
     newSession.on("will-download", (e, item) => {
         if (downloadSettings.downloadmethod === "block") {
@@ -643,8 +651,12 @@ const permissionHandler = (_, permission, callback, details) => {
 }
 const enableAdblocker = () => {
     if (blocker) {
-        sessionList.forEach(
-            s => blocker.enableBlockingInSession(session.fromPartition(s)))
+        try {
+            sessionList.forEach(
+                s => blocker.enableBlockingInSession(session.fromPartition(s)))
+        } catch (e) {
+            // Error in adblocker-electron, not much we can do
+        }
     } else {
         createAdblocker()
     }
