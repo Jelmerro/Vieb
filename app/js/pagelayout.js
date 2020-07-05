@@ -209,7 +209,7 @@ const moveFocus = direction => {
     }
 }
 
-const resize = (orientation, change, count) => {
+const resize = (orientation, change) => {
     removeRedundantContainers()
     if (!document.getElementById("pages").classList.contains("multiple")) {
         return
@@ -224,9 +224,9 @@ const resize = (orientation, change, count) => {
     }
     let flexGrow = Number(getComputedStyle(element).flexGrow) || 1
     if (change === "grow") {
-        flexGrow *= 1.5 * count
+        flexGrow *= 1.5
     } else if (change === "shrink") {
-        flexGrow /= 1.5 * count
+        flexGrow /= 1.5
     }
     if (flexGrow < 1) {
         [...element.parentNode.children].forEach(child => {

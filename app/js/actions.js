@@ -37,12 +37,14 @@ const clickOnSearch = () => {
     }
 }
 
-const increasePageNumber = count => {
-    TABS.currentPage().send("action", "increasePageNumber", count)
-}
+const increasePageNumber = () => new Promise(res => {
+    TABS.currentPage().send("action",
+        "increasePageNumber", TABS.currentPage().src)
+    setTimeout(() => res(), 100)
+})
 
-const previousTab = count => {
-    TABS.switchToTab(TABS.listTabs().indexOf(TABS.currentTab()) - count)
+const previousTab = () => {
+    TABS.switchToTab(TABS.listTabs().indexOf(TABS.currentTab()) - 1)
 }
 
 const closeTab = () => TABS.closeTab()
@@ -90,13 +92,15 @@ const openNewTab = () => TABS.addTab()
 
 const reopenTab = () => TABS.reopenTab()
 
-const nextTab = count => {
-    TABS.switchToTab(TABS.listTabs().indexOf(TABS.currentTab()) + count)
+const nextTab = () => {
+    TABS.switchToTab(TABS.listTabs().indexOf(TABS.currentTab()) + 1)
 }
 
-const decreasePageNumber = count => {
-    TABS.currentPage().send("action", "decreasePageNumber", count)
-}
+const decreasePageNumber = () => new Promise(res => {
+    TABS.currentPage().send("action",
+        "decreasePageNumber", TABS.currentPage().src)
+    setTimeout(() => res(), 100)
+})
 
 const toSearchMode = () => MODES.setMode("search")
 
@@ -176,16 +180,16 @@ const scrollPageUpHalf = () => {
 
 const zoomReset = () => TABS.currentPage().setZoomLevel(0)
 
-const zoomOut = count => {
-    let level = TABS.currentPage().getZoomLevel() - count
+const zoomOut = () => {
+    let level = TABS.currentPage().getZoomLevel() - 1
     if (level < -7) {
         level = -7
     }
     TABS.currentPage().setZoomLevel(level)
 }
 
-const zoomIn = count => {
-    let level = TABS.currentPage().getZoomLevel() + count
+const zoomIn = () => {
+    let level = TABS.currentPage().getZoomLevel() + 1
     if (level > 7) {
         level = 7
     }
@@ -270,20 +274,20 @@ const toTopSplitWindow = () => PAGELAYOUT.moveFocus("top")
 
 const toRightSplitWindow = () => PAGELAYOUT.moveFocus("right")
 
-const increaseHeightSplitWindow = count => {
-    PAGELAYOUT.resize("ver", "grow", count)
+const increaseHeightSplitWindow = () => {
+    PAGELAYOUT.resize("ver", "grow")
 }
 
-const decreaseHeightSplitWindow = count => {
-    PAGELAYOUT.resize("ver", "shrink", count)
+const decreaseHeightSplitWindow = () => {
+    PAGELAYOUT.resize("ver", "shrink")
 }
 
-const increaseWidthSplitWindow = count => {
-    PAGELAYOUT.resize("hor", "grow", count)
+const increaseWidthSplitWindow = () => {
+    PAGELAYOUT.resize("hor", "grow")
 }
 
-const decreaseWidthSplitWindow = count => {
-    PAGELAYOUT.resize("hor", "shrink", count)
+const decreaseWidthSplitWindow = () => {
+    PAGELAYOUT.resize("hor", "shrink")
 }
 
 const distrubuteSpaceSplitWindow = () => PAGELAYOUT.resetResizing()

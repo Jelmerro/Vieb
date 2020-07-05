@@ -20,65 +20,7 @@
 const {ipcRenderer} = require("electron")
 const fs = require("fs")
 
-const movePageNumber = movement => {
-    const path = window.location.pathname + window.location.search
-    const next = path.replace(/(\?|&)p(age)?=(\d+)/g, (_, p1, p2, p3) => {
-        if (Number(p3) + movement < 1) {
-            return `${p1}p${p2}=1`
-        }
-        return `${p1}p${p2}=${Number(p3) + movement}`
-    })
-    if (next !== path) {
-        window.location = window.location.origin + next
-    }
-    return next !== path
-}
-
-const movePageNumberNaive = movement => {
-    const path = window.location.pathname + window.location.search
-    const simpleNext = path.replace(/\d+/, match => {
-        if (Number(match) + movement < 1) {
-            return "1"
-        }
-        return `${Number(match) + movement}`
-    })
-    if (simpleNext !== path) {
-        window.location = window.location.origin + simpleNext
-        return
-    }
-    movePortNumber(movement)
-}
-
-const movePortNumber = movement => {
-    if (!window.location.port) {
-        return
-    }
-    const url = window.location.toString()
-        .replace(/(^.*:)(\d+)(.*$)/, (_, p1, p2, p3) => {
-            if (Number(p2) + movement < 1) {
-                return `${p1}1${p3}`
-            }
-            return `${p1}${Number(p2) + movement}${p3}`
-        })
-    if (url !== window.location.toString()) {
-        window.location = url
-    }
-}
-
-const blur = () => {
-    if (document.activeElement && document.activeElement.blur) {
-        document.activeElement.blur()
-    }
-}
-
-const increasePageNumber = count => {
-    if (isNaN(count)) {
-        count = 1
-    }
-    const moved = movePageNumber(Math.abs(count))
-    if (moved) {
-        return
-    }
+const increasePageNumber = url => {
     const paginations = [...document.querySelectorAll(".pagination")]
     for (const pagination of paginations) {
         const next = pagination.querySelector("*[rel=next]")
@@ -87,17 +29,10 @@ const increasePageNumber = count => {
             return
         }
     }
-    movePageNumberNaive(Math.abs(count))
+    movePortNumber(1, url)
 }
 
-const decreasePageNumber = count => {
-    if (isNaN(count)) {
-        count = 1
-    }
-    const moved = movePageNumber(-Math.abs(count))
-    if (moved) {
-        return
-    }
+const decreasePageNumber = url => {
     const paginations = [...document.querySelectorAll(".pagination")]
     for (const pagination of paginations) {
         const prev = pagination.querySelector("*[rel=prev]")
@@ -106,7 +41,55 @@ const decreasePageNumber = count => {
             return
         }
     }
-    movePageNumberNaive(-Math.abs(count))
+    movePortNumber(-1, url)
+}
+
+const movePortNumber = (movement, url) => {
+    const loc = document.createElement("a")
+    loc.href = url
+    if (loc.port) {
+        const next = url.toString()
+            .replace(/(^.*:)(\d+)(.*$)/, (_, p1, p2, p3) => {
+                if (Number(p2) + movement < 1) {
+                    return `${p1}1${p3}`
+                }
+                return `${p1}${Number(p2) + movement}${p3}`
+            })
+        if (next !== url.toString()) {
+            window.location = next
+            return
+        }
+    }
+    movePageNumber(movement, url)
+}
+
+const movePageNumber = (movement, url) => {
+    const next = url.replace(/(\?|&)p(age)?=(\d+)/g, (_, p1, p2, p3) => {
+        if (Number(p3) + movement < 1) {
+            return `${p1}p${p2}=1`
+        }
+        return `${p1}p${p2}=${Number(p3) + movement}`
+    })
+    if (next !== url) {
+        window.location = next
+    }
+    movePageNumberNaive(movement, url)
+}
+
+const movePageNumberNaive = (movement, url) => {
+    const next = url.replace(/\d+/, match => {
+        if (Number(match) + movement < 1) {
+            return "1"
+        }
+        return `${Number(match) + movement}`
+    })
+    window.location = next
+}
+
+const blur = () => {
+    if (document.activeElement && document.activeElement.blur) {
+        document.activeElement.blur()
+    }
 }
 
 const scrollTop = () => window.scrollBy(0, -1000000000)
