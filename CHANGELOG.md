@@ -13,10 +13,16 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Changed
+
+- Refactor countable actions to be more consistent and reliable
+- Order of page increase and decrease actions, it's now always: inpage relations > port > url page number > first number in the url
+
 ### Fixed
 
 - Default download path not saving files to the home directory ("~" was not correctly expanded)
 - Catch errors from the adblocker to prevent occasional error popups from cosmetic filtering
+- Count not working for the increase and decrease page number actions (such as ports or page numbers)
 
 ### Security
 

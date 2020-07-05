@@ -822,7 +822,7 @@
         <h3 id="action.previousSearchMatch" countable="true">action.previousSearchMatch</h3>
         Opposite of <a href="#action.nextSearchMatch">action.nextSearchMatch</a>.
         <h3 id="action.increasePageNumber" countable="true">action.increasePageNumber</h3>
-        Call this action to increase the page number in the url. It will check for page number indicators in the webpage to increment, with a fallback to 'p' and 'page' query arguments. If there neither of these options are found, the port number is incremented if available. No navigation will take place if the port number is also absent.
+        Call this action to increase the page number in the url. It will check for pagination indicators in the webpage to use, then try to increase the port number and finally a fallback to 'p' and 'page' query arguments. If none of these are present, it will increase the first number in the url
         <h3 id="action.decreasePageNumber" countable="true">action.decreasePageNumber</h3>
         Opposite of <a href="#action.increasePageNumber">action.increasePageNumber</a>.
         <h3 id="action.insertAtFirstInput">action.insertAtFirstInput</h3>

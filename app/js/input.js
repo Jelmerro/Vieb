@@ -398,22 +398,10 @@ const toIdentifier = e => {
     return keyCode
 }
 
-// This is a list of actions that can be counted in advance by a count argument
-// Functions not listed will be executed for x times using a while loop
-const countableActions = [
-    // Actually countable with notable speed increase
-    "action.increasePageNumber",
-    "action.decreasePageNumber",
-    "action.previousTab",
-    "action.nextTab",
-    "action.zoomOut",
-    "action.zoomIn",
-    "action.increaseHeightSplitWindow",
-    "action.decreaseHeightSplitWindow",
-    "action.increaseWidthSplitWindow",
-    "action.decreaseWidthSplitWindow",
-    // Single use actions that ignore the count and only execute once
+// Single use actions that do not need to be called multiple times if counted
+const uncountableActions = [
     "action.emptySearch",
+    "action.increasePageNumber",
     "action.clickOnSearch",
     "action.toExploreMode",
     "action.startFollowCurrentTab",
@@ -421,6 +409,7 @@ const countableActions = [
     "action.insertAtFirstInput",
     "action.toInsertMode",
     "action.reload",
+    "action.decreasePageNumber",
     "action.toSearchMode",
     "action.startFollowNewTab",
     "action.scrollBottom",
@@ -504,7 +493,7 @@ const executeMapString = async (mapStr, recursive, initial) => {
             } else if (supportedActions.includes(key.replace(/(^<|>$)/g, ""))) {
                 const count = Number(repeatCounter)
                 repeatCounter = 0
-                doAction(key.replace(/(^<|>$)/g, ""), count)
+                await doAction(key.replace(/(^<|>$)/g, ""), count)
             } else if (key.startsWith("<:")) {
                 COMMAND.execute(key.replace(/^<:|>$/g, ""))
             } else if (key.match(/^<(C-)?(M-)?(A-)?(S-)?.+>$/g)) {
@@ -552,24 +541,18 @@ const executeMapString = async (mapStr, recursive, initial) => {
     }
 }
 
-const doAction = (name, count) => {
+const doAction = async (name, count) => {
     count = count || 1
     const pointer = name.toLowerCase().startsWith("pointer.")
-    const countable = countableActions.includes(name)
+    if (uncountableActions.includes(name)) {
+        count = 1
+    }
     name = name.replace(/^.*\./g, "")
-    if (countable) {
+    for (let i = 0;i < count;i++) {
         if (pointer) {
-            POINTER[name](count)
+            await POINTER[name]()
         } else {
-            ACTIONS[name](count)
-        }
-    } else {
-        for (let i = 0;i < count;i++) {
-            if (pointer) {
-                POINTER[name]()
-            } else {
-                ACTIONS[name]()
-            }
+            await ACTIONS[name]()
         }
     }
     repeatCounter = 0
