@@ -197,7 +197,6 @@ app.on("ready", () => {
         "width": 800,
         "height": 600,
         "frame": enableDebugMode,
-        "transparent": !enableDebugMode,
         "show": enableDebugMode,
         "closable": false,
         "webPreferences": {

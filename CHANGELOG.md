@@ -11,6 +11,15 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+- Fix window snapping on Windows
+
+### Security
+
+- Electron 9.1.0 (was 9.0.5)
+- Chromium 83.0.4103.122 (was 83.0.4103.119)
+
 ## [2.2.3](https://github.com/Jelmerro/Vieb/compare/2.2.2...2.2.3) - 2020-07-05
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/2.2.2...2.2.3) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/2.2.3)
