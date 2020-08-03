@@ -243,6 +243,7 @@ const addTab = options => {
             ipcRenderer.send("disable-localrtc", webview.getWebContentsId())
             ipcRenderer.send("insert-mode-listener", webview.getWebContentsId())
             addWebviewListeners(webview)
+            webview.setUserAgent("")
             if (options.url) {
                 options.url = UTIL.redirect(options.url)
                 webview.src = options.url
@@ -374,6 +375,13 @@ const addWebviewListeners = webview => {
     webview.addEventListener("load-commit", e => {
         if (e.isMainFrame) {
             resetTabInfo(webview)
+            if (SETTINGS.get("firefoxmode") === "google") {
+                if (e.url.match(/https:\/\/(.*\.)?google\.com.*/)) {
+                    webview.setUserAgent(UTIL.firefoxUseragent())
+                } else {
+                    webview.setUserAgent("")
+                }
+            }
             const title = tabOrPageMatching(webview).querySelector("span")
             if (!title.textContent) {
                 title.textContent = e.url

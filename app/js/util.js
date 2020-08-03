@@ -360,6 +360,13 @@ const appData = () => {
     return appDataPath
 }
 
+const firefoxUseragent = () => {
+    const daysSinceBase = (new Date() - new Date(2020, 6, 28)) / 86400000
+    const ver = `${79 + Math.floor(daysSinceBase / 28)}.0`
+    const sys = window.navigator.platform
+    return `Mozilla/5.0 (${sys}; rv:${ver}) Gecko/20100101 Firefox/${ver}`
+}
+
 module.exports = {
     hasProtocol,
     isUrl,
@@ -386,5 +393,6 @@ module.exports = {
     listNotificationHistory,
     title,
     downloadPath,
-    appData
+    appData,
+    firefoxUseragent
 }

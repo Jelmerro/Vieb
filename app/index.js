@@ -839,6 +839,10 @@ ipcMain.handle("list-cookies",
 ipcMain.handle("remove-cookie", (_, url, name) => session.fromPartition(
     "persist:main").cookies.remove(url, name))
 // Operations below are sync
+ipcMain.on("override-global-useragent", (e, globalUseragent) => {
+    app.userAgentFallback = globalUseragent || useragent()
+    e.returnValue = null
+})
 ipcMain.on("app-version", e => {
     e.returnValue = version
 })
