@@ -92,7 +92,7 @@ const linkInList = (list, link) => list.find(l => {
         && l.height === link.height && l.width === link.width
 })
 
-const clickAtLink = link => {
+const clickAtLink = async link => {
     const factor = TABS.currentPage().getZoomFactor()
     if (["pointer", "visual"].includes(modeBeforeFollow)) {
         POINTER.start()
@@ -105,6 +105,7 @@ const clickAtLink = link => {
         return
     }
     MODES.setMode("insert")
+    await new Promise(r => setTimeout(r, 5))
     TABS.currentPage().sendInputEvent({
         "type": "mouseEnter", "x": link.x * factor, "y": link.y * factor
     })
@@ -185,12 +186,12 @@ const parseAndDisplayLinks = newLinks => {
         const top = Math.max(link.y * factor, 0)
         linkElement.style.top = `${top}px`
         linkElement.setAttribute("link-id", index)
-        const onclickListener = e => {
+        const onclickListener = async e => {
             if (e.button === 1 && UTIL.hasProtocol(link.url)) {
                 MODES.setMode(modeBeforeFollow)
                 TABS.addTab({"url": link.url})
             } else {
-                clickAtLink(link)
+                await clickAtLink(link)
                 if (link.type !== "inputs-insert") {
                     MODES.setMode(modeBeforeFollow)
                 }
@@ -214,7 +215,7 @@ const parseAndDisplayLinks = newLinks => {
     })
 }
 
-const enterKey = id => {
+const enterKey = async id => {
     alreadyFollowing = true
     if (id.toLowerCase() === id.toUpperCase() || id.length > 1) {
         return
@@ -250,7 +251,7 @@ const enterKey = id => {
             })
             return
         }
-        clickAtLink(link)
+        await clickAtLink(link)
         if (stayInFollowMode) {
             MODES.setMode(modeBeforeFollow)
             startFollow()

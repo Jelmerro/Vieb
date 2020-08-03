@@ -115,6 +115,8 @@ window.WebGLRenderingContext.prototype.getParameter = function(parameter) {
     }
     return getParam.call(this, parameter)
 }
+window.WebGL2RenderingContext.prototype.getParameter
+   = window.WebGLRenderingContext.prototype.getParameter
 
 // If using Firefox mode, also modify the other navigator properties to match
 if (window.navigator.userAgent.includes("Firefox")) {

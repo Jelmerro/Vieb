@@ -42,9 +42,7 @@ const modes = {
             document.getElementById("url").value = ""
             COMMANDHISTORY.resetPosition()
         },
-        "onLeave": () => {
-            SUGGEST.cancelSuggestions()
-        }
+        "onLeave": () => SUGGEST.cancelSuggestions()
     },
     "search": {
         "fg": "#ff3",

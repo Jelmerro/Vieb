@@ -20,12 +20,14 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Window snapping on Windows
+- Lack of typing ability for some text inputs after selecting them with follow mode
 
 ### Security
 
 - Electron 9.1.2 (was 9.0.5)
 - Chromium 83.0.4103.122 (was 83.0.4103.119)
 - Don't expose the supported mimeTypes through the navigator
+- Better protection for hiding the GPU model
 
 ## [2.2.3](https://github.com/Jelmerro/Vieb/compare/2.2.2...2.2.3) - 2020-07-05
 
