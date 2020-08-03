@@ -13,12 +13,19 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
-- Fix window snapping on Windows
+### Added
+
+- Firefox mode to replicate the Firefox useragent and navigator properties
+
+### Fixed
+
+- Window snapping on Windows
 
 ### Security
 
 - Electron 9.1.2 (was 9.0.5)
 - Chromium 83.0.4103.122 (was 83.0.4103.119)
+- Don't expose the supported mimeTypes through the navigator
 
 ## [2.2.3](https://github.com/Jelmerro/Vieb/compare/2.2.2...2.2.3) - 2020-07-05
 

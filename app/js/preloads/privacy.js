@@ -91,20 +91,21 @@ try {
 }
 
 // Empty the list of browser plugins, as there shouldn't be any installed
-window.navigator.__defineGetter__("plugins", () => [])
+Object.defineProperty(window.navigator, "plugins", {"value": []})
+Object.defineProperty(window.navigator, "mimeTypes", {"value": []})
 
 // Don't share the connection information
-window.navigator.__defineGetter__("connection", () => undefined)
+Object.defineProperty(window.navigator, "connection", {})
 
 // Disable the experimental keyboard API, which exposes every key mapping
-window.navigator.__defineGetter__("keyboard", () => undefined)
+Object.defineProperty(window.navigator, "keyboard", {})
 
 // Disable the battery API entirely
 window.navigator.__proto__.getBattery = undefined
 
 // Return the static maximum value for memory and thread count
-window.navigator.__defineGetter__("hardwareConcurrency", () => 8)
-window.navigator.__defineGetter__("deviceMemory", () => 8)
+Object.defineProperty(window.navigator, "hardwareConcurrency", {"value": 8})
+Object.defineProperty(window.navigator, "deviceMemory", {"value": 8})
 
 // Hide graphics card information from the canvas API
 const getParam = window.WebGLRenderingContext.prototype.getParameter
@@ -113,4 +114,17 @@ window.WebGLRenderingContext.prototype.getParameter = function(parameter) {
         return ""
     }
     return getParam.call(this, parameter)
+}
+
+// If using Firefox mode, also modify the other navigator properties to match
+if (window.navigator.userAgent.includes("Firefox")) {
+    Object.defineProperty(window.navigator,
+        "buildID", {"value": "20181001000000"})
+    Object.defineProperty(window.navigator,
+        "doNotTrack", {"value": "unspecified"})
+    Object.defineProperty(window.navigator,
+        "oscpu", {"value": window.navigator.platform})
+    Object.defineProperty(window.navigator, "productSub", {"value": "20100101"})
+    Object.defineProperty(window.navigator, "vendor", {"value": ""})
+    Object.defineProperty(window.navigator, "webdriver", {"value": false})
 }

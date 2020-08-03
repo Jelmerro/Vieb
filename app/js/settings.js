@@ -36,6 +36,7 @@ const defaultSettings = {
     "downloadpath": "~/Downloads/",
     "favicons": "session",
     "favoritepages": "",
+    "firefoxmode": "never",
     "fontsize": 14,
     "guifullscreennavbar": "oninput",
     "guifullscreentabbar": "onupdate",
@@ -98,6 +99,7 @@ const validOptions = {
     "favicons": [
         "disabled", "nocache", "session", "1day", "5day", "30day", "forever"
     ],
+    "firefoxmode": ["always", "google", "never"],
     "guifullscreennavbar": ["always", "onupdate", "oninput", "never"],
     "guifullscreentabbar": ["always", "onupdate", "never"],
     "guinavbar": ["always", "onupdate", "oninput", "never"],
@@ -147,6 +149,7 @@ const init = () => {
     updateDownloadSettings()
     updateTabOverflow()
     updatePermissionSettings()
+    updateWebviewSettings()
     ipcRenderer.invoke("list-spelllangs").then(spelllangs => {
         validOptions.spelllang = spelllangs || []
         validOptions.spelllang.push("system")
@@ -380,8 +383,8 @@ const updateWebviewSettings = () => {
     const webviewSettingsFile = path.join(
         UTIL.appData(), "webviewsettings")
     UTIL.writeJSON(webviewSettingsFile, {
-        "permissionmediadevices": get("permissionmediadevices"),
-        "darkreader": get("darkreader")
+        "darkreader": get("darkreader"),
+        "permissionmediadevices": get("permissionmediadevices")
     })
 }
 
@@ -489,15 +492,32 @@ const set = (setting, value) => {
             allSettings[setting] = value
         }
         // Update settings elsewhere
-        if (setting === "fontsize") {
-            updateFontSize()
-        }
         if (setting === "adblocker") {
             if (value === "off") {
                 SESSIONS.disableAdblocker()
             } else {
                 SESSIONS.enableAdblocker()
             }
+        }
+        if (setting === "firefoxmode") {
+            if (value === "always") {
+                ipcRenderer.sendSync(
+                    "override-global-useragent", UTIL.firefoxUseragent())
+            } else {
+                ipcRenderer.sendSync("override-global-useragent", false)
+            }
+            // Reset webview specific useragent override for every setting value
+            // If needed, it will overridden again before loading a page
+            TABS.listPages().forEach(page => {
+                try {
+                    page.setUserAgent("")
+                } catch (e) {
+                    // Page not ready yet
+                }
+            })
+        }
+        if (setting === "fontsize") {
+            updateFontSize()
         }
         if (downloadSettings.includes(setting)) {
             updateDownloadSettings()
