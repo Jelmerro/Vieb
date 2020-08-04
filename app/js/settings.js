@@ -552,6 +552,9 @@ const set = (setting, value) => {
         if (setting.startsWith("permission")) {
             updatePermissionSettings()
         }
+        if (setting === "redirects") {
+            ipcRenderer.send("set-redirects", get("redirects"))
+        }
         if (setting === "windowtitle") {
             TABS.updateWindowTitle()
         }

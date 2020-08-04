@@ -245,7 +245,6 @@ const addTab = options => {
             addWebviewListeners(webview)
             webview.setUserAgent("")
             if (options.url) {
-                options.url = UTIL.redirect(options.url)
                 webview.src = options.url
                 resetTabInfo(webview)
                 title.textContent = options.url
@@ -549,21 +548,8 @@ const addWebviewListeners = webview => {
     })
     webview.addEventListener("will-navigate", e => {
         ACTIONS.emptySearch()
-        const redirect = UTIL.redirect(e.url)
-        if (e.url !== redirect) {
-            webview.src = redirect
-            return
-        }
         resetTabInfo(webview)
         tabOrPageMatching(webview).querySelector("span").textContent = e.url
-    })
-    webview.addEventListener("did-navigate-in-page", e => {
-        if (e.isMainFrame) {
-            const redirect = UTIL.redirect(e.url)
-            if (e.url !== redirect) {
-                webview.src = redirect
-            }
-        }
     })
     webview.addEventListener("new-window", e => {
         if (e.disposition === "save-to-disk") {
@@ -615,7 +601,7 @@ const addWebviewListeners = webview => {
             MODES.setMode("insert")
         }
         if (e.channel === "navigate-to") {
-            const url = UTIL.redirect(e.args[0])
+            const url = e.args[0]
             webview.src = url
             tabOrPageMatching(webview).querySelector("span").textContent = url
         }
@@ -687,7 +673,6 @@ const navigateTo = location => {
     if (currentPage().isCrashed()) {
         return
     }
-    location = UTIL.redirect(location)
     currentPage().src = location
     resetTabInfo(currentPage())
     currentTab().querySelector("span").textContent = location

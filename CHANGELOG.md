@@ -17,6 +17,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Firefox mode to replicate the Firefox useragent and navigator properties
 
+### Changed
+
+- Redirects are now applied before making a request, making them safer and more reliable
+
 ### Fixed
 
 - Window snapping on Windows

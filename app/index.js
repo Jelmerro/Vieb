@@ -374,9 +374,14 @@ ipcMain.on("show-notification", (_, escapedMessage, properType) => {
 const dlsFile = path.join(app.getPath("appData"), "dls")
 let downloadSettings = {}
 let downloads = []
+let redirects = ""
 let blocker = null
 let permissions = {}
 const sessionList = []
+const adblockerPreload = require.resolve("@cliqz/adblocker-electron-preload")
+ipcMain.on("set-redirects", (_, rdr) => {
+    redirects = rdr
+})
 ipcMain.on("set-download-settings", (_, settings) => {
     if (Object.keys(downloadSettings).length === 0) {
         if (settings.cleardownloadsonquit) {
@@ -467,6 +472,30 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     if (adblock !== "off") {
         enableAdblocker()
     }
+    newSession.webRequest.onBeforeRequest((details, callback) => {
+        let url = String(details.url)
+        redirects.split(",").forEach(r => {
+            if (r.trim()) {
+                const [match, replace] = r.split("~")
+                url = url.replace(RegExp(match), replace)
+            }
+        })
+        if (details.url !== url) {
+            return callback({
+                "cancel": false, "redirectURL": url
+            })
+        }
+        if (!blocker) {
+            return callback({"cancel": false})
+        }
+        blocker.onBeforeRequest(details, callback)
+    })
+    newSession.webRequest.onHeadersReceived((details, callback) => {
+        if (!blocker) {
+            return callback({"cancel": false})
+        }
+        blocker.onHeadersReceived(details, callback)
+    })
     newSession.on("will-download", (e, item) => {
         if (downloadSettings.downloadmethod === "block") {
             e.preventDefault()
@@ -650,21 +679,8 @@ const permissionHandler = (_, permission, callback, details) => {
 }
 const enableAdblocker = () => {
     if (blocker) {
-        try {
-            sessionList.forEach(
-                s => blocker.enableBlockingInSession(session.fromPartition(s)))
-        } catch (e) {
-            // Error in adblocker-electron, not much we can do
-        }
-    } else {
-        createAdblocker()
+        disableAdblocker()
     }
-}
-const disableAdblocker = () => {
-    sessionList.forEach(
-        s => blocker.disableBlockingInSession(session.fromPartition(s)))
-}
-const createAdblocker = () => {
     const blocklistsFolder = path.join(app.getPath("appData"), "blocklists")
     // Read all filter files from the blocklists folder (including user added)
     let filters = ""
@@ -678,17 +694,29 @@ const createAdblocker = () => {
         console.log("Failed to read the files from blocklists folder", e)
     }
     blocker = ElectronBlocker.parse(filters)
-    enableAdblocker()
+    ipcMain.on("get-cosmetic-filters", blocker.onGetCosmeticFilters)
+    ipcMain.on("is-mutation-observer-enabled",
+        blocker.onIsMutationObserverEnabled)
+    sessionList.forEach(part => {
+        const ses = session.fromPartition(part)
+        ses.setPreloads(ses.getPreloads().concat([adblockerPreload]))
+    })
 }
-ipcMain.on("adblock-enable", () => {
-    enableAdblocker()
-})
-ipcMain.on("adblock-disable", () => {
-    disableAdblocker()
-})
-ipcMain.on("adblock-recreate", () => {
-    createAdblocker()
-})
+const disableAdblocker = () => {
+    if (!blocker) {
+        return
+    }
+    ipcMain.removeListener("get-cosmetic-filters", blocker.onGetCosmeticFilters)
+    ipcMain.removeListener("is-mutation-observer-enabled",
+        blocker.onIsMutationObserverEnabled)
+    blocker = null
+    sessionList.forEach(part => {
+        const ses = session.fromPartition(part)
+        ses.setPreloads(ses.getPreloads().filter(p => p !== adblockerPreload))
+    })
+}
+ipcMain.on("adblock-enable", enableAdblocker)
+ipcMain.on("adblock-disable", disableAdblocker)
 const loadBlocklist = file => {
     const appdataName = path.join(app.getPath("appData"), `blocklists/${file}`)
     try {
