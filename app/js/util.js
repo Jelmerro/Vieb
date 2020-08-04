@@ -215,16 +215,6 @@ const clearLocalStorage = () => {
     globDelete("**/*.ldb")
 }
 
-const redirect = url => {
-    SETTINGS.get("redirects").split(",").forEach(r => {
-        if (r.trim()) {
-            const [match, replace] = r.split("~")
-            url = url.replace(RegExp(match), replace)
-        }
-    })
-    return url
-}
-
 const expandPath = homePath => {
     if (homePath.startsWith("~")) {
         return homePath.replace("~", os.homedir())
@@ -377,7 +367,6 @@ module.exports = {
     clearCache,
     clearCookies,
     clearLocalStorage,
-    redirect,
     expandPath,
     isObject,
     pathExists,

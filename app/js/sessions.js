@@ -43,8 +43,6 @@ const create = name => {
 
 const disableAdblocker = () => ipcRenderer.send("adblock-disable")
 
-const recreateAdblocker = () => ipcRenderer.send("adblock-recreate")
-
 const enableAdblocker = () => {
     try {
         fs.mkdirSync(blocklistDir)
@@ -72,7 +70,7 @@ const enableAdblocker = () => {
                     try {
                         fs.writeFileSync(
                             path.join(blocklistDir, `${list}.txt`), body)
-                        recreateAdblocker()
+                        ipcRenderer.send("adblock-enable")
                     } catch (e) {
                         UTIL.notify(`Failed to update ${list}`, "err")
                     }
@@ -87,7 +85,7 @@ const enableAdblocker = () => {
             req.end()
         }
     } else if (SETTINGS.get("adblocker") !== "off") {
-        recreateAdblocker()
+        ipcRenderer.send("adblock-enable")
     }
 }
 
