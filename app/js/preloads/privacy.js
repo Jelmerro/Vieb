@@ -24,9 +24,9 @@ const path = require("path")
 const message = "The page has requested to view a list of all media devices."
     + " You can allow or deny this below, and choose if you want the list to"
     + " include the names (labels) of the media device in the response."
-    + " To prevent pages from asking this, change the permission like so:"
-    + " 'set permissionmediadevices=<value>'"
-const webviewSettingsFile = path.join(
+    + " For help and options, see ':h permissionmediadevices',"
+    + " ':h permissionsallowed' and ':h permissionsblocked'."
+const settingsFile = path.join(
     ipcRenderer.sendSync("appdata-path"), "webviewsettings")
 
 // Hide device labels from the list of media devices
@@ -36,16 +36,62 @@ try {
     const constraints = window.navigator.mediaDevices.getSupportedConstraints
     const usermedia = window.navigator.mediaDevices.getUserMedia
     const ondevicechange = window.navigator.mediaDevices.ondevicechange
+    const mediaDeviceList = async (action, notify = false) => {
+        if (action === "block") {
+            if (notify) {
+                ipcRenderer.sendToHost("notify",
+                    `${notify} blocked mediadevices at ${window.location.href}`,
+                    "perm")
+            }
+            throw new DOMException("Permission denied", "NotAllowedError")
+        }
+        const devices = await enumerate.call(window.navigator.mediaDevices)
+        if (action === "allowfull") {
+            ipcRenderer.sendToHost("notify",
+                `${notify} allowed mediadevices with labels at `
+                + `${window.location.href}`, "perm")
+            return devices
+        }
+        if (notify) {
+            ipcRenderer.sendToHost("notify",
+                `${notify} allowed mediadevices at ${window.location.href}`,
+                "perm")
+        }
+        return devices.map(({deviceId, groupId, kind}) => ({
+            deviceId, groupId, "label": "", kind
+        }))
+    }
     window.navigator.mediaDevices.enumerateDevices = async () => {
         let action = "ask"
+        let settings = {}
         try {
-            action = JSON.parse(fs.readFileSync(
-                webviewSettingsFile).toString()).permissionmediadevices
-            if (!["block", "ask", "allow", "allowfull"].includes(action)) {
-                action = "ask"
-            }
+            settings = JSON.parse(fs.readFileSync(settingsFile).toString())
         } catch (e) {
             // No webview settings configured, assuming the default ask value
+        }
+        if (settings.permissionsallowed && settings.permissionsblocked) {
+            for (const type of ["block", "allow"]) {
+                for (const r of settings[`permissions${type}ed`].split(",")) {
+                    if (!r.trim()) {
+                        continue
+                    }
+                    const [match, ...names] = r.split("~")
+                    if (names.find(p => p.endsWith("mediadevices"))) {
+                        if (window.location.href.match(match)) {
+                            ipcRenderer.sendToHost("notify",
+                                `Automatic rule for permissionmediadevices `
+                                + `activated at ${window.location.href} which `
+                                + `was ${type.replace("permissions", "")}ed`,
+                                "perm")
+                            return mediaDeviceList(type)
+                        }
+                    }
+                }
+            }
+        }
+        action = settings.permissionmediadevices
+        if (!["block", "ask", "allow", "allowfull"].includes(action)) {
+            action = "ask"
         }
         if (action === "ask") {
             let url = window.location.href
@@ -58,7 +104,7 @@ try {
                 "defaultId": 0,
                 "cancelId": 1,
                 "checkboxLabel": "Include media device name labels",
-                "title": "Allow this page to view a list of media devices?",
+                "title": "Allow this page to access 'mediadevices'?",
                 "message": `${message}\n\npage:\n${url}`
             })
             if (ask.response === 0 && ask.checkboxChecked) {
@@ -67,17 +113,9 @@ try {
             if (ask.response === 1) {
                 action = "block"
             }
+            return mediaDeviceList(action, "Manually")
         }
-        if (action === "block") {
-            throw new DOMException("Permission denied", "NotAllowedError")
-        }
-        const devices = await enumerate.call(window.navigator.mediaDevices)
-        if (action === "allowfull") {
-            return devices
-        }
-        return devices.map(({deviceId, groupId, kind}) => ({
-            deviceId, groupId, "label": "", kind
-        }))
+        return mediaDeviceList(action, "Globally")
     }
     window.navigator.mediaDevices.getDisplayMedia = () => new Promise(() => {
         throw new DOMException("Permission denied", "NotAllowedError")

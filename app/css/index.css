@@ -110,6 +110,7 @@ body.mouse #suggest-dropdown div:hover, #mode-suggestions div:hover, #tabs > spa
 /* notifications */
 #notifications {display: flex;position: fixed;flex-direction: column;z-index: 2;}
 #notifications > span {background-color: #333d;margin-bottom: .7em;padding: 1em;display: flex;width: 25em;border: .1em solid #111;overflow-wrap: anywhere;}
+#notifications > span.permission {color: #aaa;}
 #notifications > span.error {color: #f33;}
 #notifications > span.warning {color: #fd0;}
 #notifications > span.info {color: #0cf;}

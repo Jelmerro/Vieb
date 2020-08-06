@@ -16,6 +16,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Firefox mode to replicate the Firefox useragent and navigator properties
+- List-like settings for allowing or blocking permissions based on the website (using regex)
+- Setting to optionally notify when websites request a permission, including the reason for allowing/blocking
 
 ### Changed
 
@@ -180,7 +182,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - All suggestion settings are now of the number type instead of boolean, and specify the number of entries to suggest (0 to disable)
 - Rename the modes: nav to explore and cursor to pointer, to allow for single key identifiers of the modes
 - Improvements to mode switching by centralizing mode switching code in the modes file
-- Click on multiple elements without re-entering follow mode by holding Shift
+- Click on multiple elements without having to manually re-enter follow mode by holding Shift
 - Add spellcheck integration (on by default), use spell and spelllang to configure
 - History storage format is now JSON, for easier parsing and better title storing
 - Entries on the history page can now be removed without reloading all history again
@@ -222,7 +224,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Changed
 
-- Update to the http basic login system to work with the new electron versions
+- Update to the http basic login system to work with the new electron version
 - Open the login dialog in the center of the Vieb browser window
 - Running the last command again no longer adds a duplicate to the command history
 - Improved url detection as a result of testing the function properly
@@ -329,8 +331,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Added
 
-- Support for keys being pressed in order with different actions (such as 'g g' or the new 'g i')
-- Shortcut to enter insert mode at the first text input using 'g i'
+- Support for keys being pressed in order with different actions (such as 'gg' or the new 'gi')
+- Shortcut to enter insert mode at the first text input using 'gi'
 - New option to open tabs next to the current one (using t and u) (now the new default)
 - Keybinding to open tabs at the inverted position to the setting configured (so at the end by default)
 - Keybindings to move the current tab left or right in the tab navigation bar (ctrl-j or ctrl-k)
@@ -378,7 +380,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Location not displaying during load (and staying empty on failed page loads)
-- Default settings something displaying in black text on help page
+- Default settings sometimes displaying in black text on help page
 - Buggy favicon on some sites after navigating on the same page
 
 ### Security
@@ -449,7 +451,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - History is now loaded on startup to work faster when suggesting in nav mode
 - History will never re-read the file, because it's entirely processed in memory
 - Limit the amount of history suggestions appearing to 20
-- The history page will add add all history DOM elements in bulk (much faster)
+- The history page will add all history DOM elements in bulk (much faster)
 - Downloads are now handled in the main thread to improve consistency
 - All checks with if statements now use includes wherever possible
 - Follow mode does not leave the mouse hovering anymore, because now there is cursor mode to do so
@@ -497,13 +499,13 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Eslint configuration to more accurately represent the repository style guide
 - Allow commands to start with a single ':', which will be ignored
-- Allow multiple login popup, one for each opened tab
-- Improved the url detect to more accurately follow the domain specification
+- Allow multiple login popups, one for each opened tab
+- Improve the url detection to more accurately follow the domain specification
 - Add arrow keys for switching suggestions to the Firefox and Chromium examples
 
 ### Fixed
 
-- The zoom in vs zoom out default keybindings in normal mode
+- The zoom in and zoom out default keybindings in normal mode
 - Startup arguments starting with a single dash being opened as a website
 - Special pages not being detected on Windows
 - Follow mode duplicate key options for a certain amount of links

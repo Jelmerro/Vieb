@@ -51,8 +51,9 @@ const defaultSettings = {
     "mousefocus": false,
     "mousenewtabswitch": false,
     "nativenotification": false,
-    "notificationposition": "bottomright",
     "notificationduration": 6000,
+    "notificationforpermissions": false,
+    "notificationposition": "bottomright",
     "permissioncamera": "block",
     "permissionfullscreen": "allow",
     "permissiongeolocation": "block",
@@ -62,6 +63,8 @@ const defaultSettings = {
     "permissionnotifications": "ask",
     "permissionopenexternal": "ask",
     "permissionpointerlock": "block",
+    "permissionsallowed": "",
+    "permissionsblocked": "",
     "permissionunknown": "block",
     "redirects": "",
     "redirecttohttp": false,
@@ -91,7 +94,13 @@ const defaultSettings = {
 }
 let allSettings = {}
 const freeText = ["downloadpath", "search", "vimcommand"]
-const listLike = ["favoritepages", "redirects", "startuppages"]
+const listLike = [
+    "favoritepages",
+    "permissionsallowed",
+    "permissionsblocked",
+    "redirects",
+    "startuppages"
+]
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
     "cache": ["none", "clearonquit", "full"],
@@ -210,6 +219,40 @@ const checkOther = (setting, value) => {
         }
         UTIL.notify("The download path does not exist", "warn")
         return false
+    }
+    const permissionSettings = ["permissionsallowed", "permissionsblocked"]
+    if (permissionSettings.includes(setting)) {
+        for (const override of value.split(",")) {
+            if (!override.trim()) {
+                continue
+            }
+            if ((override.match(/~/g) || []).length === 0) {
+                UTIL.notify(`Invalid ${setting} entry: ${override}\n`
+                    + "Entries must have at least one ~ to separate the "
+                    + "regular expression and the permission names", "warn")
+                return false
+            }
+            const [match, ...names] = override.split("~")
+            try {
+                RegExp(match)
+            } catch (e) {
+                UTIL.notify(
+                    `Invalid regular expression in permission: ${match}`,
+                    "warn")
+                return false
+            }
+            for (let name of names) {
+                if (!name.startsWith("permission")) {
+                    name = `permission${name}`
+                }
+                const reservedName = permissionSettings.includes(name)
+                if (reservedName || !allSettings[name]) {
+                    UTIL.notify(
+                        `Invalid name for a permission: ${name}`, "warn")
+                    return false
+                }
+            }
+        }
     }
     if (setting === "redirects") {
         for (const redirect of value.split(",")) {
@@ -384,7 +427,9 @@ const updateWebviewSettings = () => {
         UTIL.appData(), "webviewsettings")
     UTIL.writeJSON(webviewSettingsFile, {
         "darkreader": get("darkreader"),
-        "permissionmediadevices": get("permissionmediadevices")
+        "permissionmediadevices": get("permissionmediadevices"),
+        "permissionsallowed": get("permissionsallowed"),
+        "permissionsblocked": get("permissionsblocked")
     })
 }
 
@@ -546,7 +591,13 @@ const set = (setting, value) => {
             updateTabOverflow()
             PAGELAYOUT.applyLayout()
         }
-        if (setting === "darkreader" || setting === "permissionmediadevices") {
+        const webviewSettings = [
+            "darkreader",
+            "permissionmediadevices",
+            "permissionsallowed",
+            "permissionsblocked"
+        ]
+        if (webviewSettings.includes(setting)) {
             updateWebviewSettings()
         }
         if (setting.startsWith("permission")) {
