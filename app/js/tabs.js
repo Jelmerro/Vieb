@@ -575,6 +575,9 @@ const addWebviewListeners = webview => {
         PAGELAYOUT.applyLayout()
     })
     webview.addEventListener("ipc-message", e => {
+        if (e.channel === "notify") {
+            UTIL.notify(e.args[0], e.args[1])
+        }
         if (e.channel === "mouse-click-info") {
             mouseClickInWebview(e.args[0])
         }

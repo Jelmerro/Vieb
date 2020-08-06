@@ -625,6 +625,23 @@ const permissionHandler = (_, permission, callback, details) => {
         }
     }
     const permissionName = `permission${permission.toLowerCase()}`
+    for (const override of ["permissionsblocked", "permissionsallowed"]) {
+        for (const rule of permissions[override].split(",")) {
+            if (!rule.trim()) {
+                continue
+            }
+            const [match, ...names] = rule.split("~")
+            if (names.find(p => permissionName.endsWith(p))) {
+                if (details.requestingUrl.match(match)) {
+                    mainWindow.webContents.send("notify",
+                        `Automatic rule for ${permission} activated at `
+                        + `${details.requestingUrl} which was `
+                        + `${override.replace("permissions", "")}`, "perm")
+                    return callback(override.includes("allow"))
+                }
+            }
+        }
+    }
     const setting = permissions[permissionName]
     if (setting === "ask") {
         let url = details.requestingUrl
@@ -632,12 +649,11 @@ const permissionHandler = (_, permission, callback, details) => {
             url = url.replace(/.{50}/g, "$&\n")
         }
         let message = "The page has requested access to the permission "
-            + `'${permission}'. You can allow or deny this below, `
-            + "and choose if you want to make this the default for "
-            + "the current session when sites ask for this permission."
-            + " You can always change this using the settings file,"
-            + " or at runtime with the set command like so: "
-            + `'set ${permissionName}=<value>'\n\npage:\n${url}`
+            + `'${permission}'. You can allow or deny this below, and choose if`
+            + " you want to make this the default for the current session when "
+            + "sites ask for this permission. For help and more options, see "
+            + `':h ${permissionName}', ':h permissionsallowed' and `
+            + `':h permissionsblocked'.\n\npage:\n${url}`
         if (permission === "openExternal") {
             let exturl = details.externalURL
             if (exturl.length > 100) {
@@ -646,9 +662,9 @@ const permissionHandler = (_, permission, callback, details) => {
             message = "The page has requested to open an external application."
                 + " You can allow or deny this below, and choose if you want to"
                 + " make this the default for the current session when sites "
-                + "ask to open urls in external programs. You can always change"
-                + " this using the settings file, or at runtime with the set "
-                + "command like so: 'set permissionopenexternal=<value>\n\n"
+                + "ask to open urls in external programs. For help and more "
+                + "options, see ':h permissionopenexternal', "
+                + "':h permissionsallowed' and ':h permissionsblocked'.\n\n"
                 + `page:\n${details.requestingUrl}\n\nexternal:\n${exturl}`
         }
         dialog.showMessageBox(mainWindow, {
@@ -660,20 +676,24 @@ const permissionHandler = (_, permission, callback, details) => {
             "title": `Allow this page to access '${permission}'?`,
             "message": message
         }).then(e => {
-            callback(e.response === 0)
+            let action = "allow"
+            if (e.response !== 0) {
+                action = "block"
+            }
+            mainWindow.webContents.send("notify",
+                `Manually ${action}ed ${permission} at `
+                + `${details.requestingUrl}`, "perm")
+            callback(action === "allow")
             if (e.checkboxChecked) {
-                if (e.response === 0) {
-                    mainWindow.webContents.send("set-permission",
-                        permissionName, "allow")
-                    permissions[permissionName] = "allow"
-                } else {
-                    permissions[permissionName] = "block"
-                    mainWindow.webContents.send("set-permission",
-                        permissionName, "block")
-                }
+                mainWindow.webContents.send(
+                    "set-permission", permissionName, action)
+                permissions[permissionName] = action
             }
         })
     } else {
+        mainWindow.webContents.send("notify",
+            `Globally ${setting}ed ${permission} at `
+            + `${details.requestingUrl}`, "perm")
         callback(setting === "allow")
     }
 }

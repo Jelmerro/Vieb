@@ -98,6 +98,9 @@ const notify = (message, type = "info") => {
         return
     }
     let properType = "info"
+    if (type.startsWith("perm")) {
+        properType = "permission"
+    }
     if (type.startsWith("warn")) {
         properType = "warning"
     }
@@ -109,6 +112,11 @@ const notify = (message, type = "info") => {
     notificationHistory.push({
         "message": escapedMessage, "type": properType, "date": new Date()
     })
+    if (properType === "permission") {
+        if (!SETTINGS.get("notificationforpermissions")) {
+            return
+        }
+    }
     if (SETTINGS.get("nativenotification")) {
         new Notification(`Vieb ${properType}`, {"body": message})
         return
