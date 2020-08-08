@@ -19,6 +19,9 @@
 body {color: #eee;width: 90vw;font: 14px RobotoMono, monospace;background: #333;padding: 0;margin: auto;}
 a {color: #0cf;white-space: nowrap;overflow: hidden;}
 h1 {font-size: 2em;margin: 1em 0;padding: 0;}
+input {background: #333;color: #eee;font: inherit;width: 100%;border: .1em solid #666;padding: .2em;margin-bottom: 1em;box-sizing: border-box;outline: none;}
+input:focus {border: .1em solid #aaa;}
+#no-results {margin-bottom: 1em;}
 #breakpoints {display: flex;flex-direction: column;}
 .hist-entry {background-color: #444;margin: .7em 0;padding: .35em;border: .1em solid #222;}
 .hist-entry .hist-date {width: auto;color: #aaa;margin-right: 1em;}

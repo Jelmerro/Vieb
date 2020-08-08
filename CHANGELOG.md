@@ -18,6 +18,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Firefox mode to replicate the Firefox useragent and navigator properties
 - List-like settings for allowing or blocking permissions based on the website (using regex)
 - Setting to optionally notify when websites request a permission, including the reason for allowing/blocking
+- Filter on the history page to find or remove sites from the history based on title or url
 
 ### Changed
 
@@ -27,6 +28,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Window snapping on Windows
 - Lack of typing ability for some text inputs after selecting them with follow mode
+- Spaces not working as expected in mappings
 
 ### Security
 

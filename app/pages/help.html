@@ -185,7 +185,6 @@
         The keyboard mappings are completely dynamic in Vieb, meaning that you can change the behavior of all keyboard keys. To manage these mappings, Vieb implements a similar system to Vim, with support for recursion, multiple keystrokes, countable actions and similar features. These are all of the key differences of Vieb's mapping system compared to Vim:
         <ul>
             <li>Only the &lt;&gt;-notation is supported for including modifiers or special keys.</li>
-            <li>Spaces can only be supplied as <kbd>&lt;Space&gt;</kbd>, regular spaces are ignored.</li>
             <li>All keyboard shortcuts passed to Vieb are supported, there are no terminal or history related limitations. For example, in Vieb you can distinguish between Meta and Alt keyboard mappings, and also map sequences unavailable in Vim, such as &lt;C-c&gt; (Ctrl-c) or &lt;A-F4&gt; (Alt-F4).</li>
             <li>Vieb allows you to optionally include the default mappings with any of the map commands by appending a <kbd>!</kbd> to it (see the list below for details).</li>
             <li>Vieb adds compatible map syntax to run actions or commands without remembering or preserving the original keys mapped to it.</li>

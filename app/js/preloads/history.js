@@ -179,6 +179,7 @@ const addHistToList = hist => {
     histElement.appendChild(date)
     const title = document.createElement("span")
     title.textContent = hist.title
+    title.className = "hist-title"
     histElement.appendChild(title)
     const url = document.createElement("a")
     url.textContent = hist.url
@@ -188,30 +189,32 @@ const addHistToList = hist => {
 }
 
 const clearHistory = () => {
-    ipcRenderer.sendToHost("history-list-request", "all")
+    const newestElement = document.querySelector("*[hist-line]")
+    clearLinesFromHistory(0, newestElement.getAttribute("hist-line"))
 }
 
 const clearLinesFromHistory = (start, end = null) => {
+    start = Number(start)
     if (currentlyRemoving) {
         return
     }
     currentlyRemoving = true
-    const entries = []
     if (!end) {
         end = start
     }
-    let num = start
-    while (num <= end) {
-        const element = document.querySelector(`*[hist-line="${num}"]`)
-        num += 1
-        if (!element) {
-            continue
+    end = Number(end)
+    const entries = [...document.querySelectorAll("*[hist-line]")].filter(h => {
+        if (!h || h.style.display === "none") {
+            return false
         }
-        element.classList.add("marked")
-        const date = element.querySelector(".hist-date").getAttribute("iso")
-        const url = element.querySelector("a").getAttribute("href")
-        entries.push({url, date})
-    }
+        const num = Number(h.getAttribute("hist-line"))
+        return num >= start && num <= end
+    }).map(h => {
+        h.classList.add("marked")
+        const date = h.querySelector(".hist-date").getAttribute("iso")
+        const url = h.querySelector("a").getAttribute("href")
+        return {url, date}
+    })
     ipcRenderer.sendToHost("history-list-request", "range", entries)
 }
 
@@ -225,6 +228,32 @@ const formatDate = date => {
         String(date.getSeconds()).padStart(2, "0")}`
 }
 
+const filterList = () => {
+    const filter = document.getElementById("filter").value.trim().toLowerCase()
+    const histElements = [...document.querySelectorAll("*[hist-line]")]
+    let anyResult = false
+    histElements.forEach(hist => {
+        const url = hist.querySelector("a").getAttribute("href")
+        const title = hist.querySelector(".hist-title").textContent
+        if (url.toLowerCase().includes(filter)) {
+            hist.style.display = ""
+            anyResult = true
+        } else if (title.toLowerCase().includes(filter)) {
+            hist.style.display = ""
+            anyResult = true
+        } else {
+            hist.style.display = "none"
+        }
+    })
+    if (!histElements.length || anyResult) {
+        document.getElementById("remove-all").style.display = ""
+        document.getElementById("no-results").style.display = "none"
+    } else {
+        document.getElementById("remove-all").style.display = "none"
+        document.getElementById("no-results").style.display = ""
+    }
+}
+
 window.addEventListener("load", () => {
     const removeAll = document.createElement("img")
     removeAll.id = "remove-all"
@@ -232,6 +261,7 @@ window.addEventListener("load", () => {
     removeAll.src = path.join(__dirname, "../../img/trash.png")
     removeAll.addEventListener("click", () => clearHistory())
     document.body.insertBefore(removeAll, document.body.firstChild)
+    document.getElementById("filter").addEventListener("input", filterList)
     ipcRenderer.sendToHost("history-list-request")
 })
 
@@ -249,4 +279,5 @@ ipcRenderer.on("history-removal-status", success => {
         }
     })
     currentlyRemoving = false
+    filterList()
 })

@@ -885,7 +885,7 @@ const sanitiseMapString = (mapString, allowSpecials = false) => mapString
 
 const mapSingle = (mode, args, noremap) => {
     const mapping = sanitiseMapString(args.shift())
-    const actions = sanitiseMapString(args.join(""), true)
+    const actions = sanitiseMapString(args.join(" "), true)
     if (!actions) {
         return
     }
