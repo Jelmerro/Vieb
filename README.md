@@ -1,11 +1,6 @@
-Vieb
-====
+<center>
 
 ![icon](app/img/icons/128x128.png)
-
-### Vim Inspired Electron Browser
-
-### [website](https://vieb.dev) - [github](https://github.com/Jelmerro/Vieb) - [releases](https://github.com/Jelmerro/Vieb/releases) - [changelog](CHANGELOG.md) - [donate](https://ko-fi.com/Jelmerro)
 
 ### Vim bindings for the web by design
 
@@ -16,6 +11,12 @@ Vieb
 [![License](https://img.shields.io/github/license/Jelmerro/Vieb?style=flat-square)](https://github.com/Jelmerro/Vieb/blob/master/LICENSE)
 [![Donate](https://img.shields.io/static/v1?label=ko-fi&message=donate&color=red&logo=ko-fi&style=flat-square)](https://ko-fi.com/Jelmerro)
 [![Reddit](https://img.shields.io/reddit/subreddit-subscribers/vieb?style=social)](https://reddit.com/r/vieb)
+
+### Vieb is the Vim Inspired Electron Browser
+
+## [Homepage](https://vieb.dev/) - [Download](https://vieb.dev/download) - [Changelog](CHANGELOG.md)
+
+</center>
 
 # Features
 
@@ -54,28 +55,28 @@ or check the full list of Vieb's capabilities on the [website](https://vieb.dev/
 
 # Download
 
-To get started with Vieb, download a stable release from one of these locations:
-
-#### [Vieb website](https://vieb.dev/download) - [Github releases](https://github.com/Jelmerro/Vieb/releases)
-
-These releases require no additional software and can be downloaded for a specific platform.
+You can download the latest stable release from the [official Vieb website](https://vieb.dev/download).
+Alternatively, you can also view the previous releases [on Github](https://github.com/Jelmerro/Vieb/releases).
+For Windows and Mac downloads you can simply double-click on the downloaded program.
+If you are on Linux, you can download the AppImage to be able to do the same.
+Make sure that you download the right architecture for your system,
+if unsure, try the Vieb website for a nicer overview.
+For most other download options, you need to use your distribution's package manager.
 
 # Contribute
 
-You can help by reporting issues and suggesting new features on the [github issue tracker](https://github.com/Jelmerro/Vieb/issues).
+You can help by reporting issues and suggesting new features on the [Github issue tracker](https://github.com/Jelmerro/Vieb/issues).
+Another way to help is by supporting Jelmerro on [ko-fi](https://ko-fi.com/Jelmerro).
+Donating is completely optional because Vieb will always be free and open source.
 If you know how to write Electron applications, you can also help by writing code.
+Check the ['help wanted' issues](https://github.com/Jelmerro/Vieb/issues?q=is%3Aissue+is%3Aopen+label%3A"help+wanted") for suggestions on what to work on.
 Please try to follow these guidelines while working on Vieb:
 
 - Use Vim to edit :)
-- Follow the included eslint style guide (using [ALE](https://github.com/dense-analysis/ale) or similar)
-- Use editorconfig (there is a [Vim plugin available](https://github.com/editorconfig/editorconfig-vim))
+- Follow the included eslint style guide
+- Use editorconfig for indentation
 
-If you are looking for anything specific to improve,
-check the [unassigned issues](https://github.com/Jelmerro/Vieb/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee).
-
-Vieb is and always will be free and open source, but you can support it's development here:
-
-[![Donate](https://img.shields.io/static/v1?label=ko-fi&message=donate&color=red&logo=ko-fi&style=flat-square)](https://ko-fi.com/Jelmerro)
+For an example vimrc that is configured to use these tools, you can check out my personal [vimrc](https://github.com/Jelmerro/vimrc).
 
 # Building
 

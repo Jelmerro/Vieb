@@ -24,7 +24,7 @@
   "email": "Jelmerro@users.noreply.github.com",
   "license": "GPL-3.0+",
   "devDependencies": {
-    "electron": "^9.1.2",
+    "electron": "^9.2.0",
     "electron-builder": "^22.8.0",
     "eslint": "^7.6.0",
     "jest": "^26.2.2"
