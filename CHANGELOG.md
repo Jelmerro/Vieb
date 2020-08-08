@@ -32,7 +32,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Security
 
-- Electron 9.1.2 (was 9.0.5)
+- Electron 9.2.0 (was 9.0.5)
 - Chromium 83.0.4103.122 (was 83.0.4103.119)
 - Don't expose the supported mimeTypes through the navigator
 - Better protection for hiding the GPU model
