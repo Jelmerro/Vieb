@@ -1,5 +1,3 @@
-<center>
-
 ![icon](app/img/icons/128x128.png)
 
 ### Vim bindings for the web by design
@@ -15,8 +13,6 @@
 ### Vieb is the Vim Inspired Electron Browser
 
 ## [Homepage](https://vieb.dev/) - [Download](https://vieb.dev/download) - [Changelog](CHANGELOG.md)
-
-</center>
 
 # Features
 
