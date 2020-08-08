@@ -110,8 +110,6 @@ const refreshList = () => {
     ipcRenderer.invoke("list-cookies").then(cookieList => {
         parseList(cookieList.sort((a, b) => a.domain.replace(/\W/, "")
             .localeCompare(b.domain.replace(/\W/, ""))))
-        document.getElementById("filter")
-            .addEventListener("input", filterList)
     })
 }
 
@@ -121,5 +119,6 @@ window.addEventListener("load", () => {
     removeAll.src = path.join(__dirname, "../../img/trash.png")
     removeAll.addEventListener("click", removeAllCookies)
     document.body.insertBefore(removeAll, document.body.firstChild)
+    document.getElementById("filter").addEventListener("input", filterList)
     refreshList()
 })

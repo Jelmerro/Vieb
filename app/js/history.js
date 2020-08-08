@@ -186,9 +186,6 @@ const handleRequest = (action = "", entries = []) => {
     if (action === "range" && entries.length > 0) {
         success = removeFromHistory(entries)
     }
-    if (action === "all") {
-        success = clearHistory()
-    }
     TABS.currentPage().send("history-removal-status", success)
 }
 
