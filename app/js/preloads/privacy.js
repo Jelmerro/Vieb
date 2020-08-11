@@ -153,8 +153,13 @@ window.WebGLRenderingContext.prototype.getParameter = function(parameter) {
     }
     return getParam.call(this, parameter)
 }
-window.WebGL2RenderingContext.prototype.getParameter
-   = window.WebGLRenderingContext.prototype.getParameter
+const getParam2 = window.WebGL2RenderingContext.prototype.getParameter
+window.WebGL2RenderingContext.prototype.getParameter = function(parameter) {
+    if ([37445, 37446].includes(parameter)) {
+        return ""
+    }
+    return getParam2.call(this, parameter)
+}
 
 // If using Firefox mode, also modify the other navigator properties to match
 if (window.navigator.userAgent.includes("Firefox")) {
