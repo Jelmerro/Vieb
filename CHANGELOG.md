@@ -11,6 +11,17 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Fixed
+
+- WebGL2RenderingContext calls to get parameters not being invoked in the right context
+
+## Security
+
+- Electron 9.2.0 (unchanged)
+- Chromium 83.0.4103.122 (unchanged)
+
 ## [2.3.0](https://github.com/Jelmerro/Vieb/compare/2.2.3...2.3.0) - 2020-08-08
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/2.2.3...2.3.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/2.3.0)
