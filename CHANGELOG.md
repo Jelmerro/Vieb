@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - WebGL2RenderingContext calls to get parameters not being invoked in the right context
+- App path (usually the asar file) being opened as a file on startup for some custom builds (including Arch)
 
 ## Security
 
