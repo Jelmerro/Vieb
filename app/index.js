@@ -125,7 +125,7 @@ const useragent = () => session.defaultSession.getUserAgent()
 
 // Parse arguments
 let args = process.argv.slice(1)
-if (args[0] === "app") {
+if (args[0] === "app" || args[0] === app.getAppPath()) {
     args = args.slice(1)
 }
 const urls = []
