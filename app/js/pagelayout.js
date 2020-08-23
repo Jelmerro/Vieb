@@ -185,7 +185,7 @@ const moveFocus = direction => {
     let y = dims.y + dims.height / 2
     let newView = document.elementsFromPoint(x, y).find(
         el => el.matches("#pagelayout *[link-id]"))
-    while (newView && newView.getAttribute("link-id") === id) {
+    while (newView?.getAttribute("link-id") === id) {
         if (direction === "left") {
             x -= 10
         } else if (direction === "top") {

@@ -38,7 +38,7 @@ const init = () => {
     isParsed = true
     ipcRenderer.on("favicon-downloaded", (_, linkId, currentUrl, favicon) => {
         const webview = document.querySelector(`#pages [link-id='${linkId}']`)
-        if (webview && webview.src === currentUrl) {
+        if (webview?.src === currentUrl) {
             setPath(TABS.tabOrPageMatching(webview), urlToPath(favicon))
         }
     })
