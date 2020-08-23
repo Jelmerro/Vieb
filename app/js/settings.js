@@ -168,16 +168,6 @@ const init = () => {
         SESSIONS.setSpellLang(get("spelllang"))
     })
     ipcRenderer.on("set-permission", (_, name, value) => set(name, value))
-    if (UTIL.isFile(path.join(UTIL.appData(), "erwicmode"))) {
-        set("cache", "none")
-        set("clearcookiesonquit", "false")
-        set("clearlocalstorageonquit", "false")
-        set("permissioncamera", "allow")
-        set("permissionnotifications", "allow")
-        set("permissionmediadevices", "allowfull")
-        set("permissionmicrophone", "allow")
-        set("startuppages", "")
-    }
 }
 
 const checkOption = (setting, value) => {
@@ -499,6 +489,12 @@ const suggestionList = () => {
 
 const loadFromDisk = () => {
     allSettings = JSON.parse(JSON.stringify(defaultSettings))
+    if (UTIL.isFile(path.join(UTIL.appData(), "erwicmode"))) {
+        set("permissioncamera", "allow")
+        set("permissionnotifications", "allow")
+        set("permissionmediadevices", "allowfull")
+        set("permissionmicrophone", "allow")
+    }
     for (const conf of [config, UTIL.expandPath("~/.viebrc")]) {
         if (UTIL.isFile(conf)) {
             const parsed = UTIL.readFile(conf)
