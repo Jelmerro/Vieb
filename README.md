@@ -49,6 +49,14 @@ or check the full list of Vieb's capabilities on the [website](https://vieb.dev/
 
 #### [More screenshots](https://vieb.dev/screenshots)
 
+## Erwic
+
+With the "erwic" startup option, you can "Easily Run Websites In Containers".
+The purpose of this option is similar to programs such as Franz, Ferdi or Rambox.
+It can also replace other Electron-based desktop apps such as Slack or Discord.
+These instances of Vieb can run separately from your existing Vieb.
+See [Erwic.md](Erwic.md) for usage and details.
+
 # Download
 
 You can download the latest stable release from the [official Vieb website](https://vieb.dev/download).

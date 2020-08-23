@@ -27,13 +27,20 @@ let recentlyClosed = []
 let linkId = 0
 const timeouts = {}
 const tabFile = path.join(UTIL.appData(), "tabs")
+const erwicMode = UTIL.isFile(path.join(UTIL.appData(), "erwicmode"))
+const configPreloads = {}
 
 const init = () => {
     window.addEventListener("load", () => {
+        if (UTIL.appIcon()) {
+            document.getElementById("logo").src = UTIL.appIcon()
+        }
         const parsed = UTIL.readJSON(tabFile)
         if (parsed) {
-            if (Array.isArray(parsed.pinned)) {
-                parsed.pinned.forEach(tab => openSavedPage(tab, true))
+            if (!erwicMode) {
+                if (Array.isArray(parsed.pinned)) {
+                    parsed.pinned.forEach(tab => openSavedPage(tab, true))
+                }
             }
             if (SETTINGS.get("restoretabs")) {
                 if (Array.isArray(parsed.tabs)) {
@@ -66,7 +73,19 @@ const init = () => {
                 openSavedPage(tab)
             }
         }
-        if (listTabs().length === 0) {
+        ipcRenderer.on("urls", (_, pages) => {
+            pages.forEach(page => {
+                if (typeof page === "string") {
+                    openSavedPage(page)
+                } else {
+                    openSavedPage(page.url, false, page.name)
+                }
+                if (page.script) {
+                    configPreloads[page.name] = page.script
+                }
+            })
+        })
+        if (listTabs().length === 0 && !erwicMode) {
             if (parsed) {
                 addTab()
             } else {
@@ -74,9 +93,6 @@ const init = () => {
                 addTab({"url": UTIL.specialPagePath("help")})
             }
         }
-        ipcRenderer.on("urls", (_, urls) => {
-            urls.forEach(openSavedPage)
-        })
         // This forces the webview to update on sites which wait for the mouse
         // It will also enable the pointer events when in insert or pointer mode
         setInterval(() => {
@@ -108,11 +124,14 @@ const init = () => {
     })
 }
 
-const openSavedPage = (url, pinned = false) => {
+const openSavedPage = (url, pinned = false, partition = false) => {
     if (!url.trim()) {
         return
     }
     url = UTIL.stringToUrl(url.trim())
+    if (partition) {
+        return addTab({url, pinned, partition})
+    }
     try {
         if (UTIL.pathToSpecialPageName(currentPage().src).name === "newtab") {
             if (!currentPage().isLoading()) {
@@ -167,6 +186,12 @@ const addTab = options => {
     // Valid options are: url, inverted, switchTo, pinned and callback
     if (!options) {
         options = {}
+    }
+    if (erwicMode) {
+        const isSpecialPage = UTIL.pathToSpecialPageName(options.url || "").name
+        if (!isSpecialPage && !options.partition) {
+            return
+        }
     }
     if (options.switchTo === undefined) {
         options.switchTo = true
@@ -230,6 +255,9 @@ const addTab = options => {
         sessionName = `persist:container${linkId}`
         tab.classList.add("container")
     }
+    if (options.partition) {
+        sessionName = `persist:${options.partition}`
+    }
     SESSIONS.create(sessionName)
     webview.setAttribute("partition", sessionName)
     linkId += 1
@@ -248,6 +276,7 @@ const addTab = options => {
                 webview.src = options.url
                 resetTabInfo(webview)
                 title.textContent = options.url
+                webview.clearHistory()
             }
             webview.setAttribute("dom-ready", true)
             if (options.callback) {
@@ -261,10 +290,17 @@ const reopenTab = () => {
     if (recentlyClosed.length === 0) {
         return
     }
+    const url = recentlyClosed.slice(-1)[0]
+    if (erwicMode && !UTIL.pathToSpecialPageName(url).name) {
+        return
+    }
     addTab({"url": UTIL.stringToUrl(recentlyClosed.pop())})
 }
 
 const closeTab = () => {
+    if (erwicMode && !UTIL.pathToSpecialPageName(currentPage().src).name) {
+        return
+    }
     if (currentPage().src && UTIL.urlToString(currentPage().src)) {
         recentlyClosed.push(UTIL.urlToString(currentPage().src))
     }
@@ -299,14 +335,14 @@ const tabOrPageMatching = el => {
 
 const switchToTab = index => {
     const tabs = listTabs()
-    if (index < 0) {
+    while (index < 0) {
         if (SETTINGS.get("tabcycle")) {
             index = tabs.length + index
         } else {
             index = 0
         }
     }
-    if (tabs.length <= index) {
+    while (tabs.length <= index) {
         if (SETTINGS.get("tabcycle")) {
             index -= tabs.length
         } else {
@@ -333,29 +369,30 @@ const switchToTab = index => {
 }
 
 const updateWindowTitle = () => {
+    const appName = UTIL.title(UTIL.appName())
     if (SETTINGS.get("windowtitle") === "simple" || !currentPage()) {
-        ipcRenderer.send("set-window-title", "Vieb")
+        ipcRenderer.send("set-window-title", appName)
         return
     }
     const title = tabOrPageMatching(currentPage())
         .querySelector("span").textContent
     if (SETTINGS.get("windowtitle") === "title" || !currentPage().src) {
-        ipcRenderer.send("set-window-title", `Vieb - ${title}`)
+        ipcRenderer.send("set-window-title", `${appName} - ${title}`)
         return
     }
     let url = currentPage().src
     const specialPage = UTIL.pathToSpecialPageName(url)
     if (specialPage.name) {
-        url = `vieb://${specialPage.name}`
+        url = `${UTIL.appName()}://${specialPage.name}`
         if (specialPage.section) {
             url += `#${specialPage.section}`
         }
     }
     if (SETTINGS.get("windowtitle") === "url") {
-        ipcRenderer.send("set-window-title", `Vieb - ${url}`)
+        ipcRenderer.send("set-window-title", `${appName} - ${url}`)
         return
     }
-    ipcRenderer.send("set-window-title", `Vieb - ${title} - ${url}`)
+    ipcRenderer.send("set-window-title", `${appName} - ${title} - ${url}`)
 }
 
 const updateUrl = (webview, force = false) => {
@@ -532,6 +569,16 @@ const addWebviewListeners = webview => {
         } else {
             HISTORY.updateTitle(webview.src, title.textContent)
         }
+        if (erwicMode) {
+            const preload = configPreloads[
+                webview.getAttribute("partition").replace("persist:", "")]
+            if (preload) {
+                const javascript = UTIL.readFile(preload)
+                if (javascript) {
+                    webview.executeJavaScript(javascript)
+                }
+            }
+        }
     })
     webview.addEventListener("page-title-updated", e => {
         if (e.title.startsWith("magnet:") || e.title.startsWith("mailto:")) {
@@ -554,7 +601,7 @@ const addWebviewListeners = webview => {
     webview.addEventListener("new-window", e => {
         if (e.disposition === "save-to-disk") {
             currentPage().downloadURL(e.url)
-        } else if (e.disposition === "foreground-tab") {
+        } else if (e.disposition === "foreground-tab" || erwicMode) {
             navigateTo(e.url)
         } else {
             addTab({
@@ -648,11 +695,11 @@ const addWebviewListeners = webview => {
                 document.getElementById("url-hover")
                     .textContent = UTIL.urlToString(e.url)
             } else if (special.section) {
-                document.getElementById("url-hover")
-                    .textContent = `vieb://${special.name}#${special.section}`
+                document.getElementById("url-hover").textContent
+                    = `${UTIL.appName()}://${special.name}#${special.section}`
             } else {
                 document.getElementById("url-hover")
-                    .textContent = `vieb://${special.name}`
+                    .textContent = `${UTIL.appName()}://${special.name}`
             }
             document.getElementById("url-hover").style.display = "flex"
         } else {

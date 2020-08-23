@@ -13,10 +13,16 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Erwic option at startup to open a fixed set of tabs in a separate instance (docs are in Erwic.md)
+
 ### Fixed
 
 - WebGL2RenderingContext calls to get parameters not being invoked in the right context
 - App path (usually the asar file) being opened as a file on startup for some custom builds (including Arch)
+- New tab page is no longer the first entry in the history of tabs that are opened with a url
+- Reopening tabs in bulk (usually at startup) running out of index in rare occasions
 
 ## Security
 
