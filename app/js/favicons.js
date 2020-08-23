@@ -112,9 +112,16 @@ const update = (webview, urls) => {
     if (!favicon) {
         return
     }
-    if (viebIcon === favicon && !UTIL.pathToSpecialPageName(webview.src).name) {
-        // Don't allow non-special pages to use the built-in favicon
-        return
+    if (viebIcon === favicon) {
+        if (!UTIL.pathToSpecialPageName(webview.src).name) {
+            // Don't allow non-special pages to use the built-in favicon
+            return
+        }
+        if (UTIL.appIcon()) {
+            setPath(TABS.tabOrPageMatching(webview),
+                UTIL.stringToUrl(UTIL.appIcon()))
+            return
+        }
     }
     const currentUrl = String(webview.src)
     const tab = TABS.tabOrPageMatching(webview)
