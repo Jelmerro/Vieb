@@ -189,39 +189,26 @@ const handleRequest = (action = "", entries = []) => {
     TABS.currentPage().send("history-removal-status", success)
 }
 
-const suggestTopSites = () => Object.keys(groupedHistory).filter(
-    g => groupedHistory[g]).sort((a, b) => {
-    if (groupedHistory[a] && groupedHistory[b]) {
-        return visitCount(b) - visitCount(a)
-    }
-    return 0
-}).slice(0, SETTINGS.get("suggesttopsites")).map(site => {
-    if (SETTINGS.get("favicons") === "disabled") {
+const suggestTopSites = () => Object.keys(groupedHistory)
+    .filter(g => groupedHistory[g])
+    .sort((a, b) => visitCount(b) - visitCount(a))
+    .slice(0, SETTINGS.get("suggesttopsites")).map(site => {
+        if (SETTINGS.get("favicons") === "disabled") {
+            return {
+                "url": UTIL.urlToString(site),
+                "name": groupedHistory[site]?.title
+            }
+        }
         return {
             "url": UTIL.urlToString(site),
-            "name": groupedHistory[site] && groupedHistory[site].title
+            "icon": FAVICONS.forSite(site),
+            "name": groupedHistory[site]?.title
         }
-    }
-    return {
-        "url": UTIL.urlToString(site),
-        "icon": FAVICONS.forSite(site),
-        "name": groupedHistory[site] && groupedHistory[site].title
-    }
-})
+    })
 
-const visitCount = url => {
-    if (groupedHistory[url] && groupedHistory[url].visits) {
-        return groupedHistory[url].visits.length
-    }
-    return 0
-}
+const visitCount = url => groupedHistory[url]?.visits?.length || 0
 
-const titleForPage = url => {
-    if (groupedHistory[url] && groupedHistory[url].title) {
-        return groupedHistory[url].title
-    }
-    return ""
-}
+const titleForPage = url => groupedHistory[url]?.title || ""
 
 const updateTitle = (url, title) => {
     if (!SETTINGS.get("storenewvisists")) {
