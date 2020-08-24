@@ -21,7 +21,7 @@
 
 const fs = require("fs")
 const path = require("path")
-const {ipcRenderer} = require("electron")
+const {ipcRenderer, shell} = require("electron")
 
 let recentlyClosed = []
 let linkId = 0
@@ -125,7 +125,7 @@ const init = () => {
 }
 
 const openSavedPage = (url, pinned = false, partition = false) => {
-    if (!url.trim()) {
+    if (!url.trim() || erwicMode && !partition) {
         return
     }
     url = UTIL.stringToUrl(url.trim())
@@ -190,6 +190,9 @@ const addTab = options => {
     if (erwicMode) {
         const isSpecialPage = UTIL.pathToSpecialPageName(options.url || "").name
         if (!isSpecialPage && !options.partition) {
+            if (options.url) {
+                shell.openExternal(options.url)
+            }
             return
         }
     }
