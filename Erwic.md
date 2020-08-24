@@ -23,6 +23,7 @@ These programs are nice but Vieb (and thus Erwic mode) has the following advanta
 The browsing data of each tab is stored in it's own location based on the name.
 The difference with containertabs is the custom name and the persistent storage.
 Another difference is that the configured pages can't be opened or closed while running.
+Links that you request to open in a new tab will be opened with your default web browser instead.
 Finally, permissions for microphone, notifications, media devices and camera are now allowed by default.
 If desired, these permissions can be changed with the viebrc in the datafolder or with `:set`,
 these are only changes to the default value of the settings.
