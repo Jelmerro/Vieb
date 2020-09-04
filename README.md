@@ -17,15 +17,16 @@
 # Features
 
 - __Free__, open source, fast and secure
-- __Window splitting__ with split, Vexplore and Ctrl-w bindings
+- __Local first__ adblocking, auto-complete, AMP protection, custom redirects and more, all without web requests
+- __Privacy__ with strict permission system, navigator overrides, firefox mode, custom WebRTC policy and more
+- __Accessible__ with dark theme, full interface & fontsize scaling, page zooming and optional mouse support
+- __Security settings__ with permissions, cache usage, cookie management, (auto-)download settings and more
+- __Window splitting__ with split, Vexplore and Ctrl-w bindings, for multi-window browsing
 - __Map commands__ for completely custom keyboard sequences, keystrokes, commands and actions
 - __Viebrc__ config file for all custom/Vim/Vieb commands to configure settings permanently
 - __Set command__ for runtime setting configuration exactly like Vim
 - __Vim-compatible options__ such as: showcmd, timeout, mouse, maxmapdepth, spelllang, splitright, ignorecase etc.
-- __Security settings__ for permissions, cache, cookies, redirects and more
-- __Accessible__ with dark theme, full interface & fontsize scaling, page zooming and optional mouse support
 - __History management__, container tabs, download management and remember previous session
-- __Fast offline auto-completion__ for websites and commands, with default to HTTPS
 - __Ad-blocker__ with optional updater and custom list support, default to: easylist and easyprivacy
 - __Tabs__ including audio indicator, a toggle for multi-line tabs, pinned tabs and a configurable minimal tab width
 - __Offline help documentation__ always available upon pressing __F1__
