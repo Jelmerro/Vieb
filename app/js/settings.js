@@ -66,7 +66,7 @@ const defaultSettings = {
     "permissionsallowed": "",
     "permissionsblocked": "",
     "permissionunknown": "block",
-    "redirects": "",
+    "redirects": "https?://(www\\.)?google\\.com(\\.\\w+)?/amp/s/amp\\.(.*)~https://$3",
     "redirecttohttp": false,
     "requesttimeout": 20000,
     "restoretabs": true,
