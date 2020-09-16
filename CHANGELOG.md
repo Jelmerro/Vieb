@@ -11,6 +11,13 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Security
+
+- Electron 10.1.2 (was 10.1.1)
+- Chromium 85.0.4183.98 (was 85.0.4183.93)
+
 ## [2.4.0](https://github.com/Jelmerro/Vieb/compare/2.3.0...2.4.0) - 2020-09-05
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/2.3.0...2.4.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/2.4.0)
@@ -26,7 +33,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - New tab page is no longer the first entry in the history of tabs that are opened with a url
 - Reopening tabs in bulk (usually at startup) running out of index in rare occasions
 
-## Security
+### Security
 
 - Electron 10.1.1 (was 9.2.0)
 - Chromium 85.0.4183.93 (was 83.0.4103.122)
