@@ -30,7 +30,7 @@
     "jest": "^26.4.2"
   },
   "dependencies": {
-    "@cliqz/adblocker-electron": "^1.18.2",
+    "@cliqz/adblocker-electron": "^1.18.3",
     "darkreader": "^4.9.17",
     "rimraf": "^3.0.2"
   }

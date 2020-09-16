@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Fixed
+
+- Abort error for aborting page loads in the debug console (using --debug or --console)
+
 ### Security
 
 - Electron 10.1.2 (was 10.1.1)
