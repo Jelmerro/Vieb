@@ -726,6 +726,7 @@ const navigateTo = location => {
     if (currentPage().isCrashed()) {
         return
     }
+    currentPage().stop()
     currentPage().src = location
     resetTabInfo(currentPage())
     currentTab().querySelector("span").textContent = location
