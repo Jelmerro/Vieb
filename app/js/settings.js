@@ -29,6 +29,7 @@ const defaultSettings = {
     "cleardownloadsonquit": false,
     "clearhistoryonquit": false,
     "clearlocalstorageonquit": false,
+    "closablepinnedtabs": false,
     "containertabs": false,
     "countlimit": 100,
     "darkreader": false,

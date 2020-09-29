@@ -304,8 +304,14 @@ const closeTab = () => {
     if (erwicMode && !UTIL.pathToSpecialPageName(currentPage().src).name) {
         return
     }
-    if (currentPage().src && UTIL.urlToString(currentPage().src)) {
-        recentlyClosed.push(UTIL.urlToString(currentPage().src))
+    if (!SETTINGS.get("closablepinnedtabs")) {
+        if (currentTab().classList.contains("pinned")) {
+            return
+        }
+    }
+    const url = UTIL.urlToString(currentPage().src || "")
+    if (SETTINGS.get("keeprecentlyclosed") && url) {
+        recentlyClosed.push(url)
     }
     const oldTabIndex = listTabs().indexOf(currentTab())
     if (document.getElementById("pages").classList.contains("multiple")) {
