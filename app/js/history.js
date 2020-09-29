@@ -18,50 +18,15 @@
 /* global FAVICONS SETTINGS SUGGEST TABS UTIL */
 "use strict"
 
-const fs = require("fs")
 const path = require("path")
-const readline = require("readline")
 
 const histFile = path.join(UTIL.appData(), "hist")
 let groupedHistory = {}
 let histWriteTimeout = null
-let finishedLoading = false
 const specialChars = /[`~!@#$%^&*(),./;'[\]\\\-=<>?:"{}|_+\s]/g
 
 const init = () => {
-    if (!UTIL.isFile(histFile)) {
-        return
-    }
     groupedHistory = UTIL.readJSON(histFile) || {}
-    if (Object.keys(groupedHistory).length > 0) {
-        finishedLoading = true
-        return
-    }
-    // NOTE: deprecated code for reading old format, will be removed in 3.0.0
-    const histStream = fs.createReadStream(histFile)
-    const rl = readline.createInterface({"input": histStream})
-    rl.on("line", line => {
-        const hist = parseHistLine(line)
-        if (!hist) {
-            return
-        }
-        if (!groupedHistory[hist.url]) {
-            groupedHistory[hist.url] = {"title": hist.title, "visits": []}
-        }
-        groupedHistory[hist.url].visits.push(hist.date)
-        if (!UTIL.hasProtocol(hist.title) && hist.title.trim()) {
-            groupedHistory[hist.url].title = hist.title
-        }
-    }).on("close", () => { finishedLoading = true })
-}
-
-const parseHistLine = line => {
-    // Deprecated, will be unused and removed in 3.0.0
-    const parts = line.split("\t")
-    if (parts.length < 3) {
-        return null
-    }
-    return {"date": parts[0], "title": parts[1], "url": parts.slice(2).join("")}
 }
 
 const suggestHist = search => {
@@ -70,13 +35,11 @@ const suggestHist = search => {
     // In turn, exact matches get priority over ordered matches.
     search = search.toLowerCase().trim()
     const simpleSearch = search.split(specialChars).filter(w => w)
-    document.getElementById("suggest-dropdown").textContent = ""
-    SUGGEST.clear()
-    if (!SETTINGS.get("suggesthistory") || !search || !UTIL.isFile(histFile)) {
-        // Limit set to zero, no search or no history yet = don't suggest
+    if (!UTIL.isFile(histFile)) {
+        // No need to suggest history if it's not stored
         return
     }
-    const suggestions = Object.keys(groupedHistory).map(url => {
+    Object.keys(groupedHistory).map(url => {
         if (!groupedHistory[url]) {
             return null
         }
@@ -96,18 +59,12 @@ const suggestHist = search => {
             return {
                 "url": url,
                 "title": groupedHistory[url].title,
-                "relevance": relevance * visitCount(url)
+                "icon": FAVICONS.forSite(url),
+                "top": relevance * visitCount(url)
             }
         }
         return null
-    }).filter(h => h)
-    orderAndAddSuggestions(suggestions)
-}
-
-const orderAndAddSuggestions = suggestions => {
-    SUGGEST.clear()
-    suggestions.sort((a, b) => b.relevance - a.relevance)
-        .forEach(SUGGEST.addHist)
+    }).filter(h => h).sort((a, b) => b.top - a.top).forEach(SUGGEST.addExplore)
 }
 
 const addToHist = url => {
@@ -233,8 +190,6 @@ const updateTitle = (url, title) => {
     writeHistToFile()
 }
 
-const isFinishedLoading = () => finishedLoading
-
 module.exports = {
     init,
     addToHist,
@@ -245,6 +200,5 @@ module.exports = {
     suggestTopSites,
     visitCount,
     titleForPage,
-    updateTitle,
-    isFinishedLoading
+    updateTitle
 }

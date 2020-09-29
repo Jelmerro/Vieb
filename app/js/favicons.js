@@ -46,7 +46,7 @@ const init = () => {
 
 const updateMappings = (currentUrl = null) => {
     // Don't update the mappings before they are done loading
-    if (!isParsed || !HISTORY.isFinishedLoading()) {
+    if (!isParsed) {
         return
     }
     // Delete mappings for urls that aren't present in the history

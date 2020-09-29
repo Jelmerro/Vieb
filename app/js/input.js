@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS COMMAND POINTER FOLLOW HISTORY MODES PAGELAYOUT SETTINGS
+/* global ACTIONS COMMAND POINTER FOLLOW MODES PAGELAYOUT SETTINGS
  SUGGEST TABS UTIL */
 "use strict"
 
@@ -276,7 +276,7 @@ const init = () => {
     })
     document.getElementById("url").addEventListener("input", () => {
         if (MODES.currentMode() === "explore") {
-            HISTORY.suggestHist(document.getElementById("url").value)
+            SUGGEST.suggestExplore(document.getElementById("url").value)
         } else if (MODES.currentMode() === "command") {
             SUGGEST.suggestCommand(document.getElementById("url").value)
         }

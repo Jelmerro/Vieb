@@ -156,7 +156,7 @@ const specialPagePath = (page, section = null, skipExistCheck = false) => {
 }
 
 const pathToSpecialPageName = urlPath => {
-    if (urlPath?.startsWith(`${appName()}://`)) {
+    if (urlPath?.startsWith?.(`${appName()}://`)) {
         const parts = urlPath.replace(`${appName()}://`, "").split("#")
         let name = parts[0]
         if (!specialPages.includes(name)) {
@@ -164,7 +164,7 @@ const pathToSpecialPageName = urlPath => {
         }
         return {"name": name, "section": parts.slice(1).join("#") || ""}
     }
-    if (urlPath?.startsWith("file://")) {
+    if (urlPath?.startsWith?.("file://")) {
         for (const page of specialPages) {
             const specialPage = specialPagePath(page).replace(/^file:\/*/g, "")
             const normalizedUrl = path.posix.normalize(

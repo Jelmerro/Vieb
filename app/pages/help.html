@@ -393,9 +393,9 @@
         <ul>
             <li><span class="command-block">:hide</span> - Hide the currently focused window, if others are also visible</li>
             <li><span class="command-block">:hide 0</span> - Hide a window split based on tab index, in this case the first</li>
-            <li><span class="command-block">:b vieb.dev</span> - Hide the window split with "vieb.dev" in the url</li>
-            <li><span class="command-block">:buffer 999</span> - Hide a window split based on tab index, in this case the last</li>
-            <li><span class="command-block">:b github vieb</span> - Hide the window split with both "github" and "vieb" in the url</li>
+            <li><span class="command-block">:hide vieb.dev</span> - Hide the window split with "vieb.dev" in the url</li>
+            <li><span class="command-block">:hide 999</span> - Hide a window split based on tab index, in this case the last</li>
+            <li><span class="command-block">:hide github vieb</span> - Hide the window split with both "github" and "vieb" in the url</li>
         </ul>
         The hide command can be used to hide one of the visible splits. This command takes any number of arguments. If no arguments are provided, it will hide the currently focused split window. For any other number of arguments, it will hide the window split that most accurately matches the arguments. This can be a tab index or keywords that refer to parts of the url, similar to the buffer command. The command will not have effect it there is only one page visible, or if there is no matching tab. If the argument is a single number, but the tab index is too high, it will instead hide the window connected to the latest tab by index.
         <h3 id=":Vexplore">:Vexplore</h3>
@@ -436,7 +436,7 @@
         <ul>
             <li><span class="command-block">:hardcopy</span> - Open the print dialog, to print the current page</li>
         </ul>
-        With the hardcopy command you can make a hardcopy of the current page using a printer. This will open the print dialog similar to other programs. There are no arguments for this command. Tip: it's also possibly to do this for <a href="#specialpages">specialpages</a> such as this help page.
+        With the hardcopy command you can make a hardcopy of the current page using a printer. This will open the print dialog similar to other programs. There are no arguments for this command. Tip: it's also possible to do this for <a href="#specialpages">specialpages</a> such as this help page.
         <h3 id=":print">:print</h3>
         Identical to <a href="#:hardcopy">:hardcopy</a>.
         <h3 id=":pin">:pin</h3>
@@ -614,9 +614,13 @@
         <h3 id="storenewvisists">storenewvisists</h3>
         Toggle to indicate if new visits to websites should be stored in the browsing history. If disabled, the visited page will not be stored in the browsing history, and as a result the favicon will also not be stored. However, the download history, cookies, localstorage and tab history are preserved. To privately navigate to a website, also enable <a href="#containertabs">containertabs</a> and disable the <a href="#keeprecentlyclosed">keeprecentlyclosed</a> setting.
         <h3 id="suggestcommands">suggestcommands</h3>
-        The number of suggestions that should appear when typing commands. Set to 0 to disable any suggestions while in <a class="command" href="#action.toCommandMode">command mode</a>.
-        <h3 id="suggesthistory">suggesthistory</h3>
-        The number of suggestions that should appear when typing a url. Set to 0 to disable any suggestions while in <a class="explore" href="#action.toExploreMode">explore mode</a>. These suggestions are entirely based on the local browsing history, and are sorted by relevance and visit count. The remove a suggestion, simply remove it from the browsing history, or disable suggestions completely.
+        The number of suggestions that should appear when typing commands. Set to 0 to disable any suggestions while in <a class="command" href="#action.toCommandMode">command mode</a>. Some commands accept a file location for which suggestions will be shown if <a href="#suggestfiles">suggestfiles</a> is enabled for commands.
+        <h3 id="suggestexplore">suggestexplore</h3>
+        The number of suggestions that should appear when typing a url. Set to 0 to disable any suggestions while in <a class="explore" href="#action.toExploreMode">explore mode</a>. These suggestions are entirely based on local data (history and files), and are sorted by relevance and visit count. The remove a suggestion, simply remove it from the browsing history, or disable suggestions completely. By default, local files are suggested after the history, but you can change by enabling <a href="#suggestfilesfirst">suggestfilesfirst</a>. You can also disable file suggestions using <a href="#suggestfiles">suggestfiles</a>.
+        <h3 id="suggestfiles">suggestfiles</h3>
+        With this setting you can specify when Vieb should suggest files from the local filesystem. Currently there are 2 places where this happens: <a class="explore" href="#action.toExploreMode">explore mode</a> and <a class="command" href="#action.toCommandMode">command mode</a>. By default suggestions in both modes will be shown.
+        <h3 id="suggestfilesfirst">suggestfilesfirst</h3>
+        Toggle to indicate if files should be suggested before previously visited sites in <a class="explore" href="#action.toExploreMode">explore mode</a>. By default they appear below the urls from your history.
         <h3 id="suggesttopsites">suggesttopsites</h3>
         The number of top visited sites that should be shown on the new tab page. These sites are your most visited websites based on your local browsing history. This settings can be set to 0 to disable the top sites from appearing on the new tab page. Alternatively, you can also specify a list of favorite websites that should always be shown on the new tab page using the <a href="#favoritepages">favoritepages</a> setting.
         <h3 id="tabcycle">tabcycle</h3>

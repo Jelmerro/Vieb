@@ -15,8 +15,11 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND FAVICONS INPUT MODES SETTINGS TABS UTIL */
+/* global COMMAND HISTORY INPUT MODES SETTINGS TABS UTIL */
 "use strict"
+
+const path = require("path")
+const fs = require("fs")
 
 let suggestions = []
 let originalValue = ""
@@ -34,26 +37,23 @@ const prevSuggestion = () => {
     if (list.length === 0) {
         return
     }
-    const selected = document.querySelector("#suggest-dropdown div.selected")
-    if (selected) {
-        const id = list.indexOf(selected)
-        list.forEach(l => {
-            l.className = ""
-        })
-        if (id === 0) {
-            document.getElementById("url").value = originalValue
-        } else {
-            list[id - 1].className = "selected"
-            setUrlValue(suggestions[id - 1])
-        }
-    } else {
+    const selected = list.find(s => s.classList.contains("selected"))
+    let id = list.indexOf(selected)
+    if (!selected) {
         originalValue = document.getElementById("url").value
-        list.forEach(l => {
-            l.className = ""
-        })
-        list[list.length - 1].className = "selected"
-        setUrlValue(suggestions[list.length - 1])
+        id = list.length
     }
+    list.forEach(l => {
+        l.className = ""
+    })
+    if (id === 0) {
+        setUrlValue(originalValue)
+        return
+    }
+    list[id - 1].className = "selected"
+    list[id - 1].scrollIntoView({"block": "center"})
+    setUrlValue(suggestions[id - 1])
+    updateColors()
 }
 
 const nextSuggestion = () => {
@@ -61,70 +61,147 @@ const nextSuggestion = () => {
     if (list.length === 0) {
         return
     }
-    const selected = document.querySelector("#suggest-dropdown div.selected")
-    if (selected) {
-        const id = list.indexOf(selected)
-        list.forEach(l => {
-            l.className = ""
-        })
-        if (id < list.length - 1) {
-            list[id + 1].className = "selected"
-            setUrlValue(suggestions[id + 1])
-        } else {
-            document.getElementById("url").value = originalValue
-        }
-    } else {
+    const selected = list.find(s => s.classList.contains("selected"))
+    let id = list.indexOf(selected)
+    if (!selected) {
         originalValue = document.getElementById("url").value
-        list.forEach(l => {
-            l.className = ""
-        })
-        list[0].className = "selected"
-        setUrlValue(suggestions[0])
+        id = -1
     }
+    list.forEach(l => {
+        l.className = ""
+    })
+    if (id === list.length - 1) {
+        setUrlValue(originalValue)
+        return
+    }
+    list[id + 1].className = "selected"
+    list[id + 1].scrollIntoView({"block": "center"})
+    setUrlValue(suggestions[id + 1])
+    updateColors()
 }
 
-const cancelSuggestions = () => {
+const emptySuggestions = () => {
+    document.getElementById("suggest-dropdown").scrollTo(0, 0)
     document.getElementById("suggest-dropdown").textContent = ""
-}
-
-const clear = () => {
+    document.getElementById("url").className = ""
     suggestions = []
 }
 
-const addToList = suggestion => suggestions.push(suggestion)
+const locationToSuggestion = (base, location) => {
+    let absPath = path.join(base, location)
+    let fullPath = UTIL.stringToUrl(absPath)
+    if (UTIL.isDir(absPath)) {
+        fullPath += "/"
+        location += "/"
+        absPath += "/"
+    }
+    if (absPath.includes(" ")) {
+        absPath = `"${absPath}"`
+    }
+    return {"url": fullPath, "title": location, "path": absPath}
+}
 
-const includes = suggestion => suggestions.includes(suggestion)
+const suggestFiles = location => {
+    location = UTIL.expandPath(location.replace(/file:\/*/, "/"))
+    if (path.isAbsolute(location)) {
+        let matching = []
+        if (path.dirname(location) !== location) {
+            try {
+                matching = fs.readdirSync(path.dirname(location)).map(
+                    p => locationToSuggestion(path.dirname(location), p))
+            } catch (_) {
+                // Not allowed
+            }
+            matching = matching.filter(p => {
+                if (!path.basename(p.url).startsWith(path.basename(location))) {
+                    return false
+                }
+                return path.basename(p.url) !== path.basename(location)
+            })
+        }
+        let inDir = []
+        try {
+            inDir = fs.readdirSync(location).map(
+                p => locationToSuggestion(location, p))
+        } catch (_) {
+            // Not allowed
+        }
+        return [...matching, ...inDir]
+    }
+    return []
+}
 
-const indexOf = suggestion => suggestions.indexOf(suggestion)
+const updateColors = search => {
+    const urlElement = document.getElementById("url")
+    search = search || urlElement.value
+    if (MODES.currentMode() === "explore") {
+        const local = UTIL.expandPath(search)
+        if (search.trim() === "") {
+            urlElement.className = ""
+        } else if (document.querySelector("#suggest-dropdown div.selected")) {
+            urlElement.className = "suggest"
+        } else if (search.startsWith("file://")) {
+            urlElement.className = "file"
+        } else if (UTIL.isUrl(search.trim())) {
+            urlElement.className = "url"
+        } else if (path.isAbsolute(local) && UTIL.pathExists(local)) {
+            urlElement.className = "file"
+        } else {
+            urlElement.className = "search"
+        }
+    }
+}
 
-const addHist = hist => {
-    if (suggestions.length + 1 > SETTINGS.get("suggesthistory")) {
+const suggestExplore = search => {
+    emptySuggestions()
+    updateColors(search)
+    if (!SETTINGS.get("suggestexplore") || !search.trim()) {
+        // Don't suggest if the limit is set to zero or if the search is empty
         return
     }
-    addToList(hist.url)
+    if (["all", "explore"].includes(SETTINGS.get("suggestfiles"))) {
+        if (SETTINGS.get("suggestfilesfirst")) {
+            suggestFiles(search).forEach(f => addExplore(f))
+        }
+        HISTORY.suggestHist(search)
+        if (!SETTINGS.get("suggestfilesfirst")) {
+            suggestFiles(search).forEach(f => addExplore(f))
+        }
+    } else {
+        HISTORY.suggestHist(search)
+    }
+}
+
+const addExplore = explore => {
+    if (suggestions.length + 1 > SETTINGS.get("suggestexplore")) {
+        return
+    }
+    if (suggestions.includes(explore.url)) {
+        return
+    }
+    suggestions.push(explore.url)
     const element = document.createElement("div")
     element.className = "no-focus-reset"
     element.addEventListener("mouseup", e => {
         MODES.setMode("normal")
-        TABS.navigateTo(hist.url)
+        TABS.navigateTo(explore.url)
         e.preventDefault()
     })
-    const icon = FAVICONS.forSite(hist.url)
-    if (icon && SETTINGS.get("favicons") !== "disabled") {
+    if (explore.icon && SETTINGS.get("favicons") !== "disabled") {
         const thumbnail = document.createElement("img")
-        thumbnail.src = icon
+        thumbnail.src = explore.icon
         element.appendChild(thumbnail)
     }
     const title = document.createElement("span")
     title.className = "title"
-    title.textContent = hist.title
+    title.textContent = explore.title
     element.appendChild(title)
     const url = document.createElement("span")
     url.className = "url"
-    if (hist.url.startsWith("file://")) {
+    if (explore.url.startsWith("file://")) {
         url.className = "file"
     }
-    url.textContent = UTIL.urlToString(hist.url)
+    url.textContent = UTIL.urlToString(explore.url)
     element.appendChild(url)
     document.getElementById("suggest-dropdown").appendChild(element)
     setTimeout(() => {
@@ -133,14 +210,19 @@ const addHist = hist => {
 }
 
 const suggestCommand = search => {
-    document.getElementById("suggest-dropdown").textContent = ""
-    clear()
+    emptySuggestions()
     // Remove all redundant spaces
     // Allow commands prefixed with :
     search = search.replace(/^[\s|:]*/, "").replace(/ +/g, " ")
     const {valid, confirm, command, args} = COMMAND.parseAndValidateArgs(search)
-    if (!SETTINGS.get("suggestcommands") || !search || !valid) {
-        // Limited to zero, no search or invalid = don't suggest
+    const urlElement = document.getElementById("url")
+    if (valid) {
+        urlElement.className = ""
+    } else {
+        urlElement.className = "invalid"
+    }
+    if (!SETTINGS.get("suggestcommands") || !search) {
+        // Don't suggest when it's disabled or the search is empty
         return
     }
     // List all commands unconditionally
@@ -160,8 +242,17 @@ const suggestCommand = search => {
         }
     }
     // Command: write
-    if ("write ~/Downloads/newfile".startsWith(search) && !confirm) {
-        addCommand("write ~/Downloads/newfile")
+    if ("write".startsWith(command) && !confirm) {
+        let location = UTIL.expandPath(search.replace(/w[a-z]* ?/, ""))
+        if (!location) {
+            addCommand("write ~")
+            addCommand("write /")
+            addCommand(`write ${SETTINGS.get("downloadpath")}`)
+        }
+        if (!path.isAbsolute(location)) {
+            location = path.join(SETTINGS.get("downloadpath"), location)
+        }
+        suggestFiles(location).forEach(l => addCommand(`write ${l.path}`))
     }
     // Command: mkviebrc
     if ("mkviebrc full".startsWith(search) && !confirm) {
@@ -175,7 +266,7 @@ const suggestCommand = search => {
     if (suggestions.length > 1) {
         suggestedCommandName = bufferCommand
     }
-    if (bufferCommand && command !== "h" && !confirm) {
+    if (bufferCommand && !["h", "s", "v"].includes(command) && !confirm) {
         const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
         TABS.listTabs().filter(tab => {
             if (bufferCommand === "buffer") {
@@ -249,7 +340,10 @@ const addCommand = (command, subtext) => {
     if (suggestions.length + 1 > SETTINGS.get("suggestcommands")) {
         return
     }
-    addToList(command)
+    if (suggestions.includes(command)) {
+        return
+    }
+    suggestions.push(command)
     const element = document.createElement("div")
     element.className = "no-focus-reset"
     element.addEventListener("mouseup", e => {
@@ -273,11 +367,8 @@ const addCommand = (command, subtext) => {
 module.exports = {
     prevSuggestion,
     nextSuggestion,
-    cancelSuggestions,
-    clear,
-    addToList,
-    includes,
-    indexOf,
-    addHist,
+    emptySuggestions,
+    addExplore,
+    suggestExplore,
     suggestCommand
 }

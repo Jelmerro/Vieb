@@ -344,22 +344,6 @@ const setFocusCorrectly = () => {
         window.focus()
         document.getElementById("invisible-overlay").focus()
     }
-    if (MODES.currentMode() === "explore") {
-        const local = UTIL.expandPath(urlElement.value.trim())
-        if (urlElement.value.trim() === "") {
-            urlElement.className = ""
-        } else if (document.querySelector("#suggest-dropdown div.selected")) {
-            urlElement.className = "suggest"
-        } else if (urlElement.value.startsWith("file://")) {
-            urlElement.className = "file"
-        } else if (UTIL.isUrl(urlElement.value.trim())) {
-            urlElement.className = "url"
-        } else if (path.isAbsolute(local) && UTIL.pathExists(local)) {
-            urlElement.className = "file"
-        } else {
-            urlElement.className = "search"
-        }
-    }
 }
 
 module.exports = {
