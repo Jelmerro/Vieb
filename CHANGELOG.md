@@ -13,6 +13,24 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Local file suggestions to explore mode and to relevant commands
+- New 'suggestfiles' setting to control when/if file suggestions should appear ('all' by default)
+- Setting to control if file suggestions should appear before/after history in explore mode: suggestfilesfirst
+- Red border in command mode when the entered command is invalid (for example due to unmatched quotes)
+
+### Changed
+
+- Suggestions are now scrollable when they don't fit the window
+- The setting 'suggesthistory' has been renamed 'suggestexplore' as it might also include file suggestions now
+- Command suggestions are now by default set to 1000, as the operation is simple and suggestions are scrollable
+- Increased the upper limit for the number of suggestions (for both command and explore mode)
+
+### Removed
+
+- Old line-based history format parser (1.x.x users should update to 2.x.x first, if they want to keep their history)
+
 ### Fixed
 
 - Abort error for aborting page loads in the debug console (using --debug or --console)

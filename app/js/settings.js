@@ -66,7 +66,8 @@ const defaultSettings = {
     "permissionsallowed": "",
     "permissionsblocked": "",
     "permissionunknown": "block",
-    "redirects": "https?://(www\\.)?google\\.com(\\.\\w+)?/amp/s/amp\\.(.*)~https://$3",
+    "redirects": "https?://(www\\.)?google\\.com(\\.\\w+)?/amp/s/amp\\.(.*)"
+        + "~https://$3",
     "redirecttohttp": false,
     "requesttimeout": 20000,
     "restoretabs": true,
@@ -81,8 +82,10 @@ const defaultSettings = {
     "splitright": false,
     "startuppages": "",
     "storenewvisists": true,
-    "suggestcommands": 20,
-    "suggesthistory": 20,
+    "suggestcommands": 1000,
+    "suggestfiles": "all",
+    "suggestfilesfirst": false,
+    "suggestexplore": 20,
     "suggesttopsites": 10,
     "tabcycle": true,
     "tabnexttocurrent": true,
@@ -127,6 +130,7 @@ const validOptions = {
     "permissionopenexternal": ["block", "ask", "allow"],
     "permissionpointerlock": ["block", "ask", "allow"],
     "permissionunknown": ["block", "ask", "allow"],
+    "suggestfiles": ["none", "commands", "explore", "all"],
     "windowtitle": ["simple", "title", "url", "full"]
 }
 const numberRanges = {
@@ -137,8 +141,8 @@ const numberRanges = {
     "mintabwidth": [0, 10000],
     "notificationduration": [0, 30000],
     "requesttimeout": [0, 300000],
-    "suggestcommands": [0, 100],
-    "suggesthistory": [0, 100],
+    "suggestcommands": [0, 1000],
+    "suggestexplore": [0, 1000],
     "suggesttopsites": [0, 1000],
     "timeoutlen": [0, 10000]
 }
