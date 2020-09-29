@@ -19,6 +19,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - New 'suggestfiles' setting to control when/if file suggestions should appear ('all' by default)
 - Setting to control if file suggestions should appear before/after history in explore mode: suggestfilesfirst
 - Red border in command mode when the entered command is invalid (for example due to unmatched quotes)
+- Add closablepinnedtabs setting which is disabled by default (meaning pinned tabs can't be closed)
 
 ### Changed
 
@@ -26,6 +27,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - The setting 'suggesthistory' has been renamed 'suggestexplore' as it might also include file suggestions now
 - Command suggestions are now by default set to 1000, as the operation is simple and suggestions are scrollable
 - Increased the upper limit for the number of suggestions (for both command and explore mode)
+- Pinned tabs can no longer be closed, unless the 'closablepinnedtabs' setting is enabled
 
 ### Removed
 
@@ -34,6 +36,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Abort error for aborting page loads in the debug console (using --debug or --console)
+- Don't keep closed pages in memory while the 'keeprecentlyclosed' setting is off
 
 ### Security
 
