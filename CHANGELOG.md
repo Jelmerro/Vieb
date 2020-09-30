@@ -28,6 +28,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Command suggestions are now by default set to 1000, as the operation is simple and suggestions are scrollable
 - Increased the upper limit for the number of suggestions (for both command and explore mode)
 - Pinned tabs can no longer be closed, unless the 'closablepinnedtabs' setting is enabled
+- Search setting parsing, you can now include %s as a substitute for the entered search
+- Default duckduckgo search engine options now include a persistent header and infinite scrolling
 
 ### Removed
 
@@ -40,8 +42,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Security
 
-- Electron 10.1.2 (was 10.1.1)
-- Chromium 85.0.4183.98 (was 85.0.4183.93)
+- Electron 11.0.0-beta.9 (was 10.1.1)
+- Chromium 87.0.4251.1 (was 85.0.4183.93)
 
 ## [2.4.0](https://github.com/Jelmerro/Vieb/compare/2.3.0...2.4.0) - 2020-09-05
 
@@ -623,7 +625,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Moved most information regarding configuration from the readme to the help page
-- Changed the default search engine from duckduckgo to duckduckgo with a dark theme
+- Default duckduckgo search engine to use a dark theme
 - Improved CLI startup arguments for packaged apps
 - Split the preload into multiple separate preloads
 - Improved electron builder configuration (separate file with much better settings)

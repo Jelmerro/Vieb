@@ -598,7 +598,7 @@
             <li><span class="url-search">searching</span> - This will appear when the entered data is not a url or a local file, which will result in a search being done based on this search setting</li>
             <li><span class="url-suggest">suggestion</span> - This will appear when you have selected a suggestion from the list, which will result in direct navigation to the selected suggestion</li>
         </ul>
-        The search setting must be set to a valid url and the encoded search string will always appear at the end of the search setting. To execute a search, call <a href="#action.useEnteredData">action.useEnteredData</a> after entering a search or url.
+        The search setting must be set to a valid url. By default, your search will be encoded and pasted at the end of the url, unless you specify "%s" somewhere in your search url. To make a web search, call <a href="#action.useEnteredData">action.useEnteredData</a> after entering your search in <a class="explore" href="#action.toExploreMode">explore mode</a>.
         <h3 id="showcmd">showcmd</h3>
         Toggle for showing the history of recently pressed keys in the top-right corner. The keys are reset when no more mappings exist that start with the currently pressed keys. The showcmd option also shows the repeat count for normal mode, <a class="pointer" href="#pointer">pointer mode</a> and <a class="visual" href="#pointer">visual mode</a>.
         <h3 id="spell">spell</h3>

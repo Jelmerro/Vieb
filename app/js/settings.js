@@ -75,7 +75,7 @@ const defaultSettings = {
     "restorewindowmaximize": true,
     "restorewindowposition": true,
     "restorewindowsize": true,
-    "search": "https://duckduckgo.com/?kae=d&q=",
+    "search": "https://duckduckgo.com/?kae=d&kav=1&ko=1&q=%s&ia=web",
     "showcmd": true,
     "spell": true,
     "spelllang": "system",
