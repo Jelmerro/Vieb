@@ -321,20 +321,24 @@ const deleteFile = (loc, err = null) => {
 
 const stringToUrl = location => {
     const specialPage = pathToSpecialPageName(location)
-    const local = expandPath(location)
     if (specialPage.name) {
         return specialPagePath(specialPage.name, specialPage.section)
     }
     if (hasProtocol(location)) {
         return location
     }
+    const local = expandPath(location)
     if (isDir(local) || isFile(local)) {
         return `file:/${local}`.replace(/^file:\/*/, "file:///")
     }
     if (isUrl(location)) {
         return `https://${location}`
     }
-    return SETTINGS.get("search") + encodeURIComponent(location)
+    const search = SETTINGS.get("search")
+    if (search.includes("%s")) {
+        return search.replace(/%s/g, encodeURIComponent(location))
+    }
+    return search + encodeURIComponent(location)
 }
 
 const urlToString = url => {
