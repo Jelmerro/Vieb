@@ -242,8 +242,8 @@ const suggestCommand = search => {
         }
     }
     // Command: write
-    if ("write".startsWith(command) && !confirm) {
-        let location = UTIL.expandPath(search.replace(/w[a-z]* ?/, ""))
+    if ("write".startsWith(command) && !confirm && args.length < 2) {
+        let location = UTIL.expandPath(args[0]?.replace(/w[a-z]* ?/, "") || "")
         if (!location) {
             addCommand("write ~")
             addCommand("write /")
