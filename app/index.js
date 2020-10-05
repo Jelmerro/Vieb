@@ -214,25 +214,30 @@ if (erwic) {
     fs.mkdirSync(config.datafolder, {"recursive": true})
     fs.writeFileSync(path.join(config.datafolder, "erwicmode"), "")
     if (!Array.isArray(config.apps)) {
-        console.log("Erwic config file requires a list of 'apps' ")
+        console.log("Erwic config file requires a list of 'apps'")
         printUsage()
         app.exit(1)
     }
-    config.apps
-        .filter(a => typeof a.name === "string" && typeof a.url === "string")
-        .forEach(a => {
-            if (typeof a.script === "string") {
-                a.script = expandPath(a.script)
-                if (a.script !== path.resolve(a.script)) {
-                    a.script = path.join(path.dirname(erwic), a.script)
-                }
-                if (!isFile(a.script)) {
-                    a.script = null
-                }
-            } else {
+    config.apps = config.apps.filter(
+        a => typeof a.name === "string" && typeof a.url === "string")
+    if (config.apps.length === 0) {
+        console.log("Erwic config file requires at least one app to be added")
+        printUsage()
+        app.exit(1)
+    }
+    config.apps.forEach(a => {
+        if (typeof a.script === "string") {
+            a.script = expandPath(a.script)
+            if (a.script !== path.resolve(a.script)) {
+                a.script = path.join(path.dirname(erwic), a.script)
+            }
+            if (!isFile(a.script)) {
                 a.script = null
             }
-        })
+        } else {
+            a.script = null
+        }
+    })
     urls.push(...config.apps)
     app.setPath("appData", config.datafolder)
     app.setPath("userData", config.datafolder)
@@ -965,10 +970,9 @@ ipcMain.on("set-window-title", (_, title) => {
 })
 ipcMain.handle("show-message-dialog", (_, options) => dialog.showMessageBox(
     mainWindow, options))
-ipcMain.handle("list-cookies",
-    () => session.fromPartition("persist:main").cookies.get({}))
-ipcMain.handle("remove-cookie", (_, url, name) => session.fromPartition(
-    "persist:main").cookies.remove(url, name))
+ipcMain.handle("list-cookies", e => e.sender.session.cookies.get({}))
+ipcMain.handle("remove-cookie",
+    (e, url, name) => e.sender.session.cookies.remove(url, name))
 // Operations below are sync
 ipcMain.on("override-global-useragent", (e, globalUseragent) => {
     app.userAgentFallback = globalUseragent || useragent()

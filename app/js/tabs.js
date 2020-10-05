@@ -36,41 +36,41 @@ const init = () => {
             document.getElementById("logo").src = UTIL.appIcon()
         }
         const parsed = UTIL.readJSON(tabFile)
-        if (parsed) {
-            if (!erwicMode) {
+        if (!erwicMode) {
+            if (parsed) {
                 if (Array.isArray(parsed.pinned)) {
                     parsed.pinned.forEach(tab => openSavedPage(tab, true))
                 }
-            }
-            if (SETTINGS.get("restoretabs")) {
-                if (Array.isArray(parsed.tabs)) {
-                    parsed.tabs.forEach(tab => openSavedPage(tab))
-                }
-                if (Array.isArray(parsed.closed)) {
-                    if (SETTINGS.get("keeprecentlyclosed")) {
-                        recentlyClosed = parsed.closed
+                if (SETTINGS.get("restoretabs")) {
+                    if (Array.isArray(parsed.tabs)) {
+                        parsed.tabs.forEach(tab => openSavedPage(tab))
+                    }
+                    if (Array.isArray(parsed.closed)) {
+                        if (SETTINGS.get("keeprecentlyclosed")) {
+                            recentlyClosed = parsed.closed
+                        }
+                    }
+                } else if (SETTINGS.get("keeprecentlyclosed")) {
+                    if (Array.isArray(parsed.tabs)) {
+                        recentlyClosed = parsed.tabs
+                    }
+                    if (Array.isArray(parsed.closed)) {
+                        recentlyClosed = parsed.closed.concat(recentlyClosed)
                     }
                 }
-            } else if (SETTINGS.get("keeprecentlyclosed")) {
-                if (Array.isArray(parsed.tabs)) {
-                    recentlyClosed = parsed.tabs
-                }
-                if (Array.isArray(parsed.closed)) {
-                    recentlyClosed = parsed.closed.concat(recentlyClosed)
+                if (listTabs().length !== 0) {
+                    switchToTab(parsed.id || 0)
                 }
             }
-            if (listTabs().length !== 0) {
-                switchToTab(parsed.id || 0)
-            }
-        }
-        const startup = SETTINGS.get("startuppages")
-        for (const tab of startup.split(",")) {
-            const specialPage = UTIL.pathToSpecialPageName(tab)
-            if (specialPage.name) {
-                openSavedPage(UTIL.specialPagePath(
-                    specialPage.name, specialPage.section))
-            } else if (UTIL.isUrl(tab)) {
-                openSavedPage(tab)
+            const startup = SETTINGS.get("startuppages")
+            for (const tab of startup.split(",")) {
+                const specialPage = UTIL.pathToSpecialPageName(tab)
+                if (specialPage.name) {
+                    openSavedPage(UTIL.specialPagePath(
+                        specialPage.name, specialPage.section))
+                } else if (UTIL.isUrl(tab)) {
+                    openSavedPage(tab)
+                }
             }
         }
         ipcRenderer.on("urls", (_, pages) => {
@@ -125,7 +125,7 @@ const init = () => {
 }
 
 const openSavedPage = (url, pinned = false, partition = false) => {
-    if (!url.trim() || erwicMode && !partition) {
+    if (!url.trim()) {
         return
     }
     url = UTIL.stringToUrl(url.trim())
@@ -187,17 +187,26 @@ const addTab = options => {
     if (!options) {
         options = {}
     }
-    if (erwicMode) {
+    if (options.switchTo === undefined) {
+        options.switchTo = true
+    }
+    let sessionName = SETTINGS.get("containernewtab").replace(/%n/g, linkId)
+    if (options.partition) {
+        sessionName = options.partition
+    }
+    if (!sessionName.startsWith("persist:")) {
+        sessionName = `persist:${sessionName}`
+    }
+    if (sessionName === "persist:external") {
         const isSpecialPage = UTIL.pathToSpecialPageName(options.url || "").name
-        if (!isSpecialPage && !options.partition) {
+        if (isSpecialPage) {
+            sessionName = "persist:main"
+        } else if (!options.partition) {
             if (options.url) {
                 shell.openExternal(options.url)
             }
             return
         }
-    }
-    if (options.switchTo === undefined) {
-        options.switchTo = true
     }
     let addNextToCurrent = SETTINGS.get("tabnexttocurrent")
     addNextToCurrent = addNextToCurrent && listTabs().length > 0
@@ -253,13 +262,10 @@ const addTab = options => {
     if (SETTINGS.get("spell")) {
         webview.setAttribute("webpreferences", "spellcheck=yes")
     }
-    let sessionName = "persist:main"
-    if (SETTINGS.get("containertabs")) {
-        sessionName = `persist:container${linkId}`
-        tab.classList.add("container")
-    }
-    if (options.partition) {
-        sessionName = `persist:${options.partition}`
+    const color = SETTINGS.get("containercolors").split(",").find(
+        c => sessionName.replace("persist:", "").match(c.split("~")[0]))
+    if (color) {
+        tab.style.color = color.split("~")[1]
     }
     SESSIONS.create(sessionName)
     webview.setAttribute("partition", sessionName)
@@ -293,17 +299,10 @@ const reopenTab = () => {
     if (recentlyClosed.length === 0) {
         return
     }
-    const url = recentlyClosed.slice(-1)[0]
-    if (erwicMode && !UTIL.pathToSpecialPageName(url).name) {
-        return
-    }
     addTab({"url": UTIL.stringToUrl(recentlyClosed.pop())})
 }
 
 const closeTab = () => {
-    if (erwicMode && !UTIL.pathToSpecialPageName(currentPage().src).name) {
-        return
-    }
     if (!SETTINGS.get("closablepinnedtabs")) {
         if (currentTab().classList.contains("pinned")) {
             return
@@ -366,7 +365,8 @@ const switchToTab = index => {
         page.id = ""
     })
     tabs[index].id = "current-tab"
-    tabOrPageMatching(tabs[index]).id = "current-page"
+    const page = tabOrPageMatching(tabs[index])
+    page.id = "current-page"
     tabs[index].scrollIntoView({"inline": "center"})
     PAGELAYOUT.switchView(oldPage, currentPage())
     updateUrl(currentPage())
@@ -375,6 +375,7 @@ const switchToTab = index => {
     document.getElementById("url-hover").textContent = ""
     document.getElementById("url-hover").style.display = "none"
     SETTINGS.guiRelatedUpdate("tabbar")
+    SETTINGS.updateContainerSettings(false)
 }
 
 const updateWindowTitle = () => {
@@ -610,7 +611,7 @@ const addWebviewListeners = webview => {
     webview.addEventListener("new-window", e => {
         if (e.disposition === "save-to-disk") {
             currentPage().downloadURL(e.url)
-        } else if (e.disposition === "foreground-tab" || erwicMode) {
+        } else if (e.disposition === "foreground-tab") {
             navigateTo(e.url)
         } else {
             addTab({

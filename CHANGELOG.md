@@ -19,7 +19,11 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - New 'suggestfiles' setting to control when/if file suggestions should appear ('all' by default)
 - Setting to control if file suggestions should appear before/after history in explore mode: suggestfilesfirst
 - Red border in command mode when the entered command is invalid (for example due to unmatched quotes)
-- Add closablepinnedtabs setting which is disabled by default (meaning pinned tabs can't be closed)
+- Setting "closablepinnedtabs" which is disabled by default (meaning pinned tabs can't be closed)
+- Setting "containernewtab" to control which container all new tabs should use
+- Setting "containerstartuppage" to control which container the startup pages should use (CLI arguments)
+- Setting "containercolors" to show container tabs in a custom color based on the container name
+- Setting "containershowname" to optionally show the name of the container between the mode and url in the navbar
 
 ### Changed
 
@@ -30,6 +34,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Pinned tabs can no longer be closed, unless the 'closablepinnedtabs' setting is enabled
 - Search setting parsing, you can now include %s as a substitute for the entered search
 - Default duckduckgo search engine options now include a persistent header and infinite scrolling
+- Tabs are now always modifiable in Erwic mode, because containers can now be managed at runtime
 
 ### Removed
 
