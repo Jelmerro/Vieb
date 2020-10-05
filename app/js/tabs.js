@@ -114,7 +114,7 @@ const init = () => {
             if (parsed) {
                 addTab()
             } else {
-                // The very first startup with this data folder, show help page
+                // The very first startup with this datafolder, show help page
                 addTab({"url": UTIL.specialPagePath("help")})
             }
         }

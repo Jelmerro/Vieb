@@ -37,6 +37,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Default duckduckgo search engine options now include a persistent header and infinite scrolling
 - Tabs are now always modifiable in Erwic mode, because containers can now be managed at runtime
 - Multiple tabs of the same special page can now be opened using the commands, as some of them are container specific
+- The startup argument "--portable" has been replaced with "--datafolder", use "--datafolder ./ViebData" for old functionality
+- Erwic now uses the "datafolder" startup argument instead of a JSON field for the datafolder location configuration
 
 ### Fixed
 
