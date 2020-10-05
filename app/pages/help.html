@@ -161,7 +161,7 @@
         <ul>
             <li><span class="command-block">:history</span> - Open the history page</li>
         </ul>
-        With this command you will be navigated to the history page, located at "vieb://history". On this page you will be presented with a list of all your local browsing history, sorted by date. This page allows you to remove site visits from you history and/or remove the history during specific ranges (optionally based on a filter). The browsing history is only stored in Vieb's <a href="#datafolder">datafolder</a>. To disable new visits from being stored, see the <a href="#storenewvisists">storenewvisists</a> setting. This setting does not affect the history of previously closed tabs or the download history. It is also possible to disable or change the amount of suggestions shown based on the history with <a href="#suggesthistory">suggesthistory</a>. Finally you may want to clear the history when quitting Vieb with <a href="#clearhistoryonquit">clearhistoryonquit</a>.
+        With this command you will be navigated to the history page, located at "vieb://history". On this page you will be presented with a list of all your local browsing history, sorted by date. This page allows you to remove site visits from you history and/or remove the history during specific ranges (optionally based on a filter). The browsing history is only stored in Vieb's <a href="#datafolder">datafolder</a>. To disable new visits from being stored, see the <a href="#storenewvisits">storenewvisits</a> setting. This setting does not affect the history of previously closed tabs or the download history. It is also possible to disable or change the amount of suggestions shown based on the history with <a href="#suggestexplore">suggestexplore</a>. Finally you may want to clear the history when quitting Vieb with <a href="#clearhistoryonquit">clearhistoryonquit</a>.
         <h3 id=":downloads">:downloads</h3>
         Examples
         <ul>
@@ -493,16 +493,20 @@
         <h3 id="cache">cache</h3>
         This setting can be used to disable or automatically remove the browsing cache. Changing this setting from or to the value "off" only has effect at startup, due to Chromium limitations. The cache can always be set to "clearonquit" or "full", regardless of the initial value of this setting. It's recommended to at least clear the cache on quit, because the browsing cache can get very large with extended periods of use.
         <h3 id="clearcookiesonquit">clearcookiesonquit</h3>
-        Toggle for clearing all of the cookies when quitting Vieb. To view and remove individual cookies, see the <a href="#:cookies">cookies</a> page.
+        Toggle for clearing all of the cookies when quitting Vieb. To view and remove individual cookies, see the <a href="#:cookies">cookies</a> page. This toggle applies to all containers.
         <h3 id="cleardownloadsoncompleted">cleardownloadsoncompleted</h3>
         Toggle for clearing successfully completed downloads. When a download fails, it will not be cleared. This toggle will clear completed downloads as soon as they are done, unlike the <a href="#cleardownloadsonquit">cleardownloadsonquit</a> setting, which will unconditionally clear all downloads when quitting Vieb regardless of download status.
         <h3 id="cleardownloadsonquit">cleardownloadsonquit</h3>
         Toggle for clearing all downloads regardless of status when quitting Vieb. This will not remove downloaded files from disk, but it will clear the download history.
         <h3 id="clearhistoryonquit">clearhistoryonquit</h3>
-        Toggle for clearing all browsing history on quit. The browsing history can be viewed on the <a href="#:history">history</a> page. As a result of separating tab, download and browsing history, there is no traditional private mode in Vieb. The same can be achieved by toggling all these settings at once using <a href="#mappings">mappings</a> or <a href="#customcommands">custom commands</a>. See <a href="#storenewvisists">storenewvisists</a> for more details.
+        Toggle for clearing all browsing history on quit. The browsing history can be viewed on the <a href="#:history">history</a> page. As a result of separating tab, download and browsing history, there is no traditional private mode in Vieb. The same can be achieved by toggling all related settings at once using <a href="#mappings">mappings</a> or <a href="#customcommands">custom commands</a>. See <a href="#storenewvisits">storenewvisits</a> for more details.
         <h3 id="clearlocalstorageonquit">clearlocalstorageonquit</h3>
-        Toggle for clearing all of the localstorage when quitting Vieb.
+        Toggle for clearing all of the localstorage when quitting Vieb. This toggle applies to all containers.
+        <h3 id="closablepinnedtabs">closablepinnedtabs</h3>
+        TODO
         <h3 id="containercolors">containercolors</h3>
+        TODO
+        <h3 id="containerkeeponreopen">containerkeeponreopen</h3>
         TODO
         <h3 id="containernewtab">containernewtab</h3>
         TODO
@@ -617,7 +621,7 @@
         Toggle to split right or left of the current window when invoking <a href="#:Vexplore">:Vexplore</a>.
         <h3 id="startuppages">startuppages</h3>
         With this setting you can configure a list of pages that should open every time Vieb is started. The list should be comma-separated and all entries must be valid urls. These pages will open regardless of tabs being restored from the previous session, so combining both of these setting might not get the expected results. See <a href="#restoretabs">restoretabs</a> for details about restoring tabs from the previous session.
-        <h3 id="storenewvisists">storenewvisists</h3>
+        <h3 id="storenewvisits">storenewvisits</h3>
         Toggle to indicate if new visits to websites should be stored in the browsing history. If disabled, the visited page will not be stored in the browsing history, and as a result the favicon will also not be stored. However, the download history, cookies, localstorage and tab history are preserved. To privately navigate to a website, use a separate container using <a href="#containernewtab">containernewtab</a> and disable the <a href="#keeprecentlyclosed">keeprecentlyclosed</a> setting.
         <h3 id="suggestcommands">suggestcommands</h3>
         The number of suggestions that should appear when typing commands. Set to 0 to disable any suggestions while in <a class="command" href="#action.toCommandMode">command mode</a>. Some commands accept a file location for which suggestions will be shown if <a href="#suggestfiles">suggestfiles</a> is enabled for commands.
@@ -650,7 +654,7 @@
         <h3 id="action.toCommandMode">action.toCommandMode</h3>
         Switch to <span class="command">command mode</span>. After entering a command while in <span class="command">command mode</span>, call <a href="#action.useEnteredData">action.useEnteredData</a> to execute the command, or switch to any other mode to cancel. See <a href="#commands">commands</a> for a list of commands</a>. See <a href="#suggestcommands">suggestcommands</a> to configure the number of suggestions shown.
         <h3 id="action.toExploreMode">action.toExploreMode</h3>
-        Switch to <span class="explore">explore mode</span>, which can be used to navigate to websites or search using the <a href="#search">search</a> setting. After entering a url or search while in <span class="explore">explore mode</span>, call <a href="#action.useEnteredData">action.useEnteredData</a> to navigate to the entered url or search, or switch to any other mode to cancel. See <a href="#suggestcommands">suggesthistory</a> to configure the number of suggestions shown.
+        Switch to <span class="explore">explore mode</span>, which can be used to navigate to websites or search using the <a href="#search">search</a> setting. After entering a url or search while in <span class="explore">explore mode</span>, call <a href="#action.useEnteredData">action.useEnteredData</a> to navigate to the entered url or search, or switch to any other mode to cancel. See <a href="#suggestexplore">suggestexplore</a> to configure the number of suggestions shown.
         <h3 id="action.toInsertMode">action.toInsertMode</h3>
         Switch to <span class="insert">insert mode</span>. This will unconditionally bring back mouse interaction, and allow all keyboard input to be redirected to the website. To also allow mouse interaction outside of <span class="insert">insert mode</span>, see the <a href="#mouse">mouse</a> setting. <span class="insert">Insert mode</span> will automatically be entered when an input field is picked in <a class="follow" href="#action.startFollowCurrentTab">follow mode</a>.
         <h3 id="action.toSearchMode">action.toSearchMode</h3>

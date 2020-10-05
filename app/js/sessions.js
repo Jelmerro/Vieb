@@ -30,15 +30,15 @@ const defaultBlocklists = {
 }
 
 const init = () => {
-    UTIL.clearContainerTabs()
+    UTIL.clearTempContainers()
     enableAdblocker()
-    create("persist:main")
+    create("main")
     ipcRenderer.on("notify", (_, message, type) => UTIL.notify(message, type))
 }
 
 const create = name => {
-    ipcRenderer.send("create-session", name, SETTINGS.get("adblock"),
-        SETTINGS.get("cache") !== "none")
+    ipcRenderer.send("create-session", `persist:${name}`,
+        SETTINGS.get("adblock"), SETTINGS.get("cache") !== "none")
 }
 
 const disableAdblocker = () => ipcRenderer.send("adblock-disable")

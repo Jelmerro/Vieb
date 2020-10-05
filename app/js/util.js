@@ -197,9 +197,9 @@ const globDelete = folder => {
     }
 }
 
-const clearContainerTabs = () => {
+const clearTempContainers = () => {
     document.getElementById("pages").innerHTML = ""
-    globDelete("Partitions/container*")
+    globDelete("Partitions/temp*")
     globDelete("erwicmode")
 }
 
@@ -394,7 +394,7 @@ module.exports = {
     notify,
     specialPagePath,
     pathToSpecialPageName,
-    clearContainerTabs,
+    clearTempContainers,
     clearCache,
     clearCookies,
     clearLocalStorage,

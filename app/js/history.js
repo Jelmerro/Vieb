@@ -68,7 +68,7 @@ const suggestHist = search => {
 }
 
 const addToHist = url => {
-    if (!SETTINGS.get("storenewvisists")) {
+    if (!SETTINGS.get("storenewvisits")) {
         return
     }
     if (UTIL.pathToSpecialPageName(url).name) {
@@ -168,7 +168,7 @@ const visitCount = url => groupedHistory[url]?.visits?.length || 0
 const titleForPage = url => groupedHistory[url]?.title || ""
 
 const updateTitle = (url, title) => {
-    if (!SETTINGS.get("storenewvisists")) {
+    if (!SETTINGS.get("storenewvisits")) {
         return
     }
     if (UTIL.pathToSpecialPageName(url).name) {

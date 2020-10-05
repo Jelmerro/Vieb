@@ -24,6 +24,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "containerstartuppage" to control which container the startup pages should use (CLI arguments)
 - Setting "containercolors" to show container tabs in a custom color based on the container name
 - Setting "containershowname" to optionally show the name of the container between the mode and url in the navbar
+- Setting "containerkeeponreopen" to toggle the remembering the container name and to use the "containernewtab" setting instead
 
 ### Changed
 
@@ -35,6 +36,16 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Search setting parsing, you can now include %s as a substitute for the entered search
 - Default duckduckgo search engine options now include a persistent header and infinite scrolling
 - Tabs are now always modifiable in Erwic mode, because containers can now be managed at runtime
+
+### Fixed
+
+- Typo in the "storenewvisits" setting (there will be no automatic migration from the name with a typo to the correct one)
+
+### Deprecated
+
+- Old tabs file format (it's now a list of objects, instead of a list of strings
+- Conversion from old format will be removed in future Vieb 4.x.x releases
+- Supplying a "name" to an Erwic app, use a "container" field instead
 
 ### Removed
 

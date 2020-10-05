@@ -218,14 +218,12 @@ if (erwic) {
         printUsage()
         app.exit(1)
     }
-    config.apps = config.apps.filter(
-        a => typeof a.name === "string" && typeof a.url === "string")
-    if (config.apps.length === 0) {
-        console.log("Erwic config file requires at least one app to be added")
-        printUsage()
-        app.exit(1)
-    }
-    config.apps.forEach(a => {
+    config.apps = config.apps.map(a => {
+        if (a.name && !a.container) {
+            // OLD remove fallback checks in 4.x.x
+            a.container = a.name
+        }
+        a.container = a.container?.replace(/[^A-Za-z0-9_]/g, "")
         if (typeof a.script === "string") {
             a.script = expandPath(a.script)
             if (a.script !== path.resolve(a.script)) {
@@ -237,7 +235,14 @@ if (erwic) {
         } else {
             a.script = null
         }
-    })
+        return a
+    }).filter(a => typeof a.container === "string" && typeof a.url === "string")
+    if (config.apps.length === 0) {
+        console.log("Erwic config file requires at least one app to be added")
+        console.log("Each app must have a 'container' name and a 'url'")
+        printUsage()
+        app.exit(1)
+    }
     urls.push(...config.apps)
     app.setPath("appData", config.datafolder)
     app.setPath("userData", config.datafolder)

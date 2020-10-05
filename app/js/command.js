@@ -163,7 +163,7 @@ const quitall = () => {
         HISTORY.writeHistToFile(true)
     }
     TABS.saveTabs()
-    UTIL.clearContainerTabs()
+    UTIL.clearTempContainers()
     if (SETTINGS.get("cache") !== "full") {
         UTIL.clearCache()
     }
