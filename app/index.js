@@ -31,17 +31,16 @@ const printUsage = () => {
     console.log("Vieb: Vim Inspired Electron Browser\n")
     console.log("Usage: Vieb [options] <URLs>\n")
     console.log("Options:")
-    console.log(" --help         Print this help and exit")
-    console.log(" --version      Print program info with version and exit")
+    console.log(" --help             Print this help and exit")
+    console.log(" --version          Print program info with version and exit")
+    console.log(" --datafolder <dir> Store ALL Vieb data in this folder")
     console.log(
-        " --portable     Store ALL Vieb data in a relative ViebData folder")
+        " --erwic <file>     Open a fixed set of pages in a separate instance")
+    console.log("                    See 'Erwic.md' for usage and details")
     console.log(
-        " --erwic <file> Open a fixed set of pages in a separate instance")
-    console.log("                See 'Erwic.md' for usage and details")
+        " --debug            Open with Chromium and Electron debugging tools")
     console.log(
-        " --debug        Open with Chromium and Electron debugging tools")
-    console.log(
-        " --console      Open with the Vieb console (implied by --debug)")
+        " --console          Open with the Vieb console (implied by --debug)")
     console.log("\nAll arguments not starting with - will be opened as a url.")
     printLicense()
 }
@@ -138,15 +137,19 @@ if (args[0] === "app" || args[0] === app.getAppPath()) {
 const urls = []
 let enableDebugMode = false
 let showInternalConsole = false
-let portable = false
 let nextArgErwicConfig = false
+let nextArgDataFolder = false
 let erwic = null
+let datafolder = path.join(app.getPath("appData"), "Vieb")
 let customIcon = null
 args.forEach(arg => {
     arg = arg.trim()
     if (nextArgErwicConfig) {
         erwic = arg
         nextArgErwicConfig = false
+    } else if (nextArgDataFolder) {
+        datafolder = arg
+        nextArgDataFolder = false
     } else if (arg.startsWith("--")) {
         if (arg === "--help") {
             printUsage()
@@ -154,14 +157,14 @@ args.forEach(arg => {
         } else if (arg === "--version") {
             printVersion()
             app.exit(0)
-        } else if (arg === "--portable") {
-            portable = true
         } else if (arg === "--debug") {
             enableDebugMode = true
         } else if (arg === "--console") {
             showInternalConsole = true
         } else if (arg === "--erwic") {
             nextArgErwicConfig = true
+        } else if (arg === "--datafolder") {
+            nextArgDataFolder = true
         } else {
             console.log(`Unsupported argument: ${arg}`)
             printUsage()
@@ -172,14 +175,21 @@ args.forEach(arg => {
     }
 })
 if (nextArgErwicConfig) {
-    console.log(`The 'erwic' option requires an argument`)
+    console.log(`The 'erwic' option requires a file location`)
+    printUsage()
+    app.exit(1)
+}
+if (nextArgDataFolder) {
+    console.log(`The 'datafolder' option requires a directory location`)
     printUsage()
     app.exit(1)
 }
 app.setName("Vieb")
+datafolder = datafolder && datafolder.trim
+    && path.resolve(expandPath(datafolder.trim()))
 if (erwic) {
-    if (portable) {
-        console.log("Portable mode can not be combined with an Erwic config")
+    if (!datafolder) {
+        console.log("Datafolder must be specified if using an Erwic config")
         printUsage()
         app.exit(1)
     }
@@ -204,15 +214,12 @@ if (erwic) {
         }
         customIcon = config.icon
     }
-    config.datafolder = config.datafolder && config.datafolder.trim
-        && path.resolve(expandPath(config.datafolder.trim()))
-    if (!config.datafolder) {
+    if (!datafolder) {
         console.log("Erwic config file requires a 'datafolder' location field")
         printUsage()
         app.exit(1)
     }
-    fs.mkdirSync(config.datafolder, {"recursive": true})
-    fs.writeFileSync(path.join(config.datafolder, "erwicmode"), "")
+    fs.writeFileSync(path.join(datafolder, "erwicmode"), "")
     if (!Array.isArray(config.apps)) {
         console.log("Erwic config file requires a list of 'apps'")
         printUsage()
@@ -244,15 +251,10 @@ if (erwic) {
         app.exit(1)
     }
     urls.push(...config.apps)
-    app.setPath("appData", config.datafolder)
-    app.setPath("userData", config.datafolder)
-} else if (portable) {
-    app.setPath("appData", path.join(process.cwd(), "ViebData"))
-    app.setPath("userData", path.join(process.cwd(), "ViebData"))
-} else {
-    app.setPath("appData", path.join(app.getPath("appData"), "Vieb"))
-    app.setPath("userData", app.getPath("appData"))
 }
+fs.mkdirSync(datafolder, {"recursive": true})
+app.setPath("appData", datafolder)
+app.setPath("userData", datafolder)
 if (showInternalConsole && enableDebugMode) {
     console.log("The --debug argument always opens the internal console")
 }
