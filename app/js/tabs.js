@@ -42,10 +42,9 @@ const init = () => {
                     parsed.pinned.map(t => {
                         // OLD remove fallback checks in 4.x.x
                         if (typeof t === "string") {
-                            return {"url": t, "pinned": true, "switchTo": false}
+                            return {"url": t, "pinned": true}
                         }
                         t.pinned = true
-                        t.switchTo = false
                         return t
                     }).forEach(tab => addTab(tab))
                 }
@@ -54,9 +53,8 @@ const init = () => {
                         parsed.tabs.map(t => {
                             // OLD remove fallback checks in 4.x.x
                             if (typeof t === "string") {
-                                return {"url": t, "switchTo": false}
+                                return {"url": t}
                             }
-                            t.switchTo = false
                             return t
                         }).forEach(tab => addTab(tab))
                     }
@@ -97,14 +95,7 @@ const init = () => {
             }
             const startup = SETTINGS.get("startuppages")
             for (const tab of startup.split(",")) {
-                const specialPage = UTIL.pathToSpecialPageName(tab)
-                if (specialPage.name) {
-                    const url = UTIL.specialPagePath(
-                        specialPage.name, specialPage.section)
-                    openStartupPage(url)
-                } else if (UTIL.isUrl(tab)) {
-                    openStartupPage(tab)
-                }
+                openStartupPage(tab)
             }
         }
         ipcRenderer.on("urls", (_, pages) => {
@@ -168,7 +159,7 @@ const openStartupPage = (url, container = false) => {
     if (container === "external") {
         container = "main"
     }
-    return addTab({"url": UTIL.stringToUrl(url.trim()), container})
+    return addTab({url, container})
 }
 
 const saveTabs = () => {
@@ -305,9 +296,9 @@ const addTab = options => {
             addWebviewListeners(webview)
             webview.setUserAgent("")
             if (options.url) {
-                webview.src = options.url
+                webview.src = UTIL.stringToUrl(options.url)
                 resetTabInfo(webview)
-                title.textContent = options.url
+                title.textContent = UTIL.stringToUrl(options.url)
                 webview.clearHistory()
             }
             webview.setAttribute("dom-ready", true)

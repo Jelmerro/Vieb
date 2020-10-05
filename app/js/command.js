@@ -178,21 +178,11 @@ const quitall = () => {
 }
 
 const openSpecialPage = (specialPage, section = null) => {
-    // Switch to already open special page if available
-    let alreadyOpen = false
-    TABS.listTabs().forEach((tab, index) => {
-        // The list of tabs is ordered, the list of pages isn't
-        const page = TABS.tabOrPageMatching(tab)
-        if (UTIL.pathToSpecialPageName(page.src).name === specialPage) {
-            alreadyOpen = true
-            TABS.switchToTab(index)
-        }
-    })
     // Open the url in the current or new tab, depending on currently open page
     const pageUrl = UTIL.specialPagePath(specialPage, section)
     const isNewtab = UTIL.pathToSpecialPageName(
         TABS.currentPage().src).name === "newtab"
-    if (TABS.currentPage().src === "" || alreadyOpen || isNewtab) {
+    if (!TABS.currentPage().isLoading() && isNewtab) {
         TABS.navigateTo(pageUrl)
     } else {
         TABS.addTab({"url": pageUrl})
