@@ -36,6 +36,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Search setting parsing, you can now include %s as a substitute for the entered search
 - Default duckduckgo search engine options now include a persistent header and infinite scrolling
 - Tabs are now always modifiable in Erwic mode, because containers can now be managed at runtime
+- Multiple tabs of the same special page can now be opened using the commands, as some of them are container specific
 
 ### Fixed
 
