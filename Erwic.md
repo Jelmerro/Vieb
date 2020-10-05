@@ -61,7 +61,7 @@ The path of the icon and scripts can be relative to the config file or absolute.
 Custom icons aren't very reliable in Electron especially on Linux,
 so please check their issue tracker first if things don't work out.
 Apps can also share the same container name to use the same data location for multiple pages.
-If the name of an app starts with "temp", all of it's browsing data will be deleted on quit.
+If the container name of an app starts with "temp", all of it's browsing data will be deleted on quit.
 
 ## Electron apps
 
@@ -82,7 +82,7 @@ For example, you could name the instance "Discord", give it a discord icon and o
 ```
 
 If the JSON above would be stored as "discord.json" in for example the home directory,
-you can start Vieb's version of discord with `vieb --erwic ~/discord.json ~/.config/Discord`.
+you can start Vieb's version of discord with `vieb --erwic ~/discord.json --datafolder ~/.config/Discord`.
 As long as the path to the datafolder is different for each Vieb/Erwic instance,
 you can create as many as you like to replace all kinds of Electron/web-based apps.
 The datafolder can be stored at any local location and can be relocated as well.
