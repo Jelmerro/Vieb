@@ -20,13 +20,13 @@ These programs are nice but Vieb (and thus Erwic mode) has the following advanta
 
 # How
 
-The browsing data of each tab is stored in it's own location based on the name.
-The difference with containertabs is the custom name and the persistent storage.
-Another difference is that the configured pages can't be opened or closed while running.
-Links that you request to open in a new tab will be opened with your default web browser instead.
+The browsing data of each app/tab is stored in it's own container.
+These containers are selected based on the container name that you choose,
+and do not share any data between them if the name is different.
+By default, links that you request to open in a new tab will be opened with your default web browser instead.
 Finally, permissions for microphone, notifications, media devices and camera are now allowed by default.
-If desired, these permissions can be changed with the viebrc in the datafolder or with `:set`,
-these are only changes to the default value of the settings.
+If desired, these differences can be changed with the viebrc in the datafolder or with `:set`.
+These are only changes to the default Erwic setting values compared to regular Vieb.
 
 ## Multiple pages
 
@@ -41,11 +41,11 @@ Below is an example of how to make a fixed instance for Discord and Slack named 
     "datafolder": "~/.config/Erwic",
     "apps": [
         {
-            "name": "discord",
+            "container": "discord",
             "url": "https://discord.com/app"
         },
         {
-            "name": "slack",
+            "container": "slack",
             "url": "https://example.slack.com",
             "script": "./example-script.js"
         }
@@ -56,12 +56,12 @@ Below is an example of how to make a fixed instance for Discord and Slack named 
 The required fields are the list of apps and the datafolder.
 Additionally you can specify a custom name and icon for Vieb to use,
 with the default being the regular Vieb defaults.
-Each app should have a name and url to open, and optionally a JavaScript file to execute on page load.
+Each app should have a container name and url to open, and optionally a JavaScript file to execute on page load.
 The path of the icon and scripts can be relative to the config file or absolute.
 Custom icons aren't very reliable in Electron especially on Linux,
 so please check their issue tracker first if things don't work out.
-Apps can also share the same name to use the same data location for multiple pages.
-If the name of an app starts with "container", all of it's browsing data will be deleted on quit.
+Apps can also share the same container name to use the same data location for multiple pages.
+If the name of an app starts with "temp", all of it's browsing data will be deleted on quit.
 
 ## Electron apps
 
@@ -75,7 +75,7 @@ For example, you could name the instance "Discord", give it a discord icon and o
     "datafolder": "~/.config/Discord",
     "apps": [
         {
-            "name": "discord",
+            "container": "discord",
             "url": "https://discord.com/app"
         }
     ]

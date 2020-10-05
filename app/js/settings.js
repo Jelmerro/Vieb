@@ -30,7 +30,8 @@ const defaultSettings = {
     "clearhistoryonquit": false,
     "clearlocalstorageonquit": false,
     "closablepinnedtabs": false,
-    "containercolors": "container\\d+~#ff0",
+    "containercolors": "temp\\d+~#ff0",
+    "containerkeeponreopen": true,
     "containernewtab": "main",
     "containershowname": "automatic",
     "containerstartuppage": "main",
@@ -85,7 +86,7 @@ const defaultSettings = {
     "splitbelow": false,
     "splitright": false,
     "startuppages": "",
-    "storenewvisists": true,
+    "storenewvisits": true,
     "suggestcommands": 1000,
     "suggestfiles": "all",
     "suggestfilesfirst": false,
@@ -216,19 +217,55 @@ const checkOther = (setting, value) => {
                 "warn")
             return false
         }
-        return true
+    }
+    if (["containernewtab", "containerstartuppage"].includes(setting)) {
+        if (value.replace("%n", "valid").match(/[^A-Za-z0-9_]/g)) {
+            UTIL.notify(
+                "Only letters, numbers and undercores can appear in the name "
+                + `of a container, invalid ${setting}: ${value}`, "warn")
+            return false
+        }
+    }
+    if (setting === "containercolors") {
+        for (const colorMatch of value.split(",")) {
+            if (!colorMatch.trim()) {
+                continue
+            }
+            if ((colorMatch.match(/~/g) || []).length === 0) {
+                UTIL.notify(`Invalid ${setting} entry: ${colorMatch}\n`
+                    + "Entries must have exactly one ~ to separate the "
+                    + "name regular expression and color name/hex", "warn")
+                return false
+            }
+            const [match, color] = colorMatch.split("~")
+            try {
+                RegExp(match)
+            } catch (e) {
+                UTIL.notify(
+                    `Invalid regular expression in containercolors: ${match}`,
+                    "warn")
+                return false
+            }
+            const style = document.createElement("div").style
+            style.color = "white"
+            style.color = color
+            if (style.color === "white" && color !== "white" || !color) {
+                UTIL.notify("Invalid color, must be a valid color name or hex"
+                    + `, not: ${color}`, "warn")
+                return false
+            }
+        }
     }
     if (setting === "downloadpath") {
         const expandedPath = UTIL.expandPath(value)
-        if (UTIL.pathExists(expandedPath)) {
-            if (UTIL.isDir(expandedPath)) {
-                return true
-            }
+        if (!UTIL.pathExists(expandedPath)) {
+            UTIL.notify("The download path does not exist", "warn")
+            return false
+        }
+        if (!UTIL.isDir(expandedPath)) {
             UTIL.notify("The download path is not a directory", "warn")
             return false
         }
-        UTIL.notify("The download path does not exist", "warn")
-        return false
     }
     const permissionSettings = ["permissionsallowed", "permissionsblocked"]
     if (permissionSettings.includes(setting)) {
@@ -239,7 +276,7 @@ const checkOther = (setting, value) => {
             if ((override.match(/~/g) || []).length === 0) {
                 UTIL.notify(`Invalid ${setting} entry: ${override}\n`
                     + "Entries must have at least one ~ to separate the "
-                    + "regular expression and the permission names", "warn")
+                    + "domain regular expression and permission names", "warn")
                 return false
             }
             const [match, ...names] = override.split("~")
@@ -333,22 +370,20 @@ const updateContainerSettings = (full = true) => {
     if (full) {
         for (const page of TABS.listPages()) {
             const color = get("containercolors").split(",").find(
-                c => page.getAttribute("partition").replace("persist:", "")
-                    .match(c.split("~")[0]))
+                c => page.getAttribute("container").match(c.split("~")[0]))
             if (color) {
                 TABS.tabOrPageMatching(page).style.color = color.split("~")[1]
             }
         }
     }
-    const partition = TABS.currentPage().getAttribute(
-        "partition").replace("persist:", "")
+    const container = TABS.currentPage().getAttribute("container")
     const color = get("containercolors").split(",").find(
-        c => partition.match(c.split("~")[0]))
+        c => container.match(c.split("~")[0]))
     const show = get("containershowname")
-    if (partition === "main" && show === "automatic" || show === "never") {
+    if (container === "main" && show === "automatic" || show === "never") {
         document.getElementById("containername").style.display = "none"
     } else {
-        document.getElementById("containername").textContent = partition
+        document.getElementById("containername").textContent = container
         if (color) {
             document.getElementById("containername")
                 .style.color = color.split("~")[1]
