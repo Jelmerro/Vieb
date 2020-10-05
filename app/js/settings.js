@@ -30,7 +30,10 @@ const defaultSettings = {
     "clearhistoryonquit": false,
     "clearlocalstorageonquit": false,
     "closablepinnedtabs": false,
-    "containertabs": false,
+    "containercolors": "container\\d+~#ff0",
+    "containernewtab": "main",
+    "containershowname": "automatic",
+    "containerstartuppage": "main",
     "countlimit": 100,
     "darkreader": false,
     "downloadmethod": "automatic",
@@ -99,6 +102,7 @@ const defaultSettings = {
 let allSettings = {}
 const freeText = ["downloadpath", "search", "vimcommand"]
 const listLike = [
+    "containercolors",
     "favoritepages",
     "permissionsallowed",
     "permissionsblocked",
@@ -108,6 +112,7 @@ const listLike = [
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
     "cache": ["none", "clearonquit", "full"],
+    "containershowname": ["automatic", "always", "never"],
     "downloadmethod": ["automatic", "confirm", "ask", "block"],
     "favicons": [
         "disabled", "nocache", "session", "1day", "5day", "30day", "forever"
@@ -324,6 +329,36 @@ const isValidSetting = (setting, value) => {
     return checkOther(setting, value)
 }
 
+const updateContainerSettings = (full = true) => {
+    if (full) {
+        for (const page of TABS.listPages()) {
+            const color = get("containercolors").split(",").find(
+                c => page.getAttribute("partition").replace("persist:", "")
+                    .match(c.split("~")[0]))
+            if (color) {
+                TABS.tabOrPageMatching(page).style.color = color.split("~")[1]
+            }
+        }
+    }
+    const partition = TABS.currentPage().getAttribute(
+        "partition").replace("persist:", "")
+    const color = get("containercolors").split(",").find(
+        c => partition.match(c.split("~")[0]))
+    const show = get("containershowname")
+    if (partition === "main" && show === "automatic" || show === "never") {
+        document.getElementById("containername").style.display = "none"
+    } else {
+        document.getElementById("containername").textContent = partition
+        if (color) {
+            document.getElementById("containername")
+                .style.color = color.split("~")[1]
+        } else {
+            document.getElementById("containername").style.color = null
+        }
+        document.getElementById("containername").style.display = null
+    }
+}
+
 const updateFontSize = () => {
     document.body.style.fontSize = `${get("fontsize")}px`
     TABS.listPages().forEach(p => {
@@ -495,6 +530,7 @@ const suggestionList = () => {
 const loadFromDisk = () => {
     allSettings = JSON.parse(JSON.stringify(defaultSettings))
     if (UTIL.isFile(path.join(UTIL.appData(), "erwicmode"))) {
+        set("containernewtab", "external")
         set("permissioncamera", "allow")
         set("permissionnotifications", "allow")
         set("permissionmediadevices", "allowfull")
@@ -554,6 +590,9 @@ const set = (setting, value) => {
             } else {
                 SESSIONS.enableAdblocker()
             }
+        }
+        if (setting === "containercolors" || setting === "containershowname") {
+            updateContainerSettings()
         }
         if (setting === "firefoxmode") {
             if (value === "always") {
@@ -716,6 +755,7 @@ module.exports = {
     init,
     freeText,
     listLike,
+    updateContainerSettings,
     suggestionList,
     loadFromDisk,
     get,

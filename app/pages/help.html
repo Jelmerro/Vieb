@@ -460,7 +460,7 @@
         <ul>
             <li><span class="command-block">:quitall</span> - Quit Vieb</li>
         </ul>
-        With quitall you will unconditionally close and stop all of Vieb. To configure what gets cleared on quit, see these settings, among others: <a href="#cache">cache</a>, <a href="#clearcookiesonquit">clearcookiesonquit</a>, <a href="#cleardownloadsonquit">cleardownloadsonquit</a>, <a href="#clearhistoryonquit">clearhistoryonquit</a>, <a href="#clearlocalstorageonquit">clearlocalstorageonquit</a>, <a href="#keeprecentlyclosed">keeprecentlyclosed</a>, <a href="#restoretabs">restoretabs</a> and <a href="#containertabs">containertabs</a>.
+        With quitall you will unconditionally close and stop all of Vieb. The short version of this command is "qa". To configure what gets cleared on quit, see these settings, among others: <a href="#cache">cache</a>, <a href="#clearcookiesonquit">clearcookiesonquit</a>, <a href="#cleardownloadsonquit">cleardownloadsonquit</a>, <a href="#clearhistoryonquit">clearhistoryonquit</a>, <a href="#clearlocalstorageonquit">clearlocalstorageonquit</a>, <a href="#keeprecentlyclosed">keeprecentlyclosed</a>, <a href="#restoretabs">restoretabs</a> and <a href="#containernewtab">containernewtab</a>.
         <h1 id="settings">Settings</h1>
         There are a lot of settings in Vieb and all of them can be changed at runtime, or using a settings file. The changes you make at runtime are not saved automatically for subsequent sessions, but they can be if you want to. This chapter provides introductions on how to do all this, and a list of all the settings Vieb has to offer.
         <h2>Set command</h2>
@@ -502,8 +502,14 @@
         Toggle for clearing all browsing history on quit. The browsing history can be viewed on the <a href="#:history">history</a> page. As a result of separating tab, download and browsing history, there is no traditional private mode in Vieb. The same can be achieved by toggling all these settings at once using <a href="#mappings">mappings</a> or <a href="#customcommands">custom commands</a>. See <a href="#storenewvisists">storenewvisists</a> for more details.
         <h3 id="clearlocalstorageonquit">clearlocalstorageonquit</h3>
         Toggle for clearing all of the localstorage when quitting Vieb.
-        <h3 id="containertabs">containertabs</h3>
-        Toggle for running tabs in a separate container. When enabled, tabs will not share cache, cookies, localstorage or any other part of the browser settings. The browsing history will still be stored by Vieb, but all related cookies and such will only be stored for as long as Vieb is running.
+        <h3 id="containercolors">containercolors</h3>
+        TODO
+        <h3 id="containernewtab">containernewtab</h3>
+        TODO
+        <h3 id="containershowname">containershowname</h3>
+        TODO
+        <h3 id="containerstartuppage">containerstartuppage</h3>
+        TODO
         <h3 id="countlimit">countlimit</h3>
         This setting is used as an upper limit of the counter for repeating actions in normal mode, <a class="pointer" href="#pointer">pointer mode</a> and <a class="visual" href="#pointer">visual mode</a>. For example, pressing <kbd>50t</kbd> will usually open 50 new tabs, but only 10 if the countlimit is set to 10. This setting limits the number of repeated actions, which you can visualize in the top-right of the Vieb window if <a href="#showcmd">showcmd</a> is set. There is also a setting to limit the maximum recursion of a mapping, named <a href="#maxmapdepth">maxmapdepth</a>.
         <h3 id="darkreader">darkreader</h3>
@@ -612,7 +618,7 @@
         <h3 id="startuppages">startuppages</h3>
         With this setting you can configure a list of pages that should open every time Vieb is started. The list should be comma-separated and all entries must be valid urls. These pages will open regardless of tabs being restored from the previous session, so combining both of these setting might not get the expected results. See <a href="#restoretabs">restoretabs</a> for details about restoring tabs from the previous session.
         <h3 id="storenewvisists">storenewvisists</h3>
-        Toggle to indicate if new visits to websites should be stored in the browsing history. If disabled, the visited page will not be stored in the browsing history, and as a result the favicon will also not be stored. However, the download history, cookies, localstorage and tab history are preserved. To privately navigate to a website, also enable <a href="#containertabs">containertabs</a> and disable the <a href="#keeprecentlyclosed">keeprecentlyclosed</a> setting.
+        Toggle to indicate if new visits to websites should be stored in the browsing history. If disabled, the visited page will not be stored in the browsing history, and as a result the favicon will also not be stored. However, the download history, cookies, localstorage and tab history are preserved. To privately navigate to a website, use a separate container using <a href="#containernewtab">containernewtab</a> and disable the <a href="#keeprecentlyclosed">keeprecentlyclosed</a> setting.
         <h3 id="suggestcommands">suggestcommands</h3>
         The number of suggestions that should appear when typing commands. Set to 0 to disable any suggestions while in <a class="command" href="#action.toCommandMode">command mode</a>. Some commands accept a file location for which suggestions will be shown if <a href="#suggestfiles">suggestfiles</a> is enabled for commands.
         <h3 id="suggestexplore">suggestexplore</h3>
