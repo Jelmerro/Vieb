@@ -162,7 +162,13 @@ const toCommandMode = () => MODES.setMode("command")
 
 const scrollPageUp = () => TABS.currentPage().send("action", "scrollPageUp")
 
-const stopLoadingPage = () => TABS.currentPage().stop()
+const stopLoadingPage = () => {
+    try {
+        TABS.currentPage().stop()
+    } catch (__) {
+        // Webview might be destroyed or unavailable, no issue
+    }
+}
 
 const scrollPageDownHalf = () => {
     TABS.currentPage().send("action", "scrollPageDownHalf")
@@ -274,21 +280,13 @@ const toTopSplitWindow = () => PAGELAYOUT.moveFocus("top")
 
 const toRightSplitWindow = () => PAGELAYOUT.moveFocus("right")
 
-const increaseHeightSplitWindow = () => {
-    PAGELAYOUT.resize("ver", "grow")
-}
+const increaseHeightSplitWindow = () => PAGELAYOUT.resize("ver", "grow")
 
-const decreaseHeightSplitWindow = () => {
-    PAGELAYOUT.resize("ver", "shrink")
-}
+const decreaseHeightSplitWindow = () => PAGELAYOUT.resize("ver", "shrink")
 
-const increaseWidthSplitWindow = () => {
-    PAGELAYOUT.resize("hor", "grow")
-}
+const increaseWidthSplitWindow = () => PAGELAYOUT.resize("hor", "grow")
 
-const decreaseWidthSplitWindow = () => {
-    PAGELAYOUT.resize("hor", "shrink")
-}
+const decreaseWidthSplitWindow = () => PAGELAYOUT.resize("hor", "shrink")
 
 const distrubuteSpaceSplitWindow = () => PAGELAYOUT.resetResizing()
 

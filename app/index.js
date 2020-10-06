@@ -413,7 +413,6 @@ app.on("login", (e, contents, _, auth, callback) => {
         return
     }
     if (loginAttempts.includes(contents.id)) {
-        contents.stop()
         loginAttempts.splice(loginAttempts.indexOf(contents.id), 1)
         return
     }
