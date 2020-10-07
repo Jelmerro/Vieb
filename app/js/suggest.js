@@ -303,6 +303,7 @@ const suggestCommand = search => {
                 `${command} ${args.join(" ")}`.trim()))
             .forEach(action => addCommand(`${suggestedCommandName} ${action}`))
     }
+    // Command: help
     if ("help".startsWith(command) && !confirm) {
         [
             "intro",
