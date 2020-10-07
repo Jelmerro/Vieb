@@ -503,15 +503,15 @@
         <h3 id="clearlocalstorageonquit">clearlocalstorageonquit</h3>
         Toggle for clearing all of the localstorage when quitting Vieb. This toggle applies to all containers.
         <h3 id="closablepinnedtabs">closablepinnedtabs</h3>
-        TODO
+        With this toggle you can specify if pinned tabs should be closable. By default, you need to unpin a tab (using <kbd class="command-block">:pin</kbd>) to close it. If this setting is enabled, you can close pinned tabs like any other regular tab.
         <h3 id="containercolors">containercolors</h3>
-        TODO
+        A list-like setting to give containers a custom color based on their name. Each element in the list contains a regular expression and a color name (or color hex) separated by a "~". By default, temporary containers are displayed in yellow, while all others will default to white. The first matching entry will be used as the color of the tab title. The color will also be used to show the name of the container in the navbar, if <a href="#containershowname">containershowname</a> is on. An example could be to make a container for work, school or other miscellaneous tasks and color it accordingly: <kbd class="command-block">set containercolors=^work$~lightblue,^school~#f00,^misc$~lime</kbd> this will display the "work" container in lightblue, all containers starting with "school" in red and the "misc" container in lime. All CSS color names and (3 or 6 digit) hex codes are accepted. For more about containers and how to use them, see <a href="#containernewtab">containernewtab</a>.
         <h3 id="containerkeeponreopen">containerkeeponreopen</h3>
-        TODO
+        Toggle to indicate if tabs that are restored with <a href="#action.reopenTab">action.reopenTab</a> should keep the container they were opened in before. If enabled, they will keep the same container as before. If disabled, the value of <a href="#containernewtab">containernewtab</a> will be used as the container name instead. This toggle does not affect tabs that are opened using other ways, such as startup URLS, which use the <a href="#containerstartuppage">containerstartuppage</a> setting. The <a href="#restoretabs">restoretabs</a> setting to keep tabs after a Vieb restart will always use the same container they used before shutting down Vieb.
         <h3 id="containernewtab">containernewtab</h3>
         TODO
         <h3 id="containershowname">containershowname</h3>
-        TODO
+        This setting controls if the container name should be shown between the current mode and the url bar. If set to automatic, all names except "main" are shown. The name will be displayed in the color defined by <a href="#containercolors">containercolors</a>.
         <h3 id="containerstartuppage">containerstartuppage</h3>
         TODO
         <h3 id="countlimit">countlimit</h3>
@@ -593,7 +593,7 @@
         <h3 id="requesttimeout">requesttimeout</h3>
         Duration in milliseconds before stopping a page load automatically. The timer is reset upon navigation to any page and after the timeout duration is reached, the page load will be stopped automatically, similar to calling <a href="#action.stopLoadingPage">action.stopLoadingPage</a> manually. Any duration below 1000 milliseconds is ignored and will disable the timeout completely, which could mean that some websites will never stop loading.
         <h3 id="restoretabs">restoretabs</h3>
-        Toggle for restoring tabs you had open during the previous browsing session. If enabled, all tabs you had open when you quit Vieb last time, will automatically open again when you start Vieb. If you have configured any <a href="#startuppages">startuppages</a>, they will be opened after restoring the previous tabs. If this setting is disabled, tabs won't be restored, but will possibly be stored as recently closed tabs so you can reopen them, which is configured with <a href="#keeprecentlyclosed">keeprecentlyclosed</a>. Tabs which are pinned by the <a href="#:pin">:pin</a> command are always restored, regardless of the restoretabs setting.
+        Toggle for restoring tabs you had open during the previous browsing session. If enabled, all tabs you had open when you quit Vieb last time, will automatically open again when you start Vieb. If you have configured any <a href="#startuppages">startuppages</a>, they will be opened after restoring the previous tabs. If this setting is disabled, tabs won't be restored, but will possibly be stored as recently closed tabs so you can reopen them, which is configured with <a href="#keeprecentlyclosed">keeprecentlyclosed</a>. Tabs which are pinned by the <a href="#:pin">:pin</a> command are always restored, regardless of the restoretabs setting. The container each tab was using is always remembered on restart.
         <h3 id="restorewindowmaximize">restorewindowmaximize</h3>
         Toggle for remembering and restoring the window maximization state after restarting Vieb.
         <h3 id="restorewindowposition">restorewindowposition</h3>

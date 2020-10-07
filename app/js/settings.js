@@ -712,6 +712,9 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
         typeLabel = "Boolean flag"
         allowedValues = "true,false"
     }
+    if (setting === "containernewtab" ||  setting === "containerstartuppage") {
+        allowedValues = "simple name or special values*"
+    }
     if (setting === "downloadpath") {
         allowedValues = "any directory on disk"
     }
