@@ -253,7 +253,6 @@ if (erwic) {
     }
     urls.push(...config.apps)
 }
-fs.mkdirSync(datafolder, {"recursive": true})
 app.setPath("appData", datafolder)
 app.setPath("userData", datafolder)
 if (showInternalConsole && enableDebugMode) {
