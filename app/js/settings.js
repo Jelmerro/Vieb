@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND INPUT MODES PAGELAYOUT SESSIONS TABS UTIL */
+/* global COMMAND INPUT MODES PAGELAYOUT POINTER SESSIONS TABS UTIL */
 "use strict"
 
 const path = require("path")
@@ -463,6 +463,9 @@ const updateGuiVisibility = () => {
         }
     }
     setTimeout(PAGELAYOUT.applyLayout, 1)
+    if (MODES.currentMode() === "pointer") {
+        POINTER.updateElement()
+    }
 }
 
 
