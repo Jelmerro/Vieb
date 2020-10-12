@@ -388,6 +388,16 @@ const firefoxUseragent = () => {
     return `Mozilla/5.0 (${sys}; rv:${ver}) Gecko/20100101 Firefox/${ver}`
 }
 
+const sameDomain = (d1, d2) => {
+    const e1 = document.createElement("a")
+    e1.setAttribute("href", d1)
+    const e2 = document.createElement("a")
+    e2.setAttribute("href", d2)
+    const h1 = e1.hostname.replace(/^www\./, "")
+    const h2 = e2.hostname.replace(/^www\./, "")
+    return d1 && d2 && h1 && h2 && h1 === h2
+}
+
 module.exports = {
     hasProtocol,
     isUrl,
@@ -416,5 +426,6 @@ module.exports = {
     appIcon,
     appName,
     appData,
-    firefoxUseragent
+    firefoxUseragent,
+    sameDomain
 }

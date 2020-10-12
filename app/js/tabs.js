@@ -154,10 +154,7 @@ const openStartupPage = (url, container = false) => {
         return
     }
     if (!container) {
-        container = SETTINGS.get("containerstartuppage").replace("%n", linkId)
-    }
-    if (container === "external") {
-        container = "main"
+        container = SETTINGS.get("containerstartuppage")
     }
     return addTab({url, container})
 }
@@ -206,20 +203,42 @@ const addTab = options => {
     if (options.switchTo === undefined) {
         options.switchTo = true
     }
-    let sessionName = SETTINGS.get("containernewtab").replace(/%n/g, linkId)
+    let sessionName = SETTINGS.get("containernewtab")
     if (options.container) {
         sessionName = options.container
     }
-    if (sessionName === "external") {
+    sessionName = sessionName.replace("%n", linkId)
+    if (sessionName === "s:external") {
         const isSpecialPage = UTIL.pathToSpecialPageName(options.url || "").name
         if (isSpecialPage) {
             sessionName = "main"
-        } else if (!options.container) {
+        } else {
             if (options.url) {
                 shell.openExternal(options.url)
             }
             return
         }
+    }
+    if (sessionName === "s:replacematching" && options.url) {
+        const match = listPages().find(p => UTIL.sameDomain(p.src, options.url))
+        if (match) {
+            switchToTab(listTabs().indexOf(tabOrPageMatching(match)))
+        }
+    }
+    if (sessionName.startsWith("s:replace")) {
+        if (options.url) {
+            navigateTo(options.url)
+        }
+        return
+    }
+    if (sessionName === "s:usematching" && options.url) {
+        const match = listPages().find(p => UTIL.sameDomain(p.src, options.url))
+        if (match) {
+            sessionName = match.getAttribute("container")
+        }
+    }
+    if (sessionName.startsWith("s:use")) {
+        sessionName = currentPage()?.getAttribute("container") || "main"
     }
     let addNextToCurrent = SETTINGS.get("tabnexttocurrent")
     addNextToCurrent = addNextToCurrent && listTabs().length > 0
@@ -343,7 +362,11 @@ const closeTab = () => {
     document.getElementById("tabs").removeChild(currentTab())
     document.getElementById("pages").removeChild(currentPage())
     if (listTabs().length === 0) {
-        addTab()
+        if (SETTINGS.get("containernewtab").startsWith("s:")) {
+            addTab({"container": "main"})
+        } else {
+            addTab()
+        }
     }
     if (oldTabIndex === 0) {
         switchToTab(0)
