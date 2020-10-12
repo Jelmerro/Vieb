@@ -24,6 +24,7 @@ const {
 const fs = require("fs")
 const os = require("os")
 const path = require("path")
+const isSvg = require("is-svg")
 const {ElectronBlocker} = require("@cliqz/adblocker-electron")
 
 const version = process.env.npm_package_version || app.getVersion()
@@ -848,7 +849,12 @@ ipcMain.on("download-favicon", (_, fav, location, webId, linkId, url) => {
     request.on("response", res => {
         const data = []
         res.on("end", () => {
-            fs.writeFileSync(location, Buffer.concat(data))
+            const file = Buffer.concat(data)
+            if (isSvg(file)) {
+                location += ".svg"
+                fav += ".svg"
+            }
+            fs.writeFileSync(location, file)
             mainWindow.webContents.send("favicon-downloaded", linkId, url, fav)
         })
         res.on("data", chunk => {
