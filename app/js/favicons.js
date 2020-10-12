@@ -40,6 +40,7 @@ const init = () => {
         const webview = document.querySelector(`#pages [link-id='${linkId}']`)
         if (webview?.src === currentUrl) {
             setPath(TABS.tabOrPageMatching(webview), urlToPath(favicon))
+            mappings[currentUrl] = favicon
         }
     })
 }

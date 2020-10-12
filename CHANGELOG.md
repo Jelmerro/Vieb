@@ -25,6 +25,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "containercolors" to show container tabs in a custom color based on the container name
 - Setting "containershowname" to optionally show the name of the container between the mode and url in the navbar
 - Setting "containerkeeponreopen" to toggle the remembering the container name and to use the "containernewtab" setting instead
+- Support for SVG favicons by giving it an explicit ".svg" extension if detected by "is-svg"
 
 ### Changed
 
