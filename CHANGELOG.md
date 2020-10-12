@@ -20,11 +20,13 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting to control if file suggestions should appear before/after history in explore mode: suggestfilesfirst
 - Red border in command mode when the entered command is invalid (for example due to unmatched quotes)
 - Setting "closablepinnedtabs" which is disabled by default (meaning pinned tabs can't be closed)
-- Setting "containernewtab" to control which container all new tabs should use
-- Setting "containerstartuppage" to control which container the startup pages should use (CLI arguments)
+- Setting "containernewtab" to control which container all new tabs should use (default is still "main")
+- Setting "containersplitpage" to control which container all split pages should use (default is "s:usecurrent")
+- Setting "containerstartuppage" to control which container the startup pages should use (CLI arguments, default is still "main")
 - Setting "containercolors" to show container tabs in a custom color based on the container name
 - Setting "containershowname" to optionally show the name of the container between the mode and url in the navbar
 - Setting "containerkeeponreopen" to toggle the remembering the container name and to use the "containernewtab" setting instead
+- Special container names to open tabs externally, in tabs with a matching domain, or use the same container as the current tab
 - Support for SVG favicons by giving it an explicit ".svg" extension if detected by "is-svg"
 
 ### Changed

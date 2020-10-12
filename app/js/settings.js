@@ -34,6 +34,7 @@ const defaultSettings = {
     "containerkeeponreopen": true,
     "containernewtab": "main",
     "containershowname": "automatic",
+    "containersplitpage": "s:usecurrent",
     "containerstartuppage": "main",
     "countlimit": 100,
     "darkreader": false,
@@ -163,6 +164,9 @@ const downloadSettings = [
     "cleardownloadsonquit",
     "cleardownloadsoncompleted"
 ]
+const containerSettings = [
+    "containernewtab", "containersplitpage", "containerstartuppage"
+]
 
 const init = () => {
     loadFromDisk()
@@ -218,7 +222,25 @@ const checkOther = (setting, value) => {
             return false
         }
     }
-    if (["containernewtab", "containerstartuppage"].includes(setting)) {
+    if (containerSettings.includes(setting)) {
+        const specialNames = ["s:usematching", "s:usecurrent"]
+        if (setting !== "containersplitpage") {
+            specialNames.push("s:replacematching", "s:replacecurrent")
+        }
+        if (setting === "containernewtab") {
+            specialNames.push("s:external")
+        }
+        if (value.startsWith("s:")) {
+            if (specialNames.includes(value)) {
+                return true
+            }
+            const lastName = specialNames.pop()
+            const text = `'${specialNames.join("', '")}' or '${lastName}'`
+            UTIL.notify(
+                `Special container name for '${setting}' can only be one of:`
+                + ` ${text}`, "warn")
+            return false
+        }
         if (value.replace("%n", "valid").match(/[^A-Za-z0-9_]/g)) {
             UTIL.notify(
                 "Only letters, numbers and undercores can appear in the name "
@@ -568,7 +590,8 @@ const suggestionList = () => {
 const loadFromDisk = () => {
     allSettings = JSON.parse(JSON.stringify(defaultSettings))
     if (UTIL.isFile(path.join(UTIL.appData(), "erwicmode"))) {
-        set("containernewtab", "external")
+        set("containernewtab", "s:external")
+        set("containerstartuppage", "s:usematching")
         set("permissioncamera", "allow")
         set("permissionnotifications", "allow")
         set("permissionmediadevices", "allowfull")

@@ -23,10 +23,13 @@ These programs are nice but Vieb (and thus Erwic mode) has the following advanta
 The browsing data of each app/tab is stored in it's own container.
 These containers are selected based on the container name that you choose,
 and do not share any data between them if the name is different.
-By default, links that you request to open in a new tab will be opened with your default web browser instead.
+Links that you request to open in a new tab will be opened with your default web browser instead.
+Links that you request to open using the start arguments will open in a new tab,
+using the container name that is used by the existing tab with the same domain.
+The container name of the currently opened tab will be used for the new tab if no matching domains are found.
 Finally, permissions for microphone, notifications, media devices and camera are now allowed by default.
-If desired, these differences can be changed with the viebrc in the datafolder or with `:set`.
-These are only changes to the default Erwic setting values compared to regular Vieb.
+These are only changes to the default Erwic setting values compared to regular Vieb,
+and if desired, these differences can be changed (back) with the viebrc in the datafolder or with `:set`.
 
 ## Multiple pages
 

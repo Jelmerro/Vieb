@@ -343,6 +343,7 @@ const addSplit = (method, leftOrAbove, args) => {
     if (args.length === 0) {
         TABS.addTab({
             "switchTo": false,
+            "container": SETTINGS.get("containersplitpage"),
             "callback": id => {
                 PAGELAYOUT.add(id, method, leftOrAbove)
                 TABS.switchToTab(tabIndexById(id))
@@ -361,6 +362,7 @@ const addSplit = (method, leftOrAbove, args) => {
     } else {
         TABS.addTab({
             "url": UTIL.stringToUrl(args.join(" ")),
+            "container": SETTINGS.get("containersplitpage"),
             "switchTo": false,
             "callback": id => {
                 PAGELAYOUT.add(id, method, leftOrAbove)
