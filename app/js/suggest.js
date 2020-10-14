@@ -262,10 +262,6 @@ const suggestCommand = search => {
     const bufferCommand = [
         "buffer", "hide", "Vexplore", "Sexplore", "split", "vsplit"
     ].find(b => b.startsWith(command))
-    let suggestedCommandName = command
-    if (suggestions.length > 1) {
-        suggestedCommandName = bufferCommand
-    }
     if (bufferCommand && !["h", "s", "v"].includes(command) && !confirm) {
         const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
         TABS.listTabs().filter(tab => {
@@ -277,7 +273,7 @@ const suggestCommand = search => {
             }
             return !tab.classList.contains("visible-tab")
         }).map(t => ({
-            "command": `${suggestedCommandName} ${TABS.listTabs().indexOf(t)}`,
+            "command": `${bufferCommand} ${TABS.listTabs().indexOf(t)}`,
             "subtext": `${t.querySelector("span").textContent}`,
             "url": TABS.tabOrPageMatching(t).src
         })).filter(t => {
@@ -293,15 +289,19 @@ const suggestCommand = search => {
         }).forEach(t => addCommand(t.command, t.subtext))
     }
     // Command: call
-    suggestedCommandName = command
-    if (suggestions.length > 1) {
-        suggestedCommandName = "call"
-    }
     if ("call".startsWith(command) && !confirm) {
         INPUT.listSupportedActions().filter(
             action => `${command} ${action.replace(/(^<|>$)/g, "")}`.startsWith(
                 `${command} ${args.join(" ")}`.trim()))
-            .forEach(action => addCommand(`${suggestedCommandName} ${action}`))
+            .forEach(action => addCommand(`call ${action}`))
+    }
+    if ("devtools".startsWith(command) && !confirm && args.length < 2) {
+        const options = ["window", "split", "vsplit", "tab"]
+        options.forEach(option => {
+            if (!args[0] || option.startsWith(args[0])) {
+                addCommand(`devtools ${option}`)
+            }
+        })
     }
     // Command: help
     if ("help".startsWith(command) && !confirm) {

@@ -242,7 +242,7 @@ const addTab = options => {
         if (isSpecialPage) {
             sessionName = "main"
         } else {
-            if (options.url) {
+            if (/^https?:\/\//.test(options.url)) {
                 shell.openExternal(options.url)
             }
             return
