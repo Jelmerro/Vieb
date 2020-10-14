@@ -32,12 +32,13 @@ const defaultSettings = {
     "closablepinnedtabs": false,
     "containercolors": "temp\\d+~#ff0",
     "containerkeeponreopen": true,
-    "containernewtab": "main",
+    "containernewtab": "s:usecurrent",
     "containershowname": "automatic",
     "containersplitpage": "s:usecurrent",
     "containerstartuppage": "main",
     "countlimit": 100,
     "darkreader": false,
+    "devtoolsposition": "vsplit",
     "downloadmethod": "automatic",
     "downloadpath": "~/Downloads/",
     "favicons": "session",
@@ -115,6 +116,7 @@ const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
     "cache": ["none", "clearonquit", "full"],
     "containershowname": ["automatic", "always", "never"],
+    "devtoolsposition": ["window", "split", "vsplit", "tab"],
     "downloadmethod": ["automatic", "confirm", "ask", "block"],
     "favicons": [
         "disabled", "nocache", "session", "1day", "5day", "30day", "forever"

@@ -177,6 +177,43 @@ const quitall = () => {
     ipcRenderer.send("destroy-window")
 }
 
+const openDevTools = (position = null, trailingArgs = false) => {
+    if (trailingArgs) {
+        UTIL.notify("The devtools command takes a single optional argument",
+            "warn")
+        return
+    }
+    if (!position) {
+        position = SETTINGS.get("devtoolsposition")
+    }
+    if (position === "window") {
+        TABS.currentPage().openDevTools()
+    } else if (position === "tab") {
+        TABS.addTab({"devtools": true})
+    } else if (position === "vsplit") {
+        TABS.addTab({
+            "switchTo": false,
+            "devtools": true,
+            "callback": id => {
+                PAGELAYOUT.add(id, "hor", !SETTINGS.get("splitright"))
+                TABS.switchToTab(tabIndexById(id))
+            }
+        })
+    } else if (position === "split") {
+        TABS.addTab({
+            "switchTo": false,
+            "devtools": true,
+            "callback": id => {
+                PAGELAYOUT.add(id, "ver", !SETTINGS.get("splitbelow"))
+                TABS.switchToTab(tabIndexById(id))
+            }
+        })
+    } else {
+        UTIL.notify("Invalid devtools position specified, must be one of: "
+            + "window, vsplit, split or tab", "warn")
+    }
+}
+
 const openSpecialPage = (specialPage, section = null) => {
     // Open the url in the current or new tab, depending on currently open page
     const pageUrl = UTIL.specialPagePath(specialPage, section)
@@ -442,7 +479,7 @@ const commands = {
     "quit": quit,
     "qa": quitall,
     "quitall": quitall,
-    "devtools": () => TABS.currentPage().openDevTools(),
+    "devtools": openDevTools,
     "reload": reload,
     "v": () => openSpecialPage("version"),
     "version": () => openSpecialPage("version"),
@@ -483,7 +520,6 @@ const noArgumentComands = [
     "quit",
     "qa",
     "quitall",
-    "devtools",
     "reload",
     "v",
     "version",

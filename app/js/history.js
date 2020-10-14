@@ -74,6 +74,9 @@ const addToHist = url => {
     if (UTIL.pathToSpecialPageName(url).name) {
         return
     }
+    if (url.startsWith("devtools://")) {
+        return
+    }
     url = url.replace(/\t/g, "")
     const date = new Date().toISOString()
     if (!groupedHistory[url]) {

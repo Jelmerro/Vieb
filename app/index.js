@@ -962,6 +962,13 @@ ipcMain.on("hide-window", () => {
         mainWindow.hide()
     }
 })
+ipcMain.on("add-devtools", (_, pageId, devtoolsId) => {
+    const page = webContents.fromId(pageId)
+    const devtools = webContents.fromId(devtoolsId)
+    page.setDevToolsWebContents(devtools)
+    page.openDevTools()
+    devtools.executeJavaScript("window.location.reload()")
+})
 ipcMain.on("destroy-window", () => {
     cancellAllDownloads()
     mainWindow.destroy()

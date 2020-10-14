@@ -83,8 +83,10 @@ const nextSearchMatch = () => {
 
 const reload = () => {
     if (!TABS.currentPage().isCrashed()) {
-        TABS.currentPage().reload()
-        TABS.resetTabInfo(TABS.currentPage())
+        if (!TABS.currentPage().src.startsWith("devtools://")) {
+            TABS.currentPage().reload()
+            TABS.resetTabInfo(TABS.currentPage())
+        }
     }
 }
 
@@ -110,9 +112,11 @@ const scrollBottom = () => TABS.currentPage().send("action", "scrollBottom")
 
 const backInHistory = () => {
     if (TABS.currentPage().canGoBack()) {
-        TABS.currentTab().querySelector("span").textContent = ""
-        TABS.currentPage().goBack()
-        TABS.resetTabInfo(TABS.currentPage())
+        if (!TABS.currentPage().src.startsWith("devtools://")) {
+            TABS.currentTab().querySelector("span").textContent = ""
+            TABS.currentPage().goBack()
+            TABS.resetTabInfo(TABS.currentPage())
+        }
     }
 }
 
@@ -120,9 +124,11 @@ const openNewTabAtAlternativePosition = () => TABS.addTab({"inverted": true})
 
 const forwardInHistory = () => {
     if (TABS.currentPage().canGoForward()) {
-        TABS.currentTab().querySelector("span").textContent = ""
-        TABS.currentPage().goForward()
-        TABS.resetTabInfo(TABS.currentPage())
+        if (!TABS.currentPage().src.startsWith("devtools://")) {
+            TABS.currentTab().querySelector("span").textContent = ""
+            TABS.currentPage().goForward()
+            TABS.resetTabInfo(TABS.currentPage())
+        }
     }
 }
 
@@ -138,8 +144,10 @@ const previousSearchMatch = () => {
 
 const reloadWithoutCache = () => {
     if (!TABS.currentPage().isCrashed()) {
-        TABS.currentPage().reloadIgnoringCache()
-        TABS.resetTabInfo(TABS.currentPage())
+        if (!TABS.currentPage().src.startsWith("devtools://")) {
+            TABS.currentPage().reloadIgnoringCache()
+            TABS.resetTabInfo(TABS.currentPage())
+        }
     }
 }
 

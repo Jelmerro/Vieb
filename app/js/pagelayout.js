@@ -70,8 +70,9 @@ const hide = (view, close = false) => {
                 !== view.getAttribute("link-id"))
         }
         if (close) {
-            document.getElementById("tabs").removeChild(TABS.currentTab())
-            document.getElementById("pages").removeChild(TABS.currentPage())
+            document.getElementById("tabs").removeChild(
+                TABS.tabOrPageMatching(view))
+            document.getElementById("pages").removeChild(view)
         }
         TABS.switchToTab(TABS.listTabs().indexOf(newTab))
     }
