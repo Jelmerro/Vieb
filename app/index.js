@@ -268,19 +268,30 @@ app.on("ready", () => {
     app.userAgentFallback = useragent()
     // Request single instance lock and quit if that fails
     if (app.requestSingleInstanceLock()) {
-        app.on("second-instance", (_, commandLine) => {
+        app.on("second-instance", (_, newArgs) => {
             if (mainWindow.isMinimized()) {
                 mainWindow.restore()
             }
             mainWindow.focus()
-            commandLine = commandLine.slice(1)
-            if (commandLine[0] === "app") {
-                commandLine = commandLine.slice(1)
+            newArgs = newArgs.slice(1)
+            if (newArgs[0] === "app" || newArgs[0] === app.getAppPath()) {
+                newArgs = newArgs.slice(1)
             }
-            mainWindow.webContents.send("urls",
-                commandLine.filter(arg => !arg.startsWith("-")))
+            const newUrls = []
+            let ignoreNextArg = false
+            newArgs.forEach(arg => {
+                if (arg === "--erwic" || arg === "--datafolder") {
+                    ignoreNextArg = true
+                } else if (ignoreNextArg) {
+                    ignoreNextArg = false
+                } else if (!arg.startsWith("-")) {
+                    newUrls.push(arg)
+                }
+            })
+            mainWindow.webContents.send("urls", newUrls)
         })
     } else {
+        console.log(`Sending urls to running instance of ${app.getName()}`)
         app.exit(0)
     }
     // Init mainWindow
