@@ -45,7 +45,7 @@ window.addEventListener("load", () => {
     if (!document.querySelector("html")) {
         return
     }
-    if (document.head && document.head.innerText === "") {
+    if (document.head?.innerText === "") {
         document.querySelector("html").style.color = "white"
         return
     }
@@ -59,7 +59,7 @@ window.addEventListener("load", () => {
 // Apply darkreader styling if enabled
 const webviewSettingsFile = path.join(util.appData(), "webviewsettings")
 const settings = util.readJSON(webviewSettingsFile)
-if (settings && settings.darkreader && !specialPage.name) {
+if (settings?.darkreader && !specialPage.name) {
     const darkreader = require("darkreader")
     const interval = setInterval(() => {
         try {

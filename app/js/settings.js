@@ -66,7 +66,7 @@ const defaultSettings = {
     "permissionsallowed": "",
     "permissionsblocked": "",
     "permissionunknown": "block",
-    "redirects": "",
+    "redirects": "https?://(www\\.)?google\\.com(\\.\\w+)?/amp/s/amp\\.(.*)~https://$3",
     "redirecttohttp": false,
     "requesttimeout": 20000,
     "restoretabs": true,
@@ -489,6 +489,12 @@ const suggestionList = () => {
 
 const loadFromDisk = () => {
     allSettings = JSON.parse(JSON.stringify(defaultSettings))
+    if (UTIL.isFile(path.join(UTIL.appData(), "erwicmode"))) {
+        set("permissioncamera", "allow")
+        set("permissionnotifications", "allow")
+        set("permissionmediadevices", "allowfull")
+        set("permissionmicrophone", "allow")
+    }
     for (const conf of [config, UTIL.expandPath("~/.viebrc")]) {
         if (UTIL.isFile(conf)) {
             const parsed = UTIL.readFile(conf)

@@ -31,11 +31,17 @@ const printUsage = () => {
     console.log("Vieb: Vim Inspired Electron Browser\n")
     console.log("Usage: Vieb [options] <URLs>\n")
     console.log("Options:")
-    console.log(" --help     Print this help and exit")
-    console.log(" --version  Print program info with version and exit")
-    console.log(" --portable Store ALL Vieb data in a relative ViebData folder")
-    console.log(" --debug    Open with Chromium and Electron debugging tools")
-    console.log(" --console  Open with the Vieb console (implied by --debug)")
+    console.log(" --help         Print this help and exit")
+    console.log(" --version      Print program info with version and exit")
+    console.log(
+        " --portable     Store ALL Vieb data in a relative ViebData folder")
+    console.log(
+        " --erwic <file> Open a fixed set of pages in a separate instance")
+    console.log("                See 'Erwic.md' for usage and details")
+    console.log(
+        " --debug        Open with Chromium and Electron debugging tools")
+    console.log(
+        " --console      Open with the Vieb console (implied by --debug)")
     console.log("\nAll arguments not starting with - will be opened as a url.")
     printLicense()
 }
@@ -122,19 +128,26 @@ const applyDevtoolsSettings = prefFile => {
 }
 const useragent = () => session.defaultSession.getUserAgent()
     .replace(/Electron\/\S* /, "").replace(/Vieb\/\S* /, "")
+    .replace(RegExp(`${app.getName()}/\\S* `), "")
 
 // Parse arguments
 let args = process.argv.slice(1)
-if (args[0] === "app") {
+if (args[0] === "app" || args[0] === app.getAppPath()) {
     args = args.slice(1)
 }
 const urls = []
 let enableDebugMode = false
 let showInternalConsole = false
 let portable = false
+let nextArgErwicConfig = false
+let erwic = null
+let customIcon = null
 args.forEach(arg => {
     arg = arg.trim()
-    if (arg.startsWith("--")) {
+    if (nextArgErwicConfig) {
+        erwic = arg
+        nextArgErwicConfig = false
+    } else if (arg.startsWith("--")) {
         if (arg === "--help") {
             printUsage()
             app.exit(0)
@@ -147,6 +160,8 @@ args.forEach(arg => {
             enableDebugMode = true
         } else if (arg === "--console") {
             showInternalConsole = true
+        } else if (arg === "--erwic") {
+            nextArgErwicConfig = true
         } else {
             console.log(`Unsupported argument: ${arg}`)
             printUsage()
@@ -156,7 +171,72 @@ args.forEach(arg => {
         urls.push(arg)
     }
 })
-if (portable) {
+if (nextArgErwicConfig) {
+    console.log(`The 'erwic' option requires an argument`)
+    printUsage()
+    app.exit(1)
+}
+app.setName("Vieb")
+if (erwic) {
+    if (portable) {
+        console.log("Portable mode can not be combined with an Erwic config")
+        printUsage()
+        app.exit(1)
+    }
+    let config = null
+    try {
+        config = JSON.parse(fs.readFileSync(erwic).toString())
+    } catch (e) {
+        console.log("Erwic config file could not be read")
+        printUsage()
+        app.exit(1)
+    }
+    if (config.name) {
+        app.setName(config.name)
+    }
+    if (config.icon) {
+        config.icon = expandPath(config.icon)
+        if (config.icon !== path.resolve(config.icon)) {
+            config.icon = path.join(path.dirname(erwic), config.icon)
+        }
+        if (!isFile(config.icon)) {
+            config.icon = null
+        }
+        customIcon = config.icon
+    }
+    config.datafolder = config.datafolder && config.datafolder.trim
+        && path.resolve(expandPath(config.datafolder.trim()))
+    if (!config.datafolder) {
+        console.log("Erwic config file requires a 'datafolder' location field")
+        printUsage()
+        app.exit(1)
+    }
+    fs.mkdirSync(config.datafolder, {"recursive": true})
+    fs.writeFileSync(path.join(config.datafolder, "erwicmode"), "")
+    if (!Array.isArray(config.apps)) {
+        console.log("Erwic config file requires a list of 'apps' ")
+        printUsage()
+        app.exit(1)
+    }
+    config.apps
+        .filter(a => typeof a.name === "string" && typeof a.url === "string")
+        .forEach(a => {
+            if (typeof a.script === "string") {
+                a.script = expandPath(a.script)
+                if (a.script !== path.resolve(a.script)) {
+                    a.script = path.join(path.dirname(erwic), a.script)
+                }
+                if (!isFile(a.script)) {
+                    a.script = null
+                }
+            } else {
+                a.script = null
+            }
+        })
+    urls.push(...config.apps)
+    app.setPath("appData", config.datafolder)
+    app.setPath("userData", config.datafolder)
+} else if (portable) {
     app.setPath("appData", path.join(process.cwd(), "ViebData"))
     app.setPath("userData", path.join(process.cwd(), "ViebData"))
 } else {
@@ -193,12 +273,13 @@ app.on("ready", () => {
     }
     // Init mainWindow
     const windowData = {
-        "title": "Vieb",
+        "title": app.getName(),
         "width": 800,
         "height": 600,
         "frame": enableDebugMode,
         "show": enableDebugMode,
         "closable": false,
+        "icon": customIcon || undefined,
         "webPreferences": {
             "preload": path.join(__dirname, "apploader.js"),
             "sandbox": false,
@@ -209,7 +290,7 @@ app.on("ready", () => {
             "webviewTag": true
         }
     }
-    if (!app.isPackaged) {
+    if (!app.isPackaged && !customIcon) {
         windowData.icon = path.join(__dirname, "img/icons/512x512.png")
     }
     mainWindow = new BrowserWindow(windowData)
@@ -251,6 +332,7 @@ app.on("ready", () => {
         "parent": mainWindow,
         "alwaysOnTop": true,
         "resizable": false,
+        "icon": customIcon || undefined,
         "webPreferences": {
             "preload": path.join(__dirname, "js/preloads/login.js"),
             "sandbox": true,
@@ -281,6 +363,7 @@ app.on("ready", () => {
         "parent": mainWindow,
         "alwaysOnTop": true,
         "resizable": false,
+        "icon": customIcon || undefined,
         "webPreferences": {
             "preload": path.join(__dirname,
                 "js/preloads/notificationmessage.js"),
@@ -896,6 +979,12 @@ ipcMain.on("app-version", e => {
 })
 ipcMain.on("appdata-path", e => {
     e.returnValue = app.getPath("appData")
+})
+ipcMain.on("custom-icon", e => {
+    e.returnValue = customIcon || undefined
+})
+ipcMain.on("app-name", e => {
+    e.returnValue = app.getName()
 })
 ipcMain.on("is-fullscreen", e => {
     e.returnValue = mainWindow.fullScreen

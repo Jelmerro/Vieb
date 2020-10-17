@@ -15,12 +15,32 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Fixed
 
+- Abort error for aborting page loads in the debug console (using --debug or --console)
+
+### Security
+
+- Electron 10.1.2 (was 10.1.1)
+- Chromium 85.0.4183.98 (was 85.0.4183.93)
+
+## [2.4.0](https://github.com/Jelmerro/Vieb/compare/2.3.0...2.4.0) - 2020-09-05
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/2.3.0...2.4.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/2.4.0)
+
+### Added
+
+- Erwic option at startup to open a fixed set of tabs in a separate instance (docs are in Erwic.md)
+
+### Fixed
+
 - WebGL2RenderingContext calls to get parameters not being invoked in the right context
+- App path (usually the asar file) being opened as a file on startup for some custom builds (including Arch)
+- New tab page is no longer the first entry in the history of tabs that are opened with a url
+- Reopening tabs in bulk (usually at startup) running out of index in rare occasions
 
-## Security
+### Security
 
-- Electron 9.2.0 (unchanged)
-- Chromium 83.0.4103.122 (unchanged)
+- Electron 10.1.1 (was 9.2.0)
+- Chromium 85.0.4183.93 (was 83.0.4103.122)
 
 ## [2.3.0](https://github.com/Jelmerro/Vieb/compare/2.2.3...2.3.0) - 2020-08-08
 

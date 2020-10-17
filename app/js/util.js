@@ -34,6 +34,8 @@ const specialPages = [
     "version"
 ]
 const notificationHistory = []
+let customIcon = null
+let applicationName = ""
 let appDataPath = ""
 
 const hasProtocol = location => protocolRegex.test(location)
@@ -118,7 +120,7 @@ const notify = (message, type = "info") => {
         }
     }
     if (SETTINGS.get("nativenotification")) {
-        new Notification(`Vieb ${properType}`, {"body": message})
+        new Notification(`${appName()} ${properType}`, {"body": message})
         return
     }
     if (properType !== "permission") {
@@ -154,15 +156,15 @@ const specialPagePath = (page, section = null, skipExistCheck = false) => {
 }
 
 const pathToSpecialPageName = urlPath => {
-    if (urlPath.startsWith("vieb://")) {
-        const parts = urlPath.replace("vieb://", "").split("#")
+    if (urlPath?.startsWith(`${appName()}://`)) {
+        const parts = urlPath.replace(`${appName()}://`, "").split("#")
         let name = parts[0]
         if (!specialPages.includes(name)) {
             name = "help"
         }
         return {"name": name, "section": parts.slice(1).join("#") || ""}
     }
-    if (urlPath.startsWith("file://")) {
+    if (urlPath?.startsWith("file://")) {
         for (const page of specialPages) {
             const specialPage = specialPagePath(page).replace(/^file:\/*/g, "")
             const normalizedUrl = path.posix.normalize(
@@ -197,7 +199,8 @@ const globDelete = folder => {
 
 const clearContainerTabs = () => {
     document.getElementById("pages").innerHTML = ""
-    globDelete("Partitions/!(main)")
+    globDelete("Partitions/container*")
+    globDelete("erwicmode")
 }
 
 const clearCache = () => {
@@ -208,7 +211,7 @@ const clearCache = () => {
     globDelete("**/VideoDecodeStats/")
     globDelete("**/blob_storage/")
     globDelete("**/databases/")
-    globDelete("**/*.log")
+    globDelete("*.log")
     globDelete("**/.org.chromium.Chromium.*")
     globDelete("vimformedits/")
     globDelete("webviewsettings")
@@ -339,7 +342,7 @@ const urlToString = url => {
     if (special.name === "newtab") {
         url = ""
     } else if (special.name) {
-        url = `vieb://${special.name}`
+        url = `${appName()}://${special.name}`
         if (special.section) {
             url += `#${special.section}`
         }
@@ -352,6 +355,20 @@ const listNotificationHistory = () => notificationHistory
 const title = name => name[0].toUpperCase() + name.slice(1).toLowerCase()
 
 const downloadPath = () => expandPath(SETTINGS.get("downloadpath"))
+
+const appIcon = () => {
+    if (customIcon === null) {
+        customIcon = ipcRenderer.sendSync("custom-icon")
+    }
+    return customIcon
+}
+
+const appName = () => {
+    if (!applicationName) {
+        applicationName = ipcRenderer.sendSync("app-name")
+    }
+    return applicationName.toLowerCase()
+}
 
 const appData = () => {
     if (!appDataPath) {
@@ -392,6 +409,8 @@ module.exports = {
     listNotificationHistory,
     title,
     downloadPath,
+    appIcon,
+    appName,
     appData,
     firefoxUseragent
 }

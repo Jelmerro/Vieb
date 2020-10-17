@@ -24,7 +24,7 @@ const increasePageNumber = url => {
     const paginations = [...document.querySelectorAll(".pagination")]
     for (const pagination of paginations) {
         const next = pagination.querySelector("*[rel=next]")
-        if (next && next.href) {
+        if (next?.href) {
             window.location = next.href
             return
         }
@@ -36,7 +36,7 @@ const decreasePageNumber = url => {
     const paginations = [...document.querySelectorAll(".pagination")]
     for (const pagination of paginations) {
         const prev = pagination.querySelector("*[rel=prev]")
-        if (prev && prev.href) {
+        if (prev?.href) {
             window.location = prev.href
             return
         }
@@ -87,7 +87,7 @@ const movePageNumberNaive = (movement, url) => {
 }
 
 const blur = () => {
-    if (document.activeElement && document.activeElement.blur) {
+    if (document.activeElement?.blur) {
         document.activeElement.blur()
     }
 }

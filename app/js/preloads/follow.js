@@ -60,7 +60,7 @@ ipcRenderer.on("focus-first-text-input", () => {
             - Math.floor(el2.y) || el1.x - el2.x)[0]
         const element = document.elementFromPoint(
             pos.x + pos.width / 2, pos.y + pos.height / 2)
-        if (element && element.click && element.focus) {
+        if (element?.click && element?.focus) {
             ipcRenderer.sendToHost("switch-to-insert")
             element.click()
             element.focus()
