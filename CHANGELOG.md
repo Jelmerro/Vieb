@@ -48,6 +48,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Typo in the "storenewvisits" setting (there will be no automatic migration from the name with a typo to the correct one)
 - Pointer not updating the location when brining back the GUI while in fullscreen
+- Permission for media devices sometimes being detected as a microphone permission
 
 ### Deprecated
 

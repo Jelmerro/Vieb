@@ -186,8 +186,7 @@ if (nextArgDataFolder) {
     app.exit(1)
 }
 app.setName("Vieb")
-datafolder = datafolder && datafolder.trim
-    && path.resolve(expandPath(datafolder.trim()))
+datafolder = `${path.resolve(expandPath(datafolder.trim()))}/`
 if (erwic) {
     if (!datafolder) {
         console.log("Datafolder must be specified if using an Erwic config")
@@ -291,7 +290,7 @@ app.on("ready", () => {
             mainWindow.webContents.send("urls", newUrls)
         })
     } else {
-        console.log(`Sending urls to running instance of ${app.getName()}`)
+        console.log(`Sending urls to existing instance in ${datafolder}`)
         app.exit(0)
     }
     // Init mainWindow
@@ -723,10 +722,12 @@ const writeDownloadsToFile = () => {
 }
 const permissionHandler = (_, permission, callback, details) => {
     if (permission === "media") {
-        if (details.mediaTypes && details.mediaTypes.includes("video")) {
+        if (details.mediaTypes?.includes("video")) {
             permission = "camera"
-        } else {
+        } else if (details.mediaTypes?.includes("audio")) {
             permission = "microphone"
+        } else {
+            permission = "mediadevices"
         }
     }
     const permissionName = `permission${permission.toLowerCase()}`
