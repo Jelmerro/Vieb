@@ -4,6 +4,11 @@
   "version": "3.0.0-dev",
   "description": "Vim Inspired Electron Browser",
   "main": "app/index.js",
+  "babel": {
+    "plugins": [
+      "@babel/plugin-proposal-optional-chaining"
+    ]
+  },
   "scripts": {
     "test": "jest -u && eslint .",
     "start": "electron app",
@@ -24,6 +29,7 @@
   "email": "Jelmerro@users.noreply.github.com",
   "license": "GPL-3.0+",
   "devDependencies": {
+    "@babel/plugin-proposal-optional-chaining": "^7.12.1",
     "electron": "^11.0.0-beta.12",
     "electron-builder": "^22.9.1",
     "eslint": "^7.11.0",
