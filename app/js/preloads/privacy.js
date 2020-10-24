@@ -81,8 +81,7 @@ try {
                             ipcRenderer.sendToHost("notify",
                                 `Automatic rule for permissionmediadevices `
                                 + `activated at ${window.location.href} which `
-                                + `was ${type.replace("permissions", "")}ed`,
-                                "perm")
+                                + `was ${type}ed`, "perm")
                             return mediaDeviceList(type)
                         }
                     }

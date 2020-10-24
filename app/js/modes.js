@@ -42,7 +42,7 @@ const modes = {
             document.getElementById("url").value = ""
             COMMANDHISTORY.resetPosition()
         },
-        "onLeave": () => SUGGEST.cancelSuggestions()
+        "onLeave": () => SUGGEST.emptySuggestions()
     },
     "search": {
         "fg": "#ff3",
@@ -56,10 +56,7 @@ const modes = {
             TABS.updateUrl(TABS.currentPage(), true)
             document.getElementById("url").select()
         },
-        "onLeave": () => {
-            SUGGEST.cancelSuggestions()
-            document.getElementById("url").className = ""
-        }
+        "onLeave": () => SUGGEST.emptySuggestions()
     },
     "follow": {
         "fg": "#f3f",

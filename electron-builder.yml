@@ -32,6 +32,10 @@ linux:
       arch:
         - x64
         - arm64
+  extraFiles:
+    - filter:
+        - README.md
+        - LICENSE
 rpm:
   fpm:
     - --rpm-rpmbuild-define=_build_id_links none
@@ -54,6 +58,10 @@ win:
     - target: zip
       arch:
         - arm64
+  extraFiles:
+    - filter:
+        - README.md
+        - LICENSE
 nsis:
   oneClick: false
   license: LICENSE
@@ -65,7 +73,3 @@ protocols:
       - http
       - https
 copyright: Copyright @ Jelmer van Arnhem | Licensed as free software (GPL-3.0+)
-extraFiles:
-  - filter:
-      - README.md
-      - LICENSE

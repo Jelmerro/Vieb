@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND INPUT MODES PAGELAYOUT SESSIONS TABS UTIL */
+/* global COMMAND INPUT MODES PAGELAYOUT POINTER SESSIONS TABS UTIL */
 "use strict"
 
 const path = require("path")
@@ -29,9 +29,16 @@ const defaultSettings = {
     "cleardownloadsonquit": false,
     "clearhistoryonquit": false,
     "clearlocalstorageonquit": false,
-    "containertabs": false,
+    "closablepinnedtabs": false,
+    "containercolors": "temp\\d+~#ff0",
+    "containerkeeponreopen": true,
+    "containernewtab": "s:usecurrent",
+    "containershowname": "automatic",
+    "containersplitpage": "s:usecurrent",
+    "containerstartuppage": "main",
     "countlimit": 100,
     "darkreader": false,
+    "devtoolsposition": "vsplit",
     "downloadmethod": "automatic",
     "downloadpath": "~/Downloads/",
     "favicons": "session",
@@ -66,23 +73,26 @@ const defaultSettings = {
     "permissionsallowed": "",
     "permissionsblocked": "",
     "permissionunknown": "block",
-    "redirects": "https?://(www\\.)?google\\.com(\\.\\w+)?/amp/s/amp\\.(.*)~https://$3",
+    "redirects": "https?://(www\\.)?google\\.com(\\.\\w+)?/amp/s/amp\\.(.*)"
+        + "~https://$3",
     "redirecttohttp": false,
     "requesttimeout": 20000,
     "restoretabs": true,
     "restorewindowmaximize": true,
     "restorewindowposition": true,
     "restorewindowsize": true,
-    "search": "https://duckduckgo.com/?kae=d&q=",
+    "search": "https://duckduckgo.com/?kae=d&kav=1&ko=1&q=%s&ia=web",
     "showcmd": true,
     "spell": true,
     "spelllang": "system",
     "splitbelow": false,
     "splitright": false,
     "startuppages": "",
-    "storenewvisists": true,
-    "suggestcommands": 20,
-    "suggesthistory": 20,
+    "storenewvisits": true,
+    "suggestcommands": 1000,
+    "suggestfiles": "all",
+    "suggestfilesfirst": false,
+    "suggestexplore": 20,
     "suggesttopsites": 10,
     "tabcycle": true,
     "tabnexttocurrent": true,
@@ -95,6 +105,7 @@ const defaultSettings = {
 let allSettings = {}
 const freeText = ["downloadpath", "search", "vimcommand"]
 const listLike = [
+    "containercolors",
     "favoritepages",
     "permissionsallowed",
     "permissionsblocked",
@@ -104,6 +115,8 @@ const listLike = [
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
     "cache": ["none", "clearonquit", "full"],
+    "containershowname": ["automatic", "always", "never"],
+    "devtoolsposition": ["window", "split", "vsplit", "tab"],
     "downloadmethod": ["automatic", "confirm", "ask", "block"],
     "favicons": [
         "disabled", "nocache", "session", "1day", "5day", "30day", "forever"
@@ -127,6 +140,7 @@ const validOptions = {
     "permissionopenexternal": ["block", "ask", "allow"],
     "permissionpointerlock": ["block", "ask", "allow"],
     "permissionunknown": ["block", "ask", "allow"],
+    "suggestfiles": ["none", "commands", "explore", "all"],
     "windowtitle": ["simple", "title", "url", "full"]
 }
 const numberRanges = {
@@ -137,8 +151,8 @@ const numberRanges = {
     "mintabwidth": [0, 10000],
     "notificationduration": [0, 30000],
     "requesttimeout": [0, 300000],
-    "suggestcommands": [0, 100],
-    "suggesthistory": [0, 100],
+    "suggestcommands": [0, 1000],
+    "suggestexplore": [0, 1000],
     "suggesttopsites": [0, 1000],
     "timeoutlen": [0, 10000]
 }
@@ -151,6 +165,9 @@ const downloadSettings = [
     "downloadpath",
     "cleardownloadsonquit",
     "cleardownloadsoncompleted"
+]
+const containerSettings = [
+    "containernewtab", "containersplitpage", "containerstartuppage"
 ]
 
 const init = () => {
@@ -206,19 +223,73 @@ const checkOther = (setting, value) => {
                 "warn")
             return false
         }
-        return true
+    }
+    if (containerSettings.includes(setting)) {
+        const specialNames = ["s:usematching", "s:usecurrent"]
+        if (setting !== "containersplitpage") {
+            specialNames.push("s:replacematching", "s:replacecurrent")
+        }
+        if (setting === "containernewtab") {
+            specialNames.push("s:external")
+        }
+        if (value.startsWith("s:")) {
+            if (specialNames.includes(value)) {
+                return true
+            }
+            const lastName = specialNames.pop()
+            const text = `'${specialNames.join("', '")}' or '${lastName}'`
+            UTIL.notify(
+                `Special container name for '${setting}' can only be one of:`
+                + ` ${text}`, "warn")
+            return false
+        }
+        if (value.replace("%n", "valid").match(/[^A-Za-z0-9_]/g)) {
+            UTIL.notify(
+                "Only letters, numbers and undercores can appear in the name "
+                + `of a container, invalid ${setting}: ${value}`, "warn")
+            return false
+        }
+    }
+    if (setting === "containercolors") {
+        for (const colorMatch of value.split(",")) {
+            if (!colorMatch.trim()) {
+                continue
+            }
+            if ((colorMatch.match(/~/g) || []).length === 0) {
+                UTIL.notify(`Invalid ${setting} entry: ${colorMatch}\n`
+                    + "Entries must have exactly one ~ to separate the "
+                    + "name regular expression and color name/hex", "warn")
+                return false
+            }
+            const [match, color] = colorMatch.split("~")
+            try {
+                RegExp(match)
+            } catch (e) {
+                UTIL.notify(
+                    `Invalid regular expression in containercolors: ${match}`,
+                    "warn")
+                return false
+            }
+            const style = document.createElement("div").style
+            style.color = "white"
+            style.color = color
+            if (style.color === "white" && color !== "white" || !color) {
+                UTIL.notify("Invalid color, must be a valid color name or hex"
+                    + `, not: ${color}`, "warn")
+                return false
+            }
+        }
     }
     if (setting === "downloadpath") {
         const expandedPath = UTIL.expandPath(value)
-        if (UTIL.pathExists(expandedPath)) {
-            if (UTIL.isDir(expandedPath)) {
-                return true
-            }
+        if (!UTIL.pathExists(expandedPath)) {
+            UTIL.notify("The download path does not exist", "warn")
+            return false
+        }
+        if (!UTIL.isDir(expandedPath)) {
             UTIL.notify("The download path is not a directory", "warn")
             return false
         }
-        UTIL.notify("The download path does not exist", "warn")
-        return false
     }
     const permissionSettings = ["permissionsallowed", "permissionsblocked"]
     if (permissionSettings.includes(setting)) {
@@ -229,7 +300,7 @@ const checkOther = (setting, value) => {
             if ((override.match(/~/g) || []).length === 0) {
                 UTIL.notify(`Invalid ${setting} entry: ${override}\n`
                     + "Entries must have at least one ~ to separate the "
-                    + "regular expression and the permission names", "warn")
+                    + "domain regular expression and permission names", "warn")
                 return false
             }
             const [match, ...names] = override.split("~")
@@ -319,6 +390,34 @@ const isValidSetting = (setting, value) => {
     return checkOther(setting, value)
 }
 
+const updateContainerSettings = (full = true) => {
+    if (full) {
+        for (const page of TABS.listPages()) {
+            const color = get("containercolors").split(",").find(
+                c => page.getAttribute("container").match(c.split("~")[0]))
+            if (color) {
+                TABS.tabOrPageMatching(page).style.color = color.split("~")[1]
+            }
+        }
+    }
+    const container = TABS.currentPage().getAttribute("container")
+    const color = get("containercolors").split(",").find(
+        c => container.match(c.split("~")[0]))
+    const show = get("containershowname")
+    if (container === "main" && show === "automatic" || show === "never") {
+        document.getElementById("containername").style.display = "none"
+    } else {
+        document.getElementById("containername").textContent = container
+        if (color) {
+            document.getElementById("containername")
+                .style.color = color.split("~")[1]
+        } else {
+            document.getElementById("containername").style.color = null
+        }
+        document.getElementById("containername").style.display = null
+    }
+}
+
 const updateFontSize = () => {
     document.body.style.fontSize = `${get("fontsize")}px`
     TABS.listPages().forEach(p => {
@@ -388,6 +487,9 @@ const updateGuiVisibility = () => {
         }
     }
     setTimeout(PAGELAYOUT.applyLayout, 1)
+    if (MODES.currentMode() === "pointer") {
+        POINTER.updateElement()
+    }
 }
 
 
@@ -490,6 +592,8 @@ const suggestionList = () => {
 const loadFromDisk = () => {
     allSettings = JSON.parse(JSON.stringify(defaultSettings))
     if (UTIL.isFile(path.join(UTIL.appData(), "erwicmode"))) {
+        set("containernewtab", "s:external")
+        set("containerstartuppage", "s:usematching")
         set("permissioncamera", "allow")
         set("permissionnotifications", "allow")
         set("permissionmediadevices", "allowfull")
@@ -549,6 +653,9 @@ const set = (setting, value) => {
             } else {
                 SESSIONS.enableAdblocker()
             }
+        }
+        if (setting === "containercolors" || setting === "containershowname") {
+            updateContainerSettings()
         }
         if (setting === "firefoxmode") {
             if (value === "always") {
@@ -633,6 +740,15 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
         typeLabel = "Boolean flag"
         allowedValues = "true,false"
     }
+    if (setting === "containernewtab") {
+        allowedValues = "see description"
+    }
+    if (setting === "containersplitpage") {
+        allowedValues = "see description"
+    }
+    if (setting === "containerstartuppage") {
+        allowedValues = "see description"
+    }
     if (setting === "downloadpath") {
         allowedValues = "any directory on disk"
     }
@@ -711,6 +827,7 @@ module.exports = {
     init,
     freeText,
     listLike,
+    updateContainerSettings,
     suggestionList,
     loadFromDisk,
     get,

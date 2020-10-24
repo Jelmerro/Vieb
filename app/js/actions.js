@@ -83,8 +83,10 @@ const nextSearchMatch = () => {
 
 const reload = () => {
     if (!TABS.currentPage().isCrashed()) {
-        TABS.currentPage().reload()
-        TABS.resetTabInfo(TABS.currentPage())
+        if (!TABS.currentPage().src.startsWith("devtools://")) {
+            TABS.currentPage().reload()
+            TABS.resetTabInfo(TABS.currentPage())
+        }
     }
 }
 
@@ -110,9 +112,11 @@ const scrollBottom = () => TABS.currentPage().send("action", "scrollBottom")
 
 const backInHistory = () => {
     if (TABS.currentPage().canGoBack()) {
-        TABS.currentTab().querySelector("span").textContent = ""
-        TABS.currentPage().goBack()
-        TABS.resetTabInfo(TABS.currentPage())
+        if (!TABS.currentPage().src.startsWith("devtools://")) {
+            TABS.currentTab().querySelector("span").textContent = ""
+            TABS.currentPage().goBack()
+            TABS.resetTabInfo(TABS.currentPage())
+        }
     }
 }
 
@@ -120,9 +124,11 @@ const openNewTabAtAlternativePosition = () => TABS.addTab({"inverted": true})
 
 const forwardInHistory = () => {
     if (TABS.currentPage().canGoForward()) {
-        TABS.currentTab().querySelector("span").textContent = ""
-        TABS.currentPage().goForward()
-        TABS.resetTabInfo(TABS.currentPage())
+        if (!TABS.currentPage().src.startsWith("devtools://")) {
+            TABS.currentTab().querySelector("span").textContent = ""
+            TABS.currentPage().goForward()
+            TABS.resetTabInfo(TABS.currentPage())
+        }
     }
 }
 
@@ -138,8 +144,10 @@ const previousSearchMatch = () => {
 
 const reloadWithoutCache = () => {
     if (!TABS.currentPage().isCrashed()) {
-        TABS.currentPage().reloadIgnoringCache()
-        TABS.resetTabInfo(TABS.currentPage())
+        if (!TABS.currentPage().src.startsWith("devtools://")) {
+            TABS.currentPage().reloadIgnoringCache()
+            TABS.resetTabInfo(TABS.currentPage())
+        }
     }
 }
 
@@ -162,7 +170,13 @@ const toCommandMode = () => MODES.setMode("command")
 
 const scrollPageUp = () => TABS.currentPage().send("action", "scrollPageUp")
 
-const stopLoadingPage = () => TABS.currentPage().stop()
+const stopLoadingPage = () => {
+    try {
+        TABS.currentPage().stop()
+    } catch (__) {
+        // Webview might be destroyed or unavailable, no issue
+    }
+}
 
 const scrollPageDownHalf = () => {
     TABS.currentPage().send("action", "scrollPageDownHalf")
@@ -274,21 +288,13 @@ const toTopSplitWindow = () => PAGELAYOUT.moveFocus("top")
 
 const toRightSplitWindow = () => PAGELAYOUT.moveFocus("right")
 
-const increaseHeightSplitWindow = () => {
-    PAGELAYOUT.resize("ver", "grow")
-}
+const increaseHeightSplitWindow = () => PAGELAYOUT.resize("ver", "grow")
 
-const decreaseHeightSplitWindow = () => {
-    PAGELAYOUT.resize("ver", "shrink")
-}
+const decreaseHeightSplitWindow = () => PAGELAYOUT.resize("ver", "shrink")
 
-const increaseWidthSplitWindow = () => {
-    PAGELAYOUT.resize("hor", "grow")
-}
+const increaseWidthSplitWindow = () => PAGELAYOUT.resize("hor", "grow")
 
-const decreaseWidthSplitWindow = () => {
-    PAGELAYOUT.resize("hor", "shrink")
-}
+const decreaseWidthSplitWindow = () => PAGELAYOUT.resize("hor", "shrink")
 
 const distrubuteSpaceSplitWindow = () => PAGELAYOUT.resetResizing()
 
@@ -343,22 +349,6 @@ const setFocusCorrectly = () => {
         urlElement.blur()
         window.focus()
         document.getElementById("invisible-overlay").focus()
-    }
-    if (MODES.currentMode() === "explore") {
-        const local = UTIL.expandPath(urlElement.value.trim())
-        if (urlElement.value.trim() === "") {
-            urlElement.className = ""
-        } else if (document.querySelector("#suggest-dropdown div.selected")) {
-            urlElement.className = "suggest"
-        } else if (urlElement.value.startsWith("file://")) {
-            urlElement.className = "file"
-        } else if (UTIL.isUrl(urlElement.value.trim())) {
-            urlElement.className = "url"
-        } else if (path.isAbsolute(local) && UTIL.pathExists(local)) {
-            urlElement.className = "file"
-        } else {
-            urlElement.className = "search"
-        }
     }
 }
 

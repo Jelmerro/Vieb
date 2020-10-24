@@ -156,7 +156,7 @@ const specialPagePath = (page, section = null, skipExistCheck = false) => {
 }
 
 const pathToSpecialPageName = urlPath => {
-    if (urlPath?.startsWith(`${appName()}://`)) {
+    if (urlPath?.startsWith?.(`${appName()}://`)) {
         const parts = urlPath.replace(`${appName()}://`, "").split("#")
         let name = parts[0]
         if (!specialPages.includes(name)) {
@@ -164,7 +164,7 @@ const pathToSpecialPageName = urlPath => {
         }
         return {"name": name, "section": parts.slice(1).join("#") || ""}
     }
-    if (urlPath?.startsWith("file://")) {
+    if (urlPath?.startsWith?.("file://")) {
         for (const page of specialPages) {
             const specialPage = specialPagePath(page).replace(/^file:\/*/g, "")
             const normalizedUrl = path.posix.normalize(
@@ -197,9 +197,9 @@ const globDelete = folder => {
     }
 }
 
-const clearContainerTabs = () => {
+const clearTempContainers = () => {
     document.getElementById("pages").innerHTML = ""
-    globDelete("Partitions/container*")
+    globDelete("Partitions/temp*")
     globDelete("erwicmode")
 }
 
@@ -321,20 +321,24 @@ const deleteFile = (loc, err = null) => {
 
 const stringToUrl = location => {
     const specialPage = pathToSpecialPageName(location)
-    const local = expandPath(location)
     if (specialPage.name) {
         return specialPagePath(specialPage.name, specialPage.section)
     }
     if (hasProtocol(location)) {
         return location
     }
+    const local = expandPath(location)
     if (isDir(local) || isFile(local)) {
         return `file:/${local}`.replace(/^file:\/*/, "file:///")
     }
     if (isUrl(location)) {
         return `https://${location}`
     }
-    return SETTINGS.get("search") + encodeURIComponent(location)
+    const search = SETTINGS.get("search")
+    if (search.includes("%s")) {
+        return search.replace(/%s/g, encodeURIComponent(location))
+    }
+    return search + encodeURIComponent(location)
 }
 
 const urlToString = url => {
@@ -384,13 +388,23 @@ const firefoxUseragent = () => {
     return `Mozilla/5.0 (${sys}; rv:${ver}) Gecko/20100101 Firefox/${ver}`
 }
 
+const sameDomain = (d1, d2) => {
+    const e1 = document.createElement("a")
+    e1.setAttribute("href", d1)
+    const e2 = document.createElement("a")
+    e2.setAttribute("href", d2)
+    const h1 = e1.hostname.replace(/^www\./, "")
+    const h2 = e2.hostname.replace(/^www\./, "")
+    return d1 && d2 && h1 && h2 && h1 === h2
+}
+
 module.exports = {
     hasProtocol,
     isUrl,
     notify,
     specialPagePath,
     pathToSpecialPageName,
-    clearContainerTabs,
+    clearTempContainers,
     clearCache,
     clearCookies,
     clearLocalStorage,
@@ -412,5 +426,6 @@ module.exports = {
     appIcon,
     appName,
     appData,
-    firefoxUseragent
+    firefoxUseragent,
+    sameDomain
 }
