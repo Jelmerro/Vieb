@@ -212,6 +212,9 @@ const addTab = options => {
     if (options.url?.startsWith("devtools://")) {
         return
     }
+    if (options.url === "about:blank") {
+        return
+    }
     let currentPageId = null
     let currentPageLinkId = null
     let devtoolsOpen = false
@@ -570,6 +573,11 @@ const addWebviewListeners = webview => {
     webview.addEventListener("crashed", () => {
         tabOrPageMatching(webview).classList.add("crashed")
     })
+    webview.addEventListener("close", () => {
+        if (SETTINGS.get("permissionclosepage") === "allow") {
+            closeTab(listTabs().indexOf(tabOrPageMatching(webview)))
+        }
+    })
     webview.addEventListener("media-started-playing", () => {
         const tab = tabOrPageMatching(webview)
         const counter = Number(tab.getAttribute("media-playing")) || 0
@@ -704,8 +712,6 @@ const addWebviewListeners = webview => {
     webview.addEventListener("new-window", e => {
         if (e.disposition === "save-to-disk") {
             currentPage().downloadURL(e.url)
-        } else if (e.disposition === "foreground-tab") {
-            navigateTo(e.url)
         } else {
             addTab({
                 "url": e.url, "switchTo": SETTINGS.get("mousenewtabswitch")

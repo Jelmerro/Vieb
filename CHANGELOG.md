@@ -16,9 +16,9 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Local file suggestions to explore mode and to relevant commands
-- New 'suggestfiles' setting to control when/if file suggestions should appear ('all' by default)
-- Setting to control if file suggestions should appear before/after history in explore mode: suggestfilesfirst
 - Red border in command mode when the entered command is invalid (for example due to unmatched quotes)
+- Setting 'suggestfiles' setting to control when/if file suggestions should appear ('all' by default)
+- Setting "suggestfilesfirst" to control if file suggestions should appear before/after history in explore mode
 - Setting "closablepinnedtabs" which is disabled by default (meaning pinned tabs can't be closed)
 - Setting "containernewtab" to control which container all new tabs should use (default is still "main")
 - Setting "containersplitpage" to control which container all split pages should use (default is "s:usecurrent")
@@ -26,6 +26,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "containercolors" to show container tabs in a custom color based on the container name
 - Setting "containershowname" to optionally show the name of the container between the mode and url in the navbar
 - Setting "containerkeeponreopen" to toggle the remembering the container name and to use the "containernewtab" setting instead
+- Setting "permissionclosepage" to control if pages are allowed to close themselves (previously they couldn't, new default is allowed)
 - Special container names to open tabs externally, in tabs with a matching domain, or use the same container as the current tab
 - Support for SVG favicons by giving it an explicit ".svg" extension if detected by "is-svg"
 - Devtools that can be opened as a split window or in a separate tab, in addition to the existing windowed developer tools
@@ -43,6 +44,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Multiple tabs of the same special page can now be opened using the commands, as some of them are container specific
 - The startup argument "--portable" has been replaced with "--datafolder", use "--datafolder ./ViebData" for old functionality
 - Erwic now uses the "datafolder" startup argument instead of a JSON field for the datafolder location configuration
+- Open all requested new windows in a new tab unconditionally (previously some of them were opened in the current tab)
 
 ### Fixed
 
