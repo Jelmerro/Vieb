@@ -131,12 +131,14 @@ urlTests.forEach(urlTest => {
 const specialPagesToFilenames = [
     {
         "arguments": ["help"],
-        "response": `file://${path.resolve(`${__dirname}/../pages/help.html`)}`,
+        "response": `file://${path.resolve(`${
+            __dirname}/../pages/help.html`)}`,
         "reason": "Expect basic conversion to work"
     },
     {
         "arguments": ["test", null, false],
-        "response": `file://${path.resolve(`${__dirname}/../pages/help.html`)}`,
+        "response": `file://${path.resolve(`${
+            __dirname}/../pages/help.html`)}`,
         "reason": "Expect to give help page"
     },
     {
@@ -147,7 +149,8 @@ const specialPagesToFilenames = [
     },
     {
         "arguments": ["help", "test", true],
-        "response": `file://${path.resolve(`${__dirname}/../pages/help.html#test`)}`,
+        "response": `file://${path.resolve(`${
+            __dirname}/../pages/help.html#test`)}`,
         "reason": "Expect basic conversion to work"
     }
 ]
@@ -156,6 +159,5 @@ specialPagesToFilenames.forEach(specialPageTest => {
     ${specialPageTest.reason}`, () => {
         expect(UTIL.specialPagePath(...specialPageTest.arguments))
             .toBe(specialPageTest.response)
-        console.log(__dirname)
     })
 })
