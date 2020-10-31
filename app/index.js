@@ -1017,3 +1017,6 @@ ipcMain.on("app-name", e => {
 ipcMain.on("is-fullscreen", e => {
     e.returnValue = mainWindow.fullScreen
 })
+ipcMain.on("relaunch", () => {
+    app.relaunch()
+})
