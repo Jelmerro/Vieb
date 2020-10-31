@@ -35,8 +35,9 @@ and if desired, these differences can be changed (back) with the viebrc in the d
 
 Configuration for this is is done with a settings JSON file.
 You can open a config file with Vieb using the "--erwic" option.
-The "--datafolder" startup argument is required if you specify an Erwic config file.
-Below is an example of how to make a fixed instance for Discord and Slack named "Erwic".
+It is recommended to add the "--datafolder" startup argument as well,
+as you can only open one instance of Erwic per datafolder.
+Below is an example config of how to make a fixed instance for Discord and Slack named "Erwic".
 
 ```json
 {

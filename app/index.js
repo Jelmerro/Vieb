@@ -187,12 +187,13 @@ if (nextArgDataFolder) {
 }
 app.setName("Vieb")
 datafolder = `${path.resolve(expandPath(datafolder.trim()))}/`
+app.setPath("appData", datafolder)
+app.setPath("userData", datafolder)
+if (showInternalConsole && enableDebugMode) {
+    console.log("The --debug argument always opens the internal console")
+}
+applyDevtoolsSettings(path.join(datafolder, "Preferences"))
 if (erwic) {
-    if (!datafolder) {
-        console.log("Datafolder must be specified if using an Erwic config")
-        printUsage()
-        app.exit(1)
-    }
     let config = null
     try {
         config = JSON.parse(fs.readFileSync(erwic).toString())
@@ -213,11 +214,6 @@ if (erwic) {
             config.icon = null
         }
         customIcon = config.icon
-    }
-    if (!datafolder) {
-        console.log("Erwic config file requires a 'datafolder' location field")
-        printUsage()
-        app.exit(1)
     }
     fs.writeFileSync(path.join(datafolder, "erwicmode"), "")
     if (!Array.isArray(config.apps)) {
@@ -252,12 +248,6 @@ if (erwic) {
     }
     urls.push(...config.apps)
 }
-app.setPath("appData", datafolder)
-app.setPath("userData", datafolder)
-if (showInternalConsole && enableDebugMode) {
-    console.log("The --debug argument always opens the internal console")
-}
-applyDevtoolsSettings(path.join(app.getPath("appData"), "Preferences"))
 
 // When the app is ready to start, open the main window
 let mainWindow = null
