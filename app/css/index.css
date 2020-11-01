@@ -45,7 +45,8 @@ img {height: 1.5em;width: 1.5em;min-height: 1.5em;min-width: 1.5em;pointer-event
 #tabs.wrap .spacer {display: inline-block;}
 /* pages */
 #page-container, #current-page, .visible-page {display: flex;flex: 1;height: 100%;width: 100%;}
-#pages.multiple #current-page {border: solid .15em #f90;box-sizing: border-box;}
+#pages.multiple webview {border: solid .15em #333;box-sizing: border-box;}
+#pages.multiple #current-page {border-color: #f90;}
 webview {pointer-events: none;position: fixed;display: none;}
 #pagelayout {display: flex;height: 100%;width: 100%;}
 #pagelayout * {flex: 1;}
