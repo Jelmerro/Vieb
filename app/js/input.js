@@ -379,7 +379,7 @@ const toIdentifier = e => {
         }
     })
     if (e.ctrlKey || e.shiftKey || e.metaKey || e.altKey) {
-        if (e.shiftKey && e.key.length > 1) {
+        if (e.shiftKey && (e.key.length > 1 || e.key === " ")) {
             keyCode = `S-${keyCode}`
         }
         if (e.altKey) {
