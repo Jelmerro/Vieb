@@ -304,6 +304,13 @@ const toggleFullscreen = () => {
     })
 }
 
+const incrementalSearch = () => {
+    currentSearch = document.getElementById("url").value
+    TABS.currentPage().findInPage(currentSearch, {
+        "matchCase": !SETTINGS.get("ignorecase")
+    })
+}
+
 const useEnteredData = () => {
     if (MODES.currentMode() === "command") {
         const command = document.getElementById("url").value.trim()
@@ -405,6 +412,7 @@ module.exports = {
     decreaseWidthSplitWindow,
     distrubuteSpaceSplitWindow,
     emptySearch,
+    incrementalSearch,
     clickOnSearch,
     nextSearchMatch,
     previousSearchMatch,

@@ -279,6 +279,10 @@ const init = () => {
             SUGGEST.suggestExplore(document.getElementById("url").value)
         } else if (MODES.currentMode() === "command") {
             SUGGEST.suggestCommand(document.getElementById("url").value)
+        } else if (MODES.currentMode() === "search") {
+            if (SETTINGS.get("incsearch")) {
+                ACTIONS.incrementalSearch()
+            }
         }
     })
     ipcRenderer.on("insert-mode-input-event", (_, input) => {
@@ -330,6 +334,7 @@ const init = () => {
     ACTIONS.setFocusCorrectly()
     const unSupportedActions = [
         "action.setFocusCorrectly",
+        "action.incrementalSearch",
         "pointer.move",
         "pointer.handleScrollDiffEvent",
         "pointer.updateElement",
