@@ -123,7 +123,7 @@
         <ul>
             <li><span class="command-block">:reload</span> - Reload all viebrc commands</li>
         </ul>
-        This command will reload the <a href="#viebrc">viebrc</a> files, in order. This is not the same as resetting all settings to Vieb's default, which can be done with <span class="command-block">:set all&amp;</span>. Both the reload and set command only modify the settings for the current session, unless the changes are written back to the viebrc with the <a href="#:mkviebrc">:mkviebrc</a> command. The reload command does not undo custom settings, mappings and commands, but does overwrite them if they are defined in the viebrc. Settings that have been changed using the set command at runtime that are not changed in the viebrc will therefor not be changed when running this command. To reset to the startup state without actually restarting Vieb:
+        This command will reload the <a href="#viebrc">viebrc</a> files, in order. This is not the same as resetting all settings to Vieb's default, which can be done with <span class="command-block">:set all&amp;</span>. Both the reload and set command only modify the settings for the current session, unless the changes are written back to the viebrc with the <a href="#:mkviebrc">:mkviebrc</a> command. The reload command does not undo custom settings, mappings and commands, but does overwrite them if they are defined in the viebrc. Settings that have been changed using the set command at runtime that are not changed in the viebrc will therefore not be changed when running this command. To reset to the startup state without actually restarting Vieb (which you can do using the <a href="#:restart">:restart</a> command):
         <ul>
             <li>Remove all custom mappings with <span class="command-block">:mapclear</span></li>
             <li>Reset all settings with <span class="command-block">:set all&amp;</span></li>
@@ -131,6 +131,12 @@
             <li>Finally run the <span class="command-block">:reload</span> command to run all viebrc commands</li>
         </ul>
         Of course it's also possible to make a mapping or custom command to do this for you.
+        <h3 id=":restart">:restart</h3>
+        Examples
+        <ul>
+            <li><span class="command-block">:restart</span> - Restart Vieb</li>
+        </ul>
+        This command will restart Vieb.  It is functionally equivalent to running the <a href="#:quitall">:quitall</a> command and then starting Vieb again.
         <h3 id=":mkviebrc">:mkviebrc</h3>
         Examples
         <ul>
