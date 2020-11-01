@@ -27,6 +27,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "containershowname" to optionally show the name of the container between the mode and url in the navbar
 - Setting "containerkeeponreopen" to toggle the remembering the container name and to use the "containernewtab" setting instead
 - Setting "permissionclosepage" to control if pages are allowed to close themselves (previously they couldn't, new default is allowed)
+- Setting "incsearch" to enable incremental search (enabled by default)
 - Special container names to open tabs externally, in tabs with a matching domain, or use the same container as the current tab
 - Support for SVG favicons by giving it an explicit ".svg" extension if detected by "is-svg"
 - Devtools that can be opened as a split window or in a separate tab, in addition to the existing windowed developer tools

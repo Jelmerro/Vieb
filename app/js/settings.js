@@ -52,6 +52,7 @@ const defaultSettings = {
     "guitabbar": "always",
     "keeprecentlyclosed": true,
     "ignorecase": false,
+    "incsearch": true,
     "maxmapdepth": 10,
     "mintabwidth": 28,
     "mouse": false,
