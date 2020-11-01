@@ -177,6 +177,11 @@ const quitall = () => {
     ipcRenderer.send("destroy-window")
 }
 
+const restart = () => {
+    ipcRenderer.send("relaunch")
+    quitall()
+}
+
 const openDevTools = (position = null, trailingArgs = false) => {
     if (trailingArgs) {
         UTIL.notify("The devtools command takes a single optional argument",
@@ -481,6 +486,7 @@ const commands = {
     "quitall": quitall,
     "devtools": openDevTools,
     "reload": reload,
+    "restart": restart,
     "v": () => openSpecialPage("version"),
     "version": () => openSpecialPage("version"),
     "h": help,
@@ -521,6 +527,7 @@ const noArgumentComands = [
     "qa",
     "quitall",
     "reload",
+    "restart",
     "v",
     "version",
     "history",
