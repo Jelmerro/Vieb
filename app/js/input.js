@@ -358,7 +358,7 @@ const keyNames = [
     {"js": ["ArrowUp"], "vim": ["Up"]},
     {"js": ["ArrowDown"], "vim": ["Down"]},
     {"js": ["Escape"], "vim": ["Esc"]},
-    {"js": [" "], "vim": ["Space"]},
+    {"js": [" "], "vim": ["Space", " "]},
     {"js": ["Delete"], "vim": ["Del"]},
     // Keys with the same names, which are listed here to detect incorrect names
     // Note: some of these are not present in Vim and use the JavaScript name
@@ -392,19 +392,17 @@ const toIdentifier = e => {
             keyCode = key.vim[0]
         }
     })
-    if (e.ctrlKey || e.shiftKey || e.metaKey || e.altKey) {
-        if (e.shiftKey && e.key.length > 1) {
-            keyCode = `S-${keyCode}`
-        }
-        if (e.altKey) {
-            keyCode = `A-${keyCode}`
-        }
-        if (e.metaKey) {
-            keyCode = `M-${keyCode}`
-        }
-        if (e.ctrlKey) {
-            keyCode = `C-${keyCode}`
-        }
+    if (e.shiftKey && keyCode.length > 1) {
+        keyCode = `S-${keyCode}`
+    }
+    if (e.altKey) {
+        keyCode = `A-${keyCode}`
+    }
+    if (e.metaKey) {
+        keyCode = `M-${keyCode}`
+    }
+    if (e.ctrlKey) {
+        keyCode = `C-${keyCode}`
     }
     if (keyCode.length > 1) {
         keyCode = `<${keyCode}>`
@@ -877,7 +875,7 @@ const sanitiseMapString = (mapString, allowSpecials = false) => mapString
             return ""
         }
         let modString = ""
-        if (key.length === 1) {
+        if (key.toLowerCase() !== key.toUpperCase() && key.length === 1) {
             if (modifiers.includes("S") && key.toLowerCase() === key) {
                 modifiers = modifiers.filter(mod => mod !== "S")
                 key = key.toUpperCase()
