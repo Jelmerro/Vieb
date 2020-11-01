@@ -317,6 +317,15 @@ const init = () => {
             executeMapString("<A-F4>", true, true)
         }
     })
+    ipcRenderer.on("app-command", (_, cmd) => {
+        if (SETTINGS.get("mouse")) {
+            if (cmd === "browser-backward") {
+                ACTIONS.backInHistory()
+            } else if (cmd === "browser-forward") {
+                ACTIONS.forwardInHistory()
+            }
+        }
+    })
     setInterval(() => ACTIONS.setFocusCorrectly(), 500)
     ACTIONS.setFocusCorrectly()
     const unSupportedActions = [
