@@ -54,9 +54,12 @@ const enableAdblocker = () => {
         for (const name of Object.keys(defaultBlocklists)) {
             const list = path.join(__dirname, `../blocklists/${name}.txt`)
             try {
-                fs.copyFileSync(list, path.join(blocklistDir, `${name}.txt`))
+                // File is read and written separately to discard permission
+                const body = fs.readFileSync(list)
+                fs.writeFileSync(path.join(blocklistDir, `${name}.txt`), body)
             } catch (e) {
-                UTIL.notify(`Failed to copy ${name}`, "err")
+                const msg = e.message || e
+                UTIL.notify(`Failed to copy ${name}:\n${msg}`, "err")
             }
         }
     }
@@ -72,15 +75,16 @@ const enableAdblocker = () => {
                             path.join(blocklistDir, `${list}.txt`), body)
                         ipcRenderer.send("adblock-enable")
                     } catch (e) {
-                        UTIL.notify(`Failed to update ${list}`, "err")
+                        const msg = e.message || e
+                        UTIL.notify(`Failed to update ${list}:\n${msg}`, "err")
                     }
                 })
                 res.on("data", chunk => {
                     body += chunk
                 })
             })
-            req.on("error", () => {
-                UTIL.notify(`Failed to update ${list}`, "err")
+            req.on("error", e => {
+                UTIL.notify(`Failed to update ${list}:\n${e.message}`, "err")
             })
             req.end()
         }

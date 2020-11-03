@@ -131,9 +131,13 @@ const useragent = () => session.defaultSession.getUserAgent()
     .replace(RegExp(`${app.getName()}/\\S* `), "")
 
 // Parse arguments
-let args = process.argv.slice(1)
-if (args[0] === "app" || args[0] === app.getAppPath()) {
-    args = args.slice(1)
+let args
+if (process.defaultApp) {
+    // argv is ["electron", "app", ...args]
+    args = process.argv.slice(2)
+} else {
+    // argv is ["vieb", ...args]
+    args = process.argv.slice(1)
 }
 const urls = []
 let enableDebugMode = false
