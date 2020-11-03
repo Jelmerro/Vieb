@@ -712,6 +712,8 @@ const addWebviewListeners = webview => {
     webview.addEventListener("new-window", e => {
         if (e.disposition === "save-to-disk") {
             currentPage().downloadURL(e.url)
+        } else if (e.disposition === "foreground-tab") {
+            navigateTo(e.url)
         } else {
             addTab({
                 "url": e.url, "switchTo": SETTINGS.get("mousenewtabswitch")
