@@ -130,15 +130,17 @@ const useragent = () => session.defaultSession.getUserAgent()
     .replace(/Electron\/\S* /, "").replace(/Vieb\/\S* /, "")
     .replace(RegExp(`${app.getName()}/\\S* `), "")
 
-// Parse arguments
-let args
-if (process.defaultApp) {
-    // argv is ["electron", "app", ...args]
-    args = process.argv.slice(2)
-} else {
-    // argv is ["vieb", ...args]
-    args = process.argv.slice(1)
+const getArguments = argv => {
+    if (process.defaultApp) {
+        // The array argv is ["electron", "app", ...args]
+        return argv.slice(2)
+    }
+    // The array argv is ["vieb", ...args]
+    return argv.slice(1)
 }
+
+// Parse arguments
+const args = getArguments(process.argv)
 const urls = []
 let enableDebugMode = false
 let showInternalConsole = false
@@ -266,10 +268,7 @@ app.on("ready", () => {
                 mainWindow.restore()
             }
             mainWindow.focus()
-            newArgs = newArgs.slice(1)
-            if (newArgs[0] === "app" || newArgs[0] === app.getAppPath()) {
-                newArgs = newArgs.slice(1)
-            }
+            newArgs = getArguments(newArgs)
             const newUrls = []
             let ignoreNextArg = false
             newArgs.forEach(arg => {
