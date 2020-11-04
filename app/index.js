@@ -857,6 +857,10 @@ ipcMain.on("download-favicon", (_, fav, location, webId, linkId, url) => {
     request.on("response", res => {
         const data = []
         res.on("end", () => {
+            if (res.statusCode !== 200) {
+                // Failed to download favicon
+                return
+            }
             const file = Buffer.concat(data)
             if (isSvg(file)) {
                 location += ".svg"
