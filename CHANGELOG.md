@@ -56,6 +56,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Modifiers being ignored when pressing certain named keys such as "Space"
 - Border of split pages moving the page slightly when switching (border is now always there but in gray)
 - Updating the adblocker files when Vieb is installed on a read-only file system
+- Favicons being accepted even though the HTTP status code was an error (such as 404)
 
 ### Deprecated
 
