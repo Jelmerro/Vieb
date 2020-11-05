@@ -131,7 +131,8 @@ const useragent = () => session.defaultSession.getUserAgent()
     .replace(RegExp(`${app.getName()}/\\S* `), "")
 
 const getArguments = argv => {
-    if (process.defaultApp) {
+    const exec = path.basename(argv[0])
+    if (exec === "electron" || (process.defaultApp && exec !== "vieb")) {
         // The array argv is ["electron", "app", ...args]
         return argv.slice(2)
     }
