@@ -392,7 +392,10 @@ const toIdentifier = e => {
             keyCode = key.vim[0]
         }
     })
-    if (e.shiftKey && keyCode.length > 1) {
+    // If the shift status can be detected by name or casing,
+    // it will not be prefixed with 'S-'.
+    const exclude = ["<", "|", "\\"]
+    if (e.shiftKey && keyCode.length > 1 && !exclude.includes(keyCode)) {
         keyCode = `S-${keyCode}`
     }
     if (e.altKey) {
