@@ -53,7 +53,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Pointer not updating the location when brining back the GUI while in fullscreen
 - Permission for media devices sometimes being detected as a microphone permission
 - Mouse back/forward buttons being ignored when the mouse setting is enabled
-- Modifiers being ignored when pressing certain named keys such as "Space"
+- Shift being ignored when pressing named keys that can be pressed with and without Shift such as "Space"
 - Border of split pages moving the page slightly when switching (border is now always there but in gray)
 - Updating the adblocker files when Vieb is installed on a read-only file system
 - Favicons being accepted even though the HTTP status code was an error (such as 404)
