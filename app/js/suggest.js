@@ -258,36 +258,6 @@ const suggestCommand = search => {
     if ("mkviebrc full".startsWith(search) && !confirm) {
         addCommand("mkviebrc full")
     }
-    // Command: buffer, hide, Vexplore, Sexplore, split and vsplit
-    const bufferCommand = [
-        "buffer", "hide", "Vexplore", "Sexplore", "split", "vsplit"
-    ].find(b => b.startsWith(command))
-    if (bufferCommand && !["h", "s", "v"].includes(command) && !confirm) {
-        const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
-        TABS.listTabs().filter(tab => {
-            if (bufferCommand === "buffer") {
-                return true
-            }
-            if (bufferCommand === "hide") {
-                return tab.classList.contains("visible-tab")
-            }
-            return !tab.classList.contains("visible-tab")
-        }).map(t => ({
-            "command": `${bufferCommand} ${TABS.listTabs().indexOf(t)}`,
-            "subtext": `${t.querySelector("span").textContent}`,
-            "url": TABS.tabOrPageMatching(t).src
-        })).filter(t => {
-            if (t.command.startsWith(search)) {
-                return true
-            }
-            const simpleTabUrl = t.url.replace(/\W/g, "").toLowerCase()
-            if (simpleTabUrl.includes(simpleSearch)) {
-                return true
-            }
-            const simpleTabTitle = t.subtext.replace(/\W/g, "").toLowerCase()
-            return simpleTabTitle.includes(simpleSearch)
-        }).forEach(t => addCommand(t.command, t.subtext))
-    }
     // Command: call
     if ("call".startsWith(command) && !confirm) {
         INPUT.listSupportedActions().filter(
@@ -334,6 +304,36 @@ const suggestCommand = search => {
         ].filter(section => `${command} ${section}`.startsWith(
             `${command} ${args.join(" ")}`.trim())
         ).forEach(section => addCommand(`help ${section}`))
+    }
+    // Command: buffer, hide, Vexplore, Sexplore, split and vsplit
+    const bufferCommand = [
+        "buffer", "hide", "Vexplore", "Sexplore", "split", "vsplit", "close"
+    ].find(b => b.startsWith(command))
+    if (bufferCommand && !confirm) {
+        const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
+        TABS.listTabs().filter(tab => {
+            if (["close", "buffer"].includes(bufferCommand)) {
+                return true
+            }
+            if (bufferCommand === "hide") {
+                return tab.classList.contains("visible-tab")
+            }
+            return !tab.classList.contains("visible-tab")
+        }).map(t => ({
+            "command": `${bufferCommand} ${TABS.listTabs().indexOf(t)}`,
+            "subtext": `${t.querySelector("span").textContent}`,
+            "url": TABS.tabOrPageMatching(t).src
+        })).filter(t => {
+            if (t.command.startsWith(search)) {
+                return true
+            }
+            const simpleTabUrl = t.url.replace(/\W/g, "").toLowerCase()
+            if (simpleTabUrl.includes(simpleSearch)) {
+                return true
+            }
+            const simpleTabTitle = t.subtext.replace(/\W/g, "").toLowerCase()
+            return simpleTabTitle.includes(simpleSearch)
+        }).forEach(t => addCommand(t.command, t.subtext))
     }
 }
 

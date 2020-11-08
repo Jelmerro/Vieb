@@ -75,6 +75,10 @@ const hide = (view, close = false) => {
             document.getElementById("pages").removeChild(view)
         }
         TABS.switchToTab(TABS.listTabs().indexOf(newTab))
+    } else if (close) {
+        document.getElementById("tabs").removeChild(
+            TABS.tabOrPageMatching(view))
+        document.getElementById("pages").removeChild(view)
     }
     applyLayout()
 }
@@ -352,6 +356,7 @@ const applyLayout = () => {
 }
 
 module.exports = {
+    layoutDivById,
     switchView,
     hide,
     add,
