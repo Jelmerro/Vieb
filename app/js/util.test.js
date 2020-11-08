@@ -17,7 +17,7 @@
 */
 /* global test expect */
 "use strict"
-
+const path = require("path")
 const UTIL = require("./util")
 const urlTests = [
     {
@@ -124,5 +124,40 @@ const urlTests = [
 urlTests.forEach(urlTest => {
     test(`Testing "${urlTest.url}": ${urlTest.reason}`, () => {
         expect(UTIL.isUrl(urlTest.url)).toBe(urlTest.valid)
+    })
+})
+
+
+const specialPagesToFilenames = [
+    {
+        "arguments": ["help"],
+        "response": `file://${path.resolve(`${
+            __dirname}/../pages/help.html`)}`,
+        "reason": "Expect basic conversion to work"
+    },
+    {
+        "arguments": ["test", null, false],
+        "response": `file://${path.resolve(`${
+            __dirname}/../pages/help.html`)}`,
+        "reason": "Expect to give help page"
+    },
+    {
+        "arguments": ["downloads"],
+        "response": `file://${path.resolve(`${
+            __dirname}/../pages/downloads.html`)}`,
+        "reason": "another filename"
+    },
+    {
+        "arguments": ["help", "test", true],
+        "response": `file://${path.resolve(`${
+            __dirname}/../pages/help.html#test`)}`,
+        "reason": "Expect basic conversion to work"
+    }
+]
+specialPagesToFilenames.forEach(specialPageTest => {
+    test(`Testing "${specialPageTest.arguments}":
+    ${specialPageTest.reason}`, () => {
+        expect(UTIL.specialPagePath(...specialPageTest.arguments))
+            .toBe(specialPageTest.response)
     })
 })

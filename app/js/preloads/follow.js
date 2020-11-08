@@ -52,7 +52,7 @@ const otherEvents = [
 ]
 let allElements = []
 
-ipcRenderer.on("focus-first-text-input", () => {
+ipcRenderer.on("focus-first-text-input", async () => {
     allElements = [...document.querySelectorAll("*")]
     const links = [...allElementsBySelectors("inputs-insert", textlikeInputs)]
     if (links.length > 0) {
@@ -62,6 +62,7 @@ ipcRenderer.on("focus-first-text-input", () => {
             pos.x + pos.width / 2, pos.y + pos.height / 2)
         if (element?.click && element?.focus) {
             ipcRenderer.sendToHost("switch-to-insert")
+            await new Promise(r => setTimeout(r, 5))
             element.click()
             element.focus()
         }
@@ -114,10 +115,14 @@ const sendFollowLinks = () => {
         || clickEvents.map(e => eventListeners[e].includes(el)).find(e => e)
         || el.getAttribute("jsaction")).forEach(
         element => addMouseEventElement(element, "onclick"))
-    allElements.filter(
-        el => otherEvents.find(e => el[`on${e}`])
-        || otherEvents.map(e => eventListeners[e].includes(el)).find(e => e))
-        .forEach(element => addMouseEventElement(element, "other"))
+    if (window.location.protocol.includes("devtools")) {
+        allElements.forEach(element => addMouseEventElement(element, "other"))
+    } else {
+        allElements.filter(
+            el => otherEvents.find(e => el[`on${e}`]) || otherEvents.map(
+                e => eventListeners[e].includes(el)).find(e => e))
+            .forEach(element => addMouseEventElement(element, "other"))
+    }
     // Send response back to webview, which will forward it to follow.js
     // Ordered by the position on the page from the top
     // Uncategorised mouse events are less relevant and are moved to the end

@@ -29,13 +29,12 @@ img {height: 1.5em;width: 1.5em;min-height: 1.5em;min-width: 1.5em;pointer-event
 #repeat-counter, #pressed-keys {margin: auto .2em;line-height: 2em;display: none;}
 /* Nav tabs */
 #tabs {display: flex;overflow: hidden;max-width: 100vw;margin-left: 4em;width: calc(100vw - 4em);}
-#tabs > span {color: #ccc;background-color: #444;display: flex;margin: 0 .1em .1em 0;flex: 1;overflow: hidden;white-space: nowrap;height: 1.9em;}
+#tabs > span {color: #eee;background-color: #444;display: flex;margin: 0 .1em .1em 0;flex: 1;overflow: hidden;white-space: nowrap;height: 1.9em;}
 #tabs > span > img {margin: auto 0 auto .25em;padding: 0;}
 #tabs > span > span {margin: auto 0 auto .25em;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
 #tabs .spacer {width: 4em;min-width: 4em;max-width: 4em;background-color: #333;margin: 0;padding: 0;display: none;}
-#tabs .visible-tab {color: #eee;background-color: #666;}
+#tabs .visible-tab {background-color: #666;}
 #tabs.multiple #current-tab {border-left: solid .3em #f90;}
-#tabs .container {color: #ff0;}
 #tabs .pinned {min-width: 1.9em !important;max-width: 1.9em;width: 1.9em;padding: 0;}
 #tabs .pinned[media-playing] {width: 2.2em;max-width: 2.2em;}
 #tabs .pinned > img {padding: 0;margin: .2em;}
@@ -46,7 +45,8 @@ img {height: 1.5em;width: 1.5em;min-height: 1.5em;min-width: 1.5em;pointer-event
 #tabs.wrap .spacer {display: inline-block;}
 /* pages */
 #page-container, #current-page, .visible-page {display: flex;flex: 1;height: 100%;width: 100%;}
-#pages.multiple #current-page {border: solid .15em #f90;box-sizing: border-box;}
+#pages.multiple webview {border: solid .15em #333;box-sizing: border-box;}
+#pages.multiple #current-page {border-color: #f90;}
 webview {pointer-events: none;position: fixed;display: none;}
 #pagelayout {display: flex;height: 100%;width: 100%;}
 #pagelayout * {flex: 1;}
@@ -69,11 +69,13 @@ body.navigationhidden #tabs {margin-left: 2em;width: calc(100vw - 2em);}
 body.navigationhidden #tabs.wrap {margin-left: 0;width: 100vw;}
 body.navigationhidden #tabs .spacer {width: 2em;min-width: 2em;max-width: 2em;}
 /* Nav url/search/command */
+#containername {display: flex;margin: auto;height: 1.8em;align-items: center;padding: 0 .5em;background: #222;color: #eee;}
 #url {display: inline-block;flex: 1;border: solid .1em #666;margin: .1em;background-color: #333;color: #eee;outline: none;font: inherit;min-width: 0;padding: .1em;width: 0;}
 #url.search {border-color: #f90;}
 #url.url {border-color: #3ff;}
 #url.suggest {border-color: #3f3;}
 #url.file {border-color: #ff9;}
+#url.invalid {border-color: #f33;}
 /* follow */
 #follow {position: fixed;display: none;z-index: 1;}
 .follow-url, .follow-inputs-click, .follow-inputs-insert, .follow-onclick, .follow-other {position: absolute;color: #111;cursor: pointer;padding: 0 .1em;}
@@ -89,7 +91,7 @@ body.navigationhidden #tabs .spacer {width: 2em;min-width: 2em;max-width: 2em;}
 .follow-onclick-border {border: solid .07em #cc5;z-index: 5;}
 .follow-other-border {border: solid .07em #aaa;z-index: 4;}
 /* suggestions */
-#suggest-dropdown {z-index: 15;position: fixed;top: 2em;left: 4em;width: calc(100vw - 4.1em);background-color: #777;}
+#suggest-dropdown {z-index: 15;position: fixed;top: 2em;left: 4em;width: calc(100vw - 4.1em);background-color: #777;max-height: calc(100vh - 2.1em);overflow-y: auto;}
 #suggest-dropdown div {display: flex;padding: .4em;margin: .2em;background-color: #444;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;pointer-events: none;}
 #suggest-dropdown div .title, #suggest-dropdown div .file, #suggest-dropdown div .url {margin: auto .5em;min-width: 0;text-overflow: ellipsis;overflow: hidden;}
 #suggest-dropdown div .title {flex-shrink: 0;max-width: 50%;}
@@ -97,6 +99,8 @@ body.navigationhidden #tabs .spacer {width: 2em;min-width: 2em;max-width: 2em;}
 #suggest-dropdown div .url {color: #bff;}
 #suggest-dropdown div .file {color: #ffb;}
 #suggest-dropdown div.selected {background-color: #666;}
+#suggest-dropdown::-webkit-scrollbar {width: .5em;background: #333;}
+#suggest-dropdown::-webkit-scrollbar-thumb {background: #999;}
 /* mouse related */
 #invisible-overlay {-webkit-app-region: drag;position: absolute;top: 0;left: 0;width: 100vw;height: 100vh;z-index: 50;}
 body.mouse webview {pointer-events: all;}
@@ -119,8 +123,8 @@ body.mouse #suggest-dropdown div:hover, #mode-suggestions div:hover, #tabs > spa
 .topright {right: .7em;top: 4.7em;}
 .topleft {left: .7em;top: 4.7em;}
 /* scrollbar for overflowing tabs */
-::-webkit-scrollbar {height: .2em;}
-::-webkit-scrollbar-thumb {background: #5ff;}
+#tabs::-webkit-scrollbar {height: .2em;}
+#tabs::-webkit-scrollbar-thumb {background: #5ff;}
 /* other */
 @keyframes pointer {0% {background: #f007;} 17% {background: #ff07;} 33% {background: #0f07;} 49% {background: #0ff7;} 66% {background: #00f7;} 83% {background: #f0f7;} 100% {background: #f007;}}
 #pointer {display: none;position: absolute;height: 1em;width: .7em;z-index: 20;backdrop-filter: invert(100%);animation: 1s infinite pointer;}

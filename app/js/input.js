@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS COMMAND POINTER FOLLOW HISTORY MODES PAGELAYOUT SETTINGS
+/* global ACTIONS COMMAND POINTER FOLLOW MODES PAGELAYOUT SETTINGS
  SUGGEST TABS UTIL */
 "use strict"
 
@@ -276,9 +276,13 @@ const init = () => {
     })
     document.getElementById("url").addEventListener("input", () => {
         if (MODES.currentMode() === "explore") {
-            HISTORY.suggestHist(document.getElementById("url").value)
+            SUGGEST.suggestExplore(document.getElementById("url").value)
         } else if (MODES.currentMode() === "command") {
             SUGGEST.suggestCommand(document.getElementById("url").value)
+        } else if (MODES.currentMode() === "search") {
+            if (SETTINGS.get("incsearch")) {
+                ACTIONS.incrementalSearch()
+            }
         }
     })
     ipcRenderer.on("insert-mode-input-event", (_, input) => {
@@ -317,10 +321,20 @@ const init = () => {
             executeMapString("<A-F4>", true, true)
         }
     })
+    ipcRenderer.on("app-command", (_, cmd) => {
+        if (SETTINGS.get("mouse")) {
+            if (cmd === "browser-backward") {
+                ACTIONS.backInHistory()
+            } else if (cmd === "browser-forward") {
+                ACTIONS.forwardInHistory()
+            }
+        }
+    })
     setInterval(() => ACTIONS.setFocusCorrectly(), 500)
     ACTIONS.setFocusCorrectly()
     const unSupportedActions = [
         "action.setFocusCorrectly",
+        "action.incrementalSearch",
         "pointer.move",
         "pointer.handleScrollDiffEvent",
         "pointer.updateElement",
@@ -344,7 +358,7 @@ const keyNames = [
     {"js": ["ArrowUp"], "vim": ["Up"]},
     {"js": ["ArrowDown"], "vim": ["Down"]},
     {"js": ["Escape"], "vim": ["Esc"]},
-    {"js": [" "], "vim": ["Space"]},
+    {"js": [" "], "vim": ["Space", " "]},
     {"js": ["Delete"], "vim": ["Del"]},
     // Keys with the same names, which are listed here to detect incorrect names
     // Note: some of these are not present in Vim and use the JavaScript name
@@ -378,19 +392,20 @@ const toIdentifier = e => {
             keyCode = key.vim[0]
         }
     })
-    if (e.ctrlKey || e.shiftKey || e.metaKey || e.altKey) {
-        if (e.shiftKey && e.key.length > 1) {
-            keyCode = `S-${keyCode}`
-        }
-        if (e.altKey) {
-            keyCode = `A-${keyCode}`
-        }
-        if (e.metaKey) {
-            keyCode = `M-${keyCode}`
-        }
-        if (e.ctrlKey) {
-            keyCode = `C-${keyCode}`
-        }
+    // If the shift status can be detected by name or casing,
+    // it will not be prefixed with 'S-'.
+    const exclude = ["<", "|", "\\"]
+    if (e.shiftKey && keyCode.length > 1 && !exclude.includes(keyCode)) {
+        keyCode = `S-${keyCode}`
+    }
+    if (e.altKey) {
+        keyCode = `A-${keyCode}`
+    }
+    if (e.metaKey) {
+        keyCode = `M-${keyCode}`
+    }
+    if (e.ctrlKey) {
+        keyCode = `C-${keyCode}`
     }
     if (keyCode.length > 1) {
         keyCode = `<${keyCode}>`
@@ -863,7 +878,7 @@ const sanitiseMapString = (mapString, allowSpecials = false) => mapString
             return ""
         }
         let modString = ""
-        if (key.length === 1) {
+        if (key.toLowerCase() !== key.toUpperCase() && key.length === 1) {
             if (modifiers.includes("S") && key.toLowerCase() === key) {
                 modifiers = modifiers.filter(mod => mod !== "S")
                 key = key.toUpperCase()

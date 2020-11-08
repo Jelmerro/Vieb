@@ -24,6 +24,7 @@ const {
 const fs = require("fs")
 const os = require("os")
 const path = require("path")
+const isSvg = require("is-svg")
 const {ElectronBlocker} = require("@cliqz/adblocker-electron")
 
 const version = process.env.npm_package_version || app.getVersion()
@@ -31,17 +32,16 @@ const printUsage = () => {
     console.log("Vieb: Vim Inspired Electron Browser\n")
     console.log("Usage: Vieb [options] <URLs>\n")
     console.log("Options:")
-    console.log(" --help         Print this help and exit")
-    console.log(" --version      Print program info with version and exit")
+    console.log(" --help             Print this help and exit")
+    console.log(" --version          Print program info with version and exit")
+    console.log(" --datafolder <dir> Store ALL Vieb data in this folder")
     console.log(
-        " --portable     Store ALL Vieb data in a relative ViebData folder")
+        " --erwic <file>     Open a fixed set of pages in a separate instance")
+    console.log("                    See 'Erwic.md' for usage and details")
     console.log(
-        " --erwic <file> Open a fixed set of pages in a separate instance")
-    console.log("                See 'Erwic.md' for usage and details")
+        " --debug            Open with Chromium and Electron debugging tools")
     console.log(
-        " --debug        Open with Chromium and Electron debugging tools")
-    console.log(
-        " --console      Open with the Vieb console (implied by --debug)")
+        " --console          Open with the Vieb console (implied by --debug)")
     console.log("\nAll arguments not starting with - will be opened as a url.")
     printLicense()
 }
@@ -130,23 +130,34 @@ const useragent = () => session.defaultSession.getUserAgent()
     .replace(/Electron\/\S* /, "").replace(/Vieb\/\S* /, "")
     .replace(RegExp(`${app.getName()}/\\S* `), "")
 
-// Parse arguments
-let args = process.argv.slice(1)
-if (args[0] === "app" || args[0] === app.getAppPath()) {
-    args = args.slice(1)
+const getArguments = argv => {
+    const exec = path.basename(argv[0])
+    if (exec === "electron" || (process.defaultApp && exec !== "vieb")) {
+        // The array argv is ["electron", "app", ...args]
+        return argv.slice(2)
+    }
+    // The array argv is ["vieb", ...args]
+    return argv.slice(1)
 }
+
+// Parse arguments
+const args = getArguments(process.argv)
 const urls = []
 let enableDebugMode = false
 let showInternalConsole = false
-let portable = false
 let nextArgErwicConfig = false
+let nextArgDataFolder = false
 let erwic = null
+let datafolder = path.join(app.getPath("appData"), "Vieb")
 let customIcon = null
 args.forEach(arg => {
     arg = arg.trim()
     if (nextArgErwicConfig) {
         erwic = arg
         nextArgErwicConfig = false
+    } else if (nextArgDataFolder) {
+        datafolder = arg
+        nextArgDataFolder = false
     } else if (arg.startsWith("--")) {
         if (arg === "--help") {
             printUsage()
@@ -154,14 +165,14 @@ args.forEach(arg => {
         } else if (arg === "--version") {
             printVersion()
             app.exit(0)
-        } else if (arg === "--portable") {
-            portable = true
         } else if (arg === "--debug") {
             enableDebugMode = true
         } else if (arg === "--console") {
             showInternalConsole = true
         } else if (arg === "--erwic") {
             nextArgErwicConfig = true
+        } else if (arg === "--datafolder") {
+            nextArgDataFolder = true
         } else {
             console.log(`Unsupported argument: ${arg}`)
             printUsage()
@@ -172,17 +183,24 @@ args.forEach(arg => {
     }
 })
 if (nextArgErwicConfig) {
-    console.log(`The 'erwic' option requires an argument`)
+    console.log(`The 'erwic' option requires a file location`)
+    printUsage()
+    app.exit(1)
+}
+if (nextArgDataFolder) {
+    console.log(`The 'datafolder' option requires a directory location`)
     printUsage()
     app.exit(1)
 }
 app.setName("Vieb")
+datafolder = `${path.resolve(expandPath(datafolder.trim()))}/`
+app.setPath("appData", datafolder)
+app.setPath("userData", datafolder)
+if (showInternalConsole && enableDebugMode) {
+    console.log("The --debug argument always opens the internal console")
+}
+applyDevtoolsSettings(path.join(datafolder, "Preferences"))
 if (erwic) {
-    if (portable) {
-        console.log("Portable mode can not be combined with an Erwic config")
-        printUsage()
-        app.exit(1)
-    }
     let config = null
     try {
         config = JSON.parse(fs.readFileSync(erwic).toString())
@@ -204,49 +222,39 @@ if (erwic) {
         }
         customIcon = config.icon
     }
-    config.datafolder = config.datafolder && config.datafolder.trim
-        && path.resolve(expandPath(config.datafolder.trim()))
-    if (!config.datafolder) {
-        console.log("Erwic config file requires a 'datafolder' location field")
-        printUsage()
-        app.exit(1)
-    }
-    fs.mkdirSync(config.datafolder, {"recursive": true})
-    fs.writeFileSync(path.join(config.datafolder, "erwicmode"), "")
+    fs.writeFileSync(path.join(datafolder, "erwicmode"), "")
     if (!Array.isArray(config.apps)) {
-        console.log("Erwic config file requires a list of 'apps' ")
+        console.log("Erwic config file requires a list of 'apps'")
         printUsage()
         app.exit(1)
     }
-    config.apps
-        .filter(a => typeof a.name === "string" && typeof a.url === "string")
-        .forEach(a => {
-            if (typeof a.script === "string") {
-                a.script = expandPath(a.script)
-                if (a.script !== path.resolve(a.script)) {
-                    a.script = path.join(path.dirname(erwic), a.script)
-                }
-                if (!isFile(a.script)) {
-                    a.script = null
-                }
-            } else {
+    config.apps = config.apps.map(a => {
+        if (a.name && !a.container) {
+            // OLD remove fallback checks in 4.x.x
+            a.container = a.name
+        }
+        a.container = a.container?.replace(/[^A-Za-z0-9_]/g, "")
+        if (typeof a.script === "string") {
+            a.script = expandPath(a.script)
+            if (a.script !== path.resolve(a.script)) {
+                a.script = path.join(path.dirname(erwic), a.script)
+            }
+            if (!isFile(a.script)) {
                 a.script = null
             }
-        })
+        } else {
+            a.script = null
+        }
+        return a
+    }).filter(a => typeof a.container === "string" && typeof a.url === "string")
+    if (config.apps.length === 0) {
+        console.log("Erwic config file requires at least one app to be added")
+        console.log("Each app must have a 'container' name and a 'url'")
+        printUsage()
+        app.exit(1)
+    }
     urls.push(...config.apps)
-    app.setPath("appData", config.datafolder)
-    app.setPath("userData", config.datafolder)
-} else if (portable) {
-    app.setPath("appData", path.join(process.cwd(), "ViebData"))
-    app.setPath("userData", path.join(process.cwd(), "ViebData"))
-} else {
-    app.setPath("appData", path.join(app.getPath("appData"), "Vieb"))
-    app.setPath("userData", app.getPath("appData"))
 }
-if (showInternalConsole && enableDebugMode) {
-    console.log("The --debug argument always opens the internal console")
-}
-applyDevtoolsSettings(path.join(app.getPath("appData"), "Preferences"))
 
 // When the app is ready to start, open the main window
 let mainWindow = null
@@ -256,19 +264,27 @@ app.on("ready", () => {
     app.userAgentFallback = useragent()
     // Request single instance lock and quit if that fails
     if (app.requestSingleInstanceLock()) {
-        app.on("second-instance", (_, commandLine) => {
+        app.on("second-instance", (_, newArgs) => {
             if (mainWindow.isMinimized()) {
                 mainWindow.restore()
             }
             mainWindow.focus()
-            commandLine = commandLine.slice(1)
-            if (commandLine[0] === "app") {
-                commandLine = commandLine.slice(1)
-            }
-            mainWindow.webContents.send("urls",
-                commandLine.filter(arg => !arg.startsWith("-")))
+            newArgs = getArguments(newArgs)
+            const newUrls = []
+            let ignoreNextArg = false
+            newArgs.forEach(arg => {
+                if (arg === "--erwic" || arg === "--datafolder") {
+                    ignoreNextArg = true
+                } else if (ignoreNextArg) {
+                    ignoreNextArg = false
+                } else if (!arg.startsWith("-")) {
+                    newUrls.push(arg)
+                }
+            })
+            mainWindow.webContents.send("urls", newUrls)
         })
     } else {
+        console.log(`Sending urls to existing instance in ${datafolder}`)
         app.exit(0)
     }
     // Init mainWindow
@@ -304,6 +320,10 @@ app.on("ready", () => {
     })
     mainWindow.on("closed", () => {
         app.exit(0)
+    })
+    mainWindow.on("app-command", (e, cmd) => {
+        mainWindow.webContents.send("app-command", cmd)
+        e.preventDefault()
     })
     // Load app and send urls when ready
     mainWindow.loadURL(`file://${path.join(__dirname, "index.html")}`)
@@ -401,7 +421,6 @@ app.on("login", (e, contents, _, auth, callback) => {
         return
     }
     if (loginAttempts.includes(contents.id)) {
-        contents.stop()
         loginAttempts.splice(loginAttempts.indexOf(contents.id), 1)
         return
     }
@@ -701,10 +720,12 @@ const writeDownloadsToFile = () => {
 }
 const permissionHandler = (_, permission, callback, details) => {
     if (permission === "media") {
-        if (details.mediaTypes && details.mediaTypes.includes("video")) {
+        if (details.mediaTypes?.includes("video")) {
             permission = "camera"
-        } else {
+        } else if (details.mediaTypes?.includes("audio")) {
             permission = "microphone"
+        } else {
+            permission = "mediadevices"
         }
     }
     const permissionName = `permission${permission.toLowerCase()}`
@@ -837,7 +858,16 @@ ipcMain.on("download-favicon", (_, fav, location, webId, linkId, url) => {
     request.on("response", res => {
         const data = []
         res.on("end", () => {
-            fs.writeFileSync(location, Buffer.concat(data))
+            if (res.statusCode !== 200) {
+                // Failed to download favicon
+                return
+            }
+            const file = Buffer.concat(data)
+            if (isSvg(file)) {
+                location += ".svg"
+                fav += ".svg"
+            }
+            fs.writeFileSync(location, file)
             mainWindow.webContents.send("favicon-downloaded", linkId, url, fav)
         })
         res.on("data", chunk => {
@@ -946,6 +976,13 @@ ipcMain.on("hide-window", () => {
         mainWindow.hide()
     }
 })
+ipcMain.on("add-devtools", (_, pageId, devtoolsId) => {
+    const page = webContents.fromId(pageId)
+    const devtools = webContents.fromId(devtoolsId)
+    page.setDevToolsWebContents(devtools)
+    page.openDevTools()
+    devtools.executeJavaScript("window.location.reload()")
+})
 ipcMain.on("destroy-window", () => {
     cancellAllDownloads()
     mainWindow.destroy()
@@ -965,10 +1002,9 @@ ipcMain.on("set-window-title", (_, title) => {
 })
 ipcMain.handle("show-message-dialog", (_, options) => dialog.showMessageBox(
     mainWindow, options))
-ipcMain.handle("list-cookies",
-    () => session.fromPartition("persist:main").cookies.get({}))
-ipcMain.handle("remove-cookie", (_, url, name) => session.fromPartition(
-    "persist:main").cookies.remove(url, name))
+ipcMain.handle("list-cookies", e => e.sender.session.cookies.get({}))
+ipcMain.handle("remove-cookie",
+    (e, url, name) => e.sender.session.cookies.remove(url, name))
 // Operations below are sync
 ipcMain.on("override-global-useragent", (e, globalUseragent) => {
     app.userAgentFallback = globalUseragent || useragent()
@@ -988,4 +1024,7 @@ ipcMain.on("app-name", e => {
 })
 ipcMain.on("is-fullscreen", e => {
     e.returnValue = mainWindow.fullScreen
+})
+ipcMain.on("relaunch", () => {
+    app.relaunch()
 })

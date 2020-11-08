@@ -123,7 +123,7 @@
         <ul>
             <li><span class="command-block">:reload</span> - Reload all viebrc commands</li>
         </ul>
-        This command will reload the <a href="#viebrc">viebrc</a> files, in order. This is not the same as resetting all settings to Vieb's default, which can be done with <span class="command-block">:set all&amp;</span>. Both the reload and set command only modify the settings for the current session, unless the changes are written back to the viebrc with the <a href="#:mkviebrc">:mkviebrc</a> command. The reload command does not undo custom settings, mappings and commands, but does overwrite them if they are defined in the viebrc. Settings that have been changed using the set command at runtime that are not changed in the viebrc will therefor not be changed when running this command. To reset to the startup state without actually restarting Vieb:
+        This command will reload the <a href="#viebrc">viebrc</a> files, in order. This is not the same as resetting all settings to Vieb's default, which can be done with <span class="command-block">:set all&amp;</span>. Both the reload and set command only modify the settings for the current session, unless the changes are written back to the viebrc with the <a href="#:mkviebrc">:mkviebrc</a> command. The reload command does not undo custom settings, mappings and commands, but does overwrite them if they are defined in the viebrc. Settings that have been changed using the set command at runtime that are not changed in the viebrc will therefore not be changed when running this command. To reset to the startup state without actually restarting Vieb (which you can do using the <a href="#:restart">:restart</a> command):
         <ul>
             <li>Remove all custom mappings with <span class="command-block">:mapclear</span></li>
             <li>Reset all settings with <span class="command-block">:set all&amp;</span></li>
@@ -131,6 +131,12 @@
             <li>Finally run the <span class="command-block">:reload</span> command to run all viebrc commands</li>
         </ul>
         Of course it's also possible to make a mapping or custom command to do this for you.
+        <h3 id=":restart">:restart</h3>
+        Examples
+        <ul>
+            <li><span class="command-block">:restart</span> - Restart Vieb</li>
+        </ul>
+        This command will restart Vieb.  It is functionally equivalent to running the <a href="#:quitall">:quitall</a> command and then starting Vieb again.
         <h3 id=":mkviebrc">:mkviebrc</h3>
         Examples
         <ul>
@@ -161,7 +167,7 @@
         <ul>
             <li><span class="command-block">:history</span> - Open the history page</li>
         </ul>
-        With this command you will be navigated to the history page, located at "vieb://history". On this page you will be presented with a list of all your local browsing history, sorted by date. This page allows you to remove site visits from you history and/or remove the history during specific ranges (optionally based on a filter). The browsing history is only stored in Vieb's <a href="#datafolder">datafolder</a>. To disable new visits from being stored, see the <a href="#storenewvisists">storenewvisists</a> setting. This setting does not affect the history of previously closed tabs or the download history. It is also possible to disable or change the amount of suggestions shown based on the history with <a href="#suggesthistory">suggesthistory</a>. Finally you may want to clear the history when quitting Vieb with <a href="#clearhistoryonquit">clearhistoryonquit</a>.
+        With this command you will be navigated to the history page, located at "vieb://history". On this page you will be presented with a list of all your local browsing history, sorted by date. This page allows you to remove site visits from you history and/or remove the history during specific ranges (optionally based on a filter). The browsing history is only stored in Vieb's <a href="#datafolder">datafolder</a>. To disable new visits from being stored, see the <a href="#storenewvisits">storenewvisits</a> setting. This setting does not affect the history of previously closed tabs or the download history. It is also possible to disable or change the amount of suggestions shown based on the history with <a href="#suggestexplore">suggestexplore</a>. Finally you may want to clear the history when quitting Vieb with <a href="#clearhistoryonquit">clearhistoryonquit</a>.
         <h3 id=":downloads">:downloads</h3>
         Examples
         <ul>
@@ -387,15 +393,15 @@
             <li><span class="command-block">:buffer 999</span> - Switch to the 999nth tab (or the last one the bar)</li>
             <li><span class="command-block">:b github vieb</span> - Switch to the first tab containing "github" and "vieb"</li>
         </ul>
-        The buffer command can be used to switch to a tab by name or index. It accepts any number of arguments that will all be used to find the most appropriate tab. Contrary to the <a href="#action.nextTab">action.nextTab</a> and <a href="#action.previousTab">action.previousTab</a> actions, which switch in the order of the tab bar, the buffer command can switch to any tab regardless of it's location in the tab bar. This is also important to keep in mind when using window splits, because switching between tabs can also change which splits are displayed. If you switch to a tab that is already visible in on the splits, no splits will be changed, but the focus will simply switch to the other split. However, if the tab you switch to is not visible yet, the current split will switch to the new tab. This can be confusing when using the tab switch actions in combination with multiple splits, which is why the buffer command is recommended for switching when using multiple window splits. The buffer command will have no effect if the tab cannot be found, unless the argument is a single number, in which case it will switch to the closest tab by index.
+        The buffer command can be used to switch to a tab by name or index. It accepts any number of arguments that will all be used to find the most appropriate tab. Contrary to the <a href="#action.nextTab">action.nextTab</a> and <a href="#action.previousTab">action.previousTab</a> actions, which switch in the order of the tabbar, the buffer command can switch to any tab regardless of it's location in the tabbar. This is also important to keep in mind when using window splits, because switching between tabs can also change which splits are displayed. If you switch to a tab that is already visible in on the splits, no splits will be changed, but the focus will simply switch to the other split. However, if the tab you switch to is not visible yet, the current split will switch to the new tab. This can be confusing when using the tab switch actions in combination with multiple splits, which is why the buffer command is recommended for switching when using multiple window splits. The buffer command will have no effect if the tab cannot be found, unless the argument is a single number, in which case it will switch to the closest tab by index.
         <h3 id=":hide">:hide</h3>
         Examples
         <ul>
             <li><span class="command-block">:hide</span> - Hide the currently focused window, if others are also visible</li>
             <li><span class="command-block">:hide 0</span> - Hide a window split based on tab index, in this case the first</li>
-            <li><span class="command-block">:b vieb.dev</span> - Hide the window split with "vieb.dev" in the url</li>
-            <li><span class="command-block">:buffer 999</span> - Hide a window split based on tab index, in this case the last</li>
-            <li><span class="command-block">:b github vieb</span> - Hide the window split with both "github" and "vieb" in the url</li>
+            <li><span class="command-block">:hide vieb.dev</span> - Hide the window split with "vieb.dev" in the url</li>
+            <li><span class="command-block">:hide 999</span> - Hide a window split based on tab index, in this case the last</li>
+            <li><span class="command-block">:hide github vieb</span> - Hide the window split with both "github" and "vieb" in the url</li>
         </ul>
         The hide command can be used to hide one of the visible splits. This command takes any number of arguments. If no arguments are provided, it will hide the currently focused split window. For any other number of arguments, it will hide the window split that most accurately matches the arguments. This can be a tab index or keywords that refer to parts of the url, similar to the buffer command. The command will not have effect it there is only one page visible, or if there is no matching tab. If the argument is a single number, but the tab index is too high, it will instead hide the window connected to the latest tab by index.
         <h3 id=":Vexplore">:Vexplore</h3>
@@ -436,7 +442,7 @@
         <ul>
             <li><span class="command-block">:hardcopy</span> - Open the print dialog, to print the current page</li>
         </ul>
-        With the hardcopy command you can make a hardcopy of the current page using a printer. This will open the print dialog similar to other programs. There are no arguments for this command. Tip: it's also possibly to do this for <a href="#specialpages">specialpages</a> such as this help page.
+        With the hardcopy command you can make a hardcopy of the current page using a printer. This will open the print dialog similar to other programs. There are no arguments for this command. Tip: it's also possible to do this for <a href="#specialpages">specialpages</a> such as this help page.
         <h3 id=":print">:print</h3>
         Identical to <a href="#:hardcopy">:hardcopy</a>.
         <h3 id=":pin">:pin</h3>
@@ -446,9 +452,11 @@
         This command is used to pin or unpin the current tab. The pinned status of the current tab will be toggled. Pinned tabs have a fixed width of just the icon and will always be remembered on restart, regardless of the <a href="#restoretabs">restoretabs</a> setting. Pinned tabs are always displayed before regular tabs.
         <h3 id=":devtools">:devtools</h3>
         <ul>
-            <li><span class="command-block">:devtools</span> - Open the developer tools of the current page in a new window</li>
+            <li><span class="command-block">:devtools</span> - Open the developer tools of the current page in the location configured with <a href="#devtoolsposition">devtoolsposition</a></li>
+            <li><span class="command-block">:devtools window</span> - Open the developer tools of the current page in a new window</li>
+            <li><span class="command-block">:devtools tab</span> - Open the developer tools of the current page in a new tab</li>
         </ul>
-        The devtools command can be used to open the developer tools of the current page. The tools will open in a new window and work the same as in Chromium. By default these tools will have dark mode and some security settings enabled.
+        The devtools command can be used to open the developer tools of the current page. If no argument is given for the devtools position, it will open at the position configured by <a href="#devtoolsposition">devtoolsposition</a>. The accepted positions for this command are the same as that of the setting. It's not possible to open multiple instances of the devtools for the same page, you can open one type of devtools per tab. By default these tools will have dark mode and some security settings enabled. If the devtools are opened as a Vieb tab or split (so not windowed) all regular Vieb action can be used to interact with the developer tools.
         <h3 id=":quit">:quit</h3>
         Examples
         <ul>
@@ -460,7 +468,7 @@
         <ul>
             <li><span class="command-block">:quitall</span> - Quit Vieb</li>
         </ul>
-        With quitall you will unconditionally close and stop all of Vieb. To configure what gets cleared on quit, see these settings, among others: <a href="#cache">cache</a>, <a href="#clearcookiesonquit">clearcookiesonquit</a>, <a href="#cleardownloadsonquit">cleardownloadsonquit</a>, <a href="#clearhistoryonquit">clearhistoryonquit</a>, <a href="#clearlocalstorageonquit">clearlocalstorageonquit</a>, <a href="#keeprecentlyclosed">keeprecentlyclosed</a>, <a href="#restoretabs">restoretabs</a> and <a href="#containertabs">containertabs</a>.
+        With quitall you will unconditionally close and stop all of Vieb. The short version of this command is "qa". To configure what gets cleared on quit, see these settings, among others: <a href="#cache">cache</a>, <a href="#clearcookiesonquit">clearcookiesonquit</a>, <a href="#cleardownloadsonquit">cleardownloadsonquit</a>, <a href="#clearhistoryonquit">clearhistoryonquit</a>, <a href="#clearlocalstorageonquit">clearlocalstorageonquit</a>, <a href="#keeprecentlyclosed">keeprecentlyclosed</a>, <a href="#restoretabs">restoretabs</a> and <a href="#containernewtab">containernewtab</a>.
         <h1 id="settings">Settings</h1>
         There are a lot of settings in Vieb and all of them can be changed at runtime, or using a settings file. The changes you make at runtime are not saved automatically for subsequent sessions, but they can be if you want to. This chapter provides introductions on how to do all this, and a list of all the settings Vieb has to offer.
         <h2>Set command</h2>
@@ -483,7 +491,7 @@
             <li>Windows - <kbd>%APPDATA%\Vieb\</kbd>
             <li>Mac - <kbd>~/Library/Application Support/Vieb/</kbd>
         </ul>
-        All browsing history, cache, cookies, localstorage, favicons, preferences, blocklists, tab history and download history are stored in this folder. You can also run Vieb in portable mode, by starting it with the "--portable" argument, to use a relative "ViebData" folder. Since the system <a href="#viebrc">viebrc</a> is also inside this folder, you can use this to have a completely portable instance of Vieb. Start Vieb with the "--help" argument to see other startup arguments.
+        All browsing history, cache, cookies, localstorage, favicons, preferences, blocklists, tab history and download history are stored in this folder. You can also store all Vieb data in a different folder by starting it with the "--datafolder" argument. For example, to use a relative folder named "ViebData": <kbd>vieb --datafolder ViebData</kbd>. Since the system <a href="#viebrc">viebrc</a> is also inside this folder, you can use this to have a completely portable instance of Vieb. Start Vieb with the "--help" argument to see other startup arguments.
         <h2 id="erwic">Erwic mode</h2>
         With the "erwic" startup option, you can "Easily Run Websites In Containers". The purpose of this option is similar to programs such as Franz, Ferdi or Rambox. It can also replace other Electron-based desktop apps such as Slack or Discord. These instances of Vieb can run separately from your existing Vieb. See <a href="https://github.com/Jelmerro/Vieb/blob/master/Erwic.md">Erwic.md on github</a> for usage and details.
         <h2>Setting list</h2>
@@ -493,21 +501,49 @@
         <h3 id="cache">cache</h3>
         This setting can be used to disable or automatically remove the browsing cache. Changing this setting from or to the value "off" only has effect at startup, due to Chromium limitations. The cache can always be set to "clearonquit" or "full", regardless of the initial value of this setting. It's recommended to at least clear the cache on quit, because the browsing cache can get very large with extended periods of use.
         <h3 id="clearcookiesonquit">clearcookiesonquit</h3>
-        Toggle for clearing all of the cookies when quitting Vieb. To view and remove individual cookies, see the <a href="#:cookies">cookies</a> page.
+        Toggle for clearing all of the cookies when quitting Vieb. To view and remove individual cookies, see the <a href="#:cookies">cookies</a> page. This toggle applies to all containers.
         <h3 id="cleardownloadsoncompleted">cleardownloadsoncompleted</h3>
         Toggle for clearing successfully completed downloads. When a download fails, it will not be cleared. This toggle will clear completed downloads as soon as they are done, unlike the <a href="#cleardownloadsonquit">cleardownloadsonquit</a> setting, which will unconditionally clear all downloads when quitting Vieb regardless of download status.
         <h3 id="cleardownloadsonquit">cleardownloadsonquit</h3>
         Toggle for clearing all downloads regardless of status when quitting Vieb. This will not remove downloaded files from disk, but it will clear the download history.
         <h3 id="clearhistoryonquit">clearhistoryonquit</h3>
-        Toggle for clearing all browsing history on quit. The browsing history can be viewed on the <a href="#:history">history</a> page. As a result of separating tab, download and browsing history, there is no traditional private mode in Vieb. The same can be achieved by toggling all these settings at once using <a href="#mappings">mappings</a> or <a href="#customcommands">custom commands</a>. See <a href="#storenewvisists">storenewvisists</a> for more details.
+        Toggle for clearing all browsing history on quit. The browsing history can be viewed on the <a href="#:history">history</a> page. As a result of separating tab, download and browsing history, there is no traditional private mode in Vieb. The same can be achieved by toggling all related settings at once using <a href="#mappings">mappings</a> or <a href="#customcommands">custom commands</a>. See <a href="#storenewvisits">storenewvisits</a> for more details.
         <h3 id="clearlocalstorageonquit">clearlocalstorageonquit</h3>
-        Toggle for clearing all of the localstorage when quitting Vieb.
-        <h3 id="containertabs">containertabs</h3>
-        Toggle for running tabs in a separate container. When enabled, tabs will not share cache, cookies, localstorage or any other part of the browser settings. The browsing history will still be stored by Vieb, but all related cookies and such will only be stored for as long as Vieb is running.
+        Toggle for clearing all of the localstorage when quitting Vieb. This toggle applies to all containers.
+        <h3 id="closablepinnedtabs">closablepinnedtabs</h3>
+        With this toggle you can specify if pinned tabs should be closable. By default, you need to unpin a tab (using <kbd class="command-block">:pin</kbd>) to close it. If this setting is enabled, you can close pinned tabs like any other regular tab.
+        <h3 id="containercolors">containercolors</h3>
+        A list-like setting to give containers a custom color based on their name. Each element in the list contains a regular expression and a color name (or color hex) separated by a "~". By default, temporary containers are displayed in yellow, while all others will default to white. The first matching entry will be used as the color of the tab title. The color will also be used to show the name of the container in the navbar, if <a href="#containershowname">containershowname</a> is on. An example could be to make a container for work, school or other miscellaneous tasks and color it accordingly: <kbd class="command-block">:set containercolors=^work$~lightblue,^school~#f00,^misc$~lime</kbd> this will display the "work" container in lightblue, all containers starting with "school" in red and the "misc" container in lime. All CSS color names and (3 or 6 digit) hex codes are accepted. For more about containers and how to use them, see <a href="#containernewtab">containernewtab</a>.
+        <h3 id="containerkeeponreopen">containerkeeponreopen</h3>
+        Toggle to indicate if tabs that are restored with <a href="#action.reopenTab">action.reopenTab</a> should keep the container they were opened in before. If enabled, they will keep the same container as before. If disabled, the value of <a href="#containernewtab">containernewtab</a> will be used as the container name instead. This toggle does not affect tabs that are opened using other ways, such as startup urls, which use the <a href="#containerstartuppage">containerstartuppage</a> setting. The <a href="#restoretabs">restoretabs</a> setting to keep tabs after a Vieb restart will always use the same container they used before shutting down Vieb.
+        <h3 id="containernewtab">containernewtab</h3>
+        With this setting you can specify the name of the container that new tabs will use. Regular names can use letters, numbers and underscores. Each container with a separate name will run isolated from other tabs. This includes cookies, localstorage, cache and other browsing data, but not the history or downloads. Multiple tabs with the same name will share the same container and share data with each other. The container name that you specify with this setting can include "%n", which will be replaced with an incrementing number. This can be used as a way to use a different container every time a tab is opened. If the name starts with "temp", the data of that container is deleted when Vieb is shutdown. The default container name is "main". When you don't update any settings, all tabs will use the "main" container to store their data. To make every tab store data in a temporary separate container, you could set this setting to "temp%n".
+        <h4>Special values</h4>
+        Besides regular strings to use directly as the container name, there are also some special values that will automatically pick the right container name for you. For the containernewtab setting, these special values exist:
+        <ul>
+            <li><kbd>s:usematching</kbd> - Uses the container name of a tab that has the same domain as the new tab that is being opened. If no matching tab is found, it will fall back to the container of the current tab. Tabs are searched in order of appearance in the tabbar.</li>
+            <li><kbd>s:replacematching</kbd> - Same as above, but navigate to the url in the matched tab, instead of opening a new tab.</li>
+            <li><kbd>s:usecurrent</kbd> - Uses the name of the container from the current tab as the container name for the new tab</li>
+            <li><kbd>s:replacecurrent</kbd> - Same as above, but nativate to the url in the current tab, instead of opening a new tab.</li>
+            <li><kbd>s:external</kbd> - When set to this special value, new tabs will open in the external default browser. No tabs will be opened in Vieb.</li>
+        </ul>
+        One of the many ways to make changing this option more straightforward to use, could be to make a command to open a tab in a specific container and switch back to <kbd>s:usecurrent</kbd> automatically after that:
+        <div class="command-block">:command! work &lt;:set containernewtab=work&gt;&lt;action.openNewTab&gt;&lt;:set containernewtab=s:usecurrent&gt;</div>
+        You could make such a command for each different container you frequently use, while still opening tabs in the same container as the current one by default.
+        <h4>Related settings</h4>
+        It is recommended to combine this with <a href="#containercolors">containercolors</a> to automatically color container names based on regular expressions. You can configure when to display the name of the container in the navbar with <a href="#containershowname">containershowname</a>. New tabs opened as links and through follow mode are configured with this "containernewtab" setting. For tabs opened as a split window, see <a href="#containersplitpage">containersplitpage</a>. For pages opened using the command line arguments, see <a href="#containerstartuppage">containerstartuppage</a>.
+        <h3 id="containershowname">containershowname</h3>
+        This setting controls if the container name should be shown in the navbar between the current mode and the url bar. If set to automatic, all names except "main" are shown. The name will be displayed in the color defined by <a href="#containercolors">containercolors</a>.
+        <h3 id="containersplitpage">containersplitpage</h3>
+        Similar to <a href="#containernewtab">containernewtab</a>, but specifically applies to tabs opened as a split page, using the <a href="#splits">window split commands</a>. This setting only supports the special names: <kbd>s:usematching</kbd> and <kbd>s:usecurrent</kbd>. See <a href="#containernewtab">containernewtab</a> for usage and details.
+        <h3 id="containerstartuppage">containerstartuppage</h3>
+        Similar to <a href="#containernewtab">containernewtab</a>, but specifically applies to pages that are passed to Vieb as a command line argument. If Vieb is your default browser, this includes urls that you click on outside of Vieb, that are configured to open with Vieb. This setting only supports the special names: <kbd>s:usematching</kbd>, <kbd>s:usecurrent</kbd>, <kbd>s:replacematching</kbd> and <kbd>s:replacecurrent</kbd>. See <a href="#containernewtab">containernewtab</a> for usage and details.
         <h3 id="countlimit">countlimit</h3>
         This setting is used as an upper limit of the counter for repeating actions in normal mode, <a class="pointer" href="#pointer">pointer mode</a> and <a class="visual" href="#pointer">visual mode</a>. For example, pressing <kbd>50t</kbd> will usually open 50 new tabs, but only 10 if the countlimit is set to 10. This setting limits the number of repeated actions, which you can visualize in the top-right of the Vieb window if <a href="#showcmd">showcmd</a> is set. There is also a setting to limit the maximum recursion of a mapping, named <a href="#maxmapdepth">maxmapdepth</a>.
         <h3 id="darkreader">darkreader</h3>
         With the darkreader setting, you can instruct Vieb to enable the darkreader plugin on all websites. This plugin is responsible for styling all supported websites in a dark theme. See the <a href="#mentions">mentions</a> for more information about the darkreader plugin.
+        <h3 id="devtoolsposition">devtoolsposition</h3>
+        This setting controls the default location where the devtools will open when using the <a href="#:devtools">:devtools</a> command.
         <h3 id="downloadmethod">downloadmethod</h3>
         The downloadmethod setting can be used to change the behavior of newly requested downloads. By default, new downloads are automatically saved to the <a href="#downloadpath">downloadpath</a>. By changing this setting to "confirm", a dialog will be shown for each new download to request user confirmation before starting. The "ask" method will ask the location for every new download and does not use the "downloadpath" setting. Finally, you may block all incoming downloads with the "block" option.
         <h3 id="downloadpath">downloadpath</h3>
@@ -534,6 +570,8 @@
         Toggle whether to keep recently closed tabs and allow them to be restored. This setting is unaffected by other history settings. Disabling this setting will result in the <a href="#action.reopenTab">action.reopenTab</a> being unable to restore previously closed tabs. If <a href="#restoretabs">restoretabs</a> is disabled, all open tabs will be moved to the list of recently closed tabs when quitting Vieb, unless this setting is also disabled (in which case they can not be restored).
         <h3 id="ignorecase">ignorecase</h3>
         Toggle for case-sensitive searching in the page. Any existing search will be updated to match this setting when either <a href="#action.nextSearchMatch">action.nextSearchMatch</a> or <a href="#action.previousSearchMatch">action.previousSearchMatch</a> are called.
+        <h3 id="incsearch">incsearch</h3>
+        Toggles incremental search in the <a class="search" href="#action.toSearchMode">search mode</a>. When enabled, the search will be updated every time a character is typed, without having to start the search with <a href="#action.useEnteredData">action.useEnteredData</a>.
         <h3 id="maxmapdepth">maxmapdepth</h3>
         The maximum amount of recursion for recursive <a href="#mappings">mappings</a>. After reaching this limit, all subsequent actions will be canceled as part of the mapping.
         <h3 id="mintabwidth">mintabwidth</h3>
@@ -554,6 +592,8 @@
         This setting sets the location of Vieb notifications. You can set it to any corner of the window. Long notifications will open in a scrollable popup similar to Vim. The value of this setting is ignored when native notifications are used.
         <h3 id="permissioncamera">permissioncamera</h3>
         Permission setting to either allow or block websites from using your camera. When set to "ask", you will get a popup to ask if you want to allow the request just this once and optionally store the setting for this session.
+        <h3 id="permissionclosepage">permissionclosepage</h3>
+        Permission setting to either allow or block websites from closing themselves. Similar to manually closing a tab, but this permission allows the page to close it's own tab automatically.
         <h3 id="permissionfullscreen">permissionfullscreen</h3>
         Permission setting to either allow or block websites from entering fullscreen. When set to "ask", you will get a popup to ask if you want to allow the request just this once and optionally store the setting for this session.
         <h3 id="permissiongeolocation">permissiongeolocation</h3>
@@ -583,7 +623,7 @@
         <h3 id="requesttimeout">requesttimeout</h3>
         Duration in milliseconds before stopping a page load automatically. The timer is reset upon navigation to any page and after the timeout duration is reached, the page load will be stopped automatically, similar to calling <a href="#action.stopLoadingPage">action.stopLoadingPage</a> manually. Any duration below 1000 milliseconds is ignored and will disable the timeout completely, which could mean that some websites will never stop loading.
         <h3 id="restoretabs">restoretabs</h3>
-        Toggle for restoring tabs you had open during the previous browsing session. If enabled, all tabs you had open when you quit Vieb last time, will automatically open again when you start Vieb. If you have configured any <a href="#startuppages">startuppages</a>, they will be opened after restoring the previous tabs. If this setting is disabled, tabs won't be restored, but will possibly be stored as recently closed tabs so you can reopen them, which is configured with <a href="#keeprecentlyclosed">keeprecentlyclosed</a>. Tabs which are pinned by the <a href="#:pin">:pin</a> command are always restored, regardless of the restoretabs setting.
+        Toggle for restoring tabs you had open during the previous browsing session. If enabled, all tabs you had open when you quit Vieb last time, will automatically open again when you start Vieb. If you have configured any <a href="#startuppages">startuppages</a>, they will be opened after restoring the previous tabs. If this setting is disabled, tabs won't be restored, but will possibly be stored as recently closed tabs so you can reopen them, which is configured with <a href="#keeprecentlyclosed">keeprecentlyclosed</a>. Tabs which are pinned by the <a href="#:pin">:pin</a> command are always restored, regardless of the restoretabs setting. The container each tab was using is always remembered on restart.
         <h3 id="restorewindowmaximize">restorewindowmaximize</h3>
         Toggle for remembering and restoring the window maximization state after restarting Vieb.
         <h3 id="restorewindowposition">restorewindowposition</h3>
@@ -598,7 +638,7 @@
             <li><span class="url-search">searching</span> - This will appear when the entered data is not a url or a local file, which will result in a search being done based on this search setting</li>
             <li><span class="url-suggest">suggestion</span> - This will appear when you have selected a suggestion from the list, which will result in direct navigation to the selected suggestion</li>
         </ul>
-        The search setting must be set to a valid url and the encoded search string will always appear at the end of the search setting. To execute a search, call <a href="#action.useEnteredData">action.useEnteredData</a> after entering a search or url.
+        The search setting must be set to a valid url. By default, your search will be encoded and pasted at the end of the url, unless you specify "%s" somewhere in your search url. To make a web search, call <a href="#action.useEnteredData">action.useEnteredData</a> after entering your search in <a class="explore" href="#action.toExploreMode">explore mode</a>.
         <h3 id="showcmd">showcmd</h3>
         Toggle for showing the history of recently pressed keys in the top-right corner. The keys are reset when no more mappings exist that start with the currently pressed keys. The showcmd option also shows the repeat count for normal mode, <a class="pointer" href="#pointer">pointer mode</a> and <a class="visual" href="#pointer">visual mode</a>.
         <h3 id="spell">spell</h3>
@@ -611,12 +651,16 @@
         Toggle to split right or left of the current window when invoking <a href="#:Vexplore">:Vexplore</a>.
         <h3 id="startuppages">startuppages</h3>
         With this setting you can configure a list of pages that should open every time Vieb is started. The list should be comma-separated and all entries must be valid urls. These pages will open regardless of tabs being restored from the previous session, so combining both of these setting might not get the expected results. See <a href="#restoretabs">restoretabs</a> for details about restoring tabs from the previous session.
-        <h3 id="storenewvisists">storenewvisists</h3>
-        Toggle to indicate if new visits to websites should be stored in the browsing history. If disabled, the visited page will not be stored in the browsing history, and as a result the favicon will also not be stored. However, the download history, cookies, localstorage and tab history are preserved. To privately navigate to a website, also enable <a href="#containertabs">containertabs</a> and disable the <a href="#keeprecentlyclosed">keeprecentlyclosed</a> setting.
+        <h3 id="storenewvisits">storenewvisits</h3>
+        Toggle to indicate if new visits to websites should be stored in the browsing history. If disabled, the visited page will not be stored in the browsing history, and as a result the favicon will also not be stored. However, the download history, cookies, localstorage and tab history are preserved. To privately navigate to a website, use a separate container using <a href="#containernewtab">containernewtab</a> and disable the <a href="#keeprecentlyclosed">keeprecentlyclosed</a> setting.
         <h3 id="suggestcommands">suggestcommands</h3>
-        The number of suggestions that should appear when typing commands. Set to 0 to disable any suggestions while in <a class="command" href="#action.toCommandMode">command mode</a>.
-        <h3 id="suggesthistory">suggesthistory</h3>
-        The number of suggestions that should appear when typing a url. Set to 0 to disable any suggestions while in <a class="explore" href="#action.toExploreMode">explore mode</a>. These suggestions are entirely based on the local browsing history, and are sorted by relevance and visit count. The remove a suggestion, simply remove it from the browsing history, or disable suggestions completely.
+        The number of suggestions that should appear when typing commands. Set to 0 to disable any suggestions while in <a class="command" href="#action.toCommandMode">command mode</a>. Some commands accept a file location for which suggestions will be shown if <a href="#suggestfiles">suggestfiles</a> is enabled for commands.
+        <h3 id="suggestexplore">suggestexplore</h3>
+        The number of suggestions that should appear when typing a url. Set to 0 to disable any suggestions while in <a class="explore" href="#action.toExploreMode">explore mode</a>. These suggestions are entirely based on local data (history and files), and are sorted by relevance and visit count. The remove a suggestion, simply remove it from the browsing history, or disable suggestions completely. By default, local files are suggested after the history, but you can change by enabling <a href="#suggestfilesfirst">suggestfilesfirst</a>. You can also disable file suggestions using <a href="#suggestfiles">suggestfiles</a>.
+        <h3 id="suggestfiles">suggestfiles</h3>
+        With this setting you can specify when Vieb should suggest files from the local filesystem. Currently there are 2 places where this happens: <a class="explore" href="#action.toExploreMode">explore mode</a> and <a class="command" href="#action.toCommandMode">command mode</a>. By default suggestions in both modes will be shown.
+        <h3 id="suggestfilesfirst">suggestfilesfirst</h3>
+        Toggle to indicate if files should be suggested before previously visited sites in <a class="explore" href="#action.toExploreMode">explore mode</a>. By default they appear below the urls from your history.
         <h3 id="suggesttopsites">suggesttopsites</h3>
         The number of top visited sites that should be shown on the new tab page. These sites are your most visited websites based on your local browsing history. This settings can be set to 0 to disable the top sites from appearing on the new tab page. Alternatively, you can also specify a list of favorite websites that should always be shown on the new tab page using the <a href="#favoritepages">favoritepages</a> setting.
         <h3 id="tabcycle">tabcycle</h3>
@@ -624,7 +668,7 @@
         <h3 id="tabnexttocurrent">tabnexttocurrent</h3>
         Toggle to open new tabs next to the current one. There are two actions for opening a new tab: one that will respect this setting and a different one that will do the opposite of this setting. When toggling this setting, these actions will toggle with it. The action for opening a new tab according to this setting is <a href="#action.openNewTab">action.openNewTab</a>. For opening at the alternative position, see <a href="#action.openNewTabAtAlternativePosition">action.openNewTabAtAlternativePosition</a>. This setting also affects <a href="#action.openNewTabWithCurrentUrl">action.openNewTabWithCurrentUrl</a>, for which there is no alternative position action.
         <h3 id="taboverflow">taboverflow</h3>
-        This setting is dependent on the <a href="#mintabwidth">mintabwidth</a> setting, because that influences when tabs will no longer fit in the tab bar. The value of this setting will not be used if the mintabwidth is set to 0, because in that case tabs will never overflow. When the tabs do not fit in the bar, this setting will configure the appearance of the tabs that cannot fit. When set to "wrap", the tab bar will use multiple rows to make sure all tabs are always displayed. When set to "scroll", a scrollbar will appear to indicate that there are more tabs than the ones currently shown. When set to hidden, the same layout is used as with scroll, but the scrollbar will not be displayed.
+        This setting is dependent on the <a href="#mintabwidth">mintabwidth</a> setting, because that influences when tabs will no longer fit in the tabbar. The value of this setting will not be used if the mintabwidth is set to 0, because in that case tabs will never overflow. When the tabs do not fit in the bar, this setting will configure the appearance of the tabs that cannot fit. When set to "wrap", the tabbar will use multiple rows to make sure all tabs are always displayed. When set to "scroll", a scrollbar will appear to indicate that there are more tabs than the ones currently shown. When set to hidden, the same layout is used as with scroll, but the scrollbar will not be displayed.
         <h3 id="timeout">timeout</h3>
         Toggle to indicate if pressed keys that are part of a sequence should expire after <a href="#timeoutlen">timeoutlen</a>.
         <h3 id="timeoutlen">timeoutlen</h3>
@@ -640,11 +684,11 @@
         <h3 id="action.toCommandMode">action.toCommandMode</h3>
         Switch to <span class="command">command mode</span>. After entering a command while in <span class="command">command mode</span>, call <a href="#action.useEnteredData">action.useEnteredData</a> to execute the command, or switch to any other mode to cancel. See <a href="#commands">commands</a> for a list of commands</a>. See <a href="#suggestcommands">suggestcommands</a> to configure the number of suggestions shown.
         <h3 id="action.toExploreMode">action.toExploreMode</h3>
-        Switch to <span class="explore">explore mode</span>, which can be used to navigate to websites or search using the <a href="#search">search</a> setting. After entering a url or search while in <span class="explore">explore mode</span>, call <a href="#action.useEnteredData">action.useEnteredData</a> to navigate to the entered url or search, or switch to any other mode to cancel. See <a href="#suggestcommands">suggesthistory</a> to configure the number of suggestions shown.
+        Switch to <span class="explore">explore mode</span>, which can be used to navigate to websites or search using the <a href="#search">search</a> setting. After entering a url or search while in <span class="explore">explore mode</span>, call <a href="#action.useEnteredData">action.useEnteredData</a> to navigate to the entered url or search, or switch to any other mode to cancel. See <a href="#suggestexplore">suggestexplore</a> to configure the number of suggestions shown.
         <h3 id="action.toInsertMode">action.toInsertMode</h3>
         Switch to <span class="insert">insert mode</span>. This will unconditionally bring back mouse interaction, and allow all keyboard input to be redirected to the website. To also allow mouse interaction outside of <span class="insert">insert mode</span>, see the <a href="#mouse">mouse</a> setting. <span class="insert">Insert mode</span> will automatically be entered when an input field is picked in <a class="follow" href="#action.startFollowCurrentTab">follow mode</a>.
         <h3 id="action.toSearchMode">action.toSearchMode</h3>
-        Switch to <span class="search">search mode</span>, which can be used to search for any string (patterns are not supported). By default, searches are case-sensitive, see the <a href="#ignorecase">ignorecase</a> setting for details. After entering a search string while in <span class="search">search mode</span>, call <a href="#action.useEnteredData">action.useEnteredData</a> to start the search, or switch to any other mode to cancel. When back in normal mode, use <a href="#action.nextSearchMatch">action.nextSearchMatch</a> and <a href="#action.previousSearchMatch">action.previousSearchMatch</a> to navigate between matches. See also <a href="#action.clickOnSearch">action.clickOnSearch</a>.
+        Switch to <span class="search">search mode</span>, which can be used to search for any string (patterns are not supported). By default, searches are case-sensitive, see the <a href="#ignorecase">ignorecase</a> setting for details. After entering a search string while in <span class="search">search mode</span>, call <a href="#action.useEnteredData">action.useEnteredData</a> to start the search, or switch to any other mode to cancel. If the <a href="#incsearch">incsearch</a> setting is enabled, the search is performed incrementally while typing. When back in normal mode, use <a href="#action.nextSearchMatch">action.nextSearchMatch</a> and <a href="#action.previousSearchMatch">action.previousSearchMatch</a> to navigate between matches. See also <a href="#action.clickOnSearch">action.clickOnSearch</a>.
         <h3 id="action.toNormalMode">action.toNormalMode</h3>
         Switch back to normal mode. Similar to other mode switch actions, it has no effect when the mode is already the current one.
         <h3 id="action.startFollowCurrentTab">action.startFollowCurrentTab</h3>
@@ -709,13 +753,13 @@
         <h3 id="action.closeTab" countable="true">action.closeTab</h3>
         This action closes the current tab, and switches to the nearest opened tab. If the last tab is closed, the newtab page will (re)open as the only opened tab. Opposite of <a href="#action.reopenTab">action.reopenTab</a>.
         <h3 id="action.reopenTab" countable="true">action.reopenTab</h3>
-        Reopen a previously closed tab as a new tab. Can be toggled with <a href="keeprecentlyclosed">keeprecentlyclosed</a>. Opposite of <a href="#action.closeTab">action.closeTab</a>.
+        Reopen a previously closed tab as a new tab. Can be toggled with <a href="#keeprecentlyclosed">keeprecentlyclosed</a>. Opposite of <a href="#action.closeTab">action.closeTab</a>.
         <h3 id="action.nextTab" countable="true">action.nextTab</h3>
-        Navigate to the next tab (to the right) in the tab bar. Opposite of <a href="#action.previousTab">action.previousTab</a>.
+        Navigate to the next tab (to the right) in the tabbar. Opposite of <a href="#action.previousTab">action.previousTab</a>.
         <h3 id="action.previousTab" countable="true">action.previousTab</h3>
-        Navigate to the previous tab (to the left) in the tab bar. Opposite of <a href="#action.nextTab">action.nextTab</a>.
+        Navigate to the previous tab (to the left) in the tabbar. Opposite of <a href="#action.nextTab">action.nextTab</a>.
         <h3 id="action.moveTabForward" countable="true">action.moveTabForward</h3>
-        Move the current tab forward in the tab bar (to the right). This action does not switch between pages, but merely changes the order of appearance in the tab bar. Opposite of <a href="#action.moveTabBackward">action.moveTabBackward</a>. See <a href="#action.nextTab">action.nextTab</a> to actually switch between the tabs.
+        Move the current tab forward in the tabbar (to the right). This action does not switch between pages, but merely changes the order of appearance in the tabbar. Opposite of <a href="#action.moveTabBackward">action.moveTabBackward</a>. See <a href="#action.nextTab">action.nextTab</a> to actually switch between the tabs.
         <h3 id="action.moveTabBackward" countable="true">action.moveTabBackward</h3>
         Opposite of <a href="#action.moveTabForward">action.moveTabForward</a>.
         <h3 id="action.backInHistory" countable="true">action.backInHistory</h3>
@@ -767,7 +811,7 @@
         <h3 id="pointer.downloadImage">pointer.downloadImage</h3>
         Download an image at the current pointer position. If there are multiple images at the pointer location, only the first one will be downloaded. The name will be automatically set, and downloaded files will be stored in <a href="#downloadpath">downloadpath</a>. This action will search specifically for img and svg tags at a position.
         <h3 id="pointer.inspectElement">pointer.inspectElement</h3>
-        Inspect an element at the current pointer position. This action will open the devtools if the devtools are not opened yet. The devtools can also be opened with the <a href="#:devtools">:devtools</a> command.
+        Inspect an element at the current pointer position. This action will open a devtools window if the devtools are not opened yet. The <a href="#devtoolsposition">devtoolsposition</a> is not used when inspecting an element, as it will open a devtools window. If you want to open the devtools differently, please open the devtools with the <a href="#:devtools">:devtools</a> command first. The "inspectElement" action will use the existing devtools to inspect the element in.
         <h3 id="pointer.insertAtPosition">pointer.insertAtPosition</h3>
         Enter <a class="insert" href="#action.toInsertMode">insert mode</a> at the pointer position. This can be used to click and immediately set focus to the element at a position, similar to an actual mouse click. Contrary to <a href="#pointer.leftClick">pointer.leftClick</a>, this type of click will also work for poorly programmed dropdowns and/or custom menus on websites: the ones that open with a click, but close automatically when focus is lost. Some Google websites use these type of inconsistent menus.
         <h3 id="pointer.startVisualSelect">pointer.startVisualSelect</h3>
@@ -895,6 +939,10 @@
             <li>
                 <a href="https://github.com/google/fonts/tree/master/apache/robotomono">Roboto Mono</a>
                 is used to display text in a nice monospace font
+            </li>
+            <li>
+                <a href="https://github.com/sindresorhus/is-svg">is-svg</a>
+                is used to detect SVG images that are used as favicons
             </li>
             <li>
                 <a href="https://github.com/darkreader/darkreader">Darkreader</a>

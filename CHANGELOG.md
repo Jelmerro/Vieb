@@ -13,14 +13,71 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Local file suggestions to explore mode and to relevant commands
+- Red border in command mode when the entered command is invalid (for example due to unmatched quotes)
+- Setting 'suggestfiles' setting to control when/if file suggestions should appear ('all' by default)
+- Setting "suggestfilesfirst" to control if file suggestions should appear before/after history in explore mode
+- Setting "closablepinnedtabs" which is disabled by default (meaning pinned tabs can't be closed)
+- Setting "containernewtab" to control which container all new tabs should use (default is still "main")
+- Setting "containersplitpage" to control which container all split pages should use (default is "s:usecurrent")
+- Setting "containerstartuppage" to control which container the startup pages should use (CLI arguments, default is still "main")
+- Setting "containercolors" to show container tabs in a custom color based on the container name
+- Setting "containershowname" to optionally show the name of the container between the mode and url in the navbar
+- Setting "containerkeeponreopen" to toggle the remembering the container name and to use the "containernewtab" setting instead
+- Setting "permissionclosepage" to control if pages are allowed to close themselves (previously they couldn't, new default is allowed)
+- Setting "incsearch" to enable incremental search (enabled by default)
+- Restart command to restart Vieb
+- Close command that works similar to the hide command, but instead will close any tab by index (or matching title/url)
+- Special container names to open tabs externally, in tabs with a matching domain, or use the same container as the current tab
+- Support for SVG favicons by giving it an explicit ".svg" extension if detected by "is-svg"
+- Devtools that can be opened as a split window or in a separate tab, in addition to the existing windowed developer tools
+
+### Changed
+
+- Suggestions are now scrollable when they don't fit the window
+- The setting 'suggesthistory' has been renamed 'suggestexplore' as it might also include file suggestions now
+- Command suggestions are now by default set to 1000, as the operation is simple and suggestions are scrollable
+- Increased the upper limit for the number of suggestions (for both command and explore mode)
+- Pinned tabs can no longer be closed, unless the 'closablepinnedtabs' setting is enabled
+- Search setting parsing, you can now include %s as a substitute for the entered search
+- Default duckduckgo search engine options now include a persistent header and infinite scrolling
+- Tabs are now always modifiable in Erwic mode, because containers can now be managed at runtime
+- Multiple tabs of the same special page can now be opened using the commands, as some of them are container specific
+- The startup argument "--portable" has been replaced with "--datafolder", use "--datafolder ./ViebData" for old functionality
+- Erwic now uses the "datafolder" startup argument instead of a JSON field for the datafolder location configuration
+
+### Fixed
+
+- Typo in the "storenewvisits" setting (there will be no automatic migration from the name with a typo to the correct one)
+- Pointer not updating the location when brining back the GUI while in fullscreen
+- Permission for media devices sometimes being detected as a microphone permission
+- Mouse back/forward buttons being ignored when the mouse setting is enabled
+- Shift being ignored when pressing named keys that can be pressed with and without Shift such as "Space"
+- Border of split pages moving the page slightly when switching (border is now always there but in gray)
+- Updating the adblocker files when Vieb is installed on a read-only file system
+- Favicons being accepted even though the HTTP status code was an error (such as 404)
+
+### Deprecated
+
+- Old tabs file format (3.x.x releases will migrate to the new format, 2.x.x releases will not read the 3.x.x format)
+- Conversion from old format will be removed in future Vieb 4.x.x releases
+- Supplying a "name" to an Erwic app, use a "container" field instead
+
+### Removed
+
+- Old line-based history format parser (1.x.x users should update to 2.x.x first, if they want to keep their history)
+
 ### Fixed
 
 - Abort error for aborting page loads in the debug console (using --debug or --console)
+- Don't keep closed pages in memory while the 'keeprecentlyclosed' setting is off
 
 ### Security
 
-- Electron 10.1.2 (was 10.1.1)
-- Chromium 85.0.4183.98 (was 85.0.4183.93)
+- Electron 11.0.0-beta.19 (was 10.1.1)
+- Chromium 87.0.4280.27 (was 85.0.4183.93)
 
 ## [2.4.0](https://github.com/Jelmerro/Vieb/compare/2.3.0...2.4.0) - 2020-09-05
 
@@ -602,7 +659,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Moved most information regarding configuration from the readme to the help page
-- Changed the default search engine from duckduckgo to duckduckgo with a dark theme
+- Default duckduckgo search engine to use a dark theme
 - Improved CLI startup arguments for packaged apps
 - Split the preload into multiple separate preloads
 - Improved electron builder configuration (separate file with much better settings)

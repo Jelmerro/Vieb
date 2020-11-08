@@ -163,7 +163,7 @@ const quitall = () => {
         HISTORY.writeHistToFile(true)
     }
     TABS.saveTabs()
-    UTIL.clearContainerTabs()
+    UTIL.clearTempContainers()
     if (SETTINGS.get("cache") !== "full") {
         UTIL.clearCache()
     }
@@ -177,22 +177,54 @@ const quitall = () => {
     ipcRenderer.send("destroy-window")
 }
 
+const restart = () => {
+    ipcRenderer.send("relaunch")
+    quitall()
+}
+
+const openDevTools = (position = null, trailingArgs = false) => {
+    if (trailingArgs) {
+        UTIL.notify("The devtools command takes a single optional argument",
+            "warn")
+        return
+    }
+    if (!position) {
+        position = SETTINGS.get("devtoolsposition")
+    }
+    if (position === "window") {
+        TABS.currentPage().openDevTools()
+    } else if (position === "tab") {
+        TABS.addTab({"devtools": true})
+    } else if (position === "vsplit") {
+        TABS.addTab({
+            "switchTo": false,
+            "devtools": true,
+            "callback": id => {
+                PAGELAYOUT.add(id, "hor", !SETTINGS.get("splitright"))
+                TABS.switchToTab(tabIndexById(id))
+            }
+        })
+    } else if (position === "split") {
+        TABS.addTab({
+            "switchTo": false,
+            "devtools": true,
+            "callback": id => {
+                PAGELAYOUT.add(id, "ver", !SETTINGS.get("splitbelow"))
+                TABS.switchToTab(tabIndexById(id))
+            }
+        })
+    } else {
+        UTIL.notify("Invalid devtools position specified, must be one of: "
+            + "window, vsplit, split or tab", "warn")
+    }
+}
+
 const openSpecialPage = (specialPage, section = null) => {
-    // Switch to already open special page if available
-    let alreadyOpen = false
-    TABS.listTabs().forEach((tab, index) => {
-        // The list of tabs is ordered, the list of pages isn't
-        const page = TABS.tabOrPageMatching(tab)
-        if (UTIL.pathToSpecialPageName(page.src).name === specialPage) {
-            alreadyOpen = true
-            TABS.switchToTab(index)
-        }
-    })
     // Open the url in the current or new tab, depending on currently open page
     const pageUrl = UTIL.specialPagePath(specialPage, section)
     const isNewtab = UTIL.pathToSpecialPageName(
         TABS.currentPage().src).name === "newtab"
-    if (TABS.currentPage().src === "" || alreadyOpen || isNewtab) {
+    if (!TABS.currentPage().isLoading() && isNewtab) {
         TABS.navigateTo(pageUrl)
     } else {
         TABS.addTab({"url": pageUrl})
@@ -353,6 +385,7 @@ const addSplit = (method, leftOrAbove, args) => {
     if (args.length === 0) {
         TABS.addTab({
             "switchTo": false,
+            "container": SETTINGS.get("containersplitpage"),
             "callback": id => {
                 PAGELAYOUT.add(id, method, leftOrAbove)
                 TABS.switchToTab(tabIndexById(id))
@@ -371,6 +404,7 @@ const addSplit = (method, leftOrAbove, args) => {
     } else {
         TABS.addTab({
             "url": UTIL.stringToUrl(args.join(" ")),
+            "container": SETTINGS.get("containersplitpage"),
             "switchTo": false,
             "callback": id => {
                 PAGELAYOUT.add(id, method, leftOrAbove)
@@ -379,6 +413,20 @@ const addSplit = (method, leftOrAbove, args) => {
         })
     }
 }
+
+const close = (...args) => {
+    if (args.length === 0) {
+        TABS.closeTab()
+        return
+    }
+    const tab = tabForBufferArg(args)
+    if (tab) {
+        TABS.closeTab(TABS.listTabs().indexOf(tab))
+        return
+    }
+    UTIL.notify("Can't find matching page, no tabs closed", "warn")
+}
+
 
 const addCommand = (overwrite, args) => {
     if (overwrite && args.length < 2) {
@@ -450,8 +498,9 @@ const commands = {
     "quit": quit,
     "qa": quitall,
     "quitall": quitall,
-    "devtools": () => TABS.currentPage().openDevTools(),
+    "devtools": openDevTools,
     "reload": reload,
+    "restart": restart,
     "v": () => openSpecialPage("version"),
     "version": () => openSpecialPage("version"),
     "h": help,
@@ -475,6 +524,7 @@ const commands = {
     "Sexplore": (...args) => addSplit("ver", !SETTINGS.get("splitright"), args),
     "split": (...args) => addSplit("ver", !SETTINGS.get("splitright"), args),
     "vsplit": (...args) => addSplit("hor", !SETTINGS.get("splitbelow"), args),
+    "close": close,
     "cookies": () => openSpecialPage("cookies"),
     "command": (...args) => addCommand(false, args),
     "command!": (...args) => addCommand(true, args),
@@ -491,8 +541,8 @@ const noArgumentComands = [
     "quit",
     "qa",
     "quitall",
-    "devtools",
     "reload",
+    "restart",
     "v",
     "version",
     "history",
