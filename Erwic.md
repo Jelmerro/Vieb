@@ -20,32 +20,36 @@ These programs are nice but Vieb (and thus Erwic mode) has the following advanta
 
 # How
 
-The browsing data of each tab is stored in it's own location based on the name.
-The difference with containertabs is the custom name and the persistent storage.
-Another difference is that the configured pages can't be opened or closed while running.
+The browsing data of each app/tab is stored in it's own container.
+These containers are selected based on the container name that you choose,
+and do not share any data between them if the name is different.
 Links that you request to open in a new tab will be opened with your default web browser instead.
+Links that you request to open using the start arguments will open in a new tab,
+using the container name that is used by the existing tab with the same domain.
+The container name of the currently opened tab will be used for the new tab if no matching domains are found.
 Finally, permissions for microphone, notifications, media devices and camera are now allowed by default.
-If desired, these permissions can be changed with the viebrc in the datafolder or with `:set`,
-these are only changes to the default value of the settings.
+These are only changes to the default Erwic setting values compared to regular Vieb,
+and if desired, these differences can be changed (back) with the viebrc in the datafolder or with `:set`.
 
 ## Multiple pages
 
 Configuration for this is is done with a settings JSON file.
 You can open a config file with Vieb using the "--erwic" option.
-Below is an example of how to make a fixed instance for Discord and Slack named "Erwic".
+It is recommended to add the "--datafolder" startup argument as well,
+as you can only open one instance of Erwic per datafolder.
+Below is an example config of how to make a fixed instance for Discord and Slack named "Erwic".
 
 ```json
 {
     "name": "Erwic",
     "icon": "./example-icon.png",
-    "datafolder": "~/.config/Erwic",
     "apps": [
         {
-            "name": "discord",
+            "container": "discord",
             "url": "https://discord.com/app"
         },
         {
-            "name": "slack",
+            "container": "slack",
             "url": "https://example.slack.com",
             "script": "./example-script.js"
         }
@@ -53,15 +57,15 @@ Below is an example of how to make a fixed instance for Discord and Slack named 
 }
 ```
 
-The required fields are the list of apps and the datafolder.
-Additionally you can specify a custom name and icon for Vieb to use,
-with the default being the regular Vieb defaults.
-Each app should have a name and url to open, and optionally a JavaScript file to execute on page load.
+The only required field is the list of apps,
+but you can specify a custom name and icon for Vieb to use.
+By default the name Vieb and the Vieb icon will be used.
+Each app should have a container name and url to open, and optionally a JavaScript file to execute on page load.
 The path of the icon and scripts can be relative to the config file or absolute.
 Custom icons aren't very reliable in Electron especially on Linux,
 so please check their issue tracker first if things don't work out.
-Apps can also share the same name to use the same data location for multiple pages.
-If the name of an app starts with "container", all of it's browsing data will be deleted on quit.
+Apps can also share the same container name to use the same data location for multiple pages.
+If the container name of an app starts with "temp", all of it's browsing data will be deleted on quit.
 
 ## Electron apps
 
@@ -72,10 +76,9 @@ For example, you could name the instance "Discord", give it a discord icon and o
 {
     "name": "Discord",
     "icon": "/path/to/discord.png",
-    "datafolder": "~/.config/Discord",
     "apps": [
         {
-            "name": "discord",
+            "container": "discord",
             "url": "https://discord.com/app"
         }
     ]
@@ -83,8 +86,8 @@ For example, you could name the instance "Discord", give it a discord icon and o
 ```
 
 If the JSON above would be stored as "discord.json" in for example the home directory,
-you can start Vieb's version of discord with `vieb --erwic ~/discord.json`.
-As long as the path to the data folder is different for each Vieb/Erwic instance,
+you can start Vieb's version of discord with `vieb --erwic ~/discord.json --datafolder ~/.config/Discord`.
+As long as the path to the datafolder is different for each Vieb/Erwic instance,
 you can create as many as you like to replace all kinds of Electron/web-based apps.
 The datafolder can be stored at any local location and can be relocated as well.
 
@@ -97,7 +100,7 @@ The approach is operating system specific, but it's usually done in one of two w
 ### Context menu option
 
 Right-click on your desktop and create a shortcut to the "Vieb" executable,
-and set `--erwic /path/to/config/file.json` as the startup arguments of the program.
+and set `--erwic /path/to/config/file.json --datafolder /path/to/datafolder/` as the startup arguments of the program.
 Usually you can also set a custom icon for the shortcut,
 which you can also provide as an option the Erwic config file (can be the same or different).
 
@@ -112,7 +115,7 @@ Below is an example to add Vieb with Erwic mode enabled (and named Erwic) to you
 ```desktop
 [Desktop Entry]
 Name=Erwic
-Exec=/usr/bin/vieb --erwic /path/to/config/file.json
+Exec=/usr/bin/vieb --erwic /path/to/config/file.json --datafolder /path/to/datafolder/
 Terminal=false
 Type=Application
 Icon=/path/to/icon.png

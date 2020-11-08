@@ -65,10 +65,11 @@ ipcRenderer.on("insert-failed-page-info", (_, e) => {
             The page could not be loaded successfully.
             The following error occurred:<br>
             <h3>${e.errorDescription}</h3>
-            The first step you could try is reloading the page by pressing the
-            <kbd>r</kbd> key from normal mode. If the error persists,
-            make sure you typed the url correctly. Finally,
-            please check your internet connection and DNS settings.`
+            The first step you could try is reloading the page, by default
+            mapped to <kbd>r</kbd> in normal mode. If the error persists, make
+            sure you typed the url correctly. Alternatively, the website might
+            not support the '${e.validatedURL.replace(/:.*$/g, "")}' protocol.
+            Finally, please check your internet connection and DNS settings.`
     }
     document.body.appendChild(mainInfo)
 })

@@ -40,13 +40,14 @@ const init = () => {
         const webview = document.querySelector(`#pages [link-id='${linkId}']`)
         if (webview?.src === currentUrl) {
             setPath(TABS.tabOrPageMatching(webview), urlToPath(favicon))
+            mappings[currentUrl] = favicon
         }
     })
 }
 
 const updateMappings = (currentUrl = null) => {
     // Don't update the mappings before they are done loading
-    if (!isParsed || !HISTORY.isFinishedLoading()) {
+    if (!isParsed) {
         return
     }
     // Delete mappings for urls that aren't present in the history
@@ -86,7 +87,11 @@ const empty = webview => {
     const tab = TABS.tabOrPageMatching(webview)
     tab.querySelector(".status").style.display = null
     tab.querySelector(".favicon").style.display = "none"
-    tab.querySelector(".favicon").src = "img/empty.png"
+    if (webview.src.startsWith("devtools://")) {
+        tab.querySelector(".favicon").src = viebIcon
+    } else {
+        tab.querySelector(".favicon").src = "img/empty.png"
+    }
 }
 
 const show = webview => {
