@@ -414,6 +414,20 @@ const addSplit = (method, leftOrAbove, args) => {
     }
 }
 
+const close = (...args) => {
+    if (args.length === 0) {
+        TABS.closeTab()
+        return
+    }
+    const tab = tabForBufferArg(args)
+    if (tab) {
+        TABS.closeTab(TABS.listTabs().indexOf(tab))
+        return
+    }
+    UTIL.notify("Can't find matching page, no tabs closed", "warn")
+}
+
+
 const addCommand = (overwrite, args) => {
     if (overwrite && args.length < 2) {
         UTIL.notify("Can't combine ! with reading a value", "warn")
@@ -510,6 +524,7 @@ const commands = {
     "Sexplore": (...args) => addSplit("ver", !SETTINGS.get("splitright"), args),
     "split": (...args) => addSplit("ver", !SETTINGS.get("splitright"), args),
     "vsplit": (...args) => addSplit("hor", !SETTINGS.get("splitbelow"), args),
+    "close": close,
     "cookies": () => openSpecialPage("cookies"),
     "command": (...args) => addCommand(false, args),
     "command!": (...args) => addCommand(true, args),

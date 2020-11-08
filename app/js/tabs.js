@@ -382,6 +382,7 @@ const reopenTab = () => {
 
 const closeTab = (index = null) => {
     const tab = listTabs()[index] || currentTab()
+    const isClosingCurrent = tab === currentTab()
     const page = tabOrPageMatching(tab)
     if (!SETTINGS.get("closablepinnedtabs")) {
         if (tab.classList.contains("pinned")) {
@@ -401,7 +402,10 @@ const closeTab = (index = null) => {
     }
     const closedDevtoolsId = tab.getAttribute("devtools-id")
     const oldTabIndex = listTabs().indexOf(tab)
-    if (document.getElementById("pages").classList.contains("multiple")) {
+    const isVisible = PAGELAYOUT.layoutDivById(tab.getAttribute("link-id"))
+    const multiLayout = document.getElementById("pages")
+        .classList.contains("multiple")
+    if (isVisible && multiLayout) {
         PAGELAYOUT.hide(page, true)
     } else {
         document.getElementById("tabs").removeChild(tab)
@@ -415,7 +419,7 @@ const closeTab = (index = null) => {
         }
         if (oldTabIndex === 0) {
             switchToTab(0)
-        } else {
+        } else if (isClosingCurrent) {
             switchToTab(oldTabIndex - 1)
         }
     }

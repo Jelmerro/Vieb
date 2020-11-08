@@ -29,6 +29,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "permissionclosepage" to control if pages are allowed to close themselves (previously they couldn't, new default is allowed)
 - Setting "incsearch" to enable incremental search (enabled by default)
 - Restart command to restart Vieb
+- Close command that works similar to the hide command, but instead will close any tab by index (or matching title/url)
 - Special container names to open tabs externally, in tabs with a matching domain, or use the same container as the current tab
 - Support for SVG favicons by giving it an explicit ".svg" extension if detected by "is-svg"
 - Devtools that can be opened as a split window or in a separate tab, in addition to the existing windowed developer tools
@@ -60,7 +61,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Deprecated
 
-- Old tabs file format (it's now a list of objects, instead of a list of strings
+- Old tabs file format (3.x.x releases will migrate to the new format, 2.x.x releases will not read the 3.x.x format)
 - Conversion from old format will be removed in future Vieb 4.x.x releases
 - Supplying a "name" to an Erwic app, use a "container" field instead
 

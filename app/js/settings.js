@@ -578,6 +578,18 @@ const suggestionList = () => {
             listOfSuggestions.push(
                 `${setting}=${get(setting, defaultSettings)}`)
         }
+        if (containerSettings.includes(setting)) {
+            listOfSuggestions.push(`${setting}=s:usematching`)
+            listOfSuggestions.push(`${setting}=s:usecurrent`)
+            if (setting !== "containersplitpage") {
+                listOfSuggestions.push(`${setting}=s:replacematching`)
+                listOfSuggestions.push(`${setting}=s:replacecurrent`)
+            }
+            if (setting === "containernewtab") {
+                listOfSuggestions.push(`${setting}=s:external`)
+            }
+            listOfSuggestions.push(`${setting}=temp%n`)
+        }
         const isNumber = typeof get(setting, defaultSettings) === "number"
         const isFreeText = freeText.includes(setting)
         const isListLike = listLike.includes(setting)
