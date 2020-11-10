@@ -30,6 +30,7 @@
   "license": "GPL-3.0+",
   "devDependencies": {
     "@babel/plugin-proposal-optional-chaining": "^7.12.1",
+    "archiver": "^5.0.2",
     "electron": "^11.0.0-beta.19",
     "electron-builder": "^22.9.1",
     "eslint": "^7.12.1",
