@@ -47,6 +47,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Multiple tabs of the same special page can now be opened using the commands, as some of them are container specific
 - The startup argument "--portable" has been replaced with "--datafolder", use "--datafolder ./ViebData" for old functionality
 - Erwic now uses the "datafolder" startup argument instead of a JSON field for the datafolder location configuration
+- Tab list can now be scrolled horizontally using the mouse wheel
 
 ### Fixed
 
