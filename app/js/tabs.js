@@ -35,6 +35,13 @@ const init = () => {
         if (UTIL.appIcon()) {
             document.getElementById("logo").src = UTIL.appIcon()
         }
+
+        // Allow vertical scrolling to move the tabs list horizontally
+        document.getElementById("tabs").addEventListener("wheel", e => {
+            document.getElementById("tabs").scrollBy(e.deltaX + e.deltaY, 0)
+            e.preventDefault()
+        })
+
         const parsed = UTIL.readJSON(tabFile)
         if (!erwicMode) {
             if (parsed) {
