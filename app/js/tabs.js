@@ -296,15 +296,7 @@ const addTab = options => {
     tab.style.minWidth = `${SETTINGS.get("mintabwidth")}px`
     tab.addEventListener("mouseup", e => {
         if (e.button === 1) {
-            const currentlyOpenendTab = currentTab()
-            MODES.setMode("normal")
-            if (tab === currentlyOpenendTab) {
-                closeTab()
-            } else {
-                switchToTab(listTabs().indexOf(tab))
-                closeTab()
-                switchToTab(listTabs().indexOf(currentlyOpenendTab))
-            }
+            closeTab(listTabs().indexOf(tab))
         } else {
             switchToTab(listTabs().indexOf(tab))
         }
