@@ -33,6 +33,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Special container names to open tabs externally, in tabs with a matching domain, or use the same container as the current tab
 - Support for SVG favicons by giving it an explicit ".svg" extension if detected by "is-svg"
 - Devtools that can be opened as a split window or in a separate tab, in addition to the existing windowed developer tools
+- Added "pointer.downloadLink" action that downloads the hovered link in pointer mode
 
 ### Changed
 

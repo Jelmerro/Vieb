@@ -153,6 +153,7 @@ const defaultBindings = {
         "]": {"mapping": "<pointer.scrollDown>"},
         "b": {"mapping": "<pointer.moveFastLeft>"},
         "d": {"mapping": "<pointer.downloadImage>"},
+        "D": {"mapping": "<pointer.downloadLink>"},
         "<C-d>": {"mapping": "<pointer.moveFastDown>"},
         "e": {"mapping": "<pointer.inspectElement>"},
         "f": {"mapping": "<action.startFollowCurrentTab>"},

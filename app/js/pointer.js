@@ -137,6 +137,13 @@ const downloadImage = () => {
         Math.round(X / factor), Math.round(Y / factor))
 }
 
+const downloadLink = () => {
+    const url = document.getElementById("url-hover")?.textContent
+    if (url) {
+        TABS.currentPage().downloadURL(url)
+    }
+}
+
 const inspectElement = () => {
     const {top, left} = offset()
     TABS.currentPage().inspectElement(Math.round(X + left), Math.round(Y + top))
@@ -317,6 +324,7 @@ module.exports = {
     releaseKeys,
     leftClick,
     rightClick,
+    downloadLink,
     downloadImage,
     inspectElement,
     insertAtPosition,
