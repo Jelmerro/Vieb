@@ -810,6 +810,8 @@
         Execute a right mouse click at the pointer position. Unless the website has implemented functionality for this, no right-click menu will open, as Vieb does not have a right-click menu.
         <h3 id="pointer.downloadImage">pointer.downloadImage</h3>
         Download an image at the current pointer position. If there are multiple images at the pointer location, only the first one will be downloaded. The name will be automatically set, and downloaded files will be stored in <a href="#downloadpath">downloadpath</a>. This action will search specifically for img and svg tags at a position.
+        <h3 id="pointer.downloadLink">pointer.downloadLink</h3>
+        Downloads the link at the current point position. The name will be automatically set, and downloaded files will be stored in <a href="#downloadpath">downloadpath</a>.
         <h3 id="pointer.inspectElement">pointer.inspectElement</h3>
         Inspect an element at the current pointer position. This action will open a devtools window if the devtools are not opened yet. The <a href="#devtoolsposition">devtoolsposition</a> is not used when inspecting an element, as it will open a devtools window. If you want to open the devtools differently, please open the devtools with the <a href="#:devtools">:devtools</a> command first. The "inspectElement" action will use the existing devtools to inspect the element in.
         <h3 id="pointer.insertAtPosition">pointer.insertAtPosition</h3>
