@@ -45,6 +45,9 @@
             <li><kbd>e</kbd> - Switch to <a class="explore" href="#action.toExploreMode">explore mode</a> (for navigating to websites or searching the web)</li>
             <li><kbd>f</kbd> - Switch to <a class="follow" href="#action.startFollowCurrentTab">follow mode</a> (for clicking buttons or links based on keys)</li>
             <li><kbd>/</kbd> - Switch to <a class="search" href="#action.toSearchMode">search mode</a> (for locating text in the page, use <kbd>n</kbd> and <kbd>N</kbd> to switch between matches)</li>
+            <li><kbd>v</kbd> - Switch to <a class="pointer" href="#pointer">pointer mode</a> (for hovering over links, downloading images, copying link urls, etc.)<ul>
+                <li><kbd>v</kbd> - Then switch to <a class="visual" href="#pointer.startVisualSelect">visual mode</a> (for selecting text)</li>
+            </ul></li>
         </ul>
         You can see the current mode at all times in the navbar, next to the url.
         Vieb is separated into different modes, most importantly normal mode.
@@ -804,6 +807,8 @@
         Distribute the windows inside a split evenly. This does not necessarily mean that all windows will be of the same size, for example if you have a vertical split, with on the left side a window, but on the right side a horizontal sub-split with two windows.
         <h2 id="pointer">Pointer</h2>
         Vieb has a <span class="pointer">pointer mode</span> to hover over links, download images or inspect an element at a position. The pointer can be moved in many different ways, most of which are by default mapped similar to Vim's normal mode. Additionally, after entering <span class="pointer">pointer mode</span>, it's also possible to start selecting text using <span class="visual">visual mode</span>. By default, the bindings of these two modes are similar, with the biggest difference being that text will be selected between the initial and current pointer position. See <a href="#pointer.startVisualSelect">pointer.startVisualSelect</a> to activate <span class="visual">visual mode</span> and <a href="#pointer.copyAndStop">pointer.copyAndStop</a> to copy the hovered link or selected text.
+        <h3 id="pointer.start">pointer.start</h3>
+        Switch to <a href="#pointer" class="pointer">pointer mode</a>, which enables a movable pointer.  The pointer can be used to hover over links, download images or inspect an element at a position. It can be moved in many different ways, most of which are by default mapped similar to Vim's normal mode. See <a href="#pointer.startVisualSelect">pointer.startVisualSelect</a> to activate <a href="#visual" class="visual">visual mode</a> and <a href="#pointer.copyAndStop">pointer.copyAndStop</a> to copy the hovered link or selected text.
         <h3 id="pointer.leftClick" countable="true">pointer.leftClick</h3>
         Simulate a left mouse click at the current pointer location. See also <a href="#pointer.rightClick">pointer.rightClick</a>.
         <h3 id="pointer.rightClick" countable="true">pointer.rightClick</h3>
