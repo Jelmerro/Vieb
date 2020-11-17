@@ -158,7 +158,7 @@ window.addEventListener("load", () => {
         document.querySelector("main").replaceChild(section, element)
     }
     // After loading, this will display the section id as a link
-    const sections = [...document.querySelectorAll("*[id]")]
+    const sections = [...document.querySelectorAll("#helppage *[id]")]
     sections.forEach(section => createIdLabel(section))
     // Set focus to correct part of the page after it's done loading
     setTimeout(processHash, 50)

@@ -306,9 +306,15 @@ const toggleFullscreen = () => {
 
 const incrementalSearch = () => {
     currentSearch = document.getElementById("url").value
-    TABS.currentPage().findInPage(currentSearch, {
-        "matchCase": !SETTINGS.get("ignorecase")
-    })
+    if (currentSearch.trim()) {
+        TABS.currentPage().stopFindInPage("clearSelection")
+        TABS.currentPage().findInPage(currentSearch, {
+            "matchCase": !SETTINGS.get("ignorecase")
+        })
+    } else {
+        currentSearch = ""
+        TABS.currentPage().stopFindInPage("clearSelection")
+    }
 }
 
 const useEnteredData = () => {

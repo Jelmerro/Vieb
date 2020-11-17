@@ -109,17 +109,17 @@ const addDownload = (download, id) => {
     element.appendChild(progress)
     // Change looks depending on the state
     if (download.state === "completed") {
-        title.style.color = "lime"
+        title.style.color = "var(--notification-success)"
         progress.style.display = "none"
         togglePause.style.display = "none"
     }
     if (download.state === "cancelled") {
-        title.style.color = "red"
+        title.style.color = "var(--notification-error)"
         progress.style.display = "none"
         togglePause.style.display = "none"
     }
     if (download.state === "paused") {
-        title.style.color = "orange"
+        title.style.color = "var(--notification-warning)"
         togglePause.src = path.join(__dirname, "../../img/resume.png")
         togglePause.parentNode.replaceChild(
             togglePause.cloneNode(true), togglePause)
@@ -212,17 +212,17 @@ const updateDownload = (download, element, id) => {
     progress.style.display = ""
     togglePause.style.display = ""
     if (download.state === "completed") {
-        title.style.color = "lime"
+        title.style.color = "var(--notification-success)"
         progress.style.display = "none"
         togglePause.style.display = "none"
     }
     if (download.state === "cancelled") {
-        title.style.color = "red"
+        title.style.color = "var(--notification-error)"
         progress.style.display = "none"
         togglePause.style.display = "none"
     }
     if (download.state === "paused") {
-        title.style.color = "orange"
+        title.style.color = "var(--notification-warning)"
         togglePause.src = path.join(__dirname, "../../img/resume.png")
         togglePause.parentNode.replaceChild(
             togglePause.cloneNode(true), togglePause)

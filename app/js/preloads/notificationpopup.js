@@ -24,18 +24,14 @@ const fixScrollHeight = () => {
     const notify = document.getElementById("notification")
     notify.scrollTop -= notify.scrollTop % fontsize
 }
-ipcRenderer.on("notification-details", (_, message, fs, lvl) => {
+ipcRenderer.on("notification-details", (_, message, fs, customCSS, lvl) => {
     document.getElementById("notification").scrollBy(0, -1000000000)
     document.getElementById("notification").innerHTML = message
-    if (lvl === "error") {
-        document.querySelector("footer").style.color = "#f33"
-    } else if (lvl === "warning") {
-        document.querySelector("footer").style.color = "#fd0"
-    } else {
-        document.querySelector("footer").style.color = "#0cf"
-    }
+    document.querySelector("footer").style.color = `var(--notification-${lvl}`
     fontsize = fs
     document.body.style.fontSize = `${fontsize}px`
+    document.getElementById("custom-styling").textContent = customCSS
+    document.body.style.opacity = 1
 })
 window.addEventListener("keydown", e => {
     if (e.metaKey || e.altKey) {

@@ -18,12 +18,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link href="../css/help.css" rel="stylesheet" type="text/css">
+    <link href="../colors/default.css" rel="stylesheet" type="text/css">
     <title>Help</title>
-    <meta http-equiv="Content-Security-Policy" content="font-src file://*; img-src file://*; object-src 'none'; style-src 'unsafe-inline' file://*; script-src 'none'; default-src 'none'">
+    <meta http-equiv="Content-Security-Policy" content="img-src file://*; object-src 'none'; style-src 'unsafe-inline' file://*; script-src 'none'; default-src 'none'">
     <link rel="shortcut icon" type="image/png" href="../img/icons/256x256.png">
 </head>
-<body>
+<body class="specialpage" id="helppage">
     <div class="header">
         <div>
             <img src="../img/icons/1024x1024.png">
@@ -131,6 +131,7 @@
             <li>Remove all custom mappings with <span class="command-block">:mapclear</span></li>
             <li>Reset all settings with <span class="command-block">:set all&amp;</span></li>
             <li>Run <span class="command-block">:comclear</span> to remove all custom commands</li>
+            <li>Switch back to the default <a href="#:colorscheme">:colorscheme</a> with <span class="command-block">:colorscheme default</span></li>
             <li>Finally run the <span class="command-block">:reload</span> command to run all viebrc commands</li>
         </ul>
         Of course it's also possible to make a mapping or custom command to do this for you.
@@ -460,6 +461,12 @@
             <li><span class="command-block">:devtools tab</span> - Open the developer tools of the current page in a new tab</li>
         </ul>
         The devtools command can be used to open the developer tools of the current page. If no argument is given for the devtools position, it will open at the position configured by <a href="#devtoolsposition">devtoolsposition</a>. The accepted positions for this command are the same as that of the setting. It's not possible to open multiple instances of the devtools for the same page, you can open one type of devtools per tab. By default these tools will have dark mode and some security settings enabled. If the devtools are opened as a Vieb tab or split (so not windowed) all regular Vieb action can be used to interact with the developer tools.
+        <h3 id=":colorscheme">:colorscheme</h3>
+        <ul>
+            <li><span class="command-block">:colorscheme</span> - Show the currently active colorscheme</li>
+            <li><span class="command-block">:colorscheme light</span> - Active the 'light' colorscheme</li>
+        </ul>
+        With the colorscheme command you can apply custom colorschemes (also called "themes"). There are a couple of themes bundled with Vieb and you can also add your own themes. These themes can change more than just colors, as they are written in CSS. All built-in styling is part of the default theme, and can be overwritten with a custom theme. You can find the default and other example colorschemes in "app/colors", which can be viewed <a href="https://github.com/Jelmerro/Vieb/tree/master/app/colors/" target="_blank">on github here</a>. Besides the colors (in ":root"), you can add as much CSS as you want. Custom themes are stored in a "colors" subfolder of the <a href="#datafolder">datafolder</a>: "&lt;datafolder&gt;/colors/&lt;name&gt;.css". All colorschemes extend the default theme, so there is no need to copy those values if you don't plan to change them. When <a href="#suggestcommands">suggestcommands</a> is enabled, the colorscheme command will suggest both built-in and custom themes.
         <h3 id=":quit">:quit</h3>
         Examples
         <ul>
@@ -494,7 +501,7 @@
             <li>Windows - <kbd>%APPDATA%\Vieb\</kbd>
             <li>Mac - <kbd>~/Library/Application Support/Vieb/</kbd>
         </ul>
-        All browsing history, cache, cookies, localstorage, favicons, preferences, blocklists, tab history and download history are stored in this folder. You can also store all Vieb data in a different folder by starting it with the "--datafolder" argument. For example, to use a relative folder named "ViebData": <kbd>vieb --datafolder ViebData</kbd>. Since the system <a href="#viebrc">viebrc</a> is also inside this folder, you can use this to have a completely portable instance of Vieb. Start Vieb with the "--help" argument to see other startup arguments.
+        All browsing history, cache, cookies, localstorage, favicons, preferences, blocklists, tab history and download history are stored in this folder. You can also store all Vieb data in a different folder by starting it with the "--datafolder" argument. For example, to use a relative folder named "ViebData": <kbd>vieb --datafolder ViebData</kbd>. Since the system <a href="#viebrc">viebrc</a> and <a href="#:colorscheme">colorschemes</a> are also inside this folder, you can use this to have a completely portable instance of Vieb. Start Vieb with the "--help" argument to see other startup arguments.
         <h2 id="erwic">Erwic mode</h2>
         With the "erwic" startup option, you can "Easily Run Websites In Containers". The purpose of this option is similar to programs such as Franz, Ferdi or Rambox. It can also replace other Electron-based desktop apps such as Slack or Discord. These instances of Vieb can run separately from your existing Vieb. See <a href="https://github.com/Jelmerro/Vieb/blob/master/Erwic.md">Erwic.md on github</a> for usage and details.
         <h2>Setting list</h2>
@@ -516,7 +523,7 @@
         <h3 id="closablepinnedtabs">closablepinnedtabs</h3>
         With this toggle you can specify if pinned tabs should be closable. By default, you need to unpin a tab (using <kbd class="command-block">:pin</kbd>) to close it. If this setting is enabled, you can close pinned tabs like any other regular tab.
         <h3 id="containercolors">containercolors</h3>
-        A list-like setting to give containers a custom color based on their name. Each element in the list contains a regular expression and a color name (or color hex) separated by a "~". By default, temporary containers are displayed in yellow, while all others will default to white. The first matching entry will be used as the color of the tab title. The color will also be used to show the name of the container in the navbar, if <a href="#containershowname">containershowname</a> is on. An example could be to make a container for work, school or other miscellaneous tasks and color it accordingly: <kbd class="command-block">:set containercolors=^work$~lightblue,^school~#f00,^misc$~lime</kbd> this will display the "work" container in lightblue, all containers starting with "school" in red and the "misc" container in lime. All CSS color names and (3 or 6 digit) hex codes are accepted. For more about containers and how to use them, see <a href="#containernewtab">containernewtab</a>.
+        A list-like setting to give containers a custom color based on their name. Each element in the list contains a regular expression and a color name (or color hex) separated by a "~". By default, temporary containers are displayed in yellow, while all others will use the default color of the <a href="#:colorscheme">:colorscheme</a>. The first matching entry will be used as the color of the tab title. The color will also be used to show the name of the container in the navbar, if <a href="#containershowname">containershowname</a> is on. An example could be to make a container for work, school or other miscellaneous tasks and color it accordingly: <kbd class="command-block">:set containercolors=^work$~lightblue,^school~#f00,^misc$~lime</kbd> this will display the "work" container in lightblue, all containers starting with "school" in red and the "misc" container in lime. All CSS color names and (3 or 6 digit) hex codes are accepted. For more about containers and how to use them, see <a href="#containernewtab">containernewtab</a>.
         <h3 id="containerkeeponreopen">containerkeeponreopen</h3>
         Toggle to indicate if tabs that are restored with <a href="#action.reopenTab">action.reopenTab</a> should keep the container they were opened in before. If enabled, they will keep the same container as before. If disabled, the value of <a href="#containernewtab">containernewtab</a> will be used as the container name instead. This toggle does not affect tabs that are opened using other ways, such as startup urls, which use the <a href="#containerstartuppage">containerstartuppage</a> setting. The <a href="#restoretabs">restoretabs</a> setting to keep tabs after a Vieb restart will always use the same container they used before shutting down Vieb.
         <h3 id="containernewtab">containernewtab</h3>
@@ -641,7 +648,7 @@
             <li><span class="url-search">searching</span> - This will appear when the entered data is not a url or a local file, which will result in a search being done based on this search setting</li>
             <li><span class="url-suggest">suggestion</span> - This will appear when you have selected a suggestion from the list, which will result in direct navigation to the selected suggestion</li>
         </ul>
-        The search setting must be set to a valid url. By default, your search will be encoded and pasted at the end of the url, unless you specify "%s" somewhere in your search url. To make a web search, call <a href="#action.useEnteredData">action.useEnteredData</a> after entering your search in <a class="explore" href="#action.toExploreMode">explore mode</a>.
+        The search setting must be set to a valid url. Your search will be encoded and pasted at the end of the url, unless you specify "%s" somewhere in your search url, in which case the "%s" part will be replaced with your search. To make a web search, call <a href="#action.useEnteredData">action.useEnteredData</a> after entering your search in <a class="explore" href="#action.toExploreMode">explore mode</a>. If you want to use a light theme for you searches, you could switch the "kae=d" part of the search setting to "kae=g". For more information about these search settings, see the <a href="https://duckduckgo.com/settings" target="_blank">DuckDuckGo settings page</a>. Of course it's also possible to use a completely different search engine, switching between them can also be simplified with <a href="#customcommands">custom commands</a>. For example, to switch to the light version of DuckDuckGo in combination with switching to Vieb's light colorscheme, you can so something like this: <span class="command-block">command! light <:colorscheme light><:set search=https://duckduckgo.com/?kae=g&q=%s></span>.
         <h3 id="showcmd">showcmd</h3>
         Toggle for showing the history of recently pressed keys in the top-right corner. The keys are reset when no more mappings exist that start with the currently pressed keys. The showcmd option also shows the repeat count for normal mode, <a class="pointer" href="#pointer">pointer mode</a> and <a class="visual" href="#pointer">visual mode</a>.
         <h3 id="spell">spell</h3>
@@ -942,10 +949,6 @@
             <li>
                 <a href="https://github.com/isaacs/rimraf">Rimraf</a>
                 is used to recursively delete folders such as cache
-            </li>
-            <li>
-                <a href="https://github.com/google/fonts/tree/master/apache/robotomono">Roboto Mono</a>
-                is used to display text in a nice monospace font
             </li>
             <li>
                 <a href="https://github.com/sindresorhus/is-svg">is-svg</a>

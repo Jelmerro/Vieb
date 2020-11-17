@@ -163,6 +163,7 @@ const config = path.join(UTIL.appData(), "viebrc")
 let navbarGuiTimer = null
 let tabbarGuiTimer = null
 let topOfPageWithMouse = false
+let customStyling = ""
 const downloadSettings = [
     "downloadmethod",
     "downloadpath",
@@ -421,20 +422,6 @@ const updateContainerSettings = (full = true) => {
     }
 }
 
-const updateFontSize = () => {
-    document.body.style.fontSize = `${get("fontsize")}px`
-    TABS.listPages().forEach(p => {
-        const isSpecialPage = UTIL.pathToSpecialPageName(p.src).name
-        const isLocal = p.src.startsWith("file:/")
-        const isErrorPage = p.getAttribute("failed-to-load")
-        if (isSpecialPage || isLocal || isErrorPage) {
-            p.send("fontsize", get("fontsize"))
-        }
-    })
-    PAGELAYOUT.applyLayout()
-    ipcRenderer.send("set-fontsize", get("fontsize"))
-}
-
 const getGuiStatus = type => {
     let setting = get(`gui${type}`)
     if (ipcRenderer.sendSync("is-fullscreen")) {
@@ -534,7 +521,9 @@ const updateWebviewSettings = () => {
         "darkreader": get("darkreader"),
         "permissionmediadevices": get("permissionmediadevices"),
         "permissionsallowed": get("permissionsallowed"),
-        "permissionsblocked": get("permissionsblocked")
+        "permissionsblocked": get("permissionsblocked"),
+        "fg": getComputedStyle(document.body).getPropertyValue("--fg"),
+        "bg": getComputedStyle(document.body).getPropertyValue("--bg")
     })
 }
 
@@ -690,7 +679,7 @@ const set = (setting, value) => {
             })
         }
         if (setting === "fontsize") {
-            updateFontSize()
+            updateCustomStyling()
         }
         if (downloadSettings.includes(setting)) {
             updateDownloadSettings()
@@ -838,6 +827,29 @@ const saveToDisk = full => {
     UTIL.writeFile(config, settingsAsCommands,
         `Could not write to '${config}'`, `Viebrc saved to '${config}'`, 4)
 }
+
+const setCustomStyling = css => {
+    customStyling = css
+    updateCustomStyling()
+}
+
+const getCustomStyling = () => customStyling
+
+const updateCustomStyling = () => {
+    document.body.style.fontSize = `${get("fontsize")}px`
+    updateWebviewSettings()
+    TABS.listPages().forEach(p => {
+        const isSpecialPage = UTIL.pathToSpecialPageName(p.src).name
+        const isLocal = p.src.startsWith("file:/")
+        const isErrorPage = p.getAttribute("failed-to-load")
+        if (isSpecialPage || isLocal || isErrorPage) {
+            p.send("set-custom-styling", get("fontsize"), customStyling)
+        }
+    })
+    PAGELAYOUT.applyLayout()
+    ipcRenderer.send("set-custom-styling", get("fontsize"), customStyling)
+}
+
 module.exports = {
     init,
     freeText,
@@ -854,5 +866,8 @@ module.exports = {
     saveToDisk,
     setTopOfPageWithMouse,
     guiRelatedUpdate,
-    updateGuiVisibility
+    updateGuiVisibility,
+    setCustomStyling,
+    getCustomStyling,
+    updateCustomStyling
 }

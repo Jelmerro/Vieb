@@ -38,27 +38,38 @@ const specialPage = util.pathToSpecialPageName(window.location.href)
 if (specialPage.name) {
     require(`./preloads/${specialPage.name}`)
 }
+// Load Vieb settings that are relevant for the webview
+const webviewSettingsFile = path.join(util.appData(), "webviewsettings")
+const settings = util.readJSON(webviewSettingsFile)
 
-// Change the colors to white text on black for plain text pages
-// Change the background to white for pages with no explicit background
+// Change the colors to $FG text on $BG background for plain text pages
+// Change the background to white for regular pages with no explicit background
 window.addEventListener("load", () => {
     if (!document.querySelector("html")) {
         return
     }
+    if (document.body?.classList.contains("specialpage")) {
+        return
+    }
     if (document.head?.innerText === "") {
-        document.querySelector("html").style.color = "white"
+        document.querySelector("html").style.color = settings?.fg || "#eee"
+        document.querySelector("html").style.background = settings?.bg || "#333"
         return
     }
     const html = getComputedStyle(document.querySelector("html")).background
     const body = getComputedStyle(document.body).background
     const unset = "rgba(0, 0, 0, 0)"
     if (html.includes(unset) && body.includes(unset)) {
-        document.querySelector("html").style.background = "white"
+        // Check for regular pages that should have a white background
+        if (document.body.querySelector("div")) {
+            document.querySelector("html").style.background = "white"
+            return
+        }
+        document.querySelector("html").style.color = settings?.fg || "#eee"
+        document.querySelector("html").style.background = settings?.bg || "#333"
     }
 })
 // Apply darkreader styling if enabled
-const webviewSettingsFile = path.join(util.appData(), "webviewsettings")
-const settings = util.readJSON(webviewSettingsFile)
 if (settings?.darkreader && !specialPage.name) {
     const darkreader = require("darkreader")
     const interval = setInterval(() => {
