@@ -649,7 +649,8 @@ const addWebviewListeners = webview => {
         }
         webview.send("insert-failed-page-info", JSON.stringify(e))
         webview.setAttribute("failed-to-load", "true")
-        webview.send("fontsize", SETTINGS.get("fontsize"))
+        webview.send("set-custom-styling", SETTINGS.get("fontsize"),
+            SETTINGS.getCustomStyling())
     })
     webview.addEventListener("did-stop-loading", () => {
         FAVICONS.show(webview)
@@ -659,7 +660,8 @@ const addWebviewListeners = webview => {
         const isLocal = webview.src.startsWith("file:/")
         const isErrorPage = webview.getAttribute("failed-to-load")
         if (specialPageName || isLocal || isErrorPage) {
-            webview.send("fontsize", SETTINGS.get("fontsize"))
+            webview.send("set-custom-styling", SETTINGS.get("fontsize"),
+                SETTINGS.getCustomStyling())
         }
         if (specialPageName === "help") {
             webview.send("settings", SETTINGS.settingsWithDefaults(),

@@ -23,13 +23,15 @@ window.addEventListener("load", () => {
     const username = document.getElementById("username")
     const password = document.getElementById("password")
     const inputs = [...document.getElementsByTagName("input")]
-    ipcRenderer.on("login-information", (_, fontsize, title) => {
-        document.body.style.fontSize = fontsize
+    ipcRenderer.on("login-information", (_, fontsize, customCSS, title) => {
         document.getElementById("info").textContent = title
         username.focus()
         username.click()
         username.value = ""
         password.value = ""
+        document.body.style.fontSize = `${fontsize}px`
+        document.getElementById("custom-styling").textContent = customCSS
+        document.body.style.opacity = 1
     })
     window.addEventListener("keydown", e => {
         if (e.code === "Tab" && !e.altKey) {

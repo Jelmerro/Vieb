@@ -177,8 +177,15 @@ ipcRenderer.on("action", (_, name, ...args) => {
 })
 
 window.addEventListener("DOMContentLoaded", () => {
-    ipcRenderer.on("fontsize", (_, size) => {
-        document.body.style.fontSize = `${size}px`
+    ipcRenderer.on("set-custom-styling", (_, fontsize, customCSS) => {
+        document.body.style.fontSize = `${fontsize}px`
+        if (!document.getElementById("custom-styling")) {
+            const styleElement = document.createElement("style")
+            styleElement.id = "custom-styling"
+            document.head.appendChild(styleElement)
+        }
+        document.getElementById("custom-styling").textContent = customCSS
+        document.body.style.opacity = 1
     })
 })
 

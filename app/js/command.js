@@ -177,6 +177,35 @@ const quitall = () => {
     ipcRenderer.send("destroy-window")
 }
 
+let currentscheme = "default"
+const colorscheme = (name = null, trailingArgs = false) => {
+    if (trailingArgs) {
+        UTIL.notify("The colorscheme command takes a single optional argument",
+            "warn")
+        return
+    }
+    if (!name) {
+        UTIL.notify(currentscheme)
+        return
+    }
+    let css = UTIL.readFile(path.join(UTIL.appData(), "colors", `${name}.css`))
+    if (!css) {
+        css = UTIL.readFile(path.join(__dirname, "../colors", `${name}.css`))
+    }
+    if (!css) {
+        UTIL.notify(`Cannot find colorscheme '${name}'`, "warn")
+        return
+    }
+    let customCSS = css
+    if (name === "default") {
+        customCSS = ""
+    }
+    document.getElementById("custom-styling").textContent = customCSS
+    ipcRenderer.send("set-custom-styling", SETTINGS.get("fontsize"), customCSS)
+    SETTINGS.setCustomStyling(customCSS)
+    currentscheme = name
+}
+
 const restart = () => {
     ipcRenderer.send("relaunch")
     quitall()
@@ -498,6 +527,7 @@ const commands = {
     "quit": quit,
     "qa": quitall,
     "quitall": quitall,
+    "colorscheme": colorscheme,
     "devtools": openDevTools,
     "reload": reload,
     "restart": restart,
@@ -654,7 +684,7 @@ const execute = command => {
             if (parsed.confirm) {
                 command += "!"
                 if (!commands[command]) {
-                    UTIL.notify("Command does not accept ! to be added", "warn")
+                    UTIL.notify("No ! allowed", "warn")
                     return
                 }
             }

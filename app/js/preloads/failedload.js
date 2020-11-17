@@ -21,14 +21,15 @@ const {ipcRenderer} = require("electron")
 
 // Some styling is flagged with important, because of the default light theme
 const styling = `
-body {background: #333 !important;color: #eee !important;display: flex;
+body {display: flex;color: var(--fg, white);
     font: 14px monospace;line-height: 2;margin: 0;height: 100vh;width: 100vw;}
-main {margin: auto;width: 50vw;background: #444;padding: 3em;
+main {margin: auto;width: 50vw;background: #7772;padding: 3em;
     min-width: 300px;overflow: hidden;text-overflow: ellipsis;}
 h2 {font-size: 2em;margin: 0 0 .5em;}
 h3 {font-size: 1.2em;margin: 1em 0;font-weight: bold;}
-a {color: #0cf;}
-kbd {background: #111;color: #fff;padding: .1em;}
+a {color: var(--link-color, #0cf);}
+kbd {background: var(--code-bg, #111);
+    color: var(--code-fg, #fff);padding: .1em;}
 `
 const sslErrors = [
     "ERR_CERT_COMMON_NAME_INVALID",

@@ -123,7 +123,7 @@ const applyDevtoolsSettings = prefFile => {
     // Show timestamps in the console
     preferences.electron.devtools.preferences.consoleTimestampsEnabled = true
     // Enable dark theme
-    preferences.electron.devtools.preferences.uiTheme = "\"dark\""
+    preferences.electron.devtools.preferences.uiTheme = `"dark"`
     writeJSON(prefFile, preferences)
 }
 const useragent = () => session.defaultSession.getUserAgent()
@@ -132,7 +132,7 @@ const useragent = () => session.defaultSession.getUserAgent()
 
 const getArguments = argv => {
     const exec = path.basename(argv[0])
-    if (exec === "electron" || (process.defaultApp && exec !== "vieb")) {
+    if (exec === "electron" || process.defaultApp && exec !== "vieb") {
         // The array argv is ["electron", "app", ...args]
         return argv.slice(2)
     }
@@ -201,10 +201,8 @@ if (showInternalConsole && enableDebugMode) {
 }
 applyDevtoolsSettings(path.join(datafolder, "Preferences"))
 if (erwic) {
-    let config = null
-    try {
-        config = JSON.parse(fs.readFileSync(erwic).toString())
-    } catch (e) {
+    const config = readJSON(erwic)
+    if (!config) {
         console.log("Erwic config file could not be read")
         printUsage()
         app.exit(1)
@@ -344,7 +342,6 @@ app.on("ready", () => {
     })
     // Show a dialog for sites requiring Basic HTTP authentication
     const loginWindowData = {
-        "backgroundColor": "#333333",
         "fullscreenable": false,
         "modal": true,
         "frame": false,
@@ -354,7 +351,7 @@ app.on("ready", () => {
         "resizable": false,
         "icon": customIcon || undefined,
         "webPreferences": {
-            "preload": path.join(__dirname, "js/preloads/login.js"),
+            "preload": path.join(__dirname, "js/preloads/loginpopup.js"),
             "sandbox": true,
             "contextIsolation": true,
             "disableBlinkFeatures": "Auxclick",
@@ -364,7 +361,7 @@ app.on("ready", () => {
         }
     }
     loginWindow = new BrowserWindow(loginWindowData)
-    const loginPage = `file:///${path.join(__dirname, "pages/login.html")}`
+    const loginPage = `file:///${path.join(__dirname, "pages/loginpopup.html")}`
     loginWindow.loadURL(loginPage)
     loginWindow.on("close", e => {
         e.preventDefault()
@@ -375,7 +372,6 @@ app.on("ready", () => {
     })
     // Show a dialog for large notifications
     const notificationWindowData = {
-        "backgroundColor": "#333333",
         "fullscreenable": false,
         "modal": true,
         "frame": false,
@@ -385,8 +381,7 @@ app.on("ready", () => {
         "resizable": false,
         "icon": customIcon || undefined,
         "webPreferences": {
-            "preload": path.join(__dirname,
-                "js/preloads/notificationmessage.js"),
+            "preload": path.join(__dirname, "js/preloads/notificationpopup.js"),
             "sandbox": true,
             "contextIsolation": true,
             "disableBlinkFeatures": "Auxclick",
@@ -397,7 +392,7 @@ app.on("ready", () => {
     }
     notificationWindow = new BrowserWindow(notificationWindowData)
     const notificationPage = `file:///${path.join(
-        __dirname, "pages/notificationmessage.html")}`
+        __dirname, "pages/notificationpopup.html")}`
     notificationWindow.loadURL(notificationPage)
     notificationWindow.on("close", e => {
         e.preventDefault()
@@ -413,8 +408,10 @@ app.on("ready", () => {
 // Handle Basic HTTP login attempts
 const loginAttempts = []
 let fontsize = 14
-ipcMain.on("set-fontsize", (_, size) => {
-    fontsize = size
+let customCSS = ""
+ipcMain.on("set-custom-styling", (_, newFontSize, newCSS) => {
+    fontsize = newFontSize
+    customCSS = newCSS
 })
 app.on("login", (e, contents, _, auth, callback) => {
     if (loginWindow.isVisible()) {
@@ -453,7 +450,7 @@ app.on("login", (e, contents, _, auth, callback) => {
     loginWindow.resizable = false
     loginWindow.show()
     loginWindow.webContents.send("login-information",
-        fontsize, `${auth.host}: ${auth.realm}`)
+        fontsize, customCSS, `${auth.host}: ${auth.realm}`)
 })
 
 // Show a scrollable notification popup for long notifications
@@ -468,7 +465,7 @@ ipcMain.on("show-notification", (_, escapedMessage, properType) => {
         Math.round(bounds.x + bounds.width / 2 - width / 2),
         Math.round(bounds.y + bounds.height / 2 - height / 2))
     notificationWindow.webContents.send("notification-details",
-        escapedMessage, fontsize, properType)
+        escapedMessage, fontsize, customCSS, properType)
     notificationWindow.show()
 })
 
@@ -583,9 +580,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             }
         })
         if (details.url !== url) {
-            return callback({
-                "cancel": false, "redirectURL": url
-            })
+            return callback({"cancel": false, "redirectURL": url})
         }
         if (!blocker) {
             return callback({"cancel": false})
@@ -914,9 +909,7 @@ ipcMain.on("window-state-init", (_, restorePos, restoreSize, restoreMax) => {
     let justMoved = false
     let justResized = false
     mainWindow.on("maximize", saveWindowState)
-    mainWindow.on("unmaximize", () => {
-        saveWindowState(true)
-    })
+    mainWindow.on("unmaximize", saveWindowState)
     mainWindow.on("resize", () => {
         justResized = true
         setTimeout(() => {
@@ -1025,6 +1018,4 @@ ipcMain.on("app-name", e => {
 ipcMain.on("is-fullscreen", e => {
     e.returnValue = mainWindow.fullScreen
 })
-ipcMain.on("relaunch", () => {
-    app.relaunch()
-})
+ipcMain.on("relaunch", () => app.relaunch())

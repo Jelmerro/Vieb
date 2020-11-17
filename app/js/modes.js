@@ -22,14 +22,10 @@ const modes = {
     "normal": {"fg": "#ddd"},
     "insert": {
         "fg": "#3f3",
-        "onEnter": () => {
-            document.getElementById("invisible-overlay").style.display = "none"
-        },
         "onLeave": newMode => {
             if (TABS.currentPage().getAttribute("dom-ready")) {
                 TABS.currentPage().send("action", "blur")
             }
-            document.getElementById("invisible-overlay").style.display = ""
             if (newMode !== "pointer") {
                 document.getElementById("url-hover").textContent = ""
                 document.getElementById("url-hover").style.display = "none"
@@ -70,15 +66,9 @@ const modes = {
     "pointer": {
         "fg": "#777",
         "bg": "#fff",
-        "onEnter": () => {
-            document.getElementById("pointer").style.display = "block"
-        },
         "onLeave": newMode => {
-            if (newMode !== "visual") {
-                document.getElementById("pointer").style.display = "none"
-                if (newMode !== "follow") {
-                    POINTER.releaseKeys()
-                }
+            if (!["visual", "follow"].includes(newMode)) {
+                POINTER.releaseKeys()
             }
             if (newMode !== "insert") {
                 document.getElementById("url-hover").style.display = "none"
@@ -88,13 +78,7 @@ const modes = {
     "visual": {
         "fg": "#000",
         "bg": "#3af",
-        "onEnter": () => {
-            document.getElementById("pointer").style.display = "block"
-        },
         "onLeave": newMode => {
-            if (newMode !== "pointer") {
-                document.getElementById("pointer").style.display = "none"
-            }
             if (!["pointer", "follow"].includes(newMode)) {
                 POINTER.releaseKeys()
             }
@@ -107,7 +91,7 @@ const init = () => {
     Object.keys(modes).forEach(mode => {
         const modeEntry = document.createElement("div")
         modeEntry.textContent = mode
-        modeEntry.className = "no-focus-reset"
+        modeEntry.className = `no-focus-reset ${mode}`
         modeEntry.addEventListener("click", e => {
             if (currentMode() === mode) {
                 return
@@ -123,8 +107,6 @@ const init = () => {
             }
             e.preventDefault()
         })
-        modeEntry.style.backgroundColor = modes[mode].bg
-        modeEntry.style.color = modes[mode].fg
         modeList.appendChild(modeEntry)
     })
 }
@@ -140,15 +122,13 @@ const setMode = mode => {
     if (modes[mode].onEnter) {
         modes[mode].onEnter(currentMode())
     }
-    document.getElementById("mode").textContent = mode.toLowerCase()
-    document.getElementById("mode").style.color = modes[mode].fg || ""
-    document.getElementById("mode-container")
-        .style.backgroundColor = modes[mode].bg || ""
+    document.getElementById("mode").textContent = mode
+    document.body.setAttribute("current-mode", mode)
     SETTINGS.guiRelatedUpdate("navbar")
     ACTIONS.setFocusCorrectly()
 }
 
-const currentMode = () => document.getElementById("mode").textContent.trim()
+const currentMode = () => document.body.getAttribute("current-mode")
 
 const allModes = () => Object.keys(modes)
 

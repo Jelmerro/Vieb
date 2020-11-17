@@ -34,6 +34,9 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Support for SVG favicons by giving it an explicit ".svg" extension if detected by "is-svg"
 - Devtools that can be opened as a split window or in a separate tab, in addition to the existing windowed developer tools
 - Added "pointer.downloadLink" action that downloads the hovered link in pointer mode
+- Colorschemes that can change every single line of CSS inside Vieb: all built-in pages and the app now use the same default theme CSS
+- Built-in light colorscheme that displays all built-in pages and the app in a light theme
+- Built-in flipped colorscheme that displays all GUI elements at the bottom of the window (in reverse order)
 
 ### Changed
 
@@ -49,11 +52,13 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - The startup argument "--portable" has been replaced with "--datafolder", use "--datafolder ./ViebData" for old functionality
 - Erwic now uses the "datafolder" startup argument instead of a JSON field for the datafolder location configuration
 - Tab list can now be scrolled horizontally using the mouse wheel
+- Make use of system fonts as much as possible: "DejaVu Sans Mono" -> "Courier" -> "monospace", in that order
+- Visual appearance of Vieb: logo is now smaller, everything is now styled with colorschemes and popups are more in line with other elements
 
 ### Fixed
 
 - Typo in the "storenewvisits" setting (there will be no automatic migration from the name with a typo to the correct one)
-- Pointer not updating the location when brining back the GUI while in fullscreen
+- Pointer not updating the location when bringing back the GUI while in fullscreen
 - Permission for media devices sometimes being detected as a microphone permission
 - Mouse back/forward buttons being ignored when the mouse setting is enabled
 - Shift being ignored when pressing named keys that can be pressed with and without Shift such as "Space"

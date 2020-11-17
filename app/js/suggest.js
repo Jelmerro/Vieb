@@ -30,6 +30,7 @@ const setUrlValue = url => {
     } else {
         document.getElementById("url").value = url
     }
+    updateColors()
 }
 
 const prevSuggestion = () => {
@@ -53,7 +54,6 @@ const prevSuggestion = () => {
     list[id - 1].className = "selected"
     list[id - 1].scrollIntoView({"block": "center"})
     setUrlValue(suggestions[id - 1])
-    updateColors()
 }
 
 const nextSuggestion = () => {
@@ -77,7 +77,6 @@ const nextSuggestion = () => {
     list[id + 1].className = "selected"
     list[id + 1].scrollIntoView({"block": "center"})
     setUrlValue(suggestions[id + 1])
-    updateColors()
 }
 
 const emptySuggestions = () => {
@@ -189,6 +188,7 @@ const addExplore = explore => {
     })
     if (explore.icon && SETTINGS.get("favicons") !== "disabled") {
         const thumbnail = document.createElement("img")
+        thumbnail.className = "icon"
         thumbnail.src = explore.icon
         element.appendChild(thumbnail)
     }
@@ -270,6 +270,34 @@ const suggestCommand = search => {
         options.forEach(option => {
             if (!args[0] || option.startsWith(args[0])) {
                 addCommand(`devtools ${option}`)
+            }
+        })
+    }
+    // Command: colorscheme
+    if ("colorscheme".startsWith(command)) {
+        if (args.length > 1 || confirm) {
+            return
+        }
+        const themes = {}
+        fs.readdirSync(path.join(__dirname, "../colors/")).forEach(p => {
+            themes[p.replace(/\.css$/g, "")] = "built-in"
+        })
+        const customDir = path.join(UTIL.appData(), "colors")
+        try {
+            fs.readdirSync(customDir).filter(p => p.endsWith(".css"))
+                .forEach(p => {
+                    const location = path.join(customDir, p)
+                    if (p === "default.css" || !UTIL.readFile(location)) {
+                        return
+                    }
+                    themes[p.replace(/\.css$/g, "")] = location
+                })
+        } catch (_) {
+            // No custom themes found
+        }
+        Object.keys(themes).forEach(t => {
+            if (t.startsWith(args[0] || "")) {
+                addCommand(`colorscheme ${t}`, themes[t])
             }
         })
     }
