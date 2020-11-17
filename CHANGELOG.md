@@ -75,10 +75,11 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Removed
 
 - Old line-based history format parser (1.x.x users should update to 2.x.x first, if they want to keep their history)
+- Startup argument "--console" is removed in favor of "--debug", debug can do the same plus more and doesn't have mouse focus issues
 
 ### Fixed
 
-- Abort error for aborting page loads in the debug console (using --debug or --console)
+- Abort error for aborting page loads in the debug console (using --debug)
 - Don't keep closed pages in memory while the 'keeprecentlyclosed' setting is off
 
 ### Security

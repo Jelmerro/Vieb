@@ -40,8 +40,6 @@ const printUsage = () => {
     console.log("                    See 'Erwic.md' for usage and details")
     console.log(
         " --debug            Open with Chromium and Electron debugging tools")
-    console.log(
-        " --console          Open with the Vieb console (implied by --debug)")
     console.log("\nAll arguments not starting with - will be opened as a url.")
     printLicense()
 }
@@ -144,7 +142,6 @@ const getArguments = argv => {
 const args = getArguments(process.argv)
 const urls = []
 let enableDebugMode = false
-let showInternalConsole = false
 let nextArgErwicConfig = false
 let nextArgDataFolder = false
 let erwic = null
@@ -167,8 +164,6 @@ args.forEach(arg => {
             app.exit(0)
         } else if (arg === "--debug") {
             enableDebugMode = true
-        } else if (arg === "--console") {
-            showInternalConsole = true
         } else if (arg === "--erwic") {
             nextArgErwicConfig = true
         } else if (arg === "--datafolder") {
@@ -196,9 +191,6 @@ app.setName("Vieb")
 datafolder = `${path.resolve(expandPath(datafolder.trim()))}/`
 app.setPath("appData", datafolder)
 app.setPath("userData", datafolder)
-if (showInternalConsole && enableDebugMode) {
-    console.log("The --debug argument always opens the internal console")
-}
 applyDevtoolsSettings(path.join(datafolder, "Preferences"))
 if (erwic) {
     const config = readJSON(erwic)
@@ -335,7 +327,7 @@ app.on("ready", () => {
             prefs.nodeIntegration = false
             prefs.enableRemoteModule = false
         })
-        if (enableDebugMode || showInternalConsole) {
+        if (enableDebugMode) {
             mainWindow.webContents.openDevTools()
         }
         mainWindow.webContents.send("urls", urls)
