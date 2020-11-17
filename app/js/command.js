@@ -196,13 +196,12 @@ const colorscheme = (name = null, trailingArgs = false) => {
         UTIL.notify(`Cannot find colorscheme '${name}'`, "warn")
         return
     }
-    let customCSS = css
     if (name === "default") {
-        customCSS = ""
+        css = ""
     }
-    document.getElementById("custom-styling").textContent = customCSS
-    ipcRenderer.send("set-custom-styling", SETTINGS.get("fontsize"), customCSS)
-    SETTINGS.setCustomStyling(customCSS)
+    document.getElementById("custom-styling").textContent = css
+    ipcRenderer.send("set-custom-styling", SETTINGS.get("fontsize"), css)
+    SETTINGS.setCustomStyling(css)
     currentscheme = name
 }
 
