@@ -283,6 +283,7 @@ webview {pointer-events: none;position: fixed;display: none;}
 #helppage .follow-other {background: var(--follow-other-bg);color: var(--follow-text);}
 #helppage .example-buttons {margin: 1em;}
 #helppage .example-buttons button {font-size: 1em;margin: .5em 2em;padding: .5em 2em;background: transparent;cursor: pointer;}
+#helppage .nowrap, #helppage .nowrap.command-block {white-space: nowrap;}
 /* history */
 #historypage #list {display: inline;}
 #historypage #no-results {margin-bottom: 1em;}

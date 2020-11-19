@@ -12,7 +12,7 @@
 
 ### Vieb is the Vim Inspired Electron Browser
 
-## [Homepage](https://vieb.dev/) - [Download](https://vieb.dev/download) - [Changelog](CHANGELOG.md)
+## [Homepage](https://vieb.dev/) - [Download](https://vieb.dev/download) - [Changelog](CHANGELOG.md) - [FAQ](FAQ.md)
 
 # Features
 
@@ -62,11 +62,7 @@ See [Erwic.md](Erwic.md) for usage and details.
 
 You can download the latest stable release from the [official Vieb website](https://vieb.dev/download).
 Alternatively, you can also view the previous releases [on Github](https://github.com/Jelmerro/Vieb/releases).
-For Windows and Mac downloads you can simply double-click on the downloaded program.
-If you are on Linux, you can download the AppImage to be able to do the same.
-Make sure that you download the right architecture for your system,
-if unsure, try the Vieb website for a nicer overview.
-For most other download options, you need to use your distribution's package manager.
+For startup help, see the [frequently asked questions](FAQ.md).
 
 # Contribute
 
