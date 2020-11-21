@@ -58,6 +58,7 @@ most people that I heard back from reported that it works with firefoxmode enabl
 #### How do I quit Vieb?
 
 Same as Vim. From normal mode, type `:qa` then Enter. (This assumes the default mappings and commands.)
+See [this issue](https://github.com/Jelmerro/Vieb/issues/65) for the rationale and other options.
 
 #### Why do I need to enter Insert mode to type text?
 
