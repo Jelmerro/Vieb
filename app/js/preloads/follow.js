@@ -79,7 +79,8 @@ const sendFollowLinks = () => {
     allLinks.push(...allElementsBySelectors("url", urls))
     // Input tags such as checkboxes, can be clicked but have no text input
     const inputs = allElements.filter(
-        element => clickableInputs.find(selector => element.matches(selector)))
+        el => clickableInputs.find(selector => el.matches(selector)
+        || el.nodeName === "LABEL" && el.querySelector("input")))
     inputs.forEach(element => {
         const clickable = parseElement(element, "inputs-click")
         if (clickable) {
