@@ -19,7 +19,7 @@
 "use strict"
 
 const {
-    app, BrowserWindow, dialog, ipcMain, net, screen, session, webContents
+    app, BrowserWindow, dialog, ipcMain, net, screen, session, shell, webContents
 } = require("electron")
 const fs = require("fs")
 const os = require("os")
@@ -473,6 +473,7 @@ const adblockerPreload = require.resolve("@cliqz/adblocker-electron-preload")
 ipcMain.on("set-redirects", (_, rdr) => {
     redirects = rdr
 })
+ipcMain.on("open-download", (_, location) => shell.openPath(location))
 ipcMain.on("set-download-settings", (_, settings) => {
     if (Object.keys(downloadSettings).length === 0) {
         if (settings.cleardownloadsonquit) {
