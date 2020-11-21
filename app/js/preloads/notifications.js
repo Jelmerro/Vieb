@@ -25,6 +25,12 @@ window.addEventListener("DOMContentLoaded", () => {
         notifications.forEach(notification => {
             const element = document.createElement("div")
             element.className = "notification"
+            if (notification.click?.type === "download-success") {
+                element.classList.add("filelocation")
+                element.addEventListener("click", () => {
+                    ipcRenderer.send("open-download", notification.click.path)
+                })
+            }
             const date = document.createElement("div")
             date.textContent = formatDate(notification.date)
             date.className = "date"
