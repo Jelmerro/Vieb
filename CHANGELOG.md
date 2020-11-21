@@ -11,7 +11,9 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
-## Unreleased
+## [3.0.0](https://github.com/Jelmerro/Vieb/compare/2.4.0...3.0.0) - 2020-11-21
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/2.4.0...3.0.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/3.0.0)
 
 ### Added
 
@@ -84,8 +86,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Security
 
-- Electron 11.0.1 (was 10.1.1)
-- Chromium 87.0.4280.60 (was 85.0.4183.93)
+- Electron 11.0.2 (was 10.1.1)
+- Chromium 87.0.4280.67 (was 85.0.4183.93)
 
 ## [2.4.0](https://github.com/Jelmerro/Vieb/compare/2.3.0...2.4.0) - 2020-09-05
 
