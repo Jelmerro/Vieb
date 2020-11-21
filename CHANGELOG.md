@@ -11,6 +11,17 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+## Changed
+
+- Follow mode will now detect form labels that have invisible embedded inputs but no "for" attribute
+
+### Security
+
+- Electron 11.0.2 (unchanged)
+- Chromium 87.0.4280.67 (unchanged)
+
 ## [3.0.0](https://github.com/Jelmerro/Vieb/compare/2.4.0...3.0.0) - 2020-11-21
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/2.4.0...3.0.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/3.0.0)
