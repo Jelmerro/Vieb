@@ -13,7 +13,11 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
-## Changed
+### Added
+
+- Clickable file location on the downloads special page which will open the file in the default application
+
+### Changed
 
 - Follow mode will now detect form labels that have invisible embedded inputs but no "for" attribute
 

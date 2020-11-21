@@ -249,6 +249,7 @@ webview {pointer-events: none;position: fixed;display: none;}
 #downloadspage progress::-webkit-progress-value {background: var(--download-progress-fg);}
 #downloadspage progress::-webkit-progress-bar {background: var(--download-progress-bg);}
 #downloadspage .misc {display: flex;margin: .5em;flex-direction: column;width: calc(100% - 1em);}
+#downloadspage .filelocation {cursor: pointer;}
 #downloadspage img {cursor: pointer;}
 /* help */
 #helppage {margin: 3vw;width: auto;line-height: 2;}
