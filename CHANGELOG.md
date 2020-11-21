@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Clickable file location on the downloads special page which will open the file in the default application
+- Clickable download finish notification that will open the file in the default application (if using the mouse)
 
 ### Changed
 

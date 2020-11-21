@@ -33,7 +33,9 @@ const init = () => {
     UTIL.clearTempContainers()
     enableAdblocker()
     create("main")
-    ipcRenderer.on("notify", (_, message, type) => UTIL.notify(message, type))
+    ipcRenderer.on("notify", (_, message, type, clickAction) => {
+        UTIL.notify(message, type, clickAction)
+    })
 }
 
 const create = name => {

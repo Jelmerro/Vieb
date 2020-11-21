@@ -213,6 +213,7 @@ webview {pointer-events: none;position: fixed;display: none;}
 #notifications > span.error {color: var(--notification-error);}
 #notifications > span.warning {color: var(--notification-warning);}
 #notifications > span.info {color: var(--notification-info);}
+#notifications > span.success {color: var(--notification-success);}
 .bottomright {right: .7em;bottom: 0;}
 .bottomleft {left: .7em;bottom: 0;}
 .topright {right: .7em;top: 4.7em;}
@@ -310,13 +311,14 @@ webview {pointer-events: none;position: fixed;display: none;}
 #newtabpage small {font-size: .7em;text-decoration: underline;}
 /* notifications */
 #notificationspage h1 {font-size: 2em;margin: 1em 0;padding: 0;}
-/* #notificationspage #list {display: flex;flex-direction: column-reverse;margin: 2em 0;} */
 #notificationspage .notification {background: var(--special-page-element-bg);border: .1em solid var(--notification-border);margin: 1em 0;padding: 1em;}
 #notificationspage .date {color: var(--notification-date);}
 #notificationspage .permission {color: var(--notification-permission);}
 #notificationspage .error {color: var(--notification-error);}
 #notificationspage .warning {color: var(--notification-warning);}
 #notificationspage .info {color: var(--notification-info);}
+#notificationspage .success {color: var(--notification-success);}
+#notificationspage .filelocation {cursor: pointer;}
 /* version */
 #versionpage {display: flex;width: 80vw;min-width: 450px;height: 100vh;text-align: center;}
 #versionpage #title {font-size: 2.5em;}

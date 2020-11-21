@@ -95,13 +95,16 @@ const isUrl = location => {
     return false
 }
 
-const notify = (message, type = "info") => {
+const notify = (message, type = "info", clickAction = false) => {
     if (SETTINGS.get("notificationduration") < 100) {
         return
     }
     let properType = "info"
     if (type.startsWith("perm")) {
         properType = "permission"
+    }
+    if (type.startsWith("suc")) {
+        properType = "success"
     }
     if (type.startsWith("warn")) {
         properType = "warning"
@@ -112,7 +115,10 @@ const notify = (message, type = "info") => {
     const escapedMessage = message.replace(/>/g, "&gt;").replace(/</g, "&lt;")
         .replace(/\n/g, "<br>")
     notificationHistory.push({
-        "message": escapedMessage, "type": properType, "date": new Date()
+        "message": escapedMessage,
+        "type": properType,
+        "date": new Date(),
+        "click": clickAction
     })
     if (properType === "permission") {
         if (!SETTINGS.get("notificationforpermissions")) {
@@ -120,7 +126,12 @@ const notify = (message, type = "info") => {
         }
     }
     if (SETTINGS.get("nativenotification")) {
-        new Notification(`${appName()} ${properType}`, {"body": message})
+        const n = Notification(`${appName()} ${properType}`, {"body": message})
+        n.onclick = () => {
+            if (clickAction?.type === "download-success") {
+                ipcRenderer.send("open-download", clickAction.path)
+            }
+        }
         return
     }
     if (properType !== "permission") {
@@ -134,6 +145,11 @@ const notify = (message, type = "info") => {
     const notification = document.createElement("span")
     notification.className = properType
     notification.innerHTML = escapedMessage
+    if (clickAction?.type === "download-success") {
+        notification.addEventListener("click", () => {
+            ipcRenderer.send("open-download", clickAction.path)
+        })
+    }
     notificationsElement.appendChild(notification)
     setTimeout(() => {
         notificationsElement.removeChild(notification)

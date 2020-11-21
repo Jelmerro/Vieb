@@ -667,7 +667,9 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             }
             if (info.state === "completed") {
                 mainWindow.webContents.send("notify",
-                    `Download finished:\n${info.name}`)
+                    `Download finished:\n${info.name}`, "success", {
+                        "type": "download-success", "path": info.file
+                    })
             } else {
                 mainWindow.webContents.send("notify",
                     `Download failed:\n${info.name}`, "warn")
