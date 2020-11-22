@@ -37,25 +37,21 @@ try {
     const usermedia = window.navigator.mediaDevices.getUserMedia
     const ondevicechange = window.navigator.mediaDevices.ondevicechange
     const mediaDeviceList = async (action, notify = false) => {
+        if (notify) {
+            ipcRenderer.sendToHost("notify",
+                `${notify} ${action}ed 'mediadevices' at `
+                + `'${window.location.href}' based on `
+                + "'permissionmediadevices'", "perm")
+        }
         if (action === "block") {
-            if (notify) {
-                ipcRenderer.sendToHost("notify",
-                    `${notify} blocked mediadevices at ${window.location.href}`,
-                    "perm")
-            }
             throw new DOMException("Permission denied", "NotAllowedError")
         }
         const devices = await enumerate.call(window.navigator.mediaDevices)
         if (action === "allowfull") {
             ipcRenderer.sendToHost("notify",
-                `${notify} allowed mediadevices with labels at `
-                + `${window.location.href}`, "perm")
+                `Manually allowed 'mediadevices' with labels at `
+                + `'${window.location.href}'`, "perm")
             return devices
-        }
-        if (notify) {
-            ipcRenderer.sendToHost("notify",
-                `${notify} allowed mediadevices at ${window.location.href}`,
-                "perm")
         }
         return devices.map(({deviceId, groupId, kind}) => ({
             deviceId, groupId, "label": "", kind
@@ -79,9 +75,9 @@ try {
                     if (names.find(p => p.endsWith("mediadevices"))) {
                         if (window.location.href.match(match)) {
                             ipcRenderer.sendToHost("notify",
-                                `Automatic rule for permissionmediadevices `
-                                + `activated at ${window.location.href} which `
-                                + `was ${type}ed`, "perm")
+                                `Automatic rule for 'mediadevices' `
+                                + `activated at '${window.location.href}' `
+                                + `which was ${type}ed`, "perm")
                             return mediaDeviceList(type)
                         }
                     }
@@ -107,7 +103,7 @@ try {
                 "message": `${message}\n\npage:\n${url}`
             })
             if (ask.response === 0 && ask.checkboxChecked) {
-                action = "allowfull"
+                return mediaDeviceList("allowfull")
             }
             if (ask.response === 1) {
                 action = "block"
