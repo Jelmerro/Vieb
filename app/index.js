@@ -19,7 +19,15 @@
 "use strict"
 
 const {
-    app, BrowserWindow, dialog, ipcMain, net, screen, session, shell, webContents
+    app,
+    BrowserWindow,
+    dialog,
+    ipcMain,
+    net,
+    screen,
+    session,
+    shell,
+    webContents
 } = require("electron")
 const fs = require("fs")
 const os = require("os")
