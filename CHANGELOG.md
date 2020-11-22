@@ -17,10 +17,12 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Clickable file location on the downloads special page which will open the file in the default application
 - Clickable download finish notification that will open the file in the default application (if using the mouse)
+- Additional Vieb config location for colorschemes, viebrc and blocklists inside "~/.vieb"
 
 ### Changed
 
 - Follow mode will now detect form labels that have invisible embedded inputs but no "for" attribute
+- Follow mode now detects absolutely positioned sub-elements of links, where the base link isn't shown
 
 ### Security
 

@@ -282,19 +282,24 @@ const suggestCommand = search => {
         fs.readdirSync(path.join(__dirname, "../colors/")).forEach(p => {
             themes[p.replace(/\.css$/g, "")] = "built-in"
         })
-        const customDir = path.join(UTIL.appData(), "colors")
-        try {
-            fs.readdirSync(customDir).filter(p => p.endsWith(".css"))
-                .forEach(p => {
-                    const location = path.join(customDir, p)
-                    if (p === "default.css" || !UTIL.readFile(location)) {
-                        return
-                    }
-                    themes[p.replace(/\.css$/g, "")] = location
-                })
-        } catch (_) {
-            // No custom themes found
-        }
+        const customDirs = [
+            path.join(UTIL.appData(), "colors"),
+            UTIL.expandPath("~/.vieb/colors")
+        ]
+        customDirs.forEach(customDir => {
+            try {
+                fs.readdirSync(customDir).filter(p => p.endsWith(".css"))
+                    .forEach(p => {
+                        const location = path.join(customDir, p)
+                        if (p === "default.css" || !UTIL.readFile(location)) {
+                            return
+                        }
+                        themes[p.replace(/\.css$/g, "")] = location
+                    })
+            } catch (_) {
+                // No custom themes found
+            }
+        })
         Object.keys(themes).forEach(t => {
             if (t.startsWith(args[0] || "")) {
                 addCommand(`colorscheme ${t}`, themes[t])

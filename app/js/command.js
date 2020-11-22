@@ -188,7 +188,10 @@ const colorscheme = (name = null, trailingArgs = false) => {
         UTIL.notify(currentscheme)
         return
     }
-    let css = UTIL.readFile(path.join(UTIL.appData(), "colors", `${name}.css`))
+    let css = UTIL.readFile(UTIL.expandPath(`~/.vieb/colors/${name}.css`))
+    if (!css) {
+        css = UTIL.readFile(path.join(UTIL.appData(), `colors/${name}.css`))
+    }
     if (!css) {
         css = UTIL.readFile(path.join(__dirname, "../colors", `${name}.css`))
     }
