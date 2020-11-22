@@ -609,6 +609,8 @@
         This setting sets the location of Vieb notifications. You can set it to any corner of the window. Long notifications will open in a scrollable popup similar to Vim. The value of this setting is ignored when native notifications are used.
         <h3 id="permissioncamera">permissioncamera</h3>
         Permission setting to either allow or block websites from using your camera. When set to "ask", you will get a popup to ask if you want to allow the request just this once and optionally store the setting for this session.
+        <h3 id="permissionclipboardread">permissionclipboardread</h3>
+        Permission setting to either allow or block websites from reading the clipboard text. When set to "ask", you will get a popup to ask if you want to allow the request just this once and optionally store the setting for this session.
         <h3 id="permissionclosepage">permissionclosepage</h3>
         Permission setting to either allow or block websites from closing themselves. Similar to manually closing a tab, but this permission allows the page to close it's own tab automatically.
         <h3 id="permissionfullscreen">permissionfullscreen</h3>
@@ -619,12 +621,16 @@
         Permission setting to either allow or block websites from reading the list of connected media devices, such as speakers or microphones. When set to "ask", you will get a popup to ask if you want to allow the request just this once and optionally include the device names in the response as well. The difference between "allow" and "allowfull" is the inclusion of the device name labels in the response.
         <h3 id="permissionmicrophone">permissionmicrophone</h3>
         Permission setting to either allow or block websites from using your microphone. When set to "ask", you will get a popup to ask if you want to allow the request just this once and optionally store the setting for this session.
+        <h3 id="permissionmidi">permissionmidi</h3>
+        Permission setting to either allow or block websites from using the "webmidi" API. When set to "ask", you will get a popup to ask if you want to allow the request just this once and optionally store the setting for this session.
         <h3 id="permissionmidisysex">permissionmidisysex</h3>
-        Permission setting to either allow or block websites from using your midi systems. When set to "ask", you will get a popup to ask if you want to allow the request just this once and optionally store the setting for this session.
+        Permission setting to either allow or block websites from using the system exclusive messages of the "webmidi" API. When set to "ask", you will get a popup to ask if you want to allow the request just this once and optionally store the setting for this session.
         <h3 id="permissionnotifications">permissionnotifications</h3>
         Permission setting to either allow or block websites from showing you notifications. When set to "ask", you will get a popup to ask if you want to allow the request just this once and optionally store the setting for this session.
         <h3 id="permissionopenexternal">permissionopenexternal</h3>
         Permission setting to either allow or block websites from opening external applications with arbitrary arguments. When set to "ask", you will get a popup to ask if you want to allow the request just this once and optionally store the setting for this session. The popup will also include information about what type of application will be opened if you allow it. This type of popup will for example appear when you click on mailto or magnet links.
+        <h3 id="permissionpersistentstorage">permissionpersistentstorage</h3>
+        Permission setting to either allow or block websites from storing data in the persistent storage. When set to "ask", you will get a popup to ask if you want to allow the request just this once and optionally store the setting for this session.
         <h3 id="permissionpointerlock">permissionpointerlock</h3>
         Permission setting to either allow or block websites to lock the pointer position. When set to "ask", you will get a popup to ask if you want to allow the request just this once and optionally store the setting for this session.
         <h3 id="permissionsallowed">permissionsallowed</h3>
@@ -634,7 +640,7 @@
         <h3 id="permissionsblocked">permissionsblocked</h3>
         The list of blocked permissions works very similar to the <a href="#permissionsallowed">permissionsallowed</a> setting, except that it is used to block specific websites from using a permission. An important thing to note is that blocking permissions with this setting takes priority over any other configuration. This means that even permissions allowed with the allowed list can be blocked by this setting. This is useful to give all pages of a specific website access to a permission, except for a single subdomain.
         <h3 id="permissionunknown">permissionunknown</h3>
-        Permission setting to either allow or block websites from requesting permission not part of any of the other categories. When set to "ask", you will get a popup to ask if you want to allow the request just this once and optionally store the setting for this session.
+        Permission setting to either allow or block websites from requesting any permission that is not a part of any of the other categories. When set to "ask", you will get a popup to ask if you want to allow the request just this once and optionally store the setting for this session.
         <h3 id="redirects">redirects</h3>
         With this setting you can configure automatic redirects for navigating to websites. You can configure as many redirects as you want, using a comma separated list. As with other settings of this type, you can append new entries without typing out the current value, as explained in the <a href="#:set">:set</a> command paragraph. Every comma separated entry should also contain a ~ to separate the original and the replacement. These parts are configured using regular expressions. For example, to redirect all reddit requests to old.reddit.com, run this command:
         <div class="command-block">:set redirects+=^https?://(www\.)?(reddit\.com.*)~https://old.$2</div>

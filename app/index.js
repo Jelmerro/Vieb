@@ -709,6 +709,11 @@ const writeDownloadsToFile = () => {
     }
 }
 const permissionHandler = (_, permission, callback, details) => {
+    permission = permission.toLowerCase().replace(/-/g, "")
+    if (permission === "mediakeysystem") {
+        // Block any access to DRM, there is no Electron support for it anyway
+        return callback(false)
+    }
     if (permission === "media") {
         if (details.mediaTypes?.includes("video")) {
             permission = "camera"
@@ -718,7 +723,12 @@ const permissionHandler = (_, permission, callback, details) => {
             permission = "mediadevices"
         }
     }
-    const permissionName = `permission${permission.toLowerCase()}`
+    let permissionName = `permission${permission}`
+    let setting = permissions[permissionName]
+    if (!setting) {
+        permissionName = "permissionunknown"
+        setting = permissions.permissionunknown
+    }
     for (const override of ["permissionsblocked", "permissionsallowed"]) {
         for (const rule of permissions[override].split(",")) {
             if (!rule.trim()) {
@@ -728,15 +738,14 @@ const permissionHandler = (_, permission, callback, details) => {
             if (names.find(p => permissionName.endsWith(p))) {
                 if (details.requestingUrl.match(match)) {
                     mainWindow.webContents.send("notify",
-                        `Automatic rule for ${permission} activated at `
-                        + `${details.requestingUrl} which was `
+                        `Automatic rule for '${permission}' activated at `
+                        + `'${details.requestingUrl}' which was `
                         + `${override.replace("permissions", "")}`, "perm")
                     return callback(override.includes("allow"))
                 }
             }
         }
     }
-    const setting = permissions[permissionName]
     if (setting === "ask") {
         let url = details.requestingUrl
         if (url.length > 100) {
@@ -775,8 +784,8 @@ const permissionHandler = (_, permission, callback, details) => {
                 action = "block"
             }
             mainWindow.webContents.send("notify",
-                `Manually ${action}ed ${permission} at `
-                + `${details.requestingUrl}`, "perm")
+                `Manually ${action}ed '${permission}' at `
+                + `'${details.requestingUrl}'`, "perm")
             callback(action === "allow")
             if (e.checkboxChecked) {
                 mainWindow.webContents.send(
@@ -786,8 +795,8 @@ const permissionHandler = (_, permission, callback, details) => {
         })
     } else {
         mainWindow.webContents.send("notify",
-            `Globally ${setting}ed ${permission} at `
-            + `${details.requestingUrl}`, "perm")
+            `Globally ${setting}ed '${permission}' at `
+            + `'${details.requestingUrl}' based on '${permissionName}'`, "perm")
         callback(setting === "allow")
     }
 }

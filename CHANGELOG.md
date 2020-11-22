@@ -18,11 +18,13 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Clickable file location on the downloads special page which will open the file in the default application
 - Clickable download finish notification that will open the file in the default application (if using the mouse)
 - Additional Vieb config location for colorschemes, viebrc and blocklists inside "~/.vieb"
+- New permission groups for midi, persistentstorage and clipboardread (all 3 remain by default blocked, but are no longer grouped as unknown)
 
 ### Changed
 
 - Follow mode will now detect form labels that have invisible embedded inputs but no "for" attribute
 - Follow mode now detects absolutely positioned sub-elements of links, where the base link isn't shown
+- More explicit permission messages that list both the permission name and the setting that was read to decide the permission
 
 ### Security
 
