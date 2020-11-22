@@ -603,7 +603,9 @@ const loadFromDisk = () => {
         set("permissionmediadevices", "allowfull")
         set("permissionmicrophone", "allow")
     }
-    for (const conf of [config, UTIL.expandPath("~/.viebrc")]) {
+    const userFirstConfig = UTIL.expandPath("~/.vieb/viebrc")
+    const userGlobalConfig = UTIL.expandPath("~/.viebrc")
+    for (const conf of [config, userFirstConfig, userGlobalConfig]) {
         if (UTIL.isFile(conf)) {
             const parsed = UTIL.readFile(conf)
             if (parsed) {

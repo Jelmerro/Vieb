@@ -795,17 +795,22 @@ const enableAdblocker = () => {
     if (blocker) {
         disableAdblocker()
     }
-    const blocklistsFolder = path.join(app.getPath("appData"), "blocklists")
-    // Read all filter files from the blocklists folder (including user added)
+    const blocklistsFolders = [
+        path.join(app.getPath("appData"), "blocklists"),
+        expandPath("~/.vieb/blocklists")
+    ]
+    // Read all filter files from the blocklists folders
     let filters = ""
-    try {
-        for (const file of fs.readdirSync(blocklistsFolder)) {
-            if (file.endsWith(".txt")) {
-                filters += loadBlocklist(file)
+    for (const blocklistsFolder of blocklistsFolders) {
+        try {
+            for (const file of fs.readdirSync(blocklistsFolder)) {
+                if (file.endsWith(".txt")) {
+                    filters += loadBlocklist(file)
+                }
             }
+        } catch (e) {
+            // Folder not readable, nothing we can do
         }
-    } catch (e) {
-        console.log("Failed to read the files from blocklists folder", e)
     }
     blocker = ElectronBlocker.parse(filters)
     ipcMain.on("get-cosmetic-filters", blocker.onGetCosmeticFilters)

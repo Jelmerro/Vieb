@@ -77,6 +77,15 @@ const sendFollowLinks = () => {
     const allLinks = []
     // A tags with href as the link, can be opened in new tab or current tab
     allLinks.push(...allElementsBySelectors("url", urls))
+    allElements.filter(el => el.matches("a *")).forEach(el => {
+        const clickableSubElement = parseElement(el, "url")
+        const baseLink = allElements.find(
+            l => l.nodeName === "A" && l.contains(el))
+        if (baseLink && !parseElement(baseLink) && clickableSubElement) {
+            clickableSubElement.url = baseLink.href || ""
+            allLinks.push(clickableSubElement)
+        }
+    })
     // Input tags such as checkboxes, can be clicked but have no text input
     const inputs = allElements.filter(
         el => clickableInputs.find(selector => el.matches(selector)
