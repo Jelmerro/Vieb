@@ -31,6 +31,7 @@ const {
 } = require("electron")
 const fs = require("fs")
 const os = require("os")
+const {spawn} = require("child_process")
 const path = require("path")
 const isSvg = require("is-svg")
 const {ElectronBlocker} = require("@cliqz/adblocker-electron")
@@ -469,6 +470,15 @@ ipcMain.on("show-notification", (_, escapedMessage, properType) => {
     notificationWindow.show()
 })
 
+// shell.openPath blocks on linux: https://github.com/electron/electron/issues/26074
+const openPath = (location) => {
+    if (process.platform === "linux") {
+        spawn("xdg-open", [location], {"stdio": "ignore", "detached": true})
+    } else {
+        shell.openPath(location)
+    }
+}
+
 // Create and manage sessions, mostly downloads, adblocker and permissions
 const dlsFile = path.join(app.getPath("appData"), "dls")
 let downloadSettings = {}
@@ -481,7 +491,7 @@ const adblockerPreload = require.resolve("@cliqz/adblocker-electron-preload")
 ipcMain.on("set-redirects", (_, rdr) => {
     redirects = rdr
 })
-ipcMain.on("open-download", (_, location) => shell.openPath(location))
+ipcMain.on("open-download", (_, location) => openPath(location))
 ipcMain.on("set-download-settings", (_, settings) => {
     if (Object.keys(downloadSettings).length === 0) {
         if (settings.cleardownloadsonquit) {
