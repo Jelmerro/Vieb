@@ -69,15 +69,16 @@ ipcRenderer.on("focus-first-text-input", async () => {
 
 const getLinkFollows = allLinks => {
     // A tags with href as the link, can be opened in new tab or current tab
-    allLinks.push(...allElementsBySelectors("url", urls))
-    document.querySelectorAll("a *").forEach(el => {
-        const baseLink = el.closest("a")
-        if (baseLink && !allLinks.includes(baseLink)) {
-            const clickableSubElement = parseElement(el, "url")
-            if (clickableSubElement) {
-                clickableSubElement.url = baseLink.href || ""
-                allLinks.push(clickableSubElement)
-            }
+    document.querySelectorAll(urls.join(",")).forEach(e => {
+        const baseLink = parseElement(e, "url")
+        if (baseLink) {
+            allLinks.push(baseLink)
+        } else {
+            // Try subelements instead, for example if the link is not
+            // visible or `display: none`, but a sub-element is absolutely
+            // positioned somewhere else.
+            allLinks.push(...[...e.querySelectorAll("*")]
+                .map(c => parseElement(c, "url")).filter(l => l))
         }
     })
 }
