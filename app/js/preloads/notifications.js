@@ -27,6 +27,7 @@ window.addEventListener("DOMContentLoaded", () => {
             element.className = "notification"
             if (notification.click?.type === "download-success") {
                 element.classList.add("filelocation")
+                element.title = "Click to open"
                 element.addEventListener("click", () => {
                     ipcRenderer.send("open-download", notification.click.path)
                 })

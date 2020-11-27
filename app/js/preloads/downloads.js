@@ -95,8 +95,12 @@ const addDownload = (download, id) => {
     element.appendChild(togglePause)
     // Title
     const title = document.createElement("div")
+    title.title = "Click to open"
     title.textContent = download.name
     title.className = "title"
+    title.addEventListener("click", () => {
+        ipcRenderer.send("open-download", file.textContent)
+    })
     element.appendChild(title)
     // Progress
     const progress = document.createElement("progress")
@@ -138,6 +142,7 @@ const addDownload = (download, id) => {
     downloadUrl.textContent = decodeURIComponent(download.url)
     misc.appendChild(downloadUrl)
     const file = document.createElement("span")
+    file.title = "Click to open"
     file.className = "filelocation"
     file.textContent = download.file
     file.addEventListener("click", () => {
