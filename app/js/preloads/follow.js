@@ -212,6 +212,9 @@ const findClickPosition = (element, rects) => {
     return {clickable, dimensions}
 }
 
+const rectOutsideWindow = r => r.bottom < 0 || r.top > window.innerHeight
+    || r.right < 0 || r.left > window.innerWidth
+
 const parseElement = (element, type) => {
     // The body shouldn't be considered clickable on it's own,
     // Even if listeners are added to it.
@@ -222,10 +225,7 @@ const parseElement = (element, type) => {
     }
     // First (quickly) check that element is visible at all
     const boundingRect = element.getBoundingClientRect()
-    const completelyOutsideWindow = boundingRect.bottom < 0
-        || boundingRect.top > window.innerHeight
-        || boundingRect.right < 0 || boundingRect.left > window.innerWidth
-    if (completelyOutsideWindow) {
+    if (rectOutsideWindow(boundingRect)) {
         return null
     }
     const isHidden = window.getComputedStyle(element).visibility === "hidden"
@@ -244,9 +244,7 @@ const parseElement = (element, type) => {
     // - Too small to properly click on using a regular browser
     const tooSmall = dimensions.width <= 2 || dimensions.height <= 2
     // - The element isn't actually visible on the user's current window
-    const outsideWindow = dimensions.bottom < 0
-        || dimensions.top > window.innerHeight
-        || dimensions.right < 0 || dimensions.left > window.innerWidth
+    const outsideWindow = rectOutsideWindow(dimensions)
     // - The element is too big to actually make sense to click on by choice
     const tooBig = dimensions.width >= window.innerWidth
         || dimensions.height >= window.innerHeight
