@@ -50,11 +50,9 @@ const clickEvents = ["click", "mousedown"]
 const otherEvents = [
     "mouseenter", "mouseleave", "mousemove", "mouseout", "mouseover", "mouseup"
 ]
-let allElements = []
 
 ipcRenderer.on("focus-first-text-input", async () => {
-    allElements = [...document.querySelectorAll("*")]
-    const links = [...allElementsBySelectors("inputs-insert", textlikeInputs)]
+    const links = allElementsBySelectors("inputs-insert", textlikeInputs)
     if (links.length > 0) {
         const pos = links.sort((el1, el2) => Math.floor(el1.y)
             - Math.floor(el2.y) || el1.x - el2.x)[0]
@@ -69,27 +67,27 @@ ipcRenderer.on("focus-first-text-input", async () => {
     }
 })
 
-const sendFollowLinks = () => {
-    if (!inFollowMode) {
-        return
-    }
-    allElements = [...document.querySelectorAll("*")]
-    const allLinks = []
+const getLinkFollows = allLinks => {
     // A tags with href as the link, can be opened in new tab or current tab
-    allLinks.push(...allElementsBySelectors("url", urls))
-    allElements.filter(el => el.matches("a *")).forEach(el => {
-        const clickableSubElement = parseElement(el, "url")
-        const baseLink = allElements.find(
-            l => l.nodeName === "A" && l.contains(el))
-        if (baseLink && !parseElement(baseLink) && clickableSubElement) {
-            clickableSubElement.url = baseLink.href || ""
-            allLinks.push(clickableSubElement)
+    document.querySelectorAll(urls.join(",")).forEach(e => {
+        const baseLink = parseElement(e, "url")
+        if (baseLink) {
+            allLinks.push(baseLink)
+        } else {
+            // Try subelements instead, for example if the link is not
+            // visible or `display: none`, but a sub-element is absolutely
+            // positioned somewhere else.
+            allLinks.push(...[...e.querySelectorAll("*")]
+                .map(c => parseElement(c, "url")).filter(l => l))
         }
     })
+}
+
+const getInputFollows = allLinks => {
     // Input tags such as checkboxes, can be clicked but have no text input
-    const inputs = allElements.filter(
-        el => clickableInputs.find(selector => el.matches(selector)
-        || el.nodeName === "LABEL" && el.querySelector("input")))
+    const inputs = [...document.querySelectorAll(clickableInputs.join(","))]
+    inputs.push(...[...document.querySelectorAll("input")].map(
+        e => e.closest("label")).filter(e => e && !inputs.includes(e)))
     inputs.forEach(element => {
         const clickable = parseElement(element, "inputs-click")
         if (clickable) {
@@ -102,7 +100,11 @@ const sendFollowLinks = () => {
         }
     })
     // Input tags such as email and text, can have text inserted
-    allLinks.push(...allElementsBySelectors("inputs-insert", textlikeInputs))
+    allLinks.push(
+        ...allElementsBySelectors("inputs-insert", textlikeInputs))
+}
+
+const getMouseFollows = allLinks => {
     // Elements with some kind of mouse interaction, grouped by click and other
     const addMouseEventElement = (element, type) => {
         let clickable = null
@@ -120,19 +122,33 @@ const sendFollowLinks = () => {
             }
         }
     }
+    const allElements = [...document.querySelectorAll("*")]
     allElements.filter(
-        el => clickEvents.find(e => el[`on${e}`])
-        || clickEvents.map(e => eventListeners[e].includes(el)).find(e => e)
+        el => clickEvents.find(e => el[`on${e}`] || eventListeners[e].has(el))
         || el.getAttribute("jsaction")).forEach(
         element => addMouseEventElement(element, "onclick"))
     if (window.location.protocol.includes("devtools")) {
         allElements.forEach(element => addMouseEventElement(element, "other"))
     } else {
-        allElements.filter(
-            el => otherEvents.find(e => el[`on${e}`]) || otherEvents.map(
-                e => eventListeners[e].includes(el)).find(e => e))
+        allElements.filter(el => otherEvents.find(e => el[`on${e}`]
+                || eventListeners[e].has(el)))
             .forEach(element => addMouseEventElement(element, "other"))
     }
+}
+
+const getAllFollowLinks = () => {
+    const allLinks = []
+    getLinkFollows(allLinks)
+    getInputFollows(allLinks)
+    getMouseFollows(allLinks)
+    return allLinks
+}
+
+const sendFollowLinks = () => {
+    if (!inFollowMode) {
+        return
+    }
+    const allLinks = getAllFollowLinks()
     // Send response back to webview, which will forward it to follow.js
     // Ordered by the position on the page from the top
     // Uncategorised mouse events are less relevant and are moved to the end
@@ -184,11 +200,11 @@ const findClickPosition = (element, rects) => {
     for (const rect of rects) {
         const rectX = rect.x + rect.width / 2
         const rectY = rect.y + rect.height / 2
-        if (elementClickableAtPosition(element, rectX, rectY)) {
-            // Update the region if it's larger or the first region found
-            if (rect.width > dimensions.width
-                    || rect.height > dimensions.height
-                    || !clickable) {
+        // Update the region if it's larger or the first region found
+        if (rect.width > dimensions.width
+                || rect.height > dimensions.height
+                || !clickable) {
+            if (elementClickableAtPosition(element, rectX, rectY)) {
                 clickable = true
                 dimensions = rect
             }
@@ -196,6 +212,9 @@ const findClickPosition = (element, rects) => {
     }
     return {clickable, dimensions}
 }
+
+const rectOutsideWindow = r => r.bottom < 0 || r.top > window.innerHeight
+    || r.right < 0 || r.left > window.innerWidth
 
 const parseElement = (element, type) => {
     // The body shouldn't be considered clickable on it's own,
@@ -205,8 +224,17 @@ const parseElement = (element, type) => {
     if (!element.getClientRects || excluded.includes(element)) {
         return null
     }
+    // First (quickly) check that element is visible at all
+    const boundingRect = element.getBoundingClientRect()
+    if (rectOutsideWindow(boundingRect)) {
+        return null
+    }
+    const isHidden = window.getComputedStyle(element).visibility === "hidden"
+    if (isHidden) {
+        return null
+    }
     // Make a list of all possible bounding rects for the element
-    let rects = [element.getBoundingClientRect(), ...element.getClientRects()]
+    let rects = [boundingRect, ...element.getClientRects()]
     for (const subImage of element.querySelectorAll("img, svg")) {
         rects = rects.concat([...subImage.getClientRects()])
     }
@@ -217,9 +245,7 @@ const parseElement = (element, type) => {
     // - Too small to properly click on using a regular browser
     const tooSmall = dimensions.width <= 2 || dimensions.height <= 2
     // - The element isn't actually visible on the user's current window
-    const outsideWindow = dimensions.bottom < 0
-        || dimensions.top > window.innerHeight
-        || dimensions.right < 0 || dimensions.left > window.innerWidth
+    const outsideWindow = rectOutsideWindow(dimensions)
     // - The element is too big to actually make sense to click on by choice
     const tooBig = dimensions.width >= window.innerWidth
         || dimensions.height >= window.innerHeight
@@ -237,37 +263,37 @@ const parseElement = (element, type) => {
     }
 }
 
-const allElementsBySelectors = (type, selectors) => allElements.filter(
-    element => selectors.find(selector => element.matches(selector))).map(
-    element => parseElement(element, type)).filter(e => e)
+const allElementsBySelectors
+= (type, selectors) => [...document.querySelectorAll(selectors.join(","))]
+    .map(element => parseElement(element, type)).filter(e => e)
 
 const eventListeners = {}
 ;[...clickEvents, ...otherEvents].forEach(e => {
-    eventListeners[e] = []
+    eventListeners[e] = new WeakSet()
 })
 
-EventTarget.prototype._realAdd = EventTarget.prototype.addEventListener
+const realAdd = EventTarget.prototype.addEventListener
 EventTarget.prototype.addEventListener = function(type, listener, options) {
     try {
-        this._realAdd(type, listener, options)
+        realAdd.apply(this, [type, listener, options])
     } catch (e) {
         // This is a bug in the underlying website
         return
     }
     if (eventListeners[type]) {
-        eventListeners[type].push(this)
+        eventListeners[type].add(this)
     }
 }
-EventTarget.prototype._realRemove = EventTarget.prototype.removeEventListener
+const realRemove = EventTarget.prototype.removeEventListener
 EventTarget.prototype.removeEventListener = function(type, listener, options) {
     try {
-        this._realRemove(type, listener, options)
+        realRemove.apply(this, [type, listener, options])
     } catch (e) {
         // This is a bug in the underlying website
     }
     if (eventListeners[type]) {
         try {
-            eventListeners[type].remove(this)
+            eventListeners[type].delete(this)
         } catch (e) {
             // The element was already removed from the list before
         }

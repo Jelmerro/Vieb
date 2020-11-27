@@ -163,8 +163,7 @@ const parseAndDisplayLinks = newLinks => {
     // therefor the slice index is 0 to 26^2 - 1.
     links = links.slice(0, 675)
     const factor = TABS.currentPage().getZoomFactor()
-    const followElement = document.getElementById("follow")
-    followElement.textContent = ""
+    const followChildren = []
     links.forEach((link, index) => {
         if (!link) {
             return
@@ -198,7 +197,7 @@ const parseAndDisplayLinks = newLinks => {
             }
         }
         linkElement.addEventListener("mouseup", onclickListener)
-        followElement.appendChild(linkElement)
+        followChildren.push(linkElement)
         // Show a border around the link
         const borderElement = document.createElement("span")
         borderElement.className = `follow-${link.type}-border`
@@ -211,8 +210,9 @@ const parseAndDisplayLinks = newLinks => {
         const height = link.height * factor
         borderElement.style.height = `${height}px`
         borderElement.addEventListener("mouseup", onclickListener)
-        followElement.appendChild(borderElement)
+        followChildren.push(borderElement)
     })
+    document.getElementById("follow").replaceChildren(...followChildren)
 }
 
 const enterKey = async id => {
