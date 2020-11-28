@@ -470,8 +470,9 @@ ipcMain.on("show-notification", (_, escapedMessage, properType) => {
     notificationWindow.show()
 })
 
-// shell.openPath blocks on linux: https://github.com/electron/electron/issues/26074
-const openPath = (location) => {
+// Workaround for shell.openPath not being reliable on Linux:
+// https://github.com/electron/electron/issues/26074
+const openPath = location => {
     if (process.platform === "linux") {
         spawn("xdg-open", [location], {"stdio": "ignore", "detached": true})
     } else {

@@ -24,6 +24,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Follow mode will now detect form labels that have invisible embedded inputs but no "for" attribute
 - Follow mode now detects absolutely positioned sub-elements of links, where the base link isn't shown
+- Multiple speed improvements to follow mode
 - More explicit permission messages that list both the permission name and the setting that was read to decide the permission
 
 ### Security
