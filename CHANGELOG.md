@@ -27,10 +27,14 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Multiple speed improvements to follow mode
 - More explicit permission messages that list both the permission name and the setting that was read to decide the permission
 
+### Fixed
+
+- Tab restore not working correctly when disabled, due to duplicate entries being stored when closed
+
 ### Security
 
-- Electron 11.0.2 (unchanged)
-- Chromium 87.0.4280.67 (unchanged)
+- Electron 11.0.3 (was 11.0.2)
+- Chromium 87.0.4280.67 (was 87.0.4280.67)
 
 ## [3.0.0](https://github.com/Jelmerro/Vieb/compare/2.4.0...3.0.0) - 2020-11-21
 

@@ -171,14 +171,14 @@ const saveTabs = () => {
     // The list of tabs is ordered, the list of pages isn't
     // Pinned tabs are always saved to the file
     if (SETTINGS.get("keeprecentlyclosed")) {
-        data.closed = recentlyClosed
+        data.closed = JSON.parse(JSON.stringify(recentlyClosed))
     }
     if (SETTINGS.get("restoretabs")) {
         data.id = listTabs().indexOf(currentTab())
     }
     listTabs().forEach((tab, index) => {
         const url = UTIL.urlToString(tabOrPageMatching(tab).src)
-        if (url.startsWith("devtools://")) {
+        if (!url || url.startsWith("devtools://")) {
             if (index <= data.id) {
                 data.id -= 1
             }
