@@ -276,27 +276,18 @@ const realAdd = EventTarget.prototype.addEventListener
 EventTarget.prototype.addEventListener = function(type, listener, options) {
     try {
         realAdd.apply(this, [type, listener, options])
+        eventListeners[type]?.add(this)
     } catch (e) {
         // This is a bug in the underlying website
-        return
-    }
-    if (eventListeners[type]) {
-        eventListeners[type].add(this)
     }
 }
 const realRemove = EventTarget.prototype.removeEventListener
 EventTarget.prototype.removeEventListener = function(type, listener, options) {
     try {
         realRemove.apply(this, [type, listener, options])
+        eventListeners[type]?.delete(this)
     } catch (e) {
         // This is a bug in the underlying website
-    }
-    if (eventListeners[type]) {
-        try {
-            eventListeners[type].delete(this)
-        } catch (e) {
-            // The element was already removed from the list before
-        }
     }
 }
 
