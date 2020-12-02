@@ -30,6 +30,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Tab restore not working correctly when disabled, due to duplicate entries being stored when closed
+- Line height issue that prevented underscores from showing correctly in some cases
 
 ### Security
 
