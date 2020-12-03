@@ -22,6 +22,7 @@ const path = require("path")
 
 const histFile = path.join(UTIL.appData(), "hist")
 let groupedHistory = {}
+const simpleUrls = {}
 let histWriteTimeout = null
 const specialChars = /[`~!@#$%^&*(),./;'[\]\\\-=<>?:"{}|_+\s]/g
 
@@ -43,9 +44,11 @@ const suggestHist = search => {
         if (!groupedHistory[url]) {
             return null
         }
-        const simpleUrl = decodeURI(url).replace(specialChars, "").toLowerCase()
-        const simpleTitle = groupedHistory[url].title.replace(
-            specialChars, "").toLowerCase()
+        let simpleUrl = simpleUrls[url]
+        if (simpleUrl === undefined) {
+            simpleUrl = decodeURI(url).replace(specialChars, "").toLowerCase()
+            simpleUrls[url] = simpleUrl
+        }
         let relevance = 1
         if (simpleSearch.every(w => simpleUrl.includes(w))) {
             relevance = 5
@@ -53,18 +56,24 @@ const suggestHist = search => {
         if (url.toLowerCase().includes(search)) {
             relevance *= 10
         }
-        const allWordsInTitleOrUrl = simpleSearch.every(
-            w => simpleTitle.includes(w) || simpleUrl.includes(w))
-        if (relevance > 1 || allWordsInTitleOrUrl) {
+        const allWordsInTitleOrUrl = () => {
+            const simpleTitle = groupedHistory[url].title.replace(
+                specialChars, "").toLowerCase()
+            return simpleSearch.every(
+                w => simpleTitle.includes(w) || simpleUrl.includes(w))
+        }
+        if (relevance > 1 || allWordsInTitleOrUrl()) {
             return {
                 "url": url,
                 "title": groupedHistory[url].title,
-                "icon": FAVICONS.forSite(url),
                 "top": relevance * visitCount(url)
             }
         }
         return null
-    }).filter(h => h).sort((a, b) => b.top - a.top).forEach(SUGGEST.addExplore)
+    }).filter(h => h).sort((a, b) => b.top - a.top)
+        .slice(0, SETTINGS.get("suggestexplore"))
+        .forEach(h => SUGGEST.addExplore(
+            {...h, "icon": FAVICONS.forSite(h.url)}))
 }
 
 const addToHist = url => {
