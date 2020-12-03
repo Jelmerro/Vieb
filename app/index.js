@@ -1004,6 +1004,8 @@ ipcMain.on("add-devtools", (_, pageId, devtoolsId) => {
     page.openDevTools()
     devtools.executeJavaScript("window.location.reload()")
 })
+ipcMain.on("open-internal-devtools",
+    () => mainWindow.webContents.openDevTools({"mode": "undocked"}))
 ipcMain.on("destroy-window", () => {
     cancellAllDownloads()
     mainWindow.destroy()
