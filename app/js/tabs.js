@@ -545,34 +545,6 @@ const addWebviewListeners = webview => {
             }
         }
     })
-    const mouseClickInWebview = e => {
-        if (MODES.currentMode() !== "insert") {
-            if (SETTINGS.get("mouse")) {
-                const modesWithTyping = ["command", "explore", "search"]
-                if (["pointer", "visual"].includes(MODES.currentMode())) {
-                    if (e.tovisual) {
-                        POINTER.startVisualSelect()
-                    }
-                    if (e.x && e.y) {
-                        POINTER.move(e.x * currentPage().getZoomFactor(),
-                            e.y * currentPage().getZoomFactor())
-                    }
-                } else if (e.toinsert) {
-                    MODES.setMode("insert")
-                } else if (modesWithTyping.includes(MODES.currentMode())) {
-                    MODES.setMode("normal")
-                } else {
-                    ACTIONS.setFocusCorrectly()
-                }
-            } else {
-                webview.blur()
-            }
-        }
-        if (webview !== currentPage()) {
-            switchToTab(listTabs().indexOf(tabOrPageMatching(webview)))
-        }
-    }
-    webview.addEventListener("focus", mouseClickInWebview)
     webview.addEventListener("crashed", () => {
         tabOrPageMatching(webview).classList.add("crashed")
     })
@@ -742,7 +714,24 @@ const addWebviewListeners = webview => {
             UTIL.notify(e.args[0], e.args[1])
         }
         if (e.channel === "mouse-click-info") {
-            mouseClickInWebview(e.args[0])
+            if (webview !== currentPage()) {
+                switchToTab(listTabs().indexOf(tabOrPageMatching(webview)))
+            }
+            if (SETTINGS.get("mouse") && MODES.currentMode() !== "insert") {
+                if (["pointer", "visual"].includes(MODES.currentMode())) {
+                    if (e.args[0].tovisual) {
+                        POINTER.startVisualSelect()
+                    }
+                    POINTER.move(e.args[0].x * currentPage().getZoomFactor(),
+                        e.args[0].y * currentPage().getZoomFactor())
+                } else if (e.args[0].toinsert) {
+                    MODES.setMode("insert")
+                } else if ("ces".includes(MODES.currentMode()[0])) {
+                    MODES.setMode("normal")
+                } else {
+                    ACTIONS.setFocusCorrectly()
+                }
+            }
         }
         if (e.channel === "follow-response") {
             FOLLOW.parseAndDisplayLinks(e.args[0])
