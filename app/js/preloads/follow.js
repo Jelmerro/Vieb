@@ -292,12 +292,14 @@ EventTarget.prototype.removeEventListener = function(type, listener, options) {
 }
 
 window.addEventListener("click", e => {
-    ipcRenderer.sendToHost("mouse-click-info", {
-        "x": e.x,
-        "y": e.y,
-        "tovisual": !window.getSelection().isCollapsed,
-        "toinsert": !!textlikeInputs.find(s => e.target.matches(s))
-    })
+    if (e.isTrusted) {
+        ipcRenderer.sendToHost("mouse-click-info", {
+            "x": e.x,
+            "y": e.y,
+            "tovisual": !window.getSelection().isCollapsed,
+            "toinsert": !!textlikeInputs.find(s => e.target.matches(s))
+        })
+    }
 })
 
 window.addEventListener("resize", sendFollowLinks)
