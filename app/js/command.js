@@ -250,6 +250,8 @@ const openDevTools = (position = null, trailingArgs = false) => {
     }
 }
 
+const openInternalDevTools = () => ipcRenderer.send("open-internal-devtools")
+
 const openSpecialPage = (specialPage, section = null) => {
     // Open the url in the current or new tab, depending on currently open page
     const pageUrl = UTIL.specialPagePath(specialPage, section)
@@ -531,6 +533,7 @@ const commands = {
     "quitall": quitall,
     "colorscheme": colorscheme,
     "devtools": openDevTools,
+    "internaldevtools": openInternalDevTools,
     "reload": reload,
     "restart": restart,
     "v": () => openSpecialPage("version"),

@@ -19,6 +19,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Clickable download finish notification that will open the file in the default application (if using the mouse)
 - Additional Vieb config location for colorschemes, viebrc and blocklists inside "~/.vieb"
 - New permission groups for midi, persistentstorage and clipboardread (all 3 remain by default blocked, but are no longer grouped as unknown)
+- Internaldevtools command that opens developer tools for the main Vieb window
 
 ### Changed
 
