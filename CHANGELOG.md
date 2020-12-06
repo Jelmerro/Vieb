@@ -27,6 +27,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Follow mode now detects absolutely positioned sub-elements of links, where the base link isn't shown
 - Multiple speed improvements to follow mode
 - More explicit permission messages that list both the permission name and the setting that was read to decide the permission
+- Internal devtools now opened undocked by default (both with --debug and :internaldevtools)
+- The frame and menu are no longer shown for instances started with --debug (internal devtools and always shown window remain)
 
 ### Fixed
 
