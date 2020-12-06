@@ -14,7 +14,7 @@ otherwise, you probably need the regular release (AMD64, x86_64 or simply no suf
 
 #### How do I start Vieb?
 
-If it an zip/tar.gz archive that you downloaded, you can extract it and double-click the executable.
+If it's a zip/tar.gz archive that you downloaded, you can extract it and double-click the executable.
 On Windows, you can simply double-click on the ".exe" file to run the program.
 If you are using Linux, you can download the AppImage to be able to do the same.
 For most other download options, you need to use your distribution's package manager,

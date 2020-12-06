@@ -49,6 +49,8 @@ const printUsage = () => {
     console.log("                    See 'Erwic.md' for usage and details")
     console.log(
         " --debug            Open with Chromium and Electron debugging tools")
+    console.log(
+        "                    They can also be opened later with :internaldevtools")
     console.log("\nAll arguments not starting with - will be opened as a url.")
     printLicense()
 }
@@ -291,7 +293,7 @@ app.on("ready", () => {
         "title": app.getName(),
         "width": 800,
         "height": 600,
-        "frame": enableDebugMode,
+        "frame": false,
         "show": enableDebugMode,
         "closable": false,
         "icon": customIcon || undefined,
@@ -309,9 +311,7 @@ app.on("ready", () => {
         windowData.icon = path.join(__dirname, "img/icons/512x512.png")
     }
     mainWindow = new BrowserWindow(windowData)
-    if (!enableDebugMode) {
-        mainWindow.removeMenu()
-    }
+    mainWindow.removeMenu()
     mainWindow.setMinimumSize(500, 500)
     mainWindow.on("close", e => {
         e.preventDefault()
@@ -337,7 +337,7 @@ app.on("ready", () => {
             prefs.enableRemoteModule = false
         })
         if (enableDebugMode) {
-            mainWindow.webContents.openDevTools()
+            mainWindow.webContents.openDevTools({"mode": "undocked"})
         }
         mainWindow.webContents.send("urls", urls)
     })

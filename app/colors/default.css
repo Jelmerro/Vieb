@@ -102,8 +102,8 @@
  * GLOBAL
 */
 html {margin: 0;padding: 0}
-body {color: var(--fg);font: 14px "DejaVu Sans Mono", "Courier", monospace;padding: 0;margin: 0;opacity: 0;line-height: 1.3em;}
-#app {height: 100vh;width: 100vw;overflow: hidden;user-select: none;display: flex;flex-direction: column;background: var(--bg);opacity: 1;}
+body {color: var(--fg);font: 14px "DejaVu Sans Mono", "Courier", monospace;padding: 0;margin: 0;opacity: 0;}
+#app {height: 100vh;width: 100vw;overflow: hidden;user-select: none;display: flex;flex-direction: column;background: var(--bg);opacity: 1;line-height: 1.3em;}
 body:not(#app) input {background: transparent;color: var(--fg);font: inherit;width: 100%;border: .1em solid var(--input-unfocused);padding: .2em;margin-bottom: 1em;box-sizing: border-box;outline: none;height: 2em;}
 body:not(#app) input:focus {border: .1em solid var(--input-focused);}
 body:not(#app) kbd {background: var(--code-bg);color: var(--code-fg);padding: .1em;overflow-wrap: anywhere;}
