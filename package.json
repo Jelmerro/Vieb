@@ -33,12 +33,12 @@
     "archiver": "^5.0.2",
     "electron": "^11.0.3",
     "electron-builder": "^22.9.1",
-    "eslint": "^7.13.0",
+    "eslint": "^7.15.0",
     "jest": "^26.6.3"
   },
   "dependencies": {
     "@cliqz/adblocker-electron": "^1.18.8",
-    "darkreader": "^4.9.24",
+    "darkreader": "^4.9.26",
     "is-svg": "^4.2.1",
     "rimraf": "^3.0.2"
   }
