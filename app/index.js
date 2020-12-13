@@ -139,6 +139,10 @@ const useragent = () => session.defaultSession.getUserAgent()
     .replace(/Electron\/\S* /, "").replace(/Vieb\/\S* /, "")
     .replace(RegExp(`${app.getName()}/\\S* `), "")
 
+// Fix segfault when opening Twitter:
+// https://github.com/electron/electron/issues/25469
+app.commandLine.appendSwitch("disable-features", "CrossOriginOpenerPolicy")
+
 const getArguments = argv => {
     const exec = path.basename(argv[0])
     if (exec === "electron" || process.defaultApp && exec !== "vieb") {
