@@ -248,8 +248,9 @@ const init = () => {
             } else if (["explore", "command"].includes(MODES.currentMode())) {
                 ACTIONS.toNormalMode()
             }
+        } else {
+            e.preventDefault()
         }
-        e.preventDefault()
         ACTIONS.setFocusCorrectly()
     })
     window.addEventListener("mousemove", e => {
