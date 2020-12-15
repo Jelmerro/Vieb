@@ -240,7 +240,7 @@ const editWithVim = () => {
         if (command) {
             try {
                 page.send("action", "setInputFieldText",
-                    fs.readFileSync(tempFile).toString())
+                    tempFile, fs.readFileSync(tempFile).toString())
             } catch (e) {
                 UTIL.notify("Failed to read temp file to fill form", "err")
             }
