@@ -51,7 +51,7 @@ const defaultSettings = {
     "guinavbar": "always",
     "guitabbar": "always",
     "keeprecentlyclosed": true,
-    "keywords": '[["", ""]]', 
+    "keywords": '[["", ""]]',
     "ignorecase": false,
     "incsearch": true,
     "maxmapdepth": 10,

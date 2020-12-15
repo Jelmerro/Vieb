@@ -343,13 +343,13 @@ const useEnteredData = () => {
 
         // Does this URL map to a defined keyword search? (e.g., "yt <query string>")
         var keywordSearch = null
-        try { 
-            keywordSearch = new Map(JSON.parse(SETTINGS.get("keywords"))) 
-        } catch (e) { } 
+        try {
+            keywordSearch = new Map(JSON.parse(SETTINGS.get("keywords")))
+        } catch (e) { }
 
-        if (keywordSearch) { 
-            keywordSearch.forEach((value,key) => { 
-                if (key.length > 0 && location.substr(0, key.length) === key) { 
+        if (keywordSearch) {
+            keywordSearch.forEach((value,key) => {
+                if (key.length > 0 && location.substr(0, key.length) === key) {
                     location = UTIL.stringToUrl(value.replace(/%s/g, location.substr(key.length + 1)))
                 }
             })
