@@ -123,14 +123,14 @@ const exitFullscreen = () => {
     document.exitFullscreen()
 }
 
-const setInputFieldText = text => {
-    const el = document.activeElement
-    if (el) {
-        if (["input", "textarea"].includes(el.tagName.toLowerCase())) {
-            el.value = text
-        } else if (el.getAttribute("contenteditable") === "true") {
-            el.textContent = text
-        }
+const writeableInputs = {}
+
+const setInputFieldText = (filename, text) => {
+    const el = writeableInputs[filename]
+    if (["input", "textarea"].includes(el.tagName.toLowerCase())) {
+        el.value = text
+    } else if (el.getAttribute("contenteditable") === "true") {
+        el.textContent = text
     }
 }
 
@@ -142,6 +142,7 @@ const writeInputToFile = filename => {
         } else if (el.getAttribute("contenteditable") === "true") {
             fs.writeFileSync(filename, el.textContent)
         }
+        writeableInputs[filename] = el
     }
 }
 

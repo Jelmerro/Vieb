@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Changed
+
+- Keep a reference to the input field when using the external editor, will keep working when unfocused and with multiple editors
+
 ### Fixed
 
 - Middle mouse pasting not working even when mouse is enabled
