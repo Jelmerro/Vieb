@@ -11,6 +11,18 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Fixed
+
+- Middle mouse pasting not working even when mouse is enabled
+- Some sites not loading due to Electron bug related to COOP [electron/#25469](https://github.com/electron/electron/issues/25469)
+
+### Security
+
+- Electron 11.1.0 (was 11.0.3)
+- Chromium 87.0.4280.88 (was 87.0.4280.67)
+
 ## [3.1.0](https://github.com/Jelmerro/Vieb/compare/3.0.0...3.1.0) - 2020-12-06
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/3.0.0...3.1.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/3.1.0)

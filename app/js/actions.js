@@ -361,7 +361,9 @@ const setFocusCorrectly = () => {
     } else {
         urlElement.blur()
         window.focus()
-        document.getElementById("invisible-overlay").focus()
+        if (!SETTINGS.get("mouse")) {
+            document.getElementById("invisible-overlay").focus()
+        }
     }
 }
 
