@@ -590,6 +590,13 @@
         This setting controls the visibility of the tabbar outside fullscreen. When set to "always", the tabs are always shown. To automatically hide the tabbar when there are no tabs being added or changed, set it to "onupdate". THe duration of showing it temporarily is configured by <a href="#guihidetimeout">guihidetimeout</a>. To never show the tabs even when updating them, set this setting to "never". When set to "never" it is recommended to use the <a href="#:buffer">:buffer</a> command to switch between the open websites. The visibility of the tabbar does not affect their usage.
         <h3 id="keeprecentlyclosed">keeprecentlyclosed</h3>
         Toggle whether to keep recently closed tabs and allow them to be restored. This setting is unaffected by other history settings. Disabling this setting will result in the <a href="#action.reopenTab">action.reopenTab</a> being unable to restore previously closed tabs. If <a href="#restoretabs">restoretabs</a> is disabled, all open tabs will be moved to the list of recently closed tabs when quitting Vieb, unless this setting is also disabled (in which case they can not be restored).
+        <h3 id="keywords">keywords</h3>
+        A JSON string representing a JavaScript Map, describing keyword searches that can be performed when entered in Explore mode. This is equivalent to the "Keyword Search" or "Smart Keywords" features in other browsers.
+        Example:
+        <div class="command-block">
+        :set keywords='[["yt", "https://www.youtube.com/results?search_query=%s"]]'
+        </div>
+        Entering <a class="explore" href="#action.toExploreMode">explore mode</a> and typing 'yt [some query]' will visit the YouTube search results page for that query.
         <h3 id="ignorecase">ignorecase</h3>
         Toggle for case-sensitive searching in the page. Any existing search will be updated to match this setting when either <a href="#action.nextSearchMatch">action.nextSearchMatch</a> or <a href="#action.previousSearchMatch">action.previousSearchMatch</a> are called.
         <h3 id="incsearch">incsearch</h3>
