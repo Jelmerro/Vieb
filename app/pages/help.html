@@ -590,14 +590,6 @@
         This setting controls the visibility of the tabbar outside fullscreen. When set to "always", the tabs are always shown. To automatically hide the tabbar when there are no tabs being added or changed, set it to "onupdate". THe duration of showing it temporarily is configured by <a href="#guihidetimeout">guihidetimeout</a>. To never show the tabs even when updating them, set this setting to "never". When set to "never" it is recommended to use the <a href="#:buffer">:buffer</a> command to switch between the open websites. The visibility of the tabbar does not affect their usage.
         <h3 id="keeprecentlyclosed">keeprecentlyclosed</h3>
         Toggle whether to keep recently closed tabs and allow them to be restored. This setting is unaffected by other history settings. Disabling this setting will result in the <a href="#action.reopenTab">action.reopenTab</a> being unable to restore previously closed tabs. If <a href="#restoretabs">restoretabs</a> is disabled, all open tabs will be moved to the list of recently closed tabs when quitting Vieb, unless this setting is also disabled (in which case they can not be restored).
-        <h3 id="searchwords">searchwords</h3>
-        A list-like setting to optionally define a series of searchwords, which can be used to perform searches when in Explore mode. This is equivalent to the "Keyword Search" or "Smart Keywords" features in other browsers.
-        Example:
-        <div class="command-block">
-        :set searchwords+=yt~https://www.youtube.com/results?search_query=%s,imdb~https://www.imdb.com/find?q=%s
-        </div>
-        Entering <a class="explore" href="#action.toExploreMode">explore mode</a> and typing 'yt [some query]' will visit the YouTube search results page for that query, and 'imdb [some query]' will search IMDB.com.
-        Searchwords must be one word with only letters, and the URL must contain a "%s", which will be replaced by the typed query.
         <h3 id="ignorecase">ignorecase</h3>
         Toggle for case-sensitive searching in the page. Any existing search will be updated to match this setting when either <a href="#action.nextSearchMatch">action.nextSearchMatch</a> or <a href="#action.previousSearchMatch">action.previousSearchMatch</a> are called.
         <h3 id="incsearch">incsearch</h3>
@@ -680,6 +672,14 @@
         </ul>
         The search setting must be set to a valid url. Your search will be encoded and pasted at the end of the url, unless you specify "%s" somewhere in your search url, in which case the "%s" part will be replaced with your search. To make a web search, call <a href="#action.useEnteredData">action.useEnteredData</a> after entering your search in <a class="explore" href="#action.toExploreMode">explore mode</a>. If you want to use a light theme for you searches, you could switch the "kae=d" part of the search setting to "kae=g". For more information about these search settings, see the <a href="https://duckduckgo.com/settings" target="_blank">DuckDuckGo settings page</a>. Of course it's also possible to use a completely different search engine, switching between them can also be simplified with <a href="#customcommands">custom commands</a>. For example, to switch to the light version of DuckDuckGo in combination with switching to Vieb's light colorscheme, you can so something like this:
         <div class="command-block">command! light <:colorscheme light><:set search=https://duckduckgo.com/?kae=g&q=%s></div>
+        <h3 id="searchwords">searchwords</h3>
+        A list-like setting to optionally define a series of searchwords, which can be used to perform searches when in Explore mode. This is equivalent to the "Keyword Search" or "Smart Keywords" features in other browsers.
+        Example:
+        <div class="command-block">
+        :set searchwords+=yt~https://www.youtube.com/results?search_query=%s,imdb~https://www.imdb.com/find?q=%s
+        </div>
+        Entering <a class="explore" href="#action.toExploreMode">explore mode</a> and typing 'yt [some query]' will visit the YouTube search results page for that query, and 'imdb [some query]' will search IMDB.com.
+        Searchwords must be one word with only letters, and the URL must contain a "%s", which will be replaced by the typed query.
         <h3 id="showcmd">showcmd</h3>
         Toggle for showing the history of recently pressed keys in the top-right corner. The keys are reset when no more mappings exist that start with the currently pressed keys. The showcmd option also shows the repeat count for normal mode, <a class="pointer" href="#pointer">pointer mode</a> and <a class="visual" href="#pointer">visual mode</a>.
         <h3 id="spell">spell</h3>
