@@ -21,6 +21,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Middle mouse pasting not working even when mouse is enabled
 - Some sites not loading due to Electron bug related to COOP [electron/#25469](https://github.com/electron/electron/issues/25469)
+- Searching for buffers with matching index not being suggested in the list
 
 ### Security
 
