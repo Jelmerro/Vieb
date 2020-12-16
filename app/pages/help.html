@@ -597,6 +597,7 @@
         :set searchwords+=yt~https://www.youtube.com/results?search_query=%s,imdb~https://www.imdb.com/find?q=%s
         </div>
         Entering <a class="explore" href="#action.toExploreMode">explore mode</a> and typing 'yt [some query]' will visit the YouTube search results page for that query, and 'imdb [some query]' will search IMDB.com.
+        Searchwords must be one word with only letters, and the URL must contain a "%s", which will be replaced by the typed query.
         <h3 id="ignorecase">ignorecase</h3>
         Toggle for case-sensitive searching in the page. Any existing search will be updated to match this setting when either <a href="#action.nextSearchMatch">action.nextSearchMatch</a> or <a href="#action.previousSearchMatch">action.previousSearchMatch</a> are called.
         <h3 id="incsearch">incsearch</h3>
