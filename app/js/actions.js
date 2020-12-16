@@ -341,7 +341,7 @@ const useEnteredData = () => {
         let location = urlElement.value.trim()
         MODES.setMode("normal")
 
-        // Does this URL map to a defined keyword search?
+        // Does this URL map to a defined searchword?
         // (e.g., "yt <query string>")
         SETTINGS.get("searchwords").split(",").forEach(mapping => {
             const [searchword, url] = mapping.split("~")
