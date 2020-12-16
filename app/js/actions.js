@@ -345,10 +345,10 @@ const useEnteredData = () => {
         // (e.g., "yt <query string>")
         SETTINGS.get("searchwords").split(",").forEach(mapping => {
             const [searchword, url] = mapping.split("~")
-            if (location.substr(0, searchword.length) === searchword) {
-                location = UTIL.stringToUrl(url.replace(
-                    /%s/g, location.substr(searchword.length + 1)
-                ))
+            const query = location.substr(searchword.length + 1)
+            if (location.substr(0, searchword.length) === searchword
+                && /\S/.test(query)) {
+                location = UTIL.stringToUrl(url.replace(/%s/g, query))
             }
         })
 
