@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Searchwords setting to configure custom words that you can use as a prefix in explore mode to search websites directly
+
 ### Changed
 
 - Keep a reference to the input field when using the external editor, will keep working when unfocused and with multiple editors
