@@ -87,6 +87,7 @@ const defaultSettings = {
     "restorewindowposition": true,
     "restorewindowsize": true,
     "search": "https://duckduckgo.com/?kae=d&kav=1&ko=1&q=%s&ia=web",
+    "searchwords": "",
     "showcmd": true,
     "spell": true,
     "spelllang": "system",
@@ -115,6 +116,7 @@ const listLike = [
     "permissionsallowed",
     "permissionsblocked",
     "redirects",
+    "searchwords",
     "startuppages"
 ]
 const validOptions = {
@@ -354,6 +356,41 @@ const checkOther = (setting, value) => {
                     `Invalid regular expression in redirect: ${match}`, "warn")
                 return false
             }
+        }
+    }
+    if (setting === "searchwords") {
+        const knownSearchwords = []
+        for (const searchword of value.split(",")) {
+            if (!searchword.trim()) {
+                continue
+            }
+            if ((searchword.match(/~/g) || []).length !== 1) {
+                UTIL.notify(`Invalid searchwords entry: ${searchword}\n`
+                    + "Entries must have exactly one ~ to separate the "
+                    + "regular expression from the replacement", "warn")
+                return false
+            }
+            const [keyword, url] = searchword.split("~")
+            if (keyword.length === 0 || /[^a-zA-Z]/.test(keyword)) {
+                UTIL.notify(`Invalid searchwords entry: ${searchword}\n`
+                    + "Search keywords before the ~ must have no spaces "
+                    + "and contain only letters", "warn")
+                return false
+            }
+            if (url.length === 0 || !url.includes("%s")) {
+                UTIL.notify(`Invalid searchwords entry: ${searchword}\n`
+                    + "URLs for searchwords must exist and must "
+                    + "contain a %s parameter, which will be "
+                    + "replaced by the search string", "warn")
+                return false
+            }
+            if (knownSearchwords.includes(keyword)) {
+                UTIL.notify(`Invalid searchwords entry: ${searchword}\n`
+                    + `The keyword ${keyword} was already defined. `
+                    + "A searchword must be defined only once", "warn")
+                return false
+            }
+            knownSearchwords.push(keyword)
         }
     }
     if (["favoritepages", "startuppages"].includes(setting)) {

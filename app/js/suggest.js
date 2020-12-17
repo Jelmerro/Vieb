@@ -145,6 +145,8 @@ const updateColors = search => {
             urlElement.className = "url"
         } else if (path.isAbsolute(local) && UTIL.pathExists(local)) {
             urlElement.className = "file"
+        } else if (UTIL.isSearchword(search.trim())) {
+            urlElement.className = "searchwords"
         } else {
             urlElement.className = "search"
         }

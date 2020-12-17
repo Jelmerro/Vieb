@@ -338,8 +338,21 @@ const useEnteredData = () => {
     }
     if (MODES.currentMode() === "explore") {
         const urlElement = document.getElementById("url")
-        const location = urlElement.value.trim()
+        let location = urlElement.value.trim()
         MODES.setMode("normal")
+
+        // Does this URL map to a defined searchword?
+        // (e.g., "yt <query string>")
+        SETTINGS.get("searchwords").split(",").forEach(mapping => {
+            const [searchword, url] = mapping.split("~")
+            const query = location.substr(searchword.length + 1)
+            if (searchword && url && query
+                && location.substr(0, searchword.length) === searchword
+                && /\S/.test(query)) {
+                    location = UTIL.stringToUrl(url.replace(/%s/g, query))
+            }
+        })
+
         if (location !== "") {
             TABS.navigateTo(UTIL.stringToUrl(location))
         }

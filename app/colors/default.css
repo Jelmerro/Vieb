@@ -47,6 +47,7 @@
     --mode-visual-bg: #3af;
     --url-default: #666;
     --url-search: #f90;
+    --url-searchwords: #eee;
     --url-url: #3ff;
     --url-suggest: #3f3;
     --url-file: #ff9;
@@ -168,6 +169,7 @@ webview {pointer-events: none;position: fixed;display: none;}
 #containername {display: flex;margin: auto;height: 1.8em;align-items: center;padding: 0 .5em;background: var(--container-background);color: var(--fg);}
 #url {display: inline-block;flex: 1;border: solid .1em var(--url-default);margin: .1em;background: transparent;color: var(--fg);outline: none;font: inherit;min-width: 0;padding: .1em;width: 0;}
 #url.search {border-color: var(--url-search);}
+#url.searchwords {border-color: var(--url-searchwords);}
 #url.url {border-color: var(--url-url);}
 #url.suggest {border-color: var(--url-suggest);}
 #url.file {border-color: var(--url-file);}
