@@ -95,6 +95,20 @@ const isUrl = location => {
     return false
 }
 
+const isSearchword = location => {
+    let found = false
+    SETTINGS.get("searchwords").split(",").forEach(mapping => {
+        const [searchword, url] = mapping.split("~")
+        const query = location.substr(searchword.length + 1)
+        if (searchword && url && query
+            && location.substr(0, searchword.length) === searchword
+            && /\S/.test(query)) {
+                found = true
+        }
+    })
+    return found
+}
+
 const notify = (message, type = "info", clickAction = false) => {
     if (SETTINGS.get("notificationduration") < 100) {
         return
@@ -417,6 +431,7 @@ const sameDomain = (d1, d2) => {
 module.exports = {
     hasProtocol,
     isUrl,
+    isSearchword,
     notify,
     specialPagePath,
     pathToSpecialPageName,
