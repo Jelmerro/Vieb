@@ -47,7 +47,7 @@
     --mode-visual-bg: #3af;
     --url-default: #666;
     --url-search: #f90;
-    --url-searchwords: #eee;
+    --url-searchwords: #fcf;
     --url-url: #3ff;
     --url-suggest: #3f3;
     --url-file: #ff9;
@@ -278,6 +278,7 @@ webview {pointer-events: none;position: fixed;display: none;}
 #helppage .command-block {color: var(--code-command);white-space: normal;overflow-wrap: anywhere;background: var(--code-bg);padding: .1em;}
 #helppage .url-search {color: var(--url-search);}
 #helppage .url-url {color: var(--url-url);}
+#helppage .url-searchwords {color: var(--url-searchwords);}
 #helppage .url-suggest {color: var(--url-suggest);}
 #helppage .url-file {color: var(--url-file);}
 #helppage .follow-url {background: var(--follow-url-bg);color: var(--follow-text);}
