@@ -87,7 +87,7 @@ const defaultSettings = {
     "restorewindowposition": true,
     "restorewindowsize": true,
     "search": "https://duckduckgo.com/?kae=d&kav=1&ko=1&q=%s&ia=web",
-    "searchwords": "yt~https://www.youtube.com/results?search_query=%s",
+    "searchwords": "",
     "showcmd": true,
     "spell": true,
     "spelllang": "system",
