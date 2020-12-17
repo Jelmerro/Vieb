@@ -49,8 +49,8 @@ const printUsage = () => {
     console.log("                    See 'Erwic.md' for usage and details")
     console.log(
         " --debug            Open with Chromium and Electron debugging tools")
-    console.log(
-        "                    They can also be opened later with :internaldevtools")
+    console.log("                    "
+        + "They can also be opened later with :internaldevtools")
     console.log("\nAll arguments not starting with - will be opened as a url.")
     printLicense()
 }
