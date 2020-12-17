@@ -356,8 +356,8 @@ const suggestCommand = search => {
             "command": `${bufferCommand} ${TABS.listTabs().indexOf(t)}`,
             "subtext": `${t.querySelector("span").textContent}`,
             "url": TABS.tabOrPageMatching(t).src
-        })).filter(t => {
-            if (t.command.startsWith(search)) {
+        })).filter((t, i) => {
+            if (t.command.startsWith(search) || String(i) === simpleSearch) {
                 return true
             }
             const simpleTabUrl = t.url.replace(/\W/g, "").toLowerCase()
