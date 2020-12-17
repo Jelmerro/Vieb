@@ -349,7 +349,7 @@ const useEnteredData = () => {
             if (searchword && url && query
                 && location.substr(0, searchword.length) === searchword
                 && /\S/.test(query)) {
-                location = UTIL.stringToUrl(url.replace(/%s/g, query))
+                    location = UTIL.stringToUrl(url.replace(/%s/g, query))
             }
         })
 
