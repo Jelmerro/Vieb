@@ -526,7 +526,7 @@ const callAction = (...args) => {
     }
 }
 
-const mark = (markToSet) => {
+const mark = markToSet => {
     if (!markToSet || !markToSet.trim()) {
         UTIL.notify(
             "Exactly one mark character is required for the mark command",
@@ -539,10 +539,10 @@ const mark = (markToSet) => {
             "warn")
         return
     }
-    ACTIONS.mark(markToSet, UTIL.urlToString(TABS.currentPage().src));
+    ACTIONS.mark(markToSet, UTIL.urlToString(TABS.currentPage().src))
 }
 
-const retrieveMark = (requestedMark) => {
+const retrieveMark = requestedMark => {
     if (!requestedMark || !requestedMark.trim()) {
         UTIL.notify(
             "Exactly one mark character is required for the mark command",
@@ -559,7 +559,6 @@ const retrieveMark = (requestedMark) => {
     if (url) {
         TABS.navigateTo(UTIL.stringToUrl(url))
     }
-
 }
 
 const commands = {

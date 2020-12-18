@@ -103,7 +103,7 @@ const isSearchword = location => {
         if (searchword && url && query
             && location.substr(0, searchword.length) === searchword
             && /\S/.test(query)) {
-                found = true
+            found = true
         }
     })
     return found
@@ -360,7 +360,7 @@ const getUrlForMark = requestedMark => {
         }
     })
 
-    return url
+    return outputUrl
 }
 
 const stringToUrl = location => {

@@ -349,7 +349,7 @@ const useEnteredData = () => {
             if (searchword && url && query
                 && location.substr(0, searchword.length) === searchword
                 && /\S/.test(query)) {
-                    location = UTIL.stringToUrl(url.replace(/%s/g, query))
+                location = UTIL.stringToUrl(url.replace(/%s/g, query))
             }
         })
 
@@ -381,17 +381,21 @@ const setFocusCorrectly = () => {
 }
 
 const mark = (inputMark, inputUrl) => {
-    if (!UTIL.getUrlForMark(inputMark)) {
-        newMapping = ""
+    if (UTIL.getUrlForMark(inputMark)) {
+        // Update URL for an existing mark
+        let newMapping = ""
         SETTINGS.get("marks").split(",").forEach(mapping => {
-            const [mark, url] = mapping.split("~")
-            if (mark && url && requestedMark
-                && mark === requestedMark) {
-                url = inputUrl;
+            const [savedMark] = mapping.split("~")
+            let [, url] = mapping.split("~")
+            if (savedMark && url && inputMark
+                && savedMark === inputMark) {
+                url = inputUrl
             }
-            newMapping = `${newmapping},${mark}~${url}`
+            newMapping = `${newMapping},${savedMark}~${url}`
         })
+        SETTINGS.set("marks", newMapping)
     } else {
+        // Add a new mark
         let marks = SETTINGS.get("marks")
         if (marks) {
             marks = `${marks},${inputMark}~${inputUrl}`
@@ -402,14 +406,14 @@ const mark = (inputMark, inputUrl) => {
     }
 }
 
-const retrieveMark = (requestedMark) => {
+const retrieveMark = requestedMark => {
     let outputUrl = ""
 
     SETTINGS.get("marks").split(",").forEach(mapping => {
-        const [mark, url] = mapping.split("~")
-        if (mark && url && requestedMark
-            && mark === requestedMark) {
-            outputUrl = url;
+        const [savedMark, url] = mapping.split("~")
+        if (savedMark && url && requestedMark
+            && savedMark === requestedMark) {
+            outputUrl = url
         }
     })
 
@@ -486,5 +490,5 @@ module.exports = {
     useEnteredData,
     setFocusCorrectly,
     mark,
-    retrieveMark,
+    retrieveMark
 }

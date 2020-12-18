@@ -396,7 +396,7 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "marks") {
-        let knownMarks = []
+        const knownMarks = []
         for (const mark of value.split(",")) {
             if (!mark.trim()) {
                 continue
@@ -407,8 +407,9 @@ const checkOther = (setting, value) => {
                     + "mark character from the URL", "warn")
                 return false
             }
-            const [markCharacter, url] = mark.split("~")
-            if (markCharacter.length === 0 || /[^a-zA-Z0-9]/.test(markCharacter)) {
+            const [markCharacter] = mark.split("~")
+            if (markCharacter.length === 0
+                || /[^a-zA-Z0-9]/.test(markCharacter)) {
                 UTIL.notify(`Invalid marks entry: ${mark}\n`
                     + "The mark before the ~ must be one character "
                     + "and contain only letters or numbers", "warn")
