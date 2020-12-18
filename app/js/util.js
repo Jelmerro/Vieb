@@ -349,6 +349,20 @@ const deleteFile = (loc, err = null) => {
     return false
 }
 
+const getUrlForMark = requestedMark => {
+    let outputUrl = ""
+
+    SETTINGS.get("marks").split(",").forEach(mapping => {
+        const [mark, url] = mapping.split("~")
+        if (mark && url && requestedMark
+            && mark === requestedMark) {
+            outputUrl = url
+        }
+    })
+
+    return url
+}
+
 const stringToUrl = location => {
     const specialPage = pathToSpecialPageName(location)
     if (specialPage.name) {
@@ -440,6 +454,7 @@ module.exports = {
     clearCookies,
     clearLocalStorage,
     expandPath,
+    getUrlForMark,
     isObject,
     pathExists,
     isDir,

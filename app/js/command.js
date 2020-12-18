@@ -526,6 +526,42 @@ const callAction = (...args) => {
     }
 }
 
+const mark = (markToSet) => {
+    if (!markToSet || !markToSet.trim()) {
+        UTIL.notify(
+            "Exactly one mark character is required for the mark command",
+            "warn")
+        return
+    }
+    if (/[^a-zA-Z0-9]/.test(markToSet)) {
+        UTIL.notify(
+            "The mark must be one character or one number only",
+            "warn")
+        return
+    }
+    ACTIONS.mark(markToSet, UTIL.urlToString(TABS.currentPage().src));
+}
+
+const retrieveMark = (requestedMark) => {
+    if (!requestedMark || !requestedMark.trim()) {
+        UTIL.notify(
+            "Exactly one mark character is required for the mark command",
+            "warn")
+        return
+    }
+    if (/[^a-zA-Z0-9]/.test(requestedMark)) {
+        UTIL.notify(
+            "The mark must be one character or one number only",
+            "warn")
+        return
+    }
+    const url = ACTIONS.retrieveMark(requestedMark)
+    if (url) {
+        TABS.navigateTo(UTIL.stringToUrl(url))
+    }
+
+}
+
 const commands = {
     "q": quit,
     "quit": quit,
@@ -567,7 +603,9 @@ const commands = {
     "comclear": () => {
         userCommands = {}
     },
-    "call": callAction
+    "call": callAction,
+    "mark": mark,
+    "retrieveMark": retrieveMark
 }
 let userCommands = {}
 

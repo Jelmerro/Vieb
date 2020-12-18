@@ -380,6 +380,43 @@ const setFocusCorrectly = () => {
     }
 }
 
+const mark = (inputMark, inputUrl) => {
+    if (!UTIL.getUrlForMark(inputMark)) {
+        newMapping = ""
+        SETTINGS.get("marks").split(",").forEach(mapping => {
+            const [mark, url] = mapping.split("~")
+            if (mark && url && requestedMark
+                && mark === requestedMark) {
+                url = inputUrl;
+            }
+            newMapping = `${newmapping},${mark}~${url}`
+        })
+    } else {
+        let marks = SETTINGS.get("marks")
+        if (marks) {
+            marks = `${marks},${inputMark}~${inputUrl}`
+        } else {
+            marks = `${inputMark}~${inputUrl}`
+        }
+        SETTINGS.set("marks", marks)
+    }
+}
+
+const retrieveMark = (requestedMark) => {
+    let outputUrl = ""
+
+    SETTINGS.get("marks").split(",").forEach(mapping => {
+        const [mark, url] = mapping.split("~")
+        if (mark && url && requestedMark
+            && mark === requestedMark) {
+            outputUrl = url;
+        }
+    })
+
+    return outputUrl
+}
+
+
 module.exports = {
     toCommandMode,
     toExploreMode,
@@ -447,5 +484,7 @@ module.exports = {
     commandHistoryNext,
     toggleFullscreen,
     useEnteredData,
-    setFocusCorrectly
+    setFocusCorrectly,
+    mark,
+    retrieveMark,
 }

@@ -53,6 +53,7 @@ const defaultSettings = {
     "keeprecentlyclosed": true,
     "ignorecase": false,
     "incsearch": true,
+    "marks": "",
     "maxmapdepth": 10,
     "mintabwidth": 28,
     "mouse": false,
@@ -113,6 +114,7 @@ const freeText = ["downloadpath", "search", "vimcommand"]
 const listLike = [
     "containercolors",
     "favoritepages",
+    "marks",
     "permissionsallowed",
     "permissionsblocked",
     "redirects",
@@ -391,6 +393,34 @@ const checkOther = (setting, value) => {
                 return false
             }
             knownSearchwords.push(keyword)
+        }
+    }
+    if (setting === "marks") {
+        let knownMarks = []
+        for (const mark of value.split(",")) {
+            if (!mark.trim()) {
+                continue
+            }
+            if ((mark.match(/~/g) || []).length !== 1) {
+                UTIL.notify(`Invalid marks entry: ${mark}\n`
+                    + "Entries must have exactly one ~ to separate the "
+                    + "mark character from the URL", "warn")
+                return false
+            }
+            const [markCharacter, url] = mark.split("~")
+            if (markCharacter.length === 0 || /[^a-zA-Z0-9]/.test(markCharacter)) {
+                UTIL.notify(`Invalid marks entry: ${mark}\n`
+                    + "The mark before the ~ must be one character "
+                    + "and contain only letters or numbers", "warn")
+                return false
+            }
+            if (knownMarks.includes(markCharacter)) {
+                UTIL.notify(`Invalid mark entry: ${mark}\n`
+                    + `The mark ${markCharacter} was already defined. `
+                    + "A mark must be defined only once", "warn")
+                return false
+            }
+            knownMarks.push(mark)
         }
     }
     if (["favoritepages", "startuppages"].includes(setting)) {
