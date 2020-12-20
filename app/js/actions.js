@@ -346,10 +346,8 @@ const useEnteredData = () => {
         SETTINGS.get("searchwords").split(",").forEach(mapping => {
             const [searchword, url] = mapping.split("~")
             const query = location.substr(searchword.length + 1)
-            if (searchword && url && query
-                && location.substr(0, searchword.length) === searchword
-                && /\S/.test(query)) {
-                    location = UTIL.stringToUrl(url.replace(/%s/g, query))
+            if (searchword && url && query && location.startsWith(searchword)) {
+                location = UTIL.stringToUrl(url.replace(/%s/g, query))
             }
         })
 
