@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Searchwords setting to configure custom words that you can use as a prefix in explore mode to search websites directly
+- Add new theme/colorscheme for having vertical tabs on the left of the screen instead of the regular tabbar
 
 ### Changed
 

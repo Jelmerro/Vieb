@@ -96,15 +96,16 @@ const isUrl = location => {
 }
 
 const isSearchword = location => {
-    let found = false
-    SETTINGS.get("searchwords").split(",").forEach(mapping => {
+    for (const mapping of SETTINGS.get("searchwords").split(",")) {
         const [searchword, url] = mapping.split("~")
-        const query = location.substr(searchword.length + 1)
-        if (searchword && url && query && location.startsWith(searchword)) {
-            found = true
+        if (searchword && url) {
+            const query = location.replace(`${searchword} `, "")
+            if (query && location.startsWith(`${searchword} `)) {
+                return true
+            }
         }
-    })
-    return found
+    }
+    return false
 }
 
 const notify = (message, type = "info", clickAction = false) => {

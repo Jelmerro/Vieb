@@ -340,18 +340,18 @@ const useEnteredData = () => {
         const urlElement = document.getElementById("url")
         let location = urlElement.value.trim()
         MODES.setMode("normal")
-
-        // Does this URL map to a defined searchword?
-        // (e.g., "yt <query string>")
-        SETTINGS.get("searchwords").split(",").forEach(mapping => {
+        // Override location with a custom search if searchword matches
+        for (const mapping of SETTINGS.get("searchwords").split(",")) {
             const [searchword, url] = mapping.split("~")
-            const query = location.substr(searchword.length + 1)
-            if (searchword && url && query && location.startsWith(searchword)) {
-                location = UTIL.stringToUrl(url.replace(/%s/g, query))
+            if (searchword && url) {
+                const query = location.replace(`${searchword} `, "")
+                if (query && location.startsWith(`${searchword} `)) {
+                    location = UTIL.stringToUrl(url.replace(/%s/g, query))
+                    break
+                }
             }
-        })
-
-        if (location !== "") {
+        }
+        if (location) {
             TABS.navigateTo(UTIL.stringToUrl(location))
         }
     }
