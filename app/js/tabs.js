@@ -36,9 +36,10 @@ const init = () => {
             document.getElementById("logo").src = UTIL.appIcon()
         }
 
-        // Allow vertical scrolling to move the tabs list horizontally
+        // Make vertical scrolling move the tabs horizontally and vice versa
         document.getElementById("tabs").addEventListener("wheel", e => {
-            document.getElementById("tabs").scrollBy(e.deltaX + e.deltaY, 0)
+            document.getElementById("tabs").scrollBy(
+                e.deltaX + e.deltaY, e.deltaX + e.deltaY)
             e.preventDefault()
         })
 
@@ -467,7 +468,7 @@ const switchToTab = index => {
     tabs[index].id = "current-tab"
     const page = tabOrPageMatching(tabs[index])
     page.id = "current-page"
-    tabs[index].scrollIntoView({"inline": "center"})
+    tabs[index].scrollIntoView({"inline": "center", "block": "center"})
     PAGELAYOUT.switchView(oldPage, currentPage())
     updateUrl(currentPage())
     saveTabs()
@@ -852,7 +853,7 @@ const moveTabForward = () => {
         }
     }
     tabs.insertBefore(currentTab(), currentTab().nextSibling.nextSibling)
-    currentTab().scrollIntoView({"inline": "center"})
+    currentTab().scrollIntoView({"inline": "center", "block": "center"})
 }
 
 const moveTabBackward = () => {
@@ -866,7 +867,7 @@ const moveTabBackward = () => {
         }
     }
     tabs.insertBefore(currentTab(), currentTab().previousSibling)
-    currentTab().scrollIntoView({"inline": "center"})
+    currentTab().scrollIntoView({"inline": "center", "block": "center"})
 }
 
 module.exports = {
