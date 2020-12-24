@@ -447,7 +447,10 @@ const updateContainerSettings = (full = true) => {
             }
         }
     }
-    const container = TABS.currentPage().getAttribute("container")
+    const container = TABS.currentPage()?.getAttribute("container")
+    if (!container) {
+        return
+    }
     const color = get("containercolors").split(",").find(
         c => container.match(c.split("~")[0]))
     const show = get("containershowname")

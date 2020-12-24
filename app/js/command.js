@@ -223,7 +223,7 @@ const openDevTools = (position = null, trailingArgs = false) => {
         position = SETTINGS.get("devtoolsposition")
     }
     if (position === "window") {
-        TABS.currentPage().openDevTools()
+        TABS.currentPage()?.openDevTools()
     } else if (position === "tab") {
         TABS.addTab({"devtools": true})
     } else if (position === "vsplit") {
@@ -256,8 +256,8 @@ const openSpecialPage = (specialPage, section = null) => {
     // Open the url in the current or new tab, depending on currently open page
     const pageUrl = UTIL.specialPagePath(specialPage, section)
     const isNewtab = UTIL.pathToSpecialPageName(
-        TABS.currentPage().src).name === "newtab"
-    if (!TABS.currentPage().isLoading() && isNewtab) {
+        TABS.currentPage()?.src).name === "newtab"
+    if (TABS.currentPage() && TABS.currentPage()?.isLoading() && isNewtab) {
         TABS.navigateTo(pageUrl)
     } else {
         TABS.addTab({"url": pageUrl})
@@ -279,13 +279,16 @@ const reload = () => {
 }
 
 const hardcopy = () => {
-    TABS.currentPage().send("action", "print")
+    TABS.currentPage()?.send("action", "print")
 }
 
 const write = (file, trailingArgs = false) => {
     if (trailingArgs) {
         UTIL.notify("The write command takes only a single optional argument:\n"
             + "the location where to write the page", "warn")
+        return
+    }
+    if (!TABS.currentPage()) {
         return
     }
     let name = path.basename(TABS.currentPage().src).split("?")[0]
