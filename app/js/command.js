@@ -257,7 +257,7 @@ const openSpecialPage = (specialPage, section = null) => {
     const pageUrl = UTIL.specialPagePath(specialPage, section)
     const isNewtab = UTIL.pathToSpecialPageName(
         TABS.currentPage()?.src).name === "newtab"
-    if (TABS.currentPage() && TABS.currentPage()?.isLoading() && isNewtab) {
+    if (TABS.currentPage() && !TABS.currentPage()?.isLoading() && isNewtab) {
         TABS.navigateTo(pageUrl)
     } else {
         TABS.addTab({"url": pageUrl})
