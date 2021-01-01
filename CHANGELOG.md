@@ -27,10 +27,11 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Middle mouse pasting not working even when mouse is enabled
 - Some sites not loading due to Electron bug related to COOP [electron/#25469](https://github.com/electron/electron/issues/25469)
 - Searching for buffers with matching index not being suggested in the list
+- Potential startup issues with some custom settings in the viebrc (including containercolors)
 
 ### Security
 
-- Electron 11.1.0 (was 11.0.3)
+- Electron 11.1.1 (was 11.0.3)
 - Chromium 87.0.4280.88 (was 87.0.4280.67)
 
 ## [3.1.0](https://github.com/Jelmerro/Vieb/compare/3.0.0...3.1.0) - 2020-12-06

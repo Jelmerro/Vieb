@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2020 Jelmer van Arnhem
+* Copyright (C) 2019-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -257,7 +257,7 @@ const openSpecialPage = (specialPage, section = null) => {
     const pageUrl = UTIL.specialPagePath(specialPage, section)
     const isNewtab = UTIL.pathToSpecialPageName(
         TABS.currentPage()?.src).name === "newtab"
-    if (TABS.currentPage() && !TABS.currentPage()?.isLoading() && isNewtab) {
+    if (TABS.currentPage() && !TABS.currentPage().isLoading() && isNewtab) {
         TABS.navigateTo(pageUrl)
     } else {
         TABS.addTab({"url": pageUrl})
