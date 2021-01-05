@@ -1,6 +1,6 @@
 <!--
     Vieb - Vim Inspired Electron Browser
-    Copyright (C) 2019-2020 Jelmer van Arnhem
+    Copyright (C) 2019-2021 Jelmer van Arnhem
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -788,6 +788,10 @@
         Open a new tab with the newtab page. This tab will open at the opposite position of what is configured by the <a href="#tabnexttocurrent">tabnexttocurrent</a> setting. See <a href="#action.openNewTab">action.openNewTab</a> for more details.
         <h3 id="action.openNewTabWithCurrentUrl">action.openNewTabWithCurrentUrl</h3>
         Open a new tab with the newtab page, after which you will enter <a class="explore" href="#action.toExploreMode">explore mode</a> with the url of the current page pre-filled. This can be used to quickly open another page with a similar url, that is not linked on the current page. Another advantage is that this action will not use the system clipboard to copy the url.
+        <h3 id="action.openFromClipboard">action.openFromClipboard</h3>
+        Navigate to the page that is currently stored on the clipboard. The current tab will be used for the navigation. You can also open the clipboard contents in a new tab with <a href="#action.openNewTabFromClipboard">action.openNewTabFromClipboard</a>. The navigation follows the same logic as regular navigation from <a class="explore" href="#action.toExploreMode">explore mode</a>, which means that text that is not a url will be searched with the <a href="#search">search</a> setting. It's also possible to copy the url of the current page to the clipboard with <a href="#action.pageToClipboard">action.pageToClipboard</a>.
+        <h3 id="action.openNewTabFromClipboard">action.openNewTabFromClipboard</h3>
+        Open a new tab with the page currently stored on the clipboard. See <a href="#action.openFromClipboard">action.openFromClipboard</a> for details.
         <h3 id="action.closeTab" countable="true">action.closeTab</h3>
         This action closes the current tab, and switches to the nearest opened tab. If the last tab is closed, the newtab page will (re)open as the only opened tab. Opposite of <a href="#action.reopenTab">action.reopenTab</a>.
         <h3 id="action.reopenTab" countable="true">action.reopenTab</h3>
@@ -922,6 +926,8 @@
         Opposite of <a href="#action.increasePageNumber">action.increasePageNumber</a>.
         <h3 id="action.insertAtFirstInput">action.insertAtFirstInput</h3>
         This action will enter <a class="insert" href="#action.toInsertMode">insert mode</a> and focus the first input field on the page. Usually this will be a search field or dropdown. If no input fields are currently visible, this action will not enter <a class="insert" href="#action.toInsertMode">insert mode</a>.
+        <h3 id="action.pageToClipboard">action.pageToClipboard</h3>
+        With this action you can copy the url of the current page to the system clipboard. You can paste in anywhere else, but also use it in Vieb directly using <a href="#action.openFromClipboard">action.openFromClipboard</a> or <a href="#action.openNewTabFromClipboard">action.openNewTabFromClipboard</a>. If you want to copy a url on the page instead, see <a href="#pointer.copyAndStop">pointer.copyAndStop</a>.
         <h3 id="action.editWithVim">action.editWithVim</h3>
         Open an external editor based on the currently focused input field. This is one of the few actions that is supposed to be called while in <a class="insert" href="#action.toInsertMode">insert mode</a>. The editor that will be opened is configured by the <a href="#vimcommand">vimcommand</a> setting, and can also be set to a different editor if you would like to.
         <h3 id="action.nextSuggestion" countable="true">action.nextSuggestion</h3>

@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2020 Jelmer van Arnhem
+* Copyright (C) 2019-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -113,7 +113,7 @@ const init = () => {
 
 const setMode = mode => {
     mode = mode.trim().toLowerCase()
-    if (!modes[mode] || currentMode() === mode) {
+    if (!modes[mode] || currentMode() === mode || !TABS.currentPage()) {
         return
     }
     if (modes[currentMode()].onLeave) {

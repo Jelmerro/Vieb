@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2020 Jelmer van Arnhem
+* Copyright (C) 2019-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -57,6 +57,8 @@ const defaultBindings = {
         "n": {"mapping": "<action.nextSearchMatch>"},
         "N": {"mapping": "<action.previousSearchMatch>"},
         "<C-o>": {"mapping": "<action.backInHistory>"},
+        "p": {"mapping": "<action.openFromClipboard>"},
+        "P": {"mapping": "<action.openNewTabFromClipboard>"},
         "r": {"mapping": "<action.reload>"},
         "R": {"mapping": "<action.reloadWithoutCache>"},
         "s": {"mapping": "<pointer.start>"},
@@ -67,7 +69,6 @@ const defaultBindings = {
         "<C-u>": {"mapping": "<action.scrollPageUpHalf>"},
         "v": {"mapping": "<pointer.start>"},
         "w": {"mapping": "<action.nextTab>"},
-        "<C-x>": {"mapping": "<action.decreasePageNumber>"},
         "<C-w>r": {"mapping": "<action.rotateSplitWindow>"},
         "<C-w><C-r>": {"mapping": "<action.rotateSplitWindow>"},
         "<C-w>H": {"mapping": "<action.leftHalfSplitWindow>"},
@@ -94,6 +95,8 @@ const defaultBindings = {
         "<C-w>>": {"mapping": "<action.increaseWidthSplitWindow>"},
         "<C-w><C-lt>": {"mapping": "<action.decreaseWidthSplitWindow>"},
         "<C-w><C->>": {"mapping": "<action.increaseWidthSplitWindow>"},
+        "<C-x>": {"mapping": "<action.decreasePageNumber>"},
+        "y": {"mapping": "<action.pageToClipboard>"},
         "/": {"mapping": "<action.toSearchMode>"},
         "$": {"mapping": "<action.scrollPageRight>"},
         "^": {"mapping": "<action.scrollPageLeft>"},
@@ -441,6 +444,9 @@ const uncountableActions = [
     "action.topHalfSplitWindow",
     "action.rightHalfSplitWindow",
     "action.distrubuteSpaceSplitWindow",
+    "action.pageToClipboard",
+    "action.openFromClipboard",
+    "action.openNewTabFromClipboard",
     "action.toggleFullscreen",
     "action.useEnteredData",
     "pointer.start",

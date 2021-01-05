@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2020 Jelmer van Arnhem
+* Copyright (C) 2019-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -384,6 +384,9 @@ const closeTab = (index = null) => {
     const tab = listTabs()[index] || currentTab()
     const isClosingCurrent = tab === currentTab()
     const page = tabOrPageMatching(tab)
+    if (!tab) {
+        return
+    }
     if (!SETTINGS.get("closablepinnedtabs")) {
         if (tab.classList.contains("pinned")) {
             return
@@ -844,7 +847,7 @@ const navigateTo = location => {
 
 const moveTabForward = () => {
     const tabs = document.getElementById("tabs")
-    if (!currentTab().nextSibling) {
+    if (!currentTab()?.nextSibling) {
         return
     }
     if (currentTab().classList.contains("pinned")) {
@@ -858,7 +861,7 @@ const moveTabForward = () => {
 
 const moveTabBackward = () => {
     const tabs = document.getElementById("tabs")
-    if (listTabs().indexOf(currentTab()) === 0) {
+    if (listTabs().indexOf(currentTab()) <= 0) {
         return
     }
     if (!currentTab().classList.contains("pinned")) {

@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2020 Jelmer van Arnhem
+* Copyright (C) 2019-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -20,27 +20,27 @@
 "use strict"
 
 const {exec} = require("child_process")
-const {ipcRenderer} = require("electron")
+const {clipboard, ipcRenderer} = require("electron")
 const path = require("path")
 const fs = require("fs")
 
 let currentSearch = ""
 
 const emptySearch = () => {
-    TABS.currentPage().stopFindInPage("clearSelection")
+    TABS.currentPage()?.stopFindInPage("clearSelection")
     currentSearch = ""
 }
 
 const clickOnSearch = () => {
     if (currentSearch) {
-        TABS.currentPage().send("search-element-click")
+        TABS.currentPage()?.send("search-element-click")
     }
 }
 
 const increasePageNumber = () => new Promise(res => {
-    TABS.currentPage().send("action",
+    TABS.currentPage()?.send("action",
         "increasePageNumber", TABS.currentPage().src)
-    setTimeout(() => res(), 100)
+    setTimeout(res, 100)
 })
 
 const previousTab = () => {
@@ -53,36 +53,32 @@ const toExploreMode = () => MODES.setMode("explore")
 
 const startFollowCurrentTab = () => FOLLOW.startFollow(false)
 
-const scrollTop = () => TABS.currentPage().send("action", "scrollTop")
+const scrollTop = () => TABS.currentPage()?.send("action", "scrollTop")
 
 const insertAtFirstInput = () => {
-    TABS.currentPage().send("focus-first-text-input")
+    TABS.currentPage()?.send("focus-first-text-input")
 }
 
-const scrollLeft = () => TABS.currentPage().send("action", "scrollLeft")
+const scrollLeft = () => TABS.currentPage()?.send("action", "scrollLeft")
 
-const toInsertMode = () => {
-    if (!TABS.currentPage().isCrashed()) {
-        MODES.setMode("insert")
-    }
-}
+const toInsertMode = () => MODES.setMode("insert")
 
-const scrollDown = () => TABS.currentPage().send("action", "scrollDown")
+const scrollDown = () => TABS.currentPage()?.send("action", "scrollDown")
 
-const scrollUp = () => TABS.currentPage().send("action", "scrollUp")
+const scrollUp = () => TABS.currentPage()?.send("action", "scrollUp")
 
-const scrollRight = () => TABS.currentPage().send("action", "scrollRight")
+const scrollRight = () => TABS.currentPage()?.send("action", "scrollRight")
 
 const nextSearchMatch = () => {
     if (currentSearch) {
-        TABS.currentPage().findInPage(currentSearch, {
+        TABS.currentPage()?.findInPage(currentSearch, {
             "findNext": true, "matchCase": !SETTINGS.get("ignorecase")
         })
     }
 }
 
 const reload = () => {
-    if (!TABS.currentPage().isCrashed()) {
+    if (TABS.currentPage() && !TABS.currentPage().isCrashed()) {
         if (!TABS.currentPage().src.startsWith("devtools://")) {
             TABS.currentPage().reload()
             TABS.resetTabInfo(TABS.currentPage())
@@ -99,19 +95,19 @@ const nextTab = () => {
 }
 
 const decreasePageNumber = () => new Promise(res => {
-    TABS.currentPage().send("action",
+    TABS.currentPage()?.send("action",
         "decreasePageNumber", TABS.currentPage().src)
-    setTimeout(() => res(), 100)
+    setTimeout(res, 100)
 })
 
 const toSearchMode = () => MODES.setMode("search")
 
 const startFollowNewTab = () => FOLLOW.startFollow(true)
 
-const scrollBottom = () => TABS.currentPage().send("action", "scrollBottom")
+const scrollBottom = () => TABS.currentPage()?.send("action", "scrollBottom")
 
 const backInHistory = () => {
-    if (TABS.currentPage().canGoBack()) {
+    if (TABS.currentPage()?.canGoBack()) {
         if (!TABS.currentPage().src.startsWith("devtools://")) {
             TABS.currentTab().querySelector("span").textContent = ""
             TABS.currentPage().goBack()
@@ -123,7 +119,7 @@ const backInHistory = () => {
 const openNewTabAtAlternativePosition = () => TABS.addTab({"inverted": true})
 
 const forwardInHistory = () => {
-    if (TABS.currentPage().canGoForward()) {
+    if (TABS.currentPage()?.canGoForward()) {
         if (!TABS.currentPage().src.startsWith("devtools://")) {
             TABS.currentTab().querySelector("span").textContent = ""
             TABS.currentPage().goForward()
@@ -134,7 +130,7 @@ const forwardInHistory = () => {
 
 const previousSearchMatch = () => {
     if (currentSearch) {
-        TABS.currentPage().findInPage(currentSearch, {
+        TABS.currentPage()?.findInPage(currentSearch, {
             "forward": false,
             "findNext": true,
             "matchCase": !SETTINGS.get("ignorecase")
@@ -143,7 +139,7 @@ const previousSearchMatch = () => {
 }
 
 const reloadWithoutCache = () => {
-    if (!TABS.currentPage().isCrashed()) {
+    if (TABS.currentPage() && !TABS.currentPage().isCrashed()) {
         if (!TABS.currentPage().src.startsWith("devtools://")) {
             TABS.currentPage().reloadIgnoringCache()
             TABS.resetTabInfo(TABS.currentPage())
@@ -152,47 +148,43 @@ const reloadWithoutCache = () => {
 }
 
 const openNewTabWithCurrentUrl = () => {
-    const url = TABS.currentPage().src
+    const url = TABS.currentPage()?.src || ""
     TABS.addTab()
     MODES.setMode("explore")
     document.getElementById("url").value = UTIL.urlToString(url)
 }
 
 const scrollPageRight = () => {
-    TABS.currentPage().send("action", "scrollPageRight")
+    TABS.currentPage()?.send("action", "scrollPageRight")
 }
 
 const scrollPageLeft = () => {
-    TABS.currentPage().send("action", "scrollPageLeft")
+    TABS.currentPage()?.send("action", "scrollPageLeft")
 }
 
 const toCommandMode = () => MODES.setMode("command")
 
-const scrollPageUp = () => TABS.currentPage().send("action", "scrollPageUp")
+const scrollPageUp = () => TABS.currentPage()?.send("action", "scrollPageUp")
 
-const stopLoadingPage = () => {
-    try {
-        TABS.currentPage().stop()
-    } catch (__) {
-        // Webview might be destroyed or unavailable, no issue
-    }
-}
+const stopLoadingPage = () => TABS.currentPage()?.stop()
 
 const scrollPageDownHalf = () => {
-    TABS.currentPage().send("action", "scrollPageDownHalf")
+    TABS.currentPage()?.send("action", "scrollPageDownHalf")
 }
 
-const scrollPageDown = () => TABS.currentPage().send("action", "scrollPageDown")
+const scrollPageDown = () => {
+    TABS.currentPage()?.send("action", "scrollPageDown")
+}
 
 const moveTabForward = () => TABS.moveTabForward()
 
 const moveTabBackward = () => TABS.moveTabBackward()
 
 const scrollPageUpHalf = () => {
-    TABS.currentPage().send("action", "scrollPageUpHalf")
+    TABS.currentPage()?.send("action", "scrollPageUpHalf")
 }
 
-const zoomReset = () => TABS.currentPage().setZoomLevel(0)
+const zoomReset = () => TABS.currentPage()?.setZoomLevel(0)
 
 const zoomOut = () => {
     let level = TABS.currentPage().getZoomLevel() - 1
@@ -221,13 +213,17 @@ const stopFollowMode = () => {
 }
 
 const editWithVim = () => {
+    const page = TABS.currentPage()
+    if (!page) {
+        return
+    }
     const fileFolder = path.join(UTIL.appData(), "vimformedits")
-    const tempFile = path.join(fileFolder, String(Number(new Date())))
     try {
         fs.mkdirSync(fileFolder)
     } catch (e) {
         // Probably already exists
     }
+    const tempFile = path.join(fileFolder, String(Number(new Date())))
     try {
         fs.writeFileSync(tempFile, "")
     } catch (e) {
@@ -235,7 +231,6 @@ const editWithVim = () => {
         return
     }
     let command = null
-    const page = TABS.currentPage()
     fs.watchFile(tempFile, {"interval": 500}, () => {
         if (command) {
             try {
@@ -299,21 +294,34 @@ const decreaseWidthSplitWindow = () => PAGELAYOUT.resize("hor", "shrink")
 const distrubuteSpaceSplitWindow = () => PAGELAYOUT.resetResizing()
 
 const toggleFullscreen = () => {
-    ipcRenderer.invoke("toggle-fullscreen").then(() => {
-        SETTINGS.updateGuiVisibility()
-    })
+    ipcRenderer.invoke("toggle-fullscreen").then(SETTINGS.updateGuiVisibility)
 }
 
 const incrementalSearch = () => {
     currentSearch = document.getElementById("url").value
-    if (currentSearch.trim()) {
+    if (TABS.currentPage() && currentSearch.trim()) {
         TABS.currentPage().stopFindInPage("clearSelection")
         TABS.currentPage().findInPage(currentSearch, {
             "matchCase": !SETTINGS.get("ignorecase")
         })
     } else {
         currentSearch = ""
-        TABS.currentPage().stopFindInPage("clearSelection")
+        TABS.currentPage()?.stopFindInPage("clearSelection")
+    }
+}
+
+const pageToClipboard = () => clipboard.writeText(
+    UTIL.urlToString(TABS.currentPage()?.src))
+
+const openFromClipboard = () => {
+    if (clipboard.readText().trim()) {
+        TABS.navigateTo(UTIL.stringToUrl(clipboard.readText()))
+    }
+}
+
+const openNewTabFromClipboard = () => {
+    if (clipboard.readText().trim()) {
+        TABS.addTab({"url": UTIL.stringToUrl(clipboard.readText())})
     }
 }
 
@@ -324,16 +332,7 @@ const useEnteredData = () => {
         COMMAND.execute(command)
     }
     if (MODES.currentMode() === "search") {
-        currentSearch = document.getElementById("url").value
-        if (currentSearch.trim()) {
-            TABS.currentPage().stopFindInPage("clearSelection")
-            TABS.currentPage().findInPage(currentSearch, {
-                "matchCase": !SETTINGS.get("ignorecase")
-            })
-        } else {
-            currentSearch = ""
-            TABS.currentPage().stopFindInPage("clearSelection")
-        }
+        incrementalSearch()
         MODES.setMode("normal")
     }
     if (MODES.currentMode() === "explore") {
@@ -362,8 +361,8 @@ const setFocusCorrectly = () => {
     TABS.updateUrl(TABS.currentPage())
     if (MODES.currentMode() === "insert") {
         urlElement.blur()
-        TABS.currentPage().focus()
-        TABS.currentPage().click()
+        TABS.currentPage()?.focus()
+        TABS.currentPage()?.click()
     } else if (["search", "explore", "command"].includes(MODES.currentMode())) {
         if (document.activeElement !== urlElement) {
             window.focus()
@@ -444,6 +443,9 @@ module.exports = {
     commandHistoryPrevious,
     commandHistoryNext,
     toggleFullscreen,
+    pageToClipboard,
+    openFromClipboard,
+    openNewTabFromClipboard,
     useEnteredData,
     setFocusCorrectly
 }

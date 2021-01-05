@@ -11,6 +11,23 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Added
+
+- New action with default mappings for copying the current page url to the clipboard
+- New actions to open pages from the clipboard, either in the current or a new tab
+
+### Changed
+
+- Better scrollbar color and sizing: it's now fullwidth and transparent to make search results visible below it
+- Actions now contain more checks to prevent locks when Vieb has yet to load the first tab
+
+### Security
+
+- Electron 11.1.1 (unchanged)
+- Chromium 87.0.4280.88 (unchanged)
+
 ## [3.2.0](https://github.com/Jelmerro/Vieb/compare/3.1.0...3.2.0) - 2021-01-01
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/3.1.0...3.2.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/3.2.0)
