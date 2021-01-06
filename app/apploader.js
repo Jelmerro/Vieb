@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2020 Jelmer van Arnhem
+* Copyright (C) 2019-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@ window.addEventListener("DOMContentLoaded", () => {
     window.MODES = require("./js/modes")
     window.COMMAND = require("./js/command")
     window.COMMANDHISTORY = require("./js/commandhistory")
+    window.EXPLOREHISTORY = require("./js/explorehistory")
     window.FOLLOW = require("./js/follow")
     // Tabs and webview handler
     window.TABS = require("./js/tabs")

@@ -15,7 +15,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS COMMANDHISTORY POINTER FOLLOW SETTINGS SUGGEST TABS */
+/* global ACTIONS COMMANDHISTORY EXPLOREHISTORY POINTER FOLLOW SETTINGS SUGGEST
+ TABS */
 "use strict"
 
 const modes = {
@@ -51,6 +52,7 @@ const modes = {
         "onEnter": () => {
             TABS.updateUrl(TABS.currentPage(), true)
             document.getElementById("url").select()
+            EXPLOREHISTORY.resetPosition()
         },
         "onLeave": () => SUGGEST.emptySuggestions()
     },

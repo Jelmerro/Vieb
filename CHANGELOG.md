@@ -15,8 +15,9 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Added
 
-- New action with default mappings for copying the current page url to the clipboard
-- New actions to open pages from the clipboard, either in the current or a new tab
+- Action "action.pageToClipboard" for copying the current page url to the clipboard
+- Actions "action.openFromClipboard" and "action.openNewTabFromClipboard" to open pages from the clipboard
+- Actions "action.exploreHistoryNext" and "action.exploreHistoryPrevious" for finding previous site navigations in explore mode
 
 ### Changed
 

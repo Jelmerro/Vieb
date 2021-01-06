@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND COMMANDHISTORY FOLLOW MODES PAGELAYOUT SETTINGS SUGGEST TABS
- UTIL */
+/* global COMMAND COMMANDHISTORY EXPLOREHISTORY FOLLOW MODES PAGELAYOUT SETTINGS
+ SUGGEST TABS UTIL */
 "use strict"
 
 const {exec} = require("child_process")
@@ -265,6 +265,10 @@ const commandHistoryPrevious = () => COMMANDHISTORY.previous()
 
 const commandHistoryNext = () => COMMANDHISTORY.next()
 
+const exploreHistoryPrevious = () => EXPLOREHISTORY.previous()
+
+const exploreHistoryNext = () => EXPLOREHISTORY.next()
+
 const rotateSplitWindow = () => PAGELAYOUT.rotate()
 
 const leftHalfSplitWindow = () => PAGELAYOUT.toTop("left")
@@ -352,6 +356,7 @@ const useEnteredData = () => {
         }
         if (location) {
             TABS.navigateTo(UTIL.stringToUrl(location))
+            EXPLOREHISTORY.push(UTIL.stringToUrl(location))
         }
     }
 }
@@ -442,6 +447,8 @@ module.exports = {
     prevSuggestion,
     commandHistoryPrevious,
     commandHistoryNext,
+    exploreHistoryPrevious,
+    exploreHistoryNext,
     toggleFullscreen,
     pageToClipboard,
     openFromClipboard,

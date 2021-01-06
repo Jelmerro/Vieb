@@ -139,6 +139,8 @@ const defaultBindings = {
         "<Esc>": {"mapping": "<action.toNormalMode>"},
         "<Tab>": {"mapping": "<action.nextSuggestion>"},
         "<S-Tab>": {"mapping": "<action.prevSuggestion>"},
+        "<C-n>": {"mapping": "<action.exploreHistoryNext>"},
+        "<C-p>": {"mapping": "<action.exploreHistoryPrevious>"},
         "<C-[>": {"mapping": "<action.toNormalMode>"}
     },
     "f": {
