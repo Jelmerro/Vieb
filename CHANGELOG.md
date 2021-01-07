@@ -23,6 +23,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Better scrollbar color and sizing: it's now fullwidth and transparent to make search results visible below it
 - Actions now contain more checks to prevent locks when Vieb has yet to load the first tab
+- The builds of the Mac app are now part of an application category
 
 ### Security
 
