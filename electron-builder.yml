@@ -66,11 +66,25 @@ win:
 nsis:
   oneClick: false
   license: LICENSE
+files:
+  filter:
+    - "!ViebData"
+    - "!logo-wip-files"
+    - "!dist"
 fileAssociations:
-  - ext: html
+  name: Hypertext Markup File
+  isPackage: true
+  ext:
+    - htm
+    - html
+    - shtml
+    - webp
+    - xht
+    - xhtml
 protocols:
-  - name: Websites
+  - name: Hypertext Transfer Protocol
     schemes:
+      - ftp
       - http
       - https
 copyright: Copyright @ Jelmer van Arnhem | Licensed as free software (GPL-3.0+)

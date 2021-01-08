@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020 Jelmer van Arnhem
+* Copyright (C) 2020-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -135,6 +135,9 @@ Object.defineProperty(window.navigator, "keyboard", {})
 
 // Disable the battery API entirely
 window.navigator.__proto__.getBattery = undefined
+
+// Always return the cancel action for prompts, without throwing
+window.prompt = () => null
 
 // Return the static maximum value for memory and thread count
 Object.defineProperty(window.navigator, "hardwareConcurrency", {"value": 8})

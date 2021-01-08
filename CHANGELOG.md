@@ -18,12 +18,15 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Action "action.pageToClipboard" for copying the current page url to the clipboard
 - Actions "action.openFromClipboard" and "action.openNewTabFromClipboard" to open pages from the clipboard
 - Actions "action.exploreHistoryNext" and "action.exploreHistoryPrevious" for finding previous site navigations in explore mode
+- Startup argument to optionally turn off hardware acceleration (by default still turned on)
 
 ### Changed
 
 - Better scrollbar color and sizing: it's now fullwidth and transparent to make search results visible below it
 - Actions now contain more checks to prevent locks when Vieb has yet to load the first tab
 - The builds of the Mac app are now part of an application category
+- Website calls to window.prompt are now instantly returned with the cancel action instead of throwing an error
+- Expand the list of supported filetypes and protocols for generated builds
 
 ### Security
 

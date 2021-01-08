@@ -12,7 +12,6 @@ const isDir = loc => {
     try {
         return fs.statSync(loc).isDirectory()
     } catch (e) {
-        console.log(e)
         return false
     }
 }

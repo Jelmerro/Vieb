@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2020 Jelmer van Arnhem
+* Copyright (C) 2019-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -51,6 +51,7 @@ const printUsage = () => {
         " --debug            Open with Chromium and Electron debugging tools")
     console.log("                    "
         + "They can also be opened later with :internaldevtools")
+    console.log(" --software-only    Disable hardware acceleration completely")
     console.log("\nAll arguments not starting with - will be opened as a url.")
     printLicense()
 }
@@ -159,6 +160,7 @@ const urls = []
 let enableDebugMode = false
 let nextArgErwicConfig = false
 let nextArgDataFolder = false
+let softwareOnly = false
 let erwic = null
 let datafolder = path.join(app.getPath("appData"), "Vieb")
 let customIcon = null
@@ -181,6 +183,8 @@ args.forEach(arg => {
             enableDebugMode = true
         } else if (arg === "--erwic") {
             nextArgErwicConfig = true
+        } else if (arg === "--software-only") {
+            softwareOnly = true
         } else if (arg === "--datafolder") {
             nextArgDataFolder = true
         } else {
@@ -202,10 +206,15 @@ if (nextArgDataFolder) {
     printUsage()
     app.exit(1)
 }
+if (softwareOnly) {
+    app.disableHardwareAcceleration()
+}
 app.setName("Vieb")
 datafolder = `${path.resolve(expandPath(datafolder.trim()))}/`
 app.setPath("appData", datafolder)
 app.setPath("userData", datafolder)
+app.setAsDefaultProtocolClient("http")
+app.setAsDefaultProtocolClient("https")
 applyDevtoolsSettings(path.join(datafolder, "Preferences"))
 if (erwic) {
     const config = readJSON(erwic)
