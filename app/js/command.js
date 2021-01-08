@@ -719,8 +719,14 @@ const commandList = (includeCustom = true) => {
     return Object.keys(commands).filter(c => c.length > 2)
 }
 
-const customCommandsAsCommandList = () => Object.keys(userCommands).map(
-    command => `command ${command} ${userCommands[command]}`).join("\n")
+const customCommandsAsCommandList = full => {
+    let commandString = Object.keys(userCommands).map(
+        command => `command ${command} ${userCommands[command]}`).join("\n")
+    if (full || currentscheme !== "default") {
+        commandString += `\ncolorscheme ${currentscheme}`
+    }
+    return commandString
+}
 
 module.exports = {
     openSpecialPage,

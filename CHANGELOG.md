@@ -28,6 +28,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Website calls to window.prompt are now instantly returned with the cancel action instead of throwing an error
 - Expand the list of supported filetypes and protocols for generated builds
 
+### Fixed
+
+- Colorschemes not being saved with the mkviebrc command
+
 ### Security
 
 - Electron 11.1.1 (unchanged)

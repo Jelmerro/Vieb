@@ -856,7 +856,7 @@ const saveToDisk = full => {
     const options = listCurrentSettings(full).split("\n").filter(s => s)
         .map(s => `set ${s}`).join("\n").trim()
     const mappings = INPUT.listMappingsAsCommandList().trim()
-    const commands = COMMAND.customCommandsAsCommandList().trim()
+    const commands = COMMAND.customCommandsAsCommandList(full).trim()
     if (!options && !mappings && !commands) {
         UTIL.notify("There are no options set, no mappings changed and no "
             + "custom commands that have been added, no viebrc written")
