@@ -253,6 +253,12 @@ const parseElement = (element, type) => {
         return null
     }
     // The element should be clickable and is returned in a parsed format
+    if (element.href === window.location.href) {
+        type = "other"
+    }
+    if (element.href === `${window.location.href}#`) {
+        type = "other"
+    }
     return {
         "url": String(element.href || ""),
         "x": dimensions.x,

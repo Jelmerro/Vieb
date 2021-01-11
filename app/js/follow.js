@@ -104,6 +104,10 @@ const clickAtLink = async link => {
             (link.y + link.height / 2) * factor)
         return
     }
+    if (link.url && link.type === "url" && UTIL.isUrl(link.url)) {
+        TABS.navigateTo(link.url)
+        return
+    }
     MODES.setMode("insert")
     await new Promise(r => setTimeout(r, 5))
     TABS.currentPage().sendInputEvent({
@@ -135,6 +139,7 @@ const parseAndDisplayLinks = newLinks => {
     }
     if (followNewtab) {
         newLinks = newLinks.filter(link => UTIL.hasProtocol(link.url))
+        newLinks = newLinks.map(link => ({...link, "type": "url"}))
     }
     if (links.length) {
         for (let i = 0;i < links.length;i++) {
@@ -251,11 +256,7 @@ const enterKey = async id => {
             })
             return
         }
-        if (link.url && UTIL.isUrl(link.url)) {
-            TABS.navigateTo(link.url)
-        } else {
-            await clickAtLink(link)
-        }
+        await clickAtLink(link)
         if (stayInFollowMode) {
             MODES.setMode(modeBeforeFollow)
             startFollow()
