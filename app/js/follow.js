@@ -251,7 +251,11 @@ const enterKey = async id => {
             })
             return
         }
-        await clickAtLink(link)
+        if (link.url && UTIL.isUrl(link.url)) {
+            TABS.navigateTo(link.url)
+        } else {
+            await clickAtLink(link)
+        }
         if (stayInFollowMode) {
             MODES.setMode(modeBeforeFollow)
             startFollow()
