@@ -32,6 +32,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Colorschemes not being saved with the mkviebrc command
 - Anchor tags potentially overriding the user's choice of opening links in the current tab by implementing a custom onclick that prevents the default
+- Vertical colorscheme not displaying the pointer at the right location
 
 ### Security
 
