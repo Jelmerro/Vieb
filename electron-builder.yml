@@ -72,17 +72,18 @@ files:
     - "!logo-wip-files"
     - "!dist"
 fileAssociations:
-  name: Hypertext Markup File
-  isPackage: true
-  ext:
-    - htm
-    - html
-    - shtml
-    - webp
-    - xht
-    - xhtml
+  - name: HyperText Markup File
+    ext: htm
+  - name: HyperText Markup File
+    ext: html
+  - name: HyperText Markup File
+    ext: shtml
+  - name: Extensible HyperText Markup File
+    ext: xht
+  - name: Extensible HyperText Markup File
+    ext: xhtml
 protocols:
-  - name: Hypertext Transfer Protocol
+  - name: HyperText Transfer Protocol
     schemes:
       - ftp
       - http
