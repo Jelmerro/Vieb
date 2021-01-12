@@ -666,20 +666,25 @@ const typeCharacterIntoNavbar = id => {
     if (!"ces".includes(MODES.currentMode()[0])) {
         return
     }
+    const url = document.getElementById("url")
+    if (url.selectionEnd && url.selectionStart !== url.selectionEnd) {
+        url.value = url.value.substr(0, url.selectionStart)
+            + url.value.substr(url.selectionEnd)
+    }
     if (id.length === 1) {
-        document.getElementById("url").value += id
+        url.value += id
     }
     if (id === "<lt>") {
-        document.getElementById("url").value += "<"
+        url.value += "<"
     }
     if (id === "<Bar>") {
-        document.getElementById("url").value += "|"
+        url.value += "|"
     }
     if (id === "<Bslash>") {
-        document.getElementById("url").value += "\\"
+        url.value += "\\"
     }
     if (id === "<Space>") {
-        document.getElementById("url").value += " "
+        url.value += " "
     }
 }
 
