@@ -16,7 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Action "action.pageToClipboard" for copying the current page url to the clipboard
-- Actions "action.openFromClipboard" and "action.openNewTabFromClipboard" to open pages from the clipboard
+- Actions "action.openFromClipboard" to open pages from the clipboard (optionally in a new tab by calling that action first)
 - Actions "action.exploreHistoryNext" and "action.exploreHistoryPrevious" for finding previous site navigations in explore mode
 - Startup argument to optionally turn off hardware acceleration (by default still turned on)
 
@@ -34,6 +34,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Anchor tags potentially overriding the user's choice of opening links in the current tab by implementing a custom onclick that prevents the default
 - Vertical colorscheme not displaying the pointer at the right location
 - Explore mode not clearing the existing selection when opened as part of a mapstring (homepage command didn't work as described)
+- Help page not resolving references to pointer chapter correctly
+- Permissionsallowed setting not working for correctly for mediadevices if permissionsblocked was unset
 
 ### Security
 

@@ -225,7 +225,7 @@ webview {pointer-events: none;position: fixed;display: none;}
 #tabs::-webkit-scrollbar-thumb {background: var(--tab-scrollbar);}
 /* other */
 @keyframes pointer {0% {background: #f007;} 17% {background: #ff07;} 33% {background: #0f07;} 49% {background: #0ff7;} 66% {background: #00f7;} 83% {background: #f0f7;} 100% {background: #f007;}}
-#pointer {display: none;position: fixed;height: 1em;width: .7em;z-index: 20;backdrop-filter: invert(100%);animation: 1s infinite pointer;}
+#app #pointer {display: none;position: fixed;height: 1em;width: .7em;z-index: 20;backdrop-filter: invert(100%);animation: 1s infinite pointer;}
 #app[current-mode=pointer] #pointer {display: block;}
 #app[current-mode=visual] #pointer {display: block;}
 #url-hover {display: none;position: absolute;background: var(--url-hover-bg);color:var(--url-hover-fg);bottom: 0;left: 0;right: 0;pointer-events: none;padding: .1em;width: fit-content;margin: auto;max-width: 80vw;word-break: break-all;text-align: center;z-index: 2;}

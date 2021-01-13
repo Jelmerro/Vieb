@@ -762,7 +762,7 @@ const permissionHandler = (_, permission, callback, details) => {
         setting = permissions.permissionunknown
     }
     for (const override of ["permissionsblocked", "permissionsallowed"]) {
-        for (const rule of permissions[override].split(",")) {
+        for (const rule of permissions[override]?.split(",")) {
             if (!rule.trim()) {
                 continue
             }

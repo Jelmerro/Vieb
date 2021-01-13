@@ -65,5 +65,5 @@
 #tabs .status {filter: invert(.4);}
 
 /* special pages */
-#pointer, #cookiespage img, #downloadspage img, #historypage img {filter: invert(1);}
+#app #pointer, #cookiespage img, #downloadspage img, #historypage img {filter: invert(1);}
 #historypage img.favicon {filter: none;}

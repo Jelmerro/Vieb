@@ -323,12 +323,6 @@ const openFromClipboard = () => {
     }
 }
 
-const openNewTabFromClipboard = () => {
-    if (clipboard.readText().trim()) {
-        TABS.addTab({"url": UTIL.stringToUrl(clipboard.readText())})
-    }
-}
-
 const useEnteredData = () => {
     if (MODES.currentMode() === "command") {
         const command = document.getElementById("url").value.trim()
@@ -452,7 +446,6 @@ module.exports = {
     toggleFullscreen,
     pageToClipboard,
     openFromClipboard,
-    openNewTabFromClipboard,
     useEnteredData,
     setFocusCorrectly
 }

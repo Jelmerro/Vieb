@@ -48,9 +48,11 @@ try {
         }
         const devices = await enumerate.call(window.navigator.mediaDevices)
         if (action === "allowfull") {
-            ipcRenderer.sendToHost("notify",
-                `Manually allowed 'mediadevices' with labels at `
-                + `'${window.location.href}'`, "perm")
+            if (!notify) {
+                ipcRenderer.sendToHost("notify",
+                    `Manually allowfulled 'mediadevices' at `
+                    + `'${window.location.href}'`, "perm")
+            }
             return devices
         }
         return devices.map(({deviceId, groupId, kind}) => ({
@@ -65,21 +67,19 @@ try {
         } catch (e) {
             // No webview settings configured, assuming the default ask value
         }
-        if (settings.permissionsallowed && settings.permissionsblocked) {
-            for (const type of ["block", "allow"]) {
-                for (const r of settings[`permissions${type}ed`].split(",")) {
-                    if (!r.trim()) {
-                        continue
-                    }
-                    const [match, ...names] = r.split("~")
-                    if (names.find(p => p.endsWith("mediadevices"))) {
-                        if (window.location.href.match(match)) {
-                            ipcRenderer.sendToHost("notify",
-                                `Automatic rule for 'mediadevices' `
-                                + `activated at '${window.location.href}' `
-                                + `which was ${type}ed`, "perm")
-                            return mediaDeviceList(type)
-                        }
+        for (const type of ["block", "allow"]) {
+            for (const r of settings[`permissions${type}ed`]?.split(",")) {
+                if (!r.trim()) {
+                    continue
+                }
+                const [match, ...names] = r.split("~")
+                if (names.find(p => p.endsWith("mediadevices"))) {
+                    if (window.location.href.match(match)) {
+                        ipcRenderer.sendToHost("notify",
+                            `Automatic rule for 'mediadevices' `
+                            + `activated at '${window.location.href}' `
+                            + `which was ${type}ed`, "perm")
+                        return mediaDeviceList(type)
                     }
                 }
             }
@@ -102,8 +102,11 @@ try {
                 "title": "Allow this page to access 'mediadevices'?",
                 "message": `${message}\n\npage:\n${url}`
             })
-            if (ask.response === 0 && ask.checkboxChecked) {
-                return mediaDeviceList("allowfull")
+            if (ask.response === 0) {
+                if (ask.checkboxChecked) {
+                    return mediaDeviceList("allowfull")
+                }
+                action = "allow"
             }
             if (ask.response === 1) {
                 action = "block"
