@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMANDHISTORY EXPLOREHISTORY FAVICONS HISTORY INPUT MODES PAGELAYOUT
+/* global COMMANDHISTORY FAVICONS HISTORY INPUT MODES PAGELAYOUT
  SETTINGS TABS UTIL */
 "use strict"
 
