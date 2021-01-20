@@ -89,7 +89,19 @@ const getInputFollows = allLinks => {
     inputs.push(...[...document.querySelectorAll("input")].map(
         e => e.closest("label")).filter(e => e && !inputs.includes(e)))
     inputs.forEach(element => {
-        const clickable = parseElement(element, "inputs-click")
+        let type = "inputs-click"
+        if (element.tagName.toLowerCase() === "label") {
+            const labelFor = element.getAttribute("for")
+            if (labelFor) {
+                const forEl = document.getElementById(labelFor)
+                if (forEl && forEl.matches(textlikeInputs.join(","))) {
+                    type = "inputs-insert"
+                }
+            } else if (element.querySelector(textlikeInputs.join(","))) {
+                type = "inputs-insert"
+            }
+        }
+        const clickable = parseElement(element, type)
         if (clickable) {
             allLinks.push(clickable)
         }

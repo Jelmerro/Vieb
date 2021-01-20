@@ -20,6 +20,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Reduce timer for follow mode, due to the many speed improvements and simplifications
+- Labels will now correctly match the type of element they refer to (instead of always assuming the clickable type)
 
 ### Security
 
