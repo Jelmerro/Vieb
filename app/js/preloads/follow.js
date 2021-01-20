@@ -91,12 +91,7 @@ const getInputFollows = allLinks => {
     inputs.forEach(element => {
         const clickable = parseElement(element, "inputs-click")
         if (clickable) {
-            // Only show input elements for which there is no existing url
-            const similarExistingLinks = allLinks.filter(
-                link => checkForDuplicateLink(clickable, link))
-            if (similarExistingLinks.length === 0) {
-                allLinks.push(clickable)
-            }
+            allLinks.push(clickable)
         }
     })
     // Input tags such as email and text, can have text inserted
@@ -107,19 +102,9 @@ const getInputFollows = allLinks => {
 const getMouseFollows = allLinks => {
     // Elements with some kind of mouse interaction, grouped by click and other
     const addMouseEventElement = (element, type) => {
-        let clickable = null
-        try {
-            clickable = parseElement(element, type)
-        } catch (e) {
-            // Element might get deleted while parsing
-        }
+        const clickable = parseElement(element, type)
         if (clickable) {
-            // Only show onclick elements for which there is no existing link
-            const similarExistingLinks = allLinks.filter(
-                link => checkForDuplicateLink(clickable, link))
-            if (similarExistingLinks.length === 0) {
-                allLinks.push(clickable)
-            }
+            allLinks.push(clickable)
         }
     }
     const allElements = [...document.querySelectorAll("*")]
@@ -170,20 +155,6 @@ ipcRenderer.on("follow-mode-start", () => {
 ipcRenderer.on("follow-mode-stop", () => {
     inFollowMode = false
 })
-
-const checkForDuplicateLink = (element, existing) => {
-    // Check for similar click positions and remove them as a duplicate
-    const elementX = element.x + element.width / 2
-    const elementY = element.y + element.height / 2
-    const existingX = existing.x + existing.width / 2
-    const existingY = existing.y + existing.height / 2
-    if (elementX >= existingX - 2 && elementX <= existingX + 2) {
-        if (elementY >= existingY - 2 && elementY <= existingY + 2) {
-            return true
-        }
-    }
-    return false
-}
 
 const elementClickableAtPosition = (element, x, y) => {
     // Check if an element can be found in a given position.
@@ -313,6 +284,6 @@ window.addEventListener("click", e => {
 
 window.addEventListener("resize", sendFollowLinks)
 
-// Send the page once every few seconds in case of transitions or animations
+// Send the page once every second in case of transitions or animations
 // Could be done with a listener, but that drastically slows down on big pages
-setInterval(sendFollowLinks, 2000)
+setInterval(sendFollowLinks, 1000)

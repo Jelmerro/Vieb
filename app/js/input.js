@@ -146,6 +146,7 @@ const defaultBindings = {
     "f": {
         "<F1>": {"mapping": "<:help>"},
         "<F11>": {"mapping": "<action.toggleFullscreen>"},
+        "<Tab>": {"mapping": "<action.reorderFollowLinks>"},
         "<Esc>": {"mapping": "<action.stopFollowMode>"},
         "<C-[>": {"mapping": "<action.stopFollowMode>"}
     },

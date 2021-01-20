@@ -323,6 +323,8 @@ const openFromClipboard = () => {
     }
 }
 
+const reorderFollowLinks = () => FOLLOW.reorderDisplayedLinks()
+
 const useEnteredData = () => {
     if (MODES.currentMode() === "command") {
         const command = document.getElementById("url").value.trim()
@@ -446,6 +448,7 @@ module.exports = {
     toggleFullscreen,
     pageToClipboard,
     openFromClipboard,
+    reorderFollowLinks,
     useEnteredData,
     setFocusCorrectly
 }

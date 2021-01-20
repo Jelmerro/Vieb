@@ -11,6 +11,21 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Added
+
+- Action "action.reorderFollowLinks" to change which type of follow links appear on top
+
+### Changed
+
+- Reduce timer for follow mode, due to the many speed improvements and simplifications
+
+### Security
+
+- Electron 11.1.1 (unchanged)
+- Chromium 87.0.4280.88 (unchanged)
+
 ## [3.3.0](https://github.com/Jelmerro/Vieb/compare/3.2.0...3.3.0) - 2021-01-18
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/3.2.0...3.3.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/3.3.0)

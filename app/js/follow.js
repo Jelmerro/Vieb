@@ -22,6 +22,7 @@ let followNewtab = true
 let alreadyFollowing = false
 let links = []
 let modeBeforeFollow = "normal"
+const savedOrder = ["url", "inputs-click", "inputs-insert", "onclick"]
 
 const informPreload = () => {
     setTimeout(() => {
@@ -133,6 +134,24 @@ const clickAtLink = async link => {
     document.getElementById("url-hover").style.display = "none"
 }
 
+const reorderDisplayedLinks = () => {
+    savedOrder.push(savedOrder.shift())
+    applyIndexedOrder()
+}
+
+const applyIndexedOrder = () => {
+    savedOrder.forEach((type, index) => {
+        ;[...document.querySelectorAll(`.follow-${type}`)]
+            .forEach(e => { e.style.zIndex = index + 10 })
+        ;[...document.querySelectorAll(`.follow-${type}-border`)]
+            .forEach(e => { e.style.zIndex = index + 5 })
+    })
+    ;[...document.querySelectorAll(`.follow-other`)]
+        .forEach(e => { e.style.zIndex = 9 })
+    ;[...document.querySelectorAll(`.follow-other-border`)]
+        .forEach(e => { e.style.zIndex = 4 })
+}
+
 const parseAndDisplayLinks = newLinks => {
     if (MODES.currentMode() !== "follow" || alreadyFollowing) {
         return
@@ -218,6 +237,7 @@ const parseAndDisplayLinks = newLinks => {
         followChildren.push(borderElement)
     })
     document.getElementById("follow").replaceChildren(...followChildren)
+    applyIndexedOrder()
 }
 
 const enterKey = async id => {
@@ -269,6 +289,7 @@ const enterKey = async id => {
 module.exports = {
     startFollow,
     cancelFollow,
+    reorderDisplayedLinks,
     parseAndDisplayLinks,
     enterKey,
     getModeBeforeFollow
