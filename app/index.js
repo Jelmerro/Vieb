@@ -301,6 +301,9 @@ app.on("ready", () => {
         console.log(`Sending urls to existing instance in ${datafolder}`)
         app.exit(0)
     }
+    if (!app.isPackaged && !customIcon) {
+        customIcon = path.join(__dirname, "img/icons/512x512.png")
+    }
     // Init mainWindow
     const windowData = {
         "title": app.getName(),
@@ -309,7 +312,7 @@ app.on("ready", () => {
         "frame": false,
         "show": enableDebugMode,
         "closable": false,
-        "icon": customIcon || undefined,
+        "icon": customIcon,
         "webPreferences": {
             "preload": path.join(__dirname, "apploader.js"),
             "sandbox": false,
@@ -320,8 +323,8 @@ app.on("ready", () => {
             "webviewTag": true
         }
     }
-    if (!app.isPackaged && !customIcon) {
-        windowData.icon = path.join(__dirname, "img/icons/512x512.png")
+    if (!windowData.icon) {
+        delete windowData.icon
     }
     mainWindow = new BrowserWindow(windowData)
     mainWindow.removeMenu()
@@ -363,7 +366,7 @@ app.on("ready", () => {
         "parent": mainWindow,
         "alwaysOnTop": true,
         "resizable": false,
-        "icon": customIcon || undefined,
+        "icon": customIcon,
         "webPreferences": {
             "preload": path.join(__dirname, "js/preloads/loginpopup.js"),
             "sandbox": true,
@@ -373,6 +376,9 @@ app.on("ready", () => {
             "enableRemoteModule": false,
             "partition": "login"
         }
+    }
+    if (!loginWindowData.icon) {
+        delete loginWindowData.icon
     }
     loginWindow = new BrowserWindow(loginWindowData)
     const loginPage = `file:///${path.join(__dirname, "pages/loginpopup.html")}`
@@ -393,7 +399,7 @@ app.on("ready", () => {
         "parent": mainWindow,
         "alwaysOnTop": true,
         "resizable": false,
-        "icon": customIcon || undefined,
+        "icon": customIcon,
         "webPreferences": {
             "preload": path.join(__dirname, "js/preloads/notificationpopup.js"),
             "sandbox": true,
@@ -403,6 +409,9 @@ app.on("ready", () => {
             "enableRemoteModule": false,
             "partition": "notification-window"
         }
+    }
+    if (!notificationWindowData.icon) {
+        delete notificationWindowData.icon
     }
     notificationWindow = new BrowserWindow(notificationWindowData)
     const notificationPage = `file:///${path.join(
