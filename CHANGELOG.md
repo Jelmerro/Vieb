@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Action "action.reorderFollowLinks" to change which type of follow links appear on top
+- Basic detection for pseudo-elements in follow mode, such as switches using ::before as the only visible section
 
 ### Changed
 

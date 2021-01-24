@@ -196,6 +196,42 @@ const findClickPosition = (element, rects) => {
     return {clickable, dimensions}
 }
 
+const propPixels = (element, prop) => {
+    const value = element[prop]
+    if (value?.endsWith("px")) {
+        return Number(value.replace("px", "")) || 0
+    }
+    if (value?.endsWith("em")) {
+        const elementFontSize = Number(getComputedStyle(document.body)
+            .fontSize.replace("px", "")) || 0
+        return Number(value.replace("em", "")) * elementFontSize || 0
+    }
+    return 0
+}
+
+const pseudoElementRects = element => {
+    const base = element.getBoundingClientRect()
+    const rects = []
+    for (const pseudoType of ["before", "after"]) {
+        const pseudo = window.getComputedStyle(element, `::${pseudoType}`)
+        const top = propPixels(pseudo, "top")
+        const left = propPixels(pseudo, "left")
+        const marginTop = propPixels(pseudo, "marginTop")
+        const marginLeft = propPixels(pseudo, "marginLeft")
+        const width = propPixels(pseudo, "width")
+        const height = propPixels(pseudo, "height")
+        if (height && width) {
+            const pseudoDims = JSON.parse(JSON.stringify(base))
+            pseudoDims.width = width
+            pseudoDims.height = height
+            pseudoDims.x += left + marginLeft
+            pseudoDims.y += top + marginTop
+            rects.push(pseudoDims)
+        }
+    }
+    return rects
+}
+
 const rectOutsideWindow = r => r.bottom < 0 || r.top > window.innerHeight
     || r.right < 0 || r.left > window.innerWidth
 
@@ -212,15 +248,17 @@ const parseElement = (element, type) => {
     if (rectOutsideWindow(boundingRect)) {
         return null
     }
-    const isHidden = window.getComputedStyle(element).visibility === "hidden"
-    if (isHidden) {
+    if (window.getComputedStyle(element).visibility === "hidden") {
         return null
     }
     // Make a list of all possible bounding rects for the element
     let rects = [boundingRect, ...element.getClientRects()]
     for (const subImage of element.querySelectorAll("img, svg")) {
-        rects = rects.concat([...subImage.getClientRects()])
+        rects = rects.concat([
+            subImage.getBoundingClientRect(), ...subImage.getClientRects()
+        ])
     }
+    rects = rects.concat(pseudoElementRects(element))
     // Find a clickable area and position for the given element
     const {dimensions, clickable} = findClickPosition(element, rects)
     // Return null if any of the checks below fail
