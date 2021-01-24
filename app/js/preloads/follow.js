@@ -214,14 +214,14 @@ const pseudoElementRects = element => {
     const rects = []
     for (const pseudoType of ["before", "after"]) {
         const pseudo = window.getComputedStyle(element, `::${pseudoType}`)
-        const top = propPixels(pseudo, "top")
-        const left = propPixels(pseudo, "left")
-        const marginTop = propPixels(pseudo, "marginTop")
-        const marginLeft = propPixels(pseudo, "marginLeft")
         const width = propPixels(pseudo, "width")
         const height = propPixels(pseudo, "height")
         if (height && width) {
             const pseudoDims = JSON.parse(JSON.stringify(base))
+            const top = propPixels(pseudo, "top")
+            const left = propPixels(pseudo, "left")
+            const marginTop = propPixels(pseudo, "marginTop")
+            const marginLeft = propPixels(pseudo, "marginLeft")
             pseudoDims.width = width
             pseudoDims.height = height
             pseudoDims.x += left + marginLeft
