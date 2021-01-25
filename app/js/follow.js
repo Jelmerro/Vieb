@@ -22,7 +22,7 @@ let followNewtab = true
 let alreadyFollowing = false
 let links = []
 let modeBeforeFollow = "normal"
-const savedOrder = ["url", "inputs-click", "inputs-insert", "onclick"]
+const savedOrder = ["url", "onclick", "inputs-click", "inputs-insert"]
 
 const informPreload = () => {
     setTimeout(() => {
