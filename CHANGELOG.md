@@ -26,6 +26,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Labels will now correctly match the type of element they refer to (instead of always assuming the clickable type)
 - Default order of elements in follow mode to align with functionality as it was before 3.3.0 (can still be shown with "action.reorderFollowLinks")
 - Only display a single line of the url if it's really long (overflow is suggested with ellipsis)
+- Pin command can now take an argument to search for a tab by name or index, similar to buffer commands
 
 ### Security
 

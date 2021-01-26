@@ -78,46 +78,52 @@ const viebMenu = options => {
             })
         }
     }
-    if (options.path.find(el => el.matches?.("#current-tab"))) {
-        // TODO make these work for other tabs as well, similar to "close tab"
-        if (TABS.currentTab().classList.contains("pinned")) {
-            createMenuItem({
-                "title": "Unpin tab", "action": () => COMMAND.execute("pin")
-            })
-        } else {
-            createMenuItem({
-                "title": "Pin tab", "action": () => COMMAND.execute("pin")
-            })
-        }
-        createMenuItem({"title": "Refresh", "action": () => ACTIONS.reload()})
-        createMenuItem({
-            "title": "Previous", "action": () => ACTIONS.backInHistory()
-        })
-        createMenuItem({
-            "title": "Next", "action": () => ACTIONS.forwardInHistory()
-        })
-        createMenuItem({
-            "title": "Save page", "action": () => COMMAND.execute("write")
-        })
-    }
     if (options.path.find(el => el.matches?.("#tabs"))) {
+        const tab = options.path.find(el => el.matches?.("#tabs > span"))
+        if (!tab) {
+            fixAlignmentNearBorders()
+            return
+        }
+        const pinned = tab.classList.contains("pinned")
+        let pinTitle = "Pin tab"
+        if (pinned) {
+            pinTitle = "Unpin tab"
+        }
+        createMenuItem({
+            "title": pinTitle,
+            "action": () => COMMAND.execute(
+                `pin ${TABS.listTabs().indexOf(tab)}`)
+        })
+        createMenuItem({
+            "title": "Refresh",
+            "action": () => ACTIONS.reload(TABS.tabOrPageMatching(tab))
+        })
+        createMenuItem({
+            "title": "Previous",
+            "action": () => ACTIONS.backInHistory(TABS.tabOrPageMatching(tab))
+        })
+        createMenuItem({
+            "title": "Next",
+            "action": () => ACTIONS.forwardInHistory(
+                TABS.tabOrPageMatching(tab))
+        })
         createMenuItem({"title": "Open new tab", "action": TABS.addTab})
         createMenuItem({"title": "Undo closed tab", "action": TABS.reopenTab})
         createMenuItem({
             "title": "Copy page url",
             "action": () => {
-                const tab = options.path.find(el => el.matches("#tabs > span"))
                 clipboard.writeText(UTIL.urlToString(
                     TABS.tabOrPageMatching(tab).src))
             }
         })
-        createMenuItem({
-            "title": "Close this tab",
-            "action": () => {
-                const tab = options.path.find(el => el.matches("#tabs > span"))
-                TABS.closeTab(TABS.listTabs().indexOf(tab))
-            }
-        })
+        if (!pinned || SETTINGS.get("closablepinnedtabs")) {
+            createMenuItem({
+                "title": "Close this tab",
+                "action": () => {
+                    TABS.closeTab(TABS.listTabs().indexOf(tab))
+                }
+            })
+        }
     }
     fixAlignmentNearBorders()
 }

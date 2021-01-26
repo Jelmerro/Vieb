@@ -77,12 +77,11 @@ const nextSearchMatch = () => {
     }
 }
 
-const reload = () => {
-    if (TABS.currentPage() && !TABS.currentPage().isCrashed()) {
-        if (!TABS.currentPage().src.startsWith("devtools://")) {
-            TABS.currentPage().reload()
-            TABS.resetTabInfo(TABS.currentPage())
-        }
+const reload = (customPage = null) => {
+    const page = customPage || TABS.currentPage()
+    if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
+        page.reload()
+        TABS.resetTabInfo(page)
     }
 }
 
@@ -106,24 +105,26 @@ const startFollowNewTab = () => FOLLOW.startFollow(true)
 
 const scrollBottom = () => TABS.currentPage()?.send("action", "scrollBottom")
 
-const backInHistory = () => {
-    if (TABS.currentPage()?.canGoBack()) {
-        if (!TABS.currentPage().src.startsWith("devtools://")) {
-            TABS.currentTab().querySelector("span").textContent = ""
-            TABS.currentPage().goBack()
-            TABS.resetTabInfo(TABS.currentPage())
+const backInHistory = (customPage = null) => {
+    const page = customPage || TABS.currentPage()
+    if (page && !page.isCrashed()) {
+        if (page?.canGoBack() && !page.src.startsWith("devtools://")) {
+            TABS.tabOrPageMatching(page).querySelector("span").textContent = ""
+            page.goBack()
+            TABS.resetTabInfo(page)
         }
     }
 }
 
 const openNewTabAtAlternativePosition = () => TABS.addTab({"inverted": true})
 
-const forwardInHistory = () => {
-    if (TABS.currentPage()?.canGoForward()) {
-        if (!TABS.currentPage().src.startsWith("devtools://")) {
-            TABS.currentTab().querySelector("span").textContent = ""
-            TABS.currentPage().goForward()
-            TABS.resetTabInfo(TABS.currentPage())
+const forwardInHistory = (customPage = null) => {
+    const page = customPage || TABS.currentPage()
+    if (page && !page.isCrashed()) {
+        if (page?.canGoForward() && !page.src.startsWith("devtools://")) {
+            TABS.tabOrPageMatching(page).querySelector("span").textContent = ""
+            page.goForward()
+            TABS.resetTabInfo(page)
         }
     }
 }

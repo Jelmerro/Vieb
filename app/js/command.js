@@ -400,15 +400,23 @@ const hide = (...args) => {
     }
 }
 
-const pin = () => {
+const pin = (...args) => {
+    let tab = TABS.currentTab()
+    if (args.length > 0) {
+        tab = tabForBufferArg(args)
+    }
+    if (!tab) {
+        UTIL.notify("Can't find matching page, no tabs (un)pinned", "warn")
+        return
+    }
     const tabContainer = document.getElementById("tabs")
-    if (TABS.currentTab().classList.contains("pinned")) {
-        tabContainer.insertBefore(TABS.currentTab(), TABS.listTabs().find(
+    if (tab.classList.contains("pinned")) {
+        tabContainer.insertBefore(tab, TABS.listTabs().find(
             t => !t.classList.contains("pinned")))
-        TABS.currentTab().classList.remove("pinned")
+        tab.classList.remove("pinned")
     } else {
-        TABS.currentTab().classList.add("pinned")
-        tabContainer.insertBefore(TABS.currentTab(), TABS.listTabs().find(
+        tab.classList.add("pinned")
+        tabContainer.insertBefore(tab, TABS.listTabs().find(
             t => !t.classList.contains("pinned")))
     }
     TABS.saveTabs()
@@ -589,7 +597,6 @@ const noArgumentComands = [
     "cookies",
     "hardcopy",
     "print",
-    "pin",
     "comclear"
 ]
 

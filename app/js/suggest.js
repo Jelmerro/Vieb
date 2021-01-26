@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2020 Jelmer van Arnhem
+* Copyright (C) 2019-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -352,12 +352,19 @@ const suggestCommand = search => {
     }
     // Command: buffer, hide, Vexplore, Sexplore, split and vsplit
     const bufferCommand = [
-        "buffer", "hide", "Vexplore", "Sexplore", "split", "vsplit", "close"
+        "buffer",
+        "hide",
+        "pin",
+        "Vexplore",
+        "Sexplore",
+        "split",
+        "vsplit",
+        "close"
     ].find(b => b.startsWith(command))
     if (bufferCommand && !confirm) {
         const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
         TABS.listTabs().filter(tab => {
-            if (["close", "buffer"].includes(bufferCommand)) {
+            if (["close", "buffer", "pin"].includes(bufferCommand)) {
                 return true
             }
             if (bufferCommand === "hide") {
