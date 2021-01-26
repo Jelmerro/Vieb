@@ -363,7 +363,9 @@ const setFocusCorrectly = () => {
     if (MODES.currentMode() === "insert") {
         urlElement.blur()
         TABS.currentPage()?.focus()
-        TABS.currentPage()?.click()
+        if (!document.getElementById("context-menu").innerText) {
+            TABS.currentPage()?.click()
+        }
     } else if (["search", "explore", "command"].includes(MODES.currentMode())) {
         if (document.activeElement !== urlElement) {
             window.focus()

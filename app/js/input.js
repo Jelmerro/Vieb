@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS COMMAND POINTER FOLLOW MODES PAGELAYOUT SETTINGS
+/* global ACTIONS COMMAND CONTEXTMENU POINTER FOLLOW MODES PAGELAYOUT SETTINGS
  SUGGEST TABS UTIL */
 "use strict"
 
@@ -238,14 +238,28 @@ const init = () => {
     window.addEventListener("keypress", handleUserInput)
     window.addEventListener("keyup", handleUserInput)
     window.addEventListener("click", e => {
-        if (e.target.classList.contains("no-focus-reset")) {
-            e.preventDefault()
+        e.preventDefault()
+        if (e.button === 2) {
+            if (document.getElementById("context-menu").innerText) {
+                return
+            }
+        } else if (e.path.find(el => el.matches?.("#context-menu"))) {
             return
         }
-        e.preventDefault()
+        CONTEXTMENU.clear()
+        if (e.target.classList.contains("no-focus-reset")) {
+            return
+        }
         ACTIONS.setFocusCorrectly()
     })
     window.addEventListener("mouseup", e => {
+        if (e.button === 2) {
+            if (document.getElementById("context-menu").innerText) {
+                return
+            }
+        } else if (e.path.find(el => el.matches?.("#context-menu"))) {
+            return
+        }
         if (SETTINGS.get("mouse")) {
             if (e.target === document.getElementById("url")) {
                 if (!["explore", "command"].includes(MODES.currentMode())) {
@@ -253,6 +267,15 @@ const init = () => {
                 }
             } else if (["explore", "command"].includes(MODES.currentMode())) {
                 ACTIONS.toNormalMode()
+            }
+            const tab = e.path.find(el => TABS.listTabs().includes(el))
+            if (tab) {
+                CONTEXTMENU.clear()
+                if (e.button === 1) {
+                    TABS.closeTab(TABS.listTabs().indexOf(tab))
+                } else {
+                    TABS.switchToTab(TABS.listTabs().indexOf(tab))
+                }
             }
         } else {
             e.preventDefault()
@@ -274,9 +297,14 @@ const init = () => {
     })
     window.addEventListener("contextmenu", e => {
         e.preventDefault()
-        ACTIONS.setFocusCorrectly()
+        if (SETTINGS.get("mouse")) {
+            CONTEXTMENU.viebMenu(e)
+        } else {
+            ACTIONS.setFocusCorrectly()
+        }
     })
     window.addEventListener("resize", () => {
+        CONTEXTMENU.clear()
         PAGELAYOUT.applyLayout()
         if (["pointer", "visual"].includes(MODES.currentMode())) {
             POINTER.updateElement()
@@ -604,6 +632,7 @@ const handleKeyboard = e => {
         e.preventDefault()
         return
     }
+    CONTEXTMENU.clear()
     const id = toIdentifier(e)
     updateKeysOnScreen()
     clearTimeout(timeoutTimer)

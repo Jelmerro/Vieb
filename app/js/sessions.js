@@ -40,7 +40,7 @@ const init = () => {
 
 const create = name => {
     ipcRenderer.send("create-session", `persist:${name}`,
-        SETTINGS.get("adblock"), SETTINGS.get("cache") !== "none")
+        SETTINGS.get("adblocker"), SETTINGS.get("cache") !== "none")
 }
 
 const disableAdblocker = () => ipcRenderer.send("adblock-disable")

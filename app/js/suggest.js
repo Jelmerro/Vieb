@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND HISTORY INPUT MODES SETTINGS TABS UTIL */
+/* global COMMAND CONTEXTMENU HISTORY INPUT MODES SETTINGS TABS UTIL */
 "use strict"
 
 const path = require("path")
@@ -184,8 +184,18 @@ const addExplore = explore => {
     const element = document.createElement("div")
     element.className = "no-focus-reset"
     element.addEventListener("mouseup", e => {
-        MODES.setMode("normal")
-        TABS.navigateTo(explore.url)
+        if (e.button === 2) {
+            CONTEXTMENU.linkMenu({"x": e.x, "y": e.y, "link": explore.url})
+        } else {
+            MODES.setMode("normal")
+            CONTEXTMENU.clear()
+        }
+        if (e.button === 0) {
+            TABS.navigateTo(explore.url)
+        }
+        if (e.button === 1) {
+            TABS.addTab({"url": explore.url})
+        }
         e.preventDefault()
     })
     if (explore.icon && SETTINGS.get("favicons") !== "disabled") {
@@ -383,8 +393,13 @@ const addCommand = (command, subtext) => {
     const element = document.createElement("div")
     element.className = "no-focus-reset"
     element.addEventListener("mouseup", e => {
-        COMMAND.execute(command)
-        MODES.setMode("normal")
+        if (e.button === 2) {
+            CONTEXTMENU.commandMenu({"x": e.x, "y": e.y, "command": command})
+        } else {
+            MODES.setMode("normal")
+            COMMAND.execute(command)
+            CONTEXTMENU.clear()
+        }
         e.preventDefault()
     })
     const commandElement = document.createElement("span")

@@ -46,6 +46,8 @@ window.addEventListener("DOMContentLoaded", () => {
     window.FAVICONS = require("./js/favicons")
     // Load the layout manager, for splitting multiple webviews
     window.PAGELAYOUT = require("./js/pagelayout")
+    // Load the context menu code, called when right-clicking anywhere
+    window.CONTEXTMENU = require("./js/contextmenu")
     // Some modules require initialisation
     window.INPUT.init()
     window.SETTINGS.init()

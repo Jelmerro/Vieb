@@ -17,12 +17,15 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Action "action.reorderFollowLinks" to change which type of follow links appear on top
 - Basic detection for pseudo-elements in follow mode, such as switches using ::before as the only visible section
+- Right-click menu to websites (when in insert mode or when mouse is enabled)
+- Right-click menu for Vieb interface (when mouse is enabled)
 
 ### Changed
 
 - Reduce timer for follow mode, due to the many speed improvements and simplifications
 - Labels will now correctly match the type of element they refer to (instead of always assuming the clickable type)
 - Default order of elements in follow mode to align with functionality as it was before 3.3.0 (can still be shown with "action.reorderFollowLinks")
+- Only display a single line of the url if it's really long (overflow is suggested with ellipsis)
 
 ### Security
 

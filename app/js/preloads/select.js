@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2020 Jelmer van Arnhem
+* Copyright (C) 2019-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,13 @@ ipcRenderer.on("selection-start-location", (_, sX, sY) => {
     scrollHeight = window.scrollY
 })
 
+ipcRenderer.on("selection-all", () => document.execCommand("selectAll"))
+
+ipcRenderer.on("selection-cut", () => document.execCommand("cut"))
+
 ipcRenderer.on("selection-copy", () => document.execCommand("copy"))
+
+ipcRenderer.on("selection-paste", () => document.execCommand("paste"))
 
 ipcRenderer.on("selection-remove", () => {
     window.getSelection().removeAllRanges()

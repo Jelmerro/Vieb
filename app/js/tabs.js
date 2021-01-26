@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS POINTER FAVICONS FOLLOW HISTORY INPUT MODES
- PAGELAYOUT SESSIONS SETTINGS UTIL */
+/* global ACTIONS CONTEXTMENU FAVICONS FOLLOW HISTORY INPUT MODES
+ PAGELAYOUT POINTER SESSIONS SETTINGS UTIL */
 "use strict"
 
 const fs = require("fs")
@@ -295,13 +295,6 @@ const addTab = options => {
         tab.classList.add("pinned")
     }
     tab.style.minWidth = `${SETTINGS.get("mintabwidth")}px`
-    tab.addEventListener("mouseup", e => {
-        if (e.button === 1) {
-            closeTab(listTabs().indexOf(tab))
-        } else {
-            switchToTab(listTabs().indexOf(tab))
-        }
-    })
     favicon.src = "img/empty.png"
     favicon.className = "favicon"
     statusIcon.src = "img/spinner.gif"
@@ -717,10 +710,14 @@ const addWebviewListeners = webview => {
         if (e.channel === "notify") {
             UTIL.notify(e.args[0], e.args[1])
         }
+        if (e.channel.endsWith("-click-info") && webview !== currentPage()) {
+            switchToTab(listTabs().indexOf(tabOrPageMatching(webview)))
+        }
+        if (e.channel === "context-click-info") {
+            CONTEXTMENU.webviewMenu(e.args[0])
+        }
         if (e.channel === "mouse-click-info") {
-            if (webview !== currentPage()) {
-                switchToTab(listTabs().indexOf(tabOrPageMatching(webview)))
-            }
+            CONTEXTMENU.clear()
             if (SETTINGS.get("mouse") && MODES.currentMode() !== "insert") {
                 if (["pointer", "visual"].includes(MODES.currentMode())) {
                     if (e.args[0].tovisual) {
@@ -742,15 +739,12 @@ const addWebviewListeners = webview => {
         }
         if (e.channel === "download-image") {
             const checkForValidUrl = e.args[1]
-            if (checkForValidUrl) {
-                if (UTIL.isUrl(e.args[0])) {
-                    currentPage().downloadURL(e.args[0])
-                }
-            } else {
+            if (!checkForValidUrl || UTIL.isUrl(e.args[0])) {
                 currentPage().downloadURL(e.args[0])
             }
         }
         if (e.channel === "scroll-height-diff") {
+            CONTEXTMENU.clear()
             POINTER.handleScrollDiffEvent(e.args[0])
         }
         if (e.channel === "history-list-request") {
@@ -810,7 +804,7 @@ const addWebviewListeners = webview => {
                 document.getElementById("url-hover")
                     .textContent = `${UTIL.appName()}://${special.name}`
             }
-            document.getElementById("url-hover").style.display = "flex"
+            document.getElementById("url-hover").style.display = "block"
         } else {
             document.getElementById("url-hover").textContent = ""
             document.getElementById("url-hover").style.display = "none"
