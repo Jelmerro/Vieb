@@ -144,6 +144,9 @@ const useragent = () => session.defaultSession.getUserAgent()
 // https://github.com/electron/electron/issues/25469
 app.commandLine.appendSwitch("disable-features", "CrossOriginOpenerPolicy")
 
+// Disable site isolation to allow websites to access into iframes
+app.commandLine.appendSwitch("disable-site-isolation-trials")
+
 const getArguments = argv => {
     const exec = path.basename(argv[0])
     if (exec === "electron" || process.defaultApp && exec !== "vieb") {
@@ -350,7 +353,9 @@ app.on("ready", () => {
             delete prefs.preloadURL
             prefs.preload = path.join(__dirname, "js/preload.js")
             prefs.nodeIntegration = false
+            prefs.nodeIntegrationInSubFrames = false
             prefs.enableRemoteModule = false
+            prefs.webSecurity = false
         })
         if (enableDebugMode) {
             mainWindow.webContents.openDevTools({"mode": "undocked"})

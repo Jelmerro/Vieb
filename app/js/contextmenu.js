@@ -148,10 +148,31 @@ const webviewMenu = options => {
     createMenuItem({
         "title": "Save page", "action": () => COMMAND.execute("write")
     })
-    createMenuItem({
-        "title": "Select All",
-        "action": () => TABS.currentPage().send("selection-all")
-    })
+    if (options.frame) {
+        createMenuItem({
+            "title": "Navigate to this frame",
+            "action": () => TABS.navigateTo(UTIL.stringToUrl(options.frame))
+        })
+        createMenuItem({
+            "title": "Open this frame as new tab",
+            "action": () => TABS.addTab({
+                "url": UTIL.stringToUrl(options.frame)
+            })
+        })
+        createMenuItem({
+            "title": "Copy this frame's location",
+            "action": () => clipboard.writeText(options.frame)
+        })
+        createMenuItem({
+            "title": "Download this frame",
+            "action": () => TABS.currentPage().downloadURL(options.frame)
+        })
+    } else {
+        createMenuItem({
+            "title": "Select All",
+            "action": () => TABS.currentPage().send("selection-all")
+        })
+    }
     if (options.text) {
         if (options.canedit) {
             createMenuItem({

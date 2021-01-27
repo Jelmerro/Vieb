@@ -1,6 +1,11 @@
 Frequently Asked Questions
 ==========================
 
+This document contains a list of frequently asked questions.
+If you question is not listed or properly answered below, you can ask your question on
+[r/vieb](https://reddit.com/r/vieb) or via [a github issue](https://github.com/Jelmerro/Vieb/issues/new/choose).
+Feel free to ask questions on the subreddit or on github if you can't figure it out.
+
 ## Startup
 
 #### Which release should I download?

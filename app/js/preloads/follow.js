@@ -56,7 +56,7 @@ ipcRenderer.on("focus-first-text-input", async () => {
     if (links.length > 0) {
         const pos = links.sort((el1, el2) => Math.floor(el1.y)
             - Math.floor(el2.y) || el1.x - el2.x)[0]
-        const element = document.elementFromPoint(
+        const element = findElementAtPosition(
             pos.x + pos.width / 2, pos.y + pos.height / 2)
         if (element?.click && element?.focus) {
             ipcRenderer.sendToHost("switch-to-insert")
@@ -67,9 +67,37 @@ ipcRenderer.on("focus-first-text-input", async () => {
     }
 })
 
+const framePosition = frame => ({
+    "x": frame.getBoundingClientRect().x
+        + propPixels({"pl": getComputedStyle(frame).paddingLeft}, "pl")
+        + propPixels({"bl": getComputedStyle(frame).borderLeftWidth}, "bl"),
+    "y": frame.getBoundingClientRect().y
+        + propPixels({"pt": getComputedStyle(frame).paddingTop}, "pt")
+        + propPixels({"bt": getComputedStyle(frame).borderTopWidth}, "bt")
+})
+
+const querySelectorAll = (query, base = document, paddedX = 0, paddedY = 0) => {
+    let elements = []
+    if (base === document) {
+        elements = [...base.querySelectorAll(query)]
+    }
+    ;[...base?.querySelectorAll("iframe") || []].forEach(frame => {
+        const {"x": frameX, "y": frameY} = framePosition(frame)
+        elements = elements.concat(
+            [...frame.contentDocument?.querySelectorAll(query) || []].map(f => {
+                f.vvvPaddedX = paddedX + frameX
+                f.vvvPaddedY = paddedY + frameY
+                return f
+            }))
+        elements = elements.concat([...querySelectorAll(
+            query, frame.contentDocument, frameX, frameY)])
+    })
+    return elements
+}
+
 const getLinkFollows = allLinks => {
     // A tags with href as the link, can be opened in new tab or current tab
-    document.querySelectorAll(urls.join(",")).forEach(e => {
+    querySelectorAll(urls.join(",")).forEach(e => {
         const baseLink = parseElement(e, "url")
         if (baseLink) {
             allLinks.push(baseLink)
@@ -85,17 +113,21 @@ const getLinkFollows = allLinks => {
 
 const getInputFollows = allLinks => {
     // Input tags such as checkboxes, can be clicked but have no text input
-    const inputs = [...document.querySelectorAll(clickableInputs.join(","))]
-    inputs.push(...[...document.querySelectorAll("input")].map(
+    const inputs = [...querySelectorAll(clickableInputs.join(","))]
+    inputs.push(...[...querySelectorAll("input")].map(
         e => e.closest("label")).filter(e => e && !inputs.includes(e)))
     inputs.forEach(element => {
         let type = "inputs-click"
         if (element.tagName.toLowerCase() === "label") {
             const labelFor = element.getAttribute("for")
             if (labelFor) {
-                const forEl = document.getElementById(labelFor)
-                if (forEl && forEl.matches(textlikeInputs.join(","))) {
-                    type = "inputs-insert"
+                try {
+                    const forEl = element.closest(`#${labelFor}`)
+                    if (forEl && forEl.matches(textlikeInputs.join(","))) {
+                        type = "inputs-insert"
+                    }
+                } catch (_) {
+                    // Invalid label, not a valid selector, assuming click input
                 }
             } else if (element.querySelector(textlikeInputs.join(","))) {
                 type = "inputs-insert"
@@ -119,7 +151,7 @@ const getMouseFollows = allLinks => {
             allLinks.push(clickable)
         }
     }
-    const allElements = [...document.querySelectorAll("*")]
+    const allElements = [...querySelectorAll("*")]
     allElements.filter(
         el => clickEvents.find(e => el[`on${e}`] || eventListeners[e].has(el))
         || el.getAttribute("jsaction")).forEach(
@@ -168,10 +200,30 @@ ipcRenderer.on("follow-mode-stop", () => {
     inFollowMode = false
 })
 
-const elementClickableAtPosition = (element, x, y) => {
+const findElementAtPosition = (x, y, base = document, px = 0, py = 0) => {
+    // Find out which element is located at a given position.
+    // Will look inside subframes recursively at the corrected position.
+    const elementAtPosition = base?.elementFromPoint(x - px, y - py)
+    if (elementAtPosition?.matches("iframe")) {
+        return findElementAtPosition(
+            x, y, elementAtPosition.contentDocument,
+            elementAtPosition.vvvPaddedX, elementAtPosition.vvvPaddedY)
+    }
+    return elementAtPosition
+}
+
+const elementClickableAtPosition = (
+    element, x, y, base = document, px = 0, py = 0
+) => {
     // Check if an element can be found in a given position.
     // Also checks if any of the children are visible instead.
-    const elementAtPosition = document.elementFromPoint(x, y)
+    // Will look inside subframes recursively at the corrected position.
+    const elementAtPosition = base?.elementFromPoint(x - px, y - py)
+    if (elementAtPosition?.matches("iframe")) {
+        return elementClickableAtPosition(element,
+            x, y, elementAtPosition.contentDocument,
+            elementAtPosition.vvvPaddedX, elementAtPosition.vvvPaddedY)
+    }
     return elementAtPosition === element || element.contains(elementAtPosition)
 }
 
@@ -259,6 +311,13 @@ const parseElement = (element, type) => {
         ])
     }
     rects = rects.concat(pseudoElementRects(element))
+    if (element.vvvPaddedX) {
+        rects = rects.map(r => {
+            r.x += element.vvvPaddedX
+            r.y += element.vvvPaddedY
+            return r
+        })
+    }
     // Find a clickable area and position for the given element
     const {dimensions, clickable} = findClickPosition(element, rects)
     // Return null if any of the checks below fail
@@ -294,7 +353,7 @@ const parseElement = (element, type) => {
 }
 
 const allElementsBySelectors
-= (type, selectors) => [...document.querySelectorAll(selectors.join(","))]
+= (type, selectors) => [...querySelectorAll(selectors.join(","))]
     .map(element => parseElement(element, type)).filter(e => e)
 
 const eventListeners = {}
@@ -321,33 +380,57 @@ EventTarget.prototype.removeEventListener = function(type, listener, options) {
     }
 }
 
-window.addEventListener("click", e => {
+const clickListener = (e, frame = null) => {
     if (e.isTrusted) {
         ipcRenderer.sendToHost("mouse-click-info", {
-            "x": e.x,
-            "y": e.y,
+            "x": e.x + (frame?.vvvPaddedX || 0),
+            "y": e.y + (frame?.vvvPaddedY || 0),
             "tovisual": !window.getSelection().isCollapsed,
             "toinsert": !!textlikeInputs.find(s => e.target.matches(s))
         })
     }
-})
+}
+window.addEventListener("click", clickListener)
 
-window.addEventListener("contextmenu", e => {
+const contextListener = (e, frame = null) => {
     if (e.isTrusted) {
         e.preventDefault()
         ipcRenderer.sendToHost("context-click-info", {
-            "x": e.x,
-            "y": e.y,
+            "x": e.x + (frame?.vvvPaddedX || 0),
+            "y": e.y + (frame?.vvvPaddedY || 0),
             "img": e.path.find(el => ["svg", "img"].includes(
                 el.tagName?.toLowerCase()) && el.src?.trim()
             )?.src?.trim(),
             "link": e.path.find(el => el.tagName?.toLowerCase() === "a"
                 && el.href?.trim())?.href?.trim(),
             "text": window.getSelection().toString(),
-            "canedit": !!textlikeInputs.find(s => e.target.matches(s))
+            "canedit": !!textlikeInputs.find(s => e.target.matches(s)),
+            "frame": frame?.src
         })
     }
-})
+}
+window.addEventListener("contextmenu", contextListener)
+
+setInterval(() => {
+    [...querySelectorAll("iframe")].forEach(f => {
+        const {x, y} = framePosition(f)
+        if ([...document.querySelectorAll("iframe")].includes(f)) {
+            f.vvvPaddedX = 0
+            f.vvvPaddedY = 0
+        }
+        f.vvvPaddedX = (f.vvvPaddedX || 0) + x
+        f.vvvPaddedY = (f.vvvPaddedY || 0) + y
+        if (!f.vvvHasListeners) {
+            f.contentDocument?.addEventListener("click", e => {
+                clickListener(e, f)
+            })
+            f.contentDocument?.addEventListener("contextmenu", e => {
+                contextListener(e, f)
+            })
+            f.vvvHasListeners = true
+        }
+    })
+}, 500)
 
 window.addEventListener("resize", sendFollowLinks)
 
