@@ -204,14 +204,12 @@ const querySelectorAll = (query, base = document, paddedX = 0, paddedY = 0) => {
     }
     ;[...base?.querySelectorAll("iframe") || []].forEach(frame => {
         const {"x": frameX, "y": frameY} = framePosition(frame)
-        elements = elements.concat(
-            [...frame.contentDocument?.querySelectorAll(query) || []].map(f => {
-                storeFrameInfo(f,
-                    {"x": paddedX + frameX, "y": paddedY + frameY})
-                return f
-            }))
-        elements = elements.concat([...querySelectorAll(
-            query, frame.contentDocument, frameX, frameY)])
+        const location = {"x": frameX + paddedX, "y": frameY + paddedY}
+        storeFrameInfo(frame, location)
+        const extra = [...frame.contentDocument?.querySelectorAll(query) || []]
+        extra.forEach(el => storeFrameInfo(el, location))
+        elements = elements.concat([...extra, ...querySelectorAll(
+            query, frame.contentDocument, location.x, location.y)])
     })
     return elements
 }
@@ -432,14 +430,6 @@ window.addEventListener("contextmenu", contextListener)
 
 setInterval(() => {
     [...querySelectorAll("iframe")].forEach(f => {
-        const {x, y} = framePosition(f)
-        if ([...document.querySelectorAll("iframe")].includes(f)) {
-            storeFrameInfo(f, {x, y})
-        } else {
-            const current = findFrameInfo(f)
-            storeFrameInfo(f,
-                {"x": (current?.x || 0) + x, "y": (current?.y || 0) + y})
-        }
         if (!findFrameInfo(f)?.hasListeners) {
             try {
                 f.contentDocument.addEventListener("click", e => {
