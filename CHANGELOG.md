@@ -32,6 +32,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Mouse events now get registered properly when clicking inside iframes
+- Potential error on websites when trying to access the return value of the window.open function
 
 ### Security
 

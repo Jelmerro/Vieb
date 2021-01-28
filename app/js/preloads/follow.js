@@ -421,13 +421,18 @@ setInterval(() => {
         f.vvvPaddedX = (f.vvvPaddedX || 0) + x
         f.vvvPaddedY = (f.vvvPaddedY || 0) + y
         if (!f.vvvHasListeners) {
-            f.contentDocument?.addEventListener("click", e => {
-                clickListener(e, f)
-            })
-            f.contentDocument?.addEventListener("contextmenu", e => {
-                contextListener(e, f)
-            })
-            f.vvvHasListeners = true
+            try {
+                f.contentDocument.addEventListener("click", e => {
+                    clickListener(e, f)
+                })
+                f.contentDocument.addEventListener("contextmenu", e => {
+                    contextListener(e, f)
+                })
+                f.vvvHasListeners = true
+            } catch (_) {
+                // If setting the listeners fails, the frame might not be loaded
+                // In this case, don't set the property and try again later
+            }
         }
     })
 }, 500)

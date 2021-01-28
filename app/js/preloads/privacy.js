@@ -174,3 +174,17 @@ if (window.navigator.userAgent.includes("Firefox")) {
     Object.defineProperty(window.navigator, "vendor", {"value": ""})
     Object.defineProperty(window.navigator, "webdriver", {"value": false})
 }
+
+// Provide a wrapper for window.open so that it doesn't crash websites
+// Also provide the option to open new tabs by setting the location property
+const realOpen = window.open
+window.open = (url = null) => {
+    if (url) {
+        realOpen(url)
+    }
+    const test = {}
+    Object.defineProperty(test, "location", {
+        "get": () => "", "set": val => realOpen(val)
+    })
+    return test
+}
