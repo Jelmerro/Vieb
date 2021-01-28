@@ -67,34 +67,6 @@ ipcRenderer.on("focus-first-text-input", async () => {
     }
 })
 
-const framePosition = frame => ({
-    "x": frame.getBoundingClientRect().x
-        + propPixels({"pl": getComputedStyle(frame).paddingLeft}, "pl")
-        + propPixels({"bl": getComputedStyle(frame).borderLeftWidth}, "bl"),
-    "y": frame.getBoundingClientRect().y
-        + propPixels({"pt": getComputedStyle(frame).paddingTop}, "pt")
-        + propPixels({"bt": getComputedStyle(frame).borderTopWidth}, "bt")
-})
-
-const querySelectorAll = (query, base = document, paddedX = 0, paddedY = 0) => {
-    let elements = []
-    if (base === document) {
-        elements = [...base.querySelectorAll(query)]
-    }
-    ;[...base?.querySelectorAll("iframe") || []].forEach(frame => {
-        const {"x": frameX, "y": frameY} = framePosition(frame)
-        elements = elements.concat(
-            [...frame.contentDocument?.querySelectorAll(query) || []].map(f => {
-                f.vvvPaddedX = paddedX + frameX
-                f.vvvPaddedY = paddedY + frameY
-                return f
-            }))
-        elements = elements.concat([...querySelectorAll(
-            query, frame.contentDocument, frameX, frameY)])
-    })
-    return elements
-}
-
 const getLinkFollows = allLinks => {
     // A tags with href as the link, can be opened in new tab or current tab
     querySelectorAll(urls.join(",")).forEach(e => {
@@ -200,16 +172,60 @@ ipcRenderer.on("follow-mode-stop", () => {
     inFollowMode = false
 })
 
+// Send the page once every second in case of transitions or animations
+// Could be done with an observer, but that drastically slows down on big pages
+setInterval(sendFollowLinks, 1000)
+window.addEventListener("resize", sendFollowLinks)
+
+const iframePaddingInfo = []
+const storeFrameInfo = (element, options) => {
+    const info = iframePaddingInfo.find(i => i.element === element)
+    if (info) {
+        Object.assign(info, options)
+    } else {
+        iframePaddingInfo.push({element, ...options})
+    }
+}
+const findFrameInfo = el => iframePaddingInfo.find(i => i.element === el)
+
+const framePosition = frame => ({
+    "x": frame.getBoundingClientRect().x
+        + propPixels({"pl": getComputedStyle(frame).paddingLeft}, "pl")
+        + propPixels({"bl": getComputedStyle(frame).borderLeftWidth}, "bl"),
+    "y": frame.getBoundingClientRect().y
+        + propPixels({"pt": getComputedStyle(frame).paddingTop}, "pt")
+        + propPixels({"bt": getComputedStyle(frame).borderTopWidth}, "bt")
+})
+
+const querySelectorAll = (query, base = document, paddedX = 0, paddedY = 0) => {
+    let elements = []
+    if (base === document) {
+        elements = [...base.querySelectorAll(query)]
+    }
+    ;[...base?.querySelectorAll("iframe") || []].forEach(frame => {
+        const {"x": frameX, "y": frameY} = framePosition(frame)
+        elements = elements.concat(
+            [...frame.contentDocument?.querySelectorAll(query) || []].map(f => {
+                storeFrameInfo(f,
+                    {"x": paddedX + frameX, "y": paddedY + frameY})
+                return f
+            }))
+        elements = elements.concat([...querySelectorAll(
+            query, frame.contentDocument, frameX, frameY)])
+    })
+    return elements
+}
+
 const findElementAtPosition = (x, y, base = document, px = 0, py = 0) => {
     // Find out which element is located at a given position.
     // Will look inside subframes recursively at the corrected position.
-    const elementAtPosition = base?.elementFromPoint(x - px, y - py)
-    if (elementAtPosition?.matches("iframe")) {
+    const elementAtPos = base?.elementFromPoint(x - px, y - py)
+    if (elementAtPos?.matches("iframe")) {
+        const frameInfo = findFrameInfo(elementAtPos) || {}
         return findElementAtPosition(
-            x, y, elementAtPosition.contentDocument,
-            elementAtPosition.vvvPaddedX, elementAtPosition.vvvPaddedY)
+            x, y, elementAtPos.contentDocument, frameInfo.x, frameInfo.y)
     }
-    return elementAtPosition
+    return elementAtPos
 }
 
 const elementClickableAtPosition = (
@@ -218,13 +234,13 @@ const elementClickableAtPosition = (
     // Check if an element can be found in a given position.
     // Also checks if any of the children are visible instead.
     // Will look inside subframes recursively at the corrected position.
-    const elementAtPosition = base?.elementFromPoint(x - px, y - py)
-    if (elementAtPosition?.matches("iframe")) {
+    const elementAtPos = base?.elementFromPoint(x - px, y - py)
+    if (elementAtPos?.matches("iframe")) {
+        const frameInfo = findFrameInfo(elementAtPos) || {}
         return elementClickableAtPosition(element,
-            x, y, elementAtPosition.contentDocument,
-            elementAtPosition.vvvPaddedX, elementAtPosition.vvvPaddedY)
+            x, y, elementAtPos.contentDocument, frameInfo.x, frameInfo.y)
     }
-    return elementAtPosition === element || element.contains(elementAtPosition)
+    return elementAtPos === element || element.contains(elementAtPos)
 }
 
 const findClickPosition = (element, rects) => {
@@ -311,10 +327,11 @@ const parseElement = (element, type) => {
         ])
     }
     rects = rects.concat(pseudoElementRects(element))
-    if (element.vvvPaddedX) {
+    const paddingInfo = findFrameInfo(element)
+    if (paddingInfo) {
         rects = rects.map(r => {
-            r.x += element.vvvPaddedX
-            r.y += element.vvvPaddedY
+            r.x += paddingInfo.x
+            r.y += paddingInfo.y
             return r
         })
     }
@@ -382,9 +399,10 @@ EventTarget.prototype.removeEventListener = function(type, listener, options) {
 
 const clickListener = (e, frame = null) => {
     if (e.isTrusted) {
+        const paddingInfo = findFrameInfo(frame)
         ipcRenderer.sendToHost("mouse-click-info", {
-            "x": e.x + (frame?.vvvPaddedX || 0),
-            "y": e.y + (frame?.vvvPaddedY || 0),
+            "x": e.x + (paddingInfo?.x || 0),
+            "y": e.y + (paddingInfo?.y || 0),
             "tovisual": !window.getSelection().isCollapsed,
             "toinsert": !!textlikeInputs.find(s => e.target.matches(s))
         })
@@ -395,9 +413,10 @@ window.addEventListener("click", clickListener)
 const contextListener = (e, frame = null) => {
     if (e.isTrusted) {
         e.preventDefault()
+        const paddingInfo = findFrameInfo(frame)
         ipcRenderer.sendToHost("context-click-info", {
-            "x": e.x + (frame?.vvvPaddedX || 0),
-            "y": e.y + (frame?.vvvPaddedY || 0),
+            "x": e.x + (paddingInfo?.x || 0),
+            "y": e.y + (paddingInfo?.y || 0),
             "img": e.path.find(el => ["svg", "img"].includes(
                 el.tagName?.toLowerCase()) && el.src?.trim()
             )?.src?.trim(),
@@ -415,12 +434,13 @@ setInterval(() => {
     [...querySelectorAll("iframe")].forEach(f => {
         const {x, y} = framePosition(f)
         if ([...document.querySelectorAll("iframe")].includes(f)) {
-            f.vvvPaddedX = 0
-            f.vvvPaddedY = 0
+            storeFrameInfo(f, {x, y})
+        } else {
+            const current = findFrameInfo(f)
+            storeFrameInfo(f,
+                {"x": (current?.x || 0) + x, "y": (current?.y || 0) + y})
         }
-        f.vvvPaddedX = (f.vvvPaddedX || 0) + x
-        f.vvvPaddedY = (f.vvvPaddedY || 0) + y
-        if (!f.vvvHasListeners) {
+        if (!findFrameInfo(f)?.hasListeners) {
             try {
                 f.contentDocument.addEventListener("click", e => {
                     clickListener(e, f)
@@ -428,7 +448,7 @@ setInterval(() => {
                 f.contentDocument.addEventListener("contextmenu", e => {
                     contextListener(e, f)
                 })
-                f.vvvHasListeners = true
+                storeFrameInfo(f, {"hasListeners": true})
             } catch (_) {
                 // If setting the listeners fails, the frame might not be loaded
                 // In this case, don't set the property and try again later
@@ -436,9 +456,3 @@ setInterval(() => {
         }
     })
 }, 500)
-
-window.addEventListener("resize", sendFollowLinks)
-
-// Send the page once every second in case of transitions or animations
-// Could be done with a listener, but that drastically slows down on big pages
-setInterval(sendFollowLinks, 1000)
