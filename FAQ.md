@@ -12,8 +12,8 @@ Feel free to ask questions on the subreddit or on github if you can't figure it 
 
 On Windows you would download releases ending in `.exe` or `win.zip`.
 On Linux you download either the AppImage or your distribution's native format (e.g. deb for Debian/Ubuntu and so on).
-For Mac, there is only a zipped App.
-Finally, make sure that you download the right architecture for your system.
+For Mac, there are two zipped Apps, one for x64 and one for ARM64.
+It's important to make sure that you download the right architecture for your system.
 If it's a Raspberry Pi or similar, pick ARM64 for your distribution,
 otherwise, you probably need the regular release (AMD64, x86_64 or simply no suffix).
 

@@ -46,6 +46,7 @@ mac:
     - target: zip
       arch:
         - x64
+        - arm64
 win:
   icon: app/img/icons/512x512.png
   legalTrademarks: Copyright @ Jelmer van Arnhem | Licensed as free software (GPL-3.0+)

@@ -20,6 +20,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Right-click menu to websites (when in insert mode or when mouse is enabled)
 - Right-click menu for Vieb interface (when mouse is enabled)
 - Follow mode support for iframes
+- ARM64 build for macOS
 
 ### Changed
 

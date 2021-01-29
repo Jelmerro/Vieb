@@ -29,15 +29,17 @@ process.argv.slice(1).forEach(a => {
     }
 })
 builder.build(builds).then(e => {
-    if (isDir("dist/mac/Vieb.app/")) {
-        rimraf("dist/Vieb-*-mac.zip")
-        const stream = fs.createWriteStream(`dist/Vieb-${version}-mac.zip`)
-        const archive = archiver("zip", {"zlib": {"level": 9}})
-        archive.pipe(stream)
-        archive.directory("dist/mac/Vieb.app/", "Vieb.app")
-        archive.file("README.md", {"name": "README.md"})
-        archive.file("LICENSE", {"name": "LICENSE"})
-        archive.finalize()
+    rimraf("dist/Vieb-*-mac.zip")
+    for (const os of ["mac", "mac-arm64"]) {
+        if (isDir(`dist/${os}/Vieb.app/`)) {
+            const zip = fs.createWriteStream(`dist/Vieb-${version}-${os}.zip`)
+            const archive = archiver("zip", {"zlib": {"level": 9}})
+            archive.pipe(zip)
+            archive.directory(`dist/${os}/Vieb.app/`, "Vieb.app")
+            archive.file("README.md", {"name": "README.md"})
+            archive.file("LICENSE", {"name": "LICENSE"})
+            archive.finalize()
+        }
     }
     console.log(e)
 }).catch(e => {
