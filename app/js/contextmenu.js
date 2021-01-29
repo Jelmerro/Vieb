@@ -224,10 +224,6 @@ const webviewMenu = options => {
             "title": "Open image in new tab",
             "action": () => TABS.addTab({"url": options.img})
         })
-        // TODO figure out if this is possible: createMenuItem({
-        //     "title": "Copy image",
-        //     "action": () => clipboard.writeImage(options.img)
-        // })
         createMenuItem({
             "title": "Download image",
             "action": () => TABS.currentPage().downloadURL(options.img)
