@@ -17,6 +17,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Incorrect action when following links with a custom datamethod attribute (such as put or post)
 - Follow mode not loading on some pages due to querySelectorAll sometimes returning undefined instead of an empty NodeList
+- Potential parse errors for invalid URLs being stored or opened by pages
 
 ### Security
 

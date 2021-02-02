@@ -657,8 +657,13 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         }
         if (downloadSettings.downloadmethod === "confirm") {
             const wrappedFileName = filename.replace(/.{50}/g, "$&\n")
-            const wrappedUrl = decodeURIComponent(item.getURL())
-                .replace(/.{50}/g, "$&\n")
+            let wrappedUrl = item.getURL
+            try {
+                wrappedUrl = decodeURI(wrappedUrl)
+            } catch (__) {
+                // Invalid url
+            }
+            wrappedUrl = wrappedUrl.replace(/.{50}/g, "$&\n")
             const button = dialog.showMessageBoxSync(mainWindow, {
                 "type": "question",
                 "buttons": ["Allow", "Deny"],

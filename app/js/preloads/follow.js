@@ -361,7 +361,7 @@ const parseElement = (element, type) => {
         // Empty the href for links that require a specific data method to open
         // These will use clicks instead of direct navigation to work correctly
         const dataMethod = element.getAttribute("data-method")?.toLowerCase()
-        if (!["get", null].includes(dataMethod)) {
+        if (dataMethod && dataMethod !== "get") {
             href = ""
         }
     }

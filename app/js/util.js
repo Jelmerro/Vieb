@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2020 Jelmer van Arnhem
+* Copyright (C) 2019-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -204,14 +204,18 @@ const pathToSpecialPageName = urlPath => {
                     "section": urlPath.split("#").slice(1).join("#")
                 }
             }
-            const decodedPath = decodeURIComponent(urlPath)
-            const decodedNormalizedUrl = path.posix.normalize(
-                decodedPath.replace(/^file:\/*/g, ""))
-            if (decodedNormalizedUrl.startsWith(specialPage)) {
-                return {
-                    "name": page,
-                    "section": urlPath.split("#").slice(1).join("#")
+            try {
+                const decodedPath = decodeURI(urlPath)
+                const decodedNormalizedUrl = path.posix.normalize(
+                    decodedPath.replace(/^file:\/*/g, ""))
+                if (decodedNormalizedUrl.startsWith(specialPage)) {
+                    return {
+                        "name": page,
+                        "section": urlPath.split("#").slice(1).join("#")
+                    }
                 }
+            } catch (_) {
+                // Invalid url
             }
         }
     }
@@ -380,7 +384,12 @@ const urlToString = url => {
             url += `#${special.section}`
         }
     }
-    return decodeURI(url)
+    try {
+        return decodeURI(url)
+    } catch (_) {
+        // Invalid url
+    }
+    return url
 }
 
 const listNotificationHistory = () => notificationHistory

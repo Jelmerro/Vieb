@@ -597,7 +597,7 @@ const addWebviewListeners = webview => {
         if (e.errorDescription === "ERR_FILE_NOT_FOUND") {
             // Any number of slashes after file is fine for now
             if (webview.src.startsWith("file:/")) {
-                const local = decodeURIComponent(webview.src)
+                const local = UTIL.stringToUrl(webview.src)
                     .replace(/file:\/*/, "/")
                 if (UTIL.isDir(local)) {
                     let paths = []
