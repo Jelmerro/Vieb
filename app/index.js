@@ -326,9 +326,6 @@ app.on("ready", () => {
             "webviewTag": true
         }
     }
-    if (!windowData.icon) {
-        delete windowData.icon
-    }
     mainWindow = new BrowserWindow(windowData)
     mainWindow.removeMenu()
     mainWindow.setMinimumSize(500, 500)
@@ -382,9 +379,6 @@ app.on("ready", () => {
             "partition": "login"
         }
     }
-    if (!loginWindowData.icon) {
-        delete loginWindowData.icon
-    }
     loginWindow = new BrowserWindow(loginWindowData)
     const loginPage = `file:///${path.join(__dirname, "pages/loginpopup.html")}`
     loginWindow.loadURL(loginPage)
@@ -414,9 +408,6 @@ app.on("ready", () => {
             "enableRemoteModule": false,
             "partition": "notification-window"
         }
-    }
-    if (!notificationWindowData.icon) {
-        delete notificationWindowData.icon
     }
     notificationWindow = new BrowserWindow(notificationWindowData)
     const notificationPage = `file:///${path.join(
