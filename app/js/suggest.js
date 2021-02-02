@@ -354,6 +354,7 @@ const suggestCommand = search => {
     const bufferCommand = [
         "buffer",
         "hide",
+        "mute",
         "pin",
         "Vexplore",
         "Sexplore",
@@ -364,7 +365,7 @@ const suggestCommand = search => {
     if (bufferCommand && !confirm) {
         const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
         TABS.listTabs().filter(tab => {
-            if (["close", "buffer", "pin"].includes(bufferCommand)) {
+            if (["close", "buffer", "mute", "pin"].includes(bufferCommand)) {
                 return true
             }
             if (bufferCommand === "hide") {

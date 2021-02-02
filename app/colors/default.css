@@ -26,6 +26,8 @@
     --visible-tab: #666;
     --tab-split: #f90;
     --tab-audio: #09f;
+    --tab-muted: #fff;
+    --tab-muted-playing: #ff3;
     --tab-crashed: #f00;
     --tab-scrollbar: #5ff;
     --container-background: none;
@@ -147,6 +149,8 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #tabs .pinned > img {padding: 0;margin: .2em;}
 #tabs .crashed {background: var(--tab-crashed);}
 #tabs [media-playing]::before {border-left: solid .3em var(--tab-audio);content: "";}
+#tabs [muted]::before {border-left: solid .3em var(--tab-muted);content: "";}
+#tabs [muted][media-playing]::before {border-left: solid .3em var(--tab-muted-playing);content: "";}
 #tabs.scroll {overflow-x: auto;}
 #tabs.wrap {flex-wrap: wrap;}
 /* pages container */

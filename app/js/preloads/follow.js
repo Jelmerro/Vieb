@@ -178,16 +178,16 @@ ipcRenderer.on("follow-mode-stop", () => {
 setInterval(sendFollowLinks, 1000)
 window.addEventListener("resize", sendFollowLinks)
 
-const iframePaddingInfo = []
+const framePaddingInfo = []
 const storeFrameInfo = (element, options) => {
-    const info = iframePaddingInfo.find(i => i.element === element)
+    const info = framePaddingInfo.find(i => i.element === element)
     if (info) {
         Object.assign(info, options)
     } else {
-        iframePaddingInfo.push({element, ...options})
+        framePaddingInfo.push({element, ...options})
     }
 }
-const findFrameInfo = el => iframePaddingInfo.find(i => i.element === el)
+const findFrameInfo = el => framePaddingInfo.find(i => i.element === el)
 
 const framePosition = frame => ({
     "x": frame.getBoundingClientRect().x

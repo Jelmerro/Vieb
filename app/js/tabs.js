@@ -188,9 +188,13 @@ const saveTabs = () => {
         const container = UTIL.urlToString(tabOrPageMatching(tab)
             .getAttribute("container"))
         if (tab.classList.contains("pinned")) {
-            data.pinned.push({url, container})
+            data.pinned.push({
+                url, container, "muted": !!tab.getAttribute("muted")
+            })
         } else if (SETTINGS.get("restoretabs")) {
-            data.tabs.push({url, container})
+            data.tabs.push({
+                url, container, "muted": !!tab.getAttribute("muted")
+            })
         } else if (SETTINGS.get("keeprecentlyclosed")) {
             data.closed.push({url, container})
         }
@@ -210,7 +214,7 @@ const currentTab = () => document.getElementById("current-tab")
 const currentPage = () => document.getElementById("current-page")
 
 const addTab = options => {
-    // Valid options: url, inverted, switchTo, pinned, container and callback
+    // Options: url, inverted, switchTo, pinned, container, muted and callback
     if (!options) {
         options = {}
     }
@@ -339,6 +343,10 @@ const addTab = options => {
     linkId += 1
     webview.addEventListener("dom-ready", () => {
         if (!webview.getAttribute("dom-ready")) {
+            if (options.muted) {
+                tab.setAttribute("muted", "muted")
+                webview.setAudioMuted(true)
+            }
             ipcRenderer.send("disable-localrtc", webview.getWebContentsId())
             ipcRenderer.send("insert-mode-listener", webview.getWebContentsId())
             addWebviewListeners(webview)

@@ -400,6 +400,24 @@ const hide = (...args) => {
     }
 }
 
+const mute = (...args) => {
+    let tab = TABS.currentTab()
+    if (args.length > 0) {
+        tab = tabForBufferArg(args)
+    }
+    if (!tab) {
+        UTIL.notify("Can't find matching page, no tabs (un)muted", "warn")
+        return
+    }
+    if (tab.getAttribute("muted")) {
+        tab.removeAttribute("muted")
+    } else {
+        tab.setAttribute("muted", "muted")
+    }
+    TABS.tabOrPageMatching(tab).setAudioMuted(!!tab.getAttribute("muted"))
+    TABS.saveTabs()
+}
+
 const pin = (...args) => {
     let tab = TABS.currentTab()
     if (args.length > 0) {
@@ -566,6 +584,7 @@ const commands = {
     "buffer": buffer,
     "hide": hide,
     "pin": pin,
+    "mute": mute,
     "Vexplore": (...args) => addSplit("hor", !SETTINGS.get("splitbelow"), args),
     "Sexplore": (...args) => addSplit("ver", !SETTINGS.get("splitright"), args),
     "split": (...args) => addSplit("ver", !SETTINGS.get("splitright"), args),

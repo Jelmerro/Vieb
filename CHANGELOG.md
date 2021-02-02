@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Mute command to toggle the audio playback status of a tab (either mute or unmute)
+
 ### Changed
 
 - Iframe detection on pages now also works for frames in framesets, embeds and for object tags
