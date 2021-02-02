@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Changed
+
+- Iframe detection on pages now also works for frames in framesets, embeds and for object tags
+
 ### Fixed
 
 - Incorrect action when following links with a custom datamethod attribute (such as put or post)

@@ -50,6 +50,7 @@ const clickEvents = ["click", "mousedown"]
 const otherEvents = [
     "mouseenter", "mouseleave", "mousemove", "mouseout", "mouseover", "mouseup"
 ]
+const frameSelector = "embed, frame, iframe, object"
 
 ipcRenderer.on("focus-first-text-input", async () => {
     const links = allElementsBySelectors("inputs-insert", textlikeInputs)
@@ -202,14 +203,17 @@ const querySelectorAll = (query, base = document, paddedX = 0, paddedY = 0) => {
     if (base === document) {
         elements = [...base?.querySelectorAll(query) || []]
     }
-    ;[...base?.querySelectorAll("iframe") || []].forEach(frame => {
+    ;[...base?.querySelectorAll(frameSelector) || []].forEach(frame => {
         const {"x": frameX, "y": frameY} = framePosition(frame)
         const location = {"x": frameX + paddedX, "y": frameY + paddedY}
         storeFrameInfo(frame, location)
         const extra = [...frame.contentDocument?.querySelectorAll(query) || []]
         extra.forEach(el => storeFrameInfo(el, location))
-        elements = elements.concat([...extra, ...querySelectorAll(
-            query, frame.contentDocument, location.x, location.y) || []])
+        elements = elements.concat([...extra])
+        if (frame.contentDocument) {
+            elements = elements.concat([...querySelectorAll(
+                query, frame.contentDocument, location.x, location.y) || []])
+        }
     })
     return elements
 }
@@ -218,7 +222,7 @@ const findElementAtPosition = (x, y, base = document, px = 0, py = 0) => {
     // Find out which element is located at a given position.
     // Will look inside subframes recursively at the corrected position.
     const elementAtPos = base?.elementFromPoint(x - px, y - py)
-    if (elementAtPos?.matches("iframe")) {
+    if (elementAtPos?.matches(frameSelector)) {
         const frameInfo = findFrameInfo(elementAtPos) || {}
         return findElementAtPosition(
             x, y, elementAtPos.contentDocument, frameInfo.x, frameInfo.y)
@@ -233,7 +237,7 @@ const elementClickableAtPosition = (
     // Also checks if any of the children are visible instead.
     // Will look inside subframes recursively at the corrected position.
     const elementAtPos = base?.elementFromPoint(x - px, y - py)
-    if (elementAtPos?.matches("iframe")) {
+    if (elementAtPos?.matches(frameSelector)) {
         const frameInfo = findFrameInfo(elementAtPos) || {}
         return elementClickableAtPosition(element,
             x, y, elementAtPos.contentDocument, frameInfo.x, frameInfo.y)
@@ -437,7 +441,7 @@ const contextListener = (e, frame = null) => {
 window.addEventListener("contextmenu", contextListener)
 
 setInterval(() => {
-    [...querySelectorAll("iframe")].forEach(f => {
+    [...querySelectorAll(frameSelector)].forEach(f => {
         if (!findFrameInfo(f)?.hasListeners) {
             try {
                 f.contentDocument.addEventListener("click", e => {
