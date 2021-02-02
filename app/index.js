@@ -606,6 +606,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     applyDevtoolsSettings(path.join(sessionDir, "Preferences"))
     const newSession = session.fromPartition(name, {cache})
     newSession.setPermissionRequestHandler(permissionHandler)
+    newSession.setPermissionCheckHandler(() => true)
     sessionList.push(name)
     if (adblock !== "off") {
         enableAdblocker()
