@@ -65,6 +65,7 @@ win:
         - README.md
         - LICENSE
 nsis:
+  differentialPackage: false
   oneClick: false
   license: LICENSE
 files:
