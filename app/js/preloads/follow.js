@@ -77,7 +77,7 @@ const getLinkFollows = allLinks => {
             // Try subelements instead, for example if the link is not
             // visible or `display: none`, but a sub-element is absolutely
             // positioned somewhere else.
-            allLinks.push(...[...e.querySelectorAll("*")]
+            allLinks.push(...[...e?.querySelectorAll("*") || []]
                 .map(c => parseElement(c, "url")).filter(l => l))
         }
     })
@@ -200,7 +200,7 @@ const framePosition = frame => ({
 const querySelectorAll = (query, base = document, paddedX = 0, paddedY = 0) => {
     let elements = []
     if (base === document) {
-        elements = [...base.querySelectorAll(query)]
+        elements = [...base?.querySelectorAll(query) || []]
     }
     ;[...base?.querySelectorAll("iframe") || []].forEach(frame => {
         const {"x": frameX, "y": frameY} = framePosition(frame)
@@ -209,7 +209,7 @@ const querySelectorAll = (query, base = document, paddedX = 0, paddedY = 0) => {
         const extra = [...frame.contentDocument?.querySelectorAll(query) || []]
         extra.forEach(el => storeFrameInfo(el, location))
         elements = elements.concat([...extra, ...querySelectorAll(
-            query, frame.contentDocument, location.x, location.y)])
+            query, frame.contentDocument, location.x, location.y) || []])
     })
     return elements
 }
@@ -319,7 +319,7 @@ const parseElement = (element, type) => {
     }
     // Make a list of all possible bounding rects for the element
     let rects = [boundingRect, ...element.getClientRects()]
-    for (const subImage of element.querySelectorAll("img, svg")) {
+    for (const subImage of element?.querySelectorAll("img, svg") || []) {
         rects = rects.concat([
             subImage.getBoundingClientRect(), ...subImage.getClientRects()
         ])
@@ -348,7 +348,9 @@ const parseElement = (element, type) => {
         return null
     }
     // The element should be clickable and is returned in a parsed format
+    let href = String(element.href || "")
     if (type === "url") {
+        // Set links to the current page as type 'other'
         if (!element.href) {
             type = "other"
         } else if (element.href === window.location.href) {
@@ -356,9 +358,15 @@ const parseElement = (element, type) => {
         } else if (element.href === `${window.location.href}#`) {
             type = "other"
         }
+        // Empty the href for links that require a specific data method to open
+        // These will use clicks instead of direct navigation to work correctly
+        const dataMethod = element.getAttribute("data-method")?.toLowerCase()
+        if (!["get", null].includes(dataMethod)) {
+            href = ""
+        }
     }
     return {
-        "url": String(element.href || ""),
+        "url": href,
         "x": dimensions.x,
         "y": dimensions.y,
         "width": dimensions.width,

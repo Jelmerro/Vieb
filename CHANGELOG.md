@@ -11,6 +11,18 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Fixed
+
+- Incorrect action when following links with a custom datamethod attribute (such as put or post)
+- Follow mode not loading on some pages due to querySelectorAll sometimes returning undefined instead of an empty NodeList
+
+### Security
+
+- Electron 11.2.1 (unchanged)
+- Chromium 87.0.4280.141 (unchanged)
+
 ## [3.4.0](https://github.com/Jelmerro/Vieb/compare/3.3.0...3.4.0) - 2021-01-31
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/3.3.0...3.4.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/3.4.0)
