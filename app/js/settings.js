@@ -82,6 +82,7 @@ const defaultSettings = {
         + "~https://$3",
     "redirecttohttp": false,
     "requesttimeout": 20000,
+    "respectsitecontextmenu": true,
     "restoretabs": true,
     "restorewindowmaximize": true,
     "restorewindowposition": true,

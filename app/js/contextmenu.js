@@ -133,6 +133,10 @@ const webviewMenu = options => {
         clear()
         return
     }
+    if (options.hasExistingListener && SETTINGS.get("respectsitecontextmenu")) {
+        clear()
+        return
+    }
     const webviewY = Number(TABS.currentPage().style.top.replace("px", ""))
     const webviewX = Number(TABS.currentPage().style.left.replace("px", ""))
     contextMenu.style.top = `${options.y + webviewY}px`
@@ -174,7 +178,7 @@ const webviewMenu = options => {
         })
     }
     if (options.text) {
-        if (options.canedit) {
+        if (options.canEdit) {
             createMenuItem({
                 "title": "Cut",
                 "action": () => TABS.currentPage().send("selection-cut")
@@ -184,7 +188,7 @@ const webviewMenu = options => {
             "title": "Copy", "action": () => clipboard.writeText(options.text)
         })
     }
-    if (options.canedit && clipboard.readText().trim()) {
+    if (options.canEdit && clipboard.readText().trim()) {
         createMenuItem({
             "title": "Paste",
             "action": () => TABS.currentPage().send("selection-paste")

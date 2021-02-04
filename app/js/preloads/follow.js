@@ -48,7 +48,13 @@ const textlikeInputs = [
 ]
 const clickEvents = ["click", "mousedown"]
 const otherEvents = [
-    "mouseenter", "mouseleave", "mousemove", "mouseout", "mouseover", "mouseup"
+    "mouseenter",
+    "mouseleave",
+    "mousemove",
+    "mouseout",
+    "mouseover",
+    "mouseup",
+    "contextmenu"
 ]
 const frameSelector = "embed, frame, iframe, object"
 
@@ -433,8 +439,9 @@ const contextListener = (e, frame = null) => {
             "link": e.path.find(el => el.tagName?.toLowerCase() === "a"
                 && el.href?.trim())?.href?.trim(),
             "text": window.getSelection().toString(),
-            "canedit": !!textlikeInputs.find(s => e.target.matches(s)),
-            "frame": frame?.src
+            "canEdit": !!textlikeInputs.find(s => e.target.matches(s)),
+            "frame": frame?.src,
+            "hasExistingListener": eventListeners.contextmenu.has(e.target)
         })
     }
 }

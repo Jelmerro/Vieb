@@ -16,10 +16,12 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Mute command to toggle the audio playback status of a tab (either mute or unmute)
+- Setting "respectsitecontextmenu" to toggle if Vieb should show it's menu on websites that already provide one
 
 ### Changed
 
 - Iframe detection on pages now also works for frames in framesets, embeds and for object tags
+- Enable "respectsitecontextmenu" by default to be able to use the right-click menus of websites without Vieb interfering
 
 ### Fixed
 
