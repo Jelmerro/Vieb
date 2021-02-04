@@ -145,7 +145,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #tabs .visible-tab {background: var(--visible-tab);}
 #tabs.multiple #current-tab {border-left: solid .3em var(--tab-split);}
 #tabs .pinned {min-width: 1.9em !important;max-width: 1.9em;width: 1.9em;padding: 0;}
-#tabs .pinned[media-playing] {width: 2.2em;max-width: 2.2em;}
+#tabs .pinned[media-playing], #tabs .pinned[muted] {width: 2.2em;max-width: 2.2em;}
 #tabs .pinned > img {padding: 0;margin: .2em;}
 #tabs .crashed {background: var(--tab-crashed);}
 #tabs [media-playing]::before {border-left: solid .3em var(--tab-audio);content: "";}
