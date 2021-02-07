@@ -67,7 +67,8 @@ const init = () => {
                             return t
                         }).forEach(tab => addTab({
                             ...tab,
-                            "lazy": lazy && !tab.pinned
+                            "lazy": lazy && !tab.pinned,
+                            "switchTo": false
                         }))
                     }
                     if (Array.isArray(parsed.closed)) {
@@ -292,10 +293,10 @@ const addTab = options => {
         sessionName = currentPage()?.getAttribute("container") || "main"
     }
     let addNextToCurrent = SETTINGS.get("tabnexttocurrent")
-    addNextToCurrent = addNextToCurrent && listTabs().length > 0
     if (options.inverted) {
         addNextToCurrent = !addNextToCurrent
     }
+    addNextToCurrent = addNextToCurrent && currentTab()
     const tabs = document.getElementById("tabs")
     const pages = document.getElementById("pages")
     const tab = document.createElement("span")
