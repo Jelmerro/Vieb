@@ -183,8 +183,7 @@ const saveTabs = () => {
     }
     listTabs().forEach((tab, index) => {
         const webview = tabOrPageMatching(tab)
-        const url = webview.getAttribute("lazy")
-            || UTIL.urlToString(webview.src)
+        const url = UTIL.urlToString(webview.src)
         if (!url || url.startsWith("devtools://")) {
             if (index <= data.id) {
                 data.id -= 1
@@ -213,7 +212,7 @@ const saveTabs = () => {
 
 const listTabs = () => [...document.querySelectorAll("#tabs > span[link-id]")]
 
-const listPages = () => [...document.querySelectorAll("#pages > webview")]
+const listPages = () => [...document.querySelectorAll("#pages > .webview")]
 
 const currentTab = () => document.getElementById("current-tab")
 
@@ -234,6 +233,7 @@ const addTab = options => {
     if (options.url === "about:blank") {
         return
     }
+    linkId += 1
     let currentPageId = null
     let currentPageLinkId = null
     let devtoolsOpen = false
@@ -324,40 +324,68 @@ const addTab = options => {
     } else {
         tabs.appendChild(tab)
     }
-    const webview = document.createElement("webview")
-    webview.setAttribute("link-id", linkId)
     tab.setAttribute("link-id", linkId)
-    if (SETTINGS.get("spell")) {
-        webview.setAttribute("webpreferences", "spellcheck=yes")
-    }
     const color = SETTINGS.get("containercolors").split(",").find(
         c => sessionName.match(c.split("~")[0]))
     if (color) {
         tab.style.color = color.split("~")[1]
     }
-    SESSIONS.create(sessionName)
-    webview.setAttribute("partition", `persist:${sessionName}`)
-    webview.setAttribute("container", sessionName)
-    pages.appendChild(webview)
-    if (options.switchTo) {
-        switchToTab(listTabs().indexOf(tab))
+
+    const page = document.createElement("div")
+    page.classList.add("webview")
+    page.setAttribute("link-id", linkId)
+    if (options.url) {
+        page.src = UTIL.stringToUrl(options.url)
     }
+    page.callback = options.callback
+    page.setAttribute("container", sessionName)
     if (isDevtoolsTab) {
-        webview.src = "about:blank"
-    } else if (options.lazy && options.url) {
+        page.setAttribute("devtools-for-id", currentPageId)
+    }
+    page.setAttribute("muted", options.muted)
+    pages.appendChild(page)
+    if (options.lazy) {
         const url = UTIL.stringToUrl(options.url)
-        webview.setAttribute("lazy", url)
-        // Also set attribute on tab for theming
-        tab.setAttribute("lazy", url)
+        tab.setAttribute("suspended", "suspended")
         title.textContent = HISTORY.titleForPage(url) || url
         favicon.src = FAVICONS.forSite(url) || favicon.src
     } else {
+        unsuspendPage(page)
+    }
+    if (options.switchTo) {
+        switchToTab(listTabs().indexOf(tab))
+    }
+}
+
+const unsuspendPage = page => {
+    if (page.tagName === "WEBVIEW") {
+        return
+    }
+    tabOrPageMatching(page).removeAttribute("suspended")
+    const webview = document.createElement("webview")
+    ;["link-id", "container", "class", "id", "style"].forEach(
+        attr => webview.setAttribute(attr, page.getAttribute(attr)))
+    if (SETTINGS.get("spell")) {
+        webview.setAttribute("webpreferences", "spellcheck=yes")
+    }
+    const sessionName = page.getAttribute("container")
+    SESSIONS.create(sessionName)
+    webview.setAttribute("partition", `persist:${sessionName}`)
+    const currentPageId = page.getAttribute("devtools-for-id")
+    const isDevtoolsTab = !!currentPageId
+    if (isDevtoolsTab) {
+        webview.src = "about:blank"
+    } else {
         webview.src = UTIL.specialPagePath("newtab")
     }
-    linkId += 1
+    const muted = page.getAttribute("muted") === "true"
+    const url = page.src
+    const callback = page.callback
     webview.addEventListener("dom-ready", () => {
         if (!webview.getAttribute("dom-ready")) {
-            if (options.muted) {
+            const tab = tabOrPageMatching(webview)
+            const title = tab.querySelector("span")
+            if (muted) {
                 tab.setAttribute("muted", "muted")
                 webview.setAudioMuted(true)
             }
@@ -369,18 +397,19 @@ const addTab = options => {
                 ipcRenderer.send("add-devtools",
                     currentPageId, webview.getWebContentsId())
                 title.textContent = "Devtools"
-            } else if (options.url) {
-                webview.src = UTIL.stringToUrl(options.url)
+            } else if (url) {
+                webview.src = url
                 resetTabInfo(webview)
-                title.textContent = UTIL.stringToUrl(options.url)
+                title.textContent = url
                 webview.clearHistory()
             }
             webview.setAttribute("dom-ready", true)
-            if (options.callback) {
-                options.callback(webview.getAttribute("link-id"))
+            if (callback) {
+                callback(webview.getAttribute("link-id"))
             }
         }
     })
+    page.replaceWith(webview)
 }
 
 const reopenTab = () => {
@@ -490,12 +519,7 @@ const switchToTab = index => {
     PAGELAYOUT.switchView(oldPage, currentPage())
     updateUrl(currentPage())
     saveTabs()
-    if (page.hasAttribute("lazy")) {
-        page.removeAttribute("lazy")
-        currentTab().removeAttribute("lazy")
-        // The dom-ready event handler will load the correct url.
-        page.src = "about:blank"
-    }
+    unsuspendPage(page)
     MODES.setMode("normal")
     document.getElementById("url-hover").textContent = ""
     document.getElementById("url-hover").style.display = "none"

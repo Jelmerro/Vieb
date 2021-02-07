@@ -290,7 +290,7 @@ const removeRedundantContainers = () => {
 const applyLayout = () => {
     document.querySelectorAll("#pagelayout *[link-id]").forEach(element => {
         const id = element.getAttribute("link-id")
-        const page = document.querySelector(`#pages webview[link-id='${id}']`)
+        const page = document.querySelector(`#pages .webview[link-id='${id}']`)
         if (!page) {
             element.parentNode.removeChild(element)
         }
@@ -309,7 +309,7 @@ const applyLayout = () => {
     const visibleTabs = []
     document.querySelectorAll("#pagelayout *[link-id]").forEach(element => {
         const id = element.getAttribute("link-id")
-        const page = document.querySelector(`#pages webview[link-id='${id}']`)
+        const page = document.querySelector(`#pages .webview[link-id='${id}']`)
         visibleTabs.push(document.querySelector(`#tabs span[link-id='${id}']`))
         visiblePages.push(page)
         const dimensions = element.getBoundingClientRect()
