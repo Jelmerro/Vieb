@@ -17,6 +17,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Mute command to toggle the audio playback status of a tab (either mute or unmute)
 - Setting "respectsitecontextmenu" to toggle if Vieb should show it's menu on websites that already provide one
+- Setting "restoretabslazily" to restore tabs lazily (loading non-pinned tabs only once they're visible)
 
 ### Changed
 

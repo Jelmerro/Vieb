@@ -58,13 +58,17 @@ const init = () => {
                 }
                 if (SETTINGS.get("restoretabs")) {
                     if (Array.isArray(parsed.tabs)) {
+                        const lazy = SETTINGS.get("restoretabslazily")
                         parsed.tabs.map(t => {
                             // OLD remove fallback checks in 4.x.x
                             if (typeof t === "string") {
                                 return {"url": t}
                             }
                             return t
-                        }).forEach(tab => addTab(tab))
+                        }).forEach(tab => addTab({
+                            ...tab,
+                            "lazy": lazy && !tab.pinned
+                        }))
                     }
                     if (Array.isArray(parsed.closed)) {
                         if (SETTINGS.get("keeprecentlyclosed")) {
@@ -178,7 +182,9 @@ const saveTabs = () => {
         data.id = listTabs().indexOf(currentTab())
     }
     listTabs().forEach((tab, index) => {
-        const url = UTIL.urlToString(tabOrPageMatching(tab).src)
+        const webview = tabOrPageMatching(tab)
+        const url = webview.getAttribute("lazy")
+            || UTIL.urlToString(webview.src)
         if (!url || url.startsWith("devtools://")) {
             if (index <= data.id) {
                 data.id -= 1
@@ -214,7 +220,8 @@ const currentTab = () => document.getElementById("current-tab")
 const currentPage = () => document.getElementById("current-page")
 
 const addTab = options => {
-    // Options: url, inverted, switchTo, pinned, container, muted and callback
+    // Options: url, inverted, switchTo, pinned, container,
+    // lazy, muted and callback
     if (!options) {
         options = {}
     }
@@ -337,6 +344,13 @@ const addTab = options => {
     }
     if (isDevtoolsTab) {
         webview.src = "about:blank"
+    } else if (options.lazy && options.url) {
+        const url = UTIL.stringToUrl(options.url)
+        webview.setAttribute("lazy", url)
+        // Also set attribute on tab for theming
+        tab.setAttribute("lazy", url)
+        title.textContent = HISTORY.titleForPage(url) || url
+        favicon.src = FAVICONS.forSite(url) || favicon.src
     } else {
         webview.src = UTIL.specialPagePath("newtab")
     }
@@ -476,6 +490,12 @@ const switchToTab = index => {
     PAGELAYOUT.switchView(oldPage, currentPage())
     updateUrl(currentPage())
     saveTabs()
+    if (page.hasAttribute("lazy")) {
+        page.removeAttribute("lazy")
+        currentTab().removeAttribute("lazy")
+        // The dom-ready event handler will load the correct url.
+        page.src = "about:blank"
+    }
     MODES.setMode("normal")
     document.getElementById("url-hover").textContent = ""
     document.getElementById("url-hover").style.display = "none"

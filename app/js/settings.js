@@ -84,6 +84,7 @@ const defaultSettings = {
     "requesttimeout": 20000,
     "respectsitecontextmenu": true,
     "restoretabs": true,
+    "restoretabslazily": false,
     "restorewindowmaximize": true,
     "restorewindowposition": true,
     "restorewindowsize": true,

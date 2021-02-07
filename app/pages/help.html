@@ -663,6 +663,8 @@
         With this toggle you can decide if Vieb's menu should appear even if the website already provides one. By default it will respect the website's menu, and not show Vieb's menu. If you disable this toggle, you will be able to right-click on everything, even if the website has explicitly disabled or overwritten it.
         <h3 id="restoretabs">restoretabs</h3>
         Toggle for restoring tabs you had open during the previous browsing session. If enabled, all tabs you had open when you quit Vieb last time, will automatically open again when you start Vieb. If you have configured any <a href="#startuppages">startuppages</a>, they will be opened after restoring the previous tabs. If this setting is disabled, tabs won't be restored, but will possibly be stored as recently closed tabs so you can reopen them, which is configured with <a href="#keeprecentlyclosed">keeprecentlyclosed</a>. Tabs which are pinned by the <a href="#:pin">:pin</a> command are always restored, regardless of the restoretabs setting. The container each tab was using is always remembered on restart.
+        <h3 id="restoretabslazily">restoretabslazily</h3>
+        Toggle for restoring tabs lazily. If enabled, only the currently visible tab and the pinned tabs will be loaded immediately when restoring tabs. The other tabs will only be loaded after switching to them. This option is useful to make Vieb start up faster. It only has an effect if <a href="#restoretabs">restoretabs</a> is enabled.
         <h3 id="restorewindowmaximize">restorewindowmaximize</h3>
         Toggle for remembering and restoring the window maximization state after restarting Vieb.
         <h3 id="restorewindowposition">restorewindowposition</h3>
