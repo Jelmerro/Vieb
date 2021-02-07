@@ -424,7 +424,8 @@ const clickListener = (e, frame = null) => {
         })
     }
 }
-window.addEventListener("click", clickListener)
+window.addEventListener("click", clickListener,
+    {"capture": true, "passive": true})
 
 const contextListener = (e, frame = null) => {
     if (e.isTrusted) {
