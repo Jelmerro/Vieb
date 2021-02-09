@@ -17,6 +17,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Mute command to toggle the audio playback status of a tab (either mute or unmute)
 - Setting "respectsitecontextmenu" to toggle if Vieb should show it's menu on websites that already provide one
+- Follow mode support for shadow roots using similar implementation as iframes
 
 ### Changed
 
@@ -28,6 +29,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Incorrect action when following links with a custom datamethod attribute (such as put or post)
 - Follow mode not loading on some pages due to querySelectorAll sometimes returning undefined instead of an empty NodeList
 - Potential parse errors for invalid URLs being stored or opened by pages
+- Mouse action listeners potentially being wiped within iframes if re-added to the DOM
 
 ### Security
 
@@ -307,7 +309,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Changed
 
-- Improve the follow mode speed by reusing dom calls and only using an interval (no more page observers)
+- Improve the follow mode speed by reusing DOM calls and only using an interval (no more page observers)
 
 ### Fixed
 

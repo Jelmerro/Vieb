@@ -135,13 +135,9 @@ const getMouseFollows = allLinks => {
         el => clickEvents.find(e => el[`on${e}`] || eventListeners[e].has(el))
         || el.getAttribute("jsaction")).forEach(
         element => addMouseEventElement(element, "onclick"))
-    if (window.location.protocol.includes("devtools")) {
-        allElements.forEach(element => addMouseEventElement(element, "other"))
-    } else {
-        allElements.filter(el => otherEvents.find(e => el[`on${e}`]
-                || eventListeners[e].has(el)))
-            .forEach(element => addMouseEventElement(element, "other"))
-    }
+    allElements.filter(el => otherEvents.find(e => el[`on${e}`]
+            || eventListeners[e].has(el)))
+        .forEach(element => addMouseEventElement(element, "other"))
 }
 
 const getAllFollowLinks = () => {
@@ -162,7 +158,7 @@ const sendFollowLinks = () => {
     // Uncategorised mouse events are less relevant and are moved to the end
     ipcRenderer.sendToHost("follow-response", allLinks.sort((el1, el2) => {
         if (el1.type === "other") {
-            return 1000
+            return 10000
         }
         return Math.floor(el1.y) - Math.floor(el2.y) || el1.x - el2.x
     }))
@@ -186,6 +182,9 @@ window.addEventListener("resize", sendFollowLinks)
 
 const framePaddingInfo = []
 const storeFrameInfo = (element, options) => {
+    if (!element) {
+        return
+    }
     const info = framePaddingInfo.find(i => i.element === element)
     if (info) {
         Object.assign(info, options)
@@ -204,51 +203,52 @@ const framePosition = frame => ({
         + propPixels({"bt": getComputedStyle(frame).borderTopWidth}, "bt")
 })
 
-const querySelectorAll = (query, base = document, paddedX = 0, paddedY = 0) => {
+const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
+    if (!base) {
+        return []
+    }
     let elements = []
     if (base === document) {
-        elements = [...base?.querySelectorAll(query) || []]
+        elements = [...base.querySelectorAll(sel) || []]
     }
-    ;[...base?.querySelectorAll(frameSelector) || []].forEach(frame => {
-        const {"x": frameX, "y": frameY} = framePosition(frame)
-        const location = {"x": frameX + paddedX, "y": frameY + paddedY}
-        storeFrameInfo(frame, location)
-        const extra = [...frame.contentDocument?.querySelectorAll(query) || []]
-        extra.forEach(el => storeFrameInfo(el, location))
-        elements = elements.concat([...extra])
-        if (frame.contentDocument) {
-            elements = elements.concat([...querySelectorAll(
-                query, frame.contentDocument, location.x, location.y) || []])
-        }
-    })
+    ;[...base.querySelectorAll("*") || []]
+        .filter(el => el.shadowRoot || el.matches(frameSelector))
+        .forEach(el => {
+            let location = {"x": paddedX, "y": paddedY}
+            if (!el.shadowRoot) {
+                const {"x": frameX, "y": frameY} = framePosition(el)
+                location = {"x": frameX + paddedX, "y": frameY + paddedY}
+            }
+            storeFrameInfo(el?.shadowRoot || el, location)
+            const extra = [
+                ...(el.contentDocument || el.shadowRoot)?.querySelectorAll(sel)
+            ]
+            extra.forEach(e => storeFrameInfo(e, location))
+            elements = elements.concat([...extra, ...querySelectorAll(sel,
+                el.contentDocument || el.shadowRoot,
+                location.x, location.y) || []])
+        })
     return elements
 }
 
-const findElementAtPosition = (x, y, base = document, px = 0, py = 0) => {
+const findElementAtPosition = (x, y, path = [document], px = 0, py = 0) => {
     // Find out which element is located at a given position.
     // Will look inside subframes recursively at the corrected position.
-    const elementAtPos = base?.elementFromPoint(x - px, y - py)
+    const elementAtPos = path?.[0]?.elementFromPoint(x - px, y - py)
+    if (path.includes(elementAtPos?.shadowRoot || elementAtPos)) {
+        return elementAtPos
+    }
     if (elementAtPos?.matches(frameSelector)) {
         const frameInfo = findFrameInfo(elementAtPos) || {}
-        return findElementAtPosition(
-            x, y, elementAtPos.contentDocument, frameInfo.x, frameInfo.y)
+        return findElementAtPosition(x, y,
+            [elementAtPos.contentDocument, ...path], frameInfo.x, frameInfo.y)
+    }
+    if (elementAtPos?.shadowRoot) {
+        const frameInfo = findFrameInfo(elementAtPos.shadowRoot) || {}
+        return findElementAtPosition(x, y,
+            [elementAtPos.shadowRoot, ...path], frameInfo.x, frameInfo.y)
     }
     return elementAtPos
-}
-
-const elementClickableAtPosition = (
-    element, x, y, base = document, px = 0, py = 0
-) => {
-    // Check if an element can be found in a given position.
-    // Also checks if any of the children are visible instead.
-    // Will look inside subframes recursively at the corrected position.
-    const elementAtPos = base?.elementFromPoint(x - px, y - py)
-    if (elementAtPos?.matches(frameSelector)) {
-        const frameInfo = findFrameInfo(elementAtPos) || {}
-        return elementClickableAtPosition(element,
-            x, y, elementAtPos.contentDocument, frameInfo.x, frameInfo.y)
-    }
-    return elementAtPos === element || element.contains(elementAtPos)
 }
 
 const findClickPosition = (element, rects) => {
@@ -263,7 +263,8 @@ const findClickPosition = (element, rects) => {
         if (rect.width > dimensions.width
                 || rect.height > dimensions.height
                 || !clickable) {
-            if (elementClickableAtPosition(element, rectX, rectY)) {
+            const elementAtPos = findElementAtPosition(rectX, rectY)
+            if (element === elementAtPos || element?.contains(elementAtPos)) {
                 clickable = true
                 dimensions = rect
             }
@@ -449,20 +450,14 @@ const contextListener = (e, frame = null) => {
 window.addEventListener("contextmenu", contextListener)
 
 setInterval(() => {
+    // Regular listeners are wiped when the element is re-added to the dom,
+    // so add them with an interval as an attribute listener.
     [...querySelectorAll(frameSelector)].forEach(f => {
-        if (!findFrameInfo(f)?.hasListeners) {
-            try {
-                f.contentDocument.addEventListener("click", e => {
-                    clickListener(e, f)
-                })
-                f.contentDocument.addEventListener("contextmenu", e => {
-                    contextListener(e, f)
-                })
-                storeFrameInfo(f, {"hasListeners": true})
-            } catch (_) {
-                // If setting the listeners fails, the frame might not be loaded
-                // In this case, don't set the property and try again later
-            }
+        try {
+            f.contentDocument.onclick = e => clickListener(e, f)
+            f.contentDocument.oncontextmenu = e => contextListener(e, f)
+        } catch (_) {
+            // Not an issue, will be retried shortly
         }
     })
 }, 500)
