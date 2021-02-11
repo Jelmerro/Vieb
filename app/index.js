@@ -649,7 +649,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         }
         if (downloadSettings.downloadmethod === "confirm") {
             const wrappedFileName = filename.replace(/.{50}/g, "$&\n")
-            let wrappedUrl = item.getURL
+            let wrappedUrl = item.getURL()
             try {
                 wrappedUrl = decodeURI(wrappedUrl)
             } catch (__) {

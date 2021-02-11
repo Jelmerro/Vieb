@@ -336,6 +336,9 @@ const init = () => {
                 return
             }
         }
+        if (MODES.currentMode() !== "insert") {
+            return
+        }
         if (input.type.toLowerCase() !== "keydown") {
             return
         }

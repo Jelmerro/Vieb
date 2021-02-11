@@ -222,6 +222,7 @@ const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
             storeFrameInfo(el?.shadowRoot || el, location)
             const extra = [
                 ...(el.contentDocument || el.shadowRoot)?.querySelectorAll(sel)
+                || []
             ]
             extra.forEach(e => storeFrameInfo(e, location))
             elements = elements.concat([...extra, ...querySelectorAll(sel,

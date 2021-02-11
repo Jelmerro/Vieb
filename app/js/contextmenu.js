@@ -129,7 +129,7 @@ const viebMenu = options => {
 }
 
 const webviewMenu = options => {
-    if (!SETTINGS.get("mouse") && !MODES.currentMode("insert")) {
+    if (!SETTINGS.get("mouse") && MODES.currentMode() !== "insert") {
         clear()
         return
     }
