@@ -108,6 +108,9 @@ const defaultBindings = {
         "<C-0>": {"mapping": "<action.zoomReset>"}
     },
     "i": {
+        "<NumLock>": {"mapping": "<Nop>"},
+        "<CapsLock>": {"mapping": "<Nop>"},
+        "<ScrollLock>": {"mapping": "<Nop>"},
         "<F1>": {"mapping": "<:help>"},
         "<F11>": {"mapping": "<action.toggleFullscreen>"},
         "<Esc>": {"mapping": "<action.toNormalMode>"},
@@ -232,6 +235,7 @@ let bindings = {}
 let supportedActions = []
 let timeoutTimer = null
 let blockNextInsertKey = false
+const mapStringSplitter = /(<.*?[^-]>|<.*?->>|.)/g
 
 const init = () => {
     window.addEventListener("keydown", handleKeyboard)
@@ -381,9 +385,11 @@ const init = () => {
     ]
     supportedActions = [
         ...Object.keys(ACTIONS).map(a => `action.${a}`),
-        ...Object.keys(POINTER).map(c => `pointer.${c}`)
+        ...Object.keys(POINTER).map(c => `pointer.${c}`),
+        "Nop"
     ].filter(m => !unSupportedActions.includes(m))
     bindings = JSON.parse(JSON.stringify(defaultBindings))
+    updateKeysOnScreen()
 }
 
 const keyNames = [
@@ -399,6 +405,7 @@ const keyNames = [
     {"js": ["Escape"], "vim": ["Esc"]},
     {"js": [" "], "vim": ["Space", " "]},
     {"js": ["Delete"], "vim": ["Del"]},
+    {"js": ["PrintScreen"], "vim": ["PrintScreen", "PrtScr"]},
     // Keys with the same names, which are listed here to detect incorrect names
     // Note: some of these are not present in Vim and use the JavaScript name
     {"js": ["F1"], "vim": ["F1"]},
@@ -421,7 +428,9 @@ const keyNames = [
     {"js": ["PageDown"], "vim": ["PageDown"]},
     {"js": ["Help"], "vim": ["Help"]},
     {"js": ["Pause"], "vim": ["Pause"]},
-    {"js": ["PrintScreen"], "vim": ["PrintScreen", "PrtScr"]}
+    {"js": ["NumLock"], "vim": ["NumLock"]},
+    {"js": ["CapsLock"], "vim": ["CapsLock"]},
+    {"js": ["ScrollLock"], "vim": ["ScrollLock"]}
 ]
 
 const toIdentifier = e => {
@@ -449,6 +458,52 @@ const toIdentifier = e => {
         keyCode = `<${keyCode}>`
     }
     return keyCode
+}
+
+const fromIdentifier = identifier => {
+    let id = String(identifier) || ""
+    id = id.split(mapStringSplitter).filter(m => m)[0] || id
+    const options = {"modifiers": []}
+    if (id.startsWith("<") && id.endsWith(">")) {
+        id = id.slice(1, -1)
+    }
+    if (id.startsWith("C-")) {
+        options.ctrlKey = true
+        options.control = true
+        options.modifiers.push("control")
+        id = id.slice(2)
+    }
+    if (id.startsWith("M-")) {
+        options.metaKey = true
+        options.meta = true
+        options.modifiers.push("super")
+        id = id.slice(2)
+    }
+    if (id.startsWith("A-")) {
+        options.altKey = true
+        options.alt = true
+        options.modifiers.push("alt")
+        id = id.slice(2)
+    }
+    if (id.startsWith("S-")) {
+        options.shiftKey = true
+        options.shift = true
+        options.modifiers.push("shift")
+        id = id.slice(2)
+    }
+    const isLetter = id.toLowerCase() !== id.toUpperCase()
+    const isUpper = id.toUpperCase() === id
+    if (id.length === 1 && isLetter && isUpper) {
+        options.shiftKey = true
+        options.modifiers.push("shift")
+    } else {
+        keyNames.forEach(key => {
+            if (key.vim.includes(id)) {
+                id = key.js[0]
+            }
+        })
+    }
+    return {...options, "key": id, "keyCode": id}
 }
 
 // Single use actions that do not need to be called multiple times if counted
@@ -495,16 +550,17 @@ const uncountableActions = [
     "pointer.moveLeftMax"
 ]
 
-const hasFutureActionsBasedOnKeys = keys => !!Object.keys(bindings[
+
+const hasFutureActionsBasedOnKeys = keys => Object.keys(bindings[
     MODES.currentMode()[0]]).find(map => map.startsWith(keys) && map !== keys)
 
-const sendKeysToWebview = async (jsKey, mapStr, recursive) => {
+const sendKeysToWebview = async (options, mapStr) => {
     blockNextInsertKey = true
-    if (jsKey.length === 1) {
-        TABS.currentPage().sendInputEvent({"type": "char", "keyCode": jsKey})
+    if (options.keyCode.length === 1) {
+        TABS.currentPage().sendInputEvent({...options, "type": "char"})
     }
-    TABS.currentPage().sendInputEvent({"type": "keyDown", "keyCode": jsKey})
-    if (recursive) {
+    TABS.currentPage().sendInputEvent({...options, "type": "keyDown"})
+    if (options.bubbles) {
         const action = bindings[MODES.currentMode()[0]][mapStr]
         if (action) {
             await executeMapString(action.mapping, !action.noremap)
@@ -527,55 +583,20 @@ const executeMapString = async (mapStr, recursive, initial) => {
         if (recursiveCounter > SETTINGS.get("maxmapdepth")) {
             break
         }
-        const splitRegex = /(<.*?[^-]>|<.*?->>|.)/g
-        for (const key of mapStr.split(splitRegex).filter(m => m)) {
+        for (const key of mapStr.split(mapStringSplitter).filter(m => m)) {
             if (recursiveCounter > SETTINGS.get("maxmapdepth")) {
                 break
             }
-            const options = {"bubbles": recursive}
-            if (key.length === 1) {
-                const isLetter = key.toLowerCase() !== key.toUpperCase()
-                const isUpper = key.toUpperCase() === key
-                if (isLetter && isUpper) {
-                    options.shiftKey = true
-                }
-                options.key = key
-                if (MODES.currentMode() === "insert") {
-                    await sendKeysToWebview(options.key, key, recursive)
-                } else {
-                    window.dispatchEvent(new KeyboardEvent("keydown", options))
-                }
-            } else if (supportedActions.includes(key.replace(/(^<|>$)/g, ""))) {
+            const options = {...fromIdentifier(key), "bubbles": recursive}
+            if (supportedActions.includes(key.replace(/(^<|>$)/g, ""))) {
                 const count = Number(repeatCounter)
                 repeatCounter = 0
                 await doAction(key.replace(/(^<|>$)/g, ""), count)
             } else if (key.startsWith("<:")) {
                 COMMAND.execute(key.replace(/^<:|>$/g, ""))
-            } else if (key.match(/^<(C-)?(M-)?(A-)?(S-)?.+>$/g)) {
-                options.key = key.slice(1, -1)
-                if (options.key.startsWith("C-")) {
-                    options.ctrlKey = true
-                    options.key = options.key.replace("C-", "")
-                }
-                if (options.key.startsWith("M-")) {
-                    options.metaKey = true
-                    options.key = options.key.replace("M-", "")
-                }
-                if (options.key.startsWith("A-")) {
-                    options.altKey = true
-                    options.key = options.key.replace("A-", "")
-                }
-                if (options.key.startsWith("S-")) {
-                    options.shiftKey = true
-                    options.key = options.key.replace("S-", "")
-                }
-                keyNames.forEach(k => {
-                    if (k.vim.includes(options.key)) {
-                        options.key = k.js[0]
-                    }
-                })
+            } else if (key.match(/^(<(C-)?(M-)?(A-)?(S-)?.+>|.)$/g)) {
                 if (MODES.currentMode() === "insert") {
-                    await sendKeysToWebview(options.key, key, recursive)
+                    await sendKeysToWebview(options, key)
                 } else {
                     window.dispatchEvent(new KeyboardEvent("keydown", options))
                 }
@@ -597,6 +618,11 @@ const executeMapString = async (mapStr, recursive, initial) => {
 }
 
 const doAction = async (name, count) => {
+    if (name === "Nop") {
+        repeatCounter = 0
+        updateKeysOnScreen()
+        return
+    }
     count = count || 1
     const pointer = name.toLowerCase().startsWith("pointer.")
     if (uncountableActions.includes(name)) {
@@ -723,6 +749,10 @@ const typeCharacterIntoNavbar = id => {
 const updateKeysOnScreen = () => {
     document.getElementById("repeat-counter").textContent = repeatCounter
     document.getElementById("pressed-keys").textContent = pressedKeys
+    if (MODES.currentMode() === "insert") {
+        ipcRenderer.send("insert-mode-blockers", Object.keys(bindings.i)
+            .map(mapping => fromIdentifier(mapping.replace(pressedKeys, ""))))
+    }
     if (repeatCounter && SETTINGS.get("showcmd")) {
         document.getElementById("repeat-counter").style.display = "flex"
     } else {
@@ -913,6 +943,10 @@ const sanitiseMapString = (mapString, allowSpecials = false) => mapString
             }
             if (key.startsWith(":")) {
                 knownKey = true
+            }
+            if (key.toLowerCase() === "nop") {
+                knownKey = true
+                key = "Nop"
             }
         }
         if (!knownKey && key.length > 1) {

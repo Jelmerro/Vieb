@@ -1039,8 +1039,23 @@ ipcMain.handle("list-spelllangs",
 ipcMain.handle("toggle-fullscreen", () => {
     mainWindow.fullScreen = !mainWindow.fullScreen
 })
+let blockedInsertMappings = []
+ipcMain.on("insert-mode-blockers", (_, blockedMappings) => {
+    blockedInsertMappings = blockedMappings
+})
+const currentInputMatches = input => blockedInsertMappings.find(mapping => {
+    if (!!mapping.alt === input.alt && !!mapping.control === input.control) {
+        if (!!mapping.meta === input.meta && !!mapping.shift === input.shift) {
+            return mapping.key === input.key
+        }
+    }
+    return false
+})
 ipcMain.on("insert-mode-listener", (_, id) => {
-    webContents.fromId(id).on("before-input-event", (__, input) => {
+    webContents.fromId(id).on("before-input-event", (e, input) => {
+        if (currentInputMatches(input)) {
+            e.preventDefault()
+        }
         mainWindow.webContents.send("insert-mode-input-event", input)
     })
 })

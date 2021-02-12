@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2020 Jelmer van Arnhem
+* Copyright (C) 2019-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -67,7 +67,8 @@ ipcRenderer.on("settings", (_, settings, mappings) => {
     // Enrich the action list with the keys that map to them
     ;[
         ...document.querySelectorAll("h3[id^='action.']"),
-        ...document.querySelectorAll("h3[id^='pointer.']")
+        ...document.querySelectorAll("h3[id^='pointer.']"),
+        document.getElementById("Nop")
     ].forEach(actionNode => {
         // List mappings in which this action is used
         const mapList = document.createElement("div")
@@ -108,7 +109,8 @@ const processHash = () => {
             window.location.hash.replace("#", "#:"),
             window.location.hash.replace(/!$/, ""),
             window.location.hash.replace("#", "#:").replace(/!$/, ""),
-            window.location.hash.replace(/-/, "")
+            window.location.hash.replace(/-/, ""),
+            window.location.hash.toLowerCase()
         ]
         for (const h of hashVariations) {
             if (document.querySelector(`a[href='${h}']`)) {

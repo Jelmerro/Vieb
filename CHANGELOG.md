@@ -18,11 +18,15 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Mute command to toggle the audio playback status of a tab (either mute or unmute)
 - Setting "respectsitecontextmenu" to toggle if Vieb should show it's menu on websites that already provide one
 - Follow mode support for shadow roots using similar implementation as iframes
+- Nop action that does nothing, can be used to prevent side effects for keys in insert mode (site won't register them, similar to mappings)
+- Support for modifiers in recursive insert mode mappings
+- Support for lock keys in mappings, such as CapsLock
 
 ### Changed
 
 - Iframe detection on pages now also works for frames in framesets, embeds and for object tags
 - Enable "respectsitecontextmenu" by default to be able to use the right-click menus of websites without Vieb interfering
+- Mapped keys in insert mode won't be detected by the website, this prevents all side effects for mappings, including those for split devtools
 
 ### Fixed
 
