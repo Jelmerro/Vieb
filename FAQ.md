@@ -42,17 +42,6 @@ For a list of features, see the [homepage](https://vieb.dev/features).
 See [this issue for my motivation](https://github.com/Jelmerro/Vieb/issues/83) of starting Vieb.
 A proper comparison and migration guides haven't been made yet.
 
-#### Where can I enable the mouse?
-
-As you probably noticed, by default Vieb does not have any mouse support outside of Insert mode.
-In Vieb, you can do everything with the keyboard, even things you normally would need to use the mouse for.
-However, you can enable the mouse across Vieb with the `:set mouse` command.
-This should bring back most of the familiar mouse movements on the page and the tabs,
-but Vieb still requires using the keyboard for most actions.
-If you're new to Vieb or Vim in general, using the mouse can help,
-but it's no substitute for reading the `:help` page and learning to use Vieb (or Vim for that matter) properly.
-Finally, if you plan to keep using the mouse, you might as well save that setting to disk using "mkviebrc" (see `:h mkviebrc` for help).
-
 #### Why can't I sign in to Google?
 
 See [this issue](https://github.com/Jelmerro/Vieb/issues/50) for more background information,

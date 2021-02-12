@@ -246,10 +246,6 @@ if (erwic) {
         app.exit(1)
     }
     config.apps = config.apps.map(a => {
-        if (a.name && !a.container) {
-            // OLD remove fallback checks in 4.x.x
-            a.container = a.name
-        }
         a.container = a.container?.replace(/[^A-Za-z0-9_]/g, "")
         if (typeof a.script === "string") {
             a.script = expandPath(a.script)

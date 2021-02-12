@@ -27,6 +27,13 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Iframe detection on pages now also works for frames in framesets, embeds and for object tags
 - Enable "respectsitecontextmenu" by default to be able to use the right-click menus of websites without Vieb interfering
 - Mapped keys in insert mode won't be detected by the website, this prevents all side effects for mappings, including those for split devtools
+- Default settings: Mouse is now on by default and ignorecase is now on by default
+- Privacy fixes for navigator properties and media info now run in iframes on a timer, can't be waterproofed without [this](https://github.com/electron/electron/issues/22582)
+
+### Removed
+
+- Migrations for old tab structure used in 2.x.x and older
+- Fallback to name field for Erwic config files
 
 ### Fixed
 
@@ -37,8 +44,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Security
 
-- Electron 11.2.1 (unchanged)
-- Chromium 87.0.4280.141 (unchanged)
+- Electron 12.0.0-beta.25 (was 11.2.1)
+- Chromium 89.0.4388.2 (was 87.0.4280.141)
 
 ## [3.4.0](https://github.com/Jelmerro/Vieb/compare/3.3.0...3.4.0) - 2021-01-31
 

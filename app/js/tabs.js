@@ -47,54 +47,23 @@ const init = () => {
         if (!erwicMode) {
             if (parsed) {
                 if (Array.isArray(parsed.pinned)) {
-                    parsed.pinned.map(t => {
-                        // OLD remove fallback checks in 4.x.x
-                        if (typeof t === "string") {
-                            return {"url": t, "pinned": true}
-                        }
-                        t.pinned = true
-                        return t
-                    }).forEach(tab => addTab(tab))
+                    parsed.pinned.forEach(t => addTab({...t, "pinned": true}))
                 }
                 if (SETTINGS.get("restoretabs")) {
                     if (Array.isArray(parsed.tabs)) {
-                        parsed.tabs.map(t => {
-                            // OLD remove fallback checks in 4.x.x
-                            if (typeof t === "string") {
-                                return {"url": t}
-                            }
-                            return t
-                        }).forEach(tab => addTab(tab))
+                        parsed.tabs.forEach(addTab)
                     }
                     if (Array.isArray(parsed.closed)) {
                         if (SETTINGS.get("keeprecentlyclosed")) {
-                            recentlyClosed = parsed.closed.map(t => {
-                                // OLD remove fallback checks in 4.x.x
-                                if (typeof t === "string") {
-                                    return {"url": t}
-                                }
-                                return t
-                            })
+                            recentlyClosed = parsed.closed
                         }
                     }
                 } else if (SETTINGS.get("keeprecentlyclosed")) {
                     if (Array.isArray(parsed.tabs)) {
-                        recentlyClosed = parsed.tabs.map(t => {
-                            // OLD remove fallback checks in 4.x.x
-                            if (typeof t === "string") {
-                                return {"url": t}
-                            }
-                            return t
-                        })
+                        recentlyClosed = parsed.tabs
                     }
                     if (Array.isArray(parsed.closed)) {
-                        recentlyClosed = parsed.closed.map(t => {
-                            // OLD remove fallback checks in 4.x.x
-                            if (typeof t === "string") {
-                                return {"url": t}
-                            }
-                            return t
-                        }).concat(recentlyClosed)
+                        recentlyClosed = parsed.closed.concat(recentlyClosed)
                     }
                 }
                 if (listTabs().length !== 0) {

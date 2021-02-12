@@ -18,6 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const privacy = require("./privacy")
 
 let inFollowMode = false
 
@@ -153,7 +154,6 @@ const sendFollowLinks = () => {
         return
     }
     const allLinks = getAllFollowLinks()
-    // Send response back to webview, which will forward it to follow.js
     // Ordered by the position on the page from the top
     // Uncategorised mouse events are less relevant and are moved to the end
     ipcRenderer.sendToHost("follow-response", allLinks.sort((el1, el2) => {
@@ -457,8 +457,9 @@ setInterval(() => {
         try {
             f.contentDocument.onclick = e => clickListener(e, f)
             f.contentDocument.oncontextmenu = e => contextListener(e, f)
+            privacy.privacyFixes(f.contentWindow)
         } catch (_) {
             // Not an issue, will be retried shortly
         }
     })
-}, 500)
+}, 0)

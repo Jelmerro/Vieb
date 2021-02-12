@@ -1,14 +1,15 @@
 " Options
 set adblocker=update
 set cache=full
+set devtoolsposition=vsplit
 set favicons=30day
 set ignorecase
-set mouse
 set permissioncamera=ask
 set permissionmediadevices=allow
 set permissionmicrophone=ask
 set redirecttohttp
 set search=https://google.com/search?q=
+set splitright
 set mintabwidth=0
 set windowtitle=title
 
