@@ -467,7 +467,7 @@
             <li><span class="command-block">:suspend 5</span> - Suspend the 5th tab in the tab bar</li>
             <li><span class="command-block">:suspend github</span> - Suspend the first tab matching github</li>
         </ul>
-        The suspend command can unload tabs from the memory. The entire tab is suspended and won't run in the background. You must specify a non-visible tab for the command to work. When switching to a suspend tab, the page is loaded from scratch again. Suspended tabs have a different background color from regular tabs. Besides this command, you can also suspend them automatically on startup with <a href="#suspendonrestore">suspendonrestore</a> or on a timer with <a href="#suspendtimeout">suspendtimeout</a>.
+        The suspend command can unload tabs from the memory. The entire tab is suspended and won't run in the background. You must specify a non-visible tab for the command to work. When switching to a suspended tab, the page is loaded from scratch again. Suspended tabs have a different background color from regular tabs. Besides this command, you can also suspend them automatically on startup with <a href="#suspendonrestore">suspendonrestore</a> or on a timer with <a href="#suspendtimeout">suspendtimeout</a>.
         <h3 id=":pin">:pin</h3>
         <ul>
             <li><span class="command-block">:pin</span> - Toggle the pinned status of the current tab</li>
@@ -721,7 +721,7 @@
         <h3 id="suspendonrestore">suspendonrestore</h3>
         Toggle for restoring tabs in suspended state. Specify which tabs (if any) should not be loaded on startup, but only be listed as opened. These tabs will only be loaded after switching to them. This option is useful to make Vieb start up faster. You can choose to enable it for all tabs or only for tabs that are not pinned (regular). It only has an effect if <a href="#restoretabs">restoretabs</a> is enabled.
         <h3 id="suspendtimeout">suspendtimeout</h3>
-        Setting to automatically suspend tabs when they aren't opened for a specific amount of time. Any value below 100 milliseconds will disable the timeout suspend feature. This setting can be useful to decrease the RAM usage of Vieb. Keep in mind that the page is completely unloaded when tabs are suspended. You can also suspend any background tab manually with <a href="#:suspend">:suspend</a>, regardless of the value of this setting.
+        Setting to automatically suspend tabs when they aren't opened for a specific amount of time. Any value below 100 milliseconds will disable the timeout suspend feature. This setting can be useful to decrease the RAM usage of Vieb. Keep in mind that the page is completely unloaded when tabs are suspended. You can also suspend any background tab manually with <a href="#:suspend">:suspend</a>, regardless of the value of this setting. When this timeout is set to suspend really quickly, basically the only tabs that will be loaded are ones that are visible.
         <h3 id="tabcycle">tabcycle</h3>
         This toggle indicates if the tabs should cycle from the last to the first and the other way around. If enabled, you can switch to the first tab by executing <a href="#action.nextTab">action.nextTab</a> when already at the last tab. If disabled, the next tab action will not have any effect and you will remain on the last tab. The same logic applies to calling <a href="#action.previousTab">action.previousTab</a> while already on the first tab.
         <h3 id="tabnexttocurrent">tabnexttocurrent</h3>
