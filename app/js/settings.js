@@ -96,7 +96,7 @@ const defaultSettings = {
     "splitright": false,
     "startuppages": "",
     "storenewvisits": true,
-    "suggestcommands": Infinity,
+    "suggestcommands": 9000000000000000,
     "suggestfiles": "all",
     "suggestfilesfirst": false,
     "suggestexplore": 20,
@@ -161,15 +161,15 @@ const validOptions = {
 const numberRanges = {
     "countlimit": [0, 10000],
     "fontsize": [8, 30],
-    "guihidetimeout": [0, Infinity],
+    "guihidetimeout": [0, 9000000000000000],
     "maxmapdepth": [1, 40],
-    "mintabwidth": [0, Infinity],
-    "notificationduration": [0, Infinity],
-    "requesttimeout": [0, Infinity],
-    "suggestcommands": [0, Infinity],
-    "suggestexplore": [0, Infinity],
-    "suggesttopsites": [0, Infinity],
-    "suspendtimeout": [0, Infinity],
+    "mintabwidth": [0, 9000000000000000],
+    "notificationduration": [0, 9000000000000000],
+    "requesttimeout": [0, 9000000000000000],
+    "suggestcommands": [0, 9000000000000000],
+    "suggestexplore": [0, 9000000000000000],
+    "suggesttopsites": [0, 9000000000000000],
+    "suspendtimeout": [0, 9000000000000000],
     "timeoutlen": [0, 10000]
 }
 const config = path.join(UTIL.appData(), "viebrc")
@@ -491,21 +491,26 @@ const setTopOfPageWithMouse = status => {
 
 const guiRelatedUpdate = type => {
     updateGuiVisibility()
+    const timeout = get("guihidetimeout")
     if (type === "navbar" && getGuiStatus("navbar") === "onupdate") {
         clearTimeout(navbarGuiTimer)
         document.body.classList.remove("navigationhidden")
-        navbarGuiTimer = setTimeout(() => {
-            navbarGuiTimer = null
-            updateGuiVisibility()
-        }, get("guihidetimeout"))
+        if (timeout) {
+            navbarGuiTimer = setTimeout(() => {
+                navbarGuiTimer = null
+                updateGuiVisibility()
+            }, timeout)
+        }
     }
     if (type === "tabbar" && getGuiStatus("tabbar") === "onupdate") {
         clearTimeout(tabbarGuiTimer)
         document.body.classList.remove("tabshidden")
-        tabbarGuiTimer = setTimeout(() => {
-            tabbarGuiTimer = null
-            updateGuiVisibility()
-        }, get("guihidetimeout"))
+        if (timeout) {
+            tabbarGuiTimer = setTimeout(() => {
+                tabbarGuiTimer = null
+                updateGuiVisibility()
+            }, timeout)
+        }
     }
 }
 

@@ -343,7 +343,7 @@ const applyLayout = () => {
             tab.classList.remove("visible-tab")
             if (!suspendTimers[linkId] && !tab.getAttribute("suspended")) {
                 const timeout = SETTINGS.get("suspendtimeout")
-                if (timeout >= 100) {
+                if (timeout) {
                     suspendTimers[linkId] = setTimeout(() => {
                         try {
                             TABS.suspendTab(tab)

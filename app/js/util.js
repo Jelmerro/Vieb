@@ -109,7 +109,7 @@ const isSearchword = location => {
 }
 
 const notify = (message, type = "info", clickAction = false) => {
-    if (SETTINGS.get("notificationduration") < 100) {
+    if (SETTINGS.get("notificationduration") === 0) {
         return
     }
     let properType = "info"

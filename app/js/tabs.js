@@ -587,9 +587,12 @@ const addWebviewListeners = webview => {
                 title.textContent = e.url
             }
             const timeout = SETTINGS.get("requesttimeout")
-            if (webview.getAttribute("link-id") && timeout >= 100) {
-                clearTimeout(timeouts[webview.getAttribute("link-id")])
-                timeouts[webview.getAttribute("link-id")] = setTimeout(() => {
+            const id = webview.getAttribute("link-id")
+            if (id) {
+                clearTimeout(timeouts[id])
+            }
+            if (timeout) {
+                timeouts[id] = setTimeout(() => {
                     try {
                         webview.stop()
                     } catch (_) {
