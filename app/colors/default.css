@@ -23,6 +23,7 @@
     --bg: #333;
     --fg: #eee;
     --tab-background: #444;
+    --tab-suspended: #000;
     --visible-tab: #666;
     --tab-split: #f90;
     --tab-audio: #09f;
@@ -143,6 +144,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #tabs > span > img {margin: auto 0 auto .25em;padding: 0;height: 1.5em;width: 1.5em;min-height: 1.5em;min-width: 1.5em;pointer-events: none;}
 #tabs > span > span {margin: auto 0 auto .25em;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
 #tabs .visible-tab {background: var(--visible-tab);}
+#tabs [suspended] {background: var(--tab-suspended);}
 #tabs.multiple #current-tab {border-left: solid .3em var(--tab-split);}
 #tabs .pinned {min-width: 1.9em !important;max-width: 1.9em;width: 1.9em;padding: 0;}
 #tabs .pinned[media-playing], #tabs .pinned[muted] {width: 2.2em;max-width: 2.2em;}
@@ -154,16 +156,16 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #tabs.scroll {overflow-x: auto;}
 #tabs.wrap {flex-wrap: wrap;}
 /* pages container */
+.webview {pointer-events: none;position: fixed;display: none;}
 #page-container, #current-page, .visible-page {display: flex;flex: 1;height: 100%;width: 100%;}
-#pages.multiple webview {border: solid .15em transparent;box-sizing: border-box;}
+#pages.multiple .webview {border: solid .15em transparent;box-sizing: border-box;}
 #pages.multiple #current-page {border-color: var(--tab-split);}
-webview {pointer-events: none;position: fixed;display: none;}
 #pagelayout {display: flex;height: 100%;width: 100%;}
 #pagelayout * {flex: 1;}
 #pagelayout.hor, #pagelayout .hor {flex-direction: row;display: flex;}
 #pagelayout.ver, #pagelayout .ver {flex-direction: column;display: flex;}
 /* fullscreen */
-#app.fullscreen #navbar, #app.fullscreen #tabs, #app.fullscreen webview {display: none;}
+#app.fullscreen #navbar, #app.fullscreen #tabs, #app.fullscreen .webview {display: none;}
 #app.fullscreen #current-page {display: flex;width: 100vw;height: 100vh;top: 0;bottom: 0;left: 0;right: 0;}
 /* conditionally hide tabs or navbar from the vieb window */
 #app.tabshidden #tabs {display: none;}
@@ -203,7 +205,7 @@ webview {pointer-events: none;position: fixed;display: none;}
 #suggest-dropdown div.selected {background: var(--suggestions-selected);}
 /* mouse related */
 #invisible-overlay {-webkit-app-region: drag;position: absolute;top: 0;left: 0;width: 100vw;height: 100vh;z-index: 50;}
-#app.mouse webview {pointer-events: all;}
+#app.mouse .webview {pointer-events: all;}
 #app.mouse #invisible-overlay {display: none;}
 #app[current-mode=insert] #invisible-overlay {display: none;}
 #app.mouse #navbar, #app.mouse #tabs {pointer-events: all;}

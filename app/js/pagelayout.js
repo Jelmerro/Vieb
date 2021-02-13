@@ -20,6 +20,7 @@
 
 const layoutDivById = id => document.querySelector(
     `#pagelayout div[link-id='${id}']`)
+const suspendTimers = {}
 
 const switchView = (oldViewOrId, newView) => {
     let oldId = oldViewOrId
@@ -290,7 +291,7 @@ const removeRedundantContainers = () => {
 const applyLayout = () => {
     document.querySelectorAll("#pagelayout *[link-id]").forEach(element => {
         const id = element.getAttribute("link-id")
-        const page = document.querySelector(`#pages webview[link-id='${id}']`)
+        const page = document.querySelector(`#pages .webview[link-id='${id}']`)
         if (!page) {
             element.parentNode.removeChild(element)
         }
@@ -309,7 +310,7 @@ const applyLayout = () => {
     const visibleTabs = []
     document.querySelectorAll("#pagelayout *[link-id]").forEach(element => {
         const id = element.getAttribute("link-id")
-        const page = document.querySelector(`#pages webview[link-id='${id}']`)
+        const page = document.querySelector(`#pages .webview[link-id='${id}']`)
         visibleTabs.push(document.querySelector(`#tabs span[link-id='${id}']`))
         visiblePages.push(page)
         const dimensions = element.getBoundingClientRect()
@@ -333,10 +334,26 @@ const applyLayout = () => {
         }
     })
     TABS.listTabs().forEach(tab => {
+        const linkId = tab.getAttribute("link-id")
         if (visibleTabs.includes(tab)) {
             tab.classList.add("visible-tab")
+            clearTimeout(suspendTimers[linkId])
+            delete suspendTimers[linkId]
         } else {
             tab.classList.remove("visible-tab")
+            if (!suspendTimers[linkId] && !tab.getAttribute("suspended")) {
+                const timeout = SETTINGS.get("suspendtimeout")
+                if (timeout >= 100) {
+                    suspendTimers[linkId] = setTimeout(() => {
+                        try {
+                            TABS.suspendTab(tab)
+                            delete suspendTimers[linkId]
+                        } catch (_) {
+                            // Tab might be closed or unavailable, no issue
+                        }
+                    }, timeout)
+                }
+            }
         }
     })
     const cur = TABS.currentPage()

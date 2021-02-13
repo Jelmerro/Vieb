@@ -359,6 +359,7 @@ const suggestCommand = search => {
         "Vexplore",
         "Sexplore",
         "split",
+        "suspend",
         "vsplit",
         "close"
     ].find(b => b.startsWith(command))

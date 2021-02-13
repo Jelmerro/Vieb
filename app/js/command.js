@@ -384,6 +384,23 @@ const buffer = (...args) => {
     TABS.navigateTo(UTIL.stringToUrl(args.join(" ")))
 }
 
+const suspend = (...args) => {
+    let tab = null
+    if (args.length === 0) {
+        tab = TABS.currentTab()
+    } else {
+        tab = tabForBufferArg(args)
+    }
+    if (tab) {
+        if (tab.classList.contains("visible-tab")) {
+            UTIL.notify(
+                "Only tabs not currently visible can be suspended", "warn")
+        } else {
+            TABS.suspendTab(tab)
+        }
+    }
+}
+
 const hide = (...args) => {
     let tab = null
     if (args.length === 0) {
@@ -582,6 +599,7 @@ const commands = {
     "mkviebrc": mkviebrc,
     "b": buffer,
     "buffer": buffer,
+    "suspend": suspend,
     "hide": hide,
     "pin": pin,
     "mute": mute,

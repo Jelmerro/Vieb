@@ -412,7 +412,7 @@
             <li><span class="command-block">:hide 0</span> - Hide a window split based on tab index, in this case the first</li>
             <li><span class="command-block">:hide vieb.dev</span> - Hide the window split with "vieb.dev" in the url</li>
             <li><span class="command-block">:hide 999</span> - Hide a window split based on tab index, either the 999nth or the last tab in the tabbar</li>
-            <li><span class="command-block">:hide github vieb</span> - Hide the window split with both "github" and "vieb" in the url</li>
+            <li><span class="command-block">:hide github vieb</span> - Hide the window split containing both "github" and "vieb"</li>
         </ul>
         The hide command can be used to hide one of the visible splits. This command takes any number of arguments. If no arguments are provided, it will hide the currently focused split window. For any other number of arguments, it will hide the window split that most accurately matches the arguments. This can be a tab index or keywords that refer to parts of the url, similar to the buffer command. The command will not have effect it there is only one page visible, or if there is no matching tab. If the argument is a single number, but the tab index is too high, it will instead hide the window connected to the latest tab by index.
         <h3 id=":Vexplore">:Vexplore</h3>
@@ -461,6 +461,13 @@
             <li><span class="command-block">:mute</span> - Toggle the audio playback status of the tab</li>
         </ul>
         With the mute command you can toggle if tabs can play audio. If a tab is playing audio, a blue indicator is shown. The indicator is white for muted tabs. When a tab is muted but tries to play audio, a light yellow indicator is shown. The orange indicator is not related to audio, but is used to highlight the current tab when <a href="#splitting">splitting</a> multiple pages. The mute status is kept when restarting Vieb with <a href="#restoretabs">restoretabs</a> enabled, but not when closing tabs.
+        <h3 id=":suspend">:suspend</h3>
+        <ul>
+            <li><span class="command-block">:suspend 0</span> - Suspend the first tab in the tab bar</li>
+            <li><span class="command-block">:suspend 5</span> - Suspend the 5th tab in the tab bar</li>
+            <li><span class="command-block">:suspend github</span> - Suspend the first tab matching github</li>
+        </ul>
+        The suspend command can unload tabs from the memory. The entire tab is suspended and won't run in the background. You must specify a non-visible tab for the command to work. When switching to a suspend tab, the page is loaded from scratch again. Suspended tabs have a different background color from regular tabs. Besides this command, you can also suspend them automatically on startup with <a href="#suspendonrestore">suspendonrestore</a> or on a timer with <a href="#suspendtimeout">suspendtimeout</a>.
         <h3 id=":pin">:pin</h3>
         <ul>
             <li><span class="command-block">:pin</span> - Toggle the pinned status of the current tab</li>
@@ -661,11 +668,11 @@
         <h3 id="redirecttohttp">redirecttohttp</h3>
         Toggle for automatically redirecting to http for websites without https. Although technically possible with the redirects setting, this option will only redirect for websites that do not have https. Vieb will assume all websites to have https, and this setting configures whether to redirect websites to http when the https version could not be loaded. If this option is disabled, you will be shown an error page for http-only websites with the exact cause of the error and a link to the http version. To directly visit a http-only website without enabling this setting, you need to specify the http:// protocol explicitly, otherwise Vieb will navigate to the https version automatically.
         <h3 id="requesttimeout">requesttimeout</h3>
-        Duration in milliseconds before stopping a page load automatically. The timer is reset upon navigation to any page and after the timeout duration is reached, the page load will be stopped automatically, similar to calling <a href="#action.stopLoadingPage">action.stopLoadingPage</a> manually. Any duration below 1000 milliseconds is ignored and will disable the timeout completely, which could mean that some websites will never stop loading.
+        Duration in milliseconds before stopping a page load automatically. The timer is reset upon navigation to any page and after the timeout duration is reached, the page load will be stopped automatically, similar to calling <a href="#action.stopLoadingPage">action.stopLoadingPage</a> manually. Any duration below 100 milliseconds is ignored and will disable the timeout completely, which could mean that some websites will never stop loading.
         <h3 id="respectsitecontextmenu">respectsitecontextmenu</h3>
         With this toggle you can decide if Vieb's menu should appear even if the website already provides one. By default it will respect the website's menu, and not show Vieb's menu. If you disable this toggle, you will be able to right-click on everything, even if the website has explicitly disabled or overwritten it.
         <h3 id="restoretabs">restoretabs</h3>
-        Toggle for restoring tabs you had open during the previous browsing session. If enabled, all tabs you had open when you quit Vieb last time, will automatically open again when you start Vieb. If you have configured any <a href="#startuppages">startuppages</a>, they will be opened after restoring the previous tabs. If this setting is disabled, tabs won't be restored, but will possibly be stored as recently closed tabs so you can reopen them, which is configured with <a href="#keeprecentlyclosed">keeprecentlyclosed</a>. Tabs which are pinned by the <a href="#:pin">:pin</a> command are always restored, regardless of the restoretabs setting. The container each tab was using is always remembered on restart.
+        Toggle for restoring tabs you had open during the previous browsing session. If enabled, all tabs you had open when you quit Vieb last time, will automatically open again when you start Vieb. If you have configured any <a href="#startuppages">startuppages</a>, they will be opened after restoring the previous tabs. If this setting is disabled, tabs won't be restored, but will possibly be stored as recently closed tabs so you can reopen them, which is configured with <a href="#keeprecentlyclosed">keeprecentlyclosed</a>. Tabs which are pinned by the <a href="#:pin">:pin</a> command are always restored, regardless of the restoretabs setting. The container each tab was using is always remembered on restart. You can control if restored tabs are loaded or not with <a href="#suspendonrestore">suspendonrestore</a>.
         <h3 id="restorewindowmaximize">restorewindowmaximize</h3>
         Toggle for remembering and restoring the window maximization state after restarting Vieb.
         <h3 id="restorewindowposition">restorewindowposition</h3>
@@ -711,6 +718,10 @@
         Toggle to indicate if files should be suggested before previously visited sites in <a class="explore" href="#action.toExploreMode">explore mode</a>. By default they appear below the urls from your history.
         <h3 id="suggesttopsites">suggesttopsites</h3>
         The number of top visited sites that should be shown on the new tab page. These sites are your most visited websites based on your local browsing history. This setting can be set to 0 to disable the top sites from appearing on the new tab page. Alternatively, you can also specify a list of favorite websites that should always be shown on the new tab page using the <a href="#favoritepages">favoritepages</a> setting.
+        <h3 id="suspendonrestore">suspendonrestore</h3>
+        Toggle for restoring tabs in suspended state. Specify which tabs (if any) should not be loaded on startup, but only be listed as opened. These tabs will only be loaded after switching to them. This option is useful to make Vieb start up faster. You can choose to enable it for all tabs or only for tabs that are not pinned (regular). It only has an effect if <a href="#restoretabs">restoretabs</a> is enabled.
+        <h3 id="suspendtimeout">suspendtimeout</h3>
+        Setting to automatically suspend tabs when they aren't opened for a specific amount of time. Any value below 100 milliseconds will disable the timeout suspend feature. This setting can be useful to decrease the RAM usage of Vieb. Keep in mind that the page is completely unloaded when tabs are suspended. You can also suspend any background tab manually with <a href="#:suspend">:suspend</a>, regardless of the value of this setting.
         <h3 id="tabcycle">tabcycle</h3>
         This toggle indicates if the tabs should cycle from the last to the first and the other way around. If enabled, you can switch to the first tab by executing <a href="#action.nextTab">action.nextTab</a> when already at the last tab. If disabled, the next tab action will not have any effect and you will remain on the last tab. The same logic applies to calling <a href="#action.previousTab">action.previousTab</a> while already on the first tab.
         <h3 id="tabnexttocurrent">tabnexttocurrent</h3>
@@ -929,7 +940,7 @@
         <h3 id="action.previousSearchMatch" countable="true">action.previousSearchMatch</h3>
         Opposite of <a href="#action.nextSearchMatch">action.nextSearchMatch</a>.
         <h3 id="action.increasePageNumber" countable="true">action.increasePageNumber</h3>
-        Call this action to increase the page number in the url. It will check for pagination indicators in the webpage to use, then try to increase the port number and finally a fallback to 'p' and 'page' query arguments. If none of these are present, it will increase the first number in the url
+        Call this action to increase the page number in the url. It will check for pagination indicators in the webpage to use, then try to increase the port number and finally a fallback to 'p' and 'page' query arguments. If none of these are present, it will increase the first number in the url.
         <h3 id="action.decreasePageNumber" countable="true">action.decreasePageNumber</h3>
         Opposite of <a href="#action.increasePageNumber">action.increasePageNumber</a>.
         <h3 id="action.insertAtFirstInput">action.insertAtFirstInput</h3>

@@ -101,6 +101,8 @@ const defaultSettings = {
     "suggestfilesfirst": false,
     "suggestexplore": 20,
     "suggesttopsites": 10,
+    "suspendonrestore": "none",
+    "suspendtimeout": 0,
     "tabcycle": true,
     "tabnexttocurrent": true,
     "taboverflow": "scroll",
@@ -153,19 +155,21 @@ const validOptions = {
     "permissionpointerlock": ["block", "ask", "allow"],
     "permissionunknown": ["block", "ask", "allow"],
     "suggestfiles": ["none", "commands", "explore", "all"],
+    "suspendonrestore": ["all", "regular", "none"],
     "windowtitle": ["simple", "title", "url", "full"]
 }
 const numberRanges = {
     "countlimit": [0, 10000],
     "fontsize": [8, 30],
-    "guihidetimeout": [0, 10000],
+    "guihidetimeout": [0, Infinity],
     "maxmapdepth": [1, 40],
-    "mintabwidth": [0, 10000],
-    "notificationduration": [0, 30000],
-    "requesttimeout": [0, 300000],
-    "suggestcommands": [0, 1000],
-    "suggestexplore": [0, 1000],
-    "suggesttopsites": [0, 1000],
+    "mintabwidth": [0, Infinity],
+    "notificationduration": [0, Infinity],
+    "requesttimeout": [0, Infinity],
+    "suggestcommands": [0, Infinity],
+    "suggestexplore": [0, Infinity],
+    "suggesttopsites": [0, Infinity],
+    "suspendtimeout": [0, Infinity],
     "timeoutlen": [0, 10000]
 }
 const config = path.join(UTIL.appData(), "viebrc")
