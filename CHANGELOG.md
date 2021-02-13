@@ -15,7 +15,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Added
 
-- Mute command to toggle the audio playback status of a tab (either mute or unmute)
+- Command "mute" to toggle the audio playback status of a tab (either mute or unmute)
 - Setting "respectsitecontextmenu" to toggle if Vieb should show it's menu on websites that already provide one
 - Setting "suspendonrestore" to restore tabs lazily (loading tabs only once they're visible)
 - Setting "suspendtimeout" to automatically suspend background tabs after a delay
@@ -30,8 +30,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Iframe detection on pages now also works for frames in framesets, embeds and for object tags
 - Enable "respectsitecontextmenu" by default to be able to use the right-click menus of websites without Vieb interfering
 - Mapped keys in insert mode won't be detected by the website, this prevents all side effects for mappings, including those for split devtools
-- Default settings: Mouse is now on by default and ignorecase is now on by default
-- Privacy fixes for navigator properties and media info now run in iframes on a timer, can't be waterproofed without [this](https://github.com/electron/electron/issues/22582)
+- Default settings: Mouse is now on, infinite maximum number of command suggestions and ignorecase is now on
+- Upper limit of most number range settings has been removed (by making the upper boundary Infinity)
 
 ### Removed
 
@@ -40,7 +40,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Fixed
 
-- Incorrect action when following links with a custom datamethod attribute (such as put or post)
+- Potentially incorrect execution for following links with a custom datamethod attribute (such as put or post)
 - Follow mode not loading on some pages due to querySelectorAll sometimes returning undefined instead of an empty NodeList
 - Potential parse errors for invalid URLs being stored or opened by pages
 - Mouse action listeners potentially being wiped within iframes if re-added to the DOM
@@ -49,6 +49,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Electron 12.0.0-beta.25 (was 11.2.1)
 - Chromium 89.0.4388.2 (was 87.0.4280.141)
+- Privacy fixes for navigator properties and media info now run in iframes on a timer, can't be waterproofed without [this](https://github.com/electron/electron/issues/22582)
 
 ## [3.4.0](https://github.com/Jelmerro/Vieb/compare/3.3.0...3.4.0) - 2021-01-31
 

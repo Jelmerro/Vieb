@@ -96,7 +96,7 @@ const defaultSettings = {
     "splitright": false,
     "startuppages": "",
     "storenewvisits": true,
-    "suggestcommands": 1000,
+    "suggestcommands": Infinity,
     "suggestfiles": "all",
     "suggestfilesfirst": false,
     "suggestexplore": 20,
