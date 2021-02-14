@@ -759,7 +759,7 @@ const permissionHandler = (_, permission, callback, details) => {
         } else if (details.mediaTypes?.includes("audio")) {
             permission = "microphone"
         } else {
-            permission = "mediadevices"
+            permission = "displaycapture"
         }
     }
     let permissionName = `permission${permission}`

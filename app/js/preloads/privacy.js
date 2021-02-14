@@ -17,7 +17,7 @@
 */
 "use strict"
 
-const {ipcRenderer} = require("electron")
+const {desktopCapturer, ipcRenderer} = require("electron")
 const fs = require("fs")
 const path = require("path")
 
@@ -30,13 +30,9 @@ const settingsFile = path.join(
     ipcRenderer.sendSync("appdata-path"), "webviewsettings")
 
 const privacyFixes = (w = window) => {
-    // Hide device labels from the list of media devices
-    // Disable the screen share API, as electron has no support for it
     try {
+        // Hide device labels from the list of media devices
         const enumerate = w.navigator.mediaDevices.enumerateDevices
-        const constraints = w.navigator.mediaDevices.getSupportedConstraints
-        const usermedia = w.navigator.mediaDevices.getUserMedia
-        const ondevicechange = w.navigator.mediaDevices.ondevicechange
         const mediaDeviceList = async (action, notify = false) => {
             if (notify) {
                 ipcRenderer.sendToHost("notify",
@@ -116,15 +112,10 @@ const privacyFixes = (w = window) => {
             }
             return mediaDeviceList(action, "Globally")
         }
-        w.navigator.mediaDevices.getDisplayMedia = () => new Promise(() => {
-            throw new DOMException("Permission denied", "NotAllowedError")
-        })
-        w.navigator.mediaDevices.getSupportedConstraints = constraints
-        w.navigator.mediaDevices.getUserMedia = usermedia
-        w.navigator.mediaDevices.ondevicechange = ondevicechange
+        // Enable screensharing functionality linked to permissiondisplaycapture
+        w.navigator.mediaDevices.getDisplayMedia = () => customDisplayMedia(w)
     } catch (e) {
-        // Some devices and electron versions don't expose these anyway
-        // Also does not seem to be added when page does not use https
+        // Non-secure resources don't expose these APIs
     }
     // Empty the list of browser plugins, as there shouldn't be any installed
     Object.defineProperty(w.navigator, "plugins", {"value": []})
@@ -182,5 +173,94 @@ const privacyFixes = (w = window) => {
     }
 }
 privacyFixes()
-
 module.exports = {privacyFixes}
+
+// Screensharing code based on the work of @WesselKroos on Github
+// https://github.com/electron/electron/issues/16513#issuecomment-602070250
+const displayCaptureStyling = `html, body {overflow: hidden !important;}
+.desktop-capturer-selection {
+  position: fixed;top: 0;left: 0;width: 100%;height: 100vh;
+  background: #0005;color: #fff;z-index: 10000000;
+  display: flex;align-items: center;justify-content: center;
+}
+.desktop-capturer-selection__scroller {
+  width: 100%;max-height: 100vh;overflow-y: auto;
+}
+.desktop-capturer-selection__list {
+  max-width: calc(100% - 100px);margin: 50px;padding: 0;display: flex;
+  list-style: none;overflow: hidden;justify-content: center;flex-wrap: wrap;
+}
+.desktop-capturer-selection__item {display: flex;margin: 10px;}
+.desktop-capturer-selection__btn {
+  display: flex;flex-direction: column;margin: 0;border: 0;width: 160px;
+  background: #333;color: #fff;align-items: center;
+}
+.desktop-capturer-selection__thumbnail {margin: 5px;width: 150px;}
+.desktop-capturer-selection__name {margin: 10px;overflow-wrap: anywhere;}
+.desktop-capturer-selection__btn:hover, .desktop-capturer-selection__btn:focus {
+  background: #fff;color: #000;;
+}`
+const customDisplayMedia = frameWindow => new Promise((resolve, reject) => {
+    let settings = {}
+    try {
+        settings = JSON.parse(fs.readFileSync(settingsFile).toString())
+    } catch (e) {
+        // No webview settings configured, assuming the default "ask"
+    }
+    if (settings?.permissiondisplaycapture !== "ask") {
+        throw new DOMException("Permission denied", "NotAllowedError")
+    }
+    return new Promise(async () => {
+        try {
+            const sources = await desktopCapturer.getSources(
+                {"types": ["screen", "window"]})
+            const stylingElem = document.createElement("style")
+            stylingElem.textContent = displayCaptureStyling
+            const selectionElem = document.createElement("div")
+            selectionElem.classList = "desktop-capturer-selection"
+            selectionElem.innerHTML = `
+                    <div class="desktop-capturer-selection__scroller">
+                      <ul class="desktop-capturer-selection__list">
+                        ${sources.map(details => `
+                          <li class="desktop-capturer-selection__item">
+                            <button class="desktop-capturer-selection__btn"
+                                data-id="${details.id}">
+                              <img class="desktop-capturer-selection__thumbnail"
+                                src="${details.thumbnail.toDataURL()}" />
+                              <span class="desktop-capturer-selection__name">
+                                ${details.name.trim()}</span>
+                            </button>
+                          </li>
+                        `).join("")}
+                      </ul>
+                    </div>
+                  `
+            document.body.appendChild(selectionElem)
+            document.head.appendChild(stylingElem)
+            document.querySelectorAll(
+                ".desktop-capturer-selection__btn").forEach(button => {
+                button.addEventListener("click", async () => {
+                    try {
+                        const id = button.getAttribute("data-id")
+                        resolve(await frameWindow.navigator.mediaDevices
+                            .getUserMedia({
+                                "audio": false,
+                                "video": {
+                                    "mandatory": {
+                                        "chromeMediaSource": "desktop",
+                                        "chromeMediaSourceId": id
+                                    }
+                                }
+                            }))
+                    } catch (err) {
+                        reject(err)
+                    }
+                    selectionElem.remove()
+                    stylingElem.remove()
+                })
+            })
+        } catch (err) {
+            reject(err)
+        }
+    })
+})

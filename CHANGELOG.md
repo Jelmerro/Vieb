@@ -20,6 +20,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "suspendonrestore" to restore tabs lazily (loading tabs only once they're visible)
 - Setting "suspendtimeout" to automatically suspend background tabs after a delay
 - Command "suspend" to manually suspend any background tab right now
+- Setting "permissiondisplaycapture" to block or ask screensharing permission (you can select the source with follow mode or the mouse)
 - Follow mode support for shadow roots using similar implementation as iframes
 - Nop action that does nothing, can be used to prevent side effects for keys in insert mode (site won't register them, similar to mappings)
 - Support for modifiers in recursive insert mode mappings

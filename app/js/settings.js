@@ -77,6 +77,7 @@ const defaultSettings = {
     "permissionpointerlock": "block",
     "permissionsallowed": "",
     "permissionsblocked": "",
+    "permissiondisplaycapture": "block",
     "permissionunknown": "block",
     "redirects": "https?://(www\\.)?google\\.com(\\.\\w+)?/amp/s/amp\\.(.*)"
         + "~https://$3",
@@ -153,6 +154,7 @@ const validOptions = {
     "permissionopenexternal": ["block", "ask", "allow"],
     "permissionpersistentstorage": ["block", "ask", "allow"],
     "permissionpointerlock": ["block", "ask", "allow"],
+    "permissiondisplaycapture": ["block", "ask"],
     "permissionunknown": ["block", "ask", "allow"],
     "suggestfiles": ["none", "commands", "explore", "all"],
     "suspendonrestore": ["all", "regular", "none"],
@@ -578,6 +580,7 @@ const updateWebviewSettings = () => {
         "permissionmediadevices": get("permissionmediadevices"),
         "permissionsallowed": get("permissionsallowed"),
         "permissionsblocked": get("permissionsblocked"),
+        "permissiondisplaycapture": get("permissiondisplaycapture"),
         "fg": getComputedStyle(document.body).getPropertyValue("--fg"),
         "bg": getComputedStyle(document.body).getPropertyValue("--bg")
     })
@@ -770,7 +773,8 @@ const set = (setting, value) => {
             "darkreader",
             "permissionmediadevices",
             "permissionsallowed",
-            "permissionsblocked"
+            "permissionsblocked",
+            "permissiondisplaycapture"
         ]
         if (webviewSettings.includes(setting)) {
             updateWebviewSettings()
