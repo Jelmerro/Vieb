@@ -60,12 +60,10 @@ const otherEvents = [
 const frameSelector = "embed, frame, iframe, object"
 
 ipcRenderer.on("focus-first-text-input", async () => {
-    const links = allElementsBySelector("inputs-insert", textlikeInputs)
-    if (links.length > 0) {
-        const pos = links.sort((el1, el2) => Math.floor(el1.y)
-            - Math.floor(el2.y) || el1.x - el2.x)[0]
+    const input = getAllFollowLinks().find(l => l.type === "inputs-insert")
+    if (input) {
         const element = findElementAtPosition(
-            pos.x + pos.width / 2, pos.y + pos.height / 2)
+            input.x + input.width / 2, input.y + input.height / 2)
         if (element?.click && element?.focus) {
             ipcRenderer.sendToHost("switch-to-insert")
             await new Promise(r => setTimeout(r, 5))
@@ -146,22 +144,20 @@ const getAllFollowLinks = () => {
     getLinkFollows(allLinks)
     getInputFollows(allLinks)
     getMouseFollows(allLinks)
-    return allLinks
-}
-
-const sendFollowLinks = () => {
-    if (!inFollowMode) {
-        return
-    }
-    const allLinks = getAllFollowLinks()
     // Ordered by the position on the page from the top
     // Uncategorised mouse events are less relevant and are moved to the end
-    ipcRenderer.sendToHost("follow-response", allLinks.sort((el1, el2) => {
+    return allLinks.sort((el1, el2) => {
         if (el1.type === "other") {
             return 10000
         }
         return Math.floor(el1.y) - Math.floor(el2.y) || el1.x - el2.x
-    }))
+    })
+}
+
+const sendFollowLinks = () => {
+    if (inFollowMode) {
+        ipcRenderer.sendToHost("follow-response", getAllFollowLinks())
+    }
 }
 
 ipcRenderer.on("follow-mode-start", () => {
