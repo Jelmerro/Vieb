@@ -768,23 +768,21 @@ const permissionHandler = (_, permission, callback, details) => {
         permissionName = "permissionunknown"
         setting = permissions.permissionunknown
     }
-    for (const override of ["permissionsblocked", "permissionsallowed"]) {
-        for (const rule of permissions[override]?.split(",")) {
-            if (!rule.trim()) {
+    let settingRule = ""
+    for (const override of ["asked", "blocked", "allowed"]) {
+        for (const rule of permissions[`permissions${override}`]?.split(",")) {
+            if (!rule.trim() || settingRule) {
                 continue
             }
             const [match, ...names] = rule.split("~")
             if (names.find(p => permissionName.endsWith(p))) {
                 if (details.requestingUrl.match(match)) {
-                    mainWindow.webContents.send("notify",
-                        `Automatic rule for '${permission}' activated at `
-                        + `'${details.requestingUrl}' which was `
-                        + `${override.replace("permissions", "")}`, "perm")
-                    return callback(override.includes("allow"))
+                    settingRule = override.replace("ed", "")
                 }
             }
         }
     }
+    setting = settingRule || setting
     if (setting === "ask") {
         let url = details.requestingUrl
         if (url.length > 100) {
@@ -794,8 +792,8 @@ const permissionHandler = (_, permission, callback, details) => {
             + `'${permission}'. You can allow or deny this below, and choose if`
             + " you want to make this the default for the current session when "
             + "sites ask for this permission. For help and more options, see "
-            + `':h ${permissionName}', ':h permissionsallowed' and `
-            + `':h permissionsblocked'.\n\npage:\n${url}`
+            + `':h ${permissionName}', ':h permissionsallowed', ':h permissions`
+            + `asked' and ':h permissionsblocked'.\n\npage:\n${url}`
         if (permission === "openExternal") {
             let exturl = details.externalURL
             if (exturl.length > 100) {
@@ -805,9 +803,9 @@ const permissionHandler = (_, permission, callback, details) => {
                 + " You can allow or deny this below, and choose if you want to"
                 + " make this the default for the current session when sites "
                 + "ask to open urls in external programs. For help and more "
-                + "options, see ':h permissionopenexternal', "
-                + "':h permissionsallowed' and ':h permissionsblocked'.\n\n"
-                + `page:\n${details.requestingUrl}\n\nexternal:\n${exturl}`
+                + "options, see ':h permissionopenexternal', ':h permissionsall"
+                + "owed', ':h permissionsasked' and ':h permissionsblocked'.\n"
+                + `\npage:\n${details.requestingUrl}\n\nexternal:\n${exturl}`
         }
         dialog.showMessageBox(mainWindow, {
             "type": "question",
@@ -822,20 +820,37 @@ const permissionHandler = (_, permission, callback, details) => {
             if (e.response !== 0) {
                 action = "block"
             }
-            mainWindow.webContents.send("notify",
-                `Manually ${action}ed '${permission}' at `
-                + `'${details.requestingUrl}'`, "perm")
+            if (settingRule) {
+                mainWindow.webContents.send("notify",
+                    `Ask rule for '${permission}' activated at '`
+                    + `${details.requestingUrl}' which was ${action}ed by user`,
+                    "perm")
+            } else {
+                mainWindow.webContents.send("notify",
+                    `Manually ${action}ed '${permission}' at `
+                    + `'${details.requestingUrl}'`, "perm")
+            }
             callback(action === "allow")
-            if (e.checkboxChecked) {
+            const canSave = action !== "allowed"
+                || permission !== "displaycapture"
+            if (e.checkboxChecked && canSave) {
                 mainWindow.webContents.send(
                     "set-permission", permissionName, action)
                 permissions[permissionName] = action
             }
         })
     } else {
-        mainWindow.webContents.send("notify",
-            `Globally ${setting}ed '${permission}' at `
-            + `'${details.requestingUrl}' based on '${permissionName}'`, "perm")
+        if (settingRule) {
+            mainWindow.webContents.send("notify",
+                `Automatic rule for '${permission}' activated at `
+                + `'${details.requestingUrl}' which was ${setting}ed`,
+                "perm")
+        } else {
+            mainWindow.webContents.send("notify",
+                `Globally ${setting}ed '${permission}' at `
+                + `'${details.requestingUrl}' based on '${permissionName}'`,
+                "perm")
+        }
         callback(setting === "allow")
     }
 }

@@ -65,6 +65,7 @@ const defaultSettings = {
     "permissioncamera": "block",
     "permissionclipboardread": "block",
     "permissionclosepage": "allow",
+    "permissiondisplaycapture": "block",
     "permissionfullscreen": "allow",
     "permissiongeolocation": "block",
     "permissionmediadevices": "ask",
@@ -76,8 +77,8 @@ const defaultSettings = {
     "permissionpersistentstorage": "block",
     "permissionpointerlock": "block",
     "permissionsallowed": "",
+    "permissionsasked": "",
     "permissionsblocked": "",
-    "permissiondisplaycapture": "block",
     "permissionunknown": "block",
     "redirects": "https?://(www\\.)?google\\.com(\\.\\w+)?/amp/s/amp\\.(.*)"
         + "~https://$3",
@@ -118,6 +119,7 @@ const listLike = [
     "containercolors",
     "favoritepages",
     "permissionsallowed",
+    "permissionsasked",
     "permissionsblocked",
     "redirects",
     "searchwords",
@@ -144,6 +146,7 @@ const validOptions = {
     "permissioncamera": ["block", "ask", "allow"],
     "permissionclipboardread": ["block", "ask", "allow"],
     "permissionclosepage": ["block", "allow"],
+    "permissiondisplaycapture": ["block", "ask"],
     "permissionfullscreen": ["block", "ask", "allow"],
     "permissiongeolocation": ["block", "ask", "allow"],
     "permissionmediadevices": ["block", "ask", "allow", "allowfull"],
@@ -154,7 +157,6 @@ const validOptions = {
     "permissionopenexternal": ["block", "ask", "allow"],
     "permissionpersistentstorage": ["block", "ask", "allow"],
     "permissionpointerlock": ["block", "ask", "allow"],
-    "permissiondisplaycapture": ["block", "ask"],
     "permissionunknown": ["block", "ask", "allow"],
     "suggestfiles": ["none", "commands", "explore", "all"],
     "suspendonrestore": ["all", "regular", "none"],
@@ -310,7 +312,9 @@ const checkOther = (setting, value) => {
             return false
         }
     }
-    const permissionSettings = ["permissionsallowed", "permissionsblocked"]
+    const permissionSettings = [
+        "permissionsallowed", "permissionsasked", "permissionsblocked"
+    ]
     if (permissionSettings.includes(setting)) {
         for (const override of value.split(",")) {
             if (!override.trim()) {
@@ -339,6 +343,12 @@ const checkOther = (setting, value) => {
                 if (reservedName || !allSettings[name]) {
                     UTIL.notify(
                         `Invalid name for a permission: ${name}`, "warn")
+                    return false
+                }
+                if (setting.endsWith("allowed") && name.endsWith("capture")) {
+                    UTIL.notify(
+                        "Display capture permission can't be allowed, "
+                        + "only asked or blocked", "warn")
                     return false
                 }
             }
@@ -577,10 +587,11 @@ const updateWebviewSettings = () => {
         UTIL.appData(), "webviewsettings")
     UTIL.writeJSON(webviewSettingsFile, {
         "darkreader": get("darkreader"),
+        "permissiondisplaycapture": get("permissiondisplaycapture"),
         "permissionmediadevices": get("permissionmediadevices"),
         "permissionsallowed": get("permissionsallowed"),
+        "permissionsasked": get("permissionsasked"),
         "permissionsblocked": get("permissionsblocked"),
-        "permissiondisplaycapture": get("permissiondisplaycapture"),
         "fg": getComputedStyle(document.body).getPropertyValue("--fg"),
         "bg": getComputedStyle(document.body).getPropertyValue("--bg")
     })
@@ -771,10 +782,11 @@ const set = (setting, value) => {
         }
         const webviewSettings = [
             "darkreader",
+            "permissiondisplaycapture",
             "permissionmediadevices",
             "permissionsallowed",
-            "permissionsblocked",
-            "permissiondisplaycapture"
+            "permissionsasked",
+            "permissionsblocked"
         ]
         if (webviewSettings.includes(setting)) {
             updateWebviewSettings()
