@@ -22,7 +22,7 @@ const {ipcRenderer} = require("electron")
 ipcRenderer.on("settings", (_, settings, mappings) => {
     // Enrich the settings list with type, default, current and value lists
     ;[...document.querySelectorAll(".setting-status, .map-status, .countable")]
-        .forEach(el => el.parentNode.removeChild(el))
+        .forEach(el => el.remove())
     settings.forEach(setting => {
         if (document.getElementById(setting.name)) {
             const settingStatus = document.createElement("div")
@@ -135,7 +135,7 @@ window.addEventListener("DOMContentLoaded", () => {
             link.style.display = "none"
             document.body.appendChild(link)
             link.click()
-            document.body.removeChild(link)
+            link.remove()
         })
         document.querySelector(".example-buttons").appendChild(button)
     }

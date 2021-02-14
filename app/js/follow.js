@@ -254,7 +254,7 @@ const enterKey = async id => {
             matches.push(linkKey)
             linkKey.textContent = linkKey.textContent.replace(key, "")
         } else {
-            document.getElementById("follow").removeChild(linkKey)
+            linkKey.remove()
         }
     })
     if (matches.length === 0) {

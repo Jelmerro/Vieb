@@ -164,9 +164,8 @@ const notify = (message, type = "info", clickAction = false) => {
         })
     }
     notificationsElement.appendChild(notification)
-    setTimeout(() => {
-        notificationsElement.removeChild(notification)
-    }, SETTINGS.get("notificationduration"))
+    setTimeout(() => notification.remove(),
+        SETTINGS.get("notificationduration"))
 }
 
 const specialPagePath = (page, section = null, skipExistCheck = false) => {

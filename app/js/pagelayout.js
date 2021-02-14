@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020 Jelmer van Arnhem
+* Copyright (C) 2020-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ const hide = (view, close = false) => {
     const inLayout = layoutDivById(view.getAttribute("link-id"))
     const parent = inLayout.parentNode
     const sibling = inLayout.nextSibling
-    parent.removeChild(inLayout)
+    inLayout.remove()
     ;[...parent.children, parent].forEach(element => {
         element.style.flexGrow = null
     })
@@ -71,15 +71,13 @@ const hide = (view, close = false) => {
                 !== view.getAttribute("link-id"))
         }
         if (close) {
-            document.getElementById("tabs").removeChild(
-                TABS.tabOrPageMatching(view))
-            document.getElementById("pages").removeChild(view)
+            TABS.tabOrPageMatching(view).remove()
+            view.remove()
         }
         TABS.switchToTab(TABS.listTabs().indexOf(newTab))
     } else if (close) {
-        document.getElementById("tabs").removeChild(
-            TABS.tabOrPageMatching(view))
-        document.getElementById("pages").removeChild(view)
+        TABS.tabOrPageMatching(view).remove()
+        view.remove()
     }
     applyLayout()
 }
@@ -119,7 +117,7 @@ const add = (viewOrId, method, leftOrAbove) => {
             verContainer.appendChild(singleView)
         }
         inLayout.parentNode.insertBefore(verContainer, inLayout)
-        inLayout.parentNode.removeChild(inLayout)
+        inLayout.remove()
     }
     [...layoutDivById(id).parentNode.children, layoutDivById(id).parentNode]
         .forEach(element => {
@@ -273,7 +271,7 @@ const removeRedundantContainers = () => {
                     lonelyView.style.flexGrow = null
                     container.parentNode.insertBefore(lonelyView, container)
                 }
-                container.parentNode.removeChild(container)
+                container.remove()
             }
             [...container.children].forEach(child => {
                 if (!child.getAttribute("link-id")) {
@@ -281,7 +279,7 @@ const removeRedundantContainers = () => {
                         [...child.children].forEach(subChild => {
                             container.insertBefore(subChild, child)
                         })
-                        container.removeChild(child)
+                        child.remove()
                     }
                 }
             })
@@ -293,7 +291,7 @@ const applyLayout = () => {
         const id = element.getAttribute("link-id")
         const page = document.querySelector(`#pages .webview[link-id='${id}']`)
         if (!page) {
-            element.parentNode.removeChild(element)
+            element.remove()
         }
     })
     removeRedundantContainers()

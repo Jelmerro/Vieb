@@ -461,8 +461,8 @@ const closeTab = (index = null) => {
     if (isVisible && multiLayout) {
         PAGELAYOUT.hide(page, true)
     } else {
-        document.getElementById("tabs").removeChild(tab)
-        document.getElementById("pages").removeChild(page)
+        tab.remove()
+        page.remove()
         if (listTabs().length === 0) {
             if (SETTINGS.get("containernewtab").startsWith("s:")) {
                 addTab({"container": "main"})

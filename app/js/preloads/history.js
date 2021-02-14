@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2020 Jelmer van Arnhem
+* Copyright (C) 2019-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -273,7 +273,7 @@ ipcRenderer.on("history-list", (_, historyList) => {
 ipcRenderer.on("history-removal-status", success => {
     [...document.querySelectorAll(".marked")].forEach(m => {
         if (success) {
-            m.parentNode.removeChild(m)
+            m.remove()
         } else {
             m.classList.remove("marked")
         }
