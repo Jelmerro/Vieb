@@ -837,6 +837,9 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     if (setting === "downloadpath") {
         allowedValues = "any directory on disk"
     }
+    if (setting === "externalcommand") {
+        allowedValues = "any system command"
+    }
     if (setting === "search") {
         allowedValues = "any URL"
     }
