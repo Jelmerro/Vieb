@@ -55,7 +55,8 @@ const otherEvents = [
     "mouseout",
     "mouseover",
     "mouseup",
-    "contextmenu"
+    "contextmenu",
+    "auxclick"
 ]
 const frameSelector = "embed, frame, iframe, object"
 
@@ -426,7 +427,7 @@ window.addEventListener("click", clickListener,
     {"capture": true, "passive": true})
 
 const contextListener = (e, frame = null) => {
-    if (e.isTrusted) {
+    if (e.isTrusted && !inFollowMode && e.button === 2) {
         e.preventDefault()
         const paddingInfo = findFrameInfo(frame)
         ipcRenderer.sendToHost("context-click-info", {
@@ -441,10 +442,11 @@ const contextListener = (e, frame = null) => {
             "canEdit": !!e.target.matches(textlikeInputs),
             "frame": frame?.src,
             "hasExistingListener": eventListeners.contextmenu.has(e.target)
+                || eventListeners.auxclick.has(e.target)
         })
     }
 }
-window.addEventListener("contextmenu", contextListener)
+window.addEventListener("auxclick", contextListener)
 
 setInterval(() => {
     // Regular listeners are wiped when the element is re-added to the dom,

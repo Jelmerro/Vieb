@@ -47,6 +47,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Potential parse errors for invalid URLs being stored or opened by pages
 - Mouse action listeners potentially being wiped within iframes if re-added to the DOM
 - Action "insertAtFirstInput" now works for subframes and for labels that link to hidden fields
+- Right click menu potentially appearing when using follow mode on Windows
 
 ### Security
 
