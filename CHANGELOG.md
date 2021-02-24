@@ -26,6 +26,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Nop action that does nothing, can be used to prevent side effects for keys in insert mode (site won't register them, similar to mappings)
 - Support for modifiers in recursive insert mode mappings
 - Support for lock keys in mappings, such as CapsLock
+- Setting "externalcommand" to configure the external command that will be used to open links externally
+- Action "openLinkExternal" to open the highlighted url or current page url with an "externalcommand"
 
 ### Changed
 

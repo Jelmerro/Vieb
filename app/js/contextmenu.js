@@ -250,6 +250,10 @@ const webviewMenu = options => {
             "title": "Download link",
             "action": () => TABS.currentPage().downloadURL(options.link)
         })
+        createMenuItem({
+            "title": "Open link with external command",
+            "action": () => ACTIONS.openLinkExternal(options.link)
+        })
     }
     createMenuItem({
         "title": "Inspect element",

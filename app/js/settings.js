@@ -41,6 +41,7 @@ const defaultSettings = {
     "devtoolsposition": "window",
     "downloadmethod": "automatic",
     "downloadpath": "~/Downloads/",
+    "externalcommand": "",
     "favicons": "session",
     "favoritepages": "",
     "firefoxmode": "never",
@@ -114,7 +115,7 @@ const defaultSettings = {
     "windowtitle": "simple"
 }
 let allSettings = {}
-const freeText = ["downloadpath", "search", "vimcommand"]
+const freeText = ["downloadpath", "externalcommand", "search", "vimcommand"]
 const listLike = [
     "containercolors",
     "favoritepages",

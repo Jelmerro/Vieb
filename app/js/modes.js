@@ -26,7 +26,7 @@ const modes = {
             if (TABS.currentPage().getAttribute("dom-ready")) {
                 TABS.currentPage().send("action", "blur")
             }
-            if (newMode !== "pointer") {
+            if (newMode !== "pointer" && !SETTINGS.get("mouse")) {
                 document.getElementById("url-hover").textContent = ""
                 document.getElementById("url-hover").style.display = "none"
             }
@@ -65,7 +65,7 @@ const modes = {
             if (!["visual", "follow"].includes(newMode)) {
                 POINTER.releaseKeys()
             }
-            if (newMode !== "insert") {
+            if (newMode !== "insert" && !SETTINGS.get("mouse")) {
                 document.getElementById("url-hover").style.display = "none"
             }
         }

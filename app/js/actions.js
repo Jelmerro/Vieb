@@ -252,6 +252,24 @@ const editWithVim = () => {
     page.send("action", "writeInputToFile", tempFile)
 }
 
+const openLinkExternal = (suppliedLink = null) => {
+    const ext = SETTINGS.get("externalcommand")
+    if (!ext.trim()) {
+        UTIL.notify("No command set to open links externally, "
+            + "please update the 'externalcommand' setting", "warn")
+        return
+    }
+    const url = suppliedLink || document.getElementById("url-hover").textContent
+        || UTIL.urlToString(TABS.currentPage()?.src)
+    if (url) {
+        exec(`${ext} ${url}`, err => {
+            if (err) {
+                UTIL.notify("Command to open links externally failed, "
+                    + "please update the 'externalcommand' setting", "err")
+            }
+        })
+    }
+}
 const nextSuggestion = () => {
     SUGGEST.nextSuggestion()
     setFocusCorrectly()
@@ -442,6 +460,7 @@ module.exports = {
     decreasePageNumber,
     insertAtFirstInput,
     editWithVim,
+    openLinkExternal,
     nextSuggestion,
     prevSuggestion,
     commandHistoryPrevious,
