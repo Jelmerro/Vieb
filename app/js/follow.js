@@ -269,11 +269,7 @@ const enterKey = async id => {
             if (stayInFollowMode) {
                 startFollow()
             }
-            TABS.addTab({
-                "url": link.url,
-                "inverted": false,
-                "switchTo": !stayInFollowMode
-            })
+            TABS.addTab({"url": link.url, "switchTo": !stayInFollowMode})
             return
         }
         await clickAtLink(link)

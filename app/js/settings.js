@@ -106,9 +106,11 @@ const defaultSettings = {
     "suggesttopsites": 10,
     "suspendonrestore": "none",
     "suspendtimeout": 0,
+    "tabclosefocusright": false,
     "tabcycle": true,
     "tabnexttocurrent": true,
     "taboverflow": "scroll",
+    "tabreopenposition": "right",
     "timeout": true,
     "timeoutlen": 1000,
     "vimcommand": "gvim",
@@ -143,7 +145,6 @@ const validOptions = {
     "notificationposition": [
         "bottomright", "bottomleft", "topright", "topleft"
     ],
-    "taboverflow": ["hidden", "scroll", "wrap"],
     "permissioncamera": ["block", "ask", "allow"],
     "permissionclipboardread": ["block", "ask", "allow"],
     "permissionclosepage": ["block", "allow"],
@@ -161,6 +162,8 @@ const validOptions = {
     "permissionunknown": ["block", "ask", "allow"],
     "suggestfiles": ["none", "commands", "explore", "all"],
     "suspendonrestore": ["all", "regular", "none"],
+    "taboverflow": ["hidden", "scroll", "wrap"],
+    "tabreopenposition": ["left", "right", "previous"],
     "windowtitle": ["simple", "title", "url", "full"]
 }
 const numberRanges = {

@@ -120,8 +120,6 @@ const backInHistory = (customPage = null) => {
     }
 }
 
-const openNewTabAtAlternativePosition = () => TABS.addTab({"inverted": true})
-
 const forwardInHistory = (customPage = null) => {
     const page = customPage || TABS.currentPage()
     if (page && !page.isCrashed()) {
@@ -428,7 +426,6 @@ module.exports = {
     reloadWithoutCache,
     stopLoadingPage,
     openNewTab,
-    openNewTabAtAlternativePosition,
     openNewTabWithCurrentUrl,
     closeTab,
     reopenTab,

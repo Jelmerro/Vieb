@@ -64,7 +64,8 @@ const defaultBindings = {
         "s": {"mapping": "<pointer.start>"},
         "t": {"mapping": "<action.openNewTab>"},
         "T": {"mapping": "<action.openNewTabWithCurrentUrl>"},
-        "<C-t>": {"mapping": "<action.openNewTabAtAlternativePosition>"},
+        "<C-t>": {"mapping": "<:set tabnexttocurrent!>"
+            + "<action.openNewTab><:set tabnexttocurrent!>"},
         "u": {"mapping": "<action.reopenTab>"},
         "<C-u>": {"mapping": "<action.scrollPageUpHalf>"},
         "v": {"mapping": "<pointer.start>"},

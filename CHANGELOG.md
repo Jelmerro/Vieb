@@ -28,6 +28,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Support for lock keys in mappings, such as CapsLock
 - Setting "externalcommand" to configure the external command that will be used to open links externally
 - Action "openLinkExternal" to open the highlighted url or current page url with an "externalcommand"
+- Setting "tabclosefocusright" to decide if the right (or left) tab should get focused when closing a tab
+- Setting "tabreopenposition" which configures the position that should be used to restore tabs: previous, left or right (default)
 
 ### Changed
 
@@ -43,6 +45,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Migrations for old tab structure used in 2.x.x and older
 - Fallback to name field for Erwic config files
 - Support for search setting values that don't include a "%s" to be replaced by the search
+- Action "openNewTabAtAlternativePosition", which is now implemented with a mapping that toggles the setting
 
 ### Fixed
 

@@ -193,7 +193,7 @@ const currentTab = () => document.getElementById("current-tab")
 const currentPage = () => document.getElementById("current-page")
 
 const addTab = options => {
-    // Options: url, inverted, switchTo, pinned, container,
+    // Options: url, customIndex, switchTo, pinned, container,
     // lazy, muted and callback
     if (!options) {
         options = {}
@@ -265,11 +265,6 @@ const addTab = options => {
     if (sessionName.startsWith("s:use")) {
         sessionName = currentPage()?.getAttribute("container") || "main"
     }
-    let addNextToCurrent = SETTINGS.get("tabnexttocurrent")
-    if (options.inverted) {
-        addNextToCurrent = !addNextToCurrent
-    }
-    addNextToCurrent = addNextToCurrent && currentTab()
     const tabs = document.getElementById("tabs")
     const pages = document.getElementById("pages")
     const tab = document.createElement("span")
@@ -289,7 +284,17 @@ const addTab = options => {
     tab.appendChild(favicon)
     tab.appendChild(statusIcon)
     tab.appendChild(title)
-    if (addNextToCurrent) {
+    if (options.customIndex !== undefined && currentTab()) {
+        if (options.customIndex >= listTabs().length) {
+            tabs.appendChild(tab)
+        } else {
+            let nextTab = listTabs()[options.customIndex]
+            while (nextTab && nextTab.classList.contains("pinned")) {
+                nextTab = nextTab.nextSibling
+            }
+            tabs.insertBefore(tab, nextTab)
+        }
+    } else if (SETTINGS.get("tabnexttocurrent") && currentTab()) {
         let nextTab = currentTab().nextSibling
         while (nextTab && nextTab.classList.contains("pinned")) {
             nextTab = nextTab.nextSibling
@@ -418,13 +423,20 @@ const unsuspendPage = page => {
 }
 
 const reopenTab = () => {
-    if (recentlyClosed.length === 0) {
+    if (recentlyClosed.length === 0 || listTabs().length === 0) {
         return
     }
     const restore = recentlyClosed.pop()
     restore.url = UTIL.stringToUrl(restore.url)
     if (!SETTINGS.get("containerkeeponreopen")) {
         restore.container = null
+    }
+    restore.customIndex = restore.index
+    if (SETTINGS.get("tabreopenposition") === "left") {
+        restore.customIndex = listTabs().indexOf(currentTab())
+    }
+    if (SETTINGS.get("tabreopenposition") === "right") {
+        restore.customIndex = listTabs().indexOf(currentTab()) + 1
     }
     addTab(restore)
 }
@@ -442,9 +454,10 @@ const closeTab = (index = null) => {
         }
     }
     const url = UTIL.urlToString(page.src || "")
+    const oldTabIdx = listTabs().indexOf(tab)
     if (SETTINGS.get("keeprecentlyclosed") && url) {
         recentlyClosed.push({
-            url, "container": page.getAttribute("container")
+            url, "container": page.getAttribute("container"), "index": oldTabIdx
         })
     }
     const regularTab = listTabs().find(t => t.getAttribute("devtools-id")
@@ -453,7 +466,6 @@ const closeTab = (index = null) => {
         regularTab.removeAttribute("devtools-id")
     }
     const closedDevtoolsId = tab.getAttribute("devtools-id")
-    const oldTabIndex = listTabs().indexOf(tab)
     const isVisible = PAGELAYOUT.layoutDivById(tab.getAttribute("link-id"))
     const multiLayout = document.getElementById("pages")
         .classList.contains("multiple")
@@ -469,10 +481,18 @@ const closeTab = (index = null) => {
                 addTab()
             }
         }
-        if (oldTabIndex === 0) {
-            switchToTab(0)
-        } else if (isClosingCurrent) {
-            switchToTab(oldTabIndex - 1)
+        if (isClosingCurrent) {
+            if (SETTINGS.get("tabclosefocusright")) {
+                if (oldTabIdx >= listTabs().length) {
+                    switchToTab(listTabs().length - 1)
+                } else {
+                    switchToTab(oldTabIdx)
+                }
+            } else if (oldTabIdx === 0) {
+                switchToTab(0)
+            } else {
+                switchToTab(oldTabIdx - 1)
+            }
         }
     }
     listTabs().forEach(t => {
