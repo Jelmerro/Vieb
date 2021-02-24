@@ -99,7 +99,11 @@ const decreasePageNumber = () => new Promise(res => {
     setTimeout(res, 100)
 })
 
-const toSearchMode = () => MODES.setMode("search")
+const toSearchMode = () => {
+    MODES.setMode("search")
+    document.getElementById("url").value = currentSearch
+    document.getElementById("url").select()
+}
 
 const startFollowNewTab = () => FOLLOW.startFollow(true)
 

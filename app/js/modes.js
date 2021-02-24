@@ -39,11 +39,7 @@ const modes = {
         },
         "onLeave": () => SUGGEST.emptySuggestions()
     },
-    "search": {
-        "onEnter": () => {
-            document.getElementById("url").value = ""
-        }
-    },
+    "search": {},
     "explore": {
         "onEnter": () => {
             TABS.updateUrl(TABS.currentPage(), true)

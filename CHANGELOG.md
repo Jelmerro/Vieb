@@ -36,6 +36,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Mapped keys in insert mode won't be detected by the website, this prevents all side effects for mappings, including those for split devtools
 - Default settings: Mouse is now on, infinite maximum number of command suggestions and ignorecase is now on
 - Most number ranges now go much higher (close to MAX_INT) and are only disabled if set to 0
+- Restore the previous search selected when entering search mode (no history, just the previous one)
 
 ### Removed
 
