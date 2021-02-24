@@ -831,7 +831,7 @@ const permissionHandler = (_, permission, callback, details) => {
                     + `'${details.requestingUrl}'`, "perm")
             }
             callback(action === "allow")
-            const canSave = action !== "allowed"
+            const canSave = action !== "allow"
                 || permission !== "displaycapture"
             if (e.checkboxChecked && canSave) {
                 mainWindow.webContents.send(
