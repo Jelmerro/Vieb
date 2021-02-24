@@ -239,7 +239,13 @@ const checkOther = (setting, value) => {
         if (value.startsWith("http://") || value.startsWith("https://")) {
             value = value.replace(/^https?:\/\//g, "")
         }
-        if (UTIL.hasProtocol(value) || !UTIL.isUrl(value)) {
+        if (value.length === 0 || !value.includes("%s")) {
+            UTIL.notify(`Invalid search value: ${value}\n`
+                    + "URL must contain a %s parameter, which will be "
+                    + "replaced by the search string", "warn")
+            return false
+        }
+        if (!UTIL.isUrl(value)) {
             UTIL.notify("The value of the search setting must be a valid url",
                 "warn")
             return false

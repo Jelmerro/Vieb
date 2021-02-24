@@ -373,8 +373,7 @@ const unsuspendPage = page => {
         }
     })
     if (SETTINGS.get("spell")) {
-        webview.setAttribute("webpreferences",
-            "spellcheck=yes, contextIsolation=no")
+        webview.setAttribute("webpreferences", "spellcheck=yes")
     }
     const sessionName = page.getAttribute("container")
     SESSIONS.create(sessionName)

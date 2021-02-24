@@ -366,11 +366,7 @@ const stringToUrl = location => {
     if (isUrl(location)) {
         return `https://${location}`
     }
-    const search = SETTINGS.get("search")
-    if (search.includes("%s")) {
-        return search.replace(/%s/g, encodeURIComponent(location))
-    }
-    return search + encodeURIComponent(location)
+    return SETTINGS.get("search").replace(/%s/g, encodeURIComponent(location))
 }
 
 const urlToString = url => {

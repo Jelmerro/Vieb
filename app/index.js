@@ -347,6 +347,7 @@ app.on("ready", () => {
             prefs.preload = path.join(__dirname, "js/preload.js")
             prefs.nodeIntegration = false
             prefs.nodeIntegrationInSubFrames = false
+            prefs.contextIsolation = false
             prefs.enableRemoteModule = false
             prefs.webSecurity = false
         })

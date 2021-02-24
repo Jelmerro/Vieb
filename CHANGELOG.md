@@ -39,6 +39,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Migrations for old tab structure used in 2.x.x and older
 - Fallback to name field for Erwic config files
+- Support for search setting values that don't include a "%s" to be replaced by the search
 
 ### Fixed
 
