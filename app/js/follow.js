@@ -212,7 +212,10 @@ const parseAndDisplayLinks = newLinks => {
         const onclickListener = async e => {
             if (e.button === 1 && UTIL.hasProtocol(link.url)) {
                 MODES.setMode(modeBeforeFollow)
-                TABS.addTab({"url": link.url})
+                TABS.addTab({
+                    "url": link.url,
+                    "switchTo": SETTINGS.get("mousenewtabswitch")
+                })
             } else {
                 await clickAtLink(link)
                 if (link.type !== "inputs-insert") {
@@ -269,7 +272,11 @@ const enterKey = async id => {
             if (stayInFollowMode) {
                 startFollow()
             }
-            TABS.addTab({"url": link.url, "switchTo": !stayInFollowMode})
+            TABS.addTab({
+                "url": link.url,
+                "switchTo": !stayInFollowMode
+                    && SETTINGS.get("follownewtabswitch")
+            })
             return
         }
         await clickAtLink(link)

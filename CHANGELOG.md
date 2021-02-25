@@ -30,13 +30,14 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Action "openLinkExternal" to open the highlighted url or current page url with an "externalcommand"
 - Setting "tabclosefocusright" to decide if the right (or left) tab should get focused when closing a tab
 - Setting "tabreopenposition" which configures the position that should be used to restore tabs: previous, left or right (default)
+- Setting "follownewtabswitch" to toggle if follow mode for new tabs should switch to them on follow mode exit
 
 ### Changed
 
 - Iframe detection on pages now also works for frames in framesets, embeds and for object tags
 - Enable "respectsitecontextmenu" by default to be able to use the right-click menus of websites without Vieb interfering
 - Mapped keys in insert mode won't be detected by the website, this prevents all side effects for mappings, including those for split devtools
-- Default settings: Mouse is now on, infinite maximum number of command suggestions and ignorecase is now on
+- Default settings: Mouse is now on, new tabs with the mouse now switch to it, infinite maximum number of command suggestions and ignorecase is now on
 - Most number ranges now go much higher (close to MAX_INT) and are only disabled if set to 0
 - Restore the previous search selected when entering search mode (no history, just the previous one)
 

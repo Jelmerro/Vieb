@@ -4,7 +4,6 @@ set cache=full
 set devtoolsposition=vsplit
 set favicons=30day
 set mintabwidth=0
-set mousenewtabswitch
 set permissioncamera=ask
 set permissiondisplaycapture=ask
 set permissionmediadevices=allow
@@ -13,6 +12,7 @@ set permissionpersistentstorage=allow
 set redirecttohttp
 set search=https://google.com/search?q=
 set splitright
+set tabreopenposition=previous
 set windowtitle=title
 
 " Mappings
