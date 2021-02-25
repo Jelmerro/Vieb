@@ -93,7 +93,7 @@ const init = () => {
                     openStartupPage(page.url, page.container)
                 }
                 if (page.script) {
-                    configPreloads[page.name] = page.script
+                    configPreloads[page.container] = page.script
                 }
             })
         })
