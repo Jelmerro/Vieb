@@ -216,8 +216,6 @@ app.setName("Vieb")
 datafolder = `${path.resolve(expandPath(datafolder.trim()))}/`
 app.setPath("appData", datafolder)
 app.setPath("userData", datafolder)
-app.setAsDefaultProtocolClient("http")
-app.setAsDefaultProtocolClient("https")
 applyDevtoolsSettings(path.join(datafolder, "Preferences"))
 if (erwic) {
     const config = readJSON(erwic)
@@ -300,6 +298,7 @@ app.on("ready", () => {
         console.log(`Sending urls to existing instance in ${datafolder}`)
         app.exit(0)
     }
+    app.on("open-url", (_, url) => mainWindow.webContents.send("urls", [url]))
     if (!app.isPackaged && !customIcon) {
         customIcon = path.join(__dirname, "img/icons/512x512.png")
     }
@@ -1079,6 +1078,10 @@ ipcMain.handle("show-message-dialog", (_, options) => dialog.showMessageBox(
 ipcMain.handle("list-cookies", e => e.sender.session.cookies.get({}))
 ipcMain.handle("remove-cookie",
     (e, url, name) => e.sender.session.cookies.remove(url, name))
+ipcMain.handle("make-default-app", () => {
+    app.setAsDefaultProtocolClient("http")
+    app.setAsDefaultProtocolClient("https")
+})
 // Operations below are sync
 ipcMain.on("override-global-useragent", (e, globalUseragent) => {
     app.userAgentFallback = globalUseragent || useragent()

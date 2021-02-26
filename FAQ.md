@@ -49,6 +49,12 @@ basically Google blocks everything that isn't Chrome or Firefox.
 You can use `:set firefoxmode=google` within Vieb to mimic Firefox when visiting Google pages,
 most people that I heard back from reported that it works with firefoxmode enabled.
 
+#### Can I make Vieb my default browser?
+
+Yes, there is a command for that named `:makedefault`.
+For details, see the help page: `:h makedefault` and the
+[defaultapp script directory](https://github.com/Jelmerro/Vieb/tree/master/app/defaultapp).
+
 #### How do I quit Vieb?
 
 Same as Vim. From normal mode, type `:qa` then Enter. (This assumes the default mappings and commands.)

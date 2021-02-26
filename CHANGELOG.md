@@ -31,6 +31,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "tabclosefocusright" to decide if the right (or left) tab should get focused when closing a tab
 - Setting "tabreopenposition" which configures the position that should be used to restore tabs: previous, left or right (default)
 - Setting "follownewtabswitch" to toggle if follow mode for new tabs should switch to them on follow mode exit
+- Command "makedefault" to make Vieb the default browser (or at least try to)
+- Open-url handler to open a new tab for urls that are passed to Vieb via mac's alternative app argument system
 
 ### Changed
 

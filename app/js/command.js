@@ -20,7 +20,9 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const {exec} = require("child_process")
 const path = require("path")
+const fs = require("fs")
 
 const listSetting = setting => {
     if (setting === "all") {
@@ -572,6 +574,41 @@ const callAction = (...args) => {
     }
 }
 
+const logError = err => {
+    if (err?.message) {
+        UTIL.notify(`Script to set Vieb as the default browser failed:\n${
+            err.message}`, "err")
+    }
+}
+
+const makedefault = () => {
+    if (process.execPath.endsWith("electron")) {
+        UTIL.notify("Command only works for installed versions of Vieb", "err")
+        return
+    }
+    ipcRenderer.send("make-default-app")
+    if (process.platform === "linux" || process.platform.endsWith("bsd")) {
+        exec("xdg-settings set default-web-browser viebdesktop", logError)
+    } else if (process.platform === "win32") {
+        const scriptContents = UTIL.readFile(path.join(
+            __dirname, "../defaultapp/windows.bat"))
+        const tempFile = path.join(UTIL.appData(), "defaultapp.bat")
+        UTIL.writeFile(tempFile, scriptContents)
+        exec(`Powershell Start ${tempFile} -ArgumentList `
+            + `"""${process.execPath}""" -Verb Runas`, logError)
+    } else if (process.platform === "darwin") {
+        const tempFile = path.join(UTIL.appData(), "defaultapp")
+        fs.copyFileSync(path.join(__dirname, "../defaultapp/mac"), tempFile)
+        exec(`${tempFile} vieb`, err => {
+            logError(err)
+            UTIL.deleteFile(tempFile)
+        })
+    } else {
+        UTIL.notify("If you didn't get a notification to set Vieb as your defau"
+            + "lt browser, this command does not work for this OS.", "warn")
+    }
+}
+
 const commands = {
     "q": quit,
     "quit": quit,
@@ -615,7 +652,8 @@ const commands = {
     "comclear": () => {
         userCommands = {}
     },
-    "call": callAction
+    "call": callAction,
+    "makedefault": makedefault
 }
 let userCommands = {}
 
@@ -634,7 +672,8 @@ const noArgumentComands = [
     "cookies",
     "hardcopy",
     "print",
-    "comclear"
+    "comclear",
+    "makedefault"
 ]
 
 const noEscapeCommands = ["command", "delcommand"]
