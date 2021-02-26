@@ -581,11 +581,19 @@ ipcMain.on("set-permissions", (_, permissionObject) => {
 })
 ipcMain.on("set-spelllang", (_, langOptions) => {
     langOptions = new Set(
-        langOptions.split(",").map(lang => lang === "system" ? app.getLocale() : lang.trim())
+        langOptions.split(",").map(lang => {
+            if (lang === "system") {
+                return app.getLocale()
+            }
+
+            return lang
+        })
     )
 
     sessionList.forEach(ses => {
-        session.fromPartition(ses).setSpellCheckerLanguages(Array.from(langOptions))
+        session.fromPartition(ses).setSpellCheckerLanguages(
+            Array.from(langOptions)
+        )
     })
 })
 ipcMain.on("create-session", (_, name, adblock, cache) => {
