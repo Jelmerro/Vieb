@@ -120,6 +120,9 @@ const listLike = [
     "searchwords",
     "startuppages"
 ]
+const canAcceptMultipleOptions = new Set([
+    "spelllang",
+]);
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
     "cache": ["none", "clearonquit", "full"],
@@ -202,17 +205,24 @@ const init = () => {
 
 const checkOption = (setting, value) => {
     const optionList = JSON.parse(JSON.stringify(validOptions[setting]))
-    if (optionList) {
-        const valid = optionList.includes(value)
-        if (!valid) {
-            const lastOption = optionList.pop()
-            const text = `'${optionList.join("', '")}' or '${lastOption}'`
-            UTIL.notify(`The value of setting '${setting}' can only be one of:`
-                + ` ${text}`, "warn")
-        }
-        return valid
+    if (!optionList) { return false }
+
+    const settingValues = canAcceptMultipleOptions.has(setting)
+        ? value.split(",") : [value]
+
+    for(const value of settingValues) {
+      const valid = optionList.includes(value.trim())
+      if (!valid) {
+          const lastOption = optionList.pop()
+          const text = `'${optionList.join("', '")}' or '${lastOption}'`
+          UTIL.notify(`The value of setting '${setting}' can only be one of:`
+              + ` ${text}`, "warn")
+
+          return false
+      }
     }
-    return false
+
+    return true
 }
 
 const checkNumber = (setting, value) => {

@@ -579,13 +579,13 @@ ipcMain.on("download-list-request", (e, action, downloadId) => {
 ipcMain.on("set-permissions", (_, permissionObject) => {
     permissions = permissionObject
 })
-ipcMain.on("set-spelllang", (_, lang) => {
+ipcMain.on("set-spelllang", (_, langOptions) => {
+    langOptions = new Set(
+        langOptions.split(",").map(lang => lang === "system" ? app.getLocale() : lang.trim())
+    )
+
     sessionList.forEach(ses => {
-        if (lang === "system") {
-            session.fromPartition(ses).setSpellCheckerLanguages([])
-        } else {
-            session.fromPartition(ses).setSpellCheckerLanguages([lang])
-        }
+        session.fromPartition(ses).setSpellCheckerLanguages(Array.from(langOptions))
     })
 })
 ipcMain.on("create-session", (_, name, adblock, cache) => {
