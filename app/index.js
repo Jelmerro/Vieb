@@ -41,17 +41,22 @@ const printUsage = () => {
     console.log("Vieb: Vim Inspired Electron Browser\n")
     console.log("Usage: Vieb [options] <URLs>\n")
     console.log("Options:")
-    console.log(" --help             Print this help and exit")
-    console.log(" --version          Print program info with version and exit")
-    console.log(" --datafolder <dir> Store ALL Vieb data in this folder")
-    console.log(
-        " --erwic <file>     Open a fixed set of pages in a separate instance")
-    console.log("                    See 'Erwic.md' for usage and details")
-    console.log(
-        " --debug            Open with Chromium and Electron debugging tools")
-    console.log("                    "
+    console.log(" --help                   Print this help and exit")
+    console.log(" --version                "
+        + "Print program info with version and exit")
+    console.log(" --datafolder <dir>       Store ALL Vieb data in this folder")
+    console.log(" --erwic <file>           "
+        + "Open a fixed set of pages in a separate instance")
+    console.log("                          "
+        + "See 'Erwic.md' for usage and details")
+    console.log(" --debug                  "
+        + "Open with Chromium and Electron debugging tools")
+    console.log("                          "
         + "They can also be opened later with :internaldevtools")
-    console.log(" --software-only    Disable hardware acceleration completely")
+    console.log(" --software-only          "
+        + "Disable hardware acceleration completely")
+    console.log(" --strict-site-isolation  "
+        + "Enable strict site isolation (no iframe access)")
     console.log("\nAll arguments not starting with - will be opened as a url.")
     printLicense()
 }
@@ -144,9 +149,6 @@ const useragent = () => session.defaultSession.getUserAgent()
 // https://github.com/electron/electron/issues/25469
 app.commandLine.appendSwitch("disable-features", "CrossOriginOpenerPolicy")
 
-// Disable site isolation to allow websites to access into iframes
-app.commandLine.appendSwitch("disable-site-isolation-trials")
-
 const getArguments = argv => {
     const exec = path.basename(argv[0])
     if (exec === "electron" || process.defaultApp && exec !== "vieb") {
@@ -164,6 +166,7 @@ let enableDebugMode = false
 let nextArgErwicConfig = false
 let nextArgDataFolder = false
 let softwareOnly = false
+let strictSiteIsolation = false
 let erwic = null
 let datafolder = path.join(app.getPath("appData"), "Vieb")
 let customIcon = null
@@ -184,6 +187,8 @@ args.forEach(arg => {
             app.exit(0)
         } else if (arg === "--debug") {
             enableDebugMode = true
+        } else if (arg === "--strict-site-isolation") {
+            strictSiteIsolation = true
         } else if (arg === "--erwic") {
             nextArgErwicConfig = true
         } else if (arg === "--software-only") {
@@ -208,6 +213,9 @@ if (nextArgDataFolder) {
     console.log(`The 'datafolder' option requires a directory location`)
     printUsage()
     app.exit(1)
+}
+if (!strictSiteIsolation) {
+    app.commandLine.appendSwitch("disable-site-isolation-trials")
 }
 if (softwareOnly) {
     app.disableHardwareAcceleration()
@@ -348,7 +356,7 @@ app.on("ready", () => {
             prefs.nodeIntegrationInSubFrames = false
             prefs.contextIsolation = false
             prefs.enableRemoteModule = false
-            prefs.webSecurity = false
+            prefs.webSecurity = strictSiteIsolation
         })
         if (enableDebugMode) {
             mainWindow.webContents.openDevTools({"mode": "undocked"})
