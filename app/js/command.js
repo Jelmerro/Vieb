@@ -588,7 +588,7 @@ const makedefault = () => {
     }
     ipcRenderer.send("make-default-app")
     if (process.platform === "linux" || process.platform.endsWith("bsd")) {
-        exec("xdg-settings set default-web-browser viebdesktop", logError)
+        exec("xdg-settings set default-web-browser vieb.desktop", logError)
     } else if (process.platform === "win32") {
         const scriptContents = UTIL.readFile(path.join(
             __dirname, "../defaultapp/windows.bat"))
