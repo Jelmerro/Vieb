@@ -24,7 +24,11 @@ On Windows, you can simply double-click on the ".exe" file to run the program.
 If you are using Linux, you can download the AppImage to be able to do the same.
 For most other download options, you need to use your distribution's package manager,
 usage should be similar to other packages of the same type.
-See [these instructions](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac) for opening on Mac.
+
+##### Mac
+
+You can disable app store requirements with `sudo spctl --master-disable`. If you need a signed app, you can sign it yourself with `sudo codesign --force --deep --sign - /Applications/Vieb.app`.
+Or you can try [these instructions](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac) for opening the app as is.
 
 #### Why can't I start Vieb?
 

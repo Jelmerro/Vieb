@@ -383,7 +383,7 @@ const unsuspendPage = page => {
     const sessionName = page.getAttribute("container")
     SESSIONS.create(sessionName)
     webview.setAttribute("partition", `persist:${sessionName}`)
-    const currentPageId = page.getAttribute("devtools-for-id")
+    const currentPageId = Number(page.getAttribute("devtools-for-id") || 0) || 0
     const isDevtoolsTab = !!currentPageId
     if (isDevtoolsTab) {
         webview.src = "about:blank"

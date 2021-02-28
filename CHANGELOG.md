@@ -34,6 +34,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Command "makedefault" to make Vieb the default browser (or at least try to)
 - Open-url handler to open a new tab for urls that are passed to Vieb via mac's alternative app argument system
 - Startup option to enable strict site isolation, to make Google services more reliable, at the cost of blocking follow mode inside iframes (until [this](https://github.com/electron/electron/issues/22582) is solved)
+- Experimental command to install extensions: "extensions install" which you call when currently on an extension page
+- List or remove installed extensions with "extensions list" and "extensions remove"
 
 ### Changed
 

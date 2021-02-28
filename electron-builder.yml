@@ -76,12 +76,8 @@ files:
 fileAssociations:
   - name: HyperText Markup File
     ext: html
-  - name: HyperText Markup File
-    ext: public.html
   - name: Extensible HyperText Markup File
     ext: xhtml
-  - name: Extensible HyperText Markup File
-    ext: public.xhtml
   - name: HyperText Markup File
     ext: htm
   - name: HyperText Markup File

@@ -22,7 +22,6 @@
 const {ipcRenderer} = require("electron")
 const {exec} = require("child_process")
 const path = require("path")
-const fs = require("fs")
 
 const listSetting = setting => {
     if (setting === "all") {
@@ -597,15 +596,52 @@ const makedefault = () => {
         exec(`Powershell Start ${tempFile} -ArgumentList `
             + `"""${process.execPath}""" -Verb Runas`, logError)
     } else if (process.platform === "darwin") {
-        const tempFile = path.join(UTIL.appData(), "defaultapp")
-        fs.copyFileSync(path.join(__dirname, "../defaultapp/mac"), tempFile)
-        exec(`${tempFile} vieb`, err => {
-            logError(err)
-            UTIL.deleteFile(tempFile)
-        })
+        // Electron API should be enough to show a popup for default app request
     } else {
         UTIL.notify("If you didn't get a notification to set Vieb as your defau"
             + "lt browser, this command does not work for this OS.", "warn")
+    }
+}
+
+const extensionsCommand = (...args) => {
+    if (args[0] === "install") {
+        if (args[1]) {
+            UTIL.notify("Extension install command takes no arguments", "warn")
+            return
+        }
+        const version = navigator.userAgent.replace(
+            /.*Chrome\//g, "").replace(/ .*/g, "")
+        const extension = TABS.currentPage()?.src.replace(/.*\//g, "")
+        if (extension && /^[A-z0-9]{32}$/.test(extension)) {
+            const url = `https://clients2.google.com/service/update2/crx?`
+            + `response=redirect&prodversion=${version}&acceptformat=crx2,crx3`
+            + `&x=id%3D${extension}%26uc`
+            ipcRenderer.send("install-extension", url, extension, "crx")
+        } else {
+            TABS.currentPage()?.send("action", "installFirefoxExtension")
+        }
+    } else if (args[0] === "list") {
+        if (args[1]) {
+            UTIL.notify("Extension list command takes no arguments", "warn")
+            return
+        }
+        let list = ipcRenderer.sendSync("list-extensions")
+        list = list.map(ext => `${ext.name}: ${ext.version}`).join("\n")
+        if (list.length) {
+            UTIL.notify(`Installed extensions: \n${list}`)
+        } else {
+            UTIL.notify(`No extensions currently installed`)
+        }
+    } else if (args[0] === "remove") {
+        if (!args[1] || args[2]) {
+            UTIL.notify("Removing an extension requires exactly one argument:\n"
+                + "The id of an extension", "warn")
+            return
+        }
+        ipcRenderer.send("remove-extension", args[1])
+    } else {
+        UTIL.notify("Unknown argument to the extensions command, must be:\n"
+            + "install, list or remove", "warn")
     }
 }
 
@@ -653,7 +689,8 @@ const commands = {
         userCommands = {}
     },
     "call": callAction,
-    "makedefault": makedefault
+    "makedefault": makedefault,
+    "extensions": extensionsCommand
 }
 let userCommands = {}
 

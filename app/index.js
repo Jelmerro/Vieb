@@ -35,6 +35,8 @@ const {spawn} = require("child_process")
 const path = require("path")
 const isSvg = require("is-svg")
 const {ElectronBlocker} = require("@cliqz/adblocker-electron")
+const _7z = require("7zip-min")
+const rimraf = require("rimraf").sync
 
 const version = process.env.npm_package_version || app.getVersion()
 const printUsage = () => {
@@ -79,6 +81,13 @@ const printLicense = () => {
     console.log("There is NO WARRANTY, to the extent permitted by law.")
     console.log("See the LICENSE file or the GNU website for details.")
 }
+const isDir = loc => {
+    try {
+        return fs.statSync(loc).isDirectory()
+    } catch (e) {
+        return false
+    }
+}
 const isFile = loc => {
     try {
         return fs.statSync(loc).isFile()
@@ -91,6 +100,14 @@ const deleteFile = loc => {
         fs.unlinkSync(loc)
     } catch (e) {
         // Probably already deleted
+    }
+}
+const listDirs = loc => {
+    try {
+        return fs.readdirSync(loc).map(
+            f => path.join(loc, f)).filter(() => isDir)
+    } catch (e) {
+        return []
     }
 }
 const readJSON = loc => {
@@ -150,8 +167,8 @@ const useragent = () => session.defaultSession.getUserAgent()
 app.commandLine.appendSwitch("disable-features", "CrossOriginOpenerPolicy")
 
 const getArguments = argv => {
-    const exec = path.basename(argv[0])
-    if (exec === "electron" || process.defaultApp && exec !== "vieb") {
+    const execFile = path.basename(argv[0])
+    if (execFile === "electron" || process.defaultApp && execFile !== "vieb") {
         // The array argv is ["electron", "app", ...args]
         return argv.slice(2)
     }
@@ -606,6 +623,9 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     if (adblock !== "off") {
         enableAdblocker()
     }
+    listDirs(path.join(datafolder, "extensions")).forEach(loc => {
+        newSession.loadExtension(loc, {"allowFileAccess": true})
+    })
     newSession.webRequest.onBeforeRequest((details, callback) => {
         let url = String(details.url)
         redirects.split(",").forEach(r => {
@@ -915,6 +935,76 @@ const loadBlocklist = file => {
         return ""
     }
 }
+
+// Manage installed browser extensions
+ipcMain.on("install-extension", (_, url, extension, extType) => {
+    fs.mkdirSync(path.join(datafolder, "extensions"), {"recursive": true})
+    const zipLoc = path.join(datafolder, `extensions/${extension}`)
+    if (isDir(`${zipLoc}/`)) {
+        mainWindow.webContents.send("notify",
+            `Extension already installed: ${extension}`)
+        return
+    }
+    mainWindow.webContents.send("notify",
+        `Installing ${extType} extension: ${extension}`)
+    const request = net.request({url, "partition": "persist:main"})
+    request.on("response", res => {
+        const data = []
+        res.on("end", () => {
+            if (res.statusCode !== 200) {
+                // Failed to download extension
+                console.log(res)
+                return
+            }
+            const file = Buffer.concat(data)
+            fs.writeFileSync(`${zipLoc}.${extType}`, file)
+            _7z.cmd([
+                "x", "-aoa", "-tzip", `${zipLoc}.${extType}`, `-o${zipLoc}`
+            ], () => {
+                rimraf(`${zipLoc}/_metadata/`)
+                sessionList.forEach(ses => {
+                    session.fromPartition(ses).loadExtension(zipLoc, {
+                        "allowFileAccess": true
+                    })
+                })
+            })
+        })
+        res.on("data", chunk => {
+            data.push(Buffer.from(chunk, "binary"))
+        })
+    })
+    request.on("abort", e => {
+        // Failed to download extension
+        console.log(e)
+    })
+    request.on("error", e => {
+        // Failed to download extension
+        console.log(e)
+    })
+    request.end()
+})
+ipcMain.on("list-extensions", e => {
+    e.returnValue = session.fromPartition("persist:main").getAllExtensions()
+        .map(ex => ({
+            "id": ex.id, "name": ex.name, "path": ex.path, "version": ex.version
+        }))
+})
+ipcMain.on("remove-extension", (_, extensionPath) => {
+    const extLoc = path.join(datafolder, `extensions/${extensionPath}`)
+    const extension = session.fromPartition("persist:main").getAllExtensions()
+        .find(ext => ext.path.replace(/\/$/g, "").endsWith(extensionPath))
+    if (isDir(`${extLoc}/`) && extension) {
+        mainWindow.webContents.send("notify",
+            `Removing extension: ${extensionPath}`)
+        sessionList.forEach(ses => {
+            session.fromPartition(ses).removeExtension(extension.id)
+        })
+        rimraf(`${extLoc}*`)
+    } else {
+        mainWindow.webContents.send("notify", "Could not find extension with "
+            + `id: ${extensionPath}`, "warn")
+    }
+})
 
 // Download favicons for websites
 ipcMain.on("download-favicon", (_, fav, location, webId, linkId, url) => {
