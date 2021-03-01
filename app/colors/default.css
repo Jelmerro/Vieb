@@ -264,6 +264,12 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #downloadspage .misc {display: flex;margin: .5em;flex-direction: column;width: calc(100% - 1em);}
 #downloadspage .filelocation {cursor: pointer;}
 #downloadspage img {cursor: pointer;}
+/* extensions */
+#extensionspage h1 {font-size: 2em;margin: 1em 0;padding: 0;}
+#extensionspage img {height: 4em;width: 4em;margin-right: 1em;}
+#extensionspage .extension {display: flex;align-items: center;background: var(--special-page-element-bg);border: .1em solid var(--special-page-element-border);margin: 1em 0;padding: 1em;}
+#extensionspage .fullwidth {flex: 1;}
+#extensionspage .title {margin: .4em 0;font-size: 1.5em;}
 /* help */
 #helppage {margin: 3vw;width: auto;line-height: 2;}
 #helppage main {max-width: 65em;margin: auto;}

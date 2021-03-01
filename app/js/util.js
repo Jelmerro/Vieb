@@ -27,6 +27,7 @@ const protocolRegex = /^[a-z][a-z0-9-+.]+:\/\//
 const specialPages = [
     "cookies",
     "downloads",
+    "extensions",
     "help",
     "history",
     "newtab",

@@ -953,6 +953,8 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
         res.on("end", () => {
             if (res.statusCode !== 200) {
                 // Failed to download extension
+                mainWindow.webContents.send("notify",
+                    `Failed to install extension due to network error`, "err")
                 console.log(res)
                 return
             }
@@ -975,10 +977,14 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
     })
     request.on("abort", e => {
         // Failed to download extension
+        mainWindow.webContents.send("notify",
+            `Failed to install extension due to network error`, "err")
         console.log(e)
     })
     request.on("error", e => {
         // Failed to download extension
+        mainWindow.webContents.send("notify",
+            `Failed to install extension due to network error`, "err")
         console.log(e)
     })
     request.end()
@@ -986,7 +992,11 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
 ipcMain.on("list-extensions", e => {
     e.returnValue = session.fromPartition("persist:main").getAllExtensions()
         .map(ex => ({
-            "id": ex.id, "name": ex.name, "path": ex.path, "version": ex.version
+            "id": ex.id,
+            "icon": ex.manifest.icons[Object.keys(ex.manifest.icons).pop()],
+            "name": ex.name,
+            "path": ex.path,
+            "version": ex.version
         }))
 })
 ipcMain.on("remove-extension", (_, extensionPath) => {

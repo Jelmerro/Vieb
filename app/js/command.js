@@ -604,6 +604,10 @@ const makedefault = () => {
 }
 
 const extensionsCommand = (...args) => {
+    if (!args[0]) {
+        openSpecialPage("extensions")
+        return
+    }
     if (args[0] === "install") {
         if (args[1]) {
             UTIL.notify("Extension install command takes no arguments", "warn")

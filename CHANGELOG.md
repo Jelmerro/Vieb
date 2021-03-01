@@ -35,7 +35,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Open-url handler to open a new tab for urls that are passed to Vieb via mac's alternative app argument system
 - Startup option to enable strict site isolation, to make Google services more reliable, at the cost of blocking follow mode inside iframes (until [this](https://github.com/electron/electron/issues/22582) is solved)
 - Experimental command to install extensions: "extensions install" which you call when currently on an extension page
-- List or remove installed extensions with "extensions list" and "extensions remove"
+- List or remove installed extensions with "extensions list" and "extensions remove", or using the special page of the same name
 
 ### Changed
 
@@ -52,7 +52,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Fallback to name field for Erwic config files
 - Support for search setting values that don't include a "%s" to be replaced by the search
 - Action "openNewTabAtAlternativePosition", which is now implemented with a mapping that toggles the setting
-- Darkreader plugin in favor of installing the darkreader extension from the Mozilla or Chome store
+- Darkreader plugin in favor of installing the darkreader extension from the Mozilla or Chrome store
 
 ### Fixed
 
