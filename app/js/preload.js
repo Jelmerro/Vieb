@@ -69,18 +69,3 @@ window.addEventListener("load", () => {
         document.querySelector("html").style.background = settings?.bg || "#333"
     }
 })
-// Apply darkreader styling if enabled
-if (settings?.darkreader && !specialPage.name) {
-    const darkreader = require("darkreader")
-    const interval = setInterval(() => {
-        try {
-            darkreader.setFetchMethod(window.fetch)
-            darkreader.enable()
-        } catch (_) {
-            // Document not ready yet, try again later
-        }
-    }, 10)
-    window.addEventListener("load", () => {
-        setTimeout(() => clearInterval(interval), 1000)
-    })
-}

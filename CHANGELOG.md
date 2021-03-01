@@ -52,6 +52,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Fallback to name field for Erwic config files
 - Support for search setting values that don't include a "%s" to be replaced by the search
 - Action "openNewTabAtAlternativePosition", which is now implemented with a mapping that toggles the setting
+- Darkreader plugin in favor of installing the darkreader extension from the Mozilla or Chome store
 
 ### Fixed
 
@@ -64,8 +65,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Security
 
-- Electron 12.0.0-beta.29 (was 11.2.1)
-- Chromium 89.0.4389.23 (was 87.0.4280.141)
+- Electron 12.0.0-beta.31 (was 11.2.1)
+- Chromium 89.0.4389.58 (was 87.0.4280.141)
 - Privacy fixes for navigator properties and media info now run in iframes on a timer, can't be waterproofed without [this](https://github.com/electron/electron/issues/22582)
 
 ## [3.4.0](https://github.com/Jelmerro/Vieb/compare/3.3.0...3.4.0) - 2021-01-31

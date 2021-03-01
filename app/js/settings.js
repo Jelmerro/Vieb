@@ -37,7 +37,6 @@ const defaultSettings = {
     "containersplitpage": "s:usecurrent",
     "containerstartuppage": "main",
     "countlimit": 100,
-    "darkreader": false,
     "devtoolsposition": "window",
     "downloadmethod": "automatic",
     "downloadpath": "~/Downloads/",
@@ -597,7 +596,6 @@ const updateWebviewSettings = () => {
     const webviewSettingsFile = path.join(
         UTIL.appData(), "webviewsettings")
     UTIL.writeJSON(webviewSettingsFile, {
-        "darkreader": get("darkreader"),
         "permissiondisplaycapture": get("permissiondisplaycapture"),
         "permissionmediadevices": get("permissionmediadevices"),
         "permissionsallowed": get("permissionsallowed"),
@@ -792,7 +790,6 @@ const set = (setting, value) => {
             PAGELAYOUT.applyLayout()
         }
         const webviewSettings = [
-            "darkreader",
             "permissiondisplaycapture",
             "permissionmediadevices",
             "permissionsallowed",
