@@ -377,9 +377,7 @@ const unsuspendPage = page => {
             webview.setAttribute(attr, page.getAttribute(attr))
         }
     })
-    if (SETTINGS.get("spell")) {
-        webview.setAttribute("webpreferences", "spellcheck=yes")
-    }
+    webview.setAttribute("webpreferences", "spellcheck=yes")
     const sessionName = page.getAttribute("container")
     SESSIONS.create(sessionName)
     webview.setAttribute("partition", `persist:${sessionName}`)

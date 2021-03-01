@@ -600,13 +600,19 @@ ipcMain.on("download-list-request", (e, action, downloadId) => {
 ipcMain.on("set-permissions", (_, permissionObject) => {
     permissions = permissionObject
 })
-ipcMain.on("set-spelllang", (_, lang) => {
+ipcMain.on("set-spelllang", (_, langs) => {
     sessionList.forEach(ses => {
-        if (lang === "system") {
-            session.fromPartition(ses).setSpellCheckerLanguages([])
-        } else {
-            session.fromPartition(ses).setSpellCheckerLanguages([lang])
-        }
+        langs = langs.split(",").map(lang => {
+            if (lang === "system") {
+                lang = app.getLocale()
+            }
+            const valid = session.defaultSession.availableSpellCheckerLanguages
+            if (!valid.includes(lang)) {
+                return null
+            }
+            return lang
+        }).filter(lang => lang)
+        session.fromPartition(ses).setSpellCheckerLanguages(langs)
     })
 })
 ipcMain.on("create-session", (_, name, adblock, cache) => {

@@ -45,6 +45,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Default settings: Mouse is now on, new tabs with the mouse now switch to it, infinite maximum number of command suggestions and ignorecase is now on
 - Most number ranges now go much higher (close to MAX_INT) and are only disabled if set to 0
 - Restore the previous search selected when entering search mode (no history, just the previous one)
+- Allow multiple languages to be passed to the "spelllang" option (and the "system" value is now handled better)
+- The "spell" setting will now immediately take effect, also for existing tabs
 
 ### Removed
 

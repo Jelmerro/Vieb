@@ -126,6 +126,7 @@ const listLike = [
     "permissionsblocked",
     "redirects",
     "searchwords",
+    "spelllang",
     "startuppages"
 ]
 const validOptions = {
@@ -194,6 +195,7 @@ const downloadSettings = [
 const containerSettings = [
     "containernewtab", "containersplitpage", "containerstartuppage"
 ]
+let spelllangs = []
 
 const init = () => {
     loadFromDisk()
@@ -201,9 +203,9 @@ const init = () => {
     updateTabOverflow()
     updatePermissionSettings()
     updateWebviewSettings()
-    ipcRenderer.invoke("list-spelllangs").then(spelllangs => {
-        validOptions.spelllang = spelllangs || []
-        validOptions.spelllang.push("system")
+    ipcRenderer.invoke("list-spelllangs").then(langs => {
+        spelllangs = langs || []
+        spelllangs.push("system")
         if (!isValidSetting("spelllang", get("spelllang"))) {
             set("spelllang", "system")
         }
@@ -424,6 +426,15 @@ const checkOther = (setting, value) => {
         for (const page of value.split(",")) {
             if (page.trim() && !UTIL.isUrl(page)) {
                 UTIL.notify(`Invalid URL passed to ${setting}: ${page}`, "warn")
+                return false
+            }
+        }
+    }
+    if (setting === "spelllang" && value !== "") {
+        for (const lang of value.split(",")) {
+            if (!spelllangs.includes(lang)) {
+                UTIL.notify(`Invalid language passed to spelllang: ${lang}`,
+                    "warn")
                 return false
             }
         }
@@ -783,7 +794,15 @@ const set = (setting, value) => {
             updateMouseSettings()
         }
         if (setting === "spelllang") {
-            SESSIONS.setSpellLang(get("spelllang"))
+            allSettings.spelllang = Array.from(new Set(
+                value.split(","))).join(",")
+        }
+        if (setting === "spelllang" || setting === "spell") {
+            if (get("spell")) {
+                SESSIONS.setSpellLang(get("spelllang"))
+            } else {
+                SESSIONS.setSpellLang("")
+            }
         }
         if (setting === "taboverflow") {
             updateTabOverflow()
@@ -843,6 +862,10 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     }
     if (setting === "search") {
         allowedValues = "any URL"
+    }
+    if (setting === "spelllang") {
+        allowedValues = `A list containing any of these supported languages: ${
+            spelllangs.join(", ")}`
     }
     if (setting === "vimcommand") {
         allowedValues = "any system command"
