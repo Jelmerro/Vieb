@@ -73,6 +73,9 @@ files:
     - "!ViebData"
     - "!logo-wip-files"
     - "!dist"
+asarUnpack:
+  - "**/node_modules/7zip-bin/**/*"
+  - "**/node_modules/7zip-min/**/*"
 fileAssociations:
   - name: HyperText Markup File
     ext: html

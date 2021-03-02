@@ -18,6 +18,7 @@
 /* eslint-disable no-console */
 "use strict"
 
+require("hazardous")
 const {
     app,
     BrowserWindow,
@@ -944,13 +945,13 @@ const loadBlocklist = file => {
 
 // Manage installed browser extensions
 ipcMain.on("install-extension", (_, url, extension, extType) => {
-    fs.mkdirSync(path.join(datafolder, "extensions"), {"recursive": true})
-    const zipLoc = path.join(datafolder, `extensions/${extension}`)
+    const zipLoc = path.join(datafolder, "extensions", extension)
     if (isDir(`${zipLoc}/`)) {
         mainWindow.webContents.send("notify",
             `Extension already installed: ${extension}`)
         return
     }
+    fs.mkdirSync(`${zipLoc}/`, {"recursive": true})
     mainWindow.webContents.send("notify",
         `Installing ${extType} extension: ${extension}`)
     const request = net.request({url, "partition": "persist:main"})
@@ -967,7 +968,7 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
             const file = Buffer.concat(data)
             fs.writeFileSync(`${zipLoc}.${extType}`, file)
             _7z.cmd([
-                "x", "-aoa", "-tzip", `${zipLoc}.${extType}`, `-o${zipLoc}`
+                "x", "-aoa", "-tzip", `${zipLoc}.${extType}`, `-o${zipLoc}/`
             ], () => {
                 rimraf(`${zipLoc}/_metadata/`)
                 sessionList.forEach(ses => {
