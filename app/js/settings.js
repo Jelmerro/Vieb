@@ -37,13 +37,14 @@ const defaultSettings = {
     "containersplitpage": "s:usecurrent",
     "containerstartuppage": "main",
     "countlimit": 100,
-    "darkreader": false,
     "devtoolsposition": "window",
     "downloadmethod": "automatic",
     "downloadpath": "~/Downloads/",
+    "externalcommand": "",
     "favicons": "session",
     "favoritepages": "",
     "firefoxmode": "never",
+    "follownewtabswitch": true,
     "fontsize": 14,
     "guifullscreennavbar": "oninput",
     "guifullscreentabbar": "onupdate",
@@ -51,13 +52,13 @@ const defaultSettings = {
     "guinavbar": "always",
     "guitabbar": "always",
     "keeprecentlyclosed": true,
-    "ignorecase": false,
+    "ignorecase": true,
     "incsearch": true,
     "maxmapdepth": 10,
     "mintabwidth": 28,
-    "mouse": false,
+    "mouse": true,
     "mousefocus": false,
-    "mousenewtabswitch": false,
+    "mousenewtabswitch": true,
     "nativenotification": false,
     "notificationduration": 6000,
     "notificationforpermissions": false,
@@ -65,6 +66,7 @@ const defaultSettings = {
     "permissioncamera": "block",
     "permissionclipboardread": "block",
     "permissionclosepage": "allow",
+    "permissiondisplaycapture": "block",
     "permissionfullscreen": "allow",
     "permissiongeolocation": "block",
     "permissionmediadevices": "ask",
@@ -76,6 +78,7 @@ const defaultSettings = {
     "permissionpersistentstorage": "block",
     "permissionpointerlock": "block",
     "permissionsallowed": "",
+    "permissionsasked": "",
     "permissionsblocked": "",
     "permissionunknown": "block",
     "redirects": "https?://(www\\.)?google\\.com(\\.\\w+)?/amp/s/amp\\.(.*)"
@@ -96,28 +99,34 @@ const defaultSettings = {
     "splitright": false,
     "startuppages": "",
     "storenewvisits": true,
-    "suggestcommands": 1000,
+    "suggestcommands": 9000000000000000,
     "suggestfiles": "all",
     "suggestfilesfirst": false,
     "suggestexplore": 20,
     "suggesttopsites": 10,
+    "suspendonrestore": "none",
+    "suspendtimeout": 0,
+    "tabclosefocusright": false,
     "tabcycle": true,
     "tabnexttocurrent": true,
     "taboverflow": "scroll",
+    "tabreopenposition": "right",
     "timeout": true,
     "timeoutlen": 1000,
     "vimcommand": "gvim",
     "windowtitle": "simple"
 }
 let allSettings = {}
-const freeText = ["downloadpath", "search", "vimcommand"]
+const freeText = ["downloadpath", "externalcommand", "search", "vimcommand"]
 const listLike = [
     "containercolors",
     "favoritepages",
     "permissionsallowed",
+    "permissionsasked",
     "permissionsblocked",
     "redirects",
     "searchwords",
+    "spelllang",
     "startuppages"
 ]
 const validOptions = {
@@ -137,10 +146,10 @@ const validOptions = {
     "notificationposition": [
         "bottomright", "bottomleft", "topright", "topleft"
     ],
-    "taboverflow": ["hidden", "scroll", "wrap"],
     "permissioncamera": ["block", "ask", "allow"],
     "permissionclipboardread": ["block", "ask", "allow"],
     "permissionclosepage": ["block", "allow"],
+    "permissiondisplaycapture": ["block", "ask"],
     "permissionfullscreen": ["block", "ask", "allow"],
     "permissiongeolocation": ["block", "ask", "allow"],
     "permissionmediadevices": ["block", "ask", "allow", "allowfull"],
@@ -153,19 +162,23 @@ const validOptions = {
     "permissionpointerlock": ["block", "ask", "allow"],
     "permissionunknown": ["block", "ask", "allow"],
     "suggestfiles": ["none", "commands", "explore", "all"],
+    "suspendonrestore": ["all", "regular", "none"],
+    "taboverflow": ["hidden", "scroll", "wrap"],
+    "tabreopenposition": ["left", "right", "previous"],
     "windowtitle": ["simple", "title", "url", "full"]
 }
 const numberRanges = {
     "countlimit": [0, 10000],
     "fontsize": [8, 30],
-    "guihidetimeout": [0, 10000],
+    "guihidetimeout": [0, 9000000000000000],
     "maxmapdepth": [1, 40],
-    "mintabwidth": [0, 10000],
-    "notificationduration": [0, 30000],
-    "requesttimeout": [0, 300000],
-    "suggestcommands": [0, 1000],
-    "suggestexplore": [0, 1000],
-    "suggesttopsites": [0, 1000],
+    "mintabwidth": [0, 9000000000000000],
+    "notificationduration": [0, 9000000000000000],
+    "requesttimeout": [0, 9000000000000000],
+    "suggestcommands": [0, 9000000000000000],
+    "suggestexplore": [0, 9000000000000000],
+    "suggesttopsites": [0, 9000000000000000],
+    "suspendtimeout": [0, 9000000000000000],
     "timeoutlen": [0, 10000]
 }
 const config = path.join(UTIL.appData(), "viebrc")
@@ -182,6 +195,7 @@ const downloadSettings = [
 const containerSettings = [
     "containernewtab", "containersplitpage", "containerstartuppage"
 ]
+let spelllangs = []
 
 const init = () => {
     loadFromDisk()
@@ -189,9 +203,9 @@ const init = () => {
     updateTabOverflow()
     updatePermissionSettings()
     updateWebviewSettings()
-    ipcRenderer.invoke("list-spelllangs").then(spelllangs => {
-        validOptions.spelllang = spelllangs || []
-        validOptions.spelllang.push("system")
+    ipcRenderer.invoke("list-spelllangs").then(langs => {
+        spelllangs = langs || []
+        spelllangs.push("system")
         if (!isValidSetting("spelllang", get("spelllang"))) {
             set("spelllang", "system")
         }
@@ -231,7 +245,13 @@ const checkOther = (setting, value) => {
         if (value.startsWith("http://") || value.startsWith("https://")) {
             value = value.replace(/^https?:\/\//g, "")
         }
-        if (UTIL.hasProtocol(value) || !UTIL.isUrl(value)) {
+        if (value.length === 0 || !value.includes("%s")) {
+            UTIL.notify(`Invalid search value: ${value}\n`
+                    + "URL must contain a %s parameter, which will be "
+                    + "replaced by the search string", "warn")
+            return false
+        }
+        if (!UTIL.isUrl(value)) {
             UTIL.notify("The value of the search setting must be a valid url",
                 "warn")
             return false
@@ -304,7 +324,9 @@ const checkOther = (setting, value) => {
             return false
         }
     }
-    const permissionSettings = ["permissionsallowed", "permissionsblocked"]
+    const permissionSettings = [
+        "permissionsallowed", "permissionsasked", "permissionsblocked"
+    ]
     if (permissionSettings.includes(setting)) {
         for (const override of value.split(",")) {
             if (!override.trim()) {
@@ -333,6 +355,12 @@ const checkOther = (setting, value) => {
                 if (reservedName || !allSettings[name]) {
                     UTIL.notify(
                         `Invalid name for a permission: ${name}`, "warn")
+                    return false
+                }
+                if (setting.endsWith("allowed") && name.endsWith("capture")) {
+                    UTIL.notify(
+                        "Display capture permission can't be allowed, "
+                        + "only asked or blocked", "warn")
                     return false
                 }
             }
@@ -398,6 +426,15 @@ const checkOther = (setting, value) => {
         for (const page of value.split(",")) {
             if (page.trim() && !UTIL.isUrl(page)) {
                 UTIL.notify(`Invalid URL passed to ${setting}: ${page}`, "warn")
+                return false
+            }
+        }
+    }
+    if (setting === "spelllang" && value !== "") {
+        for (const lang of value.split(",")) {
+            if (!spelllangs.includes(lang)) {
+                UTIL.notify(`Invalid language passed to spelllang: ${lang}`,
+                    "warn")
                 return false
             }
         }
@@ -487,21 +524,26 @@ const setTopOfPageWithMouse = status => {
 
 const guiRelatedUpdate = type => {
     updateGuiVisibility()
+    const timeout = get("guihidetimeout")
     if (type === "navbar" && getGuiStatus("navbar") === "onupdate") {
         clearTimeout(navbarGuiTimer)
         document.body.classList.remove("navigationhidden")
-        navbarGuiTimer = setTimeout(() => {
-            navbarGuiTimer = null
-            updateGuiVisibility()
-        }, get("guihidetimeout"))
+        if (timeout) {
+            navbarGuiTimer = setTimeout(() => {
+                navbarGuiTimer = null
+                updateGuiVisibility()
+            }, timeout)
+        }
     }
     if (type === "tabbar" && getGuiStatus("tabbar") === "onupdate") {
         clearTimeout(tabbarGuiTimer)
         document.body.classList.remove("tabshidden")
-        tabbarGuiTimer = setTimeout(() => {
-            tabbarGuiTimer = null
-            updateGuiVisibility()
-        }, get("guihidetimeout"))
+        if (timeout) {
+            tabbarGuiTimer = setTimeout(() => {
+                tabbarGuiTimer = null
+                updateGuiVisibility()
+            }, timeout)
+        }
     }
 }
 
@@ -565,9 +607,10 @@ const updateWebviewSettings = () => {
     const webviewSettingsFile = path.join(
         UTIL.appData(), "webviewsettings")
     UTIL.writeJSON(webviewSettingsFile, {
-        "darkreader": get("darkreader"),
+        "permissiondisplaycapture": get("permissiondisplaycapture"),
         "permissionmediadevices": get("permissionmediadevices"),
         "permissionsallowed": get("permissionsallowed"),
+        "permissionsasked": get("permissionsasked"),
         "permissionsblocked": get("permissionsblocked"),
         "fg": getComputedStyle(document.body).getPropertyValue("--fg"),
         "bg": getComputedStyle(document.body).getPropertyValue("--bg")
@@ -751,16 +794,25 @@ const set = (setting, value) => {
             updateMouseSettings()
         }
         if (setting === "spelllang") {
-            SESSIONS.setSpellLang(get("spelllang"))
+            allSettings.spelllang = Array.from(new Set(
+                value.split(","))).join(",")
+        }
+        if (setting === "spelllang" || setting === "spell") {
+            if (get("spell")) {
+                SESSIONS.setSpellLang(get("spelllang"))
+            } else {
+                SESSIONS.setSpellLang("")
+            }
         }
         if (setting === "taboverflow") {
             updateTabOverflow()
             PAGELAYOUT.applyLayout()
         }
         const webviewSettings = [
-            "darkreader",
+            "permissiondisplaycapture",
             "permissionmediadevices",
             "permissionsallowed",
+            "permissionsasked",
             "permissionsblocked"
         ]
         if (webviewSettings.includes(setting)) {
@@ -805,8 +857,15 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     if (setting === "downloadpath") {
         allowedValues = "any directory on disk"
     }
+    if (setting === "externalcommand") {
+        allowedValues = "any system command"
+    }
     if (setting === "search") {
         allowedValues = "any URL"
+    }
+    if (setting === "spelllang") {
+        allowedValues = `A list containing any of these supported languages: ${
+            spelllangs.join(", ")}`
     }
     if (setting === "vimcommand") {
         allowedValues = "any system command"

@@ -20,6 +20,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const {exec} = require("child_process")
 const path = require("path")
 
 const listSetting = setting => {
@@ -384,6 +385,23 @@ const buffer = (...args) => {
     TABS.navigateTo(UTIL.stringToUrl(args.join(" ")))
 }
 
+const suspend = (...args) => {
+    let tab = null
+    if (args.length === 0) {
+        tab = TABS.currentTab()
+    } else {
+        tab = tabForBufferArg(args)
+    }
+    if (tab) {
+        if (tab.classList.contains("visible-tab")) {
+            UTIL.notify(
+                "Only tabs not currently visible can be suspended", "warn")
+        } else {
+            TABS.suspendTab(tab)
+        }
+    }
+}
+
 const hide = (...args) => {
     let tab = null
     if (args.length === 0) {
@@ -555,6 +573,82 @@ const callAction = (...args) => {
     }
 }
 
+const logError = err => {
+    if (err?.message) {
+        UTIL.notify(`Script to set Vieb as the default browser failed:\n${
+            err.message}`, "err")
+    }
+}
+
+const makedefault = () => {
+    if (process.execPath.endsWith("electron")) {
+        UTIL.notify("Command only works for installed versions of Vieb", "err")
+        return
+    }
+    ipcRenderer.send("make-default-app")
+    if (process.platform === "linux" || process.platform.endsWith("bsd")) {
+        exec("xdg-settings set default-web-browser vieb.desktop", logError)
+    } else if (process.platform === "win32") {
+        const scriptContents = UTIL.readFile(path.join(
+            __dirname, "../defaultapp/windows.bat"))
+        const tempFile = path.join(UTIL.appData(), "defaultapp.bat")
+        UTIL.writeFile(tempFile, scriptContents)
+        exec(`Powershell Start ${tempFile} -ArgumentList `
+            + `"""${process.execPath}""" -Verb Runas`, logError)
+    } else if (process.platform === "darwin") {
+        // Electron API should be enough to show a popup for default app request
+    } else {
+        UTIL.notify("If you didn't get a notification to set Vieb as your defau"
+            + "lt browser, this command does not work for this OS.", "warn")
+    }
+}
+
+const extensionsCommand = (...args) => {
+    if (!args[0]) {
+        openSpecialPage("extensions")
+        return
+    }
+    if (args[0] === "install") {
+        if (args[1]) {
+            UTIL.notify("Extension install command takes no arguments", "warn")
+            return
+        }
+        const version = navigator.userAgent.replace(
+            /.*Chrome\//g, "").replace(/ .*/g, "")
+        const extension = TABS.currentPage()?.src.replace(/.*\//g, "")
+        if (extension && /^[A-z0-9]{32}$/.test(extension)) {
+            const url = `https://clients2.google.com/service/update2/crx?`
+            + `response=redirect&prodversion=${version}&acceptformat=crx2,crx3`
+            + `&x=id%3D${extension}%26uc`
+            ipcRenderer.send("install-extension", url, extension, "crx")
+        } else {
+            TABS.currentPage()?.send("action", "installFirefoxExtension")
+        }
+    } else if (args[0] === "list") {
+        if (args[1]) {
+            UTIL.notify("Extension list command takes no arguments", "warn")
+            return
+        }
+        let list = ipcRenderer.sendSync("list-extensions")
+        list = list.map(ext => `${ext.name}: ${ext.version}`).join("\n")
+        if (list.length) {
+            UTIL.notify(`Installed extensions: \n${list}`)
+        } else {
+            UTIL.notify(`No extensions currently installed`)
+        }
+    } else if (args[0] === "remove") {
+        if (!args[1] || args[2]) {
+            UTIL.notify("Removing an extension requires exactly one argument:\n"
+                + "The id of an extension", "warn")
+            return
+        }
+        ipcRenderer.send("remove-extension", args[1])
+    } else {
+        UTIL.notify("Unknown argument to the extensions command, must be:\n"
+            + "install, list or remove", "warn")
+    }
+}
+
 const commands = {
     "q": quit,
     "quit": quit,
@@ -582,6 +676,7 @@ const commands = {
     "mkviebrc": mkviebrc,
     "b": buffer,
     "buffer": buffer,
+    "suspend": suspend,
     "hide": hide,
     "pin": pin,
     "mute": mute,
@@ -597,7 +692,9 @@ const commands = {
     "comclear": () => {
         userCommands = {}
     },
-    "call": callAction
+    "call": callAction,
+    "makedefault": makedefault,
+    "extensions": extensionsCommand
 }
 let userCommands = {}
 
@@ -616,7 +713,8 @@ const noArgumentComands = [
     "cookies",
     "hardcopy",
     "print",
-    "comclear"
+    "comclear",
+    "makedefault"
 ]
 
 const noEscapeCommands = ["command", "delcommand"]

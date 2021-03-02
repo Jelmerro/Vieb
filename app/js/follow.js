@@ -212,7 +212,10 @@ const parseAndDisplayLinks = newLinks => {
         const onclickListener = async e => {
             if (e.button === 1 && UTIL.hasProtocol(link.url)) {
                 MODES.setMode(modeBeforeFollow)
-                TABS.addTab({"url": link.url})
+                TABS.addTab({
+                    "url": link.url,
+                    "switchTo": SETTINGS.get("mousenewtabswitch")
+                })
             } else {
                 await clickAtLink(link)
                 if (link.type !== "inputs-insert") {
@@ -254,7 +257,7 @@ const enterKey = async id => {
             matches.push(linkKey)
             linkKey.textContent = linkKey.textContent.replace(key, "")
         } else {
-            document.getElementById("follow").removeChild(linkKey)
+            linkKey.remove()
         }
     })
     if (matches.length === 0) {
@@ -271,8 +274,8 @@ const enterKey = async id => {
             }
             TABS.addTab({
                 "url": link.url,
-                "inverted": false,
                 "switchTo": !stayInFollowMode
+                    && SETTINGS.get("follownewtabswitch")
             })
             return
         }

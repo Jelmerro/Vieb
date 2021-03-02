@@ -27,6 +27,7 @@ const protocolRegex = /^[a-z][a-z0-9-+.]+:\/\//
 const specialPages = [
     "cookies",
     "downloads",
+    "extensions",
     "help",
     "history",
     "newtab",
@@ -109,7 +110,7 @@ const isSearchword = location => {
 }
 
 const notify = (message, type = "info", clickAction = false) => {
-    if (SETTINGS.get("notificationduration") < 100) {
+    if (SETTINGS.get("notificationduration") === 0) {
         return
     }
     let properType = "info"
@@ -164,9 +165,8 @@ const notify = (message, type = "info", clickAction = false) => {
         })
     }
     notificationsElement.appendChild(notification)
-    setTimeout(() => {
-        notificationsElement.removeChild(notification)
-    }, SETTINGS.get("notificationduration"))
+    setTimeout(() => notification.remove(),
+        SETTINGS.get("notificationduration"))
 }
 
 const specialPagePath = (page, section = null, skipExistCheck = false) => {
@@ -367,11 +367,7 @@ const stringToUrl = location => {
     if (isUrl(location)) {
         return `https://${location}`
     }
-    const search = SETTINGS.get("search")
-    if (search.includes("%s")) {
-        return search.replace(/%s/g, encodeURIComponent(location))
-    }
-    return search + encodeURIComponent(location)
+    return SETTINGS.get("search").replace(/%s/g, encodeURIComponent(location))
 }
 
 const urlToString = url => {

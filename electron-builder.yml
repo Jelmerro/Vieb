@@ -75,15 +75,15 @@ files:
     - "!dist"
 fileAssociations:
   - name: HyperText Markup File
-    ext: htm
-  - name: HyperText Markup File
     ext: html
+  - name: Extensible HyperText Markup File
+    ext: xhtml
+  - name: HyperText Markup File
+    ext: htm
   - name: HyperText Markup File
     ext: shtml
   - name: Extensible HyperText Markup File
     ext: xht
-  - name: Extensible HyperText Markup File
-    ext: xhtml
 protocols:
   - name: HyperText Transfer Protocol
     schemes:

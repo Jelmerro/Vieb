@@ -18,10 +18,10 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const privacy = require("./privacy")
 
 let inFollowMode = false
 
-const urls = ["a"]
 const clickableInputs = [
     "button",
     "input[type=\"button\"]",
@@ -36,16 +36,17 @@ const clickableInputs = [
     "*[role=\"radio\"]",
     "*[role=\"checkbox\"]",
     "summary"
-]
+].join(",")
 const textlikeInputs = [
     "input:not([type=\"radio\"]):not([type=\"checkbox\"])"
     + ":not([type=\"submit\"]):not([type=\"button\"])"
     + ":not([type=\"file\"]):not([type=\"image\"]):not([type=\"reset\"])",
-    "*[role=\"textbox\"]",
-    "*[contenteditable=\"true\"]",
+    "[role=\"textbox\"]",
+    "[contenteditable=\"true\"]",
+    "[contenteditable=\"\"]",
     "textarea",
     "select"
-]
+].join(",")
 const clickEvents = ["click", "mousedown"]
 const otherEvents = [
     "mouseenter",
@@ -54,17 +55,16 @@ const otherEvents = [
     "mouseout",
     "mouseover",
     "mouseup",
-    "contextmenu"
+    "contextmenu",
+    "auxclick"
 ]
 const frameSelector = "embed, frame, iframe, object"
 
 ipcRenderer.on("focus-first-text-input", async () => {
-    const links = allElementsBySelectors("inputs-insert", textlikeInputs)
-    if (links.length > 0) {
-        const pos = links.sort((el1, el2) => Math.floor(el1.y)
-            - Math.floor(el2.y) || el1.x - el2.x)[0]
+    const input = getAllFollowLinks().find(l => l.type === "inputs-insert")
+    if (input) {
         const element = findElementAtPosition(
-            pos.x + pos.width / 2, pos.y + pos.height / 2)
+            input.x + input.width / 2, input.y + input.height / 2)
         if (element?.click && element?.focus) {
             ipcRenderer.sendToHost("switch-to-insert")
             await new Promise(r => setTimeout(r, 5))
@@ -76,7 +76,7 @@ ipcRenderer.on("focus-first-text-input", async () => {
 
 const getLinkFollows = allLinks => {
     // A tags with href as the link, can be opened in new tab or current tab
-    querySelectorAll(urls.join(",")).forEach(e => {
+    querySelectorAll("a").forEach(e => {
         const baseLink = parseElement(e, "url")
         if (baseLink) {
             allLinks.push(baseLink)
@@ -92,7 +92,7 @@ const getLinkFollows = allLinks => {
 
 const getInputFollows = allLinks => {
     // Input tags such as checkboxes, can be clicked but have no text input
-    const inputs = [...querySelectorAll(clickableInputs.join(","))]
+    const inputs = [...querySelectorAll(clickableInputs)]
     inputs.push(...[...querySelectorAll("input")].map(
         e => e.closest("label")).filter(e => e && !inputs.includes(e)))
     inputs.forEach(element => {
@@ -102,13 +102,13 @@ const getInputFollows = allLinks => {
             if (labelFor) {
                 try {
                     const forEl = element.closest(`#${labelFor}`)
-                    if (forEl && forEl.matches(textlikeInputs.join(","))) {
+                    if (forEl && forEl.matches(textlikeInputs)) {
                         type = "inputs-insert"
                     }
                 } catch (_) {
                     // Invalid label, not a valid selector, assuming click input
                 }
-            } else if (element.querySelector(textlikeInputs.join(","))) {
+            } else if (element.querySelector(textlikeInputs)) {
                 type = "inputs-insert"
             }
         }
@@ -119,7 +119,7 @@ const getInputFollows = allLinks => {
     })
     // Input tags such as email and text, can have text inserted
     allLinks.push(
-        ...allElementsBySelectors("inputs-insert", textlikeInputs))
+        ...allElementsBySelector("inputs-insert", textlikeInputs))
 }
 
 const getMouseFollows = allLinks => {
@@ -145,23 +145,20 @@ const getAllFollowLinks = () => {
     getLinkFollows(allLinks)
     getInputFollows(allLinks)
     getMouseFollows(allLinks)
-    return allLinks
-}
-
-const sendFollowLinks = () => {
-    if (!inFollowMode) {
-        return
-    }
-    const allLinks = getAllFollowLinks()
-    // Send response back to webview, which will forward it to follow.js
     // Ordered by the position on the page from the top
     // Uncategorised mouse events are less relevant and are moved to the end
-    ipcRenderer.sendToHost("follow-response", allLinks.sort((el1, el2) => {
+    return allLinks.sort((el1, el2) => {
         if (el1.type === "other") {
             return 10000
         }
         return Math.floor(el1.y) - Math.floor(el2.y) || el1.x - el2.x
-    }))
+    })
+}
+
+const sendFollowLinks = () => {
+    if (inFollowMode) {
+        ipcRenderer.sendToHost("follow-response", getAllFollowLinks())
+    }
 }
 
 ipcRenderer.on("follow-mode-start", () => {
@@ -387,8 +384,8 @@ const parseElement = (element, type) => {
     }
 }
 
-const allElementsBySelectors
-= (type, selectors) => [...querySelectorAll(selectors.join(","))]
+const allElementsBySelector
+= (type, selector) => [...querySelectorAll(selector)]
     .map(element => parseElement(element, type)).filter(e => e)
 
 const eventListeners = {}
@@ -422,7 +419,7 @@ const clickListener = (e, frame = null) => {
             "x": e.x + (paddingInfo?.x || 0),
             "y": e.y + (paddingInfo?.y || 0),
             "tovisual": !window.getSelection().isCollapsed,
-            "toinsert": !!textlikeInputs.find(s => e.target.matches(s))
+            "toinsert": !!e.target.matches(textlikeInputs)
         })
     }
 }
@@ -430,7 +427,7 @@ window.addEventListener("click", clickListener,
     {"capture": true, "passive": true})
 
 const contextListener = (e, frame = null) => {
-    if (e.isTrusted) {
+    if (e.isTrusted && !inFollowMode && e.button === 2) {
         e.preventDefault()
         const paddingInfo = findFrameInfo(frame)
         ipcRenderer.sendToHost("context-click-info", {
@@ -442,13 +439,14 @@ const contextListener = (e, frame = null) => {
             "link": e.path.find(el => el.tagName?.toLowerCase() === "a"
                 && el.href?.trim())?.href?.trim(),
             "text": window.getSelection().toString(),
-            "canEdit": !!textlikeInputs.find(s => e.target.matches(s)),
+            "canEdit": !!e.target.matches(textlikeInputs),
             "frame": frame?.src,
             "hasExistingListener": eventListeners.contextmenu.has(e.target)
+                || eventListeners.auxclick.has(e.target)
         })
     }
 }
-window.addEventListener("contextmenu", contextListener)
+window.addEventListener("auxclick", contextListener)
 
 setInterval(() => {
     // Regular listeners are wiped when the element is re-added to the dom,
@@ -457,8 +455,9 @@ setInterval(() => {
         try {
             f.contentDocument.onclick = e => clickListener(e, f)
             f.contentDocument.oncontextmenu = e => contextListener(e, f)
+            privacy.privacyFixes(f.contentWindow)
         } catch (_) {
             // Not an issue, will be retried shortly
         }
     })
-}, 500)
+}, 0)

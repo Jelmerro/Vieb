@@ -1,14 +1,21 @@
 " Options
 set adblocker=update
+set devtoolsposition=split
 set downloadmethod=confirm
-set ignorecase
-set mouse
+set firefoxmode=always
+set fontsize=16
+set mintabwidth=250
+set norestoretabs
 set permissioncamera=ask
+set permissiondisplaycapture=ask
 set permissionmediadevices=allow
 set permissionmicrophone=ask
+set permissionpersistentstorage=allow
 set redirecttohttp
-set norestoretabs
-set mintabwidth=250
+set splitbelow
+set suspendonrestore=regular
+set tabclosefocusright
+set tabreopenposition=previous
 set windowtitle=title
 
 " Mappings

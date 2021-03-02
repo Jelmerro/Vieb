@@ -20,35 +20,27 @@
 "use strict"
 
 const modes = {
-    "normal": {"fg": "#ddd"},
+    "normal": {},
     "insert": {
-        "fg": "#3f3",
         "onLeave": newMode => {
             if (TABS.currentPage().getAttribute("dom-ready")) {
                 TABS.currentPage().send("action", "blur")
             }
-            if (newMode !== "pointer") {
+            if (newMode !== "pointer" && !SETTINGS.get("mouse")) {
                 document.getElementById("url-hover").textContent = ""
                 document.getElementById("url-hover").style.display = "none"
             }
         }
     },
     "command": {
-        "fg": "#f33",
         "onEnter": () => {
             document.getElementById("url").value = ""
             COMMANDHISTORY.resetPosition()
         },
         "onLeave": () => SUGGEST.emptySuggestions()
     },
-    "search": {
-        "fg": "#ff3",
-        "onEnter": () => {
-            document.getElementById("url").value = ""
-        }
-    },
+    "search": {},
     "explore": {
-        "fg": "#3ff",
         "onEnter": () => {
             TABS.updateUrl(TABS.currentPage(), true)
             document.getElementById("url").select()
@@ -57,7 +49,6 @@ const modes = {
         "onLeave": () => SUGGEST.emptySuggestions()
     },
     "follow": {
-        "fg": "#f3f",
         "onLeave": newMode => {
             FOLLOW.cancelFollow()
             if (!["visual", "pointer"].includes(newMode)) {
@@ -66,20 +57,16 @@ const modes = {
         }
     },
     "pointer": {
-        "fg": "#777",
-        "bg": "#fff",
         "onLeave": newMode => {
             if (!["visual", "follow"].includes(newMode)) {
                 POINTER.releaseKeys()
             }
-            if (newMode !== "insert") {
+            if (newMode !== "insert" && !SETTINGS.get("mouse")) {
                 document.getElementById("url-hover").style.display = "none"
             }
         }
     },
     "visual": {
-        "fg": "#000",
-        "bg": "#3af",
         "onLeave": newMode => {
             if (!["pointer", "follow"].includes(newMode)) {
                 POINTER.releaseKeys()

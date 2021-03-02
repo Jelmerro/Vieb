@@ -99,7 +99,11 @@ const decreasePageNumber = () => new Promise(res => {
     setTimeout(res, 100)
 })
 
-const toSearchMode = () => MODES.setMode("search")
+const toSearchMode = () => {
+    MODES.setMode("search")
+    document.getElementById("url").value = currentSearch
+    document.getElementById("url").select()
+}
 
 const startFollowNewTab = () => FOLLOW.startFollow(true)
 
@@ -115,8 +119,6 @@ const backInHistory = (customPage = null) => {
         }
     }
 }
-
-const openNewTabAtAlternativePosition = () => TABS.addTab({"inverted": true})
 
 const forwardInHistory = (customPage = null) => {
     const page = customPage || TABS.currentPage()
@@ -252,6 +254,24 @@ const editWithVim = () => {
     page.send("action", "writeInputToFile", tempFile)
 }
 
+const openLinkExternal = (suppliedLink = null) => {
+    const ext = SETTINGS.get("externalcommand")
+    if (!ext.trim()) {
+        UTIL.notify("No command set to open links externally, "
+            + "please update the 'externalcommand' setting", "warn")
+        return
+    }
+    const url = suppliedLink || document.getElementById("url-hover").textContent
+        || UTIL.urlToString(TABS.currentPage()?.src)
+    if (url) {
+        exec(`${ext} ${url}`, err => {
+            if (err) {
+                UTIL.notify("Command to open links externally failed, "
+                    + "please update the 'externalcommand' setting", "err")
+            }
+        })
+    }
+}
 const nextSuggestion = () => {
     SUGGEST.nextSuggestion()
     setFocusCorrectly()
@@ -406,7 +426,6 @@ module.exports = {
     reloadWithoutCache,
     stopLoadingPage,
     openNewTab,
-    openNewTabAtAlternativePosition,
     openNewTabWithCurrentUrl,
     closeTab,
     reopenTab,
@@ -442,6 +461,7 @@ module.exports = {
     decreasePageNumber,
     insertAtFirstInput,
     editWithVim,
+    openLinkExternal,
     nextSuggestion,
     prevSuggestion,
     commandHistoryPrevious,

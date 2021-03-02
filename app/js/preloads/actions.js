@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2020 Jelmer van Arnhem
+* Copyright (C) 2019-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -148,6 +148,18 @@ const writeInputToFile = filename => {
 
 const print = () => document.execCommand("print")
 
+const installFirefoxExtension = () => {
+    const link = [...document.querySelectorAll("a")].find(
+        a => a.href?.endsWith(".xpi"))?.href
+    const extension = link?.replace(/.*\/(\d{7,10}).*/g, "$1")
+    if (link && extension) {
+        ipcRenderer.send("install-extension", link, extension, "xpi")
+    } else {
+        ipcRenderer.sendToHost("notify",
+            "No extensions found on this page", "warn")
+    }
+}
+
 const functions = {
     blur,
     increasePageNumber,
@@ -168,7 +180,8 @@ const functions = {
     exitFullscreen,
     setInputFieldText,
     writeInputToFile,
-    print
+    print,
+    installFirefoxExtension
 }
 
 ipcRenderer.on("action", (_, name, ...args) => {

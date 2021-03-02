@@ -15,30 +15,61 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Added
 
-- Mute command to toggle the audio playback status of a tab (either mute or unmute)
+- Command "mute" to toggle the audio playback status of a tab (either mute or unmute)
 - Setting "respectsitecontextmenu" to toggle if Vieb should show it's menu on websites that already provide one
+- Setting "suspendonrestore" to restore tabs lazily (loading tabs only once they're visible)
+- Setting "suspendtimeout" to automatically suspend background tabs after a delay
+- Command "suspend" to manually suspend any background tab right now
+- Setting "permissiondisplaycapture" to block or ask screensharing permission (you can select the source with follow mode or the mouse)
+- Setting "permissionsasked" to ask for permissions on specific sites, it overwrites permissionsblocked and permissionsallowed configs
 - Follow mode support for shadow roots using similar implementation as iframes
 - Nop action that does nothing, can be used to prevent side effects for keys in insert mode (site won't register them, similar to mappings)
 - Support for modifiers in recursive insert mode mappings
 - Support for lock keys in mappings, such as CapsLock
+- Setting "externalcommand" to configure the external command that will be used to open links externally
+- Action "openLinkExternal" to open the highlighted url or current page url with an "externalcommand"
+- Setting "tabclosefocusright" to decide if the right (or left) tab should get focused when closing a tab
+- Setting "tabreopenposition" which configures the position that should be used to restore tabs: previous, left or right (default)
+- Setting "follownewtabswitch" to toggle if follow mode for new tabs should switch to them on follow mode exit
+- Command "makedefault" to make Vieb the default browser (or at least try to)
+- Open-url handler to open a new tab for urls that are passed to Vieb via mac's alternative app argument system
+- Startup option to enable strict site isolation, to make Google services more reliable, at the cost of blocking follow mode inside iframes (until [this](https://github.com/electron/electron/issues/22582) is solved)
+- Experimental command to install extensions: "extensions install" which you call when currently on an extension page
+- List or remove installed extensions with "extensions list" and "extensions remove", or using the special page of the same name
 
 ### Changed
 
 - Iframe detection on pages now also works for frames in framesets, embeds and for object tags
 - Enable "respectsitecontextmenu" by default to be able to use the right-click menus of websites without Vieb interfering
 - Mapped keys in insert mode won't be detected by the website, this prevents all side effects for mappings, including those for split devtools
+- Default settings: Mouse is now on, new tabs with the mouse now switch to it, infinite maximum number of command suggestions and ignorecase is now on
+- Most number ranges now go much higher (close to MAX_INT) and are only disabled if set to 0
+- Restore the previous search selected when entering search mode (no history, just the previous one)
+- Allow multiple languages to be passed to the "spelllang" option (and the "system" value is now handled better)
+- The "spell" setting will now immediately take effect, also for existing tabs
+
+### Removed
+
+- Migrations for old tab structure used in 2.x.x and older
+- Fallback to name field for Erwic config files
+- Support for search setting values that don't include a "%s" to be replaced by the search
+- Action "openNewTabAtAlternativePosition", which is now implemented with a mapping that toggles the setting
+- Darkreader plugin in favor of installing the darkreader extension from the Mozilla or Chrome store
 
 ### Fixed
 
-- Incorrect action when following links with a custom datamethod attribute (such as put or post)
+- Potentially incorrect execution for following links with a custom datamethod attribute (such as put or post)
 - Follow mode not loading on some pages due to querySelectorAll sometimes returning undefined instead of an empty NodeList
 - Potential parse errors for invalid URLs being stored or opened by pages
 - Mouse action listeners potentially being wiped within iframes if re-added to the DOM
+- Action "insertAtFirstInput" now works for subframes and for labels that link to hidden fields
+- Right click menu potentially appearing when using follow mode on Windows
 
 ### Security
 
-- Electron 11.2.1 (unchanged)
-- Chromium 87.0.4280.141 (unchanged)
+- Electron 12.0.0 (was 11.2.1)
+- Chromium 89.0.4389.69 (was 87.0.4280.141)
+- Privacy fixes for navigator properties and media info now run in iframes on a timer, can't be waterproofed without [this](https://github.com/electron/electron/issues/22582)
 
 ## [3.4.0](https://github.com/Jelmerro/Vieb/compare/3.3.0...3.4.0) - 2021-01-31
 

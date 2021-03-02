@@ -35,23 +35,30 @@ const {spawn} = require("child_process")
 const path = require("path")
 const isSvg = require("is-svg")
 const {ElectronBlocker} = require("@cliqz/adblocker-electron")
+const _7z = require("7zip-min")
+const rimraf = require("rimraf").sync
 
 const version = process.env.npm_package_version || app.getVersion()
 const printUsage = () => {
     console.log("Vieb: Vim Inspired Electron Browser\n")
     console.log("Usage: Vieb [options] <URLs>\n")
     console.log("Options:")
-    console.log(" --help             Print this help and exit")
-    console.log(" --version          Print program info with version and exit")
-    console.log(" --datafolder <dir> Store ALL Vieb data in this folder")
-    console.log(
-        " --erwic <file>     Open a fixed set of pages in a separate instance")
-    console.log("                    See 'Erwic.md' for usage and details")
-    console.log(
-        " --debug            Open with Chromium and Electron debugging tools")
-    console.log("                    "
+    console.log(" --help                   Print this help and exit")
+    console.log(" --version                "
+        + "Print program info with version and exit")
+    console.log(" --datafolder <dir>       Store ALL Vieb data in this folder")
+    console.log(" --erwic <file>           "
+        + "Open a fixed set of pages in a separate instance")
+    console.log("                          "
+        + "See 'Erwic.md' for usage and details")
+    console.log(" --debug                  "
+        + "Open with Chromium and Electron debugging tools")
+    console.log("                          "
         + "They can also be opened later with :internaldevtools")
-    console.log(" --software-only    Disable hardware acceleration completely")
+    console.log(" --software-only          "
+        + "Disable hardware acceleration completely")
+    console.log(" --strict-site-isolation  "
+        + "Enable strict site isolation (no iframe access)")
     console.log("\nAll arguments not starting with - will be opened as a url.")
     printLicense()
 }
@@ -74,6 +81,13 @@ const printLicense = () => {
     console.log("There is NO WARRANTY, to the extent permitted by law.")
     console.log("See the LICENSE file or the GNU website for details.")
 }
+const isDir = loc => {
+    try {
+        return fs.statSync(loc).isDirectory()
+    } catch (e) {
+        return false
+    }
+}
 const isFile = loc => {
     try {
         return fs.statSync(loc).isFile()
@@ -86,6 +100,14 @@ const deleteFile = loc => {
         fs.unlinkSync(loc)
     } catch (e) {
         // Probably already deleted
+    }
+}
+const listDirs = loc => {
+    try {
+        return fs.readdirSync(loc).map(
+            f => path.join(loc, f)).filter(() => isDir)
+    } catch (e) {
+        return []
     }
 }
 const readJSON = loc => {
@@ -144,12 +166,9 @@ const useragent = () => session.defaultSession.getUserAgent()
 // https://github.com/electron/electron/issues/25469
 app.commandLine.appendSwitch("disable-features", "CrossOriginOpenerPolicy")
 
-// Disable site isolation to allow websites to access into iframes
-app.commandLine.appendSwitch("disable-site-isolation-trials")
-
 const getArguments = argv => {
-    const exec = path.basename(argv[0])
-    if (exec === "electron" || process.defaultApp && exec !== "vieb") {
+    const execFile = path.basename(argv[0])
+    if (execFile === "electron" || process.defaultApp && execFile !== "vieb") {
         // The array argv is ["electron", "app", ...args]
         return argv.slice(2)
     }
@@ -164,6 +183,7 @@ let enableDebugMode = false
 let nextArgErwicConfig = false
 let nextArgDataFolder = false
 let softwareOnly = false
+let strictSiteIsolation = false
 let erwic = null
 let datafolder = path.join(app.getPath("appData"), "Vieb")
 let customIcon = null
@@ -184,6 +204,8 @@ args.forEach(arg => {
             app.exit(0)
         } else if (arg === "--debug") {
             enableDebugMode = true
+        } else if (arg === "--strict-site-isolation") {
+            strictSiteIsolation = true
         } else if (arg === "--erwic") {
             nextArgErwicConfig = true
         } else if (arg === "--software-only") {
@@ -209,6 +231,9 @@ if (nextArgDataFolder) {
     printUsage()
     app.exit(1)
 }
+if (!strictSiteIsolation) {
+    app.commandLine.appendSwitch("disable-site-isolation-trials")
+}
 if (softwareOnly) {
     app.disableHardwareAcceleration()
 }
@@ -216,8 +241,6 @@ app.setName("Vieb")
 datafolder = `${path.resolve(expandPath(datafolder.trim()))}/`
 app.setPath("appData", datafolder)
 app.setPath("userData", datafolder)
-app.setAsDefaultProtocolClient("http")
-app.setAsDefaultProtocolClient("https")
 applyDevtoolsSettings(path.join(datafolder, "Preferences"))
 if (erwic) {
     const config = readJSON(erwic)
@@ -246,10 +269,6 @@ if (erwic) {
         app.exit(1)
     }
     config.apps = config.apps.map(a => {
-        if (a.name && !a.container) {
-            // OLD remove fallback checks in 4.x.x
-            a.container = a.name
-        }
         a.container = a.container?.replace(/[^A-Za-z0-9_]/g, "")
         if (typeof a.script === "string") {
             a.script = expandPath(a.script)
@@ -304,6 +323,7 @@ app.on("ready", () => {
         console.log(`Sending urls to existing instance in ${datafolder}`)
         app.exit(0)
     }
+    app.on("open-url", (_, url) => mainWindow.webContents.send("urls", [url]))
     if (!app.isPackaged && !customIcon) {
         customIcon = path.join(__dirname, "img/icons/512x512.png")
     }
@@ -351,8 +371,9 @@ app.on("ready", () => {
             prefs.preload = path.join(__dirname, "js/preload.js")
             prefs.nodeIntegration = false
             prefs.nodeIntegrationInSubFrames = false
+            prefs.contextIsolation = false
             prefs.enableRemoteModule = false
-            prefs.webSecurity = false
+            prefs.webSecurity = strictSiteIsolation
         })
         if (enableDebugMode) {
             mainWindow.webContents.openDevTools({"mode": "undocked"})
@@ -579,13 +600,19 @@ ipcMain.on("download-list-request", (e, action, downloadId) => {
 ipcMain.on("set-permissions", (_, permissionObject) => {
     permissions = permissionObject
 })
-ipcMain.on("set-spelllang", (_, lang) => {
+ipcMain.on("set-spelllang", (_, langs) => {
     sessionList.forEach(ses => {
-        if (lang === "system") {
-            session.fromPartition(ses).setSpellCheckerLanguages([])
-        } else {
-            session.fromPartition(ses).setSpellCheckerLanguages([lang])
-        }
+        langs = langs.split(",").map(lang => {
+            if (lang === "system") {
+                lang = app.getLocale()
+            }
+            const valid = session.defaultSession.availableSpellCheckerLanguages
+            if (!valid.includes(lang)) {
+                return null
+            }
+            return lang
+        }).filter(lang => lang)
+        session.fromPartition(ses).setSpellCheckerLanguages(langs)
     })
 })
 ipcMain.on("create-session", (_, name, adblock, cache) => {
@@ -602,6 +629,9 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     if (adblock !== "off") {
         enableAdblocker()
     }
+    listDirs(path.join(datafolder, "extensions")).forEach(loc => {
+        newSession.loadExtension(loc, {"allowFileAccess": true})
+    })
     newSession.webRequest.onBeforeRequest((details, callback) => {
         let url = String(details.url)
         redirects.split(",").forEach(r => {
@@ -763,7 +793,7 @@ const permissionHandler = (_, permission, callback, details) => {
         } else if (details.mediaTypes?.includes("audio")) {
             permission = "microphone"
         } else {
-            permission = "mediadevices"
+            permission = "displaycapture"
         }
     }
     let permissionName = `permission${permission}`
@@ -772,23 +802,21 @@ const permissionHandler = (_, permission, callback, details) => {
         permissionName = "permissionunknown"
         setting = permissions.permissionunknown
     }
-    for (const override of ["permissionsblocked", "permissionsallowed"]) {
-        for (const rule of permissions[override]?.split(",")) {
-            if (!rule.trim()) {
+    let settingRule = ""
+    for (const override of ["asked", "blocked", "allowed"]) {
+        for (const rule of permissions[`permissions${override}`]?.split(",")) {
+            if (!rule.trim() || settingRule) {
                 continue
             }
             const [match, ...names] = rule.split("~")
             if (names.find(p => permissionName.endsWith(p))) {
                 if (details.requestingUrl.match(match)) {
-                    mainWindow.webContents.send("notify",
-                        `Automatic rule for '${permission}' activated at `
-                        + `'${details.requestingUrl}' which was `
-                        + `${override.replace("permissions", "")}`, "perm")
-                    return callback(override.includes("allow"))
+                    settingRule = override.replace("ed", "")
                 }
             }
         }
     }
+    setting = settingRule || setting
     if (setting === "ask") {
         let url = details.requestingUrl
         if (url.length > 100) {
@@ -798,8 +826,8 @@ const permissionHandler = (_, permission, callback, details) => {
             + `'${permission}'. You can allow or deny this below, and choose if`
             + " you want to make this the default for the current session when "
             + "sites ask for this permission. For help and more options, see "
-            + `':h ${permissionName}', ':h permissionsallowed' and `
-            + `':h permissionsblocked'.\n\npage:\n${url}`
+            + `':h ${permissionName}', ':h permissionsallowed', ':h permissions`
+            + `asked' and ':h permissionsblocked'.\n\npage:\n${url}`
         if (permission === "openExternal") {
             let exturl = details.externalURL
             if (exturl.length > 100) {
@@ -809,9 +837,9 @@ const permissionHandler = (_, permission, callback, details) => {
                 + " You can allow or deny this below, and choose if you want to"
                 + " make this the default for the current session when sites "
                 + "ask to open urls in external programs. For help and more "
-                + "options, see ':h permissionopenexternal', "
-                + "':h permissionsallowed' and ':h permissionsblocked'.\n\n"
-                + `page:\n${details.requestingUrl}\n\nexternal:\n${exturl}`
+                + "options, see ':h permissionopenexternal', ':h permissionsall"
+                + "owed', ':h permissionsasked' and ':h permissionsblocked'.\n"
+                + `\npage:\n${details.requestingUrl}\n\nexternal:\n${exturl}`
         }
         dialog.showMessageBox(mainWindow, {
             "type": "question",
@@ -826,20 +854,37 @@ const permissionHandler = (_, permission, callback, details) => {
             if (e.response !== 0) {
                 action = "block"
             }
-            mainWindow.webContents.send("notify",
-                `Manually ${action}ed '${permission}' at `
-                + `'${details.requestingUrl}'`, "perm")
+            if (settingRule) {
+                mainWindow.webContents.send("notify",
+                    `Ask rule for '${permission}' activated at '`
+                    + `${details.requestingUrl}' which was ${action}ed by user`,
+                    "perm")
+            } else {
+                mainWindow.webContents.send("notify",
+                    `Manually ${action}ed '${permission}' at `
+                    + `'${details.requestingUrl}'`, "perm")
+            }
             callback(action === "allow")
-            if (e.checkboxChecked) {
+            const canSave = action !== "allow"
+                || permission !== "displaycapture"
+            if (e.checkboxChecked && canSave) {
                 mainWindow.webContents.send(
                     "set-permission", permissionName, action)
                 permissions[permissionName] = action
             }
         })
     } else {
-        mainWindow.webContents.send("notify",
-            `Globally ${setting}ed '${permission}' at `
-            + `'${details.requestingUrl}' based on '${permissionName}'`, "perm")
+        if (settingRule) {
+            mainWindow.webContents.send("notify",
+                `Automatic rule for '${permission}' activated at `
+                + `'${details.requestingUrl}' which was ${setting}ed`,
+                "perm")
+        } else {
+            mainWindow.webContents.send("notify",
+                `Globally ${setting}ed '${permission}' at `
+                + `'${details.requestingUrl}' based on '${permissionName}'`,
+                "perm")
+        }
         callback(setting === "allow")
     }
 }
@@ -896,6 +941,86 @@ const loadBlocklist = file => {
         return ""
     }
 }
+
+// Manage installed browser extensions
+ipcMain.on("install-extension", (_, url, extension, extType) => {
+    fs.mkdirSync(path.join(datafolder, "extensions"), {"recursive": true})
+    const zipLoc = path.join(datafolder, `extensions/${extension}`)
+    if (isDir(`${zipLoc}/`)) {
+        mainWindow.webContents.send("notify",
+            `Extension already installed: ${extension}`)
+        return
+    }
+    mainWindow.webContents.send("notify",
+        `Installing ${extType} extension: ${extension}`)
+    const request = net.request({url, "partition": "persist:main"})
+    request.on("response", res => {
+        const data = []
+        res.on("end", () => {
+            if (res.statusCode !== 200) {
+                // Failed to download extension
+                mainWindow.webContents.send("notify",
+                    `Failed to install extension due to network error`, "err")
+                console.log(res)
+                return
+            }
+            const file = Buffer.concat(data)
+            fs.writeFileSync(`${zipLoc}.${extType}`, file)
+            _7z.cmd([
+                "x", "-aoa", "-tzip", `${zipLoc}.${extType}`, `-o${zipLoc}`
+            ], () => {
+                rimraf(`${zipLoc}/_metadata/`)
+                sessionList.forEach(ses => {
+                    session.fromPartition(ses).loadExtension(zipLoc, {
+                        "allowFileAccess": true
+                    })
+                })
+            })
+        })
+        res.on("data", chunk => {
+            data.push(Buffer.from(chunk, "binary"))
+        })
+    })
+    request.on("abort", e => {
+        // Failed to download extension
+        mainWindow.webContents.send("notify",
+            `Failed to install extension due to network error`, "err")
+        console.log(e)
+    })
+    request.on("error", e => {
+        // Failed to download extension
+        mainWindow.webContents.send("notify",
+            `Failed to install extension due to network error`, "err")
+        console.log(e)
+    })
+    request.end()
+})
+ipcMain.on("list-extensions", e => {
+    e.returnValue = session.fromPartition("persist:main").getAllExtensions()
+        .map(ex => ({
+            "id": ex.id,
+            "icon": ex.manifest.icons[Object.keys(ex.manifest.icons).pop()],
+            "name": ex.name,
+            "path": ex.path,
+            "version": ex.version
+        }))
+})
+ipcMain.on("remove-extension", (_, extensionPath) => {
+    const extLoc = path.join(datafolder, `extensions/${extensionPath}`)
+    const extension = session.fromPartition("persist:main").getAllExtensions()
+        .find(ext => ext.path.replace(/\/$/g, "").endsWith(extensionPath))
+    if (isDir(`${extLoc}/`) && extension) {
+        mainWindow.webContents.send("notify",
+            `Removing extension: ${extensionPath}`)
+        sessionList.forEach(ses => {
+            session.fromPartition(ses).removeExtension(extension.id)
+        })
+        rimraf(`${extLoc}*`)
+    } else {
+        mainWindow.webContents.send("notify", "Could not find extension with "
+            + `id: ${extensionPath}`, "warn")
+    }
+})
 
 // Download favicons for websites
 ipcMain.on("download-favicon", (_, fav, location, webId, linkId, url) => {
@@ -1067,6 +1192,10 @@ ipcMain.handle("show-message-dialog", (_, options) => dialog.showMessageBox(
 ipcMain.handle("list-cookies", e => e.sender.session.cookies.get({}))
 ipcMain.handle("remove-cookie",
     (e, url, name) => e.sender.session.cookies.remove(url, name))
+ipcMain.handle("make-default-app", () => {
+    app.setAsDefaultProtocolClient("http")
+    app.setAsDefaultProtocolClient("https")
+})
 // Operations below are sync
 ipcMain.on("override-global-useragent", (e, globalUseragent) => {
     app.userAgentFallback = globalUseragent || useragent()

@@ -1,15 +1,18 @@
 " Options
 set adblocker=update
 set cache=full
+set devtoolsposition=vsplit
 set favicons=30day
-set ignorecase
-set mouse
+set mintabwidth=0
 set permissioncamera=ask
+set permissiondisplaycapture=ask
 set permissionmediadevices=allow
 set permissionmicrophone=ask
+set permissionpersistentstorage=allow
 set redirecttohttp
 set search=https://google.com/search?q=
-set mintabwidth=0
+set splitright
+set tabreopenposition=previous
 set windowtitle=title
 
 " Mappings

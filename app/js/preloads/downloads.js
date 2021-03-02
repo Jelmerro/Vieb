@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2020 Jelmer van Arnhem
+* Copyright (C) 2019-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -60,8 +60,7 @@ ipcRenderer.on("download-list", (_, list) => {
                 updateDownload(list[i], listOnPage[i], i)
             } else {
                 try {
-                    document.getElementById("list").removeChild(
-                        document.querySelectorAll("#list .download")[i])
+                    document.querySelectorAll("#list .download")[i].remove()
                 } catch (err) {
                     // List might be shorter the second time this is called
                 }
