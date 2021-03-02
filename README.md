@@ -19,7 +19,7 @@
 - __Free__, open source, fast and secure
 - __Local first__ adblocking, auto-complete, AMP protection, custom redirects and more, all without web requests
 - __Privacy__ with strict permission system, navigator overrides, firefox mode, custom WebRTC policy and more
-- __Accessible__ with custom themes, full interface & fontsize scaling, page zooming and mouse support
+- __Accessible__ with custom themes, full interface & fontsize scaling, page zooming, spellcheck and mouse support
 - __Security settings__ with permissions, cache usage, cookie management, (auto-)download settings and more
 - __Window splitting__ with split, Vexplore and Ctrl-w bindings, for multi-window browsing
 - __Map commands__ for completely custom keyboard sequences, keystrokes, commands and actions
@@ -28,7 +28,7 @@
 - __Vim-compatible options__ like showcmd, timeout, colorscheme, maxmapdepth, spelllang, splitright, ignorecase etc.
 - __Container tabs__ with colored grouping, auto-clearing, individual cookies and tab restore from containers
 - __Ad-blocker__ with optional updater and custom list support, default to: easylist and easyprivacy
-- __Tabs__ including audio indicator, a toggle for multi-line tabs, pinned tabs and a configurable minimal tab width
+- __Tabs__ including audio indicator, a toggle for multi-line tabs, pinned tabs, muted tabs and suspended tabs
 - __Offline help documentation__ always available upon pressing __F1__
 - __[And much, much more](https://vieb.dev/features)__
 

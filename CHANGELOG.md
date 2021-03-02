@@ -67,8 +67,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Security
 
-- Electron 12.0.0-beta.31 (was 11.2.1)
-- Chromium 89.0.4389.58 (was 87.0.4280.141)
+- Electron 12.0.0 (was 11.2.1)
+- Chromium 89.0.4389.69 (was 87.0.4280.141)
 - Privacy fixes for navigator properties and media info now run in iframes on a timer, can't be waterproofed without [this](https://github.com/electron/electron/issues/22582)
 
 ## [3.4.0](https://github.com/Jelmerro/Vieb/compare/3.3.0...3.4.0) - 2021-01-31
