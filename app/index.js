@@ -56,10 +56,18 @@ const printUsage = () => {
         + "Open with Chromium and Electron debugging tools")
     console.log("                          "
         + "They can also be opened later with :internaldevtools")
+    console.log(" --window-frame           "
+        + "Show the native window frame around the Vieb window")
+    console.log("                          "
+        + "You can also set this with the ENV var: VIEB_WINDOW_FRAME=1")
     console.log(" --software-only          "
         + "Disable hardware acceleration completely")
+    console.log("                          "
+        + "You can also set this with the ENV var: VIEB_SOFTWARE_ONLY=1")
     console.log(" --strict-site-isolation  "
         + "Enable strict site isolation (no iframe access)")
+    console.log("                          "
+        + "You can also set this with the ENV var: VIEB_STRICT_ISOLATION=1")
     console.log("\nAll arguments not starting with - will be opened as a url.")
     printLicense()
 }
@@ -183,8 +191,9 @@ const urls = []
 let enableDebugMode = false
 let nextArgErwicConfig = false
 let nextArgDataFolder = false
-let softwareOnly = false
-let strictSiteIsolation = false
+let showWindowFrame = !!process.env.VIEB_WINDOW_FRAME
+let softwareOnly = !!process.env.VIEB_SOFTWARE_ONLY
+let strictSiteIsolation = !!process.env.VIEB_STRICT_ISOLATION
 let erwic = null
 let datafolder = path.join(app.getPath("appData"), "Vieb")
 let customIcon = null
@@ -205,6 +214,8 @@ args.forEach(arg => {
             app.exit(0)
         } else if (arg === "--debug") {
             enableDebugMode = true
+        } else if (arg === "--window-frame") {
+            showWindowFrame = true
         } else if (arg === "--strict-site-isolation") {
             strictSiteIsolation = true
         } else if (arg === "--erwic") {
@@ -333,7 +344,7 @@ app.on("ready", () => {
         "title": app.getName(),
         "width": 800,
         "height": 600,
-        "frame": false,
+        "frame": showWindowFrame,
         "show": enableDebugMode,
         "closable": false,
         "icon": customIcon,

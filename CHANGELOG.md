@@ -16,6 +16,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Zip target for 64 bit Windows releases
+- Startup argument "--window-frame" to show the system's native window frame border around the Vieb window
+- Allow suitable startup arguments to be set by ENV variables as well
 
 ### Fixed
 
