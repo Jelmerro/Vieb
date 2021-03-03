@@ -432,7 +432,7 @@ const checkOther = (setting, value) => {
     }
     if (setting === "spelllang" && value !== "") {
         for (const lang of value.split(",")) {
-            if (!spelllangs.includes(lang)) {
+            if (spelllangs.length && !spelllangs.includes(lang)) {
                 UTIL.notify(`Invalid language passed to spelllang: ${lang}`,
                     "warn")
                 return false
