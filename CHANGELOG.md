@@ -22,6 +22,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Spelllang not recognizing languages that should be supported when loading the option on startup from a viebrc
+- Custom message with external request details not appearing for openexternal permission
 
 ### Security
 

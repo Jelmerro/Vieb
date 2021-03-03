@@ -844,7 +844,7 @@ const permissionHandler = (_, permission, callback, details) => {
             + "sites ask for this permission. For help and more options, see "
             + `':h ${permissionName}', ':h permissionsallowed', ':h permissions`
             + `asked' and ':h permissionsblocked'.\n\npage:\n${url}`
-        if (permission === "openExternal") {
+        if (permission === "openexternal") {
             let exturl = details.externalURL
             if (exturl.length > 100) {
                 exturl = exturl.replace(/.{50}/g, "$&\n")
