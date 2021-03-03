@@ -59,6 +59,7 @@ win:
         - x64
     - target: zip
       arch:
+        - x64
         - arm64
   extraFiles:
     - filter:

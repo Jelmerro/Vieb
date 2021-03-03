@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Zip target for 64 bit Windows releases
+
 ### Fixed
 
 - Spelllang not recognizing languages that should be supported when loading the option on startup from a viebrc
