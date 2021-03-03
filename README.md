@@ -60,9 +60,27 @@ See [Erwic.md](Erwic.md) for usage and details.
 
 # Download
 
-You can download the latest stable release from the [official Vieb website](https://vieb.dev/download).
-Alternatively, you can also view the previous releases [on Github](https://github.com/Jelmerro/Vieb/releases).
+There are many ways to download and install Vieb.
+Besides running from source or making your own builds,
+these are the main souces to download Vieb.
 For startup help, see the [frequently asked questions](FAQ.md).
+
+### [Vieb.dev](https://vieb.dev/download)
+
+The official Vieb website, where you can download the latest stable release for many platforms.
+
+### [Github](https://github.com/Jelmerro/Vieb/releases)
+
+The same releases that are offered on [vieb.dev](https://vieb.dev/download),
+but with release notes and previous versions listed.
+
+#### Third-party
+
+These releases are made by users just like you for their favorite system.
+Third-party releases might be outdated (in red) or customized compared to official builds,
+but they are probably the simplest way to get started if your system is listed.
+
+[![Third-party releases table](https://repology.org/badge/vertical-allrepos/vieb.svg?minversion=4.0.0)](https://repology.org/project/vieb/versions)
 
 # Contribute
 
