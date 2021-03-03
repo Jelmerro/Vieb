@@ -186,14 +186,18 @@ const getArguments = argv => {
 }
 
 // Parse arguments
+const isTruthyArg = arg => {
+    arg = String(arg).trim().toLowerCase()
+    return Number(arg) > 0 || ["y", "yes", "true", "on"].includes(arg)
+}
 const args = getArguments(process.argv)
 const urls = []
 let enableDebugMode = false
 let nextArgErwicConfig = false
 let nextArgDataFolder = false
-let showWindowFrame = !!process.env.VIEB_WINDOW_FRAME
-let softwareOnly = !!process.env.VIEB_SOFTWARE_ONLY
-let strictSiteIsolation = !!process.env.VIEB_STRICT_ISOLATION
+let showWindowFrame = isTruthyArg(process.env.VIEB_WINDOW_FRAME)
+let softwareOnly = isTruthyArg(process.env.VIEB_SOFTWARE_ONLY)
+let strictSiteIsolation = isTruthyArg(process.env.VIEB_STRICT_ISOLATION)
 let erwic = null
 let datafolder = path.join(app.getPath("appData"), "Vieb")
 let customIcon = null
