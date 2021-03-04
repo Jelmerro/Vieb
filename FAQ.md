@@ -15,8 +15,8 @@ On Linux you download either the AppImage or your distribution's native format (
 For Mac, there are two zipped Apps, one for x64 and one for ARM64.
 Vieb releases are offered in two different architectures:
 
-- ARM64, for Silicon macbooks, Raspberry Pi's, micro-computers etc.
-- x64, for pretty much all other regular devices (also suffixed with aarch64, amd64, x86_64 or no suffix at all)
+- ARM64, for Silicon macbooks, Raspberry Pi's, micro-computers etc. (suffixed aarch64 for rpm and pacman builds)
+- x64, for pretty much all other regular devices (also suffixed with amd64, x86_64 or no suffix at all)
 
 It's important to make sure that you download the right architecture for your system.
 
