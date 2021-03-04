@@ -139,8 +139,9 @@ const webviewMenu = options => {
     }
     const webviewY = Number(TABS.currentPage().style.top.replace("px", ""))
     const webviewX = Number(TABS.currentPage().style.left.replace("px", ""))
-    contextMenu.style.top = `${options.y + webviewY}px`
-    contextMenu.style.left = `${options.x + webviewX}px`
+    const zoom = TABS.currentPage().getZoomFactor()
+    contextMenu.style.top = `${Math.round(options.y * zoom + webviewY)}px`
+    contextMenu.style.left = `${Math.round(options.x * zoom + webviewX)}px`
     clear()
     createMenuItem({"title": "Refresh", "action": () => ACTIONS.reload()})
     createMenuItem({

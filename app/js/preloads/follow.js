@@ -47,14 +47,13 @@ const textlikeInputs = [
     "textarea",
     "select"
 ].join(",")
-const clickEvents = ["click", "mousedown"]
+const clickEvents = ["click", "mousedown", "mouseup"]
 const otherEvents = [
     "mouseenter",
     "mouseleave",
     "mousemove",
     "mouseout",
     "mouseover",
-    "mouseup",
     "contextmenu",
     "auxclick"
 ]
@@ -81,7 +80,7 @@ const getLinkFollows = allLinks => {
         if (baseLink) {
             allLinks.push(baseLink)
         } else {
-            // Try subelements instead, for example if the link is not
+            // Try sub-elements instead, for example if the link is not
             // visible or `display: none`, but a sub-element is absolutely
             // positioned somewhere else.
             allLinks.push(...[...e?.querySelectorAll("*") || []]
@@ -102,7 +101,7 @@ const getInputFollows = allLinks => {
             if (labelFor) {
                 try {
                     const forEl = element.closest(`#${labelFor}`)
-                    if (forEl && forEl.matches(textlikeInputs)) {
+                    if (forEl?.matches?.(textlikeInputs)) {
                         type = "inputs-insert"
                     }
                 } catch (_) {
@@ -209,7 +208,7 @@ const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
         elements = [...base.querySelectorAll(sel) || []]
     }
     ;[...base.querySelectorAll("*") || []]
-        .filter(el => el.shadowRoot || el.matches(frameSelector))
+        .filter(el => el.shadowRoot || el?.matches?.(frameSelector))
         .forEach(el => {
             let location = {"x": paddedX, "y": paddedY}
             if (!el.shadowRoot) {
@@ -236,7 +235,7 @@ const findElementAtPosition = (x, y, path = [document], px = 0, py = 0) => {
     if (path.includes(elementAtPos?.shadowRoot || elementAtPos)) {
         return elementAtPos
     }
-    if (elementAtPos?.matches(frameSelector)) {
+    if (elementAtPos?.matches?.(frameSelector)) {
         const frameInfo = findFrameInfo(elementAtPos) || {}
         return findElementAtPosition(x, y,
             [elementAtPos.contentDocument, ...path], frameInfo.x, frameInfo.y)
@@ -419,12 +418,17 @@ const clickListener = (e, frame = null) => {
             "x": e.x + (paddingInfo?.x || 0),
             "y": e.y + (paddingInfo?.y || 0),
             "tovisual": !window.getSelection().isCollapsed,
-            "toinsert": !!e.target.matches(textlikeInputs)
+            "toinsert": !!e.path.find(el => el?.matches?.(textlikeInputs))
         })
     }
 }
 window.addEventListener("click", clickListener,
     {"capture": true, "passive": true})
+window.addEventListener("mousedown", e => {
+    if (e.path.find(el => el?.matches?.("select, option"))) {
+        clickListener(e)
+    }
+}, {"capture": true, "passive": true})
 
 const contextListener = (e, frame = null) => {
     if (e.isTrusted && !inFollowMode && e.button === 2) {
@@ -439,7 +443,7 @@ const contextListener = (e, frame = null) => {
             "link": e.path.find(el => el.tagName?.toLowerCase() === "a"
                 && el.href?.trim())?.href?.trim(),
             "text": window.getSelection().toString(),
-            "canEdit": !!e.target.matches(textlikeInputs),
+            "canEdit": !!e.path.find(el => el?.matches?.(textlikeInputs)),
             "frame": frame?.src,
             "hasExistingListener": eventListeners.contextmenu.has(e.target)
                 || eventListeners.auxclick.has(e.target)
@@ -455,6 +459,11 @@ setInterval(() => {
         try {
             f.contentDocument.onclick = e => clickListener(e, f)
             f.contentDocument.oncontextmenu = e => contextListener(e, f)
+            f.contentDocument.onmousedown = e => {
+                if (e.path.find(el => el?.matches?.("select, option"))) {
+                    clickListener(e, f)
+                }
+            }
             privacy.privacyFixes(f.contentWindow)
         } catch (_) {
             // Not an issue, will be retried shortly

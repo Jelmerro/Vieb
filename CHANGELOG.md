@@ -23,6 +23,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Spelllang not recognizing languages that should be supported when loading the option on startup from a viebrc
 - Custom message with external request details not appearing for openexternal permission
+- Zoom level interfering with the right-click menu location
+- Insert mode not always activating when clicking on input elements (select elements or clicking on sub-elements of an input)
 
 ### Security
 
