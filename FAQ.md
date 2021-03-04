@@ -13,9 +13,12 @@ Feel free to ask questions on the subreddit or on github if you can't figure it 
 On Windows you would download releases ending in `.exe` or `win.zip`.
 On Linux you download either the AppImage or your distribution's native format (e.g. deb for Debian/Ubuntu and so on).
 For Mac, there are two zipped Apps, one for x64 and one for ARM64.
+Vieb releases are offered in two different architectures:
+
+- ARM64, for Silicon macbooks, Raspberry Pi's, micro-computers etc.
+- x64, for pretty much all other regular devices (also suffixed with aarch64, amd64, x86_64 or no suffix at all)
+
 It's important to make sure that you download the right architecture for your system.
-If it's a Raspberry Pi or similar, pick ARM64 for your distribution,
-otherwise, you probably need the regular release (AMD64, x86_64 or simply no suffix).
 
 #### How do I start Vieb?
 
@@ -76,12 +79,27 @@ For details, see the help page using `:h makedefault` and the
 
 Same as Vim. From normal mode, type `:qa` then Enter. (This assumes the default mappings and commands.)
 See [this issue](https://github.com/Jelmerro/Vieb/issues/65) for the rationale and other options.
+If you just want to use your regular shortcut to quit, use any of these commands to map the keys:
+
+```vim
+:map <A-F4> <:qa>
+:map <M-q> <:qa>
+:map <C-q> <:qa>
+```
+
+You don't need all three, you can simply execute the ones you would like,
+optionally followed by `:mkv` to save the config to disk for the next Vieb session.
+You can find more details about mappings with the help command: `:help map` or `:h mappings`.
 
 #### Why do I need to enter Insert mode to type text?
 
 Same as Vim, there is a strong mode separation.
-See [this issue for a short answer](https://github.com/Jelmerro/Vieb/issues/63)
-and [this thread for my lengthy motivation of starting Vieb](https://github.com/Jelmerro/Vieb/issues/83).
+Basically, it allows you to use the keyboard more efficiently,
+by making keys available that are otherwise reserved for typing.
+It achieves this by separating functionality into different modes,
+which is exactly what Vim does, and was a big reason for starting Vieb.
+See also: [my answer to remove this separation](https://github.com/Jelmerro/Vieb/issues/63)
+and [this thread for my lengthy motivation for creating Vieb](https://github.com/Jelmerro/Vieb/issues/83).
 
 #### Does Vieb automatically update? / How do I update Vieb?
 
@@ -91,3 +109,5 @@ OR when you specifically ask it to (either via navigation or with custom setting
 Checking for updates can be done by opening the `:version` page and specifically clicking "Check for updates".
 Alternatively, you can watch the [github repository](https://github.com/Jelmerro/Vieb)
 or subscribe to the official [Vieb subreddit](https://reddit.com/r/vieb) to be notified of new releases.
+Lastly, if your system has a [third-party package](https://repology.org/project/vieb/versions), you could use that as well.
+These packages might be customized or updated at a later date, but they get updates the same way you are used to from your operating system.
