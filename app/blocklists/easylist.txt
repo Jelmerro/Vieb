@@ -1,7 +1,7 @@
 [Adblock Plus 2.0]
-! Version: 202103022023
+! Version: 202103042032
 ! Title: EasyList
-! Last modified: 02 Mar 2021 20:23 UTC
+! Last modified: 04 Mar 2021 20:32 UTC
 ! Expires: 4 days (update frequency)
 ! Homepage: https://easylist.to/
 ! Licence: https://easylist.to/pages/licence.html
@@ -2182,7 +2182,7 @@
 /adnetwork468.
 /adnetwork_
 /adnew2.
-/adnews.$domain=~adnews.pl
+/adnews.$domain=~adnews.com.br|~adnews.pl
 /AdNewsclip14.
 /AdNewsclip15.
 /adnex.
@@ -6037,6 +6037,7 @@
 /plugins/ad.
 /plugins/ads-
 /plugins/ads/*
+/plugins/adsanity-
 /plugins/mts-wp-in-post-ads/*
 /plugins/page-cornr-
 /plugins/thirstyaffiliates/*
@@ -16982,6 +16983,7 @@ _popunder+$popup
 ###sticky-ad-bottom
 ###sticky-ad-container
 ###sticky-ad-header
+###sticky-footer-ad
 ###sticky-rail-ad
 ###sticky-top-ad-spacer
 ###sticky-top-ad-wrap
@@ -21622,6 +21624,7 @@ _popunder+$popup
 ##.ads_wrapperads_top
 ##.adsafp
 ##.adsame-banner-box
+##.adsanity-alignnone
 ##.adsanity-group
 ##.adsanity-single
 ##.adsarea
@@ -28862,6 +28865,7 @@ _popunder+$popup
 ##.sticky-ad-unit-default
 ##.sticky-ad-wrapper
 ##.sticky-bottom-ad
+##.sticky-footer-ad
 ##.sticky-sidebar-ad
 ##.sticky-top-ad-wrap
 ##.stickyAd
@@ -30701,6 +30705,7 @@ _popunder+$popup
 ##aside[itemtype="https://schema.org/WPAdBlock"]
 ##bottomadblock
 ##div[aria-label="Ads"]
+##div[cel_widget_id="dpx-sponsored-products-detail_csm_instrumentation_wrapper"]
 ##div[class*="-storyBodyAd-"]
 ##div[class*="_AdInArticle_"]
 ##div[class*="_browserAdOuterContainer_"]
@@ -31905,9 +31910,6 @@ africasports.net,bakersfield.com,cheatpain.com,diplomat.so,directwonen.nl,dramac
 anisearch.com#@#.chitikaAdBlock
 theladbible.com#@#.content_tagsAdTech
 topzone.lt#@#.forumAd
-localeyes.dk#@#.pub_300x250
-localeyes.dk#@#.pub_300x250m
-localeyes.dk#@#.pub_728x90
 soschildrensvillages.ca#@#.section-sponsor
 localeyes.dk#@#.text-ad
 localeyes.dk#@#.text-ad-links
@@ -34835,6 +34837,7 @@ coingamez.com,mangaumaru.com,milfzr.com,pencurimovie.cc#@#div[id^="div-gpt-ad"]
 ||exualpaignp.info^
 ||exvrvcnlfc.com^
 ||exwcadanpfc.com^
+||eybkcugat.com^
 ||eycrossible.fun^
 ||eyebinvex.com^
 ||eyebrowransom.com^
@@ -37100,6 +37103,7 @@ coingamez.com,mangaumaru.com,milfzr.com,pencurimovie.cc#@#div[id^="div-gpt-ad"]
 ||motherhoodenhanced.com^
 ||mothhatekick.com^
 ||motille.com^
+||motionlesseasilypreserved.com^
 ||moulieres.xyz^
 ||mousescrupulousrow.com^
 ||moutoofa.com^
@@ -43502,6 +43506,7 @@ coingamez.com,mangaumaru.com,milfzr.com,pencurimovie.cc#@#div[id^="div-gpt-ad"]
 ||etargetnet.com^$third-party
 ||etcodes.com^$third-party
 ||etgdta.com^$third-party
+||ethereumads.com^$third-party
 ||ethethoa.net^$third-party
 ||ethicalads.io^$third-party
 ||etmattemptholla.info^$third-party
@@ -51594,6 +51599,7 @@ coingamez.com,mangaumaru.com,milfzr.com,pencurimovie.cc#@#div[id^="div-gpt-ad"]
 ||ad.search.ch^
 ||ad.spreaker.com^
 ||adaderana.lk/banners/
+||adblock-tester.com/banners/
 ||addirector.vindicosuite.com^
 ||adf.ly/*.php?u=$script
 ||adf.ly/external/*/int.php
@@ -51673,6 +51679,7 @@ coingamez.com,mangaumaru.com,milfzr.com,pencurimovie.cc#@#div[id^="div-gpt-ad"]
 ||crn.com.au/scripts/js_$script
 ||daily-sun.com/assets/images/banner/
 ||dailymail.co.uk^*/linkListItem-$domain=thisismoney.co.uk
+||datum.blockchair.io^
 ||delivery.smashing.services^
 ||designtaxi.com/i-combine.php
 ||designtaxi.com/small-dt.php$subdocument
@@ -52692,7 +52699,7 @@ $popup,third-party,domain=loader.to|play.hydracdn.network|streamtape.com|vidclou
 ! about:blank popups
 /about:blank#/$popup,domain=22pixx.xyz|9anime.to|disk.ly|dood.to|dood.watch|fmovies.to|gogoanime.pro|hydracdn.network|imagetwist.com|mixdrop.co|mstream.xyz|player.cineflixtv.net|popads.net|powvideo.net|powvldeo.cc|putlocker.style|run-syndicate.com|spcdn.cc|steamplay.cc|streamtape.cc|streamtape.com|streamtape.site|upstream.to|uptostream.com|vev.io|vev.red|vevo.io|vidcloud.co|videobin.co|videowood.tv|viditodo.com|vidoza.net|vidup.io|vortez.net|vshare.eu|watchserieshd.tv
 ! html/image popups
-/^https?:\/\/.*\.(jpg|png|php|html|svg|ico)/$popup,domain=5movies.fm|animepahe.com|hulkstreams.com|jackstreams.com|live-golf.stream|olympicstreams.me|redirect-ads.com|speedvideo.net|streamtape.cc|streamtape.net|strikeout.nu|telerium.net|vipleague.cc|watchserieshd.tv
+/^https?:\/\/.*\.(jpg|png|php|html|svg|ico)/$popup,domain=5movies.fm|animepahe.com|hulkstreams.com|jackstreams.com|live-golf.stream|mystream.to|olympicstreams.me|redirect-ads.com|speedvideo.net|streamtape.cc|streamtape.net|strikeout.nu|telerium.net|vipleague.cc|watchserieshd.tv
 ! 
 /^https?:\/\/.*\.(info|pro|icu|app|xyz|pet|win|live|me|io|cc|pw|is|zone|bid|cf|ovh|site|review|ml)\.?(\/|:|$)/$popup,domain=dood.watch|fmovies.to|idup.io|powvideo.net|powvldeo.cc|putlocker.style|thepiratebay.org|uptostream.com|vev.io|vevo.io|vidcloud.co|videobin.co|videowood.tv|viditodo.com|vidoza.net|vortez.net|vshare.eu
 ! semi-generic popup block
@@ -52884,6 +52891,7 @@ $popup,third-party,domain=loader.to|play.hydracdn.network|streamtape.com|vidclou
 ||plx.porndig.com^
 ||porn-star.com/buttons/
 ||pornbay.re/k2sbanner
+||pornhat.com/banner/
 ||pornissimo.org/banners/
 ||pornj.com/gabril/
 ||pornjam.com/assets/js/renderer.
@@ -53385,6 +53393,7 @@ huffingtonpost.co.uk###modulous_sponsorship_2
 gold1043.com.au,kiis1065.com.au,wsfm.com.au###mos-headerRow1
 tooorgle.com###most_popular
 anonymouse.org###mouselayer
+moviemistakes.com###moviemistakes_300x600_300x250_160x600_sidebar_2
 bounty.com,carpages.co.uk,consobaby.co.uk,gumtree.com,icreatemagazine.com,lbc.co.uk,metalhammer.co.uk,nickjr.co.uk,pcgamingwiki.com,sportinglife.com,taletela.com,thatgrapejuice.net,thefootballnetwork.net,tv.com,webdesignermag.co.uk,zoopla.co.uk###mpu
 chow.com###mpu_1
 thexfactorusa.com###mrec
@@ -54023,6 +54032,7 @@ yesasia.com##.advHr
 vietnamnet.vn##.adv_info
 faceyourmanga.com##.adv_special
 thedailystar.net##.advatige
+blockchair.com##.advbtn--fairspin
 98online.com,abplive.in,africareview.com,airgunshooting.co.uk,airmalta.com,allghananews.com,anews.com.tr,angliaafloat.co.uk,arabianindustry.com,barkinganddagenhampost.co.uk,becclesandbungayjournal.co.uk,bexleytimes.co.uk,bitcoinzebra.com,bromsgrovestandard.co.uk,btcmanager.com,burymercury.co.uk,cambstimes.co.uk,canalboat.co.uk,caribbeancinemas.com,centralfm.co.uk,chemicalwatch.com,cheshirelife.co.uk,coastalscene24.co.uk,completefrance.com,cotswoldlife.co.uk,countrysmallholding.com,coventryobserver.co.uk,cranbrookherald.com,crimemagazine.com,dailyedge.ie,dailysun.co.za,derbyshirelife.co.uk,derehamtimes.co.uk,designmena.com,devonlife.co.uk,directory247.co.uk,dissmercury.co.uk,dorsetmagazine.co.uk,droitwichstandard.co.uk,dunmowbroadcast.co.uk,eadt.co.uk,eastlondonadvertiser.co.uk,economist.com,edp24.co.uk,ee.co.za,elystandard.co.uk,eos.org,essexlifemag.co.uk,etf.com,eveningnews24.co.uk,eveshamobserver.co.uk,exmouthherald.co.uk,exmouthjournal.co.uk,fakenhamtimes.co.uk,farmprogress.com,filmymonkey.com,fruitnet.com,ft.com,games.co.uk,gamesgames.com,gamesindustry.biz,gfi.com,gnovies.com,gravesendreporter.co.uk,greatyarmouthmercury.co.uk,guernseypress.com,hackneygazette.co.uk,hamhigh.co.uk,hampshire-life.co.uk,healthcanal.com,healthinsurancedaily.com,herefordshirelife.co.uk,hertfordshirelife.co.uk,hertsad.co.uk,hoteliermiddleeast.com,huntspost.co.uk,icaew.com,ilfordrecorder.co.uk,iol.co.za,ipswichstar.co.uk,islingtongazette.co.uk,jerseyeveningpost.com,journeychristiannews.com,jqueryte.com,kent-life.co.uk,kentnews.co.uk,kentonline.co.uk,kumusika.co.zw,lancashirelife.co.uk,leamingtonobserver.co.uk,legendarypokemon.net,lgr.co.uk,livingedge.co.uk,lowestoftjournal.co.uk,maltapark.com,malvernobserver.co.uk,megasearch.co,midweekherald.co.uk,momjunction.com,morningstar.co.uk,msnbc.com,myfinances.co.uk,newhamrecorder.co.uk,newstalkzb.co.nz,norfolkmag.co.uk,northdevongazette.co.uk,northeastlifemag.co.uk,northnorfolknews.co.uk,northsomersettimes.co.uk,piccsy.com,pilotweb.aero,pinkun.com,raidforums.com,redditchstandard.co.uk,romfordrecorder.co.uk,royston-crow.co.uk,rugbyobserver.co.uk,saffronwaldenreporter.co.uk,shropshirelifemagazine.co.uk,sidmouthherald.co.uk,skysports.com,solihullobserver.co.uk,somerset-life.co.uk,sportingshooter.co.uk,sportspromedia.com,stowmarketmercury.co.uk,stratfordobserver.co.uk,sudburymercury.co.uk,suffolkmag.co.uk,surreylife.co.uk,sussexlife.co.uk,tbivision.com,technewstoday.com,the42.ie,thecomet.net,thegardener.co.za,thegayuk.com,thejournal.ie,theneweuropean.co.uk,thetribunepapers.com,thewestonmercury.co.uk,totalscifionline.com,trucksplanet.com,tvweek.com,videogamer.com,warwickshirelife.co.uk,wattonandswaffhamtimes.co.uk,weddingsite.co.uk,westessexlife.co.uk,whtimes.co.uk,wiltshiremagazine.co.uk,wisbechstandard.co.uk,worcesterobserver.co.uk,worcestershirelife.co.uk,wymondhamandattleboroughmercury.co.uk,yorkshirelife.co.uk,yourchickens.co.uk,z9movie.com##.advert
 bandwidthblog.com,comtar.com,demerarawaves.com,eaglecars.com,earth911.com,proporn.com,slodive.com,weathernationtv.com,zimbabwesituation.com##.advertise
 gpfans.com##.advertise-panel
@@ -54126,6 +54136,7 @@ cargurus.com##.bannerDiv
 sastudy.co.za##.bannerHolder728
 mumbrella.com.au##.bannerSide
 tribuna.com##.banner__annotation
+blockchair.com##.banner__sponsor
 tass.com##.banner__wrapper
 caclubindia.com##.banner_border
 news.am##.banner_click
@@ -54375,6 +54386,7 @@ annistonstar.com##.custom_hot_deal_image
 dnsleaktest.com##.cute-box
 jobhits.co.uk##.cvads
 futurecurrencyforecast.com##.cwc-tor-widget
+blockchair.com##.d-block
 freesteam.io,theblockcrypto.com##.d-lg-block
 etherscan.io##.d-lg-inline-block
 coingecko.com##.d-md-block
@@ -54491,6 +54503,7 @@ permies.com##.forum-top-banner
 newsroom.co.nz##.foundingpartners
 bc.vc##.fp-bar-dis
 theiphoneappreview.com##.frame
+moviemistakes.com##.freestarad
 ptinews.com##.fullstorydivright
 borneobulletin.com.bn,chicagodefender.com,dallasvoice.com,gematsu.com,hotnews.org.za,newsday.co.zw,nondoc.com,one.com.mt,thegolfnewsnet.com,theindependent.co.zw,thestandard.co.zw##.g
 moviemaker.com##.g-2.g
@@ -54548,6 +54561,7 @@ alternet.org##.has-banner
 whistleout.com.au##.has-hover
 twitter.com##.has-profile-promoted-tweet
 denverpost.com##.hatad
+techradar.com##.hawk-main-transparent
 tomshardware.com##.hawk-placeholder
 pcgamer.com##.hawk-widget-insert
 screenbinge.com##.hb-strip
@@ -55537,6 +55551,7 @@ whatmobile.com.pk##div[style^="height:610px"]
 napuzba.com##div[style^="width:336px"]
 gta3.com,gtagarage.com,gtasanandreas.net,myanimelist.net,pastebin.com##div[style^="width:728px;"]
 ebay.com##div[title="ADVERTISEMENT"]
+adblock-tester.com##embed[width="240"]
 xtremesystems.org##embed[width="728"]
 imgburn.com##font[face="Arial"][size="1"]
 realitytvworld.com##font[size="1"][color="gray"]
@@ -55576,6 +55591,7 @@ thedailysheeple.com##img[width="560"]
 autoaction.com.au,elitepvpers.com,irishcatholic.com##img[width="728"]
 elitepvpers.com##img[width="968"]
 broadbandforum.co##ins[data-ad-client]
+adblock-tester.com##object[width="240"]
 monova.org##script + [class] > [class]:first-child
 bbc.com##section[data-e2e="advertisement"]
 tempostorm.com##side-banners
@@ -55768,15 +55784,15 @@ multiup.eu,multiup.org#?#.col-md-4:-abp-contains(Usenet.nl)
 multiup.eu,multiup.org#?#.trtbl:-abp-has(.warnIp)
 nex-software.com#?#.toolinfo:-abp-has(a[href$="/reimage"])
 nex-software.com#?#h4:-abp-has(a[href$="/reimage"])
-pinterest.at,pinterest.ch,pinterest.co.uk,pinterest.com,pinterest.com.au,pinterest.com.mx,pinterest.de,pinterest.es,pinterest.it,pinterest.pt#?#div[data-test-id="pin"]:-abp-has(div[title="Anzeige von"])
-pinterest.at,pinterest.ch,pinterest.co.uk,pinterest.com,pinterest.com.au,pinterest.com.mx,pinterest.de,pinterest.es,pinterest.it,pinterest.pt#?#div[data-test-id="pin"]:-abp-has(div[title="Promocionado por"])
-pinterest.at,pinterest.ch,pinterest.co.uk,pinterest.com,pinterest.com.au,pinterest.com.mx,pinterest.de,pinterest.es,pinterest.it,pinterest.pt#?#div[data-test-id="pin"]:-abp-has(div[title="Promoted by"])
-pinterest.at,pinterest.ch,pinterest.co.uk,pinterest.com,pinterest.com.au,pinterest.com.mx,pinterest.de,pinterest.es,pinterest.it,pinterest.pt#?#div[data-test-id="pin"]:-abp-has(div[title="Promowane przez"])
-pinterest.at,pinterest.ch,pinterest.co.uk,pinterest.com,pinterest.com.au,pinterest.com.mx,pinterest.de,pinterest.es,pinterest.it,pinterest.pt#?#div[data-test-id="pin"]:-abp-has(div[title="Publicidade de"])
-pinterest.at,pinterest.ch,pinterest.co.uk,pinterest.com,pinterest.com.au,pinterest.com.mx,pinterest.de,pinterest.es,pinterest.it,pinterest.pt#?#div[data-test-id="pin"]:-abp-has(div[title="Sponsor:"])
-pinterest.at,pinterest.ch,pinterest.co.uk,pinterest.com,pinterest.com.au,pinterest.com.mx,pinterest.de,pinterest.es,pinterest.it,pinterest.pt#?#div[data-test-id="pin"]:-abp-has(div[title="Sponsorisée par"])
-pinterest.at,pinterest.ch,pinterest.co.uk,pinterest.com,pinterest.com.au,pinterest.com.mx,pinterest.de,pinterest.es,pinterest.it,pinterest.pt#?#div[data-test-id="pin"]:-abp-has(div[title="Sponsorizzato da"])
-pinterest.at,pinterest.ch,pinterest.co.uk,pinterest.com,pinterest.com.au,pinterest.com.mx,pinterest.de,pinterest.es,pinterest.it,pinterest.pt#?#div[data-test-id="pin"]:-abp-has(div[title="Рекламодатель:"])
+pinterest.at,pinterest.ch,pinterest.co.uk,pinterest.com,pinterest.com.au,pinterest.com.mx,pinterest.de,pinterest.es,pinterest.fr,pinterest.it,pinterest.pt#?#div[data-test-id="pin"]:-abp-has(div[title="Anzeige von"])
+pinterest.at,pinterest.ch,pinterest.co.uk,pinterest.com,pinterest.com.au,pinterest.com.mx,pinterest.de,pinterest.es,pinterest.fr,pinterest.it,pinterest.pt#?#div[data-test-id="pin"]:-abp-has(div[title="Promocionado por"])
+pinterest.at,pinterest.ch,pinterest.co.uk,pinterest.com,pinterest.com.au,pinterest.com.mx,pinterest.de,pinterest.es,pinterest.fr,pinterest.it,pinterest.pt#?#div[data-test-id="pin"]:-abp-has(div[title="Promoted by"])
+pinterest.at,pinterest.ch,pinterest.co.uk,pinterest.com,pinterest.com.au,pinterest.com.mx,pinterest.de,pinterest.es,pinterest.fr,pinterest.it,pinterest.pt#?#div[data-test-id="pin"]:-abp-has(div[title="Promowane przez"])
+pinterest.at,pinterest.ch,pinterest.co.uk,pinterest.com,pinterest.com.au,pinterest.com.mx,pinterest.de,pinterest.es,pinterest.fr,pinterest.it,pinterest.pt#?#div[data-test-id="pin"]:-abp-has(div[title="Publicidade de"])
+pinterest.at,pinterest.ch,pinterest.co.uk,pinterest.com,pinterest.com.au,pinterest.com.mx,pinterest.de,pinterest.es,pinterest.fr,pinterest.it,pinterest.pt#?#div[data-test-id="pin"]:-abp-has(div[title="Sponsor:"])
+pinterest.at,pinterest.ch,pinterest.co.uk,pinterest.com,pinterest.com.au,pinterest.com.mx,pinterest.de,pinterest.es,pinterest.fr,pinterest.it,pinterest.pt#?#div[data-test-id="pin"]:-abp-has(div[title="Sponsorisée par"])
+pinterest.at,pinterest.ch,pinterest.co.uk,pinterest.com,pinterest.com.au,pinterest.com.mx,pinterest.de,pinterest.es,pinterest.fr,pinterest.it,pinterest.pt#?#div[data-test-id="pin"]:-abp-has(div[title="Sponsorizzato da"])
+pinterest.at,pinterest.ch,pinterest.co.uk,pinterest.com,pinterest.com.au,pinterest.com.mx,pinterest.de,pinterest.es,pinterest.fr,pinterest.it,pinterest.pt#?#div[data-test-id="pin"]:-abp-has(div[title="Рекламодатель:"])
 quora.com#?#.question_page_content:-abp-has(div:-abp-contains(ad))
 quora.com#?#.question_page_content:-abp-has(div:-abp-contains(promoted))
 qwant.com#?#.result:-abp-has(.url:-abp-has(.info))
@@ -55966,6 +55982,7 @@ dagay.com###sponsor-video-media
 flingtube.com###sponsoredBy
 hiddencamshots.com###sponsors
 w3avenue.com###sponsorsbox
+viptube.com###spot_video_partner_banner
 maxjizztube.com,yteenporn.com###spotxt
 gotgayporn.com###ss_bar
 wikiporno.org###sticky-footer
@@ -56143,6 +56160,7 @@ xxxporn.pics##.download
 realgfporn.com##.downloadbtn
 proporn.com##.drt-spot-box
 hellporno.com##.dvb-advertisements
+porngifs2u.com##.elementor-widget-posts + .elementor-widget-heading
 rare-videos.net##.embed-container
 viptube.com##.envelope + div[class]
 tube8.com##.extra-margin
@@ -56278,6 +56296,7 @@ thefappening.wiki##.promo-1
 thefappening.wiki##.promo-2
 porntubevidz.com##.promo-block
 pornburst.xxx##.promo-gauleporno
+viptube.com##.promotion
 nakedtube.com,pornmaki.com##.promotionbox
 nuvid.com,nuvidselect.com##.puFloatLine
 dachix.com,deviantclip.com##.pub_right
@@ -56558,6 +56577,7 @@ naughty.com##img[width="450"]
 adultwork.com,babepicture.co.uk,imagetwist.com,naughty.com,sexmummy.com,tophentai.biz,tvgirlsgallery.co.uk##img[width="468"]
 babeshows.co.uk,jessie-rogers.com##img[width="728"]
 pornhub.com,pornhubthbh7ap3u.onion##sads
+porngifs2u.com##section[class*="elementor-hidden-"]
 mysexgames.com##table[height="630"]
 mysexgames.com##table[height="640"]
 motherless.com##table[style*="max-width:"]
@@ -56639,6 +56659,7 @@ youporn.com#?#aside:-abp-has(a.ad-remove)
 @@||bannersnack.net^$domain=bannersnack.com
 @@||basinnow.com^*/advertise-$image,domain=basinnow.com
 @@||bbc.co.uk^*/adverts.js
+@@||bbc.gscontxt.net^$script,domain=bbc.com
 @@||bigfishaudio.com/banners/$image
 @@||bitcoinbazis.hu/advertise-with-us/$~third-party
 @@||blizzardwatch.com^*/bw-ads.js
@@ -56718,6 +56739,7 @@ youporn.com#?#aside:-abp-has(a.ad-remove)
 @@||digiads.com.au/images/shared/misc/ad-disclaimer.gif
 @@||dilbert.com/assets/ad-dependencies-$script,~third-party
 @@||dnsleak.privateinternetaccess.com^$xmlhttprequest,domain=dnsleak.com
+@@||docs.woopt.com/wgact/$image,~third-party,xmlhttprequest
 @@||doubleclick.net/ddm/$image,domain=aetv.com|fyi.tv|history.com|mylifetime.com|speedtest.net
 @@||doubleclick.net/favicon.ico$image,domain=goal.com
 @@||doubleclick.net/gpt/pubads_impl_$script,xmlhttprequest,domain=accuweather.com|blastingnews.com|epaper.timesgroup.com|espn.com|etf.com|gamespot.com|nbcsports.com|webmd.com

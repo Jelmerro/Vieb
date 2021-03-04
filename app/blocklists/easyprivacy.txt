@@ -1,7 +1,7 @@
 [Adblock Plus 1.1]
-! Version: 202103022023
+! Version: 202103042032
 ! Title: EasyPrivacy
-! Last modified: 02 Mar 2021 20:23 UTC
+! Last modified: 04 Mar 2021 20:32 UTC
 ! Expires: 4 days (update frequency)
 ! Homepage: https://easylist.to/
 ! Licence: https://easylist.to/pages/licence.html
@@ -1310,6 +1310,7 @@
 /clicktale.
 /clicktale/*
 /clicktale_
+/clicktalecdn.
 /ClickTaleFilter.
 /clicktrack-*.gif?
 /ClickTrack.
@@ -1760,6 +1761,7 @@
 /elqnow/*
 /elqscr.js
 /elqtracking.
+/elqtrk.
 /elt.gif?
 /eluminate?
 /email/track/*$image
@@ -5389,6 +5391,7 @@ _google_analytics.
 _googleAnalytics.
 _googleAnalytics_
 _GoogleTagManager2/
+_gpt_bootstrap_
 _gstat.gif?uid=
 _hitcount1.
 _hits_stat.
@@ -6955,6 +6958,7 @@ _mongo_stats/
 ||getrockerbox.com^$third-party
 ||getsmartcontent.com^$third-party
 ||getsmartlook.com^$third-party
+||getstat.net^$third-party
 ||getstatistics.se^$third-party
 ||getviously.com^$third-party
 ||gez.io^$third-party
@@ -8762,6 +8766,7 @@ $third-party,xmlhttprequest,domain=opensubtitles.org
 ||foxpush.com^$third-party
 ||foxpush.net^$third-party
 ||getback.ch^$third-party
+||getpush.net^$third-party
 ||getpushmonkey.com^$third-party
 ||getsupernova.com^$third-party
 ||gravitec.net^$third-party
@@ -16240,6 +16245,10 @@ $third-party,xmlhttprequest,domain=opensubtitles.org
 ||zylom.com^*/global_tracking.jsp?
 ||zylom.com^*/tracking_spotlight.js
 ||zytpirwai.net/track/
+! whatleaks.com
+||dns.whatleaks.com^
+||p0f.whatleaks.com
+||whatleaks.com/check_ports/?
 ! TraceDock
 ||apollo.plein.be^
 ||app1.maatwerkonline.nl^
@@ -16287,35 +16296,13 @@ $third-party,xmlhttprequest,domain=opensubtitles.org
 /^https?:\/\/www\.kroger\.com\/content\/{20,}/$script,xmlhttprequest,domain=kroger.com
 /^https?:\/\/www\.myservices\.equifax\.ca\/TSPD\/[0-9a-f]{30,}/$script,domain=equifax.ca
 ||127.0.0.1^$third-party,domain=ameriprise.com|beachbody.com|chick-fil-a.com|citi.com|ebay-kleinanzeigen.de|ebay.at|ebay.be|ebay.ca|ebay.ch|ebay.cn|ebay.co.uk|ebay.com|ebay.com.au|ebay.com.hk|ebay.com.my|ebay.com.sg|ebay.de|ebay.es|ebay.fr|ebay.ie|ebay.it|ebay.nl|ebay.ph|ebay.pl|equifax.ca|equifax.com|globo.com|gumtree.com|lendup.com|mbna.ca|rusneb.ru|sciencedirect.com|sky.com|spectrum.net|td.com|tiaa.org|vedacheck.com|wepay.com|whatleaks.com
-||academy.com/webcontent/
 ||all3dp.com/kbcbqexpqvz8wrk88augy7b.js
-||att.com/public/
-||backcountry.com/clientlibs/
-||bestbuy.com/resource/
-||bmoharris.com/staticweb/
-||buybuybaby.com/content/
-||cibc.com/clientlibs/
-||discover.com/staticweb/
-||discovercard.com/clientlibs/
 ||ebay.com/nkfytkqtoxtljvzbxhr.js$script,domain=ebay.com
 ||ebaystatic.com/rs/v/c1dlnarusayhflyyibse05hqqm2.js
 ||ebaystatic.com^*/10341xh50yz21mhhydueu4m5wad.js$script,domain=ebay.com
 ||ebaystatic.com^*/g52yxhxv2mzcbealmlkri4kn5av.js$script,domain=ebay.com
-||eddiebauer.com/resource/
-||finishline.com/fufhpqdn/
-||groupon.com/resource/
-||kohls.com/libraries/
-||localhost^$third-party,domain=globo.com
-||macys.com/clientlibs/
-||marshalls.com/staticweb/
-||mouser.com/staticweb/
 ||pages.ebay.com/identity/device/$subdocument
-||pnc.com/contents/
-||publix.com/webcontent/
-||sierra.com/resource/
 ||src.ebay-us.com/*=usllpic$script,domain=ebay.com
-||staples.com/yuolsoiifpm/
-||usbank.com/publicwww/
 ! genieesspv https://github.com/easylist/easylist/issues/6471
 /^https?:\/\/js.*\/t\/[0-9]{3}\/[0-9]{3}\/[a-z0-9]{7,8}\.js/$script,third-party
 ! Fingerprint
@@ -16550,7 +16537,6 @@ $third-party,xmlhttprequest,domain=opensubtitles.org
 ||twch.20min.ch^
 ||vg247.com/wp-content/themes/vg247/scripts/mvg247-fsm.js
 ! CNAME
-||klaviyo.map.fastly.net^
 ! Eulerian
 ||0sbm.consobaby.co.uk^
 ||319dn.dieti-natura.com^
@@ -17920,6 +17906,7 @@ $csp=worker-src 'none',domain=alltube.pl|alltube.tv|animeteatr.ru|annuaire-bleu.
 ||wsstats.coches.net^
 ! Swedish
 ||ai.idg.se^
+||analytics.elx.cloud^
 ||ax.idg.se^
 ||blocket.se/js/trafikfonden.js
 ||falkenbergtorget.se/sc.gif?
@@ -18129,7 +18116,7 @@ $csp=worker-src 'none',domain=alltube.pl|alltube.tv|animeteatr.ru|annuaire-bleu.
 @@||cdn-ds.com/analytics/sockjs.js$script,domain=tuttleclickgenesis.com
 @@||cdn-net.com/cc.js$script,domain=uber.com|ubereats.com
 @@||cdn.optimizely.com/js/*.js$domain=compassion.com|creditsesame.com|freeshipping.com|heroku.com|historyvault.com|imageshack.com
-@@||certona.net^*/scripts/resonance.js$script,domain=canadiantire.ca
+@@||certona.net^*/scripts/resonance.js$script,domain=canadiantire.ca|finishline.com
 @@||changenow.io/js/tracking.js$script
 @@||chasecdn.com^*/@ccb-blueanalytics/$script,domain=chase.com
 @@||check.ddos-guard.net/check.js$script
@@ -18234,7 +18221,7 @@ $csp=worker-src 'none',domain=alltube.pl|alltube.tv|animeteatr.ru|annuaire-bleu.
 @@||google-analytics.com/plugins/ua/ec.js$script,domain=health2000.co.nz
 @@||google.com/js/gweb/analytics/autotrack.js$domain=gradleplease.appspot.com|www.google.com
 @@||googletagmanager.com/gtag/js$script,domain=ally.com|anchor.fm|foxnews.com|gamespot.com|honeystinger.com|m.putlocker.how|neighborhoodpostcards.com|playphrase.me|ryanair.com|schwab.com
-@@||googletagmanager.com/gtm.js$domain=action.com|ads.spotify.com|adsoup.com|aim.steelseries.com|airasia.com|asus.com|atptour.com|bhaskar.com|broadcom.com|bsa-whitelabel.com|chipotle.com|complex.com|computerworlduk.com|coolermaster.com|cyclingnews.com|desigual.com|drumstick.com|ebuyer.com|elevationscu.com|fortune.com|foxnews.com|gamepix.com|git-tower.com|google.com|gumtree.com|hbomax.com|health2000.co.nz|indy100.com|insideevs.com|itv.com|jobs.net|kartell.com|keygames.com|magicjack.com|medibank.com.au|moviefone.com|nestio.com|newsarama.com|newsletter.co.uk|newsy.com|nfl.com|nflgamepass.com|onesignal.com|optus.com.au|overwatchleague.com|pioneer.eu|poliigon.com|porsche.com|postable.com|readyrefresh.com|realestate.co.nz|rebtel.com|redbull.com|rockstargames.com|rollingstone.com|royalbank.com|rozetka.com.ua|scotsman.com|sixflags.com|starbucks.ca|support.amd.com|talktalk.co.uk|techradar.com|theta.tv|toto.co.jp|toysrus.ca|trademe.nz|usmagazine.com|vimeo.com|weightwatchers.com|woodlanddirect.com|wwe.com
+@@||googletagmanager.com/gtm.js$domain=action.com|ads.spotify.com|adsoup.com|aim.steelseries.com|airasia.com|asus.com|atptour.com|bhaskar.com|broadcom.com|bsa-whitelabel.com|chipotle.com|complex.com|computerworlduk.com|coolermaster.com|cyclingnews.com|desigual.com|drumstick.com|ebuyer.com|elevationscu.com|fortune.com|foxnews.com|gamepix.com|git-tower.com|google.com|gumtree.com|hbomax.com|health2000.co.nz|indy100.com|insideevs.com|itv.com|jobs.net|kartell.com|keygames.com|magicjack.com|medibank.com.au|moviefone.com|nestio.com|net-aware.org.uk|newsarama.com|newsletter.co.uk|newsy.com|nfl.com|nflgamepass.com|onesignal.com|optus.com.au|overwatchleague.com|pioneer.eu|poliigon.com|porsche.com|postable.com|readyrefresh.com|realestate.co.nz|rebtel.com|redbull.com|rockstargames.com|rollingstone.com|royalbank.com|rozetka.com.ua|scotsman.com|sixflags.com|starbucks.ca|support.amd.com|talktalk.co.uk|techradar.com|theta.tv|toto.co.jp|toysrus.ca|trademe.nz|usmagazine.com|vimeo.com|weightwatchers.com|woodlanddirect.com|wwe.com
 @@||gov.au/Scripts/ga.js$script,~third-party
 @@||guce.advertising.com/collectIdentifiers$domain=guce.advertising.com
 @@||hearstapps.com/static/comscore.$script,domain=womenshealthmag.com
@@ -18436,6 +18423,7 @@ $csp=worker-src 'none',domain=alltube.pl|alltube.tv|animeteatr.ru|annuaire-bleu.
 @@||texasroadhouse.com/common/javascript/google-analytics.js
 @@||the-japan-news.com/modules/js/lib/fgp/fingerprint2.js
 @@||thetenthwatch.com/js/tracking.js$~third-party
+@@||thomas.co/sites/default/files/google_tag/primary/google_tag.script.js$script,~third-party
 @@||time.com/wp-content/*/time-tracking.js$script,~third-party
 @@||tinypass.com^*/logAutoMicroConversion?$domain=chicago.suntimes.com
 @@||tools.usps.com/go/scripts/tracking.js
