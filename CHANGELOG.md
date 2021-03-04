@@ -4,7 +4,7 @@ CHANGELOG
 This document aims to represent all notable changes to Vieb.
 
 Vieb is a Vim Inspired Electron Browser made by Jelmer van Arnhem and contributors,
-and can be copied under the terms of the GPL-3.0+ license.
+and can be copied under the terms of the GPL-3.0 or later versions.
 See the README.md or LICENSE file for more info and details about Vieb and it's license.
 Links in the changelog are part of [github.com/Jelmerro/Vieb](https://github.com/Jelmerro/Vieb).
 The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the most important changes per release,

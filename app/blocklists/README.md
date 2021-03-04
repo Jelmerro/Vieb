@@ -2,7 +2,7 @@ EasyList adblock information
 ============================
 
 These lists are provided by EasyList [here](https://easylist.to).
-They can be used under the terms of the GNU GPL-3.0 and later versions.
+They can be used under the terms of the GNU GPL-3.0 or later versions.
 For full license details see [this page](https://easylist.to/pages/licence.html).
 All text files (filter lists) in this folder belong to "The EasyList authors (https://easylist.to/)".
 

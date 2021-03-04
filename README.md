@@ -6,7 +6,7 @@
 [![Download counter](https://img.shields.io/github/downloads/Jelmerro/Vieb/total?style=flat-square)](https://github.com/Jelmerro/Vieb/releases)
 [![Latest release](https://img.shields.io/github/v/release/Jelmerro/Vieb?sort=semver&style=flat-square)](https://github.com/Jelmerro/Vieb/releases/latest)
 [![Electron version](https://img.shields.io/github/package-json/dependency-version/Jelmerro/Vieb/dev/electron?style=flat-square)](https://github.com/electron/electron)
-[![License](https://img.shields.io/badge/license-GPL--3.0-orange?style=flat-square)](https://github.com/Jelmerro/Vieb/blob/master/LICENSE)
+[![License](https://img.shields.io/badge/license-GPL--3.0_or_later-orange?style=flat-square)](https://github.com/Jelmerro/Vieb/blob/master/LICENSE)
 [![Donate](https://img.shields.io/static/v1?label=ko-fi&message=donate&color=red&logo=ko-fi&style=flat-square)](https://ko-fi.com/Jelmerro)
 [![Reddit](https://img.shields.io/reddit/subreddit-subscribers/vieb?style=social)](https://reddit.com/r/vieb)
 
@@ -122,5 +122,5 @@ To see the full list of run and build options, simply execute `npm run`.
 Vieb is created by [Jelmer van Arnhem](https://github.com/Jelmerro) and [contributors](https://github.com/Jelmerro/Vieb/graphs/contributors).
 See the source files for individual authors.
 
-You can copy or modify the code/program under the terms of the GPL3.0 or higher.
+You can copy or modify the code/program under the terms of the GPL3.0 or later verions.
 For more information and legal terms see the LICENSE file.

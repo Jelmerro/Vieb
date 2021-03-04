@@ -49,7 +49,7 @@ mac:
         - arm64
 win:
   icon: app/img/icons/512x512.png
-  legalTrademarks: Copyright @ Jelmer van Arnhem | Licensed as free software (GPL-3.0+)
+  legalTrademarks: Copyright @ Jelmer van Arnhem | Licensed as free software (GPL-3.0 or later)
   target:
     - target: nsis
       arch:
@@ -94,4 +94,4 @@ protocols:
       - ftp
       - http
       - https
-copyright: Copyright @ Jelmer van Arnhem | Licensed as free software (GPL-3.0+)
+copyright: Copyright @ Jelmer van Arnhem | Licensed as free software (GPL-3.0 or later)

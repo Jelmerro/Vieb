@@ -83,8 +83,8 @@ const printVersion = () => {
 const printLicense = () => {
     console.log("Vieb is created by Jelmer van Arnhem and contributors.")
     console.log("Website: https://vieb.dev OR https://github.com/Jelmerro/Vieb")
-    console.log("\nLicense GPLv3+: GNU GPL version 3 or "
-        + "later <http://gnu.org/licenses/gpl.html>")
+    console.log("\nLicense: GNU GPL version 3 or "
+        + "later versions <http://gnu.org/licenses/gpl.html>")
     console.log("This is free software; you are free to change and "
         + "redistribute it.")
     console.log("There is NO WARRANTY, to the extent permitted by law.")

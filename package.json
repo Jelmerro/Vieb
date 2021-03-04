@@ -22,7 +22,7 @@
   ],
   "author": "Jelmer van Arnhem",
   "email": "Jelmerro@users.noreply.github.com",
-  "license": "GPL-3.0+",
+  "license": "GPL-3.0-or-later",
   "devDependencies": {
     "archiver": "^5.2.0",
     "electron": "^12.0.0",
