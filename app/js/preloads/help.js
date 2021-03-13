@@ -17,7 +17,9 @@
 */
 "use strict"
 
+require("hazardous")
 const {ipcRenderer} = require("electron")
+const path = require("path")
 
 ipcRenderer.on("settings", (_, settings, mappings) => {
     // Enrich the settings list with type, default, current and value lists
@@ -130,7 +132,7 @@ window.addEventListener("DOMContentLoaded", () => {
         button.textContent = example[0].toUpperCase() + example.slice(1)
         button.addEventListener("click", () => {
             const link = document.createElement("a")
-            link.href = `../examples/${example}`
+            link.href = path.join(__dirname, `../../examples/${example}`)
             link.download = `${example}.viebrc`
             link.style.display = "none"
             document.body.appendChild(link)

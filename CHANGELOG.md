@@ -17,6 +17,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Follow and pointer mode logic for switching to insert mode, should make input focus more reliable
 
+### Fixed
+
+- Examples not loading on the help page for released builds
+
 ### Security
 
 - Electron 12.0.0 (unchanged)
