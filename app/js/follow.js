@@ -110,27 +110,11 @@ const clickAtLink = async link => {
         return
     }
     MODES.setMode("insert")
-    await new Promise(r => setTimeout(r, 5))
-    TABS.currentPage().sendInputEvent({
-        "type": "mouseEnter", "x": link.x * factor, "y": link.y * factor
+    await new Promise(r => setTimeout(r, 2))
+    TABS.currentPage().send("follow-element", {
+        "x": link.x + link.width / 2, "y": link.y + link.height / 2
     })
-    TABS.currentPage().sendInputEvent({
-        "type": "mouseDown",
-        "x": (link.x + link.width / 2) * factor,
-        "y": (link.y + link.height / 2) * factor,
-        "button": "left",
-        "clickCount": 1
-    })
-    TABS.currentPage().sendInputEvent({
-        "type": "mouseUp",
-        "x": (link.x + link.width / 2) * factor,
-        "y": (link.y + link.height / 2) * factor,
-        "button": "left",
-        "clickCount": 1
-    })
-    TABS.currentPage().sendInputEvent({
-        "type": "mouseLeave", "x": link.x * factor, "y": link.y * factor
-    })
+    await new Promise(r => setTimeout(r, 2))
     document.getElementById("url-hover").style.display = "none"
 }
 

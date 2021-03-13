@@ -73,6 +73,14 @@ ipcRenderer.on("focus-first-text-input", async () => {
     }
 })
 
+ipcRenderer.on("follow-element", (_, follow) => {
+    const element = findElementAtPosition(follow.x, follow.y)
+    if (element?.click && element?.focus) {
+        element.click()
+        element.focus()
+    }
+})
+
 const getLinkFollows = allLinks => {
     // A tags with href as the link, can be opened in new tab or current tab
     querySelectorAll("a").forEach(e => {

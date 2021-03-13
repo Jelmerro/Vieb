@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2020 Jelmer van Arnhem
+* Copyright (C) 2019-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -96,24 +96,11 @@ const updateElement = () => {
     }
 }
 
-const click = button => {
-    TABS.currentPage().sendInputEvent({
-        "type": "mouseDown", "x": X, "y": Y, "button": button, "clickCount": 1
-    })
-    TABS.currentPage().sendInputEvent({
-        "type": "mouseUp", "x": X, "y": Y, "button": button, "clickCount": 1
-    })
-}
-
 const releaseKeys = () => {
     try {
         for (const button of ["left", "right"]) {
             TABS.currentPage().sendInputEvent({
-                "type": "mouseUp",
-                "x": X,
-                "y": Y,
-                "button": button,
-                "clickCount": 1
+                "type": "mouseUp", "x": X, "y": Y, "button": button
             })
         }
         TABS.currentPage().sendInputEvent(
@@ -158,7 +145,11 @@ const copyAndStop = () => {
     MODES.setMode("normal")
 }
 
-const leftClick = () => click("left")
+const leftClick = () => {
+    const factor = TABS.currentPage().getZoomFactor()
+    TABS.currentPage().send("follow-element",
+        {"x": Math.round(X / factor), "y": Math.round(Y / factor)})
+}
 
 const startOfPage = () => {
     ACTIONS.scrollTop()
@@ -202,11 +193,19 @@ const moveRight = () => {
     updateElement()
 }
 
-const rightClick = () => click("right")
+const rightClick = () => {
+    TABS.currentPage().sendInputEvent({
+        "type": "mouseDown", "x": X, "y": Y, "button": "right", "clickCount": 1
+    })
+    TABS.currentPage().sendInputEvent({
+        "type": "mouseUp", "x": X, "y": Y, "button": "right"
+    })
+}
 
 const startVisualSelect = () => {
     const factor = TABS.currentPage().getZoomFactor()
-    TABS.currentPage().send("selection-start-location", X / factor, Y / factor)
+    TABS.currentPage().send("selection-start-location",
+        Math.round(X / factor), Math.round(Y / factor))
     MODES.setMode("visual")
 }
 

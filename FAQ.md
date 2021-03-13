@@ -61,7 +61,7 @@ Even users of [Google's](https://archive.is/1baul) own [Chrome](https://archive.
 Fortunately, for the time being a workaround exists for all this, which is to set a Firefox useragent.
 You can use `:set firefoxmode=google` within Vieb to mimic Firefox when visiting Google pages.
 Keep in mind that while this works, it's entirely possible for them to block Firefox as well in the future.
-See [this issue](https://github.com/Jelmerro/Vieb/issues/50) for more background information,
+See [this issue](https://github.com/Jelmerro/Vieb/issues/50) for more background information.
 
 Another thing you might encounter, is that strict site isolation is required for your session to be preserved.
 You can enable this on startup with "--strict-site-isolation", though this will block Vieb from accessing iframes in follow mode.

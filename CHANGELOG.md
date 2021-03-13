@@ -11,6 +11,17 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Changed
+
+- Follow and pointer mode logic for switching to insert mode, should make input focus more reliable
+
+### Security
+
+- Electron 12.0.0 (unchanged)
+- Chromium 89.0.4389.69 (unchanged)
+
 ## [4.1.0](https://github.com/Jelmerro/Vieb/compare/4.0.0...4.1.0) - 2021-03-04
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/4.0.0...4.1.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/4.1.0)
