@@ -312,16 +312,26 @@ if (erwic) {
 let mainWindow = null
 let loginWindow = null
 let notificationWindow = null
+// Workaround for Electron messing up the second instances args
+// https://github.com/electron/electron/issues/23220
+app.commandLine.appendSwitch("second-instance-data", JSON.stringify(
+    getArguments(process.argv)))
+console.log(getArguments(process.argv))
 app.on("ready", () => {
     app.userAgentFallback = useragent()
     // Request single instance lock and quit if that fails
     if (app.requestSingleInstanceLock()) {
-        app.on("second-instance", (_, newArgs) => {
+        app.on("second-instance", (_, chromeArgs) => {
             if (mainWindow.isMinimized()) {
                 mainWindow.restore()
             }
             mainWindow.focus()
-            newArgs = getArguments(newArgs)
+            const argPrefix = "--second-instance-data="
+            const argString = chromeArgs.find(arg => arg.startsWith(argPrefix))
+            let newArgs = getArguments(chromeArgs)
+            if (argString) {
+                newArgs = JSON.parse(argString.replace(argPrefix, ""))
+            }
             const newUrls = []
             let ignoreNextArg = false
             newArgs.forEach(arg => {

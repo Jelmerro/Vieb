@@ -21,7 +21,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Examples not loading on the help page for released builds
 - Side effects for Tab key in normal mode by setting it to Nop by default
-- Fix extension path removal bugs on Windows due to backslashes
+- Extension path removal bugs on Windows due to backslashes
+- Second instances not ignoring datafolder argument when started in certain ways on Windows
 
 ### Security
 
