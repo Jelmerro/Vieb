@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Follow and pointer mode logic for switching to insert mode, should make input focus more reliable
+- Delcommand now shows suggestions for user commands that are added
 
 ### Fixed
 

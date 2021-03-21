@@ -338,6 +338,20 @@ const suggestCommand = search => {
             }
         })
     }
+    // Command: command
+    if ("delcommand".startsWith(command)) {
+        if (args.length > 1 || confirm) {
+            return
+        }
+        const commandList = COMMAND.customCommandsAsCommandList().split("\n")
+            .filter(cmd => cmd.split(" ")[0] === "command")
+            .map(cmd => cmd.split(" ")[1])
+        commandList.forEach(cmd => {
+            if (!args[0] || cmd.startsWith(args[0])) {
+                addCommand(`delcommand ${cmd}`)
+            }
+        })
+    }
     // Command: help
     if ("help".startsWith(command) && !confirm) {
         [
