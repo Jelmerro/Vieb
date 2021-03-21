@@ -20,6 +20,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Examples not loading on the help page for released builds
+- Side effects for Tab key in normal mode by setting it to Nop by default
 
 ### Security
 

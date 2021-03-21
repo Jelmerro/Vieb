@@ -26,6 +26,7 @@ const defaultBindings = {
         "<CR>": {"mapping": "<action.clickOnSearch>"},
         "<F1>": {"mapping": "<:help>"},
         "<F11>": {"mapping": "<action.toggleFullscreen>"},
+        "<Tab>": {"mapping": "<Nop>"},
         "<C-a>": {"mapping": "<action.increasePageNumber>"},
         "b": {"mapping": "<action.previousTab>"},
         "<C-b>": {"mapping": "<action.scrollPageUp>"},
