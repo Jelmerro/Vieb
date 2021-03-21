@@ -36,13 +36,14 @@ const listExtension = ext => {
     version.textContent = `Version: ${ext.version}`
     textNodes.appendChild(version)
     const id = document.createElement("div")
-    id.textContent = `ID: ${ext.path.replace(/^.*\//g, "")}`
+    id.textContent = `ID: ${ext.path.replace(/^.*(\/|\\)/g, "")}`
     textNodes.appendChild(id)
     container.appendChild(textNodes)
     const removeIcon = document.createElement("img")
     removeIcon.src = path.join(__dirname, "../../img/trash.png")
     removeIcon.addEventListener("click", () => {
-        ipcRenderer.send("remove-extension", ext.path.replace(/^.*\//g, ""))
+        ipcRenderer.send("remove-extension", ext.path.replace(
+            /^.*(\/|\\)/g, ""))
         window.location.reload()
     })
     container.appendChild(removeIcon)

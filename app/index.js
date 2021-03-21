@@ -1024,7 +1024,7 @@ ipcMain.on("list-extensions", e => {
 ipcMain.on("remove-extension", (_, extensionPath) => {
     const extLoc = path.join(datafolder, `extensions/${extensionPath}`)
     const extension = session.fromPartition("persist:main").getAllExtensions()
-        .find(ext => ext.path.replace(/\/$/g, "").endsWith(extensionPath))
+        .find(ext => ext.path.replace(/(\/|\\)$/g, "").endsWith(extensionPath))
     if (isDir(`${extLoc}/`) && extension) {
         mainWindow.webContents.send("notify",
             `Removing extension: ${extensionPath}`)
