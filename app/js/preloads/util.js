@@ -126,11 +126,38 @@ const findClickPosition = (element, rects) => {
     return {clickable, dimensions}
 }
 
+const activeElement = () => {
+    if (document.activeElement?.shadowRoot?.activeElement) {
+        return document.activeElement.shadowRoot.activeElement
+    }
+    if (document.activeElement !== document.body) {
+        if (!document.activeElement?.matches(frameSelector)) {
+            return document.activeElement
+        }
+    }
+    return querySelectorAll(frameSelector).map(frame => {
+        const doc = frame.contentDocument
+        if (!doc) {
+            return false
+        }
+        if (doc.activeElement?.shadowRoot?.activeElement) {
+            return doc.activeElement.shadowRoot.activeElement
+        }
+        if (doc.body !== doc.activeElement) {
+            if (!doc.activeElement.matches(frameSelector)) {
+                return doc.activeElement
+            }
+        }
+        return false
+    }).find(el => el)
+}
+
 module.exports = {
     frameSelector,
     findFrameInfo,
     propPixels,
     findElementAtPosition,
     querySelectorAll,
-    findClickPosition
+    findClickPosition,
+    activeElement
 }

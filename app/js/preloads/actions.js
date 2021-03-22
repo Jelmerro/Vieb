@@ -19,6 +19,7 @@
 
 const {ipcRenderer} = require("electron")
 const fs = require("fs")
+const util = require("./util")
 
 const increasePageNumber = url => {
     const paginations = [...document.querySelectorAll(".pagination")]
@@ -86,11 +87,7 @@ const movePageNumberNaive = (movement, url) => {
     window.location = next
 }
 
-const blur = () => {
-    if (document.activeElement?.blur) {
-        document.activeElement.blur()
-    }
-}
+const blur = () => util.activeElement()?.blur?.()
 
 const scrollTop = () => window.scrollBy(0, -1000000000)
 
@@ -135,7 +132,7 @@ const setInputFieldText = (filename, text) => {
 }
 
 const writeInputToFile = filename => {
-    const el = document.activeElement
+    const el = util.activeElement()
     if (el) {
         if (["input", "textarea"].includes(el.tagName.toLowerCase())) {
             fs.writeFileSync(filename, el.value)
