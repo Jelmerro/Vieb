@@ -32,11 +32,7 @@
     </div>
     <main>
         <h1 id="intro">Intro</h1>
-        Welcome to Vieb's official, complete and offline documentation.
-        Vieb is short for "Vim Inspired Electron Browser" and can be found on
-        <a href="https://vieb.dev">vieb.dev</a> or
-        <a href="https://github.com/Jelmerro/Vieb">github</a>.
-        These are all the shortcuts you need to navigate through the help to find out more:
+        Welcome to Vieb's official, complete and offline documentation. Vieb is short for "Vim Inspired Electron Browser" and can be found on <a href="https://vieb.dev">vieb.dev</a> or <a href="https://github.com/Jelmerro/Vieb">github</a>. These are all the shortcuts you need to navigate through the help to find out more:
         <ul>
             <li><kbd>Esc</kbd> - Back to normal mode, this is where you want to be in most of the time</li>
             <li><kbd>j</kbd> and <kbd>k</kbd> - Scrolling the page</li>
@@ -49,29 +45,17 @@
                 <li><kbd>v</kbd> - Then switch to <a class="visual" href="#pointer.startVisualSelect">visual mode</a> (for selecting text)</li>
             </ul></li>
         </ul>
-        You can see the current mode at all times in the navbar, next to the url.
-        Vieb is separated into different modes, most importantly normal mode.
-        This documentation offers you functional documentation regarding all of Vieb's features,
-        along with this short introduction how to navigate and list the keyboard mappings.
-        An important step to become familiar with Vieb is knowing how to look for the right documentation.
-        This is done by running the help command with 1 additional argument, for example:
-        <span class="command-block">:help commands</span>
-        This will open the help page at the start of the commands chapter.
-        Here are the different chapters of this documentation:
+        You can see the current mode at all times in the navbar, next to the url. Vieb is separated into different modes, most importantly normal mode. This documentation offers you functional documentation regarding all of Vieb's features. You can list all of Vieb's keybindings with <span class="command-block">:map!</span> as explained in the <a href="#:map">:map</a> paragraph. An important step to become familiar with Vieb is knowing how to look for the right documentation. This can be done by running the help command with 1 additional argument, for example: <span class="command-block nowrap">:help commands</span>. This will open the help page at the start of the commands chapter. Here are the different chapters of this documentation:
         <ul>
             <li><a href="#commands">Commands</a> - All built-in commands, including commands to create custom commands</li>
             <li><a href="#settings">Settings</a> - All settings, including defaults and possible values</li>
             <li><a href="#actions">Actions</a> - All actions that can be executed by using the keyboard</li>
         </ul>
-        If you want to find out what a certain command, setting or action means, you can call the help command with it's name as an argument:
-        <span class="command-block">:help action.toSearchMode</span>.
-        It is recommended to at minimum skim through the documentation at least once,
-        to get a good idea of all the possible commands, settings and actions.
+        If you want to find out what a certain command, setting or action means, you can call the help command with it's name as an argument, for example: <span class="command-block nowrap">:help action.toSearchMode</span> or <span class="command-block nowrap">:help mappings</span>. It is recommended to at minimum skim through the documentation at least once, to get a good idea of all the possible commands, settings and actions.
         <h1 id="commands">Commands</h1>
         Commands can be used for various additional features and configuration. Entering commands is done by calling <a href="#action.toCommandMode">action.toCommandMode</a> and then typing text. The command can be executed with <a href="#action.useEnteredData">action.useEnteredData</a>. This chapter will give descriptions and examples for all of the built-in commands of Vieb. It's also possible to add custom commands using <a href="#:command">:command</a> with the name and actions as the arguments. If there is only a single command that starts with the entered text, that command will be run, for example: "mkv" is enough to run the <a href="#:mkviebrc">:mkviebrc</a> command.
         <h2 id="settingcommands">Setting commands</h2>
-        Commands in this paragraph are for reading, changing or resetting the settings of Vieb.
-        These commands only change the settings for the current session, unless the <a href="#:mkviebrc">:mkviebrc</a> command is run to write the settings back to the <a href="#viebrc">viebrc</a> file.
+        Commands in this paragraph are for reading, changing or resetting the settings of Vieb. These commands only change the settings for the current session, unless the <a href="#:mkviebrc">:mkviebrc</a> command is run to write the settings back to the <a href="#viebrc">viebrc</a> file.
         <h3 id=":set">:set</h3>
         Examples
         <ul>
@@ -82,8 +66,7 @@
             <li><span class="command-block">:s all&amp;</span> - Reset all setting to Vieb's default</li>
             <li><span class="command-block">:set search search&amp;</span> - List the current search setting and reset it afterwards</li>
         </ul>
-        The set command can be run with any number of arguments and is used to read, modify or reset any setting of Vieb. Without any arguments, the set command will list all the modified settings. To also list the default settings, you should run <span class="command-block">:set all?</span>. Every argument of the set command is parsed separately, which allows you to read, write or reset multiple settings at once, in any order. For a list of settings, see the <a href="#settings">Settings</a> chapter. The set command has very high compatibility with Vim, which is why some of it's features might be confusing if you are not familiar with it.
-        There are many ways to modify, read or write a setting, most of which are determined by the type of setting. For example, boolean flags can only be set or reset, while number settings can be set to a value or be multiplied/subtracted. String settings can be appended with additional text as well. To find out more about the different setting types, see the <a href="#settings">Settings</a> chapter, or find help for a specific setting with <span class="command-block">:help fontsize</span> for example. Below is a list of all the different ways to invoke the set command, and to which types they apply. The name 'example' is not an actual setting, but should be replaced with a setting of the right type for the command to work:
+        The set command can be run with any number of arguments and is used to read, modify or reset any setting of Vieb. Without any arguments, the set command will list all the modified settings. To also list the default settings, you should run <span class="command-block">:set all?</span>. Every argument of the set command is parsed separately, which allows you to read, write or reset multiple settings at once, in any order. For a list of settings, see the <a href="#settings">Settings</a> chapter. The set command has very high compatibility with Vim, which is why some of it's features might be confusing if you are not familiar with it. There are many ways to modify, read or write a setting, most of which are determined by the type of setting. For example, boolean flags can only be set or reset, while number settings can be set to a value or be multiplied/subtracted. String settings can be appended with additional text as well. To find out more about the different setting types, see the <a href="#settings">Settings</a> chapter, or find help for a specific setting with <span class="command-block">:help fontsize</span> for example. Below is a list of all the different ways to invoke the set command, and to which types they apply. The name 'example' is not an actual setting, but should be replaced with a setting of the right type for the command to work:
         <h4>Shared for all type of settings</h4>
         <ul>
             <li><span class="command-block">:set example?</span> - Read the value of any type of setting</li>
@@ -119,8 +102,7 @@
             <li><span class="command-block">:set example-=value</span> - Remove the value from the string via replace</li>
             <li><span class="command-block">:set example^=value</span> - Prepend the value to the string</li>
         </ul>
-        Finally, there are also some string type settings that only accept specific values, such as the <a href="#permissioncamera">permissioncamera</a> setting, which can only be set to "block", "ask" or "allow" (default is "block").
-        Only in case of warnings/errors will a notification be shown.
+        Finally, there are also some string type settings that only accept specific values, such as the <a href="#permissioncamera">permissioncamera</a> setting, which can only be set to "block", "ask" or "allow" (default is "block"). Only in case of warnings/errors will a notification be shown.
         <h3 id=":reload">:reload</h3>
         Examples
         <ul>
@@ -227,7 +209,7 @@
         <h3 id="key-codes">Key codes</h3>
         Some mappings require multiple keys to be pressed in order. If there are mappings that require multiple keys, and you only press the first one, Vieb will remember the keys you just pressed for a while, which allows you to press the next keys required for the mapping to activate. If <a href="#showcmd">showcmd</a> is enabled, the pressed keys will be shown in the top-right corner of the Vieb window. You can also configure the time it takes for pressed keys to be forgotten if no other keys are pressed using <a href="#timeout">timeout</a> and <a href="#timeoutlen">timeoutlen</a>. However, most default mappings of Vieb only require a single key to active, although sometimes while holding down a modifier, such as Control or Shift. The syntax for mappings keys can be easily summarized: it's the keys that would appear on screen if you were typing them out, so pressing <kbd>hjkl</kbd> would result in <kbd>hjkl</kbd>, which is also the map syntax from pressing them in order. Characters that are affected by Shift also work this way, so typing <kbd>hj</kbd> and then starting to hold shift while typing <kbd>KL</kbd> will result in <kbd>hjKL</kbd>, which is also the mapping sequence that Vieb and Vim will understand AND execute. This works for most of the single keys, including special characters such as <kbd>%</kbd> or <kbd>#</kbd>, but there are some exceptions:
         <ul>
-            <li>Keys with modifiers (except those that are affected by Shift, such as <kbd>%</kbd> vs <kbd>5</kbd> or <kbd>U</kbd> vs <kbd>u</kbd>).</li>
+            <li>Keys with modifiers like Ctrl, Meta or Alt (except those that are affected by Shift, such as <kbd>%</kbd> vs <kbd>5</kbd> or <kbd>U</kbd> vs <kbd>u</kbd>).</li>
             <li>Special characters that are given a proper name, because they don't map to a key or are part of the map syntax</li>
         </ul>
         There is a separate syntax to map such exceptions, examples like <kbd>&lt;C-c&gt;</kbd> meaning Ctrl-c, which is called the &lt;&gt;-notation.
