@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2020 Jelmer van Arnhem
+* Copyright (C) 2019-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -20,9 +20,7 @@
 const {ipcRenderer} = require("electron")
 const path = require("path")
 
-// Some styling is flagged with important, because of the default light theme
-const styling = `
-body {color: var(--fg, #eee);display: flex;
+const styling = `body {color: var(--fg, #eee);display: flex;
     font: 14px monospace;line-height: 1.5;margin: 0;}
 main {margin: 3em auto;width: 50vw;background: #7772;padding: 3em;
     min-width: 300px;overflow: hidden;text-overflow: ellipsis;}
@@ -30,8 +28,7 @@ h2 {font-size: 2em;margin: 0 0 1em;}
 .dir, .file {margin: .7em;cursor: pointer;}
 .dir {font-weight: bold;color: var(--suggestions-file, #ffb);}
 .file {color: var(--suggestions-url, #bff);}
-.error {color: var(--notification-error, #f33);}
-`
+.error {color: var(--notification-error, #f33);}`
 
 const createElement = (type, loc, customTitle = "") => {
     const element = document.createElement("div")
@@ -40,9 +37,7 @@ const createElement = (type, loc, customTitle = "") => {
     if (type === "dir") {
         element.textContent += "/"
     }
-    element.onclick = () => {
-        ipcRenderer.sendToHost("navigate-to", toUrl(loc))
-    }
+    element.onclick = () => ipcRenderer.sendToHost("navigate-to", toUrl(loc))
     return element
 }
 

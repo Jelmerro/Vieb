@@ -60,18 +60,16 @@ ipcRenderer.on("download-image-request", (_, x, y) => {
                 new Blob(el.outerHTML.split(), {"type": "img/svg"})))
             break
         }
-        if (getComputedStyle(el).backgroundImage) {
-            if (getComputedStyle(el).backgroundImage.startsWith("url")) {
-                let url = getComputedStyle(el).backgroundImage.slice(4, -1)
-                if (url.startsWith("\"") || url.startsWith("'")) {
-                    url = url.slice(1)
-                }
-                if (url.endsWith("\"") || url.endsWith("'")) {
-                    url = url.slice(0, -1)
-                }
-                ipcRenderer.sendToHost("download-image", url, true)
-                break
+        if (getComputedStyle(el).backgroundImage?.startsWith("url")) {
+            let url = getComputedStyle(el).backgroundImage.slice(4, -1)
+            if (url.startsWith("\"") || url.startsWith("'")) {
+                url = url.slice(1)
             }
+            if (url.endsWith("\"") || url.endsWith("'")) {
+                url = url.slice(0, -1)
+            }
+            ipcRenderer.sendToHost("download-image", url, true)
+            break
         }
     }
 })
@@ -81,8 +79,7 @@ ipcRenderer.on("selection-request", (_, endX, endY) => {
     if (startY < 0 || startY > window.innerHeight) {
         startNode = document.body
     }
-    const startResult = calculateOffset(
-        startNode, startX, startY)
+    const startResult = calculateOffset(startNode, startX, startY)
     const endResult = calculateOffset(
         document.elementFromPoint(endX, endY), endX, endY)
     const newSelectRange = document.createRange()

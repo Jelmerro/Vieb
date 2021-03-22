@@ -59,15 +59,19 @@ const printUsage = () => {
     console.log(" --window-frame           "
         + "Show the native window frame around the Vieb window")
     console.log("                          "
-        + "You can also set this with the ENV var: VIEB_WINDOW_FRAME=1")
+        + "You can also use the ENV var: VIEB_WINDOW_FRAME")
+    console.log(" --disable-media-keys     "
+        + "Disable the media keys from interacting with Vieb")
+    console.log("                          "
+        + "You can also use the ENV var: VIEB_DISABLE_MEDIA_KEYS")
     console.log(" --software-only          "
         + "Disable hardware acceleration completely")
     console.log("                          "
-        + "You can also set this with the ENV var: VIEB_SOFTWARE_ONLY=1")
+        + "You can also use the ENV var: VIEB_SOFTWARE_ONLY")
     console.log(" --strict-site-isolation  "
         + "Enable strict site isolation (no iframe access)")
     console.log("                          "
-        + "You can also set this with the ENV var: VIEB_STRICT_ISOLATION=1")
+        + "You can also use the ENV var: VIEB_STRICT_ISOLATION")
     console.log("\nAll arguments not starting with - will be opened as a url.")
     printLicense()
 }
@@ -198,6 +202,7 @@ let nextArgDataFolder = false
 let showWindowFrame = isTruthyArg(process.env.VIEB_WINDOW_FRAME)
 let softwareOnly = isTruthyArg(process.env.VIEB_SOFTWARE_ONLY)
 let strictSiteIsolation = isTruthyArg(process.env.VIEB_STRICT_ISOLATION)
+let disableMediaKeys = isTruthyArg(process.env.VIEB_DISABLE_MEDIA_KEYS)
 let erwic = null
 let datafolder = path.join(app.getPath("appData"), "Vieb")
 let customIcon = null
@@ -226,6 +231,8 @@ args.forEach(arg => {
             nextArgErwicConfig = true
         } else if (arg === "--software-only") {
             softwareOnly = true
+        } else if (arg === "--disable-media-keys") {
+            disableMediaKeys = true
         } else if (arg === "--datafolder") {
             nextArgDataFolder = true
         } else {
@@ -252,6 +259,9 @@ if (!strictSiteIsolation) {
 }
 if (softwareOnly) {
     app.disableHardwareAcceleration()
+}
+if (disableMediaKeys) {
+    app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling")
 }
 app.setName("Vieb")
 datafolder = `${path.resolve(expandPath(datafolder.trim()))}/`

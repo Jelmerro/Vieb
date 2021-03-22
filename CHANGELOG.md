@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Startup argument "--disable-media-keys" to disable Vieb from capturing media keys for player controls
+
 ### Changed
 
 - Follow and pointer mode logic for switching to insert mode, should make input focus more reliable

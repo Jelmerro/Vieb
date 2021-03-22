@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2020 Jelmer van Arnhem
+* Copyright (C) 2019-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,9 +19,7 @@
 
 const {ipcRenderer} = require("electron")
 
-// Some styling is flagged with important, because of the default light theme
-const styling = `
-body {display: flex;color: var(--fg, #eee);
+const styling = `body {display: flex;color: var(--fg, #eee);
     font: 14px monospace;line-height: 2;margin: 0;height: 100vh;width: 100vw;}
 main {margin: auto;width: 50vw;background: #7772;padding: 3em;
     min-width: 300px;overflow: hidden;text-overflow: ellipsis;}
@@ -29,8 +27,7 @@ h2 {font-size: 2em;margin: 0 0 .5em;}
 h3 {font-size: 1.2em;margin: 1em 0;font-weight: bold;}
 a {color: var(--link-color, #0cf);}
 kbd {background: var(--code-bg, #111);
-    color: var(--code-fg, #fff);padding: .1em;}
-`
+    color: var(--code-fg, #fff);padding: .1em;}`
 const sslErrors = [
     "ERR_CERT_COMMON_NAME_INVALID",
     "ERR_SSL_PROTOCOL_ERROR",
@@ -57,15 +54,13 @@ ipcRenderer.on("insert-failed-page-info", (_, e) => {
             You can enable them with this command:
             <kbd>set redirecttohttp</kbd><br>
             Alternatively, you can choose to go there just this once
-            by clicking this HTTP link:
-            <a href=${http}>${http}</a><br>
+            by clicking this HTTP link: <a href=${http}>${http}</a><br>
             The exact error that caused this request to be blocked:
             </kbd>${e.errorDescription}</kbd>`
     } else {
         mainInfo.innerHTML += `<h2>Unreachable page</h2>
             The page could not be loaded successfully.
-            The following error occurred:<br>
-            <h3>${e.errorDescription}</h3>
+            The following error occurred:<br><h3>${e.errorDescription}</h3>
             The first step you could try is reloading the page, by default
             mapped to <kbd>r</kbd> in normal mode. If the error persists, make
             sure you typed the url correctly. Alternatively, the website might
