@@ -18,6 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const util = require("./util")
 
 let startX = 0
 let startY = 0
@@ -29,17 +30,19 @@ ipcRenderer.on("selection-start-location", (_, sX, sY) => {
     scrollHeight = window.scrollY
 })
 
-ipcRenderer.on("selection-all", () => document.execCommand("selectAll"))
+const documentAtPos = (x, y) => util.findElementAtPosition(x, y)
+    .ownerDocument || document
 
-ipcRenderer.on("selection-cut", () => document.execCommand("cut"))
-
-ipcRenderer.on("selection-copy", () => document.execCommand("copy"))
-
-ipcRenderer.on("selection-paste", () => document.execCommand("paste"))
-
-ipcRenderer.on("selection-remove", () => {
-    window.getSelection().removeAllRanges()
-})
+ipcRenderer.on("selection-all", (_, x, y) => documentAtPos(x, y)
+    .execCommand("selectAll"))
+ipcRenderer.on("selection-cut", (_, x, y) => documentAtPos(x, y)
+    .execCommand("cut"))
+ipcRenderer.on("selection-copy", (_, x, y) => documentAtPos(x, y)
+    .execCommand("copy"))
+ipcRenderer.on("selection-paste", (_, x, y) => documentAtPos(x, y)
+    .execCommand("paste"))
+ipcRenderer.on("selection-remove", (_, x, y) => documentAtPos(x, y)
+    .getSelection().removeAllRanges())
 
 window.addEventListener("scroll", () => {
     const scrollDiff = scrollHeight - window.scrollY
@@ -49,18 +52,27 @@ window.addEventListener("scroll", () => {
 })
 
 ipcRenderer.on("download-image-request", (_, x, y) => {
-    const elements = [...document.elementsFromPoint(x, y)]
+    const elements = [util.findElementAtPosition(x, y)]
+    while (elements[0]?.parentNode) {
+        elements.unshift(elements[0].parentNode)
+    }
     for (const el of elements) {
-        if (el.tagName.toLowerCase() === "img" && el.src) {
+        if (el?.tagName?.toLowerCase() === "img" && el.src) {
             ipcRenderer.sendToHost("download-image", el.src.split("?")[0])
             break
         }
-        if (el.tagName.toLowerCase() === "svg") {
+        if (el?.tagName?.toLowerCase() === "svg") {
             ipcRenderer.sendToHost("download-image", window.URL.createObjectURL(
                 new Blob(el.outerHTML.split(), {"type": "img/svg"})))
             break
         }
-        if (getComputedStyle(el).backgroundImage?.startsWith("url")) {
+        let withUrl = false
+        try {
+            withUrl = getComputedStyle(el).backgroundImage?.startsWith("url")
+        } catch (__) {
+            // Window and top-level nodes don't support getComputedStyle
+        }
+        if (withUrl) {
             let url = getComputedStyle(el).backgroundImage.slice(4, -1)
             if (url.startsWith("\"") || url.startsWith("'")) {
                 url = url.slice(1)
@@ -75,31 +87,36 @@ ipcRenderer.on("download-image-request", (_, x, y) => {
 })
 
 ipcRenderer.on("selection-request", (_, endX, endY) => {
-    let startNode = document.elementFromPoint(startX, startY)
-    if (startY < 0 || startY > window.innerHeight) {
+    util.querySelectorAll("*")
+    let startNode = util.findElementAtPosition(startX, startY)
+    if (!startNode || startY < 0 || startY > window.innerHeight) {
         startNode = document.body
     }
-    const startResult = calculateOffset(startNode, startX, startY)
-    const endResult = calculateOffset(
-        document.elementFromPoint(endX, endY), endX, endY)
-    const newSelectRange = document.createRange()
+    const selectDocument = startNode.ownerDocument || document
+    const padding = util.findFrameInfo(startNode)
+    const startResult = calculateOffset(startNode,
+        startX - (padding?.x || 0), startY - (padding?.y || 0))
+    const endNode = util.findElementAtPosition(endX, endY)
+    const endResult = calculateOffset(endNode,
+        endX - (padding?.x || 0), endY - (padding?.y || 0))
+    const newSelectRange = selectDocument.createRange()
     newSelectRange.setStart(startResult.node, startResult.offset)
     if (isTextNode(endResult.node) && endResult.node.length > 1) {
         newSelectRange.setEnd(endResult.node, endResult.offset + 1)
     } else {
         newSelectRange.setEnd(endResult.node, endResult.offset)
     }
-    window.getSelection().removeAllRanges()
-    window.getSelection().addRange(newSelectRange)
-    if (window.getSelection().isCollapsed) {
+    selectDocument.getSelection().removeAllRanges()
+    selectDocument.getSelection().addRange(newSelectRange)
+    if (!selectDocument.getSelection().toString()) {
         newSelectRange.setStart(endResult.node, endResult.offset)
         if (isTextNode(endResult.node) && endResult.node.length > 1) {
             newSelectRange.setEnd(startResult.node, startResult.offset + 1)
         } else {
             newSelectRange.setEnd(startResult.node, startResult.offset)
         }
-        window.getSelection().removeAllRanges()
-        window.getSelection().addRange(newSelectRange)
+        selectDocument.getSelection().removeAllRanges()
+        selectDocument.getSelection().addRange(newSelectRange)
     }
 })
 
@@ -108,7 +125,8 @@ const isTextNode = node => [
 ].includes(node.nodeType)
 
 const calculateOffset = (startNode, x, y) => {
-    const range = document.createRange()
+    const range = (util.findElementAtPosition(startX, startY)
+        ?.ownerDocument || document).createRange()
     range.setStart(startNode, 0)
     try {
         range.setEnd(startNode, 1)
@@ -121,14 +139,8 @@ const calculateOffset = (startNode, x, y) => {
         const pointInsideRegion = (start, end) => {
             range.setStart(baseNode, start)
             range.setEnd(baseNode, end)
-            for (const rect of range.getClientRects()) {
-                if (x >= rect.left && y >= rect.top) {
-                    if (x <= rect.right && y <= rect.bottom) {
-                        return true
-                    }
-                }
-            }
-            return false
+            return [...range.getClientRects()].find(rect => x >= rect.left
+                && y >= rect.top && x <= rect.right && y <= rect.bottom)
         }
         let left = 0
         let right = 0

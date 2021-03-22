@@ -172,17 +172,18 @@ const webviewMenu = options => {
             "title": "Download this frame",
             "action": () => TABS.currentPage().downloadURL(options.frame)
         })
-    } else {
-        createMenuItem({
-            "title": "Select All",
-            "action": () => TABS.currentPage().send("selection-all")
-        })
     }
+    createMenuItem({
+        "title": "Select All",
+        "action": () => TABS.currentPage().send("selection-all",
+            options.x, options.y)
+    })
     if (options.text) {
         if (options.canEdit) {
             createMenuItem({
                 "title": "Cut",
-                "action": () => TABS.currentPage().send("selection-cut")
+                "action": () => TABS.currentPage().send("selection-cut",
+                    options.x, options.y)
             })
         }
         createMenuItem({
@@ -192,7 +193,8 @@ const webviewMenu = options => {
     if (options.canEdit && clipboard.readText().trim()) {
         createMenuItem({
             "title": "Paste",
-            "action": () => TABS.currentPage().send("selection-paste")
+            "action": () => TABS.currentPage().send("selection-paste",
+                options.x, options.y)
         })
     }
     if (options.text) {

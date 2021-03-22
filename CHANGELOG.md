@@ -21,6 +21,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Follow and pointer mode logic for switching to insert mode, should make input focus more reliable
 - Delcommand now shows suggestions for user commands that are added
+- Select all option of the contextmenu is now listed for shadow roots and iframes
 
 ### Fixed
 
@@ -28,6 +29,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Side effects for Tab key in normal mode by setting it to Nop by default
 - Extension path removal bugs on Windows due to backslashes
 - Second instances not ignoring datafolder argument when started in certain ways on Windows
+- Clipboard actions in contextmenu and visual mode now work in shadow roots and iframes
+- Download image pointer action now works in shadow roots and iframes
 
 ### Security
 

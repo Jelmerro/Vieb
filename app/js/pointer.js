@@ -105,7 +105,9 @@ const releaseKeys = () => {
         }
         TABS.currentPage().sendInputEvent(
             {"type": "mouseLeave", "x": X, "y": Y})
-        TABS.currentPage().send("selection-remove")
+        const factor = TABS.currentPage().getZoomFactor()
+        TABS.currentPage().send("selection-remove",
+            Math.round(X / factor), Math.round(Y / factor))
     } catch (e) {
         // Can't release keys, probably because of opening a new tab
     }
@@ -140,7 +142,9 @@ const copyAndStop = () => {
     if (MODES.currentMode() === "pointer") {
         clipboard.writeText(document.getElementById("url-hover").textContent)
     } else {
-        TABS.currentPage().send("selection-copy")
+        const factor = TABS.currentPage().getZoomFactor()
+        TABS.currentPage().send("selection-copy",
+            Math.round(X / factor), Math.round(Y / factor))
     }
     MODES.setMode("normal")
 }

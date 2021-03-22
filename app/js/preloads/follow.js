@@ -19,6 +19,7 @@
 
 const {ipcRenderer} = require("electron")
 const privacy = require("./privacy")
+const util = require("./util")
 
 let inFollowMode = false
 
@@ -57,12 +58,11 @@ const otherEvents = [
     "contextmenu",
     "auxclick"
 ]
-const frameSelector = "embed, frame, iframe, object"
 
 ipcRenderer.on("focus-first-text-input", async () => {
     const input = getAllFollowLinks().find(l => l.type === "inputs-insert")
     if (input) {
-        const element = findElementAtPosition(
+        const element = util.findElementAtPosition(
             input.x + input.width / 2, input.y + input.height / 2)
         if (element?.click && element?.focus) {
             ipcRenderer.sendToHost("switch-to-insert")
@@ -74,7 +74,7 @@ ipcRenderer.on("focus-first-text-input", async () => {
 })
 
 ipcRenderer.on("follow-element", (_, follow) => {
-    const element = findElementAtPosition(follow.x, follow.y)
+    const element = util.findElementAtPosition(follow.x, follow.y)
     if (element?.click && element?.focus) {
         element.click()
         element.focus()
@@ -83,7 +83,7 @@ ipcRenderer.on("follow-element", (_, follow) => {
 
 const getLinkFollows = allLinks => {
     // A tags with href as the link, can be opened in new tab or current tab
-    querySelectorAll("a").forEach(e => {
+    util.querySelectorAll("a").forEach(e => {
         const baseLink = parseElement(e, "url")
         if (baseLink) {
             allLinks.push(baseLink)
@@ -99,8 +99,8 @@ const getLinkFollows = allLinks => {
 
 const getInputFollows = allLinks => {
     // Input tags such as checkboxes, can be clicked but have no text input
-    const inputs = [...querySelectorAll(clickableInputs)]
-    inputs.push(...[...querySelectorAll("input")].map(
+    const inputs = [...util.querySelectorAll(clickableInputs)]
+    inputs.push(...[...util.querySelectorAll("input")].map(
         e => e.closest("label")).filter(e => e && !inputs.includes(e)))
     inputs.forEach(element => {
         let type = "inputs-click"
@@ -137,7 +137,7 @@ const getMouseFollows = allLinks => {
             allLinks.push(clickable)
         }
     }
-    const allElements = [...querySelectorAll("*")]
+    const allElements = [...util.querySelectorAll("*")]
     allElements.filter(
         el => clickEvents.find(e => el[`on${e}`] || eventListeners[e].has(el))
         || el.getAttribute("jsaction")).forEach(
@@ -184,126 +184,19 @@ ipcRenderer.on("follow-mode-stop", () => {
 setInterval(sendFollowLinks, 1000)
 window.addEventListener("resize", sendFollowLinks)
 
-const framePaddingInfo = []
-const storeFrameInfo = (element, options) => {
-    if (!element) {
-        return
-    }
-    const info = framePaddingInfo.find(i => i.element === element)
-    if (info) {
-        Object.assign(info, options)
-    } else {
-        framePaddingInfo.push({element, ...options})
-    }
-}
-const findFrameInfo = el => framePaddingInfo.find(i => i.element === el)
-
-const framePosition = frame => ({
-    "x": frame.getBoundingClientRect().x
-        + propPixels({"pl": getComputedStyle(frame).paddingLeft}, "pl")
-        + propPixels({"bl": getComputedStyle(frame).borderLeftWidth}, "bl"),
-    "y": frame.getBoundingClientRect().y
-        + propPixels({"pt": getComputedStyle(frame).paddingTop}, "pt")
-        + propPixels({"bt": getComputedStyle(frame).borderTopWidth}, "bt")
-})
-
-const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
-    if (!base) {
-        return []
-    }
-    let elements = []
-    if (base === document) {
-        elements = [...base.querySelectorAll(sel) || []]
-    }
-    ;[...base.querySelectorAll("*") || []]
-        .filter(el => el.shadowRoot || el?.matches?.(frameSelector))
-        .forEach(el => {
-            let location = {"x": paddedX, "y": paddedY}
-            if (!el.shadowRoot) {
-                const {"x": frameX, "y": frameY} = framePosition(el)
-                location = {"x": frameX + paddedX, "y": frameY + paddedY}
-            }
-            storeFrameInfo(el?.shadowRoot || el, location)
-            const extra = [
-                ...(el.contentDocument || el.shadowRoot)?.querySelectorAll(sel)
-                || []
-            ]
-            extra.forEach(e => storeFrameInfo(e, location))
-            elements = elements.concat([...extra, ...querySelectorAll(sel,
-                el.contentDocument || el.shadowRoot,
-                location.x, location.y) || []])
-        })
-    return elements
-}
-
-const findElementAtPosition = (x, y, path = [document], px = 0, py = 0) => {
-    // Find out which element is located at a given position.
-    // Will look inside subframes recursively at the corrected position.
-    const elementAtPos = path?.[0]?.elementFromPoint(x - px, y - py)
-    if (path.includes(elementAtPos?.shadowRoot || elementAtPos)) {
-        return elementAtPos
-    }
-    if (elementAtPos?.matches?.(frameSelector)) {
-        const frameInfo = findFrameInfo(elementAtPos) || {}
-        return findElementAtPosition(x, y,
-            [elementAtPos.contentDocument, ...path], frameInfo.x, frameInfo.y)
-    }
-    if (elementAtPos?.shadowRoot) {
-        const frameInfo = findFrameInfo(elementAtPos.shadowRoot) || {}
-        return findElementAtPosition(x, y,
-            [elementAtPos.shadowRoot, ...path], frameInfo.x, frameInfo.y)
-    }
-    return elementAtPos
-}
-
-const findClickPosition = (element, rects) => {
-    let dimensions = {}
-    let clickable = false
-    // Check if the center of the bounding rect is actually clickable,
-    // For every possible rect of the element and it's sub images.
-    for (const rect of rects) {
-        const rectX = rect.x + rect.width / 2
-        const rectY = rect.y + rect.height / 2
-        // Update the region if it's larger or the first region found
-        if (rect.width > dimensions.width
-                || rect.height > dimensions.height
-                || !clickable) {
-            const elementAtPos = findElementAtPosition(rectX, rectY)
-            if (element === elementAtPos || element?.contains(elementAtPos)) {
-                clickable = true
-                dimensions = rect
-            }
-        }
-    }
-    return {clickable, dimensions}
-}
-
-const propPixels = (element, prop) => {
-    const value = element[prop]
-    if (value?.endsWith("px")) {
-        return Number(value.replace("px", "")) || 0
-    }
-    if (value?.endsWith("em")) {
-        const elementFontSize = Number(getComputedStyle(document.body)
-            .fontSize.replace("px", "")) || 0
-        return Number(value.replace("em", "")) * elementFontSize || 0
-    }
-    return 0
-}
-
 const pseudoElementRects = element => {
     const base = element.getBoundingClientRect()
     const rects = []
     for (const pseudoType of ["before", "after"]) {
-        const pseudo = window.getComputedStyle(element, `::${pseudoType}`)
-        const width = propPixels(pseudo, "width")
-        const height = propPixels(pseudo, "height")
+        const pseudo = getComputedStyle(element, `::${pseudoType}`)
+        const width = util.propPixels(pseudo, "width")
+        const height = util.propPixels(pseudo, "height")
         if (height && width) {
             const pseudoDims = JSON.parse(JSON.stringify(base))
-            const top = propPixels(pseudo, "top")
-            const left = propPixels(pseudo, "left")
-            const marginTop = propPixels(pseudo, "marginTop")
-            const marginLeft = propPixels(pseudo, "marginLeft")
+            const top = util.propPixels(pseudo, "top")
+            const left = util.propPixels(pseudo, "left")
+            const marginTop = util.propPixels(pseudo, "marginTop")
+            const marginLeft = util.propPixels(pseudo, "marginLeft")
             pseudoDims.width = width
             pseudoDims.height = height
             pseudoDims.x += left + marginLeft
@@ -330,7 +223,7 @@ const parseElement = (element, type) => {
     if (rectOutsideWindow(boundingRect)) {
         return null
     }
-    if (window.getComputedStyle(element).visibility === "hidden") {
+    if (getComputedStyle(element).visibility === "hidden") {
         return null
     }
     // Make a list of all possible bounding rects for the element
@@ -341,7 +234,7 @@ const parseElement = (element, type) => {
         ])
     }
     rects = rects.concat(pseudoElementRects(element))
-    const paddingInfo = findFrameInfo(element)
+    const paddingInfo = util.findFrameInfo(element)
     if (paddingInfo) {
         rects = rects.map(r => {
             r.x += paddingInfo.x
@@ -350,7 +243,7 @@ const parseElement = (element, type) => {
         })
     }
     // Find a clickable area and position for the given element
-    const {dimensions, clickable} = findClickPosition(element, rects)
+    const {dimensions, clickable} = util.findClickPosition(element, rects)
     // Return null if any of the checks below fail
     // - Not detected as clickable in the above loop
     // - Too small to properly click on using a regular browser
@@ -392,7 +285,7 @@ const parseElement = (element, type) => {
 }
 
 const allElementsBySelector
-= (type, selector) => [...querySelectorAll(selector)]
+= (type, selector) => [...util.querySelectorAll(selector)]
     .map(element => parseElement(element, type)).filter(e => e)
 
 const eventListeners = {}
@@ -421,11 +314,12 @@ EventTarget.prototype.removeEventListener = function(type, listener, options) {
 
 const clickListener = (e, frame = null) => {
     if (e.isTrusted) {
-        const paddingInfo = findFrameInfo(frame)
+        const paddingInfo = util.findFrameInfo(frame)
         ipcRenderer.sendToHost("mouse-click-info", {
             "x": e.x + (paddingInfo?.x || 0),
             "y": e.y + (paddingInfo?.y || 0),
-            "tovisual": !window.getSelection().isCollapsed,
+            "tovisual": (frame?.contentWindow || window)
+                .getSelection().toString(),
             "toinsert": !!e.path.find(el => el?.matches?.(textlikeInputs))
         })
     }
@@ -441,7 +335,7 @@ window.addEventListener("mousedown", e => {
 const contextListener = (e, frame = null) => {
     if (e.isTrusted && !inFollowMode && e.button === 2) {
         e.preventDefault()
-        const paddingInfo = findFrameInfo(frame)
+        const paddingInfo = util.findFrameInfo(frame)
         ipcRenderer.sendToHost("context-click-info", {
             "x": e.x + (paddingInfo?.x || 0),
             "y": e.y + (paddingInfo?.y || 0),
@@ -450,7 +344,7 @@ const contextListener = (e, frame = null) => {
             )?.src?.trim(),
             "link": e.path.find(el => el.tagName?.toLowerCase() === "a"
                 && el.href?.trim())?.href?.trim(),
-            "text": window.getSelection().toString(),
+            "text": (frame?.contentWindow || window).getSelection().toString(),
             "canEdit": !!e.path.find(el => el?.matches?.(textlikeInputs)),
             "frame": frame?.src,
             "hasExistingListener": eventListeners.contextmenu.has(e.target)
@@ -463,7 +357,7 @@ window.addEventListener("auxclick", contextListener)
 setInterval(() => {
     // Regular listeners are wiped when the element is re-added to the dom,
     // so add them with an interval as an attribute listener.
-    [...querySelectorAll(frameSelector)].forEach(f => {
+    [...util.querySelectorAll(util.frameSelector)].forEach(f => {
         try {
             f.contentDocument.onclick = e => clickListener(e, f)
             f.contentDocument.oncontextmenu = e => contextListener(e, f)
