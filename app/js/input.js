@@ -839,11 +839,11 @@ const mappingModified = (mode, mapping) => {
     return true
 }
 
-const listMappingsAsCommandList = (mode = false, includeDefault = false) => {
-    const mappings = []
+const listMappingsAsCommandList = (oneMode = false, includeDefault = false) => {
+    let mappings = []
     let modes = Object.keys(defaultBindings)
-    if (mode) {
-        modes = [mode]
+    if (oneMode) {
+        modes = [oneMode]
     }
     modes.forEach(bindMode => {
         const keys = [...new Set(Object.keys(defaultBindings[bindMode])
@@ -852,6 +852,18 @@ const listMappingsAsCommandList = (mode = false, includeDefault = false) => {
             mappings.push(listMapping(bindMode, key, includeDefault))
         }
     })
+    if (!oneMode) {
+        // Mappings that can be added with a global "map" instead of 1 per mode
+        const globalMappings = []
+        mappings.filter(m => m.match(/^n(noremap|map|unmap) /g))
+            .filter(m => !modes.find(mode => !mappings.includes(
+                `${mode}${m.slice(1)}`)))
+            .forEach(m => {
+                globalMappings.push(m.slice(1))
+                mappings = mappings.filter(map => map.slice(1) !== m.slice(1))
+            })
+        mappings = [...globalMappings, ...mappings]
+    }
     return mappings.join("\n").replace(/[\r\n]+/g, "\n").trim()
 }
 
