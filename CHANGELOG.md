@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Startup argument "--disable-media-keys" to disable Vieb from capturing media keys for player controls
+- Environment variables for the datafolder and Erwic configuration (can be overriden with CLI arguments)
 
 ### Changed
 

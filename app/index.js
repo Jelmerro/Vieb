@@ -48,8 +48,12 @@ const printUsage = () => {
     console.log(" --version                "
         + "Print program info with version and exit")
     console.log(" --datafolder <dir>       Store ALL Vieb data in this folder")
+    console.log("                          "
+        + "You can also use the ENV var: VIEB_DATAFOLDER")
     console.log(" --erwic <file>           "
         + "Open a fixed set of pages in a separate instance")
+    console.log("                          "
+        + "You can also use the ENV var: VIEB_ERWIC")
     console.log("                          "
         + "See 'Erwic.md' for usage and details")
     console.log(" --debug                  "
@@ -69,10 +73,11 @@ const printUsage = () => {
     console.log("                          "
         + "You can also use the ENV var: VIEB_SOFTWARE_ONLY")
     console.log(" --strict-site-isolation  "
-        + "Enable strict site isolation (no iframe access)")
+        + "Enable strict site isolation (blocks iframe access)")
     console.log("                          "
         + "You can also use the ENV var: VIEB_STRICT_ISOLATION")
     console.log("\nAll arguments not starting with - will be opened as a url.")
+    console.log("Command-line arguments will overwrite values set by ENV vars.")
     printLicense()
 }
 const printVersion = () => {
@@ -203,8 +208,9 @@ let showWindowFrame = isTruthyArg(process.env.VIEB_WINDOW_FRAME)
 let softwareOnly = isTruthyArg(process.env.VIEB_SOFTWARE_ONLY)
 let strictSiteIsolation = isTruthyArg(process.env.VIEB_STRICT_ISOLATION)
 let disableMediaKeys = isTruthyArg(process.env.VIEB_DISABLE_MEDIA_KEYS)
-let erwic = null
-let datafolder = path.join(app.getPath("appData"), "Vieb")
+let erwic = process.env.VIEB_ERWIC?.trim() || ""
+let datafolder = process.env.VIEB_DATAFOLDER?.trim()
+    || path.join(app.getPath("appData"), "Vieb")
 let customIcon = null
 args.forEach(arg => {
     arg = arg.trim()
