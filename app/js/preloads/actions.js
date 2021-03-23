@@ -199,16 +199,3 @@ window.addEventListener("DOMContentLoaded", () => {
         document.body.style.opacity = 1
     })
 })
-
-let focussedSearchElement = null
-
-ipcRenderer.on("search-element-location", (_, pos) => {
-    focussedSearchElement = document.elementFromPoint(
-        pos.x + pos.width / 2, pos.y + pos.height / 2)
-})
-
-ipcRenderer.on("search-element-click", () => {
-    if (focussedSearchElement) {
-        focussedSearchElement.click()
-    }
-})

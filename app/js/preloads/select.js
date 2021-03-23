@@ -44,13 +44,6 @@ ipcRenderer.on("selection-paste", (_, x, y) => documentAtPos(x, y)
 ipcRenderer.on("selection-remove", (_, x, y) => documentAtPos(x, y)
     .getSelection().removeAllRanges())
 
-window.addEventListener("scroll", () => {
-    const scrollDiff = scrollHeight - window.scrollY
-    startY += scrollDiff
-    scrollHeight = window.scrollY
-    ipcRenderer.sendToHost("scroll-height-diff", scrollDiff)
-})
-
 ipcRenderer.on("download-image-request", (_, x, y) => {
     const elements = [util.findElementAtPosition(x, y)]
     while (elements[0]?.parentNode) {
@@ -173,3 +166,21 @@ const calculateOffset = (startNode, x, y) => {
     range.detach()
     return {"node": properNode, "offset": offset}
 }
+
+let searchElementPos = {}
+
+window.addEventListener("scroll", () => {
+    const scrollDiff = scrollHeight - window.scrollY
+    startY += scrollDiff
+    scrollHeight = window.scrollY
+    ipcRenderer.sendToHost("scroll-height-diff", scrollDiff)
+    searchElementPos.y += scrollDiff
+})
+
+ipcRenderer.on("search-element-location", (_, pos) => {
+    searchElementPos = pos
+})
+
+ipcRenderer.on("search-element-click", () => util.findElementAtPosition(
+    searchElementPos.x + searchElementPos.width / 2,
+    searchElementPos.y + searchElementPos.height / 2)?.click())

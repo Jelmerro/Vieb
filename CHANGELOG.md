@@ -33,6 +33,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Second instances not ignoring datafolder argument when started in certain ways on Windows
 - Clipboard actions in contextmenu and visual mode now work in shadow roots and iframes
 - Download image pointer action now works in shadow roots and iframes
+- Action "clickOnSearch" not working if the page was scrolled
 
 ### Security
 
