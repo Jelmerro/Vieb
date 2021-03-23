@@ -82,9 +82,9 @@ const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
     }
     let elements = []
     if (base === document) {
-        elements = [...base.querySelectorAll(sel) || []]
+        elements = Array.from(base.querySelectorAll(sel) || [])
     }
-    ;[...base.querySelectorAll("*") || []]
+    Array.from(base.querySelectorAll("*") || [])
         .filter(el => el.shadowRoot || el?.matches?.(frameSelector))
         .forEach(el => {
             let location = {"x": paddedX, "y": paddedY}
@@ -93,14 +93,12 @@ const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
                 location = {"x": frameX + paddedX, "y": frameY + paddedY}
             }
             storeFrameInfo(el?.shadowRoot || el, location)
-            const extra = [
-                ...(el.contentDocument || el.shadowRoot)?.querySelectorAll(sel)
-                || []
-            ]
+            const extra = Array.from((el.contentDocument || el.shadowRoot)
+                ?.querySelectorAll(sel) || [])
             extra.forEach(e => storeFrameInfo(e, location))
             elements = elements.concat([...extra, ...querySelectorAll(sel,
                 el.contentDocument || el.shadowRoot,
-                location.x, location.y) || []])
+                location.x, location.y)])
         })
     return elements
 }

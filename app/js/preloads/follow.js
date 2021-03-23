@@ -91,7 +91,7 @@ const getLinkFollows = allLinks => {
             // Try sub-elements instead, for example if the link is not
             // visible or `display: none`, but a sub-element is absolutely
             // positioned somewhere else.
-            allLinks.push(...[...e?.querySelectorAll("*") || []]
+            allLinks.push(...Array.from(e?.querySelectorAll("*") || [])
                 .map(c => parseElement(c, "url")).filter(l => l))
         }
     })
@@ -228,9 +228,9 @@ const parseElement = (element, type) => {
     }
     // Make a list of all possible bounding rects for the element
     let rects = [boundingRect, ...element.getClientRects()]
-    for (const subImage of element?.querySelectorAll("img, svg") || []) {
+    for (const sub of Array.from(element?.querySelectorAll("img, svg") || [])) {
         rects = rects.concat([
-            subImage.getBoundingClientRect(), ...subImage.getClientRects()
+            sub.getBoundingClientRect(), ...sub.getClientRects()
         ])
     }
     rects = rects.concat(pseudoElementRects(element))

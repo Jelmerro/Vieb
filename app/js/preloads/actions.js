@@ -22,7 +22,8 @@ const fs = require("fs")
 const util = require("./util")
 
 const increasePageNumber = url => {
-    const paginations = [...document.querySelectorAll(".pagination")]
+    const paginations = Array.from(
+        document.querySelectorAll(".pagination") || [])
     for (const pagination of paginations) {
         const next = pagination.querySelector("*[rel=next]")
         if (next?.href) {
@@ -34,7 +35,8 @@ const increasePageNumber = url => {
 }
 
 const decreasePageNumber = url => {
-    const paginations = [...document.querySelectorAll(".pagination")]
+    const paginations = Array.from(
+        document.querySelectorAll(".pagination") || [])
     for (const pagination of paginations) {
         const prev = pagination.querySelector("*[rel=prev]")
         if (prev?.href) {
@@ -146,7 +148,7 @@ const writeInputToFile = filename => {
 const print = () => document.execCommand("print")
 
 const installFirefoxExtension = () => {
-    const link = [...document.querySelectorAll("a")].find(
+    const link = Array.from(document.querySelectorAll("a") || []).find(
         a => a.href?.endsWith(".xpi"))?.href
     const extension = link?.replace(/.*\/(\d{7,10}).*/g, "$1")
     if (link && extension) {
