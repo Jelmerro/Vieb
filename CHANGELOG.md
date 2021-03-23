@@ -25,6 +25,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Select all option of the contextmenu is now listed for shadow roots and iframes
 - Action "editWithVim" now works for input elements within shadow roots and iframes
 - Map command listing now groups mappings that are the same for all modes into a single :map command
+- Search is no longer cleared when navigating to a new page
 
 ### Fixed
 

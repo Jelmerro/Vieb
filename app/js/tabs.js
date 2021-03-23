@@ -757,7 +757,6 @@ const addWebviewListeners = webview => {
         updateUrl(webview)
     })
     webview.addEventListener("will-navigate", e => {
-        ACTIONS.emptySearch()
         resetTabInfo(webview)
         tabOrPageMatching(webview).querySelector("span").textContent = e.url
     })
