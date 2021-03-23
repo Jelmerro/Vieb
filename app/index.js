@@ -31,13 +31,9 @@ const {
     webContents
 } = require("electron")
 const fs = require("fs")
-const os = require("os")
-const {spawn} = require("child_process")
 const path = require("path")
-const isSvg = require("is-svg")
+const {homedir} = require("os")
 const {ElectronBlocker} = require("@cliqz/adblocker-electron")
-const _7z = require("7zip-min")
-const rimraf = require("rimraf").sync
 
 const version = process.env.npm_package_version || app.getVersion()
 const printUsage = () => {
@@ -145,7 +141,7 @@ const writeJSON = (loc, data) => {
 }
 const expandPath = homePath => {
     if (homePath.startsWith("~")) {
-        return homePath.replace("~", os.homedir())
+        return homePath.replace("~", homedir())
     }
     return homePath
 }
@@ -554,6 +550,7 @@ ipcMain.on("show-notification", (_, escapedMessage, properType) => {
 // https://github.com/electron/electron/issues/26074
 const openPath = location => {
     if (process.platform === "linux") {
+        const {spawn} = require("child_process")
         spawn("xdg-open", [location], {"stdio": "ignore", "detached": true})
     } else {
         shell.openPath(location)
@@ -1007,9 +1004,11 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
             }
             const file = Buffer.concat(data)
             fs.writeFileSync(`${zipLoc}.${extType}`, file)
-            _7z.cmd([
+            const {cmd} = require("7zip-min")
+            cmd([
                 "x", "-aoa", "-tzip", `${zipLoc}.${extType}`, `-o${zipLoc}/`
             ], () => {
+                const rimraf = require("rimraf").sync
                 rimraf(`${zipLoc}/_metadata/`)
                 sessionList.forEach(ses => {
                     session.fromPartition(ses).loadExtension(zipLoc, {
@@ -1056,6 +1055,7 @@ ipcMain.on("remove-extension", (_, extensionPath) => {
         sessionList.forEach(ses => {
             session.fromPartition(ses).removeExtension(extension.id)
         })
+        const rimraf = require("rimraf").sync
         rimraf(`${extLoc}*`)
     } else {
         mainWindow.webContents.send("notify", "Could not find extension with "
@@ -1076,7 +1076,7 @@ ipcMain.on("download-favicon", (_, fav, location, webId, linkId, url) => {
                 return
             }
             const file = Buffer.concat(data)
-            if (isSvg(file)) {
+            if (require("is-svg")(file)) {
                 location += ".svg"
                 fav += ".svg"
             }
