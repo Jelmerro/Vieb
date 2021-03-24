@@ -19,9 +19,8 @@
  PAGELAYOUT POINTER SESSIONS SETTINGS UTIL */
 "use strict"
 
-const fs = require("fs")
 const path = require("path")
-const {ipcRenderer, shell} = require("electron")
+const {ipcRenderer} = require("electron")
 
 let recentlyClosed = []
 let linkId = 0
@@ -239,6 +238,7 @@ const addTab = options => {
             sessionName = "main"
         } else {
             if (/^https?:\/\//.test(options.url)) {
+                const {shell} = require("electron")
                 shell.openExternal(options.url)
             }
             return
@@ -681,7 +681,8 @@ const addWebviewListeners = webview => {
                     let paths = []
                     let directoryAllowed = true
                     try {
-                        paths = fs.readdirSync(local)
+                        const {readdirSync} = require("fs")
+                        paths = readdirSync(local)
                             .map(p => path.join(local, p))
                     } catch (_) {
                         directoryAllowed = false

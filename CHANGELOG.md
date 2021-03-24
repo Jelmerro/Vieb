@@ -26,7 +26,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Action "editWithVim" now works for input elements within shadow roots and iframes
 - Map command listing now groups mappings that are the same for all modes into a single :map command
 - Search is no longer cleared when navigating to a new page
-- Require modules only when needed in the main process (should be faster)
+- Require modules and specific functions only when needed (should be faster)
 
 ### Fixed
 

@@ -1008,8 +1008,7 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
             cmd([
                 "x", "-aoa", "-tzip", `${zipLoc}.${extType}`, `-o${zipLoc}/`
             ], () => {
-                const rimraf = require("rimraf").sync
-                rimraf(`${zipLoc}/_metadata/`)
+                require("rimraf").sync(`${zipLoc}/_metadata/`)
                 sessionList.forEach(ses => {
                     session.fromPartition(ses).loadExtension(zipLoc, {
                         "allowFileAccess": true
@@ -1055,8 +1054,7 @@ ipcMain.on("remove-extension", (_, extensionPath) => {
         sessionList.forEach(ses => {
             session.fromPartition(ses).removeExtension(extension.id)
         })
-        const rimraf = require("rimraf").sync
-        rimraf(`${extLoc}*`)
+        require("rimraf").sync(`${extLoc}*`)
     } else {
         mainWindow.webContents.send("notify", "Could not find extension with "
             + `id: ${extensionPath}`, "warn")

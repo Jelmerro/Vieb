@@ -173,6 +173,7 @@ const addHistToList = hist => {
     img.addEventListener("click", () => clearLinesFromHistory(hist.line))
     histElement.appendChild(img)
     const date = document.createElement("span")
+    const {formatDate} = require("./util")
     date.textContent = formatDate(hist.date)
     date.setAttribute("iso", hist.date.toISOString())
     date.className = "hist-date"
@@ -216,16 +217,6 @@ const clearLinesFromHistory = (start, end = null) => {
         return {url, date}
     })
     ipcRenderer.sendToHost("history-list-request", "range", entries)
-}
-
-const formatDate = date => {
-    if (typeof date === "string") {
-        date = new Date(date)
-    }
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")
-    }-${String(date.getDate()).padStart(2, "0")} ${String(date.getHours())
-        .padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${
-        String(date.getSeconds()).padStart(2, "0")}`
 }
 
 const filterList = () => {

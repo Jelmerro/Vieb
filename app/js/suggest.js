@@ -18,7 +18,6 @@
 /* global COMMAND CONTEXTMENU HISTORY INPUT MODES SETTINGS TABS UTIL */
 "use strict"
 
-const {ipcRenderer} = require("electron")
 const path = require("path")
 const fs = require("fs")
 
@@ -281,6 +280,7 @@ const suggestCommand = search => {
             }
         }
         if (args.length >= 1) {
+            const {ipcRenderer} = require("electron")
             ipcRenderer.sendSync("list-extensions").forEach(e => {
                 const id = e.path.replace(/\/$/g, "").replace(/^.*\//g, "")
                 if (`remove ${id}`.startsWith(args.join(" "))) {
@@ -297,6 +297,7 @@ const suggestCommand = search => {
                 `${command} ${args.join(" ")}`.trim()))
             .forEach(action => addCommand(`call ${action}`))
     }
+    // Command: devtools
     if ("devtools".startsWith(command) && !confirm && args.length < 2) {
         const options = ["window", "split", "vsplit", "tab"]
         options.forEach(option => {
@@ -381,7 +382,7 @@ const suggestCommand = search => {
             `${command} ${args.join(" ")}`.trim())
         ).forEach(section => addCommand(`help ${section}`))
     }
-    // Command: buffer, hide, Vexplore, Sexplore, split and vsplit
+    // Command: buffer, hide, Vexplore, Sexplore, split, vsplit etc.
     const bufferCommand = [
         "buffer",
         "hide",

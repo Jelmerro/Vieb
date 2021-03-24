@@ -18,8 +18,6 @@
 /* global ACTIONS MODES SETTINGS TABS */
 "use strict"
 
-const {clipboard} = require("electron")
-
 let X = 0
 let Y = 0
 let listenForScroll = false
@@ -140,6 +138,7 @@ const inspectElement = () => {
 
 const copyAndStop = () => {
     if (MODES.currentMode() === "pointer") {
+        const {clipboard} = require("electron")
         clipboard.writeText(document.getElementById("url-hover").textContent)
     } else {
         const factor = TABS.currentPage().getZoomFactor()

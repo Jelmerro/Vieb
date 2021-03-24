@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020 Jelmer van Arnhem
+* Copyright (C) 2020-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@ window.addEventListener("DOMContentLoaded", () => {
                 })
             }
             const date = document.createElement("div")
+            const {formatDate} = require("./util")
             date.textContent = formatDate(notification.date)
             date.className = "date"
             element.appendChild(date)
@@ -48,13 +49,3 @@ window.addEventListener("DOMContentLoaded", () => {
         }
     })
 })
-
-const formatDate = date => {
-    if (typeof date === "string") {
-        date = new Date(date)
-    }
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")
-    }-${String(date.getDate()).padStart(2, "0")} ${String(date.getHours())
-        .padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${
-        String(date.getSeconds()).padStart(2, "0")}`
-}

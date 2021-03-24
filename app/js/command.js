@@ -20,7 +20,6 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {exec} = require("child_process")
 const path = require("path")
 
 const listSetting = setting => {
@@ -586,6 +585,7 @@ const makedefault = () => {
         return
     }
     ipcRenderer.send("make-default-app")
+    const {exec} = require("child_process")
     if (process.platform === "linux" || process.platform.endsWith("bsd")) {
         exec("xdg-settings set default-web-browser vieb.desktop", logError)
     } else if (process.platform === "win32") {

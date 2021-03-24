@@ -19,7 +19,6 @@
  SUGGEST TABS UTIL */
 "use strict"
 
-const {exec} = require("child_process")
 const {clipboard, ipcRenderer} = require("electron")
 const path = require("path")
 const fs = require("fs")
@@ -243,6 +242,7 @@ const editWithVim = () => {
                 UTIL.notify("Failed to read temp file to fill form", "err")
             }
         } else {
+            const {exec} = require("child_process")
             command = exec(`${SETTINGS.get("vimcommand")} ${tempFile}`, err => {
                 if (err) {
                     UTIL.notify("Command to edit files with vim failed, "
@@ -263,6 +263,7 @@ const openLinkExternal = (suppliedLink = null) => {
     }
     const url = suppliedLink || document.getElementById("url-hover").textContent
         || UTIL.urlToString(TABS.currentPage()?.src)
+    const {exec} = require("child_process")
     if (url) {
         exec(`${ext} ${url}`, err => {
             if (err) {

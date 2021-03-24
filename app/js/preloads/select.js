@@ -184,3 +184,7 @@ ipcRenderer.on("search-element-location", (_, pos) => {
 ipcRenderer.on("search-element-click", () => util.findElementAtPosition(
     searchElementPos.x + searchElementPos.width / 2,
     searchElementPos.y + searchElementPos.height / 2)?.click())
+
+window.addEventListener("mousemove", e => {
+    ipcRenderer.sendToHost("top-of-page-with-mouse", !e.clientY)
+})

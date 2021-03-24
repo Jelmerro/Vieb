@@ -150,6 +150,7 @@ const addDownload = (download, id) => {
     misc.appendChild(file)
     const date = document.createElement("span")
     date.className = "date"
+    const {formatDate} = require("./util")
     date.textContent = formatDate(download.date)
     misc.appendChild(date)
     const speed = document.createElement("span")
@@ -204,6 +205,7 @@ const updateDownload = (download, element, id) => {
     downloadUrl.href = download.url
     downloadUrl.textContent = decodeURIComponent(download.url)
     element.querySelector(".filelocation").textContent = download.file
+    const {formatDate} = require("./util")
     element.querySelector(".date").textContent = formatDate(download.date)
     // Change looks depending on the state
     let togglePause = element.querySelector(".toggle-pause")
@@ -238,16 +240,6 @@ const updateDownload = (download, element, id) => {
     }
     // State
     element.querySelector(".state").textContent = download.state
-}
-
-const formatDate = date => {
-    if (typeof date === "string") {
-        date = new Date(date)
-    }
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")
-    }-${String(date.getDate()).padStart(2, "0")} ${String(date.getHours())
-        .padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${
-        String(date.getSeconds()).padStart(2, "0")}`
 }
 
 const formatSize = size => {

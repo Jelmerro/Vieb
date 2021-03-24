@@ -21,7 +21,6 @@
 const {ipcRenderer} = require("electron")
 const path = require("path")
 const fs = require("fs")
-const https = require("https")
 
 const blocklistDir = path.join(UTIL.appData(), "blocklists")
 const defaultBlocklists = {
@@ -69,7 +68,8 @@ const enableAdblocker = () => {
     if (SETTINGS.get("adblocker") === "update") {
         for (const list of Object.keys(defaultBlocklists)) {
             UTIL.notify(`Updating ${list} to the latest version`)
-            const req = https.request(defaultBlocklists[list], res => {
+            const {request} = require("https")
+            const req = request(defaultBlocklists[list], res => {
                 let body = ""
                 res.on("end", () => {
                     try {

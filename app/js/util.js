@@ -21,7 +21,7 @@
 const {ipcRenderer} = require("electron")
 const fs = require("fs")
 const path = require("path")
-const os = require("os")
+const {homedir} = require("os")
 
 const protocolRegex = /^[a-z][a-z0-9-+.]+:\/\//
 const specialPages = [
@@ -263,7 +263,7 @@ const clearLocalStorage = () => {
 
 const expandPath = homePath => {
     if (homePath.startsWith("~")) {
-        return homePath.replace("~", os.homedir())
+        return homePath.replace("~", homedir())
     }
     return homePath
 }
