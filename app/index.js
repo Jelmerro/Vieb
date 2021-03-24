@@ -992,6 +992,7 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
     mainWindow.webContents.send("notify",
         `Installing ${extType} extension: ${extension}`)
     const request = net.request({url, "partition": "persist:main"})
+    const rimraf = require("rimraf").sync
     request.on("response", res => {
         const data = []
         res.on("end", () => {
@@ -1008,10 +1009,20 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
             cmd([
                 "x", "-aoa", "-tzip", `${zipLoc}.${extType}`, `-o${zipLoc}/`
             ], () => {
-                require("rimraf").sync(`${zipLoc}/_metadata/`)
+                rimraf(`${zipLoc}/_metadata/`)
                 sessionList.forEach(ses => {
                     session.fromPartition(ses).loadExtension(zipLoc, {
                         "allowFileAccess": true
+                    }).then(() => {
+                        mainWindow.webContents.send("notify",
+                            `Extension successfully installed`, "suc")
+                    }).catch(e => {
+                        // Failed to download extension
+                        mainWindow.webContents.send("notify",
+                            `Failed to install extension, unsupported type`,
+                            "err")
+                        console.log(e)
+                        rimraf(`${zipLoc}*`)
                     })
                 })
             })
@@ -1025,12 +1036,14 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
         mainWindow.webContents.send("notify",
             `Failed to install extension due to network error`, "err")
         console.log(e)
+        rimraf(`${zipLoc}*`)
     })
     request.on("error", e => {
         // Failed to download extension
         mainWindow.webContents.send("notify",
             `Failed to install extension due to network error`, "err")
         console.log(e)
+        rimraf(`${zipLoc}*`)
     })
     request.end()
 })
