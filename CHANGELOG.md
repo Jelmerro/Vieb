@@ -921,9 +921,9 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Electron 5.0.0-beta.7 (was 4.0.5)
 - Chromium 73.0.3683.94 (was 69.0.3497.106)
 
-## [0.1.0](https://github.com/Jelmerro/Vieb/compare/5eff352ad7d8895b97e4c22b9911d101723ac663...0.1.0) - 2019-02-17
+## [0.1.0](https://github.com/Jelmerro/Vieb/compare/d451d82e40a0842566fd99190faa52129dbdfc70...0.1.0) - 2019-02-17
 
-[code diff](https://github.com/Jelmerro/Vieb/compare/5eff352ad7d8895b97e4c22b9911d101723ac663...0.1.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/0.1.0)
+[code diff](https://github.com/Jelmerro/Vieb/compare/d451d82e40a0842566fd99190faa52129dbdfc70...0.1.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/0.1.0)
 
 ### Added
 
