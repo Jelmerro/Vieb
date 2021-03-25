@@ -85,13 +85,9 @@ const numberToKeys = (number, total) => {
     return first + second
 }
 
-const linkInList = (list, link) => list.find(l => {
-    if (!l || !link) {
-        return false
-    }
-    return l.x === link.x && l.y === link.y && l.type === link.type
-        && l.height === link.height && l.width === link.width
-})
+const linkInList = (list, link) => list.find(l => l && link && l.x === link.x
+    && l.y === link.y && l.type === link.type && l.height === link.height
+    && l.width === link.width)
 
 const clickAtLink = async link => {
     const factor = TABS.currentPage().getZoomFactor()
@@ -100,8 +96,7 @@ const clickAtLink = async link => {
         if (modeBeforeFollow === "visual") {
             MODES.setMode("visual")
         }
-        POINTER.move(
-            (link.x + link.width / 2) * factor,
+        POINTER.move((link.x + link.width / 2) * factor,
             (link.y + link.height / 2) * factor)
         return
     }
@@ -111,9 +106,8 @@ const clickAtLink = async link => {
     }
     MODES.setMode("insert")
     await new Promise(r => setTimeout(r, 2))
-    TABS.currentPage().send("follow-element", {
-        "x": link.x + link.width / 2, "y": link.y + link.height / 2
-    })
+    TABS.currentPage().send("follow-element",
+        {"x": link.x + link.width / 2, "y": link.y + link.height / 2})
     await new Promise(r => setTimeout(r, 2))
     document.getElementById("url-hover").style.display = "none"
 }
@@ -180,11 +174,9 @@ const parseAndDisplayLinks = newLinks => {
         const linkElement = document.createElement("span")
         linkElement.textContent = numberToKeys(index, links.length)
         linkElement.className = `follow-${link.type}`
-        const characterWidth = SETTINGS.get("fontsize") / 1.3
-        let borderRightMargin = characterWidth + SETTINGS.get("fontsize") * .2
-        if (linkElement.textContent.length === 2) {
-            borderRightMargin += characterWidth
-        }
+        const charWidth = SETTINGS.get("fontsize") * 0.6
+        const borderRightMargin = charWidth * linkElement.textContent.length
+            + SETTINGS.get("fontsize") * .5
         let left = (link.x + link.width) * factor
         if (left > TABS.currentPage().scrollWidth - borderRightMargin) {
             left = TABS.currentPage().scrollWidth - borderRightMargin

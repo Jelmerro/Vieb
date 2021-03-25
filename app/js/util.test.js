@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020 Jelmer van Arnhem
+* Copyright (C) 2020-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
 */
 /* global test expect */
 "use strict"
+
 const path = require("path")
 const UTIL = require("./util")
 const urlTests = [
@@ -131,26 +132,30 @@ urlTests.forEach(urlTest => {
 const specialPagesToFilenames = [
     {
         "arguments": ["help"],
-        "response": `file://${path.resolve(`${
-            __dirname}/../pages/help.html`)}`,
+        "response": `file://${path.resolve(`${__dirname}/../pages/help.html`)}`,
         "reason": "Expect basic conversion to work"
     },
     {
         "arguments": ["test", null, false],
-        "response": `file://${path.resolve(`${
-            __dirname}/../pages/help.html`)}`,
+        "response": `file://${path.resolve(`${__dirname}/../pages/help.html`)}`,
         "reason": "Expect to give help page"
     },
     {
-        "arguments": ["downloads"],
-        "response": `file://${path.resolve(`${
-            __dirname}/../pages/downloads.html`)}`,
-        "reason": "another filename"
+        "arguments": ["downloads", "#list"],
+        "response": `file://${path.resolve(
+            `${__dirname}/../pages/downloads.html#list`)}`,
+        "reason": "Don't prepend hashes if already provided"
     },
     {
-        "arguments": ["help", "test", true],
-        "response": `file://${path.resolve(`${
-            __dirname}/../pages/help.html#test`)}`,
+        "arguments": ["nonexistent", "test", true],
+        "response": `file://${path.resolve(
+            `${__dirname}/../pages/nonexistent.html#test`)}`,
+        "reason": "Skip page existence checks if requested"
+    },
+    {
+        "arguments": ["help", "test"],
+        "response": `file://${path.resolve(
+            `${__dirname}/../pages/help.html#test`)}`,
         "reason": "Expect basic conversion to work"
     }
 ]
