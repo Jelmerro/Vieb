@@ -232,7 +232,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 /* context menu */
 #context-menu {background: var(--suggestions-bg);position: fixed;z-index: 50;white-space: nowrap;}
 #context-menu > div {padding: .3em .5em;cursor: pointer;border: .1em solid var(--suggestions-border);}
-#context-menu > div:hover {background: var(--suggestions-selected);}
+#context-menu > div.selected {background: var(--suggestions-selected);}
 /* other */
 @keyframes pointer {0% {background: #f007;} 17% {background: #ff07;} 33% {background: #0f07;} 49% {background: #0ff7;} 66% {background: #00f7;} 83% {background: #f0f7;} 100% {background: #f007;}}
 #app #pointer {display: none;position: fixed;height: 1em;width: .7em;z-index: 20;backdrop-filter: invert(100%);animation: 1s infinite pointer;}

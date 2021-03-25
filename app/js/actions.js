@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND COMMANDHISTORY EXPLOREHISTORY FOLLOW MODES PAGELAYOUT SETTINGS
- SUGGEST TABS UTIL */
+/* global COMMAND COMMANDHISTORY CONTEXTMENU EXPLOREHISTORY FOLLOW MODES
+ PAGELAYOUT SETTINGS SUGGEST TABS UTIL */
 "use strict"
 
 const {clipboard, ipcRenderer} = require("electron")
@@ -347,6 +347,14 @@ const openFromClipboard = () => {
 
 const reorderFollowLinks = () => FOLLOW.reorderDisplayedLinks()
 
+const menuUp = () => CONTEXTMENU.up()
+
+const menuDown = () => CONTEXTMENU.down()
+
+const menuSelect = () => CONTEXTMENU.select()
+
+const menuClose = () => CONTEXTMENU.clear()
+
 const useEnteredData = () => {
     if (MODES.currentMode() === "command") {
         const command = document.getElementById("url").value.trim()
@@ -473,6 +481,10 @@ module.exports = {
     pageToClipboard,
     openFromClipboard,
     reorderFollowLinks,
+    menuUp,
+    menuDown,
+    menuSelect,
+    menuClose,
     useEnteredData,
     setFocusCorrectly
 }

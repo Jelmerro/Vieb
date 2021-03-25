@@ -356,6 +356,14 @@
         Usage is identical to <a href="#:unmap">:unmap</a>, but this command only removes mappings for <a class="visual" href="#pointer.startVisualSelect">visual mode</a>.
         <h3 id=":vmapclear">:vmapclear</h3>
         Usage is identical to <a href="#:mapclear">:mapclear</a>, but this command only clears mappings for <a class="visual" href="#pointer.startVisualSelect">visual mode</a>.
+        <h3 id=":mmap">:mmap</h3>
+        Usage is identical to <a href="#:map">:map</a>, but this command only lists or adds recursive mappings for the contextmenu. Any keyboard combination that is not mapped for the menu will be redirected to the current mode. See <a href="#menu">menu</a> for details.
+        <h3 id=":mnoremap">:mnoremap</h3>
+        Usage is identical to <a href="#:noremap">:noremap</a>, but this command only lists or adds non-recursive mappings for the contextmenu. Any keyboard combination that is not mapped for the menu will be redirected to the current mode. See <a href="#menu">menu</a> for details.
+        <h3 id=":munmap">:munmap</h3>
+        Usage is identical to <a href="#:unmap">:unmap</a>, but this command only removes mappings for the contextmenu. Any keyboard combination that is not mapped for the menu will be redirected to the current mode. See <a href="#menu">menu</a> for details.
+        <h3 id=":mmapclear">:mmapclear</h3>
+        Usage is identical to <a href="#:mapclear">:mapclear</a>, but this command only clears mappings for the contextmenu. Any keyboard combination that is not mapped for the menu will be redirected to the current mode. See <a href="#menu">menu</a> for details.
         <h2 id="customcommands">Custom commands</h2>
         Vieb allows you to define custom commands. These commands can be used as an alternative to custom mappings, and can also be used within other mappings or commands. For example, to open vieb.dev with a homepage command, add a new command such as:
         <div class="command-block">:command homepage &lt;Esc&gt;evieb.dev&lt;Enter&gt;</div>
@@ -934,6 +942,16 @@
         Scroll the page to the top and move the pointer to the top of the screen vertically. To do the same without scrolling, see <a href="#pointer.startOfView">pointer.startOfView</a>.
         <h3 id="pointer.endOfPage">pointer.endOfPage</h3>
         Scroll the page to the bottom and move the pointer to the bottom of the screen vertically. To do the same without scrolling, see <a href="#pointer.endOfView">pointer.endOfView</a>.
+        <h2 id="menu">Menu actions</h2>
+        Menu actions are specifically for navigating the context menu once it has been opened. You can open the menu with a right mouse click or using the <a href="#pointer.rightClick">pointer.rightClick</a> action. These actions don't do anything when no contextmenu is currently opened. As such, it's recommended to only use these actions with the <a href="#:mmap">:mmap</a> command.
+        <h3 id="action.menuUp" countable="true">action.menuUp</h3>
+        With this action you can move the selected contextmenu item up. It will select the bottom one if the top of the list is reached or no entry was previously highlighted. Opposite of <a href="#action.menuDown">action.menuDown</a>. Items can be selected with <a href="#action.menuSelect">action.menuSelect</a>.
+        <h3 id="action.menuDown" countable="true">action.menuDown</h3>
+        This action moves the selected contextmenu item one down. Opposite of <a href="#action.menuDown">action.menuDown</a>. Wrapping happens both directions.
+        <h3 id="action.menuSelect">action.menuSelect</h3>
+        Executes the currently selected contextmenu item. This will also close the menu. For more details on how to close the menu without picking a menu item, see <a href="#action.menuClose">action.menuClose</a>.
+        <h3 id="action.menuClose">action.menuClose</h3>
+        Using this action you can close the contextmenu without any side-effects. The contextmenu will also be closed if you press any key not mapped with <a href="#:mmap">:mmap</a>. For example: you right-click on a link in <a class="pointer" href="#pointer">pointer mode</a> using <a href="#pointer.rightClick">pointer.rightClick</a>. This will bring up the contextmenu, which you can navigate with the menu actions. If you would press any other key, you would execute it in <a class="pointer" href="#pointer">pointer mode</a>, instead of it being used to navigate the menu. This works the same for other modes. The menuClose action exists to allow you to close the menu without side effects. Any other key that is not mapped with <a href="#:mmap">:mmap</a> will assume default operation of that key as if the menu wasn't there. As such, if you never want to interact with the contextmenu using the keyboard, simply execute <span class="command-block">:mmapclear!</span>, see <a href="#:mmapclear">:mmapclear</a> for details.
         <h2>Other actions</h2>
         All other actions within Vieb.
         <h3 id="action.emptySearch">action.emptySearch</h3>

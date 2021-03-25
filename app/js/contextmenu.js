@@ -338,6 +338,12 @@ const fixAlignmentNearBorders = () => {
 const createMenuItem = options => {
     const item = document.createElement("div")
     item.textContent = options.title
+    item.addEventListener("mouseover", () => {
+        [...contextMenu.querySelectorAll("div")].forEach(el => {
+            el.classList.remove("selected")
+        })
+        item.classList.add("selected")
+    })
     item.addEventListener("click", () => {
         options.action()
         clear()
@@ -345,4 +351,52 @@ const createMenuItem = options => {
     contextMenu.appendChild(item)
 }
 
-module.exports = {viebMenu, webviewMenu, linkMenu, commandMenu, clear}
+const active = () => !!contextMenu.textContent.trim()
+
+const up = () => {
+    const selected = contextMenu.querySelector(".selected")
+    const nodes = [...contextMenu.childNodes]
+    if (nodes.indexOf(selected) < 1) {
+        nodes.forEach(el => {
+            el.classList.remove("selected")
+        })
+        contextMenu.lastChild.classList.add("selected")
+    } else if (active()) {
+        const newSelected = nodes[nodes.indexOf(selected) - 1]
+        nodes.forEach(el => {
+            el.classList.remove("selected")
+        })
+        newSelected.classList.add("selected")
+    }
+}
+
+const down = () => {
+    const selected = contextMenu.querySelector(".selected")
+    const nodes = [...contextMenu.childNodes]
+    if ([-1, nodes.length - 1].includes(nodes.indexOf(selected))) {
+        nodes.forEach(el => {
+            el.classList.remove("selected")
+        })
+        contextMenu.firstChild.classList.add("selected")
+    } else if (active()) {
+        const newSelected = nodes[nodes.indexOf(selected) + 1]
+        nodes.forEach(el => {
+            el.classList.remove("selected")
+        })
+        newSelected.classList.add("selected")
+    }
+}
+
+const select = () => contextMenu.querySelector(".selected")?.click()
+
+module.exports = {
+    viebMenu,
+    webviewMenu,
+    linkMenu,
+    commandMenu,
+    clear,
+    active,
+    up,
+    down,
+    select
+}

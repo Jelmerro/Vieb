@@ -719,7 +719,7 @@ const noArgumentComands = [
 
 const noEscapeCommands = ["command", "delcommand"]
 
-const modes = ["all", ...MODES.allModes()]
+const modes = ["all", ...MODES.allModes(), "menu"]
 modes.forEach(mode => {
     let prefix = mode[0]
     if (mode === "all") {

@@ -372,6 +372,7 @@ const suggestCommand = search => {
             "navigation",
             "splitting",
             "pointer",
+            "menu",
             "license",
             "mentions",
             ...COMMAND.commandList().map(c => `:${c}`),

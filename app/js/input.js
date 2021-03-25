@@ -222,6 +222,7 @@ const defaultBindings = {
         "L": {"mapping": "<pointer.endOfView>"},
         "<C-l>": {"mapping": "<pointer.moveSlowRight>"},
         "M": {"mapping": "<pointer.centerOfView>"},
+        "r": {"mapping": "<pointer.rightClick>"},
         "<C-u>": {"mapping": "<pointer.moveFastUp>"},
         "w": {"mapping": "<pointer.moveFastRight>"},
         "x": {"mapping": "<action.openLinkExternal>"},
@@ -231,6 +232,14 @@ const defaultBindings = {
         "$": {"mapping": "<pointer.moveRightMax>"},
         "^": {"mapping": "<pointer.moveLeftMax>"},
         "<C-[>": {"mapping": "<action.toNormalMode>"}
+    },
+    "m": {
+        "<Up>": {"mapping": "<action.menuUp>"},
+        "<Down>": {"mapping": "<action.menuDown>"},
+        "<CR>": {"mapping": "<action.menuSelect>"},
+        "<Esc>": {"mapping": "<action.menuClose>"},
+        "<C-n>": {"mapping": "<action.menuDown>"},
+        "<C-p>": {"mapping": "<action.menuUp>"}
     }
 }
 let repeatCounter = 0
@@ -666,7 +675,6 @@ const handleKeyboard = e => {
         e.preventDefault()
         return
     }
-    CONTEXTMENU.clear()
     const id = toIdentifier(e)
     updateKeysOnScreen()
     clearTimeout(timeoutTimer)
@@ -704,6 +712,19 @@ const handleKeyboard = e => {
         pressedKeys = ""
     }
     pressedKeys += id
+    const menuAction = bindings.m[pressedKeys]
+    if (menuAction && CONTEXTMENU.active()) {
+        e.preventDefault()
+        if (e.isTrusted) {
+            executeMapString(menuAction.mapping, !menuAction.noremap, true)
+        } else {
+            executeMapString(menuAction.mapping, e.bubbles)
+        }
+        repeatCounter = 0
+        pressedKeys = ""
+        return
+    }
+    CONTEXTMENU.clear()
     const action = bindings[MODES.currentMode()[0]][pressedKeys]
     if (action && (e.isTrusted || e.bubbles)) {
         e.preventDefault()

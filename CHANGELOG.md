@@ -18,6 +18,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Startup argument "--disable-media-keys" to disable Vieb from capturing media keys for player controls
 - Environment variables for the datafolder and Erwic configuration (can be overridden with CLI arguments)
 - Notifications for the final step of loading an extension (either success or failed due to Electron incompatibility)
+- Context menu actions, map commands and default mappings (mmap etc.) to navigate and select menu items
 
 ### Changed
 
