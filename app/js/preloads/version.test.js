@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020 Jelmer van Arnhem
+* Copyright (C) 2020-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -46,11 +46,17 @@ const versions = [
         "result": "newer"
     },
     {
-        "ref": "1.0.0-beta",
+        "ref": "1.0.0-whatever",
         "new": "1.0.0",
         "reason": "Expect a version without a prerelease suffix to be newer"
             + " than the same version without the suffix",
         "result": "newer"
+    },
+    {
+        "ref": "3.0.0",
+        "new": "3.0.0-beta",
+        "reason": "Beta releases are also older than the same version proper",
+        "result": "older"
     },
     {
         "ref": "1.1.0-beta",
@@ -63,6 +69,18 @@ const versions = [
         "new": "2.0.0-beta",
         "reason": "Expect same version to be equal, even with suffix",
         "result": "even"
+    },
+    {
+        "ref": "2.0.0-testthisone",
+        "new": "2.0.0-onetime",
+        "reason": "Expect unknown suffixes to be equal",
+        "result": "even"
+    },
+    {
+        "ref": "notvalid",
+        "new": "3.0.0",
+        "reason": "Expect no result if it's not a valid number",
+        "result": "unknown"
     },
     {
         "ref": "2.0.0-dev",

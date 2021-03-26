@@ -30,9 +30,7 @@ const switchView = (oldViewOrId, newView) => {
     const newId = newView.getAttribute("link-id")
     if (oldId) {
         if (!layoutDivById(newId)) {
-            if (layoutDivById(oldId)) {
-                layoutDivById(oldId).setAttribute("link-id", newId)
-            }
+            layoutDivById(oldId)?.setAttribute("link-id", newId)
         }
     } else if (document.getElementById("pagelayout").children.length === 0) {
         document.getElementById("pagelayout").classList.add("hor")
@@ -164,9 +162,7 @@ const toTop = direction => {
         const subLayout = document.createElement("div")
         subLayout.className = subLayoutClass
         layout.className = pageLayoutClass
-        ;[...layout.children].forEach(child => {
-            subLayout.appendChild(child)
-        })
+        ;[...layout.children].forEach(child => subLayout.appendChild(child))
         layout.appendChild(subLayout)
         if (["left", "top"].includes(direction)) {
             layout.insertBefore(current, layout.firstChild)
@@ -344,8 +340,8 @@ const applyLayout = () => {
                 if (timeout) {
                     suspendTimers[linkId] = setTimeout(() => {
                         try {
-                            TABS.suspendTab(tab)
                             delete suspendTimers[linkId]
+                            TABS.suspendTab(tab)
                         } catch (_) {
                             // Tab might be closed or unavailable, no issue
                         }

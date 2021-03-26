@@ -19,12 +19,18 @@
 "use strict"
 
 const path = require("path")
+const {homedir} = require("os")
 const UTIL = require("./util")
 const urlTests = [
     {
         "url": "google.com",
         "valid": true,
         "reason": "Valid url without www."
+    },
+    {
+        "url": "https://!@#$!@#$!@#$",
+        "valid": true,
+        "reason": "Valid url due to protocol being present"
     },
     {
         "url": "h%^*&TD{yfsd^.com",
@@ -42,9 +48,19 @@ const urlTests = [
         "reason": "Localhost with port should also be valid"
     },
     {
+        "url": "localhost:",
+        "valid": false,
+        "reason": "Empty port field should not be valid"
+    },
+    {
         "url": "127.0.0.1",
         "valid": true,
         "reason": "Ip addresses should be valid"
+    },
+    {
+        "url": "111.2403.4.4",
+        "valid": false,
+        "reason": "Addresses with too many numbers per subnet aren't"
     },
     {
         "url": "34.250.34.34",
@@ -87,27 +103,37 @@ const urlTests = [
         "reason": "Port number has too many characters"
     },
     {
+        "url": "duckduckgo.com:43434:2348",
+        "valid": false,
+        "reason": "Only one port should be used, as : is invalid in domainnames"
+    },
+    {
+        "url": "duckduckgo..com/search",
+        "valid": false,
+        "reason": "Double dots are never valid in urls before path"
+    },
+    {
         "url": "raspberrypi/test",
         "valid": false,
         "reason": "A hostname without a toplevel domain is considered invalid"
     },
     {
-        "url": "hoi:test@hoi.com",
+        "url": "hello:test@example.com",
         "valid": false,
         "reason": "A password in url is not allowed"
     },
     {
-        "url": "user:@lol.com",
+        "url": "user:@example.com",
         "valid": false,
         "reason": "Invalid due the inclusion of ':' which indicates a password"
     },
     {
-        "url": "user@lol.com",
+        "url": "user@example.com",
         "valid": true,
         "reason": "Providing only the username is allowed in urls"
     },
     {
-        "url": "hello@test@hoi.com",
+        "url": "hello@test@example.com",
         "valid": false,
         "reason": "Double @ sign is invalid"
     },
@@ -165,4 +191,46 @@ specialPagesToFilenames.forEach(specialPageTest => {
         expect(UTIL.specialPagePath(...specialPageTest.arguments))
             .toBe(specialPageTest.response)
     })
+})
+
+test(`Title function should capitalize first char and lowercase others`, () => {
+    expect(UTIL.title("teSt")).toBe("Test")
+    expect(UTIL.title("")).toBe("")
+    expect(UTIL.title("multiple WORDS")).toBe("Multiple words")
+})
+
+test(`Expand path to resolve homedir and downloads`, () => {
+    global.SETTINGS = {"get": () => "~/Downloads/"}
+    expect(UTIL.downloadPath()).toBe(
+        `${homedir()}${path.sep}Downloads${path.sep}`)
+    global.SETTINGS = {"get": () => `Downloads${path.sep}`}
+    expect(UTIL.downloadPath()).toBe(`Downloads${path.sep}`)
+})
+
+test(`Firefox version should increment by date`, () => {
+    const firstMockDate = new Date("2021-03-26T00:00:00.000Z")
+    const secondMockDate = new Date("2021-08-26T00:00:00.000Z")
+    const sys = window.navigator.platform
+    global.Date = class extends Date {
+        constructor(...date) {
+            if (date?.length) {
+                return super(...date)
+            }
+            return firstMockDate
+        }
+    }
+    let ver = 87
+    expect(UTIL.firefoxUseragent()).toBe(
+        `Mozilla/5.0 (${sys}; rv:${ver}.0) Gecko/20100101 Firefox/${ver}.0`)
+    global.Date = class extends Date {
+        constructor(...date) {
+            if (date?.length) {
+                return super(...date)
+            }
+            return secondMockDate
+        }
+    }
+    ver = 93
+    expect(UTIL.firefoxUseragent()).toBe(
+        `Mozilla/5.0 (${sys}; rv:${ver}.0) Gecko/20100101 Firefox/${ver}.0`)
 })

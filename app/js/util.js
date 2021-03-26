@@ -390,7 +390,7 @@ const urlToString = url => {
 
 const listNotificationHistory = () => notificationHistory
 
-const title = name => name[0].toUpperCase() + name.slice(1).toLowerCase()
+const title = str => str.slice(0, 1).toUpperCase() + str.slice(1).toLowerCase()
 
 const downloadPath = () => expandPath(SETTINGS.get("downloadpath"))
 

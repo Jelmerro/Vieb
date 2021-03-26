@@ -183,13 +183,12 @@ const privacyFixes = (w = window) => {
     }
 }
 privacyFixes()
-module.exports = {privacyFixes}
 
 // Screensharing code based on the work of @WesselKroos on Github
 // https://github.com/electron/electron/issues/16513#issuecomment-602070250
 const displayCaptureStyling = `html, body {overflow: hidden !important;}
 .desktop-capturer-selection {
-    position: fixed;top: 0;left: 0;width: 100%;height: 100vh;
+    position: fixed;top: 0;left: 0;width: 100%;height: 100vh;line-height: 1;
     background: %SHADE%;color: %FG%;z-index: 10000000;text-align: center;
     display: flex;align-items: center;justify-content: center;
 }
@@ -198,7 +197,7 @@ const displayCaptureStyling = `html, body {overflow: hidden !important;}
 }
 .desktop-capturer-selection__close {
     position: fixed;font-size: 40px;top: 10px;right: 10px;width: 40px;
-    height: 40px;cursor: pointer;
+    height: 40px;cursor: pointer;line-height: 1;
 }
 .desktop-capturer-selection__list {
     max-width: calc(100% - 100px);margin: 50px;padding: 0;display: flex;
@@ -208,7 +207,7 @@ const displayCaptureStyling = `html, body {overflow: hidden !important;}
 .desktop-capturer-selection__btn {
     display: flex;flex-direction: column;margin: 0;border: 0;width: 160px;
     background: %BG%;color: %FG%;align-items: center;height: auto;
-    font-size: %FONTSIZE%px;font-weight: bold;cursor: pointer;
+    font-size: %FONTSIZE%px;font-weight: bold;cursor: pointer;line-height: 1;
 }
 .desktop-capturer-selection__thumbnail {margin: 5px;width: 150px;}
 .desktop-capturer-selection__name {margin: 10px;overflow-wrap: anywhere;}
@@ -336,3 +335,5 @@ const customDisplayMedia = frameWindow => new Promise((resolve, reject) => {
         }
     })
 })
+
+module.exports = {privacyFixes}

@@ -61,6 +61,4 @@ const refreshList = () => {
     }
 }
 
-window.addEventListener("load", () => {
-    refreshList()
-})
+window.addEventListener("DOMContentLoaded", () => refreshList())

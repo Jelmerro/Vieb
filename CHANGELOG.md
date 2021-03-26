@@ -19,6 +19,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Environment variables for the datafolder and Erwic configuration (can be overridden with CLI arguments)
 - Notifications for the final step of loading an extension (either success or failed due to Electron incompatibility)
 - Context menu actions, map commands and default mappings (mmap etc.) to navigate and select menu items
+- Test coverage report is now generated while testing which is useful to make sure you test all scenarios
 
 ### Changed
 
@@ -30,6 +31,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Search is no longer cleared when navigating to a new page
 - Require modules and specific functions only when needed (should be faster)
 - Extension zip and folder are now deleted when the installation fails, so it can be retried
+- Follow mode now remembers link positions even when returning to other modes, thus keys are more consistently assigned
 
 ### Fixed
 
@@ -41,6 +43,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Download image pointer action now works in shadow roots and iframes
 - Action "clickOnSearch" not working if the page was scrolled
 - Follow mode and related actions not working on chrome:// pages due to querySelectorAll oddities
+- Follow mode not focussing input field correctly when holding Shift on keydown
 
 ### Security
 

@@ -66,18 +66,8 @@ const offset = () => {
 
 const updateElement = () => {
     const {top, left, bottom, right} = offset()
-    if (X < 0) {
-        X = 0
-    }
-    if (Y < 0) {
-        Y = 0
-    }
-    if (X > right - left - SETTINGS.get("fontsize") * 1.4) {
-        X = right - left - SETTINGS.get("fontsize") * 1.4
-    }
-    if (Y > bottom - top - SETTINGS.get("fontsize")) {
-        Y = bottom - top - SETTINGS.get("fontsize")
-    }
+    X = Math.max(0, Math.min(X, right - left - SETTINGS.get("fontsize") * 1.4))
+    Y = Math.max(0, Math.min(Y, bottom - top - SETTINGS.get("fontsize")))
     document.getElementById("pointer").style.left = `${X + left}px`
     document.getElementById("pointer").style.top = `${Y + top}px`
     TABS.currentPage().setAttribute("pointer-x", X)

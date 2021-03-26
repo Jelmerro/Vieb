@@ -49,7 +49,6 @@ const startFollow = (newtab = followNewtab) => {
     informPreload()
     TABS.currentPage().send("follow-mode-start")
     document.getElementById("follow").style.display = "flex"
-    links = []
 }
 
 const cancelFollow = () => {
@@ -63,7 +62,6 @@ const cancelFollow = () => {
             // Cancel follow mode in all tabs
         }
     })
-    links = []
 }
 
 const getModeBeforeFollow = () => modeBeforeFollow
@@ -256,11 +254,11 @@ const enterKey = async id => {
             return
         }
         await clickAtLink(link)
-        if (stayInFollowMode) {
+        if (link.type !== "inputs-insert") {
             MODES.setMode(modeBeforeFollow)
-            startFollow()
-        } else if (link.type !== "inputs-insert") {
-            MODES.setMode(modeBeforeFollow)
+            if (stayInFollowMode) {
+                startFollow()
+            }
         }
     }
 }
