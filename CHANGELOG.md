@@ -47,8 +47,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Security
 
-- Electron 12.0.1 (was 12.0.0)
-- Chromium 89.0.4389.82 (was 89.0.4389.69)
+- Electron 12.0.2 (was 12.0.0)
+- Chromium 89.0.4389.90 (was 89.0.4389.69)
 
 ## [4.1.0](https://github.com/Jelmerro/Vieb/compare/4.0.0...4.1.0) - 2021-03-04
 
