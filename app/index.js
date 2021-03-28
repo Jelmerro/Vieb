@@ -34,6 +34,9 @@ const fs = require("fs")
 const path = require("path")
 const {homedir} = require("os")
 const {ElectronBlocker} = require("@cliqz/adblocker-electron")
+const cmd7z = require("7zip-min").cmd
+const isSvg = require("is-svg")
+const rimraf = require("rimraf").sync
 
 const version = process.env.npm_package_version || app.getVersion()
 const printUsage = () => {
@@ -546,17 +549,6 @@ ipcMain.on("show-notification", (_, escapedMessage, properType) => {
     notificationWindow.show()
 })
 
-// Workaround for shell.openPath not being reliable on Linux:
-// https://github.com/electron/electron/issues/26074
-const openPath = location => {
-    if (process.platform === "linux") {
-        const {spawn} = require("child_process")
-        spawn("xdg-open", [location], {"stdio": "ignore", "detached": true})
-    } else {
-        shell.openPath(location)
-    }
-}
-
 // Create and manage sessions, mostly downloads, adblocker and permissions
 const dlsFile = path.join(app.getPath("appData"), "dls")
 let downloadSettings = {}
@@ -569,7 +561,7 @@ const adblockerPreload = require.resolve("@cliqz/adblocker-electron-preload")
 ipcMain.on("set-redirects", (_, rdr) => {
     redirects = rdr
 })
-ipcMain.on("open-download", (_, location) => openPath(location))
+ipcMain.on("open-download", (_, location) => shell.openPath(location))
 ipcMain.on("set-download-settings", (_, settings) => {
     if (Object.keys(downloadSettings).length === 0) {
         if (settings.cleardownloadsonquit) {
@@ -992,7 +984,6 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
     mainWindow.webContents.send("notify",
         `Installing ${extType} extension: ${extension}`)
     const request = net.request({url, "partition": "persist:main"})
-    const rimraf = require("rimraf").sync
     request.on("response", res => {
         const data = []
         res.on("end", () => {
@@ -1005,8 +996,7 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
             }
             const file = Buffer.concat(data)
             fs.writeFileSync(`${zipLoc}.${extType}`, file)
-            const {cmd} = require("7zip-min")
-            cmd([
+            cmd7z([
                 "x", "-aoa", "-tzip", `${zipLoc}.${extType}`, `-o${zipLoc}/`
             ], () => {
                 rimraf(`${zipLoc}/_metadata/`)
@@ -1067,7 +1057,7 @@ ipcMain.on("remove-extension", (_, extensionPath) => {
         sessionList.forEach(ses => {
             session.fromPartition(ses).removeExtension(extension.id)
         })
-        require("rimraf").sync(`${extLoc}*`)
+        rimraf(`${extLoc}*`)
     } else {
         mainWindow.webContents.send("notify", "Could not find extension with "
             + `id: ${extensionPath}`, "warn")
@@ -1087,7 +1077,7 @@ ipcMain.on("download-favicon", (_, fav, location, webId, linkId, url) => {
                 return
             }
             const file = Buffer.concat(data)
-            if (require("is-svg")(file)) {
+            if (isSvg(file)) {
                 location += ".svg"
                 fav += ".svg"
             }
