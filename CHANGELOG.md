@@ -17,7 +17,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Fixed
 
-- Build issues due to electron-builder require statement contraints
+- Build issues due to electron-builder require statement constraints
 
 ### Security
 
@@ -58,7 +58,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Download image pointer action now works in shadow roots and iframes
 - Action "clickOnSearch" not working if the page was scrolled
 - Follow mode and related actions not working on chrome:// pages due to querySelectorAll oddities
-- Follow mode not focussing input field correctly when holding Shift on keydown
+- Follow mode not focusing input field correctly when holding Shift on keydown
 
 ### Security
 
