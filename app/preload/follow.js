@@ -18,8 +18,15 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const privacy = require("./privacy")
-const util = require("../util")
+const {privacyFixes} = require("./privacy")
+const {
+    findElementAtPosition,
+    querySelectorAll,
+    propPixels,
+    findFrameInfo,
+    findClickPosition,
+    frameSelector
+} = require("../util")
 
 let inFollowMode = false
 
@@ -62,11 +69,11 @@ const otherEvents = [
 ipcRenderer.on("focus-input", async (_, follow = null) => {
     let element = null
     if (follow) {
-        element = util.findElementAtPosition(follow.x, follow.y)
+        element = findElementAtPosition(follow.x, follow.y)
     } else {
         const input = getAllFollowLinks().find(l => l.type === "inputs-insert")
         if (input) {
-            element = util.findElementAtPosition(
+            element = findElementAtPosition(
                 input.x + input.width / 2, input.y + input.height / 2)
         }
     }
@@ -82,7 +89,7 @@ ipcRenderer.on("focus-input", async (_, follow = null) => {
 
 const getLinkFollows = allLinks => {
     // A tags with href as the link, can be opened in new tab or current tab
-    util.querySelectorAll("a").forEach(e => {
+    querySelectorAll("a").forEach(e => {
         const baseLink = parseElement(e, "url")
         if (baseLink) {
             allLinks.push(baseLink)
@@ -98,8 +105,8 @@ const getLinkFollows = allLinks => {
 
 const getInputFollows = allLinks => {
     // Input tags such as checkboxes, can be clicked but have no text input
-    const inputs = [...util.querySelectorAll(clickableInputs)]
-    inputs.push(...[...util.querySelectorAll("input")].map(
+    const inputs = [...querySelectorAll(clickableInputs)]
+    inputs.push(...[...querySelectorAll("input")].map(
         e => e.closest("label")).filter(e => e && !inputs.includes(e)))
     inputs.forEach(element => {
         let type = "inputs-click"
@@ -136,7 +143,7 @@ const getMouseFollows = allLinks => {
             allLinks.push(clickable)
         }
     }
-    const allElements = [...util.querySelectorAll("*")]
+    const allElements = [...querySelectorAll("*")]
     allElements.filter(
         el => clickEvents.find(e => el[`on${e}`] || eventListeners[e].has(el))
         || el.getAttribute("jsaction")).forEach(
@@ -188,14 +195,14 @@ const pseudoElementRects = element => {
     const rects = []
     for (const pseudoType of ["before", "after"]) {
         const pseudo = getComputedStyle(element, `::${pseudoType}`)
-        const width = util.propPixels(pseudo, "width")
-        const height = util.propPixels(pseudo, "height")
+        const width = propPixels(pseudo, "width")
+        const height = propPixels(pseudo, "height")
         if (height && width) {
             const pseudoDims = JSON.parse(JSON.stringify(base))
-            const top = util.propPixels(pseudo, "top")
-            const left = util.propPixels(pseudo, "left")
-            const marginTop = util.propPixels(pseudo, "marginTop")
-            const marginLeft = util.propPixels(pseudo, "marginLeft")
+            const top = propPixels(pseudo, "top")
+            const left = propPixels(pseudo, "left")
+            const marginTop = propPixels(pseudo, "marginTop")
+            const marginLeft = propPixels(pseudo, "marginLeft")
             pseudoDims.width = width
             pseudoDims.height = height
             pseudoDims.x += left + marginLeft
@@ -233,7 +240,7 @@ const parseElement = (element, type) => {
         ])
     }
     rects = rects.concat(pseudoElementRects(element))
-    const paddingInfo = util.findFrameInfo(element)
+    const paddingInfo = findFrameInfo(element)
     if (paddingInfo) {
         rects = rects.map(r => {
             r.x += paddingInfo.x
@@ -242,7 +249,7 @@ const parseElement = (element, type) => {
         })
     }
     // Find a clickable area and position for the given element
-    const {dimensions, clickable} = util.findClickPosition(element, rects)
+    const {dimensions, clickable} = findClickPosition(element, rects)
     // Return null if any of the checks below fail
     // - Not detected as clickable in the above loop
     // - Too small to properly click on using a regular browser
@@ -284,7 +291,7 @@ const parseElement = (element, type) => {
 }
 
 const allElementsBySelector
-= (type, selector) => [...util.querySelectorAll(selector)]
+= (type, selector) => [...querySelectorAll(selector)]
     .map(element => parseElement(element, type)).filter(e => e)
 
 const eventListeners = {}
@@ -313,7 +320,7 @@ EventTarget.prototype.removeEventListener = function(type, listener, options) {
 
 const clickListener = (e, frame = null) => {
     if (e.isTrusted) {
-        const paddingInfo = util.findFrameInfo(frame)
+        const paddingInfo = findFrameInfo(frame)
         ipcRenderer.sendToHost("mouse-click-info", {
             "x": e.x + (paddingInfo?.x || 0),
             "y": e.y + (paddingInfo?.y || 0),
@@ -334,7 +341,7 @@ window.addEventListener("mousedown", e => {
 const contextListener = (e, frame = null) => {
     if (e.isTrusted && !inFollowMode && e.button === 2) {
         e.preventDefault()
-        const paddingInfo = util.findFrameInfo(frame)
+        const paddingInfo = findFrameInfo(frame)
         ipcRenderer.sendToHost("context-click-info", {
             "x": e.x + (paddingInfo?.x || 0),
             "y": e.y + (paddingInfo?.y || 0),
@@ -356,7 +363,7 @@ window.addEventListener("auxclick", contextListener)
 setInterval(() => {
     // Regular listeners are wiped when the element is re-added to the dom,
     // so add them with an interval as an attribute listener.
-    [...util.querySelectorAll(util.frameSelector)].forEach(f => {
+    [...querySelectorAll(frameSelector)].forEach(f => {
         try {
             f.contentDocument.onclick = e => clickListener(e, f)
             f.contentDocument.oncontextmenu = e => contextListener(e, f)
@@ -365,7 +372,7 @@ setInterval(() => {
                     clickListener(e, f)
                 }
             }
-            privacy.privacyFixes(f.contentWindow)
+            privacyFixes(f.contentWindow)
         } catch (_) {
             // Not an issue, will be retried shortly
         }

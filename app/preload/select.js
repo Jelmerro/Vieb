@@ -18,7 +18,9 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const util = require("../util")
+const {
+    findElementAtPosition, querySelectorAll, findFrameInfo
+} = require("../util")
 
 let startX = 0
 let startY = 0
@@ -30,7 +32,7 @@ ipcRenderer.on("selection-start-location", (_, sX, sY) => {
     scrollHeight = window.scrollY
 })
 
-const documentAtPos = (x, y) => util.findElementAtPosition(x, y)
+const documentAtPos = (x, y) => findElementAtPosition(x, y)
     .ownerDocument || document
 
 ipcRenderer.on("selection-all", (_, x, y) => documentAtPos(x, y)
@@ -45,7 +47,7 @@ ipcRenderer.on("selection-remove", (_, x, y) => documentAtPos(x, y)
     .getSelection().removeAllRanges())
 
 ipcRenderer.on("download-image-request", (_, x, y) => {
-    const elements = [util.findElementAtPosition(x, y)]
+    const elements = [findElementAtPosition(x, y)]
     while (elements[0]?.parentNode) {
         elements.unshift(elements[0].parentNode)
     }
@@ -80,16 +82,16 @@ ipcRenderer.on("download-image-request", (_, x, y) => {
 })
 
 ipcRenderer.on("selection-request", (_, endX, endY) => {
-    util.querySelectorAll("*")
-    let startNode = util.findElementAtPosition(startX, startY)
+    querySelectorAll("*")
+    let startNode = findElementAtPosition(startX, startY)
     if (!startNode || startY < 0 || startY > window.innerHeight) {
         startNode = document.body
     }
     const selectDocument = startNode.ownerDocument || document
-    const padding = util.findFrameInfo(startNode)
+    const padding = findFrameInfo(startNode)
     const startResult = calculateOffset(startNode,
         startX - (padding?.x || 0), startY - (padding?.y || 0))
-    const endNode = util.findElementAtPosition(endX, endY)
+    const endNode = findElementAtPosition(endX, endY)
     const endResult = calculateOffset(endNode,
         endX - (padding?.x || 0), endY - (padding?.y || 0))
     const newSelectRange = selectDocument.createRange()
@@ -118,7 +120,7 @@ const isTextNode = node => [
 ].includes(node.nodeType)
 
 const calculateOffset = (startNode, x, y) => {
-    const range = (util.findElementAtPosition(startX, startY)
+    const range = (findElementAtPosition(startX, startY)
         ?.ownerDocument || document).createRange()
     range.setStart(startNode, 0)
     try {
@@ -181,7 +183,7 @@ ipcRenderer.on("search-element-location", (_, pos) => {
     searchElementPos = pos
 })
 
-ipcRenderer.on("search-element-click", () => util.findElementAtPosition(
+ipcRenderer.on("search-element-click", () => findElementAtPosition(
     searchElementPos.x + searchElementPos.width / 2,
     searchElementPos.y + searchElementPos.height / 2)?.click())
 

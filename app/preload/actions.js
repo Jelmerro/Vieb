@@ -18,7 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const util = require("../util")
+const {activeElement, writeFile} = require("../util")
 
 const increasePageNumber = url => {
     const paginations = Array.from(
@@ -88,7 +88,7 @@ const movePageNumberNaive = (movement, url) => {
     window.location = next
 }
 
-const blur = () => util.activeElement()?.blur?.()
+const blur = () => activeElement()?.blur?.()
 
 const scrollTop = () => window.scrollBy(0, -1000000000)
 
@@ -133,12 +133,12 @@ const setInputFieldText = (filename, text) => {
 }
 
 const writeInputToFile = filename => {
-    const el = util.activeElement()
+    const el = activeElement()
     if (el) {
         if (["input", "textarea"].includes(el.tagName.toLowerCase())) {
-            util.writeFile(filename, el.value)
+            writeFile(filename, el.value)
         } else if (el.getAttribute("contenteditable") === "true") {
-            util.writeFile(filename, el.textContent)
+            writeFile(filename, el.textContent)
         }
         writeableInputs[filename] = el
     }
