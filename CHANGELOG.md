@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Overall structure and module loading of Vieb
+- Follow mode now only uses the input focus when switching to insert mode
 
 ### Security
 

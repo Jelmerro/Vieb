@@ -238,7 +238,6 @@ const globDelete = folder => {
 }
 
 const clearTempContainers = () => {
-    document.getElementById("pages").innerHTML = ""
     globDelete("Partitions/temp*")
     globDelete("erwicmode")
 }

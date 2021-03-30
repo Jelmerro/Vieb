@@ -140,8 +140,22 @@ const copyAndStop = () => {
 
 const leftClick = () => {
     const factor = TABS.currentPage().getZoomFactor()
-    TABS.currentPage().send("follow-element",
-        {"x": Math.round(X / factor), "y": Math.round(Y / factor)})
+    TABS.currentPage().sendInputEvent({
+        "type": "mouseEnter", "x": X * factor, "y": Y * factor
+    })
+    TABS.currentPage().sendInputEvent({
+        "type": "mouseDown",
+        "x": X * factor,
+        "y": Y * factor,
+        "button": "left",
+        "clickCount": 1
+    })
+    TABS.currentPage().sendInputEvent({
+        "type": "mouseUp", "x": X * factor, "y": Y * factor, "button": "left"
+    })
+    TABS.currentPage().sendInputEvent({
+        "type": "mouseLeave", "x": X * factor, "y": Y * factor
+    })
 }
 
 const startOfPage = () => {
@@ -156,8 +170,8 @@ const moveLeft = () => {
 }
 
 const insertAtPosition = () => {
-    MODES.setMode("insert")
-    leftClick()
+    const factor = TABS.currentPage().getZoomFactor()
+    TABS.currentPage().send("focus-input", {"x": X * factor, "y": Y * factor})
 }
 
 const moveDown = () => {

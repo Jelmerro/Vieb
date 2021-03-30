@@ -162,6 +162,7 @@ const quitall = () => {
         HISTORY.writeHistToFile(true)
     }
     TABS.saveTabs()
+    document.getElementById("pages").innerHTML = ""
     UTIL.clearTempContainers()
     if (SETTINGS.get("cache") !== "full") {
         UTIL.clearCache()

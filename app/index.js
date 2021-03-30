@@ -46,7 +46,8 @@ const {
     makeDir,
     dirname,
     basePath,
-    globDelete
+    globDelete,
+    clearTempContainers
 } = require("./util")
 
 const version = process.env.npm_package_version || app.getVersion()
@@ -288,6 +289,7 @@ let notificationWindow = null
 // https://github.com/electron/electron/issues/23220
 app.commandLine.appendSwitch("second-instance-data", JSON.stringify(
     getArguments(process.argv)))
+clearTempContainers()
 app.on("ready", () => {
     app.userAgentFallback = useragent()
     // Request single instance lock and quit if that fails

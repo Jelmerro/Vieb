@@ -59,25 +59,24 @@ const otherEvents = [
     "auxclick"
 ]
 
-ipcRenderer.on("focus-first-text-input", async () => {
-    const input = getAllFollowLinks().find(l => l.type === "inputs-insert")
-    if (input) {
-        const element = util.findElementAtPosition(
-            input.x + input.width / 2, input.y + input.height / 2)
+ipcRenderer.on("focus-input", async (_, follow = null) => {
+    let element = null
+    if (follow) {
+        element = util.findElementAtPosition(follow.x, follow.y)
+    } else {
+        const input = getAllFollowLinks().find(l => l.type === "inputs-insert")
+        if (input) {
+            element = util.findElementAtPosition(
+                input.x + input.width / 2, input.y + input.height / 2)
+        }
+    }
+    if (element) {
         if (element?.click && element?.focus) {
             ipcRenderer.sendToHost("switch-to-insert")
             await new Promise(r => setTimeout(r, 5))
             element.click()
             element.focus()
         }
-    }
-})
-
-ipcRenderer.on("follow-element", (_, follow) => {
-    const element = util.findElementAtPosition(follow.x, follow.y)
-    if (element?.click && element?.focus) {
-        element.click()
-        element.focus()
     }
 })
 

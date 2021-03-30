@@ -27,7 +27,6 @@ const defaultBlocklists = {
 }
 
 const init = () => {
-    UTIL.clearTempContainers()
     enableAdblocker()
     create("main")
     ipcRenderer.on("notify", (_, message, type, clickAction) => {

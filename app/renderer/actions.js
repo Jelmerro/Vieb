@@ -52,9 +52,7 @@ const startFollowCurrentTab = () => FOLLOW.startFollow(false)
 
 const scrollTop = () => TABS.currentPage()?.send("action", "scrollTop")
 
-const insertAtFirstInput = () => {
-    TABS.currentPage()?.send("focus-first-text-input")
-}
+const insertAtFirstInput = () => TABS.currentPage()?.send("focus-input")
 
 const scrollLeft = () => TABS.currentPage()?.send("action", "scrollLeft")
 
