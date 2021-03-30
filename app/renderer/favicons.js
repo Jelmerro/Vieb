@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2020 Jelmer van Arnhem
+* Copyright (C) 2019-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,15 +19,13 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const path = require("path")
-const fs = require("fs")
 
-const faviconFolder = path.join(UTIL.appData(), "favicons")
-const mappingFile = path.join(faviconFolder, "mappings")
+const faviconFolder = UTIL.joinPath(UTIL.appData(), "favicons")
+const mappingFile = UTIL.joinPath(faviconFolder, "mappings")
 let mappings = {}
 const sessionStart = new Date()
 let isParsed = false
-const viebIcon = `file:///${path.join(
+const viebIcon = `file:///${UTIL.joinPath(
     __dirname, "../img/icons/256x256.png").replace(/^\/*/g, "")}`
 
 const init = () => {
@@ -58,23 +56,21 @@ const updateMappings = (currentUrl = null) => {
     })
     // Delete unmapped favicon icons from disk
     const mappedFavicons = Object.values(mappings).map(f => urlToPath(f))
-    try {
-        fs.readdirSync(faviconFolder)
-            .filter(p => p !== "mappings")
-            .map(p => path.join(faviconFolder, p))
+    const files = UTIL.listDir(faviconFolder)
+    if (files) {
+        files.filter(p => p !== "mappings")
+            .map(p => UTIL.joinPath(faviconFolder, p))
             .forEach(img => {
                 if (!mappedFavicons.includes(img)) {
                     UTIL.deleteFile(img)
                 }
             })
-    } catch (e) {
-        // Failed to list files, folder might not exist (no favicons yet)
     }
     // Write changes to mapping file
     UTIL.writeJSON(mappingFile, mappings)
 }
 
-const urlToPath = url => path.join(faviconFolder,
+const urlToPath = url => UTIL.joinPath(faviconFolder,
     encodeURIComponent(url).replace(/%/g, "_")).slice(0, 256)
 
 const loading = webview => {
@@ -97,8 +93,9 @@ const empty = webview => {
 const show = webview => {
     const tab = TABS.tabOrPageMatching(webview)
     tab.querySelector(".status").style.display = "none"
-    if (tab.querySelector(".favicon").getAttribute("src") !== "img/empty.png") {
-        tab.querySelector(".favicon").style.display = null
+    const favicon = tab.querySelector(".favicon")
+    if (favicon.getAttribute("src") !== "img/empty.png") {
+        favicon.style.display = null
     }
 }
 
@@ -141,11 +138,7 @@ const update = (webview, urls) => {
         setPath(tab, urlToPath(favicon))
         return
     }
-    try {
-        fs.mkdirSync(faviconFolder)
-    } catch (e) {
-        // Directory probably already exists
-    }
+    UTIL.makeDir(faviconFolder)
     ipcRenderer.send("download-favicon", favicon, urlToPath(favicon),
         webview.getWebContentsId(), webview.getAttribute("link-id"), currentUrl)
 }
@@ -160,12 +153,8 @@ const deleteIfTooOld = loc => {
         return
     }
     if (setting === "session") {
-        try {
-            if (sessionStart > fs.statSync(loc).mtime) {
-                fs.unlinkSync(loc)
-            }
-        } catch (e) {
-            // Could not delete cached favicon
+        if (sessionStart > UTIL.modifiedAt(loc)) {
+            UTIL.deleteFile(loc)
         }
         return
     }
@@ -174,13 +163,9 @@ const deleteIfTooOld = loc => {
     if (isNaN(cutoff)) {
         return
     }
-    try {
-        const days = (new Date() - fs.statSync(loc).mtime) / 1000 / 60 / 60 / 24
-        if (days > cutoff) {
-            fs.unlinkSync(loc)
-        }
-    } catch (e) {
-        // Could not delete cached favicon
+    const days = (new Date() - UTIL.modifiedAt(loc)) / 1000 / 60 / 60 / 24
+    if (days > cutoff) {
+        UTIL.deleteFile(loc)
     }
 }
 

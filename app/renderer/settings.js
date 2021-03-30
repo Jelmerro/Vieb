@@ -18,7 +18,6 @@
 /* global COMMAND INPUT MODES PAGELAYOUT POINTER SESSIONS TABS UTIL */
 "use strict"
 
-const path = require("path")
 const {ipcRenderer} = require("electron")
 
 const defaultSettings = {
@@ -181,7 +180,7 @@ const numberRanges = {
     "suspendtimeout": [0, 9000000000000000],
     "timeoutlen": [0, 10000]
 }
-const config = path.join(UTIL.appData(), "viebrc")
+const config = UTIL.joinPath(UTIL.appData(), "viebrc")
 let navbarGuiTimer = null
 let tabbarGuiTimer = null
 let topOfPageWithMouse = false
@@ -604,7 +603,7 @@ const updateMouseSettings = () => {
 }
 
 const updateWebviewSettings = () => {
-    const webviewSettingsFile = path.join(
+    const webviewSettingsFile = UTIL.joinPath(
         UTIL.appData(), "webviewsettings")
     UTIL.writeJSON(webviewSettingsFile, {
         "permissiondisplaycapture": get("permissiondisplaycapture"),
@@ -685,7 +684,7 @@ const suggestionList = () => {
 
 const loadFromDisk = () => {
     allSettings = JSON.parse(JSON.stringify(defaultSettings))
-    if (UTIL.isFile(path.join(UTIL.appData(), "erwicmode"))) {
+    if (UTIL.isFile(UTIL.joinPath(UTIL.appData(), "erwicmode"))) {
         set("containernewtab", "s:external")
         set("containerstartuppage", "s:usematching")
         set("permissioncamera", "allow")

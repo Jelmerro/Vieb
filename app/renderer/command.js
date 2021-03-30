@@ -20,7 +20,6 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const path = require("path")
 
 const listSetting = setting => {
     if (setting === "all") {
@@ -190,10 +189,11 @@ const colorscheme = (name = null, trailingArgs = false) => {
     }
     let css = UTIL.readFile(UTIL.expandPath(`~/.vieb/colors/${name}.css`))
     if (!css) {
-        css = UTIL.readFile(path.join(UTIL.appData(), `colors/${name}.css`))
+        css = UTIL.readFile(UTIL.joinPath(UTIL.appData(), `colors/${name}.css`))
     }
     if (!css) {
-        css = UTIL.readFile(path.join(__dirname, "../colors", `${name}.css`))
+        css = UTIL.readFile(UTIL.joinPath(__dirname,
+            "../colors", `${name}.css`))
     }
     if (!css) {
         UTIL.notify(`Cannot find colorscheme '${name}'`, "warn")
@@ -291,22 +291,22 @@ const write = (file, trailingArgs = false) => {
     if (!TABS.currentPage()) {
         return
     }
-    let name = path.basename(TABS.currentPage().src).split("?")[0]
+    let name = UTIL.basePath(TABS.currentPage().src).split("?")[0]
     if (!name.includes(".")) {
         name += ".html"
     }
     name = `${new URL(TABS.currentPage().src).hostname} ${name}`.trim()
-    let loc = path.join(UTIL.downloadPath(), name)
+    let loc = UTIL.joinPath(UTIL.downloadPath(), name)
     if (file) {
         file = UTIL.expandPath(file)
-        if (!path.isAbsolute(file)) {
-            file = path.join(UTIL.downloadPath(), file)
+        if (!UTIL.isAbsolutePath(file)) {
+            file = UTIL.joinPath(UTIL.downloadPath(), file)
         }
-        const folder = path.dirname(file)
+        const folder = UTIL.dirname(file)
         if (UTIL.isDir(folder)) {
             if (UTIL.pathExists(file)) {
                 if (UTIL.isDir(file)) {
-                    loc = path.join(file, name)
+                    loc = UTIL.joinPath(file, name)
                 } else {
                     loc = file
                 }
@@ -589,9 +589,9 @@ const makedefault = () => {
     if (process.platform === "linux" || process.platform.endsWith("bsd")) {
         exec("xdg-settings set default-web-browser vieb.desktop", logError)
     } else if (process.platform === "win32") {
-        const scriptContents = UTIL.readFile(path.join(
+        const scriptContents = UTIL.readFile(UTIL.joinPath(
             __dirname, "../defaultapp/windows.bat"))
-        const tempFile = path.join(UTIL.appData(), "defaultapp.bat")
+        const tempFile = UTIL.joinPath(UTIL.appData(), "defaultapp.bat")
         UTIL.writeFile(tempFile, scriptContents)
         exec(`Powershell Start ${tempFile} -ArgumentList `
             + `"""${process.execPath}""" -Verb Runas`, logError)

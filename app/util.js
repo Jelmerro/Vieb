@@ -18,10 +18,10 @@
 /* global SETTINGS */
 "use strict"
 
+require("hazardous")
 const {ipcRenderer} = require("electron")
 const fs = require("fs")
 const path = require("path")
-const {homedir} = require("os")
 
 const protocolRegex = /^[a-z][a-z0-9-+.]+:\/\//
 const specialPages = [
@@ -38,6 +38,9 @@ const notificationHistory = []
 let customIcon = null
 let applicationName = ""
 let appDataPath = ""
+let homeDirPath = ""
+const framePaddingInfo = []
+const frameSelector = "embed, frame, iframe, object"
 
 const hasProtocol = location => protocolRegex.test(location)
 
@@ -96,17 +99,17 @@ const isUrl = location => {
     return false
 }
 
-const isSearchword = location => {
+const searchword = location => {
     for (const mapping of SETTINGS.get("searchwords").split(",")) {
-        const [searchword, url] = mapping.split("~")
-        if (searchword && url) {
-            const query = location.replace(`${searchword} `, "")
-            if (query && location.startsWith(`${searchword} `)) {
-                return true
+        const [word, url] = mapping.split("~")
+        if (word && url) {
+            const query = location.replace(`${word} `, "")
+            if (query && location.startsWith(`${word} `)) {
+                return {word, "url": stringToUrl(url.replace(/%s/g, query))}
             }
         }
     }
-    return false
+    return {"word": null, "url": location}
 }
 
 const notify = (message, type = "info", clickAction = false) => {
@@ -173,7 +176,7 @@ const specialPagePath = (page, section = null, skipExistCheck = false) => {
     if (!specialPages.includes(page) && !skipExistCheck) {
         page = "help"
     }
-    const url = path.join(__dirname, `../pages/${page}.html`)
+    const url = joinPath(__dirname, `./pages/${page}.html`)
         .replace(/\\/g, "/").replace(/^\/*/g, "")
     if (section) {
         if (section.startsWith("#")) {
@@ -224,7 +227,11 @@ const pathToSpecialPageName = urlPath => {
 
 const globDelete = folder => {
     try {
-        require("rimraf").sync(path.join(appData(), folder))
+        if (isAbsolutePath(folder)) {
+            require("rimraf").sync(folder)
+        } else {
+            require("rimraf").sync(joinPath(appData(), folder))
+        }
     } catch (e) {
         // Rimraf errors
     }
@@ -261,11 +268,15 @@ const clearLocalStorage = () => {
     globDelete("**/*.ldb")
 }
 
-const expandPath = homePath => {
-    if (homePath.startsWith("~")) {
-        return homePath.replace("~", homedir())
+const expandPath = loc => {
+    if (loc.startsWith("~")) {
+        if (!homeDirPath) {
+            homeDirPath = process.env.HOME || process.env.USERPROFILE
+                || require("os").homedir()
+        }
+        return loc.replace("~", homeDirPath)
     }
-    return homePath
+    return loc
 }
 
 const isObject = o => o === Object(o)
@@ -410,6 +421,12 @@ const appName = () => {
 
 const appData = () => {
     if (!appDataPath) {
+        try {
+            const {app} = require("electron")
+            return app.getPath("appData")
+        } catch (_) {
+            // Not in main thread
+        }
         appDataPath = ipcRenderer.sendSync("appdata-path")
     }
     return appDataPath
@@ -432,13 +449,203 @@ const sameDomain = (d1, d2) => {
     return d1 && d2 && h1 && h2 && h1 === h2
 }
 
+const formatDate = date => {
+    if (typeof date === "string") {
+        date = new Date(date)
+    }
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")
+    }-${String(date.getDate()).padStart(2, "0")} ${String(date.getHours())
+        .padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${
+        String(date.getSeconds()).padStart(2, "0")}`
+}
+
+const makeDir = (loc, err = null, success = null) => {
+    try {
+        fs.mkdirSync(loc, {"recursive": true})
+        if (success) {
+            notify(success)
+        }
+        return true
+    } catch (e) {
+        if (err) {
+            notify(err, "err")
+        }
+    }
+    return false
+}
+
+const joinPath = (...args) => path.resolve(path.join(...args))
+
+const basePath = (...args) => path.basename(...args)
+
+const listDir = (loc, absolute = false, dirsOnly = false) => {
+    try {
+        let files = fs.readdirSync(loc)
+        if (absolute) {
+            files = files.map(f => joinPath(loc, f))
+        }
+        if (dirsOnly) {
+            files = files.filter(f => isDir(f))
+        }
+        return files
+    } catch (_) {
+        return null
+    }
+}
+
+const watchFile = (...args) => fs.watchFile(...args)
+
+const modifiedAt = loc => {
+    try {
+        return fs.statSync(loc).mtime
+    } catch (_) {
+        return 0
+    }
+}
+
+const dirname = (...args) => path.dirname(...args)
+
+const isAbsolutePath = (...args) => path.isAbsolute(...args)
+
+const storeFrameInfo = (element, options) => {
+    if (!element) {
+        return
+    }
+    const info = framePaddingInfo.find(i => i.element === element)
+    if (info) {
+        Object.assign(info, options)
+    } else {
+        framePaddingInfo.push({element, ...options})
+    }
+}
+
+const findFrameInfo = el => framePaddingInfo.find(i => i.element === el)
+
+const framePosition = frame => ({
+    "x": frame.getBoundingClientRect().x
+        + propPixels({"pl": getComputedStyle(frame).paddingLeft}, "pl")
+        + propPixels({"bl": getComputedStyle(frame).borderLeftWidth}, "bl"),
+    "y": frame.getBoundingClientRect().y
+        + propPixels({"pt": getComputedStyle(frame).paddingTop}, "pt")
+        + propPixels({"bt": getComputedStyle(frame).borderTopWidth}, "bt")
+})
+
+const propPixels = (element, prop) => {
+    const value = element[prop]
+    if (value?.endsWith("px")) {
+        return Number(value.replace("px", "")) || 0
+    }
+    if (value?.endsWith("em")) {
+        const elementFontSize = Number(getComputedStyle(document.body)
+            .fontSize.replace("px", "")) || 0
+        return Number(value.replace("em", "")) * elementFontSize || 0
+    }
+    return 0
+}
+
+const findElementAtPosition = (x, y, levels = [document], px = 0, py = 0) => {
+    // Find out which element is located at a given position.
+    // Will look inside subframes recursively at the corrected position.
+    const elementAtPos = levels?.[0]?.elementFromPoint(x - px, y - py)
+    if (levels.includes(elementAtPos?.shadowRoot || elementAtPos)) {
+        return elementAtPos
+    }
+    if (elementAtPos?.matches?.(frameSelector)) {
+        const frameInfo = findFrameInfo(elementAtPos) || {}
+        return findElementAtPosition(x, y,
+            [elementAtPos.contentDocument, ...levels], frameInfo.x, frameInfo.y)
+    }
+    if (elementAtPos?.shadowRoot) {
+        const frameInfo = findFrameInfo(elementAtPos.shadowRoot) || {}
+        return findElementAtPosition(x, y,
+            [elementAtPos.shadowRoot, ...levels], frameInfo.x, frameInfo.y)
+    }
+    return elementAtPos
+}
+
+const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
+    if (!base) {
+        return []
+    }
+    let elements = []
+    if (base === document) {
+        elements = Array.from(base.querySelectorAll(sel) || [])
+    }
+    Array.from(base.querySelectorAll("*") || [])
+        .filter(el => el.shadowRoot || el?.matches?.(frameSelector))
+        .forEach(el => {
+            let location = {"x": paddedX, "y": paddedY}
+            if (!el.shadowRoot) {
+                const {"x": frameX, "y": frameY} = framePosition(el)
+                location = {"x": frameX + paddedX, "y": frameY + paddedY}
+            }
+            storeFrameInfo(el?.shadowRoot || el, location)
+            const extra = Array.from((el.contentDocument || el.shadowRoot)
+                ?.querySelectorAll(sel) || [])
+            extra.forEach(e => storeFrameInfo(e, location))
+            elements = elements.concat([...extra, ...querySelectorAll(sel,
+                el.contentDocument || el.shadowRoot,
+                location.x, location.y)])
+        })
+    return elements
+}
+
+const findClickPosition = (element, rects) => {
+    let dimensions = {}
+    let clickable = false
+    // Check if the center of the bounding rect is actually clickable,
+    // For every possible rect of the element and it's sub images.
+    for (const rect of rects) {
+        const rectX = rect.x + rect.width / 2
+        const rectY = rect.y + rect.height / 2
+        // Update the region if it's larger or the first region found
+        if (rect.width > dimensions.width
+                || rect.height > dimensions.height || !clickable) {
+            const elementAtPos = findElementAtPosition(rectX, rectY)
+            if (element === elementAtPos || element?.contains(elementAtPos)) {
+                clickable = true
+                dimensions = rect
+            }
+        }
+    }
+    return {clickable, dimensions}
+}
+
+const activeElement = () => {
+    if (document.activeElement?.shadowRoot?.activeElement) {
+        return document.activeElement.shadowRoot.activeElement
+    }
+    if (document.activeElement !== document.body) {
+        if (!document.activeElement?.matches(frameSelector)) {
+            return document.activeElement
+        }
+    }
+    return querySelectorAll(frameSelector).map(frame => {
+        const doc = frame.contentDocument
+        if (!doc) {
+            return false
+        }
+        if (doc.activeElement?.shadowRoot?.activeElement) {
+            return doc.activeElement.shadowRoot.activeElement
+        }
+        if (doc.body !== doc.activeElement) {
+            if (!doc.activeElement.matches(frameSelector)) {
+                return doc.activeElement
+            }
+        }
+        return false
+    }).find(el => el)
+}
+
+
 module.exports = {
     hasProtocol,
     isUrl,
-    isSearchword,
+    searchword,
     notify,
     specialPagePath,
     pathToSpecialPageName,
+    globDelete,
     clearTempContainers,
     clearCache,
     clearCookies,
@@ -462,5 +669,21 @@ module.exports = {
     appName,
     appData,
     firefoxUseragent,
-    sameDomain
+    sameDomain,
+    formatDate,
+    makeDir,
+    joinPath,
+    basePath,
+    listDir,
+    watchFile,
+    modifiedAt,
+    dirname,
+    isAbsolutePath,
+    findFrameInfo,
+    propPixels,
+    findElementAtPosition,
+    querySelectorAll,
+    findClickPosition,
+    activeElement,
+    frameSelector
 }

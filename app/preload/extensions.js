@@ -18,13 +18,13 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const path = require("path")
+const {joinPath} = require("../util")
 
 const listExtension = ext => {
     const container = document.createElement("div")
     container.className = "extension"
     const img = document.createElement("img")
-    img.src = path.join(ext.path, ext.icon)
+    img.src = joinPath(ext.path, ext.icon)
     container.appendChild(img)
     const textNodes = document.createElement("div")
     textNodes.className = "fullwidth"
@@ -40,7 +40,7 @@ const listExtension = ext => {
     textNodes.appendChild(id)
     container.appendChild(textNodes)
     const removeIcon = document.createElement("img")
-    removeIcon.src = path.join(__dirname, "../../img/trash.png")
+    removeIcon.src = joinPath(__dirname, "../img/trash.png")
     removeIcon.addEventListener("click", () => {
         ipcRenderer.send("remove-extension", ext.path.replace(
             /^.*(\/|\\)/g, ""))

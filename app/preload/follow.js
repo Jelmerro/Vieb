@@ -19,7 +19,7 @@
 
 const {ipcRenderer} = require("electron")
 const privacy = require("./privacy")
-const util = require("./util")
+const util = require("../util")
 
 let inFollowMode = false
 

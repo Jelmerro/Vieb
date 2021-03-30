@@ -18,9 +18,7 @@
 /* global FAVICONS SETTINGS SUGGEST TABS UTIL */
 "use strict"
 
-const path = require("path")
-
-const histFile = path.join(UTIL.appData(), "hist")
+const histFile = UTIL.joinPath(UTIL.appData(), "hist")
 let groupedHistory = {}
 const simpleUrls = {}
 let histWriteTimeout = null
@@ -46,7 +44,7 @@ const suggestHist = search => {
         }
         let simpleUrl = simpleUrls[url]
         if (simpleUrl === undefined) {
-            simpleUrl = UTIL.stringToUrl(url)
+            simpleUrl = UTIL.urlToString(url)
                 .replace(specialChars, "").toLowerCase()
             simpleUrls[url] = simpleUrl
         }

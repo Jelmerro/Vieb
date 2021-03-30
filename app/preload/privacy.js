@@ -18,15 +18,14 @@
 "use strict"
 
 const {desktopCapturer, ipcRenderer} = require("electron")
-const fs = require("fs")
-const path = require("path")
+const {readJSON, joinPath} = require("../util")
 
 const message = "The page has requested to view a list of all media devices."
     + " You can allow or deny this below, and choose if you want the list to"
     + " include the names (labels) of the media device in the response."
     + " For help and options, see ':h permissionmediadevices', ':h permissions"
     + "allowed', ':h permissionsasked' and ':h permissionsblocked'."
-const settingsFile = path.join(
+const settingsFile = joinPath(
     ipcRenderer.sendSync("appdata-path"), "webviewsettings")
 
 const privacyFixes = (w = window) => {
@@ -47,12 +46,7 @@ const privacyFixes = (w = window) => {
         }
         w.navigator.mediaDevices.enumerateDevices = async () => {
             let setting = "ask"
-            let settings = {}
-            try {
-                settings = JSON.parse(fs.readFileSync(settingsFile).toString())
-            } catch (e) {
-                // No webview settings configured, assuming the default "ask"
-            }
+            const settings = readJSON(settingsFile) || {}
             setting = settings.permissionmediadevices || setting
             if (!["block", "ask", "allow", "allowfull"].includes(setting)) {
                 setting = "ask"
@@ -216,12 +210,7 @@ const displayCaptureStyling = `html, body {overflow: hidden !important;}
 }`
 const customDisplayMedia = frameWindow => new Promise((resolve, reject) => {
     let setting = "block"
-    let settings = {}
-    try {
-        settings = JSON.parse(fs.readFileSync(settingsFile).toString())
-    } catch (e) {
-        // No webview settings configured, assuming the default "block"
-    }
+    const settings = readJSON(settingsFile) || {}
     setting = settings.permissiondisplaycapture || setting
     let settingRule = ""
     for (const type of ["ask", "block"]) {

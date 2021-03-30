@@ -18,7 +18,6 @@
 /* eslint-disable no-console */
 "use strict"
 
-require("hazardous")
 const {
     app,
     BrowserWindow,
@@ -30,13 +29,25 @@ const {
     shell,
     webContents
 } = require("electron")
-const fs = require("fs")
-const path = require("path")
-const {homedir} = require("os")
 const {ElectronBlocker} = require("@cliqz/adblocker-electron")
 const cmd7z = require("7zip-min").cmd
 const isSvg = require("is-svg")
-const rimraf = require("rimraf").sync
+const {
+    writeJSON,
+    readJSON,
+    writeFile,
+    readFile,
+    isDir,
+    listDir,
+    expandPath,
+    deleteFile,
+    isFile,
+    joinPath,
+    makeDir,
+    dirname,
+    basePath,
+    globDelete
+} = require("./util")
 
 const version = process.env.npm_package_version || app.getVersion()
 const printUsage = () => {
@@ -98,62 +109,8 @@ const printLicense = () => {
     console.log("There is NO WARRANTY, to the extent permitted by law.")
     console.log("See the LICENSE file or the GNU website for details.")
 }
-const isDir = loc => {
-    try {
-        return fs.statSync(loc).isDirectory()
-    } catch (e) {
-        return false
-    }
-}
-const isFile = loc => {
-    try {
-        return fs.statSync(loc).isFile()
-    } catch (e) {
-        return false
-    }
-}
-const deleteFile = loc => {
-    try {
-        fs.unlinkSync(loc)
-    } catch (e) {
-        // Probably already deleted
-    }
-}
-const listDirs = loc => {
-    try {
-        return fs.readdirSync(loc).map(
-            f => path.join(loc, f)).filter(() => isDir)
-    } catch (e) {
-        return []
-    }
-}
-const readJSON = loc => {
-    try {
-        return JSON.parse(fs.readFileSync(loc).toString())
-    } catch (e) {
-        return null
-    }
-}
-const writeJSON = (loc, data) => {
-    try {
-        fs.writeFileSync(loc, JSON.stringify(data))
-        return true
-    } catch (e) {
-        return false
-    }
-}
-const expandPath = homePath => {
-    if (homePath.startsWith("~")) {
-        return homePath.replace("~", homedir())
-    }
-    return homePath
-}
 const applyDevtoolsSettings = prefFile => {
-    try {
-        fs.mkdirSync(path.dirname(prefFile), {"recursive": true})
-    } catch (e) {
-        // Directory probably already exists
-    }
+    makeDir(dirname(prefFile))
     const preferences = readJSON(prefFile) || {}
     if (!preferences.electron) {
         preferences.electron = {}
@@ -184,7 +141,7 @@ const useragent = () => session.defaultSession.getUserAgent()
 app.commandLine.appendSwitch("disable-features", "CrossOriginOpenerPolicy")
 
 const getArguments = argv => {
-    const execFile = path.basename(argv[0])
+    const execFile = basePath(argv[0])
     if (execFile === "electron" || process.defaultApp && execFile !== "vieb") {
         // The array argv is ["electron", "app", ...args]
         return argv.slice(2)
@@ -209,7 +166,7 @@ let strictSiteIsolation = isTruthyArg(process.env.VIEB_STRICT_ISOLATION)
 let disableMediaKeys = isTruthyArg(process.env.VIEB_DISABLE_MEDIA_KEYS)
 let erwic = process.env.VIEB_ERWIC?.trim() || ""
 let datafolder = process.env.VIEB_DATAFOLDER?.trim()
-    || path.join(app.getPath("appData"), "Vieb")
+    || joinPath(app.getPath("appData"), "Vieb")
 let customIcon = null
 args.forEach(arg => {
     arg = arg.trim()
@@ -269,10 +226,10 @@ if (disableMediaKeys) {
     app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling")
 }
 app.setName("Vieb")
-datafolder = `${path.resolve(expandPath(datafolder.trim()))}/`
+datafolder = `${joinPath(expandPath(datafolder.trim()))}/`
 app.setPath("appData", datafolder)
 app.setPath("userData", datafolder)
-applyDevtoolsSettings(path.join(datafolder, "Preferences"))
+applyDevtoolsSettings(joinPath(datafolder, "Preferences"))
 if (erwic) {
     const config = readJSON(erwic)
     if (!config) {
@@ -285,15 +242,15 @@ if (erwic) {
     }
     if (config.icon) {
         config.icon = expandPath(config.icon)
-        if (config.icon !== path.resolve(config.icon)) {
-            config.icon = path.join(path.dirname(erwic), config.icon)
+        if (config.icon !== joinPath(config.icon)) {
+            config.icon = joinPath(dirname(erwic), config.icon)
         }
         if (!isFile(config.icon)) {
             config.icon = null
         }
         customIcon = config.icon
     }
-    fs.writeFileSync(path.join(datafolder, "erwicmode"), "")
+    writeFile(joinPath(datafolder, "erwicmode"), "")
     if (!Array.isArray(config.apps)) {
         console.log("Erwic config file requires a list of 'apps'")
         printUsage()
@@ -303,8 +260,8 @@ if (erwic) {
         a.container = a.container?.replace(/[^A-Za-z0-9_]/g, "")
         if (typeof a.script === "string") {
             a.script = expandPath(a.script)
-            if (a.script !== path.resolve(a.script)) {
-                a.script = path.join(path.dirname(erwic), a.script)
+            if (a.script !== joinPath(a.script)) {
+                a.script = joinPath(dirname(erwic), a.script)
             }
             if (!isFile(a.script)) {
                 a.script = null
@@ -365,7 +322,7 @@ app.on("ready", () => {
     }
     app.on("open-url", (_, url) => mainWindow.webContents.send("urls", [url]))
     if (!app.isPackaged && !customIcon) {
-        customIcon = path.join(__dirname, "img/icons/512x512.png")
+        customIcon = joinPath(__dirname, "img/icons/512x512.png")
     }
     // Init mainWindow
     const windowData = {
@@ -377,7 +334,7 @@ app.on("ready", () => {
         "closable": false,
         "icon": customIcon,
         "webPreferences": {
-            "preload": path.join(__dirname, "apploader.js"),
+            "preload": joinPath(__dirname, "renderer/index.js"),
             "sandbox": false,
             "contextIsolation": false,
             "disableBlinkFeatures": "Auxclick",
@@ -401,14 +358,14 @@ app.on("ready", () => {
         e.preventDefault()
     })
     // Load app and send urls when ready
-    mainWindow.loadURL(`file://${path.join(__dirname, "index.html")}`)
+    mainWindow.loadURL(`file://${joinPath(__dirname, "index.html")}`)
     mainWindow.webContents.once("did-finish-load", () => {
         mainWindow.webContents.on("new-window", e => e.preventDefault())
         mainWindow.webContents.on("will-navigate", e => e.preventDefault())
         mainWindow.webContents.on("will-redirect", e => e.preventDefault())
         mainWindow.webContents.on("will-attach-webview", (_, prefs) => {
             delete prefs.preloadURL
-            prefs.preload = path.join(__dirname, "js/preload.js")
+            prefs.preload = joinPath(__dirname, "preload/index.js")
             prefs.nodeIntegration = false
             prefs.nodeIntegrationInSubFrames = false
             prefs.contextIsolation = false
@@ -431,7 +388,7 @@ app.on("ready", () => {
         "resizable": false,
         "icon": customIcon,
         "webPreferences": {
-            "preload": path.join(__dirname, "js/preloads/loginpopup.js"),
+            "preload": joinPath(__dirname, "preload/loginpopup.js"),
             "sandbox": true,
             "contextIsolation": true,
             "disableBlinkFeatures": "Auxclick",
@@ -441,7 +398,7 @@ app.on("ready", () => {
         }
     }
     loginWindow = new BrowserWindow(loginWindowData)
-    const loginPage = `file:///${path.join(__dirname, "pages/loginpopup.html")}`
+    const loginPage = `file:///${joinPath(__dirname, "pages/loginpopup.html")}`
     loginWindow.loadURL(loginPage)
     loginWindow.on("close", e => {
         e.preventDefault()
@@ -461,7 +418,7 @@ app.on("ready", () => {
         "resizable": false,
         "icon": customIcon,
         "webPreferences": {
-            "preload": path.join(__dirname, "js/preloads/notificationpopup.js"),
+            "preload": joinPath(__dirname, "preload/notificationpopup.js"),
             "sandbox": true,
             "contextIsolation": true,
             "disableBlinkFeatures": "Auxclick",
@@ -471,7 +428,7 @@ app.on("ready", () => {
         }
     }
     notificationWindow = new BrowserWindow(notificationWindowData)
-    const notificationPage = `file:///${path.join(
+    const notificationPage = `file:///${joinPath(
         __dirname, "pages/notificationpopup.html")}`
     notificationWindow.loadURL(notificationPage)
     notificationWindow.on("close", e => {
@@ -550,7 +507,7 @@ ipcMain.on("show-notification", (_, escapedMessage, properType) => {
 })
 
 // Create and manage sessions, mostly downloads, adblocker and permissions
-const dlsFile = path.join(app.getPath("appData"), "dls")
+const dlsFile = joinPath(app.getPath("appData"), "dls")
 let downloadSettings = {}
 let downloads = []
 let redirects = ""
@@ -649,9 +606,9 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     if (sessionList.includes(name)) {
         return
     }
-    const partitionDir = path.join(app.getPath("appData"), "Partitions")
-    const sessionDir = path.join(partitionDir, name.split(":")[1] || name)
-    applyDevtoolsSettings(path.join(sessionDir, "Preferences"))
+    const partitionDir = joinPath(app.getPath("appData"), "Partitions")
+    const sessionDir = joinPath(partitionDir, name.split(":")[1] || name)
+    applyDevtoolsSettings(joinPath(sessionDir, "Preferences"))
     const newSession = session.fromPartition(name, {cache})
     newSession.setPermissionRequestHandler(permissionHandler)
     newSession.setPermissionCheckHandler(() => true)
@@ -659,7 +616,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     if (adblock !== "off") {
         enableAdblocker()
     }
-    listDirs(path.join(datafolder, "extensions")).forEach(loc => {
+    listDir(joinPath(datafolder, "extensions"), true, true)?.forEach(loc => {
+        console.log("\n", loc, "\n")
         newSession.loadExtension(loc, {"allowFileAccess": true})
     })
     newSession.webRequest.onBeforeRequest((details, callback) => {
@@ -690,10 +648,10 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             return
         }
         const filename = item.getFilename()
-        let save = path.join(downloadSettings.downloadpath, filename)
+        let save = joinPath(downloadSettings.downloadpath, filename)
         let duplicateNumber = 1
         let newFilename = item.getFilename()
-        while (fs.existsSync(save) && fs.statSync(save).isFile()) {
+        while (isFile(save)) {
             duplicateNumber += 1
             const extStart = filename.lastIndexOf(".")
             if (extStart === -1) {
@@ -702,7 +660,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 newFilename = `${filename.substring(0, extStart)} (${
                     duplicateNumber}).${filename.substring(extStart + 1)}`
             }
-            save = path.join(downloadSettings.downloadpath, newFilename)
+            save = joinPath(downloadSettings.downloadpath, newFilename)
         }
         if (downloadSettings.downloadmethod !== "ask") {
             item.setSavePath(save)
@@ -923,21 +881,17 @@ const enableAdblocker = () => {
         disableAdblocker()
     }
     const blocklistsFolders = [
-        path.join(app.getPath("appData"), "blocklists"),
+        joinPath(app.getPath("appData"), "blocklists"),
         expandPath("~/.vieb/blocklists")
     ]
     // Read all filter files from the blocklists folders
     let filters = ""
     for (const blocklistsFolder of blocklistsFolders) {
-        try {
-            for (const file of fs.readdirSync(blocklistsFolder)) {
-                if (file.endsWith(".txt")) {
-                    filters += loadBlocklist(file)
-                }
+        listDir(blocklistsFolder, true)?.forEach(file => {
+            if (file.endsWith(".txt")) {
+                filters += loadBlocklist(file)
             }
-        } catch (e) {
-            // Folder not readable, nothing we can do
-        }
+        })
     }
     blocker = ElectronBlocker.parse(filters)
     ipcMain.on("get-cosmetic-filters", blocker.onGetCosmeticFilters)
@@ -964,23 +918,22 @@ const disableAdblocker = () => {
 ipcMain.on("adblock-enable", enableAdblocker)
 ipcMain.on("adblock-disable", disableAdblocker)
 const loadBlocklist = file => {
-    const appdataName = path.join(app.getPath("appData"), `blocklists/${file}`)
-    try {
-        return `${fs.readFileSync(appdataName).toString()}\n`
-    } catch (e) {
-        return ""
+    const contents = readFile(file)
+    if (contents) {
+        return `${contents}\n`
     }
+    return ""
 }
 
 // Manage installed browser extensions
 ipcMain.on("install-extension", (_, url, extension, extType) => {
-    const zipLoc = path.join(datafolder, "extensions", extension)
+    const zipLoc = joinPath(datafolder, "extensions", extension)
     if (isDir(`${zipLoc}/`)) {
         mainWindow.webContents.send("notify",
             `Extension already installed: ${extension}`)
         return
     }
-    fs.mkdirSync(`${zipLoc}/`, {"recursive": true})
+    makeDir(`${zipLoc}/`)
     mainWindow.webContents.send("notify",
         `Installing ${extType} extension: ${extension}`)
     const request = net.request({url, "partition": "persist:main"})
@@ -995,24 +948,28 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
                 return
             }
             const file = Buffer.concat(data)
-            fs.writeFileSync(`${zipLoc}.${extType}`, file)
+            writeFile(`${zipLoc}.${extType}`, file)
             cmd7z([
                 "x", "-aoa", "-tzip", `${zipLoc}.${extType}`, `-o${zipLoc}/`
             ], () => {
-                rimraf(`${zipLoc}/_metadata/`)
+                globDelete(`${zipLoc}/_metadata/`)
                 sessionList.forEach(ses => {
                     session.fromPartition(ses).loadExtension(zipLoc, {
                         "allowFileAccess": true
                     }).then(() => {
-                        mainWindow.webContents.send("notify",
-                            `Extension successfully installed`, "suc")
+                        if (sessionList.indexOf(ses) === 0) {
+                            mainWindow.webContents.send("notify",
+                                `Extension successfully installed`, "suc")
+                        }
                     }).catch(e => {
-                        // Failed to download extension
-                        mainWindow.webContents.send("notify",
-                            `Failed to install extension, unsupported type`,
-                            "err")
-                        console.log(e)
-                        rimraf(`${zipLoc}*`)
+                        if (sessionList.indexOf(ses) === 0) {
+                            // Failed to download extension
+                            mainWindow.webContents.send("notify",
+                                `Failed to install extension, unsupported type`,
+                                "err")
+                            console.log(e)
+                            globDelete(`${zipLoc}*`)
+                        }
                     })
                 })
             })
@@ -1026,14 +983,14 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
         mainWindow.webContents.send("notify",
             `Failed to install extension due to network error`, "err")
         console.log(e)
-        rimraf(`${zipLoc}*`)
+        globDelete(`${zipLoc}*`)
     })
     request.on("error", e => {
         // Failed to download extension
         mainWindow.webContents.send("notify",
             `Failed to install extension due to network error`, "err")
         console.log(e)
-        rimraf(`${zipLoc}*`)
+        globDelete(`${zipLoc}*`)
     })
     request.end()
 })
@@ -1048,7 +1005,7 @@ ipcMain.on("list-extensions", e => {
         }))
 })
 ipcMain.on("remove-extension", (_, extensionPath) => {
-    const extLoc = path.join(datafolder, `extensions/${extensionPath}`)
+    const extLoc = joinPath(datafolder, `extensions/${extensionPath}`)
     const extension = session.fromPartition("persist:main").getAllExtensions()
         .find(ext => ext.path.replace(/(\/|\\)$/g, "").endsWith(extensionPath))
     if (isDir(`${extLoc}/`) && extension) {
@@ -1057,7 +1014,7 @@ ipcMain.on("remove-extension", (_, extensionPath) => {
         sessionList.forEach(ses => {
             session.fromPartition(ses).removeExtension(extension.id)
         })
-        rimraf(`${extLoc}*`)
+        globDelete(`${extLoc}*`)
     } else {
         mainWindow.webContents.send("notify", "Could not find extension with "
             + `id: ${extensionPath}`, "warn")
@@ -1081,7 +1038,7 @@ ipcMain.on("download-favicon", (_, fav, location, webId, linkId, url) => {
                 location += ".svg"
                 fav += ".svg"
             }
-            fs.writeFileSync(location, file)
+            writeFile(location, file)
             mainWindow.webContents.send("favicon-downloaded", linkId, url, fav)
         })
         res.on("data", chunk => {
@@ -1098,7 +1055,7 @@ ipcMain.on("download-favicon", (_, fav, location, webId, linkId, url) => {
 })
 
 // Window state save and restore
-const windowStateFile = path.join(app.getPath("appData"), "windowstate")
+const windowStateFile = joinPath(app.getPath("appData"), "windowstate")
 ipcMain.on("window-state-init", (_, restorePos, restoreSize, restoreMax) => {
     const bounds = {}
     const parsed = readJSON(windowStateFile)

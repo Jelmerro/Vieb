@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2020 Jelmer van Arnhem
+* Copyright (C) 2019-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const path = require("path")
+const {joinPath} = require("../util")
 
 const filterList = () => {
     const filter = document.getElementById("filter").value.trim().toLowerCase()
@@ -93,7 +93,7 @@ const parseList = cookies => {
         value.textContent = cookie.value
         cookieElement.appendChild(value)
         const remove = document.createElement("img")
-        remove.src = path.join(__dirname, "../../img/trash.png")
+        remove.src = joinPath(__dirname, "../img/trash.png")
         remove.className = "remove"
         remove.addEventListener("click", async () => {
             await ipcRenderer.invoke("remove-cookie",
@@ -116,7 +116,7 @@ const refreshList = () => {
 window.addEventListener("load", () => {
     const removeAll = document.createElement("img")
     removeAll.id = "remove-all"
-    removeAll.src = path.join(__dirname, "../../img/trash.png")
+    removeAll.src = joinPath(__dirname, "../img/trash.png")
     removeAll.addEventListener("click", removeAllCookies)
     document.body.insertBefore(removeAll, document.body.firstChild)
     document.getElementById("filter").addEventListener("input", filterList)

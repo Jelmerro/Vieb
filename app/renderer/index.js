@@ -19,35 +19,35 @@
 
 window.addEventListener("DOMContentLoaded", () => {
     // Utility functions not related to any other topic, but used in many
-    window.UTIL = require("./js/util")
+    window.UTIL = require("../util")
     // Static action implementations, input will call them
-    window.ACTIONS = require("./js/actions")
+    window.ACTIONS = require("./actions")
     // Mode specific code
-    window.MODES = require("./js/modes")
-    window.COMMAND = require("./js/command")
-    window.COMMANDHISTORY = require("./js/commandhistory")
-    window.EXPLOREHISTORY = require("./js/explorehistory")
-    window.FOLLOW = require("./js/follow")
+    window.MODES = require("./modes")
+    window.COMMAND = require("./command")
+    window.COMMANDHISTORY = require("./commandhistory")
+    window.EXPLOREHISTORY = require("./explorehistory")
+    window.FOLLOW = require("./follow")
     // Tabs and webview handler
-    window.TABS = require("./js/tabs")
+    window.TABS = require("./tabs")
     // Listen to all input to block them or connect them to specific actions
-    window.INPUT = require("./js/input")
+    window.INPUT = require("./input")
     // Load custom settings from disk
-    window.SETTINGS = require("./js/settings")
+    window.SETTINGS = require("./settings")
     // Create and manage sessions (container, downloads, adblocking etc.)
-    window.SESSIONS = require("./js/sessions")
+    window.SESSIONS = require("./sessions")
     // History manager
-    window.HISTORY = require("./js/history")
+    window.HISTORY = require("./history")
     // Suggestions for the navigation bar
-    window.SUGGEST = require("./js/suggest")
+    window.SUGGEST = require("./suggest")
     // Pointer based navigation mode (hover, visual, drag, right-click etc.)
-    window.POINTER = require("./js/pointer")
+    window.POINTER = require("./pointer")
     // Load favicon handler
-    window.FAVICONS = require("./js/favicons")
+    window.FAVICONS = require("./favicons")
     // Load the layout manager, for splitting multiple webviews
-    window.PAGELAYOUT = require("./js/pagelayout")
+    window.PAGELAYOUT = require("./pagelayout")
     // Load the context menu code, called when right-clicking anywhere
-    window.CONTEXTMENU = require("./js/contextmenu")
+    window.CONTEXTMENU = require("./contextmenu")
     // Some modules require initialisation
     window.INPUT.init()
     window.SETTINGS.init()

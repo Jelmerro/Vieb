@@ -52,7 +52,8 @@ or asked a lot regardless of their existing documentation/explanation.
 Vieb is Chromium/Electron based and implements a wide range of features aimed to FEEL like Vim.
 For a list of features, see the [homepage](https://vieb.dev/features).
 See [this issue for my motivation](https://github.com/Jelmerro/Vieb/issues/83) of starting Vieb.
-Proper comparisons and migration guides haven't been made yet.
+Proper comparisons and migration guides haven't been made yet,
+but there are [example viebrc files](https://github.com/Jelmerro/Vieb/tree/master/app/examples).
 
 #### Why can't I sign in to Google?
 

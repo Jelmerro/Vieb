@@ -19,10 +19,8 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const path = require("path")
-const fs = require("fs")
 
-const blocklistDir = path.join(UTIL.appData(), "blocklists")
+const blocklistDir = UTIL.joinPath(UTIL.appData(), "blocklists")
 const defaultBlocklists = {
     "easylist": "https://easylist.to/easylist/easylist.txt",
     "easyprivacy": "https://easylist.to/easylist/easyprivacy.txt"
@@ -45,23 +43,14 @@ const create = name => {
 const disableAdblocker = () => ipcRenderer.send("adblock-disable")
 
 const enableAdblocker = () => {
-    try {
-        fs.mkdirSync(blocklistDir)
-    } catch (e) {
-        // Directory probably already exists
-    }
+    UTIL.makeDir(blocklistDir)
     // Copy the default and included blocklists to the appdata folder
     if (SETTINGS.get("adblocker") !== "custom") {
         for (const name of Object.keys(defaultBlocklists)) {
-            const list = path.join(__dirname, `../blocklists/${name}.txt`)
-            try {
-                // File is read and written separately to discard permission
-                const body = fs.readFileSync(list)
-                fs.writeFileSync(path.join(blocklistDir, `${name}.txt`), body)
-            } catch (e) {
-                const msg = e.message || e
-                UTIL.notify(`Failed to copy ${name}:\n${msg}`, "err")
-            }
+            const list = UTIL.joinPath(__dirname,
+                `../blocklists/${name}.txt`)
+            UTIL.writeFile(UTIL.joinPath(blocklistDir,
+                `${name}.txt`), UTIL.readFile(list))
         }
     }
     // And update default blocklists to the latest version if enabled
@@ -72,14 +61,9 @@ const enableAdblocker = () => {
             const req = request(defaultBlocklists[list], res => {
                 let body = ""
                 res.on("end", () => {
-                    try {
-                        fs.writeFileSync(
-                            path.join(blocklistDir, `${list}.txt`), body)
-                        ipcRenderer.send("adblock-enable")
-                    } catch (e) {
-                        const msg = e.message || e
-                        UTIL.notify(`Failed to update ${list}:\n${msg}`, "err")
-                    }
+                    UTIL.writeFile(UTIL.joinPath(blocklistDir,
+                        `${list}.txt`), body)
+                    ipcRenderer.send("adblock-enable")
                 })
                 res.on("data", chunk => {
                     body += chunk

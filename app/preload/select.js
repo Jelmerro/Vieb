@@ -18,7 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const util = require("./util")
+const util = require("../util")
 
 let startX = 0
 let startY = 0

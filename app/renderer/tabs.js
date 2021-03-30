@@ -19,14 +19,13 @@
  PAGELAYOUT POINTER SESSIONS SETTINGS UTIL */
 "use strict"
 
-const path = require("path")
 const {ipcRenderer} = require("electron")
 
 let recentlyClosed = []
 let linkId = 0
 const timeouts = {}
-const tabFile = path.join(UTIL.appData(), "tabs")
-const erwicMode = UTIL.isFile(path.join(UTIL.appData(), "erwicmode"))
+const tabFile = UTIL.joinPath(UTIL.appData(), "tabs")
+const erwicMode = UTIL.isFile(UTIL.joinPath(UTIL.appData(), "erwicmode"))
 const configPreloads = {}
 
 const init = () => {
@@ -675,17 +674,16 @@ const addWebviewListeners = webview => {
         if (e.errorDescription === "ERR_FILE_NOT_FOUND") {
             // Any number of slashes after file is fine for now
             if (webview.src.startsWith("file:/")) {
-                const local = UTIL.stringToUrl(webview.src)
+                const local = UTIL.urlToString(webview.src)
                     .replace(/file:\/*/, "/")
                 if (UTIL.isDir(local)) {
-                    let paths = []
                     let directoryAllowed = true
-                    try {
-                        const {readdirSync} = require("fs")
-                        paths = readdirSync(local)
-                            .map(p => path.join(local, p))
-                    } catch (_) {
+                    let paths = UTIL.listDir(local)
+                    if (paths) {
+                        paths = paths.map(p => UTIL.joinPath(local, p))
+                    } else {
                         directoryAllowed = false
+                        paths = []
                     }
                     const dirs = paths.filter(p => UTIL.isDir(p))
                     const files = paths.filter(p => UTIL.isFile(p))

@@ -18,8 +18,7 @@
 /* global COMMAND CONTEXTMENU HISTORY INPUT MODES SETTINGS TABS UTIL */
 "use strict"
 
-const path = require("path")
-const fs = require("fs")
+const {ipcRenderer} = require("electron")
 
 let suggestions = []
 let originalValue = ""
@@ -87,7 +86,7 @@ const emptySuggestions = () => {
 }
 
 const locationToSuggestion = (base, location) => {
-    let absPath = path.join(base, location)
+    let absPath = UTIL.joinPath(base, location)
     let fullPath = UTIL.stringToUrl(absPath)
     if (UTIL.isDir(absPath)) {
         fullPath += "/"
@@ -102,29 +101,20 @@ const locationToSuggestion = (base, location) => {
 
 const suggestFiles = location => {
     location = UTIL.expandPath(location.replace(/file:\/*/, "/"))
-    if (path.isAbsolute(location)) {
+    if (UTIL.isAbsolutePath(location)) {
         let matching = []
-        if (path.dirname(location) !== location) {
-            try {
-                matching = fs.readdirSync(path.dirname(location)).map(
-                    p => locationToSuggestion(path.dirname(location), p))
-            } catch (_) {
-                // Not allowed
-            }
+        if (UTIL.dirname(location) !== location) {
+            UTIL.listDir(UTIL.dirname(location))?.map(
+                p => locationToSuggestion(UTIL.dirname(location), p)) || []
             matching = matching.filter(p => {
-                if (!path.basename(p.url).startsWith(path.basename(location))) {
+                if (!UTIL.basePath(p.url).startsWith(UTIL.basePath(location))) {
                     return false
                 }
-                return path.basename(p.url) !== path.basename(location)
+                return UTIL.basePath(p.url) !== UTIL.basePath(location)
             })
         }
-        let inDir = []
-        try {
-            inDir = fs.readdirSync(location).map(
-                p => locationToSuggestion(location, p))
-        } catch (_) {
-            // Not allowed
-        }
+        const inDir = UTIL.listDir(location)?.map(
+            p => locationToSuggestion(location, p)) || []
         return [...matching, ...inDir]
     }
     return []
@@ -143,9 +133,9 @@ const updateColors = search => {
             urlElement.className = "file"
         } else if (UTIL.isUrl(search.trim())) {
             urlElement.className = "url"
-        } else if (path.isAbsolute(local) && UTIL.pathExists(local)) {
+        } else if (UTIL.isAbsolutePath(local) && UTIL.pathExists(local)) {
             urlElement.className = "file"
-        } else if (UTIL.isSearchword(search.trim())) {
+        } else if (UTIL.searchword(search.trim()).word) {
             urlElement.className = "searchwords"
         } else {
             urlElement.className = "search"
@@ -261,8 +251,8 @@ const suggestCommand = search => {
             addCommand("write /")
             addCommand(`write ${SETTINGS.get("downloadpath")}`)
         }
-        if (!path.isAbsolute(location)) {
-            location = path.join(SETTINGS.get("downloadpath"), location)
+        if (!UTIL.isAbsolutePath(location)) {
+            location = UTIL.joinPath(SETTINGS.get("downloadpath"), location)
         }
         suggestFiles(location).forEach(l => addCommand(`write ${l.path}`))
     }
@@ -280,7 +270,6 @@ const suggestCommand = search => {
             }
         }
         if (args.length >= 1) {
-            const {ipcRenderer} = require("electron")
             ipcRenderer.sendSync("list-extensions").forEach(e => {
                 const id = e.path.replace(/\/$/g, "").replace(/^.*\//g, "")
                 if (`remove ${id}`.startsWith(args.join(" "))) {
@@ -312,26 +301,21 @@ const suggestCommand = search => {
             return
         }
         const themes = {}
-        fs.readdirSync(path.join(__dirname, "../colors/")).forEach(p => {
+        UTIL.listDir(UTIL.joinPath(__dirname, "../colors/"))?.forEach(p => {
             themes[p.replace(/\.css$/g, "")] = "built-in"
         })
         const customDirs = [
-            path.join(UTIL.appData(), "colors"),
+            UTIL.joinPath(UTIL.appData(), "colors"),
             UTIL.expandPath("~/.vieb/colors")
         ]
-        customDirs.forEach(customDir => {
-            try {
-                fs.readdirSync(customDir).filter(p => p.endsWith(".css"))
-                    .forEach(p => {
-                        const location = path.join(customDir, p)
-                        if (p === "default.css" || !UTIL.readFile(location)) {
-                            return
-                        }
-                        themes[p.replace(/\.css$/g, "")] = location
-                    })
-            } catch (_) {
-                // No custom themes found
-            }
+        customDirs.forEach(dir => {
+            UTIL.listDir(dir)?.filter(p => p.endsWith(".css")).forEach(p => {
+                const location = UTIL.joinPath(dir, p)
+                if (p === "default.css" || !UTIL.readFile(location)) {
+                    return
+                }
+                themes[p.replace(/\.css$/g, "")] = location
+            })
         })
         Object.keys(themes).forEach(t => {
             if (t.startsWith(args[0] || "")) {

@@ -18,7 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const path = require("path")
+const {joinPath, formatDate} = require("../util")
 
 // Configure breakpoints to make searching easier
 const now = new Date()
@@ -136,7 +136,7 @@ const addBreakpoint = (index, lineNumber) => {
     h2.textContent = breakpoint.title
     list.insertBefore(h2, list.firstChild)
     const img = document.createElement("img")
-    img.src = path.join(__dirname, "../../img/trash.png")
+    img.src = joinPath(__dirname, "../img/trash.png")
     const breakpointNm = Number(lineNumberBreakpoint)
     const lineNm = Number(lineNumber)
     img.addEventListener("click", () => {
@@ -169,11 +169,10 @@ const addHistToList = hist => {
         histElement.appendChild(icon)
     }
     const img = document.createElement("img")
-    img.src = path.join(__dirname, "../../img/trash.png")
+    img.src = joinPath(__dirname, "../img/trash.png")
     img.addEventListener("click", () => clearLinesFromHistory(hist.line))
     histElement.appendChild(img)
     const date = document.createElement("span")
-    const {formatDate} = require("./util")
     date.textContent = formatDate(hist.date)
     date.setAttribute("iso", hist.date.toISOString())
     date.className = "hist-date"
@@ -249,7 +248,7 @@ window.addEventListener("load", () => {
     const removeAll = document.createElement("img")
     removeAll.id = "remove-all"
     removeAll.style.display = "none"
-    removeAll.src = path.join(__dirname, "../../img/trash.png")
+    removeAll.src = joinPath(__dirname, "../img/trash.png")
     removeAll.addEventListener("click", () => clearHistory())
     document.body.insertBefore(removeAll, document.body.firstChild)
     document.getElementById("filter").addEventListener("input", filterList)

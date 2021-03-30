@@ -17,30 +17,28 @@
 */
 "use strict"
 
-const path = require("path")
-
 // Always load the misc action functions (such as scrolling before page loads)
-require("./preloads/actions")
+require("./actions")
 // Always load follow mode JavaScript
-require("./preloads/follow")
+require("./follow")
 // Always load selection function code (for visual mode)
-require("./preloads/select")
+require("./select")
 // Always load the failed page information handler
-require("./preloads/failedload")
+require("./failedload")
 // Always load the local directory browser
-require("./preloads/filebrowser")
+require("./filebrowser")
 // Always load the privacy related fixes
-require("./preloads/privacy")
+require("./privacy")
 
 // Load the special page specific JavaScript
-const util = require("./util")
-const specialPage = util.pathToSpecialPageName(window.location.href)
+const {pathToSpecialPageName, appData, readJSON, joinPath} = require("../util")
+const specialPage = pathToSpecialPageName(window.location.href)
 if (specialPage.name) {
-    require(`./preloads/${specialPage.name}`)
+    require(`./${specialPage.name}`)
 }
 // Load Vieb settings that are relevant for the webview
-const webviewSettingsFile = path.join(util.appData(), "webviewsettings")
-const settings = util.readJSON(webviewSettingsFile)
+const webviewSettingsFile = joinPath(appData(), "webviewsettings")
+const settings = readJSON(webviewSettingsFile)
 
 // Change the colors to $FG text on $BG background for plain text pages
 // Change the background to white for regular pages with no explicit background

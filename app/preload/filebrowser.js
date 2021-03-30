@@ -18,7 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const path = require("path")
+const {joinPath, basePath} = require("../util")
 
 const styling = `body {color: var(--fg, #eee);display: flex;
     font: 14px monospace;line-height: 1.5;margin: 0;}
@@ -33,7 +33,7 @@ h2 {font-size: 2em;margin: 0 0 1em;}
 const createElement = (type, loc, customTitle = "") => {
     const element = document.createElement("div")
     element.className = type
-    element.textContent = customTitle || path.basename(loc)
+    element.textContent = customTitle || basePath(loc)
     if (type === "dir") {
         element.textContent += "/"
     }
@@ -43,7 +43,7 @@ const createElement = (type, loc, customTitle = "") => {
 
 const toUrl = loc => `file:${loc}`.replace(/^file:\/*/, "file:///")
 
-const isRoot = loc => path.normalize(loc) === path.join(loc, "../")
+const isRoot = loc => loc === joinPath(loc, "../")
 
 ipcRenderer.on("insert-current-directory-files",
     (_, directories, files, allowed, folder) => {
@@ -58,7 +58,7 @@ ipcRenderer.on("insert-current-directory-files",
         main.appendChild(title)
         if (!isRoot(folder)) {
             main.appendChild(createElement(
-                "dir", path.join(folder, "../"), ".."))
+                "dir", joinPath(folder, "../"), ".."))
         }
         if (!allowed) {
             const error = document.createElement("span")

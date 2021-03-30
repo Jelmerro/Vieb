@@ -20,8 +20,6 @@
 "use strict"
 
 const {clipboard, ipcRenderer} = require("electron")
-const path = require("path")
-const fs = require("fs")
 
 let currentSearch = ""
 
@@ -219,27 +217,22 @@ const editWithVim = () => {
     if (!page) {
         return
     }
-    const fileFolder = path.join(UTIL.appData(), "vimformedits")
-    try {
-        fs.mkdirSync(fileFolder)
-    } catch (e) {
-        // Probably already exists
-    }
-    const tempFile = path.join(fileFolder, String(Number(new Date())))
-    try {
-        fs.writeFileSync(tempFile, "")
-    } catch (e) {
+    const fileFolder = UTIL.joinPath(UTIL.appData(), "vimformedits")
+    UTIL.makeDir(fileFolder)
+    const tempFile = UTIL.joinPath(fileFolder, String(Number(new Date())))
+    const success = UTIL.writeFile(tempFile, "")
+    if (!success) {
         UTIL.notify("Could not start vim edit mode", "err")
         return
     }
     let command = null
-    fs.watchFile(tempFile, {"interval": 500}, () => {
+    UTIL.watchFile(tempFile, {"interval": 500}, () => {
         if (command) {
-            try {
-                page.send("action", "setInputFieldText",
-                    tempFile, fs.readFileSync(tempFile).toString())
-            } catch (e) {
+            const contents = UTIL.readFile(tempFile)
+            if (contents === null) {
                 UTIL.notify("Failed to read temp file to fill form", "err")
+            } else {
+                page.send("action", "setInputFieldText", contents)
             }
         } else {
             const {exec} = require("child_process")
@@ -369,18 +362,8 @@ const useEnteredData = () => {
         const urlElement = document.getElementById("url")
         let location = urlElement.value.trim()
         MODES.setMode("normal")
-        // Override location with a custom search if searchword matches
-        for (const mapping of SETTINGS.get("searchwords").split(",")) {
-            const [searchword, url] = mapping.split("~")
-            if (searchword && url) {
-                const query = location.replace(`${searchword} `, "")
-                if (query && location.startsWith(`${searchword} `)) {
-                    location = UTIL.stringToUrl(url.replace(/%s/g, query))
-                    break
-                }
-            }
-        }
         if (location) {
+            location = UTIL.searchword(location).url
             TABS.navigateTo(UTIL.stringToUrl(location))
             EXPLOREHISTORY.push(UTIL.stringToUrl(location))
         }

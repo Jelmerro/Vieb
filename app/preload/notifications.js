@@ -18,6 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const {formatDate} = require("../util")
 
 window.addEventListener("DOMContentLoaded", () => {
     ipcRenderer.on("notification-history", (_, notifications) => {
@@ -33,7 +34,6 @@ window.addEventListener("DOMContentLoaded", () => {
                 })
             }
             const date = document.createElement("div")
-            const {formatDate} = require("./util")
             date.textContent = formatDate(notification.date)
             date.className = "date"
             element.appendChild(date)
