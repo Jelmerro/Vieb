@@ -695,7 +695,26 @@ const commands = {
     },
     "call": callAction,
     "makedefault": makedefault,
-    "extensions": extensionsCommand
+    "extensions": extensionsCommand,
+    "lclose": () => {
+        let index = TABS.listTabs().indexOf(TABS.currentTab())
+        // Loop is reversed to close as many tabs as possible on the left,
+        // without getting stuck trying to close pinned tabs at index 0.
+        for (let i = index - 1;i >= 0;i--) {
+            index = TABS.listTabs().indexOf(TABS.currentTab())
+            TABS.closeTab(index - 1)
+        }
+    },
+    "rclose": () => {
+        const index = TABS.listTabs().indexOf(TABS.currentTab())
+        let count = TABS.listTabs().length
+        // Loop is reversed to close as many tabs as possible on the right,
+        // without trying to close a potentially pinned tab right of current.
+        for (let i = count - 1;i > index;i--) {
+            count = TABS.listTabs().length
+            TABS.closeTab(count - 1)
+        }
+    }
 }
 let userCommands = {}
 
@@ -715,7 +734,9 @@ const noArgumentComands = [
     "hardcopy",
     "print",
     "comclear",
-    "makedefault"
+    "makedefault",
+    "lclose",
+    "rclose"
 ]
 
 const noEscapeCommands = ["command", "delcommand"]

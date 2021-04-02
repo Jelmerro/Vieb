@@ -399,7 +399,7 @@
         <ul>
             <li><span class="command-block">:buffer 0</span> - Switch to the first tab in the bar</li>
             <li><span class="command-block">:b vieb.dev</span> - Switch to the first tab containing "vieb.dev"</li>
-            <li><span class="command-block">:buffer 999</span> - Switch to the 999nth tab (or the last tab in the tabbar)</li>
+            <li><span class="command-block">:buffer 999</span> - Switch to the 1000nth tab (or the last tab in the tabbar)</li>
             <li><span class="command-block">:b github vieb</span> - Switch to the first tab containing "github" and "vieb"</li>
         </ul>
         The buffer command can be used to switch to a tab by name or index. It accepts any number of arguments that will all be used to find the most appropriate tab. Contrary to the <a href="#action.nextTab">action.nextTab</a> and <a href="#action.previousTab">action.previousTab</a> actions, which switch in the order of the tabbar, the buffer command can switch to any tab regardless of it's location in the tabbar. This is also important to keep in mind when using window splits, because switching between tabs can also change which splits are displayed. If you switch to a tab that is already visible in on the splits, no splits will be changed, but the focus will simply switch to the other split. However, if the tab you switch to is not visible yet, the current split will switch to the new tab. This can be confusing when using the tab switch actions in combination with multiple splits, which is why the buffer command is recommended for switching when using multiple window splits. The buffer command will have no effect if the tab cannot be found, unless the argument is a single number, in which case it will switch to the closest tab by index.
@@ -409,7 +409,7 @@
             <li><span class="command-block">:hide</span> - Hide the currently focused window, if others are also visible</li>
             <li><span class="command-block">:hide 0</span> - Hide a window split based on tab index, in this case the first</li>
             <li><span class="command-block">:hide vieb.dev</span> - Hide the window split with "vieb.dev" in the url</li>
-            <li><span class="command-block">:hide 999</span> - Hide a window split based on tab index, either the 999nth or the last tab in the tabbar</li>
+            <li><span class="command-block">:hide 999</span> - Hide a window split based on tab index, either the 1000nth or the last tab in the tabbar</li>
             <li><span class="command-block">:hide github vieb</span> - Hide the window split containing both "github" and "vieb"</li>
         </ul>
         The hide command can be used to hide one of the visible splits. This command takes any number of arguments. If no arguments are provided, it will hide the currently focused split window. For any other number of arguments, it will hide the window split that most accurately matches the arguments. This can be a tab index or keywords that refer to parts of the url, similar to the buffer command. The command will not have effect it there is only one page visible, or if there is no matching tab. If the argument is a single number, but the tab index is too high, it will instead hide the window connected to the latest tab by index.
@@ -418,7 +418,7 @@
         <ul>
             <li><span class="command-block">:Vexplore</span> - Open a vertical split with a new tab</li>
             <li><span class="command-block">:Vexplore vieb.dev</span> - Open a vertical split with the window matching vieb.dev, or a new tab with this url</li>
-            <li><span class="command-block">:Vexplore 999</span> - Open a vertical split with the window matching the 999nth or last tab in the tabbar</li>
+            <li><span class="command-block">:Vexplore 999</span> - Open a vertical split with the window matching the 1000th or last tab in the tabbar</li>
             <li><span class="command-block">:Vexplore github vieb</span> - Open a vertical split with the window matching "github vieb", or a new tab with a search of "github vieb"</li>
         </ul>
         This command can be used to open a vertical split within the Vieb window. Splits are used to view multiple pages at the same time, and this command accepts arguments to specify which page that should be. Any number of arguments can be given, without arguments it will vertically split with a new tab. If any other number of arguments are given, it will search of tabs matching by index or by url, similar to the <a href="#:buffer">:buffer</a> command. If no matching tab is found for a string, it will instead open a new tab based on the string (regardless of this being a url or a search on the web). The Vexplore command will always result in a new vertical split, regardless of the arguments, as it will open a new tab for search strings without matches. You can configure if you want to open new vertical splits on the left or the right of the current one using the <a href="#splitright">splitright</a> setting.
@@ -428,6 +428,28 @@
         Identical to <a href="#:Vexplore">:Vexplore</a>.
         <h3 id=":split">:split</h3>
         Identical to <a href="#:Sexplore">:Sexplore</a>.
+        <h2>Tab close commands</h2>
+        These are commands that can be used to close tabs. You can also close the current tab with <a href="#action.closeTab">action.closeTab</a>, but these commands offer additional options for closing others.
+        <h3 id=":close">:close</h3>
+        Examples
+        <ul>
+            <li><span class="command-block">:close</span> - Close the current tab</li>
+            <li><span class="command-block">:close vieb.dev</span> - Close the first tab matching vieb.dev</li>
+            <li><span class="command-block">:close 5</span> - Close the 6th tab (first tab is 0)</li>
+        </ul>
+        Closes a tab. It will close the current one, if no arguments are given. If there is a single number given as an argument, it will close the tab with that index in the tabbar (starting at 0). Any other arguments are used to search for the matching tab to close. Only the first matching tab is closed.
+        <h3 id=":lclose">:lclose</h3>
+        Examples
+        <ul>
+            <li><span class="command-block">:lclose</span> - Closes ALL tabs to the left of the current tab</li>
+        </ul>
+        With this command you can close every tab to the left of the current one. If you have pinned tabs, it will respect the <a href="#closablepinnedtabs">closablepinnedtabs</a> setting and try to close as many as possible, so you can even execute this command when your current tab is pinned.
+        <h3 id=":rclose">:rclose</h3>
+        Examples
+        <ul>
+            <li><span class="command-block">:rclose</span> - Closes ALL tabs to the right of the current tab</li>
+        </ul>
+        With this command you can close every tab to the right of the current one. If you have pinned tabs, it will respect the <a href="#closablepinnedtabs">closablepinnedtabs</a> setting and try to close as many as possible, so you can even execute this command when your current tab is pinned.
         <h2>Other commands</h2>
         The commands in this paragraph do not belong in a specific category, but are still a core part of Vieb. These commands range from printing, to developer tools and to quitting Vieb.
         <h3 id=":call">:call</h3>

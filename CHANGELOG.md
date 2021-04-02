@@ -13,6 +13,11 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+## Added
+
+- Command "lclose" to close all tabs to the left of the current one (respects closablepinnedtabs)
+- Command "rclose" to close all tabs to the right of the current one (respects closablepinnedtabs)
+
 ### Changed
 
 - Overall structure and module loading of Vieb
