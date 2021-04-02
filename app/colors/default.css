@@ -166,7 +166,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #pagelayout.ver, #pagelayout .ver {flex-direction: column;display: flex;}
 /* fullscreen */
 #app.fullscreen #navbar, #app.fullscreen #tabs, #app.fullscreen .webview {display: none;}
-#app.fullscreen #current-page {display: flex;width: 100vw;height: 100vh;top: 0;bottom: 0;left: 0;right: 0;}
+#app.fullscreen #current-page {display: flex;border: none;width: 100vw !important;height: 100vh !important;top: 0 !important;bottom: 0 !important;left: 0 !important;right: 0 !important;}
 /* conditionally hide tabs or navbar from the vieb window */
 #app.tabshidden #tabs {display: none;}
 #app.navigationhidden #navbar {position: absolute;top: -10em;}

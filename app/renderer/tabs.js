@@ -512,6 +512,9 @@ const tabOrPageMatching = el => {
 }
 
 const switchToTab = index => {
+    if (document.body.classList.contains("fullscreen")) {
+        currentPage().send("action", "exitFullscreen")
+    }
     const tabs = listTabs()
     while (index < 0) {
         if (SETTINGS.get("tabcycle")) {
@@ -771,6 +774,9 @@ const addWebviewListeners = webview => {
         }
     })
     webview.addEventListener("enter-html-full-screen", () => {
+        if (currentPage() !== webview) {
+            switchToTab(listTabs().indexOf(tabOrPageMatching(webview)))
+        }
         document.body.classList.add("fullscreen")
         webview.blur()
         webview.focus()

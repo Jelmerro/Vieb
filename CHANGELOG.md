@@ -21,6 +21,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Potential error when selecting text or executing related actions and hovering over pseudo-elements
+- Switching to other tabs while viewing a fullscreen video making Vieb unresponsive to any bindings
+- Incorrect fullscreen styling in the default theme when using window splits
 
 ### Security
 
