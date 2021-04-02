@@ -33,7 +33,7 @@ ipcRenderer.on("selection-start-location", (_, sX, sY) => {
 })
 
 const documentAtPos = (x, y) => findElementAtPosition(x, y)
-    .ownerDocument || document
+    ?.ownerDocument || document
 
 ipcRenderer.on("selection-all", (_, x, y) => documentAtPos(x, y)
     .execCommand("selectAll"))
@@ -87,7 +87,7 @@ ipcRenderer.on("selection-request", (_, endX, endY) => {
     if (!startNode || startY < 0 || startY > window.innerHeight) {
         startNode = document.body
     }
-    const selectDocument = startNode.ownerDocument || document
+    const selectDocument = startNode?.ownerDocument || document
     const padding = findFrameInfo(startNode)
     const startResult = calculateOffset(startNode,
         startX - (padding?.x || 0), startY - (padding?.y || 0))

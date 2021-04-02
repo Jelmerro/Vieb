@@ -18,6 +18,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Overall structure and module loading of Vieb
 - Follow mode now only uses the input focus when switching to insert mode
 
+### Fixed
+
+- Potential error when selecting text or executing related actions and hovering over pseudo-elements
+
 ### Security
 
 - Electron 12.0.2 (unchanged)
