@@ -18,7 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {joinPath, formatDate} = require("../util")
+const {joinPath, formatDate, formatSize} = require("../util")
 
 let lastUpdate = new Date()
 
@@ -238,12 +238,4 @@ const updateDownload = (download, element, id) => {
     }
     // State
     element.querySelector(".state").textContent = download.state
-}
-
-const formatSize = size => {
-    if (size < 1024) {
-        return `${size} B`
-    }
-    const exp = Math.floor(Math.log(size) / Math.log(1024))
-    return `${(size / Math.pow(1024, exp)).toFixed(2)} ${"KMGTPE"[exp - 1]}B`
 }

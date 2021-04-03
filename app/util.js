@@ -636,6 +636,13 @@ const activeElement = () => {
     }).find(el => el)
 }
 
+const formatSize = size => {
+    if (size < 1024) {
+        return `${size} B`
+    }
+    const exp = Math.floor(Math.log(size) / Math.log(1024))
+    return `${(size / Math.pow(1024, exp)).toFixed(2)} ${"KMGTPE"[exp - 1]}B`
+}
 
 module.exports = {
     hasProtocol,
@@ -684,5 +691,6 @@ module.exports = {
     querySelectorAll,
     findClickPosition,
     activeElement,
-    frameSelector
+    frameSelector,
+    formatSize
 }

@@ -47,7 +47,8 @@ const {
     dirname,
     basePath,
     globDelete,
-    clearTempContainers
+    clearTempContainers,
+    formatSize
 } = require("./util")
 
 const version = process.env.npm_package_version || app.getVersion()
@@ -684,7 +685,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 "title": "Download request from the website",
                 "message": `Do you want to download the following file?\n\n${
                     wrappedFileName}\n\n${item.getMimeType()} - ${
-                    item.getTotalBytes()}\n\n${wrappedUrl}`
+                    formatSize(item.getTotalBytes())}\n\n${wrappedUrl}`
             })
             if (button === 1) {
                 e.preventDefault()
