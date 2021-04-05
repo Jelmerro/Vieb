@@ -227,6 +227,7 @@ if (softwareOnly) {
 if (disableMediaKeys) {
     app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling")
 }
+clearTempContainers()
 app.setName("Vieb")
 datafolder = `${joinPath(expandPath(datafolder.trim()))}/`
 app.setPath("appData", datafolder)
@@ -290,7 +291,6 @@ let notificationWindow = null
 // https://github.com/electron/electron/issues/23220
 app.commandLine.appendSwitch("second-instance-data", JSON.stringify(
     getArguments(process.argv)))
-clearTempContainers()
 app.on("ready", () => {
     app.userAgentFallback = useragent()
     // Request single instance lock and quit if that fails
@@ -592,6 +592,9 @@ ipcMain.on("set-permissions", (_, permissionObject) => {
 })
 ipcMain.on("set-spelllang", (_, langs) => {
     sessionList.forEach(ses => {
+        if (!langs) {
+            return
+        }
         langs = langs.split(",").map(lang => {
             if (lang === "system") {
                 lang = app.getLocale()
