@@ -11,6 +11,18 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Changed
+
+- Check for favicon file existence before setting it as the tab icon
+- Also check for matching urls in follow mode links to keep the same one shown
+
+### Security
+
+- Electron 12.0.2 (unchanged)
+- Chromium 89.0.4389.90 (unchanged)
+
 ## [4.3.0](https://github.com/Jelmerro/Vieb/compare/4.2.1...4.3.0) - 2021-04-05
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/4.2.1...4.3.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/4.3.0)

@@ -36,8 +36,9 @@ const init = () => {
     isParsed = true
     ipcRenderer.on("favicon-downloaded", (_, linkId, currentUrl, favicon) => {
         const webview = document.querySelector(`#pages [link-id='${linkId}']`)
-        if (webview?.src === currentUrl) {
-            setPath(TABS.tabOrPageMatching(webview), urlToPath(favicon))
+        const filename = urlToPath(favicon)
+        if (webview?.src === currentUrl && UTIL.isFile(filename)) {
+            setPath(TABS.tabOrPageMatching(webview), filename)
             mappings[currentUrl] = favicon
         }
     })
@@ -133,13 +134,14 @@ const update = (webview, urls) => {
         setPath(tab, favicon)
         return
     }
-    deleteIfTooOld(urlToPath(favicon))
-    if (UTIL.isFile(urlToPath(favicon))) {
-        setPath(tab, urlToPath(favicon))
+    const filename = urlToPath(favicon)
+    deleteIfTooOld(filename)
+    if (UTIL.isFile(filename)) {
+        setPath(tab, filename)
         return
     }
     UTIL.makeDir(faviconFolder)
-    ipcRenderer.send("download-favicon", favicon, urlToPath(favicon),
+    ipcRenderer.send("download-favicon", favicon, filename,
         webview.getWebContentsId(), webview.getAttribute("link-id"), currentUrl)
 }
 

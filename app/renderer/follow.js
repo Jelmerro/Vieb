@@ -85,7 +85,7 @@ const numberToKeys = (number, total) => {
 
 const linkInList = (list, link) => list.find(l => l && link && l.x === link.x
     && l.y === link.y && l.type === link.type && l.height === link.height
-    && l.width === link.width)
+    && l.width === link.width && l.url === link.url)
 
 const clickAtLink = async link => {
     const factor = TABS.currentPage().getZoomFactor()
