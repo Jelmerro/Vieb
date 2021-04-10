@@ -10,7 +10,7 @@
 [![Donate](https://img.shields.io/static/v1?label=ko-fi&message=donate&color=red&logo=ko-fi&style=flat-square)](https://ko-fi.com/Jelmerro)
 [![Reddit](https://img.shields.io/reddit/subreddit-subscribers/vieb?style=social)](https://reddit.com/r/vieb)
 
-### Vieb (pronounced [vieb](https://en.wikipedia.org/wiki/Help:IPA), not like 'vibe' in English) is the Vim Inspired Electron Browser
+### Vieb (rhymes with sheep, not pronounced like 'vibe' in English) is the Vim Inspired Electron Browser
 
 ## [Homepage](https://vieb.dev/) - [Download](https://vieb.dev/download) - [Changelog](CHANGELOG.md) - [FAQ](FAQ.md)
 
