@@ -402,7 +402,7 @@
             <li><span class="command-block">:buffer 999</span> - Switch to the 1000nth tab (or the last tab in the tabbar)</li>
             <li><span class="command-block">:b github vieb</span> - Switch to the first tab containing "github" and "vieb"</li>
         </ul>
-        The buffer command can be used to switch to a tab by name or index. It accepts any number of arguments that will all be used to find the most appropriate tab. Contrary to the <a href="#action.nextTab">action.nextTab</a> and <a href="#action.previousTab">action.previousTab</a> actions, which switch in the order of the tabbar, the buffer command can switch to any tab regardless of it's location in the tabbar. This is also important to keep in mind when using window splits, because switching between tabs can also change which splits are displayed. If you switch to a tab that is already visible in on the splits, no splits will be changed, but the focus will simply switch to the other split. However, if the tab you switch to is not visible yet, the current split will switch to the new tab. This can be confusing when using the tab switch actions in combination with multiple splits, which is why the buffer command is recommended for switching when using multiple window splits. The buffer command will have no effect if the tab cannot be found, unless the argument is a single number, in which case it will switch to the closest tab by index.
+        The buffer command can be used to switch to a tab by name or index. It accepts any number of arguments that will all be used to find the most appropriate tab. Contrary to the <a href="#action.nextTab">action.nextTab</a> and <a href="#action.previousTab">action.previousTab</a> actions, which switch in the order of the tabbar, the buffer command can switch to any tab regardless of it's location in the tabbar. This is also important to keep in mind when using window splits, because switching between tabs can also change which splits are displayed. If you switch to a tab that is already visible in one of the splits, no splits will be changed, but the focus will simply switch to the other split. However, if the tab you switch to is not visible yet, the current split will switch to the new tab. This can be confusing when using the tab switch actions in combination with multiple splits, which is why the buffer command is recommended for switching when using multiple window splits. The buffer command will have no effect if the tab cannot be found, unless the argument is a single number, in which case it will switch to the closest tab by index. There are also many actions for switching between splits, see the <a href="#splitting">splitting</a> chapter for details. You can use the buffer command even without using splits.
         <h3 id=":hide">:hide</h3>
         Examples
         <ul>
@@ -428,6 +428,11 @@
         Identical to <a href="#:Vexplore">:Vexplore</a>.
         <h3 id=":split">:split</h3>
         Identical to <a href="#:Sexplore">:Sexplore</a>.
+        <h3 id=":only">:only</h3>
+        <ul>
+            <li><span class="command-block">:only</span> - Hide all window splits except the currently active one</li>
+        </ul>
+        With this command you can hide all window splits and return to the single page layout. It will hide all tabs/splits except for the currently focused one.
         <h2>Tab close commands</h2>
         These are commands that can be used to close tabs. You can also close the current tab with <a href="#action.closeTab">action.closeTab</a>, but these commands offer additional options for closing others.
         <h3 id=":close">:close</h3>
@@ -869,7 +874,7 @@
         <h3 id="action.zoomOut" countable="true">action.zoomOut</h3>
         Decrease the zoom percentage. The zoom percentage is decreased by 10% every time this action is called, down to a minimum of 25%. Opposite of <a href="#action.zoomIn">action.zoomIn</a>. Use <a href="#action.zoomReset">action.zoomReset</a> to go back to 100%.
         <h2 id="splitting">Splitting</h2>
-        Vieb supports window splitting, which means you can view multiple sites next to each other. There is no technical limit to how many sites you can split, and splitting works the same as in Vim. To open a new split, see <a href="#:Vexplore">:Vexplore</a> or <a href="#:split">:split</a>. Once you have multiple windows visible, you can switch between them by switching between tabs, or using the more Vim-like window split actions, which are listed below.
+        Vieb supports window splitting, which means you can view multiple sites next to each other. There is no technical limit to how many sites you can split, and splitting works the same as in Vim. To open a new split, see <a href="#:Vexplore">:Vexplore</a> or <a href="#:split">:split</a>. Once you have multiple windows visible, you can switch between them by switching between tabs, or using the more Vim-like window split actions, which are listed below. You may also use the <a href=":buffer">:buffer</a> command to switch directly to tabs by index or name.
         <h3 id="action.rotateSplitWindow" countable="true">action.rotateSplitWindow</h3>
         Rotate the windows of the current split clockwise. If there are sub-splits in other windows, the current split cannot be rotated.
         <h3 id="action.leftHalfSplitWindow">action.leftHalfSplitWindow</h3>
@@ -888,6 +893,14 @@
         Switch the focus to the window directly above the currently focused one. See <a href="#action.toLeftSplitWindow">action.toLeftSplitWindow</a> for more details.
         <h3 id="action.toRightSplitWindow" countable="true">action.toRightSplitWindow</h3>
         Switch the focus to the window directly right of the currently focused one. See <a href="#action.toLeftSplitWindow">action.toLeftSplitWindow</a> for more details.
+        <h3 id="action.toFirstSplitWindow">action.toFirstSplitWindow</h3>
+        Switch the focus to the most top-left window split. The first split is always the most top-left one, regardless of tab order. Opposite of <a href="#action.toLastSplitWindow">action.toLastSplitWindow</a>.
+        <h3 id="action.toLastSplitWindow">action.toLastSplitWindow</h3>
+        Switch the focus to the most bottom-right window split. The last split is always the most bottom-right one, regardless of tab order. Opposite of <a href="#action.toFirstSplitWindow">action.toFirstSplitWindow</a>.
+        <h3 id="action.toNextSplitWindow" countable="true">action.toNextSplitWindow</h3>
+        Switch the focus to the next window split in appearance order. Splits are ordered from top to bottom and left to right. When the most bottom-right split is focused when executing this action, the top-left split will be focused. Opposite of <a href="#action.toPreviousSplitWindow">action.toPreviousSplitWindow</a>.
+        <h3 id="action.toPreviousSplitWindow" countable="true">action.toPreviousSplitWindow</h3>
+        Switch the focus to the previous window split in appearance order. Splits are ordered from top to bottom and left to right. When the most top-left split is focused when executing this action, the bottom-right split will be focused. Opposite of <a href="#action.toNextSplitWindow">action.toNextSplitWindow</a>.
         <h3 id="action.increaseHeightSplitWindow" countable="true">action.increaseHeightSplitWindow</h3>
         Increase the height of the current split window by 10% up to a maximum ratio compared to it's siblings of 1 to 10. Similar actions to resize into other directions are <a href="#action.decreaseHeightSplitWindow">action.decreaseHeightSplitWindow</a>, <a href="#action.increaseWidthSplitWindow">action.increaseWidthSplitWindow</a> and <a href="#action.decreaseWidthSplitWindow">action.decreaseWidthSplitWindow</a>.
         <h3 id="action.decreaseHeightSplitWindow" countable="true">action.decreaseHeightSplitWindow</h3>

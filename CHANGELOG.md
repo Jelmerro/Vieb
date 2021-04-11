@@ -13,10 +13,22 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Command "only" to hide all splits and only show the current tab fullsize
+- Action "toFirstSplitWindow" to switch focus to the first (top-left) window split
+- Action "toLastSplitWindow" to switch focus to the last (bottom-right) window split
+- Action "toNextSplitWindow" to switch focus to the next window split by appearance order (top to bottom, left to right)
+- Action "toPreviousSplitWindow" to switch focus to the previous window split by appearance order (top to bottom, left to right)
+
 ### Changed
 
 - Check for favicon file existence before setting it as the tab icon
 - Also check for matching urls in follow mode links to keep the same one shown
+
+### Fixed
+
+- Settings "splitbelow" and "splitright" being swapped in functionality
 
 ### Security
 

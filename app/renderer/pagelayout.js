@@ -36,7 +36,7 @@ const switchView = (oldViewOrId, newView) => {
         document.getElementById("pagelayout").classList.add("hor")
         const singleView = document.createElement("div")
         singleView.setAttribute("link-id", newId)
-        document.querySelector("#pagelayout").appendChild(singleView)
+        document.getElementById("pagelayout").appendChild(singleView)
     }
     applyLayout()
 }
@@ -250,6 +250,44 @@ const resize = (orientation, change) => {
     applyLayout()
 }
 
+const firstSplit = () => {
+    const first = document.querySelector("#pagelayout *[link-id]")
+    TABS.switchToTab(TABS.listTabs().indexOf(document.querySelector(
+        `#tabs span[link-id='${first.getAttribute("link-id")}']`)))
+}
+
+const previousSplit = () => {
+    const views = [...document.querySelectorAll("#pagelayout *[link-id]")]
+    const current = layoutDivById(TABS.currentPage().getAttribute("link-id"))
+    const next = views[views.indexOf(current) - 1] || views[views.length - 1]
+    TABS.switchToTab(TABS.listTabs().indexOf(document.querySelector(
+        `#tabs span[link-id='${next.getAttribute("link-id")}']`)))
+}
+
+const nextSplit = () => {
+    const views = [...document.querySelectorAll("#pagelayout *[link-id]")]
+    const current = layoutDivById(TABS.currentPage().getAttribute("link-id"))
+    const next = views[views.indexOf(current) + 1] || views[0]
+    TABS.switchToTab(TABS.listTabs().indexOf(document.querySelector(
+        `#tabs span[link-id='${next.getAttribute("link-id")}']`)))
+}
+
+const lastSplit = () => {
+    const views = [...document.querySelectorAll("#pagelayout *[link-id]")]
+    const last = views[views.length - 1]
+    TABS.switchToTab(TABS.listTabs().indexOf(document.querySelector(
+        `#tabs span[link-id='${last.getAttribute("link-id")}']`)))
+}
+
+const only = () => {
+    const linkId = TABS.currentPage().getAttribute("link-id")
+    const singleView = document.createElement("div")
+    singleView.setAttribute("link-id", linkId)
+    document.getElementById("pagelayout").textContent = ""
+    document.getElementById("pagelayout").appendChild(singleView)
+    applyLayout()
+}
+
 const resetResizing = () => {
     [...document.querySelectorAll("#pagelayout *")].forEach(element => {
         element.style.flexGrow = null
@@ -297,7 +335,7 @@ const applyLayout = () => {
         if (cur) {
             const singleView = document.createElement("div")
             singleView.setAttribute("link-id", cur.getAttribute("link-id"))
-            document.querySelector("#pagelayout").appendChild(singleView)
+            document.getElementById("pagelayout").appendChild(singleView)
         }
     }
     const visiblePages = []
@@ -375,6 +413,11 @@ module.exports = {
     toTop,
     moveFocus,
     resize,
+    firstSplit,
+    previousSplit,
+    nextSplit,
+    lastSplit,
+    only,
     resetResizing,
     applyLayout
 }

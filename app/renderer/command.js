@@ -714,7 +714,8 @@ const commands = {
             count = TABS.listTabs().length
             TABS.closeTab(count - 1)
         }
-    }
+    },
+    "only": () => PAGELAYOUT.only()
 }
 let userCommands = {}
 
@@ -736,7 +737,8 @@ const noArgumentComands = [
     "comclear",
     "makedefault",
     "lclose",
-    "rclose"
+    "rclose",
+    "only"
 ]
 
 const noEscapeCommands = ["command", "delcommand"]

@@ -300,6 +300,14 @@ const toTopSplitWindow = () => PAGELAYOUT.moveFocus("top")
 
 const toRightSplitWindow = () => PAGELAYOUT.moveFocus("right")
 
+const toFirstSplitWindow = () => PAGELAYOUT.firstSplit()
+
+const toPreviousSplitWindow = () => PAGELAYOUT.previousSplit()
+
+const toNextSplitWindow = () => PAGELAYOUT.nextSplit()
+
+const toLastSplitWindow = () => PAGELAYOUT.lastSplit()
+
 const increaseHeightSplitWindow = () => PAGELAYOUT.resize("ver", "grow")
 
 const decreaseHeightSplitWindow = () => PAGELAYOUT.resize("ver", "shrink")
@@ -437,6 +445,10 @@ module.exports = {
     toBottomSplitWindow,
     toTopSplitWindow,
     toRightSplitWindow,
+    toFirstSplitWindow,
+    toPreviousSplitWindow,
+    toNextSplitWindow,
+    toLastSplitWindow,
     increaseHeightSplitWindow,
     decreaseHeightSplitWindow,
     increaseWidthSplitWindow,
