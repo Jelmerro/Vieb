@@ -21,6 +21,8 @@
 const layoutDivById = id => document.querySelector(
     `#pagelayout div[link-id='${id}']`)
 const suspendTimers = {}
+let lastTabId = null
+let recentlySwitched = false
 
 const switchView = (oldViewOrId, newView) => {
     let oldId = oldViewOrId
@@ -318,6 +320,32 @@ const only = () => {
     applyLayout()
 }
 
+const setLastUsedTab = id => {
+    if (recentlySwitched) {
+        if (TABS.currentPage().getAttribute("link-id") === lastTabId) {
+            lastTabId = id
+        }
+        return
+    }
+    if (!lastTabId || TABS.currentPage().getAttribute("link-id") !== id) {
+        lastTabId = id
+        recentlySwitched = true
+        setTimeout(() => {
+            recentlySwitched = false
+        }, SETTINGS.get("timeoutlen"))
+    }
+}
+
+const toLastUsedTab = () => {
+    if (lastTabId && TABS.currentPage().getAttribute("link-id") !== lastTabId) {
+        const last = document.querySelector(
+            `#tabs span[link-id='${lastTabId}']`)
+        if (last) {
+            TABS.switchToTab(TABS.listTabs().indexOf(last))
+        }
+    }
+}
+
 const resetResizing = () => {
     [...document.querySelectorAll("#pagelayout *")].forEach(element => {
         element.style.flexGrow = null
@@ -450,6 +478,8 @@ module.exports = {
     nextSplit,
     lastSplit,
     only,
+    setLastUsedTab,
+    toLastUsedTab,
     resetResizing,
     applyLayout
 }

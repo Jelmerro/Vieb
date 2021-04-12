@@ -114,6 +114,8 @@ const defaultBindings = {
         "<C-w><C-W>": {"mapping": "<action.toPreviousSplitWindow>"},
         "<C-w>x": {"mapping": "<action.exchangeSplitWindow>"},
         "<C-w><C-x>": {"mapping": "<action.exchangeSplitWindow>"},
+        "<C-w>p": {"mapping": "<action.toLastUsedTab>"},
+        "<C-w><C-p>": {"mapping": "<action.toLastUsedTab>"},
         "<C-w>-": {"mapping": "<action.decreaseHeightSplitWindow>"},
         "<C-w>+": {"mapping": "<action.increaseHeightSplitWindow>"},
         "<C-w>=": {"mapping": "<action.distrubuteSpaceSplitWindow>"},

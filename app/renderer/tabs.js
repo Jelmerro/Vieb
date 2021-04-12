@@ -550,6 +550,7 @@ const switchToTab = index => {
     document.getElementById("url-hover").style.display = "none"
     SETTINGS.guiRelatedUpdate("tabbar")
     SETTINGS.updateContainerSettings(false)
+    PAGELAYOUT.setLastUsedTab(oldPage?.getAttribute("link-id"))
 }
 
 const updateWindowTitle = () => {

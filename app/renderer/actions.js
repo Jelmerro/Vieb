@@ -312,6 +312,8 @@ const toPreviousSplitWindow = () => PAGELAYOUT.previousSplit()
 
 const exchangeSplitWindow = () => PAGELAYOUT.exchange()
 
+const toLastUsedTab = () => PAGELAYOUT.toLastUsedTab()
+
 const increaseHeightSplitWindow = () => PAGELAYOUT.resize("ver", "grow")
 
 const decreaseHeightSplitWindow = () => PAGELAYOUT.resize("ver", "shrink")
@@ -455,6 +457,7 @@ module.exports = {
     toNextSplitWindow,
     toPreviousSplitWindow,
     exchangeSplitWindow,
+    toLastUsedTab,
     increaseHeightSplitWindow,
     decreaseHeightSplitWindow,
     increaseWidthSplitWindow,
