@@ -132,29 +132,29 @@ const removeFromHistory = entries => {
     return writeHistToFile(true)
 }
 
-const handleRequest = (action = "", entries = []) => {
-    if (!action) {
-        let history = []
-        Object.keys(groupedHistory).forEach(site => {
-            groupedHistory[site].visits.forEach(visit => {
-                history.push({
-                    "url": site,
-                    "title": groupedHistory[site].title,
-                    "icon": FAVICONS.forSite(site),
-                    "date": new Date(visit),
-                    "visits": groupedHistory[site].visits.length
-                })
-            })
-        })
-        history = history.sort((a, b) => a.date.getTime() - b.date.getTime())
-        TABS.currentPage().send("history-list", JSON.stringify(history))
+const handleRequest = (webview, action = "", entries = []) => {
+    if (action) {
+        let success = false
+        if (action === "range" && entries.length > 0) {
+            success = removeFromHistory(entries)
+        }
+        webview.send("history-removal-status", success)
         return
     }
-    let success = false
-    if (action === "range" && entries.length > 0) {
-        success = removeFromHistory(entries)
-    }
-    TABS.currentPage().send("history-removal-status", success)
+    let history = []
+    Object.keys(groupedHistory).forEach(site => {
+        groupedHistory[site].visits.forEach(visit => {
+            history.push({
+                "url": site,
+                "title": groupedHistory[site].title,
+                "icon": FAVICONS.forSite(site),
+                "date": new Date(visit),
+                "visits": groupedHistory[site].visits.length
+            })
+        })
+    })
+    history = history.sort((a, b) => a.date.getTime() - b.date.getTime())
+    webview.send("history-list", JSON.stringify(history))
 }
 
 const suggestTopSites = () => Object.keys(groupedHistory)

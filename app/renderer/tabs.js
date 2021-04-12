@@ -830,7 +830,7 @@ const addWebviewListeners = webview => {
             POINTER.handleScrollDiffEvent(e.args[0])
         }
         if (e.channel === "history-list-request") {
-            HISTORY.handleRequest(...e.args)
+            HISTORY.handleRequest(webview, ...e.args)
         }
         if (e.channel === "switch-to-insert") {
             MODES.setMode("insert")

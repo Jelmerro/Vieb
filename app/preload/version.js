@@ -102,12 +102,14 @@ const checkForUpdates = () => {
 }
 
 window.addEventListener("load", () => {
-    document.getElementById("version").textContent = version
-    document.querySelector("button").onclick = checkForUpdates
-    document.getElementById("chromium-version")
-        .textContent = process.versions.chrome
-    document.getElementById("electron-version")
-        .textContent = process.versions.electron
+    if (document.getElementById("version")) {
+        document.getElementById("version").textContent = version
+        document.querySelector("button").onclick = checkForUpdates
+        document.getElementById("chromium-version")
+            .textContent = process.versions.chrome
+        document.getElementById("electron-version")
+            .textContent = process.versions.electron
+    }
 })
 
 module.exports = {compareVersions}
