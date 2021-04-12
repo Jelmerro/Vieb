@@ -644,6 +644,27 @@ const formatSize = size => {
     return `${(size / Math.pow(1024, exp)).toFixed(2)} ${"KMGTPE"[exp - 1]}B`
 }
 
+const extractZip = (args, cb) => {
+    // Path is constructed manually due to the many electron-builder bugs:
+    // https://github.com/electron-userland/electron-builder/issues/5662
+    // https://github.com/electron-userland/electron-builder/issues/5625
+    // https://github.com/electron-userland/electron-builder/issues/5706
+    // https://github.com/electron-userland/electron-builder/issues/5617
+    // It seems that modules not used in the main process are dropped on build,
+    // so we explicitly tell electron-builder to add them extracted.
+    // This way we can call the right tool ourselves without importing it.
+    let loc = joinPath(__dirname, "../node_modules/7zip-bin/")
+    if (process.platform === "darwin") {
+        loc = joinPath(loc, "mac", process.arch, "7za")
+    } else if (process.platform === "win32") {
+        loc = joinPath(loc, "win", process.arch, "7za.exe")
+    } else {
+        loc = joinPath(loc, "linux", process.arch, "7za")
+    }
+    const {spawn} = require("child_process")
+    spawn(loc, args).on("exit", cb)
+}
+
 module.exports = {
     hasProtocol,
     isUrl,
@@ -692,5 +713,6 @@ module.exports = {
     findClickPosition,
     activeElement,
     frameSelector,
-    formatSize
+    formatSize,
+    extractZip
 }

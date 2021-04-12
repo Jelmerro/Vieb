@@ -30,7 +30,6 @@ const {
     webContents
 } = require("electron")
 const {ElectronBlocker} = require("@cliqz/adblocker-electron")
-const cmd7z = require("7zip-min").cmd
 const isSvg = require("is-svg")
 const {
     writeJSON,
@@ -48,7 +47,8 @@ const {
     basePath,
     globDelete,
     clearTempContainers,
-    formatSize
+    formatSize,
+    extractZip
 } = require("./util")
 
 const version = process.env.npm_package_version || app.getVersion()
@@ -955,7 +955,7 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
             }
             const file = Buffer.concat(data)
             writeFile(`${zipLoc}.${extType}`, file)
-            cmd7z([
+            extractZip([
                 "x", "-aoa", "-tzip", `${zipLoc}.${extType}`, `-o${zipLoc}/`
             ], () => {
                 globDelete(`${zipLoc}/_metadata/`)

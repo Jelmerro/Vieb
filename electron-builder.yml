@@ -76,7 +76,6 @@ files:
     - "!dist"
 asarUnpack:
   - "**/node_modules/7zip-bin/**/*"
-  - "**/node_modules/7zip-min/**/*"
   - "**/app/examples/*"
 fileAssociations:
   - name: HyperText Markup File

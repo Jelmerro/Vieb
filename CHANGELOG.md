@@ -24,11 +24,12 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Check for favicon file existence before setting it as the tab icon
-- Also check for matching urls in follow mode links to keep the same one shown
+- Also check for matching urls in follow mode links before deciding to keep showing the same one
 
 ### Fixed
 
 - Settings "splitbelow" and "splitright" being swapped in functionality
+- Extract process of installing extensions not working in last release due to rework and electron-builder bugs
 
 ### Security
 

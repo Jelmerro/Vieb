@@ -14,6 +14,8 @@
 
 ## [Homepage](https://vieb.dev/) - [Download](https://vieb.dev/download) - [Changelog](CHANGELOG.md) - [FAQ](FAQ.md)
 
+*Vieb is pronounced like "deep" with a "v" and rhymes with sheep*
+
 # Features
 
 - __Free__, open source, fast and secure
