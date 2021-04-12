@@ -284,6 +284,8 @@ const exploreHistoryNext = () => EXPLOREHISTORY.next()
 
 const rotateSplitWindow = () => PAGELAYOUT.rotate()
 
+const rotateSplitWindowBackward = () => PAGELAYOUT.rotateReverse()
+
 const leftHalfSplitWindow = () => PAGELAYOUT.toTop("left")
 
 const bottomHalfSplitWindow = () => PAGELAYOUT.toTop("bottom")
@@ -300,13 +302,15 @@ const toTopSplitWindow = () => PAGELAYOUT.moveFocus("top")
 
 const toRightSplitWindow = () => PAGELAYOUT.moveFocus("right")
 
-const toFirstSplitWindow = () => PAGELAYOUT.firstSplit()
+const toLastSplitWindow = () => PAGELAYOUT.lastSplit()
 
-const toPreviousSplitWindow = () => PAGELAYOUT.previousSplit()
+const toFirstSplitWindow = () => PAGELAYOUT.firstSplit()
 
 const toNextSplitWindow = () => PAGELAYOUT.nextSplit()
 
-const toLastSplitWindow = () => PAGELAYOUT.lastSplit()
+const toPreviousSplitWindow = () => PAGELAYOUT.previousSplit()
+
+const exchangeSplitWindow = () => PAGELAYOUT.exchange()
 
 const increaseHeightSplitWindow = () => PAGELAYOUT.resize("ver", "grow")
 
@@ -437,6 +441,7 @@ module.exports = {
     zoomIn,
     zoomOut,
     rotateSplitWindow,
+    rotateSplitWindowBackward,
     leftHalfSplitWindow,
     bottomHalfSplitWindow,
     topHalfSplitWindow,
@@ -445,10 +450,11 @@ module.exports = {
     toBottomSplitWindow,
     toTopSplitWindow,
     toRightSplitWindow,
-    toFirstSplitWindow,
-    toPreviousSplitWindow,
-    toNextSplitWindow,
     toLastSplitWindow,
+    toFirstSplitWindow,
+    toNextSplitWindow,
+    toPreviousSplitWindow,
+    exchangeSplitWindow,
     increaseHeightSplitWindow,
     decreaseHeightSplitWindow,
     increaseWidthSplitWindow,

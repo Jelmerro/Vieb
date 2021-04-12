@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global FAVICONS SETTINGS SUGGEST TABS UTIL */
+/* global FAVICONS SETTINGS SUGGEST UTIL */
 "use strict"
 
 const histFile = UTIL.joinPath(UTIL.appData(), "hist")

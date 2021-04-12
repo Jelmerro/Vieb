@@ -15,7 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global SETTINGS UTIL TABS */
+/* global SETTINGS TABS */
 "use strict"
 
 const layoutDivById = id => document.querySelector(
@@ -131,11 +131,41 @@ const rotate = () => {
     }
     const current = layoutDivById(TABS.currentPage().getAttribute("link-id"))
     const parent = current.parentNode
-    if ([...parent.children].find(c => c.className)) {
-        UTIL.notify("Cannot rotate when another window is split", "warn")
+    parent.insertBefore(parent.lastChild, parent.firstChild)
+    applyLayout()
+}
+
+const rotateReverse = () => {
+    removeRedundantContainers()
+    if (!document.getElementById("pages").classList.contains("multiple")) {
         return
     }
-    parent.insertBefore([...parent.children].slice(-1)[0], parent.firstChild)
+    const current = layoutDivById(TABS.currentPage().getAttribute("link-id"))
+    const parent = current.parentNode
+    parent.appendChild(parent.firstChild)
+    applyLayout()
+}
+
+const exchange = () => {
+    removeRedundantContainers()
+    if (!document.getElementById("pages").classList.contains("multiple")) {
+        return
+    }
+    const current = layoutDivById(TABS.currentPage().getAttribute("link-id"))
+    const parent = current.parentNode
+    if ([...parent.children].find(c => c.className)) {
+        return
+    }
+    let newId = null
+    if (parent.lastChild === current) {
+        newId = current.previousSibling.getAttribute("link-id")
+        parent.appendChild(current.previousSibling)
+    } else {
+        newId = current.nextSibling.getAttribute("link-id")
+        parent.insertBefore(current, current.nextSibling.nextSibling)
+    }
+    const tab = document.querySelector(`#tabs span[link-id='${newId}']`)
+    TABS.switchToTab(TABS.listTabs().indexOf(tab))
     applyLayout()
 }
 
@@ -410,6 +440,8 @@ module.exports = {
     hide,
     add,
     rotate,
+    rotateReverse,
+    exchange,
     toTop,
     moveFocus,
     resize,

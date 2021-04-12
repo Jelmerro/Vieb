@@ -20,6 +20,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Action "toLastSplitWindow" to switch focus to the last (bottom-right) window split
 - Action "toNextSplitWindow" to switch focus to the next window split by appearance order (top to bottom, left to right)
 - Action "toPreviousSplitWindow" to switch focus to the previous window split by appearance order (top to bottom, left to right)
+- Action "exchangeSplitWindow" to exchange the current window split with the one next to it in the current position
+- Action "rotateSplitWindowBackward" to rotate window splits counter-clockwise (as opposed to clockwise with the existing rotate action)
 
 ### Changed
 
