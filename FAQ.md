@@ -76,22 +76,6 @@ Yes, there is a command for that named `:makedefault`.
 For details, see the help page using `:h makedefault` and the
 [defaultapp script directory](https://github.com/Jelmerro/Vieb/tree/master/app/defaultapp).
 
-#### How do I quit Vieb?
-
-Same as Vim. From normal mode, type `:qa` then Enter. (This assumes the default mappings and commands.)
-See [this issue](https://github.com/Jelmerro/Vieb/issues/65) for the rationale and other options.
-If you just want to use your regular shortcut to quit, use any of these commands to map the keys:
-
-```vim
-:map <A-F4> <:qa>
-:map <M-q> <:qa>
-:map <C-q> <:qa>
-```
-
-You don't need all three, you can simply execute the ones you would like,
-optionally followed by `:mkv` to save the config to disk for the next Vieb session.
-You can find more details about mappings with the help command: `:help map` or `:h mappings`.
-
 #### Why do I need to enter Insert mode to type text?
 
 Same as Vim, there is a strong mode separation.

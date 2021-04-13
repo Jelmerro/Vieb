@@ -32,20 +32,23 @@
     </div>
     <main>
         <h1 id="intro">Intro</h1>
-        Welcome to Vieb's official, complete and offline documentation. Vieb is short for "Vim Inspired Electron Browser" and can be found on <a href="https://vieb.dev">vieb.dev</a> or <a href="https://github.com/Jelmerro/Vieb">github</a>. These are all the shortcuts you need to navigate through the help to find out more:
+        Welcome to Vieb's official, complete and offline documentation. Vieb is short for "Vim Inspired Electron Browser" and can be found on <a href="https://vieb.dev">vieb.dev</a> or <a href="https://github.com/Jelmerro/Vieb">github</a>. These are the essential keys you need for basic use:
         <ul>
-            <li><kbd>Esc</kbd> - Back to normal mode, this is where you want to be in most of the time</li>
-            <li><kbd>j</kbd> and <kbd>k</kbd> - Scrolling the page</li>
-            <li><kbd>F1</kbd> - Always opens this help page</li>
-            <li><kbd>:</kbd> - Switch to <a class="command" href="#action.toCommandMode">command mode</a> (for executing commands or configuring settings)</li>
-            <li><kbd>e</kbd> - Switch to <a class="explore" href="#action.toExploreMode">explore mode</a> (for navigating to websites or searching the web)</li>
-            <li><kbd>f</kbd> - Switch to <a class="follow" href="#action.startFollowCurrentTab">follow mode</a> (for clicking buttons or links based on keys)</li>
-            <li><kbd>/</kbd> - Switch to <a class="search" href="#action.toSearchMode">search mode</a> (for locating text in the page, use <kbd>n</kbd> and <kbd>N</kbd> to switch between matches)</li>
-            <li><kbd>v</kbd> - Switch to <a class="pointer" href="#pointer">pointer mode</a> (for hovering over links, downloading images, copying link urls, etc.)<ul>
-                <li><kbd>v</kbd> - Then switch to <a class="visual" href="#pointer.startVisualSelect">visual mode</a> (for selecting text)</li>
+            <li><kbd>&lt;Esc&gt;</kbd> - Back to normal mode, this is where you want to be in most of the time</li>
+            <li><kbd>j</kbd> and <kbd>k</kbd> - Scroll the page a bit or <a href="#scrolling">scroll further</a> with <kbd>&lt;C-d&gt;</kbd> and <kbd>&lt;C-u&gt;</kbd></li>
+            <li><kbd>:</kbd> - Switch to <a class="command" href="#action.toCommandMode">command mode</a> to run <a href="#commands">commands</a>, set <a href="#mappings">mappings</a> or change <a href="#settings">settings</a></li>
+            <li><kbd>e</kbd> - Switch to <a class="explore" href="#action.toExploreMode">explore mode</a> to navigate to websites or <a href="#search">search</a> the web</li>
+            <li><kbd>f</kbd> - Switch to <a class="follow" href="#action.startFollowCurrentTab">follow mode</a> to click buttons or links based on keys</li>
+            <li><kbd>/</kbd> - Switch to <a class="search" href="#action.toSearchMode">search mode</a> to find text in the page, next/previous with <kbd>n</kbd> and <kbd>N</kbd></li>
+            <li><kbd>v</kbd> - Switch to <a class="pointer" href="#pointer">pointer mode</a> to hover, download images, copy urls etc.<ul>
+                <li><kbd>v</kbd> - Then switch to <a class="visual" href="#pointer.startVisualSelect">visual mode</a> to select and copy text</li>
             </ul></li>
+            <li>Open <a href="#action.openNewTab">new tabs</a> with <kbd>t</kbd>, <a href="#action.closeTab">close them</a> with <kbd>d</kbd>, <a href="#action.nextTab">switch</a> between <a href="#action.previousTab">tabs</a> with <kbd>w</kbd> and <kbd>b</kbd></li>
+            <li><a href="#action.reopenTab">Reopen tabs</a> with <kbd>u</kbd>, <a href="#action.reload">reload</a> with <kbd>r</kbd>, open <a href="#:help">help</a> with <kbd>&lt;F1&gt;</kbd> and <a href="#:quit">quit</a> with <kbd>ZZ</kbd></li>
         </ul>
-        You can see the current mode at all times in the navbar, next to the url. Vieb is separated into different modes, most importantly normal mode. This documentation offers you functional documentation regarding all of Vieb's features. You can list all of Vieb's keybindings with <span class="command-block">:map!</span> as explained in the <a href="#:map">:map</a> paragraph. An important step to become familiar with Vieb is knowing how to look for the right documentation. This can be done by running the help command with 1 additional argument, for example: <span class="command-block nowrap">:help commands</span>. This will open the help page at the start of the commands chapter. Here are the different chapters of this documentation:
+        Vieb is separated into different modes, which have different keyboard mappings. You can see the current mode at all times in the navbar, next to the url. All mappings listed above assume the default mappings and that you are in normal mode. You can list all of Vieb's current mappings with <span class="command-block">:map!</span> as explained in the <a href="#:map">:map</a> paragraph.
+        <h2>Help structure</h2>
+        This documentation offers you functional documentation regarding all of Vieb's features. An important step to become familiar with Vieb is knowing how to look for the right documentation. This can be done by running the help command with 1 additional argument, for example: <span class="command-block nowrap">:help commands</span>. This will open the help page at the start of the commands chapter. Here are the different chapters of this documentation:
         <ul>
             <li><a href="#commands">Commands</a> - All built-in commands, including commands to create custom commands</li>
             <li><a href="#settings">Settings</a> - All settings, including defaults and possible values</li>
@@ -122,7 +125,7 @@
         <ul>
             <li><span class="command-block">:restart</span> - Restart Vieb</li>
         </ul>
-        This command will restart Vieb.  It is functionally equivalent to running the <a href="#:quitall">:quitall</a> command and then starting Vieb again.
+        This command will restart Vieb. It is functionally equivalent to running the <a href="#:quitall">:quitall</a> command and then starting Vieb again.
         <h3 id=":mkviebrc">:mkviebrc</h3>
         Examples
         <ul>
@@ -509,7 +512,7 @@
         <ul>
             <li><span class="command-block">:internaldevtools</span> - Open the developer tools of the Vieb main browser window</li>
         </ul>
-        The internaldevtools command opens the developer tools of the main Vieb window (containing the url bar, tab list, etc.).  This is mainly useful to debug Vieb itself.
+        The internaldevtools command opens the developer tools of the main Vieb window (containing the url bar, tab list etc.). This is mainly useful to debug Vieb itself.
         <h3 id=":colorscheme">:colorscheme</h3>
         <ul>
             <li><span class="command-block">:colorscheme</span> - Show the currently active colorscheme</li>
@@ -918,9 +921,9 @@
         <h3 id="action.distrubuteSpaceSplitWindow">action.distrubuteSpaceSplitWindow</h3>
         Distribute the windows inside a split evenly. This does not necessarily mean that all windows will be of the same size, for example if you have a vertical split, with on the left side a window, but on the right side a horizontal sub-split with two windows.
         <h2 id="pointer">Pointer</h2>
-        Vieb has a <span class="pointer">pointer mode</span> to hover over links, download images or inspect an element at a position. The pointer can be moved in many different ways, most of which are by default mapped similar to Vim's normal mode. Additionally, after entering <span class="pointer">pointer mode</span>, it's also possible to start selecting text using <a class="visual" href="#pointer.startVisualSelect">visual mode</a>. By default, the bindings of these two modes are similar, with the biggest difference being that text will be selected between the initial and current pointer position. See <a href="#pointer.startVisualSelect">pointer.startVisualSelect</a> to activate <a class="visual" href="#pointer.startVisualSelect">visual mode</a> and <a href="#pointer.copyAndStop">pointer.copyAndStop</a> to copy the hovered link or selected text.
+        Vieb has a <span class="pointer">pointer mode</span> to hover over links, download images or inspect an element at a position. The pointer can be moved in many different ways, most of which are by default mapped similar to Vim's normal mode. Additionally, after entering <span class="pointer">pointer mode</span>, it's also possible to start selecting text using <a class="visual" href="#pointer.startVisualSelect">visual mode</a>. By default, the mappings of these two modes are similar, with the biggest difference being that text will be selected between the initial and current pointer position. See <a href="#pointer.startVisualSelect">pointer.startVisualSelect</a> to activate <a class="visual" href="#pointer.startVisualSelect">visual mode</a> and <a href="#pointer.copyAndStop">pointer.copyAndStop</a> to copy the hovered link or selected text.
         <h3 id="pointer.start">pointer.start</h3>
-        Switch to <a href="#pointer" class="pointer">pointer mode</a>, which enables a movable pointer.  The pointer can be used to hover over links, download images or inspect an element at a position. It can be moved in many different ways, most of which are by default mapped similar to Vim's normal mode.
+        Switch to <a href="#pointer" class="pointer">pointer mode</a>, which enables a movable pointer. The pointer can be used to hover over links, download images or inspect an element at a position. It can be moved in many different ways, most of which are by default mapped similar to Vim's normal mode.
         <h3 id="pointer.leftClick" countable="true">pointer.leftClick</h3>
         Simulate a left mouse click at the current pointer location. See also <a href="#pointer.rightClick">pointer.rightClick</a>.
         <h3 id="pointer.rightClick" countable="true">pointer.rightClick</h3>

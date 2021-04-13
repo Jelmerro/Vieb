@@ -23,6 +23,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Action "exchangeSplitWindow" to exchange the current window split with the one next to it in the current position
 - Action "rotateSplitWindowBackward" to rotate window splits counter-clockwise (as opposed to clockwise with the existing rotate action)
 - Action "toLastUsedTab" to switch between the two last used tabs or window splits (uses timeoutlen for determining used tabs)
+- Default mappings for all the new actions and also the quit command: ZZ
 
 ### Changed
 

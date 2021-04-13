@@ -23,7 +23,7 @@
 - __Privacy__ with strict permission system, navigator overrides, firefox mode, custom WebRTC policy and more
 - __Accessible__ with custom themes, full interface & fontsize scaling, page zooming, spellcheck and mouse support
 - __Security settings__ with permissions, cache usage, cookie management, (auto-)download settings and more
-- __Window splitting__ with split, Vexplore and Ctrl-w bindings, for multi-window browsing
+- __Window splitting__ with buffer, split, Vexplore and Ctrl-w bindings, for multi-window browsing
 - __Map commands__ for completely custom keyboard sequences, keystrokes, commands and actions
 - __Viebrc__ config file for all custom/Vim/Vieb commands to configure settings permanently
 - __Set command__ for runtime setting configuration exactly like Vim

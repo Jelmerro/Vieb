@@ -72,6 +72,7 @@ const defaultBindings = {
         "v": {"mapping": "<pointer.start>"},
         "w": {"mapping": "<action.nextTab>"},
         "x": {"mapping": "<action.openLinkExternal>"},
+        "ZZ": {"mapping": "<:quit>"},
         "<C-w>c": {"mapping": "<:close>"},
         "<C-w><C-c>": {"mapping": "<:close>"},
         "<C-w>n": {"mapping": "<:split>"},

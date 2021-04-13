@@ -82,6 +82,7 @@
     --url-hover-bg: #fff9;
     /* special pages */
     --link-color: #0cf;
+    --link-underline: #059;
     --scrollbar-bg: #444;
     --scrollbar-thumb: #bbb9;
     --button-disabled: #999;
@@ -246,6 +247,8 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 */
 .specialpage {width: 90vw;margin: auto;}
 .specialpage a {color: var(--link-color);white-space: nowrap;overflow: hidden;}
+.specialpage a:not([class]) {text-decoration: var(--link-underline) underline;}
+.specialpage a:hover {text-decoration: var(--link-color) underline;}
 .specialpage h1 {font-size: 2em;margin: 1em 0;padding: 0;}
 .specialpage img {height: 1.9em;margin: .5em;float: right;}
 .specialpage *[onclick] {cursor: pointer;}
@@ -265,7 +268,6 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #downloadspage .filelocation {cursor: pointer;}
 #downloadspage img {cursor: pointer;}
 /* extensions */
-#extensionspage h1 {font-size: 2em;margin: 1em 0;padding: 0;}
 #extensionspage img {height: 4em;width: 4em;margin-right: 1em;}
 #extensionspage .extension {display: flex;align-items: center;background: var(--special-page-element-bg);border: .1em solid var(--special-page-element-border);margin: 1em 0;padding: 1em;}
 #extensionspage .fullwidth {flex: 1;}
@@ -275,7 +277,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #helppage main {max-width: 65em;margin: auto;}
 #helppage .header, #helppage .header > div {font-size: 5vw;display: flex;flex: 1;justify-content: center;}
 #helppage .header > div > img {height: 10vw;margin: 0 1em 0 0;}
-#helppage a {color: var(--link-color);overflow-wrap: anywhere;}
+#helppage a {overflow-wrap: anywhere;}
 #helppage li {line-height: 1.5em;}
 #helppage .section {display: flex;flex-wrap: wrap;align-items: center;}
 #helppage .section h1, .section h2, .section h3, .section h4, .section h5, .section h6 {margin: 0;overflow-wrap: anywhere;}
@@ -321,7 +323,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #newtabpage {display: none;flex-direction: column;height: 100vh;}
 #newtabpage main {margin: auto;max-width: 80vw;min-width: 450px;}
 #newtabpage img {height: 2em;width: 2em;min-height: 2em;min-width: 2em;margin: 0 .5em 0 0;}
-#newtabpage a {color: var(--link-color);display: flex;padding: .5em;font-size: 1.4em;text-decoration: none;max-width: 80vw;align-items: center;}
+#newtabpage a {display: flex;padding: .5em;font-size: 1.4em;text-decoration: none;max-width: 80vw;align-items: center;}
 #newtabpage a div {display: flex;flex-direction: column;}
 #newtabpage a div, a div * {overflow: hidden;white-space: wrap;text-overflow: ellipsis;}
 #newtabpage main > div {display: flex;flex-wrap: wrap;overflow: hidden;}
@@ -329,7 +331,6 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #favorites, #topsites {margin: 1em 0;display: none;max-width: 80vw;min-width: 40em;width: auto;flex-grow: 1;flex-basis: 50%;}
 #newtabpage small {font-size: .7em;text-decoration: underline;}
 /* notifications */
-#notificationspage h1 {font-size: 2em;margin: 1em 0;padding: 0;}
 #notificationspage .notification {background: var(--special-page-element-bg);border: .1em solid var(--notification-border);margin: 1em 0;padding: 1em;}
 #notificationspage .date {color: var(--notification-date);}
 #notificationspage .permission {color: var(--notification-permission);}
@@ -345,7 +346,6 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #versionpage .header {display: flex;flex-direction: column;margin: auto;}
 #versionpage .header > img {width: 30vmin;height: 30vmin;margin: auto;}
 #versionpage .info {width: 40em;min-width: 450px;max-width: 80vw;}
-#versionpage a {color: var(--link-color);}
 #versionpage #update-check {margin: .7em;}
 
 

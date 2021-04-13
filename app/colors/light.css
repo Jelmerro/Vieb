@@ -48,6 +48,7 @@
     --notification-success: #0c0;
     /* special pages */
     --link-color: #08f;
+    --link-underline: #0df;
     --scrollbar-bg: #fff;
     --scrollbar-thumb: #aaa7;
     --button-disabled: #777;
