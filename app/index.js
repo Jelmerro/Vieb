@@ -338,6 +338,7 @@ app.on("ready", () => {
         "icon": customIcon,
         "webPreferences": {
             "preload": joinPath(__dirname, "renderer/index.js"),
+            "nativeWindowOpen": false,
             "sandbox": false,
             "contextIsolation": false,
             "disableBlinkFeatures": "Auxclick",

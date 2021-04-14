@@ -230,7 +230,7 @@ const editWithVim = () => {
             if (contents === null) {
                 UTIL.notify("Failed to read temp file to fill form", "err")
             } else {
-                page.send("action", "setInputFieldText", contents)
+                page.send("action", "setInputFieldText", tempFile, contents)
             }
         } else {
             const {exec} = require("child_process")

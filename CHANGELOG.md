@@ -35,6 +35,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Settings "splitbelow" and "splitright" being swapped in functionality
 - Extract process of installing extensions not working in last release due to rework and electron-builder bugs
 - History info being transferred to the current tab instead of the tab that actually requested it
+- Action "editWithVim" not working in last release due rework and missing filename argument
 
 ### Security
 

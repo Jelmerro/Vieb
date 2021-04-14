@@ -20,7 +20,7 @@
 const {ipcRenderer} = require("electron")
 
 const apiUrl = "https://api.github.com/repos/Jelmerro/Vieb/releases/latest"
-const version = ipcRenderer && ipcRenderer.sendSync("app-version")
+const version = ipcRenderer?.sendSync("app-version")
 
 const compareVersions = (v1, v2) => {
     v1 = v1.replace(/^v/g, "").trim()
@@ -102,7 +102,7 @@ const checkForUpdates = () => {
 }
 
 window.addEventListener("load", () => {
-    if (document.getElementById("version")) {
+    if (version) {
         document.getElementById("version").textContent = version
         document.querySelector("button").onclick = checkForUpdates
         document.getElementById("chromium-version")
