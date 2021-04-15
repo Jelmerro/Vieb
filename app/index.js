@@ -407,9 +407,11 @@ app.on("ready", () => {
     loginWindow.on("close", e => {
         e.preventDefault()
         loginWindow.hide()
+        mainWindow.focus()
     })
     ipcMain.on("hide-login-window", () => {
         loginWindow.hide()
+        mainWindow.focus()
     })
     // Show a dialog for large notifications
     const notificationWindowData = {
@@ -438,9 +440,11 @@ app.on("ready", () => {
     notificationWindow.on("close", e => {
         e.preventDefault()
         notificationWindow.hide()
+        mainWindow.focus()
     })
     ipcMain.on("hide-notification-window", () => {
         notificationWindow.hide()
+        mainWindow.focus()
     })
 })
 
@@ -477,6 +481,7 @@ app.on("login", (e, contents, _, auth, callback) => {
         try {
             callback(credentials[0], credentials[1])
             loginWindow.hide()
+            mainWindow.focus()
         } catch (err) {
             // Window is already being closed
         }
@@ -490,6 +495,7 @@ app.on("login", (e, contents, _, auth, callback) => {
         Math.round(bounds.y + bounds.height / 2 - size / 2))
     loginWindow.resizable = false
     loginWindow.show()
+    loginWindow.focus()
     loginWindow.webContents.send("login-information",
         fontsize, customCSS, `${auth.host}: ${auth.realm}`)
 })
@@ -508,6 +514,7 @@ ipcMain.on("show-notification", (_, escapedMessage, properType) => {
     notificationWindow.webContents.send("notification-details",
         escapedMessage, fontsize, customCSS, properType)
     notificationWindow.show()
+    notificationWindow.focus()
 })
 
 // Create and manage sessions, mostly downloads, adblocker and permissions
@@ -1087,6 +1094,7 @@ ipcMain.on("window-state-init", (_, restorePos, restoreSize, restoreMax) => {
         mainWindow.maximize()
     }
     mainWindow.show()
+    mainWindow.focus()
     // Save the window state when resizing or maximizing.
     // Move and resize state are saved and checked to detect window snapping.
     let justMoved = false
