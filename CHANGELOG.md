@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Code is now checked by eslint for compatibility with the latest Chromium
+
 ### Changed
 
 - Renderer process now uses modules instead of globals, similar to other code

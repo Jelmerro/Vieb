@@ -42,7 +42,7 @@ const informPreload = () => {
 const startFollow = (newtab = followNewtab) => {
     followNewtab = newtab
     document.getElementById("follow").textContent = ""
-    let modeBeforeFollow = getStored("modeBeforeFollow") || currentMode()
+    let modeBeforeFollow = currentMode()
     if (modeBeforeFollow === "follow") {
         modeBeforeFollow = "normal"
     }
