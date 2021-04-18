@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Changed
+
+- Renderer process now uses modules instead of globals, similar to other code
+
 ### Fixed
 
 - Windows not always focussing correctly when closing popups or starting Vieb (mostly a Windows-only bug)

@@ -15,24 +15,41 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND CONTEXTMENU HISTORY INPUT MODES SETTINGS TABS UTIL */
 "use strict"
 
-const {ipcRenderer} = require("electron")
+const {
+    urlToString,
+    stringToUrl,
+    isDir,
+    listDir,
+    joinPath,
+    readFile,
+    expandPath,
+    basePath,
+    dirname,
+    pathExists,
+    isAbsolutePath,
+    appData,
+    isUrl,
+    searchword
+} = require("../util")
+const {
+    listTabs, tabOrPageMatching, currentMode, getSetting
+} = require("./common")
 
 let suggestions = []
 let originalValue = ""
 
 const setUrlValue = url => {
-    if (MODES.currentMode() === "explore") {
-        document.getElementById("url").value = UTIL.urlToString(url)
+    if (currentMode() === "explore") {
+        document.getElementById("url").value = urlToString(url)
     } else {
         document.getElementById("url").value = url
     }
     updateColors()
 }
 
-const prevSuggestion = () => {
+const previous = () => {
     const list = [...document.querySelectorAll("#suggest-dropdown div")]
     if (list.length === 0) {
         return
@@ -55,7 +72,7 @@ const prevSuggestion = () => {
     setUrlValue(suggestions[id - 1])
 }
 
-const nextSuggestion = () => {
+const next = () => {
     const list = [...document.querySelectorAll("#suggest-dropdown div")]
     if (list.length === 0) {
         return
@@ -86,9 +103,9 @@ const emptySuggestions = () => {
 }
 
 const locationToSuggestion = (base, location) => {
-    let absPath = UTIL.joinPath(base, location)
-    let fullPath = UTIL.stringToUrl(absPath)
-    if (UTIL.isDir(absPath)) {
+    let absPath = joinPath(base, location)
+    let fullPath = stringToUrl(absPath)
+    if (isDir(absPath)) {
         fullPath += "/"
         location += "/"
         absPath += "/"
@@ -100,20 +117,20 @@ const locationToSuggestion = (base, location) => {
 }
 
 const suggestFiles = location => {
-    location = UTIL.expandPath(location.replace(/file:\/*/, "/"))
-    if (UTIL.isAbsolutePath(location)) {
+    location = expandPath(location.replace(/file:\/*/, "/"))
+    if (isAbsolutePath(location)) {
         let matching = []
-        if (UTIL.dirname(location) !== location) {
-            UTIL.listDir(UTIL.dirname(location))?.map(
-                p => locationToSuggestion(UTIL.dirname(location), p)) || []
+        if (dirname(location) !== location) {
+            listDir(dirname(location))?.map(
+                p => locationToSuggestion(dirname(location), p)) || []
             matching = matching.filter(p => {
-                if (!UTIL.basePath(p.url).startsWith(UTIL.basePath(location))) {
+                if (!basePath(p.url).startsWith(basePath(location))) {
                     return false
                 }
-                return UTIL.basePath(p.url) !== UTIL.basePath(location)
+                return basePath(p.url) !== basePath(location)
             })
         }
-        const inDir = UTIL.listDir(location)?.map(
+        const inDir = listDir(location)?.map(
             p => locationToSuggestion(location, p)) || []
         return [...matching, ...inDir]
     }
@@ -123,19 +140,19 @@ const suggestFiles = location => {
 const updateColors = search => {
     const urlElement = document.getElementById("url")
     search = search || urlElement.value
-    if (MODES.currentMode() === "explore") {
-        const local = UTIL.expandPath(search)
+    if (currentMode() === "explore") {
+        const local = expandPath(search)
         if (search.trim() === "") {
             urlElement.className = ""
         } else if (document.querySelector("#suggest-dropdown div.selected")) {
             urlElement.className = "suggest"
         } else if (search.startsWith("file://")) {
             urlElement.className = "file"
-        } else if (UTIL.isUrl(search.trim())) {
+        } else if (isUrl(search.trim())) {
             urlElement.className = "url"
-        } else if (UTIL.isAbsolutePath(local) && UTIL.pathExists(local)) {
+        } else if (isAbsolutePath(local) && pathExists(local)) {
             urlElement.className = "file"
-        } else if (UTIL.searchword(search.trim()).word) {
+        } else if (searchword(search.trim()).word) {
             urlElement.className = "searchwords"
         } else {
             urlElement.className = "search"
@@ -146,25 +163,26 @@ const updateColors = search => {
 const suggestExplore = search => {
     emptySuggestions()
     updateColors(search)
-    if (!SETTINGS.get("suggestexplore") || !search.trim()) {
+    if (!getSetting("suggestexplore") || !search.trim()) {
         // Don't suggest if the limit is set to zero or if the search is empty
         return
     }
-    if (["all", "explore"].includes(SETTINGS.get("suggestfiles"))) {
-        if (SETTINGS.get("suggestfilesfirst")) {
+    const {suggestHist} = require("./history")
+    if (["all", "explore"].includes(getSetting("suggestfiles"))) {
+        if (getSetting("suggestfilesfirst")) {
             suggestFiles(search).forEach(f => addExplore(f))
         }
-        HISTORY.suggestHist(search)
-        if (!SETTINGS.get("suggestfilesfirst")) {
+        suggestHist(search)
+        if (!getSetting("suggestfilesfirst")) {
             suggestFiles(search).forEach(f => addExplore(f))
         }
     } else {
-        HISTORY.suggestHist(search)
+        suggestHist(search)
     }
 }
 
 const addExplore = explore => {
-    if (suggestions.length + 1 > SETTINGS.get("suggestexplore")) {
+    if (suggestions.length + 1 > getSetting("suggestexplore")) {
         return
     }
     if (suggestions.includes(explore.url)) {
@@ -175,20 +193,25 @@ const addExplore = explore => {
     element.className = "no-focus-reset"
     element.addEventListener("mouseup", e => {
         if (e.button === 2) {
-            CONTEXTMENU.linkMenu({"x": e.x, "y": e.y, "link": explore.url})
+            const {linkMenu} = require("./contextmenu")
+            linkMenu({"x": e.x, "y": e.y, "link": explore.url})
         } else {
-            MODES.setMode("normal")
-            CONTEXTMENU.clear()
+            const {setMode} = require("./modes")
+            setMode("normal")
+            const {clear} = require("./contextmenu")
+            clear()
         }
         if (e.button === 0) {
-            TABS.navigateTo(explore.url)
+            const {navigateTo} = require("./tabs")
+            navigateTo(explore.url)
         }
         if (e.button === 1) {
-            TABS.addTab({"url": explore.url})
+            const {addTab} = require("./tabs")
+            addTab({"url": explore.url})
         }
         e.preventDefault()
     })
-    if (explore.icon && SETTINGS.get("favicons") !== "disabled") {
+    if (explore.icon && getSetting("favicons") !== "disabled") {
         const thumbnail = document.createElement("img")
         thumbnail.className = "icon"
         thumbnail.src = explore.icon
@@ -203,7 +226,7 @@ const addExplore = explore => {
     if (explore.url.startsWith("file://")) {
         url.className = "file"
     }
-    url.textContent = UTIL.urlToString(explore.url)
+    url.textContent = urlToString(explore.url)
     element.appendChild(url)
     document.getElementById("suggest-dropdown").appendChild(element)
     setTimeout(() => {
@@ -216,43 +239,45 @@ const suggestCommand = search => {
     // Remove all redundant spaces
     // Allow commands prefixed with :
     search = search.replace(/^[\s|:]*/, "").replace(/ +/g, " ")
-    const {valid, confirm, command, args} = COMMAND.parseAndValidateArgs(search)
+    const {parseAndValidateArgs} = require("./command")
+    const {valid, confirm, command, args} = parseAndValidateArgs(search)
     const urlElement = document.getElementById("url")
     if (valid) {
         urlElement.className = ""
     } else {
         urlElement.className = "invalid"
     }
-    if (!SETTINGS.get("suggestcommands") || !search) {
+    if (!getSetting("suggestcommands") || !search) {
         // Don't suggest when it's disabled or the search is empty
         return
     }
     // List all commands unconditionally
-    COMMAND.commandList().filter(
+    const {commandList, customCommandsAsCommandList} = require("./command")
+    commandList().filter(
         c => c.startsWith(search)).forEach(c => addCommand(c))
     // Command: set
+    const {suggestionList, settingsWithDefaults} = require("./settings")
     if ("set".startsWith(command) && !confirm) {
         if (args.length) {
-            SETTINGS.suggestionList()
-                .filter(s => s.startsWith(args[args.length - 1]))
+            suggestionList().filter(s => s.startsWith(args[args.length - 1]))
                 .map(s => `${command} ${args.slice(0, -1).join(" ")} ${s}`
                     .replace(/ +/g, " "))
                 .forEach(c => addCommand(c))
         } else {
-            SETTINGS.suggestionList().map(s => `${command} ${s}`)
+            suggestionList().map(s => `${command} ${s}`)
                 .forEach(c => addCommand(c))
         }
     }
     // Command: write
     if ("write".startsWith(command) && !confirm && args.length < 2) {
-        let location = UTIL.expandPath(args[0]?.replace(/w[a-z]* ?/, "") || "")
+        let location = expandPath(args[0]?.replace(/w[a-z]* ?/, "") || "")
         if (!location) {
             addCommand("write ~")
             addCommand("write /")
-            addCommand(`write ${SETTINGS.get("downloadpath")}`)
+            addCommand(`write ${getSetting("downloadpath")}`)
         }
-        if (!UTIL.isAbsolutePath(location)) {
-            location = UTIL.joinPath(SETTINGS.get("downloadpath"), location)
+        if (!isAbsolutePath(location)) {
+            location = joinPath(getSetting("downloadpath"), location)
         }
         suggestFiles(location).forEach(l => addCommand(`write ${l.path}`))
     }
@@ -270,6 +295,7 @@ const suggestCommand = search => {
             }
         }
         if (args.length >= 1) {
+            const {ipcRenderer} = require("electron")
             ipcRenderer.sendSync("list-extensions").forEach(e => {
                 const id = e.path.replace(/\/$/g, "").replace(/^.*\//g, "")
                 if (`remove ${id}`.startsWith(args.join(" "))) {
@@ -280,8 +306,9 @@ const suggestCommand = search => {
         }
     }
     // Command: call
+    const {listSupportedActions} = require("./input")
     if ("call".startsWith(command) && !confirm) {
-        INPUT.listSupportedActions().filter(
+        listSupportedActions().filter(
             action => `${command} ${action.replace(/(^<|>$)/g, "")}`.startsWith(
                 `${command} ${args.join(" ")}`.trim()))
             .forEach(action => addCommand(`call ${action}`))
@@ -301,17 +328,17 @@ const suggestCommand = search => {
             return
         }
         const themes = {}
-        UTIL.listDir(UTIL.joinPath(__dirname, "../colors/"))?.forEach(p => {
+        listDir(joinPath(__dirname, "../colors/"))?.forEach(p => {
             themes[p.replace(/\.css$/g, "")] = "built-in"
         })
         const customDirs = [
-            UTIL.joinPath(UTIL.appData(), "colors"),
-            UTIL.expandPath("~/.vieb/colors")
+            joinPath(appData(), "colors"),
+            expandPath("~/.vieb/colors")
         ]
         customDirs.forEach(dir => {
-            UTIL.listDir(dir)?.filter(p => p.endsWith(".css")).forEach(p => {
-                const location = UTIL.joinPath(dir, p)
-                if (p === "default.css" || !UTIL.readFile(location)) {
+            listDir(dir)?.filter(p => p.endsWith(".css")).forEach(p => {
+                const location = joinPath(dir, p)
+                if (p === "default.css" || !readFile(location)) {
                     return
                 }
                 themes[p.replace(/\.css$/g, "")] = location
@@ -328,7 +355,7 @@ const suggestCommand = search => {
         if (args.length > 1 || confirm) {
             return
         }
-        COMMAND.customCommandsAsCommandList().split("\n")
+        customCommandsAsCommandList().split("\n")
             .filter(cmd => cmd.split(" ")[0] === "command")
             .map(cmd => cmd.split(" ")[1])
             .filter(cmd => !args[0] || cmd.startsWith(args[0]))
@@ -336,7 +363,7 @@ const suggestCommand = search => {
     }
     // Command: help
     if ("help".startsWith(command) && !confirm) {
-        [
+        ;[
             "intro",
             "commands",
             "settings",
@@ -359,10 +386,10 @@ const suggestCommand = search => {
             "menu",
             "license",
             "mentions",
-            ...COMMAND.commandList().map(c => `:${c}`),
-            ...INPUT.listSupportedActions(),
-            ...Object.values(SETTINGS.settingsWithDefaults()).map(s => s.name),
-            ...COMMAND.commandList()
+            ...commandList().map(c => `:${c}`),
+            ...listSupportedActions(),
+            ...Object.values(settingsWithDefaults()).map(s => s.name),
+            ...commandList()
         ].filter(section => `${command} ${section}`.startsWith(
             `${command} ${args.join(" ")}`.trim())
         ).forEach(section => addCommand(`help ${section}`))
@@ -382,7 +409,7 @@ const suggestCommand = search => {
     ].find(b => b.startsWith(command))
     if (bufferCommand && !confirm) {
         const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
-        TABS.listTabs().filter(tab => {
+        listTabs().filter(tab => {
             if (["close", "buffer", "mute", "pin"].includes(bufferCommand)) {
                 return true
             }
@@ -391,9 +418,9 @@ const suggestCommand = search => {
             }
             return !tab.classList.contains("visible-tab")
         }).map(t => ({
-            "command": `${bufferCommand} ${TABS.listTabs().indexOf(t)}`,
+            "command": `${bufferCommand} ${listTabs().indexOf(t)}`,
             "subtext": `${t.querySelector("span").textContent}`,
-            "url": TABS.tabOrPageMatching(t).src
+            "url": tabOrPageMatching(t).src
         })).filter((t, i) => {
             if (t.command.startsWith(search) || String(i) === simpleSearch) {
                 return true
@@ -409,7 +436,7 @@ const suggestCommand = search => {
 }
 
 const addCommand = (command, subtext) => {
-    if (suggestions.length + 1 > SETTINGS.get("suggestcommands")) {
+    if (suggestions.length + 1 > getSetting("suggestcommands")) {
         return
     }
     if (suggestions.includes(command)) {
@@ -420,11 +447,15 @@ const addCommand = (command, subtext) => {
     element.className = "no-focus-reset"
     element.addEventListener("mouseup", e => {
         if (e.button === 2) {
-            CONTEXTMENU.commandMenu({"x": e.x, "y": e.y, "command": command})
+            const {commandMenu} = require("./contextmenu")
+            commandMenu({"x": e.x, "y": e.y, "command": command})
         } else {
-            MODES.setMode("normal")
-            COMMAND.execute(command)
-            CONTEXTMENU.clear()
+            const {setMode} = require("./modes")
+            setMode("normal")
+            const {execute} = require("./command")
+            execute(command)
+            const {clear} = require("./contextmenu")
+            clear()
         }
         e.preventDefault()
     })
@@ -442,8 +473,8 @@ const addCommand = (command, subtext) => {
 }
 
 module.exports = {
-    prevSuggestion,
-    nextSuggestion,
+    previous,
+    next,
     emptySuggestions,
     addExplore,
     suggestExplore,

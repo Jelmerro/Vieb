@@ -15,13 +15,13 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global SETTINGS */
 "use strict"
 
 require("hazardous")
 const {ipcRenderer} = require("electron")
 const fs = require("fs")
 const path = require("path")
+const getSetting = val => JSON.parse(sessionStorage.getItem("settings"))?.[val]
 
 const protocolRegex = /^[a-z][a-z0-9-+.]+:\/\//
 const specialPages = [
@@ -100,7 +100,7 @@ const isUrl = location => {
 }
 
 const searchword = location => {
-    for (const mapping of SETTINGS.get("searchwords").split(",")) {
+    for (const mapping of getSetting("searchwords").split(",")) {
         const [word, url] = mapping.split("~")
         if (word && url) {
             const query = location.replace(`${word} `, "")
@@ -113,7 +113,7 @@ const searchword = location => {
 }
 
 const notify = (message, type = "info", clickAction = false) => {
-    if (SETTINGS.get("notificationduration") === 0) {
+    if (getSetting("notificationduration") === 0) {
         return
     }
     let properType = "info"
@@ -138,11 +138,11 @@ const notify = (message, type = "info", clickAction = false) => {
         "click": clickAction
     })
     if (properType === "permission") {
-        if (!SETTINGS.get("notificationforpermissions")) {
+        if (!getSetting("notificationforpermissions")) {
             return
         }
     }
-    if (SETTINGS.get("nativenotification")) {
+    if (getSetting("nativenotification")) {
         const n = Notification(`${appName()} ${properType}`, {"body": message})
         n.onclick = () => {
             if (clickAction?.type === "download-success") {
@@ -158,7 +158,7 @@ const notify = (message, type = "info", clickAction = false) => {
         }
     }
     const notificationsElement = document.getElementById("notifications")
-    notificationsElement.className = SETTINGS.get("notificationposition")
+    notificationsElement.className = getSetting("notificationposition")
     const notification = document.createElement("span")
     notification.className = properType
     notification.innerHTML = escapedMessage
@@ -169,7 +169,7 @@ const notify = (message, type = "info", clickAction = false) => {
     }
     notificationsElement.appendChild(notification)
     setTimeout(() => notification.remove(),
-        SETTINGS.get("notificationduration"))
+        getSetting("notificationduration"))
 }
 
 const specialPagePath = (page, section = null, skipExistCheck = false) => {
@@ -377,7 +377,7 @@ const stringToUrl = location => {
     if (isUrl(location)) {
         return `https://${location}`
     }
-    return SETTINGS.get("search").replace(/%s/g, encodeURIComponent(location))
+    return getSetting("search").replace(/%s/g, encodeURIComponent(location))
 }
 
 const urlToString = url => {
@@ -402,7 +402,7 @@ const listNotificationHistory = () => notificationHistory
 
 const title = str => str.slice(0, 1).toUpperCase() + str.slice(1).toLowerCase()
 
-const downloadPath = () => expandPath(SETTINGS.get("downloadpath"))
+const downloadPath = () => expandPath(getSetting("downloadpath"))
 
 const appIcon = () => {
     if (customIcon === null) {

@@ -15,7 +15,6 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global MODES SUGGEST */
 "use strict"
 
 const previousSites = []
@@ -28,11 +27,13 @@ const updateNavWithSite = () => {
         exploreText = previousSites[previousIndex]
     }
     document.getElementById("url").value = exploreText
-    SUGGEST.suggestExplore(exploreText)
+    const {suggestExplore} = require("./suggest")
+    suggestExplore(exploreText)
 }
 
 const previous = () => {
-    if (MODES.currentMode() !== "explore") {
+    const {currentMode} = require("./common")
+    if (currentMode() !== "explore") {
         return
     }
     if (previousIndex === -1) {
@@ -45,7 +46,8 @@ const previous = () => {
 }
 
 const next = () => {
-    if (MODES.currentMode() !== "explore" || previousIndex === -1) {
+    const {currentMode} = require("./common")
+    if (currentMode() !== "explore" || previousIndex === -1) {
         return
     }
     if (previousIndex < previousSites.length - 1) {

@@ -15,11 +15,15 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS COMMAND CONTEXTMENU POINTER FOLLOW MODES PAGELAYOUT SETTINGS
- SUGGEST TABS UTIL */
 "use strict"
 
-const {ipcRenderer} = require("electron")
+const {notify} = require("../util")
+const {
+    listTabs, currentTab, currentPage, currentMode, getSetting
+} = require("./common")
+
+const ACTIONS = require("./actions")
+const POINTER = require("./pointer")
 
 const defaultBindings = {
     "n": {
@@ -279,6 +283,10 @@ let blockNextInsertKey = false
 const mapStringSplitter = /(<.*?[^-]>|<.*?->>|.)/g
 
 const init = () => {
+    const TABS = require("./tabs")
+    const {ipcRenderer} = require("electron")
+    const {suggestExplore, suggestCommand} = require("./suggest")
+    const {clear, viebMenu} = require("./contextmenu")
     window.addEventListener("keydown", handleKeyboard)
     window.addEventListener("keypress", handleUserInput)
     window.addEventListener("keyup", handleUserInput)
@@ -291,7 +299,7 @@ const init = () => {
         } else if (e.path.find(el => el.matches?.("#context-menu"))) {
             return
         }
-        CONTEXTMENU.clear()
+        clear()
         if (e.target.classList.contains("no-focus-reset")) {
             return
         }
@@ -305,21 +313,21 @@ const init = () => {
         } else if (e.path.find(el => el.matches?.("#context-menu"))) {
             return
         }
-        if (SETTINGS.get("mouse")) {
+        if (getSetting("mouse")) {
             if (e.target === document.getElementById("url")) {
-                if (!["explore", "command"].includes(MODES.currentMode())) {
+                if (!["explore", "command"].includes(currentMode())) {
                     ACTIONS.toExploreMode()
                 }
-            } else if (["explore", "command"].includes(MODES.currentMode())) {
+            } else if (["explore", "command"].includes(currentMode())) {
                 ACTIONS.toNormalMode()
             }
-            const tab = e.path.find(el => TABS.listTabs().includes(el))
+            const tab = e.path.find(el => listTabs().includes(el))
             if (tab) {
-                CONTEXTMENU.clear()
+                clear()
                 if (e.button === 1) {
-                    TABS.closeTab(TABS.listTabs().indexOf(tab))
+                    TABS.closeTab(listTabs().indexOf(tab))
                 } else {
-                    TABS.switchToTab(TABS.listTabs().indexOf(tab))
+                    TABS.switchToTab(listTabs().indexOf(tab))
                 }
             }
         } else {
@@ -328,13 +336,13 @@ const init = () => {
         ACTIONS.setFocusCorrectly()
     })
     window.addEventListener("mousemove", e => {
-        if (SETTINGS.get("mouse") && SETTINGS.get("mousefocus")) {
+        if (getSetting("mouse") && getSetting("mousefocus")) {
             document.elementsFromPoint(e.x, e.y).forEach(el => {
                 if (el.matches("#pagelayout *[link-id], #tabs *[link-id]")) {
-                    const tab = TABS.listTabs().find(t => t.getAttribute(
+                    const tab = listTabs().find(t => t.getAttribute(
                         "link-id") === el.getAttribute("link-id"))
-                    if (tab && TABS.currentTab() !== tab) {
-                        TABS.switchToTab(TABS.listTabs().indexOf(tab))
+                    if (tab && currentTab() !== tab) {
+                        TABS.switchToTab(listTabs().indexOf(tab))
                     }
                 }
             })
@@ -342,33 +350,34 @@ const init = () => {
     })
     window.addEventListener("contextmenu", e => {
         e.preventDefault()
-        if (SETTINGS.get("mouse")) {
-            CONTEXTMENU.viebMenu(e)
+        if (getSetting("mouse")) {
+            viebMenu(e)
         } else {
             ACTIONS.setFocusCorrectly()
         }
     })
     window.addEventListener("resize", () => {
-        CONTEXTMENU.clear()
-        PAGELAYOUT.applyLayout()
-        if (["pointer", "visual"].includes(MODES.currentMode())) {
+        clear()
+        const {applyLayout} = require("./pagelayout")
+        applyLayout()
+        if (["pointer", "visual"].includes(currentMode())) {
             POINTER.updateElement()
         }
     })
     document.getElementById("url").addEventListener("input", () => {
-        if (MODES.currentMode() === "explore") {
-            SUGGEST.suggestExplore(document.getElementById("url").value)
-        } else if (MODES.currentMode() === "command") {
-            SUGGEST.suggestCommand(document.getElementById("url").value)
-        } else if (MODES.currentMode() === "search") {
-            if (SETTINGS.get("incsearch")) {
+        if (currentMode() === "explore") {
+            suggestExplore(document.getElementById("url").value)
+        } else if (currentMode() === "command") {
+            suggestCommand(document.getElementById("url").value)
+        } else if (currentMode() === "search") {
+            if (getSetting("incsearch")) {
                 ACTIONS.incrementalSearch()
             }
         }
     })
     ipcRenderer.on("insert-mode-input-event", (_, input) => {
         if (input.code === "Tab") {
-            TABS.currentPage().focus()
+            currentPage().focus()
         }
         // Check if fullscreen should be disabled
         const noMods = !input.shift && !input.meta && !input.alt
@@ -377,11 +386,11 @@ const init = () => {
         const ctrlBrack = input.code === "BracketLeft" && noMods && ctrl
         if (escapeKey || ctrlBrack) {
             if (document.body.classList.contains("fullscreen")) {
-                TABS.currentPage().send("action", "exitFullscreen")
+                currentPage().send("action", "exitFullscreen")
                 return
             }
         }
-        if (MODES.currentMode() !== "insert") {
+        if (currentMode() !== "insert") {
             return
         }
         if (input.type.toLowerCase() !== "keydown") {
@@ -406,7 +415,7 @@ const init = () => {
         }
     })
     ipcRenderer.on("app-command", (_, cmd) => {
-        if (SETTINGS.get("mouse")) {
+        if (getSetting("mouse")) {
             if (cmd === "browser-backward") {
                 ACTIONS.backInHistory()
             } else if (cmd === "browser-forward") {
@@ -593,16 +602,16 @@ const uncountableActions = [
 
 
 const hasFutureActionsBasedOnKeys = keys => Object.keys(bindings[
-    MODES.currentMode()[0]]).find(map => map.startsWith(keys) && map !== keys)
+    currentMode()[0]]).find(map => map.startsWith(keys) && map !== keys)
 
 const sendKeysToWebview = async (options, mapStr) => {
     blockNextInsertKey = true
     if (options.keyCode.length === 1) {
-        TABS.currentPage().sendInputEvent({...options, "type": "char"})
+        currentPage().sendInputEvent({...options, "type": "char"})
     }
-    TABS.currentPage().sendInputEvent({...options, "type": "keyDown"})
+    currentPage().sendInputEvent({...options, "type": "keyDown"})
     if (options.bubbles) {
-        const action = bindings[MODES.currentMode()[0]][mapStr]
+        const action = bindings[currentMode()[0]][mapStr]
         if (action) {
             await executeMapString(action.mapping, !action.noremap)
         }
@@ -621,11 +630,11 @@ const executeMapString = async (mapStr, recursive, initial) => {
     repeatCounter = 0
     updateKeysOnScreen()
     for (let i = 0;i < repeater;i++) {
-        if (recursiveCounter > SETTINGS.get("maxmapdepth")) {
+        if (recursiveCounter > getSetting("maxmapdepth")) {
             break
         }
         for (const key of mapStr.split(mapStringSplitter).filter(m => m)) {
-            if (recursiveCounter > SETTINGS.get("maxmapdepth")) {
+            if (recursiveCounter > getSetting("maxmapdepth")) {
                 break
             }
             const options = {...fromIdentifier(key), "bubbles": recursive}
@@ -634,9 +643,10 @@ const executeMapString = async (mapStr, recursive, initial) => {
                 repeatCounter = 0
                 await doAction(key.replace(/(^<|>$)/g, ""), count)
             } else if (key.startsWith("<:")) {
-                COMMAND.execute(key.replace(/^<:|>$/g, ""))
+                const {execute} = require("./command")
+                execute(key.replace(/^<:|>$/g, ""))
             } else if (key.match(/^(<(C-)?(M-)?(A-)?(S-)?.+>|.)$/g)) {
-                if (MODES.currentMode() === "insert") {
+                if (currentMode() === "insert") {
                     await sendKeysToWebview(options, key)
                 } else {
                     window.dispatchEvent(new KeyboardEvent("keydown", options))
@@ -683,13 +693,13 @@ const doAction = async (name, count) => {
 
 const handleKeyboard = e => {
     if (document.body.classList.contains("fullscreen")) {
-        MODES.setMode("insert")
+        ACTIONS.toInsertMode()
         return
     }
     const ignoredKeys = [
         "Control", "Meta", "Alt", "Shift", "NumLock", "CapsLock", "ScrollLock"
     ]
-    if (recursiveCounter > SETTINGS.get("maxmapdepth")) {
+    if (recursiveCounter > getSetting("maxmapdepth")) {
         e.preventDefault()
         return
     }
@@ -705,20 +715,20 @@ const handleKeyboard = e => {
     const id = toIdentifier(e)
     updateKeysOnScreen()
     clearTimeout(timeoutTimer)
-    if (SETTINGS.get("timeout")) {
+    if (getSetting("timeout")) {
         timeoutTimer = setTimeout(() => {
             repeatCounter = 0
             pressedKeys = ""
             updateKeysOnScreen()
-        }, SETTINGS.get("timeoutlen"))
+        }, getSetting("timeoutlen"))
     }
-    if (["normal", "pointer", "visual"].includes(MODES.currentMode())) {
+    if (["normal", "pointer", "visual"].includes(currentMode())) {
         const keyNumber = Number(id)
         const noFutureActions = !hasFutureActionsBasedOnKeys(pressedKeys + id)
         if (!isNaN(keyNumber) && noFutureActions) {
             repeatCounter = Number(String(repeatCounter) + keyNumber)
-            if (repeatCounter > SETTINGS.get("countlimit")) {
-                repeatCounter = SETTINGS.get("countlimit")
+            if (repeatCounter > getSetting("countlimit")) {
+                repeatCounter = getSetting("countlimit")
             }
             updateKeysOnScreen()
             e.preventDefault()
@@ -739,8 +749,9 @@ const handleKeyboard = e => {
         pressedKeys = ""
     }
     pressedKeys += id
+    const {active, clear} = require("./contextmenu")
     const menuAction = bindings.m[pressedKeys]
-    if (menuAction && CONTEXTMENU.active()) {
+    if (menuAction && active()) {
         e.preventDefault()
         if (e.isTrusted) {
             executeMapString(menuAction.mapping, !menuAction.noremap, true)
@@ -751,8 +762,8 @@ const handleKeyboard = e => {
         pressedKeys = ""
         return
     }
-    CONTEXTMENU.clear()
-    const action = bindings[MODES.currentMode()[0]][pressedKeys]
+    clear()
+    const action = bindings[currentMode()[0]][pressedKeys]
     if (action && (e.isTrusted || e.bubbles)) {
         e.preventDefault()
         if (e.isTrusted) {
@@ -774,7 +785,7 @@ const handleKeyboard = e => {
 }
 
 const typeCharacterIntoNavbar = id => {
-    if (!"ces".includes(MODES.currentMode()[0])) {
+    if (!"ces".includes(currentMode()[0])) {
         return
     }
     const url = document.getElementById("url")
@@ -802,16 +813,17 @@ const typeCharacterIntoNavbar = id => {
 const updateKeysOnScreen = () => {
     document.getElementById("repeat-counter").textContent = repeatCounter
     document.getElementById("pressed-keys").textContent = pressedKeys
-    if (MODES.currentMode() === "insert") {
+    if (currentMode() === "insert") {
+        const {ipcRenderer} = require("electron")
         ipcRenderer.send("insert-mode-blockers", Object.keys(bindings.i)
             .map(mapping => fromIdentifier(mapping.replace(pressedKeys, ""))))
     }
-    if (repeatCounter && SETTINGS.get("showcmd")) {
+    if (repeatCounter && getSetting("showcmd")) {
         document.getElementById("repeat-counter").style.display = "flex"
     } else {
         document.getElementById("repeat-counter").style.display = "none"
     }
-    if (pressedKeys && SETTINGS.get("showcmd")) {
+    if (pressedKeys && getSetting("showcmd")) {
         document.getElementById("pressed-keys").style.display = "flex"
     } else {
         document.getElementById("pressed-keys").style.display = "none"
@@ -820,9 +832,10 @@ const updateKeysOnScreen = () => {
 
 const handleUserInput = e => {
     const id = toIdentifier(e)
-    if (MODES.currentMode() === "follow") {
+    if (currentMode() === "follow") {
         if (e.type === "keydown") {
-            FOLLOW.enterKey(id)
+            const {enterKey} = require("./follow")
+            enterKey(id)
         }
         e.preventDefault()
         return
@@ -935,17 +948,17 @@ const listMapping = (mode, key, includeDefault) => {
 
 const mapOrList = (mode, args, noremap, includeDefault) => {
     if (includeDefault && args.length > 1) {
-        UTIL.notify("Mappings are always overwritten, no need for !", "warn")
+        notify("Mappings are always overwritten, no need for !", "warn")
         return
     }
     if (args.length === 0) {
         const mappings = listMappingsAsCommandList(mode, includeDefault)
         if (mappings) {
-            UTIL.notify(mappings)
+            notify(mappings)
         } else if (includeDefault) {
-            UTIL.notify("No mappings found")
+            notify("No mappings found")
         } else {
-            UTIL.notify("No custom mappings found")
+            notify("No custom mappings found")
         }
         return
     }
@@ -953,11 +966,11 @@ const mapOrList = (mode, args, noremap, includeDefault) => {
         if (mode) {
             const mapping = listMapping(mode, args[0], includeDefault).trim()
             if (mapping) {
-                UTIL.notify(mapping)
+                notify(mapping)
             } else if (includeDefault) {
-                UTIL.notify("No mapping found for this sequence")
+                notify("No mapping found for this sequence")
             } else {
-                UTIL.notify("No custom mapping found for this sequence")
+                notify("No custom mapping found for this sequence")
             }
         } else {
             let mappings = ""
@@ -966,11 +979,11 @@ const mapOrList = (mode, args, noremap, includeDefault) => {
             })
             mappings = mappings.replace(/[\r\n]+/g, "\n").trim()
             if (mappings) {
-                UTIL.notify(mappings)
+                notify(mappings)
             } else if (includeDefault) {
-                UTIL.notify("No mapping found for this sequence")
+                notify("No mapping found for this sequence")
             } else {
-                UTIL.notify("No custom mapping found for this sequence")
+                notify("No custom mapping found for this sequence")
             }
         }
         return
@@ -1015,7 +1028,7 @@ const sanitiseMapString = (mapString, allowSpecials = false) => mapString
             }
         }
         if (!knownKey && key.length > 1) {
-            UTIL.notify(
+            notify(
                 `Unsupported key in mapping which was skipped: ${key}`, "warn")
             return ""
         }
@@ -1056,13 +1069,13 @@ const mapSingle = (mode, args, noremap) => {
             bindings[m][mapping] = {"mapping": actions, "noremap": noremap}
         })
     }
-    SETTINGS.updateHelpPage()
+    const {updateHelpPage} = require("./settings")
+    updateHelpPage()
 }
 
 const unmap = (mode, args) => {
     if (args.length !== 1) {
-        UTIL.notify(
-            `The ${mode}unmap command requires exactly one mapping`, "warn")
+        notify(`The ${mode}unmap command requires exactly one mapping`, "warn")
         return
     }
     if (mode) {
@@ -1072,7 +1085,8 @@ const unmap = (mode, args) => {
             delete bindings[bindMode][sanitiseMapString(args[0])]
         })
     }
-    SETTINGS.updateHelpPage()
+    const {updateHelpPage} = require("./settings")
+    updateHelpPage()
 }
 
 const clearmap = (mode, removeDefaults) => {
@@ -1089,7 +1103,8 @@ const clearmap = (mode, removeDefaults) => {
     } else {
         bindings = JSON.parse(JSON.stringify(defaultBindings))
     }
-    SETTINGS.updateHelpPage()
+    const {updateHelpPage} = require("./settings")
+    updateHelpPage()
 }
 
 module.exports = {

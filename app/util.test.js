@@ -200,10 +200,14 @@ test(`Title function should capitalize first char and lowercase others`, () => {
 })
 
 test(`Expand path to resolve homedir and downloads`, () => {
-    global.SETTINGS = {"get": () => "~/Downloads/"}
+    sessionStorage.setItem("settings", JSON.stringify({
+        "downloadpath": `~${path.sep}Downloads${path.sep}`
+    }))
     expect(UTIL.downloadPath()).toBe(
         `${homedir()}${path.sep}Downloads${path.sep}`)
-    global.SETTINGS = {"get": () => `Downloads${path.sep}`}
+    sessionStorage.setItem("settings", JSON.stringify({
+        "downloadpath": `Downloads${path.sep}`
+    }))
     expect(UTIL.downloadPath()).toBe(`Downloads${path.sep}`)
 })
 

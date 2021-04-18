@@ -15,23 +15,25 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global POINTER MODES TABS SETTINGS UTIL */
 "use strict"
+
+const {
+    listPages, currentPage, currentMode, getSetting, setStored, getStored
+} = require("./common")
 
 let followNewtab = true
 let alreadyFollowing = false
 let links = []
-let modeBeforeFollow = "normal"
 const savedOrder = ["url", "onclick", "inputs-click", "inputs-insert"]
 
 const informPreload = () => {
     setTimeout(() => {
-        if (TABS.currentPage().getAttribute("dom-ready")) {
-            if (MODES.currentMode() === "follow" && !alreadyFollowing) {
-                TABS.currentPage().send("follow-mode-start")
+        if (currentPage().getAttribute("dom-ready")) {
+            if (currentMode() === "follow" && !alreadyFollowing) {
+                currentPage().send("follow-mode-start")
                 informPreload()
             } else {
-                TABS.currentPage().send("follow-mode-stop")
+                currentPage().send("follow-mode-stop")
             }
         }
     }, 100)
@@ -40,14 +42,16 @@ const informPreload = () => {
 const startFollow = (newtab = followNewtab) => {
     followNewtab = newtab
     document.getElementById("follow").textContent = ""
-    modeBeforeFollow = MODES.currentMode()
+    let modeBeforeFollow = getStored("modeBeforeFollow") || currentMode()
     if (modeBeforeFollow === "follow") {
         modeBeforeFollow = "normal"
     }
-    MODES.setMode("follow")
+    setStored("modebeforefollow", modeBeforeFollow)
+    const {setMode} = require("./modes")
+    setMode("follow")
     alreadyFollowing = false
     informPreload()
-    TABS.currentPage().send("follow-mode-start")
+    currentPage().send("follow-mode-start")
     document.getElementById("follow").style.display = "flex"
 }
 
@@ -55,7 +59,7 @@ const cancelFollow = () => {
     alreadyFollowing = false
     document.getElementById("follow").style.display = ""
     document.getElementById("follow").textContent = ""
-    TABS.listPages().forEach(page => {
+    listPages().forEach(page => {
         try {
             page.send("follow-mode-stop")
         } catch (e) {
@@ -63,8 +67,6 @@ const cancelFollow = () => {
         }
     })
 }
-
-const getModeBeforeFollow = () => modeBeforeFollow
 
 const numberToKeys = (number, total) => {
     if (total < 27 || number < 26 && number > Math.floor(total / 26)) {
@@ -88,43 +90,47 @@ const linkInList = (list, link) => list.find(l => l && link && l.x === link.x
     && l.width === link.width && l.url === link.url)
 
 const clickAtLink = async link => {
-    const factor = TABS.currentPage().getZoomFactor()
-    if (["pointer", "visual"].includes(modeBeforeFollow)) {
-        POINTER.start()
-        if (modeBeforeFollow === "visual") {
-            MODES.setMode("visual")
+    const factor = currentPage().getZoomFactor()
+    const {setMode} = require("./modes")
+    if (["pointer", "visual"].includes(getStored("modebeforefollow"))) {
+        const {start, move} = require("./pointer")
+        start()
+        if (getStored("modebeforefollow") === "visual") {
+            setMode("visual")
         }
-        POINTER.move((link.x + link.width / 2) * factor,
+        move((link.x + link.width / 2) * factor,
             (link.y + link.height / 2) * factor)
         return
     }
-    if (link.url && link.type === "url" && UTIL.isUrl(link.url)) {
-        TABS.navigateTo(link.url)
+    const {isUrl} = require("../util")
+    if (link.url && link.type === "url" && isUrl(link.url)) {
+        const {navigateTo} = require("./tabs")
+        navigateTo(link.url)
         return
     }
-    MODES.setMode("insert")
+    setMode("insert")
     await new Promise(r => setTimeout(r, 2))
     if (link.type === "inputs-insert") {
-        TABS.currentPage().send("focus-input",
+        currentPage().send("focus-input",
             {"x": link.x + link.width / 2, "y": link.y + link.height / 2})
     } else {
-        TABS.currentPage().sendInputEvent({
+        currentPage().sendInputEvent({
             "type": "mouseEnter", "x": link.x * factor, "y": link.y * factor
         })
-        TABS.currentPage().sendInputEvent({
+        currentPage().sendInputEvent({
             "type": "mouseDown",
             "x": (link.x + link.width / 2) * factor,
             "y": (link.y + link.height / 2) * factor,
             "button": "left",
             "clickCount": 1
         })
-        TABS.currentPage().sendInputEvent({
+        currentPage().sendInputEvent({
             "type": "mouseUp",
             "x": (link.x + link.width / 2) * factor,
             "y": (link.y + link.height / 2) * factor,
             "button": "left"
         })
-        TABS.currentPage().sendInputEvent({
+        currentPage().sendInputEvent({
             "type": "mouseLeave", "x": link.x * factor, "y": link.y * factor
         })
     }
@@ -151,11 +157,12 @@ const applyIndexedOrder = () => {
 }
 
 const parseAndDisplayLinks = newLinks => {
-    if (MODES.currentMode() !== "follow" || alreadyFollowing) {
+    if (currentMode() !== "follow" || alreadyFollowing) {
         return
     }
     if (followNewtab) {
-        newLinks = newLinks.filter(link => UTIL.hasProtocol(link.url))
+        const {hasProtocol} = require("../util")
+        newLinks = newLinks.filter(link => hasProtocol(link.url))
         newLinks = newLinks.map(link => ({...link, "type": "url"}))
     }
     if (links.length) {
@@ -184,7 +191,7 @@ const parseAndDisplayLinks = newLinks => {
     // The maximum amount of links is 26 * 26,
     // therefor the slice index is 0 to 26^2 - 1.
     links = links.slice(0, 675)
-    const factor = TABS.currentPage().getZoomFactor()
+    const factor = currentPage().getZoomFactor()
     const followChildren = []
     links.forEach((link, index) => {
         if (!link) {
@@ -194,28 +201,31 @@ const parseAndDisplayLinks = newLinks => {
         const linkElement = document.createElement("span")
         linkElement.textContent = numberToKeys(index, links.length)
         linkElement.className = `follow-${link.type}`
-        const charWidth = SETTINGS.get("fontsize") * 0.6
+        const charWidth = getSetting("fontsize") * 0.6
         const borderRightMargin = charWidth * linkElement.textContent.length
-            + SETTINGS.get("fontsize") * .5
+            + getSetting("fontsize") * .5
         let left = (link.x + link.width) * factor
-        if (left > TABS.currentPage().scrollWidth - borderRightMargin) {
-            left = TABS.currentPage().scrollWidth - borderRightMargin
+        if (left > currentPage().scrollWidth - borderRightMargin) {
+            left = currentPage().scrollWidth - borderRightMargin
         }
         linkElement.style.left = `${left}px`
         const top = Math.max(link.y * factor, 0)
         linkElement.style.top = `${top}px`
         linkElement.setAttribute("link-id", index)
         const onclickListener = async e => {
-            if (e.button === 1 && UTIL.hasProtocol(link.url)) {
-                MODES.setMode(modeBeforeFollow)
-                TABS.addTab({
+            const {hasProtocol} = require("../util")
+            const {setMode} = require("./modes")
+            if (e.button === 1 && hasProtocol(link.url)) {
+                setMode(getStored("modebeforefollow"))
+                const {addTab} = require("./tabs")
+                addTab({
                     "url": link.url,
-                    "switchTo": SETTINGS.get("mousenewtabswitch")
+                    "switchTo": getSetting("mousenewtabswitch")
                 })
             } else {
                 await clickAtLink(link)
                 if (link.type !== "inputs-insert") {
-                    MODES.setMode(modeBeforeFollow)
+                    setMode(getStored("modebeforefollow"))
                 }
             }
         }
@@ -256,28 +266,30 @@ const enterKey = async id => {
             linkKey.remove()
         }
     })
+    const {setMode} = require("./modes")
     if (matches.length === 0) {
-        MODES.setMode(modeBeforeFollow)
+        setMode(getStored("modebeforefollow"))
         if (stayInFollowMode) {
             startFollow()
         }
     } else if (matches.length === 1) {
         const link = links[matches[0].getAttribute("link-id")]
         if (followNewtab) {
-            MODES.setMode("normal")
+            setMode("normal")
             if (stayInFollowMode) {
                 startFollow()
             }
-            TABS.addTab({
+            const {addTab} = require("./tabs")
+            addTab({
                 "url": link.url,
                 "switchTo": !stayInFollowMode
-                    && SETTINGS.get("follownewtabswitch")
+                    && getSetting("follownewtabswitch")
             })
             return
         }
         await clickAtLink(link)
         if (link.type !== "inputs-insert") {
-            MODES.setMode(modeBeforeFollow)
+            setMode(getStored("modebeforefollow"))
             if (stayInFollowMode) {
                 startFollow()
             }
@@ -290,6 +302,5 @@ module.exports = {
     cancelFollow,
     reorderDisplayedLinks,
     parseAndDisplayLinks,
-    enterKey,
-    getModeBeforeFollow
+    enterKey
 }

@@ -15,10 +15,34 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND INPUT MODES PAGELAYOUT POINTER SESSIONS TABS UTIL */
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const {
+    joinPath,
+    notify,
+    isUrl,
+    appData,
+    expandPath,
+    isFile,
+    isDir,
+    readFile,
+    writeFile,
+    writeJSON,
+    pathExists,
+    pathToSpecialPageName,
+    firefoxUseragent,
+    title,
+    appName
+} = require("../util")
+const {
+    listTabs,
+    listPages,
+    currentTab,
+    currentPage,
+    tabOrPageMatching,
+    updateGuiVisibility
+} = require("./common")
 
 const defaultSettings = {
     "adblocker": "static",
@@ -180,10 +204,7 @@ const numberRanges = {
     "suspendtimeout": [0, 9000000000000000],
     "timeoutlen": [0, 10000]
 }
-const config = UTIL.joinPath(UTIL.appData(), "viebrc")
-let navbarGuiTimer = null
-let tabbarGuiTimer = null
-let topOfPageWithMouse = false
+const config = joinPath(appData(), "viebrc")
 let customStyling = ""
 const downloadSettings = [
     "downloadmethod",
@@ -205,10 +226,11 @@ const init = () => {
     ipcRenderer.invoke("list-spelllangs").then(langs => {
         spelllangs = langs || []
         spelllangs.push("system")
-        if (!isValidSetting("spelllang", get("spelllang"))) {
+        if (!isValidSetting("spelllang", allSettings.spelllang)) {
             set("spelllang", "system")
         }
-        SESSIONS.setSpellLang(get("spelllang"))
+        const {setSpellLang} = require("./sessions")
+        setSpellLang(allSettings.spelllang)
     })
     ipcRenderer.on("set-permission", (_, name, value) => set(name, value))
 }
@@ -220,7 +242,7 @@ const checkOption = (setting, value) => {
         if (!valid) {
             const lastOption = optionList.pop()
             const text = `'${optionList.join("', '")}' or '${lastOption}'`
-            UTIL.notify(`The value of setting '${setting}' can only be one of:`
+            notify(`The value of setting '${setting}' can only be one of:`
                 + ` ${text}`, "warn")
         }
         return valid
@@ -231,7 +253,7 @@ const checkOption = (setting, value) => {
 const checkNumber = (setting, value) => {
     const numberRange = numberRanges[setting]
     if (numberRange[0] > value || numberRange[1] < value) {
-        UTIL.notify(`The value of setting '${setting}' must be between `
+        notify(`The value of setting '${setting}' must be between `
             + `${numberRange[0]} and ${numberRange[1]}`, "warn")
         return false
     }
@@ -245,13 +267,13 @@ const checkOther = (setting, value) => {
             value = value.replace(/^https?:\/\//g, "")
         }
         if (value.length === 0 || !value.includes("%s")) {
-            UTIL.notify(`Invalid search value: ${value}\n`
+            notify(`Invalid search value: ${value}\n`
                     + "URL must contain a %s parameter, which will be "
                     + "replaced by the search string", "warn")
             return false
         }
-        if (!UTIL.isUrl(value)) {
-            UTIL.notify("The value of the search setting must be a valid url",
+        if (!isUrl(value)) {
+            notify("The value of the search setting must be a valid url",
                 "warn")
             return false
         }
@@ -270,13 +292,13 @@ const checkOther = (setting, value) => {
             }
             const lastName = specialNames.pop()
             const text = `'${specialNames.join("', '")}' or '${lastName}'`
-            UTIL.notify(
+            notify(
                 `Special container name for '${setting}' can only be one of:`
                 + ` ${text}`, "warn")
             return false
         }
         if (value.replace("%n", "valid").match(/[^A-Za-z0-9_]/g)) {
-            UTIL.notify(
+            notify(
                 "Only letters, numbers and undercores can appear in the name "
                 + `of a container, invalid ${setting}: ${value}`, "warn")
             return false
@@ -288,7 +310,7 @@ const checkOther = (setting, value) => {
                 continue
             }
             if ((colorMatch.match(/~/g) || []).length === 0) {
-                UTIL.notify(`Invalid ${setting} entry: ${colorMatch}\n`
+                notify(`Invalid ${setting} entry: ${colorMatch}\n`
                     + "Entries must have exactly one ~ to separate the "
                     + "name regular expression and color name/hex", "warn")
                 return false
@@ -297,7 +319,7 @@ const checkOther = (setting, value) => {
             try {
                 RegExp(match)
             } catch (e) {
-                UTIL.notify(
+                notify(
                     `Invalid regular expression in containercolors: ${match}`,
                     "warn")
                 return false
@@ -306,20 +328,20 @@ const checkOther = (setting, value) => {
             style.color = "white"
             style.color = color
             if (style.color === "white" && color !== "white" || !color) {
-                UTIL.notify("Invalid color, must be a valid color name or hex"
+                notify("Invalid color, must be a valid color name or hex"
                     + `, not: ${color}`, "warn")
                 return false
             }
         }
     }
     if (setting === "downloadpath") {
-        const expandedPath = UTIL.expandPath(value)
-        if (!UTIL.pathExists(expandedPath)) {
-            UTIL.notify("The download path does not exist", "warn")
+        const expandedPath = expandPath(value)
+        if (!pathExists(expandedPath)) {
+            notify("The download path does not exist", "warn")
             return false
         }
-        if (!UTIL.isDir(expandedPath)) {
-            UTIL.notify("The download path is not a directory", "warn")
+        if (!isDir(expandedPath)) {
+            notify("The download path is not a directory", "warn")
             return false
         }
     }
@@ -332,7 +354,7 @@ const checkOther = (setting, value) => {
                 continue
             }
             if ((override.match(/~/g) || []).length === 0) {
-                UTIL.notify(`Invalid ${setting} entry: ${override}\n`
+                notify(`Invalid ${setting} entry: ${override}\n`
                     + "Entries must have at least one ~ to separate the "
                     + "domain regular expression and permission names", "warn")
                 return false
@@ -341,7 +363,7 @@ const checkOther = (setting, value) => {
             try {
                 RegExp(match)
             } catch (e) {
-                UTIL.notify(
+                notify(
                     `Invalid regular expression in permission: ${match}`,
                     "warn")
                 return false
@@ -352,12 +374,12 @@ const checkOther = (setting, value) => {
                 }
                 const reservedName = permissionSettings.includes(name)
                 if (reservedName || !allSettings[name]) {
-                    UTIL.notify(
+                    notify(
                         `Invalid name for a permission: ${name}`, "warn")
                     return false
                 }
                 if (setting.endsWith("allowed") && name.endsWith("capture")) {
-                    UTIL.notify(
+                    notify(
                         "Display capture permission can't be allowed, "
                         + "only asked or blocked", "warn")
                     return false
@@ -371,7 +393,7 @@ const checkOther = (setting, value) => {
                 continue
             }
             if ((redirect.match(/~/g) || []).length !== 1) {
-                UTIL.notify(`Invalid redirect entry: ${redirect}\n`
+                notify(`Invalid redirect entry: ${redirect}\n`
                     + "Entries must have exactly one ~ to separate the "
                     + "regular expression from the replacement", "warn")
                 return false
@@ -380,7 +402,7 @@ const checkOther = (setting, value) => {
             try {
                 RegExp(match)
             } catch (e) {
-                UTIL.notify(
+                notify(
                     `Invalid regular expression in redirect: ${match}`, "warn")
                 return false
             }
@@ -393,27 +415,27 @@ const checkOther = (setting, value) => {
                 continue
             }
             if ((searchword.match(/~/g) || []).length !== 1) {
-                UTIL.notify(`Invalid searchwords entry: ${searchword}\n`
+                notify(`Invalid searchwords entry: ${searchword}\n`
                     + "Entries must have exactly one ~ to separate the "
                     + "searchword from the URL", "warn")
                 return false
             }
             const [keyword, url] = searchword.split("~")
             if (keyword.length === 0 || /[^a-zA-Z]/.test(keyword)) {
-                UTIL.notify(`Invalid searchwords entry: ${searchword}\n`
+                notify(`Invalid searchwords entry: ${searchword}\n`
                     + "Searchwords before the ~ must have no spaces "
                     + "and contain only letters", "warn")
                 return false
             }
             if (url.length === 0 || !url.includes("%s")) {
-                UTIL.notify(`Invalid searchwords entry: ${searchword}\n`
+                notify(`Invalid searchwords entry: ${searchword}\n`
                     + "URLs for searchwords must exist and must "
                     + "contain a %s parameter, which will be "
                     + "replaced by the search string", "warn")
                 return false
             }
             if (knownSearchwords.includes(keyword)) {
-                UTIL.notify(`Invalid searchwords entry: ${searchword}\n`
+                notify(`Invalid searchwords entry: ${searchword}\n`
                     + `The searchword ${keyword} was already defined. `
                     + "A searchword must be defined only once", "warn")
                 return false
@@ -423,8 +445,8 @@ const checkOther = (setting, value) => {
     }
     if (["favoritepages", "startuppages"].includes(setting)) {
         for (const page of value.split(",")) {
-            if (page.trim() && !UTIL.isUrl(page)) {
-                UTIL.notify(`Invalid URL passed to ${setting}: ${page}`, "warn")
+            if (page.trim() && !isUrl(page)) {
+                notify(`Invalid URL passed to ${setting}: ${page}`, "warn")
                 return false
             }
         }
@@ -432,7 +454,7 @@ const checkOther = (setting, value) => {
     if (setting === "spelllang" && value !== "") {
         for (const lang of value.split(",")) {
             if (spelllangs.length && !spelllangs.includes(lang)) {
-                UTIL.notify(`Invalid language passed to spelllang: ${lang}`,
+                notify(`Invalid language passed to spelllang: ${lang}`,
                     "warn")
                 return false
             }
@@ -442,11 +464,11 @@ const checkOther = (setting, value) => {
 }
 
 const isValidSetting = (setting, value) => {
-    if (get(setting) === undefined) {
-        UTIL.notify(`The setting '${setting}' doesn't exist`, "warn")
+    if (allSettings[setting] === undefined) {
+        notify(`The setting '${setting}' doesn't exist`, "warn")
         return false
     }
-    const expectedType = typeof get(setting)
+    const expectedType = typeof allSettings[setting]
     if (typeof value === "string") {
         if (expectedType !== typeof value) {
             if (expectedType === "number" && !isNaN(Number(value))) {
@@ -460,7 +482,7 @@ const isValidSetting = (setting, value) => {
         }
     }
     if (expectedType !== typeof value) {
-        UTIL.notify(`The value of setting '${setting}' is of an incorrect `
+        notify(`The value of setting '${setting}' is of an incorrect `
             + `type, expected '${expectedType}' but got `
             + `'${typeof value}' instead.`, "warn")
         return false
@@ -476,21 +498,21 @@ const isValidSetting = (setting, value) => {
 
 const updateContainerSettings = (full = true) => {
     if (full) {
-        for (const page of TABS.listPages()) {
-            const color = get("containercolors").split(",").find(
+        for (const page of listPages()) {
+            const color = allSettings.containercolors.split(",").find(
                 c => page.getAttribute("container").match(c.split("~")[0]))
             if (color) {
-                TABS.tabOrPageMatching(page).style.color = color.split("~")[1]
+                tabOrPageMatching(page).style.color = color.split("~")[1]
             }
         }
     }
-    const container = TABS.currentPage()?.getAttribute("container")
+    const container = currentPage()?.getAttribute("container")
     if (!container) {
         return
     }
-    const color = get("containercolors").split(",").find(
+    const color = allSettings.containercolors.split(",").find(
         c => container.match(c.split("~")[0]))
-    const show = get("containershowname")
+    const show = allSettings.containershowname
     if (container === "main" && show === "automatic" || show === "never") {
         document.getElementById("containername").style.display = "none"
     } else {
@@ -505,82 +527,16 @@ const updateContainerSettings = (full = true) => {
     }
 }
 
-const getGuiStatus = type => {
-    let setting = get(`gui${type}`)
-    if (ipcRenderer.sendSync("is-fullscreen")) {
-        setting = get(`guifullscreen${type}`)
-    }
-    if (topOfPageWithMouse && setting !== "never") {
-        setting = "always"
-    }
-    return setting
-}
-
-const setTopOfPageWithMouse = status => {
-    topOfPageWithMouse = status
-    updateGuiVisibility()
-}
-
-const guiRelatedUpdate = type => {
-    updateGuiVisibility()
-    const timeout = get("guihidetimeout")
-    if (type === "navbar" && getGuiStatus("navbar") === "onupdate") {
-        clearTimeout(navbarGuiTimer)
-        document.body.classList.remove("navigationhidden")
-        if (timeout) {
-            navbarGuiTimer = setTimeout(() => {
-                navbarGuiTimer = null
-                updateGuiVisibility()
-            }, timeout)
-        }
-    }
-    if (type === "tabbar" && getGuiStatus("tabbar") === "onupdate") {
-        clearTimeout(tabbarGuiTimer)
-        document.body.classList.remove("tabshidden")
-        if (timeout) {
-            tabbarGuiTimer = setTimeout(() => {
-                tabbarGuiTimer = null
-                updateGuiVisibility()
-            }, timeout)
-        }
-    }
-}
-
-const updateGuiVisibility = () => {
-    const navbar = getGuiStatus("navbar")
-    const tabbar = getGuiStatus("tabbar")
-    if (!navbarGuiTimer) {
-        const notTyping = !"ces".includes(MODES.currentMode()[0])
-        if (navbar === "never" || navbar !== "always" && notTyping) {
-            document.body.classList.add("navigationhidden")
-        } else {
-            document.body.classList.remove("navigationhidden")
-        }
-    }
-    if (!tabbarGuiTimer) {
-        if (tabbar === "always") {
-            document.body.classList.remove("tabshidden")
-        } else {
-            document.body.classList.add("tabshidden")
-        }
-    }
-    setTimeout(PAGELAYOUT.applyLayout, 1)
-    if (MODES.currentMode() === "pointer") {
-        POINTER.updateElement()
-    }
-}
-
-
 const updateDownloadSettings = () => {
     const downloads = {}
     downloadSettings.forEach(setting => {
-        downloads[setting] = get(setting)
+        downloads[setting] = allSettings[setting]
     })
     ipcRenderer.send("set-download-settings", downloads)
 }
 
 const updateTabOverflow = () => {
-    const setting = get("taboverflow")
+    const setting = allSettings.taboverflow
     const tabs = document.getElementById("tabs")
     tabs.classList.remove("scroll")
     tabs.classList.remove("wrap")
@@ -588,14 +544,14 @@ const updateTabOverflow = () => {
         tabs.classList.add(setting)
     }
     try {
-        TABS.currentTab().scrollIntoView({"inline": "center"})
+        currentTab().scrollIntoView({"inline": "center"})
     } catch (e) {
         // No tabs present yet
     }
 }
 
 const updateMouseSettings = () => {
-    if (get("mouse")) {
+    if (allSettings.mouse) {
         document.body.classList.add("mouse")
     } else {
         document.body.classList.remove("mouse")
@@ -603,14 +559,14 @@ const updateMouseSettings = () => {
 }
 
 const updateWebviewSettings = () => {
-    const webviewSettingsFile = UTIL.joinPath(
-        UTIL.appData(), "webviewsettings")
-    UTIL.writeJSON(webviewSettingsFile, {
-        "permissiondisplaycapture": get("permissiondisplaycapture"),
-        "permissionmediadevices": get("permissionmediadevices"),
-        "permissionsallowed": get("permissionsallowed"),
-        "permissionsasked": get("permissionsasked"),
-        "permissionsblocked": get("permissionsblocked"),
+    const webviewSettingsFile = joinPath(
+        appData(), "webviewsettings")
+    writeJSON(webviewSettingsFile, {
+        "permissiondisplaycapture": allSettings.permissiondisplaycapture,
+        "permissionmediadevices": allSettings.permissionmediadevices,
+        "permissionsallowed": allSettings.permissionsallowed,
+        "permissionsasked": allSettings.permissionsasked,
+        "permissionsblocked": allSettings.permissionsblocked,
         "fg": getComputedStyle(document.body).getPropertyValue("--fg"),
         "bg": getComputedStyle(document.body).getPropertyValue("--bg")
     })
@@ -620,17 +576,18 @@ const updatePermissionSettings = () => {
     const permissions = {}
     Object.keys(allSettings).forEach(setting => {
         if (setting.startsWith("permission")) {
-            permissions[setting] = get(setting)
+            permissions[setting] = allSettings[setting]
         }
     })
     ipcRenderer.send("set-permissions", permissions)
 }
 
 const updateHelpPage = () => {
-    TABS.listPages().forEach(p => {
-        if (UTIL.pathToSpecialPageName(p.src).name === "help") {
+    listPages().forEach(p => {
+        if (pathToSpecialPageName(p.src).name === "help") {
+            const {listMappingsAsCommandList} = require("./input")
             p.send("settings", settingsWithDefaults(),
-                INPUT.listMappingsAsCommandList(false, true))
+                listMappingsAsCommandList(false, true))
         }
     })
 }
@@ -642,7 +599,7 @@ const suggestionList = () => {
     listOfSuggestions.push("all&")
     listOfSuggestions.push("all?")
     for (const setting of listSettingsAsArray()) {
-        if (typeof get(setting, defaultSettings) === "boolean") {
+        if (typeof defaultSettings[setting] === "boolean") {
             listOfSuggestions.push(`${setting}!`)
             listOfSuggestions.push(`no${setting}`)
             listOfSuggestions.push(`inv${setting}`)
@@ -653,8 +610,7 @@ const suggestionList = () => {
             }
         } else {
             listOfSuggestions.push(`${setting}=`)
-            listOfSuggestions.push(
-                `${setting}=${get(setting, defaultSettings)}`)
+            listOfSuggestions.push(`${setting}=${defaultSettings[setting]}`)
         }
         if (containerSettings.includes(setting)) {
             listOfSuggestions.push(`${setting}=s:usematching`)
@@ -668,7 +624,7 @@ const suggestionList = () => {
             }
             listOfSuggestions.push(`${setting}=temp%n`)
         }
-        const isNumber = typeof get(setting, defaultSettings) === "number"
+        const isNumber = typeof defaultSettings[setting] === "number"
         const isFreeText = freeText.includes(setting)
         const isListLike = listLike.includes(setting)
         if (isNumber || isFreeText || isListLike) {
@@ -683,8 +639,11 @@ const suggestionList = () => {
 }
 
 const loadFromDisk = () => {
+    const {pause, resume} = require("./commandhistory")
+    pause()
     allSettings = JSON.parse(JSON.stringify(defaultSettings))
-    if (UTIL.isFile(UTIL.joinPath(UTIL.appData(), "erwicmode"))) {
+    sessionStorage.setItem("settings", JSON.stringify(allSettings))
+    if (isFile(joinPath(appData(), "erwicmode"))) {
         set("containernewtab", "s:external")
         set("containerstartuppage", "s:usematching")
         set("permissioncamera", "allow")
@@ -692,32 +651,32 @@ const loadFromDisk = () => {
         set("permissionmediadevices", "allowfull")
         set("permissionmicrophone", "allow")
     }
-    const userFirstConfig = UTIL.expandPath("~/.vieb/viebrc")
-    const userGlobalConfig = UTIL.expandPath("~/.viebrc")
+    const userFirstConfig = expandPath("~/.vieb/viebrc")
+    const userGlobalConfig = expandPath("~/.viebrc")
     for (const conf of [config, userFirstConfig, userGlobalConfig]) {
-        if (UTIL.isFile(conf)) {
-            const parsed = UTIL.readFile(conf)
+        if (isFile(conf)) {
+            const parsed = readFile(conf)
             if (parsed) {
                 for (const line of parsed.split("\n")) {
                     if (line && !line.trim().startsWith("\"")) {
-                        COMMAND.execute(line)
+                        const {execute} = require("./command")
+                        execute(line)
                     }
                 }
             } else {
-                UTIL.notify(
+                notify(
                     `Read error for config file located at '${conf}'`, "err")
             }
         }
     }
+    resume()
 }
-
-const get = (setting, settingObject = allSettings) => settingObject[setting]
 
 const reset = setting => {
     if (setting === "all") {
         Object.keys(defaultSettings).forEach(s => set(s, defaultSettings[s]))
     } else if (allSettings[setting] === undefined) {
-        UTIL.notify(`The setting '${setting}' doesn't exist`, "warn")
+        notify(`The setting '${setting}' doesn't exist`, "warn")
     } else {
         set(setting, defaultSettings[setting])
     }
@@ -743,10 +702,11 @@ const set = (setting, value) => {
         }
         // Update settings elsewhere
         if (setting === "adblocker") {
+            const {enableAdblocker, disableAdblocker} = require("./sessions")
             if (value === "off") {
-                SESSIONS.disableAdblocker()
+                disableAdblocker()
             } else {
-                SESSIONS.enableAdblocker()
+                enableAdblocker()
             }
         }
         if (setting === "containercolors" || setting === "containershowname") {
@@ -755,13 +715,13 @@ const set = (setting, value) => {
         if (setting === "firefoxmode") {
             if (value === "always") {
                 ipcRenderer.sendSync(
-                    "override-global-useragent", UTIL.firefoxUseragent())
+                    "override-global-useragent", firefoxUseragent())
             } else {
                 ipcRenderer.sendSync("override-global-useragent", false)
             }
             // Reset webview specific useragent override for every setting value
             // If needed, it will overridden again before loading a page
-            TABS.listPages().forEach(page => {
+            listPages().forEach(page => {
                 try {
                     page.setUserAgent("")
                 } catch (e) {
@@ -779,15 +739,16 @@ const set = (setting, value) => {
             updateGuiVisibility()
         }
         if (setting === "mintabwidth") {
-            TABS.listTabs().forEach(tab => {
+            listTabs().forEach(tab => {
                 tab.style.minWidth = `${allSettings.mintabwidth}px`
             })
             try {
-                TABS.currentTab().scrollIntoView({"inline": "center"})
+                currentTab().scrollIntoView({"inline": "center"})
             } catch (e) {
                 // No tabs present yet
             }
-            PAGELAYOUT.applyLayout()
+            const {applyLayout} = require("./pagelayout")
+            applyLayout()
         }
         if (setting === "mouse") {
             updateMouseSettings()
@@ -797,15 +758,17 @@ const set = (setting, value) => {
                 value.split(","))).join(",")
         }
         if (setting === "spelllang" || setting === "spell") {
-            if (get("spell")) {
-                SESSIONS.setSpellLang(get("spelllang"))
+            const {setSpellLang} = require("./sessions")
+            if (allSettings.spell) {
+                setSpellLang(allSettings.spelllang)
             } else {
-                SESSIONS.setSpellLang("")
+                setSpellLang("")
             }
         }
         if (setting === "taboverflow") {
             updateTabOverflow()
-            PAGELAYOUT.applyLayout()
+            const {applyLayout} = require("./pagelayout")
+            applyLayout()
         }
         const webviewSettings = [
             "permissiondisplaycapture",
@@ -821,13 +784,41 @@ const set = (setting, value) => {
             updatePermissionSettings()
         }
         if (setting === "redirects") {
-            ipcRenderer.send("set-redirects", get("redirects"))
+            ipcRenderer.send("set-redirects", allSettings.redirects)
         }
         if (setting === "windowtitle") {
-            TABS.updateWindowTitle()
+            updateWindowTitle()
         }
         updateHelpPage()
     }
+    sessionStorage.setItem("settings", JSON.stringify(allSettings))
+}
+
+const updateWindowTitle = () => {
+    const application = title(appName())
+    if (allSettings.windowtitle === "simple" || !currentPage()) {
+        ipcRenderer.send("set-window-title", application)
+        return
+    }
+    const name = tabOrPageMatching(currentPage())
+        .querySelector("span").textContent
+    if (allSettings.windowtitle === "title" || !currentPage().src) {
+        ipcRenderer.send("set-window-title", `${application} - ${name}`)
+        return
+    }
+    let url = currentPage().src
+    const specialPage = pathToSpecialPageName(url)
+    if (specialPage.name) {
+        url = `${application()}://${specialPage.name}`
+        if (specialPage.section) {
+            url += `#${specialPage.section}`
+        }
+    }
+    if (allSettings.windowtitle === "url") {
+        ipcRenderer.send("set-window-title", `${application} - ${url}`)
+        return
+    }
+    ipcRenderer.send("set-window-title", `${application} - ${name} - ${url}`)
 }
 
 const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
@@ -914,10 +905,12 @@ const saveToDisk = full => {
     let settingsAsCommands = ""
     const options = listCurrentSettings(full).split("\n").filter(s => s)
         .map(s => `set ${s}`).join("\n").trim()
-    const mappings = INPUT.listMappingsAsCommandList().trim()
-    const commands = COMMAND.customCommandsAsCommandList(full).trim()
+    const {listMappingsAsCommandList} = require("./input")
+    const mappings = listMappingsAsCommandList().trim()
+    const {customCommandsAsCommandList} = require("./command")
+    const commands = customCommandsAsCommandList(full).trim()
     if (!options && !mappings && !commands) {
-        UTIL.notify("There are no options set, no mappings changed and no "
+        notify("There are no options set, no mappings changed and no "
             + "custom commands that have been added, no viebrc written")
         return
     }
@@ -931,7 +924,7 @@ const saveToDisk = full => {
         settingsAsCommands += `" Commands\n${commands}\n\n`
     }
     settingsAsCommands += "\" Viebrc generated by Vieb\n\" vim: ft=vim\n"
-    UTIL.writeFile(config, settingsAsCommands,
+    writeFile(config, settingsAsCommands,
         `Could not write to '${config}'`, `Viebrc saved to '${config}'`, 4)
 }
 
@@ -943,18 +936,19 @@ const setCustomStyling = css => {
 const getCustomStyling = () => customStyling
 
 const updateCustomStyling = () => {
-    document.body.style.fontSize = `${get("fontsize")}px`
+    document.body.style.fontSize = `${allSettings.fontsize}px`
     updateWebviewSettings()
-    TABS.listPages().forEach(p => {
-        const isSpecialPage = UTIL.pathToSpecialPageName(p.src).name
+    listPages().forEach(p => {
+        const isSpecialPage = pathToSpecialPageName(p.src).name
         const isLocal = p.src.startsWith("file:/")
         const isErrorPage = p.getAttribute("failed-to-load")
         if (isSpecialPage || isLocal || isErrorPage) {
-            p.send("set-custom-styling", get("fontsize"), customStyling)
+            p.send("set-custom-styling", allSettings.fontsize, customStyling)
         }
     })
-    PAGELAYOUT.applyLayout()
-    ipcRenderer.send("set-custom-styling", get("fontsize"), customStyling)
+    const {applyLayout} = require("./pagelayout")
+    applyLayout()
+    ipcRenderer.send("set-custom-styling", allSettings.fontsize, customStyling)
 }
 
 module.exports = {
@@ -964,16 +958,13 @@ module.exports = {
     updateContainerSettings,
     suggestionList,
     loadFromDisk,
-    get,
     reset,
     set,
+    updateWindowTitle,
     updateHelpPage,
     settingsWithDefaults,
     listCurrentSettings,
     saveToDisk,
-    setTopOfPageWithMouse,
-    guiRelatedUpdate,
-    updateGuiVisibility,
     setCustomStyling,
     getCustomStyling,
     updateCustomStyling

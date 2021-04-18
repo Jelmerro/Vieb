@@ -15,228 +15,282 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMAND COMMANDHISTORY CONTEXTMENU EXPLOREHISTORY FOLLOW MODES
- PAGELAYOUT SETTINGS SUGGEST TABS UTIL */
 "use strict"
 
-const {clipboard, ipcRenderer} = require("electron")
+const {
+    urlToString,
+    stringToUrl,
+    joinPath,
+    appData,
+    makeDir,
+    writeFile,
+    notify,
+    watchFile,
+    readFile,
+    searchword
+} = require("../util")
+const {
+    listTabs,
+    currentTab,
+    currentPage,
+    tabOrPageMatching,
+    currentMode,
+    getSetting,
+    getStored,
+    updateGuiVisibility
+} = require("./common")
 
 let currentSearch = ""
 
 const emptySearch = () => {
-    TABS.currentPage()?.stopFindInPage("clearSelection")
+    currentPage()?.stopFindInPage("clearSelection")
     currentSearch = ""
 }
 
 const clickOnSearch = () => {
     if (currentSearch) {
-        TABS.currentPage()?.send("search-element-click")
+        currentPage()?.send("search-element-click")
     }
 }
 
 const increasePageNumber = () => new Promise(res => {
-    TABS.currentPage()?.send("action",
-        "increasePageNumber", TABS.currentPage().src)
+    currentPage()?.send("action",
+        "increasePageNumber", currentPage().src)
     setTimeout(res, 100)
 })
 
 const previousTab = () => {
-    TABS.switchToTab(TABS.listTabs().indexOf(TABS.currentTab()) - 1)
+    const {switchToTab} = require("./tabs")
+    switchToTab(listTabs().indexOf(currentTab()) - 1)
 }
 
-const closeTab = () => TABS.closeTab()
+const closeTab = () => {
+    const {"closeTab": close} = require("./tabs")
+    close()
+}
 
-const toExploreMode = () => MODES.setMode("explore")
+const toExploreMode = () => {
+    const {setMode} = require("./modes")
+    setMode("explore")
+}
 
-const startFollowCurrentTab = () => FOLLOW.startFollow(false)
+const startFollowCurrentTab = () => {
+    const {startFollow} = require("./follow")
+    startFollow(false)
+}
 
-const scrollTop = () => TABS.currentPage()?.send("action", "scrollTop")
+const scrollTop = () => currentPage()?.send("action", "scrollTop")
 
-const insertAtFirstInput = () => TABS.currentPage()?.send("focus-input")
+const insertAtFirstInput = () => currentPage()?.send("focus-input")
 
-const scrollLeft = () => TABS.currentPage()?.send("action", "scrollLeft")
+const scrollLeft = () => currentPage()?.send("action", "scrollLeft")
 
-const toInsertMode = () => MODES.setMode("insert")
+const toInsertMode = () => {
+    const {setMode} = require("./modes")
+    setMode("insert")
+}
 
-const scrollDown = () => TABS.currentPage()?.send("action", "scrollDown")
+const scrollDown = () => currentPage()?.send("action", "scrollDown")
 
-const scrollUp = () => TABS.currentPage()?.send("action", "scrollUp")
+const scrollUp = () => currentPage()?.send("action", "scrollUp")
 
-const scrollRight = () => TABS.currentPage()?.send("action", "scrollRight")
+const scrollRight = () => currentPage()?.send("action", "scrollRight")
 
 const nextSearchMatch = () => {
     if (currentSearch) {
-        TABS.currentPage()?.findInPage(currentSearch, {
-            "findNext": true, "matchCase": !SETTINGS.get("ignorecase")
+        currentPage()?.findInPage(currentSearch, {
+            "findNext": true, "matchCase": !getSetting("ignorecase")
         })
     }
 }
 
 const reload = (customPage = null) => {
-    const page = customPage || TABS.currentPage()
+    const page = customPage || currentPage()
     if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
         page.reload()
-        TABS.resetTabInfo(page)
+        const {resetTabInfo} = require("./tabs")
+        resetTabInfo(page)
     }
 }
 
-const openNewTab = () => TABS.addTab()
+const openNewTab = () => {
+    const {addTab} = require("./tabs")
+    addTab()
+}
 
-const reopenTab = () => TABS.reopenTab()
+const reopenTab = () => {
+    const {"reopenTab": reopen} = require("./tabs")
+    reopen()
+}
 
 const nextTab = () => {
-    TABS.switchToTab(TABS.listTabs().indexOf(TABS.currentTab()) + 1)
+    const {switchToTab} = require("./tabs")
+    switchToTab(listTabs().indexOf(currentTab()) + 1)
 }
 
 const decreasePageNumber = () => new Promise(res => {
-    TABS.currentPage()?.send("action",
-        "decreasePageNumber", TABS.currentPage().src)
+    currentPage()?.send("action",
+        "decreasePageNumber", currentPage().src)
     setTimeout(res, 100)
 })
 
 const toSearchMode = () => {
-    MODES.setMode("search")
+    const {setMode} = require("./modes")
+    setMode("search")
     document.getElementById("url").value = currentSearch
     document.getElementById("url").select()
 }
 
-const startFollowNewTab = () => FOLLOW.startFollow(true)
+const startFollowNewTab = () => {
+    const {startFollow} = require("./follow")
+    startFollow(true)
+}
 
-const scrollBottom = () => TABS.currentPage()?.send("action", "scrollBottom")
+const scrollBottom = () => currentPage()?.send("action", "scrollBottom")
 
 const backInHistory = (customPage = null) => {
-    const page = customPage || TABS.currentPage()
+    const page = customPage || currentPage()
     if (page && !page.isCrashed()) {
         if (page?.canGoBack() && !page.src.startsWith("devtools://")) {
-            TABS.tabOrPageMatching(page).querySelector("span").textContent = ""
+            tabOrPageMatching(page).querySelector("span").textContent = ""
             page.goBack()
-            TABS.resetTabInfo(page)
+            const {resetTabInfo} = require("./tabs")
+            resetTabInfo(page)
         }
     }
 }
 
 const forwardInHistory = (customPage = null) => {
-    const page = customPage || TABS.currentPage()
+    const page = customPage || currentPage()
     if (page && !page.isCrashed()) {
         if (page?.canGoForward() && !page.src.startsWith("devtools://")) {
-            TABS.tabOrPageMatching(page).querySelector("span").textContent = ""
+            tabOrPageMatching(page).querySelector("span").textContent = ""
             page.goForward()
-            TABS.resetTabInfo(page)
+            const {resetTabInfo} = require("./tabs")
+            resetTabInfo(page)
         }
     }
 }
 
 const previousSearchMatch = () => {
     if (currentSearch) {
-        TABS.currentPage()?.findInPage(currentSearch, {
+        currentPage()?.findInPage(currentSearch, {
             "forward": false,
             "findNext": true,
-            "matchCase": !SETTINGS.get("ignorecase")
+            "matchCase": !getSetting("ignorecase")
         })
     }
 }
 
 const reloadWithoutCache = () => {
-    if (TABS.currentPage() && !TABS.currentPage().isCrashed()) {
-        if (!TABS.currentPage().src.startsWith("devtools://")) {
-            TABS.currentPage().reloadIgnoringCache()
-            TABS.resetTabInfo(TABS.currentPage())
+    if (currentPage() && !currentPage().isCrashed()) {
+        if (!currentPage().src.startsWith("devtools://")) {
+            currentPage().reloadIgnoringCache()
+            const {resetTabInfo} = require("./tabs")
+            resetTabInfo(currentPage())
         }
     }
 }
 
 const openNewTabWithCurrentUrl = () => {
-    const url = TABS.currentPage()?.src || ""
-    TABS.addTab()
-    MODES.setMode("explore")
-    document.getElementById("url").value = UTIL.urlToString(url)
+    const url = currentPage()?.src || ""
+    const {addTab} = require("./tabs")
+    addTab()
+    const {setMode} = require("./modes")
+    setMode("explore")
+    document.getElementById("url").value = urlToString(url)
 }
 
-const scrollPageRight = () => {
-    TABS.currentPage()?.send("action", "scrollPageRight")
+const scrollPageRight = () => currentPage()?.send("action", "scrollPageRight")
+
+const scrollPageLeft = () => currentPage()?.send("action", "scrollPageLeft")
+
+const toCommandMode = () => {
+    const {setMode} = require("./modes")
+    setMode("command")
 }
 
-const scrollPageLeft = () => {
-    TABS.currentPage()?.send("action", "scrollPageLeft")
-}
+const scrollPageUp = () => currentPage()?.send("action", "scrollPageUp")
 
-const toCommandMode = () => MODES.setMode("command")
-
-const scrollPageUp = () => TABS.currentPage()?.send("action", "scrollPageUp")
-
-const stopLoadingPage = () => TABS.currentPage()?.stop()
+const stopLoadingPage = () => currentPage()?.stop()
 
 const scrollPageDownHalf = () => {
-    TABS.currentPage()?.send("action", "scrollPageDownHalf")
+    currentPage()?.send("action", "scrollPageDownHalf")
 }
 
-const scrollPageDown = () => {
-    TABS.currentPage()?.send("action", "scrollPageDown")
+const scrollPageDown = () => currentPage()?.send("action", "scrollPageDown")
+
+const moveTabForward = () => {
+    const {"moveTabForward": move} = require("./tabs")
+    move()
 }
 
-const moveTabForward = () => TABS.moveTabForward()
-
-const moveTabBackward = () => TABS.moveTabBackward()
-
-const scrollPageUpHalf = () => {
-    TABS.currentPage()?.send("action", "scrollPageUpHalf")
+const moveTabBackward = () => {
+    const {"moveTabBackward": move} = require("./tabs")
+    move()
 }
 
-const zoomReset = () => TABS.currentPage()?.setZoomLevel(0)
+const scrollPageUpHalf = () => currentPage()?.send("action", "scrollPageUpHalf")
+
+const zoomReset = () => currentPage()?.setZoomLevel(0)
 
 const zoomOut = () => {
-    let level = TABS.currentPage().getZoomLevel() - 1
+    let level = currentPage().getZoomLevel() - 1
     if (level < -7) {
         level = -7
     }
-    TABS.currentPage().setZoomLevel(level)
+    currentPage().setZoomLevel(level)
 }
 
 const zoomIn = () => {
-    let level = TABS.currentPage().getZoomLevel() + 1
+    let level = currentPage().getZoomLevel() + 1
     if (level > 7) {
         level = 7
     }
-    TABS.currentPage().setZoomLevel(level)
+    currentPage().setZoomLevel(level)
 }
 
-const toNormalMode = () => MODES.setMode("normal")
+const toNormalMode = () => {
+    const {setMode} = require("./modes")
+    setMode("normal")
+}
 
 const stopFollowMode = () => {
-    if (MODES.currentMode() === "follow") {
-        MODES.setMode(FOLLOW.getModeBeforeFollow())
+    const {setMode} = require("./modes")
+    if (currentMode() === "follow") {
+        setMode(getStored("modebeforefollow") || "normal")
     } else {
-        MODES.setMode("normal")
+        setMode("normal")
     }
 }
 
 const editWithVim = () => {
-    const page = TABS.currentPage()
+    const page = currentPage()
     if (!page) {
         return
     }
-    const fileFolder = UTIL.joinPath(UTIL.appData(), "vimformedits")
-    UTIL.makeDir(fileFolder)
-    const tempFile = UTIL.joinPath(fileFolder, String(Number(new Date())))
-    const success = UTIL.writeFile(tempFile, "")
+    const fileFolder = joinPath(appData(), "vimformedits")
+    makeDir(fileFolder)
+    const tempFile = joinPath(fileFolder, String(Number(new Date())))
+    const success = writeFile(tempFile, "")
     if (!success) {
-        UTIL.notify("Could not start vim edit mode", "err")
+        notify("Could not start vim edit mode", "err")
         return
     }
     let command = null
-    UTIL.watchFile(tempFile, {"interval": 500}, () => {
+    watchFile(tempFile, {"interval": 500}, () => {
         if (command) {
-            const contents = UTIL.readFile(tempFile)
+            const contents = readFile(tempFile)
             if (contents === null) {
-                UTIL.notify("Failed to read temp file to fill form", "err")
+                notify("Failed to read temp file to fill form", "err")
             } else {
                 page.send("action", "setInputFieldText", tempFile, contents)
             }
         } else {
             const {exec} = require("child_process")
-            command = exec(`${SETTINGS.get("vimcommand")} ${tempFile}`, err => {
+            command = exec(`${getSetting("vimcommand")} ${tempFile}`, err => {
                 if (err) {
-                    UTIL.notify("Command to edit files with vim failed, "
+                    notify("Command to edit files with vim failed, "
                         + "please update the 'vimcommand' setting", "err")
                 }
             })
@@ -246,152 +300,254 @@ const editWithVim = () => {
 }
 
 const openLinkExternal = (suppliedLink = null) => {
-    const ext = SETTINGS.get("externalcommand")
+    const ext = getSetting("externalcommand")
     if (!ext.trim()) {
-        UTIL.notify("No command set to open links externally, "
+        notify("No command set to open links externally, "
             + "please update the 'externalcommand' setting", "warn")
         return
     }
     const url = suppliedLink || document.getElementById("url-hover").textContent
-        || UTIL.urlToString(TABS.currentPage()?.src)
+        || urlToString(currentPage()?.src)
     const {exec} = require("child_process")
     if (url) {
         exec(`${ext} ${url}`, err => {
             if (err) {
-                UTIL.notify("Command to open links externally failed, "
+                notify("Command to open links externally failed, "
                     + "please update the 'externalcommand' setting", "err")
             }
         })
     }
 }
 const nextSuggestion = () => {
-    SUGGEST.nextSuggestion()
+    const {next} = require("./suggest")
+    next()
     setFocusCorrectly()
 }
 
 const prevSuggestion = () => {
-    SUGGEST.prevSuggestion()
+    const {previous} = require("./suggest")
+    previous()
     setFocusCorrectly()
 }
 
-const commandHistoryPrevious = () => COMMANDHISTORY.previous()
+const commandHistoryPrevious = () => {
+    const {previous} = require("./commandhistory")
+    previous()
+}
 
-const commandHistoryNext = () => COMMANDHISTORY.next()
+const commandHistoryNext = () => {
+    const {next} = require("./commandhistory")
+    next()
+}
 
-const exploreHistoryPrevious = () => EXPLOREHISTORY.previous()
+const exploreHistoryPrevious = () => {
+    const {previous} = require("./explorehistory")
+    previous()
+}
 
-const exploreHistoryNext = () => EXPLOREHISTORY.next()
+const exploreHistoryNext = () => {
+    const {next} = require("./explorehistory")
+    next()
+}
 
-const rotateSplitWindow = () => PAGELAYOUT.rotate()
+const rotateSplitWindow = () => {
+    const {rotate} = require("./pagelayout")
+    rotate()
+}
 
-const rotateSplitWindowBackward = () => PAGELAYOUT.rotateReverse()
+const rotateSplitWindowBackward = () => {
+    const {rotateReverse} = require("./pagelayout")
+    rotateReverse()
+}
 
-const leftHalfSplitWindow = () => PAGELAYOUT.toTop("left")
+const leftHalfSplitWindow = () => {
+    const {toTop} = require("./pagelayout")
+    toTop("left")
+}
 
-const bottomHalfSplitWindow = () => PAGELAYOUT.toTop("bottom")
+const bottomHalfSplitWindow = () => {
+    const {toTop} = require("./pagelayout")
+    toTop("bottom")
+}
 
-const topHalfSplitWindow = () => PAGELAYOUT.toTop("top")
+const topHalfSplitWindow = () => {
+    const {toTop} = require("./pagelayout")
+    toTop("top")
+}
 
-const rightHalfSplitWindow = () => PAGELAYOUT.toTop("right")
+const rightHalfSplitWindow = () => {
+    const {toTop} = require("./pagelayout")
+    toTop("right")
+}
 
-const toLeftSplitWindow = () => PAGELAYOUT.moveFocus("left")
+const toLeftSplitWindow = () => {
+    const {moveFocus} = require("./pagelayout")
+    moveFocus("left")
+}
 
-const toBottomSplitWindow = () => PAGELAYOUT.moveFocus("bottom")
+const toBottomSplitWindow = () => {
+    const {moveFocus} = require("./pagelayout")
+    moveFocus("bottom")
+}
 
-const toTopSplitWindow = () => PAGELAYOUT.moveFocus("top")
+const toTopSplitWindow = () => {
+    const {moveFocus} = require("./pagelayout")
+    moveFocus("top")
+}
 
-const toRightSplitWindow = () => PAGELAYOUT.moveFocus("right")
+const toRightSplitWindow = () => {
+    const {moveFocus} = require("./pagelayout")
+    moveFocus("right")
+}
 
-const toLastSplitWindow = () => PAGELAYOUT.lastSplit()
+const toLastSplitWindow = () => {
+    const {lastSplit} = require("./pagelayout")
+    lastSplit()
+}
 
-const toFirstSplitWindow = () => PAGELAYOUT.firstSplit()
+const toFirstSplitWindow = () => {
+    const {firstSplit} = require("./pagelayout")
+    firstSplit()
+}
 
-const toNextSplitWindow = () => PAGELAYOUT.nextSplit()
+const toNextSplitWindow = () => {
+    const {nextSplit} = require("./pagelayout")
+    nextSplit()
+}
 
-const toPreviousSplitWindow = () => PAGELAYOUT.previousSplit()
+const toPreviousSplitWindow = () => {
+    const {previousSplit} = require("./pagelayout")
+    previousSplit()
+}
 
-const exchangeSplitWindow = () => PAGELAYOUT.exchange()
+const exchangeSplitWindow = () => {
+    const {exchange} = require("./pagelayout")
+    exchange()
+}
 
-const toLastUsedTab = () => PAGELAYOUT.toLastUsedTab()
+const toLastUsedTab = () => {
+    const {"toLastUsedTab": lastUsed} = require("./pagelayout")
+    lastUsed()
+}
 
-const increaseHeightSplitWindow = () => PAGELAYOUT.resize("ver", "grow")
+const increaseHeightSplitWindow = () => {
+    const {resize} = require("./pagelayout")
+    resize("ver", "grow")
+}
 
-const decreaseHeightSplitWindow = () => PAGELAYOUT.resize("ver", "shrink")
+const decreaseHeightSplitWindow = () => {
+    const {resize} = require("./pagelayout")
+    resize("ver", "shrink")
+}
 
-const increaseWidthSplitWindow = () => PAGELAYOUT.resize("hor", "grow")
+const increaseWidthSplitWindow = () => {
+    const {resize} = require("./pagelayout")
+    resize("hor", "grow")
+}
 
-const decreaseWidthSplitWindow = () => PAGELAYOUT.resize("hor", "shrink")
+const decreaseWidthSplitWindow = () => {
+    const {resize} = require("./pagelayout")
+    resize("hor", "shrink")
+}
 
-const distrubuteSpaceSplitWindow = () => PAGELAYOUT.resetResizing()
+const distrubuteSpaceSplitWindow = () => {
+    const {resetResizing} = require("./pagelayout")
+    resetResizing()
+}
 
 const toggleFullscreen = () => {
-    ipcRenderer.invoke("toggle-fullscreen").then(SETTINGS.updateGuiVisibility)
+    const {ipcRenderer} = require("electron")
+    ipcRenderer.invoke("toggle-fullscreen").then(updateGuiVisibility)
 }
 
 const incrementalSearch = () => {
     currentSearch = document.getElementById("url").value
-    if (TABS.currentPage() && currentSearch.trim()) {
-        TABS.currentPage().stopFindInPage("clearSelection")
-        TABS.currentPage().findInPage(currentSearch, {
-            "matchCase": !SETTINGS.get("ignorecase")
+    if (currentPage() && currentSearch.trim()) {
+        currentPage().stopFindInPage("clearSelection")
+        currentPage().findInPage(currentSearch, {
+            "matchCase": !getSetting("ignorecase")
         })
     } else {
         currentSearch = ""
-        TABS.currentPage()?.stopFindInPage("clearSelection")
+        currentPage()?.stopFindInPage("clearSelection")
     }
 }
 
-const pageToClipboard = () => clipboard.writeText(
-    UTIL.urlToString(TABS.currentPage()?.src))
+const pageToClipboard = () => {
+    const {clipboard} = require("electron")
+    clipboard.writeText(urlToString(currentPage()?.src))
+}
 
 const openFromClipboard = () => {
+    const {clipboard} = require("electron")
     if (clipboard.readText().trim()) {
-        TABS.navigateTo(UTIL.stringToUrl(clipboard.readText()))
+        const {navigateTo} = require("./tabs")
+        navigateTo(stringToUrl(clipboard.readText()))
     }
 }
 
-const reorderFollowLinks = () => FOLLOW.reorderDisplayedLinks()
+const reorderFollowLinks = () => {
+    const {reorderDisplayedLinks} = require("./follow")
+    reorderDisplayedLinks()
+}
 
-const menuUp = () => CONTEXTMENU.up()
+const menuUp = () => {
+    const {up} = require("./contextmenu")
+    up()
+}
 
-const menuDown = () => CONTEXTMENU.down()
+const menuDown = () => {
+    const {down} = require("./contextmenu")
+    down()
+}
 
-const menuSelect = () => CONTEXTMENU.select()
+const menuSelect = () => {
+    const {select} = require("./contextmenu")
+    select()
+}
 
-const menuClose = () => CONTEXTMENU.clear()
+const menuClose = () => {
+    const {clear} = require("./contextmenu")
+    clear()
+}
 
 const useEnteredData = () => {
-    if (MODES.currentMode() === "command") {
+    const {setMode} = require("./modes")
+    if (currentMode() === "command") {
         const command = document.getElementById("url").value.trim()
-        MODES.setMode("normal")
-        COMMAND.execute(command)
+        setMode("normal")
+        const {execute} = require("./command")
+        execute(command)
     }
-    if (MODES.currentMode() === "search") {
+    if (currentMode() === "search") {
         incrementalSearch()
-        MODES.setMode("normal")
+        setMode("normal")
     }
-    if (MODES.currentMode() === "explore") {
+    if (currentMode() === "explore") {
         const urlElement = document.getElementById("url")
         let location = urlElement.value.trim()
-        MODES.setMode("normal")
+        setMode("normal")
         if (location) {
-            location = UTIL.searchword(location).url
-            TABS.navigateTo(UTIL.stringToUrl(location))
-            EXPLOREHISTORY.push(UTIL.stringToUrl(location))
+            location = searchword(location).url
+            const {navigateTo} = require("./tabs")
+            navigateTo(stringToUrl(location))
+            const {push} = require("./explorehistory")
+            push(stringToUrl(location))
         }
     }
 }
 
 const setFocusCorrectly = () => {
     const urlElement = document.getElementById("url")
-    TABS.updateUrl(TABS.currentPage())
-    if (MODES.currentMode() === "insert") {
+    const {updateUrl} = require("./tabs")
+    updateUrl(currentPage())
+    if (currentMode() === "insert") {
         urlElement.blur()
-        TABS.currentPage()?.focus()
+        currentPage()?.focus()
         if (!document.getElementById("context-menu").innerText) {
-            TABS.currentPage()?.click()
+            currentPage()?.click()
         }
-    } else if (["search", "explore", "command"].includes(MODES.currentMode())) {
+    } else if (["search", "explore", "command"].includes(currentMode())) {
         if (document.activeElement !== urlElement) {
             window.focus()
             urlElement.focus()
@@ -399,7 +555,7 @@ const setFocusCorrectly = () => {
     } else {
         urlElement.blur()
         window.focus()
-        if (!SETTINGS.get("mouse")) {
+        if (!getSetting("mouse")) {
             document.getElementById("invisible-overlay").focus()
         }
     }

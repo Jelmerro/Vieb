@@ -15,12 +15,15 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global SETTINGS UTIL */
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const {
+    joinPath, appData, notify, makeDir, writeFile, readFile
+} = require("../util")
+const {getSetting} = require("./common")
 
-const blocklistDir = UTIL.joinPath(UTIL.appData(), "blocklists")
+const blocklistDir = joinPath(appData(), "blocklists")
 const defaultBlocklists = {
     "easylist": "https://easylist.to/easylist/easylist.txt",
     "easyprivacy": "https://easylist.to/easylist/easyprivacy.txt"
@@ -30,38 +33,35 @@ const init = () => {
     enableAdblocker()
     create("main")
     ipcRenderer.on("notify", (_, message, type, clickAction) => {
-        UTIL.notify(message, type, clickAction)
+        notify(message, type, clickAction)
     })
 }
 
 const create = name => {
     ipcRenderer.send("create-session", `persist:${name}`,
-        SETTINGS.get("adblocker"), SETTINGS.get("cache") !== "none")
+        getSetting("adblocker"), getSetting("cache") !== "none")
 }
 
 const disableAdblocker = () => ipcRenderer.send("adblock-disable")
 
 const enableAdblocker = () => {
-    UTIL.makeDir(blocklistDir)
+    makeDir(blocklistDir)
     // Copy the default and included blocklists to the appdata folder
-    if (SETTINGS.get("adblocker") !== "custom") {
+    if (getSetting("adblocker") !== "custom") {
         for (const name of Object.keys(defaultBlocklists)) {
-            const list = UTIL.joinPath(__dirname,
-                `../blocklists/${name}.txt`)
-            UTIL.writeFile(UTIL.joinPath(blocklistDir,
-                `${name}.txt`), UTIL.readFile(list))
+            const list = joinPath(__dirname, `../blocklists/${name}.txt`)
+            writeFile(joinPath(blocklistDir, `${name}.txt`), readFile(list))
         }
     }
     // And update default blocklists to the latest version if enabled
-    if (SETTINGS.get("adblocker") === "update") {
+    if (getSetting("adblocker") === "update") {
         for (const list of Object.keys(defaultBlocklists)) {
-            UTIL.notify(`Updating ${list} to the latest version`)
+            notify(`Updating ${list} to the latest version`)
             const {request} = require("https")
             const req = request(defaultBlocklists[list], res => {
                 let body = ""
                 res.on("end", () => {
-                    UTIL.writeFile(UTIL.joinPath(blocklistDir,
-                        `${list}.txt`), body)
+                    writeFile(joinPath(blocklistDir, `${list}.txt`), body)
                     ipcRenderer.send("adblock-enable")
                 })
                 res.on("data", chunk => {
@@ -69,11 +69,11 @@ const enableAdblocker = () => {
                 })
             })
             req.on("error", e => {
-                UTIL.notify(`Failed to update ${list}:\n${e.message}`, "err")
+                notify(`Failed to update ${list}:\n${e.message}`, "err")
             })
             req.end()
         }
-    } else if (SETTINGS.get("adblocker") !== "off") {
+    } else if (getSetting("adblocker") !== "off") {
         ipcRenderer.send("adblock-enable")
     }
 }

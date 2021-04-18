@@ -15,18 +15,20 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS MODES SETTINGS TABS */
 "use strict"
+
+const {currentPage, currentMode, getSetting} = require("./common")
 
 let X = 0
 let Y = 0
 let listenForScroll = false
 
 const start = () => {
-    X = Number(TABS.currentPage().getAttribute("pointer-x")) || X
-    Y = Number(TABS.currentPage().getAttribute("pointer-y")) || Y
-    MODES.setMode("pointer")
-    TABS.currentPage().sendInputEvent({"type": "mouseEnter", "x": X, "y": Y})
+    X = Number(currentPage().getAttribute("pointer-x")) || X
+    Y = Number(currentPage().getAttribute("pointer-y")) || Y
+    const {setMode} = require("./modes")
+    setMode("pointer")
+    currentPage().sendInputEvent({"type": "mouseEnter", "x": X, "y": Y})
     updateElement()
 }
 
@@ -45,16 +47,16 @@ const handleScrollDiffEvent = diff => {
 }
 
 const offset = () => {
-    let top = Number(TABS.currentPage().style.top.split(/[.px]/g)[0])
-    let left = Number(TABS.currentPage().style.left.split(/[.px]/g)[0])
-    let bottom = top + Number(TABS.currentPage()
+    let top = Number(currentPage().style.top.split(/[.px]/g)[0])
+    let left = Number(currentPage().style.left.split(/[.px]/g)[0])
+    let bottom = top + Number(currentPage()
         .style.height.split(/[.px]/g)[0])
-    let right = left + Number(TABS.currentPage().style.width.split(/[.px]/g)[0])
+    let right = left + Number(currentPage().style.width.split(/[.px]/g)[0])
     if (document.getElementById("pages").classList.contains("multiple")) {
-        top += SETTINGS.get("fontsize") * .15
-        left += SETTINGS.get("fontsize") * .15
-        bottom -= SETTINGS.get("fontsize") * .15
-        right -= SETTINGS.get("fontsize") * .15
+        top += getSetting("fontsize") * .15
+        left += getSetting("fontsize") * .15
+        bottom -= getSetting("fontsize") * .15
+        right -= getSetting("fontsize") * .15
     }
     return {
         "top": Math.round(top),
@@ -66,20 +68,20 @@ const offset = () => {
 
 const updateElement = () => {
     const {top, left, bottom, right} = offset()
-    X = Math.max(0, Math.min(X, right - left - SETTINGS.get("fontsize") * 1.4))
-    Y = Math.max(0, Math.min(Y, bottom - top - SETTINGS.get("fontsize")))
+    X = Math.max(0, Math.min(X, right - left - getSetting("fontsize") * 1.4))
+    Y = Math.max(0, Math.min(Y, bottom - top - getSetting("fontsize")))
     document.getElementById("pointer").style.left = `${X + left}px`
     document.getElementById("pointer").style.top = `${Y + top}px`
-    TABS.currentPage().setAttribute("pointer-x", X)
-    TABS.currentPage().setAttribute("pointer-y", Y)
-    if (MODES.currentMode() === "pointer") {
-        TABS.currentPage().sendInputEvent(
+    currentPage().setAttribute("pointer-x", X)
+    currentPage().setAttribute("pointer-y", Y)
+    if (currentMode() === "pointer") {
+        currentPage().sendInputEvent(
             {"type": "mouseEnter", "x": X, "y": Y})
-        TABS.currentPage().sendInputEvent({"type": "mouseMove", "x": X, "y": Y})
+        currentPage().sendInputEvent({"type": "mouseMove", "x": X, "y": Y})
     }
-    if (MODES.currentMode() === "visual") {
-        const factor = TABS.currentPage().getZoomFactor()
-        TABS.currentPage().send("selection-request",
+    if (currentMode() === "visual") {
+        const factor = currentPage().getZoomFactor()
+        currentPage().send("selection-request",
             Math.round(X / factor), Math.round(Y / factor))
     }
 }
@@ -87,14 +89,14 @@ const updateElement = () => {
 const releaseKeys = () => {
     try {
         for (const button of ["left", "right"]) {
-            TABS.currentPage().sendInputEvent({
+            currentPage().sendInputEvent({
                 "type": "mouseUp", "x": X, "y": Y, "button": button
             })
         }
-        TABS.currentPage().sendInputEvent(
+        currentPage().sendInputEvent(
             {"type": "mouseLeave", "x": X, "y": Y})
-        const factor = TABS.currentPage().getZoomFactor()
-        TABS.currentPage().send("selection-remove",
+        const factor = currentPage().getZoomFactor()
+        currentPage().send("selection-remove",
             Math.round(X / factor), Math.round(Y / factor))
     } catch (e) {
         // Can't release keys, probably because of opening a new tab
@@ -109,57 +111,59 @@ const moveFastLeft = () => {
 }
 
 const downloadImage = () => {
-    const factor = TABS.currentPage().getZoomFactor()
-    TABS.currentPage().send("download-image-request",
+    const factor = currentPage().getZoomFactor()
+    currentPage().send("download-image-request",
         Math.round(X / factor), Math.round(Y / factor))
 }
 
 const downloadLink = () => {
     const url = document.getElementById("url-hover")?.textContent
     if (url) {
-        TABS.currentPage().downloadURL(url)
+        currentPage().downloadURL(url)
     }
 }
 
 const inspectElement = () => {
     const {top, left} = offset()
-    TABS.currentPage().inspectElement(Math.round(X + left), Math.round(Y + top))
+    currentPage().inspectElement(Math.round(X + left), Math.round(Y + top))
 }
 
 const copyAndStop = () => {
-    if (MODES.currentMode() === "pointer") {
+    if (currentMode() === "pointer") {
         const {clipboard} = require("electron")
         clipboard.writeText(document.getElementById("url-hover").textContent)
     } else {
-        const factor = TABS.currentPage().getZoomFactor()
-        TABS.currentPage().send("selection-copy",
+        const factor = currentPage().getZoomFactor()
+        currentPage().send("selection-copy",
             Math.round(X / factor), Math.round(Y / factor))
     }
-    MODES.setMode("normal")
+    const {setMode} = require("./modes")
+    setMode("normal")
 }
 
 const leftClick = () => {
-    const factor = TABS.currentPage().getZoomFactor()
-    TABS.currentPage().sendInputEvent({
+    const factor = currentPage().getZoomFactor()
+    currentPage().sendInputEvent({
         "type": "mouseEnter", "x": X * factor, "y": Y * factor
     })
-    TABS.currentPage().sendInputEvent({
+    currentPage().sendInputEvent({
         "type": "mouseDown",
         "x": X * factor,
         "y": Y * factor,
         "button": "left",
         "clickCount": 1
     })
-    TABS.currentPage().sendInputEvent({
+    currentPage().sendInputEvent({
         "type": "mouseUp", "x": X * factor, "y": Y * factor, "button": "left"
     })
-    TABS.currentPage().sendInputEvent({
+    currentPage().sendInputEvent({
         "type": "mouseLeave", "x": X * factor, "y": Y * factor
     })
 }
 
 const startOfPage = () => {
-    ACTIONS.scrollTop()
+    const {scrollTop} = require("./actions")
+    scrollTop()
     Y = 0
     updateElement()
 }
@@ -170,14 +174,15 @@ const moveLeft = () => {
 }
 
 const insertAtPosition = () => {
-    const factor = TABS.currentPage().getZoomFactor()
-    TABS.currentPage().send("focus-input", {"x": X * factor, "y": Y * factor})
+    const factor = currentPage().getZoomFactor()
+    currentPage().send("focus-input", {"x": X * factor, "y": Y * factor})
 }
 
 const moveDown = () => {
     const {bottom, top} = offset()
-    if (Y === bottom - top - SETTINGS.get("fontsize")) {
-        ACTIONS.scrollDown()
+    if (Y === bottom - top - getSetting("fontsize")) {
+        const {"scrollDown": scroll} = require("./actions")
+        scroll()
         listenForScroll = true
     } else {
         Y += 10
@@ -187,7 +192,8 @@ const moveDown = () => {
 
 const moveUp = () => {
     if (Y === 0) {
-        ACTIONS.scrollUp()
+        const {"scrollUp": scroll} = require("./actions")
+        scroll()
         listenForScroll = true
     } else {
         Y -= 10
@@ -201,19 +207,20 @@ const moveRight = () => {
 }
 
 const rightClick = () => {
-    TABS.currentPage().sendInputEvent({
+    currentPage().sendInputEvent({
         "type": "mouseDown", "x": X, "y": Y, "button": "right", "clickCount": 1
     })
-    TABS.currentPage().sendInputEvent({
+    currentPage().sendInputEvent({
         "type": "mouseUp", "x": X, "y": Y, "button": "right"
     })
 }
 
 const startVisualSelect = () => {
-    const factor = TABS.currentPage().getZoomFactor()
-    TABS.currentPage().send("selection-start-location",
+    const factor = currentPage().getZoomFactor()
+    currentPage().send("selection-start-location",
         Math.round(X / factor), Math.round(Y / factor))
-    MODES.setMode("visual")
+    const {setMode} = require("./modes")
+    setMode("visual")
 }
 
 const moveFastRight = () => {
@@ -228,28 +235,28 @@ const centerOfView = () => {
 }
 
 const scrollDown = () => {
-    TABS.currentPage().sendInputEvent({
+    currentPage().sendInputEvent({
         "type": "mouseWheel", "x": X, "y": Y, "deltaX": 0, "deltaY": -100
     })
     updateElement()
 }
 
 const scrollUp = () => {
-    TABS.currentPage().sendInputEvent({
+    currentPage().sendInputEvent({
         "type": "mouseWheel", "x": X, "y": Y, "deltaX": 0, "deltaY": 100
     })
     updateElement()
 }
 
 const scrollLeft = () => {
-    TABS.currentPage().sendInputEvent({
+    currentPage().sendInputEvent({
         "type": "mouseWheel", "x": X, "y": Y, "deltaX": 100, "deltaY": 0
     })
     updateElement()
 }
 
 const scrollRight = () => {
-    TABS.currentPage().sendInputEvent({
+    currentPage().sendInputEvent({
         "type": "mouseWheel", "x": X, "y": Y, "deltaX": -100, "deltaY": 0
     })
     updateElement()
@@ -286,7 +293,8 @@ const endOfView = () => {
 }
 
 const endOfPage = () => {
-    ACTIONS.scrollBottom()
+    const {scrollBottom} = require("./actions")
+    scrollBottom()
     Y = window.innerHeight
     updateElement()
 }
@@ -303,8 +311,9 @@ const moveLeftMax = () => {
 
 const moveFastDown = () => {
     const {bottom, top} = offset()
-    if (Y === bottom - top - SETTINGS.get("fontsize")) {
-        ACTIONS.scrollDown()
+    if (Y === bottom - top - getSetting("fontsize")) {
+        const {"scrollDown": scroll} = require("./actions")
+        scroll()
         listenForScroll = true
     } else {
         Y += 100
@@ -314,7 +323,8 @@ const moveFastDown = () => {
 
 const moveFastUp = () => {
     if (Y === 0) {
-        ACTIONS.scrollUp()
+        const {"scrollUp": scroll} = require("./actions")
+        scroll()
         listenForScroll = true
     } else {
         Y -= 100

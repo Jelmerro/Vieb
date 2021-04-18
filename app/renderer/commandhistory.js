@@ -15,17 +15,12 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global MODES SUGGEST */
 "use strict"
 
 const previousCommands = []
 let previousIndex = -1
 let originalCommand = ""
 let storeCommands = false
-
-const init = () => {
-    storeCommands = true
-}
 
 const pause = () => {
     storeCommands = false
@@ -41,11 +36,13 @@ const updateNavWithHistory = () => {
         commandText = previousCommands[previousIndex]
     }
     document.getElementById("url").value = commandText
-    SUGGEST.suggestCommand(commandText)
+    const {suggestCommand} = require("./suggest")
+    suggestCommand(commandText)
 }
 
 const previous = () => {
-    if (MODES.currentMode() !== "command") {
+    const {currentMode} = require("./common")
+    if (currentMode() !== "command") {
         return
     }
     if (previousIndex === -1) {
@@ -58,7 +55,8 @@ const previous = () => {
 }
 
 const next = () => {
-    if (MODES.currentMode() !== "command" || previousIndex === -1) {
+    const {currentMode} = require("./common")
+    if (currentMode() !== "command" || previousIndex === -1) {
         return
     }
     if (previousIndex < previousCommands.length - 1) {
@@ -87,4 +85,4 @@ const push = command => {
     }
 }
 
-module.exports = {init, pause, resume, previous, next, resetPosition, push}
+module.exports = {pause, resume, previous, next, resetPosition, push}

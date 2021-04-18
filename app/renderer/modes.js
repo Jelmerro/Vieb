@@ -15,18 +15,20 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global ACTIONS COMMANDHISTORY EXPLOREHISTORY POINTER FOLLOW SETTINGS SUGGEST
- TABS */
 "use strict"
+
+const {
+    currentPage, currentMode, getSetting, guiRelatedUpdate
+} = require("./common")
 
 const modes = {
     "normal": {},
     "insert": {
         "onLeave": newMode => {
-            if (TABS.currentPage().getAttribute("dom-ready")) {
-                TABS.currentPage().send("action", "blur")
+            if (currentPage().getAttribute("dom-ready")) {
+                currentPage().send("action", "blur")
             }
-            if (newMode !== "pointer" && !SETTINGS.get("mouse")) {
+            if (newMode !== "pointer" && !getSetting("mouse")) {
                 document.getElementById("url-hover").textContent = ""
                 document.getElementById("url-hover").style.display = "none"
             }
@@ -35,33 +37,45 @@ const modes = {
     "command": {
         "onEnter": () => {
             document.getElementById("url").value = ""
-            COMMANDHISTORY.resetPosition()
+            const {resetPosition} = require("./commandhistory")
+            resetPosition()
         },
-        "onLeave": () => SUGGEST.emptySuggestions()
+        "onLeave": () => {
+            const {emptySuggestions} = require("./suggest")
+            emptySuggestions()
+        }
     },
     "search": {},
     "explore": {
         "onEnter": () => {
-            TABS.updateUrl(TABS.currentPage(), true)
+            const {updateUrl} = require("./tabs")
+            updateUrl(currentPage(), true)
             document.getElementById("url").select()
-            EXPLOREHISTORY.resetPosition()
+            const {resetPosition} = require("./explorehistory")
+            resetPosition()
         },
-        "onLeave": () => SUGGEST.emptySuggestions()
+        "onLeave": () => {
+            const {emptySuggestions} = require("./suggest")
+            emptySuggestions()
+        }
     },
     "follow": {
         "onLeave": newMode => {
-            FOLLOW.cancelFollow()
+            const {cancelFollow} = require("./follow")
+            cancelFollow()
             if (!["visual", "pointer"].includes(newMode)) {
-                POINTER.releaseKeys()
+                const {releaseKeys} = require("./pointer")
+                releaseKeys()
             }
         }
     },
     "pointer": {
         "onLeave": newMode => {
             if (!["visual", "follow"].includes(newMode)) {
-                POINTER.releaseKeys()
+                const {releaseKeys} = require("./pointer")
+                releaseKeys()
             }
-            if (newMode !== "insert" && !SETTINGS.get("mouse")) {
+            if (newMode !== "insert" && !getSetting("mouse")) {
                 document.getElementById("url-hover").style.display = "none"
             }
         }
@@ -69,7 +83,8 @@ const modes = {
     "visual": {
         "onLeave": newMode => {
             if (!["pointer", "follow"].includes(newMode)) {
-                POINTER.releaseKeys()
+                const {releaseKeys} = require("./pointer")
+                releaseKeys()
             }
         }
     }
@@ -86,11 +101,14 @@ const init = () => {
                 return
             }
             if (mode === "follow") {
-                FOLLOW.startFollow(false)
+                const {startFollow} = require("./follow")
+                startFollow(false)
             } else if (mode === "pointer") {
-                POINTER.start()
+                const {start} = require("./pointer")
+                start()
             } else if (mode === "visual") {
-                POINTER.startVisualSelect()
+                const {startVisualSelect} = require("./pointer")
+                startVisualSelect()
             } else {
                 setMode(mode)
             }
@@ -102,7 +120,7 @@ const init = () => {
 
 const setMode = mode => {
     mode = mode.trim().toLowerCase()
-    if (!modes[mode] || currentMode() === mode || !TABS.currentPage()) {
+    if (!modes[mode] || currentMode() === mode || !currentPage()) {
         return
     }
     if (modes[currentMode()].onLeave) {
@@ -113,12 +131,9 @@ const setMode = mode => {
     }
     document.getElementById("mode").textContent = mode
     document.body.setAttribute("current-mode", mode)
-    SETTINGS.guiRelatedUpdate("navbar")
-    ACTIONS.setFocusCorrectly()
+    guiRelatedUpdate("navbar")
+    const {setFocusCorrectly} = require("./actions")
+    setFocusCorrectly()
 }
 
-const currentMode = () => document.body.getAttribute("current-mode")
-
-const allModes = () => Object.keys(modes)
-
-module.exports = {init, setMode, currentMode, allModes}
+module.exports = {init, setMode}

@@ -15,22 +15,44 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global COMMANDHISTORY FAVICONS HISTORY INPUT MODES PAGELAYOUT
- SETTINGS TABS UTIL */
 "use strict"
 
-const {ipcRenderer} = require("electron")
+const {
+    notify,
+    clearTempContainers,
+    clearCache,
+    clearCookies,
+    clearLocalStorage,
+    readFile,
+    writeFile,
+    isDir,
+    pathExists,
+    expandPath,
+    isAbsolutePath,
+    joinPath,
+    basePath,
+    downloadPath,
+    dirname,
+    stringToUrl,
+    appData,
+    specialPagePath,
+    pathToSpecialPageName
+} = require("../util")
+const {
+    listTabs, currentTab, currentPage, tabOrPageMatching, getSetting
+} = require("./common")
 
 const listSetting = setting => {
     if (setting === "all") {
-        UTIL.notify(`--- Options ---\n${SETTINGS.listCurrentSettings(true)}`)
+        const {listCurrentSettings} = require("./settings")
+        notify(`--- Options ---\n${listCurrentSettings(true)}`)
         return
     }
-    const value = SETTINGS.get(setting)
+    const value = getSetting(setting)
     if (value === undefined) {
-        UTIL.notify(`The setting '${setting}' doesn't exist`, "warn")
+        notify(`The setting '${setting}' doesn't exist`, "warn")
     } else {
-        UTIL.notify(`The setting '${setting}' has the value '${value}'`)
+        notify(`The setting '${setting}' has the value '${value}'`)
     }
 }
 
@@ -41,58 +63,60 @@ const splitSettingAndValue = (part, seperator) => {
 }
 
 const modifyListOrNumber = (setting, value, method) => {
-    const isNumber = typeof SETTINGS.get(setting) === "number"
-    const isFreeText = SETTINGS.freeText.includes(setting)
-    const isListLike = SETTINGS.listLike.includes(setting)
+    const isNumber = typeof getSetting(setting) === "number"
+    const {freeText, listLike, set} = require("./settings")
+    const isFreeText = freeText.includes(setting)
+    const isListLike = listLike.includes(setting)
     if (!isNumber && !isFreeText && !isListLike) {
-        UTIL.notify(
+        notify(
             `Can't modify '${setting}' as if it were a number or list`, "warn")
         return
     }
     if (method === "append") {
         if (isListLike) {
-            SETTINGS.set(setting, `${SETTINGS.get(setting)},${value}`)
+            set(setting, `${getSetting(setting)},${value}`)
         }
         if (isNumber) {
-            SETTINGS.set(setting, SETTINGS.get(setting) + Number(value))
+            set(setting, getSetting(setting) + Number(value))
         }
         if (isFreeText) {
-            SETTINGS.set(setting, SETTINGS.get(setting) + value)
+            set(setting, getSetting(setting) + value)
         }
     }
     if (method === "remove") {
         if (isListLike) {
-            const current = SETTINGS.get(setting).split(",")
+            const current = getSetting(setting).split(",")
             const newValue = current.filter(e => e && e !== value).join(",")
-            SETTINGS.set(setting, newValue)
+            set(setting, newValue)
         }
         if (isNumber) {
-            SETTINGS.set(setting, SETTINGS.get(setting) - Number(value))
+            set(setting, getSetting(setting) - Number(value))
         }
         if (isFreeText) {
-            SETTINGS.set(setting, SETTINGS.get(setting).replace(value, ""))
+            set(setting, getSetting(setting).replace(value, ""))
         }
     }
     if (method === "special") {
         if (isListLike) {
-            SETTINGS.set(setting, `${value},${SETTINGS.get(setting)}`)
+            set(setting, `${value},${getSetting(setting)}`)
         }
         if (isNumber) {
-            SETTINGS.set(setting, SETTINGS.get(setting) * Number(value))
+            set(setting, getSetting(setting) * Number(value))
         }
         if (isFreeText) {
-            SETTINGS.set(setting, value + SETTINGS.get(setting))
+            set(setting, value + getSetting(setting))
         }
     }
 }
 
 const set = (...args) => {
     if (args.length === 0) {
-        const allChanges = SETTINGS.listCurrentSettings()
+        const {listCurrentSettings} = require("./settings")
+        const allChanges = listCurrentSettings()
         if (allChanges) {
-            UTIL.notify(`--- Options ---\n${allChanges}`)
+            notify(`--- Options ---\n${allChanges}`)
         } else {
-            UTIL.notify("No settings have been changed compared to the default")
+            notify("No settings have been changed compared to the default")
         }
         return
     }
@@ -104,39 +128,46 @@ const set = (...args) => {
         } else if (/^\w+\^=/.test(part)) {
             modifyListOrNumber(...splitSettingAndValue(part, "^="), "special")
         } else if (/^\w+=/.test(part)) {
-            SETTINGS.set(...splitSettingAndValue(part, "="))
+            const {"set": s} = require("./settings")
+            s(...splitSettingAndValue(part, "="))
         } else if (/^\w+:/.test(part)) {
-            SETTINGS.set(...splitSettingAndValue(part, ":"))
+            const {"set": s} = require("./settings")
+            s(...splitSettingAndValue(part, ":"))
         } else if (part.includes("=") || part.includes(":")) {
-            UTIL.notify(
+            notify(
                 `The setting '${part.replace(/[+-^:=].*/, "")}' contains `
                 + "invalid characters", "warn")
         } else if (part.endsWith("&")) {
-            SETTINGS.reset(part.slice(0, -1))
+            const {reset} = require("./settings")
+            reset(part.slice(0, -1))
         } else if (part.endsWith("!")) {
             const setting = part.slice(0, -1)
-            const value = SETTINGS.get(setting)
+            const value = getSetting(setting)
             if (["boolean", "undefined"].includes(typeof value)) {
-                SETTINGS.set(setting, String(!value))
+                const {"set": s} = require("./settings")
+                s(setting, String(!value))
             } else {
-                UTIL.notify(
+                notify(
                     `The setting '${setting}' can not be flipped`, "warn")
             }
         } else if (part.endsWith("?")) {
             listSetting(part.slice(0, -1))
-        } else if (typeof SETTINGS.get(part) === "boolean") {
-            SETTINGS.set(part, "true")
+        } else if (typeof getSetting(part) === "boolean") {
+            const {"set": s} = require("./settings")
+            s(part, "true")
         } else if (part.startsWith("inv")) {
-            const value = SETTINGS.get(part.replace("inv", ""))
+            const value = getSetting(part.replace("inv", ""))
             if (typeof value === "boolean") {
-                SETTINGS.set(part.replace("inv", ""), String(!value))
+                const {"set": s} = require("./settings")
+                s(part.replace("inv", ""), String(!value))
             } else {
                 listSetting(part)
             }
         } else if (part.startsWith("no")) {
-            const value = SETTINGS.get(part.replace("no", ""))
+            const value = getSetting(part.replace("no", ""))
             if (typeof value === "boolean") {
-                SETTINGS.set(part.replace("no", ""), "false")
+                const {"set": s} = require("./settings")
+                s(part.replace("no", ""), "false")
             } else {
                 listSetting(part)
             }
@@ -148,191 +179,207 @@ const set = (...args) => {
 
 const quit = () => {
     if (document.getElementById("tabs").classList.contains("multiple")) {
-        TABS.closeTab()
+        const {closeTab} = require("./tabs")
+        closeTab()
     } else {
         quitall()
     }
 }
 
 const quitall = () => {
+    const {ipcRenderer} = require("electron")
     ipcRenderer.send("hide-window")
-    if (SETTINGS.get("clearhistoryonquit")) {
-        HISTORY.clearHistory()
+    const {clearHistory, writeHistToFile} = require("./history")
+    if (getSetting("clearhistoryonquit")) {
+        clearHistory()
     } else {
-        HISTORY.writeHistToFile(true)
+        writeHistToFile(true)
     }
-    TABS.saveTabs()
+    const {saveTabs} = require("./tabs")
+    saveTabs()
     document.getElementById("pages").innerHTML = ""
-    UTIL.clearTempContainers()
-    if (SETTINGS.get("cache") !== "full") {
-        UTIL.clearCache()
+    clearTempContainers()
+    if (getSetting("cache") !== "full") {
+        clearCache()
     }
-    if (SETTINGS.get("clearcookiesonquit")) {
-        UTIL.clearCookies()
+    if (getSetting("clearcookiesonquit")) {
+        clearCookies()
     }
-    if (SETTINGS.get("clearlocalstorageonquit")) {
-        UTIL.clearLocalStorage()
+    if (getSetting("clearlocalstorageonquit")) {
+        clearLocalStorage()
     }
-    FAVICONS.updateMappings()
+    const {updateMappings} = require("./favicons")
+    updateMappings()
     ipcRenderer.send("destroy-window")
 }
 
 let currentscheme = "default"
 const colorscheme = (name = null, trailingArgs = false) => {
     if (trailingArgs) {
-        UTIL.notify("The colorscheme command takes a single optional argument",
+        notify("The colorscheme command takes a single optional argument",
             "warn")
         return
     }
     if (!name) {
-        UTIL.notify(currentscheme)
+        notify(currentscheme)
         return
     }
-    let css = UTIL.readFile(UTIL.expandPath(`~/.vieb/colors/${name}.css`))
+    let css = readFile(expandPath(`~/.vieb/colors/${name}.css`))
     if (!css) {
-        css = UTIL.readFile(UTIL.joinPath(UTIL.appData(), `colors/${name}.css`))
+        css = readFile(joinPath(appData(), `colors/${name}.css`))
     }
     if (!css) {
-        css = UTIL.readFile(UTIL.joinPath(__dirname,
+        css = readFile(joinPath(__dirname,
             "../colors", `${name}.css`))
     }
     if (!css) {
-        UTIL.notify(`Cannot find colorscheme '${name}'`, "warn")
+        notify(`Cannot find colorscheme '${name}'`, "warn")
         return
     }
     if (name === "default") {
         css = ""
     }
     document.getElementById("custom-styling").textContent = css
-    ipcRenderer.send("set-custom-styling", SETTINGS.get("fontsize"), css)
-    SETTINGS.setCustomStyling(css)
+    const {ipcRenderer} = require("electron")
+    ipcRenderer.send("set-custom-styling", getSetting("fontsize"), css)
+    const {setCustomStyling} = require("./settings")
+    setCustomStyling(css)
     currentscheme = name
 }
 
 const restart = () => {
+    const {ipcRenderer} = require("electron")
     ipcRenderer.send("relaunch")
     quitall()
 }
 
 const openDevTools = (position = null, trailingArgs = false) => {
     if (trailingArgs) {
-        UTIL.notify("The devtools command takes a single optional argument",
+        notify("The devtools command takes a single optional argument",
             "warn")
         return
     }
     if (!position) {
-        position = SETTINGS.get("devtoolsposition")
+        position = getSetting("devtoolsposition")
     }
     if (position === "window") {
-        TABS.currentPage()?.openDevTools()
+        currentPage()?.openDevTools()
     } else if (position === "tab") {
-        TABS.addTab({"devtools": true})
+        const {addTab} = require("./tabs")
+        addTab({"devtools": true})
     } else if (position === "vsplit") {
-        TABS.addTab({
+        const {addTab, switchToTab} = require("./tabs")
+        addTab({
             "switchTo": false,
             "devtools": true,
             "callback": id => {
-                PAGELAYOUT.add(id, "hor", !SETTINGS.get("splitright"))
-                TABS.switchToTab(tabIndexById(id))
+                const {add} = require("./pagelayout")
+                add(id, "hor", !getSetting("splitright"))
+                switchToTab(tabIndexById(id))
             }
         })
     } else if (position === "split") {
-        TABS.addTab({
+        const {addTab, switchToTab} = require("./tabs")
+        addTab({
             "switchTo": false,
             "devtools": true,
             "callback": id => {
-                PAGELAYOUT.add(id, "ver", !SETTINGS.get("splitbelow"))
-                TABS.switchToTab(tabIndexById(id))
+                const {add} = require("./pagelayout")
+                add(id, "ver", !getSetting("splitbelow"))
+                switchToTab(tabIndexById(id))
             }
         })
     } else {
-        UTIL.notify("Invalid devtools position specified, must be one of: "
+        notify("Invalid devtools position specified, must be one of: "
             + "window, vsplit, split or tab", "warn")
     }
 }
 
-const openInternalDevTools = () => ipcRenderer.send("open-internal-devtools")
+const openInternalDevTools = () => {
+    const {ipcRenderer} = require("electron")
+    ipcRenderer.send("open-internal-devtools")
+}
 
 const openSpecialPage = (specialPage, section = null) => {
     // Open the url in the current or new tab, depending on currently open page
-    const pageUrl = UTIL.specialPagePath(specialPage, section)
-    const isNewtab = UTIL.pathToSpecialPageName(
-        TABS.currentPage()?.src).name === "newtab"
-    if (TABS.currentPage() && !TABS.currentPage().isLoading() && isNewtab) {
-        TABS.navigateTo(pageUrl)
+    const pageUrl = specialPagePath(specialPage, section)
+    const isNewtab = pathToSpecialPageName(
+        currentPage()?.src).name === "newtab"
+    if (currentPage() && !currentPage().isLoading() && isNewtab) {
+        const {navigateTo} = require("./tabs")
+        navigateTo(pageUrl)
     } else {
-        TABS.addTab({"url": pageUrl})
+        const {addTab} = require("./tabs")
+        addTab({"url": pageUrl})
     }
 }
 
 const help = (section = null, trailingArgs = false) => {
     if (trailingArgs) {
-        UTIL.notify("The help command takes a single optional argument", "warn")
+        notify("The help command takes a single optional argument", "warn")
         return
     }
     openSpecialPage("help", section)
 }
 
 const reload = () => {
-    COMMANDHISTORY.pause()
-    SETTINGS.loadFromDisk()
-    COMMANDHISTORY.resume()
+    const {loadFromDisk} = require("./settings")
+    loadFromDisk()
 }
 
-const hardcopy = () => {
-    TABS.currentPage()?.send("action", "print")
-}
+const hardcopy = () => currentPage()?.send("action", "print")
 
 const write = (file, trailingArgs = false) => {
     if (trailingArgs) {
-        UTIL.notify("The write command takes only a single optional argument:\n"
+        notify("The write command takes only a single optional argument:\n"
             + "the location where to write the page", "warn")
         return
     }
-    if (!TABS.currentPage()) {
+    if (!currentPage()) {
         return
     }
-    let name = UTIL.basePath(TABS.currentPage().src).split("?")[0]
+    let name = basePath(currentPage().src).split("?")[0]
     if (!name.includes(".")) {
         name += ".html"
     }
-    name = `${new URL(TABS.currentPage().src).hostname} ${name}`.trim()
-    let loc = UTIL.joinPath(UTIL.downloadPath(), name)
+    name = `${new URL(currentPage().src).hostname} ${name}`.trim()
+    let loc = joinPath(downloadPath(), name)
     if (file) {
-        file = UTIL.expandPath(file)
-        if (!UTIL.isAbsolutePath(file)) {
-            file = UTIL.joinPath(UTIL.downloadPath(), file)
+        file = expandPath(file)
+        if (!isAbsolutePath(file)) {
+            file = joinPath(downloadPath(), file)
         }
-        const folder = UTIL.dirname(file)
-        if (UTIL.isDir(folder)) {
-            if (UTIL.pathExists(file)) {
-                if (UTIL.isDir(file)) {
-                    loc = UTIL.joinPath(file, name)
+        const folder = dirname(file)
+        if (isDir(folder)) {
+            if (pathExists(file)) {
+                if (isDir(file)) {
+                    loc = joinPath(file, name)
                 } else {
                     loc = file
                 }
             } else if (file.endsWith("/")) {
-                UTIL.notify(`The folder '${file}' does not exist`, "warn")
+                notify(`The folder '${file}' does not exist`, "warn")
                 return
             } else {
                 loc = file
             }
         } else {
-            UTIL.notify(`The folder '${folder}' does not exist`, "warn")
+            notify(`The folder '${folder}' does not exist`, "warn")
             return
         }
     }
-    const webContentsId = TABS.currentPage().getWebContentsId()
+    const webContentsId = currentPage().getWebContentsId()
+    const {ipcRenderer} = require("electron")
     ipcRenderer.invoke("save-page", webContentsId, loc).then(() => {
-        UTIL.notify(`Page saved at '${loc}'`)
+        notify(`Page saved at '${loc}'`)
     }).catch(err => {
-        UTIL.notify(`Could not save the page:\n${err}`, "err")
+        notify(`Could not save the page:\n${err}`, "err")
     })
 }
 
 const mkviebrc = (full = false, trailingArgs = false) => {
     if (trailingArgs) {
-        UTIL.notify(
+        notify(
             "The mkviebrc command takes a single optional argument", "warn")
         return
     }
@@ -341,19 +388,20 @@ const mkviebrc = (full = false, trailingArgs = false) => {
         if (full === "full") {
             exportAll = true
         } else {
-            UTIL.notify(
+            notify(
                 "The only optional argument supported is: 'full'", "warn")
             return
         }
     }
-    SETTINGS.saveToDisk(exportAll)
+    const {saveToDisk} = require("./settings")
+    saveToDisk(exportAll)
 }
 
 const tabForBufferArg = args => {
     if (args.length === 1) {
         const number = Number(args[0])
         if (!isNaN(number)) {
-            const tabs = TABS.listTabs()
+            const tabs = listTabs()
             if (number < 0) {
                 return tabs[0]
             }
@@ -361,8 +409,8 @@ const tabForBufferArg = args => {
         }
     }
     const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
-    return TABS.listTabs().find(t => {
-        const simpleTabUrl = TABS.tabOrPageMatching(t).src
+    return listTabs().find(t => {
+        const simpleTabUrl = tabOrPageMatching(t).src
             .replace(/\W/g, "").toLowerCase()
         if (simpleTabUrl.includes(simpleSearch)) {
             return true
@@ -379,25 +427,28 @@ const buffer = (...args) => {
     }
     const tab = tabForBufferArg(args)
     if (tab) {
-        TABS.switchToTab(TABS.listTabs().indexOf(tab))
+        const {switchToTab} = require("./tabs")
+        switchToTab(listTabs().indexOf(tab))
         return
     }
-    TABS.navigateTo(UTIL.stringToUrl(args.join(" ")))
+    const {navigateTo} = require("./tabs")
+    navigateTo(stringToUrl(args.join(" ")))
 }
 
 const suspend = (...args) => {
     let tab = null
     if (args.length === 0) {
-        tab = TABS.currentTab()
+        tab = currentTab()
     } else {
         tab = tabForBufferArg(args)
     }
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
-            UTIL.notify(
+            notify(
                 "Only tabs not currently visible can be suspended", "warn")
         } else {
-            TABS.suspendTab(tab)
+            const {suspendTab} = require("./tabs")
+            suspendTab(tab)
         }
     }
 }
@@ -405,26 +456,27 @@ const suspend = (...args) => {
 const hide = (...args) => {
     let tab = null
     if (args.length === 0) {
-        tab = TABS.currentTab()
+        tab = currentTab()
     } else {
         tab = tabForBufferArg(args)
     }
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
-            PAGELAYOUT.hide(TABS.tabOrPageMatching(tab))
+            const {"hide": h} = require("./pagelayout")
+            h(tabOrPageMatching(tab))
         } else {
-            UTIL.notify("Only visible pages can be hidden", "warn")
+            notify("Only visible pages can be hidden", "warn")
         }
     }
 }
 
 const mute = (...args) => {
-    let tab = TABS.currentTab()
+    let tab = currentTab()
     if (args.length > 0) {
         tab = tabForBufferArg(args)
     }
     if (!tab) {
-        UTIL.notify("Can't find matching page, no tabs (un)muted", "warn")
+        notify("Can't find matching page, no tabs (un)muted", "warn")
         return
     }
     if (tab.getAttribute("muted")) {
@@ -432,43 +484,47 @@ const mute = (...args) => {
     } else {
         tab.setAttribute("muted", "muted")
     }
-    TABS.tabOrPageMatching(tab).setAudioMuted(!!tab.getAttribute("muted"))
-    TABS.saveTabs()
+    tabOrPageMatching(tab).setAudioMuted(!!tab.getAttribute("muted"))
+    const {saveTabs} = require("./tabs")
+    saveTabs()
 }
 
 const pin = (...args) => {
-    let tab = TABS.currentTab()
+    let tab = currentTab()
     if (args.length > 0) {
         tab = tabForBufferArg(args)
     }
     if (!tab) {
-        UTIL.notify("Can't find matching page, no tabs (un)pinned", "warn")
+        notify("Can't find matching page, no tabs (un)pinned", "warn")
         return
     }
     const tabContainer = document.getElementById("tabs")
     if (tab.classList.contains("pinned")) {
-        tabContainer.insertBefore(tab, TABS.listTabs().find(
+        tabContainer.insertBefore(tab, listTabs().find(
             t => !t.classList.contains("pinned")))
         tab.classList.remove("pinned")
     } else {
         tab.classList.add("pinned")
-        tabContainer.insertBefore(tab, TABS.listTabs().find(
+        tabContainer.insertBefore(tab, listTabs().find(
             t => !t.classList.contains("pinned")))
     }
-    TABS.saveTabs()
+    const {saveTabs} = require("./tabs")
+    saveTabs()
 }
 
-const tabIndexById = id => TABS.listTabs().indexOf(TABS.listTabs().find(
+const tabIndexById = id => listTabs().indexOf(listTabs().find(
     t => t.getAttribute("link-id") === id))
 
 const addSplit = (method, leftOrAbove, args) => {
+    const {addTab, switchToTab} = require("./tabs")
     if (args.length === 0) {
-        TABS.addTab({
+        addTab({
             "switchTo": false,
-            "container": SETTINGS.get("containersplitpage"),
+            "container": getSetting("containersplitpage"),
             "callback": id => {
-                PAGELAYOUT.add(id, method, leftOrAbove)
-                TABS.switchToTab(tabIndexById(id))
+                const {add} = require("./pagelayout")
+                add(id, method, leftOrAbove)
+                switchToTab(tabIndexById(id))
             }
         })
         return
@@ -476,130 +532,83 @@ const addSplit = (method, leftOrAbove, args) => {
     const tab = tabForBufferArg(args)
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
-            UTIL.notify("Page is already visible", "warn")
+            notify("Page is already visible", "warn")
         } else {
-            PAGELAYOUT.add(TABS.tabOrPageMatching(tab), method, leftOrAbove)
-            TABS.switchToTab(TABS.listTabs().indexOf(tab))
+            const {add} = require("./pagelayout")
+            add(tabOrPageMatching(tab), method, leftOrAbove)
+            switchToTab(listTabs().indexOf(tab))
         }
     } else {
-        TABS.addTab({
-            "url": UTIL.stringToUrl(args.join(" ")),
-            "container": SETTINGS.get("containersplitpage"),
+        addTab({
+            "url": stringToUrl(args.join(" ")),
+            "container": getSetting("containersplitpage"),
             "switchTo": false,
             "callback": id => {
-                PAGELAYOUT.add(id, method, leftOrAbove)
-                TABS.switchToTab(tabIndexById(id))
+                const {add} = require("./pagelayout")
+                add(id, method, leftOrAbove)
+                switchToTab(tabIndexById(id))
             }
         })
     }
 }
 
 const close = (...args) => {
+    const {closeTab} = require("./tabs")
     if (args.length === 0) {
-        TABS.closeTab()
+        closeTab()
         return
     }
     const tab = tabForBufferArg(args)
     if (tab) {
-        TABS.closeTab(TABS.listTabs().indexOf(tab))
+        closeTab(listTabs().indexOf(tab))
         return
     }
-    UTIL.notify("Can't find matching page, no tabs closed", "warn")
-}
-
-
-const addCommand = (overwrite, args) => {
-    if (overwrite && args.length < 2) {
-        UTIL.notify("Can't combine ! with reading a value", "warn")
-        return
-    }
-    if (args.length === 0) {
-        const commandString = Object.keys(userCommands).map(
-            c => `${c} => ${userCommands[c]}`).join("\n").trim()
-        if (commandString) {
-            UTIL.notify(`--- User defined commands ---\n${commandString}`)
-        } else {
-            UTIL.notify("There are no user defined commands")
-        }
-        return
-    }
-    const command = args[0].replace(/^[:'" ]*/, "")
-    args = args.slice(1)
-    if (commands[command]) {
-        UTIL.notify(`Command can not be a built-in command: ${command}`, "warn")
-        return
-    }
-    if (args.length === 0) {
-        if (userCommands[command]) {
-            UTIL.notify(`${command} => ${userCommands[command]}`)
-        } else {
-            UTIL.notify(`Not an editor command: ${command}`, "warn")
-        }
-        return
-    }
-    if (!overwrite && userCommands[command]) {
-        UTIL.notify(
-            "Duplicate custom command definition (add ! to overwrite)", "warn")
-        return
-    }
-    userCommands[command] = args.join(" ")
-}
-
-const deleteCommand = (...args) => {
-    if (args.length !== 1) {
-        UTIL.notify(
-            "Exactly one command name is required for delcommand", "warn")
-        return
-    }
-    const command = args[0].replace(/^[:'" ]*/, "")
-    if (userCommands[command]) {
-        delete userCommands[args[0]]
-    } else {
-        UTIL.notify(`No such user defined command: ${command}`, "warn")
-    }
+    notify("Can't find matching page, no tabs closed", "warn")
 }
 
 const callAction = (...args) => {
     if (args.length !== 1) {
-        UTIL.notify(
+        notify(
             "Exactly one action name is required for the call command", "warn")
         return
     }
     const action = args[0].replace(/(^<|>$)/g, "")
-    if (INPUT.listSupportedActions().includes(action)) {
-        setTimeout(() => INPUT.doAction(action), 0)
+    const {listSupportedActions, doAction} = require("./input")
+    if (listSupportedActions().includes(action)) {
+        setTimeout(() => doAction(action), 0)
     } else {
-        UTIL.notify("Unsupported action provided, can't be called", "warn")
+        notify("Unsupported action provided, can't be called", "warn")
     }
 }
 
 const logError = err => {
     if (err?.message) {
-        UTIL.notify(`Script to set Vieb as the default browser failed:\n${
+        notify(`Script to set Vieb as the default browser failed:\n${
             err.message}`, "err")
     }
 }
 
 const makedefault = () => {
     if (process.execPath.endsWith("electron")) {
-        UTIL.notify("Command only works for installed versions of Vieb", "err")
+        notify("Command only works for installed versions of Vieb", "err")
         return
     }
+    const {ipcRenderer} = require("electron")
     ipcRenderer.send("make-default-app")
     const {exec} = require("child_process")
     if (process.platform === "linux" || process.platform.endsWith("bsd")) {
         exec("xdg-settings set default-web-browser vieb.desktop", logError)
     } else if (process.platform === "win32") {
-        const scriptContents = UTIL.readFile(UTIL.joinPath(
+        const scriptContents = readFile(joinPath(
             __dirname, "../defaultapp/windows.bat"))
-        const tempFile = UTIL.joinPath(UTIL.appData(), "defaultapp.bat")
-        UTIL.writeFile(tempFile, scriptContents)
+        const tempFile = joinPath(appData(), "defaultapp.bat")
+        writeFile(tempFile, scriptContents)
         exec(`Powershell Start ${tempFile} -ArgumentList `
             + `"""${process.execPath}""" -Verb Runas`, logError)
     } else if (process.platform === "darwin") {
         // Electron API should be enough to show a popup for default app request
     } else {
-        UTIL.notify("If you didn't get a notification to set Vieb as your defau"
+        notify("If you didn't get a notification to set Vieb as your defau"
             + "lt browser, this command does not work for this OS.", "warn")
     }
 }
@@ -609,47 +618,70 @@ const extensionsCommand = (...args) => {
         openSpecialPage("extensions")
         return
     }
+    const {ipcRenderer} = require("electron")
     if (args[0] === "install") {
         if (args[1]) {
-            UTIL.notify("Extension install command takes no arguments", "warn")
+            notify("Extension install command takes no arguments", "warn")
             return
         }
         const version = navigator.userAgent.replace(
             /.*Chrome\//g, "").replace(/ .*/g, "")
-        const extension = TABS.currentPage()?.src.replace(/.*\//g, "")
+        const extension = currentPage()?.src.replace(/.*\//g, "")
         if (extension && /^[A-z0-9]{32}$/.test(extension)) {
             const url = `https://clients2.google.com/service/update2/crx?`
             + `response=redirect&prodversion=${version}&acceptformat=crx2,crx3`
             + `&x=id%3D${extension}%26uc`
             ipcRenderer.send("install-extension", url, extension, "crx")
         } else {
-            TABS.currentPage()?.send("action", "installFirefoxExtension")
+            currentPage()?.send("action", "installFirefoxExtension")
         }
     } else if (args[0] === "list") {
         if (args[1]) {
-            UTIL.notify("Extension list command takes no arguments", "warn")
+            notify("Extension list command takes no arguments", "warn")
             return
         }
         let list = ipcRenderer.sendSync("list-extensions")
         list = list.map(ext => `${ext.name}: ${ext.version}`).join("\n")
         if (list.length) {
-            UTIL.notify(`Installed extensions: \n${list}`)
+            notify(`Installed extensions: \n${list}`)
         } else {
-            UTIL.notify(`No extensions currently installed`)
+            notify(`No extensions currently installed`)
         }
     } else if (args[0] === "remove") {
         if (!args[1] || args[2]) {
-            UTIL.notify("Removing an extension requires exactly one argument:\n"
+            notify("Removing an extension requires exactly one argument:\n"
                 + "The id of an extension", "warn")
             return
         }
         ipcRenderer.send("remove-extension", args[1])
     } else {
-        UTIL.notify("Unknown argument to the extensions command, must be:\n"
+        notify("Unknown argument to the extensions command, must be:\n"
             + "install, list or remove", "warn")
     }
 }
 
+const noEscapeCommands = ["command", "delcommand"]
+const noArgumentComands = [
+    "q",
+    "quit",
+    "qa",
+    "quitall",
+    "reload",
+    "restart",
+    "v",
+    "version",
+    "history",
+    "d",
+    "downloads",
+    "cookies",
+    "hardcopy",
+    "print",
+    "comclear",
+    "makedefault",
+    "lclose",
+    "rclose",
+    "only"
+]
 const commands = {
     "q": quit,
     "quit": quit,
@@ -681,15 +713,15 @@ const commands = {
     "hide": hide,
     "pin": pin,
     "mute": mute,
-    "Vexplore": (...args) => addSplit("hor", !SETTINGS.get("splitright"), args),
-    "Sexplore": (...args) => addSplit("ver", !SETTINGS.get("splitbelow"), args),
-    "split": (...args) => addSplit("ver", !SETTINGS.get("splitbelow"), args),
-    "vsplit": (...args) => addSplit("hor", !SETTINGS.get("splitright"), args),
+    "Vexplore": (...args) => addSplit("hor", !getSetting("splitright"), args),
+    "Sexplore": (...args) => addSplit("ver", !getSetting("splitbelow"), args),
+    "split": (...args) => addSplit("ver", !getSetting("splitbelow"), args),
+    "vsplit": (...args) => addSplit("hor", !getSetting("splitright"), args),
     "close": close,
     "cookies": () => openSpecialPage("cookies"),
     "command": (...args) => addCommand(false, args),
     "command!": (...args) => addCommand(true, args),
-    "delcommand": deleteCommand,
+    "delcommand": (...args) => deleteCommand(...args),
     "comclear": () => {
         userCommands = {}
     },
@@ -697,84 +729,114 @@ const commands = {
     "makedefault": makedefault,
     "extensions": extensionsCommand,
     "lclose": () => {
-        let index = TABS.listTabs().indexOf(TABS.currentTab())
+        let index = listTabs().indexOf(currentTab())
         // Loop is reversed to close as many tabs as possible on the left,
         // without getting stuck trying to close pinned tabs at index 0.
         for (let i = index - 1;i >= 0;i--) {
-            index = TABS.listTabs().indexOf(TABS.currentTab())
-            TABS.closeTab(index - 1)
+            index = listTabs().indexOf(currentTab())
+            const {closeTab} = require("./tabs")
+            closeTab(index - 1)
         }
     },
     "rclose": () => {
-        const index = TABS.listTabs().indexOf(TABS.currentTab())
-        let count = TABS.listTabs().length
+        const index = listTabs().indexOf(currentTab())
+        let count = listTabs().length
         // Loop is reversed to close as many tabs as possible on the right,
         // without trying to close a potentially pinned tab right of current.
         for (let i = count - 1;i > index;i--) {
-            count = TABS.listTabs().length
-            TABS.closeTab(count - 1)
+            count = listTabs().length
+            const {closeTab} = require("./tabs")
+            closeTab(count - 1)
         }
     },
-    "only": () => PAGELAYOUT.only()
+    "only": () => {
+        const {only} = require("./pagelayout")
+        only()
+    }
 }
 let userCommands = {}
-
-const noArgumentComands = [
-    "q",
-    "quit",
-    "qa",
-    "quitall",
-    "reload",
-    "restart",
-    "v",
-    "version",
-    "history",
-    "d",
-    "downloads",
-    "cookies",
-    "hardcopy",
-    "print",
-    "comclear",
-    "makedefault",
-    "lclose",
-    "rclose",
-    "only"
-]
-
-const noEscapeCommands = ["command", "delcommand"]
-
-const modes = ["all", ...MODES.allModes(), "menu"]
-modes.forEach(mode => {
-    let prefix = mode[0]
-    if (mode === "all") {
+const {mapOrList, unmap, clearmap} = require("./input")
+"anicsefpvm".split("").forEach(prefix => {
+    if (prefix === "a") {
         prefix = ""
     }
     commands[`${prefix}map!`] = (...args) => {
-        INPUT.mapOrList(prefix, args, false, true)
+        mapOrList(prefix, args, false, true)
     }
     commands[`${prefix}noremap!`] = (...args) => {
-        INPUT.mapOrList(prefix, args, true, true)
+        mapOrList(prefix, args, true, true)
     }
     commands[`${prefix}map`] = (...args) => {
-        INPUT.mapOrList(prefix, args)
+        mapOrList(prefix, args)
     }
     noEscapeCommands.push(`${prefix}map`)
     commands[`${prefix}noremap`] = (...args) => {
-        INPUT.mapOrList(prefix, args, true)
+        mapOrList(prefix, args, true)
     }
     noEscapeCommands.push(`${prefix}noremap`)
     commands[`${prefix}unmap`] = (...args) => {
-        INPUT.unmap(prefix, args)
+        unmap(prefix, args)
     }
     noEscapeCommands.push(`${prefix}unmap`)
     commands[`${prefix}mapclear`] = () => {
-        INPUT.clearmap(prefix)
+        clearmap(prefix)
     }
     noArgumentComands.push(`${prefix}mapclear`)
     commands[`${prefix}mapclear!`] = () => {
-        INPUT.clearmap(prefix, true)
+        clearmap(prefix, true)
     }
 })
+
+const addCommand = (overwrite, args) => {
+    if (overwrite && args.length < 2) {
+        notify("Can't combine ! with reading a value", "warn")
+        return
+    }
+    if (args.length === 0) {
+        const commandString = Object.keys(userCommands).map(
+            c => `${c} => ${userCommands[c]}`).join("\n").trim()
+        if (commandString) {
+            notify(`--- User defined commands ---\n${commandString}`)
+        } else {
+            notify("There are no user defined commands")
+        }
+        return
+    }
+    const command = args[0].replace(/^[:'" ]*/, "")
+    args = args.slice(1)
+    if (commands[command]) {
+        notify(`Command can not be a built-in command: ${command}`, "warn")
+        return
+    }
+    if (args.length === 0) {
+        if (userCommands[command]) {
+            notify(`${command} => ${userCommands[command]}`)
+        } else {
+            notify(`Not an editor command: ${command}`, "warn")
+        }
+        return
+    }
+    if (!overwrite && userCommands[command]) {
+        notify(
+            "Duplicate custom command definition (add ! to overwrite)", "warn")
+        return
+    }
+    userCommands[command] = args.join(" ")
+}
+
+const deleteCommand = (...args) => {
+    if (args.length !== 1) {
+        notify(
+            "Exactly one command name is required for delcommand", "warn")
+        return
+    }
+    const command = args[0].replace(/^[:'" ]*/, "")
+    if (userCommands[command]) {
+        delete userCommands[args[0]]
+    } else {
+        notify(`No such user defined command: ${command}`, "warn")
+    }
+}
 
 const parseAndValidateArgs = command => {
     const argsString = command.split(" ").slice(1).join(" ")
@@ -819,10 +881,11 @@ const execute = command => {
     if (!command) {
         return
     }
-    COMMANDHISTORY.push(command)
+    const {push} = require("./commandhistory")
+    push(command)
     const parsed = parseAndValidateArgs(command)
     if (!parsed.valid) {
-        UTIL.notify(`Command could not be executed, unmatched escape quotes:\n${
+        notify(`Command could not be executed, unmatched escape quotes:\n${
             command}`, "warn")
         return
     }
@@ -835,27 +898,28 @@ const execute = command => {
             command = matches[0]
         }
         if (noArgumentComands.includes(command) && args.length > 0) {
-            UTIL.notify(`Command takes no arguments: ${command}`, "warn")
+            notify(`Command takes no arguments: ${command}`, "warn")
         } else if (commands[command]) {
             if (parsed.confirm) {
                 command += "!"
                 if (!commands[command]) {
-                    UTIL.notify("No ! allowed", "warn")
+                    notify("No ! allowed", "warn")
                     return
                 }
             }
             commands[command](...args)
         } else {
             setTimeout(() => {
-                INPUT.executeMapString(userCommands[command], true, true)
+                const {executeMapString} = require("./input")
+                executeMapString(userCommands[command], true, true)
             }, 0)
         }
     } else if (matches.length > 1) {
-        UTIL.notify(
+        notify(
             `Command is ambiguous, please be more specific: ${command}`, "warn")
     } else {
         // No command
-        UTIL.notify(`Not an editor command: ${command}`, "warn")
+        notify(`Not an editor command: ${command}`, "warn")
     }
 }
 

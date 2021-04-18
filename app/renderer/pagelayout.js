@@ -15,8 +15,11 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global SETTINGS TABS */
 "use strict"
+
+const {
+    listTabs, listPages, currentPage, tabOrPageMatching, getSetting
+} = require("./common")
 
 const layoutDivById = id => document.querySelector(
     `#pagelayout div[link-id='${id}']`)
@@ -71,12 +74,13 @@ const hide = (view, close = false) => {
                 !== view.getAttribute("link-id"))
         }
         if (close) {
-            TABS.tabOrPageMatching(view).remove()
+            tabOrPageMatching(view).remove()
             view.remove()
         }
-        TABS.switchToTab(TABS.listTabs().indexOf(newTab))
+        const {switchToTab} = require("./tabs")
+        switchToTab(listTabs().indexOf(newTab))
     } else if (close) {
-        TABS.tabOrPageMatching(view).remove()
+        tabOrPageMatching(view).remove()
         view.remove()
     }
     applyLayout()
@@ -87,8 +91,7 @@ const add = (viewOrId, method, leftOrAbove) => {
     if (!["number", "string"].includes(typeof viewOrId)) {
         id = viewOrId.getAttribute("link-id")
     }
-    const currentPage = TABS.currentPage()
-    const inLayout = layoutDivById(currentPage.getAttribute("link-id"))
+    const inLayout = layoutDivById(currentPage().getAttribute("link-id"))
     if ([...document.querySelectorAll("#pagelayout *[link-id]")].length === 1) {
         document.getElementById("pagelayout").className = method
     }
@@ -131,7 +134,7 @@ const rotate = () => {
     if (!document.getElementById("pages").classList.contains("multiple")) {
         return
     }
-    const current = layoutDivById(TABS.currentPage().getAttribute("link-id"))
+    const current = layoutDivById(currentPage().getAttribute("link-id"))
     const parent = current.parentNode
     parent.insertBefore(parent.lastChild, parent.firstChild)
     applyLayout()
@@ -142,7 +145,7 @@ const rotateReverse = () => {
     if (!document.getElementById("pages").classList.contains("multiple")) {
         return
     }
-    const current = layoutDivById(TABS.currentPage().getAttribute("link-id"))
+    const current = layoutDivById(currentPage().getAttribute("link-id"))
     const parent = current.parentNode
     parent.appendChild(parent.firstChild)
     applyLayout()
@@ -153,7 +156,7 @@ const exchange = () => {
     if (!document.getElementById("pages").classList.contains("multiple")) {
         return
     }
-    const current = layoutDivById(TABS.currentPage().getAttribute("link-id"))
+    const current = layoutDivById(currentPage().getAttribute("link-id"))
     const parent = current.parentNode
     if ([...parent.children].find(c => c.className)) {
         return
@@ -167,7 +170,8 @@ const exchange = () => {
         parent.insertBefore(current, current.nextSibling.nextSibling)
     }
     const tab = document.querySelector(`#tabs span[link-id='${newId}']`)
-    TABS.switchToTab(TABS.listTabs().indexOf(tab))
+    const {switchToTab} = require("./tabs")
+    switchToTab(listTabs().indexOf(tab))
     applyLayout()
 }
 
@@ -176,7 +180,7 @@ const toTop = direction => {
     if (!document.getElementById("pages").classList.contains("multiple")) {
         return
     }
-    const current = layoutDivById(TABS.currentPage().getAttribute("link-id"))
+    const current = layoutDivById(currentPage().getAttribute("link-id"))
     const layout = document.getElementById("pagelayout")
     const hor = layout.classList.contains("hor")
     const ver = layout.classList.contains("ver")
@@ -210,7 +214,7 @@ const moveFocus = direction => {
     if (!document.getElementById("pages").classList.contains("multiple")) {
         return
     }
-    const current = layoutDivById(TABS.currentPage().getAttribute("link-id"))
+    const current = layoutDivById(currentPage().getAttribute("link-id"))
     const id = current.getAttribute("link-id")
     const dims = current.getBoundingClientRect()
     let x = dims.x + dims.width / 2
@@ -236,7 +240,8 @@ const moveFocus = direction => {
         const newId = newView.getAttribute("link-id")
         if (newId && newId !== id) {
             const tab = document.querySelector(`#tabs span[link-id='${newId}']`)
-            TABS.switchToTab(TABS.listTabs().indexOf(tab))
+            const {switchToTab} = require("./tabs")
+            switchToTab(listTabs().indexOf(tab))
         }
     }
 }
@@ -246,7 +251,7 @@ const resize = (orientation, change) => {
     if (!document.getElementById("pages").classList.contains("multiple")) {
         return
     }
-    let element = layoutDivById(TABS.currentPage().getAttribute("link-id"))
+    let element = layoutDivById(currentPage().getAttribute("link-id"))
     const base = document.getElementById("pagelayout")
     while (!element.parentNode.classList.contains(orientation)) {
         element = element.parentNode
@@ -284,35 +289,39 @@ const resize = (orientation, change) => {
 
 const firstSplit = () => {
     const first = document.querySelector("#pagelayout *[link-id]")
-    TABS.switchToTab(TABS.listTabs().indexOf(document.querySelector(
+    const {switchToTab} = require("./tabs")
+    switchToTab(listTabs().indexOf(document.querySelector(
         `#tabs span[link-id='${first.getAttribute("link-id")}']`)))
 }
 
 const previousSplit = () => {
     const views = [...document.querySelectorAll("#pagelayout *[link-id]")]
-    const current = layoutDivById(TABS.currentPage().getAttribute("link-id"))
+    const current = layoutDivById(currentPage().getAttribute("link-id"))
     const next = views[views.indexOf(current) - 1] || views[views.length - 1]
-    TABS.switchToTab(TABS.listTabs().indexOf(document.querySelector(
+    const {switchToTab} = require("./tabs")
+    switchToTab(listTabs().indexOf(document.querySelector(
         `#tabs span[link-id='${next.getAttribute("link-id")}']`)))
 }
 
 const nextSplit = () => {
     const views = [...document.querySelectorAll("#pagelayout *[link-id]")]
-    const current = layoutDivById(TABS.currentPage().getAttribute("link-id"))
+    const current = layoutDivById(currentPage().getAttribute("link-id"))
     const next = views[views.indexOf(current) + 1] || views[0]
-    TABS.switchToTab(TABS.listTabs().indexOf(document.querySelector(
+    const {switchToTab} = require("./tabs")
+    switchToTab(listTabs().indexOf(document.querySelector(
         `#tabs span[link-id='${next.getAttribute("link-id")}']`)))
 }
 
 const lastSplit = () => {
     const views = [...document.querySelectorAll("#pagelayout *[link-id]")]
     const last = views[views.length - 1]
-    TABS.switchToTab(TABS.listTabs().indexOf(document.querySelector(
+    const {switchToTab} = require("./tabs")
+    switchToTab(listTabs().indexOf(document.querySelector(
         `#tabs span[link-id='${last.getAttribute("link-id")}']`)))
 }
 
 const only = () => {
-    const linkId = TABS.currentPage().getAttribute("link-id")
+    const linkId = currentPage().getAttribute("link-id")
     const singleView = document.createElement("div")
     singleView.setAttribute("link-id", linkId)
     document.getElementById("pagelayout").textContent = ""
@@ -322,26 +331,27 @@ const only = () => {
 
 const setLastUsedTab = id => {
     if (recentlySwitched) {
-        if (TABS.currentPage().getAttribute("link-id") === lastTabId) {
+        if (currentPage().getAttribute("link-id") === lastTabId) {
             lastTabId = id
         }
         return
     }
-    if (!lastTabId || TABS.currentPage().getAttribute("link-id") !== id) {
+    if (!lastTabId || currentPage().getAttribute("link-id") !== id) {
         lastTabId = id
         recentlySwitched = true
         setTimeout(() => {
             recentlySwitched = false
-        }, SETTINGS.get("timeoutlen"))
+        }, getSetting("timeoutlen"))
     }
 }
 
 const toLastUsedTab = () => {
-    if (lastTabId && TABS.currentPage().getAttribute("link-id") !== lastTabId) {
+    if (lastTabId && currentPage().getAttribute("link-id") !== lastTabId) {
         const last = document.querySelector(
             `#tabs span[link-id='${lastTabId}']`)
         if (last) {
-            TABS.switchToTab(TABS.listTabs().indexOf(last))
+            const {switchToTab} = require("./tabs")
+            switchToTab(listTabs().indexOf(last))
         }
     }
 }
@@ -416,14 +426,14 @@ const applyLayout = () => {
         document.getElementById("pages").classList.remove("multiple")
         document.getElementById("tabs").classList.remove("multiple")
     }
-    TABS.listPages().forEach(page => {
+    listPages().forEach(page => {
         if (visiblePages.includes(page)) {
             page.classList.add("visible-page")
         } else {
             page.classList.remove("visible-page")
         }
     })
-    TABS.listTabs().forEach(tab => {
+    listTabs().forEach(tab => {
         const linkId = tab.getAttribute("link-id")
         if (visibleTabs.includes(tab)) {
             tab.classList.add("visible-tab")
@@ -432,12 +442,13 @@ const applyLayout = () => {
         } else {
             tab.classList.remove("visible-tab")
             if (!suspendTimers[linkId] && !tab.getAttribute("suspended")) {
-                const timeout = SETTINGS.get("suspendtimeout")
+                const timeout = getSetting("suspendtimeout")
                 if (timeout) {
                     suspendTimers[linkId] = setTimeout(() => {
                         try {
                             delete suspendTimers[linkId]
-                            TABS.suspendTab(tab)
+                            const {suspendTab} = require("./tabs")
+                            suspendTab(tab)
                         } catch (_) {
                             // Tab might be closed or unavailable, no issue
                         }
@@ -446,11 +457,11 @@ const applyLayout = () => {
             }
         }
     })
-    const cur = TABS.currentPage()
+    const cur = currentPage()
     if (cur) {
         const follow = document.getElementById("follow")
         if (document.getElementById("pages").classList.contains("multiple")) {
-            const bor = SETTINGS.get("fontsize") * 0.15
+            const bor = getSetting("fontsize") * 0.15
             follow.style.top = `${Math.round(Number(
                 cur.style.top.split(/[.|px]/g)[0]) + bor)}px`
             follow.style.left = `${Math.round(Number(

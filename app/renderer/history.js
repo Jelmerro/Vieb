@@ -15,17 +15,29 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global FAVICONS SETTINGS SUGGEST UTIL */
 "use strict"
 
-const histFile = UTIL.joinPath(UTIL.appData(), "hist")
+const {
+    isFile,
+    joinPath,
+    appData,
+    readJSON,
+    writeJSON,
+    deleteFile,
+    urlToString,
+    pathToSpecialPageName,
+    hasProtocol
+} = require("../util")
+const {getSetting} = require("./common")
+
+const histFile = joinPath(appData(), "hist")
 let groupedHistory = {}
 const simpleUrls = {}
 let histWriteTimeout = null
 const specialChars = /[`~!@#$%^&*(),./;'[\]\\\-=<>?:"{}|_+\s]/g
 
 const init = () => {
-    groupedHistory = UTIL.readJSON(histFile) || {}
+    groupedHistory = readJSON(histFile) || {}
 }
 
 const suggestHist = search => {
@@ -34,17 +46,19 @@ const suggestHist = search => {
     // In turn, exact matches get priority over ordered matches.
     search = search.toLowerCase().trim()
     const simpleSearch = search.split(specialChars).filter(w => w)
-    if (!UTIL.isFile(histFile)) {
+    if (!isFile(histFile)) {
         // No need to suggest history if it's not stored
         return
     }
+    const {addExplore} = require("./suggest")
+    const {forSite} = require("./favicons")
     Object.keys(groupedHistory).map(url => {
         if (!groupedHistory[url]) {
             return null
         }
         let simpleUrl = simpleUrls[url]
         if (simpleUrl === undefined) {
-            simpleUrl = UTIL.urlToString(url)
+            simpleUrl = urlToString(url)
                 .replace(specialChars, "").toLowerCase()
             simpleUrls[url] = simpleUrl
         }
@@ -70,16 +84,15 @@ const suggestHist = search => {
         }
         return null
     }).filter(h => h).sort((a, b) => b.top - a.top)
-        .slice(0, SETTINGS.get("suggestexplore"))
-        .forEach(h => SUGGEST.addExplore(
-            {...h, "icon": FAVICONS.forSite(h.url)}))
+        .slice(0, getSetting("suggestexplore"))
+        .forEach(h => addExplore({...h, "icon": forSite(h.url)}))
 }
 
 const addToHist = url => {
-    if (!SETTINGS.get("storenewvisits")) {
+    if (!getSetting("storenewvisits")) {
         return
     }
-    if (UTIL.pathToSpecialPageName(url).name) {
+    if (pathToSpecialPageName(url).name) {
         return
     }
     if (url.startsWith("devtools://")) {
@@ -96,12 +109,12 @@ const addToHist = url => {
 
 const clearHistory = () => {
     groupedHistory = {}
-    return UTIL.deleteFile(histFile)
+    return deleteFile(histFile)
 }
 
 const writeHistToFile = (now = false) => {
     if (Object.keys(groupedHistory).length === 0) {
-        UTIL.deleteFile(histFile)
+        deleteFile(histFile)
         return
     }
     Object.keys(groupedHistory).forEach(url => {
@@ -111,7 +124,7 @@ const writeHistToFile = (now = false) => {
     })
     clearTimeout(histWriteTimeout)
     if (now) {
-        return UTIL.writeJSON(histFile, groupedHistory)
+        return writeJSON(histFile, groupedHistory)
     }
     histWriteTimeout = setTimeout(() => {
         writeHistToFile(true)
@@ -142,12 +155,13 @@ const handleRequest = (webview, action = "", entries = []) => {
         return
     }
     let history = []
+    const {forSite} = require("./favicons")
     Object.keys(groupedHistory).forEach(site => {
         groupedHistory[site].visits.forEach(visit => {
             history.push({
                 "url": site,
                 "title": groupedHistory[site].title,
-                "icon": FAVICONS.forSite(site),
+                "icon": forSite(site),
                 "date": new Date(visit),
                 "visits": groupedHistory[site].visits.length
             })
@@ -160,16 +174,17 @@ const handleRequest = (webview, action = "", entries = []) => {
 const suggestTopSites = () => Object.keys(groupedHistory)
     .filter(g => groupedHistory[g])
     .sort((a, b) => visitCount(b) - visitCount(a))
-    .slice(0, SETTINGS.get("suggesttopsites")).map(site => {
-        if (SETTINGS.get("favicons") === "disabled") {
+    .slice(0, getSetting("suggesttopsites")).map(site => {
+        if (getSetting("favicons") === "disabled") {
             return {
-                "url": UTIL.urlToString(site),
+                "url": urlToString(site),
                 "name": groupedHistory[site]?.title
             }
         }
+        const {forSite} = require("./favicons")
         return {
-            "url": UTIL.urlToString(site),
-            "icon": FAVICONS.forSite(site),
+            "url": urlToString(site),
+            "icon": forSite(site),
             "name": groupedHistory[site]?.title
         }
     })
@@ -179,10 +194,10 @@ const visitCount = url => groupedHistory[url]?.visits?.length || 0
 const titleForPage = url => groupedHistory[url]?.title || ""
 
 const updateTitle = (url, title) => {
-    if (!SETTINGS.get("storenewvisits")) {
+    if (!getSetting("storenewvisits")) {
         return
     }
-    if (UTIL.pathToSpecialPageName(url).name) {
+    if (pathToSpecialPageName(url).name) {
         return
     }
     url = url.replace(/\t/g, "")
@@ -191,7 +206,7 @@ const updateTitle = (url, title) => {
         if (groupedHistory[url].title === title) {
             return
         }
-        if (groupedHistory[url].title && UTIL.hasProtocol(title)) {
+        if (groupedHistory[url].title && hasProtocol(title)) {
             return
         }
         groupedHistory[url].title = title

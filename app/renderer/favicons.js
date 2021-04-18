@@ -15,30 +15,44 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* globals HISTORY SETTINGS TABS UTIL */
 "use strict"
 
-const {ipcRenderer} = require("electron")
+const {
+    joinPath,
+    appData,
+    isFile,
+    readJSON,
+    writeJSON,
+    deleteFile,
+    modifiedAt,
+    makeDir,
+    appIcon,
+    listDir,
+    pathToSpecialPageName,
+    stringToUrl
+} = require("../util")
+const {tabOrPageMatching, getSetting} = require("./common")
 
-const faviconFolder = UTIL.joinPath(UTIL.appData(), "favicons")
-const mappingFile = UTIL.joinPath(faviconFolder, "mappings")
+const faviconFolder = joinPath(appData(), "favicons")
+const mappingFile = joinPath(faviconFolder, "mappings")
 let mappings = {}
 const sessionStart = new Date()
 let isParsed = false
-const viebIcon = `file:///${UTIL.joinPath(
+const viebIcon = `file:///${joinPath(
     __dirname, "../img/icons/256x256.png").replace(/^\/*/g, "")}`
 
 const init = () => {
-    const parsed = UTIL.readJSON(mappingFile)
+    const parsed = readJSON(mappingFile)
     if (parsed) {
         mappings = parsed
     }
     isParsed = true
+    const {ipcRenderer} = require("electron")
     ipcRenderer.on("favicon-downloaded", (_, linkId, currentUrl, favicon) => {
         const webview = document.querySelector(`#pages [link-id='${linkId}']`)
         const filename = urlToPath(favicon)
-        if (webview?.src === currentUrl && UTIL.isFile(filename)) {
-            setPath(TABS.tabOrPageMatching(webview), filename)
+        if (webview?.src === currentUrl && isFile(filename)) {
+            setPath(tabOrPageMatching(webview), filename)
             mappings[currentUrl] = favicon
         }
     })
@@ -50,38 +64,39 @@ const updateMappings = (currentUrl = null) => {
         return
     }
     // Delete mappings for urls that aren't present in the history
+    const {visitCount} = require("./history")
     Object.keys(mappings).forEach(m => {
-        if (HISTORY.visitCount(m) === 0 && m !== currentUrl) {
+        if (visitCount(m) === 0 && m !== currentUrl) {
             delete mappings[m]
         }
     })
     // Delete unmapped favicon icons from disk
     const mappedFavicons = Object.values(mappings).map(f => urlToPath(f))
-    const files = UTIL.listDir(faviconFolder)
+    const files = listDir(faviconFolder)
     if (files) {
         files.filter(p => p !== "mappings")
-            .map(p => UTIL.joinPath(faviconFolder, p))
+            .map(p => joinPath(faviconFolder, p))
             .forEach(img => {
                 if (!mappedFavicons.includes(img)) {
-                    UTIL.deleteFile(img)
+                    deleteFile(img)
                 }
             })
     }
     // Write changes to mapping file
-    UTIL.writeJSON(mappingFile, mappings)
+    writeJSON(mappingFile, mappings)
 }
 
-const urlToPath = url => UTIL.joinPath(faviconFolder,
+const urlToPath = url => joinPath(faviconFolder,
     encodeURIComponent(url).replace(/%/g, "_")).slice(0, 256)
 
 const loading = webview => {
-    const tab = TABS.tabOrPageMatching(webview)
+    const tab = tabOrPageMatching(webview)
     tab.querySelector(".status").style.display = null
     tab.querySelector(".favicon").style.display = "none"
 }
 
 const empty = webview => {
-    const tab = TABS.tabOrPageMatching(webview)
+    const tab = tabOrPageMatching(webview)
     tab.querySelector(".status").style.display = null
     tab.querySelector(".favicon").style.display = "none"
     if (webview.src.startsWith("devtools://")) {
@@ -92,7 +107,7 @@ const empty = webview => {
 }
 
 const show = webview => {
-    const tab = TABS.tabOrPageMatching(webview)
+    const tab = tabOrPageMatching(webview)
     tab.querySelector(".status").style.display = "none"
     const favicon = tab.querySelector(".favicon")
     if (favicon.getAttribute("src") !== "img/empty.png") {
@@ -108,7 +123,7 @@ const setPath = (tab, loc) => {
 }
 
 const update = (webview, urls) => {
-    if (SETTINGS.get("favicons") === "disabled") {
+    if (getSetting("favicons") === "disabled") {
         return
     }
     const favicon = urls[0]
@@ -116,18 +131,18 @@ const update = (webview, urls) => {
         return
     }
     if (viebIcon === favicon) {
-        if (!UTIL.pathToSpecialPageName(webview.src).name) {
+        if (!pathToSpecialPageName(webview.src).name) {
             // Don't allow non-special pages to use the built-in favicon
             return
         }
-        if (UTIL.appIcon()) {
-            setPath(TABS.tabOrPageMatching(webview),
-                UTIL.stringToUrl(UTIL.appIcon()))
+        if (appIcon()) {
+            setPath(tabOrPageMatching(webview),
+                stringToUrl(appIcon()))
             return
         }
     }
     const currentUrl = String(webview.src)
-    const tab = TABS.tabOrPageMatching(webview)
+    const tab = tabOrPageMatching(webview)
     mappings[currentUrl] = favicon
     updateMappings(currentUrl)
     if (favicon.startsWith("file:/") || favicon.startsWith("data:")) {
@@ -136,27 +151,28 @@ const update = (webview, urls) => {
     }
     const filename = urlToPath(favicon)
     deleteIfTooOld(filename)
-    if (UTIL.isFile(filename)) {
+    if (isFile(filename)) {
         setPath(tab, filename)
         return
     }
-    UTIL.makeDir(faviconFolder)
+    makeDir(faviconFolder)
+    const {ipcRenderer} = require("electron")
     ipcRenderer.send("download-favicon", favicon, filename,
         webview.getWebContentsId(), webview.getAttribute("link-id"), currentUrl)
 }
 
 const deleteIfTooOld = loc => {
-    const setting = SETTINGS.get("favicons")
+    const setting = getSetting("favicons")
     if (setting === "forever") {
         return
     }
     if (setting === "nocache") {
-        UTIL.deleteFile(loc)
+        deleteFile(loc)
         return
     }
     if (setting === "session") {
-        if (sessionStart > UTIL.modifiedAt(loc)) {
-            UTIL.deleteFile(loc)
+        if (sessionStart > modifiedAt(loc)) {
+            deleteFile(loc)
         }
         return
     }
@@ -165,9 +181,9 @@ const deleteIfTooOld = loc => {
     if (isNaN(cutoff)) {
         return
     }
-    const days = (new Date() - UTIL.modifiedAt(loc)) / 1000 / 60 / 60 / 24
+    const days = (new Date() - modifiedAt(loc)) / 1000 / 60 / 60 / 24
     if (days > cutoff) {
-        UTIL.deleteFile(loc)
+        deleteFile(loc)
     }
 }
 
@@ -183,7 +199,7 @@ const forSite = url => {
         } else {
             file = urlToPath(mapping)
         }
-        if (UTIL.isFile(file)) {
+        if (isFile(file)) {
             return file
         }
     }
