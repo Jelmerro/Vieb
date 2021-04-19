@@ -701,6 +701,7 @@ const set = (setting, value) => {
         } else {
             allSettings[setting] = value
         }
+        sessionStorage.setItem("settings", JSON.stringify(allSettings))
         // Update settings elsewhere
         if (setting === "adblocker") {
             const {enableAdblocker, disableAdblocker} = require("./sessions")
@@ -792,7 +793,6 @@ const set = (setting, value) => {
         }
         updateHelpPage()
     }
-    sessionStorage.setItem("settings", JSON.stringify(allSettings))
 }
 
 const updateWindowTitle = () => {
