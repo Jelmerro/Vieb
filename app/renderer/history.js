@@ -26,7 +26,8 @@ const {
     deleteFile,
     urlToString,
     pathToSpecialPageName,
-    hasProtocol
+    hasProtocol,
+    title
 } = require("../util")
 const {getSetting} = require("./common")
 
@@ -191,9 +192,10 @@ const suggestTopSites = () => Object.keys(groupedHistory)
 
 const visitCount = url => groupedHistory[url]?.visits?.length || 0
 
-const titleForPage = url => groupedHistory[url]?.title || ""
+const titleForPage = url => groupedHistory[url]?.title
+    || title(pathToSpecialPageName(url).name) || ""
 
-const updateTitle = (url, title) => {
+const updateTitle = (url, name) => {
     if (!getSetting("storenewvisits")) {
         return
     }
@@ -201,17 +203,17 @@ const updateTitle = (url, title) => {
         return
     }
     url = url.replace(/\t/g, "")
-    title = title.replace(/\t/g, "")
+    name = name.replace(/\t/g, "")
     if (groupedHistory[url]) {
-        if (groupedHistory[url].title === title) {
+        if (groupedHistory[url].title === name) {
             return
         }
-        if (groupedHistory[url].title && hasProtocol(title)) {
+        if (groupedHistory[url].title && hasProtocol(name)) {
             return
         }
-        groupedHistory[url].title = title
+        groupedHistory[url].title = name
     } else {
-        groupedHistory[url] = {"visits": [], "title": title}
+        groupedHistory[url] = {"visits": [], "title": name}
     }
     writeHistToFile()
 }

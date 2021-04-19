@@ -203,6 +203,9 @@ const forSite = url => {
             return file
         }
     }
+    if (pathToSpecialPageName(url).name) {
+        return viebIcon
+    }
     return ""
 }
 

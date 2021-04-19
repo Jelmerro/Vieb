@@ -25,6 +25,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Windows not always focussing correctly when closing popups or starting Vieb (mostly a Windows-only bug)
+- Built-in special pages not always having the correct title and icon when they are suspended
 
 ### Security
 
