@@ -502,6 +502,11 @@ const closeTab = (index = null) => {
         tab.remove()
         page.remove()
         if (listTabs().length === 0) {
+            if (getSetting("quitonlasttabclose")) {
+                const {execute} = require("./command")
+                execute("quitall")
+                return
+            }
             if (getSetting("containernewtab").startsWith("s:")) {
                 addTab({"container": "main"})
             } else {

@@ -104,6 +104,7 @@ const defaultSettings = {
     "permissionsasked": "",
     "permissionsblocked": "",
     "permissionunknown": "block",
+    "quitonlasttabclose": false,
     "redirects": "https?://(www\\.)?google\\.com(\\.\\w+)?/amp/s/amp\\.(.*)"
         + "~https://$3",
     "redirecttohttp": false,

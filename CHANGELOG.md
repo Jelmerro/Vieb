@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Code is now checked by eslint for compatibility with the latest Chromium
+- Setting "quitonlasttabclose" to quit Vieb when closing the last tab instead of opening an empty tab
 
 ### Changed
 
