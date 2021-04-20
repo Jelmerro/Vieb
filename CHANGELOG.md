@@ -32,6 +32,9 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Action "clickOnSearch" not working when zooming the page
 - Mappings containing numbers not being able to override the repeat counter
 - Lock key mappings not working when blocked individually instead of being part of a mapping
+- File suggestions not working for partial matches for the last two releases
+- Extension remove command suggestion the full path instead of the id on Windows
+- File explorer not working on Windows
 
 ### Security
 

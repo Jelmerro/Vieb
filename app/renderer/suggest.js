@@ -117,11 +117,15 @@ const locationToSuggestion = (base, location) => {
 }
 
 const suggestFiles = location => {
-    location = expandPath(location.replace(/file:\/*/, "/"))
+    if (process.platform === "win32") {
+        location = expandPath(location.replace(/file:\/*/, ""))
+    } else {
+        location = expandPath(location.replace(/file:\/*/, "/"))
+    }
     if (isAbsolutePath(location)) {
         let matching = []
         if (dirname(location) !== location) {
-            listDir(dirname(location))?.map(
+            matching = listDir(dirname(location))?.map(
                 p => locationToSuggestion(dirname(location), p)) || []
             matching = matching.filter(p => {
                 if (!basePath(p.url).startsWith(basePath(location))) {
@@ -297,7 +301,7 @@ const suggestCommand = search => {
         if (args.length >= 1) {
             const {ipcRenderer} = require("electron")
             ipcRenderer.sendSync("list-extensions").forEach(e => {
-                const id = e.path.replace(/\/$/g, "").replace(/^.*\//g, "")
+                const id = e.path.replace(/^.*(\/|\\)/g, "")
                 if (`remove ${id}`.startsWith(args.join(" "))) {
                     addCommand(`extensions remove ${id}`,
                         `${e.name}: ${e.version}`)

@@ -1028,7 +1028,6 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
                         }
                     }).catch(e => {
                         if (sessionList.indexOf(ses) === 0) {
-                            // Failed to download extension
                             mainWindow.webContents.send("notify",
                                 `Failed to install extension, unsupported type`,
                                 "err")
@@ -1067,20 +1066,22 @@ ipcMain.on("list-extensions", e => {
             "version": ex.version
         }))
 })
-ipcMain.on("remove-extension", (_, extensionPath) => {
-    const extLoc = joinPath(datafolder, `extensions/${extensionPath}`)
+ipcMain.on("remove-extension", (_, extensionId) => {
+    const extLoc = joinPath(datafolder, `extensions/${extensionId}`)
     const extension = session.fromPartition("persist:main").getAllExtensions()
-        .find(ext => ext.path.replace(/(\/|\\)$/g, "").endsWith(extensionPath))
+        .find(ext => ext.path.replace(/(\/|\\)$/g, "").endsWith(extensionId))
     if (isDir(`${extLoc}/`) && extension) {
         mainWindow.webContents.send("notify",
-            `Removing extension: ${extensionPath}`)
+            `Removing extension: ${extensionId}`)
         sessionList.forEach(ses => {
             session.fromPartition(ses).removeExtension(extension.id)
         })
         globDelete(`${extLoc}*`)
+        mainWindow.webContents.send("notify",
+            `Extension successfully removed`, "suc")
     } else {
         mainWindow.webContents.send("notify", "Could not find extension with "
-            + `id: ${extensionPath}`, "warn")
+            + `id: ${extensionId}`, "warn")
     }
 })
 

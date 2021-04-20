@@ -678,8 +678,10 @@ const addWebviewListeners = webview => {
         if (e.errorDescription === "ERR_FILE_NOT_FOUND") {
             // Any number of slashes after file is fine for now
             if (webview.src.startsWith("file:/")) {
-                const local = urlToString(webview.src)
-                    .replace(/file:\/*/, "/")
+                let local = urlToString(webview.src).replace(/file:\/*/, "/")
+                if (process.platform === "win32") {
+                    local = urlToString(webview.src).replace(/file:\/*/, "")
+                }
                 if (isDir(local)) {
                     let directoryAllowed = true
                     let paths = listDir(local)

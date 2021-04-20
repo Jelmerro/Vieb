@@ -195,7 +195,7 @@ const forSite = url => {
         }
         let file = ""
         if (mapping.startsWith("file:/")) {
-            file = mapping.replace(/^file:\/+/g, "")
+            file = mapping.replace(/^file:\/*/g, "")
         } else {
             file = urlToPath(mapping)
         }
