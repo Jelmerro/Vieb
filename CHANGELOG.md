@@ -28,6 +28,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Windows not always focussing correctly when closing popups or starting Vieb (mostly a Windows-only bug)
 - Built-in special pages not always having the correct title and icon when they are suspended
 - Adblocker updating twice at the startup when it's set to "update"
+- Action "clickOnSearch" not working when zooming the page
 
 ### Security
 

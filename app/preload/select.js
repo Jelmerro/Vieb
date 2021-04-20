@@ -169,23 +169,36 @@ const calculateOffset = (startNode, x, y) => {
     return {"node": properNode, "offset": offset}
 }
 
-let searchElementPos = {}
+let searchPos = {}
+let searchElement = null
+let justSearched = false
 
 window.addEventListener("scroll", () => {
     const scrollDiff = scrollHeight - window.scrollY
     startY += scrollDiff
     scrollHeight = window.scrollY
     ipcRenderer.sendToHost("scroll-height-diff", scrollDiff)
-    searchElementPos.y += scrollDiff
+    if (justSearched) {
+        searchPos.y += scrollDiff
+        justSearched = false
+        searchElement = findElementAtPosition(
+            (searchPos.x + searchPos.width / 2) / window.devicePixelRatio,
+            (searchPos.y + searchPos.height / 2) / window.devicePixelRatio)
+    }
 })
 
 ipcRenderer.on("search-element-location", (_, pos) => {
-    searchElementPos = pos
+    searchPos = pos
+    justSearched = true
+    setTimeout(() => {
+        justSearched = false
+    }, 50)
+    searchElement = findElementAtPosition(
+        (searchPos.x + searchPos.width / 2) / window.devicePixelRatio,
+        (searchPos.y + searchPos.height / 2) / window.devicePixelRatio)
 })
 
-ipcRenderer.on("search-element-click", () => findElementAtPosition(
-    searchElementPos.x + searchElementPos.width / 2,
-    searchElementPos.y + searchElementPos.height / 2)?.click())
+ipcRenderer.on("search-element-click", () => searchElement?.click())
 
 window.addEventListener("mousemove", e => {
     ipcRenderer.sendToHost("top-of-page-with-mouse", !e.clientY)
