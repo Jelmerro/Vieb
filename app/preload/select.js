@@ -179,11 +179,11 @@ window.addEventListener("scroll", () => {
     scrollHeight = window.scrollY
     ipcRenderer.sendToHost("scroll-height-diff", scrollDiff)
     if (justSearched) {
-        searchPos.y += scrollDiff
         justSearched = false
         searchElement = findElementAtPosition(
             (searchPos.x + searchPos.width / 2) / window.devicePixelRatio,
-            (searchPos.y + searchPos.height / 2) / window.devicePixelRatio)
+            (searchPos.y + searchPos.height / 2)
+                / window.devicePixelRatio + scrollDiff)
     }
 })
 
