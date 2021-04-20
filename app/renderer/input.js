@@ -696,9 +696,7 @@ const handleKeyboard = e => {
         ACTIONS.toInsertMode()
         return
     }
-    const ignoredKeys = [
-        "Control", "Meta", "Alt", "Shift", "NumLock", "CapsLock", "ScrollLock"
-    ]
+    const ignoredKeys = ["Control", "Meta", "Alt", "Shift"]
     if (recursiveCounter > getSetting("maxmapdepth")) {
         e.preventDefault()
         return
@@ -725,7 +723,8 @@ const handleKeyboard = e => {
     if (["normal", "pointer", "visual"].includes(currentMode())) {
         const keyNumber = Number(id)
         const noFutureActions = !hasFutureActionsBasedOnKeys(pressedKeys + id)
-        if (!isNaN(keyNumber) && noFutureActions) {
+        const currentAction = bindings[currentMode()[0]][pressedKeys + id]
+        if (!isNaN(keyNumber) && noFutureActions && !currentAction) {
             repeatCounter = Number(String(repeatCounter) + keyNumber)
             if (repeatCounter > getSetting("countlimit")) {
                 repeatCounter = getSetting("countlimit")

@@ -5,7 +5,7 @@
   "description": "Vim Inspired Electron Browser",
   "main": "app/index.js",
   "scripts": {
-    "test": "jest --coverage --collectCoverageFrom 'app/**/*.js' -u && eslint . && echo 'All good :)'",
+    "test": "jest --coverage --collectCoverageFrom 'app/**/*.js' -u && eslint app && echo 'All good :)'",
     "start": "electron app",
     "build": "node build.js",
     "buildall": "node build.js --linux --win --mac",
