@@ -406,8 +406,8 @@ const unsuspendPage = page => {
     })
     webview.setAttribute("webpreferences", "spellcheck=yes")
     const sessionName = page.getAttribute("container")
-    const {create} = require("./sessions")
-    create(sessionName)
+    ipcRenderer.send("create-session", `persist:${sessionName}`,
+        getSetting("adblocker"), getSetting("cache") !== "none")
     webview.setAttribute("partition", `persist:${sessionName}`)
     const currentPageId = Number(page.getAttribute("devtools-for-id") || 0) || 0
     const isDevtoolsTab = !!currentPageId

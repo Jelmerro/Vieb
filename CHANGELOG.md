@@ -21,11 +21,13 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Renderer process now uses modules instead of globals, similar to other code
+- Adblocker now updates by making reqular web requests from the main partition instead of using the Node request module
 
 ### Fixed
 
 - Windows not always focussing correctly when closing popups or starting Vieb (mostly a Windows-only bug)
 - Built-in special pages not always having the correct title and icon when they are suspended
+- Adblocker updating twice at the startup when it's set to "update"
 
 ### Security
 

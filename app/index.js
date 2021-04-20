@@ -628,10 +628,13 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     newSession.setPermissionCheckHandler(() => true)
     sessionList.push(name)
     if (adblock !== "off") {
-        enableAdblocker()
+        if (blocker) {
+            reloadAdblocker()
+        } else {
+            enableAdblocker(adblock)
+        }
     }
     listDir(joinPath(datafolder, "extensions"), true, true)?.forEach(loc => {
-        console.log("\n", loc, "\n")
         newSession.loadExtension(loc, {"allowFileAccess": true})
     })
     newSession.webRequest.onBeforeRequest((details, callback) => {
@@ -890,7 +893,52 @@ const permissionHandler = (_, permission, callback, details) => {
         callback(setting === "allow")
     }
 }
-const enableAdblocker = () => {
+const blocklistDir = joinPath(app.getPath("appData"), "blocklists")
+const defaultBlocklists = {
+    "easylist": "https://easylist.to/easylist/easylist.txt",
+    "easyprivacy": "https://easylist.to/easylist/easyprivacy.txt"
+}
+const enableAdblocker = type => {
+    makeDir(blocklistDir)
+    // Copy the default and included blocklists to the appdata folder
+    if (type !== "custom") {
+        for (const name of Object.keys(defaultBlocklists)) {
+            const list = joinPath(__dirname, `./blocklists/${name}.txt`)
+            writeFile(joinPath(blocklistDir, `${name}.txt`), readFile(list))
+        }
+    }
+    // And update default blocklists to the latest version if enabled
+    if (type === "update") {
+        for (const list of Object.keys(defaultBlocklists)) {
+            mainWindow.webContents.send("notify",
+                `Updating ${list} to the latest version`)
+            session.fromPartition("persist:main")
+            const request = net.request(
+                {"url": defaultBlocklists[list], "partition": "persist:main"})
+            request.on("response", res => {
+                let body = ""
+                res.on("end", () => {
+                    writeFile(joinPath(blocklistDir, `${list}.txt`), body)
+                    reloadAdblocker()
+                    mainWindow.webContents.send("notify",
+                        `Updated and reloaded the latest ${list} successfully`,
+                        "suc")
+                })
+                res.on("data", chunk => {
+                    body += chunk
+                })
+            })
+            request.on("abort", e => mainWindow.webContents.send("notify",
+                `Failed to update ${list}:\n${e.message}`, "err"))
+            request.on("error", e => mainWindow.webContents.send("notify",
+                `Failed to update ${list}:\n${e.message}`, "err"))
+            request.end()
+        }
+    } else {
+        reloadAdblocker()
+    }
+}
+const reloadAdblocker = () => {
     if (blocker) {
         disableAdblocker()
     }
@@ -898,7 +946,6 @@ const enableAdblocker = () => {
         joinPath(app.getPath("appData"), "blocklists"),
         expandPath("~/.vieb/blocklists")
     ]
-    // Read all filter files from the blocklists folders
     let filters = ""
     for (const blocklistsFolder of blocklistsFolders) {
         listDir(blocklistsFolder, true)?.forEach(file => {
@@ -929,7 +976,12 @@ const disableAdblocker = () => {
         ses.setPreloads(ses.getPreloads().filter(p => p !== adblockerPreload))
     })
 }
-ipcMain.on("adblock-enable", enableAdblocker)
+ipcMain.on("adblock-enable", (_, type) => {
+    if (sessionList.length > 0) {
+        // Only listen to enable calls after initial init has already happened
+        enableAdblocker(type)
+    }
+})
 ipcMain.on("adblock-disable", disableAdblocker)
 const loadBlocklist = file => {
     const contents = readFile(file)
@@ -955,7 +1007,6 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
         const data = []
         res.on("end", () => {
             if (res.statusCode !== 200) {
-                // Failed to download extension
                 mainWindow.webContents.send("notify",
                     `Failed to install extension due to network error`, "err")
                 console.log(res)
@@ -993,14 +1044,12 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
         })
     })
     request.on("abort", e => {
-        // Failed to download extension
         mainWindow.webContents.send("notify",
             `Failed to install extension due to network error`, "err")
         console.log(e)
         globDelete(`${zipLoc}*`)
     })
     request.on("error", e => {
-        // Failed to download extension
         mainWindow.webContents.send("notify",
             `Failed to install extension due to network error`, "err")
         console.log(e)

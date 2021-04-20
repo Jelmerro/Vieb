@@ -221,7 +221,6 @@ let spelllangs = []
 const init = () => {
     loadFromDisk()
     updateDownloadSettings()
-    updateTabOverflow()
     updatePermissionSettings()
     updateWebviewSettings()
     ipcRenderer.invoke("list-spelllangs").then(langs => {
@@ -230,10 +229,14 @@ const init = () => {
         if (!isValidSetting("spelllang", allSettings.spelllang)) {
             set("spelllang", "system")
         }
-        const {setSpellLang} = require("./sessions")
-        setSpellLang(allSettings.spelllang)
+        ipcRenderer.send("set-spelllang", allSettings.spelllang)
     })
     ipcRenderer.on("set-permission", (_, name, value) => set(name, value))
+    ipcRenderer.on("notify", (_, message, type, clickAction) => {
+        notify(message, type, clickAction)
+    })
+    ipcRenderer.send("create-session", `persist:main`,
+        allSettings.adblocker, allSettings.cache !== "none")
 }
 
 const checkOption = (setting, value) => {
@@ -704,11 +707,10 @@ const set = (setting, value) => {
         sessionStorage.setItem("settings", JSON.stringify(allSettings))
         // Update settings elsewhere
         if (setting === "adblocker") {
-            const {enableAdblocker, disableAdblocker} = require("./sessions")
             if (value === "off") {
-                disableAdblocker()
+                ipcRenderer.send("adblock-disable")
             } else {
-                enableAdblocker()
+                ipcRenderer.send("adblock-enable", allSettings.adblocker)
             }
         }
         if (setting === "containercolors" || setting === "containershowname") {
@@ -760,11 +762,10 @@ const set = (setting, value) => {
                 value.split(","))).join(",")
         }
         if (setting === "spelllang" || setting === "spell") {
-            const {setSpellLang} = require("./sessions")
             if (allSettings.spell) {
-                setSpellLang(allSettings.spelllang)
+                ipcRenderer.send("set-spelllang", allSettings.spelllang)
             } else {
-                setSpellLang("")
+                ipcRenderer.send("set-spelllang", "")
             }
         }
         if (setting === "taboverflow") {

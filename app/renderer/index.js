@@ -20,7 +20,6 @@
 window.addEventListener("DOMContentLoaded", () => {
     require("./input").init()
     require("./settings").init()
-    require("./sessions").init()
     require("./history").init()
     require("./tabs").init()
     require("./favicons").init()
