@@ -321,7 +321,7 @@ const commandMenu = options => {
         "action": () => {
             const {setMode} = require("./modes")
             setMode("normal")
-            const {execute} = require("./commmand")
+            const {execute} = require("./command")
             execute(options.command)
         }
     })

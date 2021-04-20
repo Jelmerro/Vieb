@@ -17,12 +17,6 @@
 */
 "use strict"
 
-require("hazardous")
-const {ipcRenderer} = require("electron")
-const fs = require("fs")
-const path = require("path")
-const getSetting = val => JSON.parse(sessionStorage.getItem("settings"))?.[val]
-
 const protocolRegex = /^[a-z][a-z0-9-+.]+:\/\//
 const specialPages = [
     "cookies",
@@ -41,6 +35,8 @@ let appDataPath = ""
 let homeDirPath = ""
 const framePaddingInfo = []
 const frameSelector = "embed, frame, iframe, object"
+
+const getSetting = val => JSON.parse(sessionStorage.getItem("settings"))?.[val]
 
 const hasProtocol = location => protocolRegex.test(location)
 
@@ -112,65 +108,7 @@ const searchword = location => {
     return {"word": null, "url": location}
 }
 
-const notify = (message, type = "info", clickAction = false) => {
-    if (getSetting("notificationduration") === 0) {
-        return
-    }
-    let properType = "info"
-    if (type.startsWith("perm")) {
-        properType = "permission"
-    }
-    if (type.startsWith("suc")) {
-        properType = "success"
-    }
-    if (type.startsWith("warn")) {
-        properType = "warning"
-    }
-    if (type.startsWith("err")) {
-        properType = "error"
-    }
-    const escapedMessage = message.replace(/>/g, "&gt;").replace(/</g, "&lt;")
-        .replace(/\n/g, "<br>")
-    notificationHistory.push({
-        "message": escapedMessage,
-        "type": properType,
-        "date": new Date(),
-        "click": clickAction
-    })
-    if (properType === "permission") {
-        if (!getSetting("notificationforpermissions")) {
-            return
-        }
-    }
-    if (getSetting("nativenotification")) {
-        const n = Notification(`${appName()} ${properType}`, {"body": message})
-        n.onclick = () => {
-            if (clickAction?.type === "download-success") {
-                ipcRenderer.send("open-download", clickAction.path)
-            }
-        }
-        return
-    }
-    if (properType !== "permission") {
-        if (escapedMessage.split("<br>").length > 5 || message.length > 200) {
-            ipcRenderer.send("show-notification", escapedMessage, properType)
-            return
-        }
-    }
-    const notificationsElement = document.getElementById("notifications")
-    notificationsElement.className = getSetting("notificationposition")
-    const notification = document.createElement("span")
-    notification.className = properType
-    notification.innerHTML = escapedMessage
-    if (clickAction?.type === "download-success") {
-        notification.addEventListener("click", () => {
-            ipcRenderer.send("open-download", clickAction.path)
-        })
-    }
-    notificationsElement.appendChild(notification)
-    setTimeout(() => notification.remove(),
-        getSetting("notificationduration"))
-}
+const listNotificationHistory = () => notificationHistory
 
 const specialPagePath = (page, section = null, skipExistCheck = false) => {
     if (!specialPages.includes(page) && !skipExistCheck) {
@@ -185,44 +123,6 @@ const specialPagePath = (page, section = null, skipExistCheck = false) => {
         return `file:///${url}#${section}`
     }
     return `file:///${url}`
-}
-
-const pathToSpecialPageName = urlPath => {
-    if (urlPath?.startsWith?.(`${appName()}://`)) {
-        const parts = urlPath.replace(`${appName()}://`, "").split("#")
-        let name = parts[0]
-        if (!specialPages.includes(name)) {
-            name = "help"
-        }
-        return {"name": name, "section": parts.slice(1).join("#") || ""}
-    }
-    if (urlPath?.startsWith?.("file://")) {
-        for (const page of specialPages) {
-            const specialPage = specialPagePath(page).replace(/^file:\/*/g, "")
-            const normalizedUrl = path.posix.normalize(
-                urlPath.replace(/^file:\/*/g, ""))
-            if (normalizedUrl.startsWith(specialPage)) {
-                return {
-                    "name": page,
-                    "section": urlPath.split("#").slice(1).join("#")
-                }
-            }
-            try {
-                const decodedPath = decodeURI(urlPath)
-                const decodedNormalizedUrl = path.posix.normalize(
-                    decodedPath.replace(/^file:\/*/g, ""))
-                if (decodedNormalizedUrl.startsWith(specialPage)) {
-                    return {
-                        "name": page,
-                        "section": urlPath.split("#").slice(1).join("#")
-                    }
-                }
-            } catch (_) {
-                // Invalid url
-            }
-        }
-    }
-    return {"name": "", "section": ""}
 }
 
 const globDelete = folder => {
@@ -280,88 +180,6 @@ const expandPath = loc => {
 
 const isObject = o => o === Object(o)
 
-const pathExists = loc => {
-    try {
-        return fs.existsSync(loc)
-    } catch (e) {
-        return false
-    }
-}
-
-const isDir = loc => {
-    try {
-        return fs.statSync(loc).isDirectory()
-    } catch (e) {
-        return false
-    }
-}
-
-const isFile = loc => {
-    try {
-        return fs.statSync(loc).isFile()
-    } catch (e) {
-        return false
-    }
-}
-
-const readFile = loc => {
-    try {
-        return fs.readFileSync(loc).toString()
-    } catch (e) {
-        return null
-    }
-}
-
-const readJSON = loc => {
-    try {
-        return JSON.parse(fs.readFileSync(loc).toString())
-    } catch (e) {
-        return null
-    }
-}
-
-const writeJSON = (loc, data, err = null, success = null, indent = null) => {
-    try {
-        fs.writeFileSync(loc, JSON.stringify(data, null, indent))
-        if (success) {
-            notify(success)
-        }
-        return true
-    } catch (e) {
-        if (err) {
-            notify(err, "err")
-        }
-    }
-    return false
-}
-
-const writeFile = (loc, data, err = null, success = null) => {
-    try {
-        fs.writeFileSync(loc, data)
-        if (success) {
-            notify(success)
-        }
-        return true
-    } catch (e) {
-        if (err) {
-            notify(err, "err")
-        }
-    }
-    return false
-}
-
-const deleteFile = (loc, err = null) => {
-    try {
-        fs.unlinkSync(loc)
-        return true
-    } catch (e) {
-        if (err) {
-            notify(err, "warn")
-        }
-    }
-    return false
-}
-
 const stringToUrl = location => {
     const specialPage = pathToSpecialPageName(location)
     if (specialPage.name) {
@@ -398,38 +216,9 @@ const urlToString = url => {
     return url
 }
 
-const listNotificationHistory = () => notificationHistory
-
 const title = str => str.slice(0, 1).toUpperCase() + str.slice(1).toLowerCase()
 
 const downloadPath = () => expandPath(getSetting("downloadpath"))
-
-const appIcon = () => {
-    if (customIcon === null) {
-        customIcon = ipcRenderer.sendSync("custom-icon")
-    }
-    return customIcon
-}
-
-const appName = () => {
-    if (!applicationName) {
-        applicationName = ipcRenderer.sendSync("app-name")
-    }
-    return applicationName.toLowerCase()
-}
-
-const appData = () => {
-    if (!appDataPath) {
-        try {
-            const {app} = require("electron")
-            return app.getPath("appData")
-        } catch (_) {
-            // Not in main thread
-        }
-        appDataPath = ipcRenderer.sendSync("appdata-path")
-    }
-    return appDataPath
-}
 
 const firefoxUseragent = () => {
     const daysSinceBase = (new Date() - new Date(2020, 6, 28)) / 86400000
@@ -457,54 +246,6 @@ const formatDate = date => {
         .padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${
         String(date.getSeconds()).padStart(2, "0")}`
 }
-
-const makeDir = (loc, err = null, success = null) => {
-    try {
-        fs.mkdirSync(loc, {"recursive": true})
-        if (success) {
-            notify(success)
-        }
-        return true
-    } catch (e) {
-        if (err) {
-            notify(err, "err")
-        }
-    }
-    return false
-}
-
-const joinPath = (...args) => path.resolve(path.join(...args))
-
-const basePath = (...args) => path.basename(...args)
-
-const listDir = (loc, absolute = false, dirsOnly = false) => {
-    try {
-        let files = fs.readdirSync(loc)
-        if (absolute) {
-            files = files.map(f => joinPath(loc, f))
-        }
-        if (dirsOnly) {
-            files = files.filter(f => isDir(f))
-        }
-        return files
-    } catch (_) {
-        return null
-    }
-}
-
-const watchFile = (...args) => fs.watchFile(...args)
-
-const modifiedAt = loc => {
-    try {
-        return fs.statSync(loc).mtime
-    } catch (_) {
-        return 0
-    }
-}
-
-const dirname = (...args) => path.dirname(...args)
-
-const isAbsolutePath = (...args) => path.isAbsolute(...args)
 
 const storeFrameInfo = (element, options) => {
     if (!element) {
@@ -665,13 +406,285 @@ const extractZip = (args, cb) => {
     spawn(loc, args).on("exit", cb)
 }
 
+// IPC UTIL
+
+const notify = (message, type = "info", clickAction = false) => {
+    if (getSetting("notificationduration") === 0) {
+        return
+    }
+    let properType = "info"
+    if (type.startsWith("perm")) {
+        properType = "permission"
+    }
+    if (type.startsWith("suc")) {
+        properType = "success"
+    }
+    if (type.startsWith("warn")) {
+        properType = "warning"
+    }
+    if (type.startsWith("err")) {
+        properType = "error"
+    }
+    const escapedMessage = message.replace(/>/g, "&gt;").replace(/</g, "&lt;")
+        .replace(/\n/g, "<br>")
+    notificationHistory.push({
+        "message": escapedMessage,
+        "type": properType,
+        "date": new Date(),
+        "click": clickAction
+    })
+    if (properType === "permission") {
+        if (!getSetting("notificationforpermissions")) {
+            return
+        }
+    }
+    if (getSetting("nativenotification")) {
+        const n = Notification(`${appName()} ${properType}`, {"body": message})
+        n.onclick = () => {
+            if (clickAction?.type === "download-success") {
+                const {ipcRenderer} = require("electron")
+                ipcRenderer.send("open-download", clickAction.path)
+            }
+        }
+        return
+    }
+    if (properType !== "permission") {
+        if (escapedMessage.split("<br>").length > 5 || message.length > 200) {
+            const {ipcRenderer} = require("electron")
+            ipcRenderer.send("show-notification", escapedMessage, properType)
+            return
+        }
+    }
+    const notificationsElement = document.getElementById("notifications")
+    notificationsElement.className = getSetting("notificationposition")
+    const notification = document.createElement("span")
+    notification.className = properType
+    notification.innerHTML = escapedMessage
+    if (clickAction?.type === "download-success") {
+        notification.addEventListener("click", () => {
+            const {ipcRenderer} = require("electron")
+            ipcRenderer.send("open-download", clickAction.path)
+        })
+    }
+    notificationsElement.appendChild(notification)
+    setTimeout(() => notification.remove(),
+        getSetting("notificationduration"))
+}
+
+const appIcon = () => {
+    if (customIcon === null) {
+        const {ipcRenderer} = require("electron")
+        customIcon = ipcRenderer.sendSync("custom-icon")
+    }
+    return customIcon
+}
+
+const appName = () => {
+    if (!applicationName) {
+        const {ipcRenderer} = require("electron")
+        applicationName = ipcRenderer.sendSync("app-name")
+    }
+    return applicationName.toLowerCase()
+}
+
+const appData = () => {
+    if (!appDataPath) {
+        try {
+            const {app} = require("electron")
+            return app.getPath("appData")
+        } catch (_) {
+            // Not in main thread
+        }
+        const {ipcRenderer} = require("electron")
+        appDataPath = ipcRenderer.sendSync("appdata-path")
+    }
+    return appDataPath
+}
+
+// PATH UTIL
+
+require("hazardous")
+const path = require("path")
+
+const pathToSpecialPageName = urlPath => {
+    if (urlPath?.startsWith?.(`${appName()}://`)) {
+        const parts = urlPath.replace(`${appName()}://`, "").split("#")
+        let name = parts[0]
+        if (!specialPages.includes(name)) {
+            name = "help"
+        }
+        return {"name": name, "section": parts.slice(1).join("#") || ""}
+    }
+    if (urlPath?.startsWith?.("file://")) {
+        for (const page of specialPages) {
+            const specialPage = specialPagePath(page).replace(/^file:\/*/g, "")
+            const normalizedUrl = path.posix.normalize(
+                urlPath.replace(/^file:\/*/g, ""))
+            if (normalizedUrl.startsWith(specialPage)) {
+                return {
+                    "name": page,
+                    "section": urlPath.split("#").slice(1).join("#")
+                }
+            }
+            try {
+                const decodedPath = decodeURI(urlPath)
+                const decodedNormalizedUrl = path.posix.normalize(
+                    decodedPath.replace(/^file:\/*/g, ""))
+                if (decodedNormalizedUrl.startsWith(specialPage)) {
+                    return {
+                        "name": page,
+                        "section": urlPath.split("#").slice(1).join("#")
+                    }
+                }
+            } catch (_) {
+                // Invalid url
+            }
+        }
+    }
+    return {"name": "", "section": ""}
+}
+
+const joinPath = (...args) => path.resolve(path.join(...args))
+
+const basePath = (...args) => path.basename(...args)
+
+const dirname = (...args) => path.dirname(...args)
+
+const isAbsolutePath = (...args) => path.isAbsolute(...args)
+
+// FILESYSTEM UTIL
+
+const fs = require("fs")
+
+const pathExists = loc => {
+    try {
+        return fs.existsSync(loc)
+    } catch (e) {
+        return false
+    }
+}
+
+const isDir = loc => {
+    try {
+        return fs.statSync(loc).isDirectory()
+    } catch (e) {
+        return false
+    }
+}
+
+const isFile = loc => {
+    try {
+        return fs.statSync(loc).isFile()
+    } catch (e) {
+        return false
+    }
+}
+
+const readFile = loc => {
+    try {
+        return fs.readFileSync(loc).toString()
+    } catch (e) {
+        return null
+    }
+}
+
+const readJSON = loc => {
+    try {
+        return JSON.parse(fs.readFileSync(loc).toString())
+    } catch (e) {
+        return null
+    }
+}
+
+const writeFile = (loc, data, err = null, success = null) => {
+    try {
+        fs.writeFileSync(loc, data)
+        if (success) {
+            notify(success)
+        }
+        return true
+    } catch (e) {
+        if (err) {
+            notify(err, "err")
+        }
+    }
+    return false
+}
+
+const writeJSON = (loc, data, err = null, success = null, indent = null) => {
+    try {
+        fs.writeFileSync(loc, JSON.stringify(data, null, indent))
+        if (success) {
+            notify(success)
+        }
+        return true
+    } catch (e) {
+        if (err) {
+            notify(err, "err")
+        }
+    }
+    return false
+}
+
+const deleteFile = (loc, err = null) => {
+    try {
+        fs.unlinkSync(loc)
+        return true
+    } catch (e) {
+        if (err) {
+            notify(err, "warn")
+        }
+    }
+    return false
+}
+
+const makeDir = (loc, err = null, success = null) => {
+    try {
+        fs.mkdirSync(loc, {"recursive": true})
+        if (success) {
+            notify(success)
+        }
+        return true
+    } catch (e) {
+        if (err) {
+            notify(err, "err")
+        }
+    }
+    return false
+}
+
+const listDir = (loc, absolute = false, dirsOnly = false) => {
+    try {
+        let files = fs.readdirSync(loc)
+        if (absolute) {
+            files = files.map(f => joinPath(loc, f))
+        }
+        if (dirsOnly) {
+            files = files.filter(f => isDir(f))
+        }
+        return files
+    } catch (_) {
+        return null
+    }
+}
+
+const watchFile = (...args) => fs.watchFile(...args)
+
+const modifiedAt = loc => {
+    try {
+        return fs.statSync(loc).mtime
+    } catch (_) {
+        return 0
+    }
+}
+
 module.exports = {
+    frameSelector,
     hasProtocol,
     isUrl,
     searchword,
-    notify,
+    listNotificationHistory,
     specialPagePath,
-    pathToSpecialPageName,
     globDelete,
     clearTempContainers,
     clearCache,
@@ -679,40 +692,43 @@ module.exports = {
     clearLocalStorage,
     expandPath,
     isObject,
-    pathExists,
-    isDir,
-    isFile,
-    readFile,
-    readJSON,
-    writeJSON,
-    writeFile,
-    deleteFile,
     stringToUrl,
     urlToString,
-    listNotificationHistory,
     title,
     downloadPath,
-    appIcon,
-    appName,
-    appData,
     firefoxUseragent,
     sameDomain,
     formatDate,
-    makeDir,
-    joinPath,
-    basePath,
-    listDir,
-    watchFile,
-    modifiedAt,
-    dirname,
-    isAbsolutePath,
     findFrameInfo,
     propPixels,
     findElementAtPosition,
     querySelectorAll,
     findClickPosition,
     activeElement,
-    frameSelector,
     formatSize,
-    extractZip
+    extractZip,
+    // IPC UTIL
+    notify,
+    appIcon,
+    appName,
+    appData,
+    // PATH UTIL
+    pathToSpecialPageName,
+    joinPath,
+    basePath,
+    dirname,
+    isAbsolutePath,
+    // FILESYSTEM UTIL
+    pathExists,
+    isDir,
+    isFile,
+    readFile,
+    readJSON,
+    writeFile,
+    writeJSON,
+    deleteFile,
+    makeDir,
+    listDir,
+    watchFile,
+    modifiedAt
 }
