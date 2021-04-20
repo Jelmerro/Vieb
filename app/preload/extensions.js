@@ -23,9 +23,11 @@ const {joinPath} = require("../util")
 const listExtension = ext => {
     const container = document.createElement("div")
     container.className = "extension"
-    const img = document.createElement("img")
-    img.src = joinPath(ext.path, ext.icon)
-    container.appendChild(img)
+    if (ext.icon) {
+        const img = document.createElement("img")
+        img.src = joinPath(ext.path, ext.icon)
+        container.appendChild(img)
+    }
     const textNodes = document.createElement("div")
     textNodes.className = "fullwidth"
     const title = document.createElement("div")

@@ -1061,7 +1061,7 @@ ipcMain.on("list-extensions", e => {
     e.returnValue = session.fromPartition("persist:main").getAllExtensions()
         .map(ex => ({
             "id": ex.id,
-            "icon": ex.manifest.icons[Object.keys(ex.manifest.icons).pop()],
+            "icon": ex.manifest.icons?.[Object.keys(ex.manifest.icons).pop()],
             "name": ex.name,
             "path": ex.path,
             "version": ex.version
