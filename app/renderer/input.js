@@ -283,9 +283,7 @@ let blockNextInsertKey = false
 const mapStringSplitter = /(<.*?[^-]>|<.*?->>|.)/g
 
 const init = () => {
-    const TABS = require("./tabs")
     const {ipcRenderer} = require("electron")
-    const {suggestExplore, suggestCommand} = require("./suggest")
     const {clear, viebMenu} = require("./contextmenu")
     window.addEventListener("keydown", handleKeyboard)
     window.addEventListener("keypress", handleUserInput)
@@ -324,10 +322,11 @@ const init = () => {
             const tab = e.path.find(el => listTabs().includes(el))
             if (tab) {
                 clear()
+                const {closeTab, switchToTab} = require("./tabs")
                 if (e.button === 1) {
-                    TABS.closeTab(listTabs().indexOf(tab))
+                    closeTab(listTabs().indexOf(tab))
                 } else {
-                    TABS.switchToTab(listTabs().indexOf(tab))
+                    switchToTab(listTabs().indexOf(tab))
                 }
             }
         } else {
@@ -342,7 +341,8 @@ const init = () => {
                     const tab = listTabs().find(t => t.getAttribute(
                         "link-id") === el.getAttribute("link-id"))
                     if (tab && currentTab() !== tab) {
-                        TABS.switchToTab(listTabs().indexOf(tab))
+                        const {switchToTab} = require("./tabs")
+                        switchToTab(listTabs().indexOf(tab))
                     }
                 }
             })
@@ -364,17 +364,7 @@ const init = () => {
             POINTER.updateElement()
         }
     })
-    document.getElementById("url").addEventListener("input", () => {
-        if (currentMode() === "explore") {
-            suggestExplore(document.getElementById("url").value)
-        } else if (currentMode() === "command") {
-            suggestCommand(document.getElementById("url").value)
-        } else if (currentMode() === "search") {
-            if (getSetting("incsearch")) {
-                ACTIONS.incrementalSearch()
-            }
-        }
-    })
+    document.getElementById("url").addEventListener("input", updateSuggestions)
     ipcRenderer.on("insert-mode-input-event", (_, input) => {
         if (input.code === "Tab") {
             currentPage().focus()
@@ -652,7 +642,7 @@ const executeMapString = async (mapStr, recursive, initial) => {
                     window.dispatchEvent(new KeyboardEvent("keydown", options))
                 }
             }
-            await new Promise(r => setTimeout(r, 2))
+            await new Promise(r => setTimeout(r, 3))
         }
     }
     if (initial) {
@@ -665,6 +655,18 @@ const executeMapString = async (mapStr, recursive, initial) => {
             pressedKeys = ""
             updateKeysOnScreen()
         }
+        updateSuggestions()
+    }
+}
+
+const updateSuggestions = () => {
+    const {suggestExplore, suggestCommand} = require("./suggest")
+    if (currentMode() === "explore") {
+        suggestExplore(document.getElementById("url").value)
+    } else if (currentMode() === "command") {
+        suggestCommand(document.getElementById("url").value)
+    } else if (currentMode() === "search" && getSetting("incsearch")) {
+        ACTIONS.incrementalSearch()
     }
 }
 

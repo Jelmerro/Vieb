@@ -23,6 +23,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Renderer process now uses modules instead of globals, similar to other code
 - Adblocker now updates by making regular web requests from the main partition instead of using the Node request module
 - Icon is now optional when manually installing extracted extensions
+- Suggestions will now also appear when commands or urls are typed out using mappings (after mapping is done)
 
 ### Fixed
 
