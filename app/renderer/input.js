@@ -659,11 +659,16 @@ const executeMapString = async (mapStr, recursive, initial) => {
     }
 }
 
-const updateSuggestions = () => {
-    const {suggestExplore, suggestCommand} = require("./suggest")
+const updateSuggestions = (overwrite = false) => {
+    if (overwrite) {
+        const {emptySuggestions} = require("./suggest")
+        emptySuggestions()
+    }
     if (currentMode() === "explore") {
+        const {suggestExplore} = require("./suggest")
         suggestExplore(document.getElementById("url").value)
     } else if (currentMode() === "command") {
+        const {suggestCommand} = require("./suggest")
         suggestCommand(document.getElementById("url").value)
     } else if (currentMode() === "search" && getSetting("incsearch")) {
         ACTIONS.incrementalSearch()
