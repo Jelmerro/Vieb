@@ -811,7 +811,7 @@ const updateWindowTitle = () => {
     let url = currentPage().src
     const specialPage = pathToSpecialPageName(url)
     if (specialPage.name) {
-        url = `${application()}://${specialPage.name}`
+        url = `${appName()}://${specialPage.name}`
         if (specialPage.section) {
             url += `#${specialPage.section}`
         }
