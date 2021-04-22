@@ -32,7 +32,6 @@ const viebMenu = options => {
     const {
         useEnteredData, backInHistory, forwardInHistory, reload
     } = require("./actions")
-    const {execute} = require("./command")
     const {addTab, reopenTab, closeTab} = require("./tabs")
     if (options.path.find(el => el.matches?.("#url"))) {
         createMenuItem({
@@ -104,12 +103,13 @@ const viebMenu = options => {
         }
         createMenuItem({
             "title": pinTitle,
-            "action": () => execute(
-                `pin ${listTabs().indexOf(tab)}`)
+            "action": () => {
+                const {execute} = require("./command")
+                execute(`pin ${listTabs().indexOf(tab)}`)
+            }
         })
         createMenuItem({
-            "title": "Refresh",
-            "action": () => reload(tabOrPageMatching(tab))
+            "title": "Refresh", "action": () => reload(tabOrPageMatching(tab))
         })
         createMenuItem({
             "title": "Previous",
@@ -152,7 +152,6 @@ const webviewMenu = options => {
     const {
         openLinkExternal, backInHistory, forwardInHistory, reload
     } = require("./actions")
-    const {execute} = require("./command")
     const {addTab, navigateTo} = require("./tabs")
     const webviewY = Number(currentPage().style.top.replace("px", ""))
     const webviewX = Number(currentPage().style.left.replace("px", ""))
@@ -161,15 +160,13 @@ const webviewMenu = options => {
     contextMenu.style.left = `${Math.round(options.x * zoom + webviewX)}px`
     clear()
     createMenuItem({"title": "Refresh", "action": () => reload()})
-    createMenuItem({
-        "title": "Previous", "action": () => backInHistory()
-    })
-    createMenuItem({
-        "title": "Next", "action": () => forwardInHistory()
-    })
-    createMenuItem({
-        "title": "Save page", "action": () => execute("write")
-    })
+    createMenuItem({"title": "Previous", "action": () => backInHistory()})
+    createMenuItem({"title": "Next", "action": () => forwardInHistory()})
+    createMenuItem({"title": "Save page",
+        "action": () => {
+            const {execute} = require("./command")
+            execute("write")
+        }})
     if (options.frame) {
         createMenuItem({
             "title": "Navigate to this frame",
@@ -177,9 +174,7 @@ const webviewMenu = options => {
         })
         createMenuItem({
             "title": "Open this frame as new tab",
-            "action": () => addTab({
-                "url": stringToUrl(options.frame)
-            })
+            "action": () => addTab({"url": stringToUrl(options.frame)})
         })
         createMenuItem({
             "title": "Copy this frame's location",
@@ -222,9 +217,7 @@ const webviewMenu = options => {
             })
             createMenuItem({
                 "title": "Open selection as new tab",
-                "action": () => addTab({
-                    "url": stringToUrl(options.text)
-                })
+                "action": () => addTab({"url": stringToUrl(options.text)})
             })
         } else {
             createMenuItem({
@@ -233,9 +226,7 @@ const webviewMenu = options => {
             })
             createMenuItem({
                 "title": "Search selection as new tab",
-                "action": () => addTab({
-                    "url": stringToUrl(options.text)
-                })
+                "action": () => addTab({"url": stringToUrl(options.text)})
             })
         }
     }
@@ -264,9 +255,7 @@ const webviewMenu = options => {
         })
         createMenuItem({
             "title": "Copy link",
-            "action": () => {
-                clipboard.writeText(options.link)
-            }
+            "action": () => clipboard.writeText(options.link)
         })
         createMenuItem({
             "title": "Download link",
@@ -291,8 +280,7 @@ const linkMenu = options => {
     clear()
     const {addTab, navigateTo} = require("./tabs")
     createMenuItem({
-        "title": "Navigate to link",
-        "action": () => navigateTo(options.link)
+        "title": "Navigate to link", "action": () => navigateTo(options.link)
     })
     createMenuItem({
         "title": "Open link in new tab",
@@ -385,15 +373,11 @@ const up = () => {
     const selected = contextMenu.querySelector(".selected")
     const nodes = [...contextMenu.childNodes]
     if (nodes.indexOf(selected) < 1) {
-        nodes.forEach(el => {
-            el.classList.remove("selected")
-        })
+        nodes.forEach(el => el.classList.remove("selected"))
         contextMenu.lastChild.classList.add("selected")
     } else if (active()) {
         const newSelected = nodes[nodes.indexOf(selected) - 1]
-        nodes.forEach(el => {
-            el.classList.remove("selected")
-        })
+        nodes.forEach(el => el.classList.remove("selected"))
         newSelected.classList.add("selected")
     }
 }
@@ -402,15 +386,11 @@ const down = () => {
     const selected = contextMenu.querySelector(".selected")
     const nodes = [...contextMenu.childNodes]
     if ([-1, nodes.length - 1].includes(nodes.indexOf(selected))) {
-        nodes.forEach(el => {
-            el.classList.remove("selected")
-        })
+        nodes.forEach(el => el.classList.remove("selected"))
         contextMenu.firstChild.classList.add("selected")
     } else if (active()) {
         const newSelected = nodes[nodes.indexOf(selected) + 1]
-        nodes.forEach(el => {
-            el.classList.remove("selected")
-        })
+        nodes.forEach(el => el.classList.remove("selected"))
         newSelected.classList.add("selected")
     }
 }
