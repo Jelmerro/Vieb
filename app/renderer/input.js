@@ -1036,7 +1036,7 @@ const typeCharacterIntoNavbar = id => {
             return
         }
     }
-    if (keyForOs(["<Del>"], ["<Del>", "<M-BS>"], id)) {
+    if (id === "<Del>") {
         if (url.selectionEnd < url.value.length) {
             const cur = Number(url.selectionStart)
             url.value = `${url.value.substr(0, url.selectionStart)}${
@@ -1046,10 +1046,10 @@ const typeCharacterIntoNavbar = id => {
         }
         return
     }
-    if (keyForOs(["<C-Del>", "<C-S-Del>"], ["<M-Del>"], id)) {
+    if (keyForOs(["<C-Del>", "<C-S-Del>"], [], id)) {
         // TODO delete one word to the right
     }
-    if (keyForOs(["<BS>"], ["<BS>"], id)) {
+    if (id === "<BS>") {
         if (url.selectionStart > 0) {
             const cur = Number(url.selectionStart)
             url.value = `${url.value.substr(0, url.selectionStart - 1)}${
@@ -1059,7 +1059,7 @@ const typeCharacterIntoNavbar = id => {
         }
         return
     }
-    if (keyForOs(["<C-BS>", "<C-S-BS>"], ["<M-BS>"], id)) {
+    if (keyForOs(["<C-BS>", "<C-S-BS>"], ["<M-BS>", "<A-BS>"], id)) {
         // TODO delete one word to the left
     }
     const cur = Number(url.selectionStart)
