@@ -15,15 +15,17 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Added
 
-- Code is now checked by eslint for compatibility with the latest Chromium
 - Setting "quitonlasttabclose" to quit Vieb when closing the last tab instead of opening an empty tab
 
 ### Changed
 
+- Code is now checked by eslint for compatibility with the latest Chromium
 - Renderer process now uses modules instead of globals, similar to other code
 - Adblocker now updates by making regular web requests from the main partition instead of using the Node request module
 - Icon is now optional when manually installing extracted extensions
 - Suggestions will now also appear when commands or urls are typed out using mappings (after mapping is done)
+- Insert mode with multiple keys are now correctly blocked from their native function, and are repeated properly if the mapping isn't finished
+- Native navbar actions (such as "End") are now implemented by Vieb itself so they can be referenced by recursive mappings
 
 ### Fixed
 

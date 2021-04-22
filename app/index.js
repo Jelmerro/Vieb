@@ -1229,8 +1229,9 @@ ipcMain.handle("toggle-fullscreen", () => {
     mainWindow.fullScreen = !mainWindow.fullScreen
 })
 let blockedInsertMappings = []
-ipcMain.on("insert-mode-blockers", (_, blockedMappings) => {
+ipcMain.on("insert-mode-blockers", (e, blockedMappings) => {
     blockedInsertMappings = blockedMappings
+    e.returnValue = null
 })
 const currentInputMatches = input => blockedInsertMappings.find(mapping => {
     if (!!mapping.alt === input.alt && !!mapping.control === input.control) {
@@ -1242,7 +1243,12 @@ const currentInputMatches = input => blockedInsertMappings.find(mapping => {
 })
 ipcMain.on("insert-mode-listener", (_, id) => {
     webContents.fromId(id).on("before-input-event", (e, input) => {
-        if (currentInputMatches(input)) {
+        if (blockedInsertMappings === "pass") {
+            return
+        }
+        if (blockedInsertMappings === "all") {
+            e.preventDefault()
+        } else if (currentInputMatches(input)) {
             e.preventDefault()
         }
         mainWindow.webContents.send("insert-mode-input-event", input)

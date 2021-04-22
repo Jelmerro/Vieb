@@ -286,8 +286,8 @@ const init = () => {
     const {ipcRenderer} = require("electron")
     const {clear, viebMenu} = require("./contextmenu")
     window.addEventListener("keydown", handleKeyboard)
-    window.addEventListener("keypress", handleUserInput)
-    window.addEventListener("keyup", handleUserInput)
+    window.addEventListener("keypress", e => e.preventDefault())
+    window.addEventListener("keyup", e => e.preventDefault())
     window.addEventListener("click", e => {
         e.preventDefault()
         if (e.button === 2) {
@@ -364,7 +364,6 @@ const init = () => {
             POINTER.updateElement()
         }
     })
-    document.getElementById("url").addEventListener("input", updateSuggestions)
     ipcRenderer.on("insert-mode-input-event", (_, input) => {
         if (input.code === "Tab") {
             currentPage().focus()
@@ -606,6 +605,7 @@ const sendKeysToWebview = async (options, mapStr) => {
             await executeMapString(action.mapping, !action.noremap)
         }
     }
+    await new Promise(r => setTimeout(r, 3))
 }
 
 const executeMapString = async (mapStr, recursive, initial) => {
@@ -655,23 +655,6 @@ const executeMapString = async (mapStr, recursive, initial) => {
             pressedKeys = ""
             updateKeysOnScreen()
         }
-        updateSuggestions()
-    }
-}
-
-const updateSuggestions = (overwrite = false) => {
-    if (overwrite) {
-        const {emptySuggestions} = require("./suggest")
-        emptySuggestions()
-    }
-    if (currentMode() === "explore") {
-        const {suggestExplore} = require("./suggest")
-        suggestExplore(document.getElementById("url").value)
-    } else if (currentMode() === "command") {
-        const {suggestCommand} = require("./suggest")
-        suggestCommand(document.getElementById("url").value)
-    } else if (currentMode() === "search" && getSetting("incsearch")) {
-        ACTIONS.incrementalSearch()
     }
 }
 
@@ -698,30 +681,47 @@ const doAction = async (name, count) => {
     updateKeysOnScreen()
 }
 
-const handleKeyboard = e => {
+const handleKeyboard = async e => {
+    e.preventDefault()
     if (document.body.classList.contains("fullscreen")) {
         ACTIONS.toInsertMode()
         return
     }
-    const ignoredKeys = ["Control", "Meta", "Alt", "Shift"]
     if (recursiveCounter > getSetting("maxmapdepth")) {
-        e.preventDefault()
         return
     }
     if (e.passedOnFromInsert && blockNextInsertKey) {
-        e.preventDefault()
         return
     }
+    const ignoredKeys = ["Control", "Meta", "Alt", "Shift"]
     if (ignoredKeys.includes(e.key) || !e.key) {
-        // Keys such as control should not be registered on their own
-        e.preventDefault()
         return
     }
     const id = toIdentifier(e)
     updateKeysOnScreen()
     clearTimeout(timeoutTimer)
     if (getSetting("timeout")) {
-        timeoutTimer = setTimeout(() => {
+        timeoutTimer = setTimeout(async () => {
+            const keys = pressedKeys.split(mapStringSplitter).filter(m => m)
+            if (currentMode() === "insert") {
+                const {ipcRenderer} = require("electron")
+                ipcRenderer.sendSync("insert-mode-blockers", "pass")
+                // The first event is ignored, so we send a dummy event
+                await sendKeysToWebview(fromIdentifier(""), "")
+                for (const key of keys) {
+                    const options = {...fromIdentifier(key), "bubbles": false}
+                    await sendKeysToWebview(options, key)
+                }
+                blockNextInsertKey = false
+                repeatCounter = 0
+                pressedKeys = ""
+                updateKeysOnScreen()
+                return
+            }
+            for (const key of keys) {
+                typeCharacterIntoNavbar(key)
+                await new Promise(r => setTimeout(r, 3))
+            }
             repeatCounter = 0
             pressedKeys = ""
             updateKeysOnScreen()
@@ -737,14 +737,12 @@ const handleKeyboard = e => {
                 repeatCounter = getSetting("countlimit")
             }
             updateKeysOnScreen()
-            e.preventDefault()
             return
         }
         if (id === "<Esc>" || id === "<C-[>") {
             if (repeatCounter !== 0) {
                 repeatCounter = 0
                 updateKeysOnScreen()
-                e.preventDefault()
                 return
             }
         }
@@ -758,7 +756,6 @@ const handleKeyboard = e => {
     const {active, clear} = require("./contextmenu")
     const menuAction = bindings.m[pressedKeys]
     if (menuAction && active()) {
-        e.preventDefault()
         if (e.isTrusted) {
             executeMapString(menuAction.mapping, !menuAction.noremap, true)
         } else {
@@ -766,64 +763,348 @@ const handleKeyboard = e => {
         }
         repeatCounter = 0
         pressedKeys = ""
+        updateKeysOnScreen()
         return
     }
     clear()
-    const action = bindings[currentMode()[0]][pressedKeys]
-    if (action && (e.isTrusted || e.bubbles)) {
-        e.preventDefault()
-        if (e.isTrusted) {
-            executeMapString(action.mapping, !action.noremap, true)
-        } else {
-            executeMapString(action.mapping, e.bubbles)
+    if (!hasFutureActionsBasedOnKeys(pressedKeys) || !e.isTrusted) {
+        const action = bindings[currentMode()[0]][pressedKeys]
+        if (action && (e.isTrusted || e.bubbles)) {
+            if (e.isTrusted) {
+                executeMapString(action.mapping, !action.noremap, true)
+            } else {
+                executeMapString(action.mapping, e.bubbles)
+            }
+            return
         }
-        return
-    }
-    if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
+        let keys = pressedKeys.split(mapStringSplitter).filter(m => m)
+        if (keys.length > 1) {
+            if (!hasFutureActionsBasedOnKeys(keys.slice(0, -1).join(""))) {
+                keys = keys.slice(0, -1)
+            }
+            if (currentMode() === "insert") {
+                const {ipcRenderer} = require("electron")
+                ipcRenderer.sendSync("insert-mode-blockers", "pass")
+                // The first event is ignored, so we send a dummy event
+                await sendKeysToWebview(fromIdentifier(""), "")
+                for (const key of keys) {
+                    const options = {...fromIdentifier(key), "bubbles": false}
+                    await sendKeysToWebview(options, key)
+                }
+                blockNextInsertKey = false
+                repeatCounter = 0
+                pressedKeys = ""
+                updateKeysOnScreen()
+                return
+            }
+        }
+        for (const key of keys) {
+            typeCharacterIntoNavbar(key)
+            await new Promise(r => setTimeout(r, 3))
+        }
         repeatCounter = 0
         pressedKeys = ""
     }
-    if (!e.isTrusted) {
-        typeCharacterIntoNavbar(id)
-    }
     updateKeysOnScreen()
-    handleUserInput(e)
+    if (currentMode() === "follow") {
+        if (e.type === "keydown") {
+            const {enterKey} = require("./follow")
+            enterKey(id)
+        }
+        return
+    }
+    ACTIONS.setFocusCorrectly()
 }
+
+const keyForOs = (regular, mac, key) => regular.includes(key)
+    || process.platform === "darwin" && mac.includes(key)
 
 const typeCharacterIntoNavbar = id => {
     if (!"ces".includes(currentMode()[0])) {
         return
     }
     const url = document.getElementById("url")
-    if (url.selectionEnd && url.selectionStart !== url.selectionEnd) {
+    if (keyForOs(["<S-Home>", "<C-S-Home>"], ["<M-S-Left>", "<M-S-Up>"], id)) {
+        if (url.selectionDirection === "forward") {
+            url.selectionEnd = url.selectionStart
+        }
+        url.setSelectionRange(0, url.selectionEnd, "backward")
+        return
+    }
+    if (keyForOs(["<Home>", "<C-Home>"], ["<M-Left>", "<M-Up>"], id)) {
+        url.selectionStart = 0
+        url.selectionEnd = 0
+        return
+    }
+    if (keyForOs(["<S-End>", "<C-S-End>"], ["<M-S-Right", "<M-S-Down>"], id)) {
+        if (url.selectionDirection === "backward") {
+            url.selectionStart = url.selectionEnd
+        }
+        url.selectionEnd = url.value.length
+        return
+    }
+    if (keyForOs(["<End>", "<C-End>"], ["<M-Right>", "<M-Down>"], id)) {
+        url.selectionStart = url.value.length
+        url.selectionEnd = url.value.length
+        return
+    }
+    if (id === "<Right>") {
+        if (url.selectionDirection === "backward") {
+            url.selectionEnd = url.selectionStart
+        } else {
+            url.selectionStart = url.selectionEnd
+        }
+        if (url.selectionEnd < url.value.length) {
+            url.selectionEnd += 1
+        }
+        url.selectionStart = url.selectionEnd
+        return
+    }
+    if (id === "<S-Right>") {
+        if (url.selectionStart === url.selectionEnd) {
+            url.setSelectionRange(url.selectionStart,
+                url.selectionEnd + 1, "forward")
+        } else if (url.selectionDirection === "forward") {
+            if (url.selectionEnd < url.value.length) {
+                url.selectionEnd += 1
+            }
+        } else if (url.selectionStart < url.value.length) {
+            url.selectionStart += 1
+        }
+        return
+    }
+    if (keyForOs(["<C-Right>"], ["<A-Right>"], id)) {
+        [/\w/g, /\W/g].forEach(pattern => {
+            while (url.selectionEnd < url.value.length) {
+                if (url.selectionDirection === "forward") {
+                    url.selectionEnd += 1
+                    url.selectionStart = url.selectionEnd
+                } else {
+                    url.selectionEnd = url.selectionStart
+                }
+                if (!url.value[url.selectionStart]?.match(pattern)) {
+                    break
+                }
+            }
+        })
+        return
+    }
+    if (keyForOs(["<C-S-Right>"], ["<A-S-Right>"], id)) {
+        const selectedBefore = url.selectionStart !== url.selectionEnd
+        ;[/\w/g, /\W/g].forEach(pattern => {
+            while (url.selectionEnd < url.value.length) {
+                if (selectedBefore && url.selectionStart === url.selectionEnd) {
+                    return
+                }
+                if (url.selectionDirection === "forward") {
+                    url.selectionEnd += 1
+                    if (!url.value[url.selectionEnd]?.match(pattern)) {
+                        break
+                    }
+                } else {
+                    url.selectionStart += 1
+                    if (!url.value[url.selectionStart + 1]?.match(pattern)) {
+                        break
+                    }
+                }
+            }
+        })
+        return
+    }
+    if (id === "<Left>") {
+        if (url.selectionDirection === "backward") {
+            url.selectionEnd = url.selectionStart
+        } else {
+            url.selectionStart = url.selectionEnd
+        }
+        if (url.selectionStart > 0) {
+            url.selectionStart -= 1
+        }
+        url.selectionEnd = url.selectionStart
+        return
+    }
+    if (id === "<S-Left>") {
+        if (url.selectionStart === url.selectionEnd) {
+            url.setSelectionRange(url.selectionStart - 1,
+                url.selectionEnd, "backward")
+        } else if (url.selectionDirection === "backward") {
+            if (url.selectionStart > 0) {
+                url.selectionStart -= 1
+            }
+        } else if (url.selectionEnd > 0) {
+            url.selectionEnd -= 1
+        }
+        return
+    }
+    if (keyForOs(["<C-Left>"], ["<A-Left>"], id)) {
+        [/\w/g, /\W/g].forEach(pattern => {
+            while (url.selectionStart > 0) {
+                if (url.selectionDirection === "forward") {
+                    url.selectionEnd -= 1
+                    url.selectionStart = url.selectionEnd
+                } else {
+                    url.selectionStart -= 1
+                    url.selectionEnd = url.selectionStart
+                }
+                if (!url.value[url.selectionStart - 1]?.match(pattern)) {
+                    break
+                }
+            }
+        })
+        return
+    }
+    if (keyForOs(["<C-S-Left>"], ["<A-S-Left>"], id)) {
+        const selectedBefore = url.selectionStart !== url.selectionEnd
+        ;[/\w/g, /\W/g].forEach(pattern => {
+            while (url.selectionStart > 0) {
+                if (selectedBefore && url.selectionStart === url.selectionEnd) {
+                    return
+                }
+                if (url.selectionDirection === "forward") {
+                    if (url.selectionStart === url.selectionEnd) {
+                        url.setSelectionRange(url.selectionStart - 1,
+                            url.selectionEnd, "backward")
+                    } else {
+                        url.selectionEnd -= 1
+                    }
+                    if (!url.value[url.selectionEnd - 1]?.match(pattern)) {
+                        break
+                    }
+                } else {
+                    url.selectionStart -= 1
+                    if (!url.value[url.selectionStart - 1]?.match(pattern)) {
+                        break
+                    }
+                }
+            }
+        })
+        return
+    }
+    if (keyForOs(["<C-a>"], ["<M-a>"], id)) {
+        url.selectionStart = 0
+        url.selectionEnd = url.value.length
+        return
+    }
+    if (keyForOs(["<C-x>"], ["<M-x>"], id)) {
+        document.execCommand("cut")
+        updateSuggestions()
+        return
+    }
+    if (keyForOs(["<C-c>"], ["<M-c>"], id)) {
+        document.execCommand("copy")
+        updateSuggestions()
+        return
+    }
+    if (keyForOs(["<C-p>"], ["<M-p>"], id)) {
+        document.execCommand("paste")
+        updateSuggestions()
+        return
+    }
+    if (keyForOs(["<C-z>"], ["<M-z>"], id)) {
+        // TODO implement this manually, because this doesn't work for now,
+        // because modifying the input below resets the input history.
+        document.execCommand("undo")
+        updateSuggestions()
+        return
+    }
+    if (keyForOs(["<C-y>"], ["<M-Z>"], id)) {
+        // TODO implement this manually, because this doesn't work for now,
+        // because modifying the input below resets the input history.
+        document.execCommand("redo")
+        updateSuggestions()
+        return
+    }
+    if (url.selectionStart !== url.selectionEnd) {
+        if (!["<lt>", "<Bar>", "<Bslash>", "<Space>"].includes(id)) {
+            if (id.length !== 1) {
+                if (id !== "<Del>" && !id.endsWith("-Del>")) {
+                    if (id !== "<BS>" && !id.endsWith("-BS>")) {
+                        return
+                    }
+                }
+            }
+        }
+        const cur = Number(url.selectionStart)
         url.value = url.value.substr(0, url.selectionStart)
             + url.value.substr(url.selectionEnd)
+        url.setSelectionRange(cur, cur)
+        updateSuggestions()
+        if (id === "<Del>" || id.endsWith("-Del>")) {
+            return
+        }
+        if (id === "<BS>" || id.endsWith("-BS>")) {
+            return
+        }
     }
+    if (keyForOs(["<Del>"], ["<Del>", "<M-BS>"], id)) {
+        if (url.selectionEnd < url.value.length) {
+            const cur = Number(url.selectionStart)
+            url.value = `${url.value.substr(0, url.selectionStart)}${
+                url.value.substr(url.selectionEnd + 1)}`
+            url.setSelectionRange(cur, cur)
+            updateSuggestions()
+        }
+        return
+    }
+    if (keyForOs(["<C-Del>", "<C-S-Del>"], ["<M-Del>"], id)) {
+        // TODO delete one word to the right
+    }
+    if (keyForOs(["<BS>"], ["<BS>"], id)) {
+        if (url.selectionStart > 0) {
+            const cur = Number(url.selectionStart)
+            url.value = `${url.value.substr(0, url.selectionStart - 1)}${
+                url.value.substr(url.selectionEnd)}`
+            url.setSelectionRange(cur - 1, cur - 1)
+            updateSuggestions()
+        }
+        return
+    }
+    if (keyForOs(["<C-BS>", "<C-S-BS>"], ["<M-BS>"], id)) {
+        // TODO delete one word to the left
+    }
+    const cur = Number(url.selectionStart)
+    const text = String(url.value)
     if (id.length === 1) {
-        url.value += id
+        url.value = `${url.value.substr(0, url.selectionStart)}${id}${
+            url.value.substr(url.selectionEnd)}`
     }
     if (id === "<lt>") {
-        url.value += "<"
+        url.value = `${url.value.substr(0, url.selectionStart)}<${
+            url.value.substr(url.selectionEnd)}`
     }
     if (id === "<Bar>") {
-        url.value += "|"
+        url.value = `${url.value.substr(0, url.selectionStart)}|${
+            url.value.substr(url.selectionEnd)}`
     }
     if (id === "<Bslash>") {
-        url.value += "\\"
+        url.value = `${url.value.substr(0, url.selectionStart)}\\${
+            url.value.substr(url.selectionEnd)}`
     }
     if (id === "<Space>") {
-        url.value += " "
+        url.value = `${url.value.substr(0, url.selectionStart)} ${
+            url.value.substr(url.selectionEnd)}`
+    }
+    if (text !== url.value) {
+        url.setSelectionRange(cur + 1, cur + 1)
+        updateSuggestions()
+    }
+}
+
+const updateSuggestions = () => {
+    if (currentMode() === "explore") {
+        const {suggestExplore} = require("./suggest")
+        suggestExplore(document.getElementById("url").value)
+    } else if (currentMode() === "command") {
+        const {suggestCommand} = require("./suggest")
+        suggestCommand(document.getElementById("url").value)
+    } else if (currentMode() === "search" && getSetting("incsearch")) {
+        ACTIONS.incrementalSearch()
     }
 }
 
 const updateKeysOnScreen = () => {
     document.getElementById("repeat-counter").textContent = repeatCounter
     document.getElementById("pressed-keys").textContent = pressedKeys
-    if (currentMode() === "insert") {
-        const {ipcRenderer} = require("electron")
-        ipcRenderer.send("insert-mode-blockers", Object.keys(bindings.i)
-            .map(mapping => fromIdentifier(mapping.replace(pressedKeys, ""))))
-    }
     if (repeatCounter && getSetting("showcmd")) {
         document.getElementById("repeat-counter").style.display = "flex"
     } else {
@@ -834,58 +1115,15 @@ const updateKeysOnScreen = () => {
     } else {
         document.getElementById("pressed-keys").style.display = "none"
     }
-}
-
-const handleUserInput = e => {
-    const id = toIdentifier(e)
-    if (currentMode() === "follow") {
-        if (e.type === "keydown") {
-            const {enterKey} = require("./follow")
-            enterKey(id)
-        }
-        e.preventDefault()
-        return
+    const {ipcRenderer} = require("electron")
+    if (pressedKeys) {
+        ipcRenderer.send("insert-mode-blockers", "all")
+    } else {
+        ipcRenderer.send("insert-mode-blockers", Object.keys(bindings.i)
+            .map(mapping => fromIdentifier(
+                mapping.split(mapStringSplitter).filter(m => m)[0]))
+        )
     }
-    let allowedUserInput = [
-        "<C-a>",
-        "<C-c>",
-        "<C-x>",
-        "<C-v>",
-        "<C-y>",
-        "<C-z>",
-        "<C-BS>",
-        "<C-Left>",
-        "<C-Right>",
-        "<C-S-Left>",
-        "<C-S-Right>"
-    ]
-    if (process.platform === "darwin") {
-        allowedUserInput = [
-            "<M-a>",
-            "<M-c>",
-            "<M-x>",
-            "<M-v>",
-            "<M-z>",
-            "<M-BS>",
-            "<M-Left>",
-            "<M-Right>",
-            "<M-S-Left>",
-            "<M-S-Right>",
-            "<M-Z>",
-            "<A-BS>",
-            "<A-Left>",
-            "<A-Right>",
-            "<A-S-Left>",
-            "<A-S-Right>"
-        ]
-    }
-    const shiftOnly = id.startsWith("<S-")
-    const allowedInput = allowedUserInput.includes(id)
-    const hasModifier = id.match(/^<.*-.*>$/)
-    if (!shiftOnly && !allowedInput && hasModifier || id === "Tab") {
-        e.preventDefault()
-    }
-    ACTIONS.setFocusCorrectly()
 }
 
 const listSupportedActions = () => supportedActions

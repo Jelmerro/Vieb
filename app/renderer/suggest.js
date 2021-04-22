@@ -165,9 +165,6 @@ const updateColors = search => {
 }
 
 const suggestExplore = search => {
-    if (document.querySelector("#suggest-dropdown div.selected")) {
-        return
-    }
     emptySuggestions()
     updateColors(search)
     if (!getSetting("suggestexplore") || !search.trim()) {
@@ -242,9 +239,6 @@ const addExplore = explore => {
 }
 
 const suggestCommand = search => {
-    if (document.querySelector("#suggest-dropdown div.selected")) {
-        return
-    }
     emptySuggestions()
     // Remove all redundant spaces
     // Allow commands prefixed with :
