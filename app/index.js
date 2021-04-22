@@ -45,11 +45,10 @@ const {
     makeDir,
     dirname,
     basePath,
-    globDelete,
-    clearTempContainers,
     formatSize,
     extractZip
 } = require("./util")
+const {"sync": rimraf} = require("rimraf")
 
 const version = process.env.npm_package_version || app.getVersion()
 const printUsage = () => {
@@ -227,7 +226,8 @@ if (softwareOnly) {
 if (disableMediaKeys) {
     app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling")
 }
-clearTempContainers()
+rimraf("Partitions/temp*")
+rimraf("erwicmode")
 app.setName("Vieb")
 datafolder = `${joinPath(expandPath(datafolder.trim()))}/`
 app.setPath("appData", datafolder)
@@ -1017,7 +1017,7 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
             extractZip([
                 "x", "-aoa", "-tzip", `${zipLoc}.${extType}`, `-o${zipLoc}/`
             ], () => {
-                globDelete(`${zipLoc}/_metadata/`)
+                rimraf(`${zipLoc}/_metadata/`)
                 sessionList.forEach(ses => {
                     session.fromPartition(ses).loadExtension(zipLoc, {
                         "allowFileAccess": true
@@ -1032,7 +1032,7 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
                                 `Failed to install extension, unsupported type`,
                                 "err")
                             console.log(e)
-                            globDelete(`${zipLoc}*`)
+                            rimraf(`${zipLoc}*`)
                         }
                     })
                 })
@@ -1046,13 +1046,13 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
         mainWindow.webContents.send("notify",
             `Failed to install extension due to network error`, "err")
         console.log(e)
-        globDelete(`${zipLoc}*`)
+        rimraf(`${zipLoc}*`)
     })
     request.on("error", e => {
         mainWindow.webContents.send("notify",
             `Failed to install extension due to network error`, "err")
         console.log(e)
-        globDelete(`${zipLoc}*`)
+        rimraf(`${zipLoc}*`)
     })
     request.end()
 })
@@ -1076,7 +1076,7 @@ ipcMain.on("remove-extension", (_, extensionId) => {
         sessionList.forEach(ses => {
             session.fromPartition(ses).removeExtension(extension.id)
         })
-        globDelete(`${extLoc}*`)
+        rimraf(`${extLoc}*`)
         mainWindow.webContents.send("notify",
             `Extension successfully removed`, "suc")
     } else {
@@ -1270,6 +1270,9 @@ ipcMain.handle("make-default-app", () => {
 ipcMain.on("override-global-useragent", (e, globalUseragent) => {
     app.userAgentFallback = globalUseragent || useragent()
     e.returnValue = null
+})
+ipcMain.on("rimraf", (e, folder) => {
+    e.returnValue = rimraf(folder)
 })
 ipcMain.on("app-version", e => {
     e.returnValue = version

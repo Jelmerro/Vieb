@@ -126,15 +126,14 @@ const specialPagePath = (page, section = null, skipExistCheck = false) => {
 }
 
 const globDelete = folder => {
-    try {
-        if (isAbsolutePath(folder)) {
-            require("rimraf").sync(folder)
-        } else {
-            require("rimraf").sync(joinPath(appData(), folder))
-        }
-    } catch (e) {
-        // Rimraf errors
-    }
+    // Request is send back to the main process due to electron-builder bugs:
+    // https://github.com/electron-userland/electron-builder/issues/5662
+    // https://github.com/electron-userland/electron-builder/issues/5625
+    // https://github.com/electron-userland/electron-builder/issues/5706
+    // https://github.com/electron-userland/electron-builder/issues/5617
+    // It seems that modules not used in the main process are dropped on build.
+    const {ipcRenderer} = require("electron")
+    ipcRenderer.sendSync("rimraf", joinPath(appData(), folder))
 }
 
 const clearTempContainers = () => {
