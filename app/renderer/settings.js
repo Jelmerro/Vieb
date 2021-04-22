@@ -539,21 +539,6 @@ const updateDownloadSettings = () => {
     ipcRenderer.send("set-download-settings", downloads)
 }
 
-const updateTabOverflow = () => {
-    const setting = allSettings.taboverflow
-    const tabs = document.getElementById("tabs")
-    tabs.classList.remove("scroll")
-    tabs.classList.remove("wrap")
-    if (setting !== "hidden") {
-        tabs.classList.add(setting)
-    }
-    try {
-        currentTab().scrollIntoView({"inline": "center"})
-    } catch (e) {
-        // No tabs present yet
-    }
-}
-
 const updateMouseSettings = () => {
     if (allSettings.mouse) {
         document.body.classList.add("mouse")
@@ -769,7 +754,13 @@ const set = (setting, value) => {
             }
         }
         if (setting === "taboverflow") {
-            updateTabOverflow()
+            const tabs = document.getElementById("tabs")
+            tabs.classList.remove("scroll")
+            tabs.classList.remove("wrap")
+            if (value !== "hidden") {
+                tabs.classList.add(value)
+            }
+            currentTab()?.scrollIntoView({"inline": "center"})
             const {applyLayout} = require("./pagelayout")
             applyLayout()
         }
