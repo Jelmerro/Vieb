@@ -502,7 +502,6 @@ const appData = () => {
 
 // PATH UTIL
 
-require("hazardous")
 const path = require("path")
 
 const pathToSpecialPageName = urlPath => {
@@ -543,7 +542,19 @@ const pathToSpecialPageName = urlPath => {
     return {"name": "", "section": ""}
 }
 
-const joinPath = (...args) => path.resolve(path.join(...args))
+const unpacked = {}
+const resolveUnpacked = loc => {
+    if (!unpacked[loc]) {
+        unpacked[loc] = loc
+        const newloc = loc.replace(/app\.asar([\\/])/, "app.asar.unpacked$1")
+        if (isFile(newloc)) {
+            unpacked[loc] = newloc
+        }
+    }
+    return unpacked[loc]
+}
+
+const joinPath = (...args) => resolveUnpacked(path.resolve(path.join(...args)))
 
 const basePath = (...args) => path.basename(...args)
 

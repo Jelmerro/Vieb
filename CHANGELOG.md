@@ -26,6 +26,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Suggestions will now also appear when commands or urls are typed out using mappings (after mapping is done)
 - Insert mode with multiple keys are now correctly blocked from their native function, and are repeated properly if the mapping isn't finished
 - Native navbar actions (such as "End") are now implemented by Vieb itself so they can be referenced by recursive mappings
+- Renderer process no longer uses external modules, rimraf communicates with main, hazardous has been rewritten inside Vieb
 
 ### Fixed
 
