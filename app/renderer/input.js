@@ -768,6 +768,7 @@ const handleKeyboard = async e => {
     }
     clear()
     if (!hasFutureActionsBasedOnKeys(pressedKeys) || !e.isTrusted) {
+        clearTimeout(timeoutTimer)
         const action = bindings[currentMode()[0]][pressedKeys]
         if (action && (e.isTrusted || e.bubbles)) {
             if (e.isTrusted) {
@@ -832,8 +833,7 @@ const typeCharacterIntoNavbar = id => {
         return
     }
     if (keyForOs(["<Home>", "<C-Home>"], ["<M-Left>", "<M-Up>"], id)) {
-        url.selectionStart = 0
-        url.selectionEnd = 0
+        url.setSelectionRange(0, 0)
         return
     }
     if (keyForOs(["<S-End>", "<C-S-End>"], ["<M-S-Right", "<M-S-Down>"], id)) {
@@ -844,8 +844,7 @@ const typeCharacterIntoNavbar = id => {
         return
     }
     if (keyForOs(["<End>", "<C-End>"], ["<M-Right>", "<M-Down>"], id)) {
-        url.selectionStart = url.value.length
-        url.selectionEnd = url.value.length
+        url.setSelectionRange(url.value.length, url.value.length)
         return
     }
     if (id === "<Right>") {
@@ -862,8 +861,7 @@ const typeCharacterIntoNavbar = id => {
     }
     if (id === "<S-Right>") {
         if (url.selectionStart === url.selectionEnd) {
-            url.setSelectionRange(url.selectionStart,
-                url.selectionEnd + 1, "forward")
+            url.setSelectionRange(url.selectionStart, url.selectionEnd + 1)
         } else if (url.selectionDirection === "forward") {
             if (url.selectionEnd < url.value.length) {
                 url.selectionEnd += 1
@@ -873,42 +871,38 @@ const typeCharacterIntoNavbar = id => {
         }
         return
     }
+    const words = url.value.split(/(\w+|\W+)/g).filter(w => w)
+    let index = Number(url.selectionStart)
+    if (url.selectionDirection === "forward") {
+        index = Number(url.selectionEnd)
+    }
     if (keyForOs(["<C-Right>"], ["<A-Right>"], id)) {
-        [/\w/g, /\W/g].forEach(pattern => {
-            while (url.selectionEnd < url.value.length) {
-                if (url.selectionDirection === "forward") {
-                    url.selectionEnd += 1
-                    url.selectionStart = url.selectionEnd
-                } else {
-                    url.selectionEnd = url.selectionStart
-                }
-                if (!url.value[url.selectionStart]?.match(pattern)) {
-                    break
-                }
+        let wordPosition = 0
+        for (const word of words) {
+            wordPosition += word.length
+            if (wordPosition > index) {
+                url.setSelectionRange(wordPosition, wordPosition)
+                break
             }
-        })
+        }
         return
     }
     if (keyForOs(["<C-S-Right>"], ["<A-S-Right>"], id)) {
-        const selectedBefore = url.selectionStart !== url.selectionEnd
-        ;[/\w/g, /\W/g].forEach(pattern => {
-            while (url.selectionEnd < url.value.length) {
-                if (selectedBefore && url.selectionStart === url.selectionEnd) {
-                    return
-                }
-                if (url.selectionDirection === "forward") {
-                    url.selectionEnd += 1
-                    if (!url.value[url.selectionEnd]?.match(pattern)) {
-                        break
-                    }
+        let wordPosition = 0
+        for (const word of words) {
+            wordPosition += word.length
+            if (wordPosition > index) {
+                if (url.selectionStart === url.selectionEnd) {
+                    url.setSelectionRange(url.selectionStart, wordPosition)
+                } else if (url.selectionDirection === "forward") {
+                    url.setSelectionRange(url.selectionStart, wordPosition)
                 } else {
-                    url.selectionStart += 1
-                    if (!url.value[url.selectionStart + 1]?.match(pattern)) {
-                        break
-                    }
+                    url.setSelectionRange(wordPosition,
+                        url.selectionEnd, "backward")
                 }
+                return
             }
-        })
+        }
         return
     }
     if (id === "<Left>") {
@@ -937,52 +931,42 @@ const typeCharacterIntoNavbar = id => {
         return
     }
     if (keyForOs(["<C-Left>"], ["<A-Left>"], id)) {
-        [/\w/g, /\W/g].forEach(pattern => {
-            while (url.selectionStart > 0) {
-                if (url.selectionDirection === "forward") {
-                    url.selectionEnd -= 1
-                    url.selectionStart = url.selectionEnd
-                } else {
-                    url.selectionStart -= 1
-                    url.selectionEnd = url.selectionStart
-                }
-                if (!url.value[url.selectionStart - 1]?.match(pattern)) {
-                    break
-                }
+        let wordPosition = url.value.length
+        for (const word of words.slice().reverse()) {
+            wordPosition -= word.length
+            if (wordPosition < index) {
+                url.setSelectionRange(wordPosition, wordPosition)
+                break
             }
-        })
+        }
         return
     }
     if (keyForOs(["<C-S-Left>"], ["<A-S-Left>"], id)) {
-        const selectedBefore = url.selectionStart !== url.selectionEnd
-        ;[/\w/g, /\W/g].forEach(pattern => {
-            while (url.selectionStart > 0) {
-                if (selectedBefore && url.selectionStart === url.selectionEnd) {
-                    return
-                }
-                if (url.selectionDirection === "forward") {
-                    if (url.selectionStart === url.selectionEnd) {
-                        url.setSelectionRange(url.selectionStart - 1,
-                            url.selectionEnd, "backward")
-                    } else {
-                        url.selectionEnd -= 1
+        let wordPosition = url.value.length
+        for (const word of words.slice().reverse()) {
+            wordPosition -= word.length
+            if (wordPosition < index) {
+                if (url.selectionStart === url.selectionEnd) {
+                    url.setSelectionRange(wordPosition,
+                        url.selectionEnd, "backward")
+                } else if (url.selectionDirection === "forward") {
+                    if (wordPosition < url.selectionStart) {
+                        url.setSelectionRange(url.selectionStart,
+                            url.selectionStart)
+                        return
                     }
-                    if (!url.value[url.selectionEnd - 1]?.match(pattern)) {
-                        break
-                    }
+                    url.setSelectionRange(url.selectionStart, wordPosition)
                 } else {
-                    url.selectionStart -= 1
-                    if (!url.value[url.selectionStart - 1]?.match(pattern)) {
-                        break
-                    }
+                    url.setSelectionRange(wordPosition,
+                        url.selectionEnd, "backward")
                 }
+                return
             }
-        })
+        }
         return
     }
     if (keyForOs(["<C-a>"], ["<M-a>"], id)) {
-        url.selectionStart = 0
-        url.selectionEnd = url.value.length
+        url.setSelectionRange(0, url.value.length)
         return
     }
     if (keyForOs(["<C-x>"], ["<M-x>"], id)) {
@@ -995,7 +979,7 @@ const typeCharacterIntoNavbar = id => {
         updateSuggestions()
         return
     }
-    if (keyForOs(["<C-p>"], ["<M-p>"], id)) {
+    if (keyForOs(["<C-v>"], ["<M-v>"], id)) {
         document.execCommand("paste")
         updateSuggestions()
         return
@@ -1047,7 +1031,19 @@ const typeCharacterIntoNavbar = id => {
         return
     }
     if (keyForOs(["<C-Del>", "<C-S-Del>"], [], id)) {
-        // TODO delete one word to the right
+        let wordPosition = 0
+        for (const word of words) {
+            wordPosition += word.length
+            if (wordPosition > url.selectionStart) {
+                const cur = Number(url.selectionStart)
+                url.value = `${url.value.substr(0, url.selectionStart)}${
+                    url.value.substr(wordPosition)}`
+                url.setSelectionRange(cur, cur)
+                updateSuggestions()
+                return
+            }
+        }
+        return
     }
     if (id === "<BS>") {
         if (url.selectionStart > 0) {
@@ -1060,7 +1056,18 @@ const typeCharacterIntoNavbar = id => {
         return
     }
     if (keyForOs(["<C-BS>", "<C-S-BS>"], ["<M-BS>", "<A-BS>"], id)) {
-        // TODO delete one word to the left
+        let wordPosition = url.value.length
+        for (const word of words.slice().reverse()) {
+            wordPosition -= word.length
+            if (wordPosition < url.selectionStart) {
+                url.value = `${url.value.substr(0, wordPosition)}${
+                    url.value.substr(url.selectionStart)}`
+                url.setSelectionRange(wordPosition, wordPosition)
+                updateSuggestions()
+                return
+            }
+        }
+        return
     }
     const cur = Number(url.selectionStart)
     const text = String(url.value)
