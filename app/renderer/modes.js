@@ -39,13 +39,20 @@ const modes = {
             document.getElementById("url").value = ""
             const {resetPosition} = require("./commandhistory")
             resetPosition()
+            const {resetInputHistory} = require("./input")
+            resetInputHistory()
         },
         "onLeave": () => {
             const {emptySuggestions} = require("./suggest")
             emptySuggestions()
         }
     },
-    "search": {},
+    "search": {
+        "onEnter": () => {
+            const {resetInputHistory} = require("./input")
+            resetInputHistory()
+        }
+    },
     "explore": {
         "onEnter": () => {
             const {updateUrl} = require("./tabs")
@@ -53,6 +60,8 @@ const modes = {
             document.getElementById("url").select()
             const {resetPosition} = require("./explorehistory")
             resetPosition()
+            const {resetInputHistory} = require("./input")
+            resetInputHistory()
         },
         "onLeave": () => {
             const {emptySuggestions} = require("./suggest")

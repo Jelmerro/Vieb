@@ -281,6 +281,8 @@ let supportedActions = []
 let timeoutTimer = null
 let blockNextInsertKey = false
 const mapStringSplitter = /(<.*?[^-]>|<.*?->>|.)/g
+let inputHistoryList = [{"value": "", "index": 0}]
+let inputHistoryIndex = 0
 
 const init = () => {
     const {ipcRenderer} = require("electron")
@@ -985,17 +987,23 @@ const typeCharacterIntoNavbar = id => {
         return
     }
     if (keyForOs(["<C-z>"], ["<M-z>"], id)) {
-        // TODO implement this manually, because this doesn't work for now,
-        // because modifying the input below resets the input history.
-        document.execCommand("undo")
-        updateSuggestions()
+        if (inputHistoryIndex > 0) {
+            inputHistoryIndex -= 1
+            const histEntry = inputHistoryList[inputHistoryIndex]
+            url.value = histEntry.value
+            url.setSelectionRange(histEntry.index, histEntry.index)
+            updateSuggestions(false)
+        }
         return
     }
     if (keyForOs(["<C-y>"], ["<M-Z>"], id)) {
-        // TODO implement this manually, because this doesn't work for now,
-        // because modifying the input below resets the input history.
-        document.execCommand("redo")
-        updateSuggestions()
+        if (inputHistoryIndex < inputHistoryList.length - 1) {
+            inputHistoryIndex += 1
+            const histEntry = inputHistoryList[inputHistoryIndex]
+            url.value = histEntry.value
+            url.setSelectionRange(histEntry.index, histEntry.index)
+            updateSuggestions(false)
+        }
         return
     }
     if (url.selectionStart !== url.selectionEnd) {
@@ -1097,13 +1105,24 @@ const typeCharacterIntoNavbar = id => {
     }
 }
 
-const updateSuggestions = () => {
+const resetInputHistory = () => {
+    inputHistoryList = [{"value": "", "index": 0}]
+    inputHistoryIndex = 0
+}
+
+const updateSuggestions = (updateHistory = true) => {
+    const url = document.getElementById("url")
+    if (updateHistory) {
+        inputHistoryList = inputHistoryList.slice(0, inputHistoryIndex + 1)
+        inputHistoryIndex = inputHistoryList.length
+        inputHistoryList.push({"value": url.value, "index": url.selectionStart})
+    }
     if (currentMode() === "explore") {
         const {suggestExplore} = require("./suggest")
-        suggestExplore(document.getElementById("url").value)
+        suggestExplore(url.value)
     } else if (currentMode() === "command") {
         const {suggestCommand} = require("./suggest")
-        suggestCommand(document.getElementById("url").value)
+        suggestCommand(url.value)
     } else if (currentMode() === "search" && getSetting("incsearch")) {
         ACTIONS.incrementalSearch()
     }
@@ -1362,7 +1381,7 @@ module.exports = {
     init,
     executeMapString,
     doAction,
-    handleKeyboard,
+    resetInputHistory,
     listSupportedActions,
     listMappingsAsCommandList,
     mapOrList,
