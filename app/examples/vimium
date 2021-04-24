@@ -9,8 +9,6 @@ set tabreopenposition=previous
 set windowtitle=title
 set search=https://google.com/search?q=
 set searchwords=w~https://www.wikipedia.org/w/index.php?title=Special:Search&search=%s
-set ignorecase
-set incsearch
 
 " Mappings
 nmap <C-e> <action.scrollDown>
