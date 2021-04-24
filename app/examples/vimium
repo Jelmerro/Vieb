@@ -1,39 +1,30 @@
-map <Esc> <action.toNormalMode>
-map <C-[> <action.toNormalMode>
+" Options
+set adblocker=update
+set downloadmethod=confirm
+set mintabwidth=250
+set norestoretabs
+set redirecttohttp
+set suspendonrestore=regular
+set tabreopenposition=previous
+set windowtitle=title
+set search=https://google.com/search?q=
+set searchwords=w~https://www.wikipedia.org/w/index.php?title=Special:Search&search=%s
+set ignorecase
+set incsearch
 
-nmap j <action.scrollDown>
-nmap k <action.scrollUp>
+" Mappings
 nmap <C-e> <action.scrollDown>
 nmap <C-y> <action.scrollUp>
-nmap gg <action.scrollTop>
-nmap G <action.scrollBottom>
 nmap d <action.scrollPageDownHalf>
 nmap u <action.scrollPageUpHalf>
-nmap h <action.scrollLeft>
-nmap j <action.scrollRight>
 nmap zH <action.scrollPageLeft>
 nmap zL <action.scrollPageRight>
-nmap r <action.reload>
 nmap yy <action.pageToClipboard>
 nmap yf <pointer.start><action.startFollowCurrentTab>
-nmap i <action.toInsertMode>
 nmap v <pointer.start><pointer.startVisualSelect>
-nmap gi <action.insertAtFirstInput>
-nmap f <action.startFollowCurrentTab>
-nmap F <action.startFollowNewTab>
 nmap o <action.toExploreMode>
 nmap O <action.openNewTab><action.toExploreMode>
 nmap T <action.toCommandMode>buffer<Space>
-nmap / <action.toSearchMode>
-nmap n <action.nextSearchMatch>
-nmap N <action.previousSearchMatch>
-nmap H <action.backInHistory>
-nmap L <action.forwardInHistory>
-nmap t <action.openNewTab>
-nmap J <action.previousTab>
-nmap gT <action.previousTab>
-nmap K <action.nextTab>
-nmap gt <action.nextTab>
 nmap g0 <:buffer 0>
 nmap g$ <:buffer 999>
 nmap ge <action.toExploreMode><End>
@@ -46,15 +37,5 @@ nmap yt <action.openNewTabWithCurrentUrl><CR>
 nmap ? <:help>
 
 vmap c <Esc><pointer.start>
-vmap b <pointer.moveFastLeft>
-vmap h <pointer.moveLeft>
-vmap j <pointer.moveDown>
-vmap k <pointer.moveUp>
-vmap l <pointer.moveRight>
-vmap w <pointer.moveFastRight>
-vmap y <pointer.copyAndStop>
-vmap $ <pointer.moveRightMax>
-vmap 0 <pointer.moveLeftMax>
-vmap y <pointer.copyAndStop>
 
 " vim: ft=vim
