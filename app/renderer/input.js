@@ -828,7 +828,7 @@ const typeCharacterIntoNavbar = id => {
     }
     const url = document.getElementById("url")
     if (keyForOs(["<S-Home>", "<C-S-Home>"], ["<M-S-Left>", "<M-S-Up>"], id)) {
-        if (url.selectionDirection === "forward") {
+        if (url.selectionDirection !== "backward") {
             url.selectionEnd = url.selectionStart
         }
         url.setSelectionRange(0, url.selectionEnd, "backward")
@@ -838,11 +838,11 @@ const typeCharacterIntoNavbar = id => {
         url.setSelectionRange(0, 0)
         return
     }
-    if (keyForOs(["<S-End>", "<C-S-End>"], ["<M-S-Right", "<M-S-Down>"], id)) {
+    if (keyForOs(["<S-End>", "<C-S-End>"], ["<M-S-Right>", "<M-S-Down>"], id)) {
         if (url.selectionDirection === "backward") {
             url.selectionStart = url.selectionEnd
         }
-        url.selectionEnd = url.value.length
+        url.setSelectionRange(url.selectionEnd, url.value.length)
         return
     }
     if (keyForOs(["<End>", "<C-End>"], ["<M-Right>", "<M-Down>"], id)) {
@@ -864,7 +864,7 @@ const typeCharacterIntoNavbar = id => {
     if (id === "<S-Right>") {
         if (url.selectionStart === url.selectionEnd) {
             url.setSelectionRange(url.selectionStart, url.selectionEnd + 1)
-        } else if (url.selectionDirection === "forward") {
+        } else if (url.selectionDirection !== "backward") {
             if (url.selectionEnd < url.value.length) {
                 url.selectionEnd += 1
             }
@@ -875,7 +875,7 @@ const typeCharacterIntoNavbar = id => {
     }
     const words = url.value.split(/(\w+|\W+)/g).filter(w => w)
     let index = Number(url.selectionStart)
-    if (url.selectionDirection === "forward") {
+    if (url.selectionDirection !== "backward") {
         index = Number(url.selectionEnd)
     }
     if (keyForOs(["<C-Right>"], ["<A-Right>"], id)) {
@@ -896,11 +896,11 @@ const typeCharacterIntoNavbar = id => {
             if (wordPosition > index) {
                 if (url.selectionStart === url.selectionEnd) {
                     url.setSelectionRange(url.selectionStart, wordPosition)
-                } else if (url.selectionDirection === "forward") {
-                    url.setSelectionRange(url.selectionStart, wordPosition)
-                } else {
+                } else if (url.selectionDirection === "backward") {
                     url.setSelectionRange(wordPosition,
                         url.selectionEnd, "backward")
+                } else {
+                    url.setSelectionRange(url.selectionStart, wordPosition)
                 }
                 return
             }
@@ -951,16 +951,16 @@ const typeCharacterIntoNavbar = id => {
                 if (url.selectionStart === url.selectionEnd) {
                     url.setSelectionRange(wordPosition,
                         url.selectionEnd, "backward")
-                } else if (url.selectionDirection === "forward") {
+                } else if (url.selectionDirection === "backward") {
+                    url.setSelectionRange(wordPosition,
+                        url.selectionEnd, "backward")
+                } else {
                     if (wordPosition < url.selectionStart) {
                         url.setSelectionRange(url.selectionStart,
                             url.selectionStart)
                         return
                     }
                     url.setSelectionRange(url.selectionStart, wordPosition)
-                } else {
-                    url.setSelectionRange(wordPosition,
-                        url.selectionEnd, "backward")
                 }
                 return
             }

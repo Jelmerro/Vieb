@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Setting "quitonlasttabclose" to quit Vieb when closing the last tab instead of opening an empty tab
+- Vimium-inspired example viebrc config to the help page
 
 ### Changed
 
@@ -39,7 +40,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - File suggestions not working for partial matches for the last two releases
 - Extension remove command suggesting the full path instead of the id on Windows
 - File explorer not working on Windows
-- Clearonquit-type settings not working for all releases due to very persistent electron-builder bugs that exclude production dependencies
+- Clearonquit-type settings not working for all releases due to very persistent electron-builder bugs that exclude "unused" dependencies
 
 ### Security
 

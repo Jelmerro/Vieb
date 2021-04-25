@@ -380,6 +380,7 @@ const suggestCommand = search => {
             "customcommands",
             "splits",
             "viebrc",
+            "examples",
             "datafolder",
             "erwic",
             "modes",
