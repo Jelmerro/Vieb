@@ -1,0 +1,72 @@
+" Options
+set firefoxmode=always
+set adblocker=update
+set downloadmethod=confirm
+set mintabwidth=250
+set norestoretabs
+set redirecttohttp
+set noshowcmd
+set noincsearch
+set suggestexplore 9000000000000000
+set suspendonrestore=regular
+set tabreopenposition=previous
+set closablepinnedtabs
+set windowtitle=title
+set searchwords=
+set searchwords+=google~https://www.google.com/search?q=%s
+set searchwords+=googlelucky~https://www.google.com/search?btnI=I'm+Feeling+Lucky&q=%s
+set searchwords+=scholar~https://scholar.google.com/scholar?q=%s
+set searchwords+=googleuk~https://www.google.co.uk/search?q=%s
+set searchwords+=bing~https://www.bing.com/search?q=%s
+set searchwords+=duckduckgo~https://duckduckgo.com/?q=%s
+set searchwords+=yahoo~https://search.yahoo.com/search?p=%s
+set searchwords+=twitter~https://twitter.com/search?q=%s
+set searchwords+=wikipedia~https://en.wikipedia.org/wiki/Special:Search/%s
+set searchwords+=youtube~https://www.youtube.com/results?search_query=%s
+set searchwords+=amazon~https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias=aps&field-keywords=%s
+set searchwords+=amazonuk~https://www.amazon.co.uk/s/ref=nb_sb_noss?url=search-alias=aps&field-keywords=%s
+set searchwords+=startpage~https://startpage.com/do/search?language=english&cat=web&query=%s
+set searchwords+=github~https://github.com/search?utf8=✓&q=%s
+set searchwords+=searx~https://searx.me/?category_general=on&q=%s
+set searchwords+=cnrtl~http://www.cnrtl.fr/lexicographie/%s
+set searchwords+=osm~https://www.openstreetmap.org/search?query=%s
+set searchwords+=mdn~https://developer.mozilla.org/en-US/search?q=%s
+set searchwords+=gentoo_wiki~https://wiki.gentoo.org/index.php?title=Special:Search&profile=default&fulltext=Search&search=%s
+set searchwords+=qwant~https://www.qwant.com/?q=%s
+
+" Mappings
+nmap <C-e> <action.scrollDown>
+nmap <C-y> <action.scrollUp>
+nmap yy <action.pageToClipboard>
+nmap o <action.toExploreMode>
+nmap b <action.toCommandMode>buffer<Space>
+nmap g0 <:buffer 0>
+nmap g^ <:buffer 0>
+nmap g$ <:buffer 999>
+nmap J <action.previousTab>
+nmap K <action.nextTab>
+nmap >> <action.moveTabForward>
+nmap <lt><lt> <action.moveTabBackward>
+nmap O <action.toExploreMode><End>
+nmap E <action.openNewTab><action.toExploreMode><End>
+nmap gx0 <:lclose>
+nmap gx$ <:rclose>
+nmap <A-p> <:pin>
+nmap <A-m> <:mute>
+nmap x <action.stopLoadingPage>
+nmap [c <action.decreasePageNumber>
+nmap ]c <action.increasePageNumber>
+nmap zz <action.zoomReset>
+nmap zi <action.zoomIn>
+nmap zo <action.zoomOut>
+nmap zm 5<action.zoomIn>
+nmap zr 5<action.zoomOut>
+nmap zM 5<action.zoomIn>
+nmap zR 5<action.zoomOut>
+nmap zI 7<action.zoomIn>
+nmap zO 7<action.zoomOut>
+" Tridactyl easter egg
+nmap <A-S-Up><A-S-Up><A-S-Down><A-S-Down><A-S-Left><A-S-Right><A-S-Left><A-S-Right>ba <action.toExploreMode>https://www.youtube.com/watch?v=M3iOROuTuMA<CR>
+
+" vim: ft=vim
+

@@ -126,7 +126,7 @@ const processHash = () => {
 window.addEventListener("hashchange", processHash)
 
 window.addEventListener("DOMContentLoaded", () => {
-    for (const example of ["chromium", "firefox", "vimium"]) {
+    for (const example of ["chromium", "firefox", "vimium", "tridactyl"]) {
         const button = document.createElement("button")
         button.textContent = example[0].toUpperCase() + example.slice(1)
         button.addEventListener("click", () => {
