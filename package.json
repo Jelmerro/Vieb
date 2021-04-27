@@ -6,6 +6,7 @@
   "main": "app/index.js",
   "scripts": {
     "test": "jest --coverage --collectCoverageFrom 'app/**/*.js' -u && eslint app && echo 'All good :)'",
+    "dev": "electron app --datafolder ./ViebData/",
     "start": "electron app",
     "build": "node build.js",
     "buildall": "node build.js --linux --win --mac",

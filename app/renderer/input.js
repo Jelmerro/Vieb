@@ -149,6 +149,7 @@ const defaultBindings = {
         "<F11>": {"mapping": "<action.toggleFullscreen>"},
         "<Esc>": {"mapping": "<action.toNormalMode>"},
         "<C-i>": {"mapping": "<action.editWithVim>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
         "<C-[>": {"mapping": "<action.toNormalMode>"}
     },
     "c": {
@@ -270,7 +271,8 @@ const defaultBindings = {
         "<CR>": {"mapping": "<action.menuSelect>"},
         "<Esc>": {"mapping": "<action.menuClose>"},
         "<C-n>": {"mapping": "<action.menuDown>"},
-        "<C-p>": {"mapping": "<action.menuUp>"}
+        "<C-p>": {"mapping": "<action.menuUp>"},
+        "<C-[>": {"mapping": "<action.menuClose>"}
     }
 }
 let repeatCounter = 0
@@ -617,6 +619,10 @@ const executeMapString = async (mapStr, recursive, initial) => {
             pressedKeys = ""
         }
     }
+    if (mapStr === "<Nop>") {
+        updateKeysOnScreen()
+        return
+    }
     recursiveCounter += 1
     const repeater = Number(repeatCounter) || 1
     repeatCounter = 0
@@ -662,7 +668,6 @@ const executeMapString = async (mapStr, recursive, initial) => {
 
 const doAction = async (name, count) => {
     if (name === "Nop") {
-        repeatCounter = 0
         updateKeysOnScreen()
         return
     }
@@ -678,6 +683,10 @@ const doAction = async (name, count) => {
         } else {
             await ACTIONS[name]()
         }
+    }
+    if (!name.startsWith("menu")) {
+        const {clear} = require("./contextmenu")
+        clear()
     }
     repeatCounter = 0
     updateKeysOnScreen()
@@ -729,7 +738,8 @@ const handleKeyboard = async e => {
             updateKeysOnScreen()
         }, getSetting("timeoutlen"))
     }
-    if (["normal", "pointer", "visual"].includes(currentMode())) {
+    const {"active": menuActive, "clear": menuClear} = require("./contextmenu")
+    if ("npv".includes(currentMode()[0]) || menuActive()) {
         const keyNumber = Number(id)
         const noFutureActions = !hasFutureActionsBasedOnKeys(pressedKeys + id)
         const currentAction = bindings[currentMode()[0]][pressedKeys + id]
@@ -755,20 +765,15 @@ const handleKeyboard = async e => {
         pressedKeys = ""
     }
     pressedKeys += id
-    const {active, clear} = require("./contextmenu")
     const menuAction = bindings.m[pressedKeys]
-    if (menuAction && active()) {
+    if (menuAction && menuActive()) {
         if (e.isTrusted) {
             executeMapString(menuAction.mapping, !menuAction.noremap, true)
         } else {
             executeMapString(menuAction.mapping, e.bubbles)
         }
-        repeatCounter = 0
-        pressedKeys = ""
-        updateKeysOnScreen()
         return
     }
-    clear()
     if (!hasFutureActionsBasedOnKeys(pressedKeys) || !e.isTrusted) {
         clearTimeout(timeoutTimer)
         const action = bindings[currentMode()[0]][pressedKeys]
@@ -780,6 +785,7 @@ const handleKeyboard = async e => {
             }
             return
         }
+        menuClear()
         let keys = pressedKeys.split(mapStringSplitter).filter(m => m)
         if (keys.length > 1) {
             if (!hasFutureActionsBasedOnKeys(keys.slice(0, -1).join(""))) {
@@ -808,6 +814,7 @@ const handleKeyboard = async e => {
         repeatCounter = 0
         pressedKeys = ""
     }
+    menuClear()
     updateKeysOnScreen()
     if (currentMode() === "follow") {
         if (e.type === "keydown") {
@@ -1142,8 +1149,14 @@ const updateKeysOnScreen = () => {
         document.getElementById("pressed-keys").style.display = "none"
     }
     const {ipcRenderer} = require("electron")
+    const {active} = require("./contextmenu")
     if (pressedKeys) {
         ipcRenderer.send("insert-mode-blockers", "all")
+    } else if (active()) {
+        ipcRenderer.send("insert-mode-blockers", Object.keys(bindings.i)
+            .concat(Object.keys(bindings.m)).concat("0123456789".split(""))
+            .map(mapping => fromIdentifier(
+                mapping.split(mapStringSplitter).filter(m => m)[0])))
     } else {
         ipcRenderer.send("insert-mode-blockers", Object.keys(bindings.i)
             .map(mapping => fromIdentifier(
@@ -1382,6 +1395,7 @@ module.exports = {
     executeMapString,
     doAction,
     resetInputHistory,
+    updateKeysOnScreen,
     listSupportedActions,
     listMappingsAsCommandList,
     mapOrList,

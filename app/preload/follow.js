@@ -25,7 +25,8 @@ const {
     propPixels,
     findFrameInfo,
     findClickPosition,
-    frameSelector
+    frameSelector,
+    activeElement
 } = require("../util")
 
 let inFollowMode = false
@@ -338,26 +339,55 @@ window.addEventListener("mousedown", e => {
     }
 }, {"capture": true, "passive": true})
 
+ipcRenderer.on("replace-input-field", (_, value, position) => {
+    const input = activeElement()
+    if (input?.matches?.(textlikeInputs)) {
+        input.value = value
+        if (position < input.value.length) {
+            input.setSelectionRange(position, position)
+        }
+    }
+})
+
 const contextListener = (e, frame = null) => {
     if (e.isTrusted && !inFollowMode && e.button === 2) {
-        e.preventDefault()
+        e.preventDefault?.()
         const paddingInfo = findFrameInfo(frame)
+        const img = e.path.find(el => ["svg", "img"]
+            .includes(el.tagName?.toLowerCase()))
+        const vid = e.path.find(el => el.tagName?.toLowerCase() === "video")
+        const audio = e.path.find(el => el.tagName?.toLowerCase() === "audio")
+        const link = e.path.find(el => el.tagName?.toLowerCase() === "a"
+            && el.href?.trim())
+        const text = e.path.find(el => el?.matches?.(textlikeInputs))
         ipcRenderer.sendToHost("context-click-info", {
             "x": e.x + (paddingInfo?.x || 0),
             "y": e.y + (paddingInfo?.y || 0),
-            "img": e.path.find(el => ["svg", "img"].includes(
-                el.tagName?.toLowerCase()) && el.src?.trim()
-            )?.src?.trim(),
-            "link": e.path.find(el => el.tagName?.toLowerCase() === "a"
-                && el.href?.trim())?.href?.trim(),
+            "img": img?.src?.trim(),
+            "video": vid?.src?.trim()
+                || vid?.querySelector("source[type^=video]")?.src?.trim(),
+            "audio": audio?.src?.trim()
+                || audio?.querySelector("source[type^=audio]")?.src?.trim()
+                || vid?.querySelector("source[type^=audio]")?.src?.trim(),
+            "link": link?.href?.trim(),
             "text": (frame?.contentWindow || window).getSelection().toString(),
-            "canEdit": !!e.path.find(el => el?.matches?.(textlikeInputs)),
+            "canEdit": !!text,
+            "inputVal": text?.value,
+            "inputSel": text?.selectionStart,
             "frame": frame?.src,
-            "hasExistingListener": eventListeners.contextmenu.has(e.target)
-                || eventListeners.auxclick.has(e.target)
+            "hasExistingListener": eventListeners.contextmenu.has(e.path[0])
+                || eventListeners.auxclick.has(e.path[0])
         })
     }
 }
+ipcRenderer.on("contextmenu", () => {
+    const active = activeElement()
+    const parsed = parseElement(active)
+    const x = parsed?.x || 0
+    const y = parsed?.y || 0
+    contextListener({"isTrusted": true, "button": 2, "path": [active], x, y},
+        findFrameInfo(active)?.element)
+})
 window.addEventListener("auxclick", contextListener)
 
 setInterval(() => {

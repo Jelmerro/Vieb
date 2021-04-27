@@ -491,6 +491,15 @@ const reorderFollowLinks = () => {
     reorderDisplayedLinks()
 }
 
+const menuOpen = () => {
+    if (currentMode() === "insert") {
+        currentPage()?.send("contextmenu")
+    } else {
+        const {rightClick} = require("./pointer")
+        rightClick()
+    }
+}
+
 const menuUp = () => {
     const {up} = require("./contextmenu")
     up()
@@ -639,6 +648,7 @@ module.exports = {
     pageToClipboard,
     openFromClipboard,
     reorderFollowLinks,
+    menuOpen,
     menuUp,
     menuDown,
     menuSelect,

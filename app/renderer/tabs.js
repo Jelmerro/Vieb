@@ -801,8 +801,10 @@ const addWebviewListeners = webview => {
         applyLayout()
     })
     webview.addEventListener("ipc-message", e => {
-        const CONTEXTMENU = require("./contextmenu")
-        const POINTER = require("./pointer")
+        const {webviewMenu, "clear": clearMenu} = require("./contextmenu")
+        const {
+            startVisualSelect, "move": movePointer, handleScrollDiffEvent
+        } = require("./pointer")
         if (e.channel === "notify") {
             notify(e.args[0], e.args[1])
         }
@@ -810,16 +812,16 @@ const addWebviewListeners = webview => {
             switchToTab(listTabs().indexOf(tabOrPageMatching(webview)))
         }
         if (e.channel === "context-click-info") {
-            CONTEXTMENU.webviewMenu(e.args[0])
+            webviewMenu(e.args[0])
         }
         if (e.channel === "mouse-click-info") {
-            CONTEXTMENU.clear()
+            clearMenu()
             if (getSetting("mouse") && currentMode() !== "insert") {
                 if (["pointer", "visual"].includes(currentMode())) {
                     if (e.args[0].tovisual) {
-                        POINTER.startVisualSelect()
+                        startVisualSelect()
                     }
-                    POINTER.move(e.args[0].x * currentPage().getZoomFactor(),
+                    movePointer(e.args[0].x * currentPage().getZoomFactor(),
                         e.args[0].y * currentPage().getZoomFactor())
                 } else if (e.args[0].toinsert) {
                     setMode("insert")
@@ -842,8 +844,8 @@ const addWebviewListeners = webview => {
             }
         }
         if (e.channel === "scroll-height-diff") {
-            CONTEXTMENU.clear()
-            POINTER.handleScrollDiffEvent(e.args[0])
+            clearMenu()
+            handleScrollDiffEvent(e.args[0])
         }
         if (e.channel === "history-list-request") {
             const {handleRequest} = require("./history")

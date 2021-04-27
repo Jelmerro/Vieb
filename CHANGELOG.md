@@ -17,6 +17,9 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Setting "quitonlasttabclose" to quit Vieb when closing the last tab instead of opening an empty tab
 - Vimium-inspired example viebrc config to the help page
+- Video and audio context menu actions
+- Suggestions for typos in the context menu under the new group "Suggestions"
+- Action "menuOpen" to open the menu for the currently active insert mode element (or simply at the pointer location)
 
 ### Changed
 
@@ -28,6 +31,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Insert mode with multiple keys are now correctly blocked from their native function, and are repeated properly if the mapping isn't finished
 - Native navbar actions (such as "End") are now implemented by Vieb itself so they can be referenced by recursive mappings
 - Renderer process no longer uses external modules, rimraf communicates with main, hazardous has been rewritten inside Vieb
+- Context menu is now grouped by category to make different types of actions more clear
 
 ### Fixed
 
