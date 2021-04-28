@@ -48,7 +48,14 @@ const {
     formatSize,
     extractZip
 } = require("./util")
-const {"sync": rimraf} = require("rimraf")
+const {"sync": rimrafSync} = require("rimraf")
+const rimraf = pattern => {
+    try {
+        rimrafSync(pattern)
+    } catch (_) {
+        // Permission errors
+    }
+}
 
 const version = process.env.npm_package_version || app.getVersion()
 const printUsage = () => {
@@ -614,6 +621,7 @@ ipcMain.on("set-spelllang", (_, langs) => {
             return lang
         }).filter(lang => lang)
         session.fromPartition(ses).setSpellCheckerLanguages(langs)
+        session.defaultSession.setSpellCheckerLanguages(langs)
     })
 })
 ipcMain.on("create-session", (_, name, adblock, cache) => {
