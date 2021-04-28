@@ -16,7 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Setting "quitonlasttabclose" to quit Vieb when closing the last tab instead of opening an empty tab
-- Vimium-inspired example viebrc config to the help page
+- Vimium-inspired and Tridactyl-inspired example viebrc configs to the help page
 - Video and audio context menu actions
 - Suggestions for typos in the context menu under the new group "Suggestions"
 - Action "menuOpen" to open the menu for the currently active insert mode element (or simply at the pointer location)
