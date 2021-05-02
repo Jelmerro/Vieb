@@ -288,7 +288,7 @@ const editWithVim = () => {
             }
         } else {
             const {exec} = require("child_process")
-            command = exec(`${getSetting("vimcommand")} ${tempFile}`, err => {
+            command = exec(`${getSetting("vimcommand")} "${tempFile}"`, err => {
                 if (err) {
                     notify("Command to edit files with vim failed, "
                         + "please update the 'vimcommand' setting", "err")
