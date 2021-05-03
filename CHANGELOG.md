@@ -26,6 +26,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - More names for seachwords are now allowed as part of the keyword, for similar reasons as above
 - Container names in Erwic configs will no longer replace special characters, but will report and exit
 - Word separator keybindings in the navbar wll now detect separators for non-latin scriptures using a whitelist of separators
+- Default value of "permissionmediadevices" and "permissionnotifications" from "ask" to "block" to reduce the amount of popups
 
 ### Removed
 
@@ -42,6 +43,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Electron 13.0.0-beta.18 (was 12.0.5)
 - Chromium 91.0.4448.0 (was 89.0.4389.128)
+- Permissions for "mediadevices" and "notifications" are now blocked by default instead of asking each time
 
 ## [4.5.1](https://github.com/Jelmerro/Vieb/compare/4.5.0...4.5.1) - 2021-04-28
 
