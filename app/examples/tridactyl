@@ -7,14 +7,13 @@ set norestoretabs
 set redirecttohttp
 set noshowcmd
 set noincsearch
-set suggestexplore 9000000000000000
 set suspendonrestore=regular
 set tabreopenposition=previous
 set closablepinnedtabs
 set windowtitle=title
 set searchwords=
 set searchwords+=google~https://www.google.com/search?q=%s
-set searchwords+=googlelucky~https://www.google.com/search?btnI=I'm+Feeling+Lucky&q=%s
+set searchwords+=googlelucky~"https://www.google.com/search?btnI=I'm+Feeling+Lucky&q=%s"
 set searchwords+=scholar~https://scholar.google.com/scholar?q=%s
 set searchwords+=googleuk~https://www.google.co.uk/search?q=%s
 set searchwords+=bing~https://www.bing.com/search?q=%s

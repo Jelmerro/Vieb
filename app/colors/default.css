@@ -69,6 +69,7 @@
     --suggestions-border: #777;
     --suggestions-bg: #444;
     --suggestions-selected: #666;
+    --suggestions-searchwords: #fcf;
     --suggestions-url: #bff;
     --suggestions-file: #ffb;
     --notification-border: #111;
@@ -203,6 +204,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #suggest-dropdown div .icon {height: 1.5em;width: 1.5em;}
 #suggest-dropdown div .url {color: var(--suggestions-url);}
 #suggest-dropdown div .file {color: var(--suggestions-file);}
+#suggest-dropdown div .searchwords {color: var(--suggestions-searchwords);}
 #suggest-dropdown div.selected {background: var(--suggestions-selected);}
 /* mouse related */
 #invisible-overlay {-webkit-app-region: drag;position: absolute;top: 0;left: 0;width: 100vw;height: 100vh;z-index: 50;}

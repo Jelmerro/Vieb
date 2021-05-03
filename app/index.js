@@ -32,6 +32,7 @@ const {
 const {ElectronBlocker} = require("@cliqz/adblocker-electron")
 const isSvg = require("is-svg")
 const {
+    specialChars,
     writeJSON,
     readJSON,
     writeFile,
@@ -206,9 +207,7 @@ args.forEach(arg => {
         } else if (arg === "--datafolder") {
             nextArgDataFolder = true
         } else {
-            console.log(`Unsupported argument: ${arg}`)
-            printUsage()
-            app.exit(1)
+            console.log(`Unsupported argument: '${arg}', use --help for info`)
         }
     } else if (!arg.startsWith("-")) {
         urls.push(arg)
@@ -267,7 +266,13 @@ if (erwic) {
         app.exit(1)
     }
     config.apps = config.apps.map(a => {
-        a.container = a.container?.replace(/[^A-Za-z0-9_]/g, "")
+        const simpleContainerName = a.container.replace(/_/g, "")
+        if (simpleContainerName.match(specialChars)) {
+            console.log("Container names are not allowed to have "
+                + "special characters besides underscores")
+            printUsage()
+            app.exit(1)
+        }
         if (typeof a.script === "string") {
             a.script = expandPath(a.script)
             if (a.script !== joinPath(a.script)) {
@@ -606,20 +611,20 @@ ipcMain.on("set-permissions", (_, permissionObject) => {
     permissions = permissionObject
 })
 ipcMain.on("set-spelllang", (_, langs) => {
-    sessionList.forEach(ses => {
-        if (!langs) {
-            return
+    if (!langs) {
+        return
+    }
+    langs = langs.split(",").map(lang => {
+        if (lang === "system") {
+            lang = app.getLocale()
         }
-        langs = langs.split(",").map(lang => {
-            if (lang === "system") {
-                lang = app.getLocale()
-            }
-            const valid = session.defaultSession.availableSpellCheckerLanguages
-            if (!valid.includes(lang)) {
-                return null
-            }
-            return lang
-        }).filter(lang => lang)
+        const valid = session.defaultSession.availableSpellCheckerLanguages
+        if (!valid.includes(lang)) {
+            return null
+        }
+        return lang
+    }).filter(lang => lang)
+    sessionList.forEach(ses => {
         session.fromPartition(ses).setSpellCheckerLanguages(langs)
         session.defaultSession.setSpellCheckerLanguages(langs)
     })
@@ -629,7 +634,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         return
     }
     const partitionDir = joinPath(app.getPath("appData"), "Partitions")
-    const sessionDir = joinPath(partitionDir, name.split(":")[1] || name)
+    const sessionDir = joinPath(partitionDir, encodeURIComponent(
+        name.split(":")[1] || name))
     applyDevtoolsSettings(joinPath(sessionDir, "Preferences"))
     const newSession = session.fromPartition(name, {cache})
     newSession.setPermissionRequestHandler(permissionHandler)

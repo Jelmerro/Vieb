@@ -70,6 +70,10 @@ const previous = () => {
     list[id - 1].className = "selected"
     list[id - 1].scrollIntoView({"block": "center"})
     setUrlValue(suggestions[id - 1])
+    const index = suggestions[id - 1].indexOf("%s")
+    if (index !== -1) {
+        document.getElementById("url").setSelectionRange(index, index + 2)
+    }
 }
 
 const next = () => {
@@ -93,6 +97,10 @@ const next = () => {
     list[id + 1].className = "selected"
     list[id + 1].scrollIntoView({"block": "center"})
     setUrlValue(suggestions[id + 1])
+    const index = suggestions[id + 1].indexOf("%s")
+    if (index !== -1) {
+        document.getElementById("url").setSelectionRange(index, index + 2)
+    }
 }
 
 const emptySuggestions = () => {
@@ -167,28 +175,58 @@ const updateColors = search => {
 const suggestExplore = search => {
     emptySuggestions()
     updateColors(search)
-    if (!getSetting("suggestexplore") || !search.trim()) {
-        // Don't suggest if the limit is set to zero or if the search is empty
+    if (!search.trim()) {
         return
     }
     const {suggestHist} = require("./history")
-    if (["all", "explore"].includes(getSetting("suggestfiles"))) {
-        if (getSetting("suggestfilesfirst")) {
-            suggestFiles(search).forEach(f => addExplore(f))
+    getSetting("suggestorder").split(",").filter(s => s).forEach(suggest => {
+        const args = suggest.split("~")
+        const type = args.shift()
+        let count = 10
+        let order = null
+        args.forEach(arg => {
+            const potentialCount = Number(arg)
+            if (potentialCount > 0 && potentialCount <= 9000000000000000) {
+                count = potentialCount
+            } else {
+                order = arg
+            }
+        })
+        if (type === "history") {
+            if (!order) {
+                order = "relevance"
+            }
+            suggestHist(search, order, count)
         }
-        suggestHist(search)
-        if (!getSetting("suggestfilesfirst")) {
-            suggestFiles(search).forEach(f => addExplore(f))
+        if (type === "file") {
+            suggestFiles(search).slice(0, count).forEach(f => addExplore(f))
         }
-    } else {
-        suggestHist(search)
-    }
+        if (type === "searchword") {
+            if (!order) {
+                order = "alpha"
+            }
+            const words = getSetting("searchwords").split(",").map(s => {
+                const [title, url] = s.split("~")
+                return {title, url}
+            })
+            if (order === "alpha") {
+                words.sort((a, b) => {
+                    if (a.title > b.title) {
+                        return 1
+                    }
+                    if (a.title < b.title) {
+                        return -1
+                    }
+                    return 0
+                })
+            }
+            words.filter(s => s.title.startsWith(search.trim()))
+                .forEach(s => addExplore(s))
+        }
+    })
 }
 
 const addExplore = explore => {
-    if (suggestions.length + 1 > getSetting("suggestexplore")) {
-        return
-    }
     if (suggestions.includes(explore.url)) {
         return
     }
@@ -230,6 +268,9 @@ const addExplore = explore => {
     if (explore.url.startsWith("file://")) {
         url.className = "file"
     }
+    if (explore.url.includes("%s")) {
+        url.className = "searchwords"
+    }
     url.textContent = urlToString(explore.url)
     element.appendChild(url)
     document.getElementById("suggest-dropdown").appendChild(element)
@@ -251,7 +292,7 @@ const suggestCommand = search => {
     } else {
         urlElement.className = "invalid"
     }
-    if (!getSetting("suggestcommands") || !search) {
+    if (!search) {
         // Don't suggest when it's disabled or the search is empty
         return
     }
@@ -274,7 +315,7 @@ const suggestCommand = search => {
     }
     // Command: write
     if ("write".startsWith(command) && !confirm && args.length < 2) {
-        let location = expandPath(args[0]?.replace(/w[a-z]* ?/, "") || "")
+        let location = expandPath(command.replace(/w[a-z]* ?/, "") || "")
         if (!location) {
             addCommand("write ~")
             addCommand("write /")

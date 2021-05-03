@@ -985,7 +985,6 @@ const typeCharacterIntoNavbar = id => {
     }
     if (keyForOs(["<C-c>"], ["<M-c>"], id)) {
         document.execCommand("copy")
-        updateSuggestions()
         return
     }
     if (keyForOs(["<C-v>"], ["<M-v>"], id)) {
