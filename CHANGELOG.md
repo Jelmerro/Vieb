@@ -25,6 +25,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - More names than before are allowed for containers, as it works with a small blocklist instead of an allowlist for characters
 - More names for seachwords are now allowed as part of the keyword, for similar reasons as above
 - Container names in Erwic configs will no longer replace special characters, but will report and exit
+- Word separator keybindings in the navbar wll now detect separators for non-latin scriptures using a whitelist of separators
 
 ### Removed
 

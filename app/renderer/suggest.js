@@ -31,7 +31,8 @@ const {
     isAbsolutePath,
     appData,
     isUrl,
-    searchword
+    searchword,
+    specialChars
 } = require("../util")
 const {
     listTabs, tabOrPageMatching, currentMode, getSetting
@@ -454,7 +455,8 @@ const suggestCommand = search => {
         "close"
     ].find(b => b.startsWith(command))
     if (bufferCommand && !confirm) {
-        const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
+        const simpleSearch = args.join("")
+            .replace(specialChars, "").toLowerCase()
         listTabs().filter(tab => {
             if (["close", "buffer", "mute", "pin"].includes(bufferCommand)) {
                 return true
@@ -471,12 +473,12 @@ const suggestCommand = search => {
             if (t.command.startsWith(search) || String(i) === simpleSearch) {
                 return true
             }
-            const simpleTabUrl = t.url.replace(/\W/g, "").toLowerCase()
-            if (simpleTabUrl.includes(simpleSearch)) {
+            const tabUrl = t.url.replace(specialChars, "").toLowerCase()
+            if (tabUrl.includes(simpleSearch)) {
                 return true
             }
-            const simpleTabTitle = t.subtext.replace(/\W/g, "").toLowerCase()
-            return simpleTabTitle.includes(simpleSearch)
+            const tabTitle = t.subtext.replace(specialChars, "").toLowerCase()
+            return tabTitle.includes(simpleSearch)
         }).forEach(t => addCommand(t.command, t.subtext))
     }
 }

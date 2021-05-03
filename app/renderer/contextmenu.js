@@ -17,7 +17,7 @@
 */
 "use strict"
 
-const {stringToUrl, urlToString, isUrl} = require("../util")
+const {stringToUrl, urlToString, isUrl, specialChars} = require("../util")
 const {
     listTabs, currentPage, tabOrPageMatching, currentMode, getSetting
 } = require("./common")
@@ -179,15 +179,19 @@ const webviewMenu = options => {
     const {updateKeysOnScreen} = require("./input")
     updateKeysOnScreen()
     if (options.canEdit && options.inputVal && options.inputSel >= 0) {
-        const words = options.inputVal.split(/(\w+|\W+)/g).filter(s => s)
+        const wordRegex = specialChars.source.replace("[", "[^")
+        const words = options.inputVal.split(new RegExp(`(${
+            wordRegex}+|${specialChars.source}+)`, "g")).filter(s => s)
         let letterCount = 0
         let wordIndex = 0
         let word = words[wordIndex]
         while (wordIndex < words.length) {
             word = words[wordIndex].trim()
             letterCount += words[wordIndex].length
-            if (word.match(/\w+/g) && letterCount >= options.inputSel) {
-                break
+            if (letterCount >= options.inputSel) {
+                if (word.match(new RegExp(`${wordRegex}+`, "g"))) {
+                    break
+                }
             }
             wordIndex += 1
         }

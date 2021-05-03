@@ -36,7 +36,8 @@ const {
     stringToUrl,
     appData,
     specialPagePath,
-    pathToSpecialPageName
+    pathToSpecialPageName,
+    specialChars
 } = require("../util")
 const {
     listTabs, currentTab, currentPage, tabOrPageMatching, getSetting
@@ -408,15 +409,15 @@ const tabForBufferArg = args => {
             return tabs[number] || tabs.pop()
         }
     }
-    const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
+    const simpleSearch = args.join("").replace(specialChars, "").toLowerCase()
     return listTabs().find(t => {
         const simpleTabUrl = tabOrPageMatching(t).src
-            .replace(/\W/g, "").toLowerCase()
+            .replace(specialChars, "").toLowerCase()
         if (simpleTabUrl.includes(simpleSearch)) {
             return true
         }
         const simpleTitle = t.querySelector("span").textContent
-            .replace(/\W/g, "").toLowerCase()
+            .replace(specialChars, "").toLowerCase()
         return simpleTitle.includes(simpleSearch)
     })
 }

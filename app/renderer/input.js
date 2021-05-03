@@ -17,7 +17,7 @@
 */
 "use strict"
 
-const {notify} = require("../util")
+const {notify, specialChars} = require("../util")
 const {
     listTabs, currentTab, currentPage, currentMode, getSetting
 } = require("./common")
@@ -880,7 +880,9 @@ const typeCharacterIntoNavbar = id => {
         }
         return
     }
-    const words = url.value.split(/(\w+|\W+)/g).filter(w => w)
+    const wordRegex = specialChars.source.replace("[", "[^")
+    const words = url.value.split(new RegExp(`(${
+        wordRegex}+|${specialChars.source}+)`, "g")).filter(w => w)
     let index = Number(url.selectionStart)
     if (url.selectionDirection !== "backward") {
         index = Number(url.selectionEnd)
