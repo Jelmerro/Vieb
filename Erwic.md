@@ -86,7 +86,7 @@ For example, you could name the instance "Discord", give it a discord icon and o
 ```
 
 If the JSON above would be stored as "discord.json" in for example the home directory,
-you can start Vieb's version of discord with `vieb --erwic ~/discord.json --datafolder ~/.config/Discord`.
+you can start Vieb's version of discord with `vieb --erwic=~/discord.json --datafolder=~/.config/Discord`.
 As long as the path to the datafolder is different for each Vieb/Erwic instance,
 you can create as many as you like to replace all kinds of Electron/web-based apps.
 The datafolder can be stored at any local location and can be relocated as well.
@@ -100,7 +100,7 @@ The approach is operating system specific, but it's usually done in one of two w
 ### Context menu option
 
 Right-click on your desktop and create a shortcut to the "Vieb" executable,
-and set `--erwic /path/to/config/file.json --datafolder /path/to/datafolder/` as the startup arguments of the program.
+and set `--erwic=/path/to/config/file.json --datafolder=/path/to/datafolder/` as the startup arguments of the program.
 Usually you can also set a custom icon for the shortcut,
 which you can also provide as an option the Erwic config file (can be the same or different).
 
@@ -115,7 +115,7 @@ Below is an example to add Vieb with Erwic mode enabled (and named Erwic) to you
 ```desktop
 [Desktop Entry]
 Name=Erwic
-Exec=/usr/bin/vieb --erwic /path/to/config/file.json --datafolder /path/to/datafolder/
+Exec=/usr/bin/vieb --erwic=/path/to/config/file.json --datafolder=/path/to/datafolder/
 Terminal=false
 Type=Application
 Icon=/path/to/icon.png

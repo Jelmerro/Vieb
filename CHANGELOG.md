@@ -27,6 +27,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Container names in Erwic configs will no longer replace special characters, but will report and exit
 - Word separator keybindings in the navbar wll now detect separators for non-latin scriptures using a whitelist of separators
 - Default value of "permissionmediadevices" and "permissionnotifications" from "ask" to "block" to reduce the amount of popups
+- Startup arguments now accept values separated by `=` instead of spaces or no value at all
 
 ### Removed
 
