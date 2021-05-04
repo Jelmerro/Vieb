@@ -27,7 +27,7 @@ nmap g0 <:buffer 0>
 nmap g$ <:buffer 999>
 nmap ge <action.toExploreMode><End>
 nmap gE <action.openNewTab><action.toExploreMode><End>
-nmap x <action.closeTab>
+nmap x <:close>
 nmap X <action.reopenTab>
 nmap <A-p> <:pin>
 nmap <A-m> <:mute>

@@ -36,7 +36,7 @@ const defaultBindings = {
         "<C-b>": {"mapping": "<action.scrollPageUp>"},
         "c": {"mapping": "<pointer.start>"},
         "<C-c>": {"mapping": "<action.stopLoadingPage>"},
-        "d": {"mapping": "<action.closeTab>"},
+        "d": {"mapping": "<:close>"},
         "<C-d>": {"mapping": "<action.scrollPageDownHalf>"},
         "e": {"mapping": "<action.toExploreMode>"},
         "f": {"mapping": "<action.startFollowCurrentTab>"},
@@ -89,8 +89,8 @@ const defaultBindings = {
         "<C-w><C-s>": {"mapping": "<:split>"},
         "<C-w>v": {"mapping": "<:vsplit>"},
         "<C-w><C-v>": {"mapping": "<:vsplit>"},
-        "<C-w>r": {"mapping": "<action.rotateSplitWindow>"},
-        "<C-w><C-r>": {"mapping": "<action.rotateSplitWindow>"},
+        "<C-w>r": {"mapping": "<action.rotateSplitWindowForward>"},
+        "<C-w><C-r>": {"mapping": "<action.rotateSplitWindowForward>"},
         "<C-w>R": {"mapping": "<action.rotateSplitWindowBackward>"},
         "<C-w><C-R>": {"mapping": "<action.rotateSplitWindowBackward>"},
         "<C-w>H": {"mapping": "<action.leftHalfSplitWindow>"},
@@ -139,7 +139,8 @@ const defaultBindings = {
         "_": {"mapping": "<action.zoomOut>"},
         "=": {"mapping": "<action.zoomIn>"},
         "+": {"mapping": "<action.zoomIn>"},
-        "<C-0>": {"mapping": "<action.zoomReset>"}
+        "<C-0>": {"mapping": "<action.zoomReset>"},
+        "<A-F4>": {"mapping": "<:quitall>"}
     },
     "i": {
         "<NumLock>": {"mapping": "<Nop>"},
@@ -150,7 +151,8 @@ const defaultBindings = {
         "<Esc>": {"mapping": "<action.toNormalMode>"},
         "<C-i>": {"mapping": "<action.editWithVim>"},
         "<C-m>": {"mapping": "<action.menuOpen>"},
-        "<C-[>": {"mapping": "<action.toNormalMode>"}
+        "<C-[>": {"mapping": "<action.toNormalMode>"},
+        "<A-F4>": {"mapping": "<:quitall>"}
     },
     "c": {
         "<CR>": {"mapping": "<action.useEnteredData>"},
@@ -161,14 +163,16 @@ const defaultBindings = {
         "<S-Tab>": {"mapping": "<action.prevSuggestion>"},
         "<C-n>": {"mapping": "<action.commandHistoryNext>"},
         "<C-p>": {"mapping": "<action.commandHistoryPrevious>"},
-        "<C-[>": {"mapping": "<action.toNormalMode>"}
+        "<C-[>": {"mapping": "<action.toNormalMode>"},
+        "<A-F4>": {"mapping": "<:quitall>"}
     },
     "s": {
         "<CR>": {"mapping": "<action.useEnteredData>"},
         "<F1>": {"mapping": "<:help>"},
         "<F11>": {"mapping": "<action.toggleFullscreen>"},
         "<Esc>": {"mapping": "<action.toNormalMode>"},
-        "<C-[>": {"mapping": "<action.toNormalMode>"}
+        "<C-[>": {"mapping": "<action.toNormalMode>"},
+        "<A-F4>": {"mapping": "<:quitall>"}
     },
     "e": {
         "<CR>": {"mapping": "<action.useEnteredData>"},
@@ -179,14 +183,16 @@ const defaultBindings = {
         "<S-Tab>": {"mapping": "<action.prevSuggestion>"},
         "<C-n>": {"mapping": "<action.exploreHistoryNext>"},
         "<C-p>": {"mapping": "<action.exploreHistoryPrevious>"},
-        "<C-[>": {"mapping": "<action.toNormalMode>"}
+        "<C-[>": {"mapping": "<action.toNormalMode>"},
+        "<A-F4>": {"mapping": "<:quitall>"}
     },
     "f": {
         "<F1>": {"mapping": "<:help>"},
         "<F11>": {"mapping": "<action.toggleFullscreen>"},
         "<Tab>": {"mapping": "<action.reorderFollowLinks>"},
         "<Esc>": {"mapping": "<action.stopFollowMode>"},
-        "<C-[>": {"mapping": "<action.stopFollowMode>"}
+        "<C-[>": {"mapping": "<action.stopFollowMode>"},
+        "<A-F4>": {"mapping": "<:quitall>"}
     },
     "p": {
         "<F1>": {"mapping": "<:help>"},
@@ -227,7 +233,8 @@ const defaultBindings = {
         ">": {"mapping": "<pointer.scrollRight>"},
         "$": {"mapping": "<pointer.moveRightMax>"},
         "^": {"mapping": "<pointer.moveLeftMax>"},
-        "<C-[>": {"mapping": "<action.toNormalMode>"}
+        "<C-[>": {"mapping": "<action.toNormalMode>"},
+        "<A-F4>": {"mapping": "<:quitall>"}
     },
     "v": {
         "<F1>": {"mapping": "<:help>"},
@@ -263,7 +270,8 @@ const defaultBindings = {
         ">": {"mapping": "<pointer.scrollRight>"},
         "$": {"mapping": "<pointer.moveRightMax>"},
         "^": {"mapping": "<pointer.moveLeftMax>"},
-        "<C-[>": {"mapping": "<action.toNormalMode>"}
+        "<C-[>": {"mapping": "<action.toNormalMode>"},
+        "<A-F4>": {"mapping": "<:quitall>"}
     },
     "m": {
         "<Up>": {"mapping": "<action.menuUp>"},
@@ -272,7 +280,8 @@ const defaultBindings = {
         "<Esc>": {"mapping": "<action.menuClose>"},
         "<C-n>": {"mapping": "<action.menuDown>"},
         "<C-p>": {"mapping": "<action.menuUp>"},
-        "<C-[>": {"mapping": "<action.menuClose>"}
+        "<C-[>": {"mapping": "<action.menuClose>"},
+        "<A-F4>": {"mapping": "<:quitall>"}
     }
 }
 let repeatCounter = 0
@@ -400,13 +409,7 @@ const init = () => {
             "passedOnFromInsert": true
         })
     })
-    ipcRenderer.on("window-close", () => {
-        if (process.platform === "darwin") {
-            executeMapString("<M-q>", true, true)
-        } else {
-            executeMapString("<A-F4>", true, true)
-        }
-    })
+    ipcRenderer.on("window-close", () => executeMapString("<A-F4>", true, true))
     ipcRenderer.on("app-command", (_, cmd) => {
         if (getSetting("mouse")) {
             if (cmd === "browser-backward") {

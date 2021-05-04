@@ -30,7 +30,7 @@ map <F6> <action.toExploreMode>
 map <F12> <:devtools>
 map <C-PageUp> <action.previousTab>
 map <C-PageDown> <action.nextTab>
-map <C-F4> <action.closeTab>
+map <C-F4> <:close>
 map <C-F5> <action.reloadWithoutCache>
 map <C-f> <action.toSearchMode>
 map <C-h> <:history>
@@ -58,8 +58,6 @@ map <A-6> <:b 5>
 map <A-7> <:b 6>
 map <A-8> <:b 7>
 map <A-9> <:b 8>
-map <A-F4> <:quit>
-map <M-Q> <:quit>
 cmap <Up> <action.commandHistoryPrevious>
 cmap <Down> <action.commandHistoryNext>
 emap <F6> <action.toNormalMode>

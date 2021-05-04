@@ -64,11 +64,6 @@ const previousTab = () => {
     switchToTab(listTabs().indexOf(currentTab()) - 1)
 }
 
-const closeTab = () => {
-    const {"closeTab": close} = require("./tabs")
-    close()
-}
-
 const toExploreMode = () => {
     const {setMode} = require("./modes")
     setMode("explore")
@@ -350,8 +345,8 @@ const exploreHistoryNext = () => {
     next()
 }
 
-const rotateSplitWindow = () => {
-    const {rotate} = require("./pagelayout")
+const rotateSplitWindowForward = () => {
+    const {rotateForward} = require("./pagelayout")
     rotate()
 }
 
@@ -596,7 +591,6 @@ module.exports = {
     stopLoadingPage,
     openNewTab,
     openNewTabWithCurrentUrl,
-    closeTab,
     reopenTab,
     nextTab,
     previousTab,
@@ -607,7 +601,7 @@ module.exports = {
     zoomReset,
     zoomIn,
     zoomOut,
-    rotateSplitWindow,
+    rotateSplitWindowForward,
     rotateSplitWindowBackward,
     leftHalfSplitWindow,
     bottomHalfSplitWindow,

@@ -43,7 +43,7 @@
             <li><kbd>v</kbd> - Switch to <a class="pointer" href="#pointer">pointer mode</a> to hover, download images, copy urls etc.<ul>
                 <li><kbd>v</kbd> - Then switch to <a class="visual" href="#pointer.startVisualSelect">visual mode</a> to select and copy text</li>
             </ul></li>
-            <li>Open <a href="#action.openNewTab">new tabs</a> with <kbd>t</kbd>, <a href="#action.closeTab">close them</a> with <kbd>d</kbd>, <a href="#action.nextTab">switch</a> between <a href="#action.previousTab">tabs</a> with <kbd>w</kbd> and <kbd>b</kbd></li>
+            <li>Open <a href="#action.openNewTab">new tabs</a> with <kbd>t</kbd>, <a href="#:close">close them</a> with <kbd>d</kbd>, <a href="#action.nextTab">switch</a> between <a href="#action.previousTab">tabs</a> with <kbd>w</kbd> and <kbd>b</kbd></li>
             <li><a href="#action.reopenTab">Reopen tabs</a> with <kbd>u</kbd>, <a href="#action.reload">reload</a> with <kbd>r</kbd>, open <a href="#:help">help</a> with <kbd>&lt;F1&gt;</kbd> and <a href="#:quit">quit</a> with <kbd>ZZ</kbd></li>
         </ul>
         Vieb is separated into different modes, which have different keyboard mappings. You can see the current mode at all times in the navbar, next to the url. All mappings listed above assume the default mappings and that you are in normal mode. You can list all of Vieb's current mappings with <span class="command-block">:map!</span> as explained in the <a href="#:map">:map</a> paragraph.
@@ -188,7 +188,7 @@
         The keyboard mappings are completely dynamic in Vieb, meaning that you can change the behavior of all keyboard keys. To manage these mappings, Vieb implements a similar system to Vim, with support for recursion, multiple keystrokes, countable actions and similar features. These are all of the key differences of Vieb's mapping system compared to Vim:
         <ul>
             <li>Only the &lt;&gt;-notation is supported for including modifiers or special keys.</li>
-            <li>All keyboard shortcuts passed to Vieb are supported, there are no terminal or history related limitations. For example, in Vieb you can distinguish between Meta and Alt keyboard mappings, and also map sequences unavailable in Vim, such as &lt;C-c&gt; (Ctrl-c) or &lt;A-F4&gt; (Alt-F4).</li>
+            <li>All keyboard shortcuts passed to Vieb are supported, there are no terminal or history related limitations. For example, in Vieb you can distinguish between Meta and Alt keyboard mappings, and also map sequences unavailable in Vim, such as &lt;C-c&gt; (Ctrl-c), &lt;A-F4&gt; (Alt-F4) or &lt;C-M-A-S-Space&gt; (Ctrl-Meta-Alt-Shift-Space).</li>
             <li>Vieb allows you to optionally include the default mappings with any of the map commands by appending a <kbd>!</kbd> to it (see the list below for details).</li>
             <li>Vieb adds compatible map syntax to run actions or commands without remembering or preserving the original keys mapped to it.</li>
         </ul>
@@ -261,21 +261,22 @@
             <li><span class="command-block">:map</span> - List all custom mappings for every mode</li>
             <li><span class="command-block">:map!</span> - List every single mapping currently available for all modes</li>
             <li><span class="command-block">:map j</span> - List the mappings for the <kbd>j</kbd> key in all modes</li>
-            <li><span class="command-block">:map &lt;A-F4&gt;</span> - List the mappings for <kbd>Alt-F4</kbd> in all modes</li>
-            <li><span class="command-block">:map &lt;A-F4&gt; &lt;Esc&gt;:quitall&lt;CR&gt;</span> - Make Alt-F4 quit Vieb</li>
-            <li><span class="command-block">:map &lt;C-h&gt; &lt;:history&gt;</span> - Make Ctrl-h open the history page</li>
-            <li><span class="command-block">:map &lt;C-T&gt; &lt;action.reopenTab&gt;</span> - Make Ctrl-Shift-t reopen the previously closed tab</li>
+            <li><span class="command-block">:map! &lt;A-F4&gt;</span> - List the mappings for <kbd>Alt-F4</kbd> in all modes including defaults</li>
+            <li><span class="command-block">:map &lt;C-h&gt; &lt;:history&gt;</span> - Make Ctrl-h open the history page using Vieb's map syntax</li>
+            <li><span class="command-block">:map &lt;C-h&gt; &lt;Esc&gt;:history&lt;CR&gt;</span> - Make Ctrl-h open the history page with recursive mappings</li>
+            <li><span class="command-block">:map &lt;C-T&gt; &lt;action.reopenTab&gt;</span> - Make Ctrl-Shift-t reopen the previously closed tab using a Vieb action</li>
+            <li><span class="command-block">:map &lt;C-T&gt; u</span> - Make Ctrl-Shift-t reopen the previously closed tab with a recursive mapping</li>
             <li><span class="command-block">:map &lt;Bslash&gt;&gt;?&lt;S-Del&gt;</span> - List every mapping for typing a backslash, then a greater than sign, after that a question mark and finally pressing Shift with Delete (probably none)</li>
         </ul>
-        The map command takes any number of arguments. Without any arguments, it lists the mappings for all modes. To also list the default mappings of Vieb, append the map command with a <kbd>!</kbd>. When a single argument is added to the map command, it will only list mappings for that specific key or sequence of keys. If more than one argument is provided, the first argument is stored separately from all the others. The first one represents the keys that you need to press to execute all the other keys provided. For example, the command <span class="command-block nowrap">:map &lt;C-J&gt; &lt;Esc&gt; :downloads &lt;Enter&gt;</span> will add a mapping for pressing j while holding Shift and Control. When those keys are pressed, it will automatically trigger the Escape key, type out ":downloads" and finally trigger the Enter key. Or in other words, this will make it so that pressing Ctrl-Shift-j will open the downloads page. When adding a new mapping with this command, it will always overwrite existing mappings, but only for the exact same sequence: it's entirely possible to map an action to <kbd>j</kbd> but also a different action to <kbd>jj</kbd>.
+        The map command takes any number of arguments. Without any arguments, it lists the mappings for all modes. To also list the default mappings of Vieb, append the map command with a <kbd>!</kbd>. When a single argument is added to the map command, it will only list mappings for that specific key or sequence of keys. If more than one argument is provided, the first argument is stored separately from all the others. The first one represents the keys that you need to press to execute all the other keys provided. For example, the command <span class="command-block nowrap">:map &lt;C-J&gt; &lt;Esc&gt; :downloads &lt;Enter&gt;</span> will add a mapping for pressing j while holding Shift and Control. When those keys are pressed, it will automatically trigger the Escape key, type out ":downloads" and finally trigger the Enter key. Or in other words, this will make it so that pressing Ctrl-Shift-j will open the downloads page. When adding a new mapping with this command, it will always overwrite existing mappings.
         <h3 id=":noremap">:noremap</h3>
         Examples
         <ul>
             <li><span class="command-block">:noremap</span> - List all custom mappings for every mode</li>
             <li><span class="command-block">:noremap!</span> - List every single mapping currently available for all modes</li>
             <li><span class="command-block">:noremap j</span> - List the mappings for the <kbd>j</kbd> key in all modes</li>
-            <li><span class="command-block">:noremap &lt;A-F4&gt;</span> - List the mappings for <kbd>Alt-F4</kbd> in all modes</li>
-            <li><span class="command-block">:noremap &lt;A-F4&gt; &lt;action.toCommandMode&gt;quit&lt;action.useEnteredData&gt;</span> - Make Alt-F4 quit Vieb</li>
+            <li><span class="command-block">:noremap! &lt;d&gt;</span> - List the mappings for <kbd>d</kbd> in all modes including defaults</li>
+            <li><span class="command-block">:noremap &lt;C-Y&gt; &lt;action.toCommandMode&gt;downloads&lt;action.useEnteredData&gt;</span> - Make Ctrl-Shift-y open the downloads</li>
             <li><span class="command-block">:noremap &lt;C-h&gt; &lt;:history&gt;</span> - Make Ctrl-h open the history page</li>
             <li><span class="command-block">:noremap &lt;C-T&gt; &lt;action.reopenTab&gt;</span> - Make Ctrl-Shift-t reopen the previously closed tab</li>
             <li><span class="command-block">:noremap ??? &lt;:help&gt;</span> - When pressing three subsequent question marks, open the help page</li>
@@ -437,7 +438,7 @@
         </ul>
         With this command you can hide all window splits and return to the single page layout. It will hide all tabs/splits except for the currently focused one.
         <h2>Tab close commands</h2>
-        These are commands that can be used to close tabs. You can also close the current tab with <a href="#action.closeTab">action.closeTab</a>, but these commands offer additional options for closing others.
+        These are commands that can be used to close tabs. The regular close command without arguments is used to close the current tab.
         <h3 id=":close">:close</h3>
         Examples
         <ul>
@@ -445,7 +446,7 @@
             <li><span class="command-block">:close vieb.dev</span> - Close the first tab matching vieb.dev</li>
             <li><span class="command-block">:close 5</span> - Close the 6th tab (first tab is 0)</li>
         </ul>
-        Closes a tab. It will close the current one, if no arguments are given. If there is a single number given as an argument, it will close the tab with that index in the tabbar (starting at 0). Any other arguments are used to search for the matching tab to close. Only the first matching tab is closed.
+        Closes a tab. It will close the current one, if no arguments are given. If there is a single number given as an argument, it will close the tab with that index in the tabbar (starting at 0). Any other arguments are used to search for the matching tab to close. Only the first matching tab is closed. If closing the current tab, you will switch to the nearest opened tab. If the last tab is closed, the newtab page will (re)open as the only opened tab. Opposite of <a href="#action.reopenTab">action.reopenTab</a>. You can change which tab gets focused when calling this command for the current tab with <a href="#tabclosefocusright">tabclosefocusright</a>. If desired, you can quit Vieb when closing the last tab by enabling the <a href="#quitonlasttabclose">quitonlasttabclose</a> toggle.
         <h3 id=":lclose">:lclose</h3>
         Examples
         <ul>
@@ -703,7 +704,7 @@
         <h3 id="permissionunknown">permissionunknown</h3>
         Permission setting to either allow or block websites from requesting any permission that is not a part of any of the other categories. When set to "ask", you will get a popup to ask if you want to allow the request just this once and optionally store the setting for this session.
         <h3 id="quitonlasttabclose">quitonlasttabclose</h3>
-        Toggle for quitting Vieb automatically when the last opened tab is closed. By default this is disabled, so that when the last tab is closed a new empty tab is opened. If this toggle is enabled, Vieb will quit if the last tab is closed using <a href="#action.closeTab">action.closeTab</a>.
+        Toggle for quitting Vieb automatically when the last opened tab is closed. By default this is disabled, so that when the last tab is closed a new empty tab is opened. If this toggle is enabled, Vieb will quit if the last tab is closed using <a href="#:close">:close</a>.
         <h3 id="redirects">redirects</h3>
         With this setting you can configure automatic redirects for navigating to websites. You can configure as many redirects as you want, using a comma separated list. As with other settings of this type, you can append new entries without typing out the current value, as explained in the <a href="#:set">:set</a> command paragraph. Every comma separated entry should also contain a ~ to separate the original and the replacement. These parts are configured using regular expressions. For example, to redirect all reddit requests to old.reddit.com, run this command:
         <div class="command-block">:set redirects+=^https?://(www\.)?(reddit\.com.*)~https://old.$2</div>
@@ -762,7 +763,7 @@
         <h3 id="suspendtimeout">suspendtimeout</h3>
         Setting to automatically suspend tabs when they aren't opened for a specific amount of time. A value of 0 milliseconds will disable the timeout suspend feature. This setting can be useful to decrease the RAM usage of Vieb. Keep in mind that the page is completely unloaded when tabs are suspended. You can also suspend any background tab manually with <a href="#:suspend">:suspend</a>, regardless of the value of this setting. When this timeout is set to suspend really quickly, basically the only tabs that will be loaded are ones that are visible.
         <h3 id="tabclosefocusright">tabclosefocusright</h3>
-        Using this setting you can toggle if the tab to the right or the left should be focused when closing the current tab, by default the left. If enabled, the tab on the right will be focused instead. This setting isn't used when closing other tabs, but only when closing the current one. Also see <a href="#action.closeTab">action.closeTab</a>.
+        Using this setting you can toggle if the tab to the right or the left should be focused when closing the current tab, by default the left. If enabled, the tab on the right will be focused instead. This setting isn't used when closing other tabs, but only when closing the current one. Also see <a href="#:close">:close</a>.
         <h3 id="tabcycle">tabcycle</h3>
         This toggle indicates if the tabs should cycle from the last to the first and the other way around. If enabled, you can switch to the first tab by executing <a href="#action.nextTab">action.nextTab</a> when already at the last tab. If disabled, the next tab action will not have any effect and you will remain on the last tab. The same logic applies to calling <a href="#action.previousTab">action.previousTab</a> while already on the first tab.
         <h3 id="tabnexttocurrent">tabnexttocurrent</h3>
@@ -852,10 +853,8 @@
         Open a new tab with the newtab page, after which you will enter <a class="explore" href="#action.toExploreMode">explore mode</a> with the url of the current page pre-filled. This can be used to quickly open another page with a similar url, that is not linked on the current page. Another advantage is that this action will not use the system clipboard to copy the url.
         <h3 id="action.openFromClipboard">action.openFromClipboard</h3>
         Navigate to the page that is currently stored on the clipboard. The current tab will be used for the navigation, unless you open a new tab first (see the default mapping for that). The navigation follows the same logic as regular navigation from <a class="explore" href="#action.toExploreMode">explore mode</a>, which means that text that is not a url will be searched with the <a href="#search">search</a> setting. It's also possible to copy the url of the current page to the clipboard with <a href="#action.pageToClipboard">action.pageToClipboard</a>.
-        <h3 id="action.closeTab" countable="true">action.closeTab</h3>
-        This action closes the current tab, and switches to the nearest opened tab. If the last tab is closed, the newtab page will (re)open as the only opened tab. Opposite of <a href="#action.reopenTab">action.reopenTab</a>. You can change which tab gets focused when calling this action with <a href="#tabclosefocusright">tabclosefocusright</a>. If desired, you can quit Vieb when closing the last tab by enabling the <a href="#quitonlasttabclose">quitonlasttabclose</a> toggle.
         <h3 id="action.reopenTab" countable="true">action.reopenTab</h3>
-        Reopen a previously closed tab as a new tab. Can be toggled with <a href="#keeprecentlyclosed">keeprecentlyclosed</a>. Opposite of <a href="#action.closeTab">action.closeTab</a>. You can change the position of the reopened tab with <a href="#tabreopenposition">tabreopenposition</a>.
+        Reopen a previously closed tab as a new tab. Can be toggled with <a href="#keeprecentlyclosed">keeprecentlyclosed</a>. Opposite of <a href="#:close">:close</a>. You can change the position of the reopened tab with <a href="#tabreopenposition">tabreopenposition</a>.
         <h3 id="action.nextTab" countable="true">action.nextTab</h3>
         Navigate to the next tab (to the right) in the tabbar. You can wrap back to the first tab if <a href="#tabcycle">tabcycle</a> is enabled. Opposite of <a href="#action.previousTab">action.previousTab</a>.
         <h3 id="action.previousTab" countable="true">action.previousTab</h3>
@@ -877,11 +876,11 @@
         <h3 id="action.toLastUsedTab" countable="true">action.toLastUsedTab</h3>
         This action switches to the last focused tab and back: between the two last used tabs or splits. Previous tabs are stored as focused, if you have had them as the current tab for at least <a href="#timeoutlen">timeoutlen</a> (regardless of <a href="#timeout">timeout</a> being enabled). If you quickly switch two tabs/splits or more within timeoutlen, this action can be used to go back all the way back to the one that was actually active for a while. This same logic is what makes this work when combining split movement or tab switch actions with the number counter. For example, after quickly moving two tabs to the right, executing this action will go back to the tab two tabs to the left. If called again, it will go back to the tab two tabs to the right. This action is one of the few splitting actions that also works without multiple window splits being opened. Although countable, the action only switches between the two last used tabs or splits.
         <h2 id="splitting">Splitting</h2>
-        Vieb supports window splitting, which means you can view multiple sites next to each other. There is no technical limit to how many sites you can split, and splitting works the same as in Vim. To open a new split, see <a href="#:Vexplore">:Vexplore</a> or <a href="#:split">:split</a>. Once you have multiple windows visible, you can switch between them by switching between tabs, or using the more Vim-like window split actions, which are listed below. You may also use the <a href=":buffer">:buffer</a> command to switch directly to tabs by index or name.
-        <h3 id="action.rotateSplitWindow" countable="true">action.rotateSplitWindow</h3>
+        Vieb supports window splitting, which means you can view multiple sites next to each other. There is no technical limit to how many sites you can split, and splitting works the same as in Vim. To open a new split, see <a href="#:Vexplore">:Vexplore</a> or <a href="#:split">:split</a>. Once you have multiple windows visible, you can switch between them by switching between tabs, or using the more Vim-like window split actions, which are listed below. You may also use the <a href="#:buffer">:buffer</a> command to switch directly to tabs by index or name.
+        <h3 id="action.rotateSplitWindowForward" countable="true">action.rotateSplitWindowForward</h3>
         Rotate the windows of the current split clockwise. Unlike Vim, you can rotate splits, even if they have subsplits. Opposite of <a href="#action.rotateSplitWindowBackward">action.rotateSplitWindowBackward</a>.
         <h3 id="action.rotateSplitWindowBackward" countable="true">action.rotateSplitWindowBackward</h3>
-        Rotate the windows of the current split counter-clockwise. Unlike Vim, you can rotate splits, even if they have subsplits. Opposite of <a href="#action.rotateSplitWindow">action.rotateSplitWindow</a>.
+        Rotate the windows of the current split counter-clockwise. Unlike Vim, you can rotate splits, even if they have subsplits. Opposite of <a href="#action.rotateSplitWindowForward">action.rotateSplitWindowForward</a>.
         <h3 id="action.leftHalfSplitWindow">action.leftHalfSplitWindow</h3>
         Move the currently focused split window to the left half of the screen. This effectively moves the split to the left of a toplevel vertical split, regardless of it's current position on the screen. Similar actions for the other directions are <a href="#action.bottomHalfSplitWindow">action.bottomHalfSplitWindow</a>, <a href="#action.topHalfSplitWindow">action.topHalfSplitWindow</a> and <a href="#action.rightHalfSplitWindow">action.rightHalfSplitWindow</a>.
         <h3 id="action.bottomHalfSplitWindow">action.bottomHalfSplitWindow</h3>

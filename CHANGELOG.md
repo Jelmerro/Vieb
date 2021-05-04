@@ -18,6 +18,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "suggestorder" that merges all explore mode related settings into one, with additional functionality
 - The "suggestorder" is a list-like setting that accepts different suggestion types, with optional count and sort order arguments
 - Suggestions for searchwords using the new "suggestorder" setting by default
+- Default mapping for quitting Vieb with `<A-F4>` which doubles as the mapping that gets executed for other close requests
 
 ### Changed
 
@@ -28,12 +29,14 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Word separator keybindings in the navbar wll now detect separators for non-latin scriptures using a whitelist of separators
 - Default value of "permissionmediadevices" and "permissionnotifications" from "ask" to "block" to reduce the amount of popups
 - Startup arguments now accept values separated by `=` instead of spaces or no value at all
+- Renamed "rotateSplitWindow" to "rotateSplitWindowForward" to be more consistent with the recently introduced "Backward" variant
 
 ### Removed
 
 - Setting "suggestfiles" in favor of the new "suggestorder" setting
 - Setting "suggestfilesfirst" in favor of the new "suggestorder" setting
 - Setting "suggestexplore" in favor of the new "suggestorder" setting
+- Action "closeTab" in favor of the ":close" command
 
 ### Fixed
 
