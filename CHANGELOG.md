@@ -33,6 +33,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Startup arguments now accept values separated by `=` instead of spaces or no value at all
 - Renamed "rotateSplitWindow" to "rotateSplitWindowForward" to be more consistent with the recently introduced "Backward" variant
 - Calling action "menuOpen" from navbar input modes now opens the context menu of the navbar
+- Don't load regular tabs on startup, but suspend them (they are not loaded until you switch to them)
 
 ### Removed
 

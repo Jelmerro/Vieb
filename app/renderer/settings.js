@@ -127,7 +127,7 @@ const defaultSettings = {
     "suggestcommands": 9000000000000000,
     "suggestorder": "history,searchword,file",
     "suggesttopsites": 10,
-    "suspendonrestore": "none",
+    "suspendonrestore": "regular",
     "suspendtimeout": 0,
     "tabclosefocusright": false,
     "tabcycle": true,

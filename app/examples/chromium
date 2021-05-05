@@ -12,6 +12,7 @@ set permissionpersistentstorage=allow
 set redirecttohttp
 set search=https://google.com/search?q=
 set splitright
+set suspendonrestore=none
 set tabreopenposition=previous
 set windowtitle=title
 

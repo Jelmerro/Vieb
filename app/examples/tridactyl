@@ -7,7 +7,6 @@ set norestoretabs
 set redirecttohttp
 set noshowcmd
 set noincsearch
-set suspendonrestore=regular
 set tabreopenposition=previous
 set closablepinnedtabs
 set windowtitle=title
@@ -68,4 +67,3 @@ nmap zO 7<action.zoomOut>
 nmap <A-S-Up><A-S-Up><A-S-Down><A-S-Down><A-S-Left><A-S-Right><A-S-Left><A-S-Right>ba <action.toExploreMode>https://www.youtube.com/watch?v=M3iOROuTuMA<CR>
 
 " vim: ft=vim
-

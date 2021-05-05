@@ -13,7 +13,6 @@ set permissionmicrophone=ask
 set permissionpersistentstorage=allow
 set redirecttohttp
 set splitbelow
-set suspendonrestore=regular
 set tabclosefocusright
 set tabreopenposition=previous
 set windowtitle=title
