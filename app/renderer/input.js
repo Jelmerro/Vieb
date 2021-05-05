@@ -268,6 +268,7 @@ const defaultBindings = {
         "<C-l>": {"mapping": "<pointer.moveSlowRight>"},
         "M": {"mapping": "<pointer.centerOfView>"},
         "<C-m>": {"mapping": "<action.menuOpen>"},
+        "o": {"mapping": "<pointer.swapPosition>"},
         "r": {"mapping": "<pointer.rightClick>"},
         "<C-u>": {"mapping": "<pointer.moveFastUp>"},
         "w": {"mapping": "<pointer.moveFastRight>"},
