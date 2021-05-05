@@ -195,6 +195,7 @@ const defaultBindings = {
         "<F11>": {"mapping": "<action.toggleFullscreen>"},
         "<Tab>": {"mapping": "<action.reorderFollowLinks>"},
         "<Esc>": {"mapping": "<action.stopFollowMode>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
         "<C-[>": {"mapping": "<action.stopFollowMode>"},
         "<A-F4>": {"mapping": "<:quitall>"}
     },
@@ -266,6 +267,7 @@ const defaultBindings = {
         "L": {"mapping": "<pointer.endOfView>"},
         "<C-l>": {"mapping": "<pointer.moveSlowRight>"},
         "M": {"mapping": "<pointer.centerOfView>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
         "r": {"mapping": "<pointer.rightClick>"},
         "<C-u>": {"mapping": "<pointer.moveFastUp>"},
         "w": {"mapping": "<pointer.moveFastRight>"},
@@ -283,6 +285,7 @@ const defaultBindings = {
         "<Down>": {"mapping": "<action.menuDown>"},
         "<CR>": {"mapping": "<action.menuSelect>"},
         "<Esc>": {"mapping": "<action.menuClose>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
         "<C-n>": {"mapping": "<action.menuDown>"},
         "<C-p>": {"mapping": "<action.menuUp>"},
         "<C-[>": {"mapping": "<action.menuClose>"},
