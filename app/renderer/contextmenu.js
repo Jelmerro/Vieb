@@ -286,6 +286,21 @@ const webviewMenu = options => {
             "title": "In new tab", "action": () => addTab({"url": options.img})
         })
         createMenuItem({
+            "title": "Copy link",
+            "action": () => clipboard.writeText(options.img)
+        })
+        if (options.imgData) {
+            createMenuItem({
+                "title": "Copy image",
+                "action": () => {
+                    clipboard.clear()
+                    const {nativeImage} = require("electron")
+                    const image = nativeImage.createFromDataURL(options.imgData)
+                    clipboard.writeImage(image)
+                }
+            })
+        }
+        createMenuItem({
             "title": "Download",
             "action": () => currentPage().downloadURL(options.img)
         })
@@ -300,6 +315,10 @@ const webviewMenu = options => {
             "action": () => addTab({"url": options.video})
         })
         createMenuItem({
+            "title": "Copy link",
+            "action": () => clipboard.writeText(options.video)
+        })
+        createMenuItem({
             "title": "Download",
             "action": () => currentPage().downloadURL(options.video)
         })
@@ -312,6 +331,10 @@ const webviewMenu = options => {
         createMenuItem({
             "title": "In new tab",
             "action": () => addTab({"url": options.audio})
+        })
+        createMenuItem({
+            "title": "Copy link",
+            "action": () => clipboard.writeText(options.audio)
         })
         createMenuItem({
             "title": "Download",

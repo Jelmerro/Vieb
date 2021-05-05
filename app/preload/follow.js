@@ -349,6 +349,18 @@ ipcRenderer.on("replace-input-field", (_, value, position) => {
     }
 })
 
+const getImageData = img => {
+    try {
+        const canvas = document.createElement("canvas")
+        canvas.width = img.naturalWidth
+        canvas.height = img.naturalHeight
+        canvas.getContext("2d").drawImage(img, 0, 0)
+        return canvas.toDataURL("image/png")
+    } catch (_) {
+        return null
+    }
+}
+
 const contextListener = (e, frame = null) => {
     if (e.isTrusted && !inFollowMode && e.button === 2) {
         e.preventDefault?.()
@@ -364,6 +376,7 @@ const contextListener = (e, frame = null) => {
             "x": e.x + (paddingInfo?.x || 0),
             "y": e.y + (paddingInfo?.y || 0),
             "img": img?.src?.trim(),
+            "imgData": img?.src?.trim() && getImageData(img),
             "video": vid?.src?.trim()
                 || vid?.querySelector("source[type^=video]")?.src?.trim(),
             "audio": audio?.src?.trim()
