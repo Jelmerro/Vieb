@@ -304,13 +304,10 @@ let inputHistoryList = [{"value": "", "index": 0}]
 let inputHistoryIndex = 0
 
 const init = () => {
-    const {ipcRenderer} = require("electron")
-    const {clear, viebMenu} = require("./contextmenu")
     window.addEventListener("keydown", handleKeyboard)
     window.addEventListener("keypress", e => e.preventDefault())
     window.addEventListener("keyup", e => e.preventDefault())
     window.addEventListener("click", e => {
-        e.preventDefault()
         if (e.button === 2) {
             if (document.getElementById("context-menu").innerText) {
                 return
@@ -318,18 +315,9 @@ const init = () => {
         } else if (e.path.find(el => el.matches?.("#context-menu"))) {
             return
         }
+        const {clear} = require("./contextmenu")
         clear()
         if (e.target.classList.contains("no-focus-reset")) {
-            return
-        }
-        ACTIONS.setFocusCorrectly()
-    })
-    window.addEventListener("mouseup", e => {
-        if (e.button === 2) {
-            if (document.getElementById("context-menu").innerText) {
-                return
-            }
-        } else if (e.path.find(el => el.matches?.("#context-menu"))) {
             return
         }
         if (getSetting("mouse")) {
@@ -372,12 +360,14 @@ const init = () => {
     window.addEventListener("contextmenu", e => {
         e.preventDefault()
         if (getSetting("mouse")) {
+            const {viebMenu} = require("./contextmenu")
             viebMenu(e)
         } else {
             ACTIONS.setFocusCorrectly()
         }
     })
     window.addEventListener("resize", () => {
+        const {clear} = require("./contextmenu")
         clear()
         const {applyLayout} = require("./pagelayout")
         applyLayout()
@@ -385,6 +375,7 @@ const init = () => {
             POINTER.updateElement()
         }
     })
+    const {ipcRenderer} = require("electron")
     ipcRenderer.on("insert-mode-input-event", (_, input) => {
         if (input.code === "Tab") {
             currentPage().focus()

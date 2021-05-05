@@ -47,6 +47,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Tempfile for the vimcommand not working on mac due to spaces in filename
 - Spellcheck languages not working correctly when using multiple containers
 - Navbar input position not following the caret when text is longer than the input box
+- Maximizing the window with double-click that could also incorrectly switch to a tab that happens to be at the second click location
 
 ### Security
 
