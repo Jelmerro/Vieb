@@ -357,7 +357,8 @@ const getImageData = img => {
         canvas.getContext("2d").drawImage(img, 0, 0)
         return canvas.toDataURL("image/png")
     } catch (_) {
-        return null
+        return `data:image/svg+xml,${encodeURIComponent(img.outerHTML)
+            .replace(/'/g, "%27").replace(/"/g, "%22")}`
     }
 }
 
@@ -376,7 +377,7 @@ const contextListener = (e, frame = null) => {
             "x": e.x + (paddingInfo?.x || 0),
             "y": e.y + (paddingInfo?.y || 0),
             "img": img?.src?.trim(),
-            "imgData": img?.src?.trim() && getImageData(img),
+            "imgData": img && getImageData(img),
             "video": vid?.src?.trim()
                 || vid?.querySelector("source[type^=video]")?.src?.trim(),
             "audio": audio?.src?.trim()

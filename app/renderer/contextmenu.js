@@ -277,8 +277,10 @@ const webviewMenu = options => {
             })
         }
     }
-    if (options.img) {
+    if (options.img || options.imgData) {
         createMenuGroup("Image")
+    }
+    if (options.img) {
         createMenuItem({
             "title": "Navigate", "action": () => navigateTo(options.img)
         })
@@ -289,17 +291,33 @@ const webviewMenu = options => {
             "title": "Copy link",
             "action": () => clipboard.writeText(options.img)
         })
-        if (options.imgData) {
-            createMenuItem({
-                "title": "Copy image",
-                "action": () => {
-                    clipboard.clear()
-                    const {nativeImage} = require("electron")
-                    const image = nativeImage.createFromDataURL(options.imgData)
+    }
+    if (options.imgData) {
+        createMenuItem({
+            "title": "Copy image",
+            "action": () => {
+                clipboard.clear()
+                const {nativeImage} = require("electron")
+                const image = nativeImage.createFromDataURL(options.imgData)
+                if (image.isEmpty()) {
+                    // Retry a final image copy method, also handles SVG images
+                    const el = document.createElement("img")
+                    const canvas = document.createElement("canvas")
+                    el.onload = () => {
+                        canvas.width = el.naturalWidth
+                        canvas.height = el.naturalHeight
+                        canvas.getContext("2d").drawImage(el, 0, 0)
+                        clipboard.writeImage(nativeImage.createFromDataURL(
+                            canvas.toDataURL("image/png")))
+                    }
+                    el.src = options.imgData
+                } else {
                     clipboard.writeImage(image)
                 }
-            })
-        }
+            }
+        })
+    }
+    if (options.img) {
         createMenuItem({
             "title": "Download",
             "action": () => currentPage().downloadURL(options.img)

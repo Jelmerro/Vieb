@@ -19,7 +19,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - The "suggestorder" is a list-like setting that accepts different suggestion types, with optional count and sort order arguments
 - Suggestions for searchwords using the new "suggestorder" setting by default
 - Default mapping for quitting Vieb with `<A-F4>` which doubles as the mapping that gets executed for other close requests
-- Copy link and copy image options in the context menu
+- Copy link option for audio, video and images in the context menu
+- Copy image option for images and svg elements in the context menu
 
 ### Changed
 
