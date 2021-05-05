@@ -347,7 +347,7 @@ const exploreHistoryNext = () => {
 
 const rotateSplitWindowForward = () => {
     const {rotateForward} = require("./pagelayout")
-    rotate()
+    rotateForward()
 }
 
 const rotateSplitWindowBackward = () => {
