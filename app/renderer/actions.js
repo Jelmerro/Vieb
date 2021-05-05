@@ -489,6 +489,16 @@ const reorderFollowLinks = () => {
 const menuOpen = () => {
     if (currentMode() === "insert") {
         currentPage()?.send("contextmenu")
+    } else if ("sec".includes(currentMode()[0])) {
+        const url = document.getElementById("url")
+        const bounds = url.getBoundingClientRect()
+        const charWidth = getSetting("fontsize") * 0.6
+        const {viebMenu} = require("./contextmenu")
+        viebMenu({
+            "path": [url],
+            "x": bounds.x + charWidth * url.selectionStart - url.scrollLeft,
+            "y": bounds.y + bounds.height
+        })
     } else {
         const {rightClick} = require("./pointer")
         rightClick()

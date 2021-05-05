@@ -30,6 +30,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Default value of "permissionmediadevices" and "permissionnotifications" from "ask" to "block" to reduce the amount of popups
 - Startup arguments now accept values separated by `=` instead of spaces or no value at all
 - Renamed "rotateSplitWindow" to "rotateSplitWindowForward" to be more consistent with the recently introduced "Backward" variant
+- Calling action "menuOpen" from navbar input modes now opens the context menu of the navbar
 
 ### Removed
 
@@ -42,6 +43,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Tempfile for the vimcommand not working on mac due to spaces in filename
 - Spellcheck languages not working correctly when using multiple containers
+- Navbar input position not following the caret when text is longer than the input box
 
 ### Security
 

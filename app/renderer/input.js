@@ -61,6 +61,7 @@ const defaultBindings = {
         "L": {"mapping": "<action.forwardInHistory>"},
         "n": {"mapping": "<action.nextSearchMatch>"},
         "N": {"mapping": "<action.previousSearchMatch>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
         "<C-o>": {"mapping": "<action.backInHistory>"},
         "p": {"mapping": "<action.openFromClipboard>"},
         "P": {"mapping": "<action.openNewTab><action.openFromClipboard>"},
@@ -161,6 +162,7 @@ const defaultBindings = {
         "<Esc>": {"mapping": "<action.toNormalMode>"},
         "<Tab>": {"mapping": "<action.nextSuggestion>"},
         "<S-Tab>": {"mapping": "<action.prevSuggestion>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
         "<C-n>": {"mapping": "<action.commandHistoryNext>"},
         "<C-p>": {"mapping": "<action.commandHistoryPrevious>"},
         "<C-[>": {"mapping": "<action.toNormalMode>"},
@@ -171,6 +173,7 @@ const defaultBindings = {
         "<F1>": {"mapping": "<:help>"},
         "<F11>": {"mapping": "<action.toggleFullscreen>"},
         "<Esc>": {"mapping": "<action.toNormalMode>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
         "<C-[>": {"mapping": "<action.toNormalMode>"},
         "<A-F4>": {"mapping": "<:quitall>"}
     },
@@ -181,6 +184,7 @@ const defaultBindings = {
         "<Esc>": {"mapping": "<action.toNormalMode>"},
         "<Tab>": {"mapping": "<action.nextSuggestion>"},
         "<S-Tab>": {"mapping": "<action.prevSuggestion>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
         "<C-n>": {"mapping": "<action.exploreHistoryNext>"},
         "<C-p>": {"mapping": "<action.exploreHistoryPrevious>"},
         "<C-[>": {"mapping": "<action.toNormalMode>"},
@@ -223,6 +227,7 @@ const defaultBindings = {
         "L": {"mapping": "<pointer.endOfView>"},
         "<C-l>": {"mapping": "<pointer.moveSlowRight>"},
         "M": {"mapping": "<pointer.centerOfView>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
         "r": {"mapping": "<pointer.rightClick>"},
         "<C-u>": {"mapping": "<pointer.moveFastUp>"},
         "v": {"mapping": "<pointer.startVisualSelect>"},
@@ -832,6 +837,27 @@ const handleKeyboard = async e => {
 const keyForOs = (regular, mac, key) => regular.includes(key)
     || process.platform === "darwin" && mac.includes(key)
 
+const updateNavbarScrolling = () => {
+    const url = document.getElementById("url")
+    const charWidth = getSetting("fontsize") * 0.6
+    const end = url.selectionStart * charWidth - charWidth
+    const start = url.selectionEnd * charWidth - url.clientWidth + charWidth + 2
+    if (url.scrollLeft < end && url.scrollLeft > start) {
+        return
+    }
+    if (url.selectionStart === url.selectionEnd) {
+        if (url.scrollLeft > start) {
+            url.scrollLeft = end
+        } else if (url.scrollLeft < end) {
+            url.scrollLeft = start
+        }
+    } else if (url.selectionDirection === "backward") {
+        url.scrollLeft = end
+    } else {
+        url.scrollLeft = start
+    }
+}
+
 const typeCharacterIntoNavbar = id => {
     if (!"ces".includes(currentMode()[0])) {
         return
@@ -842,21 +868,25 @@ const typeCharacterIntoNavbar = id => {
             url.selectionEnd = url.selectionStart
         }
         url.setSelectionRange(0, url.selectionEnd, "backward")
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<Home>", "<C-Home>"], ["<M-Left>", "<M-Up>"], id)) {
         url.setSelectionRange(0, 0)
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<S-End>", "<C-S-End>"], ["<M-S-Right>", "<M-S-Down>"], id)) {
         if (url.selectionDirection === "backward") {
             url.selectionStart = url.selectionEnd
         }
-        url.setSelectionRange(url.selectionEnd, url.value.length)
+        url.setSelectionRange(url.selectionStart, url.value.length)
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<End>", "<C-End>"], ["<M-Right>", "<M-Down>"], id)) {
         url.setSelectionRange(url.value.length, url.value.length)
+        updateNavbarScrolling()
         return
     }
     if (id === "<Right>") {
@@ -869,6 +899,7 @@ const typeCharacterIntoNavbar = id => {
             url.selectionEnd += 1
         }
         url.selectionStart = url.selectionEnd
+        updateNavbarScrolling()
         return
     }
     if (id === "<S-Right>") {
@@ -881,6 +912,7 @@ const typeCharacterIntoNavbar = id => {
         } else if (url.selectionStart < url.value.length) {
             url.selectionStart += 1
         }
+        updateNavbarScrolling()
         return
     }
     const wordRegex = specialChars.source.replace("[", "[^")
@@ -899,6 +931,7 @@ const typeCharacterIntoNavbar = id => {
                 break
             }
         }
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-S-Right>"], ["<A-S-Right>"], id)) {
@@ -914,6 +947,7 @@ const typeCharacterIntoNavbar = id => {
                 } else {
                     url.setSelectionRange(url.selectionStart, wordPosition)
                 }
+                updateNavbarScrolling()
                 return
             }
         }
@@ -929,6 +963,7 @@ const typeCharacterIntoNavbar = id => {
             url.selectionStart -= 1
         }
         url.selectionEnd = url.selectionStart
+        updateNavbarScrolling()
         return
     }
     if (id === "<S-Left>") {
@@ -942,6 +977,7 @@ const typeCharacterIntoNavbar = id => {
         } else if (url.selectionEnd > 0) {
             url.selectionEnd -= 1
         }
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-Left>"], ["<A-Left>"], id)) {
@@ -953,6 +989,7 @@ const typeCharacterIntoNavbar = id => {
                 break
             }
         }
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-S-Left>"], ["<A-S-Left>"], id)) {
@@ -974,6 +1011,7 @@ const typeCharacterIntoNavbar = id => {
                     }
                     url.setSelectionRange(url.selectionStart, wordPosition)
                 }
+                updateNavbarScrolling()
                 return
             }
         }
@@ -981,11 +1019,13 @@ const typeCharacterIntoNavbar = id => {
     }
     if (keyForOs(["<C-a>"], ["<M-a>"], id)) {
         url.setSelectionRange(0, url.value.length)
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-x>"], ["<M-x>"], id)) {
         document.execCommand("cut")
         updateSuggestions()
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-c>"], ["<M-c>"], id)) {
@@ -995,6 +1035,7 @@ const typeCharacterIntoNavbar = id => {
     if (keyForOs(["<C-v>"], ["<M-v>"], id)) {
         document.execCommand("paste")
         updateSuggestions()
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-z>"], ["<M-z>"], id)) {
@@ -1005,6 +1046,7 @@ const typeCharacterIntoNavbar = id => {
             url.setSelectionRange(histEntry.index, histEntry.index)
             updateSuggestions(false)
         }
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-y>"], ["<M-Z>"], id)) {
@@ -1015,6 +1057,7 @@ const typeCharacterIntoNavbar = id => {
             url.setSelectionRange(histEntry.index, histEntry.index)
             updateSuggestions(false)
         }
+        updateNavbarScrolling()
         return
     }
     if (url.selectionStart !== url.selectionEnd) {
@@ -1032,6 +1075,7 @@ const typeCharacterIntoNavbar = id => {
             + url.value.substr(url.selectionEnd)
         url.setSelectionRange(cur, cur)
         updateSuggestions()
+        updateNavbarScrolling()
         if (id === "<Del>" || id.endsWith("-Del>")) {
             return
         }
@@ -1046,6 +1090,7 @@ const typeCharacterIntoNavbar = id => {
                 url.value.substr(url.selectionEnd + 1)}`
             url.setSelectionRange(cur, cur)
             updateSuggestions()
+            updateNavbarScrolling()
         }
         return
     }
@@ -1059,6 +1104,7 @@ const typeCharacterIntoNavbar = id => {
                     url.value.substr(wordPosition)}`
                 url.setSelectionRange(cur, cur)
                 updateSuggestions()
+                updateNavbarScrolling()
                 return
             }
         }
@@ -1071,6 +1117,7 @@ const typeCharacterIntoNavbar = id => {
                 url.value.substr(url.selectionEnd)}`
             url.setSelectionRange(cur - 1, cur - 1)
             updateSuggestions()
+            updateNavbarScrolling()
         }
         return
     }
@@ -1083,6 +1130,7 @@ const typeCharacterIntoNavbar = id => {
                     url.value.substr(url.selectionStart)}`
                 url.setSelectionRange(wordPosition, wordPosition)
                 updateSuggestions()
+                updateNavbarScrolling()
                 return
             }
         }
@@ -1113,6 +1161,7 @@ const typeCharacterIntoNavbar = id => {
     if (text !== url.value) {
         url.setSelectionRange(cur + 1, cur + 1)
         updateSuggestions()
+        updateNavbarScrolling()
     }
 }
 

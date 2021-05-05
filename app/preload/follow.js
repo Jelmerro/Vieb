@@ -381,12 +381,22 @@ const contextListener = (e, frame = null) => {
     }
 }
 ipcRenderer.on("contextmenu", () => {
-    const active = activeElement()
-    const parsed = parseElement(active)
-    const x = parsed?.x || 0
-    const y = parsed?.y || 0
-    contextListener({"isTrusted": true, "button": 2, "path": [active], x, y},
-        findFrameInfo(active)?.element)
+    const el = activeElement()
+    const parsed = parseElement(el)
+    let x = parsed?.x || 0
+    if (getComputedStyle(el).font.includes("monospace")) {
+        x = parsed?.x + Number(getComputedStyle(el).fontSize
+            .replace("px", "")) * el.selectionStart * 0.6 - el.scrollLeft
+    }
+    let y = parsed?.y + parsed.height
+    if (x > window.innerWidth || isNaN(x) || x === 0) {
+        x = parsed?.x || 0
+    }
+    if (y > window.innerHeight) {
+        y = parsed?.y || 0
+    }
+    contextListener({"isTrusted": true, "button": 2, "path": [el], x, y},
+        findFrameInfo(el)?.element)
 })
 window.addEventListener("auxclick", contextListener)
 
