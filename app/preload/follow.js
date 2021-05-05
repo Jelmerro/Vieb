@@ -349,18 +349,8 @@ ipcRenderer.on("replace-input-field", (_, value, position) => {
     }
 })
 
-const getImageData = img => {
-    try {
-        const canvas = document.createElement("canvas")
-        canvas.width = img.naturalWidth
-        canvas.height = img.naturalHeight
-        canvas.getContext("2d").drawImage(img, 0, 0)
-        return canvas.toDataURL("image/png")
-    } catch (_) {
-        return `data:image/svg+xml,${encodeURIComponent(img.outerHTML)
-            .replace(/'/g, "%27").replace(/"/g, "%22")}`
-    }
-}
+const getSvgData = el => `data:image/svg+xml,${encodeURIComponent(el.outerHTML)
+    .replace(/'/g, "%27").replace(/"/g, "%22")}`
 
 const contextListener = (e, frame = null) => {
     if (e.isTrusted && !inFollowMode && e.button === 2) {
@@ -377,7 +367,7 @@ const contextListener = (e, frame = null) => {
             "x": e.x + (paddingInfo?.x || 0),
             "y": e.y + (paddingInfo?.y || 0),
             "img": img?.src?.trim(),
-            "imgData": img && getImageData(img),
+            "svgData": img && getSvgData(img),
             "video": vid?.src?.trim()
                 || vid?.querySelector("source[type^=video]")?.src?.trim(),
             "audio": audio?.src?.trim()
