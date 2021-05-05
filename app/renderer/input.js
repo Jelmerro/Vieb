@@ -307,12 +307,19 @@ const init = () => {
     window.addEventListener("keydown", handleKeyboard)
     window.addEventListener("keypress", e => e.preventDefault())
     window.addEventListener("keyup", e => e.preventDefault())
-    window.addEventListener("click", e => {
-        if (e.button === 2) {
-            if (document.getElementById("context-menu").innerText) {
-                return
+    window.addEventListener("mouseup", e => {
+        if (e.button === 1) {
+            const tab = e.path.find(el => listTabs().includes(el))
+            if (tab) {
+                const {closeTab} = require("./tabs")
+                closeTab(listTabs().indexOf(tab))
             }
-        } else if (e.path.find(el => el.matches?.("#context-menu"))) {
+            const {clear} = require("./contextmenu")
+            clear()
+        }
+    })
+    window.addEventListener("click", e => {
+        if (e.path.find(el => el.matches?.("#context-menu"))) {
             return
         }
         const {clear} = require("./contextmenu")
@@ -331,12 +338,8 @@ const init = () => {
             const tab = e.path.find(el => listTabs().includes(el))
             if (tab) {
                 clear()
-                const {closeTab, switchToTab} = require("./tabs")
-                if (e.button === 1) {
-                    closeTab(listTabs().indexOf(tab))
-                } else {
-                    switchToTab(listTabs().indexOf(tab))
-                }
+                const {switchToTab} = require("./tabs")
+                switchToTab(listTabs().indexOf(tab))
             }
         } else {
             e.preventDefault()
