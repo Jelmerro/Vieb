@@ -837,7 +837,7 @@ const keyForOs = (regular, mac, key) => regular.includes(key)
 
 const updateNavbarScrolling = () => {
     const url = document.getElementById("url")
-    const charWidth = getSetting("fontsize") * 0.6
+    const charWidth = getSetting("fontsize") * 0.6018887
     const end = url.selectionStart * charWidth - charWidth
     const start = url.selectionEnd * charWidth - url.clientWidth + charWidth + 2
     if (url.scrollLeft < end && url.scrollLeft > start) {

@@ -277,22 +277,26 @@ const webviewMenu = options => {
             })
         }
     }
-    if (options.img || options.svgData) {
+    if (options.img || options.backgroundImg || options.svgData) {
         createMenuGroup("Image")
     }
-    if (options.img) {
+    if (options.img || options.backgroundImg) {
         createMenuItem({
-            "title": "Navigate", "action": () => navigateTo(options.img)
+            "title": "Navigate",
+            "action": () => navigateTo(options.img || options.backgroundImg)
         })
         createMenuItem({
-            "title": "In new tab", "action": () => addTab({"url": options.img})
+            "title": "In new tab",
+            "action": () => addTab(
+                {"url": options.img || options.backgroundImg})
         })
         createMenuItem({
             "title": "Copy link",
-            "action": () => clipboard.writeText(options.img)
+            "action": () => clipboard.writeText(
+                options.img || options.backgroundImg)
         })
     }
-    if (options.img || options.svgData) {
+    if (options.img || options.backgroundImg || options.svgData) {
         createMenuItem({
             "title": "Copy image",
             "action": () => {
@@ -307,14 +311,13 @@ const webviewMenu = options => {
                     clipboard.writeImage(nativeImage.createFromDataURL(
                         canvas.toDataURL("image/png")))
                 }
-                el.src = options.img || options.svgData
+                el.src = options.img || options.backgroundImg || options.svgData
             }
         })
-    }
-    if (options.img) {
         createMenuItem({
             "title": "Download",
-            "action": () => currentPage().downloadURL(options.img)
+            "action": () => currentPage().downloadURL(
+                options.img || options.backgroundImg || options.svgData)
         })
     }
     if (options.video) {

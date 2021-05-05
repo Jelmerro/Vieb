@@ -358,6 +358,21 @@ const contextListener = (e, frame = null) => {
         const paddingInfo = findFrameInfo(frame)
         const img = e.path.find(el => ["svg", "img"]
             .includes(el.tagName?.toLowerCase()))
+        const backgroundImg = e.path.map(el => {
+            try {
+                let url = getComputedStyle(el).backgroundImage.slice(4, -1)
+                if (url.startsWith("\"") || url.startsWith("'")) {
+                    url = url.slice(1)
+                }
+                if (url.endsWith("\"") || url.endsWith("'")) {
+                    url = url.slice(0, -1)
+                }
+                return url
+            } catch (_) {
+                // Window and top-level nodes don't support getComputedStyle
+            }
+            return null
+        }).find(url => url)
         const vid = e.path.find(el => el.tagName?.toLowerCase() === "video")
         const audio = e.path.find(el => el.tagName?.toLowerCase() === "audio")
         const link = e.path.find(el => el.tagName?.toLowerCase() === "a"
@@ -367,6 +382,7 @@ const contextListener = (e, frame = null) => {
             "x": e.x + (paddingInfo?.x || 0),
             "y": e.y + (paddingInfo?.y || 0),
             "img": img?.src?.trim(),
+            backgroundImg,
             "svgData": img && getSvgData(img),
             "video": vid?.src?.trim()
                 || vid?.querySelector("source[type^=video]")?.src?.trim(),

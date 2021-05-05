@@ -20,7 +20,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Suggestions for searchwords using the new "suggestorder" setting by default
 - Default mapping for quitting Vieb with `<A-F4>` which doubles as the mapping that gets executed for other close requests
 - Copy link option for audio, video and images in the context menu
-- Copy image option for images and svg elements in the context menu
+- Copy image option for images, background images and svg elements in the context menu (they are categorized as images in that order)
 - Pointer action "swapPosition" to switch the current pointer location with the start location of the visual selection
 
 ### Changed
