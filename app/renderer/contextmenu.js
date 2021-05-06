@@ -45,9 +45,11 @@ const viebMenu = options => {
             }
         })
         if (document.getElementById("url").value.trim().length) {
-            createMenuItem({
-                "title": "Go", "action": () => useEnteredData()
-            })
+            if ("sec".includes(currentMode()[0])) {
+                createMenuItem({
+                    "title": "Go", "action": () => useEnteredData()
+                })
+            }
         }
         if (getSelection().toString().trim()) {
             createMenuItem({

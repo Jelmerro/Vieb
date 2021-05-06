@@ -579,13 +579,12 @@ const switchToTab = index => {
 }
 
 const updateUrl = (webview, force = false) => {
-    const skip = ["command", "search", "explore"]
     if (webview !== currentPage() || !currentPage()) {
         return
     }
     const {updateWindowTitle} = require("./settings")
     updateWindowTitle()
-    if (!force && skip.includes(currentMode())) {
+    if (!force && "sec".includes(currentMode()[0])) {
         return
     }
     document.getElementById("url").value = urlToString(currentPage().src)

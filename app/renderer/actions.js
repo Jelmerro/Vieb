@@ -561,7 +561,7 @@ const setFocusCorrectly = () => {
         if (!document.getElementById("context-menu").innerText) {
             currentPage()?.click()
         }
-    } else if (["search", "explore", "command"].includes(currentMode())) {
+    } else if ("sec".includes(currentMode()[0])) {
         if (document.activeElement !== urlElement) {
             window.focus()
             urlElement.focus()

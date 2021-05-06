@@ -308,15 +308,27 @@ const init = () => {
     window.addEventListener("keydown", handleKeyboard)
     window.addEventListener("keypress", e => e.preventDefault())
     window.addEventListener("keyup", e => e.preventDefault())
+    window.addEventListener("mousedown", e => {
+        if (e.button === 1) {
+            e.preventDefault()
+        }
+    })
     window.addEventListener("mouseup", e => {
         if (e.button === 1) {
-            const tab = e.path.find(el => listTabs().includes(el))
-            if (tab) {
-                const {closeTab} = require("./tabs")
-                closeTab(listTabs().indexOf(tab))
+            if (getSetting("mouse")) {
+                if (e.target === document.getElementById("url")) {
+                    ACTIONS.toExploreMode()
+                    return
+                }
+                const tab = e.path.find(el => listTabs().includes(el))
+                if (tab) {
+                    const {closeTab} = require("./tabs")
+                    closeTab(listTabs().indexOf(tab))
+                }
+                const {clear} = require("./contextmenu")
+                clear()
             }
-            const {clear} = require("./contextmenu")
-            clear()
+            e.preventDefault()
         }
     })
     window.addEventListener("click", e => {
@@ -330,10 +342,10 @@ const init = () => {
         }
         if (getSetting("mouse")) {
             if (e.target === document.getElementById("url")) {
-                if (!["explore", "command"].includes(currentMode())) {
+                if (!"sec".includes(currentMode()[0])) {
                     ACTIONS.toExploreMode()
                 }
-            } else if (["explore", "command"].includes(currentMode())) {
+            } else if ("sec".includes(currentMode()[0])) {
                 ACTIONS.toNormalMode()
             }
             const tab = e.path.find(el => listTabs().includes(el))
