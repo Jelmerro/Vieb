@@ -492,7 +492,7 @@ const menuOpen = () => {
     } else if ("sec".includes(currentMode()[0])) {
         const url = document.getElementById("url")
         const bounds = url.getBoundingClientRect()
-        const charWidth = getSetting("fontsize") * 0.6018887
+        const charWidth = getSetting("fontsize") * 0.60191
         const {viebMenu} = require("./contextmenu")
         viebMenu({
             "path": [url],

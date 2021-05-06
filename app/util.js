@@ -36,10 +36,11 @@ let homeDirPath = ""
 const framePaddingInfo = []
 const frameSelector = "embed, frame, iframe, object"
 const specialChars = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/\s]/gi
-
+const dataUris = ["data", "javascript", "magnet", "mailto", "view-source", "ws"]
 const getSetting = val => JSON.parse(sessionStorage.getItem("settings"))?.[val]
 
-const hasProtocol = location => protocolRegex.test(location)
+const hasProtocol = loc => protocolRegex.test(loc)
+    || dataUris.find(d => loc.startsWith(`${d}:`))
 
 const isUrl = location => {
     if (hasProtocol(location)) {

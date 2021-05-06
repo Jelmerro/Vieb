@@ -201,7 +201,7 @@ const parseAndDisplayLinks = newLinks => {
         const linkElement = document.createElement("span")
         linkElement.textContent = numberToKeys(index, links.length)
         linkElement.className = `follow-${link.type}`
-        const charWidth = getSetting("fontsize") * 0.6018887
+        const charWidth = getSetting("fontsize") * 0.60191
         const borderRightMargin = charWidth * linkElement.textContent.length
             + getSetting("fontsize") * .5
         let left = (link.x + link.width) * factor
