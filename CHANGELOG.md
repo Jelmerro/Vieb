@@ -35,7 +35,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Renamed "rotateSplitWindow" to "rotateSplitWindowForward" to be more consistent with the recently introduced "Backward" variant
 - Calling action "menuOpen" from navbar input modes now opens the context menu of the navbar
 - Don't load regular tabs on startup, but suspend them (they are not loaded until you switch to them)
-- Some common URI schemes are now recognized as links wiht a simple prefix check
+- Some common URI schemes are now recognized as links using a simple prefix check
 
 ### Removed
 
@@ -43,6 +43,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "suggestfilesfirst" in favor of the new "suggestorder" setting
 - Setting "suggestexplore" in favor of the new "suggestorder" setting
 - Action "closeTab" in favor of the ":close" command
+- Broken FreeBSD build target, it's not supported by Electron or Electron Builder
 
 ### Fixed
 

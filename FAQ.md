@@ -59,6 +59,7 @@ For a list of features, see the [homepage](https://vieb.dev/features).
 See [this issue for my motivation](https://github.com/Jelmerro/Vieb/issues/83) of starting Vieb.
 Proper comparisons and migration guides haven't been made yet,
 but there are [example viebrc files](https://github.com/Jelmerro/Vieb/tree/master/app/examples) for popular desktop browsers and Vim browser extensions.
+If you already have Vieb, you can view and save the examples to disk from the offline help page: `:h examples`.
 
 #### Why can't I sign in to Google?
 

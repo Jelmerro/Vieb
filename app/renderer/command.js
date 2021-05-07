@@ -597,7 +597,7 @@ const makedefault = () => {
     const {ipcRenderer} = require("electron")
     ipcRenderer.send("make-default-app")
     const {exec} = require("child_process")
-    if (process.platform === "linux" || process.platform.endsWith("bsd")) {
+    if (process.platform === "linux") {
         exec("xdg-settings set default-web-browser vieb.desktop", logError)
     } else if (process.platform === "win32") {
         const scriptContents = readFile(joinPath(
