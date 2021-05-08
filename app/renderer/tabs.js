@@ -579,13 +579,12 @@ const switchToTab = index => {
 }
 
 const updateUrl = (webview, force = false) => {
-    const skip = ["command", "search", "explore"]
     if (webview !== currentPage() || !currentPage()) {
         return
     }
     const {updateWindowTitle} = require("./settings")
     updateWindowTitle()
-    if (!force && skip.includes(currentMode())) {
+    if (!force && "sec".includes(currentMode()[0])) {
         return
     }
     document.getElementById("url").value = urlToString(currentPage().src)
@@ -736,10 +735,7 @@ const addWebviewListeners = webview => {
         const {addToHist, titleForPage, updateTitle} = require("./history")
         addToHist(webview.src)
         const existingTitle = titleForPage(webview.src)
-        const titleHasFlaws = hasProtocol(name.textContent)
-            || name.textContent.startsWith("magnet:")
-            || name.textContent.startsWith("mailto:")
-        if (titleHasFlaws && existingTitle) {
+        if (hasProtocol(name.textContent) && existingTitle) {
             name.textContent = existingTitle
         } else {
             updateTitle(webview.src, name.textContent)
@@ -755,7 +751,7 @@ const addWebviewListeners = webview => {
         }
     })
     webview.addEventListener("page-title-updated", e => {
-        if (e.title.startsWith("magnet:") || e.title.startsWith("mailto:")) {
+        if (hasProtocol(e.title)) {
             return
         }
         const tab = tabOrPageMatching(webview)

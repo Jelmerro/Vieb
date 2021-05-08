@@ -64,11 +64,6 @@ const previousTab = () => {
     switchToTab(listTabs().indexOf(currentTab()) - 1)
 }
 
-const closeTab = () => {
-    const {"closeTab": close} = require("./tabs")
-    close()
-}
-
 const toExploreMode = () => {
     const {setMode} = require("./modes")
     setMode("explore")
@@ -350,9 +345,9 @@ const exploreHistoryNext = () => {
     next()
 }
 
-const rotateSplitWindow = () => {
-    const {rotate} = require("./pagelayout")
-    rotate()
+const rotateSplitWindowForward = () => {
+    const {rotateForward} = require("./pagelayout")
+    rotateForward()
 }
 
 const rotateSplitWindowBackward = () => {
@@ -494,6 +489,16 @@ const reorderFollowLinks = () => {
 const menuOpen = () => {
     if (currentMode() === "insert") {
         currentPage()?.send("contextmenu")
+    } else if ("sec".includes(currentMode()[0])) {
+        const url = document.getElementById("url")
+        const bounds = url.getBoundingClientRect()
+        const charWidth = getSetting("fontsize") * 0.60191
+        const {viebMenu} = require("./contextmenu")
+        viebMenu({
+            "path": [url],
+            "x": bounds.x + charWidth * url.selectionStart - url.scrollLeft,
+            "y": bounds.y + bounds.height
+        })
     } else {
         const {rightClick} = require("./pointer")
         rightClick()
@@ -556,7 +561,7 @@ const setFocusCorrectly = () => {
         if (!document.getElementById("context-menu").innerText) {
             currentPage()?.click()
         }
-    } else if (["search", "explore", "command"].includes(currentMode())) {
+    } else if ("sec".includes(currentMode()[0])) {
         if (document.activeElement !== urlElement) {
             window.focus()
             urlElement.focus()
@@ -596,7 +601,6 @@ module.exports = {
     stopLoadingPage,
     openNewTab,
     openNewTabWithCurrentUrl,
-    closeTab,
     reopenTab,
     nextTab,
     previousTab,
@@ -607,7 +611,7 @@ module.exports = {
     zoomReset,
     zoomIn,
     zoomOut,
-    rotateSplitWindow,
+    rotateSplitWindowForward,
     rotateSplitWindowBackward,
     leftHalfSplitWindow,
     bottomHalfSplitWindow,

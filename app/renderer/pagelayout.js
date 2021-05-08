@@ -129,7 +129,7 @@ const add = (viewOrId, method, leftOrAbove) => {
     applyLayout()
 }
 
-const rotate = () => {
+const rotateForward = () => {
     removeRedundantContainers()
     if (!document.getElementById("pages").classList.contains("multiple")) {
         return
@@ -478,7 +478,7 @@ module.exports = {
     switchView,
     hide,
     add,
-    rotate,
+    rotateForward,
     rotateReverse,
     exchange,
     toTop,

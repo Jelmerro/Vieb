@@ -27,21 +27,21 @@ const {
     urlToString,
     pathToSpecialPageName,
     hasProtocol,
-    title
+    title,
+    specialChars
 } = require("../util")
 const {getSetting} = require("./common")
 
 const histFile = joinPath(appData(), "hist")
-let groupedHistory = {}
 const simpleUrls = {}
 let histWriteTimeout = null
-const specialChars = /[`~!@#$%^&*(),./;'[\]\\\-=<>?:"{}|_+\s]/g
+let groupedHistory = {}
 
 const init = () => {
     groupedHistory = readJSON(histFile) || {}
 }
 
-const suggestHist = search => {
+const suggestHist = (search, order, count) => {
     // Simplify the search to a list of words, or an ordered list of words,
     // ordered matches take priority over unordered matches only.
     // In turn, exact matches get priority over ordered matches.
@@ -53,14 +53,13 @@ const suggestHist = search => {
     }
     const {addExplore} = require("./suggest")
     const {forSite} = require("./favicons")
-    Object.keys(groupedHistory).map(url => {
+    const entries = Object.keys(groupedHistory).map(url => {
         if (!groupedHistory[url]) {
             return null
         }
         let simpleUrl = simpleUrls[url]
         if (simpleUrl === undefined) {
-            simpleUrl = urlToString(url)
-                .replace(specialChars, "").toLowerCase()
+            simpleUrl = urlToString(url).replace(specialChars, "").toLowerCase()
             simpleUrls[url] = simpleUrl
         }
         let relevance = 1
@@ -80,13 +79,33 @@ const suggestHist = search => {
             return {
                 "url": url,
                 "title": groupedHistory[url].title,
+                "last": new Date(groupedHistory[url]?.visits?.slice(-1)[0]),
                 "top": relevance * visitCount(url)
             }
         }
         return null
-    }).filter(h => h).sort((a, b) => b.top - a.top)
-        .slice(0, getSetting("suggestexplore"))
-        .forEach(h => addExplore({...h, "icon": forSite(h.url)}))
+    }).filter(h => h)
+    if (order === "alpha") {
+        entries.sort((a, b) => {
+            const first = a.url.replace(/^\w+:\/\/(www\.)?/g, "")
+            const second = b.url.replace(/^\w+:\/\/(www\.)?/g, "")
+            if (first > second) {
+                return 1
+            }
+            if (first < second) {
+                return -1
+            }
+            return 0
+        })
+    }
+    if (order === "date") {
+        entries.sort((a, b) => b.last - a.last)
+    }
+    if (order === "relevance") {
+        entries.sort((a, b) => b.top - a.top)
+    }
+    entries.slice(0, count).forEach(h => addExplore(
+        {...h, "icon": forSite(h.url)}))
 }
 
 const addToHist = url => {
@@ -110,7 +129,7 @@ const addToHist = url => {
 
 const clearHistory = () => {
     groupedHistory = {}
-    return deleteFile(histFile)
+    deleteFile(histFile)
 }
 
 const writeHistToFile = (now = false) => {

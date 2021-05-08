@@ -349,12 +349,30 @@ ipcRenderer.on("replace-input-field", (_, value, position) => {
     }
 })
 
+const getSvgData = el => `data:image/svg+xml,${encodeURIComponent(el.outerHTML)
+    .replace(/'/g, "%27").replace(/"/g, "%22")}`
+
 const contextListener = (e, frame = null) => {
     if (e.isTrusted && !inFollowMode && e.button === 2) {
         e.preventDefault?.()
         const paddingInfo = findFrameInfo(frame)
         const img = e.path.find(el => ["svg", "img"]
             .includes(el.tagName?.toLowerCase()))
+        const backgroundImg = e.path.map(el => {
+            try {
+                let url = getComputedStyle(el).backgroundImage.slice(4, -1)
+                if (url.startsWith("\"") || url.startsWith("'")) {
+                    url = url.slice(1)
+                }
+                if (url.endsWith("\"") || url.endsWith("'")) {
+                    url = url.slice(0, -1)
+                }
+                return url
+            } catch (_) {
+                // Window and top-level nodes don't support getComputedStyle
+            }
+            return null
+        }).find(url => url)
         const vid = e.path.find(el => el.tagName?.toLowerCase() === "video")
         const audio = e.path.find(el => el.tagName?.toLowerCase() === "audio")
         const link = e.path.find(el => el.tagName?.toLowerCase() === "a"
@@ -364,6 +382,8 @@ const contextListener = (e, frame = null) => {
             "x": e.x + (paddingInfo?.x || 0),
             "y": e.y + (paddingInfo?.y || 0),
             "img": img?.src?.trim(),
+            backgroundImg,
+            "svgData": img && getSvgData(img),
             "video": vid?.src?.trim()
                 || vid?.querySelector("source[type^=video]")?.src?.trim(),
             "audio": audio?.src?.trim()
@@ -381,12 +401,22 @@ const contextListener = (e, frame = null) => {
     }
 }
 ipcRenderer.on("contextmenu", () => {
-    const active = activeElement()
-    const parsed = parseElement(active)
-    const x = parsed?.x || 0
-    const y = parsed?.y || 0
-    contextListener({"isTrusted": true, "button": 2, "path": [active], x, y},
-        findFrameInfo(active)?.element)
+    const el = activeElement()
+    const parsed = parseElement(el)
+    let x = parsed?.x || 0
+    if (getComputedStyle(el).font.includes("monospace")) {
+        x = parsed?.x + Number(getComputedStyle(el).fontSize
+            .replace("px", "")) * el.selectionStart * 0.6 - el.scrollLeft
+    }
+    let y = parsed?.y + parsed.height
+    if (x > window.innerWidth || isNaN(x) || x === 0) {
+        x = parsed?.x || 0
+    }
+    if (y > window.innerHeight) {
+        y = parsed?.y || 0
+    }
+    contextListener({"isTrusted": true, "button": 2, "path": [el], x, y},
+        findFrameInfo(el)?.element)
 })
 window.addEventListener("auxclick", contextListener)
 

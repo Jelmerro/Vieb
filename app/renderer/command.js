@@ -36,7 +36,8 @@ const {
     stringToUrl,
     appData,
     specialPagePath,
-    pathToSpecialPageName
+    pathToSpecialPageName,
+    specialChars
 } = require("../util")
 const {
     listTabs, currentTab, currentPage, tabOrPageMatching, getSetting
@@ -408,15 +409,15 @@ const tabForBufferArg = args => {
             return tabs[number] || tabs.pop()
         }
     }
-    const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
+    const simpleSearch = args.join("").replace(specialChars, "").toLowerCase()
     return listTabs().find(t => {
         const simpleTabUrl = tabOrPageMatching(t).src
-            .replace(/\W/g, "").toLowerCase()
+            .replace(specialChars, "").toLowerCase()
         if (simpleTabUrl.includes(simpleSearch)) {
             return true
         }
         const simpleTitle = t.querySelector("span").textContent
-            .replace(/\W/g, "").toLowerCase()
+            .replace(specialChars, "").toLowerCase()
         return simpleTitle.includes(simpleSearch)
     })
 }
@@ -596,7 +597,7 @@ const makedefault = () => {
     const {ipcRenderer} = require("electron")
     ipcRenderer.send("make-default-app")
     const {exec} = require("child_process")
-    if (process.platform === "linux" || process.platform.endsWith("bsd")) {
+    if (process.platform === "linux") {
         exec("xdg-settings set default-web-browser vieb.desktop", logError)
     } else if (process.platform === "win32") {
         const scriptContents = readFile(joinPath(

@@ -21,6 +21,8 @@ const {currentPage, currentMode, getSetting} = require("./common")
 
 let X = 0
 let Y = 0
+let startX = 0
+let startY = 0
 let listenForScroll = false
 
 const start = () => {
@@ -39,6 +41,7 @@ const move = (x, y) => {
 }
 
 const handleScrollDiffEvent = diff => {
+    startY += diff
     if (listenForScroll) {
         Y += diff
         updateElement()
@@ -49,8 +52,7 @@ const handleScrollDiffEvent = diff => {
 const offset = () => {
     let top = Number(currentPage().style.top.split(/[.px]/g)[0])
     let left = Number(currentPage().style.left.split(/[.px]/g)[0])
-    let bottom = top + Number(currentPage()
-        .style.height.split(/[.px]/g)[0])
+    let bottom = top + Number(currentPage().style.height.split(/[.px]/g)[0])
     let right = left + Number(currentPage().style.width.split(/[.px]/g)[0])
     if (document.getElementById("pages").classList.contains("multiple")) {
         top += getSetting("fontsize") * .15
@@ -75,13 +77,13 @@ const updateElement = () => {
     currentPage().setAttribute("pointer-x", X)
     currentPage().setAttribute("pointer-y", Y)
     if (currentMode() === "pointer") {
-        currentPage().sendInputEvent(
-            {"type": "mouseEnter", "x": X, "y": Y})
+        currentPage().sendInputEvent({"type": "mouseEnter", "x": X, "y": Y})
         currentPage().sendInputEvent({"type": "mouseMove", "x": X, "y": Y})
     }
     if (currentMode() === "visual") {
         const factor = currentPage().getZoomFactor()
         currentPage().send("selection-request",
+            Math.round(startX / factor), Math.round(startY / factor),
             Math.round(X / factor), Math.round(Y / factor))
     }
 }
@@ -93,8 +95,7 @@ const releaseKeys = () => {
                 "type": "mouseUp", "x": X, "y": Y, "button": button
             })
         }
-        currentPage().sendInputEvent(
-            {"type": "mouseLeave", "x": X, "y": Y})
+        currentPage().sendInputEvent({"type": "mouseLeave", "x": X, "y": Y})
         const factor = currentPage().getZoomFactor()
         currentPage().send("selection-remove",
             Math.round(X / factor), Math.round(Y / factor))
@@ -216,11 +217,18 @@ const rightClick = () => {
 }
 
 const startVisualSelect = () => {
-    const factor = currentPage().getZoomFactor()
-    currentPage().send("selection-start-location",
-        Math.round(X / factor), Math.round(Y / factor))
     const {setMode} = require("./modes")
     setMode("visual")
+    startX = Number(X)
+    startY = Number(Y)
+}
+
+const swapPosition = () => {
+    if (currentMode() === "visual") {
+        X = [startX, startX = X][0]
+        Y = [startY, startY = Y][0]
+        updateElement()
+    }
 }
 
 const moveFastRight = () => {
@@ -345,6 +353,7 @@ module.exports = {
     inspectElement,
     insertAtPosition,
     startVisualSelect,
+    swapPosition,
     copyAndStop,
     moveUp,
     moveDown,

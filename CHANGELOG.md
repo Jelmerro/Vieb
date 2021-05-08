@@ -13,14 +13,51 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Setting "suggestorder" that merges all explore mode related settings into one, with additional functionality
+- The "suggestorder" is a list-like setting that accepts different suggestion types, with optional count and sort order arguments
+- Suggestions for searchwords using the new "suggestorder" setting by default
+- Default mapping for quitting Vieb with `<A-F4>` which doubles as the mapping that gets executed for other close requests
+- Copy link option for audio, video and images in the context menu
+- Copy image option for images, background images and svg elements in the context menu (they are categorized as images in that order)
+- Pointer action "swapPosition" to switch the current pointer location with the start location of the visual selection
+
+### Changed
+
+- Unsupported startup arguments are now ignored with a warning instead of preventing startup (they could be chromium args)
+- More names than before are allowed for containers, as it works with a small blocklist instead of an allowlist for characters
+- More names for seachwords are now allowed as part of the keyword, for similar reasons as above
+- Container names in Erwic configs will no longer replace special characters, but will report and exit
+- Word separator keybindings in the navbar wll now detect separators for non-latin scriptures using a whitelist of separators
+- Default value of "permissionmediadevices" and "permissionnotifications" from "ask" to "block" to reduce the amount of popups
+- Startup arguments now accept values separated by `=` instead of spaces or no value at all
+- Renamed "rotateSplitWindow" to "rotateSplitWindowForward" to be more consistent with the recently introduced "Backward" variant
+- Calling action "menuOpen" from navbar input modes now opens the context menu of the navbar
+- Don't load regular tabs on startup, but suspend them (they are not loaded until you switch to them)
+- Some common URI schemes are now recognized as links using a simple prefix check
+
+### Removed
+
+- Setting "suggestfiles" in favor of the new "suggestorder" setting
+- Setting "suggestfilesfirst" in favor of the new "suggestorder" setting
+- Setting "suggestexplore" in favor of the new "suggestorder" setting
+- Action "closeTab" in favor of the ":close" command
+- Broken FreeBSD build target, it's not supported by Electron or Electron Builder
+
 ### Fixed
 
 - Tempfile for the vimcommand not working on mac due to spaces in filename
+- Spellcheck languages not working correctly when using multiple containers
+- Navbar input position not following the caret when text is longer than the input box
+- Maximizing the window with double-click that could also incorrectly switch to a tab that happens to be at the second click location
+- Middle mouse having side effects in the tab bar on Windows
 
 ### Security
 
-- Electron 12.0.5 (unchanged)
-- Chromium 89.0.4389.128 (unchanged)
+- Electron 13.0.0-beta.18 (was 12.0.5)
+- Chromium 91.0.4448.0 (was 89.0.4389.128)
+- Permissions for "mediadevices" and "notifications" are now blocked by default instead of asking each time
 
 ## [4.5.1](https://github.com/Jelmerro/Vieb/compare/4.5.0...4.5.1) - 2021-04-28
 

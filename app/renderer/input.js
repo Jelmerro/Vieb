@@ -17,7 +17,7 @@
 */
 "use strict"
 
-const {notify} = require("../util")
+const {notify, specialChars} = require("../util")
 const {
     listTabs, currentTab, currentPage, currentMode, getSetting
 } = require("./common")
@@ -36,7 +36,7 @@ const defaultBindings = {
         "<C-b>": {"mapping": "<action.scrollPageUp>"},
         "c": {"mapping": "<pointer.start>"},
         "<C-c>": {"mapping": "<action.stopLoadingPage>"},
-        "d": {"mapping": "<action.closeTab>"},
+        "d": {"mapping": "<:close>"},
         "<C-d>": {"mapping": "<action.scrollPageDownHalf>"},
         "e": {"mapping": "<action.toExploreMode>"},
         "f": {"mapping": "<action.startFollowCurrentTab>"},
@@ -61,6 +61,7 @@ const defaultBindings = {
         "L": {"mapping": "<action.forwardInHistory>"},
         "n": {"mapping": "<action.nextSearchMatch>"},
         "N": {"mapping": "<action.previousSearchMatch>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
         "<C-o>": {"mapping": "<action.backInHistory>"},
         "p": {"mapping": "<action.openFromClipboard>"},
         "P": {"mapping": "<action.openNewTab><action.openFromClipboard>"},
@@ -89,8 +90,8 @@ const defaultBindings = {
         "<C-w><C-s>": {"mapping": "<:split>"},
         "<C-w>v": {"mapping": "<:vsplit>"},
         "<C-w><C-v>": {"mapping": "<:vsplit>"},
-        "<C-w>r": {"mapping": "<action.rotateSplitWindow>"},
-        "<C-w><C-r>": {"mapping": "<action.rotateSplitWindow>"},
+        "<C-w>r": {"mapping": "<action.rotateSplitWindowForward>"},
+        "<C-w><C-r>": {"mapping": "<action.rotateSplitWindowForward>"},
         "<C-w>R": {"mapping": "<action.rotateSplitWindowBackward>"},
         "<C-w><C-R>": {"mapping": "<action.rotateSplitWindowBackward>"},
         "<C-w>H": {"mapping": "<action.leftHalfSplitWindow>"},
@@ -139,7 +140,8 @@ const defaultBindings = {
         "_": {"mapping": "<action.zoomOut>"},
         "=": {"mapping": "<action.zoomIn>"},
         "+": {"mapping": "<action.zoomIn>"},
-        "<C-0>": {"mapping": "<action.zoomReset>"}
+        "<C-0>": {"mapping": "<action.zoomReset>"},
+        "<A-F4>": {"mapping": "<:quitall>"}
     },
     "i": {
         "<NumLock>": {"mapping": "<Nop>"},
@@ -150,7 +152,8 @@ const defaultBindings = {
         "<Esc>": {"mapping": "<action.toNormalMode>"},
         "<C-i>": {"mapping": "<action.editWithVim>"},
         "<C-m>": {"mapping": "<action.menuOpen>"},
-        "<C-[>": {"mapping": "<action.toNormalMode>"}
+        "<C-[>": {"mapping": "<action.toNormalMode>"},
+        "<A-F4>": {"mapping": "<:quitall>"}
     },
     "c": {
         "<CR>": {"mapping": "<action.useEnteredData>"},
@@ -159,16 +162,20 @@ const defaultBindings = {
         "<Esc>": {"mapping": "<action.toNormalMode>"},
         "<Tab>": {"mapping": "<action.nextSuggestion>"},
         "<S-Tab>": {"mapping": "<action.prevSuggestion>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
         "<C-n>": {"mapping": "<action.commandHistoryNext>"},
         "<C-p>": {"mapping": "<action.commandHistoryPrevious>"},
-        "<C-[>": {"mapping": "<action.toNormalMode>"}
+        "<C-[>": {"mapping": "<action.toNormalMode>"},
+        "<A-F4>": {"mapping": "<:quitall>"}
     },
     "s": {
         "<CR>": {"mapping": "<action.useEnteredData>"},
         "<F1>": {"mapping": "<:help>"},
         "<F11>": {"mapping": "<action.toggleFullscreen>"},
         "<Esc>": {"mapping": "<action.toNormalMode>"},
-        "<C-[>": {"mapping": "<action.toNormalMode>"}
+        "<C-m>": {"mapping": "<action.menuOpen>"},
+        "<C-[>": {"mapping": "<action.toNormalMode>"},
+        "<A-F4>": {"mapping": "<:quitall>"}
     },
     "e": {
         "<CR>": {"mapping": "<action.useEnteredData>"},
@@ -177,16 +184,20 @@ const defaultBindings = {
         "<Esc>": {"mapping": "<action.toNormalMode>"},
         "<Tab>": {"mapping": "<action.nextSuggestion>"},
         "<S-Tab>": {"mapping": "<action.prevSuggestion>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
         "<C-n>": {"mapping": "<action.exploreHistoryNext>"},
         "<C-p>": {"mapping": "<action.exploreHistoryPrevious>"},
-        "<C-[>": {"mapping": "<action.toNormalMode>"}
+        "<C-[>": {"mapping": "<action.toNormalMode>"},
+        "<A-F4>": {"mapping": "<:quitall>"}
     },
     "f": {
         "<F1>": {"mapping": "<:help>"},
         "<F11>": {"mapping": "<action.toggleFullscreen>"},
         "<Tab>": {"mapping": "<action.reorderFollowLinks>"},
         "<Esc>": {"mapping": "<action.stopFollowMode>"},
-        "<C-[>": {"mapping": "<action.stopFollowMode>"}
+        "<C-m>": {"mapping": "<action.menuOpen>"},
+        "<C-[>": {"mapping": "<action.stopFollowMode>"},
+        "<A-F4>": {"mapping": "<:quitall>"}
     },
     "p": {
         "<F1>": {"mapping": "<:help>"},
@@ -217,6 +228,7 @@ const defaultBindings = {
         "L": {"mapping": "<pointer.endOfView>"},
         "<C-l>": {"mapping": "<pointer.moveSlowRight>"},
         "M": {"mapping": "<pointer.centerOfView>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
         "r": {"mapping": "<pointer.rightClick>"},
         "<C-u>": {"mapping": "<pointer.moveFastUp>"},
         "v": {"mapping": "<pointer.startVisualSelect>"},
@@ -227,7 +239,8 @@ const defaultBindings = {
         ">": {"mapping": "<pointer.scrollRight>"},
         "$": {"mapping": "<pointer.moveRightMax>"},
         "^": {"mapping": "<pointer.moveLeftMax>"},
-        "<C-[>": {"mapping": "<action.toNormalMode>"}
+        "<C-[>": {"mapping": "<action.toNormalMode>"},
+        "<A-F4>": {"mapping": "<:quitall>"}
     },
     "v": {
         "<F1>": {"mapping": "<:help>"},
@@ -254,6 +267,8 @@ const defaultBindings = {
         "L": {"mapping": "<pointer.endOfView>"},
         "<C-l>": {"mapping": "<pointer.moveSlowRight>"},
         "M": {"mapping": "<pointer.centerOfView>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
+        "o": {"mapping": "<pointer.swapPosition>"},
         "r": {"mapping": "<pointer.rightClick>"},
         "<C-u>": {"mapping": "<pointer.moveFastUp>"},
         "w": {"mapping": "<pointer.moveFastRight>"},
@@ -263,16 +278,19 @@ const defaultBindings = {
         ">": {"mapping": "<pointer.scrollRight>"},
         "$": {"mapping": "<pointer.moveRightMax>"},
         "^": {"mapping": "<pointer.moveLeftMax>"},
-        "<C-[>": {"mapping": "<action.toNormalMode>"}
+        "<C-[>": {"mapping": "<action.toNormalMode>"},
+        "<A-F4>": {"mapping": "<:quitall>"}
     },
     "m": {
         "<Up>": {"mapping": "<action.menuUp>"},
         "<Down>": {"mapping": "<action.menuDown>"},
         "<CR>": {"mapping": "<action.menuSelect>"},
         "<Esc>": {"mapping": "<action.menuClose>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
         "<C-n>": {"mapping": "<action.menuDown>"},
         "<C-p>": {"mapping": "<action.menuUp>"},
-        "<C-[>": {"mapping": "<action.menuClose>"}
+        "<C-[>": {"mapping": "<action.menuClose>"},
+        "<A-F4>": {"mapping": "<:quitall>"}
     }
 }
 let repeatCounter = 0
@@ -287,51 +305,54 @@ let inputHistoryList = [{"value": "", "index": 0}]
 let inputHistoryIndex = 0
 
 const init = () => {
-    const {ipcRenderer} = require("electron")
-    const {clear, viebMenu} = require("./contextmenu")
     window.addEventListener("keydown", handleKeyboard)
     window.addEventListener("keypress", e => e.preventDefault())
     window.addEventListener("keyup", e => e.preventDefault())
-    window.addEventListener("click", e => {
-        e.preventDefault()
-        if (e.button === 2) {
-            if (document.getElementById("context-menu").innerText) {
-                return
+    window.addEventListener("mousedown", e => {
+        if (e.button === 1) {
+            e.preventDefault()
+        }
+    })
+    window.addEventListener("mouseup", e => {
+        if (e.button === 1) {
+            if (getSetting("mouse")) {
+                if (e.target === document.getElementById("url")) {
+                    ACTIONS.toExploreMode()
+                    return
+                }
+                const tab = e.path.find(el => listTabs().includes(el))
+                if (tab) {
+                    const {closeTab} = require("./tabs")
+                    closeTab(listTabs().indexOf(tab))
+                }
+                const {clear} = require("./contextmenu")
+                clear()
             }
-        } else if (e.path.find(el => el.matches?.("#context-menu"))) {
+            e.preventDefault()
+        }
+    })
+    window.addEventListener("click", e => {
+        if (e.path.find(el => el.matches?.("#context-menu"))) {
             return
         }
+        const {clear} = require("./contextmenu")
         clear()
         if (e.target.classList.contains("no-focus-reset")) {
             return
         }
-        ACTIONS.setFocusCorrectly()
-    })
-    window.addEventListener("mouseup", e => {
-        if (e.button === 2) {
-            if (document.getElementById("context-menu").innerText) {
-                return
-            }
-        } else if (e.path.find(el => el.matches?.("#context-menu"))) {
-            return
-        }
         if (getSetting("mouse")) {
             if (e.target === document.getElementById("url")) {
-                if (!["explore", "command"].includes(currentMode())) {
+                if (!"sec".includes(currentMode()[0])) {
                     ACTIONS.toExploreMode()
                 }
-            } else if (["explore", "command"].includes(currentMode())) {
+            } else if ("sec".includes(currentMode()[0])) {
                 ACTIONS.toNormalMode()
             }
             const tab = e.path.find(el => listTabs().includes(el))
             if (tab) {
                 clear()
-                const {closeTab, switchToTab} = require("./tabs")
-                if (e.button === 1) {
-                    closeTab(listTabs().indexOf(tab))
-                } else {
-                    switchToTab(listTabs().indexOf(tab))
-                }
+                const {switchToTab} = require("./tabs")
+                switchToTab(listTabs().indexOf(tab))
             }
         } else {
             e.preventDefault()
@@ -355,12 +376,14 @@ const init = () => {
     window.addEventListener("contextmenu", e => {
         e.preventDefault()
         if (getSetting("mouse")) {
+            const {viebMenu} = require("./contextmenu")
             viebMenu(e)
         } else {
             ACTIONS.setFocusCorrectly()
         }
     })
     window.addEventListener("resize", () => {
+        const {clear} = require("./contextmenu")
         clear()
         const {applyLayout} = require("./pagelayout")
         applyLayout()
@@ -368,6 +391,7 @@ const init = () => {
             POINTER.updateElement()
         }
     })
+    const {ipcRenderer} = require("electron")
     ipcRenderer.on("insert-mode-input-event", (_, input) => {
         if (input.code === "Tab") {
             currentPage().focus()
@@ -400,13 +424,7 @@ const init = () => {
             "passedOnFromInsert": true
         })
     })
-    ipcRenderer.on("window-close", () => {
-        if (process.platform === "darwin") {
-            executeMapString("<M-q>", true, true)
-        } else {
-            executeMapString("<A-F4>", true, true)
-        }
-    })
+    ipcRenderer.on("window-close", () => executeMapString("<A-F4>", true, true))
     ipcRenderer.on("app-command", (_, cmd) => {
         if (getSetting("mouse")) {
             if (cmd === "browser-backward") {
@@ -829,6 +847,27 @@ const handleKeyboard = async e => {
 const keyForOs = (regular, mac, key) => regular.includes(key)
     || process.platform === "darwin" && mac.includes(key)
 
+const updateNavbarScrolling = () => {
+    const url = document.getElementById("url")
+    const charWidth = getSetting("fontsize") * 0.60191
+    const end = url.selectionStart * charWidth - charWidth
+    const start = url.selectionEnd * charWidth - url.clientWidth + charWidth + 2
+    if (url.scrollLeft < end && url.scrollLeft > start) {
+        return
+    }
+    if (url.selectionStart === url.selectionEnd) {
+        if (url.scrollLeft > start) {
+            url.scrollLeft = end
+        } else if (url.scrollLeft < end) {
+            url.scrollLeft = start
+        }
+    } else if (url.selectionDirection === "backward") {
+        url.scrollLeft = end
+    } else {
+        url.scrollLeft = start
+    }
+}
+
 const typeCharacterIntoNavbar = id => {
     if (!"ces".includes(currentMode()[0])) {
         return
@@ -839,21 +878,25 @@ const typeCharacterIntoNavbar = id => {
             url.selectionEnd = url.selectionStart
         }
         url.setSelectionRange(0, url.selectionEnd, "backward")
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<Home>", "<C-Home>"], ["<M-Left>", "<M-Up>"], id)) {
         url.setSelectionRange(0, 0)
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<S-End>", "<C-S-End>"], ["<M-S-Right>", "<M-S-Down>"], id)) {
         if (url.selectionDirection === "backward") {
             url.selectionStart = url.selectionEnd
         }
-        url.setSelectionRange(url.selectionEnd, url.value.length)
+        url.setSelectionRange(url.selectionStart, url.value.length)
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<End>", "<C-End>"], ["<M-Right>", "<M-Down>"], id)) {
         url.setSelectionRange(url.value.length, url.value.length)
+        updateNavbarScrolling()
         return
     }
     if (id === "<Right>") {
@@ -866,6 +909,7 @@ const typeCharacterIntoNavbar = id => {
             url.selectionEnd += 1
         }
         url.selectionStart = url.selectionEnd
+        updateNavbarScrolling()
         return
     }
     if (id === "<S-Right>") {
@@ -878,9 +922,12 @@ const typeCharacterIntoNavbar = id => {
         } else if (url.selectionStart < url.value.length) {
             url.selectionStart += 1
         }
+        updateNavbarScrolling()
         return
     }
-    const words = url.value.split(/(\w+|\W+)/g).filter(w => w)
+    const wordRegex = specialChars.source.replace("[", "[^")
+    const words = url.value.split(new RegExp(`(${
+        wordRegex}+|${specialChars.source}+)`, "g")).filter(w => w)
     let index = Number(url.selectionStart)
     if (url.selectionDirection !== "backward") {
         index = Number(url.selectionEnd)
@@ -894,6 +941,7 @@ const typeCharacterIntoNavbar = id => {
                 break
             }
         }
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-S-Right>"], ["<A-S-Right>"], id)) {
@@ -909,6 +957,7 @@ const typeCharacterIntoNavbar = id => {
                 } else {
                     url.setSelectionRange(url.selectionStart, wordPosition)
                 }
+                updateNavbarScrolling()
                 return
             }
         }
@@ -924,6 +973,7 @@ const typeCharacterIntoNavbar = id => {
             url.selectionStart -= 1
         }
         url.selectionEnd = url.selectionStart
+        updateNavbarScrolling()
         return
     }
     if (id === "<S-Left>") {
@@ -937,6 +987,7 @@ const typeCharacterIntoNavbar = id => {
         } else if (url.selectionEnd > 0) {
             url.selectionEnd -= 1
         }
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-Left>"], ["<A-Left>"], id)) {
@@ -948,6 +999,7 @@ const typeCharacterIntoNavbar = id => {
                 break
             }
         }
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-S-Left>"], ["<A-S-Left>"], id)) {
@@ -969,6 +1021,7 @@ const typeCharacterIntoNavbar = id => {
                     }
                     url.setSelectionRange(url.selectionStart, wordPosition)
                 }
+                updateNavbarScrolling()
                 return
             }
         }
@@ -976,21 +1029,23 @@ const typeCharacterIntoNavbar = id => {
     }
     if (keyForOs(["<C-a>"], ["<M-a>"], id)) {
         url.setSelectionRange(0, url.value.length)
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-x>"], ["<M-x>"], id)) {
         document.execCommand("cut")
         updateSuggestions()
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-c>"], ["<M-c>"], id)) {
         document.execCommand("copy")
-        updateSuggestions()
         return
     }
     if (keyForOs(["<C-v>"], ["<M-v>"], id)) {
         document.execCommand("paste")
         updateSuggestions()
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-z>"], ["<M-z>"], id)) {
@@ -1001,6 +1056,7 @@ const typeCharacterIntoNavbar = id => {
             url.setSelectionRange(histEntry.index, histEntry.index)
             updateSuggestions(false)
         }
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-y>"], ["<M-Z>"], id)) {
@@ -1011,6 +1067,7 @@ const typeCharacterIntoNavbar = id => {
             url.setSelectionRange(histEntry.index, histEntry.index)
             updateSuggestions(false)
         }
+        updateNavbarScrolling()
         return
     }
     if (url.selectionStart !== url.selectionEnd) {
@@ -1028,6 +1085,7 @@ const typeCharacterIntoNavbar = id => {
             + url.value.substr(url.selectionEnd)
         url.setSelectionRange(cur, cur)
         updateSuggestions()
+        updateNavbarScrolling()
         if (id === "<Del>" || id.endsWith("-Del>")) {
             return
         }
@@ -1042,6 +1100,7 @@ const typeCharacterIntoNavbar = id => {
                 url.value.substr(url.selectionEnd + 1)}`
             url.setSelectionRange(cur, cur)
             updateSuggestions()
+            updateNavbarScrolling()
         }
         return
     }
@@ -1055,6 +1114,7 @@ const typeCharacterIntoNavbar = id => {
                     url.value.substr(wordPosition)}`
                 url.setSelectionRange(cur, cur)
                 updateSuggestions()
+                updateNavbarScrolling()
                 return
             }
         }
@@ -1067,6 +1127,7 @@ const typeCharacterIntoNavbar = id => {
                 url.value.substr(url.selectionEnd)}`
             url.setSelectionRange(cur - 1, cur - 1)
             updateSuggestions()
+            updateNavbarScrolling()
         }
         return
     }
@@ -1079,6 +1140,7 @@ const typeCharacterIntoNavbar = id => {
                     url.value.substr(url.selectionStart)}`
                 url.setSelectionRange(wordPosition, wordPosition)
                 updateSuggestions()
+                updateNavbarScrolling()
                 return
             }
         }
@@ -1109,6 +1171,7 @@ const typeCharacterIntoNavbar = id => {
     if (text !== url.value) {
         url.setSelectionRange(cur + 1, cur + 1)
         updateSuggestions()
+        updateNavbarScrolling()
     }
 }
 

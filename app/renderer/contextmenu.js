@@ -17,7 +17,7 @@
 */
 "use strict"
 
-const {stringToUrl, urlToString, isUrl} = require("../util")
+const {stringToUrl, urlToString, isUrl, specialChars} = require("../util")
 const {
     listTabs, currentPage, tabOrPageMatching, currentMode, getSetting
 } = require("./common")
@@ -45,9 +45,11 @@ const viebMenu = options => {
             }
         })
         if (document.getElementById("url").value.trim().length) {
-            createMenuItem({
-                "title": "Go", "action": () => useEnteredData()
-            })
+            if ("sec".includes(currentMode()[0])) {
+                createMenuItem({
+                    "title": "Go", "action": () => useEnteredData()
+                })
+            }
         }
         if (getSelection().toString().trim()) {
             createMenuItem({
@@ -179,15 +181,19 @@ const webviewMenu = options => {
     const {updateKeysOnScreen} = require("./input")
     updateKeysOnScreen()
     if (options.canEdit && options.inputVal && options.inputSel >= 0) {
-        const words = options.inputVal.split(/(\w+|\W+)/g).filter(s => s)
+        const wordRegex = specialChars.source.replace("[", "[^")
+        const words = options.inputVal.split(new RegExp(`(${
+            wordRegex}+|${specialChars.source}+)`, "g")).filter(s => s)
         let letterCount = 0
         let wordIndex = 0
         let word = words[wordIndex]
         while (wordIndex < words.length) {
             word = words[wordIndex].trim()
             letterCount += words[wordIndex].length
-            if (word.match(/\w+/g) && letterCount >= options.inputSel) {
-                break
+            if (letterCount >= options.inputSel) {
+                if (word.match(new RegExp(`${wordRegex}+`, "g"))) {
+                    break
+                }
             }
             wordIndex += 1
         }
@@ -273,17 +279,47 @@ const webviewMenu = options => {
             })
         }
     }
-    if (options.img) {
+    if (options.img || options.backgroundImg || options.svgData) {
         createMenuGroup("Image")
+    }
+    if (options.img || options.backgroundImg) {
         createMenuItem({
-            "title": "Navigate", "action": () => navigateTo(options.img)
+            "title": "Navigate",
+            "action": () => navigateTo(options.img || options.backgroundImg)
         })
         createMenuItem({
-            "title": "In new tab", "action": () => addTab({"url": options.img})
+            "title": "In new tab",
+            "action": () => addTab(
+                {"url": options.img || options.backgroundImg})
+        })
+        createMenuItem({
+            "title": "Copy link",
+            "action": () => clipboard.writeText(
+                options.img || options.backgroundImg)
+        })
+    }
+    if (options.img || options.backgroundImg || options.svgData) {
+        createMenuItem({
+            "title": "Copy image",
+            "action": () => {
+                clipboard.clear()
+                const el = document.createElement("img")
+                const canvas = document.createElement("canvas")
+                el.onload = () => {
+                    canvas.width = el.naturalWidth
+                    canvas.height = el.naturalHeight
+                    canvas.getContext("2d").drawImage(el, 0, 0)
+                    const {nativeImage} = require("electron")
+                    clipboard.writeImage(nativeImage.createFromDataURL(
+                        canvas.toDataURL("image/png")))
+                }
+                el.src = options.img || options.backgroundImg || options.svgData
+            }
         })
         createMenuItem({
             "title": "Download",
-            "action": () => currentPage().downloadURL(options.img)
+            "action": () => currentPage().downloadURL(
+                options.img || options.backgroundImg || options.svgData)
         })
     }
     if (options.video) {
@@ -294,6 +330,10 @@ const webviewMenu = options => {
         createMenuItem({
             "title": "In new tab",
             "action": () => addTab({"url": options.video})
+        })
+        createMenuItem({
+            "title": "Copy link",
+            "action": () => clipboard.writeText(options.video)
         })
         createMenuItem({
             "title": "Download",
@@ -308,6 +348,10 @@ const webviewMenu = options => {
         createMenuItem({
             "title": "In new tab",
             "action": () => addTab({"url": options.audio})
+        })
+        createMenuItem({
+            "title": "Copy link",
+            "action": () => clipboard.writeText(options.audio)
         })
         createMenuItem({
             "title": "Download",

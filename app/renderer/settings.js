@@ -19,6 +19,7 @@
 
 const {ipcRenderer} = require("electron")
 const {
+    specialChars,
     joinPath,
     notify,
     isUrl,
@@ -92,11 +93,11 @@ const defaultSettings = {
     "permissiondisplaycapture": "block",
     "permissionfullscreen": "allow",
     "permissiongeolocation": "block",
-    "permissionmediadevices": "ask",
+    "permissionmediadevices": "block",
     "permissionmicrophone": "block",
     "permissionmidi": "block",
     "permissionmidisysex": "block",
-    "permissionnotifications": "ask",
+    "permissionnotifications": "block",
     "permissionopenexternal": "ask",
     "permissionpersistentstorage": "block",
     "permissionpointerlock": "block",
@@ -124,11 +125,9 @@ const defaultSettings = {
     "startuppages": "",
     "storenewvisits": true,
     "suggestcommands": 9000000000000000,
-    "suggestfiles": "all",
-    "suggestfilesfirst": false,
-    "suggestexplore": 20,
+    "suggestorder": "history,searchword,file",
     "suggesttopsites": 10,
-    "suspendonrestore": "none",
+    "suspendonrestore": "regular",
     "suspendtimeout": 0,
     "tabclosefocusright": false,
     "tabcycle": true,
@@ -151,7 +150,8 @@ const listLike = [
     "redirects",
     "searchwords",
     "spelllang",
-    "startuppages"
+    "startuppages",
+    "suggestorder"
 ]
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
@@ -185,7 +185,6 @@ const validOptions = {
     "permissionpersistentstorage": ["block", "ask", "allow"],
     "permissionpointerlock": ["block", "ask", "allow"],
     "permissionunknown": ["block", "ask", "allow"],
-    "suggestfiles": ["none", "commands", "explore", "all"],
     "suspendonrestore": ["all", "regular", "none"],
     "taboverflow": ["hidden", "scroll", "wrap"],
     "tabreopenposition": ["left", "right", "previous"],
@@ -200,7 +199,6 @@ const numberRanges = {
     "notificationduration": [0, 9000000000000000],
     "requesttimeout": [0, 9000000000000000],
     "suggestcommands": [0, 9000000000000000],
-    "suggestexplore": [0, 9000000000000000],
     "suggesttopsites": [0, 9000000000000000],
     "suspendtimeout": [0, 9000000000000000],
     "timeoutlen": [0, 10000]
@@ -301,10 +299,11 @@ const checkOther = (setting, value) => {
                 + ` ${text}`, "warn")
             return false
         }
-        if (value.replace("%n", "valid").match(/[^A-Za-z0-9_]/g)) {
+        const simpleValue = value.replace("%n", "valid").replace(/_/g, "")
+        if (simpleValue.match(specialChars)) {
             notify(
-                "Only letters, numbers and undercores can appear in the name "
-                + `of a container, invalid ${setting}: ${value}`, "warn")
+                "No special characters besides underscores are allowed in the "
+                + `name of a container, invalid ${setting}: ${value}`, "warn")
             return false
         }
     }
@@ -425,10 +424,11 @@ const checkOther = (setting, value) => {
                 return false
             }
             const [keyword, url] = searchword.split("~")
-            if (keyword.length === 0 || /[^a-zA-Z]/.test(keyword)) {
+            const simpleKeyword = keyword.replace(/_/g, "")
+            if (keyword.length === 0 || simpleKeyword.match(specialChars)) {
                 notify(`Invalid searchwords entry: ${searchword}\n`
-                    + "Searchwords before the ~ must have no spaces "
-                    + "and contain only letters", "warn")
+                    + "Searchwords before the ~ must not contain any special "
+                    + "characters besides underscores", "warn")
                 return false
             }
             if (url.length === 0 || !url.includes("%s")) {
@@ -447,6 +447,15 @@ const checkOther = (setting, value) => {
             knownSearchwords.push(keyword)
         }
     }
+    if (setting === "spelllang" && value !== "") {
+        for (const lang of value.split(",")) {
+            if (spelllangs.length && !spelllangs.includes(lang)) {
+                notify(`Invalid language passed to spelllang: ${lang}`,
+                    "warn")
+                return false
+            }
+        }
+    }
     if (["favoritepages", "startuppages"].includes(setting)) {
         for (const page of value.split(",")) {
             if (page.trim() && !isUrl(page)) {
@@ -455,11 +464,65 @@ const checkOther = (setting, value) => {
             }
         }
     }
-    if (setting === "spelllang" && value !== "") {
-        for (const lang of value.split(",")) {
-            if (spelllangs.length && !spelllangs.includes(lang)) {
-                notify(`Invalid language passed to spelllang: ${lang}`,
-                    "warn")
+    if (setting === "suggestorder") {
+        for (const suggest of value.split(",")) {
+            if (!suggest.trim()) {
+                continue
+            }
+            const parts = (suggest.match(/~/g) || []).length
+            if (parts > 2) {
+                notify(`Invalid suggestorder entry: ${suggest}\n`
+                    + "Entries must have at most two ~ to separate the type "
+                    + "from the count and the order (both optional)", "warn")
+                return false
+            }
+            const args = suggest.split("~")
+            const type = args.shift()
+            if (!["history", "file", "searchword"].includes(type)) {
+                notify(`Invalid suggestorder type: ${type}\n`
+                    + "Suggestion type must be one of: history, file or "
+                    + "searchword", "warn")
+                return false
+            }
+            let hasHadCount = false
+            let hasHadOrder = false
+            for (const arg of args) {
+                if (!arg) {
+                    notify("Configuration for suggestorder after the type can "
+                        + "not be empty", "warn")
+                    return false
+                }
+                const potentialCount = Number(arg)
+                if (potentialCount > 0 && potentialCount <= 9000000000000000) {
+                    if (hasHadCount) {
+                        notify("Count configuration for a suggestorder entry "
+                            + "can only be set once per entry", "warn")
+                        return false
+                    }
+                    hasHadCount = true
+                    continue
+                }
+                const validOrders = []
+                if (type === "history") {
+                    validOrders.push("alpha", "relevance", "date")
+                }
+                if (type === "file") {
+                    validOrders.push("alpha")
+                }
+                if (type === "searchword") {
+                    validOrders.push("alpha", "setting")
+                }
+                if (validOrders.includes(arg)) {
+                    if (hasHadOrder) {
+                        notify("Order configuration for a suggestorder entry "
+                            + "can only be set once per entry", "warn")
+                        return false
+                    }
+                    hasHadOrder = true
+                    continue
+                }
+                notify(`Order configuration is invalid, supported orders for ${
+                    type} suggestions are: ${validOrders.join(", ")}`, "warn")
                 return false
             }
         }
