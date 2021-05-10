@@ -937,6 +937,16 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     }
 })
 
+const escapeValueChars = value => {
+    if (value?.match?.(/(')/g)?.length) {
+        return `"${value}"`
+    }
+    if (value?.match?.(/("| )/g)?.length) {
+        return `'${value}'`
+    }
+    return value
+}
+
 const listCurrentSettings = full => {
     const settings = JSON.parse(JSON.stringify(allSettings))
     if (!full) {
@@ -949,15 +959,26 @@ const listCurrentSettings = full => {
     }
     let setCommands = ""
     Object.keys(settings).forEach(setting => {
-        if (typeof settings[setting] === "boolean") {
-            if (settings[setting]) {
+        const value = settings[setting]
+        if (typeof value === "boolean") {
+            if (value) {
                 setCommands += `${setting}\n`
             } else {
                 setCommands += `no${setting}\n`
             }
-        } else {
-            setCommands += `${setting}=${settings[setting]}\n`
+            return
         }
+        if (listLike.includes(setting)) {
+            const entries = value.split(",").filter(v => v)
+            if (entries.length > 1 || value.match(/( |'|")/g)) {
+                setCommands += `${setting}=\n`
+                entries.forEach(entry => {
+                    setCommands += `${setting}+=${escapeValueChars(entry)}\n`
+                })
+                return
+            }
+        }
+        setCommands += `${setting}=${escapeValueChars(value)}\n`
     })
     return setCommands
 }

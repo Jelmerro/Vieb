@@ -54,6 +54,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Navbar input position not following the caret when text is longer than the input box
 - Maximizing the window with double-click that could also incorrectly switch to a tab that happens to be at the second click location
 - Middle mouse having side effects in the tab bar on Windows
+- Quotes in settings messing with the :mkv command output
 
 ### Security
 

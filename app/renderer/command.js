@@ -880,40 +880,41 @@ const execute = com => {
     const {push} = require("./commandhistory")
     push(commandStr)
     const p = parseAndValidateArgs(commandStr)
-    if (!p.valid) {
+    let {command} = p
+    const {args, valid, confirm} = p
+    if (!valid) {
         notify(`Command could not be executed, unmatched escape quotes:\n${
             commandStr}`, "warn")
         return
     }
     const matches = Object.keys(commands).concat(Object.keys(userCommands))
-        .filter(c => c.startsWith(p.command) && !c.endsWith("!"))
-    if (matches.length === 1 || commands[p.command] || userCommands[p]) {
+        .filter(c => c.startsWith(command) && !c.endsWith("!"))
+    if (matches.length === 1 || commands[command] || userCommands[command]) {
         if (matches.length === 1) {
-            [p.command] = matches
+            [command] = matches
         }
-        if (noArgumentComands.includes(p.command) && p.args.length > 0) {
-            notify(`Command takes no arguments: ${p.command}`, "warn")
-        } else if (commands[p.command]) {
-            if (p.confirm) {
-                p.command += "!"
-                if (!commands[p.command]) {
+        if (noArgumentComands.includes(command) && args.length > 0) {
+            notify(`Command takes no arguments: ${command}`, "warn")
+        } else if (commands[command]) {
+            if (confirm) {
+                command += "!"
+                if (!commands[command]) {
                     notify("No ! allowed", "warn")
                     return
                 }
             }
-            commands[p.command](...p.args)
+            commands[command](...args)
         } else {
             setTimeout(() => {
                 const {executeMapString} = require("./input")
-                executeMapString(userCommands[p.command], true, true)
+                executeMapString(userCommands[command], true, true)
             }, 0)
         }
     } else if (matches.length > 1) {
         notify(
-            `Command is ambiguous, please be more specific: ${p.command}`,
-            "warn")
+            `Command is ambiguous, please be more specific: ${command}`, "warn")
     } else {
-        notify(`Not an editor command: ${p.command}`, "warn")
+        notify(`Not an editor command: ${command}`, "warn")
     }
 }
 

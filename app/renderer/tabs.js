@@ -596,7 +596,7 @@ const addWebviewListeners = webview => {
         if (e.isMainFrame) {
             resetTabInfo(webview)
             if (getSetting("firefoxmode") === "google") {
-                if (e.url.match(/^https:\/\/(.*\.)?google\.com.*$/)) {
+                if (sameDomain(e.url, "https://google.com")) {
                     webview.setUserAgent(firefoxUseragent())
                 } else {
                     webview.setUserAgent("")
