@@ -143,9 +143,34 @@ const urlTests = [
         "valid": true
     },
     {
-        "reason": "Triple dashes are not allowed",
         "url": "hello---dashes.com",
-        "valid": false
+        "valid": false,
+        "reason": "Triple dashes are not allowed"
+    },
+    {
+        "url": "[2607:f8b0:4006:80a::2004]",
+        "valid": true,
+        "reason": "valid ipv6"
+    },
+    {
+        "url": "[[2607:f8b0:4006:80a::2004]]",
+        "valid": false,
+        "reason": "invalid ipv6(too many brackets)"
+    },
+    {
+        "url": "2607:f8b0:4006:80a::2004",
+        "valid": false,
+        "reason": "invalid ipv6(no brackets)"
+    },
+    {
+        "url": "[2607:f8g0:4006:80a::2004]",
+        "valid": false,
+        "reason": "invalid ipv6(8th character is a g, that is not valid hex)"
+    },
+    {
+        "url": "[2607::f8b0::4006::80a::2004]",
+        "valid": false,
+        "reason": "invalid ipv6(too many colons)"
     }
 ]
 urlTests.forEach(urlTest => {
