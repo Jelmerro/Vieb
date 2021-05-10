@@ -126,7 +126,7 @@ const update = (webview, urls) => {
     if (getSetting("favicons") === "disabled") {
         return
     }
-    const favicon = urls[0]
+    const [favicon] = urls
     if (!favicon) {
         return
     }
@@ -157,8 +157,13 @@ const update = (webview, urls) => {
     }
     makeDir(faviconFolder)
     const {ipcRenderer} = require("electron")
-    ipcRenderer.send("download-favicon", favicon, filename,
-        webview.getWebContentsId(), webview.getAttribute("link-id"), currentUrl)
+    ipcRenderer.send("download-favicon", {
+        "fav": favicon,
+        "linkId": webview.getAttribute("link-id"),
+        "location": filename,
+        "url": currentUrl,
+        "webId": webview.getWebContentsId()
+    })
 }
 
 const deleteIfTooOld = loc => {
@@ -209,4 +214,4 @@ const forSite = url => {
     return ""
 }
 
-module.exports = {init, updateMappings, loading, empty, show, update, forSite}
+module.exports = {empty, forSite, init, loading, show, update, updateMappings}

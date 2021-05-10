@@ -22,7 +22,7 @@ const {joinPath} = require("../util")
 
 ipcRenderer.on("settings", (_, settings, mappings) => {
     // Enrich the settings list with type, default, current and value lists
-    ;[...document.querySelectorAll(".setting-status, .map-status, .countable")]
+    [...document.querySelectorAll(".setting-status, .map-status, .countable")]
         .forEach(el => el.remove())
     settings.forEach(setting => {
         if (document.getElementById(setting.name)) {

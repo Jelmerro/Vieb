@@ -22,9 +22,9 @@ const {ipcRenderer} = require("electron")
 const apiUrl = "https://api.github.com/repos/Jelmerro/Vieb/releases/latest"
 const version = ipcRenderer?.sendSync("app-version")
 
-const compareVersions = (v1, v2) => {
-    v1 = v1.replace(/^v/g, "").trim()
-    v2 = v2.replace(/^v/g, "").trim()
+const compareVersions = (v1Str, v2Str) => {
+    const v1 = v1Str.replace(/^v/g, "").trim()
+    const v2 = v2Str.replace(/^v/g, "").trim()
     if (v1 === v2) {
         return "even"
     }
@@ -34,7 +34,7 @@ const compareVersions = (v1, v2) => {
     if (v1num === v2num) {
         if (v1ext && v2ext) {
             // Do a simple comparison of named pre releases
-            const suffixMap = {"dev": 1, "alpha": 2, "beta": 3, "prerelease": 4}
+            const suffixMap = {"alpha": 2, "beta": 3, "dev": 1, "prerelease": 4}
             const v1suffix = suffixMap[v1ext] || 0
             const v2suffix = suffixMap[v2ext] || 0
             if (v1suffix > v2suffix) {
@@ -51,10 +51,10 @@ const compareVersions = (v1, v2) => {
         return "even"
     }
     // Test if the version number is actually formatted like "1.1.1" or similar
-    if (!/^\d*\.\d*\.\d*$/.test(v1num) || !/^\d*\.\d*\.\d*$/.test(v2num)) {
+    if (!(/^\d*\.\d*\.\d*$/).test(v1num) || !(/^\d*\.\d*\.\d*$/).test(v2num)) {
         return "unknown"
     }
-    for (let i = 0;i < 3;i++) {
+    for (let i = 0; i < 3; i++) {
         if (Number(v1num.split(".")[i]) > Number(v2num.split(".")[i])) {
             return "newer"
         }

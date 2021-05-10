@@ -1,11 +1,10 @@
-/* eslint-disable no-console */
 "use strict"
 
 const builder = require("electron-builder")
 const rimraf = require("rimraf").sync
 const archiver = require("archiver")
 const fs = require("fs")
-const version = JSON.parse(fs.readFileSync("package.json").toString()).version
+const {version} = JSON.parse(fs.readFileSync("package.json").toString())
 const builds = {}
 
 const isDir = loc => {
@@ -41,7 +40,7 @@ builder.build(builds).then(e => {
             archive.finalize()
         }
     }
-    console.log(e)
+    console.info(e)
 }).catch(e => {
     console.error(e)
 })

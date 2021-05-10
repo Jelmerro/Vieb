@@ -95,7 +95,7 @@ const parseList = cookies => {
         const remove = document.createElement("img")
         remove.src = joinPath(__dirname, "../img/trash.png")
         remove.className = "remove"
-        remove.addEventListener("click", async () => {
+        remove.addEventListener("click", async() => {
             await ipcRenderer.invoke("remove-cookie",
                 cookieToUrl(cookie), cookie.name)
             refreshList()

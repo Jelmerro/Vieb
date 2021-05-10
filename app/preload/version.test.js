@@ -22,88 +22,88 @@ const VERSION = require("./version")
 
 const versions = [
     {
-        "ref": "1.0.0",
         "new": "1.0.0",
         "reason": "Expect the same semantic version to be equal",
+        "ref": "1.0.0",
         "result": "even"
     },
     {
-        "ref": "1.0.0",
         "new": "2.0.0",
         "reason": "Expect a new major upgrade to be newer",
+        "ref": "1.0.0",
         "result": "newer"
     },
     {
-        "ref": "1.0.0",
         "new": "1.1.0",
         "reason": "Expect a new minor upgrade to be newer",
+        "ref": "1.0.0",
         "result": "newer"
     },
     {
-        "ref": "1.0.0",
         "new": "1.0.1",
         "reason": "Expect a new patch upgrade to be newer",
+        "ref": "1.0.0",
         "result": "newer"
     },
     {
-        "ref": "1.0.0-whatever",
         "new": "1.0.0",
         "reason": "Expect a version without a prerelease suffix to be newer"
             + " than the same version without the suffix",
+        "ref": "1.0.0-whatever",
         "result": "newer"
     },
     {
-        "ref": "3.0.0",
         "new": "3.0.0-beta",
         "reason": "Beta releases are also older than the same version proper",
+        "ref": "3.0.0",
         "result": "older"
     },
     {
-        "ref": "1.1.0-beta",
         "new": "1.0.0",
         "reason": "Expect the suffix to be unused if the numbers are different",
+        "ref": "1.1.0-beta",
         "result": "older"
     },
     {
-        "ref": "2.0.0-beta",
         "new": "2.0.0-beta",
         "reason": "Expect same version to be equal, even with suffix",
+        "ref": "2.0.0-beta",
         "result": "even"
     },
     {
-        "ref": "2.0.0-testthisone",
         "new": "2.0.0-onetime",
         "reason": "Expect unknown suffixes to be equal",
+        "ref": "2.0.0-testthisone",
         "result": "even"
     },
     {
-        "ref": "notvalid",
         "new": "3.0.0",
         "reason": "Expect no result if it's not a valid number",
+        "ref": "notvalid",
         "result": "unknown"
     },
     {
-        "ref": "2.0.0-dev",
         "new": "2.0.0-beta",
         "reason": "Expect beta versions to be newer than dev versions",
+        "ref": "2.0.0-dev",
         "result": "newer"
     },
     {
-        "ref": "2.0.0-beta",
         "new": "2.0.0-alpha",
         "reason": "Expect alpha versions to be older than beta versions",
+        "ref": "2.0.0-beta",
         "result": "older"
     },
     {
-        "ref": "2.0.0-prerelease",
         "new": "2.0.0-alpha",
         "reason": "Expect alpha versions to be older than prerelease versions",
+        "ref": "2.0.0-prerelease",
         "result": "older"
     },
     {
-        "ref": "2.0.0-beta",
         "new": "2.0.0-prerelease",
         "reason": "Expect prerelease versions to be newer than beta versions",
+        "ref": "2.0.0-beta",
         "result": "newer"
     }
 ]

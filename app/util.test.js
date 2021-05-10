@@ -23,124 +23,124 @@ const {homedir} = require("os")
 const UTIL = require("./util")
 const urlTests = [
     {
+        "reason": "Valid url without www.",
         "url": "google.com",
-        "valid": true,
-        "reason": "Valid url without www."
+        "valid": true
     },
     {
+        "reason": "Valid url due to protocol being present",
         "url": "https://!@#$!@#$!@#$",
-        "valid": true,
-        "reason": "Valid url due to protocol being present"
+        "valid": true
     },
     {
+        "reason": "Invalid url because of invalid characters",
         "url": "h%^*&TD{yfsd^.com",
-        "valid": false,
-        "reason": "Invalid url because of invalid characters"
+        "valid": false
     },
     {
+        "reason": "Localhost should always be valid",
         "url": "localhost",
-        "valid": true,
-        "reason": "Localhost should always be valid"
+        "valid": true
     },
     {
+        "reason": "Localhost with port should also be valid",
         "url": "localhost:555",
-        "valid": true,
-        "reason": "Localhost with port should also be valid"
+        "valid": true
     },
     {
+        "reason": "Empty port field should not be valid",
         "url": "localhost:",
-        "valid": false,
-        "reason": "Empty port field should not be valid"
+        "valid": false
     },
     {
+        "reason": "Ip addresses should be valid",
         "url": "127.0.0.1",
-        "valid": true,
-        "reason": "Ip addresses should be valid"
+        "valid": true
     },
     {
+        "reason": "Addresses with too many numbers per subnet aren't",
         "url": "111.2403.4.4",
-        "valid": false,
-        "reason": "Addresses with too many numbers per subnet aren't"
+        "valid": false
     },
     {
+        "reason": "Ip addresses should be valid",
         "url": "34.250.34.34",
-        "valid": true,
-        "reason": "Ip addresses should be valid"
+        "valid": true
     },
     {
+        "reason": "Invalid ip addresses should be detected as such",
         "url": "234.435.0.1",
-        "valid": false,
-        "reason": "Invalid ip addresses should be detected as such"
+        "valid": false
     },
     {
+        "reason": "Query params are allowed",
         "url": "www.youtube.com/test?id=1&uid=1",
-        "valid": true,
-        "reason": "Query params are allowed"
+        "valid": true
     },
     {
+        "reason": "Correct ip and port",
         "url": "192.168.2.5:25000",
-        "valid": true,
-        "reason": "Correct ip and port"
+        "valid": true
     },
     {
+        "reason": "Port below the valid range of 11 to 65535",
         "url": "192.168.2.5:0002",
-        "valid": false,
-        "reason": "Port below the valid range of 11 to 65535"
+        "valid": false
     },
     {
+        "reason": "Port below the valid range of 11 to 65535",
         "url": "192.168.2.5:000",
-        "valid": false,
-        "reason": "Port below the valid range of 11 to 65535"
+        "valid": false
     },
     {
+        "reason": "Port above the valid range of 11 to 65535",
         "url": "192.168.2.5:66536",
-        "valid": false,
-        "reason": "Port above the valid range of 11 to 65535"
+        "valid": false
     },
     {
+        "reason": "Port number has too many characters",
         "url": "192.168.2.5:000333",
-        "valid": false,
-        "reason": "Port number has too many characters"
+        "valid": false
     },
     {
+        "reason": "Only one port should be used as : is invalid in domainnames",
         "url": "duckduckgo.com:43434:2348",
-        "valid": false,
-        "reason": "Only one port should be used, as : is invalid in domainnames"
+        "valid": false
     },
     {
+        "reason": "Double dots are never valid in urls before path",
         "url": "duckduckgo..com/search",
-        "valid": false,
-        "reason": "Double dots are never valid in urls before path"
+        "valid": false
     },
     {
+        "reason": "A hostname without a toplevel domain is considered invalid",
         "url": "raspberrypi/test",
-        "valid": false,
-        "reason": "A hostname without a toplevel domain is considered invalid"
+        "valid": false
     },
     {
+        "reason": "A password in url is not allowed",
         "url": "hello:test@example.com",
-        "valid": false,
-        "reason": "A password in url is not allowed"
+        "valid": false
     },
     {
+        "reason": "Invalid due the inclusion of ':' which indicates a password",
         "url": "user:@example.com",
-        "valid": false,
-        "reason": "Invalid due the inclusion of ':' which indicates a password"
+        "valid": false
     },
     {
+        "reason": "Providing only the username is allowed in urls",
         "url": "user@example.com",
-        "valid": true,
-        "reason": "Providing only the username is allowed in urls"
+        "valid": true
     },
     {
+        "reason": "Double @ sign is invalid",
         "url": "hello@test@example.com",
-        "valid": false,
-        "reason": "Double @ sign is invalid"
+        "valid": false
     },
     {
+        "reason": "Double dashes are unusual but allowed",
         "url": "hello--dashes.com",
-        "valid": true,
-        "reason": "Double dashes are unusual but allowed"
+        "valid": true
     },
     {
         "url": "hello---dashes.com",
@@ -183,31 +183,31 @@ urlTests.forEach(urlTest => {
 const specialPagesToFilenames = [
     {
         "arguments": ["help"],
-        "response": `file://${path.resolve(`${__dirname}/pages/help.html`)}`,
-        "reason": "Expect basic conversion to work"
+        "reason": "Expect basic conversion to work",
+        "response": `file://${path.resolve(`${__dirname}/pages/help.html`)}`
     },
     {
         "arguments": ["test", null, false],
-        "response": `file://${path.resolve(`${__dirname}/pages/help.html`)}`,
-        "reason": "Expect to give help page"
+        "reason": "Expect to give help page",
+        "response": `file://${path.resolve(`${__dirname}/pages/help.html`)}`
     },
     {
         "arguments": ["downloads", "#list"],
+        "reason": "Don't prepend hashes if already provided",
         "response": `file://${path.resolve(
-            `${__dirname}/pages/downloads.html#list`)}`,
-        "reason": "Don't prepend hashes if already provided"
+            `${__dirname}/pages/downloads.html#list`)}`
     },
     {
         "arguments": ["nonexistent", "test", true],
+        "reason": "Skip page existence checks if requested",
         "response": `file://${path.resolve(
-            `${__dirname}/pages/nonexistent.html#test`)}`,
-        "reason": "Skip page existence checks if requested"
+            `${__dirname}/pages/nonexistent.html#test`)}`
     },
     {
         "arguments": ["help", "test"],
+        "reason": "Expect basic conversion to work",
         "response": `file://${path.resolve(
-            `${__dirname}/pages/help.html#test`)}`,
-        "reason": "Expect basic conversion to work"
+            `${__dirname}/pages/help.html#test`)}`
     }
 ]
 specialPagesToFilenames.forEach(specialPageTest => {

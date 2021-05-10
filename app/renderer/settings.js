@@ -75,9 +75,9 @@ const defaultSettings = {
     "guihidetimeout": 2000,
     "guinavbar": "always",
     "guitabbar": "always",
-    "keeprecentlyclosed": true,
     "ignorecase": true,
     "incsearch": true,
+    "keeprecentlyclosed": true,
     "maxmapdepth": 10,
     "mintabwidth": 28,
     "mouse": true,
@@ -265,16 +265,17 @@ const checkNumber = (setting, value) => {
 const checkOther = (setting, value) => {
     // Special cases
     if (setting === "search") {
-        if (value.startsWith("http://") || value.startsWith("https://")) {
-            value = value.replace(/^https?:\/\//g, "")
+        let baseUrl = value
+        if (baseUrl.startsWith("http://") || baseUrl.startsWith("https://")) {
+            baseUrl = baseUrl.replace(/^https?:\/\//g, "")
         }
-        if (value.length === 0 || !value.includes("%s")) {
-            notify(`Invalid search value: ${value}\n`
+        if (baseUrl.length === 0 || !baseUrl.includes("%s")) {
+            notify(`Invalid search value: ${baseUrl}\n`
                     + "URL must contain a %s parameter, which will be "
                     + "replaced by the search string", "warn")
             return false
         }
-        if (!isUrl(value)) {
+        if (!isUrl(baseUrl)) {
             notify("The value of the search setting must be a valid url",
                 "warn")
             return false
@@ -327,7 +328,7 @@ const checkOther = (setting, value) => {
                     "warn")
                 return false
             }
-            const style = document.createElement("div").style
+            const {style} = document.createElement("div")
             style.color = "white"
             style.color = color
             if (style.color === "white" && color !== "white" || !color) {
@@ -401,7 +402,7 @@ const checkOther = (setting, value) => {
                     + "regular expression from the replacement", "warn")
                 return false
             }
-            const match = redirect.split("~")[0]
+            const [match] = redirect.split("~")
             try {
                 RegExp(match)
             } catch (e) {
@@ -465,66 +466,71 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "suggestorder") {
-        for (const suggest of value.split(",")) {
-            if (!suggest.trim()) {
-                continue
-            }
-            const parts = (suggest.match(/~/g) || []).length
-            if (parts > 2) {
-                notify(`Invalid suggestorder entry: ${suggest}\n`
+        return checkSuggestOrder(value)
+    }
+    return true
+}
+
+const checkSuggestOrder = value => {
+    for (const suggest of value.split(",")) {
+        if (!suggest.trim()) {
+            continue
+        }
+        const parts = (suggest.match(/~/g) || []).length
+        if (parts > 2) {
+            notify(`Invalid suggestorder entry: ${suggest}\n`
                     + "Entries must have at most two ~ to separate the type "
                     + "from the count and the order (both optional)", "warn")
-                return false
-            }
-            const args = suggest.split("~")
-            const type = args.shift()
-            if (!["history", "file", "searchword"].includes(type)) {
-                notify(`Invalid suggestorder type: ${type}\n`
+            return false
+        }
+        const args = suggest.split("~")
+        const type = args.shift()
+        if (!["history", "file", "searchword"].includes(type)) {
+            notify(`Invalid suggestorder type: ${type}\n`
                     + "Suggestion type must be one of: history, file or "
                     + "searchword", "warn")
+            return false
+        }
+        let hasHadCount = false
+        let hasHadOrder = false
+        for (const arg of args) {
+            if (!arg) {
+                notify("Configuration for suggestorder after the type can "
+                        + "not be empty", "warn")
                 return false
             }
-            let hasHadCount = false
-            let hasHadOrder = false
-            for (const arg of args) {
-                if (!arg) {
-                    notify("Configuration for suggestorder after the type can "
-                        + "not be empty", "warn")
+            const potentialCount = Number(arg)
+            if (potentialCount > 0 && potentialCount <= 9000000000000000) {
+                if (hasHadCount) {
+                    notify("Count configuration for a suggestorder entry "
+                            + "can only be set once per entry", "warn")
                     return false
                 }
-                const potentialCount = Number(arg)
-                if (potentialCount > 0 && potentialCount <= 9000000000000000) {
-                    if (hasHadCount) {
-                        notify("Count configuration for a suggestorder entry "
-                            + "can only be set once per entry", "warn")
-                        return false
-                    }
-                    hasHadCount = true
-                    continue
-                }
-                const validOrders = []
-                if (type === "history") {
-                    validOrders.push("alpha", "relevance", "date")
-                }
-                if (type === "file") {
-                    validOrders.push("alpha")
-                }
-                if (type === "searchword") {
-                    validOrders.push("alpha", "setting")
-                }
-                if (validOrders.includes(arg)) {
-                    if (hasHadOrder) {
-                        notify("Order configuration for a suggestorder entry "
-                            + "can only be set once per entry", "warn")
-                        return false
-                    }
-                    hasHadOrder = true
-                    continue
-                }
-                notify(`Order configuration is invalid, supported orders for ${
-                    type} suggestions are: ${validOrders.join(", ")}`, "warn")
-                return false
+                hasHadCount = true
+                continue
             }
+            const validOrders = []
+            if (type === "history") {
+                validOrders.push("alpha", "relevance", "date")
+            }
+            if (type === "file") {
+                validOrders.push("alpha")
+            }
+            if (type === "searchword") {
+                validOrders.push("alpha", "setting")
+            }
+            if (validOrders.includes(arg)) {
+                if (hasHadOrder) {
+                    notify("Order configuration for a suggestorder entry "
+                            + "can only be set once per entry", "warn")
+                    return false
+                }
+                hasHadOrder = true
+                continue
+            }
+            notify(`Order configuration is invalid, supported orders for ${
+                type} suggestions are: ${validOrders.join(", ")}`, "warn")
+            return false
         }
     }
     return true
@@ -536,31 +542,30 @@ const isValidSetting = (setting, value) => {
         return false
     }
     const expectedType = typeof allSettings[setting]
+    let parsedValue = String(value)
     if (typeof value === "string") {
-        if (expectedType !== typeof value) {
-            if (expectedType === "number" && !isNaN(Number(value))) {
-                value = Number(value)
-            }
-            if (expectedType === "boolean") {
-                if (["true", "false"].includes(value)) {
-                    value = value === "true"
-                }
+        if (expectedType === "number" && !isNaN(Number(parsedValue))) {
+            parsedValue = Number(value)
+        }
+        if (expectedType === "boolean") {
+            if (["true", "false"].includes(parsedValue)) {
+                parsedValue = value === "true"
             }
         }
     }
-    if (expectedType !== typeof value) {
+    if (expectedType !== typeof parsedValue) {
         notify(`The value of setting '${setting}' is of an incorrect `
             + `type, expected '${expectedType}' but got `
-            + `'${typeof value}' instead.`, "warn")
+            + `'${typeof parsedValue}' instead.`, "warn")
         return false
     }
     if (validOptions[setting]) {
-        return checkOption(setting, value)
+        return checkOption(setting, parsedValue)
     }
     if (numberRanges[setting]) {
-        return checkNumber(setting, value)
+        return checkNumber(setting, parsedValue)
     }
-    return checkOther(setting, value)
+    return checkOther(setting, parsedValue)
 }
 
 const updateContainerSettings = (full = true) => {
@@ -569,7 +574,7 @@ const updateContainerSettings = (full = true) => {
             const color = allSettings.containercolors.split(",").find(
                 c => page.getAttribute("container").match(c.split("~")[0]))
             if (color) {
-                tabOrPageMatching(page).style.color = color.split("~")[1]
+                [, tabOrPageMatching(page).style.color] = color.split("~")
             }
         }
     }
@@ -585,8 +590,8 @@ const updateContainerSettings = (full = true) => {
     } else {
         document.getElementById("containername").textContent = container
         if (color) {
-            document.getElementById("containername")
-                .style.color = color.split("~")[1]
+            [, document.getElementById("containername")
+                .style.color] = color.split("~")
         } else {
             document.getElementById("containername").style.color = null
         }
@@ -614,13 +619,13 @@ const updateWebviewSettings = () => {
     const webviewSettingsFile = joinPath(
         appData(), "webviewsettings")
     writeJSON(webviewSettingsFile, {
+        "bg": getComputedStyle(document.body).getPropertyValue("--bg"),
+        "fg": getComputedStyle(document.body).getPropertyValue("--fg"),
         "permissiondisplaycapture": allSettings.permissiondisplaycapture,
         "permissionmediadevices": allSettings.permissionmediadevices,
         "permissionsallowed": allSettings.permissionsallowed,
         "permissionsasked": allSettings.permissionsasked,
-        "permissionsblocked": allSettings.permissionsblocked,
-        "fg": getComputedStyle(document.body).getPropertyValue("--fg"),
-        "bg": getComputedStyle(document.body).getPropertyValue("--bg")
+        "permissionsblocked": allSettings.permissionsblocked
     })
 }
 
@@ -708,16 +713,15 @@ const loadFromDisk = () => {
     for (const conf of [config, userFirstConfig, userGlobalConfig]) {
         if (isFile(conf)) {
             const parsed = readFile(conf)
-            if (parsed) {
-                for (const line of parsed.split("\n")) {
-                    if (line && !line.trim().startsWith("\"")) {
-                        const {execute} = require("./command")
-                        execute(line)
-                    }
+            if (!parsed) {
+                notify(`Read error for config file located at '${conf}'`, "err")
+                continue
+            }
+            for (const line of parsed.split("\n")) {
+                if (line && !line.trim().startsWith("\"")) {
+                    const {execute} = require("./command")
+                    execute(line)
                 }
-            } else {
-                notify(
-                    `Read error for config file located at '${conf}'`, "err")
             }
         }
     }
@@ -738,9 +742,10 @@ const set = (setting, value) => {
     if (isValidSetting(setting, value)) {
         if (setting === "search") {
             if (!value.startsWith("http://") && !value.startsWith("https://")) {
-                value = `https://${value}`
+                allSettings.search = `https://${value}`
+            } else {
+                allSettings.search = value
             }
-            allSettings.search = value
         } else if (typeof allSettings[setting] === "boolean") {
             allSettings[setting] = ["true", true].includes(value)
         } else if (typeof allSettings[setting] === "number") {
@@ -924,11 +929,11 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
         }
     }
     return {
-        "name": setting,
+        allowedValues,
         "current": allSettings[setting],
         "default": defaultSettings[setting],
-        "typeLabel": typeLabel,
-        "allowedValues": allowedValues
+        "name": setting,
+        typeLabel
     }
 })
 
@@ -1008,20 +1013,20 @@ const updateCustomStyling = () => {
 }
 
 module.exports = {
-    init,
     freeText,
+    getCustomStyling,
+    init,
+    listCurrentSettings,
     listLike,
-    updateContainerSettings,
-    suggestionList,
     loadFromDisk,
     reset,
-    set,
-    updateWindowTitle,
-    updateHelpPage,
-    settingsWithDefaults,
-    listCurrentSettings,
     saveToDisk,
+    set,
     setCustomStyling,
-    getCustomStyling,
-    updateCustomStyling
+    settingsWithDefaults,
+    suggestionList,
+    updateContainerSettings,
+    updateCustomStyling,
+    updateHelpPage,
+    updateWindowTitle
 }

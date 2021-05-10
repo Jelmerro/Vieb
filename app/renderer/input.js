@@ -26,271 +26,283 @@ const ACTIONS = require("./actions")
 const POINTER = require("./pointer")
 
 const defaultBindings = {
-    "n": {
-        "<CR>": {"mapping": "<action.clickOnSearch>"},
-        "<F1>": {"mapping": "<:help>"},
-        "<F11>": {"mapping": "<action.toggleFullscreen>"},
-        "<Tab>": {"mapping": "<Nop>"},
-        "<C-a>": {"mapping": "<action.increasePageNumber>"},
-        "b": {"mapping": "<action.previousTab>"},
-        "<C-b>": {"mapping": "<action.scrollPageUp>"},
-        "c": {"mapping": "<pointer.start>"},
-        "<C-c>": {"mapping": "<action.stopLoadingPage>"},
-        "d": {"mapping": "<:close>"},
-        "<C-d>": {"mapping": "<action.scrollPageDownHalf>"},
-        "e": {"mapping": "<action.toExploreMode>"},
-        "f": {"mapping": "<action.startFollowCurrentTab>"},
-        "F": {"mapping": "<action.startFollowNewTab>"},
-        "<C-f>": {"mapping": "<action.scrollPageDown>"},
-        "gg": {"mapping": "<action.scrollTop>"},
-        "gi": {"mapping": "<action.insertAtFirstInput>"},
-        "gt": {"mapping": "<action.nextTab>"},
-        "gT": {"mapping": "<action.previousTab>"},
-        "G": {"mapping": "<action.scrollBottom>"},
-        "h": {"mapping": "<action.scrollLeft>"},
-        "H": {"mapping": "<action.backInHistory>"},
-        "i": {"mapping": "<action.toInsertMode>"},
-        "<C-i>": {"mapping": "<action.forwardInHistory>"},
-        "j": {"mapping": "<action.scrollDown>"},
-        "J": {"mapping": "<action.nextTab>"},
-        "<C-j>": {"mapping": "<action.moveTabForward>"},
-        "k": {"mapping": "<action.scrollUp>"},
-        "K": {"mapping": "<action.previousTab>"},
-        "<C-k>": {"mapping": "<action.moveTabBackward>"},
-        "l": {"mapping": "<action.scrollRight>"},
-        "L": {"mapping": "<action.forwardInHistory>"},
-        "n": {"mapping": "<action.nextSearchMatch>"},
-        "N": {"mapping": "<action.previousSearchMatch>"},
-        "<C-m>": {"mapping": "<action.menuOpen>"},
-        "<C-o>": {"mapping": "<action.backInHistory>"},
-        "p": {"mapping": "<action.openFromClipboard>"},
-        "P": {"mapping": "<action.openNewTab><action.openFromClipboard>"},
-        "r": {"mapping": "<action.reload>"},
-        "R": {"mapping": "<action.reloadWithoutCache>"},
-        "s": {"mapping": "<pointer.start>"},
-        "t": {"mapping": "<action.openNewTab>"},
-        "T": {"mapping": "<action.openNewTabWithCurrentUrl>"},
-        "<C-t>": {"mapping": "<:set tabnexttocurrent!>"
-            + "<action.openNewTab><:set tabnexttocurrent!>"},
-        "u": {"mapping": "<action.reopenTab>"},
-        "<C-u>": {"mapping": "<action.scrollPageUpHalf>"},
-        "v": {"mapping": "<pointer.start>"},
-        "w": {"mapping": "<action.nextTab>"},
-        "x": {"mapping": "<action.openLinkExternal>"},
-        "ZZ": {"mapping": "<:quit>"},
-        "<C-w>c": {"mapping": "<:close>"},
-        "<C-w><C-c>": {"mapping": "<:close>"},
-        "<C-w>n": {"mapping": "<:split>"},
-        "<C-w><C-n>": {"mapping": "<:split>"},
-        "<C-w>o": {"mapping": "<:only>"},
-        "<C-w><C-o>": {"mapping": "<:only>"},
-        "<C-w>q": {"mapping": "<:quit>"},
-        "<C-w><C-q>": {"mapping": "<:quit>"},
-        "<C-w>s": {"mapping": "<:split>"},
-        "<C-w><C-s>": {"mapping": "<:split>"},
-        "<C-w>v": {"mapping": "<:vsplit>"},
-        "<C-w><C-v>": {"mapping": "<:vsplit>"},
-        "<C-w>r": {"mapping": "<action.rotateSplitWindowForward>"},
-        "<C-w><C-r>": {"mapping": "<action.rotateSplitWindowForward>"},
-        "<C-w>R": {"mapping": "<action.rotateSplitWindowBackward>"},
-        "<C-w><C-R>": {"mapping": "<action.rotateSplitWindowBackward>"},
-        "<C-w>H": {"mapping": "<action.leftHalfSplitWindow>"},
-        "<C-w><C-H>": {"mapping": "<action.leftHalfSplitWindow>"},
-        "<C-w>J": {"mapping": "<action.bottomHalfSplitWindow>"},
-        "<C-w><C-J>": {"mapping": "<action.bottomHalfSplitWindow>"},
-        "<C-w>K": {"mapping": "<action.topHalfSplitWindow>"},
-        "<C-w><C-K>": {"mapping": "<action.topHalfSplitWindow>"},
-        "<C-w>L": {"mapping": "<action.rightHalfSplitWindow>"},
-        "<C-w><C-L>": {"mapping": "<action.rightHalfSplitWindow>"},
-        "<C-w>h": {"mapping": "<action.toLeftSplitWindow>"},
-        "<C-w><C-h>": {"mapping": "<action.toLeftSplitWindow>"},
-        "<C-w>j": {"mapping": "<action.toBottomSplitWindow>"},
-        "<C-w><C-j>": {"mapping": "<action.toBottomSplitWindow>"},
-        "<C-w>k": {"mapping": "<action.toTopSplitWindow>"},
-        "<C-w><C-k>": {"mapping": "<action.toTopSplitWindow>"},
-        "<C-w>l": {"mapping": "<action.toRightSplitWindow>"},
-        "<C-w><C-l>": {"mapping": "<action.toRightSplitWindow>"},
-        "<C-w>b": {"mapping": "<action.toLastSplitWindow>"},
-        "<C-w><C-b>": {"mapping": "<action.toLastSplitWindow>"},
-        "<C-w>t": {"mapping": "<action.toFirstSplitWindow>"},
-        "<C-w><C-t>": {"mapping": "<action.toFirstSplitWindow>"},
-        "<C-w>w": {"mapping": "<action.toNextSplitWindow>"},
-        "<C-w><C-w>": {"mapping": "<action.toNextSplitWindow>"},
-        "<C-w>W": {"mapping": "<action.toPreviousSplitWindow>"},
-        "<C-w><C-W>": {"mapping": "<action.toPreviousSplitWindow>"},
-        "<C-w>x": {"mapping": "<action.exchangeSplitWindow>"},
-        "<C-w><C-x>": {"mapping": "<action.exchangeSplitWindow>"},
-        "<C-w>p": {"mapping": "<action.toLastUsedTab>"},
-        "<C-w><C-p>": {"mapping": "<action.toLastUsedTab>"},
-        "<C-w>-": {"mapping": "<action.decreaseHeightSplitWindow>"},
-        "<C-w>+": {"mapping": "<action.increaseHeightSplitWindow>"},
-        "<C-w>=": {"mapping": "<action.distrubuteSpaceSplitWindow>"},
-        "<C-w><C-=>": {"mapping": "<action.distrubuteSpaceSplitWindow>"},
-        "<C-w><lt>": {"mapping": "<action.decreaseWidthSplitWindow>"},
-        "<C-w>>": {"mapping": "<action.increaseWidthSplitWindow>"},
-        "<C-w><C-lt>": {"mapping": "<action.decreaseWidthSplitWindow>"},
-        "<C-w><C->>": {"mapping": "<action.increaseWidthSplitWindow>"},
-        "<C-x>": {"mapping": "<action.decreasePageNumber>"},
-        "y": {"mapping": "<action.pageToClipboard>"},
-        "/": {"mapping": "<action.toSearchMode>"},
-        "$": {"mapping": "<action.scrollPageRight>"},
-        "^": {"mapping": "<action.scrollPageLeft>"},
-        ":": {"mapping": "<action.toCommandMode>"},
-        "-": {"mapping": "<action.zoomOut>"},
-        "_": {"mapping": "<action.zoomOut>"},
-        "=": {"mapping": "<action.zoomIn>"},
-        "+": {"mapping": "<action.zoomIn>"},
-        "<C-0>": {"mapping": "<action.zoomReset>"},
-        "<A-F4>": {"mapping": "<:quitall>"}
-    },
-    "i": {
-        "<NumLock>": {"mapping": "<Nop>"},
-        "<CapsLock>": {"mapping": "<Nop>"},
-        "<ScrollLock>": {"mapping": "<Nop>"},
-        "<F1>": {"mapping": "<:help>"},
-        "<F11>": {"mapping": "<action.toggleFullscreen>"},
-        "<Esc>": {"mapping": "<action.toNormalMode>"},
-        "<C-i>": {"mapping": "<action.editWithVim>"},
-        "<C-m>": {"mapping": "<action.menuOpen>"},
-        "<C-[>": {"mapping": "<action.toNormalMode>"},
-        "<A-F4>": {"mapping": "<:quitall>"}
-    },
     "c": {
-        "<CR>": {"mapping": "<action.useEnteredData>"},
-        "<F1>": {"mapping": "<:help>"},
-        "<F11>": {"mapping": "<action.toggleFullscreen>"},
-        "<Esc>": {"mapping": "<action.toNormalMode>"},
-        "<Tab>": {"mapping": "<action.nextSuggestion>"},
-        "<S-Tab>": {"mapping": "<action.prevSuggestion>"},
+        "<A-F4>": {"mapping": "<:quitall>"},
+        "<C-[>": {"mapping": "<action.toNormalMode>"},
         "<C-m>": {"mapping": "<action.menuOpen>"},
         "<C-n>": {"mapping": "<action.commandHistoryNext>"},
         "<C-p>": {"mapping": "<action.commandHistoryPrevious>"},
-        "<C-[>": {"mapping": "<action.toNormalMode>"},
-        "<A-F4>": {"mapping": "<:quitall>"}
-    },
-    "s": {
         "<CR>": {"mapping": "<action.useEnteredData>"},
+        "<Esc>": {"mapping": "<action.toNormalMode>"},
         "<F1>": {"mapping": "<:help>"},
         "<F11>": {"mapping": "<action.toggleFullscreen>"},
-        "<Esc>": {"mapping": "<action.toNormalMode>"},
-        "<C-m>": {"mapping": "<action.menuOpen>"},
-        "<C-[>": {"mapping": "<action.toNormalMode>"},
-        "<A-F4>": {"mapping": "<:quitall>"}
+        "<S-Tab>": {"mapping": "<action.prevSuggestion>"},
+        "<Tab>": {"mapping": "<action.nextSuggestion>"}
     },
     "e": {
-        "<CR>": {"mapping": "<action.useEnteredData>"},
-        "<F1>": {"mapping": "<:help>"},
-        "<F11>": {"mapping": "<action.toggleFullscreen>"},
-        "<Esc>": {"mapping": "<action.toNormalMode>"},
-        "<Tab>": {"mapping": "<action.nextSuggestion>"},
-        "<S-Tab>": {"mapping": "<action.prevSuggestion>"},
+        "<A-F4>": {"mapping": "<:quitall>"},
+        "<C-[>": {"mapping": "<action.toNormalMode>"},
         "<C-m>": {"mapping": "<action.menuOpen>"},
         "<C-n>": {"mapping": "<action.exploreHistoryNext>"},
         "<C-p>": {"mapping": "<action.exploreHistoryPrevious>"},
-        "<C-[>": {"mapping": "<action.toNormalMode>"},
-        "<A-F4>": {"mapping": "<:quitall>"}
+        "<CR>": {"mapping": "<action.useEnteredData>"},
+        "<Esc>": {"mapping": "<action.toNormalMode>"},
+        "<F1>": {"mapping": "<:help>"},
+        "<F11>": {"mapping": "<action.toggleFullscreen>"},
+        "<S-Tab>": {"mapping": "<action.prevSuggestion>"},
+        "<Tab>": {"mapping": "<action.nextSuggestion>"}
     },
     "f": {
-        "<F1>": {"mapping": "<:help>"},
-        "<F11>": {"mapping": "<action.toggleFullscreen>"},
-        "<Tab>": {"mapping": "<action.reorderFollowLinks>"},
-        "<Esc>": {"mapping": "<action.stopFollowMode>"},
-        "<C-m>": {"mapping": "<action.menuOpen>"},
+        "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<action.stopFollowMode>"},
-        "<A-F4>": {"mapping": "<:quitall>"}
-    },
-    "p": {
+        "<C-m>": {"mapping": "<action.menuOpen>"},
+        "<Esc>": {"mapping": "<action.stopFollowMode>"},
         "<F1>": {"mapping": "<:help>"},
         "<F11>": {"mapping": "<action.toggleFullscreen>"},
-        "<CR>": {"mapping": "<pointer.leftClick>"},
-        "<Esc>": {"mapping": "<action.toNormalMode>"},
-        "[": {"mapping": "<pointer.scrollUp>"},
-        "]": {"mapping": "<pointer.scrollDown>"},
-        "b": {"mapping": "<pointer.moveFastLeft>"},
-        "d": {"mapping": "<pointer.downloadImage>"},
-        "D": {"mapping": "<pointer.downloadLink>"},
-        "<C-d>": {"mapping": "<pointer.moveFastDown>"},
-        "e": {"mapping": "<pointer.inspectElement>"},
-        "f": {"mapping": "<action.startFollowCurrentTab>"},
-        "gg": {"mapping": "<pointer.startOfPage>"},
-        "G": {"mapping": "<pointer.endOfPage>"},
-        "h": {"mapping": "<pointer.moveLeft>"},
-        "H": {"mapping": "<pointer.startOfView>"},
-        "<C-h>": {"mapping": "<pointer.moveSlowLeft>"},
-        "i": {"mapping": "<pointer.insertAtPosition>"},
-        "j": {"mapping": "<pointer.moveDown>"},
-        "J": {"mapping": "<pointer.scrollDown>"},
-        "<C-j>": {"mapping": "<pointer.moveSlowDown>"},
-        "k": {"mapping": "<pointer.moveUp>"},
-        "K": {"mapping": "<pointer.scrollUp>"},
-        "<C-k>": {"mapping": "<pointer.moveSlowUp>"},
-        "l": {"mapping": "<pointer.moveRight>"},
-        "L": {"mapping": "<pointer.endOfView>"},
-        "<C-l>": {"mapping": "<pointer.moveSlowRight>"},
-        "M": {"mapping": "<pointer.centerOfView>"},
-        "<C-m>": {"mapping": "<action.menuOpen>"},
-        "r": {"mapping": "<pointer.rightClick>"},
-        "<C-u>": {"mapping": "<pointer.moveFastUp>"},
-        "v": {"mapping": "<pointer.startVisualSelect>"},
-        "w": {"mapping": "<pointer.moveFastRight>"},
-        "x": {"mapping": "<action.openLinkExternal>"},
-        "y": {"mapping": "<pointer.copyAndStop>"},
-        "<lt>": {"mapping": "<pointer.scrollLeft>"},
-        ">": {"mapping": "<pointer.scrollRight>"},
-        "$": {"mapping": "<pointer.moveRightMax>"},
-        "^": {"mapping": "<pointer.moveLeftMax>"},
-        "<C-[>": {"mapping": "<action.toNormalMode>"},
-        "<A-F4>": {"mapping": "<:quitall>"}
+        "<Tab>": {"mapping": "<action.reorderFollowLinks>"}
     },
-    "v": {
+    "i": {
+        "<A-F4>": {"mapping": "<:quitall>"},
+        "<C-[>": {"mapping": "<action.toNormalMode>"},
+        "<C-i>": {"mapping": "<action.editWithVim>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
+        "<CapsLock>": {"mapping": "<Nop>"},
+        "<Esc>": {"mapping": "<action.toNormalMode>"},
         "<F1>": {"mapping": "<:help>"},
         "<F11>": {"mapping": "<action.toggleFullscreen>"},
-        "<Esc>": {"mapping": "<action.toNormalMode>"},
-        "[": {"mapping": "<pointer.scrollUp>"},
-        "]": {"mapping": "<pointer.scrollDown>"},
-        "b": {"mapping": "<pointer.moveFastLeft>"},
-        "c": {"mapping": "<pointer.copyAndStop>"},
-        "<C-d>": {"mapping": "<pointer.moveFastDown>"},
-        "f": {"mapping": "<action.startFollowCurrentTab>"},
-        "gg": {"mapping": "<pointer.startOfPage>"},
-        "G": {"mapping": "<pointer.endOfPage>"},
-        "h": {"mapping": "<pointer.moveLeft>"},
-        "H": {"mapping": "<pointer.startOfView>"},
-        "<C-h>": {"mapping": "<pointer.moveSlowLeft>"},
-        "j": {"mapping": "<pointer.moveDown>"},
-        "J": {"mapping": "<pointer.scrollDown>"},
-        "<C-j>": {"mapping": "<pointer.moveSlowDown>"},
-        "k": {"mapping": "<pointer.moveUp>"},
-        "K": {"mapping": "<pointer.scrollUp>"},
-        "<C-k>": {"mapping": "<pointer.moveSlowUp>"},
-        "l": {"mapping": "<pointer.moveRight>"},
-        "L": {"mapping": "<pointer.endOfView>"},
-        "<C-l>": {"mapping": "<pointer.moveSlowRight>"},
-        "M": {"mapping": "<pointer.centerOfView>"},
-        "<C-m>": {"mapping": "<action.menuOpen>"},
-        "o": {"mapping": "<pointer.swapPosition>"},
-        "r": {"mapping": "<pointer.rightClick>"},
-        "<C-u>": {"mapping": "<pointer.moveFastUp>"},
-        "w": {"mapping": "<pointer.moveFastRight>"},
-        "x": {"mapping": "<action.openLinkExternal>"},
-        "y": {"mapping": "<pointer.copyAndStop>"},
-        "<lt>": {"mapping": "<pointer.scrollLeft>"},
-        ">": {"mapping": "<pointer.scrollRight>"},
-        "$": {"mapping": "<pointer.moveRightMax>"},
-        "^": {"mapping": "<pointer.moveLeftMax>"},
-        "<C-[>": {"mapping": "<action.toNormalMode>"},
-        "<A-F4>": {"mapping": "<:quitall>"}
+        "<NumLock>": {"mapping": "<Nop>"},
+        "<ScrollLock>": {"mapping": "<Nop>"}
     },
     "m": {
-        "<Up>": {"mapping": "<action.menuUp>"},
-        "<Down>": {"mapping": "<action.menuDown>"},
-        "<CR>": {"mapping": "<action.menuSelect>"},
-        "<Esc>": {"mapping": "<action.menuClose>"},
+        "<A-F4>": {"mapping": "<:quitall>"},
+        "<C-[>": {"mapping": "<action.menuClose>"},
         "<C-m>": {"mapping": "<action.menuOpen>"},
         "<C-n>": {"mapping": "<action.menuDown>"},
         "<C-p>": {"mapping": "<action.menuUp>"},
-        "<C-[>": {"mapping": "<action.menuClose>"},
-        "<A-F4>": {"mapping": "<:quitall>"}
+        "<CR>": {"mapping": "<action.menuSelect>"},
+        "<CapsLock>": {"mapping": "<Nop>"},
+        "<Down>": {"mapping": "<action.menuDown>"},
+        "<Esc>": {"mapping": "<action.menuClose>"},
+        "<NumLock>": {"mapping": "<Nop>"},
+        "<ScrollLock>": {"mapping": "<Nop>"},
+        "<Up>": {"mapping": "<action.menuUp>"}
+    },
+    "n": {
+        "$": {"mapping": "<action.scrollPageRight>"},
+        "+": {"mapping": "<action.zoomIn>"},
+        "/": {"mapping": "<action.toSearchMode>"},
+        ":": {"mapping": "<action.toCommandMode>"},
+        "<A-F4>": {"mapping": "<:quitall>"},
+        "<C-0>": {"mapping": "<action.zoomReset>"},
+        "<C-a>": {"mapping": "<action.increasePageNumber>"},
+        "<C-b>": {"mapping": "<action.scrollPageUp>"},
+        "<C-c>": {"mapping": "<action.stopLoadingPage>"},
+        "<C-d>": {"mapping": "<action.scrollPageDownHalf>"},
+        "<C-f>": {"mapping": "<action.scrollPageDown>"},
+        "<C-i>": {"mapping": "<action.forwardInHistory>"},
+        "<C-j>": {"mapping": "<action.moveTabForward>"},
+        "<C-k>": {"mapping": "<action.moveTabBackward>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
+        "<C-o>": {"mapping": "<action.backInHistory>"},
+        "<C-t>": {"mapping": "<:set tabnexttocurrent!>"
+            + "<action.openNewTab><:set tabnexttocurrent!>"},
+        "<C-u>": {"mapping": "<action.scrollPageUpHalf>"},
+        "<C-w>+": {"mapping": "<action.increaseHeightSplitWindow>"},
+        "<C-w><C-=>": {"mapping": "<action.distrubuteSpaceSplitWindow>"},
+        "<C-w><C->>": {"mapping": "<action.increaseWidthSplitWindow>"},
+        "<C-w><C-H>": {"mapping": "<action.leftHalfSplitWindow>"},
+        "<C-w><C-J>": {"mapping": "<action.bottomHalfSplitWindow>"},
+        "<C-w><C-K>": {"mapping": "<action.topHalfSplitWindow>"},
+        "<C-w><C-L>": {"mapping": "<action.rightHalfSplitWindow>"},
+        "<C-w><C-R>": {"mapping": "<action.rotateSplitWindowBackward>"},
+        "<C-w><C-W>": {"mapping": "<action.toPreviousSplitWindow>"},
+        "<C-w><C-b>": {"mapping": "<action.toLastSplitWindow>"},
+        "<C-w><C-c>": {"mapping": "<:close>"},
+        "<C-w><C-h>": {"mapping": "<action.toLeftSplitWindow>"},
+        "<C-w><C-j>": {"mapping": "<action.toBottomSplitWindow>"},
+        "<C-w><C-k>": {"mapping": "<action.toTopSplitWindow>"},
+        "<C-w><C-l>": {"mapping": "<action.toRightSplitWindow>"},
+        "<C-w><C-lt>": {"mapping": "<action.decreaseWidthSplitWindow>"},
+        "<C-w><C-n>": {"mapping": "<:split>"},
+        "<C-w><C-o>": {"mapping": "<:only>"},
+        "<C-w><C-p>": {"mapping": "<action.toLastUsedTab>"},
+        "<C-w><C-q>": {"mapping": "<:quit>"},
+        "<C-w><C-r>": {"mapping": "<action.rotateSplitWindowForward>"},
+        "<C-w><C-s>": {"mapping": "<:split>"},
+        "<C-w><C-t>": {"mapping": "<action.toFirstSplitWindow>"},
+        "<C-w><C-v>": {"mapping": "<:vsplit>"},
+        "<C-w><C-w>": {"mapping": "<action.toNextSplitWindow>"},
+        "<C-w><C-x>": {"mapping": "<action.exchangeSplitWindow>"},
+        "<C-w><lt>": {"mapping": "<action.decreaseWidthSplitWindow>"},
+        "<C-w>=": {"mapping": "<action.distrubuteSpaceSplitWindow>"},
+        "<C-w>>": {"mapping": "<action.increaseWidthSplitWindow>"},
+        "<C-w>-": {"mapping": "<action.decreaseHeightSplitWindow>"},
+        "<C-w>H": {"mapping": "<action.leftHalfSplitWindow>"},
+        "<C-w>J": {"mapping": "<action.bottomHalfSplitWindow>"},
+        "<C-w>K": {"mapping": "<action.topHalfSplitWindow>"},
+        "<C-w>L": {"mapping": "<action.rightHalfSplitWindow>"},
+        "<C-w>R": {"mapping": "<action.rotateSplitWindowBackward>"},
+        "<C-w>W": {"mapping": "<action.toPreviousSplitWindow>"},
+        "<C-w>b": {"mapping": "<action.toLastSplitWindow>"},
+        "<C-w>c": {"mapping": "<:close>"},
+        "<C-w>h": {"mapping": "<action.toLeftSplitWindow>"},
+        "<C-w>j": {"mapping": "<action.toBottomSplitWindow>"},
+        "<C-w>k": {"mapping": "<action.toTopSplitWindow>"},
+        "<C-w>l": {"mapping": "<action.toRightSplitWindow>"},
+        "<C-w>n": {"mapping": "<:split>"},
+        "<C-w>o": {"mapping": "<:only>"},
+        "<C-w>p": {"mapping": "<action.toLastUsedTab>"},
+        "<C-w>q": {"mapping": "<:quit>"},
+        "<C-w>r": {"mapping": "<action.rotateSplitWindowForward>"},
+        "<C-w>s": {"mapping": "<:split>"},
+        "<C-w>t": {"mapping": "<action.toFirstSplitWindow>"},
+        "<C-w>v": {"mapping": "<:vsplit>"},
+        "<C-w>w": {"mapping": "<action.toNextSplitWindow>"},
+        "<C-w>x": {"mapping": "<action.exchangeSplitWindow>"},
+        "<C-x>": {"mapping": "<action.decreasePageNumber>"},
+        "<CR>": {"mapping": "<action.clickOnSearch>"},
+        "<CapsLock>": {"mapping": "<Nop>"},
+        "<F1>": {"mapping": "<:help>"},
+        "<F11>": {"mapping": "<action.toggleFullscreen>"},
+        "<NumLock>": {"mapping": "<Nop>"},
+        "<ScrollLock>": {"mapping": "<Nop>"},
+        "<Tab>": {"mapping": "<Nop>"},
+        "=": {"mapping": "<action.zoomIn>"},
+        "^": {"mapping": "<action.scrollPageLeft>"},
+        "_": {"mapping": "<action.zoomOut>"},
+        "-": {"mapping": "<action.zoomOut>"},
+        "F": {"mapping": "<action.startFollowNewTab>"},
+        "G": {"mapping": "<action.scrollBottom>"},
+        "H": {"mapping": "<action.backInHistory>"},
+        "J": {"mapping": "<action.nextTab>"},
+        "K": {"mapping": "<action.previousTab>"},
+        "L": {"mapping": "<action.forwardInHistory>"},
+        "N": {"mapping": "<action.previousSearchMatch>"},
+        "P": {"mapping": "<action.openNewTab><action.openFromClipboard>"},
+        "R": {"mapping": "<action.reloadWithoutCache>"},
+        "T": {"mapping": "<action.openNewTabWithCurrentUrl>"},
+        "ZZ": {"mapping": "<:quit>"},
+        "b": {"mapping": "<action.previousTab>"},
+        "c": {"mapping": "<pointer.start>"},
+        "d": {"mapping": "<:close>"},
+        "e": {"mapping": "<action.toExploreMode>"},
+        "f": {"mapping": "<action.startFollowCurrentTab>"},
+        "gT": {"mapping": "<action.previousTab>"},
+        "gg": {"mapping": "<action.scrollTop>"},
+        "gi": {"mapping": "<action.insertAtFirstInput>"},
+        "gt": {"mapping": "<action.nextTab>"},
+        "h": {"mapping": "<action.scrollLeft>"},
+        "i": {"mapping": "<action.toInsertMode>"},
+        "j": {"mapping": "<action.scrollDown>"},
+        "k": {"mapping": "<action.scrollUp>"},
+        "l": {"mapping": "<action.scrollRight>"},
+        "n": {"mapping": "<action.nextSearchMatch>"},
+        "p": {"mapping": "<action.openFromClipboard>"},
+        "r": {"mapping": "<action.reload>"},
+        "s": {"mapping": "<pointer.start>"},
+        "t": {"mapping": "<action.openNewTab>"},
+        "u": {"mapping": "<action.reopenTab>"},
+        "v": {"mapping": "<pointer.start>"},
+        "w": {"mapping": "<action.nextTab>"},
+        "x": {"mapping": "<action.openLinkExternal>"},
+        "y": {"mapping": "<action.pageToClipboard>"}
+    },
+    "p": {
+        "$": {"mapping": "<pointer.moveRightMax>"},
+        "<A-F4>": {"mapping": "<:quitall>"},
+        "<C-[>": {"mapping": "<action.toNormalMode>"},
+        "<C-d>": {"mapping": "<pointer.moveFastDown>"},
+        "<C-h>": {"mapping": "<pointer.moveSlowLeft>"},
+        "<C-j>": {"mapping": "<pointer.moveSlowDown>"},
+        "<C-k>": {"mapping": "<pointer.moveSlowUp>"},
+        "<C-l>": {"mapping": "<pointer.moveSlowRight>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
+        "<C-u>": {"mapping": "<pointer.moveFastUp>"},
+        "<CR>": {"mapping": "<pointer.leftClick>"},
+        "<CapsLock>": {"mapping": "<Nop>"},
+        "<Esc>": {"mapping": "<action.toNormalMode>"},
+        "<F1>": {"mapping": "<:help>"},
+        "<F11>": {"mapping": "<action.toggleFullscreen>"},
+        "<NumLock>": {"mapping": "<Nop>"},
+        "<ScrollLock>": {"mapping": "<Nop>"},
+        "<lt>": {"mapping": "<pointer.scrollLeft>"},
+        ">": {"mapping": "<pointer.scrollRight>"},
+        "[": {"mapping": "<pointer.scrollUp>"},
+        "]": {"mapping": "<pointer.scrollDown>"},
+        "^": {"mapping": "<pointer.moveLeftMax>"},
+        "D": {"mapping": "<pointer.downloadLink>"},
+        "G": {"mapping": "<pointer.endOfPage>"},
+        "H": {"mapping": "<pointer.startOfView>"},
+        "J": {"mapping": "<pointer.scrollDown>"},
+        "K": {"mapping": "<pointer.scrollUp>"},
+        "L": {"mapping": "<pointer.endOfView>"},
+        "M": {"mapping": "<pointer.centerOfView>"},
+        "b": {"mapping": "<pointer.moveFastLeft>"},
+        "d": {"mapping": "<pointer.downloadImage>"},
+        "e": {"mapping": "<pointer.inspectElement>"},
+        "f": {"mapping": "<action.startFollowCurrentTab>"},
+        "gg": {"mapping": "<pointer.startOfPage>"},
+        "h": {"mapping": "<pointer.moveLeft>"},
+        "i": {"mapping": "<pointer.insertAtPosition>"},
+        "j": {"mapping": "<pointer.moveDown>"},
+        "k": {"mapping": "<pointer.moveUp>"},
+        "l": {"mapping": "<pointer.moveRight>"},
+        "r": {"mapping": "<pointer.rightClick>"},
+        "v": {"mapping": "<pointer.startVisualSelect>"},
+        "w": {"mapping": "<pointer.moveFastRight>"},
+        "x": {"mapping": "<action.openLinkExternal>"},
+        "y": {"mapping": "<pointer.copyAndStop>"}
+    },
+    "s": {
+        "<A-F4>": {"mapping": "<:quitall>"},
+        "<C-[>": {"mapping": "<action.toNormalMode>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
+        "<CR>": {"mapping": "<action.useEnteredData>"},
+        "<Esc>": {"mapping": "<action.toNormalMode>"},
+        "<F1>": {"mapping": "<:help>"},
+        "<F11>": {"mapping": "<action.toggleFullscreen>"}
+    },
+    "v": {
+        "$": {"mapping": "<pointer.moveRightMax>"},
+        "<A-F4>": {"mapping": "<:quitall>"},
+        "<C-[>": {"mapping": "<action.toNormalMode>"},
+        "<C-d>": {"mapping": "<pointer.moveFastDown>"},
+        "<C-h>": {"mapping": "<pointer.moveSlowLeft>"},
+        "<C-j>": {"mapping": "<pointer.moveSlowDown>"},
+        "<C-k>": {"mapping": "<pointer.moveSlowUp>"},
+        "<C-l>": {"mapping": "<pointer.moveSlowRight>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
+        "<C-u>": {"mapping": "<pointer.moveFastUp>"},
+        "<CapsLock>": {"mapping": "<Nop>"},
+        "<Esc>": {"mapping": "<action.toNormalMode>"},
+        "<F1>": {"mapping": "<:help>"},
+        "<F11>": {"mapping": "<action.toggleFullscreen>"},
+        "<NumLock>": {"mapping": "<Nop>"},
+        "<ScrollLock>": {"mapping": "<Nop>"},
+        "<lt>": {"mapping": "<pointer.scrollLeft>"},
+        ">": {"mapping": "<pointer.scrollRight>"},
+        "[": {"mapping": "<pointer.scrollUp>"},
+        "]": {"mapping": "<pointer.scrollDown>"},
+        "^": {"mapping": "<pointer.moveLeftMax>"},
+        "G": {"mapping": "<pointer.endOfPage>"},
+        "H": {"mapping": "<pointer.startOfView>"},
+        "J": {"mapping": "<pointer.scrollDown>"},
+        "K": {"mapping": "<pointer.scrollUp>"},
+        "L": {"mapping": "<pointer.endOfView>"},
+        "M": {"mapping": "<pointer.centerOfView>"},
+        "b": {"mapping": "<pointer.moveFastLeft>"},
+        "c": {"mapping": "<pointer.copyAndStop>"},
+        "f": {"mapping": "<action.startFollowCurrentTab>"},
+        "gg": {"mapping": "<pointer.startOfPage>"},
+        "h": {"mapping": "<pointer.moveLeft>"},
+        "j": {"mapping": "<pointer.moveDown>"},
+        "k": {"mapping": "<pointer.moveUp>"},
+        "l": {"mapping": "<pointer.moveRight>"},
+        "o": {"mapping": "<pointer.swapPosition>"},
+        "r": {"mapping": "<pointer.rightClick>"},
+        "w": {"mapping": "<pointer.moveFastRight>"},
+        "x": {"mapping": "<action.openLinkExternal>"},
+        "y": {"mapping": "<pointer.copyAndStop>"}
     }
 }
 let repeatCounter = 0
@@ -301,7 +313,7 @@ let supportedActions = []
 let timeoutTimer = null
 let blockNextInsertKey = false
 const mapStringSplitter = /(<.*?[^-]>|<.*?->>|.)/g
-let inputHistoryList = [{"value": "", "index": 0}]
+let inputHistoryList = [{"index": 0, "value": ""}]
 let inputHistoryIndex = 0
 
 const init = () => {
@@ -352,7 +364,7 @@ const init = () => {
             if (tab) {
                 clear()
                 const {switchToTab} = require("./tabs")
-                switchToTab(listTabs().indexOf(tab))
+                switchToTab(tab)
             }
         } else {
             e.preventDefault()
@@ -367,7 +379,7 @@ const init = () => {
                         "link-id") === el.getAttribute("link-id"))
                     if (tab && currentTab() !== tab) {
                         const {switchToTab} = require("./tabs")
-                        switchToTab(listTabs().indexOf(tab))
+                        switchToTab(tab)
                     }
                 }
             })
@@ -414,14 +426,14 @@ const init = () => {
             return
         }
         handleKeyboard({
-            "ctrlKey": input.control,
-            "shiftKey": input.shift,
-            "metaKey": input.meta,
             "altKey": input.alt,
-            "key": input.key,
+            "ctrlKey": input.control,
             "isTrusted": true,
+            "key": input.key,
+            "metaKey": input.meta,
+            "passedOnFromInsert": true,
             "preventDefault": () => undefined,
-            "passedOnFromInsert": true
+            "shiftKey": input.shift
         })
     })
     ipcRenderer.on("window-close", () => executeMapString("<A-F4>", true, true))
@@ -498,7 +510,7 @@ const toIdentifier = e => {
     let keyCode = e.key
     keyNames.forEach(key => {
         if (key.js.includes(keyCode)) {
-            keyCode = key.vim[0]
+            [keyCode] = key.vim
         }
     })
     // If the shift status can be detected by name or casing,
@@ -560,7 +572,7 @@ const fromIdentifier = identifier => {
     } else {
         keyNames.forEach(key => {
             if (key.vim.includes(id)) {
-                id = key.js[0]
+                [id] = key.js
             }
         })
     }
@@ -615,7 +627,7 @@ const uncountableActions = [
 const hasFutureActionsBasedOnKeys = keys => Object.keys(bindings[
     currentMode()[0]]).find(map => map.startsWith(keys) && map !== keys)
 
-const sendKeysToWebview = async (options, mapStr) => {
+const sendKeysToWebview = async(options, mapStr) => {
     blockNextInsertKey = true
     if (options.keyCode.length === 1) {
         currentPage().sendInputEvent({...options, "type": "char"})
@@ -627,10 +639,12 @@ const sendKeysToWebview = async (options, mapStr) => {
             await executeMapString(action.mapping, !action.noremap)
         }
     }
-    await new Promise(r => setTimeout(r, 3))
+    await new Promise(r => {
+        setTimeout(r, 3)
+    })
 }
 
-const executeMapString = async (mapStr, recursive, initial) => {
+const executeMapString = async(mapStr, recursive, initial) => {
     if (initial) {
         recursiveCounter = 0
         if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
@@ -645,7 +659,7 @@ const executeMapString = async (mapStr, recursive, initial) => {
     const repeater = Number(repeatCounter) || 1
     repeatCounter = 0
     updateKeysOnScreen()
-    for (let i = 0;i < repeater;i++) {
+    for (let i = 0; i < repeater; i++) {
         if (recursiveCounter > getSetting("maxmapdepth")) {
             break
         }
@@ -668,7 +682,9 @@ const executeMapString = async (mapStr, recursive, initial) => {
                     window.dispatchEvent(new KeyboardEvent("keydown", options))
                 }
             }
-            await new Promise(r => setTimeout(r, 3))
+            await new Promise(r => {
+                setTimeout(r, 3)
+            })
         }
     }
     if (initial) {
@@ -684,25 +700,25 @@ const executeMapString = async (mapStr, recursive, initial) => {
     }
 }
 
-const doAction = async (name, count) => {
-    if (name === "Nop") {
+const doAction = async(actionName, givenCount) => {
+    if (actionName === "Nop") {
         updateKeysOnScreen()
         return
     }
-    count = count || 1
-    const pointer = name.toLowerCase().startsWith("pointer.")
-    if (uncountableActions.includes(name)) {
-        count = 1
+    let actionCount = givenCount || 1
+    const pointer = actionName.toLowerCase().startsWith("pointer.")
+    if (uncountableActions.includes(actionName)) {
+        actionCount = 1
     }
-    name = name.replace(/^.*\./g, "")
-    for (let i = 0;i < count;i++) {
+    const funcName = actionName.replace(/^.*\./g, "")
+    for (let i = 0; i < actionCount; i++) {
         if (pointer) {
-            await POINTER[name]()
+            await POINTER[funcName]()
         } else {
-            await ACTIONS[name]()
+            await ACTIONS[funcName]()
         }
     }
-    if (!name.startsWith("menu")) {
+    if (!funcName.startsWith("menu")) {
         const {clear} = require("./contextmenu")
         clear()
     }
@@ -730,7 +746,7 @@ const handleKeyboard = async e => {
     updateKeysOnScreen()
     clearTimeout(timeoutTimer)
     if (getSetting("timeout")) {
-        timeoutTimer = setTimeout(async () => {
+        timeoutTimer = setTimeout(async() => {
             const keys = pressedKeys.split(mapStringSplitter).filter(m => m)
             if (currentMode() === "insert") {
                 const {ipcRenderer} = require("electron")
@@ -749,7 +765,9 @@ const handleKeyboard = async e => {
             }
             for (const key of keys) {
                 typeCharacterIntoNavbar(key)
-                await new Promise(r => setTimeout(r, 3))
+                await new Promise(r => {
+                    setTimeout(r, 3)
+                })
             }
             repeatCounter = 0
             pressedKeys = ""
@@ -827,7 +845,9 @@ const handleKeyboard = async e => {
         }
         for (const key of keys) {
             typeCharacterIntoNavbar(key)
-            await new Promise(r => setTimeout(r, 3))
+            await new Promise(r => {
+                setTimeout(r, 3)
+            })
         }
         repeatCounter = 0
         pressedKeys = ""
@@ -1176,7 +1196,7 @@ const typeCharacterIntoNavbar = id => {
 }
 
 const resetInputHistory = () => {
-    inputHistoryList = [{"value": "", "index": 0}]
+    inputHistoryList = [{"index": 0, "value": ""}]
     inputHistoryIndex = 0
 }
 
@@ -1185,7 +1205,7 @@ const updateSuggestions = (updateHistory = true) => {
     if (updateHistory) {
         inputHistoryList = inputHistoryList.slice(0, inputHistoryIndex + 1)
         inputHistoryIndex = inputHistoryList.length
-        inputHistoryList.push({"value": url.value, "index": url.selectionStart})
+        inputHistoryList.push({"index": url.selectionStart, "value": url.value})
     }
     if (currentMode() === "explore") {
         const {suggestExplore} = require("./suggest")
@@ -1274,8 +1294,8 @@ const listMappingsAsCommandList = (oneMode = false, includeDefault = false) => {
     return mappings.join("\n").replace(/[\r\n]+/g, "\n").trim()
 }
 
-const listMapping = (mode, key, includeDefault) => {
-    key = sanitiseMapString(key)
+const listMapping = (mode, rawKey, includeDefault) => {
+    const key = sanitiseMapString(rawKey)
     if (!mappingModified(mode, key) && !includeDefault) {
         return ""
     }
@@ -1348,12 +1368,12 @@ const sanitiseMapString = (mapString, allowSpecials = false) => mapString
             const splitKeys = m.replace(/(^<|>$)/g, "")
                 .split("-").filter(s => s)
             modifiers = splitKeys.slice(0, -1).map(mod => mod.toUpperCase())
-            key = splitKeys.slice(-1)[0]
+            ;[key] = splitKeys.slice(-1)
         }
         let knownKey = false
         for (const name of keyNames) {
             if (name.vim.find(vk => vk.toUpperCase() === key.toUpperCase())) {
-                key = name.vim[0]
+                [key] = name.vim
                 knownKey = true
                 break
             }
@@ -1409,10 +1429,10 @@ const mapSingle = (mode, args, noremap) => {
         return
     }
     if (mode) {
-        bindings[mode][mapping] = {"mapping": actions, "noremap": noremap}
+        bindings[mode][mapping] = {"mapping": actions, noremap}
     } else {
         Object.keys(bindings).forEach(m => {
-            bindings[m][mapping] = {"mapping": actions, "noremap": noremap}
+            bindings[m][mapping] = {"mapping": actions, noremap}
         })
     }
     const {updateHelpPage} = require("./settings")
@@ -1454,14 +1474,14 @@ const clearmap = (mode, removeDefaults) => {
 }
 
 module.exports = {
-    init,
-    executeMapString,
+    clearmap,
     doAction,
-    resetInputHistory,
-    updateKeysOnScreen,
-    listSupportedActions,
+    executeMapString,
+    init,
     listMappingsAsCommandList,
+    listSupportedActions,
     mapOrList,
+    resetInputHistory,
     unmap,
-    clearmap
+    updateKeysOnScreen
 }
