@@ -22,6 +22,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Copy link option for audio, video and images in the context menu
 - Copy image option for images, background images and svg elements in the context menu (they are categorized as images in that order)
 - Pointer action "swapPosition" to switch the current pointer location with the start location of the visual selection
+- Command syntax to cycle fixed-set strings using the "!" suffix, similar to boolean type settings
 
 ### Changed
 

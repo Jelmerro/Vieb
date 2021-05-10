@@ -105,7 +105,8 @@
             <li><span class="command-block">:set example-=value</span> - Remove the value from the string via replace</li>
             <li><span class="command-block">:set example^=value</span> - Prepend the value to the string</li>
         </ul>
-        Finally, there are also some string type settings that only accept specific values, such as the <a href="#permissioncamera">permissioncamera</a> setting, which can only be set to "block", "ask" or "allow" (default is "block"). Only in case of warnings/errors will a notification be shown.
+        There are also some string type settings that only accept specific values, such as the <a href="#permissioncamera">permissioncamera</a> setting, which can only be set to "block", "ask" or "allow" (default is "block"). These type of settings, so called "Fixed-set Strings", can also be rotated by suffixing an exclamation mark, similar to toggling boolean values. For example, to cycle through the <a href="#adblocker">adblocker</a> values and log the value after switching:
+        <span class="command-block nowrap">:set adblocker! adblocker</span>.
         <h3 id=":reload">:reload</h3>
         Examples
         <ul>

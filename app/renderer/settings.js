@@ -661,6 +661,7 @@ const suggestionList = () => {
             listOfSuggestions.push(`no${setting}`)
             listOfSuggestions.push(`inv${setting}`)
         } else if (validOptions[setting]) {
+            listOfSuggestions.push(`${setting}!`)
             listOfSuggestions.push(`${setting}=`)
             for (const option of validOptions[setting]) {
                 listOfSuggestions.push(`${setting}=${option}`)
@@ -890,19 +891,14 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
         allowedValues = "Comma-separated list"
     }
     if (validOptions[setting]) {
+        typeLabel = "Fixed-set String"
         allowedValues = validOptions[setting]
     }
     if (typeof allSettings[setting] === "boolean") {
         typeLabel = "Boolean flag"
         allowedValues = "true,false"
     }
-    if (setting === "containernewtab") {
-        allowedValues = "see description"
-    }
-    if (setting === "containersplitpage") {
-        allowedValues = "see description"
-    }
-    if (setting === "containerstartuppage") {
+    if (containerSettings.includes(setting)) {
         allowedValues = "see description"
     }
     if (setting === "downloadpath") {
@@ -1049,5 +1045,6 @@ module.exports = {
     updateContainerSettings,
     updateCustomStyling,
     updateHelpPage,
-    updateWindowTitle
+    updateWindowTitle,
+    validOptions
 }

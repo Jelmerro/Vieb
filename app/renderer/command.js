@@ -144,9 +144,13 @@ const set = (...args) => {
         } else if (part.endsWith("!")) {
             const setting = part.slice(0, -1)
             const value = getSetting(setting)
+            const {"set": s, validOptions} = require("./settings")
             if (["boolean", "undefined"].includes(typeof value)) {
-                const {"set": s} = require("./settings")
                 s(setting, String(!value))
+            } else if (validOptions[setting]) {
+                const index = validOptions[setting].indexOf(value)
+                s(setting, validOptions[setting][index + 1]
+                    || validOptions[setting][0])
             } else {
                 notify(
                     `The setting '${setting}' can not be flipped`, "warn")

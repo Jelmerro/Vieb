@@ -160,15 +160,15 @@ const applyIndexedOrder = () => {
         .forEach(e => { e.style.zIndex = 4 })
 }
 
-const parseAndDisplayLinks = newLinks => {
+const parseAndDisplayLinks = receivedLinks => {
     if (currentMode() !== "follow" || alreadyFollowing) {
         return
     }
+    let newLinks = receivedLinks
     if (followNewtab) {
         const {hasProtocol} = require("../util")
-        const filtered = newLinks.filter(link => hasProtocol(link.url))
-        parseAndDisplayLinks(filtered.map(link => ({...link, "type": "url"})))
-        return
+        newLinks = receivedLinks.filter(link => hasProtocol(link.url))
+            .map(link => ({...link, "type": "url"}))
     }
     if (links.length) {
         for (let i = 0; i < links.length; i++) {
