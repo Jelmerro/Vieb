@@ -73,4 +73,4 @@ const push = explore => {
     }
 }
 
-module.exports = {previous, next, resetPosition, push}
+module.exports = {next, previous, push, resetPosition}

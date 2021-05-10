@@ -156,7 +156,7 @@ const calculateOffset = (startNode, startX, startY, x, y) => {
     }
     descendNodeTree(startNode)
     range.detach()
-    return {"node": properNode, "offset": offset}
+    return {"node": properNode, offset}
 }
 
 let searchPos = {}

@@ -67,7 +67,7 @@ const otherEvents = [
     "auxclick"
 ]
 
-ipcRenderer.on("focus-input", async (_, follow = null) => {
+ipcRenderer.on("focus-input", async(_, follow = null) => {
     let element = null
     if (follow) {
         element = findElementAtPosition(follow.x, follow.y)
@@ -81,7 +81,9 @@ ipcRenderer.on("focus-input", async (_, follow = null) => {
     if (element) {
         if (element?.click && element?.focus) {
             ipcRenderer.sendToHost("switch-to-insert")
-            await new Promise(r => setTimeout(r, 5))
+            await new Promise(r => {
+                setTimeout(r, 5)
+            })
             element.click()
             element.focus()
         }
@@ -265,14 +267,15 @@ const parseElement = (element, type) => {
     }
     // The element should be clickable and is returned in a parsed format
     let href = String(element.href || "")
+    let typeOverride = false
     if (type === "url") {
         // Set links to the current page as type 'other'
         if (!element.href) {
-            type = "other"
+            typeOverride = "other"
         } else if (element.href === window.location.href) {
-            type = "other"
+            typeOverride = "other"
         } else if (element.href === `${window.location.href}#`) {
-            type = "other"
+            typeOverride = "other"
         }
         // Empty the href for links that require a specific data method to open
         // These will use clicks instead of direct navigation to work correctly
@@ -282,12 +285,12 @@ const parseElement = (element, type) => {
         }
     }
     return {
-        "url": href,
-        "x": dimensions.x,
-        "y": dimensions.y,
-        "width": dimensions.width,
         "height": dimensions.height,
-        "type": type
+        "type": typeOverride || type,
+        "url": href,
+        "width": dimensions.width,
+        "x": dimensions.x,
+        "y": dimensions.y
     }
 }
 
@@ -323,11 +326,11 @@ const clickListener = (e, frame = null) => {
     if (e.isTrusted) {
         const paddingInfo = findFrameInfo(frame)
         ipcRenderer.sendToHost("mouse-click-info", {
-            "x": e.x + (paddingInfo?.x || 0),
-            "y": e.y + (paddingInfo?.y || 0),
+            "toinsert": !!e.path.find(el => el?.matches?.(textlikeInputs)),
             "tovisual": (frame?.contentWindow || window)
                 .getSelection().toString(),
-            "toinsert": !!e.path.find(el => el?.matches?.(textlikeInputs))
+            "x": e.x + (paddingInfo?.x || 0),
+            "y": e.y + (paddingInfo?.y || 0)
         })
     }
 }
@@ -379,24 +382,24 @@ const contextListener = (e, frame = null) => {
             && el.href?.trim())
         const text = e.path.find(el => el?.matches?.(textlikeInputs))
         ipcRenderer.sendToHost("context-click-info", {
-            "x": e.x + (paddingInfo?.x || 0),
-            "y": e.y + (paddingInfo?.y || 0),
-            "img": img?.src?.trim(),
-            backgroundImg,
-            "svgData": img && getSvgData(img),
-            "video": vid?.src?.trim()
-                || vid?.querySelector("source[type^=video]")?.src?.trim(),
             "audio": audio?.src?.trim()
                 || audio?.querySelector("source[type^=audio]")?.src?.trim()
                 || vid?.querySelector("source[type^=audio]")?.src?.trim(),
-            "link": link?.href?.trim(),
-            "text": (frame?.contentWindow || window).getSelection().toString(),
+            backgroundImg,
             "canEdit": !!text,
-            "inputVal": text?.value,
-            "inputSel": text?.selectionStart,
             "frame": frame?.src,
             "hasExistingListener": eventListeners.contextmenu.has(e.path[0])
-                || eventListeners.auxclick.has(e.path[0])
+                || eventListeners.auxclick.has(e.path[0]),
+            "img": img?.src?.trim(),
+            "inputSel": text?.selectionStart,
+            "inputVal": text?.value,
+            "link": link?.href?.trim(),
+            "svgData": img && getSvgData(img),
+            "text": (frame?.contentWindow || window).getSelection().toString(),
+            "video": vid?.src?.trim()
+                || vid?.querySelector("source[type^=video]")?.src?.trim(),
+            "x": e.x + (paddingInfo?.x || 0),
+            "y": e.y + (paddingInfo?.y || 0)
         })
     }
 }
@@ -415,7 +418,7 @@ ipcRenderer.on("contextmenu", () => {
     if (y > window.innerHeight) {
         y = parsed?.y || 0
     }
-    contextListener({"isTrusted": true, "button": 2, "path": [el], x, y},
+    contextListener({"button": 2, "isTrusted": true, "path": [el], x, y},
         findFrameInfo(el)?.element)
 })
 window.addEventListener("auxclick", contextListener)

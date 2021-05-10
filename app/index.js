@@ -15,7 +15,6 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* eslint-disable no-console */
 "use strict"
 
 const {
@@ -60,63 +59,64 @@ const rimraf = pattern => {
 
 const version = process.env.npm_package_version || app.getVersion()
 const printUsage = () => {
-    console.log("Vieb: Vim Inspired Electron Browser\n")
-    console.log("Usage: Vieb [options] <URLs>\n")
-    console.log("Options:")
-    console.log(" --help                  Print this help and exit\n")
-    console.log(" --version               "
+    console.info("Vieb: Vim Inspired Electron Browser\n")
+    console.info("Usage: Vieb [options] <URLs>\n")
+    console.info("Options:")
+    console.info(" --help                  Print this help and exit\n")
+    console.info(" --version               "
         + "Print program info with versions and exit\n")
-    console.log(" --debug                 "
+    console.info(" --debug                 "
         + "Open with Chromium and Electron debugging tools")
-    console.log("                         "
+    console.info("                         "
         + "They can also be opened later with :internaldevtools\n")
-    console.log(" --datafolder=<dir>      Store ALL Vieb data in this folder")
-    console.log("                         "
+    console.info(" --datafolder=<dir>      Store ALL Vieb data in this folder")
+    console.info("                         "
         + "You can also use the ENV var: VIEB_DATAFOLDER\n")
-    console.log(" --erwic=<file>          "
+    console.info(" --erwic=<file>          "
         + "Open a fixed set of pages in a separate instance")
-    console.log("                         "
+    console.info("                         "
         + "You can also use the ENV var: VIEB_ERWIC")
-    console.log("                         "
+    console.info("                         "
         + "See 'Erwic.md' for usage and details\n")
-    console.log(" --window-frame=<val>    "
+    console.info(" --window-frame=<val>    "
         + "bool (false): Show the native frame around the window")
-    console.log("                         "
+    console.info("                         "
         + "You can also use the ENV var: VIEB_WINDOW_FRAME\n")
-    console.log(" --media-keys=<val>      "
+    console.info(" --media-keys=<val>      "
         + "bool (true): Allow the media keys to interact with Vieb")
-    console.log("                         "
+    console.info("                         "
         + "You can also use the ENV var: VIEB_MEDIA_KEYS\n")
-    console.log(" --site-isolation=<val>  "
+    console.info(" --site-isolation=<val>  "
         + "string [REGULAR/strict]: Set the site isolation level")
-    console.log("                         "
+    console.info("                         "
         + "You can also use the ENV var: VIEB_SITE_ISOLATION\n")
-    console.log(" --acceleration=<val>    "
+    console.info(" --acceleration=<val>    "
         + "string [HARDWARE/software]: Use hardware acceleration")
-    console.log("                         "
+    console.info("                         "
         + "You can also use the ENV var: VIEB_ACCELERATION\n")
-    console.log("\nAll arguments not starting with - will be opened as a url.")
-    console.log("Command-line arguments will overwrite values set by ENV vars.")
+    console.info("\nAll arguments not starting with - will be opened as a url.")
+    console.info(
+        "Command-line arguments will overwrite values set by ENV vars.")
     printLicense()
 }
 const printVersion = () => {
-    console.log("Vieb: Vim Inspired Electron Browser\n")
-    console.log(`This is version ${version} of Vieb.`)
-    console.log("Vieb is based on Electron and inspired by Vim.")
-    console.log("It can be used to browse the web entirely with the keyboard.")
-    console.log(`This release uses Electron ${
+    console.info("Vieb: Vim Inspired Electron Browser\n")
+    console.info(`This is version ${version} of Vieb.`)
+    console.info("Vieb is based on Electron and inspired by Vim.")
+    console.info("It can be used to browse the web entirely with the keyboard.")
+    console.info(`This release uses Electron ${
         process.versions.electron} and Chromium ${process.versions.chrome}`)
     printLicense()
 }
 const printLicense = () => {
-    console.log("Vieb is created by Jelmer van Arnhem and contributors.")
-    console.log("Website: https://vieb.dev OR https://github.com/Jelmerro/Vieb")
-    console.log("\nLicense: GNU GPL version 3 or "
+    console.info("Vieb is created by Jelmer van Arnhem and contributors.")
+    console.info("Website: https://vieb.dev OR https://github.com/Jelmerro/Vieb")
+    console.info("\nLicense: GNU GPL version 3 or "
         + "later versions <http://gnu.org/licenses/gpl.html>")
-    console.log("This is free software; you are free to change and "
+    console.info("This is free software; you are free to change and "
         + "redistribute it.")
-    console.log("There is NO WARRANTY, to the extent permitted by law.")
-    console.log("See the LICENSE file or the GNU website for details.")
+    console.info("There is NO WARRANTY, to the extent permitted by law.")
+    console.info("See the LICENSE file or the GNU website for details.")
 }
 const applyDevtoolsSettings = prefFile => {
     makeDir(dirname(prefFile))
@@ -157,8 +157,8 @@ const getArguments = argv => {
 
 // Parse arguments
 const isTruthyArg = arg => {
-    arg = String(arg).trim().toLowerCase()
-    return Number(arg) > 0 || ["y", "yes", "true", "on"].includes(arg)
+    const argStr = String(arg).trim().toLowerCase()
+    return Number(argStr) > 0 || ["y", "yes", "true", "on"].includes(argStr)
 }
 const args = getArguments(process.argv)
 const urls = []
@@ -173,8 +173,8 @@ let argErwic = process.env.VIEB_ERWIC?.trim() || ""
 let argDatafolder = process.env.VIEB_DATAFOLDER?.trim()
     || joinPath(app.getPath("appData"), "Vieb")
 let customIcon = null
-args.forEach(arg => {
-    arg = arg.trim()
+args.forEach(a => {
+    const arg = a.trim()
     if (arg.startsWith("-")) {
         if (arg === "--help") {
             printUsage()
@@ -185,32 +185,32 @@ args.forEach(arg => {
         } else if (arg === "--debug") {
             argDebugMode = true
         } else if (arg === "--datafolder") {
-            console.log("The 'datafolder' argument requires a value such as:"
+            console.warn("The 'datafolder' argument requires a value such as:"
                 + " --datafolder=~/.config/Vieb/")
             printUsage()
             app.exit(1)
         } else if (arg === "--erwic") {
-            console.log("The 'erwic' argument requires a value such as:"
+            console.warn("The 'erwic' argument requires a value such as:"
                 + " --erwic=~/.config/Erwic/")
             printUsage()
             app.exit(1)
         } else if (arg === "--window-frame") {
-            console.log("The 'window-frame' argument requires a value such as:"
+            console.warn("The 'window-frame' argument requires a value such as:"
                 + " --window-frame=false")
             printUsage()
             app.exit(1)
         } else if (arg === "--media-keys") {
-            console.log("The 'media-keys' argument requires a value such as:"
+            console.warn("The 'media-keys' argument requires a value such as:"
                 + " --media-keys=true")
             printUsage()
             app.exit(1)
         } else if (arg === "--site-isolation") {
-            console.log("The 'site-isolation' argument requires a value such as"
-                + ": --site-isolation=regular")
+            console.warn("The 'site-isolation' argument requires a value such "
+                + "as: --site-isolation=regular")
             printUsage()
             app.exit(1)
         } else if (arg === "--acceleration") {
-            console.log("The 'acceleration' argument requires a value such as:"
+            console.warn("The 'acceleration' argument requires a value such as:"
                 + " --acceleration=hardware")
             printUsage()
             app.exit(1)
@@ -227,26 +227,26 @@ args.forEach(arg => {
         } else if (arg.startsWith("--acceleration=")) {
             argAcceleration = arg.split("=").slice(1).join("=").toLowerCase()
         } else {
-            console.log(`Unsupported argument: '${arg}', use --help for info`)
+            console.warn(`Unsupported argument: '${arg}', use --help for info`)
         }
     } else {
         urls.push(arg)
     }
 })
 if (argSiteIsolation !== "regular" && argSiteIsolation !== "strict") {
-    console.log("The 'site-isolation' argument only accepts:"
+    console.warn("The 'site-isolation' argument only accepts:"
         + " 'regular' or 'strict'")
     printUsage()
     app.exit(1)
 }
 if (argAcceleration !== "hardware" && argAcceleration !== "software") {
-    console.log("The 'acceleration' argument only accepts:"
+    console.warn("The 'acceleration' argument only accepts:"
         + " 'hardware' or 'software'")
     printUsage()
     app.exit(1)
 }
 if (!argDatafolder.trim()) {
-    console.log("The 'datafolder' argument may not be empty")
+    console.warn("The 'datafolder' argument may not be empty")
     printUsage()
     app.exit(1)
 }
@@ -272,7 +272,7 @@ applyDevtoolsSettings(joinPath(argDatafolder, "Preferences"))
 if (argErwic) {
     const config = readJSON(argErwic)
     if (!config) {
-        console.log("Erwic config file could not be read")
+        console.warn("Erwic config file could not be read")
         printUsage()
         app.exit(1)
     }
@@ -291,14 +291,14 @@ if (argErwic) {
     }
     writeFile(joinPath(argDatafolder, "erwicmode"), "")
     if (!Array.isArray(config.apps)) {
-        console.log("Erwic config file requires a list of 'apps'")
+        console.warn("Erwic config file requires a list of 'apps'")
         printUsage()
         app.exit(1)
     }
     config.apps = config.apps.map(a => {
         const simpleContainerName = a.container.replace(/_/g, "")
         if (simpleContainerName.match(specialChars)) {
-            console.log("Container names are not allowed to have "
+            console.warn("Container names are not allowed to have "
                 + "special characters besides underscores")
             printUsage()
             app.exit(1)
@@ -317,8 +317,8 @@ if (argErwic) {
         return a
     }).filter(a => typeof a.container === "string" && typeof a.url === "string")
     if (config.apps.length === 0) {
-        console.log("Erwic config file requires at least one app to be added")
-        console.log("Each app must have a 'container' name and a 'url'")
+        console.warn("Erwic config file requires at least one app to be added")
+        console.warn("Each app must have a 'container' name and a 'url'")
         printUsage()
         app.exit(1)
     }
@@ -342,7 +342,7 @@ app.on("ready", () => {
                 arg => !arg.startsWith("-")))
         })
     } else {
-        console.log(`Sending urls to existing instance in ${argDatafolder}`)
+        console.info(`Sending urls to existing instance in ${argDatafolder}`)
         app.exit(0)
     }
     app.on("open-url", (_, url) => mainWindow.webContents.send("urls", [url]))
@@ -351,23 +351,23 @@ app.on("ready", () => {
     }
     // Init mainWindow
     const windowData = {
-        "title": app.getName(),
-        "width": 800,
-        "height": 600,
-        "frame": argWindowFrame,
-        "show": argDebugMode,
         "closable": false,
+        "frame": argWindowFrame,
+        "height": 600,
         "icon": customIcon,
+        "show": argDebugMode,
+        "title": app.getName(),
         "webPreferences": {
-            "preload": joinPath(__dirname, "renderer/index.js"),
-            "nativeWindowOpen": false,
-            "sandbox": false,
             "contextIsolation": false,
             "disableBlinkFeatures": "Auxclick",
-            "nodeIntegration": false,
             "enableRemoteModule": false,
+            "nativeWindowOpen": false,
+            "nodeIntegration": false,
+            "preload": joinPath(__dirname, "renderer/index.js"),
+            "sandbox": false,
             "webviewTag": true
-        }
+        },
+        "width": 800
     }
     mainWindow = new BrowserWindow(windowData)
     mainWindow.removeMenu()
@@ -405,22 +405,22 @@ app.on("ready", () => {
     })
     // Show a dialog for sites requiring Basic HTTP authentication
     const loginWindowData = {
-        "fullscreenable": false,
-        "modal": true,
-        "frame": false,
-        "show": false,
-        "parent": mainWindow,
         "alwaysOnTop": true,
-        "resizable": false,
+        "frame": false,
+        "fullscreenable": false,
         "icon": customIcon,
+        "modal": true,
+        "parent": mainWindow,
+        "resizable": false,
+        "show": false,
         "webPreferences": {
-            "preload": joinPath(__dirname, "preload/loginpopup.js"),
-            "sandbox": true,
             "contextIsolation": true,
             "disableBlinkFeatures": "Auxclick",
-            "nodeIntegration": false,
             "enableRemoteModule": false,
-            "partition": "login"
+            "nodeIntegration": false,
+            "partition": "login",
+            "preload": joinPath(__dirname, "preload/loginpopup.js"),
+            "sandbox": true
         }
     }
     loginWindow = new BrowserWindow(loginWindowData)
@@ -437,22 +437,22 @@ app.on("ready", () => {
     })
     // Show a dialog for large notifications
     const notificationWindowData = {
-        "fullscreenable": false,
-        "modal": true,
-        "frame": false,
-        "show": false,
-        "parent": mainWindow,
         "alwaysOnTop": true,
-        "resizable": false,
+        "frame": false,
+        "fullscreenable": false,
         "icon": customIcon,
+        "modal": true,
+        "parent": mainWindow,
+        "resizable": false,
+        "show": false,
         "webPreferences": {
-            "preload": joinPath(__dirname, "preload/notificationpopup.js"),
-            "sandbox": true,
             "contextIsolation": true,
             "disableBlinkFeatures": "Auxclick",
-            "nodeIntegration": false,
             "enableRemoteModule": false,
-            "partition": "notification-window"
+            "nodeIntegration": false,
+            "partition": "notification-window",
+            "preload": joinPath(__dirname, "preload/notificationpopup.js"),
+            "sandbox": true
         }
     }
     notificationWindow = new BrowserWindow(notificationWindowData)
@@ -525,8 +525,8 @@ app.on("login", (e, contents, _, auth, callback) => {
 // Show a scrollable notification popup for long notifications
 ipcMain.on("show-notification", (_, escapedMessage, properType) => {
     const bounds = mainWindow.getBounds()
-    const width = Math.round(bounds.width * .9)
-    let height = Math.round(bounds.height * .9)
+    const width = Math.round(bounds.width * 0.9)
+    let height = Math.round(bounds.height * 0.9)
     height -= height % fontsize
     notificationWindow.setMinimumSize(width, height)
     notificationWindow.setSize(width, height)
@@ -557,17 +557,12 @@ ipcMain.on("set-download-settings", (_, settings) => {
         if (settings.cleardownloadsonquit) {
             deleteFile(dlsFile)
         } else if (isFile(dlsFile)) {
-            const parsed = readJSON(dlsFile)
-            for (const download of parsed) {
-                if (download.state === "completed") {
-                    if (!settings.cleardownloadsoncompleted) {
-                        downloads.push(download)
-                    }
-                } else {
-                    download.state = "cancelled"
-                    downloads.push(download)
+            downloads = readJSON(dlsFile)?.map(d => {
+                if (d.state !== "completed") {
+                    d.state = "cancelled"
                 }
-            }
+                return d
+            }) || []
         }
     }
     downloadSettings = settings
@@ -624,7 +619,8 @@ ipcMain.on("set-spelllang", (_, langs) => {
     if (!langs) {
         return
     }
-    langs = langs.split(",").map(lang => {
+    const parsedLangs = langs.split(",").map(l => {
+        let lang = l
         if (lang === "system") {
             lang = app.getLocale()
         }
@@ -635,8 +631,8 @@ ipcMain.on("set-spelllang", (_, langs) => {
         return lang
     }).filter(lang => lang)
     sessionList.forEach(ses => {
-        session.fromPartition(ses).setSpellCheckerLanguages(langs)
-        session.defaultSession.setSpellCheckerLanguages(langs)
+        session.fromPartition(ses).setSpellCheckerLanguages(parsedLangs)
+        session.defaultSession.setSpellCheckerLanguages(parsedLangs)
     })
 })
 ipcMain.on("create-session", (_, name, adblock, cache) => {
@@ -716,14 +712,14 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             }
             wrappedUrl = wrappedUrl.replace(/.{50}/g, "$&\n")
             const button = dialog.showMessageBoxSync(mainWindow, {
-                "type": "question",
                 "buttons": ["Allow", "Deny"],
-                "defaultId": 0,
                 "cancelId": 1,
-                "title": "Download request from the website",
+                "defaultId": 0,
                 "message": `Do you want to download the following file?\n\n${
                     wrappedFileName}\n\n${item.getMimeType()} - ${
-                    formatSize(item.getTotalBytes())}\n\n${wrappedUrl}`
+                    formatSize(item.getTotalBytes())}\n\n${wrappedUrl}`,
+                "title": "Download request from the website",
+                "type": "question"
             })
             if (button === 1) {
                 e.preventDefault()
@@ -731,14 +727,14 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             }
         }
         const info = {
-            "name": filename,
-            "url": item.getURL(),
-            "total": item.getTotalBytes(),
-            "file": item.getSavePath(),
-            "item": item,
-            "state": "waiting_to_start",
             "current": 0,
-            "date": new Date()
+            "date": new Date(),
+            "file": item.getSavePath(),
+            item,
+            "name": filename,
+            "state": "waiting_to_start",
+            "total": item.getTotalBytes(),
+            "url": item.getURL()
         }
         downloads.push(info)
         mainWindow.webContents.send("notify", `Download started:\n${info.name}`)
@@ -770,7 +766,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             if (info.state === "completed") {
                 mainWindow.webContents.send("notify",
                     `Download finished:\n${info.name}`, "success", {
-                        "type": "download-success", "path": info.file
+                        "path": info.file, "type": "download-success"
                     })
             } else {
                 mainWindow.webContents.send("notify",
@@ -810,8 +806,8 @@ const writeDownloadsToFile = () => {
         writeJSON(dlsFile, downloads)
     }
 }
-const permissionHandler = (_, permission, callback, details) => {
-    permission = permission.toLowerCase().replace(/-/g, "")
+const permissionHandler = (_, perm, callback, details) => {
+    let permission = perm.toLowerCase().replace(/-/g, "")
     if (permission === "mediakeysystem") {
         // Block any access to DRM, there is no Electron support for it anyway
         return callback(false)
@@ -833,7 +829,8 @@ const permissionHandler = (_, permission, callback, details) => {
     }
     let settingRule = ""
     for (const override of ["asked", "blocked", "allowed"]) {
-        for (const rule of permissions[`permissions${override}`]?.split(",")) {
+        const permList = permissions[`permissions${override}`]?.split(",")
+        for (const rule of permList || []) {
             if (!rule.trim() || settingRule) {
                 continue
             }
@@ -871,13 +868,13 @@ const permissionHandler = (_, permission, callback, details) => {
                 + `\npage:\n${details.requestingUrl}\n\nexternal:\n${exturl}`
         }
         dialog.showMessageBox(mainWindow, {
-            "type": "question",
             "buttons": ["Allow", "Deny"],
-            "defaultId": 0,
             "cancelId": 1,
             "checkboxLabel": "Remember for this session",
+            "defaultId": 0,
+            message,
             "title": `Allow this page to access '${permission}'?`,
-            "message": message
+            "type": "question"
         }).then(e => {
             let action = "allow"
             if (e.response !== 0) {
@@ -938,7 +935,7 @@ const enableAdblocker = type => {
                 `Updating ${list} to the latest version`)
             session.fromPartition("persist:main")
             const request = net.request(
-                {"url": defaultBlocklists[list], "partition": "persist:main"})
+                {"partition": "persist:main", "url": defaultBlocklists[list]})
             request.on("response", res => {
                 let body = ""
                 res.on("end", () => {
@@ -1026,14 +1023,14 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
     makeDir(`${zipLoc}/`)
     mainWindow.webContents.send("notify",
         `Installing ${extType} extension: ${extension}`)
-    const request = net.request({url, "partition": "persist:main"})
+    const request = net.request({"partition": "persist:main", url})
     request.on("response", res => {
         const data = []
         res.on("end", () => {
             if (res.statusCode !== 200) {
                 mainWindow.webContents.send("notify",
                     `Failed to install extension due to network error`, "err")
-                console.log(res)
+                console.warn(res)
                 return
             }
             const file = Buffer.concat(data)
@@ -1055,7 +1052,7 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
                             mainWindow.webContents.send("notify",
                                 `Failed to install extension, unsupported type`,
                                 "err")
-                            console.log(e)
+                            console.warn(e)
                             rimraf(`${zipLoc}*`)
                         }
                     })
@@ -1069,13 +1066,13 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
     request.on("abort", e => {
         mainWindow.webContents.send("notify",
             `Failed to install extension due to network error`, "err")
-        console.log(e)
+        console.warn(e)
         rimraf(`${zipLoc}*`)
     })
     request.on("error", e => {
         mainWindow.webContents.send("notify",
             `Failed to install extension due to network error`, "err")
-        console.log(e)
+        console.warn(e)
         rimraf(`${zipLoc}*`)
     })
     request.end()
@@ -1083,8 +1080,8 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
 ipcMain.on("list-extensions", e => {
     e.returnValue = session.fromPartition("persist:main").getAllExtensions()
         .map(ex => ({
-            "id": ex.id,
             "icon": ex.manifest.icons?.[Object.keys(ex.manifest.icons).pop()],
+            "id": ex.id,
             "name": ex.name,
             "path": ex.path,
             "version": ex.version
@@ -1110,9 +1107,9 @@ ipcMain.on("remove-extension", (_, extensionId) => {
 })
 
 // Download favicons for websites
-ipcMain.on("download-favicon", (_, fav, location, webId, linkId, url) => {
+ipcMain.on("download-favicon", (_, options) => {
     const request = net.request({
-        "url": fav, "session": webContents.fromId(webId).session
+        "session": webContents.fromId(options.webId).session, "url": options.fav
     })
     request.on("response", res => {
         const data = []
@@ -1123,11 +1120,14 @@ ipcMain.on("download-favicon", (_, fav, location, webId, linkId, url) => {
             }
             const file = Buffer.concat(data)
             if (isSvg(file)) {
-                location += ".svg"
-                fav += ".svg"
+                writeFile(`${options.location}.svg`, file)
+                mainWindow.webContents.send("favicon-downloaded",
+                    options.linkId, options.url, `${options.fav}.svg`)
+            } else {
+                writeFile(options.location, file)
+                mainWindow.webContents.send("favicon-downloaded",
+                    options.linkId, options.url, options.fav)
             }
-            writeFile(location, file)
-            mainWindow.webContents.send("favicon-downloaded", linkId, url, fav)
         })
         res.on("data", chunk => {
             data.push(Buffer.from(chunk, "binary"))
@@ -1203,18 +1203,14 @@ const saveWindowState = (maximizeOnly = false) => {
     if (!maximizeOnly && !mainWindow.isMaximized()) {
         const newBounds = mainWindow.getBounds()
         const currentScreen = screen.getDisplayMatching(newBounds).bounds
-        if (newBounds.width !== currentScreen.width) {
-            if (newBounds.height !== currentScreen.height) {
-                if (newBounds.width !== currentScreen.width / 2) {
-                    if (newBounds.height !== currentScreen.height / 2) {
-                        if (newBounds.x !== currentScreen.x / 2) {
-                            if (newBounds.y !== currentScreen.y / 2) {
-                                state = newBounds
-                            }
-                        }
-                    }
-                }
-            }
+        const sameW = newBounds.width === currentScreen.width
+        const sameH = newBounds.height === currentScreen.height
+        const halfW = newBounds.width === currentScreen.width / 2
+        const halfH = newBounds.height === currentScreen.height / 2
+        const halfX = newBounds.x === currentScreen.x / 2
+        const halfY = newBounds.y === currentScreen.y / 2
+        if (!sameW && !sameH && !halfW && !halfH && !halfX && !halfY) {
+            state = newBounds
         }
     }
     state.maximized = mainWindow.isMaximized()

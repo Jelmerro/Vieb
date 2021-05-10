@@ -111,9 +111,10 @@ const emptySuggestions = () => {
     suggestions = []
 }
 
-const locationToSuggestion = (base, location) => {
-    let absPath = joinPath(base, location)
+const locationToSuggestion = (base, loc) => {
+    let absPath = joinPath(base, loc)
     let fullPath = stringToUrl(absPath)
+    let location = loc
     if (isDir(absPath)) {
         fullPath += "/"
         location += "/"
@@ -122,14 +123,13 @@ const locationToSuggestion = (base, location) => {
     if (absPath.includes(" ")) {
         absPath = `"${absPath}"`
     }
-    return {"url": fullPath, "title": location, "path": absPath}
+    return {"path": absPath, "title": location, "url": fullPath}
 }
 
-const suggestFiles = location => {
+const suggestFiles = loc => {
+    let location = expandPath(loc.replace(/file:\/*/, "/"))
     if (process.platform === "win32") {
-        location = expandPath(location.replace(/file:\/*/, ""))
-    } else {
-        location = expandPath(location.replace(/file:\/*/, "/"))
+        location = expandPath(loc.replace(/file:\/*/, ""))
     }
     if (isAbsolutePath(location)) {
         let matching = []
@@ -150,9 +150,9 @@ const suggestFiles = location => {
     return []
 }
 
-const updateColors = search => {
+const updateColors = searchStr => {
     const urlElement = document.getElementById("url")
-    search = search || urlElement.value
+    const search = searchStr || urlElement.value
     if (currentMode() === "explore") {
         const local = expandPath(search)
         if (search.trim() === "") {
@@ -237,7 +237,7 @@ const addExplore = explore => {
     element.addEventListener("mouseup", e => {
         if (e.button === 2) {
             const {linkMenu} = require("./contextmenu")
-            linkMenu({"x": e.x, "y": e.y, "link": explore.url})
+            linkMenu({"link": explore.url, "x": e.x, "y": e.y})
         } else {
             const {setMode} = require("./modes")
             setMode("normal")
@@ -280,11 +280,11 @@ const addExplore = explore => {
     }, 100)
 }
 
-const suggestCommand = search => {
+const suggestCommand = searchStr => {
     emptySuggestions()
     // Remove all redundant spaces
     // Allow commands prefixed with :
-    search = search.replace(/^[\s|:]*/, "").replace(/ +/g, " ")
+    const search = searchStr.replace(/^[\s|:]*/, "").replace(/ +/g, " ")
     const {parseAndValidateArgs} = require("./command")
     const {valid, confirm, command, args} = parseAndValidateArgs(search)
     const urlElement = document.getElementById("url")
@@ -409,7 +409,7 @@ const suggestCommand = search => {
     }
     // Command: help
     if ("help".startsWith(command) && !confirm) {
-        ;[
+        [
             "intro",
             "commands",
             "settings",
@@ -496,7 +496,7 @@ const addCommand = (command, subtext) => {
     element.addEventListener("mouseup", e => {
         if (e.button === 2) {
             const {commandMenu} = require("./contextmenu")
-            commandMenu({"x": e.x, "y": e.y, "command": command})
+            commandMenu({command, "x": e.x, "y": e.y})
         } else {
             const {setMode} = require("./modes")
             setMode("normal")
@@ -521,10 +521,10 @@ const addCommand = (command, subtext) => {
 }
 
 module.exports = {
-    previous,
-    next,
-    emptySuggestions,
     addExplore,
-    suggestExplore,
-    suggestCommand
+    emptySuggestions,
+    next,
+    previous,
+    suggestCommand,
+    suggestExplore
 }

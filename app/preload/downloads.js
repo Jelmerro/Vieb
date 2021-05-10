@@ -38,8 +38,8 @@ window.addEventListener("load", () => {
     update()
 })
 
-ipcRenderer.on("download-list", (_, list) => {
-    list = JSON.parse(list)
+ipcRenderer.on("download-list", (_, l) => {
+    const list = JSON.parse(l)
     // List
     if (list.length === 0) {
         document.getElementById("list").textContent
@@ -55,7 +55,7 @@ ipcRenderer.on("download-list", (_, list) => {
         removeAll.style.display = ""
     }
     if (listOnPage.length > list.length) {
-        for (let i = 0;i < listOnPage.length;i++) {
+        for (let i = 0; i < listOnPage.length; i++) {
             if (list[i]) {
                 updateDownload(list[i], listOnPage[i], i)
             } else {
@@ -67,7 +67,7 @@ ipcRenderer.on("download-list", (_, list) => {
             }
         }
     } else {
-        for (let i = 0;i < list.length;i++) {
+        for (let i = 0; i < list.length; i++) {
             if (listOnPage[i]) {
                 updateDownload(list[i], listOnPage[i], i)
             } else {

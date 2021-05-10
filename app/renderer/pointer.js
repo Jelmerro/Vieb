@@ -55,16 +55,16 @@ const offset = () => {
     let bottom = top + Number(currentPage().style.height.split(/[.px]/g)[0])
     let right = left + Number(currentPage().style.width.split(/[.px]/g)[0])
     if (document.getElementById("pages").classList.contains("multiple")) {
-        top += getSetting("fontsize") * .15
-        left += getSetting("fontsize") * .15
-        bottom -= getSetting("fontsize") * .15
-        right -= getSetting("fontsize") * .15
+        top += getSetting("fontsize") * 0.15
+        left += getSetting("fontsize") * 0.15
+        bottom -= getSetting("fontsize") * 0.15
+        right -= getSetting("fontsize") * 0.15
     }
     return {
-        "top": Math.round(top),
-        "left": Math.round(left),
         "bottom": Math.round(bottom),
-        "right": Math.round(right)
+        "left": Math.round(left),
+        "right": Math.round(right),
+        "top": Math.round(top)
     }
 }
 
@@ -92,7 +92,7 @@ const releaseKeys = () => {
     try {
         for (const button of ["left", "right"]) {
             currentPage().sendInputEvent({
-                "type": "mouseUp", "x": X, "y": Y, "button": button
+                button, "type": "mouseUp", "x": X, "y": Y
             })
         }
         currentPage().sendInputEvent({"type": "mouseLeave", "x": X, "y": Y})
@@ -148,14 +148,14 @@ const leftClick = () => {
         "type": "mouseEnter", "x": X * factor, "y": Y * factor
     })
     currentPage().sendInputEvent({
+        "button": "left",
+        "clickCount": 1,
         "type": "mouseDown",
         "x": X * factor,
-        "y": Y * factor,
-        "button": "left",
-        "clickCount": 1
+        "y": Y * factor
     })
     currentPage().sendInputEvent({
-        "type": "mouseUp", "x": X * factor, "y": Y * factor, "button": "left"
+        "button": "left", "type": "mouseUp", "x": X * factor, "y": Y * factor
     })
     currentPage().sendInputEvent({
         "type": "mouseLeave", "x": X * factor, "y": Y * factor
@@ -209,10 +209,10 @@ const moveRight = () => {
 
 const rightClick = () => {
     currentPage().sendInputEvent({
-        "type": "mouseDown", "x": X, "y": Y, "button": "right", "clickCount": 1
+        "button": "right", "clickCount": 1, "type": "mouseDown", "x": X, "y": Y
     })
     currentPage().sendInputEvent({
-        "type": "mouseUp", "x": X, "y": Y, "button": "right"
+        "button": "right", "type": "mouseUp", "x": X, "y": Y
     })
 }
 
@@ -225,8 +225,8 @@ const startVisualSelect = () => {
 
 const swapPosition = () => {
     if (currentMode() === "visual") {
-        X = [startX, startX = X][0]
-        Y = [startY, startY = Y][0]
+        [startX, X] = [X, startX]
+        ;[startY, Y] = [Y, startY]
         updateElement()
     }
 }
@@ -244,28 +244,28 @@ const centerOfView = () => {
 
 const scrollDown = () => {
     currentPage().sendInputEvent({
-        "type": "mouseWheel", "x": X, "y": Y, "deltaX": 0, "deltaY": -100
+        "deltaX": 0, "deltaY": -100, "type": "mouseWheel", "x": X, "y": Y
     })
     updateElement()
 }
 
 const scrollUp = () => {
     currentPage().sendInputEvent({
-        "type": "mouseWheel", "x": X, "y": Y, "deltaX": 0, "deltaY": 100
+        "deltaX": 0, "deltaY": 100, "type": "mouseWheel", "x": X, "y": Y
     })
     updateElement()
 }
 
 const scrollLeft = () => {
     currentPage().sendInputEvent({
-        "type": "mouseWheel", "x": X, "y": Y, "deltaX": 100, "deltaY": 0
+        "deltaX": 100, "deltaY": 0, "type": "mouseWheel", "x": X, "y": Y
     })
     updateElement()
 }
 
 const scrollRight = () => {
     currentPage().sendInputEvent({
-        "type": "mouseWheel", "x": X, "y": Y, "deltaX": -100, "deltaY": 0
+        "deltaX": -100, "deltaY": 0, "type": "mouseWheel", "x": X, "y": Y
     })
     updateElement()
 }
@@ -341,41 +341,41 @@ const moveFastUp = () => {
 }
 
 module.exports = {
-    start,
-    move,
-    handleScrollDiffEvent,
-    updateElement,
-    releaseKeys,
-    leftClick,
-    rightClick,
-    downloadLink,
-    downloadImage,
-    inspectElement,
-    insertAtPosition,
-    startVisualSelect,
-    swapPosition,
+    centerOfView,
     copyAndStop,
-    moveUp,
+    downloadImage,
+    downloadLink,
+    endOfPage,
+    endOfView,
+    handleScrollDiffEvent,
+    insertAtPosition,
+    inspectElement,
+    leftClick,
+    move,
     moveDown,
-    moveLeft,
-    moveRight,
-    moveSlowUp,
-    moveSlowDown,
-    moveSlowLeft,
-    moveSlowRight,
-    moveFastUp,
     moveFastDown,
     moveFastLeft,
     moveFastRight,
+    moveFastUp,
+    moveLeft,
     moveLeftMax,
+    moveRight,
     moveRightMax,
-    scrollUp,
+    moveSlowDown,
+    moveSlowLeft,
+    moveSlowRight,
+    moveSlowUp,
+    moveUp,
+    releaseKeys,
+    rightClick,
     scrollDown,
     scrollLeft,
     scrollRight,
-    startOfView,
-    centerOfView,
-    endOfView,
+    scrollUp,
+    start,
     startOfPage,
-    endOfPage
+    startOfView,
+    startVisualSelect,
+    swapPosition,
+    updateElement
 }

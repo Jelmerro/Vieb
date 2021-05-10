@@ -41,10 +41,10 @@ const privacyFixes = (w = window) => {
                 return devices
             }
             return devices.map(({deviceId, groupId, kind}) => ({
-                deviceId, groupId, "label": "", kind
+                deviceId, groupId, kind, "label": ""
             }))
         }
-        w.navigator.mediaDevices.enumerateDevices = async () => {
+        w.navigator.mediaDevices.enumerateDevices = async() => {
             let setting = "ask"
             const settings = readJSON(settingsFile) || {}
             setting = settings.permissionmediadevices || setting
@@ -53,7 +53,8 @@ const privacyFixes = (w = window) => {
             }
             let settingRule = ""
             for (const type of ["ask", "block", "allow"]) {
-                for (const r of settings[`permissions${type}ed`]?.split(",")) {
+                const permList = settings[`permissions${type}ed`]?.split(",")
+                for (const r of permList || []) {
                     if (!r.trim() || settingRule) {
                         continue
                     }
@@ -72,13 +73,13 @@ const privacyFixes = (w = window) => {
                     url = url.replace(/.{50}/g, "$&\n")
                 }
                 const ask = await ipcRenderer.invoke("show-message-dialog", {
-                    "type": "question",
                     "buttons": ["Allow", "Deny"],
-                    "defaultId": 0,
                     "cancelId": 1,
                     "checkboxLabel": "Include media device name labels",
+                    "defaultId": 0,
+                    "message": `${message}\n\npage:\n${url}`,
                     "title": "Allow this page to access 'mediadevices'?",
-                    "message": `${message}\n\npage:\n${url}`
+                    "type": "question"
                 })
                 if (ask.response === 0) {
                     if (ask.checkboxChecked) {
@@ -129,7 +130,7 @@ const privacyFixes = (w = window) => {
     // Disable the experimental keyboard API, which exposes every key mapping
     Object.defineProperty(w.navigator, "keyboard", {})
     // Disable the battery API entirely
-    w.navigator.__proto__.getBattery = undefined
+    w.navigator.getBattery = undefined
     // Always return the cancel action for prompts, without throwing
     w.prompt = () => null
     // Return the static maximum value for memory and thread count
@@ -171,7 +172,7 @@ const privacyFixes = (w = window) => {
         }
         const obj = {}
         Object.defineProperty(obj, "location", {
-            "get": () => "", "set": val => electronWindowOpen(val)
+            "get": () => "", "set": val => { electronWindowOpen(val) }
         })
         return obj
     }
@@ -214,7 +215,7 @@ const customDisplayMedia = frameWindow => new Promise((resolve, reject) => {
     setting = settings.permissiondisplaycapture || setting
     let settingRule = ""
     for (const type of ["ask", "block"]) {
-        for (const r of settings[`permissions${type}ed`]?.split(",")) {
+        for (const r of settings[`permissions${type}ed`]?.split(",") || []) {
             if (!r.trim() || settingRule) {
                 continue
             }
@@ -241,7 +242,7 @@ const customDisplayMedia = frameWindow => new Promise((resolve, reject) => {
         }
         throw new DOMException("Permission denied", "NotAllowedError")
     }
-    return new Promise(async () => {
+    Promise(async() => {
         try {
             const sources = await desktopCapturer.getSources(
                 {"types": ["screen", "window"]})
@@ -299,7 +300,7 @@ const customDisplayMedia = frameWindow => new Promise((resolve, reject) => {
             })
             selectionElem.querySelectorAll(
                 ".desktop-capturer-selection__btn").forEach(button => {
-                button.addEventListener("click", async () => {
+                button.addEventListener("click", async() => {
                     try {
                         const id = button.getAttribute("data-id")
                         resolve(await frameWindow.navigator.mediaDevices

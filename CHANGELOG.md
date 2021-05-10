@@ -37,6 +37,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Don't load regular tabs on startup, but suspend them (they are not loaded until you switch to them)
 - Some common URI schemes are now recognized as links using a simple prefix check
 - Remove side effects of lock keys by mapping them to Nop by default
+- Reworked eslint config to be more strict and more accurately represent the desired code style
 
 ### Removed
 

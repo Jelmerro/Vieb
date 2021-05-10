@@ -160,26 +160,26 @@ const installFirefoxExtension = () => {
 
 const functions = {
     blur,
-    increasePageNumber,
     decreasePageNumber,
-    scrollTop,
-    scrollLeft,
-    scrollDown,
-    scrollUp,
-    scrollRight,
-    scrollBottom,
-    scrollPageRight,
-    scrollPageLeft,
-    scrollPageUp,
-    scrollPageDownHalf,
-    scrollPageDown,
-    scrollPageUpHalf,
-    focusTopLeftCorner,
     exitFullscreen,
-    setInputFieldText,
-    writeInputToFile,
+    focusTopLeftCorner,
+    increasePageNumber,
+    installFirefoxExtension,
     print,
-    installFirefoxExtension
+    scrollBottom,
+    scrollDown,
+    scrollLeft,
+    scrollPageDown,
+    scrollPageDownHalf,
+    scrollPageLeft,
+    scrollPageRight,
+    scrollPageUp,
+    scrollPageUpHalf,
+    scrollRight,
+    scrollTop,
+    scrollUp,
+    setInputFieldText,
+    writeInputToFile
 }
 
 ipcRenderer.on("action", (_, name, ...args) => {

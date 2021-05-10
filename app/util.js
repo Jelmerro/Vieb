@@ -46,13 +46,13 @@ const isUrl = location => {
     if (hasProtocol(location)) {
         return true
     }
-    const domainName = location.split(/\/|\?|#/)[0]
+    const [domainName] = location.split(/\/|\?|#/)
     if (domainName.includes(":@")) {
         return false
     }
     if (domainName.includes("@")) {
         return (domainName.match(/@/g) || []).length === 1
-            && /^[a-zA-Z0-9]+$/.test(domainName.split("@")[0])
+            && (/^[a-zA-Z0-9]+$/).test(domainName.split("@")[0])
             && isUrl(domainName.split("@")[1])
     }
     if (domainName.includes("..")) {
@@ -68,7 +68,7 @@ const isUrl = location => {
     }
     const [tld, port] = tldAndPort.split(":")
     names[names.length - 1] = tld
-    if (port && !/^\d{2,5}$/.test(port)) {
+    if (port && !(/^\d{2,5}$/).test(port)) {
         return false
     }
     if (port && (Number(port) <= 10 || Number(port) > 65535)) {
@@ -78,7 +78,7 @@ const isUrl = location => {
         return true
     }
     if (names.length === 4) {
-        if (names.every(n => /^\d{1,3}$/.test(n))) {
+        if (names.every(n => (/^\d{1,3}$/).test(n))) {
             if (names.every(n => Number(n) <= 255)) {
                 return true
             }
@@ -87,10 +87,10 @@ const isUrl = location => {
     if (names.length < 2) {
         return false
     }
-    if (/^[a-zA-Z]{2,}$/.test(tld)) {
+    if ((/^[a-zA-Z]{2,}$/).test(tld)) {
         const invalidDashes = names.find(
             n => n.includes("---") || n.startsWith("-") || n.endsWith("-"))
-        if (!invalidDashes && names.every(n => /^[a-zA-Z\d-]+$/.test(n))) {
+        if (!invalidDashes && names.every(n => (/^[a-zA-Z\d-]+$/).test(n))) {
             return true
         }
     }
@@ -103,17 +103,18 @@ const searchword = location => {
         if (word && url) {
             const query = location.replace(`${word} `, "")
             if (query && location.startsWith(`${word} `)) {
-                return {word, "url": stringToUrl(url.replace(/%s/g, query))}
+                return {"url": stringToUrl(url.replace(/%s/g, query)), word}
             }
         }
     }
-    return {"word": null, "url": location}
+    return {"url": location, "word": null}
 }
 
 const listNotificationHistory = () => notificationHistory
 
-const specialPagePath = (page, section = null, skipExistCheck = false) => {
-    if (!specialPages.includes(page) && !skipExistCheck) {
+const specialPagePath = (userPage, section = null, skipExistCheck = false) => {
+    let page = userPage
+    if (!specialPages.includes(userPage) && !skipExistCheck) {
         page = "help"
     }
     const url = joinPath(__dirname, `./pages/${page}.html`)
@@ -202,12 +203,14 @@ const stringToUrl = location => {
 const urlToString = url => {
     const special = pathToSpecialPageName(url)
     if (special.name === "newtab") {
-        url = ""
-    } else if (special.name) {
-        url = `${appName()}://${special.name}`
+        return ""
+    }
+    if (special.name) {
+        let specialUrl = `${appName()}://${special.name}`
         if (special.section) {
-            url += `#${special.section}`
+            specialUrl += `#${special.section}`
         }
+        return specialUrl
     }
     try {
         return decodeURI(url)
@@ -238,9 +241,10 @@ const sameDomain = (d1, d2) => {
     return d1 && d2 && h1 && h2 && h1 === h2
 }
 
-const formatDate = date => {
-    if (typeof date === "string") {
-        date = new Date(date)
+const formatDate = dateOrString => {
+    let date = String(dateOrString)
+    if (typeof dateOrString === "string") {
+        date = new Date(dateOrString)
     }
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")
     }-${String(date.getDate()).padStart(2, "0")} ${String(date.getHours())
@@ -383,7 +387,7 @@ const formatSize = size => {
         return `${size} B`
     }
     const exp = Math.floor(Math.log(size) / Math.log(1024))
-    return `${(size / Math.pow(1024, exp)).toFixed(2)} ${"KMGTPE"[exp - 1]}B`
+    return `${(size / 1024 ** exp).toFixed(2)} ${"KMGTPE"[exp - 1]}B`
 }
 
 const extractZip = (args, cb) => {
@@ -429,10 +433,10 @@ const notify = (message, type = "info", clickAction = false) => {
     const escapedMessage = message.replace(/>/g, "&gt;").replace(/</g, "&lt;")
         .replace(/\n/g, "<br>")
     notificationHistory.push({
-        "message": escapedMessage,
-        "type": properType,
+        "click": clickAction,
         "date": new Date(),
-        "click": clickAction
+        "message": escapedMessage,
+        "type": properType
     })
     if (properType === "permission") {
         if (!getSetting("notificationforpermissions")) {
@@ -509,11 +513,11 @@ const path = require("path")
 const pathToSpecialPageName = urlPath => {
     if (urlPath?.startsWith?.(`${appName()}://`)) {
         const parts = urlPath.replace(`${appName()}://`, "").split("#")
-        let name = parts[0]
+        let [name] = parts
         if (!specialPages.includes(name)) {
             name = "help"
         }
-        return {"name": name, "section": parts.slice(1).join("#") || ""}
+        return {name, "section": parts.slice(1).join("#") || ""}
     }
     if (urlPath?.startsWith?.("file://")) {
         for (const page of specialPages) {
@@ -690,6 +694,8 @@ const modifiedAt = loc => {
     }
 }
 
+// Disabled import sort order as the order is optimized to reduce module loads
+/* eslint-disable sort-keys-fix/sort-keys-fix */
 module.exports = {
     frameSelector,
     specialChars,

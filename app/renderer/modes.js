@@ -21,6 +21,8 @@ const {
     currentPage, currentMode, getSetting, guiRelatedUpdate
 } = require("./common")
 
+// Sort order determines the appearance in the mode list
+/* eslint-disable sort-keys-fix/sort-keys-fix */
 const modes = {
     "normal": {},
     "insert": {
@@ -127,8 +129,8 @@ const init = () => {
     })
 }
 
-const setMode = mode => {
-    mode = mode.trim().toLowerCase()
+const setMode = m => {
+    const mode = m.trim().toLowerCase()
     if (!modes[mode] || currentMode() === mode || !currentPage()) {
         return
     }

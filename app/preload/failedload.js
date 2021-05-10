@@ -35,19 +35,19 @@ const sslErrors = [
 ]
 
 ipcRenderer.on("insert-failed-page-info", (_, e) => {
-    e = JSON.parse(e)
+    const err = JSON.parse(e)
     try {
         document.body.innerHTML = ""
         document.head.innerHTML = ""
-    } catch (err) {
+    } catch {
         // Try clearing the existing left over page elements
     }
     const styleElement = document.createElement("style")
     styleElement.textContent = styling
     document.head.appendChild(styleElement)
     const mainInfo = document.createElement("main")
-    if (sslErrors.includes(e.errorDescription)) {
-        const http = e.validatedURL.replace("https://", "http://")
+    if (sslErrors.includes(err.errorDescription)) {
+        const http = err.validatedURL.replace("https://", "http://")
         mainInfo.innerHTML += `<h2>Redirect to HTTP Blocked</h2>
             The page could not be loaded successfully,
             because HTTP redirects are disabled.
@@ -56,15 +56,15 @@ ipcRenderer.on("insert-failed-page-info", (_, e) => {
             Alternatively, you can choose to go there just this once
             by clicking this HTTP link: <a href=${http}>${http}</a><br>
             The exact error that caused this request to be blocked:
-            </kbd>${e.errorDescription}</kbd>`
+            </kbd>${err.errorDescription}</kbd>`
     } else {
         mainInfo.innerHTML += `<h2>Unreachable page</h2>
             The page could not be loaded successfully.
-            The following error occurred:<br><h3>${e.errorDescription}</h3>
+            The following error occurred:<br><h3>${err.errorDescription}</h3>
             The first step you could try is reloading the page, by default
             mapped to <kbd>r</kbd> in normal mode. If the error persists, make
             sure you typed the url correctly. Alternatively, the website might
-            not support the '${e.validatedURL.replace(/:.*$/g, "")}' protocol.
+            not support the '${err.validatedURL.replace(/:.*$/g, "")}' protocol.
             Finally, please check your internet connection and DNS settings.`
     }
     document.body.appendChild(mainInfo)
