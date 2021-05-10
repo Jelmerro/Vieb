@@ -35,7 +35,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Renamed "rotateSplitWindow" to "rotateSplitWindowForward" to be more consistent with the recently introduced "Backward" variant
 - Calling action "menuOpen" from navbar input modes now opens the context menu of the navbar
 - Don't load regular tabs on startup, but suspend them (they are not loaded until you switch to them)
-- Some common URI schemes are now recognized as links using a simple prefix check
+- Common URI schemes and IPv6 addresses are now recognized as links by explore mode and when navigating
 - Remove side effects of lock keys by mapping them to Nop by default
 - Reworked eslint config to be more strict and more accurately represent the desired code style
 

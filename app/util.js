@@ -52,7 +52,7 @@ const isUrl = location => {
         return false
     }
     if (domainName.includes("@")) {
-        return (domainName.match(/@/g) || []).length === 1
+        return domainName.match(/@/g)?.length === 1
             && (/^[a-zA-Z0-9]+$/).test(domainName.split("@")[0])
             && isUrl(domainName.split("@")[1])
     }
@@ -60,7 +60,7 @@ const isUrl = location => {
         return false
     }
     if (domainName.startsWith("[") && domainName.endsWith("]")) {
-        return ipv6Regex.test(domainName.replace(/\[/, "").replace(/\]/, ""))
+        return ipv6Regex.test(domainName.replace(/^\[/, "").replace(/\]$/, ""))
     }
     const names = domainName.split(".")
     const tldAndPort = names[names.length - 1]
@@ -246,8 +246,8 @@ const sameDomain = (d1, d2) => {
 }
 
 const formatDate = dateOrString => {
-    let date = String(dateOrString)
-    if (typeof dateOrString === "string") {
+    let date = dateOrString
+    if (typeof date === "string") {
         date = new Date(dateOrString)
     }
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")

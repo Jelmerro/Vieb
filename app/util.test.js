@@ -143,34 +143,49 @@ const urlTests = [
         "valid": true
     },
     {
+        "reason": "Magnet links and other data schemes are valid",
+        "url": "magnet:?uri=thispartisntchecked",
+        "valid": true
+    },
+    {
+        "reason": "Not all data schemes are supported, those are searched for",
+        "url": "random:scheme",
+        "valid": false
+    },
+    {
+        "reason": "Triple dashes are not allowed",
         "url": "hello---dashes.com",
-        "valid": false,
-        "reason": "Triple dashes are not allowed"
+        "valid": false
     },
     {
+        "reason": "Valid ipv6 address",
         "url": "[2607:f8b0:4006:80a::2004]",
-        "valid": true,
-        "reason": "valid ipv6"
+        "valid": true
     },
     {
+        "reason": "Invalid ipv6, has too many brackets",
         "url": "[[2607:f8b0:4006:80a::2004]]",
-        "valid": false,
-        "reason": "invalid ipv6(too many brackets)"
+        "valid": false
     },
     {
+        "reason": "Invalid ipv6, has no brackets",
         "url": "2607:f8b0:4006:80a::2004",
-        "valid": false,
-        "reason": "invalid ipv6(no brackets)"
+        "valid": false
     },
     {
+        "reason": "Invalid ipv6, g character is not valid hex",
         "url": "[2607:f8g0:4006:80a::2004]",
-        "valid": false,
-        "reason": "invalid ipv6(8th character is a g, that is not valid hex)"
+        "valid": false
     },
     {
+        "reason": "Invalid ipv6, closing bracket inside address",
+        "url": "[2607:f8b0:4006:]80a::2004]",
+        "valid": false
+    },
+    {
+        "reason": "Invalid ipv6, too many colons",
         "url": "[2607::f8b0::4006::80a::2004]",
-        "valid": false,
-        "reason": "invalid ipv6(too many colons)"
+        "valid": false
     }
 ]
 urlTests.forEach(urlTest => {
@@ -218,10 +233,23 @@ specialPagesToFilenames.forEach(specialPageTest => {
     })
 })
 
-test(`Title function should capitalize first char and lowercase others`, () => {
+test("Title function should capitalize first char and lowercase others", () => {
     expect(UTIL.title("teSt")).toBe("Test")
     expect(UTIL.title("")).toBe("")
     expect(UTIL.title("multiple WORDS")).toBe("Multiple words")
+})
+
+test("formatSize helper to show file sizes in human readable form", () => {
+    expect(UTIL.formatSize(45)).toBe("45 B")
+    expect(UTIL.formatSize(45345237)).toBe("43.24 MB")
+    expect(UTIL.formatSize(92445237293)).toBe("86.10 GB")
+})
+
+test("sameDomain function should match urls that have the same domain", () => {
+    expect(UTIL.sameDomain(
+        "https://duckduckgo.com", "https://google.com/")).toBe(false)
+    expect(UTIL.sameDomain(
+        "https://google.com/test", "http://www.google.com/search")).toBe(true)
 })
 
 test(`Expand path to resolve homedir and downloads`, () => {
