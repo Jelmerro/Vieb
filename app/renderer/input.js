@@ -27,6 +27,9 @@ const POINTER = require("./pointer")
 
 const defaultBindings = {
     "n": {
+        "<NumLock>": {"mapping": "<Nop>"},
+        "<CapsLock>": {"mapping": "<Nop>"},
+        "<ScrollLock>": {"mapping": "<Nop>"},
         "<CR>": {"mapping": "<action.clickOnSearch>"},
         "<F1>": {"mapping": "<:help>"},
         "<F11>": {"mapping": "<action.toggleFullscreen>"},
@@ -200,6 +203,9 @@ const defaultBindings = {
         "<A-F4>": {"mapping": "<:quitall>"}
     },
     "p": {
+        "<NumLock>": {"mapping": "<Nop>"},
+        "<CapsLock>": {"mapping": "<Nop>"},
+        "<ScrollLock>": {"mapping": "<Nop>"},
         "<F1>": {"mapping": "<:help>"},
         "<F11>": {"mapping": "<action.toggleFullscreen>"},
         "<CR>": {"mapping": "<pointer.leftClick>"},
@@ -243,6 +249,9 @@ const defaultBindings = {
         "<A-F4>": {"mapping": "<:quitall>"}
     },
     "v": {
+        "<NumLock>": {"mapping": "<Nop>"},
+        "<CapsLock>": {"mapping": "<Nop>"},
+        "<ScrollLock>": {"mapping": "<Nop>"},
         "<F1>": {"mapping": "<:help>"},
         "<F11>": {"mapping": "<action.toggleFullscreen>"},
         "<Esc>": {"mapping": "<action.toNormalMode>"},
@@ -282,6 +291,9 @@ const defaultBindings = {
         "<A-F4>": {"mapping": "<:quitall>"}
     },
     "m": {
+        "<NumLock>": {"mapping": "<Nop>"},
+        "<CapsLock>": {"mapping": "<Nop>"},
+        "<ScrollLock>": {"mapping": "<Nop>"},
         "<Up>": {"mapping": "<action.menuUp>"},
         "<Down>": {"mapping": "<action.menuDown>"},
         "<CR>": {"mapping": "<action.menuSelect>"},

@@ -36,6 +36,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Calling action "menuOpen" from navbar input modes now opens the context menu of the navbar
 - Don't load regular tabs on startup, but suspend them (they are not loaded until you switch to them)
 - Some common URI schemes are now recognized as links using a simple prefix check
+- Remove side effects of lock keys by mapping them to Nop by default
 
 ### Removed
 
