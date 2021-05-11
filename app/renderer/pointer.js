@@ -143,23 +143,18 @@ const copyAndStop = () => {
 }
 
 const leftClick = () => {
-    const factor = currentPage().getZoomFactor()
-    currentPage().sendInputEvent({
-        "type": "mouseEnter", "x": X * factor, "y": Y * factor
-    })
+    currentPage().sendInputEvent({"type": "mouseEnter", "x": X, "y": Y})
     currentPage().sendInputEvent({
         "button": "left",
         "clickCount": 1,
         "type": "mouseDown",
-        "x": X * factor,
-        "y": Y * factor
+        "x": X,
+        "y": Y
     })
     currentPage().sendInputEvent({
-        "button": "left", "type": "mouseUp", "x": X * factor, "y": Y * factor
+        "button": "left", "type": "mouseUp", "x": X, "y": Y
     })
-    currentPage().sendInputEvent({
-        "type": "mouseLeave", "x": X * factor, "y": Y * factor
-    })
+    currentPage().sendInputEvent({"type": "mouseLeave", "x": X, "y": Y})
 }
 
 const startOfPage = () => {

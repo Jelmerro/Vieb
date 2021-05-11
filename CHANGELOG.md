@@ -56,6 +56,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Maximizing the window with double-click that could also incorrectly switch to a tab that happens to be at the second click location
 - Middle mouse having side effects in the tab bar on Windows
 - Quotes in settings messing with the :mkv command output
+- Left-click in pointer mode not click on the right location when the page is zoomed
 
 ### Security
 
