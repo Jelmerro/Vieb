@@ -34,7 +34,8 @@ const {
     pathToSpecialPageName,
     firefoxUseragent,
     title,
-    appName
+    appName,
+    appConfigSettings
 } = require("../util")
 const {
     listTabs,
@@ -711,7 +712,22 @@ const loadFromDisk = () => {
     }
     const userFirstConfig = expandPath("~/.vieb/viebrc")
     const userGlobalConfig = expandPath("~/.viebrc")
-    for (const conf of [config, userFirstConfig, userGlobalConfig]) {
+    let files = [appConfigSettings().override]
+    if (!appConfigSettings().override) {
+        if (appConfigSettings().order === "user-only") {
+            files = [userGlobalConfig, userFirstConfig]
+        }
+        if (appConfigSettings().order === "datafolder-only") {
+            files = [config]
+        }
+        if (appConfigSettings().order === "user-first") {
+            files = [userGlobalConfig, userFirstConfig, config]
+        }
+        if (appConfigSettings().order === "datafolder-first") {
+            files = [config, userFirstConfig, userGlobalConfig]
+        }
+    }
+    for (const conf of files) {
         if (isFile(conf)) {
             const parsed = readFile(conf)
             if (!parsed) {

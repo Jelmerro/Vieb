@@ -34,6 +34,7 @@ let customIcon = null
 let applicationName = ""
 let appDataPath = ""
 let homeDirPath = ""
+let configSettings = ""
 const framePaddingInfo = []
 const frameSelector = "embed, frame, iframe, object"
 const specialChars = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/\s]/gi
@@ -510,6 +511,14 @@ const appData = () => {
     return appDataPath
 }
 
+const appConfigSettings = () => {
+    if (!configSettings) {
+        const {ipcRenderer} = require("electron")
+        configSettings = ipcRenderer.sendSync("app-config-settings")
+    }
+    return configSettings
+}
+
 // PATH UTIL
 
 const path = require("path")
@@ -735,6 +744,7 @@ module.exports = {
     appIcon,
     appName,
     appData,
+    appConfigSettings,
     // PATH UTIL
     pathToSpecialPageName,
     joinPath,

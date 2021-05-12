@@ -46,7 +46,8 @@ const {
     dirname,
     basePath,
     formatSize,
-    extractZip
+    extractZip,
+    isAbsolutePath
 } = require("./util")
 const {"sync": rimrafSync} = require("rimraf")
 const rimraf = pattern => {
@@ -58,65 +59,77 @@ const rimraf = pattern => {
 }
 
 const version = process.env.npm_package_version || app.getVersion()
-const printUsage = () => {
-    console.info("Vieb: Vim Inspired Electron Browser\n")
-    console.info("Usage: Vieb [options] <URLs>\n")
-    console.info("Options:")
-    console.info(" --help                  Print this help and exit\n")
-    console.info(" --version               "
-        + "Print program info with versions and exit\n")
-    console.info(" --debug                 "
-        + "Open with Chromium and Electron debugging tools")
-    console.info("                         "
-        + "They can also be opened later with :internaldevtools\n")
-    console.info(" --datafolder=<dir>      Store ALL Vieb data in this folder")
-    console.info("                         "
-        + "You can also use the ENV var: VIEB_DATAFOLDER\n")
-    console.info(" --erwic=<file>          "
-        + "Open a fixed set of pages in a separate instance")
-    console.info("                         "
-        + "You can also use the ENV var: VIEB_ERWIC")
-    console.info("                         "
-        + "See 'Erwic.md' for usage and details\n")
-    console.info(" --window-frame=<val>    "
-        + "bool (false): Show the native frame around the window")
-    console.info("                         "
-        + "You can also use the ENV var: VIEB_WINDOW_FRAME\n")
-    console.info(" --media-keys=<val>      "
-        + "bool (true): Allow the media keys to interact with Vieb")
-    console.info("                         "
-        + "You can also use the ENV var: VIEB_MEDIA_KEYS\n")
-    console.info(" --site-isolation=<val>  "
-        + "string [REGULAR/strict]: Set the site isolation level")
-    console.info("                         "
-        + "You can also use the ENV var: VIEB_SITE_ISOLATION\n")
-    console.info(" --acceleration=<val>    "
-        + "string [HARDWARE/software]: Use hardware acceleration")
-    console.info("                         "
-        + "You can also use the ENV var: VIEB_ACCELERATION\n")
-    console.info("\nAll arguments not starting with - will be opened as a url.")
-    console.info(
-        "Command-line arguments will overwrite values set by ENV vars.")
+const printUsage = (code = 1) => {
+    console.info(`Vieb: Vim Inspired Electron Browser
+
+Usage: Vieb [options] <URLs>
+
+Options:
+ --help                  Print this help and exit.
+
+ --version               Print program info with versions and exit.
+
+ --debug                 Open with Chromium and Electron debugging tools.
+                         They can also be opened later with ':internaldevtools'.
+
+ --datafolder=<dir>      Store ALL Vieb data in this folder.
+                         You can also use the ENV var: 'VIEB_DATAFOLDER'.
+
+ --erwic=<file>          file: Location of the JSON file to configure Erwic.
+                         Open a fixed set of pages in a separate instance.
+                         See 'Erwic.md' or ':h erwic' for usage and details.
+                         You can also use the ENV var: 'VIEB_ERWIC'.
+
+ --config-order=<val>    string [USER-FIRST/user-only/
+                           datafolder-first/datafolder-only/none]:
+                         Configure the viebrc config file parse order.
+                         You can choose to load either of the locations first,
+                         choose to load only one of the locations or no config.
+                         Order arg is ignored if '--config-file' is provided.
+                         See ':h viebrc' for viebrc locations and details.
+                         You can also use the ENV var: 'VIEB_CONFIG_ORDER'.
+
+ --config-file=<file>    Parse only a single viebrc config file when starting.
+                         If a file is provided using thsi argument,
+                         the '--config-order' argument will be set to 'none'.
+                         Also see ':h viebrc' for viebrc locations and details.
+                         You can also use the ENV var: 'VIEB_CONFIG_FILE'.
+
+ --window-frame=<val>    bool (false): Show the native frame around the window.
+                         You can also use the ENV var: 'VIEB_WINDOW_FRAME'.
+
+ --media-keys=<val>      bool (true): Allow the media keys to control playback.
+                         You can also use the ENV var: 'VIEB_MEDIA_KEYS'.
+
+ --site-isolation=<val>  string [REGULAR/strict]: Set the site isolation level.
+                         You can also use the ENV var: 'VIEB_SITE_ISOLATION'.
+
+ --acceleration=<val>    string [HARDWARE/software]: Use hardware acceleration.
+                         You can also use the ENV var: 'VIEB_ACCELERATION'.
+
+All arguments not starting with - will be opened as a url.
+Command-line arguments will overwrite values set by ENV vars.`)
     printLicense()
+    app.exit(code)
 }
 const printVersion = () => {
-    console.info("Vieb: Vim Inspired Electron Browser\n")
-    console.info(`This is version ${version} of Vieb.`)
-    console.info("Vieb is based on Electron and inspired by Vim.")
-    console.info("It can be used to browse the web entirely with the keyboard.")
-    console.info(`This release uses Electron ${
-        process.versions.electron} and Chromium ${process.versions.chrome}`)
+    console.info(`Vieb: Vim Inspired Electron Browser
+This is version ${version} of Vieb.
+Vieb is based on Electron and inspired by Vim.
+It can be used to browse the web entirely with the keyboard.
+This release uses Electron ${process.versions.electron} and Chromium ${
+    process.versions.chrome}`)
     printLicense()
+    app.exit(0)
 }
 const printLicense = () => {
-    console.info("Vieb is created by Jelmer van Arnhem and contributors.")
-    console.info("Website: https://vieb.dev OR https://github.com/Jelmerro/Vieb")
-    console.info("\nLicense: GNU GPL version 3 or "
-        + "later versions <http://gnu.org/licenses/gpl.html>")
-    console.info("This is free software; you are free to change and "
-        + "redistribute it.")
-    console.info("There is NO WARRANTY, to the extent permitted by law.")
-    console.info("See the LICENSE file or the GNU website for details.")
+    console.info(`Vieb is created by Jelmer van Arnhem and contributors.
+Website: https://vieb.dev OR https://github.com/Jelmerro/Vieb
+
+License: GNU GPL version 3 or later versions <http://gnu.org/licenses/gpl.html>
+This is free software; you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+See the LICENSE file or the GNU website for details.`)
 }
 const applyDevtoolsSettings = prefFile => {
     makeDir(dirname(prefFile))
@@ -145,6 +158,7 @@ const useragent = () => session.defaultSession.getUserAgent()
     .replace(/Electron\/\S* /, "").replace(/Vieb\/\S* /, "")
     .replace(RegExp(`${app.getName()}/\\S* `), "")
 
+// Parse arguments
 const getArguments = argv => {
     const execFile = basePath(argv[0])
     if (execFile === "electron" || process.defaultApp && execFile !== "vieb") {
@@ -154,8 +168,6 @@ const getArguments = argv => {
     // The array argv is ["vieb", ...args]
     return argv.slice(1)
 }
-
-// Parse arguments
 const isTruthyArg = arg => {
     const argStr = String(arg).trim().toLowerCase()
     return Number(argStr) > 0 || ["y", "yes", "true", "on"].includes(argStr)
@@ -163,61 +175,68 @@ const isTruthyArg = arg => {
 const args = getArguments(process.argv)
 const urls = []
 let argDebugMode = false
-let argWindowFrame = isTruthyArg(process.env.VIEB_WINDOW_FRAME)
-let argAcceleration = process.env.VIEB_ACCELERATION?.trim().toLowerCase()
-    || "hardware"
-let argSiteIsolation = process.env.VIEB_SITE_ISOLATION?.trim().toLowerCase()
-    || "regular"
-let argMediaKeys = isTruthyArg(process.env.VIEB_MEDIA_KEYS)
-let argErwic = process.env.VIEB_ERWIC?.trim() || ""
 let argDatafolder = process.env.VIEB_DATAFOLDER?.trim()
     || joinPath(app.getPath("appData"), "Vieb")
+let argErwic = process.env.VIEB_ERWIC?.trim() || ""
+let argWindowFrame = isTruthyArg(process.env.VIEB_WINDOW_FRAME)
+let argConfigOrder = process.env.VIEB_CONFIG_ORDER?.trim().toLowerCase()
+    || "user-first"
+let argConfigOverride = process.env.VIEB_CONFIG_FILE?.trim().toLowerCase() || ""
+let argMediaKeys = isTruthyArg(process.env.VIEB_MEDIA_KEYS)
+let argSiteIsolation = process.env.VIEB_SITE_ISOLATION?.trim().toLowerCase()
+    || "regular"
+let argAcceleration = process.env.VIEB_ACCELERATION?.trim().toLowerCase()
+    || "hardware"
 let customIcon = null
 args.forEach(a => {
     const arg = a.trim()
     if (arg.startsWith("-")) {
         if (arg === "--help") {
-            printUsage()
-            app.exit(0)
+            printUsage(0)
         } else if (arg === "--version") {
             printVersion()
-            app.exit(0)
         } else if (arg === "--debug") {
             argDebugMode = true
         } else if (arg === "--datafolder") {
             console.warn("The 'datafolder' argument requires a value such as:"
-                + " --datafolder=~/.config/Vieb/")
+                + " --datafolder=~/.config/Vieb/\n")
             printUsage()
-            app.exit(1)
         } else if (arg === "--erwic") {
             console.warn("The 'erwic' argument requires a value such as:"
-                + " --erwic=~/.config/Erwic/")
+                + " --erwic=~/.config/Erwic/\n")
             printUsage()
-            app.exit(1)
+        } else if (arg === "--config-order") {
+            console.warn("The 'config-order' argument requires a value such as:"
+                + " --config-order=user-first\n")
+            printUsage()
+        } else if (arg === "--config-file") {
+            console.warn("The 'config-file' argument requires a value such as:"
+                + " --config-file=./customconf\n")
+            printUsage()
         } else if (arg === "--window-frame") {
             console.warn("The 'window-frame' argument requires a value such as:"
-                + " --window-frame=false")
+                + " --window-frame=false\n")
             printUsage()
-            app.exit(1)
         } else if (arg === "--media-keys") {
             console.warn("The 'media-keys' argument requires a value such as:"
-                + " --media-keys=true")
+                + " --media-keys=true\n")
             printUsage()
-            app.exit(1)
         } else if (arg === "--site-isolation") {
             console.warn("The 'site-isolation' argument requires a value such "
-                + "as: --site-isolation=regular")
+                + "as: --site-isolation=regular\n")
             printUsage()
-            app.exit(1)
         } else if (arg === "--acceleration") {
             console.warn("The 'acceleration' argument requires a value such as:"
-                + " --acceleration=hardware")
+                + "\n --acceleration=hardware\n")
             printUsage()
-            app.exit(1)
         } else if (arg.startsWith("--datafolder=")) {
             argDatafolder = arg.split("=").slice(1).join("=")
         } else if (arg.startsWith("--erwic=")) {
             argErwic = arg.split("=").slice(1).join("=")
+        } else if (arg.startsWith("--config-order=")) {
+            argConfigOrder = arg.split("=").slice(1).join("=")
+        } else if (arg.startsWith("--config-file=")) {
+            argConfigOverride = arg.split("=").slice(1).join("=")
         } else if (arg.startsWith("--window-frame=")) {
             argWindowFrame = isTruthyArg(arg.split("=").slice(1).join("="))
         } else if (arg.startsWith("--media-keys=")) {
@@ -234,21 +253,37 @@ args.forEach(a => {
     }
 })
 if (argSiteIsolation !== "regular" && argSiteIsolation !== "strict") {
-    console.warn("The 'site-isolation' argument only accepts:"
-        + " 'regular' or 'strict'")
+    console.warn("The 'site-isolation' argument only accepts:\n"
+        + "'regular' or 'strict'\n")
     printUsage()
-    app.exit(1)
 }
 if (argAcceleration !== "hardware" && argAcceleration !== "software") {
-    console.warn("The 'acceleration' argument only accepts:"
-        + " 'hardware' or 'software'")
+    console.warn("The 'acceleration' argument only accepts:\n"
+        + "'hardware' or 'software'\n")
     printUsage()
-    app.exit(1)
 }
 if (!argDatafolder.trim()) {
-    console.warn("The 'datafolder' argument may not be empty")
+    console.warn("The 'datafolder' argument may not be empty\n")
     printUsage()
-    app.exit(1)
+}
+const validConfigOrders = [
+    "none", "user-only", "datafolder-only", "user-first", "datafolder-first"
+]
+if (!validConfigOrders.includes(argConfigOrder)) {
+    console.warn(`The 'config-order' argument only accepts:\n${
+        validConfigOrders.slice(0, -1).map(c => `'${c}'`).join(", ")} or '${
+        validConfigOrders.slice(-1)[0]}'\n`)
+    printUsage()
+}
+if (argConfigOverride) {
+    argConfigOverride = expandPath(argConfigOverride)
+    if (!isAbsolutePath(argConfigOverride)) {
+        argConfigOverride = joinPath(process.cwd(), argConfigOverride)
+    }
+    if (!isFile(argConfigOverride)) {
+        console.warn("Config file could not be read\n")
+        printUsage()
+    }
 }
 // Fix segfault when opening Twitter:
 // https://github.com/electron/electron/issues/25469
@@ -270,11 +305,11 @@ app.setPath("appData", argDatafolder)
 app.setPath("userData", argDatafolder)
 applyDevtoolsSettings(joinPath(argDatafolder, "Preferences"))
 if (argErwic) {
+    argErwic = expandPath(argErwic)
     const config = readJSON(argErwic)
     if (!config) {
-        console.warn("Erwic config file could not be read")
+        console.warn("Erwic config file could not be read\n")
         printUsage()
-        app.exit(1)
     }
     if (config.name) {
         app.setName(config.name)
@@ -291,17 +326,15 @@ if (argErwic) {
     }
     writeFile(joinPath(argDatafolder, "erwicmode"), "")
     if (!Array.isArray(config.apps)) {
-        console.warn("Erwic config file requires a list of 'apps'")
+        console.warn("Erwic config file requires a list of 'apps'\n")
         printUsage()
-        app.exit(1)
     }
     config.apps = config.apps.map(a => {
         const simpleContainerName = a.container.replace(/_/g, "")
         if (simpleContainerName.match(specialChars)) {
             console.warn("Container names are not allowed to have "
-                + "special characters besides underscores")
+                + "special characters besides underscores\n")
             printUsage()
-            app.exit(1)
         }
         if (typeof a.script === "string") {
             a.script = expandPath(a.script)
@@ -318,9 +351,8 @@ if (argErwic) {
     }).filter(a => typeof a.container === "string" && typeof a.url === "string")
     if (config.apps.length === 0) {
         console.warn("Erwic config file requires at least one app to be added")
-        console.warn("Each app must have a 'container' name and a 'url'")
+        console.warn("Each app must have a 'container' name and a 'url'\n")
         printUsage()
-        app.exit(1)
     }
     urls.push(...config.apps)
 }
@@ -331,7 +363,6 @@ let loginWindow = null
 let notificationWindow = null
 app.on("ready", () => {
     app.userAgentFallback = useragent()
-    // Request single instance lock and quit if that fails
     if (app.requestSingleInstanceLock()) {
         app.on("second-instance", (_, newArgs) => {
             if (mainWindow.isMinimized()) {
@@ -1293,6 +1324,9 @@ ipcMain.on("override-global-useragent", (e, globalUseragent) => {
 })
 ipcMain.on("rimraf", (e, folder) => {
     e.returnValue = rimraf(folder)
+})
+ipcMain.on("app-config-settings", e => {
+    e.returnValue = {"order": argConfigOrder, "override": argConfigOverride}
 })
 ipcMain.on("app-version", e => {
     e.returnValue = version

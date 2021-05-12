@@ -23,6 +23,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Copy image option for images, background images and svg elements in the context menu (they are categorized as images in that order)
 - Pointer action "swapPosition" to switch the current pointer location with the start location of the visual selection
 - Command syntax to cycle fixed-set strings using the "!" suffix, similar to boolean type settings
+- Startup arguments "--config-order" and "--config-file" to better control which config files get loaded
 
 ### Changed
 
@@ -39,6 +40,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Common URI schemes and IPv6 addresses are now recognized as links by explore mode and when navigating
 - Remove side effects of lock keys by mapping them to Nop by default
 - Reworked eslint config to be more strict and more accurately represent the desired code style
+- Default config parse order is now "user-first", use "--config-order=datafolder-first" to revert to the old behavior
 
 ### Removed
 
