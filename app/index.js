@@ -361,22 +361,35 @@ if (argErwic) {
 let mainWindow = null
 let loginWindow = null
 let notificationWindow = null
+const resolveLocalPaths = (paths, cwd = null) => paths.map(url => {
+    let fileLocation = expandPath(url.replace(/^file:\/*/g, "/"))
+    if (process.platform === "win32") {
+        fileLocation = expandPath(url.replace(/^file:\/*/g, ""))
+    }
+    if (!isAbsolutePath(fileLocation)) {
+        fileLocation = joinPath(cwd || process.cwd(), url)
+    }
+    if (isFile(fileLocation)) {
+        return `file:///${fileLocation.replace(/^\//g, "")}`
+    }
+    return url
+}).filter(url => !url.startsWith("-"))
 app.on("ready", () => {
     app.userAgentFallback = useragent()
     if (app.requestSingleInstanceLock()) {
-        app.on("second-instance", (_, newArgs) => {
+        app.on("second-instance", (_, newArgs, cwd) => {
             if (mainWindow.isMinimized()) {
                 mainWindow.restore()
             }
             mainWindow.focus()
-            mainWindow.webContents.send("urls", newArgs.filter(
-                arg => !arg.startsWith("-")))
+            mainWindow.webContents.send("urls", resolveLocalPaths(newArgs, cwd))
         })
     } else {
         console.info(`Sending urls to existing instance in ${argDatafolder}`)
         app.exit(0)
     }
-    app.on("open-url", (_, url) => mainWindow.webContents.send("urls", [url]))
+    app.on("open-url", (_, url) => mainWindow.webContents.send("urls",
+        resolveLocalPaths([url])))
     if (!app.isPackaged && !customIcon) {
         customIcon = joinPath(__dirname, "img/icons/512x512.png")
     }
@@ -432,7 +445,7 @@ app.on("ready", () => {
         if (argDebugMode) {
             mainWindow.webContents.openDevTools({"mode": "undocked"})
         }
-        mainWindow.webContents.send("urls", urls)
+        mainWindow.webContents.send("urls", resolveLocalPaths(urls))
     })
     // Show a dialog for sites requiring Basic HTTP authentication
     const loginWindowData = {

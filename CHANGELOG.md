@@ -41,6 +41,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Remove side effects of lock keys by mapping them to Nop by default
 - Reworked eslint config to be more strict and more accurately represent the desired code style
 - Default config parse order is now "user-first", use "--config-order=datafolder-first" to revert to the old behavior
+- Startup argument urls are now resolved as files if possible, both absolute and relative paths are supported (relative to CWD)
 
 ### Removed
 
