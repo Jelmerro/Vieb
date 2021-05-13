@@ -132,7 +132,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #mode {text-transform: capitalize;font-size: 1.3em;margin: auto;font-weight: bold;display: flex;}
 #repeat-counter, #pressed-keys {margin: auto .2em;line-height: 2em;display: none;}
 /* modes */
-[current-mode=normal] #mode-container, #helpage .normal, .normal {color: var(--mode-normal-fg);background: var(--mode-normal-bg);}
+[current-mode=normal] #mode-container, #helppage .normal, .normal {color: var(--mode-normal-fg);background: var(--mode-normal-bg);}
 [current-mode=command] #mode-container, #helppage .command, .command {color: var(--mode-command-fg);background: var(--mode-command-bg);}
 [current-mode=insert] #mode-container, #helppage .insert, .insert {color: var(--mode-insert-fg);background: var(--mode-insert-bg);}
 [current-mode=follow] #mode-container, #helppage .follow, .follow {color: var(--mode-follow-fg);background: var(--mode-follow-bg);}
