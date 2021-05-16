@@ -56,11 +56,10 @@
         </ul>
         If you want to find out what a certain command, setting or action means, you can call the help command with it's name as an argument, for example: <span class="command-block nowrap">:help action.toSearchMode</span> or <span class="command-block nowrap">:help mappings</span>. It is recommended to at minimum skim through the documentation at least once, to get a good idea of all the possible commands, settings and actions.
         <h1 id="commands">Commands</h1>
-        Commands can be used for various additional features and configuration. Entering commands is done by calling <a href="#action.toCommandMode">action.toCommandMode</a> and then typing text. The command can be executed with <a href="#action.useEnteredData">action.useEnteredData</a>. This chapter will give descriptions and examples for all of the built-in commands of Vieb. It's also possible to add custom commands using <a href="#:command">:command</a> with the name and actions as the arguments. If there is only a single command that starts with the entered text, that command will be run, for example: "mkv" is enough to run the <a href="#:mkviebrc">:mkviebrc</a> command.
+        Commands can be used for various additional features and configuration. Entering commands is done by switching to <a class="command" href="#action.toCommandMode">command mode</a> and then typing text. The command can be executed with <a href="#action.useEnteredData">action.useEnteredData</a>. This chapter will list all Vieb's commands, including a list of examples and the mappings that use the listed command. It's also possible to add custom commands using <a href="#:command">:command</a> with the name and actions as the arguments. If there is only a single command that starts with the entered text, that command will be run, for example: "mkv" is enough to run the <a href="#:mkviebrc">:mkviebrc</a> command.
         <h2 id="settingcommands">Setting commands</h2>
         Commands in this paragraph are for reading, changing or resetting the settings of Vieb. These commands only change the settings for the current session, unless the <a href="#:mkviebrc">:mkviebrc</a> command is run to write the settings back to the <a href="#viebrc">viebrc</a> file.
         <h3 id=":set">:set</h3>
-        Examples
         <ul>
             <li><span class="command-block">:s</span> - List all modified settings</li>
             <li><span class="command-block">:set adblocker? mouse?</span> - Read multiple settings</li>
@@ -108,7 +107,6 @@
         There are also some string type settings that only accept specific values, such as the <a href="#permissioncamera">permissioncamera</a> setting, which can only be set to "block", "ask" or "allow" (default is "block"). These type of settings, so called "Fixed-set Strings", can also be rotated by suffixing an exclamation mark, similar to toggling boolean values. For example, to cycle through the <a href="#adblocker">adblocker</a> values and log the value after switching:
         <span class="command-block nowrap">:set adblocker! adblocker</span>.
         <h3 id=":reload">:reload</h3>
-        Examples
         <ul>
             <li><span class="command-block">:reload</span> - Reload all viebrc commands</li>
         </ul>
@@ -122,13 +120,11 @@
         </ul>
         Of course it's also possible to make a mapping or custom command to do this for you.
         <h3 id=":restart">:restart</h3>
-        Examples
         <ul>
             <li><span class="command-block">:restart</span> - Restart Vieb</li>
         </ul>
         This command will restart Vieb. It is functionally equivalent to running the <a href="#:quitall">:quitall</a> command and then starting Vieb again.
         <h3 id=":mkviebrc">:mkviebrc</h3>
-        Examples
         <ul>
             <li><span class="command-block">:mkviebrc</span> - Write all modified settings, custom mappings and custom commands to disk</li>
             <li><span class="command-block">:mkviebrc full</span> - Write all settings (with defaults), custom mappings and custom commands to disk</li>
@@ -137,14 +133,12 @@
         <h2 id="specialpages">Special pages</h2>
         Some commands are used to open special pages. This help page is one of them. In this paragraph all of them are listed.
         <h3 id=":version">:version</h3>
-        Examples
         <ul>
             <li><span class="command-block">:version</span> - Open the version information page</li>
             <li><span class="command-block">:v</span> - Open the version information page</li>
         </ul>
         This command will open the version information page, located at "vieb://version". On this page, you will find information about the current Vieb version, along with the Electron and Chromium version this release is based on. Finally, there is also a button to check for updates. It is recommended to check for updates at least once a month, you can also subscribe to the <a href="https://github.com/Jelmerro/Vieb">github repository</a> or <a href="https://www.reddit.com/r/vieb">official subreddit</a> to be notified of updates.
         <h3 id=":help">:help</h3>
-        Examples
         <ul>
             <li><span class="command-block">:help</span> - Open this current help page</li>
             <li><span class="command-block">:h settings</span> - Open the help page at the settings chapter</li>
@@ -153,26 +147,22 @@
         </ul>
         This command will open the help page, located at "vieb://help". This is the current page you are on, and describes all the functionality of Vieb. A single optional argument can be included in the help command, which should refer to a section of the help page. This section can be the name of an action, a command or any of the chapters and paragraphs.
         <h3 id=":history">:history</h3>
-        Examples
         <ul>
             <li><span class="command-block">:history</span> - Open the history page</li>
         </ul>
         With this command you will be navigated to the history page, located at "vieb://history". On this page you will be presented with a list of all your local browsing history, sorted by date. This page allows you to remove site visits from your history and/or remove the history during specific ranges (optionally based on a filter). The browsing history is only stored in Vieb's <a href="#datafolder">datafolder</a>. To disable new visits from being stored, see the <a href="#storenewvisits">storenewvisits</a> setting. This setting does not affect the history of previously closed tabs or the download history. It is also possible to disable or change the amount of suggestions shown based on the history with <a href="#suggestorder">suggestorder</a>. Finally you may want to clear the history when quitting Vieb with <a href="#clearhistoryonquit">clearhistoryonquit</a>.
         <h3 id=":downloads">:downloads</h3>
-        Examples
         <ul>
             <li><span class="command-block">:downloads</span> - Open the downloads page</li>
             <li><span class="command-block">:d</span> - Open the downloads page</li>
         </ul>
         Use this command to open the download page, located at "vieb://downloads". This page contains a list of all the previously downloaded files, including those still in progress or cancelled. On this page you can pause or remove any of the downloads. There are also settings to automatically remove downloads, see <a href="#cleardownloadsoncompleted">cleardownloadsoncompleted</a> and <a href="#cleardownloadsonquit">cleardownloadsonquit</a> for details. Neither of these settings will remove downloaded files from disk. Downloads are by default started automatically, and will be stored in the folder configured by <a href="#downloadpath">downloadpath</a>. You can change the automatic download behavior using the <a href="#downloadmethod">downloadmethod</a> setting.
         <h3 id=":cookies">:cookies</h3>
-        Examples
         <ul>
             <li><span class="command-block">:cookies</span> - Open the cookies page</li>
         </ul>
         Open the cookies page with this command, located at "vieb://cookies". On this page you can view all of Vieb's cookies. The cookies pages allows you to delete individual cookies, or all cookies (possibly based on a filter by name). Finally, it's also possible to delete cookies with <a href="#clearcookiesonquit">clearcookiesonquit</a>.
         <h3 id=":notifications">:notifications</h3>
-        Examples
         <ul>
             <li><span class="command-block">:notifications</span> - Open the notifications page</li>
         </ul>
@@ -206,8 +196,8 @@
         All of these commands can also be prefixed with a single character to indicate a mode, for example:
         <ul>
             <li><span class="command-block">:nmap!</span> - List all mappings including default for <a class="normal" href="#action.toNormalMode">normal mode</a></li>
-            <li><span class="command-block">:cunmap &lt;C-p&gt;</span> - Remove the mapping of Ctrl with p for command mode</li>
-            <li><span class="command-block">:imapclear</span> - Clear all custom mappings for insert mode</li>
+            <li><span class="command-block">:cunmap &lt;C-p&gt;</span> - Remove the mapping of Ctrl with p for <a class="command" href="#action.toCommandMode">command mode</a></li>
+            <li><span class="command-block">:imapclear</span> - Clear all custom mappings for <a class="insert" href="#action.toInsertMode">insert mode</a></li>
         </ul>
         All of these commands will be explained in more detail in their own paragraph below, you can jump there directly with the help command like so: <span class="command-block">:help :cunmap</span>.
         <h3 id="key-codes">Key codes</h3>
@@ -257,7 +247,6 @@
         <h4>Map actions</h4>
         Unlike Vim, it's possible to map keys directly to actions or commands, without relying on keystrokes. Some examples already make use of this syntax. To refer to an action, wrap it around with &lt; and &gt; characters, such as this: <kbd>&lt;action.toExploreMode&gt;</kbd> for going to <a class="explore" href="#action.toExploreMode">explore mode</a>. These actions can appear anywhere in the right side of the map command. Similarly this can be done for commands using the same syntax with a <kbd>:</kbd> character to indicate that it's a command, for example: <kbd>&lt;:quit&gt;</kbd>.
         <h3 id=":map">:map</h3>
-        Examples
         <ul>
             <li><span class="command-block">:map</span> - List all custom mappings for every mode</li>
             <li><span class="command-block">:map!</span> - List every single mapping currently available for all modes</li>
@@ -271,7 +260,6 @@
         </ul>
         The map command takes any number of arguments. Without any arguments, it lists the mappings for all modes. To also list the default mappings of Vieb, append the map command with a <kbd>!</kbd>. When a single argument is added to the map command, it will only list mappings for that specific key or sequence of keys. If more than one argument is provided, the first argument is stored separately from all the others. The first one represents the keys that you need to press to execute all the other keys provided. For example, the command <span class="command-block nowrap">:map &lt;C-J&gt; &lt;Esc&gt; :downloads &lt;Enter&gt;</span> will add a mapping for pressing j while holding Shift and Control. When those keys are pressed, it will automatically trigger the Escape key, type out ":downloads" and finally trigger the Enter key. Or in other words, this will make it so that pressing Ctrl-Shift-j will open the downloads page. When adding a new mapping with this command, it will always overwrite existing mappings.
         <h3 id=":noremap">:noremap</h3>
-        Examples
         <ul>
             <li><span class="command-block">:noremap</span> - List all custom mappings for every mode</li>
             <li><span class="command-block">:noremap!</span> - List every single mapping currently available for all modes</li>
@@ -291,7 +279,6 @@
         </ul>
         The unmap command is to remove a mapping and disable the effects of invoking those keys. For example, to disable <kbd>F1</kbd> from opening the help page, without mapping it to something else: <span class="command-block">:unmap F1</span>. The unmap command always takes a single argument.
         <h3 id=":mapclear">:mapclear</h3>
-        Examples
         <ul>
             <li><span class="command-block">:mapclear</span> - Remove all custom mappings for all modes</li>
             <li><span class="command-block">:mapclear!</span> - Remove every single mapping of Vieb, including defaults (executing this at runtime WILL prevent you from using Vieb!)</li>
@@ -376,7 +363,6 @@
         <div class="command-block">:command homepage &lt;action.toExploreMode&gt;vieb.dev&lt;action.useEnteredData&gt;</div>
         It's also possible to refer to other commands when defining a new command, similar to adding keyboard mappings. The command name must be unique and can not overwrite built-in commands.
         <h3 id=":command">:command</h3>
-        Examples
         <ul>
             <li><span class="command-block">:command</span> - Show a list of all user defined commands</li>
             <li><span class="command-block">:command homepage &lt;action.toExploreMode&gt;vieb.dev&lt;Enter&gt;</span> - Add a custom command name homepage, to navigate to vieb.dev</li>
@@ -385,14 +371,12 @@
         </ul>
         The command to add custom commands is simply named "command". Without arguments, it will lists all previously added custom commands. With one argument, it will list one specific command and it's actions. With two or more arguments, it will add a new command, where the first argument is the command name and all other arguments are the mapping. To overwrite commands that you have already defined before, append a "!" at the end of the command.
         <h3 id=":delcommand">:delcommand</h3>
-        Examples
         <ul>
             <li><span class="command-block">:delcommand clickonmenu</span> - Remove the clickonmenu custom command</li>
             <li><span class="command-block">:delcommand homepage</span> - Remove the homepage custom command</li>
         </ul>
         This command can be used to delete previously defined custom commands. It takes exactly one argument: the name of the command to be deleted. As with the previous command, it can not modify or delete built-in commands.
         <h3 id=":comclear">:comclear</h3>
-        Examples
         <ul>
             <li><span class="command-block">:comclear</span> - Remove every single custom command</li>
         </ul>
@@ -400,7 +384,6 @@
         <h2 id="splits">Splits</h2>
         Vieb allows you to view multiple pages at once using window splits. This paragraph will explain which commands can be used to open split windows or how to switch between splits. For other window splitting related actions, see the <a href="#splitting">splitting</a> chapter.
         <h3 id=":buffer">:buffer</h3>
-        Examples
         <ul>
             <li><span class="command-block">:buffer 0</span> - Switch to the first tab in the bar</li>
             <li><span class="command-block">:b vieb.dev</span> - Switch to the first tab containing "vieb.dev"</li>
@@ -409,17 +392,15 @@
         </ul>
         The buffer command can be used to switch to a tab by name or index. It accepts any number of arguments that will all be used to find the most appropriate tab. Contrary to the <a href="#action.nextTab">action.nextTab</a> and <a href="#action.previousTab">action.previousTab</a> actions, which switch in the order of the tabbar, the buffer command can switch to any tab regardless of it's location in the tabbar. This is also important to keep in mind when using window splits, because switching between tabs can also change which splits are displayed. If you switch to a tab that is already visible in one of the splits, no splits will be changed, but the focus will simply switch to the other split. However, if the tab you switch to is not visible yet, the current split will switch to the new tab. This can be confusing when using the tab switch actions in combination with multiple splits, which is why the buffer command is recommended for switching when using multiple window splits. The buffer command will have no effect if the tab cannot be found, unless the argument is a single number, in which case it will switch to the closest tab by index. There are also many actions for switching between splits, see the <a href="#splitting">splitting</a> chapter for details. You can use the buffer command even without using splits.
         <h3 id=":hide">:hide</h3>
-        Examples
         <ul>
-            <li><span class="command-block">:hide</span> - Hide the currently focused window, if others are also visible</li>
+            <li><span class="command-block">:hide</span> - Hide the currently focused window split, if others are also visible</li>
             <li><span class="command-block">:hide 0</span> - Hide a window split based on tab index, in this case the first</li>
             <li><span class="command-block">:hide vieb.dev</span> - Hide the window split with "vieb.dev" in the url</li>
             <li><span class="command-block">:hide 999</span> - Hide a window split based on tab index, either the 1000nth or the last tab in the tabbar</li>
             <li><span class="command-block">:hide github vieb</span> - Hide the window split containing both "github" and "vieb"</li>
         </ul>
-        The hide command can be used to hide one of the visible splits. This command takes any number of arguments. If no arguments are provided, it will hide the currently focused split window. For any other number of arguments, it will hide the window split that most accurately matches the arguments. This can be a tab index or keywords that refer to parts of the url, similar to the buffer command. The command will not have effect it there is only one page visible, or if there is no matching tab. If the argument is a single number, but the tab index is too high, it will instead hide the window connected to the latest tab by index.
+        The hide command can be used to hide one of the visible splits. This command takes any number of arguments. If no arguments are provided, it will hide the currently focused split window. For any other number of arguments, it will hide the window split that most accurately matches the arguments. This can be a tab index or keywords that refer to parts of the url, similar to the buffer command. The command will not have effect it there is only one page visible, or if there is no matching tab. If the argument is a single number, but the tab index is too high, it will instead hide the window split connected to the latest tab by index.
         <h3 id=":Vexplore">:Vexplore</h3>
-        Examples
         <ul>
             <li><span class="command-block">:Vexplore</span> - Open a vertical split with a new tab</li>
             <li><span class="command-block">:Vexplore vieb.dev</span> - Open a vertical split with the window matching vieb.dev, or a new tab with this url</li>
@@ -441,7 +422,6 @@
         <h2>Tab close commands</h2>
         These are commands that can be used to close tabs. The regular close command without arguments is used to close the current tab.
         <h3 id=":close">:close</h3>
-        Examples
         <ul>
             <li><span class="command-block">:close</span> - Close the current tab</li>
             <li><span class="command-block">:close vieb.dev</span> - Close the first tab matching vieb.dev</li>
@@ -449,13 +429,11 @@
         </ul>
         Closes a tab. It will close the current one, if no arguments are given. If there is a single number given as an argument, it will close the tab with that index in the tabbar (starting at 0). Any other arguments are used to search for the matching tab to close. Only the first matching tab is closed. If closing the current tab, you will switch to the nearest opened tab. If the last tab is closed, the newtab page will (re)open as the only opened tab. Opposite of <a href="#action.reopenTab">action.reopenTab</a>. You can change which tab gets focused when calling this command for the current tab with <a href="#tabclosefocusright">tabclosefocusright</a>. If desired, you can quit Vieb when closing the last tab by enabling the <a href="#quitonlasttabclose">quitonlasttabclose</a> toggle.
         <h3 id=":lclose">:lclose</h3>
-        Examples
         <ul>
             <li><span class="command-block">:lclose</span> - Closes ALL tabs to the left of the current tab</li>
         </ul>
         With this command you can close every tab to the left of the current one. If you have pinned tabs, it will respect the <a href="#closablepinnedtabs">closablepinnedtabs</a> setting and try to close as many as possible, so you can even execute this command when your current tab is pinned.
         <h3 id=":rclose">:rclose</h3>
-        Examples
         <ul>
             <li><span class="command-block">:rclose</span> - Closes ALL tabs to the right of the current tab</li>
         </ul>
@@ -463,14 +441,12 @@
         <h2>Other commands</h2>
         The commands in this paragraph do not belong in a specific category, but are still a core part of Vieb. These commands range from printing, to developer tools and to quitting Vieb.
         <h3 id=":call">:call</h3>
-        Examples
         <ul>
             <li><span class="command-block">:call action.nextTab</span> - Switch to the next tab using a command</li>
             <li><span class="command-block">:call &lt;action.toSearchMode&gt;</span> - Switch to <a class="search" href="#action.toSearchMode">search mode</a> using a command</li>
         </ul>
         The call command can be used to execute a single action by a command, it accepts exactly one argument. The action name can optionally be wrapped in &lt; and &gt; characters, similar to how you would call actions in mappings.
         <h3 id=":write">:write</h3>
-        Examples
         <ul>
             <li><span class="command-block">:write</span> - Save the current page to <a href="#downloadpath">downloadpath</a> with the page name as the filename</li>
             <li><span class="command-block">:write savedpage</span> - Save the current page to <a href="#downloadpath">downloadpath</a> with "savedpage" as the filename</li>
@@ -479,7 +455,6 @@
         </ul>
         With the write command you can save the current page to disk. There is one optional argument, which serves as both the filename and the location. The location is by default set to the <a href="#downloadpath">downloadpath</a> setting, but can be changed by including it in the filename argument. If the filename ends with a "/", it's assumed to be just the folder part, and the page will be saved in that folder with the default filename (the name of the page). Lastly, absolute paths are saved in exactly that location.
         <h3 id=":hardcopy">:hardcopy</h3>
-        Examples
         <ul>
             <li><span class="command-block">:hardcopy</span> - Open the print dialog, to print the current page</li>
         </ul>
@@ -514,7 +489,7 @@
         <ul>
             <li><span class="command-block">:internaldevtools</span> - Open the developer tools of the Vieb main browser window</li>
         </ul>
-        The internaldevtools command opens the developer tools of the main Vieb window (containing the url bar, tab list etc.). This is mainly useful to debug Vieb itself.
+        The internaldevtools command opens the developer tools of the main Vieb window (containing the url bar, tab list etc.). This is mainly useful to debug Vieb itself. You can also open these when starting Vieb with the "--debug" startup argument.
         <h3 id=":colorscheme">:colorscheme</h3>
         <ul>
             <li><span class="command-block">:colorscheme</span> - Show the currently active colorscheme</li>
@@ -527,13 +502,11 @@
         </ul>
         This command attempts to make Vieb the default browser on your operating system. On Linux, this uses the "xdg-settings" command, and requires Vieb to be installed with a desktop file (most installers have this included). For Windows, this command will add the required keys to regedit for Vieb to appear in the default program list, after which you probably need to select it as your default browser manually. For other operating systems, Vieb will request to be set as the default handler for http and https protocols, though this probably isn't enough to be made the default browser. For more details, see the <a href="https://github.com/Jelmerro/Vieb/blob/master/FAQ.md#can-i-make-vieb-my-default-browser">this entry in the FAQ</a>. You can find the default app scripts in <a href="https://github.com/Jelmerro/Vieb/tree/master/app/defaultapp">this subfolder of the source code</a>, including a file to clear the Windows registry of all Vieb entries.
         <h3 id=":quit">:quit</h3>
-        Examples
         <ul>
             <li><span class="command-block">:quit</span> - Close the current window split, or quit Vieb if only one is open</li>
         </ul>
-        The quit command will only exit Vieb if there is only one window left. If there are multiple open, it will simply close the current window. This logic is only applied to opened windows, the amount of tabs you have open is irrelevant for the quit command. To unconditionally quit Vieb, see <a href="#:quitall">:quitall</a>.
+        The quit command will only exit Vieb if there is only one window split left. If there are multiple open, it will simply close the current split. This logic is only applied to opened splits, the amount of tabs you have open is irrelevant for the quit command. To unconditionally quit Vieb, see <a href="#:quitall">:quitall</a>.
         <h3 id=":quitall">:quitall</h3>
-        Examples
         <ul>
             <li><span class="command-block">:quitall</span> - Quit Vieb</li>
         </ul>
@@ -604,7 +577,7 @@
         <div class="command-block">:command! work &lt;:set containernewtab=work&gt;&lt;action.openNewTab&gt;&lt;:set containernewtab=s:usecurrent&gt;</div>
         You could make such a command for each different container you frequently use, while still opening tabs in the same container as the current one by default.
         <h4>Related settings</h4>
-        It is recommended to combine this with <a href="#containercolors">containercolors</a> to automatically color container names based on regular expressions. You can configure when to display the name of the container in the navbar with <a href="#containershowname">containershowname</a>. New tabs opened as links and through follow mode are configured with this "containernewtab" setting. For tabs opened as a split window, see <a href="#containersplitpage">containersplitpage</a>. For pages opened using the command line arguments, see <a href="#containerstartuppage">containerstartuppage</a>.
+        It is recommended to combine this with <a href="#containercolors">containercolors</a> to automatically color container names based on regular expressions. You can configure when to display the name of the container in the navbar with <a href="#containershowname">containershowname</a>. New tabs opened as links and through the <a class="follow" href="#action.startFollowNewTab">new tab version of follow mode</a> are configured with this "containernewtab" setting. For tabs opened as a split window, see <a href="#containersplitpage">containersplitpage</a>. For pages opened using the command line arguments, see <a href="#containerstartuppage">containerstartuppage</a>.
         <h3 id="containershowname">containershowname</h3>
         This setting controls if the container name should be shown in the navbar between the current mode and the url bar. If set to automatic, all names except "main" are shown. The name will be displayed in the color defined by <a href="#containercolors">containercolors</a>.
         <h3 id="containersplitpage">containersplitpage</h3>
@@ -632,7 +605,7 @@
         <h3 id="fontsize">fontsize</h3>
         Change the font size for the entire Vieb interface. Changing the font size setting will also scale the navbar, built-in pages such as this help page, notifications and <a class="follow" href="#action.startFollowCurrentTab">follow mode</a> indicators. It will not automatically zoom websites, which can be done with <a href="#action.zoomIn">action.zoomIn</a> and related actions.
         <h3 id="follownewtabswitch">follownewtabswitch</h3>
-        This setting can be used to automatically switch to newly opened tabs when using the <a class="follow" href="#action.startFollowNewTab">new tab version of follow mode</a>. When enabled, you will automatically switch to the new tab, unless you hold Shift while typing out the relevant keys. If you disable this toggle you won't switch to the tabs automatically, even when not holding Shift to stay in follow mode.
+        This setting can be used to automatically switch to newly opened tabs when using the <a class="follow" href="#action.startFollowNewTab">new tab version of follow mode</a>. When enabled, you will automatically switch to the new tab, unless you hold Shift while typing out the relevant keys. If you disable this toggle you won't switch to the tabs automatically, even when not holding Shift to stay in <a class="follow" href="#action.startFollowCurrentTab">follow mode</a>.
         <h3 id="guifullscreennavbar">guifullscreennavbar</h3>
         This setting controls the visibility of the navbar while inside fullscreen. For the visibility outside of fullscreen, see <a href="#guinavbar">guinavbar</a>. The different options are also explained in more detail there. You can toggle the fullscreen state with <a href="#action.toggleFullscreen">action.toggleFullscreen</a>.
         <h3 id="guifullscreentabbar">guifullscreentabbar</h3>
@@ -940,7 +913,7 @@
         <h3 id="pointer.swapPosition" countable="true">pointer.swapPosition</h3>
         Using this action you can switch to the other end of the selection while in <span class="visual">visual mode</span>. It has no effect when called from other modes, as there is no other position to swap the pointer to. You can switch back and forth between the start and end position with this action as many times as you want to.
         <h3 id="pointer.copyAndStop">pointer.copyAndStop</h3>
-        While in <span class="pointer">pointer mode</span>, this action will copy the link at the current position and return to <a class="normal" href="#action.toNormalMode">normal mode</a>. A fast way to move to links on the page to copy is to use <a class="follow" href="#action.startFollowCurrentTab">follow mode</a> to move the pointer. While in <span class="visual">visual mode</span>, it will copy the currently selected text to the system clipboard and return to <a class="normal" href="#action.toNormalMode">normal mode</a>.
+        While in <a class="pointer" href="pointer.start">pointer mode</a>, this action will copy the link at the current position and return to <a class="normal" href="#action.toNormalMode">normal mode</a>. A fast way to move to links on the page to copy is to use <a class="follow" href="#action.startFollowCurrentTab">follow mode</a> to move the pointer. While in <span class="visual">visual mode</span>, it will copy the currently selected text to the system clipboard and return to <a class="normal" href="#action.toNormalMode">normal mode</a>.
         <h3 id="pointer.moveUp" countable="true">pointer.moveUp</h3>
         Move the pointer up by 10 pixels, will scroll the page if needed.
         <h3 id="pointer.moveDown" countable="true">pointer.moveDown</h3>
@@ -1028,7 +1001,7 @@
         <h3 id="action.commandHistoryNext" countable="true">action.commandHistoryNext</h3>
         Go forward in history when viewing a previously executed command. If there are no more historic commands, it will restore the text that was typed before going back in history. Opposite of <a href="#action.commandHistoryPrevious">action.commandHistoryPrevious</a>. This action has no function outside of <a class="command" href="#action.toCommandMode">command mode</a>.
         <h3 id="action.exploreHistoryPrevious" countable="true">action.exploreHistoryPrevious</h3>
-        Go back to previously navigated website of this session, by calling this action. It is different from <a href="#action.reopenTab">action.reopenTab</a>, because this will store the sites you explicitly navigated to, instead of only the pages you closed, which can be different if you navigated in a tab or if you opened it without explore mode. Unlike <a href="#suggestorder">suggestorder</a>, these actions do not wrap back to the first or last when the end of the history is reached. Opposite of <a href="#action.exploreHistoryNext">action.exploreHistoryNext</a>. This action has no function outside of <a class="explore" href="#action.toExploreMode">explore mode</a>.
+        Go back to previously navigated website of this session, by calling this action. It is different from <a href="#action.reopenTab">action.reopenTab</a>, because this will store the sites you explicitly navigated to, instead of only the pages you closed, which can be different if you navigated in a tab or if you opened it without <a class="explore" href="#action.toExploreMode">explore mode</a>. Unlike <a href="#suggestorder">suggestorder</a>, these actions do not wrap back to the first or last when the end of the history is reached. Opposite of <a href="#action.exploreHistoryNext">action.exploreHistoryNext</a>. This action has no function outside of <a class="explore" href="#action.toExploreMode">explore mode</a>.
         <h3 id="action.exploreHistoryNext" countable="true">action.exploreHistoryNext</h3>
         Go forward in history when viewing previously navigated websites. If there are no more historic sites, it will restore the text that was typed before going back in history. Opposite of <a href="#action.exploreHistoryPrevious">action.exploreHistoryPrevious</a>. This action has no function outside of <a class="explore" href="#action.toExploreMode">explore mode</a>.
         <h3 id="action.toggleFullscreen">action.toggleFullscreen</h3>

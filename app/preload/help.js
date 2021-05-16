@@ -65,6 +65,34 @@ ipcRenderer.on("settings", (_, settings, mappings) => {
                     setting.name).parentNode.nextSibling)
         }
     })
+    // Enrich the command list with the keys that map to them
+    ;[...document.querySelectorAll("h3[id^=':']")].forEach(cmdNode => {
+        // List mappings in which this command is used
+        const mapList = document.createElement("div")
+        mapList.className = "map-status"
+        const commandMappings = mappings.split("\n").filter(
+            map => map.includes(`<${cmdNode.id} `)
+                || map.includes(`<${cmdNode.id}>`))
+        commandMappings.forEach(mapping => {
+            const mappingKbd = document.createElement("kbd")
+            mappingKbd.textContent = mapping
+            mappingKbd.className = "command-block"
+            mapList.appendChild(mappingKbd)
+        })
+        if (!commandMappings.length) {
+            const noMappingsLabel = document.createElement("kbd")
+            noMappingsLabel.textContent = "No mappings with this command found"
+            mapList.appendChild(noMappingsLabel)
+        }
+        const exampleUl = cmdNode.parentNode.nextSibling.nextSibling
+        if (exampleUl.tagName.toLowerCase() === "ul") {
+            cmdNode.parentNode.parentNode.insertBefore(
+                mapList, exampleUl.nextSibling)
+        } else {
+            cmdNode.parentNode.parentNode.insertBefore(
+                mapList, cmdNode.parentNode.nextSibling)
+        }
+    })
     // Enrich the action list with the keys that map to them
     ;[
         ...document.querySelectorAll("h3[id^='action.']"),

@@ -24,6 +24,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Pointer action "swapPosition" to switch the current pointer location with the start location of the visual selection
 - Command syntax to cycle fixed-set strings using the "!" suffix, similar to boolean type settings
 - Startup arguments "--config-order" and "--config-file" to better control which config files get loaded
+- Command mapping list to the header of commands on the help page
 
 ### Changed
 
