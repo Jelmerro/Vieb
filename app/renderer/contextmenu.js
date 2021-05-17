@@ -25,15 +25,17 @@ const {
 const contextMenu = document.getElementById("context-menu")
 
 const viebMenu = options => {
+    clear()
     contextMenu.style.top = `${options.y}px`
     contextMenu.style.left = `${options.x}px`
-    clear()
     const {clipboard} = require("electron")
     const {
         useEnteredData, backInHistory, forwardInHistory, reload
     } = require("./actions")
     const {addTab, reopenTab, closeTab} = require("./tabs")
-    if (options.path.find(el => el.matches?.("#url"))) {
+    const menuSetting = getSetting("menuvieb")
+    const navMenu = menuSetting === "both" || menuSetting === "navbar"
+    if (options.path.find(el => el.matches?.("#url")) && navMenu) {
         createMenuItem({
             "action": () => {
                 if (!"sec".includes(currentMode()[0])) {
@@ -96,8 +98,10 @@ const viebMenu = options => {
                 "title": "Paste & go"
             })
         }
+        fixAlignmentNearBorders()
     }
-    if (options.path.find(el => el.matches?.("#tabs"))) {
+    const tabMenu = menuSetting === "both" || menuSetting === "tabbar"
+    if (options.path.find(el => el.matches?.("#tabs")) && tabMenu) {
         const tab = options.path.find(el => el.matches?.("#tabs > span"))
         if (!tab) {
             fixAlignmentNearBorders()
@@ -141,17 +145,24 @@ const viebMenu = options => {
                 "title": "Close this"
             })
         }
+        fixAlignmentNearBorders()
     }
-    fixAlignmentNearBorders()
 }
 
 const webviewMenu = options => {
-    if (!getSetting("mouse") && currentMode() !== "insert") {
-        clear()
+    clear()
+    if (currentMode() !== "insert") {
+        const {setMode} = require("./modes")
+        setMode("normal")
+    }
+    const menuSetting = getSetting("menupage")
+    if (menuSetting === "never") {
         return
     }
-    if (options.hasExistingListener && getSetting("respectsitecontextmenu")) {
-        clear()
+    if (options.hasGlobalListener && menuSetting === "globalasneeded") {
+        return
+    }
+    if (options.hasElementListener && menuSetting !== "always") {
         return
     }
     const {clipboard} = require("electron")
@@ -164,15 +175,16 @@ const webviewMenu = options => {
     const zoom = currentPage().getZoomFactor()
     contextMenu.style.top = `${Math.round(options.y * zoom + webviewY)}px`
     contextMenu.style.left = `${Math.round(options.x * zoom + webviewX)}px`
-    clear()
     createMenuItem({"action": () => reload(), "title": "Refresh"})
     createMenuItem({"action": () => backInHistory(), "title": "Previous"})
     createMenuItem({"action": () => forwardInHistory(), "title": "Next"})
-    createMenuItem({"action": () => {
-        const {execute} = require("./command")
-        execute("write")
-    },
-    "title": "Save page"})
+    createMenuItem({
+        "action": () => {
+            const {execute} = require("./command")
+            execute("write")
+        },
+        "title": "Save page"
+    })
     createMenuItem({
         "action": () => currentPage().inspectElement(
             Math.round(options.x + webviewX), Math.round(options.y + webviewY)),

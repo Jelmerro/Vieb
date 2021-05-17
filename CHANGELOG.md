@@ -25,6 +25,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Command syntax to cycle fixed-set strings using the "!" suffix, similar to boolean type settings
 - Startup arguments "--config-order" and "--config-file" to better control which config files get loaded
 - Command mapping list to the header of commands on the help page
+- Setting "menupage" to control when the context menu of the webpage should appear, possibly over the website's menu
+- Setting "menuvieb" to control when the context menu should appear for the Vieb elements like the navbar and the tabbar
 
 ### Changed
 
@@ -49,6 +51,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "suggestfiles" in favor of the new "suggestorder" setting
 - Setting "suggestfilesfirst" in favor of the new "suggestorder" setting
 - Setting "suggestexplore" in favor of the new "suggestorder" setting
+- Setting "respectsitecontextmenu" in favor of the new "menupage" setting
 - Action "closeTab" in favor of the ":close" command
 - Broken FreeBSD build target, it's not supported by Electron or Electron Builder
 

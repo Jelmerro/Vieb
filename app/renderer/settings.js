@@ -80,6 +80,8 @@ const defaultSettings = {
     "incsearch": true,
     "keeprecentlyclosed": true,
     "maxmapdepth": 10,
+    "menupage": "elementasneeded",
+    "menuvieb": "both",
     "mintabwidth": 28,
     "mouse": true,
     "mousefocus": false,
@@ -111,7 +113,6 @@ const defaultSettings = {
         + "~https://$3",
     "redirecttohttp": false,
     "requesttimeout": 20000,
-    "respectsitecontextmenu": true,
     "restoretabs": true,
     "restorewindowmaximize": true,
     "restorewindowposition": true,
@@ -168,6 +169,8 @@ const validOptions = {
     "guifullscreentabbar": ["always", "onupdate", "never"],
     "guinavbar": ["always", "onupdate", "oninput", "never"],
     "guitabbar": ["always", "onupdate", "never"],
+    "menupage": ["always", "globalasneeded", "elementasneeded", "never"],
+    "menuvieb": ["both", "navbar", "tabbar", "never"],
     "notificationposition": [
         "bottomright", "bottomleft", "topright", "topleft"
     ],

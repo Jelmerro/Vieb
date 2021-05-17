@@ -388,8 +388,11 @@ const contextListener = (e, frame = null) => {
             backgroundImg,
             "canEdit": !!text,
             "frame": frame?.src,
-            "hasExistingListener": eventListeners.contextmenu.has(e.path[0])
+            "hasElementListener": eventListeners.contextmenu.has(e.path[0])
                 || eventListeners.auxclick.has(e.path[0]),
+            "hasGlobalListener": !!e.path.find(
+                el => eventListeners.contextmenu.has(el)
+                || eventListeners.auxclick.has(el)),
             "img": img?.src?.trim(),
             "inputSel": text?.selectionStart,
             "inputVal": text?.value,
