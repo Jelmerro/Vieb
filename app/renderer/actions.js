@@ -295,23 +295,10 @@ const editWithVim = () => {
 }
 
 const openLinkExternal = (suppliedLink = null) => {
-    const ext = getSetting("externalcommand")
-    if (!ext.trim()) {
-        notify("No command set to open links externally, "
-            + "please update the 'externalcommand' setting", "warn")
-        return
-    }
     const url = suppliedLink || document.getElementById("url-hover").textContent
         || urlToString(currentPage()?.src)
-    const {exec} = require("child_process")
-    if (url) {
-        exec(`${ext} ${url}`, err => {
-            if (err) {
-                notify("Command to open links externally failed, "
-                    + "please update the 'externalcommand' setting", "err")
-            }
-        })
-    }
+    const {commonAction} = require("./contextmenu")
+    commonAction("link", "external", {"link": url})
 }
 const nextSuggestion = () => {
     const {next} = require("./suggest")

@@ -440,7 +440,7 @@ app.on("ready", () => {
             prefs.nodeIntegrationInSubFrames = false
             prefs.contextIsolation = false
             prefs.enableRemoteModule = false
-            prefs.webSecurity = argSiteIsolation
+            prefs.webSecurity = argSiteIsolation === "strict"
         })
         if (argDebugMode) {
             mainWindow.webContents.openDevTools({"mode": "undocked"})
@@ -747,7 +747,11 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             item.setSavePath(save)
         }
         if (downloadSettings.downloadmethod === "confirm") {
-            const wrappedFileName = filename.replace(/.{50}/g, "$&\n")
+            let wrappedFileName = filename.replace(/.{50}/g, "$&\n")
+            if (wrappedFileName.length > 1000) {
+                wrappedFileName = `${wrappedFileName.split("")
+                    .slice(0, 1000).join("")}...`
+            }
             let wrappedUrl = item.getURL()
             try {
                 wrappedUrl = decodeURI(wrappedUrl)
@@ -755,6 +759,10 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 // Invalid url
             }
             wrappedUrl = wrappedUrl.replace(/.{50}/g, "$&\n")
+            if (wrappedUrl.length > 1000) {
+                wrappedUrl = `${wrappedUrl.split("")
+                    .slice(0, 1000).join("")}...`
+            }
             const button = dialog.showMessageBoxSync(mainWindow, {
                 "buttons": ["Allow", "Deny"],
                 "cancelId": 1,
@@ -892,6 +900,9 @@ const permissionHandler = (_, perm, callback, details) => {
         if (url.length > 100) {
             url = url.replace(/.{50}/g, "$&\n")
         }
+        if (url.length > 1000) {
+            url = `${url.split("").slice(0, 1000).join("")}...`
+        }
         let message = "The page has requested access to the permission "
             + `'${permission}'. You can allow or deny this below, and choose if`
             + " you want to make this the default for the current session when "
@@ -902,6 +913,9 @@ const permissionHandler = (_, perm, callback, details) => {
             let exturl = details.externalURL
             if (exturl.length > 100) {
                 exturl = exturl.replace(/.{50}/g, "$&\n")
+            }
+            if (exturl.length > 1000) {
+                exturl = `${exturl.split("").slice(0, 1000).join("")}...`
             }
             message = "The page has requested to open an external application."
                 + " You can allow or deny this below, and choose if you want to"

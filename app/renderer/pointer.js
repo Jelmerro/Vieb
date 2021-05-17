@@ -113,8 +113,12 @@ const moveFastLeft = () => {
 
 const downloadImage = () => {
     const factor = currentPage().getZoomFactor()
-    currentPage().send("download-image-request",
-        Math.round(X / factor), Math.round(Y / factor))
+    currentPage().send("contextmenu-data", {
+        "action": "download",
+        "type": "img",
+        "x": Math.round(X / factor),
+        "y": Math.round(Y / factor)
+    })
 }
 
 const downloadLink = () => {

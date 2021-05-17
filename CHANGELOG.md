@@ -45,6 +45,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Reworked eslint config to be more strict and more accurately represent the desired code style
 - Default config parse order is now "user-first", use "--config-order=datafolder-first" to revert to the old behavior
 - Startup argument urls are now resolved as files if possible, both absolute and relative paths are supported (relative to CWD)
+- Download image action of pointer mode now uses the same logic as the context menu
+- Long urls in popups are now not only wrapped at 50 characters, but also maxed at a 1000, after that the rest is hidden
 
 ### Removed
 

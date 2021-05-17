@@ -34,7 +34,6 @@ const {
     urlToString,
     stringToUrl,
     firefoxUseragent,
-    isUrl,
     hasProtocol,
     sameDomain,
     notify,
@@ -798,7 +797,6 @@ const addWebviewListeners = webview => {
         applyLayout()
     })
     webview.addEventListener("ipc-message", e => {
-        const {webviewMenu, "clear": clearMenu} = require("./contextmenu")
         const {
             startVisualSelect, "move": movePointer, handleScrollDiffEvent
         } = require("./pointer")
@@ -809,10 +807,18 @@ const addWebviewListeners = webview => {
             switchToTab(tabOrPageMatching(webview))
         }
         if (e.channel === "context-click-info") {
-            webviewMenu(e.args[0])
+            const [{extraData}] = e.args
+            if (extraData) {
+                const {commonAction} = require("./contextmenu")
+                commonAction(extraData.type, extraData.action, e.args[0])
+            } else {
+                const {webviewMenu} = require("./contextmenu")
+                webviewMenu(e.args[0])
+            }
         }
         if (e.channel === "mouse-click-info") {
-            clearMenu()
+            const {clear} = require("./contextmenu")
+            clear()
             if (getSetting("mouse") && currentMode() !== "insert") {
                 if (["pointer", "visual"].includes(currentMode())) {
                     if (e.args[0].tovisual) {
@@ -834,14 +840,9 @@ const addWebviewListeners = webview => {
             const {parseAndDisplayLinks} = require("./follow")
             parseAndDisplayLinks(e.args[0])
         }
-        if (e.channel === "download-image") {
-            const [url, checkForValidUrl] = e.args
-            if (!checkForValidUrl || isUrl(url)) {
-                currentPage().downloadURL(url)
-            }
-        }
         if (e.channel === "scroll-height-diff") {
-            clearMenu()
+            const {clear} = require("./contextmenu")
+            clear()
             handleScrollDiffEvent(e.args[0])
         }
         if (e.channel === "history-list-request") {

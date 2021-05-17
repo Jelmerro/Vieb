@@ -355,7 +355,7 @@ ipcRenderer.on("replace-input-field", (_, value, position) => {
 const getSvgData = el => `data:image/svg+xml,${encodeURIComponent(el.outerHTML)
     .replace(/'/g, "%27").replace(/"/g, "%22")}`
 
-const contextListener = (e, frame = null) => {
+const contextListener = (e, frame = null, extraData = null) => {
     if (e.isTrusted && !inFollowMode && e.button === 2) {
         e.preventDefault?.()
         const paddingInfo = findFrameInfo(frame)
@@ -387,6 +387,7 @@ const contextListener = (e, frame = null) => {
                 || vid?.querySelector("source[type^=audio]")?.src?.trim(),
             backgroundImg,
             "canEdit": !!text,
+            extraData,
             "frame": frame?.src,
             "hasElementListener": eventListeners.contextmenu.has(e.path[0])
                 || eventListeners.auxclick.has(e.path[0]),
@@ -406,7 +407,13 @@ const contextListener = (e, frame = null) => {
         })
     }
 }
-ipcRenderer.on("contextmenu", () => {
+ipcRenderer.on("contextmenu-data", (_, request) => {
+    const {x, y} = request
+    const el = findElementAtPosition(x, y)
+    contextListener({"button": 2, "isTrusted": true, "path": [el], x, y},
+        findFrameInfo(el)?.element, request)
+})
+ipcRenderer.on("contextmenu", (_, extraData = null) => {
     const el = activeElement()
     const parsed = parseElement(el)
     let x = parsed?.x || 0
@@ -422,7 +429,7 @@ ipcRenderer.on("contextmenu", () => {
         y = parsed?.y || 0
     }
     contextListener({"button": 2, "isTrusted": true, "path": [el], x, y},
-        findFrameInfo(el)?.element)
+        findFrameInfo(el)?.element, extraData)
 })
 window.addEventListener("auxclick", contextListener)
 
