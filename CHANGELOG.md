@@ -49,6 +49,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Download image action of pointer mode now uses the same logic as the context menu
 - Long urls in popups are now not only wrapped at 50 characters, but also maxed at a 1000, after that the rest is hidden
 - Setting "nativenotification" to a "Fixed-set string" to allow using native notifications for small messages and show popups for long ones
+- Preload scripts for Erwic can still be loaded by tabs even if the file doesn't exist on startup
 
 ### Removed
 

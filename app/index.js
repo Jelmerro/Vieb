@@ -341,9 +341,6 @@ if (argErwic) {
             if (a.script !== joinPath(a.script)) {
                 a.script = joinPath(dirname(argErwic), a.script)
             }
-            if (!isFile(a.script)) {
-                a.script = null
-            }
         } else {
             a.script = null
         }
