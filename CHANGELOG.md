@@ -69,6 +69,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Middle mouse having side effects in the tab bar on Windows
 - Quotes in settings messing with the :mkv command output
 - Left-click in pointer mode not click on the right location when the page is zoomed
+- Container color not always being updated if a color rule is removed from the list
 
 ### Security
 

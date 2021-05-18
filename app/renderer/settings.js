@@ -578,6 +578,8 @@ const updateContainerSettings = (full = true) => {
                 c => page.getAttribute("container").match(c.split("~")[0]))
             if (color) {
                 [, tabOrPageMatching(page).style.color] = color.split("~")
+            } else {
+                tabOrPageMatching(page).style.color = null
             }
         }
     }
