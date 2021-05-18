@@ -548,14 +548,12 @@ const isValidSetting = (setting, value) => {
     }
     const expectedType = typeof allSettings[setting]
     let parsedValue = String(value)
-    if (typeof value === "string") {
-        if (expectedType === "number" && !isNaN(Number(parsedValue))) {
-            parsedValue = Number(value)
-        }
-        if (expectedType === "boolean") {
-            if (["true", "false"].includes(parsedValue)) {
-                parsedValue = value === "true"
-            }
+    if (expectedType === "number" && !isNaN(Number(parsedValue))) {
+        parsedValue = Number(value)
+    }
+    if (expectedType === "boolean") {
+        if (["true", "false"].includes(parsedValue)) {
+            parsedValue = value === "true"
         }
     }
     if (expectedType !== typeof parsedValue) {
