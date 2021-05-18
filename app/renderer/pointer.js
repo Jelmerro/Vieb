@@ -25,6 +25,10 @@ let startX = 0
 let startY = 0
 let listenForScroll = false
 
+const zoomX = () => Math.round(X / currentPage().getZoomFactor())
+
+const zoomY = () => Math.round(Y / currentPage().getZoomFactor())
+
 const start = () => {
     X = Number(currentPage().getAttribute("pointer-x")) || X
     Y = Number(currentPage().getAttribute("pointer-y")) || Y
@@ -82,9 +86,8 @@ const updateElement = () => {
     }
     if (currentMode() === "visual") {
         const factor = currentPage().getZoomFactor()
-        currentPage().send("selection-request",
-            Math.round(startX / factor), Math.round(startY / factor),
-            Math.round(X / factor), Math.round(Y / factor))
+        currentPage().send("selection-request", Math.round(startX / factor),
+            Math.round(startY / factor), zoomX(), zoomY())
     }
 }
 
@@ -96,9 +99,7 @@ const releaseKeys = () => {
             })
         }
         currentPage().sendInputEvent({"type": "mouseLeave", "x": X, "y": Y})
-        const factor = currentPage().getZoomFactor()
-        currentPage().send("selection-remove",
-            Math.round(X / factor), Math.round(Y / factor))
+        currentPage().send("selection-remove", zoomX(), zoomY())
     } catch (e) {
         // Can't release keys, probably because of opening a new tab
     }
@@ -106,44 +107,115 @@ const releaseKeys = () => {
 
 // ACTIONS
 
-const moveFastLeft = () => {
-    X -= 100
-    updateElement()
-}
+const downloadAudio = () => currentPage().send("contextmenu-data", {
+    "action": "download", "type": "audio", "x": zoomX(), "y": zoomY()
+})
 
-const downloadImage = () => {
-    const factor = currentPage().getZoomFactor()
-    currentPage().send("contextmenu-data", {
-        "action": "download",
-        "type": "img",
-        "x": Math.round(X / factor),
-        "y": Math.round(Y / factor)
-    })
-}
+const downloadFrame = () => currentPage().send("contextmenu-data", {
+    "action": "download", "type": "frame", "x": zoomX(), "y": zoomY()
+})
 
-const downloadLink = () => {
-    const url = document.getElementById("url-hover")?.textContent
-    if (url) {
-        currentPage().downloadURL(url)
-    }
-}
+const downloadLink = () => currentPage().send("contextmenu-data", {
+    "action": "download", "type": "link", "x": zoomX(), "y": zoomY()
+})
+
+const downloadImage = () => currentPage().send("contextmenu-data", {
+    "action": "download", "type": "img", "x": zoomX(), "y": zoomY()
+})
+
+const downloadVideo = () => currentPage().send("contextmenu-data", {
+    "action": "download", "type": "video", "x": zoomX(), "y": zoomY()
+})
+
+const newtabAudio = () => currentPage().send("contextmenu-data", {
+    "action": "newtab", "type": "audio", "x": zoomX(), "y": zoomY()
+})
+
+const newtabFrame = () => currentPage().send("contextmenu-data", {
+    "action": "newtab", "type": "frame", "x": zoomX(), "y": zoomY()
+})
+
+const newtabLink = () => currentPage().send("contextmenu-data", {
+    "action": "newtab", "type": "link", "x": zoomX(), "y": zoomY()
+})
+
+const newtabImage = () => currentPage().send("contextmenu-data", {
+    "action": "newtab", "type": "img", "x": zoomX(), "y": zoomY()
+})
+
+const newtabVideo = () => currentPage().send("contextmenu-data", {
+    "action": "newtab", "type": "video", "x": zoomX(), "y": zoomY()
+})
+
+const openAudio = () => currentPage().send("contextmenu-data", {
+    "action": "open", "type": "audio", "x": zoomX(), "y": zoomY()
+})
+
+const openFrame = () => currentPage().send("contextmenu-data", {
+    "action": "open", "type": "frame", "x": zoomX(), "y": zoomY()
+})
+
+const openLink = () => currentPage().send("contextmenu-data", {
+    "action": "open", "type": "link", "x": zoomX(), "y": zoomY()
+})
+
+const openImage = () => currentPage().send("contextmenu-data", {
+    "action": "open", "type": "img", "x": zoomX(), "y": zoomY()
+})
+
+const openVideo = () => currentPage().send("contextmenu-data", {
+    "action": "open", "type": "video", "x": zoomX(), "y": zoomY()
+})
+
+const externalAudio = () => currentPage().send("contextmenu-data", {
+    "action": "external", "type": "audio", "x": zoomX(), "y": zoomY()
+})
+
+const externalFrame = () => currentPage().send("contextmenu-data", {
+    "action": "external", "type": "frame", "x": zoomX(), "y": zoomY()
+})
+
+const externalLink = () => currentPage().send("contextmenu-data", {
+    "action": "external", "type": "link", "x": zoomX(), "y": zoomY()
+})
+
+const externalImage = () => currentPage().send("contextmenu-data", {
+    "action": "external", "type": "img", "x": zoomX(), "y": zoomY()
+})
+
+const externalVideo = () => currentPage().send("contextmenu-data", {
+    "action": "external", "type": "video", "x": zoomX(), "y": zoomY()
+})
+
+const copyAudio = () => currentPage().send("contextmenu-data", {
+    "action": "copy", "type": "audio", "x": zoomX(), "y": zoomY()
+})
+
+const copyFrame = () => currentPage().send("contextmenu-data", {
+    "action": "copy", "type": "frame", "x": zoomX(), "y": zoomY()
+})
+
+const copyLink = () => currentPage().send("contextmenu-data", {
+    "action": "copy", "type": "link", "x": zoomX(), "y": zoomY()
+})
+
+const copyImageBuffer = () => currentPage().send("contextmenu-data", {
+    "action": "copyimage", "type": "img", "x": zoomX(), "y": zoomY()
+})
+
+const copyImage = () => currentPage().send("contextmenu-data", {
+    "action": "copy", "type": "img", "x": zoomX(), "y": zoomY()
+})
+
+const copyVideo = () => currentPage().send("contextmenu-data", {
+    "action": "copy", "type": "video", "x": zoomX(), "y": zoomY()
+})
+
+const copyText = () => currentPage().send("selection-copy", zoomX(), zoomY())
 
 const inspectElement = () => {
     const {top, left} = offset()
     currentPage().inspectElement(Math.round(X + left), Math.round(Y + top))
-}
-
-const copyAndStop = () => {
-    if (currentMode() === "pointer") {
-        const {clipboard} = require("electron")
-        clipboard.writeText(document.getElementById("url-hover").textContent)
-    } else {
-        const factor = currentPage().getZoomFactor()
-        currentPage().send("selection-copy",
-            Math.round(X / factor), Math.round(Y / factor))
-    }
-    const {setMode} = require("./modes")
-    setMode("normal")
 }
 
 const leftClick = () => {
@@ -165,6 +237,11 @@ const startOfPage = () => {
     const {scrollTop} = require("./actions")
     scrollTop()
     Y = 0
+    updateElement()
+}
+
+const moveFastLeft = () => {
+    X -= 100
     updateElement()
 }
 
@@ -341,11 +418,25 @@ const moveFastUp = () => {
 
 module.exports = {
     centerOfView,
-    copyAndStop,
+    copyAudio,
+    copyFrame,
+    copyImage,
+    copyImageBuffer,
+    copyLink,
+    copyText,
+    copyVideo,
+    downloadAudio,
+    downloadFrame,
     downloadImage,
     downloadLink,
+    downloadVideo,
     endOfPage,
     endOfView,
+    externalAudio,
+    externalFrame,
+    externalImage,
+    externalLink,
+    externalVideo,
     handleScrollDiffEvent,
     insertAtPosition,
     inspectElement,
@@ -365,6 +456,16 @@ module.exports = {
     moveSlowRight,
     moveSlowUp,
     moveUp,
+    newtabAudio,
+    newtabFrame,
+    newtabImage,
+    newtabLink,
+    newtabVideo,
+    openAudio,
+    openFrame,
+    openImage,
+    openLink,
+    openVideo,
     releaseKeys,
     rightClick,
     scrollDown,

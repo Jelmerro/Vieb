@@ -409,17 +409,21 @@ const contextListener = (e, frame = null, extraData = null) => {
 }
 ipcRenderer.on("contextmenu-data", (_, request) => {
     const {x, y} = request
-    const el = findElementAtPosition(x, y)
-    contextListener({"button": 2, "isTrusted": true, "path": [el], x, y},
-        findFrameInfo(el)?.element, request)
+    const els = [findElementAtPosition(x, y)]
+    while (els[0].parentNode && els[0].parentNode !== els[1]?.parentNode) {
+        els.unshift(els[0].parentNode)
+    }
+    els.reverse()
+    contextListener({"button": 2, "isTrusted": true, "path": els, x, y},
+        findFrameInfo(els[0])?.element, request)
 })
 ipcRenderer.on("contextmenu", (_, extraData = null) => {
-    const el = activeElement()
-    const parsed = parseElement(el)
+    const els = [activeElement()]
+    const parsed = parseElement(els[0])
     let x = parsed?.x || 0
-    if (getComputedStyle(el).font.includes("monospace")) {
-        x = parsed?.x + Number(getComputedStyle(el).fontSize
-            .replace("px", "")) * el.selectionStart * 0.6 - el.scrollLeft
+    if (getComputedStyle(els[0]).font.includes("monospace")) {
+        x = parsed?.x + Number(getComputedStyle(els[0]).fontSize.replace(
+            "px", "")) * els[0].selectionStart * 0.6 - els[0].scrollLeft
     }
     let y = parsed?.y + parsed.height
     if (x > window.innerWidth || isNaN(x) || x === 0) {
@@ -428,8 +432,12 @@ ipcRenderer.on("contextmenu", (_, extraData = null) => {
     if (y > window.innerHeight) {
         y = parsed?.y || 0
     }
-    contextListener({"button": 2, "isTrusted": true, "path": [el], x, y},
-        findFrameInfo(el)?.element, extraData)
+    while (els[0].parentNode && els[0].parentNode !== els[1]?.parentNode) {
+        els.unshift(els[0].parentNode)
+    }
+    els.reverse()
+    contextListener({"button": 2, "isTrusted": true, "path": els, x, y},
+        findFrameInfo(els[0])?.element, extraData)
 })
 window.addEventListener("auxclick", contextListener)
 

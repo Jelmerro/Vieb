@@ -248,7 +248,6 @@ const webviewMenu = options => {
         })
     }
     if (options.text) {
-        createMenuGroup("Selection")
         if (isUrl(options.text)) {
             createMenuItem({
                 "action": () => commonAction("text", "open", options),
@@ -271,8 +270,6 @@ const webviewMenu = options => {
     }
     if (options.img || options.backgroundImg || options.svgData) {
         createMenuGroup("Image")
-    }
-    if (options.img || options.backgroundImg) {
         createMenuItem({
             "action": () => commonAction("img", "open", options),
             "title": "Navigate"
@@ -285,8 +282,6 @@ const webviewMenu = options => {
             "action": () => commonAction("img", "copy", options),
             "title": "Copy link"
         })
-    }
-    if (options.img || options.backgroundImg || options.svgData) {
         createMenuItem({
             "action": () => commonAction("img", "copyimage", options),
             "title": "Copy image"
@@ -294,6 +289,10 @@ const webviewMenu = options => {
         createMenuItem({
             "action": () => commonAction("img", "download", options),
             "title": "Download"
+        })
+        createMenuItem({
+            "action": () => commonAction("img", "external", options),
+            "title": "With external"
         })
     }
     for (const type of ["frame", "video", "audio", "link"]) {
@@ -455,26 +454,30 @@ const down = () => {
 const select = () => contextMenu.querySelector(".selected")?.click()
 
 const commonAction = (type, action, options) => {
-    let relevantData = stringToUrl(options[type] || "")
+    let relevantData = options[type]
     if (type === "img") {
         relevantData = options.img || options.backgroundImg || options.svgData
-        if (action === "copyimage") {
-            const {clipboard} = require("electron")
-            clipboard.clear()
-            const el = document.createElement("img")
-            const canvas = document.createElement("canvas")
-            el.onload = () => {
-                canvas.width = el.naturalWidth
-                canvas.height = el.naturalHeight
-                canvas.getContext("2d").drawImage(el, 0, 0)
-                const {nativeImage} = require("electron")
-                clipboard.writeImage(nativeImage.createFromDataURL(
-                    canvas.toDataURL("image/png")))
-            }
-            el.src = relevantData
-            return
-        }
     }
+    if (!relevantData) {
+        return
+    }
+    if (action === "copyimage") {
+        const {clipboard} = require("electron")
+        clipboard.clear()
+        const el = document.createElement("img")
+        const canvas = document.createElement("canvas")
+        el.onload = () => {
+            canvas.width = el.naturalWidth
+            canvas.height = el.naturalHeight
+            canvas.getContext("2d").drawImage(el, 0, 0)
+            const {nativeImage} = require("electron")
+            clipboard.writeImage(nativeImage.createFromDataURL(
+                canvas.toDataURL("image/png")))
+        }
+        el.src = relevantData
+        return
+    }
+    relevantData = stringToUrl(relevantData)
     if (action === "open") {
         const {navigateTo} = require("./tabs")
         navigateTo(relevantData)

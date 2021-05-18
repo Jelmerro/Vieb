@@ -294,12 +294,16 @@ const editWithVim = () => {
     page.send("action", "writeInputToFile", tempFile)
 }
 
-const openLinkExternal = (suppliedLink = null) => {
-    const url = suppliedLink || document.getElementById("url-hover").textContent
-        || urlToString(currentPage()?.src)
+const downloadLink = () => {
     const {commonAction} = require("./contextmenu")
-    commonAction("link", "external", {"link": url})
+    commonAction("link", "download", {"link": currentPage()?.src})
 }
+
+const openLinkExternal = () => {
+    const {commonAction} = require("./contextmenu")
+    commonAction("link", "external", {"link": currentPage()?.src})
+}
+
 const nextSuggestion = () => {
     const {next} = require("./suggest")
     next()
@@ -572,6 +576,7 @@ module.exports = {
     decreasePageNumber,
     decreaseWidthSplitWindow,
     distrubuteSpaceSplitWindow,
+    downloadLink,
     editWithVim,
     emptySearch,
     exchangeSplitWindow,

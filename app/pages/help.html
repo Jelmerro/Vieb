@@ -453,7 +453,7 @@
             <li><span class="command-block">:write savedpage/</span> - Save the current page the "savedpage" subfolder of <a href="#downloadpath">downloadpath</a> with the page name as the filename</li>
             <li><span class="command-block">:write ~/Documents/savedpage</span> - Save the current page to "~/Documents/" with "savedpage" as the filename</li>
         </ul>
-        With the write command you can save the current page to disk. There is one optional argument, which serves as both the filename and the location. The location is by default set to the <a href="#downloadpath">downloadpath</a> setting, but can be changed by including it in the filename argument. If the filename ends with a "/", it's assumed to be just the folder part, and the page will be saved in that folder with the default filename (the name of the page). Lastly, absolute paths are saved in exactly that location.
+        With the write command you can save the current page to disk. There is one optional argument, which serves as both the filename and the location. The location is by default set to the <a href="#downloadpath">downloadpath</a> setting, but can be changed by including it in the filename argument. If the filename ends with a "/", it's assumed to be just the folder part, and the page will be saved in that folder with the default filename (the name of the page). Lastly, absolute paths are saved in exactly that location. The write command attempts to save pages as websites, to download the current page url as a file, see <a href="#action.downloadLink">action.downloadLink</a>.
         <h3 id=":hardcopy">:hardcopy</h3>
         <ul>
             <li><span class="command-block">:hardcopy</span> - Open the print dialog, to print the current page</li>
@@ -591,7 +591,7 @@
         <h3 id="downloadmethod">downloadmethod</h3>
         The downloadmethod setting can be used to change the behavior of newly requested downloads. By default, new downloads are automatically saved to the <a href="#downloadpath">downloadpath</a>. By changing this setting to "confirm", a dialog will be shown for each new download to request user confirmation before starting. The "ask" method will ask the location for every new download and does not use the "downloadpath" setting. Finally, you may block all incoming downloads with the "block" option.
         <h3 id="downloadpath">downloadpath</h3>
-        The location of all downloaded files. Used as the default folder for the <a href="#:write">:write</a> command and as the location for all other downloaded files. See the <a href="#downloadmethod">downloadmethod</a> setting to use a different location each time or block downloads completely.
+        The location of all downloaded files. Used as the default folder for all types of downloads, such as files, <a href="#:write">:write</a> command invocations and <a href="#link-related">link-related actions</a>. See the <a href="#downloadmethod">downloadmethod</a> setting to use a different location each time or block downloads completely.
         <h3 id="externalcommand">externalcommand</h3>
         This setting is used to specify an external command that can be executed with the highlighted url as an argument. The url that is opened with the configured command is the one highlighted when in <a class="pointer" href="#pointer">pointer mode</a> or <a class="visual" href="#pointer.startVisualSelect">visual mode</a> when <a href="#action.openLinkExternal">action.openLinkExternal</a> is called. When using the keyboard to do so, you can add multiple mappings that first set this option and then call the action. For example, to make <kbd>&lt;C-v&gt;</kbd> open the link with VLC from <a class="pointer" href="#pointer">pointer mode</a>:
         <div class="command-block">:pmap &lt;C-v&gt; &lt;:set externalcommand=vlc&gt;&lt;action.openLinkExternal&gt;</div>
@@ -895,27 +895,21 @@
         <h3 id="action.distrubuteSpaceSplitWindow">action.distrubuteSpaceSplitWindow</h3>
         Distribute the windows inside a split evenly. This does not necessarily mean that all windows will be of the same size, for example if you have a vertical split, with on the left side a window, but on the right side a horizontal sub-split with two windows.
         <h2 id="pointer">Pointer</h2>
-        Vieb has a <span class="pointer">pointer mode</span> to hover over links, download images or inspect an element at a position. The pointer can be moved in many different ways, most of which are by default mapped similar to Vim's <a class="normal" href="#action.toNormalMode">normal mode</a>. Additionally, after entering <span class="pointer">pointer mode</span>, it's also possible to start selecting text using <a class="visual" href="#pointer.startVisualSelect">visual mode</a>. By default, the mappings of these two modes are similar, with the biggest difference being that text will be selected between the initial and current pointer position. See <a href="#pointer.startVisualSelect">pointer.startVisualSelect</a> to activate <a class="visual" href="#pointer.startVisualSelect">visual mode</a> and <a href="#pointer.copyAndStop">pointer.copyAndStop</a> to copy the hovered link or selected text.
+        Vieb has a <span class="pointer">pointer mode</span> to hover over links, download images or inspect an element at a position. The pointer can be moved in many different ways, most of which are by default mapped similar to Vim's <a class="normal" href="#action.toNormalMode">normal mode</a>. Additionally, after entering <span class="pointer">pointer mode</span>, it's also possible to start selecting text using <a class="visual" href="#pointer.startVisualSelect">visual mode</a>. By default, the mappings of these two modes are similar, with the biggest difference being that text will be selected between the initial and current pointer position. See <a href="#pointer.startVisualSelect">pointer.startVisualSelect</a> to activate <a class="visual" href="#pointer.startVisualSelect">visual mode</a> and <a href="#pointer.copyText">pointer.copyText</a> to copy the hovered link or selected text.
         <h3 id="pointer.start">pointer.start</h3>
         Switch to <a href="#pointer" class="pointer">pointer mode</a>, which enables a movable pointer. The pointer can be used to hover over links, download images or inspect an element at a position. It can be moved in many different ways, most of which are by default mapped similar to Vim's <a class="normal" href="#action.toNormalMode">normal mode</a>.
         <h3 id="pointer.leftClick" countable="true">pointer.leftClick</h3>
         Simulate a left mouse click at the current pointer location. See also <a href="#pointer.rightClick">pointer.rightClick</a>.
         <h3 id="pointer.rightClick" countable="true">pointer.rightClick</h3>
         Execute a right mouse click at the pointer position. This will open any kind of menu that the website has implemented, or open Vieb's built-in menu if <a href="#menupage">menupage</a> is enabled.
-        <h3 id="pointer.downloadImage">pointer.downloadImage</h3>
-        Download an image at the current pointer position. If there are multiple images at the pointer location, only the first one will be downloaded. The name will be automatically set, and downloaded files will be stored in <a href="#downloadpath">downloadpath</a>. This action will search specifically for img and svg tags at a position.
-        <h3 id="pointer.downloadLink">pointer.downloadLink</h3>
-        Downloads the link at the current point position. The name will be automatically set, and downloaded files will be stored in <a href="#downloadpath">downloadpath</a>.
         <h3 id="pointer.inspectElement">pointer.inspectElement</h3>
         Inspect an element at the current pointer position. This action will open a devtools window if the devtools are not opened yet. The <a href="#devtoolsposition">devtoolsposition</a> is not used when inspecting an element, as it will open a devtools window. If you want to open the devtools differently, please open the devtools with the <a href="#:devtools">:devtools</a> command first. The "inspectElement" action will use the existing devtools to inspect the element in.
         <h3 id="pointer.insertAtPosition">pointer.insertAtPosition</h3>
         Enter <a class="insert" href="#action.toInsertMode">insert mode</a> at the pointer position. This can be used to click and immediately set focus to the element at a position, similar to an actual mouse click. Contrary to <a href="#pointer.leftClick">pointer.leftClick</a>, this type of click will also work for poorly programmed dropdowns and/or custom menus on websites: the ones that open with a click, but close automatically when focus is lost. Some Google websites use these type of inconsistent menus.
         <h3 id="pointer.startVisualSelect">pointer.startVisualSelect</h3>
-        Switch to <span class="visual">visual mode</span>, which will start making a selection starting at the current pointer position. In this mode the pointer is still visible, but once the pointer is moved again, all text between the original and current location will be selected. To copy the selected text, see <a href="#pointer.copyAndStop">pointer.copyAndStop</a>. Most movement options in <span class="visual">visual mode</span> are identical to those in <a class="pointer" href="#pointer">pointer mode</a> by default.
+        Switch to <span class="visual">visual mode</span>, which will start making a selection starting at the current pointer position. In this mode the pointer is still visible, but once the pointer is moved again, all text between the original and current location will be selected. To copy the selected text, see <a href="#pointer.copyText">pointer.copyText</a>. Most movement options in <span class="visual">visual mode</span> are identical to those in <a class="pointer" href="#pointer">pointer mode</a> by default.
         <h3 id="pointer.swapPosition" countable="true">pointer.swapPosition</h3>
         Using this action you can switch to the other end of the selection while in <span class="visual">visual mode</span>. It has no effect when called from other modes, as there is no other position to swap the pointer to. You can switch back and forth between the start and end position with this action as many times as you want to.
-        <h3 id="pointer.copyAndStop">pointer.copyAndStop</h3>
-        While in <a class="pointer" href="#pointer.start">pointer mode</a>, this action will copy the link at the current position and return to <a class="normal" href="#action.toNormalMode">normal mode</a>. A fast way to move to links on the page to copy is to use <a class="follow" href="#action.startFollowCurrentTab">follow mode</a> to move the pointer. While in <span class="visual">visual mode</span>, it will copy the currently selected text to the system clipboard and return to <a class="normal" href="#action.toNormalMode">normal mode</a>.
         <h3 id="pointer.moveUp" countable="true">pointer.moveUp</h3>
         Move the pointer up by 10 pixels, will scroll the page if needed.
         <h3 id="pointer.moveDown" countable="true">pointer.moveDown</h3>
@@ -962,6 +956,68 @@
         Scroll the page to the top and move the pointer to the top of the screen vertically. To do the same without scrolling, see <a href="#pointer.startOfView">pointer.startOfView</a>.
         <h3 id="pointer.endOfPage">pointer.endOfPage</h3>
         Scroll the page to the bottom and move the pointer to the bottom of the screen vertically. To do the same without scrolling, see <a href="#pointer.endOfView">pointer.endOfView</a>.
+        <h2 id="link-related">Link-related actions</h2>
+        Most of these link related actions are actions for <a class="pointer" href="#pointer">pointer mode</a> and some are suited for <a class="normal" href="#action.toNormalMode">normal mode</a>. The default <a class="pointer" href="#pointer">pointer mode</a> mappings might seem a bit overwhelming, but they are based on the following pattern: "o" for open, "n" for newtab, "y" for yank, "d" for download and "x" for external. These keys are then combined with the type of link or media like so: "a" for audio", "v" for video, "l" for links, "f" for frames and "i" for images. Actions for urls are by also mapped to the same key twice by default, such as "dd" or "yy". Almost all pointer actions listed in this paragraph are identical to the options available in the context <a href="#menu">menu</a>, so you can also use that if these link-related actions seem complex. Opening the menu is done with <a href="#action.menuOpen">action.menuOpen</a>, or using the <a href="#mouse">mouse</a>.
+        <h3 id="action.openLinkExternal">action.openLinkExternal</h3>
+        Using this action you can open links with external applications. The command that will be executed is based on the <a href="#externalcommand">externalcommand</a> setting, appended with the current page url. See <a href="#pointer.externalLink">pointer.externalLink</a> to do the same for the link at the current pointer position.
+        <h3 id="action.pageToClipboard">action.pageToClipboard</h3>
+        With this action you can copy the url of the current page to the system clipboard. You can paste it anywhere else, but also use it in Vieb directly using <a href="#action.openFromClipboard">action.openFromClipboard</a>. If you want to copy a url on the page instead, see <a href="#pointer.copyLink">pointer.copyLink</a>.
+        <h3 id="action.downloadLink">action.downloadLink</h3>
+        Downloads the current page link directly as a file. The name will be automatically set, and downloaded files will be stored in <a href="#downloadpath">downloadpath</a>. This is different from the <a href="#:write">:write</a> command, which will try to save the page as a website. To download the link you are hovering with the pointer, see <a href="#pointer.downloadLink">pointer.downloadLink</a>.
+        <h3 id="pointer.copyAudio">pointer.copyAudio</h3>
+        Copy the location of the audio element at the pointer position to the system clipboard.
+        <h3 id="pointer.copyFrame">pointer.copyFrame</h3>
+        Copy the location of any frame at the pointer position to the system clipboard.
+        <h3 id="pointer.copyImage">pointer.copyImage</h3>
+        Copy the location of an image, svg or background at the pointer position to the system clipboard. Not to be confused with <a href="#pointer.copyImageBuffer">pointer.copyImageBuffer</a> for copying the image data to the clipboard as an image buffer.
+        <h3 id="pointer.copyImageBuffer">pointer.copyImageBuffer</h3>
+        Copy the frame buffer of an image, svg or background at the pointer position to the system clipboard. In supported applications, you can paste your clipboard data directly as an image.
+        <h3 id="pointer.copyLink">pointer.copyLink</h3>
+        Copy the url of the link at the pointer position to the system clipboard. To copy the current page url instead, use <a href="#action.pageToClipboard">action.pageToClipboard</a>.
+        <h3 id="pointer.copyText">pointer.copyText</h3>
+        This action will copy the currently selected text to the system clipboard. Mostly useful in <a class="visual" href="#pointer.startVisualSelect">visual mode</a> or after selecting text with the <a href="#mouse">mouse</a>.
+        <h3 id="pointer.copyVideo">pointer.copyVideo</h3>
+        Copy the location of the video element at the pointer position to the system clipboard.
+        <h3 id="pointer.downloadAudio">pointer.downloadAudio</h3>
+        Download an audio file at the pointer position.
+        <h3 id="pointer.downloadFrame">pointer.downloadFrame</h3>
+        Download the frame location at the pointer position directly as a file.
+        <h3 id="pointer.downloadImage">pointer.downloadImage</h3>
+        Download an image at the pointer position. If there are multiple images at the pointer position, only the first one will be downloaded. The name will be automatically set, and downloaded files will be stored in <a href="#downloadpath">downloadpath</a>. This action will search specifically for img and svg tags at a position, as well as background images if no regular images are found at the location.
+        <h3 id="pointer.downloadLink">pointer.downloadLink</h3>
+        Download the url of the link at the pointer position directly as a file. The mouse hover url is not used for this, right-click and use the <a href="#menu">menu</a> to do this with the mouse. This pointer download action is different from <a href="#action.downloadLink">action.downloadLink</a>, which will download the current page url instead of the one that's hovered in <a class="pointer" href="#pointer">pointer mode</a>.
+        <h3 id="pointer.downloadVideo">pointer.downloadVideo</h3>
+        Download a video file at the pointer position.
+        <h3 id="pointer.externalAudio">pointer.externalAudio</h3>
+        Open the location of any audio element at the pointer position with external applications. The command that will be executed is based on the <a href="#externalcommand">externalcommand</a> setting, appended with the audio element location.
+        <h3 id="pointer.externalFrame">pointer.externalFrame</h3>
+        Open the location of any frame element at the pointer position with external applications. The command that will be executed is based on the <a href="#externalcommand">externalcommand</a> setting, appended with the frame element location.
+        <h3 id="pointer.externalImage">pointer.externalImage</h3>
+        Open the location of an image, svg or background at the pointer position with external applications. The command that will be executed is based on the <a href="#externalcommand">externalcommand</a> setting, appended with the image location. See also <a href="#action.openLinkExternal">action.openLinkExternal</a> to do something similar for the current page url.
+        <h3 id="pointer.externalLink">pointer.externalLink</h3>
+        Open the url of the link at the pointer position with external applications. The command that will be executed is based on the <a href="#externalcommand">externalcommand</a> setting, appended with link location. See also <a href="#action.openLinkExternal">action.openLinkExternal</a> to do something similar for the current page url.
+        <h3 id="pointer.externalVideo">pointer.externalVideo</h3>
+        Open the location of any video element at the pointer position with external applications. The command that will be executed is based on the <a href="#externalcommand">externalcommand</a> setting, appended with the video element location.
+        <h3 id="pointer.newtabAudio">pointer.newtabAudio</h3>
+        Open the audio element location at the pointer position in a new tab.
+        <h3 id="pointer.newtabFrame">pointer.newtabFrame</h3>
+        Open the frame element location at the pointer position in a new tab.
+        <h3 id="pointer.newtabImage">pointer.newtabImage</h3>
+        Open the image, svg or background location at the pointer position in a new tab.
+        <h3 id="pointer.newtabLink">pointer.newtabLink</h3>
+        Open the link location at the pointer position in a new tab.
+        <h3 id="pointer.newtabVideo">pointer.newtabVideo</h3>
+        Open the video element location at the pointer position in a new tab.
+        <h3 id="pointer.openAudio">pointer.openAudio</h3>
+        Open the audio element location at the pointer position in the current tab.
+        <h3 id="pointer.openFrame">pointer.openFrame</h3>
+        Open the frame element location at the pointer position in the current tab.
+        <h3 id="pointer.openImage">pointer.openImage</h3>
+        Open the image location at the pointer position in the current tab.
+        <h3 id="pointer.openLink">pointer.openLink</h3>
+        Open the link location at the pointer position in the current tab. This is fairly similar to navigating by clicking it with <a href="#pointer.leftClick">pointer.leftClick</a> or the <a href="#mouse">mouse</a>. The biggest difference is for elements that do something special when clicked, which won't happen when using this pointer action to navigate directly to the link.
+        <h3 id="pointer.openVideo">pointer.openVideo</h3>
+        Open the video element location at the pointer position in the current tab.
         <h2 id="menu">Menu actions</h2>
         Menu actions are for interacting with the right click context menu. You can open the menu with a right mouse click, using <a href="#action.menuOpen">action.menuOpen</a> or using the <a href="#pointer.rightClick">pointer.rightClick</a> action. Most of these actions don't do anything when no contextmenu is currently opened. As such, it's recommended to only use these actions with the <a href="#:mmap">:mmap</a> command. The most notable exception is <a href="#action.menuOpen">action.menuOpen</a> to open the menu. You can control disable or enable the different menus with <a href="#menupage">menupage</a> and <a href="#menuvieb">menuvieb</a>.
         <h3 id="action.menuOpen">action.menuOpen</h3>
@@ -990,8 +1046,6 @@
         Opposite of <a href="#action.increasePageNumber">action.increasePageNumber</a>.
         <h3 id="action.insertAtFirstInput">action.insertAtFirstInput</h3>
         This action will enter <a class="insert" href="#action.toInsertMode">insert mode</a> and focus the first input field on the page. Usually this will be a search field or dropdown. If no input fields are currently visible, this action will not enter <a class="insert" href="#action.toInsertMode">insert mode</a>.
-        <h3 id="action.pageToClipboard">action.pageToClipboard</h3>
-        With this action you can copy the url of the current page to the system clipboard. You can paste it anywhere else, but also use it in Vieb directly using <a href="#action.openFromClipboard">action.openFromClipboard</a>. If you want to copy a url on the page instead, see <a href="#pointer.copyAndStop">pointer.copyAndStop</a>.
         <h3 id="action.editWithVim">action.editWithVim</h3>
         Open an external editor based on the currently focused input field. This is one of the few actions that is supposed to be called while in <a class="insert" href="#action.toInsertMode">insert mode</a>. The editor that will be opened is configured by the <a href="#vimcommand">vimcommand</a> setting, and can also be set to a different editor if you would like to.
         <h3 id="action.nextSuggestion" countable="true">action.nextSuggestion</h3>
@@ -1010,8 +1064,6 @@
         This action toggles the fullscreen state. By default, the gui is configured to automatically hide while fullscreen is active, which can be configured with <a href="#guifullscreennavbar">guifullscreennavbar</a> and <a href="#guifullscreentabbar">guifullscreentabbar</a>.
         <h3 id="action.reorderFollowLinks">action.reorderFollowLinks</h3>
         With this action, the different type of <a class="follow" href="#action.startFollowCurrentTab">follow mode</a> elements will be reordered based on type. You can keep executing this action to keep cycling the order. For example, links are by default shown above input elements, but this action can reorder them to be shown below them. The four main types are cycled with this action, elements in the other category are always shown below the other four types.
-        <h3 id="action.openLinkExternal">action.openLinkExternal</h3>
-        Using this action you can open links with external applications. The command that will execute is based on the <a href="#externalcommand">externalcommand</a> setting, appended with the url that you are highlighting with <a class="pointer" href="#pointer">pointer mode</a>. You can also call this action from other modes, but if there is no url that is currently hovered by either the pointer or the mouse, it will use the current page url.
         <h3 id="action.useEnteredData">action.useEnteredData</h3>
         After entering a search, command or url, use this action to use the entered data. For <a class="explore" href="#action.toExploreMode">explore mode</a>, this will navigate to the page provided, or append the entered text to the <a href="#search">search</a> setting. For <a class="command" href="#action.toCommandMode">command mode</a>, the command will be executed. For <a class="search" href="#action.toSearchMode">search mode</a>, the entered string will be searched for on the current page and matches will be highlighted. This action will always go back the <a class="normal" href="#action.toNormalMode">normal mode</a> after it's done. If this action is called from <a class="explore" href="#action.toExploreMode">explore mode</a>, the resulting url will be temporarily stored for recovery using <a href="#action.exploreHistoryPrevious">action.exploreHistoryPrevious</a>.
         <h3 id="Nop">Nop</h3>

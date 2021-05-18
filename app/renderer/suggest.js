@@ -431,6 +431,7 @@ const suggestCommand = searchStr => {
             "splitting",
             "pointer",
             "menu",
+            "link-related",
             "license",
             "mentions",
             ...commandList().map(c => `:${c}`),
