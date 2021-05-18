@@ -83,6 +83,8 @@ const defaultBindings = {
         "<CapsLock>": {"mapping": "<Nop>"},
         "<Down>": {"mapping": "<action.menuDown>"},
         "<Esc>": {"mapping": "<action.menuClose>"},
+        "<F1>": {"mapping": "<:help>"},
+        "<F11>": {"mapping": "<action.toggleFullscreen>"},
         "<NumLock>": {"mapping": "<Nop>"},
         "<ScrollLock>": {"mapping": "<Nop>"},
         "<Up>": {"mapping": "<action.menuUp>"}

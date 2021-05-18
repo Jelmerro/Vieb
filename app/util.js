@@ -448,8 +448,12 @@ const notify = (message, type = "info", clickAction = false) => {
             return
         }
     }
-    if (getSetting("nativenotification")) {
-        const n = Notification(`${appName()} ${properType}`, {"body": message})
+    const native = getSetting("nativenotification")
+    const showLong = properType !== "permission"
+        && (escapedMessage.split("<br>").length > 5 || message.length > 200)
+    if (native === "always" || !showLong && native === "smallonly") {
+        const n = new Notification(
+            `${appName()} ${properType}`, {"body": message})
         n.onclick = () => {
             if (clickAction?.type === "download-success") {
                 const {ipcRenderer} = require("electron")
@@ -458,12 +462,10 @@ const notify = (message, type = "info", clickAction = false) => {
         }
         return
     }
-    if (properType !== "permission") {
-        if (escapedMessage.split("<br>").length > 5 || message.length > 200) {
-            const {ipcRenderer} = require("electron")
-            ipcRenderer.send("show-notification", escapedMessage, properType)
-            return
-        }
+    if (showLong) {
+        const {ipcRenderer} = require("electron")
+        ipcRenderer.send("show-notification", escapedMessage, properType)
+        return
     }
     const notificationsElement = document.getElementById("notifications")
     notificationsElement.className = getSetting("notificationposition")

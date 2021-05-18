@@ -86,7 +86,7 @@ const defaultSettings = {
     "mouse": true,
     "mousefocus": false,
     "mousenewtabswitch": true,
-    "nativenotification": false,
+    "nativenotification": "never",
     "notificationduration": 6000,
     "notificationforpermissions": false,
     "notificationposition": "bottomright",
@@ -171,6 +171,7 @@ const validOptions = {
     "guitabbar": ["always", "onupdate", "never"],
     "menupage": ["always", "globalasneeded", "elementasneeded", "never"],
     "menuvieb": ["both", "navbar", "tabbar", "never"],
+    "nativenotification": ["always", "smallonly", "never"],
     "notificationposition": [
         "bottomright", "bottomleft", "topright", "topleft"
     ],
