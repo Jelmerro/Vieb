@@ -114,6 +114,9 @@ const init = () => {
             if (mode === "follow") {
                 const {startFollow} = require("./follow")
                 startFollow(false)
+            } else if (mode === "search") {
+                const {toSearchMode} = require("./actions")
+                toSearchMode()
             } else if (mode === "pointer") {
                 const {start} = require("./pointer")
                 start()
