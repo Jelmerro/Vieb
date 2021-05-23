@@ -730,7 +730,6 @@ const addWebviewListeners = webview => {
         const name = tabOrPageMatching(webview).querySelector("span")
         if (specialPageName) {
             name.textContent = title(specialPageName)
-            return
         }
         const {addToHist, titleForPage, updateTitle} = require("./history")
         addToHist(webview.src)

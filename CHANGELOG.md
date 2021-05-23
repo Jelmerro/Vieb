@@ -50,6 +50,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Long urls in popups are now not only wrapped at 50 characters, but also maxed at a 1000, after that the rest is hidden
 - Setting "nativenotification" to a "Fixed-set string" to allow using native notifications for small messages and show popups for long ones
 - Preload scripts for Erwic can still be loaded by tabs even if the file doesn't exist on startup
+- Setting "storenewvisits" is now a list of types that should be stored, instead of a toggle for all forms of history
 
 ### Removed
 

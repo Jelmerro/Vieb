@@ -125,7 +125,7 @@ const defaultSettings = {
     "splitbelow": false,
     "splitright": false,
     "startuppages": "",
-    "storenewvisits": true,
+    "storenewvisits": "pages",
     "suggestcommands": 9000000000000000,
     "suggestorder": "history,searchword,file",
     "suggesttopsites": 10,
@@ -153,6 +153,7 @@ const listLike = [
     "searchwords",
     "spelllang",
     "startuppages",
+    "storenewvisits",
     "suggestorder"
 ]
 const validOptions = {
@@ -466,6 +467,15 @@ const checkOther = (setting, value) => {
         for (const page of value.split(",")) {
             if (page.trim() && !isUrl(page)) {
                 notify(`Invalid URL passed to ${setting}: ${page}`, "warn")
+                return false
+            }
+        }
+    }
+    if (setting === "storenewvisits") {
+        for (const visitType of value.split(",")) {
+            if (!["pages", "files", "builtin"].includes(visitType)) {
+                notify(`Invalid type of history passed: ${visitType}, `
+                    + "must be one of: pages, files or builtin", "warn")
                 return false
             }
         }

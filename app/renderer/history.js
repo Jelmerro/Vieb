@@ -109,14 +109,20 @@ const suggestHist = (searchStr, order, count) => {
 }
 
 const addToHist = rawUrl => {
-    if (!getSetting("storenewvisits")) {
-        return
-    }
     const url = rawUrl.replace(/\t/g, "")
-    if (pathToSpecialPageName(url).name) {
+    if (url.startsWith("devtools://")) {
         return
     }
-    if (url.startsWith("devtools://")) {
+    const saveTypes = getSetting("storenewvisits").split(",")
+    if (pathToSpecialPageName(url).name) {
+        if (!saveTypes.includes("builtin")) {
+            return
+        }
+    } else if (url.startsWith("file://")) {
+        if (!saveTypes.includes("files")) {
+            return
+        }
+    } else if (!saveTypes.includes("pages")) {
         return
     }
     const date = new Date().toISOString()
@@ -215,13 +221,7 @@ const titleForPage = url => groupedHistory[url]?.title
     || title(pathToSpecialPageName(url).name) || ""
 
 const updateTitle = (rawUrl, rawName) => {
-    if (!getSetting("storenewvisits")) {
-        return
-    }
     const url = rawUrl.replace(/\t/g, "")
-    if (pathToSpecialPageName(url).name) {
-        return
-    }
     const name = rawName.replace(/\t/g, "")
     if (groupedHistory[url]) {
         if (groupedHistory[url].title === name) {
