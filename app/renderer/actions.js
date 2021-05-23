@@ -521,6 +521,10 @@ const useEnteredData = () => {
     if (currentMode() === "command") {
         const command = document.getElementById("url").value.trim()
         setMode("normal")
+        if (getSetting("commandhist") === "useronly") {
+            const {push} = require("./commandhistory")
+            push(command)
+        }
         const {execute} = require("./command")
         execute(command)
     }
@@ -534,10 +538,12 @@ const useEnteredData = () => {
         setMode("normal")
         if (location) {
             location = searchword(location).url
+            if (getSetting("explorehist")) {
+                const {push} = require("./explorehistory")
+                push(stringToUrl(location))
+            }
             const {navigateTo} = require("./tabs")
             navigateTo(stringToUrl(location))
-            const {push} = require("./explorehistory")
-            push(stringToUrl(location))
         }
     }
 }

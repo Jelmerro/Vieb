@@ -28,6 +28,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "menupage" to control when the context menu of the webpage should appear, possibly over the website's menu
 - Setting "menuvieb" to control when the context menu should appear for the Vieb elements like the navbar and the tabbar
 - Pointer mode actions for most context menu options, such as "pointer.downloadAudio", "pointer.newtabVideo" and "pointer.copyImageBuffer"
+- Setting "commandhist" to control which commands should be stored in the history
+- Setting "explorehist" to control which navigations should be stored in the history
 
 ### Changed
 

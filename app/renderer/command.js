@@ -881,8 +881,10 @@ const execute = com => {
     if (!commandStr) {
         return
     }
-    const {push} = require("./commandhistory")
-    push(commandStr)
+    if (getSetting("commandhist") === "all") {
+        const {push} = require("./commandhistory")
+        push(commandStr)
+    }
     const p = parseAndValidateArgs(commandStr)
     let {command} = p
     const {args, valid, confirm} = p
