@@ -660,9 +660,11 @@ const updatePermissionSettings = () => {
 const updateHelpPage = () => {
     listPages().forEach(p => {
         if (pathToSpecialPageName(p.src).name === "help") {
-            const {listMappingsAsCommandList} = require("./input")
+            const {
+                listMappingsAsCommandList, uncountableActions
+            } = require("./input")
             p.send("settings", settingsWithDefaults(),
-                listMappingsAsCommandList(false, true))
+                listMappingsAsCommandList(false, true), uncountableActions)
         }
     })
 }

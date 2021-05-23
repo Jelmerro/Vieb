@@ -718,10 +718,12 @@ const addWebviewListeners = webview => {
                 getCustomStyling())
         }
         if (specialPageName === "help") {
-            const {listMappingsAsCommandList} = require("./input")
+            const {
+                listMappingsAsCommandList, uncountableActions
+            } = require("./input")
             const {settingsWithDefaults} = require("./settings")
             webview.send("settings", settingsWithDefaults(),
-                listMappingsAsCommandList(false, true))
+                listMappingsAsCommandList(false, true), uncountableActions)
         }
         if (specialPageName === "notifications") {
             webview.send("notification-history", listNotificationHistory())

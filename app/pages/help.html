@@ -800,25 +800,25 @@
         Scroll to the top of the page.
         <h3 id="action.scrollBottom">action.scrollBottom</h3>
         Scroll to the bottom of the page.
-        <h3 id="action.scrollUp" countable="true">action.scrollUp</h3>
+        <h3 id="action.scrollUp">action.scrollUp</h3>
         Scroll 100 pixels up.
-        <h3 id="action.scrollDown" countable="true">action.scrollDown</h3>
+        <h3 id="action.scrollDown">action.scrollDown</h3>
         Scroll 100 pixels down.
-        <h3 id="action.scrollLeft" countable="true">action.scrollLeft</h3>
+        <h3 id="action.scrollLeft">action.scrollLeft</h3>
         Scroll 100 pixels to the left.
-        <h3 id="action.scrollRight" countable="true">action.scrollRight</h3>
+        <h3 id="action.scrollRight">action.scrollRight</h3>
         Scroll 100 pixels to the right.
-        <h3 id="action.scrollPageUp" countable="true">action.scrollPageUp</h3>
+        <h3 id="action.scrollPageUp">action.scrollPageUp</h3>
         Scroll an entire page up, equal to the window height minus a margin.
-        <h3 id="action.scrollPageDown" countable="true">action.scrollPageDown</h3>
+        <h3 id="action.scrollPageDown">action.scrollPageDown</h3>
         Scroll an entire page down, equal to the window height minus a margin.
-        <h3 id="action.scrollPageLeft" countable="true">action.scrollPageLeft</h3>
+        <h3 id="action.scrollPageLeft">action.scrollPageLeft</h3>
         Scroll an entire page to the left, equal to the window width minus a margin.
-        <h3 id="action.scrollPageRight" countable="true">action.scrollPageRight</h3>
+        <h3 id="action.scrollPageRight">action.scrollPageRight</h3>
         Scroll an entire page to the right, equal to the window width minus a margin.
-        <h3 id="action.scrollPageUpHalf" countable="true">action.scrollPageUpHalf</h3>
+        <h3 id="action.scrollPageUpHalf">action.scrollPageUpHalf</h3>
         Scroll half of a page up, equal to half the window height minus a small margin.
-        <h3 id="action.scrollPageDownHalf" countable="true">action.scrollPageDownHalf</h3>
+        <h3 id="action.scrollPageDownHalf">action.scrollPageDownHalf</h3>
         Scroll half of a page down, equal to half the window height minus a small margin.
         <h2 id="navigation">Navigation</h2>
         These actions are related to navigation, such as reloading or managing tabs.
@@ -828,39 +828,39 @@
         Reload the current tab without using the cache. This action is identical to <a href="#action.reload">action.reload</a> if the <a href="#cache">cache</a> setting is set to 'none'.
         <h3 id="action.stopLoadingPage">action.stopLoadingPage</h3>
         Stop loading the current page. This has effect on all active requests for the current tab, but does not prevent the page from making subsequent fetch or xhttp requests. Other tabs are also unaffected.
-        <h3 id="action.openNewTab" countable="true">action.openNewTab</h3>
+        <h3 id="action.openNewTab">action.openNewTab</h3>
         Open a new tab with the newtab page. The position of the newly opened tab can be configured by the <a href="#tabnexttocurrent">tabnexttocurrent</a> setting. To open a new tab and switch to <a class="explore" href="#action.toExploreMode">explore mode</a> with the current url pre-filled in the bar, use <a href="#action.openNewTabWithCurrentUrl">action.openNewTabWithCurrentUrl</a>.
         <h3 id="action.openNewTabWithCurrentUrl">action.openNewTabWithCurrentUrl</h3>
         Open a new tab with the newtab page, after which you will enter <a class="explore" href="#action.toExploreMode">explore mode</a> with the url of the current page pre-filled. This can be used to quickly open another page with a similar url, that is not linked on the current page. Another advantage is that this action will not use the system clipboard to copy the url.
         <h3 id="action.openFromClipboard">action.openFromClipboard</h3>
         Navigate to the page that is currently stored on the clipboard. The current tab will be used for the navigation, unless you open a new tab first (see the default mapping for that). The navigation follows the same logic as regular navigation from <a class="explore" href="#action.toExploreMode">explore mode</a>, which means that text that is not a url will be searched with the <a href="#search">search</a> setting. It's also possible to copy the url of the current page to the clipboard with <a href="#action.pageToClipboard">action.pageToClipboard</a>.
-        <h3 id="action.reopenTab" countable="true">action.reopenTab</h3>
+        <h3 id="action.reopenTab">action.reopenTab</h3>
         Reopen a previously closed tab as a new tab. Can be toggled with <a href="#keeprecentlyclosed">keeprecentlyclosed</a>. Opposite of <a href="#:close">:close</a>. You can change the position of the reopened tab with <a href="#tabreopenposition">tabreopenposition</a>.
-        <h3 id="action.nextTab" countable="true">action.nextTab</h3>
+        <h3 id="action.nextTab">action.nextTab</h3>
         Navigate to the next tab (to the right) in the tabbar. You can wrap back to the first tab if <a href="#tabcycle">tabcycle</a> is enabled. Opposite of <a href="#action.previousTab">action.previousTab</a>.
-        <h3 id="action.previousTab" countable="true">action.previousTab</h3>
+        <h3 id="action.previousTab">action.previousTab</h3>
         Navigate to the previous tab (to the left) in the tabbar. Opposite of <a href="#action.nextTab">action.nextTab</a>.
-        <h3 id="action.moveTabForward" countable="true">action.moveTabForward</h3>
+        <h3 id="action.moveTabForward">action.moveTabForward</h3>
         Move the current tab forward in the tabbar (to the right). This action does not switch between pages, but merely changes the order of appearance in the tabbar. Opposite of <a href="#action.moveTabBackward">action.moveTabBackward</a>. See <a href="#action.nextTab">action.nextTab</a> to actually switch between the tabs.
-        <h3 id="action.moveTabBackward" countable="true">action.moveTabBackward</h3>
+        <h3 id="action.moveTabBackward">action.moveTabBackward</h3>
         Opposite of <a href="#action.moveTabForward">action.moveTabForward</a>.
-        <h3 id="action.backInHistory" countable="true">action.backInHistory</h3>
+        <h3 id="action.backInHistory">action.backInHistory</h3>
         Navigate to the previous page you visited in the current tab. The first page of the tab history will always be the newtab page. Opposite of <a href="#action.forwardInHistory">action.forwardInHistory</a>.
-        <h3 id="action.forwardInHistory" countable="true">action.forwardInHistory</h3>
-        Opposite of <a href="#action.backInHistory" countable="true">action.backInHistory</a>.
+        <h3 id="action.forwardInHistory">action.forwardInHistory</h3>
+        Opposite of <a href="#action.backInHistory">action.backInHistory</a>.
         <h3 id="action.zoomReset">action.zoomReset</h3>
         Reset the zoom percentage of the current page to the default level of 100%. The zoom percentage is remembered between session per domain. See <a href="#action.zoomIn">action.zoomIn</a> and <a href="#action.zoomOut">action.zoomOut</a> to change the zoom percentage.
-        <h3 id="action.zoomIn" countable="true">action.zoomIn</h3>
+        <h3 id="action.zoomIn">action.zoomIn</h3>
         Increase the zoom percentage. The zoom percentage is increased by 10% every time this action is called, up to a maximum of 500%. Opposite of <a href="#action.zoomOut">action.zoomOut</a>. Use <a href="#action.zoomReset">action.zoomReset</a> to go back to 100%.
-        <h3 id="action.zoomOut" countable="true">action.zoomOut</h3>
+        <h3 id="action.zoomOut">action.zoomOut</h3>
         Decrease the zoom percentage. The zoom percentage is decreased by 10% every time this action is called, down to a minimum of 25%. Opposite of <a href="#action.zoomIn">action.zoomIn</a>. Use <a href="#action.zoomReset">action.zoomReset</a> to go back to 100%.
-        <h3 id="action.toLastUsedTab" countable="true">action.toLastUsedTab</h3>
+        <h3 id="action.toLastUsedTab">action.toLastUsedTab</h3>
         This action switches to the last focused tab and back: between the two last used tabs or splits. Previous tabs are stored as focused, if you have had them as the current tab for at least <a href="#timeoutlen">timeoutlen</a> (regardless of <a href="#timeout">timeout</a> being enabled). If you quickly switch two tabs/splits or more within timeoutlen, this action can be used to go back all the way back to the one that was actually active for a while. This same logic is what makes this work when combining split movement or tab switch actions with the number counter. For example, after quickly moving two tabs to the right, executing this action will go back to the tab two tabs to the left. If called again, it will go back to the tab two tabs to the right. This action is one of the few splitting actions that also works without multiple window splits being opened. Although countable, the action only switches between the two last used tabs or splits.
         <h2 id="splitting">Splitting</h2>
         Vieb supports window splitting, which means you can view multiple sites next to each other. There is no technical limit to how many sites you can split, and splitting works the same as in Vim. To open a new split, see <a href="#:Vexplore">:Vexplore</a> or <a href="#:split">:split</a>. Once you have multiple windows visible, you can switch between them by switching between tabs, or using the more Vim-like window split actions, which are listed below. You may also use the <a href="#:buffer">:buffer</a> command to switch directly to tabs by index or name.
-        <h3 id="action.rotateSplitWindowForward" countable="true">action.rotateSplitWindowForward</h3>
+        <h3 id="action.rotateSplitWindowForward">action.rotateSplitWindowForward</h3>
         Rotate the windows of the current split clockwise. Unlike Vim, you can rotate splits, even if they have subsplits. Opposite of <a href="#action.rotateSplitWindowBackward">action.rotateSplitWindowBackward</a>.
-        <h3 id="action.rotateSplitWindowBackward" countable="true">action.rotateSplitWindowBackward</h3>
+        <h3 id="action.rotateSplitWindowBackward">action.rotateSplitWindowBackward</h3>
         Rotate the windows of the current split counter-clockwise. Unlike Vim, you can rotate splits, even if they have subsplits. Opposite of <a href="#action.rotateSplitWindowForward">action.rotateSplitWindowForward</a>.
         <h3 id="action.leftHalfSplitWindow">action.leftHalfSplitWindow</h3>
         Move the currently focused split window to the left half of the screen. This effectively moves the split to the left of a toplevel vertical split, regardless of it's current position on the screen. Similar actions for the other directions are <a href="#action.bottomHalfSplitWindow">action.bottomHalfSplitWindow</a>, <a href="#action.topHalfSplitWindow">action.topHalfSplitWindow</a> and <a href="#action.rightHalfSplitWindow">action.rightHalfSplitWindow</a>.
@@ -870,31 +870,31 @@
         Move the currently focused split window to the top half of the screen. See <a href="#action.leftHalfSplitWindow">action.leftHalfSplitWindow</a> for more details.
         <h3 id="action.rightHalfSplitWindow">action.rightHalfSplitWindow</h3>
         Move the currently focused split window to the right half of the screen. See <a href="#action.leftHalfSplitWindow">action.leftHalfSplitWindow</a> for more details.
-        <h3 id="action.toLeftSplitWindow" countable="true">action.toLeftSplitWindow</h3>
+        <h3 id="action.toLeftSplitWindow">action.toLeftSplitWindow</h3>
         Switch the focus to the window directly left of the currently focused one. If there are multiple windows directly to the left of the current split, the one closest to the center of the current split is chosen. Similar actions for the other directions are <a href="#action.toBottomSplitWindow">action.toBottomSplitWindow</a>, <a href="#action.toTopSplitWindow">action.toTopSplitWindow</a> and <a href="#action.toRightSplitWindow">action.toRightSplitWindow</a>.
-        <h3 id="action.toBottomSplitWindow" countable="true">action.toBottomSplitWindow</h3>
+        <h3 id="action.toBottomSplitWindow">action.toBottomSplitWindow</h3>
         Switch the focus to the window directly below the currently focused one. See <a href="#action.toLeftSplitWindow">action.toLeftSplitWindow</a> for more details.
-        <h3 id="action.toTopSplitWindow" countable="true">action.toTopSplitWindow</h3>
+        <h3 id="action.toTopSplitWindow">action.toTopSplitWindow</h3>
         Switch the focus to the window directly above the currently focused one. See <a href="#action.toLeftSplitWindow">action.toLeftSplitWindow</a> for more details.
-        <h3 id="action.toRightSplitWindow" countable="true">action.toRightSplitWindow</h3>
+        <h3 id="action.toRightSplitWindow">action.toRightSplitWindow</h3>
         Switch the focus to the window directly right of the currently focused one. See <a href="#action.toLeftSplitWindow">action.toLeftSplitWindow</a> for more details.
         <h3 id="action.toFirstSplitWindow">action.toFirstSplitWindow</h3>
         Switch the focus to the most top-left window split. The first split is always the most top-left one, regardless of tab order. Opposite of <a href="#action.toLastSplitWindow">action.toLastSplitWindow</a>.
         <h3 id="action.toLastSplitWindow">action.toLastSplitWindow</h3>
         Switch the focus to the most bottom-right window split. The last split is always the most bottom-right one, regardless of tab order. Opposite of <a href="#action.toFirstSplitWindow">action.toFirstSplitWindow</a>.
-        <h3 id="action.toNextSplitWindow" countable="true">action.toNextSplitWindow</h3>
+        <h3 id="action.toNextSplitWindow">action.toNextSplitWindow</h3>
         Switch the focus to the next window split in appearance order. Splits are ordered from top to bottom and left to right. When the most bottom-right split is focused when executing this action, the top-left split will be focused. Opposite of <a href="#action.toPreviousSplitWindow">action.toPreviousSplitWindow</a>.
-        <h3 id="action.toPreviousSplitWindow" countable="true">action.toPreviousSplitWindow</h3>
+        <h3 id="action.toPreviousSplitWindow">action.toPreviousSplitWindow</h3>
         Switch the focus to the previous window split in appearance order. Splits are ordered from top to bottom and left to right. When the most top-left split is focused when executing this action, the bottom-right split will be focused. Opposite of <a href="#action.toNextSplitWindow">action.toNextSplitWindow</a>.
-        <h3 id="action.exchangeSplitWindow" countable="true">action.exchangeSplitWindow</h3>
+        <h3 id="action.exchangeSplitWindow">action.exchangeSplitWindow</h3>
         With this action you can exchange the current window with the next one. It is different from merely reordering them, in that it keeps the focus at the current position. For example, if you have a large split on the left, and a small one on the right, with the one on the left being focused, this action will keep the focus on the left split, but exchange the contents of it with the next split. In other words, the big split on the left will have the page that was previously on the right of it and vice versa. It will always switch the current one with the next one, and the focus will remain on the position of the current one. If you execute this action on the last split, it will exchange with the one just before it and keep the focus on the last one. Although countable, the action will simply revert itself if called a second time (or any even amount of times).
-        <h3 id="action.increaseHeightSplitWindow" countable="true">action.increaseHeightSplitWindow</h3>
+        <h3 id="action.increaseHeightSplitWindow">action.increaseHeightSplitWindow</h3>
         Increase the height of the current split window by 10% up to a maximum ratio compared to it's siblings of 1 to 10. Similar actions to resize into other directions are <a href="#action.decreaseHeightSplitWindow">action.decreaseHeightSplitWindow</a>, <a href="#action.increaseWidthSplitWindow">action.increaseWidthSplitWindow</a> and <a href="#action.decreaseWidthSplitWindow">action.decreaseWidthSplitWindow</a>.
-        <h3 id="action.decreaseHeightSplitWindow" countable="true">action.decreaseHeightSplitWindow</h3>
+        <h3 id="action.decreaseHeightSplitWindow">action.decreaseHeightSplitWindow</h3>
         Decrease the height of the current split window by 10%. See <a href="#action.increaseHeightSplitWindow">action.increaseHeightSplitWindow</a>.
-        <h3 id="action.increaseWidthSplitWindow" countable="true">action.increaseWidthSplitWindow</h3>
+        <h3 id="action.increaseWidthSplitWindow">action.increaseWidthSplitWindow</h3>
         Increase the width of the current split window by 10%. See <a href="#action.increaseHeightSplitWindow">action.increaseHeightSplitWindow</a>.
-        <h3 id="action.decreaseWidthSplitWindow" countable="true">action.decreaseWidthSplitWindow</h3>
+        <h3 id="action.decreaseWidthSplitWindow">action.decreaseWidthSplitWindow</h3>
         Decrease the width of the current split window by 10%. See <a href="#action.increaseHeightSplitWindow">action.increaseHeightSplitWindow</a>.
         <h3 id="action.distrubuteSpaceSplitWindow">action.distrubuteSpaceSplitWindow</h3>
         Distribute the windows inside a split evenly. This does not necessarily mean that all windows will be of the same size, for example if you have a vertical split, with on the left side a window, but on the right side a horizontal sub-split with two windows.
@@ -902,9 +902,9 @@
         Vieb has a <span class="pointer">pointer mode</span> to hover over links, download images or inspect an element at a position. The pointer can be moved in many different ways, most of which are by default mapped similar to Vim's <a class="normal" href="#action.toNormalMode">normal mode</a>. Additionally, after entering <span class="pointer">pointer mode</span>, it's also possible to start selecting text using <a class="visual" href="#pointer.startVisualSelect">visual mode</a>. By default, the mappings of these two modes are similar, with the biggest difference being that text will be selected between the initial and current pointer position. See <a href="#pointer.startVisualSelect">pointer.startVisualSelect</a> to activate <a class="visual" href="#pointer.startVisualSelect">visual mode</a> and <a href="#pointer.copyText">pointer.copyText</a> to copy the hovered link or selected text.
         <h3 id="pointer.start">pointer.start</h3>
         Switch to <a href="#pointer" class="pointer">pointer mode</a>, which enables a movable pointer. The pointer can be used to hover over links, download images or inspect an element at a position. It can be moved in many different ways, most of which are by default mapped similar to Vim's <a class="normal" href="#action.toNormalMode">normal mode</a>.
-        <h3 id="pointer.leftClick" countable="true">pointer.leftClick</h3>
+        <h3 id="pointer.leftClick">pointer.leftClick</h3>
         Simulate a left mouse click at the current pointer location. See also <a href="#pointer.rightClick">pointer.rightClick</a>.
-        <h3 id="pointer.rightClick" countable="true">pointer.rightClick</h3>
+        <h3 id="pointer.rightClick">pointer.rightClick</h3>
         Execute a right mouse click at the pointer position. This will open any kind of menu that the website has implemented, or open Vieb's built-in menu if <a href="#menupage">menupage</a> is enabled.
         <h3 id="pointer.inspectElement">pointer.inspectElement</h3>
         Inspect an element at the current pointer position. This action will open a devtools window if the devtools are not opened yet. The <a href="#devtoolsposition">devtoolsposition</a> is not used when inspecting an element, as it will open a devtools window. If you want to open the devtools differently, please open the devtools with the <a href="#:devtools">:devtools</a> command first. The "inspectElement" action will use the existing devtools to inspect the element in.
@@ -912,43 +912,43 @@
         Enter <a class="insert" href="#action.toInsertMode">insert mode</a> at the pointer position. This can be used to click and immediately set focus to the element at a position, similar to an actual mouse click. Contrary to <a href="#pointer.leftClick">pointer.leftClick</a>, this type of click will also work for poorly programmed dropdowns and/or custom menus on websites: the ones that open with a click, but close automatically when focus is lost. Some Google websites use these type of inconsistent menus.
         <h3 id="pointer.startVisualSelect">pointer.startVisualSelect</h3>
         Switch to <span class="visual">visual mode</span>, which will start making a selection starting at the current pointer position. In this mode the pointer is still visible, but once the pointer is moved again, all text between the original and current location will be selected. To copy the selected text, see <a href="#pointer.copyText">pointer.copyText</a>. Most movement options in <span class="visual">visual mode</span> are identical to those in <a class="pointer" href="#pointer">pointer mode</a> by default.
-        <h3 id="pointer.swapPosition" countable="true">pointer.swapPosition</h3>
+        <h3 id="pointer.swapPosition">pointer.swapPosition</h3>
         Using this action you can switch to the other end of the selection while in <span class="visual">visual mode</span>. It has no effect when called from other modes, as there is no other position to swap the pointer to. You can switch back and forth between the start and end position with this action as many times as you want to.
-        <h3 id="pointer.moveUp" countable="true">pointer.moveUp</h3>
+        <h3 id="pointer.moveUp">pointer.moveUp</h3>
         Move the pointer up by 10 pixels, will scroll the page if needed.
-        <h3 id="pointer.moveDown" countable="true">pointer.moveDown</h3>
+        <h3 id="pointer.moveDown">pointer.moveDown</h3>
         Move the pointer down by 10 pixels, will scroll the page if needed.
-        <h3 id="pointer.moveLeft" countable="true">pointer.moveLeft</h3>
+        <h3 id="pointer.moveLeft">pointer.moveLeft</h3>
         Move the pointer left by 10 pixels, will scroll the page if needed.
-        <h3 id="pointer.moveRight" countable="true">pointer.moveRight</h3>
+        <h3 id="pointer.moveRight">pointer.moveRight</h3>
         Move the pointer right by 10 pixels, will scroll the page if needed.
-        <h3 id="pointer.moveSlowUp" countable="true">pointer.moveSlowUp</h3>
+        <h3 id="pointer.moveSlowUp">pointer.moveSlowUp</h3>
         Move the pointer up by 1 pixel, will not scroll the page.
-        <h3 id="pointer.moveSlowDown" countable="true">pointer.moveSlowDown</h3>
+        <h3 id="pointer.moveSlowDown">pointer.moveSlowDown</h3>
         Move the pointer down by 1 pixel, will not scroll the page.
-        <h3 id="pointer.moveSlowLeft" countable="true">pointer.moveSlowLeft</h3>
+        <h3 id="pointer.moveSlowLeft">pointer.moveSlowLeft</h3>
         Move the pointer left by 1 pixel, will not scroll the page.
-        <h3 id="pointer.moveSlowRight" countable="true">pointer.moveSlowRight</h3>
+        <h3 id="pointer.moveSlowRight">pointer.moveSlowRight</h3>
         Move the pointer right by 1 pixel, will not scroll the page.
-        <h3 id="pointer.moveFastUp" countable="true">pointer.moveFastUp</h3>
+        <h3 id="pointer.moveFastUp">pointer.moveFastUp</h3>
         Move the pointer up by 100 pixels, will scroll the page if needed.
-        <h3 id="pointer.moveFastDown" countable="true">pointer.moveFastDown</h3>
+        <h3 id="pointer.moveFastDown">pointer.moveFastDown</h3>
         Move the pointer down by 100 pixels, will scroll the page if needed.
-        <h3 id="pointer.moveFastLeft" countable="true">pointer.moveFastLeft</h3>
+        <h3 id="pointer.moveFastLeft">pointer.moveFastLeft</h3>
         Move the pointer left by 100 pixels, will scroll the page if needed.
-        <h3 id="pointer.moveFastRight" countable="true">pointer.moveFastRight</h3>
+        <h3 id="pointer.moveFastRight">pointer.moveFastRight</h3>
         Move the pointer right by 100 pixels, will scroll the page if needed.
         <h3 id="pointer.moveLeftMax">pointer.moveLeftMax</h3>
         Move the pointer all the way to the left of the current screen.
         <h3 id="pointer.moveRightMax">pointer.moveRightMax</h3>
         Move the pointer all the way to the right of the current screen.
-        <h3 id="pointer.scrollUp" countable="true">pointer.scrollUp</h3>
+        <h3 id="pointer.scrollUp">pointer.scrollUp</h3>
         Scroll 100 pixels up at the current pointer position, without changing the pointer position. See <a href="#scrolling">scrolling</a> for more details.
-        <h3 id="pointer.scrollDown" countable="true">pointer.scrollDown</h3>
+        <h3 id="pointer.scrollDown">pointer.scrollDown</h3>
         Scroll 100 pixels down at the current pointer position, without changing the pointer position. See <a href="#scrolling">scrolling</a> for more details.
-        <h3 id="pointer.scrollLeft" countable="true">pointer.scrollLeft</h3>
+        <h3 id="pointer.scrollLeft">pointer.scrollLeft</h3>
         Scroll 100 pixels left at the current pointer position, without changing the pointer position. See <a href="#scrolling">scrolling</a> for more details.
-        <h3 id="pointer.scrollRight" countable="true">pointer.scrollRight</h3>
+        <h3 id="pointer.scrollRight">pointer.scrollRight</h3>
         Scroll 100 pixels right at the current pointer position, without changing the pointer position. See <a href="#scrolling">scrolling</a> for more details.
         <h3 id="pointer.startOfView">pointer.startOfView</h3>
         Move the pointer to the top of the screen vertically, without scrolling the page in any way. See also <a href="#pointer.centerOfView">pointer.centerOfView</a> and <a href="#pointer.endOfView">pointer.endOfView</a>. To do the same but with scrolling, see <a href="#pointer.startOfPage">pointer.startOfPage</a>.
@@ -1026,9 +1026,9 @@
         Menu actions are for interacting with the right click context menu. You can open the menu with a right mouse click, using <a href="#action.menuOpen">action.menuOpen</a> or using the <a href="#pointer.rightClick">pointer.rightClick</a> action. Most of these actions don't do anything when no contextmenu is currently opened. As such, it's recommended to only use these actions with the <a href="#:mmap">:mmap</a> command. The most notable exception is <a href="#action.menuOpen">action.menuOpen</a> to open the menu. You can control disable or enable the different menus with <a href="#menupage">menupage</a> and <a href="#menuvieb">menuvieb</a>.
         <h3 id="action.menuOpen">action.menuOpen</h3>
         With this action you can open the menu without using a right click. It can be used inside <a class="insert" href="#action.toInsertMode">insert mode</a>, to open a menu for the currently active element. In <a class="search" href="#action.toSearchMode">search mode</a>, <a class="command" href="#action.toCommandMode">command mode</a> and <a class="explore" href="#action.toExploreMode">explore mode</a> this will open the menu at the navbar for the current caret position or selection. If used from any other mode, it will simply call <a href="#pointer.rightClick">pointer.rightClick</a> to open the menu at the pointer location.
-        <h3 id="action.menuUp" countable="true">action.menuUp</h3>
+        <h3 id="action.menuUp">action.menuUp</h3>
         With this action you can move the selected contextmenu item up. It will select the bottom one if the top of the list is reached or no entry was previously highlighted. Opposite of <a href="#action.menuDown">action.menuDown</a>. Items can be selected with <a href="#action.menuSelect">action.menuSelect</a>.
-        <h3 id="action.menuDown" countable="true">action.menuDown</h3>
+        <h3 id="action.menuDown">action.menuDown</h3>
         This action moves the selected contextmenu item one down. Opposite of <a href="#action.menuDown">action.menuDown</a>. Wrapping happens both directions.
         <h3 id="action.menuSelect">action.menuSelect</h3>
         Executes the currently selected contextmenu item. This will also close the menu. For more details on how to close the menu without picking a menu item, see <a href="#action.menuClose">action.menuClose</a>.
@@ -1040,29 +1040,29 @@
         After searching for a string, you can call this action to clear the current search and remove the highlighting. This action is called when you supply an empty search. Unlike vim, this action will not remember previous searches.
         <h3 id="action.clickOnSearch">action.clickOnSearch</h3>
         After searching for a string, call this action to execute a mouse click at the current match. You can navigate to other matches with <a href="#action.nextSearchMatch">action.nextSearchMatch</a> and <a href="#action.previousSearchMatch">action.previousSearchMatch</a>.
-        <h3 id="action.nextSearchMatch" countable="true">action.nextSearchMatch</h3>
+        <h3 id="action.nextSearchMatch">action.nextSearchMatch</h3>
         After searching for a string, use this action to move the focus to the next search matches. If the last match is reached and this action is called, the first one will be shown (it will wrap). Opposite of <a href="#action.previousSearchMatch">action.previousSearchMatch</a>.
-        <h3 id="action.previousSearchMatch" countable="true">action.previousSearchMatch</h3>
+        <h3 id="action.previousSearchMatch">action.previousSearchMatch</h3>
         Opposite of <a href="#action.nextSearchMatch">action.nextSearchMatch</a>.
-        <h3 id="action.increasePageNumber" countable="true">action.increasePageNumber</h3>
+        <h3 id="action.increasePageNumber">action.increasePageNumber</h3>
         Call this action to increase the page number in the url. It will check for pagination indicators in the webpage to use, then try to increase the port number and finally a fallback to 'p' and 'page' query arguments. If none of these are present, it will increase the first number in the url.
-        <h3 id="action.decreasePageNumber" countable="true">action.decreasePageNumber</h3>
+        <h3 id="action.decreasePageNumber">action.decreasePageNumber</h3>
         Opposite of <a href="#action.increasePageNumber">action.increasePageNumber</a>.
         <h3 id="action.insertAtFirstInput">action.insertAtFirstInput</h3>
         This action will enter <a class="insert" href="#action.toInsertMode">insert mode</a> and focus the first input field on the page. Usually this will be a search field or dropdown. If no input fields are currently visible, this action will not enter <a class="insert" href="#action.toInsertMode">insert mode</a>.
         <h3 id="action.editWithVim">action.editWithVim</h3>
         Open an external editor based on the currently focused input field. This is one of the few actions that is supposed to be called while in <a class="insert" href="#action.toInsertMode">insert mode</a>. The editor that will be opened is configured by the <a href="#vimcommand">vimcommand</a> setting, and can also be set to a different editor if you would like to.
-        <h3 id="action.nextSuggestion" countable="true">action.nextSuggestion</h3>
+        <h3 id="action.nextSuggestion">action.nextSuggestion</h3>
         Move to the next suggestion shown while in <a class="explore" href="#action.toExploreMode">explore mode</a> or <a class="command" href="#action.toCommandMode">command mode</a>. If no suggestion is selected yet, this action will select  the first suggestion. If this action is called while the last suggestion is already focused, no suggestion will be selected and your original text will be restored in the navbar. Opposite of <a href="#action.prevSuggestion">action.prevSuggestion</a>.
-        <h3 id="action.prevSuggestion" countable="true">action.prevSuggestion</h3>
+        <h3 id="action.prevSuggestion">action.prevSuggestion</h3>
         Move to the previous suggestion shown while in <a class="explore" href="#action.toExploreMode">explore mode</a> or <a class="command" href="#action.toCommandMode">command mode</a>. If no suggestion is selected yet, this action will select the last suggestion. If this action is called while the first suggestion is already focused, no suggestion will be selected and your original text will be restored in the navbar. Opposite of <a href="#action.nextSuggestion">action.nextSuggestion</a>.
-        <h3 id="action.commandHistoryPrevious" countable="true">action.commandHistoryPrevious</h3>
+        <h3 id="action.commandHistoryPrevious">action.commandHistoryPrevious</h3>
         Go back to previously executed commands of this session, by calling this action. Unlike the suggestions, these actions do not wrap back to the first or last when the end of the history is reached. Opposite of <a href="#action.commandHistoryNext">action.commandHistoryNext</a>. This action has no function outside of <a class="command" href="#action.toCommandMode">command mode</a>. You can change which commands are stored in the history using <a href="#commandhist">commandhist</a>.
-        <h3 id="action.commandHistoryNext" countable="true">action.commandHistoryNext</h3>
+        <h3 id="action.commandHistoryNext">action.commandHistoryNext</h3>
         Go forward in history when viewing a previously executed command. If there are no more historic commands, it will restore the text that was typed before going back in history. Opposite of <a href="#action.commandHistoryPrevious">action.commandHistoryPrevious</a>. This action has no function outside of <a class="command" href="#action.toCommandMode">command mode</a>. You can change which commands are stored in the history using <a href="#commandhist">commandhist</a>.
-        <h3 id="action.exploreHistoryPrevious" countable="true">action.exploreHistoryPrevious</h3>
+        <h3 id="action.exploreHistoryPrevious">action.exploreHistoryPrevious</h3>
         Go back to previously navigated website of this session, by calling this action. It is different from <a href="#action.reopenTab">action.reopenTab</a>, because this will store the sites you explicitly navigated to, instead of only the pages you closed, which can be different if you navigated in a tab or if you opened it without <a class="explore" href="#action.toExploreMode">explore mode</a>. Unlike <a href="#suggestorder">suggestorder</a>, these actions do not wrap back to the first or last when the end of the history is reached. Opposite of <a href="#action.exploreHistoryNext">action.exploreHistoryNext</a>. This action has no function outside of <a class="explore" href="#action.toExploreMode">explore mode</a>. You can change which navigations are stored in the history using <a href="#explorehist">explorehist</a>.
-        <h3 id="action.exploreHistoryNext" countable="true">action.exploreHistoryNext</h3>
+        <h3 id="action.exploreHistoryNext">action.exploreHistoryNext</h3>
         Go forward in history when viewing previously navigated websites. If there are no more historic sites, it will restore the text that was typed before going back in history. Opposite of <a href="#action.exploreHistoryPrevious">action.exploreHistoryPrevious</a>. This action has no function outside of <a class="explore" href="#action.toExploreMode">explore mode</a>. You can change which navigations are stored in the history using <a href="#explorehist">explorehist</a>.
         <h3 id="action.toggleFullscreen">action.toggleFullscreen</h3>
         This action toggles the fullscreen state. By default, the gui is configured to automatically hide while fullscreen is active, which can be configured with <a href="#guifullscreennavbar">guifullscreennavbar</a> and <a href="#guifullscreentabbar">guifullscreentabbar</a>.

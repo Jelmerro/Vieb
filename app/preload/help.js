@@ -20,7 +20,7 @@
 const {ipcRenderer} = require("electron")
 const {joinPath} = require("../util")
 
-ipcRenderer.on("settings", (_, settings, mappings) => {
+ipcRenderer.on("settings", (_, settings, mappings, uncountableActions) => {
     // Enrich the settings list with type, default, current and value lists
     [...document.querySelectorAll(".setting-status, .map-status, .countable")]
         .forEach(el => el.remove())
@@ -118,7 +118,7 @@ ipcRenderer.on("settings", (_, settings, mappings) => {
         actionNode.parentNode.parentNode.insertBefore(
             mapList, actionNode.parentNode.nextSibling)
         // Countable action badge
-        if (actionNode.getAttribute("countable") === "true") {
+        if (!uncountableActions.includes(actionNode.id)) {
             const badge = document.createElement("kbd")
             badge.className = "countable"
             badge.textContent = "Countable"
