@@ -885,6 +885,13 @@ const execute = com => {
         const {push} = require("./commandhistory")
         push(commandStr)
     }
+    if (commandStr.startsWith("!")) {
+        if (commandStr !== "!") {
+            const {exec} = require("child_process")
+            exec(commandStr.replace("!", ""))
+        }
+        return
+    }
     const p = parseAndValidateArgs(commandStr)
     let {command} = p
     const {args, valid, confirm} = p

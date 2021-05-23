@@ -30,6 +30,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Pointer mode actions for most context menu options, such as "pointer.downloadAudio", "pointer.newtabVideo" and "pointer.copyImageBuffer"
 - Setting "commandhist" to control which commands should be stored in the history
 - Setting "explorehist" to control which navigations should be stored in the history
+- Prefix "!" to command mode that will run system commands directly
 
 ### Changed
 
