@@ -277,7 +277,7 @@ const customDisplayMedia = frameWindow => new Promise((resolve, reject) => {
                 ".desktop-capturer-selection__close")]
             closeButtons.forEach(button => {
                 button.addEventListener("click", e => {
-                    if (e.path.find(el => el?.matches?.(
+                    if (e.composedPath().find(el => el?.matches?.(
                         ".desktop-capturer-selection__btn"))) {
                         // Also clicked on a display to share, ignore close
                         return

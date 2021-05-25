@@ -363,7 +363,7 @@ const init = () => {
                     ACTIONS.toExploreMode()
                     return
                 }
-                const tab = e.path.find(el => listTabs().includes(el))
+                const tab = e.composedPath().find(el => listTabs().includes(el))
                 if (tab) {
                     const {closeTab} = require("./tabs")
                     closeTab(listTabs().indexOf(tab))
@@ -375,7 +375,7 @@ const init = () => {
         }
     })
     window.addEventListener("click", e => {
-        if (e.path.find(el => el.matches?.("#context-menu"))) {
+        if (e.composedPath().find(el => el.matches?.("#context-menu"))) {
             return
         }
         const {clear} = require("./contextmenu")
@@ -391,7 +391,7 @@ const init = () => {
             } else if ("sec".includes(currentMode()[0])) {
                 ACTIONS.toNormalMode()
             }
-            const tab = e.path.find(el => listTabs().includes(el))
+            const tab = e.composedPath().find(el => listTabs().includes(el))
             if (tab) {
                 clear()
                 const {switchToTab} = require("./tabs")
