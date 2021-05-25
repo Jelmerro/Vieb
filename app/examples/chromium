@@ -17,10 +17,10 @@ set tabreopenposition=previous
 set windowtitle=title
 
 " Mappings
-map <Up> <action.scrollUp>
-map <Down> <action.scrollDown>
-map <Left> <action.scrollLeft>
-map <Right> <action.scrollRight>
+nmap <Up> <action.scrollUp>
+nmap <Down> <action.scrollDown>
+nmap <Left> <action.scrollLeft>
+nmap <Right> <action.scrollRight>
 map <PageUp> <action.scrollPageUp>
 map <PageDown> <action.scrollPageDown>
 map <Home> <action.scrollTop>

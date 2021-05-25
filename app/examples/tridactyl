@@ -33,8 +33,6 @@ set searchwords+=gentoo_wiki~https://wiki.gentoo.org/index.php?title=Special:Sea
 set searchwords+=qwant~https://www.qwant.com/?q=%s
 
 " Mappings
-nmap <C-e> <action.scrollDown>
-nmap <C-y> <action.scrollUp>
 nmap yy <action.pageToClipboard>
 nmap o <action.toExploreMode>
 nmap b <action.toCommandMode>buffer<Space>
@@ -46,7 +44,6 @@ nmap K <action.nextTab>
 nmap >> <action.moveTabForward>
 nmap <lt><lt> <action.moveTabBackward>
 nmap O <action.toExploreMode><End>
-nmap E <action.openNewTab><action.toExploreMode><End>
 nmap gx0 <:lclose>
 nmap gx$ <:rclose>
 nmap <A-p> <:pin>

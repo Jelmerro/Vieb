@@ -10,8 +10,6 @@ set search=https://google.com/search?q=%s
 set searchwords=w~https://www.wikipedia.org/w/index.php?title=Special:Search&search=%s
 
 " Mappings
-nmap <C-e> <action.scrollDown>
-nmap <C-y> <action.scrollUp>
 nmap d <action.scrollPageDownHalf>
 nmap u <action.scrollPageUpHalf>
 nmap zH <action.scrollPageLeft>
@@ -25,14 +23,12 @@ nmap T <action.toCommandMode>buffer<Space>
 nmap g0 <:buffer 0>
 nmap g$ <:buffer 999>
 nmap ge <action.toExploreMode><End>
-nmap gE <action.openNewTab><action.toExploreMode><End>
+nmap gE <action.openNewTab><action.toExploreMode>
 nmap x <:close>
 nmap X <action.reopenTab>
 nmap <A-p> <:pin>
 nmap <A-m> <:mute>
 nmap yt <action.openNewTabWithCurrentUrl><CR>
 nmap ? <:help>
-
-vmap c <Esc><pointer.start>
 
 " vim: ft=vim
