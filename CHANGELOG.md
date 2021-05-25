@@ -78,8 +78,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Security
 
-- Electron 13.0.0-beta.27 (was 12.0.5)
-- Chromium 91.0.4472.38 (was 89.0.4389.128)
+- Electron 13.0.0 (was 12.0.5)
+- Chromium 91.0.4472.69 (was 89.0.4389.128)
 - Permissions for "mediadevices" and "notifications" are now blocked by default instead of asking each time
 
 ## [4.5.1](https://github.com/Jelmerro/Vieb/compare/4.5.0...4.5.1) - 2021-04-28
