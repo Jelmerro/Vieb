@@ -124,16 +124,16 @@ const updateGuiVisibility = () => {
 }
 
 module.exports = {
-    listTabs,
-    listPages,
-    currentTab,
-    currentPage,
-    tabOrPageMatching,
     currentMode,
+    currentPage,
+    currentTab,
     getSetting,
-    setStored,
     getStored,
-    setTopOfPageWithMouse,
     guiRelatedUpdate,
+    listPages,
+    listTabs,
+    setStored,
+    setTopOfPageWithMouse,
+    tabOrPageMatching,
     updateGuiVisibility
 }

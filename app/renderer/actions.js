@@ -64,11 +64,6 @@ const previousTab = () => {
     switchToTab(listTabs().indexOf(currentTab()) - 1)
 }
 
-const closeTab = () => {
-    const {"closeTab": close} = require("./tabs")
-    close()
-}
-
 const toExploreMode = () => {
     const {setMode} = require("./modes")
     setMode("explore")
@@ -175,8 +170,8 @@ const forwardInHistory = (customPage = null) => {
 const previousSearchMatch = () => {
     if (currentSearch) {
         currentPage()?.findInPage(currentSearch, {
-            "forward": false,
             "findNext": true,
+            "forward": false,
             "matchCase": !getSetting("ignorecase")
         })
     }
@@ -299,25 +294,16 @@ const editWithVim = () => {
     page.send("action", "writeInputToFile", tempFile)
 }
 
-const openLinkExternal = (suppliedLink = null) => {
-    const ext = getSetting("externalcommand")
-    if (!ext.trim()) {
-        notify("No command set to open links externally, "
-            + "please update the 'externalcommand' setting", "warn")
-        return
-    }
-    const url = suppliedLink || document.getElementById("url-hover").textContent
-        || urlToString(currentPage()?.src)
-    const {exec} = require("child_process")
-    if (url) {
-        exec(`${ext} ${url}`, err => {
-            if (err) {
-                notify("Command to open links externally failed, "
-                    + "please update the 'externalcommand' setting", "err")
-            }
-        })
-    }
+const downloadLink = () => {
+    const {commonAction} = require("./contextmenu")
+    commonAction("link", "download", {"link": currentPage()?.src})
 }
+
+const openLinkExternal = () => {
+    const {commonAction} = require("./contextmenu")
+    commonAction("link", "external", {"link": currentPage()?.src})
+}
+
 const nextSuggestion = () => {
     const {next} = require("./suggest")
     next()
@@ -350,9 +336,9 @@ const exploreHistoryNext = () => {
     next()
 }
 
-const rotateSplitWindow = () => {
-    const {rotate} = require("./pagelayout")
-    rotate()
+const rotateSplitWindowForward = () => {
+    const {rotateForward} = require("./pagelayout")
+    rotateForward()
 }
 
 const rotateSplitWindowBackward = () => {
@@ -494,6 +480,16 @@ const reorderFollowLinks = () => {
 const menuOpen = () => {
     if (currentMode() === "insert") {
         currentPage()?.send("contextmenu")
+    } else if ("sec".includes(currentMode()[0])) {
+        const url = document.getElementById("url")
+        const bounds = url.getBoundingClientRect()
+        const charWidth = getSetting("fontsize") * 0.60191
+        const {viebMenu} = require("./contextmenu")
+        viebMenu({
+            "path": [url],
+            "x": bounds.x + charWidth * url.selectionStart - url.scrollLeft,
+            "y": bounds.y + bounds.height
+        })
     } else {
         const {rightClick} = require("./pointer")
         rightClick()
@@ -525,6 +521,10 @@ const useEnteredData = () => {
     if (currentMode() === "command") {
         const command = document.getElementById("url").value.trim()
         setMode("normal")
+        if (getSetting("commandhist") === "useronly") {
+            const {push} = require("./commandhistory")
+            push(command)
+        }
         const {execute} = require("./command")
         execute(command)
     }
@@ -538,10 +538,12 @@ const useEnteredData = () => {
         setMode("normal")
         if (location) {
             location = searchword(location).url
+            if (getSetting("explorehist")) {
+                const {push} = require("./explorehistory")
+                push(stringToUrl(location))
+            }
             const {navigateTo} = require("./tabs")
             navigateTo(stringToUrl(location))
-            const {push} = require("./explorehistory")
-            push(stringToUrl(location))
         }
     }
 }
@@ -556,7 +558,7 @@ const setFocusCorrectly = () => {
         if (!document.getElementById("context-menu").innerText) {
             currentPage()?.click()
         }
-    } else if (["search", "explore", "command"].includes(currentMode())) {
+    } else if ("sec".includes(currentMode()[0])) {
         if (document.activeElement !== urlElement) {
             window.focus()
             urlElement.focus()
@@ -571,88 +573,88 @@ const setFocusCorrectly = () => {
 }
 
 module.exports = {
-    toCommandMode,
-    toExploreMode,
-    toInsertMode,
-    toSearchMode,
-    toNormalMode,
+    backInHistory,
+    bottomHalfSplitWindow,
+    clickOnSearch,
+    commandHistoryNext,
+    commandHistoryPrevious,
+    decreaseHeightSplitWindow,
+    decreasePageNumber,
+    decreaseWidthSplitWindow,
+    distrubuteSpaceSplitWindow,
+    downloadLink,
+    editWithVim,
+    emptySearch,
+    exchangeSplitWindow,
+    exploreHistoryNext,
+    exploreHistoryPrevious,
+    forwardInHistory,
+    increaseHeightSplitWindow,
+    increasePageNumber,
+    increaseWidthSplitWindow,
+    incrementalSearch,
+    insertAtFirstInput,
+    leftHalfSplitWindow,
+    menuClose,
+    menuDown,
+    menuOpen,
+    menuSelect,
+    menuUp,
+    moveTabBackward,
+    moveTabForward,
+    nextSearchMatch,
+    nextSuggestion,
+    nextTab,
+    openFromClipboard,
+    openLinkExternal,
+    openNewTab,
+    openNewTabWithCurrentUrl,
+    pageToClipboard,
+    prevSuggestion,
+    previousSearchMatch,
+    previousTab,
+    reload,
+    reloadWithoutCache,
+    reopenTab,
+    reorderFollowLinks,
+    rightHalfSplitWindow,
+    rotateSplitWindowBackward,
+    rotateSplitWindowForward,
+    scrollBottom,
+    scrollDown,
+    scrollLeft,
+    scrollPageDown,
+    scrollPageDownHalf,
+    scrollPageLeft,
+    scrollPageRight,
+    scrollPageUp,
+    scrollPageUpHalf,
+    scrollRight,
+    scrollTop,
+    scrollUp,
+    setFocusCorrectly,
     startFollowCurrentTab,
     startFollowNewTab,
     stopFollowMode,
-    scrollTop,
-    scrollBottom,
-    scrollUp,
-    scrollDown,
-    scrollLeft,
-    scrollRight,
-    scrollPageUp,
-    scrollPageDown,
-    scrollPageLeft,
-    scrollPageRight,
-    scrollPageUpHalf,
-    scrollPageDownHalf,
-    reload,
-    reloadWithoutCache,
     stopLoadingPage,
-    openNewTab,
-    openNewTabWithCurrentUrl,
-    closeTab,
-    reopenTab,
-    nextTab,
-    previousTab,
-    moveTabForward,
-    moveTabBackward,
-    backInHistory,
-    forwardInHistory,
-    zoomReset,
+    toBottomSplitWindow,
+    toCommandMode,
+    toExploreMode,
+    toFirstSplitWindow,
+    toInsertMode,
+    toLastSplitWindow,
+    toLastUsedTab,
+    toLeftSplitWindow,
+    toNextSplitWindow,
+    toNormalMode,
+    toPreviousSplitWindow,
+    toRightSplitWindow,
+    toSearchMode,
+    toTopSplitWindow,
+    toggleFullscreen,
+    topHalfSplitWindow,
+    useEnteredData,
     zoomIn,
     zoomOut,
-    rotateSplitWindow,
-    rotateSplitWindowBackward,
-    leftHalfSplitWindow,
-    bottomHalfSplitWindow,
-    topHalfSplitWindow,
-    rightHalfSplitWindow,
-    toLeftSplitWindow,
-    toBottomSplitWindow,
-    toTopSplitWindow,
-    toRightSplitWindow,
-    toLastSplitWindow,
-    toFirstSplitWindow,
-    toNextSplitWindow,
-    toPreviousSplitWindow,
-    exchangeSplitWindow,
-    toLastUsedTab,
-    increaseHeightSplitWindow,
-    decreaseHeightSplitWindow,
-    increaseWidthSplitWindow,
-    decreaseWidthSplitWindow,
-    distrubuteSpaceSplitWindow,
-    emptySearch,
-    incrementalSearch,
-    clickOnSearch,
-    nextSearchMatch,
-    previousSearchMatch,
-    increasePageNumber,
-    decreasePageNumber,
-    insertAtFirstInput,
-    editWithVim,
-    openLinkExternal,
-    nextSuggestion,
-    prevSuggestion,
-    commandHistoryPrevious,
-    commandHistoryNext,
-    exploreHistoryPrevious,
-    exploreHistoryNext,
-    toggleFullscreen,
-    pageToClipboard,
-    openFromClipboard,
-    reorderFollowLinks,
-    menuOpen,
-    menuUp,
-    menuDown,
-    menuSelect,
-    menuClose,
-    useEnteredData,
-    setFocusCorrectly
+    zoomReset
 }

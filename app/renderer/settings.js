@@ -19,6 +19,7 @@
 
 const {ipcRenderer} = require("electron")
 const {
+    specialChars,
     joinPath,
     notify,
     isUrl,
@@ -33,7 +34,8 @@ const {
     pathToSpecialPageName,
     firefoxUseragent,
     title,
-    appName
+    appName,
+    appConfigSettings
 } = require("../util")
 const {
     listTabs,
@@ -53,6 +55,7 @@ const defaultSettings = {
     "clearhistoryonquit": false,
     "clearlocalstorageonquit": false,
     "closablepinnedtabs": false,
+    "commandhist": "useronly",
     "containercolors": "temp\\d+~#ff0",
     "containerkeeponreopen": true,
     "containernewtab": "s:usecurrent",
@@ -63,6 +66,7 @@ const defaultSettings = {
     "devtoolsposition": "window",
     "downloadmethod": "automatic",
     "downloadpath": "~/Downloads/",
+    "explorehist": true,
     "externalcommand": "",
     "favicons": "session",
     "favoritepages": "",
@@ -74,15 +78,17 @@ const defaultSettings = {
     "guihidetimeout": 2000,
     "guinavbar": "always",
     "guitabbar": "always",
-    "keeprecentlyclosed": true,
     "ignorecase": true,
     "incsearch": true,
+    "keeprecentlyclosed": true,
     "maxmapdepth": 10,
+    "menupage": "elementasneeded",
+    "menuvieb": "both",
     "mintabwidth": 28,
     "mouse": true,
     "mousefocus": false,
     "mousenewtabswitch": true,
-    "nativenotification": false,
+    "nativenotification": "never",
     "notificationduration": 6000,
     "notificationforpermissions": false,
     "notificationposition": "bottomright",
@@ -92,11 +98,11 @@ const defaultSettings = {
     "permissiondisplaycapture": "block",
     "permissionfullscreen": "allow",
     "permissiongeolocation": "block",
-    "permissionmediadevices": "ask",
+    "permissionmediadevices": "block",
     "permissionmicrophone": "block",
     "permissionmidi": "block",
     "permissionmidisysex": "block",
-    "permissionnotifications": "ask",
+    "permissionnotifications": "block",
     "permissionopenexternal": "ask",
     "permissionpersistentstorage": "block",
     "permissionpointerlock": "block",
@@ -109,7 +115,6 @@ const defaultSettings = {
         + "~https://$3",
     "redirecttohttp": false,
     "requesttimeout": 20000,
-    "respectsitecontextmenu": true,
     "restoretabs": true,
     "restorewindowmaximize": true,
     "restorewindowposition": true,
@@ -122,13 +127,11 @@ const defaultSettings = {
     "splitbelow": false,
     "splitright": false,
     "startuppages": "",
-    "storenewvisits": true,
+    "storenewvisits": "pages",
     "suggestcommands": 9000000000000000,
-    "suggestfiles": "all",
-    "suggestfilesfirst": false,
-    "suggestexplore": 20,
+    "suggestorder": "history,searchword,file",
     "suggesttopsites": 10,
-    "suspendonrestore": "none",
+    "suspendonrestore": "regular",
     "suspendtimeout": 0,
     "tabclosefocusright": false,
     "tabcycle": true,
@@ -151,11 +154,14 @@ const listLike = [
     "redirects",
     "searchwords",
     "spelllang",
-    "startuppages"
+    "startuppages",
+    "storenewvisits",
+    "suggestorder"
 ]
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
     "cache": ["none", "clearonquit", "full"],
+    "commandhist": ["all", "useronly", "none"],
     "containershowname": ["automatic", "always", "never"],
     "devtoolsposition": ["window", "split", "vsplit", "tab"],
     "downloadmethod": ["automatic", "confirm", "ask", "block"],
@@ -167,6 +173,9 @@ const validOptions = {
     "guifullscreentabbar": ["always", "onupdate", "never"],
     "guinavbar": ["always", "onupdate", "oninput", "never"],
     "guitabbar": ["always", "onupdate", "never"],
+    "menupage": ["always", "globalasneeded", "elementasneeded", "never"],
+    "menuvieb": ["both", "navbar", "tabbar", "never"],
+    "nativenotification": ["always", "smallonly", "never"],
     "notificationposition": [
         "bottomright", "bottomleft", "topright", "topleft"
     ],
@@ -185,7 +194,6 @@ const validOptions = {
     "permissionpersistentstorage": ["block", "ask", "allow"],
     "permissionpointerlock": ["block", "ask", "allow"],
     "permissionunknown": ["block", "ask", "allow"],
-    "suggestfiles": ["none", "commands", "explore", "all"],
     "suspendonrestore": ["all", "regular", "none"],
     "taboverflow": ["hidden", "scroll", "wrap"],
     "tabreopenposition": ["left", "right", "previous"],
@@ -200,7 +208,6 @@ const numberRanges = {
     "notificationduration": [0, 9000000000000000],
     "requesttimeout": [0, 9000000000000000],
     "suggestcommands": [0, 9000000000000000],
-    "suggestexplore": [0, 9000000000000000],
     "suggesttopsites": [0, 9000000000000000],
     "suspendtimeout": [0, 9000000000000000],
     "timeoutlen": [0, 10000]
@@ -267,16 +274,17 @@ const checkNumber = (setting, value) => {
 const checkOther = (setting, value) => {
     // Special cases
     if (setting === "search") {
-        if (value.startsWith("http://") || value.startsWith("https://")) {
-            value = value.replace(/^https?:\/\//g, "")
+        let baseUrl = value
+        if (baseUrl.startsWith("http://") || baseUrl.startsWith("https://")) {
+            baseUrl = baseUrl.replace(/^https?:\/\//g, "")
         }
-        if (value.length === 0 || !value.includes("%s")) {
-            notify(`Invalid search value: ${value}\n`
+        if (baseUrl.length === 0 || !baseUrl.includes("%s")) {
+            notify(`Invalid search value: ${baseUrl}\n`
                     + "URL must contain a %s parameter, which will be "
                     + "replaced by the search string", "warn")
             return false
         }
-        if (!isUrl(value)) {
+        if (!isUrl(baseUrl)) {
             notify("The value of the search setting must be a valid url",
                 "warn")
             return false
@@ -301,10 +309,11 @@ const checkOther = (setting, value) => {
                 + ` ${text}`, "warn")
             return false
         }
-        if (value.replace("%n", "valid").match(/[^A-Za-z0-9_]/g)) {
+        const simpleValue = value.replace("%n", "valid").replace(/_/g, "")
+        if (simpleValue.match(specialChars)) {
             notify(
-                "Only letters, numbers and undercores can appear in the name "
-                + `of a container, invalid ${setting}: ${value}`, "warn")
+                "No special characters besides underscores are allowed in the "
+                + `name of a container, invalid ${setting}: ${value}`, "warn")
             return false
         }
     }
@@ -328,7 +337,7 @@ const checkOther = (setting, value) => {
                     "warn")
                 return false
             }
-            const style = document.createElement("div").style
+            const {style} = document.createElement("div")
             style.color = "white"
             style.color = color
             if (style.color === "white" && color !== "white" || !color) {
@@ -402,7 +411,7 @@ const checkOther = (setting, value) => {
                     + "regular expression from the replacement", "warn")
                 return false
             }
-            const match = redirect.split("~")[0]
+            const [match] = redirect.split("~")
             try {
                 RegExp(match)
             } catch (e) {
@@ -425,10 +434,11 @@ const checkOther = (setting, value) => {
                 return false
             }
             const [keyword, url] = searchword.split("~")
-            if (keyword.length === 0 || /[^a-zA-Z]/.test(keyword)) {
+            const simpleKeyword = keyword.replace(/_/g, "")
+            if (keyword.length === 0 || simpleKeyword.match(specialChars)) {
                 notify(`Invalid searchwords entry: ${searchword}\n`
-                    + "Searchwords before the ~ must have no spaces "
-                    + "and contain only letters", "warn")
+                    + "Searchwords before the ~ must not contain any special "
+                    + "characters besides underscores", "warn")
                 return false
             }
             if (url.length === 0 || !url.includes("%s")) {
@@ -447,6 +457,15 @@ const checkOther = (setting, value) => {
             knownSearchwords.push(keyword)
         }
     }
+    if (setting === "spelllang" && value !== "") {
+        for (const lang of value.split(",")) {
+            if (spelllangs.length && !spelllangs.includes(lang)) {
+                notify(`Invalid language passed to spelllang: ${lang}`,
+                    "warn")
+                return false
+            }
+        }
+    }
     if (["favoritepages", "startuppages"].includes(setting)) {
         for (const page of value.split(",")) {
             if (page.trim() && !isUrl(page)) {
@@ -455,13 +474,81 @@ const checkOther = (setting, value) => {
             }
         }
     }
-    if (setting === "spelllang" && value !== "") {
-        for (const lang of value.split(",")) {
-            if (spelllangs.length && !spelllangs.includes(lang)) {
-                notify(`Invalid language passed to spelllang: ${lang}`,
-                    "warn")
+    if (setting === "storenewvisits") {
+        for (const visitType of value.split(",")) {
+            if (!["pages", "files", "builtin"].includes(visitType)) {
+                notify(`Invalid type of history passed: ${visitType}, `
+                    + "must be one of: pages, files or builtin", "warn")
                 return false
             }
+        }
+    }
+    if (setting === "suggestorder") {
+        return checkSuggestOrder(value)
+    }
+    return true
+}
+
+const checkSuggestOrder = value => {
+    for (const suggest of value.split(",")) {
+        if (!suggest.trim()) {
+            continue
+        }
+        const parts = (suggest.match(/~/g) || []).length
+        if (parts > 2) {
+            notify(`Invalid suggestorder entry: ${suggest}\n`
+                    + "Entries must have at most two ~ to separate the type "
+                    + "from the count and the order (both optional)", "warn")
+            return false
+        }
+        const args = suggest.split("~")
+        const type = args.shift()
+        if (!["history", "file", "searchword"].includes(type)) {
+            notify(`Invalid suggestorder type: ${type}\n`
+                    + "Suggestion type must be one of: history, file or "
+                    + "searchword", "warn")
+            return false
+        }
+        let hasHadCount = false
+        let hasHadOrder = false
+        for (const arg of args) {
+            if (!arg) {
+                notify("Configuration for suggestorder after the type can "
+                        + "not be empty", "warn")
+                return false
+            }
+            const potentialCount = Number(arg)
+            if (potentialCount > 0 && potentialCount <= 9000000000000000) {
+                if (hasHadCount) {
+                    notify("Count configuration for a suggestorder entry "
+                            + "can only be set once per entry", "warn")
+                    return false
+                }
+                hasHadCount = true
+                continue
+            }
+            const validOrders = []
+            if (type === "history") {
+                validOrders.push("alpha", "relevance", "date")
+            }
+            if (type === "file") {
+                validOrders.push("alpha")
+            }
+            if (type === "searchword") {
+                validOrders.push("alpha", "setting")
+            }
+            if (validOrders.includes(arg)) {
+                if (hasHadOrder) {
+                    notify("Order configuration for a suggestorder entry "
+                            + "can only be set once per entry", "warn")
+                    return false
+                }
+                hasHadOrder = true
+                continue
+            }
+            notify(`Order configuration is invalid, supported orders for ${
+                type} suggestions are: ${validOrders.join(", ")}`, "warn")
+            return false
         }
     }
     return true
@@ -473,31 +560,28 @@ const isValidSetting = (setting, value) => {
         return false
     }
     const expectedType = typeof allSettings[setting]
-    if (typeof value === "string") {
-        if (expectedType !== typeof value) {
-            if (expectedType === "number" && !isNaN(Number(value))) {
-                value = Number(value)
-            }
-            if (expectedType === "boolean") {
-                if (["true", "false"].includes(value)) {
-                    value = value === "true"
-                }
-            }
+    let parsedValue = String(value)
+    if (expectedType === "number" && !isNaN(Number(parsedValue))) {
+        parsedValue = Number(value)
+    }
+    if (expectedType === "boolean") {
+        if (["true", "false"].includes(parsedValue)) {
+            parsedValue = value === "true"
         }
     }
-    if (expectedType !== typeof value) {
+    if (expectedType !== typeof parsedValue) {
         notify(`The value of setting '${setting}' is of an incorrect `
             + `type, expected '${expectedType}' but got `
-            + `'${typeof value}' instead.`, "warn")
+            + `'${typeof parsedValue}' instead.`, "warn")
         return false
     }
     if (validOptions[setting]) {
-        return checkOption(setting, value)
+        return checkOption(setting, parsedValue)
     }
     if (numberRanges[setting]) {
-        return checkNumber(setting, value)
+        return checkNumber(setting, parsedValue)
     }
-    return checkOther(setting, value)
+    return checkOther(setting, parsedValue)
 }
 
 const updateContainerSettings = (full = true) => {
@@ -506,7 +590,9 @@ const updateContainerSettings = (full = true) => {
             const color = allSettings.containercolors.split(",").find(
                 c => page.getAttribute("container").match(c.split("~")[0]))
             if (color) {
-                tabOrPageMatching(page).style.color = color.split("~")[1]
+                [, tabOrPageMatching(page).style.color] = color.split("~")
+            } else {
+                tabOrPageMatching(page).style.color = null
             }
         }
     }
@@ -522,8 +608,8 @@ const updateContainerSettings = (full = true) => {
     } else {
         document.getElementById("containername").textContent = container
         if (color) {
-            document.getElementById("containername")
-                .style.color = color.split("~")[1]
+            [, document.getElementById("containername")
+                .style.color] = color.split("~")
         } else {
             document.getElementById("containername").style.color = null
         }
@@ -551,13 +637,13 @@ const updateWebviewSettings = () => {
     const webviewSettingsFile = joinPath(
         appData(), "webviewsettings")
     writeJSON(webviewSettingsFile, {
+        "bg": getComputedStyle(document.body).getPropertyValue("--bg"),
+        "fg": getComputedStyle(document.body).getPropertyValue("--fg"),
         "permissiondisplaycapture": allSettings.permissiondisplaycapture,
         "permissionmediadevices": allSettings.permissionmediadevices,
         "permissionsallowed": allSettings.permissionsallowed,
         "permissionsasked": allSettings.permissionsasked,
-        "permissionsblocked": allSettings.permissionsblocked,
-        "fg": getComputedStyle(document.body).getPropertyValue("--fg"),
-        "bg": getComputedStyle(document.body).getPropertyValue("--bg")
+        "permissionsblocked": allSettings.permissionsblocked
     })
 }
 
@@ -574,9 +660,11 @@ const updatePermissionSettings = () => {
 const updateHelpPage = () => {
     listPages().forEach(p => {
         if (pathToSpecialPageName(p.src).name === "help") {
-            const {listMappingsAsCommandList} = require("./input")
+            const {
+                listMappingsAsCommandList, uncountableActions
+            } = require("./input")
             p.send("settings", settingsWithDefaults(),
-                listMappingsAsCommandList(false, true))
+                listMappingsAsCommandList(false, true), uncountableActions)
         }
     })
 }
@@ -593,6 +681,7 @@ const suggestionList = () => {
             listOfSuggestions.push(`no${setting}`)
             listOfSuggestions.push(`inv${setting}`)
         } else if (validOptions[setting]) {
+            listOfSuggestions.push(`${setting}!`)
             listOfSuggestions.push(`${setting}=`)
             for (const option of validOptions[setting]) {
                 listOfSuggestions.push(`${setting}=${option}`)
@@ -642,19 +731,33 @@ const loadFromDisk = () => {
     }
     const userFirstConfig = expandPath("~/.vieb/viebrc")
     const userGlobalConfig = expandPath("~/.viebrc")
-    for (const conf of [config, userFirstConfig, userGlobalConfig]) {
+    let files = [appConfigSettings().override]
+    if (!appConfigSettings().override) {
+        if (appConfigSettings().order === "user-only") {
+            files = [userGlobalConfig, userFirstConfig]
+        }
+        if (appConfigSettings().order === "datafolder-only") {
+            files = [config]
+        }
+        if (appConfigSettings().order === "user-first") {
+            files = [userGlobalConfig, userFirstConfig, config]
+        }
+        if (appConfigSettings().order === "datafolder-first") {
+            files = [config, userFirstConfig, userGlobalConfig]
+        }
+    }
+    for (const conf of files) {
         if (isFile(conf)) {
             const parsed = readFile(conf)
-            if (parsed) {
-                for (const line of parsed.split("\n")) {
-                    if (line && !line.trim().startsWith("\"")) {
-                        const {execute} = require("./command")
-                        execute(line)
-                    }
+            if (!parsed) {
+                notify(`Read error for config file located at '${conf}'`, "err")
+                continue
+            }
+            for (const line of parsed.split("\n")) {
+                if (line && !line.trim().startsWith("\"")) {
+                    const {execute} = require("./command")
+                    execute(line)
                 }
-            } else {
-                notify(
-                    `Read error for config file located at '${conf}'`, "err")
             }
         }
     }
@@ -675,9 +778,10 @@ const set = (setting, value) => {
     if (isValidSetting(setting, value)) {
         if (setting === "search") {
             if (!value.startsWith("http://") && !value.startsWith("https://")) {
-                value = `https://${value}`
+                allSettings.search = `https://${value}`
+            } else {
+                allSettings.search = value
             }
-            allSettings.search = value
         } else if (typeof allSettings[setting] === "boolean") {
             allSettings[setting] = ["true", true].includes(value)
         } else if (typeof allSettings[setting] === "number") {
@@ -822,19 +926,14 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
         allowedValues = "Comma-separated list"
     }
     if (validOptions[setting]) {
+        typeLabel = "Fixed-set String"
         allowedValues = validOptions[setting]
     }
     if (typeof allSettings[setting] === "boolean") {
         typeLabel = "Boolean flag"
         allowedValues = "true,false"
     }
-    if (setting === "containernewtab") {
-        allowedValues = "see description"
-    }
-    if (setting === "containersplitpage") {
-        allowedValues = "see description"
-    }
-    if (setting === "containerstartuppage") {
+    if (containerSettings.includes(setting)) {
         allowedValues = "see description"
     }
     if (setting === "downloadpath") {
@@ -861,13 +960,23 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
         }
     }
     return {
-        "name": setting,
+        allowedValues,
         "current": allSettings[setting],
         "default": defaultSettings[setting],
-        "typeLabel": typeLabel,
-        "allowedValues": allowedValues
+        "name": setting,
+        typeLabel
     }
 })
+
+const escapeValueChars = value => {
+    if (value?.match?.(/(')/g)?.length) {
+        return `"${value}"`
+    }
+    if (value?.match?.(/("| )/g)?.length) {
+        return `'${value}'`
+    }
+    return value
+}
 
 const listCurrentSettings = full => {
     const settings = JSON.parse(JSON.stringify(allSettings))
@@ -881,15 +990,26 @@ const listCurrentSettings = full => {
     }
     let setCommands = ""
     Object.keys(settings).forEach(setting => {
-        if (typeof settings[setting] === "boolean") {
-            if (settings[setting]) {
+        const value = settings[setting]
+        if (typeof value === "boolean") {
+            if (value) {
                 setCommands += `${setting}\n`
             } else {
                 setCommands += `no${setting}\n`
             }
-        } else {
-            setCommands += `${setting}=${settings[setting]}\n`
+            return
         }
+        if (listLike.includes(setting)) {
+            const entries = value.split(",").filter(v => v)
+            if (entries.length > 1 || value.match(/( |'|")/g)) {
+                setCommands += `${setting}=\n`
+                entries.forEach(entry => {
+                    setCommands += `${setting}+=${escapeValueChars(entry)}\n`
+                })
+                return
+            }
+        }
+        setCommands += `${setting}=${escapeValueChars(value)}\n`
     })
     return setCommands
 }
@@ -917,8 +1037,9 @@ const saveToDisk = full => {
         settingsAsCommands += `" Commands\n${commands}\n\n`
     }
     settingsAsCommands += "\" Viebrc generated by Vieb\n\" vim: ft=vim\n"
-    writeFile(config, settingsAsCommands,
-        `Could not write to '${config}'`, `Viebrc saved to '${config}'`, 4)
+    const destFile = appConfigSettings().override || config
+    writeFile(destFile, settingsAsCommands,
+        `Could not write to '${destFile}'`, `Viebrc saved to '${destFile}'`, 4)
 }
 
 const setCustomStyling = css => {
@@ -945,20 +1066,21 @@ const updateCustomStyling = () => {
 }
 
 module.exports = {
-    init,
     freeText,
+    getCustomStyling,
+    init,
+    listCurrentSettings,
     listLike,
-    updateContainerSettings,
-    suggestionList,
     loadFromDisk,
     reset,
-    set,
-    updateWindowTitle,
-    updateHelpPage,
-    settingsWithDefaults,
-    listCurrentSettings,
     saveToDisk,
+    set,
     setCustomStyling,
-    getCustomStyling,
-    updateCustomStyling
+    settingsWithDefaults,
+    suggestionList,
+    updateContainerSettings,
+    updateCustomStyling,
+    updateHelpPage,
+    updateWindowTitle,
+    validOptions
 }

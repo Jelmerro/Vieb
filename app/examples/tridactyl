@@ -7,14 +7,12 @@ set norestoretabs
 set redirecttohttp
 set noshowcmd
 set noincsearch
-set suggestexplore 9000000000000000
-set suspendonrestore=regular
 set tabreopenposition=previous
 set closablepinnedtabs
 set windowtitle=title
 set searchwords=
 set searchwords+=google~https://www.google.com/search?q=%s
-set searchwords+=googlelucky~https://www.google.com/search?btnI=I'm+Feeling+Lucky&q=%s
+set searchwords+=googlelucky~"https://www.google.com/search?btnI=I'm+Feeling+Lucky&q=%s"
 set searchwords+=scholar~https://scholar.google.com/scholar?q=%s
 set searchwords+=googleuk~https://www.google.co.uk/search?q=%s
 set searchwords+=bing~https://www.bing.com/search?q=%s
@@ -35,8 +33,6 @@ set searchwords+=gentoo_wiki~https://wiki.gentoo.org/index.php?title=Special:Sea
 set searchwords+=qwant~https://www.qwant.com/?q=%s
 
 " Mappings
-nmap <C-e> <action.scrollDown>
-nmap <C-y> <action.scrollUp>
 nmap yy <action.pageToClipboard>
 nmap o <action.toExploreMode>
 nmap b <action.toCommandMode>buffer<Space>
@@ -48,7 +44,6 @@ nmap K <action.nextTab>
 nmap >> <action.moveTabForward>
 nmap <lt><lt> <action.moveTabBackward>
 nmap O <action.toExploreMode><End>
-nmap E <action.openNewTab><action.toExploreMode><End>
 nmap gx0 <:lclose>
 nmap gx$ <:rclose>
 nmap <A-p> <:pin>
@@ -69,4 +64,3 @@ nmap zO 7<action.zoomOut>
 nmap <A-S-Up><A-S-Up><A-S-Down><A-S-Down><A-S-Left><A-S-Right><A-S-Left><A-S-Right>ba <action.toExploreMode>https://www.youtube.com/watch?v=M3iOROuTuMA<CR>
 
 " vim: ft=vim
-

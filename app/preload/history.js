@@ -37,46 +37,46 @@ pastYear.setFullYear(pastYear.getFullYear() - 1)
 // Only breakpoints that make sense AND contain history entries will be visible
 const dateBreakpoints = [
     {
-        "title": "Past hour",
-        "link": "hour",
         "date": anHourAgo,
-        "enabled": true
+        "enabled": true,
+        "link": "hour",
+        "title": "Past hour"
     },
     {
-        "title": "Today",
-        "link": "day",
         "date": todayStartTime,
-        "enabled": anHourAgo.getTime() > todayStartTime.getTime()
+        "enabled": anHourAgo.getTime() > todayStartTime.getTime(),
+        "link": "day",
+        "title": "Today"
     },
     {
-        "title": "Yesterday",
-        "link": "yesterday",
         "date": yesterdayStartTime,
-        "enabled": true
+        "enabled": true,
+        "link": "yesterday",
+        "title": "Yesterday"
     },
     {
-        "title": "Past 7 days",
-        "link": "week",
         "date": pastSevenDays,
-        "enabled": true
+        "enabled": true,
+        "link": "week",
+        "title": "Past 7 days"
     },
     {
-        "title": "This month",
-        "link": "month",
         "date": thisMonth,
-        "enabled": pastSevenDays.getTime() > thisMonth.getTime()
+        "enabled": pastSevenDays.getTime() > thisMonth.getTime(),
+        "link": "month",
+        "title": "This month"
     },
     {
-        "title": "Past year",
-        "link": "year",
         "date": pastYear,
-        "enabled": true
+        "enabled": true,
+        "link": "year",
+        "title": "Past year"
     },
     {
-        "title": "Older than a year",
-        "link": "old",
         "date": null,
-        "enabled": true
+        "enabled": true,
+        "link": "old",
+        "title": "Older than a year"
     }
 ].reverse().filter(b => b.enabled)
 let currentBreakpointIndex = 0
@@ -193,16 +193,16 @@ const clearHistory = () => {
     clearLinesFromHistory(0, newestElement.getAttribute("hist-line"))
 }
 
-const clearLinesFromHistory = (start, end = null) => {
-    start = Number(start)
+const clearLinesFromHistory = (startStr, endStr = null) => {
     if (currentlyRemoving) {
         return
     }
     currentlyRemoving = true
-    if (!end) {
+    const start = Number(startStr)
+    let end = Number(endStr)
+    if (!endStr || isNaN(end)) {
         end = start
     }
-    end = Number(end)
     const entries = [...document.querySelectorAll("*[hist-line]")].filter(h => {
         if (!h || h.style.display === "none") {
             return false
@@ -213,7 +213,7 @@ const clearLinesFromHistory = (start, end = null) => {
         h.classList.add("marked")
         const date = h.querySelector(".hist-date").getAttribute("iso")
         const url = h.querySelector("a").getAttribute("href")
-        return {url, date}
+        return {date, url}
     })
     ipcRenderer.sendToHost("history-list-request", "range", entries)
 }
@@ -255,10 +255,7 @@ window.addEventListener("load", () => {
     ipcRenderer.sendToHost("history-list-request")
 })
 
-ipcRenderer.on("history-list", (_, historyList) => {
-    historyList = JSON.parse(historyList)
-    receiveHistory(historyList)
-})
+ipcRenderer.on("history-list", (_, h) => receiveHistory(JSON.parse(h)))
 
 ipcRenderer.on("history-removal-status", success => {
     [...document.querySelectorAll(".marked")].forEach(m => {

@@ -22,16 +22,6 @@ const {
     findElementAtPosition, querySelectorAll, findFrameInfo
 } = require("../util")
 
-let startX = 0
-let startY = 0
-let scrollHeight = 0
-
-ipcRenderer.on("selection-start-location", (_, sX, sY) => {
-    startX = sX
-    startY = sY
-    scrollHeight = window.scrollY
-})
-
 const documentAtPos = (x, y) => findElementAtPosition(x, y)
     ?.ownerDocument || document
 
@@ -45,43 +35,7 @@ ipcRenderer.on("selection-paste", (_, x, y) => documentAtPos(x, y)
     .execCommand("paste"))
 ipcRenderer.on("selection-remove", (_, x, y) => documentAtPos(x, y)
     .getSelection().removeAllRanges())
-
-ipcRenderer.on("download-image-request", (_, x, y) => {
-    const elements = [findElementAtPosition(x, y)]
-    while (elements[0]?.parentNode) {
-        elements.unshift(elements[0].parentNode)
-    }
-    for (const el of elements) {
-        if (el?.tagName?.toLowerCase() === "img" && el.src) {
-            ipcRenderer.sendToHost("download-image", el.src.split("?")[0])
-            break
-        }
-        if (el?.tagName?.toLowerCase() === "svg") {
-            ipcRenderer.sendToHost("download-image", window.URL.createObjectURL(
-                new Blob(el.outerHTML.split(), {"type": "img/svg"})))
-            break
-        }
-        let withUrl = false
-        try {
-            withUrl = getComputedStyle(el).backgroundImage?.startsWith("url")
-        } catch (__) {
-            // Window and top-level nodes don't support getComputedStyle
-        }
-        if (withUrl) {
-            let url = getComputedStyle(el).backgroundImage.slice(4, -1)
-            if (url.startsWith("\"") || url.startsWith("'")) {
-                url = url.slice(1)
-            }
-            if (url.endsWith("\"") || url.endsWith("'")) {
-                url = url.slice(0, -1)
-            }
-            ipcRenderer.sendToHost("download-image", url, true)
-            break
-        }
-    }
-})
-
-ipcRenderer.on("selection-request", (_, endX, endY) => {
+ipcRenderer.on("selection-request", (_, startX, startY, endX, endY) => {
     querySelectorAll("*")
     let startNode = findElementAtPosition(startX, startY)
     if (!startNode || startY < 0 || startY > window.innerHeight) {
@@ -89,10 +43,10 @@ ipcRenderer.on("selection-request", (_, endX, endY) => {
     }
     const selectDocument = startNode?.ownerDocument || document
     const padding = findFrameInfo(startNode)
-    const startResult = calculateOffset(startNode,
+    const startResult = calculateOffset(startNode, startX, startY,
         startX - (padding?.x || 0), startY - (padding?.y || 0))
     const endNode = findElementAtPosition(endX, endY)
-    const endResult = calculateOffset(endNode,
+    const endResult = calculateOffset(endNode, startX, startY,
         endX - (padding?.x || 0), endY - (padding?.y || 0))
     const newSelectRange = selectDocument.createRange()
     newSelectRange.setStart(startResult.node, startResult.offset)
@@ -119,7 +73,7 @@ const isTextNode = node => [
     Node.TEXT_NODE, Node.COMMENT_NODE, Node.CDATA_SECTION_NODE
 ].includes(node.nodeType)
 
-const calculateOffset = (startNode, x, y) => {
+const calculateOffset = (startNode, startX, startY, x, y) => {
     const range = (findElementAtPosition(startX, startY)
         ?.ownerDocument || document).createRange()
     range.setStart(startNode, 0)
@@ -166,16 +120,16 @@ const calculateOffset = (startNode, x, y) => {
     }
     descendNodeTree(startNode)
     range.detach()
-    return {"node": properNode, "offset": offset}
+    return {"node": properNode, offset}
 }
 
 let searchPos = {}
 let searchElement = null
 let justSearched = false
+let scrollHeight = 0
 
 window.addEventListener("scroll", () => {
     const scrollDiff = scrollHeight - window.scrollY
-    startY += scrollDiff
     scrollHeight = window.scrollY
     ipcRenderer.sendToHost("scroll-height-diff", scrollDiff)
     if (justSearched) {

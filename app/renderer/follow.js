@@ -109,7 +109,9 @@ const clickAtLink = async link => {
         return
     }
     setMode("insert")
-    await new Promise(r => setTimeout(r, 2))
+    await new Promise(r => {
+        setTimeout(r, 2)
+    })
     if (link.type === "inputs-insert") {
         currentPage().send("focus-input",
             {"x": link.x + link.width / 2, "y": link.y + link.height / 2})
@@ -118,23 +120,25 @@ const clickAtLink = async link => {
             "type": "mouseEnter", "x": link.x * factor, "y": link.y * factor
         })
         currentPage().sendInputEvent({
+            "button": "left",
+            "clickCount": 1,
             "type": "mouseDown",
             "x": (link.x + link.width / 2) * factor,
-            "y": (link.y + link.height / 2) * factor,
-            "button": "left",
-            "clickCount": 1
+            "y": (link.y + link.height / 2) * factor
         })
         currentPage().sendInputEvent({
+            "button": "left",
             "type": "mouseUp",
             "x": (link.x + link.width / 2) * factor,
-            "y": (link.y + link.height / 2) * factor,
-            "button": "left"
+            "y": (link.y + link.height / 2) * factor
         })
         currentPage().sendInputEvent({
             "type": "mouseLeave", "x": link.x * factor, "y": link.y * factor
         })
     }
-    await new Promise(r => setTimeout(r, 2))
+    await new Promise(r => {
+        setTimeout(r, 2)
+    })
     document.getElementById("url-hover").style.display = "none"
 }
 
@@ -145,7 +149,7 @@ const reorderDisplayedLinks = () => {
 
 const applyIndexedOrder = () => {
     savedOrder.forEach((type, index) => {
-        ;[...document.querySelectorAll(`.follow-${type}`)]
+        [...document.querySelectorAll(`.follow-${type}`)]
             .forEach(e => { e.style.zIndex = index + 10 })
         ;[...document.querySelectorAll(`.follow-${type}-border`)]
             .forEach(e => { e.style.zIndex = index + 5 })
@@ -156,23 +160,24 @@ const applyIndexedOrder = () => {
         .forEach(e => { e.style.zIndex = 4 })
 }
 
-const parseAndDisplayLinks = newLinks => {
+const parseAndDisplayLinks = receivedLinks => {
     if (currentMode() !== "follow" || alreadyFollowing) {
         return
     }
+    let newLinks = receivedLinks
     if (followNewtab) {
         const {hasProtocol} = require("../util")
-        newLinks = newLinks.filter(link => hasProtocol(link.url))
-        newLinks = newLinks.map(link => ({...link, "type": "url"}))
+        newLinks = receivedLinks.filter(link => hasProtocol(link.url))
+            .map(link => ({...link, "type": "url"}))
     }
     if (links.length) {
-        for (let i = 0;i < links.length;i++) {
+        for (let i = 0; i < links.length; i++) {
             if (!linkInList(newLinks, links[i])) {
                 links[i] = null
             }
         }
         newLinks.filter(l => !linkInList(links, l)).forEach(newLink => {
-            for (let i = 0;i < links.length;i++) {
+            for (let i = 0; i < links.length; i++) {
                 if (!links[i]) {
                     links[i] = newLink
                     return
@@ -201,14 +206,14 @@ const parseAndDisplayLinks = newLinks => {
         const linkElement = document.createElement("span")
         linkElement.textContent = numberToKeys(index, links.length)
         linkElement.className = `follow-${link.type}`
-        const charWidth = getSetting("fontsize") * 0.6
+        const charWidth = getSetting("fontsize") * 0.60191
         const borderRightMargin = charWidth * linkElement.textContent.length
-            + getSetting("fontsize") * .5
+            + getSetting("fontsize") * 0.5
         let left = (link.x + link.width) * factor
         if (left > currentPage().scrollWidth - borderRightMargin) {
             left = currentPage().scrollWidth - borderRightMargin
         }
-        linkElement.style.left = `${left}px`
+        linkElement.style.left = `${left.toFixed(2)}px`
         const top = Math.max(link.y * factor, 0)
         linkElement.style.top = `${top}px`
         linkElement.setAttribute("link-id", index)
@@ -219,8 +224,8 @@ const parseAndDisplayLinks = newLinks => {
                 setMode(getStored("modebeforefollow"))
                 const {addTab} = require("./tabs")
                 addTab({
-                    "url": link.url,
-                    "switchTo": getSetting("mousenewtabswitch")
+                    "switchTo": getSetting("mousenewtabswitch"),
+                    "url": link.url
                 })
             } else {
                 await clickAtLink(link)
@@ -281,9 +286,9 @@ const enterKey = async id => {
             }
             const {addTab} = require("./tabs")
             addTab({
-                "url": link.url,
                 "switchTo": !stayInFollowMode
-                    && getSetting("follownewtabswitch")
+                    && getSetting("follownewtabswitch"),
+                "url": link.url
             })
             return
         }
@@ -298,9 +303,9 @@ const enterKey = async id => {
 }
 
 module.exports = {
-    startFollow,
     cancelFollow,
-    reorderDisplayedLinks,
+    enterKey,
     parseAndDisplayLinks,
-    enterKey
+    reorderDisplayedLinks,
+    startFollow
 }

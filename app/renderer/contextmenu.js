@@ -17,7 +17,9 @@
 */
 "use strict"
 
-const {stringToUrl, urlToString, isUrl} = require("../util")
+const {
+    stringToUrl, urlToString, isUrl, specialChars, notify, title
+} = require("../util")
 const {
     listTabs, currentPage, tabOrPageMatching, currentMode, getSetting
 } = require("./common")
@@ -25,65 +27,68 @@ const {
 const contextMenu = document.getElementById("context-menu")
 
 const viebMenu = options => {
+    clear()
     contextMenu.style.top = `${options.y}px`
     contextMenu.style.left = `${options.x}px`
-    clear()
     const {clipboard} = require("electron")
     const {
         useEnteredData, backInHistory, forwardInHistory, reload
     } = require("./actions")
     const {addTab, reopenTab, closeTab} = require("./tabs")
-    if (options.path.find(el => el.matches?.("#url"))) {
+    const menuSetting = getSetting("menuvieb")
+    const navMenu = menuSetting === "both" || menuSetting === "navbar"
+    if (options.path.find(el => el.matches?.("#url")) && navMenu) {
         createMenuItem({
-            "title": "Select all",
             "action": () => {
                 if (!"sec".includes(currentMode()[0])) {
                     const {setMode} = require("./modes")
                     setMode("explore")
                 }
                 document.getElementById("url").select()
-            }
+            },
+            "title": "Select all"
         })
         if (document.getElementById("url").value.trim().length) {
-            createMenuItem({
-                "title": "Go", "action": () => useEnteredData()
-            })
+            if ("sec".includes(currentMode()[0])) {
+                createMenuItem({
+                    "action": () => useEnteredData(), "title": "Go"
+                })
+            }
         }
         if (getSelection().toString().trim()) {
             createMenuItem({
-                "title": "Cut",
                 "action": () => {
                     if (!"sec".includes(currentMode()[0])) {
                         const {setMode} = require("./modes")
                         setMode("explore")
                     }
                     document.execCommand("cut")
-                }
+                },
+                "title": "Cut"
             })
             createMenuItem({
-                "title": "Copy",
                 "action": () => {
                     if (!"sec".includes(currentMode()[0])) {
                         const {setMode} = require("./modes")
                         setMode("explore")
                     }
                     document.execCommand("copy")
-                }
+                },
+                "title": "Copy"
             })
         }
         if (clipboard.readText().trim()) {
             createMenuItem({
-                "title": "Paste",
                 "action": () => {
                     if (!"sec".includes(currentMode()[0])) {
                         const {setMode} = require("./modes")
                         setMode("explore")
                     }
                     document.execCommand("paste")
-                }
+                },
+                "title": "Paste"
             })
             createMenuItem({
-                "title": "Paste & go",
                 "action": () => {
                     if (!"sec".includes(currentMode()[0])) {
                         const {setMode} = require("./modes")
@@ -91,11 +96,14 @@ const viebMenu = options => {
                     }
                     document.execCommand("paste")
                     useEnteredData()
-                }
+                },
+                "title": "Paste & go"
             })
         }
+        fixAlignmentNearBorders()
     }
-    if (options.path.find(el => el.matches?.("#tabs"))) {
+    const tabMenu = menuSetting === "both" || menuSetting === "tabbar"
+    if (options.path.find(el => el.matches?.("#tabs")) && tabMenu) {
         const tab = options.path.find(el => el.matches?.("#tabs > span"))
         if (!tab) {
             fixAlignmentNearBorders()
@@ -107,87 +115,94 @@ const viebMenu = options => {
             pinTitle = "Unpin"
         }
         createMenuItem({
-            "title": pinTitle,
             "action": () => {
                 const {execute} = require("./command")
                 execute(`pin ${listTabs().indexOf(tab)}`)
-            }
+            },
+            "title": pinTitle
         })
         createMenuItem({
-            "title": "Refresh", "action": () => reload(tabOrPageMatching(tab))
+            "action": () => reload(tabOrPageMatching(tab)), "title": "Refresh"
         })
         createMenuItem({
-            "title": "Previous",
-            "action": () => backInHistory(tabOrPageMatching(tab))
+            "action": () => backInHistory(tabOrPageMatching(tab)),
+            "title": "Previous"
         })
         createMenuItem({
-            "title": "Next",
-            "action": () => forwardInHistory(tabOrPageMatching(tab))
+            "action": () => forwardInHistory(tabOrPageMatching(tab)),
+            "title": "Next"
         })
-        createMenuItem({"title": "Open new", "action": addTab})
-        createMenuItem({"title": "Undo closed", "action": reopenTab})
+        createMenuItem({"action": addTab, "title": "Open new"})
+        createMenuItem({"action": reopenTab, "title": "Undo closed"})
         createMenuItem({
-            "title": "Copy url",
             "action": () => clipboard.writeText(urlToString(
-                tabOrPageMatching(tab).src))
+                tabOrPageMatching(tab).src)),
+            "title": "Copy url"
         })
         if (!pinned || getSetting("closablepinnedtabs")) {
             createMenuItem({
-                "title": "Close this",
-                "action": () => {
-                    closeTab(listTabs().indexOf(tab))
-                }
+                "action": () => closeTab(listTabs().indexOf(tab)),
+                "title": "Close this"
             })
         }
+        fixAlignmentNearBorders()
     }
-    fixAlignmentNearBorders()
 }
 
 const webviewMenu = options => {
-    if (!getSetting("mouse") && currentMode() !== "insert") {
-        clear()
+    clear()
+    if (currentMode() !== "insert") {
+        const {setMode} = require("./modes")
+        setMode("normal")
+    }
+    const menuSetting = getSetting("menupage")
+    if (menuSetting === "never") {
         return
     }
-    if (options.hasExistingListener && getSetting("respectsitecontextmenu")) {
-        clear()
+    if (options.hasGlobalListener && menuSetting === "globalasneeded") {
+        return
+    }
+    if (options.hasElementListener && menuSetting !== "always") {
         return
     }
     const {clipboard} = require("electron")
-    const {
-        openLinkExternal, backInHistory, forwardInHistory, reload
-    } = require("./actions")
-    const {addTab, navigateTo} = require("./tabs")
+    const {backInHistory, forwardInHistory, reload} = require("./actions")
     const webviewY = Number(currentPage().style.top.replace("px", ""))
     const webviewX = Number(currentPage().style.left.replace("px", ""))
     const zoom = currentPage().getZoomFactor()
     contextMenu.style.top = `${Math.round(options.y * zoom + webviewY)}px`
     contextMenu.style.left = `${Math.round(options.x * zoom + webviewX)}px`
-    clear()
-    createMenuItem({"title": "Refresh", "action": () => reload()})
-    createMenuItem({"title": "Previous", "action": () => backInHistory()})
-    createMenuItem({"title": "Next", "action": () => forwardInHistory()})
-    createMenuItem({"title": "Save page",
+    createMenuItem({"action": () => reload(), "title": "Refresh"})
+    createMenuItem({"action": () => backInHistory(), "title": "Previous"})
+    createMenuItem({"action": () => forwardInHistory(), "title": "Next"})
+    createMenuItem({
         "action": () => {
             const {execute} = require("./command")
             execute("write")
-        }})
+        },
+        "title": "Save page"
+    })
     createMenuItem({
-        "title": "Inspect",
         "action": () => currentPage().inspectElement(
-            Math.round(options.x + webviewX), Math.round(options.y + webviewY))
+            Math.round(options.x + webviewX), Math.round(options.y + webviewY)),
+        "title": "Inspect"
     })
     const {updateKeysOnScreen} = require("./input")
     updateKeysOnScreen()
     if (options.canEdit && options.inputVal && options.inputSel >= 0) {
-        const words = options.inputVal.split(/(\w+|\W+)/g).filter(s => s)
+        const wordRegex = specialChars.source.replace("[", "[^")
+        const words = options.inputVal.split(new RegExp(`(${
+            wordRegex}+|${specialChars.source}+)`, "g")).filter(s => s)
         let letterCount = 0
         let wordIndex = 0
         let word = words[wordIndex]
         while (wordIndex < words.length) {
             word = words[wordIndex].trim()
             letterCount += words[wordIndex].length
-            if (word.match(/\w+/g) && letterCount >= options.inputSel) {
-                break
+            if (letterCount >= options.inputSel) {
+                if (word.match(new RegExp(`${wordRegex}+`, "g"))) {
+                    break
+                }
             }
             wordIndex += 1
         }
@@ -198,141 +213,112 @@ const webviewMenu = options => {
         }
         for (const suggestion of suggestions) {
             createMenuItem({
-                "title": suggestion,
                 "action": () => {
                     words[wordIndex] = suggestion
                     currentPage().send("replace-input-field",
                         words.join(""), options.inputSel)
-                }
+                },
+                "title": suggestion
             })
         }
     }
-    if (options.frame) {
-        createMenuGroup("Iframe")
-        createMenuItem({
-            "title": "Navigate",
-            "action": () => navigateTo(stringToUrl(options.frame))
-        })
-        createMenuItem({
-            "title": "In new tab",
-            "action": () => addTab({"url": stringToUrl(options.frame)})
-        })
-        createMenuItem({
-            "title": "Copy location",
-            "action": () => clipboard.writeText(options.frame)
-        })
-        createMenuItem({
-            "title": "Download",
-            "action": () => currentPage().downloadURL(options.frame)
-        })
-    }
     createMenuGroup("Text")
     createMenuItem({
-        "title": "Select all",
         "action": () => currentPage().send("selection-all",
-            options.x, options.y)
+            options.x, options.y),
+        "title": "Select all"
     })
     if (options.text) {
         if (options.canEdit) {
             createMenuItem({
-                "title": "Cut",
                 "action": () => currentPage().send("selection-cut",
-                    options.x, options.y)
+                    options.x, options.y),
+                "title": "Cut"
             })
         }
         createMenuItem({
-            "title": "Copy", "action": () => clipboard.writeText(options.text)
+            "action": () => clipboard.writeText(options.text), "title": "Copy"
         })
     }
     if (options.canEdit && clipboard.readText().trim()) {
         createMenuItem({
-            "title": "Paste",
             "action": () => currentPage().send("selection-paste",
-                options.x, options.y)
+                options.x, options.y),
+            "title": "Paste"
         })
     }
     if (options.text) {
-        createMenuGroup("Selection")
         if (isUrl(options.text)) {
             createMenuItem({
-                "title": "Navigate",
-                "action": () => navigateTo(stringToUrl(options.text))
+                "action": () => commonAction("text", "open", options),
+                "title": "Navigate"
             })
             createMenuItem({
-                "title": "In new tab",
-                "action": () => addTab({"url": stringToUrl(options.text)})
+                "action": () => commonAction("text", "newtab", options),
+                "title": "In new tab"
             })
         } else {
             createMenuItem({
-                "title": "Search",
-                "action": () => navigateTo(stringToUrl(options.text))
+                "action": () => commonAction("text", "open", options),
+                "title": "Search"
             })
             createMenuItem({
-                "title": "Search in new tab",
-                "action": () => addTab({"url": stringToUrl(options.text)})
+                "action": () => commonAction("text", "newtab", options),
+                "title": "Search in new tab"
             })
         }
     }
-    if (options.img) {
+    if (options.img || options.backgroundImg || options.svgData) {
         createMenuGroup("Image")
         createMenuItem({
-            "title": "Navigate", "action": () => navigateTo(options.img)
+            "action": () => commonAction("img", "open", options),
+            "title": "Navigate"
         })
         createMenuItem({
-            "title": "In new tab", "action": () => addTab({"url": options.img})
+            "action": () => commonAction("img", "newtab", options),
+            "title": "In new tab"
         })
         createMenuItem({
-            "title": "Download",
-            "action": () => currentPage().downloadURL(options.img)
+            "action": () => commonAction("img", "copy", options),
+            "title": "Copy link"
+        })
+        createMenuItem({
+            "action": () => commonAction("img", "copyimage", options),
+            "title": "Copy image"
+        })
+        createMenuItem({
+            "action": () => commonAction("img", "download", options),
+            "title": "Download"
+        })
+        createMenuItem({
+            "action": () => commonAction("img", "external", options),
+            "title": "With external"
         })
     }
-    if (options.video) {
-        createMenuGroup("Video")
-        createMenuItem({
-            "title": "Navigate", "action": () => navigateTo(options.video)
-        })
-        createMenuItem({
-            "title": "In new tab",
-            "action": () => addTab({"url": options.video})
-        })
-        createMenuItem({
-            "title": "Download",
-            "action": () => currentPage().downloadURL(options.video)
-        })
-    }
-    if (options.audio) {
-        createMenuGroup("Audio")
-        createMenuItem({
-            "title": "Navigate", "action": () => navigateTo(options.audio)
-        })
-        createMenuItem({
-            "title": "In new tab",
-            "action": () => addTab({"url": options.audio})
-        })
-        createMenuItem({
-            "title": "Download",
-            "action": () => currentPage().downloadURL(options.audio)
-        })
-    }
-    if (options.link) {
-        createMenuGroup("Link")
-        createMenuItem({
-            "title": "Navigate", "action": () => navigateTo(options.link)
-        })
-        createMenuItem({
-            "title": "In new tab", "action": () => addTab({"url": options.link})
-        })
-        createMenuItem({
-            "title": "Copy", "action": () => clipboard.writeText(options.link)
-        })
-        createMenuItem({
-            "title": "Download",
-            "action": () => currentPage().downloadURL(options.link)
-        })
-        createMenuItem({
-            "title": "With external",
-            "action": () => openLinkExternal(options.link)
-        })
+    for (const type of ["frame", "video", "audio", "link"]) {
+        if (options[type]) {
+            createMenuGroup(title(type))
+            createMenuItem({
+                "action": () => commonAction(type, "open", options),
+                "title": "Navigate"
+            })
+            createMenuItem({
+                "action": () => commonAction(type, "newtab", options),
+                "title": "In new tab"
+            })
+            createMenuItem({
+                "action": () => commonAction(type, "copy", options),
+                "title": "Copy link"
+            })
+            createMenuItem({
+                "action": () => commonAction(type, "download", options),
+                "title": "Download"
+            })
+            createMenuItem({
+                "action": () => commonAction(type, "external", options),
+                "title": "With external"
+            })
+        }
     }
     fixAlignmentNearBorders()
 }
@@ -343,21 +329,21 @@ const linkMenu = options => {
     clear()
     const {addTab, navigateTo} = require("./tabs")
     createMenuItem({
-        "title": "Navigate", "action": () => navigateTo(options.link)
+        "action": () => navigateTo(options.link), "title": "Navigate"
     })
     createMenuItem({
-        "title": "In new tab", "action": () => addTab({"url": options.link})
+        "action": () => addTab({"url": options.link}), "title": "In new tab"
     })
     createMenuItem({
-        "title": "Copy",
         "action": () => {
             const {clipboard} = require("electron")
             clipboard.writeText(options.link)
-        }
+        },
+        "title": "Copy"
     })
     createMenuItem({
-        "title": "Download",
-        "action": () => currentPage().downloadURL(options.link)
+        "action": () => currentPage().downloadURL(options.link),
+        "title": "Download"
     })
     fixAlignmentNearBorders()
 }
@@ -367,20 +353,20 @@ const commandMenu = options => {
     contextMenu.style.left = `${options.x}px`
     clear()
     createMenuItem({
-        "title": "Execute",
         "action": () => {
             const {setMode} = require("./modes")
             setMode("normal")
             const {execute} = require("./command")
             execute(options.command)
-        }
+        },
+        "title": "Execute"
     })
     createMenuItem({
-        "title": "Copy",
         "action": () => {
             const {clipboard} = require("electron")
             clipboard.writeText(options.command)
-        }
+        },
+        "title": "Copy"
     })
     fixAlignmentNearBorders()
 }
@@ -413,10 +399,10 @@ const fixAlignmentNearBorders = () => {
     }
 }
 
-const createMenuGroup = title => {
+const createMenuGroup = name => {
     const item = document.createElement("div")
     item.className = "menu-group"
-    item.textContent = title
+    item.textContent = name
     contextMenu.appendChild(item)
 }
 
@@ -467,14 +453,70 @@ const down = () => {
 
 const select = () => contextMenu.querySelector(".selected")?.click()
 
+const commonAction = (type, action, options) => {
+    let relevantData = options[type]
+    if (type === "img") {
+        relevantData = options.img || options.backgroundImg || options.svgData
+    }
+    if (!relevantData) {
+        return
+    }
+    if (action === "copyimage") {
+        const {clipboard} = require("electron")
+        clipboard.clear()
+        const el = document.createElement("img")
+        const canvas = document.createElement("canvas")
+        el.onload = () => {
+            canvas.width = el.naturalWidth
+            canvas.height = el.naturalHeight
+            canvas.getContext("2d").drawImage(el, 0, 0)
+            const {nativeImage} = require("electron")
+            clipboard.writeImage(nativeImage.createFromDataURL(
+                canvas.toDataURL("image/png")))
+        }
+        el.src = relevantData
+        return
+    }
+    relevantData = stringToUrl(relevantData)
+    if (action === "open") {
+        const {navigateTo} = require("./tabs")
+        navigateTo(relevantData)
+    } else if (action === "newtab") {
+        const {addTab} = require("./tabs")
+        addTab({"url": relevantData})
+    } else if (action === "copy") {
+        const {clipboard} = require("electron")
+        clipboard.writeText(relevantData)
+    } else if (action === "download") {
+        currentPage().downloadURL(relevantData)
+    } else if (action === "external") {
+        const ext = getSetting("externalcommand")
+        if (!ext.trim()) {
+            notify("No command set to open links externally, "
+                + "please update the 'externalcommand' setting", "warn")
+            return
+        }
+        const {exec} = require("child_process")
+        if (relevantData) {
+            exec(`${ext} "${relevantData}"`, err => {
+                if (err) {
+                    notify("Command to open links externally failed, "
+                        + "please update the 'externalcommand' setting", "err")
+                }
+            })
+        }
+    }
+}
+
 module.exports = {
-    viebMenu,
-    webviewMenu,
-    linkMenu,
-    commandMenu,
-    clear,
     active,
-    up,
+    clear,
+    commandMenu,
+    commonAction,
     down,
-    select
+    linkMenu,
+    select,
+    up,
+    viebMenu,
+    webviewMenu
 }

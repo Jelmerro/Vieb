@@ -13,14 +13,74 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Setting "suggestorder" that merges all explore mode related settings into one, with additional functionality
+- The "suggestorder" is a list-like setting that accepts different suggestion types, with optional count and sort order arguments
+- Suggestions for searchwords using the new "suggestorder" setting by default
+- Default mapping for quitting Vieb with `<A-F4>` which doubles as the mapping that gets executed for other close requests
+- Copy link option for audio, video and images in the context menu
+- Copy image option for images, background images and svg elements in the context menu (they are categorized as images in that order)
+- Pointer action "swapPosition" to switch the current pointer location with the start location of the visual selection
+- Command syntax to cycle fixed-set strings using the "!" suffix, similar to boolean type settings
+- Startup arguments "--config-order" and "--config-file" to better control which config files get loaded
+- Command mapping list to the header of commands on the help page
+- Setting "menupage" to control when the context menu of the webpage should appear, possibly over the website's menu
+- Setting "menuvieb" to control when the context menu should appear for the Vieb elements like the navbar and the tabbar
+- Pointer mode actions for most context menu options, such as "pointer.downloadAudio", "pointer.newtabVideo" and "pointer.copyImageBuffer"
+- Setting "commandhist" to control which commands should be stored in the history
+- Setting "explorehist" to control which navigations should be stored in the history
+- Prefix "!" to command mode that will run system commands directly
+
+### Changed
+
+- Unsupported startup arguments are now ignored with a warning instead of preventing startup (they could be chromium args)
+- More names than before are allowed for containers, as it works with a small blocklist instead of an allowlist for characters
+- More names for seachwords are now allowed as part of the keyword, for similar reasons as above
+- Container names in Erwic configs will no longer replace special characters, but will report and exit
+- Word separator keybindings in the navbar wll now detect separators for non-latin scriptures using a whitelist of separators
+- Default value of "permissionmediadevices" and "permissionnotifications" from "ask" to "block" to reduce the amount of popups
+- Startup arguments now accept values separated by `=` instead of spaces or no value at all
+- Renamed "rotateSplitWindow" to "rotateSplitWindowForward" to be more consistent with the recently introduced "Backward" variant
+- Calling action "menuOpen" from navbar input modes now opens the context menu of the navbar
+- Don't load regular tabs on startup, but suspend them (they are not loaded until you switch to them)
+- Common URI schemes and IPv6 addresses are now recognized as links by explore mode and when navigating
+- Remove side effects of lock keys by mapping them to Nop by default
+- Reworked eslint config to be more strict and more accurately represent the desired code style
+- Default config parse order is now "user-first", use "--config-order=datafolder-first" to revert to the old behavior
+- Startup argument urls are now resolved as files if possible, both absolute and relative paths are supported (relative to CWD)
+- Download image action of pointer mode now uses the same logic as the context menu
+- Long urls in popups are now not only wrapped at 50 characters, but also maxed at a 1000, after that the rest is hidden
+- Setting "nativenotification" to a "Fixed-set string" to allow using native notifications for small messages and show popups for long ones
+- Preload scripts for Erwic can still be loaded by tabs even if the file doesn't exist on startup
+- Setting "storenewvisits" is now a list of types that should be stored, instead of a toggle for all forms of history
+
+### Removed
+
+- Setting "suggestfiles" in favor of the new "suggestorder" setting
+- Setting "suggestfilesfirst" in favor of the new "suggestorder" setting
+- Setting "suggestexplore" in favor of the new "suggestorder" setting
+- Setting "respectsitecontextmenu" in favor of the new "menupage" setting
+- Action "closeTab" in favor of the ":close" command
+- Broken FreeBSD build target, it's not supported by Electron or Electron Builder
+
 ### Fixed
 
 - Tempfile for the vimcommand not working on mac due to spaces in filename
+- Spellcheck languages not working correctly when using multiple containers
+- Navbar input position not following the caret when text is longer than the input box
+- Maximizing the window with double-click that could also incorrectly switch to a tab that happens to be at the second click location
+- Middle mouse having side effects in the tab bar on Windows
+- Quotes in settings messing with the :mkv command output
+- Left-click in pointer mode not click on the right location when the page is zoomed
+- Container color not always being updated if a color rule is removed from the list
+- Search mode not clearing the url correctly if opened from the mouse dropdown selector
 
 ### Security
 
-- Electron 12.0.5 (unchanged)
-- Chromium 89.0.4389.128 (unchanged)
+- Electron 13.0.0 (was 12.0.5)
+- Chromium 91.0.4472.69 (was 89.0.4389.128)
+- Permissions for "mediadevices" and "notifications" are now blocked by default instead of asking each time
 
 ## [4.5.1](https://github.com/Jelmerro/Vieb/compare/4.5.0...4.5.1) - 2021-04-28
 

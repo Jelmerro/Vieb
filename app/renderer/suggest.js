@@ -31,7 +31,8 @@ const {
     isAbsolutePath,
     appData,
     isUrl,
-    searchword
+    searchword,
+    specialChars
 } = require("../util")
 const {
     listTabs, tabOrPageMatching, currentMode, getSetting
@@ -70,6 +71,10 @@ const previous = () => {
     list[id - 1].className = "selected"
     list[id - 1].scrollIntoView({"block": "center"})
     setUrlValue(suggestions[id - 1])
+    const index = suggestions[id - 1].indexOf("%s")
+    if (index !== -1) {
+        document.getElementById("url").setSelectionRange(index, index + 2)
+    }
 }
 
 const next = () => {
@@ -93,6 +98,10 @@ const next = () => {
     list[id + 1].className = "selected"
     list[id + 1].scrollIntoView({"block": "center"})
     setUrlValue(suggestions[id + 1])
+    const index = suggestions[id + 1].indexOf("%s")
+    if (index !== -1) {
+        document.getElementById("url").setSelectionRange(index, index + 2)
+    }
 }
 
 const emptySuggestions = () => {
@@ -102,9 +111,10 @@ const emptySuggestions = () => {
     suggestions = []
 }
 
-const locationToSuggestion = (base, location) => {
-    let absPath = joinPath(base, location)
+const locationToSuggestion = (base, loc) => {
+    let absPath = joinPath(base, loc)
     let fullPath = stringToUrl(absPath)
+    let location = loc
     if (isDir(absPath)) {
         fullPath += "/"
         location += "/"
@@ -113,14 +123,13 @@ const locationToSuggestion = (base, location) => {
     if (absPath.includes(" ")) {
         absPath = `"${absPath}"`
     }
-    return {"url": fullPath, "title": location, "path": absPath}
+    return {"path": absPath, "title": location, "url": fullPath}
 }
 
-const suggestFiles = location => {
+const suggestFiles = loc => {
+    let location = expandPath(loc.replace(/^file:\/*/g, "/"))
     if (process.platform === "win32") {
-        location = expandPath(location.replace(/file:\/*/, ""))
-    } else {
-        location = expandPath(location.replace(/file:\/*/, "/"))
+        location = expandPath(loc.replace(/^file:\/*/g, ""))
     }
     if (isAbsolutePath(location)) {
         let matching = []
@@ -141,9 +150,9 @@ const suggestFiles = location => {
     return []
 }
 
-const updateColors = search => {
+const updateColors = searchStr => {
     const urlElement = document.getElementById("url")
-    search = search || urlElement.value
+    const search = searchStr || urlElement.value
     if (currentMode() === "explore") {
         const local = expandPath(search)
         if (search.trim() === "") {
@@ -167,28 +176,58 @@ const updateColors = search => {
 const suggestExplore = search => {
     emptySuggestions()
     updateColors(search)
-    if (!getSetting("suggestexplore") || !search.trim()) {
-        // Don't suggest if the limit is set to zero or if the search is empty
+    if (!search.trim()) {
         return
     }
     const {suggestHist} = require("./history")
-    if (["all", "explore"].includes(getSetting("suggestfiles"))) {
-        if (getSetting("suggestfilesfirst")) {
-            suggestFiles(search).forEach(f => addExplore(f))
+    getSetting("suggestorder").split(",").filter(s => s).forEach(suggest => {
+        const args = suggest.split("~")
+        const type = args.shift()
+        let count = 10
+        let order = null
+        args.forEach(arg => {
+            const potentialCount = Number(arg)
+            if (potentialCount > 0 && potentialCount <= 9000000000000000) {
+                count = potentialCount
+            } else {
+                order = arg
+            }
+        })
+        if (type === "history") {
+            if (!order) {
+                order = "relevance"
+            }
+            suggestHist(search, order, count)
         }
-        suggestHist(search)
-        if (!getSetting("suggestfilesfirst")) {
-            suggestFiles(search).forEach(f => addExplore(f))
+        if (type === "file") {
+            suggestFiles(search).slice(0, count).forEach(f => addExplore(f))
         }
-    } else {
-        suggestHist(search)
-    }
+        if (type === "searchword") {
+            if (!order) {
+                order = "alpha"
+            }
+            const words = getSetting("searchwords").split(",").map(s => {
+                const [title, url] = s.split("~")
+                return {title, url}
+            })
+            if (order === "alpha") {
+                words.sort((a, b) => {
+                    if (a.title > b.title) {
+                        return 1
+                    }
+                    if (a.title < b.title) {
+                        return -1
+                    }
+                    return 0
+                })
+            }
+            words.filter(s => s.title.startsWith(search.trim()))
+                .forEach(s => addExplore(s))
+        }
+    })
 }
 
 const addExplore = explore => {
-    if (suggestions.length + 1 > getSetting("suggestexplore")) {
-        return
-    }
     if (suggestions.includes(explore.url)) {
         return
     }
@@ -198,7 +237,7 @@ const addExplore = explore => {
     element.addEventListener("mouseup", e => {
         if (e.button === 2) {
             const {linkMenu} = require("./contextmenu")
-            linkMenu({"x": e.x, "y": e.y, "link": explore.url})
+            linkMenu({"link": explore.url, "x": e.x, "y": e.y})
         } else {
             const {setMode} = require("./modes")
             setMode("normal")
@@ -230,6 +269,9 @@ const addExplore = explore => {
     if (explore.url.startsWith("file://")) {
         url.className = "file"
     }
+    if (explore.url.includes("%s")) {
+        url.className = "searchwords"
+    }
     url.textContent = urlToString(explore.url)
     element.appendChild(url)
     document.getElementById("suggest-dropdown").appendChild(element)
@@ -238,11 +280,11 @@ const addExplore = explore => {
     }, 100)
 }
 
-const suggestCommand = search => {
+const suggestCommand = searchStr => {
     emptySuggestions()
     // Remove all redundant spaces
     // Allow commands prefixed with :
-    search = search.replace(/^[\s|:]*/, "").replace(/ +/g, " ")
+    const search = searchStr.replace(/^[\s|:]*/, "").replace(/ +/g, " ")
     const {parseAndValidateArgs} = require("./command")
     const {valid, confirm, command, args} = parseAndValidateArgs(search)
     const urlElement = document.getElementById("url")
@@ -251,7 +293,7 @@ const suggestCommand = search => {
     } else {
         urlElement.className = "invalid"
     }
-    if (!getSetting("suggestcommands") || !search) {
+    if (!search) {
         // Don't suggest when it's disabled or the search is empty
         return
     }
@@ -274,7 +316,7 @@ const suggestCommand = search => {
     }
     // Command: write
     if ("write".startsWith(command) && !confirm && args.length < 2) {
-        let location = expandPath(args[0]?.replace(/w[a-z]* ?/, "") || "")
+        let location = expandPath(command.replace(/w[a-z]* ?/, "") || "")
         if (!location) {
             addCommand("write ~")
             addCommand("write /")
@@ -367,7 +409,7 @@ const suggestCommand = search => {
     }
     // Command: help
     if ("help".startsWith(command) && !confirm) {
-        ;[
+        [
             "intro",
             "commands",
             "settings",
@@ -389,6 +431,7 @@ const suggestCommand = search => {
             "splitting",
             "pointer",
             "menu",
+            "link-related",
             "license",
             "mentions",
             ...commandList().map(c => `:${c}`),
@@ -413,7 +456,8 @@ const suggestCommand = search => {
         "close"
     ].find(b => b.startsWith(command))
     if (bufferCommand && !confirm) {
-        const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
+        const simpleSearch = args.join("")
+            .replace(specialChars, "").toLowerCase()
         listTabs().filter(tab => {
             if (["close", "buffer", "mute", "pin"].includes(bufferCommand)) {
                 return true
@@ -430,12 +474,12 @@ const suggestCommand = search => {
             if (t.command.startsWith(search) || String(i) === simpleSearch) {
                 return true
             }
-            const simpleTabUrl = t.url.replace(/\W/g, "").toLowerCase()
-            if (simpleTabUrl.includes(simpleSearch)) {
+            const tabUrl = t.url.replace(specialChars, "").toLowerCase()
+            if (tabUrl.includes(simpleSearch)) {
                 return true
             }
-            const simpleTabTitle = t.subtext.replace(/\W/g, "").toLowerCase()
-            return simpleTabTitle.includes(simpleSearch)
+            const tabTitle = t.subtext.replace(specialChars, "").toLowerCase()
+            return tabTitle.includes(simpleSearch)
         }).forEach(t => addCommand(t.command, t.subtext))
     }
 }
@@ -453,7 +497,7 @@ const addCommand = (command, subtext) => {
     element.addEventListener("mouseup", e => {
         if (e.button === 2) {
             const {commandMenu} = require("./contextmenu")
-            commandMenu({"x": e.x, "y": e.y, "command": command})
+            commandMenu({command, "x": e.x, "y": e.y})
         } else {
             const {setMode} = require("./modes")
             setMode("normal")
@@ -478,10 +522,10 @@ const addCommand = (command, subtext) => {
 }
 
 module.exports = {
-    previous,
-    next,
-    emptySuggestions,
     addExplore,
-    suggestExplore,
-    suggestCommand
+    emptySuggestions,
+    next,
+    previous,
+    suggestCommand,
+    suggestExplore
 }

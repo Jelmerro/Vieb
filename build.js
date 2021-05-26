@@ -1,16 +1,15 @@
-/* eslint-disable no-console */
 "use strict"
 
 const builder = require("electron-builder")
 const rimraf = require("rimraf").sync
 const archiver = require("archiver")
-const fs = require("fs")
-const version = JSON.parse(fs.readFileSync("package.json").toString()).version
+const {readFileSync, statSync, createWriteStream} = require("fs")
+const {version} = JSON.parse(readFileSync("package.json").toString())
 const builds = {}
 
 const isDir = loc => {
     try {
-        return fs.statSync(loc).isDirectory()
+        return statSync(loc).isDirectory()
     } catch (e) {
         return false
     }
@@ -32,7 +31,7 @@ builder.build(builds).then(e => {
     rimraf("dist/Vieb-*-mac.zip")
     for (const os of ["mac", "mac-arm64"]) {
         if (isDir(`dist/${os}/Vieb.app/`)) {
-            const zip = fs.createWriteStream(`dist/Vieb-${version}-${os}.zip`)
+            const zip = createWriteStream(`dist/Vieb-${version}-${os}.zip`)
             const archive = archiver("zip", {"zlib": {"level": 9}})
             archive.pipe(zip)
             archive.directory(`dist/${os}/Vieb.app/`, "Vieb.app")
@@ -41,7 +40,7 @@ builder.build(builds).then(e => {
             archive.finalize()
         }
     }
-    console.log(e)
+    console.info(e)
 }).catch(e => {
     console.error(e)
 })

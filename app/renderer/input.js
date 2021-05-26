@@ -17,7 +17,7 @@
 */
 "use strict"
 
-const {notify} = require("../util")
+const {notify, specialChars} = require("../util")
 const {
     listTabs, currentTab, currentPage, currentMode, getSetting
 } = require("./common")
@@ -26,253 +26,317 @@ const ACTIONS = require("./actions")
 const POINTER = require("./pointer")
 
 const defaultBindings = {
-    "n": {
-        "<CR>": {"mapping": "<action.clickOnSearch>"},
+    "c": {
+        "<A-F4>": {"mapping": "<:quitall>"},
+        "<C-[>": {"mapping": "<action.toNormalMode>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
+        "<C-n>": {"mapping": "<action.commandHistoryNext>"},
+        "<C-p>": {"mapping": "<action.commandHistoryPrevious>"},
+        "<CR>": {"mapping": "<action.useEnteredData>"},
+        "<Esc>": {"mapping": "<action.toNormalMode>"},
         "<F1>": {"mapping": "<:help>"},
         "<F11>": {"mapping": "<action.toggleFullscreen>"},
-        "<Tab>": {"mapping": "<Nop>"},
+        "<S-Tab>": {"mapping": "<action.prevSuggestion>"},
+        "<Tab>": {"mapping": "<action.nextSuggestion>"}
+    },
+    "e": {
+        "<A-F4>": {"mapping": "<:quitall>"},
+        "<C-[>": {"mapping": "<action.toNormalMode>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
+        "<C-n>": {"mapping": "<action.exploreHistoryNext>"},
+        "<C-p>": {"mapping": "<action.exploreHistoryPrevious>"},
+        "<CR>": {"mapping": "<action.useEnteredData>"},
+        "<Esc>": {"mapping": "<action.toNormalMode>"},
+        "<F1>": {"mapping": "<:help>"},
+        "<F11>": {"mapping": "<action.toggleFullscreen>"},
+        "<S-Tab>": {"mapping": "<action.prevSuggestion>"},
+        "<Tab>": {"mapping": "<action.nextSuggestion>"}
+    },
+    "f": {
+        "<A-F4>": {"mapping": "<:quitall>"},
+        "<C-[>": {"mapping": "<action.stopFollowMode>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
+        "<Esc>": {"mapping": "<action.stopFollowMode>"},
+        "<F1>": {"mapping": "<:help>"},
+        "<F11>": {"mapping": "<action.toggleFullscreen>"},
+        "<Tab>": {"mapping": "<action.reorderFollowLinks>"}
+    },
+    "i": {
+        "<A-F4>": {"mapping": "<:quitall>"},
+        "<C-[>": {"mapping": "<action.toNormalMode>"},
+        "<C-i>": {"mapping": "<action.editWithVim>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
+        "<CapsLock>": {"mapping": "<Nop>"},
+        "<Esc>": {"mapping": "<action.toNormalMode>"},
+        "<F1>": {"mapping": "<:help>"},
+        "<F11>": {"mapping": "<action.toggleFullscreen>"},
+        "<NumLock>": {"mapping": "<Nop>"},
+        "<ScrollLock>": {"mapping": "<Nop>"}
+    },
+    "m": {
+        "<A-F4>": {"mapping": "<:quitall>"},
+        "<C-[>": {"mapping": "<action.menuClose>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
+        "<C-n>": {"mapping": "<action.menuDown>"},
+        "<C-p>": {"mapping": "<action.menuUp>"},
+        "<CR>": {"mapping": "<action.menuSelect>"},
+        "<CapsLock>": {"mapping": "<Nop>"},
+        "<Down>": {"mapping": "<action.menuDown>"},
+        "<Esc>": {"mapping": "<action.menuClose>"},
+        "<F1>": {"mapping": "<:help>"},
+        "<F11>": {"mapping": "<action.toggleFullscreen>"},
+        "<NumLock>": {"mapping": "<Nop>"},
+        "<ScrollLock>": {"mapping": "<Nop>"},
+        "<Up>": {"mapping": "<action.menuUp>"}
+    },
+    "n": {
+        "$": {"mapping": "<action.scrollPageRight>"},
+        "+": {"mapping": "<action.zoomIn>"},
+        "/": {"mapping": "<action.toSearchMode>"},
+        ":": {"mapping": "<action.toCommandMode>"},
+        "<A-F4>": {"mapping": "<:quitall>"},
+        "<C-0>": {"mapping": "<action.zoomReset>"},
         "<C-a>": {"mapping": "<action.increasePageNumber>"},
-        "b": {"mapping": "<action.previousTab>"},
         "<C-b>": {"mapping": "<action.scrollPageUp>"},
-        "c": {"mapping": "<pointer.start>"},
         "<C-c>": {"mapping": "<action.stopLoadingPage>"},
-        "d": {"mapping": "<action.closeTab>"},
         "<C-d>": {"mapping": "<action.scrollPageDownHalf>"},
+        "<C-e>": {"mapping": "<action.scrollDown>"},
+        "<C-f>": {"mapping": "<action.scrollPageDown>"},
+        "<C-i>": {"mapping": "<action.forwardInHistory>"},
+        "<C-j>": {"mapping": "<action.moveTabForward>"},
+        "<C-k>": {"mapping": "<action.moveTabBackward>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
+        "<C-o>": {"mapping": "<action.backInHistory>"},
+        "<C-t>": {"mapping": "<:set tabnexttocurrent!>"
+            + "<action.openNewTab><:set tabnexttocurrent!>"},
+        "<C-u>": {"mapping": "<action.scrollPageUpHalf>"},
+        "<C-w>+": {"mapping": "<action.increaseHeightSplitWindow>"},
+        "<C-w><C-=>": {"mapping": "<action.distrubuteSpaceSplitWindow>"},
+        "<C-w><C->>": {"mapping": "<action.increaseWidthSplitWindow>"},
+        "<C-w><C-H>": {"mapping": "<action.leftHalfSplitWindow>"},
+        "<C-w><C-J>": {"mapping": "<action.bottomHalfSplitWindow>"},
+        "<C-w><C-K>": {"mapping": "<action.topHalfSplitWindow>"},
+        "<C-w><C-L>": {"mapping": "<action.rightHalfSplitWindow>"},
+        "<C-w><C-R>": {"mapping": "<action.rotateSplitWindowBackward>"},
+        "<C-w><C-W>": {"mapping": "<action.toPreviousSplitWindow>"},
+        "<C-w><C-b>": {"mapping": "<action.toLastSplitWindow>"},
+        "<C-w><C-c>": {"mapping": "<:close>"},
+        "<C-w><C-h>": {"mapping": "<action.toLeftSplitWindow>"},
+        "<C-w><C-j>": {"mapping": "<action.toBottomSplitWindow>"},
+        "<C-w><C-k>": {"mapping": "<action.toTopSplitWindow>"},
+        "<C-w><C-l>": {"mapping": "<action.toRightSplitWindow>"},
+        "<C-w><C-lt>": {"mapping": "<action.decreaseWidthSplitWindow>"},
+        "<C-w><C-n>": {"mapping": "<:split>"},
+        "<C-w><C-o>": {"mapping": "<:only>"},
+        "<C-w><C-p>": {"mapping": "<action.toLastUsedTab>"},
+        "<C-w><C-q>": {"mapping": "<:quit>"},
+        "<C-w><C-r>": {"mapping": "<action.rotateSplitWindowForward>"},
+        "<C-w><C-s>": {"mapping": "<:split>"},
+        "<C-w><C-t>": {"mapping": "<action.toFirstSplitWindow>"},
+        "<C-w><C-v>": {"mapping": "<:vsplit>"},
+        "<C-w><C-w>": {"mapping": "<action.toNextSplitWindow>"},
+        "<C-w><C-x>": {"mapping": "<action.exchangeSplitWindow>"},
+        "<C-w><lt>": {"mapping": "<action.decreaseWidthSplitWindow>"},
+        "<C-w>=": {"mapping": "<action.distrubuteSpaceSplitWindow>"},
+        "<C-w>>": {"mapping": "<action.increaseWidthSplitWindow>"},
+        "<C-w>-": {"mapping": "<action.decreaseHeightSplitWindow>"},
+        "<C-w>H": {"mapping": "<action.leftHalfSplitWindow>"},
+        "<C-w>J": {"mapping": "<action.bottomHalfSplitWindow>"},
+        "<C-w>K": {"mapping": "<action.topHalfSplitWindow>"},
+        "<C-w>L": {"mapping": "<action.rightHalfSplitWindow>"},
+        "<C-w>R": {"mapping": "<action.rotateSplitWindowBackward>"},
+        "<C-w>W": {"mapping": "<action.toPreviousSplitWindow>"},
+        "<C-w>b": {"mapping": "<action.toLastSplitWindow>"},
+        "<C-w>c": {"mapping": "<:close>"},
+        "<C-w>h": {"mapping": "<action.toLeftSplitWindow>"},
+        "<C-w>j": {"mapping": "<action.toBottomSplitWindow>"},
+        "<C-w>k": {"mapping": "<action.toTopSplitWindow>"},
+        "<C-w>l": {"mapping": "<action.toRightSplitWindow>"},
+        "<C-w>n": {"mapping": "<:split>"},
+        "<C-w>o": {"mapping": "<:only>"},
+        "<C-w>p": {"mapping": "<action.toLastUsedTab>"},
+        "<C-w>q": {"mapping": "<:quit>"},
+        "<C-w>r": {"mapping": "<action.rotateSplitWindowForward>"},
+        "<C-w>s": {"mapping": "<:split>"},
+        "<C-w>t": {"mapping": "<action.toFirstSplitWindow>"},
+        "<C-w>v": {"mapping": "<:vsplit>"},
+        "<C-w>w": {"mapping": "<action.toNextSplitWindow>"},
+        "<C-w>x": {"mapping": "<action.exchangeSplitWindow>"},
+        "<C-x>": {"mapping": "<action.decreasePageNumber>"},
+        "<C-y>": {"mapping": "<action.scrollUp>"},
+        "<CR>": {"mapping": "<action.clickOnSearch>"},
+        "<CapsLock>": {"mapping": "<Nop>"},
+        "<F1>": {"mapping": "<:help>"},
+        "<F11>": {"mapping": "<action.toggleFullscreen>"},
+        "<NumLock>": {"mapping": "<Nop>"},
+        "<ScrollLock>": {"mapping": "<Nop>"},
+        "<Tab>": {"mapping": "<Nop>"},
+        "=": {"mapping": "<action.zoomIn>"},
+        "^": {"mapping": "<action.scrollPageLeft>"},
+        "_": {"mapping": "<action.zoomOut>"},
+        "-": {"mapping": "<action.zoomOut>"},
+        "D": {"mapping": "<action.downloadLink>"},
+        "E": {"mapping": "<action.openNewTab><action.toExploreMode>"},
+        "F": {"mapping": "<action.startFollowNewTab>"},
+        "G": {"mapping": "<action.scrollBottom>"},
+        "H": {"mapping": "<action.backInHistory>"},
+        "J": {"mapping": "<action.nextTab>"},
+        "K": {"mapping": "<action.previousTab>"},
+        "L": {"mapping": "<action.forwardInHistory>"},
+        "N": {"mapping": "<action.previousSearchMatch>"},
+        "P": {"mapping": "<action.openNewTab><action.openFromClipboard>"},
+        "R": {"mapping": "<action.reloadWithoutCache>"},
+        "T": {"mapping": "<action.openNewTabWithCurrentUrl>"},
+        "ZZ": {"mapping": "<:quit>"},
+        "b": {"mapping": "<action.previousTab>"},
+        "c": {"mapping": "<pointer.start>"},
+        "d": {"mapping": "<:close>"},
         "e": {"mapping": "<action.toExploreMode>"},
         "f": {"mapping": "<action.startFollowCurrentTab>"},
-        "F": {"mapping": "<action.startFollowNewTab>"},
-        "<C-f>": {"mapping": "<action.scrollPageDown>"},
+        "gT": {"mapping": "<action.previousTab>"},
         "gg": {"mapping": "<action.scrollTop>"},
         "gi": {"mapping": "<action.insertAtFirstInput>"},
         "gt": {"mapping": "<action.nextTab>"},
-        "gT": {"mapping": "<action.previousTab>"},
-        "G": {"mapping": "<action.scrollBottom>"},
         "h": {"mapping": "<action.scrollLeft>"},
-        "H": {"mapping": "<action.backInHistory>"},
         "i": {"mapping": "<action.toInsertMode>"},
-        "<C-i>": {"mapping": "<action.forwardInHistory>"},
         "j": {"mapping": "<action.scrollDown>"},
-        "J": {"mapping": "<action.nextTab>"},
-        "<C-j>": {"mapping": "<action.moveTabForward>"},
         "k": {"mapping": "<action.scrollUp>"},
-        "K": {"mapping": "<action.previousTab>"},
-        "<C-k>": {"mapping": "<action.moveTabBackward>"},
         "l": {"mapping": "<action.scrollRight>"},
-        "L": {"mapping": "<action.forwardInHistory>"},
         "n": {"mapping": "<action.nextSearchMatch>"},
-        "N": {"mapping": "<action.previousSearchMatch>"},
-        "<C-o>": {"mapping": "<action.backInHistory>"},
         "p": {"mapping": "<action.openFromClipboard>"},
-        "P": {"mapping": "<action.openNewTab><action.openFromClipboard>"},
         "r": {"mapping": "<action.reload>"},
-        "R": {"mapping": "<action.reloadWithoutCache>"},
-        "s": {"mapping": "<pointer.start>"},
         "t": {"mapping": "<action.openNewTab>"},
-        "T": {"mapping": "<action.openNewTabWithCurrentUrl>"},
-        "<C-t>": {"mapping": "<:set tabnexttocurrent!>"
-            + "<action.openNewTab><:set tabnexttocurrent!>"},
         "u": {"mapping": "<action.reopenTab>"},
-        "<C-u>": {"mapping": "<action.scrollPageUpHalf>"},
         "v": {"mapping": "<pointer.start>"},
         "w": {"mapping": "<action.nextTab>"},
         "x": {"mapping": "<action.openLinkExternal>"},
-        "ZZ": {"mapping": "<:quit>"},
-        "<C-w>c": {"mapping": "<:close>"},
-        "<C-w><C-c>": {"mapping": "<:close>"},
-        "<C-w>n": {"mapping": "<:split>"},
-        "<C-w><C-n>": {"mapping": "<:split>"},
-        "<C-w>o": {"mapping": "<:only>"},
-        "<C-w><C-o>": {"mapping": "<:only>"},
-        "<C-w>q": {"mapping": "<:quit>"},
-        "<C-w><C-q>": {"mapping": "<:quit>"},
-        "<C-w>s": {"mapping": "<:split>"},
-        "<C-w><C-s>": {"mapping": "<:split>"},
-        "<C-w>v": {"mapping": "<:vsplit>"},
-        "<C-w><C-v>": {"mapping": "<:vsplit>"},
-        "<C-w>r": {"mapping": "<action.rotateSplitWindow>"},
-        "<C-w><C-r>": {"mapping": "<action.rotateSplitWindow>"},
-        "<C-w>R": {"mapping": "<action.rotateSplitWindowBackward>"},
-        "<C-w><C-R>": {"mapping": "<action.rotateSplitWindowBackward>"},
-        "<C-w>H": {"mapping": "<action.leftHalfSplitWindow>"},
-        "<C-w><C-H>": {"mapping": "<action.leftHalfSplitWindow>"},
-        "<C-w>J": {"mapping": "<action.bottomHalfSplitWindow>"},
-        "<C-w><C-J>": {"mapping": "<action.bottomHalfSplitWindow>"},
-        "<C-w>K": {"mapping": "<action.topHalfSplitWindow>"},
-        "<C-w><C-K>": {"mapping": "<action.topHalfSplitWindow>"},
-        "<C-w>L": {"mapping": "<action.rightHalfSplitWindow>"},
-        "<C-w><C-L>": {"mapping": "<action.rightHalfSplitWindow>"},
-        "<C-w>h": {"mapping": "<action.toLeftSplitWindow>"},
-        "<C-w><C-h>": {"mapping": "<action.toLeftSplitWindow>"},
-        "<C-w>j": {"mapping": "<action.toBottomSplitWindow>"},
-        "<C-w><C-j>": {"mapping": "<action.toBottomSplitWindow>"},
-        "<C-w>k": {"mapping": "<action.toTopSplitWindow>"},
-        "<C-w><C-k>": {"mapping": "<action.toTopSplitWindow>"},
-        "<C-w>l": {"mapping": "<action.toRightSplitWindow>"},
-        "<C-w><C-l>": {"mapping": "<action.toRightSplitWindow>"},
-        "<C-w>b": {"mapping": "<action.toLastSplitWindow>"},
-        "<C-w><C-b>": {"mapping": "<action.toLastSplitWindow>"},
-        "<C-w>t": {"mapping": "<action.toFirstSplitWindow>"},
-        "<C-w><C-t>": {"mapping": "<action.toFirstSplitWindow>"},
-        "<C-w>w": {"mapping": "<action.toNextSplitWindow>"},
-        "<C-w><C-w>": {"mapping": "<action.toNextSplitWindow>"},
-        "<C-w>W": {"mapping": "<action.toPreviousSplitWindow>"},
-        "<C-w><C-W>": {"mapping": "<action.toPreviousSplitWindow>"},
-        "<C-w>x": {"mapping": "<action.exchangeSplitWindow>"},
-        "<C-w><C-x>": {"mapping": "<action.exchangeSplitWindow>"},
-        "<C-w>p": {"mapping": "<action.toLastUsedTab>"},
-        "<C-w><C-p>": {"mapping": "<action.toLastUsedTab>"},
-        "<C-w>-": {"mapping": "<action.decreaseHeightSplitWindow>"},
-        "<C-w>+": {"mapping": "<action.increaseHeightSplitWindow>"},
-        "<C-w>=": {"mapping": "<action.distrubuteSpaceSplitWindow>"},
-        "<C-w><C-=>": {"mapping": "<action.distrubuteSpaceSplitWindow>"},
-        "<C-w><lt>": {"mapping": "<action.decreaseWidthSplitWindow>"},
-        "<C-w>>": {"mapping": "<action.increaseWidthSplitWindow>"},
-        "<C-w><C-lt>": {"mapping": "<action.decreaseWidthSplitWindow>"},
-        "<C-w><C->>": {"mapping": "<action.increaseWidthSplitWindow>"},
-        "<C-x>": {"mapping": "<action.decreasePageNumber>"},
-        "y": {"mapping": "<action.pageToClipboard>"},
-        "/": {"mapping": "<action.toSearchMode>"},
-        "$": {"mapping": "<action.scrollPageRight>"},
-        "^": {"mapping": "<action.scrollPageLeft>"},
-        ":": {"mapping": "<action.toCommandMode>"},
-        "-": {"mapping": "<action.zoomOut>"},
-        "_": {"mapping": "<action.zoomOut>"},
-        "=": {"mapping": "<action.zoomIn>"},
-        "+": {"mapping": "<action.zoomIn>"},
-        "<C-0>": {"mapping": "<action.zoomReset>"}
-    },
-    "i": {
-        "<NumLock>": {"mapping": "<Nop>"},
-        "<CapsLock>": {"mapping": "<Nop>"},
-        "<ScrollLock>": {"mapping": "<Nop>"},
-        "<F1>": {"mapping": "<:help>"},
-        "<F11>": {"mapping": "<action.toggleFullscreen>"},
-        "<Esc>": {"mapping": "<action.toNormalMode>"},
-        "<C-i>": {"mapping": "<action.editWithVim>"},
-        "<C-m>": {"mapping": "<action.menuOpen>"},
-        "<C-[>": {"mapping": "<action.toNormalMode>"}
-    },
-    "c": {
-        "<CR>": {"mapping": "<action.useEnteredData>"},
-        "<F1>": {"mapping": "<:help>"},
-        "<F11>": {"mapping": "<action.toggleFullscreen>"},
-        "<Esc>": {"mapping": "<action.toNormalMode>"},
-        "<Tab>": {"mapping": "<action.nextSuggestion>"},
-        "<S-Tab>": {"mapping": "<action.prevSuggestion>"},
-        "<C-n>": {"mapping": "<action.commandHistoryNext>"},
-        "<C-p>": {"mapping": "<action.commandHistoryPrevious>"},
-        "<C-[>": {"mapping": "<action.toNormalMode>"}
-    },
-    "s": {
-        "<CR>": {"mapping": "<action.useEnteredData>"},
-        "<F1>": {"mapping": "<:help>"},
-        "<F11>": {"mapping": "<action.toggleFullscreen>"},
-        "<Esc>": {"mapping": "<action.toNormalMode>"},
-        "<C-[>": {"mapping": "<action.toNormalMode>"}
-    },
-    "e": {
-        "<CR>": {"mapping": "<action.useEnteredData>"},
-        "<F1>": {"mapping": "<:help>"},
-        "<F11>": {"mapping": "<action.toggleFullscreen>"},
-        "<Esc>": {"mapping": "<action.toNormalMode>"},
-        "<Tab>": {"mapping": "<action.nextSuggestion>"},
-        "<S-Tab>": {"mapping": "<action.prevSuggestion>"},
-        "<C-n>": {"mapping": "<action.exploreHistoryNext>"},
-        "<C-p>": {"mapping": "<action.exploreHistoryPrevious>"},
-        "<C-[>": {"mapping": "<action.toNormalMode>"}
-    },
-    "f": {
-        "<F1>": {"mapping": "<:help>"},
-        "<F11>": {"mapping": "<action.toggleFullscreen>"},
-        "<Tab>": {"mapping": "<action.reorderFollowLinks>"},
-        "<Esc>": {"mapping": "<action.stopFollowMode>"},
-        "<C-[>": {"mapping": "<action.stopFollowMode>"}
+        "y": {"mapping": "<action.pageToClipboard>"}
     },
     "p": {
+        "$": {"mapping": "<pointer.moveRightMax>"},
+        "<A-F4>": {"mapping": "<:quitall>"},
+        "<C-[>": {"mapping": "<action.toNormalMode>"},
+        "<C-d>": {"mapping": "<pointer.moveFastDown>"},
+        "<C-h>": {"mapping": "<pointer.moveSlowLeft>"},
+        "<C-j>": {"mapping": "<pointer.moveSlowDown>"},
+        "<C-k>": {"mapping": "<pointer.moveSlowUp>"},
+        "<C-l>": {"mapping": "<pointer.moveSlowRight>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
+        "<C-u>": {"mapping": "<pointer.moveFastUp>"},
+        "<CR>": {"mapping": "<pointer.leftClick>"},
+        "<CapsLock>": {"mapping": "<Nop>"},
+        "<Esc>": {"mapping": "<action.toNormalMode>"},
         "<F1>": {"mapping": "<:help>"},
         "<F11>": {"mapping": "<action.toggleFullscreen>"},
-        "<CR>": {"mapping": "<pointer.leftClick>"},
-        "<Esc>": {"mapping": "<action.toNormalMode>"},
+        "<NumLock>": {"mapping": "<Nop>"},
+        "<S-CR>": {"mapping": "<pointer.newtabLink>"},
+        "<ScrollLock>": {"mapping": "<Nop>"},
+        "<lt>": {"mapping": "<pointer.scrollLeft>"},
+        ">": {"mapping": "<pointer.scrollRight>"},
         "[": {"mapping": "<pointer.scrollUp>"},
         "]": {"mapping": "<pointer.scrollDown>"},
-        "b": {"mapping": "<pointer.moveFastLeft>"},
-        "d": {"mapping": "<pointer.downloadImage>"},
+        "^": {"mapping": "<pointer.moveLeftMax>"},
         "D": {"mapping": "<pointer.downloadLink>"},
-        "<C-d>": {"mapping": "<pointer.moveFastDown>"},
+        "G": {"mapping": "<pointer.endOfPage>"},
+        "H": {"mapping": "<pointer.startOfView>"},
+        "J": {"mapping": "<pointer.scrollDown>"},
+        "K": {"mapping": "<pointer.scrollUp>"},
+        "L": {"mapping": "<pointer.endOfView>"},
+        "M": {"mapping": "<pointer.centerOfView>"},
+        "b": {"mapping": "<pointer.moveFastLeft>"},
+        "da": {"mapping": "<pointer.downloadAudio>"},
+        "dd": {"mapping": "<pointer.downloadLink>"},
+        "df": {"mapping": "<pointer.downloadFrame>"},
+        "di": {"mapping": "<pointer.downloadImage>"},
+        "dl": {"mapping": "<pointer.downloadLink>"},
+        "dv": {"mapping": "<pointer.downloadVideo>"},
         "e": {"mapping": "<pointer.inspectElement>"},
         "f": {"mapping": "<action.startFollowCurrentTab>"},
         "gg": {"mapping": "<pointer.startOfPage>"},
-        "G": {"mapping": "<pointer.endOfPage>"},
         "h": {"mapping": "<pointer.moveLeft>"},
-        "H": {"mapping": "<pointer.startOfView>"},
-        "<C-h>": {"mapping": "<pointer.moveSlowLeft>"},
         "i": {"mapping": "<pointer.insertAtPosition>"},
         "j": {"mapping": "<pointer.moveDown>"},
-        "J": {"mapping": "<pointer.scrollDown>"},
-        "<C-j>": {"mapping": "<pointer.moveSlowDown>"},
         "k": {"mapping": "<pointer.moveUp>"},
-        "K": {"mapping": "<pointer.scrollUp>"},
-        "<C-k>": {"mapping": "<pointer.moveSlowUp>"},
         "l": {"mapping": "<pointer.moveRight>"},
-        "L": {"mapping": "<pointer.endOfView>"},
-        "<C-l>": {"mapping": "<pointer.moveSlowRight>"},
-        "M": {"mapping": "<pointer.centerOfView>"},
+        "na": {"mapping": "<pointer.newtabAudio>"},
+        "nf": {"mapping": "<pointer.newtabFrame>"},
+        "ni": {"mapping": "<pointer.newtabImage>"},
+        "nl": {"mapping": "<pointer.newtabLink>"},
+        "nn": {"mapping": "<pointer.newtabLink>"},
+        "nv": {"mapping": "<pointer.newtabVideo>"},
+        "oa": {"mapping": "<pointer.openAudio>"},
+        "of": {"mapping": "<pointer.openFrame>"},
+        "oi": {"mapping": "<pointer.openImage>"},
+        "ol": {"mapping": "<pointer.openLink>"},
+        "oo": {"mapping": "<pointer.openLink>"},
+        "ov": {"mapping": "<pointer.openVideo>"},
         "r": {"mapping": "<pointer.rightClick>"},
-        "<C-u>": {"mapping": "<pointer.moveFastUp>"},
         "v": {"mapping": "<pointer.startVisualSelect>"},
         "w": {"mapping": "<pointer.moveFastRight>"},
-        "x": {"mapping": "<action.openLinkExternal>"},
-        "y": {"mapping": "<pointer.copyAndStop>"},
-        "<lt>": {"mapping": "<pointer.scrollLeft>"},
-        ">": {"mapping": "<pointer.scrollRight>"},
-        "$": {"mapping": "<pointer.moveRightMax>"},
-        "^": {"mapping": "<pointer.moveLeftMax>"},
-        "<C-[>": {"mapping": "<action.toNormalMode>"}
+        "xa": {"mapping": "<pointer.externalAudio>"},
+        "xf": {"mapping": "<pointer.externalFrame>"},
+        "xi": {"mapping": "<pointer.externalImage>"},
+        "xl": {"mapping": "<pointer.externalLink>"},
+        "xv": {"mapping": "<pointer.externalVideo>"},
+        "xx": {"mapping": "<pointer.externalLink>"},
+        "yI": {"mapping": "<pointer.copyImageBuffer>"},
+        "ya": {"mapping": "<pointer.copyAudio>"},
+        "yf": {"mapping": "<pointer.copyFrame>"},
+        "yi": {"mapping": "<pointer.copyImage>"},
+        "yl": {"mapping": "<pointer.copyLink>"},
+        "yv": {"mapping": "<pointer.copyVideo>"},
+        "yy": {"mapping": "<pointer.copyLink>"}
+    },
+    "s": {
+        "<A-F4>": {"mapping": "<:quitall>"},
+        "<C-[>": {"mapping": "<action.toNormalMode>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
+        "<CR>": {"mapping": "<action.useEnteredData>"},
+        "<Esc>": {"mapping": "<action.toNormalMode>"},
+        "<F1>": {"mapping": "<:help>"},
+        "<F11>": {"mapping": "<action.toggleFullscreen>"}
     },
     "v": {
+        "$": {"mapping": "<pointer.moveRightMax>"},
+        "<A-F4>": {"mapping": "<:quitall>"},
+        "<C-[>": {"mapping": "<action.toNormalMode>"},
+        "<C-d>": {"mapping": "<pointer.moveFastDown>"},
+        "<C-h>": {"mapping": "<pointer.moveSlowLeft>"},
+        "<C-j>": {"mapping": "<pointer.moveSlowDown>"},
+        "<C-k>": {"mapping": "<pointer.moveSlowUp>"},
+        "<C-l>": {"mapping": "<pointer.moveSlowRight>"},
+        "<C-m>": {"mapping": "<action.menuOpen>"},
+        "<C-u>": {"mapping": "<pointer.moveFastUp>"},
+        "<CapsLock>": {"mapping": "<Nop>"},
+        "<Esc>": {"mapping": "<action.toNormalMode>"},
         "<F1>": {"mapping": "<:help>"},
         "<F11>": {"mapping": "<action.toggleFullscreen>"},
-        "<Esc>": {"mapping": "<action.toNormalMode>"},
-        "[": {"mapping": "<pointer.scrollUp>"},
-        "]": {"mapping": "<pointer.scrollDown>"},
-        "b": {"mapping": "<pointer.moveFastLeft>"},
-        "c": {"mapping": "<pointer.copyAndStop>"},
-        "<C-d>": {"mapping": "<pointer.moveFastDown>"},
-        "f": {"mapping": "<action.startFollowCurrentTab>"},
-        "gg": {"mapping": "<pointer.startOfPage>"},
-        "G": {"mapping": "<pointer.endOfPage>"},
-        "h": {"mapping": "<pointer.moveLeft>"},
-        "H": {"mapping": "<pointer.startOfView>"},
-        "<C-h>": {"mapping": "<pointer.moveSlowLeft>"},
-        "j": {"mapping": "<pointer.moveDown>"},
-        "J": {"mapping": "<pointer.scrollDown>"},
-        "<C-j>": {"mapping": "<pointer.moveSlowDown>"},
-        "k": {"mapping": "<pointer.moveUp>"},
-        "K": {"mapping": "<pointer.scrollUp>"},
-        "<C-k>": {"mapping": "<pointer.moveSlowUp>"},
-        "l": {"mapping": "<pointer.moveRight>"},
-        "L": {"mapping": "<pointer.endOfView>"},
-        "<C-l>": {"mapping": "<pointer.moveSlowRight>"},
-        "M": {"mapping": "<pointer.centerOfView>"},
-        "r": {"mapping": "<pointer.rightClick>"},
-        "<C-u>": {"mapping": "<pointer.moveFastUp>"},
-        "w": {"mapping": "<pointer.moveFastRight>"},
-        "x": {"mapping": "<action.openLinkExternal>"},
-        "y": {"mapping": "<pointer.copyAndStop>"},
+        "<NumLock>": {"mapping": "<Nop>"},
+        "<ScrollLock>": {"mapping": "<Nop>"},
         "<lt>": {"mapping": "<pointer.scrollLeft>"},
         ">": {"mapping": "<pointer.scrollRight>"},
-        "$": {"mapping": "<pointer.moveRightMax>"},
+        "[": {"mapping": "<pointer.scrollUp>"},
+        "]": {"mapping": "<pointer.scrollDown>"},
         "^": {"mapping": "<pointer.moveLeftMax>"},
-        "<C-[>": {"mapping": "<action.toNormalMode>"}
-    },
-    "m": {
-        "<Up>": {"mapping": "<action.menuUp>"},
-        "<Down>": {"mapping": "<action.menuDown>"},
-        "<CR>": {"mapping": "<action.menuSelect>"},
-        "<Esc>": {"mapping": "<action.menuClose>"},
-        "<C-n>": {"mapping": "<action.menuDown>"},
-        "<C-p>": {"mapping": "<action.menuUp>"},
-        "<C-[>": {"mapping": "<action.menuClose>"}
+        "G": {"mapping": "<pointer.endOfPage>"},
+        "H": {"mapping": "<pointer.startOfView>"},
+        "J": {"mapping": "<pointer.scrollDown>"},
+        "K": {"mapping": "<pointer.scrollUp>"},
+        "L": {"mapping": "<pointer.endOfView>"},
+        "M": {"mapping": "<pointer.centerOfView>"},
+        "b": {"mapping": "<pointer.moveFastLeft>"},
+        "c": {"mapping": "<action.toNormalMode><pointer.start>"},
+        "f": {"mapping": "<action.startFollowCurrentTab>"},
+        "gg": {"mapping": "<pointer.startOfPage>"},
+        "h": {"mapping": "<pointer.moveLeft>"},
+        "j": {"mapping": "<pointer.moveDown>"},
+        "k": {"mapping": "<pointer.moveUp>"},
+        "l": {"mapping": "<pointer.moveRight>"},
+        "o": {"mapping": "<pointer.swapPosition>"},
+        "r": {"mapping": "<pointer.rightClick>"},
+        "w": {"mapping": "<pointer.moveFastRight>"},
+        "x": {"mapping": "<action.openLinkExternal>"},
+        "y": {"mapping": "<pointer.copyText><action.toNormalMode>"}
     }
 }
 let repeatCounter = 0
@@ -283,55 +347,58 @@ let supportedActions = []
 let timeoutTimer = null
 let blockNextInsertKey = false
 const mapStringSplitter = /(<.*?[^-]>|<.*?->>|.)/g
-let inputHistoryList = [{"value": "", "index": 0}]
+let inputHistoryList = [{"index": 0, "value": ""}]
 let inputHistoryIndex = 0
 
 const init = () => {
-    const {ipcRenderer} = require("electron")
-    const {clear, viebMenu} = require("./contextmenu")
     window.addEventListener("keydown", handleKeyboard)
     window.addEventListener("keypress", e => e.preventDefault())
     window.addEventListener("keyup", e => e.preventDefault())
-    window.addEventListener("click", e => {
-        e.preventDefault()
-        if (e.button === 2) {
-            if (document.getElementById("context-menu").innerText) {
-                return
+    window.addEventListener("mousedown", e => {
+        if (e.button === 1) {
+            e.preventDefault()
+        }
+    })
+    window.addEventListener("mouseup", e => {
+        if (e.button === 1) {
+            if (getSetting("mouse")) {
+                if (e.target === document.getElementById("url")) {
+                    ACTIONS.toExploreMode()
+                    return
+                }
+                const tab = e.composedPath().find(el => listTabs().includes(el))
+                if (tab) {
+                    const {closeTab} = require("./tabs")
+                    closeTab(listTabs().indexOf(tab))
+                }
+                const {clear} = require("./contextmenu")
+                clear()
             }
-        } else if (e.path.find(el => el.matches?.("#context-menu"))) {
+            e.preventDefault()
+        }
+    })
+    window.addEventListener("click", e => {
+        if (e.composedPath().find(el => el.matches?.("#context-menu"))) {
             return
         }
+        const {clear} = require("./contextmenu")
         clear()
         if (e.target.classList.contains("no-focus-reset")) {
             return
         }
-        ACTIONS.setFocusCorrectly()
-    })
-    window.addEventListener("mouseup", e => {
-        if (e.button === 2) {
-            if (document.getElementById("context-menu").innerText) {
-                return
-            }
-        } else if (e.path.find(el => el.matches?.("#context-menu"))) {
-            return
-        }
         if (getSetting("mouse")) {
             if (e.target === document.getElementById("url")) {
-                if (!["explore", "command"].includes(currentMode())) {
+                if (!"sec".includes(currentMode()[0])) {
                     ACTIONS.toExploreMode()
                 }
-            } else if (["explore", "command"].includes(currentMode())) {
+            } else if ("sec".includes(currentMode()[0])) {
                 ACTIONS.toNormalMode()
             }
-            const tab = e.path.find(el => listTabs().includes(el))
+            const tab = e.composedPath().find(el => listTabs().includes(el))
             if (tab) {
                 clear()
-                const {closeTab, switchToTab} = require("./tabs")
-                if (e.button === 1) {
-                    closeTab(listTabs().indexOf(tab))
-                } else {
-                    switchToTab(listTabs().indexOf(tab))
-                }
+                const {switchToTab} = require("./tabs")
+                switchToTab(tab)
             }
         } else {
             e.preventDefault()
@@ -346,7 +413,7 @@ const init = () => {
                         "link-id") === el.getAttribute("link-id"))
                     if (tab && currentTab() !== tab) {
                         const {switchToTab} = require("./tabs")
-                        switchToTab(listTabs().indexOf(tab))
+                        switchToTab(tab)
                     }
                 }
             })
@@ -355,12 +422,14 @@ const init = () => {
     window.addEventListener("contextmenu", e => {
         e.preventDefault()
         if (getSetting("mouse")) {
+            const {viebMenu} = require("./contextmenu")
             viebMenu(e)
         } else {
             ACTIONS.setFocusCorrectly()
         }
     })
     window.addEventListener("resize", () => {
+        const {clear} = require("./contextmenu")
         clear()
         const {applyLayout} = require("./pagelayout")
         applyLayout()
@@ -368,6 +437,7 @@ const init = () => {
             POINTER.updateElement()
         }
     })
+    const {ipcRenderer} = require("electron")
     ipcRenderer.on("insert-mode-input-event", (_, input) => {
         if (input.code === "Tab") {
             currentPage().focus()
@@ -390,23 +460,17 @@ const init = () => {
             return
         }
         handleKeyboard({
-            "ctrlKey": input.control,
-            "shiftKey": input.shift,
-            "metaKey": input.meta,
             "altKey": input.alt,
-            "key": input.key,
+            "ctrlKey": input.control,
             "isTrusted": true,
+            "key": input.key,
+            "metaKey": input.meta,
+            "passedOnFromInsert": true,
             "preventDefault": () => undefined,
-            "passedOnFromInsert": true
+            "shiftKey": input.shift
         })
     })
-    ipcRenderer.on("window-close", () => {
-        if (process.platform === "darwin") {
-            executeMapString("<M-q>", true, true)
-        } else {
-            executeMapString("<A-F4>", true, true)
-        }
-    })
+    ipcRenderer.on("window-close", () => executeMapString("<A-F4>", true, true))
     ipcRenderer.on("app-command", (_, cmd) => {
         if (getSetting("mouse")) {
             if (cmd === "browser-backward") {
@@ -480,7 +544,7 @@ const toIdentifier = e => {
     let keyCode = e.key
     keyNames.forEach(key => {
         if (key.js.includes(keyCode)) {
-            keyCode = key.vim[0]
+            [keyCode] = key.vim
         }
     })
     // If the shift status can be detected by name or casing,
@@ -542,7 +606,7 @@ const fromIdentifier = identifier => {
     } else {
         keyNames.forEach(key => {
             if (key.vim.includes(id)) {
-                id = key.js[0]
+                [id] = key.js
             }
         })
     }
@@ -560,6 +624,7 @@ const uncountableActions = [
     "action.insertAtFirstInput",
     "action.toInsertMode",
     "action.reload",
+    "action.reloadWithoutCache",
     "action.decreasePageNumber",
     "action.toSearchMode",
     "action.startFollowNewTab",
@@ -575,14 +640,21 @@ const uncountableActions = [
     "action.bottomHalfSplitWindow",
     "action.topHalfSplitWindow",
     "action.rightHalfSplitWindow",
+    "action.toFirstSplitWindow",
+    "action.toLastSplitWindow",
     "action.distrubuteSpaceSplitWindow",
     "action.pageToClipboard",
     "action.openFromClipboard",
+    "action.openLinkExternal",
+    "action.downloadLink",
     "action.toggleFullscreen",
+    "action.menuOpen",
+    "action.menuSelect",
+    "action.menuClose",
     "action.useEnteredData",
     "pointer.start",
+    "pointer.startVisualSelect",
     "pointer.inspectElement",
-    "pointer.copyAndStop",
     "pointer.startOfPage",
     "pointer.insertAtPosition",
     "pointer.centerOfView",
@@ -590,14 +662,42 @@ const uncountableActions = [
     "pointer.endOfView",
     "pointer.endOfPage",
     "pointer.moveRightMax",
-    "pointer.moveLeftMax"
+    "pointer.moveLeftMax",
+    "pointer.openAudio",
+    "pointer.openFrame",
+    "pointer.openImage",
+    "pointer.openVideo",
+    "pointer.openLink",
+    "pointer.downloadAudio",
+    "pointer.downloadFrame",
+    "pointer.downloadImage",
+    "pointer.downloadVideo",
+    "pointer.downloadLink",
+    "pointer.newtabAudio",
+    "pointer.newtabFrame",
+    "pointer.newtabImage",
+    "pointer.newtabVideo",
+    "pointer.newtabLink",
+    "pointer.externalAudio",
+    "pointer.externalFrame",
+    "pointer.externalImage",
+    "pointer.externalVideo",
+    "pointer.externalLink",
+    "pointer.copyImageBuffer",
+    "pointer.copyAudio",
+    "pointer.copyFrame",
+    "pointer.copyImage",
+    "pointer.copyVideo",
+    "pointer.copyText",
+    "pointer.copyLink",
+    "Nop"
 ]
 
 
 const hasFutureActionsBasedOnKeys = keys => Object.keys(bindings[
     currentMode()[0]]).find(map => map.startsWith(keys) && map !== keys)
 
-const sendKeysToWebview = async (options, mapStr) => {
+const sendKeysToWebview = async(options, mapStr) => {
     blockNextInsertKey = true
     if (options.keyCode.length === 1) {
         currentPage().sendInputEvent({...options, "type": "char"})
@@ -609,10 +709,12 @@ const sendKeysToWebview = async (options, mapStr) => {
             await executeMapString(action.mapping, !action.noremap)
         }
     }
-    await new Promise(r => setTimeout(r, 3))
+    await new Promise(r => {
+        setTimeout(r, 3)
+    })
 }
 
-const executeMapString = async (mapStr, recursive, initial) => {
+const executeMapString = async(mapStr, recursive, initial) => {
     if (initial) {
         recursiveCounter = 0
         if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
@@ -627,7 +729,7 @@ const executeMapString = async (mapStr, recursive, initial) => {
     const repeater = Number(repeatCounter) || 1
     repeatCounter = 0
     updateKeysOnScreen()
-    for (let i = 0;i < repeater;i++) {
+    for (let i = 0; i < repeater; i++) {
         if (recursiveCounter > getSetting("maxmapdepth")) {
             break
         }
@@ -650,7 +752,9 @@ const executeMapString = async (mapStr, recursive, initial) => {
                     window.dispatchEvent(new KeyboardEvent("keydown", options))
                 }
             }
-            await new Promise(r => setTimeout(r, 3))
+            await new Promise(r => {
+                setTimeout(r, 3)
+            })
         }
     }
     if (initial) {
@@ -666,25 +770,25 @@ const executeMapString = async (mapStr, recursive, initial) => {
     }
 }
 
-const doAction = async (name, count) => {
-    if (name === "Nop") {
+const doAction = async(actionName, givenCount) => {
+    if (actionName === "Nop") {
         updateKeysOnScreen()
         return
     }
-    count = count || 1
-    const pointer = name.toLowerCase().startsWith("pointer.")
-    if (uncountableActions.includes(name)) {
-        count = 1
+    let actionCount = givenCount || 1
+    const pointer = actionName.toLowerCase().startsWith("pointer.")
+    if (uncountableActions.includes(actionName)) {
+        actionCount = 1
     }
-    name = name.replace(/^.*\./g, "")
-    for (let i = 0;i < count;i++) {
+    const funcName = actionName.replace(/^.*\./g, "")
+    for (let i = 0; i < actionCount; i++) {
         if (pointer) {
-            await POINTER[name]()
+            await POINTER[funcName]()
         } else {
-            await ACTIONS[name]()
+            await ACTIONS[funcName]()
         }
     }
-    if (!name.startsWith("menu")) {
+    if (!funcName.startsWith("menu")) {
         const {clear} = require("./contextmenu")
         clear()
     }
@@ -712,7 +816,7 @@ const handleKeyboard = async e => {
     updateKeysOnScreen()
     clearTimeout(timeoutTimer)
     if (getSetting("timeout")) {
-        timeoutTimer = setTimeout(async () => {
+        timeoutTimer = setTimeout(async() => {
             const keys = pressedKeys.split(mapStringSplitter).filter(m => m)
             if (currentMode() === "insert") {
                 const {ipcRenderer} = require("electron")
@@ -731,7 +835,9 @@ const handleKeyboard = async e => {
             }
             for (const key of keys) {
                 typeCharacterIntoNavbar(key)
-                await new Promise(r => setTimeout(r, 3))
+                await new Promise(r => {
+                    setTimeout(r, 3)
+                })
             }
             repeatCounter = 0
             pressedKeys = ""
@@ -809,7 +915,9 @@ const handleKeyboard = async e => {
         }
         for (const key of keys) {
             typeCharacterIntoNavbar(key)
-            await new Promise(r => setTimeout(r, 3))
+            await new Promise(r => {
+                setTimeout(r, 3)
+            })
         }
         repeatCounter = 0
         pressedKeys = ""
@@ -829,6 +937,27 @@ const handleKeyboard = async e => {
 const keyForOs = (regular, mac, key) => regular.includes(key)
     || process.platform === "darwin" && mac.includes(key)
 
+const updateNavbarScrolling = () => {
+    const url = document.getElementById("url")
+    const charWidth = getSetting("fontsize") * 0.60191
+    const end = url.selectionStart * charWidth - charWidth
+    const start = url.selectionEnd * charWidth - url.clientWidth + charWidth + 2
+    if (url.scrollLeft < end && url.scrollLeft > start) {
+        return
+    }
+    if (url.selectionStart === url.selectionEnd) {
+        if (url.scrollLeft > start) {
+            url.scrollLeft = end
+        } else if (url.scrollLeft < end) {
+            url.scrollLeft = start
+        }
+    } else if (url.selectionDirection === "backward") {
+        url.scrollLeft = end
+    } else {
+        url.scrollLeft = start
+    }
+}
+
 const typeCharacterIntoNavbar = id => {
     if (!"ces".includes(currentMode()[0])) {
         return
@@ -839,21 +968,25 @@ const typeCharacterIntoNavbar = id => {
             url.selectionEnd = url.selectionStart
         }
         url.setSelectionRange(0, url.selectionEnd, "backward")
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<Home>", "<C-Home>"], ["<M-Left>", "<M-Up>"], id)) {
         url.setSelectionRange(0, 0)
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<S-End>", "<C-S-End>"], ["<M-S-Right>", "<M-S-Down>"], id)) {
         if (url.selectionDirection === "backward") {
             url.selectionStart = url.selectionEnd
         }
-        url.setSelectionRange(url.selectionEnd, url.value.length)
+        url.setSelectionRange(url.selectionStart, url.value.length)
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<End>", "<C-End>"], ["<M-Right>", "<M-Down>"], id)) {
         url.setSelectionRange(url.value.length, url.value.length)
+        updateNavbarScrolling()
         return
     }
     if (id === "<Right>") {
@@ -866,6 +999,7 @@ const typeCharacterIntoNavbar = id => {
             url.selectionEnd += 1
         }
         url.selectionStart = url.selectionEnd
+        updateNavbarScrolling()
         return
     }
     if (id === "<S-Right>") {
@@ -878,9 +1012,12 @@ const typeCharacterIntoNavbar = id => {
         } else if (url.selectionStart < url.value.length) {
             url.selectionStart += 1
         }
+        updateNavbarScrolling()
         return
     }
-    const words = url.value.split(/(\w+|\W+)/g).filter(w => w)
+    const wordRegex = specialChars.source.replace("[", "[^")
+    const words = url.value.split(new RegExp(`(${
+        wordRegex}+|${specialChars.source}+)`, "g")).filter(w => w)
     let index = Number(url.selectionStart)
     if (url.selectionDirection !== "backward") {
         index = Number(url.selectionEnd)
@@ -894,6 +1031,7 @@ const typeCharacterIntoNavbar = id => {
                 break
             }
         }
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-S-Right>"], ["<A-S-Right>"], id)) {
@@ -909,6 +1047,7 @@ const typeCharacterIntoNavbar = id => {
                 } else {
                     url.setSelectionRange(url.selectionStart, wordPosition)
                 }
+                updateNavbarScrolling()
                 return
             }
         }
@@ -924,6 +1063,7 @@ const typeCharacterIntoNavbar = id => {
             url.selectionStart -= 1
         }
         url.selectionEnd = url.selectionStart
+        updateNavbarScrolling()
         return
     }
     if (id === "<S-Left>") {
@@ -937,6 +1077,7 @@ const typeCharacterIntoNavbar = id => {
         } else if (url.selectionEnd > 0) {
             url.selectionEnd -= 1
         }
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-Left>"], ["<A-Left>"], id)) {
@@ -948,6 +1089,7 @@ const typeCharacterIntoNavbar = id => {
                 break
             }
         }
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-S-Left>"], ["<A-S-Left>"], id)) {
@@ -969,6 +1111,7 @@ const typeCharacterIntoNavbar = id => {
                     }
                     url.setSelectionRange(url.selectionStart, wordPosition)
                 }
+                updateNavbarScrolling()
                 return
             }
         }
@@ -976,21 +1119,23 @@ const typeCharacterIntoNavbar = id => {
     }
     if (keyForOs(["<C-a>"], ["<M-a>"], id)) {
         url.setSelectionRange(0, url.value.length)
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-x>"], ["<M-x>"], id)) {
         document.execCommand("cut")
         updateSuggestions()
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-c>"], ["<M-c>"], id)) {
         document.execCommand("copy")
-        updateSuggestions()
         return
     }
     if (keyForOs(["<C-v>"], ["<M-v>"], id)) {
         document.execCommand("paste")
         updateSuggestions()
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-z>"], ["<M-z>"], id)) {
@@ -1001,6 +1146,7 @@ const typeCharacterIntoNavbar = id => {
             url.setSelectionRange(histEntry.index, histEntry.index)
             updateSuggestions(false)
         }
+        updateNavbarScrolling()
         return
     }
     if (keyForOs(["<C-y>"], ["<M-Z>"], id)) {
@@ -1011,6 +1157,7 @@ const typeCharacterIntoNavbar = id => {
             url.setSelectionRange(histEntry.index, histEntry.index)
             updateSuggestions(false)
         }
+        updateNavbarScrolling()
         return
     }
     if (url.selectionStart !== url.selectionEnd) {
@@ -1028,6 +1175,7 @@ const typeCharacterIntoNavbar = id => {
             + url.value.substr(url.selectionEnd)
         url.setSelectionRange(cur, cur)
         updateSuggestions()
+        updateNavbarScrolling()
         if (id === "<Del>" || id.endsWith("-Del>")) {
             return
         }
@@ -1042,6 +1190,7 @@ const typeCharacterIntoNavbar = id => {
                 url.value.substr(url.selectionEnd + 1)}`
             url.setSelectionRange(cur, cur)
             updateSuggestions()
+            updateNavbarScrolling()
         }
         return
     }
@@ -1055,6 +1204,7 @@ const typeCharacterIntoNavbar = id => {
                     url.value.substr(wordPosition)}`
                 url.setSelectionRange(cur, cur)
                 updateSuggestions()
+                updateNavbarScrolling()
                 return
             }
         }
@@ -1067,6 +1217,7 @@ const typeCharacterIntoNavbar = id => {
                 url.value.substr(url.selectionEnd)}`
             url.setSelectionRange(cur - 1, cur - 1)
             updateSuggestions()
+            updateNavbarScrolling()
         }
         return
     }
@@ -1079,6 +1230,7 @@ const typeCharacterIntoNavbar = id => {
                     url.value.substr(url.selectionStart)}`
                 url.setSelectionRange(wordPosition, wordPosition)
                 updateSuggestions()
+                updateNavbarScrolling()
                 return
             }
         }
@@ -1109,11 +1261,12 @@ const typeCharacterIntoNavbar = id => {
     if (text !== url.value) {
         url.setSelectionRange(cur + 1, cur + 1)
         updateSuggestions()
+        updateNavbarScrolling()
     }
 }
 
 const resetInputHistory = () => {
-    inputHistoryList = [{"value": "", "index": 0}]
+    inputHistoryList = [{"index": 0, "value": ""}]
     inputHistoryIndex = 0
 }
 
@@ -1122,7 +1275,7 @@ const updateSuggestions = (updateHistory = true) => {
     if (updateHistory) {
         inputHistoryList = inputHistoryList.slice(0, inputHistoryIndex + 1)
         inputHistoryIndex = inputHistoryList.length
-        inputHistoryList.push({"value": url.value, "index": url.selectionStart})
+        inputHistoryList.push({"index": url.selectionStart, "value": url.value})
     }
     if (currentMode() === "explore") {
         const {suggestExplore} = require("./suggest")
@@ -1211,8 +1364,8 @@ const listMappingsAsCommandList = (oneMode = false, includeDefault = false) => {
     return mappings.join("\n").replace(/[\r\n]+/g, "\n").trim()
 }
 
-const listMapping = (mode, key, includeDefault) => {
-    key = sanitiseMapString(key)
+const listMapping = (mode, rawKey, includeDefault) => {
+    const key = sanitiseMapString(rawKey)
     if (!mappingModified(mode, key) && !includeDefault) {
         return ""
     }
@@ -1285,12 +1438,12 @@ const sanitiseMapString = (mapString, allowSpecials = false) => mapString
             const splitKeys = m.replace(/(^<|>$)/g, "")
                 .split("-").filter(s => s)
             modifiers = splitKeys.slice(0, -1).map(mod => mod.toUpperCase())
-            key = splitKeys.slice(-1)[0]
+            ;[key] = splitKeys.slice(-1)
         }
         let knownKey = false
         for (const name of keyNames) {
             if (name.vim.find(vk => vk.toUpperCase() === key.toUpperCase())) {
-                key = name.vim[0]
+                [key] = name.vim
                 knownKey = true
                 break
             }
@@ -1346,10 +1499,10 @@ const mapSingle = (mode, args, noremap) => {
         return
     }
     if (mode) {
-        bindings[mode][mapping] = {"mapping": actions, "noremap": noremap}
+        bindings[mode][mapping] = {"mapping": actions, noremap}
     } else {
         Object.keys(bindings).forEach(m => {
-            bindings[m][mapping] = {"mapping": actions, "noremap": noremap}
+            bindings[m][mapping] = {"mapping": actions, noremap}
         })
     }
     const {updateHelpPage} = require("./settings")
@@ -1391,14 +1544,15 @@ const clearmap = (mode, removeDefaults) => {
 }
 
 module.exports = {
-    init,
-    executeMapString,
+    clearmap,
     doAction,
-    resetInputHistory,
-    updateKeysOnScreen,
-    listSupportedActions,
+    executeMapString,
+    init,
     listMappingsAsCommandList,
+    listSupportedActions,
     mapOrList,
+    resetInputHistory,
+    uncountableActions,
     unmap,
-    clearmap
+    updateKeysOnScreen
 }

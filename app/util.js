@@ -18,6 +18,7 @@
 "use strict"
 
 const protocolRegex = /^[a-z][a-z0-9-+.]+:\/\//
+const ipv6Regex = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/
 const specialPages = [
     "cookies",
     "downloads",
@@ -33,28 +34,34 @@ let customIcon = null
 let applicationName = ""
 let appDataPath = ""
 let homeDirPath = ""
+let configSettings = ""
 const framePaddingInfo = []
 const frameSelector = "embed, frame, iframe, object"
-
+const specialChars = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/\s]/gi
+const dataUris = ["data", "javascript", "magnet", "mailto", "view-source", "ws"]
 const getSetting = val => JSON.parse(sessionStorage.getItem("settings"))?.[val]
 
-const hasProtocol = location => protocolRegex.test(location)
+const hasProtocol = loc => protocolRegex.test(loc)
+    || dataUris.find(d => loc.startsWith(`${d}:`))
 
 const isUrl = location => {
     if (hasProtocol(location)) {
         return true
     }
-    const domainName = location.split(/\/|\?|#/)[0]
+    const [domainName] = location.split(/\/|\?|#/)
     if (domainName.includes(":@")) {
         return false
     }
     if (domainName.includes("@")) {
-        return (domainName.match(/@/g) || []).length === 1
-            && /^[a-zA-Z0-9]+$/.test(domainName.split("@")[0])
+        return domainName.match(/@/g)?.length === 1
+            && (/^[a-zA-Z0-9]+$/).test(domainName.split("@")[0])
             && isUrl(domainName.split("@")[1])
     }
     if (domainName.includes("..")) {
         return false
+    }
+    if (domainName.startsWith("[") && domainName.endsWith("]")) {
+        return ipv6Regex.test(domainName.replace(/^\[/, "").replace(/\]$/, ""))
     }
     const names = domainName.split(".")
     const tldAndPort = names[names.length - 1]
@@ -66,7 +73,7 @@ const isUrl = location => {
     }
     const [tld, port] = tldAndPort.split(":")
     names[names.length - 1] = tld
-    if (port && !/^\d{2,5}$/.test(port)) {
+    if (port && !(/^\d{2,5}$/).test(port)) {
         return false
     }
     if (port && (Number(port) <= 10 || Number(port) > 65535)) {
@@ -76,7 +83,7 @@ const isUrl = location => {
         return true
     }
     if (names.length === 4) {
-        if (names.every(n => /^\d{1,3}$/.test(n))) {
+        if (names.every(n => (/^\d{1,3}$/).test(n))) {
             if (names.every(n => Number(n) <= 255)) {
                 return true
             }
@@ -85,10 +92,10 @@ const isUrl = location => {
     if (names.length < 2) {
         return false
     }
-    if (/^[a-zA-Z]{2,}$/.test(tld)) {
+    if ((/^[a-zA-Z]{2,}$/).test(tld)) {
         const invalidDashes = names.find(
             n => n.includes("---") || n.startsWith("-") || n.endsWith("-"))
-        if (!invalidDashes && names.every(n => /^[a-zA-Z\d-]+$/.test(n))) {
+        if (!invalidDashes && names.every(n => (/^[a-zA-Z\d-]+$/).test(n))) {
             return true
         }
     }
@@ -101,17 +108,18 @@ const searchword = location => {
         if (word && url) {
             const query = location.replace(`${word} `, "")
             if (query && location.startsWith(`${word} `)) {
-                return {word, "url": stringToUrl(url.replace(/%s/g, query))}
+                return {"url": stringToUrl(url.replace(/%s/g, query)), word}
             }
         }
     }
-    return {"word": null, "url": location}
+    return {"url": location, "word": null}
 }
 
 const listNotificationHistory = () => notificationHistory
 
-const specialPagePath = (page, section = null, skipExistCheck = false) => {
-    if (!specialPages.includes(page) && !skipExistCheck) {
+const specialPagePath = (userPage, section = null, skipExistCheck = false) => {
+    let page = userPage
+    if (!specialPages.includes(userPage) && !skipExistCheck) {
         page = "help"
     }
     const url = joinPath(__dirname, `./pages/${page}.html`)
@@ -200,12 +208,14 @@ const stringToUrl = location => {
 const urlToString = url => {
     const special = pathToSpecialPageName(url)
     if (special.name === "newtab") {
-        url = ""
-    } else if (special.name) {
-        url = `${appName()}://${special.name}`
+        return ""
+    }
+    if (special.name) {
+        let specialUrl = `${appName()}://${special.name}`
         if (special.section) {
-            url += `#${special.section}`
+            specialUrl += `#${special.section}`
         }
+        return specialUrl
     }
     try {
         return decodeURI(url)
@@ -236,9 +246,10 @@ const sameDomain = (d1, d2) => {
     return d1 && d2 && h1 && h2 && h1 === h2
 }
 
-const formatDate = date => {
+const formatDate = dateOrString => {
+    let date = dateOrString
     if (typeof date === "string") {
-        date = new Date(date)
+        date = new Date(dateOrString)
     }
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")
     }-${String(date.getDate()).padStart(2, "0")} ${String(date.getHours())
@@ -381,7 +392,7 @@ const formatSize = size => {
         return `${size} B`
     }
     const exp = Math.floor(Math.log(size) / Math.log(1024))
-    return `${(size / Math.pow(1024, exp)).toFixed(2)} ${"KMGTPE"[exp - 1]}B`
+    return `${(size / 1024 ** exp).toFixed(2)} ${"KMGTPE"[exp - 1]}B`
 }
 
 const extractZip = (args, cb) => {
@@ -427,18 +438,22 @@ const notify = (message, type = "info", clickAction = false) => {
     const escapedMessage = message.replace(/>/g, "&gt;").replace(/</g, "&lt;")
         .replace(/\n/g, "<br>")
     notificationHistory.push({
-        "message": escapedMessage,
-        "type": properType,
+        "click": clickAction,
         "date": new Date(),
-        "click": clickAction
+        "message": escapedMessage,
+        "type": properType
     })
     if (properType === "permission") {
         if (!getSetting("notificationforpermissions")) {
             return
         }
     }
-    if (getSetting("nativenotification")) {
-        const n = Notification(`${appName()} ${properType}`, {"body": message})
+    const native = getSetting("nativenotification")
+    const showLong = properType !== "permission"
+        && (escapedMessage.split("<br>").length > 5 || message.length > 200)
+    if (native === "always" || !showLong && native === "smallonly") {
+        const n = new Notification(
+            `${appName()} ${properType}`, {"body": message})
         n.onclick = () => {
             if (clickAction?.type === "download-success") {
                 const {ipcRenderer} = require("electron")
@@ -447,12 +462,10 @@ const notify = (message, type = "info", clickAction = false) => {
         }
         return
     }
-    if (properType !== "permission") {
-        if (escapedMessage.split("<br>").length > 5 || message.length > 200) {
-            const {ipcRenderer} = require("electron")
-            ipcRenderer.send("show-notification", escapedMessage, properType)
-            return
-        }
+    if (showLong) {
+        const {ipcRenderer} = require("electron")
+        ipcRenderer.send("show-notification", escapedMessage, properType)
+        return
     }
     const notificationsElement = document.getElementById("notifications")
     notificationsElement.className = getSetting("notificationposition")
@@ -500,6 +513,14 @@ const appData = () => {
     return appDataPath
 }
 
+const appConfigSettings = () => {
+    if (!configSettings) {
+        const {ipcRenderer} = require("electron")
+        configSettings = ipcRenderer.sendSync("app-config-settings")
+    }
+    return configSettings
+}
+
 // PATH UTIL
 
 const path = require("path")
@@ -507,11 +528,11 @@ const path = require("path")
 const pathToSpecialPageName = urlPath => {
     if (urlPath?.startsWith?.(`${appName()}://`)) {
         const parts = urlPath.replace(`${appName()}://`, "").split("#")
-        let name = parts[0]
+        let [name] = parts
         if (!specialPages.includes(name)) {
             name = "help"
         }
-        return {"name": name, "section": parts.slice(1).join("#") || ""}
+        return {name, "section": parts.slice(1).join("#") || ""}
     }
     if (urlPath?.startsWith?.("file://")) {
         for (const page of specialPages) {
@@ -688,8 +709,11 @@ const modifiedAt = loc => {
     }
 }
 
+// Disabled import sort order as the order is optimized to reduce module loads
+/* eslint-disable sort-keys-fix/sort-keys-fix */
 module.exports = {
     frameSelector,
+    specialChars,
     hasProtocol,
     isUrl,
     searchword,
@@ -722,6 +746,7 @@ module.exports = {
     appIcon,
     appName,
     appData,
+    appConfigSettings,
     // PATH UTIL
     pathToSpecialPageName,
     joinPath,

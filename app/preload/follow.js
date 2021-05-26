@@ -67,7 +67,7 @@ const otherEvents = [
     "auxclick"
 ]
 
-ipcRenderer.on("focus-input", async (_, follow = null) => {
+ipcRenderer.on("focus-input", async(_, follow = null) => {
     let element = null
     if (follow) {
         element = findElementAtPosition(follow.x, follow.y)
@@ -81,7 +81,9 @@ ipcRenderer.on("focus-input", async (_, follow = null) => {
     if (element) {
         if (element?.click && element?.focus) {
             ipcRenderer.sendToHost("switch-to-insert")
-            await new Promise(r => setTimeout(r, 5))
+            await new Promise(r => {
+                setTimeout(r, 5)
+            })
             element.click()
             element.focus()
         }
@@ -265,14 +267,15 @@ const parseElement = (element, type) => {
     }
     // The element should be clickable and is returned in a parsed format
     let href = String(element.href || "")
+    let typeOverride = false
     if (type === "url") {
         // Set links to the current page as type 'other'
         if (!element.href) {
-            type = "other"
+            typeOverride = "other"
         } else if (element.href === window.location.href) {
-            type = "other"
+            typeOverride = "other"
         } else if (element.href === `${window.location.href}#`) {
-            type = "other"
+            typeOverride = "other"
         }
         // Empty the href for links that require a specific data method to open
         // These will use clicks instead of direct navigation to work correctly
@@ -282,12 +285,12 @@ const parseElement = (element, type) => {
         }
     }
     return {
-        "url": href,
-        "x": dimensions.x,
-        "y": dimensions.y,
-        "width": dimensions.width,
         "height": dimensions.height,
-        "type": type
+        "type": typeOverride || type,
+        "url": href,
+        "width": dimensions.width,
+        "x": dimensions.x,
+        "y": dimensions.y
     }
 }
 
@@ -323,18 +326,19 @@ const clickListener = (e, frame = null) => {
     if (e.isTrusted) {
         const paddingInfo = findFrameInfo(frame)
         ipcRenderer.sendToHost("mouse-click-info", {
-            "x": e.x + (paddingInfo?.x || 0),
-            "y": e.y + (paddingInfo?.y || 0),
+            "toinsert": !!e.composedPath().find(
+                el => el?.matches?.(textlikeInputs)),
             "tovisual": (frame?.contentWindow || window)
                 .getSelection().toString(),
-            "toinsert": !!e.path.find(el => el?.matches?.(textlikeInputs))
+            "x": e.x + (paddingInfo?.x || 0),
+            "y": e.y + (paddingInfo?.y || 0)
         })
     }
 }
 window.addEventListener("click", clickListener,
     {"capture": true, "passive": true})
 window.addEventListener("mousedown", e => {
-    if (e.path.find(el => el?.matches?.("select, option"))) {
+    if (e.composedPath().find(el => el?.matches?.("select, option"))) {
         clickListener(e)
     }
 }, {"capture": true, "passive": true})
@@ -349,44 +353,97 @@ ipcRenderer.on("replace-input-field", (_, value, position) => {
     }
 })
 
-const contextListener = (e, frame = null) => {
+const getSvgData = el => `data:image/svg+xml,${encodeURIComponent(el.outerHTML)
+    .replace(/'/g, "%27").replace(/"/g, "%22")}`
+
+const contextListener = (e, frame = null, extraData = null) => {
     if (e.isTrusted && !inFollowMode && e.button === 2) {
         e.preventDefault?.()
         const paddingInfo = findFrameInfo(frame)
-        const img = e.path.find(el => ["svg", "img"]
+        const img = e.composedPath().find(el => ["svg", "img"]
             .includes(el.tagName?.toLowerCase()))
-        const vid = e.path.find(el => el.tagName?.toLowerCase() === "video")
-        const audio = e.path.find(el => el.tagName?.toLowerCase() === "audio")
-        const link = e.path.find(el => el.tagName?.toLowerCase() === "a"
-            && el.href?.trim())
-        const text = e.path.find(el => el?.matches?.(textlikeInputs))
+        const backgroundImg = e.composedPath().map(el => {
+            try {
+                let url = getComputedStyle(el).backgroundImage.slice(4, -1)
+                if (url.startsWith("\"") || url.startsWith("'")) {
+                    url = url.slice(1)
+                }
+                if (url.endsWith("\"") || url.endsWith("'")) {
+                    url = url.slice(0, -1)
+                }
+                return url
+            } catch (_) {
+                // Window and top-level nodes don't support getComputedStyle
+            }
+            return null
+        }).find(url => url)
+        const vid = e.composedPath().find(
+            el => el.tagName?.toLowerCase() === "video")
+        const audio = e.composedPath().find(
+            el => el.tagName?.toLowerCase() === "audio")
+        const link = e.composedPath().find(
+            el => el.tagName?.toLowerCase() === "a" && el.href?.trim())
+        const text = e.composedPath().find(el => el?.matches?.(textlikeInputs))
         ipcRenderer.sendToHost("context-click-info", {
-            "x": e.x + (paddingInfo?.x || 0),
-            "y": e.y + (paddingInfo?.y || 0),
-            "img": img?.src?.trim(),
-            "video": vid?.src?.trim()
-                || vid?.querySelector("source[type^=video]")?.src?.trim(),
             "audio": audio?.src?.trim()
                 || audio?.querySelector("source[type^=audio]")?.src?.trim()
                 || vid?.querySelector("source[type^=audio]")?.src?.trim(),
-            "link": link?.href?.trim(),
-            "text": (frame?.contentWindow || window).getSelection().toString(),
+            backgroundImg,
             "canEdit": !!text,
-            "inputVal": text?.value,
-            "inputSel": text?.selectionStart,
+            extraData,
             "frame": frame?.src,
-            "hasExistingListener": eventListeners.contextmenu.has(e.path[0])
-                || eventListeners.auxclick.has(e.path[0])
+            "hasElementListener": eventListeners.contextmenu.has(
+                e.composedPath()[0])
+                || eventListeners.auxclick.has(e.composedPath()[0]),
+            "hasGlobalListener": !!e.composedPath().find(
+                el => eventListeners.contextmenu.has(el)
+                || eventListeners.auxclick.has(el)),
+            "img": img?.src?.trim(),
+            "inputSel": text?.selectionStart,
+            "inputVal": text?.value,
+            "link": link?.href?.trim(),
+            "svgData": img && getSvgData(img),
+            "text": (frame?.contentWindow || window).getSelection().toString(),
+            "video": vid?.src?.trim()
+                || vid?.querySelector("source[type^=video]")?.src?.trim(),
+            "x": e.x + (paddingInfo?.x || 0),
+            "y": e.y + (paddingInfo?.y || 0)
         })
     }
 }
-ipcRenderer.on("contextmenu", () => {
-    const active = activeElement()
-    const parsed = parseElement(active)
-    const x = parsed?.x || 0
-    const y = parsed?.y || 0
-    contextListener({"isTrusted": true, "button": 2, "path": [active], x, y},
-        findFrameInfo(active)?.element)
+ipcRenderer.on("contextmenu-data", (_, request) => {
+    const {x, y} = request
+    const els = [findElementAtPosition(x, y)]
+    while (els[0].parentNode && els[0].parentNode !== els[1]?.parentNode) {
+        els.unshift(els[0].parentNode)
+    }
+    els.reverse()
+    contextListener({
+        "button": 2, "composedPath": () => els, "isTrusted": true, x, y
+    }, findFrameInfo(els[0])?.element, request)
+})
+ipcRenderer.on("contextmenu", (_, extraData = null) => {
+    const els = [activeElement()]
+    const parsed = parseElement(els[0])
+    let x = parsed?.x || 0
+    if (getComputedStyle(els[0]).font.includes("monospace")) {
+        x = parsed?.x + Number(getComputedStyle(els[0]).fontSize.replace(
+            "px", "")) * els[0].selectionStart * 0.6 - els[0].scrollLeft
+    }
+    let y = parsed?.y + parsed.height
+    if (x > window.innerWidth || isNaN(x) || x === 0) {
+        x = parsed?.x || 0
+    }
+    if (y > window.innerHeight) {
+        y = parsed?.y || 0
+    }
+    while (els[0].parentNode && els[0].parentNode !== els[1]?.parentNode) {
+        els.unshift(els[0].parentNode)
+    }
+    els.reverse()
+    contextListener({
+        "button": 2, "composedPath": () => els, "isTrusted": true, x, y
+    }, findFrameInfo(els[0])?.element, extraData)
 })
 window.addEventListener("auxclick", contextListener)
 
@@ -398,7 +455,8 @@ setInterval(() => {
             f.contentDocument.onclick = e => clickListener(e, f)
             f.contentDocument.oncontextmenu = e => contextListener(e, f)
             f.contentDocument.onmousedown = e => {
-                if (e.path.find(el => el?.matches?.("select, option"))) {
+                const nativeFields = "select, option"
+                if (e.composedPath().find(el => el?.matches?.(nativeFields))) {
                     clickListener(e, f)
                 }
             }

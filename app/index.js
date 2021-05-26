@@ -15,7 +15,6 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* eslint-disable no-console */
 "use strict"
 
 const {
@@ -32,6 +31,7 @@ const {
 const {ElectronBlocker} = require("@cliqz/adblocker-electron")
 const isSvg = require("is-svg")
 const {
+    specialChars,
     writeJSON,
     readJSON,
     writeFile,
@@ -46,7 +46,8 @@ const {
     dirname,
     basePath,
     formatSize,
-    extractZip
+    extractZip,
+    isAbsolutePath
 } = require("./util")
 const {"sync": rimrafSync} = require("rimraf")
 const rimraf = pattern => {
@@ -58,64 +59,77 @@ const rimraf = pattern => {
 }
 
 const version = process.env.npm_package_version || app.getVersion()
-const printUsage = () => {
-    console.log("Vieb: Vim Inspired Electron Browser\n")
-    console.log("Usage: Vieb [options] <URLs>\n")
-    console.log("Options:")
-    console.log(" --help                   Print this help and exit")
-    console.log(" --version                "
-        + "Print program info with version and exit")
-    console.log(" --datafolder <dir>       Store ALL Vieb data in this folder")
-    console.log("                          "
-        + "You can also use the ENV var: VIEB_DATAFOLDER")
-    console.log(" --erwic <file>           "
-        + "Open a fixed set of pages in a separate instance")
-    console.log("                          "
-        + "You can also use the ENV var: VIEB_ERWIC")
-    console.log("                          "
-        + "See 'Erwic.md' for usage and details")
-    console.log(" --debug                  "
-        + "Open with Chromium and Electron debugging tools")
-    console.log("                          "
-        + "They can also be opened later with :internaldevtools")
-    console.log(" --window-frame           "
-        + "Show the native window frame around the Vieb window")
-    console.log("                          "
-        + "You can also use the ENV var: VIEB_WINDOW_FRAME")
-    console.log(" --disable-media-keys     "
-        + "Disable the media keys from interacting with Vieb")
-    console.log("                          "
-        + "You can also use the ENV var: VIEB_DISABLE_MEDIA_KEYS")
-    console.log(" --software-only          "
-        + "Disable hardware acceleration completely")
-    console.log("                          "
-        + "You can also use the ENV var: VIEB_SOFTWARE_ONLY")
-    console.log(" --strict-site-isolation  "
-        + "Enable strict site isolation (blocks iframe access)")
-    console.log("                          "
-        + "You can also use the ENV var: VIEB_STRICT_ISOLATION")
-    console.log("\nAll arguments not starting with - will be opened as a url.")
-    console.log("Command-line arguments will overwrite values set by ENV vars.")
+const printUsage = (code = 1) => {
+    console.info(`Vieb: Vim Inspired Electron Browser
+
+Usage: Vieb [options] <URLs>
+
+Options:
+ --help                  Print this help and exit.
+
+ --version               Print program info with versions and exit.
+
+ --debug                 Open with Chromium and Electron debugging tools.
+                         They can also be opened later with ':internaldevtools'.
+
+ --datafolder=<dir>      Store ALL Vieb data in this folder.
+                         You can also use the ENV var: 'VIEB_DATAFOLDER'.
+
+ --erwic=<file>          file: Location of the JSON file to configure Erwic.
+                         Open a fixed set of pages in a separate instance.
+                         See 'Erwic.md' or ':h erwic' for usage and details.
+                         You can also use the ENV var: 'VIEB_ERWIC'.
+
+ --config-order=<val>    string [USER-FIRST/user-only/
+                           datafolder-first/datafolder-only/none]:
+                         Configure the viebrc config file parse order.
+                         You can choose to load either of the locations first,
+                         choose to load only one of the locations or no config.
+                         Order arg is ignored if '--config-file' is provided.
+                         See ':h viebrc' for viebrc locations and details.
+                         You can also use the ENV var: 'VIEB_CONFIG_ORDER'.
+
+ --config-file=<file>    Parse only a single viebrc config file when starting.
+                         If a file is provided using thsi argument,
+                         the '--config-order' argument will be set to 'none'.
+                         Also see ':h viebrc' for viebrc locations and details.
+                         You can also use the ENV var: 'VIEB_CONFIG_FILE'.
+
+ --window-frame=<val>    bool (false): Show the native frame around the window.
+                         You can also use the ENV var: 'VIEB_WINDOW_FRAME'.
+
+ --media-keys=<val>      bool (true): Allow the media keys to control playback.
+                         You can also use the ENV var: 'VIEB_MEDIA_KEYS'.
+
+ --site-isolation=<val>  string [REGULAR/strict]: Set the site isolation level.
+                         You can also use the ENV var: 'VIEB_SITE_ISOLATION'.
+
+ --acceleration=<val>    string [HARDWARE/software]: Use hardware acceleration.
+                         You can also use the ENV var: 'VIEB_ACCELERATION'.
+
+All arguments not starting with - will be opened as a url.
+Command-line arguments will overwrite values set by ENV vars.`)
     printLicense()
+    app.exit(code)
 }
 const printVersion = () => {
-    console.log("Vieb: Vim Inspired Electron Browser\n")
-    console.log(`This is version ${version} of Vieb.`)
-    console.log("Vieb is based on Electron and inspired by Vim.")
-    console.log("It can be used to browse the web entirely with the keyboard.")
-    console.log(`This release uses Electron ${
-        process.versions.electron} and Chromium ${process.versions.chrome}`)
+    console.info(`Vieb: Vim Inspired Electron Browser
+This is version ${version} of Vieb.
+Vieb is based on Electron and inspired by Vim.
+It can be used to browse the web entirely with the keyboard.
+This release uses Electron ${process.versions.electron} and Chromium ${
+    process.versions.chrome}`)
     printLicense()
+    app.exit(0)
 }
 const printLicense = () => {
-    console.log("Vieb is created by Jelmer van Arnhem and contributors.")
-    console.log("Website: https://vieb.dev OR https://github.com/Jelmerro/Vieb")
-    console.log("\nLicense: GNU GPL version 3 or "
-        + "later versions <http://gnu.org/licenses/gpl.html>")
-    console.log("This is free software; you are free to change and "
-        + "redistribute it.")
-    console.log("There is NO WARRANTY, to the extent permitted by law.")
-    console.log("See the LICENSE file or the GNU website for details.")
+    console.info(`Vieb is created by Jelmer van Arnhem and contributors.
+Website: https://vieb.dev OR https://github.com/Jelmerro/Vieb
+
+License: GNU GPL version 3 or later versions <http://gnu.org/licenses/gpl.html>
+This is free software; you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+See the LICENSE file or the GNU website for details.`)
 }
 const applyDevtoolsSettings = prefFile => {
     makeDir(dirname(prefFile))
@@ -144,10 +158,7 @@ const useragent = () => session.defaultSession.getUserAgent()
     .replace(/Electron\/\S* /, "").replace(/Vieb\/\S* /, "")
     .replace(RegExp(`${app.getName()}/\\S* `), "")
 
-// Fix segfault when opening Twitter:
-// https://github.com/electron/electron/issues/25469
-app.commandLine.appendSwitch("disable-features", "CrossOriginOpenerPolicy")
-
+// Parse arguments
 const getArguments = argv => {
     const execFile = basePath(argv[0])
     if (execFile === "electron" || process.defaultApp && execFile !== "vieb") {
@@ -157,95 +168,148 @@ const getArguments = argv => {
     // The array argv is ["vieb", ...args]
     return argv.slice(1)
 }
-
-// Parse arguments
 const isTruthyArg = arg => {
-    arg = String(arg).trim().toLowerCase()
-    return Number(arg) > 0 || ["y", "yes", "true", "on"].includes(arg)
+    const argStr = String(arg).trim().toLowerCase()
+    return Number(argStr) > 0 || ["y", "yes", "true", "on"].includes(argStr)
 }
 const args = getArguments(process.argv)
 const urls = []
-let enableDebugMode = false
-let nextArgErwicConfig = false
-let nextArgDataFolder = false
-let showWindowFrame = isTruthyArg(process.env.VIEB_WINDOW_FRAME)
-let softwareOnly = isTruthyArg(process.env.VIEB_SOFTWARE_ONLY)
-let strictSiteIsolation = isTruthyArg(process.env.VIEB_STRICT_ISOLATION)
-let disableMediaKeys = isTruthyArg(process.env.VIEB_DISABLE_MEDIA_KEYS)
-let erwic = process.env.VIEB_ERWIC?.trim() || ""
-let datafolder = process.env.VIEB_DATAFOLDER?.trim()
+let argDebugMode = false
+let argDatafolder = process.env.VIEB_DATAFOLDER?.trim()
     || joinPath(app.getPath("appData"), "Vieb")
+let argErwic = process.env.VIEB_ERWIC?.trim() || ""
+let argWindowFrame = isTruthyArg(process.env.VIEB_WINDOW_FRAME)
+let argConfigOrder = process.env.VIEB_CONFIG_ORDER?.trim().toLowerCase()
+    || "user-first"
+let argConfigOverride = process.env.VIEB_CONFIG_FILE?.trim().toLowerCase() || ""
+let argMediaKeys = isTruthyArg(process.env.VIEB_MEDIA_KEYS)
+let argSiteIsolation = process.env.VIEB_SITE_ISOLATION?.trim().toLowerCase()
+    || "regular"
+let argAcceleration = process.env.VIEB_ACCELERATION?.trim().toLowerCase()
+    || "hardware"
 let customIcon = null
-args.forEach(arg => {
-    arg = arg.trim()
-    if (nextArgErwicConfig) {
-        erwic = arg
-        nextArgErwicConfig = false
-    } else if (nextArgDataFolder) {
-        datafolder = arg
-        nextArgDataFolder = false
-    } else if (arg.startsWith("--")) {
+args.forEach(a => {
+    const arg = a.trim()
+    if (arg.startsWith("-")) {
         if (arg === "--help") {
-            printUsage()
-            app.exit(0)
+            printUsage(0)
         } else if (arg === "--version") {
             printVersion()
-            app.exit(0)
         } else if (arg === "--debug") {
-            enableDebugMode = true
-        } else if (arg === "--window-frame") {
-            showWindowFrame = true
-        } else if (arg === "--strict-site-isolation") {
-            strictSiteIsolation = true
-        } else if (arg === "--erwic") {
-            nextArgErwicConfig = true
-        } else if (arg === "--software-only") {
-            softwareOnly = true
-        } else if (arg === "--disable-media-keys") {
-            disableMediaKeys = true
+            argDebugMode = true
         } else if (arg === "--datafolder") {
-            nextArgDataFolder = true
-        } else {
-            console.log(`Unsupported argument: ${arg}`)
+            console.warn("The 'datafolder' argument requires a value such as:"
+                + " --datafolder=~/.config/Vieb/\n")
             printUsage()
-            app.exit(1)
+        } else if (arg === "--erwic") {
+            console.warn("The 'erwic' argument requires a value such as:"
+                + " --erwic=~/.config/Erwic/\n")
+            printUsage()
+        } else if (arg === "--config-order") {
+            console.warn("The 'config-order' argument requires a value such as:"
+                + " --config-order=user-first\n")
+            printUsage()
+        } else if (arg === "--config-file") {
+            console.warn("The 'config-file' argument requires a value such as:"
+                + " --config-file=./customconf\n")
+            printUsage()
+        } else if (arg === "--window-frame") {
+            console.warn("The 'window-frame' argument requires a value such as:"
+                + " --window-frame=false\n")
+            printUsage()
+        } else if (arg === "--media-keys") {
+            console.warn("The 'media-keys' argument requires a value such as:"
+                + " --media-keys=true\n")
+            printUsage()
+        } else if (arg === "--site-isolation") {
+            console.warn("The 'site-isolation' argument requires a value such "
+                + "as: --site-isolation=regular\n")
+            printUsage()
+        } else if (arg === "--acceleration") {
+            console.warn("The 'acceleration' argument requires a value such as:"
+                + "\n --acceleration=hardware\n")
+            printUsage()
+        } else if (arg.startsWith("--datafolder=")) {
+            argDatafolder = arg.split("=").slice(1).join("=")
+        } else if (arg.startsWith("--erwic=")) {
+            argErwic = arg.split("=").slice(1).join("=")
+        } else if (arg.startsWith("--config-order=")) {
+            argConfigOrder = arg.split("=").slice(1).join("=")
+        } else if (arg.startsWith("--config-file=")) {
+            argConfigOverride = arg.split("=").slice(1).join("=")
+        } else if (arg.startsWith("--window-frame=")) {
+            argWindowFrame = isTruthyArg(arg.split("=").slice(1).join("="))
+        } else if (arg.startsWith("--media-keys=")) {
+            argMediaKeys = isTruthyArg(arg.split("=").slice(1).join("="))
+        } else if (arg.startsWith("--site-isolation=")) {
+            argSiteIsolation = arg.split("=").slice(1).join("=").toLowerCase()
+        } else if (arg.startsWith("--acceleration=")) {
+            argAcceleration = arg.split("=").slice(1).join("=").toLowerCase()
+        } else {
+            console.warn(`Unsupported argument: '${arg}', use --help for info`)
         }
-    } else if (!arg.startsWith("-")) {
+    } else {
         urls.push(arg)
     }
 })
-if (nextArgErwicConfig) {
-    console.log(`The 'erwic' option requires a file location`)
+if (argSiteIsolation !== "regular" && argSiteIsolation !== "strict") {
+    console.warn("The 'site-isolation' argument only accepts:\n"
+        + "'regular' or 'strict'\n")
     printUsage()
-    app.exit(1)
 }
-if (nextArgDataFolder) {
-    console.log(`The 'datafolder' option requires a directory location`)
+if (argAcceleration !== "hardware" && argAcceleration !== "software") {
+    console.warn("The 'acceleration' argument only accepts:\n"
+        + "'hardware' or 'software'\n")
     printUsage()
-    app.exit(1)
 }
-if (!strictSiteIsolation) {
+if (!argDatafolder.trim()) {
+    console.warn("The 'datafolder' argument may not be empty\n")
+    printUsage()
+}
+const validConfigOrders = [
+    "none", "user-only", "datafolder-only", "user-first", "datafolder-first"
+]
+if (!validConfigOrders.includes(argConfigOrder)) {
+    console.warn(`The 'config-order' argument only accepts:\n${
+        validConfigOrders.slice(0, -1).map(c => `'${c}'`).join(", ")} or '${
+        validConfigOrders.slice(-1)[0]}'\n`)
+    printUsage()
+}
+if (argConfigOverride) {
+    argConfigOverride = expandPath(argConfigOverride)
+    if (!isAbsolutePath(argConfigOverride)) {
+        argConfigOverride = joinPath(process.cwd(), argConfigOverride)
+    }
+    if (!isFile(argConfigOverride)) {
+        console.warn("Config file could not be read\n")
+        printUsage()
+    }
+}
+// Fix segfault when opening Twitter:
+// https://github.com/electron/electron/issues/25469
+app.commandLine.appendSwitch("disable-features", "CrossOriginOpenerPolicy")
+if (argSiteIsolation === "regular") {
     app.commandLine.appendSwitch("disable-site-isolation-trials")
 }
-if (softwareOnly) {
+if (argAcceleration === "software") {
     app.disableHardwareAcceleration()
 }
-if (disableMediaKeys) {
+if (!argMediaKeys) {
     app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling")
 }
 rimraf("Partitions/temp*")
 rimraf("erwicmode")
 app.setName("Vieb")
-datafolder = `${joinPath(expandPath(datafolder.trim()))}/`
-app.setPath("appData", datafolder)
-app.setPath("userData", datafolder)
-applyDevtoolsSettings(joinPath(datafolder, "Preferences"))
-if (erwic) {
-    const config = readJSON(erwic)
+argDatafolder = `${joinPath(expandPath(argDatafolder.trim()))}/`
+app.setPath("appData", argDatafolder)
+app.setPath("userData", argDatafolder)
+applyDevtoolsSettings(joinPath(argDatafolder, "Preferences"))
+if (argErwic) {
+    argErwic = expandPath(argErwic)
+    const config = readJSON(argErwic)
     if (!config) {
-        console.log("Erwic config file could not be read")
+        console.warn("Erwic config file could not be read\n")
         printUsage()
-        app.exit(1)
     }
     if (config.name) {
         app.setName(config.name)
@@ -253,28 +317,29 @@ if (erwic) {
     if (config.icon) {
         config.icon = expandPath(config.icon)
         if (config.icon !== joinPath(config.icon)) {
-            config.icon = joinPath(dirname(erwic), config.icon)
+            config.icon = joinPath(dirname(argErwic), config.icon)
         }
         if (!isFile(config.icon)) {
             config.icon = null
         }
         customIcon = config.icon
     }
-    writeFile(joinPath(datafolder, "erwicmode"), "")
+    writeFile(joinPath(argDatafolder, "erwicmode"), "")
     if (!Array.isArray(config.apps)) {
-        console.log("Erwic config file requires a list of 'apps'")
+        console.warn("Erwic config file requires a list of 'apps'\n")
         printUsage()
-        app.exit(1)
     }
     config.apps = config.apps.map(a => {
-        a.container = a.container?.replace(/[^A-Za-z0-9_]/g, "")
+        const simpleContainerName = a.container.replace(/_/g, "")
+        if (simpleContainerName.match(specialChars)) {
+            console.warn("Container names are not allowed to have "
+                + "special characters besides underscores\n")
+            printUsage()
+        }
         if (typeof a.script === "string") {
             a.script = expandPath(a.script)
             if (a.script !== joinPath(a.script)) {
-                a.script = joinPath(dirname(erwic), a.script)
-            }
-            if (!isFile(a.script)) {
-                a.script = null
+                a.script = joinPath(dirname(argErwic), a.script)
             }
         } else {
             a.script = null
@@ -282,10 +347,9 @@ if (erwic) {
         return a
     }).filter(a => typeof a.container === "string" && typeof a.url === "string")
     if (config.apps.length === 0) {
-        console.log("Erwic config file requires at least one app to be added")
-        console.log("Each app must have a 'container' name and a 'url'")
+        console.warn("Erwic config file requires at least one app to be added")
+        console.warn("Each app must have a 'container' name and a 'url'\n")
         printUsage()
-        app.exit(1)
     }
     urls.push(...config.apps)
 }
@@ -294,65 +358,57 @@ if (erwic) {
 let mainWindow = null
 let loginWindow = null
 let notificationWindow = null
-// Workaround for Electron messing up the second instances args
-// https://github.com/electron/electron/issues/23220
-app.commandLine.appendSwitch("second-instance-data", JSON.stringify(
-    getArguments(process.argv)))
+const resolveLocalPaths = (paths, cwd = null) => paths.map(url => {
+    let fileLocation = expandPath(url.replace(/^file:\/*/g, "/"))
+    if (process.platform === "win32") {
+        fileLocation = expandPath(url.replace(/^file:\/*/g, ""))
+    }
+    if (!isAbsolutePath(fileLocation)) {
+        fileLocation = joinPath(cwd || process.cwd(), url)
+    }
+    if (isFile(fileLocation)) {
+        return `file:///${fileLocation.replace(/^\//g, "")}`
+    }
+    return url
+}).filter(url => !url.startsWith("-"))
 app.on("ready", () => {
     app.userAgentFallback = useragent()
-    // Request single instance lock and quit if that fails
     if (app.requestSingleInstanceLock()) {
-        app.on("second-instance", (_, chromeArgs) => {
+        app.on("second-instance", (_, newArgs, cwd) => {
             if (mainWindow.isMinimized()) {
                 mainWindow.restore()
             }
             mainWindow.focus()
-            const argPrefix = "--second-instance-data="
-            const argString = chromeArgs.find(arg => arg.startsWith(argPrefix))
-            let newArgs = getArguments(chromeArgs)
-            if (argString) {
-                newArgs = JSON.parse(argString.replace(argPrefix, ""))
-            }
-            const newUrls = []
-            let ignoreNextArg = false
-            newArgs.forEach(arg => {
-                if (arg === "--erwic" || arg === "--datafolder") {
-                    ignoreNextArg = true
-                } else if (ignoreNextArg) {
-                    ignoreNextArg = false
-                } else if (!arg.startsWith("-")) {
-                    newUrls.push(arg)
-                }
-            })
-            mainWindow.webContents.send("urls", newUrls)
+            mainWindow.webContents.send("urls", resolveLocalPaths(newArgs, cwd))
         })
     } else {
-        console.log(`Sending urls to existing instance in ${datafolder}`)
+        console.info(`Sending urls to existing instance in ${argDatafolder}`)
         app.exit(0)
     }
-    app.on("open-url", (_, url) => mainWindow.webContents.send("urls", [url]))
+    app.on("open-url", (_, url) => mainWindow.webContents.send("urls",
+        resolveLocalPaths([url])))
     if (!app.isPackaged && !customIcon) {
         customIcon = joinPath(__dirname, "img/icons/512x512.png")
     }
     // Init mainWindow
     const windowData = {
-        "title": app.getName(),
-        "width": 800,
-        "height": 600,
-        "frame": showWindowFrame,
-        "show": enableDebugMode,
         "closable": false,
+        "frame": argWindowFrame,
+        "height": 600,
         "icon": customIcon,
+        "show": argDebugMode,
+        "title": app.getName(),
         "webPreferences": {
-            "preload": joinPath(__dirname, "renderer/index.js"),
-            "nativeWindowOpen": false,
-            "sandbox": false,
             "contextIsolation": false,
             "disableBlinkFeatures": "Auxclick",
-            "nodeIntegration": false,
             "enableRemoteModule": false,
+            "nativeWindowOpen": false,
+            "nodeIntegration": false,
+            "preload": joinPath(__dirname, "renderer/index.js"),
+            "sandbox": false,
             "webviewTag": true
-        }
+        },
+        "width": 800
     }
     mainWindow = new BrowserWindow(windowData)
     mainWindow.removeMenu()
@@ -381,31 +437,31 @@ app.on("ready", () => {
             prefs.nodeIntegrationInSubFrames = false
             prefs.contextIsolation = false
             prefs.enableRemoteModule = false
-            prefs.webSecurity = strictSiteIsolation
+            prefs.webSecurity = argSiteIsolation === "strict"
         })
-        if (enableDebugMode) {
+        if (argDebugMode) {
             mainWindow.webContents.openDevTools({"mode": "undocked"})
         }
-        mainWindow.webContents.send("urls", urls)
+        mainWindow.webContents.send("urls", resolveLocalPaths(urls))
     })
     // Show a dialog for sites requiring Basic HTTP authentication
     const loginWindowData = {
-        "fullscreenable": false,
-        "modal": true,
-        "frame": false,
-        "show": false,
-        "parent": mainWindow,
         "alwaysOnTop": true,
-        "resizable": false,
+        "frame": false,
+        "fullscreenable": false,
         "icon": customIcon,
+        "modal": true,
+        "parent": mainWindow,
+        "resizable": false,
+        "show": false,
         "webPreferences": {
-            "preload": joinPath(__dirname, "preload/loginpopup.js"),
-            "sandbox": true,
             "contextIsolation": true,
             "disableBlinkFeatures": "Auxclick",
-            "nodeIntegration": false,
             "enableRemoteModule": false,
-            "partition": "login"
+            "nodeIntegration": false,
+            "partition": "login",
+            "preload": joinPath(__dirname, "preload/loginpopup.js"),
+            "sandbox": true
         }
     }
     loginWindow = new BrowserWindow(loginWindowData)
@@ -422,22 +478,22 @@ app.on("ready", () => {
     })
     // Show a dialog for large notifications
     const notificationWindowData = {
-        "fullscreenable": false,
-        "modal": true,
-        "frame": false,
-        "show": false,
-        "parent": mainWindow,
         "alwaysOnTop": true,
-        "resizable": false,
+        "frame": false,
+        "fullscreenable": false,
         "icon": customIcon,
+        "modal": true,
+        "parent": mainWindow,
+        "resizable": false,
+        "show": false,
         "webPreferences": {
-            "preload": joinPath(__dirname, "preload/notificationpopup.js"),
-            "sandbox": true,
             "contextIsolation": true,
             "disableBlinkFeatures": "Auxclick",
-            "nodeIntegration": false,
             "enableRemoteModule": false,
-            "partition": "notification-window"
+            "nodeIntegration": false,
+            "partition": "notification-window",
+            "preload": joinPath(__dirname, "preload/notificationpopup.js"),
+            "sandbox": true
         }
     }
     notificationWindow = new BrowserWindow(notificationWindowData)
@@ -510,8 +566,8 @@ app.on("login", (e, contents, _, auth, callback) => {
 // Show a scrollable notification popup for long notifications
 ipcMain.on("show-notification", (_, escapedMessage, properType) => {
     const bounds = mainWindow.getBounds()
-    const width = Math.round(bounds.width * .9)
-    let height = Math.round(bounds.height * .9)
+    const width = Math.round(bounds.width * 0.9)
+    let height = Math.round(bounds.height * 0.9)
     height -= height % fontsize
     notificationWindow.setMinimumSize(width, height)
     notificationWindow.setSize(width, height)
@@ -542,17 +598,12 @@ ipcMain.on("set-download-settings", (_, settings) => {
         if (settings.cleardownloadsonquit) {
             deleteFile(dlsFile)
         } else if (isFile(dlsFile)) {
-            const parsed = readJSON(dlsFile)
-            for (const download of parsed) {
-                if (download.state === "completed") {
-                    if (!settings.cleardownloadsoncompleted) {
-                        downloads.push(download)
-                    }
-                } else {
-                    download.state = "cancelled"
-                    downloads.push(download)
+            downloads = readJSON(dlsFile)?.map(d => {
+                if (d.state !== "completed") {
+                    d.state = "cancelled"
                 }
-            }
+                return d
+            }) || []
         }
     }
     downloadSettings = settings
@@ -606,22 +657,23 @@ ipcMain.on("set-permissions", (_, permissionObject) => {
     permissions = permissionObject
 })
 ipcMain.on("set-spelllang", (_, langs) => {
-    sessionList.forEach(ses => {
-        if (!langs) {
-            return
+    if (!langs) {
+        return
+    }
+    const parsedLangs = langs.split(",").map(l => {
+        let lang = l
+        if (lang === "system") {
+            lang = app.getLocale()
         }
-        langs = langs.split(",").map(lang => {
-            if (lang === "system") {
-                lang = app.getLocale()
-            }
-            const valid = session.defaultSession.availableSpellCheckerLanguages
-            if (!valid.includes(lang)) {
-                return null
-            }
-            return lang
-        }).filter(lang => lang)
-        session.fromPartition(ses).setSpellCheckerLanguages(langs)
-        session.defaultSession.setSpellCheckerLanguages(langs)
+        const valid = session.defaultSession.availableSpellCheckerLanguages
+        if (!valid.includes(lang)) {
+            return null
+        }
+        return lang
+    }).filter(lang => lang)
+    sessionList.forEach(ses => {
+        session.fromPartition(ses).setSpellCheckerLanguages(parsedLangs)
+        session.defaultSession.setSpellCheckerLanguages(parsedLangs)
     })
 })
 ipcMain.on("create-session", (_, name, adblock, cache) => {
@@ -629,7 +681,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         return
     }
     const partitionDir = joinPath(app.getPath("appData"), "Partitions")
-    const sessionDir = joinPath(partitionDir, name.split(":")[1] || name)
+    const sessionDir = joinPath(partitionDir, encodeURIComponent(
+        name.split(":")[1] || name))
     applyDevtoolsSettings(joinPath(sessionDir, "Preferences"))
     const newSession = session.fromPartition(name, {cache})
     newSession.setPermissionRequestHandler(permissionHandler)
@@ -642,7 +695,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             enableAdblocker(adblock)
         }
     }
-    listDir(joinPath(datafolder, "extensions"), true, true)?.forEach(loc => {
+    listDir(joinPath(argDatafolder, "extensions"), true, true)?.forEach(loc => {
         newSession.loadExtension(loc, {"allowFileAccess": true})
     })
     newSession.webRequest.onBeforeRequest((details, callback) => {
@@ -691,7 +744,11 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             item.setSavePath(save)
         }
         if (downloadSettings.downloadmethod === "confirm") {
-            const wrappedFileName = filename.replace(/.{50}/g, "$&\n")
+            let wrappedFileName = filename.replace(/.{50}/g, "$&\n")
+            if (wrappedFileName.length > 1000) {
+                wrappedFileName = `${wrappedFileName.split("")
+                    .slice(0, 1000).join("")}...`
+            }
             let wrappedUrl = item.getURL()
             try {
                 wrappedUrl = decodeURI(wrappedUrl)
@@ -699,15 +756,19 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 // Invalid url
             }
             wrappedUrl = wrappedUrl.replace(/.{50}/g, "$&\n")
+            if (wrappedUrl.length > 1000) {
+                wrappedUrl = `${wrappedUrl.split("")
+                    .slice(0, 1000).join("")}...`
+            }
             const button = dialog.showMessageBoxSync(mainWindow, {
-                "type": "question",
                 "buttons": ["Allow", "Deny"],
-                "defaultId": 0,
                 "cancelId": 1,
-                "title": "Download request from the website",
+                "defaultId": 0,
                 "message": `Do you want to download the following file?\n\n${
                     wrappedFileName}\n\n${item.getMimeType()} - ${
-                    formatSize(item.getTotalBytes())}\n\n${wrappedUrl}`
+                    formatSize(item.getTotalBytes())}\n\n${wrappedUrl}`,
+                "title": "Download request from the website",
+                "type": "question"
             })
             if (button === 1) {
                 e.preventDefault()
@@ -715,14 +776,14 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             }
         }
         const info = {
-            "name": filename,
-            "url": item.getURL(),
-            "total": item.getTotalBytes(),
-            "file": item.getSavePath(),
-            "item": item,
-            "state": "waiting_to_start",
             "current": 0,
-            "date": new Date()
+            "date": new Date(),
+            "file": item.getSavePath(),
+            item,
+            "name": filename,
+            "state": "waiting_to_start",
+            "total": item.getTotalBytes(),
+            "url": item.getURL()
         }
         downloads.push(info)
         mainWindow.webContents.send("notify", `Download started:\n${info.name}`)
@@ -754,7 +815,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             if (info.state === "completed") {
                 mainWindow.webContents.send("notify",
                     `Download finished:\n${info.name}`, "success", {
-                        "type": "download-success", "path": info.file
+                        "path": info.file, "type": "download-success"
                     })
             } else {
                 mainWindow.webContents.send("notify",
@@ -794,8 +855,8 @@ const writeDownloadsToFile = () => {
         writeJSON(dlsFile, downloads)
     }
 }
-const permissionHandler = (_, permission, callback, details) => {
-    permission = permission.toLowerCase().replace(/-/g, "")
+const permissionHandler = (_, perm, callback, details) => {
+    let permission = perm.toLowerCase().replace(/-/g, "")
     if (permission === "mediakeysystem") {
         // Block any access to DRM, there is no Electron support for it anyway
         return callback(false)
@@ -817,7 +878,8 @@ const permissionHandler = (_, permission, callback, details) => {
     }
     let settingRule = ""
     for (const override of ["asked", "blocked", "allowed"]) {
-        for (const rule of permissions[`permissions${override}`]?.split(",")) {
+        const permList = permissions[`permissions${override}`]?.split(",")
+        for (const rule of permList || []) {
             if (!rule.trim() || settingRule) {
                 continue
             }
@@ -835,6 +897,9 @@ const permissionHandler = (_, permission, callback, details) => {
         if (url.length > 100) {
             url = url.replace(/.{50}/g, "$&\n")
         }
+        if (url.length > 1000) {
+            url = `${url.split("").slice(0, 1000).join("")}...`
+        }
         let message = "The page has requested access to the permission "
             + `'${permission}'. You can allow or deny this below, and choose if`
             + " you want to make this the default for the current session when "
@@ -846,6 +911,9 @@ const permissionHandler = (_, permission, callback, details) => {
             if (exturl.length > 100) {
                 exturl = exturl.replace(/.{50}/g, "$&\n")
             }
+            if (exturl.length > 1000) {
+                exturl = `${exturl.split("").slice(0, 1000).join("")}...`
+            }
             message = "The page has requested to open an external application."
                 + " You can allow or deny this below, and choose if you want to"
                 + " make this the default for the current session when sites "
@@ -855,13 +923,13 @@ const permissionHandler = (_, permission, callback, details) => {
                 + `\npage:\n${details.requestingUrl}\n\nexternal:\n${exturl}`
         }
         dialog.showMessageBox(mainWindow, {
-            "type": "question",
             "buttons": ["Allow", "Deny"],
-            "defaultId": 0,
             "cancelId": 1,
             "checkboxLabel": "Remember for this session",
+            "defaultId": 0,
+            message,
             "title": `Allow this page to access '${permission}'?`,
-            "message": message
+            "type": "question"
         }).then(e => {
             let action = "allow"
             if (e.response !== 0) {
@@ -922,7 +990,7 @@ const enableAdblocker = type => {
                 `Updating ${list} to the latest version`)
             session.fromPartition("persist:main")
             const request = net.request(
-                {"url": defaultBlocklists[list], "partition": "persist:main"})
+                {"partition": "persist:main", "url": defaultBlocklists[list]})
             request.on("response", res => {
                 let body = ""
                 res.on("end", () => {
@@ -1001,7 +1069,7 @@ const loadBlocklist = file => {
 
 // Manage installed browser extensions
 ipcMain.on("install-extension", (_, url, extension, extType) => {
-    const zipLoc = joinPath(datafolder, "extensions", extension)
+    const zipLoc = joinPath(argDatafolder, "extensions", extension)
     if (isDir(`${zipLoc}/`)) {
         mainWindow.webContents.send("notify",
             `Extension already installed: ${extension}`)
@@ -1010,14 +1078,14 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
     makeDir(`${zipLoc}/`)
     mainWindow.webContents.send("notify",
         `Installing ${extType} extension: ${extension}`)
-    const request = net.request({url, "partition": "persist:main"})
+    const request = net.request({"partition": "persist:main", url})
     request.on("response", res => {
         const data = []
         res.on("end", () => {
             if (res.statusCode !== 200) {
                 mainWindow.webContents.send("notify",
                     `Failed to install extension due to network error`, "err")
-                console.log(res)
+                console.warn(res)
                 return
             }
             const file = Buffer.concat(data)
@@ -1039,7 +1107,7 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
                             mainWindow.webContents.send("notify",
                                 `Failed to install extension, unsupported type`,
                                 "err")
-                            console.log(e)
+                            console.warn(e)
                             rimraf(`${zipLoc}*`)
                         }
                     })
@@ -1053,13 +1121,13 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
     request.on("abort", e => {
         mainWindow.webContents.send("notify",
             `Failed to install extension due to network error`, "err")
-        console.log(e)
+        console.warn(e)
         rimraf(`${zipLoc}*`)
     })
     request.on("error", e => {
         mainWindow.webContents.send("notify",
             `Failed to install extension due to network error`, "err")
-        console.log(e)
+        console.warn(e)
         rimraf(`${zipLoc}*`)
     })
     request.end()
@@ -1067,15 +1135,15 @@ ipcMain.on("install-extension", (_, url, extension, extType) => {
 ipcMain.on("list-extensions", e => {
     e.returnValue = session.fromPartition("persist:main").getAllExtensions()
         .map(ex => ({
-            "id": ex.id,
             "icon": ex.manifest.icons?.[Object.keys(ex.manifest.icons).pop()],
+            "id": ex.id,
             "name": ex.name,
             "path": ex.path,
             "version": ex.version
         }))
 })
 ipcMain.on("remove-extension", (_, extensionId) => {
-    const extLoc = joinPath(datafolder, `extensions/${extensionId}`)
+    const extLoc = joinPath(argDatafolder, `extensions/${extensionId}`)
     const extension = session.fromPartition("persist:main").getAllExtensions()
         .find(ext => ext.path.replace(/(\/|\\)$/g, "").endsWith(extensionId))
     if (isDir(`${extLoc}/`) && extension) {
@@ -1094,9 +1162,9 @@ ipcMain.on("remove-extension", (_, extensionId) => {
 })
 
 // Download favicons for websites
-ipcMain.on("download-favicon", (_, fav, location, webId, linkId, url) => {
+ipcMain.on("download-favicon", (_, options) => {
     const request = net.request({
-        "url": fav, "session": webContents.fromId(webId).session
+        "session": webContents.fromId(options.webId).session, "url": options.fav
     })
     request.on("response", res => {
         const data = []
@@ -1107,11 +1175,14 @@ ipcMain.on("download-favicon", (_, fav, location, webId, linkId, url) => {
             }
             const file = Buffer.concat(data)
             if (isSvg(file)) {
-                location += ".svg"
-                fav += ".svg"
+                writeFile(`${options.location}.svg`, file)
+                mainWindow.webContents.send("favicon-downloaded",
+                    options.linkId, options.url, `${options.fav}.svg`)
+            } else {
+                writeFile(options.location, file)
+                mainWindow.webContents.send("favicon-downloaded",
+                    options.linkId, options.url, options.fav)
             }
-            writeFile(location, file)
-            mainWindow.webContents.send("favicon-downloaded", linkId, url, fav)
         })
         res.on("data", chunk => {
             data.push(Buffer.from(chunk, "binary"))
@@ -1187,18 +1258,14 @@ const saveWindowState = (maximizeOnly = false) => {
     if (!maximizeOnly && !mainWindow.isMaximized()) {
         const newBounds = mainWindow.getBounds()
         const currentScreen = screen.getDisplayMatching(newBounds).bounds
-        if (newBounds.width !== currentScreen.width) {
-            if (newBounds.height !== currentScreen.height) {
-                if (newBounds.width !== currentScreen.width / 2) {
-                    if (newBounds.height !== currentScreen.height / 2) {
-                        if (newBounds.x !== currentScreen.x / 2) {
-                            if (newBounds.y !== currentScreen.y / 2) {
-                                state = newBounds
-                            }
-                        }
-                    }
-                }
-            }
+        const sameW = newBounds.width === currentScreen.width
+        const sameH = newBounds.height === currentScreen.height
+        const halfW = newBounds.width === currentScreen.width / 2
+        const halfH = newBounds.height === currentScreen.height / 2
+        const halfX = newBounds.x === currentScreen.x / 2
+        const halfY = newBounds.y === currentScreen.y / 2
+        if (!sameW && !sameH && !halfW && !halfH && !halfX && !halfY) {
+            state = newBounds
         }
     }
     state.maximized = mainWindow.isMaximized()
@@ -1214,7 +1281,7 @@ ipcMain.handle("save-page", (_, id, loc) => {
     webContents.fromId(id).savePage(loc, "HTMLComplete")
 })
 ipcMain.on("hide-window", () => {
-    if (!enableDebugMode) {
+    if (!argDebugMode) {
         mainWindow.hide()
     }
 })
@@ -1281,6 +1348,9 @@ ipcMain.on("override-global-useragent", (e, globalUseragent) => {
 })
 ipcMain.on("rimraf", (e, folder) => {
     e.returnValue = rimraf(folder)
+})
+ipcMain.on("app-config-settings", e => {
+    e.returnValue = {"order": argConfigOrder, "override": argConfigOverride}
 })
 ipcMain.on("app-version", e => {
     e.returnValue = version

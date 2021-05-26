@@ -27,25 +27,25 @@ const {
     urlToString,
     pathToSpecialPageName,
     hasProtocol,
-    title
+    title,
+    specialChars
 } = require("../util")
 const {getSetting} = require("./common")
 
 const histFile = joinPath(appData(), "hist")
-let groupedHistory = {}
 const simpleUrls = {}
 let histWriteTimeout = null
-const specialChars = /[`~!@#$%^&*(),./;'[\]\\\-=<>?:"{}|_+\s]/g
+let groupedHistory = {}
 
 const init = () => {
     groupedHistory = readJSON(histFile) || {}
 }
 
-const suggestHist = search => {
+const suggestHist = (searchStr, order, count) => {
     // Simplify the search to a list of words, or an ordered list of words,
     // ordered matches take priority over unordered matches only.
     // In turn, exact matches get priority over ordered matches.
-    search = search.toLowerCase().trim()
+    const search = searchStr.toLowerCase().trim()
     const simpleSearch = search.split(specialChars).filter(w => w)
     if (!isFile(histFile)) {
         // No need to suggest history if it's not stored
@@ -53,14 +53,13 @@ const suggestHist = search => {
     }
     const {addExplore} = require("./suggest")
     const {forSite} = require("./favicons")
-    Object.keys(groupedHistory).map(url => {
+    const entries = Object.keys(groupedHistory).map(url => {
         if (!groupedHistory[url]) {
             return null
         }
         let simpleUrl = simpleUrls[url]
         if (simpleUrl === undefined) {
-            simpleUrl = urlToString(url)
-                .replace(specialChars, "").toLowerCase()
+            simpleUrl = urlToString(url).replace(specialChars, "").toLowerCase()
             simpleUrls[url] = simpleUrl
         }
         let relevance = 1
@@ -78,39 +77,60 @@ const suggestHist = search => {
         }
         if (relevance > 1 || allWordsInTitleOrUrl()) {
             return {
-                "url": url,
+                "last": new Date(groupedHistory[url]?.visits?.slice(-1)[0]),
                 "title": groupedHistory[url].title,
-                "top": relevance * visitCount(url)
+                "top": relevance * visitCount(url),
+                url
             }
         }
         return null
-    }).filter(h => h).sort((a, b) => b.top - a.top)
-        .slice(0, getSetting("suggestexplore"))
-        .forEach(h => addExplore({...h, "icon": forSite(h.url)}))
+    }).filter(h => h)
+    if (order === "alpha") {
+        entries.sort((a, b) => {
+            const first = a.url.replace(/^\w+:\/\/(www\.)?/g, "")
+            const second = b.url.replace(/^\w+:\/\/(www\.)?/g, "")
+            if (first > second) {
+                return 1
+            }
+            if (first < second) {
+                return -1
+            }
+            return 0
+        })
+    }
+    if (order === "date") {
+        entries.sort((a, b) => b.last - a.last)
+    }
+    if (order === "relevance") {
+        entries.sort((a, b) => b.top - a.top)
+    }
+    entries.slice(0, count).forEach(h => addExplore(
+        {...h, "icon": forSite(h.url)}))
 }
 
-const addToHist = url => {
-    if (!getSetting("storenewvisits")) {
-        return
-    }
-    if (pathToSpecialPageName(url).name) {
-        return
-    }
+const addToHist = rawUrl => {
+    const url = rawUrl.replace(/\t/g, "")
     if (url.startsWith("devtools://")) {
         return
     }
-    url = url.replace(/\t/g, "")
+    const saveTypes = getSetting("storenewvisits").split(",")
+    if (pathToSpecialPageName(url).name) {
+        if (!saveTypes.includes("builtin")) {
+            return
+        }
+    } else if (url.startsWith("file://")) {
+        if (!saveTypes.includes("files")) {
+            return
+        }
+    } else if (!saveTypes.includes("pages")) {
+        return
+    }
     const date = new Date().toISOString()
     if (!groupedHistory[url]) {
         groupedHistory[url] = {"title": url, "visits": []}
     }
     groupedHistory[url].visits.push(date)
     writeHistToFile()
-}
-
-const clearHistory = () => {
-    groupedHistory = {}
-    return deleteFile(histFile)
 }
 
 const writeHistToFile = (now = false) => {
@@ -134,7 +154,7 @@ const writeHistToFile = (now = false) => {
 
 const removeFromHistory = entries => {
     entries.forEach(entry => {
-        const url = entry.url
+        const {url} = entry
         if (groupedHistory[url]) {
             groupedHistory[url].visits = groupedHistory[url].visits
                 .filter(d => d !== entry.date)
@@ -160,10 +180,10 @@ const handleRequest = (webview, action = "", entries = []) => {
     Object.keys(groupedHistory).forEach(site => {
         groupedHistory[site].visits.forEach(visit => {
             history.push({
-                "url": site,
-                "title": groupedHistory[site].title,
-                "icon": forSite(site),
                 "date": new Date(visit),
+                "icon": forSite(site),
+                "title": groupedHistory[site].title,
+                "url": site,
                 "visits": groupedHistory[site].visits.length
             })
         })
@@ -178,15 +198,15 @@ const suggestTopSites = () => Object.keys(groupedHistory)
     .slice(0, getSetting("suggesttopsites")).map(site => {
         if (getSetting("favicons") === "disabled") {
             return {
-                "url": urlToString(site),
-                "name": groupedHistory[site]?.title
+                "name": groupedHistory[site]?.title,
+                "url": urlToString(site)
             }
         }
         const {forSite} = require("./favicons")
         return {
-            "url": urlToString(site),
             "icon": forSite(site),
-            "name": groupedHistory[site]?.title
+            "name": groupedHistory[site]?.title,
+            "url": urlToString(site)
         }
     })
 
@@ -195,15 +215,9 @@ const visitCount = url => groupedHistory[url]?.visits?.length || 0
 const titleForPage = url => groupedHistory[url]?.title
     || title(pathToSpecialPageName(url).name) || ""
 
-const updateTitle = (url, name) => {
-    if (!getSetting("storenewvisits")) {
-        return
-    }
-    if (pathToSpecialPageName(url).name) {
-        return
-    }
-    url = url.replace(/\t/g, "")
-    name = name.replace(/\t/g, "")
+const updateTitle = (rawUrl, rawName) => {
+    const url = rawUrl.replace(/\t/g, "")
+    const name = rawName.replace(/\t/g, "")
     if (groupedHistory[url]) {
         if (groupedHistory[url].title === name) {
             return
@@ -213,20 +227,19 @@ const updateTitle = (url, name) => {
         }
         groupedHistory[url].title = name
     } else {
-        groupedHistory[url] = {"visits": [], "title": name}
+        groupedHistory[url] = {"title": name, "visits": []}
     }
     writeHistToFile()
 }
 
 module.exports = {
-    init,
     addToHist,
-    suggestHist,
-    clearHistory,
-    writeHistToFile,
     handleRequest,
+    init,
+    suggestHist,
     suggestTopSites,
-    visitCount,
     titleForPage,
-    updateTitle
+    updateTitle,
+    visitCount,
+    writeHistToFile
 }

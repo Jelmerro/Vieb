@@ -78,7 +78,7 @@ const hide = (view, close = false) => {
             view.remove()
         }
         const {switchToTab} = require("./tabs")
-        switchToTab(listTabs().indexOf(newTab))
+        switchToTab(newTab)
     } else if (close) {
         tabOrPageMatching(view).remove()
         view.remove()
@@ -129,7 +129,7 @@ const add = (viewOrId, method, leftOrAbove) => {
     applyLayout()
 }
 
-const rotate = () => {
+const rotateForward = () => {
     removeRedundantContainers()
     if (!document.getElementById("pages").classList.contains("multiple")) {
         return
@@ -171,7 +171,7 @@ const exchange = () => {
     }
     const tab = document.querySelector(`#tabs span[link-id='${newId}']`)
     const {switchToTab} = require("./tabs")
-    switchToTab(listTabs().indexOf(tab))
+    switchToTab(tab)
     applyLayout()
 }
 
@@ -241,7 +241,7 @@ const moveFocus = direction => {
         if (newId && newId !== id) {
             const tab = document.querySelector(`#tabs span[link-id='${newId}']`)
             const {switchToTab} = require("./tabs")
-            switchToTab(listTabs().indexOf(tab))
+            switchToTab(tab)
         }
     }
 }
@@ -290,8 +290,8 @@ const resize = (orientation, change) => {
 const firstSplit = () => {
     const first = document.querySelector("#pagelayout *[link-id]")
     const {switchToTab} = require("./tabs")
-    switchToTab(listTabs().indexOf(document.querySelector(
-        `#tabs span[link-id='${first.getAttribute("link-id")}']`)))
+    switchToTab(document.querySelector(`#tabs span[link-id='${
+        first.getAttribute("link-id")}']`))
 }
 
 const previousSplit = () => {
@@ -299,8 +299,8 @@ const previousSplit = () => {
     const current = layoutDivById(currentPage().getAttribute("link-id"))
     const next = views[views.indexOf(current) - 1] || views[views.length - 1]
     const {switchToTab} = require("./tabs")
-    switchToTab(listTabs().indexOf(document.querySelector(
-        `#tabs span[link-id='${next.getAttribute("link-id")}']`)))
+    switchToTab(document.querySelector(`#tabs span[link-id='${
+        next.getAttribute("link-id")}']`))
 }
 
 const nextSplit = () => {
@@ -308,16 +308,16 @@ const nextSplit = () => {
     const current = layoutDivById(currentPage().getAttribute("link-id"))
     const next = views[views.indexOf(current) + 1] || views[0]
     const {switchToTab} = require("./tabs")
-    switchToTab(listTabs().indexOf(document.querySelector(
-        `#tabs span[link-id='${next.getAttribute("link-id")}']`)))
+    switchToTab(document.querySelector(`#tabs span[link-id='${
+        next.getAttribute("link-id")}']`))
 }
 
 const lastSplit = () => {
     const views = [...document.querySelectorAll("#pagelayout *[link-id]")]
     const last = views[views.length - 1]
     const {switchToTab} = require("./tabs")
-    switchToTab(listTabs().indexOf(document.querySelector(
-        `#tabs span[link-id='${last.getAttribute("link-id")}']`)))
+    switchToTab(document.querySelector(`#tabs span[link-id='${
+        last.getAttribute("link-id")}']`))
 }
 
 const only = () => {
@@ -368,7 +368,7 @@ const removeRedundantContainers = () => {
     ;[...document.querySelectorAll("#pagelayout .hor, #pagelayout .ver"), base]
         .forEach(container => {
             if (container.children.length < 2 && container !== base) {
-                const lonelyView = container.children[0]
+                const [lonelyView] = container.children
                 if (lonelyView) {
                     lonelyView.style.flexGrow = null
                     container.parentNode.insertBefore(lonelyView, container)
@@ -474,23 +474,23 @@ const applyLayout = () => {
 }
 
 module.exports = {
-    layoutDivById,
-    switchView,
-    hide,
     add,
-    rotate,
-    rotateReverse,
+    applyLayout,
     exchange,
-    toTop,
-    moveFocus,
-    resize,
     firstSplit,
-    previousSplit,
-    nextSplit,
+    hide,
     lastSplit,
+    layoutDivById,
+    moveFocus,
+    nextSplit,
     only,
-    setLastUsedTab,
-    toLastUsedTab,
+    previousSplit,
     resetResizing,
-    applyLayout
+    resize,
+    rotateForward,
+    rotateReverse,
+    setLastUsedTab,
+    switchView,
+    toLastUsedTab,
+    toTop
 }

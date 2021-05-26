@@ -25,6 +25,7 @@ const {
     clearLocalStorage,
     readFile,
     writeFile,
+    deleteFile,
     isDir,
     pathExists,
     expandPath,
@@ -36,7 +37,8 @@ const {
     stringToUrl,
     appData,
     specialPagePath,
-    pathToSpecialPageName
+    pathToSpecialPageName,
+    specialChars
 } = require("../util")
 const {
     listTabs, currentTab, currentPage, tabOrPageMatching, getSetting
@@ -57,7 +59,7 @@ const listSetting = setting => {
 }
 
 const splitSettingAndValue = (part, seperator) => {
-    const setting = part.split(seperator)[0]
+    const [setting] = part.split(seperator)
     const value = part.split(seperator).slice(1).join(seperator)
     return [setting, value]
 }
@@ -121,16 +123,16 @@ const set = (...args) => {
         return
     }
     for (const part of args) {
-        if (/^\w+\+=/.test(part)) {
+        if ((/^\w+\+=/).test(part)) {
             modifyListOrNumber(...splitSettingAndValue(part, "+="), "append")
-        } else if (/^\w+-=/.test(part)) {
+        } else if ((/^\w+-=/).test(part)) {
             modifyListOrNumber(...splitSettingAndValue(part, "-="), "remove")
-        } else if (/^\w+\^=/.test(part)) {
+        } else if ((/^\w+\^=/).test(part)) {
             modifyListOrNumber(...splitSettingAndValue(part, "^="), "special")
-        } else if (/^\w+=/.test(part)) {
+        } else if ((/^\w+=/).test(part)) {
             const {"set": s} = require("./settings")
             s(...splitSettingAndValue(part, "="))
-        } else if (/^\w+:/.test(part)) {
+        } else if ((/^\w+:/).test(part)) {
             const {"set": s} = require("./settings")
             s(...splitSettingAndValue(part, ":"))
         } else if (part.includes("=") || part.includes(":")) {
@@ -143,9 +145,13 @@ const set = (...args) => {
         } else if (part.endsWith("!")) {
             const setting = part.slice(0, -1)
             const value = getSetting(setting)
+            const {"set": s, validOptions} = require("./settings")
             if (["boolean", "undefined"].includes(typeof value)) {
-                const {"set": s} = require("./settings")
                 s(setting, String(!value))
+            } else if (validOptions[setting]) {
+                const index = validOptions[setting].indexOf(value)
+                s(setting, validOptions[setting][index + 1]
+                    || validOptions[setting][0])
             } else {
                 notify(
                     `The setting '${setting}' can not be flipped`, "warn")
@@ -189,10 +195,10 @@ const quit = () => {
 const quitall = () => {
     const {ipcRenderer} = require("electron")
     ipcRenderer.send("hide-window")
-    const {clearHistory, writeHistToFile} = require("./history")
     if (getSetting("clearhistoryonquit")) {
-        clearHistory()
+        deleteFile(joinPath(appData(), "hist"))
     } else {
+        const {writeHistToFile} = require("./history")
         writeHistToFile(true)
     }
     const {saveTabs} = require("./tabs")
@@ -253,15 +259,13 @@ const restart = () => {
     quitall()
 }
 
-const openDevTools = (position = null, trailingArgs = false) => {
+const openDevTools = (userPosition = null, trailingArgs = false) => {
     if (trailingArgs) {
         notify("The devtools command takes a single optional argument",
             "warn")
         return
     }
-    if (!position) {
-        position = getSetting("devtoolsposition")
-    }
+    const position = userPosition || getSetting("devtoolsposition")
     if (position === "window") {
         currentPage()?.openDevTools()
     } else if (position === "tab") {
@@ -270,24 +274,24 @@ const openDevTools = (position = null, trailingArgs = false) => {
     } else if (position === "vsplit") {
         const {addTab, switchToTab} = require("./tabs")
         addTab({
-            "switchTo": false,
-            "devtools": true,
             "callback": id => {
                 const {add} = require("./pagelayout")
                 add(id, "hor", !getSetting("splitright"))
                 switchToTab(tabIndexById(id))
-            }
+            },
+            "devtools": true,
+            "switchTo": false
         })
     } else if (position === "split") {
         const {addTab, switchToTab} = require("./tabs")
         addTab({
-            "switchTo": false,
-            "devtools": true,
             "callback": id => {
                 const {add} = require("./pagelayout")
                 add(id, "ver", !getSetting("splitbelow"))
                 switchToTab(tabIndexById(id))
-            }
+            },
+            "devtools": true,
+            "switchTo": false
         })
     } else {
         notify("Invalid devtools position specified, must be one of: "
@@ -329,7 +333,7 @@ const reload = () => {
 
 const hardcopy = () => currentPage()?.send("action", "print")
 
-const write = (file, trailingArgs = false) => {
+const write = (locationArgument, trailingArgs = false) => {
     if (trailingArgs) {
         notify("The write command takes only a single optional argument:\n"
             + "the location where to write the page", "warn")
@@ -338,14 +342,14 @@ const write = (file, trailingArgs = false) => {
     if (!currentPage()) {
         return
     }
-    let name = basePath(currentPage().src).split("?")[0]
+    let [name] = basePath(currentPage().src).split("?")
     if (!name.includes(".")) {
         name += ".html"
     }
     name = `${new URL(currentPage().src).hostname} ${name}`.trim()
     let loc = joinPath(downloadPath(), name)
-    if (file) {
-        file = expandPath(file)
+    if (locationArgument) {
+        let file = expandPath(file)
         if (!isAbsolutePath(file)) {
             file = joinPath(downloadPath(), file)
         }
@@ -408,15 +412,15 @@ const tabForBufferArg = args => {
             return tabs[number] || tabs.pop()
         }
     }
-    const simpleSearch = args.join("").replace(/\W/g, "").toLowerCase()
+    const simpleSearch = args.join("").replace(specialChars, "").toLowerCase()
     return listTabs().find(t => {
         const simpleTabUrl = tabOrPageMatching(t).src
-            .replace(/\W/g, "").toLowerCase()
+            .replace(specialChars, "").toLowerCase()
         if (simpleTabUrl.includes(simpleSearch)) {
             return true
         }
         const simpleTitle = t.querySelector("span").textContent
-            .replace(/\W/g, "").toLowerCase()
+            .replace(specialChars, "").toLowerCase()
         return simpleTitle.includes(simpleSearch)
     })
 }
@@ -428,11 +432,11 @@ const buffer = (...args) => {
     const tab = tabForBufferArg(args)
     if (tab) {
         const {switchToTab} = require("./tabs")
-        switchToTab(listTabs().indexOf(tab))
-        return
+        switchToTab(tab)
+    } else {
+        const {navigateTo} = require("./tabs")
+        navigateTo(stringToUrl(args.join(" ")))
     }
-    const {navigateTo} = require("./tabs")
-    navigateTo(stringToUrl(args.join(" ")))
 }
 
 const suspend = (...args) => {
@@ -519,13 +523,13 @@ const addSplit = (method, leftOrAbove, args) => {
     const {addTab, switchToTab} = require("./tabs")
     if (args.length === 0) {
         addTab({
-            "switchTo": false,
-            "container": getSetting("containersplitpage"),
             "callback": id => {
                 const {add} = require("./pagelayout")
                 add(id, method, leftOrAbove)
                 switchToTab(tabIndexById(id))
-            }
+            },
+            "container": getSetting("containersplitpage"),
+            "switchTo": false
         })
         return
     }
@@ -536,18 +540,18 @@ const addSplit = (method, leftOrAbove, args) => {
         } else {
             const {add} = require("./pagelayout")
             add(tabOrPageMatching(tab), method, leftOrAbove)
-            switchToTab(listTabs().indexOf(tab))
+            switchToTab(tab)
         }
     } else {
         addTab({
-            "url": stringToUrl(args.join(" ")),
-            "container": getSetting("containersplitpage"),
-            "switchTo": false,
             "callback": id => {
                 const {add} = require("./pagelayout")
                 add(id, method, leftOrAbove)
                 switchToTab(tabIndexById(id))
-            }
+            },
+            "container": getSetting("containersplitpage"),
+            "switchTo": false,
+            "url": stringToUrl(args.join(" "))
         })
     }
 }
@@ -596,7 +600,7 @@ const makedefault = () => {
     const {ipcRenderer} = require("electron")
     ipcRenderer.send("make-default-app")
     const {exec} = require("child_process")
-    if (process.platform === "linux" || process.platform.endsWith("bsd")) {
+    if (process.platform === "linux") {
         exec("xdg-settings set default-web-browser vieb.desktop", logError)
     } else if (process.platform === "win32") {
         const scriptContents = readFile(joinPath(
@@ -627,7 +631,7 @@ const extensionsCommand = (...args) => {
         const version = navigator.userAgent.replace(
             /.*Chrome\//g, "").replace(/ .*/g, "")
         const extension = currentPage()?.src.replace(/.*\//g, "")
-        if (extension && /^[A-z0-9]{32}$/.test(extension)) {
+        if (extension && (/^[A-z0-9]{32}$/).test(extension)) {
             const url = `https://clients2.google.com/service/update2/crx?`
             + `response=redirect&prodversion=${version}&acceptformat=crx2,crx3`
             + `&x=id%3D${extension}%26uc`
@@ -683,107 +687,104 @@ const noArgumentComands = [
     "only"
 ]
 const commands = {
-    "q": quit,
-    "quit": quit,
-    "qa": quitall,
-    "quitall": quitall,
-    "colorscheme": colorscheme,
-    "devtools": openDevTools,
-    "internaldevtools": openInternalDevTools,
-    "reload": reload,
-    "restart": restart,
-    "v": () => openSpecialPage("version"),
-    "version": () => openSpecialPage("version"),
-    "h": help,
-    "help": help,
-    "history": () => openSpecialPage("history"),
-    "d": () => openSpecialPage("downloads"),
-    "downloads": () => openSpecialPage("downloads"),
-    "notifications": () => openSpecialPage("notifications"),
-    "s": set,
-    "set": set,
-    "hardcopy": hardcopy,
-    "print": hardcopy,
-    "w": write,
-    "write": write,
-    "mkviebrc": mkviebrc,
-    "b": buffer,
-    "buffer": buffer,
-    "suspend": suspend,
-    "hide": hide,
-    "pin": pin,
-    "mute": mute,
-    "Vexplore": (...args) => addSplit("hor", !getSetting("splitright"), args),
     "Sexplore": (...args) => addSplit("ver", !getSetting("splitbelow"), args),
-    "split": (...args) => addSplit("ver", !getSetting("splitbelow"), args),
-    "vsplit": (...args) => addSplit("hor", !getSetting("splitright"), args),
-    "close": close,
-    "cookies": () => openSpecialPage("cookies"),
-    "command": (...args) => addCommand(false, args),
-    "command!": (...args) => addCommand(true, args),
-    "delcommand": (...args) => deleteCommand(...args),
+    "Vexplore": (...args) => addSplit("hor", !getSetting("splitright"), args),
+    "b": buffer,
+    buffer,
+    "call": callAction,
+    close,
+    colorscheme,
     "comclear": () => {
         userCommands = {}
     },
-    "call": callAction,
-    "makedefault": makedefault,
+    "command": (...args) => addCommand(false, args),
+    "command!": (...args) => addCommand(true, args),
+    "cookies": () => openSpecialPage("cookies"),
+    "d": () => openSpecialPage("downloads"),
+    "delcommand": (...args) => deleteCommand(...args),
+    "devtools": openDevTools,
+    "downloads": () => openSpecialPage("downloads"),
     "extensions": extensionsCommand,
+    "h": help,
+    hardcopy,
+    help,
+    hide,
+    "history": () => openSpecialPage("history"),
+    "internaldevtools": openInternalDevTools,
     "lclose": () => {
         let index = listTabs().indexOf(currentTab())
         // Loop is reversed to close as many tabs as possible on the left,
         // without getting stuck trying to close pinned tabs at index 0.
-        for (let i = index - 1;i >= 0;i--) {
+        for (let i = index - 1; i >= 0; i--) {
             index = listTabs().indexOf(currentTab())
             const {closeTab} = require("./tabs")
             closeTab(index - 1)
         }
     },
+    makedefault,
+    mkviebrc,
+    mute,
+    "notifications": () => openSpecialPage("notifications"),
+    "only": () => {
+        const {only} = require("./pagelayout")
+        only()
+    },
+    pin,
+    "print": hardcopy,
+    "q": quit,
+    "qa": quitall,
+    quit,
+    quitall,
     "rclose": () => {
         const index = listTabs().indexOf(currentTab())
         let count = listTabs().length
         // Loop is reversed to close as many tabs as possible on the right,
         // without trying to close a potentially pinned tab right of current.
-        for (let i = count - 1;i > index;i--) {
+        for (let i = count - 1; i > index; i--) {
             count = listTabs().length
             const {closeTab} = require("./tabs")
             closeTab(count - 1)
         }
     },
-    "only": () => {
-        const {only} = require("./pagelayout")
-        only()
-    }
+    reload,
+    restart,
+    "s": set,
+    set,
+    "split": (...args) => addSplit("ver", !getSetting("splitbelow"), args),
+    suspend,
+    "v": () => openSpecialPage("version"),
+    "version": () => openSpecialPage("version"),
+    "vsplit": (...args) => addSplit("hor", !getSetting("splitright"), args),
+    "w": write,
+    write
 }
 let userCommands = {}
 const {mapOrList, unmap, clearmap} = require("./input")
-"anicsefpvm".split("").forEach(prefix => {
-    if (prefix === "a") {
-        prefix = ""
+" nicsefpvm".split("").forEach(prefix => {
+    commands[`${prefix.trim()}map!`] = (...args) => {
+        mapOrList(prefix.trim(), args, false, true)
     }
-    commands[`${prefix}map!`] = (...args) => {
-        mapOrList(prefix, args, false, true)
+    commands[`${prefix.trim()}noremap!`] = (...args) => {
+        mapOrList(prefix.trim(), args, true, true)
     }
-    commands[`${prefix}noremap!`] = (...args) => {
-        mapOrList(prefix, args, true, true)
+    commands[`${prefix.trim()}map`] = (...args) => {
+        mapOrList(prefix.trim(), args)
     }
-    commands[`${prefix}map`] = (...args) => {
-        mapOrList(prefix, args)
+    noEscapeCommands.push(`${prefix.trim()}map`)
+    commands[`${prefix.trim()}noremap`] = (...args) => {
+        mapOrList(prefix.trim(), args, true)
     }
-    noEscapeCommands.push(`${prefix}map`)
-    commands[`${prefix}noremap`] = (...args) => {
-        mapOrList(prefix, args, true)
+    noEscapeCommands.push(`${prefix.trim()}noremap`)
+    commands[`${prefix.trim()}unmap`] = (...args) => {
+        unmap(prefix.trim(), args)
     }
-    noEscapeCommands.push(`${prefix}noremap`)
-    commands[`${prefix}unmap`] = (...args) => {
-        unmap(prefix, args)
+    noEscapeCommands.push(`${prefix.trim()}unmap`)
+    commands[`${prefix.trim()}mapclear`] = () => {
+        clearmap(prefix.trim())
     }
-    noEscapeCommands.push(`${prefix}unmap`)
-    commands[`${prefix}mapclear`] = () => {
-        clearmap(prefix)
-    }
-    noArgumentComands.push(`${prefix}mapclear`)
-    commands[`${prefix}mapclear!`] = () => {
-        clearmap(prefix, true)
+    noArgumentComands.push(`${prefix.trim()}mapclear`)
+    commands[`${prefix.trim()}mapclear!`] = () => {
+        clearmap(prefix.trim(), true)
     }
 })
 
@@ -803,12 +804,12 @@ const addCommand = (overwrite, args) => {
         return
     }
     const command = args[0].replace(/^[:'" ]*/, "")
-    args = args.slice(1)
+    const params = args.slice(1)
     if (commands[command]) {
         notify(`Command can not be a built-in command: ${command}`, "warn")
         return
     }
-    if (args.length === 0) {
+    if (params.length === 0) {
         if (userCommands[command]) {
             notify(`${command} => ${userCommands[command]}`)
         } else {
@@ -821,7 +822,7 @@ const addCommand = (overwrite, args) => {
             "Duplicate custom command definition (add ! to overwrite)", "warn")
         return
     }
-    userCommands[command] = args.join(" ")
+    userCommands[command] = params.join(" ")
 }
 
 const deleteCommand = (...args) => {
@@ -838,9 +839,9 @@ const deleteCommand = (...args) => {
     }
 }
 
-const parseAndValidateArgs = command => {
-    const argsString = command.split(" ").slice(1).join(" ")
-    command = command.split(" ")[0]
+const parseAndValidateArgs = commandStr => {
+    const argsString = commandStr.split(" ").slice(1).join(" ")
+    let [command] = commandStr.split(" ")
     const args = []
     let currentArg = ""
     let escapedDouble = false
@@ -870,37 +871,46 @@ const parseAndValidateArgs = command => {
         confirm = true
         command = command.slice(0, -1)
     }
-    return {command, confirm, args, "valid": !escapedSingle && !escapedDouble}
+    return {args, command, confirm, "valid": !escapedSingle && !escapedDouble}
 }
 
-const execute = command => {
+const execute = com => {
     // Remove all redundant spaces
     // Allow commands prefixed with :
     // And return if the command is empty
-    command = command.replace(/^[\s|:]*/, "").trim().replace(/ +/g, " ")
-    if (!command) {
+    const commandStr = com.replace(/^[\s|:]*/, "").trim().replace(/ +/g, " ")
+    if (!commandStr) {
         return
     }
-    const {push} = require("./commandhistory")
-    push(command)
-    const parsed = parseAndValidateArgs(command)
-    if (!parsed.valid) {
+    if (getSetting("commandhist") === "all") {
+        const {push} = require("./commandhistory")
+        push(commandStr)
+    }
+    if (commandStr.startsWith("!")) {
+        if (commandStr !== "!") {
+            const {exec} = require("child_process")
+            exec(commandStr.replace("!", ""))
+        }
+        return
+    }
+    const p = parseAndValidateArgs(commandStr)
+    let {command} = p
+    const {args, valid, confirm} = p
+    if (!valid) {
         notify(`Command could not be executed, unmatched escape quotes:\n${
-            command}`, "warn")
+            commandStr}`, "warn")
         return
     }
-    command = parsed.command
-    const args = parsed.args
     const matches = Object.keys(commands).concat(Object.keys(userCommands))
         .filter(c => c.startsWith(command) && !c.endsWith("!"))
     if (matches.length === 1 || commands[command] || userCommands[command]) {
         if (matches.length === 1) {
-            command = matches[0]
+            [command] = matches
         }
         if (noArgumentComands.includes(command) && args.length > 0) {
             notify(`Command takes no arguments: ${command}`, "warn")
         } else if (commands[command]) {
-            if (parsed.confirm) {
+            if (confirm) {
                 command += "!"
                 if (!commands[command]) {
                     notify("No ! allowed", "warn")
@@ -918,7 +928,6 @@ const execute = command => {
         notify(
             `Command is ambiguous, please be more specific: ${command}`, "warn")
     } else {
-        // No command
         notify(`Not an editor command: ${command}`, "warn")
     }
 }
@@ -941,9 +950,9 @@ const customCommandsAsCommandList = full => {
 }
 
 module.exports = {
-    openSpecialPage,
-    parseAndValidateArgs,
-    execute,
     commandList,
-    customCommandsAsCommandList
+    customCommandsAsCommandList,
+    execute,
+    openSpecialPage,
+    parseAndValidateArgs
 }

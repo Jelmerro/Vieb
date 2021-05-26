@@ -30,9 +30,10 @@ usage should be similar to other packages of the same type.
 
 ##### Mac
 
-You can disable app store requirements with `sudo spctl --master-disable`. If you need a signed app, you can sign it yourself with `sudo codesign --force --deep --sign - /Applications/Vieb.app`.
-Or you can try [these instructions](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac) for opening the app as is.
-If you use a Silicon device, signing the app yourself is required, as explained [here](https://developer.apple.com/documentation/macos-release-notes/macos-big-sur-11_0_1-universal-apps-release-notes#Code-Signing).
+The mac apps are not signed, you can sign them yourself with `sudo codesign --force --deep --sign - /Applications/Vieb.app`.
+Or you can try [these instructions](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac) for opening the app as is,
+which comes down to disabling app store requirements with `sudo spctl --master-disable`.
+If you use a Silicon device, signing the app with the first command is required, as explained [here](https://developer.apple.com/documentation/macos-release-notes/macos-big-sur-11_0_1-universal-apps-release-notes#Code-Signing).
 If none of these work, you can build the app from source with the [README build instructions](./README.md#building), the final command can also be `npm run buildmac` to just build for mac.
 If these instructions do not seem to be followed at all, your issue might be [closed](https://github.com/Jelmerro/Vieb/issues/169),
 as it's not Vieb's responsibility to fix your operating system quirks for you.
@@ -59,6 +60,7 @@ For a list of features, see the [homepage](https://vieb.dev/features).
 See [this issue for my motivation](https://github.com/Jelmerro/Vieb/issues/83) of starting Vieb.
 Proper comparisons and migration guides haven't been made yet,
 but there are [example viebrc files](https://github.com/Jelmerro/Vieb/tree/master/app/examples) for popular desktop browsers and Vim browser extensions.
+If you already have Vieb, you can view and save the examples to disk from the offline help page: `:h examples`.
 
 #### Why can't I sign in to Google?
 
@@ -70,7 +72,7 @@ Keep in mind that while this works, it's entirely possible for them to block Fir
 See [this issue](https://github.com/Jelmerro/Vieb/issues/50) for more background information.
 
 Another thing you might encounter, is that strict site isolation is required for your Google sign-in to be preserved.
-You can enable this on startup with "--strict-site-isolation", though this will block Vieb from accessing iframes in follow mode.
+You can enable this on startup with "--site-isolation=strict", though this will block Vieb from accessing iframes in follow mode.
 If you rely heavily on Google services it might be worth the trade-off to use this startup option,
 which offers for more reliable Google logins at the cost of a limited follow mode implementation.
 For Vieb to have strict site isolation without the follow mode limitation [this Electron issue](https://github.com/electron/electron/issues/22582) needs to be fixed.

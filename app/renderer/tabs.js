@@ -34,7 +34,6 @@ const {
     urlToString,
     stringToUrl,
     firefoxUseragent,
-    isUrl,
     hasProtocol,
     sameDomain,
     notify,
@@ -81,25 +80,24 @@ const init = () => {
                 if (Array.isArray(parsed.pinned)) {
                     parsed.pinned.forEach(t => addTab({
                         ...t,
+                        "lazy": s === "all",
                         "pinned": true,
-                        "switchTo": false,
-                        "lazy": s === "all"
+                        "switchTo": false
                     }))
                 }
+                const keepRecentlyClosed = getSetting("keeprecentlyclosed")
                 if (getSetting("restoretabs")) {
                     if (Array.isArray(parsed.tabs)) {
                         parsed.tabs.forEach(t => addTab({
                             ...t,
-                            "switchTo": false,
-                            "lazy": s === "all" || s === "regular"
+                            "lazy": s === "all" || s === "regular",
+                            "switchTo": false
                         }))
                     }
-                    if (Array.isArray(parsed.closed)) {
-                        if (getSetting("keeprecentlyclosed")) {
-                            recentlyClosed = parsed.closed
-                        }
+                    if (Array.isArray(parsed.closed) && keepRecentlyClosed) {
+                        recentlyClosed = parsed.closed
                     }
-                } else if (getSetting("keeprecentlyclosed")) {
+                } else if (keepRecentlyClosed) {
                     if (Array.isArray(parsed.tabs)) {
                         recentlyClosed = parsed.tabs
                     }
@@ -167,18 +165,18 @@ const init = () => {
     })
 }
 
-const openStartupPage = (url, container = false) => {
+const openStartupPage = (url, container = null) => {
     if (!url.trim()) {
         return
     }
     if (!container) {
-        container = getSetting("containerstartuppage")
+        return addTab({"container": getSetting("containerstartuppage"), url})
     }
-    return addTab({url, container})
+    addTab({container, url})
 }
 
 const saveTabs = () => {
-    const data = {"pinned": [], "tabs": [], "id": 0, "closed": []}
+    const data = {"closed": [], "id": 0, "pinned": [], "tabs": []}
     // The list of tabs is ordered, the list of pages isn't
     // Pinned tabs are always saved to the file
     if (getSetting("keeprecentlyclosed")) {
@@ -199,14 +197,14 @@ const saveTabs = () => {
             .getAttribute("container"))
         if (tab.classList.contains("pinned")) {
             data.pinned.push({
-                url, container, "muted": !!tab.getAttribute("muted")
+                container, "muted": !!tab.getAttribute("muted"), url
             })
         } else if (getSetting("restoretabs")) {
             data.tabs.push({
-                url, container, "muted": !!tab.getAttribute("muted")
+                container, "muted": !!tab.getAttribute("muted"), url
             })
         } else if (getSetting("keeprecentlyclosed")) {
-            data.closed.push({url, container})
+            data.closed.push({container, url})
         }
     })
     // Only keep the 100 most recently closed tabs,
@@ -215,12 +213,9 @@ const saveTabs = () => {
     writeJSON(tabFile, data, "Failed to write current tabs to disk")
 }
 
-const addTab = options => {
+const addTab = (options = {}) => {
     // Options: url, customIndex, switchTo, pinned, container,
     // lazy, muted and callback
-    if (!options) {
-        options = {}
-    }
     if (options.switchTo === undefined) {
         options.switchTo = true
     }
@@ -261,7 +256,7 @@ const addTab = options => {
         if (isSpecialPage) {
             sessionName = "main"
         } else {
-            if (/^https?:\/\//.test(options.url)) {
+            if ((/^https?:\/\//).test(options.url)) {
                 const {shell} = require("electron")
                 shell.openExternal(options.url)
             }
@@ -271,7 +266,7 @@ const addTab = options => {
     if (sessionName === "s:replacematching" && options.url) {
         const match = listPages().find(p => sameDomain(p.src, options.url))
         if (match) {
-            switchToTab(listTabs().indexOf(tabOrPageMatching(match)))
+            switchToTab(tabOrPageMatching(match))
         }
     }
     if (sessionName.startsWith("s:replace")) {
@@ -331,7 +326,7 @@ const addTab = options => {
     const color = getSetting("containercolors").split(",").find(
         c => sessionName.match(c.split("~")[0]))
     if (color) {
-        tab.style.color = color.split("~")[1]
+        [, tab.style.color] = color.split("~")
     }
     const page = document.createElement("div")
     page.classList.add("webview")
@@ -360,7 +355,7 @@ const addTab = options => {
         unsuspendPage(page)
     }
     if (options.switchTo) {
-        switchToTab(listTabs().indexOf(tab))
+        switchToTab(tab)
     } else {
         const {applyLayout} = require("./pagelayout")
         applyLayout()
@@ -417,7 +412,7 @@ const unsuspendPage = page => {
         webview.src = specialPagePath("newtab")
     }
     const url = page.src
-    const callback = page.callback
+    const {callback} = page
     webview.addEventListener("dom-ready", () => {
         if (!webview.getAttribute("dom-ready")) {
             const tab = tabOrPageMatching(webview)
@@ -483,7 +478,7 @@ const closeTab = (index = null) => {
     const oldTabIdx = listTabs().indexOf(tab)
     if (getSetting("keeprecentlyclosed") && url) {
         recentlyClosed.push({
-            url, "container": page.getAttribute("container"), "index": oldTabIdx
+            "container": page.getAttribute("container"), "index": oldTabIdx, url
         })
     }
     const regularTab = listTabs().find(t => t.getAttribute("devtools-id")
@@ -534,36 +529,41 @@ const closeTab = (index = null) => {
     })
 }
 
-const switchToTab = index => {
+const switchToTab = tabOrIndex => {
     if (document.body.classList.contains("fullscreen")) {
         currentPage().send("action", "exitFullscreen")
     }
     const tabs = listTabs()
-    while (index < 0) {
-        if (getSetting("tabcycle")) {
-            index = tabs.length + index
-        } else {
-            index = 0
+    let tab = tabOrIndex
+    if (typeof tabOrIndex === "number") {
+        let index = tabOrIndex
+        while (index < 0) {
+            if (getSetting("tabcycle")) {
+                index = tabs.length + index
+            } else {
+                index = 0
+            }
         }
-    }
-    while (tabs.length <= index) {
-        if (getSetting("tabcycle")) {
-            index -= tabs.length
-        } else {
-            index = tabs.length - 1
+        while (tabs.length <= index) {
+            if (getSetting("tabcycle")) {
+                index -= tabs.length
+            } else {
+                index = tabs.length - 1
+            }
         }
+        tab = tabs[index]
     }
     const oldPage = currentPage()
-    tabs.forEach(tab => {
-        tab.id = ""
+    tabs.forEach(t => {
+        t.id = ""
     })
-    listPages().forEach(page => {
-        page.id = ""
+    listPages().forEach(p => {
+        p.id = ""
     })
-    tabs[index].id = "current-tab"
-    const page = tabOrPageMatching(tabs[index])
+    tab.id = "current-tab"
+    const page = tabOrPageMatching(tab)
     page.id = "current-page"
-    tabs[index].scrollIntoView({"inline": "center", "block": "center"})
+    tab.scrollIntoView({"block": "center", "inline": "center"})
     const {switchView, setLastUsedTab} = require("./pagelayout")
     switchView(oldPage, currentPage())
     updateUrl(currentPage())
@@ -579,13 +579,12 @@ const switchToTab = index => {
 }
 
 const updateUrl = (webview, force = false) => {
-    const skip = ["command", "search", "explore"]
     if (webview !== currentPage() || !currentPage()) {
         return
     }
     const {updateWindowTitle} = require("./settings")
     updateWindowTitle()
-    if (!force && skip.includes(currentMode())) {
+    if (!force && "sec".includes(currentMode()[0])) {
         return
     }
     document.getElementById("url").value = urlToString(currentPage().src)
@@ -596,7 +595,7 @@ const addWebviewListeners = webview => {
         if (e.isMainFrame) {
             resetTabInfo(webview)
             if (getSetting("firefoxmode") === "google") {
-                if (e.url.match(/^https:\/\/(.*\.)?google\.com.*$/)) {
+                if (sameDomain(e.url, "https://google.com")) {
                     webview.setUserAgent(firefoxUseragent())
                 } else {
                     webview.setUserAgent("")
@@ -719,10 +718,12 @@ const addWebviewListeners = webview => {
                 getCustomStyling())
         }
         if (specialPageName === "help") {
-            const {listMappingsAsCommandList} = require("./input")
+            const {
+                listMappingsAsCommandList, uncountableActions
+            } = require("./input")
             const {settingsWithDefaults} = require("./settings")
             webview.send("settings", settingsWithDefaults(),
-                listMappingsAsCommandList(false, true))
+                listMappingsAsCommandList(false, true), uncountableActions)
         }
         if (specialPageName === "notifications") {
             webview.send("notification-history", listNotificationHistory())
@@ -731,15 +732,11 @@ const addWebviewListeners = webview => {
         const name = tabOrPageMatching(webview).querySelector("span")
         if (specialPageName) {
             name.textContent = title(specialPageName)
-            return
         }
         const {addToHist, titleForPage, updateTitle} = require("./history")
         addToHist(webview.src)
         const existingTitle = titleForPage(webview.src)
-        const titleHasFlaws = hasProtocol(name.textContent)
-            || name.textContent.startsWith("magnet:")
-            || name.textContent.startsWith("mailto:")
-        if (titleHasFlaws && existingTitle) {
+        if (hasProtocol(name.textContent) && existingTitle) {
             name.textContent = existingTitle
         } else {
             updateTitle(webview.src, name.textContent)
@@ -755,7 +752,7 @@ const addWebviewListeners = webview => {
         }
     })
     webview.addEventListener("page-title-updated", e => {
-        if (e.title.startsWith("magnet:") || e.title.startsWith("mailto:")) {
+        if (hasProtocol(e.title)) {
             return
         }
         const tab = tabOrPageMatching(webview)
@@ -780,13 +777,13 @@ const addWebviewListeners = webview => {
             navigateTo(e.url)
         } else {
             addTab({
-                "url": e.url, "switchTo": getSetting("mousenewtabswitch")
+                "switchTo": getSetting("mousenewtabswitch"), "url": e.url
             })
         }
     })
     webview.addEventListener("enter-html-full-screen", () => {
         if (currentPage() !== webview) {
-            switchToTab(listTabs().indexOf(tabOrPageMatching(webview)))
+            switchToTab(tabOrPageMatching(webview))
         }
         document.body.classList.add("fullscreen")
         webview.blur()
@@ -801,21 +798,28 @@ const addWebviewListeners = webview => {
         applyLayout()
     })
     webview.addEventListener("ipc-message", e => {
-        const {webviewMenu, "clear": clearMenu} = require("./contextmenu")
         const {
             startVisualSelect, "move": movePointer, handleScrollDiffEvent
         } = require("./pointer")
         if (e.channel === "notify") {
-            notify(e.args[0], e.args[1])
+            notify(...e.args)
         }
         if (e.channel.endsWith("-click-info") && webview !== currentPage()) {
-            switchToTab(listTabs().indexOf(tabOrPageMatching(webview)))
+            switchToTab(tabOrPageMatching(webview))
         }
         if (e.channel === "context-click-info") {
-            webviewMenu(e.args[0])
+            const [{extraData}] = e.args
+            if (extraData) {
+                const {commonAction} = require("./contextmenu")
+                commonAction(extraData.type, extraData.action, e.args[0])
+            } else {
+                const {webviewMenu} = require("./contextmenu")
+                webviewMenu(e.args[0])
+            }
         }
         if (e.channel === "mouse-click-info") {
-            clearMenu()
+            const {clear} = require("./contextmenu")
+            clear()
             if (getSetting("mouse") && currentMode() !== "insert") {
                 if (["pointer", "visual"].includes(currentMode())) {
                     if (e.args[0].tovisual) {
@@ -837,14 +841,9 @@ const addWebviewListeners = webview => {
             const {parseAndDisplayLinks} = require("./follow")
             parseAndDisplayLinks(e.args[0])
         }
-        if (e.channel === "download-image") {
-            const checkForValidUrl = e.args[1]
-            if (!checkForValidUrl || isUrl(e.args[0])) {
-                currentPage().downloadURL(e.args[0])
-            }
-        }
         if (e.channel === "scroll-height-diff") {
-            clearMenu()
+            const {clear} = require("./contextmenu")
+            clear()
             handleScrollDiffEvent(e.args[0])
         }
         if (e.channel === "history-list-request") {
@@ -855,7 +854,7 @@ const addWebviewListeners = webview => {
             setMode("insert")
         }
         if (e.channel === "navigate-to") {
-            const url = e.args[0]
+            const [url] = e.args
             webview.src = url
             tabOrPageMatching(webview).querySelector("span").textContent = url
         }
@@ -867,14 +866,15 @@ const addWebviewListeners = webview => {
             const {forSite} = require("./favicons")
             const {suggestTopSites, titleForPage} = require("./history")
             const favoritePages = getSetting("favoritepages").split(",")
-                .filter(page => page).map(page => {
-                    if (!hasProtocol(page)) {
-                        page = `https://${page}`
+                .filter(u => u).map(u => {
+                    let url = u
+                    if (!hasProtocol(url)) {
+                        url = `https://${url}`
                     }
                     return {
-                        "name": titleForPage(page) || titleForPage(`${page}/`),
-                        "url": urlToString(page),
-                        "icon": forSite(page) || forSite(`${page}/`)
+                        "icon": forSite(url) || forSite(`${url}/`),
+                        "name": titleForPage(url) || titleForPage(`${url}/`),
+                        "url": urlToString(url)
                     }
                 })
             const topPages = suggestTopSites()
@@ -952,7 +952,7 @@ const moveTabForward = () => {
         }
     }
     tabs.insertBefore(currentTab(), currentTab().nextSibling.nextSibling)
-    currentTab().scrollIntoView({"inline": "center", "block": "center"})
+    currentTab().scrollIntoView({"block": "center", "inline": "center"})
 }
 
 const moveTabBackward = () => {
@@ -966,21 +966,21 @@ const moveTabBackward = () => {
         }
     }
     tabs.insertBefore(currentTab(), currentTab().previousSibling)
-    currentTab().scrollIntoView({"inline": "center", "block": "center"})
+    currentTab().scrollIntoView({"block": "center", "inline": "center"})
 }
 
 module.exports = {
-    init,
-    saveTabs,
     addTab,
-    suspendTab,
-    reopenTab,
     closeTab,
-    tabOrPageMatching,
-    switchToTab,
-    updateUrl,
-    resetTabInfo,
-    navigateTo,
+    init,
+    moveTabBackward,
     moveTabForward,
-    moveTabBackward
+    navigateTo,
+    reopenTab,
+    resetTabInfo,
+    saveTabs,
+    suspendTab,
+    switchToTab,
+    tabOrPageMatching,
+    updateUrl
 }
