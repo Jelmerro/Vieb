@@ -358,7 +358,8 @@ if (argErwic) {
 let mainWindow = null
 let loginWindow = null
 let notificationWindow = null
-const resolveLocalPaths = (paths, cwd = null) => paths.map(url => {
+const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
+    const url = u.url || u
     let fileLocation = expandPath(url.replace(/^file:\/*/g, "/"))
     if (process.platform === "win32") {
         fileLocation = expandPath(url.replace(/^file:\/*/g, ""))
@@ -369,8 +370,11 @@ const resolveLocalPaths = (paths, cwd = null) => paths.map(url => {
     if (isFile(fileLocation)) {
         return `file:///${fileLocation.replace(/^\//g, "")}`
     }
-    return url
-}).filter(url => !url.startsWith("-"))
+    if (url.startsWith("-")) {
+        return null
+    }
+    return {...u, url}
+}).filter(u => u)
 app.on("ready", () => {
     app.userAgentFallback = useragent()
     if (app.requestSingleInstanceLock()) {
@@ -379,7 +383,8 @@ app.on("ready", () => {
                 mainWindow.restore()
             }
             mainWindow.focus()
-            mainWindow.webContents.send("urls", resolveLocalPaths(newArgs, cwd))
+            mainWindow.webContents.send("urls", resolveLocalPaths(
+                getArguments(newArgs), cwd))
         })
     } else {
         console.info(`Sending urls to existing instance in ${argDatafolder}`)
