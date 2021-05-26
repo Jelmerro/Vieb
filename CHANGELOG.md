@@ -11,7 +11,7 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
-## [5.0.0](https://github.com/Jelmerro/Vieb/compare/4.5.1...4.0.0) - 2021-05-26
+## [5.0.0](https://github.com/Jelmerro/Vieb/compare/4.5.1...5.0.0) - 2021-05-26
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/4.5.1...5.0.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/5.0.0)
 
@@ -74,7 +74,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Maximizing the window with double-click that could also incorrectly switch to a tab that happens to be at the second click location
 - Middle mouse having side effects in the tab bar on Windows
 - Quotes in settings messing with the :mkv command output
-- Left-click in pointer mode not click on the right location when the page is zoomed
+- Left-click in pointer mode not clicking on the right location when the page is zoomed
 - Container color not always being updated if a color rule is removed from the list
 - Search mode not clearing the url correctly if opened from the mouse dropdown selector
 
