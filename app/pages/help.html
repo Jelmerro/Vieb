@@ -258,7 +258,7 @@
             <li><span class="command-block">:map &lt;C-T&gt; u</span> - Make Ctrl-Shift-t reopen the previously closed tab with a recursive mapping</li>
             <li><span class="command-block">:map &lt;Bslash&gt;&gt;?&lt;S-Del&gt;</span> - List every mapping for typing a backslash, then a greater than sign, after that a question mark and finally pressing Shift with Delete (probably none)</li>
         </ul>
-        The map command takes any number of arguments. Without any arguments, it lists the mappings for all modes. To also list the default mappings of Vieb, append the map command with a <kbd>!</kbd>. When a single argument is added to the map command, it will only list mappings for that specific key or sequence of keys. If more than one argument is provided, the first argument is stored separately from all the others. The first one represents the keys that you need to press to execute all the other keys provided. For example, the command <span class="command-block nowrap">:map &lt;C-J&gt; &lt;Esc&gt; :downloads &lt;Enter&gt;</span> will add a mapping for pressing j while holding Shift and Control. When those keys are pressed, it will automatically trigger the Escape key, type out ":downloads" and finally trigger the Enter key. Or in other words, this will make it so that pressing Ctrl-Shift-j will open the downloads page. When adding a new mapping with this command, it will always overwrite existing mappings.
+        The map command takes any number of arguments. Without any arguments, it lists the mappings for all modes. To also list the default mappings of Vieb, append the map command with a <kbd>!</kbd>. When a single argument is added to the map command, it will only list mappings for that specific key or sequence of keys. If more than one argument is provided, the first argument is stored separately from all the others. The first one represents the keys that you need to press to execute all the other keys provided. For example, the command <span class="command-block nowrap">:map &lt;C-J&gt; &lt;Esc&gt;:downloads&lt;Enter&gt;</span> will add a mapping for pressing j while holding Shift and Control. When those keys are pressed, it will automatically trigger the Escape key, type out ":downloads" and finally trigger the Enter key. Or in other words, this will make it so that pressing Ctrl-Shift-j will open the downloads page. When adding a new mapping with this command, it will always overwrite existing mappings.
         <h3 id=":noremap">:noremap</h3>
         <ul>
             <li><span class="command-block">:noremap</span> - List all custom mappings for every mode</li>
@@ -359,13 +359,14 @@
         <h2 id="customcommands">Custom commands</h2>
         Vieb allows you to define custom commands. These commands can be used as an alternative to custom mappings, and can also be used within other mappings or commands. For example, to open vieb.dev with a homepage command, add a new command such as:
         <div class="command-block">:command homepage &lt;Esc&gt;evieb.dev&lt;Enter&gt;</div>
-        which can also be written as
+        This example can also be written as:
         <div class="command-block">:command homepage &lt;action.toExploreMode&gt;vieb.dev&lt;action.useEnteredData&gt;</div>
-        It's also possible to refer to other commands when defining a new command, similar to adding keyboard mappings. The command name must be unique and can not overwrite built-in commands.
+        Finally, it's also possible to refer to other commands when defining a new command, similar to adding keyboard mappings. This looks like this:
+        <div class="command-block">:command homepage &lt;:open vieb.dev&gt;</div>
         <h3 id=":command">:command</h3>
         <ul>
             <li><span class="command-block">:command</span> - Show a list of all user defined commands</li>
-            <li><span class="command-block">:command homepage &lt;action.toExploreMode&gt;vieb.dev&lt;Enter&gt;</span> - Add a custom command name homepage, to navigate to vieb.dev</li>
+            <li><span class="command-block">:command homepage &lt;:open vieb.dev&gt;</span> - Add a custom command name homepage, to navigate to vieb.dev</li>
             <li><span class="command-block">:command homepage</span> - Show the actions bound to the homepage command, if it exists</li>
             <li><span class="command-block">:command! clickonmenu &lt;Esc&gt;/Menu&lt;Enter&gt;n&lt;Enter&gt;</span> - Add a command to click on the first match on the page with the "Menu" text, overwriting any existing command with the same name</li>
         </ul>
@@ -396,7 +397,7 @@
             <li><span class="command-block">:o vieb.dev</span> - Go to vieb.dev in the current tab</li>
             <li><span class="command-block">:open github vieb</span> - Go to the search "github vieb" in the current tab</li>
         </ul>
-        The open command will open the provided URL (or web search, if more than one arguments are provided). From the user's perspective this is no better, than simply switching to explore mode. This command is useful when one wants to create a custom command that jumps to a URL. Scripting this use-case with the explore mode is functional, but a bit slow, while this command is faster.
+        The open command will open the provided URL (or web search, if the arguments are not a valid address). From the user's perspective this is no better, than simply switching to <a class="explore" href="#action.toExploreMode">explore mode</a>. This command is mainly useful when you want to create a custom command that jumps to a URL. Scripting this use-case with the <a class="explore" href="#action.toExploreMode">explore mode</a> is functional, but a slower because it will type out the keys, while this command is executed immediately.
         <h3 id=":hide">:hide</h3>
         <ul>
             <li><span class="command-block">:hide</span> - Hide the currently focused window split, if others are also visible</li>

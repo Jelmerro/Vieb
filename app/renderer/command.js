@@ -733,11 +733,11 @@ const commands = {
     mkviebrc,
     mute,
     "notifications": () => openSpecialPage("notifications"),
+    "o": open,
     "only": () => {
         const {only} = require("./pagelayout")
         only()
     },
-    "o": open,
     open,
     pin,
     "print": hardcopy,
