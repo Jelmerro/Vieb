@@ -133,11 +133,6 @@ const addToHist = rawUrl => {
     writeHistToFile()
 }
 
-const clearHistory = () => {
-    groupedHistory = {}
-    deleteFile(histFile)
-}
-
 const writeHistToFile = (now = false) => {
     if (Object.keys(groupedHistory).length === 0) {
         deleteFile(histFile)
@@ -239,7 +234,6 @@ const updateTitle = (rawUrl, rawName) => {
 
 module.exports = {
     addToHist,
-    clearHistory,
     handleRequest,
     init,
     suggestHist,

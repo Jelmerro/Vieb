@@ -25,6 +25,7 @@ const {
     clearLocalStorage,
     readFile,
     writeFile,
+    deleteFile,
     isDir,
     pathExists,
     expandPath,
@@ -194,10 +195,10 @@ const quit = () => {
 const quitall = () => {
     const {ipcRenderer} = require("electron")
     ipcRenderer.send("hide-window")
-    const {clearHistory, writeHistToFile} = require("./history")
     if (getSetting("clearhistoryonquit")) {
-        clearHistory()
+        deleteFile(joinPath(appData(), "hist"))
     } else {
+        const {writeHistToFile} = require("./history")
         writeHistToFile(true)
     }
     const {saveTabs} = require("./tabs")
