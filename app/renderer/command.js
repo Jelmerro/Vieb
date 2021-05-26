@@ -439,6 +439,14 @@ const buffer = (...args) => {
     }
 }
 
+const open = (...args) => {
+    if (args.length === 0) {
+        return
+    }
+    const {navigateTo} = require("./tabs")
+    navigateTo(stringToUrl(args.join(" ")))
+}
+
 const suspend = (...args) => {
     let tab = null
     if (args.length === 0) {
@@ -729,6 +737,8 @@ const commands = {
         const {only} = require("./pagelayout")
         only()
     },
+    "o": open,
+    open,
     pin,
     "print": hardcopy,
     "q": quit,
