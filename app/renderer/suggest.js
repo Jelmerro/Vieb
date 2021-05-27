@@ -402,6 +402,8 @@ const suggestCommand = searchStr => {
     // Command: help
     if ("help".startsWith(command) && !confirm) {
         const {listSupportedActions} = require("./input")
+        const simpleSearch = args.join(" ").replace(/^#?:?/, "")
+            .replace(/!$/, "").replace(/-/g, "").toLowerCase().trim()
         ;[
             "intro",
             "commands",
@@ -428,12 +430,17 @@ const suggestCommand = searchStr => {
             "license",
             "mentions",
             ...commandList().map(c => `:${c}`),
-            ...listSupportedActions(),
             ...Object.values(settingsWithDefaults()).map(s => s.name),
-            ...commandList()
-        ].filter(section => `${command} ${section}`.startsWith(
-            `${command} ${args.join(" ")}`.trim())
-        ).forEach(section => addCommand(`help ${section}`))
+            ...listSupportedActions()
+        ].filter(section => {
+            const simpleSection = section.replace(/^#?:?/, "")
+                .replace(/!$/, "").toLowerCase()
+            return `${command} ${simpleSection.replace(
+                /^action\./, "").replace(/^pointer\./, "")}`.startsWith(
+                `${command} ${simpleSearch}`.trim())
+            || `${command} ${simpleSection}`.startsWith(
+                `${command} ${simpleSearch}`.trim())
+        }).forEach(section => addCommand(`help ${section}`))
     }
     // Command: buffer, hide, Vexplore, Sexplore, split, vsplit etc.
     const bufferCommand = [

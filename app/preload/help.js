@@ -128,26 +128,18 @@ ipcRenderer.on("settings", (_, settings, mappings, uncountableActions) => {
 })
 
 const processHash = () => {
-    if (window.location.hash !== "") {
-        if (window.location.hash === "#keycodes") {
-            document.querySelector("a[href='#key-codes']").click()
-            return
+    const ids = [...document.querySelectorAll("[id]")].map(e => e.id)
+    const simpleHash = window.location.hash.replace(/^#?:?/, "")
+        .replace(/!$/, "").replace(/-/g, "").toLowerCase().trim()
+    if (simpleHash !== "") {
+        const match = ids.find(raw => {
+            const id = raw.replace(/^#?:?/, "").replace(/!$/, "").toLowerCase()
+            return simpleHash === id.replace(/^action\./, "")
+                .replace(/^pointer\./, "") || simpleHash === id
+        })
+        if (match && document.querySelector(`a[href='#${match}']`)) {
+            document.querySelector(`a[href='#${match}']`).click()
         }
-        const hashVariations = [
-            window.location.hash,
-            window.location.hash.replace("#", "#:"),
-            window.location.hash.replace(/!$/, ""),
-            window.location.hash.replace("#", "#:").replace(/!$/, ""),
-            window.location.hash.replace(/-/, ""),
-            window.location.hash.toLowerCase()
-        ]
-        for (const h of hashVariations) {
-            if (document.querySelector(`a[href='${h}']`)) {
-                document.querySelector(`a[href='${h}']`).click()
-                return
-            }
-        }
-        window.history.pushState(null, null, " ")
     }
 }
 
