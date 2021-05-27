@@ -20,6 +20,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Vertical tabs theme now displays multiple pinned tabs horizontally with wrapping
+- Redirects are now saved to correctly set the favicon and title in those cases
 
 ### Fixed
 

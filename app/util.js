@@ -225,7 +225,12 @@ const urlToString = url => {
     return url
 }
 
-const title = str => str.slice(0, 1).toUpperCase() + str.slice(1).toLowerCase()
+const title = s => {
+    if (!s || !s[0]) {
+        return ""
+    }
+    return `${s[0].toUpperCase()}${s.slice(1).toLowerCase()}`
+}
 
 const downloadPath = () => expandPath(getSetting("downloadpath"))
 

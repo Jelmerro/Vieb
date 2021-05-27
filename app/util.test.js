@@ -235,7 +235,9 @@ specialPagesToFilenames.forEach(specialPageTest => {
 
 test("Title function should capitalize first char and lowercase others", () => {
     expect(UTIL.title("teSt")).toBe("Test")
+    expect(UTIL.title("a")).toBe("A")
     expect(UTIL.title("")).toBe("")
+    expect(UTIL.title(undefined)).toBe("")
     expect(UTIL.title("multiple WORDS")).toBe("Multiple words")
 })
 

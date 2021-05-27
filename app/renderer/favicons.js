@@ -56,6 +56,10 @@ const init = () => {
             mappings[currentUrl] = favicon
         }
     })
+    ipcRenderer.on("redirect", (_, src, redirect) => {
+        mappings.redirects = mappings.redirects || {}
+        mappings.redirects[src] = redirect
+    })
 }
 
 const updateMappings = (currentUrl = null) => {
@@ -66,24 +70,35 @@ const updateMappings = (currentUrl = null) => {
     // Delete mappings for urls that aren't present in the history
     const {visitCount} = require("./history")
     Object.keys(mappings).forEach(m => {
-        if (visitCount(m) === 0 && m !== currentUrl) {
+        if (m === "redirects") {
+            Object.keys(mappings.redirects).forEach(r => {
+                const dest = mappings.redirects[r]
+                if (dest !== currentUrl && visitCount(dest) === 0) {
+                    delete mappings.redirects[r]
+                }
+            })
+            if (Object.keys(mappings.redirects).length === 0) {
+                delete mappings.redirects
+            }
+        } else if (m !== currentUrl && visitCount(m) === 0) {
             delete mappings[m]
         }
     })
     // Delete unmapped favicon icons from disk
     const mappedFavicons = Object.values(mappings).map(f => urlToPath(f))
     const files = listDir(faviconFolder)
-    if (files) {
-        files.filter(p => p !== "mappings")
-            .map(p => joinPath(faviconFolder, p))
-            .forEach(img => {
-                if (!mappedFavicons.includes(img)) {
-                    deleteFile(img)
-                }
-            })
-    }
+    files?.filter(p => p !== "mappings").map(p => joinPath(faviconFolder, p))
+        .forEach(img => {
+            if (!mappedFavicons.includes(img)) {
+                deleteFile(img)
+            }
+        })
     // Write changes to mapping file
-    writeJSON(mappingFile, mappings)
+    if (Object.keys(mappings).length === 0) {
+        deleteFile(mappingFile)
+    } else {
+        writeJSON(mappingFile, mappings, null, null, 4)
+    }
 }
 
 const urlToPath = url => joinPath(faviconFolder,
@@ -192,8 +207,13 @@ const deleteIfTooOld = loc => {
     }
 }
 
+const getRedirect = url => mappings.redirects?.[url] || url
+
 const forSite = url => {
-    const mapping = mappings[url]
+    if (getSetting("favicons") === "disabled") {
+        return ""
+    }
+    const mapping = mappings[getRedirect(url)]
     if (mapping) {
         if (mapping.startsWith("data:")) {
             return mapping
@@ -214,4 +234,6 @@ const forSite = url => {
     return ""
 }
 
-module.exports = {empty, forSite, init, loading, show, update, updateMappings}
+module.exports = {
+    empty, forSite, getRedirect, init, loading, show, update, updateMappings
+}

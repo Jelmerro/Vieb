@@ -50,10 +50,6 @@ const compareVersions = (v1Str, v2Str) => {
         }
         return "even"
     }
-    // Test if the version number is actually formatted like "1.1.1" or similar
-    if (!(/^\d*\.\d*\.\d*$/).test(v1num) || !(/^\d*\.\d*\.\d*$/).test(v2num)) {
-        return "unknown"
-    }
     for (let i = 0; i < 3; i++) {
         if (Number(v1num.split(".")[i]) > Number(v2num.split(".")[i])) {
             return "newer"

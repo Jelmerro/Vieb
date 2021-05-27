@@ -51,8 +51,6 @@ const suggestHist = (searchStr, order, count) => {
         // No need to suggest history if it's not stored
         return
     }
-    const {addExplore} = require("./suggest")
-    const {forSite} = require("./favicons")
     const entries = Object.keys(groupedHistory).map(url => {
         if (!groupedHistory[url]) {
             return null
@@ -104,6 +102,8 @@ const suggestHist = (searchStr, order, count) => {
     if (order === "relevance") {
         entries.sort((a, b) => b.top - a.top)
     }
+    const {addExplore} = require("./suggest")
+    const {forSite} = require("./favicons")
     entries.slice(0, count).forEach(h => addExplore(
         {...h, "icon": forSite(h.url)}))
 }
@@ -167,12 +167,14 @@ const removeFromHistory = entries => {
 }
 
 const handleRequest = (webview, action = "", entries = []) => {
+    const {updateMappings} = require("./favicons")
     if (action) {
         let success = false
         if (action === "range" && entries.length > 0) {
             success = removeFromHistory(entries)
         }
         webview.send("history-removal-status", success)
+        updateMappings()
         return
     }
     let history = []
@@ -190,30 +192,27 @@ const handleRequest = (webview, action = "", entries = []) => {
     })
     history = history.sort((a, b) => a.date.getTime() - b.date.getTime())
     webview.send("history-list", JSON.stringify(history))
+    updateMappings()
 }
 
-const suggestTopSites = () => Object.keys(groupedHistory)
-    .filter(g => groupedHistory[g])
-    .sort((a, b) => visitCount(b) - visitCount(a))
-    .slice(0, getSetting("suggesttopsites")).map(site => {
-        if (getSetting("favicons") === "disabled") {
-            return {
-                "name": groupedHistory[site]?.title,
-                "url": urlToString(site)
-            }
-        }
-        const {forSite} = require("./favicons")
-        return {
+const suggestTopSites = () => {
+    const {forSite} = require("./favicons")
+    return Object.keys(groupedHistory).filter(g => groupedHistory[g])
+        .sort((a, b) => visitCount(b) - visitCount(a))
+        .slice(0, getSetting("suggesttopsites")).map(site => ({
             "icon": forSite(site),
             "name": groupedHistory[site]?.title,
             "url": urlToString(site)
-        }
-    })
+        }))
+}
 
 const visitCount = url => groupedHistory[url]?.visits?.length || 0
 
-const titleForPage = url => groupedHistory[url]?.title
-    || title(pathToSpecialPageName(url).name) || ""
+const titleForPage = originalUrl => {
+    const {getRedirect} = require("./favicons")
+    const url = getRedirect(originalUrl)
+    return groupedHistory[url]?.title || title(pathToSpecialPageName(url).name)
+}
 
 const updateTitle = (rawUrl, rawName) => {
     const url = rawUrl.replace(/\t/g, "")

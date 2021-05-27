@@ -134,15 +134,10 @@ See the LICENSE file or the GNU website for details.`)
 const applyDevtoolsSettings = prefFile => {
     makeDir(dirname(prefFile))
     const preferences = readJSON(prefFile) || {}
-    if (!preferences.electron) {
-        preferences.electron = {}
-    }
-    if (!preferences.electron.devtools) {
-        preferences.electron.devtools = {}
-    }
-    if (!preferences.electron.devtools.preferences) {
-        preferences.electron.devtools.preferences = {}
-    }
+    preferences.electron = preferences.electron || {}
+    preferences.electron.devtools = preferences.electron.devtools || {}
+    preferences.electron.devtools.preferences
+        = preferences.electron.devtools.preferences || {}
     // Disable source maps as they leak internal structure to the webserver
     preferences.electron.devtools.preferences.cssSourceMapsEnabled = false
     preferences.electron.devtools.preferences.jsSourceMapsEnabled = false
@@ -443,6 +438,17 @@ app.on("ready", () => {
             prefs.contextIsolation = false
             prefs.enableRemoteModule = false
             prefs.webSecurity = argSiteIsolation === "strict"
+        })
+        mainWindow.webContents.on("did-attach-webview", (_, contents) => {
+            let navigationUrl = null
+            contents.on("did-start-navigation", (__, url) => {
+                navigationUrl = url
+            })
+            contents.on("did-redirect-navigation", (__, url) => {
+                if (navigationUrl !== url) {
+                    mainWindow.webContents.send("redirect", navigationUrl, url)
+                }
+            })
         })
         if (argDebugMode) {
             mainWindow.webContents.openDevTools({"mode": "undocked"})
