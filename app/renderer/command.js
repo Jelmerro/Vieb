@@ -564,18 +564,10 @@ const close = (...args) => {
 }
 
 const callAction = (...args) => {
-    if (args.length !== 1) {
-        notify(
-            "Exactly one action name is required for the call command", "warn")
-        return
-    }
-    const action = args[0].replace(/(^<|>$)/g, "")
-    const {listSupportedActions, doAction} = require("./input")
-    if (listSupportedActions().includes(action)) {
-        setTimeout(() => doAction(action), 0)
-    } else {
-        notify("Unsupported action provided, can't be called", "warn")
-    }
+    setTimeout(() => {
+        const {executeMapString} = require("./input")
+        executeMapString(args.join(" "), true, true)
+    }, 0)
 }
 
 const logError = err => {

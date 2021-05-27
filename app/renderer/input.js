@@ -880,7 +880,7 @@ const handleKeyboard = async e => {
         }
         return
     }
-    if (!hasFutureActionsBasedOnKeys(pressedKeys) || !e.isTrusted) {
+    if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
         clearTimeout(timeoutTimer)
         const action = bindings[currentMode()[0]][pressedKeys]
         if (action && (e.isTrusted || e.bubbles)) {

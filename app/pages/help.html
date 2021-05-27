@@ -449,10 +449,10 @@
         The commands in this paragraph do not belong in a specific category, but are still a core part of Vieb. These commands range from printing, to developer tools and to quitting Vieb.
         <h3 id=":call">:call</h3>
         <ul>
-            <li><span class="command-block">:call action.nextTab</span> - Switch to the next tab using a command</li>
             <li><span class="command-block">:call &lt;action.toSearchMode&gt;</span> - Switch to <a class="search" href="#action.toSearchMode">search mode</a> using a command</li>
+            <li><span class="command-block">:call gi</span> - Press the keys "g" and "i" in order, which is by default mapped to <a href="#action.insertAtFirstInput">action.insertAtFirstInput</a></li>
         </ul>
-        The call command can be used to execute a single action by a command, it accepts exactly one argument. The action name can optionally be wrapped in &lt; and &gt; characters, similar to how you would call actions in mappings.
+        The call command can be used to execute any arbitrary arguments as a if it was mapped with <a href="#:map">:map</a>. The advantage is that you don't have to create a mapping to execute built-in actions or test the righthand side of a map command, but you can just prefix it will "call" to run it immediately.
         <h3 id=":write">:write</h3>
         <ul>
             <li><span class="command-block">:write</span> - Save the current page to <a href="#downloadpath">downloadpath</a> with the page name as the filename</li>

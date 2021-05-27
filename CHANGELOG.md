@@ -21,10 +21,12 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Vertical tabs theme now displays multiple pinned tabs horizontally with wrapping
 - Redirects are now saved to correctly set the favicon and title in those cases
+- Call command now accepts any valid mapstring instead of only simple actions
 
 ### Fixed
 
 - Split commands not switching to the tab directly, which meant that mappings with splits didn't work properly
+- Recursive mappings with multiple keys for a single action not being interpreted correctly in all cases
 
 ### Security
 

@@ -351,14 +351,6 @@ const suggestCommand = searchStr => {
             })
         }
     }
-    // Command: call
-    const {listSupportedActions} = require("./input")
-    if ("call".startsWith(command) && !confirm) {
-        listSupportedActions().filter(
-            action => `${command} ${action.replace(/(^<|>$)/g, "")}`.startsWith(
-                `${command} ${args.join(" ")}`.trim()))
-            .forEach(action => addCommand(`call ${action}`))
-    }
     // Command: devtools
     if ("devtools".startsWith(command) && !confirm && args.length < 2) {
         const options = ["window", "split", "vsplit", "tab"]
@@ -409,7 +401,8 @@ const suggestCommand = searchStr => {
     }
     // Command: help
     if ("help".startsWith(command) && !confirm) {
-        [
+        const {listSupportedActions} = require("./input")
+        ;[
             "intro",
             "commands",
             "settings",
