@@ -17,6 +17,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Open command to navigate to a website or search term directly with a command
 
+### Changed
+
+- Vertical tabs theme now displays multiple pinned tabs horizontally with wrapping
+
 ### Security
 
 - Electron 13.0.1 (unchanged)

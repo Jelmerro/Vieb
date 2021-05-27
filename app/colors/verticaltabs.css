@@ -16,11 +16,11 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#tabs {overflow-x: hidden;overflow-y: auto;position: absolute;left: 0;width: 15vw;height: calc(100vh - 2em);top: 2em;flex-direction: column;}
-#tabs > span {min-height: 1.9em;max-height: 1.9em;min-width: 0 !important;}
+#tabs {overflow-x: hidden;overflow-y: auto;position: absolute;left: 0;width: 15vw;max-height: calc(100vh - 2em);top: 2em;flex-wrap: wrap;}
+#tabs > span {min-height: 1.9em;max-height: 1.9em;min-width: 14vw !important;width: 15vw;}
 #page-container {height: calc(100vh - 2em);position: absolute;top: 2em;left: 15vw;width: 85vw;}
 #app.fullscreen #page-container {height: 100vh;width: 100vw;top: 0;left: 0;}
 #app.tabshidden #page-container {width: 100vw;left: 0;}
 #app.navigationhidden #page-container {height: 100vh;top: 0;}
-#app.navigationhidden #tabs {top: 0;height: 100vh;}
+#app.navigationhidden #tabs {top: 0;max-height: 100vh;}
 #tabs::-webkit-scrollbar {width: .2em;height: auto;}
