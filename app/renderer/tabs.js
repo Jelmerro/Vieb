@@ -214,8 +214,7 @@ const saveTabs = () => {
 }
 
 const addTab = (options = {}) => {
-    // Options: url, customIndex, switchTo, pinned, container,
-    // lazy, muted and callback
+    // Options: url, customIndex, switchTo, pinned, container, lazy and muted
     if (options.switchTo === undefined) {
         options.switchTo = true
     }
@@ -334,7 +333,6 @@ const addTab = (options = {}) => {
     if (options.url) {
         page.src = stringToUrl(options.url)
     }
-    page.callback = options.callback
     page.setAttribute("container", sessionName)
     if (isDevtoolsTab) {
         page.setAttribute("devtools-for-id", currentPageId)
@@ -360,6 +358,7 @@ const addTab = (options = {}) => {
         const {applyLayout} = require("./pagelayout")
         applyLayout()
     }
+    return linkId
 }
 
 const suspendTab = tab => {
@@ -412,7 +411,6 @@ const unsuspendPage = page => {
         webview.src = specialPagePath("newtab")
     }
     const url = page.src
-    const {callback} = page
     webview.addEventListener("dom-ready", () => {
         if (!webview.getAttribute("dom-ready")) {
             const tab = tabOrPageMatching(webview)
@@ -435,9 +433,6 @@ const unsuspendPage = page => {
                 webview.clearHistory()
             }
             webview.setAttribute("dom-ready", true)
-            if (callback) {
-                callback(webview.getAttribute("link-id"))
-            }
         }
     })
     page.replaceWith(webview)

@@ -273,26 +273,16 @@ const openDevTools = (userPosition = null, trailingArgs = false) => {
         addTab({"devtools": true})
     } else if (position === "vsplit") {
         const {addTab, switchToTab} = require("./tabs")
-        addTab({
-            "callback": id => {
-                const {add} = require("./pagelayout")
-                add(id, "hor", !getSetting("splitright"))
-                switchToTab(tabIndexById(id))
-            },
-            "devtools": true,
-            "switchTo": false
-        })
+        const id = addTab({"devtools": true, "switchTo": false})
+        const {add} = require("./pagelayout")
+        add(id, "hor", !getSetting("splitright"))
+        switchToTab(tabIndexById(id))
     } else if (position === "split") {
         const {addTab, switchToTab} = require("./tabs")
-        addTab({
-            "callback": id => {
-                const {add} = require("./pagelayout")
-                add(id, "ver", !getSetting("splitbelow"))
-                switchToTab(tabIndexById(id))
-            },
-            "devtools": true,
-            "switchTo": false
-        })
+        const id = addTab({"devtools": true, "switchTo": false})
+        const {add} = require("./pagelayout")
+        add(id, "ver", !getSetting("splitbelow"))
+        switchToTab(tabIndexById(id))
     } else {
         notify("Invalid devtools position specified, must be one of: "
             + "window, vsplit, split or tab", "warn")
@@ -530,15 +520,12 @@ const tabIndexById = id => listTabs().indexOf(listTabs().find(
 const addSplit = (method, leftOrAbove, args) => {
     const {addTab, switchToTab} = require("./tabs")
     if (args.length === 0) {
-        addTab({
-            "callback": id => {
-                const {add} = require("./pagelayout")
-                add(id, method, leftOrAbove)
-                switchToTab(tabIndexById(id))
-            },
-            "container": getSetting("containersplitpage"),
-            "switchTo": false
+        const id = addTab({
+            "container": getSetting("containersplitpage"), "switchTo": false
         })
+        const {add} = require("./pagelayout")
+        add(id, method, leftOrAbove)
+        switchToTab(tabIndexById(id))
         return
     }
     const tab = tabForBufferArg(args)
@@ -551,16 +538,14 @@ const addSplit = (method, leftOrAbove, args) => {
             switchToTab(tab)
         }
     } else {
-        addTab({
-            "callback": id => {
-                const {add} = require("./pagelayout")
-                add(id, method, leftOrAbove)
-                switchToTab(tabIndexById(id))
-            },
+        const id = addTab({
             "container": getSetting("containersplitpage"),
             "switchTo": false,
             "url": stringToUrl(args.join(" "))
         })
+        const {add} = require("./pagelayout")
+        add(id, method, leftOrAbove)
+        switchToTab(tabIndexById(id))
     }
 }
 

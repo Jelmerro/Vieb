@@ -21,6 +21,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Vertical tabs theme now displays multiple pinned tabs horizontally with wrapping
 
+### Fixed
+
+- Split commands not switching to the tab directly, which meant that mappings with splits didn't work properly
+
 ### Security
 
 - Electron 13.0.1 (unchanged)
