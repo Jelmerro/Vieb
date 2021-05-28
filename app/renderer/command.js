@@ -565,8 +565,8 @@ const close = (...args) => {
 
 const callAction = (...args) => {
     setTimeout(() => {
-        const {executeMapString} = require("./input")
-        executeMapString(args.join(" "), true, true)
+        const {executeMapString, sanitiseMapString} = require("./input")
+        executeMapString(sanitiseMapString(args.join(" "), true), true, true)
     }, 0)
 }
 
@@ -809,7 +809,8 @@ const addCommand = (overwrite, args) => {
             "Duplicate custom command definition (add ! to overwrite)", "warn")
         return
     }
-    userCommands[command] = params.join(" ")
+    const {sanitiseMapString} = require("./input")
+    userCommands[command] = sanitiseMapString(params.join(" "), true)
 }
 
 const deleteCommand = (...args) => {

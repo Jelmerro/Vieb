@@ -23,6 +23,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Redirects are now saved to correctly set the favicon and title in those cases
 - Call command now accepts any valid mapstring instead of only simple actions
 - Help command now accepts different types of punctionation and casing to find the right section
+- Action names are now case-insensitive and optionally without the "action." prefix, or with the shorter "a." or "p."
 
 ### Fixed
 

@@ -1448,19 +1448,24 @@ const sanitiseMapString = (mapString, allowSpecials = false) => mapString
                 break
             }
         }
-        if (allowSpecials) {
-            if (ACTIONS[key.replace(/^action\./gi, "")]) {
-                knownKey = true
-            }
-            if (POINTER[key.replace(/^pointer\./gi, "")]) {
-                knownKey = true
+        if (allowSpecials && !knownKey) {
+            const simpleKey = key.toLowerCase()
+                .replace(/^a(ction)?\./g, "action.")
+                .replace(/^p(ointer)?\./g, "pointer.")
+            for (const action of supportedActions) {
+                if (simpleKey === action.toLowerCase()) {
+                    knownKey = true
+                    key = action
+                    break
+                }
+                if (`action.${simpleKey}` === action.toLowerCase()) {
+                    knownKey = true
+                    key = action
+                    break
+                }
             }
             if (key.startsWith(":")) {
                 knownKey = true
-            }
-            if (key.toLowerCase() === "nop") {
-                knownKey = true
-                key = "Nop"
             }
         }
         if (!knownKey && key.length > 1) {
@@ -1552,6 +1557,7 @@ module.exports = {
     listSupportedActions,
     mapOrList,
     resetInputHistory,
+    sanitiseMapString,
     uncountableActions,
     unmap,
     updateKeysOnScreen
