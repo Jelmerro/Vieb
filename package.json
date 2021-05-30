@@ -34,8 +34,8 @@
     "eslint": "7.27.0",
     "eslint-plugin-compat": "^3.9.0",
     "eslint-plugin-sort-keys-fix": "1.1.1",
-    "jest-environment-jsdom": "^27.0.1",
-    "jest": "27.0.1"
+    "jest-environment-jsdom": "^27.0.3",
+    "jest": "27.0.3"
   },
   "dependencies": {
     "7zip-bin": "5.1.1",
