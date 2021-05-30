@@ -121,17 +121,25 @@ const viebMenu = options => {
             },
             "title": pinTitle
         })
-        createMenuItem({
-            "action": () => reload(tabOrPageMatching(tab)), "title": "Refresh"
-        })
-        createMenuItem({
-            "action": () => backInHistory(tabOrPageMatching(tab)),
-            "title": "Previous"
-        })
-        createMenuItem({
-            "action": () => forwardInHistory(tabOrPageMatching(tab)),
-            "title": "Next"
-        })
+        const page = tabOrPageMatching(tab)
+        if (page && !page.isCrashed()) {
+            createMenuItem({
+                "action": () => reload(tabOrPageMatching(tab)),
+                "title": "Refresh"
+            })
+            if (!page.src.startsWith("devtools://") && page?.canGoBack()) {
+                createMenuItem({
+                    "action": () => backInHistory(tabOrPageMatching(tab)),
+                    "title": "Previous"
+                })
+            }
+            if (!page.src.startsWith("devtools://") && page?.canGoForward()) {
+                createMenuItem({
+                    "action": () => forwardInHistory(tabOrPageMatching(tab)),
+                    "title": "Next"
+                })
+            }
+        }
         createMenuItem({"action": addTab, "title": "Open new"})
         createMenuItem({"action": reopenTab, "title": "Undo closed"})
         createMenuItem({
@@ -151,7 +159,7 @@ const viebMenu = options => {
 
 const webviewMenu = options => {
     clear()
-    if (currentMode() !== "insert") {
+    if (!"ipv".includes(currentMode()[0])) {
         const {setMode} = require("./modes")
         setMode("normal")
     }
@@ -165,16 +173,24 @@ const webviewMenu = options => {
     if (options.hasElementListener && menuSetting !== "always") {
         return
     }
+    const page = currentPage()
+    if (!page || page.isCrashed()) {
+        return
+    }
     const {clipboard} = require("electron")
     const {backInHistory, forwardInHistory, reload} = require("./actions")
-    const webviewY = Number(currentPage().style.top.replace("px", ""))
-    const webviewX = Number(currentPage().style.left.replace("px", ""))
-    const zoom = currentPage().getZoomFactor()
+    const webviewY = Number(page.style.top.replace("px", ""))
+    const webviewX = Number(page.style.left.replace("px", ""))
+    const zoom = page.getZoomFactor()
     contextMenu.style.top = `${Math.round(options.y * zoom + webviewY)}px`
     contextMenu.style.left = `${Math.round(options.x * zoom + webviewX)}px`
     createMenuItem({"action": () => reload(), "title": "Refresh"})
-    createMenuItem({"action": () => backInHistory(), "title": "Previous"})
-    createMenuItem({"action": () => forwardInHistory(), "title": "Next"})
+    if (!page.src.startsWith("devtools://") && page?.canGoBack()) {
+        createMenuItem({"action": () => backInHistory(), "title": "Previous"})
+    }
+    if (!page.src.startsWith("devtools://") && page?.canGoForward()) {
+        createMenuItem({"action": () => forwardInHistory(), "title": "Next"})
+    }
     createMenuItem({
         "action": () => {
             const {execute} = require("./command")
@@ -183,7 +199,7 @@ const webviewMenu = options => {
         "title": "Save page"
     })
     createMenuItem({
-        "action": () => currentPage().inspectElement(
+        "action": () => page.inspectElement(
             Math.round(options.x + webviewX), Math.round(options.y + webviewY)),
         "title": "Inspect"
     })

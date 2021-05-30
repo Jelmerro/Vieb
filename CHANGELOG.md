@@ -29,6 +29,9 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Split commands not switching to the tab directly, which meant that mappings with splits didn't work properly
 - Recursive mappings with multiple keys for a single action not being interpreted correctly in all cases
+- Context menu actions for navigation history and refresh always being listed even if not available
+- Empty new tabs always having a single history entry for the same empty page
+- Pointer modes being exited when opening the context menu
 
 ### Security
 

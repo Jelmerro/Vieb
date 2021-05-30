@@ -430,8 +430,8 @@ const unsuspendPage = page => {
                 webview.src = url
                 resetTabInfo(webview)
                 name.textContent = url
-                webview.clearHistory()
             }
+            webview.clearHistory()
             webview.setAttribute("dom-ready", true)
         }
     })

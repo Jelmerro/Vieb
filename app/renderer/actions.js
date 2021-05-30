@@ -145,8 +145,8 @@ const scrollBottom = () => currentPage()?.send("action", "scrollBottom")
 
 const backInHistory = (customPage = null) => {
     const page = customPage || currentPage()
-    if (page && !page.isCrashed()) {
-        if (page?.canGoBack() && !page.src.startsWith("devtools://")) {
+    if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
+        if (page?.canGoBack()) {
             tabOrPageMatching(page).querySelector("span").textContent = ""
             page.goBack()
             const {resetTabInfo} = require("./tabs")
@@ -157,8 +157,8 @@ const backInHistory = (customPage = null) => {
 
 const forwardInHistory = (customPage = null) => {
     const page = customPage || currentPage()
-    if (page && !page.isCrashed()) {
-        if (page?.canGoForward() && !page.src.startsWith("devtools://")) {
+    if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
+        if (page?.canGoForward()) {
             tabOrPageMatching(page).querySelector("span").textContent = ""
             page.goForward()
             const {resetTabInfo} = require("./tabs")
