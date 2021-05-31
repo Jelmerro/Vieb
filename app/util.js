@@ -38,7 +38,9 @@ let configSettings = ""
 const framePaddingInfo = []
 const frameSelector = "embed, frame, iframe, object"
 const specialChars = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/\s]/gi
-const dataUris = ["data", "javascript", "magnet", "mailto", "view-source", "ws"]
+const dataUris = [
+    "blob", "data", "javascript", "magnet", "mailto", "view-source", "ws"
+]
 const getSetting = val => JSON.parse(sessionStorage.getItem("settings"))?.[val]
 
 const hasProtocol = loc => protocolRegex.test(loc)
