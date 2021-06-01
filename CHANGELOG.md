@@ -34,6 +34,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Empty new tabs always having a single history entry for the same empty page
 - Pointer modes being exited when opening the context menu
 - Screensharing throwing a Promise error in 5.0.0
+- Media keys being off by default in 5.0.0 (they should be on by default, just as documented)
+- Twitter not loading due to media keys overwritting Chromium arguments to fix COOP issue in 5.0.0
 
 ### Security
 

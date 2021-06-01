@@ -178,6 +178,9 @@ let argConfigOrder = process.env.VIEB_CONFIG_ORDER?.trim().toLowerCase()
     || "user-first"
 let argConfigOverride = process.env.VIEB_CONFIG_FILE?.trim().toLowerCase() || ""
 let argMediaKeys = isTruthyArg(process.env.VIEB_MEDIA_KEYS)
+if (!process.env.VIEB_MEDIA_KEYS) {
+    argMediaKeys = true
+}
 let argSiteIsolation = process.env.VIEB_SITE_ISOLATION?.trim().toLowerCase()
     || "regular"
 let argAcceleration = process.env.VIEB_ACCELERATION?.trim().toLowerCase()
@@ -290,7 +293,8 @@ if (argAcceleration === "software") {
     app.disableHardwareAcceleration()
 }
 if (!argMediaKeys) {
-    app.commandLine.appendSwitch("disable-features", "HardwareMediaKeyHandling")
+    app.commandLine.appendSwitch("disable-features",
+        "CrossOriginOpenerPolicy,HardwareMediaKeyHandling")
 }
 rimraf("Partitions/temp*")
 rimraf("erwicmode")
