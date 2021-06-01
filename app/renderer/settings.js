@@ -81,6 +81,8 @@ const defaultSettings = {
     "ignorecase": true,
     "incsearch": true,
     "keeprecentlyclosed": true,
+    "mapsuggest": 50,
+    "mapsuggestposition": "topright",
     "maxmapdepth": 10,
     "menupage": "elementasneeded",
     "menuvieb": "both",
@@ -174,6 +176,7 @@ const validOptions = {
     "guifullscreentabbar": ["always", "onupdate", "never"],
     "guinavbar": ["always", "onupdate", "oninput", "never"],
     "guitabbar": ["always", "onupdate", "never"],
+    "mapsuggestposition": ["bottomright", "bottomleft", "topright", "topleft"],
     "menupage": ["always", "globalasneeded", "elementasneeded", "never"],
     "menuvieb": ["both", "navbar", "tabbar", "never"],
     "nativenotification": ["always", "smallonly", "never"],
@@ -205,6 +208,7 @@ const numberRanges = {
     "countlimit": [0, 10000],
     "fontsize": [8, 30],
     "guihidetimeout": [0, 9000000000000000],
+    "mapsuggest": [0, 9000000000000000],
     "maxmapdepth": [1, 40],
     "mintabwidth": [0, 9000000000000000],
     "notificationduration": [0, 9000000000000000],
@@ -212,7 +216,7 @@ const numberRanges = {
     "suggestcommands": [0, 9000000000000000],
     "suggesttopsites": [0, 9000000000000000],
     "suspendtimeout": [0, 9000000000000000],
-    "timeoutlen": [0, 10000]
+    "timeoutlen": [0, 9000000000000000]
 }
 const config = joinPath(appData(), "viebrc")
 let customStyling = ""

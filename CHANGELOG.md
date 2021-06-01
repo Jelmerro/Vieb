@@ -17,13 +17,14 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Open command to navigate to a website or search term directly with a command
 - Setting "permissionsensors" to control motion sensor reading (default remains blocked, previously grouped as "unknown")
+- Setting "mapsuggest" and "mapsuggestposition" to show and control the suggestions for multi-key mappings (by default 50 on the topright)
 
 ### Changed
 
 - Vertical tabs theme now displays multiple pinned tabs horizontally with wrapping
 - Redirects are now saved to correctly set the favicon and title in those cases
 - Call command now accepts any valid mapstring instead of only simple actions
-- Help command now accepts different types of punctionation and casing to find the right section
+- Help command now accepts different types of punctuation and casing to find the right section
 - Action names are now case-insensitive and optionally without the "action." prefix, or with the shorter "a." or "p."
 - Blobs are now recognized as valid urls, just like other common URI schemes
 
@@ -36,7 +37,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Pointer modes being exited when opening the context menu
 - Screensharing throwing a Promise error in 5.0.0
 - Media keys being off by default in 5.0.0 (they should be on by default, just as documented)
-- Twitter not loading due to media keys overwritting Chromium arguments to fix COOP issue in 5.0.0
+- Twitter not loading due to media keys overwriting Chromium arguments to fix COOP issue in 5.0.0
 
 ### Security
 

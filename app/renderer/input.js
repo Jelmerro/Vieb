@@ -1301,6 +1301,39 @@ const updateKeysOnScreen = () => {
     } else {
         document.getElementById("pressed-keys").style.display = "none"
     }
+    const mapsuggestcount = getSetting("mapsuggest")
+    const mapsuggestElement = document.getElementById("mapsuggest")
+    mapsuggestElement.style.display = "none"
+    if (mapsuggestcount > 0) {
+        const mapsuggestPosition = getSetting("mapsuggestposition")
+        mapsuggestElement.className = mapsuggestPosition
+        mapsuggestElement.innerHTML = ""
+        if (pressedKeys) {
+            mapsuggestElement.style.display = "flex"
+            const [mode] = currentMode()
+            const alreadyDone = document.createElement("span")
+            alreadyDone.textContent = pressedKeys
+            alreadyDone.className = "success"
+            const futureActions = Object.keys(bindings[mode]).filter(
+                b => b.startsWith(pressedKeys)).slice(0, mapsuggestcount)
+            futureActions.map(b => ({
+                "next": b.replace(pressedKeys, ""),
+                "result": bindings[mode][b].mapping
+            })).forEach(action => {
+                const singleSuggestion = document.createElement("span")
+                singleSuggestion.appendChild(alreadyDone.cloneNode(true))
+                const nextKeys = document.createElement("span")
+                nextKeys.textContent = action.next
+                nextKeys.className = "warning"
+                singleSuggestion.appendChild(nextKeys)
+                const resultAction = document.createElement("span")
+                resultAction.textContent = action.result
+                resultAction.className = "info"
+                singleSuggestion.appendChild(resultAction)
+                mapsuggestElement.appendChild(singleSuggestion)
+            })
+        }
+    }
     const {ipcRenderer} = require("electron")
     const {active} = require("./contextmenu")
     if (pressedKeys) {
