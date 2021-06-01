@@ -109,6 +109,7 @@ const defaultSettings = {
     "permissionsallowed": "",
     "permissionsasked": "",
     "permissionsblocked": "",
+    "permissionsensors": "block",
     "permissionunknown": "block",
     "quitonlasttabclose": false,
     "redirects": "https?://(www\\.)?google\\.com(\\.\\w+)?/amp/s/amp\\.(.*)"
@@ -193,6 +194,7 @@ const validOptions = {
     "permissionopenexternal": ["block", "ask", "allow"],
     "permissionpersistentstorage": ["block", "ask", "allow"],
     "permissionpointerlock": ["block", "ask", "allow"],
+    "permissionsensors": ["block", "ask", "allow"],
     "permissionunknown": ["block", "ask", "allow"],
     "suspendonrestore": ["all", "regular", "none"],
     "taboverflow": ["hidden", "scroll", "wrap"],

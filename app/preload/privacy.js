@@ -238,7 +238,8 @@ const customDisplayMedia = frameWindow => new Promise((resolve, reject) => {
         } else {
             ipcRenderer.sendToHost("notify",
                 `Globally blocked 'displaycapture' at `
-                + `'${frameWindow.location.href}'`, "perm")
+                + `'${frameWindow.location.href}' based on 'permission`
+                + "displaycapture'", "perm")
         }
         throw new DOMException("Permission denied", "NotAllowedError")
     }

@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Open command to navigate to a website or search term directly with a command
+- Setting "permissionsensors" to control motion sensor reading (default remains blocked, previously grouped as "unknown")
 
 ### Changed
 
