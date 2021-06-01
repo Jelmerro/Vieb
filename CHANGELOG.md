@@ -33,6 +33,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Context menu actions for navigation history and refresh always being listed even if not available
 - Empty new tabs always having a single history entry for the same empty page
 - Pointer modes being exited when opening the context menu
+- Screensharing throwing a Promise error in 5.0.0
 
 ### Security
 

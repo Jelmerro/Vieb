@@ -242,10 +242,9 @@ const customDisplayMedia = frameWindow => new Promise((resolve, reject) => {
         }
         throw new DOMException("Permission denied", "NotAllowedError")
     }
-    Promise(async() => {
-        try {
-            const sources = await desktopCapturer.getSources(
-                {"types": ["screen", "window"]})
+    try {
+        desktopCapturer.getSources(
+            {"types": ["screen", "window"]}).then(sources => {
             const stylingElem = document.createElement("style")
             stylingElem.textContent = displayCaptureStyling
                 .replace(/%FONTSIZE%/g, settings.fontsize || "14")
@@ -320,10 +319,10 @@ const customDisplayMedia = frameWindow => new Promise((resolve, reject) => {
                     stylingElem.remove()
                 })
             })
-        } catch (err) {
-            reject(err)
-        }
-    })
+        })
+    } catch (err) {
+        reject(err)
+    }
 })
 
 module.exports = {privacyFixes}
