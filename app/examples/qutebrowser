@@ -58,6 +58,7 @@ nmap <A-8> <:b 7>
 nmap <A-9> <:b 9999>
 nmap <C-^> <action.toLastUsedTab>
 nmap <C-Tab> <action.toLastUsedTab>
+nmap <C-S-Tab> <action.previousTab>
 nmap ga <action.openNewTab>
 nmap gC <action.openNewTabWithCurrentUrl>
 nmap gJ <action.moveTabForward>
