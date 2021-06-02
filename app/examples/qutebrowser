@@ -62,7 +62,9 @@ nmap ga <action.openNewTab>
 nmap gC <action.openNewTabWithCurrentUrl>
 nmap gJ <action.moveTabForward>
 nmap gK <action.moveTabBackward>
-nmap <C-w> <:close>
+" this is disabled as it prevents use of window split mappings.
+" See :h splitting for more information on window splits
+" nmap <C-w> <:close>
 nmap co <:lclose><:rclose>
 nmap = <action.zoomReset>
 nmap <C-p> <:pin>
