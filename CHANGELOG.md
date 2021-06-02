@@ -29,6 +29,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Help command now accepts different types of punctuation and casing to find the right section
 - Action names are now case-insensitive and optionally without the "action." prefix, or with the shorter "a." or "p."
 - Blobs are now recognized as valid urls, just like other common URI schemes
+- Default styling of notifications and the new mapsuggest across all themes
 
 ### Fixed
 
@@ -40,6 +41,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Screensharing throwing a Promise error in 5.0.0
 - Media keys being off by default in 5.0.0 (they should be on by default, just as documented)
 - Twitter not loading due to media keys overwriting Chromium arguments to fix COOP issue in 5.0.0
+- Suggestions for write command not working recently
 
 ### Security
 

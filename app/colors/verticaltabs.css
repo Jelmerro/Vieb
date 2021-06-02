@@ -24,3 +24,11 @@
 #app.navigationhidden #page-container {height: 100vh;top: 0;}
 #app.navigationhidden #tabs {top: 0;max-height: 100vh;}
 #tabs::-webkit-scrollbar {width: .2em;height: auto;}
+.bottomright {right: .7em;bottom: 0;}
+.bottomleft {left: calc(15vw + .7em);bottom: 0;}
+.topright {right: .7em;top: 2.7em;}
+.topleft {left: calc(15vw + .7em);top: 2.7em;}
+#app #mapsuggest {max-height: calc(100vh - 4.5em);}
+#app.tabshidden .topleft, #app.tabshidden .bottomleft {left: .7em;}
+#app.navigationhidden .topleft, #app.navigationhidden .topright {top: .7em;}
+#app.navigationhidden #mapsuggest {max-height: calc(100vh - 2.5em);}

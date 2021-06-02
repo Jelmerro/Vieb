@@ -219,18 +219,27 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #app.mouse #suggest-dropdown div:hover, #mode-suggestions div:hover, #tabs > span:hover {font-weight: bold;cursor: pointer;}
 /* notifications & map suggestions */
 #notifications, #app #mapsuggest {display: flex;position: fixed;flex-direction: column;z-index: 2;}
-#notifications > span, #app #mapsuggest {background: var(--bg);margin-bottom: .5em;padding: .5em;display: flex;width: 25em;border: .1em solid var(--notification-border);overflow-wrap: anywhere;}
+#notifications > span, #app #mapsuggest {background: var(--bg);margin-bottom: .5em;padding: .5em;display: flex;min-width: 25em;width: 33vw;max-width: 100em;border: .1em solid var(--notification-border);overflow-wrap: anywhere;}
 #notifications > span.permission {color: var(--notification-permission);}
 #notifications > span.error {color: var(--notification-error);}
 #notifications > span.warning, #app #mapsuggest span.warning {color: var(--notification-warning);}
 #notifications > span.info, #app #mapsuggest span.info {color: var(--notification-info);}
 #notifications > span.success, #app #mapsuggest span.success {color: var(--notification-success);}
-#app #mapsuggest {width: auto;max-width: 90vw;}
+#app #mapsuggest {width: auto;max-width: 90vw;max-height: calc(100vh - 6.5em);overflow-y: auto;}
 #app #mapsuggest span.warning {display: inline-block;margin-right: 1em;}
 .bottomright {right: .7em;bottom: 0;}
 .bottomleft {left: .7em;bottom: 0;}
 .topright {right: .7em;top: 4.7em;}
 .topleft {left: .7em;top: 4.7em;}
+.bottomright {right: .7em;bottom: 0;}
+.bottomleft {left: .7em;bottom: 0;}
+.topright {right: .7em;top: 4.7em;}
+.topleft {left: .7em;top: 4.7em;}
+#app.tabshidden .topright, #app.tabshidden .topleft {top: 2.7em;}
+#app.navigationhidden .topright, #app.navigationhidden .topleft {top: 2.7em;}
+#app.navigationhidden.tabshidden .topright, #app.navigationhidden.tabshidden .topleft {top: .7em;}
+#app.tabshidden #mapsuggest, #app.navigationhidden #mapsuggest {max-height: calc(100vh - 4.5em);}
+#app.navigationhidden.tabshidden #mapsuggest {max-height: calc(100vh - 2.5em);}
 /* scrollbar for overflowing tabs */
 #tabs::-webkit-scrollbar {height: .2em;}
 #tabs::-webkit-scrollbar-thumb {background: var(--tab-scrollbar);}

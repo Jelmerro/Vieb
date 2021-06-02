@@ -81,7 +81,7 @@ const defaultSettings = {
     "ignorecase": true,
     "incsearch": true,
     "keeprecentlyclosed": true,
-    "mapsuggest": 50,
+    "mapsuggest": 9000000000000000,
     "mapsuggestposition": "topright",
     "maxmapdepth": 10,
     "menupage": "elementasneeded",
