@@ -12,7 +12,7 @@ set permissionmicrophone=ask
 set permissionpersistentstorage=allow
 set redirecttohttp
 set tabclosefocusright
-set tabreopenposition=next
+set tabreopenposition=right
 set windowtitle=full
 set mapsuggestposition=bottomleft
 
