@@ -314,9 +314,22 @@ const suggestCommand = searchStr => {
                 .forEach(c => addCommand(c))
         }
     }
+    // Command: source
+    if ("source".startsWith(command) && !confirm && args.length < 2) {
+        let location = expandPath(search.replace("source ", "") || "")
+        if (location.startsWith("\"") && location.endsWith("\"")) {
+            location = location.slice(1, location.length - 1)
+        }
+        if (isAbsolutePath(location)) {
+            suggestFiles(location).forEach(l => addCommand(`source ${l.path}`))
+        }
+    }
     // Command: write
     if ("write".startsWith(command) && !confirm && args.length < 2) {
-        let location = expandPath(command.replace(/w[a-z]* ?/, "") || "")
+        let location = expandPath(search.replace(/w[a-z]* ?/, "") || "")
+        if (location.startsWith("\"") && location.endsWith("\"")) {
+            location = location.slice(1, location.length - 1)
+        }
         if (!location) {
             addCommand("write ~")
             addCommand("write /")

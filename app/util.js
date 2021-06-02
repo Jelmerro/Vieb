@@ -524,6 +524,26 @@ const appConfigSettings = () => {
     if (!configSettings) {
         const {ipcRenderer} = require("electron")
         configSettings = ipcRenderer.sendSync("app-config-settings")
+        let files = [configSettings.override]
+        const datafolderConfig = joinPath(appData(), "viebrc")
+        const userFirstConfig = expandPath("~/.vieb/viebrc")
+        const userGlobalConfig = expandPath("~/.viebrc")
+        if (!configSettings.override) {
+            if (configSettings.order === "user-only") {
+                files = [userGlobalConfig, userFirstConfig]
+            }
+            if (configSettings.order === "datafolder-only") {
+                files = [datafolderConfig]
+            }
+            if (configSettings.order === "user-first") {
+                files = [userGlobalConfig, userFirstConfig, datafolderConfig]
+            }
+            if (configSettings.order === "datafolder-first") {
+                files = [datafolderConfig, userFirstConfig, userGlobalConfig]
+            }
+        }
+        configSettings.files = files
+        configSettings.config = configSettings.override || datafolderConfig
     }
     return configSettings
 }

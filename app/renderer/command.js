@@ -27,6 +27,7 @@ const {
     writeFile,
     deleteFile,
     isDir,
+    isFile,
     pathExists,
     expandPath,
     isAbsolutePath,
@@ -38,7 +39,8 @@ const {
     appData,
     specialPagePath,
     pathToSpecialPageName,
-    specialChars
+    specialChars,
+    appConfigSettings
 } = require("../util")
 const {
     listTabs, currentTab, currentPage, tabOrPageMatching, getSetting
@@ -179,6 +181,54 @@ const set = (...args) => {
             }
         } else {
             listSetting(part)
+        }
+    }
+}
+
+const sourcedFiles = []
+
+const source = (origin, ...args) => {
+    if (args.length !== 1) {
+        notify("Source requires exactly argument representing the filename",
+            "warn")
+        return
+    }
+    let [absFile] = args
+    absFile = expandPath(absFile)
+    if (!isAbsolutePath(absFile)) {
+        if (origin) {
+            absFile = joinPath(dirname(origin), absFile)
+        } else {
+            notify("Filename must be absolute when sourcing files at runtime",
+                "err")
+            return
+        }
+    }
+    if (absFile === origin) {
+        notify("Recursive sourcing of files is not supported", "err")
+        return
+    }
+    const confSettings = appConfigSettings()
+    if ([confSettings.override, confSettings.files].includes(absFile)) {
+        notify("It's not possible to source a file that is loaded on startup",
+            "err")
+        return
+    }
+    if (!isFile(absFile)) {
+        notify("Specified file could not be found", "err")
+        return
+    }
+    const parsed = readFile(absFile)
+    if (!parsed) {
+        notify(`Read error for config file located at '${absFile}'`, "err")
+        return
+    }
+    if (origin) {
+        sourcedFiles.push(absFile)
+    }
+    for (const line of parsed.split("\n")) {
+        if (line && !line.trim().startsWith("\"")) {
+            execute(line, absFile)
         }
     }
 }
@@ -662,6 +712,7 @@ const noArgumentComands = [
     "history",
     "d",
     "downloads",
+    "notifications",
     "cookies",
     "hardcopy",
     "print",
@@ -736,7 +787,44 @@ const commands = {
     reload,
     restart,
     "s": set,
+    "scriptnames": (hasArgs = null) => {
+        if (hasArgs) {
+            notify(`Command takes no arguments: scriptnames`, "warn")
+            return
+        }
+        notify(appConfigSettings().files.join("\n"))
+    },
+    "scriptnames!": (...args) => {
+        const scripts = [...appConfigSettings().files, ...sourcedFiles]
+        if (args.length === 0) {
+            notify(scripts.join("\n"))
+        } else if (args.length === 1) {
+            const number = Number(args[0])
+            if (isNaN(number)) {
+                notify("Scriptnames argument must be a number for a script",
+                    "warn")
+                return
+            }
+            const script = scripts[number - 1]
+            if (!script) {
+                notify("No script found with that index, see ':scriptnames!'",
+                    "warn")
+                return
+            }
+            const {exec} = require("child_process")
+            exec(`${getSetting("vimcommand")} "${script}"`, err => {
+                if (err) {
+                    notify("Command to edit files with vim failed, "
+                        + "please update the 'vimcommand' setting", "err")
+                }
+            })
+        } else {
+            notify("Scriptnames with the ! added takes one optional argument",
+                "warn")
+        }
+    },
     set,
+    "source": (...args) => source(null, ...args),
     "split": (...args) => addSplit("ver", !getSetting("splitbelow"), args),
     suspend,
     "v": () => openSpecialPage("version"),
@@ -862,7 +950,7 @@ const parseAndValidateArgs = commandStr => {
     return {args, command, confirm, "valid": !escapedSingle && !escapedDouble}
 }
 
-const execute = com => {
+const execute = (com, settingsFile = null) => {
     // Remove all redundant spaces
     // Allow commands prefixed with :
     // And return if the command is empty
@@ -895,7 +983,9 @@ const execute = com => {
         if (matches.length === 1) {
             [command] = matches
         }
-        if (noArgumentComands.includes(command) && args.length > 0) {
+        if (command === "source" && settingsFile) {
+            source(settingsFile, ...args)
+        } else if (noArgumentComands.includes(command) && args.length > 0) {
             notify(`Command takes no arguments: ${command}`, "warn")
         } else if (commands[command]) {
             if (confirm) {
