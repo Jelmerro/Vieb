@@ -42,7 +42,6 @@ nmap gd <:write>
 nmap <C-Tab> <action.nextTab>
 nmap <C-S-PageUp> <action.moveTabBackward>
 nmap <C-S-PageDown> <action.moveTabForward>
-nmap <C-S-Tab> <action.previousTab>
 nmap <C-I> <:devtools>
 nmap <C-T> <action.reopenTab>
 nmap <A-1> <:b 0>
@@ -80,7 +79,6 @@ nmap pp <action.openFromClipboard>
 nmap Pp <action.openNewTab><action.openFromClipboard>
 nmap sk <action.toCommandMode>map<Space>
 nmap ss <action.toCommandMode>set<Space>
-nmap <C-S-Tab> <nop>
 
 imap <C-e> <action.editWithVim>
 
