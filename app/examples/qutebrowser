@@ -105,10 +105,10 @@ pmap c <action.toNormalMode>
 pmap e <pointer.moveFastRight>
 pmap H <pointer.scrollLeft>
 pmap L <pointer.scrollRight>
-pmap <Return> <pointer.copyText>
 pmap <Space> <pointer.startVisualSelect>
 
 vmap v <pointer.start>
+vmap <CR> <pointer.copyText>
 vmap <C-Space> <action.toNormalMode><pointer.start><pointer.startVisualSelect>
 
 " vim: ft=vim
