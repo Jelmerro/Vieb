@@ -73,6 +73,8 @@ nmap o <action.toExploreMode><BS>
 nmap go <action.toExploreMode><End>
 nmap gt <action.toCommandMode>buffer<Space>
 nmap O <action.openNewTab><action.toExploreMode>
+nunmap y
+nunmap p
 nmap yy <action.pageToClipboard>
 nmap pp <action.openFromClipboard>
 nmap Pp <action.openNewTab><action.openFromClipboard>
