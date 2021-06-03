@@ -17,7 +17,7 @@
 */
 "use strict"
 
-const {notify, specialChars} = require("../util")
+const {matchesQuery, notify, specialChars} = require("../util")
 const {
     listTabs, currentTab, currentPage, currentMode, getSetting
 } = require("./common")
@@ -366,7 +366,7 @@ const init = () => {
         }
     })
     window.addEventListener("click", e => {
-        if (e.composedPath().find(el => el.matches?.("#context-menu"))) {
+        if (e.composedPath().find(el => matchesQuery(el, "#context-menu"))) {
             return
         }
         const {clear} = require("./contextmenu")
@@ -393,10 +393,11 @@ const init = () => {
         }
         ACTIONS.setFocusCorrectly()
     })
+    const tabSelector = "#pagelayout *[link-id], #tabs *[link-id]"
     window.addEventListener("mousemove", e => {
         if (getSetting("mouse") && getSetting("mousefocus")) {
             document.elementsFromPoint(e.x, e.y).forEach(el => {
-                if (el.matches("#pagelayout *[link-id], #tabs *[link-id]")) {
+                if (matchesQuery(el, tabSelector)) {
                     const tab = listTabs().find(t => t.getAttribute(
                         "link-id") === el.getAttribute("link-id"))
                     if (tab && currentTab() !== tab) {

@@ -20,6 +20,7 @@
 const {ipcRenderer} = require("electron")
 const {privacyFixes} = require("./privacy")
 const {
+    matchesQuery,
     findElementAtPosition,
     querySelectorAll,
     propPixels,
@@ -118,7 +119,7 @@ const getInputFollows = allLinks => {
             if (labelFor) {
                 try {
                     const forEl = element.closest(`#${labelFor}`)
-                    if (forEl?.matches?.(textlikeInputs)) {
+                    if (matchesQuery(forEl, textlikeInputs)) {
                         type = "inputs-insert"
                     }
                 } catch (_) {
@@ -327,7 +328,7 @@ const clickListener = (e, frame = null) => {
         const paddingInfo = findFrameInfo(frame)
         ipcRenderer.sendToHost("mouse-click-info", {
             "toinsert": !!e.composedPath().find(
-                el => el?.matches?.(textlikeInputs)),
+                el => matchesQuery(el, textlikeInputs)),
             "tovisual": (frame?.contentWindow || window)
                 .getSelection().toString(),
             "x": e.x + (paddingInfo?.x || 0),
@@ -338,14 +339,14 @@ const clickListener = (e, frame = null) => {
 window.addEventListener("click", clickListener,
     {"capture": true, "passive": true})
 window.addEventListener("mousedown", e => {
-    if (e.composedPath().find(el => el?.matches?.("select, option"))) {
+    if (e.composedPath().find(el => matchesQuery(el, "select, option"))) {
         clickListener(e)
     }
 }, {"capture": true, "passive": true})
 
 ipcRenderer.on("replace-input-field", (_, value, position) => {
     const input = activeElement()
-    if (input?.matches?.(textlikeInputs)) {
+    if (matchesQuery(input, textlikeInputs)) {
         input.value = value
         if (position < input.value.length) {
             input.setSelectionRange(position, position)
@@ -364,14 +365,11 @@ const contextListener = (e, frame = null, extraData = null) => {
             .includes(el.tagName?.toLowerCase()))
         const backgroundImg = e.composedPath().map(el => {
             try {
-                let url = getComputedStyle(el).backgroundImage.slice(4, -1)
-                if (url.startsWith("\"") || url.startsWith("'")) {
-                    url = url.slice(1)
+                const styling = getComputedStyle(el).backgroundImage
+                const url = styling.match(/url\(.*?\)/g)?.[0]
+                if (url) {
+                    return url?.slice(5, -2)
                 }
-                if (url.endsWith("\"") || url.endsWith("'")) {
-                    url = url.slice(0, -1)
-                }
-                return url
             } catch (_) {
                 // Window and top-level nodes don't support getComputedStyle
             }
@@ -383,7 +381,8 @@ const contextListener = (e, frame = null, extraData = null) => {
             el => el.tagName?.toLowerCase() === "audio")
         const link = e.composedPath().find(
             el => el.tagName?.toLowerCase() === "a" && el.href?.trim())
-        const text = e.composedPath().find(el => el?.matches?.(textlikeInputs))
+        const text = e.composedPath().find(
+            el => matchesQuery(el, textlikeInputs))
         ipcRenderer.sendToHost("context-click-info", {
             "audio": audio?.src?.trim()
                 || audio?.querySelector("source[type^=audio]")?.src?.trim()
@@ -455,8 +454,8 @@ setInterval(() => {
             f.contentDocument.onclick = e => clickListener(e, f)
             f.contentDocument.oncontextmenu = e => contextListener(e, f)
             f.contentDocument.onmousedown = e => {
-                const nativeFields = "select, option"
-                if (e.composedPath().find(el => el?.matches?.(nativeFields))) {
+                const nativeEls = "select, option"
+                if (e.composedPath().find(el => matchesQuery(el, nativeEls))) {
                     clickListener(e, f)
                 }
             }

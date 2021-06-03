@@ -18,7 +18,7 @@
 "use strict"
 
 const {
-    stringToUrl, urlToString, isUrl, specialChars, notify, title
+    matchesQuery, stringToUrl, urlToString, isUrl, specialChars, notify, title
 } = require("../util")
 const {
     listTabs, currentPage, tabOrPageMatching, currentMode, getSetting
@@ -37,7 +37,7 @@ const viebMenu = options => {
     const {addTab, reopenTab, closeTab} = require("./tabs")
     const menuSetting = getSetting("menuvieb")
     const navMenu = menuSetting === "both" || menuSetting === "navbar"
-    if (options.path.find(el => el.matches?.("#url")) && navMenu) {
+    if (options.path.find(el => matchesQuery(el, "#url")) && navMenu) {
         createMenuItem({
             "action": () => {
                 if (!"sec".includes(currentMode()[0])) {
@@ -103,8 +103,8 @@ const viebMenu = options => {
         fixAlignmentNearBorders()
     }
     const tabMenu = menuSetting === "both" || menuSetting === "tabbar"
-    if (options.path.find(el => el.matches?.("#tabs")) && tabMenu) {
-        const tab = options.path.find(el => el.matches?.("#tabs > span"))
+    if (options.path.find(el => matchesQuery(el, "#tabs")) && tabMenu) {
+        const tab = options.path.find(el => matchesQuery(el, "#tabs > span"))
         if (!tab) {
             fixAlignmentNearBorders()
             return

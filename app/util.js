@@ -300,6 +300,16 @@ const propPixels = (element, prop) => {
     return 0
 }
 
+const matchesQuery = (el, query) => {
+    try {
+        return el.matches(query)
+    } catch {
+        // Not all elements with the 'matches' attribute have it as a function
+        // Therefore we just try to call it as one, and return false otherwise
+        return false
+    }
+}
+
 const findElementAtPosition = (x, y, levels = [document], px = 0, py = 0) => {
     // Find out which element is located at a given position.
     // Will look inside subframes recursively at the corrected position.
@@ -307,7 +317,7 @@ const findElementAtPosition = (x, y, levels = [document], px = 0, py = 0) => {
     if (levels.includes(elementAtPos?.shadowRoot || elementAtPos)) {
         return elementAtPos
     }
-    if (elementAtPos?.matches?.(frameSelector)) {
+    if (matchesQuery(elementAtPos, frameSelector)) {
         const frameInfo = findFrameInfo(elementAtPos) || {}
         return findElementAtPosition(x, y,
             [elementAtPos.contentDocument, ...levels], frameInfo.x, frameInfo.y)
@@ -329,7 +339,7 @@ const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
         elements = Array.from(base.querySelectorAll(sel) || [])
     }
     Array.from(base.querySelectorAll("*") || [])
-        .filter(el => el.shadowRoot || el?.matches?.(frameSelector))
+        .filter(el => el.shadowRoot || matchesQuery(el, frameSelector))
         .forEach(el => {
             let location = {"x": paddedX, "y": paddedY}
             if (!el.shadowRoot) {
@@ -373,7 +383,7 @@ const activeElement = () => {
         return document.activeElement.shadowRoot.activeElement
     }
     if (document.activeElement !== document.body) {
-        if (!document.activeElement?.matches(frameSelector)) {
+        if (!matchesQuery(document.activeElement, frameSelector)) {
             return document.activeElement
         }
     }
@@ -386,7 +396,7 @@ const activeElement = () => {
             return doc.activeElement.shadowRoot.activeElement
         }
         if (doc.body !== doc.activeElement) {
-            if (!doc.activeElement.matches(frameSelector)) {
+            if (!matchesQuery(doc.activeElement, frameSelector)) {
                 return doc.activeElement
             }
         }
@@ -766,6 +776,7 @@ module.exports = {
     formatDate,
     findFrameInfo,
     propPixels,
+    matchesQuery,
     findElementAtPosition,
     querySelectorAll,
     findClickPosition,

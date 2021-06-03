@@ -18,7 +18,7 @@
 "use strict"
 
 const {desktopCapturer, ipcRenderer} = require("electron")
-const {readJSON, joinPath} = require("../util")
+const {matchesQuery, readJSON, joinPath} = require("../util")
 
 const message = "The page has requested to view a list of all media devices."
     + " You can allow or deny this below, and choose if you want the list to"
@@ -277,7 +277,7 @@ const customDisplayMedia = frameWindow => new Promise((resolve, reject) => {
                 ".desktop-capturer-selection__close")]
             closeButtons.forEach(button => {
                 button.addEventListener("click", e => {
-                    if (e.composedPath().find(el => el?.matches?.(
+                    if (e.composedPath().find(el => matchesQuery(el,
                         ".desktop-capturer-selection__btn"))) {
                         // Also clicked on a display to share, ignore close
                         return

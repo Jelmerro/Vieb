@@ -43,6 +43,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Media keys being off by default in 5.0.0 (they should be on by default, just as documented)
 - Twitter not loading due to media keys overwriting Chromium arguments to fix COOP issue in 5.0.0
 - Suggestions for write command not working recently
+- Mouse clicks and context menu sometimes throwing errors due to missing DOM api for detecting matching selector on some elements
+- Background image urls not always being correctly detected if there are also other types of backgrounds present such as gradients
 
 ### Security
 
