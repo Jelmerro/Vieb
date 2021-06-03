@@ -80,13 +80,10 @@ const defaultBindings = {
         "<C-n>": {"mapping": "<action.menuDown>"},
         "<C-p>": {"mapping": "<action.menuUp>"},
         "<CR>": {"mapping": "<action.menuSelect>"},
-        "<CapsLock>": {"mapping": "<Nop>"},
         "<Down>": {"mapping": "<action.menuDown>"},
         "<Esc>": {"mapping": "<action.menuClose>"},
         "<F1>": {"mapping": "<:help>"},
         "<F11>": {"mapping": "<action.toggleFullscreen>"},
-        "<NumLock>": {"mapping": "<Nop>"},
-        "<ScrollLock>": {"mapping": "<Nop>"},
         "<Up>": {"mapping": "<action.menuUp>"}
     },
     "n": {
@@ -165,11 +162,8 @@ const defaultBindings = {
         "<C-x>": {"mapping": "<action.decreasePageNumber>"},
         "<C-y>": {"mapping": "<action.scrollUp>"},
         "<CR>": {"mapping": "<action.clickOnSearch>"},
-        "<CapsLock>": {"mapping": "<Nop>"},
         "<F1>": {"mapping": "<:help>"},
         "<F11>": {"mapping": "<action.toggleFullscreen>"},
-        "<NumLock>": {"mapping": "<Nop>"},
-        "<ScrollLock>": {"mapping": "<Nop>"},
         "<Tab>": {"mapping": "<Nop>"},
         "=": {"mapping": "<action.zoomIn>"},
         "^": {"mapping": "<action.scrollPageLeft>"},
@@ -224,13 +218,10 @@ const defaultBindings = {
         "<C-m>": {"mapping": "<action.menuOpen>"},
         "<C-u>": {"mapping": "<pointer.moveFastUp>"},
         "<CR>": {"mapping": "<pointer.leftClick>"},
-        "<CapsLock>": {"mapping": "<Nop>"},
         "<Esc>": {"mapping": "<action.toNormalMode>"},
         "<F1>": {"mapping": "<:help>"},
         "<F11>": {"mapping": "<action.toggleFullscreen>"},
-        "<NumLock>": {"mapping": "<Nop>"},
         "<S-CR>": {"mapping": "<pointer.newtabLink>"},
-        "<ScrollLock>": {"mapping": "<Nop>"},
         "<lt>": {"mapping": "<pointer.scrollLeft>"},
         ">": {"mapping": "<pointer.scrollRight>"},
         "[": {"mapping": "<pointer.scrollUp>"},
@@ -307,12 +298,9 @@ const defaultBindings = {
         "<C-l>": {"mapping": "<pointer.moveSlowRight>"},
         "<C-m>": {"mapping": "<action.menuOpen>"},
         "<C-u>": {"mapping": "<pointer.moveFastUp>"},
-        "<CapsLock>": {"mapping": "<Nop>"},
         "<Esc>": {"mapping": "<action.toNormalMode>"},
         "<F1>": {"mapping": "<:help>"},
         "<F11>": {"mapping": "<action.toggleFullscreen>"},
-        "<NumLock>": {"mapping": "<Nop>"},
-        "<ScrollLock>": {"mapping": "<Nop>"},
         "<lt>": {"mapping": "<pointer.scrollLeft>"},
         ">": {"mapping": "<pointer.scrollRight>"},
         "[": {"mapping": "<pointer.scrollUp>"},
@@ -511,10 +499,14 @@ const keyNames = [
     {"js": ["ArrowDown"], "vim": ["Down"]},
     {"js": ["Escape"], "vim": ["Esc"]},
     {"js": [" "], "vim": ["Space", " "]},
-    {"js": ["Delete"], "vim": ["Del"]},
+    {"js": ["Delete", "\u0000"], "vim": ["Del"]},
     {"js": ["PrintScreen"], "vim": ["PrintScreen", "PrtScr"]},
+    {"js": ["Control"], "vim": ["Ctrl"]},
     // Keys with the same names, which are listed here to detect incorrect names
     // Note: some of these are not present in Vim and use the JavaScript name
+    {"js": ["Shift"], "vim": ["Shift"]},
+    {"js": ["Alt"], "vim": ["Alt"]},
+    {"js": ["Meta"], "vim": ["Meta"]},
     {"js": ["F1"], "vim": ["F1"]},
     {"js": ["F2"], "vim": ["F2"]},
     {"js": ["F3"], "vim": ["F3"]},
@@ -549,16 +541,17 @@ const toIdentifier = e => {
     })
     // If the shift status can be detected by name or casing,
     // it will not be prefixed with 'S-'.
-    if (e.shiftKey && keyCode.length > 1 && !["lt", "Bar"].includes(keyCode)) {
+    const needsShift = keyCode.length > 1 && !["lt", "Bar"].includes(keyCode)
+    if (e.shiftKey && needsShift && keyCode !== "Shift") {
         keyCode = `S-${keyCode}`
     }
-    if (e.altKey) {
+    if (e.altKey && keyCode !== "Alt") {
         keyCode = `A-${keyCode}`
     }
-    if (e.metaKey) {
+    if (e.metaKey && keyCode !== "Meta") {
         keyCode = `M-${keyCode}`
     }
-    if (e.ctrlKey) {
+    if (e.ctrlKey && keyCode !== "Ctrl") {
         keyCode = `C-${keyCode}`
     }
     if (keyCode.length > 1) {
@@ -808,11 +801,12 @@ const handleKeyboard = async e => {
     if (e.passedOnFromInsert && blockNextInsertKey) {
         return
     }
-    const ignoredKeys = ["Control", "Meta", "Alt", "Shift"]
-    if (ignoredKeys.includes(e.key) || !e.key) {
+    const id = toIdentifier(e)
+    const matchingMod = getSetting("modifiers").split(",").find(
+        mod => mod === id || `<${mod}>` === id || id.endsWith(`-${mod}>`))
+    if (matchingMod) {
         return
     }
-    const id = toIdentifier(e)
     updateKeysOnScreen()
     clearTimeout(timeoutTimer)
     if (getSetting("timeout")) {
@@ -1586,6 +1580,7 @@ module.exports = {
     doAction,
     executeMapString,
     init,
+    keyNames,
     listMappingsAsCommandList,
     listSupportedActions,
     mapOrList,

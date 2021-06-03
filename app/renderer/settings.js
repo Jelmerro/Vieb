@@ -87,6 +87,7 @@ const defaultSettings = {
     "menupage": "elementasneeded",
     "menuvieb": "both",
     "mintabwidth": 28,
+    "modifiers": "Ctrl,Shift,Alt,Meta,NumLock,CapsLock,ScrollLock",
     "mouse": true,
     "mousefocus": false,
     "mousenewtabswitch": true,
@@ -151,6 +152,7 @@ const freeText = ["downloadpath", "externalcommand", "search", "vimcommand"]
 const listLike = [
     "containercolors",
     "favoritepages",
+    "modifiers",
     "permissionsallowed",
     "permissionsasked",
     "permissionsblocked",
@@ -361,6 +363,19 @@ const checkOther = (setting, value) => {
         if (!isDir(expandedPath)) {
             notify("The download path is not a directory", "warn")
             return false
+        }
+    }
+    if (setting === "modifiers") {
+        const {"keyNames": valid} = require("./input")
+        for (const name of value.split(",")) {
+            if (!name.trim()) {
+                continue
+            }
+            if (name.length > 1 && !valid.find(key => key.vim.includes(name))) {
+                notify(`Key name '${name}' is not recognized as a valid key`,
+                    "warn")
+                return false
+            }
         }
     }
     const permissionSettings = [
