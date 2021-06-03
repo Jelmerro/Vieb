@@ -45,6 +45,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Suggestions for write command not working recently
 - Mouse clicks and context menu sometimes throwing errors due to missing DOM api for detecting matching selector on some elements
 - Background image urls not always being correctly detected if there are also other types of backgrounds present such as gradients
+- Commands with dashes breaking the check for valid keys and therefor not being recognized
+- Help command showing suggestions for custom commands (which don't have help)
 
 ### Security
 

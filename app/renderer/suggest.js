@@ -442,7 +442,7 @@ const suggestCommand = searchStr => {
             "link-related",
             "license",
             "mentions",
-            ...commandList().map(c => `:${c}`),
+            ...commandList(false).map(c => `:${c}`),
             ...Object.values(settingsWithDefaults()).map(s => s.name),
             ...listSupportedActions()
         ].filter(section => {

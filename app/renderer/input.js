@@ -1462,22 +1462,9 @@ const sanitiseMapString = (mapString, allowSpecials = false) => mapString
         }
         let key = m
         let modifiers = []
-        if (m.length > 1) {
-            const splitKeys = m.replace(/(^<|>$)/g, "")
-                .split("-").filter(s => s)
-            modifiers = splitKeys.slice(0, -1).map(mod => mod.toUpperCase())
-            ;[key] = splitKeys.slice(-1)
-        }
         let knownKey = false
-        for (const name of keyNames) {
-            if (name.vim.find(vk => vk.toUpperCase() === key.toUpperCase())) {
-                [key] = name.vim
-                knownKey = true
-                break
-            }
-        }
-        if (allowSpecials && !knownKey) {
-            const simpleKey = key.toLowerCase()
+        if (allowSpecials) {
+            const simpleKey = key.toLowerCase().replace(/(^<|>$)/g, "")
                 .replace(/^a(ction)?\./g, "action.")
                 .replace(/^p(ointer)?\./g, "pointer.")
             for (const action of supportedActions) {
@@ -1492,8 +1479,24 @@ const sanitiseMapString = (mapString, allowSpecials = false) => mapString
                     break
                 }
             }
-            if (key.startsWith(":")) {
+            if (simpleKey.startsWith(":")) {
                 knownKey = true
+            }
+            if (knownKey) {
+                return key
+            }
+        }
+        if (m.length > 1) {
+            const splitKeys = m.replace(/(^<|>$)/g, "")
+                .split("-").filter(s => s)
+            modifiers = splitKeys.slice(0, -1).map(mod => mod.toUpperCase())
+            ;[key] = splitKeys.slice(-1)
+        }
+        for (const name of keyNames) {
+            if (name.vim.find(vk => vk.toUpperCase() === key.toUpperCase())) {
+                [key] = name.vim
+                knownKey = true
+                break
             }
         }
         if (!knownKey && key.length > 1) {
