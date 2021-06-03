@@ -27,7 +27,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Vertical tabs theme now displays multiple pinned tabs horizontally with wrapping
 - Redirects are now saved to correctly set the favicon and title in those cases
 - Call command now accepts any valid mapstring instead of only simple actions
-- Help command now accepts different types of punctuation and casing to find the right section
+- Help command now accepts different types of punctuation and casing to find the right section (which is now escaped as well)
 - Action names are now case-insensitive and optionally without the "action." prefix, or with the shorter "a." or "p."
 - Blobs are now recognized as valid urls, just like other common URI schemes
 - Default styling of notifications and the new mapsuggest across all themes

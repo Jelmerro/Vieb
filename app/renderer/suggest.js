@@ -447,7 +447,7 @@ const suggestCommand = searchStr => {
             ...listSupportedActions()
         ].filter(section => {
             const simpleSection = section.replace(/^#?:?/, "")
-                .replace(/!$/, "").toLowerCase()
+                .replace(/!$/, "").replace(/-/g, "").toLowerCase().trim()
             return `${command} ${simpleSection.replace(
                 /^action\./, "").replace(/^pointer\./, "")}`.startsWith(
                 `${command} ${simpleSearch}`.trim())

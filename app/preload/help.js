@@ -129,13 +129,14 @@ ipcRenderer.on("settings", (_, settings, mappings, uncountableActions) => {
 
 const processHash = () => {
     const ids = [...document.querySelectorAll("[id]")].map(e => e.id)
-    const simpleHash = window.location.hash.replace(/^#?:?/, "")
-        .replace(/!$/, "").replace(/-/g, "").toLowerCase().trim()
-    if (simpleHash !== "") {
+    const hash = decodeURIComponent(window.location.hash.replace(/^#?:?/, "")
+        .replace(/!$/, "").replace(/-/g, "").toLowerCase().trim())
+    if (hash !== "") {
         const match = ids.find(raw => {
-            const id = raw.replace(/^#?:?/, "").replace(/!$/, "").toLowerCase()
-            return simpleHash === id.replace(/^action\./, "")
-                .replace(/^pointer\./, "") || simpleHash === id
+            const id = decodeURIComponent(raw.replace(/^#?:?/, "").replace(/!$/, "")
+                .replace(/-/g, "").toLowerCase().trim())
+            return hash === id.replace(/^action\./, "")
+                .replace(/^pointer\./, "") || hash === id
         })
         if (match && document.querySelector(`a[href='#${match}']`)) {
             document.querySelector(`a[href='#${match}']`).click()
@@ -179,7 +180,7 @@ window.addEventListener("load", () => {
         section.appendChild(spacer)
         const label = document.createElement("a")
         label.textContent = `#${element.id}`
-        label.href = `#${element.id.replace("<>", "%3C%3E")}`
+        label.setAttribute("href", `#${element.id}`)
         section.appendChild(label)
         document.querySelector("main").replaceChild(section, element)
     }

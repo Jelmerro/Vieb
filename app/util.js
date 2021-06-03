@@ -559,7 +559,9 @@ const pathToSpecialPageName = urlPath => {
         if (!specialPages.includes(name)) {
             name = "help"
         }
-        return {name, "section": parts.slice(1).join("#") || ""}
+        return {
+            name, "section": decodeURIComponent(parts.slice(1).join("#") || "")
+        }
     }
     if (urlPath?.startsWith?.("file://")) {
         for (const page of specialPages) {
@@ -569,7 +571,8 @@ const pathToSpecialPageName = urlPath => {
             if (normalizedUrl.startsWith(specialPage)) {
                 return {
                     "name": page,
-                    "section": urlPath.split("#").slice(1).join("#")
+                    "section": decodeURIComponent(
+                        urlPath.split("#").slice(1).join("#"))
                 }
             }
             try {
@@ -579,7 +582,8 @@ const pathToSpecialPageName = urlPath => {
                 if (decodedNormalizedUrl.startsWith(specialPage)) {
                     return {
                         "name": page,
-                        "section": urlPath.split("#").slice(1).join("#")
+                        "section": decodeURIComponent(
+                            urlPath.split("#").slice(1).join("#"))
                     }
                 }
             } catch (_) {
