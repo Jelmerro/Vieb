@@ -29,6 +29,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Call command now accepts any valid mapstring instead of only simple actions
 - Help command now accepts different types of punctuation and casing to find the right section (which is now escaped as well)
 - Action names are now case-insensitive and optionally without the "action." prefix, or with the shorter "a." or "p."
+- All action names get sanitized to the shortest name possible with the new system, old names are still completely supported just not shown
 - Blobs are now recognized as valid urls, just like other common URI schemes
 - Default styling of notifications and the new mapsuggest across all themes
 
@@ -47,6 +48,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Background image urls not always being correctly detected if there are also other types of backgrounds present such as gradients
 - Commands with dashes breaking the check for valid keys and therefor not being recognized
 - Help command showing suggestions for custom commands (which don't have help)
+- Custom commands not having suggestions for existing commands (command and delcommand)
 
 ### Security
 

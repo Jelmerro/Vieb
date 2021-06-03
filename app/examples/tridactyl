@@ -33,34 +33,34 @@ set searchwords+=gentoo_wiki~https://wiki.gentoo.org/index.php?title=Special:Sea
 set searchwords+=qwant~https://www.qwant.com/?q=%s
 
 " Mappings
-nmap yy <action.pageToClipboard>
-nmap o <action.toExploreMode>
-nmap b <action.toCommandMode>buffer<Space>
+nmap yy <pageToClipboard>
+nmap o <toExploreMode>
+nmap b <toCommandMode>buffer<Space>
 nmap g0 <:buffer 0>
 nmap g^ <:buffer 0>
 nmap g$ <:buffer 999>
-nmap J <action.previousTab>
-nmap K <action.nextTab>
-nmap >> <action.moveTabForward>
-nmap <lt><lt> <action.moveTabBackward>
-nmap O <action.toExploreMode><End>
+nmap J <previousTab>
+nmap K <nextTab>
+nmap >> <moveTabForward>
+nmap <lt><lt> <moveTabBackward>
+nmap O <toExploreMode><End>
 nmap gx0 <:lclose>
 nmap gx$ <:rclose>
 nmap <A-p> <:pin>
 nmap <A-m> <:mute>
-nmap x <action.stopLoadingPage>
-nmap [c <action.decreasePageNumber>
-nmap ]c <action.increasePageNumber>
-nmap zz <action.zoomReset>
-nmap zi <action.zoomIn>
-nmap zo <action.zoomOut>
-nmap zm 5<action.zoomIn>
-nmap zr 5<action.zoomOut>
-nmap zM 5<action.zoomIn>
-nmap zR 5<action.zoomOut>
-nmap zI 7<action.zoomIn>
-nmap zO 7<action.zoomOut>
+nmap x <stopLoadingPage>
+nmap [c <decreasePageNumber>
+nmap ]c <increasePageNumber>
+nmap zz <zoomReset>
+nmap zi <zoomIn>
+nmap zo <zoomOut>
+nmap zm 5<zoomIn>
+nmap zr 5<zoomOut>
+nmap zM 5<zoomIn>
+nmap zR 5<zoomOut>
+nmap zI 7<zoomIn>
+nmap zO 7<zoomOut>
 " Tridactyl easter egg
-nmap <A-S-Up><A-S-Up><A-S-Down><A-S-Down><A-S-Left><A-S-Right><A-S-Left><A-S-Right>ba <action.toExploreMode>https://www.youtube.com/watch?v=M3iOROuTuMA<CR>
+nmap <A-S-Up><A-S-Up><A-S-Down><A-S-Down><A-S-Left><A-S-Right><A-S-Left><A-S-Right>ba <toExploreMode>https://www.youtube.com/watch?v=M3iOROuTuMA<CR>
 
 " vim: ft=vim

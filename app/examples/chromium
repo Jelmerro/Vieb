@@ -10,45 +10,45 @@ set permissionmediadevices=allow
 set permissionmicrophone=ask
 set permissionpersistentstorage=allow
 set redirecttohttp
-set search=https://google.com/search?q=
+set search=https://google.com/search?q=%s
 set splitright
 set suspendonrestore=none
 set tabreopenposition=previous
 set windowtitle=title
 
 " Mappings
-nmap <Up> <action.scrollUp>
-nmap <Down> <action.scrollDown>
-nmap <Left> <action.scrollLeft>
-nmap <Right> <action.scrollRight>
-map <PageUp> <action.scrollPageUp>
-map <PageDown> <action.scrollPageDown>
-map <Home> <action.scrollTop>
-map <End> <action.scrollBottom>
-map <F3> <action.toSearchMode>
-map <F5> <action.reload>
-map <F6> <action.toExploreMode>
+nmap <Up> <scrollUp>
+nmap <Down> <scrollDown>
+nmap <Left> <scrollLeft>
+nmap <Right> <scrollRight>
+map <PageUp> <scrollPageUp>
+map <PageDown> <scrollPageDown>
+map <Home> <scrollTop>
+map <End> <scrollBottom>
+map <F3> <toSearchMode>
+map <F5> <reload>
+map <F6> <toExploreMode>
 map <F12> <:devtools>
-map <C-PageUp> <action.previousTab>
-map <C-PageDown> <action.nextTab>
+map <C-PageUp> <previousTab>
+map <C-PageDown> <nextTab>
 map <C-F4> <:close>
-map <C-F5> <action.reloadWithoutCache>
-map <C-f> <action.toSearchMode>
+map <C-F5> <reloadWithoutCache>
+map <C-f> <toSearchMode>
 map <C-h> <:history>
 map <C-j> <:downloads>
-map <C-l> <action.toExploreMode>
+map <C-l> <toExploreMode>
 map <C-p> <:hardcopy>
 map <C-q> <:quit>
 map <C-s> <:write>
-map <C-t> <action.openNewTab><action.toExploreMode>
-map <C-Tab> <action.nextTab>
-map <C-S-PageUp> <action.moveTabBackward>
-map <C-S-PageDown> <action.moveTabForward>
-map <C-S-Tab> <action.previousTab>
+map <C-t> <openNewTab><toExploreMode>
+map <C-Tab> <nextTab>
+map <C-S-PageUp> <moveTabBackward>
+map <C-S-PageDown> <moveTabForward>
+map <C-S-Tab> <previousTab>
 map <C-I> <:devtools>
-map <C-T> <action.reopenTab>
-map <A-Left> <action.backInHistory>
-map <A-Right> <action.forwardInHistory>
+map <C-T> <reopenTab>
+map <A-Left> <backInHistory>
+map <A-Right> <forwardInHistory>
 map <A-0> <:b 9999>
 map <A-1> <:b 0>
 map <A-2> <:b 1>
@@ -59,10 +59,10 @@ map <A-6> <:b 5>
 map <A-7> <:b 6>
 map <A-8> <:b 7>
 map <A-9> <:b 8>
-cmap <Up> <action.commandHistoryPrevious>
-cmap <Down> <action.commandHistoryNext>
-emap <F6> <action.toNormalMode>
-emap <Up> <action.prevSuggestion>
-emap <Down> <action.nextSuggestion>
+cmap <Up> <commandHistoryPrevious>
+cmap <Down> <commandHistoryNext>
+emap <F6> <toNormalMode>
+emap <Up> <prevSuggestion>
+emap <Down> <nextSuggestion>
 
 " vim: ft=vim

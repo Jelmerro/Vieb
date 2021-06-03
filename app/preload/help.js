@@ -102,8 +102,8 @@ ipcRenderer.on("settings", (_, settings, mappings, uncountableActions) => {
         // List mappings in which this action is used
         const mapList = document.createElement("div")
         mapList.className = "map-status"
-        const actionMappings = mappings.split("\n").filter(
-            map => map.includes(`<${actionNode.id}>`))
+        const actionMappings = mappings.split("\n").filter(map => map.includes(
+            `<${actionNode.id.replace(/^a.*\./, "").replace(/p.*\./, "p.")}>`))
         actionMappings.forEach(mapping => {
             const mappingKbd = document.createElement("kbd")
             mappingKbd.textContent = mapping

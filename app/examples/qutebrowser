@@ -17,21 +17,21 @@ set windowtitle=full
 set mapsuggestposition=bottomleft
 
 " Mappings
-nmap <Up> <action.scrollUp>
-nmap <Down> <action.scrollDown>
-nmap <Left> <action.scrollLeft>
-nmap <Right> <action.scrollRight>
-nmap <PageUp> <action.scrollPageUp>
-nmap <PageDown> <action.scrollPageDown>
-nmap <Home> <action.scrollTop>
-nmap <End> <action.scrollBottom>
+nmap <Up> <scrollUp>
+nmap <Down> <scrollDown>
+nmap <Left> <scrollLeft>
+nmap <Right> <scrollRight>
+nmap <PageUp> <scrollPageUp>
+nmap <PageDown> <scrollPageDown>
+nmap <Home> <scrollTop>
+nmap <End> <scrollBottom>
 
-nmap o <action.toExploreMode>
+nmap o <toExploreMode>
 nmap wi <:devtools>
-nmap <C-PageUp> <action.previousTab>
-nmap <C-PageDown> <action.nextTab>
-nmap <F5> <action.reload>
-nmap <C-F5> <action.reloadWithoutCache>
+nmap <C-PageUp> <previousTab>
+nmap <C-PageDown> <nextTab>
+nmap <F5> <reload>
+nmap <C-F5> <reloadWithoutCache>
 nmap Sh <:history>
 nmap Ss <:help>
 nmap <C-A-p> <:print>
@@ -39,11 +39,11 @@ nmap <C-q> <:quit>
 nmap <C-W> <:quit>
 nmap ZQ <:quit>
 nmap gd <:write>
-nmap <C-Tab> <action.nextTab>
-nmap <C-S-PageUp> <action.moveTabBackward>
-nmap <C-S-PageDown> <action.moveTabForward>
+nmap <C-Tab> <nextTab>
+nmap <C-S-PageUp> <moveTabBackward>
+nmap <C-S-PageDown> <moveTabForward>
 nmap <C-I> <:devtools>
-nmap <C-T> <action.reopenTab>
+nmap <C-T> <reopenTab>
 nmap <A-1> <:b 0>
 nmap g0 <:b 0>
 nmap g^ <:b 0>
@@ -56,37 +56,37 @@ nmap <A-6> <:b 5>
 nmap <A-7> <:b 6>
 nmap <A-8> <:b 7>
 nmap <A-9> <:b 9999>
-nmap <C-^> <action.toLastUsedTab>
-nmap <C-Tab> <action.toLastUsedTab>
-nmap <C-S-Tab> <action.previousTab>
-nmap ga <action.openNewTab>
-nmap gC <action.openNewTabWithCurrentUrl>
-nmap gJ <action.moveTabForward>
-nmap gK <action.moveTabBackward>
+nmap <C-^> <toLastUsedTab>
+nmap <C-Tab> <toLastUsedTab>
+nmap <C-S-Tab> <previousTab>
+nmap ga <openNewTab>
+nmap gC <openNewTabWithCurrentUrl>
+nmap gJ <moveTabForward>
+nmap gK <moveTabBackward>
 " This is disabled as it prevents use of window split mappings.
 " See :h splitting for more information on window splits
 " nmap <C-w> <:close>
 nmap co <:lclose><:rclose>
-nmap = <action.zoomReset>
+nmap = <zoomReset>
 nmap <C-p> <:pin>
 nmap <A-m> <:mute>
-nmap <C-s> <action.stopLoadingPage>
-nmap o <action.toExploreMode><BS>
-nmap go <action.toExploreMode><End>
-nmap gt <action.toCommandMode>buffer<Space>
-nmap O <action.openNewTab><action.toExploreMode>
+nmap <C-s> <stopLoadingPage>
+nmap o <toExploreMode><BS>
+nmap go <toExploreMode><End>
+nmap gt <toCommandMode>buffer<Space>
+nmap O <openNewTab><toExploreMode>
 nunmap y
 nunmap p
-nmap yy <action.pageToClipboard>
-nmap pp <action.openFromClipboard>
-nmap Pp <action.openNewTab><action.openFromClipboard>
-nmap sk <action.toCommandMode>map<Space>
-nmap ss <action.toCommandMode>set<Space>
+nmap yy <pageToClipboard>
+nmap pp <openFromClipboard>
+nmap Pp <openNewTab><openFromClipboard>
+nmap sk <toCommandMode>map<Space>
+nmap ss <toCommandMode>set<Space>
 
-imap <C-e> <action.editWithVim>
+imap <C-e> <editWithVim>
 
-cmap <Up> <action.commandHistoryPrevious>
-cmap <Down> <action.commandHistoryNext>
+cmap <Up> <commandHistoryPrevious>
+cmap <Down> <commandHistoryNext>
 cmap <C-a> <Home>
 cmap <C-e> <End>
 cmap <A-f> <C-Right>
@@ -101,14 +101,14 @@ cmap <C-k> <S-End><BS>
 cmap <C-u> <S-Home><BS>
 cmap <C-w> <C-S-Left><BS>
 
-pmap c <action.toNormalMode>
-pmap e <pointer.moveFastRight>
-pmap H <pointer.scrollLeft>
-pmap L <pointer.scrollRight>
-pmap <Space> <pointer.startVisualSelect>
+pmap c <toNormalMode>
+pmap e <p.moveFastRight>
+pmap H <p.scrollLeft>
+pmap L <p.scrollRight>
+pmap <Space> <p.startVisualSelect>
 
-vmap v <pointer.start>
-vmap <CR> <pointer.copyText>
-vmap <C-Space> <action.toNormalMode><pointer.start><pointer.startVisualSelect>
+vmap v <p.start>
+vmap <CR> <p.copyText>
+vmap <C-Space> <toNormalMode><p.start><p.startVisualSelect>
 
 " vim: ft=vim

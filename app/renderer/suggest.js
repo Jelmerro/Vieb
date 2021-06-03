@@ -401,16 +401,15 @@ const suggestCommand = searchStr => {
             }
         })
     }
-    // Command: delcommand
-    if ("delcommand".startsWith(command)) {
-        if (args.length > 1 || confirm) {
-            return
+    // Command: command and delcommand
+    for (const custom of ["command", "command!", "delcommand"]) {
+        if (custom.startsWith(command) && (custom.endsWith("!") || !confirm)) {
+            customCommandsAsCommandList().split("\n")
+                .filter(cmd => cmd.split(" ")[0] === "command")
+                .map(cmd => cmd.split(" ")[1])
+                .filter(cmd => !args[0] || cmd.startsWith(args[0]))
+                .forEach(cmd => addCommand(`${custom} ${cmd}`))
         }
-        customCommandsAsCommandList().split("\n")
-            .filter(cmd => cmd.split(" ")[0] === "command")
-            .map(cmd => cmd.split(" ")[1])
-            .filter(cmd => !args[0] || cmd.startsWith(args[0]))
-            .forEach(cmd => addCommand(`delcommand ${cmd}`))
     }
     // Command: help
     if ("help".startsWith(command) && !confirm) {
