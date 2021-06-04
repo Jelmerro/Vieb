@@ -48,13 +48,13 @@
         </ul>
         Vieb is separated into different modes, which have different keyboard mappings. You can see the current mode at all times in the navbar, next to the url. All mappings listed above assume the default mappings and that you are in <a class="normal" href="#action.toNormalMode">normal mode</a>. You can list all of Vieb's current mappings with <span class="command-block">:map!</span> as explained in the <a href="#:map">:map</a> paragraph.
         <h2>Help structure</h2>
-        This documentation offers you functional documentation regarding all of Vieb's features. An important step to become familiar with Vieb is knowing how to look for the right documentation. This can be done by running the help command with 1 additional argument, for example: <span class="command-block nowrap">:help commands</span>. This will open the help page at the start of the commands chapter. Here are the different chapters of this documentation:
+        This documentation offers you functional documentation regarding all of Vieb's features. These are the main components of Vieb and thus the chapters of this help page:
         <ul>
             <li><a href="#commands">Commands</a> - All built-in commands, including commands to create custom commands</li>
             <li><a href="#settings">Settings</a> - All settings, including defaults and possible values</li>
             <li><a href="#actions">Actions</a> - All actions that can be executed by using the keyboard</li>
         </ul>
-        If you want to find out what a certain command, setting or action means, you can call the help command with it's name as an argument, for example: <span class="command-block nowrap">:help action.toSearchMode</span> or <span class="command-block nowrap">:help mappings</span>. It is recommended to at minimum skim through the documentation at least once, to get a good idea of all the possible commands, settings and actions.
+        If you want to find out what a certain command, setting or action means, you can call the help command with it's name as an argument, for example: <span class="command-block nowrap">:help toSearchMode</span> or <span class="command-block nowrap">:help mappings</span>. If you have previously used a different browser (such as Firefox or qutebrowser), you might want to check out the <a href="#examples">examples</a> to configure Vieb as close as possible to them. For any kind of help or suggestions, please check out the <a href="https://github.com/Jelmerro/Vieb">repository</a>, the <a href="https://www.reddit.com/r/vieb">subreddit</a> or the <a href="https://vieb.dev">homepage</a>.
         <h1 id="commands">Commands</h1>
         Commands can be used for various additional features and configuration. Entering commands is done by switching to <a class="command" href="#action.toCommandMode">command mode</a> and then typing text. The command can be executed with <a href="#action.useEnteredData">action.useEnteredData</a>. This chapter will list all Vieb's commands, including a list of examples and the mappings that use the listed command. It's also possible to add custom commands using <a href="#:command">:command</a> with the name and actions as the arguments. If there is only a single command that starts with the entered text, that command will be run, for example: "mkv" is enough to run the <a href="#:mkviebrc">:mkviebrc</a> command.
         <h2 id="settingcommands">Setting commands</h2>
@@ -548,7 +548,7 @@
         <h3 id="examples">Examples</h3>
         There are example viebrc files to give you a starting point for your own configuration. These example configs aim to provide a similar experience to other browsers. The viebrc example files are available offline, and can be saved to the downloads folder with the buttons below.
         <div class="example-buttons"></div>
-        After writing one of these examples to the <a href="#downloadpath">downloadpath</a> you can view and edit it with Vim or any other editor. If you want to use one of these examples, copy it to either of the viebrc locations explained above.
+        After writing one of these examples to the <a href="#downloadpath">downloadpath</a> you can view and edit it with Vim or any other editor. If you want to use one of these examples, copy it to either of the <a href="#viebrc">viebrc</a> locations explained above. Alternatively you can also run any file from disk as a config using the <a href="#:source">:source</a> command. You can also view the <a href="https://github.com/Jelmerro/Vieb/tree/master/app/examples">examples on github</a>.
         <h2 id="datafolder">Data folder</h2>
         Vieb stores all of it's data inside a single folder, which is by default located in one of these locations:
         <ul>
