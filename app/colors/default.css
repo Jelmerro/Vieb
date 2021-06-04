@@ -263,6 +263,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 .specialpage {width: 90vw;margin: auto;}
 .specialpage a {color: var(--link-color);white-space: nowrap;overflow: hidden;}
 .specialpage a:not([class]) {text-decoration: var(--link-underline) underline;}
+.specialpage a[href^="https"]::after {background: url(../img/topright.png) no-repeat 0 0;background-size: .5em 1em;content: "";padding-right: .5em;}
 .specialpage a:hover {text-decoration: var(--link-color) underline;}
 .specialpage h1 {font-size: 2em;margin: 1em 0;padding: 0;}
 .specialpage img {height: 1.9em;margin: .5em;float: right;}
