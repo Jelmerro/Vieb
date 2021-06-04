@@ -21,7 +21,7 @@ const {ipcRenderer} = require("electron")
 
 const addSiteToList = (listname, site) => {
     const link = document.createElement("a")
-    link.href = site.url
+    link.href = encodeURI(site.url)
     const icon = document.createElement("img")
     icon.src = site.icon || "../img/empty.png"
     link.appendChild(icon)

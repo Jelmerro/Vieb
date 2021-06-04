@@ -50,6 +50,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Commands with dashes breaking the check for valid keys and therefor not being recognized
 - Help command showing suggestions for custom commands (which don't have help)
 - Custom commands not having suggestions for existing commands (command and delcommand)
+- Encoding issues when navigating to urls with asian characters in them
 
 ### Security
 

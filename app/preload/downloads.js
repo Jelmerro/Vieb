@@ -137,8 +137,8 @@ const addDownload = (download, id) => {
     state.textContent = download.state
     misc.appendChild(state)
     const downloadUrl = document.createElement("a")
-    downloadUrl.href = download.url
-    downloadUrl.textContent = decodeURIComponent(download.url)
+    downloadUrl.href = encodeURI(download.url)
+    downloadUrl.textContent = download.url
     misc.appendChild(downloadUrl)
     const file = document.createElement("span")
     file.title = "Click to open"

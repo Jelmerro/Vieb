@@ -931,7 +931,7 @@ const navigateTo = location => {
     } catch (_) {
         // Webview might be destroyed or unavailable, no issue
     }
-    currentPage().src = location
+    currentPage().src = stringToUrl(location)
     resetTabInfo(currentPage())
     currentTab().querySelector("span").textContent = location
 }

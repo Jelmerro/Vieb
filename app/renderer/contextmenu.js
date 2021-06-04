@@ -502,7 +502,7 @@ const commonAction = (type, action, options) => {
         addTab({"url": relevantData})
     } else if (action === "copy") {
         const {clipboard} = require("electron")
-        clipboard.writeText(relevantData)
+        clipboard.writeText(urlToString(relevantData))
     } else if (action === "download") {
         currentPage().downloadURL(relevantData)
     } else if (action === "external") {

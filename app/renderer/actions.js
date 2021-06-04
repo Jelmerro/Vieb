@@ -468,7 +468,7 @@ const openFromClipboard = () => {
     const {clipboard} = require("electron")
     if (clipboard.readText().trim()) {
         const {navigateTo} = require("./tabs")
-        navigateTo(stringToUrl(clipboard.readText()))
+        navigateTo(clipboard.readText())
     }
 }
 
@@ -543,7 +543,7 @@ const useEnteredData = () => {
                 push(stringToUrl(location))
             }
             const {navigateTo} = require("./tabs")
-            navigateTo(stringToUrl(location))
+            navigateTo(location)
         }
     }
 }

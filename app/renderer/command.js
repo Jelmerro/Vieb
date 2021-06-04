@@ -475,7 +475,7 @@ const buffer = (...args) => {
         switchToTab(tab)
     } else {
         const {navigateTo} = require("./tabs")
-        navigateTo(stringToUrl(args.join(" ")))
+        navigateTo(args.join(" "))
     }
 }
 
@@ -484,7 +484,7 @@ const open = (...args) => {
         return
     }
     const {navigateTo} = require("./tabs")
-    navigateTo(stringToUrl(args.join(" ")))
+    navigateTo(args.join(" "))
 }
 
 const suspend = (...args) => {

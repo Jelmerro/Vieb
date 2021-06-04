@@ -189,20 +189,26 @@ const expandPath = loc => {
 
 const isObject = o => o === Object(o)
 
-const stringToUrl = location => {
+const stringToUrl = l => {
+    let location = String(l)
+    try {
+        location = decodeURI(l)
+    } catch {
+        // Url is already decoded
+    }
     const specialPage = pathToSpecialPageName(location)
     if (specialPage.name) {
         return specialPagePath(specialPage.name, specialPage.section)
     }
     if (hasProtocol(location)) {
-        return location
+        return encodeURI(location)
     }
     const local = expandPath(location)
     if (isDir(local) || isFile(local)) {
         return `file:/${local}`.replace(/^file:\/*/, "file:///")
     }
     if (isUrl(location)) {
-        return `https://${location}`
+        return encodeURI(`https://${location}`)
     }
     return getSetting("search").replace(/%s/g, encodeURIComponent(location))
 }
