@@ -33,6 +33,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - All action names get sanitized to the shortest name possible with the new system, old names are still completely supported just not shown
 - Blobs are now recognized as valid urls, just like other common URI schemes
 - Default styling of notifications and the new mapsuggest across all themes
+- Mappings with multiple keys that get aborted by starting another mapping will now both get executed similar to Vim
 
 ### Fixed
 

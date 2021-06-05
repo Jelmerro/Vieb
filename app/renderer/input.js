@@ -698,7 +698,7 @@ const sendKeysToWebview = async(options, mapStr) => {
     }
     currentPage().sendInputEvent({...options, "type": "keyDown"})
     if (options.bubbles) {
-        const action = bindings[currentMode()[0]][mapStr]
+        const action = actionForKeys(mapStr)
         if (action) {
             await executeMapString(action.mapping, !action.noremap)
         }
@@ -756,11 +756,9 @@ const executeMapString = async(mapStr, recursive, initial) => {
             blockNextInsertKey = false
         }, 100)
         recursiveCounter = 0
-        if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
-            repeatCounter = 0
-            pressedKeys = ""
-            updateKeysOnScreen()
-        }
+        repeatCounter = 0
+        pressedKeys = ""
+        updateKeysOnScreen()
     }
 }
 
@@ -790,6 +788,15 @@ const doAction = async(actionName, givenCount) => {
     updateKeysOnScreen()
 }
 
+const actionForKeys = keys => {
+    const {"active": menuActive} = require("./contextmenu")
+    const menuAction = bindings.m[keys]
+    if (menuActive() && menuAction) {
+        return menuAction
+    }
+    return bindings[currentMode()[0]][keys]
+}
+
 const handleKeyboard = async e => {
     e.preventDefault()
     if (document.body.classList.contains("fullscreen")) {
@@ -812,6 +819,18 @@ const handleKeyboard = async e => {
     clearTimeout(timeoutTimer)
     if (getSetting("timeout")) {
         timeoutTimer = setTimeout(async() => {
+            if (pressedKeys) {
+                const action = actionForKeys(pressedKeys)
+                if (action && (e.isTrusted || e.bubbles)) {
+                    if (e.isTrusted) {
+                        executeMapString(action.mapping, !action.noremap, true)
+                    } else {
+                        executeMapString(action.mapping, e.bubbles)
+                    }
+                    return
+                }
+                menuClear()
+            }
             const keys = pressedKeys.split(mapStringSplitter).filter(m => m)
             if (currentMode() === "insert") {
                 const {ipcRenderer} = require("electron")
@@ -843,7 +862,7 @@ const handleKeyboard = async e => {
     if ("npv".includes(currentMode()[0]) || menuActive()) {
         const keyNumber = Number(id)
         const noFutureActions = !hasFutureActionsBasedOnKeys(pressedKeys + id)
-        const currentAction = bindings[currentMode()[0]][pressedKeys + id]
+        const currentAction = actionForKeys(pressedKeys + id)
         if (!isNaN(keyNumber) && noFutureActions && !currentAction) {
             repeatCounter = Number(String(repeatCounter) + keyNumber)
             if (repeatCounter > getSetting("countlimit")) {
@@ -854,6 +873,7 @@ const handleKeyboard = async e => {
         }
         if (id === "<Esc>" || id === "<C-[>") {
             if (repeatCounter !== 0) {
+                pressedKeys = ""
                 repeatCounter = 0
                 updateKeysOnScreen()
                 return
@@ -865,19 +885,22 @@ const handleKeyboard = async e => {
     if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
         pressedKeys = ""
     }
-    pressedKeys += id
-    const menuAction = bindings.m[pressedKeys]
-    if (menuAction && menuActive()) {
-        if (e.isTrusted) {
-            executeMapString(menuAction.mapping, !menuAction.noremap, true)
-        } else {
-            executeMapString(menuAction.mapping, e.bubbles)
+    if (hasFutureActionsBasedOnKeys(pressedKeys + id)) {
+        pressedKeys += id
+    } else {
+        const action = actionForKeys(pressedKeys)
+        const existingMapping = actionForKeys(pressedKeys + id)
+        if (action && !existingMapping) {
+            if (!["<Esc>", "<C-[>"].includes(id)) {
+                await executeMapString(action.mapping, !action.noremap, true)
+            }
+            pressedKeys = ""
         }
-        return
+        pressedKeys += id
     }
     if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
         clearTimeout(timeoutTimer)
-        const action = bindings[currentMode()[0]][pressedKeys]
+        const action = actionForKeys(pressedKeys)
         if (action && (e.isTrusted || e.bubbles)) {
             if (e.isTrusted) {
                 executeMapString(action.mapping, !action.noremap, true)
