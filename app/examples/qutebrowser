@@ -34,18 +34,18 @@ command! yank <pageToClipboard>
 command! tab-only <:lclose><:rclose>
 command! undo <reopenTab>
 command! tab-move_+ <moveTabForward>
-command! set-cmd-text_-s_tab-select <toCommandMode>buffer<Space>
+command! set-cmd-text_--space_tab-select <toCommandMode>buffer<Space>
 command! rl-backward-delete-char <BS>
 command! scroll_right_ <p.scrollRight>
 command! rl-backward-char <Left>
 command! completion-item-focus_--history_next <commandHistoryNext>
 command! tab-move_- <moveTabBackward>
 command! tab-focus_6 <:b 5>
-command! reload_-f <reloadWithoutCache>
+command! reload_--force <reloadWithoutCache>
 command! scroll-page_0_-1 <scrollPageUp>
 command! scroll-page_0_1 <scrollPageDown>
 command! tab-focus_7 <:b 6>
-command! set-cmd-text_-s_open_-t <openNewTab><toExploreMode>
+command! set-cmd-text_--space_open_--tab <openNewTab><toExploreMode>
 command! rl-beginning-of-line <Home>
 command! selection-toggle_ <p.startVisualSelect>
 command! scroll_left_ <p.scrollLeft>
@@ -62,22 +62,22 @@ command! rl-end-of-line <End>
 command! rl-kill-line <S-End><BS>
 command! move-to-end-of-word <p.moveFastRight>
 command! rl-backward-kill-word <C-S-Left><BS>
-command! set-cmd-text_-s_open <toExploreMode><BS>
-command! open_-t <openNewTab>
+command! set-cmd-text_--space_open <toExploreMode><BS>
+command! open_--tab <openNewTab>
 command! download <:write>
 command! tab-prev <previousTab>
 command! yank_selection <p.copyText>
 command! mode-enter_normal <toNormalMode>
-command! set-cmd-text_-s_set <toCommandMode>set<Space>
+command! set-cmd-text_--space_set <toCommandMode>set<Space>
 command! stop <stopLoadingPage>
 command! tab-pin <:pin>
 command! tab-focus_3 <:b 2>
-command! open_-t_--_{clipboard} <openNewTab><openFromClipboard>
+command! open_--tab_--_{clipboard} <openNewTab><openFromClipboard>
 command! rl-unix-line-discard <S-Home><BS>
 command! scroll_down <scrollDown>
 command! selection-drop <toNormalMode><p.start><p.startVisualSelect>
 command! rl-kill-word <C-S-Right><BS>
-command! set-cmd-text_-s_bind <toCommandMode>map<Space>
+command! set-cmd-text_--space_bind <toCommandMode>map<Space>
 command! tab-mute <:mute>
 command! tab-focus_2 <:b 1>
 command! rl-backward-word <C-Left>
@@ -99,7 +99,7 @@ nmap <C-PageUp> <:tab-prev>
 nmap <C-S-Tab> <:tab-prev>
 nmap <C-PageDown> <:tab-next>
 nmap <F5> <:reload>
-nmap <C-F5> <:reload_-f>
+nmap <C-F5> <:reload_--force>
 nmap Sh <:history>
 nmap Ss <:set_>
 nmap <C-A-p> <:print>
@@ -122,7 +122,7 @@ nmap <A-8> <:tab-focus_8>
 nmap <A-9> <:tab-focus_-1>
 nmap <C-^> <:tab-focus_last>
 nmap <C-Tab> <:tab-focus_last>
-nmap ga <:open_-t>
+nmap ga <:open_--tab>
 nmap gC <:tab-clone>
 nmap gJ <:tab-move_+>
 nmap gK <:tab-move_->
@@ -136,17 +136,17 @@ nmap = <:zoom>
 nmap <C-p> <:tab-pin>
 nmap <A-m> <:tab-mute>
 nmap <C-s> <:stop>
-nmap o <:set-cmd-text_-s_open>
+nmap o <:set-cmd-text_--space_open>
 nmap go <:set-cmd-text_open_{urlpretty}>
-nmap gt <:set-cmd-text_-s_tab-select>
-nmap O <:set-cmd-text_-s_open_-t>
+nmap gt <:set-cmd-text_--space_tab-select>
+nmap O <:set-cmd-text_--space_open_--tab>
 nunmap y
 nunmap p
 nmap yy <:yank>
 nmap pp <:open_--_{clipboard}>
-nmap Pp <:open_-t_--_{clipboard}>
-nmap sk <:set-cmd-text_-s_bind>
-nmap ss <:set-cmd-text_-s_set>
+nmap Pp <:open_--tab_--_{clipboard}>
+nmap sk <:set-cmd-text_--space_bind>
+nmap ss <:set-cmd-text_--space_set>
 
 imap <C-e> <:edit-text>
 
