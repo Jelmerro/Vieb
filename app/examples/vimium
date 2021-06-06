@@ -3,32 +3,100 @@ set adblocker=update
 set downloadmethod=confirm
 set mintabwidth=250
 set norestoretabs
+set nofollownewtabswitch
 set redirecttohttp
 set tabreopenposition=previous
 set windowtitle=title
 set search=https://google.com/search?q=%s
 set searchwords=w~https://www.wikipedia.org/w/index.php?title=Special:Search&search=%s
 
+" Custom Commands
+command! enterInsertMode <toInsertMode>
+command! enterVisualMode <p.start><p.startVisualSelect>
+command! focusInput <insertAtFirstInput>
+command! LinkHints.activateMode <startFollowCurrentTab>
+command! LinkHints.activateModeToOpenInNewTab <startFollowNewTab>
+command! LinkHints.activateModeToOpenInNewForegroundTab <startFollowNewTab>
+command! enterFindMode <enterSearchMode>
+command! performFind <nextSearchMatch>
+command! performBackwardsFind <previousSearchMatch>
+command! scrollToTop <scrollTop>
+command! scrollToBottom <scrollBottom>
+command! scrollFullPageDown <scrollPageDown>
+command! scrollFullPageUp <scrollPageUp>
+command! scrollPageDown <scrollPageDownHalf>
+command! scrollPageUp <scrollPageUpHalf>
+command! scrollToLeft <scrollPageLeft>
+command! scrollToRight <scrollPageRight>
+command! copyCurrentUrl <pageToClipboard>
+command! openCopiedUrlInCurrentTab <openFromClipboard>
+command! openCopiedUrlInNewTab <openNewTab><openFromClipboard>
+command! LinkHints.activateModeToCopyLinkUrl <p.start><startFollowCurrentTab>
+command! enterVisualMode <p.start><p.startVisualSelect>
+command! Vomnibar.activate <toExploreMode>
+command! Vomnibar.activateInNewTab <openNewTab><toExploreMode>
+command! Vomnibar.activateTabSelection <toCommandMode>buffer<Space>
+command! firstTab <:buffer 0>
+command! lastTab <:buffer 999>
+command! visitPreviousTab <toLastUsedTab>
+command! Vomnibar.activateEditUrl <toExploreMode><End>
+command! Vomnibar.activateEditUrlInNewTab <openNewTab><toExploreMode>
+command! removeTab <:close>
+command! restoreTab <reopenTab>
+command! goBack <backInHistory>
+command! goForward <forwardInHistory>
+command! togglePinTab <:pin>
+command! toggleMuteTab <:mute>
+command! createTab <openNewTab>
+command! duplicateTab <openNewTabWithCurrentUrl><CR>
+command! moveTabLeft <moveTabBackward>
+command! moveTabRight <moveTabForward>
+command! showHelp <:help>
+
+command! closeTabsOnLeft <:lclose>
+command! closeTabsOnRight <:rclose>
+command! closeOtherTabs <:rclose><:lclose>
+
 " Mappings
-nmap d <scrollPageDownHalf>
-nmap u <scrollPageUpHalf>
-nmap zH <scrollPageLeft>
-nmap zL <scrollPageRight>
-nmap yy <pageToClipboard>
-nmap yf <p.start><startFollowCurrentTab>
-nmap v <p.start><p.startVisualSelect>
-nmap o <toExploreMode>
-nmap O <openNewTab><toExploreMode>
-nmap T <toCommandMode>buffer<Space>
-nmap g0 <:buffer 0>
-nmap g$ <:buffer 999>
-nmap ge <toExploreMode><End>
-nmap gE <openNewTab><toExploreMode>
-nmap x <:close>
-nmap X <reopenTab>
-nmap <A-p> <:pin>
-nmap <A-m> <:mute>
-nmap yt <openNewTabWithCurrentUrl><CR>
-nmap ? <:help>
+nmap i <:enterInsertMode>
+nmap v <:enterVisualMode>
+nmap gi <:focusInput>
+nmap f <:LinkHints.activateMode>
+nmap F <:LinkHints.activateModeToOpenInNewForegroundTab>
+nmap / <:enterFindMode>
+nmap n <:performFind>
+nmap N <:performBackwardsFind>
+nmap gg <:scrollToTop>
+nmap G <:scrollToBottom>
+nmap d <:scrollPageDown>
+nmap u <:scrollPageUp>
+nmap zH <:scrollToLeft>
+nmap zL <:scrollToRight>
+nmap yy <:copyCurrentUrl>
+nmap p <:openCopiedUrlInCurrentTab>
+nmap P <:openCopiedUrlInNewTab>
+nmap yf <:LinkHints.activateModeToCopyLinkUrl>
+nmap v <:enterVisualMode>
+nmap o <:Vomnibar.activate>
+nmap O <:Vomnibar.activateInNewTab>
+nmap T <:Vomnibar.activateTabSelection>
+nmap g0 <:firstTab>
+nmap g$ <:lastTab>
+nmap J <previousTab>
+nmap K <nextTab>
+nmap ^ <:visitPreviousTab>
+nmap ge <:Vomnibar.activateEditUrl>
+nmap gE <:Vomnibar.activateEditUrlInNewTab>
+nmap x <:removeTab>
+nmap X <:restoreTab>
+nmap H <:goBack>
+nmap L <:goForward>
+nmap <A-p> <:togglePinTab>
+nmap <A-m> <:toggleMuteTab>
+nmap t <:createTab>
+nmap yt <:duplicateTab>
+nmap <lt><lt> <:moveTabLeft>
+nmap >> <:moveTabRight>
+nmap ? <:showHelp>
 
 " vim: ft=vim
