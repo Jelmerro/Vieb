@@ -34,6 +34,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Blobs are now recognized as valid urls, just like other common URI schemes
 - Default styling of notifications and the new mapsuggest across all themes
 - Mappings with multiple keys that get aborted by starting another mapping will now both get executed similar to Vim
+- Notification popup text can now be selected and will show all lines completely (last one was sometimes hidden)
 
 ### Fixed
 

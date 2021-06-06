@@ -583,7 +583,7 @@ ipcMain.on("show-notification", (_, escapedMessage, properType) => {
     const bounds = mainWindow.getBounds()
     const width = Math.round(bounds.width * 0.9)
     let height = Math.round(bounds.height * 0.9)
-    height -= height % fontsize
+    height -= Math.round(height % fontsize + fontsize * 0.75)
     notificationWindow.setMinimumSize(width, height)
     notificationWindow.setSize(width, height)
     notificationWindow.setPosition(

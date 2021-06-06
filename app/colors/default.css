@@ -368,10 +368,11 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 /*
  * POPUPS
 */
-.popup {padding: 1em;box-sizing: border-box;height: 100vh;width: 100vw;overflow: hidden;user-select: none;background: var(--bg);color: var(--fg);border: .1em solid var(--notification-border);}
+.popup {box-sizing: border-box;height: 100vh;width: 100vw;overflow: hidden;user-select: none;background: var(--bg);color: var(--fg);border: .1em solid var(--notification-border);}
 /* login */
+#loginpopup {padding: 1em;}
 #loginpopup * {pointer-events: none;}
 #loginpopup p {word-wrap: break-word;overflow: hidden;}
 /* notification */
-#notificationpopup #notification {padding: 0;height: calc(100% - 2em);overflow-wrap: break-word;overflow-x: hidden;overflow-y: auto;line-height: 1;}
-#notificationpopup footer {font-size: 1em;line-height: 2em;height: 2em;position: fixed;left: 0;bottom: 0; width: 100vw;border: .1em solid var(--notification-border);user-select: none;}
+#notificationpopup #notification {padding: 1em;height: calc(100% - 4.1em);overflow-wrap: break-word;overflow-x: hidden;overflow-y: auto;line-height: 1em;user-select: text;}
+#notificationpopup footer {font-size: 1em;line-height: 2em;height: 2em;position: fixed;left: 0;bottom: 0; width: 100vw;border: .1em solid var(--notification-border);}

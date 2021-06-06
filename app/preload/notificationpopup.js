@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020 Jelmer van Arnhem
+* Copyright (C) 2020-2021 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ const {ipcRenderer} = require("electron")
 let fontsize = 14
 const fixScrollHeight = () => {
     const notify = document.getElementById("notification")
-    notify.scrollTop -= notify.scrollTop % fontsize
+    notify.scrollTop = Math.round(notify.scrollTop / fontsize) * fontsize
 }
 ipcRenderer.on("notification-details", (_, message, fs, customCSS, lvl) => {
     document.getElementById("notification").scrollBy(0, -1000000000)
@@ -45,8 +45,7 @@ window.addEventListener("keydown", e => {
     }
     if (e.shiftKey) {
         if (e.code === "KeyG") {
-            document.getElementById("notification")
-                .scrollBy(0, 1000000000)
+            document.getElementById("notification").scrollBy(0, 1000000000)
             fixScrollHeight()
         }
         return
