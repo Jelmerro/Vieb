@@ -3,6 +3,7 @@ set adblocker=update
 set downloadmethod=confirm
 set mintabwidth=250
 set norestoretabs
+set follownewtabswitch
 set redirecttohttp
 set tabreopenposition=previous
 set windowtitle=title
@@ -14,7 +15,7 @@ command! enterInsertMode <toInsertMode>
 command! enterVisualMode <p.start><p.startVisualSelect>
 command! focusInput <insertAtFirstInput>
 command! LinkHints.activateMode <startFollowCurrentTab>
-command! LinkHints.activateModeToOpenInNewTab <startFollowNewTab><toLastUsedTab>
+command! LinkHints.activateModeToOpenInNewTab <startFollowNewTab>
 command! LinkHints.activateModeToOpenInNewForegroundTab <startFollowNewTab>
 command! enterFindMode <enterSearchMode>
 command! performFind <nextSearchMatch>
