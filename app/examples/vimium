@@ -3,7 +3,7 @@ set adblocker=update
 set downloadmethod=confirm
 set mintabwidth=250
 set norestoretabs
-set follownewtabswitch
+set nofollownewtabswitch
 set redirecttohttp
 set tabreopenposition=previous
 set windowtitle=title
