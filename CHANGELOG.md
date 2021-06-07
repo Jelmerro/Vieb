@@ -17,6 +17,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Open command to navigate to a website or search term directly with a command
 - Setting "permissionsensors" to control motion sensor reading (default remains blocked, previously grouped as "unknown")
+- Setting "permissionscreenwakelock" to allow sites to prevent dimming/sleeping (default remains blocked, previously grouped as "unknown")
 - Setting "mapsuggest" and "mapsuggestposition" to show and control the suggestions for multi-key mappings (by default 50 on the topright)
 - Setting "modifiers" to control which keys should not be registered on their own, but only when used as a modifier
 - Command "scriptnames" to print the list of config files loaded at startup (and optionally those sourced by them using "!")
