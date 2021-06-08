@@ -127,6 +127,7 @@ const defaultSettings = {
     "search": "https://duckduckgo.com/?kae=d&kav=1&ko=1&q=%s&ia=web",
     "searchwords": "",
     "showcmd": true,
+    "smartcase": true,
     "spell": true,
     "spelllang": "system",
     "splitbelow": false,

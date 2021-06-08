@@ -94,7 +94,7 @@ const scrollRight = () => currentPage()?.send("action", "scrollRight")
 const nextSearchMatch = () => {
     if (currentSearch) {
         currentPage()?.findInPage(currentSearch, {
-            "findNext": true, "matchCase": !getSetting("ignorecase")
+            "findNext": true, "matchCase": matchCase()
         })
     }
 }
@@ -170,9 +170,7 @@ const forwardInHistory = (customPage = null) => {
 const previousSearchMatch = () => {
     if (currentSearch) {
         currentPage()?.findInPage(currentSearch, {
-            "findNext": true,
-            "forward": false,
-            "matchCase": !getSetting("ignorecase")
+            "findNext": true, "forward": false, "matchCase": matchCase()
         })
     }
 }
@@ -446,13 +444,18 @@ const toggleFullscreen = () => {
     ipcRenderer.invoke("toggle-fullscreen").then(updateGuiVisibility)
 }
 
+const matchCase = () => {
+    if (getSetting("smartcase")) {
+        return currentSearch !== currentSearch.toLowerCase()
+    }
+    return !getSetting("ignorecase")
+}
+
 const incrementalSearch = () => {
     currentSearch = document.getElementById("url").value
-    if (currentPage() && currentSearch.trim()) {
+    if (currentPage() && currentSearch) {
         currentPage().stopFindInPage("clearSelection")
-        currentPage().findInPage(currentSearch, {
-            "matchCase": !getSetting("ignorecase")
-        })
+        currentPage().findInPage(currentSearch, {"matchCase": matchCase()})
     } else {
         currentSearch = ""
         currentPage()?.stopFindInPage("clearSelection")
