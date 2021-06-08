@@ -36,6 +36,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Default styling of notifications and the new mapsuggest across all themes
 - Mappings with multiple keys that get aborted by starting another mapping will now both get executed similar to Vim
 - Notification popup text can now be selected and will show all lines completely (last one was sometimes hidden)
+- More broad selectors for finding pagination on the page to make page number actions work for more sites
 
 ### Fixed
 

@@ -18,15 +18,13 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {activeElement, writeFile} = require("../util")
+const {activeElement, writeFile, querySelectorAll} = require("../util")
 
 const increasePageNumber = url => {
-    const paginations = Array.from(
-        document.querySelectorAll(".pagination") || [])
+    const paginations = querySelectorAll("*[rel=next], .navi-next")
     for (const pagination of paginations) {
-        const next = pagination.querySelector("*[rel=next]")
-        if (next?.href) {
-            window.location = next.href
+        if (pagination?.href) {
+            window.location = pagination.href
             return
         }
     }
@@ -34,12 +32,10 @@ const increasePageNumber = url => {
 }
 
 const decreasePageNumber = url => {
-    const paginations = Array.from(
-        document.querySelectorAll(".pagination") || [])
+    const paginations = querySelectorAll("*[rel=prev], .navi-prev")
     for (const pagination of paginations) {
-        const prev = pagination.querySelector("*[rel=prev]")
-        if (prev?.href) {
-            window.location = prev.href
+        if (pagination?.href) {
+            window.location = pagination.href
             return
         }
     }
