@@ -11,6 +11,18 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Fixed
+
+- Missing help docs for media related actions, such as pausing, muting and looping
+- All actions being reported as countable even though some of them aren't
+
+### Security
+
+- Electron 13.1.1 (unchanged)
+- Chromium 91.0.4472.77 (unchanged)
+
 ## [5.1.0](https://github.com/Jelmerro/Vieb/compare/5.0.0...5.1.0) - 2021-06-09
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/5.0.0...5.1.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/5.1.0)

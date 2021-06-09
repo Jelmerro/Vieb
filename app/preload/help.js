@@ -135,8 +135,10 @@ ipcRenderer.on("settings", (_, settings, mappings, uncountableActions) => {
         // List mappings in which this action is used
         const mapList = document.createElement("div")
         mapList.className = "map-status"
+        const actionName = actionNode.id.replace(
+            /^a.*\./, "").replace(/p.*\./, "p.")
         const actionMappings = mappings.split("\n").filter(map => map.includes(
-            `<${actionNode.id.replace(/^a.*\./, "").replace(/p.*\./, "p.")}>`))
+            `<${actionName}>`))
         actionMappings.forEach(mapping => {
             const mode = mapping.split(" ")[0].replace(/(nore)?map$/g, "")
             const [, keys] = mapping.split(" ")
@@ -166,7 +168,7 @@ ipcRenderer.on("settings", (_, settings, mappings, uncountableActions) => {
         actionNode.parentNode.parentNode.insertBefore(
             mapList, actionNode.parentNode.nextSibling)
         // Countable action badge
-        if (!uncountableActions.includes(actionNode.id)) {
+        if (!uncountableActions.includes(actionName)) {
             const badge = document.createElement("kbd")
             badge.className = "countable"
             badge.textContent = "Countable"

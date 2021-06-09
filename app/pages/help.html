@@ -1059,6 +1059,16 @@
         Open the link location at the pointer position in the current tab. This is fairly similar to navigating by clicking it with <a href="#pointer.leftClick">pointer.leftClick</a> or the <a href="#mouse">mouse</a>. The biggest difference is for elements that do something special when clicked, which won't happen when using this pointer action to navigate directly to the link.
         <h3 id="pointer.openVideo">pointer.openVideo</h3>
         Open the video element location at the pointer position in the current tab.
+        <h2 id="media-related">Media-related actions</h2>
+        These actions relate to media such as audio or video elements. They mostly control the playback of them, as download and link-related actions have <a href="#link-related">their own paragraph</a>. There are also <a href="#menu">menu</a> items for these actions, which will slightly change their name depending on the current states of these toggles ("Play" becomes "Pause" for example).
+        <h3 id="pointer.toggleMediaControls">pointer.toggleMediaControls</h3>
+        With this action you can toggle the visibility of the video player controls of the browser. The website might hide them, or have a custom interace instead of these native controls, so this action allows you to toggle the visibility at will.
+        <h3 id="pointer.toggleMediaLoop">pointer.toggleMediaLoop</h3>
+        With this action you can toggle the loop property of a video or audio element. If enabled, the audio or video will start from the beginning upon reaching the end, otherwise the playback will be stopped. Most websites have their playback looping off by default, but you can enable it with this action.
+        <h3 id="pointer.toggleMediaMute">pointer.toggleMediaMute</h3>
+        Toggle the mute state of an audio or video element. If enabled, no audio will be heard from that element. Most players show the mute state in their interface, though you can always check it using the <a href="#menu">menu</a>.
+        <h3 id="pointer.toggleMediaPlay">pointer.toggleMediaPlay</h3>
+        Toggle playback of an audio or video element. Simply pauses if playing, and starts playing if paused. Most websites will allow you to control this more easily, but it's provided as an action in Vieb regardless.
         <h2 id="menu">Menu actions</h2>
         Menu actions are for interacting with the right click context menu. You can open the menu with a right mouse click, using <a href="#action.menuOpen">action.menuOpen</a> or using the <a href="#pointer.rightClick">pointer.rightClick</a> action. Most of these actions don't do anything when no contextmenu is currently opened. As such, it's recommended to only use these actions with the <a href="#:mmap">:mmap</a> command. The most notable exception is <a href="#action.menuOpen">action.menuOpen</a> to open the menu. You can control disable or enable the different menus with <a href="#menupage">menupage</a> and <a href="#menuvieb">menuvieb</a>.
         <h3 id="action.menuOpen">action.menuOpen</h3>
