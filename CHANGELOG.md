@@ -24,6 +24,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Command "scriptnames" to print the list of config files loaded at startup (and optionally those sourced by them using "!")
 - Command "source" to load other config files either relative to the current one or by an absolute path at runtime
 - Small indicator for links on special pages to show which ones will open an external web page
+- Actions and context menu options for controlling audio and video playback, such as toggling controls/loop/mute
 
 ### Changed
 

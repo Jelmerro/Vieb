@@ -334,6 +334,47 @@ const webviewMenu = options => {
                 "action": () => commonAction(type, "external", options),
                 "title": "With external"
             })
+            if (type === "audio" || type === "video") {
+                let playTitle = "Pause"
+                if (options[`${type}Data`].paused) {
+                    playTitle = "Play"
+                }
+                createMenuItem({
+                    "action": () => currentPage()?.send("action",
+                        "togglePause", options.x, options.y),
+                    "title": playTitle
+                })
+                let muteTitle = "Mute"
+                if (options[`${type}Data`].muted) {
+                    muteTitle = "Unmute"
+                }
+                createMenuItem({
+                    "action": () => currentPage()?.send("action",
+                        "toggleMute", options.x, options.y),
+                    "title": muteTitle
+                })
+                let loopTitle = "Loop"
+                if (options[`${type}Data`].loop) {
+                    loopTitle = "Unloop"
+                }
+                createMenuItem({
+                    "action": () => currentPage()?.send("action",
+                        "toggleLoop", options.x, options.y),
+                    "title": loopTitle
+                })
+                if (type === "audio") {
+                    continue
+                }
+                let controlsTitle = "Show controls"
+                if (options[`${type}Data`].controls) {
+                    controlsTitle = "Hide controls"
+                }
+                createMenuItem({
+                    "action": () => currentPage()?.send("action",
+                        "toggleControls", options.x, options.y),
+                    "title": controlsTitle
+                })
+            }
         }
     }
     fixAlignmentNearBorders()

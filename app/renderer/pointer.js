@@ -213,6 +213,15 @@ const copyVideo = () => currentPage().send("contextmenu-data", {
 
 const copyText = () => currentPage().send("selection-copy", zoomX(), zoomY())
 
+const toggleMediaPlay = () => currentPage().send("action", "togglePause", X, Y)
+
+const toggleMediaMute = () => currentPage().send("action", "toggleMute", X, Y)
+
+const toggleMediaLoop = () => currentPage().send("action", "toggleLoop", X, Y)
+
+const toggleMediaControls = () => currentPage().send(
+    "action", "toggleControls", X, Y)
+
 const inspectElement = () => {
     const {top, left} = offset()
     currentPage().inspectElement(Math.round(X + left), Math.round(Y + top))
@@ -477,5 +486,9 @@ module.exports = {
     startOfView,
     startVisualSelect,
     swapPosition,
+    toggleMediaControls,
+    toggleMediaLoop,
+    toggleMediaMute,
+    toggleMediaPlay,
     updateElement
 }

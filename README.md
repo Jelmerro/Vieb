@@ -27,7 +27,7 @@
 - __Map commands__ for completely custom keyboard sequences, keystrokes, commands and actions
 - __Viebrc__ config file for all custom/Vim/Vieb commands to configure settings permanently
 - __Set command__ for runtime setting configuration exactly like Vim
-- __Vim-compatible options__ like showcmd, timeout, colorscheme, maxmapdepth, spelllang, splitright, smartcase etc.
+- __Vim-compatible options__: showcmd, timeout, colorscheme, maxmapdepth, spelllang, splitright, smartcase etc.
 - __Container tabs__ with colored grouping, auto-clearing, individual cookies and tab restore from containers
 - __Ad-blocker__ with optional updater and custom list support, default to: easylist and easyprivacy
 - __Tabs__ including audio indicator, a toggle for multi-line tabs, pinned tabs, muted tabs and suspended tabs

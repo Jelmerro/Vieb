@@ -18,7 +18,13 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {activeElement, writeFile, querySelectorAll} = require("../util")
+const {
+    activeElement,
+    writeFile,
+    querySelectorAll,
+    findElementAtPosition,
+    matchesQuery
+} = require("../util")
 
 const increasePageNumber = url => {
     const paginations = querySelectorAll("*[rel=next], .navi-next")
@@ -112,10 +118,7 @@ const scrollPageUpHalf = () => window.scrollBy(0, -window.innerHeight / 2 + 25)
 
 const focusTopLeftCorner = () => document.elementFromPoint(0, 0).focus()
 
-const exitFullscreen = () => {
-    document.webkitExitFullscreen()
-    document.exitFullscreen()
-}
+const exitFullscreen = () => document.exitFullscreen()
 
 const writeableInputs = {}
 
@@ -154,6 +157,50 @@ const installFirefoxExtension = () => {
     }
 }
 
+const toggleControls = (x, y) => {
+    const el = findElementAtPosition(x, y)
+    if (matchesQuery(el, "video")) {
+        if (["", "controls", "true"].includes(el.getAttribute("controls"))) {
+            el.removeAttribute("controls")
+        } else {
+            el.setAttribute("controls", "controls")
+        }
+    }
+}
+
+const toggleLoop = (x, y) => {
+    const el = findElementAtPosition(x, y)
+    if (matchesQuery(el, "audio, video")) {
+        if (["", "loop", "true"].includes(el.getAttribute("loop"))) {
+            el.removeAttribute("loop")
+        } else {
+            el.setAttribute("loop", "loop")
+        }
+    }
+}
+
+const toggleMute = (x, y) => {
+    const el = findElementAtPosition(x, y)
+    if (matchesQuery(el, "audio, video")) {
+        if (el.volume === 0) {
+            el.volume = 1
+        } else {
+            el.volume = 0
+        }
+    }
+}
+
+const togglePause = (x, y) => {
+    const el = findElementAtPosition(x, y)
+    if (matchesQuery(el, "audio, video")) {
+        if (el.paused) {
+            el.play()
+        } else {
+            el.pause()
+        }
+    }
+}
+
 const functions = {
     blur,
     decreasePageNumber,
@@ -175,6 +222,10 @@ const functions = {
     scrollTop,
     scrollUp,
     setInputFieldText,
+    toggleControls,
+    toggleLoop,
+    toggleMute,
+    togglePause,
     writeInputToFile
 }
 

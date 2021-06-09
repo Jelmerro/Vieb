@@ -375,18 +375,31 @@ const contextListener = (e, frame = null, extraData = null) => {
             }
             return null
         }).find(url => url)
-        const vid = e.composedPath().find(
+        const videoEl = e.composedPath().find(
             el => el.tagName?.toLowerCase() === "video")
-        const audio = e.composedPath().find(
+        const video = [
+            videoEl,
+            videoEl?.querySelector("source[type^=video]")
+        ].find(el => el?.src.trim())
+        const audioEl = e.composedPath().find(
             el => el.tagName?.toLowerCase() === "audio")
+        const audio = [
+            audioEl,
+            audioEl?.querySelector("source[type^=audio]"),
+            videoEl?.querySelector("source[type^=audio]")
+        ].find(el => el?.src.trim())
         const link = e.composedPath().find(
             el => el.tagName?.toLowerCase() === "a" && el.href?.trim())
         const text = e.composedPath().find(
             el => matchesQuery(el, textlikeInputs))
         ipcRenderer.sendToHost("context-click-info", {
-            "audio": audio?.src?.trim()
-                || audio?.querySelector("source[type^=audio]")?.src?.trim()
-                || vid?.querySelector("source[type^=audio]")?.src?.trim(),
+            "audio": audio?.src?.trim(),
+            "audioData": {
+                "loop": ["", "loop", "true"].includes(
+                    audio?.getAttribute("loop")),
+                "muted": audio?.volume === 0,
+                "paused": audio?.paused
+            },
             backgroundImg,
             "canEdit": !!text,
             extraData,
@@ -403,8 +416,15 @@ const contextListener = (e, frame = null, extraData = null) => {
             "link": link?.href?.trim(),
             "svgData": img && getSvgData(img),
             "text": (frame?.contentWindow || window).getSelection().toString(),
-            "video": vid?.src?.trim()
-                || vid?.querySelector("source[type^=video]")?.src?.trim(),
+            "video": video?.src?.trim(),
+            "videoData": {
+                "controls": ["", "controls", "true"].includes(
+                    video?.getAttribute("controls")),
+                "loop": ["", "loop", "true"].includes(
+                    video?.getAttribute("loop")),
+                "muted": video?.volume === 0,
+                "paused": video?.paused
+            },
             "x": e.x + (paddingInfo?.x || 0),
             "y": e.y + (paddingInfo?.y || 0)
         })
