@@ -413,10 +413,12 @@ const suggestCommand = searchStr => {
     }
     // Command: help
     if ("help".startsWith(command) && !confirm) {
-        const {listSupportedActions} = require("./input")
+        const {
+            listSupportedActions, listMappingsAsCommandList
+        } = require("./input")
         const simpleSearch = args.join(" ").replace(/^#?:?/, "")
             .replace(/!$/, "").replace(/-/g, "").toLowerCase().trim()
-        ;[
+        const sections = [
             "intro",
             "commands",
             "settings",
@@ -443,8 +445,22 @@ const suggestCommand = searchStr => {
             "mentions",
             ...commandList(false).map(c => `:${c}`),
             ...Object.values(settingsWithDefaults()).map(s => s.name),
-            ...listSupportedActions()
-        ].filter(section => {
+            ...listSupportedActions(),
+            ...listMappingsAsCommandList(false, true).split("\n")
+                .map(m => m.split(" ")[1])
+        ]
+        listMappingsAsCommandList(false, true).split("\n").forEach(map => {
+            const mode = map.split(" ")[0].replace(/(nore)?map$/g, "")
+            const [, keys] = map.split(" ")
+            if (mode) {
+                sections.push(`${mode}_${keys}`)
+            } else {
+                "nicsefpvm".split("").forEach(m => {
+                    sections.push(`${m}_${keys}`)
+                })
+            }
+        })
+        sections.filter(section => {
             const simpleSection = section.replace(/^#?:?/, "")
                 .replace(/!$/, "").replace(/-/g, "").toLowerCase().trim()
             return `${command} ${simpleSection.replace(

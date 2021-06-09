@@ -20,9 +20,27 @@
 const {ipcRenderer} = require("electron")
 const {joinPath} = require("../util")
 
+const modes = "nicsefpvm".split("")
+let allActionsByKeys = modes.reduce((a, m) => {
+    a[m] = {}
+    return a
+}, {})
+let allCommandsByKeys = modes.reduce((a, m) => {
+    a[m] = {}
+    return a
+}, {})
+
 ipcRenderer.on("settings", (_, settings, mappings, uncountableActions) => {
+    allActionsByKeys = modes.reduce((a, m) => {
+        a[m] = {}
+        return a
+    }, {})
+    allCommandsByKeys = modes.reduce((a, m) => {
+        a[m] = {}
+        return a
+    }, {})
     // Enrich the settings list with type, default, current and value lists
-    [...document.querySelectorAll(".setting-status, .map-status, .countable")]
+    ;[...document.querySelectorAll(".setting-status, .map-status, .countable")]
         .forEach(el => el.remove())
     settings.forEach(setting => {
         if (document.getElementById(setting.name)) {
@@ -74,6 +92,21 @@ ipcRenderer.on("settings", (_, settings, mappings, uncountableActions) => {
             map => map.includes(`<${cmdNode.id} `)
                 || map.includes(`<${cmdNode.id}>`))
         commandMappings.forEach(mapping => {
+            const mode = mapping.split(" ")[0].replace(/(nore)?map$/g, "")
+            const [, keys] = mapping.split(" ")
+            if (mode) {
+                if (!allCommandsByKeys[mode][keys]) {
+                    allCommandsByKeys[mode][keys] = document.querySelector(
+                        `a[href='#${cmdNode.id}']`)
+                }
+            } else {
+                modes.forEach(m => {
+                    if (!allCommandsByKeys[m][keys]) {
+                        allCommandsByKeys[m][keys] = document.querySelector(
+                            `a[href='#${cmdNode.id}']`)
+                    }
+                })
+            }
             const mappingKbd = document.createElement("kbd")
             mappingKbd.textContent = mapping
             mappingKbd.className = "command-block"
@@ -105,6 +138,21 @@ ipcRenderer.on("settings", (_, settings, mappings, uncountableActions) => {
         const actionMappings = mappings.split("\n").filter(map => map.includes(
             `<${actionNode.id.replace(/^a.*\./, "").replace(/p.*\./, "p.")}>`))
         actionMappings.forEach(mapping => {
+            const mode = mapping.split(" ")[0].replace(/(nore)?map$/g, "")
+            const [, keys] = mapping.split(" ")
+            if (mode) {
+                if (!allActionsByKeys[mode][keys]) {
+                    allActionsByKeys[mode][keys] = document.querySelector(
+                        `a[href='#${actionNode.id}']`)
+                }
+            } else {
+                modes.forEach(m => {
+                    if (!allActionsByKeys[m][keys]) {
+                        allActionsByKeys[m][keys] = document.querySelector(
+                            `a[href='#${actionNode.id}']`)
+                    }
+                })
+            }
             const mappingKbd = document.createElement("kbd")
             mappingKbd.textContent = mapping
             mappingKbd.className = "command-block"
@@ -125,21 +173,52 @@ ipcRenderer.on("settings", (_, settings, mappings, uncountableActions) => {
             actionNode.parentNode.insertBefore(badge, actionNode.nextSibling)
         }
     })
+    // Set focus to correct part of the page after it's done loading
+    if (window.scrollY < 10) {
+        processHash()
+    }
 })
 
 const processHash = () => {
     const ids = [...document.querySelectorAll("[id]")].map(e => e.id)
-    const hash = decodeURIComponent(window.location.hash.replace(/^#?:?/, "")
-        .replace(/!$/, "").replace(/-/g, "").toLowerCase().trim())
-    if (hash !== "") {
+    const hash = decodeURIComponent(window.location.hash).trim()
+        .replace(/^#?/, "")
+    const easyHash = hash.replace(/^:?/, "").replace(/!$/, "")
+        .replace(/-/g, "").toLowerCase()
+    if (easyHash !== "") {
         const match = ids.find(raw => {
             const id = decodeURIComponent(raw.replace(/^#?:?/, "").replace(/!$/, "")
                 .replace(/-/g, "").toLowerCase().trim())
-            return hash === id.replace(/^action\./, "")
-                .replace(/^pointer\./, "") || hash === id
+            return easyHash === id.replace(/^action\./, "")
+                .replace(/^pointer\./, "") || easyHash === id
         })
         if (match && document.querySelector(`a[href='#${match}']`)) {
             document.querySelector(`a[href='#${match}']`).click()
+            return
+        }
+    }
+    let mode = null
+    let keys = String(hash)
+    if (hash.match(/^\w_.*/)) {
+        [mode] = hash.split("_")
+        keys = hash.split("_").slice(1).join("_")
+    }
+    if (mode) {
+        if (allActionsByKeys[mode][keys]) {
+            allActionsByKeys[mode][keys].click()
+        } else if (allCommandsByKeys[mode][keys]) {
+            allCommandsByKeys[mode][keys].click()
+        }
+        return
+    }
+    for (const m of modes) {
+        if (allActionsByKeys[m][keys]) {
+            allActionsByKeys[m][keys].click()
+            return
+        }
+        if (allCommandsByKeys[m][keys]) {
+            allCommandsByKeys[m][keys].click()
+            return
         }
     }
 }
@@ -188,5 +267,5 @@ window.addEventListener("load", () => {
     const sections = [...document.querySelectorAll("#helppage *[id]")]
     sections.forEach(section => createIdLabel(section))
     // Set focus to correct part of the page after it's done loading
-    setTimeout(processHash, 50)
+    setTimeout(processHash, 200)
 })

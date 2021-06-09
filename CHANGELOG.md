@@ -39,6 +39,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Mappings with multiple keys that get aborted by starting another mapping will now both get executed similar to Vim
 - Notification popup text can now be selected and will show all lines completely (last one was sometimes hidden)
 - More broad selectors for finding pagination on the page to make page number actions work for more sites
+- Help command now accepts any mapped sequence of keys and will open the first action or command those keys are mapped to
 
 ### Fixed
 

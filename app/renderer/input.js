@@ -1483,7 +1483,7 @@ const mapOrList = (mode, args, noremap, includeDefault) => {
 }
 
 const sanitiseMapString = (mapString, allowSpecials = false) => mapString
-    .split(/(<.*?[^-]>|<.*?->>|.)/g).filter(m => m).map(m => {
+    .split(mapStringSplitter).filter(m => m).map(m => {
         if (m === ">") {
             return ">"
         }
