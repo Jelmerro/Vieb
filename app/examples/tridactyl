@@ -46,7 +46,6 @@ command! tabmove_-1 <moveTabBackward>
 command! current_url_open <toExploreMode><End>
 command! tabclosealltoleft <:lclose>
 command! tabclosealltoright <:rclose>
-command! pin <:pin>
 command! mute_toggle <:mute>
 command! stop <stopLoadingPage>
 command! urlincrement_-1 <decreasePageNumber>
