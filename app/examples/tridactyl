@@ -32,35 +32,63 @@ set searchwords+=mdn~https://developer.mozilla.org/en-US/search?q=%s
 set searchwords+=gentoo_wiki~https://wiki.gentoo.org/index.php?title=Special:Search&profile=default&fulltext=Search&search=%s
 set searchwords+=qwant~https://www.qwant.com/?q=%s
 
+" Custom Commands
+command! clipboard_yank <pageToClipboard>
+command! fillcmdline_open <toExploreMode>
+command! fillcmdline_tab <toCommandMode>buffer<Space>
+command! tabfirst <:buffer 0>
+command! tabfirst <:buffer 0>
+command! tablast <:buffer 999>
+command! tabprev <previousTab>
+command! tabnext <nextTab>
+command! tabmove_+1 <moveTabForward>
+command! tabmove_-1 <moveTabBackward>
+command! current_url_open <toExploreMode><End>
+command! tabclosealltoleft <:lclose>
+command! tabclosealltoright <:rclose>
+command! mute_toggle <:mute>
+command! stop <stopLoadingPage>
+command! urlincrement_-1 <decreasePageNumber>
+command! urlincrement_1 <increasePageNumber>
+command! zoom_1 <zoomReset>
+command! zoom_0.1_true <zoomIn>
+command! zoom_-0.1_true <zoomOut>
+command! zoom_0.5_true 5<zoomIn>
+command! zoom_-0.5_true 5<zoomOut>
+command! zoom_0.5_true 5<zoomIn>
+command! zoom_-0.5_true 5<zoomOut>
+command! zoom_3 7<zoomIn>
+command! zoom_0.3 7<zoomOut>
+
 " Mappings
-nmap yy <pageToClipboard>
-nmap o <toExploreMode>
-nmap b <toCommandMode>buffer<Space>
-nmap g0 <:buffer 0>
-nmap g^ <:buffer 0>
-nmap g$ <:buffer 999>
-nmap J <previousTab>
-nmap K <nextTab>
-nmap >> <moveTabForward>
-nmap <lt><lt> <moveTabBackward>
-nmap O <toExploreMode><End>
-nmap gx0 <:lclose>
-nmap gx$ <:rclose>
+nmap yy <:clipboard_yank>
+nmap o <:fillcmdline_open>
+nmap b <:fillcmdline_tab>
+nmap g0 <:tabfirst>
+nmap g^ <:tabfirst>
+nmap g$ <:tablast>
+nmap J <:tabprev>
+nmap K <:tabnext>
+nmap >> <:tabmove_+1>
+nmap <lt><lt> <:tabmove_-1>
+nmap O <:current_url_open>
+nmap gx0 <:tabclosealltoleft>
+nmap gx$ <:tabclosealltoright>
 nmap <A-p> <:pin>
-nmap <A-m> <:mute>
-nmap x <stopLoadingPage>
-nmap [c <decreasePageNumber>
-nmap ]c <increasePageNumber>
-nmap zz <zoomReset>
-nmap zi <zoomIn>
-nmap zo <zoomOut>
-nmap zm 5<zoomIn>
-nmap zr 5<zoomOut>
-nmap zM 5<zoomIn>
-nmap zR 5<zoomOut>
-nmap zI 7<zoomIn>
-nmap zO 7<zoomOut>
+nmap <A-m> <:mute_toggle>
+nmap x <:stop>
+nmap [c <:urlincrement_-1>
+nmap ]c <:urlincrement_1>
+nmap zz <:zoom_1>
+nmap zi <:zoom_0.1_true>
+nmap zo <:zoom_-0.1_true>
+nmap zm <:zoom_0.5_true>
+nmap zr <:zoom_-0.5_true>
+nmap zM <:zoom_0.5_true>
+nmap zR <:zoom_-0.5_true>
+nmap zI <:zoom_3>
+nmap zO <:zoom_0.3>
 " Tridactyl easter egg
-nmap <A-S-Up><A-S-Up><A-S-Down><A-S-Down><A-S-Left><A-S-Right><A-S-Left><A-S-Right>ba <toExploreMode>https://www.youtube.com/watch?v=M3iOROuTuMA<CR>
+nmap <A-S-Up><A-S-Up><A-S-Down><A-S-Down><A-S-Left><A-S-Right><A-S-Left><A-S-Right>ba <:open https://www.youtube.com/watch?v=M3iOROuTuMA>
 
 " vim: ft=vim
