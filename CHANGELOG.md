@@ -17,6 +17,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Missing help docs for media related actions, such as pausing, muting and looping
 - All actions being reported as countable even though some of them aren't
+- Call command and custom mappings not always executing first part of the mapping from normal mode
+- Uncountable actions being executed multiple times when not recursively called
 
 ### Security
 
@@ -107,7 +109,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - More names than before are allowed for containers, as it works with a small blocklist instead of an allowlist for characters
 - More names for seachwords are now allowed as part of the keyword, for similar reasons as above
 - Container names in Erwic configs will no longer replace special characters, but will report and exit
-- Word separator keybindings in the navbar wll now detect separators for non-latin scriptures using a whitelist of separators
+- Word separator keybindings in the navbar will now detect separators for non-latin scriptures using a list of allowed separators
 - Default value of "permissionmediadevices" and "permissionnotifications" from "ask" to "block" to reduce the amount of popups
 - Startup arguments now accept values separated by `=` instead of spaces or no value at all
 - Renamed "rotateSplitWindow" to "rotateSplitWindowForward" to be more consistent with the recently introduced "Backward" variant

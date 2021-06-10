@@ -617,7 +617,7 @@ const callAction = (...args) => {
     setTimeout(() => {
         const {executeMapString, sanitiseMapString} = require("./input")
         executeMapString(sanitiseMapString(args.join(" "), true), true, true)
-    }, 0)
+    }, 5)
 }
 
 const logError = err => {
@@ -1000,7 +1000,7 @@ const execute = (com, settingsFile = null) => {
             setTimeout(() => {
                 const {executeMapString} = require("./input")
                 executeMapString(userCommands[command], true, true)
-            }, 0)
+            }, 5)
         }
     } else if (matches.length > 1) {
         notify(

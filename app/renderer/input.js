@@ -341,6 +341,7 @@ let blockNextInsertKey = false
 const mapStringSplitter = /(<.*?[^-]>|<.*?->>|.)/g
 let inputHistoryList = [{"index": 0, "value": ""}]
 let inputHistoryIndex = 0
+let lastActionInMapping = null
 
 const init = () => {
     window.addEventListener("keydown", handleKeyboard)
@@ -743,12 +744,14 @@ const executeMapString = async(mapStr, recursive, initial) => {
             } else if (key.startsWith("<:")) {
                 const {execute} = require("./command")
                 execute(key.replace(/^<:|>$/g, ""))
+                lastActionInMapping = null
             } else if (key.match(/^(<(C-)?(M-)?(A-)?(S-)?.+>|.)$/g)) {
                 if (currentMode() === "insert") {
                     await sendKeysToWebview(options, key)
                 } else {
                     window.dispatchEvent(new KeyboardEvent("keydown", options))
                 }
+                lastActionInMapping = null
             }
             await new Promise(r => {
                 setTimeout(r, 3)
@@ -762,6 +765,7 @@ const executeMapString = async(mapStr, recursive, initial) => {
         recursiveCounter = 0
         repeatCounter = 0
         pressedKeys = ""
+        lastActionInMapping = null
         updateKeysOnScreen()
     }
 }
@@ -772,10 +776,16 @@ const doAction = async(actionName, givenCount) => {
         return
     }
     let actionCount = givenCount || 1
-    const pointer = actionName.toLowerCase().startsWith("p.")
     if (uncountableActions.includes(actionName)) {
+        if (lastActionInMapping === actionName) {
+            repeatCounter = 0
+            updateKeysOnScreen()
+            return
+        }
         actionCount = 1
     }
+    lastActionInMapping = String(actionName)
+    const pointer = actionName.toLowerCase().startsWith("p.")
     const funcName = actionName.replace(/^.*\./g, "")
     for (let i = 0; i < actionCount; i++) {
         if (pointer) {
@@ -824,12 +834,12 @@ const handleKeyboard = async e => {
     if (getSetting("timeout")) {
         timeoutTimer = setTimeout(async() => {
             if (pressedKeys) {
-                const action = actionForKeys(pressedKeys)
-                if (action && (e.isTrusted || e.bubbles)) {
+                const ac = actionForKeys(pressedKeys)
+                if (ac && (e.isTrusted || e.bubbles)) {
                     if (e.isTrusted) {
-                        executeMapString(action.mapping, !action.noremap, true)
+                        await executeMapString(ac.mapping, !ac.noremap, true)
                     } else {
-                        executeMapString(action.mapping, e.bubbles)
+                        await executeMapString(ac.mapping, e.bubbles)
                     }
                     return
                 }
@@ -907,9 +917,9 @@ const handleKeyboard = async e => {
         const action = actionForKeys(pressedKeys)
         if (action && (e.isTrusted || e.bubbles)) {
             if (e.isTrusted) {
-                executeMapString(action.mapping, !action.noremap, true)
+                await executeMapString(action.mapping, !action.noremap, true)
             } else {
-                executeMapString(action.mapping, e.bubbles)
+                await executeMapString(action.mapping, e.bubbles)
             }
             return
         }
@@ -1609,7 +1619,6 @@ const clearmap = (mode, removeDefaults) => {
 
 module.exports = {
     clearmap,
-    doAction,
     executeMapString,
     init,
     keyNames,
