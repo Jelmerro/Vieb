@@ -90,7 +90,7 @@ Options:
                          You can also use the ENV var: 'VIEB_CONFIG_ORDER'.
 
  --config-file=<file>    Parse only a single viebrc config file when starting.
-                         If a file is provided using thsi argument,
+                         If a file is provided using this argument,
                          the '--config-order' argument will be set to 'none'.
                          Also see ':h viebrc' for viebrc locations and details.
                          You can also use the ENV var: 'VIEB_CONFIG_FILE'.
