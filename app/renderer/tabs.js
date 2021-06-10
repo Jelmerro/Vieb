@@ -358,7 +358,6 @@ const addTab = (options = {}) => {
         const {applyLayout} = require("./pagelayout")
         applyLayout()
     }
-    return linkId
 }
 
 const suspendTab = tab => {

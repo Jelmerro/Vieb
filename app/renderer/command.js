@@ -322,17 +322,17 @@ const openDevTools = (userPosition = null, trailingArgs = false) => {
         const {addTab} = require("./tabs")
         addTab({"devtools": true})
     } else if (position === "vsplit") {
-        const {addTab, switchToTab} = require("./tabs")
-        const id = addTab({"devtools": true, "switchTo": false})
+        const {addTab} = require("./tabs")
+        const id = currentTab().getAttribute("link-id")
+        addTab({"devtools": true})
         const {add} = require("./pagelayout")
-        add(id, "hor", !getSetting("splitright"))
-        switchToTab(tabIndexById(id))
+        add(id, "hor", getSetting("splitright"))
     } else if (position === "split") {
-        const {addTab, switchToTab} = require("./tabs")
-        const id = addTab({"devtools": true, "switchTo": false})
+        const {addTab} = require("./tabs")
+        const id = currentTab().getAttribute("link-id")
+        addTab({"devtools": true})
         const {add} = require("./pagelayout")
-        add(id, "ver", !getSetting("splitbelow"))
-        switchToTab(tabIndexById(id))
+        add(id, "ver", getSetting("splitbelow"))
     } else {
         notify("Invalid devtools position specified, must be one of: "
             + "window, vsplit, split or tab", "warn")
@@ -568,14 +568,12 @@ const tabIndexById = id => listTabs().indexOf(listTabs().find(
     t => t.getAttribute("link-id") === id))
 
 const addSplit = (method, leftOrAbove, args) => {
-    const {addTab, switchToTab} = require("./tabs")
+    const {addTab} = require("./tabs")
+    const {add} = require("./pagelayout")
+    const id = currentTab().getAttribute("link-id")
     if (args.length === 0) {
-        const id = addTab({
-            "container": getSetting("containersplitpage"), "switchTo": false
-        })
-        const {add} = require("./pagelayout")
-        add(id, method, leftOrAbove)
-        switchToTab(tabIndexById(id))
+        addTab({"container": getSetting("containersplitpage")})
+        add(id, method, !leftOrAbove)
         return
     }
     const tab = tabForBufferArg(args)
@@ -583,19 +581,14 @@ const addSplit = (method, leftOrAbove, args) => {
         if (tab.classList.contains("visible-tab")) {
             notify("Page is already visible", "warn")
         } else {
-            const {add} = require("./pagelayout")
-            add(tabOrPageMatching(tab), method, leftOrAbove)
-            switchToTab(tab)
+            add(tabOrPageMatching(tab), method, !leftOrAbove)
         }
     } else {
-        const id = addTab({
+        addTab({
             "container": getSetting("containersplitpage"),
-            "switchTo": false,
             "url": stringToUrl(args.join(" "))
         })
-        const {add} = require("./pagelayout")
-        add(id, method, leftOrAbove)
-        switchToTab(tabIndexById(id))
+        add(id, method, !leftOrAbove)
     }
 }
 

@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+## Changed
+
+- More consistent opening of splits when many tabs are open
+
 ### Fixed
 
 - Missing help docs for media related actions, such as pausing, muting and looping
