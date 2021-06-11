@@ -69,4 +69,5 @@
 /* special pages */
 #app #pointer, #cookiespage img, #downloadspage img, #historypage img {filter: invert(1);}
 .specialpage a::after {filter: invert(1);}
+#helppage .cheatsheet {filter: none;}
 #historypage img.favicon {filter: none;}

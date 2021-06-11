@@ -84,6 +84,12 @@ but they are probably the simplest way to get started if your system is listed.
 
 [![Third-party releases table](https://repology.org/badge/vertical-allrepos/vieb.svg?minversion=5.1.0)](https://repology.org/project/vieb/versions)
 
+# Cheatsheet
+
+Quickly get an overview of the default mappings and basic usage.
+
+[![cheatsheet](app/img/cheatsheet.png)](https://vieb.dev/cheatsheet)
+
 # Contribute
 
 You can help by reporting issues and suggesting new features on the [Github issue tracker](https://github.com/Jelmerro/Vieb/issues).
@@ -106,18 +112,13 @@ The next step is to clone the repository or download the source code.
 After downloading, make sure you are in the cloned/extracted Vieb folder and run:
 
 ```bash
-npm install
+npm ci
 npm start
 ```
 
-If this runs Vieb as expected, you can generate builds for your specific platform with:
-
-```bash
-npm ci
-npm run build
-```
-
+If this runs Vieb as expected, you can generate builds for your platform with `npm run build`.
 To see the full list of run and build options, simply execute `npm run`.
+The entire configuration for what to build is stored in the `electron-builder.yml` config file.
 
 # License
 

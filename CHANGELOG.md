@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+## Added
+
+- Cheatsheet for default mappings and general usage of Vieb to the help page, website and readme
+
 ## Changed
 
 - More consistent opening of splits when many tabs are open

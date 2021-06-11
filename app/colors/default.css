@@ -293,6 +293,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #helppage main {max-width: 65em;margin: auto;}
 #helppage .header, #helppage .header > div {font-size: 5vw;display: flex;flex: 1;justify-content: center;}
 #helppage .header > div > img {height: 10vw;margin: 0 1em 0 0;}
+#helppage .cheatsheet {float: none;height: auto;width: 100%;filter: contrast(.5) invert() contrast(4) hue-rotate(180deg) saturate(4);}
 #helppage a {overflow-wrap: anywhere;}
 #helppage li {line-height: 1.5em;}
 #helppage .section {display: flex;flex-wrap: wrap;align-items: center;}

@@ -564,9 +564,6 @@ const pin = (...args) => {
     saveTabs()
 }
 
-const tabIndexById = id => listTabs().indexOf(listTabs().find(
-    t => t.getAttribute("link-id") === id))
-
 const addSplit = (method, leftOrAbove, args) => {
     const {addTab} = require("./tabs")
     const {add} = require("./pagelayout")
