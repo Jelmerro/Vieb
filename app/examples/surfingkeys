@@ -1,0 +1,108 @@
+" Options
+set adblocker=update
+set devtoolsposition=split
+set downloadmethod=confirm
+set firefoxmode=always
+set fontsize=16
+set mintabwidth=250
+set norestoretabs
+set permissioncamera=ask
+set permissiondisplaycapture=allow
+set permissionmediadevices=allow
+set permissionmicrophone=ask
+set permissionpersistentstorage=allow
+set redirecttohttp
+set splitbelow
+set tabclosefocusright
+set tabreopenposition=previous
+set windowtitle=title
+set showcmd
+set mapsuggestposition=bottomright
+
+" Search Engines
+set searchwords=
+set searchwords+=t~https://translate.google.com/?sl=auto&tl=en&text=%s
+set searchwords+=d~https://duckduckgo.com/?q=%s
+set searchwords+=g~https://www.google.com/search?hl=en&q=%s
+set searchwords+=w~https://www.bing.com/search?q=%s
+set searchwords+=b~https://www.baidu.com/s?wd=%s
+set searchwords+=y~https://www.youtube.com/results?search_query=%s
+set searchwords+=e~https://en.wikipedia.org/?search=%s
+set searchwords+=s~https://stackoverflow.com/search?q=%s
+set searchwords+=h~https://github.com/search?q=%s
+
+" Mappings
+nmap af <startFollowNewTab>
+nmap gf <startFollowNewTab><toLastUsedTab>
+nmap C <startFollowNewTab><toLastUsedTab>
+nmap [[ <decreasePageNumber>
+nmap ]] <increasePageNumber>
+nmap 0 <scrollPageLeft>
+nmap e <scrollPageUpHalf>
+nmap u <scrollPageUpHalf>
+nmap d <scrollPageDownHalf>
+nunmap y
+nmap yt <openNewTabWithCurrentUrl><CR>
+nmap yT <openNewTabWithCurrentUrl><CR><toLastUsedTab>
+nmap yy <pageToClipboard>
+nmap g0 <:buffer 0>
+nmap g$ <:buffer 999>
+nmap gx0 <:lclose>
+nmap gxt <:lclose>
+nmap gxT <:rclose>
+nmap gx$ <:rclose>
+nmap gxx <:lclose><:rclose>
+nmap E <previousTab>
+nmap R <nextTab>
+nmap zr <zoomReset>
+nmap zi <zoomIn>
+nmap zo <zoomOut>
+nmap go <toExploreMode>
+nmap T :buffer<Space>
+nmap t <openNewTab><toExploreMode>
+nmap <A-p> <:pin>
+nmap <A-m> <:mute>
+nmap on <openNewTab>
+nmap x <:close>
+nmap X <reopenTab>
+nmap <lt><lt> <moveTabBackward>
+nmap >> <moveTabForward>
+nmap <C-6> <toLastUsedTab>
+nmap S <backInHistory>
+nmap D <forwardInHistory>
+nmap cc <openNewTab><openFromClipboard>
+nmap ob <openNewTab><toExploreMode>b<Space>
+nmap og <openNewTab><toExploreMode>g<Space>
+nmap od <openNewTab><toExploreMode>d<Space>
+nmap ow <openNewTab><toExploreMode>w<Space>
+nmap oy <openNewTab><toExploreMode>y<Space>
+nmap oe <openNewTab><toExploreMode>e<Space>
+nmap os <openNewTab><toExploreMode>s<Space>
+nmap oh <openNewTab><toExploreMode>h<Space>
+nmap sb <openNewTab><toExploreMode>b <C-v><CR>
+nmap sg <openNewTab><toExploreMode>g <C-v><CR>
+nmap sd <openNewTab><toExploreMode>d <C-v><CR>
+nmap sw <openNewTab><toExploreMode>w <C-v><CR>
+nmap sy <openNewTab><toExploreMode>y <C-v><CR>
+nmap se <openNewTab><toExploreMode>e <C-v><CR>
+nmap ss <openNewTab><toExploreMode>s <C-v><CR>
+nmap sh <openNewTab><toExploreMode>h <C-v><CR>
+nmap ? <:help>
+nmap v <p.start>
+pmap v <p.startVisualSelect>
+pmap 0 <p.moveLeftMax>
+pmap e <p.moveFastRight>
+vmap v <toNormalMode>
+vmap 0 <p.moveLeftMax>
+vmap e <p.moveFastRight>
+vmap cc <p.copyText><openNewTab><openFromClipboard>
+vmap t <p.copyText><openNewTab><toExploreMode>t <C-v><CR>
+imap <C-e> <End>
+imap <C-f> <Home>
+imap <C-u> <S-Home><BS>
+imap <A-b> <C-Left>
+imap <A-f> <C-Right>
+imap <A-w> <C-S-Left><BS>
+imap <A-d> <C-S-Right><BS>
+
+" vim: ft=vim

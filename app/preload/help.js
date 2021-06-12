@@ -229,7 +229,7 @@ window.addEventListener("hashchange", processHash)
 
 window.addEventListener("DOMContentLoaded", () => {
     const examples = [
-        "chromium", "firefox", "qutebrowser", "vimium", "tridactyl"
+        "chromium", "firefox", "qutebrowser", "vimium", "tridactyl", "surfingkeys"
     ]
     for (const example of examples) {
         const button = document.createElement("button")
