@@ -21,15 +21,15 @@ set mapsuggestposition=bottomright
 
 " Search Engines
 set searchwords=
-set searchwords+=t~https://translate.google.com/?sl=auto&tl=en&text=%s
-set searchwords+=d~https://duckduckgo.com/?q=%s
-set searchwords+=g~https://www.google.com/search?hl=en&q=%s
-set searchwords+=w~https://www.bing.com/search?q=%s
-set searchwords+=b~https://www.baidu.com/s?wd=%s
-set searchwords+=y~https://www.youtube.com/results?search_query=%s
-set searchwords+=e~https://en.wikipedia.org/?search=%s
-set searchwords+=s~https://stackoverflow.com/search?q=%s
-set searchwords+=h~https://github.com/search?q=%s
+set searchwords+=translate~https://translate.google.com/?sl=auto&tl=en&text=%s
+set searchwords+=duckduckgo~https://duckduckgo.com/?q=%s
+set searchwords+=google~https://www.google.com/search?hl=en&q=%s
+set searchwords+=bing~https://www.bing.com/search?q=%s
+set searchwords+=baidu~https://www.baidu.com/s?wd=%s
+set searchwords+=youtube~https://www.youtube.com/results?search_query=%s
+set searchwords+=wikipedia~https://en.wikipedia.org/?search=%s
+set searchwords+=stackoverflow~https://stackoverflow.com/search?q=%s
+set searchwords+=github~https://github.com/search?q=%s
 
 " Mappings
 nmap af <startFollowNewTab>
@@ -71,22 +71,22 @@ nmap <C-6> <toLastUsedTab>
 nmap S <backInHistory>
 nmap D <forwardInHistory>
 nmap cc <openNewTab><openFromClipboard>
-nmap ob <openNewTab><toExploreMode>b<Space>
-nmap og <openNewTab><toExploreMode>g<Space>
-nmap od <openNewTab><toExploreMode>d<Space>
-nmap ow <openNewTab><toExploreMode>w<Space>
-nmap oy <openNewTab><toExploreMode>y<Space>
-nmap oe <openNewTab><toExploreMode>e<Space>
-nmap os <openNewTab><toExploreMode>s<Space>
-nmap oh <openNewTab><toExploreMode>h<Space>
-nmap sb <openNewTab><toExploreMode>b <C-v><CR>
-nmap sg <openNewTab><toExploreMode>g <C-v><CR>
-nmap sd <openNewTab><toExploreMode>d <C-v><CR>
-nmap sw <openNewTab><toExploreMode>w <C-v><CR>
-nmap sy <openNewTab><toExploreMode>y <C-v><CR>
-nmap se <openNewTab><toExploreMode>e <C-v><CR>
-nmap ss <openNewTab><toExploreMode>s <C-v><CR>
-nmap sh <openNewTab><toExploreMode>h <C-v><CR>
+nmap ob <openNewTab><toExploreMode>baidu<Space>
+nmap og <openNewTab><toExploreMode>google<Space>
+nmap od <openNewTab><toExploreMode>duckduckgo<Space>
+nmap ow <openNewTab><toExploreMode>bing<Space>
+nmap oy <openNewTab><toExploreMode>youtube<Space>
+nmap oe <openNewTab><toExploreMode>wikipedia<Space>
+nmap os <openNewTab><toExploreMode>stackoverflow<Space>
+nmap oh <openNewTab><toExploreMode>github<Space>
+nmap sb <openNewTab><toExploreMode>baidu <C-v><CR>
+nmap sg <openNewTab><toExploreMode>google <C-v><CR>
+nmap sd <openNewTab><toExploreMode>duckduckgo <C-v><CR>
+nmap sw <openNewTab><toExploreMode>bing <C-v><CR>
+nmap sy <openNewTab><toExploreMode>youtube <C-v><CR>
+nmap se <openNewTab><toExploreMode>wikipedia <C-v><CR>
+nmap ss <openNewTab><toExploreMode>stackoverflow <C-v><CR>
+nmap sh <openNewTab><toExploreMode>github <C-v><CR>
 nmap ? <:help>
 nmap v <p.start>
 pmap v <p.startVisualSelect>
@@ -96,7 +96,7 @@ vmap v <toNormalMode>
 vmap 0 <p.moveLeftMax>
 vmap e <p.moveFastRight>
 vmap cc <p.copyText><openNewTab><openFromClipboard>
-vmap t <p.copyText><openNewTab><toExploreMode>t <C-v><CR>
+vmap t <p.copyText><openNewTab><toExploreMode>translate <C-v><CR>
 imap <C-e> <End>
 imap <C-f> <Home>
 imap <C-u> <S-Home><BS>
