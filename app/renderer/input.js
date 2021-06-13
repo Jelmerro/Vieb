@@ -433,16 +433,16 @@ const init = () => {
     })
     const {ipcRenderer} = require("electron")
     ipcRenderer.on("insert-mode-input-event", (_, input) => {
-        if (input.code === "Tab") {
+        if (input.key === "Tab") {
             currentPage().focus()
         }
         // Check if fullscreen should be disabled
-        const noMods = !input.shift && !input.meta && !input.alt
-        const ctrl = input.control
-        const escapeKey = input.code === "Escape" && noMods && !ctrl
-        const ctrlBrack = input.code === "BracketLeft" && noMods && ctrl
-        if (escapeKey || ctrlBrack) {
-            if (document.body.classList.contains("fullscreen")) {
+        if (document.body.classList.contains("fullscreen")) {
+            const noMods = !input.shift && !input.meta && !input.alt
+            const ctrl = input.control
+            const escapeKey = input.key === "Escape" && noMods && !ctrl
+            const ctrlBrack = input.key === "[" && noMods && ctrl
+            if (escapeKey || ctrlBrack) {
                 currentPage().send("action", "exitFullscreen")
                 return
             }

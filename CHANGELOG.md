@@ -22,6 +22,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - More consistent opening of splits when many tabs are open
 - Further improvements to the encoding and decoding of urls
+- Keycodes for popups are now acquired the same way as regular keys, so that they work on different keyboard layouts
 
 ### Fixed
 
@@ -32,7 +33,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Security
 
-- Electron 13.1.1 (unchanged)
+- Electron 13.1.2 (was 13.1.1)
 - Chromium 91.0.4472.77 (unchanged)
 
 ## [5.1.0](https://github.com/Jelmerro/Vieb/compare/5.0.0...5.1.0) - 2021-06-09

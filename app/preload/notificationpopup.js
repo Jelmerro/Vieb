@@ -38,44 +38,41 @@ window.addEventListener("keydown", e => {
         return
     }
     if (e.ctrlKey) {
-        if (e.code === "BracketLeft" && !e.shiftKey) {
+        if (e.key === "[" && !e.shiftKey) {
             ipcRenderer.send("hide-notification-window")
         }
         return
     }
-    if (e.shiftKey) {
-        if (e.code === "KeyG") {
-            document.getElementById("notification").scrollBy(0, 1000000000)
-            fixScrollHeight()
-        }
-        return
+    if (e.key === "G") {
+        document.getElementById("notification").scrollBy(0, 1000000000)
+        fixScrollHeight()
     }
-    if (e.code === "KeyK") {
+    if (e.key === "k") {
         document.getElementById("notification").scrollBy(0, -fontsize)
         fixScrollHeight()
-    } else if (e.code === "KeyJ") {
+    } else if (e.key === "j") {
         document.getElementById("notification").scrollBy(0, fontsize)
         fixScrollHeight()
-    } else if (e.code === "KeyG") {
+    } else if (e.key === "g") {
         document.getElementById("notification").scrollBy(0, -1000000000)
         fixScrollHeight()
-    } else if (e.code === "KeyU") {
+    } else if (e.key === "u") {
         document.getElementById("notification")
             .scrollBy(0, -window.innerHeight / 2 + fontsize)
         fixScrollHeight()
-    } else if (e.code === "KeyD") {
+    } else if (e.key === "d") {
         document.getElementById("notification")
             .scrollBy(0, window.innerHeight / 2 - fontsize)
         fixScrollHeight()
-    } else if (e.code === "KeyB") {
+    } else if (e.key === "b") {
         document.getElementById("notification")
             .scrollBy(0, -window.innerHeight + fontsize * 2)
         fixScrollHeight()
-    } else if (e.code === "KeyF" || e.code === "Space") {
+    } else if (e.key === "f" || e.key === " ") {
         document.getElementById("notification")
             .scrollBy(0, window.innerHeight - fontsize * 2)
         fixScrollHeight()
-    } else if (e.code === "Escape" || e.code === "KeyQ") {
+    } else if (e.key === "Escape" || e.key === "q") {
         ipcRenderer.send("hide-notification-window")
     }
 })
