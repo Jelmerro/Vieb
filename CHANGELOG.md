@@ -17,6 +17,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Cheatsheet for default mappings and general usage of Vieb to the help page, website and readme
 - Example config for Surfingkeys
+- Support for numpad/keypad keys in mappings, such as k3, kEnd or kPlus
 
 ## Changed
 

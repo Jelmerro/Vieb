@@ -508,6 +508,16 @@ const keyNames = [
     {"js": ["Delete", "\u0000"], "vim": ["Del"]},
     {"js": ["PrintScreen"], "vim": ["PrintScreen", "PrtScr"]},
     {"js": ["Control"], "vim": ["Ctrl"]},
+    {"js": ["kArrowLeft"], "vim": ["kLeft"]},
+    {"js": ["kArrowRight"], "vim": ["kRight"]},
+    {"js": ["kArrowUp"], "vim": ["kUp"]},
+    {"js": ["kArrowDown"], "vim": ["kDown"]},
+    {"js": ["kPlus", "k+"], "vim": ["kPlus"]},
+    {"js": ["kMinus", "k-"], "vim": ["kMinus"]},
+    {"js": ["kMultiply", "k*"], "vim": ["kMultiply"]},
+    {"js": ["kDivide", "k/"], "vim": ["kDivide"]},
+    {"js": ["kPoint", "k."], "vim": ["kPoint"]},
+    {"js": ["kDelete"], "vim": ["kDel"]},
     // Keys with the same names, which are listed here to detect incorrect names
     // Note: some of these are not present in Vim and use the JavaScript name
     {"js": ["Shift"], "vim": ["Shift"]},
@@ -535,11 +545,31 @@ const keyNames = [
     {"js": ["Pause"], "vim": ["Pause"]},
     {"js": ["NumLock"], "vim": ["NumLock"]},
     {"js": ["CapsLock"], "vim": ["CapsLock"]},
-    {"js": ["ScrollLock"], "vim": ["ScrollLock"]}
+    {"js": ["ScrollLock"], "vim": ["ScrollLock"]},
+    {"js": ["kClear"], "vim": ["kClear"]},
+    {"js": ["kHome"], "vim": ["kHome"]},
+    {"js": ["kEnd"], "vim": ["kEnd"]},
+    {"js": ["kPageUp"], "vim": ["kPageUp"]},
+    {"js": ["kPageDown"], "vim": ["kPageDown"]},
+    {"js": ["k0"], "vim": ["k0"]},
+    {"js": ["k1"], "vim": ["k1"]},
+    {"js": ["k2"], "vim": ["k2"]},
+    {"js": ["k3"], "vim": ["k3"]},
+    {"js": ["k4"], "vim": ["k4"]},
+    {"js": ["k5"], "vim": ["k5"]},
+    {"js": ["k6"], "vim": ["k6"]},
+    {"js": ["k7"], "vim": ["k7"]},
+    {"js": ["k8"], "vim": ["k8"]},
+    {"js": ["k9"], "vim": ["k9"]},
+    {"js": ["kEnter"], "vim": ["kEnter"]},
+    {"js": ["kInsert"], "vim": ["kInsert"]}
 ]
 
 const toIdentifier = e => {
     let keyCode = e.key
+    if (e.location === KeyboardEvent.DOM_KEY_LOCATION_NUMPAD) {
+        keyCode = `k${keyCode}`
+    }
     keyNames.forEach(key => {
         if (key.js.includes(keyCode)) {
             [keyCode] = key.vim
