@@ -18,7 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {joinPath, formatDate} = require("../util")
+const {joinPath, formatDate, urlToString} = require("../util")
 
 // Configure breakpoints to make searching easier
 const now = new Date()
@@ -182,7 +182,7 @@ const addHistToList = hist => {
     title.className = "hist-title"
     histElement.appendChild(title)
     const url = document.createElement("a")
-    url.textContent = hist.url
+    url.textContent = urlToString(hist.url)
     url.setAttribute("href", hist.url)
     histElement.appendChild(url)
     list.insertBefore(histElement, list.firstChild)

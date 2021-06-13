@@ -20,6 +20,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ## Changed
 
 - More consistent opening of splits when many tabs are open
+- Further improvements to the encoding and decoding of urls
 
 ### Fixed
 

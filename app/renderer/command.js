@@ -35,12 +35,12 @@ const {
     basePath,
     downloadPath,
     dirname,
-    stringToUrl,
     appData,
     specialPagePath,
     pathToSpecialPageName,
     specialChars,
-    appConfigSettings
+    appConfigSettings,
+    stringToUrl
 } = require("../util")
 const {
     listTabs, currentTab, currentPage, tabOrPageMatching, getSetting
@@ -475,7 +475,7 @@ const buffer = (...args) => {
         switchToTab(tab)
     } else {
         const {navigateTo} = require("./tabs")
-        navigateTo(args.join(" "))
+        navigateTo(stringToUrl(args.join(" ")))
     }
 }
 
@@ -484,7 +484,7 @@ const open = (...args) => {
         return
     }
     const {navigateTo} = require("./tabs")
-    navigateTo(args.join(" "))
+    navigateTo(stringToUrl(args.join(" ")))
 }
 
 const suspend = (...args) => {

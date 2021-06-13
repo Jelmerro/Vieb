@@ -18,7 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {joinPath, formatDate, formatSize} = require("../util")
+const {joinPath, formatDate, formatSize, urlToString} = require("../util")
 
 let lastUpdate = new Date()
 
@@ -138,7 +138,7 @@ const addDownload = (download, id) => {
     misc.appendChild(state)
     const downloadUrl = document.createElement("a")
     downloadUrl.href = encodeURI(download.url)
-    downloadUrl.textContent = download.url
+    downloadUrl.textContent = urlToString(download.url)
     misc.appendChild(downloadUrl)
     const file = document.createElement("span")
     file.title = "Click to open"

@@ -18,6 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
+const {urlToString} = require("../util")
 
 const addSiteToList = (listname, site) => {
     const link = document.createElement("a")
@@ -30,7 +31,7 @@ const addSiteToList = (listname, site) => {
     title.textContent = site.name
     text.appendChild(title)
     const url = document.createElement("small")
-    url.textContent = site.url
+    url.textContent = urlToString(site.url)
     text.appendChild(url)
     link.appendChild(text)
     document.getElementById(listname).appendChild(link)

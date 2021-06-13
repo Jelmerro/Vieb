@@ -19,7 +19,6 @@
 
 const {
     urlToString,
-    stringToUrl,
     joinPath,
     appData,
     makeDir,
@@ -27,7 +26,8 @@ const {
     notify,
     watchFile,
     readFile,
-    searchword
+    searchword,
+    stringToUrl
 } = require("../util")
 const {
     listTabs,
@@ -471,7 +471,7 @@ const openFromClipboard = () => {
     const {clipboard} = require("electron")
     if (clipboard.readText().trim()) {
         const {navigateTo} = require("./tabs")
-        navigateTo(clipboard.readText())
+        navigateTo(stringToUrl(clipboard.readText()))
     }
 }
 
@@ -543,10 +543,10 @@ const useEnteredData = () => {
             location = searchword(location).url
             if (getSetting("explorehist")) {
                 const {push} = require("./explorehistory")
-                push(stringToUrl(location))
+                push(urlToString(location))
             }
             const {navigateTo} = require("./tabs")
-            navigateTo(location)
+            navigateTo(stringToUrl(location))
         }
     }
 }

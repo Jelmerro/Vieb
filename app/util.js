@@ -108,9 +108,9 @@ const searchword = location => {
     for (const mapping of getSetting("searchwords").split(",")) {
         const [word, url] = mapping.split("~")
         if (word && url) {
-            const query = location.replace(`${word} `, "")
-            if (query && location.startsWith(`${word} `)) {
-                return {"url": stringToUrl(url.replace(/%s/g, query)), word}
+            const q = location.replace(`${word} `, "")
+            if (q && location.startsWith(`${word} `)) {
+                return {"url": url.replace(/%s/g, encodeURIComponent(q)), word}
             }
         }
     }
@@ -189,28 +189,28 @@ const expandPath = loc => {
 
 const isObject = o => o === Object(o)
 
-const stringToUrl = l => {
-    let location = String(l)
-    try {
-        location = decodeURI(l)
-    } catch {
-        // Url is already decoded
-    }
-    const specialPage = pathToSpecialPageName(location)
+const stringToUrl = location => {
+    let url = String(location)
+    const specialPage = pathToSpecialPageName(url)
     if (specialPage.name) {
         return specialPagePath(specialPage.name, specialPage.section)
     }
-    if (hasProtocol(location)) {
-        return encodeURI(location)
-    }
-    const local = expandPath(location)
+    const local = expandPath(url)
     if (isDir(local) || isFile(local)) {
-        return `file:/${local}`.replace(/^file:\/*/, "file:///")
+        url = `file:/${local}`.replace(/^file:\/*/, "file:///")
     }
-    if (isUrl(location)) {
-        return encodeURI(`https://${location}`)
+    if (!isUrl(url)) {
+        url = getSetting("search").replace(/%s/g, encodeURIComponent(location))
     }
-    return getSetting("search").replace(/%s/g, encodeURIComponent(location))
+    if (!hasProtocol(url)) {
+        url = `https://${url}`
+    }
+    try {
+        return new URL(url).href
+    } catch {
+        // Can't be re-encoded
+    }
+    return encodeURI(url)
 }
 
 const urlToString = url => {
@@ -606,6 +606,9 @@ const pathToSpecialPageName = urlPath => {
                 // Invalid url
             }
         }
+    }
+    if (urlPath === "") {
+        return {"name": "newtab", "section": ""}
     }
     return {"name": "", "section": ""}
 }

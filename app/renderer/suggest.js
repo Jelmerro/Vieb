@@ -19,7 +19,6 @@
 
 const {
     urlToString,
-    stringToUrl,
     isDir,
     listDir,
     joinPath,
@@ -32,7 +31,8 @@ const {
     appData,
     isUrl,
     searchword,
-    specialChars
+    specialChars,
+    stringToUrl
 } = require("../util")
 const {
     listTabs, tabOrPageMatching, currentMode, getSetting

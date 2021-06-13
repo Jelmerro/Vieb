@@ -330,8 +330,9 @@ const addTab = (options = {}) => {
     const page = document.createElement("div")
     page.classList.add("webview")
     page.setAttribute("link-id", linkId)
+    const url = stringToUrl(options.url || "")
     if (options.url) {
-        page.src = stringToUrl(options.url)
+        page.src = url
     }
     page.setAttribute("container", sessionName)
     if (isDevtoolsTab) {
@@ -343,7 +344,6 @@ const addTab = (options = {}) => {
     }
     pages.appendChild(page)
     if (options.lazy) {
-        const url = stringToUrl(options.url)
         tab.setAttribute("suspended", "suspended")
         const {titleForPage} = require("./history")
         name.textContent = titleForPage(url) || url
@@ -409,7 +409,7 @@ const unsuspendPage = page => {
     } else {
         webview.src = specialPagePath("newtab")
     }
-    const url = page.src
+    const url = page.src || ""
     webview.addEventListener("dom-ready", () => {
         if (!webview.getAttribute("dom-ready")) {
             const tab = tabOrPageMatching(webview)
@@ -930,7 +930,7 @@ const navigateTo = location => {
     } catch (_) {
         // Webview might be destroyed or unavailable, no issue
     }
-    currentPage().src = stringToUrl(location)
+    currentPage().src = location
     resetTabInfo(currentPage())
     currentTab().querySelector("span").textContent = location
 }
