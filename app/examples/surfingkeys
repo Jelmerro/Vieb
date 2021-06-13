@@ -16,7 +16,6 @@ set splitbelow
 set tabclosefocusright
 set tabreopenposition=previous
 set windowtitle=title
-set showcmd
 set mapsuggestposition=bottomright
 
 " Search Engines
