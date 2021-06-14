@@ -250,6 +250,23 @@ window.addEventListener("DOMContentLoaded", () => {
         })
         document.querySelector(".example-buttons").appendChild(button)
     }
+    const fragments = [
+        "digraphs"
+    ]
+    for (const fragment of fragments) {
+        const button = document.createElement("button")
+        button.textContent = fragment[0].toUpperCase() + fragment.slice(1)
+        button.addEventListener("click", () => {
+            const link = document.createElement("a")
+            link.href = joinPath(__dirname, `../examples/fragments/${fragment}`)
+            link.download = `${fragment}.viebrc`
+            link.style.display = "none"
+            document.body.appendChild(link)
+            link.click()
+            link.remove()
+        })
+        document.querySelector(".fragment-buttons").appendChild(button)
+    }
 })
 
 window.addEventListener("load", () => {
