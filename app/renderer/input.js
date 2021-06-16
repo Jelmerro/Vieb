@@ -293,6 +293,7 @@ const defaultBindings = {
     },
     "v": {
         "$": {"mapping": "<p.moveRightMax>"},
+        "*": {"mapping": "<p.searchText>"},
         "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<toNormalMode>"},
         "<C-d>": {"mapping": "<p.moveFastDown>"},
