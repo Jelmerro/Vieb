@@ -243,7 +243,8 @@ window.addEventListener("DOMContentLoaded", () => {
         button.textContent = example[0].toUpperCase() + example.slice(1)
         button.addEventListener("click", () => {
             const link = document.createElement("a")
-            link.href = joinPath(__dirname, `../examples/${example}`)
+            const cleanedExample = example.replace(/\s/g, '')
+            link.href = joinPath(__dirname, `../examples/${cleanedExample}`)
             link.download = `${example}.viebrc`
             link.style.display = "none"
             document.body.appendChild(link)
