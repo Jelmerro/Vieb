@@ -29,6 +29,7 @@ const defaultBindings = {
     "c": {
         "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<toNormalMode>"},
+        "<C-i>": {"mapping": "<editWithVim>"},
         "<C-m>": {"mapping": "<menuOpen>"},
         "<C-n>": {"mapping": "<commandHistoryNext>"},
         "<C-p>": {"mapping": "<commandHistoryPrevious>"},
@@ -42,6 +43,7 @@ const defaultBindings = {
     "e": {
         "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<toNormalMode>"},
+        "<C-i>": {"mapping": "<editWithVim>"},
         "<C-m>": {"mapping": "<menuOpen>"},
         "<C-n>": {"mapping": "<exploreHistoryNext>"},
         "<C-p>": {"mapping": "<exploreHistoryPrevious>"},
@@ -285,6 +287,7 @@ const defaultBindings = {
     "s": {
         "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<toNormalMode>"},
+        "<C-i>": {"mapping": "<editWithVim>"},
         "<C-m>": {"mapping": "<menuOpen>"},
         "<CR>": {"mapping": "<useEnteredData>"},
         "<Esc>": {"mapping": "<toNormalMode>"},
@@ -1671,5 +1674,6 @@ module.exports = {
     sanitiseMapString,
     uncountableActions,
     unmap,
-    updateKeysOnScreen
+    updateKeysOnScreen,
+    updateSuggestions
 }

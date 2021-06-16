@@ -25,6 +25,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - More consistent opening of splits when many tabs are open
 - Further improvements to the encoding and decoding of urls
 - Keycodes for popups are now acquired the same way as regular keys, so that they work on different keyboard layouts
+- Action "editWithVim" can now also be used to edit text in search, explore and command mode (besides just input fields in insert)
 
 ### Fixed
 

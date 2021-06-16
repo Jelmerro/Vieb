@@ -262,6 +262,16 @@ const editWithVim = () => {
     if (!page) {
         return
     }
+    let typeOfEdit = null
+    if (currentMode() === "insert") {
+        typeOfEdit = "input"
+    }
+    if ("ces".includes(currentMode()[0])) {
+        typeOfEdit = "navbar"
+    }
+    if (!typeOfEdit) {
+        return
+    }
     const fileFolder = joinPath(appData(), "vimformedits")
     makeDir(fileFolder)
     const tempFile = joinPath(fileFolder, String(Number(new Date())))
@@ -275,9 +285,14 @@ const editWithVim = () => {
         if (command) {
             const contents = readFile(tempFile)
             if (contents === null) {
-                notify("Failed to read temp file to fill form", "err")
-            } else {
+                return
+            }
+            if (typeOfEdit === "input") {
                 page.send("action", "setInputFieldText", tempFile, contents)
+            } else if ("ces".includes(currentMode()[0])) {
+                document.getElementById("url").value = contents
+                const {updateSuggestions} = require("./input")
+                updateSuggestions()
             }
         } else {
             const {exec} = require("child_process")
@@ -289,7 +304,12 @@ const editWithVim = () => {
             })
         }
     })
-    page.send("action", "writeInputToFile", tempFile)
+    if (typeOfEdit === "input") {
+        page.send("action", "writeInputToFile", tempFile)
+    }
+    if (typeOfEdit === "navbar") {
+        writeFile(tempFile, document.getElementById("url").value)
+    }
 }
 
 const downloadLink = () => {
