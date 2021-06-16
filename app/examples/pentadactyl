@@ -1,0 +1,138 @@
+" Options
+set adblocker=update
+set devtoolsposition=split
+set downloadmethod=confirm
+set firefoxmode=always
+set fontsize=16
+set mintabwidth=250
+set norestoretabs
+set permissioncamera=ask
+set permissiondisplaycapture=ask
+set permissionmediadevices=allow
+set permissionmicrophone=ask
+set permissionpersistentstorage=allow
+set redirecttohttp
+set splitbelow
+set tabclosefocusright
+set tabreopenposition=previous
+set windowtitle=title
+
+" Search Engines
+set searchwords=
+set searchwords+=google~https://www.google.com/search?hl=en&q=%s
+
+" Mappings
+nmap ]] <increasePageNumber>
+nmap [[ <decreasePageNumber>
+nmap <A-Right> <forwardInHistory>
+nmap <A-Left> <backInHistory>
+nmap <C-n> <nextTab>
+nmap <C-p> <previousTab>
+nmap <C-Tab> <nextTab>
+nmap <C-S-Tab> <previousTab>
+nmap <C-PageUp> <nextTab>
+nmap <C-PageDown> <previousTab>
+nmap <C-6> <toLastUsedTab>
+nmap <C-^> <toLastUsedTab>
+nmap b :buffer<Space>
+nmap g0 <:buffer 0>
+nmap g^ <:buffer 0>
+nmap g$ <:buffer 999>
+nmap D <:close><previousTab>
+nmap o <toExploreMode>
+nmap O <openNewTab><toExploreMode>
+nmap p <openFromClipboard>
+nmap P <openNewTab><openFromClipboard>
+nmap gP <openNewTab><openFromClipboard><toLastUsedTab>
+nmap s <toExploreMode>google<Space>
+nmap S <openNewTab><toExploreMode>google<Space>
+nmap T <openNewTabWithCurrentURL>
+nmap <Home> <scrollTop>
+nmap <End> <scrollBottom>
+nmap <PageUp> <scrollPageUp>
+nmap <PageDown> <scrollPageDown>
+nmap <S-Space> <scrollPageUp>
+nmap <Space> <scrollPageDown>
+nmap <Right> <scrollRight>
+nmap <Left> <scrollLeft>
+nmap $ 999<scrollPageRight>
+nmap 0 999<scrollPageLeft>
+nmap zZ <zoomReset>
+nmap zI <zoomIn>
+nmap ZI <zoomIn>
+nmap zM 5<zoomIn>
+nmap ZM 5<zoomIn>
+nmap zO <zoomOut>
+nmap ZO <zoomOut>
+nmap zR 5<zoomOut>
+nmap ZR 5<zoomOut>
+nmap ZQ <:quit>
+
+imap <C-a> <Home>
+imap <C-e> <End>
+imap <C-d> <Del>
+imap <C-h> <BS>
+imap <C-k> <S-End><BS>
+imap <C-u> <S-Home><BS>
+imap <C-w> <C-S-Left><BS>
+
+cmap <C-h> <BS>
+cmap <C-j> <useEnteredData>
+cmap <C-m> <useEnteredData>
+cmap <S-Up> <commandHistoryPrevious>
+cmap <S-Down> <commandHistoryNext>
+cmap <C-p> <commandHistoryPrevious>
+cmap <C-n> <commandHistoryNext>
+
+emap <C-h> <BS>
+emap <C-j> <useEnteredData>
+emap <C-m> <useEnteredData>
+emap <S-Up> <exploreHistoryPrevious>
+emap <S-Down> <exploreHistoryNext>
+emap <C-p> <exploreHistoryPrevious>
+emap <C-n> <exploreHistoryNext>
+
+pmap <Up> <p.moveUp>
+pmap <Down> <p.moveDown>
+pmap <Left> <p.moveLeft>
+pmap <Right> <p.moveRight>
+pmap <C-Left> <p.moveFastLeft>
+pmap <C-Right> <p.moveFastRight>
+pmap <Return> <p.moveDown>
+pmap <Space> <p.moveRight>
+pmap <BS> <p.moveLeft>
+pmap 0 <p.moveLeftMax>
+pmap <Home> <p.moveLeftMax>
+pmap <End> <p.moveRightMax>
+pmap B <p.moveFastLeft>
+pmap e <p.moveFastRight>
+pmap E <p.moveFastRight>
+pmap W <p.moveFastRight>
+pmap <C-b> <scrollPageUp>
+pmap <C-f> <scrollPageDown>
+pmap <C-Home> <p.startOfPage>
+pmap <C-End> <p.endOfPage>
+
+vmap Y <p.copyText>
+vmap <Up> <p.moveUp>
+vmap <Down> <p.moveDown>
+vmap <Left> <p.moveLeft>
+vmap <Right> <p.moveRight>
+vmap <C-Left> <p.moveFastLeft>
+vmap <C-Right> <p.moveFastRight>
+vmap <Return> <p.moveDown>
+vmap <Space> <p.moveRight>
+vmap <BS> <p.moveLeft>
+vmap 0 <p.moveLeftMax>
+vmap <Home> <p.moveLeftMax>
+vmap <End> <p.moveRightMax>
+vmap B <p.moveFastLeft>
+vmap e <p.moveFastRight>
+vmap E <p.moveFastRight>
+vmap W <p.moveFastRight>
+vmap <C-b> <scrollPageUp>
+vmap <C-f> <scrollPageDown>
+vmap <C-Home> <p.startOfPage>
+vmap <C-End> <p.endOfPage>
+
+" vim: ft=vim

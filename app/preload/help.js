@@ -234,6 +234,7 @@ window.addEventListener("DOMContentLoaded", () => {
         "qutebrowser",
         "vimium",
         "tridactyl",
+        "pentadactyl",
         "surfingkeys"
     ]
     for (const example of examples) {
