@@ -236,14 +236,14 @@ window.addEventListener("DOMContentLoaded", () => {
         "tridactyl",
         "pentadactyl",
         "surfingkeys",
-        "vim vixen",
+        "vim vixen"
     ]
     for (const example of examples) {
         const button = document.createElement("button")
         button.textContent = example[0].toUpperCase() + example.slice(1)
         button.addEventListener("click", () => {
             const link = document.createElement("a")
-            const cleanedExample = example.replace(/\s/g, '')
+            const cleanedExample = example.replace(/\s/g, "")
             link.href = joinPath(__dirname, `../examples/${cleanedExample}`)
             link.download = `${example}.viebrc`
             link.style.display = "none"

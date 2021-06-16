@@ -76,6 +76,7 @@ const defaultBindings = {
         "<ScrollLock>": {"mapping": "<Nop>"}
     },
     "m": {
+        ".": {"mapping": "<repeatLastAction>"},
         "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<menuClose>"},
         "<C-m>": {"mapping": "<menuOpen>"},
@@ -91,6 +92,7 @@ const defaultBindings = {
     "n": {
         "$": {"mapping": "<scrollPageRight>"},
         "+": {"mapping": "<zoomIn>"},
+        ".": {"mapping": "<repeatLastAction>"},
         "/": {"mapping": "<toSearchMode>"},
         ":": {"mapping": "<toCommandMode>"},
         "<A-F4>": {"mapping": "<:quitall>"},
@@ -166,8 +168,9 @@ const defaultBindings = {
         "<CR>": {"mapping": "<clickOnSearch>"},
         "<F1>": {"mapping": "<:help>"},
         "<F11>": {"mapping": "<toggleFullscreen>"},
-        "<Tab>": {"mapping": "<Nop>"},
         "=": {"mapping": "<zoomIn>"},
+        "@:": {"mapping": "<toCommandMode><commandHistoryPrevious>"
+            + "<useEnteredData>"},
         "^": {"mapping": "<scrollPageLeft>"},
         "_": {"mapping": "<zoomOut>"},
         "-": {"mapping": "<zoomOut>"},
@@ -210,6 +213,7 @@ const defaultBindings = {
     },
     "p": {
         "$": {"mapping": "<p.moveRightMax>"},
+        ".": {"mapping": "<repeatLastAction>"},
         "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<toNormalMode>"},
         "<C-d>": {"mapping": "<p.moveFastDown>"},
@@ -297,6 +301,7 @@ const defaultBindings = {
     "v": {
         "$": {"mapping": "<p.moveRightMax>"},
         "*": {"mapping": "<p.searchText>"},
+        ".": {"mapping": "<repeatLastAction>"},
         "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<toNormalMode>"},
         "<C-d>": {"mapping": "<p.moveFastDown>"},
@@ -352,6 +357,7 @@ const mapStringSplitter = /(<.*?[^-]>|<.*?->>|.)/g
 let inputHistoryList = [{"index": 0, "value": ""}]
 let inputHistoryIndex = 0
 let lastActionInMapping = null
+let lastExecutedMapstring = null
 
 const init = () => {
     window.addEventListener("keydown", handleKeyboard)
@@ -758,8 +764,18 @@ const sendKeysToWebview = async(options, mapStr) => {
     })
 }
 
+const repeatLastAction = () => {
+    if (lastExecutedMapstring) {
+        executeMapString(lastExecutedMapstring.mapStr,
+            lastExecutedMapstring.recursive, true)
+    }
+}
+
 const executeMapString = async(mapStr, recursive, initial) => {
     if (initial) {
+        if (!mapStr.includes("<repeatLastAction>")) {
+            lastExecutedMapstring = {mapStr, recursive}
+        }
         recursiveCounter = 0
         if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
             pressedKeys = ""
@@ -1670,6 +1686,7 @@ module.exports = {
     listMappingsAsCommandList,
     listSupportedActions,
     mapOrList,
+    repeatLastAction,
     resetInputHistory,
     sanitiseMapString,
     uncountableActions,

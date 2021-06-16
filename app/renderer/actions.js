@@ -257,6 +257,11 @@ const stopFollowMode = () => {
     }
 }
 
+const repeatLastAction = () => {
+    const {"repeatLastAction": repeat} = require("./input")
+    repeat()
+}
+
 const editWithVim = () => {
     const page = currentPage()
     if (!page) {
@@ -640,6 +645,7 @@ module.exports = {
     reloadWithoutCache,
     reopenTab,
     reorderFollowLinks,
+    repeatLastAction,
     rightHalfSplitWindow,
     rotateSplitWindowBackward,
     rotateSplitWindowForward,
