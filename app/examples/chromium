@@ -64,5 +64,6 @@ cmap <Down> <commandHistoryNext>
 emap <F6> <toNormalMode>
 emap <Up> <prevSuggestion>
 emap <Down> <nextSuggestion>
+vmap <C-f> <p.searchText>
 
 " vim: ft=vim
