@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ## Added
 
 - Action "repeatLastAction" to repeat the last called action or mapstring
+- Action "p.restoreSelection" to restore the previously selected text in visual mode
 - Mapping to execute the last executed command again (requires commandhist to be on "useronly" or "all")
 - Cheatsheet for default mappings and general usage of Vieb to the help page, website and readme
 - Example config for Surfingkeys, Pentadactyl and Vim Vixen

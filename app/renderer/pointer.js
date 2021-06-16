@@ -24,6 +24,7 @@ let Y = 0
 let startX = 0
 let startY = 0
 let listenForScroll = false
+let lastSelection = {"endX": 0, "endY": 0, "startX": 0, "startY": 0}
 
 const zoomX = () => Math.round(X / currentPage().getZoomFactor())
 
@@ -85,6 +86,7 @@ const updateElement = () => {
         currentPage().sendInputEvent({"type": "mouseMove", "x": X, "y": Y})
     }
     if (currentMode() === "visual") {
+        lastSelection = {"endX": X, "endY": Y, startX, startY}
         const factor = currentPage().getZoomFactor()
         currentPage().send("selection-request", Math.round(startX / factor),
             Math.round(startY / factor), zoomX(), zoomY())
@@ -103,6 +105,13 @@ const releaseKeys = () => {
     } catch (e) {
         // Can't release keys, probably because of opening a new tab
     }
+}
+
+const restoreSelection = () => {
+    ({"endX": X, "endY": Y, startX, startY} = lastSelection)
+    const {setMode} = require("./modes")
+    setMode("visual")
+    updateElement()
 }
 
 // ACTIONS
@@ -502,6 +511,7 @@ module.exports = {
     openText,
     openVideo,
     releaseKeys,
+    restoreSelection,
     rightClick,
     scrollDown,
     scrollLeft,
