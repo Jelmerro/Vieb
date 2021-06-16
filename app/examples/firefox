@@ -70,5 +70,6 @@ emap <Up> <prevSuggestion>
 emap <Down> <nextSuggestion>
 pmap <F7> <toNormalMode>
 vmap <F7> <toNormalMode>
+vmap <C-f> <p.searchText>
 
 " vim: ft=vim
