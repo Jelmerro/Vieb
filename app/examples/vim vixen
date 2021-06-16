@@ -33,7 +33,7 @@ set searchwords+=wikipedia~https://en.wikipedia.org/w/index.php?search=%s
 nmap 0 999<scrollPageLeft>
 nmap $ 999<scrollPageRight>
 nmap o <toExploreMode><BS>
-nmap o <toExploreMode>
+nmap O <toExploreMode>
 nmap t <openNewTab><toExploreMode>
 nmap T <openNewTabWithCurrentURL>
 nmap b :buffer<Space>
