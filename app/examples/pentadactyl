@@ -13,7 +13,6 @@ set permissionmicrophone=ask
 set permissionpersistentstorage=allow
 set redirecttohttp
 set splitbelow
-set tabclosefocusright
 set tabreopenposition=previous
 set windowtitle=title
 
@@ -38,7 +37,8 @@ nmap b :buffer<Space>
 nmap g0 <:buffer 0>
 nmap g^ <:buffer 0>
 nmap g$ <:buffer 999>
-nmap D <:close><previousTab>
+nmap d <:set tabclosefocusright><:close>
+nmap D <:set notabclosefocusright><:close>
 nmap o <toExploreMode>
 nmap O <openNewTab><toExploreMode>
 nmap p <openFromClipboard>
