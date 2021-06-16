@@ -72,9 +72,9 @@
      objecttolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.4384062"
-     inkscape:cx="482.42931"
-     inkscape:cy="676.31343"
+     inkscape:zoom="1.7536248"
+     inkscape:cx="451.92107"
+     inkscape:cy="892.72232"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      width="1100px"
@@ -2177,20 +2177,20 @@
        id="text10547-2-1"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan5971"><tspan
+         id="tspan3130"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan5968"> 
+           id="tspan3128"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.08476"
-         id="tspan5975"><tspan
+         id="tspan3134"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan5973">follow </tspan></tspan><tspan
+           id="tspan3132">follow </tspan></tspan><tspan
          x="351.18723"
          y="287.76476"
-         id="tspan5979"><tspan
+         id="tspan3138"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan5977">mode
+           id="tspan3136">mode
 </tspan></tspan></text>
     <text
        xml:space="preserve"
@@ -2201,21 +2201,21 @@
        transform="translate(-82.337912,-69.3719)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan5983"><tspan
+         id="tspan3142"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan5981"> 
+           id="tspan3140"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.85891"
-         id="tspan5987"><tspan
+         id="tspan3146"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan5985">explore
+           id="tspan3144">explore
 </tspan></tspan><tspan
          x="351.18723"
          y="288.72478"
-         id="tspan5991"><tspan
+         id="tspan3150"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan5989">mode</tspan></tspan></text>
+           id="tspan3148">mode</tspan></tspan></text>
     <text
        id="text9514-6"
        y="201.01891"
@@ -3453,9 +3453,9 @@
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.6667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;fill:#000000;stroke-width:1.06667"
          id="flowPara5788">tx  -  open text in external app</flowPara><flowPara
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.6667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;fill:#000000;stroke-width:1.06667"
-         id="flowPara7838">ty  -  copy text to clipboard</flowPara><flowPara
+         id="flowPara3297-4">ty  -  copy text to clipboard</flowPara><flowPara
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.6667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;fill:#000000;stroke-width:1.06667"
-         id="flowPara3297-4">ts   -  search text</flowPara><flowPara
+         id="flowPara2038">ts or *  -  search text</flowPara><flowPara
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.6667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;fill:#000000;stroke-width:1.06667"
          id="flowPara3336">x  -  open link in external app</flowPara><flowPara
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.6667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;fill:#000000;stroke-width:1.06667"
@@ -4374,22 +4374,22 @@
        transform="translate(0.30743618,-29.82915)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan5995"><tspan
+         id="tspan3154"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan5993"> 
+           id="tspan3152"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.08476"
-         id="tspan5999"><tspan
+         id="tspan3158"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan5997">follow in </tspan></tspan><tspan
+           id="tspan3156">follow in </tspan></tspan><tspan
          x="351.18723"
          y="287.76476"
-         id="tspan6005"><tspan
+         id="tspan3164"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan6001">new tab</tspan><tspan
+           id="tspan3160">new tab</tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan6003">
+           id="tspan3162">
 </tspan></tspan></text>
     <text
        xml:space="preserve"
@@ -4400,24 +4400,24 @@
        transform="translate(-89.302467,-99.318284)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan6009"><tspan
+         id="tspan3168"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan6007"> 
+           id="tspan3166"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.85891"
-         id="tspan6015"><tspan
+         id="tspan3174"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan6011">explore </tspan><tspan
+           id="tspan3170">explore </tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan6013">in </tspan></tspan><tspan
+           id="tspan3172">in </tspan></tspan><tspan
          x="351.18723"
          y="288.72478"
-         id="tspan6021"><tspan
+         id="tspan3180"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan6017">new </tspan><tspan
+           id="tspan3176">new </tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan6019">tab</tspan></tspan></text>
+           id="tspan3178">tab</tspan></tspan></text>
     <text
        xml:space="preserve"
        id="text18022"
