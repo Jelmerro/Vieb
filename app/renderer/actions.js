@@ -451,8 +451,8 @@ const matchCase = () => {
     return !getSetting("ignorecase")
 }
 
-const incrementalSearch = () => {
-    currentSearch = document.getElementById("url").value
+const incrementalSearch = (value = null) => {
+    currentSearch = value || document.getElementById("url").value
     if (currentPage() && currentSearch) {
         currentPage().stopFindInPage("clearSelection")
         currentPage().findInPage(currentSearch, {"matchCase": matchCase()})

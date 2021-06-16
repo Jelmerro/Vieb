@@ -18,7 +18,7 @@
 "use strict"
 
 const {
-    matchesQuery, stringToUrl, urlToString, isUrl, specialChars, notify, title
+    matchesQuery, stringToUrl, urlToString, specialChars, notify, title
 } = require("../util")
 const {
     listTabs, currentPage, tabOrPageMatching, currentMode, getSetting
@@ -245,6 +245,18 @@ const webviewMenu = options => {
         "title": "Select all"
     })
     if (options.text) {
+        createMenuItem({
+            "action": () => commonAction("text", "open", options),
+            "title": "Navigate"
+        })
+        createMenuItem({
+            "action": () => commonAction("text", "newtab", options),
+            "title": "In new tab"
+        })
+        createMenuItem({
+            "action": () => commonAction("text", "search", options),
+            "title": "Search page"
+        })
         if (options.canEdit) {
             createMenuItem({
                 "action": () => currentPage().send("selection-cut",
@@ -253,7 +265,8 @@ const webviewMenu = options => {
             })
         }
         createMenuItem({
-            "action": () => clipboard.writeText(options.text), "title": "Copy"
+            "action": () => commonAction("img", "copy", options),
+            "title": "Copy"
         })
     }
     if (options.canEdit && clipboard.readText().trim()) {
@@ -264,25 +277,14 @@ const webviewMenu = options => {
         })
     }
     if (options.text) {
-        if (isUrl(options.text)) {
-            createMenuItem({
-                "action": () => commonAction("text", "open", options),
-                "title": "Navigate"
-            })
-            createMenuItem({
-                "action": () => commonAction("text", "newtab", options),
-                "title": "In new tab"
-            })
-        } else {
-            createMenuItem({
-                "action": () => commonAction("text", "open", options),
-                "title": "Search"
-            })
-            createMenuItem({
-                "action": () => commonAction("text", "newtab", options),
-                "title": "Search in new tab"
-            })
-        }
+        createMenuItem({
+            "action": () => commonAction("img", "download", options),
+            "title": "Download"
+        })
+        createMenuItem({
+            "action": () => commonAction("img", "external", options),
+            "title": "With external"
+        })
     }
     if (options.img || options.backgroundImg || options.svgData) {
         createMenuGroup("Image")
@@ -534,18 +536,17 @@ const commonAction = (type, action, options) => {
         el.src = relevantData
         return
     }
-    relevantData = stringToUrl(relevantData)
     if (action === "open") {
         const {navigateTo} = require("./tabs")
-        navigateTo(relevantData)
+        navigateTo(stringToUrl(relevantData))
     } else if (action === "newtab") {
         const {addTab} = require("./tabs")
-        addTab({"url": relevantData})
+        addTab({"url": stringToUrl(relevantData)})
     } else if (action === "copy") {
         const {clipboard} = require("electron")
-        clipboard.writeText(urlToString(relevantData))
+        clipboard.writeText(relevantData)
     } else if (action === "download") {
-        currentPage().downloadURL(relevantData)
+        currentPage().downloadURL(stringToUrl(relevantData))
     } else if (action === "external") {
         const ext = getSetting("externalcommand")
         if (!ext.trim()) {
@@ -562,6 +563,9 @@ const commonAction = (type, action, options) => {
                 }
             })
         }
+    } else if (action === "search") {
+        const {incrementalSearch} = require("./actions")
+        incrementalSearch(relevantData)
     }
 }
 

@@ -211,7 +211,29 @@ const copyVideo = () => currentPage().send("contextmenu-data", {
     "action": "copy", "type": "video", "x": zoomX(), "y": zoomY()
 })
 
-const copyText = () => currentPage().send("selection-copy", zoomX(), zoomY())
+const downloadText = () => currentPage().send("contextmenu-data", {
+    "action": "download", "type": "text", "x": zoomX(), "y": zoomY()
+})
+
+const newtabText = () => currentPage().send("contextmenu-data", {
+    "action": "newtab", "type": "text", "x": zoomX(), "y": zoomY()
+})
+
+const openText = () => currentPage().send("contextmenu-data", {
+    "action": "open", "type": "text", "x": zoomX(), "y": zoomY()
+})
+
+const externalText = () => currentPage().send("contextmenu-data", {
+    "action": "external", "type": "text", "x": zoomX(), "y": zoomY()
+})
+
+const copyText = () => currentPage().send("contextmenu-data", {
+    "action": "copy", "type": "text", "x": zoomX(), "y": zoomY()
+})
+
+const searchText = () => currentPage().send("contextmenu-data", {
+    "action": "search", "type": "text", "x": zoomX(), "y": zoomY()
+})
 
 const toggleMediaPlay = () => currentPage().send("action", "togglePause", X, Y)
 
@@ -438,6 +460,7 @@ module.exports = {
     downloadFrame,
     downloadImage,
     downloadLink,
+    downloadText,
     downloadVideo,
     endOfPage,
     endOfView,
@@ -445,6 +468,7 @@ module.exports = {
     externalFrame,
     externalImage,
     externalLink,
+    externalText,
     externalVideo,
     handleScrollDiffEvent,
     insertAtPosition,
@@ -469,11 +493,13 @@ module.exports = {
     newtabFrame,
     newtabImage,
     newtabLink,
+    newtabText,
     newtabVideo,
     openAudio,
     openFrame,
     openImage,
     openLink,
+    openText,
     openVideo,
     releaseKeys,
     rightClick,
@@ -481,6 +507,7 @@ module.exports = {
     scrollLeft,
     scrollRight,
     scrollUp,
+    searchText,
     start,
     startOfPage,
     startOfView,

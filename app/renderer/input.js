@@ -326,6 +326,12 @@ const defaultBindings = {
         "l": {"mapping": "<p.moveRight>"},
         "o": {"mapping": "<p.swapPosition>"},
         "r": {"mapping": "<p.rightClick>"},
+        "td": {"mapping": "<p.downloadText>"},
+        "tn": {"mapping": "<p.newtabText>"},
+        "to": {"mapping": "<p.openText><toNormalMode>"},
+        "ts": {"mapping": "<p.searchText>"},
+        "tx": {"mapping": "<p.externalText>"},
+        "ty": {"mapping": "<p.copyText>"},
         "w": {"mapping": "<p.moveFastRight>"},
         "x": {"mapping": "<openLinkExternal>"},
         "y": {"mapping": "<p.copyText><toNormalMode>"}
@@ -717,8 +723,13 @@ const uncountableActions = [
     "p.copyFrame",
     "p.copyImage",
     "p.copyVideo",
-    "p.copyText",
     "p.copyLink",
+    "p.openText",
+    "p.downloadText",
+    "p.newtabText",
+    "p.externalText",
+    "p.copyText",
+    "p.searchText",
     "Nop"
 ]
 
