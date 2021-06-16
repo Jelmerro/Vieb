@@ -37,7 +37,8 @@ nmap O <toExploreMode>
 nmap t <openNewTab><toExploreMode>
 nmap T <openNewTabWithCurrentURL>
 nmap b :buffer<Space>
-nmap D <:close><previousTab>
+nmap d <:set tabclosefocusright><:close>
+nmap D <:set notabclosefocusright><:close>
 nmap !d <:set closablepinnedtabs><:close><:set noclosablepinnedtabs>
 nunmap x
 nmap x$ <:rclose>
