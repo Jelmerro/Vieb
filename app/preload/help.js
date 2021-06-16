@@ -235,7 +235,8 @@ window.addEventListener("DOMContentLoaded", () => {
         "vimium",
         "tridactyl",
         "pentadactyl",
-        "surfingkeys"
+        "surfingkeys",
+        "vim vixen",
     ]
     for (const example of examples) {
         const button = document.createElement("button")
