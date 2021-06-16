@@ -165,6 +165,11 @@ cmap <C-f> <:rl-forward-char>
 cmap <C-k> <:rl-kill-line>
 cmap <C-u> <:rl-unix-line-discard>
 cmap <C-w> <:rl-unix-word-rubout>
+cmap <C-e> <:edit-text>
+
+emap <C-e> <:edit-text>
+
+smap <C-e> <:edit-text>
 
 pmap c <:mode-enter_normal>
 pmap e <:move-to-end-of-word>
