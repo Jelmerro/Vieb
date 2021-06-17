@@ -236,6 +236,7 @@ window.addEventListener("DOMContentLoaded", () => {
         "tridactyl",
         "pentadactyl",
         "surfingkeys",
+        "saka key",
         "vim vixen"
     ]
     for (const example of examples) {
