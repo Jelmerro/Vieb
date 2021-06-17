@@ -498,6 +498,7 @@ const init = () => {
         "setFocusCorrectly",
         "incrementalSearch",
         "p.move",
+        "p.storeMouseSelection",
         "p.handleScrollDiffEvent",
         "p.updateElement",
         "p.releaseKeys"

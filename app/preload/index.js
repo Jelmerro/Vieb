@@ -21,8 +21,6 @@
 require("./actions")
 // Always load follow mode JavaScript
 require("./follow")
-// Always load selection function code (for visual mode)
-require("./select")
 // Always load the failed page information handler
 require("./failedload")
 // Always load the local directory browser

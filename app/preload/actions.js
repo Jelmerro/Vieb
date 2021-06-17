@@ -22,6 +22,7 @@ const {
     activeElement,
     writeFile,
     querySelectorAll,
+    findFrameInfo,
     findElementAtPosition,
     matchesQuery
 } = require("../util")
@@ -201,6 +202,102 @@ const togglePause = (x, y) => {
     }
 }
 
+const documentAtPos = (x, y) => findElementAtPosition(x, y)
+    ?.ownerDocument || document
+
+const isTextNode = node => [
+    Node.TEXT_NODE, Node.COMMENT_NODE, Node.CDATA_SECTION_NODE
+].includes(node.nodeType)
+
+const calculateOffset = (startNode, startX, startY, x, y) => {
+    const range = (findElementAtPosition(startX, startY)
+        ?.ownerDocument || document).createRange()
+    range.setStart(startNode, 0)
+    try {
+        range.setEnd(startNode, 1)
+    } catch (e) {
+        return {"node": startNode, "offset": 0}
+    }
+    let properNode = startNode
+    let offset = 0
+    const descendNodeTree = baseNode => {
+        const pointInsideRegion = (start, end) => {
+            range.setStart(baseNode, start)
+            range.setEnd(baseNode, end)
+            return [...range.getClientRects()].find(rect => x >= rect.left
+                && y >= rect.top && x <= rect.right && y <= rect.bottom)
+        }
+        let left = 0
+        let right = 0
+        if (isTextNode(baseNode)) {
+            right = baseNode.length
+        } else {
+            right = baseNode.childNodes.length
+        }
+        if (right === 0) {
+            return
+        }
+        while (right - left > 1) {
+            const center = left + Math.floor((right - left) / 2)
+            if (pointInsideRegion(left, center)) {
+                right = center
+            } else if (pointInsideRegion(center, right)) {
+                left = center
+            } else {
+                break
+            }
+        }
+        if (isTextNode(baseNode)) {
+            properNode = baseNode
+            offset = left
+            return
+        }
+        descendNodeTree(baseNode.childNodes[left])
+    }
+    descendNodeTree(startNode)
+    range.detach()
+    return {"node": properNode, offset}
+}
+
+const selectionAll = (x, y) => documentAtPos(x, y).execCommand("selectAll")
+const selectionCut = (x, y) => documentAtPos(x, y).execCommand("cut")
+const selectionPaste = (x, y) => documentAtPos(x, y).execCommand("paste")
+const selectionRemove = (x, y) => documentAtPos(x, y).getSelection()
+    .removeAllRanges()
+const selectionRequest = (startX, startY, endX, endY) => {
+    querySelectorAll("*")
+    let startNode = findElementAtPosition(startX, startY)
+    if (!startNode || startY < 0 || startY > window.innerHeight) {
+        startNode = document.body
+    }
+    const selectDocument = startNode?.ownerDocument || document
+    const padding = findFrameInfo(startNode)
+    const startResult = calculateOffset(startNode, startX, startY,
+        startX - (padding?.x || 0), startY - (padding?.y || 0))
+    const endNode = findElementAtPosition(endX, endY)
+    const endResult = calculateOffset(endNode, startX, startY,
+        endX - (padding?.x || 0), endY - (padding?.y || 0))
+    const newSelectRange = selectDocument.createRange()
+    newSelectRange.setStart(startResult.node, startResult.offset)
+    if (isTextNode(endResult.node) && endResult.node.length > 1) {
+        newSelectRange.setEnd(endResult.node, endResult.offset + 1)
+    } else {
+        newSelectRange.setEnd(endResult.node, endResult.offset)
+    }
+    selectDocument.getSelection().removeAllRanges()
+    selectDocument.getSelection().addRange(newSelectRange)
+    if (!selectDocument.getSelection().toString()) {
+        newSelectRange.setStart(endResult.node, endResult.offset)
+        if (isTextNode(endResult.node) && endResult.node.length > 1) {
+            newSelectRange.setEnd(startResult.node, startResult.offset + 1)
+        } else {
+            newSelectRange.setEnd(startResult.node, startResult.offset)
+        }
+        selectDocument.getSelection().removeAllRanges()
+        selectDocument.getSelection().addRange(newSelectRange)
+    }
+}
+
 const functions = {
     blur,
     decreasePageNumber,
@@ -221,6 +318,11 @@ const functions = {
     scrollRight,
     scrollTop,
     scrollUp,
+    selectionAll,
+    selectionCut,
+    selectionPaste,
+    selectionRemove,
+    selectionRequest,
     setInputFieldText,
     toggleControls,
     toggleLoop,

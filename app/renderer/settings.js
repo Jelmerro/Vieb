@@ -91,6 +91,7 @@ const defaultSettings = {
     "mouse": true,
     "mousefocus": false,
     "mousenewtabswitch": true,
+    "mousevisualmode": "onswitch",
     "nativenotification": "never",
     "notificationduration": 6000,
     "notificationforpermissions": false,
@@ -183,6 +184,7 @@ const validOptions = {
     "mapsuggestposition": ["bottomright", "bottomleft", "topright", "topleft"],
     "menupage": ["always", "globalasneeded", "elementasneeded", "never"],
     "menuvieb": ["both", "navbar", "tabbar", "never"],
+    "mousevisualmode": ["activate", "onswitch", "never"],
     "nativenotification": ["always", "smallonly", "never"],
     "notificationposition": [
         "bottomright", "bottomleft", "topright", "topleft"

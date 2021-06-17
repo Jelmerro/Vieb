@@ -240,7 +240,7 @@ const webviewMenu = options => {
     }
     createMenuGroup("Text")
     createMenuItem({
-        "action": () => currentPage().send("selection-all",
+        "action": () => currentPage().send("action", "selectionAll",
             options.x, options.y),
         "title": "Select all"
     })
@@ -259,7 +259,7 @@ const webviewMenu = options => {
         })
         if (options.canEdit) {
             createMenuItem({
-                "action": () => currentPage().send("selection-cut",
+                "action": () => currentPage().send("action", "selectionCut",
                     options.x, options.y),
                 "title": "Cut"
             })
@@ -271,7 +271,7 @@ const webviewMenu = options => {
     }
     if (options.canEdit && clipboard.readText().trim()) {
         createMenuItem({
-            "action": () => currentPage().send("selection-paste",
+            "action": () => currentPage().send("action", "selectionPaste",
                 options.x, options.y),
             "title": "Paste"
         })

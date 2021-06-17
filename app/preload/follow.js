@@ -338,11 +338,32 @@ const clickListener = (e, frame = null) => {
 }
 window.addEventListener("click", clickListener,
     {"capture": true, "passive": true})
-window.addEventListener("mousedown", e => {
+
+let startX = 0
+let startY = 0
+const mouseDownListener = (e, frame = null) => {
     if (e.composedPath().find(el => matchesQuery(el, "select, option"))) {
-        clickListener(e)
+        clickListener(e, frame)
     }
-}, {"capture": true, "passive": true})
+    const paddingInfo = findFrameInfo(frame)
+    startX = e.clientX + (paddingInfo?.x || 0)
+    startY = e.clientY + (paddingInfo?.y || 0)
+}
+window.addEventListener("mousedown", mouseDownListener,
+    {"capture": true, "passive": true})
+const mouseUpListener = (e, frame = null) => {
+    const paddingInfo = findFrameInfo(frame)
+    const endX = e.clientX + (paddingInfo?.x || 0)
+    const endY = e.clientY + (paddingInfo?.y || 0)
+    const diffX = Math.abs(endX - startX)
+    const diffY = Math.abs(endY - startY)
+    if (endX > 0 && endY > 0 && (diffX > 3 || diffY > 3)) {
+        ipcRenderer.sendToHost("mouse-selection",
+            {endX, endY, startX, startY})
+    }
+}
+window.addEventListener("mouseup", mouseUpListener,
+    {"capture": true, "passive": true})
 
 ipcRenderer.on("replace-input-field", (_, value, position) => {
     const input = activeElement()
@@ -473,15 +494,47 @@ setInterval(() => {
         try {
             f.contentDocument.onclick = e => clickListener(e, f)
             f.contentDocument.oncontextmenu = e => contextListener(e, f)
-            f.contentDocument.onmousedown = e => {
-                const nativeEls = "select, option"
-                if (e.composedPath().find(el => matchesQuery(el, nativeEls))) {
-                    clickListener(e, f)
-                }
-            }
+            f.contentDocument.onmousedown = e => mouseDownListener(e, f)
+            f.contentDocument.onmouseup = e => mouseUpListener(e, f)
             privacyFixes(f.contentWindow)
-        } catch (_) {
+        } catch {
             // Not an issue, will be retried shortly
         }
     })
 }, 0)
+
+let searchPos = {}
+let searchElement = null
+let justSearched = false
+let scrollHeight = 0
+
+window.addEventListener("scroll", () => {
+    const scrollDiff = scrollHeight - window.scrollY
+    startY += scrollDiff
+    scrollHeight = window.scrollY
+    ipcRenderer.sendToHost("scroll-height-diff", scrollDiff)
+    if (justSearched) {
+        justSearched = false
+        searchElement = findElementAtPosition(
+            (searchPos.x + searchPos.width / 2) / window.devicePixelRatio,
+            (searchPos.y + searchPos.height / 2)
+                / window.devicePixelRatio + scrollDiff)
+    }
+})
+
+ipcRenderer.on("search-element-location", (_, pos) => {
+    searchPos = pos
+    justSearched = true
+    setTimeout(() => {
+        justSearched = false
+    }, 50)
+    searchElement = findElementAtPosition(
+        (searchPos.x + searchPos.width / 2) / window.devicePixelRatio,
+        (searchPos.y + searchPos.height / 2) / window.devicePixelRatio)
+})
+
+ipcRenderer.on("search-element-click", () => searchElement?.click())
+
+window.addEventListener("mousemove", e => {
+    ipcRenderer.sendToHost("top-of-page-with-mouse", !e.clientY)
+})

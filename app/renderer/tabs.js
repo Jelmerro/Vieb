@@ -791,10 +791,8 @@ const addWebviewListeners = webview => {
         const {applyLayout} = require("./pagelayout")
         applyLayout()
     })
+    let skipNextClick = false
     webview.addEventListener("ipc-message", e => {
-        const {
-            startVisualSelect, "move": movePointer, handleScrollDiffEvent
-        } = require("./pointer")
         if (e.channel === "notify") {
             notify(...e.args)
         }
@@ -811,15 +809,38 @@ const addWebviewListeners = webview => {
                 webviewMenu(e.args[0])
             }
         }
+        if (e.channel === "mouse-selection") {
+            const switchToVisual = getSetting("mousevisualmode")
+            if (switchToVisual !== "never" || currentMode() === "visual") {
+                skipNextClick = true
+                const {storeMouseSelection} = require("./pointer")
+                storeMouseSelection({
+                    "endX": e.args[0].endX * currentPage().getZoomFactor(),
+                    "endY": e.args[0].endY * currentPage().getZoomFactor(),
+                    "startX": e.args[0].startX * currentPage().getZoomFactor(),
+                    "startY": e.args[0].startY * currentPage().getZoomFactor()
+                })
+                if (switchToVisual === "activate") {
+                    const {startVisualSelect} = require("./pointer")
+                    startVisualSelect()
+                }
+            }
+        }
         if (e.channel === "mouse-click-info") {
             const {clear} = require("./contextmenu")
             clear()
             if (getSetting("mouse") && currentMode() !== "insert") {
+                if (skipNextClick) {
+                    skipNextClick = false
+                    return
+                }
                 if (["pointer", "visual"].includes(currentMode())) {
                     if (e.args[0].tovisual) {
+                        const {startVisualSelect} = require("./pointer")
                         startVisualSelect()
                     }
-                    movePointer(e.args[0].x * currentPage().getZoomFactor(),
+                    const {move} = require("./pointer")
+                    move(e.args[0].x * currentPage().getZoomFactor(),
                         e.args[0].y * currentPage().getZoomFactor())
                 } else if (e.args[0].toinsert) {
                     setMode("insert")
@@ -828,6 +849,12 @@ const addWebviewListeners = webview => {
                 } else {
                     const {setFocusCorrectly} = require("./actions")
                     setFocusCorrectly()
+                }
+                if (!e.args[0].tovisual) {
+                    if (!["pointer", "visual"].includes(currentMode())) {
+                        const {storeMouseSelection} = require("./pointer")
+                        storeMouseSelection(null)
+                    }
                 }
             }
         }
@@ -838,6 +865,7 @@ const addWebviewListeners = webview => {
         if (e.channel === "scroll-height-diff") {
             const {clear} = require("./contextmenu")
             clear()
+            const {handleScrollDiffEvent} = require("./pointer")
             handleScrollDiffEvent(e.args[0])
         }
         if (e.channel === "history-list-request") {

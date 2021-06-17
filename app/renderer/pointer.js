@@ -25,6 +25,7 @@ let startX = 0
 let startY = 0
 let listenForScroll = false
 let lastSelection = {"endX": 0, "endY": 0, "startX": 0, "startY": 0}
+let mouseSelection = null
 
 const zoomX = () => Math.round(X / currentPage().getZoomFactor())
 
@@ -88,33 +89,35 @@ const updateElement = () => {
     if (currentMode() === "visual") {
         lastSelection = {"endX": X, "endY": Y, startX, startY}
         const factor = currentPage().getZoomFactor()
-        currentPage().send("selection-request", Math.round(startX / factor),
-            Math.round(startY / factor), zoomX(), zoomY())
+        currentPage().send("action", "selectionRequest",
+            Math.round(startX / factor), Math.round(startY / factor),
+            zoomX(), zoomY())
     }
 }
 
 const releaseKeys = () => {
     try {
-        for (const button of ["left", "right"]) {
-            currentPage().sendInputEvent({
-                button, "type": "mouseUp", "x": X, "y": Y
-            })
-        }
         currentPage().sendInputEvent({"type": "mouseLeave", "x": X, "y": Y})
-        currentPage().send("selection-remove", zoomX(), zoomY())
+        currentPage().send("action", "selectionRemove", zoomX(), zoomY())
     } catch (e) {
         // Can't release keys, probably because of opening a new tab
     }
+    mouseSelection = null
 }
 
+const storeMouseSelection = selection => {
+    mouseSelection = selection
+}
+
+// ACTIONS
+
 const restoreSelection = () => {
-    ({"endX": X, "endY": Y, startX, startY} = lastSelection)
+    ({"endX": X, "endY": Y, startX, startY} = mouseSelection || lastSelection)
+    mouseSelection = null
     const {setMode} = require("./modes")
     setMode("visual")
     updateElement()
 }
-
-// ACTIONS
 
 const downloadAudio = () => currentPage().send("contextmenu-data", {
     "action": "download", "type": "audio", "x": zoomX(), "y": zoomY()
@@ -333,10 +336,14 @@ const rightClick = () => {
 }
 
 const startVisualSelect = () => {
-    const {setMode} = require("./modes")
-    setMode("visual")
-    startX = Number(X)
-    startY = Number(Y)
+    if (mouseSelection && getSetting("mousevisualmode") !== "never") {
+        restoreSelection()
+    } else {
+        const {setMode} = require("./modes")
+        setMode("visual")
+        startX = Number(X)
+        startY = Number(Y)
+    }
 }
 
 const swapPosition = () => {
@@ -522,6 +529,7 @@ module.exports = {
     startOfPage,
     startOfView,
     startVisualSelect,
+    storeMouseSelection,
     swapPosition,
     toggleMediaControls,
     toggleMediaLoop,

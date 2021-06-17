@@ -22,6 +22,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Example config for Surfingkeys, Pentadactyl and Vim Vixen
 - Support for numpad/keypad keys in mappings, such as k3, kEnd or kPlus
 - Actions for visual mode to search, open, open in new tab, open externally or download selected text
+- Setting "mousevisualmode" to control what happens when you select text with the mouse in relation to visual mode
 
 ## Changed
 
