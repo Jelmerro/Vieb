@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question or show what you made
+    url: https://reddit.com/r/vieb
+    about: Make a new post on the official Vieb subreddit
+  - name: Start a new Q&A thread
+    url: https://github.com/Jelmerro/Vieb/discussions/categories/q-a
+    about: Create a new post on Github discussions in Q&A
+  - name: Share a bright idea with the community
+    url: https://github.com/Jelmerro/Vieb/discussions/categories/ideas
+    about: Create a new post on Github discussions in Ideas
