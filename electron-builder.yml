@@ -1,4 +1,5 @@
 appId: com.github.Jelmerro.vieb
+productName: Vieb
 linux:
   icon: app/img/icons
   executableName: vieb

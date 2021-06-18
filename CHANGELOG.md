@@ -37,6 +37,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - All actions being reported as countable even though some of them aren't
 - Call command and custom mappings not always executing first part of the mapping from normal mode
 - Uncountable actions being executed multiple times when not recursively called
+- Broken symlink for Linux installers in /usr/bin
 
 ### Security
 
