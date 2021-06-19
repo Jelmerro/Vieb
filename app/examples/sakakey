@@ -77,6 +77,8 @@ nmap yy <pageToClipboard>
 nmap yf <openFromClipboard>
 nmap yF <:set follownewtabswitch><openNewTab><openFromClipboard>
 nmap yb <:set nofollownewtabswitch><openNewTab><openFromClipboard>
+nmap <A-;> <toInsertMode>
 
+imap <A-x> <toNormalMode>
 
 " vim: ft=vim
