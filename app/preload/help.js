@@ -129,8 +129,7 @@ ipcRenderer.on("settings", (_, settings, mappings, uncountableActions) => {
     // Enrich the action list with the keys that map to them
     ;[
         ...document.querySelectorAll("h3[id^='action.']"),
-        ...document.querySelectorAll("h3[id^='pointer.']"),
-        document.getElementById("Nop")
+        ...document.querySelectorAll("h3[id^='pointer.']")
     ].forEach(actionNode => {
         // List mappings in which this action is used
         const mapList = document.createElement("div")

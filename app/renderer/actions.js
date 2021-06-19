@@ -576,6 +576,10 @@ const useEnteredData = () => {
     }
 }
 
+const nop = () => {
+    // Explicit No-op action: does nothing
+}
+
 const setFocusCorrectly = () => {
     const urlElement = document.getElementById("url")
     const {updateUrl} = require("./tabs")
@@ -633,6 +637,7 @@ module.exports = {
     nextSearchMatch,
     nextSuggestion,
     nextTab,
+    nop,
     openFromClipboard,
     openLinkExternal,
     openNewTab,

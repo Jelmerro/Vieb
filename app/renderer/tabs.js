@@ -65,14 +65,6 @@ const init = () => {
         if (appIcon()) {
             document.getElementById("logo").src = appIcon()
         }
-
-        // Make vertical scrolling move the tabs horizontally and vice versa
-        document.getElementById("tabs").addEventListener("wheel", e => {
-            document.getElementById("tabs").scrollBy(
-                e.deltaX + e.deltaY, e.deltaX + e.deltaY)
-            e.preventDefault()
-        })
-
         const parsed = readJSON(tabFile)
         if (!erwicMode) {
             if (parsed) {

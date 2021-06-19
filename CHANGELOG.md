@@ -30,6 +30,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Further improvements to the encoding and decoding of urls
 - Keycodes for popups are now acquired the same way as regular keys, so that they work on different keyboard layouts
 - Action "editWithVim" can now also be used to edit text in search, explore and command mode (besides just input fields in insert)
+- Action "nop" is now a regular action, old name "Nop" will continue to work due to recent case-insensitive action names rework
+- Window state is now also saved after a series of actions, instead of only before it and on quit
 
 ### Fixed
 

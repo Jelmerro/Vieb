@@ -68,12 +68,12 @@ const defaultBindings = {
         "<C-[>": {"mapping": "<toNormalMode>"},
         "<C-i>": {"mapping": "<editWithVim>"},
         "<C-m>": {"mapping": "<menuOpen>"},
-        "<CapsLock>": {"mapping": "<Nop>"},
+        "<CapsLock>": {"mapping": "<nop>"},
         "<Esc>": {"mapping": "<toNormalMode>"},
         "<F1>": {"mapping": "<:help>"},
         "<F11>": {"mapping": "<toggleFullscreen>"},
-        "<NumLock>": {"mapping": "<Nop>"},
-        "<ScrollLock>": {"mapping": "<Nop>"}
+        "<NumLock>": {"mapping": "<nop>"},
+        "<ScrollLock>": {"mapping": "<nop>"}
     },
     "m": {
         ".": {"mapping": "<repeatLastAction>"},
@@ -370,6 +370,12 @@ const init = () => {
             e.preventDefault()
         }
     })
+    document.getElementById("tabs").addEventListener("wheel", e => {
+        // Make both directions of scrolling move the tabs horizontally
+        document.getElementById("tabs").scrollBy(
+            e.deltaX + e.deltaY, e.deltaX + e.deltaY)
+        e.preventDefault()
+    })
     window.addEventListener("mouseup", e => {
         if (e.button === 1) {
             if (getSetting("mouse")) {
@@ -504,9 +510,7 @@ const init = () => {
         "p.releaseKeys"
     ]
     supportedActions = [
-        ...Object.keys(ACTIONS),
-        ...Object.keys(POINTER).map(c => `p.${c}`),
-        "Nop"
+        ...Object.keys(ACTIONS), ...Object.keys(POINTER).map(c => `p.${c}`)
     ].filter(m => !unSupportedActions.includes(m))
     bindings = JSON.parse(JSON.stringify(defaultBindings))
     updateKeysOnScreen()
@@ -700,6 +704,7 @@ const uncountableActions = [
     "menuSelect",
     "menuClose",
     "useEnteredData",
+    "nop",
     "p.start",
     "p.startVisualSelect",
     "p.inspectElement",
@@ -742,8 +747,7 @@ const uncountableActions = [
     "p.newtabText",
     "p.externalText",
     "p.copyText",
-    "p.searchText",
-    "Nop"
+    "p.searchText"
 ]
 
 
@@ -783,10 +787,6 @@ const executeMapString = async(mapStr, recursive, initial) => {
         if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
             pressedKeys = ""
         }
-    }
-    if (mapStr === "<Nop>") {
-        updateKeysOnScreen()
-        return
     }
     recursiveCounter += 1
     const repeater = Number(repeatCounter) || 1
@@ -835,10 +835,6 @@ const executeMapString = async(mapStr, recursive, initial) => {
 }
 
 const doAction = async(actionName, givenCount) => {
-    if (actionName === "Nop") {
-        updateKeysOnScreen()
-        return
-    }
     let actionCount = givenCount || 1
     if (uncountableActions.includes(actionName)) {
         if (lastActionInMapping === actionName) {
@@ -858,7 +854,7 @@ const doAction = async(actionName, givenCount) => {
             await ACTIONS[funcName]()
         }
     }
-    if (!funcName.startsWith("menu")) {
+    if (!funcName.startsWith("menu") && funcName !== "nop") {
         const {clear} = require("./contextmenu")
         clear()
     }

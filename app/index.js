@@ -1254,6 +1254,7 @@ ipcMain.on("window-state-init", (_, restorePos, restoreSize, restoreMax) => {
         }, 10)
         setTimeout(() => {
             justResized = false
+            saveWindowState()
         }, 30)
     })
     mainWindow.on("move", () => {
@@ -1265,6 +1266,7 @@ ipcMain.on("window-state-init", (_, restorePos, restoreSize, restoreMax) => {
         }, 10)
         setTimeout(() => {
             justMoved = false
+            saveWindowState()
         }, 30)
     })
 })
