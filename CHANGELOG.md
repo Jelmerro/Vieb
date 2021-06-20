@@ -19,7 +19,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Action "p.restoreSelection" to restore the previously selected text in visual mode
 - Mapping to execute the last executed command again (requires commandhist to be on "useronly" or "all")
 - Cheatsheet for default mappings and general usage of Vieb to the help page, website and readme
-- Example config for Surfingkeys, Pentadactyl and Vim Vixen
+- Example config for Vivaldi, Surfingkeys, Pentadactyl, Sara Key and Vim Vixen
 - Support for numpad/keypad keys in mappings, such as k3, kEnd or kPlus
 - Actions for visual mode to search, open, open in new tab, open externally or download selected text
 - Setting "mousevisualmode" to control what happens when you select text with the mouse in relation to visual mode
