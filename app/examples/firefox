@@ -26,7 +26,10 @@ map <PageUp> <scrollPageUp>
 map <PageDown> <scrollPageDown>
 map <Home> <scrollTop>
 map <End> <scrollBottom>
-map <F3> <toSearchMode>
+nmap <F3> <toSearchMode><nextSearchMatch>
+nmap <S-F3> <toSearchMode><previousSearchMatch>
+nmap <C-g> <toSearchMode><nextSearchMatch>
+nmap <C-G> <toSearchMode><previousSearchMatch>
 map <F5> <reload>
 map <F6> <toExploreMode>
 map <F7> <p.start>
@@ -71,5 +74,9 @@ emap <Down> <nextSuggestion>
 pmap <F7> <toNormalMode>
 vmap <F7> <toNormalMode>
 vmap <C-f> <p.searchText>
+smap <F3> <nextSearchMatch>
+smap <C-g> <nextSearchMatch>
+smap <S-F3> <previousSearchMatch>
+smap <C-G> <previousSearchMatch>
 
 " vim: ft=vim
