@@ -76,7 +76,7 @@ nmap <S-F3> <previousSearchMatch>
 nmap <BS> <backInHistory>
 nmap <C-Left> <backInHistory>
 nmap <A-Left> <backInHistory>
-nmap <S-Esc> <stopLoadingPage>
+nmap <Esc> <stopLoadingPage>
 nmap <C-s> :write<Space>
 
 " vim: ft=vim
