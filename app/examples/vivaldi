@@ -79,4 +79,6 @@ nmap <A-Left> <backInHistory>
 nmap <Esc> <stopLoadingPage>
 nmap <C-s> :write<Space>
 
+cmap <F2> <toNormalMode>
+
 " vim: ft=vim
