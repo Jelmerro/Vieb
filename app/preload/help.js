@@ -230,6 +230,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const examples = [
         "chromium",
         "firefox",
+        "vivaldi",
         "qutebrowser",
         "vimium",
         "tridactyl",

@@ -1,0 +1,83 @@
+" Options
+set adblocker=update
+set cache=full
+set devtoolsposition=vsplit
+set favicons=30day
+set mintabwidth=0
+set permissioncamera=ask
+set permissiondisplaycapture=ask
+set permissionmediadevices=allow
+set permissionmicrophone=ask
+set permissionpersistentstorage=allow
+set redirecttohttp
+set search=https://google.com/search?q=%s
+set splitright
+set suspendonrestore=none
+set tabreopenposition=previous
+set windowtitle=title
+
+" Search Engines
+set search=https://www.bing.com/search?q=%s
+
+" Mappings
+nmap <Up> <scrollUp>
+nmap <Down> <scrollDown>
+nmap <Left> <scrollLeft>
+nmap <Right> <scrollRight>
+map <PageUp> <scrollPageUp>
+map <PageDown> <scrollPageDown>
+map <Home> <scrollTop>
+map <End> <scrollBottom>
+map <F3> <toSearchMode>
+nmap <F2> <toCommandMode>
+nmap <C-E> <:extensions>
+nmap <C-h> <:history>
+nmap <C-H> <:history>
+nmap <C-F1> <:open https://vieb.dev/cheatsheet>
+nmap <C-p> <:print>
+nmap <F12> <:devtools>
+nmap <C-I> <:devtools>
+nmap <C-J> <:devtools>
+nmap <C-V> <openFromClipboard>
+nmap <C-F11> <:set guinavbar!>
+nmap <C-+> <zoomIn>
+nmap <C-=> <zoomIn>
+nmap <C--> <zoomOut>
+nmap <C-*> <zoomReset>
+nmap <C-j> <:downloads>
+nmap <C-D> <:downloads>
+nmap <C-F4> <:close>
+nmap <C-Tab> <toLastUsedTab>
+nmap <C-PageUp> <previousTab>
+nmap <C-PageDown> <nextTab>
+nmap <C-1> <:b 0>
+nmap <C-2> <:b 1>
+nmap <C-3> <:b 2>
+nmap <C-4> <:b 3>
+nmap <C-5> <:b 4>
+nmap <C-6> <:b 5>
+nmap <C-7> <:b 6>
+nmap <C-8> <:b 7>
+nmap <C-9> <:b 999>
+nmap <C-z> <reopenTab>
+nmap <C-T> <reopenTab>
+nmap <F8> <toExploreMode>
+nmap <C-l> <toExploreMode>
+nmap <F5> <reload>
+nmap <C-r> <reload>
+nmap <C-F5> <reloadWithoutCache>
+nmap <C-R> <reloadWithoutCache>
+nmap <C-k> <toExploreMode><BS>
+nmap <C-e> <toExploreMode><BS>
+nmap <C-f> <toSearchMode>
+nmap <C-g> <nextSearchMatch>
+nmap <F3> <nextSearchMatch>
+nmap <C-G> <previousSearchMatch>
+nmap <S-F3> <previousSearchMatch>
+nmap <BS> <backInHistory>
+nmap <C-Left> <backInHistory>
+nmap <A-Left> <backInHistory>
+nmap <S-Esc> <stopLoadingPage>
+nmap <C-s> :write<Space>
+
+" vim: ft=vim
