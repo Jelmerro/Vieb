@@ -22,10 +22,10 @@ nmap <Up> <scrollUp>
 nmap <Down> <scrollDown>
 nmap <Left> <scrollLeft>
 nmap <Right> <scrollRight>
-map <PageUp> <scrollPageUp>
-map <PageDown> <scrollPageDown>
-map <Home> <scrollTop>
-map <End> <scrollBottom>
+nmap <PageUp> <scrollPageUp>
+nmap <PageDown> <scrollPageDown>
+nmap <Home> <scrollTop>
+nmap <End> <scrollBottom>
 nmap <F3> <toSearchMode><nextSearchMatch>
 nmap <S-F3> <toSearchMode><previousSearchMatch>
 nmap <C-g> <toSearchMode><nextSearchMatch>
