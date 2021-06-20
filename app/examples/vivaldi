@@ -45,6 +45,7 @@ nmap <C-F11> <:set guinavbar!>
 nmap <C-+> <zoomIn>
 nmap <C-=> <zoomIn>
 nmap <C--> <zoomOut>
+nmap <C-k0> <zoomReset>
 nmap <C-*> <zoomReset>
 nmap <C-j> <:downloads>
 nmap <C-D> <:downloads>
@@ -61,6 +62,15 @@ nmap <C-6> <:b 5>
 nmap <C-7> <:b 6>
 nmap <C-8> <:b 7>
 nmap <C-9> <:b 999>
+nmap <C-k1> <:b 0>
+nmap <C-k2> <:b 1>
+nmap <C-k3> <:b 2>
+nmap <C-k4> <:b 3>
+nmap <C-k5> <:b 4>
+nmap <C-k6> <:b 5>
+nmap <C-k7> <:b 6>
+nmap <C-k8> <:b 7>
+nmap <C-k9> <:b 999>
 nmap <C-z> <reopenTab>
 nmap <C-T> <reopenTab>
 nmap <F8> <toExploreMode>
