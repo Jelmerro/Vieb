@@ -27,7 +27,10 @@ nmap <PageUp> <scrollPageUp>
 nmap <PageDown> <scrollPageDown>
 nmap <Home> <scrollTop>
 nmap <End> <scrollBottom>
-nmap <F3> <toSearchMode>
+nmap <F3> <toSearchMode><nextSearchMatch>
+nmap <S-F3> <toSearchMode><previousSearchMatch>
+nmap <C-g> <toSearchMode><nextSearchMatch>
+nmap <C-G> <toSearchMode><previousSearchMatch>
 nmap <F2> <toCommandMode>
 nmap <C-E> <:extensions>
 nmap <C-h> <:history>
@@ -69,15 +72,16 @@ nmap <C-R> <reloadWithoutCache>
 nmap <C-k> <toExploreMode><BS>
 nmap <C-e> <toExploreMode><BS>
 nmap <C-f> <toSearchMode>
-nmap <C-g> <nextSearchMatch>
-nmap <F3> <nextSearchMatch>
-nmap <C-G> <previousSearchMatch>
-nmap <S-F3> <previousSearchMatch>
 nmap <BS> <backInHistory>
 nmap <C-Left> <backInHistory>
 nmap <A-Left> <backInHistory>
 nmap <Esc> <stopLoadingPage>
 nmap <C-s> :write<Space>
+
+smap <F3> <nextSearchMatch>
+smap <C-g> <nextSearchMatch>
+smap <S-F3> <previousSearchMatch>
+smap <C-G> <previousSearchMatch>
 
 cmap <F2> <toNormalMode>
 
