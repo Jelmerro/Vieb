@@ -10,7 +10,6 @@ set permissionmediadevices=allow
 set permissionmicrophone=ask
 set permissionpersistentstorage=allow
 set redirecttohttp
-set search=https://google.com/search?q=%s
 set splitright
 set suspendonrestore=none
 set tabreopenposition=previous
