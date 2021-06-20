@@ -1,0 +1,88 @@
+" Options
+set adblocker=update
+set cache=full
+set devtoolsposition=vsplit
+set favicons=30day
+set mintabwidth=0
+set permissioncamera=ask
+set permissiondisplaycapture=ask
+set permissionmediadevices=allow
+set permissionmicrophone=ask
+set permissionpersistentstorage=allow
+set redirecttohttp
+set splitright
+set suspendonrestore=none
+set tabreopenposition=previous
+set windowtitle=title
+
+" Search Engines
+set search=https://www.bing.com/search?q=%s
+
+" Mappings
+nmap <Up> <scrollUp>
+nmap <Down> <scrollDown>
+nmap <Left> <scrollLeft>
+nmap <Right> <scrollRight>
+nmap <PageUp> <scrollPageUp>
+nmap <PageDown> <scrollPageDown>
+nmap <Home> <scrollTop>
+nmap <End> <scrollBottom>
+nmap <F3> <toSearchMode><nextSearchMatch>
+nmap <S-F3> <toSearchMode><previousSearchMatch>
+nmap <C-g> <toSearchMode><nextSearchMatch>
+nmap <C-G> <toSearchMode><previousSearchMatch>
+nmap <F2> <toCommandMode>
+nmap <C-E> <:extensions>
+nmap <C-h> <:history>
+nmap <C-H> <:history>
+nmap <C-F1> <:open https://vieb.dev/cheatsheet>
+nmap <C-p> <:print>
+nmap <F12> <:devtools>
+nmap <C-I> <:devtools>
+nmap <C-J> <:devtools>
+nmap <C-V> <openFromClipboard>
+nmap <C-F11> <:set guinavbar!>
+nmap <C-+> <zoomIn>
+nmap <C-=> <zoomIn>
+nmap <C--> <zoomOut>
+nmap <C-*> <zoomReset>
+nmap <C-j> <:downloads>
+nmap <C-D> <:downloads>
+nmap <C-F4> <:close>
+nmap <C-Tab> <toLastUsedTab>
+nmap <C-PageUp> <previousTab>
+nmap <C-PageDown> <nextTab>
+nmap <C-1> <:b 0>
+nmap <C-2> <:b 1>
+nmap <C-3> <:b 2>
+nmap <C-4> <:b 3>
+nmap <C-5> <:b 4>
+nmap <C-6> <:b 5>
+nmap <C-7> <:b 6>
+nmap <C-8> <:b 7>
+nmap <C-9> <:b 999>
+nmap <C-z> <reopenTab>
+nmap <C-T> <reopenTab>
+nmap <F8> <toExploreMode>
+nmap <C-l> <toExploreMode>
+nmap <F5> <reload>
+nmap <C-r> <reload>
+nmap <C-F5> <reloadWithoutCache>
+nmap <C-R> <reloadWithoutCache>
+nmap <C-k> <toExploreMode><BS>
+nmap <C-e> <toExploreMode><BS>
+nmap <C-f> <toSearchMode>
+nmap <BS> <backInHistory>
+nmap <C-Left> <backInHistory>
+nmap <A-Left> <backInHistory>
+nmap <Esc> <stopLoadingPage>
+nmap <C-s> :write<Space>
+
+smap <F3> <nextSearchMatch>
+smap <C-g> <nextSearchMatch>
+smap <S-F3> <previousSearchMatch>
+smap <C-G> <previousSearchMatch>
+
+cmap <F2> <toNormalMode>
+
+" vim: ft=vim
