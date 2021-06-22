@@ -24,6 +24,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Text copy and download actions not doing the right thing when called from the context menu
+- Splits being swapped in the grid if splitting directly to an already open page
 
 ### Security
 

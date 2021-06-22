@@ -565,7 +565,7 @@ const pin = (...args) => {
 }
 
 const addSplit = (method, leftOrAbove, args) => {
-    const {addTab} = require("./tabs")
+    const {addTab, switchToTab} = require("./tabs")
     const {add} = require("./pagelayout")
     const id = currentTab().getAttribute("link-id")
     if (args.length === 0) {
@@ -578,7 +578,8 @@ const addSplit = (method, leftOrAbove, args) => {
         if (tab.classList.contains("visible-tab")) {
             notify("Page is already visible", "warn")
         } else {
-            add(tabOrPageMatching(tab), method, !leftOrAbove)
+            add(tabOrPageMatching(tab), method, leftOrAbove)
+            switchToTab(tab)
         }
     } else {
         addTab({
