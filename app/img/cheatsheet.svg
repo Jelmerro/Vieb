@@ -72,9 +72,9 @@
      objecttolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.7536248"
-     inkscape:cx="451.92107"
-     inkscape:cy="892.72232"
+     inkscape:zoom="1.24"
+     inkscape:cx="489.91936"
+     inkscape:cy="968.95162"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      width="1100px"
@@ -2177,20 +2177,20 @@
        id="text10547-2-1"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan3130"><tspan
+         id="tspan5904"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan3128"> 
+           id="tspan5902"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.08476"
-         id="tspan3134"><tspan
+         id="tspan5908"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan3132">follow </tspan></tspan><tspan
+           id="tspan5906">follow </tspan></tspan><tspan
          x="351.18723"
          y="287.76476"
-         id="tspan3138"><tspan
+         id="tspan5912"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan3136">mode
+           id="tspan5910">mode
 </tspan></tspan></text>
     <text
        xml:space="preserve"
@@ -2201,21 +2201,21 @@
        transform="translate(-82.337912,-69.3719)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan3142"><tspan
+         id="tspan5916"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan3140"> 
+           id="tspan5914"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.85891"
-         id="tspan3146"><tspan
+         id="tspan5920"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan3144">explore
+           id="tspan5918">explore
 </tspan></tspan><tspan
          x="351.18723"
          y="288.72478"
-         id="tspan3150"><tspan
+         id="tspan5924"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan3148">mode</tspan></tspan></text>
+           id="tspan5922">mode</tspan></tspan></text>
     <text
        id="text9514-6"
        y="201.01891"
@@ -2689,7 +2689,7 @@
        xml:space="preserve"
        id="flowRoot5691-0-9"
        style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
-       transform="translate(-194.09678,147.12904)"><flowRegion
+       transform="translate(-194.09678,101.12904)"><flowRegion
          id="flowRegion5693-7-0"
          style="font-family:sans-serif;stroke-width:1.06667"><rect
            id="rect5695-0-5"
@@ -2774,7 +2774,7 @@
        xml:space="preserve"
        id="flowRoot5691-4"
        style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
-       transform="translate(-192.90322,-89.870971)"><flowRegion
+       transform="translate(-192.90322,-103.87097)"><flowRegion
          id="flowRegion5693-9"
          style="font-family:sans-serif;stroke-width:1.06667"><rect
            id="rect5695-9"
@@ -3070,7 +3070,7 @@
        xml:space="preserve"
        id="flowRoot5691-4-9-3"
        style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
-       transform="translate(-397.67742,105.90323)"><flowRegion
+       transform="translate(-397.67742,39.90323)"><flowRegion
          id="flowRegion5693-9-1-7"
          style="font-family:sans-serif;stroke-width:1.06667"><rect
            id="rect5695-9-8-7"
@@ -3111,9 +3111,32 @@
          id="flowPara25558" /></flowRoot>
     <flowRoot
        xml:space="preserve"
+       id="flowRoot5691-4-9-3-2"
+       style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
+       transform="translate(-397.29005,123.92436)"><flowRegion
+         id="flowRegion5693-9-1-7-6"
+         style="font-family:sans-serif;stroke-width:1.06667"><rect
+           id="rect5695-9-8-7-4"
+           width="344"
+           height="173.33333"
+           x="404.05209"
+           y="582.96967"
+           style="font-family:sans-serif;fill:#000000;stroke-width:1.13778" /></flowRegion><flowPara
+         id="flowPara5697-3-7-6-0"
+         style="font-weight:bold;font-size:10.6667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'Sans Bold';fill:#000000;stroke-width:1.06667">Repetition:</flowPara><flowPara
+         style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
+         id="flowPara8896-3"><flowSpan
+   id="flowSpan8943"
+   style="font-weight:normal;font-size:10.6667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'Sans Bold';fill:#000000;stroke-width:1.06667">.</flowSpan>  -  repeat last called action or mapstring</flowPara><flowPara
+         style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
+         id="flowPara8960">@:  -  repeat last command</flowPara><flowPara
+         style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
+         id="flowPara25558-5" /></flowRoot>
+    <flowRoot
+       xml:space="preserve"
        id="flowRoot5691-4-9-3-0"
        style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
-       transform="translate(-398.27125,210.02075)"><flowRegion
+       transform="translate(-398.27125,208.02075)"><flowRegion
          id="flowRegion5693-9-1-7-4"
          style="font-family:sans-serif;stroke-width:1.06667"><rect
            id="rect5695-9-8-7-7"
@@ -3239,7 +3262,7 @@
        xml:space="preserve"
        id="flowRoot5691-4-9-3-0-5-0"
        style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
-       transform="translate(89.791957,191.1205)"><flowRegion
+       transform="translate(89.791957,195.44283)"><flowRegion
          id="flowRegion5693-9-1-7-4-9-7"
          style="font-family:sans-serif;stroke-width:1.06667"><rect
            id="rect5695-9-8-7-7-5-1"
@@ -3308,7 +3331,11 @@
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
          id="flowPara3297">i  -  enter insert mode</flowPara><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
-         id="flowPara59204">f  -  enter follow mode to position cursor </flowPara><flowPara
+         id="flowPara59204">f  -  enter follow mode to position cursor</flowPara><flowPara
+         style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
+         id="flowPara14602">gv  -  restore the last visual selection </flowPara><flowPara
+         style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
+         id="flowPara14360" /><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
          id="flowPara1299">mc  -  toggle media controls</flowPara><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
@@ -3512,18 +3539,18 @@
          style="font-weight:normal;font-size:10.6667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'Sans Bold';fill:#ff0000;stroke-width:1.06667"
          id="flowPara74982">search for a string on the page</flowPara><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
-         id="flowPara3395-7-7" /><flowPara
+         id="flowPara3395-7-7">&lt;Ctrl-i&gt;  -  edit with editor</flowPara><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
-         id="flowPara74984"><flowSpan
+         id="flowPara1472"><flowSpan
    style="font-weight:bold"
-   id="flowSpan74986">:call &lt;action.emptySearch&gt;</flowSpan>  -  </flowPara><flowPara
+   id="flowSpan1474">:call &lt;action.emptySearch&gt;</flowSpan>  -  </flowPara><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
          id="flowPara53683">clear search; remove highlights</flowPara></flowRoot>
     <flowRoot
        xml:space="preserve"
        id="flowRoot5691-4-9-3-0-5-4"
        style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
-       transform="translate(95.953249,393.8947)"><flowRegion
+       transform="translate(85.118548,387.96911)"><flowRegion
          id="flowRegion5693-9-1-7-4-9-8"
          style="font-family:sans-serif;stroke-width:1.06667"><rect
            id="rect5695-9-8-7-7-5-3"
@@ -3559,7 +3586,9 @@
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
          id="flowPara39927">&lt;Tab&gt;  -  next suggestion</flowPara><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
-         id="flowPara39929">&lt;Shift-Tab&gt;  -  prev. suggestion</flowPara></flowRoot>
+         id="flowPara2427">&lt;Shift-Tab&gt;  -  prev. suggestion</flowPara><flowPara
+         style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
+         id="flowPara2434">&lt;Ctrl-i&gt;  -  edit with editor</flowPara></flowRoot>
     <flowRoot
        xml:space="preserve"
        id="flowRoot5691-4-9-3-0-5-4-1"
@@ -3611,7 +3640,7 @@
        xml:space="preserve"
        id="flowRoot5691-4-9-3-0-5-4-3"
        style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
-       transform="translate(86.790399,272.35767)"><flowRegion
+       transform="translate(86.220152,276.98579)"><flowRegion
          id="flowRegion5693-9-1-7-4-9-8-3"
          style="font-family:sans-serif;stroke-width:1.06667"><rect
            id="rect5695-9-8-7-7-5-3-8"
@@ -3647,7 +3676,9 @@
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
          id="flowPara39927-1">&lt;Tab&gt;  -  next suggestion</flowPara><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
-         id="flowPara39929-0">&lt;Shift-Tab&gt;  -  prev. suggestion</flowPara></flowRoot>
+         id="flowPara39929-0">&lt;Shift-Tab&gt;  -  prev. suggestion</flowPara><flowPara
+         style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
+         id="flowPara3120">&lt;Ctrl-i&gt;  -  edit with editor</flowPara></flowRoot>
     <text
        id="text9514-8-9-0-8"
        y="217.88069"
@@ -3693,7 +3724,7 @@
            height="196.89922"
            x="915.77972"
            y="437.55823"
-           style="font-family:sans-serif;fill:#000000;stroke-width:1.13777781" /></flowRegion><flowPara
+           style="font-family:sans-serif;fill:#000000;stroke-width:1.13778" /></flowRegion><flowPara
          id="flowPara5697-3-7-6-8-2-0"
          style="font-weight:bold;font-size:10.6667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'Sans Bold';fill:#000000;stroke-width:1.06667">Misc. commands:</flowPara><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
@@ -3702,6 +3733,8 @@
          id="flowPara4136" /><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
          id="flowPara4138">&lt;Ctrl-c&gt;  -  stop loading page</flowPara><flowPara
+         style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
+         id="flowPara2701">gv  -  restore the last visual selection</flowPara><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
          id="flowPara89760"><flowSpan
    style="font-weight:bold"
@@ -4374,22 +4407,22 @@
        transform="translate(0.30743618,-29.82915)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan3154"><tspan
+         id="tspan5928"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan3152"> 
+           id="tspan5926"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.08476"
-         id="tspan3158"><tspan
+         id="tspan5932"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan3156">follow in </tspan></tspan><tspan
+           id="tspan5930">follow in </tspan></tspan><tspan
          x="351.18723"
          y="287.76476"
-         id="tspan3164"><tspan
+         id="tspan5938"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan3160">new tab</tspan><tspan
+           id="tspan5934">new tab</tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan3162">
+           id="tspan5936">
 </tspan></tspan></text>
     <text
        xml:space="preserve"
@@ -4400,24 +4433,24 @@
        transform="translate(-89.302467,-99.318284)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan3168"><tspan
+         id="tspan5942"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan3166"> 
+           id="tspan5940"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.85891"
-         id="tspan3174"><tspan
+         id="tspan5948"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan3170">explore </tspan><tspan
+           id="tspan5944">explore </tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan3172">in </tspan></tspan><tspan
+           id="tspan5946">in </tspan></tspan><tspan
          x="351.18723"
          y="288.72478"
-         id="tspan3180"><tspan
+         id="tspan5954"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan3176">new </tspan><tspan
+           id="tspan5950">new </tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan3178">tab</tspan></tspan></text>
+           id="tspan5952">tab</tspan></tspan></text>
     <text
        xml:space="preserve"
        id="text18022"
