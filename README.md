@@ -7,6 +7,7 @@
 [![Latest release](https://img.shields.io/github/v/release/Jelmerro/Vieb?sort=semver&style=flat-square)](https://github.com/Jelmerro/Vieb/releases/latest)
 [![Electron version](https://img.shields.io/github/package-json/dependency-version/Jelmerro/Vieb/dev/electron?style=flat-square)](https://github.com/electron/electron)
 [![License](https://img.shields.io/badge/license-GPL--3.0_or_later-orange?style=flat-square)](https://github.com/Jelmerro/Vieb/blob/master/LICENSE)
+[![Support](https://img.shields.io/static/v1?label=github&message=sponsors&color=ea4aaa&logo=github-sponsors&style=flat-square)](https://github.com/sponsors/Jelmerro)
 [![Donate](https://img.shields.io/static/v1?label=ko-fi&message=donate&color=red&logo=ko-fi&style=flat-square)](https://ko-fi.com/Jelmerro)
 [![Reddit](https://img.shields.io/reddit/subreddit-subscribers/vieb?style=social)](https://reddit.com/r/vieb)
 
@@ -93,7 +94,7 @@ Quickly get an overview of the default mappings and basic usage.
 # Contribute
 
 You can help by reporting issues and suggesting new features on the [Github issue tracker](https://github.com/Jelmerro/Vieb/issues).
-Another way to help is by supporting Jelmerro on [ko-fi](https://ko-fi.com/Jelmerro).
+Another way to help is by supporting Jelmerro on [ko-fi](https://ko-fi.com/Jelmerro) or [github](https://github.com/sponsors/Jelmerro).
 Donating is completely optional because Vieb will always be free and open source.
 If you know how to write Electron applications, you can also help by writing code.
 Check the ['help wanted' issues](https://github.com/Jelmerro/Vieb/issues?q=is%3Aissue+is%3Aopen+label%3A"help+wanted") for suggestions on what to work on.

@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+# Added
+
+- Funding link to my personal Github sponsors page: Jelmerro
+
 ### Changed
 
 - Mappings `*` and `tx` etc. in visual mode now returns to normal mode, similar to Vim
@@ -515,7 +519,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Searchwords setting to configure custom words that you can use as a prefix in explore mode to search websites directly
-- Add new theme/colorscheme for having vertical tabs on the left of the screen instead of the regular tabbar
+- New theme/colorscheme for having vertical tabs on the left of the screen instead of the regular tabbar
 
 ### Changed
 
@@ -780,7 +784,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Electron 9.0.3 (was 9.0.0)
 - Chromium 83.0.4103.100 (was 83.0.4103.64)
 - Remove the usage of the remote module entirely
-- Add strict CSP to all of Vieb's pages, which prevents all scripts from running outside of the webviews and preloads
+- Strict CSP to all of Vieb's pages, which prevents all scripts from running outside of the webviews and preloads
 
 ## [2.1.0](https://github.com/Jelmerro/Vieb/compare/2.0.0...2.1.0) - 2020-05-19
 
@@ -826,6 +830,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Basic check and compare for prerelease part of semantic versions
 - Tests for the version compare function
 - Favorite pages setting for manually providing a list of pages that should always appear on the new tab page
+- Spellcheck integration (on by default), use spell and spelllang to configure
 
 ### Changed
 
@@ -839,7 +844,6 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Rename the modes: nav to explore and cursor to pointer, to allow for single key identifiers of the modes
 - Improvements to mode switching by centralizing mode switching code in the modes file
 - Click on multiple elements without having to manually re-enter follow mode by holding Shift
-- Add spellcheck integration (on by default), use spell and spelllang to configure
 - History storage format is now JSON, for easier parsing and better title storing
 - Entries on the history page can now be removed without reloading all history again
 - Buffer command can now be used to navigate to new locations (this is also true for the new split and Explore commands)
@@ -867,7 +871,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Chromium 83.0.4102.3 (was 80.0.3987.86)
 - Browsing data of popup windows are now stored in a separate memory-only partitions
 - Hide hardware related info, such as GPU model and battery data
-- Add new permission for mediaDevices, new default is to ask the user instead of allowing all
+- New permission for mediaDevices, new default is to ask the user instead of allowing all
 - Also remove Vieb and Electron from the useragent when downloading favicons
 
 ## [1.1.0](https://github.com/Jelmerro/Vieb/compare/1.0.0...1.1.0) - 2020-02-15
@@ -1030,8 +1034,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Tabs not requested to open in the foreground are now opened in a new tab
 - Improved support for onclick and onmousedown elements in follow mode
-- Add more vertical space between headers on the help page
 - Increased the default notification duration from 5 to 6 seconds
+- More vertical space between headers on the help page
 
 ### Fixed
 
@@ -1099,7 +1103,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Support for 'onmousedown' click handlers in follow mode
 - Some better suggestions to the set command (such as 'downloads.')
 - Cursor mode toggle example for Firefox, similar to Caret browsing
-- Add funding link to my personal ko-fi page: Jelmerro
+- Funding link to my personal ko-fi page: Jelmerro
 
 ### Changed
 
@@ -1150,6 +1154,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Clear cache on quit option (enabled by default)
 - Clear localstorage on quit option (disabled by default)
 - More allowed keys to the input field for all modes (such as 'ctrl shift arrows')
+- Arrow keys for switching suggestions to the Firefox and Chromium examples
 
 ### Changed
 
@@ -1157,7 +1162,6 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Allow commands to start with a single ':', which will be ignored
 - Allow multiple login popups, one for each opened tab
 - Improve the url detection to more accurately follow the domain specification
-- Add arrow keys for switching suggestions to the Firefox and Chromium examples
 
 ### Fixed
 
