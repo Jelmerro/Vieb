@@ -15,11 +15,13 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 # Added
 
+- Support for certain numpad keys in recursive insert mode mappings
 - Funding link to my personal Github sponsors page: Jelmerro
 
 ### Changed
 
 - Mappings `*` and `tx` etc. in visual mode now returns to normal mode, similar to Vim
+- Non-recursive insert mode mappings can now refer to a key with native functionality (if supported by Electron)
 
 ### Fixed
 

@@ -518,28 +518,49 @@ const init = () => {
 const keyNames = [
     {"js": ["<"], "vim": ["lt"]},
     {"js": ["Backspace"], "vim": ["BS"]},
-    {"js": ["Enter"], "vim": ["CR", "NL", "Return", "Enter"]},
+    {
+        "electron": "Return",
+        "js": ["Enter"],
+        "vim": ["CR", "NL", "Return", "Enter"]
+    },
     {"js": ["|"], "vim": ["Bar"]},
     {"js": ["\\"], "vim": ["Bslash"]},
     {"js": ["ArrowLeft"], "vim": ["Left"]},
     {"js": ["ArrowRight"], "vim": ["Right"]},
     {"js": ["ArrowUp"], "vim": ["Up"]},
     {"js": ["ArrowDown"], "vim": ["Down"]},
-    {"js": ["Escape"], "vim": ["Esc"]},
+    {"js": ["Escape", "Esc"], "vim": ["Esc"]},
     {"js": [" "], "vim": ["Space", " "]},
     {"js": ["Delete", "\u0000"], "vim": ["Del"]},
     {"js": ["PrintScreen"], "vim": ["PrintScreen", "PrtScr"]},
     {"js": ["Control"], "vim": ["Ctrl"]},
-    {"js": ["kArrowLeft"], "vim": ["kLeft"]},
-    {"js": ["kArrowRight"], "vim": ["kRight"]},
-    {"js": ["kArrowUp"], "vim": ["kUp"]},
-    {"js": ["kArrowDown"], "vim": ["kDown"]},
-    {"js": ["kPlus", "k+"], "vim": ["kPlus"]},
-    {"js": ["kMinus", "k-"], "vim": ["kMinus"]},
-    {"js": ["kMultiply", "k*"], "vim": ["kMultiply"]},
-    {"js": ["kDivide", "k/"], "vim": ["kDivide"]},
-    {"js": ["kPoint", "k."], "vim": ["kPoint"]},
-    {"js": ["kDelete"], "vim": ["kDel"]},
+    {"electron": "ArrowLeft", "js": ["kArrowLeft"], "vim": ["kLeft"]},
+    {"electron": "ArrowRight", "js": ["kArrowRight"], "vim": ["kRight"]},
+    {"electron": "ArrowUp", "js": ["kArrowUp"], "vim": ["kUp"]},
+    {"electron": "ArrowDown", "js": ["kArrowDown"], "vim": ["kDown"]},
+    {"electron": "numadd", "js": ["k+", "kPlus"], "vim": ["kPlus"]},
+    {"electron": "numsub", "js": ["k-", "kMinus"], "vim": ["kMinus"]},
+    {"electron": "nummult", "js": ["k*", "kMultiply"], "vim": ["kMultiply"]},
+    {"electron": "numdiv", "js": ["k/", "kDivide"], "vim": ["kDivide"]},
+    {"electron": "numdec", "js": ["k.", "kPoint"], "vim": ["kPoint"]},
+    {"electron": "num0", "js": ["k0"], "vim": ["k0"]},
+    {"electron": "num1", "js": ["k1"], "vim": ["k1"]},
+    {"electron": "num2", "js": ["k2"], "vim": ["k2"]},
+    {"electron": "num3", "js": ["k3"], "vim": ["k3"]},
+    {"electron": "num4", "js": ["k4"], "vim": ["k4"]},
+    {"electron": "num5", "js": ["k5"], "vim": ["k5"]},
+    {"electron": "num6", "js": ["k6"], "vim": ["k6"]},
+    {"electron": "num7", "js": ["k7"], "vim": ["k7"]},
+    {"electron": "num8", "js": ["k8"], "vim": ["k8"]},
+    {"electron": "num9", "js": ["k9"], "vim": ["k9"]},
+    {"electron": "Delete", "js": ["kDelete"], "vim": ["kDel"]},
+    {"electron": "Clear", "js": ["kClear"], "vim": ["kClear"]},
+    {"electron": "Home", "js": ["kHome"], "vim": ["kHome"]},
+    {"electron": "End", "js": ["kEnd"], "vim": ["kEnd"]},
+    {"electron": "PageUp", "js": ["kPageUp"], "vim": ["kPageUp"]},
+    {"electron": "PageDown", "js": ["kPageDown"], "vim": ["kPageDown"]},
+    {"electron": "Return", "js": ["kEnter"], "vim": ["kEnter"]},
+    {"electron": "Insert", "js": ["kInsert"], "vim": ["kInsert"]},
     // Keys with the same names, which are listed here to detect incorrect names
     // Note: some of these are not present in Vim and use the JavaScript name
     {"js": ["Shift"], "vim": ["Shift"]},
@@ -567,24 +588,7 @@ const keyNames = [
     {"js": ["Pause"], "vim": ["Pause"]},
     {"js": ["NumLock"], "vim": ["NumLock"]},
     {"js": ["CapsLock"], "vim": ["CapsLock"]},
-    {"js": ["ScrollLock"], "vim": ["ScrollLock"]},
-    {"js": ["kClear"], "vim": ["kClear"]},
-    {"js": ["kHome"], "vim": ["kHome"]},
-    {"js": ["kEnd"], "vim": ["kEnd"]},
-    {"js": ["kPageUp"], "vim": ["kPageUp"]},
-    {"js": ["kPageDown"], "vim": ["kPageDown"]},
-    {"js": ["k0"], "vim": ["k0"]},
-    {"js": ["k1"], "vim": ["k1"]},
-    {"js": ["k2"], "vim": ["k2"]},
-    {"js": ["k3"], "vim": ["k3"]},
-    {"js": ["k4"], "vim": ["k4"]},
-    {"js": ["k5"], "vim": ["k5"]},
-    {"js": ["k6"], "vim": ["k6"]},
-    {"js": ["k7"], "vim": ["k7"]},
-    {"js": ["k8"], "vim": ["k8"]},
-    {"js": ["k9"], "vim": ["k9"]},
-    {"js": ["kEnter"], "vim": ["kEnter"]},
-    {"js": ["kInsert"], "vim": ["kInsert"]}
+    {"js": ["ScrollLock"], "vim": ["ScrollLock"]}
 ]
 
 const toIdentifier = e => {
@@ -618,7 +622,7 @@ const toIdentifier = e => {
     return keyCode
 }
 
-const fromIdentifier = identifier => {
+const fromIdentifier = (identifier, electronNames = true) => {
     let id = String(identifier) || ""
     id = id.split(mapStringSplitter).filter(m => m)[0] || id
     const options = {"modifiers": []}
@@ -657,7 +661,11 @@ const fromIdentifier = identifier => {
     } else {
         keyNames.forEach(key => {
             if (key.vim.includes(id)) {
-                [id] = key.js
+                if (electronNames && key.electron) {
+                    id = key.electron
+                } else {
+                    [id] = key.js
+                }
             }
         })
     }
@@ -755,10 +763,9 @@ const hasFutureActionsBasedOnKeys = keys => Object.keys(bindings[
 
 const sendKeysToWebview = async(options, mapStr) => {
     blockNextInsertKey = true
-    if (options.keyCode.length === 1) {
-        currentPage().sendInputEvent({...options, "type": "char"})
-    }
     currentPage().sendInputEvent({...options, "type": "keyDown"})
+    currentPage().sendInputEvent({...options, "type": "char"})
+    currentPage().sendInputEvent({...options, "type": "keyUp"})
     if (options.bubbles) {
         const action = actionForKeys(mapStr)
         if (action) {
@@ -799,23 +806,36 @@ const executeMapString = async(mapStr, recursive, initial) => {
             if (recursiveCounter > getSetting("maxmapdepth")) {
                 break
             }
-            const options = {...fromIdentifier(key), "bubbles": recursive}
             if (supportedActions.includes(key.replace(/(^<|>$)/g, ""))) {
                 const count = Number(repeatCounter)
                 repeatCounter = 0
                 await doAction(key.replace(/(^<|>$)/g, ""), count)
+                await new Promise(r => {
+                    setTimeout(r, 3)
+                })
+                continue
             } else if (key.startsWith("<:")) {
                 const {execute} = require("./command")
                 execute(key.replace(/^<:|>$/g, ""))
                 lastActionInMapping = null
-            } else if (key.match(/^(<(C-)?(M-)?(A-)?(S-)?.+>|.)$/g)) {
-                if (currentMode() === "insert") {
-                    await sendKeysToWebview(options, key)
-                } else {
-                    window.dispatchEvent(new KeyboardEvent("keydown", options))
-                }
-                lastActionInMapping = null
+                await new Promise(r => {
+                    setTimeout(r, 3)
+                })
+                continue
             }
+            const options = {...fromIdentifier(key), "bubbles": recursive}
+            if (currentMode() === "insert") {
+                if (!options.bubbles) {
+                    const {ipcRenderer} = require("electron")
+                    ipcRenderer.sendSync("insert-mode-blockers", "pass")
+                    // The first event is ignored, so we send a dummy event
+                    await sendKeysToWebview(fromIdentifier(""), "")
+                }
+                await sendKeysToWebview(options, key)
+            } else {
+                window.dispatchEvent(new KeyboardEvent("keydown", options))
+            }
+            lastActionInMapping = null
             await new Promise(r => {
                 setTimeout(r, 3)
             })
@@ -1426,20 +1446,27 @@ const updateKeysOnScreen = () => {
         }
     }
     const {ipcRenderer} = require("electron")
-    const {active} = require("./contextmenu")
     if (pressedKeys) {
         ipcRenderer.send("insert-mode-blockers", "all")
-    } else if (active()) {
-        ipcRenderer.send("insert-mode-blockers", Object.keys(bindings.i)
-            .concat(Object.keys(bindings.m)).concat("0123456789".split(""))
-            .map(mapping => fromIdentifier(
-                mapping.split(mapStringSplitter).filter(m => m)[0])))
-    } else {
-        ipcRenderer.send("insert-mode-blockers", Object.keys(bindings.i)
-            .map(mapping => fromIdentifier(
-                mapping.split(mapStringSplitter).filter(m => m)[0]))
-        )
+        return
     }
+    const {active} = require("./contextmenu")
+    let blockedKeys = Object.keys(bindings.i)
+    if (active()) {
+        blockedKeys = Object.keys(bindings.i).concat(
+            Object.keys(bindings.m)).concat("0123456789".split(""))
+    }
+    ipcRenderer.send("insert-mode-blockers", blockedKeys.map(key => {
+        const jsKey = fromIdentifier(key.split(
+            mapStringSplitter).filter(m => m)[0], false)
+        if (jsKey.length > 1 && jsKey.startsWith("k")) {
+            // Translate numpad keys to their regular versions
+            // Workaround for missing support in Electron:
+            // https://github.com/electron/electron/issues/29845
+            return jsKey.replace("k", "")
+        }
+        return jsKey
+    }))
 }
 
 const listSupportedActions = () => supportedActions
