@@ -302,7 +302,7 @@ const defaultBindings = {
     },
     "v": {
         "$": {"mapping": "<p.moveRightMax>"},
-        "*": {"mapping": "<p.searchText>"},
+        "*": {"mapping": "<p.searchText><toNormalMode>"},
         ".": {"mapping": "<repeatLastAction>"},
         "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<toNormalMode>"},
@@ -337,14 +337,13 @@ const defaultBindings = {
         "l": {"mapping": "<p.moveRight>"},
         "o": {"mapping": "<p.swapPosition>"},
         "r": {"mapping": "<p.rightClick>"},
-        "td": {"mapping": "<p.downloadText>"},
-        "tn": {"mapping": "<p.newtabText>"},
+        "td": {"mapping": "<p.downloadText><toNormalMode>"},
+        "tn": {"mapping": "<p.newtabText><toNormalMode>"},
         "to": {"mapping": "<p.openText><toNormalMode>"},
-        "ts": {"mapping": "<p.searchText>"},
-        "tx": {"mapping": "<p.externalText>"},
-        "ty": {"mapping": "<p.copyText>"},
+        "ts": {"mapping": "<p.searchText><toNormalMode>"},
+        "tx": {"mapping": "<p.externalText><toNormalMode>"},
+        "ty": {"mapping": "<p.copyText><toNormalMode>"},
         "w": {"mapping": "<p.moveFastRight>"},
-        "x": {"mapping": "<openLinkExternal>"},
         "y": {"mapping": "<p.copyText><toNormalMode>"}
     }
 }

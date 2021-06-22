@@ -265,7 +265,7 @@ const webviewMenu = options => {
             })
         }
         createMenuItem({
-            "action": () => commonAction("img", "copy", options),
+            "action": () => commonAction("text", "copy", options),
             "title": "Copy"
         })
     }
@@ -278,11 +278,11 @@ const webviewMenu = options => {
     }
     if (options.text) {
         createMenuItem({
-            "action": () => commonAction("img", "download", options),
+            "action": () => commonAction("text", "download", options),
             "title": "Download"
         })
         createMenuItem({
-            "action": () => commonAction("img", "external", options),
+            "action": () => commonAction("text", "external", options),
             "title": "With external"
         })
     }

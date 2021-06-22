@@ -11,6 +11,21 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Changed
+
+- Mappings `*` and `tx` etc. in visual mode now returns to normal mode, similar to Vim
+
+### Fixed
+
+- Text copy and download actions not doing the right thing when called from the context menu
+
+### Security
+
+- Electron 13.1.3 (was 13.1.2)
+- Chromium 91.0.4472.106 (was 91.0.4472.77)
+
 ## [5.2.0](https://github.com/Jelmerro/Vieb/compare/5.1.0...5.2.0) - 2021-06-20
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/5.1.0...5.2.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/5.2.0)
