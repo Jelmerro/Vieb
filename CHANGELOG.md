@@ -22,6 +22,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Mappings `*` and `tx` etc. in visual mode now returns to normal mode, similar to Vim
 - Non-recursive insert mode mappings can now refer to a key with native functionality (if supported by Electron)
+- Follow mode can now click on JavaScript links without reloading the page
 
 ### Fixed
 
@@ -30,7 +31,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Security
 
-- Electron 13.1.3 (was 13.1.2)
+- Electron 13.1.4 (was 13.1.2)
 - Chromium 91.0.4472.106 (was 91.0.4472.77)
 
 ## [5.2.0](https://github.com/Jelmerro/Vieb/compare/5.1.0...5.2.0) - 2021-06-20

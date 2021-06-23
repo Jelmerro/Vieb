@@ -277,6 +277,8 @@ const parseElement = (element, type) => {
             typeOverride = "other"
         } else if (element.href === `${window.location.href}#`) {
             typeOverride = "other"
+        } else if (element.href.startsWith("javascript:")) {
+            typeOverride = "other"
         }
         // Empty the href for links that require a specific data method to open
         // These will use clicks instead of direct navigation to work correctly
@@ -295,8 +297,7 @@ const parseElement = (element, type) => {
     }
 }
 
-const allElementsBySelector
-= (type, selector) => [...querySelectorAll(selector)]
+const allElementsBySelector = (type, select) => [...querySelectorAll(select)]
     .map(element => parseElement(element, type)).filter(e => e)
 
 const eventListeners = {}
