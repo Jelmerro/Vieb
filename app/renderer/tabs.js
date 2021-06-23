@@ -788,6 +788,9 @@ const addWebviewListeners = webview => {
         if (e.channel === "notify") {
             notify(...e.args)
         }
+        if (e.channel === "url") {
+            addTab({"url": e.args[0]})
+        }
         if (e.channel.endsWith("-click-info") && webview !== currentPage()) {
             switchToTab(tabOrPageMatching(webview))
         }

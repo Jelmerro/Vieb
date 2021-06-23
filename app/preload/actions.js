@@ -27,68 +27,22 @@ const {
     matchesQuery
 } = require("../util")
 
-const increasePageNumber = url => {
-    const paginations = querySelectorAll("*[rel=next], .navi-next")
+const nextPage = newtab => navigateToPage("*[rel=next], .navi-next", newtab)
+
+const previousPage = newtab => navigateToPage("*[rel=prev], .navi-prev", newtab)
+
+const navigateToPage = (selector, newtab) => {
+    const paginations = querySelectorAll(selector)
     for (const pagination of paginations) {
         if (pagination?.href) {
-            window.location = pagination.href
+            if (newtab) {
+                ipcRenderer.sendToHost("url", pagination.href)
+            } else {
+                window.location = pagination.href
+            }
             return
         }
     }
-    movePortNumber(1, url)
-}
-
-const decreasePageNumber = url => {
-    const paginations = querySelectorAll("*[rel=prev], .navi-prev")
-    for (const pagination of paginations) {
-        if (pagination?.href) {
-            window.location = pagination.href
-            return
-        }
-    }
-    movePortNumber(-1, url)
-}
-
-const movePortNumber = (movement, url) => {
-    const loc = document.createElement("a")
-    loc.href = url
-    if (loc.port) {
-        const next = url.toString()
-            .replace(/(^.*:)(\d+)(.*$)/, (_, p1, p2, p3) => {
-                if (Number(p2) + movement < 1) {
-                    return `${p1}1${p3}`
-                }
-                return `${p1}${Number(p2) + movement}${p3}`
-            })
-        if (next !== url.toString()) {
-            window.location = next
-            return
-        }
-    }
-    movePageNumber(movement, url)
-}
-
-const movePageNumber = (movement, url) => {
-    const next = url.replace(/(\?|&)p(age)?=(\d+)/g, (_, p1, p2, p3) => {
-        if (Number(p3) + movement < 1) {
-            return `${p1}p${p2}=1`
-        }
-        return `${p1}p${p2}=${Number(p3) + movement}`
-    })
-    if (next !== url) {
-        window.location = next
-    }
-    movePageNumberNaive(movement, url)
-}
-
-const movePageNumberNaive = (movement, url) => {
-    const next = url.replace(/\d+/, match => {
-        if (Number(match) + movement < 1) {
-            return "1"
-        }
-        return `${Number(match) + movement}`
-    })
-    window.location = next
 }
 
 const blur = () => activeElement()?.blur?.()
@@ -300,11 +254,11 @@ const selectionRequest = (startX, startY, endX, endY) => {
 
 const functions = {
     blur,
-    decreasePageNumber,
     exitFullscreen,
     focusTopLeftCorner,
-    increasePageNumber,
     installFirefoxExtension,
+    nextPage,
+    previousPage,
     print,
     scrollBottom,
     scrollDown,

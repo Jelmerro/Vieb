@@ -53,11 +53,104 @@ const clickOnSearch = () => {
     }
 }
 
-const increasePageNumber = () => new Promise(res => {
-    currentPage()?.send("action",
-        "increasePageNumber", currentPage().src)
-    setTimeout(res, 100)
+const nextPage = () => currentPage()?.send("action", "nextPage")
+
+const previousPage = () => currentPage()?.send("action", "previousPage")
+
+const nextPageNewTab = () => currentPage()?.send("action", "nextPage", true)
+
+const previousPageNewTab = () => currentPage()?.send(
+    "action", "previousPage", true)
+
+const increasePageNumber = () => movePageNumber(1)
+
+const decreasePageNumber = () => movePageNumber(-1)
+
+const movePageNumber = movement => modifyUrl("(\\?|&)p(age)?=(\\d+)",
+    (_, p1, p2, p3) => {
+        if (Number(p3) + movement < 1) {
+            return `${p1}p${p2}=1`
+        }
+        return `${p1}p${p2}=${Number(p3) + movement}`
+    })
+
+const increasePortNumber = () => movePortNumber(1)
+
+const decreasePortNumber = () => movePortNumber(-1)
+
+const movePortNumber = movement => {
+    const url = currentPage()?.src || ""
+    const loc = document.createElement("a")
+    loc.href = url
+    let port = Number(loc.port)
+    if (!port && loc.protocol === "http:") {
+        port = 80
+    }
+    if (!port && loc.protocol === "https:") {
+        port = 443
+    }
+    if (port) {
+        modifyUrl("(^[a-zA-Z\\d]+:\\/\\/[.a-zA-Z\\d-]+)(:\\d+)?(.*$)",
+            (_, domain, urlPort, rest) => {
+                if (isNaN(port)) {
+                    return `${domain}${rest}`
+                }
+                port += movement
+                if (port <= 10) {
+                    return `${domain}:11${rest}`
+                }
+                if (port > 65535) {
+                    return `${domain}:65535${rest}`
+                }
+                return `${domain}:${port}${rest}`
+            })
+    }
+}
+
+const increaseFirstNumber = () => moveFirstNumber(1)
+
+const decreaseFirstNumber = () => moveFirstNumber(-1)
+
+const moveFirstNumber = movement => modifyUrl("\\d+", (_, match) => {
+    if (Number(match) + movement < 1) {
+        return "1"
+    }
+    return `${Number(match) + movement}`
 })
+
+const increaseLastNumber = () => moveLastNumber(1)
+
+const decreaseLastNumber = () => moveLastNumber(-1)
+
+const moveLastNumber = movement => modifyUrl("(\\d+)(\\D*$)", (_, p1, p2) => {
+    if (Number(p1) + movement < 1) {
+        return `1${p2}`
+    }
+    return `${Number(p1) + movement}${p2}`
+})
+
+const toParentUrl = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/\\/.*?\\/)"
+    + "(.*\\/)?(.+?$)", (_, domain, path) => domain + (path || ""))
+
+const toRootUrl = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/\\/.*?\\/)"
+    + "(.*$)", (_, domain) => domain)
+
+const toParentSubdomain = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/\\/)("
+    + "www\\.)?([a-zA-Z\\d]*?\\.)((?:[a-zA-Z\\d]*?\\.)*)([a-zA-Z\\d]*?\\.[a-zA-"
+    + "Z]+.*$)", (_, p, w, __, s, m) => p + (w || "") + (s || "") + (m || ""))
+
+const toRootSubdomain = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/\\/)("
+    + "www\\.)?([a-zA-Z\\d]*?\\.)((?:[a-zA-Z\\d]*?\\.)*)([a-zA-Z\\d]*?\\.[a-zA-"
+    + "Z]+.*$)", (_, p, w, __, ___, m) => p + (w || "") + (m || ""))
+
+const modifyUrl = (source, replacement) => {
+    const url = currentPage()?.src || ""
+    const next = url.replace(RegExp(source), replacement)
+    if (next !== url) {
+        const {navigateTo} = require("./tabs")
+        navigateTo(next)
+    }
+}
 
 const previousTab = () => {
     const {switchToTab} = require("./tabs")
@@ -122,12 +215,6 @@ const nextTab = () => {
     const {switchToTab} = require("./tabs")
     switchToTab(listTabs().indexOf(currentTab()) + 1)
 }
-
-const decreasePageNumber = () => new Promise(res => {
-    currentPage()?.send("action",
-        "decreasePageNumber", currentPage().src)
-    setTimeout(res, 100)
-})
 
 const toSearchMode = () => {
     const {setMode} = require("./modes")
@@ -228,19 +315,19 @@ const scrollPageUpHalf = () => currentPage()?.send("action", "scrollPageUpHalf")
 const zoomReset = () => currentPage()?.setZoomLevel(0)
 
 const zoomOut = () => {
-    let level = currentPage().getZoomLevel() - 1
+    let level = currentPage()?.getZoomLevel() - 1
     if (level < -7) {
         level = -7
     }
-    currentPage().setZoomLevel(level)
+    currentPage()?.setZoomLevel(level)
 }
 
 const zoomIn = () => {
-    let level = currentPage().getZoomLevel() + 1
+    let level = currentPage()?.getZoomLevel() + 1
     if (level > 7) {
         level = 7
     }
-    currentPage().setZoomLevel(level)
+    currentPage()?.setZoomLevel(level)
 }
 
 const toNormalMode = () => {
@@ -610,8 +697,11 @@ module.exports = {
     clickOnSearch,
     commandHistoryNext,
     commandHistoryPrevious,
+    decreaseFirstNumber,
     decreaseHeightSplitWindow,
+    decreaseLastNumber,
     decreasePageNumber,
+    decreasePortNumber,
     decreaseWidthSplitWindow,
     distrubuteSpaceSplitWindow,
     downloadLink,
@@ -621,8 +711,11 @@ module.exports = {
     exploreHistoryNext,
     exploreHistoryPrevious,
     forwardInHistory,
+    increaseFirstNumber,
     increaseHeightSplitWindow,
+    increaseLastNumber,
     increasePageNumber,
+    increasePortNumber,
     increaseWidthSplitWindow,
     incrementalSearch,
     insertAtFirstInput,
@@ -634,6 +727,8 @@ module.exports = {
     menuUp,
     moveTabBackward,
     moveTabForward,
+    nextPage,
+    nextPageNewTab,
     nextSearchMatch,
     nextSuggestion,
     nextTab,
@@ -644,6 +739,8 @@ module.exports = {
     openNewTabWithCurrentUrl,
     pageToClipboard,
     prevSuggestion,
+    previousPage,
+    previousPageNewTab,
     previousSearchMatch,
     previousTab,
     reload,
@@ -681,8 +778,12 @@ module.exports = {
     toLeftSplitWindow,
     toNextSplitWindow,
     toNormalMode,
+    toParentSubdomain,
+    toParentUrl,
     toPreviousSplitWindow,
     toRightSplitWindow,
+    toRootSubdomain,
+    toRootUrl,
     toSearchMode,
     toTopSplitWindow,
     toggleFullscreen,

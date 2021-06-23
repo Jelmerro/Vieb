@@ -277,7 +277,7 @@ const parseElement = (element, type) => {
             typeOverride = "other"
         } else if (element.href === `${window.location.href}#`) {
             typeOverride = "other"
-        } else if (element.href.startsWith("javascript:")) {
+        } else if (element.href?.startsWith?.("javascript:")) {
             typeOverride = "other"
         }
         // Empty the href for links that require a specific data method to open

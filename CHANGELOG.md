@@ -15,6 +15,13 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 # Added
 
+- Actions "increaseFirstNumber" and "decreaseFirstNumber" for modifying the first number of the url
+- Actions "increaseLastNumber" and "decreaseLastNumber" for modifying the last number of the url
+- Actions "increasePortNumber" and "decreasePortNumber" for modifying the port number of the url
+- Actions "nextPage" and "previousPage" for going to the next or previous page based on website pagination
+- Actions "nextPageNewTab" and "previousPageNewTab" for going to the next or previous page in a new tab
+- Actions "toParentUrl" and "toRootUrl" for removing levels/directories at the end of the url (separated by "/")
+- Actions "toParentSubdomain" and "toRootSubdomain" for removing subdomains from the url (separated by ".")
 - Support for certain numpad keys in recursive insert mode mappings
 - Funding link to my personal Github sponsors page: Jelmerro
 
@@ -23,6 +30,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Mappings `*` and `tx` etc. in visual mode now returns to normal mode, similar to Vim
 - Non-recursive insert mode mappings can now refer to a key with native functionality (if supported by Electron)
 - Follow mode can now click on JavaScript links without reloading the page
+- Actions "increasePageNumber" and "decreasePageNumber" now only read the page query parameters, use the new actions for old functionality
 
 ### Fixed
 

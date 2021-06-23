@@ -907,11 +907,11 @@ const updateWindowTitle = () => {
     }
     const name = tabOrPageMatching(currentPage())
         .querySelector("span").textContent
-    if (allSettings.windowtitle === "title" || !currentPage().src) {
+    let url = currentPage()?.src || ""
+    if (allSettings.windowtitle === "title" || !url) {
         ipcRenderer.send("set-window-title", `${application} - ${name}`)
         return
     }
-    let url = currentPage().src
     const specialPage = pathToSpecialPageName(url)
     if (specialPage.name) {
         url = `${appName()}://${specialPage.name}`

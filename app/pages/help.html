@@ -913,6 +913,40 @@
         Decrease the zoom percentage. The zoom percentage is decreased by 10% every time this action is called, down to a minimum of 25%. Opposite of <a href="#action.zoomIn">action.zoomIn</a>. Use <a href="#action.zoomReset">action.zoomReset</a> to go back to 100%.
         <h3 id="action.toLastUsedTab">action.toLastUsedTab</h3>
         This action switches to the last focused tab and back: between the two last used tabs or splits. Previous tabs are stored as focused, if you have had them as the current tab for at least <a href="#timeoutlen">timeoutlen</a> (regardless of <a href="#timeout">timeout</a> being enabled). If you quickly switch two tabs/splits or more within timeoutlen, this action can be used to go back all the way back to the one that was actually active for a while. This same logic is what makes this work when combining split movement or tab switch actions with the number counter. For example, after quickly moving two tabs to the right, executing this action will go back to the tab two tabs to the left. If called again, it will go back to the tab two tabs to the right. This action is one of the few splitting actions that also works without multiple window splits being opened. Although countable, the action only switches between the two last used tabs or splits.
+        <h2 id="url-modifications">Url modifications</h2>
+        These actions can be used to make quick edits to the current page url. These vary from increasing port numbers to stripping subdomains. If any of these actions fail to find the part they are trying to modify, they won't update the url and the page won't be reloaded.
+        <h3 id="action.nextPage">action.nextPage</h3>
+        Search for pagination indicators in the page and use them to go to the next page. Due to it's dependence on the page to provide the indicators, it's the only page increment action that isn't countable. Opposite of <a href="#action.previousPage">action.previousPage</a>.
+        <h3 id="action.previousPage">action.previousPage</h3>
+        Search for pagination indicators in the page and use them to go to the previous page. Opposite of <a href="#action.nextPage">action.nextPage</a>.
+        <h3 id="action.nextPageNewTab">action.nextPageNewTab</h3>
+        Search for pagination indicators in the page and use them to open a new tab of the next page url. Works similar to <a href="#action.nextPage">action.nextPage</a>, but opens the next page in a new tab instead of the current. Opposite of <a href="#action.previousPageNewTab">action.previousPageNewTab</a>.
+        <h3 id="action.previousPageNewTab">action.previousPageNewTab</h3>
+        Search for pagination indicators in the page and use them to open a new tab of previous next page url. Opposite of <a href="#action.nextPageNewTab">action.nextPageNewTab</a>.
+        <h3 id="action.increasePageNumber">action.increasePageNumber</h3>
+        Increase the page number if present in the url. It will search inside the url hash for "p" and "page" query parameters that have a number argument. If you encounter a lot of pages that use different parameters to indicate pages, consider using <a href="#action.nextPage">action.nextPage</a>, or if that fails use <a href="#action.increaseFirstNumber">action.increaseFirstNumber</a> or <a href="#action.increaseLastNumber">action.increaseLastNumber</a>. Opposite of <a href="#action.decreasePageNumber">action.decreasePageNumber</a>.
+        <h3 id="action.decreasePageNumber">action.decreasePageNumber</h3>
+        Decrease the page number if present in the url. See the oppposite action named <a href="#action.increasePageNumber">action.increasePageNumber</a> for more details.
+        <h3 id="action.increasePortNumber">action.increasePortNumber</h3>
+        Increase the port number of the url, or the default port number of the protocol. Increases only if the current port number is below 65535, as it will respect the limits of port numbers that can be navigated to with a browser: it won't go below 11 or above 65535 (this is the same range of ports recognized as valid in <a class="explore" href="#action.toExploreMode">explore mode</a>). Hidden port numbers are still used, such as "80" for "http" and "443" for "https". Opposite of <a href="#action.decreasePortNumber">action.decreasePortNumber</a>.
+        <h3 id="action.decreasePortNumber">action.decreasePortNumber</h3>
+        Decrease the port number of the url, or the default port number of the protocol. Decreases only if the current port number is higher than 11. See the opposite action named <a href="#action.increasePortNumber">action.increasePortNumber</a> for more details.
+        <h3 id="action.increaseFirstNumber">action.increaseFirstNumber</h3>
+        Increases the first number in the url, regardless where it appears. By default unmapped due to it's limited use compared to the other url actions. Opposite of <a href="#action.decreaseFirstNumber">action.decreaseFirstNumber</a>.
+        <h3 id="action.decreaseFirstNumber">action.decreaseFirstNumber</h3>
+        Decreases the first number in the url, regardless where it appears. By default unmapped due to it's limited use compared to the other url actions. Opposite of <a href="#action.increaseFirstNumber">action.increaseFirstNumber</a>.
+        <h3 id="action.increaseLastNumber">action.increaseLastNumber</h3>
+        Increases the last number in the url, regardless where it appears. By default unmapped due to it's limited use compared to the other url actions. Opposite of <a href="#action.decreaseLastNumber">action.decreaseLastNumber</a>.
+        <h3 id="action.decreaseLastNumber">action.decreaseLastNumber</h3>
+        Decreases the last number in the url, regardless where it appears. By default unmapped due to it's limited use compared to the other url actions. Opposite of <a href="#action.increaseLastNumber">action.increaseLastNumber</a>.
+        <h3 id="action.toParentUrl">action.toParentUrl</h3>
+        Removes a single level/directory in the url which are separated by the slash "/" character, to go up a level on the website. Will stop at the root of a domain. For example, this will change "https://github.com/Jelmerro/Vieb" to "https://github.com/Jelmerro/".
+        <h3 id="action.toRootUrl">action.toRootUrl</h3>
+        Removes all levels/directories in the url which are separated by the slash "/" character, to go to the root of a website. For example, this will change "https://github.com/Jelmerro/Vieb" to "https://github.com/".
+        <h3 id="action.toParentSubdomain">action.toParentSubdomain</h3>
+        Removes a single subdomain from the url which are separated by a dot "." character. For example, this will change "https://www.foo.bar.example.com" to "https://www.bar.example.com". The "www." part is kept if other subdomains are present, but if it's the only subdomain present, it will be removed as well, so "https://www.example.com" becomes "https://example.com" when this action is called again.
+        <h3 id="action.toRootSubdomain">action.toRootSubdomain</h3>
+        Removes all subdomains from the url which are separated by a dot "." character. For example, this will change "https://www.foo.bar.example.com" to "https://www.example.com". The "www." part is kept if other subdomains are present, but if it's the only subdomain present, it will be removed as well, so "https://www.example.com" becomes "https://example.com" when this action is called again. It's for this reason that this action is countable, but calling it more than two times subsequently won't do anything.
         <h2 id="splitting">Splitting</h2>
         Vieb supports window splitting, which means you can view multiple sites next to each other. There is no technical limit to how many sites you can split, and splitting works the same as in Vim. To open a new split, see <a href="#:Vexplore">:Vexplore</a> or <a href="#:split">:split</a>. Once you have multiple windows visible, you can switch between them by switching between tabs, or using the more Vim-like window split actions, which are listed below. You may also use the <a href="#:buffer">:buffer</a> command to switch directly to tabs by index or name.
         <h3 id="action.rotateSplitWindowForward">action.rotateSplitWindowForward</h3>
@@ -1125,10 +1159,6 @@
         After searching for a string, use this action to move the focus to the next search matches. If the last match is reached and this action is called, the first one will be shown (it will wrap). Opposite of <a href="#action.previousSearchMatch">action.previousSearchMatch</a>.
         <h3 id="action.previousSearchMatch">action.previousSearchMatch</h3>
         Opposite of <a href="#action.nextSearchMatch">action.nextSearchMatch</a>.
-        <h3 id="action.increasePageNumber">action.increasePageNumber</h3>
-        Call this action to increase the page number in the url. It will check for pagination indicators in the webpage to use, then try to increase the port number and finally a fallback to 'p' and 'page' query arguments. If none of these are present, it will increase the first number in the url.
-        <h3 id="action.decreasePageNumber">action.decreasePageNumber</h3>
-        Opposite of <a href="#action.increasePageNumber">action.increasePageNumber</a>.
         <h3 id="action.insertAtFirstInput">action.insertAtFirstInput</h3>
         This action will enter <a class="insert" href="#action.toInsertMode">insert mode</a> and focus the first input field on the page. Usually this will be a search field or dropdown. If no input fields are currently visible, this action will not enter <a class="insert" href="#action.toInsertMode">insert mode</a>.
         <h3 id="action.editWithVim">action.editWithVim</h3>

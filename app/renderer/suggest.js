@@ -437,6 +437,7 @@ const suggestCommand = searchStr => {
             "modes",
             "scrolling",
             "navigation",
+            "url-modifications",
             "splitting",
             "pointer",
             "visual",

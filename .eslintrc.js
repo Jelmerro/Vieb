@@ -56,7 +56,7 @@ module.exports = {
             "error", {"ignoreRegExpLiterals": true, "ignoreUrls": true}
         ],
         "max-nested-callbacks": "error",
-        "max-params": ["error", 5],
+        "max-params": ["error", 6],
         "max-statements-per-line": "error",
         "new-parens": "error",
         "no-alert": "error",
