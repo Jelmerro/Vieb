@@ -764,7 +764,9 @@ const hasFutureActionsBasedOnKeys = keys => Object.keys(bindings[
 const sendKeysToWebview = async(options, mapStr) => {
     blockNextInsertKey = true
     currentPage().sendInputEvent({...options, "type": "keyDown"})
-    currentPage().sendInputEvent({...options, "type": "char"})
+    if (options.keyCode.length === 1) {
+        currentPage().sendInputEvent({...options, "type": "char"})
+    }
     currentPage().sendInputEvent({...options, "type": "keyUp"})
     if (options.bubbles) {
         const action = actionForKeys(mapStr)
