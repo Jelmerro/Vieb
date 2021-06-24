@@ -86,7 +86,7 @@ nunmap ]
 nmap [[ <:followpage_prev>
 nmap ]] <:followpage_next>
 nmap gu <:urlparent>
-nmap gu <:urlroot>
+nmap gU <:urlroot>
 nmap [c <:urlincrement_-1>
 nmap ]c <:urlincrement_1>
 nmap zz <:zoom_1>
