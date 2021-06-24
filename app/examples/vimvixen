@@ -46,6 +46,10 @@ nmap g$ <:buffer 999>
 nmap <C-6> <toLastUsedTab>
 nmap zp <:pin>
 nmap zd <openNewTabWithCurrentURL><CR>
+nunmap [
+nunmap ]
+nmap [[ <previousPage>
+nmap ]] <nextPage>
 nmap zz <zoomReset>
 nmap zo <zoomOut>
 nmap zi <zoomIn>

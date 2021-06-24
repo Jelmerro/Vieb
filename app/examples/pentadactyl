@@ -21,8 +21,10 @@ set searchwords=
 set searchwords+=google~https://www.google.com/search?hl=en&q=%s
 
 " Mappings
-nmap ]] <increasePageNumber>
-nmap [[ <decreasePageNumber>
+nunmap [
+nunmap ]
+nmap [[ <previousPage>
+nmap ]] <nextPage>
 nmap <A-Right> <forwardInHistory>
 nmap <A-Left> <backInHistory>
 nmap <C-n> <nextTab>

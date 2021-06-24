@@ -50,6 +50,10 @@ command! mute_toggle <:mute>
 command! stop <stopLoadingPage>
 command! urlincrement_-1 <decreasePageNumber>
 command! urlincrement_1 <increasePageNumber>
+command! followpage_prev <previousPage>
+command! followpage_next <nextPage>
+command! urlparent <toParentUrl>
+command! urlroot <toRootUrl>
 command! zoom_1 <zoomReset>
 command! zoom_0.1_true <zoomIn>
 command! zoom_-0.1_true <zoomOut>
@@ -77,6 +81,12 @@ nmap gx$ <:tabclosealltoright>
 nmap <A-p> <:pin>
 nmap <A-m> <:mute_toggle>
 nmap x <:stop>
+nunmap [
+nunmap ]
+nmap [[ <:followpage_prev>
+nmap ]] <:followpage_next>
+nmap gu <:urlparent>
+nmap gu <:urlroot>
 nmap [c <:urlincrement_-1>
 nmap ]c <:urlincrement_1>
 nmap zz <:zoom_1>
