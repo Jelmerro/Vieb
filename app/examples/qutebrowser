@@ -35,10 +35,10 @@ command! tab-only <:lclose><:rclose>
 command! undo <reopenTab>
 command! navigate_prev <previousPage>
 command! navigate_next <nextPage>
-command! navigate_prev_-t <previousPageNewTab>
-command! navigate_next_-t <nextPageNewTab>
+command! navigate_prev_--tab <previousPageNewTab>
+command! navigate_next_--tab <nextPageNewTab>
 command! navigate_up <toParentUrl>
-command! navigate_up_-t <toParentUrl><openNewTabWithCurrentUrl><CR><toLastUsedTab><backInHistory><toLastUsedTab>
+command! navigate_up_--tab <toParentUrl><openNewTabWithCurrentUrl><CR><toLastUsedTab><backInHistory><toLastUsedTab>
 command! tab-move_+ <moveTabForward>
 command! set-cmd-text_--space_tab-select <toCommandMode>buffer<Space>
 command! rl-backward-delete-char <BS>
@@ -120,10 +120,10 @@ nunmap {
 nunmap }
 nmap [[ <:navigate_prev>
 nmap ]] <:navigate_next>
-nmap {{ <:navigate_prev_-t>
-nmap }} <:navigate_next_-t>
+nmap {{ <:navigate_prev_--tab>
+nmap }} <:navigate_next_--tab>
 nmap gu <:navigate_up>
-nmap gU <:navigate_up_-t>
+nmap gU <:navigate_up_--tab>
 nmap <A-1> <:tab-focus_1>
 nmap g0 <:tab-focus_1>
 nmap g^ <:tab-focus_1>
