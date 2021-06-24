@@ -38,6 +38,9 @@ nunmap v
 nmap vv <backInHistory>
 nmap gh <increasePageNumber>
 nmap gf <decreasePageNumber>
+nunmap u
+nmap uu <toParentUrl>
+nmap uU <toRootUrl>
 nmap T <reopenTab>
 nmap b <openNewTabWithCurrentUrl><CR>
 nmap xx <:close>

@@ -31,7 +31,11 @@ command! scrollToRight <scrollPageRight>
 command! copyCurrentUrl <pageToClipboard>
 command! openCopiedUrlInCurrentTab <openFromClipboard>
 command! openCopiedUrlInNewTab <openNewTab><openFromClipboard>
+command! goUp <toParentUrl>
+command! goToRoot <toRootUrl>
 command! LinkHints.activateModeToCopyLinkUrl <p.start><startFollowCurrentTab>
+command! goPrevious <previousPage>
+command! goNext <nextPage>
 command! enterVisualMode <p.start><p.startVisualSelect>
 command! Vomnibar.activate <toExploreMode>
 command! Vomnibar.activateInNewTab <openNewTab><toExploreMode>
@@ -75,7 +79,13 @@ nmap zL <:scrollToRight>
 nmap yy <:copyCurrentUrl>
 nmap p <:openCopiedUrlInCurrentTab>
 nmap P <:openCopiedUrlInNewTab>
+nmap gu <:goUp>
+nmap gU <:goToRoot>
 nmap yf <:LinkHints.activateModeToCopyLinkUrl>
+nunmap [
+nunmap ]
+nmap [[ <:goPrevious>
+nmap ]] <:goNext>
 nmap v <:enterVisualMode>
 nmap o <:Vomnibar.activate>
 nmap O <:Vomnibar.activateInNewTab>

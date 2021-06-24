@@ -70,6 +70,10 @@ nmap <C-6> <toLastUsedTab>
 nmap S <backInHistory>
 nmap D <forwardInHistory>
 nmap cc <openNewTab><openFromClipboard>
+nunmap [
+nunmap ]
+nmap [[ <previousPage>
+nmap ]] <nextPage>
 nmap ob <openNewTab><toExploreMode>baidu<Space>
 nmap og <openNewTab><toExploreMode>google<Space>
 nmap od <openNewTab><toExploreMode>duckduckgo<Space>
