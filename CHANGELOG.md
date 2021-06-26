@@ -37,6 +37,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Text copy and download actions not doing the right thing when called from the context menu
 - Splits being swapped in the grid if splitting directly to an already open page
 - Menu actions being cancelled if parent mode has a multi-key mapping
+- Folders with many items not being scrollable in the file explorer
 
 ### Security
 
