@@ -770,7 +770,6 @@ const uncountableActions = [
     "p.searchText"
 ]
 
-
 const hasFutureActionsBasedOnKeys = keys => Object.keys(bindings[
     currentMode()[0]]).find(map => map.startsWith(keys) && map !== keys)
 
@@ -1006,9 +1005,10 @@ const handleKeyboard = async e => {
         }
         pressedKeys += id
     }
-    if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
+    const action = actionForKeys(pressedKeys)
+    const hasMenuAction = menuActive() && action
+    if (!hasFutureActionsBasedOnKeys(pressedKeys) || hasMenuAction) {
         clearTimeout(timeoutTimer)
-        const action = actionForKeys(pressedKeys)
         if (action && (e.isTrusted || e.bubbles)) {
             if (e.isTrusted) {
                 await executeMapString(action.mapping, !action.noremap, true)
