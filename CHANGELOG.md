@@ -11,7 +11,9 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
-## Unreleased
+## [5.3.0](https://github.com/Jelmerro/Vieb/compare/5.2.0...5.3.0) - 2021-06-30
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/5.2.0...5.3.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/5.3.0)
 
 # Added
 
@@ -27,7 +29,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Changed
 
-- Mappings `*` and `tx` etc. in visual mode now returns to normal mode, similar to Vim
+- Mappings `*` and `tx` etc. in visual mode now return to normal mode, similar to Vim
 - Non-recursive insert mode mappings can now refer to a key with native functionality (if supported by Electron)
 - Follow mode can now click on JavaScript links without reloading the page
 - Actions "increasePageNumber" and "decreasePageNumber" now only read the page query parameters, use the new actions for old functionality
