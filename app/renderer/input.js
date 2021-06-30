@@ -892,7 +892,6 @@ const doAction = async(actionName, givenCount) => {
         clear()
     }
     repeatCounter = 0
-    updateKeysOnScreen()
 }
 
 const actionForKeys = keys => {
@@ -922,7 +921,6 @@ const handleKeyboard = async e => {
     if (matchingMod) {
         return
     }
-    updateKeysOnScreen()
     clearTimeout(timeoutTimer)
     if (getSetting("timeout")) {
         timeoutTimer = setTimeout(async() => {
@@ -1430,18 +1428,24 @@ const updateKeysOnScreen = () => {
     const mapsuggestcount = getSetting("mapsuggest")
     const mapsuggestElement = document.getElementById("mapsuggest")
     mapsuggestElement.style.display = "none"
+    const {active} = require("./contextmenu")
     if (mapsuggestcount > 0) {
         const mapsuggestPosition = getSetting("mapsuggestposition")
         mapsuggestElement.className = mapsuggestPosition
         mapsuggestElement.innerHTML = ""
         if (pressedKeys) {
-            mapsuggestElement.style.display = "flex"
             const [mode] = currentMode()
             const alreadyDone = document.createElement("span")
             alreadyDone.textContent = pressedKeys
             alreadyDone.className = "success"
-            const futureActions = Object.keys(bindings[mode]).filter(
+            let futureActions = Object.keys(bindings[mode]).filter(
                 b => b.startsWith(pressedKeys)).slice(0, mapsuggestcount)
+            if (active() && bindings.m[pressedKeys]) {
+                futureActions = []
+            }
+            if (futureActions.length) {
+                mapsuggestElement.style.display = "flex"
+            }
             futureActions.map(b => ({
                 "next": b.replace(pressedKeys, ""),
                 "result": bindings[mode][b].mapping
@@ -1465,7 +1469,6 @@ const updateKeysOnScreen = () => {
         ipcRenderer.send("insert-mode-blockers", "all")
         return
     }
-    const {active} = require("./contextmenu")
     let blockedKeys = Object.keys(bindings.i)
     if (active()) {
         blockedKeys = Object.keys(bindings.i).concat(
