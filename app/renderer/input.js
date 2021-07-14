@@ -1082,7 +1082,13 @@ const updateNavbarScrolling = () => {
     }
 }
 
-const typeCharacterIntoNavbar = id => {
+const typeCharacterIntoNavbar = character => {
+    const id = character.replace(/-k(.+)>/, (_, r) => `-${r}>`)
+        .replace(/<k([a-zA-Z]+)>/, (_, r) => `<${r}>`)
+        .replace(/<k(\d)>/, (_, r) => r)
+        .replace("<Plus>", "+").replace("<Minus>", "-").replace("<Point>", ".")
+        .replace("<Divide>", "/").replace("<Multiply>", "*")
+        .replace("Delete>", "Del>")
     if (!"ces".includes(currentMode()[0])) {
         return
     }

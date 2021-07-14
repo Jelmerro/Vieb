@@ -11,11 +11,22 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Fixed
+
+- Numpad keys not typing out numbers in navbar related modes
+
+### Security
+
+- Electron 13.1.4 (unchanged)
+- Chromium 91.0.4472.106 (unchanged)
+
 ## [5.3.0](https://github.com/Jelmerro/Vieb/compare/5.2.0...5.3.0) - 2021-06-30
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/5.2.0...5.3.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/5.3.0)
 
-# Added
+### Added
 
 - Actions "increaseFirstNumber" and "decreaseFirstNumber" for modifying the first number of the url
 - Actions "increaseLastNumber" and "decreaseLastNumber" for modifying the last number of the url
@@ -50,7 +61,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/5.1.0...5.2.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/5.2.0)
 
-## Added
+### Added
 
 - Action "repeatLastAction" to repeat the last called action or mapstring
 - Action "p.restoreSelection" to restore the previously selected text in visual mode
@@ -61,7 +72,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Actions for visual mode to search, open, open in new tab, open externally or download selected text
 - Setting "mousevisualmode" to control what happens when you select text with the mouse in relation to visual mode
 
-## Changed
+### Changed
 
 - More consistent opening of splits when many tabs are open
 - Further improvements to the encoding and decoding of urls
