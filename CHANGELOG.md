@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Changed
+
+- Link color is now also taken from the current colorscheme for unstyled pages, making links more readable by default
+
 ### Fixed
 
 - Numpad keys not typing out numbers in navbar related modes

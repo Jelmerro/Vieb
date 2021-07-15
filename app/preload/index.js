@@ -34,34 +34,35 @@ const specialPage = pathToSpecialPageName(window.location.href)
 if (specialPage.name) {
     require(`./${specialPage.name}`)
 }
-// Load Vieb settings that are relevant for the webview
-const webviewSettingsFile = joinPath(appData(), "webviewsettings")
-const settings = readJSON(webviewSettingsFile)
 
 // Change the colors to $FG text on $BG background for plain text pages
 // Change the background to white for regular pages with no explicit background
+const applyThemeStyling = () => {
+    const webviewSettingsFile = joinPath(appData(), "webviewsettings")
+    const colors = readJSON(webviewSettingsFile)
+    const style = document.createElement("style")
+    style.textContent = `html {
+        color: ${colors?.fg || "#eee"};background: ${colors?.bg || "#333"};
+    } a {color: ${colors?.linkcolor || "#0cf"};}`
+    document.querySelector("html").appendChild(style)
+}
 window.addEventListener("load", () => {
-    if (!document.querySelector("html")) {
-        return
-    }
-    if (document.body?.classList.contains("specialpage")) {
+    const html = document.querySelector("html")
+    if (!html || specialPage.name) {
         return
     }
     if (document.head?.innerText === "") {
-        document.querySelector("html").style.color = settings?.fg || "#eee"
-        document.querySelector("html").style.background = settings?.bg || "#333"
+        applyThemeStyling()
         return
     }
-    const html = getComputedStyle(document.querySelector("html")).background
-    const body = getComputedStyle(document.body).background
+    const htmlBG = getComputedStyle(html).background
+    const bodyBG = getComputedStyle(document.body).background
     const unset = "rgba(0, 0, 0, 0)"
-    if (html.includes(unset) && body.includes(unset)) {
-        // Check for regular pages that should have a white background
-        if (document.body.querySelector("div")) {
-            document.querySelector("html").style.background = "white"
+    if (htmlBG.includes(unset) && bodyBG.includes(unset)) {
+        if (document.querySelector("div")) {
+            html.style.background = "white"
             return
         }
-        document.querySelector("html").style.color = settings?.fg || "#eee"
-        document.querySelector("html").style.background = settings?.bg || "#333"
+        applyThemeStyling()
     }
 })

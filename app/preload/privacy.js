@@ -18,15 +18,14 @@
 "use strict"
 
 const {desktopCapturer, ipcRenderer} = require("electron")
-const {matchesQuery, readJSON, joinPath} = require("../util")
+const {matchesQuery, readJSON, joinPath, appData} = require("../util")
 
 const message = "The page has requested to view a list of all media devices."
     + " You can allow or deny this below, and choose if you want the list to"
     + " include the names (labels) of the media device in the response."
     + " For help and options, see ':h permissionmediadevices', ':h permissions"
     + "allowed', ':h permissionsasked' and ':h permissionsblocked'."
-const settingsFile = joinPath(
-    ipcRenderer.sendSync("appdata-path"), "webviewsettings")
+const settingsFile = joinPath(appData(), "webviewsettings")
 
 const privacyFixes = (w = window) => {
     try {

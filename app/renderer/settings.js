@@ -664,6 +664,8 @@ const updateWebviewSettings = () => {
     writeJSON(webviewSettingsFile, {
         "bg": getComputedStyle(document.body).getPropertyValue("--bg"),
         "fg": getComputedStyle(document.body).getPropertyValue("--fg"),
+        "linkcolor": getComputedStyle(document.body)
+            .getPropertyValue("--link-color"),
         "permissiondisplaycapture": allSettings.permissiondisplaycapture,
         "permissionmediadevices": allSettings.permissionmediadevices,
         "permissionsallowed": allSettings.permissionsallowed,

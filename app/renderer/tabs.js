@@ -134,10 +134,7 @@ const init = () => {
                     currentPage().style.pointerEvents = null
                 } else {
                     currentPage().style.pointerEvents = "auto"
-                    if (currentMode() === "insert") {
-                        return
-                    }
-                    if (currentMode() === "pointer") {
+                    if (["insert", "pointer"].includes(currentMode())) {
                         return
                     }
                     setTimeout(() => {
