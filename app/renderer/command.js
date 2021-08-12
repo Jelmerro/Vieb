@@ -39,7 +39,7 @@ const {
     specialPagePath,
     pathToSpecialPageName,
     specialChars,
-    appConfigSettings,
+    appConfig,
     stringToUrl
 } = require("../util")
 const {
@@ -208,8 +208,7 @@ const source = (origin, ...args) => {
         notify("Recursive sourcing of files is not supported", "err")
         return
     }
-    const confSettings = appConfigSettings()
-    if ([confSettings.override, confSettings.files].includes(absFile)) {
+    if ([appConfig().override, appConfig().files].includes(absFile)) {
         notify("It's not possible to source a file that is loaded on startup",
             "err")
         return
@@ -590,15 +589,15 @@ const addSplit = (method, leftOrAbove, args) => {
     }
 }
 
-const close = (...args) => {
+const close = (force, args) => {
     const {closeTab} = require("./tabs")
     if (args.length === 0) {
-        closeTab()
+        closeTab(null, force)
         return
     }
     const tab = tabForBufferArg(args)
     if (tab) {
-        closeTab(listTabs().indexOf(tab))
+        closeTab(listTabs().indexOf(tab), force)
         return
     }
     notify("Can't find matching page, no tabs closed", "warn")
@@ -690,6 +689,29 @@ const extensionsCommand = (...args) => {
     }
 }
 
+const lclose = (force = false) => {
+    let index = listTabs().indexOf(currentTab())
+    // Loop is reversed to close as many tabs as possible on the left,
+    // without getting stuck trying to close pinned tabs at index 0.
+    for (let i = index - 1; i >= 0; i--) {
+        index = listTabs().indexOf(currentTab())
+        const {closeTab} = require("./tabs")
+        closeTab(index - 1, force)
+    }
+}
+
+const rclose = (force = false) => {
+    const index = listTabs().indexOf(currentTab())
+    let count = listTabs().length
+    // Loop is reversed to close as many tabs as possible on the right,
+    // without trying to close a potentially pinned tab right of current.
+    for (let i = count - 1; i > index; i--) {
+        count = listTabs().length
+        const {closeTab} = require("./tabs")
+        closeTab(count - 1, force)
+    }
+}
+
 const noEscapeCommands = ["command", "delcommand"]
 const noArgumentComands = [
     "q",
@@ -719,7 +741,8 @@ const commands = {
     "b": buffer,
     buffer,
     "call": callAction,
-    close,
+    "close": (...args) => close(false, args),
+    "close!": (...args) => close(true, args),
     colorscheme,
     "comclear": () => {
         userCommands = {}
@@ -728,7 +751,7 @@ const commands = {
     "command!": (...args) => addCommand(true, args),
     "cookies": () => openSpecialPage("cookies"),
     "d": () => openSpecialPage("downloads"),
-    "delcommand": (...args) => deleteCommand(...args),
+    "delcommand": (...args) => deleteCommand(args),
     "devtools": openDevTools,
     "downloads": () => openSpecialPage("downloads"),
     "extensions": extensionsCommand,
@@ -738,16 +761,8 @@ const commands = {
     hide,
     "history": () => openSpecialPage("history"),
     "internaldevtools": openInternalDevTools,
-    "lclose": () => {
-        let index = listTabs().indexOf(currentTab())
-        // Loop is reversed to close as many tabs as possible on the left,
-        // without getting stuck trying to close pinned tabs at index 0.
-        for (let i = index - 1; i >= 0; i--) {
-            index = listTabs().indexOf(currentTab())
-            const {closeTab} = require("./tabs")
-            closeTab(index - 1)
-        }
-    },
+    lclose,
+    "lclose!": () => lclose(true),
     makedefault,
     mkviebrc,
     mute,
@@ -764,17 +779,8 @@ const commands = {
     "qa": quitall,
     quit,
     quitall,
-    "rclose": () => {
-        const index = listTabs().indexOf(currentTab())
-        let count = listTabs().length
-        // Loop is reversed to close as many tabs as possible on the right,
-        // without trying to close a potentially pinned tab right of current.
-        for (let i = count - 1; i > index; i--) {
-            count = listTabs().length
-            const {closeTab} = require("./tabs")
-            closeTab(count - 1)
-        }
-    },
+    rclose,
+    "rclose!": () => rclose(true),
     reload,
     restart,
     "s": set,
@@ -783,10 +789,10 @@ const commands = {
             notify(`Command takes no arguments: scriptnames`, "warn")
             return
         }
-        notify(appConfigSettings().files.join("\n"))
+        notify(appConfig().files.join("\n"))
     },
     "scriptnames!": (...args) => {
-        const scripts = [...appConfigSettings().files, ...sourcedFiles]
+        const scripts = [...appConfig().files, ...sourcedFiles]
         if (args.length === 0) {
             notify(scripts.join("\n"))
         } else if (args.length === 1) {
@@ -892,7 +898,7 @@ const addCommand = (overwrite, args) => {
     userCommands[command] = sanitiseMapString(params.join(" "), true)
 }
 
-const deleteCommand = (...args) => {
+const deleteCommand = args => {
     if (args.length !== 1) {
         notify(
             "Exactly one command name is required for delcommand", "warn")

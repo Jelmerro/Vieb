@@ -21,11 +21,10 @@ const {ipcRenderer} = require("electron")
 const {
     joinPath,
     appData,
-    appIcon,
+    appConfig,
     readFile,
     readJSON,
     writeJSON,
-    appName,
     isFile,
     isDir,
     listDir,
@@ -58,12 +57,11 @@ let linkId = 0
 const timeouts = {}
 const tabFile = joinPath(appData(), "tabs")
 const erwicMode = isFile(joinPath(appData(), "erwicmode"))
-const configPreloads = {}
 
 const init = () => {
     window.addEventListener("load", () => {
-        if (appIcon()) {
-            document.getElementById("logo").src = appIcon()
+        if (appConfig().icon) {
+            document.getElementById("logo").src = appConfig().icon
         }
         const parsed = readJSON(tabFile)
         if (!erwicMode) {
@@ -103,18 +101,20 @@ const init = () => {
             }
             const startup = getSetting("startuppages")
             for (const tab of startup.split(",")) {
-                openStartupPage(tab)
+                const parts = tab.split("~")
+                const url = parts.shift()
+                const container = parts.shift()
+                const muted = parts.includes("muted")
+                const pinned = parts.includes("pinned")
+                addTab({container, muted, pinned, "startup": true, url})
             }
         }
         ipcRenderer.on("urls", (_, pages) => {
             pages.forEach(page => {
                 if (typeof page === "string") {
-                    openStartupPage(page)
+                    addTab({"startup": true, "url": page})
                 } else {
-                    openStartupPage(page.url, page.container)
-                }
-                if (page.script) {
-                    configPreloads[page.container] = page.script
+                    addTab({...page, "startup": true})
                 }
             })
         })
@@ -152,16 +152,6 @@ const init = () => {
             getSetting("restorewindowsize"),
             getSetting("restorewindowmaximize"))
     })
-}
-
-const openStartupPage = (url, container = null) => {
-    if (!url.trim()) {
-        return
-    }
-    if (!container) {
-        return addTab({"container": getSetting("containerstartuppage"), url})
-    }
-    addTab({container, url})
 }
 
 const saveTabs = () => {
@@ -203,14 +193,17 @@ const saveTabs = () => {
 }
 
 const addTab = (options = {}) => {
-    // Options: url, customIndex, switchTo, pinned, container, lazy and muted
+    // Recognized options for opening a new tab are as follows:
+    // url, customIndex, switchTo, pinned, devtools,
+    // container, lazy, script, muted, startup
+    // Defaults for these options vary depending on app state and user settings
     if (options.switchTo === undefined) {
         options.switchTo = true
     }
     if (options.url?.startsWith("devtools://")) {
         return
     }
-    if (options.url === "about:blank") {
+    if (options.url === "about:blank" || options.url === "") {
         return
     }
     linkId += 1
@@ -237,6 +230,8 @@ const addTab = (options = {}) => {
     let sessionName = getSetting("containernewtab")
     if (options.container) {
         sessionName = options.container
+    } else if (options.startup) {
+        sessionName = getSetting("containerstartuppage")
     }
     sessionName = sessionName.replace("%n", linkId)
     if (sessionName === "s:external") {
@@ -317,6 +312,9 @@ const addTab = (options = {}) => {
         [, tab.style.color] = color.split("~")
     }
     const page = document.createElement("div")
+    if (options.script) {
+        page.setAttribute("user-script-file", options.script)
+    }
     page.classList.add("webview")
     page.setAttribute("link-id", linkId)
     const url = stringToUrl(options.url || "")
@@ -327,12 +325,22 @@ const addTab = (options = {}) => {
     if (isDevtoolsTab) {
         page.setAttribute("devtools-for-id", currentPageId)
     }
-    if (options.muted) {
+    let {muted} = options
+    if (options.startup) {
+        muted = getSetting("tabreopenmuted") === "always"
+            || getSetting("tabreopenmuted") === "remember" && muted
+    } else if (muted === undefined || muted === null) {
+        muted = getSetting("tabopenmuted") === "always"
+            || getSetting("tabopenmuted") === "background" && !options.switchTo
+    }
+    if (muted) {
         tab.setAttribute("muted", "muted")
         page.setAttribute("muted", "muted")
     }
     pages.appendChild(page)
-    if (options.lazy) {
+    const suspend = options.lazy
+        || getSetting("suspendbackgroundtab") && !options.switchTo
+    if (suspend) {
         tab.setAttribute("suspended", "suspended")
         const {titleForPage} = require("./history")
         name.textContent = titleForPage(url) || url
@@ -386,7 +394,12 @@ const unsuspendPage = page => {
             webview.setAttribute(attr, page.getAttribute(attr))
         }
     })
-    webview.setAttribute("webpreferences", "spellcheck=yes")
+    if (appConfig().autoplay === "user") {
+        webview.setAttribute("webpreferences",
+            "spellcheck=yes,autoplayPolicy=document-user-activation-required")
+    } else {
+        webview.setAttribute("webpreferences", "spellcheck=yes")
+    }
     const sessionName = page.getAttribute("container")
     ipcRenderer.send("create-session", `persist:${sessionName}`,
         getSetting("adblocker"), getSetting("cache") !== "none")
@@ -442,17 +455,20 @@ const reopenTab = () => {
     if (getSetting("tabreopenposition") === "right") {
         restore.customIndex = listTabs().indexOf(currentTab()) + 1
     }
+    const rememberMuted = getSetting("tabreopenmuted")
+    restore.muted = rememberMuted === "always"
+        || rememberMuted === "remember" && restore.muted
     addTab(restore)
 }
 
-const closeTab = (index = null) => {
+const closeTab = (index = null, force = false) => {
     const tab = listTabs()[index] || currentTab()
     const isClosingCurrent = tab === currentTab()
     const page = tabOrPageMatching(tab)
     if (!tab) {
         return
     }
-    if (!getSetting("closablepinnedtabs")) {
+    if (!getSetting("closablepinnedtabs") && !force) {
         if (tab.classList.contains("pinned")) {
             return
         }
@@ -461,7 +477,10 @@ const closeTab = (index = null) => {
     const oldTabIdx = listTabs().indexOf(tab)
     if (getSetting("keeprecentlyclosed") && url) {
         recentlyClosed.push({
-            "container": page.getAttribute("container"), "index": oldTabIdx, url
+            "container": page.getAttribute("container"),
+            "index": oldTabIdx,
+            "muted": tab.getAttribute("muted"),
+            url
         })
     }
     const regularTab = listTabs().find(t => t.getAttribute("devtools-id")
@@ -725,7 +744,7 @@ const addWebviewListeners = webview => {
             updateTitle(webview.src, name.textContent)
         }
         if (erwicMode) {
-            const preload = configPreloads[webview.getAttribute("container")]
+            const preload = webview.getAttribute("user-script-file")
             if (preload) {
                 const javascript = readFile(preload)
                 if (javascript) {
@@ -914,10 +933,10 @@ const addWebviewListeners = webview => {
                     .textContent = urlToString(e.url)
             } else if (special.section) {
                 document.getElementById("url-hover").textContent
-                    = `${appName()}://${special.name}#${special.section}`
+                    = `${appConfig().name}://${special.name}#${special.section}`
             } else {
                 document.getElementById("url-hover")
-                    .textContent = `${appName()}://${special.name}`
+                    .textContent = `${appConfig().name}://${special.name}`
             }
             document.getElementById("url-hover").style.display = "block"
         } else {

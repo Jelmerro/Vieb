@@ -147,12 +147,10 @@ const viebMenu = options => {
                 tabOrPageMatching(tab).src)),
             "title": "Copy url"
         })
-        if (!pinned || getSetting("closablepinnedtabs")) {
-            createMenuItem({
-                "action": () => closeTab(listTabs().indexOf(tab)),
-                "title": "Close this"
-            })
-        }
+        createMenuItem({
+            "action": () => closeTab(listTabs().indexOf(tab), true),
+            "title": "Close this"
+        })
         fixAlignmentNearBorders()
     }
 }

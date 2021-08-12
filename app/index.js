@@ -101,14 +101,20 @@ Options:
  --media-keys=<val>      bool (true): Allow the media keys to control playback.
                          You can also use the ENV var: 'VIEB_MEDIA_KEYS'.
 
+ --autoplay-media=<val>  string [USER/always]: Control when media can autoplay.
+                         When set to user, the document must be focussed first.
+                         You can also use the ENV var: 'VIEB_AUTOPLAY_MEDIA'.
+
  --site-isolation=<val>  string [REGULAR/strict]: Set the site isolation level.
                          You can also use the ENV var: 'VIEB_SITE_ISOLATION'.
 
  --acceleration=<val>    string [HARDWARE/software]: Use hardware acceleration.
                          You can also use the ENV var: 'VIEB_ACCELERATION'.
 
-All arguments not starting with - will be opened as a url.
-Command-line arguments will overwrite values set by ENV vars.`)
+These command-line arguments will overwrite values set by ENV vars.
+Args starting with '-' not listed above will be passed to Chromium.
+Args not starting with '-' will be opened as a new tab in Vieb.
+`)
     printLicense()
     app.exit(code)
 }
@@ -183,6 +189,8 @@ if (!process.env.VIEB_MEDIA_KEYS) {
 }
 let argSiteIsolation = process.env.VIEB_SITE_ISOLATION?.trim().toLowerCase()
     || "regular"
+let argAutoplayMedia = process.env.VIEB_AUTOPLAY_MEDIA?.trim().toLowerCase()
+    || "user"
 let argAcceleration = process.env.VIEB_ACCELERATION?.trim().toLowerCase()
     || "hardware"
 let customIcon = null
@@ -222,6 +230,9 @@ args.forEach(a => {
         } else if (arg === "--site-isolation") {
             console.warn("The 'site-isolation' argument requires a value such "
                 + "as: --site-isolation=regular\n")
+        } else if (arg === "--autoplay-media") {
+            console.warn("The 'autoplay-media' argument requires a value such "
+                + "as: --autoplay-media=user\n")
             printUsage()
         } else if (arg === "--acceleration") {
             console.warn("The 'acceleration' argument requires a value such as:"
@@ -241,10 +252,13 @@ args.forEach(a => {
             argMediaKeys = isTruthyArg(arg.split("=").slice(1).join("="))
         } else if (arg.startsWith("--site-isolation=")) {
             argSiteIsolation = arg.split("=").slice(1).join("=").toLowerCase()
+        } else if (arg.startsWith("--autoplay-media=")) {
+            argAutoplayMedia = arg.split("=").slice(1).join("=").toLowerCase()
         } else if (arg.startsWith("--acceleration=")) {
             argAcceleration = arg.split("=").slice(1).join("=").toLowerCase()
         } else {
-            console.warn(`Unsupported argument: '${arg}', use --help for info`)
+            console.warn(`Arg '${arg}' will be passed to Chromium`)
+            app.commandLine.appendArgument(arg)
         }
     } else {
         urls.push(arg)
@@ -253,6 +267,11 @@ args.forEach(a => {
 if (argSiteIsolation !== "regular" && argSiteIsolation !== "strict") {
     console.warn("The 'site-isolation' argument only accepts:\n"
         + "'regular' or 'strict'\n")
+    printUsage()
+}
+if (argAutoplayMedia !== "user" && argAutoplayMedia !== "always") {
+    console.warn("The 'autoplay-media' argument only accepts:\n"
+        + "'user' or 'always'\n")
     printUsage()
 }
 if (argAcceleration !== "hardware" && argAcceleration !== "software") {
@@ -406,7 +425,6 @@ app.on("ready", () => {
             "contextIsolation": false,
             "disableBlinkFeatures": "Auxclick",
             "enableRemoteModule": false,
-            "nativeWindowOpen": false,
             "nodeIntegration": false,
             "preload": joinPath(__dirname, "renderer/index.js"),
             "sandbox": false,
@@ -1366,20 +1384,16 @@ ipcMain.on("override-global-useragent", (e, globalUseragent) => {
 ipcMain.on("rimraf", (e, folder) => {
     e.returnValue = rimraf(folder)
 })
-ipcMain.on("app-config-settings", e => {
-    e.returnValue = {"order": argConfigOrder, "override": argConfigOverride}
-})
-ipcMain.on("app-version", e => {
-    e.returnValue = version
-})
-ipcMain.on("appdata-path", e => {
-    e.returnValue = app.getPath("appData")
-})
-ipcMain.on("custom-icon", e => {
-    e.returnValue = customIcon || undefined
-})
-ipcMain.on("app-name", e => {
-    e.returnValue = app.getName()
+ipcMain.on("app-config", e => {
+    e.returnValue = {
+        "appdata": app.getPath("appData"),
+        "autoplay": argAutoplayMedia,
+        "icon": customIcon || undefined,
+        "name": app.getName(),
+        "order": argConfigOrder,
+        "override": argConfigOverride,
+        version
+    }
 })
 ipcMain.on("is-fullscreen", e => {
     e.returnValue = mainWindow.fullScreen

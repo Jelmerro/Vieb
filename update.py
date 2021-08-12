@@ -19,11 +19,13 @@ import shutil
 import subprocess
 import re
 
-overrides = {}
+overrides = {
+    "electron": "beta"
+}
 
 
 def find_version(text, version):
-    matches = re.findall(rf"{version}:\s+(\d+\.\d+\.\d+)(\s+|$)", text)
+    matches = re.findall(rf"{version}:\s+(.+)(\s+|$)", text)
     return None if not matches else matches[0][0]
 
 

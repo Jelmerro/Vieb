@@ -13,9 +13,19 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Setting "suspendbackgroundtab" to toggle if tabs opened in the background should be suspended (on by default)
+- Setting "tabopenmuted" to control if new tabs should be muted (default off, can also be set for background tabs only)
+- Setting "tabreopenmuted" to control if reopened tabs should keep their muted state (default is "remember")
+- Startup option to control the autoplay policy of media in webpages (default changed to require document interaction)
+- Make "!" behind close commands (close, lclose, rclose) also close pinned tabs regardless of the "closablepinnedtabs" setting
+
 ### Changed
 
 - Link color is now also taken from the current colorscheme for unstyled pages, making links more readable by default
+- Setting "startuppages" now accepts optional container name, pinned status and muted status options using "~"
+- Unsupported startup arguments are now passed to Chromium, which makes running Vieb on wayland possible
 
 ### Fixed
 
@@ -23,8 +33,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Security
 
-- Electron 13.1.6 (was 13.1.4)
-- Chromium 91.0.4472.124 (was 91.0.4472.106)
+- Electron 14.0.0-beta.21 (was 13.1.4)
+- Chromium 93.0.4577.15 (was 91.0.4472.106)
 
 ## [5.3.0](https://github.com/Jelmerro/Vieb/compare/5.2.0...5.3.0) - 2021-06-30
 
@@ -32,13 +42,13 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Added
 
-- Actions "increaseFirstNumber" and "decreaseFirstNumber" for modifying the first number of the url
-- Actions "increaseLastNumber" and "decreaseLastNumber" for modifying the last number of the url
-- Actions "increasePortNumber" and "decreasePortNumber" for modifying the port number of the url
-- Actions "nextPage" and "previousPage" for going to the next or previous page based on website pagination
-- Actions "nextPageNewTab" and "previousPageNewTab" for going to the next or previous page in a new tab
-- Actions "toParentUrl" and "toRootUrl" for removing levels/directories at the end of the url (separated by "/")
-- Actions "toParentSubdomain" and "toRootSubdomain" for removing subdomains from the url (separated by ".")
+- Action "increaseFirstNumber" and "decreaseFirstNumber" for modifying the first number of the url
+- Action "increaseLastNumber" and "decreaseLastNumber" for modifying the last number of the url
+- Action "increasePortNumber" and "decreasePortNumber" for modifying the port number of the url
+- Action "nextPage" and "previousPage" for going to the next or previous page based on website pagination
+- Action "nextPageNewTab" and "previousPageNewTab" for going to the next or previous page in a new tab
+- Action "toParentUrl" and "toRootUrl" for removing levels/directories at the end of the url (separated by "/")
+- Action "toParentSubdomain" and "toRootSubdomain" for removing subdomains from the url (separated by ".")
 - Support for certain numpad keys in recursive insert mode mappings
 - Funding link to my personal Github sponsors page: Jelmerro
 
@@ -47,7 +57,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Mappings `*` and `tx` etc. in visual mode now return to normal mode, similar to Vim
 - Non-recursive insert mode mappings can now refer to a key with native functionality (if supported by Electron)
 - Follow mode can now click on JavaScript links without reloading the page
-- Actions "increasePageNumber" and "decreasePageNumber" now only read the page query parameters, use the new actions for old functionality
+- Action "increasePageNumber" and "decreasePageNumber" now only read the page query parameters, use the new actions for old functionality
 
 ### Fixed
 
@@ -517,8 +527,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Action "action.pageToClipboard" for copying the current page url to the clipboard
-- Actions "action.openFromClipboard" to open pages from the clipboard (optionally in a new tab by calling that action first)
-- Actions "action.exploreHistoryNext" and "action.exploreHistoryPrevious" for finding previous site navigations in explore mode
+- Action "action.openFromClipboard" to open pages from the clipboard (optionally in a new tab by calling that action first)
+- Action "action.exploreHistoryNext" and "action.exploreHistoryPrevious" for finding previous site navigations in explore mode
 - Startup argument to optionally turn off hardware acceleration (by default still turned on)
 
 ### Changed

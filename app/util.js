@@ -30,8 +30,6 @@ const specialPages = [
     "version"
 ]
 const notificationHistory = []
-let customIcon = null
-let applicationName = ""
 let appDataPath = ""
 let homeDirPath = ""
 let configSettings = ""
@@ -135,47 +133,6 @@ const specialPagePath = (userPage, section = null, skipExistCheck = false) => {
     return `file:///${url}`
 }
 
-const globDelete = folder => {
-    // Request is send back to the main process due to electron-builder bugs:
-    // https://github.com/electron-userland/electron-builder/issues/5662
-    // https://github.com/electron-userland/electron-builder/issues/5625
-    // https://github.com/electron-userland/electron-builder/issues/5706
-    // https://github.com/electron-userland/electron-builder/issues/5617
-    // It seems that modules not used in the main process are dropped on build.
-    const {ipcRenderer} = require("electron")
-    ipcRenderer.sendSync("rimraf", joinPath(appData(), folder))
-}
-
-const clearTempContainers = () => {
-    globDelete("Partitions/temp*")
-    globDelete("erwicmode")
-}
-
-const clearCache = () => {
-    globDelete("**/*Cache/")
-    globDelete("**/File System/")
-    globDelete("**/MANIFEST")
-    globDelete("**/Service Worker/")
-    globDelete("**/VideoDecodeStats/")
-    globDelete("**/blob_storage/")
-    globDelete("**/databases/")
-    globDelete("*.log")
-    globDelete("**/.org.chromium.Chromium.*")
-    globDelete("vimformedits/")
-    globDelete("webviewsettings")
-}
-
-const clearCookies = () => {
-    globDelete("**/Cookies*")
-    globDelete("**/QuotaManager*")
-}
-
-const clearLocalStorage = () => {
-    globDelete("**/IndexedDB/")
-    globDelete("**/*Storage/")
-    globDelete("**/*.ldb")
-}
-
 const expandPath = loc => {
     if (loc.startsWith("~")) {
         if (!homeDirPath) {
@@ -186,8 +143,6 @@ const expandPath = loc => {
     }
     return loc
 }
-
-const isObject = o => o === Object(o)
 
 const stringToUrl = location => {
     let url = String(location)
@@ -219,7 +174,7 @@ const urlToString = url => {
         return ""
     }
     if (special.name) {
-        let specialUrl = `${appName()}://${special.name}`
+        let specialUrl = `${appConfig().name}://${special.name}`
         if (special.section) {
             specialUrl += `#${special.section}`
         }
@@ -418,6 +373,45 @@ const formatSize = size => {
     return `${(size / 1024 ** exp).toFixed(2)} ${"KMGTPE"[exp - 1]}B`
 }
 
+const compareVersions = (v1Str, v2Str) => {
+    const v1 = v1Str.replace(/^v/g, "").trim()
+    const v2 = v2Str.replace(/^v/g, "").trim()
+    if (v1 === v2) {
+        return "even"
+    }
+    const [v1num, v1ext] = v1.split("-")
+    const [v2num, v2ext] = v2.split("-")
+    // Same number and at least one of them has a suffix such as "-dev"
+    if (v1num === v2num) {
+        if (v1ext && v2ext) {
+            // Do a simple comparison of named pre releases
+            const suffixMap = {"alpha": 2, "beta": 3, "dev": 1, "prerelease": 4}
+            const v1suffix = suffixMap[v1ext] || 0
+            const v2suffix = suffixMap[v2ext] || 0
+            if (v1suffix > v2suffix) {
+                return "newer"
+            }
+            if (v1suffix < v2suffix) {
+                return "older"
+            }
+        } else if (v1ext) {
+            return "older"
+        } else if (v2ext) {
+            return "newer"
+        }
+        return "even"
+    }
+    for (let i = 0; i < 3; i++) {
+        if (Number(v1num.split(".")[i]) > Number(v2num.split(".")[i])) {
+            return "newer"
+        }
+        if (Number(v1num.split(".")[i]) < Number(v2num.split(".")[i])) {
+            return "older"
+        }
+    }
+    return "unknown"
+}
+
 const extractZip = (args, cb) => {
     // Path is constructed manually due to the many electron-builder bugs:
     // https://github.com/electron-userland/electron-builder/issues/5662
@@ -440,6 +434,47 @@ const extractZip = (args, cb) => {
 }
 
 // IPC UTIL
+
+const globDelete = folder => {
+    // Request is send back to the main process due to electron-builder bugs:
+    // https://github.com/electron-userland/electron-builder/issues/5662
+    // https://github.com/electron-userland/electron-builder/issues/5625
+    // https://github.com/electron-userland/electron-builder/issues/5706
+    // https://github.com/electron-userland/electron-builder/issues/5617
+    // It seems that modules not used in the main process are dropped on build.
+    const {ipcRenderer} = require("electron")
+    ipcRenderer.sendSync("rimraf", joinPath(appData(), folder))
+}
+
+const clearTempContainers = () => {
+    globDelete("Partitions/temp*")
+    globDelete("erwicmode")
+}
+
+const clearCache = () => {
+    globDelete("**/*Cache/")
+    globDelete("**/File System/")
+    globDelete("**/MANIFEST")
+    globDelete("**/Service Worker/")
+    globDelete("**/VideoDecodeStats/")
+    globDelete("**/blob_storage/")
+    globDelete("**/databases/")
+    globDelete("*.log")
+    globDelete("**/.org.chromium.Chromium.*")
+    globDelete("vimformedits/")
+    globDelete("webviewsettings")
+}
+
+const clearCookies = () => {
+    globDelete("**/Cookies*")
+    globDelete("**/QuotaManager*")
+}
+
+const clearLocalStorage = () => {
+    globDelete("**/IndexedDB/")
+    globDelete("**/*Storage/")
+    globDelete("**/*.ldb")
+}
 
 const notify = (message, type = "info", clickAction = false) => {
     if (getSetting("notificationduration") === 0) {
@@ -476,7 +511,7 @@ const notify = (message, type = "info", clickAction = false) => {
         && (escapedMessage.split("<br>").length > 5 || message.length > 200)
     if (native === "always" || !showLong && native === "smallonly") {
         const n = new Notification(
-            `${appName()} ${properType}`, {"body": message})
+            `${appConfig().name} ${properType}`, {"body": message})
         n.onclick = () => {
             if (clickAction?.type === "download-success") {
                 const {ipcRenderer} = require("electron")
@@ -506,22 +541,6 @@ const notify = (message, type = "info", clickAction = false) => {
         getSetting("notificationduration"))
 }
 
-const appIcon = () => {
-    if (customIcon === null) {
-        const {ipcRenderer} = require("electron")
-        customIcon = ipcRenderer.sendSync("custom-icon")
-    }
-    return customIcon
-}
-
-const appName = () => {
-    if (!applicationName) {
-        const {ipcRenderer} = require("electron")
-        applicationName = ipcRenderer.sendSync("app-name")
-    }
-    return applicationName.toLowerCase()
-}
-
 const appData = () => {
     if (!appDataPath) {
         try {
@@ -530,16 +549,15 @@ const appData = () => {
         } catch (_) {
             // Not in main thread
         }
-        const {ipcRenderer} = require("electron")
-        appDataPath = ipcRenderer.sendSync("appdata-path")
+        appDataPath = appConfig().appdata
     }
     return appDataPath
 }
 
-const appConfigSettings = () => {
+const appConfig = () => {
     if (!configSettings) {
         const {ipcRenderer} = require("electron")
-        configSettings = ipcRenderer.sendSync("app-config-settings")
+        configSettings = ipcRenderer.sendSync("app-config")
         let files = [configSettings.override]
         const datafolderConfig = joinPath(appData(), "viebrc")
         const userFirstConfig = expandPath("~/.vieb/viebrc")
@@ -569,8 +587,8 @@ const appConfigSettings = () => {
 const path = require("path")
 
 const pathToSpecialPageName = urlPath => {
-    if (urlPath?.startsWith?.(`${appName()}://`)) {
-        const parts = urlPath.replace(`${appName()}://`, "").split("#")
+    if (urlPath?.startsWith?.(`${appConfig().name}://`)) {
+        const parts = urlPath.replace(`${appConfig().name}://`, "").split("#")
         let [name] = parts
         if (!specialPages.includes(name)) {
             name = "help"
@@ -769,13 +787,7 @@ module.exports = {
     searchword,
     listNotificationHistory,
     specialPagePath,
-    globDelete,
-    clearTempContainers,
-    clearCache,
-    clearCookies,
-    clearLocalStorage,
     expandPath,
-    isObject,
     stringToUrl,
     urlToString,
     title,
@@ -791,13 +803,17 @@ module.exports = {
     findClickPosition,
     activeElement,
     formatSize,
+    compareVersions,
     extractZip,
     // IPC UTIL
+    globDelete,
+    clearTempContainers,
+    clearCache,
+    clearCookies,
+    clearLocalStorage,
     notify,
-    appIcon,
-    appName,
     appData,
-    appConfigSettings,
+    appConfig,
     // PATH UTIL
     pathToSpecialPageName,
     joinPath,

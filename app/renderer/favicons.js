@@ -26,7 +26,7 @@ const {
     deleteFile,
     modifiedAt,
     makeDir,
-    appIcon,
+    appConfig,
     listDir,
     pathToSpecialPageName,
     stringToUrl
@@ -150,9 +150,8 @@ const update = (webview, urls) => {
             // Don't allow non-special pages to use the built-in favicon
             return
         }
-        if (appIcon()) {
-            setPath(tabOrPageMatching(webview),
-                stringToUrl(appIcon()))
+        if (appConfig().icon) {
+            setPath(tabOrPageMatching(webview), stringToUrl(appConfig().icon))
             return
         }
     }

@@ -17,49 +17,10 @@
 */
 "use strict"
 
-const {ipcRenderer} = require("electron")
+const {appConfig, compareVersions} = require("../util")
 
 const apiUrl = "https://api.github.com/repos/Jelmerro/Vieb/releases/latest"
-const version = ipcRenderer?.sendSync("app-version")
-
-const compareVersions = (v1Str, v2Str) => {
-    const v1 = v1Str.replace(/^v/g, "").trim()
-    const v2 = v2Str.replace(/^v/g, "").trim()
-    if (v1 === v2) {
-        return "even"
-    }
-    const [v1num, v1ext] = v1.split("-")
-    const [v2num, v2ext] = v2.split("-")
-    // Same number and at least one of them has a suffix such as "-dev"
-    if (v1num === v2num) {
-        if (v1ext && v2ext) {
-            // Do a simple comparison of named pre releases
-            const suffixMap = {"alpha": 2, "beta": 3, "dev": 1, "prerelease": 4}
-            const v1suffix = suffixMap[v1ext] || 0
-            const v2suffix = suffixMap[v2ext] || 0
-            if (v1suffix > v2suffix) {
-                return "newer"
-            }
-            if (v1suffix < v2suffix) {
-                return "older"
-            }
-        } else if (v1ext) {
-            return "older"
-        } else if (v2ext) {
-            return "newer"
-        }
-        return "even"
-    }
-    for (let i = 0; i < 3; i++) {
-        if (Number(v1num.split(".")[i]) > Number(v2num.split(".")[i])) {
-            return "newer"
-        }
-        if (Number(v1num.split(".")[i]) < Number(v2num.split(".")[i])) {
-            return "older"
-        }
-    }
-    return "unknown"
-}
+const {version} = appConfig()
 
 const checkForUpdates = () => {
     document.querySelector("button").disabled = "disabled"
@@ -98,14 +59,10 @@ const checkForUpdates = () => {
 }
 
 window.addEventListener("load", () => {
-    if (version) {
-        document.getElementById("version").textContent = version
-        document.querySelector("button").onclick = checkForUpdates
-        document.getElementById("chromium-version")
-            .textContent = process.versions.chrome
-        document.getElementById("electron-version")
-            .textContent = process.versions.electron
-    }
+    document.getElementById("version").textContent = version
+    document.querySelector("button").onclick = checkForUpdates
+    document.getElementById("chromium-version")
+        .textContent = process.versions.chrome
+    document.getElementById("electron-version")
+        .textContent = process.versions.electron
 })
-
-module.exports = {compareVersions}
