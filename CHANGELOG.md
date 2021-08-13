@@ -30,6 +30,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Numpad keys not typing out numbers in navbar related modes
+- Special pages sometimes prompting to open externally when stored in the history
 
 ### Security
 

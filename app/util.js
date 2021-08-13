@@ -174,7 +174,7 @@ const urlToString = url => {
         return ""
     }
     if (special.name) {
-        let specialUrl = `${appConfig().name}://${special.name}`
+        let specialUrl = `${appConfig().name.toLowerCase()}://${special.name}`
         if (special.section) {
             specialUrl += `#${special.section}`
         }
@@ -587,8 +587,9 @@ const appConfig = () => {
 const path = require("path")
 
 const pathToSpecialPageName = urlPath => {
-    if (urlPath?.startsWith?.(`${appConfig().name}://`)) {
-        const parts = urlPath.replace(`${appConfig().name}://`, "").split("#")
+    const appName = appConfig().name.toLowerCase()
+    if (urlPath?.startsWith?.(`${appName}://`)) {
+        const parts = urlPath.replace(`${appName}://`, "").split("#")
         let [name] = parts
         if (!specialPages.includes(name)) {
             name = "help"

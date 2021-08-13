@@ -31,6 +31,7 @@ const {
 const {ElectronBlocker} = require("@cliqz/adblocker-electron")
 const isSvg = require("is-svg")
 const {
+    title,
     specialChars,
     writeJSON,
     readJSON,
@@ -330,7 +331,7 @@ if (argErwic) {
         printUsage()
     }
     if (config.name) {
-        app.setName(config.name)
+        app.setName(title(config.name))
     }
     if (config.icon) {
         config.icon = expandPath(config.icon)
@@ -904,6 +905,10 @@ const permissionHandler = (_, perm, callback, details) => {
         }
     }
     let permissionName = `permission${permission}`
+    if (permission === "openexternal" && details.externalURL) {
+        mainWindow.webContents.send("navigate-to", details.externalURL)
+        return
+    }
     let setting = permissions[permissionName]
     if (!setting) {
         permissionName = "permissionunknown"

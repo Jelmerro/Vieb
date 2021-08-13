@@ -949,30 +949,30 @@ const set = (setting, value) => {
 }
 
 const updateWindowTitle = () => {
-    const application = title(appConfig().name)
+    const appName = appConfig().name
     if (allSettings.windowtitle === "simple" || !currentPage()) {
-        ipcRenderer.send("set-window-title", application)
+        ipcRenderer.send("set-window-title", appName)
         return
     }
     const name = tabOrPageMatching(currentPage())
         .querySelector("span").textContent
     let url = currentPage()?.src || ""
     if (allSettings.windowtitle === "title" || !url) {
-        ipcRenderer.send("set-window-title", `${application} - ${name}`)
+        ipcRenderer.send("set-window-title", `${appName} - ${name}`)
         return
     }
     const specialPage = pathToSpecialPageName(url)
     if (specialPage.name) {
-        url = `${appConfig().name}://${specialPage.name}`
+        url = `${appName.toLowerCase()}://${specialPage.name}`
         if (specialPage.section) {
             url += `#${specialPage.section}`
         }
     }
     if (allSettings.windowtitle === "url") {
-        ipcRenderer.send("set-window-title", `${application} - ${url}`)
+        ipcRenderer.send("set-window-title", `${appName} - ${url}`)
         return
     }
-    ipcRenderer.send("set-window-title", `${application} - ${name} - ${url}`)
+    ipcRenderer.send("set-window-title", `${appName} - ${name} - ${url}`)
 }
 
 const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {

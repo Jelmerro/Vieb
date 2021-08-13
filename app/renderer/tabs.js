@@ -118,6 +118,9 @@ const init = () => {
                 }
             })
         })
+        ipcRenderer.on("navigate-to", (_, url) => {
+            navigateTo(stringToUrl(url))
+        })
         if (listTabs().length === 0 && !erwicMode) {
             if (parsed) {
                 addTab()
@@ -928,15 +931,16 @@ const addWebviewListeners = webview => {
         const correctMode = ["insert", "pointer"].includes(currentMode())
         if (e.url && (correctMode || getSetting("mouse"))) {
             const special = pathToSpecialPageName(e.url)
+            const appName = appConfig().name.toLowerCase()
             if (!special.name) {
                 document.getElementById("url-hover")
                     .textContent = urlToString(e.url)
             } else if (special.section) {
-                document.getElementById("url-hover").textContent
-                    = `${appConfig().name}://${special.name}#${special.section}`
+                document.getElementById("url-hover").textContent = `${
+                    appName}://${special.name}#${special.section}`
             } else {
-                document.getElementById("url-hover")
-                    .textContent = `${appConfig().name}://${special.name}`
+                document.getElementById("url-hover").textContent = `${
+                    appName}://${special.name}`
             }
             document.getElementById("url-hover").style.display = "block"
         } else {
