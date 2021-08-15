@@ -17,7 +17,7 @@ command! focusInput <insertAtFirstInput>
 command! LinkHints.activateMode <startFollowCurrentTab>
 command! LinkHints.activateModeToOpenInNewTab <startFollowNewTab>
 command! LinkHints.activateModeToOpenInNewForegroundTab <startFollowNewTab>
-command! enterFindMode <enterSearchMode>
+command! enterFindMode <toSearchMode>
 command! performFind <nextSearchMatch>
 command! performBackwardsFind <previousSearchMatch>
 command! scrollToTop <scrollTop>

@@ -162,17 +162,15 @@ const privacyFixes = (w = window) => {
         Object.defineProperty(w.navigator, "vendor", {"value": ""})
         Object.defineProperty(w.navigator, "webdriver", {"value": false})
     }
-    // Provide a wrapper for w.open so that it doesn't crash websites
+    // Provide a wrapper for window.open with a subset of the regular API
     // Also provide the option to open new tabs by setting the location property
-    const electronWindowOpen = w.open
     w.open = (url = null) => {
         if (url) {
-            electronWindowOpen(url)
+            ipcRenderer.sendToHost("url", url)
         }
         const obj = {}
-        Object.defineProperty(obj, "location", {
-            "get": () => "", "set": val => { electronWindowOpen(val) }
-        })
+        Object.defineProperty(obj, "location", {"get": () => "",
+            "set": val => { ipcRenderer.sendToHost("url", val) }})
         return obj
     }
 }
