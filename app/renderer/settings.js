@@ -33,7 +33,6 @@ const {
     pathExists,
     pathToSpecialPageName,
     firefoxUseragent,
-    title,
     appConfig
 } = require("../util")
 const {

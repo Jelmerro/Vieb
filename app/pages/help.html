@@ -1186,6 +1186,8 @@
         Go forward in history when viewing previously navigated websites. If there are no more historic sites, it will restore the text that was typed before going back in history. Opposite of <a href="#action.exploreHistoryPrevious">action.exploreHistoryPrevious</a>. This action has no function outside of <a class="explore" href="#action.toExploreMode">explore mode</a>. You can change which navigations are stored in the history using <a href="#explorehist">explorehist</a>.
         <h3 id="action.repeatLastAction">action.repeatLastAction</h3>
         This action repeats the last action or executed mapstring. For example, after executing <a href="#action.openNewTab">action.openNewTab</a>, you can execute this action to open yet another tab. The count is not transferred when doing this, so you can give the repeat action it's own count by prefixing it with numbers: "5&lt;openNewTab&gt;" and then "2&lt;repeatLastAction&gt;" will open 7 new tabs in total, not 10. It does not repeat commands, but does repeat mappings executed by them, such as when using <a href="#:call">:call</a>.
+        <h3 id="action.toggleAlwaysOnTop">action.toggleAlwaysOnTop</h3>
+        This action toggles the always on top state of the window. If your operating system provides a native way to do this, Vieb will try to update that state and keep it in sync.
         <h3 id="action.toggleFullscreen">action.toggleFullscreen</h3>
         This action toggles the fullscreen state. By default, the gui is configured to automatically hide while fullscreen is active, which can be configured with <a href="#guifullscreennavbar">guifullscreennavbar</a> and <a href="#guifullscreentabbar">guifullscreentabbar</a>.
         <h3 id="action.reorderFollowLinks">action.reorderFollowLinks</h3>

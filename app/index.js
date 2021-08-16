@@ -1346,6 +1346,9 @@ ipcMain.on("destroy-window", () => {
 })
 ipcMain.handle("list-spelllangs",
     () => session.defaultSession.availableSpellCheckerLanguages)
+ipcMain.handle("toggle-always-on-top", () => {
+    mainWindow.setAlwaysOnTop(!mainWindow.isAlwaysOnTop())
+})
 ipcMain.handle("toggle-fullscreen", () => {
     mainWindow.fullScreen = !mainWindow.fullScreen
 })
@@ -1375,8 +1378,8 @@ ipcMain.on("insert-mode-listener", (_, id) => {
         mainWindow.webContents.send("insert-mode-input-event", input)
     })
 })
-ipcMain.on("set-window-title", (_, title) => {
-    mainWindow.title = title
+ipcMain.on("set-window-title", (_, t) => {
+    mainWindow.title = t
 })
 ipcMain.handle("show-message-dialog", (_, options) => dialog.showMessageBox(
     mainWindow, options))

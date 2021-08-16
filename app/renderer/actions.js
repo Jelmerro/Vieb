@@ -551,6 +551,11 @@ const distrubuteSpaceSplitWindow = () => {
     resetResizing()
 }
 
+const toggleAlwaysOnTop = () => {
+    const {ipcRenderer} = require("electron")
+    ipcRenderer.invoke("toggle-always-on-top")
+}
+
 const toggleFullscreen = () => {
     const {ipcRenderer} = require("electron")
     ipcRenderer.invoke("toggle-fullscreen").then(updateGuiVisibility)
@@ -786,6 +791,7 @@ module.exports = {
     toRootUrl,
     toSearchMode,
     toTopSplitWindow,
+    toggleAlwaysOnTop,
     toggleFullscreen,
     topHalfSplitWindow,
     useEnteredData,

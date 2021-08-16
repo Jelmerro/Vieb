@@ -36,6 +36,7 @@ const defaultBindings = {
         "<CR>": {"mapping": "<useEnteredData>"},
         "<Esc>": {"mapping": "<toNormalMode>"},
         "<F1>": {"mapping": "<:help>"},
+        "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
         "<F11>": {"mapping": "<toggleFullscreen>"},
         "<S-Tab>": {"mapping": "<prevSuggestion>"},
         "<Tab>": {"mapping": "<nextSuggestion>"}
@@ -50,6 +51,7 @@ const defaultBindings = {
         "<CR>": {"mapping": "<useEnteredData>"},
         "<Esc>": {"mapping": "<toNormalMode>"},
         "<F1>": {"mapping": "<:help>"},
+        "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
         "<F11>": {"mapping": "<toggleFullscreen>"},
         "<S-Tab>": {"mapping": "<prevSuggestion>"},
         "<Tab>": {"mapping": "<nextSuggestion>"}
@@ -60,6 +62,7 @@ const defaultBindings = {
         "<C-m>": {"mapping": "<menuOpen>"},
         "<Esc>": {"mapping": "<stopFollowMode>"},
         "<F1>": {"mapping": "<:help>"},
+        "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
         "<F11>": {"mapping": "<toggleFullscreen>"},
         "<Tab>": {"mapping": "<reorderFollowLinks>"}
     },
@@ -71,6 +74,7 @@ const defaultBindings = {
         "<CapsLock>": {"mapping": "<nop>"},
         "<Esc>": {"mapping": "<toNormalMode>"},
         "<F1>": {"mapping": "<:help>"},
+        "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
         "<F11>": {"mapping": "<toggleFullscreen>"},
         "<NumLock>": {"mapping": "<nop>"},
         "<ScrollLock>": {"mapping": "<nop>"}
@@ -86,6 +90,7 @@ const defaultBindings = {
         "<Down>": {"mapping": "<menuDown>"},
         "<Esc>": {"mapping": "<menuClose>"},
         "<F1>": {"mapping": "<:help>"},
+        "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
         "<F11>": {"mapping": "<toggleFullscreen>"},
         "<Up>": {"mapping": "<menuUp>"}
     },
@@ -167,6 +172,7 @@ const defaultBindings = {
         "<C-y>": {"mapping": "<scrollUp>"},
         "<CR>": {"mapping": "<clickOnSearch>"},
         "<F1>": {"mapping": "<:help>"},
+        "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
         "<F11>": {"mapping": "<toggleFullscreen>"},
         "=": {"mapping": "<zoomIn>"},
         "@:": {"mapping": "<toCommandMode><commandHistoryPrevious>"
@@ -237,6 +243,7 @@ const defaultBindings = {
         "<CR>": {"mapping": "<p.leftClick>"},
         "<Esc>": {"mapping": "<toNormalMode>"},
         "<F1>": {"mapping": "<:help>"},
+        "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
         "<F11>": {"mapping": "<toggleFullscreen>"},
         "<S-CR>": {"mapping": "<p.newtabLink>"},
         "<lt>": {"mapping": "<p.scrollLeft>"},
@@ -308,6 +315,7 @@ const defaultBindings = {
         "<CR>": {"mapping": "<useEnteredData>"},
         "<Esc>": {"mapping": "<toNormalMode>"},
         "<F1>": {"mapping": "<:help>"},
+        "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
         "<F11>": {"mapping": "<toggleFullscreen>"}
     },
     "v": {
@@ -325,6 +333,7 @@ const defaultBindings = {
         "<C-u>": {"mapping": "<p.moveFastUp>"},
         "<Esc>": {"mapping": "<toNormalMode>"},
         "<F1>": {"mapping": "<:help>"},
+        "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
         "<F11>": {"mapping": "<toggleFullscreen>"},
         "<lt>": {"mapping": "<p.scrollLeft>"},
         ">": {"mapping": "<p.scrollRight>"},
@@ -721,6 +730,7 @@ const uncountableActions = [
     "openFromClipboard",
     "openLinkExternal",
     "downloadLink",
+    "toggleAlwaysOnTop",
     "toggleFullscreen",
     "menuOpen",
     "menuSelect",

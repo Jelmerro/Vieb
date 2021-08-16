@@ -21,6 +21,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Startup option to control the autoplay policy of media in webpages (default changed to require document interaction)
 - Make "!" behind close commands (close, lclose, rclose) also close pinned tabs regardless of the "closablepinnedtabs" setting
 - DOM attribute "focus" that gets set on body, this can be used in themes to change styling when (un)focused
+- Action "toggleAlwaysOnTop" to toggle the always on top state of a window, will try to use the native method for it
 
 ### Changed
 
