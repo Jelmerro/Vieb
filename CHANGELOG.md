@@ -20,17 +20,19 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "tabreopenmuted" to control if reopened tabs should keep their muted state (default is "remember")
 - Startup option to control the autoplay policy of media in webpages (default changed to require document interaction)
 - Make "!" behind close commands (close, lclose, rclose) also close pinned tabs regardless of the "closablepinnedtabs" setting
+- DOM attribute "focus" that gets set on body, this can be used in themes to change styling when (un)focused
 
 ### Changed
 
 - Link color is now also taken from the current colorscheme for unstyled pages, making links more readable by default
 - Setting "startuppages" now accepts optional container name, pinned status and muted status options using "~"
 - Unsupported startup arguments are now passed to Chromium, which makes running Vieb on wayland possible
+- Logo is now an SVG image with a slightly bolder font for the letters
 
 ### Fixed
 
 - Numpad keys not typing out numbers in navbar related modes
-- Special pages sometimes prompting to open externally when stored in the history
+- Special page navigations sometimes prompting to open externally when stored in the history
 
 ### Security
 
@@ -277,7 +279,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Fixed
 
-- Windows not always focussing correctly when closing popups or starting Vieb (mostly a Windows-only bug)
+- Windows not always focusing correctly when closing popups or starting Vieb (mostly a Windows-only bug)
 - Built-in special pages not always having the correct title and icon when they are suspended
 - Adblocker updating twice at the startup when it's set to "update"
 - Action "clickOnSearch" not working when zooming the page

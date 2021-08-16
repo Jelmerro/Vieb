@@ -39,7 +39,7 @@ let mappings = {}
 const sessionStart = new Date()
 let isParsed = false
 const viebIcon = `file:///${joinPath(
-    __dirname, "../img/icons/256x256.png").replace(/^\/*/g, "")}`
+    __dirname, "../img/icons/vieb.svg").replace(/^\/*/g, "")}`
 
 const init = () => {
     const parsed = readJSON(mappingFile)

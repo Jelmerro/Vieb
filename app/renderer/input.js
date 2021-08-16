@@ -498,6 +498,8 @@ const init = () => {
         })
     })
     ipcRenderer.on("window-close", () => executeMapString("<A-F4>", true, true))
+    ipcRenderer.on("window-focus", () => document.body.classList.add("focus"))
+    ipcRenderer.on("window-blur", () => document.body.classList.remove("focus"))
     ipcRenderer.on("app-command", (_, cmd) => {
         if (getSetting("mouse")) {
             if (cmd === "browser-backward") {

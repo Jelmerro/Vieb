@@ -412,7 +412,7 @@ app.on("ready", () => {
     app.on("open-url", (_, url) => mainWindow.webContents.send("urls",
         resolveLocalPaths([url])))
     if (!app.isPackaged && !customIcon) {
-        customIcon = joinPath(__dirname, "img/icons/512x512.png")
+        customIcon = joinPath(__dirname, "img/icons/vieb.svg")
     }
     // Init mainWindow
     const windowData = {
@@ -436,6 +436,12 @@ app.on("ready", () => {
     mainWindow = new BrowserWindow(windowData)
     mainWindow.removeMenu()
     mainWindow.setMinimumSize(500, 500)
+    mainWindow.on("focus", () => {
+        mainWindow.webContents.send("window-focus")
+    })
+    mainWindow.on("blur", () => {
+        mainWindow.webContents.send("window-blur")
+    })
     mainWindow.on("close", e => {
         e.preventDefault()
         mainWindow.webContents.send("window-close")
