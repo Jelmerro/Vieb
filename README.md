@@ -1,3 +1,5 @@
+<center>
+
 ![icon](app/img/icons/128x128.png)
 
 ### Vim bindings for the web by design
@@ -17,6 +19,8 @@
 ## [Homepage](https://vieb.dev/) - [Download](https://vieb.dev/download) - [Changelog](CHANGELOG.md) - [FAQ](FAQ.md)
 
 *Vieb is pronounced like "deep" with a "v" and rhymes with sheep*
+
+</center>
 
 # Features
 
