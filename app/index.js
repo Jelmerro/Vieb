@@ -412,7 +412,7 @@ app.on("ready", () => {
     app.on("open-url", (_, url) => mainWindow.webContents.send("urls",
         resolveLocalPaths([url])))
     if (!app.isPackaged && !customIcon) {
-        customIcon = joinPath(__dirname, "img/icons/vieb.svg")
+        customIcon = joinPath(__dirname, "img/vieb.svg")
     }
     // Init mainWindow
     const windowData = {

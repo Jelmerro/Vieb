@@ -68,10 +68,14 @@ nsis:
   license: LICENSE
 files:
   filter:
-    - "!ViebData"
-    - "!coverage"
-    - "!logo-wip-files"
-    - "!dist"
+    - "app/**/*.js"
+    - "!app/**/*.test.js"
+    - "app/**/*.html"
+    - "app/**/*.css"
+    - "app/**/*.txt"
+    - "app/defaultapp/windows.bat"
+    - "app/examples/*"
+    - "app/img/*.*"
 asarUnpack:
   - "**/node_modules/7zip-bin/**/*"
   - "**/app/examples/*"

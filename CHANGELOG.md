@@ -28,6 +28,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "startuppages" now accepts optional container name, pinned status and muted status options using "~"
 - Unsupported startup arguments are now passed to Chromium, which makes running Vieb on wayland possible
 - Logo is now an SVG image with a slightly bolder font for the letters
+- Strip packaged builds of unused assets by only including files using opt-in filters
 
 ### Fixed
 
