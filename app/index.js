@@ -912,8 +912,10 @@ const permissionHandler = (_, perm, callback, details) => {
     }
     let permissionName = `permission${permission}`
     if (permission === "openexternal" && details.externalURL) {
-        mainWindow.webContents.send("navigate-to", details.externalURL)
-        return
+        if (details.externalURL.startsWith(`${app.getName().toLowerCase()}:`)) {
+            mainWindow.webContents.send("navigate-to", details.externalURL)
+            return
+        }
     }
     let setting = permissions[permissionName]
     if (!setting) {
