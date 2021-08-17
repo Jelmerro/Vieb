@@ -66,7 +66,7 @@ See [Erwic.md](Erwic.md) for usage and details.
 
 There are many ways to download and install Vieb.
 Besides running from source or making your own builds,
-these are the main souces to download Vieb.
+these are the main sources to download Vieb.
 For startup help, see the [frequently asked questions](FAQ.md).
 
 ### [Vieb.dev](https://vieb.dev/download)
@@ -127,5 +127,5 @@ The entire configuration for what to build is stored in the `electron-builder.ym
 Vieb is created by [Jelmer van Arnhem](https://github.com/Jelmerro) and [contributors](https://github.com/Jelmerro/Vieb/graphs/contributors).
 See the source files for individual authors.
 
-You can copy or modify the code/program under the terms of the GPL3.0 or later verions.
-For more information and legal terms see the LICENSE file.
+You can copy or modify the code/program under the terms of the GPL3.0 or later versions.
+For more information and legal terms, see the LICENSE file.
