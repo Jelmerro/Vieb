@@ -736,8 +736,12 @@ const updateHelpPage = () => {
             const {
                 listMappingsAsCommandList, uncountableActions
             } = require("./input")
-            p.send("settings", settingsWithDefaults(),
-                listMappingsAsCommandList(false, true), uncountableActions)
+            try {
+                p.send("settings", settingsWithDefaults(),
+                    listMappingsAsCommandList(false, true), uncountableActions)
+            } catch (e) {
+                // Page not ready yet or suspended
+            }
         }
     })
 }
@@ -874,7 +878,7 @@ const set = (setting, value) => {
                 try {
                     page.setUserAgent("")
                 } catch (e) {
-                    // Page not ready yet
+                    // Page not ready yet or suspended
                 }
             })
         }
@@ -1113,7 +1117,12 @@ const updateCustomStyling = () => {
         const isLocal = p.src.startsWith("file:/")
         const isErrorPage = p.getAttribute("failed-to-load")
         if (isSpecialPage || isLocal || isErrorPage) {
-            p.send("set-custom-styling", allSettings.fontsize, customStyling)
+            try {
+                p.send("set-custom-styling",
+                    allSettings.fontsize, customStyling)
+            } catch (e) {
+                // Page not ready yet or suspended
+            }
         }
     })
     const {applyLayout} = require("./pagelayout")

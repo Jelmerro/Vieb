@@ -122,7 +122,8 @@ const viebMenu = options => {
             "title": pinTitle
         })
         const page = tabOrPageMatching(tab)
-        if (page && !page.isCrashed()) {
+        const isNotSuspended = page.tagName?.toLowerCase() === "webview"
+        if (page && isNotSuspended && !page.isCrashed()) {
             createMenuItem({
                 "action": () => reload(tabOrPageMatching(tab)),
                 "title": "Refresh"
