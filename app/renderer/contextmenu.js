@@ -122,8 +122,25 @@ const viebMenu = options => {
             "title": pinTitle
         })
         const page = tabOrPageMatching(tab)
-        const isNotSuspended = page.tagName?.toLowerCase() === "webview"
-        if (page && isNotSuspended && !page.isCrashed()) {
+        const isSuspended = page.tagName?.toLowerCase() !== "webview"
+        if (!tab.classList.contains("visible-tab") || isSuspended) {
+            let suspendTitle = "Suspend"
+            if (isSuspended) {
+                suspendTitle = "Unsuspend"
+            }
+            createMenuItem({
+                "action": () => {
+                    const {suspendTab, unsuspendPage} = require("./tabs")
+                    if (isSuspended) {
+                        unsuspendPage(page)
+                    } else {
+                        suspendTab(tab)
+                    }
+                },
+                "title": suspendTitle
+            })
+        }
+        if (page && !isSuspended && !page.isCrashed()) {
             createMenuItem({
                 "action": () => reload(tabOrPageMatching(tab)),
                 "title": "Refresh"

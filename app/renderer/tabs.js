@@ -1019,5 +1019,6 @@ module.exports = {
     suspendTab,
     switchToTab,
     tabOrPageMatching,
+    unsuspendPage,
     updateUrl
 }

@@ -22,6 +22,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Make "!" behind close commands (close, lclose, rclose) also close pinned tabs regardless of the "closablepinnedtabs" setting
 - DOM attribute "focus" that gets set on body, this can be used in themes to change styling when (un)focused
 - Action "toggleAlwaysOnTop" to toggle the always on top state of a window, will try to use the native method for it
+- Suspend toggle option to the contextmenu when right-clicking on a tab
 
 ### Changed
 
@@ -518,7 +519,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Fixed
 
-- Mouse events now get registered properly when clicking inside iframes
+- Mouse events not getting registered properly when clicking inside iframes
 - Potential error on websites when trying to access the return value of the window.open function
 
 ### Security
