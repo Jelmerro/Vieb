@@ -50,7 +50,7 @@ const setStored = (set, val) => sessionStorage.setItem(set, JSON.stringify(val))
 const getStored = val => {
     try {
         return JSON.parse(sessionStorage.getItem(val))
-    } catch (_) {
+    } catch {
         return null
     }
 }

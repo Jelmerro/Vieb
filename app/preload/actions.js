@@ -169,7 +169,7 @@ const calculateOffset = (startNode, startX, startY, x, y) => {
     range.setStart(startNode, 0)
     try {
         range.setEnd(startNode, 1)
-    } catch (e) {
+    } catch {
         return {"node": startNode, "offset": 0}
     }
     let properNode = startNode

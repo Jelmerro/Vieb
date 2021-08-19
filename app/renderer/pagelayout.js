@@ -449,7 +449,7 @@ const applyLayout = () => {
                             delete suspendTimers[linkId]
                             const {suspendTab} = require("./tabs")
                             suspendTab(tab)
-                        } catch (_) {
+                        } catch {
                             // Tab might be closed or unavailable, no issue
                         }
                     }, timeout)

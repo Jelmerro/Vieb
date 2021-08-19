@@ -45,7 +45,7 @@ const checkForUpdates = () => {
                     } else {
                         versionCheck.textContent = "Failed to fetch updates"
                     }
-                } catch (e) {
+                } catch {
                     versionCheck.textContent = "Failed to fetch updates"
                 }
             } else {

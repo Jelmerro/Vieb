@@ -31,6 +31,7 @@ const {
 } = require("../util")
 const {
     listTabs,
+    listPages,
     currentTab,
     currentPage,
     tabOrPageMatching,
@@ -43,7 +44,13 @@ const {
 let currentSearch = ""
 
 const emptySearch = () => {
-    currentPage()?.stopFindInPage("clearSelection")
+    listPages().filter(p => p).forEach(page => {
+        try {
+            page.stopFindInPage("clearSelection")
+        } catch {
+            // Page unavailable or suspended
+        }
+    })
     currentSearch = ""
 }
 
@@ -186,8 +193,17 @@ const scrollRight = () => currentPage()?.send("action", "scrollRight")
 
 const nextSearchMatch = () => {
     if (currentSearch) {
-        currentPage()?.findInPage(currentSearch, {
-            "findNext": true, "matchCase": matchCase()
+        listPages().filter(p => p).forEach(page => {
+            try {
+                const tab = tabOrPageMatching(page)
+                if (tab.classList.contains("visible-tab")) {
+                    page.findInPage(currentSearch, {
+                        "findNext": true, "matchCase": matchCase()
+                    })
+                }
+            } catch {
+                // Page unavailable or suspended
+            }
         })
     }
 }
@@ -256,8 +272,19 @@ const forwardInHistory = (customPage = null) => {
 
 const previousSearchMatch = () => {
     if (currentSearch) {
-        currentPage()?.findInPage(currentSearch, {
-            "findNext": true, "forward": false, "matchCase": matchCase()
+        listPages().filter(p => p).forEach(page => {
+            try {
+                const tab = tabOrPageMatching(page)
+                if (tab.classList.contains("visible-tab")) {
+                    page.findInPage(currentSearch, {
+                        "findNext": true,
+                        "forward": false,
+                        "matchCase": matchCase()
+                    })
+                }
+            } catch {
+                // Page unavailable or suspended
+            }
         })
     }
 }
@@ -570,12 +597,20 @@ const matchCase = () => {
 
 const incrementalSearch = (value = null) => {
     currentSearch = value || document.getElementById("url").value
-    if (currentPage() && currentSearch) {
-        currentPage().stopFindInPage("clearSelection")
-        currentPage().findInPage(currentSearch, {"matchCase": matchCase()})
+    if (currentSearch) {
+        listPages().filter(p => p).forEach(page => {
+            try {
+                page.stopFindInPage("clearSelection")
+                const tab = tabOrPageMatching(page)
+                if (tab.classList.contains("visible-tab")) {
+                    page.findInPage(currentSearch, {"matchCase": matchCase()})
+                }
+            } catch {
+                // Page unavailable or suspended
+            }
+        })
     } else {
-        currentSearch = ""
-        currentPage()?.stopFindInPage("clearSelection")
+        emptySearch()
     }
 }
 

@@ -99,7 +99,7 @@ const releaseKeys = () => {
     try {
         currentPage().sendInputEvent({"type": "mouseLeave", "x": X, "y": Y})
         currentPage().send("action", "selectionRemove", zoomX(), zoomY())
-    } catch (e) {
+    } catch {
         // Can't release keys, probably because of opening a new tab
     }
     mouseSelection = null

@@ -43,7 +43,7 @@ const {
     stringToUrl
 } = require("../util")
 const {
-    listTabs, currentTab, currentPage, tabOrPageMatching, getSetting
+    listTabs, listPages, currentTab, currentPage, tabOrPageMatching, getSetting
 } = require("./common")
 
 const listSetting = setting => {
@@ -731,6 +731,7 @@ const noArgumentComands = [
     "print",
     "comclear",
     "makedefault",
+    "nohlsearch",
     "lclose",
     "rclose",
     "only"
@@ -766,6 +767,15 @@ const commands = {
     makedefault,
     mkviebrc,
     mute,
+    "nohlsearch": () => {
+        listPages().forEach(page => {
+            try {
+                page.stopFindInPage("clearSelection")
+            } catch {
+                // Page unavailable or suspended
+            }
+        })
+    },
     "notifications": () => openSpecialPage("notifications"),
     "o": open,
     "only": () => {

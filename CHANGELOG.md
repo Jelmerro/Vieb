@@ -23,6 +23,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - DOM attribute "focus" that gets set on body, this can be used in themes to change styling when (un)focused
 - Action "toggleAlwaysOnTop" to toggle the always on top state of a window, will try to use the native method for it
 - Suspend toggle option to the contextmenu when right-clicking on a tab
+- Command "nohlsearch" to hide the search but not clear the query (as done with emptySearch)
 
 ### Changed
 
@@ -31,6 +32,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Unsupported startup arguments are now passed to Chromium, which makes running Vieb on wayland possible
 - Logo is now an SVG image with a slightly bolder font for the letters
 - Strip packaged builds of unused assets by only including files using opt-in filters
+- Apply search actions to all visible splits
 
 ### Fixed
 
@@ -40,8 +42,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Security
 
-- Electron 14.0.0-beta.21 (was 13.1.4)
-- Chromium 93.0.4577.15 (was 91.0.4472.106)
+- Electron 14.0.0-beta.22 (was 13.1.4)
+- Chromium 93.0.4577.25 (was 91.0.4472.106)
 
 ## [5.3.0](https://github.com/Jelmerro/Vieb/compare/5.2.0...5.3.0) - 2021-06-30
 

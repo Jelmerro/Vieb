@@ -346,7 +346,7 @@ const checkOther = (setting, value) => {
             const [match, color] = colorMatch.split("~")
             try {
                 RegExp(match)
-            } catch (e) {
+            } catch {
                 notify(
                     `Invalid regular expression in containercolors: ${match}`,
                     "warn")
@@ -403,7 +403,7 @@ const checkOther = (setting, value) => {
             const [match, ...names] = override.split("~")
             try {
                 RegExp(match)
-            } catch (e) {
+            } catch {
                 notify(
                     `Invalid regular expression in permission: ${match}`,
                     "warn")
@@ -442,7 +442,7 @@ const checkOther = (setting, value) => {
             const [match] = redirect.split("~")
             try {
                 RegExp(match)
-            } catch (e) {
+            } catch {
                 notify(
                     `Invalid regular expression in redirect: ${match}`, "warn")
                 return false
@@ -739,7 +739,7 @@ const updateHelpPage = () => {
             try {
                 p.send("settings", settingsWithDefaults(),
                     listMappingsAsCommandList(false, true), uncountableActions)
-            } catch (e) {
+            } catch {
                 // Page not ready yet or suspended
             }
         }
@@ -877,7 +877,7 @@ const set = (setting, value) => {
             listPages().forEach(page => {
                 try {
                     page.setUserAgent("")
-                } catch (e) {
+                } catch {
                     // Page not ready yet or suspended
                 }
             })
@@ -897,7 +897,7 @@ const set = (setting, value) => {
             })
             try {
                 currentTab().scrollIntoView({"inline": "center"})
-            } catch (e) {
+            } catch {
                 // No tabs present yet
             }
             const {applyLayout} = require("./pagelayout")
@@ -1120,7 +1120,7 @@ const updateCustomStyling = () => {
             try {
                 p.send("set-custom-styling",
                     allSettings.fontsize, customStyling)
-            } catch (e) {
+            } catch {
                 // Page not ready yet or suspended
             }
         }

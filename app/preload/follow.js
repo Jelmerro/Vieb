@@ -122,7 +122,7 @@ const getInputFollows = allLinks => {
                     if (matchesQuery(forEl, textlikeInputs)) {
                         type = "inputs-insert"
                     }
-                } catch (_) {
+                } catch {
                     // Invalid label, not a valid selector, assuming click input
                 }
             } else if (element.querySelector(textlikeInputs)) {
@@ -310,7 +310,7 @@ EventTarget.prototype.addEventListener = function(type, listener, options) {
     try {
         realAdd.apply(this, [type, listener, options])
         eventListeners[type]?.add(this)
-    } catch (e) {
+    } catch {
         // This is a bug in the underlying website
     }
 }
@@ -319,7 +319,7 @@ EventTarget.prototype.removeEventListener = function(type, listener, options) {
     try {
         realRemove.apply(this, [type, listener, options])
         eventListeners[type]?.delete(this)
-    } catch (e) {
+    } catch {
         // This is a bug in the underlying website
     }
 }
@@ -392,7 +392,7 @@ const contextListener = (e, frame = null, extraData = null) => {
                 if (url) {
                     return url?.slice(5, -2)
                 }
-            } catch (_) {
+            } catch {
                 // Window and top-level nodes don't support getComputedStyle
             }
             return null

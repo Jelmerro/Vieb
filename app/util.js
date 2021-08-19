@@ -182,7 +182,7 @@ const urlToString = url => {
     }
     try {
         return decodeURI(url)
-    } catch (_) {
+    } catch {
         // Invalid url
     }
     return url
@@ -546,7 +546,7 @@ const appData = () => {
         try {
             const {app} = require("electron")
             return app.getPath("appData")
-        } catch (_) {
+        } catch {
             // Not in main thread
         }
         appDataPath = appConfig().appdata
@@ -621,7 +621,7 @@ const pathToSpecialPageName = urlPath => {
                             urlPath.split("#").slice(1).join("#"))
                     }
                 }
-            } catch (_) {
+            } catch {
                 // Invalid url
             }
         }
@@ -659,7 +659,7 @@ const fs = require("fs")
 const pathExists = loc => {
     try {
         return fs.existsSync(loc)
-    } catch (e) {
+    } catch {
         return false
     }
 }
@@ -667,7 +667,7 @@ const pathExists = loc => {
 const isDir = loc => {
     try {
         return fs.statSync(loc).isDirectory()
-    } catch (e) {
+    } catch {
         return false
     }
 }
@@ -675,7 +675,7 @@ const isDir = loc => {
 const isFile = loc => {
     try {
         return fs.statSync(loc).isFile()
-    } catch (e) {
+    } catch {
         return false
     }
 }
@@ -683,7 +683,7 @@ const isFile = loc => {
 const readFile = loc => {
     try {
         return fs.readFileSync(loc).toString()
-    } catch (e) {
+    } catch {
         return null
     }
 }
@@ -691,7 +691,7 @@ const readFile = loc => {
 const readJSON = loc => {
     try {
         return JSON.parse(fs.readFileSync(loc).toString())
-    } catch (e) {
+    } catch {
         return null
     }
 }
@@ -703,7 +703,7 @@ const writeFile = (loc, data, err = null, success = null) => {
             notify(success)
         }
         return true
-    } catch (e) {
+    } catch {
         if (err) {
             notify(err, "err")
         }
@@ -718,7 +718,7 @@ const writeJSON = (loc, data, err = null, success = null, indent = null) => {
             notify(success)
         }
         return true
-    } catch (e) {
+    } catch {
         if (err) {
             notify(err, "err")
         }
@@ -730,7 +730,7 @@ const deleteFile = (loc, err = null) => {
     try {
         fs.unlinkSync(loc)
         return true
-    } catch (e) {
+    } catch {
         if (err) {
             notify(err, "warn")
         }
@@ -745,7 +745,7 @@ const makeDir = (loc, err = null, success = null) => {
             notify(success)
         }
         return true
-    } catch (e) {
+    } catch {
         if (err) {
             notify(err, "err")
         }
@@ -763,7 +763,7 @@ const listDir = (loc, absolute = false, dirsOnly = false) => {
             files = files.filter(f => isDir(f))
         }
         return files
-    } catch (_) {
+    } catch {
         return null
     }
 }
@@ -773,7 +773,7 @@ const watchFile = (...args) => fs.watchFile(...args)
 const modifiedAt = loc => {
     try {
         return fs.statSync(loc).mtime
-    } catch (_) {
+    } catch {
         return 0
     }
 }

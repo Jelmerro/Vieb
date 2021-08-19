@@ -10,7 +10,7 @@ const builds = {}
 const isDir = loc => {
     try {
         return statSync(loc).isDirectory()
-    } catch (e) {
+    } catch {
         return false
     }
 }

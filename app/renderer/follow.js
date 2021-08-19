@@ -62,7 +62,7 @@ const cancelFollow = () => {
     listPages().forEach(page => {
         try {
             page.send("follow-mode-stop")
-        } catch (e) {
+        } catch {
             // Cancel follow mode in all tabs
         }
     })

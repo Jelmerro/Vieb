@@ -146,7 +146,7 @@ const init = () => {
                         })
                     }, 10)
                 }
-            } catch (e) {
+            } catch {
                 // Page not available, retry later
             }
         }, 100)
@@ -217,7 +217,7 @@ const addTab = (options = {}) => {
         devtoolsOpen = currentPage().isDevToolsOpened()
         currentPageId = currentPage().getWebContentsId()
         currentPageLinkId = currentPage().getAttribute("link-id")
-    } catch (e) {
+    } catch {
         // Current page not ready, devtools won't be opened
     }
     let isDevtoolsTab = false
@@ -619,7 +619,7 @@ const addWebviewListeners = webview => {
                 timeouts[id] = setTimeout(() => {
                     try {
                         webview.stop()
-                    } catch (_) {
+                    } catch {
                         // Webview might be destroyed or unavailable, no issue
                     }
                 }, timeout)
@@ -970,7 +970,7 @@ const navigateTo = location => {
     }
     try {
         currentPage().stop()
-    } catch (_) {
+    } catch {
         // Webview might be destroyed or unavailable, no issue
     }
     currentPage().src = location

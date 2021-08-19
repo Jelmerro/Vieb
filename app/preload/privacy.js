@@ -118,7 +118,7 @@ const privacyFixes = (w = window) => {
         }
         // Enable screensharing functionality linked to permissiondisplaycapture
         w.navigator.mediaDevices.getDisplayMedia = () => customDisplayMedia(w)
-    } catch (e) {
+    } catch {
         // Non-secure resources don't expose these APIs
     }
     // Empty the list of browser plugins, as there shouldn't be any installed

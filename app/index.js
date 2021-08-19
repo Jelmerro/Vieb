@@ -54,7 +54,7 @@ const {"sync": rimrafSync} = require("rimraf")
 const rimraf = pattern => {
     try {
         rimrafSync(pattern)
-    } catch (_) {
+    } catch {
         // Permission errors
     }
 }
@@ -575,7 +575,7 @@ app.on("login", (e, contents, _, auth, callback) => {
     loginWindow.once("hide", () => {
         try {
             callback("", "")
-        } catch (err) {
+        } catch {
             // Window was already closed
         }
     })
@@ -585,7 +585,7 @@ app.on("login", (e, contents, _, auth, callback) => {
             callback(credentials[0], credentials[1])
             loginWindow.hide()
             mainWindow.focus()
-        } catch (err) {
+        } catch {
             // Window is already being closed
         }
     })
@@ -657,7 +657,7 @@ ipcMain.on("download-list-request", (e, action, downloadId) => {
         downloads.forEach(download => {
             try {
                 download.item.cancel()
-            } catch (_) {
+            } catch {
                 // Download was already removed or is already done
             }
         })
@@ -666,14 +666,14 @@ ipcMain.on("download-list-request", (e, action, downloadId) => {
     if (action === "pause") {
         try {
             downloads[downloadId].item.pause()
-        } catch (_) {
+        } catch {
             // Download just finished or some other silly reason
         }
     }
     if (action === "resume") {
         try {
             downloads[downloadId].item.resume()
-        } catch (_) {
+        } catch {
             // Download can't be resumed
         }
     }
@@ -681,12 +681,12 @@ ipcMain.on("download-list-request", (e, action, downloadId) => {
         try {
             downloads[downloadId].state = "removed"
             downloads[downloadId].item.cancel()
-        } catch (_) {
+        } catch {
             // Download was already removed from the list or something
         }
         try {
             downloads.splice(downloadId, 1)
-        } catch (_) {
+        } catch {
             // Download was already removed from the list or something
         }
     }
@@ -792,7 +792,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             let wrappedUrl = item.getURL()
             try {
                 wrappedUrl = decodeURI(wrappedUrl)
-            } catch (__) {
+            } catch {
                 // Invalid url
             }
             wrappedUrl = wrappedUrl.replace(/.{50}/g, "$&\n")
@@ -837,7 +837,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 } else {
                     info.state = "paused"
                 }
-            } catch (___) {
+            } catch {
                 // When a download is finished before the event is detected,
                 // the item will throw an error for all the mapped functions.
             }
@@ -871,7 +871,7 @@ const cancellAllDownloads = () => {
                 download.state = "cancelled"
             }
             download.item.cancel()
-        } catch (e) {
+        } catch {
             // Download was already removed or is already done
         }
     })
@@ -883,7 +883,7 @@ const writeDownloadsToFile = () => {
         // but have already been destroyed by electron.
         try {
             d.item.getFilename()
-        } catch (e) {
+        } catch {
             if (d.state === "waiting_to_start") {
                 d.state = "completed"
             }

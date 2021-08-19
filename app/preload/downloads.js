@@ -61,7 +61,7 @@ ipcRenderer.on("download-list", (_, l) => {
             } else {
                 try {
                     document.querySelectorAll("#list .download")[i].remove()
-                } catch (err) {
+                } catch {
                     // List might be shorter the second time this is called
                 }
             }
