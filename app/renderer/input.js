@@ -394,6 +394,15 @@ const init = () => {
             e.deltaX + e.deltaY, e.deltaX + e.deltaY)
         e.preventDefault()
     })
+    document.getElementById("tabs").addEventListener("dblclick", e => {
+        if (getSetting("mouse")) {
+            const {addTab} = require("./tabs")
+            addTab()
+        } else {
+            e.preventDefault()
+        }
+        ACTIONS.setFocusCorrectly()
+    })
     window.addEventListener("mouseup", e => {
         if (e.button === 1) {
             if (getSetting("mouse")) {

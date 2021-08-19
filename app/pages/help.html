@@ -46,7 +46,7 @@
             <li>Open <a href="#action.openNewTab">new tabs</a> with <kbd>t</kbd>, <a href="#:close">close them</a> with <kbd>d</kbd>, <a href="#action.nextTab">switch</a> between <a href="#action.previousTab">tabs</a> with <kbd>w</kbd> and <kbd>b</kbd></li>
             <li><a href="#action.reopenTab">Reopen tabs</a> with <kbd>u</kbd>, <a href="#action.reload">reload</a> with <kbd>r</kbd>, open <a href="#:help">help</a> with <kbd>&lt;F1&gt;</kbd> and <a href="#:quit">quit</a> with <kbd>ZZ</kbd></li>
         </ul>
-        Vieb is separated into different modes, which have different keyboard mappings. You can see the current mode at all times in the navbar, next to the url. All mappings listed above assume the default mappings and that you are in <a class="normal" href="#action.toNormalMode">normal mode</a>. You can list all of Vieb's current mappings with <span class="command-block">:map!</span> as explained in the <a href="#:map">:map</a> paragraph.
+        Vieb is separated into different modes, which have different keyboard mappings. You can see the current mode at all times in the navbar, next to the url. All mappings listed above assume the default mappings and that you are in <a class="normal" href="#action.toNormalMode">normal mode</a>. You can list all of Vieb's current keyboard mappings with <span class="command-block">:map!</span> as explained in the <a href="#:map">:map</a> paragraph. It's also an option to use your <a href="#mouse">mouse</a>, but you can do everything without it.
         <h2>Help structure</h2>
         This documentation offers you functional documentation regarding all of Vieb's features. These are the main components of Vieb and thus the chapters of this help page:
         <ul>
@@ -690,7 +690,20 @@
         <h3 id="modifiers">modifiers</h3>
         This setting controls which keys will not be registered on their own when pressed, but only when used as a modifier. Modifier keys such as Ctrl, Meta, Alt and Shift will still be usable to modify other keys, but they won't be individually detected as being pressed if they are part of this list. For example, a mapping like "S&lt;C-w&gt;" requires you press "s" with shift and then w while holding Ctrl. In this case, you probably don't want to register Ctrl as a key when trying to press w while holding Ctrl, which would empty the pressed keys list of "S" back to "" because you pressed Ctrl. The other modifiers are included for similar reasons. The lock keys are by default included to allow them to be used as if they were modifiers if they are remapped as such in your operating system (a common remapping is CapsLock to Ctrl).
         <h3 id="mouse">mouse</h3>
-        The mouse toggle influences if the Vieb interface should react to mouse actions. When this setting is off, you will still be able to use the mouse to interact with the page while in <a class="insert" href="#action.toInsertMode">insert mode</a>. When this setting is enabled, you can always interact with the webpage, even outside of <a class="insert" href="#action.toInsertMode">insert mode</a> (although you still need it for mouse focus). You will also be able to click on tabs to switch to them, middle click on them to close a tab, switch modes by using the mode dropdown when hovering over the current mode, switch to <a class="insert" href="#action.toInsertMode">insert mode</a> by clicking on an input field and switch to <a class="explore" href="#action.toExploreMode">explore mode</a> by clicking on the url bar.
+        The mouse toggle influences if the Vieb interface should react to mouse actions. When this setting is off, you will still be able to use the mouse to interact with the page while in <a class="insert" href="#action.toInsertMode">insert mode</a>, but not outside of it. When this setting is enabled, you can do the following with the mouse:
+        <ul>
+            <li>Interact with the webpage, even outside of <a class="insert" href="#action.toInsertMode">insert mode</a> (although you still need <a class="insert" href="#action.toInsertMode">insert mode</a> for page focus and typing text).</li>
+            <li>Click on tabs to switch to them, optionally even by hovering them if <a href="#mousefocus">mousefocus</a> is enabled.</li>
+            <li>Open a new tab by double clicking on the tab bar, also works when double clicking on an existing tab. The new tab will open next to the double clicked tab if <a href="#tabnexttocurrent"></a> is enabled, otherwise the new tab will be positioned at the end of tab bar.</li>
+            <li>Middle click on a tab to close it.</li>
+            <li>Right click to open a context menu in most places, see <a href="#menupage">menupage</a> and <a href="#menuvieb">menuvieb</a> for details.</li>
+            <li>Switch modes by using the mode dropdown when hovering over the current mode in the navbar.</li>
+            <li>Switch to <a class="insert" href="#action.toInsertMode">insert mode</a> by clicking on an input field in the page.</li>
+            <li>Switch to <a class="explore" href="#action.toExploreMode">explore mode</a> by clicking on the url input in the navbar.</li>
+            <li>Interact with suggestions of <a class="explore" href="#action.toExploreMode">explore mode</a> and <a class="command" href="#action.toCommandMode">command mode</a>.</li>
+            <li>Switch to <a class="visual" href="#visual">visual mode</a> by selecting text if <a href="#mousevisualmode">mousevisualmode</a> is set to "activate".</li>
+            <li>Adjust the page zooming by scrolling while holding Control.</li>
+        </ul>
         <h3 id="mousefocus">mousefocus</h3>
         With the mousefocus toggle it's possible to focus a tab by hovering it with the mouse. This setting only has effect when <a href="#mouse">mouse</a> is also enabled. When mousefocus is enabled, you can switch between tabs by hovering over a tab or (in case of multiple splits) by hovering over the page.
         <h3 id="mousenewtabswitch">mousenewtabswitch</h3>
