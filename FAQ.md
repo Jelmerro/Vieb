@@ -65,17 +65,21 @@ If you already have Vieb, you can view and save the examples to disk from the of
 #### Why can't I sign in to Google?
 
 Google blocks a lot of software that isn't Chrome from accessing their services.
-Even users of [Google's](https://archive.is/1baul) own [Chrome](https://archive.is/aRQEW), are sometimes getting blocked.
-Fortunately, for the time being a workaround exists for all this, which is to set a Firefox useragent.
-You can use `:set firefoxmode=google` within Vieb to mimic Firefox when visiting Google pages.
-Keep in mind that while this works, it's entirely possible for them to block Firefox as well in the future.
-See [this issue](https://github.com/Jelmerro/Vieb/issues/50) for more background information.
+Just a simple [DDG search](https://duckduckgo.com/?q=browser+or+app+may+not+be+secure) reveals that most programs experience this.
+Google owns your data and they are the ones to decide who may view it and when, for now they chose to only allow Chrome and Firefox.
+Below is a list of known workarounds to circumvent this blocking policy, use them at your own risk.
 
-Another thing you might encounter, is that strict site isolation is required for your Google sign-in to be preserved.
-You can enable this on startup with "--site-isolation=strict", though this will block Vieb from accessing iframes in follow mode.
-If you rely heavily on Google services it might be worth the trade-off to use this startup option,
-which offers for more reliable Google logins at the cost of a limited follow mode implementation.
-For Vieb to have strict site isolation without the follow mode limitation [this Electron issue](https://github.com/electron/electron/issues/22582) needs to be fixed.
+- You can use `:set firefoxmode=google` within Vieb to mimic Firefox when visiting Google pages.
+- You can enable strict site isolation on startup with `--site-isolation=strict`, though this will block Vieb from accessing iframes in follow mode.
+  If you rely heavily on Google services it might be worth the trade-off to use this startup option,
+  which offers for more reliable Google logins at the cost of a limited follow mode implementation.
+  For Vieb to have strict site isolation without the follow mode limitation [this Electron issue](https://github.com/electron/electron/issues/22582) needs to be fixed.
+- You can temporarily allow `""Less secure app access""` in your [Google account dashboard](https://myaccount.google.com/security).
+
+There are no other known workarounds to allow the sign-in at this point of time.
+You are encouraged to open PRs to improve this list of workarounds.
+However, opening issues just to announce that you cannot login to your account will be closed,
+as it's not something Vieb or any other browser can fix, only Google can.
 
 #### Can I make Vieb my default browser?
 
