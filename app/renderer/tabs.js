@@ -422,8 +422,8 @@ const unsuspendPage = page => {
             if (tab.getAttribute("muted")) {
                 webview.setAudioMuted(true)
             }
-            ipcRenderer.send("disable-localrtc", webview.getWebContentsId())
-            ipcRenderer.send("insert-mode-listener", webview.getWebContentsId())
+            ipcRenderer.send("webview-listeners", webview.getWebContentsId(),
+                webview.getAttribute("link-id"))
             addWebviewListeners(webview)
             webview.setUserAgent("")
             if (isDevtoolsTab) {

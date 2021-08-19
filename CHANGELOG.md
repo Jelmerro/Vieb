@@ -24,6 +24,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Action "toggleAlwaysOnTop" to toggle the always on top state of a window, will try to use the native method for it
 - Suspend toggle option to the contextmenu when right-clicking on a tab
 - Command "nohlsearch" to hide the search but not clear the query (as done with emptySearch)
+- Support for zooming the page with the mouse by scrolling while holding Control (similar to regular browsers) if mouse is enabled
 
 ### Changed
 

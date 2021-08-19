@@ -19,7 +19,7 @@
 
 const {matchesQuery, notify, specialChars} = require("../util")
 const {
-    listTabs, currentTab, currentPage, currentMode, getSetting
+    listTabs, currentTab, currentPage, currentMode, getSetting, listPages
 } = require("./common")
 
 const ACTIONS = require("./actions")
@@ -474,6 +474,18 @@ const init = () => {
         }
     })
     const {ipcRenderer} = require("electron")
+    ipcRenderer.on("zoom-changed", (_, linkId, direction) => {
+        const page = listPages().find(p => p.getAttribute("link-id") === linkId)
+        if (!page || !getSetting("mouse")) {
+            return
+        }
+        if (direction === "in") {
+            ACTIONS.zoomIn(page)
+        }
+        if (direction === "out") {
+            ACTIONS.zoomOut(page)
+        }
+    })
     ipcRenderer.on("insert-mode-input-event", (_, input) => {
         if (input.key === "Tab") {
             currentPage().focus()

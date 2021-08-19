@@ -1321,10 +1321,6 @@ const saveWindowState = (maximizeOnly = false) => {
 }
 
 // Miscellaneous tasks
-ipcMain.on("disable-localrtc", (_, id) => {
-    webContents.fromId(id).setWebRTCIPHandlingPolicy(
-        "default_public_interface_only")
-})
 ipcMain.handle("save-page", (_, id, loc) => {
     webContents.fromId(id).savePage(loc, "HTMLComplete")
 })
@@ -1367,7 +1363,9 @@ const currentInputMatches = input => blockedInsertMappings.find(mapping => {
     }
     return false
 })
-ipcMain.on("insert-mode-listener", (_, id) => {
+ipcMain.on("webview-listeners", (_, id, linkId) => {
+    webContents.fromId(id).setWebRTCIPHandlingPolicy(
+        "default_public_interface_only")
     webContents.fromId(id).on("before-input-event", (e, input) => {
         if (blockedInsertMappings === "pass") {
             return
@@ -1378,6 +1376,9 @@ ipcMain.on("insert-mode-listener", (_, id) => {
             e.preventDefault()
         }
         mainWindow.webContents.send("insert-mode-input-event", input)
+    })
+    webContents.fromId(id).on("zoom-changed", (__, direction) => {
+        mainWindow.webContents.send("zoom-changed", linkId, direction)
     })
 })
 ipcMain.on("set-window-title", (_, t) => {

@@ -341,20 +341,22 @@ const scrollPageUpHalf = () => currentPage()?.send("action", "scrollPageUpHalf")
 
 const zoomReset = () => currentPage()?.setZoomLevel(0)
 
-const zoomOut = () => {
-    let level = currentPage()?.getZoomLevel() - 1
+const zoomOut = (customPage = null) => {
+    const page = customPage || currentPage()
+    let level = page?.getZoomLevel() - 1
     if (level < -7) {
         level = -7
     }
-    currentPage()?.setZoomLevel(level)
+    page?.setZoomLevel(level)
 }
 
-const zoomIn = () => {
-    let level = currentPage()?.getZoomLevel() + 1
+const zoomIn = (customPage = null) => {
+    const page = customPage || currentPage()
+    let level = page?.getZoomLevel() + 1
     if (level > 7) {
         level = 7
     }
-    currentPage()?.setZoomLevel(level)
+    page?.setZoomLevel(level)
 }
 
 const toNormalMode = () => {
