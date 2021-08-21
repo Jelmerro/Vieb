@@ -369,6 +369,7 @@ const suspendTab = tab => {
         return
     }
     tab.setAttribute("suspended", "suspended")
+    tab.removeAttribute("media-playing")
     const placeholder = document.createElement("div")
     placeholder.classList.add("webview")
     ;["link-id", "container", "class", "id", "style", "muted"].forEach(attr => {
