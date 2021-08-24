@@ -42,6 +42,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Special page navigations sometimes prompting to open externally when stored in the history
 - Settings that affect special pages not applying in realtime when there are suspended tabs
 - Media playing indicator not being cleared when the page is suspended
+- Suggestions for suspend command showing already suspended tabs
 
 ### Security
 

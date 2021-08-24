@@ -493,6 +493,10 @@ const suggestCommand = searchStr => {
             if (["close", "buffer", "mute", "pin"].includes(bufferCommand)) {
                 return true
             }
+            if (bufferCommand === "suspend") {
+                return !tab.classList.contains("visible-tab")
+                    && !tab.getAttribute("suspended")
+            }
             if (bufferCommand === "hide") {
                 return tab.classList.contains("visible-tab")
             }
