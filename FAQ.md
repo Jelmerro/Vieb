@@ -62,6 +62,21 @@ Proper comparisons and migration guides haven't been made yet,
 but there are [example viebrc files](https://github.com/Jelmerro/Vieb/tree/master/app/examples) for popular desktop browsers and Vim browser extensions.
 If you already have Vieb, you can view and save the examples to disk from the offline help page: `:h examples`.
 
+#### The page doesn't scroll with hjkl, should I report a bug?
+
+The answer is probably no.
+This is because strictly speaking some pages aren't actually scrollable at all,
+even though they have a scrollbar on the right side.
+There is usually a part of that page that can be scrolled, but not the page itself.
+If that scrollable section is large enough, it's fairly easy to confuse the two.
+If the page isn't scrollable, Vieb will not be able to scroll it using the global scroll options,
+but you will have to use pointer mode to execute a scroll action at a specific position.
+This is because the global scroll actions wouldn't know which of the scrollable sections to scroll,
+and the page itself isn't actually scrollable, so you have to be explicit about it using the pointer.
+You can even map the pointer scroll actions to normal mode if you want to,
+but you will still execute the scrolling at the pointer position.
+This distinction and other differences between the two types of scrolling are explained in `:h scrolling`.
+
 #### Why can't I sign in to Google?
 
 Google blocks a lot of software that isn't Chrome from accessing their services.
