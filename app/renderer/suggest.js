@@ -416,8 +416,6 @@ const suggestCommand = searchStr => {
         const {
             listSupportedActions, listMappingsAsCommandList
         } = require("./input")
-        const simpleSearch = args.join(" ").replace(/^#?:?/, "")
-            .replace(/!$/, "").replace(/-/g, "").toLowerCase().trim()
         const sections = [
             "intro",
             "commands",
@@ -463,12 +461,14 @@ const suggestCommand = searchStr => {
                 })
             }
         })
+        const simpleSearch = args.join(" ").replace(/^#?:?/, "")
+            .replace(/!$/, "").replace(/-/g, "").toLowerCase().trim()
+            .replace(/^a\w*\./, "").replace(/^p\w*\./, "p.")
         sections.filter(section => {
             const simpleSection = section.replace(/^#?:?/, "")
                 .replace(/!$/, "").replace(/-/g, "").toLowerCase().trim()
-            return `${command} ${simpleSection.replace(
-                /^action\./, "").replace(/^pointer\./, "")}`.startsWith(
-                `${command} ${simpleSearch}`.trim())
+            return `${command} ${simpleSection.replace(/^pointer\./, "p.")}`
+                .startsWith(`${command} ${simpleSearch}`.trim())
             || `${command} ${simpleSection}`.startsWith(
                 `${command} ${simpleSearch}`.trim())
         }).forEach(section => addCommand(`help ${section}`))

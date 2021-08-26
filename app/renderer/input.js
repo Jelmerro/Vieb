@@ -19,7 +19,13 @@
 
 const {matchesQuery, notify, specialChars} = require("../util")
 const {
-    listTabs, currentTab, currentPage, currentMode, getSetting, listPages
+    listTabs,
+    currentTab,
+    currentPage,
+    currentMode,
+    getSetting,
+    listPages,
+    setTopOfPageWithMouse
 } = require("./common")
 
 const ACTIONS = require("./actions")
@@ -221,6 +227,7 @@ const defaultBindings = {
         "n": {"mapping": "<nextSearchMatch>"},
         "p": {"mapping": "<openFromClipboard>"},
         "r": {"mapping": "<reload>"},
+        "s": {"mapping": "<p.startAtMouse>"},
         "t": {"mapping": "<openNewTab>"},
         "u": {"mapping": "<reopenTab>"},
         "v": {"mapping": "<p.start>"},
@@ -291,6 +298,7 @@ const defaultBindings = {
         "oo": {"mapping": "<p.openLink>"},
         "ov": {"mapping": "<p.openVideo>"},
         "r": {"mapping": "<p.rightClick>"},
+        "s": {"mapping": "<p.startAtMouse>"},
         "v": {"mapping": "<p.startVisualSelect>"},
         "w": {"mapping": "<p.moveFastRight>"},
         "xa": {"mapping": "<p.externalAudio>"},
@@ -451,17 +459,22 @@ const init = () => {
     })
     const tabSelector = "#pagelayout *[link-id], #tabs *[link-id]"
     window.addEventListener("mousemove", e => {
-        if (getSetting("mouse") && getSetting("mousefocus")) {
-            document.elementsFromPoint(e.x, e.y).forEach(el => {
-                if (matchesQuery(el, tabSelector)) {
-                    const tab = listTabs().find(t => t.getAttribute(
-                        "link-id") === el.getAttribute("link-id"))
-                    if (tab && currentTab() !== tab) {
-                        const {switchToTab} = require("./tabs")
-                        switchToTab(tab)
+        if (getSetting("mouse")) {
+            if (e.y === 0) {
+                setTopOfPageWithMouse(true)
+            }
+            if (getSetting("mousefocus")) {
+                document.elementsFromPoint(e.x, e.y).forEach(el => {
+                    if (matchesQuery(el, tabSelector)) {
+                        const tab = listTabs().find(t => t.getAttribute(
+                            "link-id") === el.getAttribute("link-id"))
+                        if (tab && currentTab() !== tab) {
+                            const {switchToTab} = require("./tabs")
+                            switchToTab(tab)
+                        }
                     }
-                }
-            })
+                })
+            }
         }
     })
     window.addEventListener("contextmenu", e => {
@@ -759,6 +772,7 @@ const uncountableActions = [
     "useEnteredData",
     "nop",
     "p.start",
+    "p.startAtMouse",
     "p.startVisualSelect",
     "p.inspectElement",
     "p.startOfPage",

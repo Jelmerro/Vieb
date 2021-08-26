@@ -1305,7 +1305,7 @@ const saveWindowState = (maximizeOnly = false) => {
     let state = readJSON(windowStateFile) || {}
     if (!maximizeOnly && !mainWindow.isMaximized()) {
         const newBounds = mainWindow.getBounds()
-        const currentScreen = screen.getDisplayMatching(newBounds).bounds
+        const currentScreen = screen.getDisplayMatching(newBounds).workArea
         const sameW = newBounds.width === currentScreen.width
         const sameH = newBounds.height === currentScreen.height
         const halfW = newBounds.width === currentScreen.width / 2
@@ -1416,3 +1416,14 @@ ipcMain.on("is-fullscreen", e => {
     e.returnValue = mainWindow.fullScreen
 })
 ipcMain.on("relaunch", () => app.relaunch())
+ipcMain.on("mouse-location", e => {
+    const windowBounds = mainWindow.getBounds()
+    const mousePos = screen.getCursorScreenPoint()
+    const x = mousePos.x - windowBounds.x
+    const y = mousePos.y - windowBounds.y
+    if (x < windowBounds.width && y < windowBounds.height) {
+        e.returnValue = {x, y}
+        return
+    }
+    e.returnValue = null
+})

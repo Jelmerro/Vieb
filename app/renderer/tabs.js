@@ -921,8 +921,14 @@ const addWebviewListeners = webview => {
                 webview.send("insert-new-tab-info", false, favoritePages)
             }
         }
-        if (e.channel === "top-of-page-with-mouse") {
-            setTopOfPageWithMouse(e.args[0])
+        if (e.channel === "mousemove") {
+            setTopOfPageWithMouse(!e.args[1])
+            if (getSetting("mousefocus")) {
+                const tab = tabOrPageMatching(webview)
+                if (tab && currentTab() !== tab) {
+                    switchToTab(tab)
+                }
+            }
         }
     })
     webview.addEventListener("found-in-page", e => {

@@ -26,6 +26,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Command "nohlsearch" to hide the search but not clear the query (as done with emptySearch)
 - Support for zooming the page with the mouse by scrolling while holding Control (similar to regular browsers) if mouse is enabled
 - Double clicking on a tab (or the tabbar) now opens a new tab, at the end or next to it, depending on tabnexttocurrent
+- Action "p.startAtMouse" to start pointer mode at the current mouse position
 
 ### Changed
 
@@ -35,6 +36,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Logo is now an SVG image with a slightly bolder font for the letters
 - Strip packaged builds of unused assets by only including files using opt-in filters
 - Apply search actions to all visible splits
+- Use workarea instead of entire screen for detecting snapped windows
+- Improve reliability of the mousefocus and top of page hover actions
 
 ### Fixed
 
@@ -43,6 +46,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Settings that affect special pages not applying in realtime when there are suspended tabs
 - Media playing indicator not being cleared when the page is suspended
 - Suggestions for suspend command showing already suspended tabs
+- Pointer mode help commands not always working
 
 ### Security
 

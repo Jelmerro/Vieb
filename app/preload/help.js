@@ -184,14 +184,15 @@ const processHash = () => {
     const ids = [...document.querySelectorAll("[id]")].map(e => e.id)
     const hash = decodeURIComponent(window.location.hash).trim()
         .replace(/^#?/, "")
-    const easyHash = hash.replace(/^:?/, "").replace(/!$/, "")
+    let easyHash = hash.replace(/^:?/, "").replace(/!$/, "")
         .replace(/-/g, "").toLowerCase()
     if (easyHash !== "") {
+        easyHash = easyHash.replace(/^a\w*\./, "").replace(/^p\w*\./, "")
         const match = ids.find(raw => {
-            const id = decodeURIComponent(raw.replace(/^#?:?/, "").replace(/!$/, "")
-                .replace(/-/g, "").toLowerCase().trim())
-            return easyHash === id.replace(/^action\./, "")
-                .replace(/^pointer\./, "") || easyHash === id
+            const id = decodeURIComponent(raw.replace(/^#?:?/, "")
+                .replace(/!$/, "").replace(/-/g, "").toLowerCase().trim())
+            return easyHash === id || easyHash === id
+                .replace(/^action\./, "").replace(/^pointer\./, "")
         })
         if (match && document.querySelector(`a[href='#${match}']`)) {
             document.querySelector(`a[href='#${match}']`).click()

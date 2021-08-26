@@ -542,7 +542,7 @@
         <h3 id=":colorscheme">:colorscheme</h3>
         <ul>
             <li><span class="command-block">:colorscheme</span> - Show the currently active colorscheme</li>
-            <li><span class="command-block">:colorscheme light</span> - Active the 'light' colorscheme</li>
+            <li><span class="command-block">:colorscheme light</span> - Activate the 'light' colorscheme</li>
         </ul>
         With the colorscheme command you can apply custom colorschemes (also called "themes"). There are a couple of themes bundled with Vieb and you can also add your own themes. These themes can change more than just colors, as they are written in CSS. All built-in styling is part of the default theme, and can be overwritten with a custom theme. You can find the default and other example colorschemes in "app/colors", which can be viewed <a href="https://github.com/Jelmerro/Vieb/tree/master/app/colors/" target="_blank">on github here</a>. Besides the colors (in ":root"), you can add as much CSS as you want. Custom themes can be stored in a "colors" subfolder of the <a href="#datafolder">datafolder</a>: "&lt;datafolder&gt;/colors/&lt;name&gt;.css". You can also store themes in "~/.vieb/colors". All colorschemes extend the default theme, so there is no need to copy those values if you don't plan to change them. When <a href="#suggestcommands">suggestcommands</a> is enabled, the colorscheme command will suggest both built-in and custom themes.
         <h3 id=":makedefault">:makedefault</h3>
@@ -703,6 +703,7 @@
             <li>Interact with suggestions of <a class="explore" href="#action.toExploreMode">explore mode</a> and <a class="command" href="#action.toCommandMode">command mode</a>.</li>
             <li>Switch to <a class="visual" href="#visual">visual mode</a> by selecting text if <a href="#mousevisualmode">mousevisualmode</a> is set to "activate".</li>
             <li>Adjust the page zooming by scrolling while holding Control.</li>
+            <li>Use <a href="#pointer.startAtMouse">pointer.startAtMouse</a> to start <a class="pointer" href="#pointer">pointer mode</a> at the mouse cursor location.</li>
         </ul>
         <h3 id="mousefocus">mousefocus</h3>
         With the mousefocus toggle it's possible to focus a tab by hovering it with the mouse. This setting only has effect when <a href="#mouse">mouse</a> is also enabled. When mousefocus is enabled, you can switch between tabs by hovering over a tab or (in case of multiple splits) by hovering over the page.
@@ -1020,6 +1021,8 @@
         Vieb has a <span class="pointer">pointer mode</span> to hover over links, download images or inspect an element at a position. The pointer can be moved in many different ways, most of which are by default mapped similar to Vim's <a class="normal" href="#action.toNormalMode">normal mode</a>. Additionally, after entering <span class="pointer">pointer mode</span>, it's also possible to start selecting text using <a class="visual" href="#visual">visual mode</a>. By default, the mappings of these two modes are similar, with the biggest difference being that text will be selected between the initial and current pointer position. See <a href="#pointer.startVisualSelect">pointer.startVisualSelect</a> to activate <a class="visual" href="#visual">visual mode</a> and <a href="#pointer.copyText">pointer.copyText</a> to copy the hovered link or selected text. Other text related actions are also available, such as opening the text in a new tab (either as a url or a search) using <a href="#pointer.newtabText">pointer.newtabText</a>.
         <h3 id="pointer.start">pointer.start</h3>
         Switch to <a href="#pointer" class="pointer">pointer mode</a>, which enables a movable pointer. The pointer can be used to hover over links, download images or inspect an element at a position. It can be moved in many different ways, most of which are by default mapped similar to Vim's <a class="normal" href="#action.toNormalMode">normal mode</a>.
+        <h3 id="pointer.startAtMouse">pointer.startAtMouse</h3>
+        Start <a class="pointer" href="#pointer">pointer mode</a>, but with the pointer at the location of your mouse cursor. Like other mouse related actions, this action requires the <a href="#mouse">mouse</a> to be enabled.
         <h3 id="pointer.leftClick">pointer.leftClick</h3>
         Simulate a left mouse click at the current pointer location. See also <a href="#pointer.rightClick">pointer.rightClick</a>.
         <h3 id="pointer.rightClick">pointer.rightClick</h3>

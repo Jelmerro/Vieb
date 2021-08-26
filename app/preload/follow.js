@@ -537,5 +537,5 @@ ipcRenderer.on("search-element-location", (_, pos) => {
 ipcRenderer.on("search-element-click", () => searchElement?.click())
 
 window.addEventListener("mousemove", e => {
-    ipcRenderer.sendToHost("top-of-page-with-mouse", !e.clientY)
+    ipcRenderer.sendToHost("mousemove", e.clientX, e.clientY)
 })

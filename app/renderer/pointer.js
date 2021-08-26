@@ -17,7 +17,10 @@
 */
 "use strict"
 
-const {currentPage, currentMode, getSetting} = require("./common")
+const {
+    currentPage, currentMode, getSetting, tabOrPageMatching
+} = require("./common")
+const {matchesQuery} = require("../util")
 
 let X = 0
 let Y = 0
@@ -30,15 +33,6 @@ let mouseSelection = null
 const zoomX = () => Math.round(X / currentPage().getZoomFactor())
 
 const zoomY = () => Math.round(Y / currentPage().getZoomFactor())
-
-const start = () => {
-    X = Number(currentPage().getAttribute("pointer-x")) || X
-    Y = Number(currentPage().getAttribute("pointer-y")) || Y
-    const {setMode} = require("./modes")
-    setMode("pointer")
-    currentPage().sendInputEvent({"type": "mouseEnter", "x": X, "y": Y})
-    updateElement()
-}
 
 const move = (x, y) => {
     X = x
@@ -110,6 +104,30 @@ const storeMouseSelection = selection => {
 }
 
 // ACTIONS
+
+const start = (customX = null, customY = null) => {
+    X = customX || Number(currentPage().getAttribute("pointer-x")) || X
+    Y = customY || Number(currentPage().getAttribute("pointer-y")) || Y
+    const {setMode} = require("./modes")
+    setMode("pointer")
+    currentPage().sendInputEvent({"type": "mouseEnter", "x": X, "y": Y})
+    updateElement()
+}
+
+const startAtMouse = () => {
+    const {ipcRenderer} = require("electron")
+    const mousePos = ipcRenderer.sendSync("mouse-location")
+    if (mousePos && getSetting("mouse")) {
+        [...document.elementsFromPoint(mousePos.x, mousePos.y)].forEach(el => {
+            if (matchesQuery(el, "webview[link-id]")) {
+                const {switchToTab} = require("./tabs")
+                switchToTab(tabOrPageMatching(el))
+                const pagePos = offset()
+                start(mousePos.x - pagePos.left, mousePos.y - pagePos.top)
+            }
+        })
+    }
+}
 
 const restoreSelection = () => {
     ({"endX": X, "endY": Y, startX, startY} = mouseSelection || lastSelection)
@@ -526,6 +544,7 @@ module.exports = {
     scrollUp,
     searchText,
     start,
+    startAtMouse,
     startOfPage,
     startOfView,
     startVisualSelect,
