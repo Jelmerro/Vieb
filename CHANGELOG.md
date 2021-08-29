@@ -38,6 +38,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Apply search actions to all visible splits
 - Use workarea instead of entire screen for detecting snapped windows
 - Improve reliability of the mousefocus and top of page hover actions
+- Make "nextSearchMatch" and "previousSearchMatch" move the pointer to the search match when called from pointer mode
+- Newtab related actions in pointer mode are now prefixed with "t" instead of "n" to make room for searching with "n" and "N"
 
 ### Fixed
 

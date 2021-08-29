@@ -930,6 +930,12 @@ const addWebviewListeners = webview => {
                 }
             }
         }
+        if (e.channel === "search-element-location") {
+            if (currentMode() === "pointer") {
+                const {move} = require("./pointer")
+                move(e.args[0], e.args[1])
+            }
+        }
     })
     webview.addEventListener("found-in-page", e => {
         webview.send("search-element-location", e.result.selectionArea)

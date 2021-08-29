@@ -529,9 +529,10 @@ ipcRenderer.on("search-element-location", (_, pos) => {
     setTimeout(() => {
         justSearched = false
     }, 50)
-    searchElement = findElementAtPosition(
-        (searchPos.x + searchPos.width / 2) / window.devicePixelRatio,
-        (searchPos.y + searchPos.height / 2) / window.devicePixelRatio)
+    const x = (searchPos.x + searchPos.width / 2) / window.devicePixelRatio
+    const y = (searchPos.y + searchPos.height / 2) / window.devicePixelRatio
+    searchElement = findElementAtPosition(x, y)
+    ipcRenderer.sendToHost("search-element-location", x, y)
 })
 
 ipcRenderer.on("search-element-click", () => searchElement?.click())
