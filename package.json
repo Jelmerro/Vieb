@@ -29,18 +29,18 @@
   "license": "GPL-3.0-or-later",
   "devDependencies": {
     "archiver": "5.3.0",
-    "electron": "14.0.0-beta.23",
+    "electron": "14.0.0-beta.24",
     "electron-builder": "22.11.7",
     "eslint": "7.32.0",
     "eslint-plugin-compat": "3.13.0",
     "eslint-plugin-sort-keys-fix": "1.1.2",
-    "jest": "27.0.6",
-    "jest-environment-jsdom": "27.0.6"
+    "jest": "27.1.0",
+    "jest-environment-jsdom": "27.1.0"
   },
   "dependencies": {
     "7zip-bin": "5.1.1",
-    "@cliqz/adblocker-electron": "1.22.4",
-    "@cliqz/adblocker-electron-preload": "1.22.4",
+    "@cliqz/adblocker-electron": "1.22.5",
+    "@cliqz/adblocker-electron-preload": "1.22.5",
     "is-svg": "4.3.1",
     "rimraf": "3.0.2"
   },
