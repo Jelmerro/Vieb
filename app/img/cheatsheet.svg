@@ -72,9 +72,9 @@
      objecttolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="4.96"
-     inkscape:cx="649.89919"
-     inkscape:cy="1008.3669"
+     inkscape:zoom="2.48"
+     inkscape:cx="297.37903"
+     inkscape:cy="802.62097"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      width="1100px"
@@ -2177,20 +2177,20 @@
        id="text10547-2-1"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan22470"><tspan
+         id="tspan8029"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan22468"> 
+           id="tspan8027"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.08476"
-         id="tspan22474"><tspan
+         id="tspan8033"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan22472">follow </tspan></tspan><tspan
+           id="tspan8031">follow </tspan></tspan><tspan
          x="351.18723"
          y="287.76476"
-         id="tspan22478"><tspan
+         id="tspan8037"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan22476">mode
+           id="tspan8035">mode
 </tspan></tspan></text>
     <text
        xml:space="preserve"
@@ -2201,21 +2201,21 @@
        transform="translate(-82.337912,-69.3719)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan22482"><tspan
+         id="tspan8041"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan22480"> 
+           id="tspan8039"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.85891"
-         id="tspan22486"><tspan
+         id="tspan8045"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan22484">explore
+           id="tspan8043">explore
 </tspan></tspan><tspan
          x="351.18723"
          y="288.72478"
-         id="tspan22490"><tspan
+         id="tspan8049"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan22488">mode</tspan></tspan></text>
+           id="tspan8047">mode</tspan></tspan></text>
     <text
        id="text9514-6"
        y="201.01891"
@@ -3450,12 +3450,12 @@
        xml:space="preserve"
        id="flowRoot5691-4-9-3-0-5-0-1-2"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;-inkscape-font-specification:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
-       transform="translate(-147.70707,169.00259)"><flowRegion
+       transform="translate(-147.70707,149.00259)"><flowRegion
          id="flowRegion5693-9-1-7-4-9-7-5-4"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:sans-serif;stroke-width:1.06667"><rect
            id="rect5695-9-8-7-7-5-1-1-3"
-           width="236.72519"
-           height="320.16769"
+           width="237.93486"
+           height="342.74832"
            x="404.05209"
            y="582.96967"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:sans-serif;fill:#000000;stroke-width:1.13778" /></flowRegion><flowPara
@@ -3480,9 +3480,11 @@
    style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:sans-serif;fill:#0000ff"
    id="flowSpan84950-1-4">o</flowSpan>  -  swap cursor position</flowPara><flowPara
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.6667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;fill:#000000;stroke-width:1.06667"
-         id="flowPara102544-5"><flowSpan
+         id="flowPara1645">s  -  move cursor to mouse position</flowPara><flowPara
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.6667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;fill:#000000;stroke-width:1.06667"
+         id="flowPara1654"><flowSpan
    style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:sans-serif;fill:#0000ff"
-   id="flowSpan99396-0">r</flowSpan>  -  right click cursor position</flowPara><flowPara
+   id="flowSpan1656">r</flowSpan>  -  right click cursor position</flowPara><flowPara
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.6667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;fill:#000000;stroke-width:1.06667"
          id="flowPara102554-7">y  -  copy text to clipboard, back to normal</flowPara><flowPara
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.6667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;fill:#000000;stroke-width:1.06667"
@@ -4427,22 +4429,22 @@
        transform="translate(0.30743618,-29.82915)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan22494"><tspan
+         id="tspan8053"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan22492"> 
+           id="tspan8051"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.08476"
-         id="tspan22498"><tspan
+         id="tspan8057"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan22496">follow in </tspan></tspan><tspan
+           id="tspan8055">follow in </tspan></tspan><tspan
          x="351.18723"
          y="287.76476"
-         id="tspan22504"><tspan
+         id="tspan8063"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan22500">new tab</tspan><tspan
+           id="tspan8059">new tab</tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan22502">
+           id="tspan8061">
 </tspan></tspan></text>
     <text
        xml:space="preserve"
@@ -4453,24 +4455,24 @@
        transform="translate(-89.302467,-99.318284)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan22508"><tspan
+         id="tspan8067"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan22506"> 
+           id="tspan8065"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.85891"
-         id="tspan22514"><tspan
+         id="tspan8073"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan22510">explore </tspan><tspan
+           id="tspan8069">explore </tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan22512">in </tspan></tspan><tspan
+           id="tspan8071">in </tspan></tspan><tspan
          x="351.18723"
          y="288.72478"
-         id="tspan22520"><tspan
+         id="tspan8079"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan22516">new </tspan><tspan
+           id="tspan8075">new </tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan22518">tab</tspan></tspan></text>
+           id="tspan8077">tab</tspan></tspan></text>
     <text
        xml:space="preserve"
        id="text18022"
