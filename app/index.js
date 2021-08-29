@@ -112,9 +112,15 @@ Options:
  --acceleration=<val>    string [HARDWARE/software]: Use hardware acceleration.
                          You can also use the ENV var: 'VIEB_ACCELERATION'.
 
-These command-line arguments will overwrite values set by ENV vars.
-Args starting with '-' not listed above will be passed to Chromium.
-Args not starting with '-' will be opened as a new tab in Vieb.
+These command-line arguments will overwrite values set by the listed ENV vars.
+Command-line startup arguments are parsed as follows by Vieb:
+- Args listed above are used by Vieb only and will be checked for validity
+- Args starting with '-' not listed above are passed to Chromium/Electron as is
+- Args not starting with '-' will be opened as in a new tab if it's a valid url
+You can find the full list of Electron args here:
+https://www.electronjs.org/docs/latest/api/command-line-switches/
+A similar unofficial list for Chromium args is located here:
+https://peter.sh/experiments/chromium-command-line-switches/
 `)
     printLicense()
     app.exit(code)
