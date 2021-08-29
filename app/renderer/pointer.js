@@ -114,16 +114,24 @@ const start = (customX = null, customY = null) => {
     updateElement()
 }
 
-const startAtMouse = () => {
+const moveToMouse = () => {
     const {ipcRenderer} = require("electron")
     const mousePos = ipcRenderer.sendSync("mouse-location")
     if (mousePos && getSetting("mouse")) {
         [...document.elementsFromPoint(mousePos.x, mousePos.y)].forEach(el => {
             if (matchesQuery(el, "webview[link-id]")) {
-                const {switchToTab} = require("./tabs")
-                switchToTab(tabOrPageMatching(el))
+                if (el !== currentPage() || currentMode() !== "visual") {
+                    const {switchToTab} = require("./tabs")
+                    switchToTab(tabOrPageMatching(el))
+                }
                 const pagePos = offset()
-                start(mousePos.x - pagePos.left, mousePos.y - pagePos.top)
+                if (currentMode() === "visual") {
+                    X = mousePos.x - pagePos.left
+                    Y = mousePos.y - pagePos.top
+                    updateElement()
+                } else {
+                    start(mousePos.x - pagePos.left, mousePos.y - pagePos.top)
+                }
             }
         })
     }
@@ -522,6 +530,7 @@ module.exports = {
     moveSlowLeft,
     moveSlowRight,
     moveSlowUp,
+    moveToMouse,
     moveUp,
     newtabAudio,
     newtabFrame,
@@ -544,7 +553,6 @@ module.exports = {
     scrollUp,
     searchText,
     start,
-    startAtMouse,
     startOfPage,
     startOfView,
     startVisualSelect,

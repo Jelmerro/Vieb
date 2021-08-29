@@ -26,7 +26,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Command "nohlsearch" to hide the search but not clear the query (as done with emptySearch)
 - Support for zooming the page with the mouse by scrolling while holding Control (similar to regular browsers) if mouse is enabled
 - Double clicking on a tab (or the tabbar) now opens a new tab, at the end or next to it, depending on tabnexttocurrent
-- Action "p.startAtMouse" to start pointer mode at the current mouse position
+- Action "p.moveToMouse" to start pointer mode at the current mouse position
 
 ### Changed
 
