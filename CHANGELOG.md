@@ -52,6 +52,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Media playing indicator not being cleared when the page is suspended
 - Suggestions for suspend command showing already suspended tabs
 - Pointer mode help commands not always working
+- Visual mode activating when only moving the scrollbar if "mousevisualmode" is set to "activate"
 
 ### Security
 

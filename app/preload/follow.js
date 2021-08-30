@@ -359,8 +359,10 @@ const mouseUpListener = (e, frame = null) => {
     const diffX = Math.abs(endX - startX)
     const diffY = Math.abs(endY - startY)
     if (endX > 0 && endY > 0 && (diffX > 3 || diffY > 3)) {
-        ipcRenderer.sendToHost("mouse-selection",
-            {endX, endY, startX, startY})
+        if ((frame?.contentWindow || window).getSelection().toString()) {
+            ipcRenderer.sendToHost("mouse-selection",
+                {endX, endY, startX, startY})
+        }
     }
 }
 window.addEventListener("mouseup", mouseUpListener,
