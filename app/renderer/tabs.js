@@ -689,10 +689,8 @@ const addWebviewListeners = webview => {
                 }
                 if (isDir(local)) {
                     let directoryAllowed = true
-                    let paths = listDir(local)
-                    if (paths) {
-                        paths = paths.map(p => joinPath(local, p))
-                    } else {
+                    let paths = listDir(local, true)
+                    if (!paths) {
                         directoryAllowed = false
                         paths = []
                     }

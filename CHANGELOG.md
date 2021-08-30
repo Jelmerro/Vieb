@@ -27,6 +27,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Support for zooming the page with the mouse by scrolling while holding Control (similar to regular browsers) if mouse is enabled
 - Double clicking on a tab (or the tabbar) now opens a new tab, at the end or next to it, depending on tabnexttocurrent
 - Action "p.moveToMouse" to start pointer mode at the current mouse position
+- Setting "permissioncertificateerror" to ask or even allow custom/invalid certificates (default remains to block them)
 
 ### Changed
 
@@ -40,6 +41,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Improve reliability of the mousefocus and top of page hover actions
 - Make "nextSearchMatch" and "previousSearchMatch" move the pointer to the search match when called from pointer mode
 - Newtab related actions in pointer mode are now prefixed with "t" instead of "n" to make room for searching with "n" and "N"
+- Firefox release versions in firefoxmode to more realistic numbers because of recent Firefox release date delays
+- Same domain check was improved to strip subdomains if needed (for both firefoxmode=google and the new certificateerror caching)
 
 ### Fixed
 

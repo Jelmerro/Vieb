@@ -95,6 +95,7 @@ const defaultSettings = {
     "notificationforpermissions": false,
     "notificationposition": "bottomright",
     "permissioncamera": "block",
+    "permissioncertificateerror": "block",
     "permissionclipboardread": "block",
     "permissionclosepage": "allow",
     "permissiondisplaycapture": "block",

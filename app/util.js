@@ -198,26 +198,37 @@ const title = s => {
 const downloadPath = () => expandPath(getSetting("downloadpath"))
 
 const firefoxUseragent = () => {
-    const daysSinceBase = (new Date() - new Date(2020, 6, 28)) / 86400000
-    const ver = `${79 + Math.floor(daysSinceBase / 28)}.0`
+    const daysSinceBase = (new Date() - new Date(2021, 11, 5)) / 86400000
+    const ver = `${93 + Math.floor(daysSinceBase / 28)}.0`
     const sys = window.navigator.platform
     return `Mozilla/5.0 (${sys}; rv:${ver}) Gecko/20100101 Firefox/${ver}`
 }
 
-const sameDomain = (d1, d2) => {
-    const e1 = document.createElement("a")
-    e1.setAttribute("href", d1)
-    const e2 = document.createElement("a")
-    e2.setAttribute("href", d2)
-    const h1 = e1.hostname.replace(/^www\./, "")
-    const h2 = e2.hostname.replace(/^www\./, "")
-    return d1 && d2 && h1 && h2 && h1 === h2
+const domainName = url => {
+    try {
+        const {host} = new URL(url)
+        if (host.endsWith("localhost") || host.match(/^(\d|\.)+$/)) {
+            return host
+        }
+        return host.replace(/(?:[a-zA-Z0-9]+\.)+(\w+\.\w+)/, "$1")
+    } catch {
+        return null
+    }
 }
 
-const formatDate = dateOrString => {
-    let date = dateOrString
+const sameDomain = (url1, url2) => {
+    const domain1 = domainName(url1)
+    const domain2 = domainName(url2)
+    return domain1 && domain2 && domain1 === domain2
+}
+
+const formatDate = dateStringOrNumber => {
+    let date = dateStringOrNumber
+    if (typeof date === "number") {
+        date = new Date(dateStringOrNumber * 1000)
+    }
     if (typeof date === "string") {
-        date = new Date(dateOrString)
+        date = new Date(dateStringOrNumber)
     }
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")
     }-${String(date.getDate()).padStart(2, "0")} ${String(date.getHours())
@@ -756,11 +767,11 @@ const makeDir = (loc, err = null, success = null) => {
 const listDir = (loc, absolute = false, dirsOnly = false) => {
     try {
         let files = fs.readdirSync(loc)
+        if (dirsOnly) {
+            files = files.filter(f => isDir(joinPath(loc, f)))
+        }
         if (absolute) {
             files = files.map(f => joinPath(loc, f))
-        }
-        if (dirsOnly) {
-            files = files.filter(f => isDir(f))
         }
         return files
     } catch {
@@ -794,6 +805,7 @@ module.exports = {
     title,
     downloadPath,
     firefoxUseragent,
+    domainName,
     sameDomain,
     formatDate,
     findFrameInfo,

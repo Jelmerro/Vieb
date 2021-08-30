@@ -48,7 +48,9 @@ const {
     basePath,
     formatSize,
     extractZip,
-    isAbsolutePath
+    isAbsolutePath,
+    formatDate,
+    domainName
 } = require("./util")
 const {"sync": rimrafSync} = require("rimraf")
 const rimraf = pattern => {
@@ -901,6 +903,7 @@ const writeDownloadsToFile = () => {
         writeJSON(dlsFile, downloads)
     }
 }
+const allowedFingerprints = {}
 const permissionHandler = (_, perm, callback, details) => {
     let permission = perm.toLowerCase().replace(/-/g, "")
     if (permission === "mediakeysystem") {
@@ -943,6 +946,18 @@ const permissionHandler = (_, perm, callback, details) => {
             }
         }
     }
+    const domain = domainName(details.requestingUrl)
+    if (permission === "certificateerror") {
+        if (allowedFingerprints[domain]?.includes(details.cert.fingerprint)) {
+            callback(true)
+            mainWindow.webContents.send("notify",
+                `Automatic domain caching rule for '${permission}' activated `
+                + `at '${details.requestingUrl}' which was allowed, because `
+                + `this same certificate was allowed before on this domain`,
+                "perm")
+            return
+        }
+    }
     setting = settingRule || setting
     if (setting === "ask") {
         let url = details.requestingUrl
@@ -958,6 +973,7 @@ const permissionHandler = (_, perm, callback, details) => {
             + "sites ask for this permission. For help and more options, see "
             + `':h ${permissionName}', ':h permissionsallowed', ':h permissions`
             + `asked' and ':h permissionsblocked'.\n\npage:\n${url}`
+        let checkboxLabel = "Remember for this session"
         if (permission === "openexternal") {
             let exturl = details.externalURL
             if (exturl.length > 100) {
@@ -971,13 +987,33 @@ const permissionHandler = (_, perm, callback, details) => {
                 + " make this the default for the current session when sites "
                 + "ask to open urls in external programs. For help and more "
                 + "options, see ':h permissionopenexternal', ':h permissionsall"
-                + "owed', ':h permissionsasked' and ':h permissionsblocked'.\n"
-                + `\npage:\n${details.requestingUrl}\n\nexternal:\n${exturl}`
+                + "owed', ':h permissionsasked' and ':h permissionsblocked'."
+                + `\n\npage:\n${url}\n\nexternal:\n${exturl}`
+        }
+        if (permission === "certificateerror") {
+            message = "The page has a certificate error listed below. You can "
+                + "choose if you still want to continue visiting. Please do "
+                + "this after reviewing the certificate details. Because of the"
+                + " nature of certificates, any allowed certs will keep being "
+                + "trusted per domain until you restart Vieb. Changing the "
+                + "permission setting afterwards won't change this behavior."
+                + "So while you can deny the same certificate multiple times, "
+                + "you only need to allow it once to be able to keep using it."
+                + ` For help and more options, see ':h ${permissionName}'.`
+                + `\n\npage: ${url}\ndomain: ${domain}\n\n`
+                + `ISSUER: ${details.cert.issuerName}\n`
+                + `SELF-SIGNED: ${!details.cert.issuerCert}\n`
+                + `SUBJECT: ${details.cert.subjectName}\n`
+                + `STARTS: ${formatDate(details.cert.validStart)}\n`
+                + `EXPIRES: ${formatDate(details.cert.validExpiry)}\n`
+                + `FINGERPRINT: ${details.cert.fingerprint}\n\n`
+                + "Only allow certificates you have verified and can trust!"
+            checkboxLabel = undefined
         }
         dialog.showMessageBox(mainWindow, {
             "buttons": ["Allow", "Deny"],
             "cancelId": 1,
-            "checkboxLabel": "Remember for this session",
+            checkboxLabel,
             "defaultId": 0,
             message,
             "title": `Allow this page to access '${permission}'?`,
@@ -1005,6 +1041,12 @@ const permissionHandler = (_, perm, callback, details) => {
                     "set-permission", permissionName, action)
                 permissions[permissionName] = action
             }
+            if (permission === "certificateerror" && action === "allow") {
+                if (!allowedFingerprints[domain]) {
+                    allowedFingerprints[domain] = []
+                }
+                allowedFingerprints[domain].push(details.cert.fingerprint)
+            }
         })
     } else {
         if (settingRule) {
@@ -1019,6 +1061,12 @@ const permissionHandler = (_, perm, callback, details) => {
                 "perm")
         }
         callback(setting === "allow")
+        if (permission === "certificateerror" && setting === "allow") {
+            if (!allowedFingerprints[domain]) {
+                allowedFingerprints[domain] = []
+            }
+            allowedFingerprints[domain].push(details.cert.fingerprint)
+        }
     }
 }
 const blocklistDir = joinPath(app.getPath("appData"), "blocklists")
@@ -1385,6 +1433,12 @@ ipcMain.on("webview-listeners", (_, id, linkId) => {
     })
     webContents.fromId(id).on("zoom-changed", (__, direction) => {
         mainWindow.webContents.send("zoom-changed", linkId, direction)
+    })
+    webContents.fromId(id).on("certificate-error", (e, url, err, cert, fn) => {
+        e.preventDefault()
+        permissionHandler(null, "certificateerror", fn, {
+            cert, "error": err, "requestingUrl": url
+        })
     })
 })
 ipcMain.on("set-window-title", (_, t) => {

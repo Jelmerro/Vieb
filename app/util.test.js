@@ -343,22 +343,28 @@ describe("Versions", () => {
 test("Filesystem helpers should work as expected", () => {
     const {tmpdir} = require("os")
     const {rmdirSync} = require("fs")
+    const {isAbsolute, dirname, basename} = require("path")
     const file = UTIL.joinPath(tmpdir(), "vieb-test")
+    // Clean old test files
     UTIL.deleteFile(file)
     try {
         rmdirSync(file)
     } catch {
         // Probably does not exist
     }
+    // Test simple path checks, make a dir and try to make files at the same loc
     expect(UTIL.pathExists(file)).toBe(false)
     expect(UTIL.isFile(file)).toBe(false)
     expect(UTIL.isDir(file)).toBe(false)
+    expect(UTIL.listDir(file)).toBe(null)
     expect(UTIL.makeDir(file)).toBe(true)
+    expect(UTIL.listDir(file)).toEqual([])
     expect(UTIL.isFile(file)).toBe(false)
     expect(UTIL.isDir(file)).toBe(true)
     expect(UTIL.pathExists(file)).toBe(true)
     expect(UTIL.writeJSON(file, {"test": "test"}, null, null, 4)).toBe(false)
     expect(UTIL.writeFile(file, "test", null, null, 4)).toBe(false)
+    // Remove dir, write file to same location and read it again
     try {
         rmdirSync(file)
     } catch {
@@ -376,11 +382,19 @@ test("Filesystem helpers should work as expected", () => {
     expect(UTIL.isDir(file)).toBe(false)
     expect(UTIL.pathExists(file)).toBe(true)
     expect(UTIL.makeDir(file)).toBe(false)
+    // Delete file and confirm simple checks succeed
     UTIL.deleteFile(file)
     expect(UTIL.isFile(file)).toBe(false)
     expect(UTIL.readFile(file)).toBe(null)
     expect(UTIL.isDir(file)).toBe(false)
     expect(UTIL.pathExists(file)).toBe(false)
+    expect(UTIL.listDir(UTIL.joinPath(__dirname, "./img"), false, true))
+        .toEqual(["icons"])
+    expect(UTIL.listDir(UTIL.joinPath(__dirname, "./img"), true, true))
+        .toEqual([UTIL.joinPath(__dirname, "img", "icons")])
+    expect(UTIL.dirname("/home/test/")).toBe(dirname("/home/test/"))
+    expect(UTIL.basePath("/home/test/")).toBe(basename("/home/test/"))
+    expect(UTIL.isAbsolutePath("/home/test/")).toBe(isAbsolute("/home/test/"))
 })
 
 test("Title function should capitalize first char and lowercase others", () => {
@@ -401,14 +415,34 @@ test("formatDate helper to show dates in proper standard format", () => {
     expect(new Date().getTimezoneOffset()).toBe(0)
     expect(UTIL.formatDate("03-03-2021")).toBe("2021-03-03 00:00:00")
     expect(UTIL.formatDate("12/24/2021 4:15 PM")).toBe("2021-12-24 16:15:00")
+    expect(UTIL.formatDate(0)).toBe("1970-01-01 00:00:00")
+    expect(UTIL.formatDate(1630281600)).toBe("2021-08-30 00:00:00")
     expect(UTIL.formatDate(new Date("2021-04-04"))).toBe("2021-04-04 00:00:00")
 })
 
 test("sameDomain function should match urls that have the same domain", () => {
+    // Basics
     expect(UTIL.sameDomain(
         "https://duckduckgo.com", "https://google.com/")).toBe(false)
     expect(UTIL.sameDomain(
+        "https://google.com", "https://google.com/")).toBe(true)
+    expect(UTIL.sameDomain(null, null)).toBeFalsy()
+    // Strip subdomains, path, search, hash and query
+    expect(UTIL.sameDomain(
         "https://google.com/test", "http://www.google.com/search")).toBe(true)
+    expect(UTIL.sameDomain(
+        "https://www.accounts.google.com/", "http://google.com?q=0")).toBe(true)
+    expect(UTIL.sameDomain(
+        "https://new.accounts.google.com/", "http://www.google.com")).toBe(true)
+    expect(UTIL.sameDomain(
+        "https://test.test.com/", "http://test.google.com")).toBe(false)
+    // Localhost and IPs will not be stripped of subdomains
+    expect(UTIL.sameDomain(
+        "https://localhost/", "http://localhost#extra")).toBe(true)
+    expect(UTIL.sameDomain(
+        "https://localhost/", "http://test.localhost")).toBe(false)
+    expect(UTIL.sameDomain(
+        "https://127.0.0.1/", "http://10.0.0.1")).toBe(false)
 })
 
 test(`Expand path to resolve homedir and downloads`, () => {
@@ -426,6 +460,7 @@ test(`Expand path to resolve homedir and downloads`, () => {
 test(`Firefox version should increment by date`, () => {
     const firstMockDate = new Date("2021-03-26")
     const secondMockDate = new Date("2021-08-26")
+    const thirdMockDate = new Date("2022-03-15")
     const sys = window.navigator.platform
     global.Date = class extends Date {
         constructor(...date) {
@@ -435,7 +470,7 @@ test(`Firefox version should increment by date`, () => {
             return firstMockDate
         }
     }
-    let ver = 87
+    let ver = 83
     expect(UTIL.firefoxUseragent()).toBe(
         `Mozilla/5.0 (${sys}; rv:${ver}.0) Gecko/20100101 Firefox/${ver}.0`)
     global.Date = class extends Date {
@@ -446,7 +481,18 @@ test(`Firefox version should increment by date`, () => {
             return secondMockDate
         }
     }
-    ver = 93
+    ver = 89
+    expect(UTIL.firefoxUseragent()).toBe(
+        `Mozilla/5.0 (${sys}; rv:${ver}.0) Gecko/20100101 Firefox/${ver}.0`)
+    global.Date = class extends Date {
+        constructor(...date) {
+            if (date?.length) {
+                return super(...date)
+            }
+            return thirdMockDate
+        }
+    }
+    ver = 96
     expect(UTIL.firefoxUseragent()).toBe(
         `Mozilla/5.0 (${sys}; rv:${ver}.0) Gecko/20100101 Firefox/${ver}.0`)
 })
