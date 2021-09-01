@@ -506,35 +506,41 @@ setInterval(() => {
     })
 }, 0)
 
-let searchPos = {}
 let searchElement = null
-let justSearched = false
 let scrollHeight = 0
+let justScrolled = 0
+let justSearched = false
+let searchPos = {}
 
-window.addEventListener("scroll", () => {
+window.addEventListener("scroll", e => {
     const scrollDiff = scrollHeight - window.scrollY
     startY += scrollDiff
     scrollHeight = window.scrollY
-    ipcRenderer.sendToHost("scroll-height-diff", scrollDiff)
+    justScrolled = Number(scrollDiff)
+    setTimeout(() => {
+        justScrolled = 0
+    }, 100)
     if (justSearched) {
-        justSearched = false
-        searchElement = findElementAtPosition(
-            (searchPos.x + searchPos.width / 2) / window.devicePixelRatio,
-            (searchPos.y + searchPos.height / 2)
-                / window.devicePixelRatio + scrollDiff)
+        const {x} = searchPos
+        const y = searchPos.y + scrollDiff * window.devicePixelRatio
+        searchElement = findElementAtPosition(x / window.devicePixelRatio,
+            y / window.devicePixelRatio)
+        ipcRenderer.sendToHost("search-element-location", x, y)
     }
+    ipcRenderer.sendToHost("scroll-height-diff", scrollDiff)
 })
 
 ipcRenderer.on("search-element-location", (_, pos) => {
-    searchPos = pos
+    const x = pos.x + pos.width / 2
+    const y = pos.y + pos.height / 2 + justScrolled * window.devicePixelRatio
+    searchPos = {x, y}
+    searchElement = findElementAtPosition(x / window.devicePixelRatio,
+        y / window.devicePixelRatio)
+    ipcRenderer.sendToHost("search-element-location", x, y)
     justSearched = true
     setTimeout(() => {
         justSearched = false
-    }, 50)
-    const x = (searchPos.x + searchPos.width / 2) / window.devicePixelRatio
-    const y = (searchPos.y + searchPos.height / 2) / window.devicePixelRatio
-    searchElement = findElementAtPosition(x, y)
-    ipcRenderer.sendToHost("search-element-location", x, y)
+    }, 100)
 })
 
 ipcRenderer.on("search-element-click", () => searchElement?.click())

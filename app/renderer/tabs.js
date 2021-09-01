@@ -57,6 +57,7 @@ let linkId = 0
 const timeouts = {}
 const tabFile = joinPath(appData(), "tabs")
 const erwicMode = isFile(joinPath(appData(), "erwicmode"))
+let justSearched = false
 
 const init = () => {
     window.addEventListener("load", () => {
@@ -878,8 +879,12 @@ const addWebviewListeners = webview => {
         if (e.channel === "scroll-height-diff") {
             const {clear} = require("./contextmenu")
             clear()
-            const {handleScrollDiffEvent} = require("./pointer")
-            handleScrollDiffEvent(e.args[0])
+            if (justSearched) {
+                justSearched = false
+            } else {
+                const {handleScrollDiffEvent} = require("./pointer")
+                handleScrollDiffEvent(e.args[0])
+            }
         }
         if (e.channel === "history-list-request") {
             const {handleRequest} = require("./history")
@@ -937,6 +942,10 @@ const addWebviewListeners = webview => {
     })
     webview.addEventListener("found-in-page", e => {
         webview.send("search-element-location", e.result.selectionArea)
+        justSearched = true
+        setTimeout(() => {
+            justSearched = false
+        }, 500)
     })
     webview.addEventListener("update-target-url", e => {
         const correctMode = ["insert", "pointer"].includes(currentMode())
