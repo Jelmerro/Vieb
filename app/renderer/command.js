@@ -440,7 +440,7 @@ const mkviebrc = (full = false, trailingArgs = false) => {
     saveToDisk(exportAll)
 }
 
-const tabForBufferArg = args => {
+const tabForBufferArg = (args, filter = null) => {
     if (args.length === 1) {
         const number = Number(args[0])
         if (!isNaN(number)) {
@@ -452,7 +452,7 @@ const tabForBufferArg = args => {
         }
     }
     const simpleSearch = args.join("").replace(specialChars, "").toLowerCase()
-    return listTabs().find(t => {
+    return listTabs().filter(t => !filter || filter(t)).find(t => {
         const simpleTabUrl = tabOrPageMatching(t).src
             .replace(specialChars, "").toLowerCase()
         if (simpleTabUrl.includes(simpleSearch)) {
@@ -491,7 +491,8 @@ const suspend = (...args) => {
     if (args.length === 0) {
         tab = currentTab()
     } else {
-        tab = tabForBufferArg(args)
+        tab = tabForBufferArg(args, t => !t.classList.contains("visible-tab")
+                && !t.getAttribute("suspended"))
     }
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
@@ -509,7 +510,7 @@ const hide = (...args) => {
     if (args.length === 0) {
         tab = currentTab()
     } else {
-        tab = tabForBufferArg(args)
+        tab = tabForBufferArg(args, t => t.classList.contains("visible-tab"))
     }
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
@@ -572,7 +573,7 @@ const addSplit = (method, leftOrAbove, args) => {
         add(id, method, !leftOrAbove)
         return
     }
-    const tab = tabForBufferArg(args)
+    const tab = tabForBufferArg(args, t => !t.classList.contains("visible-tab"))
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
             notify("Page is already visible", "warn")

@@ -512,7 +512,7 @@ let justScrolled = 0
 let justSearched = false
 let searchPos = {}
 
-window.addEventListener("scroll", e => {
+window.addEventListener("scroll", () => {
     const scrollDiff = scrollHeight - window.scrollY
     startY += scrollDiff
     scrollHeight = window.scrollY

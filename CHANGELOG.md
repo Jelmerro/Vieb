@@ -45,6 +45,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Firefox release versions in firefoxmode to more realistic numbers because of recent Firefox release date delays
 - Same domain check was improved to strip subdomains if needed (for both firefoxmode=google and the new certificateerror caching)
 - Scroll position detection when searching which supports auto scrolling before finding the match and after (Electron doesn't do this in a fixed order)
+- Algorithm for finding a matching tab based on text now matches the suggestions more accurately for buffer-like commands
 
 ### Fixed
 

@@ -470,7 +470,7 @@ test(`Firefox version should increment by date`, () => {
             return firstMockDate
         }
     }
-    let ver = 83
+    let ver = 86
     expect(UTIL.firefoxUseragent()).toBe(
         `Mozilla/5.0 (${sys}; rv:${ver}.0) Gecko/20100101 Firefox/${ver}.0`)
     global.Date = class extends Date {
@@ -481,7 +481,7 @@ test(`Firefox version should increment by date`, () => {
             return secondMockDate
         }
     }
-    ver = 89
+    ver = 91
     expect(UTIL.firefoxUseragent()).toBe(
         `Mozilla/5.0 (${sys}; rv:${ver}.0) Gecko/20100101 Firefox/${ver}.0`)
     global.Date = class extends Date {
@@ -492,7 +492,7 @@ test(`Firefox version should increment by date`, () => {
             return thirdMockDate
         }
     }
-    ver = 96
+    ver = 98
     expect(UTIL.firefoxUseragent()).toBe(
         `Mozilla/5.0 (${sys}; rv:${ver}.0) Gecko/20100101 Firefox/${ver}.0`)
 })

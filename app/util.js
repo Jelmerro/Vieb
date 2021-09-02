@@ -198,8 +198,8 @@ const title = s => {
 const downloadPath = () => expandPath(getSetting("downloadpath"))
 
 const firefoxUseragent = () => {
-    const daysSinceBase = (new Date() - new Date(2021, 11, 5)) / 86400000
-    const ver = `${93 + Math.floor(daysSinceBase / 28)}.0`
+    const daysSinceBase = (new Date() - new Date(2021, 7, 10)) / 86400000
+    const ver = `${91 + Math.floor(daysSinceBase / 28)}.0`
     const sys = window.navigator.platform
     return `Mozilla/5.0 (${sys}; rv:${ver}) Gecko/20100101 Firefox/${ver}`
 }
