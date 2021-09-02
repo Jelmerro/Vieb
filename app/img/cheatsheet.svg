@@ -75,7 +75,7 @@
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.24"
-     inkscape:cx="464.91936"
+     inkscape:cx="464.91935"
      inkscape:cy="840.72581"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -2180,20 +2180,20 @@
        transform="translate(40)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan19611"><tspan
+         id="tspan4975"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan19609"> 
+           id="tspan4973"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.08476"
-         id="tspan19615"><tspan
+         id="tspan4980"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan19613">follow </tspan></tspan><tspan
+           id="tspan4977">follow </tspan></tspan><tspan
          x="351.18723"
          y="287.76476"
-         id="tspan19619"><tspan
+         id="tspan4984"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan19617">mode
+           id="tspan4982">mode
 </tspan></tspan></text>
     <text
        xml:space="preserve"
@@ -2204,21 +2204,21 @@
        transform="translate(-42.337912,-69.3719)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan19623"><tspan
+         id="tspan4988"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan19621"> 
+           id="tspan4986"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.85891"
-         id="tspan19627"><tspan
+         id="tspan4992"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan19625">explore
+           id="tspan4990">explore
 </tspan></tspan><tspan
          x="351.18723"
          y="288.72478"
-         id="tspan19631"><tspan
+         id="tspan4996"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan19629">mode</tspan></tspan></text>
+           id="tspan4994">mode</tspan></tspan></text>
     <text
        id="text9514-6"
        y="201.01891"
@@ -3636,10 +3636,14 @@
          id="flowPara87736-7">manipulate context menus</flowPara><flowPara
          style="font-weight:bold;font-size:10.6667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'Sans Bold';fill:#000000;stroke-width:1.06667"
          id="flowPara1213"><flowSpan
-   style="font-weight:normal"
-   id="flowSpan1215"><flowSpan
+           style="font-weight:normal"
+           id="flowSpan1215"><flowSpan
    style="fill:#0000ff"
-   id="flowSpan1871">&lt;Ctrl-m&gt;</flowSpan>  -  alt. to open menus</flowSpan> </flowPara><flowPara
+   id="flowSpan1871">&lt;Ctrl-m&gt;</flowSpan>  -  alt. to open menus</flowSpan></flowPara><flowPara
+         style="font-weight:bold;font-size:10.6667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'Sans Bold';fill:#000000;stroke-width:1.06667"
+         id="flowPara2090"><flowSpan
+   style="font-weight:normal"
+   id="flowSpan2092">&lt;Enter&gt;  -  select menu item</flowSpan> </flowPara><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
          id="flowPara5701-8-5-8-7-0-6-4" /><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
@@ -4447,22 +4451,22 @@
        transform="translate(40.307436,-29.82915)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan19635"><tspan
+         id="tspan5000"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan19633"> 
+           id="tspan4998"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.08476"
-         id="tspan19639"><tspan
+         id="tspan5004"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan19637">follow in </tspan></tspan><tspan
+           id="tspan5002">follow in </tspan></tspan><tspan
          x="351.18723"
          y="287.76476"
-         id="tspan19645"><tspan
+         id="tspan5010"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan19641">new tab</tspan><tspan
+           id="tspan5006">new tab</tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan19643">
+           id="tspan5008">
 </tspan></tspan></text>
     <text
        xml:space="preserve"
@@ -4473,24 +4477,24 @@
        transform="translate(-49.302467,-99.318284)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan19649"><tspan
+         id="tspan5014"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan19647"> 
+           id="tspan5012"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.85891"
-         id="tspan19655"><tspan
+         id="tspan5020"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan19651">explore </tspan><tspan
+           id="tspan5016">explore </tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan19653">in </tspan></tspan><tspan
+           id="tspan5018">in </tspan></tspan><tspan
          x="351.18723"
          y="288.72478"
-         id="tspan19661"><tspan
+         id="tspan5026"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan19657">new </tspan><tspan
+           id="tspan5022">new </tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan19659">tab</tspan></tspan></text>
+           id="tspan5024">tab</tspan></tspan></text>
     <text
        xml:space="preserve"
        id="text18022"
