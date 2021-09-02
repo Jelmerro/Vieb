@@ -27,8 +27,12 @@ const {
     findFrameInfo,
     findClickPosition,
     frameSelector,
-    activeElement
+    activeElement,
+    readJSON,
+    joinPath,
+    appData
 } = require("../util")
+const settingsFile = joinPath(appData(), "webviewsettings")
 
 let inFollowMode = false
 
@@ -531,7 +535,15 @@ window.addEventListener("scroll", () => {
 })
 
 ipcRenderer.on("search-element-location", (_, pos) => {
-    const x = pos.x + pos.width / 2
+    let {x} = pos
+    const alignment = readJSON(settingsFile)?.searchpointeralignment
+    if (alignment === "center") {
+        x += pos.width / 2
+    } else if (alignment === "right") {
+        x += pos.width - 1
+    } else {
+        x += 1
+    }
     const y = pos.y + pos.height / 2 + justScrolled * window.devicePixelRatio
     searchPos = {x, y}
     searchElement = findElementAtPosition(x / window.devicePixelRatio,

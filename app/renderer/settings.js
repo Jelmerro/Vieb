@@ -125,6 +125,7 @@ const defaultSettings = {
     "restorewindowposition": true,
     "restorewindowsize": true,
     "search": "https://duckduckgo.com/?kae=d&kav=1&ko=1&q=%s&ia=web",
+    "searchpointeralignment": "left",
     "searchwords": "",
     "showcmd": true,
     "smartcase": true,
@@ -208,6 +209,7 @@ const validOptions = {
     "permissionscreenwakelock": ["block", "ask", "allow"],
     "permissionsensors": ["block", "ask", "allow"],
     "permissionunknown": ["block", "ask", "allow"],
+    "searchpointeralignment": ["left", "center", "right"],
     "suspendonrestore": ["all", "regular", "none"],
     "tabopenmuted": ["always", "background", "never"],
     "taboverflow": ["hidden", "scroll", "wrap"],
@@ -717,7 +719,8 @@ const updateWebviewSettings = () => {
         "permissionmediadevices": allSettings.permissionmediadevices,
         "permissionsallowed": allSettings.permissionsallowed,
         "permissionsasked": allSettings.permissionsasked,
-        "permissionsblocked": allSettings.permissionsblocked
+        "permissionsblocked": allSettings.permissionsblocked,
+        "searchpointeralignment": allSettings.searchpointeralignment
     })
 }
 
@@ -934,7 +937,8 @@ const set = (setting, value) => {
             "permissionmediadevices",
             "permissionsallowed",
             "permissionsasked",
-            "permissionsblocked"
+            "permissionsblocked",
+            "searchpointeralignment"
         ]
         if (webviewSettings.includes(setting)) {
             updateWebviewSettings()
