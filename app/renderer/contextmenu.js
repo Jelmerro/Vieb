@@ -500,6 +500,27 @@ const createMenuItem = options => {
 
 const active = () => !!contextMenu.textContent.trim()
 
+const top = () => {
+    [...contextMenu.querySelectorAll(".menu-item")]
+        .forEach(el => el.classList.remove("selected"))
+    contextMenu.firstChild.classList.add("selected")
+}
+
+const topOfSection = () => {
+    const selected = contextMenu.querySelector(".selected")
+    if (selected.previousSibling) {
+        return matchesQuery(selected.previousSibling, ".menu-group")
+    }
+    return true
+}
+
+const sectionUp = () => {
+    up()
+    while (!topOfSection()) {
+        up()
+    }
+}
+
 const up = () => {
     const selected = contextMenu.querySelector(".selected")
     const nodes = [...contextMenu.querySelectorAll(".menu-item")]
@@ -524,6 +545,19 @@ const down = () => {
         nodes.forEach(el => el.classList.remove("selected"))
         newSelected.classList.add("selected")
     }
+}
+
+const sectionDown = () => {
+    down()
+    while (!topOfSection()) {
+        down()
+    }
+}
+
+const bottom = () => {
+    [...contextMenu.querySelectorAll(".menu-item")]
+        .forEach(el => el.classList.remove("selected"))
+    contextMenu.lastChild.classList.add("selected")
 }
 
 const select = () => contextMenu.querySelector(".selected")?.click()
@@ -587,12 +621,16 @@ const commonAction = (type, action, options) => {
 
 module.exports = {
     active,
+    bottom,
     clear,
     commandMenu,
     commonAction,
     down,
     linkMenu,
+    sectionDown,
+    sectionUp,
     select,
+    top,
     up,
     viebMenu,
     webviewMenu

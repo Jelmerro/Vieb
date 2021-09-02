@@ -653,6 +653,16 @@ const menuOpen = () => {
     }
 }
 
+const menuTop = () => {
+    const {top} = require("./contextmenu")
+    top()
+}
+
+const menuSectionUp = () => {
+    const {sectionUp} = require("./contextmenu")
+    sectionUp()
+}
+
 const menuUp = () => {
     const {up} = require("./contextmenu")
     up()
@@ -661,6 +671,16 @@ const menuUp = () => {
 const menuDown = () => {
     const {down} = require("./contextmenu")
     down()
+}
+
+const menuSectionDown = () => {
+    const {sectionDown} = require("./contextmenu")
+    sectionDown()
+}
+
+const menuBottom = () => {
+    const {bottom} = require("./contextmenu")
+    bottom()
 }
 
 const menuSelect = () => {
@@ -762,10 +782,14 @@ module.exports = {
     incrementalSearch,
     insertAtFirstInput,
     leftHalfSplitWindow,
+    menuBottom,
     menuClose,
     menuDown,
     menuOpen,
+    menuSectionDown,
+    menuSectionUp,
     menuSelect,
+    menuTop,
     menuUp,
     moveTabBackward,
     moveTabForward,

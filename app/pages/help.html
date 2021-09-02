@@ -1176,7 +1176,15 @@
         <h3 id="action.menuUp">action.menuUp</h3>
         With this action you can move the selected contextmenu item up. It will select the bottom one if the top of the list is reached or no entry was previously highlighted. Opposite of <a href="#action.menuDown">action.menuDown</a>. Items can be selected with <a href="#action.menuSelect">action.menuSelect</a>.
         <h3 id="action.menuDown">action.menuDown</h3>
-        This action moves the selected contextmenu item one down. Opposite of <a href="#action.menuDown">action.menuDown</a>. Wrapping happens both directions.
+        This action moves the selected contextmenu item one down. Opposite of <a href="#action.menuDown">action.menuDown</a>. Wrapping happens in both directions.
+        <h3 id="action.menuTop">action.menuTop</h3>
+        This action moves the selected contextmenu item to the very first entry in the menu. Opposite of <a href="#action.menuBottom">action.menuBottom</a>.
+        <h3 id="action.menuBottom">action.menuBottom</h3>
+        This action moves the selected contextmenu item to the very last entry in the menu. Opposite of <a href="#action.menuTop">action.menuTop</a>.
+        <h3 id="action.menuSectionDown">action.menuSectionDown</h3>
+        This action moves the selected contextmenu item to first item in the next section of the menu. If you have selected an item in the middle of a section it will also select the first one of the next section. It will select the very first menu entry when there is no next section. Opposite of <a href="#action.menuSectionUp">action.menuSectionUp</a>.
+        <h3 id="action.menuSectionUp">action.menuSectionUp</h3>
+        This action moves the selected contextmenu item to first item in the previous section of the menu. Opposite of <a href="#action.menuSectionDown">action.menuSectionDown</a>. Wrapping happens in both directions.
         <h3 id="action.menuSelect">action.menuSelect</h3>
         Executes the currently selected contextmenu item. This will also close the menu. For more details on how to close the menu without picking a menu item, see <a href="#action.menuClose">action.menuClose</a>.
         <h3 id="action.menuClose">action.menuClose</h3>

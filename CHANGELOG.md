@@ -28,6 +28,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Double clicking on a tab (or the tabbar) now opens a new tab, at the end or next to it, depending on tabnexttocurrent
 - Action "p.moveToMouse" to start pointer mode at the current mouse position
 - Setting "permissioncertificateerror" to ask or even allow custom/invalid certificates (default remains to block them)
+- Actions "menuTop", "menuBottom", "menuSectionUp" and "menuSectionDown" to give more flexibility of movement inside the menu
 
 ### Changed
 
