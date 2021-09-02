@@ -24,4 +24,6 @@ window.addEventListener("DOMContentLoaded", () => {
     require("./tabs").init()
     require("./favicons").init()
     require("./modes").init()
+    require("./commandhistory").init()
+    require("./explorehistory").init()
 })

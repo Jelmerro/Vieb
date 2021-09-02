@@ -17,10 +17,18 @@
 */
 "use strict"
 
-const previousCommands = []
+const {currentMode, getSetting} = require("./common")
+const {joinPath, appData, appendFile, readFile} = require("../util")
+
+const commandsFile = joinPath(appData(), "commandhist")
+let previousCommands = []
 let previousIndex = -1
 let originalCommand = ""
 let storeCommands = false
+
+const init = () => {
+    previousCommands = readFile(commandsFile)?.split("\n").filter(s => s) || []
+}
 
 const pause = () => {
     storeCommands = false
@@ -41,7 +49,6 @@ const updateNavWithHistory = () => {
 }
 
 const previous = () => {
-    const {currentMode} = require("./common")
     if (currentMode() !== "command") {
         return
     }
@@ -55,7 +62,6 @@ const previous = () => {
 }
 
 const next = () => {
-    const {currentMode} = require("./common")
     if (currentMode() !== "command" || previousIndex === -1) {
         return
     }
@@ -72,17 +78,23 @@ const resetPosition = () => {
     originalCommand = ""
 }
 
-const push = command => {
-    if (!storeCommands) {
+const push = (command, user = false) => {
+    const setting = getSetting("commandhist")
+    if (!storeCommands || setting === "none") {
+        return
+    }
+    if (!user && setting.includes("useronly")) {
         return
     }
     if (previousCommands.length) {
-        if (previousCommands[previousCommands.length - 1] !== command) {
-            previousCommands.push(command)
+        if (previousCommands[previousCommands.length - 1] === command) {
+            return
         }
-    } else {
-        previousCommands.push(command)
+    }
+    previousCommands.push(command)
+    if (setting.includes("persist")) {
+        appendFile(commandsFile, `${command}\n`)
     }
 }
 
-module.exports = {next, pause, previous, push, resetPosition, resume}
+module.exports = {init, next, pause, previous, push, resetPosition, resume}

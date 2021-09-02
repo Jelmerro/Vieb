@@ -364,6 +364,7 @@ test("Filesystem helpers should work as expected", () => {
     expect(UTIL.pathExists(file)).toBe(true)
     expect(UTIL.writeJSON(file, {"test": "test"}, null, null, 4)).toBe(false)
     expect(UTIL.writeFile(file, "test", null, null, 4)).toBe(false)
+    expect(UTIL.appendFile(file, "hello")).toBe(false)
     // Remove dir, write file to same location and read it again
     try {
         rmdirSync(file)
@@ -374,7 +375,10 @@ test("Filesystem helpers should work as expected", () => {
     expect(UTIL.pathExists(file)).toBe(false)
     expect(UTIL.writeJSON(file, {"test": "test"}, null, null, 4)).toBe(true)
     expect(UTIL.readJSON(file)).toMatchObject({"test": "test"})
-    expect(UTIL.readJSON(file)).toMatchObject({"test": "test"})
+    expect(UTIL.readFile(file)).toBe(`{\n    "test": "test"\n}`)
+    expect(UTIL.appendFile(file, "hello")).toBe(true)
+    expect(UTIL.readJSON(file)).toBe(null)
+    expect(UTIL.readFile(file)).toBe(`{\n    "test": "test"\n}hello`)
     expect(UTIL.writeFile(file, "test", null, null, 4)).toBe(true)
     expect(UTIL.readJSON(file)).toBe(null)
     expect(UTIL.readFile(file)).toBe("test")

@@ -722,6 +722,21 @@ const writeFile = (loc, data, err = null, success = null) => {
     return false
 }
 
+const appendFile = (loc, data, err = null, success = null) => {
+    try {
+        fs.appendFileSync(loc, data)
+        if (success) {
+            notify(success)
+        }
+        return true
+    } catch {
+        if (err) {
+            notify(err, "err")
+        }
+    }
+    return false
+}
+
 const writeJSON = (loc, data, err = null, success = null, indent = null) => {
     try {
         fs.writeFileSync(loc, JSON.stringify(data, null, indent))
@@ -840,6 +855,7 @@ module.exports = {
     readFile,
     readJSON,
     writeFile,
+    appendFile,
     writeJSON,
     deleteFile,
     makeDir,

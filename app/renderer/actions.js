@@ -98,7 +98,7 @@ const movePortNumber = movement => {
     }
     if (port) {
         modifyUrl("(^[a-zA-Z\\d]+:\\/\\/[.a-zA-Z\\d-]+)(:\\d+)?(.*$)",
-            (_, domain, urlPort, rest) => {
+            (_, domain, _port, rest) => {
                 if (isNaN(port)) {
                     return `${domain}${rest}`
                 }
@@ -698,10 +698,8 @@ const useEnteredData = () => {
     if (currentMode() === "command") {
         const command = document.getElementById("url").value.trim()
         setMode("normal")
-        if (getSetting("commandhist") === "useronly") {
-            const {push} = require("./commandhistory")
-            push(command)
-        }
+        const {push} = require("./commandhistory")
+        push(command, true)
         const {execute} = require("./command")
         execute(command)
     }
@@ -715,10 +713,8 @@ const useEnteredData = () => {
         setMode("normal")
         if (location) {
             location = searchword(location).url
-            if (getSetting("explorehist")) {
-                const {push} = require("./explorehistory")
-                push(urlToString(location))
-            }
+            const {push} = require("./explorehistory")
+            push(urlToString(location))
             const {navigateTo} = require("./tabs")
             navigateTo(stringToUrl(location))
         }

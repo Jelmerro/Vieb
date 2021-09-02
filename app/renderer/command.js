@@ -966,10 +966,8 @@ const execute = (com, settingsFile = null) => {
     if (!commandStr) {
         return
     }
-    if (getSetting("commandhist") === "all") {
-        const {push} = require("./commandhistory")
-        push(commandStr)
-    }
+    const {push} = require("./commandhistory")
+    push(commandStr)
     if (commandStr.startsWith("!")) {
         if (commandStr !== "!") {
             const {exec} = require("child_process")

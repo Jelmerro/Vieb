@@ -53,7 +53,7 @@ const defaultSettings = {
     "clearhistoryonquit": false,
     "clearlocalstorageonquit": false,
     "closablepinnedtabs": false,
-    "commandhist": "useronly",
+    "commandhist": "persistuseronly",
     "containercolors": "temp\\d+~#ff0",
     "containerkeeponreopen": true,
     "containernewtab": "s:usecurrent",
@@ -64,7 +64,7 @@ const defaultSettings = {
     "devtoolsposition": "window",
     "downloadmethod": "automatic",
     "downloadpath": "~/Downloads/",
-    "explorehist": true,
+    "explorehist": "persist",
     "externalcommand": "",
     "favicons": "session",
     "favoritepages": "",
@@ -172,10 +172,11 @@ const listLike = [
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
     "cache": ["none", "clearonquit", "full"],
-    "commandhist": ["all", "useronly", "none"],
+    "commandhist": ["all", "persistall", "useronly", "persistuseronly", "none"],
     "containershowname": ["automatic", "always", "never"],
     "devtoolsposition": ["window", "split", "vsplit", "tab"],
     "downloadmethod": ["automatic", "confirm", "ask", "block"],
+    "explorehist": ["persist", "session", "none"],
     "favicons": [
         "disabled", "nocache", "session", "1day", "5day", "30day", "forever"
     ],

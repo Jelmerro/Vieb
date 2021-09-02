@@ -17,9 +17,17 @@
 */
 "use strict"
 
-const previousSites = []
+const {currentMode, getSetting} = require("./common")
+const {joinPath, appData, appendFile, readFile} = require("../util")
+
+const exploreFile = joinPath(appData(), "explorehist")
+let previousSites = []
 let previousIndex = -1
 let originalSite = ""
+
+const init = () => {
+    previousSites = readFile(exploreFile)?.split("\n").filter(s => s) || []
+}
 
 const updateNavWithSite = () => {
     let exploreText = originalSite
@@ -32,7 +40,6 @@ const updateNavWithSite = () => {
 }
 
 const previous = () => {
-    const {currentMode} = require("./common")
     if (currentMode() !== "explore") {
         return
     }
@@ -46,7 +53,6 @@ const previous = () => {
 }
 
 const next = () => {
-    const {currentMode} = require("./common")
     if (currentMode() !== "explore" || previousIndex === -1) {
         return
     }
@@ -64,13 +70,19 @@ const resetPosition = () => {
 }
 
 const push = explore => {
+    const setting = getSetting("explorehist")
+    if (setting === "none") {
+        return
+    }
     if (previousSites.length) {
-        if (previousSites[previousSites.length - 1] !== explore) {
-            previousSites.push(explore)
+        if (previousSites[previousSites.length - 1] === explore) {
+            return
         }
-    } else {
-        previousSites.push(explore)
+    }
+    previousSites.push(explore)
+    if (setting === "persist") {
+        appendFile(exploreFile, `${explore}\n`)
     }
 }
 
-module.exports = {next, previous, push, resetPosition}
+module.exports = {init, next, previous, push, resetPosition}
