@@ -48,6 +48,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Scroll position detection when searching which supports auto scrolling before finding the match and after (Electron doesn't do this in a fixed order)
 - Algorithm for finding a matching tab based on text now matches the suggestions more accurately for buffer-like commands
 - Setting "commandhist" and "explorehist" to optionally and by default store commands/navigations persistently
+- Native clipboard actions to custom JavaScript actions which also translate spaces to "%20" for cutting and copying urls
 
 ### Fixed
 
@@ -506,7 +507,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Potentially incorrect execution for following links with a custom datamethod attribute (such as put or post)
 - Follow mode not loading on some pages due to querySelectorAll sometimes returning undefined instead of an empty NodeList
-- Potential parse errors for invalid URLs being stored or opened by pages
+- Potential parse errors for invalid urls being stored or opened by pages
 - Mouse action listeners potentially being wiped within iframes if re-added to the DOM
 - Action "insertAtFirstInput" now works for subframes and for labels that link to hidden fields
 - Right click menu potentially appearing when using follow mode on Windows

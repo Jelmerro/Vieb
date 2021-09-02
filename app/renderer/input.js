@@ -17,7 +17,7 @@
 */
 "use strict"
 
-const {matchesQuery, notify, specialChars} = require("../util")
+const {matchesQuery, notify, specialChars, isUrl} = require("../util")
 const {
     listTabs,
     currentTab,
@@ -442,6 +442,9 @@ const init = () => {
             e.preventDefault()
         }
     })
+    window.addEventListener("cut", cutInput)
+    window.addEventListener("copy", copyInput)
+    window.addEventListener("copy", pasteInput)
     window.addEventListener("click", e => {
         if (e.composedPath().find(el => matchesQuery(el, "#context-menu"))) {
             return
@@ -581,6 +584,46 @@ const init = () => {
     ].filter(m => !unSupportedActions.includes(m))
     bindings = JSON.parse(JSON.stringify(defaultBindings))
     updateKeysOnScreen()
+}
+
+const cutInput = (event = null) => {
+    event?.preventDefault()
+    let selection = document.getSelection().toString()
+    if (currentMode() === "explore" && isUrl(selection)) {
+        selection = selection.replace(/ /g, "%20")
+    }
+    const {clipboard} = require("electron")
+    clipboard.writeText(selection)
+    const url = document.getElementById("url")
+    const cur = Number(url.selectionStart)
+    url.value = url.value.substr(0, url.selectionStart)
+        + url.value.substr(url.selectionEnd)
+    url.setSelectionRange(cur, cur)
+    updateSuggestions()
+    updateNavbarScrolling()
+}
+
+const copyInput = (event = null) => {
+    event?.preventDefault()
+    let selection = document.getSelection().toString()
+    if (currentMode() === "explore" && isUrl(selection)) {
+        selection = selection.replace(/ /g, "%20")
+    }
+    const {clipboard} = require("electron")
+    clipboard.writeText(selection)
+}
+
+const pasteInput = (event = null) => {
+    event?.preventDefault()
+    const url = document.getElementById("url")
+    const cur = Number(url.selectionStart)
+    const {clipboard} = require("electron")
+    const pastedText = clipboard.readText()
+    url.value = url.value.substr(0, url.selectionStart) + pastedText
+        + url.value.substr(url.selectionEnd)
+    url.setSelectionRange(cur + pastedText.length, cur + pastedText.length)
+    updateSuggestions()
+    updateNavbarScrolling()
 }
 
 const keyNames = [
@@ -1315,19 +1358,15 @@ const typeCharacterIntoNavbar = character => {
         return
     }
     if (keyForOs(["<C-x>"], ["<M-x>"], id)) {
-        document.execCommand("cut")
-        updateSuggestions()
-        updateNavbarScrolling()
+        cutInput()
         return
     }
     if (keyForOs(["<C-c>"], ["<M-c>"], id)) {
-        document.execCommand("copy")
+        copyInput()
         return
     }
     if (keyForOs(["<C-v>"], ["<M-v>"], id)) {
-        document.execCommand("paste")
-        updateSuggestions()
-        updateNavbarScrolling()
+        pasteInput()
         return
     }
     if (keyForOs(["<C-z>"], ["<M-z>"], id)) {
@@ -1791,12 +1830,15 @@ const clearmap = (mode, removeDefaults) => {
 
 module.exports = {
     clearmap,
+    copyInput,
+    cutInput,
     executeMapString,
     init,
     keyNames,
     listMappingsAsCommandList,
     listSupportedActions,
     mapOrList,
+    pasteInput,
     repeatLastAction,
     resetInputHistory,
     sanitiseMapString,

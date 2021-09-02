@@ -618,7 +618,7 @@ const incrementalSearch = (value = null) => {
 
 const pageToClipboard = () => {
     const {clipboard} = require("electron")
-    clipboard.writeText(urlToString(currentPage()?.src))
+    clipboard.writeText(urlToString(currentPage()?.src).replace(/ /g, "%20"))
 }
 
 const openFromClipboard = () => {

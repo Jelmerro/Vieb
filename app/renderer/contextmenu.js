@@ -18,7 +18,7 @@
 "use strict"
 
 const {
-    matchesQuery, stringToUrl, urlToString, specialChars, notify, title
+    matchesQuery, stringToUrl, urlToString, specialChars, notify, title, isUrl
 } = require("../util")
 const {
     listTabs, currentPage, tabOrPageMatching, currentMode, getSetting
@@ -62,7 +62,8 @@ const viebMenu = options => {
                         const {setMode} = require("./modes")
                         setMode("explore")
                     }
-                    document.execCommand("cut")
+                    const {cutInput} = require("./input")
+                    cutInput()
                 },
                 "title": "Cut"
             })
@@ -72,7 +73,8 @@ const viebMenu = options => {
                         const {setMode} = require("./modes")
                         setMode("explore")
                     }
-                    document.execCommand("copy")
+                    const {copyInput} = require("./input")
+                    copyInput()
                 },
                 "title": "Copy"
             })
@@ -84,7 +86,8 @@ const viebMenu = options => {
                         const {setMode} = require("./modes")
                         setMode("explore")
                     }
-                    document.execCommand("paste")
+                    const {pasteInput} = require("./input")
+                    pasteInput()
                 },
                 "title": "Paste"
             })
@@ -94,7 +97,8 @@ const viebMenu = options => {
                         const {setMode} = require("./modes")
                         setMode("explore")
                     }
-                    document.execCommand("paste")
+                    const {pasteInput} = require("./input")
+                    pasteInput()
                     useEnteredData()
                 },
                 "title": "Paste & go"
@@ -162,7 +166,7 @@ const viebMenu = options => {
         createMenuItem({"action": reopenTab, "title": "Undo closed"})
         createMenuItem({
             "action": () => clipboard.writeText(urlToString(
-                tabOrPageMatching(tab).src)),
+                tabOrPageMatching(tab).src).replace(/ /g, "%20")),
             "title": "Copy url"
         })
         createMenuItem({
@@ -412,7 +416,7 @@ const linkMenu = options => {
     createMenuItem({
         "action": () => {
             const {clipboard} = require("electron")
-            clipboard.writeText(options.link)
+            clipboard.writeText(urlToString(options.link).replace(/ /g, "%20"))
         },
         "title": "Copy"
     })
@@ -594,7 +598,11 @@ const commonAction = (type, action, options) => {
         addTab({"url": stringToUrl(relevantData)})
     } else if (action === "copy") {
         const {clipboard} = require("electron")
-        clipboard.writeText(relevantData)
+        if (isUrl(relevantData)) {
+            clipboard.writeText(relevantData.replace(/ /g, "%20"))
+        } else {
+            clipboard.writeText(relevantData)
+        }
     } else if (action === "download") {
         currentPage().downloadURL(stringToUrl(relevantData))
     } else if (action === "external") {
