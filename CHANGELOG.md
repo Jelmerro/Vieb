@@ -30,6 +30,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "permissioncertificateerror" to ask or even allow custom/invalid certificates (default remains to block them)
 - Actions "menuTop", "menuBottom", "menuSectionUp" and "menuSectionDown" to give more flexibility of movement inside the menu
 - Setting "searchpointeralignment" to control where the pointer should align to when moving between searches in pointer mode
+- Actions "nextSuggestionSection" and "prevSuggestionSection" to jump between section in the explore mode suggestions
 
 ### Changed
 

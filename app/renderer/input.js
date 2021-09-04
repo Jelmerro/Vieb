@@ -40,27 +40,35 @@ const defaultBindings = {
         "<C-n>": {"mapping": "<commandHistoryNext>"},
         "<C-p>": {"mapping": "<commandHistoryPrevious>"},
         "<CR>": {"mapping": "<useEnteredData>"},
+        "<Down>": {"mapping": "<nextSuggestion>"},
         "<Esc>": {"mapping": "<toNormalMode>"},
         "<F1>": {"mapping": "<:help>"},
         "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
         "<F11>": {"mapping": "<toggleFullscreen>"},
         "<S-Tab>": {"mapping": "<prevSuggestion>"},
-        "<Tab>": {"mapping": "<nextSuggestion>"}
+        "<Tab>": {"mapping": "<nextSuggestion>"},
+        "<Up>": {"mapping": "<prevSuggestion>"}
     },
     "e": {
         "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<toNormalMode>"},
+        "<C-Down>": {"mapping": "<nextSuggestionSection>"},
+        "<C-Up>": {"mapping": "<prevSuggestionSection>"},
         "<C-i>": {"mapping": "<editWithVim>"},
         "<C-m>": {"mapping": "<menuOpen>"},
         "<C-n>": {"mapping": "<exploreHistoryNext>"},
         "<C-p>": {"mapping": "<exploreHistoryPrevious>"},
         "<CR>": {"mapping": "<useEnteredData>"},
+        "<Down>": {"mapping": "<nextSuggestion>"},
         "<Esc>": {"mapping": "<toNormalMode>"},
         "<F1>": {"mapping": "<:help>"},
         "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
         "<F11>": {"mapping": "<toggleFullscreen>"},
+        "<PageDown>": {"mapping": "<nextSuggestionSection>"},
+        "<PageUp>": {"mapping": "<prevSuggestionSection>"},
         "<S-Tab>": {"mapping": "<prevSuggestion>"},
-        "<Tab>": {"mapping": "<nextSuggestion>"}
+        "<Tab>": {"mapping": "<nextSuggestion>"},
+        "<Up>": {"mapping": "<prevSuggestion>"}
     },
     "f": {
         "<A-F4>": {"mapping": "<:quitall>"},

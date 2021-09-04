@@ -32,7 +32,9 @@ const {
     isUrl,
     searchword,
     specialChars,
-    stringToUrl
+    stringToUrl,
+    matchesQuery,
+    querySelectorAll
 } = require("../util")
 const {
     listTabs, tabOrPageMatching, currentMode, getSetting
@@ -48,6 +50,23 @@ const setUrlValue = url => {
         document.getElementById("url").value = url
     }
     updateColors()
+}
+
+const topOfSection = () => {
+    const list = [...document.querySelectorAll("#suggest-dropdown div")]
+    const selected = list.find(s => s.classList.contains("selected"))
+    if (selected.previousSibling) {
+        return selected.previousSibling.lastChild.className
+            !== selected.lastChild.className
+    }
+    return true
+}
+
+const previousSection = () => {
+    previous()
+    while (!topOfSection()) {
+        previous()
+    }
 }
 
 const previous = () => {
@@ -74,6 +93,13 @@ const previous = () => {
     const index = suggestions[id - 1].indexOf("%s")
     if (index !== -1) {
         document.getElementById("url").setSelectionRange(index, index + 2)
+    }
+}
+
+const nextSection = () => {
+    next()
+    while (!topOfSection()) {
+        next()
     }
 }
 
@@ -560,7 +586,9 @@ module.exports = {
     addExplore,
     emptySuggestions,
     next,
+    nextSection,
     previous,
+    previousSection,
     suggestCommand,
     suggestExplore
 }

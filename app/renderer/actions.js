@@ -455,6 +455,18 @@ const prevSuggestion = () => {
     setFocusCorrectly()
 }
 
+const nextSuggestionSection = () => {
+    const {nextSection} = require("./suggest")
+    nextSection()
+    setFocusCorrectly()
+}
+
+const prevSuggestionSection = () => {
+    const {previousSection} = require("./suggest")
+    previousSection()
+    setFocusCorrectly()
+}
+
 const commandHistoryPrevious = () => {
     const {previous} = require("./commandhistory")
     previous()
@@ -793,6 +805,7 @@ module.exports = {
     nextPageNewTab,
     nextSearchMatch,
     nextSuggestion,
+    nextSuggestionSection,
     nextTab,
     nop,
     openFromClipboard,
@@ -801,6 +814,7 @@ module.exports = {
     openNewTabWithCurrentUrl,
     pageToClipboard,
     prevSuggestion,
+    prevSuggestionSection,
     previousPage,
     previousPageNewTab,
     previousSearchMatch,
