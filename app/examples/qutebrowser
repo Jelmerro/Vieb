@@ -89,6 +89,8 @@ command! tab-focus_2 <:b 1>
 command! rl-backward-word <C-Left>
 command! rl-unix-word-rubout <C-S-Left><BS>
 command! scroll_up <scrollUp>
+command! completion-item-focus_prev-category <prevSuggestionSection>
+command! completion-item-focus_next-category <nextSuggestionSection>
 
 " Mappings
 nmap <Up> <:scroll_up>
@@ -184,6 +186,8 @@ cmap <C-w> <:rl-unix-word-rubout>
 cmap <C-e> <:edit-text>
 
 emap <C-e> <:edit-text>
+emap <C-Tab> <:completion-item-focus_next-category>
+emap <C-S-Tab> <:completion-item-focus_prev-category>
 
 smap <C-e> <:edit-text>
 

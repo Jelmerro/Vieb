@@ -93,6 +93,10 @@ emap <S-Up> <exploreHistoryPrevious>
 emap <S-Down> <exploreHistoryNext>
 emap <C-p> <exploreHistoryPrevious>
 emap <C-n> <exploreHistoryNext>
+emap <C-Tab> <nextSuggestionSection>
+emap <C-S-Tab> <prevSuggestionSection>
+emap <A-f> <nextSuggestionSection>
+emap <A-S-f> <prevSuggestionSection>
 
 pmap <Up> <p.moveUp>
 pmap <Down> <p.moveDown>
