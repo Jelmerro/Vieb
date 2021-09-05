@@ -45,6 +45,11 @@ const currentMode = () => document.body.getAttribute("current-mode")
 
 const getSetting = val => getStored("settings")?.[val]
 
+const getMouseConf = val => {
+    const mouse = getStored("settings")?.mouse
+    return mouse?.split(",").includes("all") || mouse?.split(",").includes(val)
+}
+
 const setStored = (set, val) => sessionStorage.setItem(set, JSON.stringify(val))
 
 const getStored = val => {
@@ -127,6 +132,7 @@ module.exports = {
     currentMode,
     currentPage,
     currentTab,
+    getMouseConf,
     getSetting,
     getStored,
     guiRelatedUpdate,

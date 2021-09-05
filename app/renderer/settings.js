@@ -41,7 +41,8 @@ const {
     currentTab,
     currentPage,
     tabOrPageMatching,
-    updateGuiVisibility
+    updateGuiVisibility,
+    getMouseConf
 } = require("./common")
 
 const defaultSettings = {
@@ -83,10 +84,11 @@ const defaultSettings = {
     "mapsuggestposition": "topright",
     "maxmapdepth": 10,
     "menupage": "elementasneeded",
+    "menusuggest": "both",
     "menuvieb": "both",
     "mintabwidth": 28,
     "modifiers": "Ctrl,Shift,Alt,Meta,NumLock,CapsLock,ScrollLock",
-    "mouse": true,
+    "mouse": "all",
     "mousefocus": false,
     "mousenewtabswitch": true,
     "mousevisualmode": "onswitch",
@@ -159,6 +161,7 @@ const listLike = [
     "containercolors",
     "favoritepages",
     "modifiers",
+    "mouse",
     "permissionsallowed",
     "permissionsasked",
     "permissionsblocked",
@@ -187,6 +190,7 @@ const validOptions = {
     "guitabbar": ["always", "onupdate", "never"],
     "mapsuggestposition": ["bottomright", "bottomleft", "topright", "topleft"],
     "menupage": ["always", "globalasneeded", "elementasneeded", "never"],
+    "menusuggest": ["both", "explore", "command", "never"],
     "menuvieb": ["both", "navbar", "tabbar", "never"],
     "mousevisualmode": ["activate", "onswitch", "never"],
     "nativenotification": ["always", "smallonly", "never"],
@@ -194,6 +198,7 @@ const validOptions = {
         "bottomright", "bottomleft", "topright", "topleft"
     ],
     "permissioncamera": ["block", "ask", "allow"],
+    "permissioncertificateerror": ["block", "ask", "allow"],
     "permissionclipboardread": ["block", "ask", "allow"],
     "permissionclosepage": ["block", "allow"],
     "permissiondisplaycapture": ["block", "ask"],
@@ -241,6 +246,27 @@ const downloadSettings = [
 ]
 const containerSettings = [
     "containernewtab", "containersplitpage", "containerstartuppage"
+]
+const mouseFeatures = [
+    "pageininsert",
+    "pageoutsideinsert",
+    "switchtab",
+    "history",
+    "guiontop",
+    "newtab",
+    "closetab",
+    "menupage",
+    "menusuggest",
+    "menuvieb",
+    "modeselector",
+    "follow",
+    "toinsert",
+    "toexplore",
+    "leaveinput",
+    "suggestselect",
+    "scrollsuggest",
+    "scrollzoom",
+    "scrolltabs"
 ]
 let spelllangs = []
 
@@ -388,6 +414,14 @@ const checkOther = (setting, value) => {
                     "warn")
                 return false
             }
+        }
+    }
+    if (setting === "mouse") {
+        const invalid = value.split(",").find(
+            v => !mouseFeatures.includes(v) && v !== "all")
+        if (invalid) {
+            notify(`Feature '${invalid}' is not a valid mouse feature`, "warn")
+            return false
         }
     }
     const permissionSettings = [
@@ -700,14 +734,6 @@ const updateDownloadSettings = () => {
     ipcRenderer.send("set-download-settings", downloads)
 }
 
-const updateMouseSettings = () => {
-    if (allSettings.mouse) {
-        document.body.classList.add("mouse")
-    } else {
-        document.body.classList.remove("mouse")
-    }
-}
-
 const updateWebviewSettings = () => {
     const webviewSettingsFile = joinPath(
         appData(), "webviewsettings")
@@ -852,11 +878,21 @@ const set = (setting, value) => {
         } else if (typeof allSettings[setting] === "number") {
             allSettings[setting] = Number(value)
         } else if (listLike.includes(setting)) {
-            // Remove empty elements from the comma seperated list
-            allSettings[setting] = value.split(",")
-                .map(e => e.trim()).filter(e => e).join(",")
+            // Remove empty and duplicate elements from the comma seperated list
+            allSettings[setting] = Array.from(new Set(
+                value.split(",").map(e => e.trim()).filter(e => e))).join(",")
         } else {
             allSettings[setting] = value
+        }
+        if (setting === "mouse") {
+            let newval = allSettings.mouse
+            if (!mouseFeatures.find(f => !newval.includes(f))) {
+                newval = "all"
+            }
+            if (newval.split(",").includes("all")) {
+                newval = "all"
+            }
+            allSettings.mouse = newval
         }
         sessionStorage.setItem("settings", JSON.stringify(allSettings))
         // Update settings elsewhere
@@ -909,11 +945,20 @@ const set = (setting, value) => {
             applyLayout()
         }
         if (setting === "mouse") {
-            updateMouseSettings()
-        }
-        if (setting === "spelllang") {
-            allSettings.spelllang = Array.from(new Set(
-                value.split(","))).join(",")
+            const styledMouseSettings = [
+                "pageininsert",
+                "pageoutsideinsert",
+                "modeselector",
+                "switchtab",
+                "suggestselect"
+            ]
+            for (const mouseSetting of styledMouseSettings) {
+                if (getMouseConf(mouseSetting)) {
+                    document.body.classList.add(`mouse-${mouseSetting}`)
+                } else {
+                    document.body.classList.remove(`mouse-${mouseSetting}`)
+                }
+            }
         }
         if (setting === "spelllang" || setting === "spell") {
             if (allSettings.spell) {
@@ -1000,23 +1045,26 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
         allowedValues = "true,false"
     }
     if (containerSettings.includes(setting)) {
-        allowedValues = "see description"
+        allowedValues = "See description"
     }
     if (setting === "downloadpath") {
-        allowedValues = "any directory on disk"
+        allowedValues = "Any directory on disk"
     }
     if (setting === "externalcommand") {
-        allowedValues = "any system command"
+        allowedValues = "Any system command"
+    }
+    if (setting === "mouse") {
+        allowedValues = "'all' or list of features"
     }
     if (setting === "search") {
-        allowedValues = "any URL"
+        allowedValues = "Any URL with %s"
     }
     if (setting === "spelllang") {
         allowedValues = `A list containing any of these supported languages: ${
             spelllangs.join(", ")}`
     }
     if (setting === "vimcommand") {
-        allowedValues = "any system command"
+        allowedValues = "Any system command"
     }
     if (typeof allSettings[setting] === "number") {
         typeLabel = "Number"
@@ -1143,6 +1191,7 @@ module.exports = {
     listCurrentSettings,
     listLike,
     loadFromDisk,
+    mouseFeatures,
     reset,
     saveToDisk,
     set,

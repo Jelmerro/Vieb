@@ -18,7 +18,13 @@
 "use strict"
 
 const {
-    listPages, currentPage, currentMode, getSetting, setStored, getStored
+    listPages,
+    currentPage,
+    currentMode,
+    getSetting,
+    setStored,
+    getStored,
+    getMouseConf
 } = require("./common")
 
 let followNewtab = true
@@ -218,6 +224,9 @@ const parseAndDisplayLinks = receivedLinks => {
         linkElement.style.top = `${top}px`
         linkElement.setAttribute("link-id", index)
         const onclickListener = async e => {
+            if (!getMouseConf("follow")) {
+                return
+            }
             const {hasProtocol} = require("../util")
             const {setMode} = require("./modes")
             if (e.button === 1 && hasProtocol(link.url)) {

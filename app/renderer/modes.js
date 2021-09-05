@@ -18,7 +18,7 @@
 "use strict"
 
 const {
-    currentPage, currentMode, getSetting, guiRelatedUpdate
+    currentPage, currentMode, guiRelatedUpdate, getMouseConf
 } = require("./common")
 
 // Sort order determines the appearance in the mode list
@@ -30,7 +30,7 @@ const modes = {
             if (currentPage().getAttribute("dom-ready")) {
                 currentPage().send("action", "blur")
             }
-            if (newMode !== "pointer" && !getSetting("mouse")) {
+            if (newMode !== "pointer" && !getMouseConf("pageoutsideinsert")) {
                 document.getElementById("url-hover").textContent = ""
                 document.getElementById("url-hover").style.display = "none"
             }
@@ -86,7 +86,7 @@ const modes = {
                 const {releaseKeys} = require("./pointer")
                 releaseKeys()
             }
-            if (newMode !== "insert" && !getSetting("mouse")) {
+            if (newMode !== "insert" && !getMouseConf("pageoutsideinsert")) {
                 document.getElementById("url-hover").style.display = "none"
             }
         }

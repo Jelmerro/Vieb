@@ -25,7 +25,8 @@ const {
     currentMode,
     getSetting,
     listPages,
-    setTopOfPageWithMouse
+    setTopOfPageWithMouse,
+    getMouseConf
 } = require("./common")
 
 const ACTIONS = require("./actions")
@@ -35,6 +36,8 @@ const defaultBindings = {
     "c": {
         "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<toNormalMode>"},
+        "<C-F4>": {"mapping": "<closeTab>"},
+        "<C-F5>": {"mapping": "<reloadWithoutCache>"},
         "<C-i>": {"mapping": "<editWithVim>"},
         "<C-m>": {"mapping": "<menuOpen>"},
         "<C-n>": {"mapping": "<commandHistoryNext>"},
@@ -43,8 +46,10 @@ const defaultBindings = {
         "<Down>": {"mapping": "<nextSuggestion>"},
         "<Esc>": {"mapping": "<toNormalMode>"},
         "<F1>": {"mapping": "<:help>"},
+        "<F5>": {"mapping": "<reload>"},
         "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
         "<F11>": {"mapping": "<toggleFullscreen>"},
+        "<F12>": {"mapping": "<:devtools>"},
         "<S-Tab>": {"mapping": "<prevSuggestion>"},
         "<Tab>": {"mapping": "<nextSuggestion>"},
         "<Up>": {"mapping": "<prevSuggestion>"}
@@ -53,6 +58,8 @@ const defaultBindings = {
         "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<toNormalMode>"},
         "<C-Down>": {"mapping": "<nextSuggestionSection>"},
+        "<C-F4>": {"mapping": "<closeTab>"},
+        "<C-F5>": {"mapping": "<reloadWithoutCache>"},
         "<C-Up>": {"mapping": "<prevSuggestionSection>"},
         "<C-i>": {"mapping": "<editWithVim>"},
         "<C-m>": {"mapping": "<menuOpen>"},
@@ -62,8 +69,10 @@ const defaultBindings = {
         "<Down>": {"mapping": "<nextSuggestion>"},
         "<Esc>": {"mapping": "<toNormalMode>"},
         "<F1>": {"mapping": "<:help>"},
+        "<F5>": {"mapping": "<reload>"},
         "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
         "<F11>": {"mapping": "<toggleFullscreen>"},
+        "<F12>": {"mapping": "<:devtools>"},
         "<PageDown>": {"mapping": "<nextSuggestionSection>"},
         "<PageUp>": {"mapping": "<prevSuggestionSection>"},
         "<S-Tab>": {"mapping": "<prevSuggestion>"},
@@ -73,23 +82,31 @@ const defaultBindings = {
     "f": {
         "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<stopFollowMode>"},
+        "<C-F4>": {"mapping": "<closeTab>"},
+        "<C-F5>": {"mapping": "<reloadWithoutCache>"},
         "<C-m>": {"mapping": "<menuOpen>"},
         "<Esc>": {"mapping": "<stopFollowMode>"},
         "<F1>": {"mapping": "<:help>"},
+        "<F5>": {"mapping": "<reload>"},
         "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
         "<F11>": {"mapping": "<toggleFullscreen>"},
+        "<F12>": {"mapping": "<:devtools>"},
         "<Tab>": {"mapping": "<reorderFollowLinks>"}
     },
     "i": {
         "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<toNormalMode>"},
+        "<C-F4>": {"mapping": "<closeTab>"},
+        "<C-F5>": {"mapping": "<reloadWithoutCache>"},
         "<C-i>": {"mapping": "<editWithVim>"},
         "<C-m>": {"mapping": "<menuOpen>"},
         "<CapsLock>": {"mapping": "<nop>"},
         "<Esc>": {"mapping": "<toNormalMode>"},
         "<F1>": {"mapping": "<:help>"},
+        "<F5>": {"mapping": "<reload>"},
         "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
         "<F11>": {"mapping": "<toggleFullscreen>"},
+        "<F12>": {"mapping": "<:devtools>"},
         "<NumLock>": {"mapping": "<nop>"},
         "<ScrollLock>": {"mapping": "<nop>"}
     },
@@ -98,6 +115,8 @@ const defaultBindings = {
         "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<menuClose>"},
         "<C-Down>": {"mapping": "<menuSectionDown>"},
+        "<C-F4>": {"mapping": "<closeTab>"},
+        "<C-F5>": {"mapping": "<reloadWithoutCache>"},
         "<C-Up>": {"mapping": "<menuSectionUp>"},
         "<C-m>": {"mapping": "<menuOpen>"},
         "<C-n>": {"mapping": "<menuDown>"},
@@ -107,13 +126,15 @@ const defaultBindings = {
         "<End>": {"mapping": "<menuBottom>"},
         "<Esc>": {"mapping": "<menuClose>"},
         "<F1>": {"mapping": "<:help>"},
+        "<F5>": {"mapping": "<reload>"},
         "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
         "<F11>": {"mapping": "<toggleFullscreen>"},
+        "<F12>": {"mapping": "<:devtools>"},
         "<Home>": {"mapping": "<menuTop>"},
         "<PageDown>": {"mapping": "<menuSectionDown>"},
         "<PageUp>": {"mapping": "<menuSectionUp>"},
-        "<S-Tab>": {"mapping": "<menuSectionDown>"},
-        "<Tab>": {"mapping": "<menuSectionUp>"},
+        "<S-Tab>": {"mapping": "<menuSectionUp>"},
+        "<Tab>": {"mapping": "<menuSectionDown>"},
         "<Up>": {"mapping": "<menuUp>"},
         "H": {"mapping": "<menuTop>"},
         "L": {"mapping": "<menuBottom>"}
@@ -126,6 +147,13 @@ const defaultBindings = {
         ":": {"mapping": "<toCommandMode>"},
         "<A-F4>": {"mapping": "<:quitall>"},
         "<C-0>": {"mapping": "<zoomReset>"},
+        "<C-F4>": {"mapping": "<closeTab>"},
+        "<C-F5>": {"mapping": "<reloadWithoutCache>"},
+        "<C-PageDown>": {"mapping": "<nextTab>"},
+        "<C-PageUp>": {"mapping": "<previousTab>"},
+        "<C-S-PageDown>": {"mapping": "<moveTabForward>"},
+        "<C-S-PageUp>": {"mapping": "<moveTabBackward>"},
+        "<C-Tab>": {"mapping": "<nextTab>"},
         "<C-a>": {"mapping": "<increasePageNumber>"},
         "<C-b>": {"mapping": "<scrollPageUp>"},
         "<C-c>": {"mapping": "<stopLoadingPage>"},
@@ -195,9 +223,20 @@ const defaultBindings = {
         "<C-x>": {"mapping": "<decreasePageNumber>"},
         "<C-y>": {"mapping": "<scrollUp>"},
         "<CR>": {"mapping": "<clickOnSearch>"},
+        "<Down>": {"mapping": "<scrollDown>"},
+        "<End>": {"mapping": "<scrollBottom>"},
         "<F1>": {"mapping": "<:help>"},
+        "<F5>": {"mapping": "<reload>"},
         "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
         "<F11>": {"mapping": "<toggleFullscreen>"},
+        "<F12>": {"mapping": "<:devtools>"},
+        "<Home>": {"mapping": "<scrollTop>"},
+        "<Left>": {"mapping": "<scrollLeft>"},
+        "<PageDown>": {"mapping": "<scrollPageDown>"},
+        "<PageUp>": {"mapping": "<scrollPageUp>"},
+        "<Right>": {"mapping": "<scrollRight>"},
+        "<S-C-Tab>": {"mapping": "<previousTab>"},
+        "<Up>": {"mapping": "<scrollUp>"},
         "=": {"mapping": "<zoomIn>"},
         "@:": {"mapping": "<toCommandMode><commandHistoryPrevious>"
             + "<useEnteredData>"},
@@ -258,6 +297,8 @@ const defaultBindings = {
         ".": {"mapping": "<repeatLastAction>"},
         "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<toNormalMode>"},
+        "<C-F4>": {"mapping": "<closeTab>"},
+        "<C-F5>": {"mapping": "<reloadWithoutCache>"},
         "<C-d>": {"mapping": "<p.moveFastDown>"},
         "<C-h>": {"mapping": "<p.moveSlowLeft>"},
         "<C-j>": {"mapping": "<p.moveSlowDown>"},
@@ -268,8 +309,10 @@ const defaultBindings = {
         "<CR>": {"mapping": "<p.leftClick>"},
         "<Esc>": {"mapping": "<toNormalMode>"},
         "<F1>": {"mapping": "<:help>"},
+        "<F5>": {"mapping": "<reload>"},
         "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
         "<F11>": {"mapping": "<toggleFullscreen>"},
+        "<F12>": {"mapping": "<:devtools>"},
         "<S-CR>": {"mapping": "<p.newtabLink>"},
         "<lt>": {"mapping": "<p.scrollLeft>"},
         ">": {"mapping": "<p.scrollRight>"},
@@ -338,13 +381,17 @@ const defaultBindings = {
     "s": {
         "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<toNormalMode>"},
+        "<C-F4>": {"mapping": "<closeTab>"},
+        "<C-F5>": {"mapping": "<reloadWithoutCache>"},
         "<C-i>": {"mapping": "<editWithVim>"},
         "<C-m>": {"mapping": "<menuOpen>"},
         "<CR>": {"mapping": "<useEnteredData>"},
         "<Esc>": {"mapping": "<toNormalMode>"},
         "<F1>": {"mapping": "<:help>"},
+        "<F5>": {"mapping": "<reload>"},
         "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
-        "<F11>": {"mapping": "<toggleFullscreen>"}
+        "<F11>": {"mapping": "<toggleFullscreen>"},
+        "<F12>": {"mapping": "<:devtools>"}
     },
     "v": {
         "$": {"mapping": "<p.moveRightMax>"},
@@ -352,6 +399,8 @@ const defaultBindings = {
         ".": {"mapping": "<repeatLastAction>"},
         "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<toNormalMode>"},
+        "<C-F4>": {"mapping": "<closeTab>"},
+        "<C-F5>": {"mapping": "<reloadWithoutCache>"},
         "<C-d>": {"mapping": "<p.moveFastDown>"},
         "<C-h>": {"mapping": "<p.moveSlowLeft>"},
         "<C-j>": {"mapping": "<p.moveSlowDown>"},
@@ -361,8 +410,10 @@ const defaultBindings = {
         "<C-u>": {"mapping": "<p.moveFastUp>"},
         "<Esc>": {"mapping": "<toNormalMode>"},
         "<F1>": {"mapping": "<:help>"},
+        "<F5>": {"mapping": "<reload>"},
         "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
         "<F11>": {"mapping": "<toggleFullscreen>"},
+        "<F12>": {"mapping": "<:devtools>"},
         "<lt>": {"mapping": "<p.scrollLeft>"},
         ">": {"mapping": "<p.scrollRight>"},
         "[": {"mapping": "<p.scrollUp>"},
@@ -417,14 +468,8 @@ const init = () => {
             e.preventDefault()
         }
     })
-    document.getElementById("tabs").addEventListener("wheel", e => {
-        // Make both directions of scrolling move the tabs horizontally
-        document.getElementById("tabs").scrollBy(
-            e.deltaX + e.deltaY, e.deltaX + e.deltaY)
-        e.preventDefault()
-    })
     document.getElementById("tabs").addEventListener("dblclick", e => {
-        if (getSetting("mouse")) {
+        if (getMouseConf("newtab")) {
             const {addTab} = require("./tabs")
             addTab()
         } else {
@@ -432,13 +477,28 @@ const init = () => {
         }
         ACTIONS.setFocusCorrectly()
     })
+    window.addEventListener("mousewheel", ev => {
+        if (ev.composedPath().find(e => matchesQuery(e, "#tabs"))) {
+            if (getMouseConf("scrolltabs")) {
+                // Make both directions of scrolling move the tabs horizontally
+                document.getElementById("tabs").scrollBy(
+                    ev.deltaX + ev.deltaY, ev.deltaX + ev.deltaY)
+            }
+        }
+        if (ev.composedPath().find(e => matchesQuery(e, "#suggest-dropdown"))) {
+            if (!getMouseConf("scrollsuggest")) {
+                ev.preventDefault()
+            }
+        }
+    }, {"passive": false})
     window.addEventListener("mouseup", e => {
         if (e.button === 1) {
-            if (getSetting("mouse")) {
-                if (e.target === document.getElementById("url")) {
+            if (e.target === document.getElementById("url")) {
+                if (getMouseConf("toexplore")) {
                     ACTIONS.toExploreMode()
                     return
                 }
+            } else if (getMouseConf("closetab")) {
                 const tab = e.composedPath().find(el => listTabs().includes(el))
                 if (tab) {
                     const {closeTab} = require("./tabs")
@@ -462,52 +522,50 @@ const init = () => {
         if (e.target.classList.contains("no-focus-reset")) {
             return
         }
-        if (getSetting("mouse")) {
-            if (e.target === document.getElementById("url")) {
-                if (!"sec".includes(currentMode()[0])) {
+        e.preventDefault()
+        if (e.target === document.getElementById("url")) {
+            if (!"sec".includes(currentMode()[0])) {
+                if (getMouseConf("toexplore")) {
                     ACTIONS.toExploreMode()
                 }
-            } else if ("sec".includes(currentMode()[0])) {
+            }
+        } else if ("sec".includes(currentMode()[0])) {
+            if (getMouseConf("leaveinput")) {
                 ACTIONS.toNormalMode()
             }
+        } else if (getMouseConf("switchtab")) {
             const tab = e.composedPath().find(el => listTabs().includes(el))
             if (tab) {
                 clear()
                 const {switchToTab} = require("./tabs")
                 switchToTab(tab)
             }
-        } else {
-            e.preventDefault()
         }
         ACTIONS.setFocusCorrectly()
     })
     const tabSelector = "#pagelayout *[link-id], #tabs *[link-id]"
     window.addEventListener("mousemove", e => {
-        if (getSetting("mouse")) {
-            if (e.y === 0) {
-                setTopOfPageWithMouse(true)
-            }
-            if (getSetting("mousefocus")) {
-                document.elementsFromPoint(e.x, e.y).forEach(el => {
-                    if (matchesQuery(el, tabSelector)) {
-                        const tab = listTabs().find(t => t.getAttribute(
-                            "link-id") === el.getAttribute("link-id"))
-                        if (tab && currentTab() !== tab) {
-                            const {switchToTab} = require("./tabs")
-                            switchToTab(tab)
-                        }
+        if (e.y === 0) {
+            setTopOfPageWithMouse(true && getMouseConf("guiontop"))
+        }
+        if (getSetting("mousefocus")) {
+            document.elementsFromPoint(e.x, e.y).forEach(el => {
+                if (matchesQuery(el, tabSelector)) {
+                    const tab = listTabs().find(t => t.getAttribute(
+                        "link-id") === el.getAttribute("link-id"))
+                    if (tab && currentTab() !== tab) {
+                        const {switchToTab} = require("./tabs")
+                        switchToTab(tab)
                     }
-                })
-            }
+                }
+            })
         }
     })
     window.addEventListener("contextmenu", e => {
         e.preventDefault()
-        if (getSetting("mouse")) {
+        if (getMouseConf("menuvieb")) {
             const {viebMenu} = require("./contextmenu")
             viebMenu(e)
-        } else {
-            ACTIONS.setFocusCorrectly()
         }
     })
     window.addEventListener("resize", () => {
@@ -522,7 +580,7 @@ const init = () => {
     const {ipcRenderer} = require("electron")
     ipcRenderer.on("zoom-changed", (_, linkId, direction) => {
         const page = listPages().find(p => p.getAttribute("link-id") === linkId)
-        if (!page || !getSetting("mouse")) {
+        if (!page || !getMouseConf("scrollzoom")) {
             return
         }
         if (direction === "in") {
@@ -568,7 +626,7 @@ const init = () => {
     ipcRenderer.on("window-focus", () => document.body.classList.add("focus"))
     ipcRenderer.on("window-blur", () => document.body.classList.remove("focus"))
     ipcRenderer.on("app-command", (_, cmd) => {
-        if (getSetting("mouse")) {
+        if (getMouseConf("history")) {
             if (cmd === "browser-backward") {
                 ACTIONS.backInHistory()
             } else if (cmd === "browser-forward") {

@@ -48,7 +48,8 @@ const {
     currentMode,
     getSetting,
     guiRelatedUpdate,
-    setTopOfPageWithMouse
+    setTopOfPageWithMouse,
+    getMouseConf
 } = require("./common")
 const {setMode} = require("./modes")
 
@@ -130,27 +131,6 @@ const init = () => {
                 addTab({"url": specialPagePath("help")})
             }
         }
-        // This forces the webview to update on sites which wait for the mouse
-        // It will also enable the pointer events when in insert or pointer mode
-        setInterval(() => {
-            try {
-                if (getSetting("mouse")) {
-                    currentPage().style.pointerEvents = null
-                } else {
-                    currentPage().style.pointerEvents = "auto"
-                    if (["insert", "pointer"].includes(currentMode())) {
-                        return
-                    }
-                    setTimeout(() => {
-                        listPages().forEach(page => {
-                            page.style.pointerEvents = "none"
-                        })
-                    }, 10)
-                }
-            } catch {
-                // Page not available, retry later
-            }
-        }, 100)
         ipcRenderer.send("window-state-init",
             getSetting("restorewindowposition"),
             getSetting("restorewindowsize"),
@@ -825,6 +805,12 @@ const addWebviewListeners = webview => {
         }
         if (e.channel === "mouse-selection") {
             const switchToVisual = getSetting("mousevisualmode")
+            if (e.args[0].toinsert) {
+                if (getMouseConf("toinsert")) {
+                    setMode("insert")
+                }
+                return
+            }
             if (switchToVisual !== "never" || currentMode() === "visual") {
                 skipNextClick = true
                 const {storeMouseSelection} = require("./pointer")
@@ -843,12 +829,12 @@ const addWebviewListeners = webview => {
         if (e.channel === "mouse-click-info") {
             const {clear} = require("./contextmenu")
             clear()
-            if (getSetting("mouse") && currentMode() !== "insert") {
-                if (skipNextClick) {
-                    skipNextClick = false
-                    return
-                }
-                if (["pointer", "visual"].includes(currentMode())) {
+            if (skipNextClick) {
+                skipNextClick = false
+                return
+            }
+            if (["pointer", "visual"].includes(currentMode())) {
+                if (getMouseConf("movepointer")) {
                     if (e.args[0].tovisual) {
                         const {startVisualSelect} = require("./pointer")
                         startVisualSelect()
@@ -856,19 +842,23 @@ const addWebviewListeners = webview => {
                     const {move} = require("./pointer")
                     move(e.args[0].x * currentPage().getZoomFactor(),
                         e.args[0].y * currentPage().getZoomFactor())
-                } else if (e.args[0].toinsert) {
-                    setMode("insert")
-                } else if ("ces".includes(currentMode()[0])) {
-                    setMode("normal")
-                } else {
-                    const {setFocusCorrectly} = require("./actions")
-                    setFocusCorrectly()
                 }
-                if (!e.args[0].tovisual) {
-                    if (!["pointer", "visual"].includes(currentMode())) {
-                        const {storeMouseSelection} = require("./pointer")
-                        storeMouseSelection(null)
-                    }
+            } else if (e.args[0].toinsert) {
+                if (getMouseConf("toinsert")) {
+                    setMode("insert")
+                }
+            } else if ("ces".includes(currentMode()[0])) {
+                if (getMouseConf("leaveinput")) {
+                    setMode("normal")
+                }
+            } else {
+                const {setFocusCorrectly} = require("./actions")
+                setFocusCorrectly()
+            }
+            if (!e.args[0].tovisual) {
+                if (!["pointer", "visual"].includes(currentMode())) {
+                    const {storeMouseSelection} = require("./pointer")
+                    storeMouseSelection(null)
                 }
             }
         }
@@ -925,7 +915,7 @@ const addWebviewListeners = webview => {
             }
         }
         if (e.channel === "mousemove") {
-            setTopOfPageWithMouse(!e.args[1])
+            setTopOfPageWithMouse(getMouseConf("guiontop") && !e.args[1])
             if (getSetting("mousefocus")) {
                 const tab = tabOrPageMatching(webview)
                 if (tab && currentTab() !== tab) {
@@ -949,7 +939,7 @@ const addWebviewListeners = webview => {
     })
     webview.addEventListener("update-target-url", e => {
         const correctMode = ["insert", "pointer"].includes(currentMode())
-        if (e.url && (correctMode || getSetting("mouse"))) {
+        if (e.url && (correctMode || getMouseConf("pageoutsideinsert"))) {
             const special = pathToSpecialPageName(e.url)
             const appName = appConfig().name.toLowerCase()
             if (!special.name) {

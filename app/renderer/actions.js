@@ -647,18 +647,45 @@ const reorderFollowLinks = () => {
 }
 
 const menuOpen = () => {
-    if (currentMode() === "insert") {
-        currentPage()?.send("contextmenu")
-    } else if ("sec".includes(currentMode()[0])) {
-        const url = document.getElementById("url")
-        const bounds = url.getBoundingClientRect()
-        const charWidth = getSetting("fontsize") * 0.60191
+    if (currentMode() === "normal") {
+        const tab = currentTab()
+        const bounds = tab.getBoundingClientRect()
         const {viebMenu} = require("./contextmenu")
         viebMenu({
-            "path": [url],
-            "x": bounds.x + charWidth * url.selectionStart - url.scrollLeft,
+            "path": [tab, document.getElementById("tabs")],
+            "x": bounds.x,
             "y": bounds.y + bounds.height
         })
+    } else if (currentMode() === "insert") {
+        currentPage()?.send("contextmenu")
+    } else if ("sec".includes(currentMode()[0])) {
+        const selected = document.querySelector("#suggest-dropdown .selected")
+        let bounds = selected?.getBoundingClientRect()
+        if (currentMode() === "command" && selected) {
+            const {commandMenu} = require("./contextmenu")
+            commandMenu({
+                "command": selected.querySelector("span").textContent,
+                "x": bounds.x,
+                "y": bounds.y + bounds.height
+            })
+        } else if (currentMode() === "explore" && selected) {
+            const {linkMenu} = require("./contextmenu")
+            linkMenu({
+                "link": selected.querySelector(".url").textContent,
+                "x": bounds.x,
+                "y": bounds.y + bounds.height
+            })
+        } else {
+            const url = document.getElementById("url")
+            bounds = url.getBoundingClientRect()
+            const charWidth = getSetting("fontsize") * 0.60191
+            const {viebMenu} = require("./contextmenu")
+            viebMenu({
+                "path": [url],
+                "x": bounds.x + charWidth * url.selectionStart - url.scrollLeft,
+                "y": bounds.y + bounds.height
+            })
+        }
     } else {
         const {rightClick} = require("./pointer")
         rightClick()
@@ -755,9 +782,7 @@ const setFocusCorrectly = () => {
     } else {
         urlElement.blur()
         window.focus()
-        if (!getSetting("mouse")) {
-            document.getElementById("invisible-overlay").focus()
-        }
+        document.body.focus()
     }
 }
 

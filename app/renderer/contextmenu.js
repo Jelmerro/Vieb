@@ -21,7 +21,12 @@ const {
     matchesQuery, stringToUrl, urlToString, specialChars, notify, title, isUrl
 } = require("../util")
 const {
-    listTabs, currentPage, tabOrPageMatching, currentMode, getSetting
+    listTabs,
+    currentPage,
+    tabOrPageMatching,
+    currentMode,
+    getSetting,
+    getMouseConf
 } = require("./common")
 
 const contextMenu = document.getElementById("context-menu")
@@ -177,11 +182,23 @@ const viebMenu = options => {
     }
 }
 
+let pointerRightClick = false
+
+const storePointerRightClick = () => {
+    pointerRightClick = true
+    setTimeout(() => {
+        pointerRightClick = false
+    }, 100)
+}
+
 const webviewMenu = options => {
     clear()
     if (!"ipv".includes(currentMode()[0])) {
         const {setMode} = require("./modes")
         setMode("normal")
+    }
+    if (!pointerRightClick && !getMouseConf("menupage")) {
+        return
     }
     const menuSetting = getSetting("menupage")
     if (menuSetting === "never") {
@@ -638,6 +655,7 @@ module.exports = {
     sectionDown,
     sectionUp,
     select,
+    storePointerRightClick,
     top,
     up,
     viebMenu,

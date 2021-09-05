@@ -89,7 +89,11 @@ const modifyListOrNumber = (setting, value, method) => {
     }
     if (method === "remove") {
         if (isListLike) {
-            const current = getSetting(setting).split(",")
+            let current = getSetting(setting).split(",")
+            if (setting === "mouse" && current?.[0] === "all") {
+                const {mouseFeatures} = require("./settings")
+                current = mouseFeatures
+            }
             const newValue = current.filter(e => e && e !== value).join(",")
             set(setting, newValue)
         }
@@ -173,9 +177,11 @@ const set = (...args) => {
             }
         } else if (part.startsWith("no")) {
             const value = getSetting(part.replace("no", ""))
+            const {"set": s, listLike} = require("./settings")
             if (typeof value === "boolean") {
-                const {"set": s} = require("./settings")
                 s(part.replace("no", ""), "false")
+            } else if (listLike.includes(part.replace("no", ""))) {
+                s(part.replace("no", ""), "")
             } else {
                 listSetting(part)
             }

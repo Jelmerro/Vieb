@@ -18,26 +18,13 @@ set tabreopenposition=previous
 set windowtitle=title
 
 " Mappings
-nmap <Up> <scrollUp>
-nmap <Down> <scrollDown>
-nmap <Left> <scrollLeft>
-nmap <Right> <scrollRight>
-nmap <PageUp> <scrollPageUp>
-nmap <PageDown> <scrollPageDown>
-nmap <Home> <scrollTop>
-nmap <End> <scrollBottom>
 nmap <F3> <toSearchMode><nextSearchMatch>
 nmap <S-F3> <toSearchMode><previousSearchMatch>
 nmap <C-g> <toSearchMode><nextSearchMatch>
 nmap <C-G> <toSearchMode><previousSearchMatch>
-map <F5> <reload>
 map <F6> <toExploreMode>
 map <F7> <p.start>
-map <F12> <:devtools>
-map <C-PageUp> <previousTab>
-map <C-PageDown> <nextTab>
 map <C-F4> <:close>
-map <C-F5> <reloadWithoutCache>
 map <C-f> <toSearchMode>
 map <C-h> <:history>
 map <C-j> <:downloads>
@@ -47,10 +34,6 @@ map <C-p> <:hardcopy>
 map <C-q> <:quit>
 map <C-s> <:write>
 map <C-t> <openNewTab><toExploreMode>
-map <C-Tab> <nextTab>
-map <C-S-PageUp> <moveTabBackward>
-map <C-S-PageDown> <moveTabForward>
-map <C-S-Tab> <previousTab>
 map <C-I> <:devtools>
 map <C-T> <reopenTab>
 map <C-Y> <:downloads>

@@ -32,12 +32,10 @@ const {
     isUrl,
     searchword,
     specialChars,
-    stringToUrl,
-    matchesQuery,
-    querySelectorAll
+    stringToUrl
 } = require("../util")
 const {
-    listTabs, tabOrPageMatching, currentMode, getSetting
+    listTabs, tabOrPageMatching, currentMode, getSetting, getMouseConf
 } = require("./common")
 
 let suggestions = []
@@ -262,21 +260,25 @@ const addExplore = explore => {
     element.className = "no-focus-reset"
     element.addEventListener("mouseup", e => {
         if (e.button === 2) {
-            const {linkMenu} = require("./contextmenu")
-            linkMenu({"link": explore.url, "x": e.x, "y": e.y})
-        } else {
+            if (getMouseConf("suggestselect")) {
+                if (["both", "explore"].includes(getSetting("menusuggest"))) {
+                    const {linkMenu} = require("./contextmenu")
+                    linkMenu({"link": explore.url, "x": e.x, "y": e.y})
+                }
+            }
+        } else if (getMouseConf("menusuggest")) {
             const {setMode} = require("./modes")
             setMode("normal")
             const {clear} = require("./contextmenu")
             clear()
-        }
-        if (e.button === 0) {
-            const {navigateTo} = require("./tabs")
-            navigateTo(explore.url)
-        }
-        if (e.button === 1) {
-            const {addTab} = require("./tabs")
-            addTab({"url": explore.url})
+            if (e.button === 0) {
+                const {navigateTo} = require("./tabs")
+                navigateTo(explore.url)
+            }
+            if (e.button === 1) {
+                const {addTab} = require("./tabs")
+                addTab({"url": explore.url})
+            }
         }
         e.preventDefault()
     })
@@ -557,9 +559,13 @@ const addCommand = (command, subtext) => {
     element.className = "no-focus-reset"
     element.addEventListener("mouseup", e => {
         if (e.button === 2) {
-            const {commandMenu} = require("./contextmenu")
-            commandMenu({command, "x": e.x, "y": e.y})
-        } else {
+            if (getMouseConf("suggestselect")) {
+                if (["both", "command"].includes(getSetting("menusuggest"))) {
+                    const {commandMenu} = require("./contextmenu")
+                    commandMenu({command, "x": e.x, "y": e.y})
+                }
+            }
+        } else if (getMouseConf("menusuggest")) {
             const {setMode} = require("./modes")
             setMode("normal")
             const {execute} = require("./command")

@@ -73,24 +73,24 @@ const otherEvents = [
 ]
 
 ipcRenderer.on("focus-input", async(_, follow = null) => {
-    let element = null
+    let el = null
     if (follow) {
-        element = findElementAtPosition(follow.x, follow.y)
+        el = findElementAtPosition(follow.x, follow.y)
     } else {
         const input = getAllFollowLinks().find(l => l.type === "inputs-insert")
         if (input) {
-            element = findElementAtPosition(
+            el = findElementAtPosition(
                 input.x + input.width / 2, input.y + input.height / 2)
         }
     }
-    if (element) {
-        if (element?.click && element?.focus) {
+    for (const e of [el, el?.parentNode, el?.parentNode?.parentNode]) {
+        if (e?.click && e?.focus) {
             ipcRenderer.sendToHost("switch-to-insert")
             await new Promise(r => {
                 setTimeout(r, 5)
             })
-            element.click()
-            element.focus()
+            e.click()
+            e.focus()
         }
     }
 })
@@ -364,8 +364,14 @@ const mouseUpListener = (e, frame = null) => {
     const diffY = Math.abs(endY - startY)
     if (endX > 0 && endY > 0 && (diffX > 3 || diffY > 3)) {
         if ((frame?.contentWindow || window).getSelection().toString()) {
-            ipcRenderer.sendToHost("mouse-selection",
-                {endX, endY, startX, startY})
+            ipcRenderer.sendToHost("mouse-selection", {
+                endX,
+                endY,
+                startX,
+                startY,
+                "toinsert": !!e.composedPath().find(
+                    el => matchesQuery(el, textlikeInputs))
+            })
         }
     }
 }

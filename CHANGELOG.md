@@ -31,6 +31,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Actions "menuTop", "menuBottom", "menuSectionUp" and "menuSectionDown" to give more flexibility of movement inside the menu
 - Setting "searchpointeralignment" to control where the pointer should align to when moving between searches in pointer mode
 - Actions "nextSuggestionSection" and "prevSuggestionSection" to jump between section in the explore mode suggestions
+- Setting "menusuggest" to control if suggestions for explore and command mode should have a dropdown menu
 
 ### Changed
 
@@ -50,6 +51,13 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Algorithm for finding a matching tab based on text now matches the suggestions more accurately for buffer-like commands
 - Setting "commandhist" and "explorehist" to optionally and by default store commands/navigations persistently
 - Native clipboard actions to custom JavaScript actions which also translate spaces to "%20" for cutting and copying urls
+- Mouse setting now accepts a list of features to enable instead of being a boolean toggle for all features
+- Action "menuOpen" now opens the menu of the current tab when called from normal mode instead of the page menu
+- Action "menuOpen" now opens the suggestions menu when a suggestion is selected instead of the url menu
+- List-like settings can now be emptied using the "no" prefix, such as ":set noredirects"
+- Selecting text inside an input field will now also switch to insert mode, if "toinsert" is enabled by the mouse setting
+- Action "p.insertAtPosition" now also checks parent nodes to work better with SVG images
+- List-like settings will no longer accept duplicate identical values in the list
 
 ### Fixed
 
@@ -205,7 +213,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Suggestions for searchwords using the new "suggestorder" setting by default
 - Default mapping for quitting Vieb with `<A-F4>` which doubles as the mapping that gets executed for other close requests
 - Copy link option for audio, video and images in the context menu
-- Copy image option for images, background images and svg elements in the context menu (they are categorized as images in that order)
+- Copy image option for images, background images and SVG elements in the context menu (they are categorized as images in that order)
 - Pointer action "swapPosition" to switch the current pointer location with the start location of the visual selection
 - Command syntax to cycle fixed-set strings using the "!" suffix, similar to boolean type settings
 - Startup arguments "--config-order" and "--config-file" to better control which config files get loaded

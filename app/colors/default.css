@@ -126,7 +126,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 */
 /* navbar & tabs */
 #navbar {z-index: 30;}
-#tabs, #navbar {width: 100vw;display: flex;pointer-events: none;background: var(--bg);}
+#tabs, #navbar {width: 100vw;display: flex;background: var(--bg);}
 #logo {-webkit-app-region: drag;height: 1.8em;width: 1.8em;margin: .1em;min-width: 1.8em;min-height: 1.8em;}
 #mode-container {display: flex;width: 7em;text-align: center;margin: .1em 0;}
 #mode {text-transform: capitalize;font-size: 1.3em;margin: auto;font-weight: bold;display: flex;}
@@ -158,7 +158,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #tabs.scroll {overflow-x: auto;}
 #tabs.wrap {flex-wrap: wrap;}
 /* pages container */
-.webview {pointer-events: none;position: fixed;display: none;}
+.webview {position: fixed;display: none;pointer-events: none;}
 #page-container, #current-page, .visible-page {display: flex;flex: 1;height: 100%;width: 100%;}
 #pages.multiple .webview {border: solid .15em transparent;box-sizing: border-box;}
 #pages.multiple #current-page {border-color: var(--tab-split);}
@@ -198,7 +198,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 .follow-other-border {border: solid .07em var(--follow-other-border);}
 /* suggestions */
 #suggest-dropdown {z-index: 15;position: fixed;top: 2.1em;left: .1em;width: calc(100vw - .2em);background: var(--suggestions-border);max-height: calc(100vh - 2.2em);overflow-y: auto;display: flex;flex-direction: column;}
-#suggest-dropdown div {flex-grow: 1;flex-shrink: 0;display: flex;padding: .4em;margin: .1em;background: var(--suggestions-bg);overflow: hidden;white-space: nowrap;text-overflow: ellipsis;pointer-events: none;}
+#suggest-dropdown div {flex-grow: 1;flex-shrink: 0;display: flex;padding: .4em;margin: .1em;background: var(--suggestions-bg);overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
 #suggest-dropdown div .title, #suggest-dropdown div .file, #suggest-dropdown div .url {margin: auto .5em;min-width: 0;text-overflow: ellipsis;overflow: hidden;}
 #suggest-dropdown div .title {flex-shrink: 0;max-width: 50%;}
 #suggest-dropdown div .icon {height: 1.5em;width: 1.5em;}
@@ -207,16 +207,12 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #suggest-dropdown div .searchwords {color: var(--suggestions-searchwords);}
 #suggest-dropdown div.selected {background: var(--suggestions-selected);}
 /* mouse related */
-#invisible-overlay {-webkit-app-region: drag;position: absolute;top: 0;left: 0;width: 100vw;height: 100vh;z-index: 50;}
-#app.mouse .webview {pointer-events: all;}
-#app.mouse #invisible-overlay {display: none;}
-#app[current-mode=insert] #invisible-overlay {display: none;}
-#app.mouse #navbar, #app.mouse #tabs {pointer-events: all;}
 #mode-suggestions {background: var(--bg);max-height: 0;position: absolute;left: 2em;top:2em;z-index: 25;transition: .5s all;overflow: hidden;display: inline-block;width: 7em;text-transform: capitalize;display: flex;flex-direction: column;}
 #mode-suggestions:hover {max-height: 100vw;}
-#app.mouse #mode-container:hover #mode-suggestions {max-height: 100vw;}
+#app.mouse-modeselector #mode-container:hover #mode-suggestions {max-height: 100vw;}
 #mode-suggestions div {font-size: 1.3em;transition: .1s all;}
-#app.mouse #suggest-dropdown div:hover, #mode-suggestions div:hover, #tabs > span:hover {font-weight: bold;cursor: pointer;}
+#app.mouse-suggestselect #suggest-dropdown div:hover, #mode-suggestions div:hover, #app.mouse-switchtab #tabs > span:hover {font-weight: bold;cursor: pointer;}
+#app[current-mode=insert].mouse-pageininsert .webview, #app:not([current-mode=insert]).mouse-pageoutsideinsert .webview {pointer-events: all;}
 /* notifications & map suggestions */
 #notifications, #app #mapsuggest {display: flex;position: fixed;flex-direction: column;z-index: 2;}
 #notifications > span, #app #mapsuggest {background: var(--bg);margin-bottom: .5em;padding: .5em;display: flex;min-width: 25em;width: 33vw;max-width: 100em;border: .1em solid var(--notification-border);overflow-wrap: anywhere;}

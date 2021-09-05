@@ -117,7 +117,7 @@ const start = (customX = null, customY = null) => {
 const moveToMouse = () => {
     const {ipcRenderer} = require("electron")
     const mousePos = ipcRenderer.sendSync("mouse-location")
-    if (mousePos && getSetting("mouse")) {
+    if (mousePos) {
         [...document.elementsFromPoint(mousePos.x, mousePos.y)].forEach(el => {
             if (matchesQuery(el, "webview[link-id]")) {
                 if (el !== currentPage() || currentMode() !== "visual") {
@@ -359,6 +359,8 @@ const rightClick = () => {
     currentPage().sendInputEvent({
         "button": "right", "type": "mouseUp", "x": X, "y": Y
     })
+    const {storePointerRightClick} = require("./contextmenu")
+    storePointerRightClick()
 }
 
 const startVisualSelect = () => {
