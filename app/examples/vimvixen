@@ -34,7 +34,6 @@ nmap $ 999<scrollPageRight>
 nmap o <toExploreMode><BS>
 nmap O <toExploreMode>
 nmap t <openNewTab><toExploreMode>
-nmap T <openNewTabWithCurrentURL>
 nmap b :buffer<Space>
 nmap d <:set tabclosefocusright><:close>
 nmap D <:set notabclosefocusright><:close>
@@ -42,7 +41,7 @@ nmap !d <:close!>
 nunmap x
 nmap x$ <:rclose>
 nmap g0 <:buffer 0>
-nmap g$ <:buffer 999>
+nmap g$ <:buffer -1>
 nmap <C-6> <toLastUsedTab>
 nmap zp <:pin>
 nmap zd <openNewTabWithCurrentURL><CR>

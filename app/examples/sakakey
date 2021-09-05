@@ -57,8 +57,8 @@ nmap ] <nextTab>
 nmap w <nextTab>
 nmap Q <:buffer 0>
 nmap 1 <:buffer 0>
-nmap W <:buffer 999>
-nmap 0 <:buffer 999>
+nmap W <:buffer -1>
+nmap 0 <:buffer -1>
 nunmap i
 nmap i <moveTabBackward>
 nmap { <moveTabBackward>

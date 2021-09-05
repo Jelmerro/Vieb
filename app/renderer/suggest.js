@@ -517,7 +517,8 @@ const suggestCommand = searchStr => {
     if (bufferCommand && !confirm) {
         const simpleSearch = args.join("")
             .replace(specialChars, "").toLowerCase()
-        listTabs().filter(tab => {
+        const tabs = listTabs()
+        tabs.filter(tab => {
             if (["close", "buffer", "mute", "pin"].includes(bufferCommand)) {
                 return true
             }
@@ -530,15 +531,27 @@ const suggestCommand = searchStr => {
             }
             return !tab.classList.contains("visible-tab")
         }).map(t => ({
-            "command": `${bufferCommand} ${listTabs().indexOf(t)}`,
+            "command": `${bufferCommand} ${tabs.indexOf(t)}`,
             "subtext": `${t.querySelector("span").textContent}`,
             "url": tabOrPageMatching(t).src
         })).filter((t, i) => {
-            if (t.command.startsWith(search) || String(i) === simpleSearch) {
+            let num = Number(args.join(""))
+            if (!isNaN(num)) {
+                if (num >= tabs.length) {
+                    num = tabs.length - 1
+                }
+                if (num < 0) {
+                    num += tabs.length
+                }
+                if (num < 0) {
+                    num = 0
+                }
+            }
+            if (args.length === 1 && num === i) {
                 return true
             }
             const tabUrl = t.url.replace(specialChars, "").toLowerCase()
-            if (tabUrl.includes(simpleSearch)) {
+            if (tabUrl.includes(simpleSearch) && t.command.startsWith(search)) {
                 return true
             }
             const tabTitle = t.subtext.replace(specialChars, "").toLowerCase()

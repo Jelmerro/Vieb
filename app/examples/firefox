@@ -7,6 +7,7 @@ set fontsize=16
 set mintabwidth=250
 set norestoretabs
 set permissioncamera=ask
+set permissioncertificateerror=ask
 set permissiondisplaycapture=ask
 set permissionmediadevices=allow
 set permissionmicrophone=ask
@@ -22,9 +23,6 @@ nmap <F3> <toSearchMode><nextSearchMatch>
 nmap <S-F3> <toSearchMode><previousSearchMatch>
 nmap <C-g> <toSearchMode><nextSearchMatch>
 nmap <C-G> <toSearchMode><previousSearchMatch>
-map <F6> <toExploreMode>
-map <F7> <p.start>
-map <C-F4> <:close>
 map <C-f> <toSearchMode>
 map <C-h> <:history>
 map <C-j> <:downloads>
@@ -39,7 +37,7 @@ map <C-T> <reopenTab>
 map <C-Y> <:downloads>
 map <A-Left> <backInHistory>
 map <A-Right> <forwardInHistory>
-map <A-0> <:b 9999>
+map <A-0> <:b -1>
 map <A-1> <:b 0>
 map <A-2> <:b 1>
 map <A-3> <:b 2>
@@ -49,9 +47,6 @@ map <A-6> <:b 5>
 map <A-7> <:b 6>
 map <A-8> <:b 7>
 map <A-9> <:b 8>
-emap <F6> <toNormalMode>
-pmap <F7> <toNormalMode>
-vmap <F7> <toNormalMode>
 vmap <C-f> <p.searchText>
 smap <F3> <nextSearchMatch>
 smap <C-g> <nextSearchMatch>

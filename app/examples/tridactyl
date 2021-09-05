@@ -37,8 +37,7 @@ command! clipboard_yank <pageToClipboard>
 command! fillcmdline_open <toExploreMode>
 command! fillcmdline_tab <toCommandMode>buffer<Space>
 command! tabfirst <:buffer 0>
-command! tabfirst <:buffer 0>
-command! tablast <:buffer 999>
+command! tablast <:buffer -1>
 command! tabprev <previousTab>
 command! tabnext <nextTab>
 command! tabmove_+1 <moveTabForward>

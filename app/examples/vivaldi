@@ -19,25 +19,15 @@ set windowtitle=title
 set search=https://www.bing.com/search?q=%s
 
 " Mappings
-nmap <Up> <scrollUp>
-nmap <Down> <scrollDown>
-nmap <Left> <scrollLeft>
-nmap <Right> <scrollRight>
-nmap <PageUp> <scrollPageUp>
-nmap <PageDown> <scrollPageDown>
-nmap <Home> <scrollTop>
-nmap <End> <scrollBottom>
 nmap <F3> <toSearchMode><nextSearchMatch>
 nmap <S-F3> <toSearchMode><previousSearchMatch>
 nmap <C-g> <toSearchMode><nextSearchMatch>
 nmap <C-G> <toSearchMode><previousSearchMatch>
-nmap <F2> <toCommandMode>
 nmap <C-E> <:extensions>
 nmap <C-h> <:history>
 nmap <C-H> <:history>
 nmap <C-F1> <:open https://vieb.dev/cheatsheet>
 nmap <C-p> <:print>
-nmap <F12> <:devtools>
 nmap <C-I> <:devtools>
 nmap <C-J> <:devtools>
 nmap <C-V> <openFromClipboard>
@@ -49,10 +39,7 @@ nmap <C-k0> <zoomReset>
 nmap <C-*> <zoomReset>
 nmap <C-j> <:downloads>
 nmap <C-D> <:downloads>
-nmap <C-F4> <:close>
 nmap <C-Tab> <toLastUsedTab>
-nmap <C-PageUp> <previousTab>
-nmap <C-PageDown> <nextTab>
 nmap <C-1> <:b 0>
 nmap <C-2> <:b 1>
 nmap <C-3> <:b 2>
@@ -61,7 +48,7 @@ nmap <C-5> <:b 4>
 nmap <C-6> <:b 5>
 nmap <C-7> <:b 6>
 nmap <C-8> <:b 7>
-nmap <C-9> <:b 999>
+nmap <C-9> <:b -1>
 nmap <C-k1> <:b 0>
 nmap <C-k2> <:b 1>
 nmap <C-k3> <:b 2>
@@ -70,14 +57,12 @@ nmap <C-k5> <:b 4>
 nmap <C-k6> <:b 5>
 nmap <C-k7> <:b 6>
 nmap <C-k8> <:b 7>
-nmap <C-k9> <:b 999>
+nmap <C-k9> <:b -1>
 nmap <C-z> <reopenTab>
 nmap <C-T> <reopenTab>
 nmap <F8> <toExploreMode>
 nmap <C-l> <toExploreMode>
-nmap <F5> <reload>
 nmap <C-r> <reload>
-nmap <C-F5> <reloadWithoutCache>
 nmap <C-R> <reloadWithoutCache>
 nmap <C-k> <toExploreMode><BS>
 nmap <C-e> <toExploreMode><BS>
@@ -92,7 +77,5 @@ smap <F3> <nextSearchMatch>
 smap <C-g> <nextSearchMatch>
 smap <S-F3> <previousSearchMatch>
 smap <C-G> <previousSearchMatch>
-
-cmap <F2> <toNormalMode>
 
 " vim: ft=vim

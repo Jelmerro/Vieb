@@ -45,7 +45,7 @@ nmap yt <openNewTabWithCurrentUrl><CR>
 nmap yT <openNewTabWithCurrentUrl><CR><toLastUsedTab>
 nmap yy <pageToClipboard>
 nmap g0 <:buffer 0>
-nmap g$ <:buffer 999>
+nmap g$ <:buffer -1>
 nmap gx0 <:lclose>
 nmap gxt <:lclose>
 nmap gxT <:rclose>
@@ -91,7 +91,6 @@ nmap se <openNewTab><toExploreMode>wikipedia <C-v><CR>
 nmap ss <openNewTab><toExploreMode>stackoverflow <C-v><CR>
 nmap sh <openNewTab><toExploreMode>github <C-v><CR>
 nmap ? <:help>
-nmap v <p.start>
 pmap v <p.startVisualSelect>
 pmap 0 <p.moveLeftMax>
 pmap e <p.moveFastRight>

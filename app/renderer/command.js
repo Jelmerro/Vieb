@@ -448,13 +448,16 @@ const mkviebrc = (full = false, trailingArgs = false) => {
 
 const tabForBufferArg = (args, filter = null) => {
     if (args.length === 1) {
-        const number = Number(args[0])
+        let number = Number(args[0])
         if (!isNaN(number)) {
             const tabs = listTabs()
-            if (number < 0) {
-                return tabs[0]
+            if (number >= tabs.length) {
+                return tabs.pop()
             }
-            return tabs[number] || tabs.pop()
+            if (number < 0) {
+                number += tabs.length
+            }
+            return tabs[number] || tabs[0]
         }
     }
     const simpleSearch = args.join("").replace(specialChars, "").toLowerCase()

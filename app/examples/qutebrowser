@@ -19,7 +19,7 @@ set mapsuggestposition=bottomleft
 " Custom Commands
 command! rl-forward-word <C-Right>
 command! open_--_{clipboard} <openFromClipboard>
-command! tab-focus_-1 <:b 9999>
+command! tab-focus_-1 <:b -1>
 command! tab-focus_1 <:b 0>
 command! scroll-to-perc <scrollBottom>
 command! scroll_left <scrollLeft>
@@ -106,7 +106,6 @@ nmap <C-I> <:devtools>
 nmap <C-PageUp> <:tab-prev>
 nmap <C-S-Tab> <:tab-prev>
 nmap <C-PageDown> <:tab-next>
-nmap <F5> <:reload>
 nmap <C-F5> <:reload_--force>
 nmap Sh <:history>
 nmap Ss <:set_>

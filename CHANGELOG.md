@@ -58,6 +58,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Selecting text inside an input field will now also switch to insert mode, if "toinsert" is enabled by the mouse setting
 - Action "p.insertAtPosition" now also checks parent nodes to work better with SVG images
 - List-like settings will no longer accept duplicate identical values in the list
+- Buffer commands can now wrap from the end of the tabbar by providing a negative index
 
 ### Fixed
 

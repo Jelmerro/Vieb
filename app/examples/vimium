@@ -41,7 +41,7 @@ command! Vomnibar.activate <toExploreMode>
 command! Vomnibar.activateInNewTab <openNewTab><toExploreMode>
 command! Vomnibar.activateTabSelection <toCommandMode>buffer<Space>
 command! firstTab <:buffer 0>
-command! lastTab <:buffer 999>
+command! lastTab <:buffer -1>
 command! visitPreviousTab <toLastUsedTab>
 command! Vomnibar.activateEditUrl <toExploreMode><End>
 command! Vomnibar.activateEditUrlInNewTab <openNewTab><toExploreMode>
