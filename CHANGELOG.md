@@ -32,6 +32,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "searchpointeralignment" to control where the pointer should align to when moving between searches in pointer mode
 - Actions "nextSuggestionSection" and "prevSuggestionSection" to jump between section in the explore mode suggestions
 - Setting "menusuggest" to control if suggestions for explore and command mode should have a dropdown menu
+- Feature "copyselect" to the "mouse" setting for automatically copying selected text to the clipboard (disabled by default)
 
 ### Changed
 

@@ -45,6 +45,28 @@ const {
     getMouseConf
 } = require("./common")
 
+const mouseFeatures = [
+    "pageininsert",
+    "pageoutsideinsert",
+    "switchtab",
+    "history",
+    "guiontop",
+    "newtab",
+    "closetab",
+    "copyselect",
+    "menupage",
+    "menusuggest",
+    "menuvieb",
+    "modeselector",
+    "follow",
+    "toinsert",
+    "toexplore",
+    "leaveinput",
+    "suggestselect",
+    "scrollsuggest",
+    "scrollzoom",
+    "scrolltabs"
+]
 const defaultSettings = {
     "adblocker": "static",
     "cache": "clearonquit",
@@ -88,7 +110,7 @@ const defaultSettings = {
     "menuvieb": "both",
     "mintabwidth": 28,
     "modifiers": "Ctrl,Shift,Alt,Meta,NumLock,CapsLock,ScrollLock",
-    "mouse": "all",
+    "mouse": mouseFeatures.filter(f => f !== "copyselect").join(","),
     "mousefocus": false,
     "mousenewtabswitch": true,
     "mousevisualmode": "onswitch",
@@ -246,27 +268,6 @@ const downloadSettings = [
 ]
 const containerSettings = [
     "containernewtab", "containersplitpage", "containerstartuppage"
-]
-const mouseFeatures = [
-    "pageininsert",
-    "pageoutsideinsert",
-    "switchtab",
-    "history",
-    "guiontop",
-    "newtab",
-    "closetab",
-    "menupage",
-    "menusuggest",
-    "menuvieb",
-    "modeselector",
-    "follow",
-    "toinsert",
-    "toexplore",
-    "leaveinput",
-    "suggestselect",
-    "scrollsuggest",
-    "scrollzoom",
-    "scrolltabs"
 ]
 let spelllangs = []
 

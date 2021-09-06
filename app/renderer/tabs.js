@@ -805,6 +805,10 @@ const addWebviewListeners = webview => {
         }
         if (e.channel === "mouse-selection") {
             const switchToVisual = getSetting("mousevisualmode")
+            if (getMouseConf("copyselect")) {
+                const {clipboard} = require("electron")
+                clipboard.writeText(e.args[0].text)
+            }
             if (e.args[0].toinsert) {
                 if (getMouseConf("toinsert")) {
                     setMode("insert")

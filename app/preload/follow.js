@@ -363,12 +363,14 @@ const mouseUpListener = (e, frame = null) => {
     const diffX = Math.abs(endX - startX)
     const diffY = Math.abs(endY - startY)
     if (endX > 0 && endY > 0 && (diffX > 3 || diffY > 3)) {
-        if ((frame?.contentWindow || window).getSelection().toString()) {
+        const text = (frame?.contentWindow || window).getSelection().toString()
+        if (text) {
             ipcRenderer.sendToHost("mouse-selection", {
                 endX,
                 endY,
                 startX,
                 startY,
+                text,
                 "toinsert": !!e.composedPath().find(
                     el => matchesQuery(el, textlikeInputs))
             })
