@@ -60,6 +60,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Action "p.insertAtPosition" now also checks parent nodes to work better with SVG images
 - List-like settings will no longer accept duplicate identical values in the list
 - Buffer commands can now wrap from the end of the tabbar by providing a negative index
+- Spellcheck suggestions should now also work for elements that are not input fields (but still not on Windows due to Electron bugs)
 
 ### Fixed
 

@@ -383,9 +383,19 @@ window.addEventListener("mouseup", mouseUpListener,
 ipcRenderer.on("replace-input-field", (_, value, position) => {
     const input = activeElement()
     if (matchesQuery(input, textlikeInputs)) {
-        input.value = value
-        if (position < input.value.length) {
-            input.setSelectionRange(position, position)
+        if (typeof input.value === "string" && input.setSelectionRange) {
+            input.value = value
+            if (position < input.value.length) {
+                input.setSelectionRange(position, position)
+            }
+        } else {
+            const select = input.getRootNode().getSelection()
+            select.baseNode.textContent = value
+            const range = document.createRange()
+            range.setStart(select.baseNode, position)
+            range.setEnd(select.baseNode, position)
+            select.removeAllRanges()
+            select.addRange(range)
         }
     }
 })
@@ -447,8 +457,10 @@ const contextListener = (e, frame = null, extraData = null) => {
                 el => eventListeners.contextmenu.has(el)
                 || eventListeners.auxclick.has(el)),
             "img": img?.src?.trim(),
-            "inputSel": text?.selectionStart,
-            "inputVal": text?.value,
+            "inputSel": text?.selectionStart
+                || text?.getRootNode().getSelection()?.baseOffset,
+            "inputVal": text?.selectionStart && text?.value
+                || text?.getRootNode().getSelection()?.baseNode?.textContent,
             "link": link?.href?.trim(),
             "svgData": img && getSvgData(img),
             "text": (frame?.contentWindow || window).getSelection().toString(),
