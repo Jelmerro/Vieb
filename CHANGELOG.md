@@ -33,6 +33,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Actions "nextSuggestionSection" and "prevSuggestionSection" to jump between section in the explore mode suggestions
 - Setting "menusuggest" to control if suggestions for explore and command mode should have a dropdown menu
 - Feature "copyselect" to the "mouse" setting for automatically copying selected text to the clipboard (disabled by default)
+- Actions "scrollLeftMax" and "scrollRightMax" to scroll the page to the absolute maximum left or right
+- Many default mappings common in other browsers to the default mappings (if they don't conflict), including numpad mappings
 
 ### Changed
 
@@ -61,6 +63,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - List-like settings will no longer accept duplicate identical values in the list
 - Buffer commands can now wrap from the end of the tabbar by providing a negative index
 - Spellcheck suggestions should now also work for elements that are not input fields (but still not on Windows due to Electron bugs)
+- Numbers with actions bound to them that are pressed when there is already a count will no longer execute the action but append the count
 
 ### Fixed
 
@@ -71,11 +74,12 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Suggestions for suspend command showing already suspended tabs
 - Pointer mode help commands not always working
 - Visual mode activating when only moving the scrollbar if "mousevisualmode" is set to "activate"
+- Numpad keys not being recognized as such when entered inside the page using insert mode
 
 ### Security
 
-- Electron 14.0.0 (was 13.1.4)
-- Chromium 93.0.4577.58 (was 91.0.4472.106)
+- Electron 15.0.0-beta.2 (was 13.1.4)
+- Chromium 94.0.4606.20 (was 91.0.4472.106)
 
 ## [5.3.0](https://github.com/Jelmerro/Vieb/compare/5.2.0...5.3.0) - 2021-06-30
 

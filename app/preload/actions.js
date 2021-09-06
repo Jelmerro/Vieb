@@ -47,7 +47,7 @@ const navigateToPage = (selector, newtab) => {
 
 const blur = () => activeElement()?.blur?.()
 
-const scrollTop = () => window.scrollBy(0, -1000000000)
+const scrollTop = () => window.scrollBy(0, -window.innerHeight - 1000000000)
 
 const scrollLeft = () => window.scrollBy(-100, 0)
 
@@ -57,7 +57,11 @@ const scrollUp = () => window.scrollBy(0, -100)
 
 const scrollRight = () => window.scrollBy(100, 0)
 
-const scrollBottom = () => window.scrollBy(0, 1000000000)
+const scrollBottom = () => window.scrollBy(0, window.innerHeight + 1000000000)
+
+const scrollLeftMax = () => window.scrollBy(-window.innerWidth - 1000000000, 0)
+
+const scrollRightMax = () => window.scrollBy(window.innerWidth + 1000000000, 0)
 
 const scrollPageRight = () => window.scrollBy(window.innerWidth - 50, 0)
 
@@ -263,6 +267,7 @@ const functions = {
     scrollBottom,
     scrollDown,
     scrollLeft,
+    scrollLeftMax,
     scrollPageDown,
     scrollPageDownHalf,
     scrollPageLeft,
@@ -270,6 +275,7 @@ const functions = {
     scrollPageUp,
     scrollPageUpHalf,
     scrollRight,
+    scrollRightMax,
     scrollTop,
     scrollUp,
     selectionAll,

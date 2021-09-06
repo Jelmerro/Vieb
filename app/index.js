@@ -1412,6 +1412,9 @@ ipcMain.on("insert-mode-blockers", (e, blockedMappings) => {
 const currentInputMatches = input => blockedInsertMappings.find(mapping => {
     if (!!mapping.alt === input.alt && !!mapping.control === input.control) {
         if (!!mapping.meta === input.meta && !!mapping.shift === input.shift) {
+            if (input.location === 3) {
+                return mapping.key === `k${input.key}`
+            }
             return mapping.key === input.key
         }
     }

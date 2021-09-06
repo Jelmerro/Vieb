@@ -45,8 +45,6 @@ nmap S <openNewTab><toExploreMode>google<Space>
 nmap T <openNewTabWithCurrentURL>
 nmap <S-Space> <scrollPageUp>
 nmap <Space> <scrollPageDown>
-nmap $ 999<scrollPageRight>
-nmap 0 999<scrollPageLeft>
 nmap zZ <zoomReset>
 nmap zI <zoomIn>
 nmap ZI <zoomIn>

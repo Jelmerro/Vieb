@@ -57,7 +57,11 @@ const defaultBindings = {
         "<F12>": {"mapping": "<:devtools>"},
         "<S-Tab>": {"mapping": "<prevSuggestion>"},
         "<Tab>": {"mapping": "<nextSuggestion>"},
-        "<Up>": {"mapping": "<prevSuggestion>"}
+        "<Up>": {"mapping": "<prevSuggestion>"},
+        "<kClear>": {"mapping": "<useEnteredData>"},
+        "<kDown>": {"mapping": "<nextSuggestion>"},
+        "<kEnter>": {"mapping": "<useEnteredData>"},
+        "<kUp>": {"mapping": "<prevSuggestion>"}
     },
     "e": {
         "<A-F4>": {"mapping": "<:quitall>"},
@@ -67,6 +71,8 @@ const defaultBindings = {
         "<C-F5>": {"mapping": "<reloadWithoutCache>"},
         "<C-Up>": {"mapping": "<prevSuggestionSection>"},
         "<C-i>": {"mapping": "<editWithVim>"},
+        "<C-kDown>": {"mapping": "<nextSuggestionSection>"},
+        "<C-kUp>": {"mapping": "<prevSuggestionSection>"},
         "<C-m>": {"mapping": "<menuOpen>"},
         "<C-n>": {"mapping": "<exploreHistoryNext>"},
         "<C-p>": {"mapping": "<exploreHistoryPrevious>"},
@@ -87,7 +93,13 @@ const defaultBindings = {
         "<PageUp>": {"mapping": "<prevSuggestionSection>"},
         "<S-Tab>": {"mapping": "<prevSuggestion>"},
         "<Tab>": {"mapping": "<nextSuggestion>"},
-        "<Up>": {"mapping": "<prevSuggestion>"}
+        "<Up>": {"mapping": "<prevSuggestion>"},
+        "<kClear>": {"mapping": "<useEnteredData>"},
+        "<kDown>": {"mapping": "<nextSuggestion>"},
+        "<kEnter>": {"mapping": "<useEnteredData>"},
+        "<kPageDown>": {"mapping": "<nextSuggestionSection>"},
+        "<kPageUp>": {"mapping": "<prevSuggestionSection>"},
+        "<kUp>": {"mapping": "<prevSuggestion>"}
     },
     "f": {
         "<A-F4>": {"mapping": "<:quitall>"},
@@ -140,6 +152,8 @@ const defaultBindings = {
         "<C-F4>": {"mapping": "<closeTab>"},
         "<C-F5>": {"mapping": "<reloadWithoutCache>"},
         "<C-Up>": {"mapping": "<menuSectionUp>"},
+        "<C-kDown>": {"mapping": "<menuSectionDown>"},
+        "<C-kUp>": {"mapping": "<menuSectionUp>"},
         "<C-m>": {"mapping": "<menuOpen>"},
         "<C-n>": {"mapping": "<menuDown>"},
         "<C-p>": {"mapping": "<menuUp>"},
@@ -163,11 +177,19 @@ const defaultBindings = {
         "<S-Tab>": {"mapping": "<menuSectionUp>"},
         "<Tab>": {"mapping": "<menuSectionDown>"},
         "<Up>": {"mapping": "<menuUp>"},
+        "<kClear>": {"mapping": "<menuSelect>"},
+        "<kDown>": {"mapping": "<menuDown>"},
+        "<kEnd>": {"mapping": "<menuBottom>"},
+        "<kEnter>": {"mapping": "<menuSelect>"},
+        "<kHome>": {"mapping": "<menuTop>"},
+        "<kPageDown>": {"mapping": "<menuSectionDown>"},
+        "<kPageUp>": {"mapping": "<menuSectionUp>"},
+        "<kUp>": {"mapping": "<menuUp>"},
         "H": {"mapping": "<menuTop>"},
         "L": {"mapping": "<menuBottom>"}
     },
     "n": {
-        "$": {"mapping": "<scrollPageRight>"},
+        "$": {"mapping": "<scrollRightMax>"},
         "+": {"mapping": "<zoomIn>"},
         ".": {"mapping": "<repeatLastAction>"},
         "/": {"mapping": "<toSearchMode>"},
@@ -179,7 +201,8 @@ const defaultBindings = {
         "<C-PageDown>": {"mapping": "<nextTab>"},
         "<C-PageUp>": {"mapping": "<previousTab>"},
         "<C-S-PageDown>": {"mapping": "<moveTabForward>"},
-        "<C-S-PageUp>": {"mapping": "<moveTabBackward>"},
+        "<C-S-kPageDown>": {"mapping": "<moveTabForward>"},
+        "<C-S-kPageUp>": {"mapping": "<moveTabBackward>"},
         "<C-Tab>": {"mapping": "<nextTab>"},
         "<C-a>": {"mapping": "<increasePageNumber>"},
         "<C-b>": {"mapping": "<scrollPageUp>"},
@@ -190,6 +213,9 @@ const defaultBindings = {
         "<C-i>": {"mapping": "<forwardInHistory>"},
         "<C-j>": {"mapping": "<moveTabForward>"},
         "<C-k>": {"mapping": "<moveTabBackward>"},
+        "<C-k0>": {"mapping": "<zoomReset>"},
+        "<C-kPageDown>": {"mapping": "<nextTab>"},
+        "<C-kPageUp>": {"mapping": "<previousTab>"},
         "<C-m>": {"mapping": "<menuOpen>"},
         "<C-n>": {"mapping": "<nextTab>"},
         "<C-o>": {"mapping": "<backInHistory>"},
@@ -271,16 +297,31 @@ const defaultBindings = {
         "<Right>": {"mapping": "<scrollRight>"},
         "<S-C-Tab>": {"mapping": "<previousTab>"},
         "<Up>": {"mapping": "<scrollUp>"},
+        "<k0>": {"mapping": "<scrollLeftMax>"},
+        "<kClear>": {"mapping": "<clickOnSearch>"},
+        "<kDivide>": {"mapping": "<toSearchMode>"},
+        "<kDown>": {"mapping": "<scrollDown>"},
+        "<kEnd>": {"mapping": "<scrollBottom>"},
+        "<kEnter>": {"mapping": "<clickOnSearch>"},
+        "<kHome>": {"mapping": "<scrollTop>"},
+        "<kLeft>": {"mapping": "<scrollLeft>"},
+        "<kMinus>": {"mapping": "<zoomOut>"},
+        "<kPageDown>": {"mapping": "<scrollPageDown>"},
+        "<kPageUp>": {"mapping": "<scrollPageUp>"},
+        "<kPlus>": {"mapping": "<zoomIn>"},
+        "<kRight>": {"mapping": "<scrollRight>"},
+        "<kUp>": {"mapping": "<scrollUp>"},
         "=": {"mapping": "<zoomIn>"},
         "@:": {"mapping": "<toCommandMode><commandHistoryPrevious>"
             + "<useEnteredData>"},
         "[": {"mapping": "<previousPage>"},
         "]": {"mapping": "<nextPage>"},
-        "^": {"mapping": "<scrollPageLeft>"},
+        "^": {"mapping": "<scrollLeftMax>"},
         "_": {"mapping": "<zoomOut>"},
         "{": {"mapping": "<previousPageNewTab>"},
         "}": {"mapping": "<nextPageNewTab>"},
         "-": {"mapping": "<zoomOut>"},
+        "0": {"mapping": "<scrollLeftMax>"},
         "D": {"mapping": "<downloadLink>"},
         "E": {"mapping": "<openNewTab><toExploreMode>"},
         "F": {"mapping": "<startFollowNewTab>"},
@@ -324,7 +365,12 @@ const defaultBindings = {
         "v": {"mapping": "<p.start>"},
         "w": {"mapping": "<nextTab>"},
         "x": {"mapping": "<openLinkExternal>"},
-        "y": {"mapping": "<pageToClipboard>"}
+        "y": {"mapping": "<pageToClipboard>"},
+        "zH": {"mapping": "<scrollPageLeft>"},
+        "zL": {"mapping": "<scrollPageRight>"},
+        "zh": {"mapping": "<scrollLeft>"},
+        "zl": {"mapping": "<scrollRight>"},
+        "zp": {"mapping": "<:pin>"}
     },
     "p": {
         "$": {"mapping": "<p.moveRightMax>"},
@@ -343,6 +389,10 @@ const defaultBindings = {
         "<C-h>": {"mapping": "<p.moveSlowLeft>"},
         "<C-j>": {"mapping": "<p.moveSlowDown>"},
         "<C-k>": {"mapping": "<p.moveSlowUp>"},
+        "<C-kEnd>": {"mapping": "<p.endOfPage>"},
+        "<C-kHome>": {"mapping": "<p.startOfPage>"},
+        "<C-kLeft>": {"mapping": "<p.moveFastLeft>"},
+        "<C-kRight>": {"mapping": "<p.moveFastRight>"},
         "<C-l>": {"mapping": "<p.moveSlowRight>"},
         "<C-m>": {"mapping": "<menuOpen>"},
         "<C-u>": {"mapping": "<p.moveFastUp>"},
@@ -364,7 +414,18 @@ const defaultBindings = {
         "<Left>": {"mapping": "<p.moveLeft>"},
         "<Right>": {"mapping": "<p.moveRight>"},
         "<S-CR>": {"mapping": "<p.newtabLink>"},
+        "<S-kClear>": {"mapping": "<p.newtabLink>"},
+        "<S-kEnter>": {"mapping": "<p.newtabLink>"},
         "<Up>": {"mapping": "<p.moveUp>"},
+        "<k0>": {"mapping": "<p.moveLeftMax>"},
+        "<kClear>": {"mapping": "<p.leftClick>"},
+        "<kDown>": {"mapping": "<p.moveDown>"},
+        "<kEnd>": {"mapping": "<p.moveRightMax>"},
+        "<kEnter>": {"mapping": "<p.leftClick>"},
+        "<kHome>": {"mapping": "<p.moveLeftMax>"},
+        "<kLeft>": {"mapping": "<p.moveLeft>"},
+        "<kRight>": {"mapping": "<p.moveRight>"},
+        "<kUp>": {"mapping": "<p.moveUp>"},
         "<lt>": {"mapping": "<p.scrollLeft>"},
         ">": {"mapping": "<p.scrollRight>"},
         "[": {"mapping": "<p.scrollUp>"},
@@ -430,7 +491,11 @@ const defaultBindings = {
         "yi": {"mapping": "<p.copyImage>"},
         "yl": {"mapping": "<p.copyLink>"},
         "yv": {"mapping": "<p.copyVideo>"},
-        "yy": {"mapping": "<p.copyLink>"}
+        "yy": {"mapping": "<p.copyLink>"},
+        "zH": {"mapping": "<scrollPageLeft>"},
+        "zL": {"mapping": "<scrollPageRight>"},
+        "zh": {"mapping": "<scrollLeft>"},
+        "zl": {"mapping": "<scrollRight>"}
     },
     "s": {
         "<A-F4>": {"mapping": "<:quitall>"},
@@ -450,7 +515,9 @@ const defaultBindings = {
         "<F7>": {"mapping": "<p.start>"},
         "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
         "<F11>": {"mapping": "<toggleFullscreen>"},
-        "<F12>": {"mapping": "<:devtools>"}
+        "<F12>": {"mapping": "<:devtools>"},
+        "<kClear>": {"mapping": "<useEnteredData>"},
+        "<kEnter>": {"mapping": "<useEnteredData>"}
     },
     "v": {
         "$": {"mapping": "<p.moveRightMax>"},
@@ -470,6 +537,10 @@ const defaultBindings = {
         "<C-h>": {"mapping": "<p.moveSlowLeft>"},
         "<C-j>": {"mapping": "<p.moveSlowDown>"},
         "<C-k>": {"mapping": "<p.moveSlowUp>"},
+        "<C-kEnd>": {"mapping": "<p.endOfPage>"},
+        "<C-kHome>": {"mapping": "<p.startOfPage>"},
+        "<C-kLeft>": {"mapping": "<p.moveFastLeft>"},
+        "<C-kRight>": {"mapping": "<p.moveFastRight>"},
         "<C-l>": {"mapping": "<p.moveSlowRight>"},
         "<C-m>": {"mapping": "<menuOpen>"},
         "<C-u>": {"mapping": "<p.moveFastUp>"},
@@ -490,6 +561,14 @@ const defaultBindings = {
         "<Left>": {"mapping": "<p.moveLeft>"},
         "<Right>": {"mapping": "<p.moveRight>"},
         "<Up>": {"mapping": "<p.moveUp>"},
+        "<k0>": {"mapping": "<p.moveLeftMax>"},
+        "<kDown>": {"mapping": "<p.moveDown>"},
+        "<kEnd>": {"mapping": "<p.moveRightMax>"},
+        "<kHome>": {"mapping": "<p.moveLeftMax>"},
+        "<kLeft>": {"mapping": "<p.moveLeft>"},
+        "<kMultiply>": {"mapping": "<p.searchText><toNormalMode>"},
+        "<kRight>": {"mapping": "<p.moveRight>"},
+        "<kUp>": {"mapping": "<p.moveUp>"},
         "<lt>": {"mapping": "<p.scrollLeft>"},
         ">": {"mapping": "<p.scrollRight>"},
         "[": {"mapping": "<p.scrollUp>"},
@@ -522,7 +601,11 @@ const defaultBindings = {
         "tx": {"mapping": "<p.externalText><toNormalMode>"},
         "ty": {"mapping": "<p.copyText><toNormalMode>"},
         "w": {"mapping": "<p.moveFastRight>"},
-        "y": {"mapping": "<p.copyText><toNormalMode>"}
+        "y": {"mapping": "<p.copyText><toNormalMode>"},
+        "zH": {"mapping": "<scrollPageLeft>"},
+        "zL": {"mapping": "<scrollPageRight>"},
+        "zh": {"mapping": "<scrollLeft>"},
+        "zl": {"mapping": "<scrollRight>"}
     }
 }
 let repeatCounter = 0
@@ -695,6 +778,7 @@ const init = () => {
             "ctrlKey": input.control,
             "isTrusted": true,
             "key": input.key,
+            "location": input.location,
             "metaKey": input.meta,
             "passedOnFromInsert": true,
             "preventDefault": () => undefined,
@@ -787,7 +871,7 @@ const keyNames = [
     {"js": ["ArrowDown"], "vim": ["Down"]},
     {"js": ["Escape", "Esc"], "vim": ["Esc"]},
     {"js": [" "], "vim": ["Space", " "]},
-    {"js": ["Delete", "\u0000"], "vim": ["Del"]},
+    {"js": ["Delete"], "vim": ["Del"]},
     {"js": ["PrintScreen"], "vim": ["PrintScreen", "PrtScr"]},
     {"js": ["Control"], "vim": ["Ctrl"]},
     {"electron": "ArrowLeft", "js": ["kArrowLeft"], "vim": ["kLeft"]},
@@ -846,9 +930,11 @@ const keyNames = [
     {"js": ["CapsLock"], "vim": ["CapsLock"]},
     {"js": ["ScrollLock"], "vim": ["ScrollLock"]}
 ]
-
 const toIdentifier = e => {
     let keyCode = e.key
+    if (e.key === "\u0000") {
+        keyCode = "Delete"
+    }
     if (e.location === KeyboardEvent.DOM_KEY_LOCATION_NUMPAD) {
         keyCode = `k${keyCode}`
     }
@@ -935,6 +1021,9 @@ const uncountableActions = [
     "toExploreMode",
     "startFollowCurrentTab",
     "scrollTop",
+    "scrollBottom",
+    "scrollRightMax",
+    "scrollLeftMax",
     "insertAtFirstInput",
     "toInsertMode",
     "reload",
@@ -946,7 +1035,6 @@ const uncountableActions = [
     "toRootUrl",
     "toSearchMode",
     "startFollowNewTab",
-    "scrollBottom",
     "openNewTabWithCurrentUrl",
     "toCommandMode",
     "stopLoadingPage",
@@ -1215,10 +1303,10 @@ const handleKeyboard = async e => {
     }
     const {"active": menuActive, "clear": menuClear} = require("./contextmenu")
     if ("npv".includes(currentMode()[0]) || menuActive()) {
-        const keyNumber = Number(id)
+        const keyNumber = Number(id.replace(/^<k(\d)>/g, (_, digit) => digit))
         const noFutureActions = !hasFutureActionsBasedOnKeys(pressedKeys + id)
-        const currentAction = actionForKeys(pressedKeys + id)
-        if (!isNaN(keyNumber) && noFutureActions && !currentAction) {
+        const shouldCount = !actionForKeys(pressedKeys + id) || repeatCounter
+        if (!isNaN(keyNumber) && noFutureActions && shouldCount) {
             repeatCounter = Number(String(repeatCounter) + keyNumber)
             if (repeatCounter > getSetting("countlimit")) {
                 repeatCounter = getSetting("countlimit")
@@ -1726,17 +1814,9 @@ const updateKeysOnScreen = () => {
         blockedKeys = Object.keys(bindings.i).concat(
             Object.keys(bindings.m)).concat("0123456789".split(""))
     }
-    ipcRenderer.send("insert-mode-blockers", blockedKeys.map(key => {
-        const jsKey = fromIdentifier(key.split(
-            mapStringSplitter).filter(m => m)[0], false)
-        if (jsKey.length > 1 && jsKey.startsWith("k")) {
-            // Translate numpad keys to their regular versions
-            // Workaround for missing support in Electron:
-            // https://github.com/electron/electron/issues/29845
-            return jsKey.replace("k", "")
-        }
-        return jsKey
-    }))
+    ipcRenderer.send("insert-mode-blockers",
+        blockedKeys.map(key => fromIdentifier(key.split(
+            mapStringSplitter).filter(m => m)[0], false)))
 }
 
 const listSupportedActions = () => supportedActions

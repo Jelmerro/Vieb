@@ -29,8 +29,6 @@ set searchwords+=twitter~https://twitter.com/search?q=%s
 set searchwords+=wikipedia~https://en.wikipedia.org/w/index.php?search=%s
 
 " Mappings
-nmap 0 999<scrollPageLeft>
-nmap $ 999<scrollPageRight>
 nmap o <toExploreMode><BS>
 nmap O <toExploreMode>
 nmap t <openNewTab><toExploreMode>
@@ -43,7 +41,6 @@ nmap x$ <:rclose>
 nmap g0 <:buffer 0>
 nmap g$ <:buffer -1>
 nmap <C-6> <toLastUsedTab>
-nmap zp <:pin>
 nmap zd <openNewTabWithCurrentURL><CR>
 nunmap [
 nunmap ]

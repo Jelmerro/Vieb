@@ -174,22 +174,42 @@ const startFollowCurrentTab = () => {
     startFollow(false)
 }
 
-const scrollTop = () => currentPage()?.send("action", "scrollTop")
-
 const insertAtFirstInput = () => currentPage()?.send("focus-input")
-
-const scrollLeft = () => currentPage()?.send("action", "scrollLeft")
 
 const toInsertMode = () => {
     const {setMode} = require("./modes")
     setMode("insert")
 }
 
-const scrollDown = () => currentPage()?.send("action", "scrollDown")
+const scrollTop = () => currentPage()?.send("action", "scrollTop")
+
+const scrollBottom = () => currentPage()?.send("action", "scrollBottom")
+
+const scrollRightMax = () => currentPage()?.send("action", "scrollRightMax")
+
+const scrollLeftMax = () => currentPage()?.send("action", "scrollLeftMax")
 
 const scrollUp = () => currentPage()?.send("action", "scrollUp")
 
+const scrollDown = () => currentPage()?.send("action", "scrollDown")
+
 const scrollRight = () => currentPage()?.send("action", "scrollRight")
+
+const scrollLeft = () => currentPage()?.send("action", "scrollLeft")
+
+const scrollPageRight = () => currentPage()?.send("action", "scrollPageRight")
+
+const scrollPageLeft = () => currentPage()?.send("action", "scrollPageLeft")
+
+const scrollPageUp = () => currentPage()?.send("action", "scrollPageUp")
+
+const scrollPageDownHalf = () => {
+    currentPage()?.send("action", "scrollPageDownHalf")
+}
+
+const scrollPageDown = () => currentPage()?.send("action", "scrollPageDown")
+
+const scrollPageUpHalf = () => currentPage()?.send("action", "scrollPageUpHalf")
 
 const nextSearchMatch = () => {
     if (currentSearch) {
@@ -243,8 +263,6 @@ const startFollowNewTab = () => {
     const {startFollow} = require("./follow")
     startFollow(true)
 }
-
-const scrollBottom = () => currentPage()?.send("action", "scrollBottom")
 
 const backInHistory = (customPage = null) => {
     const page = customPage || currentPage()
@@ -308,24 +326,12 @@ const openNewTabWithCurrentUrl = () => {
     document.getElementById("url").value = urlToString(url)
 }
 
-const scrollPageRight = () => currentPage()?.send("action", "scrollPageRight")
-
-const scrollPageLeft = () => currentPage()?.send("action", "scrollPageLeft")
-
 const toCommandMode = () => {
     const {setMode} = require("./modes")
     setMode("command")
 }
 
-const scrollPageUp = () => currentPage()?.send("action", "scrollPageUp")
-
 const stopLoadingPage = () => currentPage()?.stop()
-
-const scrollPageDownHalf = () => {
-    currentPage()?.send("action", "scrollPageDownHalf")
-}
-
-const scrollPageDown = () => currentPage()?.send("action", "scrollPageDown")
 
 const moveTabForward = () => {
     const {"moveTabForward": move} = require("./tabs")
@@ -336,8 +342,6 @@ const moveTabBackward = () => {
     const {"moveTabBackward": move} = require("./tabs")
     move()
 }
-
-const scrollPageUpHalf = () => currentPage()?.send("action", "scrollPageUpHalf")
 
 const zoomReset = () => currentPage()?.setZoomLevel(0)
 
@@ -858,6 +862,8 @@ module.exports = {
     scrollPageDown,
     scrollPageDownHalf,
     scrollPageLeft,
+    scrollRightMax,
+    scrollLeftMax,
     scrollPageRight,
     scrollPageUp,
     scrollPageUpHalf,

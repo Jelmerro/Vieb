@@ -36,7 +36,6 @@ nmap gf <startFollowNewTab><toLastUsedTab>
 nmap C <startFollowNewTab><toLastUsedTab>
 nmap [[ <decreasePageNumber>
 nmap ]] <increasePageNumber>
-nmap 0 <scrollPageLeft>
 nmap e <scrollPageUpHalf>
 nmap u <scrollPageUpHalf>
 nmap d <scrollPageDownHalf>
