@@ -958,9 +958,13 @@
         <h3 id="action.previousTab">action.previousTab</h3>
         Navigate to the previous tab (to the left) in the tabbar. Opposite of <a href="#action.nextTab">action.nextTab</a>.
         <h3 id="action.moveTabForward">action.moveTabForward</h3>
-        Move the current tab forward in the tabbar (to the right). This action does not switch between pages, but merely changes the order of appearance in the tabbar. Opposite of <a href="#action.moveTabBackward">action.moveTabBackward</a>. See <a href="#action.nextTab">action.nextTab</a> to actually switch between the tabs.
+        Move the current tab forward in the tabbar (to the right). This action does not switch between pages, but merely changes the order of appearance in the tabbar. This action will not cross the separation between <a href="#:pin">pinned</a> and regular tabs. Opposite of <a href="#action.moveTabBackward">action.moveTabBackward</a>. See <a href="#action.nextTab">action.nextTab</a> to actually switch between the tabs.
         <h3 id="action.moveTabBackward">action.moveTabBackward</h3>
-        Opposite of <a href="#action.moveTabForward">action.moveTabForward</a>.
+        Move the current tab backward in the tabbar (to the left). Opposite of <a href="#action.moveTabForward">action.moveTabForward</a>.
+        <h3 id="action.moveTabEnd">action.moveTabEnd</h3>
+        Move the current tab forward to the end of the tabbar (to the right), or make it the most right pinned tab (if already pinned). This action does not switch between pages, but merely changes the order of appearance in the tabbar. For moving just a single spot to the right, see <a href="#action.moveTabBackward">action.moveTabBackward</a>.
+        <h3 id="action.moveTabStart">action.moveTabStart</h3>
+        Move the current tab backward in the end of the tabbar (to the left). Opposite of <a href="#action.moveTabEnd">action.moveTabEnd</a>.
         <h3 id="action.backInHistory">action.backInHistory</h3>
         Navigate to the previous page you visited in the current tab. The first page of the tab history will always be the newtab page. Opposite of <a href="#action.forwardInHistory">action.forwardInHistory</a>.
         <h3 id="action.forwardInHistory">action.forwardInHistory</h3>

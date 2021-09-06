@@ -64,10 +64,8 @@ nmap i <moveTabBackward>
 nmap { <moveTabBackward>
 nmap o <moveTabForward>
 nmap } <moveTabForward>
-nmap I 999<moveTabBackward>
-nmap <A-[> 999<moveTabBackward>
-nmap O 999<moveTabForward>
-nmap <A-]> 999<moveTabForward>
+nmap <A-[> <moveTabStart>
+nmap <A-]> <moveTabEnd>
 nmap m <:mute>
 nmap P <:pin>
 nunmap f

@@ -343,6 +343,22 @@ const moveTabBackward = () => {
     move()
 }
 
+const moveTabEnd = () => {
+    const {"moveTabForward": move} = require("./tabs")
+    let didMove = move()
+    while (didMove) {
+        didMove = move()
+    }
+}
+
+const moveTabStart = () => {
+    const {"moveTabBackward": move} = require("./tabs")
+    let didMove = move()
+    while (didMove) {
+        didMove = move()
+    }
+}
+
 const zoomReset = () => currentPage()?.setZoomLevel(0)
 
 const zoomOut = (customPage = null) => {
@@ -829,7 +845,9 @@ module.exports = {
     menuTop,
     menuUp,
     moveTabBackward,
+    moveTabEnd,
     moveTabForward,
+    moveTabStart,
     nextPage,
     nextPageNewTab,
     nextSearchMatch,

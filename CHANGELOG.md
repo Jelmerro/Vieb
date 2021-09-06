@@ -35,6 +35,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Feature "copyselect" to the "mouse" setting for automatically copying selected text to the clipboard (disabled by default)
 - Actions "scrollLeftMax" and "scrollRightMax" to scroll the page to the absolute maximum left or right
 - Command "screenshot" to save screenshots of the page to the downloads folder or a custom location
+- Actions "moveTabStart" and "moveTabEnd" to move a tab all the way to the start or the end of the tabbar
 - Many default mappings common in other browsers to the default mappings (if they don't conflict), including numpad mappings
 
 ### Changed

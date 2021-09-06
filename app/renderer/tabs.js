@@ -995,29 +995,31 @@ const navigateTo = location => {
 const moveTabForward = () => {
     const tabs = document.getElementById("tabs")
     if (!currentTab()?.nextSibling) {
-        return
+        return false
     }
     if (currentTab().classList.contains("pinned")) {
         if (!currentTab().nextSibling.classList.contains("pinned")) {
-            return
+            return false
         }
     }
     tabs.insertBefore(currentTab(), currentTab().nextSibling.nextSibling)
     currentTab().scrollIntoView({"block": "center", "inline": "center"})
+    return true
 }
 
 const moveTabBackward = () => {
     const tabs = document.getElementById("tabs")
     if (listTabs().indexOf(currentTab()) <= 0) {
-        return
+        return false
     }
     if (!currentTab().classList.contains("pinned")) {
         if (currentTab().previousSibling.classList.contains("pinned")) {
-            return
+            return false
         }
     }
     tabs.insertBefore(currentTab(), currentTab().previousSibling)
     currentTab().scrollIntoView({"block": "center", "inline": "center"})
+    return true
 }
 
 module.exports = {
