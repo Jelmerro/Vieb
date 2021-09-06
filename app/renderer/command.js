@@ -28,11 +28,9 @@ const {
     deleteFile,
     isDir,
     isFile,
-    pathExists,
     expandPath,
     isAbsolutePath,
     joinPath,
-    basePath,
     downloadPath,
     dirname,
     appData,
@@ -40,7 +38,8 @@ const {
     pathToSpecialPageName,
     specialChars,
     appConfig,
-    stringToUrl
+    stringToUrl,
+    formatDate
 } = require("../util")
 const {
     listTabs, listPages, currentTab, currentPage, tabOrPageMatching, getSetting
@@ -378,6 +377,31 @@ const reload = () => {
 
 const hardcopy = () => currentPage()?.send("action", "print")
 
+const resolveFileArg = (locationArgument, type) => {
+    const name = `${new URL(currentPage().src).hostname || currentTab()
+        .querySelector("span").textContent.replace(specialChars, "").trim()
+    }_${formatDate(new Date())}`
+    let loc = joinPath(downloadPath(), name)
+    if (locationArgument) {
+        let file = expandPath(locationArgument)
+        if (!isAbsolutePath(file)) {
+            file = joinPath(downloadPath(), file)
+        }
+        if (locationArgument.endsWith("/")) {
+            file = joinPath(`${file}/`, name)
+        }
+        if (!isDir(dirname(file))) {
+            notify(`Folder '${dirname(file)}' does not exist!`, "warn")
+            return
+        }
+        loc = file
+    }
+    if (!loc.endsWith(`.${type}`)) {
+        loc += `.${type}`
+    }
+    return loc
+}
+
 const write = (locationArgument, trailingArgs = false) => {
     if (trailingArgs) {
         notify("The write command takes only a single optional argument:\n"
@@ -387,35 +411,9 @@ const write = (locationArgument, trailingArgs = false) => {
     if (!currentPage()) {
         return
     }
-    let [name] = basePath(currentPage().src).split("?")
-    if (!name.includes(".")) {
-        name += ".html"
-    }
-    name = `${new URL(currentPage().src).hostname} ${name}`.trim()
-    let loc = joinPath(downloadPath(), name)
-    if (locationArgument) {
-        let file = expandPath(file)
-        if (!isAbsolutePath(file)) {
-            file = joinPath(downloadPath(), file)
-        }
-        const folder = dirname(file)
-        if (isDir(folder)) {
-            if (pathExists(file)) {
-                if (isDir(file)) {
-                    loc = joinPath(file, name)
-                } else {
-                    loc = file
-                }
-            } else if (file.endsWith("/")) {
-                notify(`The folder '${file}' does not exist`, "warn")
-                return
-            } else {
-                loc = file
-            }
-        } else {
-            notify(`The folder '${folder}' does not exist`, "warn")
-            return
-        }
+    const loc = resolveFileArg(locationArgument, "html")
+    if (!loc) {
+        return
     }
     const webContentsId = currentPage().getWebContentsId()
     const {ipcRenderer} = require("electron")
@@ -424,6 +422,27 @@ const write = (locationArgument, trailingArgs = false) => {
     }).catch(err => {
         notify(`Could not save the page:\n${err}`, "err")
     })
+}
+
+const screenshot = (locationArgument, trailingArgs = false) => {
+    if (trailingArgs) {
+        notify("The screenshot command takes only a single optional argument:\n"
+            + "the location where to write the image", "warn")
+        return
+    }
+    if (!currentPage()) {
+        return
+    }
+    const loc = resolveFileArg(locationArgument, "png")
+    if (!loc) {
+        return
+    }
+    setTimeout(() => {
+        currentPage().capturePage().then(img => {
+            writeFile(loc, img.toPNG(), "Something went wrong saving the image",
+                `Screenshot saved at ${loc}`)
+        })
+    }, 20)
 }
 
 const mkviebrc = (full = false, trailingArgs = false) => {
@@ -804,6 +823,7 @@ const commands = {
     reload,
     restart,
     "s": set,
+    screenshot,
     "scriptnames": (hasArgs = null) => {
         if (hasArgs) {
             notify(`Command takes no arguments: scriptnames`, "warn")

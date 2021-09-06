@@ -352,21 +352,24 @@ const suggestCommand = searchStr => {
             suggestFiles(location).forEach(l => addCommand(`source ${l.path}`))
         }
     }
-    // Command: write
-    if ("write".startsWith(command) && !confirm && args.length < 2) {
-        let location = expandPath(search.replace(/w[a-z]* ?/, "") || "")
-        if (location.startsWith("\"") && location.endsWith("\"")) {
-            location = location.slice(1, location.length - 1)
+    // Command: write & screenshot
+    for (const pathCmd of ["write", "screenshot"]) {
+        if (pathCmd.startsWith(command) && !confirm && args.length < 2) {
+            let location = expandPath(search.replace(/^\w[a-z]* ?/, "") || "")
+            if (location.startsWith("\"") && location.endsWith("\"")) {
+                location = location.slice(1, location.length - 1)
+            }
+            if (!location) {
+                addCommand(`${pathCmd} ~`)
+                addCommand(`${pathCmd} /`)
+                addCommand(`${pathCmd} ${getSetting("downloadpath")}`)
+            }
+            if (!isAbsolutePath(location)) {
+                location = joinPath(getSetting("downloadpath"), location)
+            }
+            suggestFiles(location).forEach(
+                l => addCommand(`${pathCmd} ${l.path}`))
         }
-        if (!location) {
-            addCommand("write ~")
-            addCommand("write /")
-            addCommand(`write ${getSetting("downloadpath")}`)
-        }
-        if (!isAbsolutePath(location)) {
-            location = joinPath(getSetting("downloadpath"), location)
-        }
-        suggestFiles(location).forEach(l => addCommand(`write ${l.path}`))
     }
     // Command: mkviebrc
     if ("mkviebrc full".startsWith(search)) {

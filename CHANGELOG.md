@@ -34,6 +34,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "menusuggest" to control if suggestions for explore and command mode should have a dropdown menu
 - Feature "copyselect" to the "mouse" setting for automatically copying selected text to the clipboard (disabled by default)
 - Actions "scrollLeftMax" and "scrollRightMax" to scroll the page to the absolute maximum left or right
+- Command "screenshot" to save screenshots of the page to the downloads folder or a custom location
 - Many default mappings common in other browsers to the default mappings (if they don't conflict), including numpad mappings
 
 ### Changed
@@ -75,6 +76,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Pointer mode help commands not always working
 - Visual mode activating when only moving the scrollbar if "mousevisualmode" is set to "activate"
 - Numpad keys not being recognized as such when entered inside the page using insert mode
+- Write command path bugs due to previous code rework in 5.x.x releases
 
 ### Security
 

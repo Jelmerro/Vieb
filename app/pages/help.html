@@ -498,11 +498,19 @@
         <h3 id=":write">:write</h3>
         <ul>
             <li><span class="command-block">:write</span> - Save the current page to <a href="#downloadpath">downloadpath</a> with the page name as the filename</li>
-            <li><span class="command-block">:write savedpage</span> - Save the current page to <a href="#downloadpath">downloadpath</a> with "savedpage" as the filename</li>
+            <li><span class="command-block">:write savedpage</span> - Save the current page to <a href="#downloadpath">downloadpath</a> with "savedpage.html" as the filename</li>
             <li><span class="command-block">:write savedpage/</span> - Save the current page the "savedpage" subfolder of <a href="#downloadpath">downloadpath</a> with the page name as the filename</li>
-            <li><span class="command-block">:write ~/Documents/savedpage</span> - Save the current page to "~/Documents/" with "savedpage" as the filename</li>
+            <li><span class="command-block">:write ~/Documents/savedpage</span> - Save the current page to "~/Documents/" with "savedpage.html" as the filename</li>
         </ul>
         With the write command you can save the current page to disk. There is one optional argument, which serves as both the filename and the location. The location is by default set to the <a href="#downloadpath">downloadpath</a> setting, but can be changed by including it in the filename argument. If the filename ends with a "/", it's assumed to be just the folder part, and the page will be saved in that folder with the default filename (the name of the page). Lastly, absolute paths are saved in exactly that location. The write command attempts to save pages as websites, to download the current page url as a file, see <a href="#action.downloadLink">action.downloadLink</a>.
+        <h3 id=":screenshot">:screenshot</h3>
+        <ul>
+            <li><span class="command-block">:screenshot</span> - Save an image of the current page to <a href="#downloadpath">downloadpath</a> with the page name as the filename</li>
+            <li><span class="command-block">:screenshot savedimage</span> - Save an image of the current page to <a href="#downloadpath">downloadpath</a> with "savedimage.png" as the filename</li>
+            <li><span class="command-block">:screenshot savedimage/</span> - Save an image of the current page the "savedimage" subfolder of <a href="#downloadpath">downloadpath</a> with the page name as the filename</li>
+            <li><span class="command-block">:screenshot ~/Documents/savedimage</span> - Save an image of the current page to "~/Documents/" with "savedimage.png" as the filename</li>
+        </ul>
+        With the screenshot command you can save a PNG image of the current page to disk. There is one optional argument, which serves as both the filename and the location. The location is by default set to the <a href="#downloadpath">downloadpath</a> setting, but can be changed by including it in the filename argument. If the filename ends with a "/", it's assumed to be just the folder part, and the page will be saved in that folder with the default filename (the name of the page). Lastly, absolute paths are saved in exactly that location. Due to Electron limitations, you can only capture the visible part of the page and not the full webpage.
         <h3 id=":hardcopy">:hardcopy</h3>
         <ul>
             <li><span class="command-block">:hardcopy</span> - Open the print dialog, to print the current page</li>
