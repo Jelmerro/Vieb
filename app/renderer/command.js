@@ -377,18 +377,22 @@ const reload = () => {
 
 const hardcopy = () => currentPage()?.send("action", "print")
 
-const resolveFileArg = (locationArgument, type) => {
+const resolveFileArg = (locationArg, type) => {
     const name = `${new URL(currentPage().src).hostname || currentTab()
         .querySelector("span").textContent.replace(specialChars, "").trim()
-    }_${formatDate(new Date())}`
+    }_${formatDate(new Date()).replace(/:/g, "-").replace(" ", "_")}`
     let loc = joinPath(downloadPath(), name)
-    if (locationArgument) {
-        let file = expandPath(locationArgument)
+    if (locationArg) {
+        let file = expandPath(locationArg)
         if (!isAbsolutePath(file)) {
             file = joinPath(downloadPath(), file)
         }
-        if (locationArgument.endsWith("/")) {
-            file = joinPath(`${file}/`, name)
+        let pathSep = "/"
+        if (process.platform === "win32") {
+            pathSep = "\\"
+        }
+        if (locationArg.endsWith("/") || locationArg.endsWith("\\")) {
+            file = joinPath(`${file}${pathSep}`, name)
         }
         if (!isDir(dirname(file))) {
             notify(`Folder '${dirname(file)}' does not exist!`, "warn")
