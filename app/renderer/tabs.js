@@ -379,12 +379,11 @@ const unsuspendPage = page => {
             webview.setAttribute(attr, page.getAttribute(attr))
         }
     })
+    let prefs = "spellcheck=true,transparent=true,backgroundColor=#33333300"
     if (appConfig().autoplay === "user") {
-        webview.setAttribute("webpreferences",
-            "spellcheck=yes,autoplayPolicy=document-user-activation-required")
-    } else {
-        webview.setAttribute("webpreferences", "spellcheck=yes")
+        prefs += ",autoplayPolicy=document-user-activation-required"
     }
+    webview.setAttribute("webpreferences", prefs)
     const sessionName = page.getAttribute("container")
     ipcRenderer.send("create-session", `persist:${sessionName}`,
         getSetting("adblocker"), getSetting("cache") !== "none")
