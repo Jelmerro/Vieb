@@ -434,6 +434,8 @@ app.on("ready", () => {
             "contextIsolation": false,
             "disableBlinkFeatures": "Auxclick",
             "enableRemoteModule": false,
+            // Workaround for https://github.com/electron/electron/issues/30886
+            "nativeWindowOpen": false,
             "nodeIntegration": false,
             "preload": joinPath(__dirname, "renderer/index.js"),
             "sandbox": false,

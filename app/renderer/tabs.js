@@ -383,6 +383,8 @@ const unsuspendPage = page => {
     if (appConfig().autoplay === "user") {
         prefs += ",autoplayPolicy=document-user-activation-required"
     }
+    // Workaround for https://github.com/electron/electron/issues/30886
+    prefs += ",nativeWindowOpen=false"
     webview.setAttribute("webpreferences", prefs)
     const sessionName = page.getAttribute("container")
     ipcRenderer.send("create-session", `persist:${sessionName}`,
