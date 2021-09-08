@@ -155,7 +155,9 @@ const stringToUrl = location => {
         url = `file:/${local}`.replace(/^file:\/*/, "file:///")
     }
     if (!isUrl(url)) {
-        url = getSetting("search").replace(/%s/g, encodeURIComponent(location))
+        const engines = getSetting("search").split(",")
+        const engine = engines[Math.floor(Math.random() * engines.length)]
+        url = engine.replace(/%s/g, encodeURIComponent(location))
     }
     if (!hasProtocol(url)) {
         url = `https://${url}`

@@ -66,6 +66,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Buffer commands can now wrap from the end of the tabbar by providing a negative index
 - Spellcheck suggestions should now also work for elements that are not input fields (but still not on Windows due to Electron bugs)
 - Numbers with actions bound to them that are pressed when there is already a count will no longer execute the action but append the count
+- Setting "search" to a list of search urls instead of a single url, which will be selected at random each time
 
 ### Fixed
 

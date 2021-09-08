@@ -178,7 +178,7 @@ const defaultSettings = {
     "windowtitle": "simple"
 }
 let allSettings = {}
-const freeText = ["downloadpath", "externalcommand", "search", "vimcommand"]
+const freeText = ["downloadpath", "externalcommand", "vimcommand"]
 const listLike = [
     "containercolors",
     "favoritepages",
@@ -188,6 +188,7 @@ const listLike = [
     "permissionsasked",
     "permissionsblocked",
     "redirects",
+    "search",
     "searchwords",
     "spelllang",
     "startuppages",
@@ -320,20 +321,24 @@ const checkNumber = (setting, value) => {
 const checkOther = (setting, value) => {
     // Special cases
     if (setting === "search") {
-        let baseUrl = value
-        if (baseUrl.startsWith("http://") || baseUrl.startsWith("https://")) {
+        const engines = value.split(",").filter(e => e.trim())
+        if (engines.length === 0) {
+            notify("You must set at least one search engine", "warn")
+            return false
+        }
+        for (let baseUrl of engines) {
             baseUrl = baseUrl.replace(/^https?:\/\//g, "")
-        }
-        if (baseUrl.length === 0 || !baseUrl.includes("%s")) {
-            notify(`Invalid search value: ${baseUrl}\n`
-                    + "URL must contain a %s parameter, which will be "
-                    + "replaced by the search string", "warn")
-            return false
-        }
-        if (!isUrl(baseUrl)) {
-            notify("The value of the search setting must be a valid url",
-                "warn")
-            return false
+            if (baseUrl.length === 0 || !baseUrl.includes("%s")) {
+                notify(`Invalid search value: ${baseUrl}\n`
+                        + "Each URL must contain a %s parameter, which will "
+                        + "be replaced by the search string", "warn")
+                return false
+            }
+            if (!isUrl(baseUrl)) {
+                notify("Each URL of the search setting must be a valid",
+                    "warn")
+                return false
+            }
         }
     }
     if (containerSettings.includes(setting)) {
