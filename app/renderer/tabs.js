@@ -341,6 +341,10 @@ const addTab = (options = {}) => {
     }
 }
 
+const sharedAttributes = [
+    "link-id", "container", "class", "id", "style", "muted", "user-script-file"
+]
+
 const suspendTab = tab => {
     const page = tabOrPageMatching(tab)
     if (page.tagName?.toLowerCase() !== "webview") {
@@ -353,7 +357,7 @@ const suspendTab = tab => {
     tab.removeAttribute("media-playing")
     const placeholder = document.createElement("div")
     placeholder.classList.add("webview")
-    ;["link-id", "container", "class", "id", "style", "muted"].forEach(attr => {
+    sharedAttributes.forEach(attr => {
         if (page.getAttribute(attr)) {
             placeholder.setAttribute(attr, page.getAttribute(attr))
         }
@@ -374,7 +378,7 @@ const unsuspendPage = page => {
     }
     tabOrPageMatching(page).removeAttribute("suspended")
     const webview = document.createElement("webview")
-    ;["link-id", "container", "class", "id", "style", "muted"].forEach(attr => {
+    sharedAttributes.forEach(attr => {
         if (page.getAttribute(attr)) {
             webview.setAttribute(attr, page.getAttribute(attr))
         }
