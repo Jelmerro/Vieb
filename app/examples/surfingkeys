@@ -90,6 +90,7 @@ nmap sy <openNewTab><toExploreMode>youtube <C-v><CR>
 nmap se <openNewTab><toExploreMode>wikipedia <C-v><CR>
 nmap ss <openNewTab><toExploreMode>stackoverflow <C-v><CR>
 nmap sh <openNewTab><toExploreMode>github <C-v><CR>
+nmap yg <:screenshot>
 nmap ? <:help>
 pmap v <p.startVisualSelect>
 pmap 0 <p.moveLeftMax>
