@@ -47,6 +47,7 @@ map <A-6> <:b 5>
 map <A-7> <:b 6>
 map <A-8> <:b 7>
 map <A-9> <:b 8>
+map <C-S> <:screenshot>
 vmap <C-f> <p.searchText>
 smap <F3> <nextSearchMatch>
 smap <C-g> <nextSearchMatch>
