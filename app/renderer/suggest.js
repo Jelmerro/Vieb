@@ -35,7 +35,12 @@ const {
     stringToUrl
 } = require("../util")
 const {
-    listTabs, tabOrPageMatching, currentMode, getSetting, getMouseConf
+    listTabs,
+    tabOrPageMatching,
+    currentMode,
+    getSetting,
+    getMouseConf,
+    updateScreenshotHightlight
 } = require("./common")
 
 let suggestions = []
@@ -329,6 +334,35 @@ const suggestCommand = searchStr => {
     const {commandList, customCommandsAsCommandList} = require("./command")
     commandList().filter(
         c => c.startsWith(search)).forEach(c => addCommand(c))
+    // Command: screenshot
+    if ("screenshot".startsWith(command) && !confirm && args.length < 3) {
+        let [dims] = args
+        let [, location] = args
+        if (!dims?.match(/^\d+,\d+,\d+,\d+$/g)) {
+            [, dims] = args
+            ;[location] = args
+        }
+        dims = ` ${dims || ""}`
+        location = expandPath(location || "")
+        if (location.startsWith("\"") && location.endsWith("\"")) {
+            location = location.slice(1, location.length - 1)
+        }
+        if (!location && !dims) {
+            addCommand("screenshot ~")
+            addCommand("screenshot /")
+            addCommand(`screenshot ${getSetting("downloadpath")}`)
+        }
+        if (location || search.endsWith(" ")) {
+            if (!isAbsolutePath(location)) {
+                location = joinPath(getSetting("downloadpath"), location)
+            }
+            suggestFiles(location).forEach(l => addCommand(
+                `screenshot${dims} ${l.path}`))
+        }
+        updateScreenshotHightlight()
+    } else {
+        updateScreenshotHightlight(false)
+    }
     // Command: set
     const {suggestionList, settingsWithDefaults} = require("./settings")
     if ("set".startsWith(command) && !confirm) {
@@ -352,23 +386,22 @@ const suggestCommand = searchStr => {
             suggestFiles(location).forEach(l => addCommand(`source ${l.path}`))
         }
     }
-    // Command: write & screenshot
-    for (const pathCmd of ["write", "screenshot"]) {
-        if (pathCmd.startsWith(command) && !confirm && args.length < 2) {
-            let location = expandPath(search.replace(/^\w[a-z]* ?/, "") || "")
-            if (location.startsWith("\"") && location.endsWith("\"")) {
-                location = location.slice(1, location.length - 1)
-            }
-            if (!location) {
-                addCommand(`${pathCmd} ~`)
-                addCommand(`${pathCmd} /`)
-                addCommand(`${pathCmd} ${getSetting("downloadpath")}`)
-            }
+    // Command: write
+    if ("write".startsWith(command) && !confirm && args.length < 2) {
+        let location = expandPath(search.replace(/w[a-z]* ?/, "") || "")
+        if (location.startsWith("\"") && location.endsWith("\"")) {
+            location = location.slice(1, location.length - 1)
+        }
+        if (!location) {
+            addCommand("write ~")
+            addCommand("write /")
+            addCommand(`write ${getSetting("downloadpath")}`)
+        }
+        if (location || search.endsWith(" ")) {
             if (!isAbsolutePath(location)) {
                 location = joinPath(getSetting("downloadpath"), location)
             }
-            suggestFiles(location).forEach(
-                l => addCommand(`${pathCmd} ${l.path}`))
+            suggestFiles(location).forEach(l => addCommand(`write ${l.path}`))
         }
     }
     // Command: mkviebrc

@@ -18,7 +18,11 @@
 "use strict"
 
 const {
-    currentPage, currentMode, guiRelatedUpdate, getMouseConf
+    currentPage,
+    currentMode,
+    guiRelatedUpdate,
+    getMouseConf,
+    updateScreenshotHightlight
 } = require("./common")
 
 // Sort order determines the appearance in the mode list
@@ -47,6 +51,7 @@ const modes = {
         "onLeave": () => {
             const {emptySuggestions} = require("./suggest")
             emptySuggestions()
+            updateScreenshotHightlight(true)
         }
     },
     "search": {

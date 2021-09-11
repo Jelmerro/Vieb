@@ -81,6 +81,7 @@
     --notification-success: #3f3;
     --url-hover-fg: #000;
     --url-hover-bg: #fff9;
+    --screenshot-highlight: #f90;
     /* special pages */
     --link-color: #0cf;
     --link-underline: #059;
@@ -206,6 +207,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #suggest-dropdown div .file {color: var(--suggestions-file);}
 #suggest-dropdown div .searchwords {color: var(--suggestions-searchwords);}
 #suggest-dropdown div.selected {background: var(--suggestions-selected);}
+#screenshot-highlight {display: none;z-index: 14;position: absolute;box-sizing: content-box;border: solid var(--screenshot-highlight) .5em;}
 /* mouse related */
 #mode-suggestions {background: var(--bg);max-height: 0;position: absolute;left: 2em;top:2em;z-index: 25;transition: .5s all;overflow: hidden;display: inline-block;width: 7em;text-transform: capitalize;display: flex;flex-direction: column;}
 #mode-suggestions:hover {max-height: 100vw;}

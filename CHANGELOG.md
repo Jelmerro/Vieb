@@ -34,7 +34,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "menusuggest" to control if suggestions for explore and command mode should have a dropdown menu
 - Feature "copyselect" to the "mouse" setting for automatically copying selected text to the clipboard (disabled by default)
 - Actions "scrollLeftMax" and "scrollRightMax" to scroll the page to the absolute maximum left or right
-- Command "screenshot" to save screenshots of the page to the downloads folder or a custom location
+- Command "screenshot" to save screenshots of the page to the downloads folder or a custom location, optionally of a specific page region
 - Actions "moveTabStart" and "moveTabEnd" to move a tab all the way to the start or the end of the tabbar
 - Many default mappings common in other browsers to the default mappings (if they don't conflict), including numpad mappings
 
@@ -82,7 +82,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Security
 
-- Electron 15.0.0-beta.3 (was 13.1.4)
+- Electron 15.0.0-beta.4 (was 13.1.4)
 - Chromium 94.0.4606.31 (was 91.0.4472.106)
 
 ## [5.3.0](https://github.com/Jelmerro/Vieb/compare/5.2.0...5.3.0) - 2021-06-30

@@ -77,6 +77,45 @@ const setTopOfPageWithMouse = status => {
     updateGuiVisibility()
 }
 
+const updateScreenshotHightlight = (hide = false) => {
+    const dims = document.getElementById("url").value.split(" ").find(
+        arg => arg?.match(/^\d+,\d+,\d+,\d+$/g))
+    const highlight = document.getElementById("screenshot-highlight")
+    if (!currentMode() === "command" || !dims || hide || !currentPage()) {
+        highlight.style.display = "none"
+        return
+    }
+    const border = Number(getComputedStyle(highlight)
+        .borderWidth.split(/[.px]/g)[0])
+    const rect = {
+        "height": Number(dims.split(",")[1]),
+        "width": Number(dims.split(",")[0]),
+        "x": Number(dims.split(",")[2]),
+        "y": Number(dims.split(",")[3])
+    }
+    const pageWidth = Number(currentPage().style.width.split(/[.px]/g)[0])
+    const pageHeight = Number(currentPage().style.height.split(/[.px]/g)[0])
+    if (rect.x > pageWidth) {
+        rect.x = pageWidth
+    }
+    if (rect.y > pageHeight) {
+        rect.y = pageHeight
+    }
+    if (rect.width === 0 || rect.width > pageWidth - rect.x) {
+        rect.width = pageWidth - rect.x
+    }
+    if (rect.height === 0 || rect.height > pageHeight - rect.y) {
+        rect.height = pageHeight - rect.y
+    }
+    const pageTop = Number(currentPage().style.top.split(/[.px]/g)[0])
+    const pageLeft = Number(currentPage().style.left.split(/[.px]/g)[0])
+    highlight.style.height = `${rect.height}px`
+    highlight.style.width = `${rect.width}px`
+    highlight.style.left = `${pageLeft + rect.x - border}px`
+    highlight.style.top = `${pageTop + rect.y - border}px`
+    highlight.style.display = "inherit"
+}
+
 const guiRelatedUpdate = type => {
     updateGuiVisibility()
     const timeout = getSetting("guihidetimeout")
@@ -141,5 +180,6 @@ module.exports = {
     setStored,
     setTopOfPageWithMouse,
     tabOrPageMatching,
-    updateGuiVisibility
+    updateGuiVisibility,
+    updateScreenshotHightlight
 }

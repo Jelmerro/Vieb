@@ -428,21 +428,55 @@ const write = (locationArgument, trailingArgs = false) => {
     })
 }
 
-const screenshot = (locationArgument, trailingArgs = false) => {
+const screenshot = (arg1, arg2, trailingArgs = false) => {
     if (trailingArgs) {
-        notify("The screenshot command takes only a single optional argument:\n"
-            + "the location where to write the image", "warn")
+        notify("The screenshot command takes only two optional arguments:\nthe "
+            + "location where to write the image and the dimensions", "warn")
+        return
+    }
+    let dims = arg1
+    let location = arg2
+    if (!dims?.match(/^\d+,\d+,\d+,\d+$/g)) {
+        dims = arg2
+        location = arg1
+    }
+    if (dims && !dims.match(/^\d+,\d+,\d+,\d+$/g)) {
+        notify("Dimensions must match 'width,height,x,y' with round numbers",
+            "warn")
         return
     }
     if (!currentPage()) {
         return
     }
-    const loc = resolveFileArg(locationArgument, "png")
+    let rect = null
+    if (dims) {
+        rect = {
+            "height": Number(dims.split(",")[1]),
+            "width": Number(dims.split(",")[0]),
+            "x": Number(dims.split(",")[2]),
+            "y": Number(dims.split(",")[3])
+        }
+        const pageWidth = Number(currentPage().style.width.split(/[.px]/g)[0])
+        const pageHeight = Number(currentPage().style.height.split(/[.px]/g)[0])
+        if (rect.x > pageWidth) {
+            rect.x = pageWidth
+        }
+        if (rect.y > pageHeight) {
+            rect.y = pageHeight
+        }
+        if (rect.width === 0 || rect.width > pageWidth - rect.x) {
+            rect.width = pageWidth - rect.x
+        }
+        if (rect.height === 0 || rect.height > pageHeight - rect.y) {
+            rect.height = pageHeight - rect.y
+        }
+    }
+    const loc = resolveFileArg(location, "png")
     if (!loc) {
         return
     }
     setTimeout(() => {
-        currentPage().capturePage().then(img => {
+        currentPage().capturePage(rect || undefined).then(img => {
             writeFile(loc, img.toPNG(), "Something went wrong saving the image",
                 `Screenshot saved at ${loc}`)
         })
