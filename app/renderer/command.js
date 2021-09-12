@@ -428,6 +428,56 @@ const write = (locationArgument, trailingArgs = false) => {
     })
 }
 
+const translateDimsToRect = dims => {
+    if (!dims) {
+        return undefined
+    }
+    const rect = {
+        "height": Number(dims.split(",")[1]),
+        "width": Number(dims.split(",")[0]),
+        "x": Number(dims.split(",")[2]),
+        "y": Number(dims.split(",")[3])
+    }
+    const pageWidth = Number(currentPage().style.width.split(/[.px]/g)[0])
+    const pageHeight = Number(currentPage().style.height.split(/[.px]/g)[0])
+    if (rect.x > pageWidth) {
+        rect.x = pageWidth
+    }
+    if (rect.y > pageHeight) {
+        rect.y = pageHeight
+    }
+    if (rect.width === 0 || rect.width > pageWidth - rect.x) {
+        rect.width = pageWidth - rect.x
+    }
+    if (rect.height === 0 || rect.height > pageHeight - rect.y) {
+        rect.height = pageHeight - rect.y
+    }
+    return rect
+}
+
+const screencopy = (dims, trailingArgs = false) => {
+    if (trailingArgs) {
+        notify("The screenshot command takes only two optional arguments:\nthe "
+            + "location where to write the image and the dimensions", "warn")
+        return
+    }
+    if (dims && !dims.match(/^\d+,\d+,\d+,\d+$/g)) {
+        notify("Dimensions must match 'width,height,x,y' with round numbers",
+            "warn")
+        return
+    }
+    if (!currentPage()) {
+        return
+    }
+    const rect = translateDimsToRect(dims)
+    setTimeout(() => {
+        currentPage().capturePage(rect).then(img => {
+            const {nativeImage, clipboard} = require("electron")
+            clipboard.writeImage(nativeImage.createFromBuffer(img.toPNG()))
+        })
+    }, 20)
+}
+
 const screenshot = (arg1, arg2, trailingArgs = false) => {
     if (trailingArgs) {
         notify("The screenshot command takes only two optional arguments:\nthe "
@@ -448,35 +498,13 @@ const screenshot = (arg1, arg2, trailingArgs = false) => {
     if (!currentPage()) {
         return
     }
-    let rect = null
-    if (dims) {
-        rect = {
-            "height": Number(dims.split(",")[1]),
-            "width": Number(dims.split(",")[0]),
-            "x": Number(dims.split(",")[2]),
-            "y": Number(dims.split(",")[3])
-        }
-        const pageWidth = Number(currentPage().style.width.split(/[.px]/g)[0])
-        const pageHeight = Number(currentPage().style.height.split(/[.px]/g)[0])
-        if (rect.x > pageWidth) {
-            rect.x = pageWidth
-        }
-        if (rect.y > pageHeight) {
-            rect.y = pageHeight
-        }
-        if (rect.width === 0 || rect.width > pageWidth - rect.x) {
-            rect.width = pageWidth - rect.x
-        }
-        if (rect.height === 0 || rect.height > pageHeight - rect.y) {
-            rect.height = pageHeight - rect.y
-        }
-    }
+    const rect = translateDimsToRect(dims)
     const loc = resolveFileArg(location, "png")
     if (!loc) {
         return
     }
     setTimeout(() => {
-        currentPage().capturePage(rect || undefined).then(img => {
+        currentPage().capturePage(rect).then(img => {
             writeFile(loc, img.toPNG(), "Something went wrong saving the image",
                 `Screenshot saved at ${loc}`)
         })
@@ -861,6 +889,7 @@ const commands = {
     reload,
     restart,
     "s": set,
+    screencopy,
     screenshot,
     "scriptnames": (hasArgs = null) => {
         if (hasArgs) {
