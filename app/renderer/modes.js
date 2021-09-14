@@ -45,13 +45,16 @@ const modes = {
             document.getElementById("url").value = ""
             const {resetPosition} = require("./commandhistory")
             resetPosition()
-            const {resetInputHistory} = require("./input")
+            const {resetScreenshotDrag, resetInputHistory} = require("./input")
             resetInputHistory()
+            resetScreenshotDrag()
         },
         "onLeave": () => {
             const {emptySuggestions} = require("./suggest")
             emptySuggestions()
             updateScreenshotHightlight(true)
+            const {resetScreenshotDrag} = require("./input")
+            resetScreenshotDrag()
         }
     },
     "search": {

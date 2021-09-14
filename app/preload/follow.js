@@ -362,6 +362,7 @@ const mouseUpListener = (e, frame = null) => {
     const endY = e.clientY + (paddingInfo?.y || 0)
     const diffX = Math.abs(endX - startX)
     const diffY = Math.abs(endY - startY)
+    ipcRenderer.sendToHost("mouse-up")
     if (endX > 0 && endY > 0 && (diffX > 3 || diffY > 3)) {
         const text = (frame?.contentWindow || window).getSelection().toString()
         if (text) {

@@ -65,7 +65,8 @@ const mouseFeatures = [
     "suggestselect",
     "scrollsuggest",
     "scrollzoom",
-    "scrolltabs"
+    "scrolltabs",
+    "screenshotframe"
 ]
 const defaultSettings = {
     "adblocker": "static",

@@ -11,6 +11,21 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Added
+
+- Mouse feature "screenshotframe" which allows you to drag the screenshot frame to a specific position
+
+### Fixed
+
+- Crash on uploading files due to Electron bug in beta 4
+
+### Security
+
+- Electron 15.0.0-beta.5 (was 15.0.0-beta.4)
+- Chromium 94.0.4606.31 (unchanged)
+
 ## [6.0.0](https://github.com/Jelmerro/Vieb/compare/5.3.0...6.0.0) - 2021-09-12
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/5.3.0...6.0.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/6.0.0)

@@ -26,7 +26,8 @@ const {
     getSetting,
     listPages,
     setTopOfPageWithMouse,
-    getMouseConf
+    getMouseConf,
+    updateScreenshotHightlight
 } = require("./common")
 
 const ACTIONS = require("./actions")
@@ -622,6 +623,9 @@ let inputHistoryList = [{"index": 0, "value": ""}]
 let inputHistoryIndex = 0
 let lastActionInMapping = null
 let lastExecutedMapstring = null
+let draggingScreenshotFrame = false
+let lastX = 0
+let lastY = 0
 
 const init = () => {
     window.addEventListener("keydown", handleKeyboard)
@@ -630,6 +634,13 @@ const init = () => {
     window.addEventListener("mousedown", e => {
         if (e.button === 1) {
             e.preventDefault()
+        }
+        const selector = "#screenshot-highlight"
+        if (e.composedPath().find(el => matchesQuery(el, selector))) {
+            if (getMouseConf("screenshotframe")) {
+                draggingScreenshotFrame = true
+                e.preventDefault()
+            }
         }
     })
     document.getElementById("tabs").addEventListener("dblclick", e => {
@@ -656,6 +667,13 @@ const init = () => {
         }
     }, {"passive": false})
     window.addEventListener("mouseup", e => {
+        if (draggingScreenshotFrame) {
+            setTimeout(() => {
+                draggingScreenshotFrame = false
+            }, 10)
+            e.preventDefault()
+            return
+        }
         if (e.button === 1) {
             if (e.target === document.getElementById("url")) {
                 if (getMouseConf("toexplore")) {
@@ -679,6 +697,10 @@ const init = () => {
     window.addEventListener("copy", pasteInput)
     window.addEventListener("click", e => {
         if (e.composedPath().find(el => matchesQuery(el, "#context-menu"))) {
+            return
+        }
+        if (draggingScreenshotFrame && getMouseConf("screenshotframe")) {
+            e.preventDefault()
             return
         }
         const {clear} = require("./contextmenu")
@@ -710,7 +732,7 @@ const init = () => {
     const tabSelector = "#pagelayout *[link-id], #tabs *[link-id]"
     window.addEventListener("mousemove", e => {
         if (e.y === 0) {
-            setTopOfPageWithMouse(true && getMouseConf("guiontop"))
+            setTopOfPageWithMouse(getMouseConf("guiontop"))
         }
         if (getSetting("mousefocus")) {
             document.elementsFromPoint(e.x, e.y).forEach(el => {
@@ -724,6 +746,7 @@ const init = () => {
                 }
             })
         }
+        moveScreenshotFrame(e.x, e.y)
     })
     window.addEventListener("contextmenu", e => {
         e.preventDefault()
@@ -815,6 +838,39 @@ const init = () => {
     ].filter(m => !unSupportedActions.includes(m))
     bindings = JSON.parse(JSON.stringify(defaultBindings))
     updateKeysOnScreen()
+}
+
+const resetScreenshotDrag = () => setTimeout(() => {
+    draggingScreenshotFrame = false
+}, 10)
+
+const moveScreenshotFrame = (x, y) => {
+    const deltaX = x - lastX
+    const deltaY = y - lastY
+    if (getMouseConf("screenshotframe") && draggingScreenshotFrame) {
+        const url = document.getElementById("url")
+        const dims = url.value.split(" ").find(
+            arg => arg?.match(/^\d+,\d+,\d+,\d+$/g))
+        if (!currentMode() === "command" || !dims || !currentPage()) {
+            return
+        }
+        const rect = {
+            "height": Number(dims.split(",")[1]),
+            "width": Number(dims.split(",")[0]),
+            "x": Number(dims.split(",")[2]),
+            "y": Number(dims.split(",")[3])
+        }
+        rect.x += deltaX
+        rect.y += deltaY
+        rect.x = Math.round(Math.max(rect.x, 0))
+        rect.y = Math.round(Math.max(rect.y, 0))
+        url.value = url.value.replace(/\d+,\d+,\d+,\d+/g, `${rect.width},${
+            rect.height},${rect.x},${rect.y}`)
+        updateScreenshotHightlight()
+        updateSuggestions()
+    }
+    lastX = x
+    lastY = y
 }
 
 const cutInput = (event = null) => {
@@ -2067,9 +2123,11 @@ module.exports = {
     listMappingsAsCommandList,
     listSupportedActions,
     mapOrList,
+    moveScreenshotFrame,
     pasteInput,
     repeatLastAction,
     resetInputHistory,
+    resetScreenshotDrag,
     sanitiseMapString,
     uncountableActions,
     unmap,

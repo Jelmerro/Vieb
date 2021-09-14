@@ -835,6 +835,10 @@ const addWebviewListeners = webview => {
                 }
             }
         }
+        if (e.channel === "mouse-up") {
+            const {resetScreenshotDrag} = require("./input")
+            resetScreenshotDrag()
+        }
         if (e.channel === "mouse-click-info") {
             const {clear} = require("./contextmenu")
             clear()
@@ -931,6 +935,10 @@ const addWebviewListeners = webview => {
                     switchToTab(tab)
                 }
             }
+            const pageTop = Number(webview.style.top.split(/[.px]/g)[0])
+            const pageLeft = Number(webview.style.left.split(/[.px]/g)[0])
+            const {moveScreenshotFrame} = require("./input")
+            moveScreenshotFrame(e.args[0] + pageLeft, e.args[1] + pageTop)
         }
         if (e.channel === "search-element-location") {
             if (currentMode() === "pointer") {
