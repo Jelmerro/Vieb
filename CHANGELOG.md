@@ -20,6 +20,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Crash on uploading files due to Electron bug in beta 4
+- Characters with different naming in Electron compared to JS and Vim not being recognized as such in mappings
 
 ### Security
 

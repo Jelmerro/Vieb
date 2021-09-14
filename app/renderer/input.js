@@ -1235,8 +1235,8 @@ const executeMapString = async(mapStr, recursive, initial) => {
                 })
                 continue
             }
-            const options = {...fromIdentifier(key), "bubbles": recursive}
             if (currentMode() === "insert") {
+                const options = {...fromIdentifier(key), "bubbles": recursive}
                 if (!options.bubbles) {
                     const {ipcRenderer} = require("electron")
                     ipcRenderer.sendSync("insert-mode-blockers", "pass")
@@ -1245,6 +1245,9 @@ const executeMapString = async(mapStr, recursive, initial) => {
                 }
                 await sendKeysToWebview(options, key)
             } else {
+                const options = {
+                    ...fromIdentifier(key, false), "bubbles": recursive
+                }
                 window.dispatchEvent(new KeyboardEvent("keydown", options))
             }
             lastActionInMapping = null
