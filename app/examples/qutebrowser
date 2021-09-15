@@ -16,8 +16,6 @@ set tabreopenposition=right
 set windowtitle=full
 set mapsuggestposition=bottomleft
 
-" Custom Commands
-
 " Mappings
 nmap <Up> <scrollUp>
 nmap <Down> <scrollDown>
