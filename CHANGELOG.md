@@ -17,10 +17,14 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Mouse feature "screenshotframe" which allows you to drag the screenshot frame to a specific position
 
+### Changed
+
+- Make special mouse button dragging resize the screenshot frame by changing the width and height instead of position arguments
+
 ### Fixed
 
 - Crash on uploading files due to Electron bug in beta 4
-- Characters with different naming in Electron compared to JS and Vim not being recognized as such in mappings
+- Characters with different naming in Electron compared to JavaScript and Vim not being recognized as such in mappings
 
 ### Security
 

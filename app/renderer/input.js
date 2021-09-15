@@ -638,7 +638,11 @@ const init = () => {
         const selector = "#screenshot-highlight"
         if (e.composedPath().find(el => matchesQuery(el, selector))) {
             if (getMouseConf("screenshotframe")) {
-                draggingScreenshotFrame = true
+                if (e.button === 0) {
+                    draggingScreenshotFrame = "position"
+                } else {
+                    draggingScreenshotFrame = "size"
+                }
                 e.preventDefault()
             }
         }
@@ -860,10 +864,17 @@ const moveScreenshotFrame = (x, y) => {
             "x": Number(dims.split(",")[2]),
             "y": Number(dims.split(",")[3])
         }
-        rect.x += deltaX
-        rect.y += deltaY
-        rect.x = Math.round(Math.max(rect.x, 0))
-        rect.y = Math.round(Math.max(rect.y, 0))
+        if (draggingScreenshotFrame === "position") {
+            rect.x += deltaX
+            rect.y += deltaY
+            rect.x = Math.round(Math.max(rect.x, 0))
+            rect.y = Math.round(Math.max(rect.y, 0))
+        } else if (draggingScreenshotFrame === "size") {
+            rect.width += deltaX
+            rect.height += deltaY
+            rect.width = Math.round(Math.max(rect.width, 1))
+            rect.height = Math.round(Math.max(rect.height, 1))
+        }
         url.value = url.value.replace(/\d+,\d+,\d+,\d+/g, `${rect.width},${
             rect.height},${rect.x},${rect.y}`)
         updateScreenshotHightlight()
