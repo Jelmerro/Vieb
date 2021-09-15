@@ -69,8 +69,8 @@ command! open_--_{clipboard} <openFromClipboard>
 command! set-cmd-text_--space_bind <toCommandMode>map<Space>
 command! set-cmd-text_--space_set <toCommandMode>set<Space>
 command! edit-text <editWithVim>
-command! completion-item-focus_--history_prev <commandHistoryPrevious>
-command! completion-item-focus_--history_next <commandHistoryNext>
+command! completion-item-focus_prev <prevSuggestion>
+command! completion-item-focus_next <nextSuggestion>
 command! rl-beginning-of-line <Home>
 command! rl-end-of-line <End>
 command! rl-forward-word <C-Right>
@@ -167,8 +167,8 @@ nmap ss <:set-cmd-text_--space_set>
 
 imap <C-e> <:edit-text>
 
-cmap <Up> <:completion-item-focus_--history_prev>
-cmap <Down> <:completion-item-focus_--history_next>
+cmap <Up> <:completion-item-focus__prev>
+cmap <Down> <:completion-item-focus__next>
 cmap <C-a> <:rl-beginning-of-line>
 cmap <C-e> <:rl-end-of-line>
 cmap <A-f> <:rl-forward-word>
