@@ -167,8 +167,8 @@ nmap ss <:set-cmd-text_--space_set>
 
 imap <C-e> <:edit-text>
 
-cmap <Up> <:completion-item-focus__prev>
-cmap <Down> <:completion-item-focus__next>
+cmap <Up> <:completion-item-focus_prev>
+cmap <Down> <:completion-item-focus_next>
 cmap <C-a> <:rl-beginning-of-line>
 cmap <C-e> <:rl-end-of-line>
 cmap <A-f> <:rl-forward-word>
