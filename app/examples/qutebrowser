@@ -17,80 +17,80 @@ set windowtitle=full
 set mapsuggestposition=bottomleft
 
 " Custom Commands
-command! rl-forward-word <C-Right>
-command! open_--_{clipboard} <openFromClipboard>
-command! tab-focus_-1 <:b -1>
-command! tab-focus_1 <:b 0>
-command! scroll-to-perc <scrollBottom>
+command! scroll_up <scrollUp>
+command! scroll_down <scrollDown>
 command! scroll_left <scrollLeft>
+command! scroll_left_ <p.scrollLeft>
+command! scroll_right_ <p.scrollRight>
+command! scroll_right <scrollRight>
+command! scroll-page_0_-1 <scrollPageUp>
+command! scroll-page_0_1 <scrollPageDown>
+command! scroll-to-perc_0 <scrollTop>
+command! scroll-to-perc <scrollBottom>
+command! tab-prev <previousTab>
 command! tab-next <nextTab>
-command! tab-focus_4 <:b 3>
-command! tab-clone <openNewTabWithCurrentUrl><CR>
-command! edit-text <editWithVim>
-command! rl-delete-char <Del>
-command! selection-toggle <p.start>
-command! rl-forward-char <Right>
-command! yank <pageToClipboard>
-command! tab-only <:lclose><:rclose>
+command! reload_--force <reloadWithoutCache>
+command! set_ <:help>
+command! download <:write>
 command! undo <reopenTab>
 command! navigate_prev <previousPage>
-command! navigate_next <nextPage>
 command! navigate_prev_--tab <previousPageNewTab>
+command! navigate_next <nextPage>
 command! navigate_next_--tab <nextPageNewTab>
 command! navigate_up <toParentUrl>
 command! navigate_up_--tab <toParentUrl><openNewTabWithCurrentUrl><CR><toLastUsedTab><backInHistory><toLastUsedTab>
-command! tab-move_+ <moveTabForward>
-command! set-cmd-text_--space_tab-select <toCommandMode>buffer<Space>
-command! rl-backward-delete-char <BS>
-command! scroll_right_ <p.scrollRight>
-command! rl-backward-char <Left>
-command! completion-item-focus_--history_next <commandHistoryNext>
-command! tab-move_- <moveTabBackward>
-command! tab-focus_6 <:b 5>
-command! reload_--force <reloadWithoutCache>
-command! scroll-page_0_-1 <scrollPageUp>
-command! scroll-page_0_1 <scrollPageDown>
-command! tab-focus_7 <:b 6>
-command! set-cmd-text_--space_open_--tab <openNewTab><toExploreMode>
-command! rl-beginning-of-line <Home>
-command! selection-toggle_ <p.startVisualSelect>
-command! scroll_left_ <p.scrollLeft>
-command! completion-item-focus_--history_prev <commandHistoryPrevious>
-command! set-cmd-text_open_{urlpretty} <toExploreMode><End>
-command! tab-focus_5 <:b 4>
-command! tab-focus_last <toLastUsedTab>
-command! scroll_right <scrollRight>
-command! scroll-to-perc_0 <scrollTop>
-command! <set_> <:help>
-command! tab-focus_8 <:b 7>
-command! zoom <zoomReset>
-command! rl-end-of-line <End>
-command! rl-kill-line <S-End><BS>
-command! move-to-end-of-word <p.moveFastRight>
-command! rl-backward-kill-word <C-S-Left><BS>
-command! set-cmd-text_--space_open <toExploreMode><BS>
-command! open_--tab <openNewTab>
-command! download <:write>
-command! tab-prev <previousTab>
-command! yank_selection <p.copyText>
-command! mode-enter_normal <toNormalMode>
-command! set-cmd-text_--space_set <toCommandMode>set<Space>
-command! stop <stopLoadingPage>
-command! tab-pin <:pin>
-command! tab-focus_3 <:b 2>
-command! open_--tab_--_{clipboard} <openNewTab><openFromClipboard>
-command! rl-unix-line-discard <S-Home><BS>
-command! scroll_down <scrollDown>
-command! selection-drop <toNormalMode><p.start><p.startVisualSelect>
-command! rl-kill-word <C-S-Right><BS>
-command! set-cmd-text_--space_bind <toCommandMode>map<Space>
-command! tab-mute <:mute>
+command! tab-focus_1 <:b 0>
+command! tab-focus_-1 <:b -1>
 command! tab-focus_2 <:b 1>
+command! tab-focus_3 <:b 2>
+command! tab-focus_4 <:b 3>
+command! tab-focus_5 <:b 4>
+command! tab-focus_6 <:b 5>
+command! tab-focus_7 <:b 6>
+command! tab-focus_8 <:b 7>
+command! tab-focus_last <toLastUsedTab>
+command! open_--tab <openNewTab>
+command! open_--tab_--_{clipboard} <openNewTab><openFromClipboard>
+command! tab-clone <openNewTabWithCurrentUrl><CR>
+command! tab-move_+ <moveTabForward>
+command! tab-move_- <moveTabBackward>
+command! tab-only <:lclose><:rclose>
+command! zoom <zoomReset>
+command! tab-pin <:pin>
+command! tab-mute <:mute>
+command! stop <stopLoadingPage>
+command! set-cmd-text_--space_open_--tab <openNewTab><toExploreMode>
+command! set-cmd-text_--space_open <toExploreMode><BS>
+command! set-cmd-text_open_{urlpretty} <toExploreMode><End>
+command! set-cmd-text_--space_tab-select <toCommandMode>buffer<Space>
+command! yank <pageToClipboard>
+command! yank_selection <p.copyText>
+command! open_--_{clipboard} <openFromClipboard>
+command! set-cmd-text_--space_bind <toCommandMode>map<Space>
+command! set-cmd-text_--space_set <toCommandMode>set<Space>
+command! edit-text <editWithVim>
+command! completion-item-focus_--history_prev <commandHistoryPrevious>
+command! completion-item-focus_--history_next <commandHistoryNext>
+command! rl-beginning-of-line <Home>
+command! rl-end-of-line <End>
+command! rl-forward-word <C-Right>
 command! rl-backward-word <C-Left>
+command! rl-kill-word <C-S-Right><BS>
+command! rl-backward-kill-word <C-S-Left><BS>
+command! rl-delete-char <Del>
+command! rl-backward-delete-char <BS>
+command! rl-backward-char <Left>
+command! rl-forward-char <Right>
+command! rl-kill-line <S-End><BS>
+command! rl-unix-line-discard <S-Home><BS>
 command! rl-unix-word-rubout <C-S-Left><BS>
-command! scroll_up <scrollUp>
-command! completion-item-focus_prev-category <prevSuggestionSection>
 command! completion-item-focus_next-category <nextSuggestionSection>
+command! completion-item-focus_prev-category <prevSuggestionSection>
+command! mode-enter_normal <toNormalMode>
+command! move-to-end-of-word <p.moveFastRight>
+command! selection-toggle_ <p.startVisualSelect>
+command! selection-toggle <p.start>
+command! selection-drop <toNormalMode><p.start><p.startVisualSelect>
 
 " Mappings
 nmap <Up> <:scroll_up>
