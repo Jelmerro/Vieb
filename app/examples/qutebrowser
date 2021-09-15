@@ -17,187 +17,113 @@ set windowtitle=full
 set mapsuggestposition=bottomleft
 
 " Custom Commands
-command! scroll_up <scrollUp>
-command! scroll_down <scrollDown>
-command! scroll_left <scrollLeft>
-command! scroll_left_ <p.scrollLeft>
-command! scroll_right_ <p.scrollRight>
-command! scroll_right <scrollRight>
-command! scroll-page_0_-1 <scrollPageUp>
-command! scroll-page_0_1 <scrollPageDown>
-command! scroll-to-perc_0 <scrollTop>
-command! scroll-to-perc <scrollBottom>
-command! tab-prev <previousTab>
-command! tab-next <nextTab>
-command! reload_--force <reloadWithoutCache>
-command! set_ <:help>
-command! download <:write>
-command! undo <reopenTab>
-command! navigate_prev <previousPage>
-command! navigate_prev_--tab <previousPageNewTab>
-command! navigate_next <nextPage>
-command! navigate_next_--tab <nextPageNewTab>
-command! navigate_up <toParentUrl>
-command! navigate_up_--tab <toParentUrl><openNewTabWithCurrentUrl><CR><toLastUsedTab><backInHistory><toLastUsedTab>
-command! tab-focus_1 <:b 0>
-command! tab-focus_-1 <:b -1>
-command! tab-focus_2 <:b 1>
-command! tab-focus_3 <:b 2>
-command! tab-focus_4 <:b 3>
-command! tab-focus_5 <:b 4>
-command! tab-focus_6 <:b 5>
-command! tab-focus_7 <:b 6>
-command! tab-focus_8 <:b 7>
-command! tab-focus_last <toLastUsedTab>
-command! open_--tab <openNewTab>
-command! open_--tab_--_{clipboard} <openNewTab><openFromClipboard>
-command! tab-clone <openNewTabWithCurrentUrl><CR>
-command! tab-move_+ <moveTabForward>
-command! tab-move_- <moveTabBackward>
-command! tab-only <:lclose><:rclose>
-command! zoom <zoomReset>
-command! tab-pin <:pin>
-command! tab-mute <:mute>
-command! stop <stopLoadingPage>
-command! set-cmd-text_--space_open_--tab <openNewTab><toExploreMode>
-command! set-cmd-text_--space_open <toExploreMode><BS>
-command! set-cmd-text_open_{urlpretty} <toExploreMode><End>
-command! set-cmd-text_--space_tab-select <toCommandMode>buffer<Space>
-command! yank <pageToClipboard>
-command! yank_selection <p.copyText>
-command! open_--_{clipboard} <openFromClipboard>
-command! set-cmd-text_--space_bind <toCommandMode>map<Space>
-command! set-cmd-text_--space_set <toCommandMode>set<Space>
-command! edit-text <editWithVim>
-command! completion-item-focus_prev <prevSuggestion>
-command! completion-item-focus_next <nextSuggestion>
-command! rl-beginning-of-line <Home>
-command! rl-end-of-line <End>
-command! rl-forward-word <C-Right>
-command! rl-backward-word <C-Left>
-command! rl-kill-word <C-S-Right><BS>
-command! rl-backward-kill-word <C-S-Left><BS>
-command! rl-delete-char <Del>
-command! rl-backward-delete-char <BS>
-command! rl-backward-char <Left>
-command! rl-forward-char <Right>
-command! rl-kill-line <S-End><BS>
-command! rl-unix-line-discard <S-Home><BS>
-command! rl-unix-word-rubout <C-S-Left><BS>
-command! completion-item-focus_next-category <nextSuggestionSection>
-command! completion-item-focus_prev-category <prevSuggestionSection>
-command! mode-enter_normal <toNormalMode>
-command! move-to-end-of-word <p.moveFastRight>
-command! selection-toggle_ <p.startVisualSelect>
-command! selection-toggle <p.start>
-command! selection-drop <toNormalMode><p.start><p.startVisualSelect>
 
 " Mappings
-nmap <Up> <:scroll_up>
-nmap <Down> <:scroll_down>
-nmap <Left> <:scroll_left>
-nmap <Right> <:scroll_right>
-nmap <PageUp> <:scroll-page_0_-1>
-nmap <PageDown> <:scroll-page_0_1>
-nmap <Home> <:scroll-to-perc_0>
-nmap <End> <:scroll-to-perc>
+nmap <Up> <scrollUp>
+nmap <Down> <scrollDown>
+nmap <Left> <scrollLeft>
+nmap <Right> <scrollRight>
+nmap <PageUp> <scrollPageUp>
+nmap <PageDown> <scrollPageDown>
+nmap <Home> <scrollTop>
+nmap <End> <scrollBottom>
 nmap wi <:devtools>
 nmap <C-I> <:devtools>
-nmap <C-PageUp> <:tab-prev>
-nmap <C-S-Tab> <:tab-prev>
-nmap <C-PageDown> <:tab-next>
-nmap <C-F5> <:reload_--force>
+nmap <C-PageUp> <previousTab>
+nmap <C-S-Tab> <previousTab>
+nmap <C-PageDown> <nextTab>
+nmap <C-F5> <reloadWithoutCache>
 nmap Sh <:history>
-nmap Ss <:set_>
+nmap Ss <:help>
 nmap <C-A-p> <:print>
 nmap <C-q> <:quit>
 nmap <C-W> <:quit>
 nmap ZQ <:quit>
-nmap gd <:download>
-nmap <C-T> <:undo>
+nmap gd <:write>
+nmap <C-T> <reopenTab>
 nunmap [
 nunmap ]
 nunmap {
 nunmap }
-nmap [[ <:navigate_prev>
-nmap ]] <:navigate_next>
-nmap {{ <:navigate_prev_--tab>
-nmap }} <:navigate_next_--tab>
-nmap gu <:navigate_up>
-nmap gU <:navigate_up_--tab>
-nmap <A-1> <:tab-focus_1>
-nmap g0 <:tab-focus_1>
-nmap g^ <:tab-focus_1>
-nmap g$ <:tab-focus_-1>
-nmap <A-2> <:tab-focus_2>
-nmap <A-3> <:tab-focus_3>
-nmap <A-4> <:tab-focus_4>
-nmap <A-5> <:tab-focus_5>
-nmap <A-6> <:tab-focus_6>
-nmap <A-7> <:tab-focus_7>
-nmap <A-8> <:tab-focus_8>
-nmap <A-9> <:tab-focus_-1>
-nmap <C-^> <:tab-focus_last>
-nmap <C-Tab> <:tab-focus_last>
-nmap ga <:open_--tab>
-nmap gC <:tab-clone>
-nmap gJ <:tab-move_+>
-nmap gK <:tab-move_->
-nmap <C-S-PageUp> <:tab-move_+>
-nmap <C-S-PageDown> <:tab-move_->
+nmap [[ <previousPage>
+nmap ]] <nextPage>
+nmap {{ <previousPageNewTab>
+nmap }} <nextPageNewTab>
+nmap gu <toParentUrl>
+nmap gU <toParentUrl><openNewTabWithCurrentUrl><CR><toLastUsedTab><backInHistory><toLastUsedTab>
+nmap <A-1> <:b 0>
+nmap g0 <:b 0>
+nmap g^ <:b -1>
+nmap g$ <:b -1>
+nmap <A-2> <:b 1>
+nmap <A-3> <:b 2>
+nmap <A-4> <:b 3>
+nmap <A-5> <:b 4>
+nmap <A-6> <:b 5>
+nmap <A-7> <:b 6>
+nmap <A-8> <:b 7>
+nmap <A-9> <:b 8>
+nmap <C-^> <toLastUsedTab>
+nmap <C-Tab> <toLastUsedTab>
+nmap ga <openNewTab>
+nmap gC <openNewTabWithCurrentUrl><CR>
+nmap gJ <moveTabForward>
+nmap gK <moveTabBackward>
+nmap <C-S-PageUp> <moveTabForward>
+nmap <C-S-PageDown> <moveTabBackward>
 " This is disabled as it prevents use of window split mappings.
 " See :h splitting for more information on window splits
 " nmap <C-w> <:close>
-nmap co <:tab-only>
-nmap = <:zoom>
-nmap <C-p> <:tab-pin>
-nmap <A-m> <:tab-mute>
-nmap <C-s> <:stop>
-nmap o <:set-cmd-text_--space_open>
-nmap go <:set-cmd-text_open_{urlpretty}>
-nmap gt <:set-cmd-text_--space_tab-select>
-nmap O <:set-cmd-text_--space_open_--tab>
+nmap co <:lclose><:rclose>
+nmap = <zoomReset>
+nmap <C-p> <:pin>
+nmap <A-m> <:mute>
+nmap <C-s> <stopLoadingPage>
+nmap o <toExploreMode><BS>
+nmap go <toExploreMode><End>
+nmap gt <toCommandMode>buffer<Space>
+nmap O <openNewTab><toExploreMode>
 nunmap y
 nunmap p
-nmap yy <:yank>
-nmap pp <:open_--_{clipboard}>
-nmap Pp <:open_--tab_--_{clipboard}>
-nmap sk <:set-cmd-text_--space_bind>
-nmap ss <:set-cmd-text_--space_set>
+nmap yy <pageToClipboard>
+nmap pp <openFromClipboard>
+nmap Pp <openNewTab><openFromClipboard>
+nmap sk <toCommandMode>map<Space>
+nmap ss <toCommandMode>set<Space>
 
-imap <C-e> <:edit-text>
+imap <C-e> <editWithVim>
 
-cmap <Up> <:completion-item-focus__prev>
-cmap <Down> <:completion-item-focus__next>
-cmap <C-a> <:rl-beginning-of-line>
-cmap <C-e> <:rl-end-of-line>
-cmap <A-f> <:rl-forward-word>
-cmap <A-b> <:rl-backward-word>
-cmap <A-d> <:rl-kill-word>
-cmap <A-BS> <:rl-backward-kill-word>
-cmap <C-?> <:rl-delete-char>
-cmap <C-h> <:rl-backward-delete-char>
-cmap <C-b> <:rl-backward-char>
-cmap <C-f> <:rl-forward-char>
-cmap <C-k> <:rl-kill-line>
-cmap <C-u> <:rl-unix-line-discard>
-cmap <C-w> <:rl-unix-word-rubout>
-cmap <C-e> <:edit-text>
+cmap <Up> <prevSuggestion>
+cmap <Down> <nextSuggestion>
+cmap <C-a> <Home>
+cmap <C-e> <End>
+cmap <A-f> <C-Right>
+cmap <A-b> <C-Left>
+cmap <A-d> <C-S-Right><BS>
+cmap <A-BS> <C-S-Left><BS>
+cmap <C-?> <Del>
+cmap <C-h> <BS>
+cmap <C-b> <Left>
+cmap <C-f> <Right>
+cmap <C-k> <S-End><BS>
+cmap <C-u> <S-Home><BS>
+cmap <C-w> <C-S-Left><BS>
+cmap <C-e> <editWithVim>
 
-emap <C-e> <:edit-text>
-emap <C-Tab> <:completion-item-focus_next-category>
-emap <C-S-Tab> <:completion-item-focus_prev-category>
+emap <C-e> <editWithVim>
+emap <C-Tab> <nextSuggestionSection>
+emap <C-S-Tab> <prevSuggestionSection>
 
-smap <C-e> <:edit-text>
+smap <C-e> <editWithVim>
 
-pmap c <:mode-enter_normal>
-pmap e <:move-to-end-of-word>
-pmap H <:scroll_left_>
-pmap L <:scroll_right_>
-pmap <Space> <:selection-toggle_>
+pmap c <toNormalMode>
+pmap e <p.moveFastRight>
+pmap H <p.scrollLeft>
+pmap L <p.scrollRight>
+pmap <Space> <p.startVisualSelect>
 
-vmap v <:selection-toggle>
-vmap <CR> <:yank_selection>
-vmap <C-Space> <:selection-drop>
+vmap v <p.start>
+vmap <CR> <p.copyText>
+vmap <C-Space> <toNormalMode><p.start><p.startVisualSelect>
 
 " vim: ft=vim
