@@ -120,9 +120,8 @@ const init = () => {
                 }
             })
         })
-        ipcRenderer.on("navigate-to", (_, url) => {
-            navigateTo(stringToUrl(url))
-        })
+        ipcRenderer.on("navigate-to", (_, url) => navigateTo(stringToUrl(url)))
+        ipcRenderer.on("new-tab", (_, url) => addTab({"url": stringToUrl(url)}))
         if (listTabs().length === 0 && !erwicMode) {
             if (parsed) {
                 addTab()
@@ -187,7 +186,7 @@ const addTab = (options = {}) => {
     if (options.url?.startsWith("devtools://")) {
         return
     }
-    if (options.url === "about:blank" || options.url === "") {
+    if (options.url?.startsWith("about:blank") || options.url === "") {
         return
     }
     linkId += 1
@@ -387,8 +386,7 @@ const unsuspendPage = page => {
     if (appConfig().autoplay === "user") {
         prefs += ",autoplayPolicy=document-user-activation-required"
     }
-    // Workaround for https://github.com/electron/electron/issues/30886
-    prefs += ",nativeWindowOpen=false"
+    webview.setAttribute("allowpopups", "true")
     webview.setAttribute("webpreferences", prefs)
     const sessionName = page.getAttribute("container")
     ipcRenderer.send("create-session", `persist:${sessionName}`,
@@ -409,8 +407,6 @@ const unsuspendPage = page => {
             if (tab.getAttribute("muted")) {
                 webview.setAudioMuted(true)
             }
-            ipcRenderer.send("webview-listeners", webview.getWebContentsId(),
-                webview.getAttribute("link-id"))
             addWebviewListeners(webview)
             webview.setUserAgent("")
             if (isDevtoolsTab) {

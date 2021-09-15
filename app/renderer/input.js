@@ -769,8 +769,8 @@ const init = () => {
         }
     })
     const {ipcRenderer} = require("electron")
-    ipcRenderer.on("zoom-changed", (_, linkId, direction) => {
-        const page = listPages().find(p => p.getAttribute("link-id") === linkId)
+    ipcRenderer.on("zoom-changed", (_, contentsId, direction) => {
+        const page = listPages().find(p => p.getWebContentsId() === contentsId)
         if (!page || !getMouseConf("scrollzoom")) {
             return
         }

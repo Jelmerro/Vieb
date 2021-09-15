@@ -431,11 +431,11 @@ app.on("ready", () => {
         "show": argDebugMode,
         "title": app.getName(),
         "webPreferences": {
+            "allowpopups": true,
             "contextIsolation": false,
             "disableBlinkFeatures": "Auxclick",
             "enableRemoteModule": false,
-            // Workaround for https://github.com/electron/electron/issues/30886
-            "nativeWindowOpen": false,
+            "nativeWindowOpen": true,
             "nodeIntegration": false,
             "preload": joinPath(__dirname, "renderer/index.js"),
             "sandbox": false,
@@ -478,21 +478,46 @@ app.on("ready", () => {
             prefs.enableRemoteModule = false
             prefs.webSecurity = argSiteIsolation === "strict"
         })
-        mainWindow.webContents.on("did-attach-webview", (_, contents) => {
-            let navigationUrl = null
-            contents.on("did-start-navigation", (__, url) => {
-                navigationUrl = url
-            })
-            contents.on("did-redirect-navigation", (__, url) => {
-                if (navigationUrl !== url) {
-                    mainWindow.webContents.send("redirect", navigationUrl, url)
-                }
-            })
-        })
         if (argDebugMode) {
             mainWindow.webContents.openDevTools({"mode": "undocked"})
         }
         mainWindow.webContents.send("urls", resolveLocalPaths(urls))
+    })
+    mainWindow.webContents.on("did-attach-webview", (_, contents) => {
+        let navigationUrl = null
+        contents.on("did-start-navigation", (__, url) => {
+            navigationUrl = url
+        })
+        contents.on("did-redirect-navigation", (__, url) => {
+            if (navigationUrl !== url) {
+                mainWindow.webContents.send("redirect", navigationUrl, url)
+            }
+        })
+        contents.setWebRTCIPHandlingPolicy("default_public_interface_only")
+        contents.on("before-input-event", (e, input) => {
+            if (blockedInsertMappings === "pass") {
+                return
+            }
+            if (blockedInsertMappings === "all") {
+                e.preventDefault()
+            } else if (currentInputMatches(input)) {
+                e.preventDefault()
+            }
+            mainWindow.webContents.send("insert-mode-input-event", input)
+        })
+        contents.on("zoom-changed", (__, dir) => {
+            mainWindow.webContents.send("zoom-changed", contents.id, dir)
+        })
+        contents.on("certificate-error", (e, url, err, cert, fn) => {
+            e.preventDefault()
+            permissionHandler(null, "certificateerror", fn, {
+                cert, "error": err, "requestingUrl": url
+            })
+        })
+        contents.setWindowOpenHandler(details => {
+            mainWindow.webContents.send("new-tab", details.url)
+            return {"action": "deny"}
+        })
     })
     // Show a dialog for sites requiring Basic HTTP authentication
     const loginWindowData = {
@@ -1421,30 +1446,6 @@ const currentInputMatches = input => blockedInsertMappings.find(mapping => {
         }
     }
     return false
-})
-ipcMain.on("webview-listeners", (_, id, linkId) => {
-    webContents.fromId(id).setWebRTCIPHandlingPolicy(
-        "default_public_interface_only")
-    webContents.fromId(id).on("before-input-event", (e, input) => {
-        if (blockedInsertMappings === "pass") {
-            return
-        }
-        if (blockedInsertMappings === "all") {
-            e.preventDefault()
-        } else if (currentInputMatches(input)) {
-            e.preventDefault()
-        }
-        mainWindow.webContents.send("insert-mode-input-event", input)
-    })
-    webContents.fromId(id).on("zoom-changed", (__, direction) => {
-        mainWindow.webContents.send("zoom-changed", linkId, direction)
-    })
-    webContents.fromId(id).on("certificate-error", (e, url, err, cert, fn) => {
-        e.preventDefault()
-        permissionHandler(null, "certificateerror", fn, {
-            cert, "error": err, "requestingUrl": url
-        })
-    })
 })
 ipcMain.on("set-window-title", (_, t) => {
     mainWindow.title = t
