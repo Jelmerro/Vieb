@@ -469,19 +469,19 @@ app.on("ready", () => {
         mainWindow.webContents.on("new-window", e => e.preventDefault())
         mainWindow.webContents.on("will-navigate", e => e.preventDefault())
         mainWindow.webContents.on("will-redirect", e => e.preventDefault())
-        mainWindow.webContents.on("will-attach-webview", (_, prefs) => {
-            delete prefs.preloadURL
-            prefs.preload = joinPath(__dirname, "preload/index.js")
-            prefs.nodeIntegration = false
-            prefs.nodeIntegrationInSubFrames = false
-            prefs.contextIsolation = false
-            prefs.enableRemoteModule = false
-            prefs.webSecurity = argSiteIsolation === "strict"
-        })
         if (argDebugMode) {
             mainWindow.webContents.openDevTools({"mode": "undocked"})
         }
         mainWindow.webContents.send("urls", resolveLocalPaths(urls))
+    })
+    mainWindow.webContents.on("will-attach-webview", (_, prefs) => {
+        delete prefs.preloadURL
+        prefs.preload = joinPath(__dirname, "preload/index.js")
+        prefs.nodeIntegration = false
+        prefs.nodeIntegrationInSubFrames = false
+        prefs.contextIsolation = false
+        prefs.enableRemoteModule = false
+        prefs.webSecurity = argSiteIsolation === "strict"
     })
     mainWindow.webContents.on("did-attach-webview", (_, contents) => {
         let navigationUrl = null

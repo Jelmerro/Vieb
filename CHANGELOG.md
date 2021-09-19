@@ -20,6 +20,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Make special mouse button dragging resize the screenshot frame by changing the width and height instead of position arguments
+- Examples with custom commands are now in a separate example file that isn't used by default, due to it's explicit and non-native nature
 
 ### Fixed
 
