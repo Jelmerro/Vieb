@@ -41,7 +41,7 @@ const tabOrPageMatching = el => {
     return null
 }
 
-const currentMode = () => document.body.getAttribute("current-mode")
+const currentMode = () => document.body.getAttribute("current-mode") || "normal"
 
 const getSetting = val => getStored("settings")?.[val]
 

@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Mouse feature "screenshotframe" which allows you to drag the screenshot frame to a specific position
+- Visual feedback for follow feature of the mouse using new highlight on hover
 
 ### Changed
 

@@ -278,6 +278,7 @@ const init = () => {
     updateDownloadSettings()
     updatePermissionSettings()
     updateWebviewSettings()
+    updateMouseSettings()
     ipcRenderer.invoke("list-spelllangs").then(langs => {
         spelllangs = langs || []
         spelllangs.push("system")
@@ -700,6 +701,24 @@ const isValidSetting = (setting, value) => {
     return checkOther(setting, parsedValue)
 }
 
+const updateMouseSettings = () => {
+    const styledMouseSettings = [
+        "follow",
+        "modeselector",
+        "pageininsert",
+        "pageoutsideinsert",
+        "suggestselect",
+        "switchtab"
+    ]
+    for (const mouseSetting of styledMouseSettings) {
+        if (getMouseConf(mouseSetting)) {
+            document.body.classList.add(`mouse-${mouseSetting}`)
+        } else {
+            document.body.classList.remove(`mouse-${mouseSetting}`)
+        }
+    }
+}
+
 const updateContainerSettings = (full = true) => {
     if (full) {
         for (const page of listPages()) {
@@ -952,20 +971,7 @@ const set = (setting, value) => {
             applyLayout()
         }
         if (setting === "mouse") {
-            const styledMouseSettings = [
-                "pageininsert",
-                "pageoutsideinsert",
-                "modeselector",
-                "switchtab",
-                "suggestselect"
-            ]
-            for (const mouseSetting of styledMouseSettings) {
-                if (getMouseConf(mouseSetting)) {
-                    document.body.classList.add(`mouse-${mouseSetting}`)
-                } else {
-                    document.body.classList.remove(`mouse-${mouseSetting}`)
-                }
-            }
+            updateMouseSettings()
         }
         if (setting === "spelllang" || setting === "spell") {
             if (allSettings.spell) {
