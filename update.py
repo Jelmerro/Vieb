@@ -20,7 +20,7 @@ import subprocess
 import re
 
 overrides = {
-    "electron": "beta"
+    "electron-builder": "next"
 }
 
 
@@ -63,11 +63,11 @@ def main():
     except OSError:
         pass
     print("\n  = Installing modules\n")
-    subprocess.run(["npm", "install", "--force"], check=False)
+    subprocess.run(["npm", "install", "--legacy-peer-deps"], check=False)
     print("\n  = Fixing audit issues\n")
-    subprocess.run(["npm", "audit", "fix", "--force"], check=False)
+    subprocess.run(["npm", "audit", "fix", "--legacy-peer-deps"], check=False)
     print("\n  = Deduplicating dependencies\n")
-    subprocess.run(["npm", "dedup", "--force"], check=False)
+    subprocess.run(["npm", "dedup", "--legacy-peer-deps"], check=False)
 
 
 if __name__ == "__main__":
