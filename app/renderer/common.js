@@ -77,7 +77,7 @@ const setTopOfPageWithMouse = status => {
     updateGuiVisibility()
 }
 
-const updateScreenshotHightlight = (hide = false) => {
+const updateScreenshotHighlight = (hide = false) => {
     const dims = document.getElementById("url").value.split(" ").find(
         arg => arg?.match(/^\d+,\d+,\d+,\d+$/g))
     const highlight = document.getElementById("screenshot-highlight")
@@ -181,5 +181,5 @@ module.exports = {
     setTopOfPageWithMouse,
     tabOrPageMatching,
     updateGuiVisibility,
-    updateScreenshotHightlight
+    updateScreenshotHighlight
 }

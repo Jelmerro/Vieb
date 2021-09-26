@@ -40,7 +40,7 @@ const {
     currentMode,
     getSetting,
     getMouseConf,
-    updateScreenshotHightlight
+    updateScreenshotHighlight
 } = require("./common")
 
 let suggestions = []
@@ -359,9 +359,9 @@ const suggestCommand = searchStr => {
             suggestFiles(location).forEach(l => addCommand(
                 `screenshot${dims} ${l.path}`))
         }
-        updateScreenshotHightlight()
+        updateScreenshotHighlight()
     } else {
-        updateScreenshotHightlight(false)
+        updateScreenshotHighlight(false)
     }
     // Command: set
     const {suggestionList, settingsWithDefaults} = require("./settings")

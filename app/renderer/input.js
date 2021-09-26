@@ -27,7 +27,7 @@ const {
     listPages,
     setTopOfPageWithMouse,
     getMouseConf,
-    updateScreenshotHightlight
+    updateScreenshotHighlight
 } = require("./common")
 
 const ACTIONS = require("./actions")
@@ -877,7 +877,7 @@ const moveScreenshotFrame = (x, y) => {
         }
         url.value = url.value.replace(/\d+,\d+,\d+,\d+/g, `${rect.width},${
             rect.height},${rect.x},${rect.y}`)
-        updateScreenshotHightlight()
+        updateScreenshotHighlight()
         updateSuggestions()
     }
     lastX = x

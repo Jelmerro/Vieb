@@ -27,6 +27,8 @@ const {
     getMouseConf
 } = require("./common")
 
+const {propPixels} = require("../util")
+
 let followNewtab = true
 let alreadyFollowing = false
 let links = []
@@ -204,6 +206,17 @@ const parseAndDisplayLinks = receivedLinks => {
     links = links.slice(0, 675)
     const factor = currentPage().getZoomFactor()
     const followChildren = []
+    const {scrollWidth} = currentPage()
+    const fontsize = getSetting("fontsize")
+    const styling = document.createElement("span")
+    styling.className = "follow-url-border"
+    document.getElementById("follow").appendChild(styling)
+    const borderWidthOutline = propPixels(styling, "borderWidth")
+    styling.className = "follow-url"
+    let borderWidthKeys = propPixels(styling, "borderWidth") * 2
+    borderWidthKeys += propPixels(styling, "paddingLeft")
+    borderWidthKeys += propPixels(styling, "paddingRight")
+    document.getElementById("follow").removeChild(styling)
     links.forEach((link, index) => {
         if (!link) {
             return
@@ -250,15 +263,15 @@ const parseAndDisplayLinks = receivedLinks => {
         const linkElement = document.createElement("span")
         linkElement.textContent = numberToKeys(index, links.length)
         linkElement.className = `follow-${link.type}`
-        const charWidth = getSetting("fontsize") * 0.60191
-        const borderRightMargin = charWidth * linkElement.textContent.length
-            + getSetting("fontsize") * 0.5
-        let left = link.width * factor - getSetting("fontsize") * 0.1
-        if (x + width > currentPage().scrollWidth - borderRightMargin) {
-            left -= borderRightMargin
+        const charWidth = fontsize * 0.60191
+        const linkElementWidth = charWidth * linkElement.textContent.length
+            + borderWidthKeys + borderWidthOutline
+        let left = width - borderWidthOutline
+        if (x + width > scrollWidth - linkElementWidth) {
+            left = scrollWidth - x - linkElementWidth
         }
         linkElement.style.left = `${left.toFixed(2)}px`
-        linkElement.style.top = `-${getSetting("fontsize") * 0.07}px`
+        linkElement.style.top = `-${borderWidthOutline}px`
         linkElement.setAttribute("link-id", index)
         linkElement.addEventListener("mouseup", onclickListener)
         borderElement.appendChild(linkElement)

@@ -22,7 +22,7 @@ const {
     currentMode,
     guiRelatedUpdate,
     getMouseConf,
-    updateScreenshotHightlight
+    updateScreenshotHighlight
 } = require("./common")
 
 // Sort order determines the appearance in the mode list
@@ -52,7 +52,7 @@ const modes = {
         "onLeave": () => {
             const {emptySuggestions} = require("./suggest")
             emptySuggestions()
-            updateScreenshotHightlight(true)
+            updateScreenshotHighlight(true)
             const {resetScreenshotDrag} = require("./input")
             resetScreenshotDrag()
         }

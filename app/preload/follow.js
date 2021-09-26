@@ -495,8 +495,8 @@ ipcRenderer.on("contextmenu", (_, extraData = null) => {
     const parsed = parseElement(els[0])
     let x = parsed?.x || 0
     if (getComputedStyle(els[0]).font.includes("monospace")) {
-        x = parsed?.x + Number(getComputedStyle(els[0]).fontSize.replace(
-            "px", "")) * els[0].selectionStart * 0.6 - els[0].scrollLeft
+        x = parsed?.x + propPixels(els[0], "fontSize")
+            * els[0].selectionStart * 0.60191 - els[0].scrollLeft
     }
     let y = parsed?.y + parsed.height
     if (x > window.innerWidth || isNaN(x) || x === 0) {

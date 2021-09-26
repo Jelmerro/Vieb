@@ -18,7 +18,14 @@
 "use strict"
 
 const {
-    matchesQuery, stringToUrl, urlToString, specialChars, notify, title, isUrl
+    matchesQuery,
+    stringToUrl,
+    urlToString,
+    specialChars,
+    notify,
+    title,
+    isUrl,
+    propPixels
 } = require("../util")
 const {
     listTabs,
@@ -216,8 +223,8 @@ const webviewMenu = options => {
     }
     const {clipboard} = require("electron")
     const {backInHistory, forwardInHistory, reload} = require("./actions")
-    const webviewY = Number(page.style.top.replace("px", ""))
-    const webviewX = Number(page.style.left.replace("px", ""))
+    const webviewY = propPixels(page.style, "top")
+    const webviewX = propPixels(page.style, "left")
     const zoom = page.getZoomFactor()
     contextMenu.style.top = `${Math.round(options.y * zoom + webviewY)}px`
     contextMenu.style.left = `${Math.round(options.x * zoom + webviewX)}px`
@@ -475,7 +482,7 @@ const fixAlignmentNearBorders = () => {
     const bottomMenu = contextMenu.getBoundingClientRect().bottom
     const bottomWindow = document.body.getBoundingClientRect().bottom
     if (bottomMenu > bottomWindow) {
-        let top = Number(contextMenu.style.top.replace("px", ""))
+        let top = propPixels(contextMenu.style, "top")
             - contextMenu.getBoundingClientRect().height
         if (top < 0) {
             top = 0
@@ -485,8 +492,7 @@ const fixAlignmentNearBorders = () => {
     const rightMenu = contextMenu.getBoundingClientRect().right
     const rightWindow = document.body.getBoundingClientRect().right
     if (rightMenu > rightWindow) {
-        let left = Number(
-            contextMenu.style.left.replace("px", ""))
+        let left = propPixels(contextMenu.style, "left")
             - contextMenu.getBoundingClientRect().width
         if (left < 0) {
             left = 0

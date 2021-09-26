@@ -21,6 +21,8 @@ const {
     listTabs, listPages, currentPage, tabOrPageMatching, getSetting
 } = require("./common")
 
+const {propPixels} = require("../util")
+
 const layoutDivById = id => document.querySelector(
     `#pagelayout div[link-id='${id}']`)
 const suspendTimers = {}
@@ -259,7 +261,7 @@ const resize = (orientation, change) => {
             return
         }
     }
-    let flexGrow = Number(getComputedStyle(element).flexGrow) || 1
+    let flexGrow = propPixels(element, "flexGrow") || 1
     if (change === "grow") {
         flexGrow *= 1.5
     } else if (change === "shrink") {
@@ -267,20 +269,20 @@ const resize = (orientation, change) => {
     }
     if (flexGrow < 1) {
         [...element.parentNode.children].forEach(child => {
-            const current = Number(getComputedStyle(child).flexGrow) || 1
+            const current = propPixels(child, "flexGrow") || 1
             child.style.flexGrow = current / flexGrow
         })
         flexGrow = 1
     }
     if (flexGrow > 10) {
         [...element.parentNode.children].forEach(child => {
-            const current = Number(getComputedStyle(child).flexGrow) || 1
+            const current = propPixels(child, "flexGrow") || 1
             child.style.flexGrow = current / (flexGrow / 10)
         })
         flexGrow = 10
     }
     [...element.parentNode.children].forEach(child => {
-        const current = Number(getComputedStyle(child).flexGrow) || 1
+        const current = propPixels(child, "flexGrow") || 1
         child.style.flexGrow = Math.min(10, Math.max(1, current))
     })
     element.style.flexGrow = flexGrow
@@ -461,11 +463,11 @@ const applyLayout = () => {
     if (cur) {
         const follow = document.getElementById("follow")
         if (document.getElementById("pages").classList.contains("multiple")) {
-            const bor = getSetting("fontsize") * 0.15
-            follow.style.top = `${Math.round(Number(
-                cur.style.top.split(/[.|px]/g)[0]) + bor)}px`
-            follow.style.left = `${Math.round(Number(
-                cur.style.left.split(/[.|px]/g)[0]) + bor)}px`
+            const bor = propPixels(cur, "borderWidth")
+            follow.style.top = `${Math.round(propPixels(
+                cur.style, "top") + bor)}px`
+            follow.style.left = `${Math.round(propPixels(
+                cur.style, "left") + bor)}px`
         } else {
             follow.style.top = cur.style.top
             follow.style.left = cur.style.left

@@ -39,7 +39,8 @@ const {
     specialChars,
     appConfig,
     stringToUrl,
-    formatDate
+    formatDate,
+    propPixels
 } = require("../util")
 const {
     listTabs, listPages, currentTab, currentPage, tabOrPageMatching, getSetting
@@ -438,8 +439,8 @@ const translateDimsToRect = dims => {
         "x": Number(dims.split(",")[2]),
         "y": Number(dims.split(",")[3])
     }
-    const pageWidth = Number(currentPage().style.width.split(/[.px]/g)[0])
-    const pageHeight = Number(currentPage().style.height.split(/[.px]/g)[0])
+    const pageWidth = propPixels(currentPage().style, "width")
+    const pageHeight = propPixels(currentPage().style, "height")
     if (rect.x > pageWidth) {
         rect.x = pageWidth
     }

@@ -89,7 +89,6 @@ module.exports = {
         "no-eval": "error",
         "no-ex-assign": "error",
         "no-extend-native": "error",
-        "no-extra-bind": "error",
         "no-extra-boolean-cast": "error",
         "no-extra-label": "error",
         "no-extra-parens": "error",

@@ -122,19 +122,26 @@ const privacyFixes = (w = window) => {
         // Non-secure resources don't expose these APIs
     }
     // Empty the list of browser plugins, as there shouldn't be any installed
-    Object.defineProperty(w.navigator, "plugins", {"value": []})
-    Object.defineProperty(w.navigator, "mimeTypes", {"value": []})
+    Object.defineProperty(w.Navigator.prototype,
+        "plugins", {"get": (() => []).bind(null)})
+    Object.defineProperty(w.Navigator.prototype,
+        "mimeTypes", {"get": (() => []).bind(null)})
     // Don't share the connection information
-    Object.defineProperty(w.navigator, "connection", {})
+    Object.defineProperty(w.Navigator.prototype,
+        "connection", {"get": (() => undefined).bind(null)})
     // Disable the experimental keyboard API, which exposes every key mapping
-    Object.defineProperty(w.navigator, "keyboard", {})
+    Object.defineProperty(w.Navigator.prototype,
+        "keyboard", {"get": (() => undefined).bind(null)})
     // Disable the battery API entirely
-    w.navigator.getBattery = undefined
+    Object.defineProperty(w.Navigator.prototype,
+        "getBattery", {"get": (() => undefined).bind(null)})
     // Always return the cancel action for prompts, without throwing
     w.prompt = () => null
-    // Return the static maximum value for memory and thread count
-    Object.defineProperty(w.navigator, "hardwareConcurrency", {"value": 8})
-    Object.defineProperty(w.navigator, "deviceMemory", {"value": 8})
+    // Return a static maximum value for memory and thread count
+    Object.defineProperty(w.Navigator.prototype,
+        "hardwareConcurrency", {"get": (() => 8).bind(null)})
+    Object.defineProperty(w.Navigator.prototype,
+        "deviceMemory", {"get": (() => 8).bind(null)})
     // Hide graphics card information from the canvas API
     const getParam = w.WebGLRenderingContext.prototype.getParameter
     w.WebGLRenderingContext.prototype.getParameter = function(parameter) {
@@ -152,15 +159,21 @@ const privacyFixes = (w = window) => {
     }
     // If using Firefox mode, also modify the Firefox navigator properties
     if (w.navigator.userAgent.includes("Firefox")) {
-        Object.defineProperty(w.navigator,
-            "buildID", {"value": "20181001000000"})
-        Object.defineProperty(w.navigator,
-            "doNotTrack", {"value": "unspecified"})
-        Object.defineProperty(w.navigator,
-            "oscpu", {"value": w.navigator.platform})
-        Object.defineProperty(w.navigator, "productSub", {"value": "20100101"})
-        Object.defineProperty(w.navigator, "vendor", {"value": ""})
-        Object.defineProperty(w.navigator, "webdriver", {"value": false})
+        Object.defineProperty(w.Navigator.prototype,
+            "buildID", {"get": (() => "20181001000000").bind(null)})
+        Object.defineProperty(w.Navigator.prototype,
+            "doNotTrack", {"get": (() => "unspecified").bind(null)})
+        Object.defineProperty(w.Navigator.prototype,
+            "oscpu", {"get": (() => String(w.Navigator.platform)).bind(null)})
+        Object.defineProperty(w.Navigator.prototype,
+            "productSub", {"get": (() => "20100101").bind(null)})
+        Object.defineProperty(w.Navigator.prototype,
+            "vendor", {"get": (() => "").bind(null)})
+        Object.defineProperty(w.Navigator.prototype,
+            "webdriver", {"get": (() => false).bind(null)})
+        Object.defineProperty(w, "chrome", {})
+        Object.defineProperty(w.Navigator.prototype,
+            "userAgentData", {"get": (() => undefined).bind(null)})
     }
     // Provide a wrapper for window.open with a subset of the regular API
     // Also provide the option to open new tabs by setting the location property
@@ -169,8 +182,8 @@ const privacyFixes = (w = window) => {
             ipcRenderer.sendToHost("url", url)
         }
         const obj = {}
-        Object.defineProperty(obj, "location", {"get": () => "",
-            "set": val => { ipcRenderer.sendToHost("url", val) }})
+        Object.defineProperty(obj, "location", {"get": (() => "").bind(null),
+            "set": (val => { ipcRenderer.sendToHost("url", val) }).bind(null)})
         return obj
     }
 }

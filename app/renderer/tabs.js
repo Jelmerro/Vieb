@@ -37,7 +37,8 @@ const {
     sameDomain,
     notify,
     title,
-    listNotificationHistory
+    listNotificationHistory,
+    propPixels
 } = require("../util")
 const {
     listTabs,
@@ -931,8 +932,8 @@ const addWebviewListeners = webview => {
                     switchToTab(tab)
                 }
             }
-            const pageTop = Number(webview.style.top.split(/[.px]/g)[0])
-            const pageLeft = Number(webview.style.left.split(/[.px]/g)[0])
+            const pageTop = propPixels(webview.style, "top")
+            const pageLeft = propPixels(webview.style, "left")
             const {moveScreenshotFrame} = require("./input")
             moveScreenshotFrame(e.args[0] + pageLeft, e.args[1] + pageTop)
         }

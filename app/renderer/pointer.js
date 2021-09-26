@@ -20,7 +20,7 @@
 const {
     currentPage, currentMode, getSetting, tabOrPageMatching
 } = require("./common")
-const {matchesQuery} = require("../util")
+const {matchesQuery, propPixels} = require("../util")
 
 let X = 0
 let Y = 0
@@ -50,22 +50,13 @@ const handleScrollDiffEvent = diff => {
 }
 
 const offset = () => {
-    let top = Number(currentPage().style.top.split(/[.px]/g)[0])
-    let left = Number(currentPage().style.left.split(/[.px]/g)[0])
-    let bottom = top + Number(currentPage().style.height.split(/[.px]/g)[0])
-    let right = left + Number(currentPage().style.width.split(/[.px]/g)[0])
-    if (document.getElementById("pages").classList.contains("multiple")) {
-        top += getSetting("fontsize") * 0.15
-        left += getSetting("fontsize") * 0.15
-        bottom -= getSetting("fontsize") * 0.15
-        right -= getSetting("fontsize") * 0.15
-    }
-    return {
-        "bottom": Math.round(bottom),
-        "left": Math.round(left),
-        "right": Math.round(right),
-        "top": Math.round(top)
-    }
+    const page = currentPage()
+    const border = propPixels(page, "borderWidth")
+    const top = Math.round(propPixels(page.style, "top") + border)
+    const left = Math.round(propPixels(page.style, "left") + border)
+    const bottom = Math.round(top + propPixels(page.style, "height") + border)
+    const right = Math.round(left + propPixels(page.style, "width") + border)
+    return {bottom, left, right, top}
 }
 
 const updateElement = () => {

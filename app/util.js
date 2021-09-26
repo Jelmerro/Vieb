@@ -253,16 +253,17 @@ const storeFrameInfo = (element, options) => {
 const findFrameInfo = el => framePaddingInfo.find(i => i.element === el)
 
 const framePosition = frame => ({
-    "x": frame.getBoundingClientRect().x
-        + propPixels({"pl": getComputedStyle(frame).paddingLeft}, "pl")
-        + propPixels({"bl": getComputedStyle(frame).borderLeftWidth}, "bl"),
-    "y": frame.getBoundingClientRect().y
-        + propPixels({"pt": getComputedStyle(frame).paddingTop}, "pt")
-        + propPixels({"bt": getComputedStyle(frame).borderTopWidth}, "bt")
+    "x": frame.getBoundingClientRect().x + propPixels(frame, "paddingLeft")
+        + propPixels(frame, "borderLeftWidth"),
+    "y": frame.getBoundingClientRect().y + propPixels(frame, "paddingTop")
+        + propPixels(frame, "borderTopWidth")
 })
 
 const propPixels = (element, prop) => {
-    const value = element[prop]
+    const value = element[prop] || getComputedStyle(element)[prop]
+    if (typeof value === "number") {
+        return value
+    }
     if (value?.endsWith("px")) {
         return Number(value.replace("px", "")) || 0
     }
