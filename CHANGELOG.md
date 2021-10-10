@@ -20,8 +20,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Security
 
-- Electron 15.0.0 (was 15.0.0-beta.7)
-- Chromium 94.0.4606.51 (was 94.0.4606.31)
+- Electron 15.1.2 (was 15.0.0-beta.7)
+- Chromium 94.0.4606.71 (was 94.0.4606.31)
 - Privacy overrides now override the prototype getter instead of the function directly
 
 ## [6.1.0](https://github.com/Jelmerro/Vieb/compare/6.0.0...6.1.0) - 2021-09-19
