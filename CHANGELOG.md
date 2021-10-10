@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Alignment of calculated elements that relied on fixed numbers when using custom stylesheets
+- Default mapping for previous tab using CtrlShift-Tab not working
 
 ### Security
 
