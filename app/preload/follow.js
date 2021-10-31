@@ -442,10 +442,11 @@ const contextListener = (e, frame = null, extraData = null) => {
         ipcRenderer.sendToHost("context-click-info", {
             "audio": audio?.src?.trim(),
             "audioData": {
+                "controllable": !!audioEl,
                 "loop": ["", "loop", "true"].includes(
-                    audio?.getAttribute("loop")),
-                "muted": audio?.volume === 0,
-                "paused": audio?.paused
+                    audioEl?.getAttribute("loop")),
+                "muted": audioEl?.volume === 0,
+                "paused": audioEl?.paused
             },
             backgroundImg,
             "canEdit": !!text,
@@ -467,12 +468,13 @@ const contextListener = (e, frame = null, extraData = null) => {
             "text": (frame?.contentWindow || window).getSelection().toString(),
             "video": video?.src?.trim(),
             "videoData": {
+                "controllable": !!videoEl,
                 "controls": ["", "controls", "true"].includes(
-                    video?.getAttribute("controls")),
+                    videoEl?.getAttribute("controls")),
                 "loop": ["", "loop", "true"].includes(
-                    video?.getAttribute("loop")),
-                "muted": video?.volume === 0,
-                "paused": video?.paused
+                    videoEl?.getAttribute("loop")),
+                "muted": videoEl?.volume === 0,
+                "paused": videoEl?.paused
             },
             "x": e.x + (paddingInfo?.x || 0),
             "y": e.y + (paddingInfo?.y || 0)

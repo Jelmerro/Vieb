@@ -21,6 +21,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Alignment of calculated elements that relied on fixed numbers when using custom stylesheets
 - Default mapping for previous tab using CtrlShift-Tab not working
+- Audio and video control labels in context menu not being updated for elements with sourcesets
+- Incorrect media type being used for the context menu media controls in some cases, such as a video element playing only audio
 
 ### Security
 

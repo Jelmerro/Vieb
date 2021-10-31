@@ -358,8 +358,10 @@ const webviewMenu = options => {
         })
     }
     for (const type of ["frame", "video", "audio", "link"]) {
-        if (options[type]) {
+        if (options[type] || options[`${type}Data`]?.controllable) {
             createMenuGroup(title(type))
+        }
+        if (options[type]) {
             createMenuItem({
                 "action": () => commonAction(type, "open", options),
                 "title": "Navigate"
@@ -380,37 +382,36 @@ const webviewMenu = options => {
                 "action": () => commonAction(type, "external", options),
                 "title": "With external"
             })
-            if (type === "audio" || type === "video") {
-                let playTitle = "Pause"
-                if (options[`${type}Data`].paused) {
-                    playTitle = "Play"
-                }
-                createMenuItem({
-                    "action": () => currentPage()?.send("action",
-                        "togglePause", options.x, options.y),
-                    "title": playTitle
-                })
-                let muteTitle = "Mute"
-                if (options[`${type}Data`].muted) {
-                    muteTitle = "Unmute"
-                }
-                createMenuItem({
-                    "action": () => currentPage()?.send("action",
-                        "toggleMute", options.x, options.y),
-                    "title": muteTitle
-                })
-                let loopTitle = "Loop"
-                if (options[`${type}Data`].loop) {
-                    loopTitle = "Unloop"
-                }
-                createMenuItem({
-                    "action": () => currentPage()?.send("action",
-                        "toggleLoop", options.x, options.y),
-                    "title": loopTitle
-                })
-                if (type === "audio") {
-                    continue
-                }
+        }
+        if (options[`${type}Data`]?.controllable) {
+            let playTitle = "Pause"
+            if (options[`${type}Data`].paused) {
+                playTitle = "Play"
+            }
+            createMenuItem({
+                "action": () => currentPage()?.send("action",
+                    "togglePause", options.x, options.y),
+                "title": playTitle
+            })
+            let muteTitle = "Mute"
+            if (options[`${type}Data`].muted) {
+                muteTitle = "Unmute"
+            }
+            createMenuItem({
+                "action": () => currentPage()?.send("action",
+                    "toggleMute", options.x, options.y),
+                "title": muteTitle
+            })
+            let loopTitle = "Loop"
+            if (options[`${type}Data`].loop) {
+                loopTitle = "Unloop"
+            }
+            createMenuItem({
+                "action": () => currentPage()?.send("action",
+                    "toggleLoop", options.x, options.y),
+                "title": loopTitle
+            })
+            if (type === "video") {
                 let controlsTitle = "Show controls"
                 if (options[`${type}Data`].controls) {
                     controlsTitle = "Hide controls"
