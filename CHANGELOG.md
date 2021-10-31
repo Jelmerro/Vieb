@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Changed
+
+- Scriptnames command will now print the script index before the file path
+
 ### Fixed
 
 - Alignment of calculated elements that relied on fixed numbers when using custom stylesheets

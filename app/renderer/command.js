@@ -897,12 +897,12 @@ const commands = {
             notify(`Command takes no arguments: scriptnames`, "warn")
             return
         }
-        notify(appConfig().files.join("\n"))
+        notify(appConfig().files.map((f, i) => `${i + 1}: ${f}`).join("\n"))
     },
     "scriptnames!": (...args) => {
         const scripts = [...appConfig().files, ...sourcedFiles]
         if (args.length === 0) {
-            notify(scripts.join("\n"))
+            notify(scripts.map((f, i) => `${i + 1}: ${f}`).join("\n"))
         } else if (args.length === 1) {
             const number = Number(args[0])
             if (isNaN(number)) {
