@@ -1008,6 +1008,10 @@ const set = (setting, value) => {
         if (setting === "redirects") {
             ipcRenderer.send("set-redirects", allSettings.redirects)
         }
+        if (setting === "suspendtimeout") {
+            const {restartSuspendTimeouts} = require("./pagelayout")
+            restartSuspendTimeouts()
+        }
         if (setting === "windowtitle") {
             updateWindowTitle()
         }

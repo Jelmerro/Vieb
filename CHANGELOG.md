@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Scriptnames command will now print the script index before the file path
+- Automatic suspend timers of "suspendtimeout" will be restarted when the value is updated
 
 ### Fixed
 

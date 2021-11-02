@@ -390,6 +390,14 @@ const removeRedundantContainers = () => {
         })
 }
 
+const restartSuspendTimeouts = () => {
+    for (const linkId of Object.keys(suspendTimers)) {
+        clearTimeout(suspendTimers[linkId])
+        delete suspendTimers[linkId]
+    }
+    applyLayout()
+}
+
 const applyLayout = () => {
     document.querySelectorAll("#pagelayout *[link-id]").forEach(element => {
         const id = element.getAttribute("link-id")
@@ -489,6 +497,7 @@ module.exports = {
     previousSplit,
     resetResizing,
     resize,
+    restartSuspendTimeouts,
     rotateForward,
     rotateReverse,
     setLastUsedTab,
