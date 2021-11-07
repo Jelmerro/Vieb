@@ -179,11 +179,15 @@ const privacyFixes = (w = window) => {
     // Also provide the option to open new tabs by setting the location property
     w.open = (url = null) => {
         if (url) {
-            ipcRenderer.sendToHost("url", url)
+            ipcRenderer.sendToHost(
+                "url", new URL(url, window.location.href).href)
         }
         const obj = {}
         Object.defineProperty(obj, "location", {"get": (() => "").bind(null),
-            "set": (val => { ipcRenderer.sendToHost("url", val) }).bind(null)})
+            "set": (val => {
+                ipcRenderer.sendToHost(
+                    "url", new URL(val, window.location.href).href)
+            }).bind(null)})
         return obj
     }
 }

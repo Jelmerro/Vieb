@@ -30,6 +30,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Incorrect media type being used for the context menu media controls in some cases, such as a video element playing only audio
 - Index for the buffer-like commands being shifted if the results are filtered
 - Target blank links opening in new tab when using the mouse to click on them
+- Relative urls opened using the window.open proxy doing a web search instead of navigation
 
 ### Security
 
