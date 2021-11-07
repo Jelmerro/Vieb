@@ -122,7 +122,9 @@ const init = () => {
             })
         })
         ipcRenderer.on("navigate-to", (_, url) => navigateTo(stringToUrl(url)))
-        ipcRenderer.on("new-tab", (_, url) => addTab({"url": stringToUrl(url)}))
+        ipcRenderer.on("new-tab", (_, url) => addTab({
+            "switchTo": getSetting("mousenewtabswitch"), "url": stringToUrl(url)
+        }))
         if (listTabs().length === 0 && !erwicMode) {
             if (parsed) {
                 addTab()

@@ -514,8 +514,12 @@ app.on("ready", () => {
                 cert, "error": err, "requestingUrl": url
             })
         })
-        contents.setWindowOpenHandler(details => {
-            mainWindow.webContents.send("new-tab", details.url)
+        contents.setWindowOpenHandler(e => {
+            if (e.disposition === "foreground-tab") {
+                mainWindow.webContents.send("navigate-to", e.url)
+            } else {
+                mainWindow.webContents.send("new-tab", e.url)
+            }
             return {"action": "deny"}
         })
     })

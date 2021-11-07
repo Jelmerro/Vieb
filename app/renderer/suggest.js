@@ -570,7 +570,7 @@ const suggestCommand = searchStr => {
             "command": `${bufferCommand} ${tabs.indexOf(t)}`,
             "subtext": `${t.querySelector("span").textContent}`,
             "url": tabOrPageMatching(t).src
-        })).filter((t, i) => {
+        })).filter(t => {
             let num = Number(args.join(""))
             if (!isNaN(num)) {
                 if (num >= tabs.length) {
@@ -583,7 +583,7 @@ const suggestCommand = searchStr => {
                     num = 0
                 }
             }
-            if (args.length === 1 && num === i) {
+            if (args.length === 1 && num === tabs.indexOf(t)) {
                 return true
             }
             const tabUrl = t.url.replace(specialChars, "").toLowerCase()

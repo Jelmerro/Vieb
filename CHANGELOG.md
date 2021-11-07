@@ -24,6 +24,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Default mapping for previous tab using CtrlShift-Tab not working
 - Audio and video control labels in context menu not being updated for elements with sourcesets
 - Incorrect media type being used for the context menu media controls in some cases, such as a video element playing only audio
+- Index for the buffer-like commands being shifted if the results are filtered
+- Target blank links opening in new tab when using the mouse to click on them
 
 ### Security
 
