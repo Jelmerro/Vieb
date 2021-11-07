@@ -653,6 +653,32 @@ const pageToClipboard = () => {
     clipboard.writeText(urlToString(currentPage()?.src).replace(/ /g, "%20"))
 }
 
+const pageTitleToClipboard = () => {
+    const {clipboard} = require("electron")
+    clipboard.writeText(currentTab().querySelector("span").textContent)
+}
+
+const pageToClipboardMarkdown = () => {
+    const {clipboard} = require("electron")
+    const url = urlToString(currentPage()?.src).replace(/ /g, "%20")
+    const title = currentTab().querySelector("span").textContent
+    clipboard.writeText(`[${title}](${url})`)
+}
+
+const pageToClipboardRST = () => {
+    const {clipboard} = require("electron")
+    const url = urlToString(currentPage()?.src).replace(/ /g, "%20")
+    const title = currentTab().querySelector("span").textContent
+    clipboard.writeText(`\`${title} <${url}>\`_`)
+}
+
+const pageToClipboardEmacs = () => {
+    const {clipboard} = require("electron")
+    const url = urlToString(currentPage()?.src).replace(/ /g, "%20")
+    const title = currentTab().querySelector("span").textContent
+    clipboard.writeText(`[[${url}][${title}]]`)
+}
+
 const openFromClipboard = () => {
     const {clipboard} = require("electron")
     if (clipboard.readText().trim()) {
@@ -859,7 +885,11 @@ module.exports = {
     openLinkExternal,
     openNewTab,
     openNewTabWithCurrentUrl,
+    pageTitleToClipboard,
     pageToClipboard,
+    pageToClipboardMarkdown,
+    pageToClipboardRST,
+    pageToClipboardEmacs,
     prevSuggestion,
     prevSuggestionSection,
     previousPage,

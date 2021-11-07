@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Actions "pageTitleToClipboard", "pageToClipboardMarkdown", "pageToClipboardRST" and "pageToClipboardEmacs" for easier pasting in editors
+
 ### Changed
 
 - Scriptnames command will now print the script index before the file path
