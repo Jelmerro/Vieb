@@ -39,11 +39,9 @@ nmap ]] <increasePageNumber>
 nmap e <scrollPageUpHalf>
 nmap u <scrollPageUpHalf>
 nmap d <scrollPageDownHalf>
-nunmap y
 nmap yg <:screenshot>
 nmap yt <openNewTabWithCurrentUrl><CR>
 nmap yT <openNewTabWithCurrentUrl><CR><toLastUsedTab>
-nmap yy <pageToClipboard>
 nmap g0 <:buffer 0>
 nmap g$ <:buffer -1>
 nmap gx0 <:lclose>

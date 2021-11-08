@@ -81,9 +81,7 @@ nmap o <toExploreMode><BS>
 nmap go <toExploreMode><End>
 nmap gt <toCommandMode>buffer<Space>
 nmap O <openNewTab><toExploreMode>
-nunmap y
 nunmap p
-nmap yy <pageToClipboard>
 nmap pp <openFromClipboard>
 nmap Pp <openNewTab><openFromClipboard>
 nmap sk <toCommandMode>map<Space>

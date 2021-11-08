@@ -33,7 +33,6 @@ set searchwords+=gentoo_wiki~https://wiki.gentoo.org/index.php?title=Special:Sea
 set searchwords+=qwant~https://www.qwant.com/?q=%s
 
 " Custom Commands
-command! clipboard_yank <pageToClipboard>
 command! fillcmdline_open <toExploreMode>
 command! fillcmdline_tab <toCommandMode>buffer<Space>
 command! tabfirst <:buffer 0>
@@ -64,7 +63,6 @@ command! zoom_3 7<zoomIn>
 command! zoom_0.3 7<zoomOut>
 
 " Mappings
-nmap yy <:clipboard_yank>
 nmap o <:fillcmdline_open>
 nmap b <:fillcmdline_tab>
 nmap g0 <:tabfirst>

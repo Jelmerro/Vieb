@@ -23,7 +23,6 @@ nmap gg <scrollTop>
 nmap G <scrollBottom>
 nmap d <scrollPageDownHalf>
 nmap u <scrollPageUpHalf>
-nmap yy <pageToClipboard>
 nmap p <openFromClipboard>
 nmap P <openNewTab><openFromClipboard>
 nmap gu <toParentUrl>

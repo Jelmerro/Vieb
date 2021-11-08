@@ -15,7 +15,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Added
 
-- Actions "pageTitleToClipboard", "pageToClipboardMarkdown", "pageToClipboardRST" and "pageToClipboardEmacs" for easier pasting in editors
+- Actions "pageTitleToClipboard", "pageToClipboardHTML", "pageToClipboardMarkdown", "pageToClipboardRST" and "pageToClipboardEmacs" for easier pasting in editors
 
 ### Changed
 

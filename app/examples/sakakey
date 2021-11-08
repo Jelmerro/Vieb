@@ -73,8 +73,6 @@ nmap ff <startFollowCurrentTab>
 nmap fF <:set follownewtabswitch><startFollowNewTab>
 nmap fb <:set nofollownewtabswitch><startFollowCurrentTab>
 nmap fi <insertAtFirstInput>
-nunmap y
-nmap yy <pageToClipboard>
 nmap yf <openFromClipboard>
 nmap yF <:set follownewtabswitch><openNewTab><openFromClipboard>
 nmap yb <:set nofollownewtabswitch><openNewTab><openFromClipboard>

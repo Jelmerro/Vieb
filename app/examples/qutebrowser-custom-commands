@@ -63,7 +63,6 @@ command! set-cmd-text_--space_open_--tab <openNewTab><toExploreMode>
 command! set-cmd-text_--space_open <toExploreMode><BS>
 command! set-cmd-text_open_{urlpretty} <toExploreMode><End>
 command! set-cmd-text_--space_tab-select <toCommandMode>buffer<Space>
-command! yank <pageToClipboard>
 command! yank_selection <p.copyText>
 command! open_--_{clipboard} <openFromClipboard>
 command! set-cmd-text_--space_bind <toCommandMode>map<Space>
@@ -157,9 +156,7 @@ nmap o <:set-cmd-text_--space_open>
 nmap go <:set-cmd-text_open_{urlpretty}>
 nmap gt <:set-cmd-text_--space_tab-select>
 nmap O <:set-cmd-text_--space_open_--tab>
-nunmap y
 nunmap p
-nmap yy <:yank>
 nmap pp <:open_--_{clipboard}>
 nmap Pp <:open_--tab_--_{clipboard}>
 nmap sk <:set-cmd-text_--space_bind>

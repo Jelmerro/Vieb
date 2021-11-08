@@ -33,7 +33,6 @@ set searchwords+=gentoo_wiki~https://wiki.gentoo.org/index.php?title=Special:Sea
 set searchwords+=qwant~https://www.qwant.com/?q=%s
 
 " Mappings
-nmap yy <pageToClipboard>
 nmap o <toExploreMode>
 nmap b <toCommandMode>buffer<Space>
 nmap g0 <:buffer

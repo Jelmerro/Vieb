@@ -26,7 +26,6 @@ command! scrollFullPageDown <scrollPageDown>
 command! scrollFullPageUp <scrollPageUp>
 command! scrollPageDown <scrollPageDownHalf>
 command! scrollPageUp <scrollPageUpHalf>
-command! copyCurrentUrl <pageToClipboard>
 command! openCopiedUrlInCurrentTab <openFromClipboard>
 command! openCopiedUrlInNewTab <openNewTab><openFromClipboard>
 command! goUp <toParentUrl>
@@ -72,7 +71,6 @@ nmap gg <:scrollToTop>
 nmap G <:scrollToBottom>
 nmap d <:scrollPageDown>
 nmap u <:scrollPageUp>
-nmap yy <:copyCurrentUrl>
 nmap p <:openCopiedUrlInCurrentTab>
 nmap P <:openCopiedUrlInNewTab>
 nmap gu <:goUp>

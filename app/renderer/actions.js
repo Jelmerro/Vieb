@@ -658,6 +658,13 @@ const pageTitleToClipboard = () => {
     clipboard.writeText(currentTab().querySelector("span").textContent)
 }
 
+const pageToClipboardHTML = () => {
+    const {clipboard} = require("electron")
+    const url = urlToString(currentPage()?.src).replace(/ /g, "%20")
+    const title = currentTab().querySelector("span").textContent
+    clipboard.writeText(`<a href="${url}">${title}</a>`)
+}
+
 const pageToClipboardMarkdown = () => {
     const {clipboard} = require("electron")
     const url = urlToString(currentPage()?.src).replace(/ /g, "%20")
@@ -887,9 +894,10 @@ module.exports = {
     openNewTabWithCurrentUrl,
     pageTitleToClipboard,
     pageToClipboard,
+    pageToClipboardEmacs,
+    pageToClipboardHTML,
     pageToClipboardMarkdown,
     pageToClipboardRST,
-    pageToClipboardEmacs,
     prevSuggestion,
     prevSuggestionSection,
     previousPage,
