@@ -115,9 +115,8 @@ const searchword = location => {
                 while (urlString.includes("%s") && counter < patternMatches) {
                     if (0 in queries) {
                         urlString = urlString.replace(/%s/, encodeURIComponent(queries.shift()))
-                    }
-                    else {
-                       urlString = urlString.replace(/%s/g, "");
+                    } else {
+                        urlString = urlString.replace(/%s/g, "")
                     }
                     counter += 1
                 }
