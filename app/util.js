@@ -110,9 +110,19 @@ const searchword = location => {
             if (q && location.startsWith(`${word} `)) {
                 const queries = q.split(",").map(item => item.trim())
                 let urlString = url
-                while (urlString.includes("%s")) {
-                    urlString = urlString.replace(/%s/, encodeURIComponent(queries.shift()))
+                let counter = 1
+                const patternMatches = (urlString.match(/%s/g) || []).length
+                while (urlString.includes("%s") && counter < patternMatches) {
+                    if (0 in queries) {
+                        urlString = urlString.replace(/%s/, encodeURIComponent(queries.shift()))
+                    }
+                    else {
+                       urlString = urlString.replace(/%s/g, "");
+                    }
+                    counter += 1
                 }
+                const remainderString = queries.join(", ")
+                urlString = urlString.replace(/%s/, encodeURIComponent(remainderString))
                 return {"url": urlString, word}
             }
         }
