@@ -609,7 +609,7 @@ const checkOther = (setting, value) => {
         const ok = ["url", "onclick", "inputs-insert", "inputs-click", "other"]
         for (const element of value.split(",")) {
             if (!ok.includes(element)) {
-                notify(`Invalid element type passed:${element}, `
+                notify(`Invalid element type passed: ${element}, `
                        + `must be any combination of: url, onclick,
                           inputs-insert, inputs-click or other`)
                 return false

@@ -446,19 +446,13 @@ app.on("ready", () => {
     mainWindow = new BrowserWindow(windowData)
     mainWindow.removeMenu()
     mainWindow.setMinimumSize(500, 500)
-    mainWindow.on("focus", () => {
-        mainWindow.webContents.send("window-focus")
-    })
-    mainWindow.on("blur", () => {
-        mainWindow.webContents.send("window-blur")
-    })
+    mainWindow.on("focus", () => mainWindow.webContents.send("window-focus"))
+    mainWindow.on("blur", () => mainWindow.webContents.send("window-blur"))
     mainWindow.on("close", e => {
         e.preventDefault()
         mainWindow.webContents.send("window-close")
     })
-    mainWindow.on("closed", () => {
-        app.exit(0)
-    })
+    mainWindow.on("closed", () => app.exit(0))
     mainWindow.on("app-command", (e, cmd) => {
         mainWindow.webContents.send("app-command", cmd)
         e.preventDefault()

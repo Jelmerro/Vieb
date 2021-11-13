@@ -322,7 +322,7 @@ const openDevTools = (userPosition = null, trailingArgs = false) => {
     }
     const position = userPosition || getSetting("devtoolsposition")
     if (position === "window") {
-        currentPage()?.openDevTools()
+        currentPage()?.openDevTools({"mode": "undocked"})
     } else if (position === "tab") {
         const {addTab} = require("./tabs")
         addTab({"devtools": true})
