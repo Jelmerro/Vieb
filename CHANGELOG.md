@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Actions "pageTitleToClipboard", "pageToClipboardHTML", "pageToClipboardMarkdown", "pageToClipboardRST" and "pageToClipboardEmacs" for easier pasting in editors
+- Setting "followelement" to filter which kind of elements should be shown in follow mode
 
 ### Changed
 
@@ -34,7 +35,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Security
 
-- Electron 15.3.0 (was 15.0.0-beta.7)
+- Electron 15.3.1 (was 15.0.0-beta.7)
 - Chromium 94.0.4606.81 (was 94.0.4606.31)
 - Privacy overrides now override the prototype getter instead of the function directly
 
