@@ -93,6 +93,7 @@ const defaultSettings = {
     "favicons": "session",
     "favoritepages": "",
     "firefoxmode": "never",
+    "followelement": "url,onclick,inputs-insert,inputs-click,other",
     "follownewtabswitch": true,
     "fontsize": 14,
     "guifullscreennavbar": "oninput",
@@ -183,6 +184,7 @@ const freeText = ["downloadpath", "externalcommand", "vimcommand"]
 const listLike = [
     "containercolors",
     "favoritepages",
+    "followelement",
     "modifiers",
     "mouse",
     "permissionsallowed",
