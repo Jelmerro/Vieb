@@ -93,6 +93,7 @@ const defaultSettings = {
     "favicons": "session",
     "favoritepages": "",
     "firefoxmode": "never",
+    "followelement": "url,onclick,inputs-insert,inputs-click,other",
     "follownewtabswitch": true,
     "fontsize": 14,
     "guifullscreennavbar": "oninput",
@@ -183,6 +184,7 @@ const freeText = ["downloadpath", "externalcommand", "vimcommand"]
 const listLike = [
     "containercolors",
     "favoritepages",
+    "followelement",
     "modifiers",
     "mouse",
     "permissionsallowed",
@@ -602,6 +604,17 @@ const checkOther = (setting, value) => {
     }
     if (setting === "suggestorder") {
         return checkSuggestOrder(value)
+    }
+    if (setting === "followelement") {
+        const ok = ["url", "onclick", "inputs-insert", "inputs-click", "other"]
+        for (const element of value.split(",")) {
+            if (!ok.includes(element)) {
+                notify(`Invalid element type passed:${element}, `
+                       + `must be any combination of: url, onclick,
+                          inputs-insert, inputs-click or other`)
+                return false
+            }
+        }
     }
     return true
 }
