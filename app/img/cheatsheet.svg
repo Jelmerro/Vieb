@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
    width="1200"
-   height="1100"
+   height="1250"
    id="svg2"
    sodipodi:version="0.32"
    inkscape:version="1.1 (c68e22c387, 2021-05-23)"
@@ -75,12 +75,12 @@
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.87681241"
-     inkscape:cx="501.24747"
-     inkscape:cy="881.03224"
+     inkscape:cx="597.04903"
+     inkscape:cy="928.93302"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      width="10px"
-     height="1081px"
+     height="1300px"
      showgrid="false"
      inkscape:window-width="1920"
      inkscape:window-height="1001"
@@ -2181,20 +2181,20 @@
        transform="translate(40)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan4624"><tspan
+         id="tspan2284"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan4622"> 
+           id="tspan2282"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.08476"
-         id="tspan4628"><tspan
+         id="tspan2288"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4626">follow </tspan></tspan><tspan
+           id="tspan2286">follow </tspan></tspan><tspan
          x="351.18723"
          y="287.76476"
-         id="tspan4632"><tspan
+         id="tspan2292"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4630">mode
+           id="tspan2290">mode
 </tspan></tspan></text>
     <text
        xml:space="preserve"
@@ -2205,21 +2205,21 @@
        transform="translate(-42.337912,-69.3719)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan4636"><tspan
+         id="tspan2296"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan4634"> 
+           id="tspan2294"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.85891"
-         id="tspan4640"><tspan
+         id="tspan2300"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan4638">explore
+           id="tspan2298">explore
 </tspan></tspan><tspan
          x="351.18723"
          y="288.72478"
-         id="tspan4644"><tspan
+         id="tspan2304"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4642">mode</tspan></tspan></text>
+           id="tspan2302">mode</tspan></tspan></text>
     <text
        id="text9514-6"
        y="201.01891"
@@ -2541,24 +2541,24 @@
        xml:space="preserve"><tspan
          y="200.46339"
          x="529.36444"
-         sodipodi:role="line"
          id="tspan4938-4"
-         style="font-size:9.6px;line-height:0.9;stroke-width:1.06667"> </tspan><tspan
+         style="font-size:9.6px;line-height:0.9;stroke-width:1.06667"
+         sodipodi:role="line"> </tspan><tspan
          y="208.32925"
          x="529.36444"
-         sodipodi:role="line"
          style="font-size:8.53333px;line-height:0.9;fill:#000000;stroke-width:1.06667"
-         id="tspan20484">copy URL</tspan><tspan
+         id="tspan20484"
+         sodipodi:role="line">yy: copy </tspan><tspan
          y="216.00925"
          x="529.36444"
-         sodipodi:role="line"
          style="font-size:8.53333px;line-height:0.9;fill:#000000;stroke-width:1.06667"
-         id="tspan20924">     to </tspan><tspan
+         id="tspan20924"
+         sodipodi:role="line">URL to </tspan><tspan
          y="223.68924"
          x="529.36444"
-         sodipodi:role="line"
          style="font-size:8.53333px;line-height:0.9;fill:#000000;stroke-width:1.06667"
-         id="tspan20488">clipboard</tspan></text>
+         id="tspan20488"
+         sodipodi:role="line">clipboard</tspan></text>
     <text
        id="text9514-8-9"
        y="199.34131"
@@ -3148,9 +3148,44 @@
          id="flowPara25558-5" /></flowRoot>
     <flowRoot
        xml:space="preserve"
+       id="flowRoot5691-4-9-3-2-1"
+       style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
+       transform="translate(-358.53813,218.23582)"><flowRegion
+         id="flowRegion5693-9-1-7-6-5"
+         style="font-family:sans-serif;stroke-width:1.06667"><rect
+           id="rect5695-9-8-7-4-4"
+           width="344"
+           height="173.33333"
+           x="404.05209"
+           y="582.96967"
+           style="font-family:sans-serif;fill:#000000;stroke-width:1.13778" /></flowRegion><flowPara
+         id="flowPara5697-3-7-6-0-9"
+         style="font-weight:bold;font-size:10.6667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'Sans Bold';fill:#000000;stroke-width:1.06667">Clipboard Management:</flowPara><flowPara
+         style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
+         id="flowPara8896-3-0">p  -  open URL from clipboard in current tab</flowPara><flowPara
+         style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
+         id="flowPara17837">P  -  open clipboard URL in a new tab</flowPara><flowPara
+         style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
+         id="flowPara17841">yy  -  copy URL to the clipboard</flowPara><flowPara
+         style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
+         id="flowPara22025">yt  -  copy page title to the clipboard</flowPara><flowPara
+         style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
+         id="flowPara23913">ym  -  copy markdown link to the clipboard</flowPara><flowPara
+         style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
+         id="flowPara24215">yr  -  copy RST link to the clipboard</flowPara><flowPara
+         style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
+         id="flowPara24221">ye  -  copy org-mode link to the clipboard</flowPara><flowPara
+         style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
+         id="flowPara24219">yh  -  copy HTML link to the clipboard</flowPara><flowPara
+         style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
+         id="flowPara22027" /><flowPara
+         style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
+         id="flowPara25558-5-7" /></flowRoot>
+    <flowRoot
+       xml:space="preserve"
        id="flowRoot5691-4-9-3-0"
        style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
-       transform="translate(-358.27125,208.02075)"><flowRegion
+       transform="translate(-358.27125,368.02075)"><flowRegion
          id="flowRegion5693-9-1-7-4"
          style="font-family:sans-serif;stroke-width:1.06667"><rect
            id="rect5695-9-8-7-7"
@@ -3276,7 +3311,7 @@
        xml:space="preserve"
        id="flowRoot5691-4-9-3-0-5-0"
        style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
-       transform="translate(327.79196,218.28154)"><flowRegion
+       transform="translate(205.79196,238.28154)"><flowRegion
          id="flowRegion5693-9-1-7-4-9-7"
          style="font-family:sans-serif;stroke-width:1.06667"><rect
            id="rect5695-9-8-7-7-5-1"
@@ -3461,7 +3496,7 @@
        xml:space="preserve"
        id="flowRoot5691-4-9-3-0-5-0-1-2"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;-inkscape-font-specification:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
-       transform="translate(-107.70707,149.00259)"><flowRegion
+       transform="translate(-107.70707,317.00259)"><flowRegion
          id="flowRegion5693-9-1-7-4-9-7-5-4"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:sans-serif;stroke-width:1.06667"><rect
            id="rect5695-9-8-7-7-5-1-1-3"
@@ -3550,7 +3585,7 @@
        xml:space="preserve"
        id="flowRoot5691-4-9-3-0-5-9"
        style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
-       transform="translate(323.56616,432.92696)"><flowRegion
+       transform="translate(523.56616,492.92696)"><flowRegion
          id="flowRegion5693-9-1-7-4-9-4"
          style="font-family:sans-serif;stroke-width:1.06667"><rect
            id="rect5695-9-8-7-7-5-34"
@@ -3577,7 +3612,7 @@
        xml:space="preserve"
        id="flowRoot5691-4-9-3-0-5-4"
        style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
-       transform="translate(139.34436,392.80782)"><flowRegion
+       transform="translate(199.34436,486.80782)"><flowRegion
          id="flowRegion5693-9-1-7-4-9-8"
          style="font-family:sans-serif;stroke-width:1.06667"><rect
            id="rect5695-9-8-7-7-5-3"
@@ -3620,7 +3655,7 @@
        xml:space="preserve"
        id="flowRoot5691-4-9-3-0-5-4-1"
        style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
-       transform="translate(324.18347,288.34686)"><flowRegion
+       transform="translate(204.18347,326.34686)"><flowRegion
          id="flowRegion5693-9-1-7-4-9-8-7"
          style="font-family:sans-serif;stroke-width:1.06667"><rect
            id="rect5695-9-8-7-7-5-3-2"
@@ -3679,7 +3714,7 @@
        xml:space="preserve"
        id="flowRoot5691-4-9-3-0-5-4-3"
        style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
-       transform="translate(142.22015,256.98579)"><flowRegion
+       transform="translate(-107.77985,156.98579)"><flowRegion
          id="flowRegion5693-9-1-7-4-9-8-3"
          style="font-family:sans-serif;stroke-width:1.06667"><rect
            id="rect5695-9-8-7-7-5-3-8"
@@ -4464,22 +4499,22 @@
        transform="translate(40.307436,-29.82915)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan4648"><tspan
+         id="tspan2308"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan4646"> 
+           id="tspan2306"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.08476"
-         id="tspan4652"><tspan
+         id="tspan2312"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4650">follow in </tspan></tspan><tspan
+           id="tspan2310">follow in </tspan></tspan><tspan
          x="351.18723"
          y="287.76476"
-         id="tspan4658"><tspan
+         id="tspan2318"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4654">new tab</tspan><tspan
+           id="tspan2314">new tab</tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4656">
+           id="tspan2316">
 </tspan></tspan></text>
     <text
        xml:space="preserve"
@@ -4490,24 +4525,24 @@
        transform="translate(-49.302467,-99.318284)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan4662"><tspan
+         id="tspan2322"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan4660"> 
+           id="tspan2320"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.85891"
-         id="tspan4668"><tspan
+         id="tspan2328"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan4664">explore </tspan><tspan
+           id="tspan2324">explore </tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4666">in </tspan></tspan><tspan
+           id="tspan2326">in </tspan></tspan><tspan
          x="351.18723"
          y="288.72478"
-         id="tspan4674"><tspan
+         id="tspan2334"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4670">new </tspan><tspan
+           id="tspan2330">new </tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4672">tab</tspan></tspan></text>
+           id="tspan2332">tab</tspan></tspan></text>
     <text
        xml:space="preserve"
        id="text18022"
