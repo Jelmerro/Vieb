@@ -31,7 +31,6 @@
     "electron": "16.0.1",
     "electron-builder": "22.14.7",
     "eslint": "8.3.0",
-    "eslint-plugin-compat": "4.0.0",
     "eslint-plugin-sort-keys-fix": "1.1.2",
     "jest": "27.3.1",
     "jest-environment-jsdom": "27.3.1"
@@ -42,8 +41,5 @@
     "@cliqz/adblocker-electron-preload": "1.23.0",
     "is-svg": "4.3.2",
     "rimraf": "3.0.2"
-  },
-  "browserslist": [
-    "last 2 Chrome versions"
-  ]
+  }
 }

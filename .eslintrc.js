@@ -3,7 +3,7 @@
 module.exports = {
     "env": {"browser": true, "es6": true, "node": true},
     "parserOptions": {"ecmaVersion": 2021},
-    "plugins": ["compat", "sort-keys-fix"],
+    "plugins": ["sort-keys-fix"],
     "root": true,
     "rules": {
         "accessor-pairs": ["error", {"getWithoutSet": true}],
@@ -25,7 +25,6 @@ module.exports = {
         "comma-dangle": "error",
         "comma-spacing": "error",
         "comma-style": "error",
-        "compat/compat": "error",
         "computed-property-spacing": "error",
         "curly": "error",
         "default-param-last": "error",

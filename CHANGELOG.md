@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Removed
 
 - Longtime workaround for electron-builder to manually create the mac zips (they are now valid zip archives instead of being broken)
+- Compatibility linter plugin compat, as it's no longer needed due to widespread release of newer node verions
 
 ### Security
 
