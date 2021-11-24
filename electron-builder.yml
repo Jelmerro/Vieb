@@ -29,10 +29,6 @@ linux:
       arch:
         - x64
         - arm64
-  extraFiles:
-    - filter:
-        - README.md
-        - LICENSE
 rpm:
   fpm:
     - --rpm-rpmbuild-define=_build_id_links none
@@ -58,10 +54,6 @@ win:
       arch:
         - x64
         - arm64
-  extraFiles:
-    - filter:
-        - README.md
-        - LICENSE
 nsis:
   differentialPackage: false
   oneClick: false

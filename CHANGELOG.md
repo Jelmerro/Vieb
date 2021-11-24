@@ -11,6 +11,17 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Removed
+
+- Longtime workaround for electron-builder to manually create the mac zips (they are now valid zip archives instead of being broken)
+
+### Security
+
+- Electron 16.0.1 (was 15.3.1)
+- Chromium 96.0.4664.45 (was 94.0.4606.81)
+
 ## [6.2.0](https://github.com/Jelmerro/Vieb/compare/6.1.0...6.2.0) - 2021-11-14
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/6.1.0...6.2.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/6.2.0)

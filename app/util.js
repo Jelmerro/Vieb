@@ -113,15 +113,13 @@ const searchword = location => {
                 let counter = 1
                 const patternMatches = (urlString.match(/%s/g) || []).length
                 while (urlString.includes("%s") && counter < patternMatches) {
-                    if (queries[0]) {
-                        urlString = urlString.replace(/%s/, encodeURIComponent(queries.shift().trim()))
-                    } else {
-                        urlString = urlString.replace(/%s/g, "")
-                    }
+                    urlString = urlString.replace(/%s/,
+                        encodeURIComponent(queries.shift()?.trim() || ""))
                     counter += 1
                 }
                 const remainderString = queries.join(",").trim()
-                urlString = urlString.replace(/%s/, encodeURIComponent(remainderString))
+                urlString = urlString.replace(/%s/,
+                    encodeURIComponent(remainderString))
                 return {"url": urlString, word}
             }
         }
