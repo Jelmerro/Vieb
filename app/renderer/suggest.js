@@ -319,7 +319,9 @@ const suggestCommand = searchStr => {
     // Allow commands prefixed with :
     const search = searchStr.replace(/^[\s|:]*/, "").replace(/ +/g, " ")
     const {parseAndValidateArgs} = require("./command")
-    const {valid, confirm, command, args} = parseAndValidateArgs(search)
+    const {
+        range, valid, confirm, command, args
+    } = parseAndValidateArgs(search)
     const urlElement = document.getElementById("url")
     if (valid) {
         urlElement.className = ""
@@ -348,11 +350,17 @@ const suggestCommand = searchStr => {
             location = location.slice(1, location.length - 1)
         }
         if (!location && !dims) {
-            addCommand("screenshot ~")
-            addCommand("screenshot /")
-            addCommand(`screenshot ${getSetting("downloadpath")}`)
+            if (range) {
+                addCommand(`${range}screenshot`)
+            } else {
+                addCommand("screenshot ~")
+                addCommand("screenshot /")
+                addCommand(`screenshot ${getSetting("downloadpath")}`)
+            }
         }
-        if (location || search.endsWith(" ")) {
+        if (range && dims) {
+            addCommand(`${range}screenshot${dims}`)
+        } else if (!range && (location || search.endsWith(" "))) {
             if (!isAbsolutePath(location)) {
                 location = joinPath(getSetting("downloadpath"), location)
             }
@@ -365,7 +373,7 @@ const suggestCommand = searchStr => {
     }
     // Command: set
     const {suggestionList, settingsWithDefaults} = require("./settings")
-    if ("set".startsWith(command) && !confirm) {
+    if ("set".startsWith(command) && !confirm && !range) {
         if (args.length) {
             suggestionList().filter(s => s.startsWith(args[args.length - 1]))
                 .map(s => `${command} ${args.slice(0, -1).join(" ")} ${s}`
@@ -377,7 +385,7 @@ const suggestCommand = searchStr => {
         }
     }
     // Command: source
-    if ("source".startsWith(command) && !confirm && args.length < 2) {
+    if ("source".startsWith(command) && !confirm && args.length < 2 && !range) {
         let location = expandPath(search.replace("source ", "") || "")
         if (location.startsWith("\"") && location.endsWith("\"")) {
             location = location.slice(1, location.length - 1)
@@ -392,12 +400,14 @@ const suggestCommand = searchStr => {
         if (location.startsWith("\"") && location.endsWith("\"")) {
             location = location.slice(1, location.length - 1)
         }
-        if (!location) {
+        if (range) {
+            addCommand(`${range}write`)
+        } else if (!location) {
             addCommand("write ~")
             addCommand("write /")
             addCommand(`write ${getSetting("downloadpath")}`)
         }
-        if (location || search.endsWith(" ")) {
+        if (!range && (location || search.endsWith(" "))) {
             if (!isAbsolutePath(location)) {
                 location = joinPath(getSetting("downloadpath"), location)
             }
@@ -405,11 +415,12 @@ const suggestCommand = searchStr => {
         }
     }
     // Command: mkviebrc
-    if ("mkviebrc full".startsWith(search)) {
+    if ("mkviebrc full".startsWith(search) && !range) {
         addCommand("mkviebrc full")
     }
     // Command: extensions
-    if ("extensions".startsWith(command) && !confirm && args.length < 3) {
+    if ("extensions".startsWith(command)
+    && !confirm && args.length < 3 && !range) {
         if (args.length < 2) {
             for (const action of ["install", "list", "remove"]) {
                 if (action.startsWith(args[0] || "") && action !== args[0]) {
@@ -429,7 +440,8 @@ const suggestCommand = searchStr => {
         }
     }
     // Command: devtools
-    if ("devtools".startsWith(command) && !confirm && args.length < 2) {
+    if ("devtools".startsWith(command)
+    && !confirm && args.length < 2 && !range) {
         const options = ["window", "split", "vsplit", "tab"]
         options.forEach(option => {
             if (!args[0] || option.startsWith(args[0])) {
@@ -438,7 +450,7 @@ const suggestCommand = searchStr => {
         })
     }
     // Command: colorscheme
-    if ("colorscheme".startsWith(command)) {
+    if ("colorscheme".startsWith(command) && !range) {
         if (args.length > 1 || confirm) {
             return
         }
@@ -467,7 +479,8 @@ const suggestCommand = searchStr => {
     }
     // Command: command and delcommand
     for (const custom of ["command", "command!", "delcommand"]) {
-        if (custom.startsWith(command) && (custom.endsWith("!") || !confirm)) {
+        if (custom.startsWith(command)
+        && (custom.endsWith("!") || !confirm) && !range) {
             customCommandsAsCommandList().split("\n")
                 .filter(cmd => cmd.split(" ")[0] === "command")
                 .map(cmd => cmd.split(" ")[1])
@@ -476,7 +489,7 @@ const suggestCommand = searchStr => {
         }
     }
     // Command: help
-    if ("help".startsWith(command) && !confirm) {
+    if ("help".startsWith(command) && !confirm && !range) {
         const {
             listSupportedActions, listMappingsAsCommandList
         } = require("./input")
@@ -550,7 +563,11 @@ const suggestCommand = searchStr => {
         "vsplit",
         "close"
     ].find(b => b.startsWith(command))
-    if (bufferCommand && !confirm) {
+    if (bufferCommand && (bufferCommand === "close" || !confirm)) {
+        if (range) {
+            addCommand(`${range}${bufferCommand}`)
+            return
+        }
         const simpleSearch = args.join("")
             .replace(specialChars, "").toLowerCase()
         const tabs = listTabs()
@@ -568,11 +585,12 @@ const suggestCommand = searchStr => {
             return !tab.classList.contains("visible-tab")
         }).map(t => ({
             "command": `${bufferCommand} ${tabs.indexOf(t)}`,
+            "ref": t,
             "subtext": `${t.querySelector("span").textContent}`,
             "url": tabOrPageMatching(t).src
         })).filter(t => {
             let num = Number(args.join(""))
-            if (!isNaN(num)) {
+            if (!isNaN(num) && args.length === 1) {
                 if (num >= tabs.length) {
                     num = tabs.length - 1
                 }
@@ -582,9 +600,7 @@ const suggestCommand = searchStr => {
                 if (num < 0) {
                     num = 0
                 }
-            }
-            if (args.length === 1 && num === tabs.indexOf(t)) {
-                return true
+                return num === tabs.indexOf(t.ref)
             }
             const tabUrl = t.url.replace(specialChars, "").toLowerCase()
             if (tabUrl.includes(simpleSearch) && t.command.startsWith(search)) {

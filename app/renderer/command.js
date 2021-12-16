@@ -117,7 +117,7 @@ const modifyListOrNumber = (setting, value, method) => {
     }
 }
 
-const set = (...args) => {
+const set = args => {
     if (args.length === 0) {
         const {listCurrentSettings} = require("./settings")
         const allChanges = listCurrentSettings()
@@ -193,7 +193,7 @@ const set = (...args) => {
 
 const sourcedFiles = []
 
-const source = (origin, ...args) => {
+const source = (origin, args) => {
     if (args.length !== 1) {
         notify("Source requires exactly argument representing the filename",
             "warn")
@@ -407,20 +407,39 @@ const resolveFileArg = (locationArg, type) => {
     return loc
 }
 
-const write = (locationArgument, trailingArgs = false) => {
-    if (trailingArgs) {
+const write = (args, range) => {
+    if (args.length > 1) {
         notify("The write command takes only a single optional argument:\n"
             + "the location where to write the page", "warn")
         return
     }
-    if (!currentPage()) {
+    if (range && args[0]) {
+        notify("Range cannot be combined with a custom location", "warn")
         return
     }
-    const loc = resolveFileArg(locationArgument, "html")
+    if (range) {
+        rangeToTabIdxs(range).forEach(t => writePage(null, t))
+        return
+    }
+    writePage(args[0])
+}
+
+const writePage = (customLoc, tabIdx) => {
+    let page = currentPage()
+    if (tabIdx !== null) {
+        page = listTabs().indexOf(tabIdx)
+    }
+    if (!page) {
+        return
+    }
+    if (!page) {
+        return
+    }
+    const loc = resolveFileArg(customLoc, "html")
     if (!loc) {
         return
     }
-    const webContentsId = currentPage().getWebContentsId()
+    const webContentsId = page.getWebContentsId()
     const {ipcRenderer} = require("electron")
     ipcRenderer.invoke("save-page", webContentsId, loc).then(() => {
         notify(`Page saved at '${loc}'`)
@@ -479,24 +498,38 @@ const screencopy = (dims, trailingArgs = false) => {
     }, 20)
 }
 
-const screenshot = (arg1, arg2, trailingArgs = false) => {
-    if (trailingArgs) {
+const screenshot = (args, range) => {
+    if (args.length > 2) {
         notify("The screenshot command takes only two optional arguments:\nthe "
             + "location where to write the image and the dimensions", "warn")
         return
     }
-    let dims = arg1
-    let location = arg2
+    let [dims, location] = args
     if (!dims?.match(/^\d+,\d+,\d+,\d+$/g)) {
-        dims = arg2
-        location = arg1
+        [location, dims] = args
+    }
+    if (range && location) {
+        notify("Range cannot be combined with custom location", "warn")
+        return
+    }
+    if (range) {
+        rangeToTabIdxs(range).forEach(t => takeScreenshot(dims, null, t))
+        return
     }
     if (dims && !dims.match(/^\d+,\d+,\d+,\d+$/g)) {
         notify("Dimensions must match 'width,height,x,y' with round numbers",
             "warn")
         return
     }
-    if (!currentPage()) {
+    takeScreenshot(dims, location)
+}
+
+const takeScreenshot = (dims, location, tabIdx = null) => {
+    let page = currentPage()
+    if (tabIdx !== null) {
+        page = listTabs().indexOf(tabIdx)
+    }
+    if (!page) {
         return
     }
     const rect = translateDimsToRect(dims)
@@ -505,7 +538,7 @@ const screenshot = (arg1, arg2, trailingArgs = false) => {
         return
     }
     setTimeout(() => {
-        currentPage().capturePage(rect).then(img => {
+        page.capturePage(rect).then(img => {
             writeFile(loc, img.toPNG(), "Something went wrong saving the image",
                 `Screenshot saved at ${loc}`)
         })
@@ -532,9 +565,64 @@ const mkviebrc = (full = false, trailingArgs = false) => {
     saveToDisk(exportAll)
 }
 
+const translateRangePosToIdx = (start, rangePart) => {
+    if (rangePart.startsWith("/") && rangePart.endsWith("/")) {
+        return listTabs().map((t, i) => ({
+            "idx": i,
+            "name": t.querySelector("span").textContent,
+            "url": tabOrPageMatching(t).src
+        })).filter(t => t.name.includes(rangePart) || t.url.includes(rangePart))
+            .map(t => t.idx).filter(i => i >= start)[0]
+    }
+    const [, plus] = rangePart.split("+")
+    const [, minus] = rangePart.split("-")
+    const [charOrNum] = rangePart.split(/[-+]/g)
+    let number = Number(charOrNum)
+    if (charOrNum === "^") {
+        number = 0
+    }
+    if (charOrNum === "^") {
+        number = 0
+    }
+    if (charOrNum === ".") {
+        number = listTabs().indexOf(currentTab())
+    }
+    if (charOrNum === "$") {
+        number = listTabs().length - 1
+    }
+    if (plus) {
+        number += plus
+    }
+    if (minus) {
+        number -= minus
+    }
+    number = Number(number)
+    if (isNaN(number)) {
+        notify(`Range section '${rangePart}' is not a valid range`, "warn")
+    }
+    return number
+}
+
+const rangeToTabIdxs = range => {
+    if (range === "%") {
+        return listTabs().map((_, i) => i)
+    }
+    if (range.includes(",")) {
+        const [start, end, tooManyArgs] = range.split(",")
+        if (tooManyArgs !== undefined) {
+            notify("Too many commas in range, at most 1 is allowed", "warn")
+            return []
+        }
+        const startPos = translateRangePosToIdx(0, start)
+        return listTabs().map((_, i) => i).slice(startPos,
+            translateRangePosToIdx(startPos, end) + 1)
+    }
+    return [translateRangePosToIdx(0, range)]
+}
+
 const tabForBufferArg = (args, filter = null) => {
-    if (args.length === 1) {
-        let number = Number(args[0])
+    if (args.length === 1 || typeof args === "number") {
+        let number = Number(args[0] || args)
         if (!isNaN(number)) {
             const tabs = listTabs()
             if (number >= tabs.length) {
@@ -559,7 +647,7 @@ const tabForBufferArg = (args, filter = null) => {
     })
 }
 
-const buffer = (...args) => {
+const buffer = args => {
     if (args.length === 0) {
         return
     }
@@ -573,7 +661,7 @@ const buffer = (...args) => {
     }
 }
 
-const open = (...args) => {
+const open = args => {
     if (args.length === 0) {
         return
     }
@@ -581,7 +669,15 @@ const open = (...args) => {
     navigateTo(stringToUrl(args.join(" ")))
 }
 
-const suspend = (...args) => {
+const suspend = (args, range) => {
+    if (range && args.length) {
+        notify("Range cannot be combined with providing arguments", "warn")
+        return
+    }
+    if (range) {
+        rangeToTabIdxs(range).forEach(t => suspend(t))
+        return
+    }
     let tab = null
     if (args.length === 0) {
         tab = currentTab()
@@ -600,7 +696,15 @@ const suspend = (...args) => {
     }
 }
 
-const hide = (...args) => {
+const hide = (args, range) => {
+    if (range && args.length) {
+        notify("Range cannot be combined with providing arguments", "warn")
+        return
+    }
+    if (range) {
+        rangeToTabIdxs(range).forEach(t => hide(t))
+        return
+    }
     let tab = null
     if (args.length === 0) {
         tab = currentTab()
@@ -617,7 +721,15 @@ const hide = (...args) => {
     }
 }
 
-const mute = (...args) => {
+const mute = (args, range) => {
+    if (range && args.length) {
+        notify("Range cannot be combined with providing arguments", "warn")
+        return
+    }
+    if (range) {
+        rangeToTabIdxs(range).forEach(t => mute(t))
+        return
+    }
     let tab = currentTab()
     if (args.length > 0) {
         tab = tabForBufferArg(args)
@@ -636,7 +748,15 @@ const mute = (...args) => {
     saveTabs()
 }
 
-const pin = (...args) => {
+const pin = (args, range) => {
+    if (range && args.length) {
+        notify("Range cannot be combined with providing arguments", "warn")
+        return
+    }
+    if (range) {
+        rangeToTabIdxs(range).forEach(t => pin(t))
+        return
+    }
     let tab = currentTab()
     if (args.length > 0) {
         tab = tabForBufferArg(args)
@@ -659,7 +779,15 @@ const pin = (...args) => {
     saveTabs()
 }
 
-const addSplit = (method, leftOrAbove, args) => {
+const addSplit = (method, leftOrAbove, args, range) => {
+    if (range && args.length) {
+        notify("Range cannot be combined with providing arguments", "warn")
+        return
+    }
+    if (range) {
+        rangeToTabIdxs(range).forEach(t => addSplit(method, leftOrAbove, t))
+        return
+    }
     const {addTab, switchToTab} = require("./tabs")
     const {add} = require("./pagelayout")
     const id = currentTab().getAttribute("link-id")
@@ -685,8 +813,16 @@ const addSplit = (method, leftOrAbove, args) => {
     }
 }
 
-const close = (force, args) => {
+const close = (force, args, range) => {
+    if (range && args.length) {
+        notify("Range cannot be combined with providing arguments", "warn")
+        return
+    }
     const {closeTab} = require("./tabs")
+    if (range) {
+        rangeToTabIdxs(range).forEach(t => close(force, t))
+        return
+    }
     if (args.length === 0) {
         closeTab(null, force)
         return
@@ -699,7 +835,7 @@ const close = (force, args) => {
     notify("Can't find matching page, no tabs closed", "warn")
 }
 
-const callAction = (...args) => {
+const callAction = args => {
     setTimeout(() => {
         const {executeMapString, sanitiseMapString} = require("./input")
         executeMapString(sanitiseMapString(args.join(" "), true), true, true)
@@ -738,7 +874,7 @@ const makedefault = () => {
     }
 }
 
-const extensionsCommand = (...args) => {
+const extensionsCommand = args => {
     if (!args[0]) {
         openSpecialPage("extensions")
         return
@@ -809,6 +945,25 @@ const rclose = (force = false) => {
 }
 
 const noEscapeCommands = ["command", "delcommand"]
+const rangeCompatibleCommands = [
+    "Sexplore",
+    "Vexplore",
+    "close",
+    "hardcopy",
+    "hide",
+    "mute",
+    "pin",
+    "print",
+    "q",
+    "quit",
+    "reload",
+    "screenshot",
+    "suspend",
+    "vsplit",
+    "split",
+    "w",
+    "write"
+]
 const noArgumentComands = [
     "q",
     "quit",
@@ -833,36 +988,38 @@ const noArgumentComands = [
     "only"
 ]
 const commands = {
-    "Sexplore": (...args) => addSplit("ver", !getSetting("splitbelow"), args),
-    "Vexplore": (...args) => addSplit("hor", !getSetting("splitright"), args),
-    "b": buffer,
-    buffer,
-    "call": callAction,
-    "close": (...args) => close(false, args),
-    "close!": (...args) => close(true, args),
-    colorscheme,
+    "Sexplore": ({args, range}) => addSplit(
+        "ver", !getSetting("splitbelow"), args, range),
+    "Vexplore": ({args, range}) => addSplit(
+        "hor", !getSetting("splitright"), args, range),
+    "b": ({args}) => buffer(args),
+    "buffer": ({args}) => buffer(args),
+    "call": ({args}) => callAction(args),
+    "close": ({args, range}) => close(false, args, range),
+    "close!": ({args, range}) => close(true, args, range),
+    "colorscheme": ({args}) => colorscheme(...args),
     "comclear": () => {
         userCommands = {}
     },
-    "command": (...args) => addCommand(false, args),
-    "command!": (...args) => addCommand(true, args),
+    "command": ({args}) => addCommand(false, args),
+    "command!": ({args}) => addCommand(true, args),
     "cookies": () => openSpecialPage("cookies"),
     "d": () => openSpecialPage("downloads"),
-    "delcommand": (...args) => deleteCommand(args),
+    "delcommand": ({args}) => deleteCommand(args),
     "devtools": openDevTools,
     "downloads": () => openSpecialPage("downloads"),
-    "extensions": extensionsCommand,
-    "h": help,
-    hardcopy,
-    help,
-    hide,
+    "extensions": ({args}) => extensionsCommand(args),
+    "h": ({args}) => help(...args),
+    "hardcopy": ({range}) => hardcopy(range),
+    "help": ({args}) => help(...args),
+    "hide": ({args, range}) => hide(args, range),
     "history": () => openSpecialPage("history"),
     "internaldevtools": openInternalDevTools,
-    lclose,
+    "lclose": () => lclose(),
     "lclose!": () => lclose(true),
     makedefault,
-    mkviebrc,
-    mute,
+    "mkviebrc": ({args}) => mkviebrc(...args),
+    "mute": ({args, range}) => mute(args, range),
     "nohlsearch": () => {
         listPages().forEach(page => {
             try {
@@ -873,25 +1030,25 @@ const commands = {
         })
     },
     "notifications": () => openSpecialPage("notifications"),
-    "o": open,
+    "o": ({args}) => open(args),
     "only": () => {
         const {only} = require("./pagelayout")
         only()
     },
-    open,
-    pin,
-    "print": hardcopy,
-    "q": quit,
+    "open": ({args}) => open(args),
+    "pin": ({args, range}) => pin(args, range),
+    "print": ({range}) => hardcopy(range),
+    "q": ({range}) => quit(range),
     "qa": quitall,
-    quit,
+    "quit": ({range}) => quit(range),
     quitall,
-    rclose,
+    "rclose": () => rclose(),
     "rclose!": () => rclose(true),
     reload,
     restart,
-    "s": set,
-    screencopy,
-    screenshot,
+    "s": ({args}) => set(args),
+    "screencopy": ({args}) => screencopy(...args),
+    "screenshot": ({args, range}) => screenshot(args, range),
     "scriptnames": (hasArgs = null) => {
         if (hasArgs) {
             notify(`Command takes no arguments: scriptnames`, "warn")
@@ -899,7 +1056,7 @@ const commands = {
         }
         notify(appConfig().files.map((f, i) => `${i + 1}: ${f}`).join("\n"))
     },
-    "scriptnames!": (...args) => {
+    "scriptnames!": ({args}) => {
         const scripts = [...appConfig().files, ...sourcedFiles]
         if (args.length === 0) {
             notify(scripts.map((f, i) => `${i + 1}: ${f}`).join("\n"))
@@ -928,34 +1085,36 @@ const commands = {
                 "warn")
         }
     },
-    set,
-    "source": (...args) => source(null, ...args),
-    "split": (...args) => addSplit("ver", !getSetting("splitbelow"), args),
-    suspend,
+    "set": ({args}) => set(args),
+    "source": ({args}) => source(null, args),
+    "split": ({args, range}) => addSplit(
+        "ver", !getSetting("splitbelow"), args, range),
+    "suspend": ({args, range}) => suspend(args, range),
     "v": () => openSpecialPage("version"),
     "version": () => openSpecialPage("version"),
-    "vsplit": (...args) => addSplit("hor", !getSetting("splitright"), args),
-    "w": write,
-    write
+    "vsplit": ({args, range}) => addSplit(
+        "hor", !getSetting("splitright"), args, range),
+    "w": ({args, range}) => write(args, range),
+    "write": ({args, range}) => write(args, range)
 }
 let userCommands = {}
 const {mapOrList, unmap, clearmap} = require("./input")
 " nicsefpvm".split("").forEach(prefix => {
-    commands[`${prefix.trim()}map!`] = (...args) => {
+    commands[`${prefix.trim()}map!`] = ({args}) => {
         mapOrList(prefix.trim(), args, false, true)
     }
-    commands[`${prefix.trim()}noremap!`] = (...args) => {
+    commands[`${prefix.trim()}noremap!`] = ({args}) => {
         mapOrList(prefix.trim(), args, true, true)
     }
-    commands[`${prefix.trim()}map`] = (...args) => {
+    commands[`${prefix.trim()}map`] = ({args}) => {
         mapOrList(prefix.trim(), args)
     }
     noEscapeCommands.push(`${prefix.trim()}map`)
-    commands[`${prefix.trim()}noremap`] = (...args) => {
+    commands[`${prefix.trim()}noremap`] = ({args}) => {
         mapOrList(prefix.trim(), args, true)
     }
     noEscapeCommands.push(`${prefix.trim()}noremap`)
-    commands[`${prefix.trim()}unmap`] = (...args) => {
+    commands[`${prefix.trim()}unmap`] = ({args}) => {
         unmap(prefix.trim(), args)
     }
     noEscapeCommands.push(`${prefix.trim()}unmap`)
@@ -984,6 +1143,15 @@ const addCommand = (overwrite, args) => {
         return
     }
     const command = args[0].replace(/^[:'" ]*/, "")
+    if (command.includes("/") || command.includes("\\")) {
+        notify("Command name cannot contain any slashes", "warn")
+        return
+    }
+    if (command[0]?.match(specialChars) || command[0]?.match(/\d+/g)) {
+        notify("Command name cannot start with a number or special character",
+            "warn")
+        return
+    }
     const params = args.slice(1)
     if (commands[command]) {
         notify(`Command can not be a built-in command: ${command}`, "warn")
@@ -1023,6 +1191,15 @@ const deleteCommand = args => {
 const parseAndValidateArgs = commandStr => {
     const argsString = commandStr.split(" ").slice(1).join(" ")
     let [command] = commandStr.split(" ")
+    let range = ""
+    while (command[0]?.match(specialChars) || command[0]?.match(/\d+/g)) {
+        range += command[0]
+        command = command.slice(1)
+    }
+    while (command.includes("/")) {
+        range += command[0]
+        command = command.slice(1)
+    }
     const args = []
     let currentArg = ""
     let escapedDouble = false
@@ -1052,7 +1229,13 @@ const parseAndValidateArgs = commandStr => {
         confirm = true
         command = command.slice(0, -1)
     }
-    return {args, command, confirm, "valid": !escapedSingle && !escapedDouble}
+    return {
+        args,
+        command,
+        confirm,
+        range,
+        "valid": !escapedSingle && !escapedDouble && !command.includes("\\")
+    }
 }
 
 const execute = (com, settingsFile = null) => {
@@ -1074,10 +1257,11 @@ const execute = (com, settingsFile = null) => {
     }
     const p = parseAndValidateArgs(commandStr)
     let {command} = p
-    const {args, valid, confirm} = p
+    const {range, args, valid, confirm} = p
     if (!valid) {
-        notify(`Command could not be executed, unmatched escape quotes:\n${
-            commandStr}`, "warn")
+        notify(
+            "Command could not be executed, unmatched quotes or backslash:"
+            + `\n${commandStr}`, "warn")
         return
     }
     const matches = Object.keys(commands).concat(Object.keys(userCommands))
@@ -1087,10 +1271,14 @@ const execute = (com, settingsFile = null) => {
             [command] = matches
         }
         if (command === "source" && settingsFile) {
-            source(settingsFile, ...args)
+            source(settingsFile, args)
         } else if (noArgumentComands.includes(command) && args.length > 0) {
             notify(`Command takes no arguments: ${command}`, "warn")
         } else if (commands[command]) {
+            if (!rangeCompatibleCommands.includes(command) && range) {
+                notify(`Command does not accept a range: ${command}`, "warn")
+                return
+            }
             if (confirm) {
                 command += "!"
                 if (!commands[command]) {
@@ -1098,7 +1286,7 @@ const execute = (com, settingsFile = null) => {
                     return
                 }
             }
-            commands[command](...args)
+            commands[command]({args, range})
         } else {
             setTimeout(() => {
                 const {executeMapString} = require("./input")

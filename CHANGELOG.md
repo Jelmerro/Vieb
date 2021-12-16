@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Range prefix support for many different commands
+
 ### Removed
 
 - Longtime workaround for electron-builder to manually create the mac zips (they are now valid zip archives instead of being broken)
