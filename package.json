@@ -28,17 +28,17 @@
   "email": "Jelmerro@users.noreply.github.com",
   "license": "GPL-3.0-or-later",
   "devDependencies": {
-    "electron": "16.0.2",
-    "electron-builder": "22.14.8",
-    "eslint": "8.3.0",
+    "electron": "16.0.5",
+    "electron-builder": "22.14.11",
+    "eslint": "8.5.0",
     "eslint-plugin-sort-keys-fix": "1.1.2",
-    "jest": "27.4.0",
-    "jest-environment-jsdom": "27.4.0"
+    "jest": "27.4.5",
+    "jest-environment-jsdom": "27.4.4"
   },
   "dependencies": {
     "7zip-bin": "5.1.1",
-    "@cliqz/adblocker-electron": "1.23.0",
-    "@cliqz/adblocker-electron-preload": "1.23.0",
+    "@cliqz/adblocker-electron": "1.23.2",
+    "@cliqz/adblocker-electron-preload": "1.23.2",
     "is-svg": "4.3.2",
     "rimraf": "3.0.2"
   }

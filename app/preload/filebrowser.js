@@ -41,7 +41,7 @@ const createElement = (type, loc, customTitle = "") => {
     return element
 }
 
-const toUrl = loc => `file:${loc}`.replace(/^file:\/*/, "file:///")
+const toUrl = loc => `file:${loc}`.replace(/^file:\/+/, "file:///")
 
 const isRoot = loc => loc === joinPath(loc, "../")
 

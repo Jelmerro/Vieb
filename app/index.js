@@ -387,9 +387,9 @@ let loginWindow = null
 let notificationWindow = null
 const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
     const url = u.url || u
-    let fileLocation = expandPath(url.replace(/^file:\/*/g, "/"))
+    let fileLocation = expandPath(url.replace(/^file:\/+/g, "/"))
     if (process.platform === "win32") {
-        fileLocation = expandPath(url.replace(/^file:\/*/g, ""))
+        fileLocation = expandPath(url.replace(/^file:\/+/g, ""))
     }
     if (!isAbsolutePath(fileLocation)) {
         fileLocation = joinPath(cwd || process.cwd(), url)

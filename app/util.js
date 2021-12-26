@@ -162,9 +162,14 @@ const stringToUrl = location => {
     if (specialPage.name) {
         return specialPagePath(specialPage.name, specialPage.section)
     }
-    const local = expandPath(url)
+    let fileName = url.replace(/^file:\/+/, "/")
+    if (process.platform === "win32") {
+        fileName = url.replace(/^file:\/+/, "")
+    }
+    const local = expandPath(fileName)
     if (isDir(local) || isFile(local)) {
-        url = `file:/${local}`.replace(/^file:\/*/, "file:///")
+        const escapedPath = local.replace(/\?/g, "%3F").replace(/#/g, "%23")
+        url = `file:/${escapedPath}`.replace(/^file:\/+/, "file:///")
     }
     if (!isUrl(url)) {
         const engines = getSetting("search").split(",")
@@ -195,7 +200,16 @@ const urlToString = url => {
         return specialUrl
     }
     try {
-        return decodeURI(url)
+        const decoded = decodeURI(url)
+        let fileName = decoded.replace(/^file:\/+/, "/")
+        if (process.platform === "win32") {
+            fileName = decoded.replace(/^file:\/+/, "")
+        }
+        fileName = fileName.replace(/%23/g, "#").replace(/%3F/g, "?")
+        if (isDir(fileName) || isFile(fileName)) {
+            return fileName
+        }
+        return decoded
     } catch {
         // Invalid url
     }
@@ -626,9 +640,9 @@ const pathToSpecialPageName = urlPath => {
     }
     if (urlPath?.startsWith?.("file://")) {
         for (const page of specialPages) {
-            const specialPage = specialPagePath(page).replace(/^file:\/*/g, "")
+            const specialPage = specialPagePath(page).replace(/^file:\/+/g, "")
             const normalizedUrl = path.posix.normalize(
-                urlPath.replace(/^file:\/*/g, ""))
+                urlPath.replace(/^file:\/+/g, ""))
             if (normalizedUrl.startsWith(specialPage)) {
                 return {
                     "name": page,
@@ -639,7 +653,7 @@ const pathToSpecialPageName = urlPath => {
             try {
                 const decodedPath = decodeURI(urlPath)
                 const decodedNormalizedUrl = path.posix.normalize(
-                    decodedPath.replace(/^file:\/*/g, ""))
+                    decodedPath.replace(/^file:\/+/g, ""))
                 if (decodedNormalizedUrl.startsWith(specialPage)) {
                     return {
                         "name": page,

@@ -18,9 +18,13 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Longtime workaround for electron-builder to manually create the mac zips (they are now valid zip archives instead of being broken)
 - Compatibility linter plugin compat, as it's no longer needed due to widespread release of newer node verions
 
+### Fixed
+
+- Resolve file paths with query param characters in them and update the url accordingly
+
 ### Security
 
-- Electron 16.0.2 (was 15.3.1)
+- Electron 16.0.5 (was 15.3.1)
 - Chromium 96.0.4664.55 (was 94.0.4606.81)
 
 ## [6.2.0](https://github.com/Jelmerro/Vieb/compare/6.1.0...6.2.0) - 2021-11-14

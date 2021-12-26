@@ -156,9 +156,9 @@ const locationToSuggestion = (base, loc) => {
 }
 
 const suggestFiles = loc => {
-    let location = expandPath(loc.replace(/^file:\/*/g, "/"))
+    let location = expandPath(loc.replace(/^file:\/+/g, "/"))
     if (process.platform === "win32") {
-        location = expandPath(loc.replace(/^file:\/*/g, ""))
+        location = expandPath(loc.replace(/^file:\/+/g, ""))
     }
     if (isAbsolutePath(location)) {
         let matching = []

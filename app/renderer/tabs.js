@@ -419,7 +419,7 @@ const unsuspendPage = page => {
             } else if (url) {
                 webview.src = url
                 resetTabInfo(webview)
-                name.textContent = url
+                name.textContent = urlToString(url)
             }
             webview.clearHistory()
             webview.setAttribute("dom-ready", true)
@@ -594,7 +594,7 @@ const addWebviewListeners = webview => {
             }
             const name = tabOrPageMatching(webview).querySelector("span")
             if (!name.textContent) {
-                name.textContent = e.url
+                name.textContent = urlToString(e.url)
             }
             const timeout = getSetting("requesttimeout")
             const id = webview.getAttribute("link-id")
@@ -661,16 +661,16 @@ const addWebviewListeners = webview => {
         if (webview.src !== e.validatedURL) {
             webview.src = e.validatedURL
             tabOrPageMatching(webview).querySelector("span")
-                .textContent = e.validatedURL
+                .textContent = urlToString(e.validatedURL)
             return
         }
         // If the path is a directory, show a list of files instead of an error
         if (e.errorDescription === "ERR_FILE_NOT_FOUND") {
             // Any number of slashes after file is fine for now
             if (webview.src.startsWith("file:/")) {
-                let local = urlToString(webview.src).replace(/file:\/*/, "/")
+                let local = urlToString(webview.src).replace(/file:\/+/, "/")
                 if (process.platform === "win32") {
-                    local = urlToString(webview.src).replace(/file:\/*/, "")
+                    local = urlToString(webview.src).replace(/file:\/+/, "")
                 }
                 if (isDir(local)) {
                     let directoryAllowed = true
@@ -725,7 +725,9 @@ const addWebviewListeners = webview => {
         const {addToHist, titleForPage, updateTitle} = require("./history")
         addToHist(webview.src)
         const existingTitle = titleForPage(webview.src)
-        if (hasProtocol(name.textContent) && existingTitle) {
+        if (isLocal && !specialPageName) {
+            name.textContent = urlToString(webview.src)
+        } else if (hasProtocol(name.textContent) && existingTitle) {
             name.textContent = existingTitle
         } else {
             updateTitle(webview.src, name.textContent)
@@ -757,7 +759,8 @@ const addWebviewListeners = webview => {
     })
     webview.addEventListener("will-navigate", e => {
         resetTabInfo(webview)
-        tabOrPageMatching(webview).querySelector("span").textContent = e.url
+        tabOrPageMatching(webview).querySelector("span")
+            .textContent = urlToString(e.url)
     })
     webview.addEventListener("new-window", e => {
         if (e.disposition === "save-to-disk") {
@@ -897,8 +900,9 @@ const addWebviewListeners = webview => {
         }
         if (e.channel === "navigate-to") {
             const [url] = e.args
-            webview.src = url
-            tabOrPageMatching(webview).querySelector("span").textContent = url
+            webview.src = stringToUrl(url)
+            tabOrPageMatching(webview).querySelector("span")
+                .textContent = urlToString(url)
         }
         if (e.channel === "new-tab-info-request") {
             const special = pathToSpecialPageName(webview.src)
@@ -1001,7 +1005,7 @@ const navigateTo = location => {
     }
     currentPage().src = location
     resetTabInfo(currentPage())
-    currentTab().querySelector("span").textContent = location
+    currentTab().querySelector("span").textContent = urlToString(location)
 }
 
 const moveTabForward = () => {
