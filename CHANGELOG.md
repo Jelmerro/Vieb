@@ -21,6 +21,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Resolve file paths with query param characters in them and update the url accordingly
+- Background color override not checking for background images before applying
 
 ### Security
 
