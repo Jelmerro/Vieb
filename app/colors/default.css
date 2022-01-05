@@ -107,6 +107,7 @@
     --helppage-h2: #f76;
     --helppage-h3: #fb9;
     --helppage-countable: #fc0;
+    --helppage-range-compat: #fc0;
 }
 
 
@@ -318,6 +319,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #helppage .setting-status * {margin: 0 .5em;overflow-wrap: anywhere;max-width: calc(100vw - 3em);}
 #helppage .map-status * {display: block;}
 #helppage .countable {height: 2em;margin: 0 1em;color: var(--helppage-countable);}
+#helppage .range-compat {height: 2em;margin: 0 1em;color: var(--helppage-range-compat);}
 #helppage .command-block {color: var(--code-command);white-space: normal;overflow-wrap: anywhere;background: var(--code-bg);padding: .1em;}
 #helppage .url-search {color: var(--url-search);}
 #helppage .url-url {color: var(--url-url);}

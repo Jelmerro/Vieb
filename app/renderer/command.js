@@ -1388,5 +1388,6 @@ module.exports = {
     customCommandsAsCommandList,
     execute,
     openSpecialPage,
-    parseAndValidateArgs
+    parseAndValidateArgs,
+    rangeCompatibleCommands
 }
