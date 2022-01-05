@@ -376,7 +376,18 @@ const reload = () => {
     loadFromDisk()
 }
 
-const hardcopy = () => currentPage()?.send("action", "print")
+const printPage = page => {
+    page?.send("action", "print")
+}
+
+const hardcopy = range => {
+    if (range) {
+        rangeToTabIdxs(range).forEach(t => printPage(
+            tabOrPageMatching(listTabs()[t])))
+        return
+    }
+    printPage(currentPage())
+}
 
 const resolveFileArg = (locationArg, type) => {
     const name = `${new URL(currentPage().src).hostname || currentTab()
@@ -527,7 +538,7 @@ const screenshot = (args, range) => {
 const takeScreenshot = (dims, location, tabIdx = null) => {
     let page = currentPage()
     if (tabIdx !== null) {
-        page = listTabs().indexOf(tabIdx)
+        page = tabOrPageMatching(listTabs()[tabIdx])
     }
     if (!page) {
         return
@@ -566,21 +577,29 @@ const mkviebrc = (full = false, trailingArgs = false) => {
 }
 
 const translateRangePosToIdx = (start, rangePart) => {
-    if (rangePart.startsWith("/") && rangePart.endsWith("/")) {
+    // TODO support more flags and make it dynamic
+    if (rangePart.startWith("g/") && rangePart.endsWith("/")) {
+        const search = rangePart.slice(1, -1)
         return listTabs().map((t, i) => ({
             "idx": i,
             "name": t.querySelector("span").textContent,
             "url": tabOrPageMatching(t).src
-        })).filter(t => t.name.includes(rangePart) || t.url.includes(rangePart))
+        })).filter(t => t.name.includes(search) || t.url.includes(search))
+            .map(t => t.idx).filter(i => i >= start)
+    }
+    if (rangePart.startsWith("/") && rangePart.endsWith("/")) {
+        const search = rangePart.slice(1, -1)
+        return listTabs().map((t, i) => ({
+            "idx": i,
+            "name": t.querySelector("span").textContent,
+            "url": tabOrPageMatching(t).src
+        })).filter(t => t.name.includes(search) || t.url.includes(search))
             .map(t => t.idx).filter(i => i >= start)[0]
     }
     const [, plus] = rangePart.split("+")
     const [, minus] = rangePart.split("-")
     const [charOrNum] = rangePart.split(/[-+]/g)
     let number = Number(charOrNum)
-    if (charOrNum === "^") {
-        number = 0
-    }
     if (charOrNum === "^") {
         number = 0
     }
@@ -594,6 +613,7 @@ const translateRangePosToIdx = (start, rangePart) => {
         number += plus
     }
     if (minus) {
+        // TODO if no number yet and there is a minus, count back from last tab
         number -= minus
     }
     number = Number(number)
@@ -608,6 +628,12 @@ const rangeToTabIdxs = range => {
         return listTabs().map((_, i) => i)
     }
     if (range.includes(",")) {
+        // TODO support more flags and make it dynamic
+        if (range.startWith("g/") && range.endsWith("/")) {
+            notify("Can't combine global search with end index, either supply "
+                + "two indexes/searches OR use a global search", "warn")
+            return []
+        }
         const [start, end, tooManyArgs] = range.split(",")
         if (tooManyArgs !== undefined) {
             notify("Too many commas in range, at most 1 is allowed", "warn")
