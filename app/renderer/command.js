@@ -37,6 +37,7 @@ const {
     specialPagePath,
     pathToSpecialPageName,
     specialChars,
+    specialCharsAllowSpaces,
     appConfig,
     stringToUrl,
     formatDate,
@@ -376,23 +377,21 @@ const reload = () => {
     loadFromDisk()
 }
 
-const printPage = page => {
-    page?.send("action", "print")
-}
-
 const hardcopy = range => {
     if (range) {
-        rangeToTabIdxs(range).forEach(t => printPage(
-            tabOrPageMatching(listTabs()[t])))
+        rangeToTabIdxs(range).forEach(t => tabOrPageMatching(listTabs()[t])
+            .send("action", "print"))
         return
     }
-    printPage(currentPage())
+    currentPage()?.send("action", "print")
 }
 
-const resolveFileArg = (locationArg, type) => {
-    const name = `${new URL(currentPage().src).hostname || currentTab()
-        .querySelector("span").textContent.replace(specialChars, "").trim()
-    }_${formatDate(new Date()).replace(/:/g, "-").replace(" ", "_")}`
+const resolveFileArg = (locationArg, type, customPage = null) => {
+    const page = customPage || currentPage()
+    const tab = tabOrPageMatching(page)
+    const name = `${tab.querySelector("span").textContent.replace(
+        specialCharsAllowSpaces, "").trim()}_${formatDate(new Date())
+        .replace(/:/g, "-")}`.replace(/\s/g, "_")
     let loc = joinPath(downloadPath(), name)
     if (locationArg) {
         let file = expandPath(locationArg)
@@ -438,7 +437,7 @@ const write = (args, range) => {
 const writePage = (customLoc, tabIdx) => {
     let page = currentPage()
     if (tabIdx !== null) {
-        page = listTabs().indexOf(tabIdx)
+        page = tabOrPageMatching(listTabs()[tabIdx])
     }
     if (!page) {
         return
@@ -446,7 +445,7 @@ const writePage = (customLoc, tabIdx) => {
     if (!page) {
         return
     }
-    const loc = resolveFileArg(customLoc, "html")
+    const loc = resolveFileArg(customLoc, "html", page)
     if (!loc) {
         return
     }
@@ -544,7 +543,7 @@ const takeScreenshot = (dims, location, tabIdx = null) => {
         return
     }
     const rect = translateDimsToRect(dims)
-    const loc = resolveFileArg(location, "png")
+    const loc = resolveFileArg(location, "png", page)
     if (!loc) {
         return
     }
@@ -577,28 +576,36 @@ const mkviebrc = (full = false, trailingArgs = false) => {
 }
 
 const translateRangePosToIdx = (start, rangePart) => {
-    // TODO support more flags and make it dynamic
-    if (rangePart.startWith("g/") && rangePart.endsWith("/")) {
-        const search = rangePart.slice(1, -1)
-        return listTabs().map((t, i) => ({
+    const [, plus] = rangePart.split("/").pop().split("+")
+    const [, minus] = rangePart.split("/").pop().split("-")
+    let [charOrNum] = rangePart.split(/[-+]/g)
+    if (rangePart.split("/").length > 2) {
+        const [flags] = rangePart.split("/")
+        let search = rangePart.split("/").slice(1, -1).join("/")
+        ;[charOrNum] = listTabs().map((t, i) => ({
             "idx": i,
             "name": t.querySelector("span").textContent,
             "url": tabOrPageMatching(t).src
-        })).filter(t => t.name.includes(search) || t.url.includes(search))
-            .map(t => t.idx).filter(i => i >= start)
+        })).filter(t => {
+            let name = String(t.name)
+            let url = String(t.url)
+            if (flags.includes("i")) {
+                search = search.toLowerCase()
+                name = name.toLowerCase()
+                url = url.toLowerCase()
+            }
+            if (flags.includes("t") && name.includes(search)) {
+                return true
+            }
+            if (flags.includes("u") && url.includes(search)) {
+                return true
+            }
+            return name.includes(search) || url.includes(search)
+        }).map(t => t.idx).filter(i => i >= start)
+        if (charOrNum === undefined) {
+            return listTabs().length + 10
+        }
     }
-    if (rangePart.startsWith("/") && rangePart.endsWith("/")) {
-        const search = rangePart.slice(1, -1)
-        return listTabs().map((t, i) => ({
-            "idx": i,
-            "name": t.querySelector("span").textContent,
-            "url": tabOrPageMatching(t).src
-        })).filter(t => t.name.includes(search) || t.url.includes(search))
-            .map(t => t.idx).filter(i => i >= start)[0]
-    }
-    const [, plus] = rangePart.split("+")
-    const [, minus] = rangePart.split("-")
-    const [charOrNum] = rangePart.split(/[-+]/g)
     let number = Number(charOrNum)
     if (charOrNum === "^") {
         number = 0
@@ -610,15 +617,18 @@ const translateRangePosToIdx = (start, rangePart) => {
         number = listTabs().length - 1
     }
     if (plus) {
-        number += plus
+        if (charOrNum || rangePart.split("/").length > 2) {
+            number += Number(plus)
+        } else {
+            number = listTabs().indexOf(currentTab()) + Number(plus)
+        }
     }
     if (minus) {
-        // TODO if no number yet and there is a minus, count back from last tab
-        number -= minus
-    }
-    number = Number(number)
-    if (isNaN(number)) {
-        notify(`Range section '${rangePart}' is not a valid range`, "warn")
+        if (charOrNum || rangePart.split("/").length > 2) {
+            number -= Number(minus)
+        } else {
+            number = listTabs().indexOf(currentTab()) - Number(minus)
+        }
     }
     return number
 }
@@ -628,22 +638,55 @@ const rangeToTabIdxs = range => {
         return listTabs().map((_, i) => i)
     }
     if (range.includes(",")) {
-        // TODO support more flags and make it dynamic
-        if (range.startWith("g/") && range.endsWith("/")) {
-            notify("Can't combine global search with end index, either supply "
-                + "two indexes/searches OR use a global search", "warn")
-            return []
-        }
         const [start, end, tooManyArgs] = range.split(",")
         if (tooManyArgs !== undefined) {
             notify("Too many commas in range, at most 1 is allowed", "warn")
             return []
         }
+        if (start.match(/^.*g.*\/.*\/[-+]?\d?$/) || end.match(/^.*g.*\/.*\/[-+]?\d?$/)) {
+            notify("Can't combine global search with 2 indexes, either supply"
+                + " two indexes/searches OR use a global search", "warn")
+            return []
+        }
         const startPos = translateRangePosToIdx(0, start)
-        return listTabs().map((_, i) => i).slice(startPos,
-            translateRangePosToIdx(startPos, end) + 1)
+        if (isNaN(startPos)) {
+            notify(`Range section '${start}' is not a valid range`, "warn")
+            return []
+        }
+        const endPos = translateRangePosToIdx(startPos, end)
+        if (isNaN(endPos)) {
+            notify(`Range section '${end}' is not a valid range`, "warn")
+            return []
+        }
+        return listTabs().map((_, i) => i).slice(startPos, endPos + 1)
     }
-    return [translateRangePosToIdx(0, range)]
+    if (range.split("/").length > 2) {
+        const [flags] = range.split("/")
+        if (flags.includes("g")) {
+            let search = range.split("/").slice(1, -1).join("/")
+            return listTabs().map((t, i) => ({
+                "idx": i,
+                "name": t.querySelector("span").textContent,
+                "url": tabOrPageMatching(t).src
+            })).filter(t => {
+                let name = String(t.name)
+                let url = String(t.url)
+                if (flags.includes("i")) {
+                    search = search.toLowerCase()
+                    name = name.toLowerCase()
+                    url = url.toLowerCase()
+                }
+                if (flags.includes("t") && name.includes(search)) {
+                    return true
+                }
+                if (flags.includes("u") && url.includes(search)) {
+                    return true
+                }
+                return name.includes(search) || url.includes(search)
+            }).map(t => t.idx)
+        }
+    }
+    return [translateRangePosToIdx(0, range, true)]
 }
 
 const tabForBufferArg = (args, filter = null) => {
@@ -1032,7 +1075,7 @@ const commands = {
     "cookies": () => openSpecialPage("cookies"),
     "d": () => openSpecialPage("downloads"),
     "delcommand": ({args}) => deleteCommand(args),
-    "devtools": openDevTools,
+    "devtools": () => openDevTools(),
     "downloads": () => openSpecialPage("downloads"),
     "extensions": ({args}) => extensionsCommand(args),
     "h": ({args}) => help(...args),
@@ -1218,11 +1261,7 @@ const parseAndValidateArgs = commandStr => {
     const argsString = commandStr.split(" ").slice(1).join(" ")
     let [command] = commandStr.split(" ")
     let range = ""
-    while (command[0]?.match(specialChars) || command[0]?.match(/\d+/g)) {
-        range += command[0]
-        command = command.slice(1)
-    }
-    while (command.includes("/")) {
+    while (command[0]?.match(specialChars) || command[0]?.match(/\d+/g) || command.includes("/")) {
         range += command[0]
         command = command.slice(1)
     }

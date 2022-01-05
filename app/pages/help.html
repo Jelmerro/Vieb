@@ -69,7 +69,7 @@
         <span class="command-block">:/github/+1,/help/-1mute</span>
         This command will toggle mute for all tabs after the one matching github and before the one matching help, which can be any number of tabs. It's also possible to supply one global search to execute a range supporting command on every tab matching the search with "g", which can also be combined with a case-insensitivity flag "i":
         <span class="command-block">:gi/vieb/reload</span>
-        This command will reload all tabs matching "vieb" in the title or url, regardless of casing. You can also use "i" and "g" on their own, but global searches cannot be combined with and end index, while "i" can. To only search in the title or the url, you can use the "u" and "t" flags in the same way.
+        This command will reload all tabs matching "vieb" in the title or url, regardless of casing. You can also use "i" and "g" on their own, but global searches cannot be combined with and end index, while "i" can. To only search in the title or the url, you can use the "t" and "u" flags in the same way. Finally, you can also not combine calculations such as "+2" with the "g" flag, because all matching tabs will have the command executed, instead of only the first match (optionally with a calculation part).
         <h2 id="settingcommands">Setting commands</h2>
         Commands in this paragraph are for reading, changing or resetting the settings of Vieb. These commands only change the settings for the current session, unless the <a href="#:mkviebrc">:mkviebrc</a> command is run to write the settings back to the <a href="#viebrc">viebrc</a> file.
         <h3 id=":set">:set</h3>
