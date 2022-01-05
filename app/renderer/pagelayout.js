@@ -483,11 +483,14 @@ const applyLayout = () => {
     }
 }
 
+const getLastTabId = () => lastTabId
+
 module.exports = {
     add,
     applyLayout,
     exchange,
     firstSplit,
+    getLastTabId,
     hide,
     lastSplit,
     layoutDivById,

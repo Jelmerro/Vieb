@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Range prefix support for many different commands
+- Buffer-like commands now accept "#" to specify the last used tab
 
 ### Removed
 

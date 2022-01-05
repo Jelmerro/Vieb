@@ -702,6 +702,11 @@ const tabForBufferArg = (args, filter = null) => {
             }
             return tabs[number] || tabs[0]
         }
+        if ((args[0] || args) === "#") {
+            const {getLastTabId} = require("./pagelayout")
+            return document.querySelector(
+                `#tabs span[link-id='${getLastTabId()}']`)
+        }
     }
     const simpleSearch = args.join("").replace(specialChars, "").toLowerCase()
     return listTabs().filter(t => !filter || filter(t)).find(t => {
