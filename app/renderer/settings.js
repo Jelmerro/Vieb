@@ -806,9 +806,11 @@ const updateHelpPage = () => {
             const {
                 listMappingsAsCommandList, uncountableActions
             } = require("./input")
+            const {rangeCompatibleCommands} = require("./command")
             try {
                 p.send("settings", settingsWithDefaults(),
-                    listMappingsAsCommandList(false, true), uncountableActions)
+                    listMappingsAsCommandList(false, true), uncountableActions,
+                    rangeCompatibleCommands)
             } catch {
                 // Page not ready yet or suspended
             }

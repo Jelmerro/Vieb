@@ -36,6 +36,7 @@ let configSettings = ""
 const framePaddingInfo = []
 const frameSelector = "embed, frame, iframe, object"
 const specialChars = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/\s]/gi
+const specialCharsAllowSpaces = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/]/gi
 const dataUris = [
     "blob", "data", "javascript", "magnet", "mailto", "view-source", "ws"
 ]
@@ -838,6 +839,7 @@ const modifiedAt = loc => {
 module.exports = {
     frameSelector,
     specialChars,
+    specialCharsAllowSpaces,
     hasProtocol,
     isUrl,
     searchword,

@@ -13,6 +13,11 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Range prefix support for many different commands
+- Buffer-like commands now accept "#" to specify the last used tab
+
 ### Removed
 
 - Longtime workaround for electron-builder to manually create the mac zips (they are now valid zip archives instead of being broken)

@@ -711,8 +711,10 @@ const addWebviewListeners = webview => {
                 listMappingsAsCommandList, uncountableActions
             } = require("./input")
             const {settingsWithDefaults} = require("./settings")
+            const {rangeCompatibleCommands} = require("./command")
             webview.send("settings", settingsWithDefaults(),
-                listMappingsAsCommandList(false, true), uncountableActions)
+                listMappingsAsCommandList(false, true), uncountableActions,
+                rangeCompatibleCommands)
         }
         if (specialPageName === "notifications") {
             webview.send("notification-history", listNotificationHistory())

@@ -30,7 +30,7 @@ let allCommandsByKeys = modes.reduce((a, m) => {
     return a
 }, {})
 
-ipcRenderer.on("settings", (_, settings, mappings, uncountableActions) => {
+ipcRenderer.on("settings", (_, settings, mappings, uncountActs, rangeComp) => {
     allActionsByKeys = modes.reduce((a, m) => {
         a[m] = {}
         return a
@@ -40,7 +40,8 @@ ipcRenderer.on("settings", (_, settings, mappings, uncountableActions) => {
         return a
     }, {})
     // Enrich the settings list with type, default, current and value lists
-    ;[...document.querySelectorAll(".setting-status, .map-status, .countable")]
+    ;[...document.querySelectorAll(
+        ".setting-status, .map-status, .countable, .range-compat")]
         .forEach(el => el.remove())
     settings.forEach(setting => {
         if (document.getElementById(setting.name)) {
@@ -125,6 +126,13 @@ ipcRenderer.on("settings", (_, settings, mappings, uncountableActions) => {
             cmdNode.parentNode.parentNode.insertBefore(
                 mapList, cmdNode.parentNode.nextSibling)
         }
+        // Range compat badge
+        if (rangeComp.includes(cmdNode.id.replace(":", ""))) {
+            const badge = document.createElement("kbd")
+            badge.className = "range-compat"
+            badge.textContent = "Supports ranges"
+            cmdNode.parentNode.insertBefore(badge, cmdNode.nextSibling)
+        }
     })
     // Enrich the action list with the keys that map to them
     ;[
@@ -167,7 +175,7 @@ ipcRenderer.on("settings", (_, settings, mappings, uncountableActions) => {
         actionNode.parentNode.parentNode.insertBefore(
             mapList, actionNode.parentNode.nextSibling)
         // Countable action badge
-        if (!uncountableActions.includes(actionName)) {
+        if (!uncountActs.includes(actionName)) {
             const badge = document.createElement("kbd")
             badge.className = "countable"
             badge.textContent = "Countable"
