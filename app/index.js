@@ -19,6 +19,7 @@
 
 const {
     app,
+    desktopCapturer,
     BrowserWindow,
     dialog,
     ipcMain,
@@ -1457,6 +1458,9 @@ ipcMain.handle("make-default-app", () => {
     app.setAsDefaultProtocolClient("http")
     app.setAsDefaultProtocolClient("https")
 })
+ipcMain.handle("desktop-capturer-sources", () => desktopCapturer.getSources({
+    "fetchWindowIcons": true, "types": ["screen", "window"]
+}))
 // Operations below are sync
 ipcMain.on("override-global-useragent", (e, globalUseragent) => {
     app.userAgentFallback = globalUseragent || useragent()

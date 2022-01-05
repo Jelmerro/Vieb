@@ -18,6 +18,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Range prefix support for many different commands
 - Buffer-like commands now accept "#" to specify the last used tab
 
+### Changed
+
+- Desktop capture API is now called from main thread and shows the app icons
+
 ### Removed
 
 - Longtime workaround for electron-builder to manually create the mac zips (they are now valid zip archives instead of being broken)
@@ -30,8 +34,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Security
 
-- Electron 16.0.5 (was 15.3.1)
-- Chromium 96.0.4664.55 (was 94.0.4606.81)
+- Electron 16.0.6 (was 15.3.1)
+- Chromium 96.0.4664.110 (was 94.0.4606.81)
 
 ## [6.2.0](https://github.com/Jelmerro/Vieb/compare/6.1.0...6.2.0) - 2021-11-14
 

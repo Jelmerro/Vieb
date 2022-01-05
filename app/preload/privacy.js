@@ -17,7 +17,7 @@
 */
 "use strict"
 
-const {desktopCapturer, ipcRenderer} = require("electron")
+const {ipcRenderer} = require("electron")
 const {matchesQuery, readJSON, joinPath, appData} = require("../util")
 
 const message = "The page has requested to view a list of all media devices."
@@ -197,6 +197,7 @@ privacyFixes()
 // https://github.com/electron/electron/issues/16513#issuecomment-602070250
 const displayCaptureStyling = `html, body {overflow: hidden !important;}
 .desktop-capturer-selection {
+    font-family: sans-serif;font-weight: revert;font-size: 14px;
     position: fixed;top: 0;left: 0;width: 100%;height: 100vh;line-height: 1;
     background: %SHADE%;color: %FG%;z-index: 10000000;text-align: center;
     display: flex;align-items: center;justify-content: center;
@@ -219,6 +220,7 @@ const displayCaptureStyling = `html, body {overflow: hidden !important;}
     font-size: %FONTSIZE%px;font-weight: bold;cursor: pointer;line-height: 1;
 }
 .desktop-capturer-selection__thumbnail {margin: 5px;width: 150px;}
+.desktop-capturer-selection__appicon {width: 30px;}
 .desktop-capturer-selection__name {margin: 10px;overflow-wrap: anywhere;}
 .desktop-capturer-selection__btn:hover, .desktop-capturer-selection__btn:focus {
     background: %FG%;color: %BG%;
@@ -258,8 +260,7 @@ const customDisplayMedia = frameWindow => new Promise((resolve, reject) => {
         throw new DOMException("Permission denied", "NotAllowedError")
     }
     try {
-        desktopCapturer.getSources(
-            {"types": ["screen", "window"]}).then(sources => {
+        ipcRenderer.invoke("desktop-capturer-sources").then(sources => {
             const stylingElem = document.createElement("style")
             stylingElem.textContent = displayCaptureStyling
                 .replace(/%FONTSIZE%/g, settings.fontsize || "14")
@@ -268,6 +269,12 @@ const customDisplayMedia = frameWindow => new Promise((resolve, reject) => {
                 .replace(/%SHADE%/g, "#7777")
             const selectionElem = document.createElement("div")
             selectionElem.classList = "desktop-capturer-selection"
+            const appIcon = icon => {
+                if (!icon || icon.isEmpty() || icon.getSize().width < 1) {
+                    return ""
+                }
+                return icon.toDataURL()
+            }
             selectionElem.innerHTML = `
             <span class="desktop-capturer-selection__scroller">
                 <span class="desktop-capturer-selection__close">X</span>
@@ -278,6 +285,8 @@ const customDisplayMedia = frameWindow => new Promise((resolve, reject) => {
                                 data-id="${details.id}">
                             <img class="desktop-capturer-selection__thumbnail"
                                 src="${details.thumbnail.toDataURL()}" />
+                            <img class="desktop-capturer-selection__appicon"
+                                src="${appIcon(details.appIcon)}" />
                             <span class="desktop-capturer-selection__name">
                                 ${details.name.trim()}</span>
                             </span>
