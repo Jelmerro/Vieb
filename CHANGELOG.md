@@ -21,6 +21,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Desktop capture API is now called from main thread and shows the app icons
+- Command "reload" to "reloadconfig" to avoid confusion
+- Actions "reload" and "reloadWithoutCache" are now called "refreshTab" and "refreshTabWithoutCache" to avoid confusion
 
 ### Removed
 

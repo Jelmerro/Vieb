@@ -29,7 +29,7 @@ command! scroll-to-perc_0 <scrollTop>
 command! scroll-to-perc <scrollBottom>
 command! tab-prev <previousTab>
 command! tab-next <nextTab>
-command! reload_--force <reloadWithoutCache>
+command! reload_--force <refreshTabWithoutCache>
 command! set_ <:help>
 command! download <:write>
 command! undo <reopenTab>

@@ -30,7 +30,7 @@ nmap <C-I> <:devtools>
 nmap <C-PageUp> <previousTab>
 nmap <C-S-Tab> <previousTab>
 nmap <C-PageDown> <nextTab>
-nmap <C-F5> <reloadWithoutCache>
+nmap <C-F5> <refreshTabWithoutCache>
 nmap Sh <:history>
 nmap Ss <:help>
 nmap <C-A-p> <:print>

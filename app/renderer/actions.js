@@ -228,7 +228,7 @@ const nextSearchMatch = () => {
     }
 }
 
-const reload = (customPage = null) => {
+const refreshTab = (customPage = null) => {
     const page = customPage || currentPage()
     if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
         page.reload()
@@ -307,7 +307,7 @@ const previousSearchMatch = () => {
     }
 }
 
-const reloadWithoutCache = () => {
+const refreshTabWithoutCache = () => {
     if (currentPage() && !currentPage().isCrashed()) {
         if (!currentPage().src.startsWith("devtools://")) {
             currentPage().reloadIgnoringCache()
@@ -904,8 +904,8 @@ module.exports = {
     previousPageNewTab,
     previousSearchMatch,
     previousTab,
-    reload,
-    reloadWithoutCache,
+    refreshTab,
+    refreshTabWithoutCache,
     reopenTab,
     reorderFollowLinks,
     repeatLastAction,

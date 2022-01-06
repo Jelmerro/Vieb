@@ -49,8 +49,8 @@ nmap x[ <:lclose>
 nmap x] <:rclose>
 nunmap r
 nunmap R
-nmap rr <reload>
-nmap RR <reloadWithoutCache>
+nmap rr <refreshTab>
+nmap RR <refreshTabWithoutCache>
 nmap [ <previousTab>
 nmap q <previousTab>
 nmap ] <nextTab>

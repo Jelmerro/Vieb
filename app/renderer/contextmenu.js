@@ -44,7 +44,7 @@ const viebMenu = options => {
     contextMenu.style.left = `${options.x}px`
     const {clipboard} = require("electron")
     const {
-        useEnteredData, backInHistory, forwardInHistory, reload
+        useEnteredData, backInHistory, forwardInHistory, refreshTab
     } = require("./actions")
     const {addTab, reopenTab, closeTab} = require("./tabs")
     const menuSetting = getSetting("menuvieb")
@@ -158,7 +158,7 @@ const viebMenu = options => {
         }
         if (page && !isSuspended && !page.isCrashed()) {
             createMenuItem({
-                "action": () => reload(tabOrPageMatching(tab)),
+                "action": () => refreshTab(tabOrPageMatching(tab)),
                 "title": "Refresh"
             })
             if (!page.src.startsWith("devtools://") && page?.canGoBack()) {
@@ -222,13 +222,13 @@ const webviewMenu = options => {
         return
     }
     const {clipboard} = require("electron")
-    const {backInHistory, forwardInHistory, reload} = require("./actions")
+    const {backInHistory, forwardInHistory, refreshTab} = require("./actions")
     const webviewY = propPixels(page.style, "top")
     const webviewX = propPixels(page.style, "left")
     const zoom = page.getZoomFactor()
     contextMenu.style.top = `${Math.round(options.y * zoom + webviewY)}px`
     contextMenu.style.left = `${Math.round(options.x * zoom + webviewX)}px`
-    createMenuItem({"action": () => reload(), "title": "Refresh"})
+    createMenuItem({"action": () => refreshTab(), "title": "Refresh"})
     if (!page.src.startsWith("devtools://") && page?.canGoBack()) {
         createMenuItem({"action": () => backInHistory(), "title": "Previous"})
     }

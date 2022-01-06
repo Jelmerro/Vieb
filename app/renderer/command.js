@@ -372,7 +372,7 @@ const help = (section = null, trailingArgs = false) => {
     openSpecialPage("help", section)
 }
 
-const reload = () => {
+const reloadconfig = () => {
     const {loadFromDisk} = require("./settings")
     loadFromDisk()
 }
@@ -1030,7 +1030,6 @@ const rangeCompatibleCommands = [
     "print",
     "q",
     "quit",
-    "reload",
     "screenshot",
     "suspend",
     "vsplit",
@@ -1043,7 +1042,7 @@ const noArgumentComands = [
     "quit",
     "qa",
     "quitall",
-    "reload",
+    "reloadconfig",
     "restart",
     "v",
     "version",
@@ -1118,7 +1117,7 @@ const commands = {
     quitall,
     "rclose": () => rclose(),
     "rclose!": () => rclose(true),
-    reload,
+    reloadconfig,
     restart,
     "s": ({args}) => set(args),
     "screencopy": ({args}) => screencopy(...args),

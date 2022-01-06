@@ -62,8 +62,8 @@ nmap <C-z> <reopenTab>
 nmap <C-T> <reopenTab>
 nmap <F8> <toExploreMode>
 nmap <C-l> <toExploreMode>
-nmap <C-r> <reload>
-nmap <C-R> <reloadWithoutCache>
+nmap <C-r> <refreshTab>
+nmap <C-R> <refreshTabWithoutCache>
 nmap <C-k> <toExploreMode><BS>
 nmap <C-e> <toExploreMode><BS>
 nmap <C-f> <toSearchMode>

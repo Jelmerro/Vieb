@@ -44,7 +44,7 @@
                 <li><kbd>v</kbd> - Then switch to <a class="visual" href="#visual">visual mode</a> to select and copy text</li>
             </ul></li>
             <li>Open <a href="#action.openNewTab">new tabs</a> with <kbd>t</kbd>, <a href="#:close">close them</a> with <kbd>d</kbd>, <a href="#action.nextTab">switch</a> between <a href="#action.previousTab">tabs</a> with <kbd>w</kbd> and <kbd>b</kbd></li>
-            <li><a href="#action.reopenTab">Reopen tabs</a> with <kbd>u</kbd>, <a href="#action.reload">reload</a> with <kbd>r</kbd>, open <a href="#:help">help</a> with <kbd>&lt;F1&gt;</kbd> and <a href="#:quit">quit</a> with <kbd>ZZ</kbd></li>
+            <li><a href="#action.reopenTab">Reopen tabs</a> with <kbd>u</kbd>, <a href="#action.refreshTab">refresh a tab</a> with <kbd>r</kbd>, open <a href="#:help">help</a> with <kbd>&lt;F1&gt;</kbd> and <a href="#:quit">quit</a> with <kbd>ZZ</kbd></li>
         </ul>
         Vieb is separated into different modes, which have different keyboard mappings. You can see the current mode at all times in the navbar, next to the url. All mappings listed above assume the default mappings and that you are in <a class="normal" href="#action.toNormalMode">normal mode</a>. You can list all of Vieb's current keyboard mappings with <span class="command-block">:map!</span> as explained in the <a href="#:map">:map</a> paragraph. It's also an option to use your <a href="#mouse">mouse</a>, but you can do everything without it.
         <h2>Help structure</h2>
@@ -68,8 +68,8 @@
         As explained before, you can also supply a start and end index, but both of these can also be found with a search and be incremented/decreased with calculations, for example:
         <span class="command-block">:/github/+1,/help/-1mute</span>
         This command will toggle mute for all tabs after the one matching github and before the one matching help, which can be any number of tabs. It's also possible to supply one global search to execute a range supporting command on every tab matching the search with "g", which can also be combined with a case-insensitivity flag "i":
-        <span class="command-block">:gi/vieb/reload</span>
-        This command will reload all tabs matching "vieb" in the title or url, regardless of casing. You can also use "i" and "g" on their own, but global searches cannot be combined with and end index, while "i" can. To only search in the title or the url, you can use the "t" and "u" flags in the same way. Finally, you can also not combine calculations such as "+2" with the "g" flag, because all matching tabs will have the command executed, instead of only the first match (optionally with a calculation part).
+        <span class="command-block">:gi/vieb/screenshot</span>
+        This command will make a screenshot of all tabs matching "vieb" in the title or url, regardless of casing. You can also use "i" and "g" on their own, but global searches cannot be combined with and end index, while "i" can. To only search in the title or the url, you can use the "t" and "u" flags in the same way. Finally, you can also not combine calculations such as "+2" with the "g" flag, because all matching tabs will have the command executed, instead of only the first match (optionally with a calculation part).
         <h2 id="settingcommands">Setting commands</h2>
         Commands in this paragraph are for reading, changing or resetting the settings of Vieb. These commands only change the settings for the current session, unless the <a href="#:mkviebrc">:mkviebrc</a> command is run to write the settings back to the <a href="#viebrc">viebrc</a> file.
         <h3 id=":set">:set</h3>
@@ -120,17 +120,17 @@
         </ul>
         There are also some string type settings that only accept specific values, such as the <a href="#permissioncamera">permissioncamera</a> setting, which can only be set to "block", "ask" or "allow" (default is "block"). These type of settings, so called "Fixed-set Strings", can also be rotated by suffixing an exclamation mark, similar to toggling boolean values. For example, to cycle through the <a href="#adblocker">adblocker</a> values and log the value after switching:
         <span class="command-block nowrap">:set adblocker! adblocker</span>.
-        <h3 id=":reload">:reload</h3>
+        <h3 id=":reloadconfig">:reloadconfig</h3>
         <ul>
-            <li><span class="command-block">:reload</span> - Reload all viebrc commands</li>
+            <li><span class="command-block">:reloadconfig</span> - Reload all viebrc commands</li>
         </ul>
-        This command will reload the <a href="#viebrc">viebrc</a> files, in order. This is not the same as resetting all settings to Vieb's default, which can be done with <span class="command-block">:set all&amp;</span>. Both the reload and set command only modify the settings for the current session, unless the changes are written back to the viebrc with the <a href="#:mkviebrc">:mkviebrc</a> command. The reload command does not undo custom settings, mappings and commands, but does overwrite them if they are defined in the viebrc. Settings that have been changed using the set command at runtime that are not changed in the viebrc will therefore not be changed when running this command. To reset to the startup state without actually restarting Vieb (which you can do using the <a href="#:restart">:restart</a> command):
+        This command will reload the <a href="#viebrc">viebrc</a> files, in order. This is not the same as resetting all settings to Vieb's default, which can be done with <span class="command-block">:set all&amp;</span>. Both the reloadconfig and set command only modify the settings for the current session, unless the changes are written back to the viebrc with the <a href="#:mkviebrc">:mkviebrc</a> command. The reloadconfig command does not undo custom settings, mappings and commands, but does overwrite them if they are defined in the viebrc. Settings that have been changed using the set command at runtime that are not changed in the viebrc will therefore not be changed when running this command. To reset to the startup state without actually restarting Vieb (which you can do using the <a href="#:restart">:restart</a> command):
         <ul>
             <li>Remove all custom mappings with <span class="command-block">:mapclear</span></li>
             <li>Reset all settings with <span class="command-block">:set all&amp;</span></li>
             <li>Run <span class="command-block">:comclear</span> to remove all custom commands</li>
             <li>Switch back to the default <a href="#:colorscheme">:colorscheme</a> with <span class="command-block">:colorscheme default</span></li>
-            <li>Finally run the <span class="command-block">:reload</span> command to run all viebrc commands</li>
+            <li>Finally run the <span class="command-block">:reloadconfig</span> command to run all viebrc commands</li>
         </ul>
         Of course it's also possible to make a mapping or custom command to do this for you.
         <h3 id=":restart">:restart</h3>
@@ -150,13 +150,13 @@
             <li><span class="command-block">:scriptnames!</span> - List every file that was either loaded on startup or sourced by startup configs</li>
             <li><span class="command-block">:scriptnames! 2</span> - Edit the 2nd script in the list of config files using the editor set by <a href="#vimcommand">vimcommand</a></li>
         </ul>
-        With the scriptnames command you can display a list of <a href="#viebrc">viebrc</a> script files that were loaded on startup. You can customize which config files get loaded on startup using ENV variables or startup arguments, run "vieb --help" for details or read about the <a href="#viebrc">viebrc</a>. The list of scripts returned by this command will not change when sourcing new scripts with <a href="#:source">:source</a>, unless appended by "!", in which case it will return sourced scripts as well. Only files which were loaded on startup will be used when running <a href="#:reload">:reload</a>, unless those files also contain source commands. From the list of scripts returned by <span class="command-block">scriptnames!</span> you can directly edit a script by appending the index of the script in the list (starting at 1). For example, running <span class="command-block">:scriptnames! 1</span> will edit the config file that was loaded first with the editor configured by <a href="#vimcommand">vimcommand</a>.
+        With the scriptnames command you can display a list of <a href="#viebrc">viebrc</a> script files that were loaded on startup. You can customize which config files get loaded on startup using ENV variables or startup arguments, run "vieb --help" for details or read about the <a href="#viebrc">viebrc</a>. The list of scripts returned by this command will not change when sourcing new scripts with <a href="#:source">:source</a>, unless appended by "!", in which case it will return sourced scripts as well. Only files which were loaded on startup will be used when running <a href="#:reloadconfig">:reloadconfig</a>, unless those files also contain source commands. From the list of scripts returned by <span class="command-block">scriptnames!</span> you can directly edit a script by appending the index of the script in the list (starting at 1). For example, running <span class="command-block">:scriptnames! 1</span> will edit the config file that was loaded first with the editor configured by <a href="#vimcommand">vimcommand</a>.
         <h3 id=":source">:source</h3>
         <ul>
             <li><span class="command-block">:source ~/extra_vieb_config</span> - Execute the commands from "extra_vieb_config" in the home directory</li>
             <li><span class="command-block">:source ./mappings</span> - Execute the commands of the relative "mappings" file from another config file (relative paths are only supported from other configs)</li>
         </ul>
-        Using the source command, you can load additional config files. This can be done at runtime by providing an absolute path, in which case the file will just be parsed once to run every line as a command. You can also run the source command inside <a href="#viebrc">viebrc</a> files to load other config files relative to them (or with an absolute path). Only files which are sourced by other files will be listed in the <a href="#:scriptnames">:scriptnames</a> command output, user invocations of source are one-time only and also won't be loaded when executing <a href="#:reload">:reload</a>.
+        Using the source command, you can load additional config files. This can be done at runtime by providing an absolute path, in which case the file will just be parsed once to run every line as a command. You can also run the source command inside <a href="#viebrc">viebrc</a> files to load other config files relative to them (or with an absolute path). Only files which are sourced by other files will be listed in the <a href="#:scriptnames">:scriptnames</a> command output, user invocations of source are one-time only and also won't be loaded when executing <a href="#:reloadconfig">:reloadconfig</a>.
         <h2 id="specialpages">Special pages</h2>
         Some commands are used to open special pages. This help page is one of them. In this paragraph all of them are listed.
         <h3 id=":version">:version</h3>
@@ -965,11 +965,11 @@
         <h3 id="action.scrollPageDownHalf">action.scrollPageDownHalf</h3>
         Scroll half of a page down, equal to half the window height minus a small margin.
         <h2 id="navigation">Navigation</h2>
-        These actions are related to navigation, such as reloading or managing tabs.
-        <h3 id="action.reload">action.reload</h3>
-        Reload the current tab. If cache is not disabled with the <a href="#cache">cache</a> setting, this type of reload will attempt to reload from cache. See <a href="#action.reloadWithoutCache">action.reloadWithoutCache</a> to reload without caching. If caching is disabled by the cache setting, the two actions are identical.
-        <h3 id="action.reloadWithoutCache">action.reloadWithoutCache</h3>
-        Reload the current tab without using the cache. This action is identical to <a href="#action.reload">action.reload</a> if the <a href="#cache">cache</a> setting is set to 'none'.
+        These actions are related to navigation, such as refreshing or managing tabs.
+        <h3 id="action.refreshTab">action.refreshTab</h3>
+        Reload the current tab by refreshing the page. If cache is not disabled with the <a href="#cache">cache</a> setting, this type of refresh will attempt to load most things from cache. See <a href="#action.refreshTabWithoutCache">action.refreshTabWithoutCache</a> to refresh without caching. If caching is disabled by the cache setting, the two actions are identical.
+        <h3 id="action.refreshTabWithoutCache">action.refreshTabWithoutCache</h3>
+        Reload the current tab by refreshing the page without using the cache. This action is identical to <a href="#action.refreshTab">action.refreshTab</a> if the <a href="#cache">cache</a> setting is set to 'none'.
         <h3 id="action.stopLoadingPage">action.stopLoadingPage</h3>
         Stop loading the current page. This has effect on all active requests for the current tab, but does not prevent the page from making subsequent fetch or xhttp requests. Other tabs are also unaffected.
         <h3 id="action.openNewTab">action.openNewTab</h3>
