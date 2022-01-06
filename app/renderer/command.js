@@ -485,13 +485,13 @@ const translateDimsToRect = dims => {
     return rect
 }
 
-const screencopy = (dims, trailingArgs = false) => {
-    if (trailingArgs) {
-        notify("The screenshot command takes only two optional arguments:\nthe "
-            + "location where to write the image and the dimensions", "warn")
+const screencopy = args => {
+    if (args.length > 1) {
+        notify("The screencopy command only accepts optional dimensions",
+            "warn")
         return
     }
-    if (dims && !dims.match(/^\d+,\d+,\d+,\d+$/g)) {
+    if (args[0] && !args[0].match(/^\d+,\d+,\d+,\d+$/g)) {
         notify("Dimensions must match 'width,height,x,y' with round numbers",
             "warn")
         return
@@ -499,7 +499,7 @@ const screencopy = (dims, trailingArgs = false) => {
     if (!currentPage()) {
         return
     }
-    const rect = translateDimsToRect(dims)
+    const rect = translateDimsToRect(args[0])
     setTimeout(() => {
         currentPage().capturePage(rect).then(img => {
             const {nativeImage, clipboard} = require("electron")
@@ -508,7 +508,7 @@ const screencopy = (dims, trailingArgs = false) => {
     }, 20)
 }
 
-const screenshot = (args, range) => {
+const screenshot = args => {
     if (args.length > 2) {
         notify("The screenshot command takes only two optional arguments:\nthe "
             + "location where to write the image and the dimensions", "warn")
@@ -517,14 +517,6 @@ const screenshot = (args, range) => {
     let [dims, location] = args
     if (!dims?.match(/^\d+,\d+,\d+,\d+$/g)) {
         [location, dims] = args
-    }
-    if (range && location) {
-        notify("Range cannot be combined with custom location", "warn")
-        return
-    }
-    if (range) {
-        rangeToTabIdxs(range).forEach(t => takeScreenshot(dims, null, t))
-        return
     }
     if (dims && !dims.match(/^\d+,\d+,\d+,\d+$/g)) {
         notify("Dimensions must match 'width,height,x,y' with round numbers",
@@ -1030,7 +1022,6 @@ const rangeCompatibleCommands = [
     "print",
     "q",
     "quit",
-    "screenshot",
     "suspend",
     "vsplit",
     "split",
@@ -1120,8 +1111,8 @@ const commands = {
     reloadconfig,
     restart,
     "s": ({args}) => set(args),
-    "screencopy": ({args}) => screencopy(...args),
-    "screenshot": ({args, range}) => screenshot(args, range),
+    "screencopy": ({args}) => screencopy(args),
+    "screenshot": ({args}) => screenshot(args),
     "scriptnames": (hasArgs = null) => {
         if (hasArgs) {
             notify(`Command takes no arguments: scriptnames`, "warn")
