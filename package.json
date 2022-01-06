@@ -28,7 +28,7 @@
   "email": "Jelmerro@users.noreply.github.com",
   "license": "GPL-3.0-or-later",
   "devDependencies": {
-    "electron": "16.0.6",
+    "electron": "17.0.0-beta.1",
     "electron-builder": "22.14.12",
     "eslint": "8.6.0",
     "eslint-plugin-sort-keys-fix": "1.1.2",

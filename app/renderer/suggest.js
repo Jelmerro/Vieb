@@ -590,17 +590,24 @@ const suggestCommand = searchStr => {
             "url": tabOrPageMatching(t).src
         })).filter(t => {
             let num = Number(args.join(""))
-            if (!isNaN(num) && args.length === 1) {
-                if (num >= tabs.length) {
-                    num = tabs.length - 1
+            if (args.length === 1) {
+                if (!isNaN(num)) {
+                    if (num >= tabs.length) {
+                        num = tabs.length - 1
+                    }
+                    if (num < 0) {
+                        num += tabs.length
+                    }
+                    if (num < 0) {
+                        num = 0
+                    }
+                    return num === tabs.indexOf(t.ref)
                 }
-                if (num < 0) {
-                    num += tabs.length
+                if (args.join("") === "#") {
+                    const {getLastTabId} = require("./pagelayout")
+                    return t.ref === document.querySelector(
+                        `#tabs span[link-id='${getLastTabId()}']`)
                 }
-                if (num < 0) {
-                    num = 0
-                }
-                return num === tabs.indexOf(t.ref)
             }
             const tabUrl = t.url.replace(specialChars, "").toLowerCase()
             if (tabUrl.includes(simpleSearch) && t.command.startsWith(search)) {

@@ -20,6 +20,7 @@ import subprocess
 import re
 
 overrides = {
+    "electron": "beta",
     "electron-builder": "next"
 }
 
