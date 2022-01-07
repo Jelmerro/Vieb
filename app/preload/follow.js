@@ -347,6 +347,16 @@ window.addEventListener("click", clickListener,
 let startX = 0
 let startY = 0
 const mouseDownListener = (e, frame = null) => {
+    if (e.button === 3) {
+        ipcRenderer.sendToHost("back-button")
+        e.preventDefault()
+        return
+    }
+    if (e.button === 4) {
+        ipcRenderer.sendToHost("forward-button")
+        e.preventDefault()
+        return
+    }
     if (e.composedPath().find(el => matchesQuery(el, "select, option"))) {
         clickListener(e, frame)
     }

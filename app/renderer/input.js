@@ -637,6 +637,16 @@ const init = () => {
     window.addEventListener("keypress", e => e.preventDefault())
     window.addEventListener("keyup", e => e.preventDefault())
     window.addEventListener("mousedown", e => {
+        if (e.button === 3) {
+            ACTIONS.backInHistory()
+            e.preventDefault()
+            return
+        }
+        if (e.button === 4) {
+            ACTIONS.forwardInHistory()
+            e.preventDefault()
+            return
+        }
         if (e.button === 1) {
             e.preventDefault()
         }
@@ -822,15 +832,6 @@ const init = () => {
     ipcRenderer.on("window-close", () => executeMapString("<A-F4>", true, true))
     ipcRenderer.on("window-focus", () => document.body.classList.add("focus"))
     ipcRenderer.on("window-blur", () => document.body.classList.remove("focus"))
-    ipcRenderer.on("app-command", (_, cmd) => {
-        if (getMouseConf("history")) {
-            if (cmd === "browser-backward") {
-                ACTIONS.backInHistory()
-            } else if (cmd === "browser-forward") {
-                ACTIONS.forwardInHistory()
-            }
-        }
-    })
     setInterval(() => ACTIONS.setFocusCorrectly(), 500)
     ACTIONS.setFocusCorrectly()
     const unSupportedActions = [

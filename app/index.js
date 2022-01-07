@@ -454,10 +454,6 @@ app.on("ready", () => {
         mainWindow.webContents.send("window-close")
     })
     mainWindow.on("closed", () => app.exit(0))
-    mainWindow.on("app-command", (e, cmd) => {
-        mainWindow.webContents.send("app-command", cmd)
-        e.preventDefault()
-    })
     // Load app and send urls when ready
     mainWindow.loadURL(`file://${joinPath(__dirname, "index.html")}`)
     mainWindow.webContents.once("did-finish-load", () => {

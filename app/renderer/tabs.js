@@ -799,6 +799,14 @@ const addWebviewListeners = webview => {
         if (e.channel === "url") {
             addTab({"url": e.args[0]})
         }
+        if (e.channel === "back-button") {
+            const {backInHistory} = require("./actions")
+            backInHistory()
+        }
+        if (e.channel === "forward-button") {
+            const {forwardInHistory} = require("./actions")
+            forwardInHistory()
+        }
         if (e.channel.endsWith("-click-info") && webview !== currentPage()) {
             switchToTab(tabOrPageMatching(webview))
         }
