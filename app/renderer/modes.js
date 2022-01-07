@@ -121,7 +121,7 @@ const init = () => {
             }
             if (mode === "follow") {
                 const {startFollow} = require("./follow")
-                startFollow(false)
+                startFollow("current")
             } else if (mode === "search") {
                 const {toSearchMode} = require("./actions")
                 toSearchMode()

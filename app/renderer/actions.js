@@ -169,11 +169,6 @@ const toExploreMode = () => {
     setMode("explore")
 }
 
-const startFollowCurrentTab = () => {
-    const {startFollow} = require("./follow")
-    startFollow(false)
-}
-
 const insertAtFirstInput = () => currentPage()?.send("focus-input")
 
 const toInsertMode = () => {
@@ -259,9 +254,24 @@ const toSearchMode = () => {
     document.getElementById("url").select()
 }
 
+const startFollowNewSplit = () => {
+    const {startFollow} = require("./follow")
+    startFollow("ver")
+}
+
+const startFollowNewVerSplit = () => {
+    const {startFollow} = require("./follow")
+    startFollow("hor")
+}
+
 const startFollowNewTab = () => {
     const {startFollow} = require("./follow")
-    startFollow(true)
+    startFollow("newtab")
+}
+
+const startFollowCurrentTab = () => {
+    const {startFollow} = require("./follow")
+    startFollow("current")
 }
 
 const backInHistory = (customPage = null) => {
@@ -928,7 +938,9 @@ module.exports = {
     scrollUp,
     setFocusCorrectly,
     startFollowCurrentTab,
+    startFollowNewSplit,
     startFollowNewTab,
+    startFollowNewVerSplit,
     stopFollowMode,
     stopLoadingPage,
     toBottomSplitWindow,

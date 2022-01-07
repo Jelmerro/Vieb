@@ -20,6 +20,7 @@
 const {
     listPages,
     currentPage,
+    currentTab,
     currentMode,
     getSetting,
     setStored,
@@ -29,7 +30,7 @@ const {
 
 const {propPixels} = require("../util")
 
-let followNewtab = true
+let followLinkDestination = "current"
 let alreadyFollowing = false
 let links = []
 const savedOrder = ["url", "onclick", "inputs-click", "inputs-insert"]
@@ -47,8 +48,8 @@ const informPreload = () => {
     }, 100)
 }
 
-const startFollow = (newtab = followNewtab) => {
-    followNewtab = newtab
+const startFollow = (newtab = followLinkDestination) => {
+    followLinkDestination = newtab || "current"
     document.getElementById("follow").textContent = ""
     let modeBeforeFollow = currentMode()
     if (modeBeforeFollow === "follow") {
@@ -173,7 +174,7 @@ const parseAndDisplayLinks = receivedLinks => {
         return
     }
     let newLinks = receivedLinks
-    if (followNewtab) {
+    if (followLinkDestination !== "current") {
         const {hasProtocol} = require("../util")
         newLinks = receivedLinks.filter(link => hasProtocol(link.url))
             .map(link => ({...link, "type": "url"}))
@@ -308,17 +309,31 @@ const enterKey = async id => {
         }
     } else if (matches.length === 1) {
         const link = links[matches[0].getAttribute("link-id")]
-        if (followNewtab) {
+        if (followLinkDestination !== "current") {
             setMode("normal")
             if (stayInFollowMode) {
                 startFollow()
             }
             const {addTab} = require("./tabs")
-            addTab({
-                "switchTo": !stayInFollowMode
-                    && getSetting("follownewtabswitch"),
-                "url": link.url
-            })
+            if (followLinkDestination === "newtab") {
+                addTab({
+                    "switchTo": !stayInFollowMode
+                        && getSetting("follownewtabswitch"),
+                    "url": link.url
+                })
+            } else {
+                const currentTabId = currentTab().getAttribute("link-id")
+                addTab({
+                    "container": getSetting("containersplitpage"),
+                    "url": link.url
+                })
+                const {add} = require("./pagelayout")
+                const opposite = followLinkDestination === "ver"
+                    && !getSetting("splitbelow")
+                    || followLinkDestination === "hor"
+                    && !getSetting("splitright")
+                add(currentTabId, followLinkDestination, !opposite)
+            }
             return
         }
         await clickAtLink(link)
