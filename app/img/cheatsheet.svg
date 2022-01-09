@@ -75,8 +75,8 @@
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.87681241"
-     inkscape:cx="597.04903"
-     inkscape:cy="928.93302"
+     inkscape:cx="624.42091"
+     inkscape:cy="810.32156"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      width="10px"
@@ -1938,7 +1938,7 @@
          x="378.80719"
          y="216.30064"
          id="tspan7249"
-         style="font-size:8.53333px;line-height:0.9;stroke-width:1.06667">reload tab</tspan></text>
+         style="font-size:8.53333px;line-height:0.9;stroke-width:1.06667">refresh tab</tspan></text>
     <flowRoot
        xml:space="preserve"
        id="flowRoot7342"
@@ -2181,20 +2181,20 @@
        transform="translate(40)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan2284"><tspan
+         id="tspan11475"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan2282"> 
+           id="tspan11473"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.08476"
-         id="tspan2288"><tspan
+         id="tspan11479"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan2286">follow </tspan></tspan><tspan
+           id="tspan11477">follow </tspan></tspan><tspan
          x="351.18723"
          y="287.76476"
-         id="tspan2292"><tspan
+         id="tspan11483"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan2290">mode
+           id="tspan11481">mode
 </tspan></tspan></text>
     <text
        xml:space="preserve"
@@ -2205,21 +2205,21 @@
        transform="translate(-42.337912,-69.3719)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan2296"><tspan
+         id="tspan11487"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan2294"> 
+           id="tspan11485"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.85891"
-         id="tspan2300"><tspan
+         id="tspan11491"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan2298">explore
+           id="tspan11489">explore
 </tspan></tspan><tspan
          x="351.18723"
          y="288.72478"
-         id="tspan2304"><tspan
+         id="tspan11495"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan2302">mode</tspan></tspan></text>
+           id="tspan11493">mode</tspan></tspan></text>
     <text
        id="text9514-6"
        y="201.01891"
@@ -3829,8 +3829,14 @@
          id="flowPara5108">of the current page</flowPara><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
          id="flowPara1341"><flowSpan
+           style="font-weight:bold"
+           id="flowSpan1343">:runjsinpage [js, script.js]<flowSpan
+   style="font-weight:normal"
+   id="flowSpan2412">  -  run javascript</flowSpan>  </flowSpan></flowPara><flowPara
+         style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
+         id="flowPara1272"><flowSpan
    style="font-weight:bold"
-   id="flowSpan1343">:devtools [<flowSpan
+   id="flowSpan1274">:devtools [<flowSpan
    style="font-style:italic"
    id="flowSpan91263">window</flowSpan>, <flowSpan
    style="font-style:italic"
@@ -4066,7 +4072,7 @@
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
          id="flowPara53273"><flowSpan
    style="font-weight:bold"
-   id="flowSpan54537">:reload</flowSpan>  -  reload the viebrc files in order</flowPara><flowPara
+   id="flowSpan54537">:reloadconfig</flowSpan>  -  reload the viebrc files in order</flowPara><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
          id="flowPara52274"><flowSpan
    style="font-weight:bold"
@@ -4331,13 +4337,13 @@
          sodipodi:role="line"
          x="379.1572"
          y="174.10928"
-         id="tspan5293-5"
-         style="font-size:8.53333px;line-height:0.9;stroke-width:1.06667">reload </tspan><tspan
+         style="font-size:8.53333px;line-height:0.9;stroke-width:1.06667"
+         id="tspan3716">refresh</tspan><tspan
          sodipodi:role="line"
          x="379.1572"
          y="181.78928"
          style="font-size:8.53333px;line-height:0.9;stroke-width:1.06667"
-         id="tspan3716">without </tspan><tspan
+         id="tspan8146">without </tspan><tspan
          sodipodi:role="line"
          x="379.1572"
          y="189.46927"
@@ -4499,22 +4505,22 @@
        transform="translate(40.307436,-29.82915)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan2308"><tspan
+         id="tspan11499"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan2306"> 
+           id="tspan11497"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.08476"
-         id="tspan2312"><tspan
+         id="tspan11503"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan2310">follow in </tspan></tspan><tspan
+           id="tspan11501">follow in </tspan></tspan><tspan
          x="351.18723"
          y="287.76476"
-         id="tspan2318"><tspan
+         id="tspan11509"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan2314">new tab</tspan><tspan
+           id="tspan11505">new tab</tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan2316">
+           id="tspan11507">
 </tspan></tspan></text>
     <text
        xml:space="preserve"
@@ -4525,24 +4531,24 @@
        transform="translate(-49.302467,-99.318284)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan2322"><tspan
+         id="tspan11513"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan2320"> 
+           id="tspan11511"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.85891"
-         id="tspan2328"><tspan
+         id="tspan11519"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan2324">explore </tspan><tspan
+           id="tspan11515">explore </tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan2326">in </tspan></tspan><tspan
+           id="tspan11517">in </tspan></tspan><tspan
          x="351.18723"
          y="288.72478"
-         id="tspan2334"><tspan
+         id="tspan11525"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan2330">new </tspan><tspan
+           id="tspan11521">new </tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan2332">tab</tspan></tspan></text>
+           id="tspan11523">tab</tspan></tspan></text>
     <text
        xml:space="preserve"
        id="text18022"
