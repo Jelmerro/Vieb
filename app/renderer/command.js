@@ -586,11 +586,11 @@ const translateRangePosToIdx = (start, rangePart) => {
                 name = name.toLowerCase()
                 url = url.toLowerCase()
             }
-            if (flags.includes("t") && name.includes(search)) {
-                return true
+            if (flags.includes("t") && !flags.includes("u")) {
+                return name.includes(search)
             }
-            if (flags.includes("u") && url.includes(search)) {
-                return true
+            if (flags.includes("u") && !flags.includes("t")) {
+                return url.includes(search)
             }
             return name.includes(search) || url.includes(search)
         }).map(t => t.idx).filter(i => i >= start)
@@ -668,11 +668,11 @@ const rangeToTabIdxs = range => {
                     name = name.toLowerCase()
                     url = url.toLowerCase()
                 }
-                if (flags.includes("t") && name.includes(search)) {
-                    return true
+                if (flags.includes("t") && !flags.includes("u")) {
+                    return name.includes(search)
                 }
-                if (flags.includes("u") && url.includes(search)) {
-                    return true
+                if (flags.includes("u") && !flags.includes("t")) {
+                    return url.includes(search)
                 }
                 return name.includes(search) || url.includes(search)
             }).map(t => t.idx)
