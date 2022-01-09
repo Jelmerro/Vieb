@@ -77,12 +77,14 @@ const hide = (view, close = false) => {
         }
         if (close) {
             tabOrPageMatching(view).remove()
+            view.closeDevTools()
             view.remove()
         }
         const {switchToTab} = require("./tabs")
         switchToTab(newTab)
     } else if (close) {
         tabOrPageMatching(view).remove()
+        view.closeDevTools()
         view.remove()
     }
     applyLayout()

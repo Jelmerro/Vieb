@@ -40,6 +40,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Resolve file paths with query param characters in them and update the url accordingly
 - Background color override not checking for background images before applying
 - Mouse forward and back buttons not working on Windows
+- Rare crash when the devtools would remain after deleting the webview and you would then interact with it, they are now closed along with the page
 
 ### Security
 

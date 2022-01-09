@@ -486,6 +486,7 @@ const closeTab = (index = null, force = false) => {
         hide(page, true)
     } else {
         tab.remove()
+        page.closeDevTools()
         page.remove()
         if (listTabs().length === 0) {
             if (getSetting("quitonlasttabclose")) {
