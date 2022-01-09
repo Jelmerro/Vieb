@@ -31,7 +31,7 @@
     "electron": "17.0.0-beta.1",
     "electron-builder": "22.14.12",
     "eslint": "8.6.0",
-    "eslint-plugin-sort-keys-fix": "1.1.2",
+    "eslint-plugin-sort-keys": "2.3.5",
     "jest": "27.4.7",
     "jest-environment-jsdom": "27.4.6"
   },

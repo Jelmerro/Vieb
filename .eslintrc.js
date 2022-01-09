@@ -3,7 +3,7 @@
 module.exports = {
     "env": {"browser": true, "es6": true, "node": true},
     "parserOptions": {"ecmaVersion": 2021},
-    "plugins": ["sort-keys-fix"],
+    "plugins": ["sort-keys"],
     "root": true,
     "rules": {
         "accessor-pairs": ["error", {"getWithoutSet": true}],
@@ -222,7 +222,7 @@ module.exports = {
         "semi-spacing": "error",
         "semi-style": ["error", "first"],
         "sort-imports": "error",
-        "sort-keys-fix/sort-keys-fix": ["warn", "asc", {"natural": true}],
+        "sort-keys/sort-keys-fix": ["warn", "asc", {"natural": true}],
         "sort-vars": "error",
         "space-before-blocks": "error",
         "space-before-function-paren": ["error", "never"],

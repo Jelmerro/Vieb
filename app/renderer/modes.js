@@ -26,7 +26,7 @@ const {
 } = require("./common")
 
 // Sort order determines the appearance in the mode list
-/* eslint-disable sort-keys-fix/sort-keys-fix */
+/* eslint-disable sort-keys/sort-keys-fix */
 const modes = {
     "normal": {},
     "insert": {

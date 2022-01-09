@@ -835,7 +835,7 @@ const modifiedAt = loc => {
 }
 
 // Disabled import sort order as the order is optimized to reduce module loads
-/* eslint-disable sort-keys-fix/sort-keys-fix */
+/* eslint-disable sort-keys/sort-keys-fix */
 module.exports = {
     frameSelector,
     specialChars,
