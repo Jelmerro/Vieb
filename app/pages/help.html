@@ -717,6 +717,8 @@
         Toggle for case-sensitive searching in the page. Any existing search will be updated to match this setting when either <a href="#action.nextSearchMatch">action.nextSearchMatch</a> or <a href="#action.previousSearchMatch">action.previousSearchMatch</a> are called.
         <h3 id="incsearch">incsearch</h3>
         Toggles incremental search in the <a class="search" href="#action.toSearchMode">search mode</a>. When enabled, the search will be updated every time a character is typed, without having to start the search with <a href="#action.useEnteredData">action.useEnteredData</a>.
+        <h3 id="inputfocusalignment">inputfocusalignment</h3>
+        With this setting you can choose where the cursor should appear after focussing an input field with <a class="follow" href="#action.startFollowCurrentTab">follow mode</a>. By default, it will position the cursor at the end of the input field, and then remember the position for each subsequent interaction with it, even after leaving insert mode and going back to it. You can also choose to do the same for the start of the input field with "rememberstart" instead of "rememberend". If you always want to jump the cursor to the start or end without remembering it on subsequent focus, you can use "alwaysstart" or "alwaysend" to always set the cursor to the start or the end of the input field respectively.
         <h3 id="maxmapdepth">maxmapdepth</h3>
         The maximum amount of recursion for recursive <a href="#mappings">mappings</a>. After reaching this limit, all subsequent actions will be cancelled as part of the mapping.
         <h3 id="menupage">menupage</h3>

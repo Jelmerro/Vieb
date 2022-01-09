@@ -103,6 +103,7 @@ const defaultSettings = {
     "guitabbar": "always",
     "ignorecase": true,
     "incsearch": true,
+    "inputfocusalignment": "rememberend",
     "keeprecentlyclosed": true,
     "mapsuggest": 9000000000000000,
     "mapsuggestposition": "topright",
@@ -214,6 +215,9 @@ const validOptions = {
     "guifullscreentabbar": ["always", "onupdate", "never"],
     "guinavbar": ["always", "onupdate", "oninput", "never"],
     "guitabbar": ["always", "onupdate", "never"],
+    "inputfocusalignment": [
+        "rememberstart", "rememberend", "alwaysstart", "alwaysend"
+    ],
     "mapsuggestposition": ["bottomright", "bottomleft", "topright", "topleft"],
     "menupage": ["always", "globalasneeded", "elementasneeded", "never"],
     "menusuggest": ["both", "explore", "command", "never"],
@@ -779,6 +783,7 @@ const updateWebviewSettings = () => {
     writeJSON(webviewSettingsFile, {
         "bg": getComputedStyle(document.body).getPropertyValue("--bg"),
         "fg": getComputedStyle(document.body).getPropertyValue("--fg"),
+        "inputfocusalignment": allSettings.inputfocusalignment,
         "linkcolor": getComputedStyle(document.body)
             .getPropertyValue("--link-color"),
         "permissiondisplaycapture": allSettings.permissiondisplaycapture,
@@ -1007,6 +1012,7 @@ const set = (setting, value) => {
             applyLayout()
         }
         const webviewSettings = [
+            "inputfocusalignment",
             "permissiondisplaycapture",
             "permissionmediadevices",
             "permissionsallowed",

@@ -35,7 +35,6 @@ const {
 const settingsFile = joinPath(appData(), "webviewsettings")
 
 let inFollowMode = false
-
 const clickableInputs = [
     "button",
     "input[type=\"button\"]",
@@ -71,6 +70,7 @@ const otherEvents = [
     "contextmenu",
     "auxclick"
 ]
+const previouslyFocussedElements = []
 
 ipcRenderer.on("focus-input", async(_, follow = null) => {
     let el = null
@@ -83,14 +83,29 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
                 input.x + input.width / 2, input.y + input.height / 2)
         }
     }
-    for (const e of [el, el?.parentNode, el?.parentNode?.parentNode]) {
-        if (e?.click && e?.focus) {
-            ipcRenderer.sendToHost("switch-to-insert")
-            await new Promise(r => {
-                setTimeout(r, 5)
-            })
-            e.click()
-            e.focus()
+    const focusEl = [el, el?.parentNode, el?.parentNode?.parentNode]
+        .find(e => e?.click && e?.focus)
+    if (!focusEl) {
+        return
+    }
+    ipcRenderer.sendToHost("switch-to-insert")
+    await new Promise(r => {
+        setTimeout(r, 3)
+    })
+    const inputfocusalignment = readJSON(settingsFile)?.inputfocusalignment
+        || "rememberend"
+    focusEl.click()
+    focusEl.focus()
+    const focusLength = focusEl?.value.length || focusEl.textContent.length
+    if (focusLength > 0) {
+        if (!previouslyFocussedElements.includes(focusEl)
+            || inputfocusalignment.includes("always")) {
+            if (inputfocusalignment.includes("end")) {
+                focusEl.setSelectionRange(focusLength, focusLength)
+            } else {
+                focusEl.setSelectionRange(0, 0)
+            }
+            previouslyFocussedElements.push(focusEl)
         }
     }
 })
@@ -331,9 +346,16 @@ EventTarget.prototype.removeEventListener = function(type, listener, options) {
 const clickListener = (e, frame = null) => {
     if (e.isTrusted) {
         const paddingInfo = findFrameInfo(frame)
+        const inputEl = e.composedPath().find(
+            el => matchesQuery(el, textlikeInputs))
+        const focusEl = [
+            inputEl, inputEl?.parentNode, inputEl?.parentNode?.parentNode
+        ].find(el => el?.click && el?.focus)
+        if (focusEl) {
+            previouslyFocussedElements.push(focusEl)
+        }
         ipcRenderer.sendToHost("mouse-click-info", {
-            "toinsert": !!e.composedPath().find(
-                el => matchesQuery(el, textlikeInputs)),
+            "toinsert": !!inputEl,
             "tovisual": (frame?.contentWindow || window)
                 .getSelection().toString(),
             "x": e.x + (paddingInfo?.x || 0),
