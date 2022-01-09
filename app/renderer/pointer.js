@@ -136,6 +136,46 @@ const restoreSelection = () => {
     updateElement()
 }
 
+const splitAudio = () => currentPage().send("contextmenu-data", {
+    "action": "split", "type": "audio", "x": zoomX(), "y": zoomY()
+})
+
+const splitFrame = () => currentPage().send("contextmenu-data", {
+    "action": "split", "type": "frame", "x": zoomX(), "y": zoomY()
+})
+
+const splitLink = () => currentPage().send("contextmenu-data", {
+    "action": "split", "type": "link", "x": zoomX(), "y": zoomY()
+})
+
+const splitImage = () => currentPage().send("contextmenu-data", {
+    "action": "split", "type": "img", "x": zoomX(), "y": zoomY()
+})
+
+const splitVideo = () => currentPage().send("contextmenu-data", {
+    "action": "split", "type": "video", "x": zoomX(), "y": zoomY()
+})
+
+const vsplitAudio = () => currentPage().send("contextmenu-data", {
+    "action": "vsplit", "type": "audio", "x": zoomX(), "y": zoomY()
+})
+
+const vsplitFrame = () => currentPage().send("contextmenu-data", {
+    "action": "vsplit", "type": "frame", "x": zoomX(), "y": zoomY()
+})
+
+const vsplitLink = () => currentPage().send("contextmenu-data", {
+    "action": "vsplit", "type": "link", "x": zoomX(), "y": zoomY()
+})
+
+const vsplitImage = () => currentPage().send("contextmenu-data", {
+    "action": "vsplit", "type": "img", "x": zoomX(), "y": zoomY()
+})
+
+const vsplitVideo = () => currentPage().send("contextmenu-data", {
+    "action": "vsplit", "type": "video", "x": zoomX(), "y": zoomY()
+})
+
 const downloadAudio = () => currentPage().send("contextmenu-data", {
     "action": "download", "type": "audio", "x": zoomX(), "y": zoomY()
 })
@@ -238,6 +278,14 @@ const copyImage = () => currentPage().send("contextmenu-data", {
 
 const copyVideo = () => currentPage().send("contextmenu-data", {
     "action": "copy", "type": "video", "x": zoomX(), "y": zoomY()
+})
+
+const splitText = () => currentPage().send("contextmenu-data", {
+    "action": "split", "type": "text", "x": zoomX(), "y": zoomY()
+})
+
+const vsplitText = () => currentPage().send("contextmenu-data", {
+    "action": "vsplit", "type": "text", "x": zoomX(), "y": zoomY()
 })
 
 const downloadText = () => currentPage().send("contextmenu-data", {
@@ -545,6 +593,12 @@ module.exports = {
     scrollRight,
     scrollUp,
     searchText,
+    splitAudio,
+    splitFrame,
+    splitImage,
+    splitLink,
+    splitText,
+    splitVideo,
     start,
     startOfPage,
     startOfView,
@@ -555,5 +609,11 @@ module.exports = {
     toggleMediaLoop,
     toggleMediaMute,
     toggleMediaPlay,
-    updateElement
+    updateElement,
+    vsplitAudio,
+    vsplitFrame,
+    vsplitImage,
+    vsplitLink,
+    vsplitText,
+    vsplitVideo
 }

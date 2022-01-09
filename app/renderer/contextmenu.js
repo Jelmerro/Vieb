@@ -30,6 +30,7 @@ const {
 const {
     listTabs,
     currentPage,
+    currentTab,
     tabOrPageMatching,
     currentMode,
     getSetting,
@@ -46,7 +47,6 @@ const viebMenu = options => {
     const {
         useEnteredData, backInHistory, forwardInHistory, refreshTab
     } = require("./actions")
-    const {addTab, reopenTab, closeTab} = require("./tabs")
     const menuSetting = getSetting("menuvieb")
     const navMenu = menuSetting === "both" || menuSetting === "navbar"
     if (options.path.find(el => matchesQuery(el, "#url")) && navMenu) {
@@ -120,6 +120,8 @@ const viebMenu = options => {
     }
     const tabMenu = menuSetting === "both" || menuSetting === "tabbar"
     if (options.path.find(el => matchesQuery(el, "#tabs")) && tabMenu) {
+        const {addTab, reopenTab, closeTab} = require("./tabs")
+        const {execute} = require("./command")
         const tab = options.path.find(el => matchesQuery(el, "#tabs > span"))
         if (!tab) {
             fixAlignmentNearBorders()
@@ -131,10 +133,7 @@ const viebMenu = options => {
             pinTitle = "Unpin"
         }
         createMenuItem({
-            "action": () => {
-                const {execute} = require("./command")
-                execute(`pin ${listTabs().indexOf(tab)}`)
-            },
+            "action": () => execute(`pin ${listTabs().indexOf(tab)}`),
             "title": pinTitle
         })
         const page = tabOrPageMatching(tab)
@@ -174,8 +173,6 @@ const viebMenu = options => {
                 })
             }
         }
-        createMenuItem({"action": addTab, "title": "Open new"})
-        createMenuItem({"action": reopenTab, "title": "Undo closed"})
         createMenuItem({
             "action": () => clipboard.writeText(urlToString(
                 tabOrPageMatching(tab).src).replace(/ /g, "%20")),
@@ -183,8 +180,13 @@ const viebMenu = options => {
         })
         createMenuItem({
             "action": () => closeTab(listTabs().indexOf(tab), true),
-            "title": "Close this"
+            "title": "Close"
         })
+        createMenuGroup("General")
+        createMenuItem({"action": addTab, "title": "Newtab"})
+        createMenuItem({"action": () => execute("split"), "title": "Split"})
+        createMenuItem({"action": () => execute("vsplit"), "title": "Vsplit"})
+        createMenuItem({"action": reopenTab, "title": "Reopen"})
         fixAlignmentNearBorders()
     }
 }
@@ -295,11 +297,19 @@ const webviewMenu = options => {
         })
         createMenuItem({
             "action": () => commonAction("text", "newtab", options),
-            "title": "In new tab"
+            "title": "Newtab"
         })
         createMenuItem({
             "action": () => commonAction("text", "search", options),
-            "title": "Search page"
+            "title": "Search/find"
+        })
+        createMenuItem({
+            "action": () => commonAction("text", "split", options),
+            "title": "Split"
+        })
+        createMenuItem({
+            "action": () => commonAction("text", "vsplit", options),
+            "title": "Vsplit"
         })
         if (options.canEdit) {
             createMenuItem({
@@ -338,7 +348,7 @@ const webviewMenu = options => {
         })
         createMenuItem({
             "action": () => commonAction("img", "newtab", options),
-            "title": "In new tab"
+            "title": "Newtab"
         })
         createMenuItem({
             "action": () => commonAction("img", "copy", options),
@@ -354,7 +364,15 @@ const webviewMenu = options => {
         })
         createMenuItem({
             "action": () => commonAction("img", "external", options),
-            "title": "With external"
+            "title": "External"
+        })
+        createMenuItem({
+            "action": () => commonAction("img", "split", options),
+            "title": "Split"
+        })
+        createMenuItem({
+            "action": () => commonAction("img", "vsplit", options),
+            "title": "Vsplit"
         })
     }
     for (const type of ["frame", "video", "audio", "link"]) {
@@ -368,7 +386,7 @@ const webviewMenu = options => {
             })
             createMenuItem({
                 "action": () => commonAction(type, "newtab", options),
-                "title": "In new tab"
+                "title": "Newtab"
             })
             createMenuItem({
                 "action": () => commonAction(type, "copy", options),
@@ -380,7 +398,15 @@ const webviewMenu = options => {
             })
             createMenuItem({
                 "action": () => commonAction(type, "external", options),
-                "title": "With external"
+                "title": "External"
+            })
+            createMenuItem({
+                "action": () => commonAction(type, "split", options),
+                "title": "Split"
+            })
+            createMenuItem({
+                "action": () => commonAction(type, "vsplit", options),
+                "title": "Vsplit"
             })
         }
         if (options[`${type}Data`]?.controllable) {
@@ -436,7 +462,7 @@ const linkMenu = options => {
         "action": () => navigateTo(options.link), "title": "Navigate"
     })
     createMenuItem({
-        "action": () => addTab({"url": options.link}), "title": "In new tab"
+        "action": () => addTab({"url": options.link}), "title": "Newtab"
     })
     createMenuItem({
         "action": () => {
@@ -448,6 +474,19 @@ const linkMenu = options => {
     createMenuItem({
         "action": () => currentPage().downloadURL(options.link),
         "title": "Download"
+    })
+    createMenuItem({
+        "action": () => commonAction("link", "external",
+            {"link": options.link}),
+        "title": "External"
+    })
+    createMenuItem({
+        "action": () => commonAction("link", "split", {"link": options.link}),
+        "title": "Split"
+    })
+    createMenuItem({
+        "action": () => commonAction("link", "vsplit", {"link": options.link}),
+        "title": "Vsplit"
     })
     fixAlignmentNearBorders()
 }
@@ -629,6 +668,22 @@ const commonAction = (type, action, options) => {
         }
     } else if (action === "download") {
         currentPage().downloadURL(stringToUrl(relevantData))
+    } else if (action === "split") {
+        const {addTab} = require("./tabs")
+        const currentTabId = currentTab().getAttribute("link-id")
+        addTab({
+            "container": getSetting("containersplitpage"), "url": relevantData
+        })
+        const {add} = require("./pagelayout")
+        add(currentTabId, "ver", getSetting("splitbelow"))
+    } else if (action === "vsplit") {
+        const {addTab} = require("./tabs")
+        const currentTabId = currentTab().getAttribute("link-id")
+        addTab({
+            "container": getSetting("containersplitpage"), "url": relevantData
+        })
+        const {add} = require("./pagelayout")
+        add(currentTabId, "hor", getSetting("splitright"))
     } else if (action === "external") {
         const ext = getSetting("externalcommand")
         if (!ext.trim()) {

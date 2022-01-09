@@ -1173,8 +1173,12 @@
         Open the selected text in the current tab. If it's a url, it's directly navigated to. Other types of text are searched for using the default <a href="#search">search</a> engine.
         <h3 id="pointer.searchText">pointer.searchText</h3>
         Search the selected text in the current page as if the selected text was typed into <a class="search" href="#action.toSearchMode">search mode</a>.
+        <h3 id="pointer.splitText">pointer.splitText</h3>
+        Open the selected text in a new split, similar to using the <a href="#:split">:split</a> command to so so. If it's a url, it's directly navigated to. Other types of text are searched for using the default <a href="#search">search</a> engine.
+        <h3 id="pointer.vsplitText">pointer.vsplitText</h3>
+        Open the selected text in a new vertical split, similar to using the <a href="#:vsplit">:vsplit</a> command to so so. If it's a url, it's directly navigated to. Other types of text are searched for using the default <a href="#search">search</a> engine.
         <h2 id="link-related">Link-related actions</h2>
-        Most of these link related actions are actions for <a class="pointer" href="#pointer">pointer mode</a> and some are suited for <a class="normal" href="#action.toNormalMode">normal mode</a>. The default <a class="pointer" href="#pointer">pointer mode</a> mappings might seem a bit overwhelming, but they are based on the following pattern: "o" for open, "t" for newtab, "y" for yank, "d" for download and "x" for external. These keys are then combined with the type of link or media like so: "a" for audio", "v" for video, "l" for links, "f" for frames and "i" for images. Actions for urls are by also mapped to the same key twice by default, such as "dd" or "yy". Almost all pointer actions listed in this paragraph are identical to the options available in the context <a href="#menu">menu</a>, so you can also use that if these link-related actions seem complex. Opening the menu is done with <a href="#action.menuOpen">action.menuOpen</a>, or using the <a href="#mouse">mouse</a> if the menu features are not disabled.
+        Most of these link related actions are actions for <a class="pointer" href="#pointer">pointer mode</a> and some are suited for <a class="normal" href="#action.toNormalMode">normal mode</a>. The default <a class="pointer" href="#pointer">pointer mode</a> mappings might seem a bit overwhelming, but they are based on the following pattern: "o" for open, "t" for newtab, "y" for yank, "d" for download, "x" for external, "S" for splits and "V" for vsplit/vertical splits. These keys are then combined with the type of link or media like so: "a" for audio", "v" for video, "l" for links, "f" for frames and "i" for images. Actions for urls are by also mapped to the same key twice by default, such as "dd" or "yy". Almost all pointer actions listed in this paragraph are identical to the options available in the context <a href="#menu">menu</a>, so you can also use that if these link-related actions seem complex. Opening the menu is done with <a href="#action.menuOpen">action.menuOpen</a>, or using the <a href="#mouse">mouse</a> if the menu features are not disabled.
         <h3 id="action.openLinkExternal">action.openLinkExternal</h3>
         Using this action you can open links with external applications. The command that will be executed is based on the <a href="#externalcommand">externalcommand</a> setting, appended with the current page url. See <a href="#pointer.externalLink">pointer.externalLink</a> to do the same for the link at the current pointer position.
         <h3 id="action.pageToClipboard">action.pageToClipboard</h3>
@@ -1243,6 +1247,26 @@
         Open the link location at the pointer position in the current tab. This is fairly similar to navigating by clicking it with <a href="#pointer.leftClick">pointer.leftClick</a> or the <a href="#mouse">mouse</a>. The biggest difference is for elements that do something special when clicked, which won't happen when using this pointer action to navigate directly to the link.
         <h3 id="pointer.openVideo">pointer.openVideo</h3>
         Open the video element location at the pointer position in the current tab.
+        <h3 id="pointer.splitAudio">pointer.splitAudio</h3>
+        Open the audio element location at the pointer position in a new split.
+        <h3 id="pointer.splitFrame">pointer.splitFrame</h3>
+        Open the frame element location at the pointer position in a new split.
+        <h3 id="pointer.splitImage">pointer.splitImage</h3>
+        Open the image, svg or background location at the pointer position in a new split.
+        <h3 id="pointer.splitLink">pointer.splitLink</h3>
+        Open the link location at the pointer position in a new split.
+        <h3 id="pointer.splitVideo">pointer.splitVideo</h3>
+        Open the video element location at the pointer position in a new split.
+        <h3 id="pointer.vsplitAudio">pointer.vsplitAudio</h3>
+        Open the audio element location at the pointer position in a new vertical split.
+        <h3 id="pointer.vsplitFrame">pointer.vsplitFrame</h3>
+        Open the frame element location at the pointer position in a new vertical split.
+        <h3 id="pointer.vsplitImage">pointer.vsplitImage</h3>
+        Open the image, svg or background location at the pointer position in a new vertical split.
+        <h3 id="pointer.vsplitLink">pointer.vsplitLink</h3>
+        Open the link location at the pointer position in a new vertical split.
+        <h3 id="pointer.vsplitVideo">pointer.vsplitVideo</h3>
+        Open the video element location at the pointer position in a new vertical split.
         <h2 id="media-related">Media-related actions</h2>
         These actions relate to media such as audio or video elements. They mostly control the playback of them, as download and link-related actions have <a href="#link-related">their own paragraph</a>. There are also <a href="#menu">menu</a> items for these actions, which will slightly change their name depending on the current states of these toggles ("Play" becomes "Pause" for example).
         <h3 id="pointer.toggleMediaControls">pointer.toggleMediaControls</h3>

@@ -20,12 +20,15 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Actions "startFollowNewSplit" and "startFollowNewVerSplit" to open links in splits with follow mode
 - Setting "inputfocusalignment" to align input fields consistently on focus from follow mode
 - Command "runjsinpage" to run any JavaScript inside the current page or pages matching a range
+- Context menu options for opening any link in a split of vsplit, such as "split audio link" or "vsplit selected text"
+- Pointer mode actions for opening splits of media urls, hovered urls or selected text, such as "splitAudio" or "vsplitText"
 
 ### Changed
 
 - Desktop capture API is now called from main thread and shows the app icons
 - Command "reload" to "reloadconfig" to avoid confusion
 - Actions "reload" and "reloadWithoutCache" are now called "refreshTab" and "refreshTabWithoutCache" to avoid confusion
+- Consistency between menu items and reduced the amount of words in them for easier scanning
 
 ### Removed
 
