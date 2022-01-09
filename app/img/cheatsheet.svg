@@ -9,8 +9,8 @@
    sodipodi:docname="cheatsheet.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
    inkscape:export-filename="cheatsheet.png"
-   inkscape:export-xdpi="117.00008"
-   inkscape:export-ydpi="117.00008"
+   inkscape:export-xdpi="117.88775"
+   inkscape:export-ydpi="117.88775"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -74,9 +74,9 @@
      objecttolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.24"
-     inkscape:cx="377.82258"
-     inkscape:cy="791.53226"
+     inkscape:zoom="0.62"
+     inkscape:cx="407.25806"
+     inkscape:cy="931.45161"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      width="10px"
@@ -2181,20 +2181,20 @@
        transform="translate(40)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan14036"><tspan
+         id="tspan2330"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan14034"> 
+           id="tspan2328"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.08476"
-         id="tspan14040"><tspan
+         id="tspan2334"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan14038">follow </tspan></tspan><tspan
+           id="tspan2332">follow </tspan></tspan><tspan
          x="351.18723"
          y="287.76476"
-         id="tspan14044"><tspan
+         id="tspan2338"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan14042">mode
+           id="tspan2336">mode
 </tspan></tspan></text>
     <text
        xml:space="preserve"
@@ -2205,21 +2205,21 @@
        transform="translate(-42.337912,-69.3719)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan14048"><tspan
+         id="tspan2342"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan14046"> 
+           id="tspan2340"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.85891"
-         id="tspan14052"><tspan
+         id="tspan2346"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan14050">explore
+           id="tspan2344">explore
 </tspan></tspan><tspan
          x="351.18723"
          y="288.72478"
-         id="tspan14056"><tspan
+         id="tspan2350"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan14054">mode</tspan></tspan></text>
+           id="tspan2348">mode</tspan></tspan></text>
     <text
        id="text9514-6"
        y="201.01891"
@@ -3318,7 +3318,7 @@
        xml:space="preserve"
        id="flowRoot5691-4-9-3-0-5-0"
        style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
-       transform="translate(205.79196,238.28154)"><flowRegion
+       transform="translate(205.79196,248.28154)"><flowRegion
          id="flowRegion5693-9-1-7-4-9-7"
          style="font-family:sans-serif;stroke-width:1.06667"><rect
            id="rect5695-9-8-7-7-5-1"
@@ -3510,7 +3510,7 @@
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
          id="flowPara43029" /><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
-         id="flowPara10532"></flowPara><flowPara
+         id="flowPara10532" /><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
          id="flowPara1389">for example, <flowSpan
    style="fill:#0000ff"
@@ -4574,22 +4574,22 @@
        transform="translate(40.307436,-29.82915)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan14060"><tspan
+         id="tspan2354"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan14058"> 
+           id="tspan2352"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.08476"
-         id="tspan14064"><tspan
+         id="tspan2358"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan14062">follow in </tspan></tspan><tspan
+           id="tspan2356">follow in </tspan></tspan><tspan
          x="351.18723"
          y="287.76476"
-         id="tspan14070"><tspan
+         id="tspan2364"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan14066">new tab</tspan><tspan
+           id="tspan2360">new tab</tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan14068">
+           id="tspan2362">
 </tspan></tspan></text>
     <text
        xml:space="preserve"
@@ -4600,24 +4600,24 @@
        transform="translate(-49.302467,-99.318284)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan14074"><tspan
+         id="tspan2368"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan14072"> 
+           id="tspan2366"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.85891"
-         id="tspan14080"><tspan
+         id="tspan2374"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan14076">explore </tspan><tspan
+           id="tspan2370">explore </tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan14078">in </tspan></tspan><tspan
+           id="tspan2372">in </tspan></tspan><tspan
          x="351.18723"
          y="288.72478"
-         id="tspan14086"><tspan
+         id="tspan2380"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan14082">new </tspan><tspan
+           id="tspan2376">new </tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan14084">tab</tspan></tspan></text>
+           id="tspan2378">tab</tspan></tspan></text>
     <text
        xml:space="preserve"
        id="text18022"
