@@ -558,6 +558,13 @@
             <li><span class="command-block">:pin</span> - Toggle the pinned status of the current tab</li>
         </ul>
         This command is used to pin or unpin the current tab. The pinned status of the current tab will be toggled. Pinned tabs have a fixed width of just the icon and will always be remembered on restart, regardless of the <a href="#restoretabs">restoretabs</a> setting. Pinned tabs are always displayed before regular tabs.
+        <h3 id=":runjsinpage">:runjsinpage</h3>
+        <ul>
+            <li><span class="command-block">:runjsinpage document.body.style.backgroundColor = "#fff"</span> - Make a background white for any page</li>
+            <li><span class="command-block">:runjsinpage console.log(navigator.userAgent)</span> - Log a value to the developer console</li>
+            <li><span class="command-block">:runjsinpage ~/scripts/autofill.js</span> - Load the autofill.js file from disk and execute it as JavaScript in the page</li>
+        </ul>
+        With this command you can run any custom JavaScript you would like in the current page. The above are just some of the examples of what is possible, but basically any script you would like to run can be pased on with this command. The logging happens and remains inside the page and can be viewed in the "Console" tab of the page <a href="#:devtools">:devtools</a>. You can also pass an absolute file path to this command to run the contents of said file as JavaScript inside the page. You can also use <a href="#ranges">ranges</a> to run the JavaScript on other pages besides the current one.
         <h3 id=":nohlsearch">:nohlsearch</h3>
         <ul>
             <li><span class="command-block">:nohlsearch</span> - Disable the search highlighting while storing the search</li>

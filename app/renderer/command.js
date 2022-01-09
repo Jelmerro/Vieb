@@ -1010,6 +1010,21 @@ const rclose = (force = false) => {
     }
 }
 
+const runjsinpage = (raw, range) => {
+    let javascript = raw.split(" ").slice(1).join(" ")
+    const filePath = expandPath(javascript)
+    if (isAbsolutePath(filePath)) {
+        javascript = readFile(filePath) || javascript
+    }
+    if (range) {
+        rangeToTabIdxs(range).forEach(tabId => {
+            tabOrPageMatching(listTabs()[tabId]).executeJavaScript(javascript)
+        })
+    } else {
+        currentPage().executeJavaScript(javascript)
+    }
+}
+
 const noEscapeCommands = ["command", "delcommand"]
 const rangeCompatibleCommands = [
     "Sexplore",
@@ -1022,6 +1037,7 @@ const rangeCompatibleCommands = [
     "print",
     "q",
     "quit",
+    "runjsinpage",
     "suspend",
     "vsplit",
     "split",
@@ -1110,6 +1126,7 @@ const commands = {
     "rclose!": () => rclose(true),
     reloadconfig,
     restart,
+    "runjsinpage": ({raw, range}) => runjsinpage(raw, range),
     "s": ({args}) => set(args),
     "screencopy": ({args}) => screencopy(args),
     "screenshot": ({args}) => screenshot(args),
@@ -1346,7 +1363,7 @@ const execute = (com, settingsFile = null) => {
                     return
                 }
             }
-            commands[command]({args, range})
+            commands[command]({args, range, "raw": com})
         } else {
             setTimeout(() => {
                 const {executeMapString} = require("./input")

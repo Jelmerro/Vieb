@@ -19,6 +19,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Buffer-like commands now accept "#" to specify the last used tab
 - Actions "startFollowNewSplit" and "startFollowNewVerSplit" to open links in splits with follow mode
 - Setting "inputfocusalignment" to align input fields consistently on focus from follow mode
+- Command "runjsinpage" to run any JavaScript inside the current page or pages matching a range
 
 ### Changed
 
