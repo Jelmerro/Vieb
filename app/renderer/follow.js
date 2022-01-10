@@ -57,7 +57,9 @@ const startFollow = (newtab = followLinkDestination) => {
     if (modeBeforeFollow === "follow") {
         modeBeforeFollow = "normal"
     }
-    setStored("modebeforefollow", modeBeforeFollow)
+    if (!getStored("modebeforefollow") || modeBeforeFollow !== "insert") {
+        setStored("modebeforefollow", modeBeforeFollow)
+    }
     const {setMode} = require("./modes")
     setMode("follow")
     alreadyFollowing = false

@@ -44,6 +44,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Background color override not checking for background images before applying
 - Mouse forward and back buttons not working on Windows
 - Rare crash when the devtools would remain after deleting the webview and you would then interact with it, they are now closed along with the page
+- Potential switch to insert mode after clicking on multiple links before leaving follow mode (by using Shift or right-clicking)
 
 ### Security
 
