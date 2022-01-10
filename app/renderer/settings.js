@@ -93,7 +93,9 @@ const defaultSettings = {
     "favicons": "session",
     "favoritepages": "",
     "firefoxmode": "never",
-    "followelement": "url,onclick,inputs-insert,inputs-click,other",
+    "followelement": "url,onclick,inputs-insert,inputs-click,media,image,other",
+    "followelementpointer":
+        "url,onclick,inputs-insert,inputs-click,media,image,other",
     "follownewtabswitch": true,
     "fontsize": 14,
     "guifullscreennavbar": "oninput",
@@ -186,6 +188,7 @@ const listLike = [
     "containercolors",
     "favoritepages",
     "followelement",
+    "followelementpointer",
     "modifiers",
     "mouse",
     "permissionsallowed",
@@ -609,8 +612,16 @@ const checkOther = (setting, value) => {
     if (setting === "suggestorder") {
         return checkSuggestOrder(value)
     }
-    if (setting === "followelement") {
-        const ok = ["url", "onclick", "inputs-insert", "inputs-click", "other"]
+    if (setting.startsWith("followelement")) {
+        const ok = [
+            "url",
+            "onclick",
+            "inputs-insert",
+            "inputs-click",
+            "media",
+            "image",
+            "other"
+        ]
         for (const element of value.split(",")) {
             if (!ok.includes(element)) {
                 notify(`Invalid element type passed: ${element}, `

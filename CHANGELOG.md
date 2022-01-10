@@ -22,6 +22,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Command "runjsinpage" to run any JavaScript inside the current page or pages matching a range
 - Context menu options for opening any link in a split of vsplit, such as "split audio link" or "vsplit selected text"
 - Pointer mode actions for opening splits of media urls, hovered urls or selected text, such as "splitAudio" or "vsplitText"
+- Two new types of links in follow mode: media (audio/video elements) and images (img, svg and background images)
+- Setting "followelementpointer" to control which elements should appear in follow mode when used to move the pointer
 
 ### Changed
 

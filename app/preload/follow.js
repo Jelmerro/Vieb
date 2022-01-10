@@ -158,9 +158,9 @@ const getInputFollows = allLinks => {
         ...allElementsBySelector("inputs-insert", textlikeInputs))
 }
 
-const getMouseFollows = allLinks => {
+const getOtherFollows = allLinks => {
     // Elements with some kind of mouse interaction, grouped by click and other
-    const addMouseEventElement = (element, type) => {
+    const addElementToList = (element, type) => {
         const clickable = parseElement(element, type)
         if (clickable) {
             allLinks.push(clickable)
@@ -170,17 +170,22 @@ const getMouseFollows = allLinks => {
     allElements.filter(
         el => clickEvents.find(e => el[`on${e}`] || eventListeners[e].has(el))
         || el.getAttribute("jsaction")).forEach(
-        element => addMouseEventElement(element, "onclick"))
+        element => addElementToList(element, "onclick"))
     allElements.filter(el => otherEvents.find(e => el[`on${e}`]
             || eventListeners[e].has(el)))
-        .forEach(element => addMouseEventElement(element, "other"))
+        .forEach(element => addElementToList(element, "other"))
+    // Get media elements, including images
+    allLinks.push(...allElementsBySelector("media", "video,audio"))
+    allLinks.push(...allElementsBySelector("image", "img,svg"))
+    allElements.filter(el => getComputedStyle(el).backgroundImage !== "none")
+        .forEach(element => addElementToList(element, "image"))
 }
 
 const getAllFollowLinks = () => {
     const allLinks = []
     getLinkFollows(allLinks)
     getInputFollows(allLinks)
-    getMouseFollows(allLinks)
+    getOtherFollows(allLinks)
     // Ordered by the position on the page from the top
     // Uncategorised mouse events are less relevant and are moved to the end
     return allLinks.sort((el1, el2) => {

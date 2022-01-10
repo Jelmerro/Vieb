@@ -33,7 +33,9 @@ const {propPixels} = require("../util")
 let followLinkDestination = "current"
 let alreadyFollowing = false
 let links = []
-const savedOrder = ["url", "onclick", "inputs-click", "inputs-insert"]
+const savedOrder = [
+    "image", "media", "url", "onclick", "inputs-click", "inputs-insert"
+]
 
 const informPreload = () => {
     setTimeout(() => {
@@ -158,15 +160,16 @@ const reorderDisplayedLinks = () => {
 
 const applyIndexedOrder = () => {
     savedOrder.forEach((type, index) => {
-        [...document.querySelectorAll(`.follow-${type}`)]
-            .forEach(e => { e.style.zIndex = index + 10 })
+        const zIndex = index * 2
+        ;[...document.querySelectorAll(`.follow-${type}`)]
+            .forEach(e => { e.style.zIndex = zIndex + 9 })
         ;[...document.querySelectorAll(`.follow-${type}-border`)]
-            .forEach(e => { e.style.zIndex = index + 5 })
+            .forEach(e => { e.style.zIndex = index + 10 })
     })
     ;[...document.querySelectorAll(`.follow-other`)]
-        .forEach(e => { e.style.zIndex = 9 })
+        .forEach(e => { e.style.zIndex = 7 })
     ;[...document.querySelectorAll(`.follow-other-border`)]
-        .forEach(e => { e.style.zIndex = 4 })
+        .forEach(e => { e.style.zIndex = 8 })
 }
 
 const parseAndDisplayLinks = receivedLinks => {
@@ -218,7 +221,10 @@ const parseAndDisplayLinks = receivedLinks => {
     borderWidthKeys += propPixels(styling, "paddingLeft")
     borderWidthKeys += propPixels(styling, "paddingRight")
     document.getElementById("follow").removeChild(styling)
-    const elemTypesToFollow = getSetting("followelement")
+    let elemTypesToFollow = getSetting("followelement")
+    if (["pointer", "visual"].includes(getStored("modebeforefollow"))) {
+        elemTypesToFollow = getSetting("followelementpointer")
+    }
     links.forEach((link, index) => {
         if (!link) {
             return
