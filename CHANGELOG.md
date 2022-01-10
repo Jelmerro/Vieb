@@ -24,6 +24,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Pointer mode actions for opening splits of media urls, hovered urls or selected text, such as "splitAudio" or "vsplitText"
 - Two new types of links in follow mode: media (audio/video elements) and images (img, svg and background images)
 - Setting "followelementpointer" to control which elements should appear in follow mode when used to move the pointer
+- Setting "notificationforsystemcommands" to enable or disable notifications for successful or failed system commands
 
 ### Changed
 

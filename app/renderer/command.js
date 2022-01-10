@@ -1328,7 +1328,14 @@ const execute = (com, settingsFile = null) => {
     if (commandStr.startsWith("!")) {
         if (commandStr !== "!") {
             const {exec} = require("child_process")
-            exec(commandStr.replace("!", ""))
+            exec(commandStr.replace("!", ""), (err, stdout) => {
+                const reportExit = getSetting("notificationforsystemcommands")
+                if (err && reportExit !== "none") {
+                    notify(`${err}`, "err")
+                } else if (reportExit === "all") {
+                    notify(stdout || "Command exitted successfully!", "suc")
+                }
+            })
         }
         return
     }

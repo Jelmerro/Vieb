@@ -426,11 +426,6 @@ const editWithVim = () => {
     const fileFolder = joinPath(appData(), "vimformedits")
     makeDir(fileFolder)
     const tempFile = joinPath(fileFolder, String(Number(new Date())))
-    const success = writeFile(tempFile, "")
-    if (!success) {
-        notify("Could not start vim edit mode", "err")
-        return
-    }
     let command = null
     watchFile(tempFile, {"interval": 500}, () => {
         if (command) {
@@ -447,10 +442,13 @@ const editWithVim = () => {
             }
         } else {
             const {exec} = require("child_process")
-            command = exec(`${getSetting("vimcommand")} "${tempFile}"`, err => {
-                if (err) {
-                    notify("Command to edit files with vim failed, "
-                        + "please update the 'vimcommand' setting", "err")
+            const commandStr = `${getSetting("vimcommand")} "${tempFile}"`
+            command = exec(commandStr, (err, stdout) => {
+                const reportExit = getSetting("notificationforsystemcommands")
+                if (err && reportExit !== "none") {
+                    notify(`${err}`, "err")
+                } else if (reportExit === "all") {
+                    notify(stdout || "Command exitted successfully!", "suc")
                 }
             })
         }
@@ -459,7 +457,8 @@ const editWithVim = () => {
         page.send("action", "writeInputToFile", tempFile)
     }
     if (typeOfEdit === "navbar") {
-        writeFile(tempFile, document.getElementById("url").value)
+        setTimeout(() => writeFile(
+            tempFile, document.getElementById("url").value), 3)
     }
 }
 

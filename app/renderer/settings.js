@@ -122,6 +122,7 @@ const defaultSettings = {
     "nativenotification": "never",
     "notificationduration": 6000,
     "notificationforpermissions": false,
+    "notificationforsystemcommands": "errors",
     "notificationposition": "bottomright",
     "permissioncamera": "block",
     "permissioncertificateerror": "block",
@@ -227,6 +228,7 @@ const validOptions = {
     "menuvieb": ["both", "navbar", "tabbar", "never"],
     "mousevisualmode": ["activate", "onswitch", "never"],
     "nativenotification": ["always", "smallonly", "never"],
+    "notificationforsystemcommands": ["all", "errors", "none"],
     "notificationposition": [
         "bottomright", "bottomleft", "topright", "topleft"
     ],

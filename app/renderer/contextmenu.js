@@ -691,12 +691,14 @@ const commonAction = (type, action, options) => {
                 + "please update the 'externalcommand' setting", "warn")
             return
         }
-        const {exec} = require("child_process")
         if (relevantData) {
-            exec(`${ext} "${relevantData}"`, err => {
-                if (err) {
-                    notify("Command to open links externally failed, "
-                        + "please update the 'externalcommand' setting", "err")
+            const {exec} = require("child_process")
+            exec(`${ext} "${relevantData}"`, (err, stdout) => {
+                const reportExit = getSetting("notificationforsystemcommands")
+                if (err && reportExit !== "none") {
+                    notify(`${err}`, "err")
+                } else if (reportExit === "all") {
+                    notify(stdout || "Command exitted successfully!", "suc")
                 }
             })
         }
