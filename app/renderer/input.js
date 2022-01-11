@@ -1517,14 +1517,14 @@ const handleKeyboard = async e => {
     if (currentMode() === "follow") {
         if (e.type === "keydown") {
             const {enterKey} = require("./follow")
-            let unshiftedName = e.key
+            let unshiftedName = String(e.key)
             try {
                 const map = await navigator.keyboard.getLayoutMap()
                 unshiftedName = map.get(e.code)
             } catch {
                 // Unsupported keyboard layout, fallback to unshifted key
             }
-            enterKey(unshiftedName, e.shiftKey || e.ctrlKey)
+            enterKey(unshiftedName || e.key, id, e.shiftKey || e.ctrlKey)
         }
         return
     }
@@ -1555,14 +1555,14 @@ const updateNavbarScrolling = () => {
     }
 }
 
-const typeCharacterIntoNavbar = character => {
+const typeCharacterIntoNavbar = (character, force = false) => {
     const id = character.replace(/-k(.+)>/, (_, r) => `-${r}>`)
         .replace(/<k([a-zA-Z]+)>/, (_, r) => `<${r}>`)
         .replace(/<k(\d)>/, (_, r) => r)
         .replace("<Plus>", "+").replace("<Minus>", "-").replace("<Point>", ".")
         .replace("<Divide>", "/").replace("<Multiply>", "*")
         .replace("Delete>", "Del>")
-    if (!"ces".includes(currentMode()[0])) {
+    if (!"ces".includes(currentMode()[0]) && !force) {
         return
     }
     const url = document.getElementById("url")
@@ -2204,6 +2204,7 @@ module.exports = {
     resetInputHistory,
     resetScreenshotDrag,
     sanitiseMapString,
+    typeCharacterIntoNavbar,
     uncountableActions,
     unmap,
     updateKeysOnScreen,

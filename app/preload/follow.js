@@ -313,6 +313,7 @@ const parseElement = (element, type) => {
     }
     return {
         "height": dimensions.height,
+        "text": element.textContent?.slice(0, 10000) || "",
         "type": typeOverride || type,
         "url": href,
         "width": dimensions.width,

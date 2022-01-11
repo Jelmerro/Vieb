@@ -576,7 +576,7 @@ const updateUrl = (webview, force = false) => {
     }
     const {updateWindowTitle} = require("./settings")
     updateWindowTitle()
-    if (!force && "sec".includes(currentMode()[0])) {
+    if (!force && "secf".includes(currentMode()[0])) {
         return
     }
     document.getElementById("url").value = urlToString(currentPage().src)

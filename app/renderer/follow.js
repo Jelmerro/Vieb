@@ -32,6 +32,7 @@ const {propPixels} = require("../util")
 
 let followLinkDestination = "current"
 let alreadyFollowing = false
+let alreadyFilteringLinks = false
 let links = []
 const savedOrder = [
     "image", "media", "url", "onclick", "inputs-click", "inputs-insert"
@@ -63,6 +64,7 @@ const startFollow = (newtab = followLinkDestination) => {
     const {setMode} = require("./modes")
     setMode("follow")
     alreadyFollowing = false
+    alreadyFilteringLinks = false
     informPreload()
     currentPage().send("follow-mode-start")
     document.getElementById("follow").style.display = "flex"
@@ -70,6 +72,7 @@ const startFollow = (newtab = followLinkDestination) => {
 
 const cancelFollow = () => {
     alreadyFollowing = false
+    alreadyFilteringLinks = false
     document.getElementById("follow").style.display = ""
     document.getElementById("follow").textContent = ""
     listPages().forEach(page => {
@@ -81,13 +84,18 @@ const cancelFollow = () => {
     })
 }
 
-const keys = {
-    "all": "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`-=[]\\;',./",
-    "alpha": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-    "alphanum": "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
-    "dvorakhome": "AOEUIDHTNS",
-    "numbers": "0123456789",
-    "qwertyhome": "ASDFGHJKL;"
+const followChars = () => {
+    const keys = {
+        "all": "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`-=[]\\;',./",
+        "alpha": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+        "alphanum": "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+        "dvorakhome": "AOEUIDHTNS",
+        "numbers": "0123456789",
+        "qwertyhome": "ASDFGHJKL;"
+    }
+    const setName = getSetting("followchars")
+    const allKeys = keys[setName] || setName.replace("custom:", "")
+    return allKeys.split("")
 }
 
 const digitListInCustomBase = (number, base, minLen = 0) => {
@@ -104,26 +112,10 @@ const digitListInCustomBase = (number, base, minLen = 0) => {
 }
 
 const numberToKeys = (number, minLen = 0) => {
-    const setName = getSetting("followchars")
-    const allKeys = keys[setName] || setName.replace("custom:", "")
-    const set = allKeys.split("")
+    const set = followChars()
     return digitListInCustomBase(number, set.length, minLen).map(
         d => set[d]).join("")
 }
-
-// const numberToKeys = (number, total) => {
-//     const setName = getSetting("followchars")
-//     const allKeys = keys[setName] || setName.replace("custom:", "")
-//     const set = allKeys.split("")
-//     const len = set.length
-//     const customBaseNumber = number.toString(len).padStart(
-//         total.toString(len).length, "0")
-//     let key = ""
-//     for (const char of customBaseNumber.split("")) {
-//         key += set[parseInt(char, len)]
-//     }
-//     return key
-// }
 
 const linkInList = (list, link) => list.find(l => l && link && l.x === link.x
     && l.y === link.y && l.type === link.type && l.height === link.height
@@ -205,6 +197,8 @@ const parseAndDisplayLinks = receivedLinks => {
     if (currentMode() !== "follow" || alreadyFollowing) {
         return
     }
+    const {updateUrl} = require("./tabs")
+    updateUrl(currentPage(), true)
     let newLinks = receivedLinks
     if (followLinkDestination !== "current") {
         const {hasProtocol} = require("../util")
@@ -251,6 +245,7 @@ const parseAndDisplayLinks = receivedLinks => {
     if (["pointer", "visual"].includes(getStored("modebeforefollow"))) {
         elemTypesToFollow = getSetting("followelementpointer")
     }
+    const neededLength = numberToKeys(links.length).length
     links.forEach((link, index) => {
         if (!link) {
             return
@@ -296,8 +291,7 @@ const parseAndDisplayLinks = receivedLinks => {
             followChildren.push(borderElement)
             // Show the link key in the top right
             const linkElement = document.createElement("span")
-            linkElement.textContent = numberToKeys(index, numberToKeys(links.length).length)
-            // linkElement.textContent = numberToKeys(index, links.length)
+            linkElement.textContent = numberToKeys(index, neededLength)
             linkElement.className = `follow-${link.type}`
             const charWidth = fontsize * 0.60191
             const linkElementWidth = charWidth * linkElement.textContent.length
@@ -325,16 +319,40 @@ const parseAndDisplayLinks = receivedLinks => {
     applyIndexedOrder()
 }
 
-const enterKey = async(id, stayInFollowMode) => {
+const followFiltering = () => alreadyFilteringLinks
+
+const enterKey = async(code, id, stayInFollowMode) => {
     alreadyFollowing = true
-    if (id.length > 1) {
+    const allLinkKeys = [...document.querySelectorAll("#follow span[link-id]")]
+    const charsInLinks = followChars().map(c => c.toLowerCase())
+    if (!code || !charsInLinks.includes(code.toLowerCase())) {
+        if (!alreadyFilteringLinks) {
+            alreadyFilteringLinks = true
+            document.getElementById("url").value = ""
+        }
+        const {typeCharacterIntoNavbar} = require("./input")
+        typeCharacterIntoNavbar(id, true)
+        const filterText = document.getElementById("url").value.toLowerCase()
+        allLinkKeys.forEach(linkKey => {
+            const link = links[linkKey.getAttribute("link-id")]
+            if (link.text.toLowerCase().includes(filterText)) {
+                linkKey.style.display = null
+                return
+            }
+            if (link.url?.toLowerCase().includes(filterText)) {
+                linkKey.style.display = null
+                return
+            }
+            linkKey.style.display = "none"
+        })
         return
     }
-    const allLinkKeys = [...document.querySelectorAll("#follow span[link-id]")]
     const matches = []
     allLinkKeys.forEach(linkKey => {
-        if (linkKey.textContent.toLowerCase().startsWith(id.toLowerCase())) {
-            matches.push(linkKey)
+        if (linkKey.textContent.toLowerCase().startsWith(code.toLowerCase())) {
+            if (getComputedStyle(linkKey).display !== "none") {
+                matches.push(linkKey)
+            }
             linkKey.textContent = linkKey.textContent.slice(1)
         } else {
             linkKey.remove()
@@ -388,6 +406,7 @@ const enterKey = async(id, stayInFollowMode) => {
 module.exports = {
     cancelFollow,
     enterKey,
+    followFiltering,
     parseAndDisplayLinks,
     reorderDisplayedLinks,
     startFollow

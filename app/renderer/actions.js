@@ -829,6 +829,7 @@ const nop = () => {
 const setFocusCorrectly = () => {
     const urlElement = document.getElementById("url")
     const {updateUrl} = require("./tabs")
+    const {followFiltering} = require("./follow")
     updateUrl(currentPage())
     if (currentMode() === "insert") {
         urlElement.blur()
@@ -836,7 +837,7 @@ const setFocusCorrectly = () => {
         if (!document.getElementById("context-menu").innerText) {
             currentPage()?.click()
         }
-    } else if ("sec".includes(currentMode()[0])) {
+    } else if ("sec".includes(currentMode()[0]) || followFiltering()) {
         if (document.activeElement !== urlElement) {
             window.focus()
             urlElement.focus()
