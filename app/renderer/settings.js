@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2021 Jelmer van Arnhem
+* Copyright (C) 2019-2022 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -423,6 +423,41 @@ const checkOther = (setting, value) => {
             return false
         }
     }
+    if (setting === "followchars") {
+        const ok = [
+            "all",
+            "alpha",
+            "alphanum",
+            "dvorakhome",
+            "numbers",
+            "qwertyhome"
+        ]
+        if (!ok.includes(value) && !value.startsWith("custom:")) {
+            notify(`Invalid value: ${value}, `
+               + `must be any of: alpha, alphanum, dvorakhome, numbers,
+                  qwertyhome, or a custom list starting with 'custom:'`, "warn")
+            return false
+        }
+    }
+    if (setting.startsWith("followelement")) {
+        const ok = [
+            "url",
+            "onclick",
+            "inputs-insert",
+            "inputs-click",
+            "media",
+            "image",
+            "other"
+        ]
+        for (const element of value.split(",")) {
+            if (!ok.includes(element)) {
+                notify(`Invalid element type passed: ${element}, `
+                   + `must be any combination of: url, onclick,
+                      inputs-insert, inputs-click or other`, "warn")
+                return false
+            }
+        }
+    }
     if (setting === "modifiers") {
         const {"keyNames": valid} = require("./input")
         for (const name of value.split(",")) {
@@ -614,25 +649,6 @@ const checkOther = (setting, value) => {
     }
     if (setting === "suggestorder") {
         return checkSuggestOrder(value)
-    }
-    if (setting.startsWith("followelement")) {
-        const ok = [
-            "url",
-            "onclick",
-            "inputs-insert",
-            "inputs-click",
-            "media",
-            "image",
-            "other"
-        ]
-        for (const element of value.split(",")) {
-            if (!ok.includes(element)) {
-                notify(`Invalid element type passed: ${element}, `
-                       + `must be any combination of: url, onclick,
-                          inputs-insert, inputs-click or other`)
-                return false
-            }
-        }
     }
     return true
 }

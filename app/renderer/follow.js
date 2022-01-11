@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2021 Jelmer van Arnhem
+* Copyright (C) 2019-2022 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -84,35 +84,46 @@ const cancelFollow = () => {
 const keys = {
     "all": "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`-=[]\\;',./",
     "alpha": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-    "alphanumeric": "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+    "alphanum": "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
     "dvorakhome": "AOEUIDHTNS",
     "numbers": "0123456789",
     "qwertyhome": "ASDFGHJKL;"
 }
 
-const numberToKeys = (number, total) => {
+const digitListInCustomBase = (number, base, minLen = 0) => {
+    const digits = []
+    let num = Number(number)
+    while (num >= 1) {
+        digits.unshift(Math.floor(num % base))
+        num /= base
+    }
+    while (digits.length < minLen) {
+        digits.unshift(0)
+    }
+    return digits
+}
+
+const numberToKeys = (number, minLen = 0) => {
     const setName = getSetting("followchars")
     const allKeys = keys[setName] || setName.replace("custom:", "")
     const set = allKeys.split("")
-    const len = set.length
-    if (number >= len * len) {
-        return null
-    }
-    if (total < len + 1 || number < len && number > Math.floor(total / len)) {
-        return set[number]
-    }
-    if (number + 1 === total && number % len === 0) {
-        return set[Math.floor(number / len)]
-    }
-    if (number % len === Math.floor(total / len)) {
-        if (number < len && total % len === 0) {
-            return set[number % len]
-        }
-    }
-    const first = set[Math.floor(number / len)]
-    const second = set[number % len]
-    return first + second
+    return digitListInCustomBase(number, set.length, minLen).map(
+        d => set[d]).join("")
 }
+
+// const numberToKeys = (number, total) => {
+//     const setName = getSetting("followchars")
+//     const allKeys = keys[setName] || setName.replace("custom:", "")
+//     const set = allKeys.split("")
+//     const len = set.length
+//     const customBaseNumber = number.toString(len).padStart(
+//         total.toString(len).length, "0")
+//     let key = ""
+//     for (const char of customBaseNumber.split("")) {
+//         key += set[parseInt(char, len)]
+//     }
+//     return key
+// }
 
 const linkInList = (list, link) => list.find(l => l && link && l.x === link.x
     && l.y === link.y && l.type === link.type && l.height === link.height
@@ -285,23 +296,29 @@ const parseAndDisplayLinks = receivedLinks => {
             followChildren.push(borderElement)
             // Show the link key in the top right
             const linkElement = document.createElement("span")
-            linkElement.textContent = numberToKeys(index, links.length)
-            if (linkElement.textContent) {
-                linkElement.className = `follow-${link.type}`
-                const charWidth = fontsize * 0.60191
-                const linkElementWidth = charWidth
-                    * linkElement.textContent.length
-                    + borderWidthKeys + borderWidthOutline
-                let left = width - borderWidthOutline
-                if (x + width > scrollWidth - linkElementWidth) {
-                    left = scrollWidth - x - linkElementWidth
-                }
-                linkElement.style.left = `${left.toFixed(2)}px`
-                linkElement.style.top = `-${borderWidthOutline}px`
-                linkElement.setAttribute("link-id", index)
-                linkElement.addEventListener("mouseup", onclickListener)
-                borderElement.appendChild(linkElement)
+            linkElement.textContent = numberToKeys(index, numberToKeys(links.length).length)
+            // linkElement.textContent = numberToKeys(index, links.length)
+            linkElement.className = `follow-${link.type}`
+            const charWidth = fontsize * 0.60191
+            const linkElementWidth = charWidth * linkElement.textContent.length
+                + borderWidthKeys + borderWidthOutline
+            let left = width - borderWidthOutline
+            if (x + width > scrollWidth - linkElementWidth) {
+                left = scrollWidth - x - linkElementWidth
             }
+            linkElement.style.left = `${left.toFixed(2)}px`
+            linkElement.style.top = `-${borderWidthOutline}px`
+            linkElement.setAttribute("link-id", index)
+            linkElement.addEventListener("mouseup", onclickListener)
+            borderElement.appendChild(linkElement)
+        }
+    })
+    followChildren.forEach(el => {
+        const link = el.querySelector("[link-id]")
+        const sameStart = followChildren.find(f => f.textContent.trim()
+            .startsWith(link.textContent.slice(1)) && f !== el)
+        if (!sameStart) {
+            link.textContent = link.textContent.slice(1)
         }
     })
     document.getElementById("follow").replaceChildren(...followChildren)
