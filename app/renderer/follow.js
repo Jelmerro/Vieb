@@ -81,20 +81,36 @@ const cancelFollow = () => {
     })
 }
 
+const keys = {
+    "all": "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`-=[]\\;',./",
+    "alpha": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    "alphanumeric": "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+    "dvorakhome": "AOEUIDHTNS",
+    "numbers": "0123456789",
+    "qwertyhome": "ASDFGHJKL;"
+}
+
 const numberToKeys = (number, total) => {
-    if (total < 27 || number < 26 && number > Math.floor(total / 26)) {
-        return String.fromCharCode(65 + number)
+    const setName = getSetting("followchars")
+    const allKeys = keys[setName] || setName.replace("custom:", "")
+    const set = allKeys.split("")
+    const len = set.length
+    if (number >= len * len) {
+        return null
     }
-    if (number + 1 === total && number % 26 === 0) {
-        return String.fromCharCode(65 + Math.floor(number / 26))
+    if (total < len + 1 || number < len && number > Math.floor(total / len)) {
+        return set[number]
     }
-    if (number % 26 === Math.floor(total / 26)) {
-        if (number < 26 && total % 26 === 0) {
-            return String.fromCharCode(65 + number % 26)
+    if (number + 1 === total && number % len === 0) {
+        return set[Math.floor(number / len)]
+    }
+    if (number % len === Math.floor(total / len)) {
+        if (number < len && total % len === 0) {
+            return set[number % len]
         }
     }
-    const first = String.fromCharCode(65 + Math.floor(number / 26))
-    const second = String.fromCharCode(65 + number % 26)
+    const first = set[Math.floor(number / len)]
+    const second = set[number % len]
     return first + second
 }
 
@@ -207,9 +223,6 @@ const parseAndDisplayLinks = receivedLinks => {
     while (!links[links.length - 1] && links.length) {
         links.pop()
     }
-    // The maximum amount of links is 26 * 26,
-    // therefor the slice index is 0 to 26^2 - 1.
-    links = links.slice(0, 675)
     const factor = currentPage().getZoomFactor()
     const followChildren = []
     const {scrollWidth} = currentPage()
@@ -273,38 +286,39 @@ const parseAndDisplayLinks = receivedLinks => {
             // Show the link key in the top right
             const linkElement = document.createElement("span")
             linkElement.textContent = numberToKeys(index, links.length)
-            linkElement.className = `follow-${link.type}`
-            const charWidth = fontsize * 0.60191
-            const linkElementWidth = charWidth * linkElement.textContent.length
-                + borderWidthKeys + borderWidthOutline
-            let left = width - borderWidthOutline
-            if (x + width > scrollWidth - linkElementWidth) {
-                left = scrollWidth - x - linkElementWidth
+            if (linkElement.textContent) {
+                linkElement.className = `follow-${link.type}`
+                const charWidth = fontsize * 0.60191
+                const linkElementWidth = charWidth
+                    * linkElement.textContent.length
+                    + borderWidthKeys + borderWidthOutline
+                let left = width - borderWidthOutline
+                if (x + width > scrollWidth - linkElementWidth) {
+                    left = scrollWidth - x - linkElementWidth
+                }
+                linkElement.style.left = `${left.toFixed(2)}px`
+                linkElement.style.top = `-${borderWidthOutline}px`
+                linkElement.setAttribute("link-id", index)
+                linkElement.addEventListener("mouseup", onclickListener)
+                borderElement.appendChild(linkElement)
             }
-            linkElement.style.left = `${left.toFixed(2)}px`
-            linkElement.style.top = `-${borderWidthOutline}px`
-            linkElement.setAttribute("link-id", index)
-            linkElement.addEventListener("mouseup", onclickListener)
-            borderElement.appendChild(linkElement)
         }
     })
     document.getElementById("follow").replaceChildren(...followChildren)
     applyIndexedOrder()
 }
 
-const enterKey = async id => {
+const enterKey = async(id, stayInFollowMode) => {
     alreadyFollowing = true
-    if (id.toLowerCase() === id.toUpperCase() || id.length > 1) {
+    if (id.length > 1) {
         return
     }
-    const stayInFollowMode = id.toUpperCase() === id
-    const key = id.toUpperCase()
     const allLinkKeys = [...document.querySelectorAll("#follow span[link-id]")]
     const matches = []
     allLinkKeys.forEach(linkKey => {
-        if (linkKey.textContent.startsWith(key)) {
+        if (linkKey.textContent.toLowerCase().startsWith(id.toLowerCase())) {
             matches.push(linkKey)
-            linkKey.textContent = linkKey.textContent.replace(key, "")
+            linkKey.textContent = linkKey.textContent.slice(1)
         } else {
             linkKey.remove()
         }

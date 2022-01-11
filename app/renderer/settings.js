@@ -93,6 +93,7 @@ const defaultSettings = {
     "favicons": "session",
     "favoritepages": "",
     "firefoxmode": "never",
+    "followchars": "alpha",
     "followelement": "url,onclick,inputs-insert,inputs-click,media,image,other",
     "followelementpointer":
         "url,onclick,inputs-insert,inputs-click,media,image,other",

@@ -1517,7 +1517,14 @@ const handleKeyboard = async e => {
     if (currentMode() === "follow") {
         if (e.type === "keydown") {
             const {enterKey} = require("./follow")
-            enterKey(id)
+            let unshiftedName = e.key
+            try {
+                const map = await navigator.keyboard.getLayoutMap()
+                unshiftedName = map.get(e.code)
+            } catch {
+                // Unsupported keyboard layout, fallback to unshifted key
+            }
+            enterKey(unshiftedName, e.shiftKey || e.ctrlKey)
         }
         return
     }
