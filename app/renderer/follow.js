@@ -333,17 +333,20 @@ const enterKey = async(code, id, stayInFollowMode) => {
         const {typeCharacterIntoNavbar} = require("./input")
         typeCharacterIntoNavbar(id, true)
         const filterText = document.getElementById("url").value.toLowerCase()
+        const visibleLinks = []
         allLinkKeys.forEach(linkKey => {
             const link = links[linkKey.getAttribute("link-id")]
-            if (link.text.toLowerCase().includes(filterText)) {
+            if (link.text.toLowerCase().includes(filterText)
+                || link.url?.toLowerCase().includes(filterText)) {
                 linkKey.style.display = null
-                return
+                visibleLinks.push(linkKey)
+            } else {
+                linkKey.style.display = "none"
             }
-            if (link.url?.toLowerCase().includes(filterText)) {
-                linkKey.style.display = null
-                return
-            }
-            linkKey.style.display = "none"
+        })
+        const neededLength = numberToKeys(visibleLinks.length).length
+        visibleLinks.forEach((linkKey, index) => {
+            linkKey.textContent = numberToKeys(index, neededLength)
         })
         return
     }
