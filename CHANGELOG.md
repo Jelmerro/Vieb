@@ -26,6 +26,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "followelementpointer" to control which elements should appear in follow mode when used to move the pointer
 - Setting "notificationforsystemcommands" to enable or disable notifications for successful or failed system commands
 - Setting "followchars" to specify exactly which characters should be used to select elements on the page
+- Setting "followfallbackaction" to control what happens on pressing chars not part of followchars (new default is to filter results)
 
 ### Changed
 

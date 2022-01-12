@@ -97,6 +97,7 @@ const defaultSettings = {
     "followelement": "url,onclick,inputs-insert,inputs-click,media,image,other",
     "followelementpointer":
         "url,onclick,inputs-insert,inputs-click,media,image,other",
+    "followfallbackaction": "filter",
     "follownewtabswitch": true,
     "fontsize": 14,
     "guifullscreennavbar": "oninput",
@@ -216,6 +217,7 @@ const validOptions = {
         "disabled", "nocache", "session", "1day", "5day", "30day", "forever"
     ],
     "firefoxmode": ["always", "google", "never"],
+    "followfallbackaction": ["filter", "exit", "nothing"],
     "guifullscreennavbar": ["always", "onupdate", "oninput", "never"],
     "guifullscreentabbar": ["always", "onupdate", "never"],
     "guinavbar": ["always", "onupdate", "oninput", "never"],
@@ -437,6 +439,17 @@ const checkOther = (setting, value) => {
                + `must be any of: alpha, alphanum, dvorakhome, numbers,
                   qwertyhome, or a custom list starting with 'custom:'`, "warn")
             return false
+        }
+        if (value.startsWith("custom:")) {
+            const chars = value.replace("custom:", "").split("")
+            if (chars.length < 2) {
+                notify("A minimum of two characters is required", "warn")
+                return
+            }
+            if (new Set(chars).size < chars.length) {
+                notify("All characters must be unique, no duplicates", "warn")
+                return
+            }
         }
     }
     if (setting.startsWith("followelement")) {
@@ -873,6 +886,15 @@ const suggestionList = () => {
         } else {
             listOfSuggestions.push(`${setting}=`)
             listOfSuggestions.push(`${setting}=${defaultSettings[setting]}`)
+        }
+        if (setting === "followchars") {
+            listOfSuggestions.push(`${setting}=custom:`)
+            listOfSuggestions.push(`${setting}=all`)
+            listOfSuggestions.push(`${setting}=alphanum`)
+            listOfSuggestions.push(`${setting}=dvorakhome`)
+            listOfSuggestions.push(`${setting}=numbers`)
+            listOfSuggestions.push(`${setting}=qwertyhome`)
+            listOfSuggestions.push(`${setting}=qwertyhome`)
         }
         if (containerSettings.includes(setting)) {
             listOfSuggestions.push(`${setting}=s:usematching`)

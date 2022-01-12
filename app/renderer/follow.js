@@ -325,7 +325,15 @@ const enterKey = async(code, id, stayInFollowMode) => {
     alreadyFollowing = true
     const allLinkKeys = [...document.querySelectorAll("#follow span[link-id]")]
     const charsInLinks = followChars().map(c => c.toLowerCase())
+    const {setMode} = require("./modes")
+    const fallbackAction = getSetting("followfallbackaction")
     if (!code || !charsInLinks.includes(code.toLowerCase())) {
+        if (fallbackAction === "exit") {
+            return setMode(getStored("modebeforefollow"))
+        }
+        if (fallbackAction === "nothing") {
+            return
+        }
         if (!alreadyFilteringLinks) {
             alreadyFilteringLinks = true
             document.getElementById("url").value = ""
@@ -361,10 +369,13 @@ const enterKey = async(code, id, stayInFollowMode) => {
             linkKey.remove()
         }
     })
-    const {setMode} = require("./modes")
     if (matches.length === 0) {
-        setMode(getStored("modebeforefollow"))
-        if (stayInFollowMode) {
+        if (fallbackAction === "exit") {
+            setMode(getStored("modebeforefollow"))
+            if (stayInFollowMode) {
+                startFollow()
+            }
+        } else {
             startFollow()
         }
     } else if (matches.length === 1) {
