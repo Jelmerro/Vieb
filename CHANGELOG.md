@@ -34,6 +34,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Command "reload" to "reloadconfig" to avoid confusion
 - Actions "reload" and "reloadWithoutCache" are now called "refreshTab" and "refreshTabWithoutCache" to avoid confusion
 - Consistency between menu items and reduced the amount of words in them for easier scanning
+- Override for atob and btoa functions so they accept a wider range of characters instead of throwing errors (fixes Protonmail login issue)
 
 ### Removed
 
