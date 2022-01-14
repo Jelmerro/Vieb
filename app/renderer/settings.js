@@ -80,6 +80,7 @@ const defaultSettings = {
     "commandhist": "persistuseronly",
     "containercolors": "temp\\d+~#ff0",
     "containerkeeponreopen": true,
+    "containernames": "",
     "containernewtab": "s:usecurrent",
     "containershowname": "automatic",
     "containersplitpage": "s:usecurrent",
@@ -189,6 +190,7 @@ let allSettings = {}
 const freeText = ["downloadpath", "externalcommand", "vimcommand"]
 const listLike = [
     "containercolors",
+    "containernames",
     "favoritepages",
     "followelement",
     "followelementpointer",
@@ -389,7 +391,7 @@ const checkOther = (setting, value) => {
             if (!colorMatch.trim()) {
                 continue
             }
-            if ((colorMatch.match(/~/g) || []).length === 0) {
+            if ((colorMatch.match(/~/g) || []).length !== 1) {
                 notify(`Invalid ${setting} entry: ${colorMatch}\n`
                     + "Entries must have exactly one ~ to separate the "
                     + "name regular expression and color name/hex", "warn")
@@ -410,6 +412,36 @@ const checkOther = (setting, value) => {
             if (style.color === "white" && color !== "white" || !color) {
                 notify("Invalid color, must be a valid color name or hex"
                     + `, not: ${color}`, "warn")
+                return false
+            }
+        }
+    }
+    if (setting === "containernames") {
+        for (const containerMatch of value.split(",")) {
+            if (!containerMatch.trim()) {
+                continue
+            }
+            if ((containerMatch.match(/~/g) || []).length !== 1) {
+                notify(`Invalid ${setting} entry: ${containerMatch}\n`
+                    + "Entries must have exactly one ~ to separate the "
+                    + "name regular expression and container name", "warn")
+                return false
+            }
+            const [match, container] = containerMatch.split("~")
+            try {
+                RegExp(match)
+            } catch {
+                notify(
+                    `Invalid regular expression in containernames: ${match}`,
+                    "warn")
+                return false
+            }
+            const simpleValue = container.replace("%n", "valid").replace(/_/g, "")
+            if (simpleValue.match(specialChars)) {
+                notify(
+                    "No special characters besides underscores are allowed in "
+                    + `the name of a container, invalid ${setting}: ${value}`,
+                    "warn")
                 return false
             }
         }

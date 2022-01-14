@@ -180,8 +180,8 @@ const saveTabs = () => {
 
 const addTab = (options = {}) => {
     // Recognized options for opening a new tab are as follows:
-    // url, customIndex, switchTo, pinned, devtools,
-    // container, lazy, script, muted, startup
+    // url, customIndex, switchTo, pinned, session (override of container)
+    // container (suggestion), devtools, lazy, script, muted, startup
     // Defaults for these options vary depending on app state and user settings
     if (options.switchTo === undefined) {
         options.switchTo = true
@@ -219,7 +219,6 @@ const addTab = (options = {}) => {
     } else if (options.startup) {
         sessionName = getSetting("containerstartuppage")
     }
-    sessionName = sessionName.replace("%n", linkId)
     if (sessionName === "s:external") {
         const isSpecialPage = pathToSpecialPageName(options.url || "").name
         if (isSpecialPage) {
@@ -253,6 +252,14 @@ const addTab = (options = {}) => {
     if (sessionName.startsWith("s:use")) {
         sessionName = currentPage()?.getAttribute("container") || "main"
     }
+    if (options.session) {
+        sessionName = options.session
+    } else if (options.url) {
+        sessionName = getSetting("containernames").split(",").find(
+            c => options.url.match(c.split("~")[0]))?.split("~")[1]
+            || sessionName
+    }
+    sessionName = sessionName.replace("%n", linkId)
     const tabs = document.getElementById("tabs")
     const pages = document.getElementById("pages")
     const tab = document.createElement("span")
@@ -434,7 +441,9 @@ const reopenTab = () => {
     }
     const restore = recentlyClosed.pop()
     restore.url = stringToUrl(restore.url)
-    if (!getSetting("containerkeeponreopen")) {
+    if (getSetting("containerkeeponreopen")) {
+        restore.session = restore.container
+    } else {
         restore.container = null
     }
     restore.customIndex = restore.index

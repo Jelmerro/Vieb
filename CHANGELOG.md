@@ -27,6 +27,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "notificationforsystemcommands" to enable or disable notifications for successful or failed system commands
 - Setting "followchars" to specify exactly which characters should be used to select elements on the page
 - Setting "followfallbackaction" to control what happens on pressing chars not part of followchars (new default is to filter results)
+- Command "tabnew" and "tabnewcontainer" to open a new tab programmatically optionally with a custom container name
+- Setting "containernames" to control which container names should be used for new tabs with a specific url (based on regex patterns)
 
 ### Changed
 

@@ -1025,6 +1025,18 @@ const runjsinpage = (raw, range) => {
     }
 }
 
+const tabnew = (session = null, url = null) => {
+    const {addTab} = require("./tabs")
+    const options = {}
+    if (url?.trim()) {
+        options.url = url
+    }
+    if (session?.trim()) {
+        options.session = session
+    }
+    addTab(options)
+}
+
 const noEscapeCommands = ["command", "delcommand"]
 const rangeCompatibleCommands = [
     "Sexplore",
@@ -1171,6 +1183,9 @@ const commands = {
     "split": ({args, range}) => addSplit(
         "ver", !getSetting("splitbelow"), args, range),
     "suspend": ({args, range}) => suspend(args, range),
+    "tabnew": ({raw}) => tabnew(null, raw.split(" ").slice(1).join(" ")),
+    "tabnewcontainer": ({raw}) => tabnew(raw.split(" ")[1],
+        raw.split(" ").slice(2).join(" ")),
     "v": () => openSpecialPage("version"),
     "version": () => openSpecialPage("version"),
     "vsplit": ({args, range}) => addSplit(
