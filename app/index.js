@@ -461,7 +461,7 @@ app.on("ready", () => {
         mainWindow.webContents.on("will-navigate", e => e.preventDefault())
         mainWindow.webContents.on("will-redirect", e => e.preventDefault())
         if (argDebugMode) {
-            mainWindow.webContents.openDevTools({"mode": "undocked"})
+            mainWindow.webContents.openDevTools({"mode": "detach"})
         }
         mainWindow.webContents.send("urls", resolveLocalPaths(urls))
     })
@@ -1413,7 +1413,7 @@ ipcMain.on("add-devtools", (_, pageId, devtoolsId) => {
     devtools.executeJavaScript("window.location.reload()")
 })
 ipcMain.on("open-internal-devtools",
-    () => mainWindow.webContents.openDevTools({"mode": "undocked"}))
+    () => mainWindow.webContents.openDevTools({"mode": "detach"}))
 ipcMain.on("destroy-window", () => {
     cancellAllDownloads()
     mainWindow.destroy()

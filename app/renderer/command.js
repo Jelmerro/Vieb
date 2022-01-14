@@ -323,7 +323,7 @@ const openDevTools = (userPosition = null, trailingArgs = false) => {
     }
     const position = userPosition || getSetting("devtoolsposition")
     if (position === "window") {
-        currentPage()?.openDevTools({"mode": "undocked"})
+        currentPage()?.openDevTools()
     } else if (position === "tab") {
         const {addTab} = require("./tabs")
         addTab({"devtools": true})
@@ -1086,7 +1086,7 @@ const commands = {
     "cookies": () => openSpecialPage("cookies"),
     "d": () => openSpecialPage("downloads"),
     "delcommand": ({args}) => deleteCommand(args),
-    "devtools": () => openDevTools(),
+    "devtools": ({args}) => openDevTools(...args),
     "downloads": () => openSpecialPage("downloads"),
     "extensions": ({args}) => extensionsCommand(args),
     "h": ({args}) => help(...args),
