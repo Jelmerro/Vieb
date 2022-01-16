@@ -30,7 +30,7 @@
   "devDependencies": {
     "electron": "17.0.0-beta.4",
     "electron-builder": "22.14.13",
-    "eslint": "8.6.0",
+    "eslint": "8.7.0",
     "eslint-plugin-sort-keys": "2.3.5",
     "jest": "27.4.7",
     "jest-environment-jsdom": "27.4.6"
