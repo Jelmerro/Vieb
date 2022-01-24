@@ -192,8 +192,8 @@ const privacyFixes = (w = window) => {
     }
     // Override broken node atob/btoa with a working version, for details see:
     // https://github.com/electron/electron/issues/31018
-    w.atob = i => Buffer.from(i, "base64").toString("latin1")
-    w.btoa = i => Buffer.from(i, "latin1").toString("base64")
+    w.atob = i => Buffer.from(String(i), "base64").toString("latin1")
+    w.btoa = i => Buffer.from(String(i), "latin1").toString("base64")
 }
 privacyFixes()
 
