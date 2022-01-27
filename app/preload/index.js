@@ -44,7 +44,13 @@ const applyThemeStyling = () => {
     style.textContent = `html {
         color: ${colors?.fg || "#eee"};background: ${colors?.bg || "#333"};
     } a {color: ${colors?.linkcolor || "#0cf"};}`
-    document.querySelector("html").appendChild(style)
+    if (document.head) {
+        document.head.appendChild(style)
+    } else if (document.body) {
+        document.body.appendChild(style)
+    } else {
+        document.querySelector("html").appendChild(style)
+    }
 }
 window.addEventListener("load", () => {
     const html = document.querySelector("html")
@@ -62,9 +68,11 @@ window.addEventListener("load", () => {
     const unset = "rgba(0, 0, 0, 0)"
     if (htmlBG.includes(unset) && bodyBG.includes(unset)) {
         if (htmlBGImg === "none" && bodyBGImg === "none") {
-            if (document.querySelector("div")) {
-                html.style.background = "white"
-                return
+            if (!document.querySelector("style#xml-viewer-style")) {
+                if (document.querySelector("div")) {
+                    html.style.background = "white"
+                    return
+                }
             }
             applyThemeStyling()
         }

@@ -18,6 +18,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Custom btoa and atob implementations not working if the argument is a number (even if that's technically more correct)
 - Unclickable follow mode link if it's the only link on the entire page
 - Warning when running a ":mkviebrc full" config (because the followelement-type settings didn't allow an empty value)
+- White background for XML documents
 
 ### Security
 
