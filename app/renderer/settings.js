@@ -387,10 +387,7 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "containercolors") {
-        for (const colorMatch of value.split(",")) {
-            if (!colorMatch.trim()) {
-                continue
-            }
+        for (const colorMatch of value.split(",").filter(c => c.trim())) {
             if ((colorMatch.match(/~/g) || []).length !== 1) {
                 notify(`Invalid ${setting} entry: ${colorMatch}\n`
                     + "Entries must have exactly one ~ to separate the "
@@ -417,10 +414,7 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "containernames") {
-        for (const containerMatch of value.split(",")) {
-            if (!containerMatch.trim()) {
-                continue
-            }
+        for (const containerMatch of value.split(",").filter(c => c.trim())) {
             if ((containerMatch.match(/~/g) || []).length !== 1) {
                 notify(`Invalid ${setting} entry: ${containerMatch}\n`
                     + "Entries must have exactly one ~ to separate the "
@@ -494,7 +488,7 @@ const checkOther = (setting, value) => {
             "image",
             "other"
         ]
-        for (const element of value.split(",")) {
+        for (const element of value.split(",").filter(e => e.trim())) {
             if (!ok.includes(element)) {
                 notify(`Invalid element type passed: ${element}, `
                    + `must be any combination of: url, onclick,
@@ -505,10 +499,7 @@ const checkOther = (setting, value) => {
     }
     if (setting === "modifiers") {
         const {"keyNames": valid} = require("./input")
-        for (const name of value.split(",")) {
-            if (!name.trim()) {
-                continue
-            }
+        for (const name of value.split(",").filter(n => n.trim())) {
             if (name.length > 1 && !valid.find(key => key.vim.includes(name))) {
                 notify(`Key name '${name}' is not recognized as a valid key`,
                     "warn")
@@ -528,10 +519,7 @@ const checkOther = (setting, value) => {
         "permissionsallowed", "permissionsasked", "permissionsblocked"
     ]
     if (permissionSettings.includes(setting)) {
-        for (const override of value.split(",")) {
-            if (!override.trim()) {
-                continue
-            }
+        for (const override of value.split(",").filter(o => o.trim())) {
             if ((override.match(/~/g) || []).length === 0) {
                 notify(`Invalid ${setting} entry: ${override}\n`
                     + "Entries must have at least one ~ to separate the "
@@ -567,10 +555,7 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "redirects") {
-        for (const redirect of value.split(",")) {
-            if (!redirect.trim()) {
-                continue
-            }
+        for (const redirect of value.split(",").filter(r => r.trim())) {
             if ((redirect.match(/~/g) || []).length !== 1) {
                 notify(`Invalid redirect entry: ${redirect}\n`
                     + "Entries must have exactly one ~ to separate the "
@@ -589,10 +574,7 @@ const checkOther = (setting, value) => {
     }
     if (setting === "searchwords") {
         const knownSearchwords = []
-        for (const searchword of value.split(",")) {
-            if (!searchword.trim()) {
-                continue
-            }
+        for (const searchword of value.split(",").filter(s => s.trim())) {
             if ((searchword.match(/~/g) || []).length !== 1) {
                 notify(`Invalid searchwords entry: ${searchword}\n`
                     + "Entries must have exactly one ~ to separate the "
@@ -624,8 +606,8 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "spelllang" && value !== "") {
-        for (const lang of value.split(",")) {
-            if (lang && spelllangs.length && !spelllangs.includes(lang)) {
+        for (const lang of value.split(",").filter(l => l.trim())) {
+            if (spelllangs.length && !spelllangs.includes(lang)) {
                 notify(`Invalid language passed to spelllang: ${lang}`,
                     "warn")
                 return false
@@ -633,18 +615,15 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "favoritepages") {
-        for (const page of value.split(",")) {
-            if (page.trim() && !isUrl(page)) {
+        for (const page of value.split(",").filter(p => p.trim())) {
+            if (!isUrl(page)) {
                 notify(`Invalid URL passed to favoritepages: ${page}`, "warn")
                 return false
             }
         }
     }
     if (setting === "startuppages") {
-        for (const page of value.split(",")) {
-            if (!page.trim()) {
-                continue
-            }
+        for (const page of value.split(",").filter(p => p.trim())) {
             const parts = page.split("~")
             const url = parts.shift()
             const cname = parts.shift()
@@ -684,7 +663,7 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "storenewvisits") {
-        for (const visitType of value.split(",")) {
+        for (const visitType of value.split(",").filter(v => v.trim())) {
             if (!["pages", "files", "builtin"].includes(visitType)) {
                 notify(`Invalid type of history passed: ${visitType}, `
                     + "must be one of: pages, files or builtin", "warn")
@@ -699,10 +678,7 @@ const checkOther = (setting, value) => {
 }
 
 const checkSuggestOrder = value => {
-    for (const suggest of value.split(",")) {
-        if (!suggest.trim()) {
-            continue
-        }
+    for (const suggest of value.split(",").filter(s => s.trim())) {
         const parts = (suggest.match(/~/g) || []).length
         if (parts > 2) {
             notify(`Invalid suggestorder entry: ${suggest}\n`
@@ -974,8 +950,8 @@ const loadFromDisk = () => {
                 notify(`Read error for config file located at '${conf}'`, "err")
                 continue
             }
-            for (const line of parsed.split("\n")) {
-                if (line && !line.trim().startsWith("\"")) {
+            for (const line of parsed.split("\n").filter(l => l.trim())) {
+                if (!line.trim().startsWith("\"")) {
                     const {execute} = require("./command")
                     execute(line, conf)
                 }
