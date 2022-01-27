@@ -311,7 +311,7 @@ const parseAndDisplayLinks = receivedLinks => {
         const link = el.querySelector("[link-id]")
         const sameStart = followChildren.find(f => f.textContent.trim()
             .startsWith(link.textContent.slice(1)) && f !== el)
-        if (!sameStart) {
+        if (!sameStart && link.textContent.length > 1) {
             link.textContent = link.textContent.slice(1)
         }
     })

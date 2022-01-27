@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Custom btoa and atob implementations not working if the argument is a number (even if that's technically more correct)
+- Unclickable follow mode link if it's the only link on the entire page
 
 ### Security
 
