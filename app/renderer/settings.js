@@ -23,6 +23,7 @@ const {
     joinPath,
     notify,
     isUrl,
+    stringToUrl,
     appData,
     expandPath,
     isFile,
@@ -123,6 +124,7 @@ const defaultSettings = {
     "mousenewtabswitch": true,
     "mousevisualmode": "onswitch",
     "nativenotification": "never",
+    "newtabpage": "",
     "notificationduration": 6000,
     "notificationforpermissions": false,
     "notificationforsystemcommands": "errors",
@@ -338,27 +340,6 @@ const checkNumber = (setting, value) => {
 
 const checkOther = (setting, value) => {
     // Special cases
-    if (setting === "search") {
-        const engines = value.split(",").filter(e => e.trim())
-        if (engines.length === 0) {
-            notify("You must set at least one search engine", "warn")
-            return false
-        }
-        for (let baseUrl of engines) {
-            baseUrl = baseUrl.replace(/^https?:\/\//g, "")
-            if (baseUrl.length === 0 || !baseUrl.includes("%s")) {
-                notify(`Invalid search value: ${baseUrl}\n`
-                        + "Each URL must contain a %s parameter, which will "
-                        + "be replaced by the search string", "warn")
-                return false
-            }
-            if (!isUrl(baseUrl)) {
-                notify("Each URL of the search setting must be a valid",
-                    "warn")
-                return false
-            }
-        }
-    }
     if (containerSettings.includes(setting)) {
         const specialNames = ["s:usematching", "s:usecurrent"]
         if (setting !== "containersplitpage") {
@@ -515,6 +496,12 @@ const checkOther = (setting, value) => {
             return false
         }
     }
+    if (setting === "newtabpage") {
+        if (value && !isUrl(stringToUrl(value).replace(/^https?:\/\//g, ""))) {
+            notify("The newtabpage value must be a valid url or empty", "warn")
+            return false
+        }
+    }
     const permissionSettings = [
         "permissionsallowed", "permissionsasked", "permissionsblocked"
     ]
@@ -568,6 +555,22 @@ const checkOther = (setting, value) => {
             } catch {
                 notify(
                     `Invalid regular expression in redirect: ${match}`, "warn")
+                return false
+            }
+        }
+    }
+    if (setting === "search") {
+        for (let baseUrl of value.split(",").filter(e => e.trim())) {
+            baseUrl = baseUrl.replace(/^https?:\/\//g, "")
+            if (baseUrl.length === 0 || !baseUrl.includes("%s")) {
+                notify(`Invalid search value: ${baseUrl}\n`
+                        + "Each URL must contain a %s parameter, which will "
+                        + "be replaced by the search string", "warn")
+                return false
+            }
+            if (!isUrl(baseUrl)) {
+                notify("Each URL of the search setting must be a valid url",
+                    "warn")
                 return false
             }
         }
@@ -973,13 +976,7 @@ const reset = setting => {
 
 const set = (setting, value) => {
     if (isValidSetting(setting, value)) {
-        if (setting === "search") {
-            if (!value.startsWith("http://") && !value.startsWith("https://")) {
-                allSettings.search = `https://${value}`
-            } else {
-                allSettings.search = value
-            }
-        } else if (typeof allSettings[setting] === "boolean") {
+        if (typeof allSettings[setting] === "boolean") {
             allSettings[setting] = ["true", true].includes(value)
         } else if (typeof allSettings[setting] === "number") {
             allSettings[setting] = Number(value)

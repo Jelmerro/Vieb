@@ -412,6 +412,12 @@ const unsuspendPage = page => {
     const url = page.src || ""
     webview.addEventListener("dom-ready", () => {
         if (!webview.getAttribute("dom-ready")) {
+            if (webview.getAttribute("custom-first-load")) {
+                webview.clearHistory()
+                webview.removeAttribute("custom-first-load")
+                webview.setAttribute("dom-ready", true)
+                return
+            }
             const tab = tabOrPageMatching(webview)
             const name = tab.querySelector("span")
             if (tab.getAttribute("muted")) {
@@ -423,10 +429,12 @@ const unsuspendPage = page => {
                 ipcRenderer.send("add-devtools",
                     currentPageId, webview.getWebContentsId())
                 name.textContent = "Devtools"
-            } else if (url) {
-                webview.src = url
+            } else if (url || getSetting("newtabpage")) {
+                webview.src = url || stringToUrl(getSetting("newtabpage"))
                 resetTabInfo(webview)
                 name.textContent = urlToString(url)
+                webview.setAttribute("custom-first-load", true)
+                return
             }
             webview.clearHistory()
             webview.setAttribute("dom-ready", true)
@@ -1012,7 +1020,7 @@ const resetTabInfo = webview => {
 }
 
 const navigateTo = location => {
-    if (currentPage().isCrashed()) {
+    if (currentPage().isCrashed() || !location) {
         return
     }
     if (currentPage().src.startsWith("devtools://")) {

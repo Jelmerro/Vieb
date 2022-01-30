@@ -13,16 +13,25 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Setting "newtabpage" to set a custom url for the new tab page
+
+### Changed
+
+- Allow "search" to be empty to disable searching completely (also fixes the same ":mkviebrc full" warning of followelement-type settings)
+
 ### Fixed
 
 - Custom btoa and atob implementations not working if the argument is a number (even if that's technically more correct)
 - Unclickable follow mode link if it's the only link on the entire page
 - Warning when running a ":mkviebrc full" config (because the followelement-type settings didn't allow an empty value)
 - White background for XML documents
+- First page in history always being the new tab page
 
 ### Security
 
-- Electron 17.0.0-beta.7 (was 17.0.0-beta.4)
+- Electron 17.0.0-beta.8 (was 17.0.0-beta.4)
 - Chromium 98.0.4758.11 (unchanged)
 
 ## [7.0.0](https://github.com/Jelmerro/Vieb/compare/6.2.0...7.0.0) - 2022-01-16

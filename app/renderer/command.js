@@ -353,8 +353,9 @@ const openInternalDevTools = () => {
 const openSpecialPage = (specialPage, section = null) => {
     // Open the url in the current or new tab, depending on currently open page
     const pageUrl = specialPagePath(specialPage, section)
-    const isNewtab = pathToSpecialPageName(
-        currentPage()?.src).name === "newtab"
+    const isNewtab = pathToSpecialPageName(currentPage()?.src).name === "newtab"
+        || currentPage()?.src.replace(/\/+$/g, "")
+        === stringToUrl(getSetting("newtabpage")).replace(/\/+$/g, "")
     if (currentPage() && !currentPage().isLoading() && isNewtab) {
         const {navigateTo} = require("./tabs")
         navigateTo(pageUrl)

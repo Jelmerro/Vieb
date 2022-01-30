@@ -175,6 +175,9 @@ const stringToUrl = location => {
     if (!isUrl(url)) {
         const engines = getSetting("search").split(",")
         const engine = engines[Math.floor(Math.random() * engines.length)]
+        if (!engine) {
+            return ""
+        }
         url = engine.replace(/%s/g, encodeURIComponent(location))
     }
     if (!hasProtocol(url)) {
