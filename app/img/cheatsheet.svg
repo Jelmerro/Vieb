@@ -74,9 +74,9 @@
      objecttolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.7536248"
-     inkscape:cx="433.67316"
-     inkscape:cy="332.16912"
+     inkscape:zoom="1.24"
+     inkscape:cx="731.85485"
+     inkscape:cy="560.8871"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      width="10px"
@@ -2184,20 +2184,20 @@
        transform="translate(40)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan9591"><tspan
+         id="tspan14560"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan9589"> 
+           id="tspan14558"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.08476"
-         id="tspan9595"><tspan
+         id="tspan14564"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan9593">follow </tspan></tspan><tspan
+           id="tspan14562">follow </tspan></tspan><tspan
          x="351.18723"
          y="287.76476"
-         id="tspan9599"><tspan
+         id="tspan14568"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan9597">mode
+           id="tspan14566">mode
 </tspan></tspan></text>
     <text
        xml:space="preserve"
@@ -2208,21 +2208,21 @@
        transform="translate(-42.337912,-69.3719)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan9603"><tspan
+         id="tspan14572"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan9601"> 
+           id="tspan14570"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.85891"
-         id="tspan9607"><tspan
+         id="tspan14576"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan9605">explore
+           id="tspan14574">explore
 </tspan></tspan><tspan
          x="351.18723"
          y="288.72478"
-         id="tspan9611"><tspan
+         id="tspan14580"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan9609">mode</tspan></tspan></text>
+           id="tspan14578">mode</tspan></tspan></text>
     <text
        id="text9514-6"
        y="201.01891"
@@ -3296,7 +3296,7 @@
        xml:space="preserve"
        id="flowRoot5691-4-9-3-0-5"
        style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
-       transform="translate(528.37221,475.74116)"><flowRegion
+       transform="translate(528.37221,481.74116)"><flowRegion
          id="flowRegion5693-9-1-7-4-9"
          style="font-family:sans-serif;stroke-width:1.06667"><rect
            id="rect5695-9-8-7-7-5"
@@ -3407,21 +3407,41 @@
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
          id="flowPara59204">f  -  enter follow mode to position cursor</flowPara><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
-         id="flowPara14602">gv  -  restore the last visual selection </flowPara><flowPara
+         id="flowPara14602"><flowSpan
+   style="fill:#0000ff"
+   id="flowSpan10048">gv</flowSpan>  -  restore the last visual selection </flowPara><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
          id="flowPara14360" /><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
-         id="flowPara1299">mc  -  toggle media controls</flowPara><flowPara
+         id="flowPara1299"><flowSpan
+   style="fill:#0000ff"
+   id="flowSpan9302">mc</flowSpan>  -  toggle media controls</flowPara><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
-         id="flowPara4363">ml  -  toggle media loop</flowPara><flowPara
+         id="flowPara4363"><flowSpan
+   style="fill:#0000ff"
+   id="flowSpan9084">ml</flowSpan>  -  toggle media loop</flowPara><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
-         id="flowPara4365">mm  -  toggle media mute</flowPara><flowPara
+         id="flowPara4365"><flowSpan
+   style="fill:#0000ff"
+   id="flowSpan8434">mm</flowSpan>  -  toggle media mute</flowPara><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
-         id="flowPara4969">mp  -  toggle media play</flowPara><flowPara
+         id="flowPara1693" /><flowPara
+         style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
+         id="flowPara1695"><flowSpan
+   style="fill:#0000ff"
+   id="flowSpan7604">mp</flowSpan>  -  toggle media play</flowPara><flowPara
+         style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
+         id="flowPara1699"><flowSpan
+   style="fill:#0000ff"
+   id="flowSpan2077">mu</flowSpan>  -  increase media volume</flowPara><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
          id="flowPara1301"><flowSpan
    style="fill:#0000ff"
-   id="flowSpan1303">h/j/k/l</flowSpan>  -  move left/down/up/right</flowPara><flowPara
+   id="flowSpan1303">md</flowSpan>  -  decrease media volume</flowPara><flowPara
+         style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
+         id="flowPara1701"><flowSpan
+   style="fill:#0000ff"
+   id="flowSpan1703">h/j/k/l</flowSpan>  -  move left/down/up/right</flowPara><flowPara
          style="font-size:10.6667px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06667"
          id="flowPara5625"><flowSpan
    style="fill:#0000ff"
@@ -4606,22 +4626,22 @@
        transform="translate(40.307436,-29.82915)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan9615"><tspan
+         id="tspan14584"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan9613"> 
+           id="tspan14582"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.08476"
-         id="tspan9619"><tspan
+         id="tspan14588"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan9617">follow in </tspan></tspan><tspan
+           id="tspan14586">follow in </tspan></tspan><tspan
          x="351.18723"
          y="287.76476"
-         id="tspan9625"><tspan
+         id="tspan14594"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan9621">new tab</tspan><tspan
+           id="tspan14590">new tab</tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan9623">
+           id="tspan14592">
 </tspan></tspan></text>
     <text
        xml:space="preserve"
@@ -4632,24 +4652,24 @@
        transform="translate(-49.302467,-99.318284)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan9629"><tspan
+         id="tspan14598"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan9627"> 
+           id="tspan14596"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.85891"
-         id="tspan9635"><tspan
+         id="tspan14604"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan9631">explore </tspan><tspan
+           id="tspan14600">explore </tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan9633">in </tspan></tspan><tspan
+           id="tspan14602">in </tspan></tspan><tspan
          x="351.18723"
          y="288.72478"
-         id="tspan9641"><tspan
+         id="tspan14610"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan9637">new </tspan><tspan
+           id="tspan14606">new </tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan9639">tab</tspan></tspan></text>
+           id="tspan14608">tab</tspan></tspan></text>
     <text
        xml:space="preserve"
        id="text18022"
