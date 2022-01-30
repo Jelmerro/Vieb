@@ -15,7 +15,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Added
 
-- Setting "newtabpage" to set a custom url for the new tab page
+- Setting "newtaburl" to set a custom url for the new tab page
 
 ### Changed
 

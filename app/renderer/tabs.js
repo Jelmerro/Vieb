@@ -429,8 +429,8 @@ const unsuspendPage = page => {
                 ipcRenderer.send("add-devtools",
                     currentPageId, webview.getWebContentsId())
                 name.textContent = "Devtools"
-            } else if (url || getSetting("newtabpage")) {
-                webview.src = url || stringToUrl(getSetting("newtabpage"))
+            } else if (url || getSetting("newtaburl")) {
+                webview.src = url || stringToUrl(getSetting("newtaburl"))
                 resetTabInfo(webview)
                 name.textContent = urlToString(url)
                 webview.setAttribute("custom-first-load", true)

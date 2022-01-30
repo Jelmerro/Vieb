@@ -355,7 +355,7 @@ const openSpecialPage = (specialPage, section = null) => {
     const pageUrl = specialPagePath(specialPage, section)
     const isNewtab = pathToSpecialPageName(currentPage()?.src).name === "newtab"
         || currentPage()?.src.replace(/\/+$/g, "")
-        === stringToUrl(getSetting("newtabpage")).replace(/\/+$/g, "")
+        === stringToUrl(getSetting("newtaburl")).replace(/\/+$/g, "")
     if (currentPage() && !currentPage().isLoading() && isNewtab) {
         const {navigateTo} = require("./tabs")
         navigateTo(pageUrl)

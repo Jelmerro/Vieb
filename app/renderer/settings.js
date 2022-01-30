@@ -124,7 +124,7 @@ const defaultSettings = {
     "mousenewtabswitch": true,
     "mousevisualmode": "onswitch",
     "nativenotification": "never",
-    "newtabpage": "",
+    "newtaburl": "",
     "notificationduration": 6000,
     "notificationforpermissions": false,
     "notificationforsystemcommands": "errors",
@@ -496,9 +496,9 @@ const checkOther = (setting, value) => {
             return false
         }
     }
-    if (setting === "newtabpage") {
+    if (setting === "newtaburl") {
         if (value && !isUrl(stringToUrl(value).replace(/^https?:\/\//g, ""))) {
-            notify("The newtabpage value must be a valid url or empty", "warn")
+            notify("The newtaburl value must be a valid url or empty", "warn")
             return false
         }
     }
