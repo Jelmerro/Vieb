@@ -1314,6 +1314,10 @@
         Toggle the mute state of an audio or video element. If enabled, no audio will be heard from that element. Most players show the mute state in their interface, though you can always check it using the <a href="#menu">menu</a>.
         <h3 id="pointer.toggleMediaPlay">pointer.toggleMediaPlay</h3>
         Toggle playback of an audio or video element. Simply pauses if playing, and starts playing if paused. Most websites will allow you to control this more easily, but it's provided as an action in Vieb regardless.
+        <h3 id="pointer.mediaDown">pointer.mediaDown</h3>
+        Lower the volume of an audio or video element by 10%. If already at 0% volume, nothing happens. Can be counted to lower the volume faster. If the volume is zero and you call <a href="#pointer.toggleMediaMute">toggleMediaMute</a> you will put it back to 100% volume, not to what the volume was before you set it to 0.
+        <h3 id="pointer.mediaUp">pointer.mediaUp</h3>
+        Raise the volume of an audio or video element by 10%. If already at 100% volume, nothing happens. Can be counted to raise the volume faster.
         <h2 id="menu">Menu actions</h2>
         Menu actions are for interacting with the right click context menu. You can open the menu with a right mouse click (if not disabled), using <a href="#action.menuOpen">action.menuOpen</a> or using the <a href="#pointer.rightClick">pointer.rightClick</a> action. Most of these actions don't do anything when no contextmenu is currently opened. As such, it's recommended to only use these actions with the <a href="#:mmap">:mmap</a> command. The most notable exception is <a href="#action.menuOpen">action.menuOpen</a> to open the menu. You can control disable or enable the different menus with <a href="#menupage">menupage</a> and <a href="#menuvieb">menuvieb</a>.
         <h3 id="action.menuOpen">action.menuOpen</h3>

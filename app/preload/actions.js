@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2021 Jelmer van Arnhem
+* Copyright (C) 2019-2022 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -160,6 +160,20 @@ const togglePause = (x, y) => {
     }
 }
 
+const volumeDown = (x, y) => {
+    const el = findElementAtPosition(x, y)
+    if (matchesQuery(el, "audio, video")) {
+        el.volume = Math.max(0, el.volume - 0.1) || 0
+    }
+}
+
+const volumeUp = (x, y) => {
+    const el = findElementAtPosition(x, y)
+    if (matchesQuery(el, "audio, video")) {
+        el.volume = Math.min(1, el.volume + 0.1) || 1
+    }
+}
+
 const documentAtPos = (x, y) => findElementAtPosition(x, y)
     ?.ownerDocument || document
 
@@ -288,14 +302,12 @@ const functions = {
     toggleLoop,
     toggleMute,
     togglePause,
+    volumeDown,
+    volumeUp,
     writeInputToFile
 }
 
-ipcRenderer.on("action", (_, name, ...args) => {
-    if (functions[name]) {
-        functions[name](...args)
-    }
-})
+ipcRenderer.on("action", (_, name, ...args) => functions[name]?.(...args))
 
 window.addEventListener("DOMContentLoaded", () => {
     ipcRenderer.on("set-custom-styling", (_, fontsize, customCSS) => {

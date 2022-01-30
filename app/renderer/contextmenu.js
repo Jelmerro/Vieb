@@ -448,6 +448,16 @@ const webviewMenu = options => {
                     "title": controlsTitle
                 })
             }
+            createMenuItem({
+                "action": () => currentPage()?.send("action",
+                    "volumeUp", options.x, options.y),
+                "title": "Volume up"
+            })
+            createMenuItem({
+                "action": () => currentPage()?.send("action",
+                    "volumeDown", options.x, options.y),
+                "title": "Volume down"
+            })
         }
     }
     fixAlignmentNearBorders()

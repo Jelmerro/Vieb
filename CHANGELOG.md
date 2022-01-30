@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Setting "newtaburl" to set a custom url for the new tab page
+- Actions "p.mediaDown" and "p.mediaUp" to lower or raise the volume of media elements (audio or video)
 
 ### Changed
 

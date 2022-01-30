@@ -314,6 +314,10 @@ const searchText = () => currentPage().send("contextmenu-data", {
 
 const toggleMediaPlay = () => currentPage().send("action", "togglePause", X, Y)
 
+const mediaDown = () => currentPage().send("action", "volumeDown", X, Y)
+
+const mediaUp = () => currentPage().send("action", "volumeUp", X, Y)
+
 const toggleMediaMute = () => currentPage().send("action", "toggleMute", X, Y)
 
 const toggleMediaLoop = () => currentPage().send("action", "toggleLoop", X, Y)
@@ -557,6 +561,8 @@ module.exports = {
     insertAtPosition,
     inspectElement,
     leftClick,
+    mediaDown,
+    mediaUp,
     move,
     moveDown,
     moveFastDown,
