@@ -418,6 +418,8 @@ app.on("ready", () => {
         console.info(`Sending urls to existing instance in ${argDatafolder}`)
         app.exit(0)
     }
+    app.on("open-file", (_, url) => mainWindow.webContents.send("urls",
+        resolveLocalPaths([url])))
     app.on("open-url", (_, url) => mainWindow.webContents.send("urls",
         resolveLocalPaths([url])))
     if (!app.isPackaged && !customIcon) {
