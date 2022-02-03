@@ -29,6 +29,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Warning when running a ":mkviebrc full" config (because the followelement-type settings didn't allow an empty value)
 - White background for XML documents
 - First page in history always being the new tab page
+- Focus element action failing to get the length of elements that don't have a value (textarea, contenteditable div, etc.)
 
 ### Security
 

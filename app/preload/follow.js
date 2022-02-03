@@ -96,7 +96,7 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
         || "rememberend"
     focusEl.click()
     focusEl.focus()
-    const focusLength = focusEl?.value.length || focusEl.textContent.length
+    const focusLength = focusEl.value?.length || focusEl.textContent.length
     if (focusLength > 0) {
         if (!previouslyFocussedElements.includes(focusEl)
             || inputfocusalignment.includes("always")) {
