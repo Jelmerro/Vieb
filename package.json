@@ -32,8 +32,8 @@
     "electron-builder": "23.0.0-alpha.2",
     "eslint": "8.8.0",
     "eslint-plugin-sort-keys": "2.3.5",
-    "jest": "27.4.7",
-    "jest-environment-jsdom": "27.4.6"
+    "jest": "27.5.0",
+    "jest-environment-jsdom": "27.5.0"
   },
   "dependencies": {
     "7zip-bin": "5.1.1",
