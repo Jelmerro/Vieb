@@ -30,6 +30,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - White background for XML documents
 - First page in history always being the new tab page
 - Focus element action failing to get the length of elements that don't have a value (textarea, contenteditable div, etc.)
+- Argument issue with scriptnames command preventing it from working
 
 ### Security
 

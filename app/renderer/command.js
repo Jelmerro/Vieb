@@ -1143,8 +1143,8 @@ const commands = {
     "s": ({args}) => set(args),
     "screencopy": ({args}) => screencopy(args),
     "screenshot": ({args}) => screenshot(args),
-    "scriptnames": (hasArgs = null) => {
-        if (hasArgs) {
+    "scriptnames": ({args}) => {
+        if (args?.length) {
             notify(`Command takes no arguments: scriptnames`, "warn")
             return
         }
