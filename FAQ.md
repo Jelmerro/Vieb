@@ -2,9 +2,12 @@ Frequently Asked Questions
 ==========================
 
 This document contains a list of frequently asked questions.
-If you question is not listed or properly answered below, you can ask your question on
-[r/vieb](https://reddit.com/r/vieb) or via [a github issue](https://github.com/Jelmerro/Vieb/issues/new/choose).
-Feel free to ask questions on the subreddit or on github if you can't figure it out.
+If your question is not listed, you can find support here:
+
+- [Reddit](https://reddit.com/r/vieb) - r/vieb is the official subreddit
+- [Matrix](https://matrix.to/#/#vieb:matrix.org) - #vieb is hosted on matrix.org
+- [Telegram](https://t.me/vieb_general) - Chat with other users on Telegram
+- Or make a Github issue if you aren't using any of the above
 
 ## Startup
 
@@ -129,7 +132,9 @@ No, Vieb does not automatically update, nor does it check for any of that in the
 Vieb will ONLY make requests when opened pages fetch new resources
 OR when you specifically ask it to (either via navigation or with custom settings).
 Checking for updates can be done by opening the `:version` page and specifically clicking "Check for updates".
-Alternatively, you can watch the [github repository](https://github.com/Jelmerro/Vieb)
+Alternatively, you can watch the [Github repository](https://github.com/Jelmerro/Vieb)
 or subscribe to the official [Vieb subreddit](https://reddit.com/r/vieb) to be notified of new releases.
+You can also check out the official [Matrix space](https://matrix.to/#/#vieb:matrix.org) and it's [announcements chat](https://matrix.to/#/#vieb-announcements:matrix.org),
+or visit the [Telegram announcements](https://t.me/vieb_announcements) and [the general chat on Telegram](https://t.me/vieb_general).
 Lastly, if your system has a [third-party package](https://repology.org/project/vieb/versions), you could use that as well.
 These packages might be customized or updated at a later date, but they get updates the same way you are used to from your operating system.

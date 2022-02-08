@@ -11,7 +11,7 @@ assignees: ''
 - [ ] I searched the `:help` documentation using `/` for helpful information
 - [ ] I have read the [frequently asked questions](https://github.com/Jelmerro/Vieb/blob/master/FAQ.md)
 - [ ] I did not find any similar issues in the [issue tracker](https://github.com/Jelmerro/Vieb/issues)
-- [ ] I prefer a github issue over asking my question on [r/vieb](https://www.reddit.com/r/vieb/)
+- [ ] I prefer asking my question on Github instead of [r/vieb](https://www.reddit.com/r/vieb/), [Matrix](https://matrix.to/#/#vieb:matrix.org) or [Telegram](https://t.me/vieb_general)
 
 **What needs to be solved**
 [TODO Describe the problem you are facing, and why you need help with it.]
