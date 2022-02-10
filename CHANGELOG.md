@@ -11,7 +11,13 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
-## Unreleased
+## [7.1.1](https://github.com/Jelmerro/Vieb/compare/7.1.0...7.1.1) - 2022-02-10
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/7.1.0...7.1.1) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/7.1.1)
+
+### Changed
+
+- Telegram channels and a Matrix space now exist and were added to the version page
 
 ### Fixed
 
