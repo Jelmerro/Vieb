@@ -302,7 +302,7 @@ const propPixels = (element, prop) => {
             .fontSize.replace("px", "")) || 0
         return Number(value.replace("em", "")) * elementFontSize || 0
     }
-    return 0
+    return Number(value) || 0
 }
 
 const matchesQuery = (el, query) => {

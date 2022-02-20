@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Fixed
+
+- Split resize actions (increaseWidthSplitWindow etc.) not being able to resize multiple times in the same direction
+
 ### Security
 
 - Electron 17.0.1 (was 17.0.0)
