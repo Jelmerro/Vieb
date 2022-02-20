@@ -191,6 +191,7 @@ const defaultBindings = {
     },
     "n": {
         "$": {"mapping": "<scrollRightMax>"},
+        "'<Any>": {"mapping": "<restoreMark>"},
         "+": {"mapping": "<zoomIn>"},
         ".": {"mapping": "<repeatLastAction>"},
         "/": {"mapping": "<toSearchMode>"},
@@ -361,6 +362,8 @@ const defaultBindings = {
         "j": {"mapping": "<scrollDown>"},
         "k": {"mapping": "<scrollUp>"},
         "l": {"mapping": "<scrollRight>"},
+        "m<Any>": {"mapping": "<makeMark>"},
+        "mt": {"mapping": "<refreshTab>"},
         "n": {"mapping": "<nextSearchMatch>"},
         "p": {"mapping": "<openFromClipboard>"},
         "r": {"mapping": "<refreshTab>"},
@@ -821,10 +824,10 @@ const init = () => {
             return
         }
         if (direction === "in") {
-            ACTIONS.zoomIn(page)
+            ACTIONS.zoomIn({"customPage": page})
         }
         if (direction === "out") {
-            ACTIONS.zoomOut(page)
+            ACTIONS.zoomOut({"customPage": page})
         }
     })
     ipcRenderer.on("insert-mode-input-event", (_, input) => {
@@ -1034,7 +1037,9 @@ const keyNames = [
     {"js": ["Pause"], "vim": ["Pause"]},
     {"js": ["NumLock"], "vim": ["NumLock"]},
     {"js": ["CapsLock"], "vim": ["CapsLock"]},
-    {"js": ["ScrollLock"], "vim": ["ScrollLock"]}
+    {"js": ["ScrollLock"], "vim": ["ScrollLock"]},
+    // Fictional keys with custom implementation
+    {"js": ["Any"], "vim": ["Any"]}
 ]
 const toIdentifier = e => {
     let keyCode = e.key
@@ -1170,6 +1175,8 @@ const uncountableActions = [
     "downloadLink",
     "toggleAlwaysOnTop",
     "toggleFullscreen",
+    "makeMark",
+    "restoreMark",
     "menuOpen",
     "menuTop",
     "menuBottom",
@@ -1235,6 +1242,7 @@ const uncountableActions = [
     "p.vsplitText"
 ]
 
+// TODO add Any key support
 const hasFutureActionsBasedOnKeys = keys => Object.keys(bindings[
     currentMode()[0]]).find(map => map.startsWith(keys) && map !== keys)
 
@@ -1264,6 +1272,7 @@ const repeatLastAction = () => {
 }
 
 const executeMapString = async(mapStr, recursive, initial) => {
+    const actionCallKeys = pressedKeys.split(mapStringSplitter).filter(k => k)
     if (initial) {
         if (!mapStr.includes("<repeatLastAction>")) {
             lastExecutedMapstring = {mapStr, recursive}
@@ -1288,7 +1297,7 @@ const executeMapString = async(mapStr, recursive, initial) => {
             if (supportedActions.includes(key.replace(/(^<|>$)/g, ""))) {
                 const count = Number(repeatCounter)
                 repeatCounter = 0
-                await doAction(key.replace(/(^<|>$)/g, ""), count)
+                await doAction(key.replace(/(^<|>$)/g, ""), count, actionCallKeys)
                 await new Promise(r => {
                     setTimeout(r, 3)
                 })
@@ -1335,7 +1344,7 @@ const executeMapString = async(mapStr, recursive, initial) => {
     }
 }
 
-const doAction = async(actionName, givenCount) => {
+const doAction = async(actionName, givenCount, actionCallKeys) => {
     let actionCount = givenCount || 1
     if (uncountableActions.includes(actionName)) {
         if (lastActionInMapping === actionName) {
@@ -1350,9 +1359,9 @@ const doAction = async(actionName, givenCount) => {
     const funcName = actionName.replace(/^.*\./g, "")
     for (let i = 0; i < actionCount; i++) {
         if (pointer) {
-            await POINTER[funcName]()
+            await POINTER[funcName]({actionCallKeys})
         } else {
-            await ACTIONS[funcName]()
+            await ACTIONS[funcName]({actionCallKeys})
         }
     }
     if (!funcName.startsWith("menu") && funcName !== "nop") {
@@ -1364,11 +1373,42 @@ const doAction = async(actionName, givenCount) => {
 
 const actionForKeys = keys => {
     const {"active": menuActive} = require("./contextmenu")
-    const menuAction = bindings.m[keys]
+    const actionKeys = keys.split(mapStringSplitter).filter(k => k)
+    const allMenu = Object.keys(bindings.m).filter(m => {
+        const mapKeys = m.split(mapStringSplitter).filter(k => k)
+        if (mapKeys.length !== actionKeys.length) {
+            return false
+        }
+        let keyCount = 0
+        for (const key of actionKeys) {
+            if (key !== mapKeys[keyCount] && mapKeys[keyCount] !== "<Any>") {
+                return false
+            }
+            keyCount += 1
+        }
+        return true
+    }).sort((a, b) => a.split(mapStringSplitter).filter(k => k).indexOf("<Any>")
+        - b.split(mapStringSplitter).filter(k => k).indexOf("<Any>"))
+    const menuAction = bindings.m[allMenu[0]]
     if (menuActive() && menuAction) {
         return menuAction
     }
-    return bindings[currentMode()[0]][keys]
+    const allCurrent = Object.keys(bindings[currentMode()[0]]).filter(m => {
+        const mapKeys = m.split(mapStringSplitter).filter(k => k)
+        if (mapKeys.length !== actionKeys.length) {
+            return false
+        }
+        let keyCount = 0
+        for (const key of actionKeys) {
+            if (key !== mapKeys[keyCount] && mapKeys[keyCount] !== "<Any>") {
+                return false
+            }
+            keyCount += 1
+        }
+        return true
+    }).sort((a, b) => a.split(mapStringSplitter).filter(k => k).indexOf("<Any>")
+        - b.split(mapStringSplitter).filter(k => k).indexOf("<Any>"))
+    return bindings[currentMode()[0]][allCurrent[0]]
 }
 
 const handleKeyboard = async e => {

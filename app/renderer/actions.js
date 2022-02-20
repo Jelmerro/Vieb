@@ -223,8 +223,8 @@ const nextSearchMatch = () => {
     }
 }
 
-const refreshTab = (customPage = null) => {
-    const page = customPage || currentPage()
+const refreshTab = args => {
+    const page = args?.customPage || currentPage()
     if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
         page.reload()
         const {resetTabInfo} = require("./tabs")
@@ -274,8 +274,8 @@ const startFollowCurrentTab = () => {
     startFollow("current")
 }
 
-const backInHistory = (customPage = null) => {
-    const page = customPage || currentPage()
+const backInHistory = args => {
+    const page = args?.customPage || currentPage()
     if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
         if (page?.canGoBack()) {
             tabOrPageMatching(page).querySelector("span").textContent = ""
@@ -286,8 +286,8 @@ const backInHistory = (customPage = null) => {
     }
 }
 
-const forwardInHistory = (customPage = null) => {
-    const page = customPage || currentPage()
+const forwardInHistory = args => {
+    const page = args?.customPage || currentPage()
     if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
         if (page?.canGoForward()) {
             tabOrPageMatching(page).querySelector("span").textContent = ""
@@ -371,8 +371,8 @@ const moveTabStart = () => {
 
 const zoomReset = () => currentPage()?.setZoomLevel(0)
 
-const zoomOut = (customPage = null) => {
-    const page = customPage || currentPage()
+const zoomOut = args => {
+    const page = args?.customPage || currentPage()
     let level = page?.getZoomLevel() - 1
     if (level < -7) {
         level = -7
@@ -380,8 +380,8 @@ const zoomOut = (customPage = null) => {
     page?.setZoomLevel(level)
 }
 
-const zoomIn = (customPage = null) => {
-    const page = customPage || currentPage()
+const zoomIn = args => {
+    const page = args?.customPage || currentPage()
     let level = page?.getZoomLevel() + 1
     if (level > 7) {
         level = 7
@@ -638,8 +638,8 @@ const matchCase = () => {
     return !getSetting("ignorecase")
 }
 
-const incrementalSearch = (value = null) => {
-    currentSearch = value || document.getElementById("url").value
+const incrementalSearch = args => {
+    currentSearch = args?.value || document.getElementById("url").value
     if (currentSearch) {
         listPages().filter(p => p).forEach(page => {
             try {
@@ -701,6 +701,16 @@ const openFromClipboard = () => {
         const {navigateTo} = require("./tabs")
         navigateTo(stringToUrl(clipboard.readText()))
     }
+}
+
+const makeMark = args => {
+    const key = args?.actionCallKeys?.at(-1)
+    console.log(key)
+}
+
+const restoreMark = args => {
+    const key = args?.actionCallKeys?.at(-1)
+    console.log(key)
 }
 
 const reorderFollowLinks = () => {
@@ -878,6 +888,7 @@ module.exports = {
     incrementalSearch,
     insertAtFirstInput,
     leftHalfSplitWindow,
+    makeMark,
     menuBottom,
     menuClose,
     menuDown,
@@ -919,6 +930,7 @@ module.exports = {
     reopenTab,
     reorderFollowLinks,
     repeatLastAction,
+    restoreMark,
     rightHalfSplitWindow,
     rotateSplitWindowBackward,
     rotateSplitWindowForward,

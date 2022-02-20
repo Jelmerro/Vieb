@@ -96,9 +96,9 @@ const storeMouseSelection = selection => {
 
 // ACTIONS
 
-const start = (customX = null, customY = null) => {
-    X = customX || Number(currentPage().getAttribute("pointer-x")) || X
-    Y = customY || Number(currentPage().getAttribute("pointer-y")) || Y
+const start = args => {
+    X = args?.x || Number(currentPage().getAttribute("pointer-x")) || X
+    Y = args?.y || Number(currentPage().getAttribute("pointer-y")) || Y
     const {setMode} = require("./modes")
     setMode("pointer")
     currentPage().sendInputEvent({"type": "mouseEnter", "x": X, "y": Y})
@@ -121,7 +121,10 @@ const moveToMouse = () => {
                     Y = mousePos.y - pagePos.top
                     updateElement()
                 } else {
-                    start(mousePos.x - pagePos.left, mousePos.y - pagePos.top)
+                    start({
+                        "x": mousePos.x - pagePos.left,
+                        "y": mousePos.y - pagePos.top
+                    })
                 }
             }
         })
