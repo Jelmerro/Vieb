@@ -1242,9 +1242,30 @@ const uncountableActions = [
     "p.vsplitText"
 ]
 
-// TODO add Any key support
-const hasFutureActionsBasedOnKeys = keys => Object.keys(bindings[
-    currentMode()[0]]).find(map => map.startsWith(keys) && map !== keys)
+const findMaps = (actionKeys, mode, future = false) => {
+    const keys = actionKeys.split(mapStringSplitter).filter(k => k)
+    return Object.keys(bindings[mode[0]]).filter(m => {
+        const mapKeys = m.split(mapStringSplitter).filter(k => k)
+        if (future && mapKeys.length <= keys.length) {
+            return false
+        }
+        if (!future && mapKeys.length !== keys.length) {
+            return false
+        }
+        let keyCount = 0
+        for (const key of keys) {
+            if (key !== mapKeys[keyCount] && mapKeys[keyCount] !== "<Any>") {
+                return false
+            }
+            keyCount += 1
+        }
+        return true
+    }).sort((a, b) => a.split(mapStringSplitter).filter(k => k).indexOf("<Any>")
+    - b.split(mapStringSplitter).filter(k => k).indexOf("<Any>"))
+}
+window.findMaps = findMaps
+
+const hasFutureActions = keys => findMaps(keys, currentMode(), true).length
 
 const sendKeysToWebview = async(options, mapStr) => {
     blockNextInsertKey = true
@@ -1278,7 +1299,7 @@ const executeMapString = async(mapStr, recursive, initial) => {
             lastExecutedMapstring = {mapStr, recursive}
         }
         recursiveCounter = 0
-        if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
+        if (!hasFutureActions(pressedKeys)) {
             pressedKeys = ""
         }
     }
@@ -1373,41 +1394,12 @@ const doAction = async(actionName, givenCount, actionCallKeys) => {
 
 const actionForKeys = keys => {
     const {"active": menuActive} = require("./contextmenu")
-    const actionKeys = keys.split(mapStringSplitter).filter(k => k)
-    const allMenu = Object.keys(bindings.m).filter(m => {
-        const mapKeys = m.split(mapStringSplitter).filter(k => k)
-        if (mapKeys.length !== actionKeys.length) {
-            return false
-        }
-        let keyCount = 0
-        for (const key of actionKeys) {
-            if (key !== mapKeys[keyCount] && mapKeys[keyCount] !== "<Any>") {
-                return false
-            }
-            keyCount += 1
-        }
-        return true
-    }).sort((a, b) => a.split(mapStringSplitter).filter(k => k).indexOf("<Any>")
-        - b.split(mapStringSplitter).filter(k => k).indexOf("<Any>"))
+    const allMenu = findMaps(keys, "menu")
     const menuAction = bindings.m[allMenu[0]]
     if (menuActive() && menuAction) {
         return menuAction
     }
-    const allCurrent = Object.keys(bindings[currentMode()[0]]).filter(m => {
-        const mapKeys = m.split(mapStringSplitter).filter(k => k)
-        if (mapKeys.length !== actionKeys.length) {
-            return false
-        }
-        let keyCount = 0
-        for (const key of actionKeys) {
-            if (key !== mapKeys[keyCount] && mapKeys[keyCount] !== "<Any>") {
-                return false
-            }
-            keyCount += 1
-        }
-        return true
-    }).sort((a, b) => a.split(mapStringSplitter).filter(k => k).indexOf("<Any>")
-        - b.split(mapStringSplitter).filter(k => k).indexOf("<Any>"))
+    const allCurrent = findMaps(keys, currentMode())
     return bindings[currentMode()[0]][allCurrent[0]]
 }
 
@@ -1474,7 +1466,7 @@ const handleKeyboard = async e => {
     const {"active": menuActive, "clear": menuClear} = require("./contextmenu")
     if ("npv".includes(currentMode()[0]) || menuActive()) {
         const keyNumber = Number(id.replace(/^<k(\d)>/g, (_, digit) => digit))
-        const noFutureActions = !hasFutureActionsBasedOnKeys(pressedKeys + id)
+        const noFutureActions = !hasFutureActions(pressedKeys + id)
         const shouldCount = !actionForKeys(pressedKeys + id) || repeatCounter
         if (!isNaN(keyNumber) && noFutureActions && shouldCount) {
             repeatCounter = Number(String(repeatCounter) + keyNumber)
@@ -1495,10 +1487,10 @@ const handleKeyboard = async e => {
     } else {
         repeatCounter = 0
     }
-    if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
+    if (!hasFutureActions(pressedKeys)) {
         pressedKeys = ""
     }
-    if (hasFutureActionsBasedOnKeys(pressedKeys + id)) {
+    if (hasFutureActions(pressedKeys + id)) {
         pressedKeys += id
     } else {
         const action = actionForKeys(pressedKeys)
@@ -1513,7 +1505,7 @@ const handleKeyboard = async e => {
     }
     const action = actionForKeys(pressedKeys)
     const hasMenuAction = menuActive() && action
-    if (!hasFutureActionsBasedOnKeys(pressedKeys) || hasMenuAction) {
+    if (!hasFutureActions(pressedKeys) || hasMenuAction) {
         clearTimeout(timeoutTimer)
         if (action && (e.isTrusted || e.bubbles)) {
             if (e.isTrusted) {
@@ -1526,7 +1518,7 @@ const handleKeyboard = async e => {
         menuClear()
         let keys = pressedKeys.split(mapStringSplitter).filter(m => m)
         if (keys.length > 1) {
-            if (!hasFutureActionsBasedOnKeys(keys.slice(0, -1).join(""))) {
+            if (!hasFutureActions(keys.slice(0, -1).join(""))) {
                 keys = keys.slice(0, -1)
             }
             if (currentMode() === "insert") {
