@@ -190,6 +190,7 @@ const defaultBindings = {
         "L": {"mapping": "<menuBottom>"}
     },
     "n": {
+        "\"<Any>": {"mapping": "<restoreGlobalMark>"},
         "$": {"mapping": "<scrollRightMax>"},
         "'<Any>": {"mapping": "<restoreMark>"},
         "+": {"mapping": "<zoomIn>"},
@@ -333,6 +334,7 @@ const defaultBindings = {
         "J": {"mapping": "<nextTab>"},
         "K": {"mapping": "<previousTab>"},
         "L": {"mapping": "<forwardInHistory>"},
+        "M<Any>": {"mapping": "<makeGlobalMark>"},
         "N": {"mapping": "<previousSearchMatch>"},
         "O": {"mapping": "<moveTabEnd>"},
         "P": {"mapping": "<openNewTab><openFromClipboard>"},
@@ -363,7 +365,6 @@ const defaultBindings = {
         "k": {"mapping": "<scrollUp>"},
         "l": {"mapping": "<scrollRight>"},
         "m<Any>": {"mapping": "<makeMark>"},
-        "mt": {"mapping": "<refreshTab>"},
         "n": {"mapping": "<nextSearchMatch>"},
         "p": {"mapping": "<openFromClipboard>"},
         "r": {"mapping": "<refreshTab>"},
@@ -1175,6 +1176,8 @@ const uncountableActions = [
     "downloadLink",
     "toggleAlwaysOnTop",
     "toggleFullscreen",
+    "makeGlobalMark",
+    "restoreGlobalMark",
     "makeMark",
     "restoreMark",
     "menuOpen",

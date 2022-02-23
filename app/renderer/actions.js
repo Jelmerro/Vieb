@@ -27,7 +27,8 @@ const {
     watchFile,
     readFile,
     searchword,
-    stringToUrl
+    stringToUrl,
+    domainName
 } = require("../util")
 const {
     listTabs,
@@ -42,6 +43,8 @@ const {
 } = require("./common")
 
 let currentSearch = ""
+const localMarks = {}
+const globalMarks = {}
 
 const emptySearch = () => {
     listPages().filter(p => p).forEach(page => {
@@ -703,14 +706,51 @@ const openFromClipboard = () => {
     }
 }
 
-const makeMark = args => {
+const makeGlobalMark = async args => {
     const key = args?.actionCallKeys?.at(-1)
-    console.log(key)
+    if (!key) {
+        return
+    }
+    const pixels = await currentPage().executeJavaScript("window.scrollY")
+    globalMarks[key] = pixels
+}
+
+const restoreGlobalMark = args => {
+    const key = args?.actionCallKeys?.at(-1)
+    if (!key) {
+        return
+    }
+    const mark = globalMarks[key]
+    if (mark === undefined) {
+        return
+    }
+    currentPage().executeJavaScript(`window.scrollTo(0, ${mark})`)
+}
+
+const makeMark = async args => {
+    const key = args?.actionCallKeys?.at(-1)
+    if (!key) {
+        return
+    }
+    const domain = domainName(currentPage().src)
+    if (!localMarks[domain]) {
+        localMarks[domain] = {}
+    }
+    const pixels = await currentPage().executeJavaScript("window.scrollY")
+    localMarks[domain][key] = pixels
 }
 
 const restoreMark = args => {
     const key = args?.actionCallKeys?.at(-1)
-    console.log(key)
+    if (!key) {
+        return
+    }
+    const domain = domainName(currentPage().src)
+    const mark = localMarks[domain]?.[key]
+    if (mark === undefined) {
+        return
+    }
+    currentPage().executeJavaScript(`window.scrollTo(0, ${mark})`)
 }
 
 const reorderFollowLinks = () => {
@@ -888,6 +928,7 @@ module.exports = {
     incrementalSearch,
     insertAtFirstInput,
     leftHalfSplitWindow,
+    makeGlobalMark,
     makeMark,
     menuBottom,
     menuClose,
@@ -930,6 +971,7 @@ module.exports = {
     reopenTab,
     reorderFollowLinks,
     repeatLastAction,
+    restoreGlobalMark,
     restoreMark,
     rightHalfSplitWindow,
     rotateSplitWindowBackward,
