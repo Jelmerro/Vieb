@@ -99,6 +99,25 @@ You are encouraged to open PRs to improve this list of workarounds.
 However, opening issues just to announce that you cannot login to your account will be closed,
 as it's not something Vieb or any other browser can fix, only Google can.
 
+#### I want my tabs to be numbered, how do I do this?
+
+You can achieve this by using custom colorschemes.
+You can find help on this inside Vieb, with: `:help datafolder` and `:help :colorscheme`.
+Inside the datafolder, create a "colors" folder, and inside it create a CSS file "name.css".
+The "name" will be the name of the colorscheme, and you can set it with ":colorscheme name".
+The contents of the file should look like this:
+
+```css
+#tabs, #navbar {counter-reset: tab-counter -1;}
+#tabs > ::before {counter-increment: tab-counter 1;content: counter(tab-counter) ". ";margin: auto 0;}
+#tabs .pinned {min-width: 3em !important;}
+```
+
+Colorschemes can do much more, there are a couple of them included by default,
+for which you can find the source code [here](https://github.com/Jelmerro/Vieb/tree/master/app/colors).
+You can also look for more themes or share yours on [Github discussions](https://github.com/Jelmerro/Vieb/discussions).
+Finally, you can also copy the tab number CSS code above and use it together with other themes.
+
 #### Can I make Vieb my default browser?
 
 Yes, there is a command for that named `:makedefault`.

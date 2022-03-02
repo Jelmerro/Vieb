@@ -13,6 +13,24 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Fixed
+
+- Reloadconfig command not resetting permissions (and other webview/main thread settings) in some cases
+
+### Security
+
+- Electron 17.1.0 (was 17.0.1)
+- Chromium 98.0.4758.102 (was 98.0.4758.82)
+- Permissions for serial and other human interface devices (permissionserial, permissionhid, both blocked by default, same as before)
+
+## [7.1.2](https://github.com/Jelmerro/Vieb/compare/7.1.1...7.1.2) - 2022-02-20
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/7.1.1...7.1.2) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/7.1.2)
+
+### Fixed
+
+- Split resize actions (increaseWidthSplitWindow etc.) not being able to resize multiple times in the same direction
+
 ### Security
 
 - Electron 17.0.1 (was 17.0.0)
