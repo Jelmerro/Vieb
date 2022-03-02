@@ -759,6 +759,10 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     const newSession = session.fromPartition(name, {cache})
     newSession.setPermissionRequestHandler(permissionHandler)
     newSession.setPermissionCheckHandler(() => true)
+    newSession.setDevicePermissionHandler(
+        details => permissionHandler(null, details.deviceType, null, {
+            ...details, "requestingUrl": details.origin
+        }))
     sessionList.push(name)
     if (adblock !== "off") {
         if (blocker) {
@@ -932,7 +936,8 @@ const permissionHandler = (_, perm, callback, details) => {
     let permission = perm.toLowerCase().replace(/-/g, "")
     if (permission === "mediakeysystem") {
         // Block any access to DRM, there is no Electron support for it anyway
-        return callback(false)
+        callback?.(false)
+        return false
     }
     if (permission === "media") {
         if (details.mediaTypes?.includes("video")) {
@@ -973,13 +978,13 @@ const permissionHandler = (_, perm, callback, details) => {
     const domain = domainName(details.requestingUrl)
     if (permission === "certificateerror") {
         if (allowedFingerprints[domain]?.includes(details.cert.fingerprint)) {
-            callback(true)
             mainWindow.webContents.send("notify",
                 `Automatic domain caching rule for '${permission}' activated `
                 + `at '${details.requestingUrl}' which was allowed, because `
                 + `this same certificate was allowed before on this domain`,
                 "perm")
-            return
+            callback?.(true)
+            return true
         }
     }
     setting = settingRule || setting
@@ -1057,20 +1062,21 @@ const permissionHandler = (_, perm, callback, details) => {
                     `Manually ${action}ed '${permission}' at `
                     + `'${details.requestingUrl}'`, "perm")
             }
-            callback(action === "allow")
-            const canSave = action !== "allow"
-                || permission !== "displaycapture"
+            const allow = action === "allow"
+            const canSave = !allow || permission !== "displaycapture"
             if (e.checkboxChecked && canSave) {
                 mainWindow.webContents.send(
                     "set-permission", permissionName, action)
                 permissions[permissionName] = action
             }
-            if (permission === "certificateerror" && action === "allow") {
+            if (permission === "certificateerror" && allow) {
                 if (!allowedFingerprints[domain]) {
                     allowedFingerprints[domain] = []
                 }
                 allowedFingerprints[domain].push(details.cert.fingerprint)
             }
+            callback?.(allow)
+            return allow
         })
     } else {
         if (settingRule) {
@@ -1084,13 +1090,15 @@ const permissionHandler = (_, perm, callback, details) => {
                 + `'${details.requestingUrl}' based on '${permissionName}'`,
                 "perm")
         }
-        callback(setting === "allow")
-        if (permission === "certificateerror" && setting === "allow") {
+        const allow = setting === "allow"
+        if (permission === "certificateerror" && allow) {
             if (!allowedFingerprints[domain]) {
                 allowedFingerprints[domain] = []
             }
             allowedFingerprints[domain].push(details.cert.fingerprint)
         }
+        callback?.(allow)
+        return allow
     }
 }
 const blocklistDir = joinPath(app.getPath("appData"), "blocklists")

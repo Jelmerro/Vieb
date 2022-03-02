@@ -136,6 +136,7 @@ const defaultSettings = {
     "permissiondisplaycapture": "block",
     "permissionfullscreen": "allow",
     "permissiongeolocation": "block",
+    "permissionhid": "block",
     "permissionmediadevices": "block",
     "permissionmicrophone": "block",
     "permissionmidi": "block",
@@ -149,6 +150,7 @@ const defaultSettings = {
     "permissionsblocked": "",
     "permissionscreenwakelock": "block",
     "permissionsensors": "block",
+    "permissionserial": "block",
     "permissionunknown": "block",
     "quitonlasttabclose": false,
     "redirects": "https?://(www\\.)?google\\.com(\\.\\w+)?/amp/s/amp\\.(.*)"
@@ -246,6 +248,7 @@ const validOptions = {
     "permissiondisplaycapture": ["block", "ask"],
     "permissionfullscreen": ["block", "ask", "allow"],
     "permissiongeolocation": ["block", "ask", "allow"],
+    "permissionhid": ["block", "allow"],
     "permissionmediadevices": ["block", "ask", "allow", "allowfull"],
     "permissionmicrophone": ["block", "ask", "allow"],
     "permissionmidi": ["block", "ask", "allow"],
@@ -256,6 +259,7 @@ const validOptions = {
     "permissionpointerlock": ["block", "ask", "allow"],
     "permissionscreenwakelock": ["block", "ask", "allow"],
     "permissionsensors": ["block", "ask", "allow"],
+    "permissionserial": ["block", "allow"],
     "permissionunknown": ["block", "ask", "allow"],
     "searchpointeralignment": ["left", "center", "right"],
     "suspendonrestore": ["all", "regular", "none"],
@@ -530,6 +534,18 @@ const checkOther = (setting, value) => {
                 if (reservedName || !allSettings[name]) {
                     notify(
                         `Invalid name for a permission: ${name}`, "warn")
+                    return false
+                }
+                if (setting.endsWith("asked") && name.endsWith("hid")) {
+                    notify(
+                        "HID permission can't be asked, "
+                        + "only allowed or blocked", "warn")
+                    return false
+                }
+                if (setting.endsWith("asked") && name.endsWith("serial")) {
+                    notify(
+                        "Serial device permission can't be asked, "
+                        + "only allowed or blocked", "warn")
                     return false
                 }
                 if (setting.endsWith("allowed") && name.endsWith("capture")) {
@@ -961,6 +977,11 @@ const loadFromDisk = () => {
             }
         }
     }
+    updateContainerSettings()
+    updateDownloadSettings()
+    updatePermissionSettings()
+    updateWebviewSettings()
+    updateMouseSettings()
     resume()
 }
 
