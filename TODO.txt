@@ -1,4 +1,3 @@
-write marks to file in datafolder
 make setting for capital letter mark behavior (local, global, newtab, matching) for where to save/load the mark
 make a setting for what is "local" for marks (domain, url?, other?)
 add help documentation

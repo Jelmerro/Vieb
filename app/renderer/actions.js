@@ -23,9 +23,11 @@ const {
     appData,
     makeDir,
     writeFile,
+    writeJSON,
     notify,
     watchFile,
     readFile,
+    readJSON,
     searchword,
     stringToUrl,
     domainName
@@ -43,8 +45,6 @@ const {
 } = require("./common")
 
 let currentSearch = ""
-const localMarks = {}
-const globalMarks = {}
 
 const emptySearch = () => {
     listPages().filter(p => p).forEach(page => {
@@ -712,7 +712,10 @@ const makeGlobalMark = async args => {
         return
     }
     const pixels = await currentPage().executeJavaScript("window.scrollY")
-    globalMarks[key] = pixels
+    const marks = readJSON(joinPath(appData(), "marks"))
+        || {"global": {}, "local": {}}
+    marks.global[key] = pixels
+    writeJSON(joinPath(appData(), "marks"), marks)
 }
 
 const restoreGlobalMark = args => {
@@ -720,7 +723,8 @@ const restoreGlobalMark = args => {
     if (!key) {
         return
     }
-    const mark = globalMarks[key]
+    const marks = readJSON(joinPath(appData(), "marks"))
+    const mark = marks?.global?.[key]
     if (mark === undefined) {
         return
     }
@@ -733,11 +737,14 @@ const makeMark = async args => {
         return
     }
     const domain = domainName(currentPage().src)
-    if (!localMarks[domain]) {
-        localMarks[domain] = {}
+    const marks = readJSON(joinPath(appData(), "marks"))
+        || {"global": {}, "local": {}}
+    if (!marks.local[domain]) {
+        marks.local[domain] = {}
     }
     const pixels = await currentPage().executeJavaScript("window.scrollY")
-    localMarks[domain][key] = pixels
+    marks.local[domain][key] = pixels
+    writeJSON(joinPath(appData(), "marks"), marks)
 }
 
 const restoreMark = args => {
@@ -746,7 +753,8 @@ const restoreMark = args => {
         return
     }
     const domain = domainName(currentPage().src)
-    const mark = localMarks[domain]?.[key]
+    const marks = readJSON(joinPath(appData(), "marks"))
+    const mark = marks?.local?.[domain]?.[key]
     if (mark === undefined) {
         return
     }
