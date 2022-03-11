@@ -1,4 +1,4 @@
+rethink M vs m structure with global vs local marks, what use do local ones have?
 make setting for capital letter mark behavior (local, global, newtab, matching) for where to save/load the mark
 make a setting for what is "local" for marks (domain, url?, other?)
 add help documentation
-commands such as :marks :delmark etc, see :h marks in vim

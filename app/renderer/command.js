@@ -41,7 +41,10 @@ const {
     appConfig,
     stringToUrl,
     formatDate,
-    propPixels
+    propPixels,
+    readJSON,
+    writeJSON,
+    domainName
 } = require("../util")
 const {
     listTabs, listPages, currentTab, currentPage, tabOrPageMatching, getSetting
@@ -1038,6 +1041,71 @@ const tabnew = (session = null, url = null) => {
     addTab(options)
 }
 
+const marks = args => {
+    if (args.length > 1) {
+        notify("Command marks only accepts a single optional keyname", "warn")
+        return
+    }
+    const marksObj = readJSON(joinPath(appData(), "marks"))
+        || {"global": {}, "local": {}}
+    const marklist = []
+    if (args.length === 0) {
+        for (const key of Object.keys(marksObj.global)) {
+            marklist.push(`${key.padEnd(3)}${marksObj.global[key]}`)
+        }
+        for (const domain of Object.keys(marksObj.local)) {
+            for (const key of Object.keys(marksObj.local[domain])) {
+                marklist.push(`${key.padEnd(3)}${
+                    String(marksObj.local[domain][key]).padEnd(6)}${domain}`)
+            }
+        }
+    } else {
+        const [key] = args
+        if (marksObj.global[key] !== undefined) {
+            marklist.push(`${key.padEnd(3)}${marksObj.global[key]}`)
+        }
+        for (const domain of Object.keys(marksObj.local)) {
+            if (marksObj.local[domain][key] !== undefined) {
+                marklist.push(`${key.padEnd(3)}${
+                    String(marksObj.local[domain][key]).padEnd(6)}${domain}`)
+            }
+        }
+    }
+    if (marklist.length === 0) {
+        if (args.length && (marksObj.global.length || marksObj.local.length)) {
+            notify("No marks found for current keys", "warn")
+        } else {
+            notify("No marks found", "warn")
+        }
+    } else {
+        notify(marklist.join("\n"))
+    }
+}
+
+const delmarks = (all, args) => {
+    if (all && args?.length) {
+        notify("Command takes no arguments: delmarks!", "warn")
+        return
+    }
+    const marksObj = readJSON(joinPath(appData(), "marks"))
+        || {"global": {}, "local": {}}
+    const domain = domainName(currentPage().src)
+    if (all) {
+        marksObj.local[domain] = {}
+        writeJSON(joinPath(appData(), "marks"), marksObj)
+        return
+    }
+    if (args.length !== 1) {
+        notify("Command delmarks only accepts a single keyname", "warn")
+        return
+    }
+    const [key] = args
+    if (marksObj.local[domain]?.[key] !== undefined) {
+        delete marksObj.local[domain]?.[key]
+    }
+    writeJSON(joinPath(appData(), "marks"), marksObj)
+}
+
 const noEscapeCommands = ["command", "delcommand"]
 const rangeCompatibleCommands = [
     "Sexplore",
@@ -1099,6 +1167,8 @@ const commands = {
     "cookies": () => openSpecialPage("cookies"),
     "d": () => openSpecialPage("downloads"),
     "delcommand": ({args}) => deleteCommand(args),
+    "delmarks": ({args}) => delmarks(false, args),
+    "delmarks!": ({args}) => delmarks(true, args),
     "devtools": ({args}) => openDevTools(...args),
     "downloads": () => openSpecialPage("downloads"),
     "extensions": ({args}) => extensionsCommand(args),
@@ -1111,6 +1181,7 @@ const commands = {
     "lclose": () => lclose(),
     "lclose!": () => lclose(true),
     makedefault,
+    "marks": ({args}) => marks(args),
     "mkviebrc": ({args}) => mkviebrc(...args),
     "mute": ({args, range}) => mute(args, range),
     "nohlsearch": () => {
@@ -1145,7 +1216,7 @@ const commands = {
     "screenshot": ({args}) => screenshot(args),
     "scriptnames": ({args}) => {
         if (args?.length) {
-            notify(`Command takes no arguments: scriptnames`, "warn")
+            notify("Command takes no arguments: scriptnames", "warn")
             return
         }
         notify(appConfig().files.map((f, i) => `${i + 1}: ${f}`).join("\n"))
