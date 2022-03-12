@@ -13,14 +13,18 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Setting suspendplayingtab to control if tabs playing media should be suspended by suspendtimeout
+
 ### Fixed
 
 - Reloadconfig command not resetting permissions (and other webview/main thread settings) in some cases
 
 ### Security
 
-- Electron 17.1.0 (was 17.0.1)
-- Chromium 98.0.4758.102 (was 98.0.4758.82)
+- Electron 17.1.2 (was 17.0.1)
+- Chromium 98.0.4758.109 (was 98.0.4758.82)
 - Permissions for serial and other human interface devices (permissionserial, permissionhid, both blocked by default, same as before)
 
 ## [7.1.2](https://github.com/Jelmerro/Vieb/compare/7.1.1...7.1.2) - 2022-02-20

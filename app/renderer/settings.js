@@ -177,6 +177,7 @@ const defaultSettings = {
     "suggesttopsites": 10,
     "suspendbackgroundtab": true,
     "suspendonrestore": "regular",
+    "suspendplayingtab": false,
     "suspendtimeout": 0,
     "tabclosefocusright": false,
     "tabcycle": true,

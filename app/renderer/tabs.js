@@ -356,7 +356,7 @@ const sharedAttributes = [
 
 const suspendTab = tab => {
     const page = tabOrPageMatching(tab)
-    if (page.tagName?.toLowerCase() !== "webview") {
+    if (page?.tagName?.toLowerCase() !== "webview") {
         return
     }
     if (tab.classList.contains("visible-tab")) {
