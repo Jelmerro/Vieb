@@ -20,10 +20,11 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Reloadconfig command not resetting permissions (and other webview/main thread settings) in some cases
+- Crash when pressing cancel in the print dialog (fixed by upgrading Electron)
 
 ### Security
 
-- Electron 17.1.2 (was 17.0.1)
+- Electron 17.2.0 (was 17.0.1)
 - Chromium 98.0.4758.109 (was 98.0.4758.82)
 - Permissions for serial and other human interface devices (permissionserial, permissionhid, both blocked by default, same as before)
 
