@@ -437,9 +437,6 @@ app.on("ready", () => {
             "allowpopups": true,
             "contextIsolation": false,
             "disableBlinkFeatures": "Auxclick",
-            "enableRemoteModule": false,
-            "nativeWindowOpen": true,
-            "nodeIntegration": false,
             "preload": joinPath(__dirname, "renderer/index.js"),
             "sandbox": false,
             "webviewTag": true
@@ -470,10 +467,8 @@ app.on("ready", () => {
     mainWindow.webContents.on("will-attach-webview", (_, prefs) => {
         delete prefs.preloadURL
         prefs.preload = joinPath(__dirname, "preload/index.js")
-        prefs.nodeIntegration = false
-        prefs.nodeIntegrationInSubFrames = false
+        prefs.sandbox = false
         prefs.contextIsolation = false
-        prefs.enableRemoteModule = false
         prefs.webSecurity = argSiteIsolation === "strict"
     })
     mainWindow.webContents.on("did-attach-webview", (_, contents) => {
@@ -527,13 +522,9 @@ app.on("ready", () => {
         "resizable": false,
         "show": false,
         "webPreferences": {
-            "contextIsolation": true,
             "disableBlinkFeatures": "Auxclick",
-            "enableRemoteModule": false,
-            "nodeIntegration": false,
             "partition": "login",
-            "preload": joinPath(__dirname, "preload/loginpopup.js"),
-            "sandbox": true
+            "preload": joinPath(__dirname, "preload/loginpopup.js")
         }
     }
     loginWindow = new BrowserWindow(loginWindowData)
@@ -559,13 +550,9 @@ app.on("ready", () => {
         "resizable": false,
         "show": false,
         "webPreferences": {
-            "contextIsolation": true,
             "disableBlinkFeatures": "Auxclick",
-            "enableRemoteModule": false,
-            "nodeIntegration": false,
             "partition": "notification-window",
-            "preload": joinPath(__dirname, "preload/notificationpopup.js"),
-            "sandbox": true
+            "preload": joinPath(__dirname, "preload/notificationpopup.js")
         }
     }
     notificationWindow = new BrowserWindow(notificationWindowData)
