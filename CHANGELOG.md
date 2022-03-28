@@ -17,10 +17,16 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Setting suspendplayingtab to control if tabs playing media should be suspended by suspendtimeout
 
+### Changed
+
+- Useragent to the upcoming reduced/simplified version of the final phase of https://www.chromium.org/updates/ua-reduction/
+- Battery API to return fixed "no battery" values instead of being undefined
+
 ### Fixed
 
 - Reloadconfig command not resetting permissions (and other webview/main thread settings) in some cases
 - Crash when pressing cancel in the print dialog (fixed by upgrading Electron)
+- Interaction with other pages not working when the debugger is paused (due to overlay, which is now disabled by default for new sessions)
 
 ### Security
 
@@ -28,6 +34,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Chromium 98.0.4758.109 (was 98.0.4758.82)
 - Permissions for serial and other human interface devices (permissionserial, permissionhid, both blocked by default, same as before)
 - Attempt to delete blocked navigator properties from navigator object completely instead of returning undefined
+- Disable useragentdata client hints API completely
 
 ## [7.1.2](https://github.com/Jelmerro/Vieb/compare/7.1.1...7.1.2) - 2022-02-20
 

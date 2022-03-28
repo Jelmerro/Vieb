@@ -229,10 +229,28 @@ const title = s => {
 
 const downloadPath = () => expandPath(getSetting("downloadpath"))
 
+const userAgentPlatform = () => {
+    let platform = "X11; Linux x86_64"
+    if (process.platform === "win32") {
+        platform = "Window NT 10.0; Win64; x64"
+    }
+    if (process.platform === "darwin") {
+        platform = "Macintosh; Intel Mac OS X 10_15_7"
+    }
+    return platform
+}
+
+const defaultUseragent = () => {
+    const version = process.versions.chrome.split(".")[0] || "100"
+    const sys = userAgentPlatform()
+    return `Mozilla/5.0 (${sys}) AppleWebKit/537.36 (KHTML, like Gecko) `
+        + `Chrome/${version}.0.0.0 Safari/537.36`
+}
+
 const firefoxUseragent = () => {
     const daysSinceBase = (new Date() - new Date(2021, 7, 10)) / 86400000
     const ver = `${91 + Math.floor(daysSinceBase / 28)}.0`
-    const sys = window.navigator.platform
+    const sys = userAgentPlatform()
     return `Mozilla/5.0 (${sys}; rv:${ver}) Gecko/20100101 Firefox/${ver}`
 }
 
@@ -853,6 +871,8 @@ module.exports = {
     urlToString,
     title,
     downloadPath,
+    userAgentPlatform,
+    defaultUseragent,
     firefoxUseragent,
     domainName,
     sameDomain,

@@ -51,7 +51,8 @@ const {
     extractZip,
     isAbsolutePath,
     formatDate,
-    domainName
+    domainName,
+    defaultUseragent
 } = require("./util")
 const {"sync": rimrafSync} = require("rimraf")
 const rimraf = pattern => {
@@ -161,14 +162,12 @@ const applyDevtoolsSettings = prefFile => {
     preferences.electron.devtools.preferences["help.show-release-note"] = false
     // Show timestamps in the console
     preferences.electron.devtools.preferences.consoleTimestampsEnabled = true
+    // Disable the paused overlay which prevents interaction with other pages
+    preferences.electron.devtools.preferences.disablePausedStateOverlay = true
     // Enable dark theme
     preferences.electron.devtools.preferences.uiTheme = `"dark"`
     writeJSON(prefFile, preferences)
 }
-const useragent = () => session.defaultSession.getUserAgent()
-    .replace(/Electron\/\S* /, "").replace(/Vieb\/\S* /, "")
-    .replace(RegExp(`${app.getName()}/\\S* `), "")
-    .replace(/Chrome\/(\d+)\S* /, "$1.0.0.0 ")
 
 // Parse arguments
 const getArguments = argv => {
@@ -315,7 +314,9 @@ if (argConfigOverride) {
 }
 // Fix segfault when opening Twitter:
 // https://github.com/electron/electron/issues/25469
-app.commandLine.appendSwitch("disable-features", "CrossOriginOpenerPolicy")
+// https://github.com/electron/electron/issues/30201
+app.commandLine.appendSwitch("disable-features",
+    "CrossOriginOpenerPolicy,UserAgentClientHint")
 if (argSiteIsolation === "regular") {
     app.commandLine.appendSwitch("disable-site-isolation-trials")
 }
@@ -324,7 +325,7 @@ if (argAcceleration === "software") {
 }
 if (!argMediaKeys) {
     app.commandLine.appendSwitch("disable-features",
-        "CrossOriginOpenerPolicy,HardwareMediaKeyHandling")
+        "CrossOriginOpenerPolicy,HardwareMediaKeyHandling,UserAgentClientHint")
 }
 rimraf("Partitions/temp*")
 rimraf("erwicmode")
@@ -405,7 +406,7 @@ const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
     return {...u, url}
 }).filter(u => u)
 app.on("ready", () => {
-    app.userAgentFallback = useragent()
+    app.userAgentFallback = defaultUseragent()
     if (app.requestSingleInstanceLock()) {
         app.on("second-instance", (_, newArgs, cwd) => {
             if (mainWindow.isMinimized()) {
@@ -1457,7 +1458,7 @@ ipcMain.handle("desktop-capturer-sources", () => desktopCapturer.getSources({
 }))
 // Operations below are sync
 ipcMain.on("override-global-useragent", (e, globalUseragent) => {
-    app.userAgentFallback = globalUseragent || useragent()
+    app.userAgentFallback = globalUseragent || defaultUseragent()
     e.returnValue = null
 })
 ipcMain.on("rimraf", (e, folder) => {

@@ -465,7 +465,7 @@ test(`Firefox version should increment by date`, () => {
     const firstMockDate = new Date("2021-03-26")
     const secondMockDate = new Date("2021-08-26")
     const thirdMockDate = new Date("2022-03-15")
-    const sys = window.navigator.platform
+    const sys = UTIL.userAgentPlatform()
     global.Date = class extends Date {
         constructor(...date) {
             if (date?.length) {

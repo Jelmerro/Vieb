@@ -142,14 +142,22 @@ const privacyFixes = (w = window) => {
     } catch {
         // No deletion allowed in this context, set to undefined instead
     }
-    // Disable the battery API entirely
-    Object.defineProperty(w.Navigator.prototype,
-        "getBattery", {"get": (() => undefined).bind(null)})
-    try {
-        delete Object.getPrototypeOf(w.navigator).getBattery
-    } catch {
-        // No deletion allowed in this context, set to undefined instead
-    }
+    // Always act as if there is no battery and the state never changes
+    Object.defineProperty(w.BatteryManager.prototype, "level", {"get": () => 1})
+    Object.defineProperty(w.BatteryManager.prototype,
+        "charging", {"get": () => true})
+    Object.defineProperty(w.BatteryManager.prototype,
+        "chargingTime", {"get": () => 0})
+    Object.defineProperty(w.BatteryManager.prototype,
+        "dischargingTime", {"get": () => Infinity})
+    Object.defineProperty(w.BatteryManager.prototype,
+        "onchargingchange", {"get": () => null})
+    Object.defineProperty(w.BatteryManager.prototype,
+        "onchargingtimechange", {"get": () => null})
+    Object.defineProperty(w.BatteryManager.prototype,
+        "ondischargingtimechange", {"get": () => null})
+    Object.defineProperty(w.BatteryManager.prototype,
+        "onlevelchange", {"get": () => null})
     // Always return the cancel action for prompts, without throwing
     w.prompt = () => null
     // Return a static maximum value for memory and thread count
@@ -184,16 +192,7 @@ const privacyFixes = (w = window) => {
             "productSub", {"get": (() => "20100101").bind(null)})
         Object.defineProperty(w.Navigator.prototype,
             "vendor", {"get": (() => "").bind(null)})
-        Object.defineProperty(w.Navigator.prototype,
-            "webdriver", {"get": (() => false).bind(null)})
         Object.defineProperty(w, "chrome", {})
-        Object.defineProperty(w.Navigator.prototype,
-            "userAgentData", {"get": (() => undefined).bind(null)})
-        try {
-            delete Object.getPrototypeOf(w.navigator).userAgentData
-        } catch {
-            // No deletion allowed in this context, set to undefined instead
-        }
     }
     // Provide a wrapper for window.open with a subset of the regular API
     // Also provide the option to open new tabs by setting the location property
