@@ -129,12 +129,27 @@ const privacyFixes = (w = window) => {
     // Don't share the connection information
     Object.defineProperty(w.Navigator.prototype,
         "connection", {"get": (() => undefined).bind(null)})
+    try {
+        delete Object.getPrototypeOf(w.navigator).connection
+    } catch {
+        // No deletion allowed in this context, set to undefined instead
+    }
     // Disable the experimental keyboard API, which exposes every key mapping
     Object.defineProperty(w.Navigator.prototype,
         "keyboard", {"get": (() => undefined).bind(null)})
+    try {
+        delete Object.getPrototypeOf(w.navigator).keyboard
+    } catch {
+        // No deletion allowed in this context, set to undefined instead
+    }
     // Disable the battery API entirely
     Object.defineProperty(w.Navigator.prototype,
         "getBattery", {"get": (() => undefined).bind(null)})
+    try {
+        delete Object.getPrototypeOf(w.navigator).getBattery
+    } catch {
+        // No deletion allowed in this context, set to undefined instead
+    }
     // Always return the cancel action for prompts, without throwing
     w.prompt = () => null
     // Return a static maximum value for memory and thread count
@@ -174,6 +189,11 @@ const privacyFixes = (w = window) => {
         Object.defineProperty(w, "chrome", {})
         Object.defineProperty(w.Navigator.prototype,
             "userAgentData", {"get": (() => undefined).bind(null)})
+        try {
+            delete Object.getPrototypeOf(w.navigator).userAgentData
+        } catch {
+            // No deletion allowed in this context, set to undefined instead
+        }
     }
     // Provide a wrapper for window.open with a subset of the regular API
     // Also provide the option to open new tabs by setting the location property

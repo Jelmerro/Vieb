@@ -168,6 +168,7 @@ const applyDevtoolsSettings = prefFile => {
 const useragent = () => session.defaultSession.getUserAgent()
     .replace(/Electron\/\S* /, "").replace(/Vieb\/\S* /, "")
     .replace(RegExp(`${app.getName()}/\\S* `), "")
+    .replace(/Chrome\/(\d+)\S* /, "$1.0.0.0 ")
 
 // Parse arguments
 const getArguments = argv => {
