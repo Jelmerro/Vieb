@@ -30,8 +30,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Security
 
-- Electron 17.2.0 (was 17.0.1)
-- Chromium 98.0.4758.109 (was 98.0.4758.82)
+- Electron 18.0.0 (was 17.0.1)
+- Chromium 100.0.4896.56 (was 98.0.4758.82)
 - Permissions for serial and other human interface devices (permissionserial, permissionhid, both blocked by default, same as before)
 - Attempt to delete blocked navigator properties from navigator object completely instead of returning undefined
 - Disable useragentdata client hints API completely
