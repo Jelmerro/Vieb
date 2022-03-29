@@ -21,6 +21,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Useragent to the upcoming reduced/simplified version of the final phase of https://www.chromium.org/updates/ua-reduction/
 - Battery API to return fixed "no battery" values instead of being undefined
+- The SSL error filter to include more ERR codes by looking for "_CERT_" and "_SSL_" instead of using a fixed list
 
 ### Fixed
 

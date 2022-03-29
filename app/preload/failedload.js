@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2021 Jelmer van Arnhem
+* Copyright (C) 2019-2022 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -28,13 +28,8 @@ h3 {font-size: 1.2em;margin: 1em 0;font-weight: bold;}
 a {color: var(--link-color, #0cf);}
 kbd {background: var(--code-bg, #111);
     color: var(--code-fg, #fff);padding: .1em;}`
-const sslErrors = [
-    "ERR_CERT_COMMON_NAME_INVALID",
-    "ERR_SSL_PROTOCOL_ERROR",
-    "ERR_CERT_AUTHORITY_INVALID"
-]
 
-ipcRenderer.on("insert-failed-page-info", (_, e) => {
+ipcRenderer.on("insert-failed-page-info", (_, e, isSSLError) => {
     const err = JSON.parse(e)
     try {
         document.body.innerHTML = ""
@@ -46,17 +41,15 @@ ipcRenderer.on("insert-failed-page-info", (_, e) => {
     styleElement.textContent = styling
     document.head.appendChild(styleElement)
     const mainInfo = document.createElement("main")
-    if (sslErrors.includes(err.errorDescription)) {
+    if (isSSLError) {
         const http = err.validatedURL.replace("https://", "http://")
-        mainInfo.innerHTML += `<h2>Redirect to HTTP Blocked</h2>
-            The page could not be loaded successfully,
-            because HTTP redirects are disabled.
-            You can enable them with this command:
+        mainInfo.innerHTML += `<h2>Unreachable page</h2>
+            The page could not be loaded successfully.
+            The following error occurred:<br><h3>${err.errorDescription}</h3>
+            You can enable automatic HTTP redirects with this command:
             <kbd>set redirecttohttp</kbd><br>
-            Alternatively, you can choose to go there just this once
-            by clicking this HTTP link: <a href=${http}>${http}</a><br>
-            The exact error that caused this request to be blocked:
-            </kbd>${err.errorDescription}</kbd>`
+            Alternatively, you can choose to go there just once via this HTTP
+            link: <a href=${http}>${http}</a>`
     } else {
         mainInfo.innerHTML += `<h2>Unreachable page</h2>
             The page could not be loaded successfully.

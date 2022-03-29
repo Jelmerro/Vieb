@@ -666,13 +666,10 @@ const addWebviewListeners = webview => {
         }
         // It will go to the http website, when no https is present,
         // but only when the redirecttohttp setting is active.
-        const redirect = getSetting("redirecttohttp")
-        const sslErrors = [
-            "ERR_CERT_COMMON_NAME_INVALID",
-            "ERR_SSL_PROTOCOL_ERROR",
-            "ERR_CERT_AUTHORITY_INVALID"
-        ]
-        if (sslErrors.includes(e.errorDescription) && redirect) {
+        const isSSLError = (e.errorDescription.includes("_SSL_")
+            || e.errorDescription.includes("_CERT_"))
+            && webview.src.startsWith("https://")
+        if (isSSLError && getSetting("redirecttohttp")) {
             webview.src = webview.src.replace("https://", "http://")
             return
         }
@@ -705,7 +702,7 @@ const addWebviewListeners = webview => {
                 }
             }
         }
-        webview.send("insert-failed-page-info", JSON.stringify(e))
+        webview.send("insert-failed-page-info", JSON.stringify(e), isSSLError)
         webview.setAttribute("failed-to-load", "true")
         const {getCustomStyling} = require("./settings")
         webview.send("set-custom-styling", getSetting("fontsize"),

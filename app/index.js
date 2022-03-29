@@ -472,6 +472,7 @@ app.on("ready", () => {
         prefs.sandbox = false
         prefs.contextIsolation = false
         prefs.webSecurity = argSiteIsolation === "strict"
+        prefs.allowRunningInsecureContent = false
     })
     mainWindow.webContents.on("did-attach-webview", (_, contents) => {
         let navigationUrl = null
