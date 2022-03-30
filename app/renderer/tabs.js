@@ -396,6 +396,7 @@ const unsuspendPage = page => {
     if (appConfig().autoplay === "user") {
         prefs += ",autoplayPolicy=document-user-activation-required"
     }
+    prefs += ",disableDialogs"
     webview.setAttribute("allowpopups", "true")
     webview.setAttribute("webpreferences", prefs)
     const sessionName = page.getAttribute("container")

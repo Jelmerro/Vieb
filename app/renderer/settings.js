@@ -88,6 +88,9 @@ const defaultSettings = {
     "containerstartuppage": "main",
     "countlimit": 100,
     "devtoolsposition": "window",
+    "dialogalert": "show",
+    "dialogconfirm": "show",
+    "dialogprompt": "block",
     "downloadmethod": "automatic",
     "downloadpath": "~/Downloads/",
     "explorehist": "persist",
@@ -218,6 +221,9 @@ const validOptions = {
     "commandhist": ["all", "persistall", "useronly", "persistuseronly", "none"],
     "containershowname": ["automatic", "always", "never"],
     "devtoolsposition": ["window", "split", "vsplit", "tab"],
+    "dialogalert": ["show", "notifyshow", "block", "notifyblock"],
+    "dialogconfirm": ["show", "notifyshow", "block", "notifyblock"],
+    "dialogprompt": ["block", "notifyblock"],
     "downloadmethod": ["automatic", "confirm", "ask", "block"],
     "explorehist": ["persist", "session", "none"],
     "favicons": [
@@ -853,6 +859,9 @@ const updateWebviewSettings = () => {
         appData(), "webviewsettings")
     writeJSON(webviewSettingsFile, {
         "bg": getComputedStyle(document.body).getPropertyValue("--bg"),
+        "dialogalert": allSettings.dialogalert,
+        "dialogconfirm": allSettings.dialogconfirm,
+        "dialogprompt": allSettings.dialogprompt,
         "fg": getComputedStyle(document.body).getPropertyValue("--fg"),
         "inputfocusalignment": allSettings.inputfocusalignment,
         "linkcolor": getComputedStyle(document.body)
@@ -1091,6 +1100,9 @@ const set = (setting, value) => {
             applyLayout()
         }
         const webviewSettings = [
+            "dialogalert",
+            "dialogconfirm",
+            "dialogprompt",
             "inputfocusalignment",
             "permissiondisplaycapture",
             "permissionmediadevices",

@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Setting suspendplayingtab to control if tabs playing media should be suspended by suspendtimeout
+- Settings "dialogalert", "dialogconfirm" and "dialogprompt" to control if dialogs should show and/or be logged at all
 
 ### Changed
 

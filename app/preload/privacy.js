@@ -158,8 +158,57 @@ const privacyFixes = (w = window) => {
         "ondischargingtimechange", {"get": () => null})
     Object.defineProperty(w.BatteryManager.prototype,
         "onlevelchange", {"get": () => null})
-    // Always return the cancel action for prompts, without throwing
-    w.prompt = () => null
+    // Custom prompt, confirm and alert, based on "dialog*" settings
+    // Options: return the default cancel action, show a custom popup or notify
+    w.prompt = text => {
+        if (readJSON(settingsFile)?.dialogprompt?.includes("notify")) {
+            const url = window.location.href
+            ipcRenderer.sendToHost("notify",
+                `Page ${url} wanted to show a prompt dialog: ${text}`)
+        }
+        return null
+    }
+    w.confirm = text => {
+        const settings = readJSON(settingsFile) || {}
+        const confirmBehavior = settings.dialogconfirm || "show"
+        if (confirmBehavior.includes("notify")) {
+            const url = window.location.href
+            ipcRenderer.sendToHost("notify",
+                `Page ${url} wanted to show a confirm dialog: ${text}`)
+        }
+        if (confirmBehavior.includes("show")) {
+            const button = ipcRenderer.sendSync("sync-message-dialog", {
+                "buttons": ["OK", "Cancel"],
+                "cancelId": 1,
+                "defaultId": 0,
+                "message": text,
+                "title": "Confirm",
+                "type": "question"
+            })
+            return button === 0
+        }
+        return false
+    }
+    w.alert = text => {
+        const settings = readJSON(settingsFile) || {}
+        const alertBehavior = settings.dialogalert || "show"
+        if (alertBehavior.includes("notify")) {
+            const url = window.location.href
+            ipcRenderer.sendToHost("notify",
+                `Page ${url} wanted to show an alert dialog: ${text}`)
+        }
+        if (alertBehavior.includes("show")) {
+            ipcRenderer.sendSync("sync-message-dialog", {
+                "buttons": ["OK"],
+                "cancelId": 1,
+                "defaultId": 0,
+                "message": text,
+                "title": "Alert",
+                "type": "question"
+            })
+        }
+        return undefined
+    }
     // Return a static maximum value for memory and thread count
     Object.defineProperty(w.Navigator.prototype,
         "hardwareConcurrency", {"get": (() => 8).bind(null)})

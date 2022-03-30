@@ -1447,6 +1447,9 @@ ipcMain.on("set-window-title", (_, t) => {
 })
 ipcMain.handle("show-message-dialog", (_, options) => dialog.showMessageBox(
     mainWindow, options))
+ipcMain.on("sync-message-dialog", (e, options) => {
+    e.returnValue = dialog.showMessageBoxSync(mainWindow, options)
+})
 ipcMain.handle("list-cookies", e => e.sender.session.cookies.get({}))
 ipcMain.handle("remove-cookie",
     (e, url, name) => e.sender.session.cookies.remove(url, name))
