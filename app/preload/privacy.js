@@ -121,11 +121,6 @@ const privacyFixes = (w = window) => {
     } catch {
         // Non-secure resources don't expose these APIs
     }
-    // Empty the list of browser plugins, as there shouldn't be any installed
-    Object.defineProperty(w.Navigator.prototype,
-        "plugins", {"get": (() => []).bind(null)})
-    Object.defineProperty(w.Navigator.prototype,
-        "mimeTypes", {"get": (() => []).bind(null)})
     // Don't share the connection information
     Object.defineProperty(w.Navigator.prototype,
         "connection", {"get": (() => undefined).bind(null)})

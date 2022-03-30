@@ -17,12 +17,19 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Setting suspendplayingtab to control if tabs playing media should be suspended by suspendtimeout
 - Settings "dialogalert", "dialogconfirm" and "dialogprompt" to control if dialogs should show and/or be logged at all
+- Permissions for serial and other human interface devices (permissionserial, permissionhid, both blocked by default, same as before)
 
 ### Changed
 
-- Useragent to the upcoming reduced/simplified version of the final phase of https://www.chromium.org/updates/ua-reduction/
-- Battery API to return fixed "no battery" values instead of being undefined
-- The SSL error filter to include more ERR codes by looking for "_CERT_" and "_SSL_" instead of using a fixed list
+- Useragent was modified to the upcoming reduced/simplified version of the final phase of https://www.chromium.org/updates/ua-reduction/
+- Battery API now returns fixed "no battery" values instead of being undefined
+- The SSL error filter now includes more ERR codes by looking for "_CERT_" and "_SSL_" instead of using a fixed list
+- Attempt to delete blocked navigator properties from navigator object completely instead of returning undefined
+- Disable useragentdata client hints API completely (previously only in Firefox mode)
+
+### Removed
+
+- Plugins and mimeTypes overrides in favor of default hard-coded PDF plugin and mimetype lists (as per Firefox and Chromium)
 
 ### Fixed
 
@@ -30,13 +37,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Crash when pressing cancel in the print dialog (fixed by upgrading Electron)
 - Interaction with other pages not working when the debugger is paused (due to overlay, which is now disabled by default for new sessions)
 
-### Security
+### Versions
 
 - Electron 18.0.0 (was 17.0.1)
 - Chromium 100.0.4896.56 (was 98.0.4758.82)
-- Permissions for serial and other human interface devices (permissionserial, permissionhid, both blocked by default, same as before)
-- Attempt to delete blocked navigator properties from navigator object completely instead of returning undefined
-- Disable useragentdata client hints API completely
 
 ## [7.1.2](https://github.com/Jelmerro/Vieb/compare/7.1.1...7.1.2) - 2022-02-20
 
@@ -46,7 +50,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Split resize actions (increaseWidthSplitWindow etc.) not being able to resize multiple times in the same direction
 
-### Security
+### Versions
 
 - Electron 17.0.1 (was 17.0.0)
 - Chromium 98.0.4758.82 (was 98.0.4758.74)
@@ -63,7 +67,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - AppImage builds being broken
 
-### Security
+### Versions
 
 - Electron 17.0.0 (unchanged)
 - Chromium 98.0.4758.74 (unchanged)
@@ -91,7 +95,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Focus element action failing to get the length of elements that don't have a value (textarea, contenteditable div, etc.)
 - Argument issue with scriptnames command preventing it from working
 
-### Security
+### Versions
 
 - Electron 17.0.0 (was 17.0.0-beta.4)
 - Chromium 98.0.4758.74 (was 98.0.4758.11)
@@ -138,7 +142,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Rare crash when the devtools would remain after deleting the webview and you would then interact with it, they are now closed along with the page
 - Potential switch to insert mode after clicking on multiple links before leaving follow mode (by using Shift or right-clicking)
 
-### Security
+### Versions
 
 - Electron 17.0.0-beta.4 (was 15.3.1)
 - Chromium 98.0.4758.11 (was 94.0.4606.81)
@@ -157,6 +161,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Scriptnames command will now print the script index before the file path
 - Automatic suspend timers of "suspendtimeout" will be restarted when the value is updated
 - Searchwords now support multiple %s replacements in a single comma-separated query
+- Privacy overrides now override the prototype getter instead of the function directly
 
 ### Fixed
 
@@ -168,11 +173,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Target blank links opening in new tab when using the mouse to click on them
 - Relative urls opened using the window.open proxy doing a web search instead of navigation
 
-### Security
+### Versions
 
 - Electron 15.3.1 (was 15.0.0-beta.7)
 - Chromium 94.0.4606.81 (was 94.0.4606.31)
-- Privacy overrides now override the prototype getter instead of the function directly
 
 ## [6.1.0](https://github.com/Jelmerro/Vieb/compare/6.0.0...6.1.0) - 2021-09-19
 
@@ -193,7 +197,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Crash on uploading files due to Electron bug in beta 4
 - Characters with different naming in Electron compared to JavaScript and Vim not being recognized as such in mappings
 
-### Security
+### Versions
 
 - Electron 15.0.0-beta.7 (was 15.0.0-beta.4)
 - Chromium 94.0.4606.31 (unchanged)
@@ -270,7 +274,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Numpad keys not being recognized as such when entered inside the page using insert mode
 - Write command path bugs due to previous code rework in 5.x.x releases
 
-### Security
+### Versions
 
 - Electron 15.0.0-beta.4 (was 13.1.4)
 - Chromium 94.0.4606.31 (was 91.0.4472.106)
@@ -305,7 +309,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Menu actions being cancelled if parent mode has a multi-key mapping
 - Folders with many items not being scrollable in the file explorer
 
-### Security
+### Versions
 
 - Electron 13.1.4 (was 13.1.2)
 - Chromium 91.0.4472.106 (was 91.0.4472.77)
@@ -342,7 +346,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Uncountable actions being executed multiple times when not recursively called
 - Broken symlink for Linux installers in /usr/bin
 
-### Security
+### Versions
 
 - Electron 13.1.2 (was 13.1.1)
 - Chromium 91.0.4472.77 (unchanged)
@@ -398,7 +402,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Custom commands not having suggestions for existing commands (command and delcommand)
 - Encoding issues when navigating to urls with asian characters in them
 
-### Security
+### Versions
 
 - Electron 13.1.1 (was 13.0.1)
 - Chromium 91.0.4472.77 (was 91.0.4472.69)
@@ -448,6 +452,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "nativenotification" to a "Fixed-set string" to allow using native notifications for small messages and show popups for long ones
 - Preload scripts for Erwic can still be loaded by tabs even if the file doesn't exist on startup
 - Setting "storenewvisits" is now a list of types that should be stored, instead of a toggle for all forms of history
+- Permissions for "mediadevices" and "notifications" are now blocked by default instead of asking each time
 
 ### Removed
 
@@ -470,11 +475,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Container color not always being updated if a color rule is removed from the list
 - Search mode not clearing the url correctly if opened from the mouse dropdown selector
 
-### Security
+### Versions
 
 - Electron 13.0.1 (was 12.0.5)
 - Chromium 91.0.4472.69 (was 89.0.4389.128)
-- Permissions for "mediadevices" and "notifications" are now blocked by default instead of asking each time
 
 ## [4.5.1](https://github.com/Jelmerro/Vieb/compare/4.5.0...4.5.1) - 2021-04-28
 
@@ -484,7 +488,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Rimraf errors sometimes being shown on Windows when quitting
 
-### Security
+### Versions
 
 - Electron 12.0.5 (unchanged)
 - Chromium 89.0.4389.128 (unchanged)
@@ -526,7 +530,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - File explorer not working on Windows
 - Clearonquit-type settings not working for all releases due to very persistent electron-builder bugs that exclude "unused" dependencies
 
-### Security
+### Versions
 
 - Electron 12.0.5 (was 12.0.4)
 - Chromium 89.0.4389.128 (was 89.0.4389.114)
@@ -559,7 +563,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - History info being transferred to the current tab instead of the tab that actually requested it
 - Action "editWithVim" not working in last release due rework and missing filename argument
 
-### Security
+### Versions
 
 - Electron 12.0.4 (was 12.0.2)
 - Chromium 89.0.4389.114 (was 89.0.4389.90)
@@ -585,7 +589,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Switching to other tabs while viewing a fullscreen video making Vieb unresponsive to any bindings
 - Incorrect fullscreen styling in the default theme when using window splits
 
-### Security
+### Versions
 
 - Electron 12.0.2 (unchanged)
 - Chromium 89.0.4389.90 (unchanged)
@@ -598,7 +602,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Build issues due to electron-builder require statement constraints
 
-### Security
+### Versions
 
 - Electron 12.0.2 (unchanged)
 - Chromium 89.0.4389.90 (unchanged)
@@ -639,7 +643,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Follow mode and related actions not working on chrome:// pages due to querySelectorAll oddities
 - Follow mode not focusing input field correctly when holding Shift on keydown
 
-### Security
+### Versions
 
 - Electron 12.0.2 (was 12.0.0)
 - Chromium 89.0.4389.90 (was 89.0.4389.69)
@@ -661,7 +665,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Zoom level interfering with the right-click menu location
 - Insert mode not always activating when clicking on input elements (select elements or clicking on sub-elements of an input)
 
-### Security
+### Versions
 
 - Electron 12.0.0 (unchanged)
 - Chromium 89.0.4389.69 (unchanged)
@@ -704,6 +708,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Restore the previous search selected when entering search mode (no history, just the previous one)
 - Allow multiple languages to be passed to the "spelllang" option (and the "system" value is now handled better)
 - The "spell" setting will now immediately take effect, also for existing tabs
+- Privacy fixes for navigator properties and media info now run in iframes on a timer, can't be waterproofed without [this](https://github.com/electron/electron/issues/22582)
 
 ### Removed
 
@@ -722,11 +727,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Action "insertAtFirstInput" now works for subframes and for labels that link to hidden fields
 - Right click menu potentially appearing when using follow mode on Windows
 
-### Security
+### Versions
 
 - Electron 12.0.0 (was 11.2.1)
 - Chromium 89.0.4389.69 (was 87.0.4280.141)
-- Privacy fixes for navigator properties and media info now run in iframes on a timer, can't be waterproofed without [this](https://github.com/electron/electron/issues/22582)
 
 ## [3.4.0](https://github.com/Jelmerro/Vieb/compare/3.3.0...3.4.0) - 2021-01-31
 
@@ -754,7 +758,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Mouse events not getting registered properly when clicking inside iframes
 - Potential error on websites when trying to access the return value of the window.open function
 
-### Security
+### Versions
 
 - Electron 11.2.1 (was 11.1.1)
 - Chromium 87.0.4280.141 (was 87.0.4280.88)
@@ -787,7 +791,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Help page not resolving references to pointer chapter correctly
 - Permissionsallowed setting not working for correctly for mediadevices if permissionsblocked was unset
 
-### Security
+### Versions
 
 - Electron 11.1.1 (unchanged)
 - Chromium 87.0.4280.88 (unchanged)
@@ -812,7 +816,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Searching for buffers with matching index not being suggested in the list
 - Potential startup issues with some custom settings in the viebrc (including containercolors)
 
-### Security
+### Versions
 
 - Electron 11.1.1 (was 11.0.3)
 - Chromium 87.0.4280.88 (was 87.0.4280.67)
@@ -844,7 +848,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Line height issue that prevented underscores from showing correctly in some cases
 - Random switching between tabs if they execute click or focus events
 
-### Security
+### Versions
 
 - Electron 11.0.3 (was 11.0.2)
 - Chromium 87.0.4280.67 (unchanged)
@@ -922,7 +926,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Abort error for aborting page loads in the debug console (using --debug)
 - Don't keep closed pages in memory while the 'keeprecentlyclosed' setting is off
 
-### Security
+### Versions
 
 - Electron 11.0.2 (was 10.1.1)
 - Chromium 87.0.4280.67 (was 85.0.4183.93)
@@ -942,7 +946,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - New tab page is no longer the first entry in the history of tabs that are opened with a url
 - Reopening tabs in bulk (usually at startup) running out of index in rare occasions
 
-### Security
+### Versions
 
 - Electron 10.1.1 (was 9.2.0)
 - Chromium 85.0.4183.93 (was 83.0.4103.122)
@@ -961,6 +965,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Redirects are now applied before making a request, making them safer and more reliable
+- Don't expose the supported mimeTypes through the navigator
+- Better protection for hiding the GPU model
 
 ### Fixed
 
@@ -968,12 +974,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Lack of typing ability for some text inputs after selecting them with follow mode
 - Spaces not working as expected in mappings
 
-### Security
+### Versions
 
 - Electron 9.2.0 (was 9.0.5)
 - Chromium 83.0.4103.122 (was 83.0.4103.119)
-- Don't expose the supported mimeTypes through the navigator
-- Better protection for hiding the GPU model
 
 ## [2.2.3](https://github.com/Jelmerro/Vieb/compare/2.2.2...2.2.3) - 2020-07-05
 
@@ -990,7 +994,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Catch errors from the adblocker to prevent occasional error popups from cosmetic filtering
 - Count not working for the increase and decrease page number actions (such as ports or page numbers)
 
-### Security
+### Versions
 
 - Electron 9.0.5 (was 9.0.4)
 - Chromium 83.0.4103.119 (was 83.0.4103.104)
@@ -1002,6 +1006,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Improve the follow mode speed by reusing DOM calls and only using an interval (no more page observers)
+- Disable the remote module entirely
+- Load the preload from the main process and prevent changes to it's location
 
 ### Fixed
 
@@ -1009,12 +1015,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Regular tabs not always opening to the right of all the pinned tabs
 - Potential filename length issue for favicon storage
 
-### Security
+### Versions
 
 - Electron 9.0.4 (was 9.0.3)
 - Chromium 83.0.4103.104 (was 83.0.4103.100)
-- Disable the remote module entirely
-- Load the preload from the main process and prevent changes to it's location
 
 ## [2.2.1](https://github.com/Jelmerro/Vieb/compare/2.2.0...2.2.1) - 2020-06-11
 
@@ -1024,7 +1028,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Data urls not being displayed on the new tab page
 
-### Security
+### Versions
 
 - Electron 9.0.3 (unchanged)
 - Chromium 83.0.4103.100 (unchanged)
@@ -1051,6 +1055,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Allow the entire window to be used as a drag region if the mouse setting is off and you are not in insert mode
 - Minimum tabwidth to 28, due to styling changes in the navigation bar (default behavior is still just the icon)
+- Remove the usage of the remote module entirely
+- Strict CSP to all of Vieb's pages, which prevents all scripts from running outside of the webviews and preloads
 
 ### Fixed
 
@@ -1059,12 +1065,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Digits to repeat actions not being applied when part of a mapping before a built-in action
 - Animated SVG images sometimes breaking follow mode (due to href being an object instead of a string)
 
-### Security
+### Versions
 
 - Electron 9.0.3 (was 9.0.0)
 - Chromium 83.0.4103.100 (was 83.0.4103.64)
-- Remove the usage of the remote module entirely
-- Strict CSP to all of Vieb's pages, which prevents all scripts from running outside of the webviews and preloads
 
 ## [2.1.0](https://github.com/Jelmerro/Vieb/compare/2.0.0...2.1.0) - 2020-05-19
 
@@ -1083,7 +1087,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Urls not being wrapped in the media device permission request dialog
 
-### Security
+### Versions
 
 - Electron 9.0.0 (was 9.0.0-beta.15)
 - Chromium 83.0.4103.64 (was 83.0.4102.3)
@@ -1111,6 +1115,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Tests for the version compare function
 - Favorite pages setting for manually providing a list of pages that should always appear on the new tab page
 - Spellcheck integration (on by default), use spell and spelllang to configure
+- New permission for mediaDevices, new default is to ask the user instead of allowing all
 
 ### Changed
 
@@ -1129,6 +1134,9 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Buffer command can now be used to navigate to new locations (this is also true for the new split and Explore commands)
 - Allow \<A-F4\> and \<M-Q\> to be mapped as if they are regular keys (most likely to the quit command)
 - Reload command no longer resets all settings before running the commands from the viebrc files
+- Browsing data of popup windows are now stored in a separate memory-only partitions
+- Hide hardware related info, such as GPU model and battery data
+- Strip Vieb and Electron from the useragent when downloading favicons
 
 ### Deprecated
 
@@ -1145,14 +1153,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Text input actions, such as select all, not working on Mac
 - Undo and Redo not being enabled on any system for the navigation bar
 
-### Security
+### Versions
 
 - Electron 9.0.0-beta.15 (was 8.0.1)
 - Chromium 83.0.4102.3 (was 80.0.3987.86)
-- Browsing data of popup windows are now stored in a separate memory-only partitions
-- Hide hardware related info, such as GPU model and battery data
-- New permission for mediaDevices, new default is to ask the user instead of allowing all
-- Also remove Vieb and Electron from the useragent when downloading favicons
 
 ## [1.1.0](https://github.com/Jelmerro/Vieb/compare/1.0.0...1.1.0) - 2020-02-15
 
@@ -1180,7 +1184,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Print command only working once without reloading
 - Commands not supporting escaping of spaces using quotes
 
-### Security
+### Versions
 
 - Electron 8.0.1 (was 6.1.5)
 - Chromium 80.0.3987.86 (was 76.0.3809.146)
@@ -1236,6 +1240,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Follow mode can now be combined with cursor and visual mode, to move the cursor to the element location
 - Cursor now changes color gradually over time so it's more visible on conflicting background colors
 - Digits repeating actions are now only applied when needed, and are executed in one go wherever possible
+- Permission for openExternal is now set to "ask" by default instead of the setting "block"
 
 ### Removed
 
@@ -1259,11 +1264,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Cursor mode not detecting background images to download (when pressing "d")
 - Scrolling to previous input when re-entering insert mode (now using blur)
 
-### Security
+### Versions
 
 - Electron 6.1.5 (was 6.0.10)
 - Chromium 76.0.3809.146 (unchanged)
-- Permission for openExternal is now set to "ask" by default instead of the setting "block"
 
 ## [0.7.0](https://github.com/Jelmerro/Vieb/compare/0.6.0...0.7.0) - 2019-09-19
 
@@ -1286,16 +1290,16 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Set command write syntax is now similar to Vim: `set permissions.camera=ask`
 - The question mark for the set command read option is now optional: `set permissions?` now equals `set permissions`
 - User agent replacement to work for beta/dev versions
+- Permissions changed to block access by default for most permissions
 
 ### Fixed
 
 - Also make Control-BracketLeft reset the repeating digits counter to zero
 
-### Security
+### Versions
 
 - Electron 6.0.10 (was 6.0.6)
 - Chromium 76.0.3809.146 (was 76.0.3809.138)
-- Permissions changed to block access by default for most permissions
 
 ## [0.6.0](https://github.com/Jelmerro/Vieb/compare/0.5.0...0.6.0) - 2019-08-30
 
@@ -1323,7 +1327,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Default settings sometimes displaying in black text on help page
 - Buggy favicon on some sites after navigating on the same page
 
-### Security
+### Versions
 
 - Electron 6.0.6 (was 6.0.0-beta.15)
 - Chromium 76.0.3809.138 (was 76.0.3809.74)
@@ -1356,7 +1360,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Allow escape to reset the digit repeat counter (also don't trigger other actions when doing so)
 - Follow mode not working on pages with text nodes (getClientRects is not a function on those)
 
-### Security
+### Versions
 
 - Electron 6.0.0-beta.15 (was 5.0.6)
 - Chromium 76.0.3809.74 (was 73.0.3683.121)
@@ -1399,6 +1403,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Make the history ordering a bit more simple and predictable
 - Increased maximum fontSize from 20 to 30 pixels in height
 - Limit the history of previously closed tabs to 100 (which should be plenty)
+- Strip Vieb and Electron info more reliably from the useragent (should now be similar to Chrome)
+- Disable the sharing of local WebRTC ip addresses, only public ip addresses are now shared
 
 ### Fixed
 
@@ -1409,12 +1415,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Actually save the recently closed tabs when that setting is on, but tabs.restore is off
 - Missing or blurry icons on Windows and some Linux installers
 
-### Security
+### Versions
 
 - Electron 5.0.6 (was 5.0.2)
 - Chromium 73.0.3683.121 (unchanged)
-- Remove Vieb and Electron info more reliably from the useragent (should now be similar to Chrome)
-- Disable the sharing of local WebRTC ip addresses, only public ip addresses are now shared
 
 ## [0.3.0](https://github.com/Jelmerro/Vieb/compare/0.2.2...0.3.0) - 2019-06-07
 
@@ -1450,7 +1454,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Special pages not being detected on Windows
 - Follow mode duplicate key options for a certain amount of links
 
-### Security
+### Versions
 
 - Electron 5.0.2 (was 5.0.1)
 - Chromium 73.0.3683.121 (unchanged)
@@ -1468,7 +1472,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Preloads on special pages not working on some released builds
 - Fix for unsupported 'visibility: collapse' styling
 
-### Security
+### Versions
 
 - Electron 5.0.1 (was 5.0.0-beta.8)
 - Chromium 73.0.3683.121 (was 73.0.3683.104)
@@ -1486,7 +1490,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Proper focus when entering search mode
 
-### Security
+### Versions
 
 - Electron 5.0.0-beta.8 (was 5.0.0-beta.7)
 - Chromium 73.0.3683.104 (was 73.0.3683.94)
@@ -1514,7 +1518,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Vieb is now a single window application (single-instance): when already open, new urls will be opened as tabs
 - Disable follow mode for iframes again due to a couple of issues with it
 
-### Security
+### Versions
 
 - Electron 5.0.0-beta.7 (was 4.0.5)
 - Chromium 73.0.3683.94 (was 69.0.3497.106)
@@ -1535,7 +1539,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Support for CLI startup arguments
 - Notifications for failed commands or other errors
 
-### Security
+### Versions
 
 - Electron 4.0.5
 - Chromium 69.0.3497.106
