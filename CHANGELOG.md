@@ -18,6 +18,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting suspendplayingtab to control if tabs playing media should be suspended by suspendtimeout
 - Settings "dialogalert", "dialogconfirm" and "dialogprompt" to control if dialogs should show and/or be logged at all
 - Permissions for serial and other human interface devices (permissionserial, permissionhid, both blocked by default, same as before)
+- Default mappings that make use of the last used tab argument (for example "close #") of buffer like commands (prefixed with "B")
 
 ### Changed
 
