@@ -698,7 +698,7 @@ const tabForBufferArg = (args, filter = null) => {
         if ((args[0] || args) === "#") {
             const {getLastTabId} = require("./pagelayout")
             return document.querySelector(
-                `#tabs span[link-id='${getLastTabId()}']`)
+                `#tabs span[link-id='${getLastTabId()}']`) || listTabs()[0]
         }
     }
     const simpleSearch = args.join("").replace(specialChars, "").toLowerCase()

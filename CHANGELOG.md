@@ -27,6 +27,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - The SSL error filter now includes more ERR codes by looking for "_CERT_" and "_SSL_" instead of using a fixed list
 - Attempt to delete blocked navigator properties from navigator object completely instead of returning undefined
 - Disable useragentdata client hints API completely (previously only in Firefox mode)
+- The last used tab variable will now as a fallback pick the first tab instead of opening a new search tab with "buffer" and "Vexplore"
 
 ### Removed
 
