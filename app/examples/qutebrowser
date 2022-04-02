@@ -14,7 +14,7 @@ set permissionpersistentstorage=allow
 set redirecttohttp
 set tabclosefocusright
 set tabreopenposition=right
-set windowtitle=full
+set windowtitle="%title - %app"
 set mapsuggestposition=bottomleft
 
 " Mappings

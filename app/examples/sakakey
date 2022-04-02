@@ -15,7 +15,6 @@ set redirecttohttp
 set splitbelow
 set tabclosefocusright
 set tabreopenposition=previous
-set windowtitle=title
 set noshowcmd
 set notimeout
 

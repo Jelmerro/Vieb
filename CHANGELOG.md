@@ -11,13 +11,25 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Changed
+
+- Setting "windowtitle" now accepts a custom string with variables instead of hard-coded formats (linking to password managers should be easier now)
+- Dialog settings are now all blocked with notifications by default
+
+### Versions
+
+- Electron 18.0.1 (unchanged)
+- Chromium 100.0.4896.60 (unchanged)
+
 ## [7.2.0](https://github.com/Jelmerro/Vieb/compare/7.1.2...7.2.0) - 2022-03-31
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/7.1.2...7.2.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/7.2.0)
 
 ### Added
 
-- Setting suspendplayingtab to control if tabs playing media should be suspended by suspendtimeout
+- Setting "suspendplayingtab" to control if tabs playing media should be suspended by suspendtimeout
 - Settings "dialogalert", "dialogconfirm" and "dialogprompt" to control if dialogs should show and/or be logged at all
 - Permissions for serial and other human interface devices (permissionserial, permissionhid, both blocked by default, same as before)
 - Default mappings that make use of the last used tab argument (for example "close #") of buffer like commands (prefixed with "B")

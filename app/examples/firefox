@@ -16,7 +16,6 @@ set redirecttohttp
 set splitbelow
 set tabclosefocusright
 set tabreopenposition=previous
-set windowtitle=title
 
 " Mappings
 nmap <F3> <toSearchMode><nextSearchMatch>

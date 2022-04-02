@@ -14,7 +14,6 @@ set permissionpersistentstorage=allow
 set redirecttohttp
 set splitbelow
 set tabreopenposition=previous
-set windowtitle=title
 set notimeout
 set suggestorder=searchword,history
 

@@ -88,9 +88,9 @@ const defaultSettings = {
     "containerstartuppage": "main",
     "countlimit": 100,
     "devtoolsposition": "window",
-    "dialogalert": "show",
-    "dialogconfirm": "show",
-    "dialogprompt": "block",
+    "dialogalert": "notifyblock",
+    "dialogconfirm": "notifyblock",
+    "dialogprompt": "notifyblock",
     "downloadmethod": "automatic",
     "downloadpath": "~/Downloads/",
     "explorehist": "persist",
@@ -192,10 +192,12 @@ const defaultSettings = {
     "timeout": true,
     "timeoutlen": 1000,
     "vimcommand": "gvim",
-    "windowtitle": "simple"
+    "windowtitle": "%app - %title"
 }
 let allSettings = {}
-const freeText = ["downloadpath", "externalcommand", "vimcommand"]
+const freeText = [
+    "downloadpath", "externalcommand", "vimcommand", "windowtitle"
+]
 const listLike = [
     "containercolors",
     "containernames",
@@ -273,8 +275,7 @@ const validOptions = {
     "tabopenmuted": ["always", "background", "never"],
     "taboverflow": ["hidden", "scroll", "wrap"],
     "tabreopenmuted": ["always", "remember", "never"],
-    "tabreopenposition": ["left", "right", "previous"],
-    "windowtitle": ["simple", "title", "url", "full"]
+    "tabreopenposition": ["left", "right", "previous"]
 }
 const numberRanges = {
     "countlimit": [0, 10000],
@@ -1132,30 +1133,20 @@ const set = (setting, value) => {
 }
 
 const updateWindowTitle = () => {
-    const appName = appConfig().name
-    if (allSettings.windowtitle === "simple" || !currentPage()) {
-        ipcRenderer.send("set-window-title", appName)
-        return
-    }
-    const name = tabOrPageMatching(currentPage())
-        .querySelector("span").textContent
+    const {name, version} = appConfig()
+    const title = tabOrPageMatching(currentPage())
+        ?.querySelector("span").textContent || ""
     let url = currentPage()?.src || ""
-    if (allSettings.windowtitle === "title" || !url) {
-        ipcRenderer.send("set-window-title", `${appName} - ${name}`)
-        return
-    }
     const specialPage = pathToSpecialPageName(url)
     if (specialPage.name) {
-        url = `${appName.toLowerCase()}://${specialPage.name}`
+        url = `${name.toLowerCase()}://${specialPage.name}`
         if (specialPage.section) {
             url += `#${specialPage.section}`
         }
     }
-    if (allSettings.windowtitle === "url") {
-        ipcRenderer.send("set-window-title", `${appName} - ${url}`)
-        return
-    }
-    ipcRenderer.send("set-window-title", `${appName} - ${name} - ${url}`)
+    ipcRenderer.send("set-window-title", allSettings.windowtitle
+        .replace(/%app/g, name).replace(/%title/g, title)
+        .replace(/%url/g, url).replace(/%version/g, version))
 }
 
 const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
@@ -1194,6 +1185,9 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     }
     if (setting === "vimcommand") {
         allowedValues = "Any system command"
+    }
+    if (setting === "windowtitle") {
+        allowedValues = "Any title"
     }
     if (typeof allSettings[setting] === "number") {
         typeLabel = "Number"

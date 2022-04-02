@@ -380,6 +380,7 @@ const defaultBindings = {
         "yh": {"mapping": "<pageToClipboardHTML>"},
         "ym": {"mapping": "<pageToClipboardMarkdown>"},
         "yr": {"mapping": "<pageToClipboardRST>"},
+        "ys": {"mapping": "<p.copyText>"},
         "yt": {"mapping": "<pageTitleToClipboard>"},
         "yy": {"mapping": "<pageToClipboard>"},
         "zH": {"mapping": "<scrollPageLeft>"},

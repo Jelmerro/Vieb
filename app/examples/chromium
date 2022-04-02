@@ -15,7 +15,6 @@ set search=https://google.com/search?q=%s
 set splitright
 set suspendonrestore=none
 set tabreopenposition=previous
-set windowtitle=title
 
 " Mappings
 nmap <F3> <toSearchMode><nextSearchMatch>
