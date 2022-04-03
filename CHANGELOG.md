@@ -18,6 +18,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "windowtitle" now accepts a custom string with variables instead of hard-coded formats (linking to password managers should be easier now)
 - Dialog settings are now all blocked with notifications by default
 
+### Removed
+
+- Action "toLastUsedTab" in favor of using ":buffer #" in line with other buffer-like commands that support "#"
+
 ### Versions
 
 - Electron 18.0.1 (unchanged)

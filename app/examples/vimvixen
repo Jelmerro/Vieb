@@ -39,7 +39,7 @@ nunmap x
 nmap x$ <:rclose>
 nmap g0 <:buffer 0>
 nmap g$ <:buffer -1>
-nmap <C-6> <toLastUsedTab>
+nmap <C-6> <:buffer #>
 nmap zd <openNewTabWithCurrentURL><CR>
 nunmap [
 nunmap ]

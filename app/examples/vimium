@@ -39,7 +39,7 @@ nmap g0 <:buffer
 nmap g$ <:buffer
 nmap J <previousTab>
 nmap K <nextTab>
-nmap ^ <toLastUsedTab>
+nmap ^ <:buffer #>
 nmap ge <toExploreMode><End>
 nmap gE <openNewTab><toExploreMode>
 nmap x <:close>

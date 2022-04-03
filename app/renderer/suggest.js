@@ -505,6 +505,7 @@ const suggestCommand = searchStr => {
             "<>",
             "customcommands",
             "splits",
+            "lastusedtab",
             "viebrc",
             "examples",
             "datafolder",

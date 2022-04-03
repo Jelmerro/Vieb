@@ -591,11 +591,6 @@ const exchangeSplitWindow = () => {
     exchange()
 }
 
-const toLastUsedTab = () => {
-    const {"toLastUsedTab": lastUsed} = require("./pagelayout")
-    lastUsed()
-}
-
 const increaseHeightSplitWindow = () => {
     const {resize} = require("./pagelayout")
     resize("ver", "grow")
@@ -949,7 +944,6 @@ module.exports = {
     toFirstSplitWindow,
     toInsertMode,
     toLastSplitWindow,
-    toLastUsedTab,
     toLeftSplitWindow,
     toNextSplitWindow,
     toNormalMode,

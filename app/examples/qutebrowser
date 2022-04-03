@@ -49,7 +49,7 @@ nmap ]] <nextPage>
 nmap {{ <previousPageNewTab>
 nmap }} <nextPageNewTab>
 nmap gu <toParentUrl>
-nmap gU <toParentUrl><openNewTabWithCurrentUrl><CR><toLastUsedTab><backInHistory><toLastUsedTab>
+nmap gU <openNewTabWithCurrentUrl><CR><toParentUrl>
 nmap <A-1> <:b 0>
 nmap g0 <:b 0>
 nmap g^ <:b -1>
@@ -62,8 +62,8 @@ nmap <A-6> <:b 5>
 nmap <A-7> <:b 6>
 nmap <A-8> <:b 7>
 nmap <A-9> <:b 8>
-nmap <C-^> <toLastUsedTab>
-nmap <C-Tab> <toLastUsedTab>
+nmap <C-^> <:buffer #>
+nmap <C-Tab> <:buffer #>
 nmap ga <openNewTab>
 nmap gC <openNewTabWithCurrentUrl><CR>
 nmap gJ <moveTabForward>

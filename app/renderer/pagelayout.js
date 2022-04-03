@@ -349,17 +349,6 @@ const setLastUsedTab = id => {
     }
 }
 
-const toLastUsedTab = () => {
-    if (lastTabId && currentPage().getAttribute("link-id") !== lastTabId) {
-        const last = document.querySelector(
-            `#tabs span[link-id='${lastTabId}']`)
-        if (last) {
-            const {switchToTab} = require("./tabs")
-            switchToTab(listTabs().indexOf(last))
-        }
-    }
-}
-
 const resetResizing = () => {
     [...document.querySelectorAll("#pagelayout *")].forEach(element => {
         element.style.flexGrow = null
@@ -510,6 +499,5 @@ module.exports = {
     rotateReverse,
     setLastUsedTab,
     switchView,
-    toLastUsedTab,
     toTop
 }

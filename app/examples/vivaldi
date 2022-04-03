@@ -38,7 +38,7 @@ nmap <C-k0> <zoomReset>
 nmap <C-*> <zoomReset>
 nmap <C-j> <:downloads>
 nmap <C-D> <:downloads>
-nmap <C-Tab> <toLastUsedTab>
+nmap <C-Tab> <:buffer #>
 nmap <C-1> <:b 0>
 nmap <C-2> <:b 1>
 nmap <C-3> <:b 2>
