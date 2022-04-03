@@ -797,7 +797,10 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         let newFilename = item.getFilename()
         while (isFile(save)) {
             duplicateNumber += 1
-            const extStart = filename.indexOf(".")
+            let extStart = filename.lastIndexOf(".tar.")
+			if (extStart === -1) {
+				extStart = filename.lastIndexOf(".")
+			}
             if (extStart === -1) {
                 newFilename = `${filename} (${duplicateNumber})`
             } else {
