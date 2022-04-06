@@ -17,6 +17,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Setting "windowtitle" now accepts a custom string with variables instead of hard-coded formats (linking to password managers should be easier now)
 - Dialog settings are now all blocked with notifications by default
+- Duplicate download numbering now starts from (1) instead of (2)
+- Duplicate download name for files that end in "tar.something" will now have the counter before the ".tar"
 
 ### Removed
 

@@ -798,9 +798,9 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         while (isFile(save)) {
             duplicateNumber += 1
             let extStart = filename.lastIndexOf(".tar.")
-			if (extStart === -1) {
-				extStart = filename.lastIndexOf(".")
-			}
+            if (extStart === -1) {
+                extStart = filename.lastIndexOf(".")
+            }
             if (extStart === -1) {
                 newFilename = `${filename} (${duplicateNumber})`
             } else {
