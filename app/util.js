@@ -174,7 +174,7 @@ const stringToUrl = location => {
     }
     if (!isUrl(url)) {
         const engines = getSetting("search").split(",")
-        const engine = engines[Math.floor(Math.random() * engines.length)]
+        const engine = engines.at(Math.random() * engines.length)
         if (!engine) {
             return ""
         }
@@ -229,6 +229,20 @@ const title = s => {
 
 const downloadPath = () => expandPath(getSetting("downloadpath"))
 
+const userAgentTemplated = agent => {
+    if (!agent) {
+        return ""
+    }
+    const version = `${process.versions.chrome.split(".")[0]}.0.0.0`
+    return agent
+        .replace(/%sys/g, userAgentPlatform())
+        .replace(/%firefoxversion/g, firefoxVersion())
+        .replace(/%fullversion/g, process.versions.chrome)
+        .replace(/%version/g, version)
+        .replace(/%firefox/g, firefoxUseragent())
+        .replace(/%default/g, defaultUseragent())
+}
+
 const userAgentPlatform = () => {
     let platform = "X11; Linux x86_64"
     if (process.platform === "win32") {
@@ -241,15 +255,19 @@ const userAgentPlatform = () => {
 }
 
 const defaultUseragent = () => {
-    const version = process.versions.chrome.split(".")[0] || "100"
+    const [version] = process.versions.chrome.split(".")
     const sys = userAgentPlatform()
     return `Mozilla/5.0 (${sys}) AppleWebKit/537.36 (KHTML, like Gecko) `
         + `Chrome/${version}.0.0.0 Safari/537.36`
 }
 
-const firefoxUseragent = () => {
+const firefoxVersion = () => {
     const daysSinceBase = (new Date() - new Date(2021, 7, 10)) / 86400000
-    const ver = `${91 + Math.floor(daysSinceBase / 28)}.0`
+    return `${91 + Math.floor(daysSinceBase / 28)}.0`
+}
+
+const firefoxUseragent = () => {
+    const ver = firefoxVersion()
     const sys = userAgentPlatform()
     return `Mozilla/5.0 (${sys}; rv:${ver}) Gecko/20100101 Firefox/${ver}`
 }
@@ -871,8 +889,10 @@ module.exports = {
     urlToString,
     title,
     downloadPath,
+    userAgentTemplated,
     userAgentPlatform,
     defaultUseragent,
+    firefoxVersion,
     firefoxUseragent,
     domainName,
     sameDomain,

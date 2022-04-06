@@ -34,7 +34,8 @@ const {
     pathExists,
     pathToSpecialPageName,
     firefoxUseragent,
-    appConfig
+    appConfig,
+    userAgentTemplated
 } = require("../util")
 const {
     listTabs,
@@ -191,6 +192,7 @@ const defaultSettings = {
     "tabreopenposition": "right",
     "timeout": true,
     "timeoutlen": 1000,
+    "useragent": "",
     "vimcommand": "gvim",
     "windowtitle": "%app - %title"
 }
@@ -215,7 +217,8 @@ const listLike = [
     "spelllang",
     "startuppages",
     "storenewvisits",
-    "suggestorder"
+    "suggestorder",
+    "useragent"
 ]
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
@@ -1048,15 +1051,12 @@ const set = (setting, value) => {
             } else {
                 ipcRenderer.sendSync("override-global-useragent", false)
             }
-            // Reset webview specific useragent override for every setting value
-            // If needed, it will overridden again before loading a page
-            listPages().forEach(page => {
-                try {
-                    page.setUserAgent("")
-                } catch {
-                    // Page not ready yet or suspended
-                }
-            })
+        }
+        if (setting === "useragent") {
+            if (allSettings.firefoxmode !== "always") {
+                ipcRenderer.sendSync("override-global-useragent",
+                    userAgentTemplated(value.split(",")[0]))
+            }
         }
         if (setting === "fontsize") {
             updateCustomStyling()
@@ -1237,7 +1237,7 @@ const listCurrentSettings = full => {
             return
         }
         if (listLike.includes(setting)) {
-            const entries = value.split(",").filter(v => v)
+            const entries = value.split(",")
             if (entries.length > 1 || value.match(/( |'|")/g)) {
                 setCommands += `${setting}=\n`
                 entries.forEach(entry => {

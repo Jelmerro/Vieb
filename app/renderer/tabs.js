@@ -38,7 +38,8 @@ const {
     notify,
     title,
     listNotificationHistory,
-    propPixels
+    propPixels,
+    userAgentTemplated
 } = require("../util")
 const {
     listTabs,
@@ -425,7 +426,6 @@ const unsuspendPage = page => {
                 webview.setAudioMuted(true)
             }
             addWebviewListeners(webview)
-            webview.setUserAgent("")
             if (isDevtoolsTab) {
                 ipcRenderer.send("add-devtools",
                     currentPageId, webview.getWebContentsId())
@@ -604,12 +604,19 @@ const addWebviewListeners = webview => {
     webview.addEventListener("load-commit", e => {
         if (e.isMainFrame) {
             resetTabInfo(webview)
-            if (getSetting("firefoxmode") === "google") {
-                if (sameDomain(e.url, "https://google.com")) {
-                    webview.setUserAgent(firefoxUseragent())
-                } else {
-                    webview.setUserAgent("")
-                }
+            const ffMode = getSetting("firefoxmode")
+            const customUA = getSetting("useragent")
+            if (ffMode === "never" && !customUA) {
+                webview.setUserAgent("")
+            } else if (ffMode === "always") {
+                webview.setUserAgent("")
+            } else if (ffMode === "google" && sameDomain(e.url, "https://google.com")) {
+                webview.setUserAgent(firefoxUseragent())
+            } else {
+                const agents = customUA.split(",")
+                const agent = userAgentTemplated(
+                    agents.at(Math.random() * agents.length))
+                webview.setUserAgent(agent)
             }
             const name = tabOrPageMatching(webview).querySelector("span")
             if (!name.textContent) {

@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Setting "useragent" to use any number of custom useragents (either one, or a list that is randomly used per page load)
+
 ### Changed
 
 - Setting "windowtitle" now accepts a custom string with variables instead of hard-coded formats (linking to password managers should be easier now)
