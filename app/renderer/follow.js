@@ -29,6 +29,7 @@ const {
 } = require("./common")
 
 const {propPixels} = require("../util")
+const {ipcRenderer} = require("electron")
 
 let followLinkDestination = "current"
 let alreadyFollowing = false
@@ -38,14 +39,19 @@ const savedOrder = [
     "image", "media", "url", "onclick", "inputs-click", "inputs-insert"
 ]
 
+const init = () => {
+    ipcRenderer.on("follow-response", (_, l) => parseAndDisplayLinks(l))
+}
+
 const informPreload = () => {
     setTimeout(() => {
         if (currentPage().getAttribute("dom-ready")) {
             if (currentMode() === "follow" && !alreadyFollowing) {
-                currentPage().send("follow-mode-start")
+                ipcRenderer.send("follow-mode-start",
+                    currentPage().getWebContentsId())
                 informPreload()
             } else {
-                currentPage().send("follow-mode-stop")
+                ipcRenderer.send("follow-mode-stop")
             }
         }
     }, 100)
@@ -66,7 +72,8 @@ const startFollow = (newtab = followLinkDestination) => {
     alreadyFollowing = false
     alreadyFilteringLinks = false
     informPreload()
-    currentPage().send("follow-mode-start")
+    ipcRenderer.send("follow-mode-start",
+        currentPage().getWebContentsId(), true)
     document.getElementById("follow").style.display = "flex"
 }
 
@@ -75,13 +82,7 @@ const cancelFollow = () => {
     alreadyFilteringLinks = false
     document.getElementById("follow").style.display = ""
     document.getElementById("follow").textContent = ""
-    listPages().forEach(page => {
-        try {
-            page.send("follow-mode-stop")
-        } catch {
-            // Cancel follow mode in all tabs
-        }
-    })
+    ipcRenderer.send("follow-mode-stop")
 }
 
 const followChars = () => {
@@ -307,14 +308,14 @@ const parseAndDisplayLinks = receivedLinks => {
             borderElement.appendChild(linkElement)
         }
     })
-    followChildren.forEach(el => {
-        const link = el.querySelector("[link-id]")
-        const sameStart = followChildren.find(f => f.textContent.trim()
-            .startsWith(link.textContent.slice(1)) && f !== el)
-        if (!sameStart && link.textContent.length > 1) {
-            link.textContent = link.textContent.slice(1)
-        }
-    })
+    // followChildren.forEach(el => {
+    //     const link = el.querySelector("[link-id]")
+    //     const sameStart = followChildren.find(f => f.textContent.trim()
+    //         .startsWith(link.textContent.slice(1)) && f !== el)
+    //     if (!sameStart && link.textContent.length > 1) {
+    //         link.textContent = link.textContent.slice(1)
+    //     }
+    // })
     document.getElementById("follow").replaceChildren(...followChildren)
     applyIndexedOrder()
 }
@@ -421,7 +422,7 @@ module.exports = {
     cancelFollow,
     enterKey,
     followFiltering,
-    parseAndDisplayLinks,
+    init,
     reorderDisplayedLinks,
     startFollow
 }

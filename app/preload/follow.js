@@ -71,6 +71,7 @@ const otherEvents = [
 const previouslyFocussedElements = []
 
 ipcRenderer.on("focus-input", async(_, follow = null) => {
+    // TODO
     let el = null
     if (follow) {
         el = findElementAtPosition(follow.x, follow.y)
@@ -196,8 +197,25 @@ const getAllFollowLinks = () => {
 
 const sendFollowLinks = () => {
     if (inFollowMode) {
-        ipcRenderer.sendToHost("follow-response", getAllFollowLinks())
+        ipcRenderer.send("follow-response", getAllFollowLinks())
     }
+    ipcRenderer.send("frame-details", {
+        "height": window.innerHeight,
+        "pagex": window.scrollX,
+        "pagey": window.scrollY,
+        "scrollHeight": document.body.scrollHeight,
+        "scrollWidth": document.body.scrollWidth,
+        "subframes": [...querySelectorAll("iframe") || []].map(f => ({
+            "bounds": JSON.stringify(f.getBoundingClientRect()),
+            "height": f.getBoundingClientRect().height || f.clientHeight,
+            "url": f.src,
+            "width": f.getBoundingClientRect().width || f.clientWidth,
+            "x": f.getBoundingClientRect().x || f.offsetLeft,
+            "y": f.getBoundingClientRect().y || f.offsetTop
+        })),
+        "url": window.location.href,
+        "width": window.innerWidth
+    })
 }
 
 ipcRenderer.on("follow-mode-start", () => {
@@ -418,6 +436,7 @@ window.addEventListener("mouseup", mouseUpListener,
     {"capture": true, "passive": true})
 
 ipcRenderer.on("replace-input-field", (_, value, position) => {
+    // TODO
     const input = activeElement()
     if (matchesQuery(input, textlikeInputs)) {
         if (typeof input.value === "string" && input.setSelectionRange) {
@@ -518,6 +537,7 @@ const contextListener = (e, frame = null, extraData = null) => {
     }
 }
 ipcRenderer.on("contextmenu-data", (_, request) => {
+    // TODO
     const {x, y} = request
     const els = [findElementAtPosition(x, y)]
     while (els[0].parentNode && els[0].parentNode !== els[1]?.parentNode) {
@@ -529,6 +549,7 @@ ipcRenderer.on("contextmenu-data", (_, request) => {
     }, findFrameInfo(els[0])?.element, request)
 })
 ipcRenderer.on("contextmenu", (_, extraData = null) => {
+    // TODO
     const els = [activeElement()]
     const parsed = parseElement(els[0])
     let x = parsed?.x || 0
@@ -578,6 +599,7 @@ window.addEventListener("scroll", () => {
 })
 
 ipcRenderer.on("search-element-location", (_, pos) => {
+    // TODO
     let {x} = pos
     const alignment = readJSON(settingsFile)?.searchpointeralignment
     if (alignment === "center") {
@@ -598,6 +620,7 @@ ipcRenderer.on("search-element-location", (_, pos) => {
     }, 100)
 })
 
+// TODO
 ipcRenderer.on("search-element-click", () => searchElement?.click())
 
 window.addEventListener("mousemove", e => {

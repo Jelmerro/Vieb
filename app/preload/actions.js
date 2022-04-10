@@ -82,6 +82,7 @@ const exitFullscreen = () => document.exitFullscreen()
 const writeableInputs = {}
 
 const setInputFieldText = (filename, text) => {
+    // TODO
     const el = writeableInputs[filename]
     if (["input", "textarea"].includes(el.tagName.toLowerCase())) {
         el.value = text
@@ -91,6 +92,7 @@ const setInputFieldText = (filename, text) => {
 }
 
 const writeInputToFile = filename => {
+    // TODO
     const el = activeElement()
     if (el) {
         if (["input", "textarea"].includes(el.tagName.toLowerCase())) {
@@ -117,6 +119,7 @@ const installFirefoxExtension = () => {
 }
 
 const toggleControls = (x, y) => {
+    // TODO
     const el = findElementAtPosition(x, y)
     if (matchesQuery(el, "video")) {
         if (["", "controls", "true"].includes(el.getAttribute("controls"))) {
@@ -128,6 +131,7 @@ const toggleControls = (x, y) => {
 }
 
 const toggleLoop = (x, y) => {
+    // TODO
     const el = findElementAtPosition(x, y)
     if (matchesQuery(el, "audio, video")) {
         if (["", "loop", "true"].includes(el.getAttribute("loop"))) {
@@ -139,6 +143,7 @@ const toggleLoop = (x, y) => {
 }
 
 const toggleMute = (x, y) => {
+    // TODO
     const el = findElementAtPosition(x, y)
     if (matchesQuery(el, "audio, video")) {
         if (el.volume === 0) {
@@ -150,6 +155,7 @@ const toggleMute = (x, y) => {
 }
 
 const togglePause = (x, y) => {
+    // TODO
     const el = findElementAtPosition(x, y)
     if (matchesQuery(el, "audio, video")) {
         if (el.paused) {
@@ -161,6 +167,7 @@ const togglePause = (x, y) => {
 }
 
 const volumeDown = (x, y) => {
+    // TODO
     const el = findElementAtPosition(x, y)
     if (matchesQuery(el, "audio, video")) {
         el.volume = Math.max(0, el.volume - 0.1) || 0
@@ -168,12 +175,14 @@ const volumeDown = (x, y) => {
 }
 
 const volumeUp = (x, y) => {
+    // TODO
     const el = findElementAtPosition(x, y)
     if (matchesQuery(el, "audio, video")) {
         el.volume = Math.min(1, el.volume + 0.1) || 1
     }
 }
 
+// TODO
 const documentAtPos = (x, y) => findElementAtPosition(x, y)
     ?.ownerDocument || document
 
@@ -231,6 +240,7 @@ const calculateOffset = (startNode, startX, startY, x, y) => {
     return {"node": properNode, offset}
 }
 
+// TODO
 const selectionAll = (x, y) => documentAtPos(x, y).execCommand("selectAll")
 const selectionCut = (x, y) => documentAtPos(x, y).execCommand("cut")
 const selectionPaste = (x, y) => documentAtPos(x, y).execCommand("paste")

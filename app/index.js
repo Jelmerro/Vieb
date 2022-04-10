@@ -1482,3 +1482,68 @@ ipcMain.on("mouse-location", e => {
     }
     e.returnValue = null
 })
+ipcMain.on("follow-mode-start", (_, id, switchTo = false) => {
+    webContents.fromId(id).mainFrame.framesInSubtree.forEach(
+        f => f.send("follow-mode-start"))
+    if (switchTo) {
+        allLinks = []
+    }
+})
+ipcMain.on("follow-mode-stop", e => {
+    e.sender.mainFrame.framesInSubtree.forEach(f => f.send("follow-mode-stop"))
+})
+let allLinks = []
+const frameInfo = {}
+ipcMain.on("frame-details", (e, details) => {
+    const frameId = `${e.frameId}-${e.processId}`
+    if (!frameInfo[frameId]) {
+        frameInfo[frameId] = {}
+    }
+    frameInfo[frameId].url = details.url
+    details.subframes.forEach(subframe => {
+        Object.keys(frameInfo).forEach(id => {
+            if (frameInfo[id].url === subframe.url) {
+                frameInfo[id].x = subframe.x
+                frameInfo[id].y = subframe.y
+                frameInfo[id].width = subframe.width
+                frameInfo[id].height = subframe.height
+                frameInfo[id].pagex = details.pagex
+                frameInfo[id].pagey = details.pagey
+                frameInfo[id].parent = frameId
+            }
+        })
+    })
+})
+ipcMain.on("follow-response", (e, rawLinks) => {
+    const frameId = `${e.frameId}-${e.processId}`
+    const info = frameInfo[frameId]
+    let frameX = info?.x || 0
+    let frameY = info?.y || 0
+    let parent = info?.parent
+    while (parent) {
+        const parentInfo = frameInfo[parent]
+        frameX += parentInfo?.x || 0
+        frameY += parentInfo?.y || 0
+        parent = parentInfo?.parent
+    }
+    const frameLinks = rawLinks.map(l => ({
+        ...l,
+        "frameAbsX": frameX,
+        "frameAbsY": frameY,
+        "frameHeight": info?.height,
+        frameId,
+        "frameWidth": info?.width,
+        "frameX": info?.x,
+        "frameY": info?.y,
+        "x": l.x + frameX,
+        "xInFrame": l.x,
+        "y": l.y + frameY,
+        "yInFrame": l.y
+    }))
+    const allFramesIds = mainWindow.webContents.mainFrame
+        .framesInSubtree.map(f => `${f.routingId}-${f.processId}`)
+    allLinks = allLinks.filter(l => l.frameId !== frameId
+        && allFramesIds.includes(l.frameId))
+    allLinks = allLinks.concat(frameLinks)
+    mainWindow.webContents.send("follow-response", allLinks)
+})

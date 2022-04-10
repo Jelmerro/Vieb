@@ -913,10 +913,6 @@ const addWebviewListeners = webview => {
                 }
             }
         }
-        if (e.channel === "follow-response") {
-            const {parseAndDisplayLinks} = require("./follow")
-            parseAndDisplayLinks(e.args[0])
-        }
         if (e.channel === "scroll-height-diff") {
             const {clear} = require("./contextmenu")
             clear()
