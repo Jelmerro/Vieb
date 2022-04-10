@@ -34,7 +34,6 @@ let appDataPath = ""
 let homeDirPath = ""
 let configSettings = ""
 const framePaddingInfo = []
-const frameSelector = "embed, frame, iframe, object"
 const specialChars = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/\s]/gi
 const specialCharsAllowSpaces = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/]/gi
 const dataUris = [
@@ -358,11 +357,6 @@ const findElementAtPosition = (x, y, levels = [document], px = 0, py = 0) => {
     if (levels.includes(elementAtPos?.shadowRoot || elementAtPos)) {
         return elementAtPos
     }
-    if (matchesQuery(elementAtPos, frameSelector)) {
-        const frameInfo = findFrameInfo(elementAtPos) || {}
-        return findElementAtPosition(x, y,
-            [elementAtPos.contentDocument, ...levels], frameInfo.x, frameInfo.y)
-    }
     if (elementAtPos?.shadowRoot) {
         const frameInfo = findFrameInfo(elementAtPos.shadowRoot) || {}
         return findElementAtPosition(x, y,
@@ -380,20 +374,17 @@ const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
         elements = Array.from(base.querySelectorAll(sel) || [])
     }
     Array.from(base.querySelectorAll("*") || [])
-        .filter(el => el.shadowRoot || matchesQuery(el, frameSelector))
-        .forEach(el => {
+        .filter(el => el.shadowRoot).forEach(el => {
             let location = {"x": paddedX, "y": paddedY}
             if (!el.shadowRoot) {
                 const {"x": frameX, "y": frameY} = framePosition(el)
                 location = {"x": frameX + paddedX, "y": frameY + paddedY}
             }
             storeFrameInfo(el?.shadowRoot || el, location)
-            const extra = Array.from((el.contentDocument || el.shadowRoot)
-                ?.querySelectorAll(sel) || [])
+            const extra = Array.from(el.shadowRoot?.querySelectorAll(sel) || [])
             extra.forEach(e => storeFrameInfo(e, location))
             elements = elements.concat([...extra, ...querySelectorAll(sel,
-                el.contentDocument || el.shadowRoot,
-                location.x, location.y)])
+                el.shadowRoot, location.x, location.y)])
         })
     return elements
 }
@@ -423,26 +414,7 @@ const activeElement = () => {
     if (document.activeElement?.shadowRoot?.activeElement) {
         return document.activeElement.shadowRoot.activeElement
     }
-    if (document.activeElement !== document.body) {
-        if (!matchesQuery(document.activeElement, frameSelector)) {
-            return document.activeElement
-        }
-    }
-    return querySelectorAll(frameSelector).map(frame => {
-        const doc = frame.contentDocument
-        if (!doc) {
-            return false
-        }
-        if (doc.activeElement?.shadowRoot?.activeElement) {
-            return doc.activeElement.shadowRoot.activeElement
-        }
-        if (doc.body !== doc.activeElement) {
-            if (!matchesQuery(doc.activeElement, frameSelector)) {
-                return doc.activeElement
-            }
-        }
-        return false
-    }).find(el => el)
+    return document.activeElement
 }
 
 const formatSize = size => {
@@ -876,7 +848,6 @@ const modifiedAt = loc => {
 // Disabled import sort order as the order is optimized to reduce module loads
 /* eslint-disable sort-keys/sort-keys-fix */
 module.exports = {
-    frameSelector,
     specialChars,
     specialCharsAllowSpaces,
     hasProtocol,
@@ -898,6 +869,7 @@ module.exports = {
     sameDomain,
     formatDate,
     findFrameInfo,
+    framePosition,
     propPixels,
     matchesQuery,
     findElementAtPosition,

@@ -25,6 +25,7 @@ const {
     propPixels,
     findFrameInfo,
     findClickPosition,
+    framePosition,
     activeElement,
     readJSON,
     joinPath,
@@ -206,15 +207,12 @@ const sendFollowLinks = () => {
         "scrollHeight": document.body.scrollHeight,
         "scrollWidth": document.body.scrollWidth,
         "subframes": [...querySelectorAll("iframe") || []].map(f => ({
-            "borderWidth": propPixels(f, "borderWidth") || 0,
             "bounds": JSON.stringify(f.getBoundingClientRect()),
             "height": f.getBoundingClientRect().height || f.clientHeight,
-            "paddingLeft": propPixels(f, "paddingLeft") || 0,
-            "paddingTop": propPixels(f, "paddingTop") || 0,
             "url": f.src,
             "width": f.getBoundingClientRect().width || f.clientWidth,
-            "x": f.getBoundingClientRect().x || f.offsetLeft,
-            "y": f.getBoundingClientRect().y || f.offsetTop
+            "x": framePosition(f).x,
+            "y": framePosition(f).y
         })),
         "url": window.location.href,
         "width": window.innerWidth

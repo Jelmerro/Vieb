@@ -1505,9 +1505,6 @@ ipcMain.on("frame-details", (e, details) => {
             if (frameInfo[id].url === subframe.url) {
                 frameInfo[id].x = subframe.x
                 frameInfo[id].y = subframe.y
-                frameInfo[id].borderWidth = subframe.borderWidth
-                frameInfo[id].paddingTop = subframe.paddingTop
-                frameInfo[id].paddingLeft = subframe.paddingLeft
                 frameInfo[id].width = subframe.width
                 frameInfo[id].height = subframe.height
                 frameInfo[id].pagex = details.pagex
@@ -1520,17 +1517,13 @@ ipcMain.on("frame-details", (e, details) => {
 ipcMain.on("follow-response", (e, rawLinks) => {
     const frameId = `${e.frameId}-${e.processId}`
     const info = frameInfo[frameId]
-    let frameX = (info?.x || 0) + (info?.borderWidth || 0)
-        + (info?.paddingLeft || 0)
-    let frameY = (info?.y || 0) + (info?.borderWidth || 0)
-        + (info?.paddingTop || 0)
+    let frameX = info?.x || 0
+    let frameY = info?.y || 0
     let parent = info?.parent
     while (parent) {
         const parentInfo = frameInfo[parent]
-        frameX += (parentInfo?.x || 0) + (parentInfo?.borderWidth || 0)
-            + (parentInfo?.paddingLeft || 0)
-        frameY += (parentInfo?.y || 0) + (parentInfo?.borderWidth || 0)
-            + (parentInfo?.paddingTop || 0)
+        frameX += parentInfo?.x || 0
+        frameY += parentInfo?.y || 0
         parent = parentInfo?.parent
     }
     const frameLinks = rawLinks.map(l => ({
