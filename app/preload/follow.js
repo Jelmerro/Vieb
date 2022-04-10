@@ -18,7 +18,6 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {privacyFixes} = require("./privacy")
 const {
     matchesQuery,
     findElementAtPosition,
@@ -26,7 +25,6 @@ const {
     propPixels,
     findFrameInfo,
     findClickPosition,
-    frameSelector,
     activeElement,
     readJSON,
     joinPath,
@@ -554,22 +552,6 @@ ipcRenderer.on("contextmenu", (_, extraData = null) => {
     }, findFrameInfo(els[0])?.element, extraData)
 })
 window.addEventListener("auxclick", contextListener)
-
-setInterval(() => {
-    // Regular listeners are wiped when the element is re-added to the dom,
-    // so add them with an interval as an attribute listener.
-    [...querySelectorAll(frameSelector)].forEach(f => {
-        try {
-            f.contentDocument.onclick = e => clickListener(e, f)
-            f.contentDocument.oncontextmenu = e => contextListener(e, f)
-            f.contentDocument.onmousedown = e => mouseDownListener(e, f)
-            f.contentDocument.onmouseup = e => mouseUpListener(e, f)
-            privacyFixes(f.contentWindow)
-        } catch {
-            // Not an issue, will be retried shortly
-        }
-    })
-}, 0)
 
 let searchElement = null
 let scrollHeight = 0

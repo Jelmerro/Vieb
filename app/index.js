@@ -110,9 +110,6 @@ Options:
                          When set to user, the document must be focussed first.
                          You can also use the ENV var: 'VIEB_AUTOPLAY_MEDIA'.
 
- --site-isolation=<val>  string [REGULAR/strict]: Set the site isolation level.
-                         You can also use the ENV var: 'VIEB_SITE_ISOLATION'.
-
  --acceleration=<val>    string [HARDWARE/software]: Use hardware acceleration.
                          You can also use the ENV var: 'VIEB_ACCELERATION'.
 
@@ -197,8 +194,6 @@ let argMediaKeys = isTruthyArg(process.env.VIEB_MEDIA_KEYS)
 if (!process.env.VIEB_MEDIA_KEYS) {
     argMediaKeys = true
 }
-let argSiteIsolation = process.env.VIEB_SITE_ISOLATION?.trim().toLowerCase()
-    || "regular"
 let argAutoplayMedia = process.env.VIEB_AUTOPLAY_MEDIA?.trim().toLowerCase()
     || "user"
 let argAcceleration = process.env.VIEB_ACCELERATION?.trim().toLowerCase()
@@ -237,9 +232,6 @@ args.forEach(a => {
             console.warn("The 'media-keys' argument requires a value such as:"
                 + " --media-keys=true\n")
             printUsage()
-        } else if (arg === "--site-isolation") {
-            console.warn("The 'site-isolation' argument requires a value such "
-                + "as: --site-isolation=regular\n")
         } else if (arg === "--autoplay-media") {
             console.warn("The 'autoplay-media' argument requires a value such "
                 + "as: --autoplay-media=user\n")
@@ -260,8 +252,6 @@ args.forEach(a => {
             argWindowFrame = isTruthyArg(arg.split("=").slice(1).join("="))
         } else if (arg.startsWith("--media-keys=")) {
             argMediaKeys = isTruthyArg(arg.split("=").slice(1).join("="))
-        } else if (arg.startsWith("--site-isolation=")) {
-            argSiteIsolation = arg.split("=").slice(1).join("=").toLowerCase()
         } else if (arg.startsWith("--autoplay-media=")) {
             argAutoplayMedia = arg.split("=").slice(1).join("=").toLowerCase()
         } else if (arg.startsWith("--acceleration=")) {
@@ -274,11 +264,6 @@ args.forEach(a => {
         urls.push(arg)
     }
 })
-if (argSiteIsolation !== "regular" && argSiteIsolation !== "strict") {
-    console.warn("The 'site-isolation' argument only accepts:\n"
-        + "'regular' or 'strict'\n")
-    printUsage()
-}
 if (argAutoplayMedia !== "user" && argAutoplayMedia !== "always") {
     console.warn("The 'autoplay-media' argument only accepts:\n"
         + "'user' or 'always'\n")
@@ -317,9 +302,6 @@ if (argConfigOverride) {
 // https://github.com/electron/electron/issues/30201
 app.commandLine.appendSwitch("disable-features",
     "CrossOriginOpenerPolicy,UserAgentClientHint")
-if (argSiteIsolation === "regular") {
-    app.commandLine.appendSwitch("disable-site-isolation-trials")
-}
 if (argAcceleration === "software") {
     app.disableHardwareAcceleration()
 }
@@ -439,6 +421,11 @@ app.on("ready", () => {
             "allowpopups": true,
             "contextIsolation": false,
             "disableBlinkFeatures": "Auxclick",
+            // Info on nodeIntegrationInSubFrames and nodeIntegrationInWorker:
+            // https://github.com/electron/electron/issues/22582
+            // https://github.com/electron/electron/issues/28620
+            "nodeIntegrationInSubFrames": true,
+            "nodeIntegrationInWorker": true,
             "preload": joinPath(__dirname, "renderer/index.js"),
             "sandbox": false,
             "webviewTag": true
@@ -471,8 +458,6 @@ app.on("ready", () => {
         prefs.preload = joinPath(__dirname, "preload/index.js")
         prefs.sandbox = false
         prefs.contextIsolation = false
-        prefs.webSecurity = argSiteIsolation === "strict"
-        prefs.allowRunningInsecureContent = false
     })
     mainWindow.webContents.on("did-attach-webview", (_, contents) => {
         let navigationUrl = null

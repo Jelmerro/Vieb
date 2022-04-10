@@ -393,11 +393,14 @@ const unsuspendPage = page => {
             webview.setAttribute(attr, page.getAttribute(attr))
         }
     })
-    let prefs = "spellcheck=true,transparent=true,backgroundColor=#33333300"
+    let prefs = "spellcheck=true,transparent=true,backgroundColor=#33333300,"
     if (appConfig().autoplay === "user") {
-        prefs += ",autoplayPolicy=document-user-activation-required"
+        prefs += "autoplayPolicy=document-user-activation-required,"
     }
-    prefs += ",disableDialogs"
+    // Info on nodeIntegrationInSubFrames and nodeIntegrationInWorker:
+    // https://github.com/electron/electron/issues/22582
+    // https://github.com/electron/electron/issues/28620
+    prefs += "disableDialogs,nodeIntegrationInSubFrames,nodeIntegrationInWorker"
     webview.setAttribute("allowpopups", "true")
     webview.setAttribute("webpreferences", prefs)
     const sessionName = page.getAttribute("container")

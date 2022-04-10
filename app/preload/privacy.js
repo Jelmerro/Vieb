@@ -415,5 +415,3 @@ const customDisplayMedia = frameWindow => new Promise((resolve, reject) => {
         reject(err)
     }
 })
-
-module.exports = {privacyFixes}
