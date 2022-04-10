@@ -206,8 +206,11 @@ const sendFollowLinks = () => {
         "scrollHeight": document.body.scrollHeight,
         "scrollWidth": document.body.scrollWidth,
         "subframes": [...querySelectorAll("iframe") || []].map(f => ({
+            "borderWidth": propPixels(f, "borderWidth") || 0,
             "bounds": JSON.stringify(f.getBoundingClientRect()),
             "height": f.getBoundingClientRect().height || f.clientHeight,
+            "paddingLeft": propPixels(f, "paddingLeft") || 0,
+            "paddingTop": propPixels(f, "paddingTop") || 0,
             "url": f.src,
             "width": f.getBoundingClientRect().width || f.clientWidth,
             "x": f.getBoundingClientRect().x || f.offsetLeft,
@@ -232,6 +235,7 @@ ipcRenderer.on("follow-mode-stop", () => {
 // Send the page once every second in case of transitions or animations
 // Could be done with an observer, but that drastically slows down on big pages
 setInterval(sendFollowLinks, 1000)
+window.addEventListener("DOMContentLoaded", sendFollowLinks)
 window.addEventListener("resize", sendFollowLinks)
 
 const pseudoElementRects = element => {
