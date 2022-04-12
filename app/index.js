@@ -1499,6 +1499,7 @@ ipcMain.on("frame-details", (e, details) => {
     if (!frameInfo[frameId]) {
         frameInfo[frameId] = {}
     }
+    frameInfo[frameId].id = frameId
     frameInfo[frameId].url = details.url
     details.subframes.forEach(subframe => {
         Object.keys(frameInfo).forEach(id => {
@@ -1547,3 +1548,72 @@ ipcMain.on("follow-response", (e, rawLinks) => {
     allLinks = allLinks.concat(frameLinks)
     mainWindow.webContents.send("follow-response", allLinks)
 })
+const findRelevantSubFrame = (wc, x, y) => {
+    const absoluteFrames = wc.mainFrame.framesInSubtree.map(f => {
+        const id = `${f.routingId}-${f.processId}`
+        const info = frameInfo[id]
+        if (!info?.parent) {
+            return null
+        }
+        info.absX = info.x
+        info.absY = info.y
+        let parent = frameInfo[info.parent]
+        while (parent) {
+            info.absX += parent.x || 0
+            info.absY += parent.y || 0
+            parent = frameInfo[parent]
+        }
+        return info
+    }).filter(f => f)
+    let relevantFrame = null
+    absoluteFrames.forEach(info => {
+        if (info.absX < x && info.absY < y) {
+            if (info.absX + info.width > x && info.absY + info.height > y) {
+                if (relevantFrame) {
+                    if (relevantFrame.width > info.width) {
+                        // A smaller frame means a subframe, use that instead
+                        relevantFrame = info
+                    }
+                } else {
+                    relevantFrame = info
+                }
+            }
+        }
+    })
+    return relevantFrame
+}
+ipcMain.on("action", (_, id, ...opts) => {
+    const wc = webContents.fromId(id)
+    if (typeof opts[0] === "number" && typeof opts[1] === "number") {
+        // TODO
+    } else {
+        wc.mainFrame.framesInSubtree.forEach(f => f.send("action", ...opts))
+    }
+})
+ipcMain.on("contextmenu-data", (_, id, info) => {
+    const wc = webContents.fromId(id)
+    const subframe = findRelevantSubFrame(wc, info.x, info.y)
+    if (subframe) {
+        const frameRef = wc.mainFrame.framesInSubtree.find(f => {
+            const frameId = `${f.routingId}-${f.processId}`
+            return frameId === subframe.id
+        })
+        frameRef.send("contextmenu-data", {
+            ...info, "x": info.x - subframe.absX, "y": info.y - subframe.absY
+        })
+    } else {
+        wc.send("contextmenu-data", info)
+    }
+})
+ipcMain.on("contextmenu", (_, id) => {
+    // TODO add a filter in follow preload based on activeelement
+    webContents.fromId(id).mainFrame.framesInSubtree.forEach(
+        f => f.send("contextmenu"))
+})
+ipcMain.on("focus-input", (_, id, location) => {
+    const wc = webContents.fromId(id)
+    const subframe = findRelevantSubFrame(wc, location.x, location.y)
+    // TODO Send to all + add a filter in follow preload based on activeelement
+})
+// TODO add listener to handle click on follow element
+// TODO add listeners for pointer mode actions

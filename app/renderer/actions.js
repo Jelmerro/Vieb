@@ -27,7 +27,8 @@ const {
     watchFile,
     readFile,
     searchword,
-    stringToUrl
+    stringToUrl,
+    sendToPageOrSubFrame
 } = require("../util")
 const {
     listTabs,
@@ -56,17 +57,17 @@ const emptySearch = () => {
 
 const clickOnSearch = () => {
     if (currentSearch) {
-        currentPage()?.send("search-element-click")
+        sendToPageOrSubFrame("search-element-click")
     }
 }
 
-const nextPage = () => currentPage()?.send("action", "nextPage")
+const nextPage = () => sendToPageOrSubFrame("action", "nextPage")
 
-const previousPage = () => currentPage()?.send("action", "previousPage")
+const previousPage = () => sendToPageOrSubFrame("action", "previousPage")
 
-const nextPageNewTab = () => currentPage()?.send("action", "nextPage", true)
+const nextPageNewTab = () => sendToPageOrSubFrame("action", "nextPage", true)
 
-const previousPageNewTab = () => currentPage()?.send(
+const previousPageNewTab = () => sendToPageOrSubFrame(
     "action", "previousPage", true)
 
 const increasePageNumber = () => movePageNumber(1)
@@ -169,7 +170,7 @@ const toExploreMode = () => {
     setMode("explore")
 }
 
-const insertAtFirstInput = () => currentPage()?.send("focus-input")
+const insertAtFirstInput = () => sendToPageOrSubFrame("focus-input")
 
 const toInsertMode = () => {
     const {setMode} = require("./modes")
@@ -198,13 +199,13 @@ const scrollPageLeft = () => currentPage()?.send("action", "scrollPageLeft")
 
 const scrollPageUp = () => currentPage()?.send("action", "scrollPageUp")
 
-const scrollPageDownHalf = () => {
-    currentPage()?.send("action", "scrollPageDownHalf")
-}
+const scrollPageDownHalf = () => currentPage()?.send(
+    "action", "scrollPageDownHalf")
 
 const scrollPageDown = () => currentPage()?.send("action", "scrollPageDown")
 
-const scrollPageUpHalf = () => currentPage()?.send("action", "scrollPageUpHalf")
+const scrollPageUpHalf = () => currentPage()?.send(
+    "action", "scrollPageUpHalf")
 
 const nextSearchMatch = () => {
     if (currentSearch) {
@@ -434,7 +435,8 @@ const editWithVim = () => {
                 return
             }
             if (typeOfEdit === "input") {
-                page.send("action", "setInputFieldText", tempFile, contents)
+                sendToPageOrSubFrame("action",
+                    "setInputFieldText", tempFile, contents)
             } else if ("ces".includes(currentMode()[0])) {
                 document.getElementById("url").value = contents
                 const {updateSuggestions} = require("./input")
@@ -454,7 +456,7 @@ const editWithVim = () => {
         }
     })
     if (typeOfEdit === "input") {
-        page.send("action", "writeInputToFile", tempFile)
+        sendToPageOrSubFrame("action", "writeInputToFile", tempFile)
     }
     if (typeOfEdit === "navbar") {
         setTimeout(() => writeFile(
@@ -714,7 +716,7 @@ const menuOpen = () => {
             "y": bounds.y + bounds.height
         })
     } else if (currentMode() === "insert") {
-        currentPage()?.send("contextmenu")
+        sendToPageOrSubFrame("contextmenu")
     } else if ("sec".includes(currentMode()[0])) {
         const selected = document.querySelector("#suggest-dropdown .selected")
         let bounds = selected?.getBoundingClientRect()

@@ -23,7 +23,6 @@ const {
     findElementAtPosition,
     querySelectorAll,
     propPixels,
-    findFrameInfo,
     findClickPosition,
     framePosition,
     activeElement,
@@ -72,7 +71,6 @@ const otherEvents = [
 const previouslyFocussedElements = []
 
 ipcRenderer.on("focus-input", async(_, follow = null) => {
-    // TODO
     let el = null
     if (follow) {
         el = findElementAtPosition(follow.x, follow.y)
@@ -286,14 +284,6 @@ const parseElement = (element, type) => {
         ])
     }
     rects = rects.concat(pseudoElementRects(element))
-    const paddingInfo = findFrameInfo(element)
-    if (paddingInfo) {
-        rects = rects.map(r => {
-            r.x += paddingInfo.x
-            r.y += paddingInfo.y
-            return r
-        })
-    }
     // Find a clickable area and position for the given element
     const {dimensions, clickable} = findClickPosition(element, rects)
     // Return null if any of the checks below fail
@@ -369,7 +359,6 @@ EventTarget.prototype.removeEventListener = function(type, listener, options) {
 
 const clickListener = (e, frame = null) => {
     if (e.isTrusted) {
-        const paddingInfo = findFrameInfo(frame)
         const inputEl = e.composedPath().find(
             el => matchesQuery(el, textlikeInputs))
         const focusEl = [
@@ -382,8 +371,8 @@ const clickListener = (e, frame = null) => {
             "toinsert": !!inputEl,
             "tovisual": (frame?.contentWindow || window)
                 .getSelection().toString(),
-            "x": e.x + (paddingInfo?.x || 0),
-            "y": e.y + (paddingInfo?.y || 0)
+            "x": e.x,
+            "y": e.y
         })
     }
 }
@@ -406,16 +395,14 @@ const mouseDownListener = (e, frame = null) => {
     if (e.composedPath().find(el => matchesQuery(el, "select, option"))) {
         clickListener(e, frame)
     }
-    const paddingInfo = findFrameInfo(frame)
-    startX = e.clientX + (paddingInfo?.x || 0)
-    startY = e.clientY + (paddingInfo?.y || 0)
+    startX = e.clientX
+    startY = e.clientY
 }
 window.addEventListener("mousedown", mouseDownListener,
     {"capture": true, "passive": true})
 const mouseUpListener = (e, frame = null) => {
-    const paddingInfo = findFrameInfo(frame)
-    const endX = e.clientX + (paddingInfo?.x || 0)
-    const endY = e.clientY + (paddingInfo?.y || 0)
+    const endX = e.clientX
+    const endY = e.clientY
     const diffX = Math.abs(endX - startX)
     const diffY = Math.abs(endY - startY)
     ipcRenderer.sendToHost("mouse-up")
@@ -438,7 +425,6 @@ window.addEventListener("mouseup", mouseUpListener,
     {"capture": true, "passive": true})
 
 ipcRenderer.on("replace-input-field", (_, value, position) => {
-    // TODO
     const input = activeElement()
     if (matchesQuery(input, textlikeInputs)) {
         if (typeof input.value === "string" && input.setSelectionRange) {
@@ -461,10 +447,9 @@ ipcRenderer.on("replace-input-field", (_, value, position) => {
 const getSvgData = el => `data:image/svg+xml,${encodeURIComponent(el.outerHTML)
     .replace(/'/g, "%27").replace(/"/g, "%22")}`
 
-const contextListener = (e, frame = null, extraData = null) => {
+const contextListener = (e, extraData = null) => {
     if (e.isTrusted && !inFollowMode && e.button === 2) {
         e.preventDefault?.()
-        const paddingInfo = findFrameInfo(frame)
         const img = e.composedPath().find(el => ["svg", "img"]
             .includes(el.tagName?.toLowerCase()))
         const backgroundImg = e.composedPath().map(el => {
@@ -496,6 +481,7 @@ const contextListener = (e, frame = null, extraData = null) => {
             el => el.tagName?.toLowerCase() === "a" && el.href?.trim())
         const text = e.composedPath().find(
             el => matchesQuery(el, textlikeInputs))
+        // TODO send to main instead of renderer, and add frame data to it
         ipcRenderer.sendToHost("context-click-info", {
             "audio": audio?.src?.trim(),
             "audioData": {
@@ -508,7 +494,8 @@ const contextListener = (e, frame = null, extraData = null) => {
             backgroundImg,
             "canEdit": !!text,
             extraData,
-            "frame": frame?.src,
+            "frame": e.composedPath().find(
+                el => matchesQuery(el, "iframe"))?.src,
             "hasElementListener": eventListeners.contextmenu.has(
                 e.composedPath()[0])
                 || eventListeners.auxclick.has(e.composedPath()[0]),
@@ -522,7 +509,7 @@ const contextListener = (e, frame = null, extraData = null) => {
                 || text?.getRootNode().getSelection()?.baseNode?.textContent,
             "link": link?.href?.trim(),
             "svgData": img && getSvgData(img),
-            "text": (frame?.contentWindow || window).getSelection().toString(),
+            "text": window.getSelection().toString(),
             "video": video?.src?.trim(),
             "videoData": {
                 "controllable": !!videoEl,
@@ -533,13 +520,12 @@ const contextListener = (e, frame = null, extraData = null) => {
                 "muted": videoEl?.volume === 0,
                 "paused": videoEl?.paused
             },
-            "x": e.x + (paddingInfo?.x || 0),
-            "y": e.y + (paddingInfo?.y || 0)
+            "x": e.x,
+            "y": e.y
         })
     }
 }
 ipcRenderer.on("contextmenu-data", (_, request) => {
-    // TODO
     const {x, y} = request
     const els = [findElementAtPosition(x, y)]
     while (els[0].parentNode && els[0].parentNode !== els[1]?.parentNode) {
@@ -548,10 +534,9 @@ ipcRenderer.on("contextmenu-data", (_, request) => {
     els.reverse()
     contextListener({
         "button": 2, "composedPath": () => els, "isTrusted": true, x, y
-    }, findFrameInfo(els[0])?.element, request)
+    }, request)
 })
 ipcRenderer.on("contextmenu", (_, extraData = null) => {
-    // TODO
     const els = [activeElement()]
     const parsed = parseElement(els[0])
     let x = parsed?.x || 0
@@ -572,7 +557,7 @@ ipcRenderer.on("contextmenu", (_, extraData = null) => {
     els.reverse()
     contextListener({
         "button": 2, "composedPath": () => els, "isTrusted": true, x, y
-    }, findFrameInfo(els[0])?.element, extraData)
+    }, extraData)
 })
 window.addEventListener("auxclick", contextListener)
 

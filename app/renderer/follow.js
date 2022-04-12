@@ -18,7 +18,6 @@
 "use strict"
 
 const {
-    listPages,
     currentPage,
     currentTab,
     currentMode,
@@ -28,7 +27,7 @@ const {
     getMouseConf
 } = require("./common")
 
-const {propPixels} = require("../util")
+const {propPixels, sendToPageOrSubFrame} = require("../util")
 const {ipcRenderer} = require("electron")
 
 let followLinkDestination = "current"
@@ -145,8 +144,10 @@ const clickAtLink = async link => {
     await new Promise(r => {
         setTimeout(r, 2)
     })
+    // TODO send input requests to preload via main to make use of frame data
+    // Also see if this code is duplicated for pointer mode and can be merged
     if (link.type === "inputs-insert") {
-        currentPage().send("focus-input",
+        sendToPageOrSubFrame("focus-input",
             {"x": link.x + link.width / 2, "y": link.y + link.height / 2})
     } else {
         currentPage().sendInputEvent({
@@ -308,14 +309,6 @@ const parseAndDisplayLinks = receivedLinks => {
             borderElement.appendChild(linkElement)
         }
     })
-    // followChildren.forEach(el => {
-    //     const link = el.querySelector("[link-id]")
-    //     const sameStart = followChildren.find(f => f.textContent.trim()
-    //         .startsWith(link.textContent.slice(1)) && f !== el)
-    //     if (!sameStart && link.textContent.length > 1) {
-    //         link.textContent = link.textContent.slice(1)
-    //     }
-    // })
     document.getElementById("follow").replaceChildren(...followChildren)
     applyIndexedOrder()
 }

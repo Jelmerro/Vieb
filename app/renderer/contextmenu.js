@@ -25,7 +25,8 @@ const {
     notify,
     title,
     isUrl,
-    propPixels
+    propPixels,
+    sendToPageOrSubFrame
 } = require("../util")
 const {
     listTabs,
@@ -277,7 +278,7 @@ const webviewMenu = options => {
             createMenuItem({
                 "action": () => {
                     words[wordIndex] = suggestion
-                    currentPage().send("replace-input-field",
+                    sendToPageOrSubFrame("replace-input-field",
                         words.join(""), options.inputSel)
                 },
                 "title": suggestion
@@ -286,7 +287,7 @@ const webviewMenu = options => {
     }
     createMenuGroup("Text")
     createMenuItem({
-        "action": () => currentPage().send("action", "selectionAll",
+        "action": () => sendToPageOrSubFrame("action", "selectionAll",
             options.x, options.y),
         "title": "Select all"
     })
@@ -313,7 +314,7 @@ const webviewMenu = options => {
         })
         if (options.canEdit) {
             createMenuItem({
-                "action": () => currentPage().send("action", "selectionCut",
+                "action": () => sendToPageOrSubFrame("action", "selectionCut",
                     options.x, options.y),
                 "title": "Cut"
             })
@@ -325,7 +326,7 @@ const webviewMenu = options => {
     }
     if (options.canEdit && clipboard.readText().trim()) {
         createMenuItem({
-            "action": () => currentPage().send("action", "selectionPaste",
+            "action": () => sendToPageOrSubFrame("action", "selectionPaste",
                 options.x, options.y),
             "title": "Paste"
         })
@@ -415,7 +416,7 @@ const webviewMenu = options => {
                 playTitle = "Play"
             }
             createMenuItem({
-                "action": () => currentPage()?.send("action",
+                "action": () => sendToPageOrSubFrame("action",
                     "togglePause", options.x, options.y),
                 "title": playTitle
             })
@@ -424,7 +425,7 @@ const webviewMenu = options => {
                 muteTitle = "Unmute"
             }
             createMenuItem({
-                "action": () => currentPage()?.send("action",
+                "action": () => sendToPageOrSubFrame("action",
                     "toggleMute", options.x, options.y),
                 "title": muteTitle
             })
@@ -433,7 +434,7 @@ const webviewMenu = options => {
                 loopTitle = "Unloop"
             }
             createMenuItem({
-                "action": () => currentPage()?.send("action",
+                "action": () => sendToPageOrSubFrame("action",
                     "toggleLoop", options.x, options.y),
                 "title": loopTitle
             })
@@ -443,18 +444,18 @@ const webviewMenu = options => {
                     controlsTitle = "Hide controls"
                 }
                 createMenuItem({
-                    "action": () => currentPage()?.send("action",
+                    "action": () => sendToPageOrSubFrame("action",
                         "toggleControls", options.x, options.y),
                     "title": controlsTitle
                 })
             }
             createMenuItem({
-                "action": () => currentPage()?.send("action",
+                "action": () => sendToPageOrSubFrame("action",
                     "volumeUp", options.x, options.y),
                 "title": "Volume up"
             })
             createMenuItem({
-                "action": () => currentPage()?.send("action",
+                "action": () => sendToPageOrSubFrame("action",
                     "volumeDown", options.x, options.y),
                 "title": "Volume down"
             })

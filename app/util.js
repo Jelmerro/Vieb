@@ -33,7 +33,6 @@ const notificationHistory = []
 let appDataPath = ""
 let homeDirPath = ""
 let configSettings = ""
-const framePaddingInfo = []
 const specialChars = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/\s]/gi
 const specialCharsAllowSpaces = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/]/gi
 const dataUris = [
@@ -303,20 +302,6 @@ const formatDate = dateStringOrNumber => {
         String(date.getSeconds()).padStart(2, "0")}`
 }
 
-const storeFrameInfo = (element, options) => {
-    if (!element) {
-        return
-    }
-    const info = framePaddingInfo.find(i => i.element === element)
-    if (info) {
-        Object.assign(info, options)
-    } else {
-        framePaddingInfo.push({element, ...options})
-    }
-}
-
-const findFrameInfo = el => framePaddingInfo.find(i => i.element === el)
-
 const framePosition = frame => ({
     "x": frame.getBoundingClientRect().x + propPixels(frame, "paddingLeft")
         + propPixels(frame, "borderLeftWidth"),
@@ -350,22 +335,20 @@ const matchesQuery = (el, query) => {
     }
 }
 
-const findElementAtPosition = (x, y, levels = [document], px = 0, py = 0) => {
+const findElementAtPosition = (x, y, levels = [document]) => {
     // Find out which element is located at a given position.
     // Will look inside subframes recursively at the corrected position.
-    const elementAtPos = levels?.[0]?.elementFromPoint(x - px, y - py)
+    const elementAtPos = levels[0]?.elementFromPoint(x, y)
     if (levels.includes(elementAtPos?.shadowRoot || elementAtPos)) {
         return elementAtPos
     }
     if (elementAtPos?.shadowRoot) {
-        const frameInfo = findFrameInfo(elementAtPos.shadowRoot) || {}
-        return findElementAtPosition(x, y,
-            [elementAtPos.shadowRoot, ...levels], frameInfo.x, frameInfo.y)
+        return findElementAtPosition(x, y, [elementAtPos.shadowRoot, ...levels])
     }
     return elementAtPos
 }
 
-const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
+const querySelectorAll = (sel, base = document) => {
     if (!base) {
         return []
     }
@@ -375,16 +358,9 @@ const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
     }
     Array.from(base.querySelectorAll("*") || [])
         .filter(el => el.shadowRoot).forEach(el => {
-            let location = {"x": paddedX, "y": paddedY}
-            if (!el.shadowRoot) {
-                const {"x": frameX, "y": frameY} = framePosition(el)
-                location = {"x": frameX + paddedX, "y": frameY + paddedY}
-            }
-            storeFrameInfo(el?.shadowRoot || el, location)
-            const extra = Array.from(el.shadowRoot?.querySelectorAll(sel) || [])
-            extra.forEach(e => storeFrameInfo(e, location))
-            elements = elements.concat([...extra, ...querySelectorAll(sel,
-                el.shadowRoot, location.x, location.y)])
+            const extra = Array.from(el.shadowRoot.querySelectorAll(sel) || [])
+            elements = elements.concat(
+                [...extra, ...querySelectorAll(sel, el.shadowRoot)])
         })
     return elements
 }
@@ -486,6 +462,12 @@ const extractZip = (args, cb) => {
 }
 
 // IPC UTIL
+
+const sendToPageOrSubFrame = (channel, ...args) => {
+    const {ipcRenderer} = require("electron")
+    ipcRenderer.send(channel, document.getElementById("current-page")
+        ?.getWebContentsId(), ...args)
+}
 
 const globDelete = folder => {
     // Request is send back to the main process due to electron-builder bugs:
@@ -868,7 +850,6 @@ module.exports = {
     domainName,
     sameDomain,
     formatDate,
-    findFrameInfo,
     framePosition,
     propPixels,
     matchesQuery,
@@ -880,6 +861,7 @@ module.exports = {
     compareVersions,
     extractZip,
     // IPC UTIL
+    sendToPageOrSubFrame,
     globDelete,
     clearTempContainers,
     clearCache,

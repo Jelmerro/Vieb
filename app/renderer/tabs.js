@@ -983,6 +983,7 @@ const addWebviewListeners = webview => {
         }
     })
     webview.addEventListener("found-in-page", e => {
+        // TODO
         webview.send("search-element-location", e.result.selectionArea)
         justSearched = true
         setTimeout(() => {
