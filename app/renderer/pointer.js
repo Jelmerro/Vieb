@@ -68,9 +68,8 @@ const updateElement = () => {
     currentPage().setAttribute("pointer-x", X)
     currentPage().setAttribute("pointer-y", Y)
     if (currentMode() === "pointer") {
-        // TODO
-        currentPage().sendInputEvent({"type": "mouseEnter", "x": X, "y": Y})
-        currentPage().sendInputEvent({"type": "mouseMove", "x": X, "y": Y})
+        sendToPageOrSubFrame("send-input-event",
+            {"type": "hover", "x": X, "y": Y})
     }
     if (currentMode() === "visual") {
         lastSelection = {"endX": X, "endY": Y, startX, startY}
@@ -83,8 +82,8 @@ const updateElement = () => {
 
 const releaseKeys = () => {
     try {
-        // TODO
-        currentPage().sendInputEvent({"type": "mouseLeave", "x": X, "y": Y})
+        sendToPageOrSubFrame("send-input-event",
+            {"type": "leave", "x": X, "y": Y})
         sendToPageOrSubFrame("action", "selectionRemove", zoomX(), zoomY())
     } catch {
         // Can't release keys, probably because of opening a new tab
@@ -103,8 +102,7 @@ const start = (customX = null, customY = null) => {
     Y = customY || Number(currentPage().getAttribute("pointer-y")) || Y
     const {setMode} = require("./modes")
     setMode("pointer")
-    // TODO
-    currentPage().sendInputEvent({"type": "mouseEnter", "x": X, "y": Y})
+    sendToPageOrSubFrame("send-input-event", {"type": "hover", "x": X, "y": Y})
     updateElement()
 }
 
@@ -335,20 +333,7 @@ const inspectElement = () => {
 }
 
 const leftClick = () => {
-    // TODO frame stuff
-    // TODO see if this can be used for follow mode? looks like the same code
-    currentPage().sendInputEvent({"type": "mouseEnter", "x": X, "y": Y})
-    currentPage().sendInputEvent({
-        "button": "left",
-        "clickCount": 1,
-        "type": "mouseDown",
-        "x": X,
-        "y": Y
-    })
-    currentPage().sendInputEvent({
-        "button": "left", "type": "mouseUp", "x": X, "y": Y
-    })
-    currentPage().sendInputEvent({"type": "mouseLeave", "x": X, "y": Y})
+    sendToPageOrSubFrame("send-input-event", {"type": "click", "x": X, "y": Y})
 }
 
 const startOfPage = () => {
@@ -402,13 +387,8 @@ const moveRight = () => {
 }
 
 const rightClick = () => {
-    // TODO
-    currentPage().sendInputEvent({
-        "button": "right", "clickCount": 1, "type": "mouseDown", "x": X, "y": Y
-    })
-    currentPage().sendInputEvent({
-        "button": "right", "type": "mouseUp", "x": X, "y": Y
-    })
+    sendToPageOrSubFrame("send-input-event",
+        {"button": "right", "type": "click", "x": X, "y": Y})
     const {storePointerRightClick} = require("./contextmenu")
     storePointerRightClick()
 }
@@ -444,34 +424,26 @@ const centerOfView = () => {
 }
 
 const scrollDown = () => {
-    // TODO
-    currentPage().sendInputEvent({
-        "deltaX": 0, "deltaY": -100, "type": "mouseWheel", "x": X, "y": Y
-    })
+    sendToPageOrSubFrame("send-input-event",
+        {"deltaY": -100, "type": "scroll", "x": X, "y": Y})
     updateElement()
 }
 
 const scrollUp = () => {
-    // TODO
-    currentPage().sendInputEvent({
-        "deltaX": 0, "deltaY": 100, "type": "mouseWheel", "x": X, "y": Y
-    })
+    sendToPageOrSubFrame("send-input-event",
+        {"deltaY": 100, "type": "scroll", "x": X, "y": Y})
     updateElement()
 }
 
 const scrollLeft = () => {
-    // TODO
-    currentPage().sendInputEvent({
-        "deltaX": 100, "deltaY": 0, "type": "mouseWheel", "x": X, "y": Y
-    })
+    sendToPageOrSubFrame("send-input-event",
+        {"deltaX": 100, "type": "scroll", "x": X, "y": Y})
     updateElement()
 }
 
 const scrollRight = () => {
-    // TODO
-    currentPage().sendInputEvent({
-        "deltaX": -100, "deltaY": 0, "type": "mouseWheel", "x": X, "y": Y
-    })
+    sendToPageOrSubFrame("send-input-event",
+        {"deltaX": -100, "type": "scroll", "x": X, "y": Y})
     updateElement()
 }
 

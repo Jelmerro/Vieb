@@ -1591,6 +1591,11 @@ ipcMain.on("action", (_, id, actionName, ...opts) => {
                 const frameId = `${f.routingId}-${f.processId}`
                 return frameId === subframe.id
             })
+            if (actionName === "selectionRequest") {
+                frameRef.send("action", actionName,
+                    opts[0] - subframe.absX, opts[1] - subframe.absY,
+                    opts[2] - subframe.absX, opts[3] - subframe.absY)
+            }
             frameRef.send("action", actionName, opts[0] - subframe.absX,
                 opts[1] - subframe.absY, ...opts.slice(2))
             return
@@ -1672,5 +1677,63 @@ ipcMain.on("context-click-info", (e, clickInfo) => {
         "yInFrame": clickInfo.y
     })
 })
-// TODO add listener to handle click on follow element
-// TODO add listeners for pointer mode actions
+ipcMain.on("send-input-event", (_, id, inputInfo) => {
+    const X = inputInfo.x
+    const Y = inputInfo.y
+    const wc = webContents.fromId(id)
+    const subframe = findRelevantSubFrame(wc, X, Y)
+    if (subframe) {
+        const frameRef = wc.mainFrame.framesInSubtree.find(f => {
+            const frameId = `${f.routingId}-${f.processId}`
+            return frameId === subframe.id
+        })
+        // TODO actually respond to these inside iframes
+        if (inputInfo.type === "scroll") {
+            frameRef.send("scroll-at-location", {
+                "x": X - subframe.absX, "y": Y - subframe.absY
+            })
+            return
+        }
+        frameRef.send("enter-hover-location", {
+            "x": X - subframe.absX, "y": Y - subframe.absY
+        })
+        if (inputInfo.type === "click") {
+            frameRef.send("click-at-location", {
+                "button": inputInfo.button,
+                "x": X - subframe.absX,
+                "y": Y - subframe.absY
+            })
+        }
+        if (["click", "leave"].includes(inputInfo.type)) {
+            frameRef.send("leave-hover-location", {
+                "x": X - subframe.absX, "y": Y - subframe.absY
+            })
+        }
+        return
+    }
+    if (inputInfo.type === "scroll") {
+        wc.sendInputEvent({
+            "deltaX": inputInfo.deltaX || 0,
+            "deltaY": inputInfo.deltaY || 0,
+            "type": "mouseWheel",
+            "x": X,
+            "y": Y
+        })
+        return
+    }
+    wc.sendInputEvent({"type": "mouseEnter", "x": X, "y": Y})
+    wc.sendInputEvent({"type": "mouseMove", "x": X, "y": Y})
+    if (inputInfo.type === "click") {
+        wc.sendInputEvent({
+            "button": inputInfo.button || "left",
+            "clickCount": 1,
+            "type": "mouseDown",
+            "x": X,
+            "y": Y
+        })
+        wc.sendInputEvent({"button": "left", "type": "mouseUp", "x": X, "y": Y})
+    }
+    if (["click", "leave"].includes(inputInfo.type)) {
+        wc.sendInputEvent({"type": "mouseLeave", "x": X, "y": Y})
+    }
+})

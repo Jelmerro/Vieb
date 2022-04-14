@@ -144,30 +144,14 @@ const clickAtLink = async link => {
     await new Promise(r => {
         setTimeout(r, 2)
     })
-    // TODO send input requests to preload via main to make use of frame data
-    // Also see if this code is duplicated for pointer mode and can be merged
     if (link.type === "inputs-insert") {
         sendToPageOrSubFrame("focus-input",
             {"x": link.x + link.width / 2, "y": link.y + link.height / 2})
     } else {
-        currentPage().sendInputEvent({
-            "type": "mouseEnter", "x": link.x * factor, "y": link.y * factor
-        })
-        currentPage().sendInputEvent({
-            "button": "left",
-            "clickCount": 1,
-            "type": "mouseDown",
+        sendToPageOrSubFrame("send-input-event", {
+            "type": "click",
             "x": (link.x + link.width / 2) * factor,
             "y": (link.y + link.height / 2) * factor
-        })
-        currentPage().sendInputEvent({
-            "button": "left",
-            "type": "mouseUp",
-            "x": (link.x + link.width / 2) * factor,
-            "y": (link.y + link.height / 2) * factor
-        })
-        currentPage().sendInputEvent({
-            "type": "mouseLeave", "x": link.x * factor, "y": link.y * factor
         })
     }
     await new Promise(r => {
