@@ -1503,7 +1503,7 @@ ipcMain.on("frame-details", (e, details) => {
     frameInfo[frameId].url = details.url
     details.subframes.forEach(subframe => {
         Object.keys(frameInfo).forEach(id => {
-            if (frameInfo[id].url === subframe.url) {
+            if (frameInfo[id].url === subframe.url && id !== frameId) {
                 frameInfo[id].x = subframe.x
                 frameInfo[id].y = subframe.y
                 frameInfo[id].width = subframe.width
@@ -1540,7 +1540,8 @@ ipcMain.on("follow-response", (e, rawLinks) => {
         "xInFrame": l.x,
         "y": l.y + frameY,
         "yInFrame": l.y
-    }))
+    })).filter(l => (!info?.height || l.y < info?.height)
+        && (!info?.width || l.x < info?.width))
     const allFramesIds = mainWindow.webContents.mainFrame
         .framesInSubtree.map(f => `${f.routingId}-${f.processId}`)
     allLinks = allLinks.filter(l => l.frameId !== frameId
