@@ -1508,6 +1508,16 @@ ipcMain.on("frame-details", (e, details) => {
                 frameInfo[id].y = subframe.y
                 frameInfo[id].width = subframe.width
                 frameInfo[id].height = subframe.height
+                frameInfo[id].usableWidth = subframe.width
+                const overflowW = subframe.x + subframe.width - details.width
+                if (overflowW > 0) {
+                    frameInfo[id].usableWidth -= overflowW
+                }
+                frameInfo[id].usableHeight = subframe.height
+                const overflowH = subframe.y + subframe.height - details.height
+                if (overflowH > 0) {
+                    frameInfo[id].usableHeight -= overflowH
+                }
                 frameInfo[id].pagex = details.pagex
                 frameInfo[id].pagey = details.pagey
                 frameInfo[id].parent = frameId
@@ -1533,6 +1543,8 @@ ipcMain.on("follow-response", (e, rawLinks) => {
         "frameAbsY": frameY,
         "frameHeight": info?.height,
         frameId,
+        "frameUsableHeight": info?.usableHeight,
+        "frameUsableWidth": info?.usableWidth,
         "frameWidth": info?.width,
         "frameX": info?.x,
         "frameY": info?.y,
@@ -1540,8 +1552,13 @@ ipcMain.on("follow-response", (e, rawLinks) => {
         "xInFrame": l.x,
         "y": l.y + frameY,
         "yInFrame": l.y
-    })).filter(l => (!info?.height || l.y < info?.height)
-        && (!info?.width || l.x < info?.width))
+    })).filter(l => {
+        if (!l.frameUsableHeight || !l.frameUsableWidth) {
+            return true
+        }
+        return l.yInFrame < l.frameUsableHeight
+            && l.xInFrame < l.frameUsableWidth
+    })
     const allFramesIds = mainWindow.webContents.mainFrame
         .framesInSubtree.map(f => `${f.routingId}-${f.processId}`)
     allLinks = allLinks.filter(l => l.frameId !== frameId
