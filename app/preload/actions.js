@@ -22,6 +22,7 @@ const {
     activeElement,
     writeFile,
     querySelectorAll,
+    findFrameInfo,
     findElementAtPosition,
     matchesQuery
 } = require("../util")
@@ -242,10 +243,12 @@ const selectionRequest = (startX, startY, endX, endY) => {
         startNode = document.body
     }
     const selectDocument = startNode?.ownerDocument || document
-    const startResult = calculateOffset(startNode,
-        startX, startY, startX, startY)
+    const padding = findFrameInfo(startNode)
+    const startResult = calculateOffset(startNode, startX, startY,
+        startX - (padding?.x || 0), startY - (padding?.y || 0))
     const endNode = findElementAtPosition(endX, endY)
-    const endResult = calculateOffset(endNode, startX, startY, endX, endY)
+    const endResult = calculateOffset(endNode, startX, startY,
+        endX - (padding?.x || 0), endY - (padding?.y || 0))
     const newSelectRange = selectDocument.createRange()
     newSelectRange.setStart(startResult.node, startResult.offset)
     if (isTextNode(endResult.node) && endResult.node.length > 1) {

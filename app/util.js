@@ -33,6 +33,7 @@ const notificationHistory = []
 let appDataPath = ""
 let homeDirPath = ""
 let configSettings = ""
+const framePaddingInfo = []
 const specialChars = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/\s]/gi
 const specialCharsAllowSpaces = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/]/gi
 const dataUris = [
@@ -302,6 +303,20 @@ const formatDate = dateStringOrNumber => {
         String(date.getSeconds()).padStart(2, "0")}`
 }
 
+const storeFrameInfo = (element, options) => {
+    if (!element) {
+        return
+    }
+    const info = framePaddingInfo.find(i => i.element === element)
+    if (info) {
+        Object.assign(info, options)
+    } else {
+        framePaddingInfo.push({element, ...options})
+    }
+}
+
+const findFrameInfo = el => framePaddingInfo.find(i => i.element === el)
+
 const framePosition = frame => ({
     "x": frame.getBoundingClientRect().x + propPixels(frame, "paddingLeft")
         + propPixels(frame, "borderLeftWidth"),
@@ -335,20 +350,27 @@ const matchesQuery = (el, query) => {
     }
 }
 
-const findElementAtPosition = (x, y, levels = [document]) => {
+const findElementAtPosition = (x, y, levels = [document], px = 0, py = 0) => {
     // Find out which element is located at a given position.
     // Will look inside subframes recursively at the corrected position.
-    const elementAtPos = levels[0]?.elementFromPoint(x, y)
+    const elementAtPos = levels?.[0]?.elementFromPoint(x - px, y - py)
     if (levels.includes(elementAtPos?.shadowRoot || elementAtPos)) {
         return elementAtPos
     }
+    if (matchesQuery(elementAtPos, "iframe")) {
+        const frameInfo = findFrameInfo(elementAtPos) || {}
+        return findElementAtPosition(x, y,
+            [elementAtPos.contentDocument, ...levels], frameInfo.x, frameInfo.y)
+    }
     if (elementAtPos?.shadowRoot) {
-        return findElementAtPosition(x, y, [elementAtPos.shadowRoot, ...levels])
+        const frameInfo = findFrameInfo(elementAtPos.shadowRoot) || {}
+        return findElementAtPosition(x, y,
+            [elementAtPos.shadowRoot, ...levels], frameInfo.x, frameInfo.y)
     }
     return elementAtPos
 }
 
-const querySelectorAll = (sel, base = document) => {
+const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
     if (!base) {
         return []
     }
@@ -357,10 +379,20 @@ const querySelectorAll = (sel, base = document) => {
         elements = Array.from(base.querySelectorAll(sel) || [])
     }
     Array.from(base.querySelectorAll("*") || [])
-        .filter(el => el.shadowRoot).forEach(el => {
-            const extra = Array.from(el.shadowRoot.querySelectorAll(sel) || [])
-            elements = elements.concat(
-                [...extra, ...querySelectorAll(sel, el.shadowRoot)])
+        .filter(el => el.shadowRoot || matchesQuery(el, "iframe"))
+        .forEach(el => {
+            let location = {"x": paddedX, "y": paddedY}
+            if (!el.shadowRoot) {
+                const {"x": frameX, "y": frameY} = framePosition(el)
+                location = {"x": frameX + paddedX, "y": frameY + paddedY}
+            }
+            storeFrameInfo(el?.shadowRoot || el, location)
+            const extra = Array.from((el.contentDocument || el.shadowRoot)
+                ?.querySelectorAll(sel) || [])
+            extra.forEach(e => storeFrameInfo(e, location))
+            elements = elements.concat([...extra, ...querySelectorAll(sel,
+                el.contentDocument || el.shadowRoot,
+                location.x, location.y)])
         })
     return elements
 }
@@ -390,7 +422,26 @@ const activeElement = () => {
     if (document.activeElement?.shadowRoot?.activeElement) {
         return document.activeElement.shadowRoot.activeElement
     }
-    return document.activeElement
+    if (document.activeElement !== document.body) {
+        if (!matchesQuery(document.activeElement, "iframe")) {
+            return document.activeElement
+        }
+    }
+    return querySelectorAll("iframe").map(frame => {
+        const doc = frame.contentDocument
+        if (!doc) {
+            return false
+        }
+        if (doc.activeElement?.shadowRoot?.activeElement) {
+            return doc.activeElement.shadowRoot.activeElement
+        }
+        if (doc.body !== doc.activeElement) {
+            if (!matchesQuery(doc.activeElement, "iframe")) {
+                return doc.activeElement
+            }
+        }
+        return false
+    }).find(el => el)
 }
 
 const formatSize = size => {
@@ -850,6 +901,7 @@ module.exports = {
     domainName,
     sameDomain,
     formatDate,
+    findFrameInfo,
     framePosition,
     propPixels,
     matchesQuery,

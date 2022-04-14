@@ -1731,7 +1731,12 @@ ipcMain.on("send-input-event", (_, id, inputInfo) => {
             "x": X,
             "y": Y
         })
-        wc.sendInputEvent({"button": "left", "type": "mouseUp", "x": X, "y": Y})
+        wc.sendInputEvent({
+            "button": inputInfo.button || "left",
+            "type": "mouseUp",
+            "x": X,
+            "y": Y
+        })
     }
     if (["click", "leave"].includes(inputInfo.type)) {
         wc.sendInputEvent({"type": "mouseLeave", "x": X, "y": Y})

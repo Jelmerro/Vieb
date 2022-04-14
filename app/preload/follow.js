@@ -23,6 +23,7 @@ const {
     findElementAtPosition,
     querySelectorAll,
     propPixels,
+    findFrameInfo,
     findClickPosition,
     framePosition,
     activeElement,
@@ -194,10 +195,22 @@ const getAllFollowLinks = () => {
     })
 }
 
-const sendFollowLinks = () => {
+const mainInfoLoop = () => {
     if (inFollowMode) {
         ipcRenderer.send("follow-response", getAllFollowLinks())
     }
+    // Listeners for iframes that run on the same host and same process
+    [...querySelectorAll("iframe")].forEach(f => {
+        try {
+            f.contentDocument.onclick = e => clickListener(e, f)
+            f.contentDocument.oncontextmenu = e => contextListener(e, f)
+            f.contentDocument.onmousedown = e => mouseDownListener(e, f)
+            f.contentDocument.onmouseup = e => mouseUpListener(e, f)
+        } catch {
+            // Not an issue, will be retried shortly, we also can't do much else
+        }
+    })
+    // Send details to main for iframes that run in a separate process
     ipcRenderer.send("frame-details", {
         "height": window.innerHeight,
         "pagex": window.scrollX,
@@ -220,7 +233,7 @@ const sendFollowLinks = () => {
 ipcRenderer.on("follow-mode-start", () => {
     if (!inFollowMode) {
         inFollowMode = true
-        sendFollowLinks()
+        mainInfoLoop()
     }
 })
 
@@ -230,9 +243,9 @@ ipcRenderer.on("follow-mode-stop", () => {
 
 // Send the page once every second in case of transitions or animations
 // Could be done with an observer, but that drastically slows down on big pages
-setInterval(sendFollowLinks, 1000)
-window.addEventListener("DOMContentLoaded", sendFollowLinks)
-window.addEventListener("resize", sendFollowLinks)
+setInterval(mainInfoLoop, 1000)
+window.addEventListener("DOMContentLoaded", mainInfoLoop)
+window.addEventListener("resize", mainInfoLoop)
 
 const pseudoElementRects = element => {
     const base = element.getBoundingClientRect()
@@ -284,6 +297,14 @@ const parseElement = (element, type) => {
         ])
     }
     rects = rects.concat(pseudoElementRects(element))
+    const paddingInfo = findFrameInfo(element)
+    if (paddingInfo) {
+        rects = rects.map(r => {
+            r.x += paddingInfo.x
+            r.y += paddingInfo.y
+            return r
+        })
+    }
     // Find a clickable area and position for the given element
     const {dimensions, clickable} = findClickPosition(element, rects)
     // Return null if any of the checks below fail
@@ -359,6 +380,7 @@ EventTarget.prototype.removeEventListener = function(type, listener, options) {
 
 const clickListener = (e, frame = null) => {
     if (e.isTrusted) {
+        const paddingInfo = findFrameInfo(frame)
         const inputEl = e.composedPath().find(
             el => matchesQuery(el, textlikeInputs))
         const focusEl = [
@@ -371,8 +393,8 @@ const clickListener = (e, frame = null) => {
             "toinsert": !!inputEl,
             "tovisual": (frame?.contentWindow || window)
                 .getSelection().toString(),
-            "x": e.x,
-            "y": e.y
+            "x": e.x + (paddingInfo?.x || 0),
+            "y": e.y + (paddingInfo?.y || 0)
         })
     }
 }
@@ -395,14 +417,16 @@ const mouseDownListener = (e, frame = null) => {
     if (e.composedPath().find(el => matchesQuery(el, "select, option"))) {
         clickListener(e, frame)
     }
-    startX = e.clientX
-    startY = e.clientY
+    const paddingInfo = findFrameInfo(frame)
+    startX = e.clientX + (paddingInfo?.x || 0)
+    startY = e.clientY + (paddingInfo?.y || 0)
 }
 window.addEventListener("mousedown", mouseDownListener,
     {"capture": true, "passive": true})
 const mouseUpListener = (e, frame = null) => {
-    const endX = e.clientX
-    const endY = e.clientY
+    const paddingInfo = findFrameInfo(frame)
+    const endX = e.clientX + (paddingInfo?.x || 0)
+    const endY = e.clientY + (paddingInfo?.y || 0)
     const diffX = Math.abs(endX - startX)
     const diffY = Math.abs(endY - startY)
     ipcRenderer.sendToHost("mouse-up")
@@ -447,9 +471,10 @@ ipcRenderer.on("replace-input-field", (_, value, position) => {
 const getSvgData = el => `data:image/svg+xml,${encodeURIComponent(el.outerHTML)
     .replace(/'/g, "%27").replace(/"/g, "%22")}`
 
-const contextListener = (e, extraData = null) => {
+const contextListener = (e, frame = null, extraData = null) => {
     if (e.isTrusted && !inFollowMode && e.button === 2) {
         e.preventDefault?.()
+        const paddingInfo = findFrameInfo(frame)
         const img = e.composedPath().find(el => ["svg", "img"]
             .includes(el.tagName?.toLowerCase()))
         const backgroundImg = e.composedPath().map(el => {
@@ -494,7 +519,7 @@ const contextListener = (e, extraData = null) => {
             "canEdit": !!text,
             extraData,
             "frame": e.composedPath().find(
-                el => matchesQuery(el, "iframe"))?.src,
+                el => matchesQuery(el, "iframe"))?.src || frame?.src,
             "hasElementListener": eventListeners.contextmenu.has(
                 e.composedPath()[0])
                 || eventListeners.auxclick.has(e.composedPath()[0]),
@@ -508,7 +533,7 @@ const contextListener = (e, extraData = null) => {
                 || text?.getRootNode().getSelection()?.baseNode?.textContent,
             "link": link?.href?.trim(),
             "svgData": img && getSvgData(img),
-            "text": window.getSelection().toString(),
+            "text": (frame?.contentWindow || window).getSelection().toString(),
             "video": video?.src?.trim(),
             "videoData": {
                 "controllable": !!videoEl,
@@ -519,8 +544,8 @@ const contextListener = (e, extraData = null) => {
                 "muted": videoEl?.volume === 0,
                 "paused": videoEl?.paused
             },
-            "x": e.x,
-            "y": e.y
+            "x": e.x + (paddingInfo?.x || 0),
+            "y": e.y + (paddingInfo?.y || 0)
         })
     }
 }
@@ -533,7 +558,7 @@ ipcRenderer.on("contextmenu-data", (_, request) => {
     els.reverse()
     contextListener({
         "button": 2, "composedPath": () => els, "isTrusted": true, x, y
-    }, request)
+    }, findFrameInfo(els[0])?.element, request)
 })
 ipcRenderer.on("contextmenu", (_, extraData = null) => {
     const els = [activeElement()]
@@ -559,7 +584,7 @@ ipcRenderer.on("contextmenu", (_, extraData = null) => {
     els.reverse()
     contextListener({
         "button": 2, "composedPath": () => els, "isTrusted": true, x, y
-    }, extraData)
+    }, findFrameInfo(els[0])?.element, extraData)
 })
 window.addEventListener("auxclick", contextListener)
 

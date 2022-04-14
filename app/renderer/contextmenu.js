@@ -41,7 +41,6 @@ const {
 
 const init = () => {
     ipcRenderer.on("context-click-info", (_, info) => {
-        console.log(info)
         if (info.extraData) {
             commonAction(info.extraData.type, info.extraData.action, info)
         } else {
