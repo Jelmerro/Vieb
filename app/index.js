@@ -1657,16 +1657,22 @@ ipcMain.on("context-click-info", (e, clickInfo) => {
     let frameX = info?.x || 0
     let frameY = info?.y || 0
     let parent = info?.parent
+    let parentId = frameId
     while (parent) {
         const parentInfo = frameInfo[parent]
         frameX += parentInfo?.x || 0
         frameY += parentInfo?.y || 0
         parent = parentInfo?.parent
+        parentId = parentInfo?.id || frameId
     }
     let frameUrl = clickInfo.frame
     if (info?.x && info?.url) {
         frameUrl = info.url
     }
+    const webviewId = webContents.getAllWebContents().find(wc => {
+        const wcId = `${wc.mainFrame.routingId}-${wc.mainFrame.processId}`
+        return wcId === parentId
+    })?.id
     mainWindow.webContents.send("context-click-info", {
         ...clickInfo,
         "frame": frameUrl,
@@ -1677,6 +1683,7 @@ ipcMain.on("context-click-info", (e, clickInfo) => {
         "frameWidth": info?.width,
         "frameX": info?.x,
         "frameY": info?.y,
+        webviewId,
         "x": clickInfo.x + frameX,
         "xInFrame": clickInfo.x,
         "y": clickInfo.y + frameY,

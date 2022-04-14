@@ -36,11 +36,22 @@ const {
     tabOrPageMatching,
     currentMode,
     getSetting,
-    getMouseConf
+    getMouseConf,
+    listPages
 } = require("./common")
 
 const init = () => {
     ipcRenderer.on("context-click-info", (_, info) => {
+        if (info.webviewId) {
+            if (info.webviewId !== currentPage().getWebContentsId()) {
+                const page = listPages().find(
+                    p => p.getWebContentsId?.() === info.webviewId)
+                if (page) {
+                    const {switchToTab} = require("./tabs")
+                    switchToTab(tabOrPageMatching(page))
+                }
+            }
+        }
         if (info.extraData) {
             commonAction(info.extraData.type, info.extraData.action, info)
         } else {
