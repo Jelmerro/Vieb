@@ -18,7 +18,12 @@
 "use strict"
 
 const {
-    currentPage, currentMode, getSetting, tabOrPageMatching
+    currentPage,
+    currentMode,
+    getSetting,
+    tabOrPageMatching,
+    getMouseConf,
+    listPages
 } = require("./common")
 const {matchesQuery, propPixels, sendToPageOrSubFrame} = require("../util")
 
@@ -29,7 +34,80 @@ let startY = 0
 let listenForScroll = false
 let lastSelection = {"endX": 0, "endY": 0, "startX": 0, "startY": 0}
 let mouseSelection = null
+let skipNextClick = false
 
+const init = () => {
+    const {ipcRenderer} = require("electron")
+    const {setMode} = require("./modes")
+    ipcRenderer.on("mouse-click-info", (_, clickInfo) => {
+        if (clickInfo.webviewId) {
+            if (clickInfo.webviewId !== currentPage().getWebContentsId()) {
+                const page = listPages().find(
+                    p => p.getWebContentsId?.() === clickInfo.webviewId)
+                if (page) {
+                    const {switchToTab} = require("./tabs")
+                    switchToTab(tabOrPageMatching(page))
+                }
+            }
+        }
+        const {clear} = require("./contextmenu")
+        clear()
+        if (skipNextClick) {
+            skipNextClick = false
+            return
+        }
+        if (["pointer", "visual"].includes(currentMode())) {
+            if (getMouseConf("movepointer")) {
+                if (clickInfo.tovisual) {
+                    startVisualSelect()
+                }
+                move(clickInfo.x * currentPage().getZoomFactor(),
+                    clickInfo.y * currentPage().getZoomFactor())
+            }
+        } else if (clickInfo.toinsert) {
+            if (getMouseConf("toinsert")) {
+                setMode("insert")
+            }
+        } else if ("ces".includes(currentMode()[0])) {
+            if (getMouseConf("leaveinput")) {
+                setMode("normal")
+            }
+        } else {
+            const {setFocusCorrectly} = require("./actions")
+            setFocusCorrectly()
+        }
+        if (!clickInfo.tovisual) {
+            if (!["pointer", "visual"].includes(currentMode())) {
+                storeMouseSelection(null)
+            }
+        }
+    })
+    ipcRenderer.on("mouse-selection", (_, selectInfo) => {
+        const switchToVisual = getSetting("mousevisualmode")
+        if (getMouseConf("copyselect")) {
+            const {clipboard} = require("electron")
+            clipboard.writeText(selectInfo.text)
+        }
+        if (selectInfo.toinsert) {
+            if (getMouseConf("toinsert")) {
+                setMode("insert")
+            }
+            return
+        }
+        if (switchToVisual !== "never" || currentMode() === "visual") {
+            skipNextClick = true
+            storeMouseSelection({
+                "endX": selectInfo.endX * currentPage().getZoomFactor(),
+                "endY": selectInfo.endY * currentPage().getZoomFactor(),
+                "startX": selectInfo.startX * currentPage().getZoomFactor(),
+                "startY": selectInfo.startY * currentPage().getZoomFactor()
+            })
+            if (switchToVisual === "activate") {
+                startVisualSelect()
+            }
+        }
+    })
+}
 const zoomX = () => Math.round(X / currentPage().getZoomFactor())
 
 const zoomY = () => Math.round(Y / currentPage().getZoomFactor())
@@ -541,6 +619,7 @@ module.exports = {
     externalText,
     externalVideo,
     handleScrollDiffEvent,
+    init,
     insertAtPosition,
     inspectElement,
     leftClick,

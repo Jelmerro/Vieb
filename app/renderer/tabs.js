@@ -817,7 +817,6 @@ const addWebviewListeners = webview => {
         const {applyLayout} = require("./pagelayout")
         applyLayout()
     })
-    let skipNextClick = false
     webview.addEventListener("ipc-message", e => {
         if (e.channel === "notify") {
             notify(...e.args)
@@ -833,77 +832,9 @@ const addWebviewListeners = webview => {
             const {forwardInHistory} = require("./actions")
             forwardInHistory()
         }
-        if (e.channel.endsWith("-click-info") && webview !== currentPage()) {
-            // TODO this won't work anymore, check respective ipc listeners!
-            switchToTab(tabOrPageMatching(webview))
-        }
-        if (e.channel === "mouse-selection") {
-            const switchToVisual = getSetting("mousevisualmode")
-            if (getMouseConf("copyselect")) {
-                const {clipboard} = require("electron")
-                clipboard.writeText(e.args[0].text)
-            }
-            if (e.args[0].toinsert) {
-                if (getMouseConf("toinsert")) {
-                    setMode("insert")
-                }
-                return
-            }
-            if (switchToVisual !== "never" || currentMode() === "visual") {
-                skipNextClick = true
-                const {storeMouseSelection} = require("./pointer")
-                storeMouseSelection({
-                    "endX": e.args[0].endX * currentPage().getZoomFactor(),
-                    "endY": e.args[0].endY * currentPage().getZoomFactor(),
-                    "startX": e.args[0].startX * currentPage().getZoomFactor(),
-                    "startY": e.args[0].startY * currentPage().getZoomFactor()
-                })
-                if (switchToVisual === "activate") {
-                    const {startVisualSelect} = require("./pointer")
-                    startVisualSelect()
-                }
-            }
-        }
         if (e.channel === "mouse-up") {
             const {resetScreenshotDrag} = require("./input")
             resetScreenshotDrag()
-        }
-        if (e.channel === "mouse-click-info") {
-            // TODO move this
-            const {clear} = require("./contextmenu")
-            clear()
-            if (skipNextClick) {
-                skipNextClick = false
-                return
-            }
-            if (["pointer", "visual"].includes(currentMode())) {
-                if (getMouseConf("movepointer")) {
-                    if (e.args[0].tovisual) {
-                        const {startVisualSelect} = require("./pointer")
-                        startVisualSelect()
-                    }
-                    const {move} = require("./pointer")
-                    move(e.args[0].x * currentPage().getZoomFactor(),
-                        e.args[0].y * currentPage().getZoomFactor())
-                }
-            } else if (e.args[0].toinsert) {
-                if (getMouseConf("toinsert")) {
-                    setMode("insert")
-                }
-            } else if ("ces".includes(currentMode()[0])) {
-                if (getMouseConf("leaveinput")) {
-                    setMode("normal")
-                }
-            } else {
-                const {setFocusCorrectly} = require("./actions")
-                setFocusCorrectly()
-            }
-            if (!e.args[0].tovisual) {
-                if (!["pointer", "visual"].includes(currentMode())) {
-                    const {storeMouseSelection} = require("./pointer")
-                    storeMouseSelection(null)
-                }
-            }
         }
         if (e.channel === "scroll-height-diff") {
             const {clear} = require("./contextmenu")

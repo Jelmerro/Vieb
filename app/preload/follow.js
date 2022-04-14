@@ -389,8 +389,7 @@ const clickListener = (e, frame = null) => {
         if (focusEl) {
             previouslyFocussedElements.push(focusEl)
         }
-        // TODO
-        ipcRenderer.sendToHost("mouse-click-info", {
+        ipcRenderer.send("mouse-click-info", {
             "toinsert": !!inputEl,
             "tovisual": (frame?.contentWindow || window)
                 .getSelection().toString(),
@@ -434,8 +433,7 @@ const mouseUpListener = (e, frame = null) => {
     if (endX > 0 && endY > 0 && (diffX > 3 || diffY > 3)) {
         const text = (frame?.contentWindow || window).getSelection().toString()
         if (text) {
-            // TODO
-            ipcRenderer.sendToHost("mouse-selection", {
+            ipcRenderer.send("mouse-selection", {
                 endX,
                 endY,
                 startX,

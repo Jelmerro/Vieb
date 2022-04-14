@@ -875,6 +875,7 @@ const init = () => {
     const unSupportedActions = [
         "setFocusCorrectly",
         "incrementalSearch",
+        "p.init",
         "p.move",
         "p.storeMouseSelection",
         "p.handleScrollDiffEvent",

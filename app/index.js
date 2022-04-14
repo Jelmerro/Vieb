@@ -1651,7 +1651,7 @@ ipcMain.on("replace-input-field", (_, id, frameId, correction, inputField) => {
     }
     wc.send("replace-input-field", correction, inputField)
 })
-ipcMain.on("context-click-info", (e, clickInfo) => {
+const translateMouseEvent = (e, clickInfo) => {
     const frameId = `${e.frameId}-${e.processId}`
     const info = frameInfo[frameId]
     let frameX = info?.x || 0
@@ -1673,8 +1673,10 @@ ipcMain.on("context-click-info", (e, clickInfo) => {
         const wcId = `${wc.mainFrame.routingId}-${wc.mainFrame.processId}`
         return wcId === parentId
     })?.id
-    mainWindow.webContents.send("context-click-info", {
+    return {
         ...clickInfo,
+        "endX": clickInfo?.endX + frameX || null,
+        "endY": clickInfo?.endY + frameY || null,
         "frame": frameUrl,
         "frameAbsX": frameX,
         "frameAbsY": frameY,
@@ -1683,13 +1685,21 @@ ipcMain.on("context-click-info", (e, clickInfo) => {
         "frameWidth": info?.width,
         "frameX": info?.x,
         "frameY": info?.y,
+        "startX": clickInfo?.startX + frameX || null,
+        "startY": clickInfo?.startY + frameY || null,
         webviewId,
         "x": clickInfo.x + frameX,
         "xInFrame": clickInfo.x,
         "y": clickInfo.y + frameY,
         "yInFrame": clickInfo.y
-    })
-})
+    }
+}
+ipcMain.on("mouse-selection", (e, clickInfo) => mainWindow.webContents.send(
+    "mouse-selection", translateMouseEvent(e, clickInfo)))
+ipcMain.on("mouse-click-info", (e, clickInfo) => mainWindow.webContents.send(
+    "mouse-click-info", translateMouseEvent(e, clickInfo)))
+ipcMain.on("context-click-info", (e, clickInfo) => mainWindow.webContents.send(
+    "context-click-info", translateMouseEvent(e, clickInfo)))
 ipcMain.on("send-input-event", (_, id, inputInfo) => {
     const X = inputInfo.x
     const Y = inputInfo.y
