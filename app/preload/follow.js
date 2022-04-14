@@ -389,6 +389,7 @@ const clickListener = (e, frame = null) => {
         if (focusEl) {
             previouslyFocussedElements.push(focusEl)
         }
+        // TODO
         ipcRenderer.sendToHost("mouse-click-info", {
             "toinsert": !!inputEl,
             "tovisual": (frame?.contentWindow || window)
@@ -433,6 +434,7 @@ const mouseUpListener = (e, frame = null) => {
     if (endX > 0 && endY > 0 && (diffX > 3 || diffY > 3)) {
         const text = (frame?.contentWindow || window).getSelection().toString()
         if (text) {
+            // TODO
             ipcRenderer.sendToHost("mouse-selection", {
                 endX,
                 endY,
@@ -613,7 +615,6 @@ window.addEventListener("scroll", () => {
 })
 
 ipcRenderer.on("search-element-location", (_, pos) => {
-    // TODO
     let {x} = pos
     const alignment = readJSON(settingsFile)?.searchpointeralignment
     if (alignment === "center") {
@@ -634,7 +635,6 @@ ipcRenderer.on("search-element-location", (_, pos) => {
     }, 100)
 })
 
-// TODO
 ipcRenderer.on("search-element-click", () => searchElement?.click())
 
 window.addEventListener("mousemove", e => {

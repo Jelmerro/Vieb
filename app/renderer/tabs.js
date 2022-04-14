@@ -834,6 +834,7 @@ const addWebviewListeners = webview => {
             forwardInHistory()
         }
         if (e.channel.endsWith("-click-info") && webview !== currentPage()) {
+            // TODO this won't work anymore, check respective ipc listeners!
             switchToTab(tabOrPageMatching(webview))
         }
         if (e.channel === "mouse-selection") {
@@ -868,6 +869,7 @@ const addWebviewListeners = webview => {
             resetScreenshotDrag()
         }
         if (e.channel === "mouse-click-info") {
+            // TODO move this
             const {clear} = require("./contextmenu")
             clear()
             if (skipNextClick) {
@@ -973,7 +975,6 @@ const addWebviewListeners = webview => {
         }
     })
     webview.addEventListener("found-in-page", e => {
-        // TODO
         webview.send("search-element-location", e.result.selectionArea)
         justSearched = true
         setTimeout(() => {

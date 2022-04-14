@@ -1246,6 +1246,7 @@ const hasFutureActionsBasedOnKeys = keys => Object.keys(bindings[
     currentMode()[0]]).find(map => map.startsWith(keys) && map !== keys)
 
 const sendKeysToWebview = async(options, mapStr) => {
+    // TODO
     blockNextInsertKey = true
     currentPage().sendInputEvent({...options, "type": "keyDown"})
     if (options.keyCode.length === 1) {

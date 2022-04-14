@@ -1662,8 +1662,13 @@ ipcMain.on("context-click-info", (e, clickInfo) => {
         frameY += parentInfo?.y || 0
         parent = parentInfo?.parent
     }
+    let frameUrl = clickInfo.frame
+    if (info?.x && info?.url) {
+        frameUrl = info.url
+    }
     mainWindow.webContents.send("context-click-info", {
         ...clickInfo,
+        "frame": frameUrl,
         "frameAbsX": frameX,
         "frameAbsY": frameY,
         "frameHeight": info?.height,

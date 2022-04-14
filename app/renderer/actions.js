@@ -57,7 +57,7 @@ const emptySearch = () => {
 
 const clickOnSearch = () => {
     if (currentSearch) {
-        sendToPageOrSubFrame("search-element-click")
+        currentPage()?.send("search-element-click")
     }
 }
 
