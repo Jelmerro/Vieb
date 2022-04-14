@@ -17,6 +17,7 @@
 */
 "use strict"
 
+const {ipcRenderer} = require("electron")
 const {
     matchesQuery,
     stringToUrl,
@@ -37,6 +38,17 @@ const {
     getSetting,
     getMouseConf
 } = require("./common")
+
+const init = () => {
+    ipcRenderer.on("context-click-info", (_, info) => {
+        console.log(info)
+        if (info.extraData) {
+            commonAction(info.extraData.type, info.extraData.action, info)
+        } else {
+            webviewMenu(info)
+        }
+    })
+}
 
 const contextMenu = document.getElementById("context-menu")
 
@@ -278,7 +290,7 @@ const webviewMenu = options => {
             createMenuItem({
                 "action": () => {
                     words[wordIndex] = suggestion
-                    sendToPageOrSubFrame("replace-input-field",
+                    sendToPageOrSubFrame("replace-input-field", options.frameId,
                         words.join(""), options.inputSel)
                 },
                 "title": suggestion
@@ -726,6 +738,7 @@ module.exports = {
     commandMenu,
     commonAction,
     down,
+    init,
     linkMenu,
     sectionDown,
     sectionUp,

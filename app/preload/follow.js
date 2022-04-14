@@ -95,7 +95,7 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
     focusEl.click()
     focusEl.focus()
     const focusLength = focusEl.value?.length || focusEl.textContent.length
-    if (focusLength > 0) {
+    if (focusLength > 0 && focusEl.setSelectionRange) {
         if (!previouslyFocussedElements.includes(focusEl)
             || inputfocusalignment.includes("always")) {
             if (inputfocusalignment.includes("end")) {
@@ -481,8 +481,7 @@ const contextListener = (e, extraData = null) => {
             el => el.tagName?.toLowerCase() === "a" && el.href?.trim())
         const text = e.composedPath().find(
             el => matchesQuery(el, textlikeInputs))
-        // TODO send to main instead of renderer, and add frame data to it
-        ipcRenderer.sendToHost("context-click-info", {
+        ipcRenderer.send("context-click-info", {
             "audio": audio?.src?.trim(),
             "audioData": {
                 "controllable": !!audioEl,
@@ -539,17 +538,20 @@ ipcRenderer.on("contextmenu-data", (_, request) => {
 ipcRenderer.on("contextmenu", (_, extraData = null) => {
     const els = [activeElement()]
     const parsed = parseElement(els[0])
-    let x = parsed?.x || 0
+    if (!parsed || ["iframe", "body"].includes(els[0].tagName.toLowerCase())) {
+        return
+    }
+    let {x} = parsed
     if (getComputedStyle(els[0]).font.includes("monospace")) {
-        x = parsed?.x + propPixels(els[0], "fontSize")
+        x = parsed.x + propPixels(els[0], "fontSize")
             * els[0].selectionStart * 0.60191 - els[0].scrollLeft
     }
-    let y = parsed?.y + parsed.height
+    let y = parsed.y + parsed.height
     if (x > window.innerWidth || isNaN(x) || x === 0) {
-        x = parsed?.x || 0
+        ({x} = parsed)
     }
     if (y > window.innerHeight) {
-        y = parsed?.y || 0
+        ({y} = parsed)
     }
     while (els[0].parentNode && els[0].parentNode !== els[1]?.parentNode) {
         els.unshift(els[0].parentNode)

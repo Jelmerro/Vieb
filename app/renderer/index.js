@@ -27,4 +27,5 @@ window.addEventListener("DOMContentLoaded", () => {
     require("./commandhistory").init()
     require("./explorehistory").init()
     require("./follow").init()
+    require("./contextmenu").init()
 })

@@ -836,16 +836,6 @@ const addWebviewListeners = webview => {
         if (e.channel.endsWith("-click-info") && webview !== currentPage()) {
             switchToTab(tabOrPageMatching(webview))
         }
-        if (e.channel === "context-click-info") {
-            const [{extraData}] = e.args
-            if (extraData) {
-                const {commonAction} = require("./contextmenu")
-                commonAction(extraData.type, extraData.action, e.args[0])
-            } else {
-                const {webviewMenu} = require("./contextmenu")
-                webviewMenu(e.args[0])
-            }
-        }
         if (e.channel === "mouse-selection") {
             const switchToVisual = getSetting("mousevisualmode")
             if (getMouseConf("copyselect")) {

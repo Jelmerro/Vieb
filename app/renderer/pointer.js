@@ -330,7 +330,6 @@ const toggleMediaControls = () => sendToPageOrSubFrame(
     "action", "toggleControls", X, Y)
 
 const inspectElement = () => {
-    // TODO
     const {top, left} = offset()
     currentPage().inspectElement(Math.round(X + left), Math.round(Y + top))
 }

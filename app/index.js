@@ -1582,13 +1582,22 @@ const findRelevantSubFrame = (wc, x, y) => {
     })
     return relevantFrame
 }
-ipcMain.on("action", (_, id, ...opts) => {
+ipcMain.on("action", (_, id, actionName, ...opts) => {
     const wc = webContents.fromId(id)
     if (typeof opts[0] === "number" && typeof opts[1] === "number") {
-        // TODO
-    } else {
-        wc.mainFrame.framesInSubtree.forEach(f => f.send("action", ...opts))
+        const subframe = findRelevantSubFrame(wc, opts[0], opts[1])
+        if (subframe) {
+            const frameRef = wc.mainFrame.framesInSubtree.find(f => {
+                const frameId = `${f.routingId}-${f.processId}`
+                return frameId === subframe.id
+            })
+            frameRef.send("action", actionName, opts[0] - subframe.absX,
+                opts[1] - subframe.absY, ...opts.slice(2))
+            return
+        }
     }
+    wc.mainFrame.framesInSubtree.forEach(
+        f => f.send("action", actionName, ...opts))
 })
 ipcMain.on("contextmenu-data", (_, id, info) => {
     const wc = webContents.fromId(id)
@@ -1606,14 +1615,62 @@ ipcMain.on("contextmenu-data", (_, id, info) => {
     }
 })
 ipcMain.on("contextmenu", (_, id) => {
-    // TODO add a filter in follow preload based on activeelement
     webContents.fromId(id).mainFrame.framesInSubtree.forEach(
         f => f.send("contextmenu"))
 })
-ipcMain.on("focus-input", (_, id, location) => {
+ipcMain.on("focus-input", (_, id, location = null) => {
     const wc = webContents.fromId(id)
-    const subframe = findRelevantSubFrame(wc, location.x, location.y)
-    // TODO Send to all + add a filter in follow preload based on activeelement
+    if (location) {
+        const subframe = findRelevantSubFrame(wc, location.x, location.y)
+        if (subframe) {
+            const frameRef = wc.mainFrame.framesInSubtree.find(f => {
+                const frameId = `${f.routingId}-${f.processId}`
+                return frameId === subframe.id
+            })
+            frameRef.send("focus-input", {
+                "x": location.x - subframe.absX, "y": location.y - subframe.absY
+            })
+            return
+        }
+    }
+    wc.send("focus-input", location)
+})
+ipcMain.on("replace-input-field", (_, id, frameId, correction, inputField) => {
+    const wc = webContents.fromId(id)
+    if (frameId) {
+        const frameRef = wc.mainFrame.framesInSubtree.find(
+            f => frameId === `${f.routingId}-${f.processId}`)
+        frameRef.send("replace-input-field", correction, inputField)
+        return
+    }
+    wc.send("replace-input-field", correction, inputField)
+})
+ipcMain.on("context-click-info", (e, clickInfo) => {
+    const frameId = `${e.frameId}-${e.processId}`
+    const info = frameInfo[frameId]
+    let frameX = info?.x || 0
+    let frameY = info?.y || 0
+    let parent = info?.parent
+    while (parent) {
+        const parentInfo = frameInfo[parent]
+        frameX += parentInfo?.x || 0
+        frameY += parentInfo?.y || 0
+        parent = parentInfo?.parent
+    }
+    mainWindow.webContents.send("context-click-info", {
+        ...clickInfo,
+        "frameAbsX": frameX,
+        "frameAbsY": frameY,
+        "frameHeight": info?.height,
+        frameId,
+        "frameWidth": info?.width,
+        "frameX": info?.x,
+        "frameY": info?.y,
+        "x": clickInfo.x + frameX,
+        "xInFrame": clickInfo.x,
+        "y": clickInfo.y + frameY,
+        "yInFrame": clickInfo.y
+    })
 })
 // TODO add listener to handle click on follow element
 // TODO add listeners for pointer mode actions
