@@ -17,7 +17,9 @@
 */
 "use strict"
 
-const {matchesQuery, notify, specialChars, isUrl} = require("../util")
+const {
+    matchesQuery, notify, specialChars, isUrl, sendToPageOrSubFrame
+} = require("../util")
 const {
     listTabs,
     currentTab,
@@ -1247,13 +1249,8 @@ const hasFutureActionsBasedOnKeys = keys => Object.keys(bindings[
     currentMode()[0]]).find(map => map.startsWith(keys) && map !== keys)
 
 const sendKeysToWebview = async(options, mapStr) => {
-    // TODO
     blockNextInsertKey = true
-    currentPage().sendInputEvent({...options, "type": "keyDown"})
-    if (options.keyCode.length === 1) {
-        currentPage().sendInputEvent({...options, "type": "char"})
-    }
-    currentPage().sendInputEvent({...options, "type": "keyUp"})
+    sendToPageOrSubFrame("send-keyboard-event", options)
     if (options.bubbles) {
         const action = actionForKeys(mapStr)
         if (action) {
@@ -1316,8 +1313,6 @@ const executeMapString = async(mapStr, recursive, initial) => {
                 if (!options.bubbles) {
                     const {ipcRenderer} = require("electron")
                     ipcRenderer.sendSync("insert-mode-blockers", "pass")
-                    // The first event is ignored, so we send a dummy event
-                    await sendKeysToWebview(fromIdentifier(""), "")
                 }
                 await sendKeysToWebview(options, key)
             } else {
@@ -1417,8 +1412,6 @@ const handleKeyboard = async e => {
             if (currentMode() === "insert") {
                 const {ipcRenderer} = require("electron")
                 ipcRenderer.sendSync("insert-mode-blockers", "pass")
-                // The first event is ignored, so we send a dummy event
-                await sendKeysToWebview(fromIdentifier(""), "")
                 for (const key of keys) {
                     const options = {...fromIdentifier(key), "bubbles": false}
                     await sendKeysToWebview(options, key)
@@ -1501,8 +1494,6 @@ const handleKeyboard = async e => {
             if (currentMode() === "insert") {
                 const {ipcRenderer} = require("electron")
                 ipcRenderer.sendSync("insert-mode-blockers", "pass")
-                // The first event is ignored, so we send a dummy event
-                await sendKeysToWebview(fromIdentifier(""), "")
                 for (const key of keys) {
                     const options = {...fromIdentifier(key), "bubbles": false}
                     await sendKeysToWebview(options, key)

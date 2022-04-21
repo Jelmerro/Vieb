@@ -1717,7 +1717,24 @@ ipcMain.on("mouse-click-info", (e, clickInfo) => mainWindow.webContents.send(
     "mouse-click-info", translateMouseEvent(e, clickInfo)))
 ipcMain.on("context-click-info", (e, clickInfo) => mainWindow.webContents.send(
     "context-click-info", translateMouseEvent(e, clickInfo)))
+ipcMain.on("send-keyboard-event", (_, id, keyOptions) => {
+    // Temporary code as a last resort workaround for:
+    // https://github.com/electron/electron/issues/20333
+    // Will eventually just use sendInputEvent in the from renderer directly
+    const wc = webContents.fromId(id)
+    wc.sendInputEvent({...keyOptions, "type": "keyDown"})
+    if (keyOptions.keyCode.length === 1) {
+        wc.sendInputEvent({...keyOptions, "type": "char"})
+    }
+    wc.sendInputEvent({...keyOptions, "type": "keyUp"})
+    wc.mainFrame.framesInSubtree
+        .filter(f => f.routingId !== wc.mainFrame.routingId)
+        .forEach(f => f.send("keyboard-type-event", keyOptions))
+})
 ipcMain.on("send-input-event", (_, id, inputInfo) => {
+    // Temporary code as a last resort workaround for:
+    // https://github.com/electron/electron/issues/20333
+    // Will eventually just use sendInputEvent in the from renderer directly
     const X = inputInfo.x
     const Y = inputInfo.y
     const wc = webContents.fromId(id)
@@ -1727,25 +1744,27 @@ ipcMain.on("send-input-event", (_, id, inputInfo) => {
             const frameId = `${f.routingId}-${f.processId}`
             return frameId === subframe.id
         })
-        // TODO actually respond to these inside iframes
         if (inputInfo.type === "scroll") {
-            frameRef.send("scroll-at-location", {
-                "x": X - subframe.absX, "y": Y - subframe.absY
+            frameRef.send("custom-mouse-event", "mousewheel", {
+                "deltaX": inputInfo.deltaX || 0,
+                "deltaY": inputInfo.deltaY || 0,
+                "x": X - subframe.absX,
+                "y": Y - subframe.absY
             })
             return
         }
-        frameRef.send("enter-hover-location", {
+        frameRef.send("custom-mouse-event", "mouseenter", {
             "x": X - subframe.absX, "y": Y - subframe.absY
         })
         if (inputInfo.type === "click") {
-            frameRef.send("click-at-location", {
+            frameRef.send("custom-mouse-event", "click", {
                 "button": inputInfo.button,
                 "x": X - subframe.absX,
                 "y": Y - subframe.absY
             })
         }
         if (["click", "leave"].includes(inputInfo.type)) {
-            frameRef.send("leave-hover-location", {
+            frameRef.send("custom-mouse-event", "mouseleave", {
                 "x": X - subframe.absX, "y": Y - subframe.absY
             })
         }

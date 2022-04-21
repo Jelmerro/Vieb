@@ -587,6 +587,41 @@ ipcRenderer.on("contextmenu", (_, extraData = null) => {
     }, findFrameInfo(els[0])?.element, extraData)
 })
 window.addEventListener("auxclick", contextListener)
+ipcRenderer.on("keyboard-type-event", (_, keyOptions) => {
+    // This is a last resort attempt to press a key in an iframe,
+    // but ideally this code shouldn't exist and only use sendInputEvent.
+    // See https://github.com/electron/electron/issues/20333
+    const input = activeElement()
+    if (matchesQuery(input, textlikeInputs) && keyOptions.key.length === 1) {
+        if (typeof input.value === "string" && input.setSelectionRange) {
+            const cur = Number(input.selectionStart)
+            input.value = `${input.value.substr(0, cur)}${keyOptions.key}${
+                input.value.substr(input.selectionEnd)}`
+            input.setSelectionRange(cur + 1, cur + 1)
+        }
+    }
+})
+ipcRenderer.on("custom-mouse-event", (_, eventType, mouseOptions) => {
+    // This is a last resort attempt to press a mouse event in an iframe,
+    // but ideally this code shouldn't exist and only use sendInputEvent.
+    // See https://github.com/electron/electron/issues/20333
+    const el = findElementAtPosition(mouseOptions.x, mouseOptions.y)
+    if (eventType === "click") {
+        // TODO Ideally all supported events should get a proper implementation,
+        // because this is the only way to guarantee that the event will work.
+        el.click()
+        return
+    }
+    const event = new MouseEvent(eventType, {
+        ...mouseOptions,
+        "bubbles": true,
+        "cancelable": true,
+        "isTrusted": true,
+        "type": eventType,
+        "view": window
+    })
+    el.dispatchEvent(event)
+})
 
 let searchElement = null
 let scrollHeight = 0
