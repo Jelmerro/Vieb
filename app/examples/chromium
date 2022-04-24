@@ -2,6 +2,9 @@
 set adblocker=update
 set cache=full
 set devtoolsposition=vsplit
+set dialogalert=show
+set dialogconfirm=show
+set dialogprompt=show
 set favicons=30day
 set mintabwidth=0
 set permissioncamera=ask

@@ -370,6 +370,7 @@ if (argErwic) {
 let mainWindow = null
 let loginWindow = null
 let notificationWindow = null
+let promptWindow = null
 const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
     const url = u.url || u
     let fileLocation = expandPath(url.replace(/^file:\/+/g, "/"))
@@ -555,6 +556,50 @@ app.on("ready", () => {
     ipcMain.on("hide-notification-window", () => {
         notificationWindow.hide()
         mainWindow.focus()
+    })
+    // Show a sync prompt dialog if requested by any of the pages
+    const promptWindowData = {
+        "alwaysOnTop": true,
+        "frame": false,
+        "fullscreenable": false,
+        "icon": customIcon,
+        "modal": true,
+        "parent": mainWindow,
+        "resizable": false,
+        "show": false,
+        "webPreferences": {
+            "disableBlinkFeatures": "Auxclick",
+            "partition": "prompt",
+            "preload": joinPath(__dirname, "preload/promptpopup.js")
+        }
+    }
+    promptWindow = new BrowserWindow(promptWindowData)
+    const promptPage = `file:///${joinPath(__dirname, "pages/promptpopup.html")}`
+    promptWindow.loadURL(promptPage)
+    promptWindow.webContents.openDevTools()
+    ipcMain.on("show-prompt-dialog", (e, text) => {
+        ipcMain.removeAllListeners("prompt-response")
+        ipcMain.removeAllListeners("hide-prompt-window")
+        promptWindow.removeAllListeners("close")
+        promptWindow.show()
+        promptWindow.focus()
+        promptWindow.webContents.send("prompt-info", fontsize, customCSS, text)
+        ipcMain.on("prompt-response", (_, response) => {
+            promptWindow.hide()
+            mainWindow.focus()
+            e.returnValue = response
+        })
+        ipcMain.on("hide-prompt-window", () => {
+            promptWindow.hide()
+            mainWindow.focus()
+            e.returnValue = null
+        })
+        promptWindow.on("close", ev => {
+            ev.preventDefault()
+            promptWindow.hide()
+            mainWindow.focus()
+            e.returnValue = null
+        })
     })
 })
 

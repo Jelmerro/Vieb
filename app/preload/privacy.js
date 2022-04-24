@@ -310,16 +310,21 @@ Object.defineProperty(window.BatteryManager.prototype,
 // Custom prompt, confirm and alert, based on "dialog*" settings
 // Options: return the default cancel action, show a custom popup or notify
 window.prompt = text => {
-    if (readJSON(settingsFile)?.dialogprompt?.includes("notify")) {
+    const settings = readJSON(settingsFile) || {}
+    const promptBehavior = settings.dialogprompt || "notifyblock"
+    if (promptBehavior.includes("notify")) {
         const url = window.location.href
         ipcRenderer.sendToHost("notify",
             `Page ${url} wanted to show a prompt dialog: ${text}`)
+    }
+    if (promptBehavior.includes("show")) {
+        return ipcRenderer.sendSync("show-prompt-dialog", text)
     }
     return null
 }
 window.confirm = text => {
     const settings = readJSON(settingsFile) || {}
-    const confirmBehavior = settings.dialogconfirm || "show"
+    const confirmBehavior = settings.dialogconfirm || "notifyblock"
     if (confirmBehavior.includes("notify")) {
         const url = window.location.href
         ipcRenderer.sendToHost("notify",
@@ -340,7 +345,7 @@ window.confirm = text => {
 }
 window.alert = text => {
     const settings = readJSON(settingsFile) || {}
-    const alertBehavior = settings.dialogalert || "show"
+    const alertBehavior = settings.dialogalert || "notifyblock"
     if (alertBehavior.includes("notify")) {
         const url = window.location.href
         ipcRenderer.sendToHost("notify",

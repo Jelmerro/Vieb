@@ -2,6 +2,9 @@
 set adblocker=update
 set devtoolsposition=split
 set downloadmethod=confirm
+set dialogalert=show
+set dialogconfirm=show
+set dialogprompt=show
 set firefoxmode=always
 set fontsize=16
 set mintabwidth=250

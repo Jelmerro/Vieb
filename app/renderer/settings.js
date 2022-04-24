@@ -228,7 +228,7 @@ const validOptions = {
     "devtoolsposition": ["window", "split", "vsplit", "tab"],
     "dialogalert": ["show", "notifyshow", "block", "notifyblock"],
     "dialogconfirm": ["show", "notifyshow", "block", "notifyblock"],
-    "dialogprompt": ["block", "notifyblock"],
+    "dialogprompt": ["show", "notifyshow", "block", "notifyblock"],
     "downloadmethod": ["automatic", "confirm", "ask", "block"],
     "explorehist": ["persist", "session", "none"],
     "favicons": [
