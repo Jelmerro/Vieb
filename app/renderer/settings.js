@@ -191,7 +191,7 @@ const defaultSettings = {
     "tabreopenmuted": "remember",
     "tabreopenposition": "right",
     "timeout": true,
-    "timeoutlen": 1000,
+    "timeoutlen": 2000,
     "useragent": "",
     "vimcommand": "gvim",
     "windowtitle": "%app - %title"

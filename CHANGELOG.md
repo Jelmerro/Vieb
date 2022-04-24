@@ -27,6 +27,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Duplicate download name for files that end in "tar.something" will now have the counter before the ".tar"
 - Iframes are now isolated properly, making them faster and more secure (no more infinite loop to set listeners for them)
 - Privacy overrides are now always done with a preload, making them faster and more secure (no more infinite loop to patch them)
+- Increase default timeoutlen above Vim's level because it makes more sense for Vieb
 
 ### Removed
 
