@@ -601,16 +601,50 @@ ipcRenderer.on("keyboard-type-event", (_, keyOptions) => {
         }
     }
 })
+const isVertScrollable = el => {
+    const scrollEl = document.scrollingElement
+    if ([scrollEl, scrollEl.parseElement].includes(el)) {
+        return el.scrollHeight > el.clientHeight
+    }
+    return el.scrollHeight > el.clientHeight
+        && ["scroll", "auto"].includes(getComputedStyle(el).overflowY)
+}
+const isHorScrollable = el => {
+    const scrollEl = document.scrollingElement
+    if ([scrollEl, scrollEl.parseElement].includes(el)) {
+        return el.scrollWidth > el.clientWidth
+    }
+    return el.scrollWidth > el.clientWidth
+        && ["scroll", "auto"].includes(getComputedStyle(el).overflowX)
+}
 ipcRenderer.on("custom-mouse-event", (_, eventType, mouseOptions) => {
     // This is a last resort attempt to press a mouse event in an iframe,
     // but ideally this code shouldn't exist and only use sendInputEvent.
     // See https://github.com/electron/electron/issues/20333
     const el = findElementAtPosition(mouseOptions.x, mouseOptions.y)
     if (eventType === "click") {
-        // TODO Ideally all supported events should get a proper implementation,
-        // because this is the only way to guarantee that the event will work.
         el.click()
         return
+    }
+    if (eventType === "mouseenter") {
+        // TODO copy hover styling and apply it
+    }
+    if (eventType === "mouseleave") {
+        // TODO remove the hover styling completely
+    }
+    if (eventType === "mousewheel") {
+        let sc = el
+        while (sc) {
+            if (mouseOptions.deltaY && isVertScrollable(sc)) {
+                sc.scrollTop -= mouseOptions.deltaY
+                break
+            }
+            if (mouseOptions.deltaX && isHorScrollable(sc)) {
+                sc.scrollLeft -= mouseOptions.deltaX
+                break
+            }
+            sc = sc.parentNode
+        }
     }
     const event = new MouseEvent(eventType, {
         ...mouseOptions,

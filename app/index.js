@@ -1753,18 +1753,20 @@ ipcMain.on("send-input-event", (_, id, inputInfo) => {
             })
             return
         }
-        frameRef.send("custom-mouse-event", "mouseenter", {
-            "x": X - subframe.absX, "y": Y - subframe.absY
-        })
         if (inputInfo.type === "click") {
             frameRef.send("custom-mouse-event", "click", {
                 "button": inputInfo.button,
                 "x": X - subframe.absX,
                 "y": Y - subframe.absY
             })
+            return
         }
-        if (["click", "leave"].includes(inputInfo.type)) {
+        if (inputInfo.type === "leave") {
             frameRef.send("custom-mouse-event", "mouseleave", {
+                "x": X - subframe.absX, "y": Y - subframe.absY
+            })
+        } else {
+            frameRef.send("custom-mouse-event", "mouseenter", {
                 "x": X - subframe.absX, "y": Y - subframe.absY
             })
         }
