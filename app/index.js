@@ -1482,6 +1482,8 @@ ipcMain.on("mouse-location", e => {
     }
     e.returnValue = null
 })
+
+// Subframe/iframe related code to send from renderer to frames and vice versa
 ipcMain.on("follow-mode-start", (_, id, switchTo = false) => {
     webContents.fromId(id).mainFrame.framesInSubtree.forEach(
         f => f.send("follow-mode-start"))

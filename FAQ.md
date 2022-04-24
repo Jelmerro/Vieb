@@ -130,6 +130,14 @@ which is exactly what Vim does, and was a big reason for starting Vieb.
 See also: [my answer to remove this separation](https://github.com/Jelmerro/Vieb/issues/63)
 and [this thread for my lengthy motivation for creating Vieb](https://github.com/Jelmerro/Vieb/issues/83).
 
+#### Why can't I hover using the pointer and/or why are my pointer mouse actions unreliable?
+
+This is because mouse simulations are not send correctly to subframes in Electron,
+so Vieb has some workarounds to attempt to execute the event manually.
+These are less reliable, and as such can't hover most menus inside iframes,
+along with some other weird mouse action related quirks.
+This can all be properly implemented once [this Electron issue](https://github.com/electron/electron/issues/20333) is fixed.
+
 #### Why does Vieb block popups?
 
 Electron has no support for dynamically allowing or blocking popups.

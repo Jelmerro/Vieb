@@ -621,16 +621,11 @@ ipcRenderer.on("custom-mouse-event", (_, eventType, mouseOptions) => {
     // This is a last resort attempt to press a mouse event in an iframe,
     // but ideally this code shouldn't exist and only use sendInputEvent.
     // See https://github.com/electron/electron/issues/20333
+    // The code below is also fairly useless when it comes to hovering elements.
     const el = findElementAtPosition(mouseOptions.x, mouseOptions.y)
     if (eventType === "click") {
         el.click()
         return
-    }
-    if (eventType === "mouseenter") {
-        // TODO copy hover styling and apply it
-    }
-    if (eventType === "mouseleave") {
-        // TODO remove the hover styling completely
     }
     if (eventType === "mousewheel") {
         let sc = el
