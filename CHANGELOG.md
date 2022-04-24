@@ -24,15 +24,18 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Dialog settings are now all blocked with notifications by default
 - Duplicate download numbering now starts from (1) instead of (2)
 - Duplicate download name for files that end in "tar.something" will now have the counter before the ".tar"
+- Iframes are now isolated properly, making them faster and more secure (no more infinite loop to set listeners for them)
+- Privacy overrides are now always done with a preload, making them faster and more secure (no more infinite loop to patch them)
 
 ### Removed
 
 - Action "toLastUsedTab" in favor of using ":buffer #" in line with other buffer-like commands that support "#"
+- Startup option to enable strict site isolation, it is now strictly isolated at all times
 
 ### Versions
 
-- Electron 18.0.1 (unchanged)
-- Chromium 100.0.4896.60 (unchanged)
+- Electron 18.1.0 (was 18.0.1)
+- Chromium 100.0.4896.127 (was 100.0.4896.60)
 
 ## [7.2.0](https://github.com/Jelmerro/Vieb/compare/7.1.2...7.2.0) - 2022-03-31
 
