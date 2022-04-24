@@ -60,6 +60,7 @@ const mouseFeatures = [
     "menusuggest",
     "menuvieb",
     "modeselector",
+    "movepointer",
     "follow",
     "toinsert",
     "toexplore",

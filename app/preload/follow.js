@@ -391,8 +391,6 @@ const clickListener = (e, frame = null) => {
         }
         ipcRenderer.send("mouse-click-info", {
             "toinsert": !!inputEl,
-            "tovisual": (frame?.contentWindow || window)
-                .getSelection().toString(),
             "x": e.x + (paddingInfo?.x || 0),
             "y": e.y + (paddingInfo?.y || 0)
         })
@@ -420,6 +418,9 @@ const mouseDownListener = (e, frame = null) => {
     const paddingInfo = findFrameInfo(frame)
     startX = e.clientX + (paddingInfo?.x || 0)
     startY = e.clientY + (paddingInfo?.y || 0)
+    ipcRenderer.send("mouse-down-location", {
+        "x": e.x + (paddingInfo?.x || 0), "y": e.y + (paddingInfo?.y || 0)
+    })
 }
 window.addEventListener("mousedown", mouseDownListener,
     {"capture": true, "passive": true})

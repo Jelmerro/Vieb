@@ -39,7 +39,7 @@ let skipNextClick = false
 const init = () => {
     const {ipcRenderer} = require("electron")
     const {setMode} = require("./modes")
-    ipcRenderer.on("mouse-click-info", (_, clickInfo) => {
+    ipcRenderer.on("mouse-down-location", (_, clickInfo) => {
         if (clickInfo.webviewId) {
             if (clickInfo.webviewId !== currentPage().getWebContentsId()) {
                 const page = listPages().find(
@@ -52,19 +52,29 @@ const init = () => {
         }
         const {clear} = require("./contextmenu")
         clear()
+        if (["pointer", "visual"].includes(currentMode())) {
+            if (currentMode() === "pointer") {
+                sendToPageOrSubFrame("action",
+                    "selectionRemove", zoomX(), zoomY())
+            }
+            if (getMouseConf("movepointer")) {
+                move(clickInfo.x * currentPage().getZoomFactor(),
+                    clickInfo.y * currentPage().getZoomFactor())
+            } else {
+                updateElement()
+            }
+        }
+    })
+    ipcRenderer.on("mouse-click-info", (_, clickInfo) => {
         if (skipNextClick) {
             skipNextClick = false
             return
         }
         if (["pointer", "visual"].includes(currentMode())) {
-            if (getMouseConf("movepointer")) {
-                if (clickInfo.tovisual) {
-                    startVisualSelect()
-                }
-                move(clickInfo.x * currentPage().getZoomFactor(),
-                    clickInfo.y * currentPage().getZoomFactor())
-            }
-        } else if (clickInfo.toinsert) {
+            updateElement()
+            return
+        }
+        if (clickInfo.toinsert) {
             if (getMouseConf("toinsert")) {
                 setMode("insert")
             }
@@ -76,11 +86,7 @@ const init = () => {
             const {setFocusCorrectly} = require("./actions")
             setFocusCorrectly()
         }
-        if (!clickInfo.tovisual) {
-            if (!["pointer", "visual"].includes(currentMode())) {
-                storeMouseSelection(null)
-            }
-        }
+        storeMouseSelection(null)
     })
     ipcRenderer.on("mouse-selection", (_, selectInfo) => {
         const switchToVisual = getSetting("mousevisualmode")

@@ -1762,6 +1762,8 @@ const translateMouseEvent = (e, clickInfo) => {
 }
 ipcMain.on("mouse-selection", (e, clickInfo) => mainWindow.webContents.send(
     "mouse-selection", translateMouseEvent(e, clickInfo)))
+ipcMain.on("mouse-down-location", (e, clickInfo) => mainWindow.webContents.send(
+    "mouse-down-location", translateMouseEvent(e, clickInfo)))
 ipcMain.on("mouse-click-info", (e, clickInfo) => mainWindow.webContents.send(
     "mouse-click-info", translateMouseEvent(e, clickInfo)))
 ipcMain.on("context-click-info", (e, clickInfo) => mainWindow.webContents.send(
