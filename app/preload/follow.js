@@ -18,7 +18,6 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {privacyFixes} = require("./privacy")
 const {
     matchesQuery,
     findElementAtPosition,
@@ -26,7 +25,7 @@ const {
     propPixels,
     findFrameInfo,
     findClickPosition,
-    frameSelector,
+    framePosition,
     activeElement,
     readJSON,
     joinPath,
@@ -97,7 +96,7 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
     focusEl.click()
     focusEl.focus()
     const focusLength = focusEl.value?.length || focusEl.textContent.length
-    if (focusLength > 0) {
+    if (focusLength > 0 && focusEl.setSelectionRange) {
         if (!previouslyFocussedElements.includes(focusEl)
             || inputfocusalignment.includes("always")) {
             if (inputfocusalignment.includes("end")) {
@@ -196,16 +195,45 @@ const getAllFollowLinks = () => {
     })
 }
 
-const sendFollowLinks = () => {
+const mainInfoLoop = () => {
     if (inFollowMode) {
-        ipcRenderer.sendToHost("follow-response", getAllFollowLinks())
+        ipcRenderer.send("follow-response", getAllFollowLinks())
     }
+    // Listeners for iframes that run on the same host and same process
+    [...querySelectorAll("iframe")].forEach(f => {
+        try {
+            f.contentDocument.onclick = e => clickListener(e, f)
+            f.contentDocument.oncontextmenu = e => contextListener(e, f)
+            f.contentDocument.onmousedown = e => mouseDownListener(e, f)
+            f.contentDocument.onmouseup = e => mouseUpListener(e, f)
+        } catch {
+            // Not an issue, will be retried shortly, we also can't do much else
+        }
+    })
+    // Send details to main for iframes that run in a separate process
+    ipcRenderer.send("frame-details", {
+        "height": window.innerHeight,
+        "pagex": window.scrollX,
+        "pagey": window.scrollY,
+        "scrollHeight": document.body.scrollHeight,
+        "scrollWidth": document.body.scrollWidth,
+        "subframes": [...querySelectorAll("iframe") || []].map(f => ({
+            "bounds": JSON.stringify(f.getBoundingClientRect()),
+            "height": f.getBoundingClientRect().height || f.clientHeight,
+            "url": f.src,
+            "width": f.getBoundingClientRect().width || f.clientWidth,
+            "x": framePosition(f).x,
+            "y": framePosition(f).y
+        })),
+        "url": window.location.href,
+        "width": window.innerWidth
+    })
 }
 
 ipcRenderer.on("follow-mode-start", () => {
     if (!inFollowMode) {
         inFollowMode = true
-        sendFollowLinks()
+        mainInfoLoop()
     }
 })
 
@@ -215,8 +243,9 @@ ipcRenderer.on("follow-mode-stop", () => {
 
 // Send the page once every second in case of transitions or animations
 // Could be done with an observer, but that drastically slows down on big pages
-setInterval(sendFollowLinks, 1000)
-window.addEventListener("resize", sendFollowLinks)
+setInterval(mainInfoLoop, 1000)
+window.addEventListener("DOMContentLoaded", mainInfoLoop)
+window.addEventListener("resize", mainInfoLoop)
 
 const pseudoElementRects = element => {
     const base = element.getBoundingClientRect()
@@ -360,7 +389,7 @@ const clickListener = (e, frame = null) => {
         if (focusEl) {
             previouslyFocussedElements.push(focusEl)
         }
-        ipcRenderer.sendToHost("mouse-click-info", {
+        ipcRenderer.send("mouse-click-info", {
             "toinsert": !!inputEl,
             "tovisual": (frame?.contentWindow || window)
                 .getSelection().toString(),
@@ -404,7 +433,7 @@ const mouseUpListener = (e, frame = null) => {
     if (endX > 0 && endY > 0 && (diffX > 3 || diffY > 3)) {
         const text = (frame?.contentWindow || window).getSelection().toString()
         if (text) {
-            ipcRenderer.sendToHost("mouse-selection", {
+            ipcRenderer.send("mouse-selection", {
                 endX,
                 endY,
                 startX,
@@ -477,7 +506,7 @@ const contextListener = (e, frame = null, extraData = null) => {
             el => el.tagName?.toLowerCase() === "a" && el.href?.trim())
         const text = e.composedPath().find(
             el => matchesQuery(el, textlikeInputs))
-        ipcRenderer.sendToHost("context-click-info", {
+        ipcRenderer.send("context-click-info", {
             "audio": audio?.src?.trim(),
             "audioData": {
                 "controllable": !!audioEl,
@@ -489,7 +518,8 @@ const contextListener = (e, frame = null, extraData = null) => {
             backgroundImg,
             "canEdit": !!text,
             extraData,
-            "frame": frame?.src,
+            "frame": e.composedPath().find(
+                el => matchesQuery(el, "iframe"))?.src || frame?.src,
             "hasElementListener": eventListeners.contextmenu.has(
                 e.composedPath()[0])
                 || eventListeners.auxclick.has(e.composedPath()[0]),
@@ -533,17 +563,20 @@ ipcRenderer.on("contextmenu-data", (_, request) => {
 ipcRenderer.on("contextmenu", (_, extraData = null) => {
     const els = [activeElement()]
     const parsed = parseElement(els[0])
-    let x = parsed?.x || 0
+    if (!parsed || ["iframe", "body"].includes(els[0].tagName.toLowerCase())) {
+        return
+    }
+    let {x} = parsed
     if (getComputedStyle(els[0]).font.includes("monospace")) {
-        x = parsed?.x + propPixels(els[0], "fontSize")
+        x = parsed.x + propPixels(els[0], "fontSize")
             * els[0].selectionStart * 0.60191 - els[0].scrollLeft
     }
-    let y = parsed?.y + parsed.height
+    let y = parsed.y + parsed.height
     if (x > window.innerWidth || isNaN(x) || x === 0) {
-        x = parsed?.x || 0
+        ({x} = parsed)
     }
     if (y > window.innerHeight) {
-        y = parsed?.y || 0
+        ({y} = parsed)
     }
     while (els[0].parentNode && els[0].parentNode !== els[1]?.parentNode) {
         els.unshift(els[0].parentNode)
@@ -554,22 +587,70 @@ ipcRenderer.on("contextmenu", (_, extraData = null) => {
     }, findFrameInfo(els[0])?.element, extraData)
 })
 window.addEventListener("auxclick", contextListener)
-
-setInterval(() => {
-    // Regular listeners are wiped when the element is re-added to the dom,
-    // so add them with an interval as an attribute listener.
-    [...querySelectorAll(frameSelector)].forEach(f => {
-        try {
-            f.contentDocument.onclick = e => clickListener(e, f)
-            f.contentDocument.oncontextmenu = e => contextListener(e, f)
-            f.contentDocument.onmousedown = e => mouseDownListener(e, f)
-            f.contentDocument.onmouseup = e => mouseUpListener(e, f)
-            privacyFixes(f.contentWindow)
-        } catch {
-            // Not an issue, will be retried shortly
+ipcRenderer.on("keyboard-type-event", (_, keyOptions) => {
+    // This is a last resort attempt to press a key in an iframe,
+    // but ideally this code shouldn't exist and only use sendInputEvent.
+    // See https://github.com/electron/electron/issues/20333
+    const input = activeElement()
+    if (matchesQuery(input, textlikeInputs) && keyOptions.key.length === 1) {
+        if (typeof input.value === "string" && input.setSelectionRange) {
+            const cur = Number(input.selectionStart)
+            input.value = `${input.value.substr(0, cur)}${keyOptions.key}${
+                input.value.substr(input.selectionEnd)}`
+            input.setSelectionRange(cur + 1, cur + 1)
         }
+    }
+})
+const isVertScrollable = el => {
+    const scrollEl = document.scrollingElement
+    if ([scrollEl, scrollEl.parseElement].includes(el)) {
+        return el.scrollHeight > el.clientHeight
+    }
+    return el.scrollHeight > el.clientHeight
+        && ["scroll", "auto"].includes(getComputedStyle(el).overflowY)
+}
+const isHorScrollable = el => {
+    const scrollEl = document.scrollingElement
+    if ([scrollEl, scrollEl.parseElement].includes(el)) {
+        return el.scrollWidth > el.clientWidth
+    }
+    return el.scrollWidth > el.clientWidth
+        && ["scroll", "auto"].includes(getComputedStyle(el).overflowX)
+}
+ipcRenderer.on("custom-mouse-event", (_, eventType, mouseOptions) => {
+    // This is a last resort attempt to press a mouse event in an iframe,
+    // but ideally this code shouldn't exist and only use sendInputEvent.
+    // See https://github.com/electron/electron/issues/20333
+    // The code below is also fairly useless when it comes to hovering elements.
+    const el = findElementAtPosition(mouseOptions.x, mouseOptions.y)
+    if (eventType === "click") {
+        el.click()
+        return
+    }
+    if (eventType === "mousewheel") {
+        let sc = el
+        while (sc) {
+            if (mouseOptions.deltaY && isVertScrollable(sc)) {
+                sc.scrollTop -= mouseOptions.deltaY
+                break
+            }
+            if (mouseOptions.deltaX && isHorScrollable(sc)) {
+                sc.scrollLeft -= mouseOptions.deltaX
+                break
+            }
+            sc = sc.parentNode
+        }
+    }
+    const event = new MouseEvent(eventType, {
+        ...mouseOptions,
+        "bubbles": true,
+        "cancelable": true,
+        "isTrusted": true,
+        "type": eventType,
+        "view": window
     })
-}, 0)
+    el.dispatchEvent(event)
+})
 
 let searchElement = null
 let scrollHeight = 0

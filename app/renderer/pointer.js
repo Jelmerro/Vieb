@@ -18,9 +18,14 @@
 "use strict"
 
 const {
-    currentPage, currentMode, getSetting, tabOrPageMatching
+    currentPage,
+    currentMode,
+    getSetting,
+    tabOrPageMatching,
+    getMouseConf,
+    listPages
 } = require("./common")
-const {matchesQuery, propPixels} = require("../util")
+const {matchesQuery, propPixels, sendToPageOrSubFrame} = require("../util")
 
 let X = 0
 let Y = 0
@@ -29,7 +34,80 @@ let startY = 0
 let listenForScroll = false
 let lastSelection = {"endX": 0, "endY": 0, "startX": 0, "startY": 0}
 let mouseSelection = null
+let skipNextClick = false
 
+const init = () => {
+    const {ipcRenderer} = require("electron")
+    const {setMode} = require("./modes")
+    ipcRenderer.on("mouse-click-info", (_, clickInfo) => {
+        if (clickInfo.webviewId) {
+            if (clickInfo.webviewId !== currentPage().getWebContentsId()) {
+                const page = listPages().find(
+                    p => p.getWebContentsId?.() === clickInfo.webviewId)
+                if (page) {
+                    const {switchToTab} = require("./tabs")
+                    switchToTab(tabOrPageMatching(page))
+                }
+            }
+        }
+        const {clear} = require("./contextmenu")
+        clear()
+        if (skipNextClick) {
+            skipNextClick = false
+            return
+        }
+        if (["pointer", "visual"].includes(currentMode())) {
+            if (getMouseConf("movepointer")) {
+                if (clickInfo.tovisual) {
+                    startVisualSelect()
+                }
+                move(clickInfo.x * currentPage().getZoomFactor(),
+                    clickInfo.y * currentPage().getZoomFactor())
+            }
+        } else if (clickInfo.toinsert) {
+            if (getMouseConf("toinsert")) {
+                setMode("insert")
+            }
+        } else if ("ces".includes(currentMode()[0])) {
+            if (getMouseConf("leaveinput")) {
+                setMode("normal")
+            }
+        } else {
+            const {setFocusCorrectly} = require("./actions")
+            setFocusCorrectly()
+        }
+        if (!clickInfo.tovisual) {
+            if (!["pointer", "visual"].includes(currentMode())) {
+                storeMouseSelection(null)
+            }
+        }
+    })
+    ipcRenderer.on("mouse-selection", (_, selectInfo) => {
+        const switchToVisual = getSetting("mousevisualmode")
+        if (getMouseConf("copyselect")) {
+            const {clipboard} = require("electron")
+            clipboard.writeText(selectInfo.text)
+        }
+        if (selectInfo.toinsert) {
+            if (getMouseConf("toinsert")) {
+                setMode("insert")
+            }
+            return
+        }
+        if (switchToVisual !== "never" || currentMode() === "visual") {
+            skipNextClick = true
+            storeMouseSelection({
+                "endX": selectInfo.endX * currentPage().getZoomFactor(),
+                "endY": selectInfo.endY * currentPage().getZoomFactor(),
+                "startX": selectInfo.startX * currentPage().getZoomFactor(),
+                "startY": selectInfo.startY * currentPage().getZoomFactor()
+            })
+            if (switchToVisual === "activate") {
+                startVisualSelect()
+            }
+        }
+    })
+}
 const zoomX = () => Math.round(X / currentPage().getZoomFactor())
 
 const zoomY = () => Math.round(Y / currentPage().getZoomFactor())
@@ -68,13 +146,13 @@ const updateElement = () => {
     currentPage().setAttribute("pointer-x", X)
     currentPage().setAttribute("pointer-y", Y)
     if (currentMode() === "pointer") {
-        currentPage().sendInputEvent({"type": "mouseEnter", "x": X, "y": Y})
-        currentPage().sendInputEvent({"type": "mouseMove", "x": X, "y": Y})
+        sendToPageOrSubFrame("send-input-event",
+            {"type": "hover", "x": X, "y": Y})
     }
     if (currentMode() === "visual") {
         lastSelection = {"endX": X, "endY": Y, startX, startY}
         const factor = currentPage().getZoomFactor()
-        currentPage().send("action", "selectionRequest",
+        sendToPageOrSubFrame("action", "selectionRequest",
             Math.round(startX / factor), Math.round(startY / factor),
             zoomX(), zoomY())
     }
@@ -82,8 +160,9 @@ const updateElement = () => {
 
 const releaseKeys = () => {
     try {
-        currentPage().sendInputEvent({"type": "mouseLeave", "x": X, "y": Y})
-        currentPage().send("action", "selectionRemove", zoomX(), zoomY())
+        sendToPageOrSubFrame("send-input-event",
+            {"type": "leave", "x": X, "y": Y})
+        sendToPageOrSubFrame("action", "selectionRemove", zoomX(), zoomY())
     } catch {
         // Can't release keys, probably because of opening a new tab
     }
@@ -101,7 +180,7 @@ const start = (customX = null, customY = null) => {
     Y = customY || Number(currentPage().getAttribute("pointer-y")) || Y
     const {setMode} = require("./modes")
     setMode("pointer")
-    currentPage().sendInputEvent({"type": "mouseEnter", "x": X, "y": Y})
+    sendToPageOrSubFrame("send-input-event", {"type": "hover", "x": X, "y": Y})
     updateElement()
 }
 
@@ -136,193 +215,194 @@ const restoreSelection = () => {
     updateElement()
 }
 
-const splitAudio = () => currentPage().send("contextmenu-data", {
+const splitAudio = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "split", "type": "audio", "x": zoomX(), "y": zoomY()
 })
 
-const splitFrame = () => currentPage().send("contextmenu-data", {
+const splitFrame = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "split", "type": "frame", "x": zoomX(), "y": zoomY()
 })
 
-const splitLink = () => currentPage().send("contextmenu-data", {
+const splitLink = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "split", "type": "link", "x": zoomX(), "y": zoomY()
 })
 
-const splitImage = () => currentPage().send("contextmenu-data", {
+const splitImage = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "split", "type": "img", "x": zoomX(), "y": zoomY()
 })
 
-const splitVideo = () => currentPage().send("contextmenu-data", {
+const splitVideo = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "split", "type": "video", "x": zoomX(), "y": zoomY()
 })
 
-const vsplitAudio = () => currentPage().send("contextmenu-data", {
+const vsplitAudio = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "vsplit", "type": "audio", "x": zoomX(), "y": zoomY()
 })
 
-const vsplitFrame = () => currentPage().send("contextmenu-data", {
+const vsplitFrame = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "vsplit", "type": "frame", "x": zoomX(), "y": zoomY()
 })
 
-const vsplitLink = () => currentPage().send("contextmenu-data", {
+const vsplitLink = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "vsplit", "type": "link", "x": zoomX(), "y": zoomY()
 })
 
-const vsplitImage = () => currentPage().send("contextmenu-data", {
+const vsplitImage = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "vsplit", "type": "img", "x": zoomX(), "y": zoomY()
 })
 
-const vsplitVideo = () => currentPage().send("contextmenu-data", {
+const vsplitVideo = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "vsplit", "type": "video", "x": zoomX(), "y": zoomY()
 })
 
-const downloadAudio = () => currentPage().send("contextmenu-data", {
+const downloadAudio = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "download", "type": "audio", "x": zoomX(), "y": zoomY()
 })
 
-const downloadFrame = () => currentPage().send("contextmenu-data", {
+const downloadFrame = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "download", "type": "frame", "x": zoomX(), "y": zoomY()
 })
 
-const downloadLink = () => currentPage().send("contextmenu-data", {
+const downloadLink = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "download", "type": "link", "x": zoomX(), "y": zoomY()
 })
 
-const downloadImage = () => currentPage().send("contextmenu-data", {
+const downloadImage = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "download", "type": "img", "x": zoomX(), "y": zoomY()
 })
 
-const downloadVideo = () => currentPage().send("contextmenu-data", {
+const downloadVideo = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "download", "type": "video", "x": zoomX(), "y": zoomY()
 })
 
-const newtabAudio = () => currentPage().send("contextmenu-data", {
+const newtabAudio = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "newtab", "type": "audio", "x": zoomX(), "y": zoomY()
 })
 
-const newtabFrame = () => currentPage().send("contextmenu-data", {
+const newtabFrame = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "newtab", "type": "frame", "x": zoomX(), "y": zoomY()
 })
 
-const newtabLink = () => currentPage().send("contextmenu-data", {
+const newtabLink = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "newtab", "type": "link", "x": zoomX(), "y": zoomY()
 })
 
-const newtabImage = () => currentPage().send("contextmenu-data", {
+const newtabImage = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "newtab", "type": "img", "x": zoomX(), "y": zoomY()
 })
 
-const newtabVideo = () => currentPage().send("contextmenu-data", {
+const newtabVideo = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "newtab", "type": "video", "x": zoomX(), "y": zoomY()
 })
 
-const openAudio = () => currentPage().send("contextmenu-data", {
+const openAudio = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "open", "type": "audio", "x": zoomX(), "y": zoomY()
 })
 
-const openFrame = () => currentPage().send("contextmenu-data", {
+const openFrame = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "open", "type": "frame", "x": zoomX(), "y": zoomY()
 })
 
-const openLink = () => currentPage().send("contextmenu-data", {
+const openLink = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "open", "type": "link", "x": zoomX(), "y": zoomY()
 })
 
-const openImage = () => currentPage().send("contextmenu-data", {
+const openImage = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "open", "type": "img", "x": zoomX(), "y": zoomY()
 })
 
-const openVideo = () => currentPage().send("contextmenu-data", {
+const openVideo = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "open", "type": "video", "x": zoomX(), "y": zoomY()
 })
 
-const externalAudio = () => currentPage().send("contextmenu-data", {
+const externalAudio = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "external", "type": "audio", "x": zoomX(), "y": zoomY()
 })
 
-const externalFrame = () => currentPage().send("contextmenu-data", {
+const externalFrame = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "external", "type": "frame", "x": zoomX(), "y": zoomY()
 })
 
-const externalLink = () => currentPage().send("contextmenu-data", {
+const externalLink = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "external", "type": "link", "x": zoomX(), "y": zoomY()
 })
 
-const externalImage = () => currentPage().send("contextmenu-data", {
+const externalImage = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "external", "type": "img", "x": zoomX(), "y": zoomY()
 })
 
-const externalVideo = () => currentPage().send("contextmenu-data", {
+const externalVideo = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "external", "type": "video", "x": zoomX(), "y": zoomY()
 })
 
-const copyAudio = () => currentPage().send("contextmenu-data", {
+const copyAudio = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "copy", "type": "audio", "x": zoomX(), "y": zoomY()
 })
 
-const copyFrame = () => currentPage().send("contextmenu-data", {
+const copyFrame = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "copy", "type": "frame", "x": zoomX(), "y": zoomY()
 })
 
-const copyLink = () => currentPage().send("contextmenu-data", {
+const copyLink = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "copy", "type": "link", "x": zoomX(), "y": zoomY()
 })
 
-const copyImageBuffer = () => currentPage().send("contextmenu-data", {
+const copyImageBuffer = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "copyimage", "type": "img", "x": zoomX(), "y": zoomY()
 })
 
-const copyImage = () => currentPage().send("contextmenu-data", {
+const copyImage = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "copy", "type": "img", "x": zoomX(), "y": zoomY()
 })
 
-const copyVideo = () => currentPage().send("contextmenu-data", {
+const copyVideo = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "copy", "type": "video", "x": zoomX(), "y": zoomY()
 })
 
-const splitText = () => currentPage().send("contextmenu-data", {
+const splitText = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "split", "type": "text", "x": zoomX(), "y": zoomY()
 })
 
-const vsplitText = () => currentPage().send("contextmenu-data", {
+const vsplitText = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "vsplit", "type": "text", "x": zoomX(), "y": zoomY()
 })
 
-const downloadText = () => currentPage().send("contextmenu-data", {
+const downloadText = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "download", "type": "text", "x": zoomX(), "y": zoomY()
 })
 
-const newtabText = () => currentPage().send("contextmenu-data", {
+const newtabText = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "newtab", "type": "text", "x": zoomX(), "y": zoomY()
 })
 
-const openText = () => currentPage().send("contextmenu-data", {
+const openText = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "open", "type": "text", "x": zoomX(), "y": zoomY()
 })
 
-const externalText = () => currentPage().send("contextmenu-data", {
+const externalText = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "external", "type": "text", "x": zoomX(), "y": zoomY()
 })
 
-const copyText = () => currentPage().send("contextmenu-data", {
+const copyText = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "copy", "type": "text", "x": zoomX(), "y": zoomY()
 })
 
-const searchText = () => currentPage().send("contextmenu-data", {
+const searchText = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "search", "type": "text", "x": zoomX(), "y": zoomY()
 })
 
-const toggleMediaPlay = () => currentPage().send("action", "togglePause", X, Y)
+const toggleMediaPlay = () => sendToPageOrSubFrame(
+    "action", "togglePause", X, Y)
 
-const mediaDown = () => currentPage().send("action", "volumeDown", X, Y)
+const mediaDown = () => sendToPageOrSubFrame("action", "volumeDown", X, Y)
 
-const mediaUp = () => currentPage().send("action", "volumeUp", X, Y)
+const mediaUp = () => sendToPageOrSubFrame("action", "volumeUp", X, Y)
 
-const toggleMediaMute = () => currentPage().send("action", "toggleMute", X, Y)
+const toggleMediaMute = () => sendToPageOrSubFrame("action", "toggleMute", X, Y)
 
-const toggleMediaLoop = () => currentPage().send("action", "toggleLoop", X, Y)
+const toggleMediaLoop = () => sendToPageOrSubFrame("action", "toggleLoop", X, Y)
 
-const toggleMediaControls = () => currentPage().send(
+const toggleMediaControls = () => sendToPageOrSubFrame(
     "action", "toggleControls", X, Y)
 
 const inspectElement = () => {
@@ -331,18 +411,7 @@ const inspectElement = () => {
 }
 
 const leftClick = () => {
-    currentPage().sendInputEvent({"type": "mouseEnter", "x": X, "y": Y})
-    currentPage().sendInputEvent({
-        "button": "left",
-        "clickCount": 1,
-        "type": "mouseDown",
-        "x": X,
-        "y": Y
-    })
-    currentPage().sendInputEvent({
-        "button": "left", "type": "mouseUp", "x": X, "y": Y
-    })
-    currentPage().sendInputEvent({"type": "mouseLeave", "x": X, "y": Y})
+    sendToPageOrSubFrame("send-input-event", {"type": "click", "x": X, "y": Y})
 }
 
 const startOfPage = () => {
@@ -364,7 +433,7 @@ const moveLeft = () => {
 
 const insertAtPosition = () => {
     const factor = currentPage().getZoomFactor()
-    currentPage().send("focus-input", {"x": X * factor, "y": Y * factor})
+    sendToPageOrSubFrame("focus-input", {"x": X * factor, "y": Y * factor})
 }
 
 const moveDown = () => {
@@ -396,12 +465,8 @@ const moveRight = () => {
 }
 
 const rightClick = () => {
-    currentPage().sendInputEvent({
-        "button": "right", "clickCount": 1, "type": "mouseDown", "x": X, "y": Y
-    })
-    currentPage().sendInputEvent({
-        "button": "right", "type": "mouseUp", "x": X, "y": Y
-    })
+    sendToPageOrSubFrame("send-input-event",
+        {"button": "right", "type": "click", "x": X, "y": Y})
     const {storePointerRightClick} = require("./contextmenu")
     storePointerRightClick()
 }
@@ -437,30 +502,26 @@ const centerOfView = () => {
 }
 
 const scrollDown = () => {
-    currentPage().sendInputEvent({
-        "deltaX": 0, "deltaY": -100, "type": "mouseWheel", "x": X, "y": Y
-    })
+    sendToPageOrSubFrame("send-input-event",
+        {"deltaY": -100, "type": "scroll", "x": X, "y": Y})
     updateElement()
 }
 
 const scrollUp = () => {
-    currentPage().sendInputEvent({
-        "deltaX": 0, "deltaY": 100, "type": "mouseWheel", "x": X, "y": Y
-    })
+    sendToPageOrSubFrame("send-input-event",
+        {"deltaY": 100, "type": "scroll", "x": X, "y": Y})
     updateElement()
 }
 
 const scrollLeft = () => {
-    currentPage().sendInputEvent({
-        "deltaX": 100, "deltaY": 0, "type": "mouseWheel", "x": X, "y": Y
-    })
+    sendToPageOrSubFrame("send-input-event",
+        {"deltaX": 100, "type": "scroll", "x": X, "y": Y})
     updateElement()
 }
 
 const scrollRight = () => {
-    currentPage().sendInputEvent({
-        "deltaX": -100, "deltaY": 0, "type": "mouseWheel", "x": X, "y": Y
-    })
+    sendToPageOrSubFrame("send-input-event",
+        {"deltaX": -100, "type": "scroll", "x": X, "y": Y})
     updateElement()
 }
 
@@ -558,6 +619,7 @@ module.exports = {
     externalText,
     externalVideo,
     handleScrollDiffEvent,
+    init,
     insertAtPosition,
     inspectElement,
     leftClick,

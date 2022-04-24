@@ -88,10 +88,6 @@ Google owns your data and they are the ones to decide who may view it and when, 
 Below is a list of known workarounds to circumvent this blocking policy, use them at your own risk.
 
 - You can use `:set firefoxmode=google` within Vieb to mimic Firefox when visiting Google pages.
-- You can enable strict site isolation on startup with `--site-isolation=strict`, though this will block Vieb from accessing iframes in follow mode.
-  If you rely heavily on Google services it might be worth the trade-off to use this startup option,
-  which offers for more reliable Google logins at the cost of a limited follow mode implementation.
-  For Vieb to have strict site isolation without the follow mode limitation [this Electron issue](https://github.com/electron/electron/issues/22582) needs to be fixed.
 - You can temporarily allow `""Less secure app access""` in your [Google account dashboard](https://myaccount.google.com/security).
 
 There are no other known workarounds to allow the sign-in at this point of time.
@@ -133,6 +129,14 @@ It achieves this by separating functionality into different modes,
 which is exactly what Vim does, and was a big reason for starting Vieb.
 See also: [my answer to remove this separation](https://github.com/Jelmerro/Vieb/issues/63)
 and [this thread for my lengthy motivation for creating Vieb](https://github.com/Jelmerro/Vieb/issues/83).
+
+#### Why can't I hover using the pointer and/or why are my pointer mouse actions unreliable?
+
+This is because mouse simulations are not send correctly to subframes in Electron,
+so Vieb has some workarounds to attempt to execute the event manually.
+These are less reliable, and as such can't hover most menus inside iframes,
+along with some other weird mouse action related quirks.
+This can all be properly implemented once [this Electron issue](https://github.com/electron/electron/issues/20333) is fixed.
 
 #### Why does Vieb block popups?
 

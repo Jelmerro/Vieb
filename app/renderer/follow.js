@@ -18,7 +18,6 @@
 "use strict"
 
 const {
-    listPages,
     currentPage,
     currentTab,
     currentMode,
@@ -28,7 +27,8 @@ const {
     getMouseConf
 } = require("./common")
 
-const {propPixels} = require("../util")
+const {propPixels, sendToPageOrSubFrame} = require("../util")
+const {ipcRenderer} = require("electron")
 
 let followLinkDestination = "current"
 let alreadyFollowing = false
@@ -38,14 +38,19 @@ const savedOrder = [
     "image", "media", "url", "onclick", "inputs-click", "inputs-insert"
 ]
 
+const init = () => {
+    ipcRenderer.on("follow-response", (_, l) => parseAndDisplayLinks(l))
+}
+
 const informPreload = () => {
     setTimeout(() => {
         if (currentPage().getAttribute("dom-ready")) {
             if (currentMode() === "follow" && !alreadyFollowing) {
-                currentPage().send("follow-mode-start")
+                ipcRenderer.send("follow-mode-start",
+                    currentPage().getWebContentsId())
                 informPreload()
             } else {
-                currentPage().send("follow-mode-stop")
+                ipcRenderer.send("follow-mode-stop")
             }
         }
     }, 100)
@@ -66,7 +71,8 @@ const startFollow = (newtab = followLinkDestination) => {
     alreadyFollowing = false
     alreadyFilteringLinks = false
     informPreload()
-    currentPage().send("follow-mode-start")
+    ipcRenderer.send("follow-mode-start",
+        currentPage().getWebContentsId(), true)
     document.getElementById("follow").style.display = "flex"
 }
 
@@ -75,13 +81,7 @@ const cancelFollow = () => {
     alreadyFilteringLinks = false
     document.getElementById("follow").style.display = ""
     document.getElementById("follow").textContent = ""
-    listPages().forEach(page => {
-        try {
-            page.send("follow-mode-stop")
-        } catch {
-            // Cancel follow mode in all tabs
-        }
-    })
+    ipcRenderer.send("follow-mode-stop")
 }
 
 const followChars = () => {
@@ -145,27 +145,13 @@ const clickAtLink = async link => {
         setTimeout(r, 2)
     })
     if (link.type === "inputs-insert") {
-        currentPage().send("focus-input",
+        sendToPageOrSubFrame("focus-input",
             {"x": link.x + link.width / 2, "y": link.y + link.height / 2})
     } else {
-        currentPage().sendInputEvent({
-            "type": "mouseEnter", "x": link.x * factor, "y": link.y * factor
-        })
-        currentPage().sendInputEvent({
-            "button": "left",
-            "clickCount": 1,
-            "type": "mouseDown",
+        sendToPageOrSubFrame("send-input-event", {
+            "type": "click",
             "x": (link.x + link.width / 2) * factor,
             "y": (link.y + link.height / 2) * factor
-        })
-        currentPage().sendInputEvent({
-            "button": "left",
-            "type": "mouseUp",
-            "x": (link.x + link.width / 2) * factor,
-            "y": (link.y + link.height / 2) * factor
-        })
-        currentPage().sendInputEvent({
-            "type": "mouseLeave", "x": link.x * factor, "y": link.y * factor
         })
     }
     await new Promise(r => {
@@ -307,14 +293,6 @@ const parseAndDisplayLinks = receivedLinks => {
             borderElement.appendChild(linkElement)
         }
     })
-    followChildren.forEach(el => {
-        const link = el.querySelector("[link-id]")
-        const sameStart = followChildren.find(f => f.textContent.trim()
-            .startsWith(link.textContent.slice(1)) && f !== el)
-        if (!sameStart && link.textContent.length > 1) {
-            link.textContent = link.textContent.slice(1)
-        }
-    })
     document.getElementById("follow").replaceChildren(...followChildren)
     applyIndexedOrder()
 }
@@ -421,7 +399,7 @@ module.exports = {
     cancelFollow,
     enterKey,
     followFiltering,
-    parseAndDisplayLinks,
+    init,
     reorderDisplayedLinks,
     startFollow
 }

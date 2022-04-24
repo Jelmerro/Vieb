@@ -34,7 +34,6 @@ let appDataPath = ""
 let homeDirPath = ""
 let configSettings = ""
 const framePaddingInfo = []
-const frameSelector = "embed, frame, iframe, object"
 const specialChars = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/\s]/gi
 const specialCharsAllowSpaces = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/]/gi
 const dataUris = [
@@ -358,7 +357,7 @@ const findElementAtPosition = (x, y, levels = [document], px = 0, py = 0) => {
     if (levels.includes(elementAtPos?.shadowRoot || elementAtPos)) {
         return elementAtPos
     }
-    if (matchesQuery(elementAtPos, frameSelector)) {
+    if (matchesQuery(elementAtPos, "iframe")) {
         const frameInfo = findFrameInfo(elementAtPos) || {}
         return findElementAtPosition(x, y,
             [elementAtPos.contentDocument, ...levels], frameInfo.x, frameInfo.y)
@@ -380,7 +379,7 @@ const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
         elements = Array.from(base.querySelectorAll(sel) || [])
     }
     Array.from(base.querySelectorAll("*") || [])
-        .filter(el => el.shadowRoot || matchesQuery(el, frameSelector))
+        .filter(el => el.shadowRoot || matchesQuery(el, "iframe"))
         .forEach(el => {
             let location = {"x": paddedX, "y": paddedY}
             if (!el.shadowRoot) {
@@ -424,11 +423,11 @@ const activeElement = () => {
         return document.activeElement.shadowRoot.activeElement
     }
     if (document.activeElement !== document.body) {
-        if (!matchesQuery(document.activeElement, frameSelector)) {
+        if (!matchesQuery(document.activeElement, "iframe")) {
             return document.activeElement
         }
     }
-    return querySelectorAll(frameSelector).map(frame => {
+    return querySelectorAll("iframe").map(frame => {
         const doc = frame.contentDocument
         if (!doc) {
             return false
@@ -437,7 +436,7 @@ const activeElement = () => {
             return doc.activeElement.shadowRoot.activeElement
         }
         if (doc.body !== doc.activeElement) {
-            if (!matchesQuery(doc.activeElement, frameSelector)) {
+            if (!matchesQuery(doc.activeElement, "iframe")) {
                 return doc.activeElement
             }
         }
@@ -514,6 +513,12 @@ const extractZip = (args, cb) => {
 }
 
 // IPC UTIL
+
+const sendToPageOrSubFrame = (channel, ...args) => {
+    const {ipcRenderer} = require("electron")
+    ipcRenderer.send(channel, document.getElementById("current-page")
+        ?.getWebContentsId(), ...args)
+}
 
 const globDelete = folder => {
     // Request is send back to the main process due to electron-builder bugs:
@@ -876,7 +881,6 @@ const modifiedAt = loc => {
 // Disabled import sort order as the order is optimized to reduce module loads
 /* eslint-disable sort-keys/sort-keys-fix */
 module.exports = {
-    frameSelector,
     specialChars,
     specialCharsAllowSpaces,
     hasProtocol,
@@ -898,6 +902,7 @@ module.exports = {
     sameDomain,
     formatDate,
     findFrameInfo,
+    framePosition,
     propPixels,
     matchesQuery,
     findElementAtPosition,
@@ -908,6 +913,7 @@ module.exports = {
     compareVersions,
     extractZip,
     // IPC UTIL
+    sendToPageOrSubFrame,
     globDelete,
     clearTempContainers,
     clearCache,
