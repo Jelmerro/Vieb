@@ -32,6 +32,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Action "toLastUsedTab" in favor of using ":buffer #" in line with other buffer-like commands that support "#"
 - Startup option to enable strict site isolation, it is now strictly isolated at all times
+- CSS transitions from default theme (specifically on the mode selector)
 
 ### Versions
 

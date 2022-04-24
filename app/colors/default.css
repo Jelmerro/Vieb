@@ -225,10 +225,10 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #suggest-dropdown div.selected {background: var(--suggestions-selected);}
 #screenshot-highlight {display: none;z-index: 30;position: absolute;box-sizing: content-box;border: solid var(--screenshot-highlight) .5em;}
 /* mouse related */
-#mode-suggestions {background: var(--bg);max-height: 0;position: absolute;left: 2em;top:2em;z-index: 37;transition: .5s all;overflow: hidden;display: inline-block;width: 7em;text-transform: capitalize;display: flex;flex-direction: column;}
+#mode-suggestions {background: var(--bg);max-height: 0;position: absolute;left: 2em;top:2em;z-index: 37;overflow: hidden;display: inline-block;width: 7em;text-transform: capitalize;display: flex;flex-direction: column;}
 #mode-suggestions:hover {max-height: 100vw;}
 #app.mouse-modeselector #mode-container:hover #mode-suggestions {max-height: 100vw;}
-#mode-suggestions div {font-size: 1.3em;transition: .1s all;}
+#mode-suggestions div {font-size: 1.3em;}
 #app.mouse-suggestselect #suggest-dropdown div:hover, #mode-suggestions div:hover, #app.mouse-switchtab #tabs > span:hover {font-weight: bold;cursor: pointer;}
 #app[current-mode=insert].mouse-pageininsert .webview, #app:not([current-mode=insert]).mouse-pageoutsideinsert .webview {pointer-events: all;}
 .mouse-follow .follow-url-border:hover {background: var(--follow-url-hover);cursor: pointer;}
