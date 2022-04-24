@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Setting "useragent" to use any number of custom useragents (either one, or a list that is randomly used per page load)
+- Script-based blocking of ads in the adblocker, for example to block Youtube and Twitch ads
 
 ### Changed
 
