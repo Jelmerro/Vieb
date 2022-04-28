@@ -576,7 +576,6 @@ app.on("ready", () => {
     promptWindow = new BrowserWindow(promptWindowData)
     const promptPage = `file:///${joinPath(__dirname, "pages/promptpopup.html")}`
     promptWindow.loadURL(promptPage)
-    promptWindow.webContents.openDevTools()
     ipcMain.on("show-prompt-dialog", (e, text) => {
         ipcMain.removeAllListeners("prompt-response")
         ipcMain.removeAllListeners("hide-prompt-window")
