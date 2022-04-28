@@ -580,6 +580,14 @@ app.on("ready", () => {
         ipcMain.removeAllListeners("prompt-response")
         ipcMain.removeAllListeners("hide-prompt-window")
         promptWindow.removeAllListeners("close")
+        const bounds = mainWindow.getBounds()
+        const size = Math.round(fontsize * 21)
+        promptWindow.setMinimumSize(size, size)
+        promptWindow.setSize(size, size)
+        promptWindow.setPosition(
+            Math.round(bounds.x + bounds.width / 2 - size / 2),
+            Math.round(bounds.y + bounds.height / 2 - size / 2))
+        promptWindow.resizable = false
         promptWindow.show()
         promptWindow.focus()
         promptWindow.webContents.send("prompt-info", fontsize, customCSS, text)
