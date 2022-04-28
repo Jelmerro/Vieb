@@ -9,7 +9,10 @@ If your question is not listed, you can find support here:
 - [Telegram](https://t.me/vieb_general) - Chat with other users on Telegram
 - Or make a Github issue if you aren't using any of the above
 
-## Startup
+Most general usage information can be found in the help page.
+You can open it with the `F1` key or the `:help` command.
+Below are questions that are either not explicitly covered in the help page,
+or are asked a lot regardless of their existing documentation/explanation.
 
 #### Which release should I download?
 
@@ -26,35 +29,21 @@ It's important to make sure that you download the right architecture for your sy
 #### How do I start Vieb?
 
 If it's a zip/tar.gz archive that you downloaded, you can extract it and double-click the executable.
-On Windows, you can simply double-click on the ".exe" file to run the program.
-If you are using Linux, you can download the AppImage to be able to do the same.
+On Windows, you can simply double-click on the ".exe" file to run the program,
+though you might need to mark the SmartScreen warning as trusted, more on that [on Wikipedia](https://en.wikipedia.org/wiki/Microsoft_SmartScreen#Criticism).
+If you are using Linux, you can download the AppImage to have the same single executable experience.
 For most other download options, you need to use your distribution's package manager,
 usage should be similar to other packages of the same type.
 
 ##### Mac
 
 The mac apps are not signed, you can sign them yourself with `sudo codesign --force --deep --sign - /Applications/Vieb.app`.
-Or you can try [these instructions](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac) for opening the app as is,
+This step has become [a required step in recent versions](https://developer.apple.com/documentation/macos-release-notes/macos-big-sur-11_0_1-universal-apps-release-notes#Code-Signing).
+For older mac versions you could try [these instructions](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac) for opening the app as is,
 which comes down to disabling app store requirements with `sudo spctl --master-disable`.
-If you use a Silicon device, signing the app with the first command is required, as explained [here](https://developer.apple.com/documentation/macos-release-notes/macos-big-sur-11_0_1-universal-apps-release-notes#Code-Signing).
 If none of these work, you can build the app from source with the [README build instructions](./README.md#building), the final command can also be `npm run buildmac` to just build for mac.
 If these instructions do not seem to be followed at all, your issue might be [closed](https://github.com/Jelmerro/Vieb/issues/169),
 as it's not Vieb's responsibility to fix your operating system quirks for you.
-
-#### Why can't I start Vieb?
-
-Try starting Vieb from a terminal or cmd window, to check for startup errors or other logging.
-You can start Vieb with "vieb --debug" to view the internal debugging tools of Vieb, which should also be checked for errors.
-If using mac, see the startup info above this one.
-If you get a weird sandbox error on Linux, you probably need to enable unprivileged containers.
-There are instructions [on the arch wiki](https://wiki.archlinux.org/index.php/Linux_Containers#Enable_support_to_run_unprivileged_containers_(optional)) how to enable this.
-
-## Usage
-
-Most general usage information can be found in the help page.
-You can open it with the `F1` key or the `:help` command.
-Below are questions that are either not explicitly covered in the help page,
-or are asked a lot regardless of their existing documentation/explanation.
 
 #### How does it compare to other plugins and browsers?
 
@@ -93,7 +82,20 @@ Below is a list of known workarounds to circumvent this blocking policy, use the
 There are no other known workarounds to allow the sign-in at this point of time.
 You are encouraged to open PRs to improve this list of workarounds.
 However, opening issues just to announce that you cannot login to your account will be closed,
-as it's not something Vieb or any other browser can fix, only Google can.
+as it's not something Vieb or any other smaller browser can fix, only Google can.
+You, and only you, need to consider if it's worth using services that [can block you any moment](https://www.polygon.com/2021/2/8/22272284/terraria-google-stadia-canceled-developer-locked-out) for [any reason](https://old.reddit.com/r/Android/comments/ai85qf/warn_google_could_suspend_your_account_without/).
+For more info about moving away from Google and why, see [r/degoogle](https://reddit.com/r/degoogle/).
+
+#### Why doesn't DRM work (such as Spotify or Netflix)?
+
+Google owns Widevine, the one and only DRM solution for Chromium-based browsers.
+They are in control of approving and verifying the inclusion of Widevine into a (software) project.
+The process is [far from straightforward](https://github.com/electron/electron/issues/12427) and [is blocked for open-source software](https://blog.samuelmaddock.com/posts/google-widevine-blocked-my-browser/).
+It's even explained on the [official Wikipedia page of Widevine](https://en.wikipedia.org/wiki/Widevine).
+PRs to implement DRM will be rejected on the basis that they need proprietary keys and software to work.
+Issues relating to this topic will be closed, as it's not something Vieb or any other smaller browser can fix, only Google can.
+You, and only you, need to consider if it's worth using services that require DRM and thus Google approved proprietary software.
+For more info on why DRM usually isn't a good idea, see [the GNU website on DRM](https://www.gnu.org/proprietary/proprietary-drm.html) or [Defective by Design](https://www.defectivebydesign.org/).
 
 #### I want my tabs to be numbered, how do I do this?
 
@@ -138,9 +140,18 @@ These are less reliable, and as such can't hover most menus inside iframes,
 along with some other weird mouse action related quirks.
 This can all be properly implemented once [this Electron issue](https://github.com/electron/electron/issues/20333) is fixed.
 
-#### Why does Vieb block popups?
+#### Why are prompt, confirm and alert dialogs not working?
 
-Electron has no support for dynamically allowing or blocking popups.
+In most browsers, these type of dialogs can appear whenever a page wants to.
+In Vieb, these are blocked and instead you are notified when a page tries to use them,
+as this is less annoying and doesn't interrupt you whenever a page wants your attention.
+You can change this behavior using the "dialog" settings: "dialogprompt", "dialogconfirm" and "dialogalert".
+If you want them to show like on other browsers, just set their value to "show".
+It's worth mentioning that the prompt dialog is custom, as Electron by default doesn't support it, but Vieb does.
+
+#### Why does Vieb block popup windows?
+
+Electron has no support for dynamically allowing or blocking popup windows.
 You either enable them globally, or block all of them.
 Even if globally allowed, the popup windows can not be interacted with like the regular Vieb window.
 No custom code can be ran in them, and you would need to use the mouse to interact with it.
