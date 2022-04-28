@@ -37,6 +37,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Startup option to enable strict site isolation, it is now strictly isolated at all times
 - CSS transitions from default theme (specifically on the mode selector)
 
+### Fixed
+
+- Command "reloadconfig" did actually reset the settings instead of just reload them
+
 ### Versions
 
 - Electron 18.1.0 (was 18.0.1)

@@ -375,7 +375,7 @@ const help = (section = null, trailingArgs = false) => {
 
 const reloadconfig = () => {
     const {loadFromDisk} = require("./settings")
-    loadFromDisk()
+    loadFromDisk(false)
 }
 
 const hardcopy = range => {

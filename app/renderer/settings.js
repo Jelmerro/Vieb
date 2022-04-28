@@ -965,11 +965,13 @@ const suggestionList = () => {
     return listOfSuggestions
 }
 
-const loadFromDisk = () => {
+const loadFromDisk = (firstRun = true) => {
     const {pause, resume} = require("./commandhistory")
     pause()
-    allSettings = JSON.parse(JSON.stringify(defaultSettings))
-    sessionStorage.setItem("settings", JSON.stringify(allSettings))
+    if (firstRun) {
+        allSettings = JSON.parse(JSON.stringify(defaultSettings))
+        sessionStorage.setItem("settings", JSON.stringify(allSettings))
+    }
     if (isFile(joinPath(appData(), "erwicmode"))) {
         set("containernewtab", "s:external")
         set("containerstartuppage", "s:usematching")
