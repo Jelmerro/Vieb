@@ -17,6 +17,7 @@
 */
 "use strict"
 
+const {ipcRenderer} = require("electron")
 const {
     notify,
     clearTempContainers,
@@ -249,7 +250,6 @@ const quit = () => {
 }
 
 const quitall = () => {
-    const {ipcRenderer} = require("electron")
     ipcRenderer.send("hide-window")
     if (getSetting("clearhistoryonquit")) {
         deleteFile(joinPath(appData(), "hist"))
@@ -302,7 +302,6 @@ const colorscheme = (name = null, trailingArgs = false) => {
         css = ""
     }
     document.getElementById("custom-styling").textContent = css
-    const {ipcRenderer} = require("electron")
     ipcRenderer.send("set-custom-styling", getSetting("guifontsize"), css)
     const {setCustomStyling} = require("./settings")
     setCustomStyling(css)
@@ -310,7 +309,6 @@ const colorscheme = (name = null, trailingArgs = false) => {
 }
 
 const restart = () => {
-    const {ipcRenderer} = require("electron")
     ipcRenderer.send("relaunch")
     quitall()
 }
@@ -346,7 +344,6 @@ const openDevTools = (userPosition = null, trailingArgs = false) => {
 }
 
 const openInternalDevTools = () => {
-    const {ipcRenderer} = require("electron")
     ipcRenderer.send("open-internal-devtools")
 }
 
@@ -451,7 +448,6 @@ const writePage = (customLoc, tabIdx) => {
         return
     }
     const webContentsId = page.getWebContentsId()
-    const {ipcRenderer} = require("electron")
     ipcRenderer.invoke("save-page", webContentsId, loc).then(() => {
         notify(`Page saved at '${loc}'`)
     }).catch(err => {
@@ -921,7 +917,6 @@ const makedefault = () => {
         notify("Command only works for installed versions of Vieb", "err")
         return
     }
-    const {ipcRenderer} = require("electron")
     ipcRenderer.send("make-default-app")
     const {exec} = require("child_process")
     if (process.platform === "linux") {
@@ -946,7 +941,6 @@ const extensionsCommand = args => {
         openSpecialPage("extensions")
         return
     }
-    const {ipcRenderer} = require("electron")
     if (args[0] === "install") {
         if (args[1]) {
             notify("Extension install command takes no arguments", "warn")

@@ -17,6 +17,7 @@
 */
 "use strict"
 
+const {ipcRenderer} = require("electron")
 const {
     currentPage,
     currentMode,
@@ -37,7 +38,6 @@ let mouseSelection = null
 let skipNextClick = false
 
 const init = () => {
-    const {ipcRenderer} = require("electron")
     const {setMode} = require("./modes")
     ipcRenderer.on("mouse-down-location", (_, clickInfo) => {
         if (clickInfo.webviewId) {
@@ -191,7 +191,6 @@ const start = (customX = null, customY = null) => {
 }
 
 const moveToMouse = () => {
-    const {ipcRenderer} = require("electron")
     const mousePos = ipcRenderer.sendSync("mouse-location")
     if (mousePos) {
         [...document.elementsFromPoint(mousePos.x, mousePos.y)].forEach(el => {

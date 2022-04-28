@@ -95,6 +95,8 @@ const defaultSettings = {
     "dialogprompt": "notifyblock",
     "downloadmethod": "automatic",
     "downloadpath": "~/Downloads/",
+    "encodeurlcopy": "nospaces",
+    "encodeurlext": "nospaces",
     "explorehist": "persist",
     "externalcommand": "",
     "favicons": "session",
@@ -231,6 +233,8 @@ const validOptions = {
     "dialogconfirm": ["show", "notifyshow", "block", "notifyblock"],
     "dialogprompt": ["show", "notifyshow", "block", "notifyblock"],
     "downloadmethod": ["automatic", "confirm", "ask", "block"],
+    "encodeurlcopy": ["keep", "encode", "decode", "spacesonly", "nospaces"],
+    "encodeurlext": ["keep", "encode", "decode", "spacesonly", "nospaces"],
     "explorehist": ["persist", "session", "none"],
     "favicons": [
         "disabled", "nocache", "session", "1day", "5day", "30day", "forever"

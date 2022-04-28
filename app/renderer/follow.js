@@ -17,6 +17,7 @@
 */
 "use strict"
 
+const {ipcRenderer} = require("electron")
 const {
     currentPage,
     currentTab,
@@ -26,9 +27,7 @@ const {
     getStored,
     getMouseConf
 } = require("./common")
-
 const {propPixels, sendToPageOrSubFrame} = require("../util")
-const {ipcRenderer} = require("electron")
 
 let followLinkDestination = "current"
 let alreadyFollowing = false

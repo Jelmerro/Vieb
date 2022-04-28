@@ -1195,7 +1195,7 @@ const reloadAdblocker = () => {
         })
     }
     blocker = ElectronBlocker.parse(filters)
-    const resources = readFile(joinPath(__dirname, `./blocklists/resources.js`))
+    const resources = readFile(joinPath(__dirname, `./blocklists/resources`))
     blocker.updateResources(resources, `${resources.length}`)
     ipcMain.on("get-cosmetic-filters", blocker.onGetCosmeticFilters)
     ipcMain.on("is-mutation-observer-enabled",

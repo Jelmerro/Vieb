@@ -694,11 +694,19 @@ const commonAction = (type, action, options) => {
         addTab({"url": stringToUrl(relevantData)})
     } else if (action === "copy") {
         const {clipboard} = require("electron")
+        let urlData = relevantData
         if (isUrl(relevantData)) {
-            clipboard.writeText(relevantData.replace(/ /g, "%20"))
-        } else {
-            clipboard.writeText(relevantData)
+            if (getSetting("encodeurlcopy") === "spacesonly") {
+                urlData = relevantData.replace(/ /g, "%20")
+            } else if (getSetting("encodeurlcopy") === "nospaces") {
+                urlData = urlToString(relevantData).replace(/ /g, "%20")
+            } else if (getSetting("encodeurlcopy") === "decode") {
+                urlData = urlToString(relevantData)
+            } else if (getSetting("encodeurlcopy") === "encode") {
+                urlData = stringToUrl(relevantData)
+            }
         }
+        clipboard.writeText(urlData)
     } else if (action === "download") {
         currentPage().downloadURL(stringToUrl(relevantData))
     } else if (action === "split") {
@@ -725,8 +733,18 @@ const commonAction = (type, action, options) => {
             return
         }
         if (relevantData) {
+            let extData = relevantData
+            if (getSetting("encodeurlext") === "spacesonly") {
+                extData = relevantData.replace(/ /g, "%20")
+            } else if (getSetting("encodeurlext") === "nospaces") {
+                extData = urlToString(relevantData).replace(/ /g, "%20")
+            } else if (getSetting("encodeurlext") === "decode") {
+                extData = urlToString(relevantData)
+            } else if (getSetting("encodeurlext") === "encode") {
+                extData = stringToUrl(relevantData)
+            }
             const {exec} = require("child_process")
-            exec(`${ext} "${relevantData}"`, (err, stdout) => {
+            exec(`${ext} "${extData}"`, (err, stdout) => {
                 const reportExit = getSetting("notificationforsystemcommands")
                 if (err && reportExit !== "none") {
                     notify(`${err}`, "err")

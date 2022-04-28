@@ -17,6 +17,7 @@
 */
 "use strict"
 
+const {ipcRenderer, clipboard} = require("electron")
 const {
     urlToString,
     joinPath,
@@ -618,13 +619,9 @@ const distrubuteSpaceSplitWindow = () => {
     resetResizing()
 }
 
-const toggleAlwaysOnTop = () => {
-    const {ipcRenderer} = require("electron")
-    ipcRenderer.invoke("toggle-always-on-top")
-}
+const toggleAlwaysOnTop = () => ipcRenderer.invoke("toggle-always-on-top")
 
 const toggleFullscreen = () => {
-    const {ipcRenderer} = require("electron")
     ipcRenderer.invoke("toggle-fullscreen").then(updateGuiVisibility)
 }
 
@@ -654,46 +651,51 @@ const incrementalSearch = (value = null) => {
     }
 }
 
-const pageToClipboard = () => {
-    const {clipboard} = require("electron")
-    clipboard.writeText(urlToString(currentPage()?.src).replace(/ /g, "%20"))
+const getPageUrl = () => {
+    let url = currentPage().src
+    if (getSetting("encodeurlcopy") === "spacesonly") {
+        url = url.replace(/ /g, "%20")
+    } else if (getSetting("encodeurlcopy") === "nospaces") {
+        url = urlToString(url).replace(/ /g, "%20")
+    } else if (getSetting("encodeurlcopy") === "decode") {
+        url = urlToString(url)
+    } else if (getSetting("encodeurlcopy") === "encode") {
+        url = stringToUrl(url)
+    }
+    return url
 }
 
+const pageToClipboard = () => clipboard.writeText(getPageUrl())
+
 const pageTitleToClipboard = () => {
-    const {clipboard} = require("electron")
     clipboard.writeText(currentTab().querySelector("span").textContent)
 }
 
 const pageToClipboardHTML = () => {
-    const {clipboard} = require("electron")
-    const url = urlToString(currentPage()?.src).replace(/ /g, "%20")
+    const url = getPageUrl()
     const title = currentTab().querySelector("span").textContent
     clipboard.writeText(`<a href="${url}">${title}</a>`)
 }
 
 const pageToClipboardMarkdown = () => {
-    const {clipboard} = require("electron")
-    const url = urlToString(currentPage()?.src).replace(/ /g, "%20")
+    const url = getPageUrl()
     const title = currentTab().querySelector("span").textContent
     clipboard.writeText(`[${title}](${url})`)
 }
 
 const pageToClipboardRST = () => {
-    const {clipboard} = require("electron")
-    const url = urlToString(currentPage()?.src).replace(/ /g, "%20")
+    const url = getPageUrl()
     const title = currentTab().querySelector("span").textContent
     clipboard.writeText(`\`${title} <${url}>\`_`)
 }
 
 const pageToClipboardEmacs = () => {
-    const {clipboard} = require("electron")
-    const url = urlToString(currentPage()?.src).replace(/ /g, "%20")
+    const url = getPageUrl()
     const title = currentTab().querySelector("span").textContent
     clipboard.writeText(`[[${url}][${title}]]`)
 }
 
 const openFromClipboard = () => {
-    const {clipboard} = require("electron")
     if (clipboard.readText().trim()) {
         const {navigateTo} = require("./tabs")
         navigateTo(stringToUrl(clipboard.readText()))

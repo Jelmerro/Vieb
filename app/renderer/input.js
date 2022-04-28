@@ -17,6 +17,7 @@
 */
 "use strict"
 
+const {ipcRenderer} = require("electron")
 const {
     matchesQuery, notify, specialChars, isUrl, sendToPageOrSubFrame
 } = require("../util")
@@ -823,7 +824,6 @@ const init = () => {
             POINTER.updateElement()
         }
     })
-    const {ipcRenderer} = require("electron")
     ipcRenderer.on("zoom-changed", (_, contentsId, direction) => {
         const page = listPages().find(p => p.getWebContentsId() === contentsId)
         if (!page || !getMouseConf("scrollzoom")) {
@@ -1311,7 +1311,6 @@ const executeMapString = async(mapStr, recursive, initial) => {
             if (currentMode() === "insert") {
                 const options = {...fromIdentifier(key), "bubbles": recursive}
                 if (!options.bubbles) {
-                    const {ipcRenderer} = require("electron")
                     ipcRenderer.sendSync("insert-mode-blockers", "pass")
                 }
                 await sendKeysToWebview(options, key)
@@ -1410,7 +1409,6 @@ const handleKeyboard = async e => {
             }
             const keys = pressedKeys.split(mapStringSplitter).filter(m => m)
             if (currentMode() === "insert") {
-                const {ipcRenderer} = require("electron")
                 ipcRenderer.sendSync("insert-mode-blockers", "pass")
                 for (const key of keys) {
                     const options = {...fromIdentifier(key), "bubbles": false}
@@ -1492,7 +1490,6 @@ const handleKeyboard = async e => {
                 keys = keys.slice(0, -1)
             }
             if (currentMode() === "insert") {
-                const {ipcRenderer} = require("electron")
                 ipcRenderer.sendSync("insert-mode-blockers", "pass")
                 for (const key of keys) {
                     const options = {...fromIdentifier(key), "bubbles": false}
@@ -1941,7 +1938,6 @@ const updateKeysOnScreen = () => {
             })
         }
     }
-    const {ipcRenderer} = require("electron")
     if (pressedKeys) {
         ipcRenderer.send("insert-mode-blockers", "all")
         return
