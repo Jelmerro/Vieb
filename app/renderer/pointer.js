@@ -145,8 +145,8 @@ const offset = () => {
 
 const updateElement = () => {
     const {top, left, bottom, right} = offset()
-    X = Math.max(0, Math.min(X, right - left - getSetting("fontsize") * 1.4))
-    Y = Math.max(0, Math.min(Y, bottom - top - getSetting("fontsize")))
+    X = Math.max(0, Math.min(X, right - left - getSetting("guifontsize") * 1.4))
+    Y = Math.max(0, Math.min(Y, bottom - top - getSetting("guifontsize")))
     document.getElementById("pointer").style.left = `${X + left}px`
     document.getElementById("pointer").style.top = `${Y + top}px`
     currentPage().setAttribute("pointer-x", X)
@@ -444,7 +444,7 @@ const insertAtPosition = () => {
 
 const moveDown = () => {
     const {bottom, top} = offset()
-    if (Y === bottom - top - getSetting("fontsize")) {
+    if (Y === bottom - top - getSetting("guifontsize")) {
         const {"scrollDown": scroll} = require("./actions")
         scroll()
         listenForScroll = true
@@ -580,7 +580,7 @@ const moveLeftMax = () => {
 
 const moveFastDown = () => {
     const {bottom, top} = offset()
-    if (Y === bottom - top - getSetting("fontsize")) {
+    if (Y === bottom - top - getSetting("guifontsize")) {
         const {"scrollDown": scroll} = require("./actions")
         scroll()
         listenForScroll = true

@@ -217,7 +217,7 @@ const parseAndDisplayLinks = receivedLinks => {
     const factor = currentPage().getZoomFactor()
     const followChildren = []
     const {scrollWidth} = currentPage()
-    const fontsize = getSetting("fontsize")
+    const fontsize = getSetting("guifontsize")
     const styling = document.createElement("span")
     styling.className = "follow-url-border"
     document.getElementById("follow").appendChild(styling)

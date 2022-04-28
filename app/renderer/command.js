@@ -303,7 +303,7 @@ const colorscheme = (name = null, trailingArgs = false) => {
     }
     document.getElementById("custom-styling").textContent = css
     const {ipcRenderer} = require("electron")
-    ipcRenderer.send("set-custom-styling", getSetting("fontsize"), css)
+    ipcRenderer.send("set-custom-styling", getSetting("guifontsize"), css)
     const {setCustomStyling} = require("./settings")
     setCustomStyling(css)
     currentscheme = name

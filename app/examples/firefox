@@ -6,7 +6,7 @@ set dialogalert=show
 set dialogconfirm=show
 set dialogprompt=show
 set firefoxmode=always
-set fontsize=16
+set guifontsize=16
 set mintabwidth=250
 set norestoretabs
 set permissioncamera=ask

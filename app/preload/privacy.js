@@ -186,7 +186,7 @@ try {
             ipcRenderer.invoke("desktop-capturer-sources").then(sources => {
                 const stylingElem = document.createElement("style")
                 stylingElem.textContent = displayCaptureStyling
-                    .replace(/%FONTSIZE%/g, settings.fontsize || "14")
+                    .replace(/%FONTSIZE%/g, settings.guifontsize || "14")
                     .replace(/%FG%/g, settings.fg || "#eee")
                     .replace(/%BG%/g, settings.bg || "#333")
                     .replace(/%SHADE%/g, "#7777")

@@ -106,7 +106,7 @@ const defaultSettings = {
         "url,onclick,inputs-insert,inputs-click,media,image,other",
     "followfallbackaction": "filter",
     "follownewtabswitch": true,
-    "fontsize": 14,
+    "guifontsize": 14,
     "guifullscreennavbar": "oninput",
     "guifullscreentabbar": "onupdate",
     "guihidetimeout": 2000,
@@ -283,7 +283,7 @@ const validOptions = {
 }
 const numberRanges = {
     "countlimit": [0, 10000],
-    "fontsize": [8, 30],
+    "guifontsize": [8, 30],
     "guihidetimeout": [0, 9000000000000000],
     "mapsuggest": [0, 9000000000000000],
     "maxmapdepth": [1, 40],
@@ -868,6 +868,7 @@ const updateWebviewSettings = () => {
         "dialogconfirm": allSettings.dialogconfirm,
         "dialogprompt": allSettings.dialogprompt,
         "fg": getComputedStyle(document.body).getPropertyValue("--fg"),
+        "guifontsize": allSettings.guifontsize,
         "inputfocusalignment": allSettings.inputfocusalignment,
         "linkcolor": getComputedStyle(document.body)
             .getPropertyValue("--link-color"),
@@ -1059,7 +1060,7 @@ const set = (setting, value) => {
                     userAgentTemplated(value.split(",")[0]))
             }
         }
-        if (setting === "fontsize") {
+        if (setting === "guifontsize") {
             updateCustomStyling()
         }
         if (downloadSettings.includes(setting)) {
@@ -1105,6 +1106,7 @@ const set = (setting, value) => {
             "dialogalert",
             "dialogconfirm",
             "dialogprompt",
+            "guifontsize",
             "inputfocusalignment",
             "permissiondisplaycapture",
             "permissionmediadevices",
@@ -1288,7 +1290,7 @@ const setCustomStyling = css => {
 const getCustomStyling = () => customStyling
 
 const updateCustomStyling = () => {
-    document.body.style.fontSize = `${allSettings.fontsize}px`
+    document.body.style.fontSize = `${allSettings.guifontsize}px`
     updateWebviewSettings()
     listPages().forEach(p => {
         const isSpecialPage = pathToSpecialPageName(p.src).name
@@ -1297,7 +1299,7 @@ const updateCustomStyling = () => {
         if (isSpecialPage || isLocal || isErrorPage) {
             try {
                 p.send("set-custom-styling",
-                    allSettings.fontsize, customStyling)
+                    allSettings.guifontsize, customStyling)
             } catch {
                 // Page not ready yet or suspended
             }
@@ -1305,7 +1307,8 @@ const updateCustomStyling = () => {
     })
     const {applyLayout} = require("./pagelayout")
     applyLayout()
-    ipcRenderer.send("set-custom-styling", allSettings.fontsize, customStyling)
+    ipcRenderer.send("set-custom-styling",
+        allSettings.guifontsize, customStyling)
 }
 
 module.exports = {

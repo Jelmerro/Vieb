@@ -4,7 +4,7 @@ set devtoolsposition=split
 set downloadmethod=confirm
 set firefoxmode=always
 set followchars=numbers
-set fontsize=16
+set guifontsize=16
 set norestoretabs
 set permissioncamera=ask
 set permissiondisplaycapture=ask

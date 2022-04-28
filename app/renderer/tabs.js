@@ -716,7 +716,7 @@ const addWebviewListeners = webview => {
         webview.send("insert-failed-page-info", JSON.stringify(e), isSSLError)
         webview.setAttribute("failed-to-load", "true")
         const {getCustomStyling} = require("./settings")
-        webview.send("set-custom-styling", getSetting("fontsize"),
+        webview.send("set-custom-styling", getSetting("guifontsize"),
             getCustomStyling())
     })
     webview.addEventListener("did-stop-loading", () => {
@@ -729,7 +729,7 @@ const addWebviewListeners = webview => {
         const isErrorPage = webview.getAttribute("failed-to-load")
         if (specialPageName || isLocal || isErrorPage) {
             const {getCustomStyling} = require("./settings")
-            webview.send("set-custom-styling", getSetting("fontsize"),
+            webview.send("set-custom-styling", getSetting("guifontsize"),
                 getCustomStyling())
         }
         if (specialPageName === "help") {

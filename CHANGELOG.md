@@ -29,6 +29,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Iframes are now isolated properly, making them faster and more secure (no more infinite loop to set listeners for them)
 - Privacy overrides are now always done with a preload, making them faster and more secure (no more infinite loop to patch them)
 - Increase default timeoutlen above Vim's level because it makes more sense for Vieb
+- Rename "fontsize" to "guifontsize" to make it more clear where the font size applies
 
 ### Removed
 
