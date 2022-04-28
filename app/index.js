@@ -576,38 +576,6 @@ app.on("ready", () => {
     promptWindow = new BrowserWindow(promptWindowData)
     const promptPage = `file:///${joinPath(__dirname, "pages/promptpopup.html")}`
     promptWindow.loadURL(promptPage)
-    ipcMain.on("show-prompt-dialog", (e, text) => {
-        ipcMain.removeAllListeners("prompt-response")
-        ipcMain.removeAllListeners("hide-prompt-window")
-        promptWindow.removeAllListeners("close")
-        const bounds = mainWindow.getBounds()
-        const size = Math.round(fontsize * 21)
-        promptWindow.setMinimumSize(size, size)
-        promptWindow.setSize(size, size)
-        promptWindow.setPosition(
-            Math.round(bounds.x + bounds.width / 2 - size / 2),
-            Math.round(bounds.y + bounds.height / 2 - size / 2))
-        promptWindow.resizable = false
-        promptWindow.show()
-        promptWindow.focus()
-        promptWindow.webContents.send("prompt-info", fontsize, customCSS, text)
-        ipcMain.on("prompt-response", (_, response) => {
-            promptWindow.hide()
-            mainWindow.focus()
-            e.returnValue = response
-        })
-        ipcMain.on("hide-prompt-window", () => {
-            promptWindow.hide()
-            mainWindow.focus()
-            e.returnValue = null
-        })
-        promptWindow.on("close", ev => {
-            ev.preventDefault()
-            promptWindow.hide()
-            mainWindow.focus()
-            e.returnValue = null
-        })
-    })
 })
 
 // THIS ENDS THE MAIN SETUP, ACTIONS BELOW MUST BE IN MAIN FOR VARIOUS REASONS
@@ -677,6 +645,40 @@ ipcMain.on("show-notification", (_, escapedMessage, properType) => {
         escapedMessage, fontsize, customCSS, properType)
     notificationWindow.show()
     notificationWindow.focus()
+})
+
+// Handle prompts in sync from within the webviews
+ipcMain.on("show-prompt-dialog", (e, text) => {
+    ipcMain.removeAllListeners("prompt-response")
+    ipcMain.removeAllListeners("hide-prompt-window")
+    promptWindow.removeAllListeners("close")
+    const bounds = mainWindow.getBounds()
+    const size = Math.round(fontsize * 21)
+    promptWindow.setMinimumSize(size, size)
+    promptWindow.setSize(size, size)
+    promptWindow.setPosition(
+        Math.round(bounds.x + bounds.width / 2 - size / 2),
+        Math.round(bounds.y + bounds.height / 2 - size / 2))
+    promptWindow.resizable = false
+    promptWindow.show()
+    promptWindow.focus()
+    promptWindow.webContents.send("prompt-info", fontsize, customCSS, text)
+    ipcMain.on("prompt-response", (_, response) => {
+        promptWindow.hide()
+        mainWindow.focus()
+        e.returnValue = response
+    })
+    ipcMain.on("hide-prompt-window", () => {
+        promptWindow.hide()
+        mainWindow.focus()
+        e.returnValue = null
+    })
+    promptWindow.on("close", ev => {
+        ev.preventDefault()
+        promptWindow.hide()
+        mainWindow.focus()
+        e.returnValue = null
+    })
 })
 
 // Create and manage sessions, mostly downloads, adblocker and permissions
