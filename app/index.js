@@ -54,6 +54,7 @@ const {
     domainName,
     defaultUseragent
 } = require("./util")
+const hljs = require("highlight.js")
 const {"sync": rimrafSync} = require("rimraf")
 const rimraf = pattern => {
     try {
@@ -690,6 +691,8 @@ let blocker = null
 let permissions = {}
 const sessionList = []
 const adblockerPreload = require.resolve("@cliqz/adblocker-electron-preload")
+const hlStyling = readFile(joinPath(__dirname,
+    "../node_modules/highlight.js/styles/github-dark.css"))
 ipcMain.on("set-redirects", (_, rdr) => {
     redirects = rdr
 })
@@ -930,6 +933,25 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                     `Download failed:\n${info.name}`, "warn")
             }
         })
+    })
+    newSession.protocol.registerStringProtocol("sourceviewer", (req, call) => {
+        const url = req.url.replace(/sourceviewer:\/?\/?/g, "https://")
+        const request = net.request({"partition": name, url})
+        request.on("response", res => {
+            let body = ""
+            res.on("end", () => {
+                const hl = hljs.highlightAuto(body)
+                call(`<!DOCTPYE html>\n<html><head><style>${hlStyling}</style>
+                <title>${encodeURI(req.url)}</title>
+                </head><body><pre><code>${hl.value}</code></pre></body></html>`)
+            })
+            res.on("data", chunk => {
+                body += chunk
+            })
+        })
+        request.on("abort", () => call(""))
+        request.on("error", () => call(""))
+        request.end()
     })
 })
 const cancellAllDownloads = () => {

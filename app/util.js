@@ -37,7 +37,15 @@ const framePaddingInfo = []
 const specialChars = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/\s]/gi
 const specialCharsAllowSpaces = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/]/gi
 const dataUris = [
-    "blob", "data", "javascript", "magnet", "mailto", "view-source", "ws"
+    "blob",
+    "data",
+    "javascript",
+    "magnet",
+    "mailto",
+    "view-source",
+    "viewsource",
+    "sourceviewer",
+    "ws"
 ]
 const getSetting = val => JSON.parse(sessionStorage.getItem("settings"))?.[val]
 

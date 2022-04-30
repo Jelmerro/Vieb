@@ -20,6 +20,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Script-based blocking of ads in the adblocker, for example to block Youtube and Twitch ads
 - Support for "prompt" dialogs, and thus "show" and "notifyshow" are now valid values for "dialogprompt"
 - Mouse option named "movepointer" which moves the pointer to the click location
+- Actions "toggleSourceViewer" and "toggleSourceViewerNewTab" to toggle the new "sourceviewer" of Vieb
 
 ### Changed
 

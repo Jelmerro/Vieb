@@ -32,13 +32,14 @@
     "electron-builder": "23.0.3",
     "eslint": "8.14.0",
     "eslint-plugin-sort-keys": "2.3.5",
-    "jest": "28.0.2",
+    "jest": "28.0.3",
     "jest-environment-jsdom": "28.0.2"
   },
   "dependencies": {
-    "7zip-bin": "5.1.1",
     "@cliqz/adblocker-electron": "1.23.7",
     "@cliqz/adblocker-electron-preload": "1.23.7",
+    "7zip-bin": "5.1.1",
+    "highlight.js": "11.5.1",
     "is-svg": "4.3.2",
     "rimraf": "3.0.2"
   }

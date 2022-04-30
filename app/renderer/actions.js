@@ -166,6 +166,26 @@ const previousTab = () => {
     switchToTab(listTabs().indexOf(currentTab()) - 1)
 }
 
+const toggleSourceViewer = () => {
+    const {navigateTo} = require("./tabs")
+    if (currentPage().src.startsWith("sourceviewer:")) {
+        navigateTo(currentPage().src.replace(
+            /^sourceviewer:\/?\/?/g, "https://"))
+    } else {
+        navigateTo(currentPage().src.replace(/^https?:/g, "sourceviewer:"))
+    }
+}
+
+const toggleSourceViewerNewTab = () => {
+    const {navigateTo, addTab} = require("./tabs")
+    if (currentPage().src.startsWith("sourceviewer:")) {
+        navigateTo(currentPage().src.replace(
+            /^sourceviewer:\/?\/?/g, "https://"))
+    } else {
+        addTab({"url": currentPage().src.replace(/^https?:/g, "sourceviewer:")})
+    }
+}
+
 const toExploreMode = () => {
     const {setMode} = require("./modes")
     setMode("explore")
@@ -961,6 +981,8 @@ module.exports = {
     toTopSplitWindow,
     toggleAlwaysOnTop,
     toggleFullscreen,
+    toggleSourceViewer,
+    toggleSourceViewerNewTab,
     topHalfSplitWindow,
     useEnteredData,
     zoomIn,

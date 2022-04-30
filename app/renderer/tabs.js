@@ -312,6 +312,7 @@ const addTab = (options = {}) => {
     page.classList.add("webview")
     page.setAttribute("link-id", linkId)
     const url = stringToUrl(options.url || "")
+        .replace(/view-?source:\/?\/?/g, "sourceviewer://")
     if (options.url) {
         page.src = url
     }
@@ -727,7 +728,8 @@ const addWebviewListeners = webview => {
         const specialPageName = pathToSpecialPageName(webview.src).name
         const isLocal = webview.src.startsWith("file:/")
         const isErrorPage = webview.getAttribute("failed-to-load")
-        if (specialPageName || isLocal || isErrorPage) {
+        const isSourceView = webview.src.startsWith("sourceviewer:")
+        if (specialPageName || isLocal || isErrorPage || isSourceView) {
             const {getCustomStyling} = require("./settings")
             webview.send("set-custom-styling", getSetting("guifontsize"),
                 getCustomStyling())
@@ -752,11 +754,11 @@ const addWebviewListeners = webview => {
         }
         const {addToHist, titleForPage, updateTitle} = require("./history")
         addToHist(webview.src)
-        const existingTitle = titleForPage(webview.src)
+        const existing = titleForPage(webview.src)
         if (isLocal && !specialPageName) {
             name.textContent = urlToString(webview.src)
-        } else if (hasProtocol(name.textContent) && existingTitle) {
-            name.textContent = existingTitle
+        } else if (hasProtocol(name.textContent) && existing && !isSourceView) {
+            name.textContent = existing
         } else {
             updateTitle(webview.src, name.textContent)
         }
@@ -771,7 +773,8 @@ const addWebviewListeners = webview => {
         }
     })
     webview.addEventListener("page-title-updated", e => {
-        if (hasProtocol(e.title)) {
+        const isSourceView = webview.src.startsWith("sourceviewer:")
+        if (hasProtocol(e.title) && !isSourceView) {
             return
         }
         const tab = tabOrPageMatching(webview)
@@ -958,9 +961,10 @@ const navigateTo = location => {
     } catch {
         // Webview might be destroyed or unavailable, no issue
     }
-    currentPage().src = location
+    const loc = location.replace(/view-?source:\/?\/?/g, "sourceviewer://")
+    currentPage().src = loc
     resetTabInfo(currentPage())
-    currentTab().querySelector("span").textContent = urlToString(location)
+    currentTab().querySelector("span").textContent = urlToString(loc)
 }
 
 const moveTabForward = () => {

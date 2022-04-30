@@ -1302,7 +1302,8 @@ const updateCustomStyling = () => {
         const isSpecialPage = pathToSpecialPageName(p.src).name
         const isLocal = p.src.startsWith("file:/")
         const isErrorPage = p.getAttribute("failed-to-load")
-        if (isSpecialPage || isLocal || isErrorPage) {
+        const isSourceViewer = p.src.startsWith("sourceviewer:")
+        if (isSpecialPage || isLocal || isErrorPage || isSourceViewer) {
             try {
                 p.send("set-custom-styling",
                     allSettings.guifontsize, customStyling)
