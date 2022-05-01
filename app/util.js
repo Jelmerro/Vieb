@@ -54,60 +54,32 @@ const hasProtocol = loc => protocolRegex.test(loc)
 
 const isUrl = location => {
     if (hasProtocol(location)) {
-        return true
-    }
-    const [domainName] = location.split(/\/|\?|#/)
-    if (domainName.includes(":@")) {
-        return false
-    }
-    if (domainName.includes("@")) {
-        return domainName.match(/@/g)?.length === 1
-            && (/^[a-zA-Z0-9]+$/).test(domainName.split("@")[0])
-            && isUrl(domainName.split("@")[1])
-    }
-    if (domainName.includes("..")) {
-        return false
-    }
-    if (domainName.startsWith("[") && domainName.endsWith("]")) {
-        return ipv6Regex.test(domainName.replace(/^\[/, "").replace(/\]$/, ""))
-    }
-    const names = domainName.split(".")
-    const tldAndPort = names[names.length - 1]
-    if (tldAndPort.includes("::") || tldAndPort.split(":").length > 2) {
-        return false
-    }
-    if (tldAndPort.startsWith(":") || tldAndPort.endsWith(":")) {
-        return false
-    }
-    const [tld, port] = tldAndPort.split(":")
-    names[names.length - 1] = tld
-    if (port && !(/^\d{2,5}$/).test(port)) {
-        return false
-    }
-    if (port && (Number(port) <= 10 || Number(port) > 65535)) {
-        return false
-    }
-    if (names.length === 1 && tld === "localhost") {
-        return true
-    }
-    if (names.length === 4) {
-        if (names.every(n => (/^\d{1,3}$/).test(n))) {
-            if (names.every(n => Number(n) <= 255)) {
-                return true
-            }
+        try {
+            return !new URL(location).host.includes("%20")
+        } catch {
+            return false
         }
+    }
+    let url = null
+    try {
+        url = new URL(`https://${location}`)
+    } catch {
+        return false
+    }
+    if (url.hostname.startsWith("[") && url.hostname.endsWith("]")) {
+        return ipv6Regex.test(url.hostname.replace(/^\[/, "").replace(/\]$/, ""))
+    }
+    const names = url.hostname.split(".")
+    const invalid = names.find(n => n.includes("---")
+        || encodeURI(n) !== n || n.startsWith("-") || n.endsWith("-"))
+        || url.host.includes("..")
+    if (invalid || url.port && Number(url.port) <= 10) {
+        return false
     }
     if (names.length < 2) {
-        return false
+        return url.hostname === "localhost"
     }
-    if ((/^[a-zA-Z]{2,}$/).test(tld)) {
-        const invalidDashes = names.find(
-            n => n.includes("---") || n.startsWith("-") || n.endsWith("-"))
-        if (!invalidDashes && names.every(n => (/^[a-zA-Z\d-]+$/).test(n))) {
-            return true
-        }
-    }
-    return false
+    return true
 }
 
 const searchword = location => {

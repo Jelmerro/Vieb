@@ -32,6 +32,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Privacy overrides are now always done with a preload, making them faster and more secure (no more infinite loop to patch them)
 - Increase default timeoutlen above Vim's level because it makes more sense for Vieb
 - Rename "fontsize" to "guifontsize" to make it more clear where the font size applies
+- Url detection logic to be more in line with the actual spec, resulting in simpler implementation
 
 ### Removed
 
@@ -42,6 +43,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Command "reloadconfig" did actually reset the settings instead of just reload them
+- Urls prefixed with a protocol not being checked if they are navigable urls at all (possibly resulting in broken tabs if navigated to)
 
 ### Versions
 
