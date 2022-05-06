@@ -435,10 +435,10 @@ const unsuspendPage = page => {
                     currentPageId, webview.getWebContentsId())
                 name.textContent = "Devtools"
             } else if (url || getSetting("newtaburl")) {
+                webview.setAttribute("custom-first-load", true)
                 webview.src = url || stringToUrl(getSetting("newtaburl"))
                 resetTabInfo(webview)
                 name.textContent = urlToString(url)
-                webview.setAttribute("custom-first-load", true)
                 return
             }
             webview.clearHistory()

@@ -97,6 +97,26 @@ Issues relating to this topic will be closed, as it's not something Vieb or any 
 You, and only you, need to consider if it's worth using services that require DRM and thus Google approved proprietary software.
 For more info on why DRM usually isn't a good idea, see [the GNU website on DRM](https://www.gnu.org/proprietary/proprietary-drm.html) or [Defective by Design](https://www.defectivebydesign.org/).
 
+#### Why do I see ads on some sites (such as Youtube)?
+
+Blocking video ads on Youtube is extremely tricky, and requires continuous updates to keep working.
+Even well respected adblocker plugins such as uBlock Origin [do sometimes](https://old.reddit.com/r/uBlockOrigin/comments/n90n2a/not_blocking_youtube_ads/) let [ads through](https://old.reddit.com/r/uBlockOrigin/comments/uekyuk/youtube_ads_are_getting_through/).
+Vieb is no different in this case, and relies on blocklists and resource files to be kept up to date.
+You can automatically update these on startup by running `:set adblocker=update`,
+but even then these lists need to be up to date with the changes Youtube makes to work in the first place.
+This means there are a lot of layers that need updating before blocking works again after a Youtube update.
+Since version 8.0.0 the blocking resources and methods are identical to plugins like uBlock Origin,
+and any issues with blocking content you have in Vieb are therefor caused by one of two things:
+
+- Different blocklists and/or different versions of the lists, either update them or add extra ones
+- Issues in the adblocking module that Vieb uses, please report your issues not related to the above [in the relevant repo](https://github.com/ghostery/adblocker)
+
+In both cases, Vieb is not directly involved or the reason that you see ads,
+please consider testing various blocklists or opening an issue in the adblocker repo,
+unless you are really sure that it's a Vieb specific issue by testing it [with this example usage of their package](https://github.com/ghostery/adblocker/tree/master/packages/adblocker-electron-example).
+Finally, it's worth noting that most blocklists work suboptimal if you block autoplay,
+which is blocked by default in Vieb, though you can change that using `--autoplay-media=always` on startup.
+
 #### I want my tabs to be numbered, how do I do this?
 
 You can achieve this by using custom colorschemes.
