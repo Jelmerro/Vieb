@@ -94,7 +94,7 @@ const defaultSettings = {
     "dialogconfirm": "notifyblock",
     "dialogprompt": "notifyblock",
     "downloadmethod": "automatic",
-    "downloadpath": "~/Downloads/",
+    "downloadpath": "",
     "encodeurlcopy": "nospaces",
     "encodeurlext": "nospaces",
     "explorehist": "persist",
@@ -443,11 +443,11 @@ const checkOther = (setting, value) => {
     }
     if (setting === "downloadpath") {
         const expandedPath = expandPath(value)
-        if (!pathExists(expandedPath)) {
+        if (value && !pathExists(expandedPath)) {
             notify("The download path does not exist", "warn")
             return false
         }
-        if (!isDir(expandedPath)) {
+        if (value && !isDir(expandedPath)) {
             notify("The download path is not a directory", "warn")
             return false
         }
@@ -1177,7 +1177,7 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
         allowedValues = "See description"
     }
     if (setting === "downloadpath") {
-        allowedValues = "Any directory on disk"
+        allowedValues = "Any directory on disk or empty"
     }
     if (setting === "externalcommand") {
         allowedValues = "Any system command"

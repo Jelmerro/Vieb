@@ -714,7 +714,8 @@ ipcMain.on("set-download-settings", (_, settings) => {
     if (downloadSettings.cleardownloadsoncompleted) {
         downloads = downloads.filter(d => d.state !== "completed")
     }
-    downloadSettings.downloadpath = expandPath(downloadSettings.downloadpath)
+    downloadSettings.downloadpath = expandPath(downloadSettings.downloadpath
+        || app.getPath("downloads") || "~/Downloads")
 })
 ipcMain.on("download-list-request", (e, action, downloadId) => {
     if (action === "removeall") {
@@ -1538,6 +1539,7 @@ ipcMain.on("app-config", e => {
     e.returnValue = {
         "appdata": app.getPath("appData"),
         "autoplay": argAutoplayMedia,
+        "downloads": app.getPath("downloads"),
         "icon": customIcon || undefined,
         "name": app.getName(),
         "order": argConfigOrder,

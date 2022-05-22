@@ -33,6 +33,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Increase default timeoutlen above Vim's level because it makes more sense for Vieb
 - Rename "fontsize" to "guifontsize" to make it more clear where the font size applies
 - Url detection logic to be more in line with the actual spec, resulting in simpler implementation
+- Downloadpath is now empty by default and will read `XDG_DOWNLOAD_DIR`/xdg-user-dirs (with the same fallback to `~/Downloads` as before)
 
 ### Removed
 
@@ -68,7 +69,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Useragent was modified to the upcoming reduced/simplified version of the final phase of https://www.chromium.org/updates/ua-reduction/
 - Battery API now returns fixed "no battery" values instead of being undefined
-- The SSL error filter now includes more ERR codes by looking for "_CERT_" and "_SSL_" instead of using a fixed list
+- The SSL error filter now includes more ERR codes by looking for `_CERT_` and `_SSL_` instead of using a fixed list
 - Attempt to delete blocked navigator properties from navigator object completely instead of returning undefined
 - Disable useragentdata client hints API completely (previously only in Firefox mode)
 - The last used tab variable will now as a fallback pick the first tab instead of opening a new search tab with "buffer" and "Vexplore"
@@ -750,7 +751,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Enable "respectsitecontextmenu" by default to be able to use the right-click menus of websites without Vieb interfering
 - Mapped keys in insert mode won't be detected by the website, this prevents all side effects for mappings, including those for split devtools
 - Default settings: Mouse is now on, new tabs with the mouse now switch to it, infinite maximum number of command suggestions and ignorecase is now on
-- Most number ranges now go much higher (close to MAX_INT) and are only disabled if set to 0
+- Most number ranges now go much higher (close to `MAX_INT`) and are only disabled if set to 0
 - Restore the previous search selected when entering search mode (no history, just the previous one)
 - Allow multiple languages to be passed to the "spelllang" option (and the "system" value is now handled better)
 - The "spell" setting will now immediately take effect, also for existing tabs

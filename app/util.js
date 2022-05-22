@@ -206,7 +206,8 @@ const title = s => {
     return `${s[0].toUpperCase()}${s.slice(1).toLowerCase()}`
 }
 
-const downloadPath = () => expandPath(getSetting("downloadpath"))
+const downloadPath = () => expandPath(getSetting("downloadpath")
+    || appConfig().downloads || "~/Downloads")
 
 const userAgentTemplated = agent => {
     if (!agent) {
