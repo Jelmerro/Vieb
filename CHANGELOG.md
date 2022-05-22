@@ -45,6 +45,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Command "reloadconfig" did actually reset the settings instead of just reload them
 - Urls prefixed with a protocol not being checked if they are navigable urls at all (possibly resulting in broken tabs if navigated to)
 - Race condition on unsuspending tabs and opening tabs with a url directly that led to empty pages
+- Composing keyboards typing out the keys in addition to the composed keys on macos
 
 ### Versions
 

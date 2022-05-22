@@ -1388,6 +1388,9 @@ const handleKeyboard = async e => {
     if (e.passedOnFromInsert && blockNextInsertKey) {
         return
     }
+    if (e.isComposing || e.which === 229) {
+        return
+    }
     const id = toIdentifier(e)
     const matchingMod = getSetting("modifiers").split(",").find(
         mod => mod === id || `<${mod}>` === id || id.endsWith(`-${mod}>`))
