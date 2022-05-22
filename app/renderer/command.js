@@ -437,10 +437,7 @@ const writePage = (customLoc, tabIdx) => {
     if (tabIdx !== null) {
         page = tabOrPageMatching(listTabs()[tabIdx])
     }
-    if (!page) {
-        return
-    }
-    if (!page) {
+    if (!page?.getWebContentsId) {
         return
     }
     const loc = resolveFileArg(customLoc, "html", page)
@@ -528,7 +525,7 @@ const takeScreenshot = (dims, location, tabIdx = null) => {
     if (tabIdx !== null) {
         page = tabOrPageMatching(listTabs()[tabIdx])
     }
-    if (!page) {
+    if (!page?.capturePage) {
         return
     }
     const rect = translateDimsToRect(dims)

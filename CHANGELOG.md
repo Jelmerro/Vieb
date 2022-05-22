@@ -46,6 +46,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Urls prefixed with a protocol not being checked if they are navigable urls at all (possibly resulting in broken tabs if navigated to)
 - Race condition on unsuspending tabs and opening tabs with a url directly that led to empty pages
 - Composing keyboards typing out the keys in addition to the composed keys on macos
+- Internal errors for looping over pages when some of them are suspended (in case of zooming, page capturing, or save page)
 
 ### Versions
 

@@ -826,8 +826,8 @@ const init = () => {
             POINTER.updateElement()
         }
     })
-    ipcRenderer.on("zoom-changed", (_, contentsId, direction) => {
-        const page = listPages().find(p => p.getWebContentsId() === contentsId)
+    ipcRenderer.on("zoom-changed", (_, ctxId, direction) => {
+        const page = listPages().find(p => p.getWebContentsId?.() === ctxId)
         if (!page || !getMouseConf("scrollzoom")) {
             return
         }
