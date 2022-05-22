@@ -682,11 +682,12 @@ const addWebviewListeners = webview => {
             || e.errorDescription.includes("_CERT_"))
             && webview.src.startsWith("https://")
         if (isSSLError && getSetting("redirecttohttp")) {
-            webview.src = webview.src.replace("https://", "http://")
+            webview.loadURL(webview.src.replace(
+                "https://", "http://")).catch(() => null)
             return
         }
         if (webview.src !== e.validatedURL) {
-            webview.src = e.validatedURL
+            webview.loadURL(e.validatedURL).catch(() => null)
             tabOrPageMatching(webview).querySelector("span")
                 .textContent = urlToString(e.validatedURL)
             return
@@ -858,7 +859,7 @@ const addWebviewListeners = webview => {
         }
         if (e.channel === "navigate-to") {
             const [url] = e.args
-            webview.src = stringToUrl(url)
+            webview.loadURL(stringToUrl(url)).catch(() => null)
             tabOrPageMatching(webview).querySelector("span")
                 .textContent = urlToString(url)
         }
@@ -950,20 +951,17 @@ const resetTabInfo = webview => {
 }
 
 const navigateTo = location => {
-    if (currentPage().isCrashed() || !location) {
+    const page = currentPage()
+    if (!page || page.isCrashed() || !location) {
         return
     }
-    if (currentPage().src.startsWith("devtools://")) {
+    if (page.src.startsWith("devtools://")) {
         return
     }
-    try {
-        currentPage().stop()
-    } catch {
-        // Webview might be destroyed or unavailable, no issue
-    }
+    page.stop()
     const loc = location.replace(/view-?source:\/?\/?/g, "sourceviewer://")
-    currentPage().src = loc
-    resetTabInfo(currentPage())
+    page.loadURL(loc).catch(() => null)
+    resetTabInfo(page)
     currentTab().querySelector("span").textContent = urlToString(loc)
 }
 
