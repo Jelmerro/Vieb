@@ -265,12 +265,16 @@ const parseAndDisplayLinks = receivedLinks => {
             const borderElement = document.createElement("span")
             borderElement.className = `follow-${link.type}-border`
             const x = link.x * factor
-            borderElement.style.left = `${x}px`
-            const y = link.y * factor
-            borderElement.style.top = `${y}px`
+            let y = link.y * factor
             const width = link.width * factor
+            let height = link.height * factor
+            if (y < 0) {
+                height += y
+                y = 0
+            }
+            borderElement.style.left = `${x}px`
+            borderElement.style.top = `${y}px`
             borderElement.style.width = `${width}px`
-            const height = link.height * factor
             borderElement.style.height = `${height}px`
             borderElement.addEventListener("mouseup", onclickListener)
             followChildren.push(borderElement)
