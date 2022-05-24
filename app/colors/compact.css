@@ -1,0 +1,14 @@
+/*
+ * GLOBAL
+*/
+#app {flex-direction: row;flex-wrap: wrap;}
+
+/*
+ * APP
+*/
+/* navbar & tabs */
+#navbar {width: 40vw}
+#tabs {width: 60vw}
+
+/* pages container */
+#page-container{flex: 0 1 auto;}
