@@ -21,6 +21,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Support for "prompt" dialogs, and thus "show" and "notifyshow" are now valid values for "dialogprompt"
 - Mouse option named "movepointer" which moves the pointer to the click location
 - Actions "toggleSourceViewer" and "toggleSourceViewerNewTab" to toggle the new "sourceviewer" of Vieb
+- More default themes: numberedtabs and compact (thanks to @stevkazt)
 
 ### Changed
 

@@ -15,7 +15,6 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#app {flex-direction: row;flex-wrap: wrap;}
-#navbar {width: 40vw}
-#tabs {width: 60vw}
-#page-container{flex: 0 1 auto;}
+#tabs, #navbar {counter-reset: tab-counter -1;}
+#tabs > ::before {counter-increment: tab-counter 1;content: counter(tab-counter) ". ";margin: auto 0;}
+#tabs .pinned {min-width: 3em !important;}
