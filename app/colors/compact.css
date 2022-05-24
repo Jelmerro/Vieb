@@ -7,12 +7,8 @@
  * APP
 */
 /* navbar & tabs */
-#navbar {width: 40vw; height: 1.8em;}
-#logo {height: 1.2em;width: 1.2em;min-width: 1.2em;min-height: 1.2em; padding:0.2em;}
-#mode-container {width: 6em;}
-#mode {font-size: 1.1em;}
-
-#tabs {width: 60vw;height:1.8em;}
+#navbar {width: 40vw}
+#tabs {width: 60vw}
 
 /* pages container */
 #page-container{flex: 0 1 auto;}
