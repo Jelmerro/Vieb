@@ -29,7 +29,9 @@ const {
     readFile,
     searchword,
     stringToUrl,
-    sendToPageOrSubFrame
+    sendToPageOrSubFrame,
+    isFile,
+    isDir
 } = require("../util")
 const {
     listTabs,
@@ -138,17 +140,17 @@ const moveLastNumber = movement => modifyUrl("(\\d+)(\\D*$)", (_, p1, p2) => {
     return `${Number(p1) + movement}${p2}`
 })
 
-const toParentUrl = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/\\/.*?\\/)"
+const toParentUrl = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/?\\/?.*?\\/)"
     + "(.*\\/)?(.+?$)", (_, domain, path) => domain + (path || ""))
 
-const toRootUrl = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/\\/.*?\\/)"
+const toRootUrl = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/?\\/?.*?\\/)"
     + "(.*$)", (_, domain) => domain)
 
-const toParentSubdomain = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/\\/)("
+const toParentSubdomain = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/?\\/?)("
     + "www\\.)?([a-zA-Z\\d]*?\\.)((?:[a-zA-Z\\d]*?\\.)*)([a-zA-Z\\d]*?\\.[a-zA-"
     + "Z]+.*$)", (_, p, w, __, s, m) => p + (w || "") + (s || "") + (m || ""))
 
-const toRootSubdomain = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/\\/)("
+const toRootSubdomain = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/?\\/?)("
     + "www\\.)?([a-zA-Z\\d]*?\\.)((?:[a-zA-Z\\d]*?\\.)*)([a-zA-Z\\d]*?\\.[a-zA-"
     + "Z]+.*$)", (_, p, w, __, ___, m) => p + (w || "") + (m || ""))
 
@@ -169,8 +171,16 @@ const previousTab = () => {
 const toggleSourceViewer = () => {
     const {navigateTo} = require("./tabs")
     if (currentPage().src.startsWith("sourceviewer:")) {
-        navigateTo(currentPage().src.replace(
-            /^sourceviewer:\/?\/?/g, "https://"))
+        const src = currentPage().src.replace(/^sourceviewer:\/?\/?/g, "")
+        let loc = String(src)
+        if (process.platform !== "win32" && !loc.startsWith("/")) {
+            loc = `/${loc}`
+        }
+        if (isFile(loc) || isDir(loc)) {
+            navigateTo(`file://${loc}`)
+            return
+        }
+        navigateTo(`https://${src}`)
     } else {
         navigateTo(currentPage().src.replace(/^.+?:\/?\/?/g, "sourceviewer:"))
     }
@@ -179,8 +189,16 @@ const toggleSourceViewer = () => {
 const toggleSourceViewerNewTab = () => {
     const {navigateTo, addTab} = require("./tabs")
     if (currentPage().src.startsWith("sourceviewer:")) {
-        navigateTo(currentPage().src.replace(
-            /^sourceviewer:\/?\/?/g, "https://"))
+        const src = currentPage().src.replace(/^sourceviewer:\/?\/?/g, "")
+        let loc = String(src)
+        if (process.platform !== "win32" && !loc.startsWith("/")) {
+            loc = `/${loc}`
+        }
+        if (isFile(loc) || isDir(loc)) {
+            navigateTo(`file://${loc}`)
+            return
+        }
+        navigateTo(`https://${src}`)
     } else {
         addTab({"url": currentPage().src.replace(
             /^.+?:\/?\/?/g, "sourceviewer:")})
@@ -190,8 +208,16 @@ const toggleSourceViewerNewTab = () => {
 const toggleReaderView = () => {
     const {navigateTo} = require("./tabs")
     if (currentPage().src.startsWith("readerview:")) {
-        navigateTo(currentPage().src.replace(
-            /^readerview:\/?\/?/g, "https://"))
+        const src = currentPage().src.replace(/^readerview:\/?\/?/g, "")
+        let loc = String(src)
+        if (process.platform !== "win32" && !loc.startsWith("/")) {
+            loc = `/${loc}`
+        }
+        if (isFile(loc) || isDir(loc)) {
+            navigateTo(`file://${loc}`)
+            return
+        }
+        navigateTo(`https://${src}`)
     } else {
         navigateTo(currentPage().src.replace(/^.+?:\/?\/?/g, "readerview:"))
     }
@@ -200,8 +226,16 @@ const toggleReaderView = () => {
 const toggleReaderViewNewTab = () => {
     const {navigateTo, addTab} = require("./tabs")
     if (currentPage().src.startsWith("readerview:")) {
-        navigateTo(currentPage().src.replace(
-            /^readerview:\/?\/?/g, "https://"))
+        const src = currentPage().src.replace(/^readerview:\/?\/?/g, "")
+        let loc = String(src)
+        if (process.platform !== "win32" && !loc.startsWith("/")) {
+            loc = `/${loc}`
+        }
+        if (isFile(loc) || isDir(loc)) {
+            navigateTo(`file://${loc}`)
+            return
+        }
+        navigateTo(`https://${src}`)
     } else {
         addTab({"url": currentPage().src.replace(
             /^.+?:\/?\/?/g, "readerview:")})

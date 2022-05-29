@@ -937,15 +937,43 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         })
     })
     newSession.protocol.registerStringProtocol("sourceviewer", (req, call) => {
-        const url = req.url.replace(/sourceviewer:\/?\/?/g, "https://")
+        let loc = req.url.replace(/sourceviewer:\/?\/?/g, "")
+        if (process.platform !== "win32" && !loc.startsWith("/")) {
+            loc = `/${loc}`
+        }
+        if (isDir(loc)) {
+            call(`<!DOCTPYE html>\n<html><head>
+                <style>${defaultCss}</style>
+                <title>${encodeURI(req.url)}</title>
+                </head><body>Source viewer does not support folders, only files
+                </body></html>`)
+            return
+        }
+        if (isFile(loc)) {
+            const hl = hljs.highlightAuto(readFile(loc))
+            call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
+                <title>${encodeURI(req.url)}</title>
+                </head><body id="sourceviewer">
+                <pre><code>${hl.value}</code></pre></body></html>`)
+            return
+        }
+        const url = `https://${loc}`
         const request = net.request({"partition": name, url})
         request.on("response", res => {
             let body = ""
             res.on("end", () => {
+                if (!body) {
+                    call(`<!DOCTPYE html>\n<html><head>
+                        <style>${defaultCss}</style>
+                        <title>${encodeURI(req.url)}</title>
+                        </head><body>Source viewer not supported on this wegpage
+                        </body></html>`)
+                    return
+                }
                 const hl = hljs.highlightAuto(body)
                 call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
-                <title>${encodeURI(req.url)}</title>
-                </head><body id="sourceviewer">
+                    <title>${encodeURI(req.url)}</title>
+                    </head><body id="sourceviewer">
                     <pre><code>${hl.value}</code></pre></body></html>`)
             })
             res.on("data", chunk => {
@@ -957,16 +985,36 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         request.end()
     })
     newSession.protocol.registerStringProtocol("readerview", (req, call) => {
-        const url = req.url.replace(/readerview:\/?\/?/g, "https://")
+        let loc = req.url.replace(/readerview:\/?\/?/g, "")
+        if (process.platform !== "win32" && !loc.startsWith("/")) {
+            loc = `/${loc}`
+        }
+        if (isFile(loc) || isDir(loc)) {
+            call(`<!DOCTPYE html>\n<html><head>
+                <style>${defaultCss}</style>
+                <title>${encodeURI(req.url)}</title>
+                </head><body>Reader view not supported for local resources
+                </body></html>`)
+            return
+        }
+        const url = `https://${loc}`
         const request = net.request({"partition": name, url})
         request.on("response", res => {
             let body = ""
             res.on("end", () => {
+                if (!body) {
+                    call(`<!DOCTPYE html>\n<html><head>
+                        <style>${defaultCss}</style>
+                        <title>${encodeURI(req.url)}</title>
+                        </head><body>Reader view not supported for this website
+                        </body></html>`)
+                    return
+                }
                 const dom = new JSDOM(body, {url})
                 const out = new Readability(dom.window.document).parse().content
                 call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
-                <title>${encodeURI(req.url)}</title>
-                </head><body id="readerview">${out}</body></html>`)
+                    <title>${encodeURI(req.url)}</title>
+                    </head><body id="readerview">${out}</body></html>`)
             })
             res.on("data", chunk => {
                 body += chunk
