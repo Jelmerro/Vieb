@@ -36,6 +36,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Rename "fontsize" to "guifontsize" to make it more clear where the font size applies
 - Url detection logic to be more in line with the actual spec, resulting in simpler implementation
 - Downloadpath is now empty by default and will read `XDG_DOWNLOAD_DIR`/xdg-user-dirs (with the same fallback to `~/Downloads` as before)
+- Give "storenewvisits" new options for "sourceviewer" and "readerview", and rename "builtin" to "special" to make more sense
 
 ### Removed
 

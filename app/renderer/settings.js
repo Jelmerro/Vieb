@@ -698,10 +698,13 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "storenewvisits") {
+        const valid = [
+            "pages", "files", "special", "sourceviewer", "readerview"
+        ]
         for (const visitType of value.split(",").filter(v => v.trim())) {
-            if (!["pages", "files", "builtin"].includes(visitType)) {
+            if (!valid.includes(visitType)) {
                 notify(`Invalid type of history passed: ${visitType}, `
-                    + "must be one of: pages, files or builtin", "warn")
+                    + `must be one of: ${valid.join(", ")}`, "warn")
                 return false
             }
         }
