@@ -682,19 +682,18 @@ const addWebviewListeners = webview => {
             || e.errorDescription.includes("_CERT_"))
             && webview.src.startsWith("https://")
         if (isSSLError && getSetting("redirecttohttp")) {
-            webview.loadURL(webview.src.replace(
-                "https://", "http://")).catch(() => null)
+            webview.src = webview.src.replace("https://", "http://")
             return
         }
         if (webview.src !== e.validatedURL) {
-            webview.loadURL(e.validatedURL).catch(() => null)
+            webview.src = e.validatedURL
             tabOrPageMatching(webview).querySelector("span")
                 .textContent = urlToString(e.validatedURL)
             return
         }
         // If the path is a directory, show a list of files instead of an error
         if (e.errorDescription === "ERR_FILE_NOT_FOUND") {
-            // Any number of slashes after file is fine for now
+            // Any number of slashes after file is fine
             if (webview.src.startsWith("file:/")) {
                 let local = urlToString(webview.src).replace(/file:\/+/, "/")
                 if (process.platform === "win32") {
@@ -861,7 +860,7 @@ const addWebviewListeners = webview => {
         }
         if (e.channel === "navigate-to") {
             const [url] = e.args
-            webview.loadURL(stringToUrl(url)).catch(() => null)
+            webview.src = stringToUrl(url)
             tabOrPageMatching(webview).querySelector("span")
                 .textContent = urlToString(url)
         }
@@ -962,7 +961,7 @@ const navigateTo = location => {
     }
     page.stop()
     const loc = location.replace(/view-?source:\/?\/?/g, "sourceviewer://")
-    page.loadURL(loc).catch(() => null)
+    page.src = loc
     resetTabInfo(page)
     currentTab().querySelector("span").textContent = urlToString(loc)
 }
