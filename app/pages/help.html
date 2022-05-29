@@ -1074,9 +1074,13 @@
         <h3 id="action.zoomOut">action.zoomOut</h3>
         Decrease the zoom percentage. The zoom percentage is decreased by 10% every time this action is called, down to a minimum of 25%. Opposite of <a href="#action.zoomIn">action.zoomIn</a>. Use <a href="#action.zoomReset">action.zoomReset</a> to go back to 100%.
         <h3 id="action.toggleSourceViewer">action.toggleSourceViewer</h3>
-        With this action you can toggle Vieb's source viewer for the current page in the current tab. It will update the url to "sourceviewer://" if currently viewing a webpage, and will revert to https if currently viewing the source of a page. The source viewer has syntax highlighting, and can also be used to view other types of files with highlighting, as long as they are using the https protocol.
+        With this action you can toggle Vieb's source viewer for the current page in the current tab. It will update the url to "sourceviewer://", and will revert back to original page if currently viewing the source of a page. The source viewer has syntax highlighting, and can also be used to view other types of files with highlighting.
         <h3 id="action.toggleSourceViewerNewTab">action.toggleSourceViewerNewTab</h3>
-        This action works similar to <a href="#action.toggleSourceViewer">action.toggleSourceViewer</a>, but instead opens the source viewer in a new tab if currently viewing a webpage. If you are currently viewing the source of a document, this action is identical to toggleSourceViewer and will revert the current tab back to the https webpage.
+        This action works similar to <a href="#action.toggleSourceViewer">action.toggleSourceViewer</a>, but instead opens the source viewer in a new tab of the currently viewed page. If you are currently viewing the source of a document, this action is identical to toggleSourceViewer and will revert the current tab back to the original page.
+        <h3 id="action.toggleReaderView">action.toggleReaderView</h3>
+        With this action you can toggle Vieb's reader view for the current page in the current tab. It will update the url to "readerview://", and will revert back to original page if currently viewing the reader view of a page. The reader view is a concise and minimal view of the relevant page contents.
+        <h3 id="action.toggleReaderViewNewTab">action.toggleReaderViewNewTab</h3>
+        This action works similar to <a href="#action.toggleReaderView">action.toggleReaderView</a>, but instead opens the reader view in a new tab of the currently viewed page. If you are currently viewing the reader view of a document, this action is identical to toggleReaderView and will revert the current tab back to the original page.
         <h2 id="url-modifications">Url modifications</h2>
         These actions can be used to make quick edits to the current page url. These vary from increasing port numbers to stripping subdomains. If any of these actions fail to find the part they are trying to modify, they won't update the url and the page won't be reloaded.
         <h3 id="action.nextPage">action.nextPage</h3>

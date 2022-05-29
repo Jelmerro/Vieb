@@ -114,6 +114,23 @@
     --helppage-h3: #fb9;
     --helppage-countable: #fc0;
     --helppage-range-compat: #fc0;
+    /* sourceviewer */
+    --syntax-fg: var(--fg);
+    --syntax-bg: var(--bg);
+    --syntax-keyword: #f77;
+    --syntax-entity: #daf;
+    --syntax-constant: #8cf;
+    --syntax-string: #adf;
+    --syntax-variable: #fa5;
+    --syntax-comment: #89a;
+    --syntax-entity-tag: #8e8;
+    --syntax-markup-heading: #27e;
+    --syntax-markup-list: #fc6;
+    --syntax-markup-emphasis: #cde;
+    --syntax-markup-addition-fg: #bfb;
+    --syntax-markup-addition-bg: #041;
+    --syntax-markup-deletion-fg: #fdd;
+    --syntax-markup-deletion-bg: #600;
 }
 
 
@@ -400,4 +417,32 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #loginpopup p {word-wrap: break-word;overflow: hidden;}
 /* notification */
 #notificationpopup #notification {padding: 1em;height: calc(100% - 4.1em);overflow-wrap: break-word;overflow-x: hidden;overflow-y: auto;line-height: 1em;user-select: text;}
-#notificationpopup footer {font-size: 1em;line-height: 2em;height: 2em;position: fixed;left: 0;bottom: 0; width: 100vw;border: .1em solid var(--notification-border);}
+#notificationpopup footer {font-size: 1em;line-height: 2em;height: 2em;position: fixed;left: 0;bottom: 0;width: 100vw;border: .1em solid var(--notification-border);}
+
+
+/*
+ * READERVIEW
+*/
+#readerview {margin: auto;max-width: 1000px;padding: 2vw;opacity: 1;color: var(--fg);background: var(--bg);}
+#readerview img {max-width: 100%;}
+#readerview a {color: var(--link-color);}
+
+
+/*
+ * SOURCEVIEWER
+*/
+.hljs {color: var(--syntax-fg);background: var(--syntax-bg);}
+.hljs-doctag, .hljs-keyword, .hljs-meta .hljs-keyword, .hljs-template-tag, .hljs-template-variable, .hljs-type, .hljs-variable.language_ {color: var(--syntax-keyword);}
+.hljs-title, .hljs-title.class_, .hljs-title.class_.inherited__, .hljs-title.function_ {color: var(--syntax-entity);}
+.hljs-attr, .hljs-attribute, .hljs-literal, .hljs-meta, .hljs-number, .hljs-operator, .hljs-variable, .hljs-selector-attr, .hljs-selector-class, .hljs-selector-id {color: var(--syntax-constant);}
+.hljs-regexp, .hljs-string, .hljs-meta .hljs-string {color: var(--syntax-string);}
+.hljs-built_in, .hljs-symbol {color: var(--syntax-variable);}
+.hljs-comment, .hljs-code, .hljs-formula {color: var(--syntax-comment);}
+.hljs-name, .hljs-quote, .hljs-selector-tag, .hljs-selector-pseudo {color: var(--syntax-entity-tag);}
+.hljs-subst {color: var(--syntax-markup-emphasis);}
+.hljs-section {color: var(--syntax-markup-heading);font-weight: bold;}
+.hljs-bullet {color: var(--syntax-markup-list);}
+.hljs-emphasis {color: var(--syntax-markup-emphasis);font-style: italic;}
+.hljs-strong {color: var(--syntax-markup-emphasis);font-weight: bold;}
+.hljs-addition {color: var(--syntax-markup-addition-fg);background-color: var(--syntax-markup-addition-bg);}
+.hljs-deletion {color: var(--syntax-markup-deletion-fg);background-color: var(--syntax-markup-deletion-bg);}

@@ -45,6 +45,7 @@ const dataUris = [
     "view-source",
     "viewsource",
     "sourceviewer",
+    "readerview",
     "ws"
 ]
 const getSetting = val => JSON.parse(sessionStorage.getItem("settings"))?.[val]

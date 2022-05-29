@@ -38,9 +38,11 @@
   "dependencies": {
     "@cliqz/adblocker-electron": "1.23.8",
     "@cliqz/adblocker-electron-preload": "1.23.8",
+    "@mozilla/readability": "0.4.2",
     "7zip-bin": "5.2.0",
     "highlight.js": "11.5.1",
     "is-svg": "4.3.2",
+    "jsdom": "19.0.0",
     "rimraf": "3.0.2"
   }
 }

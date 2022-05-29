@@ -729,8 +729,9 @@ const addWebviewListeners = webview => {
         const specialPageName = pathToSpecialPageName(webview.src).name
         const isLocal = webview.src.startsWith("file:/")
         const isErrorPage = webview.getAttribute("failed-to-load")
-        const isSourceView = webview.src.startsWith("sourceviewer:")
-        if (specialPageName || isLocal || isErrorPage || isSourceView) {
+        const isCustomView = webview.src.startsWith("sourceviewer:")
+            || webview.src.startsWith("readerview")
+        if (specialPageName || isLocal || isErrorPage || isCustomView) {
             const {getCustomStyling} = require("./settings")
             webview.send("set-custom-styling", getSetting("guifontsize"),
                 getCustomStyling())
@@ -758,7 +759,7 @@ const addWebviewListeners = webview => {
         const existing = titleForPage(webview.src)
         if (isLocal && !specialPageName) {
             name.textContent = urlToString(webview.src)
-        } else if (hasProtocol(name.textContent) && existing && !isSourceView) {
+        } else if (hasProtocol(name.textContent) && existing && !isCustomView) {
             name.textContent = existing
         } else {
             updateTitle(webview.src, name.textContent)
@@ -774,8 +775,9 @@ const addWebviewListeners = webview => {
         }
     })
     webview.addEventListener("page-title-updated", e => {
-        const isSourceView = webview.src.startsWith("sourceviewer:")
-        if (hasProtocol(e.title) && !isSourceView) {
+        const isCustomView = webview.src.startsWith("sourceviewer:")
+            || webview.src.startsWith("readerview")
+        if (hasProtocol(e.title) && !isCustomView) {
             return
         }
         const tab = tabOrPageMatching(webview)

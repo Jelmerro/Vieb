@@ -172,7 +172,7 @@ const toggleSourceViewer = () => {
         navigateTo(currentPage().src.replace(
             /^sourceviewer:\/?\/?/g, "https://"))
     } else {
-        navigateTo(currentPage().src.replace(/^https?:/g, "sourceviewer:"))
+        navigateTo(currentPage().src.replace(/^.+?:\/?\/?/g, "sourceviewer:"))
     }
 }
 
@@ -182,7 +182,29 @@ const toggleSourceViewerNewTab = () => {
         navigateTo(currentPage().src.replace(
             /^sourceviewer:\/?\/?/g, "https://"))
     } else {
-        addTab({"url": currentPage().src.replace(/^https?:/g, "sourceviewer:")})
+        addTab({"url": currentPage().src.replace(
+            /^.+?:\/?\/?/g, "sourceviewer:")})
+    }
+}
+
+const toggleReaderView = () => {
+    const {navigateTo} = require("./tabs")
+    if (currentPage().src.startsWith("readerview:")) {
+        navigateTo(currentPage().src.replace(
+            /^readerview:\/?\/?/g, "https://"))
+    } else {
+        navigateTo(currentPage().src.replace(/^.+?:\/?\/?/g, "readerview:"))
+    }
+}
+
+const toggleReaderViewNewTab = () => {
+    const {navigateTo, addTab} = require("./tabs")
+    if (currentPage().src.startsWith("readerview:")) {
+        navigateTo(currentPage().src.replace(
+            /^readerview:\/?\/?/g, "https://"))
+    } else {
+        addTab({"url": currentPage().src.replace(
+            /^.+?:\/?\/?/g, "readerview:")})
     }
 }
 
@@ -981,6 +1003,8 @@ module.exports = {
     toTopSplitWindow,
     toggleAlwaysOnTop,
     toggleFullscreen,
+    toggleReaderView,
+    toggleReaderViewNewTab,
     toggleSourceViewer,
     toggleSourceViewerNewTab,
     topHalfSplitWindow,
