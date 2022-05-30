@@ -380,24 +380,34 @@ const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
 }
 
 const findClickPosition = (element, rects) => {
-    let dimensions = {}
+    let dims = {}
     let clickable = false
     // Check if the center of the bounding rect is actually clickable,
     // For every possible rect of the element and it's sub images.
     for (const rect of rects) {
-        const rectX = rect.x + rect.width / 2
-        const rectY = rect.y + rect.height / 2
+        let {x, y} = rect
+        let width = Math.min(rect.width, window.innerWidth - x)
+        if (x < 0) {
+            width += x
+            x = 0
+        }
+        let height = Math.min(rect.height, window.innerHeight - y)
+        if (y < 0) {
+            height += y
+            y = 0
+        }
+        const rectX = x + width / 2
+        const rectY = y + height / 2
         // Update the region if it's larger or the first region found
-        if (rect.width > dimensions.width
-                || rect.height > dimensions.height || !clickable) {
+        if (width > dims.width || height > dims.height || !clickable) {
             const elementAtPos = findElementAtPosition(rectX, rectY)
             if (element === elementAtPos || element?.contains(elementAtPos)) {
                 clickable = true
-                dimensions = rect
+                dims = {height, width, x, y}
             }
         }
     }
-    return {clickable, dimensions}
+    return {clickable, dims}
 }
 
 const activeElement = () => {

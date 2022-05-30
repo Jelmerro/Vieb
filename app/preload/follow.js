@@ -306,17 +306,14 @@ const parseElement = (element, type) => {
         })
     }
     // Find a clickable area and position for the given element
-    const {dimensions, clickable} = findClickPosition(element, rects)
+    const {dims, clickable} = findClickPosition(element, rects)
     // Return null if any of the checks below fail
     // - Not detected as clickable in the above loop
     // - Too small to properly click on using a regular browser
-    const tooSmall = dimensions.width <= 2 || dimensions.height <= 2
+    const tooSmall = dims.width <= 2 || dims.height <= 2
     // - The element isn't actually visible on the user's current window
-    const outsideWindow = rectOutsideWindow(dimensions)
-    // - The element is too big to actually make sense to click on by choice
-    const tooBig = dimensions.width >= window.innerWidth
-        || dimensions.height >= window.innerHeight
-    if (!clickable || tooSmall || outsideWindow || tooBig) {
+    const outsideWindow = rectOutsideWindow(dims)
+    if (!clickable || tooSmall || outsideWindow) {
         return null
     }
     // The element should be clickable and is returned in a parsed format
@@ -341,13 +338,13 @@ const parseElement = (element, type) => {
         }
     }
     return {
-        "height": dimensions.height,
+        "height": dims.height,
         "text": element.textContent?.slice(0, 10000) || "",
         "type": typeOverride || type,
         "url": href,
-        "width": dimensions.width,
-        "x": dimensions.x,
-        "y": dimensions.y
+        "width": dims.width,
+        "x": dims.x,
+        "y": dims.y
     }
 }
 

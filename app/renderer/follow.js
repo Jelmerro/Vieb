@@ -265,13 +265,9 @@ const parseAndDisplayLinks = receivedLinks => {
             const borderElement = document.createElement("span")
             borderElement.className = `follow-${link.type}-border`
             const x = link.x * factor
-            let y = link.y * factor
+            const y = link.y * factor
             const width = link.width * factor
-            let height = link.height * factor
-            if (y < 0) {
-                height += y
-                y = 0
-            }
+            const height = link.height * factor
             borderElement.style.left = `${x}px`
             borderElement.style.top = `${y}px`
             borderElement.style.width = `${width}px`

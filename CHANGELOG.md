@@ -51,7 +51,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Race condition on unsuspending tabs and opening tabs with a url directly that led to empty pages
 - Composing keyboards typing out the keys in addition to the composed keys on macos
 - Internal errors for looping over pages when some of them are suspended (in case of zooming, page capturing, or save page)
-- Follow link labels not being visible if element continues above the visible section of the page
+- Follow links (or their labels) not being visible if an element continues outside the visible section of the page
 
 ### Versions
 
