@@ -1909,7 +1909,7 @@ ipcMain.on("send-input-event", (_, id, inputInfo) => {
         }
         if (inputInfo.type === "click") {
             frameRef.send("custom-mouse-event", "click", {
-                "button": inputInfo.button,
+                "button": inputInfo.button || "left",
                 "x": X - subframe.absX,
                 "y": Y - subframe.absY
             })

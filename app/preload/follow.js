@@ -625,7 +625,19 @@ ipcRenderer.on("custom-mouse-event", (_, eventType, mouseOptions) => {
     // The code below is also fairly useless when it comes to hovering elements.
     const el = findElementAtPosition(mouseOptions.x, mouseOptions.y)
     if (eventType === "click") {
-        el.click()
+        if (mouseOptions.button === "left") {
+            el.click()
+            return
+        }
+        const {x, y} = mouseOptions
+        const els = [findElementAtPosition(x, y)]
+        while (els[0].parentNode && els[0].parentNode !== els[1]?.parentNode) {
+            els.unshift(els[0].parentNode)
+        }
+        els.reverse()
+        contextListener({
+            "button": 2, "composedPath": () => els, "isTrusted": true, x, y
+        }, findFrameInfo(els[0])?.element)
         return
     }
     if (eventType === "mousewheel") {
