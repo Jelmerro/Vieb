@@ -26,179 +26,6 @@ const message = "The page has requested to view a list of all media devices."
     + " For help and options, see ':h permissionmediadevices', ':h permissions"
     + "allowed', ':h permissionsasked' and ':h permissionsblocked'."
 const settingsFile = joinPath(appData(), "webviewsettings")
-
-const privacyFixes = (w = window) => {
-    try {
-        // Hide device labels from the list of media devices
-        const enumerate = w.navigator.mediaDevices.enumerateDevices
-        const mediaDeviceList = async action => {
-            if (action === "block") {
-                throw new DOMException("Permission denied", "NotAllowedError")
-            }
-            const devices = await enumerate.call(w.navigator.mediaDevices)
-            if (action === "allowfull") {
-                return devices
-            }
-            return devices.map(({deviceId, groupId, kind}) => ({
-                deviceId, groupId, kind, "label": ""
-            }))
-        }
-        w.navigator.mediaDevices.enumerateDevices = async() => {
-            let setting = "ask"
-            const settings = readJSON(settingsFile) || {}
-            setting = settings.permissionmediadevices || setting
-            if (!["block", "ask", "allow", "allowfull"].includes(setting)) {
-                setting = "ask"
-            }
-            let settingRule = ""
-            for (const type of ["ask", "block", "allow"]) {
-                const permList = settings[`permissions${type}ed`]?.split(",")
-                for (const r of permList || []) {
-                    if (!r.trim() || settingRule) {
-                        continue
-                    }
-                    const [match, ...names] = r.split("~")
-                    if (names.find(p => p.endsWith("mediadevices"))) {
-                        if (w.location.href.match(match)) {
-                            settingRule = type
-                        }
-                    }
-                }
-            }
-            setting = settingRule || setting
-            if (setting === "ask") {
-                let url = w.location.href
-                if (url.length > 100) {
-                    url = url.replace(/.{50}/g, "$&\n")
-                }
-                const ask = await ipcRenderer.invoke("show-message-dialog", {
-                    "buttons": ["Allow", "Deny"],
-                    "cancelId": 1,
-                    "checkboxLabel": "Include media device name labels",
-                    "defaultId": 0,
-                    "message": `${message}\n\npage:\n${url}`,
-                    "title": "Allow this page to access 'mediadevices'?",
-                    "type": "question"
-                })
-                if (ask.response === 0) {
-                    if (ask.checkboxChecked) {
-                        ipcRenderer.sendToHost("notify",
-                            `Manually allowfulled 'mediadevices' at `
-                            + `'${w.location.href}'`, "perm")
-                        return mediaDeviceList("allowfull")
-                    }
-                    setting = "allow"
-                }
-                if (ask.response === 1) {
-                    setting = "block"
-                }
-                if (settingRule) {
-                    ipcRenderer.sendToHost("notify",
-                        `Ask rule for 'mediadevices' activated at '`
-                        + `${w.location.href}' which was `
-                        + `${setting}ed by user`, "perm")
-                } else {
-                    ipcRenderer.sendToHost("notify",
-                        `Manually ${setting}ed 'mediadevices' at `
-                        + `'${w.location.href}'`, "perm")
-                }
-                return mediaDeviceList(setting)
-            }
-            if (settingRule) {
-                ipcRenderer.sendToHost("notify",
-                    `Automatic rule for 'mediadevices' activated at `
-                    + `'${w.location.href}' which was ${setting}ed`, "perm")
-            } else {
-                ipcRenderer.sendToHost("notify",
-                    `Globally ${setting}ed 'mediadevices' at `
-                    + `'${w.location.href}' based on `
-                    + "'permissionmediadevices'", "perm")
-            }
-            return mediaDeviceList(setting)
-        }
-        // Enable screensharing functionality linked to permissiondisplaycapture
-        w.navigator.mediaDevices.getDisplayMedia = () => customDisplayMedia(w)
-    } catch {
-        // Non-secure resources don't expose these APIs
-    }
-    // Empty the list of browser plugins, as there shouldn't be any installed
-    Object.defineProperty(w.Navigator.prototype,
-        "plugins", {"get": (() => []).bind(null)})
-    Object.defineProperty(w.Navigator.prototype,
-        "mimeTypes", {"get": (() => []).bind(null)})
-    // Don't share the connection information
-    Object.defineProperty(w.Navigator.prototype,
-        "connection", {"get": (() => undefined).bind(null)})
-    // Disable the experimental keyboard API, which exposes every key mapping
-    Object.defineProperty(w.Navigator.prototype,
-        "keyboard", {"get": (() => undefined).bind(null)})
-    // Disable the battery API entirely
-    Object.defineProperty(w.Navigator.prototype,
-        "getBattery", {"get": (() => undefined).bind(null)})
-    // Always return the cancel action for prompts, without throwing
-    w.prompt = () => null
-    // Return a static maximum value for memory and thread count
-    Object.defineProperty(w.Navigator.prototype,
-        "hardwareConcurrency", {"get": (() => 8).bind(null)})
-    Object.defineProperty(w.Navigator.prototype,
-        "deviceMemory", {"get": (() => 8).bind(null)})
-    // Hide graphics card information from the canvas API
-    const getParam = w.WebGLRenderingContext.prototype.getParameter
-    w.WebGLRenderingContext.prototype.getParameter = function(parameter) {
-        if ([37445, 37446].includes(parameter)) {
-            return ""
-        }
-        return getParam.call(this, parameter)
-    }
-    const getParam2 = w.WebGL2RenderingContext.prototype.getParameter
-    w.WebGL2RenderingContext.prototype.getParameter = function(parameter) {
-        if ([37445, 37446].includes(parameter)) {
-            return ""
-        }
-        return getParam2.call(this, parameter)
-    }
-    // If using Firefox mode, also modify the Firefox navigator properties
-    if (w.navigator.userAgent.includes("Firefox")) {
-        Object.defineProperty(w.Navigator.prototype,
-            "buildID", {"get": (() => "20181001000000").bind(null)})
-        Object.defineProperty(w.Navigator.prototype,
-            "doNotTrack", {"get": (() => "unspecified").bind(null)})
-        Object.defineProperty(w.Navigator.prototype,
-            "oscpu", {"get": (() => String(w.Navigator.platform)).bind(null)})
-        Object.defineProperty(w.Navigator.prototype,
-            "productSub", {"get": (() => "20100101").bind(null)})
-        Object.defineProperty(w.Navigator.prototype,
-            "vendor", {"get": (() => "").bind(null)})
-        Object.defineProperty(w.Navigator.prototype,
-            "webdriver", {"get": (() => false).bind(null)})
-        Object.defineProperty(w, "chrome", {})
-        Object.defineProperty(w.Navigator.prototype,
-            "userAgentData", {"get": (() => undefined).bind(null)})
-    }
-    // Provide a wrapper for window.open with a subset of the regular API
-    // Also provide the option to open new tabs by setting the location property
-    w.open = (url = null) => {
-        if (url) {
-            ipcRenderer.sendToHost(
-                "url", new URL(url, window.location.href).href)
-        }
-        const obj = {}
-        Object.defineProperty(obj, "location", {"get": (() => "").bind(null),
-            "set": (val => {
-                ipcRenderer.sendToHost(
-                    "url", new URL(val, window.location.href).href)
-            }).bind(null)})
-        return obj
-    }
-    // Override broken node atob/btoa with a working version, for details see:
-    // https://github.com/electron/electron/issues/31018
-    w.atob = i => Buffer.from(String(i), "base64").toString("latin1")
-    w.btoa = i => Buffer.from(String(i), "latin1").toString("base64")
-}
-privacyFixes()
-
-// Screensharing code based on the work of @WesselKroos on Github
-// https://github.com/electron/electron/issues/16513#issuecomment-602070250
 const displayCaptureStyling = `html, body {overflow: hidden !important;}
 .desktop-capturer-selection {
     font-family: sans-serif;font-weight: revert;font-size: 14px;
@@ -229,57 +56,149 @@ const displayCaptureStyling = `html, body {overflow: hidden !important;}
 .desktop-capturer-selection__btn:hover, .desktop-capturer-selection__btn:focus {
     background: %FG%;color: %BG%;
 }`
-const customDisplayMedia = frameWindow => new Promise((resolve, reject) => {
-    let setting = "block"
-    const settings = readJSON(settingsFile) || {}
-    setting = settings.permissiondisplaycapture || setting
-    let settingRule = ""
-    for (const type of ["ask", "block"]) {
-        for (const r of settings[`permissions${type}ed`]?.split(",") || []) {
-            if (!r.trim() || settingRule) {
-                continue
-            }
-            const [match, ...names] = r.split("~")
-            if (names.find(p => p.endsWith("displaycapture"))) {
-                if (frameWindow.location.href.match(match)) {
-                    settingRule = type
+
+try {
+    // Hide device labels from the list of media devices by default
+    const enumerate = window.navigator.mediaDevices.enumerateDevices
+    const mediaDeviceList = async action => {
+        if (action === "block") {
+            throw new DOMException("Permission denied", "NotAllowedError")
+        }
+        const devices = await enumerate.call(window.navigator.mediaDevices)
+        if (action === "allowfull") {
+            return devices
+        }
+        return devices.map(({deviceId, groupId, kind}) => ({
+            deviceId, groupId, kind, "label": ""
+        }))
+    }
+    window.navigator.mediaDevices.enumerateDevices = async() => {
+        let setting = "ask"
+        const settings = readJSON(settingsFile) || {}
+        setting = settings.permissionmediadevices || setting
+        if (!["block", "ask", "allow", "allowfull"].includes(setting)) {
+            setting = "ask"
+        }
+        let settingRule = ""
+        for (const type of ["ask", "block", "allow"]) {
+            const permList = settings[`permissions${type}ed`]?.split(",")
+            for (const r of permList || []) {
+                if (!r.trim() || settingRule) {
+                    continue
+                }
+                const [match, ...names] = r.split("~")
+                if (names.find(p => p.endsWith("mediadevices"))) {
+                    if (window.location.href.match(match)) {
+                        settingRule = type
+                    }
                 }
             }
         }
-    }
-    setting = settingRule || setting
-    // Only blocked requests are notified here right away,
-    // because allowed requests are passed to the regular permission system.
-    if (setting !== "ask") {
+        setting = settingRule || setting
+        if (setting === "ask") {
+            let url = window.location.href
+            if (url.length > 100) {
+                url = url.replace(/.{50}/g, "$&\n")
+            }
+            const ask = await ipcRenderer.invoke("show-message-dialog", {
+                "buttons": ["Allow", "Deny"],
+                "cancelId": 1,
+                "checkboxLabel": "Include media device name labels",
+                "defaultId": 0,
+                "message": `${message}\n\npage:\n${url}`,
+                "title": "Allow this page to access 'mediadevices'?",
+                "type": "question"
+            })
+            if (ask.response === 0) {
+                if (ask.checkboxChecked) {
+                    ipcRenderer.sendToHost("notify",
+                        `Manually allowfulled 'mediadevices' at `
+                            + `'${window.location.href}'`, "perm")
+                    return mediaDeviceList("allowfull")
+                }
+                setting = "allow"
+            }
+            if (ask.response === 1) {
+                setting = "block"
+            }
+            if (settingRule) {
+                ipcRenderer.sendToHost("notify",
+                    `Ask rule for 'mediadevices' activated at '`
+                        + `${window.location.href}' which was `
+                        + `${setting}ed by user`, "perm")
+            } else {
+                ipcRenderer.sendToHost("notify",
+                    `Manually ${setting}ed 'mediadevices' at `
+                        + `'${window.location.href}'`, "perm")
+            }
+            return mediaDeviceList(setting)
+        }
         if (settingRule) {
             ipcRenderer.sendToHost("notify",
-                `Automatic rule for 'displaycapture' activated at '`
-                + `${frameWindow.location.href}' which was blocked`, "perm")
+                `Automatic rule for 'mediadevices' activated at '${
+                    window.location.href}' which was ${setting}ed`, "perm")
         } else {
             ipcRenderer.sendToHost("notify",
-                `Globally blocked 'displaycapture' at `
-                + `'${frameWindow.location.href}' based on 'permission`
-                + "displaycapture'", "perm")
+                `Globally ${setting}ed 'mediadevices' at `
+                    + `'${window.location.href}' based on `
+                    + "'permissionmediadevices'", "perm")
         }
-        throw new DOMException("Permission denied", "NotAllowedError")
+        return mediaDeviceList(setting)
     }
-    try {
-        ipcRenderer.invoke("desktop-capturer-sources").then(sources => {
-            const stylingElem = document.createElement("style")
-            stylingElem.textContent = displayCaptureStyling
-                .replace(/%FONTSIZE%/g, settings.fontsize || "14")
-                .replace(/%FG%/g, settings.fg || "#eee")
-                .replace(/%BG%/g, settings.bg || "#333")
-                .replace(/%SHADE%/g, "#7777")
-            const selectionElem = document.createElement("div")
-            selectionElem.classList = "desktop-capturer-selection"
-            const appIcon = icon => {
-                if (!icon || icon.isEmpty() || icon.getSize().width < 1) {
-                    return ""
+    // Enable screensharing functionality linked to permissiondisplaycapture
+    window.navigator.mediaDevices.getDisplayMedia = () => new Promise((
+        resolve, reject
+    ) => {
+        let setting = "block"
+        const settings = readJSON(settingsFile) || {}
+        setting = settings.permissiondisplaycapture || setting
+        let settingRule = ""
+        for (const type of ["ask", "block"]) {
+            for (const r of settings[`permissions${type}ed`].split(",")) {
+                if (!r.trim() || settingRule) {
+                    continue
                 }
-                return icon.toDataURL()
+                const [match, ...names] = r.split("~")
+                if (names.find(p => p.endsWith("displaycapture"))) {
+                    if (window.location.href.match(match)) {
+                        settingRule = type
+                    }
+                }
             }
-            selectionElem.innerHTML = `
+        }
+        setting = settingRule || setting
+        // Only blocked requests are notified here right away,
+        // because allowed requests are passed to the regular permission system.
+        if (setting !== "ask") {
+            if (settingRule) {
+                ipcRenderer.sendToHost("notify",
+                    `Automatic rule for 'displaycapture' activated at '`
+                + `${window.location.href}' which was blocked`, "perm")
+            } else {
+                ipcRenderer.sendToHost("notify",
+                    `Globally blocked 'displaycapture' at `
+                + `'${window.location.href}' based on 'permission`
+                + "displaycapture'", "perm")
+            }
+            throw new DOMException("Permission denied", "NotAllowedError")
+        }
+        try {
+            ipcRenderer.invoke("desktop-capturer-sources").then(sources => {
+                const stylingElem = document.createElement("style")
+                stylingElem.textContent = displayCaptureStyling
+                    .replace(/%FONTSIZE%/g, settings.guifontsize || "14")
+                    .replace(/%FG%/g, settings.fg || "#eee")
+                    .replace(/%BG%/g, settings.bg || "#333")
+                    .replace(/%SHADE%/g, "#7777")
+                const selectionElem = document.createElement("div")
+                selectionElem.classList = "desktop-capturer-selection"
+                const appIcon = icon => {
+                    if (!icon || icon.isEmpty() || icon.getSize().width < 1) {
+                        return ""
+                    }
+                    return icon.toDataURL()
+                }
+                selectionElem.innerHTML = `
             <span class="desktop-capturer-selection__scroller">
                 <span class="desktop-capturer-selection__close">X</span>
                 <span class="desktop-capturer-selection__list">
@@ -298,59 +217,202 @@ const customDisplayMedia = frameWindow => new Promise((resolve, reject) => {
                     `).join("")}
                 </span>
             </span>`
-            document.body.appendChild(selectionElem)
-            document.head.appendChild(stylingElem)
-            const closeButtons = [selectionElem, selectionElem.querySelector(
-                ".desktop-capturer-selection__close")]
-            closeButtons.forEach(button => {
-                button.addEventListener("click", e => {
-                    if (e.composedPath().find(el => matchesQuery(el,
-                        ".desktop-capturer-selection__btn"))) {
-                        // Also clicked on a display to share, ignore close
-                        return
-                    }
-                    selectionElem.remove()
-                    stylingElem.remove()
-                    if (settingRule) {
-                        ipcRenderer.sendToHost("notify",
-                            `Ask rule for 'displaycapture' activated at '`
-                            + `${frameWindow.location.href}' which was `
+                document.body.appendChild(selectionElem)
+                document.head.appendChild(stylingElem)
+                const closeButtons = [selectionElem, selectionElem
+                    .querySelector(".desktop-capturer-selection__close")]
+                closeButtons.forEach(button => {
+                    button.addEventListener("click", e => {
+                        if (e.composedPath().find(el => matchesQuery(el,
+                            ".desktop-capturer-selection__btn"))) {
+                            // Also clicked on a display to share, ignore close
+                            return
+                        }
+                        selectionElem.remove()
+                        stylingElem.remove()
+                        if (settingRule) {
+                            ipcRenderer.sendToHost("notify",
+                                `Ask rule for 'displaycapture' activated at '`
+                            + `${window.location.href}' which was `
                             + `blocked by user`, "perm")
-                    } else {
-                        ipcRenderer.sendToHost("notify",
-                            `Manually blocked 'displaycapture' at `
-                            + `'${frameWindow.location.href}'`, "perm")
-                    }
-                    throw new DOMException(
-                        "Permission denied", "NotAllowedError")
+                        } else {
+                            ipcRenderer.sendToHost("notify",
+                                `Manually blocked 'displaycapture' at `
+                            + `'${window.location.href}'`, "perm")
+                        }
+                        throw new DOMException(
+                            "Permission denied", "NotAllowedError")
+                    })
                 })
-            })
-            selectionElem.querySelectorAll(
-                ".desktop-capturer-selection__btn").forEach(button => {
-                button.addEventListener("click", async() => {
-                    try {
-                        const id = button.getAttribute("data-id")
-                        resolve(await frameWindow.navigator.mediaDevices
-                            .getUserMedia({
-                                "audio": false,
-                                "video": {
-                                    "mandatory": {
-                                        "chromeMediaSource": "desktop",
-                                        "chromeMediaSourceId": id
+                selectionElem.querySelectorAll(
+                    ".desktop-capturer-selection__btn").forEach(button => {
+                    button.addEventListener("click", async() => {
+                        try {
+                            const id = button.getAttribute("data-id")
+                            resolve(await window.navigator.mediaDevices
+                                .getUserMedia({
+                                    "audio": false,
+                                    "video": {
+                                        "mandatory": {
+                                            "chromeMediaSource": "desktop",
+                                            "chromeMediaSourceId": id
+                                        }
                                     }
-                                }
-                            }))
-                    } catch (err) {
-                        reject(err)
-                    }
-                    selectionElem.remove()
-                    stylingElem.remove()
+                                }))
+                        } catch (err) {
+                            reject(err)
+                        }
+                        selectionElem.remove()
+                        stylingElem.remove()
+                    })
                 })
             })
-        })
-    } catch (err) {
-        reject(err)
+        } catch (err) {
+            reject(err)
+        }
+    })
+} catch {
+    // Non-secure resources don't expose these APIs
+}
+// Don't share the connection information
+Object.defineProperty(window.Navigator.prototype,
+    "connection", {"get": (() => undefined).bind(null)})
+try {
+    delete Object.getPrototypeOf(window.navigator).connection
+} catch {
+    // No deletion allowed in this context, set to undefined instead
+}
+// Disable the experimental keyboard API, which exposes every key mapping
+Object.defineProperty(window.Navigator.prototype,
+    "keyboard", {"get": (() => undefined).bind(null)})
+try {
+    delete Object.getPrototypeOf(window.navigator).keyboard
+} catch {
+    // No deletion allowed in this context, set to undefined instead
+}
+// Always act as if there is no battery and the state never changes
+Object.defineProperty(window.BatteryManager.prototype,
+    "level", {"get": () => 1})
+Object.defineProperty(window.BatteryManager.prototype,
+    "charging", {"get": () => true})
+Object.defineProperty(window.BatteryManager.prototype,
+    "chargingTime", {"get": () => 0})
+Object.defineProperty(window.BatteryManager.prototype,
+    "dischargingTime", {"get": () => Infinity})
+Object.defineProperty(window.BatteryManager.prototype,
+    "onchargingchange", {"get": () => null})
+Object.defineProperty(window.BatteryManager.prototype,
+    "onchargingtimechange", {"get": () => null})
+Object.defineProperty(window.BatteryManager.prototype,
+    "ondischargingtimechange", {"get": () => null})
+Object.defineProperty(window.BatteryManager.prototype,
+    "onlevelchange", {"get": () => null})
+// Custom prompt, confirm and alert, based on "dialog*" settings
+// Options: return the default cancel action, show a custom popup or notify
+window.prompt = text => {
+    const settings = readJSON(settingsFile) || {}
+    const promptBehavior = settings.dialogprompt || "notifyblock"
+    if (promptBehavior.includes("notify")) {
+        const url = window.location.href
+        ipcRenderer.sendToHost("notify",
+            `Page ${url} wanted to show a prompt dialog: ${text}`)
     }
-})
-
-module.exports = {privacyFixes}
+    if (promptBehavior.includes("show")) {
+        return ipcRenderer.sendSync("show-prompt-dialog", text)
+    }
+    return null
+}
+window.confirm = text => {
+    const settings = readJSON(settingsFile) || {}
+    const confirmBehavior = settings.dialogconfirm || "notifyblock"
+    if (confirmBehavior.includes("notify")) {
+        const url = window.location.href
+        ipcRenderer.sendToHost("notify",
+            `Page ${url} wanted to show a confirm dialog: ${text}`)
+    }
+    if (confirmBehavior.includes("show")) {
+        const button = ipcRenderer.sendSync("sync-message-dialog", {
+            "buttons": ["OK", "Cancel"],
+            "cancelId": 1,
+            "defaultId": 0,
+            "message": text,
+            "title": "Confirm",
+            "type": "question"
+        })
+        return button === 0
+    }
+    return false
+}
+window.alert = text => {
+    const settings = readJSON(settingsFile) || {}
+    const alertBehavior = settings.dialogalert || "notifyblock"
+    if (alertBehavior.includes("notify")) {
+        const url = window.location.href
+        ipcRenderer.sendToHost("notify",
+            `Page ${url} wanted to show an alert dialog: ${text}`)
+    }
+    if (alertBehavior.includes("show")) {
+        ipcRenderer.sendSync("sync-message-dialog", {
+            "buttons": ["OK"],
+            "cancelId": 1,
+            "defaultId": 0,
+            "message": text,
+            "title": "Alert",
+            "type": "question"
+        })
+    }
+    return undefined
+}
+// Return a static maximum value for memory and thread count
+Object.defineProperty(window.Navigator.prototype,
+    "hardwareConcurrency", {"get": (() => 8).bind(null)})
+Object.defineProperty(window.Navigator.prototype,
+    "deviceMemory", {"get": (() => 8).bind(null)})
+// Hide graphics card information from the canvas API
+const getParam = window.WebGLRenderingContext.prototype.getParameter
+window.WebGLRenderingContext.prototype.getParameter = function(parameter) {
+    if ([37445, 37446].includes(parameter)) {
+        return ""
+    }
+    return getParam.call(this, parameter)
+}
+const getParam2 = window.WebGL2RenderingContext.prototype.getParameter
+window.WebGL2RenderingContext.prototype.getParameter = function(parameter) {
+    if ([37445, 37446].includes(parameter)) {
+        return ""
+    }
+    return getParam2.call(this, parameter)
+}
+// If using Firefox mode, also modify the Firefox navigator properties
+if (window.navigator.userAgent.includes("Firefox")) {
+    Object.defineProperty(window.Navigator.prototype,
+        "buildID", {"get": (() => "20181001000000").bind(null)})
+    Object.defineProperty(window.Navigator.prototype,
+        "doNotTrack", {"get": (() => "unspecified").bind(null)})
+    Object.defineProperty(window.Navigator.prototype,
+        "oscpu", {"get": (() => String(window.Navigator.platform)).bind(null)})
+    Object.defineProperty(window.Navigator.prototype,
+        "productSub", {"get": (() => "20100101").bind(null)})
+    Object.defineProperty(window.Navigator.prototype,
+        "vendor", {"get": (() => "").bind(null)})
+    Object.defineProperty(window, "chrome", {})
+}
+// Provide a wrapper for window.open with a subset of the regular API
+// Also provide the option to open new tabs by setting the location property
+window.open = (url = null) => {
+    if (url) {
+        ipcRenderer.sendToHost(
+            "url", new URL(url, window.location.href).href)
+    }
+    const obj = {}
+    Object.defineProperty(obj, "location", {"get": (() => "").bind(null),
+        "set": (val => {
+            ipcRenderer.sendToHost(
+                "url", new URL(val, window.location.href).href)
+        }).bind(null)})
+    return obj
+}
+// Override broken node atob/btoa with a working version, for details see:
+// https://github.com/electron/electron/issues/31018
+window.atob = i => Buffer.from(String(i), "base64").toString("latin1")
+window.btoa = i => Buffer.from(String(i), "latin1").toString("base64")

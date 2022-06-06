@@ -2,6 +2,9 @@
 set adblocker=update
 set cache=full
 set devtoolsposition=vsplit
+set dialogalert=show
+set dialogconfirm=show
+set dialogprompt=show
 set favicons=30day
 set mintabwidth=0
 set permissioncamera=ask
@@ -15,7 +18,6 @@ set search=https://google.com/search?q=%s
 set splitright
 set suspendonrestore=none
 set tabreopenposition=previous
-set windowtitle=title
 
 " Mappings
 nmap <F3> <toSearchMode><nextSearchMatch>

@@ -121,7 +121,6 @@ module.exports = {
         ],
         "no-negated-condition": "error",
         "no-nested-ternary": "error",
-        "no-new": "error",
         "no-new-func": "error",
         "no-new-object": "error",
         "no-new-symbol": "error",

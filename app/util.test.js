@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020-2021 Jelmer van Arnhem
+* Copyright (C) 2020-2022 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -30,9 +30,24 @@ describe("Check isUrl", () => {
             "valid": true
         },
         {
+            "reason": "Invalid url even if protocol is present",
+            "url": "https://urls with spaces in the hostname are never valid",
+            "valid": false
+        },
+        {
+            "reason": "Invalid url, random words are not a url",
+            "url": "urls with spaces in the hostname are never valid",
+            "valid": false
+        },
+        {
             "reason": "Valid url due to protocol being present",
-            "url": "https://!@#$!@#$!@#$",
+            "url": "https://thisisnotalikelyurlbutstillconsideredvalid",
             "valid": true
+        },
+        {
+            "reason": "Invalid even with protocol due to invalid chars",
+            "url": "https://!@#$!@#$!@#$",
+            "valid": false
         },
         {
             "reason": "Invalid url because of invalid characters",
@@ -50,9 +65,14 @@ describe("Check isUrl", () => {
             "valid": true
         },
         {
-            "reason": "Empty port field should not be valid",
+            "reason": "Empty port field is unusual, but actually valid",
+            "url": "example.com:",
+            "valid": true
+        },
+        {
+            "reason": "Empty port field is unusual, but actually valid",
             "url": "localhost:",
-            "valid": false
+            "valid": true
         },
         {
             "reason": "Ip addresses should be valid",
@@ -85,6 +105,16 @@ describe("Check isUrl", () => {
             "valid": true
         },
         {
+            "reason": "Incorrect ip should be invalid",
+            "url": "30.168.260.26",
+            "valid": false
+        },
+        {
+            "reason": "Incorrect ip with correct port still invalid",
+            "url": "300.168.2.260:25000",
+            "valid": false
+        },
+        {
             "reason": "Port below the valid range of 11 to 65535",
             "url": "192.168.2.5:0002",
             "valid": false
@@ -100,9 +130,14 @@ describe("Check isUrl", () => {
             "valid": false
         },
         {
-            "reason": "Port number has too many characters",
-            "url": "192.168.2.5:000333",
+            "reason": "Port number has too many characters and is too high",
+            "url": "192.168.2.5:100003",
             "valid": false
+        },
+        {
+            "reason": "Port number has many characters, but the port is valid",
+            "url": "192.168.2.5:000333",
+            "valid": true
         },
         {
             "reason":
@@ -117,20 +152,19 @@ describe("Check isUrl", () => {
         },
         {
             "reason":
-                "A hostname without a toplevel domain is considered invalid",
+                "A random hostname is considered invalid, could be any word",
             "url": "raspberrypi/test",
             "valid": false
         },
         {
-            "reason": "A password in url is not allowed",
+            "reason": "A password in url is allowed, though probably insecure",
             "url": "hello:test@example.com",
-            "valid": false
+            "valid": true
         },
         {
-            "reason":
-                "Invalid due the inclusion of ':' which indicates a password",
+            "reason": "Empty password is allowed, even if unusual",
             "url": "user:@example.com",
-            "valid": false
+            "valid": true
         },
         {
             "reason": "Providing only the username is allowed in urls",
@@ -138,8 +172,13 @@ describe("Check isUrl", () => {
             "valid": true
         },
         {
-            "reason": "Double @ sign is invalid",
+            "reason": "Double @ sign is all part of the username and valid",
             "url": "hello@test@example.com",
+            "valid": true
+        },
+        {
+            "reason": "Starting dashes are not allowed",
+            "url": "-brokendash.com",
             "valid": false
         },
         {
@@ -465,7 +504,7 @@ test(`Firefox version should increment by date`, () => {
     const firstMockDate = new Date("2021-03-26")
     const secondMockDate = new Date("2021-08-26")
     const thirdMockDate = new Date("2022-03-15")
-    const sys = window.navigator.platform
+    const sys = UTIL.userAgentPlatform()
     global.Date = class extends Date {
         constructor(...date) {
             if (date?.length) {

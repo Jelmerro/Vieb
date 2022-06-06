@@ -38,7 +38,8 @@ const {
     notify,
     title,
     listNotificationHistory,
-    propPixels
+    propPixels,
+    userAgentTemplated
 } = require("../util")
 const {
     listTabs,
@@ -311,6 +312,7 @@ const addTab = (options = {}) => {
     page.classList.add("webview")
     page.setAttribute("link-id", linkId)
     const url = stringToUrl(options.url || "")
+        .replace(/view-?source:\/?\/?/g, "sourceviewer://")
     if (options.url) {
         page.src = url
     }
@@ -356,7 +358,7 @@ const sharedAttributes = [
 
 const suspendTab = tab => {
     const page = tabOrPageMatching(tab)
-    if (page.tagName?.toLowerCase() !== "webview") {
+    if (page?.tagName?.toLowerCase() !== "webview") {
         return
     }
     if (tab.classList.contains("visible-tab")) {
@@ -392,10 +394,14 @@ const unsuspendPage = page => {
             webview.setAttribute(attr, page.getAttribute(attr))
         }
     })
-    let prefs = "spellcheck=true,transparent=true,backgroundColor=#33333300"
+    let prefs = "spellcheck=true,transparent=true,backgroundColor=#33333300,"
     if (appConfig().autoplay === "user") {
-        prefs += ",autoplayPolicy=document-user-activation-required"
+        prefs += "autoplayPolicy=document-user-activation-required,"
     }
+    // Info on nodeIntegrationInSubFrames and nodeIntegrationInWorker:
+    // https://github.com/electron/electron/issues/22582
+    // https://github.com/electron/electron/issues/28620
+    prefs += "disableDialogs,nodeIntegrationInSubFrames,nodeIntegrationInWorker"
     webview.setAttribute("allowpopups", "true")
     webview.setAttribute("webpreferences", prefs)
     const sessionName = page.getAttribute("container")
@@ -424,16 +430,15 @@ const unsuspendPage = page => {
                 webview.setAudioMuted(true)
             }
             addWebviewListeners(webview)
-            webview.setUserAgent("")
             if (isDevtoolsTab) {
                 ipcRenderer.send("add-devtools",
                     currentPageId, webview.getWebContentsId())
                 name.textContent = "Devtools"
             } else if (url || getSetting("newtaburl")) {
+                webview.setAttribute("custom-first-load", true)
                 webview.src = url || stringToUrl(getSetting("newtaburl"))
                 resetTabInfo(webview)
                 name.textContent = urlToString(url)
-                webview.setAttribute("custom-first-load", true)
                 return
             }
             webview.clearHistory()
@@ -603,12 +608,19 @@ const addWebviewListeners = webview => {
     webview.addEventListener("load-commit", e => {
         if (e.isMainFrame) {
             resetTabInfo(webview)
-            if (getSetting("firefoxmode") === "google") {
-                if (sameDomain(e.url, "https://google.com")) {
-                    webview.setUserAgent(firefoxUseragent())
-                } else {
-                    webview.setUserAgent("")
-                }
+            const ffMode = getSetting("firefoxmode")
+            const customUA = getSetting("useragent")
+            if (ffMode === "never" && !customUA) {
+                webview.setUserAgent("")
+            } else if (ffMode === "always") {
+                webview.setUserAgent("")
+            } else if (ffMode === "google" && sameDomain(e.url, "https://google.com")) {
+                webview.setUserAgent(firefoxUseragent())
+            } else {
+                const agents = customUA.split(",")
+                const agent = userAgentTemplated(
+                    agents.at(Math.random() * agents.length))
+                webview.setUserAgent(agent)
             }
             const name = tabOrPageMatching(webview).querySelector("span")
             if (!name.textContent) {
@@ -666,13 +678,10 @@ const addWebviewListeners = webview => {
         }
         // It will go to the http website, when no https is present,
         // but only when the redirecttohttp setting is active.
-        const redirect = getSetting("redirecttohttp")
-        const sslErrors = [
-            "ERR_CERT_COMMON_NAME_INVALID",
-            "ERR_SSL_PROTOCOL_ERROR",
-            "ERR_CERT_AUTHORITY_INVALID"
-        ]
-        if (sslErrors.includes(e.errorDescription) && redirect) {
+        const isSSLError = (e.errorDescription.includes("_SSL_")
+            || e.errorDescription.includes("_CERT_"))
+            && webview.src.startsWith("https://")
+        if (isSSLError && getSetting("redirecttohttp")) {
             webview.src = webview.src.replace("https://", "http://")
             return
         }
@@ -684,7 +693,7 @@ const addWebviewListeners = webview => {
         }
         // If the path is a directory, show a list of files instead of an error
         if (e.errorDescription === "ERR_FILE_NOT_FOUND") {
-            // Any number of slashes after file is fine for now
+            // Any number of slashes after file is fine
             if (webview.src.startsWith("file:/")) {
                 let local = urlToString(webview.src).replace(/file:\/+/, "/")
                 if (process.platform === "win32") {
@@ -705,10 +714,10 @@ const addWebviewListeners = webview => {
                 }
             }
         }
-        webview.send("insert-failed-page-info", JSON.stringify(e))
+        webview.send("insert-failed-page-info", JSON.stringify(e), isSSLError)
         webview.setAttribute("failed-to-load", "true")
         const {getCustomStyling} = require("./settings")
-        webview.send("set-custom-styling", getSetting("fontsize"),
+        webview.send("set-custom-styling", getSetting("guifontsize"),
             getCustomStyling())
     })
     webview.addEventListener("did-stop-loading", () => {
@@ -719,9 +728,11 @@ const addWebviewListeners = webview => {
         const specialPageName = pathToSpecialPageName(webview.src).name
         const isLocal = webview.src.startsWith("file:/")
         const isErrorPage = webview.getAttribute("failed-to-load")
-        if (specialPageName || isLocal || isErrorPage) {
+        const isCustomView = webview.src.startsWith("sourceviewer:")
+            || webview.src.startsWith("readerview")
+        if (specialPageName || isLocal || isErrorPage || isCustomView) {
             const {getCustomStyling} = require("./settings")
-            webview.send("set-custom-styling", getSetting("fontsize"),
+            webview.send("set-custom-styling", getSetting("guifontsize"),
                 getCustomStyling())
         }
         if (specialPageName === "help") {
@@ -744,11 +755,11 @@ const addWebviewListeners = webview => {
         }
         const {addToHist, titleForPage, updateTitle} = require("./history")
         addToHist(webview.src)
-        const existingTitle = titleForPage(webview.src)
+        const existing = titleForPage(webview.src)
         if (isLocal && !specialPageName) {
             name.textContent = urlToString(webview.src)
-        } else if (hasProtocol(name.textContent) && existingTitle) {
-            name.textContent = existingTitle
+        } else if (hasProtocol(name.textContent) && existing && !isCustomView) {
+            name.textContent = existing
         } else {
             updateTitle(webview.src, name.textContent)
         }
@@ -763,7 +774,9 @@ const addWebviewListeners = webview => {
         }
     })
     webview.addEventListener("page-title-updated", e => {
-        if (hasProtocol(e.title)) {
+        const isCustomView = webview.src.startsWith("sourceviewer:")
+            || webview.src.startsWith("readerview")
+        if (hasProtocol(e.title) && !isCustomView) {
             return
         }
         const tab = tabOrPageMatching(webview)
@@ -809,7 +822,6 @@ const addWebviewListeners = webview => {
         const {applyLayout} = require("./pagelayout")
         applyLayout()
     })
-    let skipNextClick = false
     webview.addEventListener("ipc-message", e => {
         if (e.channel === "notify") {
             notify(...e.args)
@@ -825,89 +837,9 @@ const addWebviewListeners = webview => {
             const {forwardInHistory} = require("./actions")
             forwardInHistory()
         }
-        if (e.channel.endsWith("-click-info") && webview !== currentPage()) {
-            switchToTab(tabOrPageMatching(webview))
-        }
-        if (e.channel === "context-click-info") {
-            const [{extraData}] = e.args
-            if (extraData) {
-                const {commonAction} = require("./contextmenu")
-                commonAction(extraData.type, extraData.action, e.args[0])
-            } else {
-                const {webviewMenu} = require("./contextmenu")
-                webviewMenu(e.args[0])
-            }
-        }
-        if (e.channel === "mouse-selection") {
-            const switchToVisual = getSetting("mousevisualmode")
-            if (getMouseConf("copyselect")) {
-                const {clipboard} = require("electron")
-                clipboard.writeText(e.args[0].text)
-            }
-            if (e.args[0].toinsert) {
-                if (getMouseConf("toinsert")) {
-                    setMode("insert")
-                }
-                return
-            }
-            if (switchToVisual !== "never" || currentMode() === "visual") {
-                skipNextClick = true
-                const {storeMouseSelection} = require("./pointer")
-                storeMouseSelection({
-                    "endX": e.args[0].endX * currentPage().getZoomFactor(),
-                    "endY": e.args[0].endY * currentPage().getZoomFactor(),
-                    "startX": e.args[0].startX * currentPage().getZoomFactor(),
-                    "startY": e.args[0].startY * currentPage().getZoomFactor()
-                })
-                if (switchToVisual === "activate") {
-                    const {startVisualSelect} = require("./pointer")
-                    startVisualSelect()
-                }
-            }
-        }
         if (e.channel === "mouse-up") {
             const {resetScreenshotDrag} = require("./input")
             resetScreenshotDrag()
-        }
-        if (e.channel === "mouse-click-info") {
-            const {clear} = require("./contextmenu")
-            clear()
-            if (skipNextClick) {
-                skipNextClick = false
-                return
-            }
-            if (["pointer", "visual"].includes(currentMode())) {
-                if (getMouseConf("movepointer")) {
-                    if (e.args[0].tovisual) {
-                        const {startVisualSelect} = require("./pointer")
-                        startVisualSelect()
-                    }
-                    const {move} = require("./pointer")
-                    move(e.args[0].x * currentPage().getZoomFactor(),
-                        e.args[0].y * currentPage().getZoomFactor())
-                }
-            } else if (e.args[0].toinsert) {
-                if (getMouseConf("toinsert")) {
-                    setMode("insert")
-                }
-            } else if ("ces".includes(currentMode()[0])) {
-                if (getMouseConf("leaveinput")) {
-                    setMode("normal")
-                }
-            } else {
-                const {setFocusCorrectly} = require("./actions")
-                setFocusCorrectly()
-            }
-            if (!e.args[0].tovisual) {
-                if (!["pointer", "visual"].includes(currentMode())) {
-                    const {storeMouseSelection} = require("./pointer")
-                    storeMouseSelection(null)
-                }
-            }
-        }
-        if (e.channel === "follow-response") {
-            const {parseAndDisplayLinks} = require("./follow")
-            parseAndDisplayLinks(e.args[0])
         }
         if (e.channel === "scroll-height-diff") {
             const {clear} = require("./contextmenu")
@@ -1020,20 +952,18 @@ const resetTabInfo = webview => {
 }
 
 const navigateTo = location => {
-    if (currentPage().isCrashed() || !location) {
+    const page = currentPage()
+    if (!page || page.isCrashed() || !location) {
         return
     }
-    if (currentPage().src.startsWith("devtools://")) {
+    if (page.src.startsWith("devtools://")) {
         return
     }
-    try {
-        currentPage().stop()
-    } catch {
-        // Webview might be destroyed or unavailable, no issue
-    }
-    currentPage().src = location
-    resetTabInfo(currentPage())
-    currentTab().querySelector("span").textContent = urlToString(location)
+    page.stop()
+    const loc = location.replace(/view-?source:\/?\/?/g, "sourceviewer://")
+    page.src = loc
+    resetTabInfo(page)
+    currentTab().querySelector("span").textContent = urlToString(loc)
 }
 
 const moveTabForward = () => {

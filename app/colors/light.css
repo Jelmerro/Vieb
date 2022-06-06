@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020-2021 Jelmer van Arnhem
+* Copyright (C) 2020-2022 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -61,6 +61,21 @@
     --download-progress-fg: #fff;
     --download-progress-bg: #eee;
     --helppage-countable: #0c0;
+    /* sourceviewer */
+    --syntax-keyword: #d45;
+    --syntax-entity: #74c;
+    --syntax-constant: #06c;
+    --syntax-string: #036;
+    --syntax-variable: #e60;
+    --syntax-comment: #777;
+    --syntax-entity-tag: #284;
+    --syntax-markup-heading: #06c;
+    --syntax-markup-list: #760;
+    --syntax-markup-emphasis: #233;
+    --syntax-markup-addition-fg: #284;
+    --syntax-markup-addition-bg: #efe;
+    --syntax-markup-deletion-fg: #b22;
+    --syntax-markup-deletion-bg: #fee;
 }
 
 /* general */

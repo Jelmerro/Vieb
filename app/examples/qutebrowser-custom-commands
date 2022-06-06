@@ -4,7 +4,7 @@ set devtoolsposition=split
 set downloadmethod=confirm
 set firefoxmode=always
 set followchars=numbers
-set fontsize=16
+set guifontsize=16
 set norestoretabs
 set permissioncamera=ask
 set permissiondisplaycapture=ask
@@ -14,7 +14,7 @@ set permissionpersistentstorage=allow
 set redirecttohttp
 set tabclosefocusright
 set tabreopenposition=right
-set windowtitle=full
+set windowtitle="%title - %app"
 set mapsuggestposition=bottomleft
 
 " Custom Commands
@@ -39,7 +39,7 @@ command! navigate_prev_--tab <previousPageNewTab>
 command! navigate_next <nextPage>
 command! navigate_next_--tab <nextPageNewTab>
 command! navigate_up <toParentUrl>
-command! navigate_up_--tab <toParentUrl><openNewTabWithCurrentUrl><CR><toLastUsedTab><backInHistory><toLastUsedTab>
+command! navigate_up_--tab <openNewTabWithCurrentUrl><CR><toParentUrl>
 command! tab-focus_1 <:b 0>
 command! tab-focus_-1 <:b -1>
 command! tab-focus_2 <:b 1>
@@ -49,7 +49,7 @@ command! tab-focus_5 <:b 4>
 command! tab-focus_6 <:b 5>
 command! tab-focus_7 <:b 6>
 command! tab-focus_8 <:b 7>
-command! tab-focus_last <toLastUsedTab>
+command! tab-focus_last <:buffer #>
 command! open_--tab <openNewTab>
 command! open_--tab_--_{clipboard} <openNewTab><openFromClipboard>
 command! tab-clone <openNewTabWithCurrentUrl><CR>

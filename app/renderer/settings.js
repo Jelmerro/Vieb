@@ -34,7 +34,8 @@ const {
     pathExists,
     pathToSpecialPageName,
     firefoxUseragent,
-    appConfig
+    appConfig,
+    userAgentTemplated
 } = require("../util")
 const {
     listTabs,
@@ -59,6 +60,7 @@ const mouseFeatures = [
     "menusuggest",
     "menuvieb",
     "modeselector",
+    "movepointer",
     "follow",
     "toinsert",
     "toexplore",
@@ -88,8 +90,13 @@ const defaultSettings = {
     "containerstartuppage": "main",
     "countlimit": 100,
     "devtoolsposition": "window",
+    "dialogalert": "notifyblock",
+    "dialogconfirm": "notifyblock",
+    "dialogprompt": "notifyblock",
     "downloadmethod": "automatic",
-    "downloadpath": "~/Downloads/",
+    "downloadpath": "",
+    "encodeurlcopy": "nospaces",
+    "encodeurlext": "nospaces",
     "explorehist": "persist",
     "externalcommand": "",
     "favicons": "session",
@@ -101,7 +108,7 @@ const defaultSettings = {
         "url,onclick,inputs-insert,inputs-click,media,image,other",
     "followfallbackaction": "filter",
     "follownewtabswitch": true,
-    "fontsize": 14,
+    "guifontsize": 14,
     "guifullscreennavbar": "oninput",
     "guifullscreentabbar": "onupdate",
     "guihidetimeout": 2000,
@@ -177,6 +184,7 @@ const defaultSettings = {
     "suggesttopsites": 10,
     "suspendbackgroundtab": true,
     "suspendonrestore": "regular",
+    "suspendplayingtab": false,
     "suspendtimeout": 0,
     "tabclosefocusright": false,
     "tabcycle": true,
@@ -186,12 +194,15 @@ const defaultSettings = {
     "tabreopenmuted": "remember",
     "tabreopenposition": "right",
     "timeout": true,
-    "timeoutlen": 1000,
+    "timeoutlen": 2000,
+    "useragent": "",
     "vimcommand": "gvim",
-    "windowtitle": "simple"
+    "windowtitle": "%app - %title"
 }
 let allSettings = {}
-const freeText = ["downloadpath", "externalcommand", "vimcommand"]
+const freeText = [
+    "downloadpath", "externalcommand", "vimcommand", "windowtitle"
+]
 const listLike = [
     "containercolors",
     "containernames",
@@ -209,7 +220,8 @@ const listLike = [
     "spelllang",
     "startuppages",
     "storenewvisits",
-    "suggestorder"
+    "suggestorder",
+    "useragent"
 ]
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
@@ -217,7 +229,12 @@ const validOptions = {
     "commandhist": ["all", "persistall", "useronly", "persistuseronly", "none"],
     "containershowname": ["automatic", "always", "never"],
     "devtoolsposition": ["window", "split", "vsplit", "tab"],
+    "dialogalert": ["show", "notifyshow", "block", "notifyblock"],
+    "dialogconfirm": ["show", "notifyshow", "block", "notifyblock"],
+    "dialogprompt": ["show", "notifyshow", "block", "notifyblock"],
     "downloadmethod": ["automatic", "confirm", "ask", "block"],
+    "encodeurlcopy": ["keep", "encode", "decode", "spacesonly", "nospaces"],
+    "encodeurlext": ["keep", "encode", "decode", "spacesonly", "nospaces"],
     "explorehist": ["persist", "session", "none"],
     "favicons": [
         "disabled", "nocache", "session", "1day", "5day", "30day", "forever"
@@ -266,12 +283,11 @@ const validOptions = {
     "tabopenmuted": ["always", "background", "never"],
     "taboverflow": ["hidden", "scroll", "wrap"],
     "tabreopenmuted": ["always", "remember", "never"],
-    "tabreopenposition": ["left", "right", "previous"],
-    "windowtitle": ["simple", "title", "url", "full"]
+    "tabreopenposition": ["left", "right", "previous"]
 }
 const numberRanges = {
     "countlimit": [0, 10000],
-    "fontsize": [8, 30],
+    "guifontsize": [8, 30],
     "guihidetimeout": [0, 9000000000000000],
     "mapsuggest": [0, 9000000000000000],
     "maxmapdepth": [1, 40],
@@ -427,11 +443,11 @@ const checkOther = (setting, value) => {
     }
     if (setting === "downloadpath") {
         const expandedPath = expandPath(value)
-        if (!pathExists(expandedPath)) {
+        if (value && !pathExists(expandedPath)) {
             notify("The download path does not exist", "warn")
             return false
         }
-        if (!isDir(expandedPath)) {
+        if (value && !isDir(expandedPath)) {
             notify("The download path is not a directory", "warn")
             return false
         }
@@ -682,10 +698,13 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "storenewvisits") {
+        const valid = [
+            "pages", "files", "special", "sourceviewer", "readerview"
+        ]
         for (const visitType of value.split(",").filter(v => v.trim())) {
-            if (!["pages", "files", "builtin"].includes(visitType)) {
+            if (!valid.includes(visitType)) {
                 notify(`Invalid type of history passed: ${visitType}, `
-                    + "must be one of: pages, files or builtin", "warn")
+                    + `must be one of: ${valid.join(", ")}`, "warn")
                 return false
             }
         }
@@ -852,7 +871,11 @@ const updateWebviewSettings = () => {
         appData(), "webviewsettings")
     writeJSON(webviewSettingsFile, {
         "bg": getComputedStyle(document.body).getPropertyValue("--bg"),
+        "dialogalert": allSettings.dialogalert,
+        "dialogconfirm": allSettings.dialogconfirm,
+        "dialogprompt": allSettings.dialogprompt,
         "fg": getComputedStyle(document.body).getPropertyValue("--fg"),
+        "guifontsize": allSettings.guifontsize,
         "inputfocusalignment": allSettings.inputfocusalignment,
         "linkcolor": getComputedStyle(document.body)
             .getPropertyValue("--link-color"),
@@ -949,11 +972,13 @@ const suggestionList = () => {
     return listOfSuggestions
 }
 
-const loadFromDisk = () => {
+const loadFromDisk = (firstRun = true) => {
     const {pause, resume} = require("./commandhistory")
     pause()
-    allSettings = JSON.parse(JSON.stringify(defaultSettings))
-    sessionStorage.setItem("settings", JSON.stringify(allSettings))
+    if (firstRun) {
+        allSettings = JSON.parse(JSON.stringify(defaultSettings))
+        sessionStorage.setItem("settings", JSON.stringify(allSettings))
+    }
     if (isFile(joinPath(appData(), "erwicmode"))) {
         set("containernewtab", "s:external")
         set("containerstartuppage", "s:usematching")
@@ -1037,17 +1062,14 @@ const set = (setting, value) => {
             } else {
                 ipcRenderer.sendSync("override-global-useragent", false)
             }
-            // Reset webview specific useragent override for every setting value
-            // If needed, it will overridden again before loading a page
-            listPages().forEach(page => {
-                try {
-                    page.setUserAgent("")
-                } catch {
-                    // Page not ready yet or suspended
-                }
-            })
         }
-        if (setting === "fontsize") {
+        if (setting === "useragent") {
+            if (allSettings.firefoxmode !== "always") {
+                ipcRenderer.sendSync("override-global-useragent",
+                    userAgentTemplated(value.split(",")[0]))
+            }
+        }
+        if (setting === "guifontsize") {
             updateCustomStyling()
         }
         if (downloadSettings.includes(setting)) {
@@ -1090,6 +1112,10 @@ const set = (setting, value) => {
             applyLayout()
         }
         const webviewSettings = [
+            "dialogalert",
+            "dialogconfirm",
+            "dialogprompt",
+            "guifontsize",
             "inputfocusalignment",
             "permissiondisplaycapture",
             "permissionmediadevices",
@@ -1119,30 +1145,20 @@ const set = (setting, value) => {
 }
 
 const updateWindowTitle = () => {
-    const appName = appConfig().name
-    if (allSettings.windowtitle === "simple" || !currentPage()) {
-        ipcRenderer.send("set-window-title", appName)
-        return
-    }
-    const name = tabOrPageMatching(currentPage())
-        .querySelector("span").textContent
+    const {name, version} = appConfig()
+    const title = tabOrPageMatching(currentPage())
+        ?.querySelector("span").textContent || ""
     let url = currentPage()?.src || ""
-    if (allSettings.windowtitle === "title" || !url) {
-        ipcRenderer.send("set-window-title", `${appName} - ${name}`)
-        return
-    }
     const specialPage = pathToSpecialPageName(url)
     if (specialPage.name) {
-        url = `${appName.toLowerCase()}://${specialPage.name}`
+        url = `${name.toLowerCase()}://${specialPage.name}`
         if (specialPage.section) {
             url += `#${specialPage.section}`
         }
     }
-    if (allSettings.windowtitle === "url") {
-        ipcRenderer.send("set-window-title", `${appName} - ${url}`)
-        return
-    }
-    ipcRenderer.send("set-window-title", `${appName} - ${name} - ${url}`)
+    ipcRenderer.send("set-window-title", allSettings.windowtitle
+        .replace(/%app/g, name).replace(/%title/g, title)
+        .replace(/%url/g, url).replace(/%version/g, version))
 }
 
 const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
@@ -1164,7 +1180,7 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
         allowedValues = "See description"
     }
     if (setting === "downloadpath") {
-        allowedValues = "Any directory on disk"
+        allowedValues = "Any directory on disk or empty"
     }
     if (setting === "externalcommand") {
         allowedValues = "Any system command"
@@ -1181,6 +1197,9 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     }
     if (setting === "vimcommand") {
         allowedValues = "Any system command"
+    }
+    if (setting === "windowtitle") {
+        allowedValues = "Any title"
     }
     if (typeof allSettings[setting] === "number") {
         typeLabel = "Number"
@@ -1230,7 +1249,7 @@ const listCurrentSettings = full => {
             return
         }
         if (listLike.includes(setting)) {
-            const entries = value.split(",").filter(v => v)
+            const entries = value.split(",")
             if (entries.length > 1 || value.match(/( |'|")/g)) {
                 setCommands += `${setting}=\n`
                 entries.forEach(entry => {
@@ -1280,16 +1299,18 @@ const setCustomStyling = css => {
 const getCustomStyling = () => customStyling
 
 const updateCustomStyling = () => {
-    document.body.style.fontSize = `${allSettings.fontsize}px`
+    document.body.style.fontSize = `${allSettings.guifontsize}px`
     updateWebviewSettings()
     listPages().forEach(p => {
         const isSpecialPage = pathToSpecialPageName(p.src).name
         const isLocal = p.src.startsWith("file:/")
         const isErrorPage = p.getAttribute("failed-to-load")
-        if (isSpecialPage || isLocal || isErrorPage) {
+        const isCustomView = p.src.startsWith("sourceviewer:")
+            || p.src.startsWith("readerview:")
+        if (isSpecialPage || isLocal || isErrorPage || isCustomView) {
             try {
                 p.send("set-custom-styling",
-                    allSettings.fontsize, customStyling)
+                    allSettings.guifontsize, customStyling)
             } catch {
                 // Page not ready yet or suspended
             }
@@ -1297,7 +1318,8 @@ const updateCustomStyling = () => {
     })
     const {applyLayout} = require("./pagelayout")
     applyLayout()
-    ipcRenderer.send("set-custom-styling", allSettings.fontsize, customStyling)
+    ipcRenderer.send("set-custom-styling",
+        allSettings.guifontsize, customStyling)
 }
 
 module.exports = {

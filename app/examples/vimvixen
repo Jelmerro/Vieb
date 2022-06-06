@@ -3,7 +3,7 @@ set adblocker=update
 set devtoolsposition=split
 set downloadmethod=confirm
 set firefoxmode=always
-set fontsize=16
+set guifontsize=16
 set mintabwidth=250
 set norestoretabs
 set permissioncamera=ask
@@ -14,7 +14,6 @@ set permissionpersistentstorage=allow
 set redirecttohttp
 set splitbelow
 set tabreopenposition=previous
-set windowtitle=title
 set notimeout
 set suggestorder=searchword,history
 
@@ -40,7 +39,7 @@ nunmap x
 nmap x$ <:rclose>
 nmap g0 <:buffer 0>
 nmap g$ <:buffer -1>
-nmap <C-6> <toLastUsedTab>
+nmap <C-6> <:buffer #>
 nmap zd <openNewTabWithCurrentURL><CR>
 nunmap [
 nunmap ]

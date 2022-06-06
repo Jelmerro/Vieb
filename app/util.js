@@ -34,11 +34,19 @@ let appDataPath = ""
 let homeDirPath = ""
 let configSettings = ""
 const framePaddingInfo = []
-const frameSelector = "embed, frame, iframe, object"
 const specialChars = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/\s]/gi
 const specialCharsAllowSpaces = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/]/gi
 const dataUris = [
-    "blob", "data", "javascript", "magnet", "mailto", "view-source", "ws"
+    "blob",
+    "data",
+    "javascript",
+    "magnet",
+    "mailto",
+    "view-source",
+    "viewsource",
+    "sourceviewer",
+    "readerview",
+    "ws"
 ]
 const getSetting = val => JSON.parse(sessionStorage.getItem("settings"))?.[val]
 
@@ -47,60 +55,32 @@ const hasProtocol = loc => protocolRegex.test(loc)
 
 const isUrl = location => {
     if (hasProtocol(location)) {
-        return true
-    }
-    const [domainName] = location.split(/\/|\?|#/)
-    if (domainName.includes(":@")) {
-        return false
-    }
-    if (domainName.includes("@")) {
-        return domainName.match(/@/g)?.length === 1
-            && (/^[a-zA-Z0-9]+$/).test(domainName.split("@")[0])
-            && isUrl(domainName.split("@")[1])
-    }
-    if (domainName.includes("..")) {
-        return false
-    }
-    if (domainName.startsWith("[") && domainName.endsWith("]")) {
-        return ipv6Regex.test(domainName.replace(/^\[/, "").replace(/\]$/, ""))
-    }
-    const names = domainName.split(".")
-    const tldAndPort = names[names.length - 1]
-    if (tldAndPort.includes("::") || tldAndPort.split(":").length > 2) {
-        return false
-    }
-    if (tldAndPort.startsWith(":") || tldAndPort.endsWith(":")) {
-        return false
-    }
-    const [tld, port] = tldAndPort.split(":")
-    names[names.length - 1] = tld
-    if (port && !(/^\d{2,5}$/).test(port)) {
-        return false
-    }
-    if (port && (Number(port) <= 10 || Number(port) > 65535)) {
-        return false
-    }
-    if (names.length === 1 && tld === "localhost") {
-        return true
-    }
-    if (names.length === 4) {
-        if (names.every(n => (/^\d{1,3}$/).test(n))) {
-            if (names.every(n => Number(n) <= 255)) {
-                return true
-            }
+        try {
+            return !new URL(location).host.includes("%20")
+        } catch {
+            return false
         }
+    }
+    let url = null
+    try {
+        url = new URL(`https://${location}`)
+    } catch {
+        return false
+    }
+    if (url.hostname.startsWith("[") && url.hostname.endsWith("]")) {
+        return ipv6Regex.test(url.hostname.replace(/^\[/, "").replace(/\]$/, ""))
+    }
+    const names = url.hostname.split(".")
+    const invalid = names.find(n => n.includes("---")
+        || encodeURI(n) !== n || n.startsWith("-") || n.endsWith("-"))
+        || url.host.includes("..")
+    if (invalid || url.port && Number(url.port) <= 10) {
+        return false
     }
     if (names.length < 2) {
-        return false
+        return url.hostname === "localhost"
     }
-    if ((/^[a-zA-Z]{2,}$/).test(tld)) {
-        const invalidDashes = names.find(
-            n => n.includes("---") || n.startsWith("-") || n.endsWith("-"))
-        if (!invalidDashes && names.every(n => (/^[a-zA-Z\d-]+$/).test(n))) {
-            return true
-        }
-    }
-    return false
+    return true
 }
 
 const searchword = location => {
@@ -174,7 +154,7 @@ const stringToUrl = location => {
     }
     if (!isUrl(url)) {
         const engines = getSetting("search").split(",")
-        const engine = engines[Math.floor(Math.random() * engines.length)]
+        const engine = engines.at(Math.random() * engines.length)
         if (!engine) {
             return ""
         }
@@ -227,12 +207,49 @@ const title = s => {
     return `${s[0].toUpperCase()}${s.slice(1).toLowerCase()}`
 }
 
-const downloadPath = () => expandPath(getSetting("downloadpath"))
+const downloadPath = () => expandPath(getSetting("downloadpath")
+    || appConfig().downloads || "~/Downloads")
+
+const userAgentTemplated = agent => {
+    if (!agent) {
+        return ""
+    }
+    const version = `${process.versions.chrome.split(".")[0]}.0.0.0`
+    return agent
+        .replace(/%sys/g, userAgentPlatform())
+        .replace(/%firefoxversion/g, firefoxVersion())
+        .replace(/%fullversion/g, process.versions.chrome)
+        .replace(/%version/g, version)
+        .replace(/%firefox/g, firefoxUseragent())
+        .replace(/%default/g, defaultUseragent())
+}
+
+const userAgentPlatform = () => {
+    let platform = "X11; Linux x86_64"
+    if (process.platform === "win32") {
+        platform = "Window NT 10.0; Win64; x64"
+    }
+    if (process.platform === "darwin") {
+        platform = "Macintosh; Intel Mac OS X 10_15_7"
+    }
+    return platform
+}
+
+const defaultUseragent = () => {
+    const [version] = process.versions.chrome.split(".")
+    const sys = userAgentPlatform()
+    return `Mozilla/5.0 (${sys}) AppleWebKit/537.36 (KHTML, like Gecko) `
+        + `Chrome/${version}.0.0.0 Safari/537.36`
+}
+
+const firefoxVersion = () => {
+    const daysSinceBase = (new Date() - new Date(2021, 7, 10)) / 86400000
+    return `${91 + Math.floor(daysSinceBase / 28)}.0`
+}
 
 const firefoxUseragent = () => {
-    const daysSinceBase = (new Date() - new Date(2021, 7, 10)) / 86400000
-    const ver = `${91 + Math.floor(daysSinceBase / 28)}.0`
-    const sys = window.navigator.platform
+    const ver = firefoxVersion()
+    const sys = userAgentPlatform()
     return `Mozilla/5.0 (${sys}; rv:${ver}) Gecko/20100101 Firefox/${ver}`
 }
 
@@ -322,7 +339,7 @@ const findElementAtPosition = (x, y, levels = [document], px = 0, py = 0) => {
     if (levels.includes(elementAtPos?.shadowRoot || elementAtPos)) {
         return elementAtPos
     }
-    if (matchesQuery(elementAtPos, frameSelector)) {
+    if (matchesQuery(elementAtPos, "iframe")) {
         const frameInfo = findFrameInfo(elementAtPos) || {}
         return findElementAtPosition(x, y,
             [elementAtPos.contentDocument, ...levels], frameInfo.x, frameInfo.y)
@@ -344,7 +361,7 @@ const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
         elements = Array.from(base.querySelectorAll(sel) || [])
     }
     Array.from(base.querySelectorAll("*") || [])
-        .filter(el => el.shadowRoot || matchesQuery(el, frameSelector))
+        .filter(el => el.shadowRoot || matchesQuery(el, "iframe"))
         .forEach(el => {
             let location = {"x": paddedX, "y": paddedY}
             if (!el.shadowRoot) {
@@ -363,24 +380,34 @@ const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
 }
 
 const findClickPosition = (element, rects) => {
-    let dimensions = {}
+    let dims = {}
     let clickable = false
     // Check if the center of the bounding rect is actually clickable,
     // For every possible rect of the element and it's sub images.
     for (const rect of rects) {
-        const rectX = rect.x + rect.width / 2
-        const rectY = rect.y + rect.height / 2
+        let {x, y} = rect
+        let width = Math.min(rect.width, window.innerWidth - x)
+        if (x < 0) {
+            width += x
+            x = 0
+        }
+        let height = Math.min(rect.height, window.innerHeight - y)
+        if (y < 0) {
+            height += y
+            y = 0
+        }
+        const rectX = x + width / 2
+        const rectY = y + height / 2
         // Update the region if it's larger or the first region found
-        if (rect.width > dimensions.width
-                || rect.height > dimensions.height || !clickable) {
+        if (width > dims.width || height > dims.height || !clickable) {
             const elementAtPos = findElementAtPosition(rectX, rectY)
             if (element === elementAtPos || element?.contains(elementAtPos)) {
                 clickable = true
-                dimensions = rect
+                dims = {height, width, x, y}
             }
         }
     }
-    return {clickable, dimensions}
+    return {clickable, dims}
 }
 
 const activeElement = () => {
@@ -388,11 +415,11 @@ const activeElement = () => {
         return document.activeElement.shadowRoot.activeElement
     }
     if (document.activeElement !== document.body) {
-        if (!matchesQuery(document.activeElement, frameSelector)) {
+        if (!matchesQuery(document.activeElement, "iframe")) {
             return document.activeElement
         }
     }
-    return querySelectorAll(frameSelector).map(frame => {
+    return querySelectorAll("iframe").map(frame => {
         const doc = frame.contentDocument
         if (!doc) {
             return false
@@ -401,7 +428,7 @@ const activeElement = () => {
             return doc.activeElement.shadowRoot.activeElement
         }
         if (doc.body !== doc.activeElement) {
-            if (!matchesQuery(doc.activeElement, frameSelector)) {
+            if (!matchesQuery(doc.activeElement, "iframe")) {
                 return doc.activeElement
             }
         }
@@ -478,6 +505,12 @@ const extractZip = (args, cb) => {
 }
 
 // IPC UTIL
+
+const sendToPageOrSubFrame = (channel, ...args) => {
+    const {ipcRenderer} = require("electron")
+    ipcRenderer.send(channel, document.getElementById("current-page")
+        ?.getWebContentsId(), ...args)
+}
 
 const globDelete = folder => {
     // Request is send back to the main process due to electron-builder bugs:
@@ -840,7 +873,6 @@ const modifiedAt = loc => {
 // Disabled import sort order as the order is optimized to reduce module loads
 /* eslint-disable sort-keys/sort-keys-fix */
 module.exports = {
-    frameSelector,
     specialChars,
     specialCharsAllowSpaces,
     hasProtocol,
@@ -853,11 +885,16 @@ module.exports = {
     urlToString,
     title,
     downloadPath,
+    userAgentTemplated,
+    userAgentPlatform,
+    defaultUseragent,
+    firefoxVersion,
     firefoxUseragent,
     domainName,
     sameDomain,
     formatDate,
     findFrameInfo,
+    framePosition,
     propPixels,
     matchesQuery,
     findElementAtPosition,
@@ -868,6 +905,7 @@ module.exports = {
     compareVersions,
     extractZip,
     // IPC UTIL
+    sendToPageOrSubFrame,
     globDelete,
     clearTempContainers,
     clearCache,

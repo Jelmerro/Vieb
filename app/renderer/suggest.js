@@ -28,6 +28,7 @@ const {
     dirname,
     pathExists,
     isAbsolutePath,
+    downloadPath,
     appData,
     isUrl,
     searchword,
@@ -355,14 +356,16 @@ const suggestCommand = searchStr => {
             } else {
                 addCommand("screenshot ~")
                 addCommand("screenshot /")
-                addCommand(`screenshot ${getSetting("downloadpath")}`)
+                if (downloadPath()) {
+                    addCommand(`screenshot ${downloadPath()}`)
+                }
             }
         }
         if (range && dims) {
             addCommand(`${range}screenshot${dims}`)
         } else if (!range && (location || search.endsWith(" "))) {
             if (!isAbsolutePath(location)) {
-                location = joinPath(getSetting("downloadpath"), location)
+                location = joinPath(downloadPath(), location)
             }
             suggestFiles(location).forEach(l => addCommand(
                 `screenshot${dims} ${l.path}`))
@@ -405,11 +408,13 @@ const suggestCommand = searchStr => {
         } else if (!location) {
             addCommand("write ~")
             addCommand("write /")
-            addCommand(`write ${getSetting("downloadpath")}`)
+            if (downloadPath()) {
+                addCommand(`write ${downloadPath()}`)
+            }
         }
         if (!range && (location || search.endsWith(" "))) {
             if (!isAbsolutePath(location)) {
-                location = joinPath(getSetting("downloadpath"), location)
+                location = joinPath(downloadPath(), location)
             }
             suggestFiles(location).forEach(l => addCommand(`write ${l.path}`))
         }
@@ -505,6 +510,7 @@ const suggestCommand = searchStr => {
             "<>",
             "customcommands",
             "splits",
+            "lastusedtab",
             "viebrc",
             "examples",
             "datafolder",

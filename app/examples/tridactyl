@@ -9,7 +9,6 @@ set noshowcmd
 set noincsearch
 set tabreopenposition=previous
 set closablepinnedtabs
-set windowtitle=title
 set searchwords=
 set searchwords+=google~https://www.google.com/search?q=%s
 set searchwords+=googlelucky~"https://www.google.com/search?btnI=I'm+Feeling+Lucky&q=%s"

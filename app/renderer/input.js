@@ -17,7 +17,10 @@
 */
 "use strict"
 
-const {matchesQuery, notify, specialChars, isUrl} = require("../util")
+const {ipcRenderer} = require("electron")
+const {
+    matchesQuery, notify, specialChars, isUrl, sendToPageOrSubFrame
+} = require("../util")
 const {
     listTabs,
     currentTab,
@@ -245,7 +248,7 @@ const defaultBindings = {
         "<C-w><C-lt>": {"mapping": "<decreaseWidthSplitWindow>"},
         "<C-w><C-n>": {"mapping": "<:split>"},
         "<C-w><C-o>": {"mapping": "<:only>"},
-        "<C-w><C-p>": {"mapping": "<toLastUsedTab>"},
+        "<C-w><C-p>": {"mapping": "<:buffer #>"},
         "<C-w><C-q>": {"mapping": "<:quit>"},
         "<C-w><C-r>": {"mapping": "<rotateSplitWindowForward>"},
         "<C-w><C-s>": {"mapping": "<:split>"},
@@ -271,7 +274,7 @@ const defaultBindings = {
         "<C-w>l": {"mapping": "<toRightSplitWindow>"},
         "<C-w>n": {"mapping": "<:split>"},
         "<C-w>o": {"mapping": "<:only>"},
-        "<C-w>p": {"mapping": "<toLastUsedTab>"},
+        "<C-w>p": {"mapping": "<:buffer #>"},
         "<C-w>q": {"mapping": "<:quit>"},
         "<C-w>r": {"mapping": "<rotateSplitWindowForward>"},
         "<C-w>s": {"mapping": "<:split>"},
@@ -325,6 +328,12 @@ const defaultBindings = {
         "}": {"mapping": "<nextPageNewTab>"},
         "-": {"mapping": "<zoomOut>"},
         "0": {"mapping": "<scrollLeftMax>"},
+        "BB": {"mapping": "<:buffer #>"},
+        "BD": {"mapping": "<:close #>"},
+        "BH": {"mapping": "<:hide #>"},
+        "BS": {"mapping": "<:Sexplore #>"},
+        "BV": {"mapping": "<:Vexplore #>"},
+        "BZ": {"mapping": "<:suspend #>"},
         "D": {"mapping": "<downloadLink>"},
         "E": {"mapping": "<openNewTab><toExploreMode>"},
         "F": {"mapping": "<startFollowNewTab>"},
@@ -350,11 +359,15 @@ const defaultBindings = {
         "f": {"mapping": "<startFollowCurrentTab>"},
         "g<C-a>": {"mapping": "<increasePortNumber>"},
         "g<C-x>": {"mapping": "<decreasePortNumber>"},
+        "gF": {"mapping": "<toggleSourceViewerNewTab>"},
+        "gR": {"mapping": "<toggleReaderViewNewTab>"},
         "gS": {"mapping": "<toRootSubdomain>"},
         "gT": {"mapping": "<previousTab>"},
         "gU": {"mapping": "<toRootUrl>"},
+        "gf": {"mapping": "<toggleSourceViewer>"},
         "gg": {"mapping": "<scrollTop>"},
         "gi": {"mapping": "<insertAtFirstInput>"},
+        "gr": {"mapping": "<toggleReaderView>"},
         "gs": {"mapping": "<toParentSubdomain>"},
         "gt": {"mapping": "<nextTab>"},
         "gu": {"mapping": "<toParentUrl>"},
@@ -378,6 +391,7 @@ const defaultBindings = {
         "yh": {"mapping": "<pageToClipboardHTML>"},
         "ym": {"mapping": "<pageToClipboardMarkdown>"},
         "yr": {"mapping": "<pageToClipboardRST>"},
+        "ys": {"mapping": "<p.copyText>"},
         "yt": {"mapping": "<pageTitleToClipboard>"},
         "yy": {"mapping": "<pageToClipboard>"},
         "zH": {"mapping": "<scrollPageLeft>"},
@@ -818,9 +832,8 @@ const init = () => {
             POINTER.updateElement()
         }
     })
-    const {ipcRenderer} = require("electron")
-    ipcRenderer.on("zoom-changed", (_, contentsId, direction) => {
-        const page = listPages().find(p => p.getWebContentsId() === contentsId)
+    ipcRenderer.on("zoom-changed", (_, ctxId, direction) => {
+        const page = listPages().find(p => p.getWebContentsId?.() === ctxId)
         if (!page || !getMouseConf("scrollzoom")) {
             return
         }
@@ -872,6 +885,7 @@ const init = () => {
     const unSupportedActions = [
         "setFocusCorrectly",
         "incrementalSearch",
+        "p.init",
         "p.move",
         "p.storeMouseSelection",
         "p.handleScrollDiffEvent",
@@ -1272,11 +1286,7 @@ const hasFutureActions = keys => findMaps(keys, currentMode(), true).length
 
 const sendKeysToWebview = async(options, mapStr) => {
     blockNextInsertKey = true
-    currentPage().sendInputEvent({...options, "type": "keyDown"})
-    if (options.keyCode.length === 1) {
-        currentPage().sendInputEvent({...options, "type": "char"})
-    }
-    currentPage().sendInputEvent({...options, "type": "keyUp"})
+    sendToPageOrSubFrame("send-keyboard-event", options)
     if (options.bubbles) {
         const action = actionForKeys(mapStr)
         if (action) {
@@ -1338,10 +1348,7 @@ const executeMapString = async(mapStr, recursive, initial) => {
             if (currentMode() === "insert") {
                 const options = {...fromIdentifier(key), "bubbles": recursive}
                 if (!options.bubbles) {
-                    const {ipcRenderer} = require("electron")
                     ipcRenderer.sendSync("insert-mode-blockers", "pass")
-                    // The first event is ignored, so we send a dummy event
-                    await sendKeysToWebview(fromIdentifier(""), "")
                 }
                 await sendKeysToWebview(options, key)
             } else {
@@ -1418,6 +1425,9 @@ const handleKeyboard = async e => {
     if (e.passedOnFromInsert && blockNextInsertKey) {
         return
     }
+    if (e.isComposing || e.which === 229) {
+        return
+    }
     const id = toIdentifier(e)
     const matchingMod = getSetting("modifiers").split(",").find(
         mod => mod === id || `<${mod}>` === id || id.endsWith(`-${mod}>`))
@@ -1441,10 +1451,7 @@ const handleKeyboard = async e => {
             }
             const keys = pressedKeys.split(mapStringSplitter).filter(m => m)
             if (currentMode() === "insert") {
-                const {ipcRenderer} = require("electron")
                 ipcRenderer.sendSync("insert-mode-blockers", "pass")
-                // The first event is ignored, so we send a dummy event
-                await sendKeysToWebview(fromIdentifier(""), "")
                 for (const key of keys) {
                     const options = {...fromIdentifier(key), "bubbles": false}
                     await sendKeysToWebview(options, key)
@@ -1525,10 +1532,7 @@ const handleKeyboard = async e => {
                 keys = keys.slice(0, -1)
             }
             if (currentMode() === "insert") {
-                const {ipcRenderer} = require("electron")
                 ipcRenderer.sendSync("insert-mode-blockers", "pass")
-                // The first event is ignored, so we send a dummy event
-                await sendKeysToWebview(fromIdentifier(""), "")
                 for (const key of keys) {
                     const options = {...fromIdentifier(key), "bubbles": false}
                     await sendKeysToWebview(options, key)
@@ -1573,7 +1577,7 @@ const keyForOs = (regular, mac, key) => regular.includes(key)
 
 const updateNavbarScrolling = () => {
     const url = document.getElementById("url")
-    const charWidth = getSetting("fontsize") * 0.60191
+    const charWidth = getSetting("guifontsize") * 0.60191
     const end = url.selectionStart * charWidth - charWidth
     const start = url.selectionEnd * charWidth - url.clientWidth + charWidth + 2
     if (url.scrollLeft < end && url.scrollLeft > start) {
@@ -1976,7 +1980,6 @@ const updateKeysOnScreen = () => {
             })
         }
     }
-    const {ipcRenderer} = require("electron")
     if (pressedKeys) {
         ipcRenderer.send("insert-mode-blockers", "all")
         return

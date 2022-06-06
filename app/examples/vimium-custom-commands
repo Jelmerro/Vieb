@@ -6,7 +6,6 @@ set norestoretabs
 set nofollownewtabswitch
 set redirecttohttp
 set tabreopenposition=previous
-set windowtitle=title
 set search=https://google.com/search?q=%s
 set searchwords=w~https://www.wikipedia.org/w/index.php?title=Special:Search&search=%s
 
@@ -39,7 +38,7 @@ command! Vomnibar.activateInNewTab <openNewTab><toExploreMode>
 command! Vomnibar.activateTabSelection <toCommandMode>buffer<Space>
 command! firstTab <:buffer 0>
 command! lastTab <:buffer -1>
-command! visitPreviousTab <toLastUsedTab>
+command! visitPreviousTab <:buffer #>
 command! Vomnibar.activateEditUrl <toExploreMode><End>
 command! Vomnibar.activateEditUrlInNewTab <openNewTab><toExploreMode>
 command! removeTab <:close>

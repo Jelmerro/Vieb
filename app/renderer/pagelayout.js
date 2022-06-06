@@ -25,7 +25,7 @@ const {propPixels} = require("../util")
 
 const layoutDivById = id => document.querySelector(
     `#pagelayout div[link-id='${id}']`)
-const suspendTimers = {}
+const timers = {}
 let lastTabId = null
 let recentlySwitched = false
 
@@ -349,17 +349,6 @@ const setLastUsedTab = id => {
     }
 }
 
-const toLastUsedTab = () => {
-    if (lastTabId && currentPage().getAttribute("link-id") !== lastTabId) {
-        const last = document.querySelector(
-            `#tabs span[link-id='${lastTabId}']`)
-        if (last) {
-            const {switchToTab} = require("./tabs")
-            switchToTab(listTabs().indexOf(last))
-        }
-    }
-}
-
 const resetResizing = () => {
     [...document.querySelectorAll("#pagelayout *")].forEach(element => {
         element.style.flexGrow = null
@@ -393,9 +382,9 @@ const removeRedundantContainers = () => {
 }
 
 const restartSuspendTimeouts = () => {
-    for (const linkId of Object.keys(suspendTimers)) {
-        clearTimeout(suspendTimers[linkId])
-        delete suspendTimers[linkId]
+    for (const linkId of Object.keys(timers)) {
+        clearTimeout(timers[linkId])
+        delete timers[linkId]
     }
     applyLayout()
 }
@@ -445,27 +434,30 @@ const applyLayout = () => {
             page.classList.remove("visible-page")
         }
     })
+    const susCall = (tab, linkId, timeout) => {
+        const shouldSuspend = getSetting("suspendplayingtab")
+            || !tab.hasAttribute("media-playing")
+        if (shouldSuspend) {
+            delete timers[linkId]
+            const {suspendTab} = require("./tabs")
+            suspendTab(tab)
+        } else {
+            timers[linkId] = setTimeout(
+                () => susCall(tab, linkId, timeout), timeout)
+        }
+    }
+    const timeout = getSetting("suspendtimeout")
     listTabs().forEach(tab => {
         const linkId = tab.getAttribute("link-id")
         if (visibleTabs.includes(tab)) {
             tab.classList.add("visible-tab")
-            clearTimeout(suspendTimers[linkId])
-            delete suspendTimers[linkId]
+            clearTimeout(timers[linkId])
+            delete timers[linkId]
         } else {
             tab.classList.remove("visible-tab")
-            if (!suspendTimers[linkId] && !tab.getAttribute("suspended")) {
-                const timeout = getSetting("suspendtimeout")
-                if (timeout) {
-                    suspendTimers[linkId] = setTimeout(() => {
-                        try {
-                            delete suspendTimers[linkId]
-                            const {suspendTab} = require("./tabs")
-                            suspendTab(tab)
-                        } catch {
-                            // Tab might be closed or unavailable, no issue
-                        }
-                    }, timeout)
-                }
+            if (timeout && !timers[linkId] && !tab.getAttribute("suspended")) {
+                timers[linkId] = setTimeout(
+                    () => susCall(tab, linkId, timeout), timeout)
             }
         }
     })
@@ -507,6 +499,5 @@ module.exports = {
     rotateReverse,
     setLastUsedTab,
     switchView,
-    toLastUsedTab,
     toTop
 }

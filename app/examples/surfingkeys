@@ -3,7 +3,7 @@ set adblocker=update
 set devtoolsposition=split
 set downloadmethod=confirm
 set firefoxmode=always
-set fontsize=16
+set guifontsize=16
 set mintabwidth=250
 set norestoretabs
 set permissioncamera=ask
@@ -15,7 +15,6 @@ set redirecttohttp
 set splitbelow
 set tabclosefocusright
 set tabreopenposition=previous
-set windowtitle=title
 set mapsuggestposition=bottomright
 
 " Search Engines
@@ -32,8 +31,8 @@ set searchwords+=github~https://github.com/search?q=%s
 
 " Mappings
 nmap af <startFollowNewTab>
-nmap gf <startFollowNewTab><toLastUsedTab>
-nmap C <startFollowNewTab><toLastUsedTab>
+nmap gf <startFollowNewTab><:buffer #>
+nmap C <startFollowNewTab><:buffer #>
 nmap [[ <decreasePageNumber>
 nmap ]] <increasePageNumber>
 nmap e <scrollPageUpHalf>
@@ -41,7 +40,7 @@ nmap u <scrollPageUpHalf>
 nmap d <scrollPageDownHalf>
 nmap yg <:screenshot>
 nmap yt <openNewTabWithCurrentUrl><CR>
-nmap yT <openNewTabWithCurrentUrl><CR><toLastUsedTab>
+nmap yT <openNewTabWithCurrentUrl><CR><:buffer #>
 nmap g0 <:buffer 0>
 nmap g$ <:buffer -1>
 nmap gx0 <:lclose>
@@ -64,7 +63,7 @@ nmap x <:close>
 nmap X <reopenTab>
 nmap <lt><lt> <moveTabBackward>
 nmap >> <moveTabForward>
-nmap <C-6> <toLastUsedTab>
+nmap <C-6> <:buffer #>
 nmap S <backInHistory>
 nmap D <forwardInHistory>
 nmap cc <openNewTab><openFromClipboard>

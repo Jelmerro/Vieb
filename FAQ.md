@@ -9,7 +9,10 @@ If your question is not listed, you can find support here:
 - [Telegram](https://t.me/vieb_general) - Chat with other users on Telegram
 - Or make a Github issue if you aren't using any of the above
 
-## Startup
+Most general usage information can be found in the help page.
+You can open it with the `F1` key or the `:help` command.
+Below are questions that are either not explicitly covered in the help page,
+or are asked a lot regardless of their existing documentation/explanation.
 
 #### Which release should I download?
 
@@ -26,35 +29,21 @@ It's important to make sure that you download the right architecture for your sy
 #### How do I start Vieb?
 
 If it's a zip/tar.gz archive that you downloaded, you can extract it and double-click the executable.
-On Windows, you can simply double-click on the ".exe" file to run the program.
-If you are using Linux, you can download the AppImage to be able to do the same.
+On Windows, you can simply double-click on the ".exe" file to run the program,
+though you might need to mark the SmartScreen warning as trusted, more on that [on Wikipedia](https://en.wikipedia.org/wiki/Microsoft_SmartScreen#Criticism).
+If you are using Linux, you can download the AppImage to have the same single executable experience.
 For most other download options, you need to use your distribution's package manager,
 usage should be similar to other packages of the same type.
 
 ##### Mac
 
 The mac apps are not signed, you can sign them yourself with `sudo codesign --force --deep --sign - /Applications/Vieb.app`.
-Or you can try [these instructions](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac) for opening the app as is,
+This step has become [a required step in recent versions](https://developer.apple.com/documentation/macos-release-notes/macos-big-sur-11_0_1-universal-apps-release-notes#Code-Signing).
+For older mac versions you could try [these instructions](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac) for opening the app as is,
 which comes down to disabling app store requirements with `sudo spctl --master-disable`.
-If you use a Silicon device, signing the app with the first command is required, as explained [here](https://developer.apple.com/documentation/macos-release-notes/macos-big-sur-11_0_1-universal-apps-release-notes#Code-Signing).
 If none of these work, you can build the app from source with the [README build instructions](./README.md#building), the final command can also be `npm run buildmac` to just build for mac.
 If these instructions do not seem to be followed at all, your issue might be [closed](https://github.com/Jelmerro/Vieb/issues/169),
 as it's not Vieb's responsibility to fix your operating system quirks for you.
-
-#### Why can't I start Vieb?
-
-Try starting Vieb from a terminal or cmd window, to check for startup errors or other logging.
-You can start Vieb with "vieb --debug" to view the internal debugging tools of Vieb, which should also be checked for errors.
-If using mac, see the startup info above this one.
-If you get a weird sandbox error on Linux, you probably need to enable unprivileged containers.
-There are instructions [on the arch wiki](https://wiki.archlinux.org/index.php/Linux_Containers#Enable_support_to_run_unprivileged_containers_(optional)) how to enable this.
-
-## Usage
-
-Most general usage information can be found in the help page.
-You can open it with the `F1` key or the `:help` command.
-Below are questions that are either not explicitly covered in the help page,
-or are asked a lot regardless of their existing documentation/explanation.
 
 #### How does it compare to other plugins and browsers?
 
@@ -88,35 +77,45 @@ Google owns your data and they are the ones to decide who may view it and when, 
 Below is a list of known workarounds to circumvent this blocking policy, use them at your own risk.
 
 - You can use `:set firefoxmode=google` within Vieb to mimic Firefox when visiting Google pages.
-- You can enable strict site isolation on startup with `--site-isolation=strict`, though this will block Vieb from accessing iframes in follow mode.
-  If you rely heavily on Google services it might be worth the trade-off to use this startup option,
-  which offers for more reliable Google logins at the cost of a limited follow mode implementation.
-  For Vieb to have strict site isolation without the follow mode limitation [this Electron issue](https://github.com/electron/electron/issues/22582) needs to be fixed.
 - You can temporarily allow `""Less secure app access""` in your [Google account dashboard](https://myaccount.google.com/security).
 
 There are no other known workarounds to allow the sign-in at this point of time.
 You are encouraged to open PRs to improve this list of workarounds.
 However, opening issues just to announce that you cannot login to your account will be closed,
-as it's not something Vieb or any other browser can fix, only Google can.
+as it's not something Vieb or any other smaller browser can fix, only Google can.
+You, and only you, need to consider if it's worth using services that [can block you any moment](https://www.polygon.com/2021/2/8/22272284/terraria-google-stadia-canceled-developer-locked-out) for [any reason](https://old.reddit.com/r/Android/comments/ai85qf/warn_google_could_suspend_your_account_without/).
+For more info about moving away from Google and why, see [r/degoogle](https://reddit.com/r/degoogle/).
 
-#### I want my tabs to be numbered, how do I do this?
+#### Why doesn't DRM work (such as Spotify or Netflix)?
 
-You can achieve this by using custom colorschemes.
-You can find help on this inside Vieb, with: `:help datafolder` and `:help :colorscheme`.
-Inside the datafolder, create a "colors" folder, and inside it create a CSS file "name.css".
-The "name" will be the name of the colorscheme, and you can set it with ":colorscheme name".
-The contents of the file should look like this:
+Google owns Widevine, the one and only DRM solution for Chromium-based browsers.
+They are in control of approving and verifying the inclusion of Widevine into a (software) project.
+The process is [far from straightforward](https://github.com/electron/electron/issues/12427) and [is blocked for open-source software](https://blog.samuelmaddock.com/posts/google-widevine-blocked-my-browser/).
+It's even explained on the [official Wikipedia page of Widevine](https://en.wikipedia.org/wiki/Widevine).
+PRs to implement DRM will be rejected on the basis that they need proprietary keys and software to work.
+Issues relating to this topic will be closed, as it's not something Vieb or any other smaller browser can fix, only Google can.
+You, and only you, need to consider if it's worth using services that require DRM and thus Google approved proprietary software.
+For more info on why DRM usually isn't a good idea, see [the GNU website on DRM](https://www.gnu.org/proprietary/proprietary-drm.html) or [Defective by Design](https://www.defectivebydesign.org/).
 
-```css
-#tabs, #navbar {counter-reset: tab-counter -1;}
-#tabs > ::before {counter-increment: tab-counter 1;content: counter(tab-counter) ". ";margin: auto 0;}
-#tabs .pinned {min-width: 3em !important;}
-```
+#### Why do I see ads on some sites (such as Youtube)?
 
-Colorschemes can do much more, there are a couple of them included by default,
-for which you can find the source code [here](https://github.com/Jelmerro/Vieb/tree/master/app/colors).
-You can also look for more themes or share yours on [Github discussions](https://github.com/Jelmerro/Vieb/discussions).
-Finally, you can also copy the tab number CSS code above and use it together with other themes.
+Blocking video ads on Youtube is extremely tricky, and requires continuous updates to keep working.
+Even well respected adblocker plugins such as uBlock Origin [do sometimes](https://old.reddit.com/r/uBlockOrigin/comments/n90n2a/not_blocking_youtube_ads/) let [ads through](https://old.reddit.com/r/uBlockOrigin/comments/uekyuk/youtube_ads_are_getting_through/).
+Vieb is no different in this case, and relies on blocklists and resource files to be kept up to date.
+You can automatically update these on startup by running `:set adblocker=update`,
+but even then these lists need to be up to date with the changes Youtube makes to work in the first place.
+This means there are a lot of layers that need updating before blocking works again after a Youtube update.
+Since version 8.0.0 the blocking resources and methods are identical to plugins like uBlock Origin,
+and any issues with blocking content you have in Vieb are therefor caused by one of two things:
+
+- Different blocklists and/or different versions of the lists, either update them or add extra ones
+- Issues in the adblocking module that Vieb uses, please report your issues not related to the above [in the relevant repo](https://github.com/ghostery/adblocker)
+
+In both cases, Vieb is not directly involved or the reason that you see ads,
+please consider testing various blocklists or opening an issue in the adblocker repo,
+unless you are really sure that it's a Vieb specific issue by testing it [with this example usage of their package](https://github.com/ghostery/adblocker/tree/master/packages/adblocker-electron-example).
+Finally, it's worth noting that most blocklists work suboptimal if you block autoplay,
+which is blocked by default in Vieb, though you can change that using `--autoplay-media=always` on startup.
 
 #### Can I make Vieb my default browser?
 
@@ -134,9 +133,26 @@ which is exactly what Vim does, and was a big reason for starting Vieb.
 See also: [my answer to remove this separation](https://github.com/Jelmerro/Vieb/issues/63)
 and [this thread for my lengthy motivation for creating Vieb](https://github.com/Jelmerro/Vieb/issues/83).
 
-#### Why does Vieb block popups?
+#### Why can't I hover using the pointer and/or why are my pointer mouse actions unreliable?
 
-Electron has no support for dynamically allowing or blocking popups.
+This is because mouse simulations are not send correctly to subframes in Electron,
+so Vieb has some workarounds to attempt to execute the event manually.
+These are less reliable, and as such can't hover most menus inside iframes,
+along with some other weird mouse action related quirks.
+This can all be properly implemented once [this Electron issue](https://github.com/electron/electron/issues/20333) is fixed.
+
+#### Why are prompt, confirm and alert dialogs not working?
+
+In most browsers, these type of dialogs can appear whenever a page wants to.
+In Vieb, these are blocked and instead you are notified when a page tries to use them,
+as this is less annoying and doesn't interrupt you whenever a page wants your attention.
+You can change this behavior using the "dialog" settings: "dialogprompt", "dialogconfirm" and "dialogalert".
+If you want them to show like on other browsers, just set their value to "show".
+It's worth mentioning that the prompt dialog is custom, as Electron by default doesn't support it, but Vieb does.
+
+#### Why does Vieb block popup windows?
+
+Electron has no support for dynamically allowing or blocking popup windows.
 You either enable them globally, or block all of them.
 Even if globally allowed, the popup windows can not be interacted with like the regular Vieb window.
 No custom code can be ran in them, and you would need to use the mouse to interact with it.

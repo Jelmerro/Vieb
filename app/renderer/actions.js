@@ -17,6 +17,7 @@
 */
 "use strict"
 
+const {ipcRenderer, clipboard} = require("electron")
 const {
     urlToString,
     joinPath,
@@ -30,7 +31,10 @@ const {
     readJSON,
     searchword,
     stringToUrl,
-    domainName
+    domainName,
+    sendToPageOrSubFrame,
+    isFile,
+    isDir
 } = require("../util")
 const {
     listTabs,
@@ -63,13 +67,13 @@ const clickOnSearch = () => {
     }
 }
 
-const nextPage = () => currentPage()?.send("action", "nextPage")
+const nextPage = () => sendToPageOrSubFrame("action", "nextPage")
 
-const previousPage = () => currentPage()?.send("action", "previousPage")
+const previousPage = () => sendToPageOrSubFrame("action", "previousPage")
 
-const nextPageNewTab = () => currentPage()?.send("action", "nextPage", true)
+const nextPageNewTab = () => sendToPageOrSubFrame("action", "nextPage", true)
 
-const previousPageNewTab = () => currentPage()?.send(
+const previousPageNewTab = () => sendToPageOrSubFrame(
     "action", "previousPage", true)
 
 const increasePageNumber = () => movePageNumber(1)
@@ -139,17 +143,17 @@ const moveLastNumber = movement => modifyUrl("(\\d+)(\\D*$)", (_, p1, p2) => {
     return `${Number(p1) + movement}${p2}`
 })
 
-const toParentUrl = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/\\/.*?\\/)"
+const toParentUrl = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/?\\/?.*?\\/)"
     + "(.*\\/)?(.+?$)", (_, domain, path) => domain + (path || ""))
 
-const toRootUrl = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/\\/.*?\\/)"
+const toRootUrl = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/?\\/?.*?\\/)"
     + "(.*$)", (_, domain) => domain)
 
-const toParentSubdomain = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/\\/)("
+const toParentSubdomain = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/?\\/?)("
     + "www\\.)?([a-zA-Z\\d]*?\\.)((?:[a-zA-Z\\d]*?\\.)*)([a-zA-Z\\d]*?\\.[a-zA-"
     + "Z]+.*$)", (_, p, w, __, s, m) => p + (w || "") + (s || "") + (m || ""))
 
-const toRootSubdomain = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/\\/)("
+const toRootSubdomain = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/?\\/?)("
     + "www\\.)?([a-zA-Z\\d]*?\\.)((?:[a-zA-Z\\d]*?\\.)*)([a-zA-Z\\d]*?\\.[a-zA-"
     + "Z]+.*$)", (_, p, w, __, ___, m) => p + (w || "") + (m || ""))
 
@@ -167,12 +171,86 @@ const previousTab = () => {
     switchToTab(listTabs().indexOf(currentTab()) - 1)
 }
 
+const toggleSourceViewer = () => {
+    const {navigateTo} = require("./tabs")
+    if (currentPage().src.startsWith("sourceviewer:")) {
+        const src = currentPage().src.replace(/^sourceviewer:\/?\/?/g, "")
+        let loc = String(src)
+        if (process.platform !== "win32" && !loc.startsWith("/")) {
+            loc = `/${loc}`
+        }
+        if (isFile(loc) || isDir(loc)) {
+            navigateTo(`file://${loc}`)
+            return
+        }
+        navigateTo(`https://${src}`)
+    } else {
+        navigateTo(currentPage().src.replace(/^.+?:\/?\/?/g, "sourceviewer:"))
+    }
+}
+
+const toggleSourceViewerNewTab = () => {
+    const {navigateTo, addTab} = require("./tabs")
+    if (currentPage().src.startsWith("sourceviewer:")) {
+        const src = currentPage().src.replace(/^sourceviewer:\/?\/?/g, "")
+        let loc = String(src)
+        if (process.platform !== "win32" && !loc.startsWith("/")) {
+            loc = `/${loc}`
+        }
+        if (isFile(loc) || isDir(loc)) {
+            navigateTo(`file://${loc}`)
+            return
+        }
+        navigateTo(`https://${src}`)
+    } else {
+        addTab({"url": currentPage().src.replace(
+            /^.+?:\/?\/?/g, "sourceviewer:")})
+    }
+}
+
+const toggleReaderView = () => {
+    const {navigateTo} = require("./tabs")
+    if (currentPage().src.startsWith("readerview:")) {
+        const src = currentPage().src.replace(/^readerview:\/?\/?/g, "")
+        let loc = String(src)
+        if (process.platform !== "win32" && !loc.startsWith("/")) {
+            loc = `/${loc}`
+        }
+        if (isFile(loc) || isDir(loc)) {
+            navigateTo(`file://${loc}`)
+            return
+        }
+        navigateTo(`https://${src}`)
+    } else {
+        navigateTo(currentPage().src.replace(/^.+?:\/?\/?/g, "readerview:"))
+    }
+}
+
+const toggleReaderViewNewTab = () => {
+    const {navigateTo, addTab} = require("./tabs")
+    if (currentPage().src.startsWith("readerview:")) {
+        const src = currentPage().src.replace(/^readerview:\/?\/?/g, "")
+        let loc = String(src)
+        if (process.platform !== "win32" && !loc.startsWith("/")) {
+            loc = `/${loc}`
+        }
+        if (isFile(loc) || isDir(loc)) {
+            navigateTo(`file://${loc}`)
+            return
+        }
+        navigateTo(`https://${src}`)
+    } else {
+        addTab({"url": currentPage().src.replace(
+            /^.+?:\/?\/?/g, "readerview:")})
+    }
+}
+
 const toExploreMode = () => {
     const {setMode} = require("./modes")
     setMode("explore")
 }
 
-const insertAtFirstInput = () => currentPage()?.send("focus-input")
+const insertAtFirstInput = () => sendToPageOrSubFrame("focus-input")
 
 const toInsertMode = () => {
     const {setMode} = require("./modes")
@@ -201,13 +279,13 @@ const scrollPageLeft = () => currentPage()?.send("action", "scrollPageLeft")
 
 const scrollPageUp = () => currentPage()?.send("action", "scrollPageUp")
 
-const scrollPageDownHalf = () => {
-    currentPage()?.send("action", "scrollPageDownHalf")
-}
+const scrollPageDownHalf = () => currentPage()?.send(
+    "action", "scrollPageDownHalf")
 
 const scrollPageDown = () => currentPage()?.send("action", "scrollPageDown")
 
-const scrollPageUpHalf = () => currentPage()?.send("action", "scrollPageUpHalf")
+const scrollPageUpHalf = () => currentPage()?.send(
+    "action", "scrollPageUpHalf")
 
 const nextSearchMatch = () => {
     if (currentSearch) {
@@ -437,7 +515,8 @@ const editWithVim = () => {
                 return
             }
             if (typeOfEdit === "input") {
-                page.send("action", "setInputFieldText", tempFile, contents)
+                sendToPageOrSubFrame("action",
+                    "setInputFieldText", tempFile, contents)
             } else if ("ces".includes(currentMode()[0])) {
                 document.getElementById("url").value = contents
                 const {updateSuggestions} = require("./input")
@@ -457,7 +536,7 @@ const editWithVim = () => {
         }
     })
     if (typeOfEdit === "input") {
-        page.send("action", "writeInputToFile", tempFile)
+        sendToPageOrSubFrame("action", "writeInputToFile", tempFile)
     }
     if (typeOfEdit === "navbar") {
         setTimeout(() => writeFile(
@@ -594,11 +673,6 @@ const exchangeSplitWindow = () => {
     exchange()
 }
 
-const toLastUsedTab = () => {
-    const {"toLastUsedTab": lastUsed} = require("./pagelayout")
-    lastUsed()
-}
-
 const increaseHeightSplitWindow = () => {
     const {resize} = require("./pagelayout")
     resize("ver", "grow")
@@ -624,13 +698,9 @@ const distrubuteSpaceSplitWindow = () => {
     resetResizing()
 }
 
-const toggleAlwaysOnTop = () => {
-    const {ipcRenderer} = require("electron")
-    ipcRenderer.invoke("toggle-always-on-top")
-}
+const toggleAlwaysOnTop = () => ipcRenderer.invoke("toggle-always-on-top")
 
 const toggleFullscreen = () => {
-    const {ipcRenderer} = require("electron")
     ipcRenderer.invoke("toggle-fullscreen").then(updateGuiVisibility)
 }
 
@@ -660,46 +730,51 @@ const incrementalSearch = args => {
     }
 }
 
-const pageToClipboard = () => {
-    const {clipboard} = require("electron")
-    clipboard.writeText(urlToString(currentPage()?.src).replace(/ /g, "%20"))
+const getPageUrl = () => {
+    let url = currentPage().src
+    if (getSetting("encodeurlcopy") === "spacesonly") {
+        url = url.replace(/ /g, "%20")
+    } else if (getSetting("encodeurlcopy") === "nospaces") {
+        url = urlToString(url).replace(/ /g, "%20")
+    } else if (getSetting("encodeurlcopy") === "decode") {
+        url = urlToString(url)
+    } else if (getSetting("encodeurlcopy") === "encode") {
+        url = stringToUrl(url)
+    }
+    return url
 }
 
+const pageToClipboard = () => clipboard.writeText(getPageUrl())
+
 const pageTitleToClipboard = () => {
-    const {clipboard} = require("electron")
     clipboard.writeText(currentTab().querySelector("span").textContent)
 }
 
 const pageToClipboardHTML = () => {
-    const {clipboard} = require("electron")
-    const url = urlToString(currentPage()?.src).replace(/ /g, "%20")
+    const url = getPageUrl()
     const title = currentTab().querySelector("span").textContent
     clipboard.writeText(`<a href="${url}">${title}</a>`)
 }
 
 const pageToClipboardMarkdown = () => {
-    const {clipboard} = require("electron")
-    const url = urlToString(currentPage()?.src).replace(/ /g, "%20")
+    const url = getPageUrl()
     const title = currentTab().querySelector("span").textContent
     clipboard.writeText(`[${title}](${url})`)
 }
 
 const pageToClipboardRST = () => {
-    const {clipboard} = require("electron")
-    const url = urlToString(currentPage()?.src).replace(/ /g, "%20")
+    const url = getPageUrl()
     const title = currentTab().querySelector("span").textContent
     clipboard.writeText(`\`${title} <${url}>\`_`)
 }
 
 const pageToClipboardEmacs = () => {
-    const {clipboard} = require("electron")
-    const url = urlToString(currentPage()?.src).replace(/ /g, "%20")
+    const url = getPageUrl()
     const title = currentTab().querySelector("span").textContent
     clipboard.writeText(`[[${url}][${title}]]`)
 }
 
 const openFromClipboard = () => {
-    const {clipboard} = require("electron")
     if (clipboard.readText().trim()) {
         const {navigateTo} = require("./tabs")
         navigateTo(stringToUrl(clipboard.readText()))
@@ -777,7 +852,7 @@ const menuOpen = () => {
             "y": bounds.y + bounds.height
         })
     } else if (currentMode() === "insert") {
-        currentPage()?.send("contextmenu")
+        sendToPageOrSubFrame("contextmenu")
     } else if ("sec".includes(currentMode()[0])) {
         const selected = document.querySelector("#suggest-dropdown .selected")
         let bounds = selected?.getBoundingClientRect()
@@ -798,7 +873,7 @@ const menuOpen = () => {
         } else {
             const url = document.getElementById("url")
             bounds = url.getBoundingClientRect()
-            const charWidth = getSetting("fontsize") * 0.60191
+            const charWidth = getSetting("guifontsize") * 0.60191
             const {viebMenu} = require("./contextmenu")
             viebMenu({
                 "path": [url],
@@ -1011,7 +1086,6 @@ module.exports = {
     toFirstSplitWindow,
     toInsertMode,
     toLastSplitWindow,
-    toLastUsedTab,
     toLeftSplitWindow,
     toNextSplitWindow,
     toNormalMode,
@@ -1025,6 +1099,10 @@ module.exports = {
     toTopSplitWindow,
     toggleAlwaysOnTop,
     toggleFullscreen,
+    toggleReaderView,
+    toggleReaderViewNewTab,
+    toggleSourceViewer,
+    toggleSourceViewerNewTab,
     topHalfSplitWindow,
     useEnteredData,
     zoomIn,

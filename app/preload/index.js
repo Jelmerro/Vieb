@@ -43,6 +43,7 @@ const applyThemeStyling = () => {
     const style = document.createElement("style")
     style.textContent = `html {
         color: ${colors?.fg || "#eee"};background: ${colors?.bg || "#333"};
+        font-size: ${colors.fontsize || 14}px;
     } a {color: ${colors?.linkcolor || "#0cf"};}`
     if (document.head) {
         document.head.appendChild(style)
@@ -59,6 +60,12 @@ window.addEventListener("load", () => {
     }
     if (document.head?.innerText === "") {
         applyThemeStyling()
+        return
+    }
+    if (window.location.protocol.startsWith("sourceviewer")) {
+        return
+    }
+    if (window.location.protocol.startsWith("readerview")) {
         return
     }
     const htmlBG = getComputedStyle(html).background

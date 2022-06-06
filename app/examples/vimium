@@ -6,7 +6,6 @@ set norestoretabs
 set nofollownewtabswitch
 set redirecttohttp
 set tabreopenposition=previous
-set windowtitle=title
 set search=https://google.com/search?q=%s
 set searchwords=w~https://www.wikipedia.org/w/index.php?title=Special:Search&search=%s
 
@@ -40,7 +39,7 @@ nmap g0 <:buffer
 nmap g$ <:buffer
 nmap J <previousTab>
 nmap K <nextTab>
-nmap ^ <toLastUsedTab>
+nmap ^ <:buffer #>
 nmap ge <toExploreMode><End>
 nmap gE <openNewTab><toExploreMode>
 nmap x <:close>
