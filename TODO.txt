@@ -1,4 +1,10 @@
-rethink M vs m structure with global vs local marks, what use do local ones have?
-make setting for capital letter mark behavior (local, global, newtab, matching) for where to save/load the mark
-make a setting for what is "local" for marks (domain, url?, other?)
+redo mappings according to the following layout:
+    ma = local scroll position
+    mA = global scroll position
+    Ma = mini-book*marks* that jump to pages by character/key
+    MA = same as above but with scroll position
+    and add ma and mA mappings to pointer mode, which store the xy position local/global
+    (where a/A can be any character and represents unshifted vs shifted keys)
+    the marks are loaded using ' and "
+make 2 settings for local vs global mark behavior (current, newtab, matching, splits) for where to load the mark
 add help documentation
