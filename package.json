@@ -28,12 +28,12 @@
   "email": "Jelmerro@users.noreply.github.com",
   "license": "GPL-3.0-or-later",
   "devDependencies": {
-    "electron": "19.0.0",
+    "electron": "19.0.3",
     "electron-builder": "23.0.3",
-    "eslint": "8.16.0",
+    "eslint": "8.17.0",
     "eslint-plugin-sort-keys": "2.3.5",
-    "jest": "28.1.0",
-    "jest-environment-jsdom": "28.1.0"
+    "jest": "28.1.1",
+    "jest-environment-jsdom": "28.1.1"
   },
   "dependencies": {
     "@cliqz/adblocker-electron": "1.23.8",
