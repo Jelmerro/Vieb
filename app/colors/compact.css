@@ -15,7 +15,6 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#app {flex-direction: row;flex-wrap: wrap;}
-#navbar {width: 40vw}
-#tabs {width: 60vw}
-#page-container{flex: 0 1 auto;}
+#app {display: grid;grid-template: "navbar tabbar" 2em "main main" auto;}
+#navbar, #tabs {width: 50vw}
+#page-container{grid-area: main;}
