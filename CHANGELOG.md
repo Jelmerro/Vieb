@@ -13,13 +13,17 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Darkreader with many settings like "darkreader" and "darkreadercontrast" to toggle and control darkreader theming
+
 ### Fixed
 
 - Compact layout overflowing below the visible window, now uses grid layout
 
 ### Versions
 
-- Electron 19.0.3 (unchanged)
+- Electron 19.0.4 (unchanged)
 - Chromium 102.0.5005.63 (unchanged)
 
 ## [8.0.0](https://github.com/Jelmerro/Vieb/compare/7.2.0...8.0.0) - 2022-06-08

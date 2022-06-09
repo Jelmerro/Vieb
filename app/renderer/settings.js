@@ -89,6 +89,14 @@ const defaultSettings = {
     "containersplitpage": "s:usecurrent",
     "containerstartuppage": "main",
     "countlimit": 100,
+    "darkreader": false,
+    "darkreaderbg": "#181a1b",
+    "darkreaderbrightness": 100,
+    "darkreadercontrast": 100,
+    "darkreaderfg": "#e8e6e3",
+    "darkreadergrayscale": 0,
+    "darkreadersepia": 0,
+    "darkreadertextstroke": 0,
     "devtoolsposition": "window",
     "dialogalert": "notifyblock",
     "dialogconfirm": "notifyblock",
@@ -287,6 +295,11 @@ const validOptions = {
 }
 const numberRanges = {
     "countlimit": [0, 10000],
+    "darkreaderbrightness": [0, 100],
+    "darkreadercontrast": [0, 100],
+    "darkreadergrayscale": [0, 100],
+    "darkreadersepia": [0, 100],
+    "darkreadertextstroke": [0, 1],
     "guifontsize": [8, 30],
     "guihidetimeout": [0, 9000000000000000],
     "mapsuggest": [0, 9000000000000000],
@@ -439,6 +452,16 @@ const checkOther = (setting, value) => {
                     "warn")
                 return false
             }
+        }
+    }
+    if (setting === "darkreaderfg" || setting === "darkreaderbg") {
+        const {style} = document.createElement("div")
+        style.color = "white"
+        style.color = value
+        if (style.color === "white" && value !== "white" || !value) {
+            notify("Invalid color, must be a valid color name or hex"
+                    + `, not: ${value}`, "warn")
+            return false
         }
     }
     if (setting === "downloadpath") {
@@ -871,6 +894,14 @@ const updateWebviewSettings = () => {
         appData(), "webviewsettings")
     writeJSON(webviewSettingsFile, {
         "bg": getComputedStyle(document.body).getPropertyValue("--bg"),
+        "darkreader": allSettings.darkreader,
+        "darkreaderbg": allSettings.darkreaderbg,
+        "darkreaderbrightness": allSettings.darkreaderbrightness,
+        "darkreadercontrast": allSettings.darkreadercontrast,
+        "darkreaderfg": allSettings.darkreaderfg,
+        "darkreadergrayscale": allSettings.darkreadergrayscale,
+        "darkreadersepia": allSettings.darkreadersepia,
+        "darkreadertextstroke": allSettings.darkreadertextstroke,
         "dialogalert": allSettings.dialogalert,
         "dialogconfirm": allSettings.dialogconfirm,
         "dialogprompt": allSettings.dialogprompt,
@@ -1112,6 +1143,14 @@ const set = (setting, value) => {
             applyLayout()
         }
         const webviewSettings = [
+            "darkreader",
+            "darkreaderbg",
+            "darkreaderbrightness",
+            "darkreadercontrast",
+            "darkreaderfg",
+            "darkreadergrayscale",
+            "darkreadersepia",
+            "darkreadertextstroke",
             "dialogalert",
             "dialogconfirm",
             "dialogprompt",
@@ -1126,6 +1165,19 @@ const set = (setting, value) => {
         ]
         if (webviewSettings.includes(setting)) {
             updateWebviewSettings()
+        }
+        if (setting.startsWith("darkreader")) {
+            listPages().forEach(p => {
+                try {
+                    if (allSettings.darkreader) {
+                        p.send("enable-darkreader")
+                    } else {
+                        p.send("disable-darkreader")
+                    }
+                } catch {
+                    // Page not ready yet or suspended
+                }
+            })
         }
         if (setting.startsWith("permission")) {
             updatePermissionSettings()
@@ -1178,6 +1230,9 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     }
     if (containerSettings.includes(setting)) {
         allowedValues = "See description"
+    }
+    if (setting === "darkreaderfg" || setting === "darkreaderbg") {
+        allowedValues = "Any valid CSS color"
     }
     if (setting === "downloadpath") {
         allowedValues = "Any directory on disk or empty"

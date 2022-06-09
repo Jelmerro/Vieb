@@ -703,6 +703,22 @@
         Similar to <a href="#containernewtab">containernewtab</a>, but specifically applies to pages that are passed to Vieb as a command line argument. If Vieb is your default browser, this includes urls that you click on outside of Vieb, that are configured to open with Vieb. This setting only supports the special names: <kbd>s:usematching</kbd>, <kbd>s:usecurrent</kbd>, <kbd>s:replacematching</kbd> and <kbd>s:replacecurrent</kbd>. See <a href="#containernewtab">containernewtab</a> for usage and details.
         <h3 id="countlimit">countlimit</h3>
         This setting is used as an upper limit of the counter for repeating actions in <a class="normal" href="#action.toNormalMode">normal mode</a>, <a class="pointer" href="#pointer">pointer mode</a> and <a class="visual" href="#visual">visual mode</a>. For example, pressing <kbd>50t</kbd> will usually open 50 new tabs, but only 10 if the countlimit is set to 10. This setting limits the number of repeated actions, which you can visualize in the top-right of the Vieb window if <a href="#showcmd">showcmd</a> is set. There is also a setting to limit the maximum recursion of a mapping, named <a href="#maxmapdepth">maxmapdepth</a>.
+        <h3 id="darkreader">darkreader</h3>
+        Toggle to enable/disable <a href="https://darkreader.org/">darkreader</a> for all external pages. Special pages such as the help are not affected, as they are dark already. Toggling this with pages open with toggle dark mode for all open pages in realtime, no need to reload. You can customize the appearance and operation of darkreader using the config options below.
+        <h3 id="darkreaderbg">darkreaderbg</h3>
+        Set the default background color of darkreader styled pages. Can be a color name or a hex code.
+        <h3 id="darkreaderbrightness">darkreaderbrightness</h3>
+        Set the brightness of darkreader styled pages.
+        <h3 id="darkreadercontrast">darkreadercontrast</h3>
+        Set the contrast of darkreader styled pages.
+        <h3 id="darkreaderfg">darkreaderfg</h3>
+        Set the default foreground color of darkreader styled pages. Can be a color name or a hex code.
+        <h3 id="darkreadergrayscale">darkreadergrayscale</h3>
+        Set the grayscale value of darkreader styled pages. 100% grayscale means that all content (not images) will be completely drained of color, while 0% means the grayscale filter is not applied. Any value between will "gray" the look of the elements on the page.
+        <h3 id="darkreadersepia">darkreadersepia</h3>
+        Set the sepia value of darkreader styled pages. 100% sepia means that all content (not images) will be rendered in the typical brown sepia color. Low percentages are recommended, but you can use any percentage between 0 and 100.
+        <h3 id="darkreadertextstroke">darkreadertextstroke</h3>
+        Set the width of text stroking of darkreader styled pages. The width can be any value between 0 and 1, and represents the stroke width that will be applied to text on the page, as to make it more readable on a dark background.
         <h3 id="devtoolsposition">devtoolsposition</h3>
         This setting controls the default location where the devtools will open when using the <a href="#:devtools">:devtools</a> command.
         <h3 id="dialogalert">dialogalert</h3>
@@ -1461,6 +1477,14 @@
             <li>
                 <a href="https://github.com/highlightjs/highlight.js">Highlight.js</a>
                 is used to view the source code of resources with syntax highlighting
+            </li>
+            <li>
+                <a href="https://github.com/mozilla/readability">Readability</a>
+                is used to extract content from the page to generate the readerview
+            </li>
+            <li>
+                <a href="https://github.com/darkreader/darkreader">Darkreader</a>
+                is used to style external websites in a consistent dark look
             </li>
         </ul>
         Thanks to all the people involved for making Vieb possible.
