@@ -1815,7 +1815,7 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         }
         return
     }
-    if (id === "<BS>") {
+    if (id === "<BS>" || id === "<S-BS>") {
         if (url.selectionStart > 0) {
             const cur = Number(url.selectionStart)
             url.value = `${url.value.substr(0, url.selectionStart - 1)}${
@@ -1859,7 +1859,7 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         url.value = `${url.value.substr(0, url.selectionStart)}\\${
             url.value.substr(url.selectionEnd)}`
     }
-    if (id === "<Space>") {
+    if (id === "<Space>" || id === "<S-Space>") {
         url.value = `${url.value.substr(0, url.selectionStart)} ${
             url.value.substr(url.selectionEnd)}`
     }

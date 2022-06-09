@@ -20,6 +20,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Compact layout overflowing below the visible window, now uses grid layout
+- Shifted space and backspace not working in navbar as a regular space/backspace
 
 ### Versions
 
