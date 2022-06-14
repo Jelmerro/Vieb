@@ -73,8 +73,10 @@ const getGuiStatus = type => {
 }
 
 const setTopOfPageWithMouse = status => {
-    topOfPageWithMouse = status
-    updateGuiVisibility()
+    if (topOfPageWithMouse !== status) {
+        topOfPageWithMouse = status
+        updateGuiVisibility()
+    }
 }
 
 const updateScreenshotHighlight = (hide = false) => {
@@ -160,7 +162,7 @@ const updateGuiVisibility = () => {
         }
     }
     const {applyLayout} = require("./pagelayout")
-    setTimeout(applyLayout, 1)
+    applyLayout()
     if (currentMode() === "pointer") {
         const {updateElement} = require("./pointer")
         updateElement()

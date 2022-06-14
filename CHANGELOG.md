@@ -17,6 +17,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Darkreader with many settings like "darkreader" and "darkreadercontrast" to toggle and control darkreader theming
 
+### Changed
+
+- Reduced the amount of mouse movement events while inside pointer mode, greatly reducing CPU usage
+
 ### Fixed
 
 - Compact layout overflowing below the visible window, now uses grid layout
