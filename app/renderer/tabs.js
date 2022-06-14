@@ -617,7 +617,7 @@ const addWebviewListeners = webview => {
             } else if (ffMode === "google" && sameDomain(e.url, "https://google.com")) {
                 webview.setUserAgent(firefoxUseragent())
             } else {
-                const agents = customUA.split(",")
+                const agents = customUA.split("~")
                 const agent = userAgentTemplated(
                     agents.at(Math.random() * agents.length))
                 webview.setUserAgent(agent)

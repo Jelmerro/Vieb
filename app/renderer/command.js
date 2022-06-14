@@ -70,10 +70,11 @@ const splitSettingAndValue = (part, seperator) => {
 
 const modifyListOrNumber = (setting, value, method) => {
     const isNumber = typeof getSetting(setting) === "number"
-    const {freeText, listLike, set} = require("./settings")
+    const {freeText, listLike, listLikeTilde, set} = require("./settings")
     const isFreeText = freeText.includes(setting)
     const isListLike = listLike.includes(setting)
-    if (!isNumber && !isFreeText && !isListLike) {
+    const isListLikeTilde = listLikeTilde.includes(setting)
+    if (!isNumber && !isFreeText && !isListLike && !listLikeTilde) {
         notify(
             `Can't modify '${setting}' as if it were a number or list`, "warn")
         return
@@ -81,6 +82,9 @@ const modifyListOrNumber = (setting, value, method) => {
     if (method === "append") {
         if (isListLike) {
             set(setting, `${getSetting(setting)},${value}`)
+        }
+        if (isListLikeTilde) {
+            set(setting, `${getSetting(setting)}~${value}`)
         }
         if (isNumber) {
             set(setting, getSetting(setting) + Number(value))
@@ -99,6 +103,15 @@ const modifyListOrNumber = (setting, value, method) => {
             const newValue = current.filter(e => e && e !== value).join(",")
             set(setting, newValue)
         }
+        if (isListLikeTilde) {
+            let current = getSetting(setting).split("~")
+            if (setting === "mouse" && current?.[0] === "all") {
+                const {mouseFeatures} = require("./settings")
+                current = mouseFeatures
+            }
+            const newValue = current.filter(e => e && e !== value).join("~")
+            set(setting, newValue)
+        }
         if (isNumber) {
             set(setting, getSetting(setting) - Number(value))
         }
@@ -109,6 +122,9 @@ const modifyListOrNumber = (setting, value, method) => {
     if (method === "special") {
         if (isListLike) {
             set(setting, `${value},${getSetting(setting)}`)
+        }
+        if (isListLikeTilde) {
+            set(setting, `${value}~${getSetting(setting)}`)
         }
         if (isNumber) {
             set(setting, getSetting(setting) * Number(value))
@@ -179,10 +195,12 @@ const set = args => {
             }
         } else if (part.startsWith("no")) {
             const value = getSetting(part.replace("no", ""))
-            const {"set": s, listLike} = require("./settings")
+            const {"set": s, listLike, listLikeTilde} = require("./settings")
             if (typeof value === "boolean") {
                 s(part.replace("no", ""), "false")
             } else if (listLike.includes(part.replace("no", ""))) {
+                s(part.replace("no", ""), "")
+            } else if (listLikeTilde.includes(part.replace("no", ""))) {
                 s(part.replace("no", ""), "")
             } else {
                 listSetting(part)

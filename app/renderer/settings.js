@@ -228,7 +228,9 @@ const listLike = [
     "spelllang",
     "startuppages",
     "storenewvisits",
-    "suggestorder",
+    "suggestorder"
+]
+const listLikeTilde = [
     "useragent"
 ]
 const validOptions = {
@@ -992,6 +994,7 @@ const suggestionList = () => {
         const isNumber = typeof defaultSettings[setting] === "number"
         const isFreeText = freeText.includes(setting)
         const isListLike = listLike.includes(setting)
+            || listLikeTilde.includes(setting)
         if (isNumber || isFreeText || isListLike) {
             listOfSuggestions.push(`${setting}+=`)
             listOfSuggestions.push(`${setting}^=`)
@@ -1061,6 +1064,10 @@ const set = (setting, value) => {
             // Remove empty and duplicate elements from the comma seperated list
             allSettings[setting] = Array.from(new Set(
                 value.split(",").map(e => e.trim()).filter(e => e))).join(",")
+        } else if (listLikeTilde.includes(setting)) {
+            // Remove empty and duplicate elements from the comma seperated list
+            allSettings[setting] = Array.from(new Set(
+                value.split("~").map(e => e.trim()).filter(e => e))).join("~")
         } else {
             allSettings[setting] = value
         }
@@ -1097,7 +1104,7 @@ const set = (setting, value) => {
         if (setting === "useragent") {
             if (allSettings.firefoxmode !== "always") {
                 ipcRenderer.sendSync("override-global-useragent",
-                    userAgentTemplated(value.split(",")[0]))
+                    userAgentTemplated(value.split("~")[0]))
             }
         }
         if (setting === "guifontsize") {
@@ -1220,6 +1227,10 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
         typeLabel = "Like-like String"
         allowedValues = "Comma-separated list"
     }
+    if (listLikeTilde.includes(setting)) {
+        typeLabel = "Like-like String"
+        allowedValues = "Tilde-separated list"
+    }
     if (validOptions[setting]) {
         typeLabel = "Fixed-set String"
         allowedValues = validOptions[setting]
@@ -1313,6 +1324,16 @@ const listCurrentSettings = full => {
                 return
             }
         }
+        if (listLikeTilde.includes(setting)) {
+            const entries = value.split("~")
+            if (entries.length > 1 || value.match(/( |'|")/g)) {
+                setCommands += `${setting}=\n`
+                entries.forEach(entry => {
+                    setCommands += `${setting}+=${escapeValueChars(entry)}\n`
+                })
+                return
+            }
+        }
         setCommands += `${setting}=${escapeValueChars(value)}\n`
     })
     return setCommands
@@ -1383,6 +1404,7 @@ module.exports = {
     init,
     listCurrentSettings,
     listLike,
+    listLikeTilde,
     loadFromDisk,
     mouseFeatures,
     reset,

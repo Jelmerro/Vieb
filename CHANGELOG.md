@@ -20,6 +20,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Reduced the amount of mouse movement events while inside pointer mode, greatly reducing CPU usage
+- Setting "useragent" is now separated by tildes `~` instead of commas `,` as to allow commas to appear in useragents
 
 ### Fixed
 
@@ -28,7 +29,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Versions
 
-- Electron 19.0.4 (unchanged)
+- Electron 19.0.4 (was 19.0.3)
 - Chromium 102.0.5005.63 (unchanged)
 
 ## [8.0.0](https://github.com/Jelmerro/Vieb/compare/7.2.0...8.0.0) - 2022-06-08
