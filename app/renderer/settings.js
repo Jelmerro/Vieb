@@ -188,6 +188,7 @@ const defaultSettings = {
     "splitright": false,
     "startuppages": "",
     "storenewvisits": "pages",
+    "suggestbookmarks": "all",
     "suggestcommands": 9000000000000000,
     "suggestorder": "history,searchword,file",
     "suggesttopsites": 10,
@@ -229,6 +230,7 @@ const listLike = [
     "spelllang",
     "startuppages",
     "storenewvisits",
+    "suggestbookmarks",
     "suggestorder"
 ]
 const listLikeTilde = [
