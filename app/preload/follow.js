@@ -211,6 +211,9 @@ const mainInfoLoop = () => {
         }
     })
     // Send details to main for iframes that run in a separate process
+    if (!document.body) {
+        return
+    }
     ipcRenderer.send("frame-details", {
         "height": window.innerHeight,
         "pagex": window.scrollX,

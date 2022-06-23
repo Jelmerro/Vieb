@@ -16,21 +16,28 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Darkreader with many settings like "darkreader" and "darkreadercontrast" to toggle and control darkreader theming
+- Sponsorblock with settings "sponsorblock" "sponsorblockcategories" to toggle and control blocking
 
 ### Changed
 
 - Reduced the amount of mouse movement events while inside pointer mode, greatly reducing CPU usage
 - Setting "useragent" is now separated by tildes `~` instead of commas `,` as to allow commas to appear in useragents
+- Settings with "," separator with each entry having a "~" separator can now be removed with just the part before the first "~"
+
+### Deprecated
+
+- Extension support, see [this Github issue](https://github.com/Jelmerro/Vieb/issues/385) to learn more
 
 ### Fixed
 
 - Compact layout overflowing below the visible window, now uses grid layout
 - Shifted space and backspace not working in navbar as a regular space/backspace
+- DOM issue when trying to send iframe details before DOM is ready
 
 ### Versions
 
-- Electron 19.0.4 (was 19.0.3)
-- Chromium 102.0.5005.63 (unchanged)
+- Electron 19.0.6 (was 19.0.3)
+- Chromium 102.0.5005.115 (was 102.0.5005.63)
 
 ## [8.0.0](https://github.com/Jelmerro/Vieb/compare/7.2.0...8.0.0) - 2022-06-08
 
@@ -973,17 +980,6 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Make use of system fonts as much as possible: "DejaVu Sans Mono" -> "Courier" -> "monospace", in that order
 - Visual appearance of Vieb: logo is now smaller, everything is now styled with colorschemes and popups are more in line with other elements
 
-### Fixed
-
-- Typo in the "storenewvisits" setting (there will be no automatic migration from the name with a typo to the correct one)
-- Pointer not updating the location when bringing back the GUI while in fullscreen
-- Permission for media devices sometimes being detected as a microphone permission
-- Mouse back/forward buttons being ignored when the mouse setting is enabled
-- Shift being ignored when pressing named keys that can be pressed with and without Shift such as "Space"
-- Border of split pages moving the page slightly when switching (border is now always there but in gray)
-- Updating the adblocker files when Vieb is installed on a read-only file system
-- Favicons being accepted even though the HTTP status code was an error (such as 404)
-
 ### Deprecated
 
 - Old tabs file format (3.x.x releases will migrate to the new format, 2.x.x releases will not read the 3.x.x format)
@@ -997,6 +993,14 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Fixed
 
+- Typo in the "storenewvisits" setting (there will be no automatic migration from the name with a typo to the correct one)
+- Pointer not updating the location when bringing back the GUI while in fullscreen
+- Permission for media devices sometimes being detected as a microphone permission
+- Mouse back/forward buttons being ignored when the mouse setting is enabled
+- Shift being ignored when pressing named keys that can be pressed with and without Shift such as "Space"
+- Border of split pages moving the page slightly when switching (border is now always there but in gray)
+- Updating the adblocker files when Vieb is installed on a read-only file system
+- Favicons being accepted even though the HTTP status code was an error (such as 404)
 - Abort error for aborting page loads in the debug console (using --debug)
 - Don't keep closed pages in memory while the 'keeprecentlyclosed' setting is off
 

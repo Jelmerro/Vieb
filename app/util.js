@@ -504,6 +504,25 @@ const extractZip = (args, cb) => {
     spawn(loc, args).on("exit", cb)
 }
 
+const fetchJSON = url => new Promise((res, rej) => {
+    const https = require("https")
+    const request = https.request(url, response => {
+        let data = ""
+        response.on("data", chunk => {
+            data += chunk.toString()
+        })
+        response.on("end", () => {
+            try {
+                res(JSON.parse(data))
+            } catch (err) {
+                rej(err)
+            }
+        })
+    })
+    request.on("error", err => rej(err))
+    request.end()
+})
+
 // IPC UTIL
 
 const sendToPageOrSubFrame = (channel, ...args) => {
@@ -904,6 +923,7 @@ module.exports = {
     formatSize,
     compareVersions,
     extractZip,
+    fetchJSON,
     // IPC UTIL
     sendToPageOrSubFrame,
     globDelete,

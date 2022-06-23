@@ -185,6 +185,9 @@ const defaultSettings = {
     "spelllang": "system",
     "splitbelow": false,
     "splitright": false,
+    "sponsorblock": false,
+    "sponsorblockcategories": "sponsor~lime,intro~cyan,outro~blue,"
+        + "interaction~red,selfpromo~yellow,music_offtopic",
     "startuppages": "",
     "storenewvisits": "pages",
     "suggestcommands": 9000000000000000,
@@ -226,6 +229,7 @@ const listLike = [
     "search",
     "searchwords",
     "spelllang",
+    "sponsorblockcategories",
     "startuppages",
     "storenewvisits",
     "suggestorder"
@@ -674,6 +678,39 @@ const checkOther = (setting, value) => {
             }
         }
     }
+    if (setting === "sponsorblockcategories") {
+        const knownCategories = []
+        const allCategories = defaultSettings.sponsorblockcategories
+            .split(",").map(s => s.split("~")[0])
+        for (const catColorPair of value.split(",").filter(c => c.trim())) {
+            if ((catColorPair.match(/~/g) || []).length > 1) {
+                notify(`Invalid ${setting} entry: ${catColorPair}\n`
+                    + "Entries must have zero or one ~ to separate the "
+                    + "category name and color name/hex", "warn")
+                return false
+            }
+            const [category, color] = catColorPair.split("~")
+            if (!allCategories.includes(category)) {
+                notify(`Invalid category in ${setting}: ${category}`, "warn")
+                return false
+            }
+            const {style} = document.createElement("div")
+            style.color = "white"
+            style.color = color
+            if (color && style.color === "white" && color !== "white") {
+                notify("Invalid color, must be a valid color name or hex"
+                    + `, not: ${color}`, "warn")
+                return false
+            }
+            if (knownCategories.includes(category)) {
+                notify(`Invalid sponsorblockcategories entry: ${catColorPair}\n`
+                    + `The category ${category} was already defined. `
+                    + "A category must be defined only once", "warn")
+                return false
+            }
+            knownCategories.push(category)
+        }
+    }
     if (setting === "favoritepages") {
         for (const page of value.split(",").filter(p => p.trim())) {
             if (!isUrl(page)) {
@@ -891,34 +928,43 @@ const updateDownloadSettings = () => {
     ipcRenderer.send("set-download-settings", downloads)
 }
 
+const webviewSettings = [
+    "darkreader",
+    "darkreaderbg",
+    "darkreaderbrightness",
+    "darkreadercontrast",
+    "darkreaderfg",
+    "darkreadergrayscale",
+    "darkreadersepia",
+    "darkreadertextstroke",
+    "dialogalert",
+    "dialogconfirm",
+    "dialogprompt",
+    "guifontsize",
+    "inputfocusalignment",
+    "permissiondisplaycapture",
+    "permissionmediadevices",
+    "permissionsallowed",
+    "permissionsasked",
+    "permissionsblocked",
+    "searchpointeralignment",
+    "sponsorblock",
+    "sponsorblockcategories"
+]
+
 const updateWebviewSettings = () => {
     const webviewSettingsFile = joinPath(
         appData(), "webviewsettings")
-    writeJSON(webviewSettingsFile, {
+    const data = {
         "bg": getComputedStyle(document.body).getPropertyValue("--bg"),
-        "darkreader": allSettings.darkreader,
-        "darkreaderbg": allSettings.darkreaderbg,
-        "darkreaderbrightness": allSettings.darkreaderbrightness,
-        "darkreadercontrast": allSettings.darkreadercontrast,
-        "darkreaderfg": allSettings.darkreaderfg,
-        "darkreadergrayscale": allSettings.darkreadergrayscale,
-        "darkreadersepia": allSettings.darkreadersepia,
-        "darkreadertextstroke": allSettings.darkreadertextstroke,
-        "dialogalert": allSettings.dialogalert,
-        "dialogconfirm": allSettings.dialogconfirm,
-        "dialogprompt": allSettings.dialogprompt,
         "fg": getComputedStyle(document.body).getPropertyValue("--fg"),
-        "guifontsize": allSettings.guifontsize,
-        "inputfocusalignment": allSettings.inputfocusalignment,
         "linkcolor": getComputedStyle(document.body)
-            .getPropertyValue("--link-color"),
-        "permissiondisplaycapture": allSettings.permissiondisplaycapture,
-        "permissionmediadevices": allSettings.permissionmediadevices,
-        "permissionsallowed": allSettings.permissionsallowed,
-        "permissionsasked": allSettings.permissionsasked,
-        "permissionsblocked": allSettings.permissionsblocked,
-        "searchpointeralignment": allSettings.searchpointeralignment
+            .getPropertyValue("--link-color")
+    }
+    webviewSettings.forEach(setting => {
+        data[setting] = allSettings[setting]
     })
+    writeJSON(webviewSettingsFile, data)
 }
 
 const updatePermissionSettings = () => {
@@ -1149,27 +1195,6 @@ const set = (setting, value) => {
             const {applyLayout} = require("./pagelayout")
             applyLayout()
         }
-        const webviewSettings = [
-            "darkreader",
-            "darkreaderbg",
-            "darkreaderbrightness",
-            "darkreadercontrast",
-            "darkreaderfg",
-            "darkreadergrayscale",
-            "darkreadersepia",
-            "darkreadertextstroke",
-            "dialogalert",
-            "dialogconfirm",
-            "dialogprompt",
-            "guifontsize",
-            "inputfocusalignment",
-            "permissiondisplaycapture",
-            "permissionmediadevices",
-            "permissionsallowed",
-            "permissionsasked",
-            "permissionsblocked",
-            "searchpointeralignment"
-        ]
         if (webviewSettings.includes(setting)) {
             updateWebviewSettings()
         }
@@ -1239,7 +1264,7 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
         typeLabel = "Boolean flag"
         allowedValues = "true,false"
     }
-    if (containerSettings.includes(setting)) {
+    if (containerSettings.includes(setting) || setting === "followchars") {
         allowedValues = "See description"
     }
     if (setting === "darkreaderfg" || setting === "darkreaderbg") {
@@ -1253,6 +1278,9 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     }
     if (setting === "mouse") {
         allowedValues = "'all' or list of features"
+    }
+    if (setting === "newtaburl") {
+        allowedValues = "Any URL"
     }
     if (setting === "search") {
         allowedValues = "Any URL with %s"

@@ -100,15 +100,15 @@ const modifyListOrNumber = (setting, value, method) => {
                 const {mouseFeatures} = require("./settings")
                 current = mouseFeatures
             }
-            const newValue = current.filter(e => e && e !== value).join(",")
+            let newValue = current.filter(e => e && e !== value).join(",")
+            if (newValue === current.join(",")) {
+                newValue = current.filter(
+                    e => e.split("~")[0] !== value.split("~")[0]).join(",")
+            }
             set(setting, newValue)
         }
         if (isListLikeTilde) {
-            let current = getSetting(setting).split("~")
-            if (setting === "mouse" && current?.[0] === "all") {
-                const {mouseFeatures} = require("./settings")
-                current = mouseFeatures
-            }
+            const current = getSetting(setting).split("~")
             const newValue = current.filter(e => e && e !== value).join("~")
             set(setting, newValue)
         }
@@ -952,6 +952,8 @@ const makedefault = () => {
 }
 
 const extensionsCommand = args => {
+    notify("Installing extensions in Vieb is deprecated, "
+        + "please run ':help :extensions' for details and info.", "warn")
     if (!args[0]) {
         openSpecialPage("extensions")
         return

@@ -22,7 +22,6 @@ nmap <F3> <toSearchMode><nextSearchMatch>
 nmap <S-F3> <toSearchMode><previousSearchMatch>
 nmap <C-g> <toSearchMode><nextSearchMatch>
 nmap <C-G> <toSearchMode><previousSearchMatch>
-nmap <C-E> <:extensions>
 nmap <C-h> <:history>
 nmap <C-H> <:history>
 nmap <C-F1> <:open https://vieb.dev/cheatsheet>

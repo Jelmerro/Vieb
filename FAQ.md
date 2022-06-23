@@ -173,3 +173,12 @@ You can also check out the official [Matrix space](https://matrix.to/#/#vieb:mat
 or visit the [Telegram announcements](https://t.me/vieb_announcements) and [the general chat on Telegram](https://t.me/vieb_general).
 Lastly, if your system has a [third-party package](https://repology.org/project/vieb/versions), you could use that as well.
 These packages might be customized or updated at a later date, but they get updates the same way you are used to from your operating system.
+
+#### Will extensions ever be supported?
+
+Highly unlikely, as this has been attempted numerous times in the past, without success.
+The results of this were tracked in [this issue](https://github.com/Jelmerro/Vieb/issues/130).
+The current approach is to implement common extensions and their features into Vieb directly,
+for which the progress can be tracked in [this issue](https://github.com/Jelmerro/Vieb/issues/385).
+If you miss a feature in Vieb that you currently use an extension for, please make a new Github issue.
+If you think you have what it takes to give Vieb extension support, feel free to make a PR for it.
