@@ -73,6 +73,7 @@ const mouseFeatures = [
 ]
 const defaultSettings = {
     "adblocker": "static",
+    "bookmarksfile": "bookmarks",
     "cache": "clearonquit",
     "clearcookiesonquit": false,
     "cleardownloadsoncompleted": false,
@@ -209,7 +210,7 @@ const defaultSettings = {
 }
 let allSettings = {}
 const freeText = [
-    "downloadpath", "externalcommand", "vimcommand", "windowtitle"
+    "downloadpath", "externalcommand", "vimcommand", "windowtitle", "bookmarksfile"
 ]
 const listLike = [
     "containercolors",
@@ -315,6 +316,10 @@ const numberRanges = {
     "timeoutlen": [0, 9000000000000000]
 }
 let customStyling = ""
+const bookmarkSettings = [
+    "bookmarksfile",
+    "suggestbookmarks"
+]
 const downloadSettings = [
     "downloadmethod",
     "downloadpath",
@@ -329,6 +334,7 @@ let spelllangs = []
 const init = () => {
     loadFromDisk()
     updateDownloadSettings()
+    updateBookmarkSettings()
     updatePermissionSettings()
     updateWebviewSettings()
     updateMouseSettings()
@@ -891,6 +897,14 @@ const updateDownloadSettings = () => {
     ipcRenderer.send("set-download-settings", downloads)
 }
 
+const updateBookmarkSettings = () => {
+    const bookmarks = {}
+    bookmarkSettings.forEach(setting => {
+        bookmarks[setting] = allSettings[setting]
+    })
+    ipcRenderer.send("set-bookmark-settings", bookmarks)
+}
+
 const updateWebviewSettings = () => {
     const webviewSettingsFile = joinPath(
         appData(), "webviewsettings")
@@ -1038,6 +1052,7 @@ const loadFromDisk = (firstRun = true) => {
     }
     updateContainerSettings()
     updateDownloadSettings()
+    updateBookmarkSettings()
     updatePermissionSettings()
     updateWebviewSettings()
     updateMouseSettings()
@@ -1112,6 +1127,9 @@ const set = (setting, value) => {
         }
         if (downloadSettings.includes(setting)) {
             updateDownloadSettings()
+        }
+        if (bookmarkSettings.includes(setting)) {
+            updateBookmarkSettings()
         }
         if (setting.startsWith("gui")) {
             updateGuiVisibility()

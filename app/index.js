@@ -686,6 +686,8 @@ ipcMain.on("show-prompt-dialog", (e, text) => {
 
 // Create and manage sessions, mostly downloads, adblocker and permissions
 const dlsFile = joinPath(app.getPath("appData"), "dls")
+let bookmarksFile
+let bookmarks = {}
 let downloadSettings = {}
 let downloads = []
 let redirects = ""
@@ -758,6 +760,18 @@ ipcMain.on("download-list-request", (e, action, downloadId) => {
     }
     writeDownloadsToFile()
     e.sender.send("download-list", JSON.stringify(downloads))
+})
+ipcMain.on("set-bookmark-settings", (_, settings) => {
+    if (settings.bookmarksfile === "bookmarks") {
+        bookmarksFile = joinPath(app.getPath("appData"), "bookmarks")
+    } else {
+        if (isAbsolutePath(settings.bookmarksfile)) {
+            bookmarksFile = settings.bookmarksfile
+        } else { // relative to datafolder
+            bookmarksFile = joinPath(app.getPath("appData"), settings.bookmarksfile)
+        }
+    }
+    bookmarks = readJSON(bookmarksFile)
 })
 ipcMain.on("set-permissions", (_, permissionObject) => {
     permissions = permissionObject
