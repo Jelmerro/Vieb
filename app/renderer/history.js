@@ -34,12 +34,34 @@ const {getSetting} = require("./common")
 
 const histFile = joinPath(appData(), "hist")
 const simpleUrls = {}
+const simpleTitles = {}
 let histWriteTimeout = null
 let groupedHistory = {}
 
 const init = () => {
     groupedHistory = readJSON(histFile) || {}
 }
+
+const getSimpleUrl = url => {
+    let simpleUrl = simpleUrls[url]
+    if (simpleUrl === undefined) {
+        simpleUrl = urlToString(url).replace(specialChars, "").toLowerCase()
+        simpleUrls[url] = simpleUrl
+    }
+    return simpleUrl
+}
+
+const getSimpleName = name => {
+    let simpleTitle = simpleTitles[name]
+    if (simpleTitle === undefined) {
+        simpleTitle = name.replace(specialChars, "").toLowerCase()
+        simpleTitles[name] = simpleTitle
+    }
+    return simpleTitle
+}
+
+const allWordsAnywhere = (search, simpleUrl, name) => search.every(
+    w => simpleUrl.includes(w) || getSimpleName(name).includes(w))
 
 const suggestHist = (searchStr, order, count) => {
     // Simplify the search to a list of words, or an ordered list of words,
@@ -55,11 +77,8 @@ const suggestHist = (searchStr, order, count) => {
         if (!groupedHistory[url]) {
             return null
         }
-        let simpleUrl = simpleUrls[url]
-        if (simpleUrl === undefined) {
-            simpleUrl = urlToString(url).replace(specialChars, "").toLowerCase()
-            simpleUrls[url] = simpleUrl
-        }
+        const simpleUrl = getSimpleUrl(url)
+        const name = groupedHistory[url].title
         let relevance = 1
         if (simpleSearch.every(w => simpleUrl.includes(w))) {
             relevance = 5
@@ -67,16 +86,10 @@ const suggestHist = (searchStr, order, count) => {
         if (url.toLowerCase().includes(search)) {
             relevance *= 10
         }
-        const allWordsInTitleOrUrl = () => {
-            const simpleTitle = groupedHistory[url].title.replace(
-                specialChars, "").toLowerCase()
-            return simpleSearch.every(
-                w => simpleTitle.includes(w) || simpleUrl.includes(w))
-        }
-        if (relevance > 1 || allWordsInTitleOrUrl()) {
+        if (relevance > 1 || allWordsAnywhere(simpleSearch, simpleUrl, name)) {
             return {
                 "last": new Date(groupedHistory[url]?.visits?.slice(-1)[0]),
-                "title": groupedHistory[url].title,
+                "title": name,
                 "top": relevance * visitCount(url),
                 url
             }

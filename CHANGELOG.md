@@ -22,7 +22,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Reduced the amount of mouse movement events while inside pointer mode, greatly reducing CPU usage
 - Setting "useragent" is now separated by tildes `~` instead of commas `,` as to allow commas to appear in useragents
-- Settings with "," separator with each entry having a "~" separator can now be removed with just the part before the first "~"
+- Settings with `,` separator with each entry having a `~` separator can now be removed with just the part before the first `~`
+- Explore mode suggestion logic should now be faster after first search by caching page titles
 
 ### Deprecated
 
