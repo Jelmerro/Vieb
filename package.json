@@ -32,8 +32,8 @@
     "electron-builder": "23.1.0",
     "eslint": "8.18.0",
     "eslint-plugin-sort-keys": "2.3.5",
-    "jest": "28.1.1",
-    "jest-environment-jsdom": "28.1.1"
+    "jest": "28.1.2",
+    "jest-environment-jsdom": "28.1.2"
   },
   "dependencies": {
     "@cliqz/adblocker-electron": "1.23.8",
