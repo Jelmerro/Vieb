@@ -46,6 +46,7 @@ const {
     updateGuiVisibility,
     getMouseConf
 } = require("./common")
+const {setBookmarkSettings} = require("./bookmarks")
 
 const mouseFeatures = [
     "pageininsert",
@@ -211,7 +212,11 @@ const defaultSettings = {
 }
 let allSettings = {}
 const freeText = [
-    "downloadpath", "externalcommand", "vimcommand", "windowtitle", "bookmarksfile"
+    "downloadpath",
+    "externalcommand",
+    "vimcommand",
+    "windowtitle",
+    "bookmarksfile"
 ]
 const listLike = [
     "containercolors",
@@ -900,11 +905,7 @@ const updateDownloadSettings = () => {
 }
 
 const updateBookmarkSettings = () => {
-    const bookmarks = {}
-    bookmarkSettings.forEach(setting => {
-        bookmarks[setting] = allSettings[setting]
-    })
-    ipcRenderer.send("set-bookmark-settings", bookmarks)
+    setBookmarkSettings()
 }
 
 const updateWebviewSettings = () => {

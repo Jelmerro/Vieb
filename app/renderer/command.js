@@ -47,6 +47,7 @@ const {
 const {
     listTabs, listPages, currentTab, currentPage, tabOrPageMatching, getSetting
 } = require("./common")
+const {addBookmark} = require("./bookmarks")
 
 const listSetting = setting => {
     if (setting === "all") {
@@ -1095,6 +1096,7 @@ const commands = {
     "Vexplore": ({args, range}) => addSplit(
         "hor", !getSetting("splitright"), args, range),
     "b": ({args}) => buffer(args),
+    "bmadd": ({args}) => addBookmark(args),
     "buffer": ({args}) => buffer(args),
     "call": ({args}) => callAction(args),
     "close": ({args, range}) => close(false, args, range),
