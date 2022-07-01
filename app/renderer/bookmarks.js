@@ -21,7 +21,6 @@ const {
     readJSON,
     joinPath,
     notify,
-    isUrl,
     isAbsolutePath,
     appData
 } = require("../util")
@@ -55,35 +54,43 @@ const setBookmarkSettings = () => {
         bookmarksFile = joinPath(appData(), setFile)
     }
     bookmarks = readJSON(bookmarksFile)
-    if (typeof bookmarks.bookmarks !== "undefined") {
-        notify("bookmark settings done")
-    }
 }
 
 const addBookmark = input => {
     const newbookmark = {}
-    // Retain spaces for multiple word inputs.
-    const values = input.join(" ").split("~")
-    for (let i = 0; i < values.length; i++) {
-        // Get key and value
-        const value = values[i].split("=")
-        const allInputs = value.slice(1).join("")
-        if (allInputs !== "") {
-            newbookmark[value[0]] = allInputs
-        } else {
-            continue
+    // If there's "=" or "~" we parse the input.
+    if (input.join().includes("=") || input.join().includes("~")) {
+        // Retain spaces for multiple word inputs.
+        const options = input.join(" ").split("~")
+        for (let i = 0; i < options.length; i++) {
+            // Get key and value: [0,1]
+            const keyAndValue = options[i].split("=")
+            const allValue = keyAndValue.slice(1).join("")
+            if (allValue !== "") {
+                newbookmark[keyAndValue[0]] = allValue
+            }
+        }
+    } else {
+        // If there's only text, we take it as name for current page bookmark
+        newbookmark.name = input.join(" ")
+        if (newbookmark.name === "") {
+            // When user doesn't enter anything delete empty string
+            delete newbookmark.name
         }
     }
     // Fill missing essential data from relevant sources
     if (typeof newbookmark.name === "undefined") {
         newbookmark.name = currentTab().querySelector("span").textContent
     }
+    if (typeof newbookmark.title === "undefined") {
+        newbookmark.title = currentTab().querySelector("span").textContent
+    }
     if (typeof newbookmark.url === "undefined") {
         newbookmark.url = currentPage().src
     }
     if (isBookmarkValid(newbookmark)) {
         bookmarks.bookmarks.push(newbookmark)
-        notify("Bookmark added :)")
+        notify(`Bookmark added: ${newbookmark.name}: ${newbookmark.url}`)
         writeBookmarksToFile()
     }
 }
@@ -93,36 +100,23 @@ const writeBookmarksToFile = () => {
 }
 
 const isBookmarkValid = bookmark => {
-    let complaints = "Invalid bookmark: "
-    let removedItemCount = 0
     let isValid = true
+    const badOptions = []
 
     // Remove invalid options
-    for (const item in bookmark) {
-        if (!validOptions.includes(item)) {
-            removedItemCount += 1
-            const badItem = `option ${item} is not a valid option,`
-            complaints += badItem
-            delete bookmark[item]
+    for (const option in bookmark) {
+        if (!validOptions.includes(option)) {
+            badItems.push(option)
+            delete bookmark[option]
         }
     }
-
-    // Check if data is valid
-    if (!isUrl(bookmark.url)) {
-        complaints += "The given url is not valid"
-        isValid = false
-    }
     // Check path format
-
-    // Check color values
-
-    // Check about how to implement keywords and tags.
+    // Check color hex values
+    // Check keywords and tags.
     // Single words?
 
-    // Give feedback to user
-
-    if (removedItemCount !== 0) {
-        notify(complaints)
+    if (badOptions.length !== 0) {
+        notify(`Not valid options: ${badOptions.join(", ")}.`)
     }
     return isValid
 }
