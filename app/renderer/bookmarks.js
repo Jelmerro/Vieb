@@ -48,7 +48,7 @@ const validOptions = [
 
 const setBookmarkSettings = () => {
     const setFile = getSetting("bookmarksfile")
-    if (setFile === "bookmarks") {
+    if (setFile === "bookmarks" || setFile.trim() === "") {
         bookmarksFile = joinPath(appData(), "bookmarks")
     } else if (isAbsolutePath(setFile)) {
         bookmarksFile = setFile
@@ -68,32 +68,33 @@ const addBookmark = input => {
             // Get key and value: [0,1]
             const keyAndValue = options[i].split("=")
             const allValue = keyAndValue.slice(1).join("")
-            if (allValue !== "") {
+            if (allValue?.trim()) {
                 newbookmark[keyAndValue[0]] = allValue
             }
         }
     } else {
         // If there's only text, we take it as name for current page bookmark
         newbookmark.name = input.join(" ")
-        if (newbookmark.name === "") {
+        if (newbookmark.name?.trim()) {
             // When user doesn't enter anything delete empty string
             delete newbookmark.name
         }
     }
     // Fill missing essential data from relevant sources
-    if (typeof newbookmark.name === "undefined") {
+    if (!newbookmark.name?.trim()) {
         newbookmark.name = currentTab().querySelector("span").textContent
     }
-    if (typeof newbookmark.title === "undefined") {
+    if (!newbookmark.title?.trim()) {
         newbookmark.title = currentTab().querySelector("span").textContent
     }
-    if (typeof newbookmark.url === "undefined") {
+    if (!newbookmark.url?.trim()) {
         newbookmark.url = currentPage().src
     }
     if (isBookmarkValid(newbookmark)) {
         bookmarkData.bookmarks.push(newbookmark)
         writeBookmarksToFile()
-        notify(`Bookmark added: ${newbookmark.name}: ${newbookmark.url}`)
+        notify(`Bookmark added: ${newbookmark.name.substring(0, 20)}:
+                ${newbookmark.url.substring(0, 40)}`)
     }
 }
 

@@ -46,7 +46,6 @@ const {
     updateGuiVisibility,
     getMouseConf
 } = require("./common")
-const {setBookmarkSettings} = require("./bookmarks")
 
 const mouseFeatures = [
     "pageininsert",
@@ -323,10 +322,6 @@ const numberRanges = {
     "timeoutlen": [0, 9000000000000000]
 }
 let customStyling = ""
-const bookmarkSettings = [
-    "bookmarksfile",
-    "suggestbookmarks"
-]
 const downloadSettings = [
     "downloadmethod",
     "downloadpath",
@@ -905,6 +900,7 @@ const updateDownloadSettings = () => {
 }
 
 const updateBookmarkSettings = () => {
+    const {setBookmarkSettings} = require("./bookmarks")
     setBookmarkSettings()
 }
 
@@ -1125,14 +1121,14 @@ const set = (setting, value) => {
                     userAgentTemplated(value.split("~")[0]))
             }
         }
+        if (setting === "bookmarksfile") {
+            updateBookmarkSettings()
+        }
         if (setting === "guifontsize") {
             updateCustomStyling()
         }
         if (downloadSettings.includes(setting)) {
             updateDownloadSettings()
-        }
-        if (bookmarkSettings.includes(setting)) {
-            updateBookmarkSettings()
         }
         if (setting.startsWith("gui")) {
             updateGuiVisibility()
