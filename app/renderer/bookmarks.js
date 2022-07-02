@@ -1,6 +1,8 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 20
+
+19-2022 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -30,7 +32,7 @@ const {
     currentTab
 } = require("./common")
 
-let bookmarks = {}
+let bookmarkData = {}
 let bookmarksFile = ""
 
 const validOptions = [
@@ -53,7 +55,7 @@ const setBookmarkSettings = () => {
     } else {
         bookmarksFile = joinPath(appData(), setFile)
     }
-    bookmarks = readJSON(bookmarksFile)
+    bookmarkData = readJSON(bookmarksFile)
 }
 
 const addBookmark = input => {
@@ -89,14 +91,16 @@ const addBookmark = input => {
         newbookmark.url = currentPage().src
     }
     if (isBookmarkValid(newbookmark)) {
-        bookmarks.bookmarks.push(newbookmark)
-        notify(`Bookmark added: ${newbookmark.name}: ${newbookmark.url}`)
+        bookmarkData.bookmarks.push(newbookmark)
         writeBookmarksToFile()
+        notify(`Bookmark added: ${newbookmark.name}: ${newbookmark.url}`)
     }
 }
 
+const getAllBookmarks = () => bookmarkData.bookmarks
+
 const writeBookmarksToFile = () => {
-    writeJSON(bookmarksFile, bookmarks)
+    writeJSON(bookmarksFile, bookmarkData)
 }
 
 const isBookmarkValid = bookmark => {
@@ -106,7 +110,7 @@ const isBookmarkValid = bookmark => {
     // Remove invalid options
     for (const option in bookmark) {
         if (!validOptions.includes(option)) {
-            badItems.push(option)
+            badOptions.push(option)
             delete bookmark[option]
         }
     }
@@ -124,5 +128,6 @@ const isBookmarkValid = bookmark => {
 
 module.exports = {
     addBookmark,
+    getAllBookmarks,
     setBookmarkSettings
 }

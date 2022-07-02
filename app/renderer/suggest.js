@@ -623,6 +623,32 @@ const suggestCommand = searchStr => {
             return tabTitle.includes(simpleSearch)
         }).forEach(t => addCommand(t.command, t.subtext))
     }
+    const bookmarkCommand = [
+        "bmload",
+        "bmdel"
+    ].find(b => b.startsWith(command))
+    if (bookmarkCommand && !confirm) {
+        const simpleSearch = args.join("")
+            .replace(specialChars, "").toLowerCase()
+        const {getAllBookmarks} = require("./bookmarks")
+        const bookmarks = getAllBookmarks()
+        bookmarks.map(b => ({
+            "command": `${bookmarkCommand} ${b.name}`,
+            "subtext": `${b.title} ${b.url}`,
+            "url": b.url
+        })).filter(b => {
+            const bookmarkUrl = b.url.replace(specialChars, "")
+                .toLowerCase()
+            if (bookmarkUrl.includes(simpleSearch)
+                && b.command.startsWith(search)) {
+                return true
+            }
+            const bookmarkTitle = b.title.replace(specialChars, "")
+                .toLowerCase()
+            return bookmarkTitle.includes(simpleSearch)
+            // Keywords, tags and paths
+        }).forEach(b => addCommand(b.command, b.subtext))
+    }
 }
 
 const addCommand = (command, subtext) => {
