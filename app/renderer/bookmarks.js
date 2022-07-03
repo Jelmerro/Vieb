@@ -24,6 +24,7 @@ const {
     joinPath,
     notify,
     isAbsolutePath,
+    isFile,
     appData
 } = require("../util")
 const {
@@ -54,6 +55,9 @@ const setBookmarkSettings = () => {
         bookmarksFile = setFile
     } else {
         bookmarksFile = joinPath(appData(), setFile)
+    }
+    if (!isFile(bookmarksFile)) {
+        writeJSON(bookmarksFile, {"bookmarks": [], "folders": [], "tags": []})
     }
     bookmarkData = readJSON(bookmarksFile)
 }
