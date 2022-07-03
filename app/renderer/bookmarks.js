@@ -67,9 +67,17 @@ const addBookmark = input => {
         for (let i = 0; i < options.length; i++) {
             // Get key and value: [0,1]
             const keyAndValue = options[i].split("=")
-            const allValue = keyAndValue.slice(1).join("")
-            if (allValue?.trim()) {
-                newbookmark[keyAndValue[0]] = allValue
+            if (keyAndValue[0] === "keywords" || keyAndValue[0] === "tag") {
+                const tagsOrKeywordList = keyAndValue.slice(1).join("")
+                    .split(",")
+                if (tagsOrKeywordList.length > 0) {
+                    newbookmark[keyAndValue[0]] = tagsOrKeywordList
+                }
+            } else {
+                const allValue = keyAndValue.slice(1).join("")
+                if (allValue?.trim()) {
+                    newbookmark[keyAndValue[0]] = allValue
+                }
             }
         }
     } else {
