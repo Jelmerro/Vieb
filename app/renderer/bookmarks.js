@@ -98,6 +98,21 @@ const addBookmark = input => {
     if (!newbookmark.url?.trim()) {
         newbookmark.url = currentPage().src
     }
+    if (!newbookmark.path?.trim()) {
+        newbookmark.path = "/"
+    }
+    if (!newbookmark.bg?.trim()) {
+        newbookmark.bg = "some default hex value"
+    }
+    if (!newbookmark.fg?.trim()) {
+        newbookmark.fg = "some default hex value"
+    }
+    if (typeof newbookmark.tag === "undefined") {
+        newbookmark.tag = []
+    }
+    if (typeof newbookmark.keywords === "undefined") {
+        newbookmark.keywords = []
+    }
     if (isBookmarkValid(newbookmark)) {
         bookmarkData.bookmarks.push(newbookmark)
         writeBookmarksToFile()
