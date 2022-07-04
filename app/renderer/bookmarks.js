@@ -111,11 +111,39 @@ const addBookmark = input => {
     if (typeof newbookmark.keywords === "undefined") {
         newbookmark.keywords = []
     }
+
     if (isBookmarkValid(newbookmark)) {
         bookmarkData.bookmarks.push(newbookmark)
         writeBookmarksToFile()
         notify(`Bookmark added: ${newbookmark.name.substring(0, 20)}:
                 ${newbookmark.url.substring(0, 40)}`)
+    }
+}
+
+const addTags = tags => {
+    const currentTagIds = bookmarkData.tags.map(tag => tag.id)
+    tags.forEach(t => {
+        if (!currentTagIds.includes(t)) {
+            bookmarkData.tags.push(
+                {
+                    "id": t,
+                    "keywords": [],
+                    "name": ""
+                }
+            )
+        }
+    })
+}
+
+const addFolder = path => {
+    const currentStoredPaths = bookmarkData.folders.map(f => f.path)
+    if (!currentStoredPaths.includes(path)) {
+        bookmarkData.folders.push(
+            {
+                "keywords": [],
+                "name": "",
+                path
+            })
     }
 }
 
@@ -136,6 +164,10 @@ const isBookmarkValid = bookmark => {
             delete bookmark[option]
         }
     }
+
+    addTags(bookmark.tag)
+    addFolder(bookmark.path)
+
     // Check path format
     // Check color hex values
     // Check keywords and tags.
