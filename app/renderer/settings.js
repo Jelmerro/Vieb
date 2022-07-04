@@ -188,7 +188,7 @@ const defaultSettings = {
     "splitright": false,
     "startuppages": "",
     "storenewvisits": "pages",
-    "suggestbookmarks": "all",
+    "suggestbookmarks": "",
     "suggestcommands": 9000000000000000,
     "suggestorder": "history,searchword,file",
     "suggesttopsites": 10,
