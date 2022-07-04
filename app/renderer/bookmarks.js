@@ -105,12 +105,6 @@ const addBookmark = input => {
     if (!newbookmark.path?.trim()) {
         newbookmark.path = "/"
     }
-    if (!newbookmark.bg?.trim()) {
-        newbookmark.bg = "some default hex value"
-    }
-    if (!newbookmark.fg?.trim()) {
-        newbookmark.fg = "some default hex value"
-    }
     if (typeof newbookmark.tag === "undefined") {
         newbookmark.tag = []
     }
