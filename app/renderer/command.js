@@ -1095,10 +1095,12 @@ const commands = {
     "Vexplore": ({args, range}) => addSplit(
         "hor", !getSetting("splitright"), args, range),
     "b": ({args}) => buffer(args),
+    "bm": () => openSpecialPage("bookmarks"),
     "bmadd": ({args}) => {
         const {addBookmark} = require("./bookmarks")
         addBookmark(args)
     },
+    "bookmarks": () => openSpecialPage("bookmarks"),
     "buffer": ({args}) => buffer(args),
     "call": ({args}) => callAction(args),
     "close": ({args, range}) => close(false, args, range),

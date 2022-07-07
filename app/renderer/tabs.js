@@ -890,6 +890,11 @@ const addWebviewListeners = webview => {
                 webview.send("insert-new-tab-info", false, favoritePages)
             }
         }
+        if (e.channel === "bookmark-data-request") {
+            const {getBookmarkData} = require("./bookmarks")
+            const bmdata = getBookmarkData()
+            webview.send("bookmark-data-response", bmdata)
+        }
         if (e.channel === "mousemove") {
             setTopOfPageWithMouse(getMouseConf("guiontop") && !e.args[1])
             if (getSetting("mousefocus")) {
