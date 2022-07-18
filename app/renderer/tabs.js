@@ -335,13 +335,13 @@ const addTab = (options = {}) => {
     pages.appendChild(page)
     const suspend = options.lazy
         || getSetting("suspendbackgroundtab") && !options.switchTo
+    tab.setAttribute("suspended", "suspended")
     if (suspend) {
-        tab.setAttribute("suspended", "suspended")
         const {titleForPage} = require("./history")
         name.textContent = titleForPage(url) || url
         const {forSite} = require("./favicons")
         favicon.src = forSite(url) || favicon.src
-    } else {
+    } else if (!options.switchTo) {
         unsuspendPage(page)
     }
     if (options.switchTo) {
@@ -364,6 +364,7 @@ const suspendTab = tab => {
     if (tab.classList.contains("visible-tab")) {
         return
     }
+    page.closeDevTools()
     tab.setAttribute("suspended", "suspended")
     tab.removeAttribute("media-playing")
     const placeholder = document.createElement("div")
@@ -387,7 +388,11 @@ const unsuspendPage = page => {
     if (page.tagName?.toLowerCase() === "webview") {
         return
     }
-    tabOrPageMatching(page).removeAttribute("suspended")
+    const tab = tabOrPageMatching(page)
+    if (!tab.getAttribute("suspended")) {
+        return
+    }
+    tab.removeAttribute("suspended")
     const webview = document.createElement("webview")
     sharedAttributes.forEach(attr => {
         if (page.getAttribute(attr)) {
@@ -424,19 +429,28 @@ const unsuspendPage = page => {
                 webview.setAttribute("dom-ready", true)
                 return
             }
-            const tab = tabOrPageMatching(webview)
             const name = tab.querySelector("span")
             if (tab.getAttribute("muted")) {
                 webview.setAudioMuted(true)
             }
             addWebviewListeners(webview)
+            const newtabUrl = getSetting("newtaburl")
             if (isDevtoolsTab) {
                 ipcRenderer.send("add-devtools",
                     currentPageId, webview.getWebContentsId())
                 name.textContent = "Devtools"
-            } else if (url || getSetting("newtaburl")) {
+            } else if (url || newtabUrl) {
                 webview.setAttribute("custom-first-load", true)
-                webview.src = url || stringToUrl(getSetting("newtaburl"))
+                webview.loadURL(url || stringToUrl(newtabUrl))
+                    .then(() => {
+                        if (webview.getAttribute("custom-first-load")) {
+                            webview.clearHistory()
+                            webview.removeAttribute("custom-first-load")
+                            webview.setAttribute("dom-ready", true)
+                        }
+                    }).catch(() => {
+                        webview.loadURL(url || stringToUrl(newtabUrl))
+                    })
                 resetTabInfo(webview)
                 name.textContent = urlToString(url)
                 return
@@ -508,7 +522,7 @@ const closeTab = (index = null, force = false) => {
         hide(page, true)
     } else {
         tab.remove()
-        page.closeDevTools()
+        page.closeDevTools?.()
         page.remove()
         if (listTabs().length === 0) {
             if (getSetting("quitonlasttabclose")) {
@@ -593,7 +607,8 @@ const switchToTab = tabOrIndex => {
 }
 
 const updateUrl = (webview, force = false) => {
-    if (webview !== currentPage() || !currentPage()) {
+    const url = currentPage()?.src
+    if (webview !== currentPage() || typeof url === "undefined") {
         return
     }
     const {updateWindowTitle} = require("./settings")
@@ -601,7 +616,7 @@ const updateUrl = (webview, force = false) => {
     if (!force && "secf".includes(currentMode()[0])) {
         return
     }
-    document.getElementById("url").value = urlToString(currentPage().src)
+    document.getElementById("url").value = urlToString(url)
 }
 
 const addWebviewListeners = webview => {

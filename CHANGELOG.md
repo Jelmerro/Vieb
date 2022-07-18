@@ -21,6 +21,12 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Only show notification popup for notifications with lots of newlines
 
+### Fixed
+
+- Suspended tabs sometimes failing to wake up correctly
+- Commands :rclose and :lclose not working correctly when there are suspended tabs
+- Race condition in opening new tabs with urls that would sometimes unsuspend them twice
+
 ### Versions
 
 - Electron 19.0.8 (was 19.0.6)
