@@ -21,6 +21,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Only show notification popup for notifications with lots of newlines
 - Examples are now downloaded as blobs instead of files to allow them to be bundled in the asar file for releases
+- Startup argument "--debug" is now called "--devtools" to avoid nodejs argument conflict
 
 ### Removed
 

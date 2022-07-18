@@ -76,7 +76,7 @@ Options:
 
  --version               Print program info with versions and exit.
 
- --debug                 Open with Chromium and Electron debugging tools.
+ --devtools              Open with Chromium and Electron debugging tools.
                          They can also be opened later with ':internaldevtools'.
 
  --datafolder=<dir>      Store ALL Vieb data in this folder.
@@ -208,7 +208,7 @@ args.forEach(a => {
             printUsage(0)
         } else if (arg === "--version") {
             printVersion()
-        } else if (arg === "--debug") {
+        } else if (arg === "--devtools") {
             argDebugMode = true
         } else if (arg === "--datafolder") {
             console.warn("The 'datafolder' argument requires a value such as:"
