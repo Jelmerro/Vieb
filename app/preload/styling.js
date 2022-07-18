@@ -71,7 +71,7 @@ const disableDarkReader = () => {
     darkreader.disable()
     customStyle.remove()
 }
-const loadThemes = () => {
+const loadThemes = (loadedFully = false) => {
     const html = document.querySelector("html")
     if (!html) {
         return
@@ -83,19 +83,21 @@ const loadThemes = () => {
     if (["sourceviewer:", "readerview:"].includes(window.location.protocol)) {
         return
     }
-    const htmlBG = getComputedStyle(html).background
-    const bodyBG = getComputedStyle(document.body).background
-    const htmlBGImg = getComputedStyle(html).backgroundImage
-    const bodyBGImg = getComputedStyle(document.body).backgroundImage
-    const unset = "rgba(0, 0, 0, 0)"
-    const noXMLButHasDiv = !document.querySelector("style#xml-viewer-style")
+    if (loadedFully) {
+        const htmlBG = getComputedStyle(html).background
+        const bodyBG = getComputedStyle(document.body).background
+        const htmlBGImg = getComputedStyle(html).backgroundImage
+        const bodyBGImg = getComputedStyle(document.body).backgroundImage
+        const unset = "rgba(0, 0, 0, 0)"
+        const noXMLButHasDiv = !document.querySelector("style#xml-viewer-style")
         && document.querySelector("div")
-    if (htmlBG.includes(unset) && bodyBG.includes(unset)) {
-        if (htmlBGImg === "none" && bodyBGImg === "none") {
-            if (noXMLButHasDiv) {
-                html.style.background = "white"
-            } else {
-                applyThemeStyling()
+        if (htmlBG.includes(unset) && bodyBG.includes(unset)) {
+            if (htmlBGImg === "none" && bodyBGImg === "none") {
+                if (noXMLButHasDiv) {
+                    html.style.background = "white"
+                } else {
+                    applyThemeStyling()
+                }
             }
         }
     }
@@ -106,5 +108,5 @@ const loadThemes = () => {
 }
 ipcRenderer.on("enable-darkreader", loadThemes)
 ipcRenderer.on("disable-darkreader", () => disableDarkReader())
-window.addEventListener("DOMContentLoaded", loadThemes)
-window.addEventListener("load", loadThemes)
+window.addEventListener("DOMContentLoaded", () => loadThemes())
+window.addEventListener("load", () => loadThemes(true))

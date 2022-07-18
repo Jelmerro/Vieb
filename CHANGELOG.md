@@ -20,6 +20,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Only show notification popup for notifications with lots of newlines
+- Examples are now downloaded as blobs instead of files to allow them to be bundled in the asar file for releases
 
 ### Removed
 
@@ -30,6 +31,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Suspended tabs sometimes failing to wake up correctly
 - Commands :rclose and :lclose not working correctly when there are suspended tabs
 - Race condition in opening new tabs with urls that would sometimes unsuspend them twice
+- White background on some pages that load page styling async
 
 ### Versions
 
