@@ -589,6 +589,9 @@ const notify = (message, type = "info", clickAction = false) => {
     if (type.startsWith("err")) {
         properType = "error"
     }
+    if (type.startsWith("dial")) {
+        properType = "dialog"
+    }
     const escapedMessage = message.replace(/>/g, "&gt;").replace(/</g, "&lt;")
         .replace(/\n/g, "<br>")
     notificationHistory.push({
@@ -603,8 +606,8 @@ const notify = (message, type = "info", clickAction = false) => {
         }
     }
     const native = getSetting("nativenotification")
-    const showLong = properType !== "permission"
-        && (escapedMessage.split("<br>").length > 5 || message.length > 200)
+    const showLong = escapedMessage.split("<br>").length > 3
+        && properType !== "dialog"
     if (native === "always" || !showLong && native === "smallonly") {
         const n = new Notification(
             `${appConfig().name} ${properType}`, {"body": message})
