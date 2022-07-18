@@ -69,8 +69,6 @@ files:
     - "app/defaultapp/windows.bat"
     - "app/examples/*"
     - "app/img/*.*"
-asarUnpack:
-  - "**/app/examples/*"
 fileAssociations:
   - name: HyperText Markup File
     ext: html

@@ -18,7 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {joinPath} = require("../util")
+const {joinPath, title, readFile} = require("../util")
 
 const modes = "nicsefpvm".split("")
 let allActionsByKeys = modes.reduce((a, m) => {
@@ -250,11 +250,13 @@ window.addEventListener("DOMContentLoaded", () => {
     ]
     for (const example of examples) {
         const button = document.createElement("button")
-        button.textContent = example[0].toUpperCase() + example.slice(1)
+        button.textContent = title(example)
         button.addEventListener("click", () => {
             const link = document.createElement("a")
-            const cleanedExample = example.replace(/\s/g, "")
-            link.href = joinPath(__dirname, `../examples/${cleanedExample}`)
+            const text = readFile(joinPath(
+                __dirname, `../examples/${example.replace(/\s/g, "")}`))
+            link.href = window.URL.createObjectURL(
+                new Blob(text.split(), {"type": "text/plain"}))
             link.download = `${example}.viebrc`
             link.style.display = "none"
             document.body.appendChild(link)
