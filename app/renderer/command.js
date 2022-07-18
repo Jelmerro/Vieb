@@ -951,54 +951,6 @@ const makedefault = () => {
     }
 }
 
-const extensionsCommand = args => {
-    notify("Installing extensions in Vieb is deprecated, "
-        + "please run ':help :extensions' for details and info.", "warn")
-    if (!args[0]) {
-        openSpecialPage("extensions")
-        return
-    }
-    if (args[0] === "install") {
-        if (args[1]) {
-            notify("Extension install command takes no arguments", "warn")
-            return
-        }
-        const version = navigator.userAgent.replace(
-            /.*Chrome\//g, "").replace(/ .*/g, "")
-        const extension = currentPage()?.src.replace(/.*\//g, "")
-        if (extension && (/^[A-z0-9]{32}$/).test(extension)) {
-            const url = `https://clients2.google.com/service/update2/crx?`
-            + `response=redirect&prodversion=${version}&acceptformat=crx2,crx3`
-            + `&x=id%3D${extension}%26uc`
-            ipcRenderer.send("install-extension", url, extension, "crx")
-        } else {
-            currentPage()?.send("action", "installFirefoxExtension")
-        }
-    } else if (args[0] === "list") {
-        if (args[1]) {
-            notify("Extension list command takes no arguments", "warn")
-            return
-        }
-        let list = ipcRenderer.sendSync("list-extensions")
-        list = list.map(ext => `${ext.name}: ${ext.version}`).join("\n")
-        if (list.length) {
-            notify(`Installed extensions: \n${list}`)
-        } else {
-            notify(`No extensions currently installed`)
-        }
-    } else if (args[0] === "remove") {
-        if (!args[1] || args[2]) {
-            notify("Removing an extension requires exactly one argument:\n"
-                + "The id of an extension", "warn")
-            return
-        }
-        ipcRenderer.send("remove-extension", args[1])
-    } else {
-        notify("Unknown argument to the extensions command, must be:\n"
-            + "install, list or remove", "warn")
-    }
-}
-
 const lclose = (force = false) => {
     let index = listTabs().indexOf(currentTab())
     // Loop is reversed to close as many tabs as possible on the left,
@@ -1112,7 +1064,6 @@ const commands = {
     "delcommand": ({args}) => deleteCommand(args),
     "devtools": ({args}) => openDevTools(...args),
     "downloads": () => openSpecialPage("downloads"),
-    "extensions": ({args}) => extensionsCommand(args),
     "h": ({args}) => help(...args),
     "hardcopy": ({range}) => hardcopy(range),
     "help": ({args}) => help(...args),

@@ -21,6 +21,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Only show notification popup for notifications with lots of newlines
 
+### Removed
+
+- Extension support, see [this Github issue](https://github.com/Jelmerro/Vieb/issues/385) to learn more
+
 ### Fixed
 
 - Suspended tabs sometimes failing to wake up correctly

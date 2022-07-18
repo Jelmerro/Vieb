@@ -104,18 +104,6 @@ const writeInputToFile = filename => {
 
 const print = () => document.execCommand("print")
 
-const installFirefoxExtension = () => {
-    const link = Array.from(document.querySelectorAll("a") || []).find(
-        a => a.href?.endsWith(".xpi"))?.href
-    const extension = link?.replace(/.*\/(\d{7,10}).*/g, "$1")
-    if (link && extension) {
-        ipcRenderer.send("install-extension", link, extension, "xpi")
-    } else {
-        ipcRenderer.sendToHost("notify",
-            "No extensions found on this page", "warn")
-    }
-}
-
 const toggleControls = (x, y) => {
     const el = findElementAtPosition(x, y)
     if (matchesQuery(el, "video")) {
@@ -274,7 +262,6 @@ const functions = {
     blur,
     exitFullscreen,
     focusTopLeftCorner,
-    installFirefoxExtension,
     nextPage,
     previousPage,
     print,

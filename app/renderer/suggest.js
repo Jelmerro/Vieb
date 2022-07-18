@@ -423,27 +423,6 @@ const suggestCommand = searchStr => {
     if ("mkviebrc full".startsWith(search) && !range) {
         addCommand("mkviebrc full")
     }
-    // Command: extensions
-    if ("extensions".startsWith(command)
-    && !confirm && args.length < 3 && !range) {
-        if (args.length < 2) {
-            for (const action of ["install", "list", "remove"]) {
-                if (action.startsWith(args[0] || "") && action !== args[0]) {
-                    addCommand(`extensions ${action}`)
-                }
-            }
-        }
-        if (args.length >= 1) {
-            const {ipcRenderer} = require("electron")
-            ipcRenderer.sendSync("list-extensions").forEach(e => {
-                const id = e.path.replace(/^.*(\/|\\)/g, "")
-                if (`remove ${id}`.startsWith(args.join(" "))) {
-                    addCommand(`extensions remove ${id}`,
-                        `${e.name}: ${e.version}`)
-                }
-            })
-        }
-    }
     // Command: devtools
     if ("devtools".startsWith(command)
     && !confirm && args.length < 2 && !range) {

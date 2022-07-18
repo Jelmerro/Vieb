@@ -22,7 +22,6 @@ const ipv6Regex = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:
 const specialPages = [
     "cookies",
     "downloads",
-    "extensions",
     "help",
     "history",
     "newtab",
@@ -483,27 +482,6 @@ const compareVersions = (v1Str, v2Str) => {
     return "unknown"
 }
 
-const extractZip = (args, cb) => {
-    // Path is constructed manually due to the many electron-builder bugs:
-    // https://github.com/electron-userland/electron-builder/issues/5662
-    // https://github.com/electron-userland/electron-builder/issues/5625
-    // https://github.com/electron-userland/electron-builder/issues/5706
-    // https://github.com/electron-userland/electron-builder/issues/5617
-    // It seems that modules not used in the main process are dropped on build,
-    // so we explicitly tell electron-builder to add them extracted.
-    // This way we can call the right tool ourselves without importing it.
-    let loc = joinPath(__dirname, "../node_modules/7zip-bin/")
-    if (process.platform === "darwin") {
-        loc = joinPath(loc, "mac", process.arch, "7za")
-    } else if (process.platform === "win32") {
-        loc = joinPath(loc, "win", process.arch, "7za.exe")
-    } else {
-        loc = joinPath(loc, "linux", process.arch, "7za")
-    }
-    const {spawn} = require("child_process")
-    spawn(loc, args).on("exit", cb)
-}
-
 const fetchJSON = url => new Promise((res, rej) => {
     const https = require("https")
     const request = https.request(url, response => {
@@ -925,7 +903,6 @@ module.exports = {
     activeElement,
     formatSize,
     compareVersions,
-    extractZip,
     fetchJSON,
     // IPC UTIL
     sendToPageOrSubFrame,

@@ -70,7 +70,6 @@ files:
     - "app/examples/*"
     - "app/img/*.*"
 asarUnpack:
-  - "**/node_modules/7zip-bin/**/*"
   - "**/app/examples/*"
 fileAssociations:
   - name: HyperText Markup File

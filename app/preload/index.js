@@ -37,5 +37,5 @@ if (specialPage.name) {
     // Load the custom styling such as colors, fontsizes and darkreader
     require("./styling")
     // Load optional plugins and extensions
-    require("./optional")
+    require("./extensions")
 }

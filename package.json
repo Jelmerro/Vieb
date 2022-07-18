@@ -39,7 +39,6 @@
     "@cliqz/adblocker-electron": "1.23.8",
     "@cliqz/adblocker-electron-preload": "1.23.8",
     "@mozilla/readability": "0.4.2",
-    "7zip-bin": "5.2.0",
     "darkreader": "4.9.52",
     "highlight.js": "11.6.0",
     "is-svg": "4.3.2",

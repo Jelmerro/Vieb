@@ -48,7 +48,6 @@ const {
     dirname,
     basePath,
     formatSize,
-    extractZip,
     isAbsolutePath,
     formatDate,
     domainName,
@@ -393,14 +392,14 @@ const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
 }).filter(u => u)
 app.on("ready", () => {
     app.userAgentFallback = defaultUseragent()
-    if (app.requestSingleInstanceLock()) {
-        app.on("second-instance", (_, newArgs, cwd) => {
+    if (app.requestSingleInstanceLock({"argv": args})) {
+        app.on("second-instance", (_, newArgs, cwd, extra) => {
             if (mainWindow.isMinimized()) {
                 mainWindow.restore()
             }
             mainWindow.focus()
             mainWindow.webContents.send("urls", resolveLocalPaths(
-                getArguments(newArgs), cwd))
+                extra?.argv || getArguments(newArgs), cwd))
         })
     } else {
         console.info(`Sending urls to existing instance in ${argDatafolder}`)
@@ -805,9 +804,6 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             enableAdblocker(adblock)
         }
     }
-    listDir(joinPath(argDatafolder, "extensions"), true, true)?.forEach(loc => {
-        newSession.loadExtension(loc, {"allowFileAccess": true})
-    })
     newSession.webRequest.onBeforeRequest((details, callback) => {
         let url = String(details.url)
         redirects.split(",").forEach(r => {
@@ -1325,100 +1321,6 @@ const loadBlocklist = file => {
     }
     return ""
 }
-
-// Manage installed browser extensions
-ipcMain.on("install-extension", (_, url, extension, extType) => {
-    const zipLoc = joinPath(argDatafolder, "extensions", extension)
-    if (isDir(`${zipLoc}/`)) {
-        mainWindow.webContents.send("notify",
-            `Extension already installed: ${extension}`)
-        return
-    }
-    makeDir(`${zipLoc}/`)
-    mainWindow.webContents.send("notify",
-        `Installing ${extType} extension: ${extension}`)
-    const request = net.request({"partition": "persist:main", url})
-    request.on("response", res => {
-        const data = []
-        res.on("end", () => {
-            if (res.statusCode !== 200) {
-                mainWindow.webContents.send("notify",
-                    `Failed to install extension due to network error`, "err")
-                console.warn(res)
-                return
-            }
-            const file = Buffer.concat(data)
-            writeFile(`${zipLoc}.${extType}`, file)
-            extractZip([
-                "x", "-aoa", "-tzip", `${zipLoc}.${extType}`, `-o${zipLoc}/`
-            ], () => {
-                rimraf(`${zipLoc}/_metadata/`)
-                sessionList.forEach(ses => {
-                    session.fromPartition(ses).loadExtension(zipLoc, {
-                        "allowFileAccess": true
-                    }).then(() => {
-                        if (sessionList.indexOf(ses) === 0) {
-                            mainWindow.webContents.send("notify",
-                                `Extension successfully installed`, "suc")
-                        }
-                    }).catch(e => {
-                        if (sessionList.indexOf(ses) === 0) {
-                            mainWindow.webContents.send("notify",
-                                `Failed to install extension, unsupported type`,
-                                "err")
-                            console.warn(e)
-                            rimraf(`${zipLoc}*`)
-                        }
-                    })
-                })
-            })
-        })
-        res.on("data", chunk => {
-            data.push(Buffer.from(chunk, "binary"))
-        })
-    })
-    request.on("abort", e => {
-        mainWindow.webContents.send("notify",
-            `Failed to install extension due to network error`, "err")
-        console.warn(e)
-        rimraf(`${zipLoc}*`)
-    })
-    request.on("error", e => {
-        mainWindow.webContents.send("notify",
-            `Failed to install extension due to network error`, "err")
-        console.warn(e)
-        rimraf(`${zipLoc}*`)
-    })
-    request.end()
-})
-ipcMain.on("list-extensions", e => {
-    e.returnValue = session.fromPartition("persist:main").getAllExtensions()
-        .map(ex => ({
-            "icon": ex.manifest.icons?.[Object.keys(ex.manifest.icons).pop()],
-            "id": ex.id,
-            "name": ex.name,
-            "path": ex.path,
-            "version": ex.version
-        }))
-})
-ipcMain.on("remove-extension", (_, extensionId) => {
-    const extLoc = joinPath(argDatafolder, `extensions/${extensionId}`)
-    const extension = session.fromPartition("persist:main").getAllExtensions()
-        .find(ext => ext.path.replace(/(\/|\\)$/g, "").endsWith(extensionId))
-    if (isDir(`${extLoc}/`) && extension) {
-        mainWindow.webContents.send("notify",
-            `Removing extension: ${extensionId}`)
-        sessionList.forEach(ses => {
-            session.fromPartition(ses).removeExtension(extension.id)
-        })
-        rimraf(`${extLoc}*`)
-        mainWindow.webContents.send("notify",
-            `Extension successfully removed`, "suc")
-    } else {
-        mainWindow.webContents.send("notify", "Could not find extension with "
-            + `id: ${extensionId}`, "warn")
-    }
-})
 
 // Download favicons for websites
 ipcMain.on("download-favicon", (_, options) => {

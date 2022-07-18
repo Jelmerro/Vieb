@@ -196,14 +196,6 @@
             <li><span class="command-block">:notifications</span> - Open the notifications page</li>
         </ul>
         This command opens the notifications page, located at "vieb://notifications". On this page you can view a list of all the previous notifications during this session. This list is always cleared when quitting Vieb.
-        <h3 id=":extensions">:extensions</h3>
-        <ul>
-            <li><span class="command-block">:extensions</span> - Open the extensions page</li>
-            <li><span class="command-block">:extensions install</span> - Attempt to install a Chrome or Firefox extension from the current page</li>
-            <li><span class="command-block">:extensions list</span> - Shows a notification with the list of currently installed extensions</li>
-            <li><span class="command-block">:extensions remove &lt;id&gt;</span> - Remove an installed extension based on the given id</li>
-        </ul>
-        This deprecated and experimental command was used to manage Chrome or Firefox extensions. This command and all support for extensions will be removed in the next major release, see <a href="https://github.com/Jelmerro/Vieb/issues/385">this issue for details</a>. Extensions are installed inside the <a href="#datafolder">datafolder</a> and are loaded for all containers. You can install extensions by visiting the Google or Mozilla extension websites and running <span class="command-block">extensions install</span>. Vieb will automatically download the extension of the current page and install it immediately. Installed extensions are remembered for subsequent sessions until you remove them with <span class="command-block">extensions remove &lt;id&gt;</span>. You can list the currently installed extensions with <span class="command-block">extensions list</span>. You can also view a list or remove extensions by visiting the extensions special page by running <span class="command-block">extensions</span> without arguments. For now only extensions that don't require settings or interaction are recommended, as Vieb doesn't support regular interaction with the extensions yet. Please see <a href="https://github.com/Jelmerro/Vieb/issues/130">this issue</a> for details and updates to this experimental feature.
         <h2 id="mappings">Mappings</h2>
         The keyboard mappings are completely dynamic in Vieb, meaning that you can change the behavior of all keyboard keys. To manage these mappings, Vieb implements a similar system to Vim, with support for recursion, multiple keystrokes, countable actions and similar features. These are all of the key differences of Vieb's mapping system compared to Vim:
         <ul>
