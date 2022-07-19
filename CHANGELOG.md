@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Special type of notification for dialog inform notifications, which can be colored separately
+- Setting "suggestbouncedelay" to control the debounce delay of suggestions, to handle fast typing better
 
 ### Changed
 

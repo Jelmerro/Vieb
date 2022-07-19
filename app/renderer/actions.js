@@ -516,8 +516,8 @@ const editWithVim = () => {
                     "setInputFieldText", tempFile, contents)
             } else if ("ces".includes(currentMode()[0])) {
                 document.getElementById("url").value = contents
-                const {updateSuggestions} = require("./input")
-                updateSuggestions()
+                const {requestSuggestUpdate} = require("./input")
+                requestSuggestUpdate()
             }
         } else {
             const {exec} = require("child_process")
