@@ -207,6 +207,7 @@ const defaultSettings = {
     "timeout": true,
     "timeoutlen": 2000,
     "useragent": "",
+    "userstyle": false,
     "vimcommand": "gvim",
     "windowtitle": "%app - %title"
 }
@@ -962,7 +963,8 @@ const webviewSettings = [
     "permissionsblocked",
     "searchpointeralignment",
     "sponsorblock",
-    "sponsorblockcategories"
+    "sponsorblockcategories",
+    "userstyle"
 ]
 
 const updateWebviewSettings = () => {
@@ -1208,6 +1210,19 @@ const set = (setting, value) => {
                         p.send("enable-darkreader")
                     } else {
                         p.send("disable-darkreader")
+                    }
+                } catch {
+                    // Page not ready yet or suspended
+                }
+            })
+        }
+        if (setting === "userstyle") {
+            listPages().forEach(p => {
+                try {
+                    if (allSettings.userstyle) {
+                        p.send("enable-userstyle")
+                    } else {
+                        p.send("disable-userstyle")
                     }
                 } catch {
                     // Page not ready yet or suspended

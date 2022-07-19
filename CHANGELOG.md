@@ -18,6 +18,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Special type of notification for dialog inform notifications, which can be colored separately
 - Setting "suggestbouncedelay" to control the debounce delay of suggestions, to handle fast typing better
 - Setting "darkreaderblocklist" to block specific sites (regular expressions) from using darkreader, even if enabled
+- Setting "userstyle" to toggle loading of custom CSS files into the page, either globally or per-domain
 
 ### Changed
 

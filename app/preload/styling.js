@@ -21,10 +21,13 @@
 // Change the background to white for regular pages with no explicit background
 // Optionally loads darkreader to override the page colors and use a dark theme
 const {ipcRenderer} = require("electron")
-const {appData, readJSON, joinPath} = require("../util")
+const {
+    appData, readJSON, joinPath, domainName, expandPath, readFile
+} = require("../util")
 const webviewSettingsFile = joinPath(appData(), "webviewsettings")
 let settings = readJSON(webviewSettingsFile)
-const customStyle = document.createElement("style")
+const darkreaderStyle = document.createElement("style")
+const usercustomStyle = document.createElement("style")
 const applyThemeStyling = () => {
     const themeStyle = document.createElement("style")
     themeStyle.textContent = `html {
@@ -57,19 +60,21 @@ const enableDarkReader = async() => {
         "sepia": settings.darkreadersepia,
         "textStroke": settings.darkreadertextstroke
     })
-    customStyle.textContent = await darkreader.exportGeneratedCSS()
-    if (document.head) {
-        document.head.appendChild(customStyle)
-    } else if (document.body) {
-        document.body.appendChild(customStyle)
-    } else {
-        document.querySelector("html").appendChild(customStyle)
+    darkreaderStyle.textContent = await darkreader.exportGeneratedCSS()
+    if (darkreaderStyle.textContent) {
+        if (document.head) {
+            document.head.appendChild(darkreaderStyle)
+        } else if (document.body) {
+            document.body.appendChild(darkreaderStyle)
+        } else {
+            document.querySelector("html").appendChild(darkreaderStyle)
+        }
     }
 }
 const disableDarkReader = () => {
     const darkreader = require("darkreader")
     darkreader.disable()
-    customStyle.remove()
+    darkreaderStyle.remove()
 }
 const loadThemes = (loadedFully = false) => {
     const html = document.querySelector("html")
@@ -83,6 +88,7 @@ const loadThemes = (loadedFully = false) => {
     if (["sourceviewer:", "readerview:"].includes(window.location.protocol)) {
         return
     }
+    settings = readJSON(webviewSettingsFile)
     if (loadedFully) {
         const htmlBG = getComputedStyle(html).background
         const bodyBG = getComputedStyle(document.body).background
@@ -100,8 +106,27 @@ const loadThemes = (loadedFully = false) => {
                 }
             }
         }
+        if (settings.userstyle) {
+            const domain = domainName(window.location.href)
+            const userStyleFiles = [
+                joinPath(appData(), "userstyle", `global.css`),
+                expandPath("~/.vieb/userstyle/global.css"),
+                joinPath(appData(), "userstyle", `${domain}.css`),
+                expandPath(`~/.vieb/userstyle/${domain}.css`)
+            ]
+            usercustomStyle.textContent = userStyleFiles.map(f => readFile(f))
+                .filter(s => s).join("\n")
+            if (usercustomStyle.textContent) {
+                if (document.head) {
+                    document.head.appendChild(usercustomStyle)
+                } else if (document.body) {
+                    document.body.appendChild(usercustomStyle)
+                } else {
+                    document.querySelector("html").appendChild(usercustomStyle)
+                }
+            }
+        }
     }
-    settings = readJSON(webviewSettingsFile)
     if (settings.darkreader) {
         const blocked = settings.darkreaderblocklist.split("~")
             .find(m => window.location.href.match(m))
@@ -110,7 +135,9 @@ const loadThemes = (loadedFully = false) => {
         }
     }
 }
-ipcRenderer.on("enable-darkreader", loadThemes)
+ipcRenderer.on("enable-darkreader", () => loadThemes(true))
+ipcRenderer.on("enable-userstyle", () => loadThemes(true))
 ipcRenderer.on("disable-darkreader", () => disableDarkReader())
+ipcRenderer.on("disable-userstyle", () => usercustomStyle.remove())
 window.addEventListener("DOMContentLoaded", () => loadThemes())
 window.addEventListener("load", () => loadThemes(true))
