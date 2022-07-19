@@ -699,6 +699,8 @@
         Toggle to enable/disable <a href="https://darkreader.org/">darkreader</a> for all external pages. Special pages such as the help are not affected, as they are dark already. Toggling this with pages open with toggle dark mode for all open pages in realtime, no need to reload. You can customize the appearance and operation of darkreader using the config options below.
         <h3 id="darkreaderbg">darkreaderbg</h3>
         Set the default background color of darkreader styled pages. Can be a color name or a hex code.
+        <h3 id="darkreaderblocklist">darkreaderblocklist</h3>
+        Block specific sites from using darkreader even if enabled, by excluding them with regular expressions. You can add as many patterns as you want, separated by a tilde "~". If any of these patterns match the current url, darkreader will not be enabled for that site. Inverse regular expression matching is supported and can be used as a sort of allowlist. For example, <span class="command-block">:set darkreader darkreaderblocklist=^(?!.*github.*)</span> will ONLY load darkreader on sites with "github" in the url somewhere, though it is recommended to use simpler patterns and use it as a blocklist only, as you can block as many sites as you want.
         <h3 id="darkreaderbrightness">darkreaderbrightness</h3>
         Set the brightness of darkreader styled pages.
         <h3 id="darkreadercontrast">darkreadercontrast</h3>

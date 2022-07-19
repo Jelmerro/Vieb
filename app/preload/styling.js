@@ -103,7 +103,11 @@ const loadThemes = (loadedFully = false) => {
     }
     settings = readJSON(webviewSettingsFile)
     if (settings.darkreader) {
-        enableDarkReader()
+        const blocked = settings.darkreaderblocklist.split("~")
+            .find(m => window.location.href.match(m))
+        if (!blocked) {
+            enableDarkReader()
+        }
     }
 }
 ipcRenderer.on("enable-darkreader", loadThemes)

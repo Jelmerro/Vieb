@@ -91,6 +91,7 @@ const defaultSettings = {
     "countlimit": 100,
     "darkreader": false,
     "darkreaderbg": "#181a1b",
+    "darkreaderblocklist": "",
     "darkreaderbrightness": 100,
     "darkreadercontrast": 100,
     "darkreaderfg": "#e8e6e3",
@@ -236,7 +237,8 @@ const listLike = [
     "suggestorder"
 ]
 const listLikeTilde = [
-    "useragent"
+    "useragent",
+    "darkreaderblocklist"
 ]
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
@@ -470,6 +472,17 @@ const checkOther = (setting, value) => {
             notify("Invalid color, must be a valid color name or hex"
                     + `, not: ${value}`, "warn")
             return false
+        }
+    }
+    if (setting === "darkreaderblocklist") {
+        for (const match of value.split("~").filter(c => c.trim())) {
+            try {
+                RegExp(match)
+            } catch {
+                notify(`Invalid regular expression in ${setting}: ${match}`,
+                    "warn")
+                return false
+            }
         }
     }
     if (setting === "downloadpath") {
@@ -933,6 +946,7 @@ const updateDownloadSettings = () => {
 const webviewSettings = [
     "darkreader",
     "darkreaderbg",
+    "darkreaderblocklist",
     "darkreaderbrightness",
     "darkreadercontrast",
     "darkreaderfg",
