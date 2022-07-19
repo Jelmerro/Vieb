@@ -32,7 +32,6 @@ const {
     pathToSpecialPageName,
     urlToString,
     stringToUrl,
-    firefoxUseragent,
     hasProtocol,
     sameDomain,
     notify,
@@ -623,19 +622,14 @@ const addWebviewListeners = webview => {
     webview.addEventListener("load-commit", e => {
         if (e.isMainFrame) {
             resetTabInfo(webview)
-            const ffMode = getSetting("firefoxmode")
             const customUA = getSetting("useragent")
-            if (ffMode === "never" && !customUA) {
-                webview.setUserAgent("")
-            } else if (ffMode === "always") {
-                webview.setUserAgent("")
-            } else if (ffMode === "google" && sameDomain(e.url, "https://google.com")) {
-                webview.setUserAgent(firefoxUseragent())
-            } else {
+            if (customUA) {
                 const agents = customUA.split("~")
                 const agent = userAgentTemplated(
                     agents.at(Math.random() * agents.length))
                 webview.setUserAgent(agent)
+            } else {
+                webview.setUserAgent("")
             }
             const name = tabOrPageMatching(webview).querySelector("span")
             if (!name.textContent) {

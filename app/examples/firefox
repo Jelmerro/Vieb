@@ -5,7 +5,7 @@ set downloadmethod=confirm
 set dialogalert=show
 set dialogconfirm=show
 set dialogprompt=show
-set firefoxmode=always
+set useragent=%firefox
 set guifontsize=16
 set mintabwidth=250
 set norestoretabs

@@ -383,7 +383,7 @@ window.WebGL2RenderingContext.prototype.getParameter = function(parameter) {
     }
     return getParam2.call(this, parameter)
 }
-// If using Firefox mode, also modify the Firefox navigator properties
+// If using a Firefox useragent, also modify the Firefox navigator properties
 if (window.navigator.userAgent.includes("Firefox")) {
     Object.defineProperty(window.Navigator.prototype,
         "buildID", {"get": (() => "20181001000000").bind(null)})

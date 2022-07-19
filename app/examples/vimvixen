@@ -2,7 +2,7 @@
 set adblocker=update
 set devtoolsposition=split
 set downloadmethod=confirm
-set firefoxmode=always
+set useragent=%firefox
 set guifontsize=16
 set mintabwidth=250
 set norestoretabs

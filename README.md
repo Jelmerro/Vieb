@@ -29,7 +29,7 @@
 
 - __Free__, open source, fast and secure
 - __Local first__ adblocking, auto-complete, AMP protection, custom redirects and more, all without web requests
-- __Privacy__ with strict permission system, navigator overrides, firefox mode, custom WebRTC policy and more
+- __Privacy__ with strict permission system, navigator overrides, custom useragent, custom WebRTC policy and more
 - __Accessible__ with custom themes, full interface & fontsize scaling, page zooming, spellcheck and mouse support
 - __Security settings__ with permissions, cache usage, cookie management, (auto-)download settings and more
 - __Window splitting__ with buffer, split, Vexplore and Ctrl-w bindings, for multi-window browsing

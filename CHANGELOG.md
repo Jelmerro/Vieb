@@ -28,6 +28,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Removed
 
 - Extension support, see [this Github issue](https://github.com/Jelmerro/Vieb/issues/385) to learn more
+- Setting "firefoxmode" in favor of setting the "useragent" setting to a Firefox useragent
 
 ### Fixed
 

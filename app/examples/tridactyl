@@ -1,5 +1,5 @@
 " Options
-set firefoxmode=always
+set useragent=%firefox
 set adblocker=update
 set downloadmethod=confirm
 set mintabwidth=250

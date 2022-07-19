@@ -33,7 +33,6 @@ const {
     writeJSON,
     pathExists,
     pathToSpecialPageName,
-    firefoxUseragent,
     appConfig,
     userAgentTemplated
 } = require("../util")
@@ -110,7 +109,6 @@ const defaultSettings = {
     "externalcommand": "",
     "favicons": "session",
     "favoritepages": "",
-    "firefoxmode": "never",
     "followchars": "alpha",
     "followelement": "url,onclick,inputs-insert,inputs-click,media,image,other",
     "followelementpointer":
@@ -256,7 +254,6 @@ const validOptions = {
     "favicons": [
         "disabled", "nocache", "session", "1day", "5day", "30day", "forever"
     ],
-    "firefoxmode": ["always", "google", "never"],
     "followfallbackaction": ["filter", "exit", "nothing"],
     "guifullscreennavbar": ["always", "onupdate", "oninput", "never"],
     "guifullscreentabbar": ["always", "onupdate", "never"],
@@ -1155,19 +1152,9 @@ const set = (setting, value) => {
         if (setting === "containercolors" || setting === "containershowname") {
             updateContainerSettings()
         }
-        if (setting === "firefoxmode") {
-            if (value === "always") {
-                ipcRenderer.sendSync(
-                    "override-global-useragent", firefoxUseragent())
-            } else {
-                ipcRenderer.sendSync("override-global-useragent", false)
-            }
-        }
         if (setting === "useragent") {
-            if (allSettings.firefoxmode !== "always") {
-                ipcRenderer.sendSync("override-global-useragent",
-                    userAgentTemplated(value.split("~")[0]))
-            }
+            ipcRenderer.sendSync("override-global-useragent",
+                userAgentTemplated(value.split("~")[0]))
         }
         if (setting === "guifontsize") {
             updateCustomStyling()
