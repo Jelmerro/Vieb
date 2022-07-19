@@ -29,8 +29,6 @@ const {
     shell,
     webContents
 } = require("electron")
-const {ElectronBlocker} = require("@cliqz/adblocker-electron")
-const isSvg = require("is-svg")
 const {
     title,
     specialChars,
@@ -53,10 +51,7 @@ const {
     domainName,
     defaultUseragent
 } = require("./util")
-const hljs = require("highlight.js")
-const {JSDOM} = require("jsdom")
-const {Readability} = require("@mozilla/readability")
-const {"sync": rimrafSync} = require("rimraf")
+const rimrafSync = require("rimraf").sync
 const rimraf = pattern => {
     try {
         rimrafSync(pattern)
@@ -945,6 +940,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 </body></html>`)
             return
         }
+        const hljs = require("highlight.js")
         if (isFile(loc)) {
             const hl = hljs.highlightAuto(readFile(loc))
             call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
@@ -1006,6 +1002,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                         </body></html>`)
                     return
                 }
+                const {Readability} = require("@mozilla/readability")
+                const {JSDOM} = require("jsdom")
                 const dom = new JSDOM(body, {url})
                 const out = new Readability(dom.window.document).parse().content
                 call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
@@ -1283,6 +1281,7 @@ const reloadAdblocker = () => {
             }
         })
     }
+    const {ElectronBlocker} = require("@cliqz/adblocker-electron")
     blocker = ElectronBlocker.parse(filters)
     const resources = readFile(joinPath(__dirname, `./blocklists/resources`))
     blocker.updateResources(resources, `${resources.length}`)
@@ -1335,6 +1334,7 @@ ipcMain.on("download-favicon", (_, options) => {
                 return
             }
             const file = Buffer.concat(data)
+            const isSvg = require("is-svg")
             if (isSvg(file)) {
                 writeFile(`${options.location}.svg`, file)
                 mainWindow.webContents.send("favicon-downloaded",
