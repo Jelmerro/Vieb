@@ -19,12 +19,14 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "suggestbouncedelay" to control the debounce delay of suggestions, to handle fast typing better
 - Setting "darkreaderblocklist" to block specific sites (regular expressions) from using darkreader, even if enabled
 - Setting "userstyle" to toggle loading of custom CSS files into the page, either globally or per-domain
+- Actions "toggleMarkdownViewer" and "toggleMarkdownViewerNewTab" to toggle the new theme supported "markdownviewer"
 
 ### Changed
 
 - Only show notification popup for notifications with lots of newlines
 - Examples are now downloaded as blobs instead of files to allow them to be bundled in the asar file for releases
 - Startup argument "--debug" is now called "--devtools" to avoid nodejs argument conflict
+- Give "storenewvisits" a new option for "markdownviewer"
 
 ### Removed
 
@@ -40,8 +42,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Versions
 
-- Electron 20.0.0-beta.9 (was 19.0.6)
-- Chromium 104.0.5112.39 (was 102.0.5005.115)
+- Electron 20.0.0-beta.10 (was 19.0.6)
+- Chromium 104.0.5112.48 (was 102.0.5005.115)
 
 ## [8.1.0](https://github.com/Jelmerro/Vieb/compare/8.0.0...8.1.0) - 2022-06-29
 

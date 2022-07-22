@@ -142,6 +142,10 @@ const addToHist = url => {
         if (!saveTypes.includes("readerview")) {
             return
         }
+    } else if (url.startsWith("markdownviewer:")) {
+        if (!saveTypes.includes("markdownviewer")) {
+            return
+        }
     } else if (!saveTypes.includes("pages")) {
         return
     }

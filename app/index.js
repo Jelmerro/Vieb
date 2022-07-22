@@ -784,10 +784,10 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     const sessionDir = joinPath(partitionDir, encodeURIComponent(
         name.split(":")[1] || name))
     applyDevtoolsSettings(joinPath(sessionDir, "Preferences"))
-    const newSession = session.fromPartition(name, {cache})
-    newSession.setPermissionRequestHandler(permissionHandler)
-    newSession.setPermissionCheckHandler(() => true)
-    newSession.setDevicePermissionHandler(
+    const newSess = session.fromPartition(name, {cache})
+    newSess.setPermissionRequestHandler(permissionHandler)
+    newSess.setPermissionCheckHandler(() => true)
+    newSess.setDevicePermissionHandler(
         details => permissionHandler(null, details.deviceType, null, {
             ...details, "requestingUrl": details.origin
         }))
@@ -799,7 +799,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             enableAdblocker(adblock)
         }
     }
-    newSession.webRequest.onBeforeRequest((details, callback) => {
+    newSess.webRequest.onBeforeRequest((details, callback) => {
         let url = String(details.url)
         redirects.split(",").forEach(r => {
             if (r.trim()) {
@@ -815,13 +815,13 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         }
         blocker.onBeforeRequest(details, callback)
     })
-    newSession.webRequest.onHeadersReceived((details, callback) => {
+    newSess.webRequest.onHeadersReceived((details, callback) => {
         if (!blocker) {
             return callback({"cancel": false})
         }
         blocker.onHeadersReceived(details, callback)
     })
-    newSession.on("will-download", (e, item) => {
+    newSess.on("will-download", (e, item) => {
         if (downloadSettings.downloadmethod === "block") {
             e.preventDefault()
             return
@@ -927,7 +927,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             }
         })
     })
-    newSession.protocol.registerStringProtocol("sourceviewer", (req, call) => {
+    newSess.protocol.registerStringProtocol("sourceviewer", (req, call) => {
         let loc = req.url.replace(/sourceviewer:\/?\/?/g, "")
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
@@ -958,7 +958,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                     call(`<!DOCTPYE html>\n<html><head>
                         <style>${defaultCss}</style>
                         <title>${encodeURI(req.url)}</title>
-                        </head><body>Source viewer not supported on this wegpage
+                        </head><body>Source viewer not supported on this webpage
                         </body></html>`)
                     return
                 }
@@ -976,7 +976,78 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         request.on("error", () => call(""))
         request.end()
     })
-    newSession.protocol.registerStringProtocol("readerview", (req, call) => {
+    newSess.protocol.registerStringProtocol("markdownviewer", (req, call) => {
+        let loc = req.url.replace(/markdownviewer:\/?\/?/g, "")
+        if (process.platform !== "win32" && !loc.startsWith("/")) {
+            loc = `/${loc}`
+        }
+        if (isDir(loc)) {
+            call(`<!DOCTPYE html>\n<html><head>
+                <style>${defaultCss}</style>
+                <title>${encodeURI(req.url)}</title></head>
+                <body>Markdown viewer does not support folders, only files
+                </body></html>`)
+            return
+        }
+        const {marked} = require("marked")
+        const hljs = require("highlight.js")
+        let url = `https://${loc}`
+        if (isFile(loc)) {
+            url = `file://${loc}`
+        }
+        const mdRenderer = new marked.Renderer()
+        const urlFolder = dirname(url)
+        mdRenderer.html = text => text.replace(
+            / src="\./g, ` src="${urlFolder}/`)
+            .replace(/ src="([A-Za-z0-9])]/g, ` src="${urlFolder}/$1`)
+        marked.setOptions({
+            "baseUrl": url,
+            "highlight": (code, lang) => {
+                let language = lang
+                if (!hljs.getLanguage(lang)) {
+                    language = "plaintext"
+                }
+                return hljs.highlight(code, {language}).value
+            },
+            "langPrefix": "hljs language-",
+            "renderer": mdRenderer,
+            "silent": true,
+            "smartLists": true,
+            "smartypants": true
+        })
+        if (isFile(loc)) {
+            const md = marked.parse(readFile(loc))
+            call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
+                <title>${encodeURI(req.url)}</title>
+                </head><body id="markdownviewer">${md}</body></html>`)
+            return
+        }
+        const request = net.request({"partition": name, url})
+        request.on("response", res => {
+            let body = ""
+            res.on("end", () => {
+                if (!body) {
+                    call(`<!DOCTPYE html>\n<html><head>
+                        <style>${defaultCss}</style>
+                        <title>${encodeURI(req.url)}</title></head>
+                        <body>Markdown viewer not supported on this webpage
+                        </body></html>`)
+                    return
+                }
+                const md = marked.parse(body)
+                call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
+                    <title>${encodeURI(req.url)}</title>
+                    </head><body id="markdownviewer">${md}</body></html>`)
+            })
+            res.on("data", chunk => {
+                body += chunk
+            })
+        })
+        request.on("abort", () => call(""))
+        request.on("error", () => call(""))
+        request.end()
+    })
+    newSess.protocol.registerStringProtocol("readerview", (req, call) => {
         let loc = req.url.replace(/readerview:\/?\/?/g, "")
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
@@ -998,7 +1069,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                     call(`<!DOCTPYE html>\n<html><head>
                         <style>${defaultCss}</style>
                         <title>${encodeURI(req.url)}</title>
-                        </head><body>Reader view not supported for this website
+                        </head><body>Reader view not supported on this webpage
                         </body></html>`)
                     return
                 }

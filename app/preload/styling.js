@@ -85,9 +85,6 @@ const loadThemes = (loadedFully = false) => {
         applyThemeStyling()
         return
     }
-    if (["sourceviewer:", "readerview:"].includes(window.location.protocol)) {
-        return
-    }
     settings = readJSON(webviewSettingsFile)
     if (loadedFully) {
         const htmlBG = getComputedStyle(html).background

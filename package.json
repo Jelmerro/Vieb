@@ -28,7 +28,7 @@
   "email": "Jelmerro@users.noreply.github.com",
   "license": "GPL-3.0-or-later",
   "devDependencies": {
-    "electron": "20.0.0-beta.9",
+    "electron": "20.0.0-beta.10",
     "electron-builder": "23.1.0",
     "eslint": "8.20.0",
     "eslint-plugin-sort-keys": "2.3.5",
@@ -43,6 +43,7 @@
     "highlight.js": "11.6.0",
     "is-svg": "4.3.2",
     "jsdom": "20.0.0",
+    "marked": "4.0.18",
     "rimraf": "3.0.2"
   }
 }

@@ -739,6 +739,7 @@ const addWebviewListeners = webview => {
         const isErrorPage = webview.getAttribute("failed-to-load")
         const isCustomView = webview.src.startsWith("sourceviewer:")
             || webview.src.startsWith("readerview")
+            || webview.src.startsWith("markdownviewer")
         if (specialPageName || isLocal || isErrorPage || isCustomView) {
             const {getCustomStyling} = require("./settings")
             webview.send("set-custom-styling", getSetting("guifontsize"),
@@ -785,6 +786,7 @@ const addWebviewListeners = webview => {
     webview.addEventListener("page-title-updated", e => {
         const isCustomView = webview.src.startsWith("sourceviewer:")
             || webview.src.startsWith("readerview")
+            || webview.src.startsWith("markdownviewer")
         if (hasProtocol(e.title) && !isCustomView) {
             return
         }

@@ -774,7 +774,12 @@ const checkOther = (setting, value) => {
     }
     if (setting === "storenewvisits") {
         const valid = [
-            "pages", "files", "special", "sourceviewer", "readerview"
+            "pages",
+            "files",
+            "special",
+            "sourceviewer",
+            "readerview",
+            "markdownviewer"
         ]
         for (const visitType of value.split(",").filter(v => v.trim())) {
             if (!valid.includes(visitType)) {
@@ -1429,6 +1434,7 @@ const updateCustomStyling = () => {
         const isErrorPage = p.getAttribute("failed-to-load")
         const isCustomView = p.src.startsWith("sourceviewer:")
             || p.src.startsWith("readerview:")
+            || p.src.startsWith("markdownviewer:")
         if (isSpecialPage || isLocal || isErrorPage || isCustomView) {
             try {
                 p.send("set-custom-styling",

@@ -421,9 +421,17 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 /*
  * READERVIEW
 */
-#readerview {margin: auto;max-width: 1000px;padding: 2vw;opacity: 1;color: var(--fg);background: var(--bg);}
+#readerview {margin: auto;max-width: 65em;padding: 2vw;color: var(--fg);background: var(--bg);}
 #readerview img {max-width: 100%;}
 #readerview a {color: var(--link-color);}
+
+
+/*
+ * MARKDOWNVIEWER
+*/
+#markdownviewer {margin: auto;max-width: 65em;padding: 2vw;color: var(--fg);background: var(--bg);}
+#markdownviewer img {max-width: 100%;}
+#markdownviewer a {color: var(--link-color);}
 
 
 /*
