@@ -27,6 +27,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Examples are now downloaded as blobs instead of files to allow them to be bundled in the asar file for releases
 - Startup argument "--debug" is now called "--devtools" to avoid nodejs argument conflict
 - Give "storenewvisits" a new option for "markdownviewer"
+- Logic for staying in follow mode after selecting something is now more consistent in remembering the previous mode
 
 ### Removed
 

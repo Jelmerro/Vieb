@@ -58,11 +58,8 @@ const informPreload = () => {
 const startFollow = (newtab = followLinkDestination) => {
     followLinkDestination = newtab || "current"
     document.getElementById("follow").textContent = ""
-    let modeBeforeFollow = currentMode()
-    if (modeBeforeFollow === "follow") {
-        modeBeforeFollow = "normal"
-    }
-    if (!getStored("modebeforefollow") || modeBeforeFollow !== "insert") {
+    const modeBeforeFollow = currentMode()
+    if (!["follow", "insert"].includes(modeBeforeFollow)) {
         setStored("modebeforefollow", modeBeforeFollow)
     }
     const {setMode} = require("./modes")
@@ -385,7 +382,7 @@ const enterKey = async(code, id, stayInFollowMode) => {
             return
         }
         await clickAtLink(link)
-        if (link.type !== "inputs-insert") {
+        if (link.type !== "inputs-insert" || stayInFollowMode) {
             setMode(getStored("modebeforefollow"))
             if (stayInFollowMode) {
                 startFollow()
