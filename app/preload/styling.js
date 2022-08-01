@@ -22,7 +22,7 @@
 // Optionally loads darkreader to override the page colors and use a dark theme
 const {ipcRenderer} = require("electron")
 const {
-    appData, readJSON, joinPath, domainName, expandPath, readFile
+    appData, readJSON, joinPath, domainName, expandPath, readFile, listDir
 } = require("../util")
 const webviewSettingsFile = joinPath(appData(), "webviewsettings")
 let settings = readJSON(webviewSettingsFile)
@@ -106,9 +106,13 @@ const loadThemes = (loadedFully = false) => {
         if (settings.userstyle) {
             const domain = domainName(window.location.href)
             const userStyleFiles = [
-                joinPath(appData(), "userstyle", `global.css`),
+                ...(listDir(joinPath(appData(), "userstyle/global"), true)
+                    || []).filter(f => f.endsWith(".css")),
+                joinPath(appData(), "userstyle/global.css"),
+                ...(listDir(expandPath("~/.vieb/userstyle/global"), true)
+                    || []).filter(f => f.endsWith(".css")),
                 expandPath("~/.vieb/userstyle/global.css"),
-                joinPath(appData(), "userstyle", `${domain}.css`),
+                joinPath(appData(), `userstyle/${domain}.css`),
                 expandPath(`~/.vieb/userstyle/${domain}.css`)
             ]
             usercustomStyle.textContent = userStyleFiles.map(f => readFile(f))
@@ -136,5 +140,6 @@ ipcRenderer.on("enable-darkreader", () => loadThemes(true))
 ipcRenderer.on("enable-userstyle", () => loadThemes(true))
 ipcRenderer.on("disable-darkreader", () => disableDarkReader())
 ipcRenderer.on("disable-userstyle", () => usercustomStyle.remove())
+loadThemes()
 window.addEventListener("DOMContentLoaded", () => loadThemes())
 window.addEventListener("load", () => loadThemes(true))
