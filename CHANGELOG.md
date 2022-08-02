@@ -28,6 +28,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Startup argument "--debug" is now called "--devtools" to avoid nodejs argument conflict
 - Give "storenewvisits" a new option for "markdownviewer"
 - Logic for staying in follow mode after selecting something is now more consistent in remembering the previous mode
+- Main process devtools are now always undocked to prevent window size issues
 
 ### Removed
 
@@ -43,8 +44,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Versions
 
-- Electron 20.0.0-beta.13 (was 19.0.6)
-- Chromium 104.0.5112.57 (was 102.0.5005.115)
+- Electron 20.0.0 (was 19.0.6)
+- Chromium 104.0.5112.65 (was 102.0.5005.115)
 
 ## [8.1.0](https://github.com/Jelmerro/Vieb/compare/8.0.0...8.1.0) - 2022-06-29
 

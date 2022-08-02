@@ -142,7 +142,7 @@ This is free software; you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 See the LICENSE file or the GNU website for details.`)
 }
-const applyDevtoolsSettings = prefFile => {
+const applyDevtoolsSettings = (prefFile, undock = true) => {
     makeDir(dirname(prefFile))
     const preferences = readJSON(prefFile) || {}
     preferences.electron = preferences.electron || {}
@@ -152,6 +152,11 @@ const applyDevtoolsSettings = prefFile => {
     // Disable source maps as they leak internal structure to the webserver
     preferences.electron.devtools.preferences.cssSourceMapsEnabled = false
     preferences.electron.devtools.preferences.jsSourceMapsEnabled = false
+    // Undock main process devtools to prevent window size issues
+    if (undock) {
+        preferences.electron.devtools.preferences.
+            currentDockState = `"undocked"`
+    }
     // Disable release notes, most are not relevant for Vieb
     preferences.electron.devtools.preferences["help.show-release-note"] = false
     // Show timestamps in the console
@@ -783,7 +788,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     const partitionDir = joinPath(app.getPath("appData"), "Partitions")
     const sessionDir = joinPath(partitionDir, encodeURIComponent(
         name.split(":")[1] || name))
-    applyDevtoolsSettings(joinPath(sessionDir, "Preferences"))
+    applyDevtoolsSettings(joinPath(sessionDir, "Preferences"), false)
     const newSess = session.fromPartition(name, {cache})
     newSess.setPermissionRequestHandler(permissionHandler)
     newSess.setPermissionCheckHandler(() => true)
