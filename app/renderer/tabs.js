@@ -440,7 +440,7 @@ const unsuspendPage = page => {
                 name.textContent = "Devtools"
             } else if (url || newtabUrl) {
                 webview.setAttribute("custom-first-load", true)
-                webview.loadURL(url || stringToUrl(newtabUrl))
+                webview.src = url || stringToUrl(newtabUrl)
                     .then(() => {
                         if (webview.getAttribute("custom-first-load")) {
                             webview.clearHistory()
@@ -448,7 +448,7 @@ const unsuspendPage = page => {
                             webview.setAttribute("dom-ready", true)
                         }
                     }).catch(() => {
-                        webview.loadURL(url || stringToUrl(newtabUrl))
+                        webview.src = url || stringToUrl(newtabUrl)
                     })
                 resetTabInfo(webview)
                 name.textContent = urlToString(url)

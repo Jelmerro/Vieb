@@ -1817,8 +1817,12 @@ const translateMouseEvent = (e, clickInfo) => {
         frameUrl = info.url
     }
     const webviewId = webContents.getAllWebContents().find(wc => {
-        const wcId = `${wc.mainFrame.routingId}-${wc.mainFrame.processId}`
-        return wcId === parentId
+        try {
+            const wcId = `${wc.mainFrame.routingId}-${wc.mainFrame.processId}`
+            return wcId === parentId
+        } catch {
+            return false
+        }
     })?.id
     return {
         ...clickInfo,

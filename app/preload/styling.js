@@ -81,6 +81,9 @@ const loadThemes = (loadedFully = false) => {
     if (!html) {
         return
     }
+    if (document.location.ancestorOrigins.length) {
+        return
+    }
     if (document.head?.innerText === "") {
         applyThemeStyling()
         return
