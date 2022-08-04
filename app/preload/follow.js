@@ -33,7 +33,7 @@ const {
 } = require("../util")
 const settingsFile = joinPath(appData(), "webviewsettings")
 
-let inFollowMode = false
+let currentFollowModeType = null
 const clickableInputs = [
     "button",
     "input[type=\"button\"]",
@@ -109,9 +109,9 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
     }
 })
 
-const getLinkFollows = allLinks => {
+const getLinkFollows = (allElements, allLinks) => {
     // A tags with href as the link, can be opened in new tab or current tab
-    querySelectorAll("a").forEach(e => {
+    allElements.filter(el => matchesQuery(el, "a")).forEach(e => {
         const baseLink = parseElement(e, "url")
         if (baseLink) {
             allLinks.push(baseLink)
@@ -125,10 +125,10 @@ const getLinkFollows = allLinks => {
     })
 }
 
-const getInputFollows = allLinks => {
+const getInputFollows = (allElements, allLinks) => {
     // Input tags such as checkboxes, can be clicked but have no text input
-    const inputs = [...querySelectorAll(clickableInputs)]
-    inputs.push(...[...querySelectorAll("input")].map(
+    const inputs = allElements.filter(el => matchesQuery(el, clickableInputs))
+    inputs.push(...allElements.filter(el => matchesQuery(el, "input")).map(
         e => e.closest("label")).filter(e => e && !inputs.includes(e)))
     inputs.forEach(element => {
         let type = "inputs-click"
@@ -154,10 +154,11 @@ const getInputFollows = allLinks => {
     })
     // Input tags such as email and text, can have text inserted
     allLinks.push(
-        ...allElementsBySelector("inputs-insert", textlikeInputs))
+        ...allElements.filter(el => matchesQuery(el, textlikeInputs)).map(
+            element => parseElement(element, "inputs-insert")).filter(e => e))
 }
 
-const getOtherFollows = allLinks => {
+const getOtherFollows = (allElements, allLinks) => {
     // Elements with some kind of mouse interaction, grouped by click and other
     const addElementToList = (element, type) => {
         const clickable = parseElement(element, type)
@@ -165,7 +166,6 @@ const getOtherFollows = allLinks => {
             allLinks.push(clickable)
         }
     }
-    const allElements = [...querySelectorAll("*")]
     allElements.filter(
         el => clickEvents.find(e => el[`on${e}`] || eventListeners[e].has(el))
         || el.getAttribute("jsaction")).forEach(
@@ -174,17 +174,22 @@ const getOtherFollows = allLinks => {
             || eventListeners[e].has(el)))
         .forEach(element => addElementToList(element, "other"))
     // Get media elements, including images
-    allLinks.push(...allElementsBySelector("media", "video,audio"))
-    allLinks.push(...allElementsBySelector("image", "img,svg"))
+    allElements.filter(el => matchesQuery(el, "video,audio"))
+        .forEach(element => addElementToList(element, "media"))
+    allElements.filter(el => matchesQuery(el, "img.svg"))
+        .forEach(element => addElementToList(element, "image"))
     allElements.filter(el => getComputedStyle(el).backgroundImage !== "none")
         .forEach(element => addElementToList(element, "image"))
 }
 
-const getAllFollowLinks = () => {
+const getAllFollowLinks = (getAll = true) => {
+    const allElements = [...querySelectorAll("*")]
     const allLinks = []
-    getLinkFollows(allLinks)
-    getInputFollows(allLinks)
-    getOtherFollows(allLinks)
+    getLinkFollows(allElements, allLinks)
+    if (getAll) {
+        getInputFollows(allElements, allLinks)
+        getOtherFollows(allElements, allLinks)
+    }
     // Ordered by the position on the page from the top
     // Uncategorised mouse events are less relevant and are moved to the end
     return allLinks.sort((el1, el2) => {
@@ -196,11 +201,13 @@ const getAllFollowLinks = () => {
 }
 
 const mainInfoLoop = () => {
-    if (inFollowMode) {
-        ipcRenderer.send("follow-response", getAllFollowLinks())
+    if (currentFollowModeType) {
+        ipcRenderer.send("follow-response",
+            getAllFollowLinks(currentFollowModeType === "current"))
     }
     // Listeners for iframes that run on the same host and same process
-    [...querySelectorAll("iframe")].forEach(f => {
+    const frames = [...querySelectorAll("iframe")]
+    frames.forEach(f => {
         try {
             f.contentDocument.onclick = e => clickListener(e, f)
             f.contentDocument.oncontextmenu = e => contextListener(e, f)
@@ -220,7 +227,7 @@ const mainInfoLoop = () => {
         "pagey": window.scrollY,
         "scrollHeight": document.body.scrollHeight,
         "scrollWidth": document.body.scrollWidth,
-        "subframes": [...querySelectorAll("iframe") || []].map(f => ({
+        "subframes": frames.map(f => ({
             "bounds": JSON.stringify(f.getBoundingClientRect()),
             "height": f.getBoundingClientRect().height || f.clientHeight,
             "url": f.src,
@@ -233,15 +240,15 @@ const mainInfoLoop = () => {
     })
 }
 
-ipcRenderer.on("follow-mode-start", () => {
-    if (!inFollowMode) {
-        inFollowMode = true
+ipcRenderer.on("follow-mode-start", (_, newFollowType) => {
+    if (currentFollowModeType !== newFollowType) {
+        currentFollowModeType = newFollowType
         mainInfoLoop()
     }
 })
 
 ipcRenderer.on("follow-mode-stop", () => {
-    inFollowMode = false
+    currentFollowModeType = null
 })
 
 // Send the page once every second in case of transitions or animations
@@ -250,8 +257,7 @@ setInterval(mainInfoLoop, 1000)
 window.addEventListener("DOMContentLoaded", mainInfoLoop)
 window.addEventListener("resize", mainInfoLoop)
 
-const pseudoElementRects = element => {
-    const base = element.getBoundingClientRect()
+const pseudoElementRects = (base, element) => {
     const rects = []
     for (const pseudoType of ["before", "after"]) {
         const pseudo = getComputedStyle(element, `::${pseudoType}`)
@@ -284,7 +290,7 @@ const parseElement = (element, type) => {
     if (!element.getClientRects || excluded.includes(element)) {
         return null
     }
-    // First (quickly) check that element is visible at all
+    // First check that element is visible at all
     const boundingRect = element.getBoundingClientRect()
     if (rectOutsideWindow(boundingRect)) {
         return null
@@ -299,7 +305,7 @@ const parseElement = (element, type) => {
             sub.getBoundingClientRect(), ...sub.getClientRects()
         ])
     }
-    rects = rects.concat(pseudoElementRects(element))
+    rects = rects.concat(pseudoElementRects(boundingRect, element))
     const paddingInfo = findFrameInfo(element)
     if (paddingInfo) {
         rects = rects.map(r => {
@@ -473,7 +479,7 @@ const getSvgData = el => `data:image/svg+xml,${encodeURIComponent(el.outerHTML)
     .replace(/'/g, "%27").replace(/"/g, "%22")}`
 
 const contextListener = (e, frame = null, extraData = null) => {
-    if (e.isTrusted && !inFollowMode && e.button === 2) {
+    if (e.isTrusted && !currentFollowModeType && e.button === 2) {
         e.preventDefault?.()
         const paddingInfo = findFrameInfo(frame)
         const img = e.composedPath().find(el => ["svg", "img"]

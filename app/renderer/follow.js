@@ -46,7 +46,7 @@ const informPreload = () => {
         if (currentPage().getAttribute("dom-ready")) {
             if (currentMode() === "follow" && !alreadyFollowing) {
                 ipcRenderer.send("follow-mode-start",
-                    currentPage().getWebContentsId())
+                    currentPage().getWebContentsId(), followLinkDestination)
                 informPreload()
             } else {
                 ipcRenderer.send("follow-mode-stop")
@@ -67,8 +67,8 @@ const startFollow = (newtab = followLinkDestination) => {
     alreadyFollowing = false
     alreadyFilteringLinks = false
     informPreload()
-    ipcRenderer.send("follow-mode-start",
-        currentPage().getWebContentsId(), true)
+    ipcRenderer.send("follow-mode-start", currentPage().getWebContentsId(),
+        followLinkDestination, true)
     document.getElementById("follow").style.display = "flex"
 }
 
@@ -188,17 +188,17 @@ const parseAndDisplayLinks = receivedLinks => {
             .map(link => ({...link, "type": "url"}))
     }
     if (links.length) {
-        const badLinks = []
         for (let i = 0; i < links.length; i++) {
             if (!linkInList(newLinks, links[i])) {
                 links[i] = null
-                badLinks.push(i)
             }
         }
         newLinks.filter(l => !linkInList(links, l)).forEach(newLink => {
-            for (let i = 0; i < badLinks.length; i++) {
-                links[badLinks[i]] = newLink
-                return
+            for (let i = 0; i < links.length; i++) {
+                if (!links[i]) {
+                    links[i] = newLink
+                    return
+                }
             }
             if (!linkInList(links, newLink)) {
                 links.push(newLink)
