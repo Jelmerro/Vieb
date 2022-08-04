@@ -20,6 +20,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "darkreaderblocklist" to block specific sites (regular expressions) from using darkreader, even if enabled
 - Setting "userstyle" to toggle loading of custom CSS files into the page, either globally or per-domain
 - Actions "toggleMarkdownViewer" and "toggleMarkdownViewerNewTab" to toggle the new theme supported "markdownviewer"
+- Setting "nativetheme" to control the theme to report to pages, used by the "prefers-color-scheme" CSS rule
 
 ### Changed
 

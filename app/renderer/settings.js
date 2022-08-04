@@ -138,6 +138,7 @@ const defaultSettings = {
     "mousenewtabswitch": true,
     "mousevisualmode": "onswitch",
     "nativenotification": "never",
+    "nativetheme": "system",
     "newtaburl": "",
     "notificationduration": 6000,
     "notificationforpermissions": false,
@@ -269,6 +270,7 @@ const validOptions = {
     "menuvieb": ["both", "navbar", "tabbar", "never"],
     "mousevisualmode": ["activate", "onswitch", "never"],
     "nativenotification": ["always", "smallonly", "never"],
+    "nativetheme": ["system", "dark", "light"],
     "notificationforsystemcommands": ["all", "errors", "none"],
     "notificationposition": [
         "bottomright", "bottomleft", "topright", "topleft"
@@ -338,6 +340,7 @@ const init = () => {
     updatePermissionSettings()
     updateWebviewSettings()
     updateMouseSettings()
+    updateNativeTheme()
     ipcRenderer.invoke("list-spelllangs").then(langs => {
         spelllangs = langs || []
         spelllangs.push("system")
@@ -905,6 +908,10 @@ const updateMouseSettings = () => {
     }
 }
 
+const updateNativeTheme = () => {
+    ipcRenderer.send("update-native-theme", allSettings.nativetheme)
+}
+
 const updateContainerSettings = (full = true) => {
     if (full) {
         for (const page of listPages()) {
@@ -1186,6 +1193,9 @@ const set = (setting, value) => {
         }
         if (setting === "mouse") {
             updateMouseSettings()
+        }
+        if (setting === "nativetheme") {
+            updateNativeTheme()
         }
         if (setting === "spelllang" || setting === "spell") {
             if (allSettings.spell) {

@@ -27,7 +27,8 @@ const {
     screen,
     session,
     shell,
-    webContents
+    webContents,
+    nativeTheme
 } = require("electron")
 const {
     title,
@@ -1512,6 +1513,9 @@ const saveWindowState = (maximizeOnly = false) => {
 }
 
 // Miscellaneous tasks
+ipcMain.on("update-native-theme", (_, newTheme) => {
+    nativeTheme.themeSource = newTheme
+})
 ipcMain.handle("save-page", (_, id, loc) => {
     webContents.fromId(id).savePage(loc, "HTMLComplete")
 })
