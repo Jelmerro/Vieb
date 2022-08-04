@@ -386,6 +386,8 @@ const findClickPosition = (element, rects) => {
     // For every possible rect of the element and it's sub images.
     for (const rect of rects) {
         let {x, y} = rect
+        x = x || rect.left
+        y = y || rect.top
         let width = Math.min(rect.width, window.innerWidth - x)
         if (x < 0) {
             width += x

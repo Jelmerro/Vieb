@@ -33,8 +33,8 @@ const {
 } = require("../util")
 const settingsFile = joinPath(appData(), "webviewsettings")
 
-let currentFollowModeType = null
-const clickableInputs = [
+let currentFollowModeStatus = null
+const clickInputs = [
     "button",
     "input[type=\"button\"]",
     "input[type=\"radio\"]",
@@ -76,7 +76,8 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
     if (follow) {
         el = findElementAtPosition(follow.x, follow.y)
     } else {
-        const input = getAllFollowLinks().find(l => l.type === "inputs-insert")
+        const allLinks = await getAllFollowLinks(["input"])
+        const input = allLinks.find(l => l.type === "inputs-insert")
         if (input) {
             el = findElementAtPosition(
                 input.x + input.width / 2, input.y + input.height / 2)
@@ -109,101 +110,103 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
     }
 })
 
-const getLinkFollows = (allElements, allLinks) => {
-    // A tags with href as the link, can be opened in new tab or current tab
-    allElements.filter(el => matchesQuery(el, "a")).forEach(e => {
-        const baseLink = parseElement(e, "url")
-        if (baseLink) {
-            allLinks.push(baseLink)
-        } else {
-            // Try sub-elements instead, for example if the link is not
-            // visible or `display: none`, but a sub-element is absolutely
-            // positioned somewhere else.
-            allLinks.push(...Array.from(e?.querySelectorAll("*") || [])
-                .map(c => parseElement(c, "url")).filter(l => l))
-        }
-    })
-}
-
-const getInputFollows = (allElements, allLinks) => {
-    // Input tags such as checkboxes, can be clicked but have no text input
-    const inputs = allElements.filter(el => matchesQuery(el, clickableInputs))
-    inputs.push(...allElements.filter(el => matchesQuery(el, "input")).map(
-        e => e.closest("label")).filter(e => e && !inputs.includes(e)))
-    inputs.forEach(element => {
-        let type = "inputs-click"
-        if (element.tagName.toLowerCase() === "label") {
-            const labelFor = element.getAttribute("for")
-            if (labelFor) {
-                try {
-                    const forEl = element.closest(`#${labelFor}`)
-                    if (matchesQuery(forEl, textlikeInputs)) {
-                        type = "inputs-insert"
+const getAllFollowLinks = (filter = null) => {
+    const allEls = [...querySelectorAll("*")]
+    const relevantLinks = []
+    if (!filter || filter.includes("url")) {
+        // A tags with href as the link, can be opened in new tab or current tab
+        allEls.filter(el => matchesQuery(el, "a")).forEach(
+            el => relevantLinks.push({el, "type": "url"}))
+    }
+    if (!filter || filter.find(f => f.startsWith("input"))) {
+        // Input tags such as checkboxes, can be clicked but have no text input
+        const inputs = allEls.filter(el => matchesQuery(el, clickInputs))
+        inputs.push(...allEls.filter(el => matchesQuery(el, "input")).map(
+            e => e.closest("label")).filter(e => e && !inputs.includes(e)))
+        inputs.forEach(el => {
+            let type = "inputs-click"
+            if (el.tagName.toLowerCase() === "label") {
+                const labelFor = el.getAttribute("for")
+                if (labelFor) {
+                    try {
+                        const forEl = el.closest(`#${labelFor}`)
+                        if (matchesQuery(forEl, textlikeInputs)) {
+                            type = "inputs-insert"
+                        }
+                    } catch {
+                        // Invalid label, not a valid selector, assuming click
                     }
-                } catch {
-                    // Invalid label, not a valid selector, assuming click input
+                } else if (el.querySelector(textlikeInputs)) {
+                    type = "inputs-insert"
                 }
-            } else if (element.querySelector(textlikeInputs)) {
-                type = "inputs-insert"
             }
-        }
-        const clickable = parseElement(element, type)
-        if (clickable) {
-            allLinks.push(clickable)
-        }
-    })
-    // Input tags such as email and text, can have text inserted
-    allLinks.push(
-        ...allElements.filter(el => matchesQuery(el, textlikeInputs)).map(
-            element => parseElement(element, "inputs-insert")).filter(e => e))
-}
-
-const getOtherFollows = (allElements, allLinks) => {
-    // Elements with some kind of mouse interaction, grouped by click and other
-    const addElementToList = (element, type) => {
-        const clickable = parseElement(element, type)
-        if (clickable) {
-            allLinks.push(clickable)
-        }
+            relevantLinks.push({el, type})
+        })
+        // Input tags such as email and text, can have text inserted
+        allEls.filter(el => matchesQuery(el, textlikeInputs)).forEach(
+            el => relevantLinks.push({el, "type": "inputs-insert"}))
     }
-    allElements.filter(
-        el => clickEvents.find(e => el[`on${e}`] || eventListeners[e].has(el))
-        || el.getAttribute("jsaction")).forEach(
-        element => addElementToList(element, "onclick"))
-    allElements.filter(el => otherEvents.find(e => el[`on${e}`]
+    if (!filter || filter.includes("onclick")) {
+        // Elements with some kind of mouse interaction, grouped by click/other
+        allEls.filter(el => clickEvents.find(
+            e => el[`on${e}`] || eventListeners[e].has(el))
+            || el.getAttribute("jsaction")).forEach(
+            el => relevantLinks.push({el, "type": "onclick"}))
+        allEls.filter(el => otherEvents.find(e => el[`on${e}`]
             || eventListeners[e].has(el)))
-        .forEach(element => addElementToList(element, "other"))
-    // Get media elements, including images
-    allElements.filter(el => matchesQuery(el, "video,audio"))
-        .forEach(element => addElementToList(element, "media"))
-    allElements.filter(el => matchesQuery(el, "img.svg"))
-        .forEach(element => addElementToList(element, "image"))
-    allElements.filter(el => getComputedStyle(el).backgroundImage !== "none")
-        .forEach(element => addElementToList(element, "image"))
-}
-
-const getAllFollowLinks = (getAll = true) => {
-    const allElements = [...querySelectorAll("*")]
-    const allLinks = []
-    getLinkFollows(allElements, allLinks)
-    if (getAll) {
-        getInputFollows(allElements, allLinks)
-        getOtherFollows(allElements, allLinks)
+            .forEach(el => relevantLinks.push({el, "type": "other"}))
     }
-    // Ordered by the position on the page from the top
-    // Uncategorised mouse events are less relevant and are moved to the end
-    return allLinks.sort((el1, el2) => {
-        if (el1.type === "other") {
-            return 10000
+    if (!filter || filter.includes("media")) {
+        // Get media elements, such as videos or music players
+        allEls.filter(el => matchesQuery(el, "video,audio"))
+            .forEach(el => relevantLinks.push({el, "type": "media"}))
+    }
+    if (!filter || filter.includes("image")) {
+        // Get any images or background images
+        allEls.filter(el => matchesQuery(el, "img.svg"))
+            .forEach(el => relevantLinks.push({el, "type": "image"}))
+        allEls.filter(el => getComputedStyle(el).backgroundImage !== "none")
+            .forEach(el => relevantLinks.push({el, "type": "image"}))
+    }
+    return new Promise(res => {
+        const observer = new IntersectionObserver(entries => {
+            const parsedEls = relevantLinks.map(link => {
+                const entry = entries.find(e => e.target === link.el)
+                if (entry) {
+                    link.bounds = entry.boundingClientRect
+                    link.visible = entry.intersectionRatio > 0
+                }
+                return link
+            }).filter(link => link.visible)
+                .map(link => parseElement(link.el, link.type, link.bounds))
+                .filter(el => el)
+            res(parsedEls.sort((el1, el2) => {
+                if (el1.type === "other") {
+                    return 10000
+                }
+                return Math.floor(el1.y) - Math.floor(el2.y) || el1.x - el2.x
+            }))
+            observer.disconnect()
+        })
+        let observingSomething = false
+        relevantLinks.forEach(link => {
+            try {
+                observer.observe(link.el)
+                observingSomething = true
+            } catch (e) {
+                console.warn(e)
+            }
+        })
+        if (!observingSomething) {
+            res([])
         }
-        return Math.floor(el1.y) - Math.floor(el2.y) || el1.x - el2.x
     })
 }
 
 const mainInfoLoop = () => {
-    if (currentFollowModeType) {
-        ipcRenderer.send("follow-response",
-            getAllFollowLinks(currentFollowModeType === "current"))
+    if (currentFollowModeStatus) {
+        getAllFollowLinks(currentFollowModeStatus.split(","))
+            .then(links => ipcRenderer.send("follow-response", links))
     }
     // Listeners for iframes that run on the same host and same process
     const frames = [...querySelectorAll("iframe")]
@@ -240,15 +243,15 @@ const mainInfoLoop = () => {
     })
 }
 
-ipcRenderer.on("follow-mode-start", (_, newFollowType) => {
-    if (currentFollowModeType !== newFollowType) {
-        currentFollowModeType = newFollowType
+ipcRenderer.on("follow-mode-start", (_, newFollowFilter) => {
+    if (currentFollowModeStatus !== newFollowFilter) {
+        currentFollowModeStatus = newFollowFilter
         mainInfoLoop()
     }
 })
 
 ipcRenderer.on("follow-mode-stop", () => {
-    currentFollowModeType = null
+    currentFollowModeStatus = null
 })
 
 // Send the page once every second in case of transitions or animations
@@ -257,72 +260,24 @@ setInterval(mainInfoLoop, 1000)
 window.addEventListener("DOMContentLoaded", mainInfoLoop)
 window.addEventListener("resize", mainInfoLoop)
 
-const pseudoElementRects = (base, element) => {
-    const rects = []
-    for (const pseudoType of ["before", "after"]) {
-        const pseudo = getComputedStyle(element, `::${pseudoType}`)
-        const width = propPixels(pseudo, "width")
-        const height = propPixels(pseudo, "height")
-        if (height && width) {
-            const pseudoDims = JSON.parse(JSON.stringify(base))
-            const top = propPixels(pseudo, "top")
-            const left = propPixels(pseudo, "left")
-            const marginTop = propPixels(pseudo, "marginTop")
-            const marginLeft = propPixels(pseudo, "marginLeft")
-            pseudoDims.width = width
-            pseudoDims.height = height
-            pseudoDims.x += left + marginLeft
-            pseudoDims.y += top + marginTop
-            rects.push(pseudoDims)
-        }
-    }
-    return rects
-}
-
-const rectOutsideWindow = r => r.bottom < 0 || r.top > window.innerHeight
-    || r.right < 0 || r.left > window.innerWidth
-
-const parseElement = (element, type) => {
-    // The body shouldn't be considered clickable on it's own,
-    // Even if listeners are added to it.
-    // Also checks if the element actually has rects.
+const parseElement = (element, type, customBounds = false) => {
     const excluded = [document.body, document.documentElement]
-    if (!element.getClientRects || excluded.includes(element)) {
+    if (excluded.includes(element)) {
         return null
     }
-    // First check that element is visible at all
-    const boundingRect = element.getBoundingClientRect()
-    if (rectOutsideWindow(boundingRect)) {
-        return null
-    }
-    if (getComputedStyle(element).visibility === "hidden") {
-        return null
-    }
-    // Make a list of all possible bounding rects for the element
-    let rects = [boundingRect, ...element.getClientRects()]
-    for (const sub of Array.from(element?.querySelectorAll("img, svg") || [])) {
-        rects = rects.concat([
-            sub.getBoundingClientRect(), ...sub.getClientRects()
-        ])
-    }
-    rects = rects.concat(pseudoElementRects(boundingRect, element))
+    const boundingBox = customBounds || element.getBoundingClientRect()
     const paddingInfo = findFrameInfo(element)
     if (paddingInfo) {
-        rects = rects.map(r => {
-            r.x += paddingInfo.x
-            r.y += paddingInfo.y
-            return r
-        })
+        boundingBox.left += paddingInfo.x
+        boundingBox.top += paddingInfo.y
     }
-    // Find a clickable area and position for the given element
+    // Find a clickable area and position for the given element and bounds
+    const subImages = [...element.querySelectorAll("img,svg")]
+    const rects = [
+        boundingBox, ...subImages.map(img => img.getBoundingClientRect())
+    ]
     const {dims, clickable} = findClickPosition(element, rects)
-    // Return null if any of the checks below fail
-    // - Not detected as clickable in the above loop
-    // - Too small to properly click on using a regular browser
-    const tooSmall = dims.width <= 2 || dims.height <= 2
-    // - The element isn't actually visible on the user's current window
-    const outsideWindow = rectOutsideWindow(dims)
-    if (!clickable || tooSmall || outsideWindow) {
+    if (!clickable) {
         return null
     }
     // The element should be clickable and is returned in a parsed format
@@ -356,9 +311,6 @@ const parseElement = (element, type) => {
         "y": dims.y
     }
 }
-
-const allElementsBySelector = (type, select) => [...querySelectorAll(select)]
-    .map(element => parseElement(element, type)).filter(e => e)
 
 const eventListeners = {}
 ;[...clickEvents, ...otherEvents].forEach(e => {
@@ -479,7 +431,7 @@ const getSvgData = el => `data:image/svg+xml,${encodeURIComponent(el.outerHTML)
     .replace(/'/g, "%27").replace(/"/g, "%22")}`
 
 const contextListener = (e, frame = null, extraData = null) => {
-    if (e.isTrusted && !currentFollowModeType && e.button === 2) {
+    if (e.isTrusted && !currentFollowModeStatus && e.button === 2) {
         e.preventDefault?.()
         const paddingInfo = findFrameInfo(frame)
         const img = e.composedPath().find(el => ["svg", "img"]
@@ -610,7 +562,7 @@ ipcRenderer.on("keyboard-type-event", (_, keyOptions) => {
 })
 const isVertScrollable = el => {
     const scrollEl = document.scrollingElement
-    if ([scrollEl, scrollEl.parseElement].includes(el)) {
+    if ([scrollEl, scrollEl.parentElement].includes(el)) {
         return el.scrollHeight > el.clientHeight
     }
     return el.scrollHeight > el.clientHeight
@@ -618,7 +570,7 @@ const isVertScrollable = el => {
 }
 const isHorScrollable = el => {
     const scrollEl = document.scrollingElement
-    if ([scrollEl, scrollEl.parseElement].includes(el)) {
+    if ([scrollEl, scrollEl.parentElement].includes(el)) {
         return el.scrollWidth > el.clientWidth
     }
     return el.scrollWidth > el.clientWidth

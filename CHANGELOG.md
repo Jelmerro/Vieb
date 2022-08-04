@@ -29,6 +29,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Give "storenewvisits" a new option for "markdownviewer"
 - Logic for staying in follow mode after selecting something is now more consistent in remembering the previous mode
 - Main process devtools are now always undocked to prevent window size issues
+- Follow mode logic to use the much faster async IntersectionObserver instead of sync API
+- Follow mode logic to be faster if fewer element types are queried
 
 ### Removed
 
