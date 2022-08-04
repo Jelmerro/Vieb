@@ -31,6 +31,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Main process devtools are now always undocked to prevent window size issues
 - Follow mode logic to use the much faster async IntersectionObserver instead of sync API
 - Follow mode logic to be faster if fewer element types are queried
+- Use Electron's clickOnSearch implementation in favor of Vieb's custom one
 
 ### Removed
 

@@ -623,7 +623,6 @@ ipcRenderer.on("custom-mouse-event", (_, eventType, mouseOptions) => {
     el.dispatchEvent(event)
 })
 
-let searchElement = null
 let scrollHeight = 0
 let justScrolled = 0
 let justSearched = false
@@ -640,8 +639,6 @@ window.addEventListener("scroll", () => {
     if (justSearched) {
         const {x} = searchPos
         const y = searchPos.y + scrollDiff * window.devicePixelRatio
-        searchElement = findElementAtPosition(x / window.devicePixelRatio,
-            y / window.devicePixelRatio)
         ipcRenderer.sendToHost("search-element-location", x, y)
     }
     ipcRenderer.sendToHost("scroll-height-diff", scrollDiff)
@@ -659,16 +656,12 @@ ipcRenderer.on("search-element-location", (_, pos) => {
     }
     const y = pos.y + pos.height / 2 + justScrolled * window.devicePixelRatio
     searchPos = {x, y}
-    searchElement = findElementAtPosition(x / window.devicePixelRatio,
-        y / window.devicePixelRatio)
     ipcRenderer.sendToHost("search-element-location", x, y)
     justSearched = true
     setTimeout(() => {
         justSearched = false
     }, 100)
 })
-
-ipcRenderer.on("search-element-click", () => searchElement?.click())
 
 window.addEventListener("mousemove", e => {
     ipcRenderer.sendToHost("mousemove", e.clientX, e.clientY)

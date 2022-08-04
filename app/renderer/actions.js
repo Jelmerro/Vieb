@@ -58,11 +58,7 @@ const emptySearch = () => {
     currentSearch = ""
 }
 
-const clickOnSearch = () => {
-    if (currentSearch) {
-        currentPage()?.send("search-element-click")
-    }
-}
+const clickOnSearch = () => currentPage()?.stopFindInPage("activateSelection")
 
 const nextPage = () => sendToPageOrSubFrame("action", "nextPage")
 
