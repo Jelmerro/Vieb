@@ -379,33 +379,51 @@ const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
     return elements
 }
 
+const correctedCenterAndSizeOfRect = rect => {
+    let {x, y} = rect
+    x = x || rect.left
+    y = y || rect.top
+    let width = Math.min(rect.width, window.innerWidth - x)
+    if (x < 0) {
+        width += x
+        x = 0
+    }
+    let height = Math.min(rect.height, window.innerHeight - y)
+    if (y < 0) {
+        height += y
+        y = 0
+    }
+    const centerX = x + width / 2
+    const centerY = y + height / 2
+    return {centerX, centerY, height, width, x, y}
+}
+
 const findClickPosition = (element, rects) => {
     let dims = {}
     let clickable = false
-    // Check if the center of the bounding rect is actually clickable,
-    // For every possible rect of the element and it's sub images.
     for (const rect of rects) {
-        let {x, y} = rect
-        x = x || rect.left
-        y = y || rect.top
-        let width = Math.min(rect.width, window.innerWidth - x)
-        if (x < 0) {
-            width += x
-            x = 0
-        }
-        let height = Math.min(rect.height, window.innerHeight - y)
-        if (y < 0) {
-            height += y
-            y = 0
-        }
-        const rectX = x + width / 2
-        const rectY = y + height / 2
-        // Update the region if it's larger or the first region found
-        if (width > dims.width || height > dims.height || !clickable) {
-            const elementAtPos = findElementAtPosition(rectX, rectY)
-            if (element === elementAtPos || element?.contains(elementAtPos)) {
+        const {
+            centerX, centerY, x, y, width, height
+        } = correctedCenterAndSizeOfRect(rect)
+        if (!clickable || width > dims.width || height > dims.height) {
+            const elAtPos = findElementAtPosition(centerX, centerY)
+            if (element === elAtPos || element?.contains(elAtPos)) {
                 clickable = true
                 dims = {height, width, x, y}
+            }
+        }
+    }
+    if (!clickable) {
+        for (const rect of [...element.getClientRects()]) {
+            const {
+                centerX, centerY, x, y, width, height
+            } = correctedCenterAndSizeOfRect(rect)
+            if (!clickable || width > dims.width || height > dims.height) {
+                const elAtPos = findElementAtPosition(centerX, centerY)
+                if (element === elAtPos || element?.contains(elAtPos)) {
+                    clickable = true
+                    dims = {height, width, x, y}
+                }
             }
         }
     }

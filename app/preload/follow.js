@@ -33,7 +33,7 @@ const {
 } = require("../util")
 const settingsFile = joinPath(appData(), "webviewsettings")
 
-let currentFollowModeStatus = null
+let currentFollowStatus = null
 const clickInputs = [
     "button",
     "input[type=\"button\"]",
@@ -174,7 +174,7 @@ const getAllFollowLinks = (filter = null) => {
                 const entry = entries.find(e => e.target === link.el)
                 if (entry) {
                     link.bounds = entry.boundingClientRect
-                    link.visible = entry.intersectionRatio > 0
+                    link.visible = entry.intersectionRatio > 0.01
                 }
                 return link
             }).filter(link => link.visible)
@@ -204,10 +204,6 @@ const getAllFollowLinks = (filter = null) => {
 }
 
 const mainInfoLoop = () => {
-    if (currentFollowModeStatus) {
-        getAllFollowLinks(currentFollowModeStatus.split(","))
-            .then(links => ipcRenderer.send("follow-response", links))
-    }
     // Listeners for iframes that run on the same host and same process
     const frames = [...querySelectorAll("iframe")]
     frames.forEach(f => {
@@ -247,15 +243,23 @@ const mainInfoLoop = () => {
     })
 }
 
+const followLoop = async() => {
+    if (currentFollowStatus) {
+        const links = await getAllFollowLinks(currentFollowStatus.split(","))
+        ipcRenderer.send("follow-response", links)
+        setTimeout(() => followLoop(), 100)
+    }
+}
+
 ipcRenderer.on("follow-mode-start", (_, newFollowFilter) => {
-    if (currentFollowModeStatus !== newFollowFilter) {
-        currentFollowModeStatus = newFollowFilter
-        mainInfoLoop()
+    if (currentFollowStatus !== newFollowFilter) {
+        currentFollowStatus = newFollowFilter
+        followLoop()
     }
 })
 
 ipcRenderer.on("follow-mode-stop", () => {
-    currentFollowModeStatus = null
+    currentFollowStatus = null
 })
 
 setInterval(mainInfoLoop, 1000)
@@ -434,7 +438,7 @@ const getSvgData = el => `data:image/svg+xml,${encodeURIComponent(el.outerHTML)
     .replace(/'/g, "%27").replace(/"/g, "%22")}`
 
 const contextListener = (e, frame = null, extraData = null) => {
-    if (e.isTrusted && !currentFollowModeStatus && e.button === 2) {
+    if (e.isTrusted && !currentFollowStatus && e.button === 2) {
         e.preventDefault?.()
         const paddingInfo = findFrameInfo(frame)
         const img = e.composedPath().find(el => ["svg", "img"]
