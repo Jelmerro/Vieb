@@ -230,14 +230,18 @@ const mainInfoLoop = () => {
         "pagey": window.scrollY,
         "scrollHeight": document.body.scrollHeight,
         "scrollWidth": document.body.scrollWidth,
-        "subframes": frames.map(f => ({
-            "bounds": JSON.stringify(f.getBoundingClientRect()),
-            "height": f.getBoundingClientRect().height || f.clientHeight,
-            "url": f.src,
-            "width": f.getBoundingClientRect().width || f.clientWidth,
-            "x": framePosition(f).x,
-            "y": framePosition(f).y
-        })),
+        "subframes": frames.map(f => {
+            const bounds = f.getBoundingClientRect()
+            const framePos = framePosition(f)
+            return {
+                "bounds": JSON.stringify(bounds),
+                "height": bounds.height || f.clientHeight,
+                "url": f.src,
+                "width": bounds.width || f.clientWidth,
+                "x": framePos.x,
+                "y": framePos.y
+            }
+        }),
         "url": window.location.href,
         "width": window.innerWidth
     })
@@ -254,8 +258,6 @@ ipcRenderer.on("follow-mode-stop", () => {
     currentFollowModeStatus = null
 })
 
-// Send the page once every second in case of transitions or animations
-// Could be done with an observer, but that drastically slows down on big pages
 setInterval(mainInfoLoop, 1000)
 window.addEventListener("DOMContentLoaded", mainInfoLoop)
 window.addEventListener("resize", mainInfoLoop)
@@ -265,7 +267,8 @@ const parseElement = (element, type, customBounds = false) => {
     if (excluded.includes(element)) {
         return null
     }
-    const boundingBox = customBounds || element.getBoundingClientRect()
+    const boundingBox = JSON.parse(JSON.stringify(
+        customBounds || element.getBoundingClientRect()))
     const paddingInfo = findFrameInfo(element)
     if (paddingInfo) {
         boundingBox.left += paddingInfo.x
