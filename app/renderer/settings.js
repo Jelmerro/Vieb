@@ -440,13 +440,19 @@ const checkOther = (setting, value) => {
     }
     if (setting === "containernames") {
         for (const containerMatch of value.split(",").filter(c => c.trim())) {
-            if ((containerMatch.match(/~/g) || []).length !== 1) {
+            if (![1, 2].includes((containerMatch.match(/~/g) || []).length)) {
                 notify(`Invalid ${setting} entry: ${containerMatch}\n`
-                    + "Entries must have exactly one ~ to separate the "
-                    + "name regular expression and container name", "warn")
+                    + "Entries must have one or two ~ to separate the "
+                    + "regular expression, container name and newtab param",
+                "warn")
                 return false
             }
-            const [match, container] = containerMatch.split("~")
+            const [match, container, newtabParam] = containerMatch.split("~")
+            if (newtabParam && newtabParam !== "newtab") {
+                notify(`Invalid containernames newtab param: ${containerMatch}`,
+                    "warn")
+                return false
+            }
             try {
                 RegExp(match)
             } catch {

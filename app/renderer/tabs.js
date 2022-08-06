@@ -972,6 +972,14 @@ const navigateTo = location => {
     }
     page.stop()
     const loc = location.replace(/view-?source:\/?\/?/g, "sourceviewer://")
+    const sessionName = getSetting("containernames").split(",").find(
+        c => loc.match(c.split("~")[0]) && c.split("~")[2] !== "newtab")
+        ?.split("~")[1]
+    if (sessionName && sessionName !== page.getAttribute("container")) {
+        addTab({"session": sessionName, "url": loc})
+        closeTab(listTabs().indexOf(tabOrPageMatching(page)))
+        return
+    }
     page.src = loc
     resetTabInfo(page)
     currentTab().querySelector("span").textContent = urlToString(loc)
