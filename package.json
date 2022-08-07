@@ -41,7 +41,6 @@
     "@mozilla/readability": "0.4.2",
     "darkreader": "4.9.52",
     "highlight.js": "11.6.0",
-    "is-svg": "4.3.2",
     "jsdom": "20.0.0",
     "marked": "4.0.18",
     "rimraf": "3.0.2"

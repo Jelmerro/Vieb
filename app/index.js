@@ -1411,8 +1411,8 @@ ipcMain.on("download-favicon", (_, options) => {
                 return
             }
             const file = Buffer.concat(data)
-            const isSvg = require("is-svg")
-            if (isSvg(file)) {
+            let svg_regex = /<svg*>*<\/svg>/i;
+            if (svg_regex.test(file)) {
                 writeFile(`${options.location}.svg`, file)
                 mainWindow.webContents.send("favicon-downloaded",
                     options.linkId, options.url, `${options.fav}.svg`)
