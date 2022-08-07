@@ -5,7 +5,7 @@ This document aims to represent all notable changes to Vieb.
 
 Vieb is a Vim Inspired Electron Browser made by Jelmer van Arnhem and contributors,
 and can be copied under the terms of the GPL-3.0 or later versions.
-See the README.md or LICENSE file for more info and details about Vieb and it's license.
+See the README.md or LICENSE file for more info and details about Vieb and its license.
 Links in the changelog are part of [github.com/Jelmerro/Vieb](https://github.com/Jelmerro/Vieb).
 The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the most important changes per release,
 but the list below contains much more technical details.
@@ -316,7 +316,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Make special mouse button dragging resize the screenshot frame by changing the width and height instead of position arguments
-- Examples with custom commands are now in a separate example file that isn't used by default, due to it's explicit and non-native nature
+- Examples with custom commands are now in a separate example file that isn't used by default, due to its explicit and non-native nature
 
 ### Fixed
 
@@ -803,7 +803,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Command "mute" to toggle the audio playback status of a tab (either mute or unmute)
-- Setting "respectsitecontextmenu" to toggle if Vieb should show it's menu on websites that already provide one
+- Setting "respectsitecontextmenu" to toggle if Vieb should show its menu on websites that already provide one
 - Setting "suspendonrestore" to restore tabs lazily (loading tabs only once they're visible)
 - Setting "suspendtimeout" to automatically suspend background tabs after a delay
 - Command "suspend" to manually suspend any background tab right now
@@ -1130,7 +1130,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Improve the follow mode speed by reusing DOM calls and only using an interval (no more page observers)
 - Disable the remote module entirely
-- Load the preload from the main process and prevent changes to it's location
+- Load the preload from the main process and prevent changes to its location
 
 ### Fixed
 

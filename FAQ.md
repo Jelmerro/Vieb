@@ -170,7 +170,7 @@ OR when you specifically ask it to (either via navigation or with custom setting
 Checking for updates can be done by opening the `:version` page and specifically clicking "Check for updates".
 Alternatively, you can watch the [Github repository](https://github.com/Jelmerro/Vieb)
 or subscribe to the official [Vieb subreddit](https://reddit.com/r/vieb) to be notified of new releases.
-You can also check out the official [Matrix space](https://matrix.to/#/#vieb:matrix.org) and it's [announcements chat](https://matrix.to/#/#vieb-announcements:matrix.org),
+You can also check out the official [Matrix space](https://matrix.to/#/#vieb:matrix.org) and its [announcements chat](https://matrix.to/#/#vieb-announcements:matrix.org),
 or visit the [Telegram announcements](https://t.me/vieb_announcements) and [the general chat on Telegram](https://t.me/vieb_general).
 Lastly, if your system has a [third-party package](https://repology.org/project/vieb/versions), you could use that as well.
 These packages might be customized or updated at a later date, but they get updates the same way you are used to from your operating system.
