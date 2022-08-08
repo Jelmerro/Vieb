@@ -35,6 +35,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Use Electron's clickOnSearch implementation in favor of Vieb's custom one
 - Setting "containernames" now also works for current tab navigation, unless you tell it not to with the "~newtab" suffix
 - Use regex to detect SVG favicons instead of relying on "is-svg" dependency
+- Use nodejs filesystem API instead of relying on "rimraf" dependency
 
 ### Removed
 

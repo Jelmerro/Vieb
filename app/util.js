@@ -530,47 +530,6 @@ const sendToPageOrSubFrame = (channel, ...args) => {
         ?.getWebContentsId(), ...args)
 }
 
-const globDelete = folder => {
-    // Request is send back to the main process due to electron-builder bugs:
-    // https://github.com/electron-userland/electron-builder/issues/5662
-    // https://github.com/electron-userland/electron-builder/issues/5625
-    // https://github.com/electron-userland/electron-builder/issues/5706
-    // https://github.com/electron-userland/electron-builder/issues/5617
-    // It seems that modules not used in the main process are dropped on build.
-    const {ipcRenderer} = require("electron")
-    ipcRenderer.sendSync("rimraf", joinPath(appData(), folder))
-}
-
-const clearTempContainers = () => {
-    globDelete("Partitions/temp*")
-    globDelete("erwicmode")
-}
-
-const clearCache = () => {
-    globDelete("**/*Cache/")
-    globDelete("**/File System/")
-    globDelete("**/MANIFEST")
-    globDelete("**/Service Worker/")
-    globDelete("**/VideoDecodeStats/")
-    globDelete("**/blob_storage/")
-    globDelete("**/databases/")
-    globDelete("*.log")
-    globDelete("**/.org.chromium.Chromium.*")
-    globDelete("vimformedits/")
-    globDelete("webviewsettings")
-}
-
-const clearCookies = () => {
-    globDelete("**/Cookies*")
-    globDelete("**/QuotaManager*")
-}
-
-const clearLocalStorage = () => {
-    globDelete("**/IndexedDB/")
-    globDelete("**/*Storage/")
-    globDelete("**/*.ldb")
-}
-
 const notify = (message, type = "info", clickAction = false) => {
     if (getSetting("notificationduration") === 0) {
         return
@@ -730,19 +689,7 @@ const pathToSpecialPageName = urlPath => {
     return {"name": "", "section": ""}
 }
 
-const unpacked = {}
-const resolveUnpacked = loc => {
-    if (!unpacked[loc]) {
-        unpacked[loc] = loc
-        const newloc = loc.replace(/app\.asar([\\/])/, "app.asar.unpacked$1")
-        if (isFile(newloc)) {
-            unpacked[loc] = newloc
-        }
-    }
-    return unpacked[loc]
-}
-
-const joinPath = (...args) => resolveUnpacked(path.resolve(path.join(...args)))
+const joinPath = (...args) => path.resolve(path.join(...args))
 
 const basePath = (...args) => path.basename(...args)
 
@@ -891,6 +838,75 @@ const modifiedAt = loc => {
     }
 }
 
+const rm = loc => fs.rmSync(loc, {"force": true, "recursive": true})
+
+const clearTempContainers = () => {
+    const partitionDir = joinPath(appData(), "Partitions")
+    listDir(partitionDir, false, true)?.filter(part => part.startsWith("temp"))
+        .map(part => joinPath(partitionDir, part)).forEach(part => rm(part))
+    rm(joinPath(appData(), "erwicmode"))
+}
+
+const clearCache = () => {
+    const partitionDir = joinPath(appData(), "Partitions")
+    const partitions = [appData(), ...listDir(partitionDir, true, true) || []]
+    let subNodes = []
+    partitions.forEach(part => subNodes.push(...listDir(part) || []))
+    subNodes = Array.from(new Set(subNodes).values())
+    partitions.forEach(part => rm(joinPath(part, "File System")))
+    partitions.forEach(part => rm(joinPath(part, "MANIFEST")))
+    partitions.forEach(part => rm(joinPath(part, "Service Worker")))
+    partitions.forEach(part => rm(joinPath(part, "VideoDecodeStats")))
+    partitions.forEach(part => rm(joinPath(part, "blob_storage")))
+    partitions.forEach(part => rm(joinPath(part, "databases")))
+    for (const part of partitions) {
+        for (const node of subNodes.filter(n => n.endsWith("Cache"))) {
+            rm(joinPath(part, node))
+        }
+        for (const node of subNodes.filter(n => n.endsWith(".log"))) {
+            rm(joinPath(part, node))
+        }
+        for (const node of subNodes.filter(n => n.startsWith(".org.chrom"))) {
+            rm(joinPath(part, node))
+        }
+    }
+    rm(joinPath(appData(), "vimformedits"))
+    rm(joinPath(appData(), "webviewsettings"))
+}
+
+const clearCookies = () => {
+    const partitionDir = joinPath(appData(), "Partitions")
+    const partitions = [appData(), ...listDir(partitionDir, true, true) || []]
+    let subNodes = []
+    partitions.forEach(part => subNodes.push(...listDir(part) || []))
+    subNodes = Array.from(new Set(subNodes).values())
+    for (const part of partitions) {
+        for (const node of subNodes.filter(n => n.startsWith("Cookies"))) {
+            rm(joinPath(part, node))
+        }
+        for (const node of subNodes.filter(n => n.startsWith("QuotaManager"))) {
+            rm(joinPath(part, node))
+        }
+    }
+}
+
+const clearLocalStorage = () => {
+    const partitionDir = joinPath(appData(), "Partitions")
+    const partitions = [appData(), ...listDir(partitionDir, true, true) || []]
+    let subNodes = []
+    partitions.forEach(part => subNodes.push(...listDir(part) || []))
+    subNodes = Array.from(new Set(subNodes).values())
+    partitions.forEach(part => rm(joinPath(part, "IndexedDB")))
+    for (const part of partitions) {
+        for (const node of subNodes.filter(n => n.endsWith("Storage"))) {
+            rm(joinPath(part, node))
+        }
+        for (const node of subNodes.filter(n => n.endsWith(".ldb"))) {
+            rm(joinPath(part, node))
+        }
+    }
+}
+
 // Disabled import sort order as the order is optimized to reduce module loads
 /* eslint-disable sort-keys/sort-keys-fix */
 module.exports = {
@@ -927,11 +943,6 @@ module.exports = {
     fetchJSON,
     // IPC UTIL
     sendToPageOrSubFrame,
-    globDelete,
-    clearTempContainers,
-    clearCache,
-    clearCookies,
-    clearLocalStorage,
     notify,
     appData,
     appConfig,
@@ -954,5 +965,10 @@ module.exports = {
     makeDir,
     listDir,
     watchFile,
-    modifiedAt
+    modifiedAt,
+    rm,
+    clearTempContainers,
+    clearCache,
+    clearCookies,
+    clearLocalStorage
 }

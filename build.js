@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2021 Jelmer van Arnhem
+* Copyright (C) 2019-2022 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,10 +18,10 @@
 "use strict"
 
 const builder = require("electron-builder")
-const rimraf = require("rimraf").sync
+const {rmSync} = require("fs")
 const builds = {}
 
-rimraf("dist/")
+rmSync("dist/", {"force": true, "recursive": true})
 process.argv.slice(1).forEach(a => {
     if (a === "--linux") {
         builds.linux = []

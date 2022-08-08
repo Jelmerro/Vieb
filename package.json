@@ -43,7 +43,6 @@
     "darkreader": "4.9.52",
     "highlight.js": "11.6.0",
     "jsdom": "20.0.0",
-    "marked": "4.0.18",
-    "rimraf": "3.0.2"
+    "marked": "4.0.18"
   }
 }

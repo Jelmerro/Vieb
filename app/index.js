@@ -50,16 +50,9 @@ const {
     isAbsolutePath,
     formatDate,
     domainName,
-    defaultUseragent
+    defaultUseragent,
+    rm
 } = require("./util")
-const rimrafSync = require("rimraf").sync
-const rimraf = pattern => {
-    try {
-        rimrafSync(pattern)
-    } catch {
-        // Permission errors
-    }
-}
 
 const version = process.env.npm_package_version || app.getVersion()
 const printUsage = (code = 1) => {
@@ -312,8 +305,10 @@ if (!argMediaKeys) {
     app.commandLine.appendSwitch("disable-features",
         "CrossOriginOpenerPolicy,HardwareMediaKeyHandling,UserAgentClientHint")
 }
-rimraf("Partitions/temp*")
-rimraf("erwicmode")
+const partitionDir = joinPath(argDatafolder, "Partitions")
+listDir(partitionDir, false, true)?.filter(part => part.startsWith("temp"))
+    .map(part => joinPath(partitionDir, part)).forEach(part => rm(part))
+rm(joinPath(argDatafolder, "erwicmode"))
 app.setName("Vieb")
 argDatafolder = `${joinPath(expandPath(argDatafolder.trim()))}/`
 app.setPath("appData", argDatafolder)
@@ -786,7 +781,6 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     if (sessionList.includes(name)) {
         return
     }
-    const partitionDir = joinPath(app.getPath("appData"), "Partitions")
     const sessionDir = joinPath(partitionDir, encodeURIComponent(
         name.split(":")[1] || name))
     applyDevtoolsSettings(joinPath(sessionDir, "Preferences"), false)
@@ -1584,9 +1578,6 @@ ipcMain.handle("desktop-capturer-sources", () => desktopCapturer.getSources({
 ipcMain.on("override-global-useragent", (e, globalUseragent) => {
     app.userAgentFallback = globalUseragent || defaultUseragent()
     e.returnValue = null
-})
-ipcMain.on("rimraf", (e, folder) => {
-    e.returnValue = rimraf(folder)
 })
 ipcMain.on("app-config", e => {
     e.returnValue = {
