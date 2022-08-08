@@ -36,6 +36,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "containernames" now also works for current tab navigation, unless you tell it not to with the "~newtab" suffix
 - Use regex to detect SVG favicons instead of relying on "is-svg" dependency
 - Use nodejs filesystem API instead of relying on "rimraf" dependency
+- All runtime dependencies are now loaded safely, and will show a message when missing (this makes ALL dependencies optional)
 
 ### Removed
 

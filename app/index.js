@@ -687,7 +687,12 @@ let redirects = ""
 let blocker = null
 let permissions = {}
 const sessionList = []
-const adblockerPreload = require.resolve("@cliqz/adblocker-electron-preload")
+let adblockerPreload = null
+try {
+    adblockerPreload = require.resolve("@cliqz/adblocker-electron-preload")
+} catch {
+    // Adblocker module not present, skipping initialization
+}
 const defaultCss = readFile(joinPath(__dirname, `colors/default.css`))
 ipcMain.on("set-redirects", (_, rdr) => {
     redirects = rdr
@@ -940,7 +945,17 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 </body></html>`)
             return
         }
-        const hljs = require("highlight.js")
+        let hljs = null
+        try {
+            hljs = require("highlight.js")
+        } catch {
+            call(`<!DOCTPYE html>\n<html><head>
+                <style>${defaultCss}</style>
+                <title>${encodeURI(req.url)}</title>
+                </head><body>Source viewer module not present, can't view source
+                </body></html>`)
+            return
+        }
         if (isFile(loc)) {
             const hl = hljs.highlightAuto(readFile(loc))
             call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
@@ -989,8 +1004,23 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 </body></html>`)
             return
         }
-        const {marked} = require("marked")
-        const hljs = require("highlight.js")
+        let marked = null
+        let hljs = null
+        try {
+            ({marked} = require("marked"))
+        } catch {
+            call(`<!DOCTPYE html>\n<html><head>
+                <style>${defaultCss}</style>
+                <title>${encodeURI(req.url)}</title></head>
+                <body>Markdown viewer module not present, can't view markdown
+                </body></html>`)
+            return
+        }
+        try {
+            hljs = require("highlight.js")
+        } catch {
+            // Highlight module not present, skipping source highlighting part
+        }
         let url = `https://${loc}`
         if (isFile(loc)) {
             url = `file://${loc}`
@@ -1004,10 +1034,10 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             "baseUrl": url,
             "highlight": (code, lang) => {
                 let language = lang
-                if (!hljs.getLanguage(lang)) {
+                if (!hljs?.getLanguage(lang)) {
                     language = "plaintext"
                 }
-                return hljs.highlight(code, {language}).value
+                return hljs?.highlight(code, {language}).value || code
             },
             "langPrefix": "hljs language-",
             "renderer": mdRenderer,
@@ -1060,6 +1090,19 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 </body></html>`)
             return
         }
+        let Readability = null
+        let JSDOM = null
+        try {
+            ({Readability} = require("@mozilla/readability"))
+            ;({JSDOM} = require("jsdom"))
+        } catch (e) {
+            call(`<!DOCTPYE html>\n<html><head>
+                <style>${defaultCss}</style>
+                <title>${encodeURI(req.url)}</title>
+                </head><body>Reader view module not present, can't do readerview
+                </body></html>`)
+            return
+        }
         const url = `https://${loc}`
         const request = net.request({"partition": name, url})
         request.on("response", res => {
@@ -1073,8 +1116,6 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                         </body></html>`)
                     return
                 }
-                const {Readability} = require("@mozilla/readability")
-                const {JSDOM} = require("jsdom")
                 const dom = new JSDOM(body, {url})
                 const out = new Readability(dom.window.document).parse().content
                 call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
@@ -1352,7 +1393,17 @@ const reloadAdblocker = () => {
             }
         })
     }
-    const {ElectronBlocker} = require("@cliqz/adblocker-electron")
+    let ElectronBlocker = null
+    try {
+        ({ElectronBlocker} = require("@cliqz/adblocker-electron"))
+    } catch {
+        // Adblocker module not present, skipping initialization
+    }
+    if (!ElectronBlocker || !adblockerPreload) {
+        mainWindow.webContents.send("notify",
+            "Adblocker module not present, ads will not be blocked!", "err")
+        return
+    }
     blocker = ElectronBlocker.parse(filters)
     const resources = readFile(joinPath(__dirname, `./blocklists/resources`))
     blocker.updateResources(resources, `${resources.length}`)

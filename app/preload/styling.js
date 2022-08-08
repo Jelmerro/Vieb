@@ -44,12 +44,15 @@ const applyThemeStyling = () => {
 }
 const cleanFetchMethod = window.fetch
 const enableDarkReader = async() => {
+    disableDarkReader()
+    let darkreader = null
     try {
-        disableDarkReader()
+        darkreader = require("darkreader")
     } catch {
-        // Already disabled or never loaded
+        ipcRenderer.sendToHost("notify",
+            "Darkreader module not present, can't show dark pages", "err")
+        return
     }
-    const darkreader = require("darkreader")
     darkreader.setFetchMethod(cleanFetchMethod)
     darkreader.enable({
         "brightness": settings.darkreaderbrightness,
@@ -72,9 +75,13 @@ const enableDarkReader = async() => {
     }
 }
 const disableDarkReader = () => {
-    const darkreader = require("darkreader")
-    darkreader.disable()
-    darkreaderStyle.remove()
+    try {
+        const darkreader = require("darkreader")
+        darkreader.disable()
+        darkreaderStyle.remove()
+    } catch {
+        // Already disabled or never loaded
+    }
 }
 const loadThemes = (loadedFully = false) => {
     const html = document.querySelector("html")
