@@ -1005,6 +1005,55 @@ const tabnew = (session = null, url = null) => {
     addTab(options)
 }
 
+const marks = args => {
+    if (args.length > 1) {
+        notify("Command marks only accepts a single optional keyname", "warn")
+        return
+    }
+    const allMarks = readJSON(joinPath(appData(), "marks")) || {}
+    const relevantMarks = []
+    if (args.length === 0) {
+        for (const key of Object.keys(allMarks)) {
+            relevantMarks.push(`${key.padEnd(3)}${allMarks[key]}`)
+        }
+    } else {
+        const [key] = args
+        if (allMarks[key] !== undefined) {
+            relevantMarks.push(`${key.padEnd(3)}${allMarks[key]}`)
+        }
+    }
+    if (relevantMarks.length === 0) {
+        if (args.length && Object.keys(allMarks).length) {
+            notify("No marks found for current keys", "warn")
+        } else {
+            notify("No marks found", "warn")
+        }
+    } else {
+        notify(relevantMarks.join("\n"))
+    }
+}
+
+const delmarks = (all, args) => {
+    if (all && args?.length) {
+        notify("Command takes no arguments: delmarks!", "warn")
+        return
+    }
+    const allMarks = readJSON(joinPath(appData(), "marks")) || {}
+    if (all) {
+        writeJSON(joinPath(appData(), "marks"), {})
+        return
+    }
+    if (args.length !== 1) {
+        notify("Command delmarks only accepts a single keyname", "warn")
+        return
+    }
+    const [key] = args
+    if (allMarks[key] !== undefined) {
+        delete allMarks[key]
+    }
+    writeJSON(joinPath(appData(), "marks"), allMarks)
+}
+
 const scrollpos = args => {
     if (args.length > 1) {
         notify("Command scrollpos only accepts a single optional keyname",
@@ -1037,7 +1086,8 @@ const scrollpos = args => {
         }
     }
     if (relevantPos.length === 0) {
-        const notEmpty = positions.global.length || positions.local.length
+        const notEmpty = Object.keys(positions.global).length
+            || Object.keys(positions.local).length
         if (args.length && notEmpty) {
             notify("No scroll positions found for current keys", "warn")
         } else {
@@ -1073,7 +1123,10 @@ const delscrollpos = (all, args) => {
     }
     const [key] = args
     if (positions.local[path]?.[key] !== undefined) {
-        delete positions.local[path]?.[key]
+        delete positions.local[path][key]
+        if (Object.keys(positions.local[path]).length === 0) {
+            delete positions.local[path]
+        }
     }
     if (positions.global[key] !== undefined) {
         delete positions.global[key]
@@ -1142,6 +1195,8 @@ const commands = {
     "cookies": () => openSpecialPage("cookies"),
     "d": () => openSpecialPage("downloads"),
     "delcommand": ({args}) => deleteCommand(args),
+    "delmarks": ({args}) => delmarks(false, args),
+    "delmarks!": ({args}) => delmarks(true, args),
     "delscrollpos": ({args}) => delscrollpos(false, args),
     "delscrollpos!": ({args}) => delscrollpos(true, args),
     "devtools": ({args}) => openDevTools(...args),
@@ -1155,6 +1210,7 @@ const commands = {
     "lclose": () => lclose(),
     "lclose!": () => lclose(true),
     makedefault,
+    "marks": ({args}) => marks(args),
     "mkviebrc": ({args}) => mkviebrc(...args),
     "mute": ({args, range}) => mute(args, range),
     "nohlsearch": () => {
