@@ -127,6 +127,7 @@ const defaultSettings = {
     "keeprecentlyclosed": true,
     "mapsuggest": 9000000000000000,
     "mapsuggestposition": "topright",
+    "markposition": "newtab",
     "maxmapdepth": 10,
     "menupage": "elementasneeded",
     "menusuggest": "both",
@@ -267,6 +268,16 @@ const validOptions = {
         "rememberstart", "rememberend", "alwaysstart", "alwaysend"
     ],
     "mapsuggestposition": ["bottomright", "bottomleft", "topright", "topleft"],
+    "markposition": [
+        "open",
+        "newtab",
+        "copy",
+        "download",
+        "split",
+        "vsplit",
+        "external",
+        "search"
+    ],
     "menupage": ["always", "globalasneeded", "elementasneeded", "never"],
     "menusuggest": ["both", "explore", "command", "never"],
     "menuvieb": ["both", "navbar", "tabbar", "never"],

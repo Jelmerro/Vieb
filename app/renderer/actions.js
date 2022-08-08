@@ -867,6 +867,26 @@ const restoreScrollPos = args => {
     currentPage().executeJavaScript(`window.scrollTo(0, ${pixels})`)
 }
 
+const makeMark = args => {
+    const key = args?.actionCallKeys?.at(-1)
+    if (!key) {
+        return
+    }
+    const marks = readJSON(joinPath(appData(), "marks")) || {}
+    marks[key] = urlToString(currentPage().src)
+    writeJSON(joinPath(appData(), "marks"), marks)
+}
+
+const restoreMark = args => {
+    const key = args?.actionCallKeys?.at(-1)
+    if (!key) {
+        return
+    }
+    const marks = readJSON(joinPath(appData(), "marks")) || {}
+    const {commonAction} = require("./contextmenu")
+    commonAction("link", getSetting("markposition"), {"link": marks[key]})
+}
+
 const reorderFollowLinks = () => {
     const {reorderDisplayedLinks} = require("./follow")
     reorderDisplayedLinks()
@@ -1042,6 +1062,7 @@ module.exports = {
     incrementalSearch,
     insertAtFirstInput,
     leftHalfSplitWindow,
+    makeMark,
     menuBottom,
     menuClose,
     menuDown,
@@ -1083,6 +1104,7 @@ module.exports = {
     reopenTab,
     reorderFollowLinks,
     repeatLastAction,
+    restoreMark,
     restoreScrollPos,
     rightHalfSplitWindow,
     rotateSplitWindowBackward,
