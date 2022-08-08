@@ -27,10 +27,9 @@ const {
     screen,
     session,
     shell,
-    webContents
+    webContents,
+    nativeTheme
 } = require("electron")
-const {ElectronBlocker} = require("@cliqz/adblocker-electron")
-const isSvg = require("is-svg")
 const {
     title,
     specialChars,
@@ -48,23 +47,12 @@ const {
     dirname,
     basePath,
     formatSize,
-    extractZip,
     isAbsolutePath,
     formatDate,
     domainName,
-    defaultUseragent
+    defaultUseragent,
+    rm
 } = require("./util")
-const hljs = require("highlight.js")
-const {JSDOM} = require("jsdom")
-const {Readability} = require("@mozilla/readability")
-const {"sync": rimrafSync} = require("rimraf")
-const rimraf = pattern => {
-    try {
-        rimrafSync(pattern)
-    } catch {
-        // Permission errors
-    }
-}
 
 const version = process.env.npm_package_version || app.getVersion()
 const printUsage = (code = 1) => {
@@ -77,7 +65,7 @@ Options:
 
  --version               Print program info with versions and exit.
 
- --debug                 Open with Chromium and Electron debugging tools.
+ --devtools              Open with Chromium and Electron debugging tools.
                          They can also be opened later with ':internaldevtools'.
 
  --datafolder=<dir>      Store ALL Vieb data in this folder.
@@ -148,7 +136,7 @@ This is free software; you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 See the LICENSE file or the GNU website for details.`)
 }
-const applyDevtoolsSettings = prefFile => {
+const applyDevtoolsSettings = (prefFile, undock = true) => {
     makeDir(dirname(prefFile))
     const preferences = readJSON(prefFile) || {}
     preferences.electron = preferences.electron || {}
@@ -158,6 +146,11 @@ const applyDevtoolsSettings = prefFile => {
     // Disable source maps as they leak internal structure to the webserver
     preferences.electron.devtools.preferences.cssSourceMapsEnabled = false
     preferences.electron.devtools.preferences.jsSourceMapsEnabled = false
+    // Undock main process devtools to prevent window size issues
+    if (undock) {
+        preferences.electron.devtools.preferences.
+            currentDockState = `"undocked"`
+    }
     // Disable release notes, most are not relevant for Vieb
     preferences.electron.devtools.preferences["help.show-release-note"] = false
     // Show timestamps in the console
@@ -209,7 +202,7 @@ args.forEach(a => {
             printUsage(0)
         } else if (arg === "--version") {
             printVersion()
-        } else if (arg === "--debug") {
+        } else if (arg === "--devtools") {
             argDebugMode = true
         } else if (arg === "--datafolder") {
             console.warn("The 'datafolder' argument requires a value such as:"
@@ -312,8 +305,10 @@ if (!argMediaKeys) {
     app.commandLine.appendSwitch("disable-features",
         "CrossOriginOpenerPolicy,HardwareMediaKeyHandling,UserAgentClientHint")
 }
-rimraf("Partitions/temp*")
-rimraf("erwicmode")
+const partitionDir = joinPath(argDatafolder, "Partitions")
+listDir(partitionDir, false, true)?.filter(part => part.startsWith("temp"))
+    .map(part => joinPath(partitionDir, part)).forEach(part => rm(part))
+rm(joinPath(argDatafolder, "erwicmode"))
 app.setName("Vieb")
 argDatafolder = `${joinPath(expandPath(argDatafolder.trim()))}/`
 app.setPath("appData", argDatafolder)
@@ -393,14 +388,14 @@ const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
 }).filter(u => u)
 app.on("ready", () => {
     app.userAgentFallback = defaultUseragent()
-    if (app.requestSingleInstanceLock()) {
-        app.on("second-instance", (_, newArgs, cwd) => {
+    if (app.requestSingleInstanceLock({"argv": args})) {
+        app.on("second-instance", (_, newArgs, cwd, extra) => {
             if (mainWindow.isMinimized()) {
                 mainWindow.restore()
             }
             mainWindow.focus()
             mainWindow.webContents.send("urls", resolveLocalPaths(
-                getArguments(newArgs), cwd))
+                extra?.argv || getArguments(newArgs), cwd))
         })
     } else {
         console.info(`Sending urls to existing instance in ${argDatafolder}`)
@@ -692,7 +687,12 @@ let redirects = ""
 let blocker = null
 let permissions = {}
 const sessionList = []
-const adblockerPreload = require.resolve("@cliqz/adblocker-electron-preload")
+let adblockerPreload = null
+try {
+    adblockerPreload = require.resolve("@cliqz/adblocker-electron-preload")
+} catch {
+    // Adblocker module not present, skipping initialization
+}
 const defaultCss = readFile(joinPath(__dirname, `colors/default.css`))
 ipcMain.on("set-redirects", (_, rdr) => {
     redirects = rdr
@@ -786,14 +786,13 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     if (sessionList.includes(name)) {
         return
     }
-    const partitionDir = joinPath(app.getPath("appData"), "Partitions")
     const sessionDir = joinPath(partitionDir, encodeURIComponent(
         name.split(":")[1] || name))
-    applyDevtoolsSettings(joinPath(sessionDir, "Preferences"))
-    const newSession = session.fromPartition(name, {cache})
-    newSession.setPermissionRequestHandler(permissionHandler)
-    newSession.setPermissionCheckHandler(() => true)
-    newSession.setDevicePermissionHandler(
+    applyDevtoolsSettings(joinPath(sessionDir, "Preferences"), false)
+    const newSess = session.fromPartition(name, {cache})
+    newSess.setPermissionRequestHandler(permissionHandler)
+    newSess.setPermissionCheckHandler(() => true)
+    newSess.setDevicePermissionHandler(
         details => permissionHandler(null, details.deviceType, null, {
             ...details, "requestingUrl": details.origin
         }))
@@ -805,10 +804,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             enableAdblocker(adblock)
         }
     }
-    listDir(joinPath(argDatafolder, "extensions"), true, true)?.forEach(loc => {
-        newSession.loadExtension(loc, {"allowFileAccess": true})
-    })
-    newSession.webRequest.onBeforeRequest((details, callback) => {
+    newSess.webRequest.onBeforeRequest((details, callback) => {
         let url = String(details.url)
         redirects.split(",").forEach(r => {
             if (r.trim()) {
@@ -824,13 +820,13 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         }
         blocker.onBeforeRequest(details, callback)
     })
-    newSession.webRequest.onHeadersReceived((details, callback) => {
+    newSess.webRequest.onHeadersReceived((details, callback) => {
         if (!blocker) {
             return callback({"cancel": false})
         }
         blocker.onHeadersReceived(details, callback)
     })
-    newSession.on("will-download", (e, item) => {
+    newSess.on("will-download", (e, item) => {
         if (downloadSettings.downloadmethod === "block") {
             e.preventDefault()
             return
@@ -936,7 +932,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             }
         })
     })
-    newSession.protocol.registerStringProtocol("sourceviewer", (req, call) => {
+    newSess.protocol.registerStringProtocol("sourceviewer", (req, call) => {
         let loc = req.url.replace(/sourceviewer:\/?\/?/g, "")
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
@@ -946,6 +942,17 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 <style>${defaultCss}</style>
                 <title>${encodeURI(req.url)}</title>
                 </head><body>Source viewer does not support folders, only files
+                </body></html>`)
+            return
+        }
+        let hljs = null
+        try {
+            hljs = require("highlight.js")
+        } catch {
+            call(`<!DOCTPYE html>\n<html><head>
+                <style>${defaultCss}</style>
+                <title>${encodeURI(req.url)}</title>
+                </head><body>Source viewer module not present, can't view source
                 </body></html>`)
             return
         }
@@ -966,7 +973,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                     call(`<!DOCTPYE html>\n<html><head>
                         <style>${defaultCss}</style>
                         <title>${encodeURI(req.url)}</title>
-                        </head><body>Source viewer not supported on this wegpage
+                        </head><body>Source viewer not supported on this webpage
                         </body></html>`)
                     return
                 }
@@ -984,7 +991,93 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         request.on("error", () => call(""))
         request.end()
     })
-    newSession.protocol.registerStringProtocol("readerview", (req, call) => {
+    newSess.protocol.registerStringProtocol("markdownviewer", (req, call) => {
+        let loc = req.url.replace(/markdownviewer:\/?\/?/g, "")
+        if (process.platform !== "win32" && !loc.startsWith("/")) {
+            loc = `/${loc}`
+        }
+        if (isDir(loc)) {
+            call(`<!DOCTPYE html>\n<html><head>
+                <style>${defaultCss}</style>
+                <title>${encodeURI(req.url)}</title></head>
+                <body>Markdown viewer does not support folders, only files
+                </body></html>`)
+            return
+        }
+        let marked = null
+        let hljs = null
+        try {
+            ({marked} = require("marked"))
+        } catch {
+            call(`<!DOCTPYE html>\n<html><head>
+                <style>${defaultCss}</style>
+                <title>${encodeURI(req.url)}</title></head>
+                <body>Markdown viewer module not present, can't view markdown
+                </body></html>`)
+            return
+        }
+        try {
+            hljs = require("highlight.js")
+        } catch {
+            // Highlight module not present, skipping source highlighting part
+        }
+        let url = `https://${loc}`
+        if (isFile(loc)) {
+            url = `file://${loc}`
+        }
+        const mdRenderer = new marked.Renderer()
+        const urlFolder = dirname(url)
+        mdRenderer.html = text => text.replace(
+            / src="\./g, ` src="${urlFolder}/`)
+            .replace(/ src="([A-Za-z0-9])]/g, ` src="${urlFolder}/$1`)
+        marked.setOptions({
+            "baseUrl": url,
+            "highlight": (code, lang) => {
+                let language = lang
+                if (!hljs?.getLanguage(lang)) {
+                    language = "plaintext"
+                }
+                return hljs?.highlight(code, {language}).value || code
+            },
+            "langPrefix": "hljs language-",
+            "renderer": mdRenderer,
+            "silent": true,
+            "smartLists": true,
+            "smartypants": true
+        })
+        if (isFile(loc)) {
+            const md = marked.parse(readFile(loc))
+            call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
+                <title>${encodeURI(req.url)}</title>
+                </head><body id="markdownviewer">${md}</body></html>`)
+            return
+        }
+        const request = net.request({"partition": name, url})
+        request.on("response", res => {
+            let body = ""
+            res.on("end", () => {
+                if (!body) {
+                    call(`<!DOCTPYE html>\n<html><head>
+                        <style>${defaultCss}</style>
+                        <title>${encodeURI(req.url)}</title></head>
+                        <body>Markdown viewer not supported on this webpage
+                        </body></html>`)
+                    return
+                }
+                const md = marked.parse(body)
+                call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
+                    <title>${encodeURI(req.url)}</title>
+                    </head><body id="markdownviewer">${md}</body></html>`)
+            })
+            res.on("data", chunk => {
+                body += chunk
+            })
+        })
+        request.on("abort", () => call(""))
+        request.on("error", () => call(""))
+        request.end()
+    })
+    newSess.protocol.registerStringProtocol("readerview", (req, call) => {
         let loc = req.url.replace(/readerview:\/?\/?/g, "")
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
@@ -997,6 +1090,19 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 </body></html>`)
             return
         }
+        let Readability = null
+        let JSDOM = null
+        try {
+            ({Readability} = require("@mozilla/readability"))
+            ;({JSDOM} = require("jsdom"))
+        } catch (e) {
+            call(`<!DOCTPYE html>\n<html><head>
+                <style>${defaultCss}</style>
+                <title>${encodeURI(req.url)}</title>
+                </head><body>Reader view module not present, can't do readerview
+                </body></html>`)
+            return
+        }
         const url = `https://${loc}`
         const request = net.request({"partition": name, url})
         request.on("response", res => {
@@ -1006,7 +1112,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                     call(`<!DOCTPYE html>\n<html><head>
                         <style>${defaultCss}</style>
                         <title>${encodeURI(req.url)}</title>
-                        </head><body>Reader view not supported for this website
+                        </head><body>Reader view not supported on this webpage
                         </body></html>`)
                     return
                 }
@@ -1287,6 +1393,17 @@ const reloadAdblocker = () => {
             }
         })
     }
+    let ElectronBlocker = null
+    try {
+        ({ElectronBlocker} = require("@cliqz/adblocker-electron"))
+    } catch {
+        // Adblocker module not present, skipping initialization
+    }
+    if (!ElectronBlocker || !adblockerPreload) {
+        mainWindow.webContents.send("notify",
+            "Adblocker module not present, ads will not be blocked!", "err")
+        return
+    }
     blocker = ElectronBlocker.parse(filters)
     const resources = readFile(joinPath(__dirname, `./blocklists/resources`))
     blocker.updateResources(resources, `${resources.length}`)
@@ -1326,100 +1443,6 @@ const loadBlocklist = file => {
     return ""
 }
 
-// Manage installed browser extensions
-ipcMain.on("install-extension", (_, url, extension, extType) => {
-    const zipLoc = joinPath(argDatafolder, "extensions", extension)
-    if (isDir(`${zipLoc}/`)) {
-        mainWindow.webContents.send("notify",
-            `Extension already installed: ${extension}`)
-        return
-    }
-    makeDir(`${zipLoc}/`)
-    mainWindow.webContents.send("notify",
-        `Installing ${extType} extension: ${extension}`)
-    const request = net.request({"partition": "persist:main", url})
-    request.on("response", res => {
-        const data = []
-        res.on("end", () => {
-            if (res.statusCode !== 200) {
-                mainWindow.webContents.send("notify",
-                    `Failed to install extension due to network error`, "err")
-                console.warn(res)
-                return
-            }
-            const file = Buffer.concat(data)
-            writeFile(`${zipLoc}.${extType}`, file)
-            extractZip([
-                "x", "-aoa", "-tzip", `${zipLoc}.${extType}`, `-o${zipLoc}/`
-            ], () => {
-                rimraf(`${zipLoc}/_metadata/`)
-                sessionList.forEach(ses => {
-                    session.fromPartition(ses).loadExtension(zipLoc, {
-                        "allowFileAccess": true
-                    }).then(() => {
-                        if (sessionList.indexOf(ses) === 0) {
-                            mainWindow.webContents.send("notify",
-                                `Extension successfully installed`, "suc")
-                        }
-                    }).catch(e => {
-                        if (sessionList.indexOf(ses) === 0) {
-                            mainWindow.webContents.send("notify",
-                                `Failed to install extension, unsupported type`,
-                                "err")
-                            console.warn(e)
-                            rimraf(`${zipLoc}*`)
-                        }
-                    })
-                })
-            })
-        })
-        res.on("data", chunk => {
-            data.push(Buffer.from(chunk, "binary"))
-        })
-    })
-    request.on("abort", e => {
-        mainWindow.webContents.send("notify",
-            `Failed to install extension due to network error`, "err")
-        console.warn(e)
-        rimraf(`${zipLoc}*`)
-    })
-    request.on("error", e => {
-        mainWindow.webContents.send("notify",
-            `Failed to install extension due to network error`, "err")
-        console.warn(e)
-        rimraf(`${zipLoc}*`)
-    })
-    request.end()
-})
-ipcMain.on("list-extensions", e => {
-    e.returnValue = session.fromPartition("persist:main").getAllExtensions()
-        .map(ex => ({
-            "icon": ex.manifest.icons?.[Object.keys(ex.manifest.icons).pop()],
-            "id": ex.id,
-            "name": ex.name,
-            "path": ex.path,
-            "version": ex.version
-        }))
-})
-ipcMain.on("remove-extension", (_, extensionId) => {
-    const extLoc = joinPath(argDatafolder, `extensions/${extensionId}`)
-    const extension = session.fromPartition("persist:main").getAllExtensions()
-        .find(ext => ext.path.replace(/(\/|\\)$/g, "").endsWith(extensionId))
-    if (isDir(`${extLoc}/`) && extension) {
-        mainWindow.webContents.send("notify",
-            `Removing extension: ${extensionId}`)
-        sessionList.forEach(ses => {
-            session.fromPartition(ses).removeExtension(extension.id)
-        })
-        rimraf(`${extLoc}*`)
-        mainWindow.webContents.send("notify",
-            `Extension successfully removed`, "suc")
-    } else {
-        mainWindow.webContents.send("notify", "Could not find extension with "
-            + `id: ${extensionId}`, "warn")
-    }
-})
-
 // Download favicons for websites
 ipcMain.on("download-favicon", (_, options) => {
     const request = net.request({
@@ -1433,7 +1456,9 @@ ipcMain.on("download-favicon", (_, options) => {
                 return
             }
             const file = Buffer.concat(data)
-            if (isSvg(file)) {
+            const knownExts = [".png", ".ico", ".jpg", ".svg"]
+            const hasExtension = knownExts.find(ex => options.fav.endsWith(ex))
+            if (!hasExtension && (/<\/svg>/).test(file)) {
                 writeFile(`${options.location}.svg`, file)
                 mainWindow.webContents.send("favicon-downloaded",
                     options.linkId, options.url, `${options.fav}.svg`)
@@ -1534,6 +1559,9 @@ const saveWindowState = (maximizeOnly = false) => {
 }
 
 // Miscellaneous tasks
+ipcMain.on("update-native-theme", (_, newTheme) => {
+    nativeTheme.themeSource = newTheme
+})
 ipcMain.handle("save-page", (_, id, loc) => {
     webContents.fromId(id).savePage(loc, "HTMLComplete")
 })
@@ -1602,9 +1630,6 @@ ipcMain.on("override-global-useragent", (e, globalUseragent) => {
     app.userAgentFallback = globalUseragent || defaultUseragent()
     e.returnValue = null
 })
-ipcMain.on("rimraf", (e, folder) => {
-    e.returnValue = rimraf(folder)
-})
 ipcMain.on("app-config", e => {
     e.returnValue = {
         "appdata": app.getPath("appData"),
@@ -1634,9 +1659,9 @@ ipcMain.on("mouse-location", e => {
 })
 
 // Subframe/iframe related code to send from renderer to frames and vice versa
-ipcMain.on("follow-mode-start", (_, id, switchTo = false) => {
+ipcMain.on("follow-mode-start", (_, id, followTypeFilter, switchTo = false) => {
     webContents.fromId(id).mainFrame.framesInSubtree.forEach(
-        f => f.send("follow-mode-start"))
+        f => f.send("follow-mode-start", followTypeFilter))
     if (switchTo) {
         allLinks = []
     }
@@ -1839,8 +1864,12 @@ const translateMouseEvent = (e, clickInfo) => {
         frameUrl = info.url
     }
     const webviewId = webContents.getAllWebContents().find(wc => {
-        const wcId = `${wc.mainFrame.routingId}-${wc.mainFrame.processId}`
-        return wcId === parentId
+        try {
+            const wcId = `${wc.mainFrame.routingId}-${wc.mainFrame.processId}`
+            return wcId === parentId
+        } catch {
+            return false
+        }
     })?.id
     return {
         ...clickInfo,

@@ -5,13 +5,91 @@ This document aims to represent all notable changes to Vieb.
 
 Vieb is a Vim Inspired Electron Browser made by Jelmer van Arnhem and contributors,
 and can be copied under the terms of the GPL-3.0 or later versions.
-See the README.md or LICENSE file for more info and details about Vieb and it's license.
+See the README.md or LICENSE file for more info and details about Vieb and its license.
 Links in the changelog are part of [github.com/Jelmerro/Vieb](https://github.com/Jelmerro/Vieb).
 The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the most important changes per release,
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
+
+### Added
+
+- Special type of notification for dialog inform notifications, which can be colored separately
+- Setting "suggestbouncedelay" to control the debounce delay of suggestions, to handle fast typing better
+- Setting "darkreaderblocklist" to block specific sites (regular expressions) from using darkreader, even if enabled
+- Setting "userstyle" to toggle loading of custom CSS files into the page, either globally or per-domain
+- Actions "toggleMarkdownViewer" and "toggleMarkdownViewerNewTab" to toggle the new theme supported "markdownviewer"
+- Setting "nativetheme" to control the theme to report to pages, used by the "prefers-color-scheme" CSS rule
+
+### Changed
+
+- Only show notification popup for notifications with lots of newlines
+- Examples are now downloaded as blobs instead of files to allow them to be bundled in the asar file for releases
+- Startup argument "--debug" is now called "--devtools" to avoid nodejs argument conflict
+- Give "storenewvisits" a new option for "markdownviewer"
+- Logic for staying in follow mode after selecting something is now more consistent in remembering the previous mode
+- Main process devtools are now always undocked to prevent window size issues
+- Follow mode logic to use the much faster async IntersectionObserver instead of sync API
+- Follow mode logic to be faster if fewer element types are queried
+- Use Electron's clickOnSearch implementation in favor of Vieb's custom one
+- Setting "containernames" now also works for current tab navigation, unless you tell it not to with the "~newtab" suffix
+- Use regex to detect SVG favicons instead of relying on "is-svg" dependency
+- Use nodejs filesystem API instead of relying on "rimraf" dependency
+- All runtime dependencies are now loaded safely, and will show a message when missing (this makes ALL dependencies optional)
+
+### Removed
+
+- Extension support, see [this Github issue](https://github.com/Jelmerro/Vieb/issues/385) to learn more
+- Setting "firefoxmode" in favor of setting the "useragent" setting to a Firefox useragent
+
+### Fixed
+
+- Suspended tabs sometimes failing to wake up correctly
+- Commands :rclose and :lclose not working correctly when there are suspended tabs
+- Race condition in opening new tabs with urls that would sometimes unsuspend them twice
+- White background on some pages that load page styling async and in reloaded iframes
+- Error popup from the main thread regarding discarded frames
+
+### Versions
+
+- Electron 20.0.1 (was 19.0.6)
+- Chromium 104.0.5112.81 (was 102.0.5005.115)
+
+## [8.1.0](https://github.com/Jelmerro/Vieb/compare/8.0.0...8.1.0) - 2022-06-29
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/8.0.0...8.1.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/8.1.0)
+
+### Added
+
+- Darkreader with many settings like "darkreader" and "darkreadercontrast" to toggle and control darkreader theming
+- Sponsorblock with settings "sponsorblock" "sponsorblockcategories" to toggle and control blocking
+
+### Changed
+
+- Reduced the amount of mouse movement events while inside pointer mode, greatly reducing CPU usage
+- Setting "useragent" is now separated by tildes `~` instead of commas `,` as to allow commas to appear in useragents
+- Settings with `,` separator with each entry having a `~` separator can now be removed with just the part before the first `~`
+- Explore mode suggestion logic should now be faster after first search by caching page titles
+
+### Deprecated
+
+- Extension support, see [this Github issue](https://github.com/Jelmerro/Vieb/issues/385) to learn more
+
+### Fixed
+
+- Compact layout overflowing below the visible window, now uses grid layout
+- Shifted space and backspace not working in navbar as a regular space/backspace
+- DOM issue when trying to send iframe details before DOM is ready
+
+### Versions
+
+- Electron 19.0.6 (was 19.0.3)
+- Chromium 102.0.5005.115 (was 102.0.5005.63)
+
+## [8.0.0](https://github.com/Jelmerro/Vieb/compare/7.2.0...8.0.0) - 2022-06-08
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/7.2.0...8.0.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/8.0.0)
 
 ### Added
 
@@ -55,8 +133,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Versions
 
-- Electron 19.0.0 (was 18.0.1)
-- Chromium 102.0.5005.61 (was 100.0.4896.60)
+- Electron 19.0.3 (was 18.0.1)
+- Chromium 102.0.5005.63 (was 100.0.4896.60)
 
 ## [7.2.0](https://github.com/Jelmerro/Vieb/compare/7.1.2...7.2.0) - 2022-03-31
 
@@ -241,7 +319,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Make special mouse button dragging resize the screenshot frame by changing the width and height instead of position arguments
-- Examples with custom commands are now in a separate example file that isn't used by default, due to it's explicit and non-native nature
+- Examples with custom commands are now in a separate example file that isn't used by default, due to its explicit and non-native nature
 
 ### Fixed
 
@@ -728,7 +806,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Command "mute" to toggle the audio playback status of a tab (either mute or unmute)
-- Setting "respectsitecontextmenu" to toggle if Vieb should show it's menu on websites that already provide one
+- Setting "respectsitecontextmenu" to toggle if Vieb should show its menu on websites that already provide one
 - Setting "suspendonrestore" to restore tabs lazily (loading tabs only once they're visible)
 - Setting "suspendtimeout" to automatically suspend background tabs after a delay
 - Command "suspend" to manually suspend any background tab right now
@@ -950,17 +1028,6 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Make use of system fonts as much as possible: "DejaVu Sans Mono" -> "Courier" -> "monospace", in that order
 - Visual appearance of Vieb: logo is now smaller, everything is now styled with colorschemes and popups are more in line with other elements
 
-### Fixed
-
-- Typo in the "storenewvisits" setting (there will be no automatic migration from the name with a typo to the correct one)
-- Pointer not updating the location when bringing back the GUI while in fullscreen
-- Permission for media devices sometimes being detected as a microphone permission
-- Mouse back/forward buttons being ignored when the mouse setting is enabled
-- Shift being ignored when pressing named keys that can be pressed with and without Shift such as "Space"
-- Border of split pages moving the page slightly when switching (border is now always there but in gray)
-- Updating the adblocker files when Vieb is installed on a read-only file system
-- Favicons being accepted even though the HTTP status code was an error (such as 404)
-
 ### Deprecated
 
 - Old tabs file format (3.x.x releases will migrate to the new format, 2.x.x releases will not read the 3.x.x format)
@@ -974,6 +1041,14 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Fixed
 
+- Typo in the "storenewvisits" setting (there will be no automatic migration from the name with a typo to the correct one)
+- Pointer not updating the location when bringing back the GUI while in fullscreen
+- Permission for media devices sometimes being detected as a microphone permission
+- Mouse back/forward buttons being ignored when the mouse setting is enabled
+- Shift being ignored when pressing named keys that can be pressed with and without Shift such as "Space"
+- Border of split pages moving the page slightly when switching (border is now always there but in gray)
+- Updating the adblocker files when Vieb is installed on a read-only file system
+- Favicons being accepted even though the HTTP status code was an error (such as 404)
 - Abort error for aborting page loads in the debug console (using --debug)
 - Don't keep closed pages in memory while the 'keeprecentlyclosed' setting is off
 
@@ -1058,7 +1133,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Improve the follow mode speed by reusing DOM calls and only using an interval (no more page observers)
 - Disable the remote module entirely
-- Load the preload from the main process and prevent changes to it's location
+- Load the preload from the main process and prevent changes to its location
 
 ### Fixed
 

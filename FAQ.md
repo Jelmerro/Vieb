@@ -71,13 +71,14 @@ This distinction and other differences between the two types of scrolling are ex
 
 #### Why can't I sign in to Google?
 
-Google blocks a lot of software that isn't Chrome from accessing their services.
+Google block a lot of software that isn't Chrome from accessing their services.
 Just a simple [DDG search](https://duckduckgo.com/?q=browser+or+app+may+not+be+secure) reveals that most programs experience this.
-Google owns your data and they are the ones to decide who may view it and when, for now they chose to only allow Chrome and Firefox.
+Google own your data and they are the ones to decide who may view it and when, for now they chose to only allow mostly Chrome and sometimes Firefox.
 Below is a list of known workarounds to circumvent this blocking policy, use them at your own risk.
 
-- You can use `:set firefoxmode=google` within Vieb to mimic Firefox when visiting Google pages.
-- You can temporarily allow `""Less secure app access""` in your [Google account dashboard](https://myaccount.google.com/security).
+- You can temporarily use `:set useragent=%firefox` within Vieb to mimic Firefox, which Google allow more often
+- Add "Electron" to the useragent setting to make Google aware that you are using a custom Electron browser, which Google condone for now
+- Try again after building up some cookies and tracking data, as Google are more likely to allow the login once they know who you are
 
 There are no other known workarounds to allow the sign-in at this point of time.
 You are encouraged to open PRs to improve this list of workarounds.
@@ -88,7 +89,7 @@ For more info about moving away from Google and why, see [r/degoogle](https://re
 
 #### Why doesn't DRM work (such as Spotify or Netflix)?
 
-Google owns Widevine, the one and only DRM solution for Chromium-based browsers.
+Google own Widevine, the one and only DRM solution for Chromium-based browsers.
 They are in control of approving and verifying the inclusion of Widevine into a (software) project.
 The process is [far from straightforward](https://github.com/electron/electron/issues/12427) and [is blocked for open-source software](https://blog.samuelmaddock.com/posts/google-widevine-blocked-my-browser/).
 It's even explained on the [official Wikipedia page of Widevine](https://en.wikipedia.org/wiki/Widevine).
@@ -169,7 +170,16 @@ OR when you specifically ask it to (either via navigation or with custom setting
 Checking for updates can be done by opening the `:version` page and specifically clicking "Check for updates".
 Alternatively, you can watch the [Github repository](https://github.com/Jelmerro/Vieb)
 or subscribe to the official [Vieb subreddit](https://reddit.com/r/vieb) to be notified of new releases.
-You can also check out the official [Matrix space](https://matrix.to/#/#vieb:matrix.org) and it's [announcements chat](https://matrix.to/#/#vieb-announcements:matrix.org),
+You can also check out the official [Matrix space](https://matrix.to/#/#vieb:matrix.org) and its [announcements chat](https://matrix.to/#/#vieb-announcements:matrix.org),
 or visit the [Telegram announcements](https://t.me/vieb_announcements) and [the general chat on Telegram](https://t.me/vieb_general).
 Lastly, if your system has a [third-party package](https://repology.org/project/vieb/versions), you could use that as well.
 These packages might be customized or updated at a later date, but they get updates the same way you are used to from your operating system.
+
+#### Will extensions ever be supported?
+
+Highly unlikely, as this has been attempted numerous times in the past, without success.
+The results of this were tracked in [this issue](https://github.com/Jelmerro/Vieb/issues/130).
+The current approach is to implement common extensions and their features into Vieb directly,
+for which the progress can be tracked in [this issue](https://github.com/Jelmerro/Vieb/issues/385).
+If you miss a feature in Vieb that you currently use an extension for, please make a new Github issue.
+If you think you have what it takes to give Vieb extension support, feel free to make a PR for it.

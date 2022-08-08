@@ -65,7 +65,7 @@ The path of the icon and scripts can be relative to the config file or absolute.
 Custom icons aren't very reliable in Electron especially on Linux,
 so please check their issue tracker first if things don't work out.
 Apps can also share the same container name to use the same data location for multiple pages.
-If the container name of an app starts with "temp", all of it's browsing data will be deleted on quit.
+If the container name of an app starts with "temp", all of its browsing data will be deleted on quit.
 
 ## Electron apps
 

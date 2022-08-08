@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2021 Jelmer van Arnhem
+* Copyright (C) 2021-2022 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -73,8 +73,10 @@ const getGuiStatus = type => {
 }
 
 const setTopOfPageWithMouse = status => {
-    topOfPageWithMouse = status
-    updateGuiVisibility()
+    if (topOfPageWithMouse !== status) {
+        topOfPageWithMouse = status
+        updateGuiVisibility()
+    }
 }
 
 const updateScreenshotHighlight = (hide = false) => {
@@ -160,7 +162,7 @@ const updateGuiVisibility = () => {
         }
     }
     const {applyLayout} = require("./pagelayout")
-    setTimeout(applyLayout, 1)
+    applyLayout()
     if (currentMode() === "pointer") {
         const {updateElement} = require("./pointer")
         updateElement()

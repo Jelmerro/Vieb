@@ -73,10 +73,11 @@ const splitSettingAndValue = (part, seperator) => {
 
 const modifyListOrNumber = (setting, value, method) => {
     const isNumber = typeof getSetting(setting) === "number"
-    const {freeText, listLike, set} = require("./settings")
+    const {freeText, listLike, listLikeTilde, set} = require("./settings")
     const isFreeText = freeText.includes(setting)
     const isListLike = listLike.includes(setting)
-    if (!isNumber && !isFreeText && !isListLike) {
+    const isListLikeTilde = listLikeTilde.includes(setting)
+    if (!isNumber && !isFreeText && !isListLike && !listLikeTilde) {
         notify(
             `Can't modify '${setting}' as if it were a number or list`, "warn")
         return
@@ -84,6 +85,9 @@ const modifyListOrNumber = (setting, value, method) => {
     if (method === "append") {
         if (isListLike) {
             set(setting, `${getSetting(setting)},${value}`)
+        }
+        if (isListLikeTilde) {
+            set(setting, `${getSetting(setting)}~${value}`)
         }
         if (isNumber) {
             set(setting, getSetting(setting) + Number(value))
@@ -99,7 +103,16 @@ const modifyListOrNumber = (setting, value, method) => {
                 const {mouseFeatures} = require("./settings")
                 current = mouseFeatures
             }
-            const newValue = current.filter(e => e && e !== value).join(",")
+            let newValue = current.filter(e => e && e !== value).join(",")
+            if (newValue === current.join(",")) {
+                newValue = current.filter(
+                    e => e.split("~")[0] !== value.split("~")[0]).join(",")
+            }
+            set(setting, newValue)
+        }
+        if (isListLikeTilde) {
+            const current = getSetting(setting).split("~")
+            const newValue = current.filter(e => e && e !== value).join("~")
             set(setting, newValue)
         }
         if (isNumber) {
@@ -112,6 +125,9 @@ const modifyListOrNumber = (setting, value, method) => {
     if (method === "special") {
         if (isListLike) {
             set(setting, `${value},${getSetting(setting)}`)
+        }
+        if (isListLikeTilde) {
+            set(setting, `${value}~${getSetting(setting)}`)
         }
         if (isNumber) {
             set(setting, getSetting(setting) * Number(value))
@@ -182,10 +198,12 @@ const set = args => {
             }
         } else if (part.startsWith("no")) {
             const value = getSetting(part.replace("no", ""))
-            const {"set": s, listLike} = require("./settings")
+            const {"set": s, listLike, listLikeTilde} = require("./settings")
             if (typeof value === "boolean") {
                 s(part.replace("no", ""), "false")
             } else if (listLike.includes(part.replace("no", ""))) {
+                s(part.replace("no", ""), "")
+            } else if (listLikeTilde.includes(part.replace("no", ""))) {
                 s(part.replace("no", ""), "")
             } else {
                 listSetting(part)
@@ -936,52 +954,6 @@ const makedefault = () => {
     }
 }
 
-const extensionsCommand = args => {
-    if (!args[0]) {
-        openSpecialPage("extensions")
-        return
-    }
-    if (args[0] === "install") {
-        if (args[1]) {
-            notify("Extension install command takes no arguments", "warn")
-            return
-        }
-        const version = navigator.userAgent.replace(
-            /.*Chrome\//g, "").replace(/ .*/g, "")
-        const extension = currentPage()?.src.replace(/.*\//g, "")
-        if (extension && (/^[A-z0-9]{32}$/).test(extension)) {
-            const url = `https://clients2.google.com/service/update2/crx?`
-            + `response=redirect&prodversion=${version}&acceptformat=crx2,crx3`
-            + `&x=id%3D${extension}%26uc`
-            ipcRenderer.send("install-extension", url, extension, "crx")
-        } else {
-            currentPage()?.send("action", "installFirefoxExtension")
-        }
-    } else if (args[0] === "list") {
-        if (args[1]) {
-            notify("Extension list command takes no arguments", "warn")
-            return
-        }
-        let list = ipcRenderer.sendSync("list-extensions")
-        list = list.map(ext => `${ext.name}: ${ext.version}`).join("\n")
-        if (list.length) {
-            notify(`Installed extensions: \n${list}`)
-        } else {
-            notify(`No extensions currently installed`)
-        }
-    } else if (args[0] === "remove") {
-        if (!args[1] || args[2]) {
-            notify("Removing an extension requires exactly one argument:\n"
-                + "The id of an extension", "warn")
-            return
-        }
-        ipcRenderer.send("remove-extension", args[1])
-    } else {
-        notify("Unknown argument to the extensions command, must be:\n"
-            + "install, list or remove", "warn")
-    }
-}
-
 const lclose = (force = false) => {
     let index = listTabs().indexOf(currentTab())
     // Loop is reversed to close as many tabs as possible on the left,
@@ -1162,7 +1134,6 @@ const commands = {
     "delmarks!": ({args}) => delmarks(true, args),
     "devtools": ({args}) => openDevTools(...args),
     "downloads": () => openSpecialPage("downloads"),
-    "extensions": ({args}) => extensionsCommand(args),
     "h": ({args}) => help(...args),
     "hardcopy": ({range}) => hardcopy(range),
     "help": ({args}) => help(...args),

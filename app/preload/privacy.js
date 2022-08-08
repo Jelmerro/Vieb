@@ -315,7 +315,7 @@ window.prompt = text => {
     if (promptBehavior.includes("notify")) {
         const url = window.location.href
         ipcRenderer.sendToHost("notify",
-            `Page ${url} wanted to show a prompt dialog: ${text}`)
+            `Page ${url} wanted to show a prompt dialog: ${text}`, "dial")
     }
     if (promptBehavior.includes("show")) {
         return ipcRenderer.sendSync("show-prompt-dialog", text)
@@ -328,7 +328,7 @@ window.confirm = text => {
     if (confirmBehavior.includes("notify")) {
         const url = window.location.href
         ipcRenderer.sendToHost("notify",
-            `Page ${url} wanted to show a confirm dialog: ${text}`)
+            `Page ${url} wanted to show a confirm dialog: ${text}`, "dial")
     }
     if (confirmBehavior.includes("show")) {
         const button = ipcRenderer.sendSync("sync-message-dialog", {
@@ -349,7 +349,7 @@ window.alert = text => {
     if (alertBehavior.includes("notify")) {
         const url = window.location.href
         ipcRenderer.sendToHost("notify",
-            `Page ${url} wanted to show an alert dialog: ${text}`)
+            `Page ${url} wanted to show an alert dialog: ${text}`, "dial")
     }
     if (alertBehavior.includes("show")) {
         ipcRenderer.sendSync("sync-message-dialog", {
@@ -383,7 +383,7 @@ window.WebGL2RenderingContext.prototype.getParameter = function(parameter) {
     }
     return getParam2.call(this, parameter)
 }
-// If using Firefox mode, also modify the Firefox navigator properties
+// If using a Firefox useragent, also modify the Firefox navigator properties
 if (window.navigator.userAgent.includes("Firefox")) {
     Object.defineProperty(window.Navigator.prototype,
         "buildID", {"get": (() => "20181001000000").bind(null)})

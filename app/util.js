@@ -22,7 +22,6 @@ const ipv6Regex = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:
 const specialPages = [
     "cookies",
     "downloads",
-    "extensions",
     "help",
     "history",
     "newtab",
@@ -46,6 +45,7 @@ const dataUris = [
     "viewsource",
     "sourceviewer",
     "readerview",
+    "markdownviewer",
     "ws"
 ]
 const getSetting = val => JSON.parse(sessionStorage.getItem("settings"))?.[val]
@@ -379,31 +379,51 @@ const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
     return elements
 }
 
+const correctedCenterAndSizeOfRect = rect => {
+    let {x, y} = rect
+    x = x || rect.left
+    y = y || rect.top
+    let width = Math.min(rect.width, window.innerWidth - x)
+    if (x < 0) {
+        width += x
+        x = 0
+    }
+    let height = Math.min(rect.height, window.innerHeight - y)
+    if (y < 0) {
+        height += y
+        y = 0
+    }
+    const centerX = x + width / 2
+    const centerY = y + height / 2
+    return {centerX, centerY, height, width, x, y}
+}
+
 const findClickPosition = (element, rects) => {
     let dims = {}
     let clickable = false
-    // Check if the center of the bounding rect is actually clickable,
-    // For every possible rect of the element and it's sub images.
     for (const rect of rects) {
-        let {x, y} = rect
-        let width = Math.min(rect.width, window.innerWidth - x)
-        if (x < 0) {
-            width += x
-            x = 0
-        }
-        let height = Math.min(rect.height, window.innerHeight - y)
-        if (y < 0) {
-            height += y
-            y = 0
-        }
-        const rectX = x + width / 2
-        const rectY = y + height / 2
-        // Update the region if it's larger or the first region found
-        if (width > dims.width || height > dims.height || !clickable) {
-            const elementAtPos = findElementAtPosition(rectX, rectY)
-            if (element === elementAtPos || element?.contains(elementAtPos)) {
+        const {
+            centerX, centerY, x, y, width, height
+        } = correctedCenterAndSizeOfRect(rect)
+        if (!clickable || width > dims.width || height > dims.height) {
+            const elAtPos = findElementAtPosition(centerX, centerY)
+            if (element === elAtPos || element?.contains(elAtPos)) {
                 clickable = true
                 dims = {height, width, x, y}
+            }
+        }
+    }
+    if (!clickable) {
+        for (const rect of [...element.getClientRects()]) {
+            const {
+                centerX, centerY, x, y, width, height
+            } = correctedCenterAndSizeOfRect(rect)
+            if (!clickable || width > dims.width || height > dims.height) {
+                const elAtPos = findElementAtPosition(centerX, centerY)
+                if (element === elAtPos || element?.contains(elAtPos)) {
+                    clickable = true
+                    dims = {height, width, x, y}
+                }
             }
         }
     }
@@ -483,26 +503,24 @@ const compareVersions = (v1Str, v2Str) => {
     return "unknown"
 }
 
-const extractZip = (args, cb) => {
-    // Path is constructed manually due to the many electron-builder bugs:
-    // https://github.com/electron-userland/electron-builder/issues/5662
-    // https://github.com/electron-userland/electron-builder/issues/5625
-    // https://github.com/electron-userland/electron-builder/issues/5706
-    // https://github.com/electron-userland/electron-builder/issues/5617
-    // It seems that modules not used in the main process are dropped on build,
-    // so we explicitly tell electron-builder to add them extracted.
-    // This way we can call the right tool ourselves without importing it.
-    let loc = joinPath(__dirname, "../node_modules/7zip-bin/")
-    if (process.platform === "darwin") {
-        loc = joinPath(loc, "mac", process.arch, "7za")
-    } else if (process.platform === "win32") {
-        loc = joinPath(loc, "win", process.arch, "7za.exe")
-    } else {
-        loc = joinPath(loc, "linux", process.arch, "7za")
-    }
-    const {spawn} = require("child_process")
-    spawn(loc, args).on("exit", cb)
-}
+const fetchJSON = url => new Promise((res, rej) => {
+    const https = require("https")
+    const request = https.request(url, response => {
+        let data = ""
+        response.on("data", chunk => {
+            data += chunk.toString()
+        })
+        response.on("end", () => {
+            try {
+                res(JSON.parse(data))
+            } catch (err) {
+                rej(err)
+            }
+        })
+    })
+    request.on("error", err => rej(err))
+    request.end()
+})
 
 // IPC UTIL
 
@@ -510,47 +528,6 @@ const sendToPageOrSubFrame = (channel, ...args) => {
     const {ipcRenderer} = require("electron")
     ipcRenderer.send(channel, document.getElementById("current-page")
         ?.getWebContentsId(), ...args)
-}
-
-const globDelete = folder => {
-    // Request is send back to the main process due to electron-builder bugs:
-    // https://github.com/electron-userland/electron-builder/issues/5662
-    // https://github.com/electron-userland/electron-builder/issues/5625
-    // https://github.com/electron-userland/electron-builder/issues/5706
-    // https://github.com/electron-userland/electron-builder/issues/5617
-    // It seems that modules not used in the main process are dropped on build.
-    const {ipcRenderer} = require("electron")
-    ipcRenderer.sendSync("rimraf", joinPath(appData(), folder))
-}
-
-const clearTempContainers = () => {
-    globDelete("Partitions/temp*")
-    globDelete("erwicmode")
-}
-
-const clearCache = () => {
-    globDelete("**/*Cache/")
-    globDelete("**/File System/")
-    globDelete("**/MANIFEST")
-    globDelete("**/Service Worker/")
-    globDelete("**/VideoDecodeStats/")
-    globDelete("**/blob_storage/")
-    globDelete("**/databases/")
-    globDelete("*.log")
-    globDelete("**/.org.chromium.Chromium.*")
-    globDelete("vimformedits/")
-    globDelete("webviewsettings")
-}
-
-const clearCookies = () => {
-    globDelete("**/Cookies*")
-    globDelete("**/QuotaManager*")
-}
-
-const clearLocalStorage = () => {
-    globDelete("**/IndexedDB/")
-    globDelete("**/*Storage/")
-    globDelete("**/*.ldb")
 }
 
 const notify = (message, type = "info", clickAction = false) => {
@@ -570,6 +547,9 @@ const notify = (message, type = "info", clickAction = false) => {
     if (type.startsWith("err")) {
         properType = "error"
     }
+    if (type.startsWith("dial")) {
+        properType = "dialog"
+    }
     const escapedMessage = message.replace(/>/g, "&gt;").replace(/</g, "&lt;")
         .replace(/\n/g, "<br>")
     notificationHistory.push({
@@ -584,8 +564,8 @@ const notify = (message, type = "info", clickAction = false) => {
         }
     }
     const native = getSetting("nativenotification")
-    const showLong = properType !== "permission"
-        && (escapedMessage.split("<br>").length > 5 || message.length > 200)
+    const showLong = escapedMessage.split("<br>").length > 3
+        && properType !== "dialog"
     if (native === "always" || !showLong && native === "smallonly") {
         const n = new Notification(
             `${appConfig().name} ${properType}`, {"body": message})
@@ -709,19 +689,7 @@ const pathToSpecialPageName = urlPath => {
     return {"name": "", "section": ""}
 }
 
-const unpacked = {}
-const resolveUnpacked = loc => {
-    if (!unpacked[loc]) {
-        unpacked[loc] = loc
-        const newloc = loc.replace(/app\.asar([\\/])/, "app.asar.unpacked$1")
-        if (isFile(newloc)) {
-            unpacked[loc] = newloc
-        }
-    }
-    return unpacked[loc]
-}
-
-const joinPath = (...args) => resolveUnpacked(path.resolve(path.join(...args)))
+const joinPath = (...args) => path.resolve(path.join(...args))
 
 const basePath = (...args) => path.basename(...args)
 
@@ -870,6 +838,75 @@ const modifiedAt = loc => {
     }
 }
 
+const rm = loc => fs.rmSync(loc, {"force": true, "recursive": true})
+
+const clearTempContainers = () => {
+    const partitionDir = joinPath(appData(), "Partitions")
+    listDir(partitionDir, false, true)?.filter(part => part.startsWith("temp"))
+        .map(part => joinPath(partitionDir, part)).forEach(part => rm(part))
+    rm(joinPath(appData(), "erwicmode"))
+}
+
+const clearCache = () => {
+    const partitionDir = joinPath(appData(), "Partitions")
+    const partitions = [appData(), ...listDir(partitionDir, true, true) || []]
+    let subNodes = []
+    partitions.forEach(part => subNodes.push(...listDir(part) || []))
+    subNodes = Array.from(new Set(subNodes).values())
+    partitions.forEach(part => rm(joinPath(part, "File System")))
+    partitions.forEach(part => rm(joinPath(part, "MANIFEST")))
+    partitions.forEach(part => rm(joinPath(part, "Service Worker")))
+    partitions.forEach(part => rm(joinPath(part, "VideoDecodeStats")))
+    partitions.forEach(part => rm(joinPath(part, "blob_storage")))
+    partitions.forEach(part => rm(joinPath(part, "databases")))
+    for (const part of partitions) {
+        for (const node of subNodes.filter(n => n.endsWith("Cache"))) {
+            rm(joinPath(part, node))
+        }
+        for (const node of subNodes.filter(n => n.endsWith(".log"))) {
+            rm(joinPath(part, node))
+        }
+        for (const node of subNodes.filter(n => n.startsWith(".org.chrom"))) {
+            rm(joinPath(part, node))
+        }
+    }
+    rm(joinPath(appData(), "vimformedits"))
+    rm(joinPath(appData(), "webviewsettings"))
+}
+
+const clearCookies = () => {
+    const partitionDir = joinPath(appData(), "Partitions")
+    const partitions = [appData(), ...listDir(partitionDir, true, true) || []]
+    let subNodes = []
+    partitions.forEach(part => subNodes.push(...listDir(part) || []))
+    subNodes = Array.from(new Set(subNodes).values())
+    for (const part of partitions) {
+        for (const node of subNodes.filter(n => n.startsWith("Cookies"))) {
+            rm(joinPath(part, node))
+        }
+        for (const node of subNodes.filter(n => n.startsWith("QuotaManager"))) {
+            rm(joinPath(part, node))
+        }
+    }
+}
+
+const clearLocalStorage = () => {
+    const partitionDir = joinPath(appData(), "Partitions")
+    const partitions = [appData(), ...listDir(partitionDir, true, true) || []]
+    let subNodes = []
+    partitions.forEach(part => subNodes.push(...listDir(part) || []))
+    subNodes = Array.from(new Set(subNodes).values())
+    partitions.forEach(part => rm(joinPath(part, "IndexedDB")))
+    for (const part of partitions) {
+        for (const node of subNodes.filter(n => n.endsWith("Storage"))) {
+            rm(joinPath(part, node))
+        }
+        for (const node of subNodes.filter(n => n.endsWith(".ldb"))) {
+            rm(joinPath(part, node))
+        }
+    }
+}
+
 // Disabled import sort order as the order is optimized to reduce module loads
 /* eslint-disable sort-keys/sort-keys-fix */
 module.exports = {
@@ -903,14 +940,9 @@ module.exports = {
     activeElement,
     formatSize,
     compareVersions,
-    extractZip,
+    fetchJSON,
     // IPC UTIL
     sendToPageOrSubFrame,
-    globDelete,
-    clearTempContainers,
-    clearCache,
-    clearCookies,
-    clearLocalStorage,
     notify,
     appData,
     appConfig,
@@ -933,5 +965,10 @@ module.exports = {
     makeDir,
     listDir,
     watchFile,
-    modifiedAt
+    modifiedAt,
+    rm,
+    clearTempContainers,
+    clearCache,
+    clearCookies,
+    clearLocalStorage
 }

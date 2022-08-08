@@ -41,12 +41,23 @@ const init = () => {
     ipcRenderer.on("follow-response", (_, l) => parseAndDisplayLinks(l))
 }
 
-const informPreload = () => {
+const informPreload = (first = false) => {
+    let elemTypesToFollow = getSetting("followelement")
+    if (["pointer", "visual"].includes(getStored("modebeforefollow"))) {
+        elemTypesToFollow = getSetting("followelementpointer")
+    }
+    if (followLinkDestination !== "current") {
+        elemTypesToFollow = "url"
+    }
+    if (first) {
+        ipcRenderer.send("follow-mode-start", currentPage().getWebContentsId(),
+            elemTypesToFollow, true)
+    }
     setTimeout(() => {
         if (currentPage().getAttribute("dom-ready")) {
             if (currentMode() === "follow" && !alreadyFollowing) {
                 ipcRenderer.send("follow-mode-start",
-                    currentPage().getWebContentsId())
+                    currentPage().getWebContentsId(), elemTypesToFollow)
                 informPreload()
             } else {
                 ipcRenderer.send("follow-mode-stop")
@@ -58,20 +69,15 @@ const informPreload = () => {
 const startFollow = (newtab = followLinkDestination) => {
     followLinkDestination = newtab || "current"
     document.getElementById("follow").textContent = ""
-    let modeBeforeFollow = currentMode()
-    if (modeBeforeFollow === "follow") {
-        modeBeforeFollow = "normal"
-    }
-    if (!getStored("modebeforefollow") || modeBeforeFollow !== "insert") {
+    const modeBeforeFollow = currentMode()
+    if (!["follow", "insert"].includes(modeBeforeFollow)) {
         setStored("modebeforefollow", modeBeforeFollow)
     }
     const {setMode} = require("./modes")
     setMode("follow")
     alreadyFollowing = false
     alreadyFilteringLinks = false
-    informPreload()
-    ipcRenderer.send("follow-mode-start",
-        currentPage().getWebContentsId(), true)
+    informPreload(true)
     document.getElementById("follow").style.display = "flex"
 }
 
@@ -226,71 +232,65 @@ const parseAndDisplayLinks = receivedLinks => {
     borderWidthKeys += propPixels(styling, "paddingLeft")
     borderWidthKeys += propPixels(styling, "paddingRight")
     document.getElementById("follow").removeChild(styling)
-    let elemTypesToFollow = getSetting("followelement")
-    if (["pointer", "visual"].includes(getStored("modebeforefollow"))) {
-        elemTypesToFollow = getSetting("followelementpointer")
-    }
     const neededLength = numberToKeys(links.length).length
     links.forEach((link, index) => {
         if (!link) {
             return
         }
-        if (elemTypesToFollow.includes(link.type)) {
-            // Mouse listener
-            const onclickListener = async e => {
-                if (!getMouseConf("follow")) {
-                    return
-                }
-                const {isUrl} = require("../util")
-                const {setMode} = require("./modes")
-                if (e.button === 1 && link.type === "url" && isUrl(link.url)) {
-                    setMode(getStored("modebeforefollow"))
-                    const {addTab} = require("./tabs")
-                    addTab({
-                        "switchTo": getSetting("mousenewtabswitch"),
-                        "url": link.url
-                    })
-                } else {
-                    await clickAtLink(link)
-                    if (link.type !== "inputs-insert") {
-                        if (e.button === 0) {
-                            setMode(getStored("modebeforefollow"))
-                        } else {
-                            startFollow()
-                        }
+        // Mouse listener
+        const onclickListener = async e => {
+            if (!getMouseConf("follow")) {
+                return
+            }
+            const {isUrl} = require("../util")
+            const {setMode} = require("./modes")
+            if (e.button === 1 && link.type === "url" && isUrl(link.url)) {
+                setMode(getStored("modebeforefollow"))
+                const {addTab} = require("./tabs")
+                addTab({
+                    "switchTo": getSetting("mousenewtabswitch"),
+                    "url": link.url
+                })
+            } else {
+                await clickAtLink(link)
+                if (link.type !== "inputs-insert") {
+                    if (e.button === 0) {
+                        setMode(getStored("modebeforefollow"))
+                    } else {
+                        startFollow()
                     }
                 }
             }
-            // Show a border around the link
-            const borderElement = document.createElement("span")
-            borderElement.className = `follow-${link.type}-border`
-            const x = link.x * factor
-            const y = link.y * factor
-            const width = link.width * factor
-            const height = link.height * factor
-            borderElement.style.left = `${x}px`
-            borderElement.style.top = `${y}px`
-            borderElement.style.width = `${width}px`
-            borderElement.style.height = `${height}px`
-            borderElement.addEventListener("mouseup", onclickListener)
-            followChildren.push(borderElement)
-            // Show the link key in the top right
-            const linkElement = document.createElement("span")
-            linkElement.textContent = numberToKeys(index, neededLength)
-            linkElement.className = `follow-${link.type}`
-            const charWidth = fontsize * 0.60191
-            const linkElementWidth = charWidth * linkElement.textContent.length
-                + borderWidthKeys + borderWidthOutline
-            let left = width - borderWidthOutline
-            if (x + width > scrollWidth - linkElementWidth) {
-                left = scrollWidth - x - linkElementWidth
-            }
-            linkElement.style.left = `${left.toFixed(2)}px`
-            linkElement.style.top = `-${borderWidthOutline}px`
-            linkElement.setAttribute("link-id", index)
-            linkElement.addEventListener("mouseup", onclickListener)
-            borderElement.appendChild(linkElement)
         }
+        // Show a border around the link
+        const borderElement = document.createElement("span")
+        borderElement.className = `follow-${link.type}-border`
+        const x = link.x * factor
+        const y = link.y * factor
+        const width = link.width * factor
+        const height = link.height * factor
+        borderElement.style.left = `${x}px`
+        borderElement.style.top = `${y}px`
+        borderElement.style.width = `${width}px`
+        borderElement.style.height = `${height}px`
+        borderElement.addEventListener("mouseup", onclickListener)
+        followChildren.push(borderElement)
+        // Show the link key in the top right
+        const linkElement = document.createElement("span")
+        linkElement.textContent = numberToKeys(index, neededLength)
+        linkElement.className = `follow-${link.type}`
+        const charWidth = fontsize * 0.60191
+        const linkElementWidth = charWidth * linkElement.textContent.length
+            + borderWidthKeys + borderWidthOutline
+        let left = width - borderWidthOutline
+        if (x + width > scrollWidth - linkElementWidth) {
+            left = scrollWidth - x - linkElementWidth
+        }
+        linkElement.style.left = `${left.toFixed(2)}px`
+        linkElement.style.top = `-${borderWidthOutline}px`
+        linkElement.setAttribute("link-id", index)
+        linkElement.addEventListener("mouseup", onclickListener)
+        borderElement.appendChild(linkElement)
     })
     document.getElementById("follow").replaceChildren(...followChildren)
     applyIndexedOrder()
@@ -385,7 +385,7 @@ const enterKey = async(code, id, stayInFollowMode) => {
             return
         }
         await clickAtLink(link)
-        if (link.type !== "inputs-insert") {
+        if (link.type !== "inputs-insert" || stayInFollowMode) {
             setMode(getStored("modebeforefollow"))
             if (stayInFollowMode) {
                 startFollow()

@@ -21,67 +21,22 @@
 require("./actions")
 // Always load follow mode JavaScript
 require("./follow")
-// Always load the failed page information handler
-require("./failedload")
-// Always load the local directory browser
-require("./filebrowser")
-// Always load the privacy related fixes
-require("./privacy")
 
-// Load the special page specific JavaScript
-const {pathToSpecialPageName, appData, readJSON, joinPath} = require("../util")
+const {pathToSpecialPageName} = require("../util")
 const specialPage = pathToSpecialPageName(window.location.href)
+const skipProtocols = ["sourceviewer:", "readerview:", "markdownviewer:"]
 if (specialPage.name) {
+    // Load the special page specific JavaScript
     require(`./${specialPage.name}`)
+} else if (!skipProtocols.find(p => window.location.href.startsWith(p))) {
+    // Load the failed page information handler for nonspecial pages
+    require("./failedload")
+    // Load the local directory browser for nonspecial pages
+    require("./filebrowser")
+    // Load the privacy related fixes for nonspecial pages
+    require("./privacy")
+    // Load the custom styling such as colors, fontsizes and darkreader
+    require("./styling")
+    // Load optional plugins and extensions
+    require("./extensions")
 }
-
-// Change the colors to $FG text on $BG background for plain text pages
-// Change the background to white for regular pages with no explicit background
-const applyThemeStyling = () => {
-    const webviewSettingsFile = joinPath(appData(), "webviewsettings")
-    const colors = readJSON(webviewSettingsFile)
-    const style = document.createElement("style")
-    style.textContent = `html {
-        color: ${colors?.fg || "#eee"};background: ${colors?.bg || "#333"};
-        font-size: ${colors.fontsize || 14}px;
-    } a {color: ${colors?.linkcolor || "#0cf"};}`
-    if (document.head) {
-        document.head.appendChild(style)
-    } else if (document.body) {
-        document.body.appendChild(style)
-    } else {
-        document.querySelector("html").appendChild(style)
-    }
-}
-window.addEventListener("load", () => {
-    const html = document.querySelector("html")
-    if (!html || specialPage.name) {
-        return
-    }
-    if (document.head?.innerText === "") {
-        applyThemeStyling()
-        return
-    }
-    if (window.location.protocol.startsWith("sourceviewer")) {
-        return
-    }
-    if (window.location.protocol.startsWith("readerview")) {
-        return
-    }
-    const htmlBG = getComputedStyle(html).background
-    const bodyBG = getComputedStyle(document.body).background
-    const htmlBGImg = getComputedStyle(html).backgroundImage
-    const bodyBGImg = getComputedStyle(document.body).backgroundImage
-    const unset = "rgba(0, 0, 0, 0)"
-    if (htmlBG.includes(unset) && bodyBG.includes(unset)) {
-        if (htmlBGImg === "none" && bodyBGImg === "none") {
-            if (!document.querySelector("style#xml-viewer-style")) {
-                if (document.querySelector("div")) {
-                    html.style.background = "white"
-                    return
-                }
-            }
-            applyThemeStyling()
-        }
-    }
-})

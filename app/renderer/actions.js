@@ -61,11 +61,7 @@ const emptySearch = () => {
     currentSearch = ""
 }
 
-const clickOnSearch = () => {
-    if (currentSearch) {
-        currentPage()?.send("search-element-click")
-    }
-}
+const clickOnSearch = () => currentPage()?.stopFindInPage("activateSelection")
 
 const nextPage = () => sendToPageOrSubFrame("action", "nextPage")
 
@@ -242,6 +238,43 @@ const toggleReaderViewNewTab = () => {
     } else {
         addTab({"url": currentPage().src.replace(
             /^.+?:\/?\/?/g, "readerview:")})
+    }
+}
+
+const toggleMarkdownViewer = () => {
+    const {navigateTo} = require("./tabs")
+    if (currentPage().src.startsWith("markdownviewer:")) {
+        const src = currentPage().src.replace(/^markdownviewer:\/?\/?/g, "")
+        let loc = String(src)
+        if (process.platform !== "win32" && !loc.startsWith("/")) {
+            loc = `/${loc}`
+        }
+        if (isFile(loc) || isDir(loc)) {
+            navigateTo(`file://${loc}`)
+            return
+        }
+        navigateTo(`https://${src}`)
+    } else {
+        navigateTo(currentPage().src.replace(/^.+?:\/?\/?/g, "markdownviewer:"))
+    }
+}
+
+const toggleMarkdownViewerNewTab = () => {
+    const {navigateTo, addTab} = require("./tabs")
+    if (currentPage().src.startsWith("markdownviewer:")) {
+        const src = currentPage().src.replace(/^markdownviewer:\/?\/?/g, "")
+        let loc = String(src)
+        if (process.platform !== "win32" && !loc.startsWith("/")) {
+            loc = `/${loc}`
+        }
+        if (isFile(loc) || isDir(loc)) {
+            navigateTo(`file://${loc}`)
+            return
+        }
+        navigateTo(`https://${src}`)
+    } else {
+        addTab({"url": currentPage().src.replace(
+            /^.+?:\/?\/?/g, "markdownviewer:")})
     }
 }
 
@@ -519,8 +552,8 @@ const editWithVim = () => {
                     "setInputFieldText", tempFile, contents)
             } else if ("ces".includes(currentMode()[0])) {
                 document.getElementById("url").value = contents
-                const {updateSuggestions} = require("./input")
-                updateSuggestions()
+                const {requestSuggestUpdate} = require("./input")
+                requestSuggestUpdate()
             }
         } else {
             const {exec} = require("child_process")
@@ -1099,6 +1132,8 @@ module.exports = {
     toTopSplitWindow,
     toggleAlwaysOnTop,
     toggleFullscreen,
+    toggleMarkdownViewer,
+    toggleMarkdownViewerNewTab,
     toggleReaderView,
     toggleReaderViewNewTab,
     toggleSourceViewer,

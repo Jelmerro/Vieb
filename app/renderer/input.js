@@ -360,6 +360,7 @@ const defaultBindings = {
         "g<C-a>": {"mapping": "<increasePortNumber>"},
         "g<C-x>": {"mapping": "<decreasePortNumber>"},
         "gF": {"mapping": "<toggleSourceViewerNewTab>"},
+        "gM": {"mapping": "<toggleMarkdownViewerNewTab>"},
         "gR": {"mapping": "<toggleReaderViewNewTab>"},
         "gS": {"mapping": "<toRootSubdomain>"},
         "gT": {"mapping": "<previousTab>"},
@@ -367,6 +368,7 @@ const defaultBindings = {
         "gf": {"mapping": "<toggleSourceViewer>"},
         "gg": {"mapping": "<scrollTop>"},
         "gi": {"mapping": "<insertAtFirstInput>"},
+        "gm": {"mapping": "<toggleMarkdownViewer>"},
         "gr": {"mapping": "<toggleReaderView>"},
         "gs": {"mapping": "<toParentSubdomain>"},
         "gt": {"mapping": "<nextTab>"},
@@ -678,8 +680,9 @@ let inputHistoryIndex = 0
 let lastActionInMapping = null
 let lastExecutedMapstring = null
 let draggingScreenshotFrame = false
-let lastX = 0
-let lastY = 0
+let lastScreenshotX = 0
+let lastScreenshotY = 0
+let suggestionTimer = null
 
 const init = () => {
     window.addEventListener("keydown", handleKeyboard)
@@ -904,8 +907,8 @@ const resetScreenshotDrag = () => setTimeout(() => {
 }, 10)
 
 const moveScreenshotFrame = (x, y) => {
-    const deltaX = x - lastX
-    const deltaY = y - lastY
+    const deltaX = x - lastScreenshotX
+    const deltaY = y - lastScreenshotY
     if (getMouseConf("screenshotframe") && draggingScreenshotFrame) {
         const url = document.getElementById("url")
         const dims = url.value.split(" ").find(
@@ -933,10 +936,10 @@ const moveScreenshotFrame = (x, y) => {
         url.value = url.value.replace(/\d+,\d+,\d+,\d+/g, `${rect.width},${
             rect.height},${rect.x},${rect.y}`)
         updateScreenshotHighlight()
-        updateSuggestions()
+        requestSuggestUpdate()
     }
-    lastX = x
-    lastY = y
+    lastScreenshotX = x
+    lastScreenshotY = y
 }
 
 const cutInput = (event = null) => {
@@ -952,7 +955,7 @@ const cutInput = (event = null) => {
     url.value = url.value.substr(0, url.selectionStart)
         + url.value.substr(url.selectionEnd)
     url.setSelectionRange(cur, cur)
-    updateSuggestions()
+    requestSuggestUpdate()
     updateNavbarScrolling()
 }
 
@@ -975,7 +978,7 @@ const pasteInput = (event = null) => {
     url.value = url.value.substr(0, url.selectionStart) + pastedText
         + url.value.substr(url.selectionEnd)
     url.setSelectionRange(cur + pastedText.length, cur + pastedText.length)
-    updateSuggestions()
+    requestSuggestUpdate()
     updateNavbarScrolling()
 }
 
@@ -1784,7 +1787,7 @@ const typeCharacterIntoNavbar = (character, force = false) => {
             const histEntry = inputHistoryList[inputHistoryIndex]
             url.value = histEntry.value
             url.setSelectionRange(histEntry.index, histEntry.index)
-            updateSuggestions(false)
+            requestSuggestUpdate(false)
         }
         updateNavbarScrolling()
         return
@@ -1795,7 +1798,7 @@ const typeCharacterIntoNavbar = (character, force = false) => {
             const histEntry = inputHistoryList[inputHistoryIndex]
             url.value = histEntry.value
             url.setSelectionRange(histEntry.index, histEntry.index)
-            updateSuggestions(false)
+            requestSuggestUpdate(false)
         }
         updateNavbarScrolling()
         return
@@ -1814,7 +1817,7 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         url.value = url.value.substr(0, url.selectionStart)
             + url.value.substr(url.selectionEnd)
         url.setSelectionRange(cur, cur)
-        updateSuggestions()
+        requestSuggestUpdate()
         updateNavbarScrolling()
         if (id === "<Del>" || id.endsWith("-Del>")) {
             return
@@ -1829,7 +1832,7 @@ const typeCharacterIntoNavbar = (character, force = false) => {
             url.value = `${url.value.substr(0, url.selectionStart)}${
                 url.value.substr(url.selectionEnd + 1)}`
             url.setSelectionRange(cur, cur)
-            updateSuggestions()
+            requestSuggestUpdate()
             updateNavbarScrolling()
         }
         return
@@ -1843,20 +1846,20 @@ const typeCharacterIntoNavbar = (character, force = false) => {
                 url.value = `${url.value.substr(0, url.selectionStart)}${
                     url.value.substr(wordPosition)}`
                 url.setSelectionRange(cur, cur)
-                updateSuggestions()
+                requestSuggestUpdate()
                 updateNavbarScrolling()
                 return
             }
         }
         return
     }
-    if (id === "<BS>") {
+    if (id === "<BS>" || id === "<S-BS>") {
         if (url.selectionStart > 0) {
             const cur = Number(url.selectionStart)
             url.value = `${url.value.substr(0, url.selectionStart - 1)}${
                 url.value.substr(url.selectionEnd)}`
             url.setSelectionRange(cur - 1, cur - 1)
-            updateSuggestions()
+            requestSuggestUpdate()
             updateNavbarScrolling()
         }
         return
@@ -1869,7 +1872,7 @@ const typeCharacterIntoNavbar = (character, force = false) => {
                 url.value = `${url.value.substr(0, wordPosition)}${
                     url.value.substr(url.selectionStart)}`
                 url.setSelectionRange(wordPosition, wordPosition)
-                updateSuggestions()
+                requestSuggestUpdate()
                 updateNavbarScrolling()
                 return
             }
@@ -1894,13 +1897,13 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         url.value = `${url.value.substr(0, url.selectionStart)}\\${
             url.value.substr(url.selectionEnd)}`
     }
-    if (id === "<Space>") {
+    if (id === "<Space>" || id === "<S-Space>") {
         url.value = `${url.value.substr(0, url.selectionStart)} ${
             url.value.substr(url.selectionEnd)}`
     }
     if (text !== url.value) {
         url.setSelectionRange(cur + 1, cur + 1)
-        updateSuggestions()
+        requestSuggestUpdate()
         updateNavbarScrolling()
     }
 }
@@ -1910,20 +1913,36 @@ const resetInputHistory = () => {
     inputHistoryIndex = 0
 }
 
-const updateSuggestions = (updateHistory = true) => {
+const requestSuggestUpdate = (updateHistory = true) => {
     const url = document.getElementById("url")
+    const suggestBounceDelay = getSetting("suggestbouncedelay")
     if (updateHistory) {
         inputHistoryList = inputHistoryList.slice(0, inputHistoryIndex + 1)
         inputHistoryIndex = inputHistoryList.length
         inputHistoryList.push({"index": url.selectionStart, "value": url.value})
     }
-    if (currentMode() === "explore") {
+    if (!suggestionTimer) {
+        updateSuggestions()
+    }
+    if (suggestBounceDelay) {
+        clearTimeout(suggestionTimer)
+        suggestionTimer = setTimeout(() => {
+            suggestionTimer = null
+            updateSuggestions()
+        }, suggestBounceDelay)
+    }
+}
+
+const updateSuggestions = () => {
+    const val = document.getElementById("url").value
+    const mode = currentMode()
+    if (mode === "explore") {
         const {suggestExplore} = require("./suggest")
-        suggestExplore(url.value)
-    } else if (currentMode() === "command") {
+        suggestExplore(val)
+    } else if (mode === "command") {
         const {suggestCommand} = require("./suggest")
-        suggestCommand(url.value)
-    } else if (currentMode() === "search" && getSetting("incsearch")) {
+        suggestCommand(val)
+    } else if (mode === "search" && getSetting("incsearch")) {
         ACTIONS.incrementalSearch()
     }
 }
@@ -2241,12 +2260,12 @@ module.exports = {
     moveScreenshotFrame,
     pasteInput,
     repeatLastAction,
+    requestSuggestUpdate,
     resetInputHistory,
     resetScreenshotDrag,
     sanitiseMapString,
     typeCharacterIntoNavbar,
     uncountableActions,
     unmap,
-    updateKeysOnScreen,
-    updateSuggestions
+    updateKeysOnScreen
 }

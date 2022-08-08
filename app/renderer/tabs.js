@@ -32,7 +32,6 @@ const {
     pathToSpecialPageName,
     urlToString,
     stringToUrl,
-    firefoxUseragent,
     hasProtocol,
     sameDomain,
     notify,
@@ -335,13 +334,13 @@ const addTab = (options = {}) => {
     pages.appendChild(page)
     const suspend = options.lazy
         || getSetting("suspendbackgroundtab") && !options.switchTo
+    tab.setAttribute("suspended", "suspended")
     if (suspend) {
-        tab.setAttribute("suspended", "suspended")
         const {titleForPage} = require("./history")
         name.textContent = titleForPage(url) || url
         const {forSite} = require("./favicons")
         favicon.src = forSite(url) || favicon.src
-    } else {
+    } else if (!options.switchTo) {
         unsuspendPage(page)
     }
     if (options.switchTo) {
@@ -364,6 +363,7 @@ const suspendTab = tab => {
     if (tab.classList.contains("visible-tab")) {
         return
     }
+    page.closeDevTools()
     tab.setAttribute("suspended", "suspended")
     tab.removeAttribute("media-playing")
     const placeholder = document.createElement("div")
@@ -387,7 +387,11 @@ const unsuspendPage = page => {
     if (page.tagName?.toLowerCase() === "webview") {
         return
     }
-    tabOrPageMatching(page).removeAttribute("suspended")
+    const tab = tabOrPageMatching(page)
+    if (!tab.getAttribute("suspended")) {
+        return
+    }
+    tab.removeAttribute("suspended")
     const webview = document.createElement("webview")
     sharedAttributes.forEach(attr => {
         if (page.getAttribute(attr)) {
@@ -424,19 +428,28 @@ const unsuspendPage = page => {
                 webview.setAttribute("dom-ready", true)
                 return
             }
-            const tab = tabOrPageMatching(webview)
             const name = tab.querySelector("span")
             if (tab.getAttribute("muted")) {
                 webview.setAudioMuted(true)
             }
             addWebviewListeners(webview)
+            const newtabUrl = getSetting("newtaburl")
             if (isDevtoolsTab) {
                 ipcRenderer.send("add-devtools",
                     currentPageId, webview.getWebContentsId())
                 name.textContent = "Devtools"
-            } else if (url || getSetting("newtaburl")) {
+            } else if (url || newtabUrl) {
                 webview.setAttribute("custom-first-load", true)
-                webview.src = url || stringToUrl(getSetting("newtaburl"))
+                webview.src = url || stringToUrl(newtabUrl)
+                    .then(() => {
+                        if (webview.getAttribute("custom-first-load")) {
+                            webview.clearHistory()
+                            webview.removeAttribute("custom-first-load")
+                            webview.setAttribute("dom-ready", true)
+                        }
+                    }).catch(() => {
+                        webview.src = url || stringToUrl(newtabUrl)
+                    })
                 resetTabInfo(webview)
                 name.textContent = urlToString(url)
                 return
@@ -508,7 +521,7 @@ const closeTab = (index = null, force = false) => {
         hide(page, true)
     } else {
         tab.remove()
-        page.closeDevTools()
+        page.closeDevTools?.()
         page.remove()
         if (listTabs().length === 0) {
             if (getSetting("quitonlasttabclose")) {
@@ -593,7 +606,8 @@ const switchToTab = tabOrIndex => {
 }
 
 const updateUrl = (webview, force = false) => {
-    if (webview !== currentPage() || !currentPage()) {
+    const url = currentPage()?.src
+    if (webview !== currentPage() || typeof url === "undefined") {
         return
     }
     const {updateWindowTitle} = require("./settings")
@@ -601,26 +615,21 @@ const updateUrl = (webview, force = false) => {
     if (!force && "secf".includes(currentMode()[0])) {
         return
     }
-    document.getElementById("url").value = urlToString(currentPage().src)
+    document.getElementById("url").value = urlToString(url)
 }
 
 const addWebviewListeners = webview => {
     webview.addEventListener("load-commit", e => {
         if (e.isMainFrame) {
             resetTabInfo(webview)
-            const ffMode = getSetting("firefoxmode")
             const customUA = getSetting("useragent")
-            if (ffMode === "never" && !customUA) {
-                webview.setUserAgent("")
-            } else if (ffMode === "always") {
-                webview.setUserAgent("")
-            } else if (ffMode === "google" && sameDomain(e.url, "https://google.com")) {
-                webview.setUserAgent(firefoxUseragent())
-            } else {
-                const agents = customUA.split(",")
+            if (customUA) {
+                const agents = customUA.split("~")
                 const agent = userAgentTemplated(
                     agents.at(Math.random() * agents.length))
                 webview.setUserAgent(agent)
+            } else {
+                webview.setUserAgent("")
             }
             const name = tabOrPageMatching(webview).querySelector("span")
             if (!name.textContent) {
@@ -730,6 +739,7 @@ const addWebviewListeners = webview => {
         const isErrorPage = webview.getAttribute("failed-to-load")
         const isCustomView = webview.src.startsWith("sourceviewer:")
             || webview.src.startsWith("readerview")
+            || webview.src.startsWith("markdownviewer")
         if (specialPageName || isLocal || isErrorPage || isCustomView) {
             const {getCustomStyling} = require("./settings")
             webview.send("set-custom-styling", getSetting("guifontsize"),
@@ -776,6 +786,7 @@ const addWebviewListeners = webview => {
     webview.addEventListener("page-title-updated", e => {
         const isCustomView = webview.src.startsWith("sourceviewer:")
             || webview.src.startsWith("readerview")
+            || webview.src.startsWith("markdownviewer")
         if (hasProtocol(e.title) && !isCustomView) {
             return
         }
@@ -961,6 +972,14 @@ const navigateTo = location => {
     }
     page.stop()
     const loc = location.replace(/view-?source:\/?\/?/g, "sourceviewer://")
+    const sessionName = getSetting("containernames").split(",").find(
+        c => loc.match(c.split("~")[0]) && c.split("~")[2] !== "newtab")
+        ?.split("~")[1]
+    if (sessionName && sessionName !== page.getAttribute("container")) {
+        addTab({"session": sessionName, "url": loc})
+        closeTab(listTabs().indexOf(tabOrPageMatching(page)))
+        return
+    }
     page.src = loc
     resetTabInfo(page)
     currentTab().querySelector("span").textContent = urlToString(loc)

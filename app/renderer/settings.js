@@ -33,7 +33,6 @@ const {
     writeJSON,
     pathExists,
     pathToSpecialPageName,
-    firefoxUseragent,
     appConfig,
     userAgentTemplated
 } = require("../util")
@@ -89,6 +88,15 @@ const defaultSettings = {
     "containersplitpage": "s:usecurrent",
     "containerstartuppage": "main",
     "countlimit": 100,
+    "darkreader": false,
+    "darkreaderbg": "#181a1b",
+    "darkreaderblocklist": "",
+    "darkreaderbrightness": 100,
+    "darkreadercontrast": 100,
+    "darkreaderfg": "#e8e6e3",
+    "darkreadergrayscale": 0,
+    "darkreadersepia": 0,
+    "darkreadertextstroke": 0,
     "devtoolsposition": "window",
     "dialogalert": "notifyblock",
     "dialogconfirm": "notifyblock",
@@ -101,7 +109,6 @@ const defaultSettings = {
     "externalcommand": "",
     "favicons": "session",
     "favoritepages": "",
-    "firefoxmode": "never",
     "followchars": "alpha",
     "followelement": "url,onclick,inputs-insert,inputs-click,media,image,other",
     "followelementpointer":
@@ -131,6 +138,7 @@ const defaultSettings = {
     "mousenewtabswitch": true,
     "mousevisualmode": "onswitch",
     "nativenotification": "never",
+    "nativetheme": "system",
     "newtaburl": "",
     "notificationduration": 6000,
     "notificationforpermissions": false,
@@ -177,8 +185,12 @@ const defaultSettings = {
     "spelllang": "system",
     "splitbelow": false,
     "splitright": false,
+    "sponsorblock": false,
+    "sponsorblockcategories": "sponsor~lime,intro~cyan,outro~blue,"
+        + "interaction~red,selfpromo~yellow,music_offtopic",
     "startuppages": "",
     "storenewvisits": "pages",
+    "suggestbouncedelay": 100,
     "suggestcommands": 9000000000000000,
     "suggestorder": "history,searchword,file",
     "suggesttopsites": 10,
@@ -196,6 +208,7 @@ const defaultSettings = {
     "timeout": true,
     "timeoutlen": 2000,
     "useragent": "",
+    "userstyle": false,
     "vimcommand": "gvim",
     "windowtitle": "%app - %title"
 }
@@ -218,10 +231,14 @@ const listLike = [
     "search",
     "searchwords",
     "spelllang",
+    "sponsorblockcategories",
     "startuppages",
     "storenewvisits",
-    "suggestorder",
-    "useragent"
+    "suggestorder"
+]
+const listLikeTilde = [
+    "useragent",
+    "darkreaderblocklist"
 ]
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
@@ -239,7 +256,6 @@ const validOptions = {
     "favicons": [
         "disabled", "nocache", "session", "1day", "5day", "30day", "forever"
     ],
-    "firefoxmode": ["always", "google", "never"],
     "followfallbackaction": ["filter", "exit", "nothing"],
     "guifullscreennavbar": ["always", "onupdate", "oninput", "never"],
     "guifullscreentabbar": ["always", "onupdate", "never"],
@@ -254,6 +270,7 @@ const validOptions = {
     "menuvieb": ["both", "navbar", "tabbar", "never"],
     "mousevisualmode": ["activate", "onswitch", "never"],
     "nativenotification": ["always", "smallonly", "never"],
+    "nativetheme": ["system", "dark", "light"],
     "notificationforsystemcommands": ["all", "errors", "none"],
     "notificationposition": [
         "bottomright", "bottomleft", "topright", "topleft"
@@ -287,6 +304,11 @@ const validOptions = {
 }
 const numberRanges = {
     "countlimit": [0, 10000],
+    "darkreaderbrightness": [0, 100],
+    "darkreadercontrast": [0, 100],
+    "darkreadergrayscale": [0, 100],
+    "darkreadersepia": [0, 100],
+    "darkreadertextstroke": [0, 1],
     "guifontsize": [8, 30],
     "guihidetimeout": [0, 9000000000000000],
     "mapsuggest": [0, 9000000000000000],
@@ -294,6 +316,7 @@ const numberRanges = {
     "mintabwidth": [0, 9000000000000000],
     "notificationduration": [0, 9000000000000000],
     "requesttimeout": [0, 9000000000000000],
+    "suggestbouncedelay": [0, 10000],
     "suggestcommands": [0, 9000000000000000],
     "suggesttopsites": [0, 9000000000000000],
     "suspendtimeout": [0, 9000000000000000],
@@ -317,6 +340,7 @@ const init = () => {
     updatePermissionSettings()
     updateWebviewSettings()
     updateMouseSettings()
+    updateNativeTheme()
     ipcRenderer.invoke("list-spelllangs").then(langs => {
         spelllangs = langs || []
         spelllangs.push("system")
@@ -416,13 +440,19 @@ const checkOther = (setting, value) => {
     }
     if (setting === "containernames") {
         for (const containerMatch of value.split(",").filter(c => c.trim())) {
-            if ((containerMatch.match(/~/g) || []).length !== 1) {
+            if (![1, 2].includes((containerMatch.match(/~/g) || []).length)) {
                 notify(`Invalid ${setting} entry: ${containerMatch}\n`
-                    + "Entries must have exactly one ~ to separate the "
-                    + "name regular expression and container name", "warn")
+                    + "Entries must have one or two ~ to separate the "
+                    + "regular expression, container name and newtab param",
+                "warn")
                 return false
             }
-            const [match, container] = containerMatch.split("~")
+            const [match, container, newtabParam] = containerMatch.split("~")
+            if (newtabParam && newtabParam !== "newtab") {
+                notify(`Invalid containernames newtab param: ${containerMatch}`,
+                    "warn")
+                return false
+            }
             try {
                 RegExp(match)
             } catch {
@@ -436,6 +466,27 @@ const checkOther = (setting, value) => {
                 notify(
                     "No special characters besides underscores are allowed in "
                     + `the name of a container, invalid ${setting}: ${value}`,
+                    "warn")
+                return false
+            }
+        }
+    }
+    if (setting === "darkreaderfg" || setting === "darkreaderbg") {
+        const {style} = document.createElement("div")
+        style.color = "white"
+        style.color = value
+        if (style.color === "white" && value !== "white" || !value) {
+            notify("Invalid color, must be a valid color name or hex"
+                    + `, not: ${value}`, "warn")
+            return false
+        }
+    }
+    if (setting === "darkreaderblocklist") {
+        for (const match of value.split("~").filter(c => c.trim())) {
+            try {
+                RegExp(match)
+            } catch {
+                notify(`Invalid regular expression in ${setting}: ${match}`,
                     "warn")
                 return false
             }
@@ -649,6 +700,39 @@ const checkOther = (setting, value) => {
             }
         }
     }
+    if (setting === "sponsorblockcategories") {
+        const knownCategories = []
+        const allCategories = defaultSettings.sponsorblockcategories
+            .split(",").map(s => s.split("~")[0])
+        for (const catColorPair of value.split(",").filter(c => c.trim())) {
+            if ((catColorPair.match(/~/g) || []).length > 1) {
+                notify(`Invalid ${setting} entry: ${catColorPair}\n`
+                    + "Entries must have zero or one ~ to separate the "
+                    + "category name and color name/hex", "warn")
+                return false
+            }
+            const [category, color] = catColorPair.split("~")
+            if (!allCategories.includes(category)) {
+                notify(`Invalid category in ${setting}: ${category}`, "warn")
+                return false
+            }
+            const {style} = document.createElement("div")
+            style.color = "white"
+            style.color = color
+            if (color && style.color === "white" && color !== "white") {
+                notify("Invalid color, must be a valid color name or hex"
+                    + `, not: ${color}`, "warn")
+                return false
+            }
+            if (knownCategories.includes(category)) {
+                notify(`Invalid sponsorblockcategories entry: ${catColorPair}\n`
+                    + `The category ${category} was already defined. `
+                    + "A category must be defined only once", "warn")
+                return false
+            }
+            knownCategories.push(category)
+        }
+    }
     if (setting === "favoritepages") {
         for (const page of value.split(",").filter(p => p.trim())) {
             if (!isUrl(page)) {
@@ -699,7 +783,12 @@ const checkOther = (setting, value) => {
     }
     if (setting === "storenewvisits") {
         const valid = [
-            "pages", "files", "special", "sourceviewer", "readerview"
+            "pages",
+            "files",
+            "special",
+            "sourceviewer",
+            "readerview",
+            "markdownviewer"
         ]
         for (const visitType of value.split(",").filter(v => v.trim())) {
             if (!valid.includes(visitType)) {
@@ -825,6 +914,10 @@ const updateMouseSettings = () => {
     }
 }
 
+const updateNativeTheme = () => {
+    ipcRenderer.send("update-native-theme", allSettings.nativetheme)
+}
+
 const updateContainerSettings = (full = true) => {
     if (full) {
         for (const page of listPages()) {
@@ -866,26 +959,45 @@ const updateDownloadSettings = () => {
     ipcRenderer.send("set-download-settings", downloads)
 }
 
+const webviewSettings = [
+    "darkreader",
+    "darkreaderbg",
+    "darkreaderblocklist",
+    "darkreaderbrightness",
+    "darkreadercontrast",
+    "darkreaderfg",
+    "darkreadergrayscale",
+    "darkreadersepia",
+    "darkreadertextstroke",
+    "dialogalert",
+    "dialogconfirm",
+    "dialogprompt",
+    "guifontsize",
+    "inputfocusalignment",
+    "permissiondisplaycapture",
+    "permissionmediadevices",
+    "permissionsallowed",
+    "permissionsasked",
+    "permissionsblocked",
+    "searchpointeralignment",
+    "sponsorblock",
+    "sponsorblockcategories",
+    "userstyle"
+]
+
 const updateWebviewSettings = () => {
     const webviewSettingsFile = joinPath(
         appData(), "webviewsettings")
-    writeJSON(webviewSettingsFile, {
+    const data = {
         "bg": getComputedStyle(document.body).getPropertyValue("--bg"),
-        "dialogalert": allSettings.dialogalert,
-        "dialogconfirm": allSettings.dialogconfirm,
-        "dialogprompt": allSettings.dialogprompt,
         "fg": getComputedStyle(document.body).getPropertyValue("--fg"),
-        "guifontsize": allSettings.guifontsize,
-        "inputfocusalignment": allSettings.inputfocusalignment,
         "linkcolor": getComputedStyle(document.body)
-            .getPropertyValue("--link-color"),
-        "permissiondisplaycapture": allSettings.permissiondisplaycapture,
-        "permissionmediadevices": allSettings.permissionmediadevices,
-        "permissionsallowed": allSettings.permissionsallowed,
-        "permissionsasked": allSettings.permissionsasked,
-        "permissionsblocked": allSettings.permissionsblocked,
-        "searchpointeralignment": allSettings.searchpointeralignment
+            .getPropertyValue("--link-color")
+    }
+    webviewSettings.forEach(setting => {
+        data[setting] = allSettings[setting]
     })
+    writeJSON(webviewSettingsFile, data)
 }
 
 const updatePermissionSettings = () => {
@@ -961,6 +1073,7 @@ const suggestionList = () => {
         const isNumber = typeof defaultSettings[setting] === "number"
         const isFreeText = freeText.includes(setting)
         const isListLike = listLike.includes(setting)
+            || listLikeTilde.includes(setting)
         if (isNumber || isFreeText || isListLike) {
             listOfSuggestions.push(`${setting}+=`)
             listOfSuggestions.push(`${setting}^=`)
@@ -1030,6 +1143,10 @@ const set = (setting, value) => {
             // Remove empty and duplicate elements from the comma seperated list
             allSettings[setting] = Array.from(new Set(
                 value.split(",").map(e => e.trim()).filter(e => e))).join(",")
+        } else if (listLikeTilde.includes(setting)) {
+            // Remove empty and duplicate elements from the comma seperated list
+            allSettings[setting] = Array.from(new Set(
+                value.split("~").map(e => e.trim()).filter(e => e))).join("~")
         } else {
             allSettings[setting] = value
         }
@@ -1055,19 +1172,9 @@ const set = (setting, value) => {
         if (setting === "containercolors" || setting === "containershowname") {
             updateContainerSettings()
         }
-        if (setting === "firefoxmode") {
-            if (value === "always") {
-                ipcRenderer.sendSync(
-                    "override-global-useragent", firefoxUseragent())
-            } else {
-                ipcRenderer.sendSync("override-global-useragent", false)
-            }
-        }
         if (setting === "useragent") {
-            if (allSettings.firefoxmode !== "always") {
-                ipcRenderer.sendSync("override-global-useragent",
-                    userAgentTemplated(value.split(",")[0]))
-            }
+            ipcRenderer.sendSync("override-global-useragent",
+                userAgentTemplated(value.split("~")[0]))
         }
         if (setting === "guifontsize") {
             updateCustomStyling()
@@ -1093,6 +1200,9 @@ const set = (setting, value) => {
         if (setting === "mouse") {
             updateMouseSettings()
         }
+        if (setting === "nativetheme") {
+            updateNativeTheme()
+        }
         if (setting === "spelllang" || setting === "spell") {
             if (allSettings.spell) {
                 ipcRenderer.send("set-spelllang", allSettings.spelllang)
@@ -1111,21 +1221,34 @@ const set = (setting, value) => {
             const {applyLayout} = require("./pagelayout")
             applyLayout()
         }
-        const webviewSettings = [
-            "dialogalert",
-            "dialogconfirm",
-            "dialogprompt",
-            "guifontsize",
-            "inputfocusalignment",
-            "permissiondisplaycapture",
-            "permissionmediadevices",
-            "permissionsallowed",
-            "permissionsasked",
-            "permissionsblocked",
-            "searchpointeralignment"
-        ]
         if (webviewSettings.includes(setting)) {
             updateWebviewSettings()
+        }
+        if (setting.startsWith("darkreader")) {
+            listPages().forEach(p => {
+                try {
+                    if (allSettings.darkreader) {
+                        p.send("enable-darkreader")
+                    } else {
+                        p.send("disable-darkreader")
+                    }
+                } catch {
+                    // Page not ready yet or suspended
+                }
+            })
+        }
+        if (setting === "userstyle") {
+            listPages().forEach(p => {
+                try {
+                    if (allSettings.userstyle) {
+                        p.send("enable-userstyle")
+                    } else {
+                        p.send("disable-userstyle")
+                    }
+                } catch {
+                    // Page not ready yet or suspended
+                }
+            })
         }
         if (setting.startsWith("permission")) {
             updatePermissionSettings()
@@ -1168,6 +1291,10 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
         typeLabel = "Like-like String"
         allowedValues = "Comma-separated list"
     }
+    if (listLikeTilde.includes(setting)) {
+        typeLabel = "Like-like String"
+        allowedValues = "Tilde-separated list"
+    }
     if (validOptions[setting]) {
         typeLabel = "Fixed-set String"
         allowedValues = validOptions[setting]
@@ -1176,8 +1303,11 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
         typeLabel = "Boolean flag"
         allowedValues = "true,false"
     }
-    if (containerSettings.includes(setting)) {
+    if (containerSettings.includes(setting) || setting === "followchars") {
         allowedValues = "See description"
+    }
+    if (setting === "darkreaderfg" || setting === "darkreaderbg") {
+        allowedValues = "Any valid CSS color"
     }
     if (setting === "downloadpath") {
         allowedValues = "Any directory on disk or empty"
@@ -1187,6 +1317,9 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     }
     if (setting === "mouse") {
         allowedValues = "'all' or list of features"
+    }
+    if (setting === "newtaburl") {
+        allowedValues = "Any URL"
     }
     if (setting === "search") {
         allowedValues = "Any URL with %s"
@@ -1258,6 +1391,16 @@ const listCurrentSettings = full => {
                 return
             }
         }
+        if (listLikeTilde.includes(setting)) {
+            const entries = value.split("~")
+            if (entries.length > 1 || value.match(/( |'|")/g)) {
+                setCommands += `${setting}=\n`
+                entries.forEach(entry => {
+                    setCommands += `${setting}+=${escapeValueChars(entry)}\n`
+                })
+                return
+            }
+        }
         setCommands += `${setting}=${escapeValueChars(value)}\n`
     })
     return setCommands
@@ -1307,6 +1450,7 @@ const updateCustomStyling = () => {
         const isErrorPage = p.getAttribute("failed-to-load")
         const isCustomView = p.src.startsWith("sourceviewer:")
             || p.src.startsWith("readerview:")
+            || p.src.startsWith("markdownviewer:")
         if (isSpecialPage || isLocal || isErrorPage || isCustomView) {
             try {
                 p.send("set-custom-styling",
@@ -1328,6 +1472,7 @@ module.exports = {
     init,
     listCurrentSettings,
     listLike,
+    listLikeTilde,
     loadFromDisk,
     mouseFeatures,
     reset,

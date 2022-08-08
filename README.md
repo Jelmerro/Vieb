@@ -29,7 +29,7 @@
 
 - __Free__, open source, fast and secure
 - __Local first__ adblocking, auto-complete, AMP protection, custom redirects and more, all without web requests
-- __Privacy__ with strict permission system, navigator overrides, firefox mode, custom WebRTC policy and more
+- __Privacy__ with strict permission system, navigator overrides, custom useragent, custom WebRTC policy and more
 - __Accessible__ with custom themes, full interface & fontsize scaling, page zooming, spellcheck and mouse support
 - __Security settings__ with permissions, cache usage, cookie management, (auto-)download settings and more
 - __Window splitting__ with buffer, split, Vexplore and Ctrl-w bindings, for multi-window browsing
@@ -77,7 +77,7 @@ These releases are made by users just like you for their favorite system.
 Third-party releases might be outdated (in red) or customized compared to official builds,
 but they are probably the simplest way to get started if your system is listed.
 
-[![Third-party releases table](https://repology.org/badge/vertical-allrepos/vieb.svg?minversion=7.2.0)](https://repology.org/project/vieb/versions)
+[![Third-party releases table](https://repology.org/badge/vertical-allrepos/vieb.svg?minversion=8.1.0)](https://repology.org/project/vieb/versions)
 
 # Cheatsheet
 
