@@ -1,10 +1,1 @@
-redo mappings according to the following layout:
-    ma = local scroll position
-    mA = global scroll position
-    Ma = mini-book*marks* that jump to pages by character/key
-    MA = same as above but with scroll position
-    and add ma and mA mappings to pointer mode, which store the xy position local/global
-    (where a/A can be any character and represents unshifted vs shifted keys)
-    the marks are loaded using ' and "
-make 2 settings for local vs global mark behavior (current, newtab, matching, splits) for where to load the mark
-add help documentation
+add M<Any> mappings to pointer mode, which store the xy position

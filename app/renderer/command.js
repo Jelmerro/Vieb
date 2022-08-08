@@ -1012,14 +1012,20 @@ const marks = args => {
     }
     const allMarks = readJSON(joinPath(appData(), "marks")) || {}
     const relevantMarks = []
+    const longest = Object.keys(allMarks).reduce((prev, curr) => {
+        if (curr.length > prev) {
+            return curr.length
+        }
+        return prev
+    }, 0) + 1
     if (args.length === 0) {
         for (const key of Object.keys(allMarks)) {
-            relevantMarks.push(`${key.padEnd(3)}${allMarks[key]}`)
+            relevantMarks.push(`${key.padEnd(longest)}${allMarks[key]}`)
         }
     } else {
         const [key] = args
         if (allMarks[key] !== undefined) {
-            relevantMarks.push(`${key.padEnd(3)}${allMarks[key]}`)
+            relevantMarks.push(`${key.padEnd(longest)}${allMarks[key]}`)
         }
     }
     if (relevantMarks.length === 0) {
@@ -1063,24 +1069,34 @@ const scrollpos = args => {
     const positions = readJSON(joinPath(appData(), "scrollpositions"))
         || {"global": {}, "local": {}}
     const relevantPos = []
+    const longest = [
+        ...Object.keys(positions.global),
+        ...Object.values(positions.local).reduce(
+            (prev, curr) => prev.concat(Object.keys(curr)), [])
+    ].reduce((prev, curr) => {
+        if (curr.length > prev) {
+            return curr.length
+        }
+        return prev
+    }, 0) + 1
     if (args.length === 0) {
         for (const key of Object.keys(positions.global)) {
-            relevantPos.push(`${key.padEnd(3)}${positions.global[key]}`)
+            relevantPos.push(`${key.padEnd(longest)}${positions.global[key]}`)
         }
         for (const domain of Object.keys(positions.local)) {
             for (const key of Object.keys(positions.local[domain])) {
-                relevantPos.push(`${key.padEnd(3)}${
+                relevantPos.push(`${key.padEnd(longest)}${
                     String(positions.local[domain][key]).padEnd(6)}${domain}`)
             }
         }
     } else {
         const [key] = args
         if (positions.global[key] !== undefined) {
-            relevantPos.push(`${key.padEnd(3)}${positions.global[key]}`)
+            relevantPos.push(`${key.padEnd(longest)}${positions.global[key]}`)
         }
         for (const domain of Object.keys(positions.local)) {
             if (positions.local[domain][key] !== undefined) {
-                relevantPos.push(`${key.padEnd(3)}${
+                relevantPos.push(`${key.padEnd(longest)}${
                     String(positions.local[domain][key]).padEnd(6)}${domain}`)
             }
         }
