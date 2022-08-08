@@ -45,7 +45,8 @@ const {
     propPixels,
     readJSON,
     writeJSON,
-    domainName
+    domainName,
+    urlToString
 } = require("../util")
 const {
     listTabs, listPages, currentTab, currentPage, tabOrPageMatching, getSetting
@@ -1004,69 +1005,80 @@ const tabnew = (session = null, url = null) => {
     addTab(options)
 }
 
-const marks = args => {
+const scrollpos = args => {
     if (args.length > 1) {
-        notify("Command marks only accepts a single optional keyname", "warn")
+        notify("Command scrollpos only accepts a single optional keyname",
+            "warn")
         return
     }
-    const marksObj = readJSON(joinPath(appData(), "marks"))
+    const positions = readJSON(joinPath(appData(), "scrollpositions"))
         || {"global": {}, "local": {}}
-    const marklist = []
+    const relevantPos = []
     if (args.length === 0) {
-        for (const key of Object.keys(marksObj.global)) {
-            marklist.push(`${key.padEnd(3)}${marksObj.global[key]}`)
+        for (const key of Object.keys(positions.global)) {
+            relevantPos.push(`${key.padEnd(3)}${positions.global[key]}`)
         }
-        for (const domain of Object.keys(marksObj.local)) {
-            for (const key of Object.keys(marksObj.local[domain])) {
-                marklist.push(`${key.padEnd(3)}${
-                    String(marksObj.local[domain][key]).padEnd(6)}${domain}`)
+        for (const domain of Object.keys(positions.local)) {
+            for (const key of Object.keys(positions.local[domain])) {
+                relevantPos.push(`${key.padEnd(3)}${
+                    String(positions.local[domain][key]).padEnd(6)}${domain}`)
             }
         }
     } else {
         const [key] = args
-        if (marksObj.global[key] !== undefined) {
-            marklist.push(`${key.padEnd(3)}${marksObj.global[key]}`)
+        if (positions.global[key] !== undefined) {
+            relevantPos.push(`${key.padEnd(3)}${positions.global[key]}`)
         }
-        for (const domain of Object.keys(marksObj.local)) {
-            if (marksObj.local[domain][key] !== undefined) {
-                marklist.push(`${key.padEnd(3)}${
-                    String(marksObj.local[domain][key]).padEnd(6)}${domain}`)
+        for (const domain of Object.keys(positions.local)) {
+            if (positions.local[domain][key] !== undefined) {
+                relevantPos.push(`${key.padEnd(3)}${
+                    String(positions.local[domain][key]).padEnd(6)}${domain}`)
             }
         }
     }
-    if (marklist.length === 0) {
-        if (args.length && (marksObj.global.length || marksObj.local.length)) {
-            notify("No marks found for current keys", "warn")
+    if (relevantPos.length === 0) {
+        const notEmpty = positions.global.length || positions.local.length
+        if (args.length && notEmpty) {
+            notify("No scroll positions found for current keys", "warn")
         } else {
-            notify("No marks found", "warn")
+            notify("No scroll positions found", "warn")
         }
     } else {
-        notify(marklist.join("\n"))
+        notify(relevantPos.join("\n"))
     }
 }
 
-const delmarks = (all, args) => {
+const delscrollpos = (all, args) => {
     if (all && args?.length) {
-        notify("Command takes no arguments: delmarks!", "warn")
+        notify("Command takes no arguments: delscrollpos!", "warn")
         return
     }
-    const marksObj = readJSON(joinPath(appData(), "marks"))
+    const positions = readJSON(joinPath(appData(), "scrollpositions"))
         || {"global": {}, "local": {}}
-    const domain = domainName(currentPage().src)
+    const scrollPosId = getSetting("scrollposlocalid")
+    let path = ""
+    if (scrollPosId === "domain") {
+        path = domainName(urlToString(currentPage().src))
+    } else if (scrollPosId === "url") {
+        path = urlToString(currentPage().src)
+    }
     if (all) {
-        marksObj.local[domain] = {}
-        writeJSON(joinPath(appData(), "marks"), marksObj)
+        positions.local[path] = {}
+        writeJSON(joinPath(appData(), "scrollpositions"), positions)
         return
     }
     if (args.length !== 1) {
-        notify("Command delmarks only accepts a single keyname", "warn")
+        notify("Command delscrollpos only accepts a single keyname", "warn")
         return
     }
     const [key] = args
-    if (marksObj.local[domain]?.[key] !== undefined) {
-        delete marksObj.local[domain]?.[key]
+    if (positions.local[path]?.[key] !== undefined) {
+        delete positions.local[path]?.[key]
     }
-    writeJSON(joinPath(appData(), "marks"), marksObj)
+    if (positions.global[key] !== undefined) {
+        delete positions.global[key]
+    }
+    writeJSON(joinPath(appData(), "scrollpositions"), positions)
 }
 
 const noEscapeCommands = ["command", "delcommand"]
@@ -1130,8 +1142,8 @@ const commands = {
     "cookies": () => openSpecialPage("cookies"),
     "d": () => openSpecialPage("downloads"),
     "delcommand": ({args}) => deleteCommand(args),
-    "delmarks": ({args}) => delmarks(false, args),
-    "delmarks!": ({args}) => delmarks(true, args),
+    "delscrollpos": ({args}) => delscrollpos(false, args),
+    "delscrollpos!": ({args}) => delscrollpos(true, args),
     "devtools": ({args}) => openDevTools(...args),
     "downloads": () => openSpecialPage("downloads"),
     "h": ({args}) => help(...args),
@@ -1143,7 +1155,6 @@ const commands = {
     "lclose": () => lclose(),
     "lclose!": () => lclose(true),
     makedefault,
-    "marks": ({args}) => marks(args),
     "mkviebrc": ({args}) => mkviebrc(...args),
     "mute": ({args, range}) => mute(args, range),
     "nohlsearch": () => {
@@ -1212,6 +1223,7 @@ const commands = {
                 "warn")
         }
     },
+    "scrollpos": ({args}) => scrollpos(args),
     "set": ({args}) => set(args),
     "source": ({args}) => source(null, args),
     "split": ({args, range}) => addSplit(

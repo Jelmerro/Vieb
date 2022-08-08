@@ -814,59 +814,57 @@ const openFromClipboard = () => {
     }
 }
 
-const makeGlobalMark = async args => {
+const storeScrollPos = async args => {
     const key = args?.actionCallKeys?.at(-1)
     if (!key) {
         return
     }
-    const pixels = await currentPage().executeJavaScript("window.scrollY")
-    const marks = readJSON(joinPath(appData(), "marks"))
+    let scrollType = getSetting("scrollpostype")
+    if (scrollType !== "local" && scrollType !== "global") {
+        scrollType = "global"
+        if (key !== key.toUpperCase()) {
+            scrollType = "local"
+        }
+    }
+    const positions = readJSON(joinPath(appData(), "scrollpositions"))
         || {"global": {}, "local": {}}
-    marks.global[key] = pixels
-    writeJSON(joinPath(appData(), "marks"), marks)
-}
-
-const restoreGlobalMark = args => {
-    const key = args?.actionCallKeys?.at(-1)
-    if (!key) {
-        return
-    }
-    const marks = readJSON(joinPath(appData(), "marks"))
-    const mark = marks?.global?.[key]
-    if (mark === undefined) {
-        return
-    }
-    currentPage().executeJavaScript(`window.scrollTo(0, ${mark})`)
-}
-
-const makeMark = async args => {
-    const key = args?.actionCallKeys?.at(-1)
-    if (!key) {
-        return
-    }
-    const domain = domainName(currentPage().src)
-    const marks = readJSON(joinPath(appData(), "marks"))
-        || {"global": {}, "local": {}}
-    if (!marks.local[domain]) {
-        marks.local[domain] = {}
-    }
     const pixels = await currentPage().executeJavaScript("window.scrollY")
-    marks.local[domain][key] = pixels
-    writeJSON(joinPath(appData(), "marks"), marks)
+    if (scrollType === "local") {
+        let path = ""
+        const scrollPosId = getSetting("scrollposlocalid")
+        if (scrollPosId === "domain") {
+            path = domainName(urlToString(currentPage().src))
+        } else if (scrollPosId === "url") {
+            path = urlToString(currentPage().src)
+        }
+        if (!positions.local[path]) {
+            positions.local[path] = {}
+        }
+        positions.local[path][key] = pixels
+    } else {
+        positions.global[key] = pixels
+    }
+    writeJSON(joinPath(appData(), "scrollpositions"), positions)
 }
 
-const restoreMark = args => {
+const restoreScrollPos = args => {
     const key = args?.actionCallKeys?.at(-1)
     if (!key) {
         return
     }
-    const domain = domainName(currentPage().src)
-    const marks = readJSON(joinPath(appData(), "marks"))
-    const mark = marks?.local?.[domain]?.[key]
-    if (mark === undefined) {
+    const scrollPosId = getSetting("scrollposlocalid")
+    let path = ""
+    if (scrollPosId === "domain") {
+        path = domainName(urlToString(currentPage().src))
+    } else if (scrollPosId === "url") {
+        path = urlToString(currentPage().src)
+    }
+    const positions = readJSON(joinPath(appData(), "scrollpositions"))
+    const pixels = positions?.local?.[path]?.[key] ?? positions?.global?.[key]
+    if (pixels === undefined) {
         return
     }
-    currentPage().executeJavaScript(`window.scrollTo(0, ${mark})`)
+    currentPage().executeJavaScript(`window.scrollTo(0, ${pixels})`)
 }
 
 const reorderFollowLinks = () => {
@@ -1044,8 +1042,6 @@ module.exports = {
     incrementalSearch,
     insertAtFirstInput,
     leftHalfSplitWindow,
-    makeGlobalMark,
-    makeMark,
     menuBottom,
     menuClose,
     menuDown,
@@ -1087,8 +1083,7 @@ module.exports = {
     reopenTab,
     reorderFollowLinks,
     repeatLastAction,
-    restoreGlobalMark,
-    restoreMark,
+    restoreScrollPos,
     rightHalfSplitWindow,
     rotateSplitWindowBackward,
     rotateSplitWindowForward,
@@ -1113,6 +1108,7 @@ module.exports = {
     startFollowNewVerSplit,
     stopFollowMode,
     stopLoadingPage,
+    storeScrollPos,
     toBottomSplitWindow,
     toCommandMode,
     toExploreMode,
