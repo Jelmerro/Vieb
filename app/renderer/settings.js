@@ -128,7 +128,7 @@ const defaultSettings = {
     "mapsuggest": 9000000000000000,
     "mapsuggestposition": "topright",
     "markposition": "newtab",
-    "markpositionshifted": "",
+    "markpositionshifted": "default",
     "maxmapdepth": 10,
     "menupage": "elementasneeded",
     "menusuggest": "both",
