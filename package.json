@@ -6,7 +6,7 @@
   "main": "app/index.js",
   "scripts": {
     "build": "node build.js",
-    "buildall": "node build.js --linux --win --mac",
+    "buildall": "node build.js --linux --win --mac --lite",
     "buildlinux": "node build.js --linux",
     "buildmac": "node build.js --mac",
     "buildwin": "node build.js --win",

@@ -18,7 +18,8 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {joinPath, title, readFile} = require("../util")
+const {joinPath, title, readFile, appConfig} = require("../util")
+const {icon} = appConfig()
 
 const modes = "nicsefpvm".split("")
 let allActionsByKeys = modes.reduce((a, m) => {
@@ -268,6 +269,9 @@ window.addEventListener("DOMContentLoaded", () => {
 })
 
 window.addEventListener("load", () => {
+    if (icon) {
+        document.querySelector("img").src = icon
+    }
     const createIdLabel = element => {
         const section = document.createElement("div")
         section.className = "section"

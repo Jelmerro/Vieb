@@ -31,7 +31,6 @@ const {
     nativeTheme
 } = require("electron")
 const {
-    title,
     specialChars,
     writeJSON,
     readJSON,
@@ -55,6 +54,9 @@ const {
 } = require("./util")
 
 const version = process.env.npm_package_version || app.getVersion()
+if (!app.getName().toLowerCase().startsWith("vieb")) {
+    app.setName("Vieb")
+}
 const printUsage = (code = 1) => {
     console.info(`Vieb: Vim Inspired Electron Browser
 
@@ -69,6 +71,7 @@ Options:
                          They can also be opened later with ':internaldevtools'.
 
  --datafolder=<dir>      Store ALL Vieb data in this folder.
+                         See ':h datafolder' for usage and details.
                          You can also use the ENV var: 'VIEB_DATAFOLDER'.
 
  --erwic=<file>          file: Location of the JSON file to configure Erwic.
@@ -119,7 +122,7 @@ https://peter.sh/experiments/chromium-command-line-switches/
 }
 const printVersion = () => {
     console.info(`Vieb: Vim Inspired Electron Browser
-This is version ${version} of Vieb.
+This is version ${version} of ${app.getName()}.
 Vieb is based on Electron and inspired by Vim.
 It can be used to browse the web entirely with the keyboard.
 This release uses Electron ${process.versions.electron} and Chromium ${
@@ -309,11 +312,11 @@ const partitionDir = joinPath(argDatafolder, "Partitions")
 listDir(partitionDir, false, true)?.filter(part => part.startsWith("temp"))
     .map(part => joinPath(partitionDir, part)).forEach(part => rm(part))
 rm(joinPath(argDatafolder, "erwicmode"))
-app.setName("Vieb")
 argDatafolder = `${joinPath(expandPath(argDatafolder.trim()))}/`
 app.setPath("appData", argDatafolder)
 app.setPath("userData", argDatafolder)
 applyDevtoolsSettings(joinPath(argDatafolder, "Preferences"))
+const isLite = app.getName() === "Vieb-lite"
 if (argErwic) {
     argErwic = expandPath(argErwic)
     const config = readJSON(argErwic)
@@ -322,7 +325,7 @@ if (argErwic) {
         printUsage()
     }
     if (config.name) {
-        app.setName(title(config.name))
+        app.setName(config.name)
     }
     if (config.icon) {
         config.icon = expandPath(config.icon)
@@ -1636,6 +1639,7 @@ ipcMain.on("app-config", e => {
         "autoplay": argAutoplayMedia,
         "downloads": app.getPath("downloads"),
         "icon": customIcon || undefined,
+        "islite": isLite,
         "name": app.getName(),
         "order": argConfigOrder,
         "override": argConfigOverride,

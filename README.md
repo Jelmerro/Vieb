@@ -114,6 +114,7 @@ npm start
 If this runs Vieb as expected, you can generate builds for your platform with `npm run build`.
 To see the full list of run and build options, simply execute `npm run`.
 The entire configuration for what to build is stored in the `electron-builder.yml` config file.
+For creating lite builds, either run `npm run buildall` or use `npm run build -- --lite`.
 
 # License
 

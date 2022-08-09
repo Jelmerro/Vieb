@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2021 Jelmer van Arnhem
+* Copyright (C) 2019-2022 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 const {appConfig, compareVersions} = require("../util")
 
 const apiUrl = "https://api.github.com/repos/Jelmerro/Vieb/releases/latest"
-const {version} = appConfig()
+const {name, icon, version} = appConfig()
 
 const checkForUpdates = () => {
     document.querySelector("button").disabled = "disabled"
@@ -59,6 +59,10 @@ const checkForUpdates = () => {
 }
 
 window.addEventListener("load", () => {
+    document.getElementById("name").textContent = name
+    if (icon) {
+        document.querySelector("img").src = icon
+    }
     document.getElementById("version").textContent = version
     document.querySelector("button").onclick = checkForUpdates
     document.getElementById("chromium-version")

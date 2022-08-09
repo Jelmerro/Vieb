@@ -369,11 +369,6 @@ let spelllangs = []
 
 const init = () => {
     loadFromDisk()
-    updateDownloadSettings()
-    updatePermissionSettings()
-    updateWebviewSettings()
-    updateMouseSettings()
-    updateNativeTheme()
     ipcRenderer.invoke("list-spelllangs").then(langs => {
         spelllangs = langs || []
         spelllangs.push("system")
@@ -396,7 +391,10 @@ const checkOption = (setting, value) => {
         const valid = optionList.includes(value)
         if (!valid) {
             const lastOption = optionList.pop()
-            const text = `'${optionList.join("', '")}' or '${lastOption}'`
+            let text = `'${optionList.join("', '")}' or '${lastOption}'`
+            if (optionList.length === 0) {
+                text = `'${lastOption}'`
+            }
             notify(`The value of setting '${setting}' can only be one of:`
                 + ` ${text}`, "warn")
         }
@@ -1142,7 +1140,13 @@ const loadFromDisk = (firstRun = true) => {
         set("permissionmediadevices", "allowfull")
         set("permissionmicrophone", "allow")
     }
-    for (const conf of appConfig().files) {
+    const {files, islite} = appConfig()
+    if (islite) {
+        defaultSettings.adblocker = "off"
+        allSettings.adblocker = "off"
+        validOptions.adblocker = ["off"]
+    }
+    for (const conf of files) {
         if (isFile(conf)) {
             const parsed = readFile(conf)
             if (!parsed) {
@@ -1162,6 +1166,7 @@ const loadFromDisk = (firstRun = true) => {
     updatePermissionSettings()
     updateWebviewSettings()
     updateMouseSettings()
+    updateNativeTheme()
     resume()
 }
 

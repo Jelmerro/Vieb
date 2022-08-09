@@ -26,6 +26,26 @@ Vieb releases are offered in two different architectures:
 
 It's important to make sure that you download the right architecture for your system.
 
+##### Lite releases
+
+In reaction to the growing number of dependencies of many JavaScript and NodeJS projects,
+Vieb has always aimed to minimize the amount of dependencies installed.
+This has been done in such a way, that even the dependencies that Vieb does install are optional.
+The lite releases do not have any of the usual dependencies installed, and are thus smaller and more secure.
+It does mean that the following features are not available in the lite releases:
+
+- Adblocker
+- Sourceviewer
+- Reader mode
+- Markdown viewer
+- Syntax highlighting
+- Darkreader
+
+Aside from that, the lite releases are identical to the regular Vieb releases,
+though they are smaller, lighter and do not depend on other packages.
+The way that dependencies are loaded also allows you to make custom releases that only include specific features from the list above,
+as all of them are optional, but still checked for presence when running the app.
+
 #### How do I start Vieb?
 
 If it's a zip/tar.gz archive that you downloaded, you can extract it and double-click the executable.

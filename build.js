@@ -20,9 +20,13 @@
 const builder = require("electron-builder")
 const {rmSync} = require("fs")
 const builds = {}
+let liteBuilds = false
 
 rmSync("dist/", {"force": true, "recursive": true})
 process.argv.slice(1).forEach(a => {
+    if (a === "--lite") {
+        liteBuilds = true
+    }
     if (a === "--linux") {
         builds.linux = []
     }
@@ -33,4 +37,33 @@ process.argv.slice(1).forEach(a => {
         builds.mac = []
     }
 })
-builder.build(builds).then(e => console.info(e)).catch(e => console.error(e))
+const regularBuild = async() => console.info(await builder.build(builds))
+const liteBuild = async() => console.info(await builder.build({
+    ...builds,
+    "config": {
+        "extraMetadata": {
+            "name": "vieb-lite",
+            "productName": "Vieb-lite"
+        },
+        "files": [
+            "app/**/*.js",
+            "!app/**/*.test.js",
+            "!node_modules",
+            "app/**/*.html",
+            "app/**/*.css",
+            "app/defaultapp/windows.bat",
+            "app/examples/*",
+            "app/img/*.*"
+        ],
+        "linux": {
+            "executableName": "vieb-lite"
+        },
+        "productName": "Vieb-lite"
+    }
+}))
+;(async() => {
+    await regularBuild()
+    if (liteBuilds) {
+        await liteBuild()
+    }
+})()
