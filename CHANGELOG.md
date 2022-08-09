@@ -25,6 +25,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Commands "marks", "restoremark", "delmarks", "pointerpos", "restorepointerpos", "delpointerpos", "scrollpos", "restorescrollpos" and "delscrollpos" to list and delete quickmarks
 - Settings "quickmarkpersistence", "pointerpostype", "pointerposlocalid", "scrollpostype", "scrollposlocalid", "markposition" and "markpositionshifted" to control quickmarks
 - Actions "storeScrollPos", "restoreScrollPos", "p.storePos", "p.restorePos", "makeMark" and "restoreMark" to add and load quickmarks
+- Separate "lite" build/release that does not have any dependency packages installed
 
 ### Changed
 
@@ -41,6 +42,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Use regex to detect SVG favicons instead of relying on "is-svg" dependency
 - Use nodejs filesystem API instead of relying on "rimraf" dependency
 - All runtime dependencies are now loaded safely, and will show a message when missing (this makes ALL dependencies optional)
+- Custom icon and name are now shown on the version page as well
+- Only include en-US locale in builds to release build size significantly
 
 ### Removed
 

@@ -308,6 +308,7 @@ if (!argMediaKeys) {
     app.commandLine.appendSwitch("disable-features",
         "CrossOriginOpenerPolicy,HardwareMediaKeyHandling,UserAgentClientHint")
 }
+app.commandLine.appendSwitch("lang", "en-US")
 const partitionDir = joinPath(argDatafolder, "Partitions")
 listDir(partitionDir, false, true)?.filter(part => part.startsWith("temp"))
     .map(part => joinPath(partitionDir, part)).forEach(part => rm(part))

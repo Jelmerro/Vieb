@@ -18,8 +18,18 @@
 "use strict"
 
 const builder = require("electron-builder")
-const {rmSync} = require("fs")
-const builds = {}
+const {rmSync, readdir, unlinkSync} = require("fs")
+const defaultConfig = {
+    "config": {
+        "afterPack": context => {
+            const localeDir = `${context.appOutDir}/locales/`
+            readdir(localeDir, (_err, files) => {
+                files?.filter(f => !f.match(/en-US\.pak/))
+                    .forEach(f => unlinkSync(localeDir + f))
+            })
+        }
+    }
+}
 let liteBuilds = false
 
 rmSync("dist/", {"force": true, "recursive": true})
@@ -28,19 +38,20 @@ process.argv.slice(1).forEach(a => {
         liteBuilds = true
     }
     if (a === "--linux") {
-        builds.linux = []
+        defaultConfig.linux = []
     }
     if (a === "--win") {
-        builds.win = []
+        defaultConfig.win = []
     }
     if (a === "--mac") {
-        builds.mac = []
+        defaultConfig.mac = []
     }
 })
-const regularBuild = async() => console.info(await builder.build(builds))
+const regularBuild = async() => console.info(await builder.build(defaultConfig))
 const liteBuild = async() => console.info(await builder.build({
-    ...builds,
+    ...defaultConfig,
     "config": {
+        ...defaultConfig.config,
         "extraMetadata": {
             "name": "vieb-lite",
             "productName": "Vieb-lite"

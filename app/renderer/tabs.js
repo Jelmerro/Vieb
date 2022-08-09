@@ -616,7 +616,7 @@ const updateUrl = (webview, force = false) => {
         return
     }
     let niceUrl = urlToString(url)
-    if (niceUrl === "vieb://newtab") {
+    if (niceUrl === `${appConfig().name.toLowerCase()}://newtab`) {
         niceUrl = ""
     }
     document.getElementById("url").value = niceUrl
