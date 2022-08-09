@@ -40,7 +40,7 @@
     "@cliqz/adblocker-electron": "1.23.8",
     "@cliqz/adblocker-electron-preload": "1.23.8",
     "@mozilla/readability": "0.4.2",
-    "darkreader": "4.9.52",
+    "darkreader": "4.9.53",
     "highlight.js": "11.6.0",
     "jsdom": "20.0.0",
     "marked": "4.0.18"
