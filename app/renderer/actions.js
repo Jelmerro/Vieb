@@ -836,9 +836,10 @@ const storeScrollPos = async args => {
         const scrollPosId = getSetting("scrollposlocalid")
         if (scrollPosId === "domain") {
             path = domainName(urlToString(currentPage().src))
-                ?? domainName(currentPage().src) ?? currentPage().src
-        } else if (scrollPosId === "url") {
-            path = urlToString(currentPage().src) ?? currentPage().src
+                || domainName(currentPage().src)
+        }
+        if (scrollPosId === "url" || !path) {
+            path = urlToString(currentPage().src) || currentPage().src
         }
         path = args?.path ?? path
         if (!qm.scroll.local[path]) {
@@ -860,9 +861,10 @@ const restoreScrollPos = args => {
     let path = ""
     if (scrollPosId === "domain") {
         path = domainName(urlToString(currentPage().src))
-            ?? domainName(currentPage().src) ?? currentPage().src
-    } else if (scrollPosId === "url") {
-        path = urlToString(currentPage().src) ?? currentPage().src
+            || domainName(currentPage().src)
+    }
+    if (scrollPosId === "url" || !path) {
+        path = urlToString(currentPage().src) || currentPage().src
     }
     path = args?.path ?? path
     const qm = readJSON(joinPath(appData(), "quickmarks"))

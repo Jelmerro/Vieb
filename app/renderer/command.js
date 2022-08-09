@@ -1206,9 +1206,10 @@ const delscrollpos = (all, args) => {
     let path = ""
     if (scrollPosId === "domain") {
         path = domainName(urlToString(currentPage().src))
-            ?? domainName(currentPage().src) ?? currentPage().src
-    } else if (scrollPosId === "url") {
-        path = urlToString(currentPage().src) ?? currentPage().src
+            || domainName(currentPage().src)
+    }
+    if (scrollPosId === "url" || !path) {
+        path = urlToString(currentPage().src) || currentPage().src
     }
     if (all) {
         delete qm.scroll.local[path]
