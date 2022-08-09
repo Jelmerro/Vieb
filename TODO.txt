@@ -1,2 +1,1 @@
 add M<Any> mappings to pointer mode, which store the xy position
-make commands support adding new quickmarks

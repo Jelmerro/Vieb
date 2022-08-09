@@ -22,7 +22,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Actions "toggleMarkdownViewer" and "toggleMarkdownViewerNewTab" to toggle the new theme supported "markdownviewer"
 - Setting "nativetheme" to control the theme to report to pages, used by the "prefers-color-scheme" CSS rule
 - Quickmarks to store and reload scroll positions and page urls quickly
-- Commands "marks", "delmarks", "scrollpos" and "delscrollpos" to list and delete quickmarks
+- Commands "marks", "restoremark", "delmarks", "scrollpos", "restorescrollpos" and "delscrollpos" to list and delete quickmarks
 - Settings "quickmarkpersistence", "scrollpostype", "scrollposlocalid", "markposition" and "markpositionshifted" to control quickmarks
 - Actions "storeScrollPos", "restoreScrollPos", "makeMark" and "restoreMark" to add and load quickmarks
 

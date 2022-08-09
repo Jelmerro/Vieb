@@ -169,7 +169,7 @@ const defaultSettings = {
     "permissionsensors": "block",
     "permissionserial": "block",
     "permissionunknown": "block",
-    "quickmarkpersistence": "scrollpos,marks",
+    "quickmarkpersistence": "scroll,marks",
     "quitonlasttabclose": false,
     "redirects": "https?://(www\\.)?google\\.com(\\.\\w+)?/amp/s/amp\\.(.*)"
         + "~https://$3",
@@ -655,7 +655,7 @@ const checkOther = (setting, value) => {
     }
     if (setting === "quickmarkpersistence" && value !== "") {
         for (const mType of value.split(",").filter(l => l.trim())) {
-            if (!["scrollpos", "marks"].includes(mType)) {
+            if (!["scroll", "marks"].includes(mType)) {
                 notify(`Invalid quickmark type passed to ${setting}: ${mType}`,
                     "warn")
                 return false

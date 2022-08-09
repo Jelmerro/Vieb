@@ -815,7 +815,7 @@ const openFromClipboard = () => {
 }
 
 const storeScrollPos = async args => {
-    const key = args?.actionCallKeys?.at(-1)
+    const key = args?.key ?? args?.actionCallKeys?.at(-1)
     if (!key) {
         return
     }
@@ -826,29 +826,33 @@ const storeScrollPos = async args => {
             scrollType = "local"
         }
     }
-    const qm = readJSON(joinPath(appData(), "quickmarks"))
-        || {"scroll": {"global": {}, "local": {}}}
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    if (!qm.scroll) {
+        qm.scroll = {"global": {}, "local": {}}
+    }
     const pixels = await currentPage().executeJavaScript("window.scrollY")
     if (scrollType === "local") {
         let path = ""
         const scrollPosId = getSetting("scrollposlocalid")
         if (scrollPosId === "domain") {
             path = domainName(urlToString(currentPage().src))
+                ?? domainName(currentPage().src) ?? currentPage().src
         } else if (scrollPosId === "url") {
-            path = urlToString(currentPage().src)
+            path = urlToString(currentPage().src) ?? currentPage().src
         }
+        path = args?.path ?? path
         if (!qm.scroll.local[path]) {
             qm.scroll.local[path] = {}
         }
-        qm.scroll.local[path][key] = pixels
+        qm.scroll.local[path][key] = args?.pixels ?? pixels
     } else {
-        qm.scroll.global[key] = pixels
+        qm.scroll.global[key] = args?.pixels ?? pixels
     }
     writeJSON(joinPath(appData(), "quickmarks"), qm)
 }
 
 const restoreScrollPos = args => {
-    const key = args?.actionCallKeys?.at(-1)
+    const key = args?.key ?? args?.actionCallKeys?.at(-1)
     if (!key) {
         return
     }
@@ -856,9 +860,11 @@ const restoreScrollPos = args => {
     let path = ""
     if (scrollPosId === "domain") {
         path = domainName(urlToString(currentPage().src))
+            ?? domainName(currentPage().src) ?? currentPage().src
     } else if (scrollPosId === "url") {
-        path = urlToString(currentPage().src)
+        path = urlToString(currentPage().src) ?? currentPage().src
     }
+    path = args?.path ?? path
     const qm = readJSON(joinPath(appData(), "quickmarks"))
     const pixels = qm?.scroll?.local?.[path]?.[key] ?? qm?.scroll?.global?.[key]
     if (pixels !== undefined) {
@@ -867,28 +873,32 @@ const restoreScrollPos = args => {
 }
 
 const makeMark = args => {
-    const key = args?.actionCallKeys?.at(-1)
+    const key = args?.key ?? args?.actionCallKeys?.at(-1)
     if (!key) {
         return
     }
-    const qm = readJSON(joinPath(appData(), "quickmarks")) || {"marks": {}}
-    qm.marks[key] = urlToString(currentPage().src)
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    if (!qm.marks) {
+        qm.marks = {}
+    }
+    qm.marks[key] = urlToString(args?.url ?? currentPage().src)
     writeJSON(joinPath(appData(), "quickmarks"), qm)
 }
 
 const restoreMark = args => {
-    const key = args?.actionCallKeys?.at(-1)
+    const key = args?.key ?? args?.actionCallKeys?.at(-1)
     if (!key) {
         return
     }
-    const qm = readJSON(joinPath(appData(), "quickmarks")) || {"marks": {}}
+    const qm = readJSON(joinPath(appData(), "quickmarks"))
     const {commonAction} = require("./contextmenu")
     let position = getSetting("markposition")
     const shiftedPosition = getSetting("markpositionshifted")
     if (key === key.toUpperCase() && shiftedPosition !== "default") {
         position = shiftedPosition
     }
-    commonAction("link", position, {"link": qm.marks[key]})
+    position = args?.position ?? position
+    commonAction("link", position, {"link": qm?.marks?.[key]})
 }
 
 const reorderFollowLinks = () => {
