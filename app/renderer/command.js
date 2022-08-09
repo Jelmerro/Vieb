@@ -273,6 +273,17 @@ const quit = () => {
 
 const quitall = () => {
     ipcRenderer.send("hide-window")
+    const keepQMarks = getSetting("quickmarkpersistence")
+    const clearMark = ["scrollpos", "marks"].filter(t => keepQMarks.includes(t))
+    const qm = readJSON(joinPath(appData(), "quickmarks")) || {"marks": {}}
+    for (const markType of clearMark) {
+        delete qm[markType]
+    }
+    if (Object.keys(qm).length > 0) {
+        writeJSON(joinPath(appData(), "quickmarks"), qm)
+    } else {
+        deleteFile(joinPath(appData(), "quickmarks"))
+    }
     if (getSetting("clearhistoryonquit")) {
         deleteFile(joinPath(appData(), "hist"))
     } else {
@@ -1010,26 +1021,26 @@ const marks = args => {
         notify("Command marks only accepts a single optional keyname", "warn")
         return
     }
-    const allMarks = readJSON(joinPath(appData(), "marks")) || {}
+    const qm = readJSON(joinPath(appData(), "quickmarks")) || {"marks": {}}
     const relevantMarks = []
-    const longest = Object.keys(allMarks).reduce((prev, curr) => {
+    const longest = Object.keys(qm.marks).reduce((prev, curr) => {
         if (curr.length > prev) {
             return curr.length
         }
         return prev
     }, 0) + 1
     if (args.length === 0) {
-        for (const key of Object.keys(allMarks)) {
-            relevantMarks.push(`${key.padEnd(longest)}${allMarks[key]}`)
+        for (const key of Object.keys(qm.marks)) {
+            relevantMarks.push(`${key.padEnd(longest)}${qm.marks[key]}`)
         }
     } else {
         const [key] = args
-        if (allMarks[key] !== undefined) {
-            relevantMarks.push(`${key.padEnd(longest)}${allMarks[key]}`)
+        if (qm.marks[key] !== undefined) {
+            relevantMarks.push(`${key.padEnd(longest)}${qm.marks[key]}`)
         }
     }
     if (relevantMarks.length === 0) {
-        if (args.length && Object.keys(allMarks).length) {
+        if (args.length && Object.keys(qm.marks).length) {
             notify("No marks found for current keys", "warn")
         } else {
             notify("No marks found", "warn")
@@ -1044,9 +1055,10 @@ const delmarks = (all, args) => {
         notify("Command takes no arguments: delmarks!", "warn")
         return
     }
-    const allMarks = readJSON(joinPath(appData(), "marks")) || {}
+    const qm = readJSON(joinPath(appData(), "quickmarks")) || {"marks": {}}
     if (all) {
-        writeJSON(joinPath(appData(), "marks"), {})
+        qm.marks = {}
+        writeJSON(joinPath(appData(), "quickmarks"), qm)
         return
     }
     if (args.length !== 1) {
@@ -1054,10 +1066,10 @@ const delmarks = (all, args) => {
         return
     }
     const [key] = args
-    if (allMarks[key] !== undefined) {
-        delete allMarks[key]
+    if (qm.marks[key] !== undefined) {
+        delete qm.marks[key]
     }
-    writeJSON(joinPath(appData(), "marks"), allMarks)
+    writeJSON(joinPath(appData(), "quickmarks"), qm)
 }
 
 const scrollpos = args => {
@@ -1066,12 +1078,12 @@ const scrollpos = args => {
             "warn")
         return
     }
-    const positions = readJSON(joinPath(appData(), "scrollpositions"))
-        || {"global": {}, "local": {}}
+    const qm = readJSON(joinPath(appData(), "quickmarks"))
+        || {"scroll": {"global": {}, "local": {}}}
     const relevantPos = []
     const longest = [
-        ...Object.keys(positions.global),
-        ...Object.values(positions.local).reduce(
+        ...Object.keys(qm.scroll.global),
+        ...Object.values(qm.scroll.local).reduce(
             (prev, curr) => prev.concat(Object.keys(curr)), [])
     ].reduce((prev, curr) => {
         if (curr.length > prev) {
@@ -1080,30 +1092,30 @@ const scrollpos = args => {
         return prev
     }, 0) + 1
     if (args.length === 0) {
-        for (const key of Object.keys(positions.global)) {
-            relevantPos.push(`${key.padEnd(longest)}${positions.global[key]}`)
+        for (const key of Object.keys(qm.scroll.global)) {
+            relevantPos.push(`${key.padEnd(longest)}${qm.scroll.global[key]}`)
         }
-        for (const domain of Object.keys(positions.local)) {
-            for (const key of Object.keys(positions.local[domain])) {
+        for (const domain of Object.keys(qm.scroll.local)) {
+            for (const key of Object.keys(qm.scroll.local[domain])) {
                 relevantPos.push(`${key.padEnd(longest)}${
-                    String(positions.local[domain][key]).padEnd(6)}${domain}`)
+                    String(qm.scroll.local[domain][key]).padEnd(6)}${domain}`)
             }
         }
     } else {
         const [key] = args
-        if (positions.global[key] !== undefined) {
-            relevantPos.push(`${key.padEnd(longest)}${positions.global[key]}`)
+        if (qm.scroll.global[key] !== undefined) {
+            relevantPos.push(`${key.padEnd(longest)}${qm.scroll.global[key]}`)
         }
-        for (const domain of Object.keys(positions.local)) {
-            if (positions.local[domain][key] !== undefined) {
+        for (const domain of Object.keys(qm.scroll.local)) {
+            if (qm.scroll.local[domain][key] !== undefined) {
                 relevantPos.push(`${key.padEnd(longest)}${
-                    String(positions.local[domain][key]).padEnd(6)}${domain}`)
+                    String(qm.scroll.local[domain][key]).padEnd(6)}${domain}`)
             }
         }
     }
     if (relevantPos.length === 0) {
-        const notEmpty = Object.keys(positions.global).length
-            || Object.keys(positions.local).length
+        const notEmpty = Object.keys(qm.scroll.global).length
+            || Object.keys(qm.scroll.local).length
         if (args.length && notEmpty) {
             notify("No scroll positions found for current keys", "warn")
         } else {

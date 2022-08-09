@@ -826,8 +826,8 @@ const storeScrollPos = async args => {
             scrollType = "local"
         }
     }
-    const positions = readJSON(joinPath(appData(), "scrollpositions"))
-        || {"global": {}, "local": {}}
+    const qm = readJSON(joinPath(appData(), "quickmarks"))
+        || {"scroll": {"global": {}, "local": {}}}
     const pixels = await currentPage().executeJavaScript("window.scrollY")
     if (scrollType === "local") {
         let path = ""
@@ -837,14 +837,14 @@ const storeScrollPos = async args => {
         } else if (scrollPosId === "url") {
             path = urlToString(currentPage().src)
         }
-        if (!positions.local[path]) {
-            positions.local[path] = {}
+        if (!qm.scroll.local[path]) {
+            qm.scroll.local[path] = {}
         }
-        positions.local[path][key] = pixels
+        qm.scroll.local[path][key] = pixels
     } else {
-        positions.global[key] = pixels
+        qm.scroll.global[key] = pixels
     }
-    writeJSON(joinPath(appData(), "scrollpositions"), positions)
+    writeJSON(joinPath(appData(), "quickmarks"), qm)
 }
 
 const restoreScrollPos = args => {
@@ -859,12 +859,11 @@ const restoreScrollPos = args => {
     } else if (scrollPosId === "url") {
         path = urlToString(currentPage().src)
     }
-    const positions = readJSON(joinPath(appData(), "scrollpositions"))
-    const pixels = positions?.local?.[path]?.[key] ?? positions?.global?.[key]
-    if (pixels === undefined) {
-        return
+    const qm = readJSON(joinPath(appData(), "quickmarks"))
+    const pixels = qm?.scroll?.local?.[path]?.[key] ?? qm?.scroll?.global?.[key]
+    if (pixels !== undefined) {
+        currentPage().executeJavaScript(`window.scrollTo(0, ${pixels})`)
     }
-    currentPage().executeJavaScript(`window.scrollTo(0, ${pixels})`)
 }
 
 const makeMark = args => {
@@ -872,9 +871,9 @@ const makeMark = args => {
     if (!key) {
         return
     }
-    const marks = readJSON(joinPath(appData(), "marks")) || {}
-    marks[key] = urlToString(currentPage().src)
-    writeJSON(joinPath(appData(), "marks"), marks)
+    const qm = readJSON(joinPath(appData(), "quickmarks")) || {"marks": {}}
+    qm.marks[key] = urlToString(currentPage().src)
+    writeJSON(joinPath(appData(), "quickmarks"), qm)
 }
 
 const restoreMark = args => {
@@ -882,9 +881,9 @@ const restoreMark = args => {
     if (!key) {
         return
     }
-    const marks = readJSON(joinPath(appData(), "marks")) || {}
+    const gm = readJSON(joinPath(appData(), "quickmarks")) || {"marks": {}}
     const {commonAction} = require("./contextmenu")
-    commonAction("link", getSetting("markposition"), {"link": marks[key]})
+    commonAction("link", getSetting("markposition"), {"link": gm.marks[key]})
 }
 
 const reorderFollowLinks = () => {
