@@ -1194,10 +1194,6 @@ const restorescrollpos = args => {
 }
 
 const delscrollpos = (all, args) => {
-    if (all && args.length) {
-        notify("Command takes no arguments: delscrollpos!", "warn")
-        return
-    }
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
     if (!qm.scroll) {
         qm.scroll = {"global": {}, "local": {}}
@@ -1212,23 +1208,58 @@ const delscrollpos = (all, args) => {
         path = urlToString(currentPage().src) || currentPage().src
     }
     if (all) {
-        delete qm.scroll.local[path]
+        if (args.length > 1) {
+            notify("Command delscrollpos! only accepts a single path", "warn")
+            return
+        }
+        if (args[0] === "*") {
+            delete qm.scroll
+        } else if (args[0] === "global") {
+            delete qm.scroll.global
+        } else if (args[0] === "local") {
+            delete qm.scroll.local
+        } else if (args[0]) {
+            if (qm.scroll.local[args[0]]) {
+                delete qm.scroll.local[args[0]]
+            }
+        } else {
+            delete qm.scroll.local[path]
+        }
         writeJSON(joinPath(appData(), "quickmarks"), qm)
         return
     }
-    if (args.length !== 1) {
-        notify("Command delscrollpos only accepts a single keyname", "warn")
+    if (args.length === 0) {
+        notify("Command delscrollpos requires at least the key", "warn")
         return
     }
-    const [key] = args
-    if (qm.scroll.local[path]?.[key] !== undefined) {
-        delete qm.scroll.local[path][key]
+    if (args.length > 2) {
+        notify("Command delscrollpos only accepts a key and an optional path",
+            "warn")
+        return
+    }
+    [, path] = args
+    if (path === "*") {
+        for (const localPath of Object.keys(qm.scroll.local)) {
+            if (qm.scroll.local[localPath]?.[args[0]] !== undefined) {
+                delete qm.scroll.local[localPath][args[0]]
+            }
+            if (Object.keys(qm.scroll.local[localPath]).length === 0) {
+                delete qm.scroll.local[localPath]
+            }
+        }
+    } else if (qm.scroll.local[path]?.[args[0]] !== undefined) {
+        delete qm.scroll.local[path][args[0]]
         if (Object.keys(qm.scroll.local[path]).length === 0) {
             delete qm.scroll.local[path]
         }
     }
-    if (qm.scroll.global[key] !== undefined) {
-        delete qm.scroll.global[key]
+    if (qm.scroll.global[args[0]] !== undefined) {
+        delete qm.scroll.global[args[0]]
+    }
+    if (Object.keys(qm.scroll.local).length === 0) {
+        if (Object.keys(qm.scroll.global).length === 0) {
+            delete qm.scroll
+        }
     }
     writeJSON(joinPath(appData(), "quickmarks"), qm)
 }

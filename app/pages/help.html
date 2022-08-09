@@ -509,10 +509,16 @@
         With the restorescrollpos command you can restore a scroll position by key. Only the key argument is required, similar to using <a href="#action.restoreScrollPos">action.restoreScrollPos</a>. Optionally, you can also provide the domain/url to use instead of the current one to find the local key. This argument is unused if the key is deemed a global one as controlled with <a href="#scrollpostype">scrollpostype</a>
         <h3 id=":delscrollpos">:delscrollpos</h3>
         <ul>
-            <li><span class="command-block">:delscrollpos a</span> - Delete the scrollposition stored at the "a" key</li>
-            <li><span class="command-block">:delscrollpos!</span> - Delete all local positions for the current domain/url</li>
+            <li><span class="command-block">:delscrollpos a</span> - Delete scroll positions stored at the "a" key, either for the current local domain/url or any global ones at the "a" key</li>
+            <li><span class="command-block">:delscrollpos a vieb.dev</span> - Delete all scroll positions stored at the "a" for vieb.dev</li>
+            <li><span class="command-block">:delscrollpos a *</span> - Delete all scroll positions stored at the "a" key</li>
+            <li><span class="command-block">:delscrollpos!</span> - Delete all local scroll positions for the current domain/url</li>
+            <li><span class="command-block">:delscrollpos! vieb.dev</span> - Delete all local scroll positions for vieb.dev</li>
+            <li><span class="command-block">:delscrollpos! *</span> - Delete all scroll positions, including global ones</li>
+            <li><span class="command-block">:delscrollpos! local</span> - Delete all local scroll positions</li>
+            <li><span class="command-block">:delscrollpos! global</span> - Delete all global scroll positions</li>
         </ul>
-        With this command you can delete any previously stored scroll positions by key, domain or url. If suffixed with "!", it can delete ALL local positions for the current domain/url. Whether it uses the domain or the url is controlled by <a href="#scrollposlocalid">scrollposlocalid</a>. If a key is passed to this command, it will delete any position stored in that key, global and local.
+        With this command you can delete any previously stored scroll positions by key, domain or url. Whether it uses the domain or the url is controlled by <a href="#scrollposlocalid">scrollposlocalid</a>. Without a confirm override "!", it will always require a key to delete, which is by default only for the local ones at the current domain/url or the global ones. If you pass a domain/url, you can delete the key for a different domain/url, where "*" will match all of them including global ones. If you do supply the "!" confirm override, you can delete any key in one go, by default for the current domain/url, but you can also supply one. In case you supply "*", "local" or "global", it will delete ALL, local or global positions respectively.
         <h3 id=":marks">:marks</h3>
         <ul>
             <li><span class="command-block">:marks</span> - Show a list of stored marks by key</li>
