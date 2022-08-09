@@ -1,2 +1,2 @@
 add M<Any> mappings to pointer mode, which store the xy position
-add <C-m>/ and <C-m>n shortcuts etc. to switch markposition setting
+make commands support adding new quickmarks

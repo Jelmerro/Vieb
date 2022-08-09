@@ -128,6 +128,7 @@ const defaultSettings = {
     "mapsuggest": 9000000000000000,
     "mapsuggestposition": "topright",
     "markposition": "newtab",
+    "markpositionshifted": "",
     "maxmapdepth": 10,
     "menupage": "elementasneeded",
     "menusuggest": "both",
@@ -271,6 +272,17 @@ const validOptions = {
     ],
     "mapsuggestposition": ["bottomright", "bottomleft", "topright", "topleft"],
     "markposition": [
+        "open",
+        "newtab",
+        "copy",
+        "download",
+        "split",
+        "vsplit",
+        "external",
+        "search"
+    ],
+    "markpositionshifted": [
+        "default",
         "open",
         "newtab",
         "copy",

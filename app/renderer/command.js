@@ -1131,8 +1131,8 @@ const delscrollpos = (all, args) => {
         notify("Command takes no arguments: delscrollpos!", "warn")
         return
     }
-    const positions = readJSON(joinPath(appData(), "scrollpositions"))
-        || {"global": {}, "local": {}}
+    const qm = readJSON(joinPath(appData(), "quickmarks"))
+        || {"scroll": {"global": {}, "local": {}}}
     const scrollPosId = getSetting("scrollposlocalid")
     let path = ""
     if (scrollPosId === "domain") {
@@ -1141,8 +1141,8 @@ const delscrollpos = (all, args) => {
         path = urlToString(currentPage().src)
     }
     if (all) {
-        positions.local[path] = {}
-        writeJSON(joinPath(appData(), "scrollpositions"), positions)
+        delete qm.scroll.local[path]
+        writeJSON(joinPath(appData(), "quickmarks"), qm)
         return
     }
     if (args.length !== 1) {
@@ -1150,16 +1150,16 @@ const delscrollpos = (all, args) => {
         return
     }
     const [key] = args
-    if (positions.local[path]?.[key] !== undefined) {
-        delete positions.local[path][key]
-        if (Object.keys(positions.local[path]).length === 0) {
-            delete positions.local[path]
+    if (qm.scroll.local[path]?.[key] !== undefined) {
+        delete qm.scroll.local[path][key]
+        if (Object.keys(qm.scroll.local[path]).length === 0) {
+            delete qm.scroll.local[path]
         }
     }
-    if (positions.global[key] !== undefined) {
-        delete positions.global[key]
+    if (qm.scroll.global[key] !== undefined) {
+        delete qm.scroll.global[key]
     }
-    writeJSON(joinPath(appData(), "scrollpositions"), positions)
+    writeJSON(joinPath(appData(), "quickmarks"), qm)
 }
 
 const noEscapeCommands = ["command", "delcommand"]

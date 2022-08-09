@@ -881,9 +881,14 @@ const restoreMark = args => {
     if (!key) {
         return
     }
-    const gm = readJSON(joinPath(appData(), "quickmarks")) || {"marks": {}}
+    const qm = readJSON(joinPath(appData(), "quickmarks")) || {"marks": {}}
     const {commonAction} = require("./contextmenu")
-    commonAction("link", getSetting("markposition"), {"link": gm.marks[key]})
+    let position = getSetting("markposition")
+    const shiftedPosition = getSetting("markpositionshifted")
+    if (key === key.toUpperCase() && shiftedPosition !== "default") {
+        position = shiftedPosition
+    }
+    commonAction("link", position, {"link": qm.marks[key]})
 }
 
 const reorderFollowLinks = () => {
