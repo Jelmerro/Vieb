@@ -403,7 +403,9 @@ const defaultBindings = {
         "zp": {"mapping": "<:pin>"}
     },
     "p": {
+        "\"<Any>": {"mapping": "<p.restorePos>"},
         "$": {"mapping": "<p.moveRightMax>"},
+        "'<Any>": {"mapping": "<p.restorePos>"},
         "*": {"mapping": "<p.vsplitLink>"},
         ".": {"mapping": "<repeatLastAction>"},
         "<A-F4>": {"mapping": "<:quitall>"},
@@ -497,6 +499,7 @@ const defaultBindings = {
         "Vs": {"mapping": "<p.vsplitLink>"},
         "Vv": {"mapping": "<p.vsplitVideo>"},
         "W": {"mapping": "<p.moveFastRight>"},
+        "a<Any>": {"mapping": "<p.storePos>"},
         "b": {"mapping": "<p.moveFastLeft>"},
         "da": {"mapping": "<p.downloadAudio>"},
         "dd": {"mapping": "<p.downloadLink>"},
@@ -577,7 +580,9 @@ const defaultBindings = {
         "<kEnter>": {"mapping": "<useEnteredData>"}
     },
     "v": {
+        "\"<Any>": {"mapping": "<p.restorePos>"},
         "$": {"mapping": "<p.moveRightMax>"},
+        "'<Any>": {"mapping": "<p.restorePos>"},
         "*": {"mapping": "<p.searchText><toNormalMode>"},
         ".": {"mapping": "<repeatLastAction>"},
         "<A-F4>": {"mapping": "<:quitall>"},
@@ -640,6 +645,7 @@ const defaultBindings = {
         "L": {"mapping": "<p.endOfView>"},
         "M": {"mapping": "<p.centerOfView>"},
         "W": {"mapping": "<p.moveFastRight>"},
+        "a<Any>": {"mapping": "<p.storePos>"},
         "b": {"mapping": "<p.moveFastLeft>"},
         "c": {"mapping": "<toNormalMode><p.start>"},
         "f": {"mapping": "<startFollowCurrentTab>"},
@@ -1216,6 +1222,8 @@ const uncountableActions = [
     "p.endOfPage",
     "p.moveRightMax",
     "p.moveLeftMax",
+    "p.storePos",
+    "p.restorePos",
     "p.openAudio",
     "p.openFrame",
     "p.openImage",

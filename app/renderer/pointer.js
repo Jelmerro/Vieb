@@ -26,7 +26,17 @@ const {
     getMouseConf,
     listPages
 } = require("./common")
-const {matchesQuery, propPixels, sendToPageOrSubFrame} = require("../util")
+const {
+    matchesQuery,
+    propPixels,
+    sendToPageOrSubFrame,
+    appData,
+    joinPath,
+    readJSON,
+    writeJSON,
+    urlToString,
+    domainName
+} = require("../util")
 
 let X = 0
 let Y = 0
@@ -603,6 +613,71 @@ const moveFastUp = () => {
     updateElement()
 }
 
+const storePos = args => {
+    const key = args?.key ?? args?.actionCallKeys?.at(-1)
+    if (!key) {
+        return
+    }
+    let posType = getSetting("pointerpostype")
+    if (posType !== "local" && posType !== "global") {
+        posType = "global"
+        if (key !== key.toUpperCase()) {
+            posType = "local"
+        }
+    }
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    if (!qm.pointer) {
+        qm.pointer = {"global": {}, "local": {}}
+    }
+    if (args?.path === "global") {
+        posType = "global"
+    }
+    if (posType === "local") {
+        let path = ""
+        const pointerPosId = getSetting("pointerposlocalid")
+        if (pointerPosId === "domain") {
+            path = domainName(urlToString(currentPage().src))
+                || domainName(currentPage().src)
+        }
+        if (pointerPosId === "url" || !path) {
+            path = urlToString(currentPage().src) || currentPage().src
+        }
+        path = args?.path ?? path
+        if (!qm.pointer.local[path]) {
+            qm.pointer.local[path] = {}
+        }
+        qm.pointer.local[path][key] = args?.location
+            ?? {"x": Math.round(X), "y": Math.round(Y)}
+    } else {
+        qm.pointer.global[key] = args?.location
+            ?? {"x": Math.round(X), "y": Math.round(Y)}
+    }
+    writeJSON(joinPath(appData(), "quickmarks"), qm)
+}
+
+const restorePos = args => {
+    const key = args?.key ?? args?.actionCallKeys?.at(-1)
+    if (!key) {
+        return
+    }
+
+    const pointerPosId = getSetting("pointerposlocalid")
+    let path = ""
+    if (pointerPosId === "domain") {
+        path = domainName(urlToString(currentPage().src))
+            || domainName(currentPage().src)
+    }
+    if (pointerPosId === "url" || !path) {
+        path = urlToString(currentPage().src) || currentPage().src
+    }
+    path = args?.path ?? path
+    const qm = readJSON(joinPath(appData(), "quickmarks"))
+    const pos = qm?.pointer?.local?.[path]?.[key] ?? qm?.pointer?.global?.[key]
+    if (pos) {
+        move(pos.x, pos.y)
+    }
+}
+
 module.exports = {
     centerOfView,
     copyAudio,
@@ -662,6 +737,7 @@ module.exports = {
     openText,
     openVideo,
     releaseKeys,
+    restorePos,
     restoreSelection,
     rightClick,
     scrollDown,
@@ -680,6 +756,7 @@ module.exports = {
     startOfView,
     startVisualSelect,
     storeMouseSelection,
+    storePos,
     swapPosition,
     toggleMediaControls,
     toggleMediaLoop,

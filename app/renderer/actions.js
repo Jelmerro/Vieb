@@ -831,6 +831,9 @@ const storeScrollPos = async args => {
         qm.scroll = {"global": {}, "local": {}}
     }
     const pixels = await currentPage().executeJavaScript("window.scrollY")
+    if (args?.path === "global") {
+        scrollType = "global"
+    }
     if (scrollType === "local") {
         let path = ""
         const scrollPosId = getSetting("scrollposlocalid")
