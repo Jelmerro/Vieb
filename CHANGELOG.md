@@ -21,6 +21,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "userstyle" to toggle loading of custom CSS files into the page, either globally or per-domain
 - Actions "toggleMarkdownViewer" and "toggleMarkdownViewerNewTab" to toggle the new theme supported "markdownviewer"
 - Setting "nativetheme" to control the theme to report to pages, used by the "prefers-color-scheme" CSS rule
+- Quickmarks to store and reload scroll positions, pointer positions and page urls quickly
+- Commands "marks", "restoremark", "delmarks", "pointerpos", "restorepointerpos", "delpointerpos", "scrollpos", "restorescrollpos" and "delscrollpos" to list and delete quickmarks
+- Settings "quickmarkpersistence", "pointerpostype", "pointerposlocalid", "scrollpostype", "scrollposlocalid", "markposition" and "markpositionshifted" to control quickmarks
+- Actions "storeScrollPos", "restoreScrollPos", "p.storePos", "p.restorePos", "makeMark" and "restoreMark" to add and load quickmarks
 
 ### Changed
 

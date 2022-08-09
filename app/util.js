@@ -173,9 +173,6 @@ const stringToUrl = location => {
 
 const urlToString = url => {
     const special = pathToSpecialPageName(url)
-    if (special.name === "newtab") {
-        return ""
-    }
     if (special.name) {
         let specialUrl = `${appConfig().name.toLowerCase()}://${special.name}`
         if (special.section) {

@@ -180,18 +180,24 @@ const viebMenu = options => {
         }
         if (page && !isSuspended && !page.isCrashed()) {
             createMenuItem({
-                "action": () => refreshTab(tabOrPageMatching(tab)),
+                "action": () => refreshTab({
+                    "customPage": tabOrPageMatching(tab)
+                }),
                 "title": "Refresh"
             })
             if (!page.src.startsWith("devtools://") && page?.canGoBack()) {
                 createMenuItem({
-                    "action": () => backInHistory(tabOrPageMatching(tab)),
+                    "action": () => backInHistory({
+                        "customPage": tabOrPageMatching(tab)
+                    }),
                     "title": "Previous"
                 })
             }
             if (!page.src.startsWith("devtools://") && page?.canGoForward()) {
                 createMenuItem({
-                    "action": () => forwardInHistory(tabOrPageMatching(tab)),
+                    "action": () => forwardInHistory({
+                        "customPage": tabOrPageMatching(tab)
+                    }),
                     "title": "Next"
                 })
             }
@@ -755,7 +761,7 @@ const commonAction = (type, action, options) => {
         }
     } else if (action === "search") {
         const {incrementalSearch} = require("./actions")
-        incrementalSearch(relevantData)
+        incrementalSearch({"value": relevantData})
     }
 }
 

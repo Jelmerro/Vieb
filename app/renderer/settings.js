@@ -127,6 +127,8 @@ const defaultSettings = {
     "keeprecentlyclosed": true,
     "mapsuggest": 9000000000000000,
     "mapsuggestposition": "topright",
+    "markposition": "newtab",
+    "markpositionshifted": "default",
     "maxmapdepth": 10,
     "menupage": "elementasneeded",
     "menusuggest": "both",
@@ -167,6 +169,9 @@ const defaultSettings = {
     "permissionsensors": "block",
     "permissionserial": "block",
     "permissionunknown": "block",
+    "pointerposlocalid": "domain",
+    "pointerpostype": "casing",
+    "quickmarkpersistence": "scroll,marks,pointer",
     "quitonlasttabclose": false,
     "redirects": "https?://(www\\.)?google\\.com(\\.\\w+)?/amp/s/amp\\.(.*)"
         + "~https://$3",
@@ -176,6 +181,8 @@ const defaultSettings = {
     "restorewindowmaximize": true,
     "restorewindowposition": true,
     "restorewindowsize": true,
+    "scrollposlocalid": "domain",
+    "scrollpostype": "casing",
     "search": "https://duckduckgo.com/?kae=d&kav=1&ko=1&q=%s&ia=web",
     "searchpointeralignment": "left",
     "searchwords": "",
@@ -227,6 +234,7 @@ const listLike = [
     "permissionsallowed",
     "permissionsasked",
     "permissionsblocked",
+    "quickmarkpersistence",
     "redirects",
     "search",
     "searchwords",
@@ -265,6 +273,27 @@ const validOptions = {
         "rememberstart", "rememberend", "alwaysstart", "alwaysend"
     ],
     "mapsuggestposition": ["bottomright", "bottomleft", "topright", "topleft"],
+    "markposition": [
+        "open",
+        "newtab",
+        "copy",
+        "download",
+        "split",
+        "vsplit",
+        "external",
+        "search"
+    ],
+    "markpositionshifted": [
+        "default",
+        "open",
+        "newtab",
+        "copy",
+        "download",
+        "split",
+        "vsplit",
+        "external",
+        "search"
+    ],
     "menupage": ["always", "globalasneeded", "elementasneeded", "never"],
     "menusuggest": ["both", "explore", "command", "never"],
     "menuvieb": ["both", "navbar", "tabbar", "never"],
@@ -295,6 +324,10 @@ const validOptions = {
     "permissionsensors": ["block", "ask", "allow"],
     "permissionserial": ["block", "allow"],
     "permissionunknown": ["block", "ask", "allow"],
+    "pointerposlocalid": ["domain", "url"],
+    "pointerpostype": ["casing", "local", "global"],
+    "scrollposlocalid": ["domain", "url"],
+    "scrollpostype": ["casing", "local", "global"],
     "searchpointeralignment": ["left", "center", "right"],
     "suspendonrestore": ["all", "regular", "none"],
     "tabopenmuted": ["always", "background", "never"],
@@ -621,6 +654,15 @@ const checkOther = (setting, value) => {
                         + "only asked or blocked", "warn")
                     return false
                 }
+            }
+        }
+    }
+    if (setting === "quickmarkpersistence" && value !== "") {
+        for (const mType of value.split(",").filter(l => l.trim())) {
+            if (!["scroll", "marks", "pointer"].includes(mType)) {
+                notify(`Invalid quickmark type passed to ${setting}: ${mType}`,
+                    "warn")
+                return false
             }
         }
     }

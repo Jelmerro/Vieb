@@ -193,7 +193,9 @@ const defaultBindings = {
         "L": {"mapping": "<menuBottom>"}
     },
     "n": {
+        "\"<Any>": {"mapping": "<restoreMark>"},
         "$": {"mapping": "<scrollRightMax>"},
+        "'<Any>": {"mapping": "<restoreScrollPos>"},
         "+": {"mapping": "<zoomIn>"},
         ".": {"mapping": "<repeatLastAction>"},
         "/": {"mapping": "<toSearchMode>"},
@@ -341,6 +343,7 @@ const defaultBindings = {
         "J": {"mapping": "<nextTab>"},
         "K": {"mapping": "<previousTab>"},
         "L": {"mapping": "<forwardInHistory>"},
+        "M<Any>": {"mapping": "<makeMark>"},
         "N": {"mapping": "<previousSearchMatch>"},
         "O": {"mapping": "<moveTabEnd>"},
         "P": {"mapping": "<openNewTab><openFromClipboard>"},
@@ -376,6 +379,7 @@ const defaultBindings = {
         "j": {"mapping": "<scrollDown>"},
         "k": {"mapping": "<scrollUp>"},
         "l": {"mapping": "<scrollRight>"},
+        "m<Any>": {"mapping": "<storeScrollPos>"},
         "n": {"mapping": "<nextSearchMatch>"},
         "p": {"mapping": "<openFromClipboard>"},
         "r": {"mapping": "<refreshTab>"},
@@ -399,7 +403,9 @@ const defaultBindings = {
         "zp": {"mapping": "<:pin>"}
     },
     "p": {
+        "\"<Any>": {"mapping": "<p.restorePos>"},
         "$": {"mapping": "<p.moveRightMax>"},
+        "'<Any>": {"mapping": "<p.restorePos>"},
         "*": {"mapping": "<p.vsplitLink>"},
         ".": {"mapping": "<repeatLastAction>"},
         "<A-F4>": {"mapping": "<:quitall>"},
@@ -493,6 +499,7 @@ const defaultBindings = {
         "Vs": {"mapping": "<p.vsplitLink>"},
         "Vv": {"mapping": "<p.vsplitVideo>"},
         "W": {"mapping": "<p.moveFastRight>"},
+        "a<Any>": {"mapping": "<p.storePos>"},
         "b": {"mapping": "<p.moveFastLeft>"},
         "da": {"mapping": "<p.downloadAudio>"},
         "dd": {"mapping": "<p.downloadLink>"},
@@ -573,7 +580,9 @@ const defaultBindings = {
         "<kEnter>": {"mapping": "<useEnteredData>"}
     },
     "v": {
+        "\"<Any>": {"mapping": "<p.restorePos>"},
         "$": {"mapping": "<p.moveRightMax>"},
+        "'<Any>": {"mapping": "<p.restorePos>"},
         "*": {"mapping": "<p.searchText><toNormalMode>"},
         ".": {"mapping": "<repeatLastAction>"},
         "<A-F4>": {"mapping": "<:quitall>"},
@@ -636,6 +645,7 @@ const defaultBindings = {
         "L": {"mapping": "<p.endOfView>"},
         "M": {"mapping": "<p.centerOfView>"},
         "W": {"mapping": "<p.moveFastRight>"},
+        "a<Any>": {"mapping": "<p.storePos>"},
         "b": {"mapping": "<p.moveFastLeft>"},
         "c": {"mapping": "<toNormalMode><p.start>"},
         "f": {"mapping": "<startFollowCurrentTab>"},
@@ -837,10 +847,10 @@ const init = () => {
             return
         }
         if (direction === "in") {
-            ACTIONS.zoomIn(page)
+            ACTIONS.zoomIn({"customPage": page})
         }
         if (direction === "out") {
-            ACTIONS.zoomOut(page)
+            ACTIONS.zoomOut({"customPage": page})
         }
     })
     ipcRenderer.on("insert-mode-input-event", (_, input) => {
@@ -1051,7 +1061,9 @@ const keyNames = [
     {"js": ["Pause"], "vim": ["Pause"]},
     {"js": ["NumLock"], "vim": ["NumLock"]},
     {"js": ["CapsLock"], "vim": ["CapsLock"]},
-    {"js": ["ScrollLock"], "vim": ["ScrollLock"]}
+    {"js": ["ScrollLock"], "vim": ["ScrollLock"]},
+    // Fictional keys with custom implementation
+    {"js": ["Any"], "vim": ["Any"]}
 ]
 const toIdentifier = e => {
     let keyCode = e.key
@@ -1187,6 +1199,10 @@ const uncountableActions = [
     "downloadLink",
     "toggleAlwaysOnTop",
     "toggleFullscreen",
+    "makeMark",
+    "restoreMark",
+    "storeScrollPos",
+    "restoreScrollPos",
     "menuOpen",
     "menuTop",
     "menuBottom",
@@ -1206,6 +1222,8 @@ const uncountableActions = [
     "p.endOfPage",
     "p.moveRightMax",
     "p.moveLeftMax",
+    "p.storePos",
+    "p.restorePos",
     "p.openAudio",
     "p.openFrame",
     "p.openImage",
@@ -1252,8 +1270,30 @@ const uncountableActions = [
     "p.vsplitText"
 ]
 
-const hasFutureActionsBasedOnKeys = keys => Object.keys(bindings[
-    currentMode()[0]]).find(map => map.startsWith(keys) && map !== keys)
+const findMaps = (actionKeys, mode, future = false) => {
+    const keys = actionKeys.split(mapStringSplitter).filter(k => k)
+    return Object.keys(bindings[mode[0]]).filter(m => {
+        const mapKeys = m.split(mapStringSplitter).filter(k => k)
+        if (future && mapKeys.length <= keys.length) {
+            return false
+        }
+        if (!future && mapKeys.length !== keys.length) {
+            return false
+        }
+        let keyCount = 0
+        for (const key of keys) {
+            if (key !== mapKeys[keyCount] && mapKeys[keyCount] !== "<Any>") {
+                return false
+            }
+            keyCount += 1
+        }
+        return true
+    }).sort((a, b) => a.split(mapStringSplitter).filter(k => k).indexOf("<Any>")
+    - b.split(mapStringSplitter).filter(k => k).indexOf("<Any>"))
+}
+window.findMaps = findMaps
+
+const hasFutureActions = keys => findMaps(keys, currentMode(), true).length
 
 const sendKeysToWebview = async(options, mapStr) => {
     blockNextInsertKey = true
@@ -1277,12 +1317,13 @@ const repeatLastAction = () => {
 }
 
 const executeMapString = async(mapStr, recursive, initial) => {
+    const actionCallKeys = pressedKeys.split(mapStringSplitter).filter(k => k)
     if (initial) {
         if (!mapStr.includes("<repeatLastAction>")) {
             lastExecutedMapstring = {mapStr, recursive}
         }
         recursiveCounter = 0
-        if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
+        if (!hasFutureActions(pressedKeys)) {
             pressedKeys = ""
         }
     }
@@ -1301,7 +1342,7 @@ const executeMapString = async(mapStr, recursive, initial) => {
             if (supportedActions.includes(key.replace(/(^<|>$)/g, ""))) {
                 const count = Number(repeatCounter)
                 repeatCounter = 0
-                await doAction(key.replace(/(^<|>$)/g, ""), count)
+                await doAction(key.replace(/(^<|>$)/g, ""), count, actionCallKeys)
                 await new Promise(r => {
                     setTimeout(r, 3)
                 })
@@ -1345,7 +1386,7 @@ const executeMapString = async(mapStr, recursive, initial) => {
     }
 }
 
-const doAction = async(actionName, givenCount) => {
+const doAction = async(actionName, givenCount, actionCallKeys) => {
     let actionCount = givenCount || 1
     if (uncountableActions.includes(actionName)) {
         if (lastActionInMapping === actionName) {
@@ -1360,9 +1401,9 @@ const doAction = async(actionName, givenCount) => {
     const funcName = actionName.replace(/^.*\./g, "")
     for (let i = 0; i < actionCount; i++) {
         if (pointer) {
-            await POINTER[funcName]()
+            await POINTER[funcName]({actionCallKeys})
         } else {
-            await ACTIONS[funcName]()
+            await ACTIONS[funcName]({actionCallKeys})
         }
     }
     if (!funcName.startsWith("menu") && funcName !== "nop") {
@@ -1374,11 +1415,13 @@ const doAction = async(actionName, givenCount) => {
 
 const actionForKeys = keys => {
     const {"active": menuActive} = require("./contextmenu")
-    const menuAction = bindings.m[keys]
+    const allMenu = findMaps(keys, "menu")
+    const menuAction = bindings.m[allMenu[0]]
     if (menuActive() && menuAction) {
         return menuAction
     }
-    return bindings[currentMode()[0]][keys]
+    const allCurrent = findMaps(keys, currentMode())
+    return bindings[currentMode()[0]][allCurrent[0]]
 }
 
 const handleKeyboard = async e => {
@@ -1444,7 +1487,7 @@ const handleKeyboard = async e => {
     const {"active": menuActive, "clear": menuClear} = require("./contextmenu")
     if ("npv".includes(currentMode()[0]) || menuActive()) {
         const keyNumber = Number(id.replace(/^<k(\d)>/g, (_, digit) => digit))
-        const noFutureActions = !hasFutureActionsBasedOnKeys(pressedKeys + id)
+        const noFutureActions = !hasFutureActions(pressedKeys + id)
         const shouldCount = !actionForKeys(pressedKeys + id) || repeatCounter
         if (!isNaN(keyNumber) && noFutureActions && shouldCount) {
             repeatCounter = Number(String(repeatCounter) + keyNumber)
@@ -1465,10 +1508,10 @@ const handleKeyboard = async e => {
     } else {
         repeatCounter = 0
     }
-    if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
+    if (!hasFutureActions(pressedKeys)) {
         pressedKeys = ""
     }
-    if (hasFutureActionsBasedOnKeys(pressedKeys + id)) {
+    if (hasFutureActions(pressedKeys + id)) {
         pressedKeys += id
     } else {
         const action = actionForKeys(pressedKeys)
@@ -1483,7 +1526,7 @@ const handleKeyboard = async e => {
     }
     const action = actionForKeys(pressedKeys)
     const hasMenuAction = menuActive() && action
-    if (!hasFutureActionsBasedOnKeys(pressedKeys) || hasMenuAction) {
+    if (!hasFutureActions(pressedKeys) || hasMenuAction) {
         clearTimeout(timeoutTimer)
         if (action && (e.isTrusted || e.bubbles)) {
             if (e.isTrusted) {
@@ -1496,7 +1539,7 @@ const handleKeyboard = async e => {
         menuClear()
         let keys = pressedKeys.split(mapStringSplitter).filter(m => m)
         if (keys.length > 1) {
-            if (!hasFutureActionsBasedOnKeys(keys.slice(0, -1).join(""))) {
+            if (!hasFutureActions(keys.slice(0, -1).join(""))) {
                 keys = keys.slice(0, -1)
             }
             if (currentMode() === "insert") {

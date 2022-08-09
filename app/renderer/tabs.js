@@ -615,7 +615,11 @@ const updateUrl = (webview, force = false) => {
     if (!force && "secf".includes(currentMode()[0])) {
         return
     }
-    document.getElementById("url").value = urlToString(url)
+    let niceUrl = urlToString(url)
+    if (niceUrl === "vieb://newtab") {
+        niceUrl = ""
+    }
+    document.getElementById("url").value = niceUrl
 }
 
 const addWebviewListeners = webview => {

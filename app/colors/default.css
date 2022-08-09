@@ -258,7 +258,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 .mouse-follow .follow-other-border:hover {background: var(--follow-other-hover);cursor: pointer;}
 /* notifications & map suggestions */
 #notifications, #app #mapsuggest {display: flex;position: fixed;flex-direction: column;z-index: 2;}
-#notifications > span, #app #mapsuggest {background: var(--bg);margin-bottom: .5em;padding: .5em;display: flex;min-width: 25em;width: 33vw;max-width: 100em;border: .1em solid var(--notification-border);overflow-wrap: anywhere;}
+#notifications > span, #app #mapsuggest {background: var(--bg);margin-bottom: .5em;padding: .5em;display: flex;min-width: 25em;width: 33vw;max-width: 100em;border: .1em solid var(--notification-border);overflow-wrap: anywhere;white-space: pre-wrap;}
 #notifications > span.permission {color: var(--notification-permission);}
 #notifications > span.dialog {color: var(--notification-dialog);}
 #notifications > span.error {color: var(--notification-error);}
@@ -386,7 +386,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #favorites, #topsites {margin: 1em 0;display: none;max-width: 80vw;min-width: 42em;width: auto;flex-grow: 1;flex-basis: 50%;}
 #newtabpage small {font-size: .7em;text-decoration: underline;}
 /* notifications */
-#notificationspage .notification {background: var(--special-page-element-bg);border: .1em solid var(--notification-border);margin: .35em 0;padding: .35em;overflow-wrap: anywhere;}
+#notificationspage .notification {background: var(--special-page-element-bg);border: .1em solid var(--notification-border);margin: .35em 0;padding: .35em;overflow-wrap: anywhere;white-space: pre-wrap;}
 #notificationspage .date {color: var(--notification-date);}
 #notificationspage .permission {color: var(--notification-permission);}
 #notificationspage .dialog {color: var(--notification-dialog);}
@@ -414,7 +414,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #loginpopup * {pointer-events: none;}
 #loginpopup p {word-wrap: break-word;overflow: hidden;}
 /* notification */
-#notificationpopup #notification {padding: 1em;height: calc(100% - 4.1em);overflow-wrap: break-word;overflow-x: hidden;overflow-y: auto;line-height: 1em;user-select: text;}
+#notificationpopup #notification {padding: 1em;height: calc(100% - 4.1em);overflow-wrap: break-word;overflow-x: hidden;overflow-y: auto;line-height: 1em;user-select: text;white-space: pre-wrap;}
 #notificationpopup footer {font-size: 1em;line-height: 2em;height: 2em;position: fixed;left: 0;bottom: 0;width: 100vw;border: .1em solid var(--notification-border);}
 
 

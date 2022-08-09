@@ -24,11 +24,14 @@ const {
     appData,
     makeDir,
     writeFile,
+    writeJSON,
     notify,
     watchFile,
     readFile,
+    readJSON,
     searchword,
     stringToUrl,
+    domainName,
     sendToPageOrSubFrame,
     isFile,
     isDir
@@ -334,8 +337,8 @@ const nextSearchMatch = () => {
     }
 }
 
-const refreshTab = (customPage = null) => {
-    const page = customPage || currentPage()
+const refreshTab = args => {
+    const page = args?.customPage || currentPage()
     if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
         page.reload()
         const {resetTabInfo} = require("./tabs")
@@ -385,8 +388,8 @@ const startFollowCurrentTab = () => {
     startFollow("current")
 }
 
-const backInHistory = (customPage = null) => {
-    const page = customPage || currentPage()
+const backInHistory = args => {
+    const page = args?.customPage || currentPage()
     if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
         if (page?.canGoBack()) {
             tabOrPageMatching(page).querySelector("span").textContent = ""
@@ -397,8 +400,8 @@ const backInHistory = (customPage = null) => {
     }
 }
 
-const forwardInHistory = (customPage = null) => {
-    const page = customPage || currentPage()
+const forwardInHistory = args => {
+    const page = args?.customPage || currentPage()
     if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
         if (page?.canGoForward()) {
             tabOrPageMatching(page).querySelector("span").textContent = ""
@@ -482,8 +485,8 @@ const moveTabStart = () => {
 
 const zoomReset = () => currentPage()?.setZoomLevel(0)
 
-const zoomOut = (customPage = null) => {
-    const page = customPage || currentPage()
+const zoomOut = args => {
+    const page = args?.customPage || currentPage()
     let level = page?.getZoomLevel() - 1
     if (level < -7) {
         level = -7
@@ -491,8 +494,8 @@ const zoomOut = (customPage = null) => {
     page?.setZoomLevel(level)
 }
 
-const zoomIn = (customPage = null) => {
-    const page = customPage || currentPage()
+const zoomIn = args => {
+    const page = args?.customPage || currentPage()
     let level = page?.getZoomLevel() + 1
     if (level > 7) {
         level = 7
@@ -741,8 +744,8 @@ const matchCase = () => {
     return !getSetting("ignorecase")
 }
 
-const incrementalSearch = (value = null) => {
-    currentSearch = value || document.getElementById("url").value
+const incrementalSearch = args => {
+    currentSearch = args?.value || document.getElementById("url").value
     if (currentSearch) {
         listPages().filter(p => p).forEach(page => {
             try {
@@ -809,6 +812,98 @@ const openFromClipboard = () => {
         const {navigateTo} = require("./tabs")
         navigateTo(stringToUrl(clipboard.readText()))
     }
+}
+
+const storeScrollPos = async args => {
+    const key = args?.key ?? args?.actionCallKeys?.at(-1)
+    if (!key) {
+        return
+    }
+    let scrollType = getSetting("scrollpostype")
+    if (scrollType !== "local" && scrollType !== "global") {
+        scrollType = "global"
+        if (key !== key.toUpperCase()) {
+            scrollType = "local"
+        }
+    }
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    if (!qm.scroll) {
+        qm.scroll = {"global": {}, "local": {}}
+    }
+    const pixels = await currentPage().executeJavaScript("window.scrollY")
+    if (args?.path === "global") {
+        scrollType = "global"
+    }
+    if (scrollType === "local") {
+        let path = ""
+        const scrollPosId = getSetting("scrollposlocalid")
+        if (scrollPosId === "domain") {
+            path = domainName(urlToString(currentPage().src))
+                || domainName(currentPage().src)
+        }
+        if (scrollPosId === "url" || !path) {
+            path = urlToString(currentPage().src) || currentPage().src
+        }
+        path = args?.path ?? path
+        if (!qm.scroll.local[path]) {
+            qm.scroll.local[path] = {}
+        }
+        qm.scroll.local[path][key] = args?.pixels ?? pixels
+    } else {
+        qm.scroll.global[key] = args?.pixels ?? pixels
+    }
+    writeJSON(joinPath(appData(), "quickmarks"), qm)
+}
+
+const restoreScrollPos = args => {
+    const key = args?.key ?? args?.actionCallKeys?.at(-1)
+    if (!key) {
+        return
+    }
+    const scrollPosId = getSetting("scrollposlocalid")
+    let path = ""
+    if (scrollPosId === "domain") {
+        path = domainName(urlToString(currentPage().src))
+            || domainName(currentPage().src)
+    }
+    if (scrollPosId === "url" || !path) {
+        path = urlToString(currentPage().src) || currentPage().src
+    }
+    path = args?.path ?? path
+    const qm = readJSON(joinPath(appData(), "quickmarks"))
+    const pixels = qm?.scroll?.local?.[path]?.[key] ?? qm?.scroll?.global?.[key]
+    if (pixels !== undefined) {
+        currentPage().executeJavaScript(`window.scrollTo(0, ${pixels})`)
+    }
+}
+
+const makeMark = args => {
+    const key = args?.key ?? args?.actionCallKeys?.at(-1)
+    if (!key) {
+        return
+    }
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    if (!qm.marks) {
+        qm.marks = {}
+    }
+    qm.marks[key] = urlToString(args?.url ?? currentPage().src)
+    writeJSON(joinPath(appData(), "quickmarks"), qm)
+}
+
+const restoreMark = args => {
+    const key = args?.key ?? args?.actionCallKeys?.at(-1)
+    if (!key) {
+        return
+    }
+    const qm = readJSON(joinPath(appData(), "quickmarks"))
+    const {commonAction} = require("./contextmenu")
+    let position = getSetting("markposition")
+    const shiftedPosition = getSetting("markpositionshifted")
+    if (key === key.toUpperCase() && shiftedPosition !== "default") {
+        position = shiftedPosition
+    }
+    position = args?.position ?? position
+    commonAction("link", position, {"link": qm?.marks?.[key]})
 }
 
 const reorderFollowLinks = () => {
@@ -986,6 +1081,7 @@ module.exports = {
     incrementalSearch,
     insertAtFirstInput,
     leftHalfSplitWindow,
+    makeMark,
     menuBottom,
     menuClose,
     menuDown,
@@ -1027,6 +1123,8 @@ module.exports = {
     reopenTab,
     reorderFollowLinks,
     repeatLastAction,
+    restoreMark,
+    restoreScrollPos,
     rightHalfSplitWindow,
     rotateSplitWindowBackward,
     rotateSplitWindowForward,
@@ -1051,6 +1149,7 @@ module.exports = {
     startFollowNewVerSplit,
     stopFollowMode,
     stopLoadingPage,
+    storeScrollPos,
     toBottomSplitWindow,
     toCommandMode,
     toExploreMode,

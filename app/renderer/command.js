@@ -42,7 +42,12 @@ const {
     appConfig,
     stringToUrl,
     formatDate,
-    propPixels
+    propPixels,
+    readJSON,
+    writeJSON,
+    domainName,
+    urlToString,
+    isUrl
 } = require("../util")
 const {
     listTabs, listPages, currentTab, currentPage, tabOrPageMatching, getSetting
@@ -269,6 +274,18 @@ const quit = () => {
 
 const quitall = () => {
     ipcRenderer.send("hide-window")
+    const keepQuickmarkNames = getSetting("quickmarkpersistence").split(",")
+    const clearMark = ["scroll", "marks", "pointer"]
+        .filter(t => !keepQuickmarkNames.includes(t))
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    for (const markType of clearMark) {
+        delete qm[markType]
+    }
+    if (Object.keys(qm).length > 0) {
+        writeJSON(joinPath(appData(), "quickmarks"), qm)
+    } else {
+        deleteFile(joinPath(appData(), "quickmarks"))
+    }
     if (getSetting("clearhistoryonquit")) {
         deleteFile(joinPath(appData(), "hist"))
     } else {
@@ -1001,6 +1018,418 @@ const tabnew = (session = null, url = null) => {
     addTab(options)
 }
 
+const marks = args => {
+    if (args.length > 2) {
+        notify("Command marks only accepts a maxmimum of two args", "warn")
+        return
+    }
+    if (args.length === 2) {
+        const {makeMark} = require("./actions")
+        if (isUrl(args[1])) {
+            makeMark({"key": args[0], "url": args[1]})
+        } else {
+            notify(`Mark url must be a valid url: ${args[1]}`, "warn")
+        }
+        return
+    }
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    const relevantMarks = []
+    const longest = Object.keys(qm.marks ?? {}).reduce((prev, curr) => {
+        if (curr.length > prev) {
+            return curr.length
+        }
+        return prev
+    }, 0) + 1
+    if (args.length === 0) {
+        for (const key of Object.keys(qm.marks ?? {})) {
+            relevantMarks.push(`${key.padEnd(longest)}${qm.marks[key]}`)
+        }
+    } else {
+        const [key] = args
+        if (qm.marks?.[key] !== undefined) {
+            relevantMarks.push(`${key.padEnd(longest)}${qm.marks[key]}`)
+        }
+    }
+    if (relevantMarks.length === 0) {
+        if (args.length && Object.keys(qm.marks ?? {}).length) {
+            notify("No marks found for current keys", "warn")
+        } else {
+            notify("No marks found", "warn")
+        }
+    } else {
+        notify(relevantMarks.join("\n"))
+    }
+}
+
+const restoremark = args => {
+    if (args.length > 2) {
+        notify("Command restoremark only accepts up to two args", "warn")
+        return
+    }
+    if (args.length === 0) {
+        notify("Command restoremark requires at least one key argument", "warn")
+        return
+    }
+    const {restoreMark} = require("./actions")
+    const {validOptions} = require("./settings")
+    const [key, position] = args
+    if (position && !validOptions.markpositionshifted.includes(position)) {
+        notify("Invalid mark restore position, must be one of: "
+            + `${validOptions.markpositionshifted.join(", ")}`, "warn")
+    }
+    restoreMark({key, position})
+}
+
+const delmarks = (all, args) => {
+    if (all && args.length) {
+        notify("Command takes no arguments: delmarks!", "warn")
+        return
+    }
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    if (all) {
+        qm.marks = {}
+        writeJSON(joinPath(appData(), "quickmarks"), qm)
+        return
+    }
+    if (args.length !== 1) {
+        notify("Command delmarks only accepts a single keyname", "warn")
+        return
+    }
+    const [key] = args
+    if (qm.marks?.[key] !== undefined) {
+        delete qm.marks[key]
+    }
+    writeJSON(joinPath(appData(), "quickmarks"), qm)
+}
+
+const scrollpos = args => {
+    if (args.length > 3) {
+        notify("Command scrollpos only accepts a maxmimum of three args",
+            "warn")
+        return
+    }
+    if (args.length === 2 || args.length === 3) {
+        const {storeScrollPos} = require("./actions")
+        const [key, pathOrPixels, pixelsOrPath] = args
+        let pixels = pathOrPixels
+        let path = pixelsOrPath
+        if (pixels !== undefined) {
+            if (isNaN(Number(pixels))) {
+                pixels = pixelsOrPath
+                path = pathOrPixels
+            }
+            if (isNaN(Number(pixels))) {
+                notify("Command scrollpos requires at least one pixels "
+                    + "arg after the key", "warn")
+                return
+            }
+        }
+        if (pixels !== undefined) {
+            pixels = Number(pixels)
+        }
+        storeScrollPos({key, path, pixels})
+        return
+    }
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    if (!qm.scroll) {
+        qm.scroll = {"global": {}, "local": {}}
+    }
+    const relevantPos = []
+    const longest = [
+        ...Object.keys(qm.scroll.global),
+        ...Object.values(qm.scroll.local).reduce(
+            (prev, curr) => prev.concat(Object.keys(curr)), [])
+    ].reduce((prev, curr) => {
+        if (curr.length > prev) {
+            return curr.length
+        }
+        return prev
+    }, 0) + 1
+    if (args.length === 0) {
+        for (const key of Object.keys(qm.scroll.global)) {
+            relevantPos.push(`${key.padEnd(longest)}${qm.scroll.global[key]}`)
+        }
+        for (const domain of Object.keys(qm.scroll.local)) {
+            for (const key of Object.keys(qm.scroll.local[domain])) {
+                relevantPos.push(`${key.padEnd(longest)}${
+                    String(qm.scroll.local[domain][key]).padEnd(7)}${domain}`)
+            }
+        }
+    } else {
+        const [key] = args
+        if (qm.scroll.global[key] !== undefined) {
+            relevantPos.push(`${key.padEnd(longest)}${qm.scroll.global[key]}`)
+        }
+        for (const domain of Object.keys(qm.scroll.local)) {
+            if (qm.scroll.local[domain][key] !== undefined) {
+                relevantPos.push(`${key.padEnd(longest)}${
+                    String(qm.scroll.local[domain][key]).padEnd(7)}${domain}`)
+            }
+        }
+    }
+    if (relevantPos.length === 0) {
+        const notEmpty = Object.keys(qm.scroll.global).length
+            || Object.keys(qm.scroll.local).length
+        if (args.length && notEmpty) {
+            notify("No scroll positions found for current keys", "warn")
+        } else {
+            notify("No scroll positions found", "warn")
+        }
+    } else {
+        notify(relevantPos.join("\n"))
+    }
+}
+
+const restorescrollpos = args => {
+    if (args.length > 2) {
+        notify("Command restorescrollpos only accepts up to two args", "warn")
+        return
+    }
+    if (args.length === 0) {
+        notify("Command restorescrollpos requires at least one key argument",
+            "warn")
+        return
+    }
+    const {restoreScrollPos} = require("./actions")
+    const [key, path] = args
+    restoreScrollPos({key, path})
+}
+
+const delscrollpos = (all, args) => {
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    if (!qm.scroll) {
+        qm.scroll = {"global": {}, "local": {}}
+    }
+    const scrollPosId = getSetting("scrollposlocalid")
+    let path = ""
+    if (scrollPosId === "domain") {
+        path = domainName(urlToString(currentPage().src))
+            || domainName(currentPage().src)
+    }
+    if (scrollPosId === "url" || !path) {
+        path = urlToString(currentPage().src) || currentPage().src
+    }
+    if (all) {
+        if (args.length > 1) {
+            notify("Command delscrollpos! only accepts a single path", "warn")
+            return
+        }
+        if (args[0] === "*") {
+            delete qm.scroll
+        } else if (args[0] === "global") {
+            delete qm.scroll.global
+        } else if (args[0] === "local") {
+            delete qm.scroll.local
+        } else if (args[0]) {
+            if (qm.scroll.local[args[0]]) {
+                delete qm.scroll.local[args[0]]
+            }
+        } else {
+            delete qm.scroll.local[path]
+        }
+        writeJSON(joinPath(appData(), "quickmarks"), qm)
+        return
+    }
+    if (args.length === 0) {
+        notify("Command delscrollpos requires at least the key", "warn")
+        return
+    }
+    if (args.length > 2) {
+        notify("Command delscrollpos only accepts a key and an optional path",
+            "warn")
+        return
+    }
+    if (args[1]) {
+        [, path] = args
+    }
+    if (path === "*") {
+        for (const localPath of Object.keys(qm.scroll.local)) {
+            if (qm.scroll.local[localPath]?.[args[0]] !== undefined) {
+                delete qm.scroll.local[localPath][args[0]]
+            }
+            if (Object.keys(qm.scroll.local[localPath]).length === 0) {
+                delete qm.scroll.local[localPath]
+            }
+        }
+    } else if (qm.scroll.local[path]?.[args[0]] !== undefined) {
+        delete qm.scroll.local[path][args[0]]
+        if (Object.keys(qm.scroll.local[path]).length === 0) {
+            delete qm.scroll.local[path]
+        }
+    }
+    if (qm.scroll.global[args[0]] !== undefined) {
+        delete qm.scroll.global[args[0]]
+    }
+    if (Object.keys(qm.scroll.local).length === 0) {
+        if (Object.keys(qm.scroll.global).length === 0) {
+            delete qm.scroll
+        }
+    }
+    writeJSON(joinPath(appData(), "quickmarks"), qm)
+}
+
+const pointerpos = args => {
+    if (args.length > 4) {
+        notify("Command pointerpos only accepts a maxmimum of three args",
+            "warn")
+        return
+    }
+    if (args.length > 1) {
+        const {storePos} = require("./pointer")
+        const [key, x, y, path] = args
+        const location = {"x": Number(x), "y": Number(y)}
+        if (isNaN(location.x) || isNaN(location.y)) {
+            notify("Command pointerpos requires the x and y "
+                + "location after the key", "warn")
+            return
+        }
+        storePos({key, location, path})
+        return
+    }
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    if (!qm.pointer) {
+        qm.pointer = {"global": {}, "local": {}}
+    }
+    const relevantPos = []
+    const longest = [
+        ...Object.keys(qm.pointer.global),
+        ...Object.values(qm.pointer.local).reduce(
+            (prev, curr) => prev.concat(Object.keys(curr)), [])
+    ].reduce((prev, curr) => {
+        if (curr.length > prev) {
+            return curr.length
+        }
+        return prev
+    }, 0) + 1
+    if (args.length === 0) {
+        for (const key of Object.keys(qm.pointer.global)) {
+            const {x, y} = qm.pointer.global[key]
+            relevantPos.push(`${key.padEnd(longest)}${String(x).padEnd(7)}${
+                String(y).padEnd(7)}`)
+        }
+        for (const domain of Object.keys(qm.pointer.local)) {
+            for (const key of Object.keys(qm.pointer.local[domain])) {
+                const {x, y} = qm.pointer.local[domain][key]
+                relevantPos.push(`${key.padEnd(longest)}${String(x).padEnd(7)}${
+                    String(y).padEnd(7)}${domain}`)
+            }
+        }
+    } else {
+        const [key] = args
+        if (qm.pointer.global[key] !== undefined) {
+            const {x, y} = qm.pointer.global[key]
+            relevantPos.push(`${key.padEnd(longest)}${String(x).padEnd(7)}${
+                String(y).padEnd(7)}`)
+        }
+        for (const domain of Object.keys(qm.pointer.local)) {
+            if (qm.pointer.local[domain][key] !== undefined) {
+                const {x, y} = qm.pointer.local[domain][key]
+                relevantPos.push(`${key.padEnd(longest)}${String(x).padEnd(7)}${
+                    String(y).padEnd(7)}${domain}`)
+            }
+        }
+    }
+    if (relevantPos.length === 0) {
+        const notEmpty = Object.keys(qm.pointer.global).length
+            || Object.keys(qm.pointer.local).length
+        if (args.length && notEmpty) {
+            notify("No pointer positions found for current keys", "warn")
+        } else {
+            notify("No pointer positions found", "warn")
+        }
+    } else {
+        notify(relevantPos.join("\n"))
+    }
+}
+
+const restorepointerpos = args => {
+    if (args.length > 2) {
+        notify("Command restorepointerpos only accepts up to two args", "warn")
+        return
+    }
+    if (args.length === 0) {
+        notify("Command restorepointerpos requires at least one key argument",
+            "warn")
+        return
+    }
+    const {restorePos} = require("./pointer")
+    const [key, path] = args
+    restorePos({key, path})
+}
+
+const delpointerpos = (all, args) => {
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    if (!qm.pointer) {
+        qm.pointer = {"global": {}, "local": {}}
+    }
+    const pointerPosId = getSetting("pointerposlocalid")
+    let path = ""
+    if (pointerPosId === "domain") {
+        path = domainName(urlToString(currentPage().src))
+            || domainName(currentPage().src)
+    }
+    if (pointerPosId === "url" || !path) {
+        path = urlToString(currentPage().src) || currentPage().src
+    }
+    if (all) {
+        if (args.length > 1) {
+            notify("Command delpointerpos! only accepts a single path", "warn")
+            return
+        }
+        if (args[0] === "*") {
+            delete qm.pointer
+        } else if (args[0] === "global") {
+            delete qm.pointer.global
+        } else if (args[0] === "local") {
+            delete qm.pointer.local
+        } else if (args[0]) {
+            if (qm.pointer.local[args[0]]) {
+                delete qm.pointer.local[args[0]]
+            }
+        } else {
+            delete qm.pointer.local[path]
+        }
+        writeJSON(joinPath(appData(), "quickmarks"), qm)
+        return
+    }
+    if (args.length === 0) {
+        notify("Command delpointerpos requires at least the key", "warn")
+        return
+    }
+    if (args.length > 2) {
+        notify("Command delpointerpos only accepts a key and an optional path",
+            "warn")
+        return
+    }
+    if (args[1]) {
+        [, path] = args
+    }
+    if (path === "*") {
+        for (const localPath of Object.keys(qm.pointer.local)) {
+            if (qm.pointer.local[localPath]?.[args[0]] !== undefined) {
+                delete qm.pointer.local[localPath][args[0]]
+            }
+            if (Object.keys(qm.pointer.local[localPath]).length === 0) {
+                delete qm.pointer.local[localPath]
+            }
+        }
+    } else if (qm.pointer.local[path]?.[args[0]] !== undefined) {
+        delete qm.pointer.local[path][args[0]]
+        if (Object.keys(qm.pointer.local[path]).length === 0) {
+            delete qm.pointer.local[path]
+        }
+    }
+    if (qm.pointer.global[args[0]] !== undefined) {
+        delete qm.pointer.global[args[0]]
+    }
+    if (Object.keys(qm.pointer.local).length === 0) {
+        if (Object.keys(qm.pointer.global).length === 0) {
+            delete qm.pointer
+        }
+    }
+    writeJSON(joinPath(appData(), "quickmarks"), qm)
+}
+
 const noEscapeCommands = ["command", "delcommand"]
 const rangeCompatibleCommands = [
     "Sexplore",
@@ -1062,6 +1491,12 @@ const commands = {
     "cookies": () => openSpecialPage("cookies"),
     "d": () => openSpecialPage("downloads"),
     "delcommand": ({args}) => deleteCommand(args),
+    "delmarks": ({args}) => delmarks(false, args),
+    "delmarks!": ({args}) => delmarks(true, args),
+    "delpointerpos": ({args}) => delpointerpos(false, args),
+    "delpointerpos!": ({args}) => delpointerpos(true, args),
+    "delscrollpos": ({args}) => delscrollpos(false, args),
+    "delscrollpos!": ({args}) => delscrollpos(true, args),
     "devtools": ({args}) => openDevTools(...args),
     "downloads": () => openSpecialPage("downloads"),
     "h": ({args}) => help(...args),
@@ -1073,6 +1508,7 @@ const commands = {
     "lclose": () => lclose(),
     "lclose!": () => lclose(true),
     makedefault,
+    "marks": ({args}) => marks(args),
     "mkviebrc": ({args}) => mkviebrc(...args),
     "mute": ({args, range}) => mute(args, range),
     "nohlsearch": () => {
@@ -1092,6 +1528,7 @@ const commands = {
     },
     "open": ({args}) => open(args),
     "pin": ({args, range}) => pin(args, range),
+    "pointerpos": ({args}) => pointerpos(args),
     "print": ({range}) => hardcopy(range),
     "q": ({range}) => quit(range),
     "qa": quitall,
@@ -1101,13 +1538,16 @@ const commands = {
     "rclose!": () => rclose(true),
     reloadconfig,
     restart,
+    "restoremark": ({args}) => restoremark(args),
+    "restorepointerpos": ({args}) => restorepointerpos(args),
+    "restorescrollpos": ({args}) => restorescrollpos(args),
     "runjsinpage": ({raw, range}) => runjsinpage(raw, range),
     "s": ({args}) => set(args),
     "screencopy": ({args}) => screencopy(args),
     "screenshot": ({args}) => screenshot(args),
     "scriptnames": ({args}) => {
         if (args?.length) {
-            notify(`Command takes no arguments: scriptnames`, "warn")
+            notify("Command takes no arguments: scriptnames", "warn")
             return
         }
         notify(appConfig().files.map((f, i) => `${i + 1}: ${f}`).join("\n"))
@@ -1141,6 +1581,7 @@ const commands = {
                 "warn")
         }
     },
+    "scrollpos": ({args}) => scrollpos(args),
     "set": ({args}) => set(args),
     "source": ({args}) => source(null, args),
     "split": ({args, range}) => addSplit(
