@@ -1,1 +1,0 @@
-add M<Any> mappings to pointer mode, which store the xy position
