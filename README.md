@@ -111,16 +111,12 @@ npm ci
 npm start
 ```
 
-If this runs Vieb as expected, you can generate builds for your platform with `npm run build`.
-To see the full list of run and build options, simply execute `npm run`.
-The entire configuration for what to build is stored in the `electron-builder.yml` config file,
+If this runs Vieb as expected, you can generate builds for your platform with `node build`.
+To see the full list of run and build options, simply execute `node build --help`.
+The base configuration for what to build is stored in the `electron-builder.yml` config file,
 in combination with the `build.js` script and the `webpack.config.js`.
-Custom builds are also available: lite builds do not install the `node_modules`,
-while debug builds will use the source files directly and are not minified with webpack.
-For creating lite builds or debug builds, pass flags like so: `npm run build -- --lite`,
-or use `--lite-only`, `--debug` or `--debug-only`.
 The `build.js` script is the starting point for creating custom builds,
-you can easily extend this script with new configurations.
+you can easily extend the `releases` object in this script with new configurations.
 
 # License
 
