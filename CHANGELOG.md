@@ -45,6 +45,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - All runtime dependencies are now loaded safely, and will show a message when missing (this makes ALL dependencies optional)
 - Custom icon and name are now shown on the version page as well
 - Only include en-US locale in builds to decrease build size significantly
+- Invalid or missing chrome:// pages are now redirected to their Vieb counterpart (if it exists) or the help page
 
 ### Removed
 

@@ -704,6 +704,12 @@ const addWebviewListeners = webview => {
                 .textContent = urlToString(e.validatedURL)
             return
         }
+        if (e.validatedURL.startsWith("chrome://")) {
+            const page = e.validatedURL.replace(
+                "chrome://", "").replace(/\/$/, "")
+            webview.src = specialPagePath(page)
+            return
+        }
         // If the path is a directory, show a list of files instead of an error
         if (e.errorDescription === "ERR_FILE_NOT_FOUND") {
             // Any number of slashes after file is fine
