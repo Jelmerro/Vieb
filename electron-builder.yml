@@ -69,6 +69,7 @@ files:
     - "app/defaultapp/windows.bat"
     - "app/examples/*"
     - "app/img/*.*"
+    - "!app/img/cheatsheet.svg"
 fileAssociations:
   - name: HyperText Markup File
     ext: html

@@ -64,7 +64,8 @@ const liteBuild = async() => console.info(await builder.build({
             "app/**/*.css",
             "app/defaultapp/windows.bat",
             "app/examples/*",
-            "app/img/*.*"
+            "app/img/*.*",
+            "!app/img/cheatsheet.svg"
         ],
         "linux": {
             "executableName": "vieb-lite"
