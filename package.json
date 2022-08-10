@@ -6,7 +6,7 @@
   "main": "app/index.js",
   "scripts": {
     "build": "node build.js",
-    "buildall": "node build.js --linux --win --mac --lite",
+    "buildall": "node build.js --linux --win --mac",
     "buildlinux": "node build.js --linux",
     "buildmac": "node build.js --mac",
     "buildwin": "node build.js --win",
@@ -34,7 +34,10 @@
     "eslint": "8.21.0",
     "eslint-plugin-sort-keys": "2.3.5",
     "jest": "28.1.3",
-    "jest-environment-jsdom": "28.1.3"
+    "jest-environment-jsdom": "28.1.3",
+    "webpack": "5.74.0",
+    "webpack-cli": "4.10.0",
+    "webpack-node-externals": "3.0.0"
   },
   "dependencies": {
     "@cliqz/adblocker-electron": "1.23.8",

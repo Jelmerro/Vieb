@@ -58,18 +58,6 @@ nsis:
   differentialPackage: false
   oneClick: false
   license: LICENSE
-files:
-  filter:
-    - "app/**/*.js"
-    - "!app/**/*.test.js"
-    - "app/**/*.html"
-    - "app/**/*.css"
-    - "app/blocklists/resources"
-    - "app/blocklists/*.txt"
-    - "app/defaultapp/windows.bat"
-    - "app/examples/*"
-    - "app/img/*.*"
-    - "!app/img/cheatsheet.svg"
 fileAssociations:
   - name: HyperText Markup File
     ext: html

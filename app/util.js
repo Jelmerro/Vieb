@@ -115,8 +115,12 @@ const specialPagePath = (userPage, section = null, skipExistCheck = false) => {
     if (!specialPages.includes(userPage) && !skipExistCheck) {
         page = "help"
     }
-    const url = joinPath(__dirname, `./pages/${page}.html`)
+    let url = joinPath(__dirname, `./pages/${page}.html`)
         .replace(/\\/g, "/").replace(/^\/*/g, "")
+    if (isDir(joinPath(__dirname, "../pages"))) {
+        url = joinPath(__dirname, `../pages/${page}.html`)
+            .replace(/\\/g, "/").replace(/^\/*/g, "")
+    }
     if (section) {
         if (section.startsWith("#")) {
             return `file:///${url}${section}`

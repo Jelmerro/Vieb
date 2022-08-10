@@ -515,7 +515,7 @@ app.on("ready", () => {
         "webPreferences": {
             "disableBlinkFeatures": "Auxclick",
             "partition": "login",
-            "preload": joinPath(__dirname, "preload/loginpopup.js")
+            "preload": joinPath(__dirname, "popups/login.js")
         }
     }
     loginWindow = new BrowserWindow(loginWindowData)
@@ -543,7 +543,7 @@ app.on("ready", () => {
         "webPreferences": {
             "disableBlinkFeatures": "Auxclick",
             "partition": "notification-window",
-            "preload": joinPath(__dirname, "preload/notificationpopup.js")
+            "preload": joinPath(__dirname, "popups/notification.js")
         }
     }
     notificationWindow = new BrowserWindow(notificationWindowData)
@@ -572,7 +572,7 @@ app.on("ready", () => {
         "webPreferences": {
             "disableBlinkFeatures": "Auxclick",
             "partition": "prompt",
-            "preload": joinPath(__dirname, "preload/promptpopup.js")
+            "preload": joinPath(__dirname, "popups/prompt.js")
         }
     }
     promptWindow = new BrowserWindow(promptWindowData)
@@ -691,12 +691,8 @@ let redirects = ""
 let blocker = null
 let permissions = {}
 const sessionList = []
-let adblockerPreload = null
-try {
-    adblockerPreload = require.resolve("@cliqz/adblocker-electron-preload")
-} catch {
-    // Adblocker module not present, skipping initialization
-}
+const adblockerPreload = joinPath(__dirname,
+    "../node_modules/@cliqz/adblocker-electron-preload/dist/preload.cjs")
 const defaultCss = readFile(joinPath(__dirname, `colors/default.css`))
 ipcMain.on("set-redirects", (_, rdr) => {
     redirects = rdr
@@ -960,6 +956,14 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 </body></html>`)
             return
         }
+        if (!hljs) {
+            call(`<!DOCTPYE html>\n<html><head>
+                <style>${defaultCss}</style>
+                <title>${encodeURI(req.url)}</title>
+                </head><body>Source viewer module not present, can't view source
+                </body></html>`)
+            return
+        }
         if (isFile(loc)) {
             const hl = hljs.highlightAuto(readFile(loc))
             call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
@@ -1013,6 +1017,14 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         try {
             ({marked} = require("marked"))
         } catch {
+            call(`<!DOCTPYE html>\n<html><head>
+                <style>${defaultCss}</style>
+                <title>${encodeURI(req.url)}</title></head>
+                <body>Markdown viewer module not present, can't view markdown
+                </body></html>`)
+            return
+        }
+        if (!marked) {
             call(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
                 <title>${encodeURI(req.url)}</title></head>
@@ -1100,6 +1112,14 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             ({Readability} = require("@mozilla/readability"))
             ;({JSDOM} = require("jsdom"))
         } catch (e) {
+            call(`<!DOCTPYE html>\n<html><head>
+                <style>${defaultCss}</style>
+                <title>${encodeURI(req.url)}</title>
+                </head><body>Reader view module not present, can't do readerview
+                </body></html>`)
+            return
+        }
+        if (!Readability || !JSDOM) {
             call(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
                 <title>${encodeURI(req.url)}</title>
@@ -1403,7 +1423,7 @@ const reloadAdblocker = () => {
     } catch {
         // Adblocker module not present, skipping initialization
     }
-    if (!ElectronBlocker || !adblockerPreload) {
+    if (!ElectronBlocker || !isFile(`${adblockerPreload}.js`)) {
         mainWindow.webContents.send("notify",
             "Adblocker module not present, ads will not be blocked!", "err")
         return
