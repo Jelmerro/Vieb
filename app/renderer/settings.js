@@ -1128,6 +1128,11 @@ const suggestionList = () => {
 const loadFromDisk = (firstRun = true) => {
     const {pause, resume} = require("./commandhistory")
     pause()
+    const {files, islite} = appConfig()
+    if (islite) {
+        defaultSettings.adblocker = "off"
+        validOptions.adblocker = ["off"]
+    }
     if (firstRun) {
         allSettings = JSON.parse(JSON.stringify(defaultSettings))
         sessionStorage.setItem("settings", JSON.stringify(allSettings))
@@ -1139,12 +1144,6 @@ const loadFromDisk = (firstRun = true) => {
         set("permissionnotifications", "allow")
         set("permissionmediadevices", "allowfull")
         set("permissionmicrophone", "allow")
-    }
-    const {files, islite} = appConfig()
-    if (islite) {
-        defaultSettings.adblocker = "off"
-        allSettings.adblocker = "off"
-        validOptions.adblocker = ["off"]
     }
     for (const conf of files) {
         if (isFile(conf)) {

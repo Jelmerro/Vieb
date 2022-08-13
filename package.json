@@ -25,12 +25,13 @@
   "funding": "https://github.com/sponsors/Jelmerro/",
   "license": "GPL-3.0-or-later",
   "devDependencies": {
-    "electron": "20.0.1",
+    "electron": "20.0.2",
     "electron-builder": "23.3.3",
     "eslint": "8.21.0",
     "eslint-plugin-sort-keys": "2.3.5",
     "jest": "28.1.3",
     "jest-environment-jsdom": "28.1.3",
+    "terser-webpack-plugin": "5.3.3",
     "webpack": "5.74.0",
     "webpack-cli": "4.10.0",
     "webpack-node-externals": "3.0.0"
@@ -39,7 +40,7 @@
     "@cliqz/adblocker-electron": "1.23.8",
     "@cliqz/adblocker-electron-preload": "1.23.8",
     "@mozilla/readability": "0.4.2",
-    "darkreader": "4.9.53",
+    "darkreader": "4.9.55",
     "highlight.js": "11.6.0",
     "jsdom": "20.0.0",
     "marked": "4.0.18"

@@ -1,6 +1,7 @@
 "use strict"
 
 const {join} = require("path")
+const TerserPlugin = require("terser-webpack-plugin")
 
 module.exports = [{
     "entry": {
@@ -19,6 +20,17 @@ module.exports = [{
         "__dirname": false
     },
     "optimization": {
+        "minimize": true,
+        "minimizer": [
+            new TerserPlugin({
+                "extractComments": false,
+                "terserOptions": {
+                    "format": {
+                        "comments": false
+                    }
+                }
+            })
+        ],
         "moduleIds": "named"
     },
     "output": {

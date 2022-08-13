@@ -17,10 +17,7 @@
 */
 "use strict"
 
-const builder = require("electron-builder")
-const webpack = require("webpack")
 const {rmSync, readdir, unlinkSync} = require("fs")
-const webpackConfig = require("./webpack.config")
 const defaultConfig = {"config": {
     "afterPack": context => {
         const localeDir = `${context.appOutDir}/locales/`
@@ -39,7 +36,7 @@ const defaultConfig = {"config": {
         "app/img/*.*",
         "!app/img/cheatsheet.svg",
         "app/popups/*.js",
-        {"filter": "**/*.js", "from": "build/main/", "to": "app/"},
+        {"from": "build/main/", "to": "app/"},
         {"from": "app/index.html", "to": "app/index.html"},
         {"from": "build/renderer/", "to": "app/renderer/"},
         {"from": "build/preload/", "to": "app/preload/"},
@@ -174,7 +171,7 @@ for (const a of process.argv.slice(2)) {
     }
 }
 const mergeWPConfig = overrides => {
-    const mergedConfig = JSON.parse(JSON.stringify(webpackConfig))
+    const mergedConfig = require("./webpack.config")
     return [{...mergedConfig[0], ...overrides}]
 }
 const mergeEBConfig = overrides => {
@@ -183,6 +180,7 @@ const mergeEBConfig = overrides => {
     return {...mergedConfig, "config": {...mergedConfig.config, ...overrides}}
 }
 const webpackBuild = overrides => new Promise((res, rej) => {
+    const webpack = require("webpack")
     webpack(mergeWPConfig(overrides)).run((webpackErr, stats) => {
         console.info(stats.toString({"colors": true}))
         if (webpackErr || stats.hasErrors()) {
@@ -196,7 +194,11 @@ const generateBuild = async release => {
     if (release.webpack !== false) {
         await webpackBuild(release.webpack || {})
     }
+    if (release.ebuilder === false) {
+        return
+    }
     try {
+        const builder = require("electron-builder")
         const res = await builder.build(mergeEBConfig(release.ebuilder || {}))
         console.info(res)
     } finally {
