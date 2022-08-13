@@ -102,9 +102,11 @@ const loadThemes = (loadedFully = false) => {
         const htmlBGImg = getComputedStyle(html).backgroundImage
         const bodyBGImg = getComputedStyle(document.body).backgroundImage
         const unset = "rgba(0, 0, 0, 0)"
+        const darkPage = document.querySelector(
+            "head meta[name='color-scheme'][content~='dark']")
         const noXMLButHasDiv = !document.querySelector("style#xml-viewer-style")
-        && document.querySelector("div")
-        if (htmlBG.includes(unset) && bodyBG.includes(unset)) {
+            && document.querySelector("div")
+        if (htmlBG.includes(unset) && bodyBG.includes(unset) && !darkPage) {
             if (htmlBGImg === "none" && bodyBGImg === "none") {
                 if (noXMLButHasDiv) {
                     html.style.background = "white"

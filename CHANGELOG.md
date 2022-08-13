@@ -59,6 +59,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Race condition in opening new tabs with urls that would sometimes unsuspend them twice
 - White background on some pages that load page styling async and in reloaded iframes
 - Error popup from the main thread regarding discarded frames
+- White background on pages with dark color-scheme preference and no custom styling
 
 ### Versions
 
