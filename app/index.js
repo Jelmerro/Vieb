@@ -309,11 +309,11 @@ if (!argMediaKeys) {
         "CrossOriginOpenerPolicy,HardwareMediaKeyHandling,UserAgentClientHint")
 }
 app.commandLine.appendSwitch("lang", "en-US")
+argDatafolder = `${joinPath(expandPath(argDatafolder.trim()))}/`
 const partitionDir = joinPath(argDatafolder, "Partitions")
 listDir(partitionDir, false, true)?.filter(part => part.startsWith("temp"))
     .map(part => joinPath(partitionDir, part)).forEach(part => rm(part))
 rm(joinPath(argDatafolder, "erwicmode"))
-argDatafolder = `${joinPath(expandPath(argDatafolder.trim()))}/`
 app.setPath("appData", argDatafolder)
 app.setPath("userData", argDatafolder)
 applyDevtoolsSettings(joinPath(argDatafolder, "Preferences"))
@@ -692,7 +692,7 @@ let blocker = null
 let permissions = {}
 const sessionList = []
 const adblockerPreload = joinPath(__dirname,
-    "../node_modules/@cliqz/adblocker-electron-preload/dist/preload.cjs")
+    "../node_modules/@cliqz/adblocker-electron-preload/dist/preload.cjs.js")
 const defaultCss = readFile(joinPath(__dirname, `colors/default.css`))
 ipcMain.on("set-redirects", (_, rdr) => {
     redirects = rdr
@@ -1423,7 +1423,7 @@ const reloadAdblocker = () => {
     } catch {
         // Adblocker module not present, skipping initialization
     }
-    if (!ElectronBlocker || !isFile(`${adblockerPreload}.js`)) {
+    if (!ElectronBlocker || !isFile(adblockerPreload)) {
         mainWindow.webContents.send("notify",
             "Adblocker module not present, ads will not be blocked!", "err")
         return
@@ -1685,19 +1685,34 @@ ipcMain.on("mouse-location", e => {
 
 // Subframe/iframe related code to send from renderer to frames and vice versa
 ipcMain.on("follow-mode-start", (_, id, followTypeFilter, switchTo = false) => {
-    webContents.fromId(id).mainFrame.framesInSubtree.forEach(
-        f => f.send("follow-mode-start", followTypeFilter))
-    if (switchTo) {
-        allLinks = []
+    try {
+        webContents.fromId(id).mainFrame.framesInSubtree.forEach(
+            f => f.send("follow-mode-start", followTypeFilter))
+        if (switchTo) {
+            allLinks = []
+        }
+    } catch (ex) {
+        mainWindow.webContents.send("main-error", ex.stack)
     }
 })
 ipcMain.on("follow-mode-stop", e => {
-    e.sender.mainFrame.framesInSubtree.forEach(f => f.send("follow-mode-stop"))
+    try {
+        e.sender.mainFrame.framesInSubtree.forEach(
+            f => f.send("follow-mode-stop"))
+    } catch (ex) {
+        mainWindow.webContents.send("main-error", ex.stack)
+    }
 })
 let allLinks = []
 const frameInfo = {}
 ipcMain.on("frame-details", (e, details) => {
-    const frameId = `${e.frameId}-${e.processId}`
+    let frameId = null
+    try {
+        frameId = `${e.frameId}-${e.processId}`
+    } catch (ex) {
+        mainWindow.webContents.send("main-error", ex.stack)
+        return
+    }
     if (!frameInfo[frameId]) {
         frameInfo[frameId] = {}
     }
@@ -1728,7 +1743,13 @@ ipcMain.on("frame-details", (e, details) => {
     })
 })
 ipcMain.on("follow-response", (e, rawLinks) => {
-    const frameId = `${e.frameId}-${e.processId}`
+    let frameId = null
+    try {
+        frameId = `${e.frameId}-${e.processId}`
+    } catch (ex) {
+        mainWindow.webContents.send("main-error", ex.stack)
+        return
+    }
     const info = frameInfo[frameId]
     let frameX = info?.x || 0
     let frameY = info?.y || 0
@@ -1761,63 +1782,76 @@ ipcMain.on("follow-response", (e, rawLinks) => {
         return l.yInFrame < l.frameUsableHeight
             && l.xInFrame < l.frameUsableWidth
     })
-    const allFramesIds = mainWindow.webContents.mainFrame
-        .framesInSubtree.map(f => `${f.routingId}-${f.processId}`)
-    allLinks = allLinks.filter(l => l.frameId !== frameId
-        && allFramesIds.includes(l.frameId))
-    allLinks = allLinks.concat(frameLinks)
-    mainWindow.webContents.send("follow-response", allLinks)
+    try {
+        const allFramesIds = mainWindow.webContents.mainFrame
+            .framesInSubtree.map(f => `${f.routingId}-${f.processId}`)
+        allLinks = allLinks.filter(l => l.frameId !== frameId
+            && allFramesIds.includes(l.frameId))
+        allLinks = allLinks.concat(frameLinks)
+        mainWindow.webContents.send("follow-response", allLinks)
+    } catch (ex) {
+        mainWindow.webContents.send("main-error", ex.stack)
+    }
 })
 const findRelevantSubFrame = (wc, x, y) => {
-    const absoluteFrames = wc.mainFrame.framesInSubtree.map(f => {
-        const id = `${f.routingId}-${f.processId}`
-        const info = frameInfo[id]
-        if (!info?.parent) {
-            return null
-        }
-        info.absX = info.x
-        info.absY = info.y
-        let parent = frameInfo[info.parent]
-        while (parent) {
-            info.absX += parent.x || 0
-            info.absY += parent.y || 0
-            parent = frameInfo[parent]
-        }
-        return info
-    }).filter(f => f)
-    let relevantFrame = null
-    absoluteFrames.forEach(info => {
-        if (info.absX < x && info.absY < y) {
-            if (info.absX + info.width > x && info.absY + info.height > y) {
-                if (relevantFrame) {
-                    if (relevantFrame.width > info.width) {
-                        // A smaller frame means a subframe, use that instead
+    try {
+        const absoluteFrames = wc.mainFrame.framesInSubtree.map(f => {
+            const id = `${f.routingId}-${f.processId}`
+            const info = frameInfo[id]
+            if (!info?.parent) {
+                return null
+            }
+            info.absX = info.x
+            info.absY = info.y
+            let parent = frameInfo[info.parent]
+            while (parent) {
+                info.absX += parent.x || 0
+                info.absY += parent.y || 0
+                parent = frameInfo[parent]
+            }
+            return info
+        }).filter(f => f)
+        let relevantFrame = null
+        absoluteFrames.forEach(info => {
+            if (info.absX < x && info.absY < y) {
+                if (info.absX + info.width > x && info.absY + info.height > y) {
+                    if (relevantFrame) {
+                        if (relevantFrame.width > info.width) {
+                            // A smaller frame means a subframe, use it
+                            relevantFrame = info
+                        }
+                    } else {
                         relevantFrame = info
                     }
-                } else {
-                    relevantFrame = info
                 }
             }
-        }
-    })
-    return relevantFrame
+        })
+        return relevantFrame
+    } catch (ex) {
+        mainWindow.webContents.send("main-error", ex.stack)
+        return null
+    }
 }
 ipcMain.on("action", (_, id, actionName, ...opts) => {
     const wc = webContents.fromId(id)
     if (typeof opts[0] === "number" && typeof opts[1] === "number") {
         const subframe = findRelevantSubFrame(wc, opts[0], opts[1])
         if (subframe) {
-            const frameRef = wc.mainFrame.framesInSubtree.find(f => {
-                const frameId = `${f.routingId}-${f.processId}`
-                return frameId === subframe.id
-            })
-            if (actionName === "selectionRequest") {
-                frameRef.send("action", actionName,
-                    opts[0] - subframe.absX, opts[1] - subframe.absY,
-                    opts[2] - subframe.absX, opts[3] - subframe.absY)
+            try {
+                const frameRef = wc.mainFrame.framesInSubtree.find(f => {
+                    const frameId = `${f.routingId}-${f.processId}`
+                    return frameId === subframe.id
+                })
+                if (actionName === "selectionRequest") {
+                    frameRef.send("action", actionName,
+                        opts[0] - subframe.absX, opts[1] - subframe.absY,
+                        opts[2] - subframe.absX, opts[3] - subframe.absY)
+                }
+                frameRef.send("action", actionName, opts[0] - subframe.absX,
+                    opts[1] - subframe.absY, ...opts.slice(2))
+            } catch (ex) {
+                mainWindow.webContents.send("main-error", ex.stack)
             }
-            frameRef.send("action", actionName, opts[0] - subframe.absX,
-                opts[1] - subframe.absY, ...opts.slice(2))
             return
         }
     }
@@ -1828,50 +1862,75 @@ ipcMain.on("contextmenu-data", (_, id, info) => {
     const wc = webContents.fromId(id)
     const subframe = findRelevantSubFrame(wc, info.x, info.y)
     if (subframe) {
-        const frameRef = wc.mainFrame.framesInSubtree.find(f => {
-            const frameId = `${f.routingId}-${f.processId}`
-            return frameId === subframe.id
-        })
-        frameRef.send("contextmenu-data", {
-            ...info, "x": info.x - subframe.absX, "y": info.y - subframe.absY
-        })
-    } else {
-        wc.send("contextmenu-data", info)
+        try {
+            const frameRef = wc.mainFrame.framesInSubtree.find(f => {
+                const frameId = `${f.routingId}-${f.processId}`
+                return frameId === subframe.id
+            })
+            frameRef.send("contextmenu-data", {
+                ...info,
+                "x": info.x - subframe.absX,
+                "y": info.y - subframe.absY
+            })
+        } catch (ex) {
+            mainWindow.webContents.send("main-error", ex.stack)
+        }
+        return
     }
+    wc.send("contextmenu-data", info)
 })
 ipcMain.on("contextmenu", (_, id) => {
-    webContents.fromId(id).mainFrame.framesInSubtree.forEach(
-        f => f.send("contextmenu"))
+    try {
+        webContents.fromId(id).mainFrame.framesInSubtree.forEach(
+            f => f.send("contextmenu"))
+    } catch (ex) {
+        mainWindow.webContents.send("main-error", ex.stack)
+    }
 })
 ipcMain.on("focus-input", (_, id, location = null) => {
     const wc = webContents.fromId(id)
     if (location) {
         const subframe = findRelevantSubFrame(wc, location.x, location.y)
         if (subframe) {
-            const frameRef = wc.mainFrame.framesInSubtree.find(f => {
-                const frameId = `${f.routingId}-${f.processId}`
-                return frameId === subframe.id
-            })
-            frameRef.send("focus-input", {
-                "x": location.x - subframe.absX, "y": location.y - subframe.absY
-            })
+            try {
+                const frameRef = wc.mainFrame.framesInSubtree.find(f => {
+                    const frameId = `${f.routingId}-${f.processId}`
+                    return frameId === subframe.id
+                })
+                frameRef.send("focus-input", {
+                    "x": location.x - subframe.absX,
+                    "y": location.y - subframe.absY
+                })
+            } catch (ex) {
+                mainWindow.webContents.send("main-error", ex.stack)
+            }
             return
         }
     }
     wc.send("focus-input", location)
 })
 ipcMain.on("replace-input-field", (_, id, frameId, correction, inputField) => {
-    const wc = webContents.fromId(id)
-    if (frameId) {
-        const frameRef = wc.mainFrame.framesInSubtree.find(
-            f => frameId === `${f.routingId}-${f.processId}`)
-        frameRef.send("replace-input-field", correction, inputField)
-        return
+    try {
+        const wc = webContents.fromId(id)
+        if (frameId) {
+            const frameRef = wc.mainFrame.framesInSubtree.find(
+                f => frameId === `${f.routingId}-${f.processId}`)
+            frameRef.send("replace-input-field", correction, inputField)
+            return
+        }
+        wc.send("replace-input-field", correction, inputField)
+    } catch (ex) {
+        mainWindow.webContents.send("main-error", ex.stack)
     }
-    wc.send("replace-input-field", correction, inputField)
 })
 const translateMouseEvent = (e, clickInfo) => {
-    const frameId = `${e.frameId}-${e.processId}`
+    let frameId = null
+    try {
+        frameId = `${e.frameId}-${e.processId}`
+    } catch (ex) {
+        mainWindow.webContents.send("main-error", ex.stack)
+        return
+    }
     const info = frameInfo[frameId]
     let frameX = info?.x || 0
     let frameY = info?.y || 0
@@ -1888,14 +1947,20 @@ const translateMouseEvent = (e, clickInfo) => {
     if (info?.x && info?.url) {
         frameUrl = info.url
     }
-    const webviewId = webContents.getAllWebContents().find(wc => {
-        try {
-            const wcId = `${wc.mainFrame.routingId}-${wc.mainFrame.processId}`
-            return wcId === parentId
-        } catch {
-            return false
-        }
-    })?.id
+    let webviewId = null
+    try {
+        webviewId = webContents.getAllWebContents().find(wc => {
+            try {
+                const wcId = `${
+                    wc.mainFrame.routingId}-${wc.mainFrame.processId}`
+                return wcId === parentId
+            } catch {
+                return false
+            }
+        })?.id
+    } catch (ex) {
+        mainWindow.webContents.send("main-error", ex.stack)
+    }
     return {
         ...clickInfo,
         "endX": clickInfo?.endX + frameX || null,
@@ -1929,15 +1994,19 @@ ipcMain.on("send-keyboard-event", (_, id, keyOptions) => {
     // Temporary code as a last resort workaround for:
     // https://github.com/electron/electron/issues/20333
     // Will eventually just use sendInputEvent in the from renderer directly
-    const wc = webContents.fromId(id)
-    wc.sendInputEvent({...keyOptions, "type": "keyDown"})
-    if (keyOptions.keyCode.length === 1) {
-        wc.sendInputEvent({...keyOptions, "type": "char"})
+    try {
+        const wc = webContents.fromId(id)
+        wc.sendInputEvent({...keyOptions, "type": "keyDown"})
+        if (keyOptions.keyCode.length === 1) {
+            wc.sendInputEvent({...keyOptions, "type": "char"})
+        }
+        wc.sendInputEvent({...keyOptions, "type": "keyUp"})
+        wc.mainFrame.framesInSubtree
+            .filter(f => f.routingId !== wc.mainFrame.routingId)
+            .forEach(f => f.send("keyboard-type-event", keyOptions))
+    } catch (ex) {
+        mainWindow.webContents.send("main-error", ex.stack)
     }
-    wc.sendInputEvent({...keyOptions, "type": "keyUp"})
-    wc.mainFrame.framesInSubtree
-        .filter(f => f.routingId !== wc.mainFrame.routingId)
-        .forEach(f => f.send("keyboard-type-event", keyOptions))
 })
 ipcMain.on("send-input-event", (_, id, inputInfo) => {
     // Temporary code as a last resort workaround for:
@@ -1948,35 +2017,39 @@ ipcMain.on("send-input-event", (_, id, inputInfo) => {
     const wc = webContents.fromId(id)
     const subframe = findRelevantSubFrame(wc, X, Y)
     if (subframe) {
-        const frameRef = wc.mainFrame.framesInSubtree.find(f => {
-            const frameId = `${f.routingId}-${f.processId}`
-            return frameId === subframe.id
-        })
-        if (inputInfo.type === "scroll") {
-            frameRef.send("custom-mouse-event", "mousewheel", {
-                "deltaX": inputInfo.deltaX || 0,
-                "deltaY": inputInfo.deltaY || 0,
-                "x": X - subframe.absX,
-                "y": Y - subframe.absY
+        try {
+            const frameRef = wc.mainFrame.framesInSubtree.find(f => {
+                const frameId = `${f.routingId}-${f.processId}`
+                return frameId === subframe.id
             })
-            return
-        }
-        if (inputInfo.type === "click") {
-            frameRef.send("custom-mouse-event", "click", {
-                "button": inputInfo.button || "left",
-                "x": X - subframe.absX,
-                "y": Y - subframe.absY
-            })
-            return
-        }
-        if (inputInfo.type === "leave") {
-            frameRef.send("custom-mouse-event", "mouseleave", {
-                "x": X - subframe.absX, "y": Y - subframe.absY
-            })
-        } else {
-            frameRef.send("custom-mouse-event", "mouseenter", {
-                "x": X - subframe.absX, "y": Y - subframe.absY
-            })
+            if (inputInfo.type === "scroll") {
+                frameRef.send("custom-mouse-event", "mousewheel", {
+                    "deltaX": inputInfo.deltaX || 0,
+                    "deltaY": inputInfo.deltaY || 0,
+                    "x": X - subframe.absX,
+                    "y": Y - subframe.absY
+                })
+                return
+            }
+            if (inputInfo.type === "click") {
+                frameRef.send("custom-mouse-event", "click", {
+                    "button": inputInfo.button || "left",
+                    "x": X - subframe.absX,
+                    "y": Y - subframe.absY
+                })
+                return
+            }
+            if (inputInfo.type === "leave") {
+                frameRef.send("custom-mouse-event", "mouseleave", {
+                    "x": X - subframe.absX, "y": Y - subframe.absY
+                })
+            } else {
+                frameRef.send("custom-mouse-event", "mouseenter", {
+                    "x": X - subframe.absX, "y": Y - subframe.absY
+                })
+            }
+        } catch (ex) {
+            mainWindow.webContents.send("main-error", ex.stack)
         }
         return
     }

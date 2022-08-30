@@ -11,6 +11,19 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Fixed
+
+- Preload path of adblocker not being correct for all builds
+- All remaining runtime error popups related to subframe access issues (they are now shown in the console)
+- Erwic datafolder not resolving "~" correctly
+
+### Versions
+
+- Electron 20.1.0 (was 20.0.2)
+- Chromium 104.0.5112.102 (was 104.0.5112.81)
+
 ## [9.0.0](https://github.com/Jelmerro/Vieb/compare/8.1.0...9.0.0) - 2022-08-14
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/8.1.0...9.0.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/9.0.0)

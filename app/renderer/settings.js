@@ -381,6 +381,7 @@ const init = () => {
     ipcRenderer.on("notify", (_, message, type, clickAction) => {
         notify(message, type, clickAction)
     })
+    ipcRenderer.on("main-error", (_, ex) => console.error(ex))
     ipcRenderer.send("create-session", `persist:main`,
         allSettings.adblocker, allSettings.cache !== "none")
 }
