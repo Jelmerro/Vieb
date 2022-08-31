@@ -412,7 +412,3 @@ window.open = (url = null) => {
         }).bind(null)})
     return obj
 }
-// Override broken node atob/btoa with a working version, for details see:
-// https://github.com/electron/electron/issues/31018
-window.atob = i => Buffer.from(String(i), "base64").toString("latin1")
-window.btoa = i => Buffer.from(String(i), "latin1").toString("base64")
