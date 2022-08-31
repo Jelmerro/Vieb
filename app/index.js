@@ -1356,28 +1356,31 @@ const permissionHandler = (_, perm, callback, details) => {
         return allow
     }
 }
-const blocklistDir = joinPath(app.getPath("appData"), "blocklists")
-const defaultBlocklists = {
-    "easylist": "https://easylist.to/easylist/easylist.txt",
-    "easyprivacy": "https://easylist.to/easylist/easyprivacy.txt"
-}
 const enableAdblocker = type => {
+    const blocklistDir = joinPath(app.getPath("appData"), "blocklists")
+    const blocklists = readJSON(joinPath(
+        __dirname, "blocklists/list.json")) || {}
     makeDir(blocklistDir)
     // Copy the default and included blocklists to the appdata folder
     if (type !== "custom") {
-        for (const name of Object.keys(defaultBlocklists)) {
-            const list = joinPath(__dirname, `./blocklists/${name}.txt`)
+        for (const name of Object.keys(blocklists)) {
+            const list = joinPath(__dirname, `blocklists/${name}.txt`)
             writeFile(joinPath(blocklistDir, `${name}.txt`), readFile(list))
         }
     }
-    // And update default blocklists to the latest version if enabled
+    // And update all blocklists to the latest version if enabled
     if (type === "update") {
-        for (const list of Object.keys(defaultBlocklists)) {
+        const extraLists = readJSON(joinPath(blocklistDir, "list.json")) || {}
+        const allBlocklists = {...blocklists, ...extraLists}
+        for (const list of Object.keys(allBlocklists)) {
+            const url = allBlocklists[list]
+            if (!url) {
+                continue
+            }
             mainWindow.webContents.send("notify",
                 `Updating ${list} to the latest version`)
             session.fromPartition("persist:main")
-            const request = net.request(
-                {"partition": "persist:main", "url": defaultBlocklists[list]})
+            const request = net.request({"partition": "persist:main", url})
             request.on("response", res => {
                 let body = ""
                 res.on("end", () => {

@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Changed
+
+- Adblocker can now update custom blocklists by adding a "list.json" file to the blocklists folder
+
 ### Fixed
 
 - Preload path of adblocker not being correct for all builds
