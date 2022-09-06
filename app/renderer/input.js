@@ -201,6 +201,7 @@ const defaultBindings = {
         "/": {"mapping": "<toSearchMode>"},
         ":": {"mapping": "<toCommandMode>"},
         "<A-F4>": {"mapping": "<:quitall>"},
+        "<BS>": {"mapping": "<emptySearch>"},
         "<C-0>": {"mapping": "<zoomReset>"},
         "<C-F4>": {"mapping": "<closeTab>"},
         "<C-F5>": {"mapping": "<refreshTabWithoutCache>"},

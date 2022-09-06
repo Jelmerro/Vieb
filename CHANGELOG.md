@@ -13,6 +13,11 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Settings "searchscope" and "searchemptyscope" to make local tab-specific searches
+- Default mapping for emptySearch using `\`
+
 ### Changed
 
 - Adblocker can now update custom blocklists by adding a "list.json" file to the blocklists folder

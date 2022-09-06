@@ -45,20 +45,146 @@ const {
     currentMode,
     getSetting,
     getStored,
-    updateGuiVisibility
+    updateGuiVisibility,
+    setStored
 } = require("./common")
 
-let currentSearch = ""
-
-const emptySearch = () => {
-    listPages().filter(p => p).forEach(page => {
+const emptySearch = args => {
+    const scope = args?.scope || getSetting("searchemptyscope")
+    let pages = []
+    if (["both", "local"].includes(scope)) {
+        pages = [currentPage()]
+        currentTab()?.removeAttribute("localsearch")
+    }
+    if (["both", "global"].includes(scope)) {
+        pages = listPages()
+        setStored("globalsearch", "")
+    }
+    pages.filter(p => p).forEach(page => {
         try {
             page.stopFindInPage("clearSelection")
         } catch {
             // Page unavailable or suspended
         }
     })
-    currentSearch = ""
+}
+
+const nextSearchMatch = () => {
+    const scope = getSetting("searchscope")
+    let search = getStored("globalsearch")
+    let pages = []
+    if (scope === "local") {
+        search = currentTab().getAttribute("localsearch")
+            || getStored("globalsearch")
+        pages = [currentPage()]
+    } else {
+        pages = listPages()
+    }
+    if (search) {
+        pages.filter(p => p).forEach(page => {
+            try {
+                const tab = tabOrPageMatching(page)
+                if (tab.classList.contains("visible-tab")) {
+                    page.findInPage(search, {
+                        "findNext": true, "matchCase": matchCase(search)
+                    })
+                }
+            } catch {
+                // Page unavailable or suspended
+            }
+        })
+    }
+}
+
+const toSearchMode = () => {
+    const {setMode} = require("./modes")
+    setMode("search")
+    let search = getStored("globalsearch")
+    if (getSetting("searchscope") !== "global") {
+        search = currentTab()?.getAttribute("localsearch")
+            || getStored("globalsearch")
+    }
+    document.getElementById("url").value = search
+    document.getElementById("url").select()
+}
+
+const previousSearchMatch = () => {
+    const scope = getSetting("searchscope")
+    let search = getStored("globalsearch")
+    let pages = []
+    if (scope === "local") {
+        search = currentTab().getAttribute("localsearch")
+            || getStored("globalsearch")
+        pages = [currentPage()]
+    } else {
+        pages = listPages()
+    }
+    if (search) {
+        pages.filter(p => p).forEach(page => {
+            try {
+                const tab = tabOrPageMatching(page)
+                if (tab.classList.contains("visible-tab")) {
+                    page.findInPage(search, {
+                        "findNext": true,
+                        "foward": false,
+                        "matchCase": matchCase(search)
+                    })
+                }
+            } catch {
+                // Page unavailable or suspended
+            }
+        })
+    }
+}
+
+const matchCase = search => {
+    if (getSetting("smartcase")) {
+        return search !== search.toLowerCase()
+    }
+    return !getSetting("ignorecase")
+}
+
+let lastSearchFull = false
+
+const resetIncrementalSearch = () => {
+    if (getSetting("searchscope") === "inclocal" && !lastSearchFull) {
+        emptySearch("local")
+    }
+}
+
+const incrementalSearch = args => {
+    let scope = getSetting("searchscope")
+    if (scope === "inclocal") {
+        lastSearchFull = Boolean(args?.value)
+        if (args?.value === undefined) {
+            scope = "local"
+        } else {
+            scope = "global"
+        }
+    }
+    const search = args?.value || document.getElementById("url").value
+    let pages = [currentPage()]
+    if (scope === "global") {
+        pages = listPages()
+        setStored("globalsearch", search)
+    } else {
+        currentTab()?.setAttribute("localsearch", search)
+    }
+    if (search) {
+        pages.filter(p => p).forEach(page => {
+            try {
+                page.stopFindInPage("clearSelection")
+                const tab = tabOrPageMatching(page)
+                if (tab.classList.contains("visible-tab")) {
+                    page.findInPage(search, {"matchCase": matchCase(search)})
+                }
+            } catch {
+                // Page unavailable or suspended
+            }
+        })
+    } else {
+        emptySearch({scope})
+    }
 }
 
 const clickOnSearch = () => currentPage()?.stopFindInPage("activateSelection")
@@ -320,23 +446,6 @@ const scrollPageDown = () => currentPage()?.send("action", "scrollPageDown")
 const scrollPageUpHalf = () => currentPage()?.send(
     "action", "scrollPageUpHalf")
 
-const nextSearchMatch = () => {
-    if (currentSearch) {
-        listPages().filter(p => p).forEach(page => {
-            try {
-                const tab = tabOrPageMatching(page)
-                if (tab.classList.contains("visible-tab")) {
-                    page.findInPage(currentSearch, {
-                        "findNext": true, "matchCase": matchCase()
-                    })
-                }
-            } catch {
-                // Page unavailable or suspended
-            }
-        })
-    }
-}
-
 const refreshTab = args => {
     const page = args?.customPage || currentPage()
     if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
@@ -359,13 +468,6 @@ const reopenTab = () => {
 const nextTab = () => {
     const {switchToTab} = require("./tabs")
     switchToTab(listTabs().indexOf(currentTab()) + 1)
-}
-
-const toSearchMode = () => {
-    const {setMode} = require("./modes")
-    setMode("search")
-    document.getElementById("url").value = currentSearch
-    document.getElementById("url").select()
 }
 
 const startFollowNewSplit = () => {
@@ -409,25 +511,6 @@ const forwardInHistory = args => {
             const {resetTabInfo} = require("./tabs")
             resetTabInfo(page)
         }
-    }
-}
-
-const previousSearchMatch = () => {
-    if (currentSearch) {
-        listPages().filter(p => p).forEach(page => {
-            try {
-                const tab = tabOrPageMatching(page)
-                if (tab.classList.contains("visible-tab")) {
-                    page.findInPage(currentSearch, {
-                        "findNext": true,
-                        "forward": false,
-                        "matchCase": matchCase()
-                    })
-                }
-            } catch {
-                // Page unavailable or suspended
-            }
-        })
     }
 }
 
@@ -737,32 +820,6 @@ const toggleFullscreen = () => {
     ipcRenderer.invoke("toggle-fullscreen").then(updateGuiVisibility)
 }
 
-const matchCase = () => {
-    if (getSetting("smartcase")) {
-        return currentSearch !== currentSearch.toLowerCase()
-    }
-    return !getSetting("ignorecase")
-}
-
-const incrementalSearch = args => {
-    currentSearch = args?.value || document.getElementById("url").value
-    if (currentSearch) {
-        listPages().filter(p => p).forEach(page => {
-            try {
-                page.stopFindInPage("clearSelection")
-                const tab = tabOrPageMatching(page)
-                if (tab.classList.contains("visible-tab")) {
-                    page.findInPage(currentSearch, {"matchCase": matchCase()})
-                }
-            } catch {
-                // Page unavailable or suspended
-            }
-        })
-    } else {
-        emptySearch()
-    }
-}
-
 const getPageUrl = () => {
     let url = currentPage().src
     if (getSetting("encodeurlcopy") === "spacesonly") {
@@ -1008,12 +1065,11 @@ const useEnteredData = () => {
         execute(command)
     }
     if (currentMode() === "search") {
-        incrementalSearch()
+        incrementalSearch({"value": document.getElementById("url").value})
         setMode("normal")
     }
     if (currentMode() === "explore") {
-        const urlElement = document.getElementById("url")
-        let location = urlElement.value.trim()
+        let location = document.getElementById("url").value.trim()
         setMode("normal")
         if (location) {
             location = searchword(location).url
@@ -1123,6 +1179,7 @@ module.exports = {
     reopenTab,
     reorderFollowLinks,
     repeatLastAction,
+    resetIncrementalSearch,
     restoreMark,
     restoreScrollPos,
     rightHalfSplitWindow,

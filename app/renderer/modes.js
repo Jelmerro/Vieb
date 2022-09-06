@@ -61,6 +61,10 @@ const modes = {
         "onEnter": () => {
             const {resetInputHistory} = require("./input")
             resetInputHistory()
+        },
+        "onLeave": () => {
+            const {resetIncrementalSearch} = require("./actions")
+            resetIncrementalSearch()
         }
     },
     "explore": {
