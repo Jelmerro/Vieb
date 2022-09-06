@@ -46,8 +46,8 @@ ipcRenderer.on("insert-failed-page-info", (_, e, isSSLError) => {
         mainInfo.innerHTML += `<h2>Unreachable page</h2>
             The page could not be loaded successfully.
             The following error occurred:<br><h3>${err.errorDescription}</h3>
-            You can enable automatic HTTP redirects with:
-            <kbd>:set redirecttohttp</kbd><br>
+            You can enable automatic HTTP redirects with
+            <kbd>:set redirecttohttp</kbd>.<br>
             Alternatively, you can choose to go there just once via this HTTP
             link: <a href=${http}>${http}</a><br>
             Finally, you can control what to do with invalid certificates
