@@ -21,6 +21,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Adblocker can now update custom blocklists by adding a "list.json" file to the blocklists folder
+- Failed load error page to include certificate permission setting if related to cert errors
 
 ### Fixed
 

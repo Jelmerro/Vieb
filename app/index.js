@@ -1280,7 +1280,7 @@ const permissionHandler = (_, perm, callback, details) => {
                 + "this after reviewing the certificate details. Because of the"
                 + " nature of certificates, any allowed certs will keep being "
                 + "trusted per domain until you restart Vieb. Changing the "
-                + "permission setting afterwards won't change this behavior."
+                + "permission setting afterwards won't change this behavior. "
                 + "So while you can deny the same certificate multiple times, "
                 + "you only need to allow it once to be able to keep using it."
                 + ` For help and more options, see ':h ${permissionName}'.`
