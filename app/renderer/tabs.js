@@ -284,15 +284,19 @@ const addTab = (options = {}) => {
             tabs.appendChild(tab)
         } else {
             let nextTab = listTabs()[options.customIndex]
-            while (nextTab && nextTab.classList.contains("pinned")) {
-                nextTab = nextTab.nextSibling
+            if (!options.pinned) {
+                while (nextTab && nextTab.classList.contains("pinned")) {
+                    nextTab = nextTab.nextSibling
+                }
             }
             tabs.insertBefore(tab, nextTab)
         }
     } else if (getSetting("tabnexttocurrent") && currentTab()) {
         let nextTab = currentTab().nextSibling
-        while (nextTab && nextTab.classList.contains("pinned")) {
-            nextTab = nextTab.nextSibling
+        if (!options.pinned) {
+            while (nextTab && nextTab.classList.contains("pinned")) {
+                nextTab = nextTab.nextSibling
+            }
         }
         tabs.insertBefore(tab, nextTab)
     } else {
@@ -986,8 +990,13 @@ const navigateTo = location => {
         c => loc.match(c.split("~")[0]) && c.split("~")[2] !== "newtab")
         ?.split("~")[1]
     if (sessionName && sessionName !== page.getAttribute("container")) {
-        addTab({"session": sessionName, "url": loc})
-        closeTab(listTabs().indexOf(tabOrPageMatching(page)))
+        addTab({
+            "muted": tabOrPageMatching(page).getAttribute("muted"),
+            "pinned": tabOrPageMatching(page).classList.contains("pinned"),
+            "session": sessionName,
+            "url": loc
+        })
+        closeTab(listTabs().indexOf(tabOrPageMatching(page)), true)
         return
     }
     page.src = loc
