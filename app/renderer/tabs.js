@@ -925,8 +925,13 @@ const addWebviewListeners = webview => {
             }
             const pageTop = propPixels(webview.style, "top")
             const pageLeft = propPixels(webview.style, "left")
-            const {moveScreenshotFrame} = require("./input")
-            moveScreenshotFrame(e.args[0] + pageLeft, e.args[1] + pageTop)
+            if (currentMode() === "follow") {
+                const {emptyHoverLink} = require("./follow")
+                emptyHoverLink()
+            } else if (currentMode() === "command") {
+                const {moveScreenshotFrame} = require("./input")
+                moveScreenshotFrame(e.args[0] + pageLeft, e.args[1] + pageTop)
+            }
         }
         if (e.channel === "search-element-location") {
             if (currentMode() === "pointer") {

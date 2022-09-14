@@ -18,6 +18,11 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Pinned and mute state are now remembered for tabs affected by "containernames" container switching
 - Pinned tabs will now be correctly reopened by "containernames" container switching
 
+### Fixed
+
+- Follow mode borders showing over labels
+- Follow mode mouse hover appearing when not needed
+
 ### Versions
 
 - Electron 20.1.1 (unchanged)
@@ -30,7 +35,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Settings "searchscope" and "searchemptyscope" to make local tab-specific searches
-- Default mapping for emptySearch using `\`
+- Default mapping for emptySearch using `Backspace`
 
 ### Changed
 

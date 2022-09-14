@@ -370,10 +370,8 @@ const suggestCommand = searchStr => {
             suggestFiles(location).forEach(l => addCommand(
                 `screenshot${dims} ${l.path}`))
         }
-        updateScreenshotHighlight()
-    } else {
-        updateScreenshotHighlight(false)
     }
+    updateScreenshotHighlight()
     // Command: set
     const {suggestionList, settingsWithDefaults} = require("./settings")
     if ("set".startsWith(command) && !confirm && !range) {

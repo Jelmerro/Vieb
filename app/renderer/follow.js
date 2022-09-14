@@ -29,6 +29,7 @@ const {
 } = require("./common")
 const {propPixels, sendToPageOrSubFrame} = require("../util")
 
+let hoverLink = null
 let followLinkDestination = "current"
 let alreadyFollowing = false
 let alreadyFilteringLinks = false
@@ -77,6 +78,7 @@ const startFollow = (newtab = followLinkDestination) => {
     setMode("follow")
     alreadyFollowing = false
     alreadyFilteringLinks = false
+    hoverLink = null
     informPreload(true)
     document.getElementById("follow").style.display = "flex"
 }
@@ -84,6 +86,7 @@ const startFollow = (newtab = followLinkDestination) => {
 const cancelFollow = () => {
     alreadyFollowing = false
     alreadyFilteringLinks = false
+    hoverLink = null
     document.getElementById("follow").style.display = ""
     document.getElementById("follow").textContent = ""
     ipcRenderer.send("follow-mode-stop")
@@ -172,16 +175,23 @@ const reorderDisplayedLinks = () => {
 
 const applyIndexedOrder = () => {
     savedOrder.forEach((type, index) => {
-        const zIndex = index * 2
-        ;[...document.querySelectorAll(`.follow-${type}`)]
-            .forEach(e => { e.style.zIndex = zIndex + 9 })
+        [...document.querySelectorAll(`.follow-${type}`)]
+            .forEach(e => { e.style.zIndex = index + 10 + savedOrder.length })
         ;[...document.querySelectorAll(`.follow-${type}-border`)]
-            .forEach(e => { e.style.zIndex = index + 10 })
+            .forEach(e => { e.style.zIndex = index + 9 })
     })
     ;[...document.querySelectorAll(`.follow-other`)]
-        .forEach(e => { e.style.zIndex = 7 })
-    ;[...document.querySelectorAll(`.follow-other-border`)]
         .forEach(e => { e.style.zIndex = 8 })
+    ;[...document.querySelectorAll(`.follow-other-border`)]
+        .forEach(e => { e.style.zIndex = 7 })
+}
+
+const emptyHoverLink = () => {
+    hoverLink = null
+    if (alreadyFollowing) {
+        [...document.querySelectorAll(`#follow .hover`)]
+            .forEach(el => el.classList.remove("hover"))
+    }
 }
 
 const parseAndDisplayLinks = receivedLinks => {
@@ -269,11 +279,28 @@ const parseAndDisplayLinks = receivedLinks => {
         const y = link.y * factor
         const width = link.width * factor
         const height = link.height * factor
+        if (linkInList([link], hoverLink)) {
+            borderElement.classList.add("hover")
+        }
         borderElement.style.left = `${x}px`
         borderElement.style.top = `${y}px`
         borderElement.style.width = `${width}px`
         borderElement.style.height = `${height}px`
         borderElement.addEventListener("mouseup", onclickListener)
+        borderElement.addEventListener("mousemove", () => {
+            if (!getMouseConf("follow")) {
+                hoverLink = null
+                borderElement.classList.remove("hover")
+                return
+            }
+            hoverLink = link
+            borderElement.classList.add("hover")
+            if (alreadyFollowing) {
+                [...document.querySelectorAll(`#follow .hover`)]
+                    .filter(el => el !== borderElement)
+                    .forEach(el => el.classList.remove("hover"))
+            }
+        })
         followChildren.push(borderElement)
         // Show the link key in the top right
         const linkElement = document.createElement("span")
@@ -282,15 +309,32 @@ const parseAndDisplayLinks = receivedLinks => {
         const charWidth = fontsize * 0.60191
         const linkElementWidth = charWidth * linkElement.textContent.length
             + borderWidthKeys + borderWidthOutline
-        let left = width - borderWidthOutline
+        let left = x + width
         if (x + width > scrollWidth - linkElementWidth) {
-            left = scrollWidth - x - linkElementWidth
+            left = scrollWidth - linkElementWidth
+        }
+        if (linkInList([link], hoverLink)) {
+            borderElement.classList.add("hover")
         }
         linkElement.style.left = `${left.toFixed(2)}px`
-        linkElement.style.top = `-${borderWidthOutline}px`
+        linkElement.style.top = `${y}px`
         linkElement.setAttribute("link-id", index)
         linkElement.addEventListener("mouseup", onclickListener)
-        borderElement.appendChild(linkElement)
+        linkElement.addEventListener("mousemove", () => {
+            if (!getMouseConf("follow")) {
+                hoverLink = null
+                borderElement.classList.remove("hover")
+                return
+            }
+            hoverLink = link
+            borderElement.classList.add("hover")
+            if (alreadyFollowing) {
+                [...document.querySelectorAll(`#follow .hover`)]
+                    .filter(el => el !== borderElement)
+                    .forEach(el => el.classList.remove("hover"))
+            }
+        })
+        followChildren.push(linkElement)
     })
     document.getElementById("follow").replaceChildren(...followChildren)
     applyIndexedOrder()
@@ -396,6 +440,7 @@ const enterKey = async(code, id, stayInFollowMode) => {
 
 module.exports = {
     cancelFollow,
+    emptyHoverLink,
     enterKey,
     followFiltering,
     init,

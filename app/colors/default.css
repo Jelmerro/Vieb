@@ -249,13 +249,14 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #mode-suggestions div {font-size: 1.3em;}
 #app.mouse-suggestselect #suggest-dropdown div:hover, #mode-suggestions div:hover, #app.mouse-switchtab #tabs > span:hover {font-weight: bold;cursor: pointer;}
 #app[current-mode=insert].mouse-pageininsert .webview, #app:not([current-mode=insert]).mouse-pageoutsideinsert .webview {pointer-events: all;}
-.mouse-follow .follow-url-border:hover {background: var(--follow-url-hover);cursor: pointer;}
-.mouse-follow .follow-inputs-click-border:hover {background: var(--follow-click-hover);cursor: pointer;}
-.mouse-follow .follow-inputs-insert-border:hover {background: var(--follow-insert-hover);cursor: pointer;}
-.mouse-follow .follow-onclick-border:hover {background: var(--follow-onclick-hover);cursor: pointer;}
-.mouse-follow .follow-media-border:hover {background: var(--follow-media-hover);cursor: pointer;}
-.mouse-follow .follow-image-border:hover {background: var(--follow-image-hover);cursor: pointer;}
-.mouse-follow .follow-other-border:hover {background: var(--follow-other-hover);cursor: pointer;}
+.mouse-follow .follow-url-border.hover {background: var(--follow-url-hover);cursor: pointer;}
+.mouse-follow .follow-inputs-click-border.hover {background: var(--follow-click-hover);cursor: pointer;}
+.mouse-follow .follow-inputs-insert-border.hover {background: var(--follow-insert-hover);cursor: pointer;}
+.mouse-follow .follow-onclick-border.hover {background: var(--follow-onclick-hover);cursor: pointer;}
+.mouse-follow .follow-media-border.hover {background: var(--follow-media-hover);cursor: pointer;}
+.mouse-follow .follow-image-border.hover {background: var(--follow-image-hover);cursor: pointer;}
+.mouse-follow .follow-other-border.hover {background: var(--follow-other-hover);cursor: pointer;}
+.mouse-follow .hover + .follow-url, .mouse-follow .hover + .follow-inputs-click, .mouse-follow .hover + .follow-inputs-insert, .mouse-follow .hover + .follow-onclick, .mouse-follow .hover + .follow-media, .mouse-follow .hover + .follow-image, .mouse-follow .hover + .follow-other {cursor: pointer;}
 /* notifications & map suggestions */
 #notifications, #app #mapsuggest {display: flex;position: fixed;flex-direction: column;z-index: 2;}
 #notifications > span, #app #mapsuggest {background: var(--bg);margin-bottom: .5em;padding: .5em;display: flex;min-width: 25em;width: 33vw;max-width: 100em;border: .1em solid var(--notification-border);overflow-wrap: anywhere;white-space: pre-wrap;}
