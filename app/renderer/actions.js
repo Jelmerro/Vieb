@@ -126,7 +126,7 @@ const previousSearchMatch = () => {
                 if (tab.classList.contains("visible-tab")) {
                     page.findInPage(search, {
                         "findNext": true,
-                        "foward": false,
+                        "forward": false,
                         "matchCase": matchCase(search)
                     })
                 }
