@@ -17,6 +17,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Pinned and mute state are now remembered for tabs affected by "containernames" container switching
 - Pinned tabs will now be correctly reopened by "containernames" container switching
+- Mouse scrolling on follow mode elements will now scroll the underlying page
 
 ### Fixed
 

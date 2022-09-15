@@ -523,6 +523,15 @@ const fetchJSON = url => new Promise((res, rej) => {
     request.end()
 })
 
+const pageOffset = page => {
+    const border = propPixels(page, "borderWidth")
+    const top = Math.round(propPixels(page.style, "top") + border)
+    const left = Math.round(propPixels(page.style, "left") + border)
+    const bottom = Math.round(top + propPixels(page.style, "height") + border)
+    const right = Math.round(left + propPixels(page.style, "width") + border)
+    return {bottom, left, right, top}
+}
+
 // IPC UTIL
 
 const sendToPageOrSubFrame = (channel, ...args) => {
@@ -942,6 +951,7 @@ module.exports = {
     formatSize,
     compareVersions,
     fetchJSON,
+    pageOffset,
     // IPC UTIL
     sendToPageOrSubFrame,
     notify,

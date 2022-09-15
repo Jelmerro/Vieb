@@ -19,7 +19,7 @@
 
 const {ipcRenderer} = require("electron")
 const {
-    matchesQuery, notify, specialChars, isUrl, sendToPageOrSubFrame
+    matchesQuery, notify, specialChars, isUrl, sendToPageOrSubFrame, pageOffset
 } = require("../util")
 const {
     listTabs,
@@ -736,6 +736,18 @@ const init = () => {
                 // Make both directions of scrolling move the tabs horizontally
                 document.getElementById("tabs").scrollBy(
                     ev.deltaX + ev.deltaY, ev.deltaX + ev.deltaY)
+            }
+        }
+        if (ev.composedPath().find(e => matchesQuery(e, "#follow"))) {
+            if (getMouseConf("follow")) {
+                const {top, left} = pageOffset(currentPage())
+                sendToPageOrSubFrame("send-input-event", {
+                    "deltaX": -ev.deltaX,
+                    "deltaY": -ev.deltaY,
+                    "type": "scroll",
+                    "x": ev.x - left,
+                    "y": ev.y - top
+                })
             }
         }
         if (ev.composedPath().find(e => matchesQuery(e, "#suggest-dropdown"))) {

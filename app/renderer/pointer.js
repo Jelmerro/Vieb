@@ -28,14 +28,14 @@ const {
 } = require("./common")
 const {
     matchesQuery,
-    propPixels,
     sendToPageOrSubFrame,
     appData,
     joinPath,
     readJSON,
     writeJSON,
     urlToString,
-    domainName
+    domainName,
+    pageOffset
 } = require("../util")
 
 let X = 0
@@ -143,18 +143,8 @@ const handleScrollDiffEvent = diff => {
     }
 }
 
-const offset = () => {
-    const page = currentPage()
-    const border = propPixels(page, "borderWidth")
-    const top = Math.round(propPixels(page.style, "top") + border)
-    const left = Math.round(propPixels(page.style, "left") + border)
-    const bottom = Math.round(top + propPixels(page.style, "height") + border)
-    const right = Math.round(left + propPixels(page.style, "width") + border)
-    return {bottom, left, right, top}
-}
-
 const updateElement = () => {
-    const {top, left, bottom, right} = offset()
+    const {top, left, bottom, right} = pageOffset(currentPage())
     X = Math.max(0, Math.min(X, right - left - getSetting("guifontsize") * 1.4))
     Y = Math.max(0, Math.min(Y, bottom - top - getSetting("guifontsize")))
     document.getElementById("pointer").style.left = `${X + left}px`
@@ -209,7 +199,7 @@ const moveToMouse = () => {
                     const {switchToTab} = require("./tabs")
                     switchToTab(tabOrPageMatching(el))
                 }
-                const pagePos = offset()
+                const pagePos = pageOffset(currentPage())
                 if (currentMode() === "visual") {
                     X = mousePos.x - pagePos.left
                     Y = mousePos.y - pagePos.top
@@ -424,7 +414,7 @@ const toggleMediaControls = () => sendToPageOrSubFrame(
     "action", "toggleControls", X, Y)
 
 const inspectElement = () => {
-    const {top, left} = offset()
+    const {top, left} = pageOffset(currentPage())
     currentPage().inspectElement(Math.round(X + left), Math.round(Y + top))
 }
 
@@ -455,7 +445,7 @@ const insertAtPosition = () => {
 }
 
 const moveDown = () => {
-    const {bottom, top} = offset()
+    const {bottom, top} = pageOffset(currentPage())
     if (Y === bottom - top - getSetting("guifontsize")) {
         const {"scrollDown": scroll} = require("./actions")
         scroll()
@@ -514,7 +504,7 @@ const moveFastRight = () => {
 }
 
 const centerOfView = () => {
-    const {top, bottom} = offset()
+    const {top, bottom} = pageOffset(currentPage())
     Y = (bottom - top) / 2
     updateElement()
 }
@@ -591,7 +581,7 @@ const moveLeftMax = () => {
 }
 
 const moveFastDown = () => {
-    const {bottom, top} = offset()
+    const {bottom, top} = pageOffset(currentPage())
     if (Y === bottom - top - getSetting("guifontsize")) {
         const {"scrollDown": scroll} = require("./actions")
         scroll()
