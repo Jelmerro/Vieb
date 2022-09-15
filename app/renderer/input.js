@@ -738,8 +738,9 @@ const init = () => {
                     ev.deltaX + ev.deltaY, ev.deltaX + ev.deltaY)
             }
         }
-        if (ev.composedPath().find(e => matchesQuery(e, "#follow"))) {
-            if (getMouseConf("follow")) {
+        const overPageElements = "#page-container, #screenshot-highlight"
+        if (ev.composedPath().find(e => matchesQuery(e, overPageElements))) {
+            if (getMouseConf("pageoutsideinsert")) {
                 const {top, left} = pageOffset(currentPage())
                 sendToPageOrSubFrame("send-input-event", {
                     "deltaX": -ev.deltaX,
