@@ -1,0 +1,145 @@
+/*
+* Vieb - Vim Inspired Electron Browser
+* Copyright (C) 2020-2022 Jelmer van Arnhem
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*
+* ********************************************************************
+*
+*
+* The vieb-paper theme, developed c/o Samuel Sinclair
+* Original 'paper' theme and palette by Yorick Peterse
+* Source: https://gitlab.com/yorickpeterse/vim-paper
+*
+* Compact Version
+* Originally created by Stev (https://github.com/stevkazt)
+* Source: https://github.com/Jelmerro/Vieb/pull/374
+*
+*
+* ********************************************************************
+*
+*/
+/* colors */
+:root {
+    /* general */
+    --bg: #F2EEDE;
+    --fg: #000;
+    --tab-background: #F2EEDE;
+    --tab-suspended: #AAA;
+    --visible-tab: #D8D5C7;
+    --tab-crashed: #CC3E28;
+    --mode-normal-fg: #000;
+    --mode-insert-fg: #216609;
+    --mode-explore-fg: #158c86;
+    --mode-search-fg: #B58900;
+    --mode-follow-fg: #5C21A5;
+    --mode-command-fg: #CC3E28;
+    --mode-pointer-fg: #1E6FCC;
+    --mode-pointer-bg: #F2EEDE;
+    --mode-visual-fg: #1E6FCC;
+    --mode-visual-bg: #F2EEDE;
+    --helppage-range-compat: #000;
+    --helppage-h1: #000;
+    --helppage-h2: #000;
+    --helppage-h3: #000;
+    --helppage-h4: #000;
+    --helppage-h5: #000;
+    --helppage-h6: #000;
+    --url-default: #F2EEDE;
+    --url-search: #D8D5C7;
+    --url-searchwords: #5C21A5;
+    --url-url: #1E6FCC;
+    --url-suggest: #216609;
+    --url-file: #CC3E28;
+    --suggestions-border: #D8D5C7;
+    --suggestions-bg: #F2EEDE;
+    --suggestions-selected: #D8D5C7;
+    --suggestions-url: #1E6FCC;
+    --suggestions-file: #CC3E28;
+    --notification-border: #D8D5C7;
+    --notification-date: #000;
+    --notification-permission: #000;
+    --notification-error: #CC3E28;
+    --notification-warning: #CC3E28;
+    --notification-info: #1E6FCC;
+    --notification-success: #216609;
+    /* special pages */
+    --link-color: #1E6FCC;
+    --link-underline: #1E6FCC;
+    --scrollbar-bg: #F2EEDE;
+    --scrollbar-thumb: #D8D5C7;
+    --button-disabled: #AAA;
+    --code-fg: #000;
+    --code-bg: #D8D5C7;
+    --code-command: #000;
+    --special-page-element-bg: #F2EEDE;
+    --special-page-element-border: #D8D5C7;
+    --input-unfocused: #D8D5C7;
+    --input-focused: #000;
+    --download-progress-fg: #000;
+    --download-progress-bg: #D8D5C7;
+    --helppage-countable: #216609;
+    /* sourceviewer */
+    --syntax-keyword: #CC3E28;
+    --syntax-entity: #74c;
+    --syntax-constant: #06c;
+    --syntax-string: #036;
+    --syntax-variable: #e60;
+    --syntax-comment: #777;
+    --syntax-entity-tag: #284;
+    --syntax-markup-heading: #06c;
+    --syntax-markup-list: #760;
+    --syntax-markup-emphasis: #233;
+    --syntax-markup-addition-fg: #284;
+    --syntax-markup-addition-bg: #efe;
+    --syntax-markup-deletion-fg: #b22;
+    --syntax-markup-deletion-bg: #fee;
+    /* fine tuning */
+    --follow-text: #000;
+    --follow-url-bg: #bff;
+    --follow-url-border: #7dd;
+    --follow-url-hover: #7dd7;
+    --follow-click-bg: #fbb;
+    --follow-click-border: #d77;
+    --follow-click-hover: #d777;
+    --follow-insert-bg: #bfb;
+    --follow-insert-border: #7d7;
+    --follow-insert-hover: #7d77;
+    --follow-onclick-bg: #ffb;
+    --follow-onclick-border: #dd7;
+    --follow-onclick-hover: #dd77;
+    --follow-media-bg: #bbf;
+    --follow-media-border: #77d;
+    --follow-media-hover: #77d7;
+    --follow-image-bg: #fbf;
+    --follow-image-border: #d7d;
+    --follow-image-hover: #d7d7;
+    --follow-other-bg: #ddd;
+    --follow-other-border: #bbb;
+    --follow-other-hover: #bbb7;
+}
+
+/* general */
+#tabs .status {filter: invert(.4);}
+
+/* special pages */
+#app #pointer, #cookiespage img, #downloadspage img, #historypage img {filter: invert(1);}
+.specialpage a::after {filter: invert(1);}
+#helppage .cheatsheet {filter: none;}
+#historypage img.favicon {filter: none;}
+
+/* compact mode */
+#app {display: grid;grid-template: "navbar tabbar" 2em "main main" auto;}
+#navbar, #tabs {width: 50vw}
+#page-container{grid-area: main;}
