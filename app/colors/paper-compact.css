@@ -91,7 +91,7 @@
     --download-progress-bg: #D8D5C7;
     --helppage-countable: #216609;
     /* sourceviewer */
-    --syntax-keyword: #CC3E28;
+    --syntax-keyword: #d45;
     --syntax-entity: #74c;
     --syntax-constant: #06c;
     --syntax-string: #036;
@@ -105,29 +105,29 @@
     --syntax-markup-addition-bg: #efe;
     --syntax-markup-deletion-fg: #b22;
     --syntax-markup-deletion-bg: #fee;
-    /* fine tuning */
+    /* fine tuning follow-links */
     --follow-text: #000;
-    --follow-url-bg: #bff;
-    --follow-url-border: #7dd;
-    --follow-url-hover: #7dd7;
+    --follow-url-bg: #bcf5f2;
+    --follow-url-border: #21ded4;
+    --follow-url-hover: rgba(33, 222, 212, 30%);
     --follow-click-bg: #fbb;
-    --follow-click-border: #d77;
-    --follow-click-hover: #d777;
-    --follow-insert-bg: #bfb;
-    --follow-insert-border: #7d7;
-    --follow-insert-hover: #7d77;
-    --follow-onclick-bg: #ffb;
-    --follow-onclick-border: #dd7;
-    --follow-onclick-hover: #dd77;
-    --follow-media-bg: #bbf;
-    --follow-media-border: #77d;
-    --follow-media-hover: #77d7;
-    --follow-image-bg: #fbf;
-    --follow-image-border: #d7d;
-    --follow-image-hover: #d7d7;
-    --follow-other-bg: #ddd;
-    --follow-other-border: #bbb;
-    --follow-other-hover: #bbb7;
+    --follow-click-border: #e92a0c;
+    --follow-click-hover: rgba(233, 42, 12, 30%);
+    --follow-insert-bg: #c9f9b9;
+    --follow-insert-border: #4aeb14;
+    --follow-insert-hover: rgba(74, 235, 20, 30%);
+    --follow-onclick-bg: #ffecb3;
+    --follow-onclick-border: #ffbf00;
+    --follow-onclick-hover: rgba(255, 191, 0, 30%);
+    --follow-media-bg: #b3d6ff;
+    --follow-media-border: #006deb;
+    --follow-media-hover: rgba(0, 109, 235), 30%;
+    --follow-image-bg: #d6bff2;
+    --follow-image-border: #772ad5;
+    --follow-image-hover: rgba(119, 42, 213, 30%);
+    --follow-other-bg: #d5d8c7;
+    --follow-other-border: #aaa;
+    --follow-other-hover: #aaa7;
 }
 
 /* general */
