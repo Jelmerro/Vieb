@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- New themes: light-compact, paper-compact and paper
+
 ### Changed
 
 - Pinned and mute state are now remembered for tabs affected by "containernames" container switching
