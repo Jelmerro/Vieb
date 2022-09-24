@@ -937,10 +937,11 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
         }
+        loc = decodeURI(loc)
         if (isDir(loc)) {
             call(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
-                <title>${encodeURI(req.url)}</title>
+                <title>${decodeURI(req.url)}</title>
                 </head><body>Source viewer does not support folders, only files
                 </body></html>`)
             return
@@ -951,7 +952,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         } catch {
             call(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
-                <title>${encodeURI(req.url)}</title>
+                <title>${decodeURI(req.url)}</title>
                 </head><body>Source viewer module not present, can't view source
                 </body></html>`)
             return
@@ -959,7 +960,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         if (!hljs) {
             call(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
-                <title>${encodeURI(req.url)}</title>
+                <title>${decodeURI(req.url)}</title>
                 </head><body>Source viewer module not present, can't view source
                 </body></html>`)
             return
@@ -967,7 +968,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         if (isFile(loc)) {
             const hl = hljs.highlightAuto(readFile(loc))
             call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
-                <title>${encodeURI(req.url)}</title>
+                <title>${decodeURI(req.url)}</title>
                 </head><body id="sourceviewer">
                 <pre><code>${hl.value}</code></pre></body></html>`)
             return
@@ -980,14 +981,14 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 if (!body) {
                     call(`<!DOCTPYE html>\n<html><head>
                         <style>${defaultCss}</style>
-                        <title>${encodeURI(req.url)}</title>
+                        <title>${decodeURI(req.url)}</title>
                         </head><body>Source viewer not supported on this webpage
                         </body></html>`)
                     return
                 }
                 const hl = hljs.highlightAuto(body)
                 call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
-                    <title>${encodeURI(req.url)}</title>
+                    <title>${decodeURI(req.url)}</title>
                     </head><body id="sourceviewer">
                     <pre><code>${hl.value}</code></pre></body></html>`)
             })
@@ -1004,10 +1005,11 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
         }
+        loc = decodeURI(loc)
         if (isDir(loc)) {
             call(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
-                <title>${encodeURI(req.url)}</title></head>
+                <title>${decodeURI(req.url)}</title></head>
                 <body>Markdown viewer does not support folders, only files
                 </body></html>`)
             return
@@ -1019,7 +1021,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         } catch {
             call(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
-                <title>${encodeURI(req.url)}</title></head>
+                <title>${decodeURI(req.url)}</title></head>
                 <body>Markdown viewer module not present, can't view markdown
                 </body></html>`)
             return
@@ -1027,7 +1029,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         if (!marked) {
             call(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
-                <title>${encodeURI(req.url)}</title></head>
+                <title>${decodeURI(req.url)}</title></head>
                 <body>Markdown viewer module not present, can't view markdown
                 </body></html>`)
             return
@@ -1064,7 +1066,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         if (isFile(loc)) {
             const md = marked.parse(readFile(loc))
             call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
-                <title>${encodeURI(req.url)}</title>
+                <title>${decodeURI(req.url)}</title>
                 </head><body id="markdownviewer">${md}</body></html>`)
             return
         }
@@ -1075,14 +1077,14 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 if (!body) {
                     call(`<!DOCTPYE html>\n<html><head>
                         <style>${defaultCss}</style>
-                        <title>${encodeURI(req.url)}</title></head>
+                        <title>${decodeURI(req.url)}</title></head>
                         <body>Markdown viewer not supported on this webpage
                         </body></html>`)
                     return
                 }
                 const md = marked.parse(body)
                 call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
-                    <title>${encodeURI(req.url)}</title>
+                    <title>${decodeURI(req.url)}</title>
                     </head><body id="markdownviewer">${md}</body></html>`)
             })
             res.on("data", chunk => {
@@ -1098,10 +1100,11 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
         }
+        loc = decodeURI(loc)
         if (isFile(loc) || isDir(loc)) {
             call(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
-                <title>${encodeURI(req.url)}</title>
+                <title>${decodeURI(req.url)}</title>
                 </head><body>Reader view not supported for local resources
                 </body></html>`)
             return
@@ -1114,7 +1117,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         } catch (e) {
             call(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
-                <title>${encodeURI(req.url)}</title>
+                <title>${decodeURI(req.url)}</title>
                 </head><body>Reader view module not present, can't do readerview
                 </body></html>`)
             return
@@ -1122,7 +1125,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         if (!Readability || !JSDOM) {
             call(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
-                <title>${encodeURI(req.url)}</title>
+                <title>${decodeURI(req.url)}</title>
                 </head><body>Reader view module not present, can't do readerview
                 </body></html>`)
             return
@@ -1135,7 +1138,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 if (!body) {
                     call(`<!DOCTPYE html>\n<html><head>
                         <style>${defaultCss}</style>
-                        <title>${encodeURI(req.url)}</title>
+                        <title>${decodeURI(req.url)}</title>
                         </head><body>Reader view not supported on this webpage
                         </body></html>`)
                     return
@@ -1143,7 +1146,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 const dom = new JSDOM(body, {url})
                 const out = new Readability(dom.window.document).parse().content
                 call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
-                    <title>${encodeURI(req.url)}</title>
+                    <title>${decodeURI(req.url)}</title>
                     </head><body id="readerview">${out}</body></html>`)
             })
             res.on("data", chunk => {

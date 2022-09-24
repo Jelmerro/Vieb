@@ -30,6 +30,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Follow mode borders showing over labels
 - Follow mode mouse hover appearing when not needed
 - Backwards searching not working in previous release due to typo
+- Special characters not working in custom viewers (markdown, reader and source)
 
 ### Versions
 
