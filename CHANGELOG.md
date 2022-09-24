@@ -16,12 +16,14 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - New themes: light-compact, paper-compact and paper
+- Backwards searching if search is started with a shifted key (by default `?`)
 
 ### Changed
 
 - Pinned and mute state are now remembered for tabs affected by "containernames" container switching
 - Pinned tabs will now be correctly reopened by "containernames" container switching
 - Mouse scrolling on Vieb elements will now scroll the underlying page if the "pageoutsideinsert" mouse feature is on (default)
+- Search will now find the next match if searching for the same string again
 
 ### Fixed
 

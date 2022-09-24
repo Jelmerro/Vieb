@@ -49,6 +49,11 @@ const {
     setStored
 } = require("./common")
 
+let lastSearchFull = false
+let storedSearch = ""
+let searchDirection = "forward"
+let potentialNewSearchDirection = "forward"
+
 const emptySearch = args => {
     const scope = args?.scope || getSetting("searchemptyscope")
     let pages = []
@@ -86,7 +91,9 @@ const nextSearchMatch = () => {
                 const tab = tabOrPageMatching(page)
                 if (tab.classList.contains("visible-tab")) {
                     page.findInPage(search, {
-                        "findNext": true, "matchCase": matchCase(search)
+                        "findNext": true,
+                        "forward": searchDirection === "forward",
+                        "matchCase": matchCase(search)
                     })
                 }
             } catch {
@@ -96,13 +103,19 @@ const nextSearchMatch = () => {
     }
 }
 
-const toSearchMode = () => {
+const toSearchMode = args => {
     const {setMode} = require("./modes")
     setMode("search")
     let search = getStored("globalsearch")
     if (getSetting("searchscope") !== "global") {
         search = currentTab()?.getAttribute("localsearch")
             || getStored("globalsearch")
+    }
+    storedSearch = search
+    if (args?.actionCallKeys?.at(-1) === args?.unshiftedLastKey) {
+        potentialNewSearchDirection = "forward"
+    } else {
+        potentialNewSearchDirection = "backward"
     }
     document.getElementById("url").value = search
     document.getElementById("url").select()
@@ -126,7 +139,7 @@ const previousSearchMatch = () => {
                 if (tab.classList.contains("visible-tab")) {
                     page.findInPage(search, {
                         "findNext": true,
-                        "forward": false,
+                        "forward": searchDirection === "backward",
                         "matchCase": matchCase(search)
                     })
                 }
@@ -143,8 +156,6 @@ const matchCase = search => {
     }
     return !getSetting("ignorecase")
 }
-
-let lastSearchFull = false
 
 const resetIncrementalSearch = () => {
     if (getSetting("searchscope") === "inclocal" && !lastSearchFull) {
@@ -169,6 +180,9 @@ const incrementalSearch = args => {
         setStored("globalsearch", search)
     } else {
         currentTab()?.setAttribute("localsearch", search)
+    }
+    if (search === storedSearch) {
+        return nextSearchMatch()
     }
     if (search) {
         pages.filter(p => p).forEach(page => {
@@ -1065,6 +1079,7 @@ const useEnteredData = () => {
         execute(command)
     }
     if (currentMode() === "search") {
+        searchDirection = potentialNewSearchDirection
         incrementalSearch({"value": document.getElementById("url").value})
         setMode("normal")
     }

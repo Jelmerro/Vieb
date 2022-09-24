@@ -319,6 +319,7 @@ const defaultBindings = {
         "<kRight>": {"mapping": "<scrollRight>"},
         "<kUp>": {"mapping": "<scrollUp>"},
         "=": {"mapping": "<zoomIn>"},
+        "?": {"mapping": "<toSearchMode>"},
         "@:": {"mapping": "<toCommandMode><commandHistoryPrevious>"
             + "<useEnteredData>"},
         "[": {"mapping": "<previousPage>"},
@@ -690,6 +691,7 @@ let draggingScreenshotFrame = false
 let lastScreenshotX = 0
 let lastScreenshotY = 0
 let suggestionTimer = null
+let unshiftedLastKey = null
 
 const init = () => {
     window.addEventListener("keydown", handleKeyboard)
@@ -908,6 +910,8 @@ const init = () => {
     const unSupportedActions = [
         "setFocusCorrectly",
         "incrementalSearch",
+        "resetIncrementalSearch",
+        "resetInputHistory",
         "p.init",
         "p.move",
         "p.storeMouseSelection",
@@ -1415,9 +1419,9 @@ const doAction = async(actionName, givenCount, actionCallKeys) => {
     const funcName = actionName.replace(/^.*\./g, "")
     for (let i = 0; i < actionCount; i++) {
         if (pointer) {
-            await POINTER[funcName]({actionCallKeys})
+            await POINTER[funcName]({actionCallKeys, unshiftedLastKey})
         } else {
-            await ACTIONS[funcName]({actionCallKeys})
+            await ACTIONS[funcName]({actionCallKeys, unshiftedLastKey})
         }
     }
     if (!funcName.startsWith("menu") && funcName !== "nop") {
@@ -1436,6 +1440,17 @@ const actionForKeys = keys => {
     }
     const allCurrent = findMaps(keys, currentMode())
     return bindings[currentMode()[0]][allCurrent[0]]
+}
+
+const unshiftedKeyName = async(key, code) => {
+    let unshiftedName = String(key)
+    try {
+        const map = await navigator.keyboard.getLayoutMap()
+        unshiftedName = map.get(code)
+    } catch {
+        // Unsupported keyboard layout, fallback to unshifted key
+    }
+    return unshiftedName ?? key
 }
 
 const handleKeyboard = async e => {
@@ -1459,6 +1474,7 @@ const handleKeyboard = async e => {
     if (matchingMod) {
         return
     }
+    unshiftedLastKey = await unshiftedKeyName(e.key, e.code)
     clearTimeout(timeoutTimer)
     if (getSetting("timeout")) {
         timeoutTimer = setTimeout(async() => {
@@ -1583,14 +1599,7 @@ const handleKeyboard = async e => {
     if (currentMode() === "follow") {
         if (e.type === "keydown") {
             const {enterKey} = require("./follow")
-            let unshiftedName = String(e.key)
-            try {
-                const map = await navigator.keyboard.getLayoutMap()
-                unshiftedName = map.get(e.code)
-            } catch {
-                // Unsupported keyboard layout, fallback to unshifted key
-            }
-            enterKey(unshiftedName || e.key, id, e.shiftKey || e.ctrlKey)
+            enterKey(unshiftedLastKey, id, e.shiftKey || e.ctrlKey)
         }
         return
     }
