@@ -24,6 +24,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Pinned tabs will now be correctly reopened by "containernames" container switching
 - Mouse scrolling on Vieb elements will now scroll the underlying page if the "pageoutsideinsert" mouse feature is on (default)
 - Search will now find the next match if searching for the same string again
+- Default blocklist urls to use adblockplus instead of easylist due to fetch issues
 
 ### Fixed
 

@@ -5,6 +5,10 @@ These lists are provided by EasyList [here](https://easylist.to).
 They can be used under the terms of the GNU GPL-3.0 or later versions.
 For full license details see [this page](https://easylist.to/pages/licence.html).
 All "easy" text files (filter lists) in this folder belong to "The EasyList authors (https://easylist.to/)".
+They are fetched from adblockplus.org, until these
+[easylist](https://github.com/easylist/easylist/issues/13389) website
+[issues](https://github.com/easylist/easylist/issues/13477) are
+[fixed](https://github.com/easylist/easylist/issues/13540).
 
 Vieb uses these lists to block advertisements and trackers,
 without connecting to external sites to update the lists.
