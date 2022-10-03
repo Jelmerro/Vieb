@@ -448,7 +448,7 @@ app.on("ready", () => {
     // Load app and send urls when ready
     mainWindow.loadURL(`file://${joinPath(__dirname, "index.html")}`)
     mainWindow.webContents.once("did-finish-load", () => {
-        mainWindow.webContents.on("new-window", e => e.preventDefault())
+        mainWindow.webContents.setWindowOpenHandler(() => ({"action": "deny"}))
         mainWindow.webContents.on("will-navigate", e => e.preventDefault())
         mainWindow.webContents.on("will-redirect", e => e.preventDefault())
         if (argDebugMode) {
