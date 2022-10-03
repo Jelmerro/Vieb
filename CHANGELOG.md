@@ -11,6 +11,17 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Changed
+
+- Enter key will now also send keypress events when executed by a mapping
+
+## Versions
+
+- Electron 21.0.0 (unchanged)
+- Chromium 106.0.5249.51 (unchanged)
+
 ## [9.2.0](https://github.com/Jelmerro/Vieb/compare/9.1.0...9.2.0) - 2022-09-28
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/9.1.0...9.2.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/9.2.0)
