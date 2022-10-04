@@ -80,6 +80,7 @@ try {
             setting = "ask"
         }
         let settingRule = ""
+        let url = window.location.href
         for (const type of ["ask", "block", "allow"]) {
             const permList = settings[`permissions${type}ed`]?.split(",")
             for (const r of permList || []) {
@@ -88,15 +89,21 @@ try {
                 }
                 const [match, ...names] = r.split("~")
                 if (names.find(p => p.endsWith("mediadevices"))) {
-                    if (window.location.href.match(match)) {
+                    if (url.match(match)) {
                         settingRule = type
+                        break
+                    }
+                }
+                if (names.find(p => p.endsWith("mediadevicesfull"))) {
+                    if (url.match(match) && type === "allow") {
+                        settingRule = "allowfull"
+                        break
                     }
                 }
             }
         }
         setting = settingRule || setting
         if (setting === "ask") {
-            let url = window.location.href
             if (url.length > 100) {
                 url = url.replace(/.{50}/g, "$&\n")
             }
@@ -162,6 +169,7 @@ try {
                 if (names.find(p => p.endsWith("displaycapture"))) {
                     if (window.location.href.match(match)) {
                         settingRule = type
+                        break
                     }
                 }
             }

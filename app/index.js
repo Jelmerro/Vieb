@@ -1202,8 +1202,10 @@ const permissionHandler = (_, perm, callback, details) => {
             permission = "camera"
         } else if (details.mediaTypes?.includes("audio")) {
             permission = "microphone"
-        } else {
+        } else if (details.mediaTypes) {
             permission = "displaycapture"
+        } else {
+            permission = "mediadevices"
         }
     }
     let permissionName = `permission${permission}`
@@ -1229,6 +1231,7 @@ const permissionHandler = (_, perm, callback, details) => {
             if (names.find(p => permissionName.endsWith(p))) {
                 if (details.requestingUrl.match(match)) {
                     settingRule = override.replace("ed", "")
+                    break
                 }
             }
         }

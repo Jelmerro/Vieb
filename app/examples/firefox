@@ -12,7 +12,7 @@ set norestoretabs
 set permissioncamera=ask
 set permissioncertificateerror=ask
 set permissiondisplaycapture=ask
-set permissionmediadevices=allow
+set permissionmediadevices=allowfull
 set permissionmicrophone=ask
 set permissionpersistentstorage=allow
 set redirecttohttp

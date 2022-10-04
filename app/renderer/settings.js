@@ -633,6 +633,10 @@ const checkOther = (setting, value) => {
                 if (!name.startsWith("permission")) {
                     name = `permission${name}`
                 }
+                if (name === "permissionmediadevicesfull"
+                    && setting.endsWith("allowed")) {
+                    return true
+                }
                 const reservedName = permissionSettings.includes(name)
                 if (reservedName || !allSettings[name]) {
                     notify(
