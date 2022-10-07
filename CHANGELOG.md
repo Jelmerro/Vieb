@@ -11,6 +11,17 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Changed
+
+- Modifiers/shifted keys for searching, marks and follow mode now work more reliable
+
+### Versions
+
+- Electron 21.0.1 (unchanged)
+- Chromium 106.0.5249.61 (unchanged)
+
 ## [9.2.1](https://github.com/Jelmerro/Vieb/compare/9.2.0...9.2.1) - 2022-10-04
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/9.2.0...9.2.1) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/9.2.1)
@@ -25,7 +36,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Media device requests being mislabeled as display capture permission requests in some cases
 
-## Versions
+### Versions
 
 - Electron 21.0.1 (21.0.0)
 - Chromium 106.0.5249.61 (was 106.0.5249.51)

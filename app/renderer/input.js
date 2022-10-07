@@ -691,7 +691,7 @@ let draggingScreenshotFrame = false
 let lastScreenshotX = 0
 let lastScreenshotY = 0
 let suggestionTimer = null
-let unshiftedLastKey = null
+let hadModifier = false
 
 const init = () => {
     window.addEventListener("keydown", handleKeyboard)
@@ -1335,7 +1335,8 @@ const repeatLastAction = () => {
 }
 
 const executeMapString = async(mapStr, recursive, initial) => {
-    const actionCallKeys = pressedKeys.split(mapStringSplitter).filter(k => k)
+    const actionCallKey = pressedKeys.split(mapStringSplitter)
+        .filter(k => k).at(-1)
     if (initial) {
         if (!mapStr.includes("<repeatLastAction>")) {
             lastExecutedMapstring = {mapStr, recursive}
@@ -1360,7 +1361,7 @@ const executeMapString = async(mapStr, recursive, initial) => {
             if (supportedActions.includes(key.replace(/(^<|>$)/g, ""))) {
                 const count = Number(repeatCounter)
                 repeatCounter = 0
-                await doAction(key.replace(/(^<|>$)/g, ""), count, actionCallKeys)
+                await doAction(key.replace(/(^<|>$)/g, ""), count, actionCallKey)
                 await new Promise(r => {
                     setTimeout(r, 3)
                 })
@@ -1404,7 +1405,7 @@ const executeMapString = async(mapStr, recursive, initial) => {
     }
 }
 
-const doAction = async(actionName, givenCount, actionCallKeys) => {
+const doAction = async(actionName, givenCount, key) => {
     let actionCount = givenCount || 1
     if (uncountableActions.includes(actionName)) {
         if (lastActionInMapping === actionName) {
@@ -1419,9 +1420,9 @@ const doAction = async(actionName, givenCount, actionCallKeys) => {
     const funcName = actionName.replace(/^.*\./g, "")
     for (let i = 0; i < actionCount; i++) {
         if (pointer) {
-            await POINTER[funcName]({actionCallKeys, unshiftedLastKey})
+            await POINTER[funcName]({hadModifier, key})
         } else {
-            await ACTIONS[funcName]({actionCallKeys, unshiftedLastKey})
+            await ACTIONS[funcName]({hadModifier, key})
         }
     }
     if (!funcName.startsWith("menu") && funcName !== "nop") {
@@ -1440,17 +1441,6 @@ const actionForKeys = keys => {
     }
     const allCurrent = findMaps(keys, currentMode())
     return bindings[currentMode()[0]][allCurrent[0]]
-}
-
-const unshiftedKeyName = async(key, code) => {
-    let unshiftedName = String(key)
-    try {
-        const map = await navigator.keyboard.getLayoutMap()
-        unshiftedName = map.get(code)
-    } catch {
-        // Unsupported keyboard layout, fallback to unshifted key
-    }
-    return unshiftedName ?? key
 }
 
 const handleKeyboard = async e => {
@@ -1474,7 +1464,7 @@ const handleKeyboard = async e => {
     if (matchingMod) {
         return
     }
-    unshiftedLastKey = await unshiftedKeyName(e.key, e.code)
+    hadModifier = e.shiftKey || e.ctrlKey
     clearTimeout(timeoutTimer)
     if (getSetting("timeout")) {
         timeoutTimer = setTimeout(async() => {
@@ -1599,7 +1589,16 @@ const handleKeyboard = async e => {
     if (currentMode() === "follow") {
         if (e.type === "keydown") {
             const {enterKey} = require("./follow")
-            enterKey(unshiftedLastKey, id, e.shiftKey || e.ctrlKey)
+            let unshiftedName = String(e.key).toLowerCase()
+            if (e.key.toUpperCase() === unshiftedName && hadModifier) {
+                try {
+                    const map = await navigator.keyboard.getLayoutMap()
+                    unshiftedName = map.get(e.code) ?? e.key
+                } catch {
+                    // Unsupported keyboard layout, fallback to unshifted key
+                }
+            }
+            enterKey(unshiftedName, id, hadModifier)
         }
         return
     }

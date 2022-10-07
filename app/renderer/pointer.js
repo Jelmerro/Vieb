@@ -604,7 +604,7 @@ const moveFastUp = () => {
 }
 
 const storePos = args => {
-    const key = args?.key ?? args?.actionCallKeys?.at(-1)
+    const key = args?.key
     if (!key) {
         return
     }
@@ -646,7 +646,7 @@ const storePos = args => {
 }
 
 const restorePos = args => {
-    const key = args?.key ?? args?.actionCallKeys?.at(-1)
+    const key = args?.key
     if (!key) {
         return
     }

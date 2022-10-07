@@ -112,10 +112,10 @@ const toSearchMode = args => {
             || getStored("globalsearch")
     }
     storedSearch = search
-    if (args?.actionCallKeys?.at(-1) === args?.unshiftedLastKey) {
-        potentialNewSearchDirection = "forward"
-    } else {
+    if (args?.hadModifier) {
         potentialNewSearchDirection = "backward"
+    } else {
+        potentialNewSearchDirection = "forward"
     }
     document.getElementById("url").value = search
     document.getElementById("url").select()
@@ -886,7 +886,7 @@ const openFromClipboard = () => {
 }
 
 const storeScrollPos = async args => {
-    const key = args?.key ?? args?.actionCallKeys?.at(-1)
+    const key = args?.key
     if (!key) {
         return
     }
@@ -927,7 +927,7 @@ const storeScrollPos = async args => {
 }
 
 const restoreScrollPos = args => {
-    const key = args?.key ?? args?.actionCallKeys?.at(-1)
+    const key = args?.key
     if (!key) {
         return
     }
@@ -949,7 +949,7 @@ const restoreScrollPos = args => {
 }
 
 const makeMark = args => {
-    const key = args?.key ?? args?.actionCallKeys?.at(-1)
+    const key = args?.key
     if (!key) {
         return
     }
@@ -962,7 +962,7 @@ const makeMark = args => {
 }
 
 const restoreMark = args => {
-    const key = args?.key ?? args?.actionCallKeys?.at(-1)
+    const key = args?.key
     if (!key) {
         return
     }
