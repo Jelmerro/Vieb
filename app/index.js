@@ -463,6 +463,11 @@ app.on("ready", () => {
         prefs.contextIsolation = false
     })
     mainWindow.webContents.on("did-attach-webview", (_, contents) => {
+        contents.on("will-prevent-unload", e => e.preventDefault())
+        contents.on("unresponsive", () => mainWindow.webContents.send(
+            "unresponsive", contents.id))
+        contents.on("responsive", () => mainWindow.webContents.send(
+            "responsive", contents.id))
         let navigationUrl = null
         contents.on("did-start-navigation", (__, url) => {
             navigationUrl = url
@@ -1695,8 +1700,13 @@ ipcMain.on("mouse-location", e => {
 // Subframe/iframe related code to send from renderer to frames and vice versa
 ipcMain.on("follow-mode-start", (_, id, followTypeFilter, switchTo = false) => {
     try {
-        webContents.fromId(id).mainFrame.framesInSubtree.forEach(
-            f => f.send("follow-mode-start", followTypeFilter))
+        webContents.fromId(id).mainFrame.framesInSubtree.forEach(f => {
+            try {
+                f.send("follow-mode-start", followTypeFilter)
+            } catch (ex) {
+                mainWindow.webContents.send("main-error", ex.stack)
+            }
+        })
         if (switchTo) {
             allLinks = []
         }
@@ -1706,8 +1716,13 @@ ipcMain.on("follow-mode-start", (_, id, followTypeFilter, switchTo = false) => {
 })
 ipcMain.on("follow-mode-stop", e => {
     try {
-        e.sender.mainFrame.framesInSubtree.forEach(
-            f => f.send("follow-mode-stop"))
+        e.sender.mainFrame.framesInSubtree.forEach(f => {
+            try {
+                f.send("follow-mode-stop")
+            } catch (ex) {
+                mainWindow.webContents.send("main-error", ex.stack)
+            }
+        })
     } catch (ex) {
         mainWindow.webContents.send("main-error", ex.stack)
     }
@@ -1793,7 +1808,14 @@ ipcMain.on("follow-response", (e, rawLinks) => {
     })
     try {
         const allFramesIds = mainWindow.webContents.mainFrame
-            .framesInSubtree.map(f => `${f.routingId}-${f.processId}`)
+            .framesInSubtree.map(f => {
+                try {
+                    return `${f.routingId}-${f.processId}`
+                } catch (ex) {
+                    mainWindow.webContents.send("main-error", ex.stack)
+                    return null
+                }
+            }).filter(f => f)
         allLinks = allLinks.filter(l => l.frameId !== frameId
             && allFramesIds.includes(l.frameId))
         allLinks = allLinks.concat(frameLinks)
@@ -1805,20 +1827,25 @@ ipcMain.on("follow-response", (e, rawLinks) => {
 const findRelevantSubFrame = (wc, x, y) => {
     try {
         const absoluteFrames = wc.mainFrame.framesInSubtree.map(f => {
-            const id = `${f.routingId}-${f.processId}`
-            const info = frameInfo[id]
-            if (!info?.parent) {
+            try {
+                const id = `${f.routingId}-${f.processId}`
+                const info = frameInfo[id]
+                if (!info?.parent) {
+                    return null
+                }
+                info.absX = info.x
+                info.absY = info.y
+                let parent = frameInfo[info.parent]
+                while (parent) {
+                    info.absX += parent.x || 0
+                    info.absY += parent.y || 0
+                    parent = frameInfo[parent]
+                }
+                return info
+            } catch (ex) {
+                mainWindow.webContents.send("main-error", ex.stack)
                 return null
             }
-            info.absX = info.x
-            info.absY = info.y
-            let parent = frameInfo[info.parent]
-            while (parent) {
-                info.absX += parent.x || 0
-                info.absY += parent.y || 0
-                parent = frameInfo[parent]
-            }
-            return info
         }).filter(f => f)
         let relevantFrame = null
         absoluteFrames.forEach(info => {
@@ -1864,8 +1891,17 @@ ipcMain.on("action", (_, id, actionName, ...opts) => {
             return
         }
     }
-    wc.mainFrame.framesInSubtree.forEach(
-        f => f.send("action", actionName, ...opts))
+    try {
+        wc.mainFrame.framesInSubtree.forEach(f => {
+            try {
+                f.send("action", actionName, ...opts)
+            } catch (ex) {
+                mainWindow.webContents.send("main-error", ex.stack)
+            }
+        })
+    } catch (ex) {
+        mainWindow.webContents.send("main-error", ex.stack)
+    }
 })
 ipcMain.on("contextmenu-data", (_, id, info) => {
     const wc = webContents.fromId(id)

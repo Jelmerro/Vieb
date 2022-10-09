@@ -122,6 +122,20 @@ const init = () => {
             })
         })
         ipcRenderer.on("navigate-to", (_, url) => navigateTo(stringToUrl(url)))
+        ipcRenderer.on("unresponsive", (_, id) => {
+            listPages().forEach(webview => {
+                if (webview.getWebContentsId?.() === id) {
+                    tabOrPageMatching(webview).classList.add("unresponsive")
+                }
+            })
+        })
+        ipcRenderer.on("responsive", (_, id) => {
+            listPages().forEach(webview => {
+                if (webview.getWebContentsId?.() === id) {
+                    tabOrPageMatching(webview).classList.remove("unresponsive")
+                }
+            })
+        })
         ipcRenderer.on("new-tab", (_, url) => addTab({
             "switchTo": getSetting("mousenewtabswitch"), "url": stringToUrl(url)
         }))

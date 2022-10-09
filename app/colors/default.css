@@ -30,6 +30,7 @@
     --tab-muted: #fff;
     --tab-muted-playing: #ff3;
     --tab-crashed: #f00;
+    --tab-unresponsive: var(--tab-crashed);
     --tab-scrollbar: #5ff;
     --container-background: none;
     --mode-normal-fg: #eee;
@@ -183,6 +184,8 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #tabs .pinned[media-playing], #tabs .pinned[muted] {width: 2.2em;max-width: 2.2em;}
 #tabs .pinned > img {padding: 0;margin: .2em;}
 #tabs .crashed {background: var(--tab-crashed);}
+#tabs .unresponsive:not(.crashed)::before {border-left: solid .3em var(--tab-unresponsive);content: "";}
+#tabs #current-tab.crashed {border-left: solid .3em var(--tab-split);}
 #tabs [media-playing]::before {border-left: solid .3em var(--tab-audio);content: "";}
 #tabs [muted]::before {border-left: solid .3em var(--tab-muted);content: "";}
 #tabs [muted][media-playing]::before {border-left: solid .3em var(--tab-muted-playing);content: "";}

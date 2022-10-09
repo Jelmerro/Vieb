@@ -16,10 +16,12 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Setting "reloadtaboncrash" to automatically recreate a crash tab with the last known url
+- Indicator for unresponsive tabs in the form of a small red border on the left of the unresponsive tab
 
 ### Changed
 
 - Modifiers/shifted keys for searching, marks and follow mode now work more reliable
+- Tabs will no longer refuse to navigate when there is a beforeunload listener that calls preventDefault
 
 ### Fixed
 
@@ -27,6 +29,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Split state not being kept when switching container name based on containernames setting
 - Multiple useragents being set sometimes causing duplicate page loads
 - BatteryManager errors for insecure pages, since it's an HTTPS-only API
+- Follow mode and other main process calls not succeeding when there are crashed tabs present
 
 ### Versions
 
