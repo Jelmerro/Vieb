@@ -298,23 +298,25 @@ try {
 } catch {
     // No deletion allowed in this context, set to undefined instead
 }
-// Always act as if there is no battery and the state never changes
-Object.defineProperty(window.BatteryManager.prototype,
-    "level", {"get": () => 1})
-Object.defineProperty(window.BatteryManager.prototype,
-    "charging", {"get": () => true})
-Object.defineProperty(window.BatteryManager.prototype,
-    "chargingTime", {"get": () => 0})
-Object.defineProperty(window.BatteryManager.prototype,
-    "dischargingTime", {"get": () => Infinity})
-Object.defineProperty(window.BatteryManager.prototype,
-    "onchargingchange", {"get": () => null})
-Object.defineProperty(window.BatteryManager.prototype,
-    "onchargingtimechange", {"get": () => null})
-Object.defineProperty(window.BatteryManager.prototype,
-    "ondischargingtimechange", {"get": () => null})
-Object.defineProperty(window.BatteryManager.prototype,
-    "onlevelchange", {"get": () => null})
+// HTTPS-only: Always act as if there is no battery and the state never changes
+if (window.BatteryManager) {
+    Object.defineProperty(window.BatteryManager.prototype,
+        "level", {"get": () => 1})
+    Object.defineProperty(window.BatteryManager.prototype,
+        "charging", {"get": () => true})
+    Object.defineProperty(window.BatteryManager.prototype,
+        "chargingTime", {"get": () => 0})
+    Object.defineProperty(window.BatteryManager.prototype,
+        "dischargingTime", {"get": () => Infinity})
+    Object.defineProperty(window.BatteryManager.prototype,
+        "onchargingchange", {"get": () => null})
+    Object.defineProperty(window.BatteryManager.prototype,
+        "onchargingtimechange", {"get": () => null})
+    Object.defineProperty(window.BatteryManager.prototype,
+        "ondischargingtimechange", {"get": () => null})
+    Object.defineProperty(window.BatteryManager.prototype,
+        "onlevelchange", {"get": () => null})
+}
 // Custom prompt, confirm and alert, based on "dialog*" settings
 // Options: return the default cancel action, show a custom popup or notify
 window.prompt = text => {
