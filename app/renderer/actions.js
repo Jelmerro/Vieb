@@ -463,9 +463,10 @@ const scrollPageUpHalf = () => currentPage()?.send(
 const refreshTab = args => {
     const page = args?.customPage || currentPage()
     if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
-        page.reload()
-        const {resetTabInfo} = require("./tabs")
+        const {rerollUserAgent, resetTabInfo} = require("./tabs")
+        rerollUserAgent(page)
         resetTabInfo(page)
+        page.reload()
     }
 }
 
@@ -509,9 +510,10 @@ const backInHistory = args => {
     if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
         if (page?.canGoBack()) {
             tabOrPageMatching(page).querySelector("span").textContent = ""
-            page.goBack()
-            const {resetTabInfo} = require("./tabs")
+            const {rerollUserAgent, resetTabInfo} = require("./tabs")
+            rerollUserAgent(page)
             resetTabInfo(page)
+            page.goBack()
         }
     }
 }
@@ -521,20 +523,21 @@ const forwardInHistory = args => {
     if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
         if (page?.canGoForward()) {
             tabOrPageMatching(page).querySelector("span").textContent = ""
-            page.goForward()
-            const {resetTabInfo} = require("./tabs")
+            const {rerollUserAgent, resetTabInfo} = require("./tabs")
+            rerollUserAgent(page)
             resetTabInfo(page)
+            page.goForward()
         }
     }
 }
 
 const refreshTabWithoutCache = () => {
-    if (currentPage() && !currentPage().isCrashed()) {
-        if (!currentPage().src.startsWith("devtools://")) {
-            currentPage().reloadIgnoringCache()
-            const {resetTabInfo} = require("./tabs")
-            resetTabInfo(currentPage())
-        }
+    const page = currentPage()
+    if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
+        const {rerollUserAgent, resetTabInfo} = require("./tabs")
+        rerollUserAgent(page)
+        resetTabInfo(page)
+        page.reloadIgnoringCache()
     }
 }
 

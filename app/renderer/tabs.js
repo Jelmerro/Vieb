@@ -655,15 +655,6 @@ const addWebviewListeners = webview => {
     webview.addEventListener("load-commit", e => {
         if (e.isMainFrame) {
             resetTabInfo(webview)
-            const customUA = getSetting("useragent")
-            if (customUA) {
-                const agents = customUA.split("~")
-                const agent = userAgentTemplated(
-                    agents.at(Math.random() * agents.length))
-                webview.setUserAgent(agent)
-            } else {
-                webview.setUserAgent("")
-            }
             const name = tabOrPageMatching(webview).querySelector("span")
             if (!name.textContent) {
                 name.textContent = urlToString(e.url)
@@ -913,10 +904,7 @@ const addWebviewListeners = webview => {
             setMode("insert")
         }
         if (e.channel === "navigate-to") {
-            const [url] = e.args
-            webview.src = stringToUrl(url)
-            tabOrPageMatching(webview).querySelector("span")
-                .textContent = urlToString(url)
+            navigateTo(e.args[0], webview)
         }
         if (e.channel === "new-tab-info-request") {
             const special = pathToSpecialPageName(webview.src)
@@ -1016,26 +1004,39 @@ const resetTabInfo = webview => {
     empty(webview)
 }
 
-const navigateTo = location => {
-    const page = currentPage()
-    if (!page || page.isCrashed() || !location) {
+const rerollUserAgent = webview => {
+    const customUA = getSetting("useragent")
+    if (customUA) {
+        const agents = customUA.split("~")
+        const agent = userAgentTemplated(
+            agents.at(Math.random() * agents.length))
+        webview.setUserAgent(agent)
+    } else {
+        webview.setUserAgent("")
+    }
+}
+
+const navigateTo = (location, customPage = false) => {
+    const webview = customPage || currentPage()
+    if (!webview || webview.isCrashed() || !location) {
         return
     }
-    if (page.src.startsWith("devtools://")) {
+    if (webview.src.startsWith("devtools://")) {
         return
     }
-    page.stop()
+    webview.stop()
     const loc = location.replace(/view-?source:\/?\/?/g, "sourceviewer://")
     const sessionName = getSetting("containernames").split(",").find(
         c => loc.match(c.split("~")[0]) && c.split("~")[2] !== "newtab")
         ?.split("~")[1]
-    if (sessionName && sessionName !== page.getAttribute("container")) {
-        page.setAttribute("container", sessionName)
-        recreateWebview(page)
+    if (sessionName && sessionName !== webview.getAttribute("container")) {
+        webview.setAttribute("container", sessionName)
+        recreateWebview(webview)
         return
     }
-    page.src = loc
-    resetTabInfo(page)
+    rerollUserAgent(webview)
+    webview.src = loc
+    resetTabInfo(webview)
     currentTab().querySelector("span").textContent = urlToString(loc)
 }
 
@@ -1077,6 +1078,7 @@ module.exports = {
     moveTabForward,
     navigateTo,
     reopenTab,
+    rerollUserAgent,
     resetTabInfo,
     saveTabs,
     suspendTab,

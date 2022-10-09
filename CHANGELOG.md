@@ -25,6 +25,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Initial tab load issues on some devices for specific pages
 - Split state not being kept when switching container name based on containernames setting
+- Multiple useragents being set sometimes causing duplicate page loads
 
 ### Versions
 
