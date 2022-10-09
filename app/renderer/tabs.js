@@ -424,7 +424,38 @@ const unsuspendPage = page => {
         webview.src = specialPagePath("newtab")
     }
     const url = page.src || ""
+    webview.addEventListener("did-stop-loading", () => {
+        // Workaround for this Electron race condition:
+        // https://github.com/electron/electron/blob/c09c94fc98f261dce4a35847e2dd9699dcd5213e/lib/browser/api/web-contents.ts#L439-L448
+        // Also see:
+        // https://github.com/electron/electron/issues/28208
+        // This can actually also happen after dom-ready is there,
+        // but in those cases re-initializing the page is not nice,
+        // so we basically have to accept that there will be tabs that break.
+        if (webview.getAttribute("state") === "navigating") {
+            if (!webview.getAttribute("dom-ready")) {
+                addTab({
+                    "muted": tab.getAttribute("muted"),
+                    "pinned": tab.classList.contains("pinned"),
+                    "session": sessionName,
+                    url
+                })
+                closeTab(listTabs().indexOf(tab), true)
+            }
+        }
+    })
+    webview.addEventListener("did-start-navigation", e => {
+        if (e.isMainFrame) {
+            webview.setAttribute("state", "navigating")
+        }
+    })
+    webview.addEventListener("did-fail-load", e => {
+        if (e.isMainFrame) {
+            webview.setAttribute("state", "failed")
+        }
+    })
     webview.addEventListener("dom-ready", () => {
+        webview.setAttribute("state", "finished")
         if (!webview.getAttribute("dom-ready")) {
             if (webview.getAttribute("custom-first-load")) {
                 webview.clearHistory()

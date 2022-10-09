@@ -17,6 +17,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Modifiers/shifted keys for searching, marks and follow mode now work more reliable
 
+### Fixed
+
+- Initial tab load issues on some devices for specific pages
+
 ### Versions
 
 - Electron 21.1.0 (was 21.0.1)
