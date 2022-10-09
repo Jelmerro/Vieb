@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Setting "reloadtaboncrash" to automatically recreate a crash tab with the last known url
+
 ### Changed
 
 - Modifiers/shifted keys for searching, marks and follow mode now work more reliable
@@ -20,6 +24,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Initial tab load issues on some devices for specific pages
+- Split state not being kept when switching container name based on containernames setting
 
 ### Versions
 

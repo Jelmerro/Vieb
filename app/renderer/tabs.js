@@ -359,12 +359,12 @@ const sharedAttributes = [
     "link-id", "container", "class", "id", "style", "muted", "user-script-file"
 ]
 
-const suspendTab = tab => {
+const suspendTab = (tab, force = false) => {
     const page = tabOrPageMatching(tab)
     if (page?.tagName?.toLowerCase() !== "webview") {
         return
     }
-    if (tab.classList.contains("visible-tab")) {
+    if (tab.classList.contains("visible-tab") && !force) {
         return
     }
     page.closeDevTools()
@@ -434,13 +434,7 @@ const unsuspendPage = page => {
         // so we basically have to accept that there will be tabs that break.
         if (webview.getAttribute("state") === "navigating") {
             if (!webview.getAttribute("dom-ready")) {
-                addTab({
-                    "muted": tab.getAttribute("muted"),
-                    "pinned": tab.classList.contains("pinned"),
-                    "session": sessionName,
-                    url
-                })
-                closeTab(listTabs().indexOf(tab), true)
+                recreateWebview(webview)
             }
         }
     })
@@ -691,7 +685,11 @@ const addWebviewListeners = webview => {
         }
     })
     webview.addEventListener("crashed", () => {
-        tabOrPageMatching(webview).classList.add("crashed")
+        if (getSetting("reloadtaboncrash")) {
+            recreateWebview(webview)
+        } else {
+            tabOrPageMatching(webview).classList.add("crashed")
+        }
     })
     webview.addEventListener("close", () => {
         if (getSetting("permissionclosepage") === "allow") {
@@ -1006,6 +1004,12 @@ const addWebviewListeners = webview => {
     }
 }
 
+const recreateWebview = webview => {
+    const tab = tabOrPageMatching(webview)
+    suspendTab(tab, true)
+    unsuspendPage(tabOrPageMatching(tab))
+}
+
 const resetTabInfo = webview => {
     webview.removeAttribute("failed-to-load")
     const {empty} = require("./favicons")
@@ -1026,13 +1030,8 @@ const navigateTo = location => {
         c => loc.match(c.split("~")[0]) && c.split("~")[2] !== "newtab")
         ?.split("~")[1]
     if (sessionName && sessionName !== page.getAttribute("container")) {
-        addTab({
-            "muted": tabOrPageMatching(page).getAttribute("muted"),
-            "pinned": tabOrPageMatching(page).classList.contains("pinned"),
-            "session": sessionName,
-            "url": loc
-        })
-        closeTab(listTabs().indexOf(tabOrPageMatching(page)), true)
+        page.setAttribute("container", sessionName)
+        recreateWebview(page)
         return
     }
     page.src = loc

@@ -176,6 +176,7 @@ const defaultSettings = {
     "redirects": "https?://(www\\.)?google\\.com(\\.\\w+)?/amp/s/amp\\.(.*)"
         + "~https://$3",
     "redirecttohttp": false,
+    "reloadtaboncrash": false,
     "requesttimeout": 20000,
     "restoretabs": true,
     "restorewindowmaximize": true,
