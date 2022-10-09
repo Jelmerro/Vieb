@@ -694,6 +694,11 @@ const addWebviewListeners = webview => {
             recreateWebview(webview)
         } else {
             tabOrPageMatching(webview).classList.add("crashed")
+            if (currentPage().isCrashed() && webview === currentPage()) {
+                if ("fipv".includes(currentMode()[0])) {
+                    setMode("normal")
+                }
+            }
         }
     })
     webview.addEventListener("close", () => {

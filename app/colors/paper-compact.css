@@ -142,4 +142,4 @@
 /* compact mode */
 #app {display: grid;grid-template: "navbar tabbar" 2em "main main" auto;}
 #navbar, #tabs {width: 50vw}
-#page-container{grid-area: main;}
+#page-container {grid-area: main;}

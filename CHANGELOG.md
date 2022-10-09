@@ -22,6 +22,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Modifiers/shifted keys for searching, marks and follow mode now work more reliable
 - Tabs will no longer refuse to navigate when there is a beforeunload listener that calls preventDefault
+- When the current tab is crashed, you can no longer enter irrelevant modes in it
 
 ### Fixed
 
