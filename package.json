@@ -43,6 +43,7 @@
     "darkreader": "4.9.58",
     "highlight.js": "11.6.0",
     "jsdom": "20.0.1",
-    "marked": "4.1.1"
+    "marked": "4.1.1",
+    "picomatch": "2.3.1"
   }
 }

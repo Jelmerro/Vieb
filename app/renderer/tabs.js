@@ -835,6 +835,10 @@ const addWebviewListeners = webview => {
                 }
             }
         }
+        if (getSetting("userscript")) {
+            const {loadUserscripts} = require("./extensions")
+            loadUserscripts(webview)
+        }
     })
     webview.addEventListener("page-title-updated", e => {
         const isCustomView = webview.src.startsWith("sourceviewer:")

@@ -218,6 +218,7 @@ const defaultSettings = {
     "timeout": true,
     "timeoutlen": 2000,
     "useragent": "",
+    "userscript": false,
     "userstyle": false,
     "vimcommand": "gvim",
     "windowtitle": "%app - %title"

@@ -17,6 +17,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Setting "reloadtaboncrash" to automatically recreate a crash tab with the last known url
 - Indicator for unresponsive tabs in the form of a small red border on the left of the unresponsive tab
+- Setting "userscript" to run custom JavaScript on pages, optionally using the GreaseMonkey API
 
 ### Changed
 
