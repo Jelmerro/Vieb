@@ -11,6 +11,17 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Added
+
+- Percentage based scrolling when using "gg" or "G" with a count, similar to Vim
+
+### Versions
+
+- Electron 21.1.0 (was 21.0.1)
+- Chromium 106.0.5249.91 (was 106.0.5249.61)
+
 ## [9.3.0](https://github.com/Jelmerro/Vieb/compare/9.2.1...9.3.0) - 2022-10-10
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/9.2.1...9.3.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/9.3.0)

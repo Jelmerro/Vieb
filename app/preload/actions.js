@@ -47,6 +47,9 @@ const navigateToPage = (selector, newtab) => {
 
 const blur = () => activeElement()?.blur?.()
 
+const scrollPerc = perc => window.scrollTo(0,
+    (document.documentElement.scrollHeight - window.innerHeight) * perc / 100)
+
 const scrollTop = () => window.scrollBy(0, -window.innerHeight - 1000000000)
 
 const scrollLeft = () => window.scrollBy(-100, 0)
@@ -275,6 +278,7 @@ const functions = {
     scrollPageRight,
     scrollPageUp,
     scrollPageUpHalf,
+    scrollPerc,
     scrollRight,
     scrollRightMax,
     scrollTop,

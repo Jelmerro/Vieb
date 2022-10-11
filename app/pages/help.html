@@ -1158,9 +1158,9 @@
         </ul>
         The second category of scroll actions are prefixed with "pointer." instead of "action.", because they are used in combination with <a class="pointer" href="#pointer">pointer mode</a>. It's entirely possible to call these pointer actions outside of <a class="pointer" href="#pointer">pointer mode</a> or <a class="visual" href="#visual">visual mode</a>, but the actions are still executed at the pointer location, even if it's not visible. Another difference between these different scroll methods, is that only the <a class="pointer" href="#pointer">pointer mode</a> actions have smooth scrolling. You can also control smooth scrolling on pages by adding <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/scroll-behavior">scroll-behavior CSS rules</a> to your own custom <a href="#userstyle">userstyle</a>. For the pointer scroll actions, see the <a class="pointer" href="#pointer">pointer mode</a> paragraph. Below are all the regular scrolling actions, which will scroll the entire page if possible.
         <h3 id="action.scrollTop">action.scrollTop</h3>
-        Scroll to the absolute top of the page.
+        Scroll to the absolute top of the page. If given a count, it will scroll to a percentage of the page instead, for example: "25gg" will scroll to 25% of the page, similar to jumping to lines in Vim. A count above or equal to 100 will scroll to the bottom of the page.
         <h3 id="action.scrollBottom">action.scrollBottom</h3>
-        Scroll to the absolute bottom of the page.
+        Scroll to the absolute bottom of the page. If given a count, it will scroll to a percentage of the page instead, for example: "75G" will scroll to 75% of the page, similar to jumping to lines in Vim. A count above or equal to 100 will scroll to the bottom of the page.
         <h3 id="action.scrollRightMax">action.scrollRightMax</h3>
         Scroll to the absolute right of the page.
         <h3 id="action.scrollLeftMax">action.scrollLeftMax</h3>

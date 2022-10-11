@@ -1176,8 +1176,6 @@ const uncountableActions = [
     "startFollowNewTab",
     "startFollowNewSplit",
     "startFollowNewVerSplit",
-    "scrollTop",
-    "scrollBottom",
     "scrollRightMax",
     "scrollLeftMax",
     "insertAtFirstInput",
@@ -1347,7 +1345,13 @@ const executeMapString = async(mapStr, recursive, initial) => {
         }
     }
     recursiveCounter += 1
-    const repeater = Number(repeatCounter) || 1
+    let repeater = Number(repeatCounter) || 1
+    if (initial && repeatCounter) {
+        if (["<scrollBottom>", "<scrollTop>"].includes(mapStr)) {
+            currentPage()?.send("action", "scrollPerc", repeatCounter)
+            repeater = 0
+        }
+    }
     repeatCounter = 0
     updateKeysOnScreen()
     for (let i = 0; i < repeater; i++) {
