@@ -544,10 +544,9 @@ const refreshTabWithoutCache = () => {
 const openNewTabWithCurrentUrl = () => {
     const url = currentPage()?.src || ""
     const {addTab} = require("./tabs")
-    addTab()
     const {setMode} = require("./modes")
+    addTab({url: urlToString(url)})
     setMode("explore")
-    document.getElementById("url").value = urlToString(url)
 }
 
 const toCommandMode = () => {
