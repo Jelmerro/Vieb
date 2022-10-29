@@ -485,6 +485,11 @@ const nextTab = () => {
     switchToTab(listTabs().indexOf(currentTab()) + 1)
 }
 
+const startFollowCopyLink = () => {
+    const {startFollow} = require("./follow")
+    startFollow("copylink")
+}
+
 const startFollowNewSplit = () => {
     const {startFollow} = require("./follow")
     startFollow("ver")
@@ -1218,6 +1223,7 @@ module.exports = {
     scrollTop,
     scrollUp,
     setFocusCorrectly,
+    startFollowCopyLink,
     startFollowCurrentTab,
     startFollowNewSplit,
     startFollowNewTab,

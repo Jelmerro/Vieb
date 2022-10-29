@@ -17,7 +17,7 @@
 */
 "use strict"
 
-const {ipcRenderer} = require("electron")
+const {ipcRenderer, clipboard} = require("electron")
 const {
     currentPage,
     currentTab,
@@ -413,6 +413,8 @@ const enterKey = async(code, id, stayInFollowMode) => {
                         && getSetting("follownewtabswitch"),
                     "url": link.url
                 })
+            } else if (followLinkDestination === "copylink") {
+                clipboard.writeText(link.url)
             } else {
                 const currentTabId = currentTab().getAttribute("link-id")
                 addTab({
