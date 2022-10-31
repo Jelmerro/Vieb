@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Percentage based scrolling when using "gg" or "G" with a count, similar to Vim
+- Action "startFollowCopyLink" for copying links of selected elements in follow mode.
 
 ### Versions
 
