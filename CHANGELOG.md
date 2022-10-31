@@ -18,6 +18,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Percentage based scrolling when using "gg" or "G" with a count, similar to Vim
 - Action "startFollowCopyLink" for copying links of selected elements in follow mode.
 
+### Changed
+
+- Maximum values of darkreader brightness and contrast settings from 100 to 200 percent
+
 ### Versions
 
 - Electron 21.2.0 (was 21.1.0)

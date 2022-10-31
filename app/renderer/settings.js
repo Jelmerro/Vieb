@@ -343,8 +343,8 @@ const validOptions = {
 }
 const numberRanges = {
     "countlimit": [0, 10000],
-    "darkreaderbrightness": [0, 100],
-    "darkreadercontrast": [0, 100],
+    "darkreaderbrightness": [0, 200],
+    "darkreadercontrast": [0, 200],
     "darkreadergrayscale": [0, 100],
     "darkreadersepia": [0, 100],
     "darkreadertextstroke": [0, 1],
