@@ -572,7 +572,7 @@ const suggestCommand = searchStr => {
         }).map(t => ({
             "command": `${bufferCommand} ${tabs.indexOf(t)}`,
             "ref": t,
-            "subtext": `${t.querySelector("span").textContent}`,
+            "title": `${t.querySelector("span").textContent}`,
             "url": tabOrPageMatching(t).src
         })).filter(t => {
             let num = Number(args.join(""))
@@ -596,16 +596,16 @@ const suggestCommand = searchStr => {
                 }
             }
             const tabUrl = t.url.replace(specialChars, "").toLowerCase()
-            if (tabUrl.includes(simpleSearch) && t.command.startsWith(search)) {
+            if (tabUrl.includes(simpleSearch)) {
                 return true
             }
-            const tabTitle = t.subtext.replace(specialChars, "").toLowerCase()
+            const tabTitle = t.title.replace(specialChars, "").toLowerCase()
             return tabTitle.includes(simpleSearch)
-        }).forEach(t => addCommand(t.command, t.subtext))
+        }).forEach(t => addCommand(t.command, t.title, t.url))
     }
 }
 
-const addCommand = (command, subtext) => {
+const addCommand = (command, subtext, url) => {
     if (suggestions.length + 1 > getSetting("suggestcommands")) {
         return
     }
@@ -636,10 +636,18 @@ const addCommand = (command, subtext) => {
     const commandElement = document.createElement("span")
     commandElement.textContent = command
     element.appendChild(commandElement)
-    const subtextElement = document.createElement("span")
-    subtextElement.textContent = subtext
-    subtextElement.className = "file"
-    element.appendChild(subtextElement)
+    if (subtext) {
+        const subtextElement = document.createElement("span")
+        subtextElement.textContent = subtext
+        subtextElement.className = "file"
+        element.appendChild(subtextElement)
+    }
+    if (url) {
+        const urlElement = document.createElement("span")
+        urlElement.textContent = urlToString(url)
+        urlElement.className = "url"
+        element.appendChild(urlElement)
+    }
     document.getElementById("suggest-dropdown").appendChild(element)
     setTimeout(() => {
         element.style.pointerEvents = "auto"
