@@ -23,6 +23,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Maximum values of darkreader brightness and contrast settings from 100 to 200 percent
 
+### Fixed
+
+- Action "openNewTabWithCurrentUrl" not working at all in last release due to unsafe check
+
 ### Versions
 
 - Electron 21.2.0 (was 21.1.0)

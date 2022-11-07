@@ -149,8 +149,10 @@ const setMode = m => {
     if (!modes[mode] || currentMode() === mode || !currentPage()) {
         return
     }
-    if (currentPage()?.isCrashed() && "fipv".includes(mode[0])) {
-        return
+    if (currentPage().getAttribute("dom-ready")) {
+        if (currentPage()?.isCrashed() && "fipv".includes(mode[0])) {
+            return
+        }
     }
     if (modes[currentMode()].onLeave) {
         modes[currentMode()].onLeave(mode)
