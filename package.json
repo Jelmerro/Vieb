@@ -25,9 +25,9 @@
   "funding": "https://github.com/sponsors/Jelmerro/",
   "license": "GPL-3.0-or-later",
   "devDependencies": {
-    "electron": "21.2.0",
+    "electron": "21.2.2",
     "electron-builder": "23.6.0",
-    "eslint": "8.26.0",
+    "eslint": "8.27.0",
     "eslint-plugin-sort-keys": "2.3.5",
     "jest": "29.2.2",
     "jest-environment-jsdom": "29.2.2",
@@ -43,7 +43,7 @@
     "darkreader": "4.9.58",
     "highlight.js": "11.6.0",
     "jsdom": "20.0.2",
-    "marked": "4.1.1",
+    "marked": "4.2.2",
     "picomatch": "2.3.1"
   }
 }
