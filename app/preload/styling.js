@@ -62,6 +62,7 @@ const enableDarkReader = async() => {
         "grayscale": settings.darkreadergrayscale,
         "lightSchemeBackgroundColor": settings.darkreaderbg,
         "lightSchemeTextColor": settings.darkreaderfg,
+        "mode": {"dark": 1, "light": 0}[settings.darkreadermode] ?? 1,
         "sepia": settings.darkreadersepia,
         "textStroke": settings.darkreadertextstroke
     })
