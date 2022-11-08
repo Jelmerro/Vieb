@@ -19,7 +19,10 @@ import shutil
 import subprocess
 import re
 
-overrides = {}
+overrides = {
+    "electron": "beta",
+    "electron-builder": "next"
+}
 
 
 def find_version(text, version):
