@@ -47,36 +47,53 @@ const navigateToPage = (selector, newtab) => {
 
 const blur = () => activeElement()?.blur?.()
 
-const scrollPerc = perc => window.scrollTo(0,
-    (document.documentElement.scrollHeight - window.innerHeight) * perc / 100)
+const scrollBy = (x, y) => {
+    if (window.innerHeight === document.body.clientHeight) {
+        document.body.scrollBy(x, y)
+    } else {
+        window.scrollBy(x, y)
+    }
+}
 
-const scrollTop = () => window.scrollBy(0, -window.innerHeight - 1000000000)
+const scrollPerc = perc => {
+    if (document.documentElement.scrollHeight === window.innerHeight) {
+        const scrollHeightMinusScreen = document.body.scrollHeight
+            - window.innerHeight
+        document.body.scrollTo(0, scrollHeightMinusScreen * perc / 100)
+    } else {
+        const scrollHeightMinusScreen = document.documentElement.scrollHeight
+            - window.innerHeight
+        window.scrollTo(0, scrollHeightMinusScreen * perc / 100)
+    }
+}
 
-const scrollLeft = () => window.scrollBy(-100, 0)
+const scrollTop = () => scrollBy(0, -window.innerHeight - 1000000000)
 
-const scrollDown = () => window.scrollBy(0, 100)
+const scrollLeft = () => scrollBy(-100, 0)
 
-const scrollUp = () => window.scrollBy(0, -100)
+const scrollDown = () => scrollBy(0, 100)
 
-const scrollRight = () => window.scrollBy(100, 0)
+const scrollUp = () => scrollBy(0, -100)
 
-const scrollBottom = () => window.scrollBy(0, window.innerHeight + 1000000000)
+const scrollRight = () => scrollBy(100, 0)
 
-const scrollLeftMax = () => window.scrollBy(-window.innerWidth - 1000000000, 0)
+const scrollBottom = () => scrollBy(0, window.innerHeight + 1000000000)
 
-const scrollRightMax = () => window.scrollBy(window.innerWidth + 1000000000, 0)
+const scrollLeftMax = () => scrollBy(-window.innerWidth - 1000000000, 0)
 
-const scrollPageRight = () => window.scrollBy(window.innerWidth - 50, 0)
+const scrollRightMax = () => scrollBy(window.innerWidth + 1000000000, 0)
 
-const scrollPageLeft = () => window.scrollBy(-window.innerWidth + 50, 0)
+const scrollPageRight = () => scrollBy(window.innerWidth - 50, 0)
 
-const scrollPageUp = () => window.scrollBy(0, -window.innerHeight + 50)
+const scrollPageLeft = () => scrollBy(-window.innerWidth + 50, 0)
 
-const scrollPageDownHalf = () => window.scrollBy(0, window.innerHeight / 2 - 25)
+const scrollPageUp = () => scrollBy(0, -window.innerHeight + 50)
 
-const scrollPageDown = () => window.scrollBy(0, window.innerHeight - 50)
+const scrollPageDownHalf = () => scrollBy(0, window.innerHeight / 2 - 25)
 
-const scrollPageUpHalf = () => window.scrollBy(0, -window.innerHeight / 2 + 25)
+const scrollPageDown = () => scrollBy(0, window.innerHeight - 50)
+
+const scrollPageUpHalf = () => scrollBy(0, -window.innerHeight / 2 + 25)
 
 const focusTopLeftCorner = () => document.elementFromPoint(0, 0).focus()
 

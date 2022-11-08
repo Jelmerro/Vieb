@@ -909,7 +909,11 @@ const storeScrollPos = async args => {
     if (!qm.scroll) {
         qm.scroll = {"global": {}, "local": {}}
     }
-    const pixels = await currentPage().executeJavaScript("window.scrollY")
+    let pixels = await currentPage().executeJavaScript("window.scrollY")
+    if (pixels === 0) {
+        pixels = await currentPage().executeJavaScript(
+            "document.body.scrollTop")
+    }
     if (args?.path === "global") {
         scrollType = "global"
     }
@@ -952,7 +956,12 @@ const restoreScrollPos = args => {
     const qm = readJSON(joinPath(appData(), "quickmarks"))
     const pixels = qm?.scroll?.local?.[path]?.[key] ?? qm?.scroll?.global?.[key]
     if (pixels !== undefined) {
-        currentPage().executeJavaScript(`window.scrollTo(0, ${pixels})`)
+        currentPage().executeJavaScript(`
+        if (document.documentElement.scrollHeight === window.innerHeight) {
+            document.body.scrollTo(0, ${pixels})
+        } else {
+            window.scrollTo(0, ${pixels})
+        }`)
     }
 }
 

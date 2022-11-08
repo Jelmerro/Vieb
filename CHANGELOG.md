@@ -25,6 +25,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Maximum values of darkreader brightness and contrast settings from 100 to 200 percent
 - Buffer-like command suggestions to be in sync with actual behavior
 - Buffer-like command suggestions to include the page url
+- Check if the entire body is scrollable instead of the window for global scroll actions and scrollpos
 
 ### Fixed
 
