@@ -695,6 +695,9 @@ let downloads = []
 let redirects = ""
 let blocker = null
 let permissions = {}
+let resourceTypes = null
+let resourcesAllowed = null
+let resourcesBlocked = null
 const sessionList = []
 const adblockerPreload = joinPath(__dirname,
     "../node_modules/@cliqz/adblocker-electron-preload/dist/preload.cjs.js")
@@ -787,6 +790,13 @@ ipcMain.on("set-spelllang", (_, langs) => {
         session.defaultSession.setSpellCheckerLanguages(parsedLangs)
     })
 })
+ipcMain.on("update-resource-settings", (_, resources, block, allow) => {
+    resourceTypes = [
+        ...resources, "mainFrame", "subFrame", "cspReport", "other"
+    ]
+    resourcesAllowed = allow
+    resourcesBlocked = block
+})
 ipcMain.on("create-session", (_, name, adblock, cache) => {
     if (sessionList.includes(name)) {
         return
@@ -819,6 +829,37 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         })
         if (details.url !== url) {
             return callback({"cancel": false, "redirectURL": url})
+        }
+        if (resourceTypes && (url.startsWith("http") || url.startsWith("ws"))) {
+            let allow = null
+            for (const r of resourcesBlocked) {
+                const [match, ...names] = r.split("~")
+                if (!names?.length || names.includes(details.resourceType)) {
+                    if (url.match(match) || details.frame?.url.match(match)) {
+                        allow = false
+                        break
+                    }
+                }
+            }
+            for (const r of resourcesAllowed) {
+                const [match, ...names] = r.split("~")
+                if (!names?.length || names.includes(details.resourceType)) {
+                    if (url.match(match) || details.frame?.url.match(match)) {
+                        allow = true
+                        break
+                    }
+                }
+            }
+            if (typeof allow === "boolean") {
+                if (["mainFrame", "subFrame", "cspReport", "other"]
+                    .includes(details.resourceType)) {
+                    return callback({"cancel": false})
+                }
+                return callback({"cancel": !allow})
+            }
+            if (!resourceTypes.includes(details.resourceType)) {
+                return callback({"cancel": true})
+            }
         }
         if (!blocker) {
             return callback({"cancel": false})

@@ -18,6 +18,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Percentage based scrolling when using "gg" or "G" with a count, similar to Vim
 - Action "startFollowCopyLink" for copying links of selected elements in follow mode
 - Setting "darkreadermode" to switch between light and dark schemes/modes for darkreader
+- Settings "resourcetypes", "resourcesallowed" and "resourcesblocked" to control allowed/blocked resource types
 
 ### Changed
 

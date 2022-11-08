@@ -179,6 +179,10 @@ const defaultSettings = {
     "redirecttohttp": false,
     "reloadtaboncrash": false,
     "requesttimeout": 20000,
+    "resourcesallowed": "",
+    "resourcesblocked": "",
+    "resourcetypes": "object,script,media,image,"
+        + "stylesheet,font,xhr,ping,websocket",
     "restoretabs": true,
     "restorewindowmaximize": true,
     "restorewindowposition": true,
@@ -241,13 +245,16 @@ const listLike = [
     "permissionsblocked",
     "quickmarkpersistence",
     "redirects",
+    "resourcesallowed",
+    "resourcesblocked",
     "search",
     "searchwords",
     "spelllang",
     "sponsorblockcategories",
     "startuppages",
     "storenewvisits",
-    "suggestorder"
+    "suggestorder",
+    "resourcetypes"
 ]
 const listLikeTilde = [
     "useragent",
@@ -543,6 +550,14 @@ const checkOther = (setting, value) => {
             return false
         }
     }
+    if (setting === "favoritepages") {
+        for (const page of value.split(",").filter(p => p.trim())) {
+            if (!isUrl(page)) {
+                notify(`Invalid URL passed to favoritepages: ${page}`, "warn")
+                return false
+            }
+        }
+    }
     if (setting === "followchars") {
         const ok = [
             "all",
@@ -695,6 +710,36 @@ const checkOther = (setting, value) => {
             }
         }
     }
+    if (["resourcesallowed", "resourcesblocked"].includes(setting)) {
+        for (const override of value.split(",").filter(o => o.trim())) {
+            const [match, ...names] = override.split("~")
+            try {
+                RegExp(match)
+            } catch {
+                notify(
+                    `Invalid regular expression in ${setting}: ${match}`,
+                    "warn")
+                return false
+            }
+            for (const name of names) {
+                const supported = defaultSettings.resourcetypes.split(",")
+                if (!supported.includes(name)) {
+                    notify(`Invalid resource type in ${setting}: ${name}`,
+                        "warn")
+                    return false
+                }
+            }
+        }
+    }
+    if (setting === "resourcetypes" && value !== "") {
+        for (const rsrc of value.split(",").filter(l => l.trim())) {
+            if (!defaultSettings.resourcetypes.split(",").includes(rsrc)) {
+                notify(`Invalid resource type passed to ${setting}: ${rsrc}`,
+                    "warn")
+                return false
+            }
+        }
+    }
     if (setting === "search") {
         for (let baseUrl of value.split(",").filter(e => e.trim())) {
             baseUrl = baseUrl.replace(/^https?:\/\//g, "")
@@ -784,14 +829,6 @@ const checkOther = (setting, value) => {
                 return false
             }
             knownCategories.push(category)
-        }
-    }
-    if (setting === "favoritepages") {
-        for (const page of value.split(",").filter(p => p.trim())) {
-            if (!isUrl(page)) {
-                notify(`Invalid URL passed to favoritepages: ${page}`, "warn")
-                return false
-            }
         }
     }
     if (setting === "startuppages") {
@@ -1269,6 +1306,12 @@ const set = (setting, value) => {
             } else {
                 ipcRenderer.send("set-spelllang", "")
             }
+        }
+        if (setting.includes("resource")) {
+            ipcRenderer.send("update-resource-settings",
+                allSettings.resourcetypes.trim().split(",").filter(r => r),
+                allSettings.resourcesblocked.trim().split(",").filter(r => r),
+                allSettings.resourcesallowed.trim().split(",").filter(r => r))
         }
         if (setting === "taboverflow") {
             const tabs = document.getElementById("tabs")
