@@ -31,9 +31,9 @@ def find_version(text, version):
 
 
 def main():
+    print("\n  = Checking dependencies\n")
     with open("package.json") as f:
         package = json.load(f)
-    print("\n  = Checking dependencies\n")
     for dep_type in ["devDependencies", "dependencies"]:
         for dep, version in package.get(dep_type, {}).items():
             info = subprocess.run(
@@ -57,18 +57,55 @@ def main():
     with open("package.json", "w") as f:
         json.dump(package, f, indent=2)
         f.write("\n")
-
     shutil.rmtree("./node_modules", ignore_errors=True)
     try:
         os.remove("./package-lock.json")
     except OSError:
         pass
     print("\n  = Installing modules\n")
-    subprocess.run(["npm", "install", "--legacy-peer-deps"], check=False)
+    subprocess.run(["npm", "install", "--legacy-peer-deps"], check=True)
     print("\n  = Fixing audit issues\n")
     subprocess.run(["npm", "audit", "fix", "--legacy-peer-deps"], check=False)
     print("\n  = Deduplicating dependencies\n")
-    subprocess.run(["npm", "dedup", "--legacy-peer-deps"], check=False)
+    subprocess.run(["npm", "dedup", "--legacy-peer-deps"], check=True)
+    print("\n  = Fixing package-lock issues\n")
+    with open("package-lock.json") as f:
+        package_lock = json.load(f)
+    for package in package_lock["packages"]:
+        if "minimatch" in package_lock["packages"][package].get("dependencies", []):
+            if package_lock["packages"][package]["dependencies"]["minimatch"].startswith("3."):
+                package_lock["packages"][package]["dependencies"]["minimatch"] = "3.1.2"
+            if package_lock["packages"][package]["dependencies"]["minimatch"].startswith("^3."):
+                package_lock["packages"][package]["dependencies"]["minimatch"] = "3.1.2"
+        if "electron" in package_lock["packages"][package].get("peerDependencies", {}):
+            del package_lock["packages"][package]["peerDependencies"]
+        if package.endswith("minimatch"):
+            if package_lock["packages"][package]["version"].startswith("3."):
+                package_lock["packages"][package]["version"] = "3.1.2"
+                package_lock["packages"][package]["integrity"] = \
+                    "sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw=="
+                package_lock["packages"][package]["resolved"] = \
+                    "https://registry.npmjs.org/minimatch/-/minimatch-3.1.2.tgz"
+    for package in package_lock["dependencies"]:
+        if "minimatch" in package_lock["dependencies"][package].get("requires", []):
+            package_lock["dependencies"][package]["requires"][
+                "minimatch"] = "3.1.2"
+        if package.endswith("minimatch"):
+            if package_lock["dependencies"][package]["version"].startswith("3."):
+                package_lock["dependencies"][package]["version"] = "3.1.2"
+            if package_lock["dependencies"][package]["version"].startswith("^3."):
+                package_lock["dependencies"][package]["version"] = "3.1.2"
+        if "minimatch" in package_lock["dependencies"][package].get("dependencies", {}):
+            if package_lock["dependencies"][package]["dependencies"]["minimatch"]["version"].startswith("3."):
+                package_lock["dependencies"][package]["dependencies"]["minimatch"]["version"] = "3.1.2"
+                package_lock["dependencies"][package]["dependencies"]["minimatch"]["integrity"] = \
+                    "sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw=="
+                package_lock["dependencies"][package]["dependencies"]["minimatch"]["resolved"] = \
+                    "https://registry.npmjs.org/minimatch/-/minimatch-3.1.2.tgz"
+    with open("package-lock.json", "w") as f:
+        json.dump(package_lock, f, indent=2)
+        f.write("\n")
+    subprocess.run(["npm", "ci"], check=True)
 
 
 if __name__ == "__main__":
