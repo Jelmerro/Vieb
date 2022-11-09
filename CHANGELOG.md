@@ -26,6 +26,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Buffer-like command suggestions to be in sync with actual behavior
 - Buffer-like command suggestions to include the page url
 - Check if the entire body is scrollable instead of the window for global scroll actions and scrollpos
+- Prevent navigation to invalid urls to make sure a page can always be interacted with
 
 ### Fixed
 

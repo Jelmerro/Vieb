@@ -197,6 +197,13 @@ const addTab = (options = {}) => {
     // url, customIndex, switchTo, pinned, session (override of container)
     // container (suggestion), devtools, lazy, script, muted, startup
     // Defaults for these options vary depending on app state and user settings
+    if (options.url) {
+        try {
+            new URL(options.url)
+        } catch {
+            return
+        }
+    }
     if (options.switchTo === undefined) {
         options.switchTo = true
     }
@@ -1015,6 +1022,11 @@ const rerollUserAgent = webview => {
 }
 
 const navigateTo = (location, customPage = false) => {
+    try {
+        new URL(location)
+    } catch {
+        return
+    }
     const webview = customPage || currentPage()
     if (!webview || webview.isCrashed() || !location) {
         return
