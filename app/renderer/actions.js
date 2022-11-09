@@ -34,7 +34,8 @@ const {
     domainName,
     sendToPageOrSubFrame,
     isFile,
-    isDir
+    isDir,
+    execCommand
 } = require("../util")
 const {
     listTabs,
@@ -661,9 +662,8 @@ const editWithVim = () => {
                 requestSuggestUpdate()
             }
         } else {
-            const {exec} = require("child_process")
             const commandStr = `${getSetting("vimcommand")} "${tempFile}"`
-            command = exec(commandStr, (err, stdout) => {
+            command = execCommand(commandStr, (err, stdout) => {
                 const reportExit = getSetting("notificationforsystemcommands")
                 if (err && reportExit !== "none") {
                     notify(`${err}`, "err")

@@ -532,6 +532,20 @@ const pageOffset = page => {
     return {bottom, left, right, top}
 }
 
+const execCommand = (command, callback) => {
+    let shell = null
+    if (process.platform === "win32") {
+        shell = process.env.ComSpec || shell
+    }
+    shell = process.env.SHELL || shell
+    shell = shell || getSetting("shell")
+    const {exec} = require("child_process")
+    if (shell) {
+        return exec(command, {shell}, callback)
+    }
+    return exec(command, callback)
+}
+
 // IPC UTIL
 
 const sendToPageOrSubFrame = (channel, ...args) => {
@@ -952,6 +966,7 @@ module.exports = {
     compareVersions,
     fetchJSON,
     pageOffset,
+    execCommand,
     // IPC UTIL
     sendToPageOrSubFrame,
     notify,

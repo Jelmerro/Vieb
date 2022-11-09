@@ -27,7 +27,8 @@ const {
     title,
     isUrl,
     propPixels,
-    sendToPageOrSubFrame
+    sendToPageOrSubFrame,
+    execCommand
 } = require("../util")
 const {
     listTabs,
@@ -749,8 +750,7 @@ const commonAction = (type, action, options) => {
             } else if (getSetting("encodeurlext") === "encode") {
                 extData = stringToUrl(relevantData)
             }
-            const {exec} = require("child_process")
-            exec(`${ext} "${extData}"`, (err, stdout) => {
+            execCommand(`${ext} "${extData}"`, (err, stdout) => {
                 const reportExit = getSetting("notificationforsystemcommands")
                 if (err && reportExit !== "none") {
                     notify(`${err}`, "err")

@@ -194,6 +194,7 @@ const defaultSettings = {
     "searchpointeralignment": "left",
     "searchscope": "global",
     "searchwords": "",
+    "shell": "",
     "showcmd": true,
     "smartcase": true,
     "spell": true,
@@ -230,7 +231,7 @@ const defaultSettings = {
 }
 let allSettings = {}
 const freeText = [
-    "downloadpath", "externalcommand", "vimcommand", "windowtitle"
+    "downloadpath", "externalcommand", "shell", "vimcommand", "windowtitle"
 ]
 const listLike = [
     "containercolors",
@@ -1426,6 +1427,9 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     }
     if (setting === "search") {
         allowedValues = "Any URL with %s"
+    }
+    if (setting === "shell") {
+        allowedValues = "Any system shell"
     }
     if (setting === "spelllang") {
         allowedValues = `A list containing any of these supported languages: ${

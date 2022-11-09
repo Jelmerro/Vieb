@@ -47,7 +47,8 @@ const {
     writeJSON,
     domainName,
     urlToString,
-    isUrl
+    isUrl,
+    execCommand
 } = require("../util")
 const {
     listTabs, listPages, currentTab, currentPage, tabOrPageMatching, getSetting
@@ -950,15 +951,15 @@ const makedefault = () => {
         return
     }
     ipcRenderer.send("make-default-app")
-    const {exec} = require("child_process")
     if (process.platform === "linux") {
-        exec("xdg-settings set default-web-browser vieb.desktop", logError)
+        execCommand(
+            "xdg-settings set default-web-browser vieb.desktop", logError)
     } else if (process.platform === "win32") {
         const scriptContents = readFile(joinPath(
             __dirname, "../defaultapp/windows.bat"))
         const tempFile = joinPath(appData(), "defaultapp.bat")
         writeFile(tempFile, scriptContents)
-        exec(`Powershell Start ${tempFile} -ArgumentList `
+        execCommand(`Powershell Start ${tempFile} -ArgumentList `
             + `"""${process.execPath}""" -Verb Runas`, logError)
     } else if (process.platform === "darwin") {
         // Electron API should be enough to show a popup for default app request
@@ -1569,8 +1570,7 @@ const commands = {
                     "warn")
                 return
             }
-            const {exec} = require("child_process")
-            exec(`${getSetting("vimcommand")} "${script}"`, err => {
+            execCommand(`${getSetting("vimcommand")} "${script}"`, err => {
                 if (err) {
                     notify("Command to edit files with vim failed, "
                         + "please update the 'vimcommand' setting", "err")
@@ -1746,8 +1746,7 @@ const execute = (com, settingsFile = null) => {
     push(commandStr)
     if (commandStr.startsWith("!")) {
         if (commandStr !== "!") {
-            const {exec} = require("child_process")
-            exec(commandStr.replace("!", ""), (err, stdout) => {
+            execCommand(commandStr.replace("!", ""), (err, stdout) => {
                 const reportExit = getSetting("notificationforsystemcommands")
                 if (err && reportExit !== "none") {
                     notify(`${err}`, "err")

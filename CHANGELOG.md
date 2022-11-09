@@ -19,6 +19,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Action "startFollowCopyLink" for copying links of selected elements in follow mode
 - Setting "darkreadermode" to switch between light and dark schemes/modes for darkreader
 - Settings "resourcetypes", "resourcesallowed" and "resourcesblocked" to control allowed/blocked resource types
+- Setting "shell" to control the shell to use for system commands
 
 ### Changed
 
@@ -27,6 +28,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Buffer-like command suggestions to include the page url
 - Check if the entire body is scrollable instead of the window for global scroll actions and scrollpos
 - Prevent navigation to invalid urls to make sure a page can always be interacted with
+- Shell now reads "$SHELL" instead of defaulting to "/bin/sh" for system commands
 
 ### Fixed
 
