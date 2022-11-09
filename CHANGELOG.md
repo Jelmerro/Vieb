@@ -30,11 +30,12 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Action "openNewTabWithCurrentUrl" not working at all in last release due to unsafe check
+- Duplicate downloads due to page restart workaround (which is now fixed by Electron)
 
 ### Versions
 
-- Electron 21.2.2 (was 21.1.0)
-- Chromium 106.0.5249.168 (was 106.0.5249.91)
+- Electron 22.0.0-beta.3 (was 21.1.0)
+- Chromium 108.0.5359.10 (was 106.0.5249.91)
 
 ## [9.3.0](https://github.com/Jelmerro/Vieb/compare/9.2.1...9.3.0) - 2022-10-10
 
@@ -1434,7 +1435,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Changed
 
-- Update to the http basic login system to work with the new electron version
+- Update to the http basic login system to work with the new Electron version
 - Open the login dialog in the center of the Vieb browser window
 - Running the last command again no longer adds a duplicate to the command history
 - Improved url detection as a result of testing the function properly
@@ -1780,7 +1781,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Default duckduckgo search engine to use a dark theme
 - Improved CLI startup arguments for packaged apps
 - Split the preload into multiple separate preloads
-- Improved electron builder configuration (separate file with much better settings)
+- Improved electron-builder configuration (separate file with much better settings)
 - Vieb is now a single window application (single-instance): when already open, new urls will be opened as tabs
 - Disable follow mode for iframes again due to a couple of issues with it
 
