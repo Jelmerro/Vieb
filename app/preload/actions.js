@@ -48,7 +48,7 @@ const navigateToPage = (selector, newtab) => {
 const blur = () => activeElement()?.blur?.()
 
 const scrollBy = (x, y) => {
-    if (window.innerHeight === document.body.clientHeight) {
+    if (window.innerHeight === document.documentElement.scrollHeight) {
         document.body.scrollBy(x, y)
     } else {
         window.scrollBy(x, y)
