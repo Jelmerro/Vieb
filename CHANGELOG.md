@@ -20,6 +20,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "darkreadermode" to switch between light and dark schemes/modes for darkreader
 - Settings "resourcetypes", "resourcesallowed" and "resourcesblocked" to control allowed/blocked resource types
 - Setting "shell" to control the shell to use for system commands
+- Live indicator of current theme preference to the nativetheme help documentation
 
 ### Changed
 

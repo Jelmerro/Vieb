@@ -116,6 +116,10 @@
     --helppage-h3: #fb9;
     --helppage-countable: #fc0;
     --helppage-range-compat: #fc0;
+    --helppage-nativetheme-fg-light: #aaa;
+    --helppage-nativetheme-bg-light: #fff;
+    --helppage-nativetheme-fg-dark: #666;
+    --helppage-nativetheme-bg-dark: #000;
     /* sourceviewer */
     --syntax-fg: var(--fg);
     --syntax-bg: var(--bg);
@@ -366,6 +370,15 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #helppage .example-buttons {margin: 1em;}
 #helppage .example-buttons button {font-size: 1em;margin: .5em 2em;padding: .5em 2em;background: transparent;cursor: pointer;}
 #helppage .nowrap, #helppage .nowrap.command-block {white-space: nowrap;}
+#helppage .nativetheme {display: none;}
+#helppage .nativetheme.light {color: var(--helppage-nativetheme-fg-light);background-color: var(--helppage-nativetheme-bg-light);}
+#helppage .nativetheme.dark {color: var(--helppage-nativetheme-fg-dark);background-color: var(--helppage-nativetheme-bg-dark);}
+@media (prefers-color-scheme: light) {
+    #helppage .nativetheme.light {display: inline-block;}
+}
+@media (prefers-color-scheme: dark) {
+    #helppage .nativetheme.dark {display: inline-block;}
+}
 /* history */
 #historypage #list {display: inline;}
 #historypage #no-results {margin-bottom: 1em;}
