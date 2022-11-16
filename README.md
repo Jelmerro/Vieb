@@ -12,12 +12,10 @@
 [![Matrix](https://img.shields.io/static/v1?label=matrix&message=space&color=eeeeee&logo=matrix&style=flat-square)](https://matrix.to/#/#vieb:matrix.org)
 [![Matrix](https://img.shields.io/static/v1?label=matrix&message=announcements&color=eeeeee&logo=matrix&style=flat-square)](https://matrix.to/#/#vieb-announcements:matrix.org)
 [![Matrix](https://img.shields.io/static/v1?label=matrix&message=general&color=eeeeee&logo=matrix&style=flat-square)](https://matrix.to/#/#vieb-general:matrix.org)
-[![Matrix](https://img.shields.io/static/v1?label=matrix&message=offtopic&color=eeeeee&logo=matrix&style=flat-square)](https://matrix.to/#/#vieb-offtopic:matrix.org)
 
 [![Reddit](https://img.shields.io/reddit/subreddit-subscribers/vieb?style=social)](https://reddit.com/r/vieb)
 [![Telegram](https://img.shields.io/static/v1?label=telegram&message=announcements&color=26A5E4&logo=telegram&style=flat-square)](https://t.me/vieb_announcements)
 [![Telegram](https://img.shields.io/static/v1?label=telegram&message=general&color=26A5E4&logo=telegram&style=flat-square)](https://t.me/vieb_general)
-[![Telegram](https://img.shields.io/static/v1?label=telegram&message=offtopic&color=26A5E4&logo=telegram&style=flat-square)](https://t.me/vieb_offtopic)
 
 ### Vieb is the Vim Inspired Electron Browser
 
@@ -71,7 +69,26 @@ The official Vieb website, where you can download the latest stable release for 
 The same releases that are offered on [vieb.dev](https://vieb.dev/download),
 but with release notes and previous versions listed.
 
-#### Third-party
+### Fedora
+
+I host a custom DNF repository that you can use for Vieb instead of downloading from [vieb.dev](https://vieb.dev/download) or Github.
+
+```bash
+sudo dnf config-manager --add-repo https://jelmerro.nl/fedora/jelmerro.repo
+sudo dnf install vieb
+```
+
+### Debian/Ubuntu/Mint
+
+I host a custom APT repository that you can use for Vieb instead of downloading from [vieb.dev](https://vieb.dev/download) or Github.
+
+```bash
+sudo apt add-repository "deb [trusted=yes] https://jelmerro.nl/debs /"
+sudo apt update
+sudo apt install vieb
+```
+
+### Third-party
 
 These releases are made by users just like you for their favorite system.
 Third-party releases might be outdated (in red) or customized compared to official builds,
