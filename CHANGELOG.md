@@ -11,6 +11,17 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Changed
+
+- Rpm and deb releases are now symlinked in /usr/bin correctly on update
+
+### Versions
+
+- Electron 22.0.0-beta.5 (unchanged)
+- Chromium 108.0.5359.40 (unchanged)
+
 ## [9.4.0](https://github.com/Jelmerro/Vieb/compare/9.3.0...9.4.0) - 2022-11-16
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/9.3.0...9.4.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/9.4.0)

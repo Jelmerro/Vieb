@@ -32,6 +32,12 @@ linux:
 rpm:
   fpm:
     - --rpm-rpmbuild-define=_build_id_links none
+    - --after-upgrade=./after-install.sh
+  afterInstall: ./after-install.sh
+deb:
+  fpm:
+    - --after-upgrade=./after-install.sh
+  afterInstall: ./after-install.sh
 mac:
   category: public.app-category.navigation
   icon: app/img/icons
