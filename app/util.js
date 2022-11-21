@@ -862,7 +862,10 @@ const modifiedAt = loc => {
     }
 }
 
-const rm = loc => fs.rmSync(loc, {"force": true, "recursive": true})
+const rm = f => {
+    const rf = require("./rimraf")
+    rf(f)
+}
 
 const clearTempContainers = () => {
     const partitionDir = joinPath(appData(), "Partitions")
