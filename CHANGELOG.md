@@ -15,7 +15,11 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Changed
 
-- Rpm and deb releases are now symlinked in /usr/bin correctly on update
+- Rpm and deb releases are now symlinked in /usr/bin correctly on updates after this one
+
+### Fixed
+
+- Recursive key mappings not working correctly when the timeout is reached and there are also multi-key mappings
 
 ### Versions
 

@@ -1474,8 +1474,10 @@ const handleKeyboard = async e => {
     clearTimeout(timeoutTimer)
     if (getSetting("timeout")) {
         timeoutTimer = setTimeout(async() => {
+            const keys = pressedKeys.split(mapStringSplitter).filter(m => m)
             if (pressedKeys) {
                 const ac = actionForKeys(pressedKeys)
+                pressedKeys = ""
                 if (ac && (e.isTrusted || e.bubbles)) {
                     if (e.isTrusted) {
                         await executeMapString(ac.mapping, !ac.noremap, true)
@@ -1486,7 +1488,6 @@ const handleKeyboard = async e => {
                 }
                 menuClear()
             }
-            const keys = pressedKeys.split(mapStringSplitter).filter(m => m)
             if (currentMode() === "insert") {
                 ipcRenderer.sendSync("insert-mode-blockers", "pass")
                 for (const key of keys) {
@@ -1495,7 +1496,6 @@ const handleKeyboard = async e => {
                 }
                 blockNextInsertKey = false
                 repeatCounter = 0
-                pressedKeys = ""
                 updateKeysOnScreen()
                 return
             }
@@ -1506,7 +1506,6 @@ const handleKeyboard = async e => {
                 })
             }
             repeatCounter = 0
-            pressedKeys = ""
             updateKeysOnScreen()
         }, getSetting("timeoutlen"))
     }
@@ -1544,9 +1543,9 @@ const handleKeyboard = async e => {
         const existingMapping = actionForKeys(pressedKeys + id)
         if (action && !existingMapping) {
             if (!["<Esc>", "<C-[>"].includes(id)) {
+                pressedKeys = ""
                 await executeMapString(action.mapping, !action.noremap, true)
             }
-            pressedKeys = ""
         }
         pressedKeys += id
     }
@@ -1564,6 +1563,7 @@ const handleKeyboard = async e => {
         }
         menuClear()
         let keys = pressedKeys.split(mapStringSplitter).filter(m => m)
+        pressedKeys = ""
         if (keys.length > 1) {
             if (!hasFutureActions(keys.slice(0, -1).join(""))) {
                 keys = keys.slice(0, -1)
@@ -1576,7 +1576,6 @@ const handleKeyboard = async e => {
                 }
                 blockNextInsertKey = false
                 repeatCounter = 0
-                pressedKeys = ""
                 updateKeysOnScreen()
                 return
             }
@@ -1588,7 +1587,6 @@ const handleKeyboard = async e => {
             })
         }
         repeatCounter = 0
-        pressedKeys = ""
     }
     menuClear()
     updateKeysOnScreen()
