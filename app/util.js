@@ -863,8 +863,12 @@ const modifiedAt = loc => {
 }
 
 const rm = f => {
-    const rf = require("./rimraf")
-    rf(f)
+    const rimraf = require("./rimraf")
+    try {
+        rimraf(f)
+    } catch {
+        // Windows permission errors
+    }
 }
 
 const clearTempContainers = () => {
