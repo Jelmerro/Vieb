@@ -246,8 +246,13 @@ const addTab = (options = {}) => {
             sessionName = "main"
         } else {
             if ((/^https?:\/\//).test(options.url)) {
-                const {shell} = require("electron")
-                shell.openExternal(options.url)
+                if (getSetting("externalcommand").trim()) {
+                    const {commonAction} = require("./contextmenu")
+                    commonAction("link", "external", {"link": options.url})
+                } else {
+                    const {shell} = require("electron")
+                    shell.openExternal(options.url)
+                }
             }
             return
         }
