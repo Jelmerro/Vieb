@@ -162,6 +162,27 @@ Finally, popups are bad for usability and should no longer be relied upon.
 Also see [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Window/open#usability_issues) for a list of reasons against using popups (or `window.open` in general, which is the JavaScript api for opening custom windows).
 I encourage users who run into sites still using popups today to get in touch with the site authors about this.
 
+#### Why can't I open multiple browser windows?
+
+Contrary to what people think this fundamentally unsupported by Chromium,
+it's not a use case that is actually supported, due to the nature of storing browsing data.
+Some resources remain locked as long as Chromium runs and as such can't be used by multiple processes at the same time,
+while others are not locked and therefor are prone to race conditions from multiple processes.
+It's [highly discouraged by Electron](https://github.com/electron/electron/issues/4727) to run multiple windows in the same datafolder.
+While Chromium has a bunch of workarounds and tricks in place to fake multiple windows,
+Electron and thus Vieb do not support multiple windows this same way,
+that is if you care about keeping your browsing data.
+
+You could use `--unsafe-multiwin=true` or `VIEB_UNSAFE_MULTIWIN` to override this safety feature,
+but this WILL result in corrupt cache, localstorage, cookies, duplicated tabs and worse.
+In short, multiple windows in the same datafolder are a very bad idea,
+and as such I will not offer support when you use this, hence the naming.
+
+Alternatively, you can start as many instances of Vieb as you want, in separate datafolders,
+for which you can find more info in `:help datafolder`.
+Using multiple windows by running them in separate datafolders is the recommended solution,
+and it supported perfectly by Vieb and is also what powers [Erwic mode](https://github.com/Jelmerro/Vieb/blob/master/Erwic.md).
+
 #### Does Vieb automatically update? / How do I update Vieb?
 
 No, Vieb does not automatically update, nor does it check for any of that in the background.

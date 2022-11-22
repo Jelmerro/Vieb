@@ -107,6 +107,11 @@ Options:
  --acceleration=<val>    string [HARDWARE/software]: Use hardware acceleration.
                          You can also use the ENV var: 'VIEB_ACCELERATION'.
 
+ --unsafe-multiwin=<val> bool (false): Allow 2+ windows in the same datafolder.
+                         This is fundamentally unsafe, but often requested.
+                         See the FAQ for more details about multiple windows.
+                         You can also use the ENV var: 'VIEB_UNSAFE_MULTIWIN'.
+
 These command-line arguments will overwrite values set by the listed ENV vars.
 Command-line startup arguments are parsed as follows by Vieb:
 - Args listed above are used by Vieb only and will be checked for validity
@@ -197,6 +202,7 @@ let argAutoplayMedia = process.env.VIEB_AUTOPLAY_MEDIA?.trim().toLowerCase()
     || "user"
 let argAcceleration = process.env.VIEB_ACCELERATION?.trim().toLowerCase()
     || "hardware"
+let argUnsafeMultiwin = isTruthyArg(process.env.VIEB_UNSAFE_MULTIWIN)
 let customIcon = null
 args.forEach(a => {
     const arg = a.trim()
@@ -239,6 +245,10 @@ args.forEach(a => {
             console.warn("The 'acceleration' argument requires a value such as:"
                 + "\n --acceleration=hardware\n")
             printUsage()
+        } else if (arg === "--unsafe-multiwin") {
+            console.warn("The 'unsafe-multiwin' argument requires a value "
+                + "such as:\n --unsafe-multiwin=false\n")
+            printUsage()
         } else if (arg.startsWith("--datafolder=")) {
             argDatafolder = arg.split("=").slice(1).join("=")
         } else if (arg.startsWith("--erwic=")) {
@@ -255,6 +265,8 @@ args.forEach(a => {
             argAutoplayMedia = arg.split("=").slice(1).join("=").toLowerCase()
         } else if (arg.startsWith("--acceleration=")) {
             argAcceleration = arg.split("=").slice(1).join("=").toLowerCase()
+        } else if (arg.startsWith("--unsafe-multiwin=")) {
+            argUnsafeMultiwin = arg.split("=").slice(1).join("=").toLowerCase()
         } else {
             console.warn(`Arg '${arg}' will be passed to Chromium`)
             app.commandLine.appendArgument(arg)
@@ -392,18 +404,20 @@ const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
 }).filter(u => u)
 app.on("ready", () => {
     app.userAgentFallback = defaultUseragent()
-    if (app.requestSingleInstanceLock({"argv": args})) {
-        app.on("second-instance", (_, newArgs, cwd, extra) => {
-            if (mainWindow.isMinimized()) {
-                mainWindow.restore()
-            }
-            mainWindow.focus()
-            mainWindow.webContents.send("urls", resolveLocalPaths(
-                extra?.argv || getArguments(newArgs), cwd))
-        })
-    } else {
-        console.info(`Sending urls to existing instance in ${argDatafolder}`)
-        app.exit(0)
+    if (!argUnsafeMultiwin) {
+        if (app.requestSingleInstanceLock({"argv": args})) {
+            app.on("second-instance", (_, newArgs, cwd, extra) => {
+                if (mainWindow.isMinimized()) {
+                    mainWindow.restore()
+                }
+                mainWindow.focus()
+                mainWindow.webContents.send("urls", resolveLocalPaths(
+                    extra?.argv || getArguments(newArgs), cwd))
+            })
+        } else {
+            console.info(`Sending urls to existing instance ${argDatafolder}`)
+            app.exit(0)
+        }
     }
     app.on("open-file", (_, url) => mainWindow.webContents.send("urls",
         resolveLocalPaths([url])))

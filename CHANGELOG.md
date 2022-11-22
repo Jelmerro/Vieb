@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Startup argument "--unsafe-multiwin" to have multiple windows in the same datafolder and skip the single instance safety check
+
 ### Changed
 
 - Rpm and deb releases are now symlinked in /usr/bin correctly on updates after this one
