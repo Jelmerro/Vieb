@@ -164,7 +164,7 @@ I encourage users who run into sites still using popups today to get in touch wi
 
 #### Why can't I open multiple browser windows?
 
-Contrary to what people think this fundamentally unsupported by Chromium,
+Contrary to what people think this is fundamentally unsupported by Chromium,
 it's not a use case that is actually supported, due to the nature of storing browsing data.
 Some resources remain locked as long as Chromium runs and as such can't be used by multiple processes at the same time,
 while others are not locked and therefor are prone to race conditions from multiple processes.
