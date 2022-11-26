@@ -662,6 +662,13 @@
             <li><span class="command-block">:runjsinpage ~/scripts/autofill.js</span> - Load the autofill.js file from disk and execute it as JavaScript in the page</li>
         </ul>
         With this command you can run any custom JavaScript you would like in the current page. The above are just some of the examples of what is possible, but basically any script you would like to run can be pased on with this command. The logging happens and remains inside the page and can be viewed in the "Console" tab of the page <a href="#:devtools">:devtools</a>. You can also pass an absolute file path to this command to run the contents of said file as JavaScript inside the page. You can also use <a href="#ranges">ranges</a> to run the JavaScript on other pages besides the current one.
+        <h3 id=":translatepage">:translatepage</h3>
+        <ul>
+            <li><span class="command-block">:translatepage</span> - Translate the current page to the language set by <a href="#translatelang">translatelang</a></li>
+            <li><span class="command-block">:translatepage en-us</span> - Translate the page to American English</li>
+            <li><span class="command-block">:translatepage ja</span> - Translate the page to Japanese</li>
+        </ul>
+        TODO
         <h3 id=":nohlsearch">:nohlsearch</h3>
         <ul>
             <li><span class="command-block">:nohlsearch</span> - Disable the search highlighting while storing the search</li>
@@ -1094,6 +1101,12 @@
         Toggle to indicate if pressed keys that are part of a sequence should expire after <a href="#timeoutlen">timeoutlen</a>.
         <h3 id="timeoutlen">timeoutlen</h3>
         The amount of milliseconds that previously pressed keys are stored as currently pressed keys. When set to a low amount, you have less time to press keys that are part of a <a href="#mappings">mapping</a> with multiple subsequent keys. The pressed keys will be displayed in the topright of the window, if <a href="#showcmd">showcmd</a> is enabled. To never expire any pressed keys, disable <a href="#timeout">timeout</a>. The timeoutlen setting is also used to control how long you should focus a tab or window split before it will be registered as the last active one when switching tabs, which is used for the <a href="#lastusedtab">lastusedtab</a>. When keys are pressed that require multiple subsequent keys, you will also get mapping suggestion for which keys to press next, which can be controlled with <a href="#mapsuggest">mapsuggest</a> and <a href="#mapsuggestposition">mapsuggestposition</a>.
+        <h3 id="translatekey">translatekey</h3>
+        Set the Deepl API key for the <a href="#translatepage">translatepage</a> command. You can find your API key in the <a href="https://www.deepl.com/account/summary">Deepl account dashboard</a>. They offer free API access, but in case you have a pro account it is recommended to update <a href="#translateurl">translateurl</a> to the pro API endpoint.
+        <h3 id="translatelang">translatelang</h3>
+        Choose a default language to translate to with the <a href="#translatepage">translatepage</a> command via the Deepl API. For a list of languages, see <a href="https://www.deepl.com/docs-api/translate-text/">the official Deepl documentation</a>. You must set an API key with <a href="#translatekey">translatekey</a>, and optionally change the API endpoint with <a href="#translateurl">translateurl</a>.
+        <h3 id="translateurl">translateurl</h3>
+        Set the endpoint to use for the <a href="#translatepage">translatepage</a> command. Only <a href="https://deepl.com">Deepl</a> is currently supported, but since they use a different endpoint for the free and pro versions, you can set the url with this setting. By default is it set to the free API endpoint url.
         <h3 id="useragent">useragent</h3>
         With this option you can configure custom useragents to use all across Vieb. The value of this setting is used as the useragent directly in most cases, but you can also add multiple agents separated by a "~" each. Even though the list separator is "~" instead of a comma, it suports the same commands. One of the agents will be randomly selected per tab before each new page loads. If the setting is empty, the default useragent is used. Useragents can make use of variables to add platform specific data to the string. For example: <span class="command-block">:set useragent="Mozilla/5.0 (%sys) AppleWebkit/537.36 (KHTML, like Gecko) Chrome/%version Safari/537.36"</span> is the same as using an empty value for this setting. Though in this case, the setting can be appended with other useragents. Besides "%sys" (system platform info) and "%version" (Chromium version such as 100.0.0.0), you can also use "%fullversion" (Chromium version such as 100.0.4896.60) or "%firefoxversion" (such as 100.0) inside the useragent setting. Finally, you can also use the "%default" and "%firefox" variables to refer to the respective useragents in full. So to pick randomly between these two: <span class="command-block">:set useragent=%default~%firefox</span>.
         <h3 id="userscript">userscript</h3>

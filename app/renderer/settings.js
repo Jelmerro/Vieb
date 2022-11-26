@@ -223,6 +223,9 @@ const defaultSettings = {
     "tabreopenposition": "right",
     "timeout": true,
     "timeoutlen": 2000,
+    "translatekey": "",
+    "translatelang": "en-us",
+    "translateurl": "https://api-free.deepl.com/v2/translate",
     "useragent": "",
     "userscript": false,
     "userstyle": false,
@@ -231,7 +234,12 @@ const defaultSettings = {
 }
 let allSettings = {}
 const freeText = [
-    "downloadpath", "externalcommand", "shell", "vimcommand", "windowtitle"
+    "downloadpath",
+    "externalcommand",
+    "shell",
+    "translatekey",
+    "vimcommand",
+    "windowtitle"
 ]
 const listLike = [
     "containercolors",
@@ -349,7 +357,39 @@ const validOptions = {
     "tabopenmuted": ["always", "background", "never"],
     "taboverflow": ["hidden", "scroll", "wrap"],
     "tabreopenmuted": ["always", "remember", "never"],
-    "tabreopenposition": ["left", "right", "previous"]
+    "tabreopenposition": ["left", "right", "previous"],
+    "translatelang": [
+        "bg",
+        "cs",
+        "da",
+        "de",
+        "el",
+        "en-gb",
+        "en-us",
+        "es",
+        "et",
+        "fi",
+        "fr",
+        "hu",
+        "id",
+        "it",
+        "ja",
+        "lt",
+        "lv",
+        "nl",
+        "pl",
+        "pt",
+        "pt-br",
+        "pt-pt",
+        "ro",
+        "ru",
+        "sk",
+        "sl",
+        "sv",
+        "tr",
+        "uk",
+        "zh"
+    ]
 }
 const numberRanges = {
     "countlimit": [0, 10000],
@@ -891,6 +931,12 @@ const checkOther = (setting, value) => {
     }
     if (setting === "suggestorder") {
         return checkSuggestOrder(value)
+    }
+    if (setting === "translateurl") {
+        if (!isUrl(stringToUrl(value).replace(/^https?:\/\//g, ""))) {
+            notify("The translateurl value must be a valid url", "warn")
+            return false
+        }
     }
     return true
 }
@@ -1434,6 +1480,12 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     if (setting === "spelllang") {
         allowedValues = `A list containing any of these supported languages: ${
             spelllangs.join(", ")}`
+    }
+    if (setting === "translatekey") {
+        allowedValues = "API key"
+    }
+    if (setting === "translateurl") {
+        allowedValues = "API endpoint"
     }
     if (setting === "vimcommand") {
         allowedValues = "Any system command"

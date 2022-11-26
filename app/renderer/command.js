@@ -1431,6 +1431,28 @@ const delpointerpos = (all, args) => {
     writeJSON(joinPath(appData(), "quickmarks"), qm)
 }
 
+const translatepage = args => {
+    if (args.length > 1) {
+        notify("Command translatepage only accepts a single optional language",
+            "warn")
+        return
+    }
+    const {validOptions} = require("./settings")
+    let [lang] = args
+    if (lang && !validOptions.translatelang.includes(lang.toLowerCase())) {
+        notify("Invalid language supplied, see ':h translatelang' for help",
+            "warn")
+        return
+    }
+    lang = lang?.toLowerCase() ?? getSetting("translatelang")
+    const apiKey = getSetting("translatekey")
+    if (!apiKey.trim()) {
+        notify("API key not set, see ':h translatekey' for help", "warn")
+    }
+    const url = getSetting("translateurl")
+    currentPage().send("action", "translatepage", url, lang, apiKey)
+}
+
 const noEscapeCommands = ["command", "delcommand"]
 const rangeCompatibleCommands = [
     "Sexplore",
@@ -1590,6 +1612,7 @@ const commands = {
     "tabnew": ({raw}) => tabnew(null, raw.split(" ").slice(1).join(" ")),
     "tabnewcontainer": ({raw}) => tabnew(raw.split(" ")[1],
         raw.split(" ").slice(2).join(" ")),
+    "translatepage": ({args}) => translatepage(args),
     "v": () => openSpecialPage("version"),
     "version": () => openSpecialPage("version"),
     "vsplit": ({args, range}) => addSplit(

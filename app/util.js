@@ -504,9 +504,9 @@ const compareVersions = (v1Str, v2Str) => {
     return "unknown"
 }
 
-const fetchJSON = url => new Promise((res, rej) => {
+const fetchJSON = (url, opts = {}, body = null) => new Promise((res, rej) => {
     const https = require("https")
-    const request = https.request(url, response => {
+    const request = https.request(url, opts, response => {
         let data = ""
         response.on("data", chunk => {
             data += chunk.toString()
@@ -515,11 +515,14 @@ const fetchJSON = url => new Promise((res, rej) => {
             try {
                 res(JSON.parse(data))
             } catch (err) {
-                rej(err)
+                rej({data, err})
             }
         })
     })
     request.on("error", err => rej(err))
+    if (body) {
+        request.write(body)
+    }
     request.end()
 })
 

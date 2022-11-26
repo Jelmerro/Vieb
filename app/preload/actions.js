@@ -24,6 +24,7 @@ const {
     querySelectorAll,
     findFrameInfo,
     findElementAtPosition,
+    fetchJSON,
     matchesQuery
 } = require("../util")
 
@@ -278,6 +279,93 @@ const selectionRequest = (startX, startY, endX, endY) => {
     }
 }
 
+const translatepage = async(url, lang, apiKey) => {
+    [...document.querySelectorAll("rt")].forEach(r => r.remove())
+    ;[...document.querySelectorAll("ruby")].forEach(r => r.parentNode
+        .replaceChild(document.createTextNode(r.textContent), r))
+    const tree = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+    let textNodes = []
+    let {currentNode} = tree
+    while (currentNode) {
+        textNodes.push(currentNode)
+        currentNode = tree.nextNode()
+    }
+    textNodes = textNodes.filter(n => n.nodeValue?.length > 5)
+    let baseNodes = []
+    textNodes.forEach(n => {
+        let base = n.parentNode ?? n
+        if (n.childNodes.length === 1
+            && n.childNodes[0].nodeName === "#text" && n.parentNode) {
+            base = n.parentNode
+        }
+        if (["kbd", "style", "script"].includes(base.nodeName.toLowerCase())) {
+            return
+        }
+        if (baseNodes.includes(base) || base === document.body) {
+            return
+        }
+        baseNodes.push(base)
+    })
+    const parsedNodes = baseNodes.map(base => {
+        const txtEl = document.createElement("p")
+        for (const textNode of base.childNodes) {
+            const subText = document.createElement("p")
+            if (["kbd", "code"].includes(textNode.nodeName.toLowerCase())) {
+                // Skip element text
+            } else if (textNode.textContent === textNode.innerHTML) {
+                subText.textContent = textNode.textContent
+            } else if (textNode.nodeName === "#text") {
+                subText.textContent = textNode.textContent
+            }
+            txtEl.appendChild(subText)
+        }
+        if (txtEl.textContent.trim()) {
+            return txtEl
+        }
+        baseNodes = baseNodes.filter(b => b !== base)
+        return null
+    }).filter(el => el)
+    const strings = parsedNodes.map(n => n.innerHTML)
+    try {
+        const response = await fetchJSON(url, {
+            "headers": {
+                "Authorization": `DeepL-Auth-Key ${apiKey}`,
+                "Content-Type": "application/json"
+            },
+            "method": "POST"
+        }, JSON.stringify({
+            "split_sentences": "nonewlines",
+            "tag_handling": "html",
+            "target_lang": lang,
+            "text": strings
+        }))
+        if (response.message) {
+            return ipcRenderer.sendToHost("notify",
+                `Error from Deepl: ${response.message}`, "err")
+        }
+        if (response.translations) {
+            baseNodes.forEach((node, index) => {
+                const text = response.translations[index]?.text
+                if (!text) {
+                    return
+                }
+                const resEl = document.createElement("div")
+                resEl.innerHTML = text
+                ;[...node.childNodes].forEach((txtEl, txtIndex) => {
+                    const txt = resEl.childNodes[txtIndex]?.textContent
+                    if (txt) {
+                        txtEl.textContent = txt
+                    }
+                })
+            })
+        }
+    } catch (e) {
+        ipcRenderer.sendToHost("notify",
+            "Failed to connect to Deepl for translation, see console", "err")
+        console.warn(e)
+    }
+}
+
 const functions = {
     blur,
     exitFullscreen,
@@ -310,6 +398,7 @@ const functions = {
     toggleLoop,
     toggleMute,
     togglePause,
+    translatepage,
     volumeDown,
     volumeUp,
     writeInputToFile
