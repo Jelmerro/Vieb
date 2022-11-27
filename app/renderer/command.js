@@ -1445,12 +1445,21 @@ const translatepage = args => {
         return
     }
     lang = lang?.toLowerCase() ?? getSetting("translatelang")
-    const apiKey = getSetting("translatekey")
-    if (!apiKey.trim()) {
-        notify("API key not set, see ':h translatekey' for help", "warn")
+    const url = getSetting("translateurl").replace(/\/*$/g, "")
+    let api = getSetting("translateapi")
+    if (api === "auto") {
+        if (url.includes("deepl.com")) {
+            api = "deepl"
+        } else {
+            api = "libretranslate"
+        }
     }
-    const url = getSetting("translateurl")
-    currentPage().send("action", "translatepage", url, lang, apiKey)
+    const apiKey = getSetting("translatekey")
+    if (api === "deepl" && !apiKey.trim()) {
+        notify("API key not set, see ':h translatekey' for help", "warn")
+        return
+    }
+    currentPage().send("action", "translatepage", api, url, lang, apiKey)
 }
 
 const noEscapeCommands = ["command", "delcommand"]

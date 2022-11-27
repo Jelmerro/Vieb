@@ -279,7 +279,7 @@ const selectionRequest = (startX, startY, endX, endY) => {
     }
 }
 
-const translatepage = async(url, lang, apiKey) => {
+const translatepage = async(api, url, lang, apiKey) => {
     [...document.querySelectorAll("rt")].forEach(r => r.remove())
     ;[...document.querySelectorAll("ruby")].forEach(r => r.parentNode
         .replaceChild(document.createTextNode(r.textContent), r))
@@ -326,8 +326,58 @@ const translatepage = async(url, lang, apiKey) => {
         return null
     }).filter(el => el)
     const strings = parsedNodes.map(n => n.innerHTML)
+    if (api === "libretranslate") {
+        try {
+            const srcResponse = await fetchJSON(`${url}/detect`, {
+                "headers": {"Content-Type": "application/json"},
+                "method": "POST"
+            }, JSON.stringify({
+                "api_key": apiKey,
+                "q": strings
+            }))
+            if (srcResponse.error) {
+                return ipcRenderer.sendToHost("notify",
+                    `Error from LibreTranslate: ${srcResponse.error}`, "err")
+            }
+            const response = await fetchJSON(`${url}/translate`, {
+                "headers": {"Content-Type": "application/json"},
+                "method": "POST"
+            }, JSON.stringify({
+                "api_key": apiKey,
+                "format": "html",
+                "q": strings,
+                "source": srcResponse[0]?.language,
+                "target": lang
+            }))
+            if (response.error) {
+                return ipcRenderer.sendToHost("notify",
+                    `Error from LibreTranslate: ${response.error}`, "err")
+            }
+            if (response.translatedText) {
+                baseNodes.forEach((node, index) => {
+                    const text = response.translatedText[index]
+                    if (!text) {
+                        return
+                    }
+                    const resEl = document.createElement("div")
+                    resEl.innerHTML = text
+                    ;[...node.childNodes].forEach((txtEl, txtIndex) => {
+                        const txt = resEl.childNodes[txtIndex]?.textContent
+                        if (txt) {
+                            txtEl.textContent = txt
+                        }
+                    })
+                })
+            }
+        } catch (e) {
+            ipcRenderer.sendToHost("notify",
+                "Failed to connect to LibreTranslate, see console", "err")
+            console.warn(e)
+        }
+        return
+    }
     try {
-        const response = await fetchJSON(url, {
+        const response = await fetchJSON(`${url}/translate`, {
             "headers": {
                 "Authorization": `DeepL-Auth-Key ${apiKey}`,
                 "Content-Type": "application/json"

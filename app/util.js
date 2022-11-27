@@ -505,8 +505,16 @@ const compareVersions = (v1Str, v2Str) => {
 }
 
 const fetchJSON = (url, opts = {}, body = null) => new Promise((res, rej) => {
-    const https = require("https")
-    const request = https.request(url, opts, response => {
+    let requestModule = null
+    if (url.startsWith("https://")) {
+        requestModule = require("https")
+    } else if (url.startsWith("http://")) {
+        requestModule = require("http")
+    } else {
+        rej("invalid protocol")
+        return
+    }
+    const request = requestModule.request(url, opts, response => {
         let data = ""
         response.on("data", chunk => {
             data += chunk.toString()

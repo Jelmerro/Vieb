@@ -16,8 +16,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Startup argument "--unsafe-multiwin" to have multiple windows in the same datafolder and skip the single instance safety check
-- Command "translatepage" to translate the page using the Deepl API
-- Settings "translatekey", "translatelang" and "translateurl" to customize translation settings for ":translatepage"
+- Command "translatepage" to translate the page using Deepl API or LibreTranslate
+- Settings "translateapi", "translatekey", "translatelang" and "translateurl" to customize translation settings for ":translatepage"
 
 ### Changed
 
