@@ -1633,22 +1633,26 @@ ipcMain.on("window-state-init", (_, restorePos, restoreSize, restoreMax) => {
     })
 })
 const saveWindowState = (maximizeOnly = false) => {
-    let state = readJSON(windowStateFile) || {}
-    if (!maximizeOnly && !mainWindow.isMaximized()) {
-        const newBounds = mainWindow.getBounds()
-        const currentScreen = screen.getDisplayMatching(newBounds).workArea
-        const sameW = newBounds.width === currentScreen.width
-        const sameH = newBounds.height === currentScreen.height
-        const halfW = newBounds.width === currentScreen.width / 2
-        const halfH = newBounds.height === currentScreen.height / 2
-        const halfX = newBounds.x === currentScreen.x / 2
-        const halfY = newBounds.y === currentScreen.y / 2
-        if (!sameW && !sameH && !halfW && !halfH && !halfX && !halfY) {
-            state = newBounds
+    try {
+        let state = readJSON(windowStateFile) || {}
+        if (!maximizeOnly && !mainWindow.isMaximized()) {
+            const newBounds = mainWindow.getBounds()
+            const currentScreen = screen.getDisplayMatching(newBounds).workArea
+            const sameW = newBounds.width === currentScreen.width
+            const sameH = newBounds.height === currentScreen.height
+            const halfW = newBounds.width === currentScreen.width / 2
+            const halfH = newBounds.height === currentScreen.height / 2
+            const halfX = newBounds.x === currentScreen.x / 2
+            const halfY = newBounds.y === currentScreen.y / 2
+            if (!sameW && !sameH && !halfW && !halfH && !halfX && !halfY) {
+                state = newBounds
+            }
         }
+        state.maximized = mainWindow.isMaximized()
+        writeJSON(windowStateFile, state)
+    } catch {
+        // Window already destroyed
     }
-    state.maximized = mainWindow.isMaximized()
-    writeJSON(windowStateFile, state)
 }
 
 // Miscellaneous tasks

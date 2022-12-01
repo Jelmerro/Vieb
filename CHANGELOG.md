@@ -28,6 +28,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Recursive key mappings not working correctly when the timeout is reached and there are also multi-key mappings
 - Cache errors/corruption on Windows upon restart after clearing/disabling cache
 - Setting externalcommand is now actually used for opening new tabs externally (fallback remains the default browser)
+- Exception popup on Linux when quitting if using window frame borders
 
 ### Versions
 
