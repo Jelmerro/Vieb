@@ -1437,14 +1437,6 @@ const translatepage = args => {
             "warn")
         return
     }
-    const {validOptions} = require("./settings")
-    let [lang] = args
-    if (lang && !validOptions.translatelang.includes(lang.toLowerCase())) {
-        notify("Invalid language supplied, see ':h translatelang' for help",
-            "warn")
-        return
-    }
-    lang = lang?.toLowerCase() ?? getSetting("translatelang")
     const url = getSetting("translateurl").replace(/\/*$/g, "")
     let api = getSetting("translateapi")
     if (api === "auto") {
@@ -1458,6 +1450,26 @@ const translatepage = args => {
     if ((api === "deepl" || url.includes("libretranslate.com")) && !apiKey) {
         notify("API key not set, see ':h translatekey' for help", "warn")
         return
+    }
+    const {validOptions} = require("./settings")
+    let [lang] = args
+    if (lang && !validOptions.translatelang.includes(lang.toLowerCase())) {
+        notify("Invalid language supplied, see ':h translatelang' for help",
+            "warn")
+        return
+    }
+    lang = lang?.toLowerCase() ?? getSetting("translatelang")
+    if (api === "libretranslate" && lang.startsWith("en")) {
+        lang = "en"
+    }
+    if (api === "libretranslate" && lang.startsWith("pt")) {
+        lang = "pt"
+    }
+    if (api === "deepl" && lang === "en") {
+        lang = "en-us"
+    }
+    if (api === "deepl" && lang === "pt") {
+        lang = "pt-pt"
     }
     currentPage().send("action", "translatepage", api, url, lang, apiKey)
 }
