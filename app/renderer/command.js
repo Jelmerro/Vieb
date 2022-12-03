@@ -1454,8 +1454,8 @@ const translatepage = args => {
             api = "libretranslate"
         }
     }
-    const apiKey = getSetting("translatekey")
-    if (api === "deepl" && !apiKey.trim()) {
+    const apiKey = getSetting("translatekey").trim()
+    if ((api === "deepl" || url.includes("libretranslate.com")) && !apiKey) {
         notify("API key not set, see ':h translatekey' for help", "warn")
         return
     }
