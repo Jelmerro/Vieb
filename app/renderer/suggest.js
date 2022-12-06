@@ -424,8 +424,8 @@ const suggestCommand = searchStr => {
     // Command: devtools
     if ("devtools".startsWith(command)
     && !confirm && args.length < 2 && !range) {
-        const options = ["window", "split", "vsplit", "tab"]
-        options.forEach(option => {
+        const {validOptions} = require("./settings")
+        validOptions.devtoolsposition.forEach(option => {
             if (!args[0] || option.startsWith(args[0])) {
                 addCommand(`devtools ${option}`)
             }
@@ -535,6 +535,16 @@ const suggestCommand = searchStr => {
             || `${command} ${simpleSection}`.startsWith(
                 `${command} ${simpleSearch}`.trim())
         }).forEach(section => addCommand(`help ${section}`))
+    }
+    // Command: translatepage
+    if ("translatepage".startsWith(command)
+    && !confirm && args.length < 2 && !range) {
+        const {validOptions} = require("./settings")
+        validOptions.translatelang.forEach(option => {
+            if (!args[0] || option.startsWith(args[0])) {
+                addCommand(`translatepage ${option}`)
+            }
+        })
     }
     // Command: buffer, hide, Vexplore, Sexplore, split, vsplit etc.
     const bufferCommand = [
