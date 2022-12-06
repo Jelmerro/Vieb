@@ -1250,8 +1250,8 @@ const writeDownloadsToFile = () => {
     }
 }
 const allowedFingerprints = {}
-const permissionHandler = (_, perm, callback, details) => {
-    let permission = perm.toLowerCase().replace(/-/g, "")
+const permissionHandler = (_, pm, callback, details) => {
+    let permission = pm.toLowerCase().replace(/-/g, "").replace("sanitized", "")
     if (permission === "mediakeysystem") {
         // Block any access to DRM, there is no Electron support for it anyway
         callback?.(false)
