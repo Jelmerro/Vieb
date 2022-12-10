@@ -19,6 +19,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Command "translatepage" to translate the page using Deepl API or LibreTranslate
 - Settings "translateapi", "translatekey", "translatelang" and "translateurl" to customize translation settings for ":translatepage"
 - Setting "permissionclipboardwrite", as clipboard writing was recently moved to a permission by Electron (default remains allowed)
+- Settings "replacespecial" and "replacestartup" to control when new pages should re-use/replace the current tab
 
 ### Changed
 
@@ -30,6 +31,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Cache errors/corruption on Windows upon restart after clearing/disabling cache
 - Setting externalcommand is now actually used for opening new tabs externally (fallback remains the default browser)
 - Exception popup on Linux when quitting if using window frame borders
+- Valid urls without protocol not always being recognized as a startup argument
 
 ### Versions
 

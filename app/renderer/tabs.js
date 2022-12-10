@@ -113,13 +113,29 @@ const init = () => {
             }
         }
         ipcRenderer.on("urls", (_, pages) => {
-            pages.forEach(page => {
+            for (const page of pages) {
+                const replaceStartup = getSetting("replacestartup")
+                if (replaceStartup !== "never") {
+                    try {
+                        const url = currentPage().src
+                        const specialName = pathToSpecialPageName(url).name
+                        const isNewtab = specialName === "newtab"
+                            || url.replace(/\/+$/g, "") === stringToUrl(
+                                getSetting("newtaburl")).replace(/\/+$/g, "")
+                        if (isNewtab || replaceStartup === "always") {
+                            navigateTo(stringToUrl(page?.url || page))
+                            continue
+                        }
+                    } catch {
+                        // No tabs yet
+                    }
+                }
                 if (typeof page === "string") {
-                    addTab({"startup": true, "url": page})
+                    addTab({"startup": true, "url": stringToUrl(page)})
                 } else {
                     addTab({...page, "startup": true})
                 }
-            })
+            }
         })
         ipcRenderer.on("navigate-to", (_, url) => navigateTo(stringToUrl(url)))
         ipcRenderer.on("unresponsive", (_, id) => {

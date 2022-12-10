@@ -400,7 +400,7 @@ const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
     if (url.startsWith("-")) {
         return null
     }
-    return {...u, url}
+    return u
 }).filter(u => u)
 app.on("ready", () => {
     app.userAgentFallback = defaultUseragent()

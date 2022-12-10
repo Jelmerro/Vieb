@@ -383,27 +383,33 @@ const openInternalDevTools = () => {
     ipcRenderer.send("open-internal-devtools")
 }
 
-const openSpecialPage = (specialPage, section = null) => {
-    // Open the url in the current or new tab, depending on currently open page
-    const pageUrl = specialPagePath(specialPage, section)
-    const isNewtab = pathToSpecialPageName(currentPage()?.src).name === "newtab"
-        || currentPage()?.src.replace(/\/+$/g, "")
+const openSpecialPage = (specialPage, forceNewtab, section = null) => {
+    const newSpecialUrl = specialPagePath(specialPage, section)
+    const url = currentPage()?.src
+    const currentSpecial = pathToSpecialPageName(url).name
+    const isNewtab = currentSpecial === "newtab" || url.replace(/\/+$/g, "")
         === stringToUrl(getSetting("newtaburl")).replace(/\/+$/g, "")
-    if (currentPage() && !currentPage().isLoading() && isNewtab) {
-        const {navigateTo} = require("./tabs")
-        navigateTo(pageUrl)
+    const replaceSpecial = getSetting("replacespecial")
+    const {navigateTo, addTab} = require("./tabs")
+    if (replaceSpecial === "never" || forceNewtab || !currentPage()) {
+        addTab({"url": newSpecialUrl})
+    } else if (replaceSpecial === "always") {
+        navigateTo(newSpecialUrl)
+    } else if (replaceSpecial === "special" && (currentSpecial || isNewtab)) {
+        navigateTo(newSpecialUrl)
+    } else if (currentSpecial === "newtab" && isNewtab) {
+        navigateTo(newSpecialUrl)
     } else {
-        const {addTab} = require("./tabs")
-        addTab({"url": pageUrl})
+        addTab({"url": newSpecialUrl})
     }
 }
 
-const help = (section = null, trailingArgs = false) => {
+const help = (forceNewtab, section = null, trailingArgs = false) => {
     if (trailingArgs) {
         notify("The help command takes a single optional argument", "warn")
         return
     }
-    openSpecialPage("help", section)
+    openSpecialPage("help", forceNewtab, section)
 }
 
 const reloadconfig = () => {
@@ -1532,8 +1538,10 @@ const commands = {
     },
     "command": ({args}) => addCommand(false, args),
     "command!": ({args}) => addCommand(true, args),
-    "cookies": () => openSpecialPage("cookies"),
-    "d": () => openSpecialPage("downloads"),
+    "cookies": () => openSpecialPage("cookies", false),
+    "cookies!": () => openSpecialPage("cookies", true),
+    "d": () => openSpecialPage("downloads", false),
+    "d!": () => openSpecialPage("downloads", true),
     "delcommand": ({args}) => deleteCommand(args),
     "delmarks": ({args}) => delmarks(false, args),
     "delmarks!": ({args}) => delmarks(true, args),
@@ -1542,12 +1550,16 @@ const commands = {
     "delscrollpos": ({args}) => delscrollpos(false, args),
     "delscrollpos!": ({args}) => delscrollpos(true, args),
     "devtools": ({args}) => openDevTools(...args),
-    "downloads": () => openSpecialPage("downloads"),
-    "h": ({args}) => help(...args),
+    "downloads": () => openSpecialPage("downloads", false),
+    "downloads!": () => openSpecialPage("downloads", true),
+    "h": ({args}) => help(false, ...args),
+    "h!": ({args}) => help(true, ...args),
     "hardcopy": ({range}) => hardcopy(range),
-    "help": ({args}) => help(...args),
+    "help": ({args}) => help(false, ...args),
+    "help!": ({args}) => help(true, ...args),
     "hide": ({args, range}) => hide(args, range),
-    "history": () => openSpecialPage("history"),
+    "history": () => openSpecialPage("history", false),
+    "history!": () => openSpecialPage("history", true),
     "internaldevtools": openInternalDevTools,
     "lclose": () => lclose(),
     "lclose!": () => lclose(true),
@@ -1564,7 +1576,8 @@ const commands = {
             }
         })
     },
-    "notifications": () => openSpecialPage("notifications"),
+    "notifications": () => openSpecialPage("notifications", false),
+    "notifications!": () => openSpecialPage("notifications", true),
     "o": ({args}) => open(args),
     "only": () => {
         const {only} = require("./pagelayout")
@@ -1634,8 +1647,10 @@ const commands = {
     "tabnewcontainer": ({raw}) => tabnew(raw.split(" ")[1],
         raw.split(" ").slice(2).join(" ")),
     "translatepage": ({args}) => translatepage(args),
-    "v": () => openSpecialPage("version"),
-    "version": () => openSpecialPage("version"),
+    "v": () => openSpecialPage("version", false),
+    "v!": () => openSpecialPage("version", true),
+    "version": () => openSpecialPage("version", false),
+    "version!": () => openSpecialPage("version", true),
     "vsplit": ({args, range}) => addSplit(
         "hor", !getSetting("splitright"), args, range),
     "w": ({args, range}) => write(args, range),
