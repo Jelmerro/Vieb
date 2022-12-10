@@ -471,7 +471,11 @@ const suggestCommand = searchStr => {
         }
     }
     // Command: help
-    if ("help".startsWith(command) && !confirm && !range) {
+    if ("help".startsWith(command) && !range) {
+        let confirmChar = ""
+        if (confirm) {
+            confirmChar = "!"
+        }
         const {
             listSupportedActions, listMappingsAsCommandList
         } = require("./input")
@@ -534,7 +538,7 @@ const suggestCommand = searchStr => {
                 .startsWith(`${command} ${simpleSearch}`.trim())
             || `${command} ${simpleSection}`.startsWith(
                 `${command} ${simpleSearch}`.trim())
-        }).forEach(section => addCommand(`help ${section}`))
+        }).forEach(section => addCommand(`help${confirmChar} ${section}`))
     }
     // Command: translatepage
     if ("translatepage".startsWith(command)

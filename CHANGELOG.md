@@ -24,6 +24,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Rpm and deb releases are now symlinked in /usr/bin correctly on updates after this one
+- Confirm char "!" for special page commands now opens them in a new tab regardless of the new "replacespecial" setting
 
 ### Fixed
 

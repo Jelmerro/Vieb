@@ -158,42 +158,49 @@
         </ul>
         Using the source command, you can load additional config files. This can be done at runtime by providing an absolute path, in which case the file will just be parsed once to run every line as a command. You can also run the source command inside <a href="#viebrc">viebrc</a> files to load other config files relative to them (or with an absolute path). Only files which are sourced by other files will be listed in the <a href="#:scriptnames">:scriptnames</a> command output, user invocations of source are one-time only and also won't be loaded when executing <a href="#:reloadconfig">:reloadconfig</a>.
         <h2 id="specialpages">Special pages</h2>
-        Some commands are used to open special pages. This help page is one of them. In this paragraph all of them are listed. Unlike other pages, which are mostly websites that can be styled with <a href="#userstyle">userstyle</a>, these are built-in pages of Vieb that can be styled with <a href="#colorscheme">colorscheme</a>. These pages are a core part of Vieb and do not require internet to work, similar to viewing local files.
+        Some commands are used to open special pages. This help page is one of them. In this paragraph all of them are listed. Unlike other pages, which are mostly websites that can be styled with <a href="#userstyle">userstyle</a>, these are built-in pages of Vieb that can be styled with <a href="#colorscheme">colorscheme</a>. These pages are a core part of Vieb and do not require internet to work, similar to viewing local files. You can open them either by navigation to "vieb://" followed by the page name, or using the commands below. When using these commands, they will be opened in a new tab, unless the value of <a href="#replacespecial">replacespecial</a> determines that the newly opened special page should replace the current tab. You can choose to open the special page in a new tab everytime by appending a "!" to the commmand, such as "version!".
         <h3 id=":version">:version</h3>
         <ul>
-            <li><span class="command-block">:version</span> - Open the version information page</li>
+            <li><span class="command-block">:version</span> - Open the version information page in a new tab unless it should replace the current based on <a href="#replacespecial">replacespecial</a></li>
+            <li><span class="command-block">:version!</span> - Open the version information page in a new tab regardless of settings</li>
             <li><span class="command-block">:v</span> - Open the version information page</li>
         </ul>
         This command will open the version information page, located at "vieb://version". On this page, you will find information about the current Vieb version, along with the Electron and Chromium version this release is based on. Finally, there is also a button to check for updates. It is recommended to check for updates at least once a month, you can also subscribe to the <a href="https://github.com/Jelmerro/Vieb">Github repository</a> or <a href="https://www.reddit.com/r/vieb">official subreddit</a> to be notified of updates.
         <h3 id=":help">:help</h3>
         <ul>
-            <li><span class="command-block">:help</span> - Open this current help page</li>
+            <li><span class="command-block">:help</span> - Open this current help page in a new tab unless it should replace the current based on <a href="#replacespecial">replacespecial</a></li>
+            <li><span class="command-block">:help!</span> - Open the help page in a new tab regardless of settings</li>
             <li><span class="command-block">:h settings</span> - Open the help page at the settings chapter</li>
             <li><span class="command-block">:h action.toExploreMode</span> - Open the help page at toExploreMode action</li>
             <li><span class="command-block">:h :quit</span> - Open the help page at the quit command</li>
             <li><span class="command-block">:h gg</span> - Open the help page at the first action mapped to the "gg" keys for any mode</li>
             <li><span class="command-block">:h v_w</span> - Open the help page at the first action mapped to the "w" key for <a class="visual" href="#visual">visual mode</a></li>
+            <li><span class="command-block">:h! gf</span> - Open the help page at the first action mapped to the "gf" keys for any mode in a new tab regardless of settings</li>
         </ul>
         This command will open the help page, located at "vieb://help". This is the current page you are on, and describes all the functionality of Vieb. A single optional argument can be included in the help command, which should refer to a section of the help page. This section can be the name of an action, a command, a set of keys or any of the chapters and paragraphs. When a set of keys is given (which are also suggested if <a href="#suggestcommands">suggestcommands</a> is enabled), those keys will be searched if they contain an action or command, if they do, that action/command is navigated to by the help command. In short, you can search for any mapped sequence of keys and open the help of the first action/command those keys are mapped to. You can also prefix your search for mappings with a mode key and an underscore, such as "n_", "i_" or "c_", which will only search for keys mapped in that particular mode and select the right action/command based on that. This method of search is limited to finding the first match, as it's not possible to scroll to two places at once, if you want more details you can list the functionality for a set of keys with <span class="command-block nowrap">:map! d</span>, where "d" is the example key to search for. This will list all mappings for the provided keys, after which you can search for its mapped actions or commands using the help command: <span class="command-block nowrap">:help :close</span>. This method also allows you to specify a particular mode to search for keys, by prefixing the <a href="#:map">:map</a> command with a mode character, such as <span class="command-block nowrap">:nmap!</span> or <span class="command-block nowrap">:vmap!</span>. The keys argument of the help command is basically a single command version of finding the mapping of some keys with the map commands and then running the help for the first action or command it finds.
         <h3 id=":history">:history</h3>
         <ul>
-            <li><span class="command-block">:history</span> - Open the history page</li>
+            <li><span class="command-block">:history</span> - Open the history page in a new tab unless it should replace the current based on <a href="#replacespecial">replacespecial</a></li>
+            <li><span class="command-block">:history!</span> - Open the history page in a new tab</li>
         </ul>
         With this command you will be navigated to the history page, located at "vieb://history". On this page you will be presented with a list of all your local browsing history, sorted by date. This page allows you to remove site visits from your history and/or remove the history during specific ranges (optionally based on a filter). The browsing history is only stored in Vieb's <a href="#datafolder">datafolder</a>. To disable new visits from being stored, see the <a href="#storenewvisits">storenewvisits</a> setting. This setting does not affect the history of previously closed tabs or the download history. It is also possible to disable or change the amount of suggestions shown based on the history with <a href="#suggestorder">suggestorder</a>. Finally you may want to clear the history when quitting Vieb with <a href="#clearhistoryonquit">clearhistoryonquit</a>.
         <h3 id=":downloads">:downloads</h3>
         <ul>
-            <li><span class="command-block">:downloads</span> - Open the downloads page</li>
+            <li><span class="command-block">:downloads</span> - Open the downloads page in a new tab unless it should replace the current based on <a href="#replacespecial">replacespecial</a></li>
+            <li><span class="command-block">:downloads!</span> - Open the downloads page in a new tab</li>
             <li><span class="command-block">:d</span> - Open the downloads page</li>
         </ul>
         Use this command to open the download page, located at "vieb://downloads". This page contains a list of all the previously downloaded files, including those still in progress or cancelled. On this page you can pause or remove any of the downloads. There are also settings to automatically remove downloads, see <a href="#cleardownloadsoncompleted">cleardownloadsoncompleted</a> and <a href="#cleardownloadsonquit">cleardownloadsonquit</a> for details. Neither of these settings will remove downloaded files from disk. Downloads are by default started automatically, and will be stored in the folder configured by <a href="#downloadpath">downloadpath</a>. You can change the automatic download behavior using the <a href="#downloadmethod">downloadmethod</a> setting.
         <h3 id=":cookies">:cookies</h3>
         <ul>
-            <li><span class="command-block">:cookies</span> - Open the cookies page</li>
+            <li><span class="command-block">:cookies</span> - Open the cookies page in a new tab unless it should replace the current based on <a href="#replacespecial">replacespecial</a></li>
+            <li><span class="command-block">:cookies!</span> - Open the cookies page in a new tab</li>
         </ul>
         Open the cookies page with this command, located at "vieb://cookies". On this page you can view all of Vieb's cookies. The cookies pages allows you to delete individual cookies, or all cookies (possibly based on a filter by name). Finally, it's also possible to delete cookies with <a href="#clearcookiesonquit">clearcookiesonquit</a>.
         <h3 id=":notifications">:notifications</h3>
         <ul>
-            <li><span class="command-block">:notifications</span> - Open the notifications page</li>
+            <li><span class="command-block">:notifications</span> - Open the notifications page in a new tab unless it should replace the current based on <a href="#replacespecial">replacespecial</a></li>
+            <li><span class="command-block">:notifications!</span> - Open the notifications page in a new tab</li>
         </ul>
         This command opens the notifications page, located at "vieb://notifications". On this page you can view a list of all the previous notifications during this session. This list is always cleared when quitting Vieb.
         <h2 id="mappings">Mappings</h2>
@@ -668,7 +675,7 @@
             <li><span class="command-block">:translatepage en-us</span> - Translate the page to American English</li>
             <li><span class="command-block">:translatepage ja</span> - Translate the page to Japanese</li>
         </ul>
-        TODO
+        Using this command you can translate the current page to a language of your choice based on the translation api set by <a href="#translateapi">translateapi</a> (if set to "auto", it's based on <a href="#translateurl">translateurl</a>). You can either use the language set by <a href="#translatelang">translatelang</a> or pass a language as an argument. All text is translated either by Deepl or LibreTranslate and then put back into the page. For most configurations you must set the <a href="#translatekey">translatekey</a> before you can use this command.
         <h3 id=":nohlsearch">:nohlsearch</h3>
         <ul>
             <li><span class="command-block">:nohlsearch</span> - Disable the search highlighting while storing the search</li>
@@ -794,7 +801,7 @@
         <h3 id="darkreaderbg">darkreaderbg</h3>
         Set the default background color of darkreader styled pages. Can be a color name or a hex code.
         <h3 id="darkreaderblocklist">darkreaderblocklist</h3>
-        Block specific sites from using darkreader even if enabled, by excluding them with regular expressions. You can add as many patterns as you want, separated by a tilde "~". If any of these patterns match the current url, darkreader will not be enabled for that site. Inverse regular expression matching is supported and can be used as a sort of allowlist. For example, <span class="command-block">:set darkreader darkreaderblocklist=^(?!.*github.*)</span> will ONLY load darkreader on sites with "github" in the url somewhere, though it is recommended to use simpler patterns and use it as a blocklist only, as you can block as many sites as you want. If you prefer your pages dark, it's worth checking if you have set the <a href="#nativetheme">nativetheme</a> setting to the correct theme to match.
+        Block specific sites from using darkreader even if enabled, by excluding them with regular expressions. You can add as many patterns as you want, separated by a tilde "~". If any of these patterns match the current url, darkreader will not be enabled for that site. For example, <span class="command-block">:set darkreaderblocklist=github</span> will block darkreader from loading on sites with "github" in the url. Inverse regular expression matching is supported and can be used as a sort of allowlist. For example, <span class="command-block">:set darkreader darkreaderblocklist=^(?!.*github.*)</span> will ONLY load darkreader on sites with "github" in the url somewhere, though it is recommended to use simpler patterns and use it as a blocklist only, as you can block as many sites as you want. If you prefer your pages dark, it's worth checking if you have set the <a href="#nativetheme">nativetheme</a> setting to the correct theme to match.
         <h3 id="darkreaderbrightness">darkreaderbrightness</h3>
         Set the brightness of darkreader styled pages. A brightness percentage of over 100 is supported, but can give unexpected results.
         <h3 id="darkreadercontrast">darkreadercontrast</h3>
@@ -942,7 +949,7 @@
         <h3 id="permissionclipboardread">permissionclipboardread</h3>
         Permission setting to either allow or block websites from reading the clipboard text. When set to "ask", you will get a popup to ask if you want to allow the request just this once and optionally store the setting for this session.
         <h3 id="permissionclipboardwrite">permissionclipboardwrite</h3>
-        TODO
+        Permission setting to either allow or block websites from writing the clipboard text. When set to "ask", you will get a popup to ask if you want to allow the request just this once and optionally store the setting for this session. On some sites, it's required to also allow reading the clipboard using the <a href="#permissionclipboardread">permissionclipboardread</a> setting before writing is allowed, on other sites just allowing writing itself is enough. So while writing is by default allowed, it might not work on all websites without also allowing reading.
         <h3 id="permissionclosepage">permissionclosepage</h3>
         Permission setting to either allow or block websites from closing themselves. Similar to manually closing a tab, but this permission allows the page to close its own tab automatically.
         <h3 id="permissiondisplaycapture">permissiondisplaycapture</h3>
@@ -1002,9 +1009,9 @@
         <h3 id="reloadtaboncrash">reloadtaboncrash</h3>
         With this toggle you can control if crashed tabs should be recreated automatically in place of the crashed one. The last known url of the crashed tab will be used to create a new tab in the background and add it in place of the old one. The internal mechanism is similar to switching with <a href="#containernames">containernames</a>, and as such your browsing history of that tab is not kept. Crashed tabs are by default bright red in the tab bar, and further interaction with these tabs is not possible. Before a tab crashes, it might be marked as unresponsive with a small red indicator on the left of the tab, similar to the orange current tab indicator when using <a href="#splits">splits</a>.
         <h3 id="replacespecial">replacespecial</h3>
-        TODO
+        Using the replacespecial setting you can control when <a href="#specialpages">special pages</a> should replace the current tab. Currently this is only done when the current tab is the newtab page (empty), but this can also be changed to also navigate to the special page if the current page is any of the special pages. Finally you can choose to always or never replace the current tab with a special page.
         <h3 id="replacestartup">replacestartup</h3>
-        TODO
+        With this setting you can control when pages called on startup or from other applications will replace the current tab. By default it will never do this, but you can choose to do this when the current tab is the newtab page (empty) or do this everytime with "always".
         <h3 id="requesttimeout">requesttimeout</h3>
         Duration in milliseconds before stopping a page load automatically. The timer is reset upon navigation to any page and after the timeout duration is reached, the page load will be stopped automatically, similar to calling <a href="#action.stopLoadingPage">action.stopLoadingPage</a> manually. A duration of 0 milliseconds will disable the timeout completely, which could mean that some websites will never stop loading.
         <h3 id="resourcesallowed">resourcesallowed</h3>
