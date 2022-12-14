@@ -71,36 +71,8 @@ def main():
     with open("package-lock.json") as f:
         package_lock = json.load(f)
     for package in package_lock["packages"]:
-        if "minimatch" in package_lock["packages"][package].get("dependencies", []):
-            if package_lock["packages"][package]["dependencies"]["minimatch"].startswith("3."):
-                package_lock["packages"][package]["dependencies"]["minimatch"] = "3.1.2"
-            if package_lock["packages"][package]["dependencies"]["minimatch"].startswith("^3."):
-                package_lock["packages"][package]["dependencies"]["minimatch"] = "3.1.2"
         if "electron" in package_lock["packages"][package].get("peerDependencies", {}):
             del package_lock["packages"][package]["peerDependencies"]
-        if package.endswith("minimatch"):
-            if package_lock["packages"][package]["version"].startswith("3."):
-                package_lock["packages"][package]["version"] = "3.1.2"
-                package_lock["packages"][package]["integrity"] = \
-                    "sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw=="
-                package_lock["packages"][package]["resolved"] = \
-                    "https://registry.npmjs.org/minimatch/-/minimatch-3.1.2.tgz"
-    for package in package_lock["dependencies"]:
-        if "minimatch" in package_lock["dependencies"][package].get("requires", []):
-            package_lock["dependencies"][package]["requires"][
-                "minimatch"] = "3.1.2"
-        if package.endswith("minimatch"):
-            if package_lock["dependencies"][package]["version"].startswith("3."):
-                package_lock["dependencies"][package]["version"] = "3.1.2"
-            if package_lock["dependencies"][package]["version"].startswith("^3."):
-                package_lock["dependencies"][package]["version"] = "3.1.2"
-        if "minimatch" in package_lock["dependencies"][package].get("dependencies", {}):
-            if package_lock["dependencies"][package]["dependencies"]["minimatch"]["version"].startswith("3."):
-                package_lock["dependencies"][package]["dependencies"]["minimatch"]["version"] = "3.1.2"
-                package_lock["dependencies"][package]["dependencies"]["minimatch"]["integrity"] = \
-                    "sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw=="
-                package_lock["dependencies"][package]["dependencies"]["minimatch"]["resolved"] = \
-                    "https://registry.npmjs.org/minimatch/-/minimatch-3.1.2.tgz"
     with open("package-lock.json", "w") as f:
         json.dump(package_lock, f, indent=2)
         f.write("\n")
