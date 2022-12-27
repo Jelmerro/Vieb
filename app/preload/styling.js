@@ -22,7 +22,14 @@
 // Optionally loads darkreader to override the page colors and use a dark theme
 const {ipcRenderer} = require("electron")
 const {
-    appData, readJSON, joinPath, domainName, expandPath, readFile, listDir
+    appData,
+    readJSON,
+    joinPath,
+    domainName,
+    expandPath,
+    readFile,
+    listDir,
+    fetchUrl
 } = require("../util")
 const webviewSettingsFile = joinPath(appData(), "webviewsettings")
 let settings = readJSON(webviewSettingsFile)
@@ -42,7 +49,6 @@ const applyThemeStyling = () => {
         document.querySelector("html").appendChild(themeStyle)
     }
 }
-const cleanFetchMethod = window.fetch
 const enableDarkReader = async() => {
     disableDarkReader()
     let darkreader = null
@@ -53,7 +59,11 @@ const enableDarkReader = async() => {
             "Darkreader module not present, can't show dark pages", "err")
         return
     }
-    darkreader.setFetchMethod(cleanFetchMethod)
+    darkreader.setFetchMethod(url => new Promise(res => {
+        fetchUrl(url, {
+            "headers": {"Sec-Fetch-Dest": "style", "Sec-Fetch-Mode": "no-cors"}
+        }).then(data => res(new Response(data))).catch(() => console.warn)
+    }))
     darkreader.enable({
         "brightness": settings.darkreaderbrightness,
         "contrast": settings.darkreadercontrast,

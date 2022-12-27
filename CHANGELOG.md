@@ -11,6 +11,17 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Fixed
+
+- CORS issues when using darkreader
+
+### Versions
+
+- Electron 22.0.0 (unchanged)
+- Chromium 108.0.5359.62 (unchanged)
+
 ## [9.5.0](https://github.com/Jelmerro/Vieb/compare/9.4.0...9.5.0) - 2022-12-14
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/9.4.0...9.5.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/9.5.0)
@@ -118,7 +129,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Versions
 
-- Electron 21.0.1 (21.0.0)
+- Electron 21.0.1 (was 21.0.0)
 - Chromium 106.0.5249.61 (was 106.0.5249.51)
 
 ## [9.2.0](https://github.com/Jelmerro/Vieb/compare/9.1.0...9.2.0) - 2022-09-28

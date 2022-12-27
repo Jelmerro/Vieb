@@ -504,7 +504,7 @@ const compareVersions = (v1Str, v2Str) => {
     return "unknown"
 }
 
-const fetchJSON = (url, opts = {}, body = null) => new Promise((res, rej) => {
+const fetchUrl = (url, opts = {}, body = null) => new Promise((res, rej) => {
     let requestModule = null
     if (url.startsWith("https://")) {
         requestModule = require("https")
@@ -521,7 +521,7 @@ const fetchJSON = (url, opts = {}, body = null) => new Promise((res, rej) => {
         })
         response.on("end", () => {
             try {
-                res(JSON.parse(data))
+                res(data)
             } catch (err) {
                 rej({data, err})
             }
@@ -532,6 +532,16 @@ const fetchJSON = (url, opts = {}, body = null) => new Promise((res, rej) => {
         request.write(body)
     }
     request.end()
+})
+
+const fetchJSON = (url, opts = {}, body = null) => new Promise((res, rej) => {
+    fetchUrl(url, opts, body).then(data => {
+        try {
+            res(JSON.parse(data))
+        } catch {
+            rej({data, "err": "Response is not valid JSON"})
+        }
+    }).catch(rej)
 })
 
 const pageOffset = page => {
@@ -982,6 +992,7 @@ module.exports = {
     activeElement,
     formatSize,
     compareVersions,
+    fetchUrl,
     fetchJSON,
     pageOffset,
     execCommand,
