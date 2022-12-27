@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - CORS issues when using darkreader
+- Exception in devtools when using newtaburl
 
 ### Versions
 

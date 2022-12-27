@@ -487,15 +487,6 @@ const unsuspendPage = page => {
             } else if (url || newtabUrl) {
                 webview.setAttribute("custom-first-load", true)
                 webview.src = url || stringToUrl(newtabUrl)
-                    .then(() => {
-                        if (webview.getAttribute("custom-first-load")) {
-                            webview.clearHistory()
-                            webview.removeAttribute("custom-first-load")
-                            webview.setAttribute("dom-ready", true)
-                        }
-                    }).catch(() => {
-                        webview.src = url || stringToUrl(newtabUrl)
-                    })
                 resetTabInfo(webview)
                 name.textContent = urlToString(url)
                 return
