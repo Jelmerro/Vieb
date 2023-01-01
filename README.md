@@ -78,16 +78,6 @@ sudo dnf config-manager --add-repo https://jelmerro.nl/fedora/jelmerro.repo
 sudo dnf install vieb
 ```
 
-### Debian/Ubuntu/Mint
-
-I host a custom APT repository that you can use for Vieb instead of downloading from [vieb.dev](https://vieb.dev/download) or Github.
-
-```bash
-sudo apt add-repository "deb [trusted=yes] https://jelmerro.nl/debs /"
-sudo apt update
-sudo apt install vieb
-```
-
 ### Third-party
 
 These releases are made by users just like you for their favorite system.
