@@ -1046,6 +1046,10 @@ const navigateTo = (location, customPage = false) => {
     if (webview.src.startsWith("devtools://")) {
         return
     }
+    if (!webview.getAttribute("dom-ready")) {
+        setTimeout(() => navigateTo(location, customPage), 1)
+        return
+    }
     webview.stop()
     const loc = location.replace(/view-?source:\/?\/?/g, "sourceviewer://")
     const sessionName = getSetting("containernames").split(",").find(

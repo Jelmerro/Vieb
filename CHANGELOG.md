@@ -13,6 +13,12 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Changed
+
+- COOP is now enabled again as the old workaround for Twitter navigations is no longer needed
+- SharedArrayBuffer is now enabled to make web workers more useful and faster
+- Attempting to navigate a page that isn't ready for navigation will now wait until it's ready
+
 ### Fixed
 
 - CORS issues when using darkreader

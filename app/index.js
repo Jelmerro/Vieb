@@ -308,19 +308,18 @@ if (argConfigOverride) {
         printUsage()
     }
 }
-// Fix segfault when opening Twitter:
-// https://github.com/electron/electron/issues/25469
-// https://github.com/electron/electron/issues/30201
-app.commandLine.appendSwitch("disable-features",
-    "CrossOriginOpenerPolicy,UserAgentClientHint")
 if (argAcceleration === "software") {
     app.disableHardwareAcceleration()
 }
-if (!argMediaKeys) {
+// https://github.com/electron/electron/issues/30201
+if (argMediaKeys) {
+    app.commandLine.appendSwitch("disable-features", "UserAgentClientHint")
+} else {
     app.commandLine.appendSwitch("disable-features",
-        "CrossOriginOpenerPolicy,HardwareMediaKeyHandling,UserAgentClientHint")
+        "HardwareMediaKeyHandling,UserAgentClientHint")
 }
 app.commandLine.appendSwitch("lang", "en-US")
+app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer")
 argDatafolder = `${joinPath(expandPath(argDatafolder.trim()))}/`
 const partitionDir = joinPath(argDatafolder, "Partitions")
 listDir(partitionDir, false, true)?.filter(part => part.startsWith("temp"))
