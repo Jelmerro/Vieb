@@ -23,6 +23,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - CORS issues when using darkreader
 - Exception in devtools when using newtaburl
+- Middle-mouse pasting not working in command and search mode as it would switch to explore mode incorrectly
 
 ### Versions
 

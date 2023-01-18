@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -771,10 +771,13 @@ const init = () => {
         if (e.button === 1) {
             if (e.target === document.getElementById("url")) {
                 if (getMouseConf("toexplore")) {
-                    ACTIONS.toExploreMode()
+                    if (!"sec".includes(currentMode()[0])) {
+                        ACTIONS.toExploreMode()
+                    }
                     return
                 }
-            } else if (getMouseConf("closetab")) {
+            }
+            if (getMouseConf("closetab")) {
                 const tab = e.composedPath().find(el => listTabs().includes(el))
                 if (tab) {
                     const {closeTab} = require("./tabs")
