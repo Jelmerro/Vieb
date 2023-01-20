@@ -5,6 +5,7 @@ linux:
   executableName: vieb
   category: Network;WebBrowser;
   maintainer: Jelmer van Arnhem
+  publish:
   target:
     - target: AppImage
       arch:
@@ -41,6 +42,7 @@ deb:
 mac:
   category: public.app-category.navigation
   icon: app/img/icons
+  publish:
   target:
     - target: zip
       arch:
@@ -49,6 +51,7 @@ mac:
 win:
   icon: app/img/icons/512x512.png
   legalTrademarks: Copyright @ Jelmer van Arnhem | Licensed as free software (GPL-3.0 or later)
+  publish:
   target:
     - target: nsis
       arch:
