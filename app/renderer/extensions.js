@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2022 Jelmer van Arnhem
+* Copyright (C) 2022-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -220,7 +220,7 @@ const runGMScript = (webview, rawContents) => {
 }
 
 const loadUserscripts = webview => {
-    const domain = domainName(window.location.href)
+    const domain = domainName(webview.src)
     const userScriptFiles = [
         ...(listDir(joinPath(appData(), "userscript/global"), true)
             || []).filter(f => f.endsWith(".js")),

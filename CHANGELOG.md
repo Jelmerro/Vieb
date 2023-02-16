@@ -11,6 +11,17 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Fixed
+
+- Userscript domain name not working at all by using an internal url instead of the page url
+
+### Versions
+
+- Electron 23.1.0 (was 22.0.3)
+- Chromium 110.0.5481.100 (was 108.0.5359.179)
+
 ## [9.5.1](https://github.com/Jelmerro/Vieb/compare/9.5.0...9.5.1) - 2023-01-20
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/9.5.0...9.5.1) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/9.5.1)
