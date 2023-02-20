@@ -13,9 +13,15 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Changed
+
+- Mouse setting "copyselect" is no longer available/needed for copying text by selecting, as it wasn't blocked correctly anyway
+- Mouse selections will now copy to the selection clipboard, instead of the default one, and at all times
+
 ### Fixed
 
 - Userscript domain name not working at all by using an internal url instead of the page url
+- Explore, command and search mode not being exited when dragging the mouse
 
 ### Versions
 

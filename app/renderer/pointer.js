@@ -50,6 +50,9 @@ let skipNextClick = false
 const init = () => {
     const {setMode} = require("./modes")
     ipcRenderer.on("mouse-down-location", (_, clickInfo) => {
+        if ("ces".includes(currentMode()[0]) && getMouseConf("leaveinput")) {
+            setMode("normal")
+        }
         if (clickInfo.webviewId) {
             if (clickInfo.webviewId !== currentPage().getWebContentsId()) {
                 const page = listPages().find(
@@ -99,17 +102,15 @@ const init = () => {
         storeMouseSelection(null)
     })
     ipcRenderer.on("mouse-selection", (_, selectInfo) => {
-        const switchToVisual = getSetting("mousevisualmode")
-        if (getMouseConf("copyselect")) {
-            const {clipboard} = require("electron")
-            clipboard.writeText(selectInfo.text)
-        }
+        const {clipboard} = require("electron")
+        clipboard.writeText(selectInfo.text, "selection")
         if (selectInfo.toinsert) {
             if (getMouseConf("toinsert")) {
                 setMode("insert")
             }
             return
         }
+        const switchToVisual = getSetting("mousevisualmode")
         if (switchToVisual !== "never" || currentMode() === "visual") {
             skipNextClick = true
             storeMouseSelection({
