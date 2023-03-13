@@ -77,6 +77,8 @@ const init = () => {
                 updateElement()
             }
         }
+        const {setFocusCorrectly} = require("./actions")
+        setFocusCorrectly()
     })
     ipcRenderer.on("mouse-click-info", (_, clickInfo) => {
         if (skipNextClick) {
@@ -95,10 +97,9 @@ const init = () => {
             if (getMouseConf("leaveinput")) {
                 setMode("normal")
             }
-        } else {
-            const {setFocusCorrectly} = require("./actions")
-            setFocusCorrectly()
         }
+        const {setFocusCorrectly} = require("./actions")
+        setFocusCorrectly()
         storeMouseSelection(null)
     })
     ipcRenderer.on("mouse-selection", (_, selectInfo) => {

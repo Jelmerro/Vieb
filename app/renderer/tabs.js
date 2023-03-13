@@ -902,6 +902,8 @@ const addWebviewListeners = webview => {
         if (e.channel === "mouse-up") {
             const {resetScreenshotDrag} = require("./input")
             resetScreenshotDrag()
+            const {setFocusCorrectly} = require("./actions")
+            setFocusCorrectly()
         }
         if (e.channel === "scroll-height-diff") {
             const {clear} = require("./contextmenu")

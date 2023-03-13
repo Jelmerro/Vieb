@@ -181,7 +181,7 @@ and as such I will not offer support when you use this, hence the naming.
 Alternatively, you can start as many instances of Vieb as you want, in separate datafolders,
 for which you can find more info in `:help datafolder`.
 Using multiple windows by running them in separate datafolders is the recommended solution,
-and it supported perfectly by Vieb and is also what powers [Erwic mode](https://github.com/Jelmerro/Vieb/blob/master/Erwic.md).
+is supported perfectly by Vieb and is also what powers [Erwic mode](https://github.com/Jelmerro/Vieb/blob/master/Erwic.md).
 
 #### Does Vieb automatically update? / How do I update Vieb?
 
@@ -193,6 +193,7 @@ Alternatively, you can watch the [Github repository](https://github.com/Jelmerro
 or subscribe to the official [Vieb subreddit](https://reddit.com/r/vieb) to be notified of new releases.
 You can also check out the official [Matrix space](https://matrix.to/#/#vieb:matrix.org) and its [announcements chat](https://matrix.to/#/#vieb-announcements:matrix.org),
 or visit the [Telegram announcements](https://t.me/vieb_announcements) and [the general chat on Telegram](https://t.me/vieb_general).
+If you are using Fedora, you can also use my custom Fedora repo, see the main readme for details.
 Lastly, if your system has a [third-party package](https://repology.org/project/vieb/versions), you could use that as well.
 These packages might be customized or updated at a later date, but they get updates the same way you are used to from your operating system.
 

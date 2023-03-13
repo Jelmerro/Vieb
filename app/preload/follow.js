@@ -66,8 +66,7 @@ const otherEvents = [
     "mousemove",
     "mouseout",
     "mouseover",
-    "contextmenu",
-    "auxclick"
+    "contextmenu"
 ]
 const previouslyFocussedElements = []
 
@@ -487,11 +486,9 @@ const contextListener = (e, frame = null, extraData = null) => {
             "frame": e.composedPath().find(
                 el => matchesQuery(el, "iframe"))?.src || frame?.src,
             "hasElementListener": eventListeners.contextmenu.has(
-                e.composedPath()[0])
-                || eventListeners.auxclick.has(e.composedPath()[0]),
+                e.composedPath()[0]),
             "hasGlobalListener": !!e.composedPath().find(
-                el => eventListeners.contextmenu.has(el)
-                || eventListeners.auxclick.has(el)),
+                el => eventListeners.contextmenu.has(el)),
             "img": img?.src?.trim(),
             "inputSel": text?.selectionStart
                 || text?.getRootNode().getSelection()?.baseOffset,
@@ -552,7 +549,7 @@ ipcRenderer.on("contextmenu", (_, extraData = null) => {
         "button": 2, "composedPath": () => els, "isTrusted": true, x, y
     }, findFrameInfo(els[0])?.element, extraData)
 })
-window.addEventListener("auxclick", contextListener)
+window.addEventListener("contextmenu", contextListener)
 ipcRenderer.on("keyboard-type-event", (_, keyOptions) => {
     // This is a last resort attempt to press a key in an iframe,
     // but ideally this code shouldn't exist and only use sendInputEvent.

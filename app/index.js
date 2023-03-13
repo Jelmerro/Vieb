@@ -436,7 +436,6 @@ app.on("ready", () => {
         "webPreferences": {
             "allowpopups": true,
             "contextIsolation": false,
-            "disableBlinkFeatures": "Auxclick",
             // Info on nodeIntegrationInSubFrames and nodeIntegrationInWorker:
             // https://github.com/electron/electron/issues/22582
             // https://github.com/electron/electron/issues/28620
@@ -531,7 +530,6 @@ app.on("ready", () => {
         "resizable": false,
         "show": false,
         "webPreferences": {
-            "disableBlinkFeatures": "Auxclick",
             "partition": "login",
             "preload": joinPath(__dirname, "popups/login.js")
         }
@@ -559,7 +557,6 @@ app.on("ready", () => {
         "resizable": false,
         "show": false,
         "webPreferences": {
-            "disableBlinkFeatures": "Auxclick",
             "partition": "notification-window",
             "preload": joinPath(__dirname, "popups/notification.js")
         }
@@ -588,7 +585,6 @@ app.on("ready", () => {
         "resizable": false,
         "show": false,
         "webPreferences": {
-            "disableBlinkFeatures": "Auxclick",
             "partition": "prompt",
             "preload": joinPath(__dirname, "popups/prompt.js")
         }

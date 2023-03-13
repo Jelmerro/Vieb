@@ -64,6 +64,9 @@ const init = () => {
 const contextMenu = document.getElementById("context-menu")
 
 const viebMenu = options => {
+    if (options.composedPath && !options.path) {
+        options.path = options.composedPath()
+    }
     clear()
     contextMenu.style.top = `${options.y}px`
     contextMenu.style.left = `${options.x}px`

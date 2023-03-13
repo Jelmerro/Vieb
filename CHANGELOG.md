@@ -11,6 +11,22 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+## Changed
+
+- Resetting focus now happens on every user interaction instead of on a timer
+- Url can now be selected from outside explore mode directly (and keep the selection if switching to explore mode)
+
+## Fixed
+
+- Vieb right click menu not working due to removed .path in events
+
+### Versions
+
+- Electron 23.1.1 (unchanged)
+- Chromium 110.0.5481.104 (unchanged)
+
 ## [9.6.0](https://github.com/Jelmerro/Vieb/compare/9.5.1...9.6.0) - 2023-02-23
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/9.5.1...9.6.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/9.6.0)

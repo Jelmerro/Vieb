@@ -55,6 +55,8 @@ const modes = {
             updateScreenshotHighlight(true)
             const {resetScreenshotDrag} = require("./input")
             resetScreenshotDrag()
+            document.getElementById("url").setSelectionRange(0, 0)
+            window.getSelection().removeAllRanges()
         }
     },
     "search": {
@@ -65,21 +67,27 @@ const modes = {
         "onLeave": () => {
             const {resetIncrementalSearch} = require("./actions")
             resetIncrementalSearch()
+            document.getElementById("url").setSelectionRange(0, 0)
+            window.getSelection().removeAllRanges()
         }
     },
     "explore": {
         "onEnter": () => {
             const {updateUrl} = require("./tabs")
             updateUrl(currentPage(), true)
-            document.getElementById("url").select()
             const {resetPosition} = require("./explorehistory")
             resetPosition()
             const {resetInputHistory} = require("./input")
             resetInputHistory()
+            if (!document.getSelection().toString()) {
+                document.getElementById("url").select()
+            }
         },
         "onLeave": () => {
             const {emptySuggestions} = require("./suggest")
             emptySuggestions()
+            document.getElementById("url").setSelectionRange(0, 0)
+            window.getSelection().removeAllRanges()
         }
     },
     "follow": {
