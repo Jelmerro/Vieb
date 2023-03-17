@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -158,22 +158,47 @@ const addToHist = url => {
 }
 
 const writeHistToFile = (now = false) => {
-    if (Object.keys(groupedHistory).length === 0) {
-        deleteFile(histFile)
-        return
-    }
-    Object.keys(groupedHistory).forEach(url => {
-        if (visitCount(url) === 0) {
-            delete groupedHistory[url]
-        }
-    })
     clearTimeout(histWriteTimeout)
     if (now) {
+        Object.keys(groupedHistory).forEach(url => {
+            if (visitCount(url) === 0) {
+                delete groupedHistory[url]
+            }
+        })
+        if (Object.keys(groupedHistory).length === 0) {
+            return deleteFile(histFile)
+        }
         return writeJSON(histFile, groupedHistory)
     }
     histWriteTimeout = setTimeout(() => {
         writeHistToFile(true)
     }, 5000)
+    return true
+}
+
+const removeOldHistory = date => {
+    Object.keys(groupedHistory).forEach(url => {
+        groupedHistory[url].visits = groupedHistory[url].visits
+            .filter(d => new Date(d) > date)
+    })
+    return writeHistToFile(true)
+}
+
+const removeRecentHistory = date => {
+    Object.keys(groupedHistory).forEach(url => {
+        groupedHistory[url].visits = groupedHistory[url].visits
+            .filter(d => new Date(d) < date)
+    })
+    return writeHistToFile(true)
+}
+
+const removeHistoryByPartialUrl = urlSnippet => {
+    Object.keys(groupedHistory).forEach(url => {
+        if (url.includes(urlSnippet)) {
+            groupedHistory[url].visits = []
+        }
+    })
+    return writeHistToFile(true)
 }
 
 const removeFromHistory = entries => {
@@ -182,9 +207,6 @@ const removeFromHistory = entries => {
         if (groupedHistory[url]) {
             groupedHistory[url].visits = groupedHistory[url].visits
                 .filter(d => d !== entry.date)
-            if (visitCount(url) === 0) {
-                delete groupedHistory[url]
-            }
         }
     })
     return writeHistToFile(true)
@@ -259,6 +281,9 @@ module.exports = {
     addToHist,
     handleRequest,
     init,
+    removeHistoryByPartialUrl,
+    removeOldHistory,
+    removeRecentHistory,
     suggestHist,
     suggestTopSites,
     titleForPage,

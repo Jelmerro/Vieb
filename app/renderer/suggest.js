@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -616,6 +616,30 @@ const suggestCommand = searchStr => {
             const tabTitle = t.title.replace(specialChars, "").toLowerCase()
             return tabTitle.includes(simpleSearch)
         }).forEach(t => addCommand(t.command, t.title, t.url))
+    }
+    // Command: clear
+    if ("clear".startsWith(command) && !range && !confirm && args.length < 3) {
+        const argStr = `clear ${search.split(" ").slice(1).join(" ")}`
+        const clearSuggestionList = [
+            "clear history all",
+            "clear history 15minutes",
+            "clear history last15minutes",
+            "clear history 1hour",
+            "clear history last1hour",
+            "clear history 1day",
+            "clear history last1day",
+            "clear history 7days",
+            "clear history last7days",
+            "clear history 1month",
+            "clear history last1month",
+            "clear history 1year",
+            "clear history last1year"
+        ]
+        for (const suggest of clearSuggestionList) {
+            if (suggest.startsWith(argStr)) {
+                addCommand(suggest)
+            }
+        }
     }
 }
 

@@ -34,7 +34,8 @@ const {
     pathExists,
     pathToSpecialPageName,
     appConfig,
-    userAgentTemplated
+    userAgentTemplated,
+    isValidIntervalValue
 } = require("../util")
 const {
     listTabs,
@@ -75,6 +76,7 @@ const defaultSettings = {
     "clearcookiesonquit": false,
     "cleardownloadsoncompleted": false,
     "cleardownloadsonquit": false,
+    "clearhistoryinterval": "none",
     "clearhistoryonquit": false,
     "clearlocalstorageonquit": false,
     "closablepinnedtabs": false,
@@ -488,6 +490,15 @@ const checkNumber = (setting, value) => {
 
 const checkOther = (setting, value) => {
     // Special cases
+    if (setting === "clearhistoryinterval") {
+        const valid = ["session", "none"].includes(value)
+            || isValidIntervalValue(value)
+        if (!valid) {
+            notify("clearhistoryinterval can only be set to none, session or "
+                + "a valid interval, such as 1day or 3months", "warn")
+        }
+        return valid
+    }
     if (containerSettings.includes(setting)) {
         const specialNames = ["s:usematching", "s:usecurrent"]
         if (setting !== "containersplitpage") {
@@ -1328,6 +1339,10 @@ const set = (setting, value) => {
             } else {
                 ipcRenderer.send("adblock-enable", allSettings.adblocker)
             }
+        }
+        if (setting === "clearhistoryonquit") {
+            notify("clearhistoryonquit is deprecated, "
+                + "use clearhistoryinterval=session", "warn")
         }
         if (setting === "containercolors" || setting === "containershowname") {
             updateContainerSettings()

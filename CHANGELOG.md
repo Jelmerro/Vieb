@@ -13,10 +13,16 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+## Added
+
+- Command clear to wipe browsing data based on intervals or partial urls (currently only history)
+- Setting clearhistoryinterval to more finely control the deletion of history on quit by interval
+
 ## Changed
 
 - Resetting focus now happens on every user interaction instead of on a timer
 - Url can now be selected from outside explore mode directly (and keep the selection if switching to explore mode)
+- History storage is now slightly faster by only wiping empty entries on write
 
 ## Fixed
 

@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -48,7 +48,9 @@ const {
     domainName,
     urlToString,
     isUrl,
-    execCommand
+    execCommand,
+    intervalValueToDate,
+    isValidIntervalValue
 } = require("../util")
 const {
     listTabs, listPages, currentTab, currentPage, tabOrPageMatching, getSetting
@@ -287,11 +289,15 @@ const quitall = () => {
     } else {
         deleteFile(joinPath(appData(), "quickmarks"))
     }
-    if (getSetting("clearhistoryonquit")) {
+    const clearHistory = getSetting("clearhistoryinterval")
+    if (getSetting("clearhistoryonquit") || clearHistory === "session") {
         deleteFile(joinPath(appData(), "hist"))
-    } else {
-        const {writeHistToFile} = require("./history")
+    } else if (clearHistory === "none") {
+        const {writeHistToFile, removeHistoryByPartialUrl} = require("./history")
         writeHistToFile(true)
+    } else {
+        const {removeOldHistory} = require("./history")
+        removeOldHistory(intervalValueToDate(clearHistory))
     }
     const {saveTabs} = require("./tabs")
     saveTabs()
@@ -1480,6 +1486,48 @@ const translatepage = args => {
     currentPage().send("action", "translatepage", api, url, lang, apiKey)
 }
 
+const clear = (type, interval, trailingArgs = false) => {
+    if (trailingArgs) {
+        notify("The clear command takes at most two arguments: "
+            + "a type and optionally an interval", "warn")
+        return
+    }
+    if (!type) {
+        notify("The clear command requires a type argument to clear", "warn")
+        return
+    }
+    if (!interval) {
+        notify("The clear command interval is required", "warn")
+        return
+    }
+    if (!["history"].includes(type)) {
+        notify("The clear command type must be one of: "
+            + "history", "warn")
+        return
+    }
+    if (type === "history") {
+        if (isValidIntervalValue(interval, true)) {
+            if (interval.startsWith("last")) {
+                const {removeRecentHistory} = require("./history")
+                removeRecentHistory(intervalValueToDate(
+                    interval.replace(/^last/g, "")))
+            } else {
+                const {removeOldHistory} = require("./history")
+                removeOldHistory(intervalValueToDate(interval))
+            }
+        } else if (interval === "all") {
+            const {removeOldHistory} = require("./history")
+            removeOldHistory(new Date())
+        } else if (isUrl(interval)) {
+            const {removeHistoryByPartialUrl} = require("./history")
+            removeHistoryByPartialUrl(interval)
+        } else {
+            notify("The clear command interval must be all, a valid url or a "
+                + "valid interval, such as 1day, or inverted like last3hours")
+        }
+    }
+}
+
 const noEscapeCommands = ["command", "delcommand"]
 const rangeCompatibleCommands = [
     "Sexplore",
@@ -1530,6 +1578,7 @@ const commands = {
     "b": ({args}) => buffer(args),
     "buffer": ({args}) => buffer(args),
     "call": ({args}) => callAction(args),
+    "clear": ({args}) => clear(...args),
     "close": ({args, range}) => close(false, args, range),
     "close!": ({args, range}) => close(true, args, range),
     "colorscheme": ({args}) => colorscheme(...args),

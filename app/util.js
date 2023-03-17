@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -567,6 +567,44 @@ const execCommand = (command, callback) => {
     return exec(command, callback)
 }
 
+const isValidIntervalValue = (value, invertedRangesSupported = false) => {
+    const validUnits = ["second", "minute", "hour", "day", "month", "year"]
+    for (const unit of validUnits) {
+        if (value.endsWith(unit) || value.endsWith(`${unit}s`)) {
+            const number = value.replace(RegExp(`${unit}s?$`), "")
+            if (invertedRangesSupported) {
+                return !!number.replace(/^last/g, "").match(/^\d+$/g)
+            }
+            return !!number.match(/^\d+$/g)
+        }
+    }
+    return false
+}
+
+const intervalValueToDate = value => {
+    const date = new Date()
+    if (value.includes("second")) {
+        date.setSeconds(date.getSeconds() - Number(value.replace(/[a-z]/g, "")))
+    }
+    if (value.includes("minute")) {
+        date.setMinutes(date.getMinutes() - Number(value.replace(/[a-z]/g, "")))
+    }
+    if (value.includes("hour")) {
+        date.setHours(date.getHours() - Number(value.replace(/[a-z]/g, "")))
+    }
+    if (value.includes("day")) {
+        date.setDate(date.getDate() - Number(value.replace(/[a-z]/g, "")))
+    }
+    if (value.includes("month")) {
+        date.setMonth(date.getMonth() - Number(value.replace(/[a-z]/g, "")))
+    }
+    if (value.includes("year")) {
+        date.setFullYear(date.getFullYear()
+            - Number(value.replace(/[a-z]/g, "")))
+    }
+    return date
+}
+
 // IPC UTIL
 
 const sendToPageOrSubFrame = (channel, ...args) => {
@@ -996,6 +1034,8 @@ module.exports = {
     fetchJSON,
     pageOffset,
     execCommand,
+    isValidIntervalValue,
+    intervalValueToDate,
     // IPC UTIL
     sendToPageOrSubFrame,
     notify,
