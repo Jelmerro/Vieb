@@ -137,7 +137,7 @@ const defaultSettings = {
     "menuvieb": "both",
     "mintabwidth": 28,
     "modifiers": "Ctrl,Shift,Alt,Meta,NumLock,CapsLock,ScrollLock",
-    "mouse": mouseFeatures.join(","),
+    "mouse": "all",
     "mousefocus": false,
     "mousenewtabswitch": true,
     "mousevisualmode": "onswitch",
@@ -429,6 +429,8 @@ const numberRanges = {
     "suspendtimeout": [0, 9000000000000000],
     "timeoutlen": [0, 9000000000000000]
 }
+const acceptsIntervals = ["clearhistoryinterval"]
+const acceptsInvertedIntervals = []
 let customStyling = ""
 const downloadSettings = [
     "downloadmethod",
@@ -1214,6 +1216,9 @@ const suggestionList = () => {
             listOfSuggestions.push(`${setting}=`)
             listOfSuggestions.push(`${setting}=${defaultSettings[setting]}`)
         }
+        if (setting === "clearhistoryinterval") {
+            listOfSuggestions.push(`${setting}=session`)
+        }
         if (setting === "followchars") {
             listOfSuggestions.push(`${setting}=custom:`)
             listOfSuggestions.push(`${setting}=all`)
@@ -1234,6 +1239,22 @@ const suggestionList = () => {
                 listOfSuggestions.push(`${setting}=s:external`)
             }
             listOfSuggestions.push(`${setting}=temp%n`)
+        }
+        if (acceptsIntervals.includes(setting)) {
+            listOfSuggestions.push(`${setting}=1second`)
+            listOfSuggestions.push(`${setting}=1minute`)
+            listOfSuggestions.push(`${setting}=1hour`)
+            listOfSuggestions.push(`${setting}=1day`)
+            listOfSuggestions.push(`${setting}=1month`)
+            listOfSuggestions.push(`${setting}=1year`)
+        }
+        if (acceptsInvertedIntervals.includes(setting)) {
+            listOfSuggestions.push(`${setting}=last1second`)
+            listOfSuggestions.push(`${setting}=last1minute`)
+            listOfSuggestions.push(`${setting}=last1hour`)
+            listOfSuggestions.push(`${setting}=last1day`)
+            listOfSuggestions.push(`${setting}=last1month`)
+            listOfSuggestions.push(`${setting}=last1year`)
         }
         const isNumber = typeof defaultSettings[setting] === "number"
         const isFreeText = freeText.includes(setting)
@@ -1469,20 +1490,23 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     let typeLabel = "String"
     let allowedValues = ""
     if (listLike.includes(setting)) {
-        typeLabel = "Like-like String"
+        typeLabel = "List"
         allowedValues = "Comma-separated list"
     }
     if (listLikeTilde.includes(setting)) {
-        typeLabel = "Like-like String"
+        typeLabel = "List"
         allowedValues = "Tilde-separated list"
     }
     if (validOptions[setting]) {
-        typeLabel = "Fixed-set String"
+        typeLabel = "Enum"
         allowedValues = validOptions[setting]
     }
     if (typeof allSettings[setting] === "boolean") {
-        typeLabel = "Boolean flag"
+        typeLabel = "Boolean"
         allowedValues = "true,false"
+    }
+    if (setting === "clearhistoryinterval") {
+        allowedValues = "Interval, session or none"
     }
     if (containerSettings.includes(setting) || setting === "followchars") {
         allowedValues = "See description"

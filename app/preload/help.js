@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,65 @@ let allCommandsByKeys = modes.reduce((a, m) => {
     return a
 }, {})
 
+const processHash = () => {
+    const ids = [...document.querySelectorAll("[id]")].map(e => e.id)
+    const hash = decodeURIComponent(window.location.hash).trim()
+        .replace(/^#?/, "")
+    let easyHash = hash.replace(/^:?/, "").replace(/!$/, "")
+        .replace(/-/g, "").toLowerCase()
+    if (easyHash !== "") {
+        easyHash = easyHash.replace(/^a\w*\./, "").replace(/^p\w*\./, "")
+        const match = ids.find(raw => {
+            const id = decodeURIComponent(raw.replace(/^#?:?/, "")
+                .replace(/!$/, "").replace(/-/g, "").toLowerCase().trim())
+            return easyHash === id || easyHash === id
+                .replace(/^action\./, "").replace(/^pointer\./, "")
+        })
+        if (match && document.querySelector(`a[href='#${match}']`)) {
+            document.querySelector(`a[href='#${match}']`).click()
+            return
+        }
+    }
+    let mode = null
+    let keys = String(hash)
+    if (hash.match(/^\w_.*/)) {
+        [mode] = hash.split("_")
+        keys = hash.split("_").slice(1).join("_")
+    }
+    if (mode) {
+        if (allActionsByKeys[mode][keys]) {
+            allActionsByKeys[mode][keys].click()
+        } else if (allCommandsByKeys[mode][keys]) {
+            allCommandsByKeys[mode][keys].click()
+        }
+        return
+    }
+    for (const m of modes) {
+        if (allActionsByKeys[m][keys]) {
+            allActionsByKeys[m][keys].click()
+            return
+        }
+        if (allCommandsByKeys[m][keys]) {
+            allCommandsByKeys[m][keys].click()
+            return
+        }
+    }
+}
+
+const addTextWithLinksToTypes = (baseEl, text) => {
+    const types = ["Boolean", "List", "String", "Interval", "Number", "Enum"]
+    text.split(RegExp(`(${types.join("|")})`, "g")).forEach(s => {
+        let el = document.createElement("a")
+        if (types.includes(s)) {
+            el.textContent = s
+            el.href = `#${s.toLowerCase()}`
+        } else {
+            el = document.createTextNode(s)
+        }
+        baseEl.appendChild(el)
+    })
+}
+
 ipcRenderer.on("settings", (_, settings, mappings, uncountActs, rangeComp) => {
     allActionsByKeys = modes.reduce((a, m) => {
         a[m] = {}
@@ -52,7 +111,7 @@ ipcRenderer.on("settings", (_, settings, mappings, uncountActs, rangeComp) => {
             typeLabel.textContent = "Type:"
             settingStatus.appendChild(typeLabel)
             const type = document.createElement("kbd")
-            type.textContent = setting.typeLabel
+            addTextWithLinksToTypes(type, setting.typeLabel)
             settingStatus.appendChild(type)
             const originalLabel = document.createElement("span")
             originalLabel.textContent = "Default:"
@@ -78,7 +137,8 @@ ipcRenderer.on("settings", (_, settings, mappings, uncountActs, rangeComp) => {
             allowedValuesLabel.textContent = "Accepted:"
             settingStatus.appendChild(allowedValuesLabel)
             const allowedValues = document.createElement("kbd")
-            allowedValues.textContent = setting.allowedValues
+            addTextWithLinksToTypes(
+                allowedValues, String(setting.allowedValues))
             settingStatus.appendChild(allowedValues)
             document.getElementById(setting.name).parentNode.parentNode
                 .insertBefore(settingStatus, document.getElementById(
@@ -188,51 +248,6 @@ ipcRenderer.on("settings", (_, settings, mappings, uncountActs, rangeComp) => {
         processHash()
     }
 })
-
-const processHash = () => {
-    const ids = [...document.querySelectorAll("[id]")].map(e => e.id)
-    const hash = decodeURIComponent(window.location.hash).trim()
-        .replace(/^#?/, "")
-    let easyHash = hash.replace(/^:?/, "").replace(/!$/, "")
-        .replace(/-/g, "").toLowerCase()
-    if (easyHash !== "") {
-        easyHash = easyHash.replace(/^a\w*\./, "").replace(/^p\w*\./, "")
-        const match = ids.find(raw => {
-            const id = decodeURIComponent(raw.replace(/^#?:?/, "")
-                .replace(/!$/, "").replace(/-/g, "").toLowerCase().trim())
-            return easyHash === id || easyHash === id
-                .replace(/^action\./, "").replace(/^pointer\./, "")
-        })
-        if (match && document.querySelector(`a[href='#${match}']`)) {
-            document.querySelector(`a[href='#${match}']`).click()
-            return
-        }
-    }
-    let mode = null
-    let keys = String(hash)
-    if (hash.match(/^\w_.*/)) {
-        [mode] = hash.split("_")
-        keys = hash.split("_").slice(1).join("_")
-    }
-    if (mode) {
-        if (allActionsByKeys[mode][keys]) {
-            allActionsByKeys[mode][keys].click()
-        } else if (allCommandsByKeys[mode][keys]) {
-            allCommandsByKeys[mode][keys].click()
-        }
-        return
-    }
-    for (const m of modes) {
-        if (allActionsByKeys[m][keys]) {
-            allActionsByKeys[m][keys].click()
-            return
-        }
-        if (allCommandsByKeys[m][keys]) {
-            allCommandsByKeys[m][keys].click()
-            return
-        }
-    }
-}
 
 window.addEventListener("hashchange", processHash)
 

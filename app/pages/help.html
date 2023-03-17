@@ -81,29 +81,47 @@
             <li><span class="command-block">:s all&amp;</span> - Reset all setting to Vieb's default</li>
             <li><span class="command-block">:set search search&amp;</span> - List the current search setting and reset it afterwards</li>
         </ul>
-        The set command can be run with any number of arguments and is used to read, modify or reset any setting of Vieb. Without any arguments, the set command will list all the modified settings. To also list the default settings, you should run <span class="command-block">:set all?</span>. Every argument of the set command is parsed separately, which allows you to read, write or reset multiple settings at once, in any order. For a list of settings, see the <a href="#settings">Settings</a> chapter. The set command has very high compatibility with Vim, which is why some of its features might be confusing if you are not familiar with it. There are many ways to modify, read or write a setting, most of which are determined by the type of setting. For example, boolean flags can only be set or reset, while number settings can be set to a value or be multiplied/subtracted. String settings can be appended with additional text as well. To find out more about the different setting types, see the <a href="#settings">Settings</a> chapter, or find help for a specific setting with <span class="command-block">:help guifontsize</span> for example. Below is a list of all the different ways to invoke the set command, and to which types they apply. The name 'example' is not an actual setting, but should be replaced with a setting of the right type for the command to work:
+        The set command can be run with any number of arguments and is used to read, modify or reset any setting of Vieb. Without any arguments, the set command will list all the modified settings. To also list the default settings, you should run <span class="command-block">:set all?</span>. Every argument of the set command is parsed separately, which allows you to read, write or reset multiple settings at once, in any order. For a list of settings, see the <a href="#settings">Settings</a> chapter. The set command has very high compatibility with Vim, which is why some of its features might be confusing if you are not familiar with it. There are many ways to modify, read or write a setting, most of which are determined by the type of setting. For example, booleans can only be set or reset, while number settings can be set to a value or be multiplied/subtracted. String settings can be appended with additional text as well. To find out more about the different setting names, see the <a href="#settings">Settings</a> chapter, or find help for a specific setting with <span class="command-block">:help guifontsize</span> for example. Below is a list of all the different ways to invoke the set command, and to which type of values they apply. The name 'example' is not an actual setting, but should be replaced with a setting of the right type for the command to work:
         <h4>Shared for all type of settings</h4>
+        These commands work the same for all settings regardless of type.
         <ul>
             <li><span class="command-block">:set example?</span> - Read the value of any type of setting</li>
             <li><span class="command-block">:set example=value</span> - Set any type of setting to a specific value</li>
             <li><span class="command-block">:set example:value</span> - Set any type of setting to a specific value</li>
             <li><span class="command-block">:set example&amp;</span> - Reset any type of setting to Vieb's default value</li>
         </ul>
-        <h4>Boolean flags</h4>
+        <h4 id="boolean">Boolean</h4>
+        These type of settings can be turned on or off. In Vim, these are also known as toggles, while in most programming languages they are called booleans.
         <ul>
-            <li><span class="command-block">:set example</span> - Set or enable a boolean flag</li>
-            <li><span class="command-block">:set noexample</span> - Reset or disable a boolean flag</li>
-            <li><span class="command-block">:set invexample</span> - Toggle the value of a boolean flag</li>
-            <li><span class="command-block">:set example!</span> - Toggle the value of a boolean flag</li>
+            <li><span class="command-block">:set example</span> - Set or enable a boolean</li>
+            <li><span class="command-block">:set noexample</span> - Reset or disable a boolean</li>
+            <li><span class="command-block">:set invexample</span> - Toggle the value of a boolean</li>
+            <li><span class="command-block">:set example!</span> - Toggle the value of a boolean</li>
         </ul>
-        <h4>Numbers</h4>
+        <h4 id="number">Number</h4>
+        These type of settings accept a number. Most of the number settings only accept a specific range, usually just positive numbers.
         <ul>
             <li><span class="command-block">:set example</span> - Read the value of a number</li>
             <li><span class="command-block">:set example+=value</span> - Increment a number with the value</li>
             <li><span class="command-block">:set example-=value</span> - Subtract a number with the value</li>
             <li><span class="command-block">:set example^=value</span> - Multiply a number with the value</li>
         </ul>
-        <h4>List-like</h4>
+        <h4 id="string">String</h4>
+        These type of settings accept any kind of text, sometimes with additional restrictions. For example, some string setting values must be a valid url, or be of the <a href="#interval">interval</a> type. Limitations of the string type are explaind in the help for each setting separately.
+        <ul>
+            <li><span class="command-block">:set example</span> - Read the value of a string</li>
+            <li><span class="command-block">:set example+=value</span> - Append the value to the string</li>
+            <li><span class="command-block">:set example-=value</span> - Remove the value from the string via replace</li>
+            <li><span class="command-block">:set example^=value</span> - Prepend the value to the string</li>
+        </ul>
+        <h4 id="enum">Enum</h4>
+        These type of settings accept only specific values, but are otherwise identical to strings. An example is the <a href="#permissioncamera">permissioncamera</a> setting, which can only be set to "block", "ask" or "allow" (default is "block"). These type of settings, can also be rotated by suffixing an exclamation mark, similar to toggling boolean values.
+        <ul>
+            <li><span class="command-block">:set example</span> - Read the value of an enum</li>
+            <li><span class="command-block">:set example!</span> - Rotate the value of an enum to the next valid value</li>
+        </ul>
+        <h4 id="list">List</h4>
+        These type of settings accept a comma or tilde separated list. It can be set directly, just like a string, but can also be appended or modified per entry. Some lists that are comma separated have nested lists that are separated by tildes.
         <ul>
             <li><span class="command-block">:set example</span> - Read the value of a list</li>
             <li><span class="command-block">:set noexample</span> - Empty the list of values</li>
@@ -111,15 +129,11 @@
             <li><span class="command-block">:set example-=value</span> - Remove the value from a list, priority for exact matches in the list for "value", if not found, it will remove any matches up to the first "~" in each value of the list. For example, for <a href="#searchwords">searchwords</a>, this allows you to remove a searchword from the list with just the prefix of the searchword (instead of typing "prefix~searchurl" in full).</li>
             <li><span class="command-block">:set example^=value</span> - Prepend the value to a list</li>
         </ul>
-        <h4>String</h4>
+        <h4 id="interval">Interval</h4>
+        These type of settings accept a time interval. A time interval consists of a number followed by a time unit, for example 1day or 3months. The number can be any valid positive number, while the unit can be any of: second, minute, hour, day, month or year. The unit can optionally be followed by a plural "s", such as seconds or days. These type of settings have no special commands, besides the shared ones and the plain read option:
         <ul>
-            <li><span class="command-block">:set example</span> - Read the value of a string</li>
-            <li><span class="command-block">:set example+=value</span> - Append the value to the string</li>
-            <li><span class="command-block">:set example-=value</span> - Remove the value from the string via replace</li>
-            <li><span class="command-block">:set example^=value</span> - Prepend the value to the string</li>
+            <li><span class="command-block">:set example</span> - Read the value of an interval</li>
         </ul>
-        There are also some string type settings that only accept specific values, such as the <a href="#permissioncamera">permissioncamera</a> setting, which can only be set to "block", "ask" or "allow" (default is "block"). These type of settings, so called "Fixed-set Strings", can also be rotated by suffixing an exclamation mark, similar to toggling boolean values. For example, to cycle through the <a href="#adblocker">adblocker</a> values and log the value after switching:
-        <span class="command-block nowrap">:set adblocker! adblocker</span>.
         <h3 id=":reloadconfig">:reloadconfig</h3>
         <ul>
             <li><span class="command-block">:reloadconfig</span> - Reload all viebrc commands</li>
@@ -183,7 +197,7 @@
             <li><span class="command-block">:history</span> - Open the history page in a new tab unless it should replace the current based on <a href="#replacespecial">replacespecial</a></li>
             <li><span class="command-block">:history!</span> - Open the history page in a new tab</li>
         </ul>
-        With this command you will be navigated to the history page, located at "vieb://history". On this page you will be presented with a list of all your local browsing history, sorted by date. This page allows you to remove site visits from your history and/or remove the history during specific ranges (optionally based on a filter). The browsing history is only stored in Vieb's <a href="#datafolder">datafolder</a>. To disable new visits from being stored, see the <a href="#storenewvisits">storenewvisits</a> setting. This setting does not affect the history of previously closed tabs or the download history. It is also possible to disable or change the amount of suggestions shown based on the history with <a href="#suggestorder">suggestorder</a>. Finally you may want to clear the history when quitting Vieb with <a href="#clearhistoryonquit">clearhistoryonquit</a>.
+        With this command you will be navigated to the history page, located at "vieb://history". On this page you will be presented with a list of all your local browsing history, sorted by date. This page allows you to remove site visits from your history and/or remove the history during specific ranges (optionally based on a filter). The browsing history is only stored in Vieb's <a href="#datafolder">datafolder</a>. To disable new visits from being stored, see the <a href="#storenewvisits">storenewvisits</a> setting. This setting does not affect the history of previously closed tabs or the download history. It is also possible to disable or change the amount of suggestions shown based on the history with <a href="#suggestorder">suggestorder</a>. Finally you may want to clear the history (or parts of it) when quitting Vieb with <a href="#clearhistoryinterval">clearhistoryinterval</a> or the <a href="#:clear">:clear</a> command.
         <h3 id=":downloads">:downloads</h3>
         <ul>
             <li><span class="command-block">:downloads</span> - Open the downloads page in a new tab unless it should replace the current based on <a href="#replacespecial">replacespecial</a></li>
@@ -713,11 +727,11 @@
         <ul>
             <li><span class="command-block">:quitall</span> - Quit Vieb</li>
         </ul>
-        With quitall you will unconditionally close and stop all of Vieb. The short version of this command is "qa". To configure what gets cleared on quit, see these settings, among others: <a href="#cache">cache</a>, <a href="#clearcookiesonquit">clearcookiesonquit</a>, <a href="#cleardownloadsonquit">cleardownloadsonquit</a>, <a href="#clearhistoryonquit">clearhistoryonquit</a>, <a href="#clearlocalstorageonquit">clearlocalstorageonquit</a>, <a href="#keeprecentlyclosed">keeprecentlyclosed</a>, <a href="#restoretabs">restoretabs</a> and <a href="#containernewtab">containernewtab</a>.
+        With quitall you will unconditionally close and stop all of Vieb. The short version of this command is "qa". To configure what gets cleared on quit, see these settings, among others: <a href="#cache">cache</a>, <a href="#clearcookiesonquit">clearcookiesonquit</a>, <a href="#cleardownloadsonquit">cleardownloadsonquit</a>, <a href="#clearhistoryinterval">clearhistoryinterval</a>, <a href="#clearlocalstorageonquit">clearlocalstorageonquit</a>, <a href="#keeprecentlyclosed">keeprecentlyclosed</a>, <a href="#restoretabs">restoretabs</a> and <a href="#containernewtab">containernewtab</a>.
         <h1 id="settings">Settings</h1>
         There are a lot of settings in Vieb and all of them can be changed at runtime, or using a settings file. The changes you make at runtime are not saved automatically for subsequent sessions, but they can be if you want to. This chapter provides introductions on how to do all this, and a list of all the settings Vieb has to offer.
         <h2>Set command</h2>
-        To change settings at runtime, the <a href="#:set">:set</a> command is used. This command can read, write and update any setting for the current session. See the command section for more details on how to do this. To change settings permanently, read the following paragraph, regarding the viebrc file.
+        To change settings at runtime, the <a href="#:set">:set</a> command is used. This command can read, write and update any setting for the current session. Please read it first to learn how to change settings, and what type of values there are. To change settings permanently, read the following paragraph regarding the viebrc file.
         <h2 id="viebrc">Viebrc</h2>
         To change settings for subsequent sessions, store them as commands in a viebrc file. The viebrc file should contain a single command per line. Most regular commands are supported, such as set commands or map commands. Basically, the viebrc file should be a list of commands you want to execute every time Vieb is started. There can be multiple viebrc files loaded on startup, there are four potential locations that are checked:
         <ul>
@@ -753,8 +767,10 @@
         Toggle for clearing successfully completed downloads. When a download fails, it will not be cleared. This toggle will clear completed downloads as soon as they are done, unlike the <a href="#cleardownloadsonquit">cleardownloadsonquit</a> setting, which will unconditionally clear all downloads when quitting Vieb regardless of download status.
         <h3 id="cleardownloadsonquit">cleardownloadsonquit</h3>
         Toggle for clearing all downloads regardless of status when quitting Vieb. This will not remove downloaded files from disk, but it will clear the download history.
+        <h3 id="clearhistoryinterval">clearhistoryinterval</h3>
+        Setting to automatically clear the history on quit based on how old it is. The browsing history can be viewed on the <a href="#:history">history</a> page. By default, no history is cleared, as the clearing interval is set to "none". If you want to clear all history data on quit set it to "session". For any finer grained interval of how old the history must be for it to be cleared, set an interval such as "1day" or "3months" as the value. This way, history older than the specified interval will be cleared on quit. See the <a href="#interval">interval</a> docs for valid options. As a result of separating tab, download and browsing history, there is no traditional private mode in Vieb. See <a href="#storenewvisits">storenewvisits</a> for more details about storing history and an alternative to "private mode".
         <h3 id="clearhistoryonquit">clearhistoryonquit</h3>
-        Toggle for clearing all browsing history on quit. The browsing history can be viewed on the <a href="#:history">history</a> page. As a result of separating tab, download and browsing history, there is no traditional private mode in Vieb. The same can be achieved by toggling all related settings at once using <a href="#mappings">mappings</a> or <a href="#customcommands">custom commands</a>. See <a href="#storenewvisits">storenewvisits</a> for more details about storing history and an alternative to "private mode".
+        Toggle for clearing all browsing history on quit, currently deprecated in favor of <a href="#clearhistoryinterval">clearhistoryinterval</a>. Use <span class="command-block">:set clearhistoryinterval=session</span> to replicate turning this toggle on, the same default remains off by setting the new setting to "none".
         <h3 id="clearlocalstorageonquit">clearlocalstorageonquit</h3>
         Toggle for clearing all of the localstorage when quitting Vieb. This toggle applies to all containers.
         <h3 id="closablepinnedtabs">closablepinnedtabs</h3>
@@ -1153,7 +1169,7 @@
         <h3 id="vimcommand">vimcommand</h3>
         With this setting, you can configure the command that will be used as the editor when invoking <a href="#action.editWithVim">action.editWithVim</a>. You can use it to edit input fields or textareas with any external editor. For compatibility across systems, this setting is by default set to "gvim". You can change it to use the terminal version of Vim, for example with gnome-terminal: <span class="command-block nowrap">set vimcommand="gnome-terminal -- vim"</span>. This setting can be set to any command, including an external prose/spellchecker, as long as it accepts a filename as an argument. The input field will be automatically updated based on any changes made to the file. By default, you will only be notified if the command fails, see <a href="#notificationforsystemcommands">notificationforsystemcommands</a> for details. To change the shell this and other commands will use, see the <a href="#shell">shell</a> setting.
         <h3 id="windowtitle">windowtitle</h3>
-        The windowtitle setting can be used to change Vieb's window title to whatever you want. The title can be set to any string, optionally filled in with the page url, page title, app name and app version. You can do this by using any of these variables inside your string: "%url", "%title", "%app" or "%version". Even though Vieb does not show the window title by default (unless you use the --window-frame option), it can for example be used to connect to external password managers and can also be seen when listing open applications on your computer.
+        The windowtitle setting can be used to change Vieb's window title to whatever you want. The title can be set to any string, optionally filled in with the page url, page title, app name and app version. You can do this by using any of these variables inside your string: "%url", "%title", "%app" or "%version". Even though Vieb does not show the window title by default (unless you use the --window-frame option), it can for example be used to connect to external password managers and can also be seen when listing open applications on your computer (usually with Alt-Tab or similar).
         <h1 id="actions">Actions</h1>
         Actions refer to built-in Vieb functionally that can be executed when you press the right keys. The keys you need to press for an action to execute are listed just below action name. These keys are updated dynamically based on your changes with the <a href="#:map">:map</a> command. Some actions can be repeated x amount of times, by typing a number before pressing the right keys. These type of actions are marked the "countable" badge. This behavior is only present in <a class="normal" href="#action.toNormalMode">normal mode</a>, <a class="pointer" href="#pointer">pointer mode</a> and <a class="visual" href="#visual">visual mode</a>. Action names are case-insensitive when part of mappings and will be corrected to their proper name when you don't include the right casing yourself. For regular actions, it's also possible to omit the <span class="command-block">action.</span> prefix when using any kind of command or mapping. Finally, you can replace the <span class="command-block">pointer.</span> or <span class="command-block">action.</span> prefix with the shorter <span class="command-block">p.</span> and <span class="command-block">a.</span>. It's always required to wrap the action between <span class="command-block">&lt;&gt;</span> characters. For example, <a href="#action.openNewTab">action.openNewTab</a> can be written in any of the following ways when creating a mapping:
         <div class="command-block">&lt;action.openNewTab&gt;<br />&lt;a.openNEWtab&gt;<br />&lt;opennewtab&gt;<br /></div>

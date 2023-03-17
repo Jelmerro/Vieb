@@ -263,6 +263,9 @@ const titleForPage = originalUrl => {
 const updateTitle = (rawUrl, rawName) => {
     const url = rawUrl.replace(/\t/g, "")
     const name = rawName.replace(/\t/g, "")
+    if (!groupedHistory[url]) {
+        addToHist(url)
+    }
     if (groupedHistory[url]) {
         if (groupedHistory[url].title === name) {
             return
@@ -271,8 +274,6 @@ const updateTitle = (rawUrl, rawName) => {
             return
         }
         groupedHistory[url].title = name
-    } else {
-        groupedHistory[url] = {"title": name, "visits": []}
     }
     writeHistToFile()
 }

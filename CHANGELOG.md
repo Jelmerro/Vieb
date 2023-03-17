@@ -23,6 +23,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Resetting focus now happens on every user interaction instead of on a timer
 - Url can now be selected from outside explore mode directly (and keep the selection if switching to explore mode)
 - History storage is now slightly faster by only wiping empty entries on write
+- Settings now have links to documentation about the type of value they can contain
+- Naming scheme of setting types is now more streamlined and better documented
 
 ## Fixed
 
