@@ -153,7 +153,7 @@ const locationToSuggestion = (base, loc) => {
     if (absPath.includes(" ")) {
         absPath = `"${absPath}"`
     }
-    return {"path": absPath, "title": location, "url": fullPath}
+    return {"path": absPath, "title": location, "type": "file", "url": fullPath}
 }
 
 const suggestFiles = loc => {
@@ -238,7 +238,11 @@ const suggestExplore = search => {
             }
             const words = getSetting("searchwords").split(",").map(s => {
                 const [title, url] = s.split("~")
-                return {title, url}
+                let filledUrl = searchword(search).url
+                if (filledUrl === search) {
+                    filledUrl = url
+                }
+                return {title, "type": "searchword", "url": filledUrl}
             })
             if (order === "alpha") {
                 words.sort((a, b) => {
@@ -251,7 +255,8 @@ const suggestExplore = search => {
                     return 0
                 })
             }
-            words.filter(s => s.title.startsWith(search.trim()))
+            const searchStr = `${search.split(" ").filter(s => s)[0].trim()}`
+            words.filter(s => s.title.startsWith(searchStr))
                 .forEach(s => addExplore(s))
         }
     })
@@ -300,10 +305,10 @@ const addExplore = explore => {
     element.appendChild(title)
     const url = document.createElement("span")
     url.className = "url"
-    if (explore.url.startsWith("file://")) {
+    if (explore.type === "file") {
         url.className = "file"
     }
-    if (explore.url.includes("%s")) {
+    if (explore.type === "searchword") {
         url.className = "searchwords"
     }
     url.textContent = urlToString(explore.url)

@@ -88,7 +88,7 @@ const searchword = location => {
         const [word, url] = mapping.split("~")
         if (word && url) {
             const q = location.replace(`${word} `, "")
-            if (q && location.startsWith(`${word} `)) {
+            if (q && location.replace(/^\s/g, "").startsWith(`${word} `)) {
                 const queries = q.split(",")
                 let urlString = url
                 let counter = 1

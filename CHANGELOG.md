@@ -25,6 +25,9 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - History storage is now slightly faster by only wiping empty entries on write
 - Settings now have links to documentation about the type of value they can contain
 - Naming scheme of setting types is now more streamlined and better documented
+- Searchword urls are now filled in with the resolved url in the suggestions while you type
+- Seachwords will now also activate if prefixed with spaces
+- Filetype suggestions coming from history are now correctly colored in history color instead of file suggest color
 
 ## Fixed
 
