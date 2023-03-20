@@ -13,13 +13,13 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
-## Added
+### Added
 
 - Command clear to wipe browsing data based on intervals or partial urls (currently only history)
 - Setting clearhistoryinterval to more finely control the deletion of history on quit by interval
 - Option "url" to the list of mouse features to control interaction with the input box while already typing
 
-## Changed
+### Changed
 
 - Resetting focus now happens on every user interaction instead of on a timer
 - Url can now be selected from outside explore mode directly (and keep the selection if switching to explore mode)
@@ -31,7 +31,11 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Filetype suggestions coming from history are now correctly colored in history color instead of file suggest color
 - Default theme now shows the default cursor instead of the text cursor on the url box if interaction is disabled
 
-## Fixed
+### Deprecated
+
+- Setting clearhistoryonquit in favor of clearhistoryinterval=session
+
+### Fixed
 
 - Vieb right click menu not working due to removed .path in events
 - Follow filtering being cancelled when interacting with the navbar using the mouse
