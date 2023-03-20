@@ -63,6 +63,7 @@ const mouseFeatures = [
     "follow",
     "toinsert",
     "toexplore",
+    "url",
     "leaveinput",
     "suggestselect",
     "scrollsuggest",
@@ -1069,7 +1070,9 @@ const updateMouseSettings = () => {
         "pageininsert",
         "pageoutsideinsert",
         "suggestselect",
-        "switchtab"
+        "switchtab",
+        "url",
+        "toexplore"
     ]
     for (const mouseSetting of styledMouseSettings) {
         if (getMouseConf(mouseSetting)) {

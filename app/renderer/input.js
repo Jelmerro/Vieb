@@ -726,6 +726,13 @@ const init = () => {
                 e.preventDefault()
             }
         }
+        if (e.target === document.getElementById("url")) {
+            const {followFiltering} = require("./follow")
+            const typing = "sec".includes(currentMode()[0]) || followFiltering()
+            if (typing && !getMouseConf("url")) {
+                e.preventDefault()
+            }
+        }
     })
     document.getElementById("tabs").addEventListener("dblclick", e => {
         if (getMouseConf("newtab")) {
@@ -772,8 +779,12 @@ const init = () => {
             return
         }
         if (e.target === document.getElementById("url")) {
-            if (getMouseConf("toexplore")) {
-                if (!"sec".includes(currentMode()[0])) {
+            const {followFiltering} = require("./follow")
+            const typing = "sec".includes(currentMode()[0]) || followFiltering()
+            if (typing && !getMouseConf("url")) {
+                e.preventDefault()
+            } else if (getMouseConf("toexplore")) {
+                if (!typing) {
                     ACTIONS.toExploreMode()
                 }
                 return
@@ -793,7 +804,9 @@ const init = () => {
         ACTIONS.setFocusCorrectly()
     })
     window.addEventListener("mouseout", () => {
-        if (!"sec".includes(currentMode()[0])) {
+        const {followFiltering} = require("./follow")
+        const typing = "sec".includes(currentMode()[0]) || followFiltering()
+        if (!typing) {
             document.getElementById("url").setSelectionRange(0, 0)
             window.getSelection().removeAllRanges()
         }
@@ -817,10 +830,10 @@ const init = () => {
         }
         e.preventDefault()
         if (e.target === document.getElementById("url")) {
-            if (!"sec".includes(currentMode()[0])) {
-                if (getMouseConf("toexplore")) {
-                    ACTIONS.toExploreMode()
-                }
+            const {followFiltering} = require("./follow")
+            const typing = "sec".includes(currentMode()[0]) || followFiltering()
+            if (!typing && getMouseConf("toexplore")) {
+                ACTIONS.toExploreMode()
             }
         } else if ("sec".includes(currentMode()[0])) {
             if (getMouseConf("leaveinput")) {
@@ -857,8 +870,10 @@ const init = () => {
     })
     window.addEventListener("contextmenu", e => {
         e.preventDefault()
-        if ("sec".includes(currentMode()[0])) {
-            if (getMouseConf("leaveinput")) {
+        if (getMouseConf("leaveinput")) {
+            const {followFiltering} = require("./follow")
+            const typing = "sec".includes(currentMode()[0]) || followFiltering()
+            if (typing && e.target !== document.getElementById("url")) {
                 ACTIONS.toNormalMode()
             }
         }

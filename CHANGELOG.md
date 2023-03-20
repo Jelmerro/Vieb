@@ -17,6 +17,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Command clear to wipe browsing data based on intervals or partial urls (currently only history)
 - Setting clearhistoryinterval to more finely control the deletion of history on quit by interval
+- Option "url" to the list of mouse features to control interaction with the input box while already typing
 
 ## Changed
 
@@ -32,6 +33,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ## Fixed
 
 - Vieb right click menu not working due to removed .path in events
+- Follow filtering being cancelled when interacting with the navbar using the mouse
 
 ### Versions
 
