@@ -92,7 +92,7 @@ For more info about moving away from Google and why, see [r/degoogle](https://re
 Google own Widevine, the one and only DRM solution for Chromium-based browsers.
 They are in control of approving and verifying the inclusion of Widevine into a (software) project.
 The process is [far from straightforward](https://github.com/electron/electron/issues/12427) and [is blocked for open-source software](https://blog.samuelmaddock.com/posts/google-widevine-blocked-my-browser/).
-It's even explained on the [official Wikipedia page of Widevine](https://en.wikipedia.org/wiki/Widevine).
+For a few years this was also listed on the criticism paragraph on Wikipedia, but [they removed it as unreliably sourced](https://en.wikipedia.org/w/index.php?title=Widevine&oldid=1084600989)
 PRs to implement DRM will be rejected on the basis that they need proprietary keys and software to work.
 Issues relating to this topic will be closed, as it's not something Vieb or any other smaller browser can fix, only Google can.
 You, and only you, need to consider if it's worth using services that require DRM and thus Google approved proprietary software.
@@ -117,6 +117,19 @@ please consider testing various blocklists or opening an issue in the adblocker 
 unless you are really sure that it's a Vieb specific issue by testing it [with this example usage of their package](https://github.com/ghostery/adblocker/tree/master/packages/adblocker-electron-example).
 Finally, it's worth noting that most blocklists work suboptimal if you block autoplay,
 which is blocked by default in Vieb, though you can change that using `--autoplay-media=always` on startup.
+
+#### Why doesn't screensharing work on some sites such as Google Meet?
+
+Most screensharing will work if you allow permissionmediadevices fully and set permissiondisplaycapture to ask.
+Some sites also require permissionmicrophone and permissioncamera in addition to that.
+You can see the history of blocked and allowed permissions in the notification page (see `:notifications`).
+Google Meet however does not use the open standard of the screenshare API,
+but instead uses their own proprietary hangouts extension to share the screen.
+This means that it will not work if you don't have the extension installed,
+which only Chrome and Firefox have by default.
+In case you are looking for info on this,
+see [StackOverflow](https://stackoverflow.com/questions/63658198/how-does-google-meet-allow-you-to-screen-share-from-another-tab) or the [extension's source code](https://github.com/chromium/chromium/tree/main/chrome/browser/resources/hangout_services).
+Issues relating to this topic will be closed, as it's not something Vieb or any other smaller browser can fix, only Google can.
 
 #### Can I make Vieb my default browser?
 
