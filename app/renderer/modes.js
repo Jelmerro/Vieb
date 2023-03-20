@@ -77,8 +77,9 @@ const modes = {
             updateUrl(currentPage(), true)
             const {resetPosition} = require("./explorehistory")
             resetPosition()
-            const {resetInputHistory} = require("./input")
+            const {resetInputHistory, requestSuggestUpdate} = require("./input")
             resetInputHistory()
+            requestSuggestUpdate()
             if (!document.getSelection().toString()) {
                 document.getElementById("url").select()
             }

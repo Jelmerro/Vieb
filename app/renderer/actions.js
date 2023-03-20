@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -120,6 +120,8 @@ const toSearchMode = args => {
     }
     document.getElementById("url").value = search
     document.getElementById("url").select()
+    const {requestSuggestUpdate} = require("./input")
+    requestSuggestUpdate()
 }
 
 const previousSearchMatch = () => {

@@ -168,7 +168,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #mode {text-transform: capitalize;font-size: 1.3em;margin: auto;font-weight: bold;display: flex;}
 #repeat-counter, #pressed-keys {margin: auto .2em;line-height: 2em;display: none;}
 /* modes */
-[current-mode=normal] #mode-container, #helppage .normal, .normal {color: var(--mode-normal-fg);background: var(--mode-normal-bg);}
+#mode-container, #helppage .normal, .normal {color: var(--mode-normal-fg);background: var(--mode-normal-bg);}
 [current-mode=command] #mode-container, #helppage .command, .command {color: var(--mode-command-fg);background: var(--mode-command-bg);}
 [current-mode=insert] #mode-container, #helppage .insert, .insert {color: var(--mode-insert-fg);background: var(--mode-insert-bg);}
 [current-mode=follow] #mode-container, #helppage .follow, .follow {color: var(--mode-follow-fg);background: var(--mode-follow-bg);}
@@ -213,7 +213,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #app.navigationhidden #suggest-dropdown {top: .1em;max-height: calc(100vh - .2em);}
 /* Nav url/search/command */
 #containername {display: flex;margin: auto;height: 1.8em;align-items: center;padding: 0 .5em;background: var(--container-background);color: var(--fg);}
-#url {display: inline-block;flex: 1;border: solid .1em var(--url-default);margin: .1em;background: transparent;color: var(--fg);outline: none;font: inherit;min-width: 0;padding: .1em;width: 0;}
+#url {display: inline-block;flex: 1;border: solid .1em var(--url-default);margin: .1em;background: transparent;color: var(--fg);outline: none;font: inherit;min-width: 0;padding: .1em;width: 0;cursor: default;}
 #url.search {border-color: var(--url-search);}
 #url.searchwords {border-color: var(--url-searchwords);}
 #url.url {border-color: var(--url-url);}
@@ -256,6 +256,8 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #mode-suggestions div {font-size: 1.3em;}
 #app.mouse-suggestselect #suggest-dropdown div:hover, #mode-suggestions div:hover, #app.mouse-switchtab #tabs > span:hover {font-weight: bold;cursor: pointer;}
 #app[current-mode=insert].mouse-pageininsert .webview, #app:not([current-mode=insert]).mouse-pageoutsideinsert .webview {pointer-events: all;}
+#app[current-mode=command].mouse-url #url, #app[current-mode=follow].mouse-url #url, #app[current-mode=explore].mouse-url #url, #app[current-mode=search].mouse-url #url {cursor: text;}
+#app:not([current-mode]).mouse-toexplore #url, #app[current-mode=normal].mouse-toexplore #url, #app[current-mode=insert].mouse-toexplore #url, #app[current-mode=pointer].mouse-toexplore #url, #app[current-mode=visual].mouse-toexplore #url {cursor: text;}
 .mouse-follow .follow-url-border.hover {background: var(--follow-url-hover);cursor: pointer;}
 .mouse-follow .follow-inputs-click-border.hover {background: var(--follow-click-hover);cursor: pointer;}
 .mouse-follow .follow-inputs-insert-border.hover {background: var(--follow-insert-hover);cursor: pointer;}

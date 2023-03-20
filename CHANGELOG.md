@@ -29,11 +29,14 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Searchword urls are now filled in with the resolved url in the suggestions while you type
 - Seachwords will now also activate if prefixed with spaces
 - Filetype suggestions coming from history are now correctly colored in history color instead of file suggest color
+- Default theme now shows the default cursor instead of the text cursor on the url box if interaction is disabled
 
 ## Fixed
 
 - Vieb right click menu not working due to removed .path in events
 - Follow filtering being cancelled when interacting with the navbar using the mouse
+- Explore mode history not storing the first change in the Ctrl-z/Ctrl-y history
+- Middle mouse paste not updating explore mode's Ctrl-z/Ctrl-y history
 
 ### Versions
 

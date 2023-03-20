@@ -783,7 +783,10 @@ const init = () => {
             const typing = "sec".includes(currentMode()[0]) || followFiltering()
             if (typing && !getMouseConf("url")) {
                 e.preventDefault()
-            } else if (getMouseConf("toexplore")) {
+            } else if (typing && e.button === 1) {
+                setTimeout(() => requestSuggestUpdate(), 1)
+            }
+            if (getMouseConf("toexplore")) {
                 if (!typing) {
                     ACTIONS.toExploreMode()
                 }
