@@ -42,6 +42,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Explore mode history not storing the first change in the Ctrl-z/Ctrl-y history
 - Middle mouse paste not updating explore mode's Ctrl-z/Ctrl-y history
 - Self closing tabs not being cleaned up correctly due to Electron devtools close call being unsafe
+- Text selection still briefly being visible outside explore mode when toexplore mouse feature is disabled
 
 ### Versions
 

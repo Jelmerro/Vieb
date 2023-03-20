@@ -732,6 +732,9 @@ const init = () => {
             if (typing && !getMouseConf("url")) {
                 e.preventDefault()
             }
+            if (!typing && !getMouseConf("toexplore")) {
+                e.preventDefault()
+            }
         }
     })
     document.getElementById("tabs").addEventListener("dblclick", e => {
