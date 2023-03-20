@@ -558,7 +558,12 @@ const closeTab = (index = null, force = false) => {
         hide(page, true)
     } else {
         tab.remove()
-        page.closeDevTools?.()
+        try {
+            page.closeDevTools()
+        } catch {
+            // Webview already destroyed by the page,
+            // most often happens when a page closes itself.
+        }
         page.remove()
         if (listTabs().length === 0) {
             if (getSetting("quitonlasttabclose")) {
