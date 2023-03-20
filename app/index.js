@@ -801,7 +801,7 @@ ipcMain.on("set-spelllang", (_, langs) => {
 })
 ipcMain.on("update-resource-settings", (_, resources, block, allow) => {
     resourceTypes = [
-        ...resources, "mainFrame", "subFrame", "cspReport", "other"
+        ...resources, "mainframe", "subframe", "cspreport", "other"
     ]
     resourcesAllowed = allow
     resourcesBlocked = block
@@ -866,7 +866,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 }
                 return callback({"cancel": !allow})
             }
-            if (!resourceTypes.includes(details.resourceType)) {
+            if (!resourceTypes.includes(details.resourceType.toLowerCase())) {
                 return callback({"cancel": true})
             }
         }

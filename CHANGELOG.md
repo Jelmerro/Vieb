@@ -43,6 +43,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Middle mouse paste not updating explore mode's Ctrl-z/Ctrl-y history
 - Self closing tabs not being cleaned up correctly due to Electron devtools close call being unsafe
 - Text selection still briefly being visible outside explore mode when toexplore mouse feature is disabled
+- Websocket connections being blocked when setting custom resourcetypes due to casing error
 
 ### Versions
 
