@@ -523,7 +523,7 @@ ipcRenderer.on("contextmenu-data", (_, request) => {
         "button": 2, "composedPath": () => els, "isTrusted": true, x, y
     }, findFrameInfo(els[0])?.element, request)
 })
-ipcRenderer.on("contextmenu", (_, extraData = null) => {
+ipcRenderer.on("contextmenu", () => {
     const els = [activeElement()]
     const parsed = parseElement(els[0])
     if (!parsed || ["iframe", "body"].includes(els[0].tagName.toLowerCase())) {
@@ -547,7 +547,7 @@ ipcRenderer.on("contextmenu", (_, extraData = null) => {
     els.reverse()
     contextListener({
         "button": 2, "composedPath": () => els, "isTrusted": true, x, y
-    }, findFrameInfo(els[0])?.element, extraData)
+    }, findFrameInfo(els[0])?.element, {"force": true})
 })
 window.addEventListener("contextmenu", contextListener)
 ipcRenderer.on("keyboard-type-event", (_, keyOptions) => {

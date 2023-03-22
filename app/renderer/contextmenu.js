@@ -53,17 +53,17 @@ const init = () => {
                 }
             }
         }
-        if (info.extraData) {
+        if (info.extraData?.action) {
             commonAction(info.extraData.type, info.extraData.action, info)
         } else {
-            webviewMenu(info)
+            webviewMenu(info, info?.extraData?.force)
         }
     })
 }
 
 const contextMenu = document.getElementById("context-menu")
 
-const viebMenu = options => {
+const viebMenu = (options, force = false) => {
     if (options.composedPath && !options.path) {
         options.path = options.composedPath()
     }
@@ -75,7 +75,7 @@ const viebMenu = options => {
         useEnteredData, backInHistory, forwardInHistory, refreshTab
     } = require("./actions")
     const menuSetting = getSetting("menuvieb")
-    const navMenu = menuSetting === "both" || menuSetting === "navbar"
+    const navMenu = menuSetting === "both" || menuSetting === "navbar" || force
     if (options.path.find(el => matchesQuery(el, "#url")) && navMenu) {
         createMenuItem({
             "action": () => {
@@ -145,7 +145,7 @@ const viebMenu = options => {
         }
         fixAlignmentNearBorders()
     }
-    const tabMenu = menuSetting === "both" || menuSetting === "tabbar"
+    const tabMenu = menuSetting === "both" || menuSetting === "tabbar" || force
     if (options.path.find(el => matchesQuery(el, "#tabs")) && tabMenu) {
         const {addTab, reopenTab, closeTab} = require("./tabs")
         const {execute} = require("./command")
@@ -233,24 +233,26 @@ const storePointerRightClick = () => {
     }, 100)
 }
 
-const webviewMenu = options => {
+const webviewMenu = (options, force = false) => {
     clear()
     if (!"ipv".includes(currentMode()[0])) {
         const {setMode} = require("./modes")
         setMode("normal")
     }
-    if (!pointerRightClick && !getMouseConf("menupage")) {
-        return
-    }
-    const menuSetting = getSetting("menupage")
-    if (menuSetting === "never") {
-        return
-    }
-    if (options.hasGlobalListener && menuSetting === "globalasneeded") {
-        return
-    }
-    if (options.hasElementListener && menuSetting !== "always") {
-        return
+    if (!force) {
+        if (!pointerRightClick && !getMouseConf("menupage")) {
+            return
+        }
+        const menuSetting = getSetting("menupage")
+        if (menuSetting === "never") {
+            return
+        }
+        if (options.hasGlobalListener && menuSetting === "globalasneeded") {
+            return
+        }
+        if (options.hasElementListener && menuSetting !== "always") {
+            return
+        }
     }
     const page = currentPage()
     if (!page || page.isCrashed()) {

@@ -35,10 +35,12 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Default theme now shows the default cursor instead of the text cursor on the url box if interaction is disabled
 - Locales are now included in regular releases but still excluded from lite builds (see `build.js`)
 - All mouse features now have a "mouse-something" className added to the body if enabled to allow more customization in colorschemes
+- Action "menuOpen" will now keep working even if the settings are set to never, this does not affect regular right clicks
 
 ### Deprecated
 
 - Setting clearhistoryonquit in favor of clearhistoryinterval=session
+- Default value for "replacespecial" being "newtab" (will change to "special" in 10.x.x)
 
 ### Fixed
 
@@ -525,7 +527,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Removed
 
 - Longtime workaround for electron-builder to manually create the mac zips (they are now valid zip archives instead of being broken)
-- Compatibility linter plugin compat, as it's no longer needed due to widespread release of newer node verions
+- Compatibility linter plugin compat, as it's no longer needed due to widespread release of newer node versions
 
 ### Fixed
 

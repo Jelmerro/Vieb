@@ -1010,7 +1010,7 @@ const menuOpen = () => {
             "path": [tab, document.getElementById("tabs")],
             "x": bounds.x,
             "y": bounds.y + bounds.height
-        })
+        }, true)
     } else if (currentMode() === "insert") {
         sendToPageOrSubFrame("contextmenu")
     } else if ("sec".includes(currentMode()[0])) {
@@ -1039,11 +1039,11 @@ const menuOpen = () => {
                 "path": [url],
                 "x": bounds.x + charWidth * url.selectionStart - url.scrollLeft,
                 "y": bounds.y + bounds.height
-            })
+            }, true)
         }
     } else {
-        const {rightClick} = require("./pointer")
-        rightClick()
+        const {openMenu} = require("./pointer")
+        openMenu()
     }
 }
 

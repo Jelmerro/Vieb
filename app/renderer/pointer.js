@@ -481,6 +481,11 @@ const rightClick = () => {
     storePointerRightClick()
 }
 
+const openMenu = () => {
+    sendToPageOrSubFrame("contextmenu-data",
+        {"force": true, "x": zoomX(), "y": zoomY()})
+}
+
 const startVisualSelect = () => {
     if (mouseSelection && getSetting("mousevisualmode") !== "never") {
         restoreSelection()
@@ -726,6 +731,7 @@ module.exports = {
     openFrame,
     openImage,
     openLink,
+    openMenu,
     openText,
     openVideo,
     releaseKeys,

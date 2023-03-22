@@ -839,7 +839,9 @@ const init = () => {
             return
         }
         e.preventDefault()
-        if (e.target === document.getElementById("url")) {
+        const urlOrSuggest = ev => ev.composedPath().find(
+            el => matchesQuery(el, "#url, #suggest-dropdown"))
+        if (urlOrSuggest(e)) {
             const {followFiltering} = require("./follow")
             const typing = "sec".includes(currentMode()[0]) || followFiltering()
             if (!typing && getMouseConf("toexplore")) {
@@ -883,7 +885,9 @@ const init = () => {
         if (getMouseConf("leaveinput")) {
             const {followFiltering} = require("./follow")
             const typing = "sec".includes(currentMode()[0]) || followFiltering()
-            if (typing && e.target !== document.getElementById("url")) {
+            const urlOrSuggest = ev => ev.composedPath().find(
+                el => matchesQuery(el, "#url, #suggest-dropdown"))
+            if (typing && !urlOrSuggest(e)) {
                 ACTIONS.toNormalMode()
             }
         }
