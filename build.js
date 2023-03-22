@@ -19,13 +19,6 @@
 
 const {rmSync, readdir, unlinkSync} = require("fs")
 const defaultConfig = {"config": {
-    "afterPack": context => {
-        const localeDir = `${context.appOutDir}/locales/`
-        readdir(localeDir, (_err, files) => {
-            files?.filter(f => !f.match(/en-US\.pak/))
-                .forEach(f => unlinkSync(localeDir + f))
-        })
-    },
     "files": [
         "app/**/*.html",
         "app/**/*.css",
@@ -70,9 +63,17 @@ const releases = {
         "webpack": false
     },
     "lite": {
-        "description": "Build lite releases, which do not include "
-            + "node_modules.\nThese releases are thus lighter and safer.",
+        "description": "Build lite releases, which exclude locales & "
+            + "node_modules.\nThese releases are thus lighter and smaller.\n"
+            + "This does mean some features are not included.",
         "ebuilder": {
+            "afterPack": context => {
+                const localeDir = `${context.appOutDir}/locales/`
+                readdir(localeDir, (_err, files) => {
+                    files?.filter(f => !f.match(/en-US\.pak/))
+                        .forEach(f => unlinkSync(localeDir + f))
+                })
+            },
             "extraMetadata": {
                 "name": "vieb-lite",
                 "productName": "Vieb-lite"
@@ -104,7 +105,7 @@ const printUsage = () => {
     let buildOptionList = releaseNames
         .map(r => {
             const desc = releases[r].description?.replace(
-                "\n", "\n                  ") || `Also build ${r} releases.`
+                /\n/g, "\n                  ") || `Also build ${r} releases.`
             return ` --${r.padEnd(14)} ${desc}`
         })
         .join("\n\n")

@@ -30,6 +30,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Seachwords will now also activate if prefixed with spaces
 - Filetype suggestions coming from history are now correctly colored in history color instead of file suggest color
 - Default theme now shows the default cursor instead of the text cursor on the url box if interaction is disabled
+- Locales are now included in regular releases but still excluded from lite builds (see `build.js`)
 
 ### Deprecated
 

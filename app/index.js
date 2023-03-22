@@ -318,7 +318,6 @@ if (argMediaKeys) {
     app.commandLine.appendSwitch("disable-features",
         "HardwareMediaKeyHandling,UserAgentClientHint")
 }
-app.commandLine.appendSwitch("lang", "en-US")
 app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer")
 argDatafolder = `${joinPath(expandPath(argDatafolder.trim()))}/`
 const partitionDir = joinPath(argDatafolder, "Partitions")
