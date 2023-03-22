@@ -635,8 +635,13 @@ const notify = (message, type = "info", clickAction = false) => {
     }
     const escapedMessage = message.replace(/>/g, "&gt;").replace(/</g, "&lt;")
         .replace(/\n/g, "<br>")
+    let clickInfo = null
+    if (clickAction) {
+        clickInfo = {...clickAction}
+        delete clickInfo.func
+    }
     notificationHistory.push({
-        "click": clickAction,
+        "click": clickInfo,
         "date": new Date(),
         "message": escapedMessage,
         "type": properType
@@ -652,11 +657,8 @@ const notify = (message, type = "info", clickAction = false) => {
     if (native === "always" || !showLong && native === "smallonly") {
         const n = new Notification(
             `${appConfig().name} ${properType}`, {"body": message})
-        n.onclick = () => {
-            if (clickAction?.type === "download-success") {
-                const {ipcRenderer} = require("electron")
-                ipcRenderer.send("open-download", clickAction.path)
-            }
+        if (clickAction?.func) {
+            n.onclick = () => clickAction.func()
         }
         return
     }
@@ -670,11 +672,8 @@ const notify = (message, type = "info", clickAction = false) => {
     const notification = document.createElement("span")
     notification.className = properType
     notification.innerHTML = escapedMessage
-    if (clickAction?.type === "download-success") {
-        notification.addEventListener("click", () => {
-            const {ipcRenderer} = require("electron")
-            ipcRenderer.send("open-download", clickAction.path)
-        })
+    if (clickAction?.func) {
+        notification.addEventListener("click", () => clickAction.func())
     }
     notificationsElement.appendChild(notification)
     setTimeout(() => notification.remove(),

@@ -60,11 +60,13 @@ const mouseFeatures = [
     "menuvieb",
     "modeselector",
     "movepointer",
+    "notification",
     "follow",
     "toinsert",
     "toexplore",
     "url",
     "leaveinput",
+    "leaveinsert",
     "suggestselect",
     "scrollsuggest",
     "scrollzoom",
@@ -139,6 +141,7 @@ const defaultSettings = {
     "mintabwidth": 28,
     "modifiers": "Ctrl,Shift,Alt,Meta,NumLock,CapsLock,ScrollLock",
     "mouse": "all",
+    "mousedisabledbehavior": "nothing",
     "mousefocus": false,
     "mousenewtabswitch": true,
     "mousevisualmode": "onswitch",
@@ -325,6 +328,7 @@ const validOptions = {
     "menupage": ["always", "globalasneeded", "elementasneeded", "never"],
     "menusuggest": ["both", "explore", "command", "never"],
     "menuvieb": ["both", "navbar", "tabbar", "never"],
+    "mousedisabledbehavior": ["nothing", "drag"],
     "mousevisualmode": ["activate", "onswitch", "never"],
     "nativenotification": ["always", "smallonly", "never"],
     "nativetheme": ["system", "dark", "light"],
@@ -456,6 +460,12 @@ const init = () => {
     })
     ipcRenderer.on("set-permission", (_, name, value) => set(name, value))
     ipcRenderer.on("notify", (_, message, type, clickAction) => {
+        if (getMouseConf("notification")) {
+            if (clickAction?.type === "download-success") {
+                clickAction.func = () => ipcRenderer.send(
+                    "open-download", clickAction.path)
+            }
+        }
         notify(message, type, clickAction)
     })
     ipcRenderer.on("main-error", (_, ex) => console.error(ex))
@@ -1064,22 +1074,17 @@ const isValidSetting = (setting, value) => {
 }
 
 const updateMouseSettings = () => {
-    const styledMouseSettings = [
-        "follow",
-        "modeselector",
-        "pageininsert",
-        "pageoutsideinsert",
-        "suggestselect",
-        "switchtab",
-        "url",
-        "toexplore"
-    ]
-    for (const mouseSetting of styledMouseSettings) {
+    for (const mouseSetting of mouseFeatures) {
         if (getMouseConf(mouseSetting)) {
             document.body.classList.add(`mouse-${mouseSetting}`)
         } else {
             document.body.classList.remove(`mouse-${mouseSetting}`)
         }
+    }
+    if (allSettings.mousedisabledbehavior === "drag") {
+        document.body.classList.add("mousedisabled-drag")
+    } else {
+        document.body.classList.remove("mousedisabled-drag")
     }
 }
 
@@ -1396,7 +1401,7 @@ const set = (setting, value) => {
             const {applyLayout} = require("./pagelayout")
             applyLayout()
         }
-        if (setting === "mouse") {
+        if (setting === "mouse" || setting === "mousedisabledbehavior") {
             updateMouseSettings()
         }
         if (setting === "nativetheme") {

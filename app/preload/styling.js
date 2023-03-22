@@ -117,11 +117,11 @@ const loadThemes = (loadedFully = false) => {
         const unset = "rgba(0, 0, 0, 0)"
         const darkPage = document.querySelector(
             "head meta[name='color-scheme'][content~='dark']")
-        const noXMLButHasDiv = !document.querySelector("style#xml-viewer-style")
-            && document.querySelector("div")
+        const noXMLButHasEl = !document.querySelector("style#xml-viewer-style")
+            && (document.querySelector("div") || document.querySelector("main"))
         if (htmlBG.includes(unset) && bodyBG.includes(unset) && !darkPage) {
             if (htmlBGImg === "none" && bodyBGImg === "none") {
-                if (noXMLButHasDiv) {
+                if (noXMLButHasEl) {
                     html.style.background = "white"
                 } else {
                     applyThemeStyling()

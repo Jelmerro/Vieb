@@ -15,9 +15,12 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Added
 
-- Command clear to wipe browsing data based on intervals or partial urls (currently only history)
-- Setting clearhistoryinterval to more finely control the deletion of history on quit by interval
-- Option "url" to the list of mouse features to control interaction with the input box while already typing
+- Command "clear" to wipe browsing data based on intervals or partial urls (currently only history)
+- Setting "clearhistoryinterval" to more finely control the deletion of history on quit by interval
+- Option "url" to the list of mouse features to control interaction with the input box while already typing (default on)
+- Option "leaveinsert" to the list of mouse features to control if clicking outside the page should leave insert mode (default on)
+- Option "notification" to the list of mouse features to control if clicking the download notification should open the file (default on)
+- Setting "mousedisabledbehavior" to control if elements with no enabled mouse interaction should optionally drag the window (nothing by default)
 
 ### Changed
 
@@ -31,6 +34,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Filetype suggestions coming from history are now correctly colored in history color instead of file suggest color
 - Default theme now shows the default cursor instead of the text cursor on the url box if interaction is disabled
 - Locales are now included in regular releases but still excluded from lite builds (see `build.js`)
+- All mouse features now have a "mouse-something" className added to the body if enabled to allow more customization in colorschemes
 
 ### Deprecated
 
@@ -45,6 +49,9 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Self closing tabs not being cleaned up correctly due to Electron devtools close call being unsafe
 - Text selection still briefly being visible outside explore mode when toexplore mouse feature is disabled
 - Websocket connections being blocked when setting custom resourcetypes due to casing error
+- Mousefeature history always being on even if not in the list of enabled features
+- Mode selector not being as big as it should be and therefor closing the dropdown occasionally
+- Sites without a div and without proper background not getting the default white background
 
 ### Versions
 

@@ -699,16 +699,20 @@ const init = () => {
     window.addEventListener("keypress", e => e.preventDefault())
     window.addEventListener("keyup", e => e.preventDefault())
     window.addEventListener("mousedown", e => {
-        if (currentMode() === "insert") {
+        if (currentMode() === "insert" && getMouseConf("leaveinsert")) {
             ACTIONS.toNormalMode()
         }
         if (e.button === 3) {
-            ACTIONS.backInHistory()
+            if (getMouseConf("history")) {
+                ACTIONS.backInHistory()
+            }
             e.preventDefault()
             return
         }
         if (e.button === 4) {
-            ACTIONS.forwardInHistory()
+            if (getMouseConf("history")) {
+                ACTIONS.forwardInHistory()
+            }
             e.preventDefault()
             return
         }
