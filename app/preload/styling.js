@@ -128,28 +128,28 @@ const loadThemes = (loadedFully = false) => {
                 }
             }
         }
-        if (settings.userstyle) {
-            const domain = domainName(window.location.href)
-            const userStyleFiles = [
-                ...(listDir(joinPath(appData(), "userstyle/global"), true)
-                    || []).filter(f => f.endsWith(".css")),
-                joinPath(appData(), "userstyle/global.css"),
-                ...(listDir(expandPath("~/.vieb/userstyle/global"), true)
-                    || []).filter(f => f.endsWith(".css")),
-                expandPath("~/.vieb/userstyle/global.css"),
-                joinPath(appData(), `userstyle/${domain}.css`),
-                expandPath(`~/.vieb/userstyle/${domain}.css`)
-            ]
-            usercustomStyle.textContent = userStyleFiles.map(f => readFile(f))
-                .filter(s => s).join("\n")
-            if (usercustomStyle.textContent) {
-                if (document.head) {
-                    document.head.appendChild(usercustomStyle)
-                } else if (document.body) {
-                    document.body.appendChild(usercustomStyle)
-                } else {
-                    document.querySelector("html").appendChild(usercustomStyle)
-                }
+    }
+    if (settings.userstyle) {
+        const domain = domainName(window.location.href)
+        const userStyleFiles = [
+            ...(listDir(joinPath(appData(), "userstyle/global"), true)
+                || []).filter(f => f.endsWith(".css")),
+            joinPath(appData(), "userstyle/global.css"),
+            ...(listDir(expandPath("~/.vieb/userstyle/global"), true)
+                || []).filter(f => f.endsWith(".css")),
+            expandPath("~/.vieb/userstyle/global.css"),
+            joinPath(appData(), `userstyle/${domain}.css`),
+            expandPath(`~/.vieb/userstyle/${domain}.css`)
+        ]
+        usercustomStyle.textContent = userStyleFiles.map(f => readFile(f))
+            .filter(s => s).join("\n")
+        if (usercustomStyle.textContent) {
+            if (document.head) {
+                document.head.appendChild(usercustomStyle)
+            } else if (document.body) {
+                document.body.appendChild(usercustomStyle)
+            } else {
+                document.querySelector("html").appendChild(usercustomStyle)
             }
         }
     }

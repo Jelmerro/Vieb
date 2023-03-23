@@ -36,6 +36,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Locales are now included in regular releases but still excluded from lite builds (see `build.js`)
 - All mouse features now have a "mouse-something" className added to the body if enabled to allow more customization in colorschemes
 - Action "menuOpen" will now keep working even if the settings are set to never, this does not affect regular right clicks
+- Userstyles are now also applied when the DOM is ready, not just when the page is fully loaded
 
 ### Deprecated
 
