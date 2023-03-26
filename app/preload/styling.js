@@ -29,9 +29,11 @@ const {
     expandPath,
     readFile,
     listDir,
-    fetchUrl
+    fetchUrl,
+    pathToSpecialPageName
 } = require("../util")
 const webviewSettingsFile = joinPath(appData(), "webviewsettings")
+const specialPage = pathToSpecialPageName(window.location.href)
 let settings = readJSON(webviewSettingsFile)
 const darkreaderStyle = document.createElement("style")
 const usercustomStyle = document.createElement("style")
@@ -107,20 +109,29 @@ const hideScrollbar = () => {
         document.querySelector("html").appendChild(scrollStyle)
     }
 }
+const updateScrollbar = () => {
+    if (settings.guiscrollbar !== "always" && scrollStyle.textContent === "") {
+        hideScrollbar()
+    }
+}
 const loadThemes = (loadedFully = false) => {
     const html = document.querySelector("html")
     if (!html) {
         return
     }
+    settings = readJSON(webviewSettingsFile)
     if (document.location.ancestorOrigins.length) {
+        updateScrollbar()
         return
     }
     if (document.head?.innerText === "") {
-        applyThemeStyling()
+        if (!specialPage.name) {
+            applyThemeStyling()
+        }
+        updateScrollbar()
         return
     }
-    settings = readJSON(webviewSettingsFile)
-    if (loadedFully) {
+    if (loadedFully && !specialPage.name) {
         const htmlBG = getComputedStyle(html).background
         const bodyBG = getComputedStyle(document.body).background
         const htmlBGImg = getComputedStyle(html).backgroundImage
@@ -140,17 +151,14 @@ const loadThemes = (loadedFully = false) => {
             }
         }
     }
-    if (settings.darkreader) {
+    if (settings.darkreader && !specialPage.name) {
         const blocked = settings.darkreaderblocklist.split("~")
             .find(m => window.location.href.match(m))
         if (!blocked) {
             enableDarkReader()
         }
     }
-    if (settings.guiscrollbar !== "always" && scrollStyle.textContent === "") {
-        hideScrollbar()
-    }
-    if (settings.userstyle) {
+    if (settings.userstyle && !specialPage.name) {
         const domain = domainName(window.location.href)
         const userStyleFiles = [
             ...(listDir(joinPath(appData(), "userstyle/global"), true)
@@ -174,6 +182,7 @@ const loadThemes = (loadedFully = false) => {
             }
         }
     }
+    updateScrollbar()
 }
 ipcRenderer.on("enable-darkreader", () => loadThemes(true))
 ipcRenderer.on("enable-userstyle", () => loadThemes(true))
