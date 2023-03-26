@@ -919,6 +919,8 @@ const addWebviewListeners = webview => {
                 const {handleScrollDiffEvent} = require("./pointer")
                 handleScrollDiffEvent(e.args[0])
             }
+            const {resetScrollbarTimer} = require("./pagelayout")
+            resetScrollbarTimer("scroll")
         }
         if (e.channel === "history-list-request") {
             const {handleRequest} = require("./history")
@@ -973,6 +975,8 @@ const addWebviewListeners = webview => {
                 const {moveScreenshotFrame} = require("./input")
                 moveScreenshotFrame(e.args[0] + pageLeft, e.args[1] + pageTop)
             }
+            const {resetScrollbarTimer} = require("./pagelayout")
+            resetScrollbarTimer("move")
         }
         if (e.channel === "search-element-location") {
             if (currentMode() === "pointer") {

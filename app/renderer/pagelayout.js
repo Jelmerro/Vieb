@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020-2022 Jelmer van Arnhem
+* Copyright (C) 2020-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ const layoutDivById = id => document.querySelector(
 const timers = {}
 let lastTabId = null
 let recentlySwitched = false
+let scrollbarHideTimer = null
 
 const switchView = (oldViewOrId, newView) => {
     let oldId = oldViewOrId
@@ -477,6 +478,50 @@ const applyLayout = () => {
     }
 }
 
+const resetScrollbarTimer = (event = "none") => {
+    const setting = getSetting("guiscrollbar")
+    const timeout = getSetting("guihidetimeout")
+    if (setting === "onmove" || setting === "onscroll") {
+        if (event === "scroll" || setting === "onmove" && event !== "none") {
+            clearTimeout(scrollbarHideTimer)
+            listPages().forEach(p => {
+                try {
+                    p.send("show-scrollbar")
+                } catch {
+                    // Page not ready yet or suspended
+                }
+            })
+            scrollbarHideTimer = setTimeout(() => {
+                listPages().forEach(p => {
+                    try {
+                        p.send("hide-scrollbar")
+                    } catch {
+                        // Page not ready yet or suspended
+                    }
+                })
+            }, timeout)
+        }
+        return
+    }
+    if (setting === "always") {
+        listPages().forEach(p => {
+            try {
+                p.send("show-scrollbar")
+            } catch {
+                // Page not ready yet or suspended
+            }
+        })
+    } else {
+        listPages().forEach(p => {
+            try {
+                p.send("hide-scrollbar")
+            } catch {
+                // Page not ready yet or suspended
+            }
+        })
+    }
+}
+
 const getLastTabId = () => lastTabId
 
 module.exports = {
@@ -493,6 +538,7 @@ module.exports = {
     only,
     previousSplit,
     resetResizing,
+    resetScrollbarTimer,
     resize,
     restartSuspendTimeouts,
     rotateForward,

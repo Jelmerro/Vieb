@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2022 Jelmer van Arnhem
+* Copyright (C) 2022-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@ const webviewSettingsFile = joinPath(appData(), "webviewsettings")
 let settings = readJSON(webviewSettingsFile)
 const darkreaderStyle = document.createElement("style")
 const usercustomStyle = document.createElement("style")
+const scrollStyle = document.createElement("style")
 const applyThemeStyling = () => {
     const themeStyle = document.createElement("style")
     themeStyle.textContent = `html {
@@ -96,6 +97,16 @@ const disableDarkReader = () => {
         // Already disabled or never loaded
     }
 }
+const hideScrollbar = () => {
+    scrollStyle.textContent = "::-webkit-scrollbar {display: none !important;}"
+    if (document.head) {
+        document.head.appendChild(scrollStyle)
+    } else if (document.body) {
+        document.body.appendChild(scrollStyle)
+    } else {
+        document.querySelector("html").appendChild(scrollStyle)
+    }
+}
 const loadThemes = (loadedFully = false) => {
     const html = document.querySelector("html")
     if (!html) {
@@ -129,6 +140,16 @@ const loadThemes = (loadedFully = false) => {
             }
         }
     }
+    if (settings.darkreader) {
+        const blocked = settings.darkreaderblocklist.split("~")
+            .find(m => window.location.href.match(m))
+        if (!blocked) {
+            enableDarkReader()
+        }
+    }
+    if (settings.guiscrollbar !== "always" && scrollStyle.textContent === "") {
+        hideScrollbar()
+    }
     if (settings.userstyle) {
         const domain = domainName(window.location.href)
         const userStyleFiles = [
@@ -149,15 +170,8 @@ const loadThemes = (loadedFully = false) => {
             } else if (document.body) {
                 document.body.appendChild(usercustomStyle)
             } else {
-                document.querySelector("html").appendChild(usercustomStyle)
+                html.appendChild(usercustomStyle)
             }
-        }
-    }
-    if (settings.darkreader) {
-        const blocked = settings.darkreaderblocklist.split("~")
-            .find(m => window.location.href.match(m))
-        if (!blocked) {
-            enableDarkReader()
         }
     }
 }
@@ -165,6 +179,8 @@ ipcRenderer.on("enable-darkreader", () => loadThemes(true))
 ipcRenderer.on("enable-userstyle", () => loadThemes(true))
 ipcRenderer.on("disable-darkreader", () => disableDarkReader())
 ipcRenderer.on("disable-userstyle", () => usercustomStyle.remove())
+ipcRenderer.on("show-scrollbar", () => scrollStyle.remove())
+ipcRenderer.on("hide-scrollbar", () => hideScrollbar())
 loadThemes()
 window.addEventListener("DOMContentLoaded", () => loadThemes())
 window.addEventListener("load", () => loadThemes(true))

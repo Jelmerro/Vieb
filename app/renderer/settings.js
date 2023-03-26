@@ -125,6 +125,7 @@ const defaultSettings = {
     "guifullscreentabbar": "onupdate",
     "guihidetimeout": 2000,
     "guinavbar": "always",
+    "guiscrollbar": "always",
     "guitabbar": "always",
     "ignorecase": true,
     "incsearch": true,
@@ -299,6 +300,7 @@ const validOptions = {
     "guifullscreennavbar": ["always", "onupdate", "oninput", "never"],
     "guifullscreentabbar": ["always", "onupdate", "never"],
     "guinavbar": ["always", "onupdate", "oninput", "never"],
+    "guiscrollbar": ["always", "onscroll", "onmove", "never"],
     "guitabbar": ["always", "onupdate", "never"],
     "inputfocusalignment": [
         "rememberstart", "rememberend", "alwaysstart", "alwaysend"
@@ -1148,6 +1150,7 @@ const webviewSettings = [
     "dialogconfirm",
     "dialogprompt",
     "guifontsize",
+    "guiscrollbar",
     "inputfocusalignment",
     "permissiondisplaycapture",
     "permissionmediadevices",
@@ -1161,8 +1164,7 @@ const webviewSettings = [
 ]
 
 const updateWebviewSettings = () => {
-    const webviewSettingsFile = joinPath(
-        appData(), "webviewsettings")
+    const webviewSettingsFile = joinPath(appData(), "webviewsettings")
     const data = {
         "bg": getComputedStyle(document.body).getPropertyValue("--bg"),
         "fg": getComputedStyle(document.body).getPropertyValue("--fg"),
@@ -1382,6 +1384,10 @@ const set = (setting, value) => {
         }
         if (setting === "guifontsize") {
             updateCustomStyling()
+        }
+        if (setting === "guiscrollbar") {
+            const {resetScrollbarTimer} = require("./pagelayout")
+            resetScrollbarTimer()
         }
         if (downloadSettings.includes(setting)) {
             updateDownloadSettings()
