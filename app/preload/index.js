@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,12 @@ const skipProtocols = ["sourceviewer:", "readerview:", "markdownviewer:"]
 if (specialPage.name) {
     // Load the special page specific JavaScript
     require(`./${specialPage.name}`)
-} else if (!skipProtocols.find(p => window.location.href.startsWith(p))) {
+    // Load the scrollbar styling override if not loading all the styling
+    require("./scrollbar")
+} else if (skipProtocols.find(p => window.location.href.startsWith(p))) {
+    // Load the scrollbar styling override if not loading all the styling
+    require("./scrollbar")
+} else {
     // Load the failed page information handler for nonspecial pages
     require("./failedload")
     // Load the local directory browser for nonspecial pages

@@ -29,6 +29,7 @@ const timers = {}
 let lastTabId = null
 let recentlySwitched = false
 let scrollbarHideTimer = null
+let scrollbarHideIgnoreTimer = null
 
 const switchView = (oldViewOrId, newView) => {
     let oldId = oldViewOrId
@@ -478,47 +479,50 @@ const applyLayout = () => {
     }
 }
 
+const showScrollbar = () => {
+    if (scrollbarHideIgnoreTimer) {
+        return
+    }
+    listPages().forEach(p => {
+        try {
+            p.send("show-scrollbar")
+        } catch {
+            // Page not ready yet or suspended
+        }
+    })
+}
+
+const hideScrollbar = () => {
+    if (scrollbarHideIgnoreTimer) {
+        return
+    }
+    scrollbarHideIgnoreTimer = setTimeout(() => {
+        scrollbarHideIgnoreTimer = null
+    }, 500)
+    listPages().forEach(p => {
+        try {
+            p.send("hide-scrollbar")
+        } catch {
+            // Page not ready yet or suspended
+        }
+    })
+}
+
 const resetScrollbarTimer = (event = "none") => {
     const setting = getSetting("guiscrollbar")
     const timeout = getSetting("guihidetimeout")
     if (setting === "onmove" || setting === "onscroll") {
         if (event === "scroll" || setting === "onmove" && event !== "none") {
             clearTimeout(scrollbarHideTimer)
-            listPages().forEach(p => {
-                try {
-                    p.send("show-scrollbar")
-                } catch {
-                    // Page not ready yet or suspended
-                }
-            })
-            scrollbarHideTimer = setTimeout(() => {
-                listPages().forEach(p => {
-                    try {
-                        p.send("hide-scrollbar")
-                    } catch {
-                        // Page not ready yet or suspended
-                    }
-                })
-            }, timeout)
+            showScrollbar()
+            scrollbarHideTimer = setTimeout(() => hideScrollbar(), timeout)
         }
         return
     }
     if (setting === "always") {
-        listPages().forEach(p => {
-            try {
-                p.send("show-scrollbar")
-            } catch {
-                // Page not ready yet or suspended
-            }
-        })
+        showScrollbar()
     } else {
-        listPages().forEach(p => {
-            try {
-                p.send("hide-scrollbar")
-            } catch {
-                // Page not ready yet or suspended
-            }
-        })
+        hideScrollbar()
     }
 }
 
@@ -531,6 +535,7 @@ module.exports = {
     firstSplit,
     getLastTabId,
     hide,
+    hideScrollbar,
     lastSplit,
     layoutDivById,
     moveFocus,
@@ -544,6 +549,7 @@ module.exports = {
     rotateForward,
     rotateReverse,
     setLastUsedTab,
+    showScrollbar,
     switchView,
     toTop
 }

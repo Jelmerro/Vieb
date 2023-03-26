@@ -1386,8 +1386,12 @@ const set = (setting, value) => {
             updateCustomStyling()
         }
         if (setting === "guiscrollbar") {
-            const {resetScrollbarTimer} = require("./pagelayout")
-            resetScrollbarTimer()
+            const {showScrollbar, hideScrollbar} = require("./pagelayout")
+            if (value === "always") {
+                showScrollbar()
+            } else {
+                hideScrollbar()
+            }
         }
         if (downloadSettings.includes(setting)) {
             updateDownloadSettings()

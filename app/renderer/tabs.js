@@ -915,12 +915,14 @@ const addWebviewListeners = webview => {
             clear()
             if (justSearched) {
                 justSearched = false
-            } else {
+            } else if (e.args[0]) {
                 const {handleScrollDiffEvent} = require("./pointer")
                 handleScrollDiffEvent(e.args[0])
             }
-            const {resetScrollbarTimer} = require("./pagelayout")
-            resetScrollbarTimer("scroll")
+            if (e.args[0]) {
+                const {resetScrollbarTimer} = require("./pagelayout")
+                resetScrollbarTimer("scroll")
+            }
         }
         if (e.channel === "history-list-request") {
             const {handleRequest} = require("./history")

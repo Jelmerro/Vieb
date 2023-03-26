@@ -21,6 +21,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Option "leaveinsert" to the list of mouse features to control if clicking outside the page should leave insert mode (default on)
 - Option "notification" to the list of mouse features to control if clicking the download notification should open the file (default on)
 - Setting "mousedisabledbehavior" to control if elements with no enabled mouse interaction should optionally drag the window (nothing by default)
+- Setting "guiscrollbar" to control if and when the scrollbar should appear on pages (default remains always on)
 
 ### Changed
 
