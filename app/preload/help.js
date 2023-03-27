@@ -35,8 +35,7 @@ const processHash = () => {
     const ids = [...document.querySelectorAll("[id]")].map(e => e.id)
     const hash = decodeURIComponent(window.location.hash).trim()
         .replace(/^#?/, "")
-    let easyHash = hash.replace(/^:?/, "").replace(/!$/, "")
-        .replace(/-/g, "").toLowerCase()
+    let easyHash = hash.replace(/!$/, "").replace(/-/g, "").toLowerCase()
     if (easyHash !== "") {
         easyHash = easyHash.replace(/^a\w*\./, "action.")
             .replace(/^p\w*\./, "pointer.")
@@ -44,12 +43,13 @@ const processHash = () => {
             easyHash = easyHash.replace(/^</g, "").replace(/>$/g, "")
         }
         let match = ids.find(raw => {
-            const id = decodeURIComponent(raw.replace(/^#?:?/, "")
+            const id = decodeURIComponent(raw.replace(/^#?/, "")
                 .replace(/!$/, "").replace(/-/g, "").toLowerCase().trim())
             return easyHash === id
         })
         if (!match || !document.querySelector(`a[href='#${match}']`)) {
             easyHash = easyHash.replace(/^a\w*\./, "").replace(/^p\w*\./, "")
+                .replace(/^:?/, "")
             match = ids.find(raw => {
                 const id = decodeURIComponent(raw.replace(/^#?:?/, "")
                     .replace(/!$/, "").replace(/-/g, "").toLowerCase().trim())

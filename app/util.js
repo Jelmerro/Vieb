@@ -157,7 +157,7 @@ const stringToUrl = location => {
         url = `file:/${escapedPath}`.replace(/^file:\/+/, "file:///")
     }
     if (!isUrl(url)) {
-        const engines = getSetting("search").split(",")
+        const engines = getSetting("searchengine").split(",")
         const engine = engines.at(Math.random() * engines.length)
         if (!engine) {
             return ""

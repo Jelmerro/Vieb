@@ -198,7 +198,7 @@ const defaultSettings = {
     "restorewindowsize": true,
     "scrollposlocalid": "domain",
     "scrollpostype": "casing",
-    "search": "https://duckduckgo.com/?kae=d&kav=1&ko=1&q=%s&ia=web",
+    "searchengine": "https://duckduckgo.com/?kae=d&kav=1&ko=1&q=%s&ia=web",
     "searchemptyscope": "global",
     "searchpointeralignment": "left",
     "searchscope": "global",
@@ -266,7 +266,7 @@ const listLike = [
     "redirects",
     "resourcesallowed",
     "resourcesblocked",
-    "search",
+    "searchengine",
     "searchwords",
     "spelllang",
     "sponsorblockcategories",
@@ -823,17 +823,18 @@ const checkOther = (setting, value) => {
             }
         }
     }
-    if (setting === "search") {
+    if (setting === "searchengine") {
         for (let baseUrl of value.split(",").filter(e => e.trim())) {
             baseUrl = baseUrl.replace(/^https?:\/\//g, "")
             if (baseUrl.length === 0 || !baseUrl.includes("%s")) {
-                notify(`Invalid search value: ${baseUrl}\n`
+                notify(`Invalid searchengine value: ${baseUrl}\n`
                         + "Each URL must contain a %s parameter, which will "
                         + "be replaced by the search string", "warn")
                 return false
             }
             if (!isUrl(baseUrl)) {
-                notify("Each URL of the search setting must be a valid url",
+                notify(
+                    "Each URL of the searchengine setting must be a valid url",
                     "warn")
                 return false
             }
@@ -1336,6 +1337,12 @@ const reset = setting => {
 }
 
 const set = (setting, value) => {
+    if (setting === "search") {
+        notify("search is deprecated and will be replaced with the "
+            + "functionally identical searchengine setting", "warn")
+        set("searchengine", value)
+        return
+    }
     if (isValidSetting(setting, value)) {
         if (typeof allSettings[setting] === "boolean") {
             allSettings[setting] = ["true", true].includes(value)
@@ -1544,7 +1551,7 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     if (setting === "newtaburl") {
         allowedValues = "Any URL"
     }
-    if (setting === "search") {
+    if (setting === "searchengine") {
         allowedValues = "Any URL with %s"
     }
     if (setting === "shell") {

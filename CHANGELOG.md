@@ -22,6 +22,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Option "notification" to the list of mouse features to control if clicking the download notification should open the file (default on)
 - Setting "mousedisabledbehavior" to control if elements with no enabled mouse interaction should optionally drag the window (nothing by default)
 - Setting "guiscrollbar" to control if and when the scrollbar should appear on pages (default remains always on)
+- Documentation for all modes by mode name instead of just the action name (also means better sorted actions)
 
 ### Changed
 
@@ -44,6 +45,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Setting clearhistoryonquit in favor of clearhistoryinterval=session
 - Default value for "replacespecial" being "newtab" (will change to "special" in 10.x.x)
+- Setting search in favor of the functionality identical searchengine setting
 
 ### Fixed
 
