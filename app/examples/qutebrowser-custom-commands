@@ -28,9 +28,6 @@ command! scroll-page_0_-1 <scrollPageUp>
 command! scroll-page_0_1 <scrollPageDown>
 command! scroll-to-perc_0 <scrollTop>
 command! scroll-to-perc <scrollBottom>
-command! tab-prev <previousTab>
-command! tab-next <nextTab>
-command! reload_--force <refreshTabWithoutCache>
 command! set_ <:help>
 command! download <:write>
 command! undo <reopenTab>
@@ -102,15 +99,9 @@ nmap <PageDown> <:scroll-page_0_1>
 nmap <Home> <:scroll-to-perc_0>
 nmap <End> <:scroll-to-perc>
 nmap wi <:devtools>
-nmap <C-I> <:devtools>
-nmap <C-PageUp> <:tab-prev>
-nmap <C-S-Tab> <:tab-prev>
-nmap <C-PageDown> <:tab-next>
-nmap <C-F5> <:reload_--force>
 nmap Sh <:history>
 nmap Ss <:set_>
 nmap <C-A-p> <:print>
-nmap <C-q> <:quit>
 nmap <C-W> <:quit>
 nmap ZQ <:quit>
 nmap gd <:download>

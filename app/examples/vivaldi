@@ -15,7 +15,7 @@ set suspendonrestore=none
 set tabreopenposition=previous
 
 " Search Engines
-set search=https://www.bing.com/search?q=%s
+set searchengine=https://www.bing.com/search?q=%s
 
 " Mappings
 nmap <F3> <toSearchMode><nextSearchMatch>
@@ -23,10 +23,8 @@ nmap <S-F3> <toSearchMode><previousSearchMatch>
 nmap <C-g> <toSearchMode><nextSearchMatch>
 nmap <C-G> <toSearchMode><previousSearchMatch>
 nmap <C-h> <:history>
-nmap <C-H> <:history>
 nmap <C-F1> <:open https://vieb.dev/cheatsheet>
 nmap <C-p> <:print>
-nmap <C-I> <:devtools>
 nmap <C-J> <:devtools>
 nmap <C-V> <openFromClipboard>
 nmap <C-F11> <:set guinavbar!>
@@ -57,7 +55,6 @@ nmap <C-k7> <:b 6>
 nmap <C-k8> <:b 7>
 nmap <C-k9> <:b -1>
 nmap <C-z> <reopenTab>
-nmap <C-T> <reopenTab>
 nmap <F8> <toExploreMode>
 nmap <C-l> <toExploreMode>
 nmap <C-r> <refreshTab>
@@ -68,7 +65,6 @@ nmap <C-f> <toSearchMode>
 nmap <BS> <backInHistory>
 nmap <C-Left> <backInHistory>
 nmap <A-Left> <backInHistory>
-nmap <Esc> <stopLoadingPage>
 nmap <C-s> :write<Space>
 
 smap <F3> <nextSearchMatch>

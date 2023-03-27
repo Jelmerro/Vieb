@@ -46,6 +46,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting clearhistoryonquit in favor of clearhistoryinterval=session
 - Default value for "replacespecial" being "newtab" (will change to "special" in 10.x.x)
 - Setting search in favor of the functionality identical searchengine setting
+- Ctrl-c default mapping for the stopLoadingPage action instead of the new Esc
 
 ### Fixed
 
@@ -60,6 +61,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Mode selector not being as big as it should be and therefor closing the dropdown occasionally
 - Sites without a div and without proper background not getting the default white background
 - Pointer mode help commands going to the action if they have the same name
+- Ctrl-F4 to close tab default mapping not working
 
 ### Versions
 

@@ -6,7 +6,7 @@ set norestoretabs
 set nofollownewtabswitch
 set redirecttohttp
 set tabreopenposition=previous
-set search=https://google.com/search?q=%s
+set searchengine=https://google.com/search?q=%s
 set searchwords=w~https://www.wikipedia.org/w/index.php?title=Special:Search&search=%s
 
 " Custom Commands

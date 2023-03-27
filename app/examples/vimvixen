@@ -18,7 +18,7 @@ set notimeout
 set suggestorder=searchword,history
 
 " Search Engines
-set search=https://google.com/search?q=%s
+set searchengine=https://google.com/search?q=%s
 set searchwords=
 set searchwords+=google~https://google.com/search?q=%s
 set searchwords+=yahoo~https://search.yahoo.com/search?p=%s

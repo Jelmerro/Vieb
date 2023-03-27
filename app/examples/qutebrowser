@@ -27,15 +27,9 @@ nmap <PageDown> <scrollPageDown>
 nmap <Home> <scrollTop>
 nmap <End> <scrollBottom>
 nmap wi <:devtools>
-nmap <C-I> <:devtools>
-nmap <C-PageUp> <previousTab>
-nmap <C-S-Tab> <previousTab>
-nmap <C-PageDown> <nextTab>
-nmap <C-F5> <refreshTabWithoutCache>
 nmap Sh <:history>
 nmap Ss <:help>
 nmap <C-A-p> <:print>
-nmap <C-q> <:quit>
 nmap <C-W> <:quit>
 nmap ZQ <:quit>
 nmap gd <:write>

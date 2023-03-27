@@ -8,7 +8,6 @@ set dialogprompt=show
 set useragent=%firefox
 set guifontsize=16
 set mintabwidth=250
-set norestoretabs
 set permissioncamera=ask
 set permissioncertificateerror=ask
 set permissiondisplaycapture=ask
