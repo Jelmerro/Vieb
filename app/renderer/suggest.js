@@ -504,6 +504,7 @@ const suggestCommand = searchStr => {
             "datafolder",
             "erwic",
             "modes",
+            "follow",
             "scrolling",
             "navigation",
             "url-modifications",
