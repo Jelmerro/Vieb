@@ -720,7 +720,7 @@ const init = () => {
             e.preventDefault()
         }
         const selector = "#screenshot-highlight"
-        if (e.composedPath().find(el => matchesQuery(el, selector))) {
+        if (e.composedPath().find(n => matchesQuery(n, selector))) {
             if (getMouseConf("screenshotframe")) {
                 if (e.button === 0) {
                     draggingScreenshotFrame = "position"
@@ -803,7 +803,7 @@ const init = () => {
             e.preventDefault()
         }
         if (e.button === 1 && getMouseConf("closetab")) {
-            const tab = e.composedPath().find(el => listTabs().includes(el))
+            const tab = e.composedPath().find(n => listTabs().includes(n))
             if (tab) {
                 const {closeTab} = require("./tabs")
                 closeTab(listTabs().indexOf(tab))
@@ -826,7 +826,7 @@ const init = () => {
     window.addEventListener("copy", copyInput)
     window.addEventListener("copy", pasteInput)
     window.addEventListener("click", e => {
-        if (e.composedPath().find(el => matchesQuery(el, "#context-menu"))) {
+        if (e.composedPath().find(n => matchesQuery(n, "#context-menu"))) {
             return
         }
         if (draggingScreenshotFrame && getMouseConf("screenshotframe")) {
@@ -840,7 +840,7 @@ const init = () => {
         }
         e.preventDefault()
         const urlOrSuggest = ev => ev.composedPath().find(
-            el => matchesQuery(el, "#url, #suggest-dropdown"))
+            n => matchesQuery(n, "#url, #suggest-dropdown"))
         if (urlOrSuggest(e)) {
             const {followFiltering} = require("./follow")
             const typing = "sec".includes(currentMode()[0]) || followFiltering()
@@ -852,7 +852,7 @@ const init = () => {
                 ACTIONS.toNormalMode()
             }
         } else if (getMouseConf("switchtab")) {
-            const tab = e.composedPath().find(el => listTabs().includes(el))
+            const tab = e.composedPath().find(n => listTabs().includes(n))
             if (tab) {
                 clear()
                 const {switchToTab} = require("./tabs")
@@ -867,10 +867,10 @@ const init = () => {
             setTopOfPageWithMouse(getMouseConf("guiontop"))
         }
         if (getSetting("mousefocus")) {
-            document.elementsFromPoint(e.x, e.y).forEach(el => {
-                if (matchesQuery(el, tabSelector)) {
+            document.elementsFromPoint(e.x, e.y).forEach(n => {
+                if (matchesQuery(n, tabSelector)) {
                     const tab = listTabs().find(t => t.getAttribute(
-                        "link-id") === el.getAttribute("link-id"))
+                        "link-id") === n.getAttribute("link-id"))
                     if (tab && currentTab() !== tab) {
                         const {switchToTab} = require("./tabs")
                         switchToTab(tab)
@@ -885,8 +885,8 @@ const init = () => {
         if (getMouseConf("leaveinput")) {
             const {followFiltering} = require("./follow")
             const typing = "sec".includes(currentMode()[0]) || followFiltering()
-            const urlOrSuggest = ev => ev.composedPath().find(
-                el => matchesQuery(el, "#url, #suggest-dropdown"))
+            const urlOrSuggest = ev => ev.composedPath().find(n => matchesQuery(
+                n, "#url, #suggest-dropdown, #screenshot-highlight"))
             if (typing && !urlOrSuggest(e)) {
                 ACTIONS.toNormalMode()
             }
@@ -991,14 +991,16 @@ const moveScreenshotFrame = (x, y) => {
         const url = document.getElementById("url")
         const dims = url.value.split(" ").find(
             arg => arg?.match(/^\d+,\d+,\d+,\d+$/g))
-        if (!currentMode() === "command" || !dims || !currentPage()) {
+        if (!currentMode() === "command" || !currentPage()) {
             return
         }
+        const pageHeight = Number(currentPage().style.height.split(/[.px]/g)[0])
+        const pageWidth = Number(currentPage().style.width.split(/[.px]/g)[0])
         const rect = {
-            "height": Number(dims.split(",")[1]),
-            "width": Number(dims.split(",")[0]),
-            "x": Number(dims.split(",")[2]),
-            "y": Number(dims.split(",")[3])
+            "height": Number(dims?.split(",")[1] ?? pageHeight),
+            "width": Number(dims?.split(",")[0] ?? pageWidth),
+            "x": Number(dims?.split(",")[2] ?? 0),
+            "y": Number(dims?.split(",")[3] ?? 0)
         }
         if (draggingScreenshotFrame === "position") {
             rect.x += deltaX
@@ -1011,8 +1013,25 @@ const moveScreenshotFrame = (x, y) => {
             rect.width = Math.round(Math.max(rect.width, 1))
             rect.height = Math.round(Math.max(rect.height, 1))
         }
-        url.value = url.value.replace(/\d+,\d+,\d+,\d+/g, `${rect.width},${
-            rect.height},${rect.x},${rect.y}`)
+        if (rect.x > pageWidth) {
+            rect.x = pageWidth
+        }
+        if (rect.y > pageHeight) {
+            rect.y = pageHeight
+        }
+        if (rect.width === 0 || rect.width > pageWidth - rect.x) {
+            rect.width = pageWidth - rect.x
+        }
+        if (rect.height === 0 || rect.height > pageHeight - rect.y) {
+            rect.height = pageHeight - rect.y
+        }
+        if (dims) {
+            url.value = url.value.replace(/\d+,\d+,\d+,\d+/g, `${rect.width},${
+                rect.height},${rect.x},${rect.y}`)
+        } else {
+            url.value = `${url.value.split(" ").slice(0, -1).join(" ")
+            } ${rect.width},${rect.height},${rect.x},${rect.y}`
+        }
         updateScreenshotHighlight()
         requestSuggestUpdate()
     }

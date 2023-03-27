@@ -38,6 +38,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - All mouse features now have a "mouse-something" className added to the body if enabled to allow more customization in colorschemes
 - Action "menuOpen" will now keep working even if the settings are set to never, this does not affect regular right clicks
 - Userstyles are now also applied when the DOM is ready, not just when the page is fully loaded
+- Commands "screencopy" and "screenshot" will show the screen highlight even without entering all 4 dimension values
 
 ### Deprecated
 

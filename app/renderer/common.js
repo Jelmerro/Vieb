@@ -82,21 +82,23 @@ const setTopOfPageWithMouse = status => {
 const updateScreenshotHighlight = (hide = false) => {
     const dims = document.getElementById("url").value.split(" ").find(
         arg => arg?.match(/^\d+,\d+,\d+,\d+$/g))
+    const screenCmd = document.getElementById("url").value
+        .replace(/^:/g, "").trim().startsWith("screen")
     const highlight = document.getElementById("screenshot-highlight")
-    if (!currentMode() === "command" || !dims || hide || !currentPage()) {
+    if (!currentMode() === "command" || hide || !currentPage() || !screenCmd) {
         highlight.style.display = "none"
         return
     }
     const border = Number(getComputedStyle(highlight)
         .borderWidth.split(/[.px]/g)[0])
-    const rect = {
-        "height": Number(dims.split(",")[1]),
-        "width": Number(dims.split(",")[0]),
-        "x": Number(dims.split(",")[2]),
-        "y": Number(dims.split(",")[3])
-    }
-    const pageWidth = Number(currentPage().style.width.split(/[.px]/g)[0])
     const pageHeight = Number(currentPage().style.height.split(/[.px]/g)[0])
+    const pageWidth = Number(currentPage().style.width.split(/[.px]/g)[0])
+    const rect = {
+        "height": Number(dims?.split(",")[1] ?? pageHeight),
+        "width": Number(dims?.split(",")[0] ?? pageWidth),
+        "x": Number(dims?.split(",")[2] ?? 0),
+        "y": Number(dims?.split(",")[3] ?? 0)
+    }
     if (rect.x > pageWidth) {
         rect.x = pageWidth
     }
