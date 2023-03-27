@@ -38,13 +38,25 @@ const processHash = () => {
     let easyHash = hash.replace(/^:?/, "").replace(/!$/, "")
         .replace(/-/g, "").toLowerCase()
     if (easyHash !== "") {
-        easyHash = easyHash.replace(/^a\w*\./, "").replace(/^p\w*\./, "")
-        const match = ids.find(raw => {
+        easyHash = easyHash.replace(/^a\w*\./, "action.")
+            .replace(/^p\w*\./, "pointer.")
+        if (easyHash.length > 2) {
+            easyHash = easyHash.replace(/^</g, "").replace(/>$/g, "")
+        }
+        let match = ids.find(raw => {
             const id = decodeURIComponent(raw.replace(/^#?:?/, "")
                 .replace(/!$/, "").replace(/-/g, "").toLowerCase().trim())
-            return easyHash === id || easyHash === id
-                .replace(/^action\./, "").replace(/^pointer\./, "")
+            return easyHash === id
         })
+        if (!match || !document.querySelector(`a[href='#${match}']`)) {
+            easyHash = easyHash.replace(/^a\w*\./, "").replace(/^p\w*\./, "")
+            match = ids.find(raw => {
+                const id = decodeURIComponent(raw.replace(/^#?:?/, "")
+                    .replace(/!$/, "").replace(/-/g, "").toLowerCase().trim())
+                return easyHash === id || easyHash === id
+                    .replace(/^action\./, "").replace(/^pointer\./, "")
+            })
+        }
         if (match && document.querySelector(`a[href='#${match}']`)) {
             document.querySelector(`a[href='#${match}']`).click()
             return

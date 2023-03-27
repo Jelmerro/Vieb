@@ -56,6 +56,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Mousefeature history always being on even if not in the list of enabled features
 - Mode selector not being as big as it should be and therefor closing the dropdown occasionally
 - Sites without a div and without proper background not getting the default white background
+- Pointer mode help commands going to the action if they have the same name
 
 ### Versions
 
