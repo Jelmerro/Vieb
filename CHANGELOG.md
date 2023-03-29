@@ -40,6 +40,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Action "menuOpen" will now keep working even if the settings are set to never, this does not affect regular right clicks
 - Userstyles are now also applied when the DOM is ready, not just when the page is fully loaded
 - Commands "screencopy" and "screenshot" will show the screen highlight even without entering all 4 dimension values
+- Single key mapping commands now also combine different modes into one map command if all modes have the same mapping
 
 ### Deprecated
 

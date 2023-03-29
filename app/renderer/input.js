@@ -2146,17 +2146,20 @@ const mappingModified = (mode, mapping) => {
     return true
 }
 
-const listMappingsAsCommandList = (oneMode = false, includeDefault = false) => {
+const listMappingsAsCommandList = (
+    oneMode = false, includeDefault = false, customKeys = null
+) => {
     let mappings = []
     let modes = Object.keys(defaultBindings)
     if (oneMode) {
         modes = [oneMode]
     }
     modes.forEach(bindMode => {
-        const keys = [...new Set(Object.keys(defaultBindings[bindMode])
-            .concat(Object.keys(bindings[bindMode])))]
+        const keys = customKeys
+            ?? [...new Set(Object.keys(defaultBindings[bindMode])
+                .concat(Object.keys(bindings[bindMode])))]
         for (const key of keys) {
-            mappings.push(listMapping(bindMode, key, includeDefault))
+            mappings.push(listMapping(bindMode, includeDefault, key))
         }
     })
     if (!oneMode) {
@@ -2174,7 +2177,7 @@ const listMappingsAsCommandList = (oneMode = false, includeDefault = false) => {
     return mappings.join("\n").replace(/[\r\n]+/g, "\n").trim()
 }
 
-const listMapping = (mode, rawKey, includeDefault) => {
+const listMapping = (mode, includeDefault, rawKey) => {
     const key = sanitiseMapString(rawKey)
     if (!mappingModified(mode, key) && !includeDefault) {
         return ""
@@ -2210,7 +2213,8 @@ const mapOrList = (mode, args, noremap, includeDefault) => {
     }
     if (args.length === 1) {
         if (mode) {
-            const mapping = listMapping(mode, args[0], includeDefault).trim()
+            const mapping = listMappingsAsCommandList(
+                mode, includeDefault, [args[0]]).trim()
             if (mapping) {
                 notify(mapping)
             } else if (includeDefault) {
@@ -2219,10 +2223,8 @@ const mapOrList = (mode, args, noremap, includeDefault) => {
                 notify("No custom mapping found for this sequence")
             }
         } else {
-            let mappings = ""
-            Object.keys(bindings).forEach(m => {
-                mappings += `${listMapping(m, args[0], includeDefault)}\n`
-            })
+            let mappings = listMappingsAsCommandList(
+                false, includeDefault, [args[0]])
             mappings = mappings.replace(/[\r\n]+/g, "\n").trim()
             if (mappings) {
                 notify(mappings)

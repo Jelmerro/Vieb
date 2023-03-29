@@ -1349,11 +1349,11 @@ const set = (setting, value) => {
         } else if (typeof allSettings[setting] === "number") {
             allSettings[setting] = Number(value)
         } else if (listLike.includes(setting)) {
-            // Remove empty and duplicate elements from the comma seperated list
+            // Remove empty and duplicate elements from the comma separated list
             allSettings[setting] = Array.from(new Set(
                 value.split(",").map(e => e.trim()).filter(e => e))).join(",")
         } else if (listLikeTilde.includes(setting)) {
-            // Remove empty and duplicate elements from the comma seperated list
+            // Remove empty and duplicate elements from the comma separated list
             allSettings[setting] = Array.from(new Set(
                 value.split("~").map(e => e.trim()).filter(e => e))).join("~")
         } else {

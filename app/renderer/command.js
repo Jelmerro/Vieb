@@ -70,9 +70,9 @@ const listSetting = setting => {
     }
 }
 
-const splitSettingAndValue = (part, seperator) => {
-    const [setting] = part.split(seperator)
-    const value = part.split(seperator).slice(1).join(seperator)
+const splitSettingAndValue = (part, separator) => {
+    const [setting] = part.split(separator)
+    const value = part.split(separator).slice(1).join(separator)
     return [setting, value]
 }
 
