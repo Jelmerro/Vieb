@@ -293,7 +293,7 @@ const quitall = () => {
     if (getSetting("clearhistoryonquit") || clearHistory === "session") {
         deleteFile(joinPath(appData(), "hist"))
     } else if (clearHistory === "none") {
-        const {writeHistToFile, removeHistoryByPartialUrl} = require("./history")
+        const {writeHistToFile} = require("./history")
         writeHistToFile(true)
     } else {
         const {removeOldHistory} = require("./history")
