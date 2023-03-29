@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020-2022 Jelmer van Arnhem
+* Copyright (C) 2020-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -319,16 +319,16 @@ if (window.BatteryManager) {
 }
 // Custom prompt, confirm and alert, based on "dialog*" settings
 // Options: return the default cancel action, show a custom popup or notify
-window.prompt = text => {
+window.prompt = (title, defaultText = "") => {
     const settings = readJSON(settingsFile) || {}
     const promptBehavior = settings.dialogprompt || "notifyblock"
     if (promptBehavior.includes("notify")) {
         const url = window.location.href
         ipcRenderer.sendToHost("notify",
-            `Page ${url} wanted to show a prompt dialog: ${text}`, "dial")
+            `Page ${url} wanted to show a prompt dialog: ${title}`, "dial")
     }
     if (promptBehavior.includes("show")) {
-        return ipcRenderer.sendSync("show-prompt-dialog", text)
+        return ipcRenderer.sendSync("show-prompt-dialog", title, defaultText)
     }
     return null
 }
@@ -351,7 +351,7 @@ window.confirm = text => {
         })
         return button === 0
     }
-    return false
+    return confirmBehavior.includes("allow")
 }
 window.alert = text => {
     const settings = readJSON(settingsFile) || {}

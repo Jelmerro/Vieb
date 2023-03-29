@@ -23,6 +23,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "mousedisabledbehavior" to control if elements with no enabled mouse interaction should optionally drag the window (nothing by default)
 - Setting "guiscrollbar" to control if and when the scrollbar should appear on pages (default remains always on)
 - Documentation for all modes by mode name instead of just the action name (also means better sorted actions)
+- More values to "dialogconfirm" to automatically allow the confirm dialog without needing to show it
 
 ### Changed
 
@@ -63,6 +64,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Sites without a div and without proper background not getting the default white background
 - Pointer mode help commands going to the action if they have the same name
 - Ctrl-F4 to close tab default mapping not working
+- Default text value for prompt dialogs not being used
 
 ### Versions
 

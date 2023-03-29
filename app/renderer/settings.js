@@ -287,7 +287,9 @@ const validOptions = {
     "darkreadermode": ["dark", "light"],
     "devtoolsposition": ["window", "split", "vsplit", "tab"],
     "dialogalert": ["show", "notifyshow", "block", "notifyblock"],
-    "dialogconfirm": ["show", "notifyshow", "block", "notifyblock"],
+    "dialogconfirm": [
+        "show", "notifyshow", "block", "notifyblock", "allow", "notifyallow"
+    ],
     "dialogprompt": ["show", "notifyshow", "block", "notifyblock"],
     "downloadmethod": ["automatic", "confirm", "ask", "block"],
     "encodeurlcopy": ["keep", "encode", "decode", "spacesonly", "nospaces"],

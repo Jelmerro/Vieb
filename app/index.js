@@ -663,7 +663,7 @@ ipcMain.on("show-notification", (_, escapedMessage, properType) => {
 })
 
 // Handle prompts in sync from within the webviews
-ipcMain.on("show-prompt-dialog", (e, text) => {
+ipcMain.on("show-prompt-dialog", (e, title, defaultText) => {
     ipcMain.removeAllListeners("prompt-response")
     ipcMain.removeAllListeners("hide-prompt-window")
     promptWindow.removeAllListeners("close")
@@ -677,7 +677,8 @@ ipcMain.on("show-prompt-dialog", (e, text) => {
     promptWindow.resizable = false
     promptWindow.show()
     promptWindow.focus()
-    promptWindow.webContents.send("prompt-info", fontsize, customCSS, text)
+    promptWindow.webContents.send(
+        "prompt-info", fontsize, customCSS, title, defaultText)
     ipcMain.on("prompt-response", (_, response) => {
         promptWindow.hide()
         mainWindow.focus()

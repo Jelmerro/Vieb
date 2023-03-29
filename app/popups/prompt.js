@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2022 Jelmer van Arnhem
+* Copyright (C) 2022-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -21,11 +21,12 @@ const {ipcRenderer} = require("electron")
 
 window.addEventListener("load", () => {
     const input = document.querySelector("input")
-    ipcRenderer.on("prompt-info", (_, fontsize, customCSS, title) => {
+    ipcRenderer.on("prompt-info", (_, fontsize, customCSS, title, text) => {
         document.getElementById("info").textContent = title
         input.focus()
         input.click()
-        input.value = ""
+        input.value = text
+        input.select()
         document.body.style.fontSize = `${fontsize}px`
         document.getElementById("custom-styling").textContent = customCSS
         document.body.style.opacity = 1
