@@ -42,6 +42,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Userstyles are now also applied when the DOM is ready, not just when the page is fully loaded
 - Commands "screencopy" and "screenshot" will show the screen highlight even without entering all 4 dimension values
 - Single key mapping commands now also combine different modes into one map command if all modes have the same mapping
+- Buffer commands now search for matches the same way as explore mode, as do the suggestions
 
 ### Deprecated
 

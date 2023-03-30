@@ -585,53 +585,15 @@ const suggestCommand = searchStr => {
             addCommand(`${range}${bufferCommand}`)
             return
         }
-        const simpleSearch = args.join("")
-            .replace(specialChars, "").toLowerCase()
+        const {allTabsForBufferArg} = require("./command")
         const tabs = listTabs()
-        tabs.filter(tab => {
-            if (["close", "buffer", "mute", "pin"].includes(bufferCommand)) {
-                return true
+        allTabsForBufferArg(args).map(b => {
+            const index = tabs.indexOf(b.tab)
+            return {
+                "command": `${bufferCommand} ${index}`,
+                "title": b.title ?? b.tab.querySelector("span").textContent,
+                "url": b.url ?? tabOrPageMatching(b.tab).src
             }
-            if (bufferCommand === "suspend") {
-                return !tab.classList.contains("visible-tab")
-                    && !tab.getAttribute("suspended")
-            }
-            if (bufferCommand === "hide") {
-                return tab.classList.contains("visible-tab")
-            }
-            return !tab.classList.contains("visible-tab")
-        }).map(t => ({
-            "command": `${bufferCommand} ${tabs.indexOf(t)}`,
-            "ref": t,
-            "title": `${t.querySelector("span").textContent}`,
-            "url": tabOrPageMatching(t).src
-        })).filter(t => {
-            let num = Number(args.join(""))
-            if (args.length === 1) {
-                if (!isNaN(num)) {
-                    if (num >= tabs.length) {
-                        num = tabs.length - 1
-                    }
-                    if (num < 0) {
-                        num += tabs.length
-                    }
-                    if (num < 0) {
-                        num = 0
-                    }
-                    return num === tabs.indexOf(t.ref)
-                }
-                if (args.join("") === "#") {
-                    const {getLastTabId} = require("./pagelayout")
-                    return t.ref === document.querySelector(
-                        `#tabs span[link-id='${getLastTabId()}']`)
-                }
-            }
-            const tabUrl = t.url.replace(specialChars, "").toLowerCase()
-            if (tabUrl.includes(simpleSearch)) {
-                return true
-            }
-            const tabTitle = t.title.replace(specialChars, "").toLowerCase()
-            return tabTitle.includes(simpleSearch)
         }).forEach(t => addCommand(t.command, t.title, t.url))
     }
     // Command: clear

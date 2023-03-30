@@ -280,6 +280,8 @@ const updateTitle = (rawUrl, rawName) => {
 
 module.exports = {
     addToHist,
+    getSimpleName,
+    getSimpleUrl,
     handleRequest,
     init,
     removeHistoryByPartialUrl,

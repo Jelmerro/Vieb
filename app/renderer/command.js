@@ -568,21 +568,14 @@ const screenshot = args => {
     takeScreenshot(dims, location)
 }
 
-const takeScreenshot = (dims, location, tabIdx = null) => {
-    let page = currentPage()
-    if (tabIdx !== null) {
-        page = tabOrPageMatching(listTabs()[tabIdx])
-    }
-    if (!page?.capturePage) {
-        return
-    }
+const takeScreenshot = (dims, location) => {
     const rect = translateDimsToRect(dims)
-    const loc = resolveFileArg(location, "png", page)
-    if (!loc) {
+    const loc = resolveFileArg(location, "png", currentPage())
+    if (!loc || !currentPage()) {
         return
     }
     setTimeout(() => {
-        page.capturePage(rect).then(img => {
+        currentPage().capturePage(rect).then(img => {
             writeFile(loc, img.toPNG(), "Something went wrong saving the image",
                 `Screenshot saved at ${loc}`)
         })
@@ -723,36 +716,48 @@ const rangeToTabIdxs = range => {
     return [translateRangePosToIdx(0, range, true)]
 }
 
-const tabForBufferArg = (args, filter = null) => {
+const tabForBufferArg = (args, filter = null) => allTabsForBufferArg(
+    args, filter)?.[0]?.tab
+
+const allTabsForBufferArg = (args, filter = null) => {
     if (args.length === 1 || typeof args === "number") {
         let number = Number(args[0] || args)
         if (!isNaN(number)) {
             const tabs = listTabs()
             if (number >= tabs.length) {
-                return tabs.pop()
+                return [{"tab": tabs.pop()}]
             }
             if (number < 0) {
                 number += tabs.length
             }
-            return tabs[number] || tabs[0]
+            return [{"tab": tabs[number] || tabs[0]}]
         }
         if ((args[0] || args) === "#") {
             const {getLastTabId} = require("./pagelayout")
-            return document.querySelector(
-                `#tabs span[link-id='${getLastTabId()}']`) || listTabs()[0]
+            return [{"tab": document.querySelector(
+                `#tabs span[link-id='${getLastTabId()}']`) || listTabs()[0]}]
         }
     }
-    const simpleSearch = args.join("").replace(specialChars, "").toLowerCase()
-    return listTabs().filter(t => !filter || filter(t)).find(t => {
-        const simpleTabUrl = tabOrPageMatching(t).src
-            .replace(specialChars, "").toLowerCase()
-        if (simpleTabUrl.includes(simpleSearch)) {
-            return true
+    const {getSimpleName, getSimpleUrl} = require("./history")
+    const allWordsAnywhere = (search, simpleUrl, name) => search.every(
+        w => simpleUrl.includes(w) || getSimpleName(name).includes(w))
+    const simpleSearch = args.join(" ").split(specialChars).filter(w => w)
+    return listTabs().filter(t => !filter || filter(t)).map(t => {
+        const url = tabOrPageMatching(t).src
+        const simpleUrl = getSimpleUrl(url)
+        const name = t.querySelector("span").textContent
+        let relevance = 1
+        if (simpleSearch.every(w => simpleUrl.includes(w))) {
+            relevance = 5
         }
-        const simpleTitle = t.querySelector("span").textContent
-            .replace(specialChars, "").toLowerCase()
-        return simpleTitle.includes(simpleSearch)
-    })
+        if (url.toLowerCase().includes(args.join(""))) {
+            relevance *= 10
+        }
+        if (relevance > 1 || allWordsAnywhere(simpleSearch, simpleUrl, name)) {
+            return {"tab": t, "title": name, "top": relevance, url}
+        }
+        return null
+    }).filter(h => h).sort((a, b) => b.top - a.top)
 }
 
 const buffer = args => {
@@ -1929,6 +1934,7 @@ const customCommandsAsCommandList = full => {
 }
 
 module.exports = {
+    allTabsForBufferArg,
     commandList,
     customCommandsAsCommandList,
     execute,
