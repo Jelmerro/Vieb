@@ -296,7 +296,8 @@ const addExplore = explore => {
     if (explore.icon && getSetting("favicons") !== "disabled") {
         const thumbnail = document.createElement("img")
         thumbnail.className = "icon"
-        thumbnail.src = explore.icon
+        const {forSite} = require("./favexplore.icons")
+        thumbnail.src = forSite(explore.icon) || explore.icon
         element.appendChild(thumbnail)
     }
     const title = document.createElement("span")
@@ -591,10 +592,11 @@ const suggestCommand = searchStr => {
             const index = tabs.indexOf(b.tab)
             return {
                 "command": `${bufferCommand} ${index}`,
+                "icon": b.url ?? tabOrPageMatching(b.tab).src,
                 "title": b.title ?? b.tab.querySelector("span").textContent,
                 "url": b.url ?? tabOrPageMatching(b.tab).src
             }
-        }).forEach(t => addCommand(t.command, t.title, t.url))
+        }).forEach(t => addCommand(t.command, t.title, t.url, t.icon))
     }
     // Command: clear
     if ("clear".startsWith(command) && !range && !confirm && args.length < 3) {
@@ -622,7 +624,7 @@ const suggestCommand = searchStr => {
     }
 }
 
-const addCommand = (command, subtext, url) => {
+const addCommand = (command, subtext = null, url = null, icon = null) => {
     if (suggestions.length + 1 > getSetting("suggestcommands")) {
         return
     }
@@ -650,7 +652,15 @@ const addCommand = (command, subtext, url) => {
         }
         e.preventDefault()
     })
+    if (icon && getSetting("favicons") !== "disabled") {
+        const thumbnail = document.createElement("img")
+        thumbnail.className = "icon"
+        const {forSite} = require("./favicons")
+        thumbnail.src = forSite(icon) || icon
+        element.appendChild(thumbnail)
+    }
     const commandElement = document.createElement("span")
+    commandElement.className = "title"
     commandElement.textContent = command
     element.appendChild(commandElement)
     if (subtext) {

@@ -241,9 +241,9 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 /* suggestions */
 #suggest-dropdown {z-index: 35;position: fixed;top: 2.1em;left: .1em;width: calc(100vw - .2em);background: var(--suggestions-border);max-height: calc(100vh - 2.2em);overflow-y: auto;display: flex;flex-direction: column;}
 #suggest-dropdown div {flex-grow: 1;flex-shrink: 0;display: flex;padding: .4em;margin: .1em;background: var(--suggestions-bg);overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
-#suggest-dropdown div .title, #suggest-dropdown div .file, #suggest-dropdown div .url {margin: auto .5em;min-width: 0;text-overflow: ellipsis;overflow: hidden;}
+#suggest-dropdown div .title, #suggest-dropdown div .file, #suggest-dropdown div .url {margin: auto .5em auto 0;min-width: 0;text-overflow: ellipsis;overflow: hidden;}
 #suggest-dropdown div .title {flex-shrink: 0;max-width: 50%;}
-#suggest-dropdown div .icon {height: 1.5em;width: 1.5em;}
+#suggest-dropdown div .icon {height: 1.5em;width: 1.5em;margin-right: .5em;}
 #suggest-dropdown div .url {color: var(--suggestions-url);}
 #suggest-dropdown div .file {color: var(--suggestions-file);}
 #suggest-dropdown div .searchwords {color: var(--suggestions-searchwords);}

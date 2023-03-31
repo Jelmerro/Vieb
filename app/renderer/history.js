@@ -88,6 +88,7 @@ const suggestHist = (searchStr, order, count) => {
         }
         if (relevance > 1 || allWordsAnywhere(simpleSearch, simpleUrl, name)) {
             return {
+                "icon": url,
                 "last": new Date(groupedHistory[url]?.visits?.slice(-1)[0]),
                 "title": name,
                 "top": relevance * visitCount(url),
@@ -116,9 +117,7 @@ const suggestHist = (searchStr, order, count) => {
         entries.sort((a, b) => b.top - a.top)
     }
     const {addExplore} = require("./suggest")
-    const {forSite} = require("./favicons")
-    entries.slice(0, count).forEach(h => addExplore(
-        {...h, "icon": forSite(h.url)}))
+    entries.slice(0, count).forEach(addExplore)
 }
 
 const addToHist = url => {

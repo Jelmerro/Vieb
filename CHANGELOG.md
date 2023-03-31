@@ -25,6 +25,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Documentation for all modes by mode name instead of just the action name (also means better sorted actions)
 - More values to "dialogconfirm" to automatically allow the confirm dialog without needing to show it
 - More default mappings that are similar to Firefox/Chromium
+- Favicon icons to the buffer command suggestions for better recognition
 
 ### Changed
 
