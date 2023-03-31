@@ -32,8 +32,6 @@ map <C-p> <:hardcopy>
 map <C-q> <:quit>
 map <C-s> <:write>
 map <C-t> <openNewTab><toExploreMode>
-map <C-I> <:devtools>
-map <C-T> <reopenTab>
 map <A-Left> <backInHistory>
 map <A-Right> <forwardInHistory>
 map <A-0> <:b -1>

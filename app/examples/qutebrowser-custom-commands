@@ -18,19 +18,8 @@ set windowtitle="%title - %app"
 set mapsuggestposition=bottomleft
 
 " Custom Commands
-command! scroll_up <scrollUp>
-command! scroll_down <scrollDown>
-command! scroll_left <scrollLeft>
-command! scroll_left_ <p.scrollLeft>
-command! scroll_right_ <p.scrollRight>
-command! scroll_right <scrollRight>
-command! scroll-page_0_-1 <scrollPageUp>
-command! scroll-page_0_1 <scrollPageDown>
-command! scroll-to-perc_0 <scrollTop>
-command! scroll-to-perc <scrollBottom>
 command! set_ <:help>
 command! download <:write>
-command! undo <reopenTab>
 command! navigate_prev <previousPage>
 command! navigate_prev_--tab <previousPageNewTab>
 command! navigate_next <nextPage>
@@ -66,8 +55,6 @@ command! open_--_{clipboard} <openFromClipboard>
 command! set-cmd-text_--space_bind <toCommandMode>map<Space>
 command! set-cmd-text_--space_set <toCommandMode>set<Space>
 command! edit-text <editWithVim>
-command! completion-item-focus_prev <prevSuggestion>
-command! completion-item-focus_next <nextSuggestion>
 command! rl-beginning-of-line <Home>
 command! rl-end-of-line <End>
 command! rl-forward-word <C-Right>
@@ -90,14 +77,6 @@ command! selection-toggle <p.start>
 command! selection-drop <toNormalMode><p.start><p.startVisualSelect>
 
 " Mappings
-nmap <Up> <:scroll_up>
-nmap <Down> <:scroll_down>
-nmap <Left> <:scroll_left>
-nmap <Right> <:scroll_right>
-nmap <PageUp> <:scroll-page_0_-1>
-nmap <PageDown> <:scroll-page_0_1>
-nmap <Home> <:scroll-to-perc_0>
-nmap <End> <:scroll-to-perc>
 nmap wi <:devtools>
 nmap Sh <:history>
 nmap Ss <:set_>
@@ -105,7 +84,6 @@ nmap <C-A-p> <:print>
 nmap <C-W> <:quit>
 nmap ZQ <:quit>
 nmap gd <:download>
-nmap <C-T> <:undo>
 nunmap [
 nunmap ]
 nunmap {
@@ -156,8 +134,6 @@ nmap ss <:set-cmd-text_--space_set>
 
 imap <C-e> <:edit-text>
 
-cmap <Up> <:completion-item-focus_prev>
-cmap <Down> <:completion-item-focus_next>
 cmap <C-a> <:rl-beginning-of-line>
 cmap <C-e> <:rl-end-of-line>
 cmap <A-f> <:rl-forward-word>

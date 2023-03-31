@@ -18,14 +18,6 @@ set windowtitle="%title - %app"
 set mapsuggestposition=bottomleft
 
 " Mappings
-nmap <Up> <scrollUp>
-nmap <Down> <scrollDown>
-nmap <Left> <scrollLeft>
-nmap <Right> <scrollRight>
-nmap <PageUp> <scrollPageUp>
-nmap <PageDown> <scrollPageDown>
-nmap <Home> <scrollTop>
-nmap <End> <scrollBottom>
 nmap wi <:devtools>
 nmap Sh <:history>
 nmap Ss <:help>
@@ -33,7 +25,6 @@ nmap <C-A-p> <:print>
 nmap <C-W> <:quit>
 nmap ZQ <:quit>
 nmap gd <:write>
-nmap <C-T> <reopenTab>
 nunmap [
 nunmap ]
 nunmap {
@@ -84,8 +75,6 @@ nmap ss <toCommandMode>set<Space>
 
 imap <C-e> <editWithVim>
 
-cmap <Up> <prevSuggestion>
-cmap <Down> <nextSuggestion>
 cmap <C-a> <Home>
 cmap <C-e> <End>
 cmap <A-f> <C-Right>

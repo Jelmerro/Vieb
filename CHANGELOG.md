@@ -24,6 +24,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "guiscrollbar" to control if and when the scrollbar should appear on pages (default remains always on)
 - Documentation for all modes by mode name instead of just the action name (also means better sorted actions)
 - More values to "dialogconfirm" to automatically allow the confirm dialog without needing to show it
+- More default mappings that are similar to Firefox/Chromium
 
 ### Changed
 
