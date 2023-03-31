@@ -32,7 +32,6 @@ const {
     appData,
     isUrl,
     searchword,
-    specialChars,
     stringToUrl
 } = require("../util")
 const {

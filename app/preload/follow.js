@@ -228,6 +228,17 @@ const mainInfoLoop = () => {
         "subframes": frames.map(f => {
             const bounds = f.getBoundingClientRect()
             const framePos = framePosition(f)
+            for (const frame of frames) {
+                try {
+                    if (frame.contentDocument.contains(f)) {
+                        const parentPos = framePosition(frame)
+                        framePos.x += parentPos.x
+                        framePos.y += parentPos.y
+                    }
+                } catch {
+                    // Not allowed to access inside document, probably no parent
+                }
+            }
             return {
                 "bounds": JSON.stringify(bounds),
                 "height": bounds.height || f.clientHeight,

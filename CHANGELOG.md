@@ -68,6 +68,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Pointer mode help commands going to the action if they have the same name
 - Ctrl-F4 to close tab default mapping not working
 - Default text value for prompt dialogs not being used
+- Iframe position not being shifted correctly for iframes inside a same origin iframe
 
 ### Versions
 
