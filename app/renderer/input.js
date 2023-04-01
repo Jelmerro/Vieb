@@ -300,6 +300,8 @@ const defaultBindings = {
         "p": {"mapping": "<openFromClipboard>"},
         "q": {"mapping": "<stopRecording>"},
         "q<Any>": {"mapping": "<startRecording>"},
+        "q<C-[>": {"mapping": "<stopRecording>"},
+        "q<Esc>": {"mapping": "<stopRecording>"},
         "r": {"mapping": "<refreshTab>"},
         "s": {"mapping": "<p.moveToMouse>"},
         "t": {"mapping": "<:tabnew>"},
@@ -439,6 +441,8 @@ const defaultBindings = {
         "ov": {"mapping": "<p.openVideo>"},
         "q": {"mapping": "<stopRecording>"},
         "q<Any>": {"mapping": "<startRecording>"},
+        "q<C-[>": {"mapping": "<stopRecording>"},
+        "q<Esc>": {"mapping": "<stopRecording>"},
         "r": {"mapping": "<p.rightClick>"},
         "s": {"mapping": "<p.moveToMouse>"},
         "ta": {"mapping": "<p.newtabAudio>"},
@@ -542,6 +546,8 @@ const defaultBindings = {
         "o": {"mapping": "<p.swapPosition>"},
         "q": {"mapping": "<stopRecording>"},
         "q<Any>": {"mapping": "<startRecording>"},
+        "q<C-[>": {"mapping": "<stopRecording>"},
+        "q<Esc>": {"mapping": "<stopRecording>"},
         "r": {"mapping": "<p.rightClick>"},
         "s": {"mapping": "<p.moveToMouse>"},
         "tS": {"mapping": "<p.splitText>"},
@@ -1346,6 +1352,9 @@ const executeMapString = async(mapStr, recursive, initial) => {
         .filter(k => k).at(-1)
     if (initial) {
         if (recordingName) {
+            if (repeatCounter > 1) {
+                recordingString += repeatCounter
+            }
             recordingString += mapStr
         }
         if (!mapStr.includes("<repeatLastAction>")) {
@@ -2000,6 +2009,8 @@ const updateSuggestions = () => {
 const updateKeysOnScreen = () => {
     document.getElementById("repeat-counter").textContent = repeatCounter
     document.getElementById("pressed-keys").textContent = pressedKeys
+    document.getElementById("record-name").textContent
+        = `recording @${recordingName}`
     if (repeatCounter && getSetting("showcmd")) {
         document.getElementById("repeat-counter").style.display = "flex"
     } else {
@@ -2009,6 +2020,11 @@ const updateKeysOnScreen = () => {
         document.getElementById("pressed-keys").style.display = "flex"
     } else {
         document.getElementById("pressed-keys").style.display = "none"
+    }
+    if (recordingName && getSetting("showcmd")) {
+        document.getElementById("record-name").style.display = "flex"
+    } else {
+        document.getElementById("record-name").style.display = "none"
     }
     const mapsuggestcount = getSetting("mapsuggest")
     const mapsuggestElement = document.getElementById("mapsuggest")

@@ -1029,6 +1029,9 @@ const startRecording = args => {
 const stopRecording = () => {
     const {"stopRecording": stop} = require("./input")
     const record = stop()
+    if (!record) {
+        return
+    }
     const recordings = readJSON(joinPath(appData(), "recordings")) ?? {}
     recordings[record.name] = record.string
     writeJSON(joinPath(appData(), "recordings"), recordings)
