@@ -664,7 +664,7 @@ const init = () => {
         }
         ACTIONS.setFocusCorrectly()
     })
-    window.addEventListener("mousewheel", ev => {
+    window.addEventListener("wheel", ev => {
         if (ev.composedPath().find(e => matchesQuery(e, "#tabs"))) {
             if (getMouseConf("scrolltabs")) {
                 // Make both directions of scrolling move the tabs horizontally

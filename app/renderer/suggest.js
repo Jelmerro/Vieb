@@ -489,6 +489,8 @@ const suggestCommand = searchStr => {
             "commands",
             "settings",
             "actions",
+            "commandsyntax",
+            "ranges",
             "settingcommands",
             "specialpages",
             "mappings",
