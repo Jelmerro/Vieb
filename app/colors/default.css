@@ -359,7 +359,6 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #helppage .section {display: flex;flex-wrap: wrap;align-items: center;}
 #helppage .section h1, .section h2, .section h3, .section h4, .section h5, .section h6 {margin: 0;overflow-wrap: anywhere;}
 #helppage .section .spacer {flex-grow: 1;}
-#helppage .section {margin: 1em 0;}
 #helppage .section > a {margin: auto 0;overflow-wrap: anywhere;text-align: right;}
 #helppage h1 {font-size: 3em;margin: .7em 0 .5em;color: var(--helppage-h1);}
 #helppage h2 {font-size: 2em;margin: .7em 0;color: var(--helppage-h2);}
