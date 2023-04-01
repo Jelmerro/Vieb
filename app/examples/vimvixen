@@ -5,7 +5,7 @@ set downloadmethod=confirm
 set useragent=%firefox
 set guifontsize=16
 set mintabwidth=250
-set norestoretabs
+set restoretabs=pinned
 set permissioncamera=ask
 set permissiondisplaycapture=ask
 set permissionmediadevices=allow
@@ -30,7 +30,7 @@ set searchwords+=wikipedia~https://en.wikipedia.org/w/index.php?search=%s
 " Mappings
 nmap o <toExploreMode><BS>
 nmap O <toExploreMode>
-nmap t <openNewTab><toExploreMode>
+nmap t <:tabnew><toExploreMode>
 nmap b :buffer<Space>
 nmap d <:set tabclosefocusright><:close>
 nmap D <:set notabclosefocusright><:close>

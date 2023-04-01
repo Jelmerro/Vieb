@@ -474,6 +474,8 @@ const refreshTab = args => {
 }
 
 const openNewTab = () => {
+    notify("The <openNewTab> is deprecated in favor of running <:tabnew>",
+        "warn")
     const {addTab} = require("./tabs")
     addTab()
 }

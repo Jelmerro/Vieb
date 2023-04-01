@@ -5,7 +5,7 @@ set downloadmethod=confirm
 set useragent=%firefox
 set guifontsize=16
 set mintabwidth=250
-set norestoretabs
+set restoretabs=pinned
 set permissioncamera=ask
 set permissiondisplaycapture=ask
 set permissionmediadevices=allow
@@ -35,12 +35,12 @@ nmap g$ <:buffer -1>
 nmap d <:set tabclosefocusright><:close>
 nmap D <:set notabclosefocusright><:close>
 nmap o <toExploreMode>
-nmap O <openNewTab><toExploreMode>
+nmap O <:tabnew><toExploreMode>
 nmap p <openFromClipboard>
-nmap P <openNewTab><openFromClipboard>
-nmap gP <openNewTab><openFromClipboard><:buffer #>
+nmap P <:tabnew><openFromClipboard>
+nmap gP <:tabnew><openFromClipboard><:buffer #>
 nmap s <toExploreMode>google<Space>
-nmap S <openNewTab><toExploreMode>google<Space>
+nmap S <:tabnew><toExploreMode>google<Space>
 nmap T <openNewTabWithCurrentURL>
 nmap <S-Space> <scrollPageUp>
 nmap <Space> <scrollPageDown>

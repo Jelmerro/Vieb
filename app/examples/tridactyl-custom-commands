@@ -3,7 +3,7 @@ set useragent=%firefox
 set adblocker=update
 set downloadmethod=confirm
 set mintabwidth=250
-set norestoretabs
+set restoretabs=pinned
 set redirecttohttp
 set noshowcmd
 set noincsearch

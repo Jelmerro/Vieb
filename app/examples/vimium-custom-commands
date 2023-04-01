@@ -2,7 +2,7 @@
 set adblocker=update
 set downloadmethod=confirm
 set mintabwidth=250
-set norestoretabs
+set restoretabs=pinned
 set nofollownewtabswitch
 set redirecttohttp
 set tabreopenposition=previous
@@ -26,7 +26,7 @@ command! scrollFullPageUp <scrollPageUp>
 command! scrollPageDown <scrollPageDownHalf>
 command! scrollPageUp <scrollPageUpHalf>
 command! openCopiedUrlInCurrentTab <openFromClipboard>
-command! openCopiedUrlInNewTab <openNewTab><openFromClipboard>
+command! openCopiedUrlInNewTab <:tabnew><openFromClipboard>
 command! goUp <toParentUrl>
 command! goToRoot <toRootUrl>
 command! LinkHints.activateModeToCopyLinkUrl <p.start><startFollowCurrentTab>
@@ -34,20 +34,20 @@ command! goPrevious <previousPage>
 command! goNext <nextPage>
 command! enterVisualMode <p.start><p.startVisualSelect>
 command! Vomnibar.activate <toExploreMode>
-command! Vomnibar.activateInNewTab <openNewTab><toExploreMode>
+command! Vomnibar.activateInNewTab <:tabnew><toExploreMode>
 command! Vomnibar.activateTabSelection <toCommandMode>buffer<Space>
 command! firstTab <:buffer 0>
 command! lastTab <:buffer -1>
 command! visitPreviousTab <:buffer #>
 command! Vomnibar.activateEditUrl <toExploreMode><End>
-command! Vomnibar.activateEditUrlInNewTab <openNewTab><toExploreMode>
+command! Vomnibar.activateEditUrlInNewTab <:tabnew><toExploreMode>
 command! removeTab <:close>
 command! restoreTab <reopenTab>
 command! goBack <backInHistory>
 command! goForward <forwardInHistory>
 command! togglePinTab <:pin>
 command! toggleMuteTab <:mute>
-command! createTab <openNewTab>
+command! createTab <:tabnew>
 command! duplicateTab <openNewTabWithCurrentUrl><CR>
 command! moveTabLeft <moveTabBackward>
 command! moveTabRight <moveTabForward>

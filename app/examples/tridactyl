@@ -3,7 +3,7 @@ set useragent=%firefox
 set adblocker=update
 set downloadmethod=confirm
 set mintabwidth=250
-set norestoretabs
+set restoretabs=pinned
 set redirecttohttp
 set noshowcmd
 set noincsearch
@@ -34,9 +34,9 @@ set searchwords+=qwant~https://www.qwant.com/?q=%s
 " Mappings
 nmap o <toExploreMode>
 nmap b <toCommandMode>buffer<Space>
-nmap g0 <:buffer
-nmap g^ <:buffer
-nmap g$ <:buffer
+nmap g0 <:buffer 0>
+nmap g^ <:buffer 0>
+nmap g$ <:buffer -1>
 nmap J <previousTab>
 nmap K <nextTab>
 nmap >> <moveTabForward>

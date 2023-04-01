@@ -5,7 +5,7 @@ set downloadmethod=confirm
 set useragent=%firefox
 set followchars=numbers
 set guifontsize=16
-set norestoretabs
+set restoretabs=pinned
 set permissioncamera=ask
 set permissiondisplaycapture=ask
 set permissionmediadevices=allow
@@ -36,8 +36,8 @@ command! tab-focus_6 <:b 5>
 command! tab-focus_7 <:b 6>
 command! tab-focus_8 <:b 7>
 command! tab-focus_last <:buffer #>
-command! open_--tab <openNewTab>
-command! open_--tab_--_{clipboard} <openNewTab><openFromClipboard>
+command! open_--tab <:tabnew>
+command! open_--tab_--_{clipboard} <:tabnew><openFromClipboard>
 command! tab-clone <openNewTabWithCurrentUrl><CR>
 command! tab-move_+ <moveTabForward>
 command! tab-move_- <moveTabBackward>
@@ -46,7 +46,7 @@ command! zoom <zoomReset>
 command! tab-pin <:pin>
 command! tab-mute <:mute>
 command! stop <stopLoadingPage>
-command! set-cmd-text_--space_open_--tab <openNewTab><toExploreMode>
+command! set-cmd-text_--space_open_--tab <:tabnew><toExploreMode>
 command! set-cmd-text_--space_open <toExploreMode><BS>
 command! set-cmd-text_open_{urlpretty} <toExploreMode><End>
 command! set-cmd-text_--space_tab-select <toCommandMode>buffer<Space>

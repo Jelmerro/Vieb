@@ -5,7 +5,7 @@ set downloadmethod=confirm
 set useragent=%firefox
 set followchars=numbers
 set guifontsize=16
-set norestoretabs
+set restoretabs=pinned
 set permissioncamera=ask
 set permissiondisplaycapture=ask
 set permissionmediadevices=allow
@@ -49,7 +49,7 @@ nmap <A-8> <:b 7>
 nmap <A-9> <:b 8>
 nmap <C-^> <:buffer #>
 nmap <C-Tab> <:buffer #>
-nmap ga <openNewTab>
+nmap ga <:tabnew>
 nmap gC <openNewTabWithCurrentUrl><CR>
 nmap gJ <moveTabForward>
 nmap gK <moveTabBackward>
@@ -66,10 +66,10 @@ nmap <C-s> <stopLoadingPage>
 nmap o <toExploreMode><BS>
 nmap go <toExploreMode><End>
 nmap gt <toCommandMode>buffer<Space>
-nmap O <openNewTab><toExploreMode>
+nmap O <:tabnew><toExploreMode>
 nunmap p
 nmap pp <openFromClipboard>
-nmap Pp <openNewTab><openFromClipboard>
+nmap Pp <:tabnew><openFromClipboard>
 nmap sk <toCommandMode>map<Space>
 nmap ss <toCommandMode>set<Space>
 
