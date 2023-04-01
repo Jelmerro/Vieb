@@ -551,6 +551,10 @@ const defaultBindings = {
 }
 const globalDefaultMappings = {
     "<A-F4>": {"mapping": "<:quitall>"},
+    "<C-+>": {"mapping": "<zoomIn>"},
+    "<C-=>": {"mapping": "<zoomIn>"},
+    "<C-_>": {"mapping": "<zoomOut>"},
+    "<C-->": {"mapping": "<zoomOut>"},
     "<C-0>": {"mapping": "<zoomReset>"},
     "<C-F4>": {"mapping": "<:close>"},
     "<C-F5>": {"mapping": "<refreshTabWithoutCache>"},
