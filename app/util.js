@@ -640,6 +640,10 @@ const notify = (message, type = "info", clickAction = false) => {
         clickInfo = {...clickAction}
         delete clickInfo.func
     }
+    const notifyForPerm = getSetting("notificationforpermissions")
+    if (properType === "permission" && notifyForPerm === "never") {
+        return
+    }
     notificationHistory.push({
         "click": clickInfo,
         "date": new Date(),
@@ -647,8 +651,18 @@ const notify = (message, type = "info", clickAction = false) => {
         "type": properType
     })
     if (properType === "permission") {
-        if (!getSetting("notificationforpermissions")) {
+        if (notifyForPerm === "silent") {
             return
+        }
+        if (notifyForPerm === "allowed") {
+            if (!message.replace(/'.*?'/g, "").includes("allowed")) {
+                return
+            }
+        }
+        if (notifyForPerm === "blocked") {
+            if (!message.replace(/'.*?'/g, "").includes("blocked")) {
+                return
+            }
         }
     }
     const native = getSetting("nativenotification")

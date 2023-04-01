@@ -150,7 +150,7 @@ const defaultSettings = {
     "nativetheme": "system",
     "newtaburl": "",
     "notificationduration": 6000,
-    "notificationforpermissions": false,
+    "notificationforpermissions": "silent",
     "notificationforsystemcommands": "errors",
     "notificationposition": "bottomright",
     "permissioncamera": "block",
@@ -336,6 +336,9 @@ const validOptions = {
     "mousevisualmode": ["activate", "onswitch", "never"],
     "nativenotification": ["always", "smallonly", "never"],
     "nativetheme": ["system", "dark", "light"],
+    "notificationforpermissions": [
+        "all", "allowed", "blocked", "silent", "none"
+    ],
     "notificationforsystemcommands": ["all", "errors", "none"],
     "notificationposition": [
         "bottomright", "bottomleft", "topright", "topleft"

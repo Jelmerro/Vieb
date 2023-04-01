@@ -155,6 +155,35 @@ const set = args => {
         return
     }
     for (const part of args) {
+        /* eslint-disable max-len */
+        if (part === "notificationforpermissions") {
+            notify("Using notificationforpermissions as a boolean is deprecated,"
+                + " use the enum syntax instead: notificationforpermissions=all", "warn")
+            const {"set": s} = require("./settings")
+            s("notificationforpermissions", "all")
+            continue
+        }
+        if (part === "notificationforpermissions!" || part === "invnotificationforpermissions") {
+            notify("Using notificationforpermissions as a boolean is deprecated,"
+                + " use the enum syntax instead: notificationforpermissions=silent,"
+                + " this invocation will in the future rotate the options",
+            "warn")
+            const {"set": s} = require("./settings")
+            if (getSetting("notificationforpermissions") === "all") {
+                s("notificationforpermissions", "silent")
+            } else {
+                s("notificationforpermissions", "all")
+            }
+            continue
+        }
+        if (part === "nonotificationforpermissions") {
+            notify("Using notificationforpermissions as a boolean is deprecated,"
+                + " use the enum syntax instead: notificationforpermissions=silent", "warn")
+            const {"set": s} = require("./settings")
+            s("notificationforpermissions", "silent")
+            continue
+        }
+        /* eslint-enable max-len */
         if (part === "restoretabs") {
             notify("Using restoretabs as a boolean is deprecated,"
                 + " use the enum syntax instead: restoretabs=all", "warn")

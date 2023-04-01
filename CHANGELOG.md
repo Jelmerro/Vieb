@@ -53,6 +53,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting search in favor of the functionality identical searchengine setting
 - Ctrl-c default mapping for the stopLoadingPage action instead of the new Esc
 - Boolean toggling restoretabs in favor providing a value (toggle commands will stop working in 10.x.x)
+- Boolean toggling notificationforpermisions in favor providing a value (toggle commands will stop working in 10.x.x)
 
 ### Fixed
 
