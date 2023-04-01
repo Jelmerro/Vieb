@@ -295,7 +295,7 @@ const addExplore = explore => {
     if (explore.icon && getSetting("favicons") !== "disabled") {
         const thumbnail = document.createElement("img")
         thumbnail.className = "icon"
-        const {forSite} = require("./favexplore.icons")
+        const {forSite} = require("./favicons")
         thumbnail.src = forSite(explore.icon) || explore.icon
         element.appendChild(thumbnail)
     }

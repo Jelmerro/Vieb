@@ -26,6 +26,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - More values to "dialogconfirm" to automatically allow the confirm dialog without needing to show it
 - More default mappings that are similar to Firefox/Chromium
 - Favicon icons to the buffer command suggestions for better recognition
+- Actions "startRecording", "stopRecording" and "runRecording" to record key presses and later execute them (macros/records in Vim)
 
 ### Changed
 

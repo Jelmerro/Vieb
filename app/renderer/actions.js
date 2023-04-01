@@ -1003,6 +1003,37 @@ const restoreMark = args => {
     commonAction("link", position, {"link": qm?.marks?.[key]})
 }
 
+const runRecording = args => {
+    const key = args?.key
+    if (!key) {
+        return
+    }
+    const recording = readJSON(joinPath(appData(), "recordings"))?.[key]
+    if (recording) {
+        setTimeout(() => {
+            const {executeMapString, sanitiseMapString} = require("./input")
+            executeMapString(sanitiseMapString(recording, true), true, true)
+        }, 5)
+    }
+}
+
+const startRecording = args => {
+    const key = args?.key
+    if (!key) {
+        return
+    }
+    const {"startRecording": start} = require("./input")
+    start(key)
+}
+
+const stopRecording = () => {
+    const {"stopRecording": stop} = require("./input")
+    const record = stop()
+    const recordings = readJSON(joinPath(appData(), "recordings")) ?? {}
+    recordings[record.name] = record.string
+    writeJSON(joinPath(appData(), "recordings"), recordings)
+}
+
 const reorderFollowLinks = () => {
     const {reorderDisplayedLinks} = require("./follow")
     reorderDisplayedLinks()
@@ -1226,6 +1257,7 @@ module.exports = {
     rightHalfSplitWindow,
     rotateSplitWindowBackward,
     rotateSplitWindowForward,
+    runRecording,
     scrollBottom,
     scrollDown,
     scrollLeft,
@@ -1246,8 +1278,10 @@ module.exports = {
     startFollowNewSplit,
     startFollowNewTab,
     startFollowNewVerSplit,
+    startRecording,
     stopFollowMode,
     stopLoadingPage,
+    stopRecording,
     storeScrollPos,
     toBottomSplitWindow,
     toCommandMode,

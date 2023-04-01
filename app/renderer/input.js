@@ -131,6 +131,7 @@ const defaultBindings = {
         ".": {"mapping": "<repeatLastAction>"},
         "/": {"mapping": "<toSearchMode>"},
         ":": {"mapping": "<toCommandMode>"},
+        ";": {"mapping": "<toCommandMode>"},
         "<BS>": {"mapping": "<emptySearch>"},
         "<C-[>": {"mapping": "<stopLoadingPage>"},
         "<C-a>": {"mapping": "<increasePageNumber>"},
@@ -234,6 +235,7 @@ const defaultBindings = {
         "?": {"mapping": "<toSearchMode>"},
         "@:": {"mapping": "<toCommandMode><commandHistoryPrevious>"
             + "<useEnteredData>"},
+        "@<Any>": {"mapping": "<runRecording>"},
         "[": {"mapping": "<previousPage>"},
         "]": {"mapping": "<nextPage>"},
         "^": {"mapping": "<scrollLeftMax>"},
@@ -296,6 +298,8 @@ const defaultBindings = {
         "m<Any>": {"mapping": "<storeScrollPos>"},
         "n": {"mapping": "<nextSearchMatch>"},
         "p": {"mapping": "<openFromClipboard>"},
+        "q": {"mapping": "<stopRecording>"},
+        "q<Any>": {"mapping": "<startRecording>"},
         "r": {"mapping": "<refreshTab>"},
         "s": {"mapping": "<p.moveToMouse>"},
         "t": {"mapping": "<:tabnew>"},
@@ -364,6 +368,7 @@ const defaultBindings = {
         "<kUp>": {"mapping": "<p.moveUp>"},
         "<lt>": {"mapping": "<p.scrollLeft>"},
         ">": {"mapping": "<p.scrollRight>"},
+        "@<Any>": {"mapping": "<runRecording>"},
         "[": {"mapping": "<p.scrollUp>"},
         "]": {"mapping": "<p.scrollDown>"},
         "^": {"mapping": "<p.moveLeftMax>"},
@@ -432,6 +437,8 @@ const defaultBindings = {
         "ol": {"mapping": "<p.openLink>"},
         "oo": {"mapping": "<p.openLink>"},
         "ov": {"mapping": "<p.openVideo>"},
+        "q": {"mapping": "<stopRecording>"},
+        "q<Any>": {"mapping": "<startRecording>"},
         "r": {"mapping": "<p.rightClick>"},
         "s": {"mapping": "<p.moveToMouse>"},
         "ta": {"mapping": "<p.newtabAudio>"},
@@ -510,6 +517,7 @@ const defaultBindings = {
         "<kUp>": {"mapping": "<p.moveUp>"},
         "<lt>": {"mapping": "<p.scrollLeft>"},
         ">": {"mapping": "<p.scrollRight>"},
+        "@<Any>": {"mapping": "<runRecording>"},
         "[": {"mapping": "<p.scrollUp>"},
         "]": {"mapping": "<p.scrollDown>"},
         "^": {"mapping": "<p.moveLeftMax>"},
@@ -532,6 +540,8 @@ const defaultBindings = {
         "k": {"mapping": "<p.moveUp>"},
         "l": {"mapping": "<p.moveRight>"},
         "o": {"mapping": "<p.swapPosition>"},
+        "q": {"mapping": "<stopRecording>"},
+        "q<Any>": {"mapping": "<startRecording>"},
         "r": {"mapping": "<p.rightClick>"},
         "s": {"mapping": "<p.moveToMouse>"},
         "tS": {"mapping": "<p.splitText>"},
@@ -612,6 +622,8 @@ let lastScreenshotX = 0
 let lastScreenshotY = 0
 let suggestionTimer = null
 let hadModifier = false
+let recordingName = null
+let recordingString = ""
 
 const init = () => {
     window.addEventListener("keydown", handleKeyboard)
@@ -1212,6 +1224,8 @@ const uncountableActions = [
     "restoreMark",
     "storeScrollPos",
     "restoreScrollPos",
+    "startRecording",
+    "stopRecording",
     "menuOpen",
     "menuTop",
     "menuBottom",
@@ -1300,11 +1314,13 @@ const findMaps = (actionKeys, mode, future = false) => {
     }).sort((a, b) => a.split(mapStringSplitter).filter(k => k).indexOf("<Any>")
     - b.split(mapStringSplitter).filter(k => k).indexOf("<Any>"))
 }
-window.findMaps = findMaps
 
 const hasFutureActions = keys => findMaps(keys, currentMode(), true).length
 
 const sendKeysToWebview = async(options, mapStr) => {
+    if (recordingName) {
+        recordingString += mapStr
+    }
     blockNextInsertKey = true
     sendToPageOrSubFrame("send-keyboard-event", options)
     if (options.bubbles) {
@@ -1329,6 +1345,9 @@ const executeMapString = async(mapStr, recursive, initial) => {
     const actionCallKey = pressedKeys.split(mapStringSplitter)
         .filter(k => k).at(-1)
     if (initial) {
+        if (recordingName) {
+            recordingString += mapStr
+        }
         if (!mapStr.includes("<repeatLastAction>")) {
             lastExecutedMapstring = {mapStr, recursive}
         }
@@ -1389,6 +1408,9 @@ const executeMapString = async(mapStr, recursive, initial) => {
                 setTimeout(r, 3)
             })
         }
+        await new Promise(r => {
+            setTimeout(r, 3)
+        })
     }
     if (initial) {
         setTimeout(() => {
@@ -1633,6 +1655,9 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         .replace("Delete>", "Del>")
     if (!"ces".includes(currentMode()[0]) && !force) {
         return
+    }
+    if (recordingName) {
+        recordingString += id
     }
     const url = document.getElementById("url")
     if (keyForOs(["<S-Home>", "<C-S-Home>"], ["<M-S-Left>", "<M-S-Up>"], id)) {
@@ -2274,6 +2299,32 @@ const clearmap = (mode, removeDefaults) => {
     updateHelpPage()
 }
 
+const startRecording = name => {
+    if (recordingName) {
+        notify("Already recording, ignoring record action", "warn")
+        return
+    }
+    recordingName = name
+    recordingString = ""
+}
+
+const stopRecording = () => {
+    if (!recordingName) {
+        return
+    }
+    const record = {
+        "name": recordingName,
+        "string": recordingString.split(mapStringSplitter).filter(k => {
+            if (["<startRecording", "<stopRecording>"].includes(k)) {
+                return false
+            }
+            return !!k
+        }).join("")
+    }
+    recordingName = null
+    return record
+}
+
 module.exports = {
     clearmap,
     copyInput,
@@ -2291,6 +2342,8 @@ module.exports = {
     resetInputHistory,
     resetScreenshotDrag,
     sanitiseMapString,
+    startRecording,
+    stopRecording,
     typeCharacterIntoNavbar,
     uncountableActions,
     unmap,
