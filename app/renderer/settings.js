@@ -192,7 +192,7 @@ const defaultSettings = {
     "resourcesblocked": "",
     "resourcetypes": "object,script,media,image,"
         + "stylesheet,font,xhr,ping,websocket",
-    "restoretabs": true,
+    "restoretabs": "all",
     "restorewindowmaximize": true,
     "restorewindowposition": true,
     "restorewindowsize": true,
@@ -365,6 +365,7 @@ const validOptions = {
     "pointerpostype": ["casing", "local", "global"],
     "replacespecial": ["always", "special", "newtab", "never"],
     "replacestartup": ["always", "newtab", "never"],
+    "restoretabs": ["all", "pinned", "regular", "none"],
     "scrollposlocalid": ["domain", "url"],
     "scrollpostype": ["casing", "local", "global"],
     "searchemptyscope": ["global", "local", "both"],

@@ -155,6 +155,33 @@ const set = args => {
         return
     }
     for (const part of args) {
+        if (part === "restoretabs") {
+            notify("Using restoretabs as a boolean is deprecated,"
+                + " use the enum syntax instead: restoretabs=all", "warn")
+            const {"set": s} = require("./settings")
+            s("restoretabs", "all")
+            continue
+        }
+        if (part === "restoretabs!" || part === "invrestoretabs") {
+            notify("Using restoretabs as a boolean is deprecated,"
+                + " use the enum syntax instead: restoretabs=none,"
+                + " this invocation will in the future rotate the options",
+            "warn")
+            const {"set": s} = require("./settings")
+            if (getSetting("restoretabs") === "all") {
+                s("restoretabs", "pinned")
+            } else {
+                s("restoretabs", "all")
+            }
+            continue
+        }
+        if (part === "norestoretabs") {
+            notify("Using restoretabs as a boolean is deprecated,"
+                + " use the enum syntax instead: restoretabs=pinned", "warn")
+            const {"set": s} = require("./settings")
+            s("restoretabs", "pinned")
+            continue
+        }
         if ((/^\w+\+=/).test(part)) {
             modifyListOrNumber(...splitSettingAndValue(part, "+="), "append")
         } else if ((/^\w+-=/).test(part)) {

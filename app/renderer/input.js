@@ -315,6 +315,7 @@ const defaultBindings = {
         "zL": {"mapping": "<scrollPageRight>"},
         "zh": {"mapping": "<scrollLeft>"},
         "zl": {"mapping": "<scrollRight>"},
+        "zm": {"mapping": "<:mute>"},
         "zp": {"mapping": "<:pin>"}
     },
     "p": {

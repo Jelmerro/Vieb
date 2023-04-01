@@ -52,6 +52,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Default value for "replacespecial" being "newtab" (will change to "special" in 10.x.x)
 - Setting search in favor of the functionality identical searchengine setting
 - Ctrl-c default mapping for the stopLoadingPage action instead of the new Esc
+- Boolean toggling restoretabs in favor providing a value (toggle commands will stop working in 10.x.x)
 
 ### Fixed
 

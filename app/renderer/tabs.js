@@ -38,7 +38,8 @@ const {
     title,
     listNotificationHistory,
     propPixels,
-    userAgentTemplated
+    userAgentTemplated,
+    deleteFile
 } = require("../util")
 const {
     listTabs,
@@ -70,32 +71,32 @@ const init = () => {
         if (!erwicMode) {
             if (parsed) {
                 const s = getSetting("suspendonrestore")
-                if (Array.isArray(parsed.pinned)) {
-                    parsed.pinned.forEach(t => addTab({
-                        ...t,
-                        "lazy": s === "all",
-                        "pinned": true,
-                        "switchTo": false
-                    }))
-                }
+                const restoreTabs = getSetting("restoretabs")
                 const keepRecentlyClosed = getSetting("keeprecentlyclosed")
-                if (getSetting("restoretabs")) {
-                    if (Array.isArray(parsed.tabs)) {
+                if (Array.isArray(parsed.closed) && keepRecentlyClosed) {
+                    recentlyClosed = parsed.closed
+                }
+                if (Array.isArray(parsed.pinned)) {
+                    if (restoreTabs === "all" || restoreTabs === "pinned") {
+                        parsed.pinned.forEach(t => addTab({
+                            ...t,
+                            "lazy": s === "all",
+                            "pinned": true,
+                            "switchTo": false
+                        }))
+                    } else if (keepRecentlyClosed) {
+                        recentlyClosed.push(...parsed.pinned)
+                    }
+                }
+                if (Array.isArray(parsed.tabs)) {
+                    if (restoreTabs === "all" || restoreTabs === "regular") {
                         parsed.tabs.forEach(t => addTab({
                             ...t,
                             "lazy": s === "all" || s === "regular",
                             "switchTo": false
                         }))
-                    }
-                    if (Array.isArray(parsed.closed) && keepRecentlyClosed) {
-                        recentlyClosed = parsed.closed
-                    }
-                } else if (keepRecentlyClosed) {
-                    if (Array.isArray(parsed.tabs)) {
-                        recentlyClosed = parsed.tabs
-                    }
-                    if (Array.isArray(parsed.closed)) {
-                        recentlyClosed = parsed.closed.concat(recentlyClosed)
+                    } else if (keepRecentlyClosed) {
+                        recentlyClosed.push(...parsed.tabs)
                     }
                 }
                 if (listTabs().length !== 0) {
@@ -172,12 +173,12 @@ const init = () => {
 
 const saveTabs = () => {
     const data = {"closed": [], "id": 0, "pinned": [], "tabs": []}
-    // The list of tabs is ordered, the list of pages isn't
-    // Pinned tabs are always saved to the file
-    if (getSetting("keeprecentlyclosed")) {
+    const restoreTabs = getSetting("restoretabs")
+    const keepRecentlyClosed = getSetting("keeprecentlyclosed")
+    if (keepRecentlyClosed) {
         data.closed = JSON.parse(JSON.stringify(recentlyClosed))
     }
-    if (getSetting("restoretabs")) {
+    if (restoreTabs !== "none") {
         data.id = listTabs().indexOf(currentTab())
     }
     listTabs().forEach((tab, index) => {
@@ -190,18 +191,27 @@ const saveTabs = () => {
         }
         const container = urlToString(tabOrPageMatching(tab)
             .getAttribute("container"))
-        if (tab.classList.contains("pinned")) {
+        const isPinned = tab.classList.contains("pinned")
+        if (isPinned && ["all", "pinned"].includes(restoreTabs)) {
             data.pinned.push({
                 container, "muted": !!tab.getAttribute("muted"), url
             })
-        } else if (getSetting("restoretabs")) {
+        } else if (!isPinned && ["all", "regular"].includes(restoreTabs)) {
             data.tabs.push({
                 container, "muted": !!tab.getAttribute("muted"), url
             })
-        } else if (getSetting("keeprecentlyclosed")) {
-            data.closed.push({container, url})
+        } else if (keepRecentlyClosed) {
+            data.closed.push({
+                container, "muted": !!tab.getAttribute("muted"), url
+            })
+            if (index <= data.id) {
+                data.id -= 1
+            }
         }
     })
+    if (!data.closed.length && !data.pinned.length && !data.tabs.length) {
+        deleteFile(tabFile)
+    }
     // Only keep the 100 most recently closed tabs,
     // more is probably never needed but would keep increasing the file size.
     data.closed = data.closed.slice(-100)
