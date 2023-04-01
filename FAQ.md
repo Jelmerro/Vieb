@@ -10,7 +10,8 @@ If your question is not listed, you can find support here:
 - Or make a Github issue if you aren't using any of the above
 
 Most general usage information can be found in the help page.
-You can open it with the `F1` key or the `:help` command.
+You can open it with the `F1` key or the `:help` command inside Vieb.
+There is also help related to startup arguments found by running `vieb --help`.
 Below are questions that are either not explicitly covered in the help page,
 or are asked a lot regardless of their existing documentation/explanation.
 
