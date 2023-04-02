@@ -17,10 +17,15 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Blocklist uBlock Origin filters to the default list of blocklists
 
+### Changed
+
+- Setting "replacespecial" is now by default set to "special"
+
 ### Removed
 
 - Action "openNewTab" in favor of ":tabnew" command
 - Setting "clearhistoryonquit" in favor of "clearhistoryinterval=session"
+- Setting "search" in favor of the functionality identical "searchengine" setting
 
 ### Versions
 
@@ -67,12 +72,12 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Deprecated
 
-- Setting clearhistoryonquit in favor of clearhistoryinterval=session
+- Setting "clearhistoryonquit" in favor of "clearhistoryinterval=session"
 - Default value for "replacespecial" being "newtab" (will change to "special" in 10.x.x)
-- Setting search in favor of the functionality identical searchengine setting
+- Setting "search" in favor of the functionality identical "searchengine" setting
 - Ctrl-c default mapping for the stopLoadingPage action instead of the new Esc
-- Boolean toggling restoretabs in favor providing a value (toggle commands will stop working in 10.x.x)
-- Boolean toggling notificationforpermisions in favor providing a value (toggle commands will stop working in 10.x.x)
+- Boolean toggling "restoretabs" in favor providing a value (toggle commands will stop working in 10.x.x)
+- Boolean toggling "notificationforpermisions" in favor providing a value (toggle commands will stop working in 10.x.x)
 - Action "openNewTab" in favor of running the ":tabnew" command
 
 ### Fixed

@@ -184,7 +184,7 @@ const defaultSettings = {
         + "~https://$3",
     "redirecttohttp": false,
     "reloadtaboncrash": false,
-    "replacespecial": "newtab",
+    "replacespecial": "special",
     "replacestartup": "never",
     "requesttimeout": 20000,
     "resourcesallowed": "",
@@ -1342,12 +1342,6 @@ const reset = setting => {
 }
 
 const set = (setting, value) => {
-    if (setting === "search") {
-        notify("search is deprecated and will be replaced with the "
-            + "functionally identical searchengine setting", "warn")
-        set("searchengine", value)
-        return
-    }
     if (isValidSetting(setting, value)) {
         if (typeof allSettings[setting] === "boolean") {
             allSettings[setting] = ["true", true].includes(value)
