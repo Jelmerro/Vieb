@@ -1,8 +1,8 @@
 [Adblock Plus 2.0]
-! Checksum: X5HucVAmDqV7IXXOQ3sgSQ
-! Version: 202304021130
+! Checksum: WWeS45ZPFnCxTLV3iXoChg
+! Version: 202304021350
 ! Title: EasyList
-! Last modified: 02 Apr 2023 11:30 UTC
+! Last modified: 02 Apr 2023 13:50 UTC
 ! Expires: 1 days (update frequency)
 ! Homepage: https://easylist.to/
 ! Licence: https://easylist.to/pages/licence.html
@@ -3207,6 +3207,7 @@
 /pictureads/*
 /pictures/ads/*
 /pilot_ad.
+/pioneersuspectedjury.com/*
 /pix/ads/*
 /pixel/puclc?
 /pixel/pure
@@ -23139,6 +23140,7 @@ androidrepublic.org,anonymousemail.me,apkmirror.com,demos.krajee.com,kadinlarkul
 ||abiderestless.com^
 ||abjectionblame.com^
 ||abjectionremarksdisarm.com^
+||abjurecurfs.website^
 ||abkoxlikbzs.com^
 ||ablatesgascon.cam^
 ||ablebodiedfibre.com^
@@ -23506,6 +23508,7 @@ androidrepublic.org,anonymousemail.me,apkmirror.com,demos.krajee.com,kadinlarkul
 ||admiralbrace.com^
 ||admiredexcrete.com^
 ||admiredexpansioncollege.com^
+||admiredinde.com^
 ||admiringinsightstops.com^
 ||admissionreceipt.com^
 ||admitad.com^
@@ -27160,6 +27163,7 @@ androidrepublic.org,anonymousemail.me,apkmirror.com,demos.krajee.com,kadinlarkul
 ||cidbulmkwtaxe.xyz^
 ||cifaumsy.net^
 ||cigarregistersheriff.com^
+||cightsnating.com^
 ||cigrylecha.pro^
 ||ciihjhyfoddflhy.xyz^
 ||ciksolre.net^
@@ -27188,6 +27192,7 @@ androidrepublic.org,anonymousemail.me,apkmirror.com,demos.krajee.com,kadinlarkul
 ||citary.com^
 ||citatumpity.com^
 ||citemesabourer.xyz^
+||citersbugre.digital^
 ||citizenshadowrequires.com^
 ||citricesu.com^
 ||cituasacrals.website^
@@ -29450,6 +29455,7 @@ androidrepublic.org,anonymousemail.me,apkmirror.com,demos.krajee.com,kadinlarkul
 ||empirelayer.club^
 ||empiremoney.com^
 ||employerpartingbikini.com^
+||emptem.com^
 ||emptim.com^
 ||emptivetss.space^
 ||emraudpeptone.com^
@@ -29726,6 +29732,7 @@ androidrepublic.org,anonymousemail.me,apkmirror.com,demos.krajee.com,kadinlarkul
 ||eviclick.pro^
 ||evidentlysoup.com^
 ||evitingawabi.com^
+||evitinghabnab.guru^
 ||evkikdzbdg.com^
 ||evokeowedangers.com^
 ||evouxoup.com^
@@ -30335,6 +30342,7 @@ androidrepublic.org,anonymousemail.me,apkmirror.com,demos.krajee.com,kadinlarkul
 ||flushafterwardinteger.com^
 ||flushhouseholdvisited.com^
 ||fluskcheir.com^
+||fluvioalkyl.uno^
 ||fluxads.com^
 ||fluxy.xyz^
 ||flyingsexul.space^
@@ -31366,6 +31374,7 @@ androidrepublic.org,anonymousemail.me,apkmirror.com,demos.krajee.com,kadinlarkul
 ||guabmobil.site^
 ||guanaoutfawn.life^
 ||guanscleeks.com^
+||guanylcaused.website^
 ||guardianamazedwireless.com^
 ||guardiandigitalcomparison.co.uk^
 ||guardianinvadecrept.com^
@@ -34923,6 +34932,7 @@ androidrepublic.org,anonymousemail.me,apkmirror.com,demos.krajee.com,kadinlarkul
 ||mooncklick.com^
 ||moonicorn.network^
 ||moonprocessed.com^
+||moonrocketaffiliates.com^
 ||moontuftboy.com^
 ||moooginnumit.com^
 ||moorscliv.life^
@@ -35873,6 +35883,7 @@ androidrepublic.org,anonymousemail.me,apkmirror.com,demos.krajee.com,kadinlarkul
 ||odourprop.com^
 ||odoursguard.website^
 ||odovydyp.xyz^
+||odrmaztzeaj.com^
 ||oebadu.com^
 ||oeckey.com^
 ||oedroughl.xyz^
@@ -36349,6 +36360,7 @@ androidrepublic.org,anonymousemail.me,apkmirror.com,demos.krajee.com,kadinlarkul
 ||ouhavebe.xyz^
 ||oujouniw.com^
 ||oukoiixitkedpi.com^
+||oukoushu.xyz^
 ||oulukdliketo.shop^
 ||oumtoujo.net^
 ||ouncillorswhow.info^
@@ -36804,6 +36816,7 @@ androidrepublic.org,anonymousemail.me,apkmirror.com,demos.krajee.com,kadinlarkul
 ||pentaclaud.com^
 ||pentalime.com^
 ||penuchefirms.com^
+||peopleshouldthin.com^
 ||peppereggsfriends.com^
 ||pepperyforeign.com^
 ||peppy2lon1g1stalk.com^
@@ -37804,6 +37817,7 @@ androidrepublic.org,anonymousemail.me,apkmirror.com,demos.krajee.com,kadinlarkul
 ||pttsite.com^
 ||ptufubimu.pro^
 ||ptuglupyli.com^
+||ptugneez.net^
 ||ptulepti.net^
 ||ptupoobs.com^
 ||pturedmyattentio.xyz^
@@ -38735,6 +38749,7 @@ androidrepublic.org,anonymousemail.me,apkmirror.com,demos.krajee.com,kadinlarkul
 ||rhiospsea.one^
 ||rhkyufodw8ochdr3ogsite.com^
 ||rhombicsomeday.com^
+||rhqdydysa.com^
 ||rhudsplm.com^
 ||rhvdsplm.com^
 ||rhxdsplm.com^
@@ -39362,6 +39377,7 @@ androidrepublic.org,anonymousemail.me,apkmirror.com,demos.krajee.com,kadinlarkul
 ||scrapethrillmostly.com^
 ||scratchy-deep.pro^
 ||screechadulthood.com^
+||screenov.site^
 ||scriptcdn.net^
 ||scriptsfirework.com^
 ||scriptvealpatronage.com^
@@ -39839,6 +39855,7 @@ androidrepublic.org,anonymousemail.me,apkmirror.com,demos.krajee.com,kadinlarkul
 ||skcapepyshdr.xyz^
 ||skeeingfondu.life^
 ||skeetads.com^
+||skeletal-if.pro^
 ||skelity.com^
 ||sketbhang.guru^
 ||sketchflutter.com^
@@ -42474,6 +42491,7 @@ androidrepublic.org,anonymousemail.me,apkmirror.com,demos.krajee.com,kadinlarkul
 ||velvetneutralunnatural.com^
 ||vemflutuartambem.com^
 ||vempozah.net^
+||vemtourt.com^
 ||vendgrusian.com^
 ||vendigamus.com^
 ||vendimob.pl^
@@ -42727,6 +42745,7 @@ androidrepublic.org,anonymousemail.me,apkmirror.com,demos.krajee.com,kadinlarkul
 ||vounaipu.net^
 ||vowcertainly.com^
 ||vowdistractingbuoyancy.com^
+||voweve.com^
 ||voxfind.com^
 ||voyageconcise.com^
 ||voyageschoolanymore.com^
@@ -42858,6 +42877,7 @@ androidrepublic.org,anonymousemail.me,apkmirror.com,demos.krajee.com,kadinlarkul
 ||walkinglive.org^
 ||wallpapersfacts.com^
 ||wallstrads.com^
+||wallybuffed.uno^
 ||walruscheers.com^
 ||walrusintroducing.com^
 ||wamnetwork.com^
@@ -43507,6 +43527,7 @@ androidrepublic.org,anonymousemail.me,apkmirror.com,demos.krajee.com,kadinlarkul
 ||xelllwrite.com^
 ||xenosmussal.com^
 ||xepkfd.com^
+||xfgicjnxckrnq.com^
 ||xfileload.com^
 ||xfrena.com^
 ||xfwblpomxc.com^
@@ -46191,6 +46212,7 @@ androidrepublic.org,anonymousemail.me,apkmirror.com,demos.krajee.com,kadinlarkul
 ||chrantary-vocking.com^$popup
 ||chultoux.com^$popup
 ||chykohija.pro^$popup
+||cightsnating.com^$popup
 ||cipledecline.buzz^$popup
 ||circumstancesrectangle.com^$popup
 ||circumstantialeltondirtiness.com^$popup
@@ -47120,6 +47142,7 @@ androidrepublic.org,anonymousemail.me,apkmirror.com,demos.krajee.com,kadinlarkul
 ||monkyank.com^$popup
 ||montikolti.com^$popup
 ||moodokay.com^$popup
+||moonrocketaffiliates.com^$popup
 ||moooginnumit.com^$popup
 ||more1.biz^$popup
 ||motherhoodlimiteddetest.com^$popup
@@ -54722,6 +54745,7 @@ cartoq.com##.top-a
 freedomleaf.com##.top-ab
 cartoq.com##.top-ad-blank-div
 artistdirect.com##.top-add
+n4g.com,techspy.com##.top-ads-container-outer
 jamieoliver.com##.top-avocado
 automotive-fleet.com,businessfleet.com,cfl.ca,fleetfinancials.com,forbesindia.com,government-fleet.com,howsecureismypassword.net,ncaa.com,schoolbusfleet.com##.top-banner
 smartasset.com##.top-banner-ctr
