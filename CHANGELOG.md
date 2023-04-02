@@ -11,7 +11,22 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
-## Unreleased
+## 10.x.x (Unreleased)
+
+### Added
+
+- Blocklist uBlock Origin filters to the default list of blocklists
+
+### Removed
+
+- Action "openNewTab" in favor of ":tabnew" command
+
+### Versions
+
+- Electron 23.2.1 (was TODO)
+- Chromium 110.0.5481.208 (was TODO)
+
+## 9.x.x (Unreleased)
 
 ### Added
 
@@ -27,7 +42,6 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - More default mappings that are similar to Firefox/Chromium
 - Favicon icons to the buffer command suggestions for better recognition
 - Actions "startRecording", "stopRecording" and "runRecording" to record key presses and later execute them (macros/records in Vim)
-- Blocklist uBlock Origin filters to the default list of blocklists
 
 ### Changed
 

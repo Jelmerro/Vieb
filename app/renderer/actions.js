@@ -473,13 +473,6 @@ const refreshTab = args => {
     }
 }
 
-const openNewTab = () => {
-    notify("The <openNewTab> is deprecated in favor of running <:tabnew>",
-        "warn")
-    const {addTab} = require("./tabs")
-    addTab()
-}
-
 const reopenTab = () => {
     const {"reopenTab": reopen} = require("./tabs")
     reopen()
@@ -1235,7 +1228,6 @@ module.exports = {
     nop,
     openFromClipboard,
     openLinkExternal,
-    openNewTab,
     openNewTabWithCurrentUrl,
     pageTitleToClipboard,
     pageToClipboard,
