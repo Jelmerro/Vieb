@@ -20,6 +20,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Setting "replacespecial" is now by default set to "special"
+- Default mapping `<C-c>` will now copy in normal, pointer and visual mode as well
 
 ### Removed
 

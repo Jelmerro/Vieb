@@ -558,12 +558,8 @@ const toCommandMode = () => {
     setMode("command")
 }
 
-const stopLoadingPage = args => {
-    if (args?.key === "<C-c>") {
-        notify("This mapping is deprecated, replaced with <Esc>", "warn")
-    }
-    currentPage()?.stop()
-}
+const stopLoadingPage = () => currentPage()?.stop()
+
 
 const moveTabForward = () => {
     const {"moveTabForward": move} = require("./tabs")
