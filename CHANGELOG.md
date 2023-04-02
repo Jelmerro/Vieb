@@ -27,6 +27,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - More default mappings that are similar to Firefox/Chromium
 - Favicon icons to the buffer command suggestions for better recognition
 - Actions "startRecording", "stopRecording" and "runRecording" to record key presses and later execute them (macros/records in Vim)
+- Blocklist uBlock Origin filters to the default list of blocklists
 
 ### Changed
 

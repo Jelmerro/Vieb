@@ -4,17 +4,21 @@ EasyList adblock information
 These lists are provided by EasyList [here](https://easylist.to).
 They can be used under the terms of the GNU GPL-3.0 or later versions.
 For full license details see [this page](https://easylist.to/pages/licence.html).
-All "easy" text files (filter lists) in this folder belong to "The EasyList authors (https://easylist.to/)".
+All "easy" prefixed text files (filter lists) in this folder belong to "The EasyList authors (https://easylist.to/)".
 They are fetched from adblockplus.org, until these
 [easylist](https://github.com/easylist/easylist/issues/13389) website
 [issues](https://github.com/easylist/easylist/issues/13477) are
 [fixed](https://github.com/easylist/easylist/issues/13540).
 
+Additionally, some lists from uBlockOrigin are used, which also use the [GPL3.0](https://github.com/uBlockOrigin/uAssets/blob/master/LICENSE).
+All the "ublock" prefixed text files in this folder belong to "The uBlock Origin authors (https://github.com/gorhill/uBlock).
+You can find the files in the [uAssets repo](https://github.com/uBlockOrigin/uAssets).
+
 Vieb uses these lists to block advertisements and trackers,
 without connecting to external sites to update the lists.
 If you always want to have the latest version of the easylists instead of these bundled ones,
 change the adblocker setting from "static" to "update".
-This will update the lists directly from the easylist website every time Vieb is started.
+This will update the lists directly from the respective websites every time Vieb is started.
 The bundled/static lists located here will be updated shortly before a new Vieb release.
 
 The "resources" file is fetched from the Cliqz adblocker repo, located [here](https://github.com/ghostery/adblocker).

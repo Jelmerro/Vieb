@@ -860,11 +860,10 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 }
             }
             if (typeof allow === "boolean") {
-                if (["mainFrame", "subFrame", "cspReport", "other"]
+                if (!["mainFrame", "subFrame", "cspReport", "other"]
                     .includes(details.resourceType)) {
-                    return callback({"cancel": false})
+                    return callback({"cancel": !allow})
                 }
-                return callback({"cancel": !allow})
             }
             if (!resourceTypes.includes(details.resourceType.toLowerCase())) {
                 return callback({"cancel": true})
@@ -1495,26 +1494,30 @@ const reloadAdblocker = () => {
     blocker = ElectronBlocker.parse(filters)
     const resources = readFile(joinPath(__dirname, `./blocklists/resources`))
     blocker.updateResources(resources, `${resources.length}`)
-    ipcMain.on("get-cosmetic-filters", blocker.onGetCosmeticFilters)
-    ipcMain.on("is-mutation-observer-enabled",
-        blocker.onIsMutationObserverEnabled)
     sessionList.forEach(part => {
         const ses = session.fromPartition(part)
         ses.setPreloads(ses.getPreloads().concat([adblockerPreload]))
     })
+    ipcMain.on("get-cosmetic-filters-first", blocker.onGetCosmeticFiltersFirst)
+    ipcMain.on("get-cosmetic-filters", blocker.onGetCosmeticFiltersUpdated)
+    ipcMain.on("is-mutation-observer-enabled",
+        blocker.onIsMutationObserverEnabled)
 }
 const disableAdblocker = () => {
     if (!blocker) {
         return
     }
-    ipcMain.removeListener("get-cosmetic-filters", blocker.onGetCosmeticFilters)
-    ipcMain.removeListener("is-mutation-observer-enabled",
-        blocker.onIsMutationObserverEnabled)
-    blocker = null
     sessionList.forEach(part => {
         const ses = session.fromPartition(part)
         ses.setPreloads(ses.getPreloads().filter(p => p !== adblockerPreload))
     })
+    ipcMain.removeListener("get-cosmetic-filters-first",
+        blocker.onGetCosmeticFiltersFirst)
+    ipcMain.removeListener("get-cosmetic-filters",
+        blocker.onGetCosmeticFiltersUpdated)
+    ipcMain.removeListener("is-mutation-observer-enabled",
+        blocker.onIsMutationObserverEnabled)
+    blocker = null
 }
 ipcMain.on("adblock-enable", (_, type) => {
     if (sessionList.length > 0) {

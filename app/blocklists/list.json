@@ -1,4 +1,5 @@
 {
     "easylist": "https://easylist-downloads.adblockplus.org/easylist.txt",
-    "easyprivacy": "https://easylist-downloads.adblockplus.org/easyprivacy.txt"
+    "easyprivacy": "https://easylist-downloads.adblockplus.org/easyprivacy.txt",
+    "ublockfilters": "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt"
 }

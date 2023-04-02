@@ -1,0 +1,39 @@
+diff --git a/node_modules/@cliqz/adblocker-electron-preload/dist/es6/preload.js b/node_modules/@cliqz/adblocker-electron-preload/dist/es6/preload.js
+index 7069a00..e2dc40a 100644
+--- a/node_modules/@cliqz/adblocker-electron-preload/dist/es6/preload.js
++++ b/node_modules/@cliqz/adblocker-electron-preload/dist/es6/preload.js
+@@ -11,7 +11,7 @@ function getCosmeticsFiltersFirst() {
+     return ipcRenderer.sendSync('get-cosmetic-filters-first', window.location.href);
+ }
+ function getCosmeticsFiltersUpdate(data) {
+-    setImmediate(() => {
++    setTimeout(() => {
+         ipcRenderer.send('get-cosmetic-filters', window.location.href, data);
+     });
+ }
+diff --git a/node_modules/@cliqz/adblocker-electron-preload/dist/preload.cjs.js b/node_modules/@cliqz/adblocker-electron-preload/dist/preload.cjs.js
+index 37c3e22..7b5814b 100644
+--- a/node_modules/@cliqz/adblocker-electron-preload/dist/preload.cjs.js
++++ b/node_modules/@cliqz/adblocker-electron-preload/dist/preload.cjs.js
+@@ -211,7 +211,7 @@ function getCosmeticsFiltersFirst() {
+     return electron.ipcRenderer.sendSync('get-cosmetic-filters-first', window.location.href);
+ }
+ function getCosmeticsFiltersUpdate(data) {
+-    setImmediate(() => {
++    setTimeout(() => {
+         electron.ipcRenderer.send('get-cosmetic-filters', window.location.href, data);
+     });
+ }
+diff --git a/node_modules/@cliqz/adblocker-electron-preload/dist/preload.es6.js b/node_modules/@cliqz/adblocker-electron-preload/dist/preload.es6.js
+index 78e42a5..a52f033 100644
+--- a/node_modules/@cliqz/adblocker-electron-preload/dist/preload.es6.js
++++ b/node_modules/@cliqz/adblocker-electron-preload/dist/preload.es6.js
+@@ -209,7 +209,7 @@ function getCosmeticsFiltersFirst() {
+     return ipcRenderer.sendSync('get-cosmetic-filters-first', window.location.href);
+ }
+ function getCosmeticsFiltersUpdate(data) {
+-    setImmediate(() => {
++    setTimeout(() => {
+         ipcRenderer.send('get-cosmetic-filters', window.location.href, data);
+     });
+ }
