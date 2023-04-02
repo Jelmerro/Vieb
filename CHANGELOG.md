@@ -20,6 +20,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Removed
 
 - Action "openNewTab" in favor of ":tabnew" command
+- Setting "clearhistoryonquit" in favor of "clearhistoryinterval=session"
 
 ### Versions
 

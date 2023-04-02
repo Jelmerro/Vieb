@@ -770,8 +770,6 @@
         Toggle for clearing all downloads regardless of status when quitting Vieb. This will not remove downloaded files from disk, but it will clear the download history.
         <h3 id="clearhistoryinterval">clearhistoryinterval</h3>
         Setting to automatically clear the history on quit based on how old it is. The browsing history can be viewed on the <a href="#:history">history</a> page. By default, no history is cleared, as the clearing interval is set to "none". If you want to clear all history data on quit set it to "session". For any finer grained interval of how old the history must be for it to be cleared, set an interval such as "1day" or "3months" as the value. This way, history older than the specified interval will be cleared on quit. See the <a href="#interval">interval</a> docs for valid options. As a result of separating tab, download and browsing history, there is no traditional private mode in Vieb. See <a href="#storenewvisits">storenewvisits</a> for more details about storing history and an alternative to "private mode".
-        <h3 id="clearhistoryonquit">clearhistoryonquit</h3>
-        Toggle for clearing all browsing history on quit, currently deprecated in favor of <a href="#clearhistoryinterval">clearhistoryinterval</a>. Use <span class="command-block">:set clearhistoryinterval=session</span> to replicate turning this toggle on, the same default remains off by setting the new setting to "none".
         <h3 id="clearlocalstorageonquit">clearlocalstorageonquit</h3>
         Toggle for clearing all of the localstorage when quitting Vieb. This toggle applies to all containers.
         <h3 id="closablepinnedtabs">closablepinnedtabs</h3>

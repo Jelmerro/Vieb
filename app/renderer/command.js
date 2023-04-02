@@ -346,7 +346,7 @@ const quitall = () => {
         deleteFile(joinPath(appData(), "quickmarks"))
     }
     const clearHistory = getSetting("clearhistoryinterval")
-    if (getSetting("clearhistoryonquit") || clearHistory === "session") {
+    if (clearHistory === "session") {
         deleteFile(joinPath(appData(), "hist"))
     } else if (clearHistory === "none") {
         const {writeHistToFile} = require("./history")

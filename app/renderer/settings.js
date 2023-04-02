@@ -80,7 +80,6 @@ const defaultSettings = {
     "cleardownloadsoncompleted": false,
     "cleardownloadsonquit": false,
     "clearhistoryinterval": "none",
-    "clearhistoryonquit": false,
     "clearlocalstorageonquit": false,
     "closablepinnedtabs": false,
     "commandhist": "persistuseronly",
@@ -1383,10 +1382,6 @@ const set = (setting, value) => {
             } else {
                 ipcRenderer.send("adblock-enable", allSettings.adblocker)
             }
-        }
-        if (setting === "clearhistoryonquit") {
-            notify("clearhistoryonquit is deprecated, "
-                + "use clearhistoryinterval=session", "warn")
         }
         if (setting === "containercolors" || setting === "containershowname") {
             updateContainerSettings()
