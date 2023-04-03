@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Blocklist uBlock Origin filters to the default list of blocklists
+- Setting "requestheaders" to append custom headers to any request
 
 ### Changed
 

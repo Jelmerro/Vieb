@@ -707,12 +707,16 @@ let permissions = {}
 let resourceTypes = null
 let resourcesAllowed = null
 let resourcesBlocked = null
+let requestHeaders = []
 const sessionList = []
 const adblockerPreload = joinPath(__dirname,
     "../node_modules/@cliqz/adblocker-electron-preload/dist/preload.cjs.js")
 const defaultCss = readFile(joinPath(__dirname, `colors/default.css`))
 ipcMain.on("set-redirects", (_, rdr) => {
     redirects = rdr
+})
+ipcMain.on("update-request-headers", (_, headers) => {
+    requestHeaders = headers.split(",").filter(h => h)
 })
 ipcMain.on("open-download", (_, location) => shell.openPath(location))
 ipcMain.on("set-download-settings", (_, settings) => {
@@ -879,6 +883,17 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             return callback({"cancel": false})
         }
         blocker.onHeadersReceived(details, callback)
+    })
+    newSess.webRequest.onBeforeSendHeaders((details, callback) => {
+        const headers = details.requestHeaders
+        for (const head of requestHeaders) {
+            if (head.includes("~")) {
+                headers[head.split("~")[0]] = head.split("~").slice(1).join("~")
+            } else {
+                delete headers[head]
+            }
+        }
+        return callback({"cancel": false, "requestHeaders": headers})
     })
     newSess.on("will-download", (e, item) => {
         if (downloadSettings.downloadmethod === "block") {

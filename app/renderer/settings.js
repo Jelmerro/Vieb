@@ -186,6 +186,7 @@ const defaultSettings = {
     "reloadtaboncrash": false,
     "replacespecial": "special",
     "replacestartup": "never",
+    "requestheaders": "",
     "requesttimeout": 20000,
     "resourcesallowed": "",
     "resourcesblocked": "",
@@ -263,6 +264,7 @@ const listLike = [
     "permissionsblocked",
     "quickmarkpersistence",
     "redirects",
+    "requestheaders",
     "resourcesallowed",
     "resourcesblocked",
     "searchengine",
@@ -1096,6 +1098,10 @@ const updateMouseSettings = () => {
     }
 }
 
+const updateRequestHeaders = () => {
+    ipcRenderer.send("update-request-headers", allSettings.requestheaders)
+}
+
 const updateNativeTheme = () => {
     ipcRenderer.send("update-native-theme", allSettings.nativetheme)
 }
@@ -1328,6 +1334,7 @@ const loadFromDisk = (firstRun = true) => {
     updateWebviewSettings()
     updateMouseSettings()
     updateNativeTheme()
+    updateRequestHeaders()
     resume()
 }
 
@@ -1425,6 +1432,9 @@ const set = (setting, value) => {
             } else {
                 ipcRenderer.send("set-spelllang", "")
             }
+        }
+        if (setting === "requestheaders") {
+            updateRequestHeaders()
         }
         if (setting.includes("resource")) {
             ipcRenderer.send("update-resource-settings",
