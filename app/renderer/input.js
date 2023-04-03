@@ -584,6 +584,8 @@ const globalDefaultMappings = {
     "<A-F4>": {"mapping": "<:quitall>"},
     "<A-Left>": {"mapping": "<backInHistory>"},
     "<A-Right>": {"mapping": "<forwardInHistory>"},
+    "<A-m>": {"mapping": "<:mute>"},
+    "<A-p>": {"mapping": "<:pin>"},
     "<C-+>": {"mapping": "<zoomIn>"},
     "<C-=>": {"mapping": "<zoomIn>"},
     "<C-_>": {"mapping": "<zoomOut>"},

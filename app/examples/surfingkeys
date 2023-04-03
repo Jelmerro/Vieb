@@ -54,8 +54,6 @@ nmap zo <zoomOut>
 nmap go <toExploreMode>
 nmap T :buffer<Space>
 nmap t <:tabnew><toExploreMode>
-nmap <A-p> <:pin>
-nmap <A-m> <:mute>
 nmap on <:tabnew>
 nmap x <:close>
 nmap X <reopenTab>

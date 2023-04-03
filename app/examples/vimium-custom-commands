@@ -25,9 +25,6 @@ command! Vomnibar.activateEditUrl <toExploreMode><End>
 command! Vomnibar.activateEditUrlInNewTab <:tabnew><toExploreMode>
 command! removeTab <:close>
 command! restoreTab <reopenTab>
-command! togglePinTab <:pin>
-command! toggleMuteTab <:mute>
-command! createTab <:tabnew>
 command! duplicateTab <openNewTabWithCurrentUrl><CR>
 command! moveTabLeft <moveTabBackward>
 command! moveTabRight <moveTabForward>
@@ -57,9 +54,6 @@ nmap ge <:Vomnibar.activateEditUrl>
 nmap gE <:Vomnibar.activateEditUrlInNewTab>
 nmap x <:removeTab>
 nmap X <:restoreTab>
-nmap <A-p> <:togglePinTab>
-nmap <A-m> <:toggleMuteTab>
-nmap t <:createTab>
 nmap yt <:duplicateTab>
 nmap <lt><lt> <:moveTabLeft>
 nmap >> <:moveTabRight>

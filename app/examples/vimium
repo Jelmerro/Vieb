@@ -29,8 +29,6 @@ nmap ge <toExploreMode><End>
 nmap gE <:tabnew><toExploreMode>
 nmap x <:close>
 nmap X <reopenTab>
-nmap <A-p> <:pin>
-nmap <A-m> <:mute>
 nmap yt <openNewTabWithCurrentUrl><CR>
 nmap <lt><lt> <moveTabBackward>
 nmap >> <moveTabForward>

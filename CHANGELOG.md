@@ -17,7 +17,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Blocklist uBlock Origin filters to the default list of blocklists
 - Setting "requestheaders" to append custom headers to any request
-- More default mappings that are similar to Firefox/Chromium
+- More default mappings that are similar to Firefox/Chromium and mute/pin mappings
 
 ### Changed
 

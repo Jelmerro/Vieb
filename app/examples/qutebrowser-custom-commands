@@ -35,7 +35,6 @@ command! tab-move_- <moveTabBackward>
 command! tab-only <:lclose><:rclose>
 command! zoom <zoomReset>
 command! tab-pin <:pin>
-command! tab-mute <:mute>
 command! stop <stopLoadingPage>
 command! set-cmd-text_--space_open_--tab <:tabnew><toExploreMode>
 command! set-cmd-text_--space_open <toExploreMode><BS>
@@ -101,7 +100,6 @@ nmap <C-S-PageDown> <:tab-move_->
 nmap co <:tab-only>
 nmap = <:zoom>
 nmap <C-p> <:tab-pin>
-nmap <A-m> <:tab-mute>
 nmap <C-s> <:stop>
 nmap o <:set-cmd-text_--space_open>
 nmap go <:set-cmd-text_open_{urlpretty}>

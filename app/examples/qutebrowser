@@ -50,7 +50,6 @@ nmap <C-S-PageDown> <moveTabBackward>
 nmap co <:lclose><:rclose>
 nmap = <zoomReset>
 nmap <C-p> <:pin>
-nmap <A-m> <:mute>
 nmap <C-s> <stopLoadingPage>
 nmap o <toExploreMode><BS>
 nmap go <toExploreMode><End>

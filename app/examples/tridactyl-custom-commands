@@ -43,7 +43,6 @@ command! tabmove_-1 <moveTabBackward>
 command! current_url_open <toExploreMode><End>
 command! tabclosealltoleft <:lclose>
 command! tabclosealltoright <:rclose>
-command! mute_toggle <:mute>
 command! stop <stopLoadingPage>
 command! urlincrement_-1 <decreasePageNumber>
 command! urlincrement_1 <increasePageNumber>
@@ -72,8 +71,6 @@ nmap <lt><lt> <:tabmove_-1>
 nmap O <:current_url_open>
 nmap gx0 <:tabclosealltoleft>
 nmap gx$ <:tabclosealltoright>
-nmap <A-p> <:pin>
-nmap <A-m> <:mute_toggle>
 nmap x <:stop>
 nunmap [
 nunmap ]

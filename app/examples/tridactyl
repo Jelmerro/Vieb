@@ -44,8 +44,6 @@ nmap <lt><lt> <moveTabBackward>
 nmap O <toExploreMode><End>
 nmap gx0 <:lclose>
 nmap gx$ <:rclose>
-nmap <A-p> <:pin>
-nmap <A-m> <:mute>
 nmap x <stopLoadingPage>
 nunmap [
 nunmap ]
