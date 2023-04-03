@@ -33,6 +33,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "clearhistoryonquit" in favor of "clearhistoryinterval=session"
 - Setting "search" in favor of the functionality identical "searchengine" setting
 
+### Fixed
+
+- Image and svg links not showing since 9.0.0
+
 ### Versions
 
 - Electron 24.0.0-beta.7 (was 23.2.0)

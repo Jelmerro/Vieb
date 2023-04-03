@@ -162,7 +162,7 @@ const getAllFollowLinks = (filter = null) => {
     }
     if (!filter || filter.includes("image")) {
         // Get any images or background images
-        allEls.filter(el => matchesQuery(el, "img.svg"))
+        allEls.filter(el => matchesQuery(el, "img,svg"))
             .forEach(el => relevantLinks.push({el, "type": "image"}))
         allEls.filter(el => getComputedStyle(el).backgroundImage !== "none")
             .forEach(el => relevantLinks.push({el, "type": "image"}))
