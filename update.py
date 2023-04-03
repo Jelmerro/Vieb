@@ -76,9 +76,7 @@ def main():
     with open("package-lock.json", "w") as f:
         json.dump(package_lock, f, indent=2)
         f.write("\n")
-    print("\n  = Install and run patches\n")
     subprocess.run(["npm", "ci"], check=True)
-    subprocess.run(["npx", "patch-package"], check=True)
 
 
 if __name__ == "__main__":
