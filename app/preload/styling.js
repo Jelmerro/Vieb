@@ -151,15 +151,23 @@ const loadThemes = (loadedFully = false) => {
             }
         }
     }
-    if (settings.darkreader && !specialPage.name) {
+    let domain = domainName(window.location.href)
+    let scope = "page"
+    if (specialPage.name) {
+        domain = "special"
+        scope = "special"
+    } else if (window.location.href.startsWith("file://")) {
+        domain = "file"
+        scope = "file"
+    }
+    if (settings.darkreader && settings.darkreaderscope.includes(scope)) {
         const blocked = settings.darkreaderblocklist.split("~")
             .find(m => window.location.href.match(m))
         if (!blocked) {
             enableDarkReader()
         }
     }
-    if (settings.userstyle && !specialPage.name) {
-        const domain = domainName(window.location.href)
+    if (settings.userstyle && settings.userstylescope.includes(scope)) {
         const userStyleFiles = [
             ...(listDir(joinPath(appData(), "userstyle/global"), true)
                 || []).filter(f => f.endsWith(".css")),

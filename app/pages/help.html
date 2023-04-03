@@ -827,6 +827,8 @@
         Set the grayscale value of darkreader styled pages. 100% grayscale means that all content (not images) will be completely drained of color, while 0% means the grayscale filter is not applied. Any value between will "gray" the look of the elements on the page.
         <h3 id="darkreadermode">darkreadermode</h3>
         Set the mode value of darkreader styled paged. You can choose between light and dark mode, with dark being the default. Switching this to light does the same as selecting the light scheme in the darkreader extension.
+        <h3 id="darkreaderscope">darkreaderscope</h3>
+        TODO
         <h3 id="darkreadersepia">darkreadersepia</h3>
         Set the sepia value of darkreader styled pages. 100% sepia means that all content (not images) will be rendered in the typical brown sepia color. Low percentages are recommended, but you can use any percentage between 0 and 100.
         <h3 id="darkreadertextstroke">darkreadertextstroke</h3>
@@ -1173,6 +1175,8 @@
             <li>All GreaseMonkey userscript JS files inside "~/.vieb/userscript/gm/"</li>
         </ul>
         These files differ from regular JavaScript in that there is a header that specifies information about the script, but also that there is a broader API to use besides the regular browser API. In Vieb, most of these APIs are supported, with the major exceptions being: resources, external requires, registering menu commands and downloading files. Unlike regular JS files that you can run per domain or globally, these GreaseMonkey userscripts define which pages they run on inside the file header. It's recommend to observe the source code manually for all scripts you install or include into Vieb, as these scripts get full access to any page if userscript is enabled. For more information about the API and these type of userscripts, see <a href="https://en.wikipedia.org/wiki/Userscript">wikipedia</a> and <a href="https://violentmonkey.github.io/api/gm/">the ViolentMonkey docs</a>.
+        <h3 id="userscriptscope">userscriptscope</h3>
+        TODO
         <h3 id="userstyle">userstyle</h3>
         The userstyle setting can be used to add custom CSS to any page you visit. Unlike with <a href="#:colorscheme">colorscheme</a> which is used for Vieb's interface and the <a href="#specialpages">special pages</a>, userstyle is used on other pages and websites. This can be done using a wide ranges of different CSS files, with four fixed locations and 2 global folders:
         <ul>
@@ -1184,6 +1188,8 @@
             <li>A per-domain file at "~/.vieb/userstyle/&lt;domain&gt;.css"</li>
         </ul>
         They are applied in the listed order, with files in a folder being read in alphabetic order. These files can each contain all the CSS rules you want to add either to all sites with "global" configs, or to all sites of a specific domain, using the per-domain config files. This setting merely toggles if these userstyle files should be read at all, which is by default not the case. Updating this setting will reload the userstyles across all pages automatically, no need to reload the page yourself. The files are not watched, so editing these files without updating this setting will need a page reload, or you can do <span class="command-block">:set userstyle</span> at anytime to refresh them. Userstyle can be used for much more than just colors, you can control scroll behavior with <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/scroll-behavior">scroll-behavior CSS rules</a>, or hide the scrollbar by adding "::-webkit-scrollbar {display: none;}" to any of the files above. This particular example can also be automatically added to pages (including special ones) with the <a href="#guiscrollbar">guiscrollbar</a> setting. In addition to creating custom userstyle CSS files, you could also make sure that <a href="#nativetheme">nativetheme</a> is reporting the correct theme.
+        <h3 id="userstylescope">userstylescope</h3>
+        TODO
         <h3 id="vimcommand">vimcommand</h3>
         With this setting, you can configure the command that will be used as the editor when invoking <a href="#action.editWithVim">action.editWithVim</a>. You can use it to edit input fields or textareas with any external editor. For compatibility across systems, this setting is by default set to "gvim". You can change it to use the terminal version of Vim, for example with gnome-terminal: <span class="command-block nowrap">set vimcommand="gnome-terminal -- vim"</span>. This setting can be set to any command, including an external prose/spellchecker, as long as it accepts a filename as an argument. The input field will be automatically updated based on any changes made to the file. By default, you will only be notified if the command fails, see <a href="#notificationforsystemcommands">notificationforsystemcommands</a> for details. To change the shell this and other commands will use, see the <a href="#shell">shell</a> setting.
         <h3 id="windowtitle">windowtitle</h3>

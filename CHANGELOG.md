@@ -18,6 +18,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Blocklist uBlock Origin filters to the default list of blocklists
 - Setting "requestheaders" to append custom headers to any request
 - More default mappings that are similar to Firefox/Chromium and mute/pin mappings
+- Settings "userscriptscope", "userstylescope" and "darkreaderscope" to control which pages scripts, styles and darkreader should run
 
 ### Changed
 

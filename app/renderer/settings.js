@@ -99,6 +99,7 @@ const defaultSettings = {
     "darkreaderfg": "#e8e6e3",
     "darkreadergrayscale": 0,
     "darkreadermode": "dark",
+    "darkreaderscope": "page",
     "darkreadersepia": 0,
     "darkreadertextstroke": 0,
     "devtoolsposition": "window",
@@ -238,7 +239,9 @@ const defaultSettings = {
     "translateurl": "https://api-free.deepl.com/v2/",
     "useragent": "",
     "userscript": false,
+    "userscriptscope": "page",
     "userstyle": false,
+    "userstylescope": "page",
     "vimcommand": "gvim",
     "windowtitle": "%app - %title"
 }
@@ -1156,6 +1159,7 @@ const webviewSettings = [
     "darkreaderfg",
     "darkreadergrayscale",
     "darkreadermode",
+    "darkreaderscope",
     "darkreadersepia",
     "darkreadertextstroke",
     "dialogalert",
@@ -1172,7 +1176,8 @@ const webviewSettings = [
     "searchpointeralignment",
     "sponsorblock",
     "sponsorblockcategories",
-    "userstyle"
+    "userstyle",
+    "userstylescope"
 ]
 
 const updateWebviewSettings = () => {
@@ -1459,7 +1464,15 @@ const set = (setting, value) => {
         if (setting.startsWith("darkreader")) {
             listPages().forEach(p => {
                 try {
-                    if (allSettings.darkreader) {
+                    let scope = "page"
+                    const specialPage = pathToSpecialPageName(p.src)
+                    if (specialPage.name) {
+                        scope = "special"
+                    } else if (p.src.startsWith("file://")) {
+                        scope = "file"
+                    }
+                    const inScope = allSettings.darkreaderscope.includes(scope)
+                    if (allSettings.darkreader && inScope) {
                         p.send("enable-darkreader")
                     } else {
                         p.send("disable-darkreader")
@@ -1472,7 +1485,15 @@ const set = (setting, value) => {
         if (setting === "userstyle") {
             listPages().forEach(p => {
                 try {
-                    if (allSettings.userstyle) {
+                    let scope = "page"
+                    const specialPage = pathToSpecialPageName(p.src)
+                    if (specialPage.name) {
+                        scope = "special"
+                    } else if (p.src.startsWith("file://")) {
+                        scope = "file"
+                    }
+                    const inScope = allSettings.userstylescope.includes(scope)
+                    if (allSettings.userstyle && inScope) {
                         p.send("enable-userstyle")
                     } else {
                         p.send("disable-userstyle")

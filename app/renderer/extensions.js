@@ -18,8 +18,16 @@
 "use strict"
 
 const {
-    appConfig, domainName, listDir, joinPath, appData, expandPath, readFile
+    appConfig,
+    domainName,
+    listDir,
+    joinPath,
+    appData,
+    expandPath,
+    readFile,
+    pathToSpecialPageName
 } = require("../util")
+const {getSetting} = require("./common")
 
 const parseGM = meta => meta.split(/[\r\n]/).filter(line => (/\S+/).test(line)
         && !line.includes("==UserScript==") && !line.includes("==/UserScript==")
@@ -220,21 +228,32 @@ const runGMScript = (webview, rawContents) => {
 }
 
 const loadUserscripts = webview => {
-    const domain = domainName(webview.src)
-    const userScriptFiles = [
-        ...(listDir(joinPath(appData(), "userscript/global"), true)
-            || []).filter(f => f.endsWith(".js")),
-        joinPath(appData(), "userscript/global.js"),
-        ...(listDir(expandPath("~/.vieb/userscript/global"), true)
-            || []).filter(f => f.endsWith(".js")),
-        expandPath("~/.vieb/userscript/global.js"),
-        joinPath(appData(), `userscript/${domain}.js`),
-        expandPath(`~/.vieb/userscript/${domain}.js`)
-    ]
-    for (const f of userScriptFiles) {
-        const text = readFile(f)
-        if (text) {
-            webview.executeJavaScript(text, true).catch(() => null)
+    let domain = domainName(webview.src)
+    let scope = "page"
+    const specialPage = pathToSpecialPageName(webview.src)
+    if (specialPage.name) {
+        domain = "special"
+        scope = "special"
+    } else if (webview.src.startsWith("file://")) {
+        domain = "file"
+        scope = "file"
+    }
+    if (getSetting("userscriptscope").includes(scope)) {
+        const userScriptFiles = [
+            ...(listDir(joinPath(appData(), "userscript/global"), true)
+                || []).filter(f => f.endsWith(".js")),
+            joinPath(appData(), "userscript/global.js"),
+            ...(listDir(expandPath("~/.vieb/userscript/global"), true)
+                || []).filter(f => f.endsWith(".js")),
+            expandPath("~/.vieb/userscript/global.js"),
+            joinPath(appData(), `userscript/${domain}.js`),
+            expandPath(`~/.vieb/userscript/${domain}.js`)
+        ]
+        for (const f of userScriptFiles) {
+            const text = readFile(f)
+            if (text) {
+                webview.executeJavaScript(text, true).catch(() => null)
+            }
         }
     }
     const gmScriptFiles = [
