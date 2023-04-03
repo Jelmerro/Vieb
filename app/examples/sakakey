@@ -2,21 +2,21 @@
 set adblocker=update
 set devtoolsposition=split
 set downloadmethod=confirm
-set useragent=%firefox
 set guifontsize=16
 set mintabwidth=250
-set restoretabs=pinned
 set permissioncamera=ask
 set permissiondisplaycapture=ask
 set permissionmediadevices=allow
 set permissionmicrophone=ask
 set permissionpersistentstorage=allow
 set redirecttohttp
+set restoretabs=pinned
+set noshowcmd
 set splitbelow
 set tabclosefocusright
 set tabreopenposition=previous
-set noshowcmd
 set notimeout
+set useragent=%firefox
 
 " Mappings
 nmap d <scrollDown>

@@ -25,6 +25,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Default mapping `<C-c>` will now copy in normal, pointer and visual mode as well
 - Setting "restoretabs" is now an enum that accepts different options
 - Setting "notificationforpermisions" is now an enum that accepts different options
+- Example configs to not include as much duplication as before
 
 ### Removed
 

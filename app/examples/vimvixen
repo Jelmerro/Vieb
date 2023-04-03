@@ -2,22 +2,15 @@
 set adblocker=update
 set devtoolsposition=split
 set downloadmethod=confirm
-set useragent=%firefox
 set guifontsize=16
 set mintabwidth=250
-set restoretabs=pinned
 set permissioncamera=ask
 set permissiondisplaycapture=ask
 set permissionmediadevices=allow
 set permissionmicrophone=ask
 set permissionpersistentstorage=allow
 set redirecttohttp
-set splitbelow
-set tabreopenposition=previous
-set notimeout
-set suggestorder=searchword,history
-
-" Search Engines
+set restoretabs=pinned
 set searchengine=https://google.com/search?q=%s
 set searchwords=
 set searchwords+=google~https://google.com/search?q=%s
@@ -26,6 +19,11 @@ set searchwords+=bing~https://www.bing.com/search?q=%s
 set searchwords+=duckduckgo~https://duckduckgo.com/?q=%s
 set searchwords+=twitter~https://twitter.com/search?q=%s
 set searchwords+=wikipedia~https://en.wikipedia.org/w/index.php?search=%s
+set splitbelow
+set suggestorder=searchword,history
+set tabreopenposition=previous
+set notimeout
+set useragent=%firefox
 
 " Mappings
 nmap o <toExploreMode><BS>

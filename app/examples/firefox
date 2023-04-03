@@ -1,11 +1,10 @@
 " Options
 set adblocker=update
 set devtoolsposition=split
-set downloadmethod=confirm
 set dialogalert=show
 set dialogconfirm=show
 set dialogprompt=show
-set useragent=%firefox
+set downloadmethod=confirm
 set guifontsize=16
 set mintabwidth=250
 set permissioncamera=ask
@@ -18,6 +17,7 @@ set redirecttohttp
 set splitbelow
 set tabclosefocusright
 set tabreopenposition=previous
+set useragent=%firefox
 
 " Mappings
 nmap <F3> <toSearchMode><nextSearchMatch>

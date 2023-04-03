@@ -2,20 +2,19 @@
 set adblocker=update
 set devtoolsposition=split
 set downloadmethod=confirm
-set useragent=%firefox
 set followchars=numbers
 set guifontsize=16
-set restoretabs=pinned
+set mapsuggestposition=bottomleft
 set permissioncamera=ask
 set permissiondisplaycapture=ask
 set permissionmediadevices=allow
 set permissionmicrophone=ask
 set permissionpersistentstorage=allow
 set redirecttohttp
+set restoretabs=pinned
 set tabclosefocusright
-set tabreopenposition=right
+set useragent=%firefox
 set windowtitle="%title - %app"
-set mapsuggestposition=bottomleft
 
 " Custom Commands
 command! set_ <:help>
@@ -24,7 +23,6 @@ command! navigate_prev <previousPage>
 command! navigate_prev_--tab <previousPageNewTab>
 command! navigate_next <nextPage>
 command! navigate_next_--tab <nextPageNewTab>
-command! navigate_up <toParentUrl>
 command! navigate_up_--tab <openNewTabWithCurrentUrl><CR><toParentUrl>
 command! tab-focus_1 <:b 0>
 command! tab-focus_-1 <:b -1>
@@ -85,7 +83,6 @@ nmap [[ <:navigate_prev>
 nmap ]] <:navigate_next>
 nmap {{ <:navigate_prev_--tab>
 nmap }} <:navigate_next_--tab>
-nmap gu <:navigate_up>
 nmap gU <:navigate_up_--tab>
 nmap g0 <:tab-focus_1>
 nmap g^ <:tab-focus_1>
