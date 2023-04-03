@@ -617,7 +617,7 @@ const globalDefaultMappings = {
     "<F5>": {"mapping": "<refreshTab>"},
     "<F6>": {"mapping": "<toExploreMode>"},
     "<F7>": {"mapping": "<p.start>"},
-    "<F8>": {"mapping": "<nop>"},
+    "<F8>": {"mapping": "<:internaldevtools>"},
     "<F9>": {"mapping": "<nop>"},
     "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
     "<F11>": {"mapping": "<toggleFullscreen>"},
