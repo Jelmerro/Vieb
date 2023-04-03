@@ -35,22 +35,12 @@ const {
 const webviewSettingsFile = joinPath(appData(), "webviewsettings")
 const specialPage = pathToSpecialPageName(window.location.href)
 let settings = readJSON(webviewSettingsFile)
-const darkreaderStyle = document.createElement("style")
-const usercustomStyle = document.createElement("style")
-const scrollStyle = document.createElement("style")
 const applyThemeStyling = () => {
-    const themeStyle = document.createElement("style")
-    themeStyle.textContent = `html {
+    const style = `html {
         color: ${settings?.fg || "#eee"};background: ${settings?.bg || "#333"};
         font-size: ${settings.fontsize || 14}px;
     } a {color: ${settings?.linkcolor || "#0cf"};}`
-    if (document.head) {
-        document.head.appendChild(themeStyle)
-    } else if (document.body) {
-        document.body.appendChild(themeStyle)
-    } else {
-        document.querySelector("html").appendChild(themeStyle)
-    }
+    ipcRenderer.sendToHost("custom-style-inject", "theme", style)
 }
 const enableDarkReader = async() => {
     disableDarkReader()
@@ -67,50 +57,40 @@ const enableDarkReader = async() => {
             "headers": {"Sec-Fetch-Dest": "style", "Sec-Fetch-Mode": "no-cors"}
         }).then(data => res(new Response(data))).catch(() => console.warn)
     }))
-    darkreader.enable({
-        "brightness": settings.darkreaderbrightness,
-        "contrast": settings.darkreadercontrast,
-        "darkSchemeBackgroundColor": settings.darkreaderbg,
-        "darkSchemeTextColor": settings.darkreaderfg,
-        "grayscale": settings.darkreadergrayscale,
-        "lightSchemeBackgroundColor": settings.darkreaderbg,
-        "lightSchemeTextColor": settings.darkreaderfg,
-        "mode": {"dark": 1, "light": 0}[settings.darkreadermode] ?? 1,
-        "sepia": settings.darkreadersepia,
-        "textStroke": settings.darkreadertextstroke
-    })
-    darkreaderStyle.textContent = await darkreader.exportGeneratedCSS()
-    if (darkreaderStyle.textContent) {
-        if (document.head) {
-            document.head.appendChild(darkreaderStyle)
-        } else if (document.body) {
-            document.body.appendChild(darkreaderStyle)
-        } else {
-            document.querySelector("html").appendChild(darkreaderStyle)
-        }
+    try {
+        darkreader.enable({
+            "brightness": settings.darkreaderbrightness,
+            "contrast": settings.darkreadercontrast,
+            "darkSchemeBackgroundColor": settings.darkreaderbg,
+            "darkSchemeTextColor": settings.darkreaderfg,
+            "grayscale": settings.darkreadergrayscale,
+            "lightSchemeBackgroundColor": settings.darkreaderbg,
+            "lightSchemeTextColor": settings.darkreaderfg,
+            "mode": {"dark": 1, "light": 0}[settings.darkreadermode] ?? 1,
+            "sepia": settings.darkreadersepia,
+            "textStroke": settings.darkreadertextstroke
+        })
+        const style = await darkreader.exportGeneratedCSS()
+        ipcRenderer.sendToHost("custom-style-inject", "darkreader", style)
+    } catch (e) {
+        console.error("Darkreader failed to apply:", e)
     }
 }
 const disableDarkReader = () => {
     try {
         const darkreader = require("darkreader")
         darkreader.disable()
-        darkreaderStyle.remove()
+        ipcRenderer.sendToHost("custom-style-inject", "darkreader")
     } catch {
         // Already disabled or never loaded
     }
 }
 const hideScrollbar = () => {
-    scrollStyle.textContent = "::-webkit-scrollbar {display: none !important;}"
-    if (document.head) {
-        document.head.appendChild(scrollStyle)
-    } else if (document.body) {
-        document.body.appendChild(scrollStyle)
-    } else {
-        document.querySelector("html").appendChild(scrollStyle)
-    }
+    const style = "::-webkit-scrollbar {display: none !important;}"
+    ipcRenderer.sendToHost("custom-style-inject", "scrollbar", style)
 }
 const updateScrollbar = () => {
-    if (settings.guiscrollbar !== "always" && scrollStyle.textContent === "") {
+    if (settings.guiscrollbar !== "always") {
         hideScrollbar()
     }
 }
@@ -178,25 +158,19 @@ const loadThemes = (loadedFully = false) => {
             joinPath(appData(), `userstyle/${domain}.css`),
             expandPath(`~/.vieb/userstyle/${domain}.css`)
         ]
-        usercustomStyle.textContent = userStyleFiles.map(f => readFile(f))
+        const style = userStyleFiles.map(f => readFile(f))
             .filter(s => s).join("\n")
-        if (usercustomStyle.textContent) {
-            if (document.head) {
-                document.head.appendChild(usercustomStyle)
-            } else if (document.body) {
-                document.body.appendChild(usercustomStyle)
-            } else {
-                html.appendChild(usercustomStyle)
-            }
-        }
+        ipcRenderer.sendToHost("custom-style-inject", "userstyle", style)
     }
     updateScrollbar()
 }
 ipcRenderer.on("enable-darkreader", () => loadThemes(true))
 ipcRenderer.on("enable-userstyle", () => loadThemes(true))
 ipcRenderer.on("disable-darkreader", () => disableDarkReader())
-ipcRenderer.on("disable-userstyle", () => usercustomStyle.remove())
-ipcRenderer.on("show-scrollbar", () => scrollStyle.remove())
+ipcRenderer.on("disable-userstyle", () => ipcRenderer.sendToHost(
+    "custom-style-inject", "userstyle"))
+ipcRenderer.on("show-scrollbar", () => ipcRenderer.sendToHost(
+    "custom-style-inject", "scrollbar"))
 ipcRenderer.on("hide-scrollbar", () => hideScrollbar())
 loadThemes()
 window.addEventListener("DOMContentLoaded", () => loadThemes())

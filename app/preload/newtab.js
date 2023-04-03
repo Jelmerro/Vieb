@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2021 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -42,7 +42,10 @@ ipcRenderer.on("insert-new-tab-info", (_, topsites, favorites) => {
     if (topsites) {
         document.getElementById("topsites").style.display = "inline-block"
         if (topsites.length) {
-            document.getElementById("topsites").innerHTML = "<h2>Top sites</h2>"
+            const heading = document.createElement("h2")
+            heading.textContent = "Top sites"
+            document.getElementById("topsites").textContent = ""
+            document.getElementById("topsites").append(heading)
             for (const site of topsites) {
                 addSiteToList("topsites", site)
             }
@@ -50,7 +53,10 @@ ipcRenderer.on("insert-new-tab-info", (_, topsites, favorites) => {
     }
     if (favorites.length) {
         document.getElementById("favorites").style.display = "inline-block"
-        document.getElementById("favorites").innerHTML = "<h2>Favorites</h2>"
+        const heading = document.createElement("h2")
+        heading.textContent = "Favorites"
+        document.getElementById("favorites").textContent = ""
+        document.getElementById("favorites").append(heading)
         for (const site of favorites) {
             addSiteToList("favorites", site)
         }

@@ -2052,7 +2052,7 @@ const updateKeysOnScreen = () => {
     if (mapsuggestcount > 0) {
         const mapsuggestPosition = getSetting("mapsuggestposition")
         mapsuggestElement.className = mapsuggestPosition
-        mapsuggestElement.innerHTML = ""
+        mapsuggestElement.textContent = ""
         if (pressedKeys) {
             const [mode] = currentMode()
             const alreadyDone = document.createElement("span")

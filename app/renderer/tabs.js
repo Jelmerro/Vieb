@@ -61,6 +61,7 @@ const timeouts = {}
 const tabFile = joinPath(appData(), "tabs")
 const erwicMode = isFile(joinPath(appData(), "erwicmode"))
 let justSearched = false
+const existingInjections = {}
 
 const init = () => {
     window.addEventListener("load", () => {
@@ -674,6 +675,20 @@ const updateUrl = (webview, force = false) => {
     document.getElementById("url").value = niceUrl
 }
 
+const injectCustomStyleRequest = async(webview, type, css = null) => {
+    const id = webview.getWebContentsId()
+    if (!existingInjections[id]) {
+        existingInjections[id] = {}
+    }
+    if (existingInjections[id][type]) {
+        webview.removeInsertedCSS(existingInjections[id][type])
+        delete existingInjections[id][type]
+    }
+    if (css) {
+        existingInjections[id][type] = await webview.insertCSS(css)
+    }
+}
+
 const addWebviewListeners = webview => {
     webview.addEventListener("load-commit", e => {
         if (e.isMainFrame) {
@@ -995,6 +1010,9 @@ const addWebviewListeners = webview => {
                 const {move} = require("./pointer")
                 move(e.args[0], e.args[1])
             }
+        }
+        if (e.channel === "custom-style-inject") {
+            injectCustomStyleRequest(webview, ...e.args)
         }
     })
     webview.addEventListener("found-in-page", e => {

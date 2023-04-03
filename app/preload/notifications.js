@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020-2021 Jelmer van Arnhem
+* Copyright (C) 2020-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ const {formatDate} = require("../util")
 
 window.addEventListener("DOMContentLoaded", () => {
     ipcRenderer.on("notification-history", (_, notifications) => {
-        document.getElementById("list").innerHTML = ""
+        document.getElementById("list").textContent = ""
         notifications.forEach(notification => {
             const element = document.createElement("div")
             element.className = "notification"
@@ -43,7 +43,7 @@ window.addEventListener("DOMContentLoaded", () => {
             element.appendChild(contents)
             document.getElementById("list").appendChild(element)
         })
-        if (document.getElementById("list").innerHTML === "") {
+        if (document.getElementById("list").textContent === "") {
             document.getElementById("list").textContent
                 = "There have been no notifications so far"
         }

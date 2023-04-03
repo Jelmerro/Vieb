@@ -301,7 +301,7 @@ const quitall = () => {
     }
     const {saveTabs} = require("./tabs")
     saveTabs()
-    document.getElementById("pages").innerHTML = ""
+    document.getElementById("pages").textContent = ""
     clearTempContainers()
     if (getSetting("cache") !== "full") {
         clearCache()

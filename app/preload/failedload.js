@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -32,8 +32,8 @@ kbd {background: var(--code-bg, #111);
 ipcRenderer.on("insert-failed-page-info", (_, e, isSSLError) => {
     const err = JSON.parse(e)
     try {
-        document.body.innerHTML = ""
-        document.head.innerHTML = ""
+        document.body.textContent = ""
+        document.head.textContent = ""
     } catch {
         // Try clearing the existing left over page elements
     }

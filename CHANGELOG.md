@@ -27,6 +27,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "restoretabs" is now an enum that accepts different options
 - Setting "notificationforpermisions" is now an enum that accepts different options
 - Example configs to not include as much duplication as before
+- Userstyles are now applied even if darkreader fails to apply
 
 ### Removed
 
@@ -37,6 +38,9 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Image and svg links not showing since 9.0.0
+- Scrollbar styling not working on pages that block custom CSS
+- Userstyles not working on pages that block custom CSS
+- Display capture styling not working on pages that block custom CSS
 
 ### Versions
 

@@ -192,8 +192,7 @@ try {
         }
         try {
             ipcRenderer.invoke("desktop-capturer-sources").then(sources => {
-                const stylingElem = document.createElement("style")
-                stylingElem.textContent = displayCaptureStyling
+                const style = displayCaptureStyling
                     .replace(/%FONTSIZE%/g, settings.guifontsize || "14")
                     .replace(/%FG%/g, settings.fg || "#eee")
                     .replace(/%BG%/g, settings.bg || "#333")
@@ -226,7 +225,8 @@ try {
                 </span>
             </span>`
                 document.body.appendChild(selectionElem)
-                document.head.appendChild(stylingElem)
+                ipcRenderer.sendToHost(
+                    "custom-style-inject", "displaycapture", style)
                 const closeButtons = [selectionElem, selectionElem
                     .querySelector(".desktop-capturer-selection__close")]
                 closeButtons.forEach(button => {
@@ -237,7 +237,8 @@ try {
                             return
                         }
                         selectionElem.remove()
-                        stylingElem.remove()
+                        ipcRenderer.sendToHost(
+                            "custom-style-inject", "displaycapture")
                         if (settingRule) {
                             ipcRenderer.sendToHost("notify",
                                 `Ask rule for 'displaycapture' activated at '`
@@ -271,7 +272,8 @@ try {
                             reject(err)
                         }
                         selectionElem.remove()
-                        stylingElem.remove()
+                        ipcRenderer.sendToHost(
+                            "custom-style-inject", "displaycapture")
                     })
                 })
             })

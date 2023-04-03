@@ -1114,10 +1114,11 @@ const updateContainerSettings = (full = true) => {
         for (const page of listPages()) {
             const color = allSettings.containercolors.split(",").find(
                 c => page.getAttribute("container").match(c.split("~")[0]))
-            if (color) {
-                [, tabOrPageMatching(page).style.color] = color.split("~")
-            } else {
-                tabOrPageMatching(page).style.color = null
+            const tab = tabOrPageMatching(page)
+            if (tab && color) {
+                [, tab.style.color] = color.split("~")
+            } else if (tab) {
+                tab.style.color = null
             }
         }
     }

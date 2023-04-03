@@ -560,7 +560,7 @@ const commandMenu = options => {
 }
 
 const clear = () => {
-    contextMenu.innerHTML = ""
+    contextMenu.textContent = ""
 }
 
 const fixAlignmentNearBorders = () => {
