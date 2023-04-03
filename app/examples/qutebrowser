@@ -35,18 +35,9 @@ nmap {{ <previousPageNewTab>
 nmap }} <nextPageNewTab>
 nmap gu <toParentUrl>
 nmap gU <openNewTabWithCurrentUrl><CR><toParentUrl>
-nmap <A-1> <:b 0>
 nmap g0 <:b 0>
 nmap g^ <:b -1>
 nmap g$ <:b -1>
-nmap <A-2> <:b 1>
-nmap <A-3> <:b 2>
-nmap <A-4> <:b 3>
-nmap <A-5> <:b 4>
-nmap <A-6> <:b 5>
-nmap <A-7> <:b 6>
-nmap <A-8> <:b 7>
-nmap <A-9> <:b 8>
 nmap <C-^> <:buffer #>
 nmap <C-Tab> <:buffer #>
 nmap ga <:tabnew>

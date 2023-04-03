@@ -24,8 +24,6 @@ nunmap [
 nunmap ]
 nmap [[ <previousPage>
 nmap ]] <nextPage>
-nmap <A-Right> <forwardInHistory>
-nmap <A-Left> <backInHistory>
 nmap <C-6> <:buffer #>
 nmap <C-^> <:buffer #>
 nmap b :buffer<Space>

@@ -24,27 +24,15 @@ nmap <F3> <toSearchMode><nextSearchMatch>
 nmap <S-F3> <toSearchMode><previousSearchMatch>
 nmap <C-g> <toSearchMode><nextSearchMatch>
 nmap <C-G> <toSearchMode><previousSearchMatch>
+nmap <BS> <backInHistory>
 map <C-f> <toSearchMode>
 map <C-h> <:history>
 map <C-j> <:downloads>
 map <C-k> <toExploreMode>
-map <C-l> <toExploreMode>
 map <C-p> <:hardcopy>
 map <C-q> <:quit>
 map <C-s> <:write>
 map <C-t> <:tabnew><toExploreMode>
-map <A-Left> <backInHistory>
-map <A-Right> <forwardInHistory>
-map <A-0> <:b -1>
-map <A-1> <:b 0>
-map <A-2> <:b 1>
-map <A-3> <:b 2>
-map <A-4> <:b 3>
-map <A-5> <:b 4>
-map <A-6> <:b 5>
-map <A-7> <:b 6>
-map <A-8> <:b 7>
-map <A-9> <:b 8>
 map <C-S> <:screenshot>
 vmap <C-f> <p.searchText>
 smap <F3> <nextSearchMatch>

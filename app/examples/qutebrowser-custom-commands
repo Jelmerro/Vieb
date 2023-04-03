@@ -28,13 +28,6 @@ command! navigate_up <toParentUrl>
 command! navigate_up_--tab <openNewTabWithCurrentUrl><CR><toParentUrl>
 command! tab-focus_1 <:b 0>
 command! tab-focus_-1 <:b -1>
-command! tab-focus_2 <:b 1>
-command! tab-focus_3 <:b 2>
-command! tab-focus_4 <:b 3>
-command! tab-focus_5 <:b 4>
-command! tab-focus_6 <:b 5>
-command! tab-focus_7 <:b 6>
-command! tab-focus_8 <:b 7>
 command! tab-focus_last <:buffer #>
 command! open_--tab <:tabnew>
 command! open_--tab_--_{clipboard} <:tabnew><openFromClipboard>
@@ -94,18 +87,9 @@ nmap {{ <:navigate_prev_--tab>
 nmap }} <:navigate_next_--tab>
 nmap gu <:navigate_up>
 nmap gU <:navigate_up_--tab>
-nmap <A-1> <:tab-focus_1>
 nmap g0 <:tab-focus_1>
 nmap g^ <:tab-focus_1>
 nmap g$ <:tab-focus_-1>
-nmap <A-2> <:tab-focus_2>
-nmap <A-3> <:tab-focus_3>
-nmap <A-4> <:tab-focus_4>
-nmap <A-5> <:tab-focus_5>
-nmap <A-6> <:tab-focus_6>
-nmap <A-7> <:tab-focus_7>
-nmap <A-8> <:tab-focus_8>
-nmap <A-9> <:tab-focus_-1>
 nmap <C-^> <:tab-focus_last>
 nmap <C-Tab> <:tab-focus_last>
 nmap ga <:open_--tab>
