@@ -28,6 +28,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "notificationforpermisions" is now an enum that accepts different options
 - Example configs to not include as much duplication as before
 - Userstyles are now applied even if darkreader fails to apply
+- Mapstring splitting to be more accurate when recursively including < and >
 
 ### Removed
 

@@ -637,7 +637,6 @@ let bindings = {}
 let supportedActions = []
 let timeoutTimer = null
 let blockNextInsertKey = false
-const mapStringSplitter = /(<.*?[^-]>|<.*?->>|.)/g
 let inputHistoryList = [{"index": 0, "value": ""}]
 let inputHistoryIndex = 0
 let lastActionInMapping = null
@@ -1146,9 +1145,34 @@ const toIdentifier = e => {
     return keyCode
 }
 
+const splitMapString = mapStr => {
+    const maps = []
+    let bracketCounter = 0
+    let temp = ""
+    for (const char of mapStr.split("")) {
+        if (char === "<") {
+            bracketCounter += 1
+        }
+        if (char === ">") {
+            const isKey = temp.startsWith("<") && !temp.startsWith("<:")
+            const isNotMinus = temp.endsWith("-") && !temp.endsWith("--")
+            if ((!isKey || !isNotMinus) && bracketCounter > 0) {
+                bracketCounter -= 1
+            }
+        }
+        if (bracketCounter) {
+            temp += char
+        } else {
+            maps.push(temp + char)
+            temp = ""
+        }
+    }
+    return {"leftover": temp, maps, "valid": bracketCounter === 0 && !temp}
+}
+
 const fromIdentifier = (identifier, electronNames = true) => {
     let id = String(identifier) || ""
-    id = id.split(mapStringSplitter).filter(m => m)[0] || id
+    id = splitMapString(id).maps[0] ?? id
     const options = {"modifiers": []}
     if (id.startsWith("<") && id.endsWith(">")) {
         id = id.slice(1, -1)
@@ -1319,9 +1343,9 @@ const uncountableActions = [
 ]
 
 const findMaps = (actionKeys, mode, future = false) => {
-    const keys = actionKeys.split(mapStringSplitter).filter(k => k)
+    const keys = splitMapString(actionKeys).maps
     return Object.keys(bindings[mode[0]]).filter(m => {
-        const mapKeys = m.split(mapStringSplitter).filter(k => k)
+        const mapKeys = splitMapString(m).maps
         if (future && mapKeys.length <= keys.length) {
             return false
         }
@@ -1336,8 +1360,8 @@ const findMaps = (actionKeys, mode, future = false) => {
             keyCount += 1
         }
         return true
-    }).sort((a, b) => a.split(mapStringSplitter).filter(k => k).indexOf("<Any>")
-    - b.split(mapStringSplitter).filter(k => k).indexOf("<Any>"))
+    }).sort((a, b) => splitMapString(a).maps.indexOf("<Any>")
+        - splitMapString(b).maps.indexOf("<Any>"))
 }
 
 const hasFutureActions = keys => findMaps(keys, currentMode(), true).length
@@ -1367,8 +1391,7 @@ const repeatLastAction = () => {
 }
 
 const executeMapString = async(mapStr, recursive, initial) => {
-    const actionCallKey = pressedKeys.split(mapStringSplitter)
-        .filter(k => k).at(-1)
+    const actionCallKey = splitMapString(pressedKeys).maps.at(-1)
     if (initial) {
         if (recordingName) {
             if (repeatCounter > 1) {
@@ -1398,7 +1421,7 @@ const executeMapString = async(mapStr, recursive, initial) => {
         if (recursiveCounter > getSetting("maxmapdepth")) {
             break
         }
-        for (const key of mapStr.split(mapStringSplitter).filter(m => m)) {
+        for (const key of splitMapString(mapStr).maps) {
             if (recursiveCounter > getSetting("maxmapdepth")) {
                 break
             }
@@ -1515,7 +1538,7 @@ const handleKeyboard = async e => {
     clearTimeout(timeoutTimer)
     if (getSetting("timeout")) {
         timeoutTimer = setTimeout(async() => {
-            const keys = pressedKeys.split(mapStringSplitter).filter(m => m)
+            const keys = splitMapString(pressedKeys).maps
             if (pressedKeys) {
                 const ac = actionForKeys(pressedKeys)
                 pressedKeys = ""
@@ -1603,7 +1626,7 @@ const handleKeyboard = async e => {
             return
         }
         menuClear()
-        let keys = pressedKeys.split(mapStringSplitter).filter(m => m)
+        let keys = splitMapString(pressedKeys).maps
         pressedKeys = ""
         if (keys.length > 1) {
             if (!hasFutureActions(keys.slice(0, -1).join(""))) {
@@ -2094,8 +2117,8 @@ const updateKeysOnScreen = () => {
             Object.keys(bindings.m)).concat("0123456789".split(""))
     }
     ipcRenderer.send("insert-mode-blockers",
-        blockedKeys.map(key => fromIdentifier(key.split(
-            mapStringSplitter).filter(m => m)[0], false)))
+        blockedKeys.map(key => fromIdentifier(
+            splitMapString(key).maps[0], false)))
 }
 
 const listSupportedActions = () => supportedActions
@@ -2209,8 +2232,14 @@ const mapOrList = (mode, args, noremap, includeDefault) => {
     mapSingle(mode, args, noremap)
 }
 
-const sanitiseMapString = (mapString, allowSpecials = false) => mapString
-    .split(mapStringSplitter).filter(m => m).map(m => {
+const sanitiseMapString = (mapString, allowSpecials = false) => {
+    const {maps, valid, leftover} = splitMapString(mapString)
+    if (!valid) {
+        notify(
+            `Unmatched < > in mapping '${mapString}': ${leftover}`, "warn")
+        return ""
+    }
+    return maps.map(m => {
         if (m === ">") {
             return ">"
         }
@@ -2282,6 +2311,7 @@ const sanitiseMapString = (mapString, allowSpecials = false) => mapString
         }
         return key
     }).join("")
+}
 
 const mapSingle = (mode, args, noremap) => {
     const mapping = sanitiseMapString(args.shift())
@@ -2347,16 +2377,21 @@ const stopRecording = () => {
     if (!recordingName) {
         return
     }
+    let stoppedRecording = false
     const record = {
         "name": recordingName,
-        "string": recordingString.split(mapStringSplitter).filter(k => {
-            if (["<startRecording", "<stopRecording>"].includes(k)) {
+        "string": splitMapString(recordingString).maps.filter(k => {
+            if (k === "<stopRecording>" || stoppedRecording) {
+                stoppedRecording = true
                 return false
             }
-            return !!k
+            return k !== "<startRecording>"
         }).join("")
     }
     recordingName = null
+    if (!record.string) {
+        return
+    }
     return record
 }
 
