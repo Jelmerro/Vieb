@@ -29,6 +29,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Example configs to not include as much duplication as before
 - Userstyles are now applied even if darkreader fails to apply
 - Mapstring splitting to be more accurate when recursively including < and >
+- Mappings for recording macros to be more in line with Vim, by mapping and unmapping them on start/stop
 
 ### Removed
 

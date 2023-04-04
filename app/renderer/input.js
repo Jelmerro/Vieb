@@ -300,10 +300,13 @@ const defaultBindings = {
         "m<Any>": {"mapping": "<storeScrollPos>"},
         "n": {"mapping": "<nextSearchMatch>"},
         "p": {"mapping": "<openFromClipboard>"},
-        "q": {"mapping": "<stopRecording>"},
-        "q<Any>": {"mapping": "<startRecording>"},
-        "q<C-[>": {"mapping": "<stopRecording>"},
-        "q<Esc>": {"mapping": "<stopRecording>"},
+        "q": {"mapping": "<stopRecording><:nmap q<Any> <:nunmap q<Any>>"
+            + "<:punmap q<Any>><:vunmap q<Any>><startRecording>>"
+            + "<:pmap q<Any> <:nunmap q<Any>><:punmap q<Any>>"
+            + "<:vunmap q<Any>><startRecording>><:vmap q<Any> <:nunmap q<Any>>"
+            + "<:punmap q<Any>><:vunmap q<Any>><startRecording>>"},
+        "q<Any>": {"mapping": "<:nunmap q<Any>><:punmap q<Any>>"
+            + "<:vunmap q<Any>><startRecording>"},
         "r": {"mapping": "<refreshTab>"},
         "s": {"mapping": "<p.moveToMouse>"},
         "t": {"mapping": "<:tabnew>"},
@@ -442,10 +445,13 @@ const defaultBindings = {
         "ol": {"mapping": "<p.openLink>"},
         "oo": {"mapping": "<p.openLink>"},
         "ov": {"mapping": "<p.openVideo>"},
-        "q": {"mapping": "<stopRecording>"},
-        "q<Any>": {"mapping": "<startRecording>"},
-        "q<C-[>": {"mapping": "<stopRecording>"},
-        "q<Esc>": {"mapping": "<stopRecording>"},
+        "q": {"mapping": "<stopRecording><:nmap q<Any> <:nunmap q<Any>>"
+            + "<:punmap q<Any>><:vunmap q<Any>><startRecording>>"
+            + "<:pmap q<Any> <:nunmap q<Any>><:punmap q<Any>>"
+            + "<:vunmap q<Any>><startRecording>><:vmap q<Any> <:nunmap q<Any>>"
+            + "<:punmap q<Any>><:vunmap q<Any>><startRecording>>"},
+        "q<Any>": {"mapping": "<:nunmap q<Any>><:punmap q<Any>>"
+            + "<:vunmap q<Any>><startRecording>"},
         "r": {"mapping": "<p.rightClick>"},
         "s": {"mapping": "<p.moveToMouse>"},
         "ta": {"mapping": "<p.newtabAudio>"},
@@ -548,10 +554,13 @@ const defaultBindings = {
         "k": {"mapping": "<p.moveUp>"},
         "l": {"mapping": "<p.moveRight>"},
         "o": {"mapping": "<p.swapPosition>"},
-        "q": {"mapping": "<stopRecording>"},
-        "q<Any>": {"mapping": "<startRecording>"},
-        "q<C-[>": {"mapping": "<stopRecording>"},
-        "q<Esc>": {"mapping": "<stopRecording>"},
+        "q": {"mapping": "<stopRecording><:nmap q<Any> <:nunmap q<Any>>"
+            + "<:punmap q<Any>><:vunmap q<Any>><startRecording>>"
+            + "<:pmap q<Any> <:nunmap q<Any>><:punmap q<Any>>"
+            + "<:vunmap q<Any>><startRecording>><:vmap q<Any> <:nunmap q<Any>>"
+            + "<:punmap q<Any>><:vunmap q<Any>><startRecording>>"},
+        "q<Any>": {"mapping": "<:nunmap q<Any>><:punmap q<Any>>"
+            + "<:vunmap q<Any>><startRecording>"},
         "r": {"mapping": "<p.rightClick>"},
         "s": {"mapping": "<p.moveToMouse>"},
         "tS": {"mapping": "<p.splitText>"},
