@@ -257,6 +257,7 @@ const freeText = [
 const listLike = [
     "containercolors",
     "containernames",
+    "darkreaderscope",
     "favoritepages",
     "followelement",
     "followelementpointer",
@@ -277,7 +278,9 @@ const listLike = [
     "startuppages",
     "storenewvisits",
     "suggestorder",
-    "resourcetypes"
+    "resourcetypes",
+    "userscriptscope",
+    "userstylescope"
 ]
 const listLikeTilde = [
     "useragent",
@@ -628,6 +631,16 @@ const checkOther = (setting, value) => {
             } catch {
                 notify(`Invalid regular expression in ${setting}: ${match}`,
                     "warn")
+                return false
+            }
+        }
+    }
+    const scopeConf = ["darkreaderscope", "userscriptscope", "userstylescope"]
+    if (scopeConf.includes(setting)) {
+        for (const match of value.split(",").filter(c => c.trim())) {
+            if (!["file", "page", "special"].includes(match)) {
+                notify(`Invalid value '${match}' in ${setting}, `
+                    + "must be one of: file, page or special", "warn")
                 return false
             }
         }
@@ -1483,7 +1496,7 @@ const set = (setting, value) => {
                 }
             })
         }
-        if (setting === "userstyle") {
+        if (setting.startsWith("userstyle")) {
             listPages().forEach(p => {
                 try {
                     let scope = "page"
