@@ -22,6 +22,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Suggestions for ranges
 - Argument option to the mute command to force a mute state, such as `:mute! true`
 - Argument option to the pin command to force a pinned state, such as `:pin! false`
+- Setting "followlabelposition" to control where the label of follow elements should appear
 
 ### Changed
 

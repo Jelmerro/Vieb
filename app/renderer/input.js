@@ -83,7 +83,8 @@ const defaultBindings = {
         "<C-[>": {"mapping": "<stopFollowMode>"},
         "<Esc>": {"mapping": "<stopFollowMode>"},
         "<F4>": {"mapping": "<stopFollowMode>"},
-        "<Tab>": {"mapping": "<reorderFollowLinks>"}
+        "<Tab>": {"mapping": "<reorderFollowLinks>"},
+        "`": {"mapping": "<:set followlabelposition!>"}
     },
     "i": {
         "<C-[>": {"mapping": "<toNormalMode>"},

@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -231,7 +231,7 @@ const parseAndDisplayLinks = receivedLinks => {
     }
     const factor = currentPage().getZoomFactor()
     const followChildren = []
-    const {scrollWidth} = currentPage()
+    const {scrollWidth, scrollHeight} = currentPage()
     const fontsize = getSetting("guifontsize")
     const styling = document.createElement("span")
     styling.className = "follow-url-border"
@@ -243,6 +243,8 @@ const parseAndDisplayLinks = receivedLinks => {
     borderWidthKeys += propPixels(styling, "paddingRight")
     document.getElementById("follow").removeChild(styling)
     const neededLength = numberToKeys(links.length).length
+    const followlabelposition = getSetting("followlabelposition")
+    const linkElementHeight = fontsize + borderWidthKeys + borderWidthOutline
     links.forEach((link, index) => {
         if (!link) {
             return
@@ -302,22 +304,82 @@ const parseAndDisplayLinks = receivedLinks => {
             }
         })
         followChildren.push(borderElement)
-        // Show the link key in the top right
+        // Show the link key in the preferred position
         const linkElement = document.createElement("span")
         linkElement.textContent = numberToKeys(index, neededLength)
         linkElement.className = `follow-${link.type}`
-        const charWidth = fontsize * 0.60191
+        const charWidth = fontsize * 0.52
         const linkElementWidth = charWidth * linkElement.textContent.length
             + borderWidthKeys + borderWidthOutline
-        let left = x + width
-        if (x + width > scrollWidth - linkElementWidth) {
+        let left = {
+            "cornerbottomleft": x - linkElementWidth,
+            "cornerbottomright": x + width,
+            "cornertopleft": x - linkElementWidth,
+            "cornertopright": x + width,
+            "insidebottomcenter": x + width / 2 - linkElementWidth / 2,
+            "insidebottomleft": x,
+            "insidebottomright": x + width - linkElementWidth,
+            "insideleftcenter": x,
+            "insiderightcenter": x + width - linkElementWidth,
+            "insidetopcenter": x + width / 2 - linkElementWidth / 2,
+            "insidetopleft": x,
+            "insidetopright": x + width - linkElementWidth,
+            "outsidebottomcenter": x + width / 2 - linkElementWidth / 2,
+            "outsidebottomleft": x,
+            "outsidebottomright": x + width - linkElementWidth,
+            "outsideleftbottom": x - linkElementWidth,
+            "outsideleftcenter": x - linkElementWidth,
+            "outsidelefttop": x - linkElementWidth,
+            "outsiderightbottom": x + width,
+            "outsiderightcenter": x + width,
+            "outsiderighttop": x + width,
+            "outsidetopcenter": x + width / 2 - linkElementWidth / 2,
+            "outsidetopleft": x,
+            "outsidetopright": x + width - linkElementWidth
+        }[followlabelposition]
+        let top = {
+            "cornerbottomleft": y + height,
+            "cornerbottomright": y + height,
+            "cornertopleft": y - linkElementHeight,
+            "cornertopright": y - linkElementHeight,
+            "insidebottomcenter": y + height - linkElementHeight,
+            "insidebottomleft": y + height - linkElementHeight,
+            "insidebottomright": y + height - linkElementHeight,
+            "insideleftcenter": y + height / 2 - linkElementHeight / 2,
+            "insiderightcenter": y + height / 2 - linkElementHeight / 2,
+            "insidetopcenter": y,
+            "insidetopleft": y,
+            "insidetopright": y,
+            "outsidebottomcenter": y + height,
+            "outsidebottomleft": y + height,
+            "outsidebottomright": y + height,
+            "outsideleftbottom": y + height - linkElementHeight,
+            "outsideleftcenter": y + height / 2 - linkElementHeight / 2,
+            "outsidelefttop": y,
+            "outsiderightbottom": y + height - linkElementHeight,
+            "outsiderightcenter": y + height / 2 - linkElementHeight / 2,
+            "outsiderighttop": y,
+            "outsidetopcenter": y - linkElementHeight,
+            "outsidetopleft": y - linkElementHeight,
+            "outsidetopright": y - linkElementHeight
+        }[followlabelposition]
+        if (left > scrollWidth - linkElementWidth) {
             left = scrollWidth - linkElementWidth
+        }
+        if (left < 0) {
+            left = 0
+        }
+        if (top > scrollHeight - linkElementHeight) {
+            top = scrollHeight - linkElementHeight
+        }
+        if (top < 0) {
+            top = 0
         }
         if (linkInList([link], hoverLink)) {
             borderElement.classList.add("hover")
         }
         linkElement.style.left = `${left.toFixed(2)}px`
-        linkElement.style.top = `${y}px`
+        linkElement.style.top = `${top.toFixed(2)}px`
         linkElement.setAttribute("link-id", index)
         linkElement.addEventListener("mouseup", onclickListener)
         linkElement.addEventListener("mousemove", () => {
