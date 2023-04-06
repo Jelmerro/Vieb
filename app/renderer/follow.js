@@ -27,7 +27,7 @@ const {
     getStored,
     getMouseConf
 } = require("./common")
-const {propPixels, sendToPageOrSubFrame} = require("../util")
+const {sendToPageOrSubFrame} = require("../util")
 
 let hoverLink = null
 let followLinkDestination = "current"
@@ -229,9 +229,11 @@ const parseAndDisplayLinks = receivedLinks => {
     while (!links[links.length - 1] && links.length) {
         links.pop()
     }
+    const followDims = document.getElementById("follow").getBoundingClientRect().toJSON()
+    followDims.right = window.innerWidth - followDims.left - followDims.width
+    followDims.bottom = window.innerHeight - followDims.top - followDims.height
     const factor = currentPage().getZoomFactor()
     const followChildren = []
-    const {scrollWidth, scrollHeight} = currentPage()
     const neededLength = numberToKeys(links.length).length
     const followlabelposition = getSetting("followlabelposition")
     links.forEach((link, index) => {
@@ -358,31 +360,39 @@ const parseAndDisplayLinks = receivedLinks => {
         for (const align of ["left", "top", "right", "bottom", "transform"]) {
             if (alignment[align] !== undefined) {
                 let value = alignment[align]
+                if (align === "left") {
+                    if (value > followDims.width + followDims.right - 30) {
+                        value = followDims.width + followDims.right
+                        linkElement.style.transform += "translateX(-100%) "
+                    }
+                }
+                if (align === "top") {
+                    if (value > followDims.height + followDims.bottom - 30) {
+                        value = followDims.height + followDims.bottom
+                        linkElement.style.transform += "translateY(-100%) "
+                    }
+                }
                 if (align === "right") {
-                    value = scrollWidth - value
+                    if (value + followDims.left < 30) {
+                        value = 0
+                        linkElement.style.transform += "translateX(100%) "
+                    }
+                    value = followDims.width - value
                 }
                 if (align === "bottom") {
-                    value = scrollHeight - value
+                    if (value + followDims.top < 30) {
+                        value = 0
+                        linkElement.style.transform += "translateY(100%) "
+                    }
+                    value = followDims.height - value
                 }
                 if (align === "transform") {
-                    linkElement.style.transform = value
+                    linkElement.style.transform += value
                 } else {
                     linkElement.style[align] = `${value.toFixed(2)}px`
                 }
             }
         }
-        // If (left > scrollWidth - linkElementWidth) {
-        //     left = scrollWidth - linkElementWidth
-        // }
-        // if (left < 0) {
-        //     left = 0
-        // }
-        // if (top > scrollHeight - linkElementHeight) {
-        //     top = scrollHeight - linkElementHeight
-        // }
-        // if (top < 0) {
-        //     top = 0
-        // }
         if (linkInList([link], hoverLink)) {
             borderElement.classList.add("hover")
         }
