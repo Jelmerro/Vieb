@@ -229,9 +229,12 @@ const parseAndDisplayLinks = receivedLinks => {
     while (!links[links.length - 1] && links.length) {
         links.pop()
     }
-    const followDims = document.getElementById("follow").getBoundingClientRect().toJSON()
-    followDims.right = window.innerWidth - followDims.left - followDims.width
-    followDims.bottom = window.innerHeight - followDims.top - followDims.height
+    const baseDims = document.getElementById("follow")
+        .getBoundingClientRect().toJSON()
+    baseDims.right = window.innerWidth - baseDims.left - baseDims.width
+    baseDims.bottom = window.innerHeight - baseDims.top - baseDims.height
+    const elWidth = document.querySelector("#follow [link-id]")
+        ?.getBoundingClientRect()?.width ?? 0
     const factor = currentPage().getZoomFactor()
     const followChildren = []
     const neededLength = numberToKeys(links.length).length
@@ -360,31 +363,31 @@ const parseAndDisplayLinks = receivedLinks => {
         for (const align of ["left", "top", "right", "bottom", "transform"]) {
             if (alignment[align] !== undefined) {
                 let value = alignment[align]
-                if (align === "left") {
-                    if (value > followDims.width + followDims.right - 30) {
-                        value = followDims.width + followDims.right
+                if (align === "left" && elWidth) {
+                    if (value > baseDims.width + baseDims.right - elWidth) {
+                        value = baseDims.width + baseDims.right
                         linkElement.style.transform += "translateX(-100%) "
                     }
                 }
-                if (align === "top") {
-                    if (value > followDims.height + followDims.bottom - 30) {
-                        value = followDims.height + followDims.bottom
+                if (align === "top" && elWidth) {
+                    if (value > baseDims.height + baseDims.bottom - elWidth) {
+                        value = baseDims.height + baseDims.bottom
                         linkElement.style.transform += "translateY(-100%) "
                     }
                 }
                 if (align === "right") {
-                    if (value + followDims.left < 30) {
+                    if (elWidth && value + baseDims.left < elWidth) {
                         value = 0
                         linkElement.style.transform += "translateX(100%) "
                     }
-                    value = followDims.width - value
+                    value = baseDims.width - value
                 }
                 if (align === "bottom") {
-                    if (value + followDims.top < 30) {
+                    if (elWidth && value + baseDims.top < elWidth) {
                         value = 0
                         linkElement.style.transform += "translateY(100%) "
                     }
-                    value = followDims.height - value
+                    value = baseDims.height - value
                 }
                 if (align === "transform") {
                     linkElement.style.transform += value
