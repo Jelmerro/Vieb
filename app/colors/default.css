@@ -221,7 +221,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #url.file {border-color: var(--url-file);}
 #url.invalid {border-color: var(--url-invalid);}
 /* follow */
-#app #follow {position: fixed;display: none;z-index: 1;height: 100%;width: 100%;pointer-events: none;}
+#app #follow {position: fixed;display: none;z-index: 3;height: 100%;width: 100%;pointer-events: none;}
 #app #follow * {pointer-events: auto;}
 #app #follow .follow-url, #app #follow .follow-inputs-click, #app #follow .follow-inputs-insert, #app #follow .follow-onclick, #app #follow .follow-media, #app #follow .follow-image, #app #follow .follow-other {position: absolute;color: var(--follow-text);padding: 0 .1em;}
 .follow-url-border, .follow-inputs-click-border, .follow-inputs-insert-border, .follow-onclick-border, .follow-media-border, .follow-image-border, .follow-other-border {position: absolute;box-sizing: border-box;}
@@ -283,7 +283,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #app.mousedisabled-drag:not(.mouse-follow) .follow-url, #app.mousedisabled-drag:not(.mouse-follow) .follow-inputs-click, #app.mousedisabled-drag:not(.mouse-follow) .follow-inputs-insert, #app.mousedisabled-drag:not(.mouse-follow) .follow-onclick, #app.mousedisabled-drag:not(.mouse-follow) .follow-media, #app.mousedisabled-drag:not(.mouse-follow) .follow-image, #app.mousedisabled-drag:not(.mouse-follow) .follow-other {-webkit-app-region: drag;}
 #app.mousedisabled-drag:not(.mouse-follow) .follow-url-border, #app.mousedisabled-drag:not(.mouse-follow) .follow-inputs-click-border, #app.mousedisabled-drag:not(.mouse-follow) .follow-inputs-insert-border, #app.mousedisabled-drag:not(.mouse-follow) .follow-onclick-border, #app.mousedisabled-drag:not(.mouse-follow) .follow-media-border, #app.mousedisabled-drag:not(.mouse-follow) .follow-image-border, #app.mousedisabled-drag:not(.mouse-follow) .follow-other-border {-webkit-app-region: drag;}
 /* notifications & map suggestions */
-#notifications, #app #mapsuggest {display: flex;position: fixed;flex-direction: column;z-index: 2;}
+#notifications, #app #mapsuggest {display: flex;position: fixed;flex-direction: column;z-index: 5;}
 #notifications > span, #app #mapsuggest {background: var(--bg);margin-bottom: .5em;padding: .5em;display: flex;min-width: 25em;width: 33vw;max-width: 100em;border: .1em solid var(--notification-border);overflow-wrap: anywhere;white-space: pre-wrap;}
 #notifications > span.permission {color: var(--notification-permission);}
 #notifications > span.dialog {color: var(--notification-dialog);}
@@ -320,7 +320,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #app #pointer {display: none;position: fixed;height: 1em;width: .7em;z-index: 40;backdrop-filter: invert(100%);animation: 1s infinite pointer;}
 #app[current-mode=pointer] #pointer {display: block;}
 #app[current-mode=visual] #pointer {display: block;}
-#url-hover {display: none;position: absolute;background: var(--url-hover-bg);color:var(--url-hover-fg);bottom: 0;left: 0;right: 0;pointer-events: none;padding: .1em;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;width: fit-content;margin: auto;max-width: 80vw;text-align: center;z-index: 3;}
+#url-hover {display: none;position: absolute;background: var(--url-hover-bg);color:var(--url-hover-fg);bottom: 0;left: 0;right: 0;pointer-events: none;padding: .1em;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;width: fit-content;margin: auto;max-width: 80vw;text-align: center;z-index: 4;}
 
 
 /*
@@ -343,7 +343,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 /* downloads */
 #downloadspage .download {background: var(--special-page-element-bg);margin-bottom: 1em;border: .1em solid var(--special-page-element-border);}
 #downloadspage .title {margin: .4em;font-size: 1.5em;width: calc(100% - 4em);cursor: pointer;}
-#downloadspage progress {-webkit-appearance: none;width: calc(100% - 1em);margin: .5em;}
+#downloadspage progress {-webkit-appearance: none;appearance: none;width: calc(100% - 1em);margin: .5em;}
 #downloadspage progress::-webkit-progress-value {background: var(--download-progress-fg);}
 #downloadspage progress::-webkit-progress-bar {background: var(--download-progress-bg);}
 #downloadspage .misc {display: flex;margin: .5em;flex-direction: column;width: calc(100% - 1em);}
