@@ -308,78 +308,127 @@ const parseAndDisplayLinks = receivedLinks => {
         const linkElement = document.createElement("span")
         linkElement.textContent = numberToKeys(index, neededLength)
         linkElement.className = `follow-${link.type}`
-        const charWidth = fontsize * 0.52
+        const charWidth = fontsize * 0.60191
         const linkElementWidth = charWidth * linkElement.textContent.length
             + borderWidthKeys + borderWidthOutline
-        let left = {
-            "cornerbottomleft": x - linkElementWidth,
-            "cornerbottomright": x + width,
-            "cornertopleft": x - linkElementWidth,
-            "cornertopright": x + width,
-            "insidebottomcenter": x + width / 2 - linkElementWidth / 2,
-            "insidebottomleft": x,
-            "insidebottomright": x + width - linkElementWidth,
-            "insideleftcenter": x,
-            "insiderightcenter": x + width - linkElementWidth,
-            "insidetopcenter": x + width / 2 - linkElementWidth / 2,
-            "insidetopleft": x,
-            "insidetopright": x + width - linkElementWidth,
-            "outsidebottomcenter": x + width / 2 - linkElementWidth / 2,
-            "outsidebottomleft": x,
-            "outsidebottomright": x + width - linkElementWidth,
-            "outsideleftbottom": x - linkElementWidth,
-            "outsideleftcenter": x - linkElementWidth,
-            "outsidelefttop": x - linkElementWidth,
-            "outsiderightbottom": x + width,
-            "outsiderightcenter": x + width,
-            "outsiderighttop": x + width,
-            "outsidetopcenter": x + width / 2 - linkElementWidth / 2,
-            "outsidetopleft": x,
-            "outsidetopright": x + width - linkElementWidth
+        const alignment = {
+            "cornerbottomleft": {
+                "left": x - linkElementWidth,
+                "top": y + height
+            },
+            "cornerbottomright": {
+                "left": x + width,
+                "top": y + height
+            },
+            "cornertopleft": {
+                "left": x - linkElementWidth,
+                "top": y - linkElementHeight
+            },
+            "cornertopright": {
+                "left": x + width,
+                "top": y - linkElementHeight
+            },
+            "insidebottomcenter": {
+                "left": x + width / 2 - linkElementWidth / 2,
+                "top": y + height - linkElementHeight
+            },
+            "insidebottomleft": {
+                "left": x,
+                "top": y + height - linkElementHeight
+            },
+            "insidebottomright": {
+                "left": x + width - linkElementWidth,
+                "top": y + height - linkElementHeight
+            },
+            "insideleftcenter": {
+                "left": x,
+                "top": y + height / 2 - linkElementHeight / 2
+            },
+            "insiderightcenter": {
+                "left": x + width - linkElementWidth,
+                "top": y + height / 2 - linkElementHeight / 2
+            },
+            "insidetopcenter": {
+                "left": x + width / 2 - linkElementWidth / 2,
+                "top": y
+            },
+            "insidetopleft": {
+                "left": x,
+                "top": y
+            },
+            "insidetopright": {
+                "left": x + width - linkElementWidth,
+                "top": y
+            },
+            "outsidebottomcenter": {
+                "left": x + width / 2 - linkElementWidth / 2,
+                "top": y + height
+            },
+            "outsidebottomleft": {
+                "left": x,
+                "top": y + height
+            },
+            "outsidebottomright": {
+                "left": x + width - linkElementWidth,
+                "top": y + height
+            },
+            "outsideleftbottom": {
+                "left": x - linkElementWidth,
+                "top": y + height - linkElementHeight
+            },
+            "outsideleftcenter": {
+                "left": x - linkElementWidth,
+                "top": y + height / 2 - linkElementHeight / 2
+            },
+            "outsidelefttop": {
+                "left": x - linkElementWidth,
+                "top": y
+            },
+            "outsiderightbottom": {
+                "left": x + width,
+                "top": y + height - linkElementHeight
+            },
+            "outsiderightcenter": {
+                "left": x + width,
+                "top": y + height / 2 - linkElementHeight / 2
+            },
+            "outsiderighttop": {
+                "left": x + width,
+                "top": y
+            },
+            "outsidetopcenter": {
+                "left": x + width / 2 - linkElementWidth / 2,
+                "top": y - linkElementHeight
+            },
+            "outsidetopleft": {
+                "left": x,
+                "top": y - linkElementHeight
+            },
+            "outsidetopright": {
+                "left": x + width - linkElementWidth,
+                "top": y - linkElementHeight
+            }
         }[followlabelposition]
-        let top = {
-            "cornerbottomleft": y + height,
-            "cornerbottomright": y + height,
-            "cornertopleft": y - linkElementHeight,
-            "cornertopright": y - linkElementHeight,
-            "insidebottomcenter": y + height - linkElementHeight,
-            "insidebottomleft": y + height - linkElementHeight,
-            "insidebottomright": y + height - linkElementHeight,
-            "insideleftcenter": y + height / 2 - linkElementHeight / 2,
-            "insiderightcenter": y + height / 2 - linkElementHeight / 2,
-            "insidetopcenter": y,
-            "insidetopleft": y,
-            "insidetopright": y,
-            "outsidebottomcenter": y + height,
-            "outsidebottomleft": y + height,
-            "outsidebottomright": y + height,
-            "outsideleftbottom": y + height - linkElementHeight,
-            "outsideleftcenter": y + height / 2 - linkElementHeight / 2,
-            "outsidelefttop": y,
-            "outsiderightbottom": y + height - linkElementHeight,
-            "outsiderightcenter": y + height / 2 - linkElementHeight / 2,
-            "outsiderighttop": y,
-            "outsidetopcenter": y - linkElementHeight,
-            "outsidetopleft": y - linkElementHeight,
-            "outsidetopright": y - linkElementHeight
-        }[followlabelposition]
-        if (left > scrollWidth - linkElementWidth) {
-            left = scrollWidth - linkElementWidth
+        for (const align of ["left", "top", "right", "bottom"]) {
+            if (alignment[align] !== undefined) {
+                linkElement.style[align] = `${alignment[align].toFixed(2)}px`
+            }
         }
-        if (left < 0) {
-            left = 0
-        }
-        if (top > scrollHeight - linkElementHeight) {
-            top = scrollHeight - linkElementHeight
-        }
-        if (top < 0) {
-            top = 0
-        }
+        // if (left > scrollWidth - linkElementWidth) {
+        //     left = scrollWidth - linkElementWidth
+        // }
+        // if (left < 0) {
+        //     left = 0
+        // }
+        // if (top > scrollHeight - linkElementHeight) {
+        //     top = scrollHeight - linkElementHeight
+        // }
+        // if (top < 0) {
+        //     top = 0
+        // }
         if (linkInList([link], hoverLink)) {
             borderElement.classList.add("hover")
         }
-        linkElement.style.left = `${left.toFixed(2)}px`
-        linkElement.style.top = `${top.toFixed(2)}px`
         linkElement.setAttribute("link-id", index)
         linkElement.addEventListener("mouseup", onclickListener)
         linkElement.addEventListener("mousemove", () => {
