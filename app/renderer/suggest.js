@@ -338,6 +338,10 @@ const suggestCommand = searchStr => {
         // Don't suggest when it's disabled or the search is empty
         return
     }
+    let confirmChar = ""
+    if (confirm) {
+        confirmChar = "!"
+    }
     // List all commands unconditionally
     const {
         commandList, customCommandsAsCommandList, rangeToTabIdxs
@@ -405,21 +409,23 @@ const suggestCommand = searchStr => {
         if (location.startsWith("\"") && location.endsWith("\"")) {
             location = location.slice(1, location.length - 1)
         }
-        if (!location) {
-            addCommand(`${range}write ~`)
-            addCommand(`${range}write /`)
+        if (!location && !range) {
+            addCommand("write ~")
+            addCommand("write /")
             if (downloadPath()) {
-                addCommand(`${range}write ${downloadPath()}`)
+                addCommand(`write ${downloadPath()}`)
             }
         }
-        if (location || search.endsWith(" ")) {
+        if (location || search.endsWith(" ") && !range) {
             if (!isAbsolutePath(location)) {
                 location = joinPath(downloadPath(), location)
             }
-            suggestFiles(location).forEach(l => addCommand(
-                `${range}write ${l.path}`))
+            suggestFiles(location).forEach(l => addCommand(`write ${l.path}`))
         }
         if (range) {
+            if (range.length > 1) {
+                addCommand(`${range}write`)
+            }
             const tabs = listTabs()
             rangeToTabIdxs(range).map(num => {
                 const tab = tabs.at(num)
@@ -492,10 +498,6 @@ const suggestCommand = searchStr => {
     }
     // Command: help
     if ("help".startsWith(command) && !range) {
-        let confirmChar = ""
-        if (confirm) {
-            confirmChar = "!"
-        }
         const {
             listSupportedActions, listMappingsAsCommandList
         } = require("./input")
@@ -585,7 +587,7 @@ const suggestCommand = searchStr => {
         })
     }
     // Command: buffer, hide, Vexplore, Sexplore, split, vsplit etc.
-    const bufferCommand = [
+    [
         "buffer",
         "hide",
         "mute",
@@ -596,39 +598,45 @@ const suggestCommand = searchStr => {
         "suspend",
         "vsplit",
         "close"
-    ].find(b => b.startsWith(command))
-    if (bufferCommand && (bufferCommand === "close" || !confirm)) {
-        if (range) {
-            addCommand(`${range}${bufferCommand}`)
-            const tabs = listTabs()
-            rangeToTabIdxs(range).map(num => {
-                const tab = tabs.at(num)
-                if (!tab) {
-                    return null
-                }
-                const index = tabs.indexOf(tab)
-                return {
-                    "command": `${index}${bufferCommand}`,
-                    "icon": tabOrPageMatching(tab).src,
-                    "title": tab.querySelector("span").textContent,
-                    "url": tabOrPageMatching(tab).src
-                }
-            }).filter(t => t).forEach(
-                t => addCommand(t.command, t.title, t.url, t.icon))
-            return
-        }
-        const {allTabsForBufferArg} = require("./command")
-        const tabs = listTabs()
-        allTabsForBufferArg(args).map(b => {
-            const index = tabs.indexOf(b.tab)
-            return {
-                "command": `${bufferCommand} ${index}`,
-                "icon": b.url ?? tabOrPageMatching(b.tab).src,
-                "title": b.title ?? b.tab.querySelector("span").textContent,
-                "url": b.url ?? tabOrPageMatching(b.tab).src
+    ].forEach(bufferCommand => {
+        if (bufferCommand.startsWith(command)) {
+            if (bufferCommand !== "close" && confirm) {
+                return
             }
-        }).forEach(t => addCommand(t.command, t.title, t.url, t.icon))
-    }
+            if (range) {
+                if (range.length > 1) {
+                    addCommand(`${range}${bufferCommand}`)
+                }
+                const tabs = listTabs()
+                rangeToTabIdxs(range).map(num => {
+                    const tab = tabs.at(num)
+                    if (!tab) {
+                        return null
+                    }
+                    const index = tabs.indexOf(tab)
+                    return {
+                        "command": `${index}${bufferCommand}${confirmChar}`,
+                        "icon": tabOrPageMatching(tab).src,
+                        "title": tab.querySelector("span").textContent,
+                        "url": tabOrPageMatching(tab).src
+                    }
+                }).filter(t => t).forEach(
+                    t => addCommand(t.command, t.title, t.url, t.icon))
+                return
+            }
+            const {allTabsForBufferArg} = require("./command")
+            const tabs = listTabs()
+            allTabsForBufferArg(args).map(b => {
+                const index = tabs.indexOf(b.tab)
+                return {
+                    "command": `${bufferCommand}${confirmChar} ${index}`,
+                    "icon": b.url ?? tabOrPageMatching(b.tab).src,
+                    "title": b.title ?? b.tab.querySelector("span").textContent,
+                    "url": b.url ?? tabOrPageMatching(b.tab).src
+                }
+            }).forEach(t => addCommand(t.command, t.title, t.url, t.icon))
+        }
+    })
     // Command: clear
     if ("clear".startsWith(command) && !range && !confirm && args.length < 3) {
         const argStr = `clear ${search.split(" ").slice(1).join(" ")}`

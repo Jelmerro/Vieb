@@ -788,7 +788,7 @@ const suspend = (args, range) => {
         return
     }
     if (range) {
-        rangeToTabIdxs(range).forEach(t => suspend(t))
+        rangeToTabIdxs(range).forEach(t => suspend([t]))
         return
     }
     let tab = null
@@ -815,7 +815,7 @@ const hide = (args, range) => {
         return
     }
     if (range) {
-        rangeToTabIdxs(range).forEach(t => hide(t))
+        rangeToTabIdxs(range).forEach(t => hide([t]))
         return
     }
     let tab = null
@@ -840,7 +840,7 @@ const mute = (args, range) => {
         return
     }
     if (range) {
-        rangeToTabIdxs(range).forEach(t => mute(t))
+        rangeToTabIdxs(range).forEach(t => mute([t]))
         return
     }
     let tab = currentTab()
@@ -867,7 +867,7 @@ const pin = (args, range) => {
         return
     }
     if (range) {
-        rangeToTabIdxs(range).forEach(t => pin(t))
+        rangeToTabIdxs(range).forEach(t => pin([t]))
         return
     }
     let tab = currentTab()
@@ -933,7 +933,7 @@ const close = (force, args, range) => {
     }
     const {closeTab} = require("./tabs")
     if (range) {
-        rangeToTabIdxs(range).forEach(t => close(force, t))
+        rangeToTabIdxs(range).forEach(t => close(force, [t]))
         return
     }
     if (args.length === 0) {

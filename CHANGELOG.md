@@ -31,6 +31,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Userstyles are now applied even if darkreader fails to apply
 - Mapstring splitting to be more accurate when recursively including < and >
 - Mappings for recording macros to be more in line with Vim, by mapping and unmapping them on start/stop
+- Buffer commands to show all matching commands instead of the first one (especially useful for ranges)
 
 ### Removed
 
@@ -44,6 +45,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Scrollbar styling not working on pages that block custom CSS
 - Userstyles not working on pages that block custom CSS
 - Display capture styling not working on pages that block custom CSS
+- Index-based ranges not working correctly for some commands
 
 ### Versions
 
