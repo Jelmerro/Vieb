@@ -837,6 +837,7 @@ const hide = (args, range) => {
 const setMute = (args, range) => {
     if (args.length !== 1 || !["true", "false"].includes(args[0])) {
         notify("Command mute! requires a single boolean argument", "warn")
+        return
     }
     let targets = [currentTab()]
     if (range) {
@@ -886,13 +887,53 @@ const mute = (args, range) => {
     saveTabs()
 }
 
+const setPin = (args, range) => {
+    if (args.length !== 1 || !["true", "false"].includes(args[0])) {
+        notify("Command pin! requires a single boolean argument", "warn")
+        return
+    }
+    let targets = [currentTab()]
+    const tabs = listTabs()
+    if (range) {
+        targets = rangeToTabIdxs(range).map(id => tabs[id])
+    }
+    const firstUnpinned = tabs.find(t => !t.classList.contains("pinned"))
+    targets.forEach(tab => {
+        const tabContainer = document.getElementById("tabs")
+        if (args[0] === "true") {
+            if (!tab.classList.contains("pinned")) {
+                tabContainer.insertBefore(tab,
+                    tabs.find(t => !t.classList.contains("pinned")))
+                tab.classList.add("pinned")
+            }
+        } else if (tab.classList.contains("pinned")) {
+            tabContainer.insertBefore(tab, firstUnpinned)
+            tab.classList.remove("pinned")
+        }
+    })
+    const {saveTabs} = require("./tabs")
+    saveTabs()
+}
+
 const pin = (args, range) => {
     if (range && args.length) {
         notify("Range cannot be combined with searching", "warn")
         return
     }
     if (range) {
-        rangeToTabIdxs(range).forEach(t => pin([t]))
+        const tabs = listTabs()
+        const tabContainer = document.getElementById("tabs")
+        const firstUnpinned = tabs.find(t => !t.classList.contains("pinned"))
+        rangeToTabIdxs(range).map(id => tabs[id]).forEach(target => {
+            if (target.classList.contains("pinned")) {
+                tabContainer.insertBefore(target, firstUnpinned)
+                target.classList.remove("pinned")
+            } else {
+                tabContainer.insertBefore(target,
+                    tabs.find(t => !t.classList.contains("pinned")))
+                target.classList.add("pinned")
+            }
+        })
         return
     }
     let tab = currentTab()
@@ -904,14 +945,15 @@ const pin = (args, range) => {
         return
     }
     const tabContainer = document.getElementById("tabs")
+    const tabs = listTabs()
+    const firstUnpinned = tabs.find(t => !t.classList.contains("pinned"))
     if (tab.classList.contains("pinned")) {
-        tabContainer.insertBefore(tab, listTabs().find(
-            t => !t.classList.contains("pinned")))
+        tabContainer.insertBefore(tab, firstUnpinned)
         tab.classList.remove("pinned")
     } else {
+        tabContainer.insertBefore(tab,
+            tabs.find(t => !t.classList.contains("pinned")))
         tab.classList.add("pinned")
-        tabContainer.insertBefore(tab, listTabs().find(
-            t => !t.classList.contains("pinned")))
     }
     const {saveTabs} = require("./tabs")
     saveTabs()
@@ -958,7 +1000,10 @@ const close = (force, args, range) => {
     }
     const {closeTab} = require("./tabs")
     if (range) {
-        rangeToTabIdxs(range).forEach(t => close(force, [t]))
+        const tabs = listTabs()
+        rangeToTabIdxs(range).map(id => tabs[id]).forEach(target => {
+            closeTab(listTabs().indexOf(target), force)
+        })
         return
     }
     if (args.length === 0) {
@@ -1665,6 +1710,7 @@ const commands = {
     },
     "open": ({args}) => open(args),
     "pin": ({args, range}) => pin(args, range),
+    "pin!": ({args, range}) => setPin(args, range),
     "pointerpos": ({args}) => pointerpos(args),
     "print": ({range}) => hardcopy(range),
     "q": ({range}) => quit(range),

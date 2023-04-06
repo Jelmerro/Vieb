@@ -21,6 +21,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Settings "userscriptscope", "userstylescope" and "darkreaderscope" to control which pages scripts, styles and darkreader should run
 - Suggestions for ranges
 - Argument option to the mute command to force a mute state, such as `:mute! true`
+- Argument option to the pin command to force a pinned state, such as `:pin! false`
 
 ### Changed
 
@@ -33,6 +34,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Mapstring splitting to be more accurate when recursively including < and >
 - Mappings for recording macros to be more in line with Vim, by mapping and unmapping them on start/stop
 - Buffer commands to show all matching commands instead of the first one (especially useful for ranges)
+- Pin command to better preserve tab order when using ranges
 
 ### Removed
 

@@ -598,7 +598,7 @@ const suggestCommand = searchStr => {
         "close"
     ].forEach(bufferCommand => {
         if (bufferCommand.startsWith(command)) {
-            const acceptsConfirm = ["close", "mute"]
+            const acceptsConfirm = ["close", "mute", "pin"]
             if (!acceptsConfirm.includes(bufferCommand) && confirm) {
                 return
             }
@@ -607,7 +607,7 @@ const suggestCommand = searchStr => {
                 if (acceptsConfirm.includes(bufferCommand) && !confirm) {
                     addCommand(`${range}${bufferCommand}!`)
                 }
-                if (bufferCommand === "mute" && confirm) {
+                if (["mute", "pin"].includes(bufferCommand) && confirm) {
                     addCommand(`${range}${bufferCommand}${confirmChar} true`)
                     addCommand(`${range}${bufferCommand}${confirmChar} false`)
                 }
@@ -628,7 +628,7 @@ const suggestCommand = searchStr => {
                     t => addCommand(t.command, t.title, t.url, t.icon, true))
                 return
             }
-            if (bufferCommand === "mute" && confirm) {
+            if (["mute", "pin"].includes(bufferCommand) && confirm) {
                 addCommand(`${bufferCommand}${confirmChar} true`)
                 addCommand(`${bufferCommand}${confirmChar} false`)
                 return

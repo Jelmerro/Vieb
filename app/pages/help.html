@@ -665,7 +665,7 @@
             <li><span class="command-block">:mute! true</span> - Mute the tab, even if already muted</li>
             <li><span class="command-block">:mute! false</span> - Unmute the tab, even if not muted</li>
         </ul>
-        With the mute command you can toggle if tabs can play audio. If a tab is playing audio, a blue indicator is shown. The indicator is white for muted tabs. When a tab is muted but tries to play audio, a light yellow indicator is shown. The orange indicator is not related to audio, but is used to highlight the current tab when <a href="#splitting">splitting</a> multiple pages. The mute status is kept when restarting Vieb with <a href="#restoretabs">restoretabs</a> enabled, but not when closing tabs. By appending "!" and a state you can force a specific mute state, which can be especially powerful when combined with <a href="#ranges">ranges</a>, for example to mute all tabs.
+        With the mute command you can toggle if tabs can play audio. If a tab is playing audio, a blue indicator is shown. The indicator is white for muted tabs. When a tab is muted but tries to play audio, a light yellow indicator is shown. The orange indicator is not related to audio, but is used to highlight the current tab when <a href="#splitting">splitting</a> multiple pages. The mute status is kept when restarting Vieb with <a href="#restoretabs">restoretabs</a> enabled, but not when closing tabs. By appending "!" and a state you can force a specific mute state, which can be especially powerful when combined with <a href="#ranges">ranges</a>, for example to mute all tabs: <span class="command-block">:%mute! true</span>.
         <h3 id=":suspend">:suspend</h3>
         <ul>
             <li><span class="command-block">:suspend 0</span> - Suspend the first tab in the tab bar</li>
@@ -676,9 +676,11 @@
         The suspend command can unload tabs from the memory. The entire tab is suspended and won't run in the background. You must specify a non-visible tab for the command to work. When switching to a suspended tab, the page is loaded from scratch again. Suspended tabs have a different background color from regular tabs. Besides this command, you can also suspend them automatically on startup with <a href="#suspendonrestore">suspendonrestore</a> or on a timer with <a href="#suspendtimeout">suspendtimeout</a>.
         <h3 id=":pin">:pin</h3>
         <ul>
-            <li><span class="command-block">:pin</span> - Toggle the pinned status of the current tab</li>
+            <li><span class="command-block">:pin</span> - Toggle the pinned status of the tab</li>
+            <li><span class="command-block">:pin! true</span> - Pin the tab, even if already pinned</li>
+            <li><span class="command-block">:pin! false</span> - Unpin the tab, even if not pinned</li>
         </ul>
-        This command is used to pin or unpin the current tab. The pinned status of the current tab will be toggled. Pinned tabs have a fixed width of just the icon and will always be remembered on restart, regardless of the <a href="#restoretabs">restoretabs</a> setting. Pinned tabs are always displayed before regular tabs.
+        This command is used to pin or unpin the current tab. The pinned status of the current tab will be toggled. Pinned tabs have a fixed width of just the icon and can be the only tabs restored, depending on the <a href="#restoretabs">restoretabs</a> setting. Pinned tabs are always displayed before regular tabs. By appending "!" and a state you can force a specific pinned state, which can be especially powerful when combined with <a href="#ranges">ranges</a>, for example to unpin all tabs: <span class="command-block">:%pin! false</span>.
         <h3 id=":runjsinpage">:runjsinpage</h3>
         <ul>
             <li><span class="command-block">:runjsinpage document.body.style.backgroundColor = "#fff"</span> - Make a background white for any page</li>
