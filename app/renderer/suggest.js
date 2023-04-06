@@ -603,13 +603,22 @@ const suggestCommand = searchStr => {
                 return
             }
             if (range) {
-                addCommand(`${range}${bufferCommand}${confirmChar}`)
-                if (acceptsConfirm.includes(bufferCommand) && !confirm) {
-                    addCommand(`${range}${bufferCommand}!`)
+                if (!confirm || !args.length) {
+                    addCommand(`${range}${bufferCommand}${confirmChar}`)
+                    if (acceptsConfirm.includes(bufferCommand) && !confirm) {
+                        addCommand(`${range}${bufferCommand}!`)
+                    }
                 }
+                let a = ""
                 if (["mute", "pin"].includes(bufferCommand) && confirm) {
                     addCommand(`${range}${bufferCommand}${confirmChar} true`)
                     addCommand(`${range}${bufferCommand}${confirmChar} false`)
+                    a = " true"
+                    if (args.join("").trim().startsWith("f")) {
+                        a = " false"
+                    }
+                } else if (args.length) {
+                    return
                 }
                 const tabs = listTabs()
                 rangeToTabIdxs(range).map(num => {
@@ -619,7 +628,7 @@ const suggestCommand = searchStr => {
                     }
                     const index = tabs.indexOf(tab)
                     return {
-                        "command": `${index}${bufferCommand}${confirmChar}`,
+                        "command": `${index}${bufferCommand}${confirmChar}${a}`,
                         "icon": tabOrPageMatching(tab).src,
                         "title": tab.querySelector("span").textContent,
                         "url": tabOrPageMatching(tab).src
