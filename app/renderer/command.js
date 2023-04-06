@@ -1940,5 +1940,6 @@ module.exports = {
     execute,
     openSpecialPage,
     parseAndValidateArgs,
-    rangeCompatibleCommands
+    rangeCompatibleCommands,
+    rangeToTabIdxs
 }

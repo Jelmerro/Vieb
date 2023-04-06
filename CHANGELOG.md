@@ -19,6 +19,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "requestheaders" to append custom headers to any request
 - More default mappings: Firefox/Chromium inspired and mute/pin/internaldevtools mappings
 - Settings "userscriptscope", "userstylescope" and "darkreaderscope" to control which pages scripts, styles and darkreader should run
+- Suggestions for ranges
 
 ### Changed
 

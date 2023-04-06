@@ -339,11 +339,14 @@ const suggestCommand = searchStr => {
         return
     }
     // List all commands unconditionally
-    const {commandList, customCommandsAsCommandList} = require("./command")
+    const {
+        commandList, customCommandsAsCommandList, rangeToTabIdxs
+    } = require("./command")
     commandList().filter(
         c => c.startsWith(search)).forEach(c => addCommand(c))
     // Command: screenshot
-    if ("screenshot".startsWith(command) && !confirm && args.length < 3) {
+    if ("screenshot".startsWith(command)
+        && !range && !confirm && args.length < 3) {
         let [dims] = args
         let [, location] = args
         if (!dims?.match(/^\d+,\d+,\d+,\d+$/g)) {
@@ -356,24 +359,20 @@ const suggestCommand = searchStr => {
             location = location.slice(1, location.length - 1)
         }
         if (!location && !dims) {
-            if (range) {
-                addCommand(`${range}screenshot`)
-            } else {
-                addCommand("screenshot ~")
-                addCommand("screenshot /")
-                if (downloadPath()) {
-                    addCommand(`screenshot ${downloadPath()}`)
-                }
+            addCommand("screenshot ~")
+            addCommand("screenshot /")
+            if (downloadPath()) {
+                addCommand(`screenshot ${downloadPath()}`)
             }
         }
-        if (range && dims) {
-            addCommand(`${range}screenshot${dims}`)
-        } else if (!range && (location || search.endsWith(" "))) {
+        if (location || search.endsWith(" ")) {
             if (!isAbsolutePath(location)) {
                 location = joinPath(downloadPath(), location)
             }
             suggestFiles(location).forEach(l => addCommand(
                 `screenshot${dims} ${l.path}`))
+        } else if (dims) {
+            addCommand(`screenshot${dims}`)
         }
     }
     updateScreenshotHighlight()
@@ -402,24 +401,40 @@ const suggestCommand = searchStr => {
     }
     // Command: write
     if ("write".startsWith(command) && !confirm && args.length < 2) {
-        let location = expandPath(search.replace(/w[a-z]* ?/, "") || "")
+        let location = expandPath(args.join(" "))
         if (location.startsWith("\"") && location.endsWith("\"")) {
             location = location.slice(1, location.length - 1)
         }
-        if (range) {
-            addCommand(`${range}write`)
-        } else if (!location) {
-            addCommand("write ~")
-            addCommand("write /")
+        if (!location) {
+            addCommand(`${range}write ~`)
+            addCommand(`${range}write /`)
             if (downloadPath()) {
-                addCommand(`write ${downloadPath()}`)
+                addCommand(`${range}write ${downloadPath()}`)
             }
         }
-        if (!range && (location || search.endsWith(" "))) {
+        if (location || search.endsWith(" ")) {
             if (!isAbsolutePath(location)) {
                 location = joinPath(downloadPath(), location)
             }
-            suggestFiles(location).forEach(l => addCommand(`write ${l.path}`))
+            suggestFiles(location).forEach(l => addCommand(
+                `${range}write ${l.path}`))
+        }
+        if (range) {
+            const tabs = listTabs()
+            rangeToTabIdxs(range).map(num => {
+                const tab = tabs.at(num)
+                if (!tab) {
+                    return null
+                }
+                const index = tabs.indexOf(tab)
+                return {
+                    "command": `${index}write`,
+                    "icon": tabOrPageMatching(tab).src,
+                    "title": tab.querySelector("span").textContent,
+                    "url": tabOrPageMatching(tab).src
+                }
+            }).filter(t => t).forEach(
+                t => addCommand(t.command, t.title, t.url, t.icon))
         }
     }
     // Command: mkviebrc
@@ -585,6 +600,21 @@ const suggestCommand = searchStr => {
     if (bufferCommand && (bufferCommand === "close" || !confirm)) {
         if (range) {
             addCommand(`${range}${bufferCommand}`)
+            const tabs = listTabs()
+            rangeToTabIdxs(range).map(num => {
+                const tab = tabs.at(num)
+                if (!tab) {
+                    return null
+                }
+                const index = tabs.indexOf(tab)
+                return {
+                    "command": `${index}${bufferCommand}`,
+                    "icon": tabOrPageMatching(tab).src,
+                    "title": tab.querySelector("span").textContent,
+                    "url": tabOrPageMatching(tab).src
+                }
+            }).filter(t => t).forEach(
+                t => addCommand(t.command, t.title, t.url, t.icon))
             return
         }
         const {allTabsForBufferArg} = require("./command")
