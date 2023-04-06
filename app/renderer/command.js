@@ -784,7 +784,7 @@ const open = args => {
 
 const suspend = (args, range) => {
     if (range && args.length) {
-        notify("Range cannot be combined with providing arguments", "warn")
+        notify("Range cannot be combined with searching", "warn")
         return
     }
     if (range) {
@@ -811,7 +811,7 @@ const suspend = (args, range) => {
 
 const hide = (args, range) => {
     if (range && args.length) {
-        notify("Range cannot be combined with providing arguments", "warn")
+        notify("Range cannot be combined with searching", "warn")
         return
     }
     if (range) {
@@ -834,9 +834,32 @@ const hide = (args, range) => {
     }
 }
 
+const setMute = (args, range) => {
+    if (args.length !== 1 || !["true", "false"].includes(args[0])) {
+        notify("Command mute! requires a single boolean argument", "warn")
+    }
+    let targets = [currentTab()]
+    if (range) {
+        const tabs = listTabs()
+        targets = rangeToTabIdxs(range).map(id => tabs[id])
+    }
+    targets.forEach(tab => {
+        if (args[0] === "true") {
+            tab.setAttribute("muted", "muted")
+        } else {
+            tab.removeAttribute("muted")
+        }
+        if (!tab.getAttribute("suspended")) {
+            tabOrPageMatching(tab).setAudioMuted(!!tab.getAttribute("muted"))
+        }
+    })
+    const {saveTabs} = require("./tabs")
+    saveTabs()
+}
+
 const mute = (args, range) => {
     if (range && args.length) {
-        notify("Range cannot be combined with providing arguments", "warn")
+        notify("Range cannot be combined with searching", "warn")
         return
     }
     if (range) {
@@ -856,14 +879,16 @@ const mute = (args, range) => {
     } else {
         tab.setAttribute("muted", "muted")
     }
-    tabOrPageMatching(tab).setAudioMuted(!!tab.getAttribute("muted"))
+    if (!tab.getAttribute("suspended")) {
+        tabOrPageMatching(tab).setAudioMuted(!!tab.getAttribute("muted"))
+    }
     const {saveTabs} = require("./tabs")
     saveTabs()
 }
 
 const pin = (args, range) => {
     if (range && args.length) {
-        notify("Range cannot be combined with providing arguments", "warn")
+        notify("Range cannot be combined with searching", "warn")
         return
     }
     if (range) {
@@ -872,7 +897,7 @@ const pin = (args, range) => {
     }
     let tab = currentTab()
     if (args.length > 0) {
-        tab = tabForBufferArg(args)
+        tab = tabForBufferArg(args, t => !t.getAttribute("suspended"))
     }
     if (!tab) {
         notify("Can't find matching page, no tabs (un)pinned", "warn")
@@ -894,7 +919,7 @@ const pin = (args, range) => {
 
 const addSplit = (method, leftOrAbove, args, range) => {
     if (range && args.length) {
-        notify("Range cannot be combined with providing arguments", "warn")
+        notify("Range cannot be combined with searching", "warn")
         return
     }
     if (range) {
@@ -928,7 +953,7 @@ const addSplit = (method, leftOrAbove, args, range) => {
 
 const close = (force, args, range) => {
     if (range && args.length) {
-        notify("Range cannot be combined with providing arguments", "warn")
+        notify("Range cannot be combined with searching", "warn")
         return
     }
     const {closeTab} = require("./tabs")
@@ -1621,6 +1646,7 @@ const commands = {
     "marks": ({args}) => marks(args),
     "mkviebrc": ({args}) => mkviebrc(...args),
     "mute": ({args, range}) => mute(args, range),
+    "mute!": ({args, range}) => setMute(args, range),
     "nohlsearch": () => {
         listPages().forEach(page => {
             try {

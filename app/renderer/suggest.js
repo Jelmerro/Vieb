@@ -423,9 +423,7 @@ const suggestCommand = searchStr => {
             suggestFiles(location).forEach(l => addCommand(`write ${l.path}`))
         }
         if (range) {
-            if (range.length > 1) {
-                addCommand(`${range}write`)
-            }
+            addCommand(`${range}write`)
             const tabs = listTabs()
             rangeToTabIdxs(range).map(num => {
                 const tab = tabs.at(num)
@@ -440,7 +438,7 @@ const suggestCommand = searchStr => {
                     "url": tabOrPageMatching(tab).src
                 }
             }).filter(t => t).forEach(
-                t => addCommand(t.command, t.title, t.url, t.icon))
+                t => addCommand(t.command, t.title, t.url, t.icon, true))
         }
     }
     // Command: mkviebrc
@@ -600,12 +598,18 @@ const suggestCommand = searchStr => {
         "close"
     ].forEach(bufferCommand => {
         if (bufferCommand.startsWith(command)) {
-            if (bufferCommand !== "close" && confirm) {
+            const acceptsConfirm = ["close", "mute"]
+            if (!acceptsConfirm.includes(bufferCommand) && confirm) {
                 return
             }
             if (range) {
-                if (range.length > 1) {
-                    addCommand(`${range}${bufferCommand}`)
+                addCommand(`${range}${bufferCommand}${confirmChar}`)
+                if (acceptsConfirm.includes(bufferCommand) && !confirm) {
+                    addCommand(`${range}${bufferCommand}!`)
+                }
+                if (bufferCommand === "mute" && confirm) {
+                    addCommand(`${range}${bufferCommand}${confirmChar} true`)
+                    addCommand(`${range}${bufferCommand}${confirmChar} false`)
                 }
                 const tabs = listTabs()
                 rangeToTabIdxs(range).map(num => {
@@ -621,7 +625,12 @@ const suggestCommand = searchStr => {
                         "url": tabOrPageMatching(tab).src
                     }
                 }).filter(t => t).forEach(
-                    t => addCommand(t.command, t.title, t.url, t.icon))
+                    t => addCommand(t.command, t.title, t.url, t.icon, true))
+                return
+            }
+            if (bufferCommand === "mute" && confirm) {
+                addCommand(`${bufferCommand}${confirmChar} true`)
+                addCommand(`${bufferCommand}${confirmChar} false`)
                 return
             }
             const {allTabsForBufferArg} = require("./command")
@@ -663,11 +672,13 @@ const suggestCommand = searchStr => {
     }
 }
 
-const addCommand = (command, subtext = null, url = null, icon = null) => {
+const addCommand = (
+    command, subtext = null, url = null, icon = null, allowDuplicate = false
+) => {
     if (suggestions.length + 1 > getSetting("suggestcommands")) {
         return
     }
-    if (suggestions.includes(command)) {
+    if (suggestions.includes(command) && !allowDuplicate) {
         return
     }
     suggestions.push(command)

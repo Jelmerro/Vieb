@@ -20,6 +20,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - More default mappings: Firefox/Chromium inspired and mute/pin/internaldevtools mappings
 - Settings "userscriptscope", "userstylescope" and "darkreaderscope" to control which pages scripts, styles and darkreader should run
 - Suggestions for ranges
+- Argument option to the mute command to force a mute state, such as `:mute! true`
 
 ### Changed
 
