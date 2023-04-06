@@ -313,7 +313,7 @@ const parseAndDisplayLinks = receivedLinks => {
             + borderWidthKeys + borderWidthOutline
         const alignment = {
             "cornerbottomleft": {
-                "left": x - linkElementWidth,
+                "right": x,
                 "top": y + height
             },
             "cornerbottomright": {
@@ -321,31 +321,31 @@ const parseAndDisplayLinks = receivedLinks => {
                 "top": y + height
             },
             "cornertopleft": {
-                "left": x - linkElementWidth,
-                "top": y - linkElementHeight
+                "bottom": y,
+                "right": x
             },
             "cornertopright": {
-                "left": x + width,
-                "top": y - linkElementHeight
+                "bottom": y,
+                "left": x + width
             },
             "insidebottomcenter": {
-                "left": x + width / 2 - linkElementWidth / 2,
-                "top": y + height - linkElementHeight
+                "bottom": y + height,
+                "left": x + width / 2 - linkElementWidth / 2
             },
             "insidebottomleft": {
-                "left": x,
-                "top": y + height - linkElementHeight
+                "bottom": y + height,
+                "left": x
             },
             "insidebottomright": {
-                "left": x + width - linkElementWidth,
-                "top": y + height - linkElementHeight
+                "bottom": y + height,
+                "right": x + width
             },
             "insideleftcenter": {
                 "left": x,
                 "top": y + height / 2 - linkElementHeight / 2
             },
             "insiderightcenter": {
-                "left": x + width - linkElementWidth,
+                "right": x + width,
                 "top": y + height / 2 - linkElementHeight / 2
             },
             "insidetopcenter": {
@@ -357,7 +357,7 @@ const parseAndDisplayLinks = receivedLinks => {
                 "top": y
             },
             "insidetopright": {
-                "left": x + width - linkElementWidth,
+                "right": x + width,
                 "top": y
             },
             "outsidebottomcenter": {
@@ -369,24 +369,24 @@ const parseAndDisplayLinks = receivedLinks => {
                 "top": y + height
             },
             "outsidebottomright": {
-                "left": x + width - linkElementWidth,
+                "right": x + width,
                 "top": y + height
             },
             "outsideleftbottom": {
-                "left": x - linkElementWidth,
-                "top": y + height - linkElementHeight
+                "bottom": y + height,
+                "right": x
             },
             "outsideleftcenter": {
-                "left": x - linkElementWidth,
+                "right": x,
                 "top": y + height / 2 - linkElementHeight / 2
             },
             "outsidelefttop": {
-                "left": x - linkElementWidth,
+                "right": x,
                 "top": y
             },
             "outsiderightbottom": {
-                "left": x + width,
-                "top": y + height - linkElementHeight
+                "bottom": y + height,
+                "left": x + width
             },
             "outsiderightcenter": {
                 "left": x + width,
@@ -397,24 +397,31 @@ const parseAndDisplayLinks = receivedLinks => {
                 "top": y
             },
             "outsidetopcenter": {
-                "left": x + width / 2 - linkElementWidth / 2,
-                "top": y - linkElementHeight
+                "bottom": y,
+                "left": x + width / 2 - linkElementWidth / 2
             },
             "outsidetopleft": {
-                "left": x,
-                "top": y - linkElementHeight
+                "bottom": y,
+                "left": x
             },
             "outsidetopright": {
-                "left": x + width - linkElementWidth,
-                "top": y - linkElementHeight
+                "bottom": y,
+                "right": x + width
             }
         }[followlabelposition]
         for (const align of ["left", "top", "right", "bottom"]) {
             if (alignment[align] !== undefined) {
-                linkElement.style[align] = `${alignment[align].toFixed(2)}px`
+                let value = alignment[align]
+                if (align === "right") {
+                    value = scrollWidth - value
+                }
+                if (align === "bottom") {
+                    value = scrollHeight - value
+                }
+                linkElement.style[align] = `${value.toFixed(2)}px`
             }
         }
-        // if (left > scrollWidth - linkElementWidth) {
+        // If (left > scrollWidth - linkElementWidth) {
         //     left = scrollWidth - linkElementWidth
         // }
         // if (left < 0) {

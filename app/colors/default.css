@@ -221,7 +221,8 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #url.file {border-color: var(--url-file);}
 #url.invalid {border-color: var(--url-invalid);}
 /* follow */
-#app #follow {position: fixed;display: none;z-index: 1;}
+#app #follow {position: fixed;display: none;z-index: 1;height: 100%;width: 100%;pointer-events: none;}
+#app #follow * {pointer-events: auto;}
 #app #follow .follow-url, #app #follow .follow-inputs-click, #app #follow .follow-inputs-insert, #app #follow .follow-onclick, #app #follow .follow-media, #app #follow .follow-image, #app #follow .follow-other {position: absolute;color: var(--follow-text);padding: 0 .1em;}
 .follow-url-border, .follow-inputs-click-border, .follow-inputs-insert-border, .follow-onclick-border, .follow-media-border, .follow-image-border, .follow-other-border {position: absolute;box-sizing: border-box;}
 .follow-url {background: var(--follow-url-bg);border: solid .15em var(--follow-url-border);}

@@ -472,9 +472,15 @@ const applyLayout = () => {
                 cur.style, "top") + bor)}px`
             follow.style.left = `${Math.round(propPixels(
                 cur.style, "left") + bor)}px`
+            follow.style.width = `${Math.round(propPixels(
+                cur.style, "width") - bor * 2)}px`
+            follow.style.height = `${Math.round(propPixels(
+                cur.style, "height") - bor * 2)}px`
         } else {
             follow.style.top = cur.style.top
             follow.style.left = cur.style.left
+            follow.style.width = cur.style.width
+            follow.style.height = cur.style.height
         }
     }
 }
