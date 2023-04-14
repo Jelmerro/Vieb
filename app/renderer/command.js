@@ -167,13 +167,12 @@ const set = args => {
         } else if ((/^\w+:/).test(part)) {
             const {"set": s} = require("./settings")
             s(...splitSettingAndValue(part, ":"))
-        } else if (part.includes("=") || part.includes(":")) {
-            notify(
-                `The setting '${part.replace(/[+-^:=].*/, "")}' contains `
-                + "invalid characters", "warn")
-        } else if (part.endsWith("&")) {
-            const {reset} = require("./settings")
-            reset(part.slice(0, -1))
+        } else if ((/^\w+!.+/).test(part)) {
+            const {"set": s} = require("./settings")
+            const [setting] = part.split("!")
+            const values = part.split("!").slice(1).join("!").split("|")
+            const index = values.indexOf(getSetting(setting))
+            s(setting, values[index + 1] || values[0])
         } else if (part.endsWith("!")) {
             const setting = part.slice(0, -1)
             const value = getSetting(setting)
@@ -188,6 +187,9 @@ const set = args => {
                 notify(
                     `The setting '${setting}' can not be flipped`, "warn")
             }
+        } else if (part.endsWith("&")) {
+            const {reset} = require("./settings")
+            reset(part.slice(0, -1))
         } else if (part.endsWith("?")) {
             listSetting(part.slice(0, -1))
         } else if (typeof getSetting(part) === "boolean") {
