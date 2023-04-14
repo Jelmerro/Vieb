@@ -37,6 +37,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Mappings for recording macros to be more in line with Vim, by mapping and unmapping them on start/stop
 - Buffer commands to show all matching commands instead of the first one (especially useful for ranges)
 - Pin command to better preserve tab order when using ranges
+- JavaScript execution to always allow user interaction APIs
 
 ### Removed
 

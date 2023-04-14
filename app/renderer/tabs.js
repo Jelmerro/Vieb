@@ -855,7 +855,7 @@ const addWebviewListeners = webview => {
             if (preload) {
                 const javascript = readFile(preload)
                 if (javascript) {
-                    webview.executeJavaScript(javascript)
+                    webview.executeJavaScript(javascript, true)
                 }
             }
         }

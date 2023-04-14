@@ -1089,10 +1089,11 @@ const runjsinpage = (raw, range) => {
     }
     if (range) {
         rangeToTabIdxs(range).forEach(tabId => {
-            tabOrPageMatching(listTabs()[tabId]).executeJavaScript(javascript)
+            tabOrPageMatching(listTabs()[tabId])
+                .executeJavaScript(javascript, true)
         })
     } else {
-        currentPage().executeJavaScript(javascript)
+        currentPage().executeJavaScript(javascript, true)
     }
 }
 
