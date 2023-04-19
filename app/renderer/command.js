@@ -662,29 +662,37 @@ const translateRangePosToIdx = (start, rangePart) => {
     return number
 }
 
-const rangeToTabIdxs = range => {
+const rangeToTabIdxs = (range, silent = false) => {
     if (range === "%") {
         return listTabs().map((_, i) => i)
     }
     if (range.includes(",")) {
         const [start, end, tooManyArgs] = range.split(",")
         if (tooManyArgs !== undefined) {
-            notify("Too many commas in range, at most 1 is allowed", "warn")
+            if (!silent) {
+                notify("Too many commas in range, at most 1 is allowed", "warn")
+            }
             return []
         }
         if (start.match(/^.*g.*\/.*\/[-+]?\d?$/) || end.match(/^.*g.*\/.*\/[-+]?\d?$/)) {
-            notify("Can't combine global search with 2 indexes, either supply"
-                + " two indexes/searches OR use a global search", "warn")
+            if (!silent) {
+                notify("Can't combine global search with 2 indexes, either supp"
+                    + "ly two indexes/searches OR use a global search", "warn")
+            }
             return []
         }
         const startPos = translateRangePosToIdx(0, start)
         if (isNaN(startPos)) {
-            notify(`Range section '${start}' is not a valid range`, "warn")
+            if (!silent) {
+                notify(`Range section '${start}' is not a valid range`, "warn")
+            }
             return []
         }
         const endPos = translateRangePosToIdx(startPos, end)
         if (isNaN(endPos)) {
-            notify(`Range section '${end}' is not a valid range`, "warn")
+            if (!silent) {
+                notify(`Range section '${end}' is not a valid range`, "warn")
+            }
             return []
         }
         return listTabs().map((_, i) => i).slice(startPos, endPos + 1)
