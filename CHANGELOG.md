@@ -38,6 +38,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Buffer commands to show all matching commands instead of the first one (especially useful for ranges)
 - Pin command to better preserve tab order when using ranges
 - JavaScript execution to always allow user interaction APIs
+- Svg and "data:" favicons to be used if present in the list, otherwise still pick the first
 
 ### Removed
 
@@ -52,6 +53,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Userstyles not working on pages that block custom CSS
 - Display capture styling not working on pages that block custom CSS
 - Index-based ranges not working correctly for some commands
+- Navigation delay system updating the current page instead of the right one
+- Navigation delay system preventing page navigations for new tabs that are not loading
 
 ### Versions
 

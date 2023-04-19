@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2021 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -137,12 +137,8 @@ const setPath = (tab, loc) => {
     }
 }
 
-const update = (webview, urls) => {
+const update = (webview, favicon) => {
     if (getSetting("favicons") === "disabled") {
-        return
-    }
-    const [favicon] = urls
-    if (!favicon) {
         return
     }
     if (viebIcon === favicon) {

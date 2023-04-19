@@ -879,7 +879,13 @@ const addWebviewListeners = webview => {
     })
     webview.addEventListener("page-favicon-updated", e => {
         const {update} = require("./favicons")
-        update(webview, e.favicons)
+        const urls = e.favicons.filter(u => u && u !== webview.src)
+        const url = urls.find(u => u.startsWith("data:"))
+            ?? urls.find(u => u.endsWith(".svg"))
+            ?? urls[0]
+        if (url) {
+            update(webview, url)
+        }
         updateUrl(webview)
     })
     webview.addEventListener("will-navigate", e => {
@@ -1087,8 +1093,8 @@ const navigateTo = (location, customPage = false) => {
     if (webview.src.startsWith("devtools://")) {
         return
     }
-    if (!webview.getAttribute("dom-ready")) {
-        setTimeout(() => navigateTo(location, customPage), 1)
+    if (!webview.getAttribute("dom-ready") && webview.isLoading()) {
+        setTimeout(() => navigateTo(location, webview), 1)
         return
     }
     webview.stop()
