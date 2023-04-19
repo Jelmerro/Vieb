@@ -125,6 +125,9 @@ const show = webview => {
     const tab = tabOrPageMatching(webview)
     tab.querySelector(".status").style.display = "none"
     const favicon = tab.querySelector(".favicon")
+    if (favicon.getAttribute("src") === "img/empty.png") {
+        favicon.src = forSite(webview.src) ?? favicon.src
+    }
     if (favicon.getAttribute("src") !== "img/empty.png") {
         favicon.style.display = null
     }

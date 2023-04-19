@@ -55,6 +55,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Index-based ranges not working correctly for some commands
 - Navigation delay system updating the current page instead of the right one
 - Navigation delay system preventing page navigations for new tabs that are not loading
+- Favicon not showing or spinner still rotating for suspended tabs
 
 ### Versions
 

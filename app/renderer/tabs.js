@@ -423,6 +423,8 @@ const suspendTab = (tab, force = false) => {
     page.closeDevTools()
     tab.setAttribute("suspended", "suspended")
     tab.removeAttribute("media-playing")
+    const {show} = require("./favicons")
+    show(page)
     const placeholder = document.createElement("div")
     placeholder.classList.add("webview")
     sharedAttributes.forEach(attr => {
