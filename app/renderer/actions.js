@@ -42,12 +42,13 @@ const {
     listPages,
     currentTab,
     currentPage,
-    tabOrPageMatching,
     currentMode,
     getSetting,
     getStored,
     updateGuiVisibility,
-    setStored
+    setStored,
+    getUrl,
+    tabForPage
 } = require("./common")
 
 let lastSearchFull = false
@@ -89,7 +90,7 @@ const nextSearchMatch = () => {
     if (search) {
         pages.filter(p => p).forEach(page => {
             try {
-                const tab = tabOrPageMatching(page)
+                const tab = tabForPage(page)
                 if (tab.classList.contains("visible-tab")) {
                     page.findInPage(search, {
                         "findNext": true,
@@ -118,8 +119,9 @@ const toSearchMode = args => {
     } else {
         potentialNewSearchDirection = "forward"
     }
-    document.getElementById("url").value = search
-    document.getElementById("url").select()
+    const url = getUrl()
+    url.value = search
+    url.select()
     const {requestSuggestUpdate} = require("./input")
     requestSuggestUpdate()
 }
@@ -138,7 +140,7 @@ const previousSearchMatch = () => {
     if (search) {
         pages.filter(p => p).forEach(page => {
             try {
-                const tab = tabOrPageMatching(page)
+                const tab = tabForPage(page)
                 if (tab.classList.contains("visible-tab")) {
                     page.findInPage(search, {
                         "findNext": true,
@@ -176,7 +178,8 @@ const incrementalSearch = args => {
             scope = "global"
         }
     }
-    const search = args?.value || document.getElementById("url").value
+    const url = getUrl()
+    const search = args?.value || url.value
     let pages = [currentPage()]
     if (scope === "global") {
         pages = listPages()
@@ -191,7 +194,7 @@ const incrementalSearch = args => {
         pages.filter(p => p).forEach(page => {
             try {
                 page.stopFindInPage("clearSelection")
-                const tab = tabOrPageMatching(page)
+                const tab = tabForPage(page)
                 if (tab.classList.contains("visible-tab")) {
                     page.findInPage(search, {"matchCase": matchCase(search)})
                 }
@@ -512,7 +515,7 @@ const backInHistory = args => {
     const page = args?.customPage || currentPage()
     if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
         if (page?.canGoBack()) {
-            tabOrPageMatching(page).querySelector("span").textContent = ""
+            tabForPage(page).querySelector("span").textContent = ""
             const {rerollUserAgent, resetTabInfo} = require("./tabs")
             rerollUserAgent(page)
             resetTabInfo(page)
@@ -525,7 +528,7 @@ const forwardInHistory = args => {
     const page = args?.customPage || currentPage()
     if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
         if (page?.canGoForward()) {
-            tabOrPageMatching(page).querySelector("span").textContent = ""
+            tabForPage(page).querySelector("span").textContent = ""
             const {rerollUserAgent, resetTabInfo} = require("./tabs")
             rerollUserAgent(page)
             resetTabInfo(page)
@@ -550,7 +553,7 @@ const openNewTabWithCurrentUrl = () => {
     addTab()
     const {setMode} = require("./modes")
     setMode("explore")
-    document.getElementById("url").value = urlToString(url)
+    getUrl().value = urlToString(url)
 }
 
 const toCommandMode = () => {
@@ -645,7 +648,7 @@ const editWithVim = () => {
     makeDir(fileFolder)
     const tempFile = joinPath(fileFolder, String(Number(new Date())))
     let command = null
-    watchFile(tempFile, {"interval": 500}, () => {
+    watchFile(tempFile, () => {
         if (command) {
             const contents = readFile(tempFile)
             if (contents === null) {
@@ -655,7 +658,7 @@ const editWithVim = () => {
                 sendToPageOrSubFrame("action",
                     "setInputFieldText", tempFile, contents)
             } else if ("ces".includes(currentMode()[0])) {
-                document.getElementById("url").value = contents
+                getUrl().value = contents
                 const {requestSuggestUpdate} = require("./input")
                 requestSuggestUpdate()
             }
@@ -666,7 +669,8 @@ const editWithVim = () => {
                 if (err && reportExit !== "none") {
                     notify(`${err}`, "err")
                 } else if (reportExit === "all") {
-                    notify(stdout || "Command exitted successfully!", "suc")
+                    notify(stdout.toString()
+                        || "Command exitted successfully!", "suc")
                 }
             })
         }
@@ -675,8 +679,7 @@ const editWithVim = () => {
         sendToPageOrSubFrame("action", "writeInputToFile", tempFile)
     }
     if (typeOfEdit === "navbar") {
-        setTimeout(() => writeFile(
-            tempFile, document.getElementById("url").value), 3)
+        setTimeout(() => writeFile(tempFile, getUrl().value), 3)
     }
 }
 
@@ -1061,7 +1064,7 @@ const menuOpen = () => {
                 "y": bounds.y + bounds.height
             })
         } else {
-            const url = document.getElementById("url")
+            const url = getUrl()
             bounds = url.getBoundingClientRect()
             const charWidth = getSetting("guifontsize") * 0.60191
             const {viebMenu} = require("./contextmenu")
@@ -1119,8 +1122,9 @@ const menuClose = () => {
 
 const useEnteredData = () => {
     const {setMode} = require("./modes")
+    const url = getUrl()
     if (currentMode() === "command") {
-        const command = document.getElementById("url").value.trim()
+        const command = url.value.trim()
         setMode("normal")
         const {push} = require("./commandhistory")
         push(command, true)
@@ -1129,11 +1133,11 @@ const useEnteredData = () => {
     }
     if (currentMode() === "search") {
         searchDirection = potentialNewSearchDirection
-        incrementalSearch({"value": document.getElementById("url").value})
+        incrementalSearch({"value": url.value})
         setMode("normal")
     }
     if (currentMode() === "explore") {
-        let location = document.getElementById("url").value.trim()
+        let location = url.value.trim()
         setMode("normal")
         if (location) {
             location = searchword(location).url

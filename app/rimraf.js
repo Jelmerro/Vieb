@@ -6,7 +6,7 @@ This is a sync-only no-glob native-fs rework of rimraf that works in Windows
 - rimraf has a hard dependency on glob and async versions which are unnecessary
 - Now I have to maintain a separate version of rimraf that just works...
 
-Copyright (C) 2022-2022 Jelmer van Arnhem
+Copyright (C) 2022-2023 Jelmer van Arnhem
 Copyright (c) 2011-2022 Isaac Z. Schlueter and Contributors
 
 Permission to use, copy, modify, and/or distribute this software for any
@@ -24,7 +24,13 @@ IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 "use strict"
 const fs = require("fs")
 
-const fixWinEPERMSync = (p, options, er) => {
+/**
+ * Workaround for window EPERM errors, just retry a lot of times till it works
+ *
+ * @param {string} p
+ * @param {Error|null} er
+ */
+const fixWinEPERMSync = (p, er) => {
     try {
         fs.chmodSync(p, 0o666)
     } catch (er2) {
@@ -43,16 +49,18 @@ const fixWinEPERMSync = (p, options, er) => {
         throw er
     }
     if (stats.isDirectory()) {
-        rmdirSync(p, options, er)
+        rmdirSync(p, er)
     } else {
         fs.unlinkSync(p)
     }
 }
 
+/**
+ * Remove a location using "rm -rf" rimraf module
+ *
+ * @param {string} p
+ */
 const rimrafSync = p => {
-    if (typeof p !== "string") {
-        throw new Error("path should be a string")
-    }
     let st = null
     try {
         st = fs.lstatSync(p)
@@ -87,6 +95,12 @@ const rimrafSync = p => {
     }
 }
 
+/**
+ * Remove a directory sync
+ *
+ * @param {string} p
+ * @param {Error|null} originalEr
+ */
 const rmdirSync = (p, originalEr) => {
     try {
         fs.rmdirSync(p)

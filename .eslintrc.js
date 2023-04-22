@@ -2,7 +2,7 @@
 
 module.exports = {
     "env": {"browser": true, "es6": true, "node": true},
-    "parserOptions": {"ecmaVersion": 2021},
+    "parserOptions": {"ecmaVersion": 2023},
     "plugins": ["sort-keys"],
     "root": true,
     "rules": {

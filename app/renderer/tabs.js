@@ -46,12 +46,14 @@ const {
     listPages,
     currentTab,
     currentPage,
-    tabOrPageMatching,
     currentMode,
     getSetting,
     guiRelatedUpdate,
     setTopOfPageWithMouse,
-    getMouseConf
+    getMouseConf,
+    getUrl,
+    tabForPage,
+    pageForTab
 } = require("./common")
 const {setMode} = require("./modes")
 
@@ -66,7 +68,8 @@ const existingInjections = {}
 const init = () => {
     window.addEventListener("load", () => {
         if (appConfig().icon) {
-            document.getElementById("logo").src = appConfig().icon
+            document.getElementById("logo")
+                .setAttribute("src", appConfig().icon)
         }
         const parsed = readJSON(tabFile)
         if (!erwicMode) {
@@ -143,14 +146,14 @@ const init = () => {
         ipcRenderer.on("unresponsive", (_, id) => {
             listPages().forEach(webview => {
                 if (webview.getWebContentsId?.() === id) {
-                    tabOrPageMatching(webview).classList.add("unresponsive")
+                    tabForPage(webview)?.classList.add("unresponsive")
                 }
             })
         })
         ipcRenderer.on("responsive", (_, id) => {
             listPages().forEach(webview => {
                 if (webview.getWebContentsId?.() === id) {
-                    tabOrPageMatching(webview).classList.remove("unresponsive")
+                    tabForPage(webview)?.classList.remove("unresponsive")
                 }
             })
         })
@@ -183,15 +186,14 @@ const saveTabs = () => {
         data.id = listTabs().indexOf(currentTab())
     }
     listTabs().forEach((tab, index) => {
-        const url = urlToString(tabOrPageMatching(tab).src)
+        const url = urlToString(pageForTab(tab).src)
         if (!url || url.startsWith("devtools://")) {
             if (index <= data.id) {
                 data.id -= 1
             }
             return
         }
-        const container = urlToString(tabOrPageMatching(tab)
-            .getAttribute("container"))
+        const container = urlToString(pageForTab(tab).getAttribute("container"))
         const isPinned = tab.classList.contains("pinned")
         if (isPinned && ["all", "pinned"].includes(restoreTabs)) {
             data.pinned.push({
@@ -258,7 +260,7 @@ const addTab = (options = {}) => {
         if (oldTab.getAttribute("devtools-id") || devtoolsOpen) {
             return
         }
-        oldTab.setAttribute("devtools-id", linkId)
+        oldTab.setAttribute("devtools-id", `${linkId}`)
         isDevtoolsTab = true
     }
     let sessionName = getSetting("containernewtab")
@@ -287,7 +289,7 @@ const addTab = (options = {}) => {
     if (sessionName === "s:replacematching" && options.url) {
         const match = listPages().find(p => sameDomain(p.src, options.url))
         if (match) {
-            switchToTab(tabOrPageMatching(match))
+            switchToTab(tabForPage(match))
         }
     }
     if (sessionName.startsWith("s:replace")) {
@@ -355,7 +357,7 @@ const addTab = (options = {}) => {
     } else {
         tabs.appendChild(tab)
     }
-    tab.setAttribute("link-id", linkId)
+    tab.setAttribute("link-id", `${linkId}`)
     const color = getSetting("containercolors").split(",").find(
         c => sessionName.match(c.split("~")[0]))
     if (color) {
@@ -366,15 +368,15 @@ const addTab = (options = {}) => {
         page.setAttribute("user-script-file", options.script)
     }
     page.classList.add("webview")
-    page.setAttribute("link-id", linkId)
+    page.setAttribute("link-id", `${linkId}`)
     const url = stringToUrl(options.url || "")
         .replace(/view-?source:\/?\/?/g, "sourceviewer://")
     if (options.url) {
-        page.src = url
+        page.setAttribute("src", url)
     }
     page.setAttribute("container", sessionName)
     if (isDevtoolsTab) {
-        page.setAttribute("devtools-for-id", currentPageId)
+        page.setAttribute("devtools-for-id", `${currentPageId}`)
     }
     let {muted} = options
     if (options.startup) {
@@ -412,8 +414,14 @@ const sharedAttributes = [
     "link-id", "container", "class", "id", "style", "muted", "user-script-file"
 ]
 
+/**
+ * Suspend a tab
+ *
+ * @param {Element} tab
+ * @param {boolean} force
+ */
 const suspendTab = (tab, force = false) => {
-    const page = tabOrPageMatching(tab)
+    const page = pageForTab(tab)
     if (page?.tagName?.toLowerCase() !== "webview") {
         return
     }
@@ -432,7 +440,7 @@ const suspendTab = (tab, force = false) => {
             placeholder.setAttribute(attr, page.getAttribute(attr))
         }
     })
-    placeholder.src = page.src
+    placeholder.setAttribute("src", page.src)
     page.replaceWith(placeholder)
     const closedDevtoolsId = tab.getAttribute("devtools-id")
     listTabs().forEach(t => {
@@ -446,7 +454,7 @@ const unsuspendPage = page => {
     if (page.tagName?.toLowerCase() === "webview") {
         return
     }
-    const tab = tabOrPageMatching(page)
+    const tab = tabForPage(page)
     if (!tab.getAttribute("suspended")) {
         return
     }
@@ -484,7 +492,7 @@ const unsuspendPage = page => {
             if (webview.getAttribute("custom-first-load")) {
                 webview.clearHistory()
                 webview.removeAttribute("custom-first-load")
-                webview.setAttribute("dom-ready", true)
+                webview.setAttribute("dom-ready", "true")
                 return
             }
             const name = tab.querySelector("span")
@@ -498,14 +506,14 @@ const unsuspendPage = page => {
                     currentPageId, webview.getWebContentsId())
                 name.textContent = "Devtools"
             } else if (url || newtabUrl) {
-                webview.setAttribute("custom-first-load", true)
+                webview.setAttribute("custom-first-load", "true")
                 webview.src = url || stringToUrl(newtabUrl)
                 resetTabInfo(webview)
                 name.textContent = urlToString(url)
                 return
             }
             webview.clearHistory()
-            webview.setAttribute("dom-ready", true)
+            webview.setAttribute("dom-ready", "true")
         }
     })
     page.replaceWith(webview)
@@ -538,7 +546,7 @@ const reopenTab = () => {
 const closeTab = (index = null, force = false) => {
     const tab = listTabs()[index] || currentTab()
     const isClosingCurrent = tab === currentTab()
-    const page = tabOrPageMatching(tab)
+    const page = pageForTab(tab)
     if (!tab) {
         return
     }
@@ -643,7 +651,7 @@ const switchToTab = tabOrIndex => {
         p.id = ""
     })
     tab.id = "current-tab"
-    const page = tabOrPageMatching(tab)
+    const page = pageForTab(tab)
     page.id = "current-page"
     tab.scrollIntoView({"block": "center", "inline": "center"})
     const {switchView, setLastUsedTab} = require("./pagelayout")
@@ -674,7 +682,10 @@ const updateUrl = (webview, force = false) => {
     if (niceUrl === `${appConfig().name.toLowerCase()}://newtab`) {
         niceUrl = ""
     }
-    document.getElementById("url").value = niceUrl
+    const urlInput = getUrl()
+    if (urlInput) {
+        urlInput.value = niceUrl
+    }
 }
 
 const injectCustomStyleRequest = async(webview, type, css = null) => {
@@ -695,7 +706,7 @@ const addWebviewListeners = webview => {
     webview.addEventListener("load-commit", e => {
         if (e.isMainFrame) {
             resetTabInfo(webview)
-            const name = tabOrPageMatching(webview).querySelector("span")
+            const name = tabForPage(webview).querySelector("span")
             if (!name.textContent) {
                 name.textContent = urlToString(e.url)
             }
@@ -719,7 +730,7 @@ const addWebviewListeners = webview => {
         if (getSetting("reloadtaboncrash")) {
             recreateWebview(webview)
         } else {
-            tabOrPageMatching(webview).classList.add("crashed")
+            tabForPage(webview).classList.add("crashed")
             if (currentPage().isCrashed() && webview === currentPage()) {
                 if ("fipv".includes(currentMode()[0])) {
                     setMode("normal")
@@ -729,22 +740,22 @@ const addWebviewListeners = webview => {
     })
     webview.addEventListener("close", () => {
         if (getSetting("permissionclosepage") === "allow") {
-            closeTab(listTabs().indexOf(tabOrPageMatching(webview)))
+            closeTab(listTabs().indexOf(tabForPage(webview)))
         }
     })
     webview.addEventListener("media-started-playing", () => {
-        const tab = tabOrPageMatching(webview)
+        const tab = tabForPage(webview)
         const counter = Number(tab.getAttribute("media-playing")) || 0
-        tab.setAttribute("media-playing", counter + 1)
+        tab.setAttribute("media-playing", `${counter + 1}`)
     })
     webview.addEventListener("media-paused", () => {
-        const tab = tabOrPageMatching(webview)
+        const tab = tabForPage(webview)
         let counter = Number(tab.getAttribute("media-playing")) || 0
         counter -= 1
         if (counter < 1) {
             tab.removeAttribute("media-playing")
         } else {
-            tab.setAttribute("media-playing", counter)
+            tab.setAttribute("media-playing", `${counter}`)
         }
     })
     webview.addEventListener("did-start-loading", () => {
@@ -769,7 +780,7 @@ const addWebviewListeners = webview => {
         }
         if (webview.src !== e.validatedURL) {
             webview.src = e.validatedURL
-            tabOrPageMatching(webview).querySelector("span")
+            tabForPage(webview).querySelector("span")
                 .textContent = urlToString(e.validatedURL)
             return
         }
@@ -838,7 +849,7 @@ const addWebviewListeners = webview => {
             webview.send("notification-history", listNotificationHistory())
         }
         saveTabs()
-        const name = tabOrPageMatching(webview).querySelector("span")
+        const name = tabForPage(webview).querySelector("span")
         if (specialPageName) {
             name.textContent = title(specialPageName)
         }
@@ -873,7 +884,7 @@ const addWebviewListeners = webview => {
         if (hasProtocol(e.title) && !isCustomView) {
             return
         }
-        const tab = tabOrPageMatching(webview)
+        const tab = tabForPage(webview)
         tab.querySelector("span").textContent = e.title
         updateUrl(webview)
         const {updateTitle} = require("./history")
@@ -892,7 +903,7 @@ const addWebviewListeners = webview => {
     })
     webview.addEventListener("will-navigate", e => {
         resetTabInfo(webview)
-        tabOrPageMatching(webview).querySelector("span")
+        tabForPage(webview).querySelector("span")
             .textContent = urlToString(e.url)
     })
     webview.addEventListener("new-window", e => {
@@ -908,7 +919,7 @@ const addWebviewListeners = webview => {
     })
     webview.addEventListener("enter-html-full-screen", () => {
         if (currentPage() !== webview) {
-            switchToTab(tabOrPageMatching(webview))
+            switchToTab(tabForPage(webview))
         }
         document.body.classList.add("fullscreen")
         webview.blur()
@@ -996,7 +1007,7 @@ const addWebviewListeners = webview => {
         if (e.channel === "mousemove") {
             setTopOfPageWithMouse(getMouseConf("guiontop") && !e.args[1])
             if (getSetting("mousefocus")) {
-                const tab = tabOrPageMatching(webview)
+                const tab = tabForPage(webview)
                 if (tab && currentTab() !== tab) {
                     switchToTab(tab)
                 }
@@ -1059,9 +1070,9 @@ const addWebviewListeners = webview => {
 }
 
 const recreateWebview = webview => {
-    const tab = tabOrPageMatching(webview)
+    const tab = tabForPage(webview)
     suspendTab(tab, true)
-    unsuspendPage(tabOrPageMatching(tab))
+    unsuspendPage(pageForTab(tab))
 }
 
 const resetTabInfo = webview => {
@@ -1082,7 +1093,7 @@ const rerollUserAgent = webview => {
     }
 }
 
-const navigateTo = (location, customPage = false) => {
+const navigateTo = (location, customPage = null) => {
     try {
         new URL(location)
     } catch {
@@ -1158,7 +1169,6 @@ module.exports = {
     saveTabs,
     suspendTab,
     switchToTab,
-    tabOrPageMatching,
     unsuspendPage,
     updateUrl
 }

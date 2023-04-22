@@ -144,6 +144,10 @@ This is free software; you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 See the LICENSE file or the GNU website for details.`)
 }
+/**
+ *
+ * @param {string} prefFile
+*/
 const applyDevtoolsSettings = (prefFile, undock = true) => {
     makeDir(dirname(prefFile))
     const preferences = readJSON(prefFile) || {}
@@ -170,7 +174,11 @@ const applyDevtoolsSettings = (prefFile, undock = true) => {
     writeJSON(prefFile, preferences)
 }
 
-// Parse arguments
+/**
+ * Parse the startup arguments
+ *
+ * @param {string[]} argv
+*/
 const getArguments = argv => {
     const execFile = basePath(argv[0])
     if (execFile === "electron" || process.defaultApp && execFile !== "vieb") {
@@ -180,6 +188,11 @@ const getArguments = argv => {
     // The array argv is ["vieb", ...args]
     return argv.slice(1)
 }
+/**
+ * Check if the provided string argument should be true or false as a boolean
+ *
+ * @param {string} arg
+ */
 const isTruthyArg = arg => {
     const argStr = String(arg).trim().toLowerCase()
     return Number(argStr) > 0 || ["y", "yes", "true", "on"].includes(argStr)
@@ -266,7 +279,7 @@ args.forEach(a => {
         } else if (arg.startsWith("--acceleration=")) {
             argAcceleration = arg.split("=").slice(1).join("=").toLowerCase()
         } else if (arg.startsWith("--unsafe-multiwin=")) {
-            argUnsafeMultiwin = arg.split("=").slice(1).join("=").toLowerCase()
+            argUnsafeMultiwin = isTruthyArg(arg.split("=").slice(1).join("="))
         } else {
             console.warn(`Arg '${arg}' will be passed to Chromium`)
             app.commandLine.appendArgument(arg)
@@ -330,15 +343,20 @@ applyDevtoolsSettings(joinPath(argDatafolder, "Preferences"))
 const isLite = app.getName() === "Vieb-lite"
 if (argErwic) {
     argErwic = expandPath(argErwic)
+    /** @type {{
+     *   name?: unknown, icon?: unknown, apps: {
+     *     container?: unknown, script?: unknown, url?: unknown
+     *   }[]
+     * }} */
     const config = readJSON(argErwic)
     if (!config) {
         console.warn("Erwic config file could not be read\n")
         printUsage()
     }
-    if (config.name) {
+    if (typeof config.name === "string") {
         app.setName(config.name)
     }
-    if (config.icon) {
+    if (typeof config.icon === "string") {
         config.icon = expandPath(config.icon)
         if (config.icon !== joinPath(config.icon)) {
             config.icon = joinPath(dirname(argErwic), config.icon)
@@ -354,6 +372,9 @@ if (argErwic) {
         printUsage()
     }
     config.apps = config.apps.map(a => {
+        if (typeof a.url !== "string" || typeof a.container !== "string") {
+            return null
+        }
         const simpleContainerName = a.container.replace(/_/g, "")
         if (simpleContainerName.match(specialChars)) {
             console.warn("Container names are not allowed to have "
@@ -369,7 +390,7 @@ if (argErwic) {
             a.script = null
         }
         return a
-    }).filter(a => typeof a.container === "string" && typeof a.url === "string")
+    }).filter(a => a)
     if (config.apps.length === 0) {
         console.warn("Erwic config file requires at least one app to be added")
         console.warn("Each app must have a 'container' name and a 'url'\n")
@@ -1701,6 +1722,14 @@ ipcMain.handle("toggle-always-on-top", () => {
 ipcMain.handle("toggle-fullscreen", () => {
     mainWindow.fullScreen = !mainWindow.fullScreen
 })
+/** @type {{
+ *   control: boolean
+ *   alt: boolean
+ *   shift: boolean
+ *   meta: boolean
+ *   key: string
+ *   location: number
+ * }[]|"pass"|"all"} */
 let blockedInsertMappings = []
 ipcMain.on("insert-mode-blockers", (e, blockedMappings) => {
     blockedInsertMappings = blockedMappings

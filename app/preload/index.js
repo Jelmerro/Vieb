@@ -25,7 +25,7 @@ require("./follow")
 const {pathToSpecialPageName} = require("../util")
 const specialPage = pathToSpecialPageName(window.location.href)
 const skipProtocols = ["sourceviewer:", "readerview:", "markdownviewer:"]
-if (specialPage.name) {
+if (specialPage?.name) {
     // Load the special page specific JavaScript
     require(`./${specialPage.name}`)
 } else if (!skipProtocols.find(p => window.location.href.startsWith(p))) {

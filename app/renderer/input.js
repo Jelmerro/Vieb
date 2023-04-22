@@ -30,7 +30,8 @@ const {
     listPages,
     setTopOfPageWithMouse,
     getMouseConf,
-    updateScreenshotHighlight
+    updateScreenshotHighlight,
+    getUrl
 } = require("./common")
 
 const ACTIONS = require("./actions")
@@ -643,19 +644,26 @@ Object.keys(defaultBindings).forEach(mode => {
 let repeatCounter = 0
 let recursiveCounter = 0
 let pressedKeys = ""
-let bindings = {}
+let bindings = JSON.parse(JSON.stringify(defaultBindings))
+/** @type string[] */
 let supportedActions = []
+/** @type {number|null} */
 let timeoutTimer = null
 let blockNextInsertKey = false
 let inputHistoryList = [{"index": 0, "value": ""}]
 let inputHistoryIndex = 0
+/** @type {string|null} */
 let lastActionInMapping = null
+/** @type {string|null} */
 let lastExecutedMapstring = null
+/** @type {false|"position"|"size"} */
 let draggingScreenshotFrame = false
 let lastScreenshotX = 0
 let lastScreenshotY = 0
+/** @type {number|null} */
 let suggestionTimer = null
 let hadModifier = false
+/** @type {string|null} */
 let recordingName = null
 let recordingString = ""
 
@@ -695,7 +703,7 @@ const init = () => {
                 e.preventDefault()
             }
         }
-        if (e.target === document.getElementById("url")) {
+        if (e.target === getUrl()) {
             const {followFiltering} = require("./follow")
             const typing = "sec".includes(currentMode()[0]) || followFiltering()
             if (typing && !getMouseConf("url")) {
@@ -706,7 +714,7 @@ const init = () => {
             }
         }
     })
-    document.getElementById("tabs").addEventListener("dblclick", e => {
+    document.getElementById("tabs")?.addEventListener("dblclick", e => {
         if (getMouseConf("newtab")) {
             const {addTab} = require("./tabs")
             addTab()
@@ -719,7 +727,7 @@ const init = () => {
         if (ev.composedPath().find(e => matchesQuery(e, "#tabs"))) {
             if (getMouseConf("scrolltabs")) {
                 // Make both directions of scrolling move the tabs horizontally
-                document.getElementById("tabs").scrollBy(
+                document.getElementById("tabs")?.scrollBy(
                     ev.deltaX + ev.deltaY, ev.deltaX + ev.deltaY)
             }
         }
@@ -750,7 +758,7 @@ const init = () => {
             e.preventDefault()
             return
         }
-        if (e.target === document.getElementById("url")) {
+        if (e.target === getUrl()) {
             const {followFiltering} = require("./follow")
             const typing = "sec".includes(currentMode()[0]) || followFiltering()
             if (typing && !getMouseConf("url")) {
@@ -768,8 +776,13 @@ const init = () => {
             e.preventDefault()
         }
         if (e.button === 1 && getMouseConf("closetab")) {
-            const tab = e.composedPath().find(n => listTabs().includes(n))
-            if (tab) {
+            const tab = e.composedPath().find(n => {
+                if (n instanceof HTMLElement) {
+                    return listTabs().includes(n)
+                }
+                return false
+            })
+            if (tab instanceof HTMLElement) {
                 const {closeTab} = require("./tabs")
                 closeTab(listTabs().indexOf(tab))
             }
@@ -782,14 +795,14 @@ const init = () => {
         const {followFiltering} = require("./follow")
         const typing = "sec".includes(currentMode()[0]) || followFiltering()
         if (!typing) {
-            document.getElementById("url").setSelectionRange(0, 0)
-            window.getSelection().removeAllRanges()
+            getUrl().setSelectionRange(0, 0)
+            window.getSelection()?.removeAllRanges()
         }
         ACTIONS.setFocusCorrectly()
     })
     window.addEventListener("cut", cutInput)
     window.addEventListener("copy", copyInput)
-    window.addEventListener("copy", pasteInput)
+    window.addEventListener("paste", pasteInput)
     window.addEventListener("click", e => {
         if (e.composedPath().find(n => matchesQuery(n, "#context-menu"))) {
             return
@@ -800,10 +813,14 @@ const init = () => {
         }
         const {clear} = require("./contextmenu")
         clear()
+        if (!(e.target instanceof HTMLElement)) {
+            return
+        }
         if (e.target.classList.contains("no-focus-reset")) {
             return
         }
         e.preventDefault()
+        /** @type {(ev: MouseEvent) => EventTarget} ev */
         const urlOrSuggest = ev => ev.composedPath().find(
             n => matchesQuery(n, "#url, #suggest-dropdown"))
         if (urlOrSuggest(e)) {
@@ -850,6 +867,7 @@ const init = () => {
         if (getMouseConf("leaveinput")) {
             const {followFiltering} = require("./follow")
             const typing = "sec".includes(currentMode()[0]) || followFiltering()
+            /** @type {(ev: MouseEvent) => EventTarget} ev */
             const urlOrSuggest = ev => ev.composedPath().find(n => matchesQuery(
                 n, "#url, #suggest-dropdown, #screenshot-highlight"))
             if (typing && !urlOrSuggest(e)) {
@@ -941,7 +959,6 @@ const init = () => {
     supportedActions = [
         ...Object.keys(ACTIONS), ...Object.keys(POINTER).map(c => `p.${c}`)
     ].filter(m => !unSupportedActions.includes(m))
-    bindings = JSON.parse(JSON.stringify(defaultBindings))
     updateKeysOnScreen()
 }
 
@@ -949,18 +966,25 @@ const resetScreenshotDrag = () => setTimeout(() => {
     draggingScreenshotFrame = false
 }, 10)
 
+/**
+ * Move the screenshot frame to a new position
+ *
+ * @param {number} x
+ * @param {number} y
+*/
 const moveScreenshotFrame = (x, y) => {
     const deltaX = x - lastScreenshotX
     const deltaY = y - lastScreenshotY
     if (getMouseConf("screenshotframe") && draggingScreenshotFrame) {
-        const url = document.getElementById("url")
-        const dims = url.value.split(" ").find(
+        /** @type {HTMLElement|null} */
+        const url = getUrl()
+        const dims = url?.value.split(" ").find(
             arg => arg?.match(/^\d+,\d+,\d+,\d+$/g))
-        if (!currentMode() === "command" || !currentPage()) {
+        if (currentMode() !== "command" || !currentPage()) {
             return
         }
-        const pageHeight = Number(currentPage().style.height.split(/[.px]/g)[0])
-        const pageWidth = Number(currentPage().style.width.split(/[.px]/g)[0])
+        const pageHeight = Number(currentPage()?.style.height.split(/[.px]/g)[0])
+        const pageWidth = Number(currentPage()?.style.width.split(/[.px]/g)[0])
         const rect = {
             "height": Number(dims?.split(",")[1] ?? pageHeight),
             "width": Number(dims?.split(",")[0] ?? pageWidth),
@@ -1004,26 +1028,37 @@ const moveScreenshotFrame = (x, y) => {
     lastScreenshotY = y
 }
 
+/**
+ * Execute the cut clipboard action on the url
+ *
+ * @param {KeyboardEvent|null} event
+ */
 const cutInput = (event = null) => {
     event?.preventDefault()
-    let selection = document.getSelection().toString()
+    let selection = document.getSelection()?.toString() ?? ""
     if (currentMode() === "explore" && isUrl(selection)) {
         selection = selection.replace(/ /g, "%20")
     }
     const {clipboard} = require("electron")
     clipboard.writeText(selection)
-    const url = document.getElementById("url")
+    const url = getUrl()
     const cur = Number(url.selectionStart)
-    url.value = url.value.substr(0, url.selectionStart)
-        + url.value.substr(url.selectionEnd)
+    const end = Number(url.selectionEnd)
+    url.value = url.value.slice(0, cur) + url.value.slice(end)
     url.setSelectionRange(cur, cur)
     requestSuggestUpdate()
     updateNavbarScrolling()
 }
 
+
+/**
+ * Execute the copy clipboard action on the url
+ *
+ * @param {KeyboardEvent|null} event
+ */
 const copyInput = (event = null) => {
     event?.preventDefault()
-    let selection = document.getSelection().toString()
+    let selection = document.getSelection()?.toString() ?? ""
     if (currentMode() === "explore" && isUrl(selection)) {
         selection = selection.replace(/ /g, "%20")
     }
@@ -1031,14 +1066,19 @@ const copyInput = (event = null) => {
     clipboard.writeText(selection)
 }
 
+/**
+ * Execute the paste clipboard action on the url
+ *
+ * @param {KeyboardEvent|null} event
+ */
 const pasteInput = (event = null) => {
     event?.preventDefault()
-    const url = document.getElementById("url")
+    const url = getUrl()
     const cur = Number(url.selectionStart)
+    const end = Number(url.selectionEnd)
     const {clipboard} = require("electron")
     const pastedText = clipboard.readText()
-    url.value = url.value.substr(0, url.selectionStart) + pastedText
-        + url.value.substr(url.selectionEnd)
+    url.value = url.value.slice(0, cur) + pastedText + url.value.slice(end)
     url.setSelectionRange(cur + pastedText.length, cur + pastedText.length)
     requestSuggestUpdate()
     updateNavbarScrolling()
@@ -1155,6 +1195,11 @@ const toIdentifier = e => {
     return keyCode
 }
 
+/**
+ * Split the mapstring by key
+ *
+ * @param {string} mapStr
+*/
 const splitMapString = mapStr => {
     const maps = []
     let bracketCounter = 0
@@ -1180,9 +1225,22 @@ const splitMapString = mapStr => {
     return {"leftover": temp, maps, "valid": bracketCounter === 0 && !temp}
 }
 
+/**
+ * Get JS (or optionally Electron) name for a Vim mapped key
+ *
+ * @param {string} identifier
+ * @param {boolean} electronNames
+*/
 const fromIdentifier = (identifier, electronNames = true) => {
-    let id = String(identifier) || ""
-    id = splitMapString(id).maps[0] ?? id
+    let id = splitMapString(identifier).maps[0] ?? identifier
+    /** @type {{
+     * modifiers: string[],
+     * ctrlKey?: boolean, control?: boolean,
+     * metaKey?: boolean, meta?: boolean,
+     * altKey?: boolean, alt?: boolean,
+     * shiftKey?: boolean, shift?: boolean,
+     * }}
+    */
     const options = {"modifiers": []}
     if (id.startsWith("<") && id.endsWith(">")) {
         id = id.slice(1, -1)
@@ -1227,7 +1285,7 @@ const fromIdentifier = (identifier, electronNames = true) => {
             }
         })
     }
-    return {...options, "key": id, "keyCode": id}
+    return {...options, "key": id}
 }
 
 // Single use actions that do not need to be called multiple times if counted
@@ -1687,7 +1745,7 @@ const keyForOs = (regular, mac, key) => regular.includes(key)
     || process.platform === "darwin" && mac.includes(key)
 
 const updateNavbarScrolling = () => {
-    const url = document.getElementById("url")
+    const url = getUrl()
     const charWidth = getSetting("guifontsize") * 0.60191
     const end = url.selectionStart * charWidth - charWidth
     const start = url.selectionEnd * charWidth - url.clientWidth + charWidth + 2
@@ -1720,7 +1778,7 @@ const typeCharacterIntoNavbar = (character, force = false) => {
     if (recordingName) {
         recordingString += id
     }
-    const url = document.getElementById("url")
+    const url = getUrl()
     if (keyForOs(["<S-Home>", "<C-S-Home>"], ["<M-S-Left>", "<M-S-Up>"], id)) {
         if (url.selectionDirection !== "backward") {
             url.selectionEnd = url.selectionStart
@@ -2025,19 +2083,20 @@ const resetInputHistory = () => {
 }
 
 const requestSuggestUpdate = (updateHistory = true) => {
-    const url = document.getElementById("url")
+    const url = getUrl()
     const suggestBounceDelay = getSetting("suggestbouncedelay")
     if (updateHistory) {
         inputHistoryList = inputHistoryList.slice(0, inputHistoryIndex + 1)
         inputHistoryIndex = inputHistoryList.length
-        inputHistoryList.push({"index": url.selectionStart, "value": url.value})
+        const start = Number(url.selectionStart)
+        inputHistoryList.push({"index": start, "value": url.value})
     }
     if (!suggestionTimer) {
         updateSuggestions()
     }
     if (suggestBounceDelay) {
-        clearTimeout(suggestionTimer)
-        suggestionTimer = setTimeout(() => {
+        window.clearTimeout(suggestionTimer ?? undefined)
+        suggestionTimer = window.setTimeout(() => {
             suggestionTimer = null
             updateSuggestions()
         }, suggestBounceDelay)
@@ -2045,14 +2104,14 @@ const requestSuggestUpdate = (updateHistory = true) => {
 }
 
 const updateSuggestions = () => {
-    const val = document.getElementById("url").value
+    const url = getUrl()
     const mode = currentMode()
     if (mode === "explore") {
         const {suggestExplore} = require("./suggest")
-        suggestExplore(val)
+        suggestExplore(url.value)
     } else if (mode === "command") {
         const {suggestCommand} = require("./suggest")
-        suggestCommand(val)
+        suggestCommand(url.value)
     } else if (mode === "search" && getSetting("incsearch")) {
         ACTIONS.incrementalSearch()
     }

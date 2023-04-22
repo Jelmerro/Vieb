@@ -18,25 +18,56 @@
 "use strict"
 
 let topOfPageWithMouse = false
+/** @type {number|null} */
 let navbarGuiTimer = null
+/** @type {number|null} */
 let tabbarGuiTimer = null
+
+const getUrl = () => {
+    const url = document.getElementById("url")
+    if (url instanceof HTMLInputElement) {
+        return url
+    }
+    return null
+}
 
 const listTabs = () => [...document.querySelectorAll("#tabs > span[link-id]")]
 
-const listPages = () => [...document.querySelectorAll("#pages > .webview")]
+const listPages = () => {
+    /** @ts-ignore @type {Electron.WebviewTag[]} */
+    const pages = [...document.querySelectorAll("#pages > .webview")]
+    return pages
+}
 
 const currentTab = () => document.getElementById("current-tab")
 
-const currentPage = () => document.getElementById("current-page")
+const currentPage = () => {
+    /** @ts-ignore @type {Electron.WebviewTag|null} */
+    const page = document.getElementById("current-page")
+    return page
+}
 
-const tabOrPageMatching = el => {
-    if (listTabs().indexOf(el) !== -1) {
+/**
+ * Find a page for a given tab
+ *
+ * @param {Element} tab
+ */
+const pageForTab = tab => {
+    if (listTabs().indexOf(tab) !== -1) {
         return listPages().find(
-            e => e.getAttribute("link-id") === el.getAttribute("link-id"))
+            e => e.getAttribute("link-id") === tab.getAttribute("link-id"))
     }
-    if (listPages().indexOf(el) !== -1) {
+    return null
+}
+/**
+ * Find a tab for a given page
+ *
+ * @param {Electron.WebviewTag} page
+ */
+const tabForPage = page => {
+    if (listPages().indexOf(page) !== -1) {
         return listTabs().find(
-            e => e.getAttribute("link-id") === el.getAttribute("link-id"))
+            e => e.getAttribute("link-id") === page.getAttribute("link-id"))
     }
     return null
 }
@@ -54,12 +85,18 @@ const setStored = (set, val) => sessionStorage.setItem(set, JSON.stringify(val))
 
 const getStored = val => {
     try {
-        return JSON.parse(sessionStorage.getItem(val))
+        return JSON.parse(sessionStorage.getItem(val) ?? "")
     } catch {
-        return null
+        return ""
     }
 }
 
+/**
+ * Get the current gui status value depending on window status
+ *
+ * @param {"navbar"|"tabbar"} type
+ * @returns {"always"|"onupdate"|"oninput"|"never"}
+ */
 const getGuiStatus = type => {
     let setting = getSetting(`gui${type}`)
     const {ipcRenderer} = require("electron")
@@ -72,6 +109,11 @@ const getGuiStatus = type => {
     return setting
 }
 
+/**
+ * Update the mouse state to reflect if it's at the top of the page or not
+ *
+ * @param {boolean} status
+ */
 const setTopOfPageWithMouse = status => {
     if (topOfPageWithMouse !== status) {
         topOfPageWithMouse = status
@@ -80,19 +122,25 @@ const setTopOfPageWithMouse = status => {
 }
 
 const updateScreenshotHighlight = (hide = false) => {
-    const dims = document.getElementById("url").value.split(" ").find(
+    const url = document.getElementById("url")
+    if (!(url instanceof HTMLInputElement)) {
+        return
+    }
+    const dims = url.value.split(" ").find(
         arg => arg?.match(/^\d+,\d+,\d+,\d+$/g))
-    const screenCmd = document.getElementById("url").value
-        .replace(/^:/g, "").trim().startsWith("screen")
+    const screenCmd = url.value.replace(/^:/g, "").trim().startsWith("screen")
     const highlight = document.getElementById("screenshot-highlight")
-    if (!currentMode() === "command" || hide || !currentPage() || !screenCmd) {
+    if (!highlight) {
+        return
+    }
+    if (currentMode() !== "command" || hide || !currentPage() || !screenCmd) {
         highlight.style.display = "none"
         return
     }
     const border = Number(getComputedStyle(highlight)
         .borderWidth.split(/[.px]/g)[0])
-    const pageHeight = Number(currentPage().style.height.split(/[.px]/g)[0])
-    const pageWidth = Number(currentPage().style.width.split(/[.px]/g)[0])
+    const pageHeight = Number(currentPage()?.style.height.split(/[.px]/g)[0])
+    const pageWidth = Number(currentPage()?.style.width.split(/[.px]/g)[0])
     const rect = {
         "height": Number(dims?.split(",")[1] ?? pageHeight),
         "width": Number(dims?.split(",")[0] ?? pageWidth),
@@ -111,8 +159,8 @@ const updateScreenshotHighlight = (hide = false) => {
     if (rect.height === 0 || rect.height > pageHeight - rect.y) {
         rect.height = pageHeight - rect.y
     }
-    const pageTop = Number(currentPage().style.top.split(/[.px]/g)[0])
-    const pageLeft = Number(currentPage().style.left.split(/[.px]/g)[0])
+    const pageTop = Number(currentPage()?.style.top.split(/[.px]/g)[0])
+    const pageLeft = Number(currentPage()?.style.left.split(/[.px]/g)[0])
     highlight.style.height = `${rect.height}px`
     highlight.style.width = `${rect.width}px`
     highlight.style.left = `${pageLeft + rect.x - border}px`
@@ -120,24 +168,29 @@ const updateScreenshotHighlight = (hide = false) => {
     highlight.style.display = "inherit"
 }
 
+/**
+ * Update the GUI to briefly show it again if configured
+ *
+ * @param {"navbar"|"tabbar"} type
+*/
 const guiRelatedUpdate = type => {
     updateGuiVisibility()
     const timeout = getSetting("guihidetimeout")
     if (type === "navbar" && getGuiStatus("navbar") === "onupdate") {
-        clearTimeout(navbarGuiTimer)
+        window.clearTimeout(navbarGuiTimer ?? undefined)
         document.body.classList.remove("navigationhidden")
         if (timeout) {
-            navbarGuiTimer = setTimeout(() => {
+            navbarGuiTimer = window.setTimeout(() => {
                 navbarGuiTimer = null
                 updateGuiVisibility()
             }, timeout)
         }
     }
     if (type === "tabbar" && getGuiStatus("tabbar") === "onupdate") {
-        clearTimeout(tabbarGuiTimer)
+        window.clearTimeout(tabbarGuiTimer ?? undefined)
         document.body.classList.remove("tabshidden")
         if (timeout) {
-            tabbarGuiTimer = setTimeout(() => {
+            tabbarGuiTimer = window.setTimeout(() => {
                 tabbarGuiTimer = null
                 updateGuiVisibility()
             }, timeout)
@@ -178,12 +231,14 @@ module.exports = {
     getMouseConf,
     getSetting,
     getStored,
+    getUrl,
     guiRelatedUpdate,
     listPages,
     listTabs,
+    pageForTab,
     setStored,
     setTopOfPageWithMouse,
-    tabOrPageMatching,
+    tabForPage,
     updateGuiVisibility,
     updateScreenshotHighlight
 }
