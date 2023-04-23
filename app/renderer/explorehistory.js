@@ -21,6 +21,7 @@ const {currentMode, getSetting, getUrl} = require("./common")
 const {joinPath, appData, appendFile, readFile} = require("../util")
 
 const exploreFile = joinPath(appData(), "explorehist")
+/** @type {string[]} */
 let previousSites = []
 let previousIndex = -1
 let originalSite = ""
@@ -34,7 +35,10 @@ const updateNavWithSite = () => {
     if (previousIndex !== -1) {
         exploreText = previousSites[previousIndex]
     }
-    getUrl().value = exploreText
+    const url = getUrl()
+    if (url) {
+        url.value = exploreText
+    }
     const {suggestExplore} = require("./suggest")
     suggestExplore(exploreText)
 }
@@ -44,7 +48,7 @@ const previous = () => {
         return
     }
     if (previousIndex === -1) {
-        originalSite = getUrl().value
+        originalSite = getUrl()?.value ?? ""
         previousIndex = previousSites.length - 1
     } else if (previousIndex > 0) {
         previousIndex -= 1

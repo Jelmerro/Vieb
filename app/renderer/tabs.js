@@ -58,6 +58,7 @@ const {
 } = require("./common")
 const {setMode} = require("./modes")
 
+/** @type {{container: string, muted: boolean, url: string, index: number}[]} */
 let recentlyClosed = []
 let linkId = 0
 /** @type {{[id: string]: Number}} */
@@ -69,9 +70,9 @@ const existingInjections = {}
 
 const init = () => {
     window.addEventListener("load", () => {
-        if (appConfig().icon) {
+        if (appConfig()?.icon) {
             document.getElementById("logo")
-                .setAttribute("src", appConfig().icon)
+                ?.setAttribute("src", appConfig()?.icon ?? "")
         }
         const parsed = readJSON(tabFile)
         if (!erwicMode) {
@@ -124,7 +125,7 @@ const init = () => {
                 const replaceStartup = getSetting("replacestartup")
                 if (replaceStartup !== "never") {
                     try {
-                        const url = currentPage().src
+                        const url = currentPage()?.src ?? ""
                         const specialName = pathToSpecialPageName(url)?.name
                         const isNewtab = specialName === "newtab"
                             || url.replace(/\/+$/g, "") === stringToUrl(
@@ -178,6 +179,14 @@ const init = () => {
 }
 
 const saveTabs = () => {
+    /** @type {{
+     *   closed: {
+     *     container: string, muted: boolean, url: string, index: number
+     *   }[]
+     *   pinned: {container: string, muted: boolean, url: string}[]
+     *   tabs: {container: string, muted: boolean, url: string}[]
+     *   id: number
+     * }} */
     const data = {"closed": [], "id": 0, "pinned": [], "tabs": []}
     const restoreTabs = getSetting("restoretabs")
     const keepRecentlyClosed = getSetting("keeprecentlyclosed")
@@ -223,6 +232,23 @@ const saveTabs = () => {
     writeJSON(tabFile, data, "Failed to write current tabs to disk")
 }
 
+/**
+ * Add a new tab
+ *
+ * @param {{
+ *   url?: string,
+ *   customIndex?: number,
+ *   switchTo?: boolean,
+ *   pinned?: boolean,
+ *   container?: string,
+ *   session?: string,
+ *   devtools?: boolean,
+ *   lazy?: boolean,
+ *   script?: string,
+ *   muted?: boolean,
+ *   startup?: boolean,
+ * }} options
+ */
 const addTab = (options = {}) => {
     // Recognized options for opening a new tab are as follows:
     // url, customIndex, switchTo, pinned, session (override of container)
@@ -245,24 +271,17 @@ const addTab = (options = {}) => {
         return
     }
     linkId += 1
-    let currentPageId = null
-    let currentPageLinkId = null
-    let devtoolsOpen = false
-    try {
-        devtoolsOpen = currentPage().isDevToolsOpened()
-        currentPageId = currentPage().getWebContentsId()
-        currentPageLinkId = currentPage().getAttribute("link-id")
-    } catch {
-        // Current page not ready, devtools won't be opened
-    }
+    const devtoolsOpen = currentPage()?.isDevToolsOpened()
+    const currentPageId = currentPage()?.getWebContentsId()
+    const currentPageLinkId = currentPage()?.getAttribute("link-id")
     let isDevtoolsTab = false
     if (options.devtools && currentPageId && currentPageLinkId) {
         const oldTab = listTabs().find(
             t => t.getAttribute("link-id") === currentPageLinkId)
-        if (oldTab.getAttribute("devtools-id") || devtoolsOpen) {
+        if (oldTab?.getAttribute("devtools-id") || devtoolsOpen) {
             return
         }
-        oldTab.setAttribute("devtools-id", `${linkId}`)
+        oldTab?.setAttribute("devtools-id", `${linkId}`)
         isDevtoolsTab = true
     }
     let sessionName = getSetting("containernewtab")
@@ -271,8 +290,8 @@ const addTab = (options = {}) => {
     } else if (options.startup) {
         sessionName = getSetting("containerstartuppage")
     }
-    if (sessionName === "s:external") {
-        const isSpecialPage = pathToSpecialPageName(options.url || "")?.name
+    if (sessionName === "s:external" && options.url) {
+        const isSpecialPage = pathToSpecialPageName(options.url)?.name
         if (isSpecialPage) {
             sessionName = "main"
         } else {
@@ -290,9 +309,12 @@ const addTab = (options = {}) => {
     }
     if (sessionName === "s:replacematching" && options.url) {
         const match = listPages().find(p => sameDomain(
-            p.getAttribute("src"), options.url))
+            p.getAttribute("src") ?? "", options.url ?? ""))
         if (match) {
-            switchToTab(tabForPage(match))
+            const tab = tabForPage(match)
+            if (tab) {
+                switchToTab(tab)
+            }
         }
     }
     if (sessionName.startsWith("s:replace")) {
@@ -303,7 +325,7 @@ const addTab = (options = {}) => {
     }
     if (sessionName === "s:usematching" && options.url) {
         const match = listPages().find(p => sameDomain(
-            p.getAttribute("src"), options.url))
+            p.getAttribute("src") ?? "", options.url ?? ""))
         if (match) {
             sessionName = match.getAttribute("container")
         }
@@ -315,7 +337,7 @@ const addTab = (options = {}) => {
         sessionName = options.session
     } else if (options.url) {
         sessionName = getSetting("containernames").split(",").find(
-            c => options.url.match(c.split("~")[0]))?.split("~")[1]
+            c => options.url?.match(c.split("~")[0]))?.split("~")[1]
             || sessionName
     }
     sessionName = sessionName.replace("%n", linkId)
@@ -335,32 +357,32 @@ const addTab = (options = {}) => {
     statusIcon.className = "status"
     statusIcon.style.display = "none"
     name.textContent = "Newtab"
-    tab.appendChild(favicon)
-    tab.appendChild(statusIcon)
-    tab.appendChild(name)
+    tab.append(favicon)
+    tab.append(statusIcon)
+    tab.append(name)
     if (options.customIndex !== undefined && currentTab()) {
         if (options.customIndex >= listTabs().length) {
-            tabs.appendChild(tab)
+            tabs?.append(tab)
         } else {
-            /** @type {Element} */
+            /** @type {Element|null} */
             let nextTab = listTabs()[options.customIndex]
             if (!options.pinned) {
                 while (nextTab && nextTab.classList.contains("pinned")) {
                     nextTab = nextTab.nextElementSibling
                 }
             }
-            tabs.insertBefore(tab, nextTab)
+            tabs?.insertBefore(tab, nextTab)
         }
     } else if (getSetting("tabnexttocurrent") && currentTab()) {
-        let nextTab = currentTab().nextElementSibling
+        let nextTab = currentTab()?.nextElementSibling
         if (!options.pinned) {
             while (nextTab && nextTab.classList.contains("pinned")) {
                 nextTab = nextTab.nextElementSibling
             }
         }
-        tabs.insertBefore(tab, nextTab)
+        tabs?.insertBefore(tab, nextTab ?? null)
     } else {
-        tabs.appendChild(tab)
+        tabs?.append(tab)
     }
     tab.setAttribute("link-id", `${linkId}`)
     const color = getSetting("containercolors").split(",").find(
@@ -395,7 +417,7 @@ const addTab = (options = {}) => {
         tab.setAttribute("muted", "muted")
         page.setAttribute("muted", "muted")
     }
-    pages.appendChild(page)
+    pages?.append(page)
     const suspend = options.lazy
         || getSetting("suspendbackgroundtab") && !options.switchTo
     tab.setAttribute("suspended", "suspended")
@@ -427,7 +449,7 @@ const sharedAttributes = [
  */
 const suspendTab = (tab, force = false) => {
     const page = pageForTab(tab)
-    if (page instanceof HTMLDivElement) {
+    if (!page || page instanceof HTMLDivElement) {
         return
     }
     if (tab.classList.contains("visible-tab") && !force) {
@@ -441,8 +463,9 @@ const suspendTab = (tab, force = false) => {
     const placeholder = document.createElement("div")
     placeholder.classList.add("webview")
     sharedAttributes.forEach(attr => {
-        if (page.getAttribute(attr)) {
-            placeholder.setAttribute(attr, page.getAttribute(attr))
+        const attrValue = page.getAttribute(attr)
+        if (attrValue) {
+            placeholder.setAttribute(attr, attrValue)
         }
     })
     placeholder.setAttribute("src", page.src)
@@ -465,18 +488,19 @@ const unsuspendPage = page => {
         return
     }
     const tab = tabForPage(page)
-    if (!tab.getAttribute("suspended")) {
+    if (!tab?.getAttribute("suspended")) {
         return
     }
     tab.removeAttribute("suspended")
     const webview = document.createElement("webview")
     sharedAttributes.forEach(attr => {
-        if (page.getAttribute(attr)) {
-            webview.setAttribute(attr, page.getAttribute(attr))
+        const attrValue = page.getAttribute(attr)
+        if (attrValue) {
+            webview.setAttribute(attr, attrValue)
         }
     })
     let prefs = "spellcheck=true,transparent=true,backgroundColor=#33333300,"
-    if (appConfig().autoplay === "user") {
+    if (appConfig()?.autoplay === "user") {
         prefs += "autoplayPolicy=document-user-activation-required,"
     }
     // Info on nodeIntegrationInSubFrames and nodeIntegrationInWorker:
@@ -514,12 +538,16 @@ const unsuspendPage = page => {
             if (isDevtoolsTab) {
                 ipcRenderer.send("add-devtools",
                     currentPageId, webview.getWebContentsId())
-                name.textContent = "Devtools"
+                if (name) {
+                    name.textContent = "Devtools"
+                }
             } else if (url || newtabUrl) {
                 webview.setAttribute("custom-first-load", "true")
                 webview.src = url || stringToUrl(newtabUrl)
                 resetTabInfo(webview)
-                name.textContent = urlToString(url)
+                if (name) {
+                    name.textContent = urlToString(url)
+                }
                 return
             }
             webview.clearHistory()
@@ -533,12 +561,23 @@ const reopenTab = () => {
     if (recentlyClosed.length === 0 || listTabs().length === 0) {
         return
     }
+    /** @type {{
+     *   muted: boolean,
+     *   url: string,
+     *   index: number
+     *   session?: string
+     *   container?: string
+     *   customIndex?: number
+     * }|undefined} */
     const restore = recentlyClosed.pop()
+    if (!restore) {
+        return
+    }
     restore.url = stringToUrl(restore.url)
     if (getSetting("containerkeeponreopen")) {
         restore.session = restore.container
     } else {
-        restore.container = null
+        delete restore.container
     }
     restore.customIndex = restore.index
     if (getSetting("tabreopenposition") === "left") {
@@ -553,11 +592,20 @@ const reopenTab = () => {
     addTab(restore)
 }
 
+/**
+ * Close a tab by index, optionally force close pinned ones
+ *
+ * @param {number|null} index
+ * @param {boolean} force
+ */
 const closeTab = (index = null, force = false) => {
-    const tab = listTabs()[index] || currentTab()
+    let tab = currentTab()
+    if (index !== null) {
+        tab = listTabs()[index]
+    }
     const isClosingCurrent = tab === currentTab()
     const page = pageForTab(tab)
-    if (!tab) {
+    if (!tab || !page) {
         return
     }
     if (!getSetting("closablepinnedtabs") && !force) {
@@ -569,14 +617,14 @@ const closeTab = (index = null, force = false) => {
     const oldTabIdx = listTabs().indexOf(tab)
     if (getSetting("keeprecentlyclosed") && url) {
         recentlyClosed.push({
-            "container": page.getAttribute("container"),
+            "container": page.getAttribute("container") ?? "",
             "index": oldTabIdx,
-            "muted": tab.getAttribute("muted"),
+            "muted": tab.getAttribute("muted") === "muted",
             url
         })
     }
     const regularTab = listTabs().find(t => t.getAttribute("devtools-id")
-        === tab.getAttribute("link-id"))
+        === tab?.getAttribute("link-id"))
     if (regularTab) {
         regularTab.removeAttribute("devtools-id")
     }
@@ -584,7 +632,7 @@ const closeTab = (index = null, force = false) => {
     const {layoutDivById, hide} = require("./pagelayout")
     const isVisible = layoutDivById(tab.getAttribute("link-id"))
     const multiLayout = document.getElementById("pages")
-        .classList.contains("multiple")
+        ?.classList.contains("multiple")
     if (isVisible && multiLayout) {
         hide(page, true)
     } else {
@@ -638,7 +686,7 @@ const closeTab = (index = null, force = false) => {
  */
 const switchToTab = tabOrIndex => {
     if (document.body.classList.contains("fullscreen")) {
-        currentPage().send("action", "exitFullscreen")
+        currentPage()?.send("action", "exitFullscreen")
     }
     const tabs = listTabs()
     let tab = tabOrIndex
@@ -680,8 +728,11 @@ const switchToTab = tabOrIndex => {
     saveTabs()
     unsuspendPage(page)
     setMode("normal")
-    document.getElementById("url-hover").textContent = ""
-    document.getElementById("url-hover").style.display = "none"
+    const hoverEl = document.getElementById("url-hover")
+    if (hoverEl) {
+        hoverEl.textContent = ""
+        hoverEl.style.display = "none"
+    }
     guiRelatedUpdate("tabbar")
     const {updateContainerSettings} = require("./settings")
     updateContainerSettings(false)
@@ -784,17 +835,17 @@ const addWebviewListeners = webview => {
     })
     webview.addEventListener("media-started-playing", () => {
         const tab = tabForPage(webview)
-        const counter = Number(tab.getAttribute("media-playing")) || 0
-        tab.setAttribute("media-playing", `${counter + 1}`)
+        const counter = Number(tab?.getAttribute("media-playing")) || 0
+        tab?.setAttribute("media-playing", `${counter + 1}`)
     })
     webview.addEventListener("media-paused", () => {
         const tab = tabForPage(webview)
-        let counter = Number(tab.getAttribute("media-playing")) || 0
+        let counter = Number(tab?.getAttribute("media-playing")) || 0
         counter -= 1
         if (counter < 1) {
-            tab.removeAttribute("media-playing")
+            tab?.removeAttribute("media-playing")
         } else {
-            tab.setAttribute("media-playing", `${counter}`)
+            tab?.setAttribute("media-playing", `${counter}`)
         }
     })
     webview.addEventListener("did-start-loading", () => {
@@ -888,18 +939,19 @@ const addWebviewListeners = webview => {
             webview.send("notification-history", listNotificationHistory())
         }
         saveTabs()
-        const name = tabForPage(webview).querySelector("span")
-        if (specialPageName) {
+        const name = tabForPage(webview)?.querySelector("span")
+        if (specialPageName && name) {
             name.textContent = title(specialPageName)
         }
         const {addToHist, titleForPage, updateTitle} = require("./history")
         addToHist(webview.src)
         const existing = titleForPage(webview.src)
-        if (isLocal && !specialPageName) {
+        if (isLocal && !specialPageName && name) {
             name.textContent = urlToString(webview.src)
-        } else if (hasProtocol(name.textContent) && existing && !isCustomView) {
+        } else if (name && hasProtocol(name.textContent ?? "")
+            && existing && !isCustomView) {
             name.textContent = existing
-        } else {
+        } else if (name) {
             updateTitle(webview.src, name.textContent)
         }
         if (erwicMode) {
@@ -1070,23 +1122,25 @@ const addWebviewListeners = webview => {
     })
     webview.addEventListener("update-target-url", e => {
         const correctMode = ["insert", "pointer"].includes(currentMode())
+        const hoverEl = document.getElementById("url-hover")
+        if (!hoverEl) {
+            return
+        }
         if (e.url && (correctMode || getMouseConf("pageoutsideinsert"))) {
             const special = pathToSpecialPageName(e.url)
-            const appName = appConfig().name.toLowerCase()
+            const appName = appConfig()?.name.toLowerCase() ?? ""
             if (!special?.name) {
-                document.getElementById("url-hover")
-                    .textContent = urlToString(e.url)
+                hoverEl.textContent = urlToString(e.url)
             } else if (special.section) {
-                document.getElementById("url-hover").textContent = `${
+                hoverEl.textContent = `${
                     appName}://${special.name}#${special.section}`
             } else {
-                document.getElementById("url-hover").textContent = `${
-                    appName}://${special.name}`
+                hoverEl.textContent = `${appName}://${special.name}`
             }
-            document.getElementById("url-hover").style.display = "block"
+            hoverEl.style.display = "block"
         } else {
-            document.getElementById("url-hover").textContent = ""
-            document.getElementById("url-hover").style.display = "none"
+            hoverEl.textContent = ""
+            hoverEl.style.display = "none"
         }
     })
     webview.onblur = () => {
@@ -1179,13 +1233,13 @@ const moveTabForward = () => {
     if (!currentTab()?.nextSibling) {
         return false
     }
-    if (currentTab().classList.contains("pinned")) {
-        if (!currentTab().nextElementSibling.classList.contains("pinned")) {
+    if (currentTab()?.classList.contains("pinned")) {
+        if (!currentTab()?.nextElementSibling?.classList.contains("pinned")) {
             return false
         }
     }
-    tabs.insertBefore(currentTab(), currentTab().nextSibling.nextSibling)
-    currentTab().scrollIntoView({"block": "center", "inline": "center"})
+    tabs?.insertBefore(currentTab(), currentTab().nextSibling.nextSibling)
+    currentTab()?.scrollIntoView({"block": "center", "inline": "center"})
     return true
 }
 
@@ -1194,13 +1248,14 @@ const moveTabBackward = () => {
     if (listTabs().indexOf(currentTab()) <= 0) {
         return false
     }
-    if (!currentTab().classList.contains("pinned")) {
-        if (currentTab().previousElementSibling.classList.contains("pinned")) {
+    if (!currentTab()?.classList.contains("pinned")) {
+        if (currentTab()?.previousElementSibling
+            ?.classList.contains("pinned")) {
             return false
         }
     }
-    tabs.insertBefore(currentTab(), currentTab().previousSibling)
-    currentTab().scrollIntoView({"block": "center", "inline": "center"})
+    tabs?.insertBefore(currentTab(), currentTab().previousSibling)
+    currentTab()?.scrollIntoView({"block": "center", "inline": "center"})
     return true
 }
 

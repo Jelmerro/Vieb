@@ -404,9 +404,13 @@ if (argErwic) {
 }
 
 // When the app is ready to start, open the main window
+/** @type {Electron.BrowserWindow|null} */
 let mainWindow = null
+/** @type {Electron.BrowserWindow|null} */
 let loginWindow = null
+/** @type {Electron.BrowserWindow|null} */
 let notificationWindow = null
+/** @type {Electron.BrowserWindow|null} */
 let promptWindow = null
 const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
     const url = u.url || u
@@ -430,6 +434,9 @@ app.on("ready", () => {
     if (!argUnsafeMultiwin) {
         if (app.requestSingleInstanceLock({"argv": args})) {
             app.on("second-instance", (_, newArgs, cwd, extra) => {
+                if (!mainWindow) {
+                    return
+                }
                 if (mainWindow.isMinimized()) {
                     mainWindow.restore()
                 }
@@ -443,9 +450,9 @@ app.on("ready", () => {
             app.exit(0)
         }
     }
-    app.on("open-file", (_, url) => mainWindow.webContents.send("urls",
+    app.on("open-file", (_, url) => mainWindow?.webContents.send("urls",
         resolveLocalPaths([url])))
-    app.on("open-url", (_, url) => mainWindow.webContents.send("urls",
+    app.on("open-url", (_, url) => mainWindow?.webContents.send("urls",
         resolveLocalPaths([url])))
     if (!app.isPackaged && !customIcon) {
         customIcon = joinPath(__dirname, "img/vieb.svg")
@@ -473,26 +480,25 @@ app.on("ready", () => {
         "width": 800
     }
     mainWindow = new BrowserWindow(windowData)
-    mainWindow.webContents.openDevTools({"mode": "detach"})
     mainWindow.removeMenu()
     mainWindow.setMinimumSize(500, 500)
-    mainWindow.on("focus", () => mainWindow.webContents.send("window-focus"))
-    mainWindow.on("blur", () => mainWindow.webContents.send("window-blur"))
+    mainWindow.on("focus", () => mainWindow?.webContents.send("window-focus"))
+    mainWindow.on("blur", () => mainWindow?.webContents.send("window-blur"))
     mainWindow.on("close", e => {
         e.preventDefault()
-        mainWindow.webContents.send("window-close")
+        mainWindow?.webContents.send("window-close")
     })
     mainWindow.on("closed", () => app.exit(0))
     // Load app and send urls when ready
     mainWindow.loadURL(`file://${joinPath(__dirname, "index.html")}`)
     mainWindow.webContents.once("did-finish-load", () => {
-        mainWindow.webContents.setWindowOpenHandler(() => ({"action": "deny"}))
-        mainWindow.webContents.on("will-navigate", e => e.preventDefault())
-        mainWindow.webContents.on("will-redirect", e => e.preventDefault())
+        mainWindow?.webContents.setWindowOpenHandler(() => ({"action": "deny"}))
+        mainWindow?.webContents.on("will-navigate", e => e.preventDefault())
+        mainWindow?.webContents.on("will-redirect", e => e.preventDefault())
         if (argDebugMode) {
-            mainWindow.webContents.openDevTools({"mode": "detach"})
+            mainWindow?.webContents.openDevTools({"mode": "detach"})
         }
-        mainWindow.webContents.send("urls", resolveLocalPaths(urls))
+        mainWindow?.webContents.send("urls", resolveLocalPaths(urls))
     })
     mainWindow.webContents.on("will-attach-webview", (_, prefs) => {
         prefs.preload = joinPath(__dirname, "preload/index.js")
@@ -501,17 +507,17 @@ app.on("ready", () => {
     })
     mainWindow.webContents.on("did-attach-webview", (_, contents) => {
         contents.on("will-prevent-unload", e => e.preventDefault())
-        contents.on("unresponsive", () => mainWindow.webContents.send(
+        contents.on("unresponsive", () => mainWindow?.webContents.send(
             "unresponsive", contents.id))
-        contents.on("responsive", () => mainWindow.webContents.send(
+        contents.on("responsive", () => mainWindow?.webContents.send(
             "responsive", contents.id))
-        let navigationUrl = null
+        let navigationUrl = ""
         contents.on("did-start-navigation", (__, url) => {
             navigationUrl = url
         })
         contents.on("did-redirect-navigation", (__, url) => {
             if (navigationUrl !== url) {
-                mainWindow.webContents.send("redirect", navigationUrl, url)
+                mainWindow?.webContents.send("redirect", navigationUrl, url)
             }
         })
         contents.setWebRTCIPHandlingPolicy("default_public_interface_only")
@@ -522,10 +528,10 @@ app.on("ready", () => {
             if (currentInputMatches(input)) {
                 e.preventDefault()
             }
-            mainWindow.webContents.send("insert-mode-input-event", input)
+            mainWindow?.webContents.send("insert-mode-input-event", input)
         })
         contents.on("zoom-changed", (__, dir) => {
-            mainWindow.webContents.send("zoom-changed", contents.id, dir)
+            mainWindow?.webContents.send("zoom-changed", contents.id, dir)
         })
         contents.on("certificate-error", (e, url, err, cert, fn) => {
             e.preventDefault()
@@ -535,9 +541,9 @@ app.on("ready", () => {
         })
         contents.setWindowOpenHandler(e => {
             if (e.disposition === "foreground-tab") {
-                mainWindow.webContents.send("navigate-to", e.url)
+                mainWindow?.webContents.send("navigate-to", e.url)
             } else {
-                mainWindow.webContents.send("new-tab", e.url)
+                mainWindow?.webContents.send("new-tab", e.url)
             }
             return {"action": "deny"}
         })
@@ -562,12 +568,12 @@ app.on("ready", () => {
     loginWindow.loadURL(loginPage)
     loginWindow.on("close", e => {
         e.preventDefault()
-        loginWindow.hide()
-        mainWindow.focus()
+        loginWindow?.hide()
+        mainWindow?.focus()
     })
     ipcMain.on("hide-login-window", () => {
-        loginWindow.hide()
-        mainWindow.focus()
+        loginWindow?.hide()
+        mainWindow?.focus()
     })
     // Show a dialog for large notifications
     const notificationWindowData = {
@@ -590,12 +596,12 @@ app.on("ready", () => {
     notificationWindow.loadURL(notificationPage)
     notificationWindow.on("close", e => {
         e.preventDefault()
-        notificationWindow.hide()
-        mainWindow.focus()
+        notificationWindow?.hide()
+        mainWindow?.focus()
     })
     ipcMain.on("hide-notification-window", () => {
-        notificationWindow.hide()
-        mainWindow.focus()
+        notificationWindow?.hide()
+        mainWindow?.focus()
     })
     // Show a sync prompt dialog if requested by any of the pages
     const promptWindowData = {
@@ -620,6 +626,7 @@ app.on("ready", () => {
 // THIS ENDS THE MAIN SETUP, ACTIONS BELOW MUST BE IN MAIN FOR VARIOUS REASONS
 
 // Handle Basic HTTP login attempts
+/** @type {Number[]} */
 const loginAttempts = []
 let fontsize = 14
 let customCSS = ""
@@ -628,7 +635,7 @@ ipcMain.on("set-custom-styling", (_, newFontSize, newCSS) => {
     customCSS = newCSS
 })
 app.on("login", (e, contents, _, auth, callback) => {
-    if (loginWindow.isVisible()) {
+    if (!mainWindow || !loginWindow || loginWindow.isVisible()) {
         return
     }
     if (loginAttempts.includes(contents.id)) {
@@ -649,8 +656,8 @@ app.on("login", (e, contents, _, auth, callback) => {
     ipcMain.once("login-credentials", (__, credentials) => {
         try {
             callback(credentials[0], credentials[1])
-            loginWindow.hide()
-            mainWindow.focus()
+            loginWindow?.hide()
+            mainWindow?.focus()
         } catch {
             // Window is already being closed
         }
@@ -671,6 +678,9 @@ app.on("login", (e, contents, _, auth, callback) => {
 
 // Show a scrollable notification popup for long notifications
 ipcMain.on("show-notification", (_, escapedMessage, properType) => {
+    if (!mainWindow || !notificationWindow) {
+        return
+    }
     const bounds = mainWindow.getBounds()
     const width = Math.round(bounds.width * 0.9)
     let height = Math.round(bounds.height * 0.9)
@@ -688,6 +698,9 @@ ipcMain.on("show-notification", (_, escapedMessage, properType) => {
 
 // Handle prompts in sync from within the webviews
 ipcMain.on("show-prompt-dialog", (e, title, defaultText) => {
+    if (!mainWindow || !promptWindow) {
+        return
+    }
     ipcMain.removeAllListeners("prompt-response")
     ipcMain.removeAllListeners("hide-prompt-window")
     promptWindow.removeAllListeners("close")
@@ -704,19 +717,19 @@ ipcMain.on("show-prompt-dialog", (e, title, defaultText) => {
     promptWindow.webContents.send(
         "prompt-info", fontsize, customCSS, title, defaultText)
     ipcMain.on("prompt-response", (_, response) => {
-        promptWindow.hide()
-        mainWindow.focus()
+        promptWindow?.hide()
+        mainWindow?.focus()
         e.returnValue = response
     })
     ipcMain.on("hide-prompt-window", () => {
-        promptWindow.hide()
-        mainWindow.focus()
+        promptWindow?.hide()
+        mainWindow?.focus()
         e.returnValue = null
     })
     promptWindow.on("close", ev => {
         ev.preventDefault()
-        promptWindow.hide()
-        mainWindow.focus()
+        promptWindow?.hide()
+        mainWindow?.focus()
         e.returnValue = null
     })
 })
@@ -726,12 +739,14 @@ const dlsFile = joinPath(app.getPath("appData"), "dls")
 let downloadSettings = {}
 let downloads = []
 let redirects = ""
+/** @type {import("@cliqz/adblocker-electron").ElectronBlocker|null} */
 let blocker = null
 let permissions = {}
 let resourceTypes = null
 let resourcesAllowed = null
 let resourcesBlocked = null
 let requestHeaders = []
+/** @type {string[]} */
 const sessionList = []
 const adblockerPreload = joinPath(__dirname,
     "../node_modules/@cliqz/adblocker-electron-preload/dist/preload.cjs.js")
@@ -1284,6 +1299,9 @@ const writeDownloadsToFile = () => {
 }
 const allowedFingerprints = {}
 const permissionHandler = (_, pm, callback, details) => {
+    if (!mainWindow) {
+        return
+    }
     let permission = pm.toLowerCase().replace(/-/g, "").replace("sanitized", "")
     if (permission === "mediakeysystem") {
         // Block any access to DRM, there is no Electron support for it anyway
@@ -1305,7 +1323,7 @@ const permissionHandler = (_, pm, callback, details) => {
     if (permission === "openexternal" && details.externalURL) {
         if (details.externalURL.startsWith(`${app.getName().toLowerCase()}:`)) {
             mainWindow.webContents.send("navigate-to", details.externalURL)
-            return
+            return false
         }
     }
     let setting = permissions[permissionName]
@@ -1402,6 +1420,9 @@ const permissionHandler = (_, pm, callback, details) => {
             "title": `Allow this page to access '${permission}'?`,
             "type": "question"
         }).then(e => {
+            if (!mainWindow) {
+                return
+            }
             let action = "allow"
             if (e.response !== 0) {
                 action = "block"
@@ -1464,7 +1485,8 @@ const enableAdblocker = type => {
     if (type !== "custom") {
         for (const name of Object.keys(blocklists)) {
             const list = joinPath(__dirname, `blocklists/${name}.txt`)
-            writeFile(joinPath(blocklistDir, `${name}.txt`), readFile(list))
+            writeFile(joinPath(blocklistDir, `${name}.txt`),
+                readFile(list) ?? "")
         }
     }
     // And update all blocklists to the latest version if enabled
@@ -1476,7 +1498,7 @@ const enableAdblocker = type => {
             if (!url) {
                 continue
             }
-            mainWindow.webContents.send("notify",
+            mainWindow?.webContents.send("notify",
                 `Updating ${list} to the latest version`)
             session.fromPartition("persist:main")
             const request = net.request({"partition": "persist:main", url})
@@ -1485,7 +1507,7 @@ const enableAdblocker = type => {
                 res.on("end", () => {
                     writeFile(joinPath(blocklistDir, `${list}.txt`), body)
                     reloadAdblocker()
-                    mainWindow.webContents.send("notify",
+                    mainWindow?.webContents.send("notify",
                         `Updated and reloaded the latest ${list} successfully`,
                         "suc")
                 })
@@ -1493,9 +1515,9 @@ const enableAdblocker = type => {
                     body += chunk
                 })
             })
-            request.on("abort", e => mainWindow.webContents.send("notify",
-                `Failed to update ${list}:\n${e.message}`, "err"))
-            request.on("error", e => mainWindow.webContents.send("notify",
+            request.on("abort", () => mainWindow?.webContents.send("notify",
+                `Failed to update ${list}: Request aborted`, "err"))
+            request.on("error", e => mainWindow?.webContents.send("notify",
                 `Failed to update ${list}:\n${e.message}`, "err"))
             request.end()
         }
@@ -1526,13 +1548,15 @@ const reloadAdblocker = () => {
         // Adblocker module not present, skipping initialization
     }
     if (!ElectronBlocker || !isFile(adblockerPreload)) {
-        mainWindow.webContents.send("notify",
+        mainWindow?.webContents.send("notify",
             "Adblocker module not present, ads will not be blocked!", "err")
         return
     }
     blocker = ElectronBlocker.parse(filters)
     const resources = readFile(joinPath(__dirname, `./blocklists/resources`))
-    blocker.updateResources(resources, `${resources.length}`)
+    if (resources) {
+        blocker.updateResources(resources, `${resources.length}`)
+    }
     sessionList.forEach(part => {
         const ses = session.fromPartition(part)
         ses.setPreloads(ses.getPreloads().concat([adblockerPreload]))
@@ -1590,11 +1614,11 @@ ipcMain.on("download-favicon", (_, options) => {
             const hasExtension = knownExts.some(ex => options.fav.endsWith(ex))
             if (!hasExtension && (/<\/svg>/).test(file.toString())) {
                 writeFile(`${options.location}.svg`, file)
-                mainWindow.webContents.send("favicon-downloaded",
+                mainWindow?.webContents.send("favicon-downloaded",
                     options.linkId, options.url, `${options.fav}.svg`)
             } else {
                 writeFile(options.location, file)
-                mainWindow.webContents.send("favicon-downloaded",
+                mainWindow?.webContents.send("favicon-downloaded",
                     options.linkId, options.url, options.fav)
             }
         })
@@ -1672,7 +1696,7 @@ ipcMain.on("window-state-init", (_, restorePos, restoreSize, restoreMax) => {
 const saveWindowState = (maximizeOnly = false) => {
     try {
         let state = readJSON(windowStateFile) || {}
-        if (!maximizeOnly && !mainWindow.isMaximized()) {
+        if (!maximizeOnly && mainWindow && !mainWindow.isMaximized()) {
             const newBounds = mainWindow.getBounds()
             const currentScreen = screen.getDisplayMatching(newBounds).workArea
             const sameW = newBounds.width === currentScreen.width
@@ -1685,7 +1709,7 @@ const saveWindowState = (maximizeOnly = false) => {
                 state = newBounds
             }
         }
-        state.maximized = mainWindow.isMaximized()
+        state.maximized = mainWindow?.isMaximized()
         writeJSON(windowStateFile, state)
     } catch {
         // Window already destroyed
@@ -1701,7 +1725,7 @@ ipcMain.handle("save-page", (_, id, loc) => {
 })
 ipcMain.on("hide-window", () => {
     if (!argDebugMode) {
-        mainWindow.hide()
+        mainWindow?.hide()
     }
 })
 ipcMain.on("add-devtools", (_, pageId, devtoolsId) => {
@@ -1712,18 +1736,20 @@ ipcMain.on("add-devtools", (_, pageId, devtoolsId) => {
     devtools.executeJavaScript("window.location.reload()")
 })
 ipcMain.on("open-internal-devtools",
-    () => mainWindow.webContents.openDevTools({"mode": "detach"}))
+    () => mainWindow?.webContents.openDevTools({"mode": "detach"}))
 ipcMain.on("destroy-window", () => {
     cancellAllDownloads()
-    mainWindow.destroy()
+    mainWindow?.destroy()
 })
 ipcMain.handle("list-spelllangs",
     () => session.defaultSession.availableSpellCheckerLanguages)
 ipcMain.handle("toggle-always-on-top", () => {
-    mainWindow.setAlwaysOnTop(!mainWindow.isAlwaysOnTop())
+    mainWindow?.setAlwaysOnTop(!mainWindow?.isAlwaysOnTop())
 })
 ipcMain.handle("toggle-fullscreen", () => {
-    mainWindow.fullScreen = !mainWindow.fullScreen
+    if (mainWindow) {
+        mainWindow.fullScreen = !mainWindow.fullScreen
+    }
 })
 /** @type {Electron.Input[]|"pass"|"all"} */
 let blockedInsertMappings = []
@@ -1753,12 +1779,21 @@ const currentInputMatches = key => {
     })
 }
 ipcMain.on("set-window-title", (_, t) => {
-    mainWindow.title = t
+    if (mainWindow) {
+        mainWindow.title = t
+    }
 })
-ipcMain.handle("show-message-dialog", (_, options) => dialog.showMessageBox(
-    mainWindow, options))
+ipcMain.handle("show-message-dialog", (_, options) => {
+    if (mainWindow) {
+        dialog.showMessageBox(mainWindow, options)
+    }
+})
 ipcMain.on("sync-message-dialog", (e, options) => {
-    e.returnValue = dialog.showMessageBoxSync(mainWindow, options)
+    if (mainWindow) {
+        e.returnValue = dialog.showMessageBoxSync(mainWindow, options)
+    } else {
+        e.returnValue = null
+    }
 })
 ipcMain.handle("list-cookies", e => e.sender.session.cookies.get({}))
 ipcMain.handle("remove-cookie",
@@ -1789,7 +1824,7 @@ ipcMain.on("app-config", e => {
     }
 })
 ipcMain.on("is-fullscreen", e => {
-    e.returnValue = mainWindow.fullScreen
+    e.returnValue = mainWindow?.fullScreen ?? false
 })
 ipcMain.on("relaunch", () => app.relaunch())
 ipcMain.on("mouse-location", e => {
@@ -1811,14 +1846,14 @@ ipcMain.on("follow-mode-start", (_, id, followTypeFilter, switchTo = false) => {
             try {
                 f.send("follow-mode-start", followTypeFilter)
             } catch (ex) {
-                mainWindow.webContents.send("main-error", ex.stack)
+                mainWindow?.webContents.send("main-error", ex.stack)
             }
         })
         if (switchTo) {
             allLinks = []
         }
     } catch (ex) {
-        mainWindow.webContents.send("main-error", ex.stack)
+        mainWindow?.webContents.send("main-error", ex.stack)
     }
 })
 ipcMain.on("follow-mode-stop", e => {
@@ -1827,21 +1862,21 @@ ipcMain.on("follow-mode-stop", e => {
             try {
                 f.send("follow-mode-stop")
             } catch (ex) {
-                mainWindow.webContents.send("main-error", ex.stack)
+                mainWindow?.webContents.send("main-error", ex.stack)
             }
         })
     } catch (ex) {
-        mainWindow.webContents.send("main-error", ex.stack)
+        mainWindow?.webContents.send("main-error", ex.stack)
     }
 })
 let allLinks = []
 const frameInfo = {}
 ipcMain.on("frame-details", (e, details) => {
-    let frameId = null
+    let frameId = ""
     try {
         frameId = `${e.frameId}-${e.processId}`
     } catch (ex) {
-        mainWindow.webContents.send("main-error", ex.stack)
+        mainWindow?.webContents.send("main-error", ex.stack)
         return
     }
     if (!frameInfo[frameId]) {
@@ -1874,7 +1909,7 @@ ipcMain.on("frame-details", (e, details) => {
     })
 })
 ipcMain.on("follow-response", (e, rawLinks) => {
-    let frameId = null
+    let frameId = ""
     try {
         frameId = `${e.frameId}-${e.processId}`
     } catch (ex) {
@@ -1914,7 +1949,7 @@ ipcMain.on("follow-response", (e, rawLinks) => {
             && l.xInFrame < l.frameUsableWidth
     })
     try {
-        const allFramesIds = mainWindow.webContents.mainFrame
+        const allFramesIds = mainWindow?.webContents.mainFrame
             .framesInSubtree.map(f => {
                 try {
                     return `${f.routingId}-${f.processId}`
@@ -1926,9 +1961,9 @@ ipcMain.on("follow-response", (e, rawLinks) => {
         allLinks = allLinks.filter(l => l.frameId !== frameId
             && allFramesIds.includes(l.frameId))
         allLinks = allLinks.concat(frameLinks)
-        mainWindow.webContents.send("follow-response", allLinks)
+        mainWindow?.webContents.send("follow-response", allLinks)
     } catch (ex) {
-        mainWindow.webContents.send("main-error", ex.stack)
+        mainWindow?.webContents.send("main-error", ex.stack)
     }
 })
 const findRelevantSubFrame = (wc, x, y) => {
@@ -1950,7 +1985,7 @@ const findRelevantSubFrame = (wc, x, y) => {
                 }
                 return info
             } catch (ex) {
-                mainWindow.webContents.send("main-error", ex.stack)
+                mainWindow?.webContents.send("main-error", ex.stack)
                 return null
             }
         }).filter(f => f)
@@ -1971,7 +2006,7 @@ const findRelevantSubFrame = (wc, x, y) => {
         })
         return relevantFrame
     } catch (ex) {
-        mainWindow.webContents.send("main-error", ex.stack)
+        mainWindow?.webContents.send("main-error", ex.stack)
         return null
     }
 }
@@ -1986,14 +2021,14 @@ ipcMain.on("action", (_, id, actionName, ...opts) => {
                     return frameId === subframe.id
                 })
                 if (actionName === "selectionRequest") {
-                    frameRef.send("action", actionName,
+                    frameRef?.send("action", actionName,
                         opts[0] - subframe.absX, opts[1] - subframe.absY,
                         opts[2] - subframe.absX, opts[3] - subframe.absY)
                 }
-                frameRef.send("action", actionName, opts[0] - subframe.absX,
+                frameRef?.send("action", actionName, opts[0] - subframe.absX,
                     opts[1] - subframe.absY, ...opts.slice(2))
             } catch (ex) {
-                mainWindow.webContents.send("main-error", ex.stack)
+                mainWindow?.webContents.send("main-error", ex.stack)
             }
             return
         }
@@ -2003,11 +2038,11 @@ ipcMain.on("action", (_, id, actionName, ...opts) => {
             try {
                 f.send("action", actionName, ...opts)
             } catch (ex) {
-                mainWindow.webContents.send("main-error", ex.stack)
+                mainWindow?.webContents.send("main-error", ex.stack)
             }
         })
     } catch (ex) {
-        mainWindow.webContents.send("main-error", ex.stack)
+        mainWindow?.webContents.send("main-error", ex.stack)
     }
 })
 ipcMain.on("contextmenu-data", (_, id, info) => {
@@ -2019,13 +2054,13 @@ ipcMain.on("contextmenu-data", (_, id, info) => {
                 const frameId = `${f.routingId}-${f.processId}`
                 return frameId === subframe.id
             })
-            frameRef.send("contextmenu-data", {
+            frameRef?.send("contextmenu-data", {
                 ...info,
                 "x": info.x - subframe.absX,
                 "y": info.y - subframe.absY
             })
         } catch (ex) {
-            mainWindow.webContents.send("main-error", ex.stack)
+            mainWindow?.webContents.send("main-error", ex.stack)
         }
         return
     }
@@ -2036,7 +2071,7 @@ ipcMain.on("contextmenu", (_, id) => {
         webContents.fromId(id).mainFrame.framesInSubtree.forEach(
             f => f.send("contextmenu"))
     } catch (ex) {
-        mainWindow.webContents.send("main-error", ex.stack)
+        mainWindow?.webContents.send("main-error", ex.stack)
     }
 })
 ipcMain.on("focus-input", (_, id, location = null) => {
@@ -2049,12 +2084,12 @@ ipcMain.on("focus-input", (_, id, location = null) => {
                     const frameId = `${f.routingId}-${f.processId}`
                     return frameId === subframe.id
                 })
-                frameRef.send("focus-input", {
+                frameRef?.send("focus-input", {
                     "x": location.x - subframe.absX,
                     "y": location.y - subframe.absY
                 })
             } catch (ex) {
-                mainWindow.webContents.send("main-error", ex.stack)
+                mainWindow?.webContents.send("main-error", ex.stack)
             }
             return
         }
@@ -2067,20 +2102,20 @@ ipcMain.on("replace-input-field", (_, id, frameId, correction, inputField) => {
         if (frameId) {
             const frameRef = wc.mainFrame.framesInSubtree.find(
                 f => frameId === `${f.routingId}-${f.processId}`)
-            frameRef.send("replace-input-field", correction, inputField)
+            frameRef?.send("replace-input-field", correction, inputField)
             return
         }
         wc.send("replace-input-field", correction, inputField)
     } catch (ex) {
-        mainWindow.webContents.send("main-error", ex.stack)
+        mainWindow?.webContents.send("main-error", ex.stack)
     }
 })
 const translateMouseEvent = (e, clickInfo) => {
-    let frameId = null
+    let frameId = ""
     try {
         frameId = `${e.frameId}-${e.processId}`
     } catch (ex) {
-        mainWindow.webContents.send("main-error", ex.stack)
+        mainWindow?.webContents.send("main-error", ex.stack)
         return
     }
     const info = frameInfo[frameId]
@@ -2111,7 +2146,7 @@ const translateMouseEvent = (e, clickInfo) => {
             }
         })?.id
     } catch (ex) {
-        mainWindow.webContents.send("main-error", ex.stack)
+        mainWindow?.webContents.send("main-error", ex.stack)
     }
     return {
         ...clickInfo,
@@ -2134,13 +2169,13 @@ const translateMouseEvent = (e, clickInfo) => {
         "yInFrame": clickInfo.y
     }
 }
-ipcMain.on("mouse-selection", (e, clickInfo) => mainWindow.webContents.send(
+ipcMain.on("mouse-selection", (e, clickInfo) => mainWindow?.webContents.send(
     "mouse-selection", translateMouseEvent(e, clickInfo)))
-ipcMain.on("mouse-down-location", (e, clickInfo) => mainWindow.webContents.send(
-    "mouse-down-location", translateMouseEvent(e, clickInfo)))
-ipcMain.on("mouse-click-info", (e, clickInfo) => mainWindow.webContents.send(
+ipcMain.on("mouse-down-location", (e, clickInfo) => mainWindow?.webContents
+    .send("mouse-down-location", translateMouseEvent(e, clickInfo)))
+ipcMain.on("mouse-click-info", (e, clickInfo) => mainWindow?.webContents.send(
     "mouse-click-info", translateMouseEvent(e, clickInfo)))
-ipcMain.on("context-click-info", (e, clickInfo) => mainWindow.webContents.send(
+ipcMain.on("context-click-info", (e, clickInfo) => mainWindow?.webContents.send(
     "context-click-info", translateMouseEvent(e, clickInfo)))
 ipcMain.on("send-keyboard-event", (_, id, keyOptions) => {
     // Temporary code as a last resort workaround for:
@@ -2163,7 +2198,7 @@ ipcMain.on("send-keyboard-event", (_, id, keyOptions) => {
             .filter(f => f.routingId !== wc.mainFrame.routingId)
             .forEach(f => f.send("keyboard-type-event", keyOptions))
     } catch (ex) {
-        mainWindow.webContents.send("main-error", ex.stack)
+        mainWindow?.webContents.send("main-error", ex.stack)
     }
 })
 ipcMain.on("send-input-event", (_, id, inputInfo) => {
@@ -2181,7 +2216,7 @@ ipcMain.on("send-input-event", (_, id, inputInfo) => {
                 return frameId === subframe.id
             })
             if (inputInfo.type === "scroll") {
-                frameRef.send("custom-mouse-event", "mousewheel", {
+                frameRef?.send("custom-mouse-event", "mousewheel", {
                     "deltaX": inputInfo.deltaX || 0,
                     "deltaY": inputInfo.deltaY || 0,
                     "x": X - subframe.absX,
@@ -2190,7 +2225,7 @@ ipcMain.on("send-input-event", (_, id, inputInfo) => {
                 return
             }
             if (inputInfo.type === "click") {
-                frameRef.send("custom-mouse-event", "click", {
+                frameRef?.send("custom-mouse-event", "click", {
                     "button": inputInfo.button || "left",
                     "x": X - subframe.absX,
                     "y": Y - subframe.absY
@@ -2198,16 +2233,16 @@ ipcMain.on("send-input-event", (_, id, inputInfo) => {
                 return
             }
             if (inputInfo.type === "leave") {
-                frameRef.send("custom-mouse-event", "mouseleave", {
+                frameRef?.send("custom-mouse-event", "mouseleave", {
                     "x": X - subframe.absX, "y": Y - subframe.absY
                 })
             } else {
-                frameRef.send("custom-mouse-event", "mouseenter", {
+                frameRef?.send("custom-mouse-event", "mouseenter", {
                     "x": X - subframe.absX, "y": Y - subframe.absY
                 })
             }
         } catch (ex) {
-            mainWindow.webContents.send("main-error", ex.stack)
+            mainWindow?.webContents.send("main-error", ex.stack)
         }
         return
     }

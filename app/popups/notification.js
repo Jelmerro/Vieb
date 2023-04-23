@@ -21,16 +21,30 @@ const {ipcRenderer} = require("electron")
 
 let fontsize = 14
 const fixScrollHeight = () => {
-    const notify = document.getElementById("notification")
-    notify.scrollTop = Math.round(notify.scrollTop / fontsize) * fontsize
+    const notification = document.getElementById("notification")
+    if (!notification) {
+        return
+    }
+    notification.scrollTop = Math.round(
+        notification.scrollTop / fontsize) * fontsize
 }
 ipcRenderer.on("notification-details", (_, message, fs, customCSS, lvl) => {
-    document.getElementById("notification").scrollBy(0, -1000000000)
-    document.getElementById("notification").innerHTML = message
-    document.querySelector("footer").style.color = `var(--notification-${lvl}`
+    const notification = document.getElementById("notification")
+    if (!notification) {
+        return
+    }
+    notification.scrollBy(0, -1000000000)
+    notification.innerHTML = message
+    const footer = document.querySelector("footer")
+    if (footer) {
+        footer.style.color = `var(--notification-${lvl}`
+    }
     fontsize = fs
     document.body.style.fontSize = `${fontsize}px`
-    document.getElementById("custom-styling").textContent = customCSS
+    const customStyle = document.getElementById("custom-styling")
+    if (customStyle) {
+        customStyle.textContent = customCSS
+    }
     document.body.style.opacity = "1"
 })
 window.addEventListener("keydown", e => {
@@ -44,6 +58,9 @@ window.addEventListener("keydown", e => {
         return
     }
     const notification = document.getElementById("notification")
+    if (!notification) {
+        return
+    }
     if (e.key === "G") {
         notification.scrollBy(0, 1000000000)
         fixScrollHeight()

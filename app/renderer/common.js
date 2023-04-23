@@ -94,17 +94,17 @@ const currentPage = () => {
 /**
  * Find a page for a given tab
  *
- * @param {HTMLSpanElement} tab
+ * @param {HTMLSpanElement|null} tab
  */
 const pageForTab = tab => listPages().find(
-    e => e.getAttribute("link-id") === tab.getAttribute("link-id"))
+    e => tab && e.getAttribute("link-id") === tab.getAttribute("link-id"))
 /**
  * Find a tab for a given page
  *
- * @param {HTMLDivElement|Electron.WebviewTag} page
+ * @param {HTMLDivElement|Electron.WebviewTag|null} page
  */
 const tabForPage = page => listTabs().find(
-    e => e.getAttribute("link-id") === page.getAttribute("link-id"))
+    e => page && e.getAttribute("link-id") === page.getAttribute("link-id"))
 
 const currentMode = () => document.body.getAttribute("current-mode") || "normal"
 

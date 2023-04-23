@@ -31,6 +31,12 @@ const nextPage = newtab => navigateToPage("*[rel=next], .navi-next", newtab)
 
 const previousPage = newtab => navigateToPage("*[rel=prev], .navi-prev", newtab)
 
+/**
+ * Navigate to the next page if available
+ *
+ * @param {string} selector
+ * @param {boolean} newtab
+ */
 const navigateToPage = (selector, newtab) => {
     const paginations = querySelectorAll(selector)
     for (const pagination of paginations) {
@@ -109,6 +115,7 @@ const focusTopLeftCorner = () => {
 
 const exitFullscreen = () => document.exitFullscreen()
 
+/** @type {{[filename: string]: Element}} */
 const writeableInputs = {}
 
 const setInputFieldText = (filename, text) => {
@@ -122,10 +129,13 @@ const setInputFieldText = (filename, text) => {
 
 const writeInputToFile = filename => {
     const el = activeElement()
+    if (!el) {
+        return
+    }
     if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
         writeFile(filename, el.value)
     } else if (el?.getAttribute("contenteditable") === "true") {
-        writeFile(filename, el.textContent)
+        writeFile(filename, el.textContent ?? "")
     }
     writeableInputs[filename] = el
 }
@@ -135,7 +145,8 @@ const print = () => document.execCommand("print")
 const toggleControls = (x, y) => {
     const el = findElementAtPosition(x, y)
     if (el instanceof HTMLVideoElement) {
-        if (["", "controls", "true"].includes(el.getAttribute("controls"))) {
+        if (el.hasAttribute("controls")
+            && el.getAttribute("controls") !== "false") {
             el.removeAttribute("controls")
         } else {
             el.setAttribute("controls", "controls")
@@ -146,7 +157,7 @@ const toggleControls = (x, y) => {
 const toggleLoop = (x, y) => {
     const el = findElementAtPosition(x, y)
     if (el instanceof HTMLAudioElement || el instanceof HTMLVideoElement) {
-        if (["", "loop", "true"].includes(el.getAttribute("loop"))) {
+        if (el.hasAttribute("loop") && el.getAttribute("loop") !== "false") {
             el.removeAttribute("loop")
         } else {
             el.setAttribute("loop", "loop")
@@ -251,7 +262,7 @@ const selectionAll = (x, y) => documentAtPos(x, y).execCommand("selectAll")
 const selectionCut = (x, y) => documentAtPos(x, y).execCommand("cut")
 const selectionPaste = (x, y) => documentAtPos(x, y).execCommand("paste")
 const selectionRemove = (x, y) => documentAtPos(x, y).getSelection()
-    .removeAllRanges()
+    ?.removeAllRanges()
 const selectionRequest = (startX, startY, endX, endY) => {
     querySelectorAll("*")
     let startNode = findElementAtPosition(startX, startY)
@@ -272,17 +283,17 @@ const selectionRequest = (startX, startY, endX, endY) => {
     } else {
         newSelectRange.setEnd(endResult.node, endResult.offset)
     }
-    selectDocument.getSelection().removeAllRanges()
-    selectDocument.getSelection().addRange(newSelectRange)
-    if (!selectDocument.getSelection().toString()) {
+    selectDocument.getSelection()?.removeAllRanges()
+    selectDocument.getSelection()?.addRange(newSelectRange)
+    if (!selectDocument.getSelection()?.toString()) {
         newSelectRange.setStart(endResult.node, endResult.offset)
         if (isTextNode(endResult.node) && endResult.node.length > 1) {
             newSelectRange.setEnd(startResult.node, startResult.offset + 1)
         } else {
             newSelectRange.setEnd(startResult.node, startResult.offset)
         }
-        selectDocument.getSelection().removeAllRanges()
-        selectDocument.getSelection().addRange(newSelectRange)
+        selectDocument.getSelection()?.removeAllRanges()
+        selectDocument.getSelection()?.addRange(newSelectRange)
     }
 }
 
@@ -326,7 +337,7 @@ const translatepage = async(api, url, lang, apiKey) => {
             }
             txtEl.appendChild(subText)
         }
-        if (txtEl.textContent.trim()) {
+        if (txtEl.textContent?.trim()) {
             return txtEl
         }
         baseNodes = baseNodes.filter(b => b !== base)
@@ -471,7 +482,10 @@ window.addEventListener("DOMContentLoaded", () => {
             styleElement.id = "custom-styling"
             document.head.appendChild(styleElement)
         }
-        document.getElementById("custom-styling").textContent = customCSS
+        const customStyle = document.getElementById("custom-styling")
+        if (customStyle) {
+            customStyle.textContent = customCSS
+        }
         document.body.style.opacity = "1"
     })
 })

@@ -21,6 +21,7 @@ const {currentMode, getSetting, getUrl} = require("./common")
 const {joinPath, appData, appendFile, readFile} = require("../util")
 
 const commandsFile = joinPath(appData(), "commandhist")
+/** @type {string[]} */
 let previousCommands = []
 let previousIndex = -1
 let originalCommand = ""
@@ -43,7 +44,10 @@ const updateNavWithHistory = () => {
     if (previousIndex !== -1) {
         commandText = previousCommands[previousIndex]
     }
-    getUrl().value = commandText
+    const url = getUrl()
+    if (url) {
+        url.value = commandText
+    }
     const {suggestCommand} = require("./suggest")
     suggestCommand(commandText)
 }
@@ -53,7 +57,7 @@ const previous = () => {
         return
     }
     if (previousIndex === -1) {
-        originalCommand = getUrl().value
+        originalCommand = getUrl()?.value ?? ""
         previousIndex = previousCommands.length - 1
     } else if (previousIndex > 0) {
         previousIndex -= 1

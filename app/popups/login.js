@@ -30,13 +30,19 @@ window.addEventListener("load", () => {
     }
     const inputs = [username, password]
     ipcRenderer.on("login-information", (_, fontsize, customCSS, title) => {
-        document.getElementById("info").textContent = title
+        const info = document.getElementById("info")
+        if (info) {
+            info.textContent = title
+        }
         username.focus()
         username.click()
         username.value = ""
         password.value = ""
         document.body.style.fontSize = `${fontsize}px`
-        document.getElementById("custom-styling").textContent = customCSS
+        const customStyle = document.getElementById("custom-styling")
+        if (customStyle) {
+            customStyle.textContent = customCSS
+        }
         document.body.style.opacity = "1"
     })
     window.addEventListener("keydown", e => {

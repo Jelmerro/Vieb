@@ -39,7 +39,6 @@ const {
 } = require("../util")
 const {
     listTabs,
-    listPages,
     currentTab,
     currentPage,
     currentMode,
@@ -64,6 +63,7 @@ let potentialNewSearchDirection = "forward"
  */
 const emptySearch = (args = null) => {
     const scope = args?.scope || getSetting("searchemptyscope")
+    /** @type {(Electron.WebviewTag|null)[]} */
     let pages = []
     if (["both", "local"].includes(scope)) {
         pages = [currentPage()]
@@ -73,15 +73,16 @@ const emptySearch = (args = null) => {
         pages = listRealPages()
         setStored("globalsearch", "")
     }
-    pages.forEach(page => page.stopFindInPage("clearSelection"))
+    pages.forEach(page => page?.stopFindInPage("clearSelection"))
 }
 
 const nextSearchMatch = () => {
     const scope = getSetting("searchscope")
     let search = getStored("globalsearch")
+    /** @type {(Electron.WebviewTag|null)[]} */
     let pages = []
     if (scope === "local") {
-        search = currentTab().getAttribute("localsearch")
+        search = currentTab()?.getAttribute("localsearch")
             || getStored("globalsearch")
         pages = [currentPage()]
     } else {
@@ -89,9 +90,8 @@ const nextSearchMatch = () => {
     }
     if (search) {
         pages.forEach(page => {
-            const tab = tabForPage(page)
-            if (tab.classList.contains("visible-tab")) {
-                page.findInPage(search, {
+            if (tabForPage(page)?.classList.contains("visible-tab")) {
+                page?.findInPage(search, {
                     "findNext": true,
                     "forward": searchDirection === "forward",
                     "matchCase": matchCase(search)
@@ -121,10 +121,12 @@ const toSearchMode = (args = null) => {
         potentialNewSearchDirection = "forward"
     }
     const url = getUrl()
-    url.value = search
-    url.select()
-    const {requestSuggestUpdate} = require("./input")
-    requestSuggestUpdate()
+    if (url) {
+        url.value = search
+        url.select()
+        const {requestSuggestUpdate} = require("./input")
+        requestSuggestUpdate()
+    }
 }
 
 const previousSearchMatch = () => {
@@ -132,7 +134,7 @@ const previousSearchMatch = () => {
     let search = getStored("globalsearch")
     let pages = []
     if (scope === "local") {
-        search = currentTab().getAttribute("localsearch")
+        search = currentTab()?.getAttribute("localsearch")
             || getStored("globalsearch")
         pages = [currentPage()]
     } else {
@@ -140,9 +142,8 @@ const previousSearchMatch = () => {
     }
     if (search) {
         pages.forEach(page => {
-            const tab = tabForPage(page)
-            if (tab.classList.contains("visible-tab")) {
-                page.findInPage(search, {
+            if (tabForPage(page)?.classList.contains("visible-tab")) {
+                page?.findInPage(search, {
                     "findNext": true,
                     "forward": searchDirection === "backward",
                     "matchCase": matchCase(search)
@@ -186,7 +187,7 @@ const incrementalSearch = (args = null) => {
         }
     }
     const url = getUrl()
-    const search = args?.value || url.value
+    const search = args?.value || url?.value || ""
     let pages = [currentPage()]
     if (scope === "global") {
         pages = listRealPages()
@@ -199,10 +200,9 @@ const incrementalSearch = (args = null) => {
     }
     if (search) {
         pages.forEach(page => {
-            page.stopFindInPage("clearSelection")
-            const tab = tabForPage(page)
-            if (tab.classList.contains("visible-tab")) {
-                page.findInPage(search, {"matchCase": matchCase(search)})
+            page?.stopFindInPage("clearSelection")
+            if (tabForPage(page)?.classList.contains("visible-tab")) {
+                page?.findInPage(search, {"matchCase": matchCase(search)})
             }
         })
     } else {
@@ -340,13 +340,17 @@ const modifyUrl = (source, replacement) => {
 
 const previousTab = () => {
     const {switchToTab} = require("./tabs")
-    switchToTab(listTabs().indexOf(currentTab()) - 1)
+    const current = currentTab()
+    if (current) {
+        switchToTab(listTabs().indexOf(current) - 1)
+    }
 }
 
 const toggleSourceViewer = () => {
     const {navigateTo} = require("./tabs")
-    if (currentPage().src.startsWith("sourceviewer:")) {
-        const src = currentPage().src.replace(/^sourceviewer:\/?\/?/g, "")
+    const page = currentPage()
+    if (page && page.src.startsWith("sourceviewer:")) {
+        const src = page.src.replace(/^sourceviewer:\/?\/?/g, "")
         let loc = String(src)
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
@@ -356,15 +360,16 @@ const toggleSourceViewer = () => {
             return
         }
         navigateTo(`https://${src}`)
-    } else {
-        navigateTo(currentPage().src.replace(/^.+?:\/?\/?/g, "sourceviewer:"))
+    } else if (page) {
+        navigateTo(page.src.replace(/^.+?:\/?\/?/g, "sourceviewer:"))
     }
 }
 
 const toggleSourceViewerNewTab = () => {
     const {navigateTo, addTab} = require("./tabs")
-    if (currentPage().src.startsWith("sourceviewer:")) {
-        const src = currentPage().src.replace(/^sourceviewer:\/?\/?/g, "")
+    const page = currentPage()
+    if (page && page.src.startsWith("sourceviewer:")) {
+        const src = page.src.replace(/^sourceviewer:\/?\/?/g, "")
         let loc = String(src)
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
@@ -374,16 +379,16 @@ const toggleSourceViewerNewTab = () => {
             return
         }
         navigateTo(`https://${src}`)
-    } else {
-        addTab({"url": currentPage().src.replace(
-            /^.+?:\/?\/?/g, "sourceviewer:")})
+    } else if (page) {
+        addTab({"url": page.src.replace(/^.+?:\/?\/?/g, "sourceviewer:")})
     }
 }
 
 const toggleReaderView = () => {
     const {navigateTo} = require("./tabs")
-    if (currentPage().src.startsWith("readerview:")) {
-        const src = currentPage().src.replace(/^readerview:\/?\/?/g, "")
+    const page = currentPage()
+    if (page && page.src.startsWith("readerview:")) {
+        const src = page.src.replace(/^readerview:\/?\/?/g, "")
         let loc = String(src)
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
@@ -393,15 +398,16 @@ const toggleReaderView = () => {
             return
         }
         navigateTo(`https://${src}`)
-    } else {
-        navigateTo(currentPage().src.replace(/^.+?:\/?\/?/g, "readerview:"))
+    } else if (page) {
+        navigateTo(page.src.replace(/^.+?:\/?\/?/g, "readerview:"))
     }
 }
 
 const toggleReaderViewNewTab = () => {
     const {navigateTo, addTab} = require("./tabs")
-    if (currentPage().src.startsWith("readerview:")) {
-        const src = currentPage().src.replace(/^readerview:\/?\/?/g, "")
+    const page = currentPage()
+    if (page && page.src.startsWith("readerview:")) {
+        const src = page.src.replace(/^readerview:\/?\/?/g, "")
         let loc = String(src)
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
@@ -411,16 +417,16 @@ const toggleReaderViewNewTab = () => {
             return
         }
         navigateTo(`https://${src}`)
-    } else {
-        addTab({"url": currentPage().src.replace(
-            /^.+?:\/?\/?/g, "readerview:")})
+    } else if (page) {
+        addTab({"url": page.src.replace(/^.+?:\/?\/?/g, "readerview:")})
     }
 }
 
 const toggleMarkdownViewer = () => {
     const {navigateTo} = require("./tabs")
-    if (currentPage().src.startsWith("markdownviewer:")) {
-        const src = currentPage().src.replace(/^markdownviewer:\/?\/?/g, "")
+    const page = currentPage()
+    if (page && page.src.startsWith("markdownviewer:")) {
+        const src = page.src.replace(/^markdownviewer:\/?\/?/g, "")
         let loc = String(src)
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
@@ -430,15 +436,16 @@ const toggleMarkdownViewer = () => {
             return
         }
         navigateTo(`https://${src}`)
-    } else {
-        navigateTo(currentPage().src.replace(/^.+?:\/?\/?/g, "markdownviewer:"))
+    } else if (page) {
+        navigateTo(page.src.replace(/^.+?:\/?\/?/g, "markdownviewer:"))
     }
 }
 
 const toggleMarkdownViewerNewTab = () => {
     const {navigateTo, addTab} = require("./tabs")
-    if (currentPage().src.startsWith("markdownviewer:")) {
-        const src = currentPage().src.replace(/^markdownviewer:\/?\/?/g, "")
+    const page = currentPage()
+    if (page && page.src.startsWith("markdownviewer:")) {
+        const src = page.src.replace(/^markdownviewer:\/?\/?/g, "")
         let loc = String(src)
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
@@ -448,9 +455,8 @@ const toggleMarkdownViewerNewTab = () => {
             return
         }
         navigateTo(`https://${src}`)
-    } else {
-        addTab({"url": currentPage().src.replace(
-            /^.+?:\/?\/?/g, "markdownviewer:")})
+    } else if (page) {
+        addTab({"url": page.src.replace(/^.+?:\/?\/?/g, "markdownviewer:")})
     }
 }
 
@@ -518,7 +524,10 @@ const reopenTab = () => {
 
 const nextTab = () => {
     const {switchToTab} = require("./tabs")
-    switchToTab(listTabs().indexOf(currentTab()) + 1)
+    const current = currentTab()
+    if (current) {
+        switchToTab(listTabs().indexOf(current) + 1)
+    }
 }
 
 const startFollowCopyLink = () => {
@@ -555,7 +564,10 @@ const backInHistory = (args = null) => {
     const page = args?.customPage || currentPage()
     if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
         if (page?.canGoBack()) {
-            tabForPage(page).querySelector("span").textContent = ""
+            const tabTitleEl = tabForPage(page)?.querySelector("span")
+            if (tabTitleEl) {
+                tabTitleEl.textContent = ""
+            }
             const {rerollUserAgent, resetTabInfo} = require("./tabs")
             rerollUserAgent(page)
             resetTabInfo(page)
@@ -574,7 +586,10 @@ const forwardInHistory = (args = null) => {
     const page = args?.customPage || currentPage()
     if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
         if (page?.canGoForward()) {
-            tabForPage(page).querySelector("span").textContent = ""
+            const tabTitleEl = tabForPage(page)?.querySelector("span")
+            if (tabTitleEl) {
+                tabTitleEl.textContent = ""
+            }
             const {rerollUserAgent, resetTabInfo} = require("./tabs")
             rerollUserAgent(page)
             resetTabInfo(page)
@@ -599,7 +614,10 @@ const openNewTabWithCurrentUrl = () => {
     addTab()
     const {setMode} = require("./modes")
     setMode("explore")
-    getUrl().value = urlToString(url)
+    const urlEl = getUrl()
+    if (urlEl) {
+        urlEl.value = urlToString(url)
+    }
 }
 
 const toCommandMode = () => {
@@ -645,7 +663,7 @@ const zoomReset = () => currentPage()?.setZoomLevel(0)
  */
 const zoomOut = (args = null) => {
     const page = args?.customPage || currentPage()
-    let level = page?.getZoomLevel() - 1
+    let level = (page?.getZoomLevel() ?? 0) - 1
     if (level < -7) {
         level = -7
     }
@@ -659,7 +677,7 @@ const zoomOut = (args = null) => {
  */
 const zoomIn = (args = null) => {
     const page = args?.customPage || currentPage()
-    let level = page?.getZoomLevel() + 1
+    let level = (page?.getZoomLevel() ?? 0) - 1
     if (level > 7) {
         level = 7
     }
@@ -690,6 +708,7 @@ const editWithVim = () => {
     if (!page) {
         return
     }
+    /** @type {"input"|"navbar"|null} */
     let typeOfEdit = null
     if (currentMode() === "insert") {
         typeOfEdit = "input"
@@ -703,6 +722,7 @@ const editWithVim = () => {
     const fileFolder = joinPath(appData(), "vimformedits")
     makeDir(fileFolder)
     const tempFile = joinPath(fileFolder, String(Number(new Date())))
+    /** @type {import("child_process").ChildProcess|null} */
     let command = null
     watchFile(tempFile, () => {
         if (command) {
@@ -714,7 +734,10 @@ const editWithVim = () => {
                 sendToPageOrSubFrame("action",
                     "setInputFieldText", tempFile, contents)
             } else if ("ces".includes(currentMode()[0])) {
-                getUrl().value = contents
+                const url = getUrl()
+                if (url) {
+                    url.value = contents
+                }
                 const {requestSuggestUpdate} = require("./input")
                 requestSuggestUpdate()
             }
@@ -735,7 +758,7 @@ const editWithVim = () => {
         sendToPageOrSubFrame("action", "writeInputToFile", tempFile)
     }
     if (typeOfEdit === "navbar") {
-        setTimeout(() => writeFile(tempFile, getUrl().value), 3)
+        setTimeout(() => writeFile(tempFile, getUrl()?.value ?? ""), 3)
     }
 }
 
@@ -900,7 +923,7 @@ const toggleFullscreen = () => {
 }
 
 const getPageUrl = () => {
-    let url = currentPage().src
+    let url = currentPage()?.src ?? ""
     if (getSetting("encodeurlcopy") === "spacesonly") {
         url = url.replace(/ /g, "%20")
     } else if (getSetting("encodeurlcopy") === "nospaces") {
@@ -971,9 +994,9 @@ const storeScrollPos = async(args = null) => {
     if (!qm.scroll) {
         qm.scroll = {"global": {}, "local": {}}
     }
-    let pixels = await currentPage().executeJavaScript("window.scrollY")
+    let pixels = await currentPage()?.executeJavaScript("window.scrollY")
     if (pixels === 0) {
-        pixels = await currentPage().executeJavaScript(
+        pixels = await currentPage()?.executeJavaScript(
             "document.body.scrollTop")
     }
     if (args?.path === "global") {
@@ -1023,7 +1046,7 @@ const restoreScrollPos = (args = null) => {
     const qm = readJSON(joinPath(appData(), "quickmarks"))
     const pixels = qm?.scroll?.local?.[path]?.[key] ?? qm?.scroll?.global?.[key]
     if (pixels !== undefined) {
-        currentPage().executeJavaScript(`
+        currentPage()?.executeJavaScript(`
         if (document.documentElement.scrollHeight === window.innerHeight) {
             document.body.scrollTo(0, ${pixels})
         } else {
@@ -1046,7 +1069,7 @@ const makeMark = (args = null) => {
     if (!qm.marks) {
         qm.marks = {}
     }
-    qm.marks[key] = urlToString(args?.url ?? currentPage().src)
+    qm.marks[key] = urlToString(args?.url ?? currentPage()?.src ?? "")
     writeJSON(joinPath(appData(), "quickmarks"), qm)
 }
 
@@ -1123,40 +1146,45 @@ const menuOpen = () => {
     const {viebMenu} = require("./contextmenu")
     if (currentMode() === "normal") {
         const tab = currentTab()
-        const bounds = tab.getBoundingClientRect()
-        viebMenu({
-            "path": [tab, document.getElementById("tabs")],
-            "x": bounds.x,
-            "y": bounds.y + bounds.height
-        }, true)
+        const bounds = tab?.getBoundingClientRect()
+        if (bounds) {
+            viebMenu({
+                "path": [tab, document.getElementById("tabs")],
+                "x": bounds.x,
+                "y": bounds.y + bounds.height
+            }, true)
+        }
     } else if (currentMode() === "insert") {
         sendToPageOrSubFrame("contextmenu")
     } else if ("sec".includes(currentMode()[0])) {
         const selected = document.querySelector("#suggest-dropdown .selected")
         let bounds = selected?.getBoundingClientRect()
-        if (currentMode() === "command" && selected) {
+        if (currentMode() === "command" && selected && bounds) {
             const {commandMenu} = require("./contextmenu")
             commandMenu({
                 "command": selected.querySelector("span").textContent,
                 "x": bounds.x,
                 "y": bounds.y + bounds.height
             })
-        } else if (currentMode() === "explore" && selected) {
+        } else if (currentMode() === "explore" && selected && bounds) {
             const {linkMenu} = require("./contextmenu")
             linkMenu({
-                "link": selected.querySelector(".url").textContent,
+                "link": selected.querySelector(".url")?.textContent,
                 "x": bounds.x,
                 "y": bounds.y + bounds.height
             })
         } else {
             const url = getUrl()
-            bounds = url.getBoundingClientRect()
-            const charWidth = getSetting("guifontsize") * 0.60191
-            viebMenu({
-                "path": [url],
-                "x": bounds.x + charWidth * url.selectionStart - url.scrollLeft,
-                "y": bounds.y + bounds.height
-            }, true)
+            bounds = url?.getBoundingClientRect()
+            if (url && bounds) {
+                const charWidth = getSetting("guifontsize") * 0.60191
+                viebMenu({
+                    "path": [url],
+                    "x": bounds.x + charWidth
+                        * (url.selectionStart ?? 0) - url.scrollLeft,
+                    "y": bounds.y + bounds.height
+                }, true)
+            }
         }
     } else {
         const {openMenu} = require("./pointer")
@@ -1209,7 +1237,7 @@ const useEnteredData = () => {
     const url = getUrl()
     const {push} = require("./commandhistory")
     if (currentMode() === "command") {
-        const command = url.value.trim()
+        const command = url?.value.trim() ?? ""
         setMode("normal")
         push(command, true)
         const {execute} = require("./command")
@@ -1217,17 +1245,17 @@ const useEnteredData = () => {
     }
     if (currentMode() === "search") {
         searchDirection = potentialNewSearchDirection
-        incrementalSearch({"value": url.value})
+        incrementalSearch({"value": url?.value})
         setMode("normal")
     }
     if (currentMode() === "explore") {
-        let location = url.value.trim()
+        const location = url?.value.trim()
         setMode("normal")
         if (location) {
-            location = searchword(location).url
-            push(urlToString(location))
+            const modifiedLoc = searchword(location).url
+            push(urlToString(modifiedLoc))
             const {navigateTo} = require("./tabs")
-            navigateTo(stringToUrl(location))
+            navigateTo(stringToUrl(modifiedLoc))
         }
     }
 }
@@ -1240,20 +1268,23 @@ const setFocusCorrectly = () => {
     const urlElement = document.getElementById("url")
     const {updateUrl} = require("./tabs")
     const {followFiltering} = require("./follow")
-    updateUrl(currentPage())
+    const page = currentPage()
+    if (page) {
+        updateUrl(page)
+    }
     if (currentMode() === "insert") {
-        urlElement.blur()
-        currentPage()?.focus()
-        if (!document.getElementById("context-menu").innerText) {
-            currentPage()?.click()
+        urlElement?.blur()
+        page?.focus()
+        if (!document.getElementById("context-menu")?.innerText) {
+            page?.click()
         }
     } else if ("sec".includes(currentMode()[0]) || followFiltering()) {
         if (document.activeElement !== urlElement) {
             window.focus()
-            urlElement.focus()
+            urlElement?.focus()
         }
     } else {
-        urlElement.blur()
+        urlElement?.blur()
         window.focus()
         document.body.focus()
     }

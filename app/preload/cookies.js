@@ -32,7 +32,7 @@ const filterList = () => {
         if (!(cookie instanceof HTMLElement)) {
             return
         }
-        if (cookie.getAttribute("cookie-url").includes(filter)) {
+        if (cookie.getAttribute("cookie-url")?.includes(filter)) {
             cookie.style.display = ""
             anyResult = true
         } else {
@@ -95,13 +95,13 @@ const parseList = cookies => {
         cookieElement.setAttribute("cookie-name", cookie.name)
         const domain = document.createElement("span")
         domain.textContent = cookie.domain
-        cookieElement.appendChild(domain)
+        cookieElement.append(domain)
         const name = document.createElement("span")
         name.textContent = cookie.name
-        cookieElement.appendChild(name)
+        cookieElement.append(name)
         const value = document.createElement("span")
         value.textContent = cookie.value
-        cookieElement.appendChild(value)
+        cookieElement.append(value)
         const remove = document.createElement("img")
         remove.src = joinPath(__dirname, "../img/trash.png")
         remove.className = "remove"
@@ -110,8 +110,8 @@ const parseList = cookies => {
                 cookieToUrl(cookie), cookie.name)
             refreshList()
         })
-        cookieElement.appendChild(remove)
-        document.getElementById("list").appendChild(cookieElement)
+        cookieElement.append(remove)
+        document.getElementById("list")?.append(cookieElement)
     })
     filterList()
 }
@@ -129,6 +129,6 @@ window.addEventListener("load", () => {
     removeAll.src = joinPath(__dirname, "../img/trash.png")
     removeAll.addEventListener("click", removeAllCookies)
     document.body.insertBefore(removeAll, document.body.firstChild)
-    document.getElementById("filter").addEventListener("input", filterList)
+    document.getElementById("filter")?.addEventListener("input", filterList)
     refreshList()
 })
