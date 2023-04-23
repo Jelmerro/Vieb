@@ -53,7 +53,8 @@ const {
     getMouseConf,
     getUrl,
     tabForPage,
-    pageForTab
+    pageForTab,
+    listRealPages
 } = require("./common")
 const {setMode} = require("./modes")
 
@@ -145,15 +146,15 @@ const init = () => {
         })
         ipcRenderer.on("navigate-to", (_, url) => navigateTo(stringToUrl(url)))
         ipcRenderer.on("unresponsive", (_, id) => {
-            listPages().forEach(webview => {
-                if (webview.getWebContentsId?.() === id) {
+            listRealPages().forEach(webview => {
+                if (webview.getWebContentsId() === id) {
                     tabForPage(webview)?.classList.add("unresponsive")
                 }
             })
         })
         ipcRenderer.on("responsive", (_, id) => {
-            listPages().forEach(webview => {
-                if (webview.getWebContentsId?.() === id) {
+            listRealPages().forEach(webview => {
+                if (webview.getWebContentsId() === id) {
                     tabForPage(webview)?.classList.remove("unresponsive")
                 }
             })
@@ -187,7 +188,7 @@ const saveTabs = () => {
         data.id = listTabs().indexOf(currentTab())
     }
     listTabs().forEach((tab, index) => {
-        const url = urlToString(pageForTab(tab).src)
+        const url = urlToString(pageForTab(tab).getAttribute("src"))
         if (!url || url.startsWith("devtools://")) {
             if (index <= data.id) {
                 data.id -= 1
@@ -288,7 +289,8 @@ const addTab = (options = {}) => {
         }
     }
     if (sessionName === "s:replacematching" && options.url) {
-        const match = listPages().find(p => sameDomain(p.src, options.url))
+        const match = listPages().find(p => sameDomain(
+            p.getAttribute("src"), options.url))
         if (match) {
             switchToTab(tabForPage(match))
         }
@@ -300,7 +302,8 @@ const addTab = (options = {}) => {
         return
     }
     if (sessionName === "s:usematching" && options.url) {
-        const match = listPages().find(p => sameDomain(p.src, options.url))
+        const match = listPages().find(p => sameDomain(
+            p.getAttribute("src"), options.url))
         if (match) {
             sessionName = match.getAttribute("container")
         }
@@ -419,12 +422,12 @@ const sharedAttributes = [
 /**
  * Suspend a tab
  *
- * @param {HTMLElement} tab
+ * @param {HTMLSpanElement} tab
  * @param {boolean} force
  */
 const suspendTab = (tab, force = false) => {
     const page = pageForTab(tab)
-    if (page?.tagName?.toLowerCase() !== "webview") {
+    if (page instanceof HTMLDivElement) {
         return
     }
     if (tab.classList.contains("visible-tab") && !force) {
@@ -562,7 +565,7 @@ const closeTab = (index = null, force = false) => {
             return
         }
     }
-    const url = urlToString(page.src || "")
+    const url = urlToString(page.getAttribute("src") || "")
     const oldTabIdx = listTabs().indexOf(tab)
     if (getSetting("keeprecentlyclosed") && url) {
         recentlyClosed.push({
@@ -587,7 +590,9 @@ const closeTab = (index = null, force = false) => {
     } else {
         tab.remove()
         try {
-            page.closeDevTools()
+            if (!(page instanceof HTMLDivElement)) {
+                page.closeDevTools()
+            }
         } catch {
             // Webview already destroyed by the page,
             // most often happens when a page closes itself.

@@ -27,11 +27,11 @@ const {
     currentPage,
     currentMode,
     getSetting,
-    listPages,
     setTopOfPageWithMouse,
     getMouseConf,
     updateScreenshotHighlight,
-    getUrl
+    getUrl,
+    listRealPages
 } = require("./common")
 
 const ACTIONS = require("./actions")
@@ -895,7 +895,7 @@ const init = () => {
         }
     })
     ipcRenderer.on("zoom-changed", (_, ctxId, direction) => {
-        const page = listPages().find(p => p.getWebContentsId?.() === ctxId)
+        const page = listRealPages().find(p => p.getWebContentsId() === ctxId)
         if (!page || !getMouseConf("scrollzoom")) {
             return
         }

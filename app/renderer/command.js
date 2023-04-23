@@ -54,12 +54,12 @@ const {
 } = require("../util")
 const {
     listTabs,
-    listPages,
     currentTab,
     currentPage,
     getSetting,
     pageForTab,
-    tabForPage
+    tabForPage,
+    listRealPages
 } = require("./common")
 
 const listSetting = setting => {
@@ -279,9 +279,18 @@ const source = (origin, args) => {
     }
 }
 
-const quit = () => {
+/**
+ * Quit the current split, a range of splits or the browser if not using splits
+ *
+ * @param {string|null} range
+ */
+const quit = (range = null) => {
+    const {closeTab} = require("./tabs")
+    if (range) {
+        rangeToTabIdxs(range).forEach(t => closeTab(t))
+        return
+    }
     if (document.getElementById("tabs").classList.contains("multiple")) {
-        const {closeTab} = require("./tabs")
         closeTab()
     } else {
         quitall()
@@ -460,8 +469,12 @@ const reloadconfig = () => {
  */
 const hardcopy = range => {
     if (range) {
-        rangeToTabIdxs(range).forEach(t => pageForTab(listTabs()[t])
-            .send("action", "print"))
+        rangeToTabIdxs(range).forEach(t => {
+            const page = pageForTab(listTabs()[t])
+            if (!(page instanceof HTMLDivElement)) {
+                page.send("action", "print")
+            }
+        })
         return
     }
     currentPage()?.send("action", "print")
@@ -534,12 +547,13 @@ const write = (args, range) => {
  * @param {string|null} customLoc
  * @param {Number|null} tabIdx
  */
-const writePage = (customLoc, tabIdx = null) => {
+const writePage = (customLoc = null, tabIdx = null) => {
+    /** @type {Electron.WebviewTag|HTMLDivElement} */
     let page = currentPage()
     if (tabIdx !== null) {
         page = pageForTab(listTabs()[tabIdx]) ?? null
     }
-    if (!page) {
+    if (!page || page instanceof HTMLDivElement) {
         return
     }
     const loc = resolveFileArg(customLoc, "html", page)
@@ -661,7 +675,7 @@ const takeScreenshot = (dims, location) => {
 /**
  * Make a custom viebrc config based on current settings
  *
- * @param {"full"|null} full
+ * @param {string|null} full
  * @param {boolean} trailingArgs
  */
 const mkviebrc = (full = null, trailingArgs = false) => {
@@ -701,7 +715,7 @@ const translateRangePosToIdx = (start, rangePart) => {
         ;[charOrNum] = listTabs().map((t, i) => ({
             "idx": i,
             "name": t?.querySelector("span")?.textContent,
-            "url": pageForTab(t)?.src
+            "url": pageForTab(t)?.getAttribute("src")
         })).filter(t => {
             let name = String(t.name)
             let url = String(t.url)
@@ -797,7 +811,7 @@ const rangeToTabIdxs = (range, silent = false) => {
             return listTabs().map((t, i) => ({
                 "idx": i,
                 "name": t?.querySelector("span")?.textContent,
-                "url": pageForTab(t)?.src
+                "url": pageForTab(t)?.getAttribute("src")
             })).filter(t => {
                 let name = String(t.name)
                 let url = String(t.url)
@@ -871,7 +885,7 @@ const allTabsForBufferArg = (args, filter = null) => {
         w => simpleUrl.includes(w) || getSimpleName(name).includes(w))
     const simpleSearch = args.join(" ").split(specialChars).filter(w => w)
     return listTabs().filter(t => !filter || filter(t)).map(t => {
-        const url = pageForTab(t).src
+        const url = pageForTab(t).getAttribute("src")
         const simpleUrl = getSimpleUrl(url)
         const name = t.querySelector("span").textContent
         let relevance = 1
@@ -1006,8 +1020,9 @@ const setMute = (args, range) => {
         } else {
             tab.removeAttribute("muted")
         }
-        if (!tab.getAttribute("suspended")) {
-            pageForTab(tab).setAudioMuted(!!tab.getAttribute("muted"))
+        const page = pageForTab(tab)
+        if (page && !(page instanceof HTMLDivElement)) {
+            page.setAudioMuted(!!tab.getAttribute("muted"))
         }
     })
     const {saveTabs} = require("./tabs")
@@ -1036,8 +1051,9 @@ const mute = (args, range) => {
     } else {
         tab.setAttribute("muted", "muted")
     }
-    if (!tab.getAttribute("suspended")) {
-        pageForTab(tab)?.setAudioMuted(!!tab.getAttribute("muted"))
+    const page = pageForTab(tab)
+    if (page && !(page instanceof HTMLDivElement)) {
+        page.setAudioMuted(!!tab.getAttribute("muted"))
     }
     const {saveTabs} = require("./tabs")
     saveTabs()
@@ -1290,7 +1306,10 @@ const runjsinpage = (raw, range) => {
     }
     if (range) {
         rangeToTabIdxs(range).forEach(tabId => {
-            pageForTab(listTabs()[tabId])?.executeJavaScript(javascript, true)
+            const page = pageForTab(listTabs()[tabId])
+            if (page && !(page instanceof HTMLDivElement)) {
+                page.executeJavaScript(javascript, true)
+            }
         })
     } else {
         currentPage()?.executeJavaScript(javascript, true)
@@ -1907,13 +1926,7 @@ const commands = {
     "mute": ({args, range}) => mute(args, range),
     "mute!": ({args, range}) => setMute(args, range),
     "nohlsearch": () => {
-        listPages().forEach(page => {
-            try {
-                page.stopFindInPage("clearSelection")
-            } catch {
-                // Page unavailable or suspended
-            }
-        })
+        listRealPages().forEach(page => page.stopFindInPage("clearSelection"))
     },
     "notifications": () => openSpecialPage("notifications", false),
     "notifications!": () => openSpecialPage("notifications", true),

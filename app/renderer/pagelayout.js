@@ -18,7 +18,13 @@
 "use strict"
 
 const {
-    listTabs, listPages, currentPage, getSetting, tabForPage
+    listTabs,
+    currentPage,
+    getSetting,
+    tabForPage,
+    listFakePages,
+    listRealPages,
+    listPages
 } = require("./common")
 
 const {propPixels} = require("../util")
@@ -27,6 +33,7 @@ const layoutDivById = id => document.querySelector(
     `#pagelayout div[link-id='${id}']`)
 /** @type {{[id: string]: Number}} */
 const timers = {}
+/** @type {string|null} */
 let lastTabId = null
 let recentlySwitched = false
 /** @type {number|null} */
@@ -56,7 +63,8 @@ const switchView = (oldViewOrId, newView) => {
 /**
  * Hide a page from view
  *
- * @param {Electron.WebviewTag} view
+ * @param {Electron.WebviewTag|HTMLDivElement} view
+ * @param {boolean} close
  */
 const hide = (view, close = false) => {
     removeRedundantContainers()
@@ -90,14 +98,28 @@ const hide = (view, close = false) => {
         }
         if (close) {
             tabForPage(view).remove()
-            view.closeDevTools()
+            try {
+                if (!(view instanceof HTMLDivElement)) {
+                    view.closeDevTools()
+                }
+            } catch {
+                // Webview already destroyed by the page,
+                // most often happens when a page closes itself.
+            }
             view.remove()
         }
         const {switchToTab} = require("./tabs")
         switchToTab(newTab)
     } else if (close) {
         tabForPage(view).remove()
-        view.closeDevTools()
+        try {
+            if (!(view instanceof HTMLDivElement)) {
+                view.closeDevTools()
+            }
+        } catch {
+            // Webview already destroyed by the page,
+            // most often happens when a page closes itself.
+        }
         view.remove()
     }
     applyLayout()
@@ -323,27 +345,33 @@ const firstSplit = () => {
     const {switchToTab} = require("./tabs")
     const tab = listTabs().find(
         t => t.getAttribute("link-id") === first.getAttribute("link-id"))
-    switchToTab(tab)
+    if (tab) {
+        switchToTab(tab)
+    }
 }
 
 const previousSplit = () => {
     const views = [...document.querySelectorAll("#pagelayout *[link-id]")]
-    const current = layoutDivById(currentPage().getAttribute("link-id"))
+    const current = layoutDivById(currentPage()?.getAttribute("link-id"))
     const next = views[views.indexOf(current) - 1] || views[views.length - 1]
     const {switchToTab} = require("./tabs")
     const tab = listTabs().find(
         t => t.getAttribute("link-id") === next.getAttribute("link-id"))
-    switchToTab(tab)
+    if (tab) {
+        switchToTab(tab)
+    }
 }
 
 const nextSplit = () => {
     const views = [...document.querySelectorAll("#pagelayout *[link-id]")]
-    const current = layoutDivById(currentPage().getAttribute("link-id"))
+    const current = layoutDivById(currentPage()?.getAttribute("link-id"))
     const next = views[views.indexOf(current) + 1] || views[0]
     const {switchToTab} = require("./tabs")
     const tab = listTabs().find(
         t => t.getAttribute("link-id") === next.getAttribute("link-id"))
-    switchToTab(tab)
+    if (tab) {
+        switchToTab(tab)
+    }
 }
 
 const lastSplit = () => {
@@ -352,11 +380,13 @@ const lastSplit = () => {
     const {switchToTab} = require("./tabs")
     const tab = listTabs().find(
         t => t.getAttribute("link-id") === last.getAttribute("link-id"))
-    switchToTab(tab)
+    if (tab) {
+        switchToTab(tab)
+    }
 }
 
 const only = () => {
-    const linkId = currentPage().getAttribute("link-id")
+    const linkId = currentPage()?.getAttribute("link-id") ?? ""
     const singleView = document.createElement("div")
     singleView.setAttribute("link-id", linkId)
     document.getElementById("pagelayout").textContent = ""
@@ -366,12 +396,12 @@ const only = () => {
 
 const setLastUsedTab = id => {
     if (recentlySwitched) {
-        if (currentPage().getAttribute("link-id") === lastTabId) {
+        if (currentPage()?.getAttribute("link-id") === lastTabId) {
             lastTabId = id
         }
         return
     }
-    if (!lastTabId || currentPage().getAttribute("link-id") !== id) {
+    if (!lastTabId || currentPage()?.getAttribute("link-id") !== id) {
         lastTabId = id
         recentlySwitched = true
         setTimeout(() => {
@@ -383,7 +413,7 @@ const setLastUsedTab = id => {
 const resetResizing = () => {
     [...document.querySelectorAll("#pagelayout *")].forEach(element => {
         if (element instanceof HTMLElement) {
-            element.style.flexGrow = null
+            element.style.flexGrow = ""
         }
     })
     applyLayout()
@@ -423,7 +453,11 @@ const restartSuspendTimeouts = () => {
 }
 
 const applyLayout = () => {
-    document.querySelectorAll("#pagelayout *[link-id]").forEach(element => {
+    const pagelayout = document.getElementById("pagelayout")
+    if (!pagelayout) {
+        return
+    }
+    pagelayout.querySelectorAll("*[link-id]").forEach(element => {
         const id = element.getAttribute("link-id")
         const page = document.querySelector(`#pages .webview[link-id='${id}']`)
         if (!page) {
@@ -431,24 +465,27 @@ const applyLayout = () => {
         }
     })
     removeRedundantContainers()
-    if (document.getElementById("pagelayout").children.length === 0) {
-        document.getElementById("pagelayout").classList.add("hor")
+    if (pagelayout.children.length === 0) {
+        pagelayout.classList.add("hor")
         const cur = document.getElementById("current-page")
         if (cur) {
-            const singleView = document.createElement("div")
-            singleView.setAttribute("link-id", cur.getAttribute("link-id"))
-            document.getElementById("pagelayout").appendChild(singleView)
+            const view = document.createElement("div")
+            view.setAttribute("link-id", cur.getAttribute("link-id") ?? "")
+            pagelayout.appendChild(view)
         }
     }
-    /** @type {Electron.WebviewTag[]} */
+    /** @type {(Electron.WebviewTag|HTMLDivElement)[]} */
     const visiblePages = []
     /** @type {HTMLSpanElement[]} */
     const visibleTabs = []
-    document.querySelectorAll("#pagelayout *[link-id]").forEach(element => {
+    pagelayout.querySelectorAll("*[link-id]").forEach(element => {
         const id = element.getAttribute("link-id")
         const page = listPages().find(p => p.getAttribute("link-id") === id)
-        visiblePages.push(page)
         const tab = listTabs().find(t => t.getAttribute("link-id") === id)
+        if (!page || !tab) {
+            return
+        }
+        visiblePages.push(page)
         visibleTabs.push(tab)
         const dimensions = element.getBoundingClientRect()
         page.style.left = `${Math.round(dimensions.x)}px`
@@ -457,13 +494,14 @@ const applyLayout = () => {
         page.style.height = `${Math.round(dimensions.height)}px`
     })
     if (visiblePages.length > 1) {
-        document.getElementById("pages").classList.add("multiple")
-        document.getElementById("tabs").classList.add("multiple")
+        document.getElementById("pages")?.classList.add("multiple")
+        document.getElementById("tabs")?.classList.add("multiple")
     } else {
-        document.getElementById("pages").classList.remove("multiple")
-        document.getElementById("tabs").classList.remove("multiple")
+        document.getElementById("pages")?.classList.remove("multiple")
+        document.getElementById("tabs")?.classList.remove("multiple")
     }
-    listPages().forEach(page => {
+    listFakePages().forEach(page => page.classList.remove("visible-page"))
+    listRealPages().forEach(page => {
         if (visiblePages.includes(page)) {
             page.classList.add("visible-page")
         } else {
@@ -484,7 +522,7 @@ const applyLayout = () => {
     }
     const timeout = getSetting("suspendtimeout")
     listTabs().forEach(tab => {
-        const linkId = tab.getAttribute("link-id")
+        const linkId = tab.getAttribute("link-id") ?? ""
         if (visibleTabs.includes(tab)) {
             tab.classList.add("visible-tab")
             window.clearTimeout(timers[linkId])
@@ -498,9 +536,9 @@ const applyLayout = () => {
         }
     })
     const cur = currentPage()
-    if (cur) {
-        const follow = document.getElementById("follow")
-        if (document.getElementById("pages").classList.contains("multiple")) {
+    const follow = document.getElementById("follow")
+    if (cur && follow) {
+        if (document.getElementById("pages")?.classList.contains("multiple")) {
             const bor = propPixels(cur, "borderWidth")
             follow.style.top = `${Math.round(propPixels(
                 cur.style, "top") + bor)}px`
@@ -523,13 +561,7 @@ const showScrollbar = () => {
     if (scrollbarHideIgnoreTimer) {
         return
     }
-    listPages().forEach(p => {
-        try {
-            p.send("show-scrollbar")
-        } catch {
-            // Page not ready yet or suspended
-        }
-    })
+    listRealPages().forEach(p => p.send("show-scrollbar"))
 }
 
 const hideScrollbar = () => {
@@ -539,13 +571,7 @@ const hideScrollbar = () => {
     scrollbarHideIgnoreTimer = window.setTimeout(() => {
         scrollbarHideIgnoreTimer = null
     }, 500)
-    listPages().forEach(p => {
-        try {
-            p.send("hide-scrollbar")
-        } catch {
-            // Page not ready yet or suspended
-        }
-    })
+    listRealPages().forEach(p => p.send("hide-scrollbar"))
 }
 
 const resetScrollbarTimer = (event = "none") => {
@@ -553,7 +579,7 @@ const resetScrollbarTimer = (event = "none") => {
     const timeout = getSetting("guihidetimeout")
     if (setting === "onmove" || setting === "onscroll") {
         if (event === "scroll" || setting === "onmove" && event !== "none") {
-            window.clearTimeout(scrollbarHideTimer)
+            window.clearTimeout(scrollbarHideTimer ?? undefined)
             showScrollbar()
             scrollbarHideTimer = window.setTimeout(
                 () => hideScrollbar(), timeout)

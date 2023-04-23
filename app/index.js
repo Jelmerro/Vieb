@@ -358,13 +358,15 @@ if (argErwic) {
     }
     if (typeof config.icon === "string") {
         config.icon = expandPath(config.icon)
-        if (config.icon !== joinPath(config.icon)) {
-            config.icon = joinPath(dirname(argErwic), config.icon)
+        if (typeof config.icon === "string") {
+            if (config.icon !== joinPath(config.icon)) {
+                config.icon = joinPath(dirname(argErwic), config.icon)
+            }
+            if (typeof config.icon !== "string" || !isFile(config.icon)) {
+                config.icon = null
+            }
+            customIcon = config.icon
         }
-        if (!isFile(config.icon)) {
-            config.icon = null
-        }
-        customIcon = config.icon
     }
     writeFile(joinPath(argDatafolder, "erwicmode"), "")
     if (!Array.isArray(config.apps)) {
@@ -383,8 +385,10 @@ if (argErwic) {
         }
         if (typeof a.script === "string") {
             a.script = expandPath(a.script)
-            if (a.script !== joinPath(a.script)) {
-                a.script = joinPath(dirname(argErwic), a.script)
+            if (typeof a.script === "string") {
+                if (a.script !== joinPath(a.script)) {
+                    a.script = joinPath(dirname(argErwic), a.script)
+                }
             }
         } else {
             a.script = null
@@ -431,6 +435,7 @@ app.on("ready", () => {
                 }
                 mainWindow.focus()
                 mainWindow.webContents.send("urls", resolveLocalPaths(
+                    // @ts-expect-error argv might be there, if so use it
                     extra?.argv || getArguments(newArgs), cwd))
             })
         } else {
@@ -468,6 +473,7 @@ app.on("ready", () => {
         "width": 800
     }
     mainWindow = new BrowserWindow(windowData)
+    mainWindow.webContents.openDevTools({"mode": "detach"})
     mainWindow.removeMenu()
     mainWindow.setMinimumSize(500, 500)
     mainWindow.on("focus", () => mainWindow.webContents.send("window-focus"))
@@ -489,7 +495,6 @@ app.on("ready", () => {
         mainWindow.webContents.send("urls", resolveLocalPaths(urls))
     })
     mainWindow.webContents.on("will-attach-webview", (_, prefs) => {
-        delete prefs.preloadURL
         prefs.preload = joinPath(__dirname, "preload/index.js")
         prefs.sandbox = false
         prefs.contextIsolation = false
@@ -514,9 +519,7 @@ app.on("ready", () => {
             if (blockedInsertMappings === "pass") {
                 return
             }
-            if (blockedInsertMappings === "all") {
-                e.preventDefault()
-            } else if (currentInputMatches(input)) {
+            if (currentInputMatches(input)) {
                 e.preventDefault()
             }
             mainWindow.webContents.send("insert-mode-input-event", input)
@@ -1585,7 +1588,7 @@ ipcMain.on("download-favicon", (_, options) => {
             const file = Buffer.concat(data)
             const knownExts = [".png", ".ico", ".jpg", ".svg"]
             const hasExtension = knownExts.some(ex => options.fav.endsWith(ex))
-            if (!hasExtension && (/<\/svg>/).test(file)) {
+            if (!hasExtension && (/<\/svg>/).test(file.toString())) {
                 writeFile(`${options.location}.svg`, file)
                 mainWindow.webContents.send("favicon-downloaded",
                     options.linkId, options.url, `${options.fav}.svg`)
@@ -1596,7 +1599,7 @@ ipcMain.on("download-favicon", (_, options) => {
             }
         })
         res.on("data", chunk => {
-            data.push(Buffer.from(chunk, "binary"))
+            data.push(Buffer.from(chunk))
         })
     })
     request.on("abort", () => {
@@ -1722,30 +1725,33 @@ ipcMain.handle("toggle-always-on-top", () => {
 ipcMain.handle("toggle-fullscreen", () => {
     mainWindow.fullScreen = !mainWindow.fullScreen
 })
-/** @type {{
- *   control: boolean
- *   alt: boolean
- *   shift: boolean
- *   meta: boolean
- *   key: string
- *   location: number
- * }[]|"pass"|"all"} */
+/** @type {Electron.Input[]|"pass"|"all"} */
 let blockedInsertMappings = []
 ipcMain.on("insert-mode-blockers", (e, blockedMappings) => {
     blockedInsertMappings = blockedMappings
     e.returnValue = null
 })
-const currentInputMatches = input => blockedInsertMappings.find(mapping => {
-    if (!!mapping.alt === input.alt && !!mapping.control === input.control) {
-        if (!!mapping.meta === input.meta && !!mapping.shift === input.shift) {
-            if (input.location === 3) {
-                return mapping.key === `k${input.key}`
-            }
-            return mapping.key === input.key
-        }
+/**
+ * Check if an input matches a given key
+ *
+ * @param {Electron.Input} key
+ */
+const currentInputMatches = key => {
+    if (blockedInsertMappings === "pass" || blockedInsertMappings === "all") {
+        return true
     }
-    return false
-})
+    return blockedInsertMappings.some(mapping => {
+        if (!!mapping.alt === key.alt && !!mapping.control === key.control) {
+            if (!!mapping.meta === key.meta && !!mapping.shift === key.shift) {
+                if (key.location === 3) {
+                    return mapping.key === `k${key.key}`
+                }
+                return mapping.key === key.key
+            }
+        }
+        return false
+    })
+}
 ipcMain.on("set-window-title", (_, t) => {
     mainWindow.title = t
 })

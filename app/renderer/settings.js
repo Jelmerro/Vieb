@@ -44,7 +44,8 @@ const {
     currentPage,
     updateGuiVisibility,
     getMouseConf,
-    tabForPage
+    tabForPage,
+    listRealPages
 } = require("./common")
 
 const mouseFeatures = [
@@ -1247,19 +1248,15 @@ const updatePermissionSettings = () => {
 }
 
 const updateHelpPage = () => {
-    listPages().forEach(p => {
-        if (pathToSpecialPageName(p.src)?.name === "help") {
+    listRealPages().forEach(p => {
+        if (pathToSpecialPageName(p.getAttribute("src"))?.name === "help") {
             const {
                 listMappingsAsCommandList, uncountableActions
             } = require("./input")
             const {rangeCompatibleCommands} = require("./command")
-            try {
-                p.send("settings", settingsWithDefaults(),
-                    listMappingsAsCommandList(null, true), uncountableActions,
-                    rangeCompatibleCommands)
-            } catch {
-                // Page not ready yet or suspended
-            }
+            p.send("settings", settingsWithDefaults(),
+                listMappingsAsCommandList(null, true), uncountableActions,
+                rangeCompatibleCommands)
         }
     })
 }
@@ -1503,44 +1500,36 @@ const set = (setting, value) => {
             updateWebviewSettings()
         }
         if (setting.startsWith("darkreader")) {
-            listPages().forEach(p => {
-                try {
-                    let scope = "page"
-                    const specialPage = pathToSpecialPageName(p.src)
-                    if (specialPage?.name) {
-                        scope = "special"
-                    } else if (p.src.startsWith("file://")) {
-                        scope = "file"
-                    }
-                    const inScope = allSettings.darkreaderscope.includes(scope)
-                    if (allSettings.darkreader && inScope) {
-                        p.send("enable-darkreader")
-                    } else {
-                        p.send("disable-darkreader")
-                    }
-                } catch {
-                    // Page not ready yet or suspended
+            listRealPages().forEach(p => {
+                let scope = "page"
+                const specialPage = pathToSpecialPageName(p.src)
+                if (specialPage?.name) {
+                    scope = "special"
+                } else if (p.src.startsWith("file://")) {
+                    scope = "file"
+                }
+                const inScope = allSettings.darkreaderscope.includes(scope)
+                if (allSettings.darkreader && inScope) {
+                    p.send("enable-darkreader")
+                } else {
+                    p.send("disable-darkreader")
                 }
             })
         }
         if (setting.startsWith("userstyle")) {
-            listPages().forEach(p => {
-                try {
-                    let scope = "page"
-                    const specialPage = pathToSpecialPageName(p.src)
-                    if (specialPage?.name) {
-                        scope = "special"
-                    } else if (p.src.startsWith("file://")) {
-                        scope = "file"
-                    }
-                    const inScope = allSettings.userstylescope.includes(scope)
-                    if (allSettings.userstyle && inScope) {
-                        p.send("enable-userstyle")
-                    } else {
-                        p.send("disable-userstyle")
-                    }
-                } catch {
-                    // Page not ready yet or suspended
+            listRealPages().forEach(p => {
+                let scope = "page"
+                const specialPage = pathToSpecialPageName(p.src)
+                if (specialPage?.name) {
+                    scope = "special"
+                } else if (p.src.startsWith("file://")) {
+                    scope = "file"
+                }
+                const inScope = allSettings.userstylescope.includes(scope)
+                if (allSettings.userstyle && inScope) {
+                    p.send("enable-userstyle")
+                } else {
+                    p.send("disable-userstyle")
                 }
             })
         }
@@ -1750,7 +1739,7 @@ const getCustomStyling = () => customStyling
 const updateCustomStyling = () => {
     document.body.style.fontSize = `${allSettings.guifontsize}px`
     updateWebviewSettings()
-    listPages().forEach(p => {
+    listRealPages().forEach(p => {
         const isSpecialPage = pathToSpecialPageName(p.src)?.name
         const isLocal = p.src.startsWith("file:/")
         const isErrorPage = p.getAttribute("failed-to-load")
@@ -1758,12 +1747,7 @@ const updateCustomStyling = () => {
             || p.src.startsWith("readerview:")
             || p.src.startsWith("markdownviewer:")
         if (isSpecialPage || isLocal || isErrorPage || isCustomView) {
-            try {
-                p.send("set-custom-styling",
-                    allSettings.guifontsize, customStyling)
-            } catch {
-                // Page not ready yet or suspended
-            }
+            p.send("set-custom-styling", allSettings.guifontsize, customStyling)
         }
     })
     const {applyLayout} = require("./pagelayout")

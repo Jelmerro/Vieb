@@ -37,18 +37,18 @@ const {
     currentMode,
     getSetting,
     getMouseConf,
-    listPages,
     tabForPage,
     getUrl,
-    pageForTab
+    pageForTab,
+    listRealPages
 } = require("./common")
 
 const init = () => {
     ipcRenderer.on("context-click-info", (_, info) => {
         if (info.webviewId) {
             if (info.webviewId !== currentPage().getWebContentsId()) {
-                const page = listPages().find(
-                    p => p.getWebContentsId?.() === info.webviewId)
+                const page = listRealPages().find(
+                    p => p.getWebContentsId() === info.webviewId)
                 if (page) {
                     const {switchToTab} = require("./tabs")
                     switchToTab(tabForPage(page))
@@ -185,31 +185,27 @@ const viebMenu = (options, force = false) => {
                 "title": suspendTitle
             })
         }
-        if (page && !isSuspended && !page.isCrashed()) {
+        if (!(page instanceof HTMLDivElement)) {
             createMenuItem({
-                "action": () => refreshTab({"customPage": pageForTab(tab)}),
+                "action": () => refreshTab({"customPage": page}),
                 "title": "Refresh"
             })
             if (!page.src.startsWith("devtools://") && page?.canGoBack()) {
                 createMenuItem({
-                    "action": () => backInHistory({
-                        "customPage": pageForTab(tab)
-                    }),
+                    "action": () => backInHistory({"customPage": page}),
                     "title": "Previous"
                 })
             }
             if (!page.src.startsWith("devtools://") && page?.canGoForward()) {
                 createMenuItem({
-                    "action": () => forwardInHistory({
-                        "customPage": pageForTab(tab)
-                    }),
+                    "action": () => forwardInHistory({"customPage": page}),
                     "title": "Next"
                 })
             }
         }
         createMenuItem({
             "action": () => clipboard.writeText(urlToString(
-                pageForTab(tab).src).replace(/ /g, "%20")),
+                pageForTab(tab).getAttribute("src")).replace(/ /g, "%20")),
             "title": "Copy url"
         })
         createMenuItem({
@@ -673,7 +669,12 @@ const bottom = () => {
     contextMenu.lastElementChild.classList.add("selected")
 }
 
-const select = () => contextMenu.querySelector(".selected")?.click()
+const select = () => {
+    const selected = contextMenu.querySelector(".selected")
+    if (selected instanceof HTMLElement) {
+        selected.click()
+    }
+}
 
 const commonAction = (type, action, options) => {
     let relevantData = options[type]

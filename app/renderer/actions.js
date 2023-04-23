@@ -48,7 +48,8 @@ const {
     updateGuiVisibility,
     setStored,
     getUrl,
-    tabForPage
+    tabForPage,
+    listRealPages
 } = require("./common")
 
 let lastSearchFull = false
@@ -69,16 +70,10 @@ const emptySearch = (args = null) => {
         currentTab()?.removeAttribute("localsearch")
     }
     if (["both", "global"].includes(scope)) {
-        pages = listPages()
+        pages = listRealPages()
         setStored("globalsearch", "")
     }
-    pages.filter(p => p).forEach(page => {
-        try {
-            page.stopFindInPage("clearSelection")
-        } catch {
-            // Page unavailable or suspended
-        }
-    })
+    pages.forEach(page => page.stopFindInPage("clearSelection"))
 }
 
 const nextSearchMatch = () => {
@@ -90,21 +85,17 @@ const nextSearchMatch = () => {
             || getStored("globalsearch")
         pages = [currentPage()]
     } else {
-        pages = listPages()
+        pages = listRealPages()
     }
     if (search) {
-        pages.filter(p => p).forEach(page => {
-            try {
-                const tab = tabForPage(page)
-                if (tab.classList.contains("visible-tab")) {
-                    page.findInPage(search, {
-                        "findNext": true,
-                        "forward": searchDirection === "forward",
-                        "matchCase": matchCase(search)
-                    })
-                }
-            } catch {
-                // Page unavailable or suspended
+        pages.forEach(page => {
+            const tab = tabForPage(page)
+            if (tab.classList.contains("visible-tab")) {
+                page.findInPage(search, {
+                    "findNext": true,
+                    "forward": searchDirection === "forward",
+                    "matchCase": matchCase(search)
+                })
             }
         })
     }
@@ -145,21 +136,17 @@ const previousSearchMatch = () => {
             || getStored("globalsearch")
         pages = [currentPage()]
     } else {
-        pages = listPages()
+        pages = listRealPages()
     }
     if (search) {
-        pages.filter(p => p).forEach(page => {
-            try {
-                const tab = tabForPage(page)
-                if (tab.classList.contains("visible-tab")) {
-                    page.findInPage(search, {
-                        "findNext": true,
-                        "forward": searchDirection === "backward",
-                        "matchCase": matchCase(search)
-                    })
-                }
-            } catch {
-                // Page unavailable or suspended
+        pages.forEach(page => {
+            const tab = tabForPage(page)
+            if (tab.classList.contains("visible-tab")) {
+                page.findInPage(search, {
+                    "findNext": true,
+                    "forward": searchDirection === "backward",
+                    "matchCase": matchCase(search)
+                })
             }
         })
     }
@@ -202,7 +189,7 @@ const incrementalSearch = (args = null) => {
     const search = args?.value || url.value
     let pages = [currentPage()]
     if (scope === "global") {
-        pages = listPages()
+        pages = listRealPages()
         setStored("globalsearch", search)
     } else {
         currentTab()?.setAttribute("localsearch", search)
@@ -211,15 +198,11 @@ const incrementalSearch = (args = null) => {
         return nextSearchMatch()
     }
     if (search) {
-        pages.filter(p => p).forEach(page => {
-            try {
-                page.stopFindInPage("clearSelection")
-                const tab = tabForPage(page)
-                if (tab.classList.contains("visible-tab")) {
-                    page.findInPage(search, {"matchCase": matchCase(search)})
-                }
-            } catch {
-                // Page unavailable or suspended
+        pages.forEach(page => {
+            page.stopFindInPage("clearSelection")
+            const tab = tabForPage(page)
+            if (tab.classList.contains("visible-tab")) {
+                page.findInPage(search, {"matchCase": matchCase(search)})
             }
         })
     } else {

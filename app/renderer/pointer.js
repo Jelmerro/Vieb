@@ -19,7 +19,12 @@
 
 const {ipcRenderer} = require("electron")
 const {
-    currentPage, currentMode, getSetting, getMouseConf, listPages, tabForPage
+    currentPage,
+    currentMode,
+    getSetting,
+    getMouseConf,
+    tabForPage,
+    listRealPages
 } = require("./common")
 const {
     matchesQuery,
@@ -50,8 +55,8 @@ const init = () => {
         }
         if (clickInfo.webviewId) {
             if (clickInfo.webviewId !== currentPage().getWebContentsId()) {
-                const page = listPages().find(
-                    p => p.getWebContentsId?.() === clickInfo.webviewId)
+                const page = listRealPages().find(
+                    p => p.getWebContentsId() === clickInfo.webviewId)
                 if (page) {
                     const {switchToTab} = require("./tabs")
                     switchToTab(tabForPage(page))

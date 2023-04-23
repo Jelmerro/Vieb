@@ -112,7 +112,10 @@ const urlToPath = url => joinPath(faviconFolder,
  */
 const loading = webview => {
     const tab = tabForPage(webview)
-    tab.querySelector(".status").style.display = null
+    const status = tab.querySelector(".status")
+    if (status instanceof HTMLElement) {
+        status.style.display = null
+    }
     const favicon = tab.querySelector(".favicon")
     if (!(favicon instanceof HTMLImageElement)) {
         return
@@ -120,9 +123,17 @@ const loading = webview => {
     favicon.style.display = "none"
 }
 
+/**
+ * Empty the favicon
+ *
+ * @param {Electron.WebviewTag} webview
+ */
 const empty = webview => {
     const tab = tabForPage(webview)
-    tab.querySelector(".status").style.display = null
+    const status = tab.querySelector(".status")
+    if (status instanceof HTMLElement) {
+        status.style.display = null
+    }
     const favicon = tab.querySelector(".favicon")
     if (!(favicon instanceof HTMLImageElement)) {
         return
@@ -135,9 +146,17 @@ const empty = webview => {
     }
 }
 
+/**
+ * Show the favicon that was previously set for this site
+ *
+ * @param {Electron.WebviewTag} webview
+ */
 const show = webview => {
     const tab = tabForPage(webview)
-    tab.querySelector(".status").style.display = "none"
+    const status = tab.querySelector(".status")
+    if (status instanceof HTMLElement) {
+        status.style.display = "none"
+    }
     const favicon = tab.querySelector(".favicon")
     if (!(favicon instanceof HTMLImageElement)) {
         return

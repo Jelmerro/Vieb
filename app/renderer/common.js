@@ -41,10 +41,34 @@ const listTabs = () => {
     return tabs
 }
 
+/**
+ * List all the open pages, regular ones are webviews, suspended ones are divs
+ */
 const listPages = () => {
-    // TODO actual type is webview OR div element
-    /** @ts-expect-error @type {(Electron.WebviewTag)[]} */
+    /** @ts-expect-error @type {(Electron.WebviewTag|HTMLDivElement)[]} */
     const pages = [...document.querySelectorAll("#pages > .webview")]
+    return pages
+}
+
+/**
+ * List all the fake suspended div pages
+ */
+const listFakePages = () => {
+    const pages = [...document.querySelectorAll("#pages > .webview")]
+    return pages.flatMap(p => {
+        if (p instanceof HTMLDivElement) {
+            return [p]
+        }
+        return []
+    })
+}
+
+/**
+ * List all the real unsuspended webview pages
+ */
+const listRealPages = () => {
+    /** @ts-expect-error @type {Electron.WebviewTag[]} */
+    const pages = [...document.querySelectorAll("#pages > webview")]
     return pages
 }
 
@@ -70,27 +94,17 @@ const currentPage = () => {
 /**
  * Find a page for a given tab
  *
- * @param {HTMLElement} tab
+ * @param {HTMLSpanElement} tab
  */
-const pageForTab = tab => {
-    if (listTabs().indexOf(tab) !== -1) {
-        return listPages().find(
-            e => e.getAttribute("link-id") === tab.getAttribute("link-id"))
-    }
-    return null
-}
+const pageForTab = tab => listPages().find(
+    e => e.getAttribute("link-id") === tab.getAttribute("link-id"))
 /**
  * Find a tab for a given page
  *
  * @param {HTMLDivElement|Electron.WebviewTag} page
  */
-const tabForPage = page => {
-    if (listPages().indexOf(page) !== -1) {
-        return listTabs().find(
-            e => e.getAttribute("link-id") === page.getAttribute("link-id"))
-    }
-    return null
-}
+const tabForPage = page => listTabs().find(
+    e => e.getAttribute("link-id") === page.getAttribute("link-id"))
 
 const currentMode = () => document.body.getAttribute("current-mode") || "normal"
 
@@ -250,7 +264,9 @@ module.exports = {
     getStored,
     getUrl,
     guiRelatedUpdate,
+    listFakePages,
     listPages,
+    listRealPages,
     listTabs,
     pageForTab,
     setStored,

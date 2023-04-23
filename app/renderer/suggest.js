@@ -438,9 +438,9 @@ const suggestCommand = searchStr => {
                 const index = tabs.indexOf(tab)
                 return {
                     "command": `${index}write`,
-                    "icon": pageForTab(tab).src,
+                    "icon": pageForTab(tab).getAttribute("src"),
                     "title": tab.querySelector("span").textContent,
-                    "url": pageForTab(tab).src
+                    "url": pageForTab(tab).getAttribute("src")
                 }
             }).filter(t => t).forEach(
                 t => addCommand(t.command, t.title, t.url, t.icon, true))
@@ -632,9 +632,9 @@ const suggestCommand = searchStr => {
                     const index = tabs.indexOf(tab)
                     return {
                         "command": `${index}${bufferCommand}${confirmChar}${a}`,
-                        "icon": pageForTab(tab).src,
+                        "icon": pageForTab(tab).getAttribute("src"),
                         "title": tab.querySelector("span").textContent,
-                        "url": pageForTab(tab).src
+                        "url": pageForTab(tab).getAttribute("src")
                     }
                 }).filter(t => t).forEach(
                     t => addCommand(t.command, t.title, t.url, t.icon, true))
@@ -651,9 +651,9 @@ const suggestCommand = searchStr => {
                 const index = tabs.indexOf(b.tab)
                 return {
                     "command": `${bufferCommand}${confirmChar} ${index}`,
-                    "icon": b.url ?? pageForTab(b.tab).src,
+                    "icon": b.url ?? pageForTab(b.tab).getAttribute("src"),
                     "title": b.title ?? b.tab.querySelector("span").textContent,
-                    "url": b.url ?? pageForTab(b.tab).src
+                    "url": b.url ?? pageForTab(b.tab).getAttribute("src")
                 }
             }).forEach(t => addCommand(t.command, t.title, t.url, t.icon))
         }
