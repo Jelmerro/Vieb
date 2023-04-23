@@ -35,13 +35,15 @@ const getUrl = () => {
  * List all the open tabs
  */
 const listTabs = () => {
-    /** @ts-ignore @type {HTMLSpanElement[]} */
+    /** @type {HTMLSpanElement[]} */
+    // @ts-expect-error
     const tabs = [...document.querySelectorAll("#tabs > span[link-id]")]
     return tabs
 }
 
 const listPages = () => {
-    /** @ts-ignore @type {Electron.WebviewTag[]} */
+    // TODO actual type is webview OR div element
+    /** @ts-expect-error @type {(Electron.WebviewTag)[]} */
     const pages = [...document.querySelectorAll("#pages > .webview")]
     return pages
 }
@@ -50,7 +52,7 @@ const listPages = () => {
  * Get the current tab
  */
 const currentTab = () => {
-    /** @ts-ignore @type {HTMLSpanElement} */
+    /** @type {HTMLSpanElement|null} */
     const tab = document.getElementById("current-tab")
     return tab
 }
@@ -59,7 +61,8 @@ const currentTab = () => {
  * Get the current page
  */
 const currentPage = () => {
-    /** @ts-ignore @type {Electron.WebviewTag|null} */
+    /** @type {Electron.WebviewTag|null} */
+    // @ts-expect-error current page id is always set to webview or null
     const page = document.getElementById("current-page")
     return page
 }
@@ -79,7 +82,7 @@ const pageForTab = tab => {
 /**
  * Find a tab for a given page
  *
- * @param {Electron.WebviewTag} page
+ * @param {HTMLDivElement|Electron.WebviewTag} page
  */
 const tabForPage = page => {
     if (listPages().indexOf(page) !== -1) {

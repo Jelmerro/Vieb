@@ -223,6 +223,7 @@ const set = args => {
     }
 }
 
+/** @type {string[]} */
 const sourcedFiles = []
 
 /**
@@ -252,7 +253,9 @@ const source = (origin, args) => {
         notify("Recursive sourcing of files is not supported", "err")
         return
     }
-    if ([appConfig().override, appConfig().files].includes(absFile)) {
+    if ([
+        appConfig()?.override, ...appConfig()?.files ?? []
+    ].includes(absFile)) {
         notify("It's not possible to source a file that is loaded on startup",
             "err")
         return
@@ -328,6 +331,11 @@ const quitall = () => {
 }
 
 let currentscheme = "default"
+/**
+ * Set the colorscheme by name or log the current one if no name provided
+ *
+ * @param {string|null} name
+ */
 const colorscheme = (name = null, trailingArgs = false) => {
     if (trailingArgs) {
         notify("The colorscheme command takes a single optional argument",
@@ -379,11 +387,11 @@ const openDevTools = (userPosition = null, trailingArgs = false) => {
     } else if (position === "tab") {
         addTab({"devtools": true})
     } else if (position === "vsplit") {
-        const id = currentTab().getAttribute("link-id")
+        const id = currentTab()?.getAttribute("link-id")
         addTab({"devtools": true})
         add(id, "hor", getSetting("splitright"))
     } else if (position === "split") {
-        const id = currentTab().getAttribute("link-id")
+        const id = currentTab()?.getAttribute("link-id")
         addTab({"devtools": true})
         add(id, "ver", getSetting("splitbelow"))
     } else {
@@ -406,8 +414,9 @@ const openInternalDevTools = () => {
 const openSpecialPage = (specialPage, forceNewtab, section = null) => {
     const newSpecialUrl = specialPagePath(specialPage, section)
     const url = currentPage()?.src
-    const currentSpecial = pathToSpecialPageName(url)?.name
-    const isNewtab = currentSpecial === "newtab" || url.replace(/\/+$/g, "")
+    const currentSpecial = pathToSpecialPageName(url ?? "")?.name
+    const isNewtab = currentSpecial === "newtab"
+        || (url?.replace(/\/+$/g, "") ?? "")
         === stringToUrl(getSetting("newtaburl")).replace(/\/+$/g, "")
     const replaceSpecial = getSetting("replacespecial")
     const {navigateTo, addTab} = require("./tabs")
@@ -461,7 +470,7 @@ const hardcopy = range => {
 /**
  * Resolve file arguments to an absolute path with fixed type extension
  *
- * @param {string} locationArg
+ * @param {string|null} locationArg
  * @param {string} type
  * @param {Electron.WebviewTag|null} customPage
  */
@@ -522,15 +531,15 @@ const write = (args, range) => {
 /**
  * Write the html of a page to disk based on tab index or current
  *
- * @param {string} customLoc
+ * @param {string|null} customLoc
  * @param {Number|null} tabIdx
  */
 const writePage = (customLoc, tabIdx = null) => {
     let page = currentPage()
     if (tabIdx !== null) {
-        page = pageForTab(listTabs()[tabIdx])
+        page = pageForTab(listTabs()[tabIdx]) ?? null
     }
-    if (!page?.getWebContentsId) {
+    if (!page) {
         return
     }
     const loc = resolveFileArg(customLoc, "html", page)
@@ -551,8 +560,9 @@ const writePage = (customLoc, tabIdx = null) => {
  * @param {string} dims
  */
 const translateDimsToRect = dims => {
-    if (!dims) {
-        return undefined
+    const page = currentPage()
+    if (!dims || !page) {
+        return
     }
     const rect = {
         "height": Number(dims.split(",")[1]),
@@ -560,8 +570,8 @@ const translateDimsToRect = dims => {
         "x": Number(dims.split(",")[2]),
         "y": Number(dims.split(",")[3])
     }
-    const pageWidth = propPixels(currentPage().style, "width")
-    const pageHeight = propPixels(currentPage().style, "height")
+    const pageWidth = propPixels(page.style, "width")
+    const pageHeight = propPixels(page.style, "height")
     if (rect.x > pageWidth) {
         rect.x = pageWidth
     }
@@ -598,7 +608,7 @@ const screencopy = args => {
     }
     const rect = translateDimsToRect(args[0])
     setTimeout(() => {
-        currentPage().capturePage(rect).then(img => {
+        currentPage()?.capturePage(rect).then(img => {
             const {nativeImage, clipboard} = require("electron")
             clipboard.writeImage(nativeImage.createFromBuffer(img.toPNG()))
         })
@@ -637,11 +647,11 @@ const screenshot = args => {
 const takeScreenshot = (dims, location) => {
     const rect = translateDimsToRect(dims)
     const loc = resolveFileArg(location, "png", currentPage())
-    if (!loc || !currentPage()) {
+    if (!loc) {
         return
     }
     setTimeout(() => {
-        currentPage().capturePage(rect).then(img => {
+        currentPage()?.capturePage(rect).then(img => {
             writeFile(loc, img.toPNG(), "Something went wrong saving the image",
                 `Screenshot saved at ${loc}`)
         })
@@ -681,8 +691,8 @@ const mkviebrc = (full = null, trailingArgs = false) => {
  * @param {string} rangePart
  */
 const translateRangePosToIdx = (start, rangePart) => {
-    const [, plus] = rangePart.split("/").pop().split("+")
-    const [, minus] = rangePart.split("/").pop().split("-")
+    const [, plus] = rangePart.split("/").pop()?.split("+") ?? ["", ""]
+    const [, minus] = rangePart.split("/").pop()?.split("-") ?? ["", ""]
     /** @type {(string|Number)[]} */
     let [charOrNum] = rangePart.split(/[-+]/g)
     if (rangePart.split("/").length > 2) {
@@ -690,8 +700,8 @@ const translateRangePosToIdx = (start, rangePart) => {
         let search = rangePart.split("/").slice(1, -1).join("/")
         ;[charOrNum] = listTabs().map((t, i) => ({
             "idx": i,
-            "name": t.querySelector("span").textContent,
-            "url": pageForTab(t).src
+            "name": t?.querySelector("span")?.textContent,
+            "url": pageForTab(t)?.src
         })).filter(t => {
             let name = String(t.name)
             let url = String(t.url)
@@ -786,8 +796,8 @@ const rangeToTabIdxs = (range, silent = false) => {
             let search = range.split("/").slice(1, -1).join("/")
             return listTabs().map((t, i) => ({
                 "idx": i,
-                "name": t.querySelector("span").textContent,
-                "url": pageForTab(t).src
+                "name": t?.querySelector("span")?.textContent,
+                "url": pageForTab(t)?.src
             })).filter(t => {
                 let name = String(t.name)
                 let url = String(t.url)
@@ -815,8 +825,13 @@ const rangeToTabIdxs = (range, silent = false) => {
  * @param {string[]} args
  * @param {((tab: HTMLElement) => boolean)|null} filter
  */
-const tabForBufferArg = (args, filter = null) => allTabsForBufferArg(
-    args, filter)?.[0]?.tab
+const tabForBufferArg = (args, filter = null) => {
+    const tabs = allTabsForBufferArg(args, filter)
+    if (tabs[0]) {
+        return tabs[0].tab ?? null
+    }
+    return null
+}
 
 /**
  * Get all tabs for a given buffer argument
@@ -830,7 +845,7 @@ const allTabsForBufferArg = (args, filter = null) => {
         if (!isNaN(number)) {
             const tabs = listTabs()
             if (number >= tabs.length) {
-                return [{"tab": tabs.pop()}]
+                return [{"tab": tabs.pop() ?? null}]
             }
             if (number < 0) {
                 number += tabs.length
@@ -839,9 +854,8 @@ const allTabsForBufferArg = (args, filter = null) => {
         }
         if ((args[0] || args) === "#") {
             const {getLastTabId} = require("./pagelayout")
-            /** @ts-ignore @type {HTMLSpanElement} */
-            const lastTab = document.querySelector(
-                `#tabs span[link-id='${getLastTabId()}']`)
+            const lastTab = listTabs().find(
+                t => t.getAttribute("link-id") === getLastTabId())
             return [{"tab": lastTab || listTabs()[0]}]
         }
     }
@@ -910,7 +924,7 @@ const open = args => {
  * Suspend a page or a range of pages
  *
  * @param {string[]} args
- * @param {string} range
+ * @param {string|null} range
  */
 const suspend = (args, range = null) => {
     if (range && args.length) {
@@ -943,7 +957,7 @@ const suspend = (args, range = null) => {
  * Hide a page or a range of pages
  *
  * @param {string[]} args
- * @param {string} range
+ * @param {string|null} range
  */
 const hide = (args, range = null) => {
     if (range && args.length) {
@@ -1023,7 +1037,7 @@ const mute = (args, range) => {
         tab.setAttribute("muted", "muted")
     }
     if (!tab.getAttribute("suspended")) {
-        pageForTab(tab).setAudioMuted(!!tab.getAttribute("muted"))
+        pageForTab(tab)?.setAudioMuted(!!tab.getAttribute("muted"))
     }
     const {saveTabs} = require("./tabs")
     saveTabs()
@@ -1204,7 +1218,7 @@ const callAction = args => {
 /**
  * Log command errors
  *
- * @param {import("child_process").ExecException} err
+ * @param {import("child_process").ExecException|null} err
  */
 const logError = err => {
     if (err?.message) {
@@ -1226,7 +1240,9 @@ const makedefault = () => {
         const scriptContents = readFile(joinPath(
             __dirname, "../defaultapp/windows.bat"))
         const tempFile = joinPath(appData(), "defaultapp.bat")
-        writeFile(tempFile, scriptContents)
+        if (scriptContents) {
+            writeFile(tempFile, scriptContents)
+        }
         execCommand(`Powershell Start ${tempFile} -ArgumentList `
             + `"""${process.execPath}""" -Verb Runas`, logError)
     } else if (process.platform === "darwin") {
@@ -1274,15 +1290,22 @@ const runjsinpage = (raw, range) => {
     }
     if (range) {
         rangeToTabIdxs(range).forEach(tabId => {
-            pageForTab(listTabs()[tabId]).executeJavaScript(javascript, true)
+            pageForTab(listTabs()[tabId])?.executeJavaScript(javascript, true)
         })
     } else {
-        currentPage().executeJavaScript(javascript, true)
+        currentPage()?.executeJavaScript(javascript, true)
     }
 }
 
+/**
+ * Open a new tab optionally with a custom session and url
+ *
+ * @param {string|null} session
+ * @param {string|null} url
+ */
 const tabnew = (session = null, url = null) => {
     const {addTab} = require("./tabs")
+    /** @type {{url?: string, session?: string}} */
     const options = {}
     if (url?.trim()) {
         options.url = url
@@ -1745,7 +1768,7 @@ const translatepage = args => {
     if (api === "deepl" && lang === "pt") {
         lang = "pt-pt"
     }
-    currentPage().send("action", "translatepage", api, url, lang, apiKey)
+    currentPage()?.send("action", "translatepage", api, url, lang, apiKey)
 }
 
 const clear = (type, interval, trailingArgs = false) => {
@@ -1831,6 +1854,11 @@ const noArgumentComands = [
     "rclose",
     "only"
 ]
+/** @type {{
+ *   [command: string]: (props: {
+ *     args: string[], range: string, raw: string
+ *   }) => void
+ * }} */
 const commands = {
     "Sexplore": ({args, range}) => addSplit(
         "ver", !getSetting("splitbelow"), args, range),
@@ -1919,10 +1947,11 @@ const commands = {
             notify("Command takes no arguments: scriptnames", "warn")
             return
         }
-        notify(appConfig().files.map((f, i) => `${i + 1}: ${f}`).join("\n"))
+        notify(appConfig()?.files.map(
+            (f, i) => `${i + 1}: ${f}`).join("\n") ?? "")
     },
     "scriptnames!": ({args}) => {
-        const scripts = [...appConfig().files, ...sourcedFiles]
+        const scripts = [...appConfig()?.files ?? [], ...sourcedFiles]
         if (args.length === 0) {
             notify(scripts.map((f, i) => `${i + 1}: ${f}`).join("\n"))
         } else if (args.length === 1) {
@@ -1968,6 +1997,7 @@ const commands = {
     "w": ({args, range}) => write(args, range),
     "write": ({args, range}) => write(args, range)
 }
+/** @type {{[command: string]: string}} */
 let userCommands = {}
 const {mapOrList, unmap, clearmap} = require("./input")
 " nicsefpvm".split("").forEach(prefix => {
@@ -2105,6 +2135,12 @@ const parseAndValidateArgs = commandStr => {
     }
 }
 
+/**
+ * Execute a command
+ *
+ * @param {string} com
+ * @param {string|null} settingsFile
+ */
 const execute = (com, settingsFile = null) => {
     // Remove all redundant spaces
     // Allow commands prefixed with :

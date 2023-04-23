@@ -59,6 +59,7 @@ const {setMode} = require("./modes")
 
 let recentlyClosed = []
 let linkId = 0
+/** @type {{[id: string]: Number}} */
 const timeouts = {}
 const tabFile = joinPath(appData(), "tabs")
 const erwicMode = isFile(joinPath(appData(), "erwicmode"))
@@ -454,7 +455,7 @@ const suspendTab = (tab, force = false) => {
 /**
  * Unsuspend a tab
  *
- * @param {HTMLDivElement} page
+ * @param {Electron.WebviewTag|HTMLDivElement} page
  */
 const unsuspendPage = page => {
     if (page.tagName?.toLowerCase() === "webview") {
@@ -699,7 +700,7 @@ const updateUrl = (webview, force = false) => {
         return
     }
     let niceUrl = urlToString(url)
-    if (niceUrl === `${appConfig().name.toLowerCase()}://newtab`) {
+    if (niceUrl === `${appConfig()?.name.toLowerCase()}://newtab`) {
         niceUrl = ""
     }
     const urlInput = getUrl()
@@ -738,17 +739,18 @@ const addWebviewListeners = webview => {
     webview.addEventListener("load-commit", e => {
         if (e.isMainFrame) {
             resetTabInfo(webview)
-            const name = tabForPage(webview).querySelector("span")
-            if (!name.textContent) {
+            const name = tabForPage(webview)?.querySelector("span")
+            if (name && !name?.textContent) {
                 name.textContent = urlToString(e.url)
             }
             const timeout = getSetting("requesttimeout")
             const id = webview.getAttribute("link-id")
-            if (id) {
-                clearTimeout(timeouts[id])
+            if (!id) {
+                return
             }
+            window.clearTimeout(timeouts[id])
             if (timeout) {
-                timeouts[id] = setTimeout(() => {
+                timeouts[id] = window.setTimeout(() => {
                     try {
                         webview.stop()
                     } catch {
@@ -762,8 +764,8 @@ const addWebviewListeners = webview => {
         if (getSetting("reloadtaboncrash")) {
             recreateWebview(webview)
         } else {
-            tabForPage(webview).classList.add("crashed")
-            if (currentPage().isCrashed() && webview === currentPage()) {
+            tabForPage(webview)?.classList.add("crashed")
+            if (currentPage()?.isCrashed() && webview === currentPage()) {
                 if ("fipv".includes(currentMode()[0])) {
                     setMode("normal")
                 }
@@ -855,7 +857,7 @@ const addWebviewListeners = webview => {
         const {show} = require("./favicons")
         show(webview)
         updateUrl(webview)
-        clearTimeout(timeouts[webview.getAttribute("link-id")])
+        window.clearTimeout(timeouts[webview.getAttribute("link-id") ?? ""])
         const specialPageName = pathToSpecialPageName(webview.src)?.name
         const isLocal = webview.src.startsWith("file:/")
         const isErrorPage = webview.getAttribute("failed-to-load")
@@ -957,7 +959,7 @@ const addWebviewListeners = webview => {
     webview.addEventListener("ipc-message", e => {
         const {resetScrollbarTimer} = require("./pagelayout")
         if (e.channel === "notify") {
-            notify(...e.args)
+            notify(e.args[0], e.args[1], e.args[2])
         }
         if (e.channel === "url") {
             addTab({"url": e.args[0]})
@@ -1051,7 +1053,7 @@ const addWebviewListeners = webview => {
             }
         }
         if (e.channel === "custom-style-inject") {
-            injectCustomStyleRequest(webview, ...e.args)
+            injectCustomStyleRequest(webview, e.args[0], e.args[1])
         }
     })
     webview.addEventListener("found-in-page", e => {

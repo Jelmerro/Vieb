@@ -262,6 +262,7 @@ try {
                                 .getUserMedia({
                                     "audio": false,
                                     "video": {
+                                        // @ts-expect-error Electron required
                                         "mandatory": {
                                             "chromeMediaSource": "desktop",
                                             "chromeMediaSourceId": id
@@ -301,21 +302,30 @@ try {
     // No deletion allowed in this context, set to undefined instead
 }
 // HTTPS-only: Always act as if there is no battery and the state never changes
+// @ts-expect-error Not present in HTTP environments nor ts spec
 if (window.BatteryManager) {
+    // @ts-expect-error Not present in HTTP environments nor ts spec
     Object.defineProperty(window.BatteryManager.prototype,
         "level", {"get": () => 1})
+    // @ts-expect-error Not present in HTTP environments nor ts spec
     Object.defineProperty(window.BatteryManager.prototype,
         "charging", {"get": () => true})
+    // @ts-expect-error Not present in HTTP environments nor ts spec
     Object.defineProperty(window.BatteryManager.prototype,
         "chargingTime", {"get": () => 0})
+    // @ts-expect-error Not present in HTTP environments nor ts spec
     Object.defineProperty(window.BatteryManager.prototype,
         "dischargingTime", {"get": () => Infinity})
+    // @ts-expect-error Not present in HTTP environments nor ts spec
     Object.defineProperty(window.BatteryManager.prototype,
         "onchargingchange", {"get": () => null})
+    // @ts-expect-error Not present in HTTP environments nor ts spec
     Object.defineProperty(window.BatteryManager.prototype,
         "onchargingtimechange", {"get": () => null})
+    // @ts-expect-error Not present in HTTP environments nor ts spec
     Object.defineProperty(window.BatteryManager.prototype,
         "ondischargingtimechange", {"get": () => null})
+    // @ts-expect-error Not present in HTTP environments nor ts spec
     Object.defineProperty(window.BatteryManager.prototype,
         "onlevelchange", {"get": () => null})
 }

@@ -654,7 +654,7 @@ let inputHistoryList = [{"index": 0, "value": ""}]
 let inputHistoryIndex = 0
 /** @type {string|null} */
 let lastActionInMapping = null
-/** @type {{mapStr: string, recursive: boolean}}|null} */
+/** @type {{mapStr: string, recursive: boolean}|null} */
 let lastExecutedMapstring = null
 /** @type {false|"position"|"size"} */
 let draggingScreenshotFrame = false
@@ -820,7 +820,7 @@ const init = () => {
             return
         }
         e.preventDefault()
-        /** @type {(ev: MouseEvent) => EventTarget} ev */
+        /** @type {(ev: MouseEvent) => EventTarget|undefined} ev */
         const urlOrSuggest = ev => ev.composedPath().find(
             n => matchesQuery(n, "#url, #suggest-dropdown"))
         if (urlOrSuggest(e)) {
@@ -834,8 +834,13 @@ const init = () => {
                 ACTIONS.toNormalMode()
             }
         } else if (getMouseConf("switchtab")) {
-            const tab = e.composedPath().find(n => listTabs().includes(n))
-            if (tab) {
+            const tab = e.composedPath().find(n => {
+                if (n instanceof HTMLSpanElement) {
+                    return listTabs().includes(n)
+                }
+                return false
+            })
+            if (tab instanceof HTMLSpanElement) {
                 clear()
                 const {switchToTab} = require("./tabs")
                 switchToTab(tab)
@@ -867,7 +872,7 @@ const init = () => {
         if (getMouseConf("leaveinput")) {
             const {followFiltering} = require("./follow")
             const typing = "sec".includes(currentMode()[0]) || followFiltering()
-            /** @type {(ev: MouseEvent) => EventTarget} ev */
+            /** @type {(ev: MouseEvent) => EventTarget|undefined} ev */
             const urlOrSuggest = ev => ev.composedPath().find(n => matchesQuery(
                 n, "#url, #suggest-dropdown, #screenshot-highlight"))
             if (typing && !urlOrSuggest(e)) {
@@ -903,7 +908,7 @@ const init = () => {
     })
     ipcRenderer.on("insert-mode-input-event", (_, input) => {
         if (input.key === "Tab") {
-            currentPage().focus()
+            currentPage()?.focus()
         }
         // Check if fullscreen should be disabled
         if (document.body.classList.contains("fullscreen")) {
@@ -912,7 +917,7 @@ const init = () => {
             const escapeKey = input.key === "Escape" && noMods && !ctrl
             const ctrlBrack = input.key === "[" && noMods && ctrl
             if (escapeKey || ctrlBrack) {
-                currentPage().send("action", "exitFullscreen")
+                currentPage()?.send("action", "exitFullscreen")
                 return
             }
         }
@@ -971,7 +976,7 @@ const resetScreenshotDrag = () => setTimeout(() => {
  *
  * @param {number} x
  * @param {number} y
-*/
+ */
 const moveScreenshotFrame = (x, y) => {
     const deltaX = x - lastScreenshotX
     const deltaY = y - lastScreenshotY
@@ -1013,10 +1018,10 @@ const moveScreenshotFrame = (x, y) => {
         if (rect.height === 0 || rect.height > pageHeight - rect.y) {
             rect.height = pageHeight - rect.y
         }
-        if (dims) {
+        if (dims && url) {
             url.value = url.value.replace(/\d+,\d+,\d+,\d+/g, `${rect.width},${
                 rect.height},${rect.x},${rect.y}`)
-        } else {
+        } else if (url) {
             url.value = `${url.value.split(" ").slice(0, -1).join(" ")
             } ${rect.width},${rect.height},${rect.x},${rect.y}`
         }
@@ -1041,6 +1046,9 @@ const cutInput = (event = null) => {
     const {clipboard} = require("electron")
     clipboard.writeText(selection)
     const url = getUrl()
+    if (!url) {
+        return
+    }
     const cur = Number(url.selectionStart)
     const end = Number(url.selectionEnd)
     url.value = url.value.slice(0, cur) + url.value.slice(end)
@@ -1073,6 +1081,9 @@ const copyInput = (event = null) => {
 const pasteInput = (event = null) => {
     event?.preventDefault()
     const url = getUrl()
+    if (!url) {
+        return
+    }
     const cur = Number(url.selectionStart)
     const end = Number(url.selectionEnd)
     const {clipboard} = require("electron")
@@ -1203,7 +1214,7 @@ const toIdentifier = e => {
  * Split the mapstring by key
  *
  * @param {string} mapStr
-*/
+ */
 const splitMapString = mapStr => {
     const maps = []
     let bracketCounter = 0
@@ -1234,7 +1245,7 @@ const splitMapString = mapStr => {
  *
  * @param {string} identifier
  * @param {boolean} electronNames
-*/
+ */
 const fromIdentifier = (identifier, electronNames = true) => {
     let id = splitMapString(identifier).maps[0] ?? identifier
     /** @type {{
@@ -1607,7 +1618,7 @@ const handleKeyboard = async e => {
         return
     }
     hadModifier = e.shiftKey || e.ctrlKey
-    clearTimeout(timeoutTimer)
+    window.clearTimeout(timeoutTimer)
     if (getSetting("timeout")) {
         timeoutTimer = window.setTimeout(async() => {
             const keys = splitMapString(pressedKeys).maps
@@ -1688,7 +1699,7 @@ const handleKeyboard = async e => {
     const action = actionForKeys(pressedKeys)
     const hasMenuAction = menuActive() && action
     if (!hasFutureActions(pressedKeys) || hasMenuAction) {
-        clearTimeout(timeoutTimer)
+        window.clearTimeout(timeoutTimer)
         if (action && (e.isTrusted || e.bubbles)) {
             if (e.isTrusted) {
                 await executeMapString(action.mapping, !action.noremap, true)
@@ -1732,7 +1743,8 @@ const handleKeyboard = async e => {
             let unshiftedName = String(e.key).toLowerCase()
             if (e.key.toUpperCase() === unshiftedName && hadModifier) {
                 try {
-                    const map = await navigator.keyboard.getLayoutMap()
+                    // @ts-expect-error keyboard prop is not present in ts spec
+                    const map = await window.navigator.keyboard.getLayoutMap()
                     unshiftedName = map.get(e.code) ?? e.key
                 } catch {
                     // Unsupported keyboard layout, fallback to unshifted key
@@ -1783,6 +1795,9 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         recordingString += id
     }
     const url = getUrl()
+    if (!url) {
+        return
+    }
     if (keyForOs(["<S-Home>", "<C-S-Home>"], ["<M-S-Left>", "<M-S-Up>"], id)) {
         if (url.selectionDirection !== "backward") {
             url.selectionEnd = url.selectionStart
@@ -1987,8 +2002,8 @@ const typeCharacterIntoNavbar = (character, force = false) => {
             }
         }
         const cur = Number(url.selectionStart)
-        url.value = url.value.substr(0, url.selectionStart)
-            + url.value.substr(url.selectionEnd)
+        url.value = url.value.substring(0, url.selectionStart)
+            + url.value.substring(url.selectionEnd)
         url.setSelectionRange(cur, cur)
         requestSuggestUpdate()
         updateNavbarScrolling()
@@ -2002,8 +2017,8 @@ const typeCharacterIntoNavbar = (character, force = false) => {
     if (id === "<Del>") {
         if (url.selectionEnd < url.value.length) {
             const cur = Number(url.selectionStart)
-            url.value = `${url.value.substr(0, url.selectionStart)}${
-                url.value.substr(url.selectionEnd + 1)}`
+            url.value = `${url.value.substring(0, url.selectionStart)}${
+                url.value.substring(url.selectionEnd + 1)}`
             url.setSelectionRange(cur, cur)
             requestSuggestUpdate()
             updateNavbarScrolling()
@@ -2016,8 +2031,8 @@ const typeCharacterIntoNavbar = (character, force = false) => {
             wordPosition += word.length
             if (wordPosition > url.selectionStart) {
                 const cur = Number(url.selectionStart)
-                url.value = `${url.value.substr(0, url.selectionStart)}${
-                    url.value.substr(wordPosition)}`
+                url.value = `${url.value.substring(0, url.selectionStart)}${
+                    url.value.substring(wordPosition)}`
                 url.setSelectionRange(cur, cur)
                 requestSuggestUpdate()
                 updateNavbarScrolling()
@@ -2029,8 +2044,8 @@ const typeCharacterIntoNavbar = (character, force = false) => {
     if (id === "<BS>" || id === "<S-BS>") {
         if (url.selectionStart > 0) {
             const cur = Number(url.selectionStart)
-            url.value = `${url.value.substr(0, url.selectionStart - 1)}${
-                url.value.substr(url.selectionEnd)}`
+            url.value = `${url.value.substring(0, url.selectionStart - 1)}${
+                url.value.substring(url.selectionEnd)}`
             url.setSelectionRange(cur - 1, cur - 1)
             requestSuggestUpdate()
             updateNavbarScrolling()
@@ -2042,8 +2057,8 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         for (const word of words.slice().reverse()) {
             wordPosition -= word.length
             if (wordPosition < url.selectionStart) {
-                url.value = `${url.value.substr(0, wordPosition)}${
-                    url.value.substr(url.selectionStart)}`
+                url.value = `${url.value.substring(0, wordPosition)}${
+                    url.value.substring(url.selectionStart)}`
                 url.setSelectionRange(wordPosition, wordPosition)
                 requestSuggestUpdate()
                 updateNavbarScrolling()
@@ -2055,24 +2070,24 @@ const typeCharacterIntoNavbar = (character, force = false) => {
     const cur = Number(url.selectionStart)
     const text = String(url.value)
     if (id.length === 1) {
-        url.value = `${url.value.substr(0, url.selectionStart)}${id}${
-            url.value.substr(url.selectionEnd)}`
+        url.value = `${url.value.substring(0, url.selectionStart)}${id}${
+            url.value.substring(url.selectionEnd)}`
     }
     if (id === "<lt>") {
-        url.value = `${url.value.substr(0, url.selectionStart)}<${
-            url.value.substr(url.selectionEnd)}`
+        url.value = `${url.value.substring(0, url.selectionStart)}<${
+            url.value.substring(url.selectionEnd)}`
     }
     if (id === "<Bar>") {
-        url.value = `${url.value.substr(0, url.selectionStart)}|${
-            url.value.substr(url.selectionEnd)}`
+        url.value = `${url.value.substring(0, url.selectionStart)}|${
+            url.value.substring(url.selectionEnd)}`
     }
     if (id === "<Bslash>") {
-        url.value = `${url.value.substr(0, url.selectionStart)}\\${
-            url.value.substr(url.selectionEnd)}`
+        url.value = `${url.value.substring(0, url.selectionStart)}\\${
+            url.value.substring(url.selectionEnd)}`
     }
     if (id === "<Space>" || id === "<S-Space>") {
-        url.value = `${url.value.substr(0, url.selectionStart)} ${
-            url.value.substr(url.selectionEnd)}`
+        url.value = `${url.value.substring(0, url.selectionStart)} ${
+            url.value.substring(url.selectionEnd)}`
     }
     if (text !== url.value) {
         url.setSelectionRange(cur + 1, cur + 1)
@@ -2092,8 +2107,8 @@ const requestSuggestUpdate = (updateHistory = true) => {
     if (updateHistory) {
         inputHistoryList = inputHistoryList.slice(0, inputHistoryIndex + 1)
         inputHistoryIndex = inputHistoryList.length
-        const start = Number(url.selectionStart)
-        inputHistoryList.push({"index": start, "value": url.value})
+        const start = Number(url?.selectionStart)
+        inputHistoryList.push({"index": start, "value": url?.value ?? ""})
     }
     if (!suggestionTimer) {
         updateSuggestions()
@@ -2109,6 +2124,9 @@ const requestSuggestUpdate = (updateHistory = true) => {
 
 const updateSuggestions = () => {
     const url = getUrl()
+    if (!url) {
+        return
+    }
     const mode = currentMode()
     if (mode === "explore") {
         const {suggestExplore} = require("./suggest")
@@ -2122,7 +2140,7 @@ const updateSuggestions = () => {
 }
 
 const updateKeysOnScreen = () => {
-    document.getElementById("repeat-counter").textContent = repeatCounter
+    document.getElementById("repeat-counter").textContent = `${repeatCounter}`
     document.getElementById("pressed-keys").textContent = pressedKeys
     document.getElementById("record-name").textContent
         = `recording @${recordingName}`

@@ -126,12 +126,12 @@ const numberToKeys = (number, minLen = 0) => {
         d => set[d]).join("")
 }
 
-const linkInList = (list, link) => list.find(l => l && link && l.x === link.x
+const linkInList = (list, link) => list.some(l => l && link && l.x === link.x
     && l.y === link.y && l.type === link.type && l.height === link.height
     && l.width === link.width && l.url === link.url)
 
 const clickAtLink = async link => {
-    const factor = currentPage().getZoomFactor()
+    const factor = currentPage()?.getZoomFactor() ?? 1
     const {setMode} = require("./modes")
     if (["pointer", "visual"].includes(getStored("modebeforefollow"))) {
         const {start, move} = require("./pointer")
@@ -176,15 +176,27 @@ const reorderDisplayedLinks = () => {
 
 const applyIndexedOrder = () => {
     savedOrder.forEach((type, index) => {
-        [...document.querySelectorAll(`.follow-${type}`)]
-            .forEach(e => { e.style.zIndex = index + 10 + savedOrder.length })
-        ;[...document.querySelectorAll(`.follow-${type}-border`)]
-            .forEach(e => { e.style.zIndex = index + 9 })
+        [...document.querySelectorAll(`.follow-${type}`)].forEach(e => {
+            if (e instanceof HTMLElement) {
+                e.style.zIndex = `${index + 10 + savedOrder.length}`
+            }
+        })
+        ;[...document.querySelectorAll(`.follow-${type}-border`)].forEach(e => {
+            if (e instanceof HTMLElement) {
+                e.style.zIndex = `${index + 9}`
+            }
+        })
     })
-    ;[...document.querySelectorAll(`.follow-other`)]
-        .forEach(e => { e.style.zIndex = 8 })
-    ;[...document.querySelectorAll(`.follow-other-border`)]
-        .forEach(e => { e.style.zIndex = 7 })
+    ;[...document.querySelectorAll(`.follow-other`)].forEach(e => {
+        if (e instanceof HTMLElement) {
+            e.style.zIndex = "8"
+        }
+    })
+    ;[...document.querySelectorAll(`.follow-other-border`)].forEach(e => {
+        if (e instanceof HTMLElement) {
+            e.style.zIndex = "7"
+        }
+    })
 }
 
 const emptyHoverLink = () => {
@@ -426,6 +438,8 @@ const followFiltering = () => alreadyFilteringLinks
 
 const enterKey = async(code, id, stayInFollowMode) => {
     alreadyFollowing = true
+    /** @type {HTMLSpanElement[]} */
+    // @ts-expect-error query selector only selects span elements
     const allLinkKeys = [...document.querySelectorAll("#follow span[link-id]")]
     const charsInLinks = followChars().map(c => c.toLowerCase())
     const {setMode} = require("./modes")

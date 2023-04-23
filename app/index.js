@@ -147,7 +147,7 @@ See the LICENSE file or the GNU website for details.`)
 /**
  *
  * @param {string} prefFile
-*/
+ */
 const applyDevtoolsSettings = (prefFile, undock = true) => {
     makeDir(dirname(prefFile))
     const preferences = readJSON(prefFile) || {}
@@ -178,7 +178,7 @@ const applyDevtoolsSettings = (prefFile, undock = true) => {
  * Parse the startup arguments
  *
  * @param {string[]} argv
-*/
+ */
 const getArguments = argv => {
     const execFile = basePath(argv[0])
     if (execFile === "electron" || process.defaultApp && execFile !== "vieb") {

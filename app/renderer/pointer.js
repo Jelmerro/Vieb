@@ -194,6 +194,7 @@ const moveToMouse = () => {
             if (matchesQuery(el, "webview[link-id]")) {
                 if (el !== currentPage() || currentMode() !== "visual") {
                     const {switchToTab} = require("./tabs")
+                    // @ts-expect-error el is checked to be a webview above
                     switchToTab(tabForPage(el))
                 }
                 const pagePos = pageOffset(currentPage())

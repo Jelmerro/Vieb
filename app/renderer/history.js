@@ -157,7 +157,7 @@ const addToHist = url => {
 }
 
 const writeHistToFile = (now = false) => {
-    clearTimeout(histWriteTimeout)
+    window.clearTimeout(histWriteTimeout)
     if (now) {
         Object.keys(groupedHistory).forEach(url => {
             if (visitCount(url) === 0) {
@@ -169,7 +169,7 @@ const writeHistToFile = (now = false) => {
         }
         return writeJSON(histFile, groupedHistory)
     }
-    histWriteTimeout = setTimeout(() => {
+    histWriteTimeout = window.setTimeout(() => {
         writeHistToFile(true)
     }, 5000)
     return true

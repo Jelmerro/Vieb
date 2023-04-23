@@ -25,10 +25,13 @@ const {propPixels} = require("../util")
 
 const layoutDivById = id => document.querySelector(
     `#pagelayout div[link-id='${id}']`)
+/** @type {{[id: string]: Number}} */
 const timers = {}
 let lastTabId = null
 let recentlySwitched = false
+/** @type {number|null} */
 let scrollbarHideTimer = null
+/** @type {number|null} */
 let scrollbarHideIgnoreTimer = null
 
 const switchView = (oldViewOrId, newView) => {
@@ -413,7 +416,7 @@ const removeRedundantContainers = () => {
 
 const restartSuspendTimeouts = () => {
     for (const linkId of Object.keys(timers)) {
-        clearTimeout(timers[linkId])
+        window.clearTimeout(timers[linkId])
         delete timers[linkId]
     }
     applyLayout()
@@ -475,7 +478,7 @@ const applyLayout = () => {
             const {suspendTab} = require("./tabs")
             suspendTab(tab)
         } else {
-            timers[linkId] = setTimeout(
+            timers[linkId] = window.setTimeout(
                 () => susCall(tab, linkId, timeout), timeout)
         }
     }
@@ -484,12 +487,12 @@ const applyLayout = () => {
         const linkId = tab.getAttribute("link-id")
         if (visibleTabs.includes(tab)) {
             tab.classList.add("visible-tab")
-            clearTimeout(timers[linkId])
+            window.clearTimeout(timers[linkId])
             delete timers[linkId]
         } else {
             tab.classList.remove("visible-tab")
             if (timeout && !timers[linkId] && !tab.getAttribute("suspended")) {
-                timers[linkId] = setTimeout(
+                timers[linkId] = window.setTimeout(
                     () => susCall(tab, linkId, timeout), timeout)
             }
         }
@@ -533,7 +536,7 @@ const hideScrollbar = () => {
     if (scrollbarHideIgnoreTimer) {
         return
     }
-    scrollbarHideIgnoreTimer = setTimeout(() => {
+    scrollbarHideIgnoreTimer = window.setTimeout(() => {
         scrollbarHideIgnoreTimer = null
     }, 500)
     listPages().forEach(p => {
@@ -550,9 +553,10 @@ const resetScrollbarTimer = (event = "none") => {
     const timeout = getSetting("guihidetimeout")
     if (setting === "onmove" || setting === "onscroll") {
         if (event === "scroll" || setting === "onmove" && event !== "none") {
-            clearTimeout(scrollbarHideTimer)
+            window.clearTimeout(scrollbarHideTimer)
             showScrollbar()
-            scrollbarHideTimer = setTimeout(() => hideScrollbar(), timeout)
+            scrollbarHideTimer = window.setTimeout(
+                () => hideScrollbar(), timeout)
         }
         return
     }

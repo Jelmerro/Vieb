@@ -829,7 +829,8 @@ const intervalValueToDate = value => {
 // IPC UTIL
 
 const currentPage = () => {
-    /** @ts-ignore @type {Electron.WebviewTag|null} */
+    /** @type {Electron.WebviewTag|null} */
+    // @ts-expect-error current page id is always set to webview
     const page = document.getElementById("current-page")
     return page
 }
