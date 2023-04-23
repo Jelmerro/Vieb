@@ -145,8 +145,10 @@ There is NO WARRANTY, to the extent permitted by law.
 See the LICENSE file or the GNU website for details.`)
 }
 /**
+ * Apply some basic settings to the chromium devtools
  *
  * @param {string} prefFile
+ * @param {boolean} undock
  */
 const applyDevtoolsSettings = (prefFile, undock = true) => {
     makeDir(dirname(prefFile))
@@ -191,9 +193,9 @@ const getArguments = argv => {
 /**
  * Check if the provided string argument should be true or false as a boolean
  *
- * @param {string} arg
+ * @param {string|null} arg
  */
-const isTruthyArg = arg => {
+const isTruthyArg = (arg = null) => {
     const argStr = String(arg).trim().toLowerCase()
     return Number(argStr) > 0 || ["y", "yes", "true", "on"].includes(argStr)
 }
@@ -216,6 +218,7 @@ let argAutoplayMedia = process.env.VIEB_AUTOPLAY_MEDIA?.trim().toLowerCase()
 let argAcceleration = process.env.VIEB_ACCELERATION?.trim().toLowerCase()
     || "hardware"
 let argUnsafeMultiwin = isTruthyArg(process.env.VIEB_UNSAFE_MULTIWIN)
+/** @type {string|null} */
 let customIcon = null
 args.forEach(a => {
     const arg = a.trim()
@@ -365,7 +368,9 @@ if (argErwic) {
             if (typeof config.icon !== "string" || !isFile(config.icon)) {
                 config.icon = null
             }
-            customIcon = config.icon
+            if (typeof config.icon === "string") {
+                customIcon = config.icon
+            }
         }
     }
     writeFile(joinPath(argDatafolder, "erwicmode"), "")
@@ -394,7 +399,12 @@ if (argErwic) {
             a.script = null
         }
         return a
-    }).filter(a => a)
+    }).flatMap(a => {
+        if (a) {
+            return [a]
+        }
+        return []
+    })
     if (config.apps.length === 0) {
         console.warn("Erwic config file requires at least one app to be added")
         console.warn("Each app must have a 'container' name and a 'url'\n")
@@ -412,8 +422,16 @@ let loginWindow = null
 let notificationWindow = null
 /** @type {Electron.BrowserWindow|null} */
 let promptWindow = null
-const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
-    const url = u.url || u
+/**
+ * Resolve local paths to absolute file protocol paths
+ *
+ * @param {string[]} paths
+ * @param {string|null} cwd
+ */
+const resolveLocalPaths = (paths, cwd = null) => paths.map(url => {
+    if (!url) {
+        return null
+    }
     let fileLocation = expandPath(url.replace(/^file:\/+/g, "/"))
     if (process.platform === "win32") {
         fileLocation = expandPath(url.replace(/^file:\/+/g, ""))
@@ -427,7 +445,7 @@ const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
     if (url.startsWith("-")) {
         return null
     }
-    return u
+    return url
 }).filter(u => u)
 app.on("ready", () => {
     app.userAgentFallback = defaultUseragent()
@@ -462,7 +480,7 @@ app.on("ready", () => {
         "closable": false,
         "frame": argWindowFrame,
         "height": 600,
-        "icon": customIcon,
+        "icon": customIcon ?? undefined,
         "show": argDebugMode,
         "title": app.getName(),
         "webPreferences": {
@@ -553,7 +571,7 @@ app.on("ready", () => {
         "alwaysOnTop": true,
         "frame": false,
         "fullscreenable": false,
-        "icon": customIcon,
+        "icon": customIcon ?? undefined,
         "modal": true,
         "parent": mainWindow,
         "resizable": false,
@@ -580,7 +598,7 @@ app.on("ready", () => {
         "alwaysOnTop": true,
         "frame": false,
         "fullscreenable": false,
-        "icon": customIcon,
+        "icon": customIcon ?? undefined,
         "modal": true,
         "parent": mainWindow,
         "resizable": false,
@@ -608,7 +626,7 @@ app.on("ready", () => {
         "alwaysOnTop": true,
         "frame": false,
         "fullscreenable": false,
-        "icon": customIcon,
+        "icon": customIcon ?? undefined,
         "modal": true,
         "parent": mainWindow,
         "resizable": false,
@@ -742,9 +760,13 @@ let redirects = ""
 /** @type {import("@cliqz/adblocker-electron").ElectronBlocker|null} */
 let blocker = null
 let permissions = {}
+/** @type {string[]|null} */
 let resourceTypes = null
-let resourcesAllowed = null
-let resourcesBlocked = null
+/** @type {string[]} */
+let resourcesAllowed = []
+/** @type {string[]} */
+let resourcesBlocked = []
+/** @type {string[]} */
 let requestHeaders = []
 /** @type {string[]} */
 const sessionList = []
@@ -935,7 +957,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         return callback({"cancel": false, "requestHeaders": headers})
     })
     newSess.on("will-download", (e, item) => {
-        if (downloadSettings.downloadmethod === "block") {
+        if (downloadSettings.downloadmethod === "block" || !mainWindow) {
             e.preventDefault()
             return
         }
@@ -1030,12 +1052,12 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 info.state = "cancelled"
             }
             if (info.state === "completed") {
-                mainWindow.webContents.send("notify",
+                mainWindow?.webContents.send("notify",
                     `Download finished:\n${info.name}`, "success", {
                         "path": info.file, "type": "download-success"
                     })
             } else {
-                mainWindow.webContents.send("notify",
+                mainWindow?.webContents.send("notify",
                     `Download failed:\n${info.name}`, "warn")
             }
         })
@@ -1122,7 +1144,10 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 </body></html>`)
             return
         }
+        /** @type {import("marked").marked|null} */
         let marked = null
+        // TODO #bug https://github.com/highlightjs/highlight.js/issues/3752
+        /** @type {import("highlight.js")|null} */
         let hljs = null
         try {
             ({marked} = require("marked"))
@@ -1172,7 +1197,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             "smartypants": true
         })
         if (isFile(loc)) {
-            const md = marked.parse(readFile(loc))
+            const md = marked.parse(readFile(loc) ?? "")
             call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
                 <title>${decodeURI(req.url)}</title>
                 </head><body id="markdownviewer">${md}</body></html>`)
@@ -1188,6 +1213,9 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                         <title>${decodeURI(req.url)}</title></head>
                         <body>Markdown viewer not supported on this webpage
                         </body></html>`)
+                    return
+                }
+                if (!marked) {
                     return
                 }
                 const md = marked.parse(body)
@@ -1217,7 +1245,9 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 </body></html>`)
             return
         }
+        /** @type {typeof import("@mozilla/readability").Readability|null} */
         let Readability = null
+        /** @type {typeof import("jsdom").JSDOM|null} */
         let JSDOM = null
         try {
             ({Readability} = require("@mozilla/readability"))
@@ -1251,8 +1281,12 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                         </body></html>`)
                     return
                 }
+                if (!JSDOM || !Readability) {
+                    return
+                }
                 const dom = new JSDOM(body, {url})
-                const out = new Readability(dom.window.document).parse().content
+                const out = new Readability(
+                    dom.window.document).parse()?.content ?? ""
                 call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
                     <title>${decodeURI(req.url)}</title>
                     </head><body id="readerview">${out}</body></html>`)
