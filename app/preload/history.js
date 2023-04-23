@@ -115,7 +115,10 @@ const receiveHistory = history => {
     if (scrollPosition) {
         window.scrollTo(0, scrollPosition)
     } else if (window.location.hash !== "") {
-        document.querySelector(`a[href='${window.location.hash}']`).click()
+        const el = document.querySelector(`a[href='${window.location.hash}']`)
+        if (el instanceof HTMLAnchorElement) {
+            el.click()
+        }
     }
 }
 
@@ -204,7 +207,7 @@ const clearLinesFromHistory = (startStr, endStr = null) => {
         end = start
     }
     const entries = [...document.querySelectorAll("*[hist-line]")].filter(h => {
-        if (!h || h.style.display === "none") {
+        if (!(h instanceof HTMLElement) || h.style.display === "none") {
             return false
         }
         const num = Number(h.getAttribute("hist-line"))
@@ -219,10 +222,17 @@ const clearLinesFromHistory = (startStr, endStr = null) => {
 }
 
 const filterList = () => {
-    const filter = document.getElementById("filter").value.trim().toLowerCase()
+    const filterEl = document.getElementById("filter")
+    if (!(filterEl instanceof HTMLInputElement)) {
+        return
+    }
+    const filter = filterEl.value.trim().toLowerCase()
     const histElements = [...document.querySelectorAll("*[hist-line]")]
     let anyResult = false
     histElements.forEach(hist => {
+        if (!(hist instanceof HTMLElement)) {
+            return false
+        }
         const url = hist.querySelector("a").getAttribute("href")
         const title = hist.querySelector(".hist-title").textContent
         if (url.toLowerCase().includes(filter)) {

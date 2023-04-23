@@ -111,7 +111,7 @@ const suggestHist = (searchStr, order, count) => {
         })
     }
     if (order === "date") {
-        entries.sort((a, b) => b.last - a.last)
+        entries.sort((a, b) => b.last.getTime() - a.last.getTime())
     }
     if (order === "relevance") {
         entries.sort((a, b) => b.top - a.top)
@@ -125,7 +125,7 @@ const addToHist = url => {
         return
     }
     const saveTypes = getSetting("storenewvisits").split(",")
-    if (pathToSpecialPageName(url).name) {
+    if (pathToSpecialPageName(url)?.name) {
         if (!saveTypes.includes("special")) {
             return
         }
@@ -256,7 +256,7 @@ const visitCount = url => groupedHistory[url]?.visits?.length || 0
 const titleForPage = originalUrl => {
     const {getRedirect} = require("./favicons")
     const url = getRedirect(originalUrl)
-    return groupedHistory[url]?.title || title(pathToSpecialPageName(url).name)
+    return groupedHistory[url]?.title || title(pathToSpecialPageName(url)?.name)
 }
 
 const updateTitle = (rawUrl, rawName) => {

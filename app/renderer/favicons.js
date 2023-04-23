@@ -31,7 +31,7 @@ const {
     pathToSpecialPageName,
     stringToUrl
 } = require("../util")
-const {tabOrPageMatching, getSetting} = require("./common")
+const {getSetting, tabForPage, listPages} = require("./common")
 
 const faviconFolder = joinPath(appData(), "favicons")
 const mappingFile = joinPath(faviconFolder, "mappings")
@@ -49,10 +49,11 @@ const init = () => {
     isParsed = true
     const {ipcRenderer} = require("electron")
     ipcRenderer.on("favicon-downloaded", (_, linkId, currentUrl, favicon) => {
-        const webview = document.querySelector(`#pages [link-id='${linkId}']`)
+        const webview = listPages().find(
+            p => p.getAttribute("link-id") === linkId)
         const filename = urlToPath(favicon)
-        if (webview?.src === currentUrl && isFile(filename)) {
-            setPath(tabOrPageMatching(webview), filename)
+        if (webview?.getAttribute("src") === currentUrl && isFile(filename)) {
+            setPath(tabForPage(webview), filename)
             mappings[currentUrl] = favicon
         }
     })
@@ -104,27 +105,43 @@ const updateMappings = (currentUrl = null) => {
 const urlToPath = url => joinPath(faviconFolder,
     encodeURIComponent(url).replace(/%/g, "_")).slice(0, 256)
 
+/**
+ * Show the loading spinner in place of the favicon
+ *
+ * @param {Electron.WebviewTag} webview
+ */
 const loading = webview => {
-    const tab = tabOrPageMatching(webview)
+    const tab = tabForPage(webview)
     tab.querySelector(".status").style.display = null
-    tab.querySelector(".favicon").style.display = "none"
+    const favicon = tab.querySelector(".favicon")
+    if (!(favicon instanceof HTMLImageElement)) {
+        return
+    }
+    favicon.style.display = "none"
 }
 
 const empty = webview => {
-    const tab = tabOrPageMatching(webview)
+    const tab = tabForPage(webview)
     tab.querySelector(".status").style.display = null
-    tab.querySelector(".favicon").style.display = "none"
+    const favicon = tab.querySelector(".favicon")
+    if (!(favicon instanceof HTMLImageElement)) {
+        return
+    }
+    favicon.style.display = "none"
     if (webview.src.startsWith("devtools://")) {
-        tab.querySelector(".favicon").src = viebIcon
+        favicon.src = viebIcon
     } else {
-        tab.querySelector(".favicon").src = "img/empty.png"
+        favicon.src = "img/empty.png"
     }
 }
 
 const show = webview => {
-    const tab = tabOrPageMatching(webview)
+    const tab = tabForPage(webview)
     tab.querySelector(".status").style.display = "none"
     const favicon = tab.querySelector(".favicon")
+    if (!(favicon instanceof HTMLImageElement)) {
+        return
+    }
     if (favicon.getAttribute("src") === "img/empty.png") {
         favicon.src = forSite(webview.src) ?? favicon.src
     }
@@ -145,17 +162,17 @@ const update = (webview, favicon) => {
         return
     }
     if (viebIcon === favicon) {
-        if (!pathToSpecialPageName(webview.src).name) {
+        if (!pathToSpecialPageName(webview.src)?.name) {
             // Don't allow non-special pages to use the built-in favicon
             return
         }
         if (appConfig().icon) {
-            setPath(tabOrPageMatching(webview), stringToUrl(appConfig().icon))
+            setPath(tabForPage(webview), stringToUrl(appConfig().icon))
             return
         }
     }
     const currentUrl = String(webview.src)
-    const tab = tabOrPageMatching(webview)
+    const tab = tabForPage(webview)
     mappings[currentUrl] = favicon
     updateMappings(currentUrl)
     if (favicon.startsWith("file:/") || favicon.startsWith("data:")) {
@@ -199,7 +216,8 @@ const deleteIfTooOld = loc => {
     if (isNaN(cutoff)) {
         return
     }
-    const days = (new Date() - modifiedAt(loc)) / 1000 / 60 / 60 / 24
+    const days = (new Date().getTime()
+        - modifiedAt(loc).getTime()) / 1000 / 60 / 60 / 24
     if (days > cutoff) {
         deleteFile(loc)
     }
@@ -226,7 +244,7 @@ const forSite = url => {
             return file
         }
     }
-    if (pathToSpecialPageName(url).name) {
+    if (pathToSpecialPageName(url)?.name) {
         return viebIcon
     }
     return ""

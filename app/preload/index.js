@@ -28,7 +28,7 @@ const skipProtocols = ["sourceviewer:", "readerview:", "markdownviewer:"]
 if (specialPage?.name) {
     // Load the special page specific JavaScript
     require(`./${specialPage.name}`)
-} else if (!skipProtocols.find(p => window.location.href.startsWith(p))) {
+} else if (!skipProtocols.some(p => window.location.href.startsWith(p))) {
     // Load the failed page information handler for nonspecial pages
     require("./failedload")
     // Load the local directory browser for nonspecial pages

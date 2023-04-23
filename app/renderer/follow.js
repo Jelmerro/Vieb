@@ -25,7 +25,8 @@ const {
     getSetting,
     setStored,
     getStored,
-    getMouseConf
+    getMouseConf,
+    getUrl
 } = require("./common")
 const {sendToPageOrSubFrame} = require("../util")
 
@@ -399,7 +400,7 @@ const parseAndDisplayLinks = receivedLinks => {
         if (linkInList([link], hoverLink)) {
             borderElement.classList.add("hover")
         }
-        linkElement.setAttribute("link-id", index)
+        linkElement.setAttribute("link-id", `${index}`)
         linkElement.addEventListener("mouseup", onclickListener)
         linkElement.addEventListener("mousemove", () => {
             if (!getMouseConf("follow")) {
@@ -429,6 +430,7 @@ const enterKey = async(code, id, stayInFollowMode) => {
     const charsInLinks = followChars().map(c => c.toLowerCase())
     const {setMode} = require("./modes")
     const fallbackAction = getSetting("followfallbackaction")
+    const url = getUrl()
     if (!code || !charsInLinks.includes(code.toLowerCase())) {
         if (fallbackAction === "exit") {
             return setMode(getStored("modebeforefollow"))
@@ -438,11 +440,11 @@ const enterKey = async(code, id, stayInFollowMode) => {
         }
         if (!alreadyFilteringLinks) {
             alreadyFilteringLinks = true
-            document.getElementById("url").value = ""
+            url.value = ""
         }
         const {typeCharacterIntoNavbar} = require("./input")
         typeCharacterIntoNavbar(id, true)
-        const filterText = document.getElementById("url").value.toLowerCase()
+        const filterText = url.value.toLowerCase()
         const visibleLinks = []
         allLinkKeys.forEach(linkKey => {
             const link = links[linkKey.getAttribute("link-id")]

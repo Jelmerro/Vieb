@@ -83,8 +83,10 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
         }
     }
     const focusEl = [el, el?.parentNode, el?.parentNode?.parentNode]
-        .find(e => e?.click && e?.focus)
-    if (!focusEl) {
+        .find(e => e instanceof HTMLInputElement
+            || e instanceof HTMLTextAreaElement)
+    if (!(focusEl instanceof HTMLInputElement
+        || focusEl instanceof HTMLTextAreaElement)) {
         return
     }
     ipcRenderer.sendToHost("switch-to-insert")
@@ -117,7 +119,7 @@ const getAllFollowLinks = (filter = null) => {
         allEls.filter(el => matchesQuery(el, "a")).forEach(
             el => relevantLinks.push({el, "type": "url"}))
     }
-    if (!filter || filter.find(f => f.startsWith("input"))) {
+    if (!filter || filter.some(f => f.startsWith("input"))) {
         // Input tags such as checkboxes, can be clicked but have no text input
         const inputs = allEls.filter(el => matchesQuery(el, clickInputs))
         inputs.push(...allEls.filter(el => matchesQuery(el, "input")).map(
@@ -147,11 +149,11 @@ const getAllFollowLinks = (filter = null) => {
     }
     if (!filter || filter.includes("onclick")) {
         // Elements with some kind of mouse interaction, grouped by click/other
-        allEls.filter(el => clickEvents.find(
+        allEls.filter(el => clickEvents.some(
             e => el[`on${e}`] || eventListeners[e].has(el))
             || el.getAttribute("jsaction")).forEach(
             el => relevantLinks.push({el, "type": "onclick"}))
-        allEls.filter(el => otherEvents.find(e => el[`on${e}`]
+        allEls.filter(el => otherEvents.some(e => el[`on${e}`]
             || eventListeners[e].has(el)))
             .forEach(el => relevantLinks.push({el, "type": "other"}))
     }
@@ -204,7 +206,12 @@ const getAllFollowLinks = (filter = null) => {
 
 const mainInfoLoop = () => {
     // Listeners for iframes that run on the same host and same process
-    const frames = [...querySelectorAll("iframe")]
+    const frames = [...querySelectorAll("iframe")].flatMap(f => {
+        if (f instanceof HTMLIFrameElement) {
+            return [f]
+        }
+        return []
+    })
     frames.forEach(f => {
         try {
             f.contentDocument.onclick = e => clickListener(e, f)
@@ -299,7 +306,7 @@ const parseElement = (element, type, customBounds = false) => {
     }
     // The element should be clickable and is returned in a parsed format
     let href = String(element.href || "")
-    let typeOverride = false
+    let typeOverride = null
     if (type === "url") {
         // Set links to the current page as type 'other'
         if (!element.href) {
@@ -387,7 +394,7 @@ const mouseDownListener = (e, frame = null) => {
         e.preventDefault()
         return
     }
-    if (e.composedPath().find(el => matchesQuery(el, "select, option"))) {
+    if (e.composedPath().some(el => matchesQuery(el, "select, option"))) {
         clickListener(e, frame)
     }
     const paddingInfo = findFrameInfo(frame)
@@ -415,7 +422,7 @@ const mouseUpListener = (e, frame = null) => {
                 startX,
                 startY,
                 text,
-                "toinsert": !!e.composedPath().find(
+                "toinsert": e.composedPath().some(
                     el => matchesQuery(el, textlikeInputs))
             })
         }
@@ -427,7 +434,8 @@ window.addEventListener("mouseup", mouseUpListener,
 ipcRenderer.on("replace-input-field", (_, value, position) => {
     const input = activeElement()
     if (matchesQuery(input, textlikeInputs)) {
-        if (typeof input.value === "string" && input.setSelectionRange) {
+        if (input instanceof HTMLInputElement
+            || input instanceof HTMLTextAreaElement) {
             input.value = value
             if (position < input.value.length) {
                 input.setSelectionRange(position, position)
@@ -527,7 +535,11 @@ ipcRenderer.on("contextmenu-data", (_, request) => {
     const {x, y} = request
     const els = [findElementAtPosition(x, y)]
     while (els[0].parentNode && els[0].parentNode !== els[1]?.parentNode) {
-        els.unshift(els[0].parentNode)
+        if (els[0].parentNode instanceof Element) {
+            els.unshift(els[0].parentNode)
+        } else {
+            break
+        }
     }
     els.reverse()
     contextListener({
@@ -542,8 +554,11 @@ ipcRenderer.on("contextmenu", () => {
     }
     let {x} = parsed
     if (getComputedStyle(els[0]).font.includes("monospace")) {
-        x = parsed.x + propPixels(els[0], "fontSize")
-            * els[0].selectionStart * 0.60191 - els[0].scrollLeft
+        if (els[0] instanceof HTMLInputElement
+            || els[0] instanceof HTMLTextAreaElement) {
+            x = parsed.x + propPixels(els[0], "fontSize")
+                * els[0].selectionStart * 0.60191 - els[0].scrollLeft
+        }
     }
     let y = parsed.y + parsed.height
     if (x > window.innerWidth || isNaN(x) || x === 0) {
@@ -553,7 +568,11 @@ ipcRenderer.on("contextmenu", () => {
         ({y} = parsed)
     }
     while (els[0].parentNode && els[0].parentNode !== els[1]?.parentNode) {
-        els.unshift(els[0].parentNode)
+        if (els[0].parentNode instanceof Element) {
+            els.unshift(els[0].parentNode)
+        } else {
+            break
+        }
     }
     els.reverse()
     contextListener({
@@ -567,10 +586,11 @@ ipcRenderer.on("keyboard-type-event", (_, keyOptions) => {
     // See https://github.com/electron/electron/issues/20333
     const input = activeElement()
     if (matchesQuery(input, textlikeInputs) && keyOptions.key.length === 1) {
-        if (typeof input.value === "string" && input.setSelectionRange) {
+        if (input instanceof HTMLInputElement
+            || input instanceof HTMLTextAreaElement) {
             const cur = Number(input.selectionStart)
-            input.value = `${input.value.substr(0, cur)}${keyOptions.key}${
-                input.value.substr(input.selectionEnd)}`
+            input.value = `${input.value.substring(0, cur)}${keyOptions.key}${
+                input.value.substring(input.selectionEnd)}`
             input.setSelectionRange(cur + 1, cur + 1)
         }
     }
@@ -599,13 +619,19 @@ ipcRenderer.on("custom-mouse-event", (_, eventType, mouseOptions) => {
     const el = findElementAtPosition(mouseOptions.x, mouseOptions.y)
     if (eventType === "click") {
         if (mouseOptions.button === "left") {
-            el.click()
+            if (el instanceof HTMLElement) {
+                el.click()
+            }
             return
         }
         const {x, y} = mouseOptions
         const els = [findElementAtPosition(x, y)]
         while (els[0].parentNode && els[0].parentNode !== els[1]?.parentNode) {
-            els.unshift(els[0].parentNode)
+            if (els[0].parentNode instanceof Element) {
+                els.unshift(els[0].parentNode)
+            } else {
+                break
+            }
         }
         els.reverse()
         contextListener({
@@ -624,7 +650,11 @@ ipcRenderer.on("custom-mouse-event", (_, eventType, mouseOptions) => {
                 sc.scrollLeft -= mouseOptions.deltaX
                 break
             }
-            sc = sc.parentNode
+            if (sc.parentNode instanceof Element) {
+                sc = sc.parentNode
+            } else {
+                break
+            }
         }
     }
     const event = new MouseEvent(eventType, {

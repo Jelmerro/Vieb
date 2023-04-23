@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2021 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 */
 "use strict"
 
-const {currentMode, getSetting} = require("./common")
+const {currentMode, getSetting, getUrl} = require("./common")
 const {joinPath, appData, appendFile, readFile} = require("../util")
 
 const commandsFile = joinPath(appData(), "commandhist")
@@ -43,7 +43,7 @@ const updateNavWithHistory = () => {
     if (previousIndex !== -1) {
         commandText = previousCommands[previousIndex]
     }
-    document.getElementById("url").value = commandText
+    getUrl().value = commandText
     const {suggestCommand} = require("./suggest")
     suggestCommand(commandText)
 }
@@ -53,7 +53,7 @@ const previous = () => {
         return
     }
     if (previousIndex === -1) {
-        originalCommand = document.getElementById("url").value
+        originalCommand = getUrl().value
         previousIndex = previousCommands.length - 1
     } else if (previousIndex > 0) {
         previousIndex -= 1
@@ -78,6 +78,12 @@ const resetPosition = () => {
     originalCommand = ""
 }
 
+/**
+ * Push a new command to the list, optionally only if done by the user
+ *
+ * @param {string} command
+ * @param {boolean} user
+ */
 const push = (command, user = false) => {
     const setting = getSetting("commandhist")
     if (!storeCommands || setting === "none") {

@@ -21,10 +21,17 @@ const {ipcRenderer} = require("electron")
 const {joinPath} = require("../util")
 
 const filterList = () => {
-    const filter = document.getElementById("filter").value.trim().toLowerCase()
+    const filterEl = document.getElementById("filter")
+    let filter = ""
+    if (filterEl instanceof HTMLInputElement) {
+        filter = filterEl.value.trim().toLowerCase()
+    }
     const cookieElements = [...document.getElementsByClassName("cookie")]
     let anyResult = false
     cookieElements.forEach(cookie => {
+        if (!(cookie instanceof HTMLElement)) {
+            return
+        }
         if (cookie.getAttribute("cookie-url").includes(filter)) {
             cookie.style.display = ""
             anyResult = true
@@ -63,6 +70,9 @@ const removeAllCookies = () => {
     const cookieElements = [...document.getElementsByClassName("cookie")]
     document.getElementById("remove-all").style.display = "none"
     cookieElements.forEach(async cookie => {
+        if (!(cookie instanceof HTMLElement)) {
+            return
+        }
         if (cookie.style.display !== "none") {
             await ipcRenderer.invoke("remove-cookie",
                 cookie.getAttribute("cookie-url"),

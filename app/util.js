@@ -45,13 +45,14 @@ let homeDirPath = ""
  *   autoplay: string,
  *   downloads: string,
  *   icon?: string,
- *   isLite: boolean,
+ *   islite: boolean,
  *   name: string,
  *   order: "none"|"user-only"|"datafolder-only"
  *   |"user-first"|"datafolder-first",
  *   override: string,
  *   files: string[],
  *   config: string
+ *   version: string
  * }|null} */
 let configSettings = null
 /** @type {{element: Element|ShadowRoot, x: Number, y: Number}[]} */
@@ -272,7 +273,7 @@ const urlToString = url => {
  * Capitalize a string to only have one capital letter at the start
  *
  * @param {string} s
-*/
+ */
 const title = s => {
     if (!s || !s[0]) {
         return ""
@@ -287,7 +288,7 @@ const downloadPath = () => expandPath(getSetting("downloadpath")
  * Template a user agent with value with version and browser info
  *
  * @param {string} agent
-*/
+ */
 const userAgentTemplated = agent => {
     if (!agent) {
         return ""
@@ -444,10 +445,13 @@ const propPixels = (element, prop) => {
 /**
  * Call an element matches in a safe wrapper as not all elements work
  *
- * @param {Element|null} el
+ * @param {Element|EventTarget|null} el
  * @param {string} query
  */
 const matchesQuery = (el, query) => {
+    if (!(el instanceof Element)) {
+        return
+    }
     try {
         return el?.matches(query) ?? false
     } catch {
@@ -598,7 +602,7 @@ const activeElement = () => {
         return document.activeElement.shadowRoot.activeElement
     }
     if (document.activeElement !== document.body) {
-        if (!matchesQuery(document.activeElement, "iframe")) {
+        if (!(document.activeElement instanceof HTMLIFrameElement)) {
             return document.activeElement
         }
     }
@@ -614,7 +618,7 @@ const activeElement = () => {
             return doc.activeElement.shadowRoot.activeElement
         }
         if (doc.body !== doc.activeElement) {
-            if (!matchesQuery(doc.activeElement, "iframe")) {
+            if (!(document.activeElement instanceof HTMLIFrameElement)) {
                 return doc.activeElement
             }
         }
@@ -1143,7 +1147,7 @@ const readJSON = loc => {
  * Write data to a file, optionally with success and error notifications
  *
  * @param {string} loc
- * @param {string} data
+ * @param {string|Buffer} data
  * @param {string|null} err
  * @param {string|null} success
  */
@@ -1277,7 +1281,7 @@ const listDir = (loc, absolute = false, dirsOnly = false) => {
  *
  * @param {string} file
  * @param {() => void} call
-*/
+ */
 const watchFile = (file, call) => fs.watchFile(file, {"interval": 500}, call)
 
 /**
@@ -1289,7 +1293,7 @@ const modifiedAt = loc => {
     try {
         return fs.statSync(loc).mtime
     } catch {
-        return 0
+        return new Date("1970-01-01")
     }
 }
 

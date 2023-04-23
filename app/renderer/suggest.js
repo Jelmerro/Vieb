@@ -36,21 +36,23 @@ const {
 } = require("../util")
 const {
     listTabs,
-    tabOrPageMatching,
     currentMode,
     getSetting,
     getMouseConf,
-    updateScreenshotHighlight
+    updateScreenshotHighlight,
+    getUrl,
+    pageForTab
 } = require("./common")
 
 let suggestions = []
 let originalValue = ""
 
 const setUrlValue = url => {
+    const urlInput = getUrl()
     if (currentMode() === "explore") {
-        document.getElementById("url").value = urlToString(url)
+        urlInput.value = urlToString(url)
     } else {
-        document.getElementById("url").value = url
+        urlInput.value = url
     }
     updateColors()
 }
@@ -59,8 +61,8 @@ const topOfSection = () => {
     const list = [...document.querySelectorAll("#suggest-dropdown div")]
     const selected = list.find(s => s.classList.contains("selected"))
     if (selected.previousSibling) {
-        return selected.previousSibling.lastChild.className
-            !== selected.lastChild.className
+        return selected.previousElementSibling.lastElementChild.className
+            !== selected.lastElementChild.className
     }
     return true
 }
@@ -79,8 +81,9 @@ const previous = () => {
     }
     const selected = list.find(s => s.classList.contains("selected"))
     let id = list.indexOf(selected)
+    const url = getUrl()
     if (!selected) {
-        originalValue = document.getElementById("url").value
+        originalValue = url.value
         id = list.length
     }
     list.forEach(l => {
@@ -95,7 +98,7 @@ const previous = () => {
     setUrlValue(suggestions[id - 1])
     const index = suggestions[id - 1].indexOf("%s")
     if (index !== -1) {
-        document.getElementById("url").setSelectionRange(index, index + 2)
+        url.setSelectionRange(index, index + 2)
     }
 }
 
@@ -113,8 +116,9 @@ const next = () => {
     }
     const selected = list.find(s => s.classList.contains("selected"))
     let id = list.indexOf(selected)
+    const url = getUrl()
     if (!selected) {
-        originalValue = document.getElementById("url").value
+        originalValue = url.value
         id = -1
     }
     list.forEach(l => {
@@ -129,7 +133,7 @@ const next = () => {
     setUrlValue(suggestions[id + 1])
     const index = suggestions[id + 1].indexOf("%s")
     if (index !== -1) {
-        document.getElementById("url").setSelectionRange(index, index + 2)
+        url.setSelectionRange(index, index + 2)
     }
 }
 
@@ -180,7 +184,7 @@ const suggestFiles = loc => {
 }
 
 const updateColors = searchStr => {
-    const urlElement = document.getElementById("url")
+    const urlElement = getUrl()
     const search = searchStr || urlElement.value
     if (currentMode() === "explore") {
         const local = expandPath(search)
@@ -348,6 +352,7 @@ const suggestCommand = searchStr => {
     } = require("./command")
     commandList().filter(
         c => c.startsWith(search)).forEach(c => addCommand(c))
+    const {validOptions} = require("./settings")
     // Command: screenshot
     if ("screenshot".startsWith(command)
         && !range && !confirm && args.length < 3) {
@@ -433,9 +438,9 @@ const suggestCommand = searchStr => {
                 const index = tabs.indexOf(tab)
                 return {
                     "command": `${index}write`,
-                    "icon": tabOrPageMatching(tab).src,
+                    "icon": pageForTab(tab).src,
                     "title": tab.querySelector("span").textContent,
-                    "url": tabOrPageMatching(tab).src
+                    "url": pageForTab(tab).src
                 }
             }).filter(t => t).forEach(
                 t => addCommand(t.command, t.title, t.url, t.icon, true))
@@ -448,7 +453,6 @@ const suggestCommand = searchStr => {
     // Command: devtools
     if ("devtools".startsWith(command)
     && !confirm && args.length < 2 && !range) {
-        const {validOptions} = require("./settings")
         validOptions.devtoolsposition.forEach(option => {
             if (!args[0] || option.startsWith(args[0])) {
                 addCommand(`devtools ${option}`)
@@ -548,10 +552,10 @@ const suggestCommand = searchStr => {
             ...commandList(false).map(c => `:${c}`),
             ...Object.values(settingsWithDefaults()).map(s => s.name),
             ...listSupportedActions(),
-            ...listMappingsAsCommandList(false, true).split("\n")
+            ...listMappingsAsCommandList(null, true).split("\n")
                 .map(m => m.split(" ")[1])
         ]
-        listMappingsAsCommandList(false, true).split("\n").forEach(map => {
+        listMappingsAsCommandList(null, true).split("\n").forEach(map => {
             const mode = map.split(" ")[0].replace(/(nore)?map$/g, "")
             const [, keys] = map.split(" ")
             if (mode) {
@@ -577,7 +581,6 @@ const suggestCommand = searchStr => {
     // Command: translatepage
     if ("translatepage".startsWith(command)
     && !confirm && args.length < 2 && !range) {
-        const {validOptions} = require("./settings")
         validOptions.translatelang.forEach(option => {
             if (!args[0] || option.startsWith(args[0])) {
                 addCommand(`translatepage ${option}`)
@@ -629,9 +632,9 @@ const suggestCommand = searchStr => {
                     const index = tabs.indexOf(tab)
                     return {
                         "command": `${index}${bufferCommand}${confirmChar}${a}`,
-                        "icon": tabOrPageMatching(tab).src,
+                        "icon": pageForTab(tab).src,
                         "title": tab.querySelector("span").textContent,
-                        "url": tabOrPageMatching(tab).src
+                        "url": pageForTab(tab).src
                     }
                 }).filter(t => t).forEach(
                     t => addCommand(t.command, t.title, t.url, t.icon, true))
@@ -648,9 +651,9 @@ const suggestCommand = searchStr => {
                 const index = tabs.indexOf(b.tab)
                 return {
                     "command": `${bufferCommand}${confirmChar} ${index}`,
-                    "icon": b.url ?? tabOrPageMatching(b.tab).src,
+                    "icon": b.url ?? pageForTab(b.tab).src,
                     "title": b.title ?? b.tab.querySelector("span").textContent,
-                    "url": b.url ?? tabOrPageMatching(b.tab).src
+                    "url": b.url ?? pageForTab(b.tab).src
                 }
             }).forEach(t => addCommand(t.command, t.title, t.url, t.icon))
         }

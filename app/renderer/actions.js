@@ -56,7 +56,12 @@ let storedSearch = ""
 let searchDirection = "forward"
 let potentialNewSearchDirection = "forward"
 
-const emptySearch = args => {
+/**
+ * Empty the current search by scope
+ *
+ * @param {{scope?: "both"|"local"|"global"}|null} args
+ */
+const emptySearch = (args = null) => {
     const scope = args?.scope || getSetting("searchemptyscope")
     let pages = []
     if (["both", "local"].includes(scope)) {
@@ -105,7 +110,12 @@ const nextSearchMatch = () => {
     }
 }
 
-const toSearchMode = args => {
+/**
+ * Switch to search mode
+ *
+ * @param {{hadModifier?: boolean}|null} args
+ */
+const toSearchMode = (args = null) => {
     const {setMode} = require("./modes")
     setMode("search")
     let search = getStored("globalsearch")
@@ -155,6 +165,11 @@ const previousSearchMatch = () => {
     }
 }
 
+/**
+ * Check if the search should be case sensitive or not
+ *
+ * @param {string} search
+ */
 const matchCase = search => {
     if (getSetting("smartcase")) {
         return search !== search.toLowerCase()
@@ -164,11 +179,16 @@ const matchCase = search => {
 
 const resetIncrementalSearch = () => {
     if (getSetting("searchscope") === "inclocal" && !lastSearchFull) {
-        emptySearch("local")
+        emptySearch({"scope": "local"})
     }
 }
 
-const incrementalSearch = args => {
+/**
+ * Search for the string incrementally while typing if enabled, by scope
+ *
+ * @param {{value?: string}|null} args
+ */
+const incrementalSearch = (args = null) => {
     let scope = getSetting("searchscope")
     if (scope === "inclocal") {
         lastSearchFull = Boolean(args?.value)
@@ -222,6 +242,11 @@ const increasePageNumber = () => movePageNumber(1)
 
 const decreasePageNumber = () => movePageNumber(-1)
 
+/**
+ * Move the page number based on a movement number
+ *
+ * @param {Number} movement
+ */
 const movePageNumber = movement => modifyUrl("(\\?|&)p(age)?=(\\d+)",
     (_, p1, p2, p3) => {
         if (Number(p3) + movement < 1) {
@@ -234,6 +259,11 @@ const increasePortNumber = () => movePortNumber(1)
 
 const decreasePortNumber = () => movePortNumber(-1)
 
+/**
+ * Move the port number based on a movement number
+ *
+ * @param {Number} movement
+ */
 const movePortNumber = movement => {
     const url = currentPage()?.src || ""
     const loc = document.createElement("a")
@@ -267,6 +297,11 @@ const increaseFirstNumber = () => moveFirstNumber(1)
 
 const decreaseFirstNumber = () => moveFirstNumber(-1)
 
+/**
+ * Move the first number based on a movement number
+ *
+ * @param {Number} movement
+ */
 const moveFirstNumber = movement => modifyUrl("\\d+", (_, match) => {
     if (Number(match) + movement < 1) {
         return "1"
@@ -278,6 +313,12 @@ const increaseLastNumber = () => moveLastNumber(1)
 
 const decreaseLastNumber = () => moveLastNumber(-1)
 
+
+/**
+ * Move the last number based on a movement number
+ *
+ * @param {Number} movement
+ */
 const moveLastNumber = movement => modifyUrl("(\\d+)(\\D*$)", (_, p1, p2) => {
     if (Number(p1) + movement < 1) {
         return `1${p2}`
@@ -299,6 +340,12 @@ const toRootSubdomain = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/?\\/?)("
     + "www\\.)?([a-zA-Z\\d]*?\\.)((?:[a-zA-Z\\d]*?\\.)*)([a-zA-Z\\d]*?\\.[a-zA-"
     + "Z]+.*$)", (_, p, w, __, ___, m) => p + (w || "") + (m || ""))
 
+/**
+ * Modify a url based on a source pattern and a replacement function
+ *
+ * @param {string} source
+ * @param {(...args: string[]) => string} replacement
+ */
 const modifyUrl = (source, replacement) => {
     const url = currentPage()?.src || ""
     const next = url.replace(RegExp(source), replacement)
@@ -466,7 +513,12 @@ const scrollPageDown = () => currentPage()?.send("action", "scrollPageDown")
 const scrollPageUpHalf = () => currentPage()?.send(
     "action", "scrollPageUpHalf")
 
-const refreshTab = args => {
+/**
+ * Refresh the current page or optionally a custom page
+ *
+ * @param {{customPage?: Electron.WebviewTag}|null} args
+ */
+const refreshTab = (args = null) => {
     const page = args?.customPage || currentPage()
     if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
         const {rerollUserAgent, resetTabInfo} = require("./tabs")
@@ -511,7 +563,12 @@ const startFollowCurrentTab = () => {
     startFollow("current")
 }
 
-const backInHistory = args => {
+/**
+ * Go back in history for the current page or a custom one
+ *
+ * @param {{customPage?: Electron.WebviewTag}|null} args
+ */
+const backInHistory = (args = null) => {
     const page = args?.customPage || currentPage()
     if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
         if (page?.canGoBack()) {
@@ -524,7 +581,13 @@ const backInHistory = args => {
     }
 }
 
-const forwardInHistory = args => {
+
+/**
+ * Go forward in history for the current page or a custom one
+ *
+ * @param {{customPage?: Electron.WebviewTag}|null} args
+ */
+const forwardInHistory = (args = null) => {
     const page = args?.customPage || currentPage()
     if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
         if (page?.canGoForward()) {
@@ -592,7 +655,12 @@ const moveTabStart = () => {
 
 const zoomReset = () => currentPage()?.setZoomLevel(0)
 
-const zoomOut = args => {
+/**
+ * Zoom the current page out or do it for a custom page
+ *
+ * @param {{customPage?: Electron.WebviewTag}|null} args
+ */
+const zoomOut = (args = null) => {
     const page = args?.customPage || currentPage()
     let level = page?.getZoomLevel() - 1
     if (level < -7) {
@@ -601,7 +669,12 @@ const zoomOut = args => {
     page?.setZoomLevel(level)
 }
 
-const zoomIn = args => {
+/**
+ * Zoom the current page in or do it for a custom page
+ *
+ * @param {{customPage?: Electron.WebviewTag}|null} args
+ */
+const zoomIn = (args = null) => {
     const page = args?.customPage || currentPage()
     let level = page?.getZoomLevel() + 1
     if (level > 7) {
@@ -894,7 +967,12 @@ const openFromClipboard = () => {
     }
 }
 
-const storeScrollPos = async args => {
+/**
+ * Store a scroll position based on key
+ *
+ * @param {{key?: string, path?: string, pixels?: Number}|null} args
+ */
+const storeScrollPos = async(args = null) => {
     const key = args?.key
     if (!key) {
         return
@@ -939,7 +1017,12 @@ const storeScrollPos = async args => {
     writeJSON(joinPath(appData(), "quickmarks"), qm)
 }
 
-const restoreScrollPos = args => {
+/**
+ * Restore a stored scroll position based on key
+ *
+ * @param {{key?: string, path?: string}|null} args
+ */
+const restoreScrollPos = (args = null) => {
     const key = args?.key
     if (!key) {
         return
@@ -966,7 +1049,12 @@ const restoreScrollPos = args => {
     }
 }
 
-const makeMark = args => {
+/**
+ * Make a new mark based on a key
+ *
+ * @param {{key?: string, url?: string}|null} args
+ */
+const makeMark = (args = null) => {
     const key = args?.key
     if (!key) {
         return
@@ -979,7 +1067,12 @@ const makeMark = args => {
     writeJSON(joinPath(appData(), "quickmarks"), qm)
 }
 
-const restoreMark = args => {
+/**
+ * Restore a stored mark by key to a position
+ *
+ * @param {{key?: string, position?: string}|null} args
+ */
+const restoreMark = (args = null) => {
     const key = args?.key
     if (!key) {
         return
@@ -995,7 +1088,12 @@ const restoreMark = args => {
     commonAction("link", position, {"link": qm?.marks?.[key]})
 }
 
-const runRecording = args => {
+/**
+ * Run a stored macro recording by key
+ *
+ * @param {{key?: string}|null} args
+ */
+const runRecording = (args = null) => {
     const key = args?.key
     if (!key) {
         return
@@ -1009,7 +1107,11 @@ const runRecording = args => {
     }
 }
 
-const startRecording = args => {
+/** Start a macro recording by key
+ *
+ * @param {{key?: string}|null} args
+ */
+const startRecording = (args = null) => {
     const key = args?.key
     if (!key) {
         return
@@ -1035,10 +1137,10 @@ const reorderFollowLinks = () => {
 }
 
 const menuOpen = () => {
+    const {viebMenu} = require("./contextmenu")
     if (currentMode() === "normal") {
         const tab = currentTab()
         const bounds = tab.getBoundingClientRect()
-        const {viebMenu} = require("./contextmenu")
         viebMenu({
             "path": [tab, document.getElementById("tabs")],
             "x": bounds.x,
@@ -1067,7 +1169,6 @@ const menuOpen = () => {
             const url = getUrl()
             bounds = url.getBoundingClientRect()
             const charWidth = getSetting("guifontsize") * 0.60191
-            const {viebMenu} = require("./contextmenu")
             viebMenu({
                 "path": [url],
                 "x": bounds.x + charWidth * url.selectionStart - url.scrollLeft,
@@ -1123,10 +1224,10 @@ const menuClose = () => {
 const useEnteredData = () => {
     const {setMode} = require("./modes")
     const url = getUrl()
+    const {push} = require("./commandhistory")
     if (currentMode() === "command") {
         const command = url.value.trim()
         setMode("normal")
-        const {push} = require("./commandhistory")
         push(command, true)
         const {execute} = require("./command")
         execute(command)
@@ -1141,7 +1242,6 @@ const useEnteredData = () => {
         setMode("normal")
         if (location) {
             location = searchword(location).url
-            const {push} = require("./explorehistory")
             push(urlToString(location))
             const {navigateTo} = require("./tabs")
             navigateTo(stringToUrl(location))

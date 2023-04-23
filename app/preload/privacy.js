@@ -88,13 +88,13 @@ try {
                     continue
                 }
                 const [match, ...names] = r.split("~")
-                if (names.find(p => p.endsWith("mediadevices"))) {
+                if (names.some(p => p.endsWith("mediadevices"))) {
                     if (url.match(match)) {
                         settingRule = type
                         break
                     }
                 }
-                if (names.find(p => p.endsWith("mediadevicesfull"))) {
+                if (names.some(p => p.endsWith("mediadevicesfull"))) {
                     if (url.match(match) && type === "allow") {
                         settingRule = "allowfull"
                         break
@@ -166,7 +166,7 @@ try {
                     continue
                 }
                 const [match, ...names] = r.split("~")
-                if (names.find(p => p.endsWith("displaycapture"))) {
+                if (names.some(p => p.endsWith("displaycapture"))) {
                     if (window.location.href.match(match)) {
                         settingRule = type
                         break
@@ -198,7 +198,7 @@ try {
                     .replace(/%BG%/g, settings.bg || "#333")
                     .replace(/%SHADE%/g, "#7777")
                 const selectionElem = document.createElement("div")
-                selectionElem.classList = "desktop-capturer-selection"
+                selectionElem.classList.add("desktop-capturer-selection")
                 const appIcon = icon => {
                     if (!icon || icon.isEmpty() || icon.getSize().width < 1) {
                         return ""
@@ -231,7 +231,7 @@ try {
                     .querySelector(".desktop-capturer-selection__close")]
                 closeButtons.forEach(button => {
                     button.addEventListener("click", e => {
-                        if (e.composedPath().find(el => matchesQuery(el,
+                        if (e.composedPath().some(el => matchesQuery(el,
                             ".desktop-capturer-selection__btn"))) {
                             // Also clicked on a display to share, ignore close
                             return
@@ -402,7 +402,7 @@ if (window.navigator.userAgent.includes("Firefox")) {
     Object.defineProperty(window.Navigator.prototype,
         "doNotTrack", {"get": (() => "unspecified").bind(null)})
     Object.defineProperty(window.Navigator.prototype,
-        "oscpu", {"get": (() => String(window.Navigator.platform)).bind(null)})
+        "oscpu", {"get": (() => String(window.navigator.platform)).bind(null)})
     Object.defineProperty(window.Navigator.prototype,
         "productSub", {"get": (() => "20100101").bind(null)})
     Object.defineProperty(window.Navigator.prototype,

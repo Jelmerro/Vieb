@@ -57,8 +57,9 @@ const processHash = () => {
                     .replace(/^action\./, "").replace(/^pointer\./, "")
             })
         }
-        if (match && document.querySelector(`a[href='#${match}']`)) {
-            document.querySelector(`a[href='#${match}']`).click()
+        const matchEl = document.querySelector(`a[href='#${match}']`)
+        if (match && matchEl instanceof HTMLAnchorElement) {
+            matchEl.click()
             return
         }
     }
@@ -91,6 +92,7 @@ const processHash = () => {
 const addTextWithLinksToTypes = (baseEl, text) => {
     const types = ["Boolean", "List", "String", "Interval", "Number", "Enum"]
     text.split(RegExp(`(${types.join("|")})`, "g")).forEach(s => {
+        /** @type {HTMLAnchorElement|Text} */
         let el = document.createElement("a")
         if (types.includes(s)) {
             el.textContent = s
@@ -191,7 +193,8 @@ ipcRenderer.on("settings", (_, settings, mappings, uncountActs, rangeComp) => {
             noMappingsLabel.textContent = "No mappings with this command found"
             mapList.appendChild(noMappingsLabel)
         }
-        const exampleUl = cmdNode.parentNode.nextSibling.nextSibling
+        const exampleUl = cmdNode.parentElement
+            .nextElementSibling.nextElementSibling
         if (exampleUl.tagName.toLowerCase() === "ul") {
             cmdNode.parentNode.parentNode.insertBefore(
                 mapList, exampleUl.nextSibling)
@@ -284,7 +287,7 @@ window.addEventListener("DOMContentLoaded", () => {
             const text = readFile(joinPath(
                 __dirname, `../examples/${example.replace(/\s/g, "")}`))
             link.href = window.URL.createObjectURL(
-                new Blob(text.split(), {"type": "text/plain"}))
+                new Blob([text], {"type": "text/plain"}))
             link.download = `${example}.viebrc`
             link.style.display = "none"
             document.body.appendChild(link)

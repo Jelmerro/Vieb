@@ -34,11 +34,13 @@ const {
     listTabs,
     currentPage,
     currentTab,
-    tabOrPageMatching,
     currentMode,
     getSetting,
     getMouseConf,
-    listPages
+    listPages,
+    tabForPage,
+    getUrl,
+    pageForTab
 } = require("./common")
 
 const init = () => {
@@ -49,7 +51,7 @@ const init = () => {
                     p => p.getWebContentsId?.() === info.webviewId)
                 if (page) {
                     const {switchToTab} = require("./tabs")
-                    switchToTab(tabOrPageMatching(page))
+                    switchToTab(tabForPage(page))
                 }
             }
         }
@@ -76,18 +78,19 @@ const viebMenu = (options, force = false) => {
     } = require("./actions")
     const menuSetting = getSetting("menuvieb")
     const navMenu = menuSetting === "both" || menuSetting === "navbar" || force
-    if (options.path.find(el => matchesQuery(el, "#url")) && navMenu) {
+    if (options.path.some(el => matchesQuery(el, "#url")) && navMenu) {
+        const url = getUrl()
         createMenuItem({
             "action": () => {
                 if (!"sec".includes(currentMode()[0])) {
                     const {setMode} = require("./modes")
                     setMode("explore")
                 }
-                document.getElementById("url").select()
+                url.select()
             },
             "title": "Select all"
         })
-        if (document.getElementById("url").value.trim().length) {
+        if (url.value.trim().length) {
             if ("sec".includes(currentMode()[0])) {
                 createMenuItem({
                     "action": () => useEnteredData(), "title": "Go"
@@ -146,7 +149,7 @@ const viebMenu = (options, force = false) => {
         fixAlignmentNearBorders()
     }
     const tabMenu = menuSetting === "both" || menuSetting === "tabbar" || force
-    if (options.path.find(el => matchesQuery(el, "#tabs")) && tabMenu) {
+    if (options.path.some(el => matchesQuery(el, "#tabs")) && tabMenu) {
         const {addTab, reopenTab, closeTab} = require("./tabs")
         const {execute} = require("./command")
         const tab = options.path.find(el => matchesQuery(el, "#tabs > span"))
@@ -163,7 +166,7 @@ const viebMenu = (options, force = false) => {
             "action": () => execute(`pin ${listTabs().indexOf(tab)}`),
             "title": pinTitle
         })
-        const page = tabOrPageMatching(tab)
+        const page = pageForTab(tab)
         const isSuspended = page.tagName?.toLowerCase() !== "webview"
         if (!tab.classList.contains("visible-tab") || isSuspended) {
             let suspendTitle = "Suspend"
@@ -184,15 +187,13 @@ const viebMenu = (options, force = false) => {
         }
         if (page && !isSuspended && !page.isCrashed()) {
             createMenuItem({
-                "action": () => refreshTab({
-                    "customPage": tabOrPageMatching(tab)
-                }),
+                "action": () => refreshTab({"customPage": pageForTab(tab)}),
                 "title": "Refresh"
             })
             if (!page.src.startsWith("devtools://") && page?.canGoBack()) {
                 createMenuItem({
                     "action": () => backInHistory({
-                        "customPage": tabOrPageMatching(tab)
+                        "customPage": pageForTab(tab)
                     }),
                     "title": "Previous"
                 })
@@ -200,7 +201,7 @@ const viebMenu = (options, force = false) => {
             if (!page.src.startsWith("devtools://") && page?.canGoForward()) {
                 createMenuItem({
                     "action": () => forwardInHistory({
-                        "customPage": tabOrPageMatching(tab)
+                        "customPage": pageForTab(tab)
                     }),
                     "title": "Next"
                 })
@@ -208,7 +209,7 @@ const viebMenu = (options, force = false) => {
         }
         createMenuItem({
             "action": () => clipboard.writeText(urlToString(
-                tabOrPageMatching(tab).src).replace(/ /g, "%20")),
+                pageForTab(tab).src).replace(/ /g, "%20")),
             "title": "Copy url"
         })
         createMenuItem({
@@ -615,13 +616,13 @@ const active = () => !!contextMenu.textContent.trim()
 const top = () => {
     [...contextMenu.querySelectorAll(".menu-item")]
         .forEach(el => el.classList.remove("selected"))
-    contextMenu.firstChild.classList.add("selected")
+    contextMenu.firstElementChild.classList.add("selected")
 }
 
 const topOfSection = () => {
     const selected = contextMenu.querySelector(".selected")
     if (selected.previousSibling) {
-        return matchesQuery(selected.previousSibling, ".menu-group")
+        return matchesQuery(selected.previousElementSibling, ".menu-group")
     }
     return true
 }
@@ -638,7 +639,7 @@ const up = () => {
     const nodes = [...contextMenu.querySelectorAll(".menu-item")]
     if (nodes.indexOf(selected) < 1) {
         nodes.forEach(el => el.classList.remove("selected"))
-        contextMenu.lastChild.classList.add("selected")
+        contextMenu.lastElementChild.classList.add("selected")
     } else if (active()) {
         const newSelected = nodes[nodes.indexOf(selected) - 1]
         nodes.forEach(el => el.classList.remove("selected"))
@@ -651,7 +652,7 @@ const down = () => {
     const nodes = [...contextMenu.querySelectorAll(".menu-item")]
     if ([-1, nodes.length - 1].includes(nodes.indexOf(selected))) {
         nodes.forEach(el => el.classList.remove("selected"))
-        contextMenu.firstChild.classList.add("selected")
+        contextMenu.firstElementChild.classList.add("selected")
     } else if (active()) {
         const newSelected = nodes[nodes.indexOf(selected) + 1]
         nodes.forEach(el => el.classList.remove("selected"))
@@ -669,7 +670,7 @@ const sectionDown = () => {
 const bottom = () => {
     [...contextMenu.querySelectorAll(".menu-item")]
         .forEach(el => el.classList.remove("selected"))
-    contextMenu.lastChild.classList.add("selected")
+    contextMenu.lastElementChild.classList.add("selected")
 }
 
 const select = () => contextMenu.querySelector(".selected")?.click()
@@ -682,8 +683,10 @@ const commonAction = (type, action, options) => {
     if (!relevantData) {
         return
     }
+    const {clipboard} = require("electron")
+    const {addTab} = require("./tabs")
+    const {add} = require("./pagelayout")
     if (action === "copyimage") {
-        const {clipboard} = require("electron")
         clipboard.clear()
         const el = document.createElement("img")
         const canvas = document.createElement("canvas")
@@ -702,10 +705,8 @@ const commonAction = (type, action, options) => {
         const {navigateTo} = require("./tabs")
         navigateTo(stringToUrl(relevantData))
     } else if (action === "newtab") {
-        const {addTab} = require("./tabs")
         addTab({"url": stringToUrl(relevantData)})
     } else if (action === "copy") {
-        const {clipboard} = require("electron")
         let urlData = relevantData
         if (isUrl(relevantData)) {
             if (getSetting("encodeurlcopy") === "spacesonly") {
@@ -722,20 +723,16 @@ const commonAction = (type, action, options) => {
     } else if (action === "download") {
         currentPage().downloadURL(stringToUrl(relevantData))
     } else if (action === "split") {
-        const {addTab} = require("./tabs")
         const currentTabId = currentTab().getAttribute("link-id")
         addTab({
             "container": getSetting("containersplitpage"), "url": relevantData
         })
-        const {add} = require("./pagelayout")
         add(currentTabId, "ver", getSetting("splitbelow"))
     } else if (action === "vsplit") {
-        const {addTab} = require("./tabs")
         const currentTabId = currentTab().getAttribute("link-id")
         addTab({
             "container": getSetting("containersplitpage"), "url": relevantData
         })
-        const {add} = require("./pagelayout")
         add(currentTabId, "hor", getSetting("splitright"))
     } else if (action === "external") {
         const ext = getSetting("externalcommand")
@@ -760,7 +757,8 @@ const commonAction = (type, action, options) => {
                 if (err && reportExit !== "none") {
                     notify(`${err}`, "err")
                 } else if (reportExit === "all") {
-                    notify(stdout || "Command exitted successfully!", "suc")
+                    notify(stdout.toString()
+                        || "Command exitted successfully!", "suc")
                 }
             })
         }

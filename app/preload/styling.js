@@ -105,13 +105,13 @@ const loadThemes = (loadedFully = false) => {
         return
     }
     if (document.head?.innerText === "") {
-        if (!specialPage.name) {
+        if (!specialPage?.name) {
             applyThemeStyling()
         }
         updateScrollbar()
         return
     }
-    if (loadedFully && !specialPage.name) {
+    if (loadedFully && !specialPage?.name) {
         const htmlBG = getComputedStyle(html).background
         const bodyBG = getComputedStyle(document.body).background
         const htmlBGImg = getComputedStyle(html).backgroundImage
@@ -133,7 +133,7 @@ const loadThemes = (loadedFully = false) => {
     }
     let domain = domainName(window.location.href)
     let scope = "page"
-    if (specialPage.name) {
+    if (specialPage?.name) {
         domain = "special"
         scope = "special"
     } else if (window.location.href.startsWith("file://")) {

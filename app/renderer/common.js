@@ -31,7 +31,14 @@ const getUrl = () => {
     return null
 }
 
-const listTabs = () => [...document.querySelectorAll("#tabs > span[link-id]")]
+/**
+ * List all the open tabs
+ */
+const listTabs = () => {
+    /** @ts-ignore @type {HTMLSpanElement[]} */
+    const tabs = [...document.querySelectorAll("#tabs > span[link-id]")]
+    return tabs
+}
 
 const listPages = () => {
     /** @ts-ignore @type {Electron.WebviewTag[]} */
@@ -39,8 +46,18 @@ const listPages = () => {
     return pages
 }
 
-const currentTab = () => document.getElementById("current-tab")
+/**
+ * Get the current tab
+ */
+const currentTab = () => {
+    /** @ts-ignore @type {HTMLSpanElement} */
+    const tab = document.getElementById("current-tab")
+    return tab
+}
 
+/**
+ * Get the current page
+ */
 const currentPage = () => {
     /** @ts-ignore @type {Electron.WebviewTag|null} */
     const page = document.getElementById("current-page")
@@ -50,7 +67,7 @@ const currentPage = () => {
 /**
  * Find a page for a given tab
  *
- * @param {Element} tab
+ * @param {HTMLElement} tab
  */
 const pageForTab = tab => {
     if (listTabs().indexOf(tab) !== -1) {
@@ -122,10 +139,7 @@ const setTopOfPageWithMouse = status => {
 }
 
 const updateScreenshotHighlight = (hide = false) => {
-    const url = document.getElementById("url")
-    if (!(url instanceof HTMLInputElement)) {
-        return
-    }
+    const url = getUrl()
     const dims = url.value.split(" ").find(
         arg => arg?.match(/^\d+,\d+,\d+,\d+$/g))
     const screenCmd = url.value.replace(/^:/g, "").trim().startsWith("screen")

@@ -42,9 +42,9 @@ const {
     listPages,
     currentTab,
     currentPage,
-    tabOrPageMatching,
     updateGuiVisibility,
-    getMouseConf
+    getMouseConf,
+    tabForPage
 } = require("./common")
 
 const mouseFeatures = [
@@ -740,7 +740,7 @@ const checkOther = (setting, value) => {
     if (setting === "modifiers") {
         const {"keyNames": valid} = require("./input")
         for (const name of value.split(",").filter(n => n.trim())) {
-            if (name.length > 1 && !valid.find(key => key.vim.includes(name))) {
+            if (name.length > 1 && !valid.some(key => key.vim.includes(name))) {
                 notify(`Key name '${name}' is not recognized as a valid key`,
                     "warn")
                 return false
@@ -1102,12 +1102,13 @@ const isValidSetting = (setting, value) => {
         return false
     }
     const expectedType = typeof allSettings[setting]
+    /** @type {string|Number|boolean} */
     let parsedValue = String(value)
     if (expectedType === "number" && !isNaN(Number(parsedValue))) {
         parsedValue = Number(value)
     }
     if (expectedType === "boolean") {
-        if (["true", "false"].includes(parsedValue)) {
+        if (["true", "false"].includes(String(parsedValue))) {
             parsedValue = value === "true"
         }
     }
@@ -1154,7 +1155,7 @@ const updateContainerSettings = (full = true) => {
         for (const page of listPages()) {
             const color = allSettings.containercolors.split(",").find(
                 c => page.getAttribute("container").match(c.split("~")[0]))
-            const tab = tabOrPageMatching(page)
+            const tab = tabForPage(page)
             if (tab && color) {
                 [, tab.style.color] = color.split("~")
             } else if (tab) {
@@ -1247,14 +1248,14 @@ const updatePermissionSettings = () => {
 
 const updateHelpPage = () => {
     listPages().forEach(p => {
-        if (pathToSpecialPageName(p.src).name === "help") {
+        if (pathToSpecialPageName(p.src)?.name === "help") {
             const {
                 listMappingsAsCommandList, uncountableActions
             } = require("./input")
             const {rangeCompatibleCommands} = require("./command")
             try {
                 p.send("settings", settingsWithDefaults(),
-                    listMappingsAsCommandList(false, true), uncountableActions,
+                    listMappingsAsCommandList(null, true), uncountableActions,
                     rangeCompatibleCommands)
             } catch {
                 // Page not ready yet or suspended
@@ -1396,6 +1397,7 @@ const reset = setting => {
 
 const set = (setting, value) => {
     if (isValidSetting(setting, value)) {
+        const {applyLayout} = require("./pagelayout")
         if (typeof allSettings[setting] === "boolean") {
             allSettings[setting] = ["true", true].includes(value)
         } else if (typeof allSettings[setting] === "number") {
@@ -1413,7 +1415,7 @@ const set = (setting, value) => {
         }
         if (setting === "mouse") {
             let newval = allSettings.mouse
-            if (!mouseFeatures.find(f => !newval.includes(f))) {
+            if (!mouseFeatures.some(f => !newval.includes(f))) {
                 newval = "all"
             }
             if (newval.split(",").includes("all")) {
@@ -1463,7 +1465,6 @@ const set = (setting, value) => {
             } catch {
                 // No tabs present yet
             }
-            const {applyLayout} = require("./pagelayout")
             applyLayout()
         }
         if (setting === "mouse" || setting === "mousedisabledbehavior") {
@@ -1496,7 +1497,6 @@ const set = (setting, value) => {
                 tabs.classList.add(value)
             }
             currentTab()?.scrollIntoView({"inline": "center"})
-            const {applyLayout} = require("./pagelayout")
             applyLayout()
         }
         if (webviewSettings.includes(setting)) {
@@ -1507,7 +1507,7 @@ const set = (setting, value) => {
                 try {
                     let scope = "page"
                     const specialPage = pathToSpecialPageName(p.src)
-                    if (specialPage.name) {
+                    if (specialPage?.name) {
                         scope = "special"
                     } else if (p.src.startsWith("file://")) {
                         scope = "file"
@@ -1528,7 +1528,7 @@ const set = (setting, value) => {
                 try {
                     let scope = "page"
                     const specialPage = pathToSpecialPageName(p.src)
-                    if (specialPage.name) {
+                    if (specialPage?.name) {
                         scope = "special"
                     } else if (p.src.startsWith("file://")) {
                         scope = "file"
@@ -1563,11 +1563,11 @@ const set = (setting, value) => {
 
 const updateWindowTitle = () => {
     const {name, version} = appConfig()
-    const title = tabOrPageMatching(currentPage())
+    const title = tabForPage(currentPage())
         ?.querySelector("span").textContent || ""
     let url = currentPage()?.src || ""
     const specialPage = pathToSpecialPageName(url)
-    if (specialPage.name) {
+    if (specialPage?.name) {
         url = `${name.toLowerCase()}://${specialPage.name}`
         if (specialPage.section) {
             url += `#${specialPage.section}`
@@ -1737,7 +1737,7 @@ const saveToDisk = full => {
     settingsAsCommands += "\" Viebrc generated by Vieb\n\" vim: ft=vim\n"
     const destFile = appConfig().config
     writeFile(destFile, settingsAsCommands,
-        `Could not write to '${destFile}'`, `Viebrc saved to '${destFile}'`, 4)
+        `Could not write to '${destFile}'`, `Viebrc saved to '${destFile}'`)
 }
 
 const setCustomStyling = css => {
@@ -1751,7 +1751,7 @@ const updateCustomStyling = () => {
     document.body.style.fontSize = `${allSettings.guifontsize}px`
     updateWebviewSettings()
     listPages().forEach(p => {
-        const isSpecialPage = pathToSpecialPageName(p.src).name
+        const isSpecialPage = pathToSpecialPageName(p.src)?.name
         const isLocal = p.src.startsWith("file:/")
         const isErrorPage = p.getAttribute("failed-to-load")
         const isCustomView = p.src.startsWith("sourceviewer:")

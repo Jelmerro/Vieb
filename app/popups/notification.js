@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020-2022 Jelmer van Arnhem
+* Copyright (C) 2020-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ ipcRenderer.on("notification-details", (_, message, fs, customCSS, lvl) => {
     fontsize = fs
     document.body.style.fontSize = `${fontsize}px`
     document.getElementById("custom-styling").textContent = customCSS
-    document.body.style.opacity = 1
+    document.body.style.opacity = "1"
 })
 window.addEventListener("keydown", e => {
     if (e.metaKey || e.altKey) {
@@ -43,34 +43,31 @@ window.addEventListener("keydown", e => {
         }
         return
     }
+    const notification = document.getElementById("notification")
     if (e.key === "G") {
-        document.getElementById("notification").scrollBy(0, 1000000000)
+        notification.scrollBy(0, 1000000000)
         fixScrollHeight()
     }
     if (e.key === "k") {
-        document.getElementById("notification").scrollBy(0, -fontsize)
+        notification.scrollBy(0, -fontsize)
         fixScrollHeight()
     } else if (e.key === "j") {
-        document.getElementById("notification").scrollBy(0, fontsize)
+        notification.scrollBy(0, fontsize)
         fixScrollHeight()
     } else if (e.key === "g") {
-        document.getElementById("notification").scrollBy(0, -1000000000)
+        notification.scrollBy(0, -1000000000)
         fixScrollHeight()
     } else if (e.key === "u") {
-        document.getElementById("notification")
-            .scrollBy(0, -window.innerHeight / 2 + fontsize)
+        notification.scrollBy(0, -window.innerHeight / 2 + fontsize)
         fixScrollHeight()
     } else if (e.key === "d") {
-        document.getElementById("notification")
-            .scrollBy(0, window.innerHeight / 2 - fontsize)
+        notification.scrollBy(0, window.innerHeight / 2 - fontsize)
         fixScrollHeight()
     } else if (e.key === "b") {
-        document.getElementById("notification")
-            .scrollBy(0, -window.innerHeight + fontsize * 2)
+        notification.scrollBy(0, -window.innerHeight + fontsize * 2)
         fixScrollHeight()
     } else if (e.key === "f" || e.key === " ") {
-        document.getElementById("notification")
-            .scrollBy(0, window.innerHeight - fontsize * 2)
+        notification.scrollBy(0, window.innerHeight - fontsize * 2)
         fixScrollHeight()
     } else if (e.key === "Escape" || e.key === "q") {
         ipcRenderer.send("hide-notification-window")

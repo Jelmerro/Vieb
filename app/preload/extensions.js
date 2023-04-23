@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2022 Jelmer van Arnhem
+* Copyright (C) 2022-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@ const loadSponsorblock = () => {
                 blockEl.style.position = "absolute"
                 blockEl.style.backgroundColor = categories.find(ca => ca.split(
                     "~")[0] === skip.category)?.split("~")[1] || "lime"
-                blockEl.style.zIndex = 100000000
+                blockEl.style.zIndex = "100000000"
                 blockEl.style.height = "100%"
                 blockEl.style.minHeight = ".5em"
                 progressEl.appendChild(blockEl)
@@ -84,6 +84,4 @@ const loadSponsorblock = () => {
     }
 }
 
-window.addEventListener("load", () => {
-    loadSponsorblock()
-})
+window.addEventListener("load", loadSponsorblock)

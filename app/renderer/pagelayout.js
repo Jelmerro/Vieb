@@ -18,7 +18,7 @@
 "use strict"
 
 const {
-    listTabs, listPages, currentPage, tabOrPageMatching, getSetting
+    listTabs, listPages, currentPage, getSetting, tabForPage
 } = require("./common")
 
 const {propPixels} = require("../util")
@@ -50,20 +50,28 @@ const switchView = (oldViewOrId, newView) => {
     applyLayout()
 }
 
+/**
+ * Hide a page from view
+ *
+ * @param {Electron.WebviewTag} view
+ */
 const hide = (view, close = false) => {
     removeRedundantContainers()
     if (!document.getElementById("pages").classList.contains("multiple")) {
         return
     }
     const inLayout = layoutDivById(view.getAttribute("link-id"))
-    const parent = inLayout.parentNode
-    const sibling = inLayout.nextSibling
+    const parent = inLayout.parentElement
+    const sibling = inLayout.nextElementSibling
     inLayout.remove()
     ;[...parent.children, parent].forEach(element => {
-        element.style.flexGrow = null
+        if (element instanceof HTMLElement) {
+            element.style.flexGrow = null
+        }
     })
     if (view.id === "current-page") {
-        const visibleTabs = [...document.querySelectorAll("#tabs .visible-tab")]
+        const visibleTabs = listTabs().filter(
+            t => t.classList.contains("visible-tab"))
         let newTab = null
         if (sibling) {
             newTab = visibleTabs.find(t => t.getAttribute("link-id")
@@ -78,14 +86,14 @@ const hide = (view, close = false) => {
                 !== view.getAttribute("link-id"))
         }
         if (close) {
-            tabOrPageMatching(view).remove()
+            tabForPage(view).remove()
             view.closeDevTools()
             view.remove()
         }
         const {switchToTab} = require("./tabs")
         switchToTab(newTab)
     } else if (close) {
-        tabOrPageMatching(view).remove()
+        tabForPage(view).remove()
         view.closeDevTools()
         view.remove()
     }
@@ -101,13 +109,14 @@ const add = (viewOrId, method, leftOrAbove) => {
     if ([...document.querySelectorAll("#pagelayout *[link-id]")].length === 1) {
         document.getElementById("pagelayout").className = method
     }
-    if (inLayout.parentNode.classList.contains(method)) {
+    if (inLayout.parentElement.classList.contains(method)) {
         const singleView = document.createElement("div")
         singleView.setAttribute("link-id", id)
         if (leftOrAbove) {
-            inLayout.parentNode.insertBefore(singleView, inLayout)
+            inLayout.parentElement.insertBefore(singleView, inLayout)
         } else {
-            inLayout.parentNode.insertBefore(singleView, inLayout.nextSibling)
+            inLayout.parentElement.insertBefore(
+                singleView, inLayout.nextSibling)
         }
     } else {
         const verContainer = document.createElement("div")
@@ -125,13 +134,17 @@ const add = (viewOrId, method, leftOrAbove) => {
             singleView.setAttribute("link-id", id)
             verContainer.appendChild(singleView)
         }
-        inLayout.parentNode.insertBefore(verContainer, inLayout)
+        inLayout.parentElement.insertBefore(verContainer, inLayout)
         inLayout.remove()
     }
-    [...layoutDivById(id).parentNode.children, layoutDivById(id).parentNode]
-        .forEach(element => {
+    [
+        ...layoutDivById(id).parentElement.children,
+        layoutDivById(id).parentElement
+    ].forEach(element => {
+        if (element instanceof HTMLElement) {
             element.style.flexGrow = null
-        })
+        }
+    })
     applyLayout()
 }
 
@@ -164,18 +177,18 @@ const exchange = () => {
     }
     const current = layoutDivById(currentPage().getAttribute("link-id"))
     const parent = current.parentNode
-    if ([...parent.children].find(c => c.className)) {
+    if ([...parent.children].some(c => c.className)) {
         return
     }
     let newId = null
     if (parent.lastChild === current) {
-        newId = current.previousSibling.getAttribute("link-id")
-        parent.appendChild(current.previousSibling)
+        newId = current.previousElementSibling.getAttribute("link-id")
+        parent.appendChild(current.previousElementSibling)
     } else {
-        newId = current.nextSibling.getAttribute("link-id")
+        newId = current.nextElementSibling.getAttribute("link-id")
         parent.insertBefore(current, current.nextSibling.nextSibling)
     }
-    const tab = document.querySelector(`#tabs span[link-id='${newId}']`)
+    const tab = listTabs().find(t => t.getAttribute("link-id") === newId)
     const {switchToTab} = require("./tabs")
     switchToTab(tab)
     applyLayout()
@@ -245,7 +258,8 @@ const moveFocus = direction => {
     if (newView) {
         const newId = newView.getAttribute("link-id")
         if (newId && newId !== id) {
-            const tab = document.querySelector(`#tabs span[link-id='${newId}']`)
+            const tab = listTabs().find(
+                t => t.getAttribute("link-id") === newId)
             const {switchToTab} = require("./tabs")
             switchToTab(tab)
         }
@@ -259,8 +273,8 @@ const resize = (orientation, change) => {
     }
     let element = layoutDivById(currentPage().getAttribute("link-id"))
     const base = document.getElementById("pagelayout")
-    while (!element.parentNode.classList.contains(orientation)) {
-        element = element.parentNode
+    while (!element.parentElement.classList.contains(orientation)) {
+        element = element.parentElement
         if (element === base) {
             return
         }
@@ -273,31 +287,40 @@ const resize = (orientation, change) => {
     }
     if (flexGrow < 1) {
         [...element.parentNode.children].forEach(child => {
-            const current = propPixels(child, "flexGrow") || 1
-            child.style.flexGrow = current / flexGrow
+            if (child instanceof HTMLElement) {
+                const current = propPixels(child, "flexGrow") || 1
+                child.style.flexGrow = `${current / flexGrow}`
+            }
         })
         flexGrow = 1
     }
     if (flexGrow > 10) {
         [...element.parentNode.children].forEach(child => {
-            const current = propPixels(child, "flexGrow") || 1
-            child.style.flexGrow = current / (flexGrow / 10)
+            if (child instanceof HTMLElement) {
+                const current = propPixels(child, "flexGrow") || 1
+                child.style.flexGrow = `${current / (flexGrow / 10)}`
+            }
         })
         flexGrow = 10
     }
     [...element.parentNode.children].forEach(child => {
-        const current = propPixels(child, "flexGrow") || 1
-        child.style.flexGrow = Math.min(10, Math.max(1, current))
+        if (child instanceof HTMLElement) {
+            const current = propPixels(child, "flexGrow") || 1
+            child.style.flexGrow = `${Math.min(10, Math.max(1, current))}`
+        }
     })
-    element.style.flexGrow = flexGrow
+    if (element instanceof HTMLElement) {
+        element.style.flexGrow = `${flexGrow}`
+    }
     applyLayout()
 }
 
 const firstSplit = () => {
     const first = document.querySelector("#pagelayout *[link-id]")
     const {switchToTab} = require("./tabs")
-    switchToTab(document.querySelector(`#tabs span[link-id='${
-        first.getAttribute("link-id")}']`))
+    const tab = listTabs().find(
+        t => t.getAttribute("link-id") === first.getAttribute("link-id"))
+    switchToTab(tab)
 }
 
 const previousSplit = () => {
@@ -305,8 +328,9 @@ const previousSplit = () => {
     const current = layoutDivById(currentPage().getAttribute("link-id"))
     const next = views[views.indexOf(current) - 1] || views[views.length - 1]
     const {switchToTab} = require("./tabs")
-    switchToTab(document.querySelector(`#tabs span[link-id='${
-        next.getAttribute("link-id")}']`))
+    const tab = listTabs().find(
+        t => t.getAttribute("link-id") === next.getAttribute("link-id"))
+    switchToTab(tab)
 }
 
 const nextSplit = () => {
@@ -314,16 +338,18 @@ const nextSplit = () => {
     const current = layoutDivById(currentPage().getAttribute("link-id"))
     const next = views[views.indexOf(current) + 1] || views[0]
     const {switchToTab} = require("./tabs")
-    switchToTab(document.querySelector(`#tabs span[link-id='${
-        next.getAttribute("link-id")}']`))
+    const tab = listTabs().find(
+        t => t.getAttribute("link-id") === next.getAttribute("link-id"))
+    switchToTab(tab)
 }
 
 const lastSplit = () => {
     const views = [...document.querySelectorAll("#pagelayout *[link-id]")]
     const last = views[views.length - 1]
     const {switchToTab} = require("./tabs")
-    switchToTab(document.querySelector(`#tabs span[link-id='${
-        last.getAttribute("link-id")}']`))
+    const tab = listTabs().find(
+        t => t.getAttribute("link-id") === last.getAttribute("link-id"))
+    switchToTab(tab)
 }
 
 const only = () => {
@@ -353,7 +379,9 @@ const setLastUsedTab = id => {
 
 const resetResizing = () => {
     [...document.querySelectorAll("#pagelayout *")].forEach(element => {
-        element.style.flexGrow = null
+        if (element instanceof HTMLElement) {
+            element.style.flexGrow = null
+        }
     })
     applyLayout()
 }
@@ -364,7 +392,7 @@ const removeRedundantContainers = () => {
         .forEach(container => {
             if (container.children.length < 2 && container !== base) {
                 const [lonelyView] = container.children
-                if (lonelyView) {
+                if (lonelyView instanceof HTMLElement) {
                     lonelyView.style.flexGrow = null
                     container.parentNode.insertBefore(lonelyView, container)
                 }
@@ -409,13 +437,16 @@ const applyLayout = () => {
             document.getElementById("pagelayout").appendChild(singleView)
         }
     }
+    /** @type {Electron.WebviewTag[]} */
     const visiblePages = []
+    /** @type {HTMLSpanElement[]} */
     const visibleTabs = []
     document.querySelectorAll("#pagelayout *[link-id]").forEach(element => {
         const id = element.getAttribute("link-id")
-        const page = document.querySelector(`#pages .webview[link-id='${id}']`)
-        visibleTabs.push(document.querySelector(`#tabs span[link-id='${id}']`))
+        const page = listPages().find(p => p.getAttribute("link-id") === id)
         visiblePages.push(page)
+        const tab = listTabs().find(t => t.getAttribute("link-id") === id)
+        visibleTabs.push(tab)
         const dimensions = element.getBoundingClientRect()
         page.style.left = `${Math.round(dimensions.x)}px`
         page.style.top = `${Math.round(dimensions.y)}px`

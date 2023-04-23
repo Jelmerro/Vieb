@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2021 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -167,7 +167,7 @@ const addDownload = (download, id) => {
 const updateDownload = (download, element, id) => {
     const progress = element.querySelector("progress")
     // Speed
-    const timeSinceUpdate = (new Date().getTime() - lastUpdate) / 1000
+    const timeSinceUpdate = (new Date().getTime() - lastUpdate.getTime()) / 1000
     const speed = formatSize(
         (download.current - progress.value) / timeSinceUpdate)
     const done = download.state === "completed"

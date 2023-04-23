@@ -123,7 +123,7 @@ const init = () => {
                 if (replaceStartup !== "never") {
                     try {
                         const url = currentPage().src
-                        const specialName = pathToSpecialPageName(url).name
+                        const specialName = pathToSpecialPageName(url)?.name
                         const isNewtab = specialName === "newtab"
                             || url.replace(/\/+$/g, "") === stringToUrl(
                                 getSetting("newtaburl")).replace(/\/+$/g, "")
@@ -270,7 +270,7 @@ const addTab = (options = {}) => {
         sessionName = getSetting("containerstartuppage")
     }
     if (sessionName === "s:external") {
-        const isSpecialPage = pathToSpecialPageName(options.url || "").name
+        const isSpecialPage = pathToSpecialPageName(options.url || "")?.name
         if (isSpecialPage) {
             sessionName = "main"
         } else {
@@ -338,19 +338,20 @@ const addTab = (options = {}) => {
         if (options.customIndex >= listTabs().length) {
             tabs.appendChild(tab)
         } else {
+            /** @type {Element} */
             let nextTab = listTabs()[options.customIndex]
             if (!options.pinned) {
                 while (nextTab && nextTab.classList.contains("pinned")) {
-                    nextTab = nextTab.nextSibling
+                    nextTab = nextTab.nextElementSibling
                 }
             }
             tabs.insertBefore(tab, nextTab)
         }
     } else if (getSetting("tabnexttocurrent") && currentTab()) {
-        let nextTab = currentTab().nextSibling
+        let nextTab = currentTab().nextElementSibling
         if (!options.pinned) {
             while (nextTab && nextTab.classList.contains("pinned")) {
-                nextTab = nextTab.nextSibling
+                nextTab = nextTab.nextElementSibling
             }
         }
         tabs.insertBefore(tab, nextTab)
@@ -417,7 +418,7 @@ const sharedAttributes = [
 /**
  * Suspend a tab
  *
- * @param {Element} tab
+ * @param {HTMLElement} tab
  * @param {boolean} force
  */
 const suspendTab = (tab, force = false) => {
@@ -450,6 +451,11 @@ const suspendTab = (tab, force = false) => {
     })
 }
 
+/**
+ * Unsuspend a tab
+ *
+ * @param {HTMLDivElement} page
+ */
 const unsuspendPage = page => {
     if (page.tagName?.toLowerCase() === "webview") {
         return
@@ -486,7 +492,7 @@ const unsuspendPage = page => {
     } else {
         webview.src = specialPagePath("newtab")
     }
-    const url = page.src || ""
+    const url = page.getAttribute("src") || ""
     webview.addEventListener("dom-ready", () => {
         if (!webview.getAttribute("dom-ready")) {
             if (webview.getAttribute("custom-first-load")) {
@@ -619,6 +625,11 @@ const closeTab = (index = null, force = false) => {
     })
 }
 
+/**
+ * Switch to a different tab by element or index
+ *
+ * @param {HTMLSpanElement|number} tabOrIndex
+ */
 const switchToTab = tabOrIndex => {
     if (document.body.classList.contains("fullscreen")) {
         currentPage().send("action", "exitFullscreen")
@@ -642,6 +653,9 @@ const switchToTab = tabOrIndex => {
             }
         }
         tab = tabs[index]
+    }
+    if (!(tab instanceof HTMLSpanElement)) {
+        return
     }
     const oldPage = currentPage()
     tabs.forEach(t => {
@@ -668,6 +682,12 @@ const switchToTab = tabOrIndex => {
     setLastUsedTab(oldPage?.getAttribute("link-id"))
 }
 
+/**
+ * Update the url in the navbar to reflect the current status
+ *
+ * @param {Electron.WebviewTag} webview
+ * @param {boolean} force
+ */
 const updateUrl = (webview, force = false) => {
     const url = currentPage()?.src
     if (webview !== currentPage() || typeof url === "undefined") {
@@ -688,6 +708,13 @@ const updateUrl = (webview, force = false) => {
     }
 }
 
+/**
+ * Inject custom styling into the page in a CSP compatible way
+ *
+ * @param {Electron.WebviewTag} webview
+ * @param {string} type
+ * @param {string|null} css
+ */
 const injectCustomStyleRequest = async(webview, type, css = null) => {
     const id = webview.getWebContentsId()
     if (!existingInjections[id]) {
@@ -702,6 +729,11 @@ const injectCustomStyleRequest = async(webview, type, css = null) => {
     }
 }
 
+/**
+ * Add all permanent listeners to the new webview
+ *
+ * @param {Electron.WebviewTag} webview
+ */
 const addWebviewListeners = webview => {
     webview.addEventListener("load-commit", e => {
         if (e.isMainFrame) {
@@ -824,7 +856,7 @@ const addWebviewListeners = webview => {
         show(webview)
         updateUrl(webview)
         clearTimeout(timeouts[webview.getAttribute("link-id")])
-        const specialPageName = pathToSpecialPageName(webview.src).name
+        const specialPageName = pathToSpecialPageName(webview.src)?.name
         const isLocal = webview.src.startsWith("file:/")
         const isErrorPage = webview.getAttribute("failed-to-load")
         const isCustomView = webview.src.startsWith("sourceviewer:")
@@ -842,7 +874,7 @@ const addWebviewListeners = webview => {
             const {settingsWithDefaults} = require("./settings")
             const {rangeCompatibleCommands} = require("./command")
             webview.send("settings", settingsWithDefaults(),
-                listMappingsAsCommandList(false, true), uncountableActions,
+                listMappingsAsCommandList(null, true), uncountableActions,
                 rangeCompatibleCommands)
         }
         if (specialPageName === "notifications") {
@@ -906,17 +938,6 @@ const addWebviewListeners = webview => {
         tabForPage(webview).querySelector("span")
             .textContent = urlToString(e.url)
     })
-    webview.addEventListener("new-window", e => {
-        if (e.disposition === "save-to-disk") {
-            currentPage().downloadURL(e.url)
-        } else if (e.disposition === "foreground-tab") {
-            navigateTo(e.url)
-        } else {
-            addTab({
-                "switchTo": getSetting("mousenewtabswitch"), "url": e.url
-            })
-        }
-    })
     webview.addEventListener("enter-html-full-screen", () => {
         if (currentPage() !== webview) {
             switchToTab(tabForPage(webview))
@@ -934,6 +955,7 @@ const addWebviewListeners = webview => {
         applyLayout()
     })
     webview.addEventListener("ipc-message", e => {
+        const {resetScrollbarTimer} = require("./pagelayout")
         if (e.channel === "notify") {
             notify(...e.args)
         }
@@ -964,7 +986,6 @@ const addWebviewListeners = webview => {
                 handleScrollDiffEvent(e.args[0])
             }
             if (e.args[0]) {
-                const {resetScrollbarTimer} = require("./pagelayout")
                 resetScrollbarTimer("scroll")
             }
         }
@@ -980,7 +1001,7 @@ const addWebviewListeners = webview => {
         }
         if (e.channel === "new-tab-info-request") {
             const special = pathToSpecialPageName(webview.src)
-            if (special.name !== "newtab") {
+            if (special?.name !== "newtab") {
                 return
             }
             const {forSite} = require("./favicons")
@@ -1021,7 +1042,6 @@ const addWebviewListeners = webview => {
                 const {moveScreenshotFrame} = require("./input")
                 moveScreenshotFrame(e.args[0] + pageLeft, e.args[1] + pageTop)
             }
-            const {resetScrollbarTimer} = require("./pagelayout")
             resetScrollbarTimer("move")
         }
         if (e.channel === "search-element-location") {
@@ -1046,7 +1066,7 @@ const addWebviewListeners = webview => {
         if (e.url && (correctMode || getMouseConf("pageoutsideinsert"))) {
             const special = pathToSpecialPageName(e.url)
             const appName = appConfig().name.toLowerCase()
-            if (!special.name) {
+            if (!special?.name) {
                 document.getElementById("url-hover")
                     .textContent = urlToString(e.url)
             } else if (special.section) {
@@ -1069,18 +1089,33 @@ const addWebviewListeners = webview => {
     }
 }
 
+/**
+ * Recreate a webview to in case of new container name or crash reload
+ *
+ * @param {Electron.WebviewTag} webview
+ */
 const recreateWebview = webview => {
     const tab = tabForPage(webview)
     suspendTab(tab, true)
     unsuspendPage(pageForTab(tab))
 }
 
+/**
+ * Reset the tab information for a given page
+ *
+ * @param {Electron.WebviewTag} webview
+ */
 const resetTabInfo = webview => {
     webview.removeAttribute("failed-to-load")
     const {empty} = require("./favicons")
     empty(webview)
 }
 
+/**
+ * Pick a new useragent for the page if multiple are configured
+ *
+ * @param {Electron.WebviewTag} webview
+ */
 const rerollUserAgent = webview => {
     const customUA = getSetting("useragent")
     if (customUA) {
@@ -1093,6 +1128,12 @@ const rerollUserAgent = webview => {
     }
 }
 
+/**
+ * Navigate the page to a new location, optionally a custom page
+ *
+ * @param {string} location
+ * @param {Electron.WebviewTag|null} customPage
+ */
 const navigateTo = (location, customPage = null) => {
     try {
         new URL(location)
@@ -1132,7 +1173,7 @@ const moveTabForward = () => {
         return false
     }
     if (currentTab().classList.contains("pinned")) {
-        if (!currentTab().nextSibling.classList.contains("pinned")) {
+        if (!currentTab().nextElementSibling.classList.contains("pinned")) {
             return false
         }
     }
@@ -1147,7 +1188,7 @@ const moveTabBackward = () => {
         return false
     }
     if (!currentTab().classList.contains("pinned")) {
-        if (currentTab().previousSibling.classList.contains("pinned")) {
+        if (currentTab().previousElementSibling.classList.contains("pinned")) {
             return false
         }
     }

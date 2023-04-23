@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -24,8 +24,7 @@ const {
     querySelectorAll,
     findFrameInfo,
     findElementAtPosition,
-    fetchJSON,
-    matchesQuery
+    fetchJSON
 } = require("../util")
 
 const nextPage = newtab => navigateToPage("*[rel=next], .navi-next", newtab)
@@ -35,18 +34,23 @@ const previousPage = newtab => navigateToPage("*[rel=prev], .navi-prev", newtab)
 const navigateToPage = (selector, newtab) => {
     const paginations = querySelectorAll(selector)
     for (const pagination of paginations) {
-        if (pagination?.href) {
+        if (pagination instanceof HTMLAnchorElement && pagination?.href) {
             if (newtab) {
                 ipcRenderer.sendToHost("url", pagination.href)
             } else {
-                window.location = pagination.href
+                window.location.href = pagination.href
             }
             return
         }
     }
 }
 
-const blur = () => activeElement()?.blur?.()
+const blur = () => {
+    const el = activeElement()
+    if (el instanceof HTMLElement) {
+        el.blur()
+    }
+}
 
 const scrollBy = (x, y) => {
     if (window.innerHeight === document.documentElement.scrollHeight) {
@@ -96,7 +100,12 @@ const scrollPageDown = () => scrollBy(0, window.innerHeight - 50)
 
 const scrollPageUpHalf = () => scrollBy(0, -window.innerHeight / 2 + 25)
 
-const focusTopLeftCorner = () => document.elementFromPoint(0, 0).focus()
+const focusTopLeftCorner = () => {
+    const el = document.elementFromPoint(0, 0)
+    if (el instanceof HTMLElement) {
+        el.focus()
+    }
+}
 
 const exitFullscreen = () => document.exitFullscreen()
 
@@ -104,30 +113,28 @@ const writeableInputs = {}
 
 const setInputFieldText = (filename, text) => {
     const el = writeableInputs[filename]
-    if (["input", "textarea"].includes(el.tagName.toLowerCase())) {
+    if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
         el.value = text
-    } else if (el.getAttribute("contenteditable") === "true") {
+    } else if (el?.getAttribute("contenteditable") === "true") {
         el.textContent = text
     }
 }
 
 const writeInputToFile = filename => {
     const el = activeElement()
-    if (el) {
-        if (["input", "textarea"].includes(el.tagName.toLowerCase())) {
-            writeFile(filename, el.value)
-        } else if (el.getAttribute("contenteditable") === "true") {
-            writeFile(filename, el.textContent)
-        }
-        writeableInputs[filename] = el
+    if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+        writeFile(filename, el.value)
+    } else if (el?.getAttribute("contenteditable") === "true") {
+        writeFile(filename, el.textContent)
     }
+    writeableInputs[filename] = el
 }
 
 const print = () => document.execCommand("print")
 
 const toggleControls = (x, y) => {
     const el = findElementAtPosition(x, y)
-    if (matchesQuery(el, "video")) {
+    if (el instanceof HTMLVideoElement) {
         if (["", "controls", "true"].includes(el.getAttribute("controls"))) {
             el.removeAttribute("controls")
         } else {
@@ -138,7 +145,7 @@ const toggleControls = (x, y) => {
 
 const toggleLoop = (x, y) => {
     const el = findElementAtPosition(x, y)
-    if (matchesQuery(el, "audio, video")) {
+    if (el instanceof HTMLAudioElement || el instanceof HTMLVideoElement) {
         if (["", "loop", "true"].includes(el.getAttribute("loop"))) {
             el.removeAttribute("loop")
         } else {
@@ -149,7 +156,7 @@ const toggleLoop = (x, y) => {
 
 const toggleMute = (x, y) => {
     const el = findElementAtPosition(x, y)
-    if (matchesQuery(el, "audio, video")) {
+    if (el instanceof HTMLAudioElement || el instanceof HTMLVideoElement) {
         if (el.volume === 0) {
             el.volume = 1
         } else {
@@ -160,7 +167,7 @@ const toggleMute = (x, y) => {
 
 const togglePause = (x, y) => {
     const el = findElementAtPosition(x, y)
-    if (matchesQuery(el, "audio, video")) {
+    if (el instanceof HTMLAudioElement || el instanceof HTMLVideoElement) {
         if (el.paused) {
             el.play()
         } else {
@@ -171,14 +178,14 @@ const togglePause = (x, y) => {
 
 const volumeDown = (x, y) => {
     const el = findElementAtPosition(x, y)
-    if (matchesQuery(el, "audio, video")) {
+    if (el instanceof HTMLAudioElement || el instanceof HTMLVideoElement) {
         el.volume = Math.max(0, el.volume - 0.1) || 0
     }
 }
 
 const volumeUp = (x, y) => {
     const el = findElementAtPosition(x, y)
-    if (matchesQuery(el, "audio, video")) {
+    if (el instanceof HTMLAudioElement || el instanceof HTMLVideoElement) {
         el.volume = Math.min(1, el.volume + 0.1) || 1
     }
 }
@@ -465,6 +472,6 @@ window.addEventListener("DOMContentLoaded", () => {
             document.head.appendChild(styleElement)
         }
         document.getElementById("custom-styling").textContent = customCSS
-        document.body.style.opacity = 1
+        document.body.style.opacity = "1"
     })
 })

@@ -19,12 +19,7 @@
 
 const {ipcRenderer} = require("electron")
 const {
-    currentPage,
-    currentMode,
-    getSetting,
-    tabOrPageMatching,
-    getMouseConf,
-    listPages
+    currentPage, currentMode, getSetting, getMouseConf, listPages, tabForPage
 } = require("./common")
 const {
     matchesQuery,
@@ -59,7 +54,7 @@ const init = () => {
                     p => p.getWebContentsId?.() === clickInfo.webviewId)
                 if (page) {
                     const {switchToTab} = require("./tabs")
-                    switchToTab(tabOrPageMatching(page))
+                    switchToTab(tabForPage(page))
                 }
             }
         }
@@ -151,8 +146,8 @@ const updateElement = () => {
     Y = Math.max(0, Math.min(Y, bottom - top - getSetting("guifontsize")))
     document.getElementById("pointer").style.left = `${X + left}px`
     document.getElementById("pointer").style.top = `${Y + top}px`
-    currentPage().setAttribute("pointer-x", X)
-    currentPage().setAttribute("pointer-y", Y)
+    currentPage().setAttribute("pointer-x", `${X}`)
+    currentPage().setAttribute("pointer-y", `${Y}`)
     if (currentMode() === "pointer") {
         sendToPageOrSubFrame("send-input-event",
             {"type": "hover", "x": X, "y": Y})
@@ -199,7 +194,7 @@ const moveToMouse = () => {
             if (matchesQuery(el, "webview[link-id]")) {
                 if (el !== currentPage() || currentMode() !== "visual") {
                     const {switchToTab} = require("./tabs")
-                    switchToTab(tabOrPageMatching(el))
+                    switchToTab(tabForPage(el))
                 }
                 const pagePos = pageOffset(currentPage())
                 if (currentMode() === "visual") {

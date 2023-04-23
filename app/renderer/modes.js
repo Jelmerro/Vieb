@@ -22,10 +22,16 @@ const {
     currentMode,
     guiRelatedUpdate,
     getMouseConf,
-    updateScreenshotHighlight
+    updateScreenshotHighlight,
+    getUrl
 } = require("./common")
 
 // Sort order determines the appearance in the mode list
+/** @type {{
+ *   [mode: string]: {
+ *     onLeave?: (newMode: string) => void, onEnter?: () => void
+ *   }
+ * }} */
 /* eslint-disable sort-keys/sort-keys-fix */
 const modes = {
     "normal": {},
@@ -42,7 +48,8 @@ const modes = {
     },
     "command": {
         "onEnter": () => {
-            document.getElementById("url").value = ""
+            const url = getUrl()
+            url.value = ""
             const {resetPosition} = require("./commandhistory")
             resetPosition()
             const {resetScreenshotDrag, resetInputHistory} = require("./input")
@@ -50,12 +57,13 @@ const modes = {
             resetScreenshotDrag()
         },
         "onLeave": () => {
+            const url = getUrl()
             const {emptySuggestions} = require("./suggest")
             emptySuggestions()
             updateScreenshotHighlight(true)
             const {resetScreenshotDrag} = require("./input")
             resetScreenshotDrag()
-            document.getElementById("url").setSelectionRange(0, 0)
+            url.setSelectionRange(0, 0)
             window.getSelection().removeAllRanges()
         }
     },
@@ -65,14 +73,16 @@ const modes = {
             resetInputHistory()
         },
         "onLeave": () => {
+            const url = getUrl()
             const {resetIncrementalSearch} = require("./actions")
             resetIncrementalSearch()
-            document.getElementById("url").setSelectionRange(0, 0)
+            url.setSelectionRange(0, 0)
             window.getSelection().removeAllRanges()
         }
     },
     "explore": {
         "onEnter": () => {
+            const url = getUrl()
             const {updateUrl} = require("./tabs")
             updateUrl(currentPage(), true)
             const {resetPosition} = require("./explorehistory")
@@ -80,14 +90,15 @@ const modes = {
             const {resetInputHistory, requestSuggestUpdate} = require("./input")
             resetInputHistory()
             requestSuggestUpdate()
-            if (!document.getSelection().toString()) {
-                document.getElementById("url").select()
+            if (!document.getSelection().toString() && url) {
+                url.select()
             }
         },
         "onLeave": () => {
+            const url = getUrl()
             const {emptySuggestions} = require("./suggest")
             emptySuggestions()
-            document.getElementById("url").setSelectionRange(0, 0)
+            url.setSelectionRange(0, 0)
             window.getSelection().removeAllRanges()
         }
     },
@@ -167,7 +178,7 @@ const setMode = m => {
         modes[currentMode()].onLeave(mode)
     }
     if (modes[mode].onEnter) {
-        modes[mode].onEnter(currentMode())
+        modes[mode].onEnter()
     }
     document.getElementById("mode").textContent = mode
     document.body.setAttribute("current-mode", mode)

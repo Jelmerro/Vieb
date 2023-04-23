@@ -654,7 +654,7 @@ let inputHistoryList = [{"index": 0, "value": ""}]
 let inputHistoryIndex = 0
 /** @type {string|null} */
 let lastActionInMapping = null
-/** @type {string|null} */
+/** @type {{mapStr: string, recursive: boolean}}|null} */
 let lastExecutedMapstring = null
 /** @type {false|"position"|"size"} */
 let draggingScreenshotFrame = false
@@ -693,7 +693,7 @@ const init = () => {
             e.preventDefault()
         }
         const selector = "#screenshot-highlight"
-        if (e.composedPath().find(n => matchesQuery(n, selector))) {
+        if (e.composedPath().some(n => matchesQuery(n, selector))) {
             if (getMouseConf("screenshotframe")) {
                 if (e.button === 0) {
                     draggingScreenshotFrame = "position"
@@ -724,7 +724,7 @@ const init = () => {
         ACTIONS.setFocusCorrectly()
     })
     window.addEventListener("wheel", ev => {
-        if (ev.composedPath().find(e => matchesQuery(e, "#tabs"))) {
+        if (ev.composedPath().some(e => matchesQuery(e, "#tabs"))) {
             if (getMouseConf("scrolltabs")) {
                 // Make both directions of scrolling move the tabs horizontally
                 document.getElementById("tabs")?.scrollBy(
@@ -732,7 +732,7 @@ const init = () => {
             }
         }
         const overPageElements = "#page-container, #screenshot-highlight"
-        if (ev.composedPath().find(e => matchesQuery(e, overPageElements))) {
+        if (ev.composedPath().some(e => matchesQuery(e, overPageElements))) {
             if (getMouseConf("pageoutsideinsert")) {
                 const {top, left} = pageOffset(currentPage())
                 sendToPageOrSubFrame("send-input-event", {
@@ -744,7 +744,7 @@ const init = () => {
                 })
             }
         }
-        if (ev.composedPath().find(e => matchesQuery(e, "#suggest-dropdown"))) {
+        if (ev.composedPath().some(e => matchesQuery(e, "#suggest-dropdown"))) {
             if (!getMouseConf("scrollsuggest")) {
                 ev.preventDefault()
             }
@@ -804,7 +804,7 @@ const init = () => {
     window.addEventListener("copy", copyInput)
     window.addEventListener("paste", pasteInput)
     window.addEventListener("click", e => {
-        if (e.composedPath().find(n => matchesQuery(n, "#context-menu"))) {
+        if (e.composedPath().some(n => matchesQuery(n, "#context-menu"))) {
             return
         }
         if (draggingScreenshotFrame && getMouseConf("screenshotframe")) {
@@ -976,7 +976,6 @@ const moveScreenshotFrame = (x, y) => {
     const deltaX = x - lastScreenshotX
     const deltaY = y - lastScreenshotY
     if (getMouseConf("screenshotframe") && draggingScreenshotFrame) {
-        /** @type {HTMLElement|null} */
         const url = getUrl()
         const dims = url?.value.split(" ").find(
             arg => arg?.match(/^\d+,\d+,\d+,\d+$/g))
@@ -1161,6 +1160,11 @@ const keyNames = [
     // Fictional keys with custom implementation
     {"js": ["Any"], "vim": ["Any"]}
 ]
+/**
+ * Convert a keyboard event to a Vieb key name
+ *
+ * @param {KeyboardEvent} e
+ */
 const toIdentifier = e => {
     let keyCode = e.key
     if (e.key === "\u0000") {
@@ -1597,7 +1601,7 @@ const handleKeyboard = async e => {
         return
     }
     const id = toIdentifier(e)
-    const matchingMod = getSetting("modifiers").split(",").find(
+    const matchingMod = getSetting("modifiers").split(",").some(
         mod => mod === id || `<${mod}>` === id || id.endsWith(`-${mod}>`))
     if (matchingMod) {
         return
@@ -1605,7 +1609,7 @@ const handleKeyboard = async e => {
     hadModifier = e.shiftKey || e.ctrlKey
     clearTimeout(timeoutTimer)
     if (getSetting("timeout")) {
-        timeoutTimer = setTimeout(async() => {
+        timeoutTimer = window.setTimeout(async() => {
             const keys = splitMapString(pressedKeys).maps
             if (pressedKeys) {
                 const ac = actionForKeys(pressedKeys)
@@ -2208,8 +2212,15 @@ const mappingModified = (mode, mapping) => {
     return true
 }
 
+/**
+ * List mappings as a list of map commands
+ *
+ * @param {string|null} oneMode
+ * @param {boolean} includeDefault
+ * @param {string[]|null} customKeys
+ */
 const listMappingsAsCommandList = (
-    oneMode = false, includeDefault = false, customKeys = null
+    oneMode = null, includeDefault = false, customKeys = null
 ) => {
     let mappings = []
     let modes = Object.keys(defaultBindings)
@@ -2228,7 +2239,7 @@ const listMappingsAsCommandList = (
         // Mappings that can be added with a global "map" instead of 1 per mode
         const globalMappings = []
         mappings.filter(m => m.match(/^n(noremap|map|unmap) /g))
-            .filter(m => !modes.find(mode => !mappings.includes(
+            .filter(m => !modes.some(mode => !mappings.includes(
                 `${mode}${m.slice(1)}`)))
             .forEach(m => {
                 globalMappings.push(m.slice(1))
@@ -2286,7 +2297,7 @@ const mapOrList = (mode, args, noremap, includeDefault) => {
             }
         } else {
             let mappings = listMappingsAsCommandList(
-                false, includeDefault, [args[0]])
+                null, includeDefault, [args[0]])
             mappings = mappings.replace(/[\r\n]+/g, "\n").trim()
             if (mappings) {
                 notify(mappings)
@@ -2346,7 +2357,7 @@ const sanitiseMapString = (mapString, allowSpecials = false) => {
             ;[key] = splitKeys.slice(-1)
         }
         for (const name of keyNames) {
-            if (name.vim.find(vk => vk.toUpperCase() === key.toUpperCase())) {
+            if (name.vim.some(vk => vk.toUpperCase() === key.toUpperCase())) {
                 [key] = name.vim
                 knownKey = true
                 break
@@ -2433,6 +2444,11 @@ const clearmap = (mode, removeDefaults) => {
     updateHelpPage()
 }
 
+/**
+ * Start a macro recording by key name
+ *
+ * @param {string} name
+ */
 const startRecording = name => {
     if (recordingName) {
         notify("Already recording, ignoring record action", "warn")
@@ -2442,6 +2458,9 @@ const startRecording = name => {
     recordingString = ""
 }
 
+/**
+ * Stop the current macro recording
+ */
 const stopRecording = () => {
     if (!recordingName) {
         return

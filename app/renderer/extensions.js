@@ -29,6 +29,13 @@ const {
 } = require("../util")
 const {getSetting} = require("./common")
 
+/**
+ * Parse the GM userscript header
+ *
+ * @param {string} meta
+ *
+ * @returns {{[string: (string[]|Number|string)]}}
+ */
 const parseGM = meta => meta.split(/[\r\n]/).filter(line => (/\S+/).test(line)
         && !line.includes("==UserScript==") && !line.includes("==/UserScript==")
 ).reduce((obj, line) => {
@@ -231,7 +238,7 @@ const loadUserscripts = webview => {
     let domain = domainName(webview.src)
     let scope = "page"
     const specialPage = pathToSpecialPageName(webview.src)
-    if (specialPage.name) {
+    if (specialPage?.name) {
         domain = "special"
         scope = "special"
     } else if (webview.src.startsWith("file://")) {

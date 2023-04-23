@@ -1318,7 +1318,7 @@ const permissionHandler = (_, pm, callback, details) => {
                 continue
             }
             const [match, ...names] = rule.split("~")
-            if (names.find(p => permissionName.endsWith(p))) {
+            if (names.some(p => permissionName.endsWith(p))) {
                 if (details.requestingUrl.match(match)) {
                     settingRule = override.replace("ed", "")
                     break
@@ -1584,7 +1584,7 @@ ipcMain.on("download-favicon", (_, options) => {
             }
             const file = Buffer.concat(data)
             const knownExts = [".png", ".ico", ".jpg", ".svg"]
-            const hasExtension = knownExts.find(ex => options.fav.endsWith(ex))
+            const hasExtension = knownExts.some(ex => options.fav.endsWith(ex))
             if (!hasExtension && (/<\/svg>/).test(file)) {
                 writeFile(`${options.location}.svg`, file)
                 mainWindow.webContents.send("favicon-downloaded",

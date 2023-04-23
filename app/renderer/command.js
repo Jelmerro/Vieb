@@ -53,7 +53,13 @@ const {
     isValidIntervalValue
 } = require("../util")
 const {
-    listTabs, listPages, currentTab, currentPage, tabOrPageMatching, getSetting
+    listTabs,
+    listPages,
+    currentTab,
+    currentPage,
+    getSetting,
+    pageForTab,
+    tabForPage
 } = require("./common")
 
 const listSetting = setting => {
@@ -154,6 +160,7 @@ const set = args => {
         }
         return
     }
+    const {"set": s} = require("./settings")
     for (const part of args) {
         if ((/^\w+\+=/).test(part)) {
             modifyListOrNumber(...splitSettingAndValue(part, "+="), "append")
@@ -162,13 +169,10 @@ const set = args => {
         } else if ((/^\w+\^=/).test(part)) {
             modifyListOrNumber(...splitSettingAndValue(part, "^="), "special")
         } else if ((/^\w+=/).test(part)) {
-            const {"set": s} = require("./settings")
             s(...splitSettingAndValue(part, "="))
         } else if ((/^\w+:/).test(part)) {
-            const {"set": s} = require("./settings")
             s(...splitSettingAndValue(part, ":"))
         } else if ((/^\w+!.+/).test(part)) {
-            const {"set": s} = require("./settings")
             const [setting] = part.split("!")
             const values = part.split("!").slice(1).join("!").split("|")
             const index = values.indexOf(getSetting(setting))
@@ -176,7 +180,7 @@ const set = args => {
         } else if (part.endsWith("!")) {
             const setting = part.slice(0, -1)
             const value = getSetting(setting)
-            const {"set": s, validOptions} = require("./settings")
+            const {validOptions} = require("./settings")
             if (["boolean", "undefined"].includes(typeof value)) {
                 s(setting, String(!value))
             } else if (validOptions[setting]) {
@@ -193,19 +197,17 @@ const set = args => {
         } else if (part.endsWith("?")) {
             listSetting(part.slice(0, -1))
         } else if (typeof getSetting(part) === "boolean") {
-            const {"set": s} = require("./settings")
             s(part, "true")
         } else if (part.startsWith("inv")) {
             const value = getSetting(part.replace("inv", ""))
             if (typeof value === "boolean") {
-                const {"set": s} = require("./settings")
                 s(part.replace("inv", ""), String(!value))
             } else {
                 listSetting(part)
             }
         } else if (part.startsWith("no")) {
             const value = getSetting(part.replace("no", ""))
-            const {"set": s, listLike, listLikeTilde} = require("./settings")
+            const {listLike, listLikeTilde} = require("./settings")
             if (typeof value === "boolean") {
                 s(part.replace("no", ""), "false")
             } else if (listLike.includes(part.replace("no", ""))) {
@@ -223,6 +225,12 @@ const set = args => {
 
 const sourcedFiles = []
 
+/**
+ * Source a specific viebrc file
+ *
+ * @param {string|null} origin
+ * @param {string[]} args
+ */
 const source = (origin, args) => {
     if (args.length !== 1) {
         notify("Source requires exactly argument representing the filename",
@@ -364,22 +372,19 @@ const openDevTools = (userPosition = null, trailingArgs = false) => {
         return
     }
     const position = userPosition || getSetting("devtoolsposition")
+    const {addTab} = require("./tabs")
+    const {add} = require("./pagelayout")
     if (position === "window") {
         currentPage()?.openDevTools()
     } else if (position === "tab") {
-        const {addTab} = require("./tabs")
         addTab({"devtools": true})
     } else if (position === "vsplit") {
-        const {addTab} = require("./tabs")
         const id = currentTab().getAttribute("link-id")
         addTab({"devtools": true})
-        const {add} = require("./pagelayout")
         add(id, "hor", getSetting("splitright"))
     } else if (position === "split") {
-        const {addTab} = require("./tabs")
         const id = currentTab().getAttribute("link-id")
         addTab({"devtools": true})
-        const {add} = require("./pagelayout")
         add(id, "ver", getSetting("splitbelow"))
     } else {
         notify("Invalid devtools position specified, must be one of: "
@@ -391,10 +396,17 @@ const openInternalDevTools = () => {
     ipcRenderer.send("open-internal-devtools")
 }
 
+/**
+ * Open a special page using commands
+ *
+ * @param {string} specialPage
+ * @param {boolean} forceNewtab
+ * @param {string|null} section
+ */
 const openSpecialPage = (specialPage, forceNewtab, section = null) => {
     const newSpecialUrl = specialPagePath(specialPage, section)
     const url = currentPage()?.src
-    const currentSpecial = pathToSpecialPageName(url).name
+    const currentSpecial = pathToSpecialPageName(url)?.name
     const isNewtab = currentSpecial === "newtab" || url.replace(/\/+$/g, "")
         === stringToUrl(getSetting("newtaburl")).replace(/\/+$/g, "")
     const replaceSpecial = getSetting("replacespecial")
@@ -412,6 +424,13 @@ const openSpecialPage = (specialPage, forceNewtab, section = null) => {
     }
 }
 
+/**
+ * Open the help page at a specific section
+ *
+ * @param {boolean} forceNewtab
+ * @param {string|null} section
+ * @param {boolean} trailingArgs
+ */
 const help = (forceNewtab, section = null, trailingArgs = false) => {
     if (trailingArgs) {
         notify("The help command takes a single optional argument", "warn")
@@ -425,18 +444,30 @@ const reloadconfig = () => {
     loadFromDisk(false)
 }
 
+/**
+ * Make a hardcopy print of a page, optionally for a range of pages
+ *
+ * @param {string} range
+ */
 const hardcopy = range => {
     if (range) {
-        rangeToTabIdxs(range).forEach(t => tabOrPageMatching(listTabs()[t])
+        rangeToTabIdxs(range).forEach(t => pageForTab(listTabs()[t])
             .send("action", "print"))
         return
     }
     currentPage()?.send("action", "print")
 }
 
+/**
+ * Resolve file arguments to an absolute path with fixed type extension
+ *
+ * @param {string} locationArg
+ * @param {string} type
+ * @param {Electron.WebviewTag|null} customPage
+ */
 const resolveFileArg = (locationArg, type, customPage = null) => {
     const page = customPage || currentPage()
-    const tab = tabOrPageMatching(page)
+    const tab = tabForPage(page)
     const name = `${tab.querySelector("span").textContent.replace(
         specialCharsAllowSpaces, "").trim()}_${formatDate(new Date())
         .replace(/:/g, "-")}`.replace(/\s/g, "_")
@@ -465,6 +496,12 @@ const resolveFileArg = (locationArg, type, customPage = null) => {
     return loc
 }
 
+/**
+ * Write the html of a page to disk, optionally a range of pages at a custom loc
+ *
+ * @param {string[]} args
+ * @param {string} range
+ */
 const write = (args, range) => {
     if (args.length > 1) {
         notify("The write command takes only a single optional argument:\n"
@@ -482,10 +519,16 @@ const write = (args, range) => {
     writePage(args[0])
 }
 
-const writePage = (customLoc, tabIdx) => {
+/**
+ * Write the html of a page to disk based on tab index or current
+ *
+ * @param {string} customLoc
+ * @param {Number|null} tabIdx
+ */
+const writePage = (customLoc, tabIdx = null) => {
     let page = currentPage()
     if (tabIdx !== null) {
-        page = tabOrPageMatching(listTabs()[tabIdx])
+        page = pageForTab(listTabs()[tabIdx])
     }
     if (!page?.getWebContentsId) {
         return
@@ -502,6 +545,11 @@ const writePage = (customLoc, tabIdx) => {
     })
 }
 
+/**
+ * Translate a screen* command argument to valid dims within view
+ *
+ * @param {string} dims
+ */
 const translateDimsToRect = dims => {
     if (!dims) {
         return undefined
@@ -529,6 +577,11 @@ const translateDimsToRect = dims => {
     return rect
 }
 
+/**
+ * Copy the current page screen to the clipboard, optionally with custom dims
+ *
+ * @param {string[]} args
+ */
 const screencopy = args => {
     if (args.length > 1) {
         notify("The screencopy command only accepts optional dimensions",
@@ -552,6 +605,11 @@ const screencopy = args => {
     }, 20)
 }
 
+/**
+ * Write the current page screen a location, optionally with custom dims
+ *
+ * @param {string[]} args
+ */
 const screenshot = args => {
     if (args.length > 2) {
         notify("The screenshot command takes only two optional arguments:\nthe "
@@ -570,6 +628,12 @@ const screenshot = args => {
     takeScreenshot(dims, location)
 }
 
+/**
+ * Write the actual page to disk based on dims and location
+ *
+ * @param {string} dims
+ * @param {string} location
+ */
 const takeScreenshot = (dims, location) => {
     const rect = translateDimsToRect(dims)
     const loc = resolveFileArg(location, "png", currentPage())
@@ -584,7 +648,13 @@ const takeScreenshot = (dims, location) => {
     }, 20)
 }
 
-const mkviebrc = (full = false, trailingArgs = false) => {
+/**
+ * Make a custom viebrc config based on current settings
+ *
+ * @param {"full"|null} full
+ * @param {boolean} trailingArgs
+ */
+const mkviebrc = (full = null, trailingArgs = false) => {
     if (trailingArgs) {
         notify(
             "The mkviebrc command takes a single optional argument", "warn")
@@ -604,9 +674,16 @@ const mkviebrc = (full = false, trailingArgs = false) => {
     saveToDisk(exportAll)
 }
 
+/**
+ * Translate a partial range arg to tab index based on mathematical operations
+ *
+ * @param {Number} start
+ * @param {string} rangePart
+ */
 const translateRangePosToIdx = (start, rangePart) => {
     const [, plus] = rangePart.split("/").pop().split("+")
     const [, minus] = rangePart.split("/").pop().split("-")
+    /** @type {(string|Number)[]} */
     let [charOrNum] = rangePart.split(/[-+]/g)
     if (rangePart.split("/").length > 2) {
         const [flags] = rangePart.split("/")
@@ -614,7 +691,7 @@ const translateRangePosToIdx = (start, rangePart) => {
         ;[charOrNum] = listTabs().map((t, i) => ({
             "idx": i,
             "name": t.querySelector("span").textContent,
-            "url": tabOrPageMatching(t).src
+            "url": pageForTab(t).src
         })).filter(t => {
             let name = String(t.name)
             let url = String(t.url)
@@ -662,6 +739,12 @@ const translateRangePosToIdx = (start, rangePart) => {
     return number
 }
 
+/**
+ * Get the tab indices for a given range
+ *
+ * @param {string} range
+ * @param {boolean} silent
+ */
 const rangeToTabIdxs = (range, silent = false) => {
     if (range === "%") {
         return listTabs().map((_, i) => i)
@@ -704,7 +787,7 @@ const rangeToTabIdxs = (range, silent = false) => {
             return listTabs().map((t, i) => ({
                 "idx": i,
                 "name": t.querySelector("span").textContent,
-                "url": tabOrPageMatching(t).src
+                "url": pageForTab(t).src
             })).filter(t => {
                 let name = String(t.name)
                 let url = String(t.url)
@@ -723,12 +806,24 @@ const rangeToTabIdxs = (range, silent = false) => {
             }).map(t => t.idx)
         }
     }
-    return [translateRangePosToIdx(0, range, true)]
+    return [translateRangePosToIdx(0, range)]
 }
 
+/**
+ * Get a tab for a given buffer argument
+ *
+ * @param {string[]} args
+ * @param {((tab: HTMLElement) => boolean)|null} filter
+ */
 const tabForBufferArg = (args, filter = null) => allTabsForBufferArg(
     args, filter)?.[0]?.tab
 
+/**
+ * Get all tabs for a given buffer argument
+ *
+ * @param {string[]|[Number]} args
+ * @param {((tab: HTMLElement) => boolean)|null} filter
+ */
 const allTabsForBufferArg = (args, filter = null) => {
     if (args.length === 1 || typeof args === "number") {
         let number = Number(args[0] || args)
@@ -744,16 +839,25 @@ const allTabsForBufferArg = (args, filter = null) => {
         }
         if ((args[0] || args) === "#") {
             const {getLastTabId} = require("./pagelayout")
-            return [{"tab": document.querySelector(
-                `#tabs span[link-id='${getLastTabId()}']`) || listTabs()[0]}]
+            /** @ts-ignore @type {HTMLSpanElement} */
+            const lastTab = document.querySelector(
+                `#tabs span[link-id='${getLastTabId()}']`)
+            return [{"tab": lastTab || listTabs()[0]}]
         }
     }
     const {getSimpleName, getSimpleUrl} = require("./history")
+    /**
+     * Checks if all words appear somewhere in the simple url
+     *
+     * @param {string[]} search
+     * @param {string} simpleUrl
+     * @param {string} name
+     */
     const allWordsAnywhere = (search, simpleUrl, name) => search.every(
         w => simpleUrl.includes(w) || getSimpleName(name).includes(w))
     const simpleSearch = args.join(" ").split(specialChars).filter(w => w)
     return listTabs().filter(t => !filter || filter(t)).map(t => {
-        const url = tabOrPageMatching(t).src
+        const url = pageForTab(t).src
         const simpleUrl = getSimpleUrl(url)
         const name = t.querySelector("span").textContent
         let relevance = 1
@@ -770,6 +874,11 @@ const allTabsForBufferArg = (args, filter = null) => {
     }).filter(h => h).sort((a, b) => b.top - a.top)
 }
 
+/**
+ * Buffer switch command, switch pages based on arguments
+ *
+ * @param {string[]} args
+ */
 const buffer = args => {
     if (args.length === 0) {
         return
@@ -784,6 +893,11 @@ const buffer = args => {
     }
 }
 
+/**
+ * Open command, navigate to a url by argument, mostly useful for mappings
+ *
+ * @param {string[]} args
+ */
 const open = args => {
     if (args.length === 0) {
         return
@@ -792,13 +906,19 @@ const open = args => {
     navigateTo(stringToUrl(args.join(" ")))
 }
 
-const suspend = (args, range) => {
+/**
+ * Suspend a page or a range of pages
+ *
+ * @param {string[]} args
+ * @param {string} range
+ */
+const suspend = (args, range = null) => {
     if (range && args.length) {
         notify("Range cannot be combined with searching", "warn")
         return
     }
     if (range) {
-        rangeToTabIdxs(range).forEach(t => suspend([t]))
+        rangeToTabIdxs(range).forEach(t => suspend([`${t}`]))
         return
     }
     let tab = null
@@ -819,13 +939,19 @@ const suspend = (args, range) => {
     }
 }
 
-const hide = (args, range) => {
+/**
+ * Hide a page or a range of pages
+ *
+ * @param {string[]} args
+ * @param {string} range
+ */
+const hide = (args, range = null) => {
     if (range && args.length) {
         notify("Range cannot be combined with searching", "warn")
         return
     }
     if (range) {
-        rangeToTabIdxs(range).forEach(t => hide([t]))
+        rangeToTabIdxs(range).forEach(t => hide([`${t}`]))
         return
     }
     let tab = null
@@ -837,13 +963,19 @@ const hide = (args, range) => {
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
             const {"hide": h} = require("./pagelayout")
-            h(tabOrPageMatching(tab))
+            h(pageForTab(tab))
         } else {
             notify("Only visible pages can be hidden", "warn")
         }
     }
 }
 
+/**
+ * Mute a page or a range of pages
+ *
+ * @param {string[]} args
+ * @param {string} range
+ */
 const setMute = (args, range) => {
     if (args.length !== 1 || !["true", "false"].includes(args[0])) {
         notify("Command mute! requires a single boolean argument", "warn")
@@ -861,7 +993,7 @@ const setMute = (args, range) => {
             tab.removeAttribute("muted")
         }
         if (!tab.getAttribute("suspended")) {
-            tabOrPageMatching(tab).setAudioMuted(!!tab.getAttribute("muted"))
+            pageForTab(tab).setAudioMuted(!!tab.getAttribute("muted"))
         }
     })
     const {saveTabs} = require("./tabs")
@@ -891,12 +1023,18 @@ const mute = (args, range) => {
         tab.setAttribute("muted", "muted")
     }
     if (!tab.getAttribute("suspended")) {
-        tabOrPageMatching(tab).setAudioMuted(!!tab.getAttribute("muted"))
+        pageForTab(tab).setAudioMuted(!!tab.getAttribute("muted"))
     }
     const {saveTabs} = require("./tabs")
     saveTabs()
 }
 
+/**
+ * Set the pin state for a tab or a range of tabs
+ *
+ * @param {string[]} args
+ * @param {string} range
+ */
 const setPin = (args, range) => {
     if (args.length !== 1 || !["true", "false"].includes(args[0])) {
         notify("Command pin! requires a single boolean argument", "warn")
@@ -925,6 +1063,13 @@ const setPin = (args, range) => {
     saveTabs()
 }
 
+
+/**
+ * Toggle the pin state for a tab or a range of tabs
+ *
+ * @param {string[]} args
+ * @param {string} range
+ */
 const pin = (args, range) => {
     if (range && args.length) {
         notify("Range cannot be combined with searching", "warn")
@@ -969,13 +1114,22 @@ const pin = (args, range) => {
     saveTabs()
 }
 
-const addSplit = (method, leftOrAbove, args, range) => {
+/**
+ * Add a split to the page layout
+ *
+ * @param {string} method
+ * @param {boolean} leftOrAbove
+ * @param {string[]} args
+ * @param {string|null} range
+ */
+const addSplit = (method, leftOrAbove, args, range = null) => {
     if (range && args.length) {
         notify("Range cannot be combined with searching", "warn")
         return
     }
     if (range) {
-        rangeToTabIdxs(range).forEach(t => addSplit(method, leftOrAbove, t))
+        rangeToTabIdxs(range).forEach(
+            t => addSplit(method, leftOrAbove, [`${t}`]))
         return
     }
     const {addTab, switchToTab} = require("./tabs")
@@ -991,7 +1145,7 @@ const addSplit = (method, leftOrAbove, args, range) => {
         if (tab.classList.contains("visible-tab")) {
             notify("Page is already visible", "warn")
         } else {
-            add(tabOrPageMatching(tab), method, leftOrAbove)
+            add(pageForTab(tab), method, leftOrAbove)
             switchToTab(tab)
         }
     } else {
@@ -1003,6 +1157,13 @@ const addSplit = (method, leftOrAbove, args, range) => {
     }
 }
 
+/**
+ * Close a page or a custom one with ranges/arguments
+ *
+ * @param {boolean} force
+ * @param {string[]} args
+ * @param {string} range
+ */
 const close = (force, args, range) => {
     if (range && args.length) {
         notify("Range cannot be combined with searching", "warn")
@@ -1028,6 +1189,11 @@ const close = (force, args, range) => {
     notify("Can't find matching page, no tabs closed", "warn")
 }
 
+/**
+ * Call command, run any mapstring immediately
+ *
+ * @param {string[]} args
+ */
 const callAction = args => {
     setTimeout(() => {
         const {executeMapString, sanitiseMapString} = require("./input")
@@ -1035,6 +1201,11 @@ const callAction = args => {
     }, 5)
 }
 
+/**
+ * Log command errors
+ *
+ * @param {import("child_process").ExecException} err
+ */
 const logError = err => {
     if (err?.message) {
         notify(`Script to set Vieb as the default browser failed:\n${
@@ -1089,6 +1260,12 @@ const rclose = (force = false) => {
     }
 }
 
+/**
+ * Run custom JS in the page or a range of pages
+ *
+ * @param {string} raw
+ * @param {string} range
+ */
 const runjsinpage = (raw, range) => {
     let javascript = raw.split(" ").slice(1).join(" ")
     const filePath = expandPath(javascript)
@@ -1097,8 +1274,7 @@ const runjsinpage = (raw, range) => {
     }
     if (range) {
         rangeToTabIdxs(range).forEach(tabId => {
-            tabOrPageMatching(listTabs()[tabId])
-                .executeJavaScript(javascript, true)
+            pageForTab(listTabs()[tabId]).executeJavaScript(javascript, true)
         })
     } else {
         currentPage().executeJavaScript(javascript, true)
@@ -1592,17 +1768,16 @@ const clear = (type, interval, trailingArgs = false) => {
         return
     }
     if (type === "history") {
+        const {removeOldHistory} = require("./history")
         if (isValidIntervalValue(interval, true)) {
             if (interval.startsWith("last")) {
                 const {removeRecentHistory} = require("./history")
                 removeRecentHistory(intervalValueToDate(
                     interval.replace(/^last/g, "")))
             } else {
-                const {removeOldHistory} = require("./history")
                 removeOldHistory(intervalValueToDate(interval))
             }
         } else if (interval === "all") {
-            const {removeOldHistory} = require("./history")
             removeOldHistory(new Date())
         } else if (isUrl(interval)) {
             const {removeHistoryByPartialUrl} = require("./history")
@@ -1947,7 +2122,8 @@ const execute = (com, settingsFile = null) => {
                 if (err && reportExit !== "none") {
                     notify(`${err}`, "err")
                 } else if (reportExit === "all") {
-                    notify(stdout || "Command exitted successfully!", "suc")
+                    notify(stdout.toString()
+                        || "Command exitted successfully!", "suc")
                 }
             })
         }

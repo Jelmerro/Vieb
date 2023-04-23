@@ -23,7 +23,7 @@ module.exports = [{
         "minimize": true,
         "minimizer": [
             new TerserPlugin({
-                "extractComments": false,
+                "extractComments": /Copyright/,
                 "terserOptions": {
                     "format": {
                         "comments": false

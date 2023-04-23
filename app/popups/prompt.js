@@ -29,7 +29,7 @@ window.addEventListener("load", () => {
         input.select()
         document.body.style.fontSize = `${fontsize}px`
         document.getElementById("custom-styling").textContent = customCSS
-        document.body.style.opacity = 1
+        document.body.style.opacity = "1"
     })
     window.addEventListener("keydown", e => {
         if (e.key === "Tab" && !e.altKey) {

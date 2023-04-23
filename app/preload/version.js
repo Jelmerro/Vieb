@@ -23,7 +23,7 @@ const apiUrl = "https://api.github.com/repos/Jelmerro/Vieb/releases/latest"
 const {name, icon, version} = appConfig()
 
 const checkForUpdates = () => {
-    document.querySelector("button").disabled = "disabled"
+    document.querySelector("button").disabled = true
     const versionCheck = document.getElementById("version-check")
     versionCheck.textContent = "Loading..."
     const req = new XMLHttpRequest()
