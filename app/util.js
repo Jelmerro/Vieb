@@ -445,7 +445,7 @@ const propPixels = (element, prop) => {
 /**
  * Call an element matches in a safe wrapper as not all elements work
  *
- * @param {Element|EventTarget|null} el
+ * @param {Element|EventTarget|null|undefined} el
  * @param {string} query
  */
 const matchesQuery = (el, query) => {

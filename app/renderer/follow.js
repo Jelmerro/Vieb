@@ -52,14 +52,14 @@ const informPreload = (first = false) => {
         elemTypesToFollow = "url"
     }
     if (first) {
-        ipcRenderer.send("follow-mode-start", currentPage().getWebContentsId(),
+        ipcRenderer.send("follow-mode-start", currentPage()?.getWebContentsId(),
             elemTypesToFollow, true)
     }
     setTimeout(() => {
-        if (currentPage().getAttribute("dom-ready")) {
+        if (currentPage()?.getAttribute("dom-ready")) {
             if (currentMode() === "follow" && !alreadyFollowing) {
                 ipcRenderer.send("follow-mode-start",
-                    currentPage().getWebContentsId(), elemTypesToFollow)
+                    currentPage()?.getWebContentsId(), elemTypesToFollow)
                 informPreload()
             } else {
                 ipcRenderer.send("follow-mode-stop")

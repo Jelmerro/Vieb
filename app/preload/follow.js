@@ -33,6 +33,7 @@ const {
 } = require("../util")
 const settingsFile = joinPath(appData(), "webviewsettings")
 
+/** @type {string|null} */
 let currentFollowStatus = null
 const clickInputs = [
     "button",
@@ -59,6 +60,7 @@ const textlikeInputs = [
     "textarea",
     "select"
 ].join(",")
+/** @type {("click"|"mousedown"|"mouseup")[]} */
 const clickEvents = ["click", "mousedown", "mouseup"]
 const otherEvents = [
     "mouseenter",
@@ -68,6 +70,7 @@ const otherEvents = [
     "mouseover",
     "contextmenu"
 ]
+/** @type {Element[]} */
 const previouslyFocussedElements = []
 
 ipcRenderer.on("focus-input", async(_, follow = null) => {
@@ -83,10 +86,8 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
         }
     }
     const focusEl = [el, el?.parentNode, el?.parentNode?.parentNode]
-        .find(e => e instanceof HTMLInputElement
-            || e instanceof HTMLTextAreaElement)
-    if (!(focusEl instanceof HTMLInputElement
-        || focusEl instanceof HTMLTextAreaElement)) {
+        .find(e => matchesQuery(e, textlikeInputs))
+    if (!(focusEl instanceof HTMLElement)) {
         return
     }
     ipcRenderer.sendToHost("switch-to-insert")
@@ -97,22 +98,49 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
         || "rememberend"
     focusEl.click()
     focusEl.focus()
-    const focusLength = focusEl.value?.length || focusEl.textContent.length
-    if (focusLength > 0 && focusEl.setSelectionRange) {
-        if (!previouslyFocussedElements.includes(focusEl)
-            || inputfocusalignment.includes("always")) {
-            if (inputfocusalignment.includes("end")) {
-                focusEl.setSelectionRange(focusLength, focusLength)
-            } else {
-                focusEl.setSelectionRange(0, 0)
-            }
-            previouslyFocussedElements.push(focusEl)
+    if (previouslyFocussedElements.includes(focusEl)
+        && !inputfocusalignment.includes("always")) {
+        return
+    }
+    if (focusEl instanceof HTMLInputElement
+        || focusEl instanceof HTMLTextAreaElement) {
+        if (inputfocusalignment.includes("end")) {
+            const focusLength = focusEl.value.length
+            focusEl.setSelectionRange(focusLength, focusLength)
+        } else {
+            focusEl.setSelectionRange(0, 0)
+        }
+    } else {
+        const selection = window.getSelection()
+        selection?.selectAllChildren(focusEl)
+        if (inputfocusalignment.includes("end")) {
+            selection?.collapseToEnd()
+        } else {
+            selection?.collapseToStart()
         }
     }
+    previouslyFocussedElements.push(focusEl)
 })
 
+/**
+ * Get all follow links parsed, optionally for a specific type
+ *
+ * @param {string[]|null} filter
+ * @returns {Promise<({
+ *    height: number,
+ *    text: string,
+ *    type: string,
+ *    url: string,
+ *    width: number,
+ *    x: number,
+ *    y: number
+ *  }|null)[]|null>}
+ */
 const getAllFollowLinks = (filter = null) => {
     const allEls = [...querySelectorAll("*")]
+    /** @type {{
+     *   el: Element, type: string, bounds?: DOMRectReadOnly, visible?: boolean
+     * }[]} */
     const relevantLinks = []
     if (!filter || filter.includes("url")) {
         // A tags with href as the link, can be opened in new tab or current tab
@@ -178,15 +206,21 @@ const getAllFollowLinks = (filter = null) => {
                     link.visible = entry.intersectionRatio > 0.01
                 }
                 return link
-            }).filter(link => link.visible)
-                .map(link => parseElement(link.el, link.type, link.bounds))
-                .filter(el => el)
-            res(parsedEls.sort((el1, el2) => {
+            }).filter(link => link.visible).map(link => {
+                if (link.el instanceof HTMLElement) {
+                    return parseElement(link.el, link.type, link.bounds)
+                }
+                return null
+            }).filter(el => el).sort((el1, el2) => {
+                if (!el1 || !el2) {
+                    return 0
+                }
                 if (el1.type === "other") {
                     return 10000
                 }
                 return Math.floor(el1.y) - Math.floor(el2.y) || el1.x - el2.x
-            }))
+            })
+            res(parsedEls)
             observer.disconnect()
         })
         let observingSomething = false
@@ -214,10 +248,12 @@ const mainInfoLoop = () => {
     })
     frames.forEach(f => {
         try {
-            f.contentDocument.onclick = e => clickListener(e, f)
-            f.contentDocument.oncontextmenu = e => contextListener(e, f)
-            f.contentDocument.onmousedown = e => mouseDownListener(e, f)
-            f.contentDocument.onmouseup = e => mouseUpListener(e, f)
+            if (f.contentDocument) {
+                f.contentDocument.onclick = e => clickListener(e, f)
+                f.contentDocument.oncontextmenu = e => contextListener(e, f)
+                f.contentDocument.onmousedown = e => mouseDownListener(e, f)
+                f.contentDocument.onmouseup = e => mouseUpListener(e, f)
+            }
         } catch {
             // Not an issue, will be retried shortly, we also can't do much else
         }
@@ -237,7 +273,7 @@ const mainInfoLoop = () => {
             const framePos = framePosition(f)
             for (const frame of frames) {
                 try {
-                    if (frame.contentDocument.contains(f)) {
+                    if (frame.contentDocument?.contains(f)) {
                         const parentPos = framePosition(frame)
                         framePos.x += parentPos.x
                         framePos.y += parentPos.y
@@ -283,7 +319,14 @@ setInterval(mainInfoLoop, 1000)
 window.addEventListener("DOMContentLoaded", mainInfoLoop)
 window.addEventListener("resize", mainInfoLoop)
 
-const parseElement = (element, type, customBounds = false) => {
+/**
+ * Parse an element to a clickable rect if possible
+ *
+ * @param {HTMLElement} element
+ * @param {string|null} type
+ * @param {DOMRectReadOnly|null} customBounds
+ */
+const parseElement = (element, type = null, customBounds = null) => {
     const excluded = [document.body, document.documentElement]
     if (excluded.includes(element)) {
         return null
@@ -328,7 +371,7 @@ const parseElement = (element, type, customBounds = false) => {
     return {
         "height": dims.height,
         "text": element.textContent?.slice(0, 10000) || "",
-        "type": typeOverride || type,
+        "type": typeOverride ?? type ?? "none",
         "url": href,
         "width": dims.width,
         "x": dims.x,
@@ -336,12 +379,20 @@ const parseElement = (element, type, customBounds = false) => {
     }
 }
 
+/** @type {{[type: string]: WeakSet<EventTarget>}} */
 const eventListeners = {}
 ;[...clickEvents, ...otherEvents].forEach(e => {
     eventListeners[e] = new WeakSet()
 })
 
 const realAdd = EventTarget.prototype.addEventListener
+/**
+ * Add the regular event listener while also recording its existence in a set
+ *
+ * @param {string} type
+ * @param {() => void} listener
+ * @param {Object} options
+ */
 EventTarget.prototype.addEventListener = function(type, listener, options) {
     try {
         realAdd.apply(this, [type, listener, options])
@@ -351,6 +402,13 @@ EventTarget.prototype.addEventListener = function(type, listener, options) {
     }
 }
 const realRemove = EventTarget.prototype.removeEventListener
+/**
+ * Remove the regular event listener while also removing its storage from a set
+ *
+ * @param {string} type
+ * @param {() => void} listener
+ * @param {Object} options
+ */
 EventTarget.prototype.removeEventListener = function(type, listener, options) {
     try {
         realRemove.apply(this, [type, listener, options])
@@ -360,6 +418,12 @@ EventTarget.prototype.removeEventListener = function(type, listener, options) {
     }
 }
 
+/**
+ * Send mouse click info to renderer via main on click
+ *
+ * @param {MouseEvent} e
+ * @param {HTMLIFrameElement|null} frame
+ */
 const clickListener = (e, frame = null) => {
     if (e.isTrusted) {
         const paddingInfo = findFrameInfo(frame)
@@ -383,6 +447,13 @@ window.addEventListener("click", clickListener,
 
 let startX = 0
 let startY = 0
+
+/**
+ * Send mouse down info to renderer via main on down
+ *
+ * @param {MouseEvent} e
+ * @param {HTMLIFrameElement|null} frame
+ */
 const mouseDownListener = (e, frame = null) => {
     if (e.button === 3) {
         ipcRenderer.sendToHost("back-button")
@@ -406,6 +477,13 @@ const mouseDownListener = (e, frame = null) => {
 }
 window.addEventListener("mousedown", mouseDownListener,
     {"capture": true, "passive": true})
+
+/**
+ * Send mouse up info to the renderer via main on up
+ *
+ * @param {MouseEvent} e
+ * @param {HTMLIFrameElement|null} frame
+ */
 const mouseUpListener = (e, frame = null) => {
     const paddingInfo = findFrameInfo(frame)
     const endX = e.clientX + (paddingInfo?.x || 0)
@@ -414,7 +492,7 @@ const mouseUpListener = (e, frame = null) => {
     const diffY = Math.abs(endY - startY)
     ipcRenderer.sendToHost("mouse-up")
     if (endX > 0 && endY > 0 && (diffX > 3 || diffY > 3)) {
-        const text = (frame?.contentWindow || window).getSelection().toString()
+        const text = (frame?.contentWindow || window).getSelection()?.toString()
         if (text) {
             ipcRenderer.send("mouse-selection", {
                 endX,
@@ -440,14 +518,14 @@ ipcRenderer.on("replace-input-field", (_, value, position) => {
             if (position < input.value.length) {
                 input.setSelectionRange(position, position)
             }
-        } else {
-            const select = input.getRootNode().getSelection()
-            select.baseNode.textContent = value
+        } else if (input) {
+            input.textContent = value
             const range = document.createRange()
-            range.setStart(select.baseNode, position)
-            range.setEnd(select.baseNode, position)
-            select.removeAllRanges()
-            select.addRange(range)
+            range.setStart(input, position)
+            range.setEnd(input, position)
+            const select = window.getSelection()
+            select?.removeAllRanges()
+            select?.addRange(range)
         }
     }
 })
@@ -455,6 +533,13 @@ ipcRenderer.on("replace-input-field", (_, value, position) => {
 const getSvgData = el => `data:image/svg+xml,${encodeURIComponent(el.outerHTML)
     .replace(/'/g, "%27").replace(/"/g, "%22")}`
 
+/**
+ * Context menu listener that sends info to renderer via main
+ *
+ * @param {MouseEvent} e
+ * @param {HTMLIFrameElement|null} frame
+ * @param {null} extraData
+ */
 const contextListener = (e, frame = null, extraData = null) => {
     if (e.isTrusted && !currentFollowStatus && e.button === 2) {
         e.preventDefault?.()
@@ -515,7 +600,7 @@ const contextListener = (e, frame = null, extraData = null) => {
                 || text?.getRootNode().getSelection()?.baseNode?.textContent,
             "link": link?.href?.trim(),
             "svgData": img && getSvgData(img),
-            "text": (frame?.contentWindow || window).getSelection().toString(),
+            "text": (frame?.contentWindow || window).getSelection()?.toString(),
             "video": video?.src?.trim(),
             "videoData": {
                 "controllable": !!videoEl,
@@ -597,7 +682,7 @@ ipcRenderer.on("keyboard-type-event", (_, keyOptions) => {
 })
 const isVertScrollable = el => {
     const scrollEl = document.scrollingElement
-    if ([scrollEl, scrollEl.parentElement].includes(el)) {
+    if ([scrollEl, scrollEl?.parentElement].includes(el)) {
         return el.scrollHeight > el.clientHeight
     }
     return el.scrollHeight > el.clientHeight
@@ -605,7 +690,7 @@ const isVertScrollable = el => {
 }
 const isHorScrollable = el => {
     const scrollEl = document.scrollingElement
-    if ([scrollEl, scrollEl.parentElement].includes(el)) {
+    if ([scrollEl, scrollEl?.parentElement].includes(el)) {
         return el.scrollWidth > el.clientWidth
     }
     return el.scrollWidth > el.clientWidth
@@ -617,6 +702,9 @@ ipcRenderer.on("custom-mouse-event", (_, eventType, mouseOptions) => {
     // See https://github.com/electron/electron/issues/20333
     // The code below is also fairly useless when it comes to hovering elements.
     const el = findElementAtPosition(mouseOptions.x, mouseOptions.y)
+    if (!el) {
+        return
+    }
     if (eventType === "click") {
         if (mouseOptions.button === "left") {
             if (el instanceof HTMLElement) {
@@ -625,7 +713,7 @@ ipcRenderer.on("custom-mouse-event", (_, eventType, mouseOptions) => {
             return
         }
         const {x, y} = mouseOptions
-        const els = [findElementAtPosition(x, y)]
+        const els = [el]
         while (els[0].parentNode && els[0].parentNode !== els[1]?.parentNode) {
             if (els[0].parentNode instanceof Element) {
                 els.unshift(els[0].parentNode)
@@ -671,7 +759,8 @@ ipcRenderer.on("custom-mouse-event", (_, eventType, mouseOptions) => {
 let scrollHeight = 0
 let justScrolled = 0
 let justSearched = false
-let searchPos = {}
+/** @type {{x: number, y: number}|null} */
+let searchPos = null
 
 window.addEventListener("scroll", () => {
     const scrollDiff = scrollHeight - window.scrollY
@@ -681,7 +770,7 @@ window.addEventListener("scroll", () => {
     setTimeout(() => {
         justScrolled = 0
     }, 100)
-    if (justSearched) {
+    if (justSearched && searchPos) {
         const {x} = searchPos
         const y = searchPos.y + scrollDiff * window.devicePixelRatio
         ipcRenderer.sendToHost("search-element-location", x, y)
