@@ -7,7 +7,9 @@
   "scripts": {
     "dev": "electron app --datafolder=./ViebData/ --config-order=datafolder-only",
     "fix": "eslint --fix app .eslintrc.js build.js",
-    "lint": "eslint app .eslintrc.js build.js",
+    "lint": "npm run eslint && npm run tsc",
+    "eslint": "eslint app .eslintrc.js build.js",
+    "tsc": "tsc",
     "start": "electron app",
     "test": "TZ=UTC jest --testEnvironment jsdom --coverage --collectCoverageFrom 'app/**/*.js' -u",
     "test:all": "npm run test && npm run lint && echo 'All good :)'"
