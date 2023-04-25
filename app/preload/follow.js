@@ -79,7 +79,7 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
         el = findElementAtPosition(follow.x, follow.y)
     } else {
         const allLinks = await getAllFollowLinks(["input"])
-        const input = allLinks.find(l => l.type === "inputs-insert")
+        const input = allLinks.find(l => l?.type === "inputs-insert")
         if (input) {
             el = findElementAtPosition(
                 input.x + input.width / 2, input.y + input.height / 2)
@@ -134,7 +134,7 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
  *    width: number,
  *    x: number,
  *    y: number
- *  }|null)[]|null>}
+ *  }|null)[]>}
  */
 const getAllFollowLinks = (filter = null) => {
     const allEls = [...querySelectorAll("*")]
@@ -348,17 +348,18 @@ const parseElement = (element, type = null, customBounds = null) => {
         return null
     }
     // The element should be clickable and is returned in a parsed format
-    let href = String(element.href || "")
+    let href = ""
     let typeOverride = null
-    if (type === "url") {
+    if (element instanceof HTMLAnchorElement) {
+        ({href} = element)
         // Set links to the current page as type 'other'
-        if (!element.href) {
+        if (!href) {
             typeOverride = "other"
-        } else if (element.href === window.location.href) {
+        } else if (href === window.location.href) {
             typeOverride = "other"
-        } else if (element.href === `${window.location.href}#`) {
+        } else if (href === `${window.location.href}#`) {
             typeOverride = "other"
-        } else if (element.href?.startsWith?.("javascript:")) {
+        } else if (href?.startsWith?.("javascript:")) {
             typeOverride = "other"
         }
         // Empty the href for links that require a specific data method to open
@@ -429,9 +430,14 @@ const clickListener = (e, frame = null) => {
         const paddingInfo = findFrameInfo(frame)
         const inputEl = e.composedPath().find(
             el => matchesQuery(el, textlikeInputs))
-        const focusEl = [
-            inputEl, inputEl?.parentNode, inputEl?.parentNode?.parentNode
-        ].find(el => el?.click && el?.focus)
+        let focusEl = null
+        if (inputEl instanceof HTMLElement) {
+            focusEl = [
+                inputEl,
+                inputEl?.parentElement,
+                inputEl?.parentElement?.parentElement
+            ].find(el => el?.click && el?.focus)
+        }
         if (focusEl) {
             previouslyFocussedElements.push(focusEl)
         }
@@ -538,41 +544,50 @@ const getSvgData = el => `data:image/svg+xml,${encodeURIComponent(el.outerHTML)
  *
  * @param {MouseEvent} e
  * @param {HTMLIFrameElement|null} frame
- * @param {null} extraData
+ * @param {object|null} extraData
  */
 const contextListener = (e, frame = null, extraData = null) => {
     if (e.isTrusted && !currentFollowStatus && e.button === 2) {
         e.preventDefault?.()
         const paddingInfo = findFrameInfo(frame)
-        const img = e.composedPath().find(el => ["svg", "img"]
-            .includes(el.tagName?.toLowerCase()))
+        const img = e.composedPath().find(
+            /** @returns {el is HTMLImageElement} */
+            el => el instanceof HTMLImageElement)
+        const svg = e.composedPath().find(
+            /** @returns {el is SVGElement} */
+            el => el instanceof HTMLImageElement)
         const backgroundImg = e.composedPath().map(el => {
-            try {
+            if (el instanceof Element) {
                 const styling = getComputedStyle(el).backgroundImage
                 const url = styling.match(/url\(.*?\)/g)?.[0]
                 if (url) {
                     return url?.slice(5, -2)
                 }
-            } catch {
-                // Window and top-level nodes don't support getComputedStyle
             }
             return null
         }).find(url => url)
         const videoEl = e.composedPath().find(
-            el => el.tagName?.toLowerCase() === "video")
+            /** @returns {el is HTMLVideoElement} */
+            el => el instanceof HTMLVideoElement)
         const video = [
             videoEl,
-            videoEl?.querySelector("source[type^=video]")
+            [...videoEl?.querySelectorAll("source") ?? []].find(
+                el => el.getAttribute("type")?.startsWith("audio"))
         ].find(el => el?.src.trim())
         const audioEl = e.composedPath().find(
-            el => el.tagName?.toLowerCase() === "audio")
+            /** @returns {el is HTMLAudioElement} */
+            el => el instanceof HTMLAudioElement)
         const audio = [
             audioEl,
-            audioEl?.querySelector("source[type^=audio]"),
-            videoEl?.querySelector("source[type^=audio]")
+            [...audioEl?.querySelectorAll("source") ?? []].find(
+                el => el.getAttribute("type")?.startsWith("audio")),
+            [...videoEl?.querySelectorAll("source") ?? []].find(
+                el => el.getAttribute("type")?.startsWith("audio"))
         ].find(el => el?.src.trim())
-        const link = e.composedPath().find(
-            el => el.tagName?.toLowerCase() === "a" && el.href?.trim())
+        const link = e.composedPath().filter(
+            /** @returns {el is HTMLAnchorElement} */
+            el => el instanceof HTMLAnchorElement)
+            .find(el => el.href?.trim())
         const text = e.composedPath().find(
             el => matchesQuery(el, textlikeInputs))
         ipcRenderer.send("context-click-info", {
@@ -580,7 +595,7 @@ const contextListener = (e, frame = null, extraData = null) => {
             "audioData": {
                 "controllable": !!audioEl,
                 "loop": ["", "loop", "true"].includes(
-                    audioEl?.getAttribute("loop")),
+                    audioEl?.getAttribute("loop") ?? "false"),
                 "muted": audioEl?.volume === 0,
                 "paused": audioEl?.paused
             },
@@ -599,15 +614,15 @@ const contextListener = (e, frame = null, extraData = null) => {
             "inputVal": text?.selectionStart && text?.value
                 || text?.getRootNode().getSelection()?.baseNode?.textContent,
             "link": link?.href?.trim(),
-            "svgData": img && getSvgData(img),
+            "svgData": svg && getSvgData(svg),
             "text": (frame?.contentWindow || window).getSelection()?.toString(),
             "video": video?.src?.trim(),
             "videoData": {
                 "controllable": !!videoEl,
                 "controls": ["", "controls", "true"].includes(
-                    videoEl?.getAttribute("controls")),
+                    videoEl?.getAttribute("controls") ?? "false"),
                 "loop": ["", "loop", "true"].includes(
-                    videoEl?.getAttribute("loop")),
+                    videoEl?.getAttribute("loop") ?? "false"),
                 "muted": videoEl?.volume === 0,
                 "paused": videoEl?.paused
             },
@@ -618,7 +633,11 @@ const contextListener = (e, frame = null, extraData = null) => {
 }
 ipcRenderer.on("contextmenu-data", (_, request) => {
     const {x, y} = request
-    const els = [findElementAtPosition(x, y)]
+    const el = findElementAtPosition(x, y)
+    if (!(el instanceof Element)) {
+        return
+    }
+    const els = [el]
     while (els[0].parentNode && els[0].parentNode !== els[1]?.parentNode) {
         if (els[0].parentNode instanceof Element) {
             els.unshift(els[0].parentNode)
@@ -632,7 +651,11 @@ ipcRenderer.on("contextmenu-data", (_, request) => {
     }, findFrameInfo(els[0])?.element, request)
 })
 ipcRenderer.on("contextmenu", () => {
-    const els = [activeElement()]
+    const el = activeElement()
+    if (!(el instanceof HTMLElement)) {
+        return
+    }
+    const els = [el]
     const parsed = parseElement(els[0])
     if (!parsed || ["iframe", "body"].includes(els[0].tagName.toLowerCase())) {
         return
@@ -642,7 +665,7 @@ ipcRenderer.on("contextmenu", () => {
         if (els[0] instanceof HTMLInputElement
             || els[0] instanceof HTMLTextAreaElement) {
             x = parsed.x + propPixels(els[0], "fontSize")
-                * els[0].selectionStart * 0.60191 - els[0].scrollLeft
+                * (els[0].selectionStart ?? 0) * 0.60191 - els[0].scrollLeft
         }
     }
     let y = parsed.y + parsed.height
@@ -653,8 +676,8 @@ ipcRenderer.on("contextmenu", () => {
         ({y} = parsed)
     }
     while (els[0].parentNode && els[0].parentNode !== els[1]?.parentNode) {
-        if (els[0].parentNode instanceof Element) {
-            els.unshift(els[0].parentNode)
+        if (els[0].parentElement instanceof Element) {
+            els.unshift(els[0].parentElement)
         } else {
             break
         }
@@ -675,11 +698,17 @@ ipcRenderer.on("keyboard-type-event", (_, keyOptions) => {
             || input instanceof HTMLTextAreaElement) {
             const cur = Number(input.selectionStart)
             input.value = `${input.value.substring(0, cur)}${keyOptions.key}${
-                input.value.substring(input.selectionEnd)}`
+                input.value.substring(input.selectionEnd ?? cur)}`
             input.setSelectionRange(cur + 1, cur + 1)
         }
     }
 })
+
+/**
+ * Check if an element can be scrolled vertically
+ *
+ * @param {Element} el
+ */
 const isVertScrollable = el => {
     const scrollEl = document.scrollingElement
     if ([scrollEl, scrollEl?.parentElement].includes(el)) {
@@ -688,6 +717,11 @@ const isVertScrollable = el => {
     return el.scrollHeight > el.clientHeight
         && ["scroll", "auto"].includes(getComputedStyle(el).overflowY)
 }
+/**
+ * Check if an element can be scrolled horizontally
+ *
+ * @param {Element} el
+ */
 const isHorScrollable = el => {
     const scrollEl = document.scrollingElement
     if ([scrollEl, scrollEl?.parentElement].includes(el)) {

@@ -181,7 +181,7 @@ const init = () => {
 const saveTabs = () => {
     /** @type {{
      *   closed: {
-     *     container: string, muted: boolean, url: string, index: number
+     *     container: string, muted: boolean, url: string, index?: number
      *   }[]
      *   pinned: {container: string, muted: boolean, url: string}[]
      *   tabs: {container: string, muted: boolean, url: string}[]

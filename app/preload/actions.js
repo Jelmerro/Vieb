@@ -118,6 +118,12 @@ const exitFullscreen = () => document.exitFullscreen()
 /** @type {{[filename: string]: Element}} */
 const writeableInputs = {}
 
+/**
+ * Set the text of an input to what was edited inside the vimcommand editor
+ *
+ * @param {string} filename
+ * @param {string} text
+ */
 const setInputFieldText = (filename, text) => {
     const el = writeableInputs[filename]
     if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
@@ -127,6 +133,11 @@ const setInputFieldText = (filename, text) => {
     }
 }
 
+/**
+ * Write the contents of a specific input to a file
+ *
+ * @param {string} filename
+ */
 const writeInputToFile = filename => {
     const el = activeElement()
     if (!el) {
@@ -204,10 +215,25 @@ const volumeUp = (x, y) => {
 const documentAtPos = (x, y) => findElementAtPosition(x, y)
     ?.ownerDocument || document
 
+/**
+ * Check if a node is a text node
+ *
+ * @param {any} node
+ * @returns {node is Text|Comment|CDATASection}
+ */
 const isTextNode = node => [
     Node.TEXT_NODE, Node.COMMENT_NODE, Node.CDATA_SECTION_NODE
 ].includes(node.nodeType)
 
+/**
+ * Calculate the offset in characters for a given position in an element
+ *
+ * @param {Node} startNode
+ * @param {Number} startX
+ * @param {Number} startY
+ * @param {Number} x
+ * @param {Number} y
+ */
 const calculateOffset = (startNode, startX, startY, x, y) => {
     const range = (findElementAtPosition(startX, startY)
         ?.ownerDocument || document).createRange()
@@ -219,7 +245,18 @@ const calculateOffset = (startNode, startX, startY, x, y) => {
     }
     let properNode = startNode
     let offset = 0
+    /**
+     * Descend down into a node of the tree
+     *
+     * @param {Node} baseNode
+     */
     const descendNodeTree = baseNode => {
+        /**
+         * Find a point inside the range
+         *
+         * @param {Number} start
+         * @param {Number} end
+         */
         const pointInsideRegion = (start, end) => {
             range.setStart(baseNode, start)
             range.setEnd(baseNode, end)
@@ -263,6 +300,14 @@ const selectionCut = (x, y) => documentAtPos(x, y).execCommand("cut")
 const selectionPaste = (x, y) => documentAtPos(x, y).execCommand("paste")
 const selectionRemove = (x, y) => documentAtPos(x, y).getSelection()
     ?.removeAllRanges()
+/**
+ * Make a new selection from start position to end position
+ *
+ * @param {Number} startX
+ * @param {Number} startY
+ * @param {Number} endX
+ * @param {Number} endY
+ */
 const selectionRequest = (startX, startY, endX, endY) => {
     querySelectorAll("*")
     let startNode = findElementAtPosition(startX, startY)
@@ -274,7 +319,7 @@ const selectionRequest = (startX, startY, endX, endY) => {
     const startResult = calculateOffset(startNode, startX, startY,
         startX - (padding?.x || 0), startY - (padding?.y || 0))
     const endNode = findElementAtPosition(endX, endY)
-    const endResult = calculateOffset(endNode, startX, startY,
+    const endResult = calculateOffset(endNode ?? document.body, startX, startY,
         endX - (padding?.x || 0), endY - (padding?.y || 0))
     const newSelectRange = selectDocument.createRange()
     newSelectRange.setStart(startResult.node, startResult.offset)
@@ -297,18 +342,28 @@ const selectionRequest = (startX, startY, endX, endY) => {
     }
 }
 
+/**
+ * Translate a page based on api name, url, language and api key
+ *
+ * @param {string} api
+ * @param {string} url
+ * @param {string} lang
+ * @param {string} apiKey
+ */
 const translatepage = async(api, url, lang, apiKey) => {
     [...document.querySelectorAll("rt")].forEach(r => r.remove())
-    ;[...document.querySelectorAll("ruby")].forEach(r => r.parentNode
-        .replaceChild(document.createTextNode(r.textContent), r))
+    ;[...document.querySelectorAll("ruby")].forEach(r => r?.parentNode
+        ?.replaceChild(document.createTextNode(r?.textContent ?? ""), r))
     const tree = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
     let textNodes = []
+    /** @type {TreeWalker|{currentNode: null}} */
     let {currentNode} = tree
     while (currentNode) {
         textNodes.push(currentNode)
         currentNode = tree.nextNode()
     }
-    textNodes = textNodes.filter(n => n.nodeValue?.length > 5)
+    textNodes = textNodes.filter(n => (n.nodeValue?.length ?? 0) > 5)
+    /** @type {Node[]} */
     let baseNodes = []
     textNodes.forEach(n => {
         let base = n.parentNode ?? n
@@ -343,7 +398,7 @@ const translatepage = async(api, url, lang, apiKey) => {
         baseNodes = baseNodes.filter(b => b !== base)
         return null
     }).filter(el => el)
-    const strings = parsedNodes.map(n => n.innerHTML)
+    const strings = parsedNodes.map(n => n?.innerHTML ?? "")
     if (api === "libretranslate") {
         try {
             const srcResponse = await fetchJSON(`${url}/detect`, {
