@@ -247,7 +247,8 @@ const defaultSettings = {
     "vimcommand": "gvim",
     "windowtitle": "%app - %title"
 }
-let allSettings = {}
+/** @type {typeof defaultSettings} */
+let allSettings = JSON.parse(JSON.stringify(defaultSettings))
 const freeText = [
     "downloadpath",
     "externalcommand",
@@ -477,7 +478,9 @@ const numberRanges = {
     "suspendtimeout": [0, 9000000000000000],
     "timeoutlen": [0, 9000000000000000]
 }
+/** @type {(keyof typeof defaultSettings)[]} */
 const acceptsIntervals = ["clearhistoryinterval"]
+/** @type {(keyof typeof defaultSettings)[]} */
 const acceptsInvertedIntervals = []
 let customStyling = ""
 const downloadSettings = [
@@ -489,6 +492,7 @@ const downloadSettings = [
 const containerSettings = [
     "containernewtab", "containersplitpage", "containerstartuppage"
 ]
+/** @type {string[]} */
 let spelllangs = []
 
 const init = () => {
@@ -516,6 +520,12 @@ const init = () => {
         allSettings.adblocker, allSettings.cache !== "none")
 }
 
+/**
+ * Check if an option is considered a valid one, only checks at all if an enum
+ *
+ * @param {keyof typeof validOptions} setting
+ * @param {string} value
+ */
 const checkOption = (setting, value) => {
     const optionList = JSON.parse(JSON.stringify(validOptions[setting]))
     if (optionList) {
@@ -534,6 +544,12 @@ const checkOption = (setting, value) => {
     return false
 }
 
+/**
+ * Check if an option is considered a valid value for a number setting
+ *
+ * @param {keyof typeof numberRanges} setting
+ * @param {Number} value
+ */
 const checkNumber = (setting, value) => {
     const numberRange = numberRanges[setting]
     if (numberRange[0] > value || numberRange[1] < value) {
@@ -544,9 +560,18 @@ const checkNumber = (setting, value) => {
     return true
 }
 
+/**
+ * Check if other more advanced settings are configured correctly
+ *
+ * @param {keyof typeof defaultSettings} setting
+ * @param {Number|string|boolean} value
+ */
 const checkOther = (setting, value) => {
     // Special cases
     if (setting === "clearhistoryinterval") {
+        if (typeof value !== "string") {
+            return false
+        }
         const valid = ["session", "none"].includes(value)
             || isValidIntervalValue(value)
         if (!valid) {
@@ -556,6 +581,9 @@ const checkOther = (setting, value) => {
         return valid
     }
     if (containerSettings.includes(setting)) {
+        if (typeof value !== "string") {
+            return false
+        }
         const specialNames = ["s:usematching", "s:usecurrent"]
         if (setting !== "containersplitpage") {
             specialNames.push("s:replacematching", "s:replacecurrent")
@@ -583,6 +611,9 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "containercolors") {
+        if (typeof value !== "string") {
+            return false
+        }
         for (const colorMatch of value.split(",").filter(c => c.trim())) {
             if ((colorMatch.match(/~/g) || []).length !== 1) {
                 notify(`Invalid ${setting} entry: ${colorMatch}\n`
@@ -610,6 +641,9 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "containernames") {
+        if (typeof value !== "string") {
+            return false
+        }
         for (const containerMatch of value.split(",").filter(c => c.trim())) {
             if (![1, 2].includes((containerMatch.match(/~/g) || []).length)) {
                 notify(`Invalid ${setting} entry: ${containerMatch}\n`
@@ -643,6 +677,9 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "darkreaderfg" || setting === "darkreaderbg") {
+        if (typeof value !== "string") {
+            return false
+        }
         const {style} = document.createElement("div")
         style.color = "white"
         style.color = value
@@ -653,6 +690,9 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "darkreaderblocklist") {
+        if (typeof value !== "string") {
+            return false
+        }
         for (const match of value.split("~").filter(c => c.trim())) {
             try {
                 RegExp(match)
@@ -665,6 +705,9 @@ const checkOther = (setting, value) => {
     }
     const scopeConf = ["darkreaderscope", "userscriptscope", "userstylescope"]
     if (scopeConf.includes(setting)) {
+        if (typeof value !== "string") {
+            return false
+        }
         for (const match of value.split(",").filter(c => c.trim())) {
             if (!["file", "page", "special"].includes(match)) {
                 notify(`Invalid value '${match}' in ${setting}, `
@@ -674,6 +717,9 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "downloadpath") {
+        if (typeof value !== "string") {
+            return false
+        }
         const expandedPath = expandPath(value)
         if (value && !pathExists(expandedPath)) {
             notify("The download path does not exist", "warn")
@@ -685,6 +731,9 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "favoritepages") {
+        if (typeof value !== "string") {
+            return false
+        }
         for (const page of value.split(",").filter(p => p.trim())) {
             if (!isUrl(page)) {
                 notify(`Invalid URL passed to favoritepages: ${page}`, "warn")
@@ -693,6 +742,9 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "followchars") {
+        if (typeof value !== "string") {
+            return false
+        }
         const ok = [
             "all",
             "alpha",
@@ -720,6 +772,9 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting.startsWith("followelement")) {
+        if (typeof value !== "string") {
+            return false
+        }
         const ok = [
             "url",
             "onclick",
@@ -739,9 +794,13 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "modifiers") {
-        const {"keyNames": valid} = require("./input")
+        if (typeof value !== "string") {
+            return false
+        }
+        const {keyNames} = require("./input")
         for (const name of value.split(",").filter(n => n.trim())) {
-            if (name.length > 1 && !valid.some(key => key.vim.includes(name))) {
+            if (name.length > 1
+                && !keyNames.some(key => key.vim.includes(name))) {
                 notify(`Key name '${name}' is not recognized as a valid key`,
                     "warn")
                 return false
@@ -749,6 +808,9 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "mouse") {
+        if (typeof value !== "string") {
+            return false
+        }
         const invalid = value.split(",").find(
             v => !mouseFeatures.includes(v) && v !== "all")
         if (invalid) {
@@ -757,6 +819,9 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "newtaburl") {
+        if (typeof value !== "string") {
+            return false
+        }
         if (value && !isUrl(stringToUrl(value).replace(/^https?:\/\//g, ""))) {
             notify("The newtaburl value must be a valid url or empty", "warn")
             return false
@@ -766,6 +831,9 @@ const checkOther = (setting, value) => {
         "permissionsallowed", "permissionsasked", "permissionsblocked"
     ]
     if (permissionSettings.includes(setting)) {
+        if (typeof value !== "string") {
+            return false
+        }
         for (const override of value.split(",").filter(o => o.trim())) {
             if ((override.match(/~/g) || []).length === 0) {
                 notify(`Invalid ${setting} entry: ${override}\n`
@@ -791,7 +859,7 @@ const checkOther = (setting, value) => {
                     return true
                 }
                 const reservedName = permissionSettings.includes(name)
-                if (reservedName || !allSettings[name]) {
+                if (reservedName || !(name in defaultSettings)) {
                     notify(
                         `Invalid name for a permission: ${name}`, "warn")
                     return false
@@ -818,6 +886,9 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "quickmarkpersistence" && value !== "") {
+        if (typeof value !== "string") {
+            return false
+        }
         for (const mType of value.split(",").filter(l => l.trim())) {
             if (!["scroll", "marks", "pointer"].includes(mType)) {
                 notify(`Invalid quickmark type passed to ${setting}: ${mType}`,
@@ -827,6 +898,9 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "redirects") {
+        if (typeof value !== "string") {
+            return false
+        }
         for (const redirect of value.split(",").filter(r => r.trim())) {
             if ((redirect.match(/~/g) || []).length !== 1) {
                 notify(`Invalid redirect entry: ${redirect}\n`
@@ -845,6 +919,9 @@ const checkOther = (setting, value) => {
         }
     }
     if (["resourcesallowed", "resourcesblocked"].includes(setting)) {
+        if (typeof value !== "string") {
+            return false
+        }
         for (const override of value.split(",").filter(o => o.trim())) {
             const [match, ...names] = override.split("~")
             try {
@@ -866,6 +943,9 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "resourcetypes" && value !== "") {
+        if (typeof value !== "string") {
+            return false
+        }
         for (const rsrc of value.split(",").filter(l => l.trim())) {
             if (!defaultSettings.resourcetypes.split(",").includes(rsrc)) {
                 notify(`Invalid resource type passed to ${setting}: ${rsrc}`,
@@ -875,6 +955,9 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "searchengine") {
+        if (typeof value !== "string") {
+            return false
+        }
         for (let baseUrl of value.split(",").filter(e => e.trim())) {
             baseUrl = baseUrl.replace(/^https?:\/\//g, "")
             if (baseUrl.length === 0 || !baseUrl.includes("%s")) {
@@ -892,6 +975,10 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "searchwords") {
+        if (typeof value !== "string") {
+            return false
+        }
+        /** @type {string[]} */
         const knownSearchwords = []
         for (const searchword of value.split(",").filter(s => s.trim())) {
             if ((searchword.match(/~/g) || []).length !== 1) {
@@ -925,6 +1012,9 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "spelllang" && value !== "") {
+        if (typeof value !== "string") {
+            return false
+        }
         for (const lang of value.split(",").filter(l => l.trim())) {
             if (spelllangs.length && !spelllangs.includes(lang)) {
                 notify(`Invalid language passed to spelllang: ${lang}`,
@@ -934,6 +1024,10 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "sponsorblockcategories") {
+        if (typeof value !== "string") {
+            return false
+        }
+        /** @type {string[]} */
         const knownCategories = []
         const allCategories = defaultSettings.sponsorblockcategories
             .split(",").map(s => s.split("~")[0])
@@ -967,9 +1061,12 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "startuppages") {
+        if (typeof value !== "string") {
+            return false
+        }
         for (const page of value.split(",").filter(p => p.trim())) {
             const parts = page.split("~")
-            const url = parts.shift()
+            const url = parts.shift() ?? ""
             const cname = parts.shift()
             if (!isUrl(url)) {
                 notify(`Invalid URL passed to startuppages: ${url}`, "warn")
@@ -1007,6 +1104,9 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "storenewvisits") {
+        if (typeof value !== "string") {
+            return false
+        }
         const valid = [
             "pages",
             "files",
@@ -1024,9 +1124,15 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "suggestorder") {
+        if (typeof value !== "string") {
+            return false
+        }
         return checkSuggestOrder(value)
     }
     if (setting === "translateurl") {
+        if (typeof value !== "string") {
+            return false
+        }
         if (!isUrl(stringToUrl(value).replace(/^https?:\/\//g, ""))) {
             notify("The translateurl value must be a valid url", "warn")
             return false
@@ -1035,6 +1141,11 @@ const checkOther = (setting, value) => {
     return true
 }
 
+/**
+ * Check if the provided suggest order is valid
+ *
+ * @param {string} value
+ */
 const checkSuggestOrder = value => {
     for (const suggest of value.split(",").filter(s => s.trim())) {
         const parts = (suggest.match(/~/g) || []).length
@@ -1045,7 +1156,7 @@ const checkSuggestOrder = value => {
             return false
         }
         const args = suggest.split("~")
-        const type = args.shift()
+        const type = args.shift() ?? ""
         if (!["history", "file", "searchword"].includes(type)) {
             notify(`Invalid suggestorder type: ${type}\n`
                     + "Suggestion type must be one of: history, file or "
@@ -1097,6 +1208,28 @@ const checkSuggestOrder = value => {
     return true
 }
 
+/**
+ * Check if a setting is of type enum, so it has to validate the valid opts
+ *
+ * @param {string} set
+ * @returns {set is keyof typeof validOptions}
+ */
+const isEnumSetting = set => set in validOptions
+
+/**
+ * Check if a setting is of type number, so it has to validate the ranges
+ *
+ * @param {string} set
+ * @returns {set is keyof typeof numberRanges}
+ */
+const isNumberSetting = set => set in numberRanges
+
+/**
+ * Check if a setting will be valid for a given value
+ *
+ * @param {keyof typeof defaultSettings} setting
+ * @param {string|Number|boolean} value
+ */
 const isValidSetting = (setting, value) => {
     if (allSettings[setting] === undefined) {
         notify(`The setting '${setting}' doesn't exist`, "warn")
@@ -1119,10 +1252,16 @@ const isValidSetting = (setting, value) => {
             + `'${typeof parsedValue}' instead.`, "warn")
         return false
     }
-    if (validOptions[setting]) {
+    if (isEnumSetting(setting)) {
+        if (typeof parsedValue !== "string") {
+            return false
+        }
         return checkOption(setting, parsedValue)
     }
-    if (numberRanges[setting]) {
+    if (isNumberSetting(setting)) {
+        if (typeof parsedValue !== "number") {
+            return false
+        }
         return checkNumber(setting, parsedValue)
     }
     return checkOther(setting, parsedValue)
@@ -1155,12 +1294,12 @@ const updateContainerSettings = (full = true) => {
     if (full) {
         for (const page of listPages()) {
             const color = allSettings.containercolors.split(",").find(
-                c => page.getAttribute("container").match(c.split("~")[0]))
+                c => page.getAttribute("container")?.match(c.split("~")[0]))
             const tab = tabForPage(page)
             if (tab && color) {
                 [, tab.style.color] = color.split("~")
             } else if (tab) {
-                tab.style.color = null
+                tab.style.color = ""
             }
         }
     }
@@ -1171,28 +1310,35 @@ const updateContainerSettings = (full = true) => {
     const color = allSettings.containercolors.split(",").find(
         c => container.match(c.split("~")[0]))
     const show = allSettings.containershowname
+    const containerNameEl = document.getElementById("containername")
+    if (!containerNameEl) {
+        return
+    }
     if (container === "main" && show === "automatic" || show === "never") {
-        document.getElementById("containername").style.display = "none"
+        containerNameEl.style.display = "none"
     } else {
-        document.getElementById("containername").textContent = container
+        containerNameEl.textContent = container
         if (color) {
-            [, document.getElementById("containername")
+            [, containerNameEl
                 .style.color] = color.split("~")
         } else {
-            document.getElementById("containername").style.color = null
+            containerNameEl.style.color = ""
         }
-        document.getElementById("containername").style.display = null
+        containerNameEl.style.display = ""
     }
 }
 
 const updateDownloadSettings = () => {
     const downloads = {}
     downloadSettings.forEach(setting => {
-        downloads[setting] = allSettings[setting]
+        if (setting in allSettings) {
+            downloads[setting] = allSettings[setting]
+        }
     })
     ipcRenderer.send("set-download-settings", downloads)
 }
 
+/** @type {(keyof typeof defaultSettings)[]} */
 const webviewSettings = [
     "darkreader",
     "darkreaderbg",
@@ -1249,7 +1395,8 @@ const updatePermissionSettings = () => {
 
 const updateHelpPage = () => {
     listRealPages().forEach(p => {
-        if (pathToSpecialPageName(p.getAttribute("src"))?.name === "help") {
+        const special = pathToSpecialPageName(p.getAttribute("src") ?? "")
+        if (special?.name === "help") {
             const {
                 listMappingsAsCommandList, uncountableActions
             } = require("./input")
@@ -1272,7 +1419,7 @@ const suggestionList = () => {
             listOfSuggestions.push(`${setting}!`)
             listOfSuggestions.push(`no${setting}`)
             listOfSuggestions.push(`inv${setting}`)
-        } else if (validOptions[setting]) {
+        } else if (isEnumSetting(setting)) {
             listOfSuggestions.push(`${setting}!`)
             listOfSuggestions.push(`${setting}=`)
             for (const option of validOptions[setting]) {
@@ -1340,7 +1487,9 @@ const suggestionList = () => {
 const loadFromDisk = (firstRun = true) => {
     const {pause, resume} = require("./commandhistory")
     pause()
-    const {files, islite} = appConfig()
+    const config = appConfig()
+    const islite = config?.islite ?? false
+    const files = config?.files ?? []
     if (islite) {
         defaultSettings.adblocker = "off"
         validOptions.adblocker = ["off"]
@@ -1382,6 +1531,11 @@ const loadFromDisk = (firstRun = true) => {
     resume()
 }
 
+/**
+ * Reset a setting to its default value
+ *
+ * @param {keyof typeof defaultSettings|"all"} setting
+ */
 const reset = setting => {
     if (setting === "all") {
         Object.keys(defaultSettings).forEach(s => set(s, defaultSettings[s]))
@@ -1392,22 +1546,40 @@ const reset = setting => {
     }
 }
 
+/**
+ * Set the value of a setting, if considered valid, else notify the user
+ *
+ * @param {keyof typeof defaultSettings} setting
+ * @param {string|Number|boolean} value
+ */
 const set = (setting, value) => {
     if (isValidSetting(setting, value)) {
+        // The ts-expect-error statements are there because of this issue:
+        // https://github.com/microsoft/TypeScript/issues/31663
         const {applyLayout} = require("./pagelayout")
         if (typeof allSettings[setting] === "boolean") {
-            allSettings[setting] = ["true", true].includes(value)
+            // @ts-expect-error #bug in TS since very long
+            allSettings[setting] = typeof value !== "number"
+                && ["true", true].includes(value)
         } else if (typeof allSettings[setting] === "number") {
+            // @ts-expect-error #bug in TS since very long
             allSettings[setting] = Number(value)
         } else if (listLike.includes(setting)) {
             // Remove empty and duplicate elements from the comma separated list
-            allSettings[setting] = Array.from(new Set(
-                value.split(",").map(e => e.trim()).filter(e => e))).join(",")
+            if (typeof value === "string") {
+                // @ts-expect-error #bug in TS since very long
+                allSettings[setting] = Array.from(new Set(value
+                    .split(",").map(e => e.trim()).filter(e => e))).join(",")
+            }
         } else if (listLikeTilde.includes(setting)) {
             // Remove empty and duplicate elements from the comma separated list
-            allSettings[setting] = Array.from(new Set(
-                value.split("~").map(e => e.trim()).filter(e => e))).join("~")
+            if (typeof value === "string") {
+                // @ts-expect-error #bug in TS since very long
+                allSettings[setting] = Array.from(new Set(value
+                    .split("~").map(e => e.trim()).filter(e => e))).join("~")
+            }
         } else {
+            // @ts-expect-error #bug in TS since very long
             allSettings[setting] = value
         }
         if (setting === "mouse") {
@@ -1433,8 +1605,10 @@ const set = (setting, value) => {
             updateContainerSettings()
         }
         if (setting === "useragent") {
-            ipcRenderer.sendSync("override-global-useragent",
-                userAgentTemplated(value.split("~")[0]))
+            if (typeof value === "string") {
+                ipcRenderer.sendSync("override-global-useragent",
+                    userAgentTemplated(value.split("~")[0]))
+            }
         }
         if (setting === "guifontsize") {
             updateCustomStyling()
@@ -1457,11 +1631,7 @@ const set = (setting, value) => {
             listTabs().forEach(tab => {
                 tab.style.minWidth = `${allSettings.mintabwidth}px`
             })
-            try {
-                currentTab().scrollIntoView({"inline": "center"})
-            } catch {
-                // No tabs present yet
-            }
+            currentTab()?.scrollIntoView({"inline": "center"})
             applyLayout()
         }
         if (setting === "mouse" || setting === "mousedisabledbehavior") {
@@ -1488,10 +1658,10 @@ const set = (setting, value) => {
         }
         if (setting === "taboverflow") {
             const tabs = document.getElementById("tabs")
-            tabs.classList.remove("scroll")
-            tabs.classList.remove("wrap")
-            if (value !== "hidden") {
-                tabs.classList.add(value)
+            tabs?.classList.remove("scroll")
+            tabs?.classList.remove("wrap")
+            if (typeof value === "string" && value !== "hidden") {
+                tabs?.classList.add(value)
             }
             currentTab()?.scrollIntoView({"inline": "center"})
             applyLayout()
@@ -1551,9 +1721,11 @@ const set = (setting, value) => {
 }
 
 const updateWindowTitle = () => {
-    const {name, version} = appConfig()
+    const config = appConfig()
+    const name = config?.name ?? ""
+    const version = config?.version ?? ""
     const title = tabForPage(currentPage())
-        ?.querySelector("span").textContent || ""
+        ?.querySelector("span")?.textContent || ""
     let url = currentPage()?.src || ""
     const specialPage = pathToSpecialPageName(url)
     if (specialPage?.name) {
@@ -1569,6 +1741,7 @@ const updateWindowTitle = () => {
 
 const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     let typeLabel = "String"
+    /** @type {string|string[]} */
     let allowedValues = ""
     if (listLike.includes(setting)) {
         typeLabel = "List"
@@ -1578,11 +1751,11 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
         typeLabel = "List"
         allowedValues = "Tilde-separated list"
     }
-    if (validOptions[setting]) {
+    if (isEnumSetting(setting)) {
         typeLabel = "Enum"
         allowedValues = validOptions[setting]
     }
-    if (typeof allSettings[setting] === "boolean") {
+    if (allSettings[setting] === "boolean") {
         typeLabel = "Boolean"
         allowedValues = "true,false"
     }
@@ -1629,7 +1802,7 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     if (setting === "windowtitle") {
         allowedValues = "Any title"
     }
-    if (typeof allSettings[setting] === "number") {
+    if (isNumberSetting(setting)) {
         typeLabel = "Number"
         if (numberRanges[setting]) {
             allowedValues = `from ${
@@ -1645,17 +1818,31 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     }
 })
 
+/**
+ * Escape value chars as needed
+ *
+ * @param {string|Number} value
+ */
 const escapeValueChars = value => {
-    if (value?.match?.(/(')/g)?.length) {
+    if (typeof value === "number") {
+        return value
+    }
+    if (value.match(/(')/g)?.length) {
         return `"${value}"`
     }
-    if (value?.match?.(/("| )/g)?.length) {
+    if (value.match(/("| )/g)?.length) {
         return `'${value}'`
     }
     return value
 }
 
+/**
+ * List all current settings, optionally with defaults included
+ *
+ * @param {boolean} full
+ */
 const listCurrentSettings = full => {
+    /** @type {typeof defaultSettings} */
     const settings = JSON.parse(JSON.stringify(allSettings))
     if (!full) {
         const defaults = JSON.parse(JSON.stringify(defaultSettings))
@@ -1676,7 +1863,7 @@ const listCurrentSettings = full => {
             }
             return
         }
-        if (listLike.includes(setting)) {
+        if (listLike.includes(setting) && typeof value === "string") {
             const entries = value.split(",")
             if (entries.length > 1 || value.match(/( |'|")/g)) {
                 setCommands += `${setting}=\n`
@@ -1686,7 +1873,7 @@ const listCurrentSettings = full => {
                 return
             }
         }
-        if (listLikeTilde.includes(setting)) {
+        if (listLikeTilde.includes(setting) && typeof value === "string") {
             const entries = value.split("~")
             if (entries.length > 1 || value.match(/( |'|")/g)) {
                 setCommands += `${setting}=\n`
@@ -1701,6 +1888,11 @@ const listCurrentSettings = full => {
     return setCommands
 }
 
+/**
+ * Save the current settings, mappings, custom commands and colorscheme to disk
+ *
+ * @param {boolean} full
+ */
 const saveToDisk = full => {
     let settingsAsCommands = ""
     const options = listCurrentSettings(full).split("\n").filter(s => s)
@@ -1724,11 +1916,20 @@ const saveToDisk = full => {
         settingsAsCommands += `" Commands\n${commands}\n\n`
     }
     settingsAsCommands += "\" Viebrc generated by Vieb\n\" vim: ft=vim\n"
-    const destFile = appConfig().config
-    writeFile(destFile, settingsAsCommands,
-        `Could not write to '${destFile}'`, `Viebrc saved to '${destFile}'`)
+    const destFile = appConfig()?.config
+    if (destFile) {
+        writeFile(destFile, settingsAsCommands,
+            `Could not write to '${destFile}'`, `Viebrc saved to '${destFile}'`)
+    } else {
+        notify("No config location is known, could not write", "error")
+    }
 }
 
+/**
+ * Apply custom styling based on the colorscheme
+ *
+ * @param {string} css
+ */
 const setCustomStyling = css => {
     customStyling = css
     updateCustomStyling()

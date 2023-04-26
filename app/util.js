@@ -365,10 +365,10 @@ const sameDomain = (url1, url2) => {
 /**
  * Format a provided date, unix time or
  *
- * @param {string|number|Date} dateStringOrNumber
+ * @param {string|number|Date|null|undefined} dateStringOrNumber
  */
 const formatDate = dateStringOrNumber => {
-    let date = new Date(dateStringOrNumber)
+    let date = new Date(dateStringOrNumber ?? "")
     if (typeof dateStringOrNumber === "number") {
         date = new Date(dateStringOrNumber * 1000)
     }

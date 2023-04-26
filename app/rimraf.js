@@ -1,6 +1,6 @@
 /* The ISC License
 
-This is a sync-only no-glob native-fs rework of rimraf that works in Windows
+This is a sync-only no-glob native-fs reworked rimraf that also works in Windows
 
 - NodeJS forked the code and then broke/removed all the Windows fixes
 - rimraf has a hard dependency on glob and async versions which are unnecessary
@@ -25,6 +25,14 @@ IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 const fs = require("fs")
 
 /**
+ * Check if the exception is a NodeJS Errno Exception
+ *
+ * @param {any} e
+ * @returns {e is NodeJS.ErrnoException}
+ */
+const isErrnoException = e => "code" in e
+
+/**
  * Workaround for window EPERM errors, just retry a lot of times till it works
  *
  * @param {string} p
@@ -34,7 +42,7 @@ const fixWinEPERMSync = (p, er) => {
     try {
         fs.chmodSync(p, 0o666)
     } catch (er2) {
-        if (er2.code === "ENOENT") {
+        if (isErrnoException(er2) && er2.code === "ENOENT") {
             return
         }
         throw er
@@ -43,7 +51,7 @@ const fixWinEPERMSync = (p, er) => {
     try {
         stats = fs.statSync(p)
     } catch (er3) {
-        if (er3.code === "ENOENT") {
+        if (isErrnoException(er3) && er3.code === "ENOENT") {
             return
         }
         throw er
@@ -65,11 +73,13 @@ const rimrafSync = p => {
     try {
         st = fs.lstatSync(p)
     } catch (er) {
-        if (er.code === "ENOENT") {
+        if (isErrnoException(er) && er.code === "ENOENT") {
             return
         }
-        if (er.code === "EPERM" && process.platform === "win32") {
-            fixWinEPERMSync(p, er)
+        if (process.platform === "win32") {
+            if (isErrnoException(er) && er.code === "EPERM") {
+                fixWinEPERMSync(p, er)
+            }
         }
     }
     try {
@@ -79,19 +89,21 @@ const rimrafSync = p => {
             fs.unlinkSync(p)
         }
     } catch (er) {
-        if (er.code === "ENOENT") {
+        if (isErrnoException(er) && er.code === "ENOENT") {
             return
         }
-        if (er.code === "EPERM") {
+        if (isErrnoException(er) && er.code === "EPERM") {
             if (process.platform === "win32") {
                 return fixWinEPERMSync(p, er)
             }
             return rmdirSync(p, er)
         }
-        if (er.code !== "EISDIR") {
+        if (isErrnoException(er) && er.code === "EISDIR") {
             throw er
         }
-        rmdirSync(p, er)
+        if (er instanceof Error) {
+            rmdirSync(p, er)
+        }
     }
 }
 
@@ -105,13 +117,14 @@ const rmdirSync = (p, originalEr) => {
     try {
         fs.rmdirSync(p)
     } catch (er) {
-        if (er.code === "ENOENT") {
+        if (isErrnoException(er) && er.code === "ENOENT") {
             return
         }
-        if (er.code === "ENOTDIR") {
+        if (isErrnoException(er) && er.code === "ENOTDIR") {
             throw originalEr
         }
-        if (["ENOTEMPTY", "EEXIST", "EPERM"].includes(er.code)) {
+        if (isErrnoException(er)
+            && ["ENOTEMPTY", "EEXIST", "EPERM"].includes(er.code ?? "")) {
             const {join} = require("path")
             fs.readdirSync(p).forEach(f => rimrafSync(join(p, f)))
             let retries = 1

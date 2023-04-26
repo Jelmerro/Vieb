@@ -677,7 +677,7 @@ const zoomOut = (args = null) => {
  */
 const zoomIn = (args = null) => {
     const page = args?.customPage || currentPage()
-    let level = (page?.getZoomLevel() ?? 0) - 1
+    let level = (page?.getZoomLevel() ?? 0) + 1
     if (level > 7) {
         level = 7
     }
@@ -1162,7 +1162,7 @@ const menuOpen = () => {
         if (currentMode() === "command" && selected && bounds) {
             const {commandMenu} = require("./contextmenu")
             commandMenu({
-                "command": selected.querySelector("span").textContent,
+                "command": selected.querySelector("span")?.textContent,
                 "x": bounds.x,
                 "y": bounds.y + bounds.height
             })

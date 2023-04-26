@@ -266,8 +266,6 @@ const mainInfoLoop = () => {
         "height": window.innerHeight,
         "pagex": window.scrollX,
         "pagey": window.scrollY,
-        "scrollHeight": document.body.scrollHeight,
-        "scrollWidth": document.body.scrollWidth,
         "subframes": frames.map(f => {
             const bounds = f.getBoundingClientRect()
             const framePos = framePosition(f)
@@ -283,7 +281,6 @@ const mainInfoLoop = () => {
                 }
             }
             return {
-                "bounds": JSON.stringify(bounds),
                 "height": bounds.height || f.clientHeight,
                 "url": f.src,
                 "width": bounds.width || f.clientWidth,
@@ -542,8 +539,15 @@ const getSvgData = el => `data:image/svg+xml,${encodeURIComponent(el.outerHTML)
 /**
  * Context menu listener that sends info to renderer via main
  *
- * @param {MouseEvent} e
- * @param {HTMLIFrameElement|null} frame
+ * @param {{
+ *   isTrusted: boolean
+ *   preventDefault?: () => void
+ *   button?: Number
+ *   composedPath: () => EventTarget[]
+ *   x: Number
+ *   y: Number
+ * }} e
+ * @param {Element|ShadowRoot|null} frame
  * @param {object|null} extraData
  */
 const contextListener = (e, frame = null, extraData = null) => {

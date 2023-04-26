@@ -200,6 +200,7 @@ const isTruthyArg = (arg = null) => {
     return Number(argStr) > 0 || ["y", "yes", "true", "on"].includes(argStr)
 }
 const args = getArguments(process.argv)
+/** @type {(string|{container?: unknown, url?: unknown, script?: unknown})[]} */
 const urls = []
 let argDebugMode = false
 let argDatafolder = process.env.VIEB_DATAFOLDER?.trim()
@@ -425,10 +426,18 @@ let promptWindow = null
 /**
  * Resolve local paths to absolute file protocol paths
  *
- * @param {string[]} paths
+ * @param {(string|{
+ *   container?: unknown, url?: unknown, script?: unknown
+ * })[]} paths
  * @param {string|null} cwd
  */
-const resolveLocalPaths = (paths, cwd = null) => paths.map(url => {
+const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
+    let url = ""
+    if (typeof u === "string") {
+        url = String(u)
+    } else if (typeof u === "object") {
+        url = String(u.url)
+    }
     if (!url) {
         return null
     }
@@ -759,6 +768,7 @@ let downloads = []
 let redirects = ""
 /** @type {import("@cliqz/adblocker-electron").ElectronBlocker|null} */
 let blocker = null
+/** @type {{[permission: string]: "allow"|"block"|"ask"|"allowfull"}} */
 let permissions = {}
 /** @type {string[]|null} */
 let resourceTypes = null
@@ -884,7 +894,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     newSess.setDevicePermissionHandler(
         details => permissionHandler(null, details.deviceType, null, {
             ...details, "requestingUrl": details.origin
-        }))
+        }) ?? false)
     sessionList.push(name)
     if (adblock !== "off") {
         if (blocker) {
@@ -1146,7 +1156,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         }
         /** @type {import("marked").marked|null} */
         let marked = null
-        // TODO #bug https://github.com/highlightjs/highlight.js/issues/3752
+        // #bug https://github.com/highlightjs/highlight.js/issues/3752
         /** @type {import("highlight.js")|null} */
         let hljs = null
         try {
@@ -1331,7 +1341,22 @@ const writeDownloadsToFile = () => {
         writeJSON(dlsFile, downloads)
     }
 }
+/** @type {{[domain: string]: string[]}} */
 const allowedFingerprints = {}
+/**
+ * Main check if a permission should be allowed or declined
+ *
+ * @param {Electron.WebContents|null} _
+ * @param {string} pm
+ * @param {null|((_: any) => void)} callback
+ * @param {{
+ *   mediaTypes?: string[],
+ *   externalURL?: string,
+ *   requestingUrl?: string
+ *   cert?: Electron.Certificate
+ *   error?: string
+ * }} details
+ */
 const permissionHandler = (_, pm, callback, details) => {
     if (!mainWindow) {
         return
@@ -1365,7 +1390,7 @@ const permissionHandler = (_, pm, callback, details) => {
         permissionName = "permissionunknown"
         setting = permissions.permissionunknown
     }
-    let settingRule = ""
+    let settingRule = setting
     for (const override of ["asked", "blocked", "allowed"]) {
         const permList = permissions[`permissions${override}`]?.split(",")
         for (const rule of permList || []) {
@@ -1374,16 +1399,18 @@ const permissionHandler = (_, pm, callback, details) => {
             }
             const [match, ...names] = rule.split("~")
             if (names.some(p => permissionName.endsWith(p))) {
-                if (details.requestingUrl.match(match)) {
+                if (details.requestingUrl?.match(match)) {
+                    /** @ts-expect-error override is always one of setting */
                     settingRule = override.replace("ed", "")
                     break
                 }
             }
         }
     }
-    const domain = domainName(details.requestingUrl)
+    const domain = domainName(details.requestingUrl ?? "") ?? ""
     if (permission === "certificateerror") {
-        if (allowedFingerprints[domain]?.includes(details.cert.fingerprint)) {
+        if (allowedFingerprints[domain]
+            ?.includes(details.cert?.fingerprint ?? "")) {
             mainWindow.webContents.send("notify",
                 `Automatic domain caching rule for '${permission}' activated `
                 + `at '${details.requestingUrl}' which was allowed, because `
@@ -1395,7 +1422,7 @@ const permissionHandler = (_, pm, callback, details) => {
     }
     setting = settingRule || setting
     if (setting === "ask") {
-        let url = details.requestingUrl
+        let url = details.requestingUrl ?? ""
         if (url.length > 100) {
             url = url.replace(/.{50}/g, "$&\n")
         }
@@ -1408,9 +1435,10 @@ const permissionHandler = (_, pm, callback, details) => {
             + "sites ask for this permission. For help and more options, see "
             + `':h ${permissionName}', ':h permissionsallowed', ':h permissions`
             + `asked' and ':h permissionsblocked'.\n\npage:\n${url}`
+        /** @type {string|undefined} */
         let checkboxLabel = "Remember for this session"
         if (permission === "openexternal") {
-            let exturl = details.externalURL
+            let exturl = details.externalURL ?? ""
             if (exturl.length > 100) {
                 exturl = exturl.replace(/.{50}/g, "$&\n")
             }
@@ -1436,12 +1464,12 @@ const permissionHandler = (_, pm, callback, details) => {
                 + "you only need to allow it once to be able to keep using it."
                 + ` For help and more options, see ':h ${permissionName}'.`
                 + `\n\npage: ${url}\ndomain: ${domain}\n\n`
-                + `ISSUER: ${details.cert.issuerName}\n`
-                + `SELF-SIGNED: ${!details.cert.issuerCert}\n`
-                + `SUBJECT: ${details.cert.subjectName}\n`
-                + `STARTS: ${formatDate(details.cert.validStart)}\n`
-                + `EXPIRES: ${formatDate(details.cert.validExpiry)}\n`
-                + `FINGERPRINT: ${details.cert.fingerprint}\n\n`
+                + `ISSUER: ${details.cert?.issuerName}\n`
+                + `SELF-SIGNED: ${!details.cert?.issuerCert}\n`
+                + `SUBJECT: ${details.cert?.subjectName}\n`
+                + `STARTS: ${formatDate(details.cert?.validStart)}\n`
+                + `EXPIRES: ${formatDate(details.cert?.validExpiry)}\n`
+                + `FINGERPRINT: ${details.cert?.fingerprint}\n\n`
                 + "Only allow certificates you have verified and can trust!"
             checkboxLabel = undefined
         }
@@ -1482,7 +1510,8 @@ const permissionHandler = (_, pm, callback, details) => {
                 if (!allowedFingerprints[domain]) {
                     allowedFingerprints[domain] = []
                 }
-                allowedFingerprints[domain].push(details.cert.fingerprint)
+                allowedFingerprints[domain].push(
+                    details.cert?.fingerprint ?? "")
             }
             callback?.(allow)
             return allow
@@ -1504,12 +1533,17 @@ const permissionHandler = (_, pm, callback, details) => {
             if (!allowedFingerprints[domain]) {
                 allowedFingerprints[domain] = []
             }
-            allowedFingerprints[domain].push(details.cert.fingerprint)
+            allowedFingerprints[domain].push(details.cert?.fingerprint ?? "")
         }
         callback?.(allow)
         return allow
     }
 }
+/**
+ * Enable the adblocker
+ *
+ * @param {"static"|"custom"|"update"} type
+ */
 const enableAdblocker = type => {
     const blocklistDir = joinPath(app.getPath("appData"), "blocklists")
     const blocklists = readJSON(joinPath(
@@ -1623,6 +1657,11 @@ ipcMain.on("adblock-enable", (_, type) => {
     }
 })
 ipcMain.on("adblock-disable", disableAdblocker)
+/**
+ * Load a blocklist with extra newline if it has contents
+ *
+ * @param {string} file
+ */
 const loadBlocklist = file => {
     const contents = readFile(file)
     if (contents) {
@@ -1637,6 +1676,7 @@ ipcMain.on("download-favicon", (_, options) => {
         "session": webContents.fromId(options.webId).session, "url": options.fav
     })
     request.on("response", res => {
+        /** @type {Buffer[]} */
         const data = []
         res.on("end", () => {
             if (res.statusCode !== 200) {
@@ -1672,6 +1712,9 @@ ipcMain.on("download-favicon", (_, options) => {
 // Window state save and restore
 const windowStateFile = joinPath(app.getPath("appData"), "windowstate")
 ipcMain.on("window-state-init", (_, restorePos, restoreSize, restoreMax) => {
+    if (!mainWindow) {
+        return
+    }
     const bounds = {}
     const parsed = readJSON(windowStateFile)
     if (parsed) {
@@ -1862,32 +1905,50 @@ ipcMain.on("is-fullscreen", e => {
 })
 ipcMain.on("relaunch", () => app.relaunch())
 ipcMain.on("mouse-location", e => {
-    const windowBounds = mainWindow.getBounds()
-    const mousePos = screen.getCursorScreenPoint()
-    const x = mousePos.x - windowBounds.x
-    const y = mousePos.y - windowBounds.y
-    if (x < windowBounds.width && y < windowBounds.height) {
-        e.returnValue = {x, y}
-        return
+    const windowBounds = mainWindow?.getBounds()
+    if (windowBounds) {
+        const mousePos = screen.getCursorScreenPoint()
+        const x = mousePos.x - windowBounds.x
+        const y = mousePos.y - windowBounds.y
+        if (x < windowBounds.width && y < windowBounds.height) {
+            e.returnValue = {x, y}
+            return
+        }
     }
     e.returnValue = null
 })
 
 // Subframe/iframe related code to send from renderer to frames and vice versa
+
+/**
+ * Send an error to main based on a caught error
+ *
+ * @param {unknown} exception
+ */
+const errToMain = exception => {
+    if (exception instanceof Error && exception.stack) {
+        mainWindow?.webContents.send("main-error", exception.stack)
+    }
+    if (typeof exception === "string") {
+        mainWindow?.webContents.send("main-error", exception)
+    }
+    return null
+}
+
 ipcMain.on("follow-mode-start", (_, id, followTypeFilter, switchTo = false) => {
     try {
         webContents.fromId(id).mainFrame.framesInSubtree.forEach(f => {
             try {
                 f.send("follow-mode-start", followTypeFilter)
             } catch (ex) {
-                mainWindow?.webContents.send("main-error", ex.stack)
+                errToMain(ex)
             }
         })
         if (switchTo) {
             allLinks = []
         }
     } catch (ex) {
-        mainWindow?.webContents.send("main-error", ex.stack)
+        errToMain(ex)
     }
 })
 ipcMain.on("follow-mode-stop", e => {
@@ -1896,21 +1957,54 @@ ipcMain.on("follow-mode-stop", e => {
             try {
                 f.send("follow-mode-stop")
             } catch (ex) {
-                mainWindow?.webContents.send("main-error", ex.stack)
+                errToMain(ex)
             }
         })
     } catch (ex) {
-        mainWindow?.webContents.send("main-error", ex.stack)
+        errToMain(ex)
     }
 })
+/** @type {{}[]} */
 let allLinks = []
+/** @type {{[frameId: string]: {
+ *   id?: string
+ *   url?: string
+ *   x?: Number
+ *   y?: Number
+ *   width?: Number
+ *   height?: Number
+ *   usableWidth?: Number
+ *   usableHeight?: Number
+ *   pagex?: Number
+ *   pagey?: Number
+ *   parent?: string
+ * }}} */
 const frameInfo = {}
-ipcMain.on("frame-details", (e, details) => {
+/**
+ * Handle incoming frame details by storing their details by id
+ *
+ * @param {Electron.IpcMainEvent} e
+ * @param {{
+ *   height: Number
+ *   width: Number
+ *   url: string
+ *   pagex: Number
+ *   pagey: Number
+ *   subframes: {
+ *     height: Number
+ *     width: Number
+ *     x: Number
+ *     y: Number
+ *     url: string
+ *   }[]
+ * }} details
+ */
+const handleFrameDetails = (e, details) => {
     let frameId = ""
     try {
         frameId = `${e.frameId}-${e.processId}`
     } catch (ex) {
-        mainWindow?.webContents.send("main-error", ex.stack)
+        errToMain(ex)
         return
     }
     if (!frameInfo[frameId]) {
@@ -1928,12 +2022,14 @@ ipcMain.on("frame-details", (e, details) => {
                 frameInfo[id].usableWidth = subframe.width
                 const overflowW = subframe.x + subframe.width - details.width
                 if (overflowW > 0) {
-                    frameInfo[id].usableWidth -= overflowW
+                    frameInfo[id].usableWidth = (frameInfo[id].usableWidth
+                        ?? 0) - overflowW
                 }
                 frameInfo[id].usableHeight = subframe.height
                 const overflowH = subframe.y + subframe.height - details.height
                 if (overflowH > 0) {
-                    frameInfo[id].usableHeight -= overflowH
+                    frameInfo[id].usableHeight = (frameInfo[id].usableHeight
+                        ?? 0) - overflowH
                 }
                 frameInfo[id].pagex = details.pagex
                 frameInfo[id].pagey = details.pagey
@@ -1941,14 +2037,14 @@ ipcMain.on("frame-details", (e, details) => {
             }
         })
     })
-})
+}
+ipcMain.on("frame-details", handleFrameDetails)
 ipcMain.on("follow-response", (e, rawLinks) => {
     let frameId = ""
     try {
         frameId = `${e.frameId}-${e.processId}`
     } catch (ex) {
-        mainWindow.webContents.send("main-error", ex.stack)
-        return
+        return errToMain(ex)
     }
     const info = frameInfo[frameId]
     let frameX = info?.x || 0
@@ -1988,8 +2084,7 @@ ipcMain.on("follow-response", (e, rawLinks) => {
                 try {
                     return `${f.routingId}-${f.processId}`
                 } catch (ex) {
-                    mainWindow.webContents.send("main-error", ex.stack)
-                    return null
+                    return errToMain(ex)
                 }
             }).filter(f => f)
         allLinks = allLinks.filter(l => l.frameId !== frameId
@@ -1997,11 +2092,49 @@ ipcMain.on("follow-response", (e, rawLinks) => {
         allLinks = allLinks.concat(frameLinks)
         mainWindow?.webContents.send("follow-response", allLinks)
     } catch (ex) {
-        mainWindow?.webContents.send("main-error", ex.stack)
+        errToMain(ex)
     }
 })
+/**
+ * Find the right subframe for a position in webcontents
+ *
+ * @param {Electron.WebContents} wc
+ * @param {Number} x
+ * @param {Number} y
+ * @returns {{
+ *   id?: string
+ *   url?: string
+ *   x?: Number
+ *   y?: Number
+ *   width?: Number
+ *   height?: Number
+ *   usableWidth?: Number
+ *   usableHeight?: Number
+ *   pagex?: Number
+ *   pagey?: Number
+ *   parent?: string
+ *   absX: Number
+ *   absY: Number
+ * }|null}
+ */
 const findRelevantSubFrame = (wc, x, y) => {
     try {
+        /** @type {{
+         *   id?: string
+         *   url?: string
+         *   x?: Number
+         *   y?: Number
+         *   width?: Number
+         *   height?: Number
+         *   usableWidth?: Number
+         *   usableHeight?: Number
+         *   pagex?: Number
+         *   pagey?: Number
+         *   parent?: string
+         *   absX: Number
+         *   absY: Number
+         * }[]} */
+        // @ts-expect-error absX and absY are added to the frame info in the map
         const absoluteFrames = wc.mainFrame.framesInSubtree.map(f => {
             try {
                 const id = `${f.routingId}-${f.processId}`
@@ -2009,25 +2142,47 @@ const findRelevantSubFrame = (wc, x, y) => {
                 if (!info?.parent) {
                     return null
                 }
-                info.absX = info.x
-                info.absY = info.y
+                // @ts-expect-error absX will be added to the info
+                info.absX = info.x ?? 0
+                // @ts-expect-error absY will be added to the info
+                info.absY = info.y ?? 0
                 let parent = frameInfo[info.parent]
                 while (parent) {
-                    info.absX += parent.x || 0
-                    info.absY += parent.y || 0
-                    parent = frameInfo[parent]
+                    // @ts-expect-error absX will be added to the info
+                    info.absX += parent.x ?? 0
+                    // @ts-expect-error absY will be added to the info
+                    info.absY += parent.y ?? 0
+                    parent = frameInfo[parent.id ?? ""]
                 }
                 return info
             } catch (ex) {
-                mainWindow?.webContents.send("main-error", ex.stack)
+                if (ex instanceof Error) {
+                    mainWindow?.webContents.send("main-error", ex.stack)
+                }
                 return null
             }
         }).filter(f => f)
+        /** @type {{
+         *   id?: string
+         *   url?: string
+         *   x?: Number
+         *   y?: Number
+         *   width?: Number
+         *   height?: Number
+         *   usableWidth?: Number
+         *   usableHeight?: Number
+         *   pagex?: Number
+         *   pagey?: Number
+         *   parent?: string
+         *   absX: Number
+         *   absY: Number
+         * }|null} */
         let relevantFrame = null
         absoluteFrames.forEach(info => {
-            if (info.absX < x && info.absY < y) {
+            if (info.absX < x && info.absY < y
+                && info.width !== undefined && info.height !== undefined) {
                 if (info.absX + info.width > x && info.absY + info.height > y) {
-                    if (relevantFrame) {
+                    if (relevantFrame?.width) {
                         if (relevantFrame.width > info.width) {
                             // A smaller frame means a subframe, use it
                             relevantFrame = info
@@ -2040,8 +2195,7 @@ const findRelevantSubFrame = (wc, x, y) => {
         })
         return relevantFrame
     } catch (ex) {
-        mainWindow?.webContents.send("main-error", ex.stack)
-        return null
+        return errToMain(ex)
     }
 }
 ipcMain.on("action", (_, id, actionName, ...opts) => {
@@ -2062,7 +2216,7 @@ ipcMain.on("action", (_, id, actionName, ...opts) => {
                 frameRef?.send("action", actionName, opts[0] - subframe.absX,
                     opts[1] - subframe.absY, ...opts.slice(2))
             } catch (ex) {
-                mainWindow?.webContents.send("main-error", ex.stack)
+                errToMain(ex)
             }
             return
         }
@@ -2072,11 +2226,11 @@ ipcMain.on("action", (_, id, actionName, ...opts) => {
             try {
                 f.send("action", actionName, ...opts)
             } catch (ex) {
-                mainWindow?.webContents.send("main-error", ex.stack)
+                errToMain(ex)
             }
         })
     } catch (ex) {
-        mainWindow?.webContents.send("main-error", ex.stack)
+        errToMain(ex)
     }
 })
 ipcMain.on("contextmenu-data", (_, id, info) => {
@@ -2094,7 +2248,7 @@ ipcMain.on("contextmenu-data", (_, id, info) => {
                 "y": info.y - subframe.absY
             })
         } catch (ex) {
-            mainWindow?.webContents.send("main-error", ex.stack)
+            errToMain(ex)
         }
         return
     }
@@ -2105,7 +2259,7 @@ ipcMain.on("contextmenu", (_, id) => {
         webContents.fromId(id).mainFrame.framesInSubtree.forEach(
             f => f.send("contextmenu"))
     } catch (ex) {
-        mainWindow?.webContents.send("main-error", ex.stack)
+        errToMain(ex)
     }
 })
 ipcMain.on("focus-input", (_, id, location = null) => {
@@ -2123,7 +2277,7 @@ ipcMain.on("focus-input", (_, id, location = null) => {
                     "y": location.y - subframe.absY
                 })
             } catch (ex) {
-                mainWindow?.webContents.send("main-error", ex.stack)
+                errToMain(ex)
             }
             return
         }
@@ -2141,30 +2295,43 @@ ipcMain.on("replace-input-field", (_, id, frameId, correction, inputField) => {
         }
         wc.send("replace-input-field", correction, inputField)
     } catch (ex) {
-        mainWindow?.webContents.send("main-error", ex.stack)
+        errToMain(ex)
     }
 })
-const translateMouseEvent = (e, clickInfo) => {
+/**
+ * Translate a mouse event and send it to the right frame
+ *
+ * @param {Electron.IpcMainEvent} e
+ * @param {{
+ *   frame: string
+ *   startX: Number
+ *   startY: Number
+ *   endX: Number
+ *   endY: Number
+ *   x: Number
+ *   y: Number
+ * }|null} clickInfo
+ */
+const translateMouseEvent = (e, clickInfo = null) => {
     let frameId = ""
     try {
         frameId = `${e.frameId}-${e.processId}`
     } catch (ex) {
-        mainWindow?.webContents.send("main-error", ex.stack)
-        return
+        return errToMain(ex)
     }
     const info = frameInfo[frameId]
-    let frameX = info?.x || 0
-    let frameY = info?.y || 0
+    let frameX = info?.x ?? 0
+    let frameY = info?.y ?? 0
     let parent = info?.parent
     let parentId = frameId
     while (parent) {
         const parentInfo = frameInfo[parent]
-        frameX += parentInfo?.x || 0
-        frameY += parentInfo?.y || 0
+        frameX += parentInfo?.x ?? 0
+        frameY += parentInfo?.y ?? 0
         parent = parentInfo?.parent
         parentId = parentInfo?.id || frameId
     }
-    let frameUrl = clickInfo.frame
+    let frameUrl = clickInfo?.frame ?? ""
     if (info?.x && info?.url) {
         frameUrl = info.url
     }
@@ -2180,12 +2347,12 @@ const translateMouseEvent = (e, clickInfo) => {
             }
         })?.id
     } catch (ex) {
-        mainWindow?.webContents.send("main-error", ex.stack)
+        errToMain(ex)
     }
     return {
         ...clickInfo,
-        "endX": clickInfo?.endX + frameX || null,
-        "endY": clickInfo?.endY + frameY || null,
+        "endX": (clickInfo?.endX ?? 0) + frameX || null,
+        "endY": (clickInfo?.endY ?? 0) + frameY || null,
         "frame": frameUrl,
         "frameAbsX": frameX,
         "frameAbsY": frameY,
@@ -2194,13 +2361,13 @@ const translateMouseEvent = (e, clickInfo) => {
         "frameWidth": info?.width,
         "frameX": info?.x,
         "frameY": info?.y,
-        "startX": clickInfo?.startX + frameX || null,
-        "startY": clickInfo?.startY + frameY || null,
+        "startX": (clickInfo?.startX ?? 0) + frameX || null,
+        "startY": (clickInfo?.startY ?? 0) + frameY || null,
         webviewId,
-        "x": clickInfo.x + frameX,
-        "xInFrame": clickInfo.x,
-        "y": clickInfo.y + frameY,
-        "yInFrame": clickInfo.y
+        "x": (clickInfo?.x ?? 0) + frameX,
+        "xInFrame": clickInfo?.x ?? 0,
+        "y": (clickInfo?.y ?? 0) + frameY,
+        "yInFrame": clickInfo?.y ?? 0
     }
 }
 ipcMain.on("mouse-selection", (e, clickInfo) => mainWindow?.webContents.send(
@@ -2232,7 +2399,7 @@ ipcMain.on("send-keyboard-event", (_, id, keyOptions) => {
             .filter(f => f.routingId !== wc.mainFrame.routingId)
             .forEach(f => f.send("keyboard-type-event", keyOptions))
     } catch (ex) {
-        mainWindow?.webContents.send("main-error", ex.stack)
+        errToMain(ex)
     }
 })
 ipcMain.on("send-input-event", (_, id, inputInfo) => {
@@ -2276,7 +2443,7 @@ ipcMain.on("send-input-event", (_, id, inputInfo) => {
                 })
             }
         } catch (ex) {
-            mainWindow?.webContents.send("main-error", ex.stack)
+            errToMain(ex)
         }
         return
     }
