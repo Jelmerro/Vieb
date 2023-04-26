@@ -939,30 +939,30 @@ const getPageUrl = () => {
 const pageToClipboard = () => clipboard.writeText(getPageUrl())
 
 const pageTitleToClipboard = () => {
-    clipboard.writeText(currentTab().querySelector("span").textContent)
+    clipboard.writeText(currentTab()?.querySelector("span")?.textContent ?? "")
 }
 
 const pageToClipboardHTML = () => {
     const url = getPageUrl()
-    const title = currentTab().querySelector("span").textContent
+    const title = currentTab()?.querySelector("span")?.textContent
     clipboard.writeText(`<a href="${url}">${title}</a>`)
 }
 
 const pageToClipboardMarkdown = () => {
     const url = getPageUrl()
-    const title = currentTab().querySelector("span").textContent
+    const title = currentTab()?.querySelector("span")?.textContent
     clipboard.writeText(`[${title}](${url})`)
 }
 
 const pageToClipboardRST = () => {
     const url = getPageUrl()
-    const title = currentTab().querySelector("span").textContent
+    const title = currentTab()?.querySelector("span")?.textContent
     clipboard.writeText(`\`${title} <${url}>\`_`)
 }
 
 const pageToClipboardEmacs = () => {
     const url = getPageUrl()
-    const title = currentTab().querySelector("span").textContent
+    const title = currentTab()?.querySelector("span")?.textContent
     clipboard.writeText(`[[${url}][${title}]]`)
 }
 
@@ -1006,11 +1006,12 @@ const storeScrollPos = async(args = null) => {
         let path = ""
         const scrollPosId = getSetting("scrollposlocalid")
         if (scrollPosId === "domain") {
-            path = domainName(urlToString(currentPage().src))
-                || domainName(currentPage().src)
+            path = domainName(urlToString(currentPage()?.src ?? ""))
+                || domainName(currentPage()?.src ?? "") || ""
         }
         if (scrollPosId === "url" || !path) {
-            path = urlToString(currentPage().src) || currentPage().src
+            path = urlToString(currentPage()?.src ?? "")
+                || currentPage()?.src || ""
         }
         path = args?.path ?? path
         if (!qm.scroll.local[path]) {
@@ -1036,11 +1037,11 @@ const restoreScrollPos = (args = null) => {
     const scrollPosId = getSetting("scrollposlocalid")
     let path = ""
     if (scrollPosId === "domain") {
-        path = domainName(urlToString(currentPage().src))
-            || domainName(currentPage().src)
+        path = domainName(urlToString(currentPage()?.src ?? ""))
+            || domainName(currentPage()?.src ?? "") || ""
     }
     if (scrollPosId === "url" || !path) {
-        path = urlToString(currentPage().src) || currentPage().src
+        path = urlToString(currentPage()?.src ?? "") || currentPage()?.src || ""
     }
     path = args?.path ?? path
     const qm = readJSON(joinPath(appData(), "quickmarks"))
@@ -1147,9 +1148,10 @@ const menuOpen = () => {
     if (currentMode() === "normal") {
         const tab = currentTab()
         const bounds = tab?.getBoundingClientRect()
-        if (bounds) {
+        const tabs = document.getElementById("tabs")
+        if (tab && bounds && tabs) {
             viebMenu({
-                "path": [tab, document.getElementById("tabs")],
+                "path": [tab, tabs],
                 "x": bounds.x,
                 "y": bounds.y + bounds.height
             }, true)
@@ -1162,14 +1164,14 @@ const menuOpen = () => {
         if (currentMode() === "command" && selected && bounds) {
             const {commandMenu} = require("./contextmenu")
             commandMenu({
-                "command": selected.querySelector("span")?.textContent,
+                "command": selected.querySelector("span")?.textContent ?? "",
                 "x": bounds.x,
                 "y": bounds.y + bounds.height
             })
         } else if (currentMode() === "explore" && selected && bounds) {
             const {linkMenu} = require("./contextmenu")
             linkMenu({
-                "link": selected.querySelector(".url")?.textContent,
+                "link": selected.querySelector(".url")?.textContent ?? "",
                 "x": bounds.x,
                 "y": bounds.y + bounds.height
             })

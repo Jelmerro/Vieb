@@ -814,16 +814,22 @@ const commonAction = (type, action, options) => {
         currentPage()?.downloadURL(stringToUrl(relevantData))
     } else if (action === "split") {
         const currentTabId = currentTab()?.getAttribute("link-id")
-        addTab({
-            "container": getSetting("containersplitpage"), "url": relevantData
-        })
-        add(currentTabId, "ver", getSetting("splitbelow"))
+        if (currentTab() && currentTabId) {
+            addTab({
+                "container": getSetting("containersplitpage"),
+                "url": relevantData
+            })
+            add(currentTabId, "ver", getSetting("splitbelow"))
+        }
     } else if (action === "vsplit") {
         const currentTabId = currentTab()?.getAttribute("link-id")
-        addTab({
-            "container": getSetting("containersplitpage"), "url": relevantData
-        })
-        add(currentTabId, "hor", getSetting("splitright"))
+        if (currentTab() && currentTabId) {
+            addTab({
+                "container": getSetting("containersplitpage"),
+                "url": relevantData
+            })
+            add(currentTabId, "hor", getSetting("splitright"))
+        }
     } else if (action === "external") {
         const ext = getSetting("externalcommand")
         if (!ext.trim()) {

@@ -55,6 +55,12 @@ const parseGM = meta => meta.split(/[\r\n]/).filter(line => (/\S+/).test(line)
     return obj
 }, {})
 
+/**
+ * Run a GM script in the page
+ *
+ * @param {Electron.WebviewTag} webview
+ * @param {string} rawContents
+ */
 const runGMScript = (webview, rawContents) => {
     const headerLines = []
     const scriptLines = []
@@ -135,14 +141,14 @@ const runGMScript = (webview, rawContents) => {
             "platform": {
                 "arch": "${arch}",
                 "browserName": "vieb",
-                "browserVersion": "${appConfig().version}",
+                "browserVersion": "${appConfig()?.version}",
                 "os": "${os}"
             },
             "script": ${JSON.stringify(info)},
             "scriptHandler": "Vieb",
             "scriptMetaStr": ${JSON.stringify(headerLines.join("\n"))},
             "uuid": "${Math.random}",
-            "version": "${appConfig().version}"
+            "version": "${appConfig()?.version}"
         },
         "listValues": () => new Promise(res => {
             const list = []
@@ -234,6 +240,11 @@ const runGMScript = (webview, rawContents) => {
     }
 }
 
+/**
+ * Load all userscripts into the page
+ *
+ * @param {Electron.WebviewTag} webview
+ */
 const loadUserscripts = webview => {
     let domain = domainName(webview.src)
     let scope = "page"

@@ -1399,6 +1399,11 @@ const tabnew = (session = null, url = null) => {
     addTab(options)
 }
 
+/**
+ * Make or list marks
+ *
+ * @param {string[]} args
+ */
 const marks = args => {
     if (args.length > 2) {
         notify("Command marks only accepts a maxmimum of two args", "warn")
@@ -1442,6 +1447,11 @@ const marks = args => {
     }
 }
 
+/**
+ * Restore a mark
+ *
+ * @param {string[]} args
+ */
 const restoremark = args => {
     if (args.length > 2) {
         notify("Command restoremark only accepts up to two args", "warn")
@@ -1461,6 +1471,12 @@ const restoremark = args => {
     restoreMark({key, position})
 }
 
+/**
+ * Delete marks
+ *
+ * @param {boolean} all
+ * @param {string[]} args
+ */
 const delmarks = (all, args) => {
     if (all && args.length) {
         notify("Command takes no arguments: delmarks!", "warn")
@@ -1483,6 +1499,11 @@ const delmarks = (all, args) => {
     writeJSON(joinPath(appData(), "quickmarks"), qm)
 }
 
+/**
+ * Set or list scroll positions
+ *
+ * @param {string[]} args
+ */
 const scrollpos = args => {
     if (args.length > 3) {
         notify("Command scrollpos only accepts a maxmimum of three args",
@@ -1492,14 +1513,14 @@ const scrollpos = args => {
     if (args.length === 2 || args.length === 3) {
         const {storeScrollPos} = require("./actions")
         const [key, pathOrPixels, pixelsOrPath] = args
-        let pixels = pathOrPixels
+        let pixels = Number(pathOrPixels)
         let path = pixelsOrPath
         if (pixels !== undefined) {
-            if (isNaN(Number(pixels))) {
-                pixels = pixelsOrPath
+            if (isNaN(pixels)) {
+                pixels = Number(pixelsOrPath)
                 path = pathOrPixels
             }
-            if (isNaN(Number(pixels))) {
+            if (isNaN(pixels)) {
                 notify("Command scrollpos requires at least one pixels "
                     + "arg after the key", "warn")
                 return
@@ -1561,6 +1582,11 @@ const scrollpos = args => {
     }
 }
 
+/**
+ * Restore a scroll position
+ *
+ * @param {string[]} args
+ */
 const restorescrollpos = args => {
     if (args.length > 2) {
         notify("Command restorescrollpos only accepts up to two args", "warn")
@@ -1576,6 +1602,12 @@ const restorescrollpos = args => {
     restoreScrollPos({key, path})
 }
 
+/**
+ * Delete a scroll position
+ *
+ * @param {boolean} all
+ * @param {string[]} args
+ */
 const delscrollpos = (all, args) => {
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
     if (!qm.scroll) {
@@ -1748,6 +1780,12 @@ const restorepointerpos = args => {
     restorePos({key, path})
 }
 
+/**
+ * Delete a pointer position
+ *
+ * @param {boolean} all
+ * @param {string[]} args
+ */
 const delpointerpos = (all, args) => {
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
     if (!qm.pointer) {
@@ -1821,6 +1859,11 @@ const delpointerpos = (all, args) => {
     writeJSON(joinPath(appData(), "quickmarks"), qm)
 }
 
+/**
+ * Translate the current page
+ *
+ * @param {string[]} args
+ */
 const translatepage = args => {
     if (args.length > 1) {
         notify("Command translatepage only accepts a single optional language",
@@ -1967,7 +2010,7 @@ const commands = {
     "b": ({args}) => buffer(args),
     "buffer": ({args}) => buffer(args),
     "call": ({args}) => callAction(args),
-    "clear": ({args}) => clear(...args),
+    "clear": ({args}) => clear(args[0], args[1], args[2]),
     "close": ({args, range}) => close(false, args, range),
     "close!": ({args, range}) => close(true, args, range),
     "colorscheme": ({args}) => colorscheme(...args),
@@ -2194,6 +2237,11 @@ const deleteCommand = args => {
     }
 }
 
+/**
+ * Parse and validate the string to a command
+ *
+ * @param {string} commandStr
+ */
 const parseAndValidateArgs = commandStr => {
     const argsString = commandStr.split(" ").slice(1).join(" ")
     let [command] = commandStr.split(" ")
@@ -2316,6 +2364,11 @@ const execute = (com, settingsFile = null) => {
     }
 }
 
+/**
+ * List all commands
+ *
+ * @param {boolean} includeCustom
+ */
 const commandList = (includeCustom = true) => {
     if (includeCustom) {
         return Object.keys(commands).filter(c => c.length > 2)
@@ -2324,7 +2377,12 @@ const commandList = (includeCustom = true) => {
     return Object.keys(commands).filter(c => c.length > 2)
 }
 
-const customCommandsAsCommandList = full => {
+/**
+ * List all custom commands as viebrc statements
+ *
+ * @param {boolean} full
+ */
+const customCommandsAsCommandList = (full = false) => {
     let commandString = Object.keys(userCommands).map(
         command => `command ${command} ${userCommands[command]}`).join("\n")
     if (full || currentscheme !== "default") {
