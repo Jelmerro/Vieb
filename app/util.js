@@ -409,10 +409,10 @@ const findFrameInfo = el => framePaddingInfo.find(i => i.element === el)
  * @param {Element} frame
  */
 const framePosition = frame => ({
-    "x": frame.getBoundingClientRect().x + propPixels(frame, "paddingLeft")
-        + propPixels(frame, "borderLeftWidth"),
-    "y": frame.getBoundingClientRect().y + propPixels(frame, "paddingTop")
-        + propPixels(frame, "borderTopWidth")
+    "x": frame.getBoundingClientRect().x + propPixels(frame, "padding-left")
+        + propPixels(frame, "border-left-width"),
+    "y": frame.getBoundingClientRect().y + propPixels(frame, "padding-top")
+        + propPixels(frame, "border-top-width")
 })
 
 /**
@@ -745,7 +745,7 @@ const fetchJSON = (url, opts = {}, body = null) => new Promise((res, rej) => {
  * @param {HTMLElement} page
  */
 const pageOffset = page => {
-    const border = propPixels(page, "borderWidth")
+    const border = propPixels(page, "border-width")
     const top = Math.round(propPixels(page.style, "top") + border)
     const left = Math.round(propPixels(page.style, "left") + border)
     const bottom = Math.round(top + propPixels(page.style, "height") + border)

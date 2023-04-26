@@ -27,8 +27,18 @@ const {
     fetchJSON
 } = require("../util")
 
+/**
+ * Go to the next page if available, optionally in a new tab
+ *
+ * @param {boolean} newtab
+ */
 const nextPage = newtab => navigateToPage("*[rel=next], .navi-next", newtab)
 
+/**
+ * Go to the previous page if available, optionally in a new tab
+ *
+ * @param {boolean} newtab
+ */
 const previousPage = newtab => navigateToPage("*[rel=prev], .navi-prev", newtab)
 
 /**
@@ -58,6 +68,12 @@ const blur = () => {
     }
 }
 
+/**
+ * Scroll the page x and y pixels
+ *
+ * @param {Number} x
+ * @param {Number} y
+ */
 const scrollBy = (x, y) => {
     if (window.innerHeight === document.documentElement.scrollHeight) {
         document.body.scrollBy(x, y)
@@ -66,6 +82,11 @@ const scrollBy = (x, y) => {
     }
 }
 
+/**
+ * Scroll the page to a specific percentage
+ *
+ * @param {Number} perc
+ */
 const scrollPerc = perc => {
     if (document.documentElement.scrollHeight === window.innerHeight) {
         const scrollHeightMinusScreen = document.body.scrollHeight
@@ -153,6 +174,12 @@ const writeInputToFile = filename => {
 
 const print = () => document.execCommand("print")
 
+/**
+ * Toggle video player controls at location x,y
+ *
+ * @param {Number} x
+ * @param {Number} y
+ */
 const toggleControls = (x, y) => {
     const el = findElementAtPosition(x, y)
     if (el instanceof HTMLVideoElement) {
@@ -165,6 +192,12 @@ const toggleControls = (x, y) => {
     }
 }
 
+/**
+ * Toggle the loop property at location x,y
+ *
+ * @param {Number} x
+ * @param {Number} y
+ */
 const toggleLoop = (x, y) => {
     const el = findElementAtPosition(x, y)
     if (el instanceof HTMLAudioElement || el instanceof HTMLVideoElement) {
@@ -176,6 +209,12 @@ const toggleLoop = (x, y) => {
     }
 }
 
+/**
+ * Toggle the mute status ate location x,y
+ *
+ * @param {Number} x
+ * @param {Number} y
+ */
 const toggleMute = (x, y) => {
     const el = findElementAtPosition(x, y)
     if (el instanceof HTMLAudioElement || el instanceof HTMLVideoElement) {
@@ -187,6 +226,12 @@ const toggleMute = (x, y) => {
     }
 }
 
+/**
+ * Toggle pause at location x,y
+ *
+ * @param {Number} x
+ * @param {Number} y
+ */
 const togglePause = (x, y) => {
     const el = findElementAtPosition(x, y)
     if (el instanceof HTMLAudioElement || el instanceof HTMLVideoElement) {
@@ -198,6 +243,12 @@ const togglePause = (x, y) => {
     }
 }
 
+/**
+ * Lower the volume at location x,y
+ *
+ * @param {Number} x
+ * @param {Number} y
+ */
 const volumeDown = (x, y) => {
     const el = findElementAtPosition(x, y)
     if (el instanceof HTMLAudioElement || el instanceof HTMLVideoElement) {
@@ -205,6 +256,12 @@ const volumeDown = (x, y) => {
     }
 }
 
+/**
+ * Raise the volume at location x,y
+ *
+ * @param {Number} x
+ * @param {Number} y
+ */
 const volumeUp = (x, y) => {
     const el = findElementAtPosition(x, y)
     if (el instanceof HTMLAudioElement || el instanceof HTMLVideoElement) {
@@ -212,6 +269,12 @@ const volumeUp = (x, y) => {
     }
 }
 
+/**
+ * Find the base document at location x,y
+ *
+ * @param {Number} x
+ * @param {Number} y
+ */
 const documentAtPos = (x, y) => findElementAtPosition(x, y)
     ?.ownerDocument || document
 
@@ -295,9 +358,33 @@ const calculateOffset = (startNode, startX, startY, x, y) => {
     return {"node": properNode, offset}
 }
 
+/**
+ * Select all at location x,y
+ *
+ * @param {Number} x
+ * @param {Number} y
+ */
 const selectionAll = (x, y) => documentAtPos(x, y).execCommand("selectAll")
+/**
+ * Cut a selection at location x,y
+ *
+ * @param {Number} x
+ * @param {Number} y
+ */
 const selectionCut = (x, y) => documentAtPos(x, y).execCommand("cut")
+/**
+ * Paste a selection at location x,y
+ *
+ * @param {Number} x
+ * @param {Number} y
+ */
 const selectionPaste = (x, y) => documentAtPos(x, y).execCommand("paste")
+/**
+ * Remove the selection from the document at location x,y
+ *
+ * @param {Number} x
+ * @param {Number} y
+ */
 const selectionRemove = (x, y) => documentAtPos(x, y).getSelection()
     ?.removeAllRanges()
 /**
@@ -385,7 +472,8 @@ const translatepage = async(api, url, lang, apiKey) => {
             const subText = document.createElement("p")
             if (["kbd", "code"].includes(textNode.nodeName.toLowerCase())) {
                 // Skip element text
-            } else if (textNode.textContent === textNode.innerHTML) {
+            } else if (textNode instanceof Element
+                && textNode.textContent === textNode.innerHTML) {
                 subText.textContent = textNode.textContent
             } else if (textNode.nodeName === "#text") {
                 subText.textContent = textNode.textContent

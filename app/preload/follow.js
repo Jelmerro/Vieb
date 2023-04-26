@@ -668,7 +668,7 @@ ipcRenderer.on("contextmenu", () => {
     if (getComputedStyle(els[0]).font.includes("monospace")) {
         if (els[0] instanceof HTMLInputElement
             || els[0] instanceof HTMLTextAreaElement) {
-            x = parsed.x + propPixels(els[0], "fontSize")
+            x = parsed.x + propPixels(els[0], "font-size")
                 * (els[0].selectionStart ?? 0) * 0.60191 - els[0].scrollLeft
         }
     }

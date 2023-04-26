@@ -106,7 +106,42 @@ const pageForTab = tab => listPages().find(
 const tabForPage = page => listTabs().find(
     e => page && e.getAttribute("link-id") === page.getAttribute("link-id"))
 
-const currentMode = () => document.body.getAttribute("current-mode") || "normal"
+/**
+ * The valid modes of Vieb
+ * @typedef {("normal"|"insert"|"command"|"search"
+ *   |"explore"|"follow"|"pointer"|"visual")} Mode
+ */
+
+/** @type {Mode[]} */
+const modes = [
+    "normal",
+    "insert",
+    "command",
+    "search",
+    "explore",
+    "follow",
+    "pointer",
+    "visual"
+]
+
+/**
+ * Check if a mode is valid
+ *
+ * @param {any} mode
+ * @returns {mode is Mode}
+ */
+const isValidMode = mode => modes.includes(mode)
+
+/**
+ * Get the current mode
+ */
+const currentMode = () => {
+    const mode = document.body.getAttribute("current-mode") ?? "normal"
+    if (isValidMode(mode)) {
+        return mode
+    }
+    return "normal"
+}
 
 const getSetting = val => getStored("settings")?.[val]
 
@@ -157,9 +192,9 @@ const setTopOfPageWithMouse = status => {
 
 const updateScreenshotHighlight = (hide = false) => {
     const url = getUrl()
-    const dims = url.value.split(" ").find(
+    const dims = url?.value.split(" ").find(
         arg => arg?.match(/^\d+,\d+,\d+,\d+$/g))
-    const screenCmd = url.value.replace(/^:/g, "").trim().startsWith("screen")
+    const screenCmd = url?.value.replace(/^:/g, "").trim().startsWith("screen")
     const highlight = document.getElementById("screenshot-highlight")
     if (!highlight) {
         return

@@ -62,6 +62,9 @@ const {
     listRealPages
 } = require("./common")
 
+/**
+ * @param {keyof typeof import("./settings").defaultSettings|"all"} setting
+ */
 const listSetting = setting => {
     if (setting === "all") {
         const {listCurrentSettings} = require("./settings")
@@ -76,12 +79,25 @@ const listSetting = setting => {
     }
 }
 
+/**
+ * Split strings based on separator and merge later parts
+ *
+ * @param {string} part
+ * @param {string} separator
+ */
 const splitSettingAndValue = (part, separator) => {
     const [setting] = part.split(separator)
     const value = part.split(separator).slice(1).join(separator)
     return [setting, value]
 }
 
+/**
+ * Modifiy a list or a number
+ *
+ * @param {keyof typeof import("./settings").defaultSettings} setting
+ * @param {string} value
+ * @param {"append"|"remove"|"special"} method
+ */
 const modifyListOrNumber = (setting, value, method) => {
     const isNumber = typeof getSetting(setting) === "number"
     const {freeText, listLike, listLikeTilde, set} = require("./settings")
@@ -290,7 +306,7 @@ const quit = (range = null) => {
         rangeToTabIdxs(range).forEach(t => closeTab(t))
         return
     }
-    if (document.getElementById("tabs").classList.contains("multiple")) {
+    if (document.getElementById("tabs")?.classList.contains("multiple")) {
         closeTab()
     } else {
         quitall()
@@ -323,7 +339,10 @@ const quitall = () => {
     }
     const {saveTabs} = require("./tabs")
     saveTabs()
-    document.getElementById("pages").textContent = ""
+    const pagesContainer = document.getElementById("pages")
+    if (pagesContainer) {
+        pagesContainer.textContent = ""
+    }
     clearTempContainers()
     if (getSetting("cache") !== "full") {
         clearCache()
@@ -370,7 +389,10 @@ const colorscheme = (name = null, trailingArgs = false) => {
     if (name === "default") {
         css = ""
     }
-    document.getElementById("custom-styling").textContent = css
+    const customStyleEl = document.getElementById("custom-styling")
+    if (customStyleEl) {
+        customStyleEl.textContent = css
+    }
     ipcRenderer.send("set-custom-styling", getSetting("guifontsize"), css)
     const {setCustomStyling} = require("./settings")
     setCustomStyling(css)
@@ -382,7 +404,13 @@ const restart = () => {
     quitall()
 }
 
-const openDevTools = (userPosition = null, trailingArgs = false) => {
+/**
+ * Open the development tools
+ *
+ * @param {string|null} userPosition
+ * @param {string|null} trailingArgs
+ */
+const openDevTools = (userPosition = null, trailingArgs = null) => {
     if (trailingArgs) {
         notify("The devtools command takes a single optional argument",
             "warn")
@@ -397,12 +425,16 @@ const openDevTools = (userPosition = null, trailingArgs = false) => {
         addTab({"devtools": true})
     } else if (position === "vsplit") {
         const id = currentTab()?.getAttribute("link-id")
-        addTab({"devtools": true})
-        add(id, "hor", getSetting("splitright"))
+        if (id) {
+            addTab({"devtools": true})
+            add(id, "hor", getSetting("splitright"))
+        }
     } else if (position === "split") {
         const id = currentTab()?.getAttribute("link-id")
-        addTab({"devtools": true})
-        add(id, "ver", getSetting("splitbelow"))
+        if (id) {
+            addTab({"devtools": true})
+            add(id, "ver", getSetting("splitbelow"))
+        }
     } else {
         notify("Invalid devtools position specified, must be one of: "
             + "window, vsplit, split or tab", "warn")
@@ -472,7 +504,7 @@ const hardcopy = range => {
         rangeToTabIdxs(range).forEach(t => {
             const page = pageForTab(listTabs()[t])
             if (!(page instanceof HTMLDivElement)) {
-                page.send("action", "print")
+                page?.send("action", "print")
             }
         })
         return
@@ -490,7 +522,7 @@ const hardcopy = range => {
 const resolveFileArg = (locationArg, type, customPage = null) => {
     const page = customPage || currentPage()
     const tab = tabForPage(page)
-    const name = `${tab.querySelector("span").textContent.replace(
+    const name = `${tab?.querySelector("span")?.textContent?.replace(
         specialCharsAllowSpaces, "").trim()}_${formatDate(new Date())
         .replace(/:/g, "-")}`.replace(/\s/g, "_")
     let loc = joinPath(downloadPath(), name)
@@ -548,7 +580,7 @@ const write = (args, range) => {
  * @param {Number|null} tabIdx
  */
 const writePage = (customLoc = null, tabIdx = null) => {
-    /** @type {Electron.WebviewTag|HTMLDivElement} */
+    /** @type {Electron.WebviewTag|HTMLDivElement|null} */
     let page = currentPage()
     if (tabIdx !== null) {
         page = pageForTab(listTabs()[tabIdx]) ?? null
@@ -740,8 +772,13 @@ const translateRangePosToIdx = (start, rangePart) => {
     if (charOrNum === "^") {
         number = 0
     }
+    let currentTabIdx = 0
+    const tab = currentTab()
+    if (tab) {
+        currentTabIdx = listTabs().indexOf(tab)
+    }
     if (charOrNum === ".") {
-        number = listTabs().indexOf(currentTab())
+        number = currentTabIdx
     }
     if (charOrNum === "$") {
         number = listTabs().length - 1
@@ -750,14 +787,14 @@ const translateRangePosToIdx = (start, rangePart) => {
         if (charOrNum || rangePart.split("/").length > 2) {
             number += Number(plus)
         } else {
-            number = listTabs().indexOf(currentTab()) + Number(plus)
+            number = currentTabIdx + Number(plus)
         }
     }
     if (minus) {
         if (charOrNum || rangePart.split("/").length > 2) {
             number -= Number(minus)
         } else {
-            number = listTabs().indexOf(currentTab()) - Number(minus)
+            number = currentTabIdx - Number(minus)
         }
     }
     return number
@@ -867,9 +904,16 @@ const allTabsForBufferArg = (args, filter = null) => {
             return [{"tab": tabs[number] || tabs[0]}]
         }
         if ((args[0] || args) === "#") {
-            const {getLastTabId} = require("./pagelayout")
-            const lastTab = listTabs().find(
-                t => t.getAttribute("link-id") === getLastTabId())
+            const {getLastTabIds} = require("./pagelayout")
+            const currentTabIdx = currentTab()?.getAttribute("link-id")
+            const tabs = listTabs()
+            const lastTab = getLastTabIds().map(id => {
+                const tab = tabs.find(t => t.getAttribute("link-id") === id)
+                if (tab?.getAttribute("link-id") === currentTabIdx) {
+                    return null
+                }
+                return tab
+            }).find(t => t) ?? currentTab()
             return [{"tab": lastTab || listTabs()[0]}]
         }
     }
@@ -885,9 +929,9 @@ const allTabsForBufferArg = (args, filter = null) => {
         w => simpleUrl.includes(w) || getSimpleName(name).includes(w))
     const simpleSearch = args.join(" ").split(specialChars).filter(w => w)
     return listTabs().filter(t => !filter || filter(t)).map(t => {
-        const url = pageForTab(t).getAttribute("src")
+        const url = pageForTab(t)?.getAttribute("src") ?? ""
         const simpleUrl = getSimpleUrl(url)
-        const name = t.querySelector("span").textContent
+        const name = t.querySelector("span")?.textContent ?? ""
         let relevance = 1
         if (simpleSearch.every(w => simpleUrl.includes(w))) {
             relevance = 5
@@ -899,7 +943,7 @@ const allTabsForBufferArg = (args, filter = null) => {
             return {"tab": t, "title": name, "top": relevance, url}
         }
         return null
-    }).filter(h => h).sort((a, b) => b.top - a.top)
+    }).filter(h => h).sort((a, b) => (b?.top ?? 0) - (a?.top ?? 0))
 }
 
 /**
@@ -1016,26 +1060,32 @@ const setMute = (args, range) => {
     }
     targets.forEach(tab => {
         if (args[0] === "true") {
-            tab.setAttribute("muted", "muted")
+            tab?.setAttribute("muted", "muted")
         } else {
-            tab.removeAttribute("muted")
+            tab?.removeAttribute("muted")
         }
         const page = pageForTab(tab)
         if (page && !(page instanceof HTMLDivElement)) {
-            page.setAudioMuted(!!tab.getAttribute("muted"))
+            page.setAudioMuted(!!tab?.getAttribute("muted"))
         }
     })
     const {saveTabs} = require("./tabs")
     saveTabs()
 }
 
-const mute = (args, range) => {
+/**
+ * Toggle mute for a page or a range of pages
+ *
+ * @param {string[]} args
+ * @param {string|null} range
+ */
+const mute = (args, range = null) => {
     if (range && args.length) {
         notify("Range cannot be combined with searching", "warn")
         return
     }
     if (range) {
-        rangeToTabIdxs(range).forEach(t => mute([t]))
+        rangeToTabIdxs(range).forEach(t => mute([`${t}`]))
         return
     }
     let tab = currentTab()
@@ -1079,13 +1129,13 @@ const setPin = (args, range) => {
     targets.forEach(tab => {
         const tabContainer = document.getElementById("tabs")
         if (args[0] === "true") {
-            if (!tab.classList.contains("pinned")) {
-                tabContainer.insertBefore(tab,
-                    tabs.find(t => !t.classList.contains("pinned")))
+            if (tab && !tab.classList.contains("pinned")) {
+                tabContainer?.insertBefore(tab,
+                    tabs.find(t => !t.classList.contains("pinned")) ?? null)
                 tab.classList.add("pinned")
             }
-        } else if (tab.classList.contains("pinned")) {
-            tabContainer.insertBefore(tab, firstUnpinned)
+        } else if (tab && tab?.classList.contains("pinned")) {
+            tabContainer?.insertBefore(tab, firstUnpinned ?? null)
             tab.classList.remove("pinned")
         }
     })
@@ -1111,11 +1161,11 @@ const pin = (args, range) => {
         const firstUnpinned = tabs.find(t => !t.classList.contains("pinned"))
         rangeToTabIdxs(range).map(id => tabs[id]).forEach(target => {
             if (target.classList.contains("pinned")) {
-                tabContainer.insertBefore(target, firstUnpinned)
+                tabContainer?.insertBefore(target, firstUnpinned ?? null)
                 target.classList.remove("pinned")
             } else {
-                tabContainer.insertBefore(target,
-                    tabs.find(t => !t.classList.contains("pinned")))
+                tabContainer?.insertBefore(target,
+                    tabs.find(t => !t.classList.contains("pinned")) ?? null)
                 target.classList.add("pinned")
             }
         })
@@ -1133,11 +1183,11 @@ const pin = (args, range) => {
     const tabs = listTabs()
     const firstUnpinned = tabs.find(t => !t.classList.contains("pinned"))
     if (tab.classList.contains("pinned")) {
-        tabContainer.insertBefore(tab, firstUnpinned)
+        tabContainer?.insertBefore(tab, firstUnpinned ?? null)
         tab.classList.remove("pinned")
     } else {
-        tabContainer.insertBefore(tab,
-            tabs.find(t => !t.classList.contains("pinned")))
+        tabContainer?.insertBefore(tab,
+            tabs.find(t => !t.classList.contains("pinned")) ?? null)
         tab.classList.add("pinned")
     }
     const {saveTabs} = require("./tabs")
@@ -1147,7 +1197,7 @@ const pin = (args, range) => {
 /**
  * Add a split to the page layout
  *
- * @param {string} method
+ * @param {"hor"|"ver"} method
  * @param {boolean} leftOrAbove
  * @param {string[]} args
  * @param {string|null} range
@@ -1164,7 +1214,10 @@ const addSplit = (method, leftOrAbove, args, range = null) => {
     }
     const {addTab, switchToTab} = require("./tabs")
     const {add} = require("./pagelayout")
-    const id = currentTab().getAttribute("link-id")
+    const id = currentTab()?.getAttribute("link-id")
+    if (!id) {
+        return
+    }
     if (args.length === 0) {
         addTab({"container": getSetting("containersplitpage")})
         add(id, method, !leftOrAbove)
@@ -1175,8 +1228,11 @@ const addSplit = (method, leftOrAbove, args, range = null) => {
         if (tab.classList.contains("visible-tab")) {
             notify("Page is already visible", "warn")
         } else {
-            add(pageForTab(tab), method, leftOrAbove)
-            switchToTab(tab)
+            const page = pageForTab(tab)
+            if (page) {
+                add(page, method, leftOrAbove)
+                switchToTab(tab)
+            }
         }
     } else {
         addTab({
@@ -1270,18 +1326,26 @@ const makedefault = () => {
 }
 
 const lclose = (force = false) => {
-    let index = listTabs().indexOf(currentTab())
+    const tab = currentTab()
+    if (!tab) {
+        return
+    }
+    let index = listTabs().indexOf(tab)
     // Loop is reversed to close as many tabs as possible on the left,
     // without getting stuck trying to close pinned tabs at index 0.
     for (let i = index - 1; i >= 0; i--) {
-        index = listTabs().indexOf(currentTab())
+        index = listTabs().indexOf(tab)
         const {closeTab} = require("./tabs")
         closeTab(index - 1, force)
     }
 }
 
 const rclose = (force = false) => {
-    const index = listTabs().indexOf(currentTab())
+    const tab = currentTab()
+    if (!tab) {
+        return
+    }
+    const index = listTabs().indexOf(tab)
     let count = listTabs().length
     // Loop is reversed to close as many tabs as possible on the right,
     // without trying to close a potentially pinned tab right of current.
@@ -1520,11 +1584,11 @@ const delscrollpos = (all, args) => {
     const scrollPosId = getSetting("scrollposlocalid")
     let path = ""
     if (scrollPosId === "domain") {
-        path = domainName(urlToString(currentPage().src))
-            || domainName(currentPage().src)
+        path = domainName(urlToString(currentPage()?.src ?? ""))
+            || domainName(currentPage()?.src ?? "") || ""
     }
     if (scrollPosId === "url" || !path) {
-        path = urlToString(currentPage().src) || currentPage().src
+        path = urlToString(currentPage()?.src ?? "") || currentPage()?.src || ""
     }
     if (all) {
         if (args.length > 1) {
@@ -1585,6 +1649,11 @@ const delscrollpos = (all, args) => {
     writeJSON(joinPath(appData(), "quickmarks"), qm)
 }
 
+/**
+ * Set or list a pointer position
+ *
+ * @param {string[]} args
+ */
 const pointerpos = args => {
     if (args.length > 4) {
         notify("Command pointerpos only accepts a maxmimum of three args",
@@ -1659,6 +1728,11 @@ const pointerpos = args => {
     }
 }
 
+/**
+ * Restore the pointer position
+ *
+ * @param {string[]} args
+ */
 const restorepointerpos = args => {
     if (args.length > 2) {
         notify("Command restorepointerpos only accepts up to two args", "warn")
@@ -1682,11 +1756,11 @@ const delpointerpos = (all, args) => {
     const pointerPosId = getSetting("pointerposlocalid")
     let path = ""
     if (pointerPosId === "domain") {
-        path = domainName(urlToString(currentPage().src))
-            || domainName(currentPage().src)
+        path = domainName(urlToString(currentPage()?.src ?? ""))
+            || domainName(currentPage()?.src ?? "") || ""
     }
     if (pointerPosId === "url" || !path) {
-        path = urlToString(currentPage().src) || currentPage().src
+        path = urlToString(currentPage()?.src ?? "") || currentPage()?.src || ""
     }
     if (all) {
         if (args.length > 1) {
@@ -1790,7 +1864,14 @@ const translatepage = args => {
     currentPage()?.send("action", "translatepage", api, url, lang, apiKey)
 }
 
-const clear = (type, interval, trailingArgs = false) => {
+/**
+ * Clear history based on an interval
+ *
+ * @param {string} type
+ * @param {string} interval
+ * @param {string|null} trailingArgs
+ */
+const clear = (type, interval, trailingArgs = null) => {
     if (trailingArgs) {
         notify("The clear command takes at most two arguments: "
             + "a type and optionally an interval", "warn")
@@ -2041,6 +2122,12 @@ const {mapOrList, unmap, clearmap} = require("./input")
     }
 })
 
+/**
+ * Add a new command, or optionally overwrite existing custom commands
+ *
+ * @param {boolean} overwrite
+ * @param {string[]} args
+ */
 const addCommand = (overwrite, args) => {
     if (overwrite && args.length < 2) {
         notify("Can't combine ! with reading a value", "warn")
@@ -2088,6 +2175,11 @@ const addCommand = (overwrite, args) => {
     userCommands[command] = sanitiseMapString(params.join(" "), true)
 }
 
+/**
+ * Delete a custom command
+ *
+ * @param {string[]} args
+ */
 const deleteCommand = args => {
     if (args.length !== 1) {
         notify(

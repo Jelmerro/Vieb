@@ -1841,7 +1841,7 @@ const escapeValueChars = value => {
  *
  * @param {boolean} full
  */
-const listCurrentSettings = full => {
+const listCurrentSettings = (full = false) => {
     /** @type {typeof defaultSettings} */
     const settings = JSON.parse(JSON.stringify(allSettings))
     if (!full) {
@@ -1958,6 +1958,7 @@ const updateCustomStyling = () => {
 }
 
 module.exports = {
+    defaultSettings,
     freeText,
     getCustomStyling,
     init,

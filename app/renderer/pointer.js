@@ -44,6 +44,7 @@ let startX = 0
 let startY = 0
 let listenForScroll = false
 let lastSelection = {"endX": 0, "endY": 0, "startX": 0, "startY": 0}
+/** @type {typeof lastSelection|null} */
 let mouseSelection = null
 let skipNextClick = false
 
@@ -54,12 +55,15 @@ const init = () => {
             setMode("normal")
         }
         if (clickInfo.webviewId) {
-            if (clickInfo.webviewId !== currentPage().getWebContentsId()) {
+            if (clickInfo.webviewId !== currentPage()?.getWebContentsId()) {
                 const page = listRealPages().find(
                     p => p.getWebContentsId() === clickInfo.webviewId)
                 if (page) {
-                    const {switchToTab} = require("./tabs")
-                    switchToTab(tabForPage(page))
+                    const tab = tabForPage(page)
+                    if (tab) {
+                        const {switchToTab} = require("./tabs")
+                        switchToTab(tab)
+                    }
                 }
             }
         }
@@ -71,8 +75,8 @@ const init = () => {
                     "selectionRemove", zoomX(), zoomY())
             }
             if (getMouseConf("movepointer")) {
-                move(clickInfo.x * currentPage().getZoomFactor(),
-                    clickInfo.y * currentPage().getZoomFactor())
+                const factor = currentPage()?.getZoomFactor() ?? 1
+                move(clickInfo.x * factor, clickInfo.y * factor)
             } else {
                 updateElement()
             }
@@ -114,11 +118,12 @@ const init = () => {
         const switchToVisual = getSetting("mousevisualmode")
         if (switchToVisual !== "never" || currentMode() === "visual") {
             skipNextClick = true
+            const factor = currentPage()?.getZoomFactor() ?? 1
             storeMouseSelection({
-                "endX": selectInfo.endX * currentPage().getZoomFactor(),
-                "endY": selectInfo.endY * currentPage().getZoomFactor(),
-                "startX": selectInfo.startX * currentPage().getZoomFactor(),
-                "startY": selectInfo.startY * currentPage().getZoomFactor()
+                "endX": selectInfo.endX * factor,
+                "endY": selectInfo.endY * factor,
+                "startX": selectInfo.startX * factor,
+                "startY": selectInfo.startY * factor
             })
             if (switchToVisual === "activate") {
                 startVisualSelect()
@@ -126,16 +131,27 @@ const init = () => {
         }
     })
 }
-const zoomX = () => Math.round(X / currentPage().getZoomFactor())
+const zoomX = () => Math.round(X / (currentPage()?.getZoomFactor() ?? 1))
 
-const zoomY = () => Math.round(Y / currentPage().getZoomFactor())
+const zoomY = () => Math.round(Y / (currentPage()?.getZoomFactor() ?? 1))
 
+/**
+ * Move the pointer
+ *
+ * @param {Number} x
+ * @param {Number} y
+ */
 const move = (x, y) => {
     X = x
     Y = y
     updateElement()
 }
 
+/**
+ * Handle a difference in scroll height
+ *
+ * @param {Number} diff
+ */
 const handleScrollDiffEvent = diff => {
     startY += diff
     if (listenForScroll) {
@@ -146,20 +162,25 @@ const handleScrollDiffEvent = diff => {
 }
 
 const updateElement = () => {
-    const {top, left, bottom, right} = pageOffset(currentPage())
+    const pointerEl = document.getElementById("pointer")
+    const page = currentPage()
+    if (!pointerEl || !page) {
+        return
+    }
+    const {top, left, bottom, right} = pageOffset(page)
     X = Math.max(0, Math.min(X, right - left - getSetting("guifontsize") * 1.4))
     Y = Math.max(0, Math.min(Y, bottom - top - getSetting("guifontsize")))
-    document.getElementById("pointer").style.left = `${X + left}px`
-    document.getElementById("pointer").style.top = `${Y + top}px`
-    currentPage().setAttribute("pointer-x", `${X}`)
-    currentPage().setAttribute("pointer-y", `${Y}`)
+    pointerEl.style.left = `${X + left}px`
+    pointerEl.style.top = `${Y + top}px`
+    currentPage()?.setAttribute("pointer-x", `${X}`)
+    currentPage()?.setAttribute("pointer-y", `${Y}`)
     if (currentMode() === "pointer") {
         sendToPageOrSubFrame("send-input-event",
             {"type": "hover", "x": X, "y": Y})
     }
     if (currentMode() === "visual") {
         lastSelection = {"endX": X, "endY": Y, startX, startY}
-        const factor = currentPage().getZoomFactor()
+        const factor = currentPage()?.getZoomFactor() ?? 1
         sendToPageOrSubFrame("action", "selectionRequest",
             Math.round(startX / factor), Math.round(startY / factor),
             zoomX(), zoomY())
@@ -177,15 +198,25 @@ const releaseKeys = () => {
     mouseSelection = null
 }
 
+/**
+ * Store the latest mouse selection
+ *
+ * @param {typeof lastSelection|null} selection
+ */
 const storeMouseSelection = selection => {
     mouseSelection = selection
 }
 
 // ACTIONS
 
+/**
+ * Start pointer mode
+ *
+ * @param {{x?: Number, y?: Number}} args
+ */
 const start = args => {
-    X = args?.x || Number(currentPage().getAttribute("pointer-x")) || X
-    Y = args?.y || Number(currentPage().getAttribute("pointer-y")) || Y
+    X = args?.x || Number(currentPage()?.getAttribute("pointer-x")) || X
+    Y = args?.y || Number(currentPage()?.getAttribute("pointer-y")) || Y
     const {setMode} = require("./modes")
     setMode("pointer")
     sendToPageOrSubFrame("send-input-event", {"type": "hover", "x": X, "y": Y})
@@ -196,13 +227,14 @@ const moveToMouse = () => {
     const mousePos = ipcRenderer.sendSync("mouse-location")
     if (mousePos) {
         [...document.elementsFromPoint(mousePos.x, mousePos.y)].forEach(el => {
-            if (matchesQuery(el, "webview[link-id]")) {
+            if (el instanceof HTMLElement
+                && matchesQuery(el, "webview[link-id]")) {
                 if (el !== currentPage() || currentMode() !== "visual") {
                     const {switchToTab} = require("./tabs")
                     // @ts-expect-error el is checked to be a webview above
                     switchToTab(tabForPage(el))
                 }
-                const pagePos = pageOffset(currentPage())
+                const pagePos = pageOffset(el)
                 if (currentMode() === "visual") {
                     X = mousePos.x - pagePos.left
                     Y = mousePos.y - pagePos.top
@@ -417,8 +449,11 @@ const toggleMediaControls = () => sendToPageOrSubFrame(
     "action", "toggleControls", X, Y)
 
 const inspectElement = () => {
-    const {top, left} = pageOffset(currentPage())
-    currentPage().inspectElement(Math.round(X + left), Math.round(Y + top))
+    const page = currentPage()
+    if (page) {
+        const {top, left} = pageOffset(page)
+        page.inspectElement(Math.round(X + left), Math.round(Y + top))
+    }
 }
 
 const leftClick = () => {
@@ -443,12 +478,16 @@ const moveLeft = () => {
 }
 
 const insertAtPosition = () => {
-    const factor = currentPage().getZoomFactor()
+    const factor = currentPage()?.getZoomFactor() ?? 1
     sendToPageOrSubFrame("focus-input", {"x": X * factor, "y": Y * factor})
 }
 
 const moveDown = () => {
-    const {bottom, top} = pageOffset(currentPage())
+    const page = currentPage()
+    if (!page) {
+        return
+    }
+    const {bottom, top} = pageOffset(page)
     if (Y === bottom - top - getSetting("guifontsize")) {
         const {"scrollDown": scroll} = require("./actions")
         scroll()
@@ -512,7 +551,11 @@ const moveFastRight = () => {
 }
 
 const centerOfView = () => {
-    const {top, bottom} = pageOffset(currentPage())
+    const page = currentPage()
+    if (!page) {
+        return
+    }
+    const {top, bottom} = pageOffset(page)
     Y = (bottom - top) / 2
     updateElement()
 }
@@ -589,7 +632,11 @@ const moveLeftMax = () => {
 }
 
 const moveFastDown = () => {
-    const {bottom, top} = pageOffset(currentPage())
+    const page = currentPage()
+    if (!page) {
+        return
+    }
+    const {bottom, top} = pageOffset(page)
     if (Y === bottom - top - getSetting("guifontsize")) {
         const {"scrollDown": scroll} = require("./actions")
         scroll()
@@ -611,6 +658,11 @@ const moveFastUp = () => {
     updateElement()
 }
 
+/**
+ * Store a pointer position
+ *
+ * @param {{key: string, location: {x: number, y: number}, path: string}} args
+ */
 const storePos = args => {
     const key = args?.key
     if (!key) {
@@ -634,11 +686,12 @@ const storePos = args => {
         let path = ""
         const pointerPosId = getSetting("pointerposlocalid")
         if (pointerPosId === "domain") {
-            path = domainName(urlToString(currentPage().src))
-                || domainName(currentPage().src)
+            path = domainName(urlToString(currentPage()?.src ?? ""))
+                || domainName(currentPage()?.src ?? "") || ""
         }
         if (pointerPosId === "url" || !path) {
-            path = urlToString(currentPage().src) || currentPage().src
+            path = urlToString(currentPage()?.src ?? "")
+                || currentPage()?.src || ""
         }
         path = args?.path ?? path
         if (!qm.pointer.local[path]) {
@@ -653,6 +706,11 @@ const storePos = args => {
     writeJSON(joinPath(appData(), "quickmarks"), qm)
 }
 
+/**
+ * Restore a pointer position
+ *
+ * @param {{key: string, path: string}} args
+ */
 const restorePos = args => {
     const key = args?.key
     if (!key) {
@@ -662,11 +720,11 @@ const restorePos = args => {
     const pointerPosId = getSetting("pointerposlocalid")
     let path = ""
     if (pointerPosId === "domain") {
-        path = domainName(urlToString(currentPage().src))
-            || domainName(currentPage().src)
+        path = domainName(urlToString(currentPage()?.src ?? ""))
+            || domainName(currentPage()?.src ?? "") || ""
     }
     if (pointerPosId === "url" || !path) {
-        path = urlToString(currentPage().src) || currentPage().src
+        path = urlToString(currentPage()?.src ?? "") || currentPage()?.src || ""
     }
     path = args?.path ?? path
     const qm = readJSON(joinPath(appData(), "quickmarks"))

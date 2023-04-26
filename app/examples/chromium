@@ -28,7 +28,6 @@ map <C-f> <toSearchMode>
 map <C-h> <:history>
 map <C-j> <:downloads>
 map <C-p> <:hardcopy>
-map <C-q> <:quit>
 map <C-s> <:write>
 map <C-t> <:tabnew><toExploreMode>
 vmap <C-f> <p.searchText>
