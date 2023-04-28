@@ -1976,7 +1976,7 @@ ipcMain.on("follow-mode-stop", e => {
         errToMain(ex)
     }
 })
-/** @type {{}[]} */
+/** @type {(import("./renderer/follow").FollowLink & {frameId: string})[]} */
 let allLinks = []
 /** @type {{[frameId: string]: {
  *   id?: string
@@ -2051,7 +2051,15 @@ const handleFrameDetails = (e, details) => {
     })
 }
 ipcMain.on("frame-details", handleFrameDetails)
-ipcMain.on("follow-response", (e, rawLinks) => {
+/**
+ * Handle a follow mode response
+ *
+ * @param {Electron.IpcMainEvent} e
+ * @param {(
+ *   import("./renderer/follow").FollowLink & {frameId: string}
+ * )[]} rawLinks
+ */
+const handleFollowResponse = (e, rawLinks) => {
     let frameId = ""
     try {
         frameId = `${e.frameId}-${e.processId}`
@@ -2100,13 +2108,14 @@ ipcMain.on("follow-response", (e, rawLinks) => {
                 }
             }).filter(f => f)
         allLinks = allLinks.filter(l => l.frameId !== frameId
-            && allFramesIds.includes(l.frameId))
+            && allFramesIds?.includes(l.frameId))
         allLinks = allLinks.concat(frameLinks)
         mainWindow?.webContents.send("follow-response", allLinks)
     } catch (ex) {
         errToMain(ex)
     }
-})
+}
+ipcMain.on("follow-response", handleFollowResponse)
 /**
  * Find the right subframe for a position in webcontents
  *
@@ -2256,6 +2265,7 @@ ipcMain.on("contextmenu-data", (_, id, info) => {
             })
             frameRef?.send("contextmenu-data", {
                 ...info,
+                "frameId": `${frameRef.routingId}-${frameRef.processId}`,
                 "x": info.x - subframe.absX,
                 "y": info.y - subframe.absY
             })
@@ -2347,6 +2357,7 @@ const translateMouseEvent = (e, clickInfo = null) => {
     if (info?.x && info?.url) {
         frameUrl = info.url
     }
+    /** @type {number|null} */
     let webviewId = null
     try {
         webviewId = webContents.getAllWebContents().find(wc => {
@@ -2357,7 +2368,7 @@ const translateMouseEvent = (e, clickInfo = null) => {
             } catch {
                 return false
             }
-        })?.id
+        })?.id ?? null
     } catch (ex) {
         errToMain(ex)
     }

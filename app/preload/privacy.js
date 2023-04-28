@@ -446,13 +446,14 @@ if (window.navigator.userAgent.includes("Firefox")) {
 }
 // Provide a wrapper for window.open with a subset of the regular API
 // Also provide the option to open new tabs by setting the location property
-window.open = (url = null) => {
+window.open = (url = undefined) => {
     if (url) {
         ipcRenderer.sendToHost(
             "url", new URL(url, window.location.href).href)
     }
-    const obj = {}
+    const obj = {...window}
     Object.defineProperty(obj, "location", {"get": (() => "").bind(null),
+        // @ts-expect-error val should be an any here as users can pass anything
         "set": (val => {
             ipcRenderer.sendToHost(
                 "url", new URL(val, window.location.href).href)

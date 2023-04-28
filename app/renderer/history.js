@@ -322,9 +322,9 @@ const suggestTopSites = () => {
 /**
  * Get the visit count for a given url, will be 0 if not found or never visited
  *
- * @param {string} url
+ * @param {string|null} url
  */
-const visitCount = url => groupedHistory[url]?.visits?.length || 0
+const visitCount = url => url && groupedHistory[url]?.visits?.length || 0
 
 /**
  * Get the latest title for a page by url

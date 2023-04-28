@@ -37,7 +37,7 @@ const faviconFolder = joinPath(appData(), "favicons")
 const mappingFile = joinPath(faviconFolder, "mappings")
 /** @type {{
  *   redirects?: {[url: string]: string},
- *   [url: string]: string|{}
+ *   [url: string]: string
  * }} */
 let mappings = {}
 const sessionStart = new Date()
@@ -86,7 +86,7 @@ const updateMappings = (currentUrl = null) => {
     Object.keys(mappings).forEach(m => {
         if (m === "redirects") {
             Object.keys(mappings.redirects ?? {}).forEach(r => {
-                const dest = mappings.redirects?.[r]
+                const dest = mappings.redirects?.[r] ?? null
                 if (dest !== currentUrl && visitCount(dest) === 0) {
                     delete mappings.redirects?.[r]
                 }
@@ -99,7 +99,12 @@ const updateMappings = (currentUrl = null) => {
         }
     })
     // Delete unmapped favicon icons from disk
-    const mappedFavicons = Object.values(mappings).map(f => urlToPath(f))
+    const mappedFavicons = Object.values(mappings).flatMap(f => {
+        if (typeof f === "string") {
+            return urlToPath(f)
+        }
+        return []
+    })
     const files = listDir(faviconFolder)
     files?.filter(p => p !== "mappings").map(p => joinPath(faviconFolder, p))
         .forEach(img => {

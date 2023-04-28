@@ -63,7 +63,9 @@ const {
 } = require("./common")
 
 /**
- * @param {keyof typeof import("./settings").defaultSettings|"all"} setting
+ * List a specific setting, all of them or show the warning regarding name
+ *
+ * @param {string} setting
  */
 const listSetting = setting => {
     if (setting === "all") {
@@ -94,7 +96,7 @@ const splitSettingAndValue = (part, separator) => {
 /**
  * Modifiy a list or a number
  *
- * @param {keyof typeof import("./settings").defaultSettings} setting
+ * @param {string} setting
  * @param {string} value
  * @param {"append"|"remove"|"special"} method
  */
@@ -165,6 +167,11 @@ const modifyListOrNumber = (setting, value, method) => {
     }
 }
 
+/**
+ * Use the set command to list or modify any setting
+ *
+ * @param {string[]} args
+ */
 const set = args => {
     if (args.length === 0) {
         const {listCurrentSettings} = require("./settings")
@@ -179,11 +186,14 @@ const set = args => {
     const {"set": s} = require("./settings")
     for (const part of args) {
         if ((/^\w+\+=/).test(part)) {
-            modifyListOrNumber(...splitSettingAndValue(part, "+="), "append")
+            const [setting, value] = splitSettingAndValue(part, "+=")
+            modifyListOrNumber(setting, value, "append")
         } else if ((/^\w+-=/).test(part)) {
-            modifyListOrNumber(...splitSettingAndValue(part, "-="), "remove")
+            const [setting, value] = splitSettingAndValue(part, "-=")
+            modifyListOrNumber(setting, value, "remove")
         } else if ((/^\w+\^=/).test(part)) {
-            modifyListOrNumber(...splitSettingAndValue(part, "^="), "special")
+            const [setting, value] = splitSettingAndValue(part, "^=")
+            modifyListOrNumber(setting, value, "special")
         } else if ((/^\w+=/).test(part)) {
             s(...splitSettingAndValue(part, "="))
         } else if ((/^\w+:/).test(part)) {

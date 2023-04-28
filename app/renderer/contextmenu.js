@@ -43,8 +43,61 @@ const {
     listRealPages
 } = require("./common")
 
+/**
+ * @typedef {"text"|"img"|"frame"|"video"|"audio"|"link"} contextMenuType
+ * @typedef {(
+ *   "open"|"newtab"|"copy"|"copyimage"
+ *   |"download"|"split"|"vsplit"|"external"|"search"
+ * )} contextMenuAction
+ * @typedef {{
+ *   audio?: string,
+ *   audioData: {
+ *     controllable: boolean,
+ *     loop: boolean,
+ *     muted: boolean,
+ *     paused: boolean
+ *   },
+ *   backgroundImg?: string,
+ *   canEdit: boolean,
+ *   extraData?: {
+ *     type?: contextMenuType,
+ *     action?: contextMenuAction,
+ *     force?: boolean,
+ *     x?: number
+ *     y?: number
+ *   },
+ *   frame?: string,
+ *   hasElementListener: boolean,
+ *   hasGlobalListener: boolean,
+ *   img?: string,
+ *   inputSel?: number,
+ *   inputVal?: string,
+ *   link?: string,
+ *   svgData?: string,
+ *   text?: string,
+ *   video?: string,
+ *   videoData: {
+ *     controllable: boolean,
+ *     controls: boolean,
+ *     loop: boolean,
+ *     muted: boolean,
+ *     paused: boolean
+ *   },
+ *   x: number,
+ *   y: number,
+ *   frameId: string|null,
+ *   webviewId: number|null,
+ * }} webviewData
+ */
+
 const init = () => {
-    ipcRenderer.on("context-click-info", (_, info) => {
+    /**
+     * Handle context menu info to open the menu with the right details
+     *
+     * @param {Event} _
+     * @param {webviewData} info
+     */
+    const handleContextMenu = (_, info) => {
         if (info.webviewId) {
             if (info.webviewId !== currentPage()?.getWebContentsId()) {
                 const page = listRealPages().find(
@@ -58,12 +111,13 @@ const init = () => {
                 }
             }
         }
-        if (info.extraData?.action) {
+        if (info.extraData?.type && info.extraData?.action) {
             commonAction(info.extraData.type, info.extraData.action, info)
         } else {
             webviewMenu(info, info?.extraData?.force)
         }
-    })
+    }
+    ipcRenderer.on("context-click-info", handleContextMenu)
 }
 
 const contextMenu = document.getElementById("context-menu")
@@ -252,6 +306,12 @@ const storePointerRightClick = () => {
     }, 100)
 }
 
+/**
+ * Show the webview menu using custom options
+ *
+ * @param {webviewData} options
+ * @param {boolean} force
+ */
 const webviewMenu = (options, force = false) => {
     clear()
     if (!contextMenu) {
@@ -308,7 +368,7 @@ const webviewMenu = (options, force = false) => {
     })
     const {updateKeysOnScreen} = require("./input")
     updateKeysOnScreen()
-    if (options.canEdit && options.inputVal && options.inputSel >= 0) {
+    if (options.canEdit && options.inputVal && (options.inputSel ?? 0) >= 0) {
         const wordRegex = specialChars.source.replace("[", "[^")
         const words = options.inputVal.split(new RegExp(`(${
             wordRegex}+|${specialChars.source}+)`, "g")).filter(s => s)
@@ -318,7 +378,7 @@ const webviewMenu = (options, force = false) => {
         while (wordIndex < words.length) {
             word = words[wordIndex].trim()
             letterCount += words[wordIndex].length
-            if (letterCount >= options.inputSel) {
+            if (letterCount >= (options.inputSel ?? 0)) {
                 if (word.match(new RegExp(`${wordRegex}+`, "g"))) {
                     break
                 }
@@ -758,12 +818,9 @@ const select = () => {
 /**
  * Execute a common link action by name, position and custom options
  *
- * @param {"text"|"img"|"frame"|"video"|"audio"|"link"} type
- * @param {(
- *   "open"|"newtab"|"copy"|"copyimage"
- *   |"download"|"split"|"vsplit"|"external"|"search"
- * )} action
- * @param {{}} options
+ * @param {contextMenuType} type
+ * @param {contextMenuAction} action
+ * @param {Partial<webviewData>} options
  */
 const commonAction = (type, action, options) => {
     let relevantData = options[type]

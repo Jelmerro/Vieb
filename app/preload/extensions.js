@@ -49,7 +49,7 @@ const loadSponsorblock = () => {
                 blockEl.style.zIndex = "100000000"
                 blockEl.style.height = "100%"
                 blockEl.style.minHeight = ".5em"
-                progressEl.appendChild(blockEl)
+                progressEl?.append(blockEl)
                 previousBlockEls.push(blockEl)
                 setInterval(() => {
                     const left = skip.segment[0] / vid.duration * 100
