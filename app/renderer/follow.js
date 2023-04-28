@@ -30,10 +30,24 @@ const {
 } = require("./common")
 const {sendToPageOrSubFrame} = require("../util")
 
+/**
+ * @typedef {Object} FollowLink
+ * @property {number} x
+ * @property {number} y
+ * @property {number} width
+ * @property {number} height
+ * @property {string} text
+ * @property {string} type
+ * @property {string} url
+ */
+
+/** @type {FollowLink|null} */
 let hoverLink = null
+/** @type {"current"|"newtab"|"copylink"|"hor"|"ver"} */
 let followLinkDestination = "current"
 let alreadyFollowing = false
 let alreadyFilteringLinks = false
+/** @type {(FollowLink|null)[]} */
 let links = []
 const savedOrder = [
     "image", "media", "url", "onclick", "inputs-click", "inputs-insert"
@@ -68,9 +82,18 @@ const informPreload = (first = false) => {
     }, 100)
 }
 
-const startFollow = (newtab = followLinkDestination) => {
-    followLinkDestination = newtab || "current"
-    document.getElementById("follow").textContent = ""
+/**
+ * Start follow mode and open links at the provided location once done
+ *
+ * @param {"current"|"newtab"|"copylink"|"hor"|"ver"} dest
+ */
+const startFollow = (dest = followLinkDestination) => {
+    followLinkDestination = dest || "current"
+    const followEl = document.getElementById("follow")
+    if (!followEl) {
+        return
+    }
+    followEl.textContent = ""
     const modeBeforeFollow = currentMode()
     if (!["follow", "insert"].includes(modeBeforeFollow)) {
         setStored("modebeforefollow", modeBeforeFollow)
@@ -81,15 +104,18 @@ const startFollow = (newtab = followLinkDestination) => {
     alreadyFilteringLinks = false
     hoverLink = null
     informPreload(true)
-    document.getElementById("follow").style.display = "flex"
+    followEl.style.display = "flex"
 }
 
 const cancelFollow = () => {
     alreadyFollowing = false
     alreadyFilteringLinks = false
     hoverLink = null
-    document.getElementById("follow").style.display = ""
-    document.getElementById("follow").textContent = ""
+    const followEl = document.getElementById("follow")
+    if (followEl) {
+        followEl.style.display = ""
+        followEl.textContent = ""
+    }
     ipcRenderer.send("follow-mode-stop")
 }
 
@@ -107,6 +133,13 @@ const followChars = () => {
     return allKeys.split("")
 }
 
+/**
+ * Generate a unique list of digits for a number based on a custom set of chars
+ *
+ * @param {number} number
+ * @param {number} base
+ * @param {number} minLen
+ */
 const digitListInCustomBase = (number, base, minLen = 0) => {
     const digits = []
     let num = Number(number)
@@ -120,16 +153,33 @@ const digitListInCustomBase = (number, base, minLen = 0) => {
     return digits
 }
 
+/**
+ * Translate a number to a unique string using the chars from followchars
+ *
+ * @param {number} number
+ * @param {number} minLen
+ */
 const numberToKeys = (number, minLen = 0) => {
     const set = followChars()
     return digitListInCustomBase(number, set.length, minLen).map(
         d => set[d]).join("")
 }
 
+/**
+ * Check if a really similar follow link is in a given list
+ *
+ * @param {(FollowLink|null)[]} list
+ * @param {FollowLink|null} link
+ */
 const linkInList = (list, link) => list.some(l => l && link && l.x === link.x
     && l.y === link.y && l.type === link.type && l.height === link.height
     && l.width === link.width && l.url === link.url)
 
+/**
+ * Click on a follow link
+ *
+ * @param {FollowLink} link
+ */
 const clickAtLink = async link => {
     const factor = currentPage()?.getZoomFactor() ?? 1
     const {setMode} = require("./modes")
@@ -166,11 +216,14 @@ const clickAtLink = async link => {
     await new Promise(r => {
         setTimeout(r, 2)
     })
-    document.getElementById("url-hover").style.display = "none"
+    const hoverEl = document.getElementById("url-hover")
+    if (hoverEl) {
+        hoverEl.style.display = "none"
+    }
 }
 
 const reorderDisplayedLinks = () => {
-    savedOrder.push(savedOrder.shift())
+    savedOrder.push(savedOrder.shift() ?? "")
     applyIndexedOrder()
 }
 
@@ -207,16 +260,38 @@ const emptyHoverLink = () => {
     }
 }
 
+/**
+ * Get a writable DOMRect for any Element
+ *
+ * @param {Element} el
+ */
+const getWritableDOMRect = el => {
+    const {
+        top, right, bottom, left, width, height, x, y
+    } = el?.getBoundingClientRect() ?? {}
+    return {bottom, height, left, right, top, width, x, y}
+}
+
+/**
+ * Parse the received links and add them to the follow element to be picked
+ *
+ * @param {(FollowLink|null)[]} receivedLinks
+ */
 const parseAndDisplayLinks = receivedLinks => {
     if (currentMode() !== "follow" || alreadyFollowing) {
         return
     }
+    const followEl = document.getElementById("follow")
+    const page = currentPage()
+    if (!followEl || !page) {
+        return
+    }
     const {updateUrl} = require("./tabs")
-    updateUrl(currentPage(), true)
+    updateUrl(page, true)
     let newLinks = receivedLinks
     if (followLinkDestination !== "current") {
         const {hasProtocol} = require("../util")
-        newLinks = receivedLinks.filter(link => hasProtocol(link.url))
+        newLinks = receivedLinks.filter(link => link && hasProtocol(link.url))
             .map(link => ({...link, "type": "url"}))
     }
     if (links.length) {
@@ -242,13 +317,13 @@ const parseAndDisplayLinks = receivedLinks => {
     while (!links[links.length - 1] && links.length) {
         links.pop()
     }
-    const baseDims = document.getElementById("follow")
-        .getBoundingClientRect().toJSON()
+    const baseDims = getWritableDOMRect(followEl)
     baseDims.right = window.innerWidth - baseDims.left - baseDims.width
     baseDims.bottom = window.innerHeight - baseDims.top - baseDims.height
     const elWidth = document.querySelector("#follow [link-id]")
         ?.getBoundingClientRect()?.width ?? 0
-    const factor = currentPage().getZoomFactor()
+    const factor = currentPage()?.getZoomFactor() ?? 1
+    /** @type {HTMLSpanElement[]} */
     const followChildren = []
     const neededLength = numberToKeys(links.length).length
     const followlabelposition = getSetting("followlabelposition")
@@ -257,6 +332,11 @@ const parseAndDisplayLinks = receivedLinks => {
             return
         }
         // Mouse listener
+        /**
+         * Add an onclick listener to mouseup events to click on the links
+         *
+         * @param {MouseEvent} e
+         */
         const onclickListener = async e => {
             if (!getMouseConf("follow")) {
                 return
@@ -315,7 +395,7 @@ const parseAndDisplayLinks = receivedLinks => {
         const linkElement = document.createElement("span")
         linkElement.textContent = numberToKeys(index, neededLength)
         linkElement.className = `follow-${link.type}`
-        const alignment = {
+        const alignmentDict = {
             "cornerbottomleft": {"right": x, "top": y + height},
             "cornerbottomright": {"left": x + width, "top": y + height},
             "cornertopleft": {"bottom": y, "right": x},
@@ -372,7 +452,8 @@ const parseAndDisplayLinks = receivedLinks => {
             },
             "outsidetopleft": {"bottom": y, "left": x},
             "outsidetopright": {"bottom": y, "right": x + width}
-        }[followlabelposition]
+        }
+        const alignment = alignmentDict[followlabelposition]
         for (const align of ["left", "top", "right", "bottom", "transform"]) {
             if (alignment[align] !== undefined) {
                 let value = alignment[align]
@@ -430,12 +511,19 @@ const parseAndDisplayLinks = receivedLinks => {
         })
         followChildren.push(linkElement)
     })
-    document.getElementById("follow").replaceChildren(...followChildren)
+    followEl.replaceChildren(...followChildren)
     applyIndexedOrder()
 }
 
 const followFiltering = () => alreadyFilteringLinks
 
+/**
+ * Enter a follow mode key and narrow down results
+ *
+ * @param {string} code
+ * @param {string} id
+ * @param {boolean} stayInFollowMode
+ */
 const enterKey = async(code, id, stayInFollowMode) => {
     alreadyFollowing = true
     /** @type {HTMLSpanElement[]} */
@@ -452,19 +540,21 @@ const enterKey = async(code, id, stayInFollowMode) => {
         if (fallbackAction === "nothing") {
             return
         }
-        if (!alreadyFilteringLinks) {
+        if (!alreadyFilteringLinks && url) {
             alreadyFilteringLinks = true
             url.value = ""
         }
         const {typeCharacterIntoNavbar} = require("./input")
         typeCharacterIntoNavbar(id, true)
-        const filterText = url.value.toLowerCase()
+        const filterText = url?.value.toLowerCase()
+        /** @type {HTMLSpanElement[]} */
         const visibleLinks = []
         allLinkKeys.forEach(linkKey => {
-            const link = links[linkKey.getAttribute("link-id")]
-            if (link.text.toLowerCase().includes(filterText)
-                || link.url?.toLowerCase().includes(filterText)) {
-                linkKey.style.display = null
+            const link = links[Number(linkKey.getAttribute("link-id") ?? -1)]
+            if (filterText !== undefined
+                && (link?.text.toLowerCase().includes(filterText)
+                || link?.url.toLowerCase().includes(filterText))) {
+                linkKey.style.display = ""
                 visibleLinks.push(linkKey)
             } else {
                 linkKey.style.display = "none"
@@ -476,9 +566,10 @@ const enterKey = async(code, id, stayInFollowMode) => {
         })
         return
     }
+    /** @type {HTMLSpanElement[]} */
     const matches = []
     allLinkKeys.forEach(linkKey => {
-        if (linkKey.textContent.toLowerCase().startsWith(code.toLowerCase())) {
+        if (linkKey.textContent?.toLowerCase().startsWith(code.toLowerCase())) {
             if (getComputedStyle(linkKey).display !== "none") {
                 matches.push(linkKey)
             }
@@ -497,7 +588,11 @@ const enterKey = async(code, id, stayInFollowMode) => {
             startFollow()
         }
     } else if (matches.length === 1) {
-        const link = links[matches[0].getAttribute("link-id")]
+        const link = links[Number(matches[0].getAttribute("link-id") ?? -1)]
+        if (!link) {
+            setMode("normal")
+            return
+        }
         if (followLinkDestination !== "current") {
             setMode("normal")
             if (stayInFollowMode) {
@@ -513,7 +608,7 @@ const enterKey = async(code, id, stayInFollowMode) => {
             } else if (followLinkDestination === "copylink") {
                 clipboard.writeText(link.url)
             } else {
-                const currentTabId = currentTab().getAttribute("link-id")
+                const currentTabId = currentTab()?.getAttribute("link-id")
                 addTab({
                     "container": getSetting("containersplitpage"),
                     "url": link.url
@@ -523,7 +618,9 @@ const enterKey = async(code, id, stayInFollowMode) => {
                     && !getSetting("splitbelow")
                     || followLinkDestination === "hor"
                     && !getSetting("splitright")
-                add(currentTabId, followLinkDestination, !opposite)
+                if (currentTabId) {
+                    add(currentTabId, followLinkDestination, !opposite)
+                }
             }
             return
         }

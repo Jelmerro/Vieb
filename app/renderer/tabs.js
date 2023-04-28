@@ -193,18 +193,20 @@ const saveTabs = () => {
     if (keepRecentlyClosed) {
         data.closed = JSON.parse(JSON.stringify(recentlyClosed))
     }
-    if (restoreTabs !== "none") {
-        data.id = listTabs().indexOf(currentTab())
+    const activeTab = currentTab()
+    if (restoreTabs !== "none" && activeTab) {
+        data.id = listTabs().indexOf(activeTab)
     }
     listTabs().forEach((tab, index) => {
-        const url = urlToString(pageForTab(tab).getAttribute("src"))
+        const url = urlToString(pageForTab(tab)?.getAttribute("src") ?? "")
         if (!url || url.startsWith("devtools://")) {
             if (index <= data.id) {
                 data.id -= 1
             }
             return
         }
-        const container = urlToString(pageForTab(tab).getAttribute("container"))
+        const container = urlToString(pageForTab(tab)
+            ?.getAttribute("container") ?? "")
         const isPinned = tab.classList.contains("pinned")
         if (isPinned && ["all", "pinned"].includes(restoreTabs)) {
             data.pinned.push({
@@ -580,11 +582,15 @@ const reopenTab = () => {
         delete restore.container
     }
     restore.customIndex = restore.index
+    const tab = currentTab()
+    if (!tab) {
+        return
+    }
     if (getSetting("tabreopenposition") === "left") {
-        restore.customIndex = listTabs().indexOf(currentTab())
+        restore.customIndex = listTabs().indexOf(tab)
     }
     if (getSetting("tabreopenposition") === "right") {
-        restore.customIndex = listTabs().indexOf(currentTab()) + 1
+        restore.customIndex = listTabs().indexOf(tab) + 1
     }
     const rememberMuted = getSetting("tabreopenmuted")
     restore.muted = rememberMuted === "always"
@@ -719,14 +725,24 @@ const switchToTab = tabOrIndex => {
         p.id = ""
     })
     tab.id = "current-tab"
-    const page = pageForTab(tab)
-    page.id = "current-page"
+    /** @type {Electron.WebviewTag|HTMLDivElement|null|undefined} */
+    let newCurrentPage = pageForTab(tab)
+    if (newCurrentPage) {
+        newCurrentPage.id = "current-page"
+    }
     tab.scrollIntoView({"block": "center", "inline": "center"})
     const {switchView, setLastUsedTab} = require("./pagelayout")
-    switchView(oldPage, currentPage())
-    updateUrl(currentPage())
+    if (newCurrentPage) {
+        switchView(oldPage, newCurrentPage)
+    }
     saveTabs()
-    unsuspendPage(page)
+    if (newCurrentPage) {
+        unsuspendPage(newCurrentPage)
+    }
+    newCurrentPage = currentPage()
+    if (newCurrentPage && !(newCurrentPage instanceof HTMLDivElement)) {
+        updateUrl(newCurrentPage)
+    }
     setMode("normal")
     const hoverEl = document.getElementById("url-hover")
     if (hoverEl) {
@@ -736,7 +752,7 @@ const switchToTab = tabOrIndex => {
     guiRelatedUpdate("tabbar")
     const {updateContainerSettings} = require("./settings")
     updateContainerSettings(false)
-    setLastUsedTab(oldPage?.getAttribute("link-id"))
+    setLastUsedTab(oldPage?.getAttribute("link-id") ?? null)
 }
 
 /**
@@ -830,7 +846,10 @@ const addWebviewListeners = webview => {
     })
     webview.addEventListener("close", () => {
         if (getSetting("permissionclosepage") === "allow") {
-            closeTab(listTabs().indexOf(tabForPage(webview)))
+            const tab = tabForPage(webview)
+            if (tab) {
+                closeTab(listTabs().indexOf(tab))
+            }
         }
     })
     webview.addEventListener("media-started-playing", () => {
@@ -870,8 +889,10 @@ const addWebviewListeners = webview => {
         }
         if (webview.src !== e.validatedURL) {
             webview.src = e.validatedURL
-            tabForPage(webview).querySelector("span")
-                .textContent = urlToString(e.validatedURL)
+            const tabTitleEl = tabForPage(webview)?.querySelector("span")
+            if (tabTitleEl) {
+                tabTitleEl.textContent = urlToString(e.validatedURL)
+            }
             return
         }
         if (e.validatedURL.startsWith("chrome://")) {
@@ -975,11 +996,13 @@ const addWebviewListeners = webview => {
         if (hasProtocol(e.title) && !isCustomView) {
             return
         }
-        const tab = tabForPage(webview)
-        tab.querySelector("span").textContent = e.title
-        updateUrl(webview)
-        const {updateTitle} = require("./history")
-        updateTitle(webview.src, tab.querySelector("span").textContent)
+        const tabTitleEl = tabForPage(webview)?.querySelector("span")
+        if (tabTitleEl) {
+            tabTitleEl.textContent = e.title
+            updateUrl(webview)
+            const {updateTitle} = require("./history")
+            updateTitle(webview.src, tabTitleEl.textContent)
+        }
     })
     webview.addEventListener("page-favicon-updated", e => {
         const {update} = require("./favicons")
@@ -994,12 +1017,17 @@ const addWebviewListeners = webview => {
     })
     webview.addEventListener("will-navigate", e => {
         resetTabInfo(webview)
-        tabForPage(webview).querySelector("span")
-            .textContent = urlToString(e.url)
+        const tabTitleEl = tabForPage(webview)?.querySelector("span")
+        if (tabTitleEl) {
+            tabTitleEl.textContent = urlToString(e.url)
+        }
     })
     webview.addEventListener("enter-html-full-screen", () => {
         if (currentPage() !== webview) {
-            switchToTab(tabForPage(webview))
+            const tab = tabForPage(webview)
+            if (tab) {
+                switchToTab(tab)
+            }
         }
         document.body.classList.add("fullscreen")
         webview.blur()
@@ -1157,8 +1185,13 @@ const addWebviewListeners = webview => {
  */
 const recreateWebview = webview => {
     const tab = tabForPage(webview)
-    suspendTab(tab, true)
-    unsuspendPage(pageForTab(tab))
+    if (tab) {
+        suspendTab(tab, true)
+        const suspendedPage = pageForTab(tab)
+        if (suspendedPage) {
+            unsuspendPage(suspendedPage)
+        }
+    }
 }
 
 /**
@@ -1225,37 +1258,41 @@ const navigateTo = (location, customPage = null) => {
     rerollUserAgent(webview)
     webview.src = loc
     resetTabInfo(webview)
-    currentTab().querySelector("span").textContent = urlToString(loc)
+    const tabTitleEl = currentTab()?.querySelector("span")
+    if (tabTitleEl) {
+        tabTitleEl.textContent = urlToString(loc)
+    }
 }
 
 const moveTabForward = () => {
     const tabs = document.getElementById("tabs")
-    if (!currentTab()?.nextSibling) {
+    const tab = currentTab()
+    if (!tab || !tab.nextElementSibling || !tabs) {
         return false
     }
-    if (currentTab()?.classList.contains("pinned")) {
-        if (!currentTab()?.nextElementSibling?.classList.contains("pinned")) {
+    if (tab.classList.contains("pinned")) {
+        if (!tab.nextElementSibling?.classList.contains("pinned")) {
             return false
         }
     }
-    tabs?.insertBefore(currentTab(), currentTab().nextSibling.nextSibling)
-    currentTab()?.scrollIntoView({"block": "center", "inline": "center"})
+    tabs.insertBefore(tab, tab.nextElementSibling?.nextElementSibling ?? null)
+    tab.scrollIntoView({"block": "center", "inline": "center"})
     return true
 }
 
 const moveTabBackward = () => {
     const tabs = document.getElementById("tabs")
-    if (listTabs().indexOf(currentTab()) <= 0) {
+    const tab = currentTab()
+    if (!tab || !tabs || listTabs().indexOf(tab) <= 0) {
         return false
     }
-    if (!currentTab()?.classList.contains("pinned")) {
-        if (currentTab()?.previousElementSibling
-            ?.classList.contains("pinned")) {
+    if (!tab.classList.contains("pinned")) {
+        if (tab.previousElementSibling?.classList.contains("pinned")) {
             return false
         }
     }
-    tabs?.insertBefore(currentTab(), currentTab().previousSibling)
-    currentTab()?.scrollIntoView({"block": "center", "inline": "center"})
+    tabs.insertBefore(tab, tab.previousElementSibling)
+    tab.scrollIntoView({"block": "center", "inline": "center"})
     return true
 }
 

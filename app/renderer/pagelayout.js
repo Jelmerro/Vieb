@@ -470,10 +470,10 @@ const only = () => {
 /**
  * Add an id to the last used tab id list
  *
- * @param {string} id
+ * @param {string|null} id
  */
 const setLastUsedTab = id => {
-    if (recentlySwitched) {
+    if (recentlySwitched || !id) {
         return
     }
     if (currentPage()?.getAttribute("link-id") !== id) {

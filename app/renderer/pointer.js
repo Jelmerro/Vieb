@@ -212,9 +212,9 @@ const storeMouseSelection = selection => {
 /**
  * Start pointer mode
  *
- * @param {{x?: Number, y?: Number}} args
+ * @param {{x?: Number, y?: Number}|null} args
  */
-const start = args => {
+const start = (args = null) => {
     X = args?.x || Number(currentPage()?.getAttribute("pointer-x")) || X
     Y = args?.y || Number(currentPage()?.getAttribute("pointer-y")) || Y
     const {setMode} = require("./modes")

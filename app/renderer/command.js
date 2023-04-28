@@ -896,12 +896,24 @@ const allTabsForBufferArg = (args, filter = null) => {
         if (!isNaN(number)) {
             const tabs = listTabs()
             if (number >= tabs.length) {
-                return [{"tab": tabs.pop() ?? null}]
+                const tab = tabs.pop()
+                if (tab) {
+                    return [{
+                        tab,
+                        "title": tab.querySelector("span")?.textContent ?? "",
+                        "url": pageForTab(tab)?.getAttribute("src") ?? ""
+                    }]
+                }
             }
             if (number < 0) {
                 number += tabs.length
             }
-            return [{"tab": tabs[number] || tabs[0]}]
+            const tab = tabs[number] ?? tabs[0]
+            return [{
+                tab,
+                "title": tab.querySelector("span")?.textContent ?? "",
+                "url": pageForTab(tab)?.getAttribute("src") ?? ""
+            }]
         }
         if ((args[0] || args) === "#") {
             const {getLastTabIds} = require("./pagelayout")
@@ -914,7 +926,12 @@ const allTabsForBufferArg = (args, filter = null) => {
                 }
                 return tab
             }).find(t => t) ?? currentTab()
-            return [{"tab": lastTab || listTabs()[0]}]
+            const tab = lastTab ?? listTabs()[0]
+            return [{
+                tab,
+                "title": tab.querySelector("span")?.textContent ?? "",
+                "url": pageForTab(tab)?.getAttribute("src") ?? ""
+            }]
         }
     }
     const {getSimpleName, getSimpleUrl} = require("./history")

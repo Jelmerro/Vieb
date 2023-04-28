@@ -19,13 +19,15 @@
 
 const {ipcRenderer} = require("electron")
 const {joinPath, title, readFile, appConfig} = require("../util")
-const {icon} = appConfig()
+const {icon} = appConfig() ?? {}
 
 const modes = "nicsefpvm".split("")
+/** @type {{[mode: string]: {[key: string]: HTMLElement|null}}} */
 let allActionsByKeys = modes.reduce((a, m) => {
     a[m] = {}
     return a
 }, {})
+/** @type {{[mode: string]: {[key: string]: HTMLElement|null}}} */
 let allCommandsByKeys = modes.reduce((a, m) => {
     a[m] = {}
     return a
@@ -71,24 +73,30 @@ const processHash = () => {
     }
     if (mode) {
         if (allActionsByKeys[mode][keys]) {
-            allActionsByKeys[mode][keys].click()
+            allActionsByKeys[mode][keys]?.click()
         } else if (allCommandsByKeys[mode][keys]) {
-            allCommandsByKeys[mode][keys].click()
+            allCommandsByKeys[mode][keys]?.click()
         }
         return
     }
     for (const m of modes) {
         if (allActionsByKeys[m][keys]) {
-            allActionsByKeys[m][keys].click()
+            allActionsByKeys[m][keys]?.click()
             return
         }
         if (allCommandsByKeys[m][keys]) {
-            allCommandsByKeys[m][keys].click()
+            allCommandsByKeys[m][keys]?.click()
             return
         }
     }
 }
 
+/**
+ * Add an elements type description text, optionally with links to types
+ *
+ * @param {Element} baseEl
+ * @param {string} text
+ */
 const addTextWithLinksToTypes = (baseEl, text) => {
     const types = ["Boolean", "List", "String", "Interval", "Number", "Enum"]
     text.split(RegExp(`(${types.join("|")})`, "g")).forEach(s => {
@@ -100,7 +108,7 @@ const addTextWithLinksToTypes = (baseEl, text) => {
         } else {
             el = document.createTextNode(s)
         }
-        baseEl.appendChild(el)
+        baseEl.append(el)
     })
 }
 
@@ -123,40 +131,40 @@ ipcRenderer.on("settings", (_, settings, mappings, uncountActs, rangeComp) => {
             settingStatus.className = "setting-status"
             const typeLabel = document.createElement("span")
             typeLabel.textContent = "Type:"
-            settingStatus.appendChild(typeLabel)
+            settingStatus.append(typeLabel)
             const type = document.createElement("kbd")
             addTextWithLinksToTypes(type, setting.typeLabel)
-            settingStatus.appendChild(type)
+            settingStatus.append(type)
             const originalLabel = document.createElement("span")
             originalLabel.textContent = "Default:"
-            settingStatus.appendChild(originalLabel)
+            settingStatus.append(originalLabel)
             const original = document.createElement("kbd")
             if (typeof setting.default === "string") {
                 original.textContent = `"${setting.default}"`
             } else {
                 original.textContent = setting.default
             }
-            settingStatus.appendChild(original)
+            settingStatus.append(original)
             const currentLabel = document.createElement("span")
             currentLabel.textContent = "Current:"
-            settingStatus.appendChild(currentLabel)
+            settingStatus.append(currentLabel)
             const current = document.createElement("kbd")
             if (typeof setting.default === "string") {
                 current.textContent = `"${setting.current}"`
             } else {
                 current.textContent = setting.current
             }
-            settingStatus.appendChild(current)
+            settingStatus.append(current)
             const allowedValuesLabel = document.createElement("span")
             allowedValuesLabel.textContent = "Accepted:"
-            settingStatus.appendChild(allowedValuesLabel)
+            settingStatus.append(allowedValuesLabel)
             const allowedValues = document.createElement("kbd")
             addTextWithLinksToTypes(
                 allowedValues, String(setting.allowedValues))
-            settingStatus.appendChild(allowedValues)
-            document.getElementById(setting.name).parentNode.parentNode
-                .insertBefore(settingStatus, document.getElementById(
-                    setting.name).parentNode.nextSibling)
+            settingStatus.append(allowedValues)
+            document.getElementById(setting.name)?.parentNode?.parentNode
+                ?.insertBefore(settingStatus, document.getElementById(
+                    setting.name)?.parentNode?.nextSibling ?? null)
         }
     })
     // Enrich the command list with the keys that map to them
@@ -186,20 +194,20 @@ ipcRenderer.on("settings", (_, settings, mappings, uncountActs, rangeComp) => {
             const mappingKbd = document.createElement("kbd")
             mappingKbd.textContent = mapping
             mappingKbd.className = "command-block"
-            mapList.appendChild(mappingKbd)
+            mapList.append(mappingKbd)
         })
         if (!commandMappings.length) {
             const noMappingsLabel = document.createElement("kbd")
             noMappingsLabel.textContent = "No mappings with this command found"
-            mapList.appendChild(noMappingsLabel)
+            mapList.append(noMappingsLabel)
         }
         const exampleUl = cmdNode.parentElement
-            .nextElementSibling.nextElementSibling
-        if (exampleUl.tagName.toLowerCase() === "ul") {
-            cmdNode.parentNode.parentNode.insertBefore(
+            ?.nextElementSibling?.nextElementSibling
+        if (exampleUl?.tagName.toLowerCase() === "ul") {
+            cmdNode.parentNode?.parentNode?.insertBefore(
                 mapList, exampleUl.nextSibling)
         } else {
-            cmdNode.parentNode.parentNode.insertBefore(
+            cmdNode.parentNode?.parentNode?.insertBefore(
                 mapList, cmdNode.parentNode.nextSibling)
         }
         // Range compat badge
@@ -207,7 +215,7 @@ ipcRenderer.on("settings", (_, settings, mappings, uncountActs, rangeComp) => {
             const badge = document.createElement("kbd")
             badge.className = "range-compat"
             badge.textContent = "Supports ranges"
-            cmdNode.parentNode.insertBefore(badge, cmdNode.nextSibling)
+            cmdNode.parentNode?.insertBefore(badge, cmdNode.nextSibling)
         }
     })
     // Enrich the action list with the keys that map to them
@@ -241,21 +249,21 @@ ipcRenderer.on("settings", (_, settings, mappings, uncountActs, rangeComp) => {
             const mappingKbd = document.createElement("kbd")
             mappingKbd.textContent = mapping
             mappingKbd.className = "command-block"
-            mapList.appendChild(mappingKbd)
+            mapList.append(mappingKbd)
         })
         if (!actionMappings.length) {
             const noMappingsLabel = document.createElement("kbd")
             noMappingsLabel.textContent = "No mappings with this action found"
-            mapList.appendChild(noMappingsLabel)
+            mapList.append(noMappingsLabel)
         }
-        actionNode.parentNode.parentNode.insertBefore(
-            mapList, actionNode.parentNode.nextSibling)
+        actionNode.parentNode?.parentNode?.insertBefore(
+            mapList, actionNode.parentNode.nextSibling ?? null)
         // Countable action badge
         if (!uncountActs.includes(actionName)) {
             const badge = document.createElement("kbd")
             badge.className = "countable"
             badge.textContent = "Countable"
-            actionNode.parentNode.insertBefore(badge, actionNode.nextSibling)
+            actionNode.parentNode?.insertBefore(badge, actionNode.nextSibling)
         }
     })
     // Set focus to correct part of the page after it's done loading
@@ -285,39 +293,46 @@ window.addEventListener("DOMContentLoaded", () => {
         button.addEventListener("click", () => {
             const link = document.createElement("a")
             const text = readFile(joinPath(
-                __dirname, `../examples/${example.replace(/\s/g, "")}`))
+                __dirname, `../examples/${example.replace(/\s/g, "")}`)) ?? ""
             link.href = window.URL.createObjectURL(
                 new Blob([text], {"type": "text/plain"}))
             link.download = `${example}.viebrc`
             link.style.display = "none"
-            document.body.appendChild(link)
+            document.body.append(link)
             link.click()
             link.remove()
         })
-        document.querySelector(".example-buttons").appendChild(button)
+        document.querySelector(".example-buttons")?.append(button)
     }
 })
 
 window.addEventListener("load", () => {
-    if (icon) {
-        document.querySelector("img").src = icon
+    const mainImg = document.querySelector("img")
+    if (icon && mainImg) {
+        mainImg.src = icon
     }
+    /**
+     * Create an id label for each section element
+     *
+     * @param {Element} element
+     */
     const createIdLabel = element => {
         const section = document.createElement("div")
         section.className = "section"
         const header = document.createElement(element.tagName)
         header.id = element.id
         header.textContent = element.textContent
-        header.setAttribute("countable", element.getAttribute("countable"))
-        section.appendChild(header)
+        header.setAttribute("countable",
+            element.getAttribute("countable") ?? "")
+        section.append(header)
         const spacer = document.createElement("div")
         spacer.className = "spacer"
-        section.appendChild(spacer)
+        section.append(spacer)
         const label = document.createElement("a")
         label.textContent = `#${element.id}`
         label.setAttribute("href", `#${element.id}`)
-        section.appendChild(label)
-        document.querySelector("main").replaceChild(section, element)
+        section.append(label)
+        document.querySelector("main")?.replaceChild(section, element)
     }
     // After loading, this will display the section id as a link
     const sections = [...document.querySelectorAll("#helppage *[id]")]

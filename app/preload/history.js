@@ -110,8 +110,10 @@ const receiveHistory = history => {
     } else {
         addBreakpoint(currentBreakpointIndex, lineNumber)
     }
-    document.getElementById("list").parentNode.replaceChild(
-        list, document.getElementById("list"))
+    const listEl = document.getElementById("list")
+    if (listEl) {
+        listEl.parentNode?.replaceChild(list, listEl)
+    }
     if (scrollPosition) {
         window.scrollTo(0, scrollPosition)
     } else if (window.location.hash !== "") {
@@ -131,8 +133,8 @@ const addBreakpoint = (index, lineNumber) => {
     const link = document.createElement("a")
     link.textContent = breakpoint.title
     link.setAttribute("href", `#${breakpoint.link}`)
-    document.getElementById("breakpoints").insertBefore(
-        link, document.getElementById("breakpoints").firstChild)
+    document.getElementById("breakpoints")?.insertBefore(
+        link, document.getElementById("breakpoints")?.firstChild ?? null)
     // Add header to the list
     const h2 = document.createElement("h2")
     h2.setAttribute("id", breakpoint.link)
@@ -153,7 +155,8 @@ const addHistToList = hist => {
     // Shift the breakpoint to the next one
     const previousBreakpoint = currentBreakpointIndex
     let breakpoint = dateBreakpoints[currentBreakpointIndex + 1]
-    while (breakpoint && breakpoint.date.getTime() < hist.date.getTime()) {
+    while (breakpoint
+        && (breakpoint.date?.getTime() ?? 0) < hist.date.getTime()) {
         currentBreakpointIndex += 1
         breakpoint = dateBreakpoints[currentBreakpointIndex + 1]
     }
@@ -193,9 +196,15 @@ const addHistToList = hist => {
 
 const clearHistory = () => {
     const newestElement = document.querySelector("*[hist-line]")
-    clearLinesFromHistory(0, newestElement.getAttribute("hist-line"))
+    clearLinesFromHistory(0, newestElement?.getAttribute("hist-line"))
 }
 
+/**
+ * Clear the history from specific lines by startl index and optionally end
+ *
+ * @param {number} startStr
+ * @param {string|number|null} endStr
+ */
 const clearLinesFromHistory = (startStr, endStr = null) => {
     if (currentlyRemoving) {
         return
@@ -214,8 +223,8 @@ const clearLinesFromHistory = (startStr, endStr = null) => {
         return num >= start && num <= end
     }).map(h => {
         h.classList.add("marked")
-        const date = h.querySelector(".hist-date").getAttribute("iso")
-        const url = h.querySelector("a").getAttribute("href")
+        const date = h.querySelector(".hist-date")?.getAttribute("iso")
+        const url = h.querySelector("a")?.getAttribute("href")
         return {date, url}
     })
     ipcRenderer.sendToHost("history-list-request", "range", entries)
@@ -233,12 +242,12 @@ const filterList = () => {
         if (!(hist instanceof HTMLElement)) {
             return false
         }
-        const url = hist.querySelector("a").getAttribute("href")
-        const title = hist.querySelector(".hist-title").textContent
-        if (url.toLowerCase().includes(filter)) {
+        const url = hist.querySelector("a")?.getAttribute("href")
+        const title = hist.querySelector(".hist-title")?.textContent
+        if (url?.toLowerCase().includes(filter)) {
             hist.style.display = ""
             anyResult = true
-        } else if (title.toLowerCase().includes(filter)) {
+        } else if (title?.toLowerCase().includes(filter)) {
             hist.style.display = ""
             anyResult = true
         } else {
@@ -261,7 +270,7 @@ window.addEventListener("load", () => {
     removeAll.src = joinPath(__dirname, "../img/trash.png")
     removeAll.addEventListener("click", () => clearHistory())
     document.body.insertBefore(removeAll, document.body.firstChild)
-    document.getElementById("filter").addEventListener("input", filterList)
+    document.getElementById("filter")?.addEventListener("input", filterList)
     ipcRenderer.sendToHost("history-list-request")
 })
 
