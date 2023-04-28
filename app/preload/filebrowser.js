@@ -30,7 +30,14 @@ h2 {font-size: 2em;margin: 0 0 1em;}
 .file {color: var(--suggestions-url, #bff);}
 .error {color: var(--notification-error, #f33);}`
 
-const createElement = (type, loc, customTitle = "") => {
+/**
+ * Create a dir or file element with onclick handler and return it
+ *
+ * @param {"file"|"dir"} type
+ * @param {string} loc
+ * @param {string|null} customTitle
+ */
+const createElement = (type, loc, customTitle = null) => {
     const element = document.createElement("div")
     element.className = type
     element.textContent = customTitle || basePath(loc)
@@ -41,8 +48,18 @@ const createElement = (type, loc, customTitle = "") => {
     return element
 }
 
+/**
+ * Convert a location to a clickable url
+ *
+ * @param {string} loc
+ */
 const toUrl = loc => `file:${loc}`.replace(/^file:\/+/, "file:///")
 
+/**
+ * Check if the provided location is the root location of the system
+ *
+ * @param {string} loc
+ */
 const isRoot = loc => loc === joinPath(loc, "../")
 
 ipcRenderer.on("insert-current-directory-files",

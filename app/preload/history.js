@@ -89,8 +89,14 @@ let currentlyRemoving = false
 
 const receiveHistory = history => {
     const scrollPosition = window.scrollY
-    document.getElementById("remove-all").style.display = "none"
-    document.getElementById("breakpoints").textContent = ""
+    const removeAllEl = document.getElementById("remove-all")
+    if (removeAllEl) {
+        removeAllEl.style.display = "none"
+    }
+    const breakpointsEl = document.getElementById("breakpoints")
+    if (breakpointsEl) {
+        breakpointsEl.textContent = ""
+    }
     list = document.createElement("div")
     list.id = "list"
     currentBreakpointIndex = 0
@@ -100,7 +106,9 @@ const receiveHistory = history => {
         hist.date = new Date(hist.date)
         hist.line = lineNumber
         addHistToList(hist)
-        document.getElementById("remove-all").style.display = ""
+        if (removeAllEl) {
+            removeAllEl.style.display = ""
+        }
         lineNumber += 1
     })
     if (history.length === 0) {
@@ -254,12 +262,17 @@ const filterList = () => {
             hist.style.display = "none"
         }
     })
+    const removeAll = document.getElementById("remove-all")
+    const noResults = document.getElementById("no-results")
+    if (!removeAll || !noResults) {
+        return
+    }
     if (!histElements.length || anyResult) {
-        document.getElementById("remove-all").style.display = ""
-        document.getElementById("no-results").style.display = "none"
+        removeAll.style.display = ""
+        noResults.style.display = "none"
     } else {
-        document.getElementById("remove-all").style.display = "none"
-        document.getElementById("no-results").style.display = ""
+        removeAll.style.display = "none"
+        noResults.style.display = ""
     }
 }
 

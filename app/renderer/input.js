@@ -2337,7 +2337,7 @@ const listSupportedActions = () => supportedActions
 /**
  * Check if mapping has been modified compared to the defaults
  *
- * @param {import("./common").Mode} mode
+ * @param {string} mode
  * @param {string} mapping
  */
 const mappingModified = (mode, mapping) => {
@@ -2366,6 +2366,7 @@ const mappingModified = (mode, mapping) => {
 const listMappingsAsCommandList = (
     oneMode = null, includeDefault = false, customKeys = null
 ) => {
+    /** @type {string[]} */
     let mappings = []
     let modes = Object.keys(defaultBindings)
     if (oneMode) {
@@ -2381,6 +2382,7 @@ const listMappingsAsCommandList = (
     })
     if (!oneMode) {
         // Mappings that can be added with a global "map" instead of 1 per mode
+        /** @type {string[]} */
         const globalMappings = []
         mappings.filter(m => m.match(/^n(noremap|map|unmap) /g))
             .filter(m => !modes.some(mode => !mappings.includes(
@@ -2397,7 +2399,7 @@ const listMappingsAsCommandList = (
 /**
  * List a mapping as if set via a command
  *
- * @param {import("./common").Mode} mode
+ * @param {string} mode
  * @param {boolean} includeDefault
  * @param {string} rawKey
  */
