@@ -57,7 +57,7 @@ const listFakePages = () => {
     const pages = [...document.querySelectorAll("#pages > .webview")]
     return pages.flatMap(p => {
         if (p instanceof HTMLDivElement) {
-            return [p]
+            return p
         }
         return []
     })

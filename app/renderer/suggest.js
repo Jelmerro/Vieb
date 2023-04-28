@@ -308,7 +308,7 @@ const suggestExplore = search => {
 /**
  * Add a suggestion to the explore mode suggestions
  *
- * @param {{title: string, type: string, url: string, icon?: string}} explore
+ * @param {{title: string, type?: string, url: string, icon?: string}} explore
  */
 const addExplore = explore => {
     if (suggestions.includes(explore.url)) {

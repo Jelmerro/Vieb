@@ -39,18 +39,21 @@ const filterList = () => {
             cookie.style.display = "none"
         }
     })
+    const removeAll = document.getElementById("remove-all")
+    const noResults = document.getElementById("no-results")
+    if (!removeAll || !noResults) {
+        return
+    }
     if (anyResult) {
-        document.getElementById("remove-all").style.display = ""
-        document.getElementById("no-results").style.display = "none"
+        removeAll.style.display = ""
+        noResults.style.display = "none"
     } else {
-        document.getElementById("remove-all").style.display = "none"
-        document.getElementById("no-results").style.display = ""
+        removeAll.style.display = "none"
+        noResults.style.display = ""
         if (filter) {
-            document.getElementById("no-results").textContent
-                = "No results for current filter"
+            noResults.textContent = "No results for current filter"
         } else {
-            document.getElementById("no-results").textContent
-                = "There are no cookies stored"
+            noResults.textContent = "There are no cookies stored"
         }
     }
 }
@@ -68,7 +71,10 @@ const cookieToUrl = cookie => {
 
 const removeAllCookies = () => {
     const cookieElements = [...document.getElementsByClassName("cookie")]
-    document.getElementById("remove-all").style.display = "none"
+    const removeAll = document.getElementById("remove-all")
+    if (removeAll) {
+        removeAll.style.display = "none"
+    }
     cookieElements.forEach(async cookie => {
         if (!(cookie instanceof HTMLElement)) {
             return
@@ -83,9 +89,12 @@ const removeAllCookies = () => {
 }
 
 const parseList = cookies => {
-    document.getElementById("list").textContent = ""
+    const listEl = document.getElementById("list")
+    if (listEl) {
+        listEl.textContent = ""
+    }
     const removeAll = document.getElementById("remove-all")
-    if (cookies.length === 0) {
+    if (cookies.length === 0 && removeAll) {
         removeAll.style.display = "none"
     }
     cookies.forEach(cookie => {
@@ -111,7 +120,7 @@ const parseList = cookies => {
             refreshList()
         })
         cookieElement.append(remove)
-        document.getElementById("list")?.append(cookieElement)
+        listEl?.append(cookieElement)
     })
     filterList()
 }

@@ -124,7 +124,7 @@ const suggestHist = (searchStr, order, count) => {
             }
         }
         return null
-    }).filter(h => h)
+    }).flatMap(h => h ?? [])
     if (order === "alpha") {
         entries.sort((a, b) => {
             const first = a.url.replace(/^\w+:\/\/(www\.)?/g, "")
@@ -248,6 +248,11 @@ const removeHistoryByPartialUrl = urlSnippet => {
     return writeHistToFile(true)
 }
 
+/**
+ * Remove specific entries from the preload from history
+ *
+ * @param {{date: string, url: string}[]} entries
+ */
 const removeFromHistory = entries => {
     entries.forEach(entry => {
         const {url} = entry

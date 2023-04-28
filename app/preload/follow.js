@@ -150,8 +150,13 @@ const getAllFollowLinks = (filter = null) => {
     if (!filter || filter.some(f => f.startsWith("input"))) {
         // Input tags such as checkboxes, can be clicked but have no text input
         const inputs = allEls.filter(el => matchesQuery(el, clickInputs))
-        inputs.push(...allEls.filter(el => matchesQuery(el, "input")).map(
-            e => e.closest("label")).filter(e => e && !inputs.includes(e)))
+        inputs.push(...allEls.filter(el => matchesQuery(el, "input"))
+            .map(e => e.closest("label")).flatMap(e => {
+                if (e && !inputs.includes(e)) {
+                    return e
+                }
+                return []
+            }))
         inputs.forEach(el => {
             let type = "inputs-click"
             if (el.tagName.toLowerCase() === "label") {
@@ -242,7 +247,7 @@ const mainInfoLoop = () => {
     // Listeners for iframes that run on the same host and same process
     const frames = [...querySelectorAll("iframe")].flatMap(f => {
         if (f instanceof HTMLIFrameElement) {
-            return [f]
+            return f
         }
         return []
     })
@@ -533,6 +538,11 @@ ipcRenderer.on("replace-input-field", (_, value, position) => {
     }
 })
 
+/**
+ * Generate a data image for a given svg image
+ *
+ * @param {SVGElement} el
+ */
 const getSvgData = el => `data:image/svg+xml,${encodeURIComponent(el.outerHTML)
     .replace(/'/g, "%27").replace(/"/g, "%22")}`
 

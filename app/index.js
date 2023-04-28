@@ -400,12 +400,7 @@ if (argErwic) {
             a.script = null
         }
         return a
-    }).flatMap(a => {
-        if (a) {
-            return [a]
-        }
-        return []
-    })
+    }).flatMap(a => a ?? a)
     if (config.apps.length === 0) {
         console.warn("Erwic config file requires at least one app to be added")
         console.warn("Each app must have a 'container' name and a 'url'\n")
@@ -763,7 +758,23 @@ ipcMain.on("show-prompt-dialog", (e, title, defaultText) => {
 
 // Create and manage sessions, mostly downloads, adblocker and permissions
 const dlsFile = joinPath(app.getPath("appData"), "dls")
-let downloadSettings = {}
+/** @type {{
+ *   downloadmethod?: string,
+ *   downloadpath: string,
+ *   cleardownloadsonquit?: boolean,
+ *   cleardownloadsoncompleted?: boolean
+ * }} */
+let downloadSettings = {"downloadpath": app.getPath("downloads")}
+/** @type {{
+ *   current: number,
+ *   date: Date,
+ *   file: string,
+ *   name: string,
+ *   item: Electron.DownloadItem
+ *   state: string,
+ *   total: number
+ *   url: string
+ * }[]} */
 let downloads = []
 let redirects = ""
 /** @type {import("@cliqz/adblocker-electron").ElectronBlocker|null} */
@@ -1485,6 +1496,7 @@ const permissionHandler = (_, pm, callback, details) => {
             if (!mainWindow) {
                 return
             }
+            /** @type {"allow"|"block"|"ask"|"allowfull"} */
             let action = "allow"
             if (e.response !== 0) {
                 action = "block"
