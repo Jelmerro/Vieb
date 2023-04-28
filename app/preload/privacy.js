@@ -60,6 +60,11 @@ const displayCaptureStyling = `html, body {overflow: hidden !important;}
 try {
     // Hide device labels from the list of media devices by default
     const enumerate = window.navigator.mediaDevices.enumerateDevices
+    /**
+     * Get the media devices with or without labels, or throw permission error
+     *
+     * @param {string} action
+     */
     const mediaDeviceList = async action => {
         if (action === "block") {
             throw new DOMException("Permission denied", "NotAllowedError")
@@ -69,7 +74,13 @@ try {
             return devices
         }
         return devices.map(({deviceId, groupId, kind}) => ({
-            deviceId, groupId, kind, "label": ""
+            deviceId,
+            groupId,
+            kind,
+            "label": "",
+            "toJSON": () => ({
+                deviceId, groupId, kind, "label": ""
+            })
         }))
     }
     window.navigator.mediaDevices.enumerateDevices = async() => {
@@ -191,7 +202,12 @@ try {
             throw new DOMException("Permission denied", "NotAllowedError")
         }
         try {
-            ipcRenderer.invoke("desktop-capturer-sources").then(sources => {
+            /**
+             * Generate a window selection for all the deskktop sources
+             *
+             * @param {Electron.DesktopCapturerSource[]} sources
+             */
+            const populateSourceToWindow = sources => {
                 const style = displayCaptureStyling
                     .replace(/%FONTSIZE%/g, settings.guifontsize || "14")
                     .replace(/%FG%/g, settings.fg || "#eee")
@@ -199,6 +215,11 @@ try {
                     .replace(/%SHADE%/g, "#7777")
                 const selectionElem = document.createElement("div")
                 selectionElem.classList.add("desktop-capturer-selection")
+                /**
+                 * Get a data src url from a native image if possible
+                 *
+                 * @param {Electron.NativeImage} icon
+                 */
                 const appIcon = icon => {
                     if (!icon || icon.isEmpty() || icon.getSize().width < 1) {
                         return ""
@@ -230,7 +251,7 @@ try {
                 const closeButtons = [selectionElem, selectionElem
                     .querySelector(".desktop-capturer-selection__close")]
                 closeButtons.forEach(button => {
-                    button.addEventListener("click", e => {
+                    button?.addEventListener("click", e => {
                         if (e.composedPath().some(el => matchesQuery(el,
                             ".desktop-capturer-selection__btn"))) {
                             // Also clicked on a display to share, ignore close
@@ -277,7 +298,9 @@ try {
                             "custom-style-inject", "displaycapture")
                     })
                 })
-            })
+            }
+            ipcRenderer.invoke("desktop-capturer-sources")
+                .then(populateSourceToWindow)
         } catch (err) {
             reject(err)
         }
@@ -392,6 +415,7 @@ Object.defineProperty(window.Navigator.prototype,
     "deviceMemory", {"get": (() => 8).bind(null)})
 // Hide graphics card information from the canvas API
 const getParam = window.WebGLRenderingContext.prototype.getParameter
+/** @type {(pname: number) => any} */
 window.WebGLRenderingContext.prototype.getParameter = function(parameter) {
     if ([37445, 37446].includes(parameter)) {
         return ""
@@ -399,6 +423,7 @@ window.WebGLRenderingContext.prototype.getParameter = function(parameter) {
     return getParam.call(this, parameter)
 }
 const getParam2 = window.WebGL2RenderingContext.prototype.getParameter
+/** @type {(pname: number) => any} */
 window.WebGL2RenderingContext.prototype.getParameter = function(parameter) {
     if ([37445, 37446].includes(parameter)) {
         return ""
