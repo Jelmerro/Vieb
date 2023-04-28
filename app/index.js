@@ -400,7 +400,7 @@ if (argErwic) {
             a.script = null
         }
         return a
-    }).flatMap(a => a ?? a)
+    }).flatMap(a => a ?? [])
     if (config.apps.length === 0) {
         console.warn("Erwic config file requires at least one app to be added")
         console.warn("Each app must have a 'container' name and a 'url'\n")

@@ -483,6 +483,7 @@ const acceptsIntervals = ["clearhistoryinterval"]
 /** @type {(keyof typeof defaultSettings)[]} */
 const acceptsInvertedIntervals = []
 let customStyling = ""
+/** @type {(keyof typeof defaultSettings)[]} */
 const downloadSettings = [
     "downloadmethod",
     "downloadpath",
@@ -1329,10 +1330,12 @@ const updateContainerSettings = (full = true) => {
 }
 
 const updateDownloadSettings = () => {
+    /** @type {{[setting: string]: boolean}} */
     const downloads = {}
     downloadSettings.forEach(setting => {
-        if (setting in allSettings) {
-            downloads[setting] = allSettings[setting]
+        const value = allSettings[setting]
+        if (typeof value === "boolean") {
+            downloads[setting] = value
         }
     })
     ipcRenderer.send("set-download-settings", downloads)
@@ -1371,6 +1374,7 @@ const webviewSettings = [
 
 const updateWebviewSettings = () => {
     const webviewSettingsFile = joinPath(appData(), "webviewsettings")
+    /** @type {{[setting: string]: string|number|boolean}} */
     const data = {
         "bg": getComputedStyle(document.body).getPropertyValue("--bg"),
         "fg": getComputedStyle(document.body).getPropertyValue("--fg"),
@@ -1384,6 +1388,7 @@ const updateWebviewSettings = () => {
 }
 
 const updatePermissionSettings = () => {
+    /** @type {{[setting: string]: string|number|boolean}} */
     const permissions = {}
     Object.keys(allSettings).forEach(setting => {
         if (setting.startsWith("permission")) {

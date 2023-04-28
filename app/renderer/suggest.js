@@ -519,6 +519,7 @@ const suggestCommand = searchStr => {
         if (args.length > 1 || confirm) {
             return
         }
+        /** @type {{[theme: string]: string}} */
         const themes = {}
         listDir(joinPath(__dirname, "../colors/"))?.forEach(p => {
             themes[p.replace(/\.css$/g, "")] = "built-in"

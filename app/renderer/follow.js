@@ -291,8 +291,12 @@ const parseAndDisplayLinks = receivedLinks => {
     let newLinks = receivedLinks
     if (followLinkDestination !== "current") {
         const {hasProtocol} = require("../util")
-        newLinks = receivedLinks.filter(link => link && hasProtocol(link.url))
-            .map(link => ({...link, "type": "url"}))
+        newLinks = receivedLinks.flatMap(link => {
+            if (!link || !hasProtocol(link.url)) {
+                return []
+            }
+            return {...link, "type": "url"}
+        })
     }
     if (links.length) {
         for (let i = 0; i < links.length; i++) {

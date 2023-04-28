@@ -28,7 +28,7 @@ const {
 
 // Sort order determines the appearance in the mode list
 /* eslint-disable sort-keys/sort-keys-fix */
-/** @type {{[mode: string]: {
+/** @type {{[K in import("./common").Mode]: {
  *   onLeave?: (newMode: string) => void, onEnter?: () => void
  * }}} */
 const modes = {

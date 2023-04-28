@@ -1040,7 +1040,7 @@ const moveScreenshotFrame = (x, y) => {
 /**
  * Execute the cut clipboard action on the url
  *
- * @param {ClipboardEvent|null} event
+ * @param {Event|null} event
  */
 const cutInput = (event = null) => {
     event?.preventDefault()
@@ -1066,7 +1066,7 @@ const cutInput = (event = null) => {
 /**
  * Execute the copy clipboard action on the url
  *
- * @param {ClipboardEvent|null} event
+ * @param {Event|null} event
  */
 const copyInput = (event = null) => {
     event?.preventDefault()
@@ -1081,7 +1081,7 @@ const copyInput = (event = null) => {
 /**
  * Execute the paste clipboard action on the url
  *
- * @param {ClipboardEvent|null} event
+ * @param {Event|null} event
  */
 const pasteInput = (event = null) => {
     event?.preventDefault()

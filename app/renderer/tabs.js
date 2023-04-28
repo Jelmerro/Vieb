@@ -66,6 +66,7 @@ const timeouts = {}
 const tabFile = joinPath(appData(), "tabs")
 const erwicMode = isFile(joinPath(appData(), "erwicmode"))
 let justSearched = false
+/** @type {{[id: number]: {[type: string]: string}}} */
 const existingInjections = {}
 
 const init = () => {
@@ -972,7 +973,7 @@ const addWebviewListeners = webview => {
         } else if (name && hasProtocol(name.textContent ?? "")
             && existing && !isCustomView) {
             name.textContent = existing
-        } else if (name) {
+        } else if (name?.textContent) {
             updateTitle(webview.src, name.textContent)
         }
         if (erwicMode) {
