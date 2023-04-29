@@ -16,7 +16,6 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 "use strict"
-
 let topOfPageWithMouse = false
 /** @type {number|null} */
 let navbarGuiTimer = null
@@ -143,18 +142,41 @@ const currentMode = () => {
     return "normal"
 }
 
-const getSetting = val => getStored("settings")?.[val]
+/**
+ * Get a setting value by setting name
+ *
+ * @template {keyof typeof import("./settings").defaultSettings} T
+ * @param {T} name
+ * @returns {typeof import("./settings").defaultSettings[T]}
+ */
+const getSetting = name => getStored("settings")[name]
 
+/**
+ * Check if a specific mouse feature is enabled
+ *
+ * @param {string} val
+ */
 const getMouseConf = val => {
     const mouse = getSetting("mouse")
     return mouse?.split(",").includes("all") || mouse?.split(",").includes(val)
 }
 
+/**
+ * Store a value for later use in session storage
+ *
+ * @param {string} set
+ * @param {any} val
+ */
 const setStored = (set, val) => sessionStorage.setItem(set, JSON.stringify(val))
 
-const getStored = val => {
+/**
+ * Get a value from the session storage
+ *
+ * @param {string} set
+ */
+const getStored = set => {
     try {
-        return JSON.parse(sessionStorage.getItem(val) ?? "")
+        return JSON.parse(sessionStorage.getItem(set) ?? "")
     } catch {
         return ""
     }
