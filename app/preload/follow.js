@@ -62,6 +62,9 @@ const textlikeInputs = [
 ].join(",")
 /** @type {("click"|"mousedown"|"mouseup")[]} */
 const clickEvents = ["click", "mousedown", "mouseup"]
+/** @type {(
+ *   "mouseenter"|"mouseleave"|"mousemove"|"mouseout"|"mouseover"|"contextmenu"
+ * )[]} */
 const otherEvents = [
     "mouseenter",
     "mouseleave",
@@ -183,10 +186,12 @@ const getAllFollowLinks = (filter = null) => {
     if (!filter || filter.includes("onclick")) {
         // Elements with some kind of mouse interaction, grouped by click/other
         allEls.filter(el => clickEvents.some(
-            e => el[`on${e}`] || eventListeners[e].has(el))
+            e => el instanceof HTMLElement && el[`on${e}`]
+            || eventListeners[e].has(el))
             || el.getAttribute("jsaction")).forEach(
             el => relevantLinks.push({el, "type": "onclick"}))
-        allEls.filter(el => otherEvents.some(e => el[`on${e}`]
+        allEls.filter(el => otherEvents.some(
+            e => el instanceof HTMLElement && el[`on${e}`]
             || eventListeners[e].has(el)))
             .forEach(el => relevantLinks.push({el, "type": "other"}))
     }

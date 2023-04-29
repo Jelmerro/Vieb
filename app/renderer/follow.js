@@ -129,7 +129,12 @@ const followChars = () => {
         "qwertyhome": "ASDFGHJKL;"
     }
     const setName = getSetting("followchars")
-    const allKeys = keys[setName] || setName.replace("custom:", "")
+    let allKeys = setName.replace("custom:", "")
+    /** @param {string} set @returns {set is keyof typeof keys} */
+    const validFollowSet = set => set in keys
+    if (validFollowSet(setName)) {
+        allKeys = keys[setName]
+    }
     return allKeys.split("")
 }
 
@@ -399,6 +404,13 @@ const parseAndDisplayLinks = receivedLinks => {
         const linkElement = document.createElement("span")
         linkElement.textContent = numberToKeys(index, neededLength)
         linkElement.className = `follow-${link.type}`
+        /** @type {{[alignment: string]: {
+         *   left?: number,
+         *   right?: number,
+         *   top?: number,
+         *   bottom?: number,
+         *   transform?: string
+         * }}} */
         const alignmentDict = {
             "cornerbottomleft": {"right": x, "top": y + height},
             "cornerbottomright": {"left": x + width, "top": y + height},
@@ -458,38 +470,40 @@ const parseAndDisplayLinks = receivedLinks => {
             "outsidetopright": {"bottom": y, "right": x + width}
         }
         const alignment = alignmentDict[followlabelposition]
-        for (const align of ["left", "top", "right", "bottom", "transform"]) {
+        /** @type {("left"|"top"|"right"|"bottom"|"transform")[]} */
+        const alignmentProps = ["left", "top", "right", "bottom", "transform"]
+        for (const align of alignmentProps) {
             if (alignment[align] !== undefined) {
                 let value = alignment[align]
-                if (align === "left" && elWidth) {
+                if (align === "left" && elWidth && typeof value === "number") {
                     if (value > baseDims.width + baseDims.right - elWidth) {
                         value = baseDims.width + baseDims.right
                         linkElement.style.transform += "translateX(-100%) "
                     }
                 }
-                if (align === "top" && elWidth) {
+                if (align === "top" && elWidth && typeof value === "number") {
                     if (value > baseDims.height + baseDims.bottom - elWidth) {
                         value = baseDims.height + baseDims.bottom
                         linkElement.style.transform += "translateY(-100%) "
                     }
                 }
-                if (align === "right") {
+                if (align === "right" && typeof value === "number") {
                     if (elWidth && value + baseDims.left < elWidth) {
                         value = 0
                         linkElement.style.transform += "translateX(100%) "
                     }
                     value = baseDims.width - value
                 }
-                if (align === "bottom") {
+                if (align === "bottom" && typeof value === "number") {
                     if (elWidth && value + baseDims.top < elWidth) {
                         value = 0
                         linkElement.style.transform += "translateY(100%) "
                     }
                     value = baseDims.height - value
                 }
-                if (align === "transform") {
+                if (align === "transform" && value) {
                     linkElement.style.transform += value
-                } else {
+                } else if (typeof value === "number") {
                     linkElement.style[align] = `${value.toFixed(2)}px`
                 }
             }

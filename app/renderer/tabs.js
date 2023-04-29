@@ -58,6 +58,11 @@ const {
 } = require("./common")
 const {setMode} = require("./modes")
 
+/**
+ * @typedef {(
+ *   "open"|"newtab"|"copy"|"download"|"split"|"vsplit"|"external"|"search"
+ * )} tabPosition
+
 /** @type {{container: string, muted: boolean, url: string, index: number}[]} */
 let recentlyClosed = []
 let linkId = 0
@@ -330,7 +335,7 @@ const addTab = (options = {}) => {
         const match = listPages().find(p => sameDomain(
             p.getAttribute("src") ?? "", options.url ?? ""))
         if (match) {
-            sessionName = match.getAttribute("container")
+            sessionName = match.getAttribute("container") ?? sessionName
         }
     }
     if (sessionName.startsWith("s:use")) {
@@ -343,7 +348,7 @@ const addTab = (options = {}) => {
             c => options.url?.match(c.split("~")[0]))?.split("~")[1]
             || sessionName
     }
-    sessionName = sessionName.replace("%n", linkId)
+    sessionName = sessionName.replace("%n", `${linkId}`)
     const tabs = document.getElementById("tabs")
     const pages = document.getElementById("pages")
     const tab = document.createElement("span")
@@ -1216,7 +1221,7 @@ const rerollUserAgent = webview => {
     if (customUA) {
         const agents = customUA.split("~")
         const agent = userAgentTemplated(
-            agents.at(Math.random() * agents.length))
+            agents.at(Math.random() * agents.length) ?? "")
         webview.setUserAgent(agent)
     } else {
         webview.setUserAgent("")

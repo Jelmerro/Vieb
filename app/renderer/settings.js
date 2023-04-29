@@ -75,7 +75,9 @@ const mouseFeatures = [
     "screenshotframe"
 ]
 const defaultSettings = {
+    /** @type {"off"|"static"|"update"|"custom"} */
     "adblocker": "static",
+    /** @type {"none"|"clearonquit"|"full"} */
     "cache": "clearonquit",
     "clearcookiesonquit": false,
     "cleardownloadsoncompleted": false,
@@ -83,11 +85,13 @@ const defaultSettings = {
     "clearhistoryinterval": "none",
     "clearlocalstorageonquit": false,
     "closablepinnedtabs": false,
+    /** @type {"all"|"persistall"|"useronly"|"persistuseronly"|"none"} */
     "commandhist": "persistuseronly",
     "containercolors": "temp\\d+~#ff0",
     "containerkeeponreopen": true,
     "containernames": "",
     "containernewtab": "s:usecurrent",
+    /** @type {"automatic"|"always"|"never"} */
     "containershowname": "automatic",
     "containersplitpage": "s:usecurrent",
     "containerstartuppage": "main",
@@ -99,87 +103,154 @@ const defaultSettings = {
     "darkreadercontrast": 100,
     "darkreaderfg": "#e8e6e3",
     "darkreadergrayscale": 0,
+    /** @type {"dark"|"light"} */
     "darkreadermode": "dark",
     "darkreaderscope": "page",
     "darkreadersepia": 0,
     "darkreadertextstroke": 0,
+    /** @type {"window"|"split"|"vsplit"|"tab"} */
     "devtoolsposition": "window",
+    /** @type {"show"|"notifyshow"|"block"|"notifyblock"} */
     "dialogalert": "notifyblock",
+    /** @type {(
+     *   "show"|"notifyshow"|"block"|"notifyblock"|"allow"|"notifyallow"
+     * )} */
     "dialogconfirm": "notifyblock",
+    /** @type {"show"|"notifyshow"|"block"|"notifyblock"} */
     "dialogprompt": "notifyblock",
+    /** @type {"automatic"|"confirm"|"ask"|"block"} */
     "downloadmethod": "automatic",
     "downloadpath": "",
+    /** @type {"keep"|"encode"|"decode"|"spacesonly"|"nospaces"} */
     "encodeurlcopy": "nospaces",
+    /** @type {"keep"|"encode"|"decode"|"spacesonly"|"nospaces"} */
     "encodeurlext": "nospaces",
+    /** @type {"persist"|"session"|"none"} */
     "explorehist": "persist",
     "externalcommand": "",
+    /** @type {(
+     *   "disabled"|"nocache"|"session"|"1day"|"5day"|"30day"|"forever"
+     * )} */
     "favicons": "session",
     "favoritepages": "",
+    /** @type {"all"|"alpha"|"alphanum"|"dvorakhome"
+     * |"numbers"|"qwertyhome"|`custom:${string}`} */
     "followchars": "alpha",
     "followelement": "url,onclick,inputs-insert,inputs-click,media,image,other",
     "followelementpointer":
         "url,onclick,inputs-insert,inputs-click,media,image,other",
+    /** @type {"filter"|"exit"|"nothing"} */
     "followfallbackaction": "filter",
+    /** @type {("cornertopleft"|"cornertopright"|"cornerbottomright"|
+        "cornerbottomleft"|"outsidetopleft"|"outsidetopcenter"|
+        "outsidetopright"|"outsiderighttop"|"outsiderightcenter"|
+        "outsiderightbottom"|"outsidebottomright"|"outsidebottomcenter"|
+        "outsidebottomleft"|"outsideleftbottom"|"outsideleftcenter"|
+        "outsidelefttop"|"insidetopleft"|"insidetopcenter"|"insidetopright"|
+        "insiderightcenter"|"insidebottomright"|"insidebottomcenter"|
+        "insidebottomleft"|"insideleftcenter"
+     * )} */
     "followlabelposition": "outsiderighttop",
     "follownewtabswitch": true,
     "guifontsize": 14,
+    /** @type {"always"|"onupdate"|"oninput"|"never"} */
     "guifullscreennavbar": "oninput",
+    /** @type {"always"|"onupdate"|"never"} */
     "guifullscreentabbar": "onupdate",
     "guihidetimeout": 2000,
+    /** @type {"always"|"onupdate"|"oninput"|"never"} */
     "guinavbar": "always",
     "guiscrollbar": "always",
+    /** @type {"always"|"onupdate"|"never"} */
     "guitabbar": "always",
     "ignorecase": true,
     "incsearch": true,
+    /** @type {"rememberstart"|"rememberend"|"alwaysstart"|"alwaysend"} */
     "inputfocusalignment": "rememberend",
     "keeprecentlyclosed": true,
     "mapsuggest": 9000000000000000,
+    /** @type {"bottomright"|"bottomleft"|"topright"|"topleft"} */
     "mapsuggestposition": "topright",
+    /** @type {import("./tabs").tabPosition} */
     "markposition": "newtab",
+    /** @type {import("./tabs").tabPosition | "default"} */
     "markpositionshifted": "default",
     "maxmapdepth": 10,
+    /** @type {"always"|"globalasneeded"|"elementasneeded"|"never"} */
     "menupage": "elementasneeded",
+    /** @type {"both"|"explore"|"command"|"never"} */
     "menusuggest": "both",
+    /** @type {"both"|"navbar"|"tabbar"|"never"} */
     "menuvieb": "both",
     "mintabwidth": 28,
     "modifiers": "Ctrl,Shift,Alt,Meta,NumLock,CapsLock,ScrollLock",
     "mouse": "all",
+    /** @type {"nothing"|"drag"} */
     "mousedisabledbehavior": "nothing",
     "mousefocus": false,
     "mousenewtabswitch": true,
+    /** @type {"activate"|"onswitch"|"never"} */
     "mousevisualmode": "onswitch",
+    /** @type {"always"|"smallonly"|"never"} */
     "nativenotification": "never",
+    /** @type {"system"|"dark"|"light"} */
     "nativetheme": "system",
     "newtaburl": "",
     "notificationduration": 6000,
+    /** @type {"all"|"allowed"|"blocked"|"silent"|"none"} */
     "notificationforpermissions": "silent",
+    /** @type {"all"|"errors"|"none"} */
     "notificationforsystemcommands": "errors",
+    /** @type {"bottomright"|"bottomleft"|"topright"|"topleft"} */
     "notificationposition": "bottomright",
+    /** @type {"block"|"ask"|"allow"} */
     "permissioncamera": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissioncertificateerror": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionclipboardread": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionclipboardwrite": "allow",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionclosepage": "allow",
+    /** @type {"block"|"ask"} */
     "permissiondisplaycapture": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionfullscreen": "allow",
+    /** @type {"block"|"ask"|"allow"} */
     "permissiongeolocation": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionhid": "block",
+    /** @type {"block"|"ask"|"allow"|"allowfull"} */
     "permissionmediadevices": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionmicrophone": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionmidi": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionmidisysex": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionnotifications": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionopenexternal": "ask",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionpersistentstorage": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionpointerlock": "block",
     "permissionsallowed": "",
     "permissionsasked": "",
     "permissionsblocked": "",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionscreenwakelock": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionsensors": "block",
+    /** @type {"block"|"allow"} */
     "permissionserial": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionunknown": "block",
+    /** @type {"domain"|"url"} */
     "pointerposlocalid": "domain",
+    /** @type {"casing"|"local"|"global"} */
     "pointerpostype": "casing",
     "quickmarkpersistence": "scroll,marks,pointer",
     "quitonlasttabclose": false,
@@ -187,7 +258,9 @@ const defaultSettings = {
         + "~https://$3",
     "redirecttohttp": false,
     "reloadtaboncrash": false,
+    /** @type {"always"|"special"|"newtab"|"never"} */
     "replacespecial": "special",
+    /** @type {"always"|"newtab"|"never"} */
     "replacestartup": "never",
     "requestheaders": "",
     "requesttimeout": 20000,
@@ -195,15 +268,21 @@ const defaultSettings = {
     "resourcesblocked": "",
     "resourcetypes": "object,script,media,image,"
         + "stylesheet,font,xhr,ping,websocket",
+    /** @type {"all"|"pinned"|"regular"|"none"} */
     "restoretabs": "all",
     "restorewindowmaximize": true,
     "restorewindowposition": true,
     "restorewindowsize": true,
+    /** @type {"domain"|"url"} */
     "scrollposlocalid": "domain",
+    /** @type {"casing"|"local"|"global"} */
     "scrollpostype": "casing",
+    /** @type {"global"|"local"|"both"} */
     "searchemptyscope": "global",
     "searchengine": "https://duckduckgo.com/?kae=d&kav=1&ko=1&q=%s&ia=web",
+    /** @type {"left"|"center"|"right"} */
     "searchpointeralignment": "left",
+    /** @type {"global"|"local"|"inclocal"} */
     "searchscope": "global",
     "searchwords": "",
     "shell": "",
@@ -223,18 +302,24 @@ const defaultSettings = {
     "suggestorder": "history,searchword,file",
     "suggesttopsites": 10,
     "suspendbackgroundtab": true,
+    /** @type {"all"|"regular"|"none"} */
     "suspendonrestore": "regular",
     "suspendplayingtab": false,
     "suspendtimeout": 0,
     "tabclosefocusright": false,
     "tabcycle": true,
     "tabnexttocurrent": true,
+    /** @type {"always"|"background"|"never"} */
     "tabopenmuted": "never",
+    /** @type {"hidden"|"scroll"|"wrap"} */
     "taboverflow": "scroll",
+    /** @type {"always"|"remember"|"never"} */
     "tabreopenmuted": "remember",
+    /** @type {"left"|"right"|"previous"} */
     "tabreopenposition": "right",
     "timeout": true,
     "timeoutlen": 2000,
+    /** @type {"auto"|"deepl"|"libretranslate"} */
     "translateapi": "auto",
     "translatekey": "",
     "translatelang": "en-us",
@@ -1213,6 +1298,14 @@ const checkSuggestOrder = value => {
  * Check if a setting is of type enum, so it has to validate the valid opts
  *
  * @param {string} set
+ * @returns {set is keyof typeof defaultSettings}
+ */
+const isExistingSetting = set => set in defaultSettings
+
+/**
+ * Check if a setting is of type enum, so it has to validate the valid opts
+ *
+ * @param {string} set
  * @returns {set is keyof typeof validOptions}
  */
 const isEnumSetting = set => set in validOptions
@@ -1228,14 +1321,10 @@ const isNumberSetting = set => set in numberRanges
 /**
  * Check if a setting will be valid for a given value
  *
- * @param {string} setting
+ * @param {keyof typeof defaultSettings} setting
  * @param {string|Number|boolean} value
  */
 const isValidSetting = (setting, value) => {
-    if (allSettings[setting] === undefined) {
-        notify(`The setting '${setting}' doesn't exist`, "warn")
-        return false
-    }
     const expectedType = typeof allSettings[setting]
     /** @type {string|Number|boolean} */
     let parsedValue = String(value)
@@ -1544,10 +1633,10 @@ const loadFromDisk = (firstRun = true) => {
 const reset = setting => {
     if (setting === "all") {
         Object.keys(defaultSettings).forEach(s => set(s, defaultSettings[s]))
-    } else if (allSettings[setting] === undefined) {
-        notify(`The setting '${setting}' doesn't exist`, "warn")
-    } else {
+    } else if (isExistingSetting(setting)) {
         set(setting, defaultSettings[setting])
+    } else {
+        notify(`The setting '${setting}' doesn't exist`, "warn")
     }
 }
 
@@ -1558,6 +1647,10 @@ const reset = setting => {
  * @param {string|Number|boolean} value
  */
 const set = (setting, value) => {
+    if (!isExistingSetting(setting)) {
+        notify(`The setting '${setting}' doesn't exist`, "warn")
+        return false
+    }
     if (isValidSetting(setting, value)) {
         // The ts-expect-error statements are there because of this issue:
         // https://github.com/microsoft/TypeScript/issues/31663

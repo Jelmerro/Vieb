@@ -45,10 +45,7 @@ const {
 
 /**
  * @typedef {"text"|"img"|"frame"|"video"|"audio"|"link"} contextMenuType
- * @typedef {(
- *   "open"|"newtab"|"copy"|"copyimage"
- *   |"download"|"split"|"vsplit"|"external"|"search"
- * )} contextMenuAction
+ * @typedef {(import("./tabs").tabPosition | "copyimage")} contextMenuAction
  * @typedef {{
  *   audio?: string,
  *   audioData: {
@@ -67,12 +64,14 @@ const {
  *     y?: number
  *   },
  *   frame?: string,
+ *   frameData?: {controllable?: false},
  *   hasElementListener: boolean,
  *   hasGlobalListener: boolean,
  *   img?: string,
  *   inputSel?: number,
  *   inputVal?: string,
  *   link?: string,
+ *   linkData?: {controllable?:  false},
  *   svgData?: string,
  *   text?: string,
  *   video?: string,
@@ -530,7 +529,8 @@ const webviewMenu = (options, force = false) => {
         }
         if (options[`${type}Data`]?.controllable) {
             let playTitle = "Pause"
-            if (options[`${type}Data`].paused) {
+            if ((type === "audio" || type === "video")
+                && options[`${type}Data`].paused) {
                 playTitle = "Play"
             }
             createMenuItem({
@@ -539,7 +539,8 @@ const webviewMenu = (options, force = false) => {
                 "title": playTitle
             })
             let muteTitle = "Mute"
-            if (options[`${type}Data`].muted) {
+            if ((type === "audio" || type === "video")
+                && options[`${type}Data`].muted) {
                 muteTitle = "Unmute"
             }
             createMenuItem({
@@ -548,7 +549,8 @@ const webviewMenu = (options, force = false) => {
                 "title": muteTitle
             })
             let loopTitle = "Loop"
-            if (options[`${type}Data`].loop) {
+            if ((type === "audio" || type === "video")
+                && options[`${type}Data`].loop) {
                 loopTitle = "Unloop"
             }
             createMenuItem({

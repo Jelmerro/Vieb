@@ -1077,7 +1077,7 @@ const makeMark = (args = null) => {
 /**
  * Restore a stored mark by key to a position
  *
- * @param {{key?: string, position?: string}|null} args
+ * @param {{key?: string, position?: import("./tabs").tabPosition}|null} args
  */
 const restoreMark = (args = null) => {
     const key = args?.key
