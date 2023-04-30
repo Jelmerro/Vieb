@@ -209,6 +209,7 @@ const runGMScript = (webview, rawContents) => {
     const GM_xmlHttpRequest = GM.xmlHttpRequest
     const GM_xmlhttpRequest = GM.xmlHttpRequest
     const unsafeWindow = window`
+    /** @type {import("picomatch")|null} */
     let picomatch = null
     try {
         picomatch = require("picomatch")

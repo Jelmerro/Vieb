@@ -23,23 +23,22 @@
 const {ipcRenderer} = require("electron")
 const {
     appData,
-    readJSON,
     joinPath,
     domainName,
     expandPath,
     readFile,
     listDir,
     fetchUrl,
-    pathToSpecialPageName
+    pathToSpecialPageName,
+    getWebviewSetting
 } = require("../util")
-const webviewSettingsFile = joinPath(appData(), "webviewsettings")
 const specialPage = pathToSpecialPageName(window.location.href)
-let settings = readJSON(webviewSettingsFile)
 const applyThemeStyling = () => {
     const style = `html {
-        color: ${settings?.fg || "#eee"};background: ${settings?.bg || "#333"};
-        font-size: ${settings.fontsize || 14}px;
-    } a {color: ${settings?.linkcolor || "#0cf"};}`
+        color: ${getWebviewSetting("fg") || "#eee"};
+        background: ${getWebviewSetting("bg") || "#333"};
+        font-size: ${getWebviewSetting("guifontsize") || 14}px;
+    } a {color: ${getWebviewSetting("linkcolor") || "#0cf"};}`
     ipcRenderer.sendToHost("custom-style-inject", "theme", style)
 }
 const enableDarkReader = async() => {
@@ -58,17 +57,27 @@ const enableDarkReader = async() => {
         }).then(data => res(new Response(data))).catch(() => console.warn)
     }))
     try {
+        /** @type {{"dark": 1, "light": 0}} */
+        const themeDict = {"dark": 1, "light": 0}
         darkreader.enable({
-            "brightness": settings.darkreaderbrightness,
-            "contrast": settings.darkreadercontrast,
-            "darkSchemeBackgroundColor": settings.darkreaderbg,
-            "darkSchemeTextColor": settings.darkreaderfg,
-            "grayscale": settings.darkreadergrayscale,
-            "lightSchemeBackgroundColor": settings.darkreaderbg,
-            "lightSchemeTextColor": settings.darkreaderfg,
-            "mode": {"dark": 1, "light": 0}[settings.darkreadermode] ?? 1,
-            "sepia": settings.darkreadersepia,
-            "textStroke": settings.darkreadertextstroke
+            "brightness": getWebviewSetting("darkreaderbrightness")
+                ?? undefined,
+            "contrast": getWebviewSetting("darkreadercontrast") ?? undefined,
+            "darkSchemeBackgroundColor": getWebviewSetting("darkreaderbg")
+                ?? undefined,
+            "darkSchemeTextColor": getWebviewSetting("darkreaderfg")
+                ?? undefined,
+            "grayscale": getWebviewSetting("darkreadergrayscale")
+                ?? undefined,
+            "lightSchemeBackgroundColor": getWebviewSetting("darkreaderbg")
+                ?? undefined,
+            "lightSchemeTextColor": getWebviewSetting("darkreaderfg")
+                ?? undefined,
+            "mode": themeDict[getWebviewSetting("darkreadermode") ?? "dark"],
+            "sepia": getWebviewSetting("darkreadersepia")
+                ?? undefined,
+            "textStroke": getWebviewSetting("darkreadertextstroke")
+                ?? undefined
         })
         const style = await darkreader.exportGeneratedCSS()
         ipcRenderer.sendToHost("custom-style-inject", "darkreader", style)
@@ -90,7 +99,7 @@ const hideScrollbar = () => {
     ipcRenderer.sendToHost("custom-style-inject", "scrollbar", style)
 }
 const updateScrollbar = () => {
-    if (settings.guiscrollbar !== "always") {
+    if (getWebviewSetting("guiscrollbar") !== "always") {
         hideScrollbar()
     }
 }
@@ -99,7 +108,6 @@ const loadThemes = (loadedFully = false) => {
     if (!html) {
         return
     }
-    settings = readJSON(webviewSettingsFile)
     if (document.location.ancestorOrigins.length) {
         updateScrollbar()
         return
@@ -140,14 +148,16 @@ const loadThemes = (loadedFully = false) => {
         domain = "file"
         scope = "file"
     }
-    if (settings.darkreader && settings.darkreaderscope.includes(scope)) {
-        const blocked = settings.darkreaderblocklist.split("~")
+    if (getWebviewSetting("darkreader")
+        && getWebviewSetting("darkreaderscope")?.includes(scope)) {
+        const blocked = getWebviewSetting("darkreaderblocklist")?.split("~")
             .find(m => window.location.href.match(m))
         if (!blocked) {
             enableDarkReader()
         }
     }
-    if (settings.userstyle && settings.userstylescope.includes(scope)) {
+    if (getWebviewSetting("userstyle")
+        && getWebviewSetting("userstylescope")?.includes(scope)) {
         const userStyleFiles = [
             ...(listDir(joinPath(appData(), "userstyle/global"), true)
                 || []).filter(f => f.endsWith(".css")),

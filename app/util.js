@@ -1078,6 +1078,27 @@ const isAbsolutePath = loc => path.isAbsolute(loc)
 const fs = require("fs")
 
 /**
+ * @typedef {(typeof import("./renderer/settings").defaultSettings & {
+ *   "fg": string
+ *   "bg": string
+ *   "linkcolor": string
+ * })} webviewSetting
+ */
+
+/**
+ * Get a setting from the webviewsettings file inside preloads
+ *
+ * @template {keyof webviewSetting} T
+ * @param {T} name
+ * @returns {null|webviewSetting[T]}
+ */
+const getWebviewSetting = name => {
+    const webviewSettingsFile = joinPath(appData(), "webviewsettings")
+    const settings = readJSON(webviewSettingsFile) ?? {}
+    return settings[name] ?? null
+}
+
+/**
  * Check if a path exists
  *
  * @param {string} loc
@@ -1433,6 +1454,7 @@ module.exports = {
     dirname,
     isAbsolutePath,
     // FILESYSTEM UTIL
+    getWebviewSetting,
     pathExists,
     isDir,
     isFile,

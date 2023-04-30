@@ -27,11 +27,8 @@ const {
     findClickPosition,
     framePosition,
     activeElement,
-    readJSON,
-    joinPath,
-    appData
+    getWebviewSetting
 } = require("../util")
-const settingsFile = joinPath(appData(), "webviewsettings")
 
 /** @type {string|null} */
 let currentFollowStatus = null
@@ -97,8 +94,8 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
     await new Promise(r => {
         setTimeout(r, 3)
     })
-    const inputfocusalignment = readJSON(settingsFile)?.inputfocusalignment
-        || "rememberend"
+    const inputfocusalignment = getWebviewSetting("inputfocusalignment")
+        ?? "rememberend"
     focusEl.click()
     focusEl.focus()
     if (previouslyFocussedElements.includes(focusEl)
@@ -833,7 +830,7 @@ window.addEventListener("scroll", () => {
 
 ipcRenderer.on("search-element-location", (_, pos) => {
     let {x} = pos
-    const alignment = readJSON(settingsFile)?.searchpointeralignment
+    const alignment = getWebviewSetting("searchpointeralignment")
     if (alignment === "center") {
         x += pos.width / 2
     } else if (alignment === "right") {

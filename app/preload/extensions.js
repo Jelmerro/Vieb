@@ -17,13 +17,23 @@
 */
 "use strict"
 
-const {appData, readJSON, joinPath, fetchJSON} = require("../util")
-const webviewSettingsFile = joinPath(appData(), "webviewsettings")
-const settings = readJSON(webviewSettingsFile)
+const {fetchJSON, getWebviewSetting} = require("../util")
 
 const loadSponsorblock = () => {
+    /** @type {HTMLDivElement[]} */
     let previousBlockEls = []
+    /** @type {number|null} */
     let previousDuration = null
+    /** @type {{
+     *   segment: number[],
+     *   UUID: string,
+     *   category: string,
+     *   videoDuration: number,
+     *   actionType: string,
+     *   locked: number,
+     *   votes: number,
+     *   description: string
+     * }[]} */
     let segments = []
     const vid = document.querySelector("video")
     if (!vid) {
@@ -34,7 +44,9 @@ const loadSponsorblock = () => {
         previousBlockEls = []
         const videoId = window.location.href.replace(/^.*\/watch\?v=/g, "")
         previousDuration = vid.duration
-        const categories = settings.sponsorblockcategories.split(",")
+        const categories = getWebviewSetting("sponsorblockcategories")
+            ?.split(",") ?? ("sponsor~lime,intro~cyan,outro~blue,"
+            + "interaction~red,selfpromo~yellow,music_offtopic").split(",")
         const categoryNames = categories.map(cat => cat.split("~")[0])
         fetchJSON(`https://sponsor.ajay.app/api/skipSegments?videoID=${videoId}`
             + `&categories=${JSON.stringify(categoryNames)}`).then(response => {
@@ -60,7 +72,8 @@ const loadSponsorblock = () => {
             }
         }).catch(err => console.warn(err))
     }
-    if (window.location.href.includes("watch?v=") && settings.sponsorblock) {
+    if (window.location.href.includes("watch?v=")
+        && getWebviewSetting("sponsorblock")) {
         fetchSponsorBlockData()
         vid.addEventListener("durationchange", () => {
             fetchSponsorBlockData()

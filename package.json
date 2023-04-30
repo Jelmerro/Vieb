@@ -28,6 +28,7 @@
   "license": "GPL-3.0-or-later",
   "devDependencies": {
     "@types/marked": "4.0.8",
+    "@types/picomatch": "2.3.0",
     "electron": "24.0.0",
     "electron-builder": "24.2.0",
     "eslint": "8.37.0",
