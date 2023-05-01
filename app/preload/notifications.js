@@ -21,7 +21,13 @@ const {ipcRenderer} = require("electron")
 const {formatDate} = require("../util")
 
 window.addEventListener("DOMContentLoaded", () => {
-    ipcRenderer.on("notification-history", (_, notifications) => {
+    /**
+     * Show the list of notifications
+     *
+     * @param {Electron.IpcRendererEvent} _
+     * @param {import("../util").notificationHistory} notifications
+     */
+    const showNofitications = (_, notifications) => {
         const listEl = document.getElementById("list")
         if (!listEl) {
             return
@@ -34,7 +40,7 @@ window.addEventListener("DOMContentLoaded", () => {
                 element.classList.add("filelocation")
                 element.title = "Click to open"
                 element.addEventListener("click", () => {
-                    ipcRenderer.send("open-download", notification.click.path)
+                    ipcRenderer.send("open-download", notification.click?.path)
                 })
             }
             const date = document.createElement("div")
@@ -50,5 +56,6 @@ window.addEventListener("DOMContentLoaded", () => {
         if (listEl.textContent === "") {
             listEl.textContent = "There have been no notifications so far"
         }
-    })
+    }
+    ipcRenderer.on("notification-history", showNofitications)
 })

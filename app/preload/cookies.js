@@ -58,12 +58,17 @@ const filterList = () => {
     }
 }
 
+/**
+ * Convert an electron cookie object to a valid url
+ *
+ * @param {Electron.Cookie} cookie
+ */
 const cookieToUrl = cookie => {
     let url = "http://"
     if (cookie.secure) {
         url = "https://"
     }
-    if (cookie.domain.charAt(0) === ".") {
+    if (cookie.domain?.charAt(0) === ".") {
         url += "www"
     }
     return url + cookie.domain + cookie.path
@@ -88,6 +93,12 @@ const removeAllCookies = () => {
     refreshList()
 }
 
+
+/**
+ * Parse the list of cookies and show them
+ *
+ * @param {Electron.Cookie[]} cookies
+ */
 const parseList = cookies => {
     const listEl = document.getElementById("list")
     if (listEl) {
@@ -103,7 +114,7 @@ const parseList = cookies => {
         cookieElement.setAttribute("cookie-url", cookieToUrl(cookie))
         cookieElement.setAttribute("cookie-name", cookie.name)
         const domain = document.createElement("span")
-        domain.textContent = cookie.domain
+        domain.textContent = cookie.domain ?? ""
         cookieElement.append(domain)
         const name = document.createElement("span")
         name.textContent = cookie.name
@@ -125,11 +136,11 @@ const parseList = cookies => {
     filterList()
 }
 
-const refreshList = () => {
-    ipcRenderer.invoke("list-cookies").then(cookieList => {
-        parseList(cookieList.sort((a, b) => a.domain.replace(/\W/, "")
-            .localeCompare(b.domain.replace(/\W/, ""))))
-    })
+const refreshList = async() => {
+    /** @type {Electron.Cookie[]} */
+    const cookieList = await ipcRenderer.invoke("list-cookies")
+    parseList(cookieList.sort((a, b) => (a.domain?.replace(/\W/, "") ?? "")
+        .localeCompare(b.domain?.replace(/\W/, "") ?? "")))
 }
 
 window.addEventListener("load", () => {

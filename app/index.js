@@ -765,7 +765,7 @@ const dlsFile = joinPath(app.getPath("appData"), "dls")
  *   cleardownloadsoncompleted?: boolean
  * }} */
 let downloadSettings = {"downloadpath": app.getPath("downloads")}
-/** @type {{
+/** @typedef {{
  *   current: number,
  *   date: Date,
  *   file: string,
@@ -774,7 +774,9 @@ let downloadSettings = {"downloadpath": app.getPath("downloads")}
  *   state: string,
  *   total: number
  *   url: string
- * }[]} */
+ * }} downloadItem
+ */
+/** @type {downloadItem[]} */
 let downloads = []
 let redirects = ""
 /** @type {import("@cliqz/adblocker-electron").ElectronBlocker|null} */
@@ -824,7 +826,7 @@ const setDownloadSettings = (_, settings) => {
         if (settings.cleardownloadsonquit) {
             deleteFile(dlsFile)
         } else if (isFile(dlsFile)) {
-            /** @type {typeof downloads} */
+            /** @type {downloadItem[]} */
             const downloadsFile = readJSON(dlsFile) ?? []
             downloads = downloadsFile.map(d => {
                 if (d.state !== "completed") {

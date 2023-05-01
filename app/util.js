@@ -28,7 +28,7 @@ const specialPages = [
     "notifications",
     "version"
 ]
-/** @type {{
+/** @typedef {{
  *   click: {
  *     type: "download-success",
  *     path: string,
@@ -36,7 +36,9 @@ const specialPages = [
  *   date: Date,
  *   message: string,
  *   type: string
- * }[]} */
+ * }[]} notificationHistory
+ */
+/** @type {notificationHistory} */
 const notificationHistory = []
 let appDataPath = ""
 let homeDirPath = ""

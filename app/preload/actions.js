@@ -615,6 +615,7 @@ const functions = {
     writeInputToFile
 }
 
+// @ts-expect-error too many signatures to realistically type, maybe someday
 ipcRenderer.on("action", (_, name, ...args) => functions[name]?.(...args))
 
 window.addEventListener("DOMContentLoaded", () => {

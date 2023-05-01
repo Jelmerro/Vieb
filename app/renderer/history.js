@@ -264,6 +264,15 @@ const removeFromHistory = entries => {
     return writeHistToFile(true)
 }
 
+/** @typedef {{
+ *   date: Date,
+ *   icon: string,
+ *   title: string,
+ *   url: string,
+ *   visits: number
+ * }} historyItem
+ */
+
 /**
  * Handle a request from the preload to remove history or just list it
  *
@@ -282,13 +291,7 @@ const handleRequest = (webview, action = null, entries = []) => {
         updateMappings()
         return
     }
-    /** @type {{
-     *   date: Date,
-     *   icon: string,
-     *   title: string,
-     *   url: string,
-     *   visits: number
-     * }[]}
+    /** @type {historyItem[]}
      */
     let history = []
     const {forSite} = require("./favicons")

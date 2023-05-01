@@ -62,38 +62,46 @@ const toUrl = loc => `file:${loc}`.replace(/^file:\/+/, "file:///")
  */
 const isRoot = loc => loc === joinPath(loc, "../")
 
-ipcRenderer.on("insert-current-directory-files",
-    (_, directories, files, allowed, folder) => {
-        // Styling
-        const styleElement = document.createElement("style")
-        styleElement.textContent = styling
-        document.head.appendChild(styleElement)
-        // Main
-        const main = document.createElement("main")
-        const title = document.createElement("h2")
-        title.textContent = folder
-        main.appendChild(title)
-        if (!isRoot(folder)) {
-            main.appendChild(createElement(
-                "dir", joinPath(folder, "../"), ".."))
-        }
-        if (!allowed) {
-            const error = document.createElement("span")
-            error.textContent = "Permission denied"
-            error.className = "error"
-            main.appendChild(error)
-        } else if (directories.length === 0 && files.length === 0) {
-            const error = document.createElement("span")
-            error.textContent = "Empty directory"
-            error.className = "error"
-            main.appendChild(error)
-        } else {
-            directories.forEach(dir => {
-                main.appendChild(createElement("dir", dir))
-            })
-            files.forEach(file => {
-                main.appendChild(createElement("file", file))
-            })
-        }
-        document.body.appendChild(main)
-    })
+/**
+ * Insert the current directory info into the page to explore local files
+ *
+ * @param {Electron.IpcRendererEvent} _
+ * @param {string[]} directories
+ * @param {string[]} files
+ * @param {boolean} allowed
+ * @param {string} folder
+ */
+const insertCurrentDirInfo = (_, directories, files, allowed, folder) => {
+    // Styling
+    const styleElement = document.createElement("style")
+    styleElement.textContent = styling
+    document.head.appendChild(styleElement)
+    // Main
+    const main = document.createElement("main")
+    const title = document.createElement("h2")
+    title.textContent = folder
+    main.appendChild(title)
+    if (!isRoot(folder)) {
+        main.appendChild(createElement("dir", joinPath(folder, "../"), ".."))
+    }
+    if (!allowed) {
+        const error = document.createElement("span")
+        error.textContent = "Permission denied"
+        error.className = "error"
+        main.appendChild(error)
+    } else if (directories.length === 0 && files.length === 0) {
+        const error = document.createElement("span")
+        error.textContent = "Empty directory"
+        error.className = "error"
+        main.appendChild(error)
+    } else {
+        directories.forEach(dir => {
+            main.appendChild(createElement("dir", dir))
+        })
+        files.forEach(file => {
+            main.appendChild(createElement("file", file))
+        })
+    }
+    document.body.appendChild(main)
+}
+ipcRenderer.on("insert-current-directory-files", insertCurrentDirInfo)

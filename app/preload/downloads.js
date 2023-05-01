@@ -44,7 +44,14 @@ window.addEventListener("load", () => {
     update()
 })
 
-ipcRenderer.on("download-list", (_, l) => {
+/**
+ * Generate the download list based on main info data
+ *
+ * @param {Electron.IpcRendererEvent} _
+ * @param {string} l
+ */
+const generateDownloadList = (_, l) => {
+    /** @type {import("../index").downloadItem[]} */
     const list = JSON.parse(l)
     // List
     if (list.length === 0) {
@@ -91,8 +98,15 @@ ipcRenderer.on("download-list", (_, l) => {
         }
     }
     lastUpdate = new Date()
-})
+}
+ipcRenderer.on("download-list", generateDownloadList)
 
+/**
+ * Add a download to the list
+ *
+ * @param {import("../index").downloadItem} download
+ * @param {number} id
+ */
 const addDownload = (download, id) => {
     const element = document.createElement("div")
     element.className = "download"
@@ -179,8 +193,25 @@ const addDownload = (download, id) => {
     document.getElementById("list")?.append(element)
 }
 
+/**
+ * Update a download element with new data
+ *
+ * @param {import("../index").downloadItem} download
+ * @param {Element} element
+ * @param {number} id
+ */
 const updateDownload = (download, element, id) => {
     const progress = element.querySelector("progress")
+    const title = element.querySelector(".title")
+    const speedEl = element.querySelector(".speed")
+    const downloadUrl = element.querySelector("a")
+    let togglePause = element.querySelector(".toggle-pause")
+    if (!progress || !title || !speedEl || !downloadUrl || !togglePause) {
+        return
+    }
+    if (!(title instanceof HTMLElement)) {
+        return
+    }
     // Speed
     const timeSinceUpdate = (new Date().getTime() - lastUpdate.getTime()) / 1000
     const speed = formatSize(
@@ -188,19 +219,18 @@ const updateDownload = (download, element, id) => {
     const done = download.state === "completed"
     if (download.total === 0) {
         if (done) {
-            element.querySelector(".speed").textContent
-                = formatSize(download.current)
+            speedEl.textContent = formatSize(download.current)
         } else {
-            element.querySelector(".speed").textContent
+            speedEl.textContent
                 = `${formatSize(download.current)} / ??? - ${speed}/s`
         }
     } else if (download.current === download.total || done) {
-        element.querySelector(".speed").textContent = formatSize(download.total)
+        speedEl.textContent = formatSize(download.total)
     } else if (download.current === progress.value) {
-        element.querySelector(".speed").textContent
+        speedEl.textContent
             = `${formatSize(download.current)} / ${formatSize(download.total)}`
     } else {
-        element.querySelector(".speed").textContent
+        speedEl.textContent
             = `${formatSize(download.current)} / ${formatSize(download.total)}
             - ${speed}/s`
     }
@@ -212,24 +242,30 @@ const updateDownload = (download, element, id) => {
     }
     progress.value = download.current
     // Update other info (for when other downloads are removed)
-    const title = element.querySelector(".title")
     title.style.color = ""
     title.textContent = download.name
-    const downloadUrl = element.querySelector("a")
     downloadUrl.href = download.url
     downloadUrl.textContent = decodeURIComponent(download.url)
-    element.querySelector(".filelocation").textContent = download.file
-    element.querySelector(".date").textContent = formatDate(download.date)
+    const fileloc = element.querySelector(".filelocation")
+    if (fileloc) {
+        fileloc.textContent = download.file
+    }
+    const dateEl = element.querySelector(".date")
+    if (dateEl) {
+        dateEl.textContent = formatDate(download.date)
+    }
     // Change looks depending on the state
-    let togglePause = element.querySelector(".toggle-pause")
     let remove = element.querySelector(".remove")
-    remove.parentNode.replaceChild(remove.cloneNode(true), remove)
+    remove?.parentNode?.replaceChild(remove.cloneNode(true), remove)
     remove = element.querySelector(".remove")
-    remove.addEventListener("click", () => update("remove", id))
-    togglePause.src = joinPath(__dirname, "../img/pause.png")
-    togglePause.parentNode.replaceChild(
+    remove?.addEventListener("click", () => update("remove", id))
+    togglePause.setAttribute("src", joinPath(__dirname, "../img/pause.png"))
+    togglePause.parentNode?.replaceChild(
         togglePause.cloneNode(true), togglePause)
     togglePause = element.querySelector(".toggle-pause")
+    if (!(togglePause instanceof HTMLElement)) {
+        return
+    }
     togglePause.addEventListener("click", () => update("pause", id))
     progress.style.display = ""
     togglePause.style.display = ""
@@ -245,12 +281,16 @@ const updateDownload = (download, element, id) => {
     }
     if (download.state === "paused") {
         title.style.color = "var(--notification-warning)"
-        togglePause.src = joinPath(__dirname, "../img/resume.png")
-        togglePause.parentNode.replaceChild(
+        togglePause.setAttribute("src",
+            joinPath(__dirname, "../img/resume.png"))
+        togglePause.parentNode?.replaceChild(
             togglePause.cloneNode(true), togglePause)
         togglePause = element.querySelector(".toggle-pause")
-        togglePause.addEventListener("click", () => update("resume", id))
+        togglePause?.addEventListener("click", () => update("resume", id))
     }
     // State
-    element.querySelector(".state").textContent = download.state
+    const state = element.querySelector(".state")
+    if (state) {
+        state.textContent = download.state
+    }
 }

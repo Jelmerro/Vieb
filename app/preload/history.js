@@ -87,6 +87,11 @@ let currentlyRemoving = false
 
 // Actually parse the list and use the breakpoints
 
+/**
+ * Show the received history in a list
+ *
+ * @param {import("../renderer/history").historyItem[]} history
+ */
 const receiveHistory = history => {
     const scrollPosition = window.scrollY
     const removeAllEl = document.getElementById("remove-all")
@@ -103,9 +108,9 @@ const receiveHistory = history => {
     lineNumberBreakpoint = 0
     let lineNumber = 0
     history.forEach(hist => {
-        hist.date = new Date(hist.date)
-        hist.line = lineNumber
-        addHistToList(hist)
+        addHistToList({
+            ...hist, "date": new Date(hist.date), "line": lineNumber
+        })
         if (removeAllEl) {
             removeAllEl.style.display = ""
         }
@@ -132,6 +137,11 @@ const receiveHistory = history => {
     }
 }
 
+/** Add a breakpoint by index at a line number
+ *
+ * @param {number} index
+ * @param {number} lineNumber
+ */
 const addBreakpoint = (index, lineNumber) => {
     if (list.textContent === "") {
         return
@@ -159,6 +169,13 @@ const addBreakpoint = (index, lineNumber) => {
     lineNumberBreakpoint = lineNumber + 1
 }
 
+/**
+ * Add a single history entry to the list
+ *
+ * @param {(
+ *   import("../renderer/history").historyItem & {date: Date, line: number}
+ * )} hist
+ */
 const addHistToList = hist => {
     // Shift the breakpoint to the next one
     const previousBreakpoint = currentBreakpointIndex
@@ -174,7 +191,7 @@ const addHistToList = hist => {
     }
     // Finally show the history entry (possibly after new breakpoint)
     const histElement = document.createElement("div")
-    histElement.setAttribute("hist-line", hist.line)
+    histElement.setAttribute("hist-line", `${hist.line}`)
     histElement.className = "hist-entry"
     if (hist.icon) {
         const icon = document.createElement("img")
@@ -287,7 +304,11 @@ window.addEventListener("load", () => {
     ipcRenderer.sendToHost("history-list-request")
 })
 
-ipcRenderer.on("history-list", (_, h) => receiveHistory(JSON.parse(h)))
+ipcRenderer.on("history-list", (_, h) => {
+    /** @type {import("../renderer/history").historyItem[]} */
+    const history = JSON.parse(h)
+    receiveHistory(history)
+})
 
 ipcRenderer.on("history-removal-status", success => {
     [...document.querySelectorAll(".marked")].forEach(m => {

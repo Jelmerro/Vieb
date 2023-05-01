@@ -114,7 +114,22 @@ const addTextWithLinksToTypes = (baseEl, text) => {
     })
 }
 
-ipcRenderer.on("settings", (_, settings, mappings, uncountActs, rangeComp) => {
+/**
+ * Update the setting list with realtime information based on current settings
+ *
+ * @param {Electron.IpcRendererEvent} _
+ * @param {{
+ *   name: string,
+ *   typeLabel: string,
+ *   allowedValues: string|string[],
+ *   current: number|boolean|string,
+ *   default: number|boolean|string
+ * }[]} settings
+ * @param {string} mappings
+ * @param {string[]} uncountActs
+ * @param {string[]} rangeComp
+ */
+const updateSettingsList = (_, settings, mappings, uncountActs, rangeComp) => {
     allActionsByKeys = modes.reduce((a, m) => {
         // @ts-expect-error Creation of keys on empty object is not allowed
         a[m] = {}
@@ -146,7 +161,7 @@ ipcRenderer.on("settings", (_, settings, mappings, uncountActs, rangeComp) => {
             if (typeof setting.default === "string") {
                 original.textContent = `"${setting.default}"`
             } else {
-                original.textContent = setting.default
+                original.textContent = `${setting.default}`
             }
             settingStatus.append(original)
             const currentLabel = document.createElement("span")
@@ -156,7 +171,7 @@ ipcRenderer.on("settings", (_, settings, mappings, uncountActs, rangeComp) => {
             if (typeof setting.default === "string") {
                 current.textContent = `"${setting.current}"`
             } else {
-                current.textContent = setting.current
+                current.textContent = `${setting.current}`
             }
             settingStatus.append(current)
             const allowedValuesLabel = document.createElement("span")
@@ -274,7 +289,8 @@ ipcRenderer.on("settings", (_, settings, mappings, uncountActs, rangeComp) => {
     if (window.scrollY < 10) {
         processHash()
     }
-})
+}
+ipcRenderer.on("settings", updateSettingsList)
 
 window.addEventListener("hashchange", processHash)
 
