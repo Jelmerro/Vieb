@@ -65,7 +65,7 @@ const {
 /**
  * List a specific setting, all of them or show the warning regarding name
  *
- * @param {string} setting
+ * @param {keyof typeof import("./settings").defaultSettings|"all"} setting
  */
 const listSetting = setting => {
     if (setting === "all") {
@@ -73,12 +73,7 @@ const listSetting = setting => {
         notify(`--- Options ---\n${listCurrentSettings(true)}`)
         return
     }
-    const value = getSetting(setting)
-    if (value === undefined) {
-        notify(`The setting '${setting}' doesn't exist`, "warn")
-    } else {
-        notify(`The setting '${setting}' has the value '${value}'`)
-    }
+    notify(`The setting '${setting}' has the value '${getSetting(setting)}'`)
 }
 
 /**
@@ -94,15 +89,28 @@ const splitSettingAndValue = (part, separator) => {
 }
 
 /**
+ * Check if a setting name is valid
+ *
+ * @param {string} name
+ * @returns {name is (keyof typeof import("./settings").defaultSettings|"all")}
+ */
+const isValidSettingName = name => {
+    const {isExistingSetting} = require("./settings")
+    return name === "all" || isExistingSetting(name)
+}
+
+/**
  * Modifiy a list or a number
  *
- * @param {string} setting
+ * @param {keyof typeof import("./settings").defaultSettings} setting
  * @param {string} value
  * @param {"append"|"remove"|"special"} method
  */
 const modifyListOrNumber = (setting, value, method) => {
-    const isNumber = typeof getSetting(setting) === "number"
-    const {freeText, listLike, listLikeTilde, set} = require("./settings")
+    const {
+        freeText, listLike, listLikeTilde, set, isNumberSetting
+    } = require("./settings")
+    const isNumber = isNumberSetting(setting)
     const isFreeText = freeText.includes(setting)
     const isListLike = listLike.includes(setting)
     const isListLikeTilde = listLikeTilde.includes(setting)
@@ -127,7 +135,7 @@ const modifyListOrNumber = (setting, value, method) => {
     }
     if (method === "remove") {
         if (isListLike) {
-            let current = getSetting(setting).split(",")
+            let current = String(getSetting(setting)).split(",")
             if (setting === "mouse" && current?.[0] === "all") {
                 const {mouseFeatures} = require("./settings")
                 current = mouseFeatures
@@ -140,7 +148,7 @@ const modifyListOrNumber = (setting, value, method) => {
             set(setting, newValue)
         }
         if (isListLikeTilde) {
-            const current = getSetting(setting).split("~")
+            const current = String(getSetting(setting)).split("~")
             const newValue = current.filter(e => e && e !== value).join("~")
             set(setting, newValue)
         }
@@ -148,7 +156,7 @@ const modifyListOrNumber = (setting, value, method) => {
             set(setting, getSetting(setting) - Number(value))
         }
         if (isFreeText) {
-            set(setting, getSetting(setting).replace(value, ""))
+            set(setting, String(getSetting(setting)).replace(value, ""))
         }
     }
     if (method === "special") {
@@ -187,13 +195,25 @@ const set = args => {
     for (const part of args) {
         if ((/^\w+\+=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "+=")
-            modifyListOrNumber(setting, value, "append")
+            if (isValidSettingName(setting) && setting !== "all") {
+                modifyListOrNumber(setting, value, "append")
+            } else {
+                notify(`The setting '${setting}' doesn't exist`, "warn")
+            }
         } else if ((/^\w+-=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "-=")
-            modifyListOrNumber(setting, value, "remove")
+            if (isValidSettingName(setting) && setting !== "all") {
+                modifyListOrNumber(setting, value, "remove")
+            } else {
+                notify(`The setting '${setting}' doesn't exist`, "warn")
+            }
         } else if ((/^\w+\^=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "^=")
-            modifyListOrNumber(setting, value, "special")
+            if (isValidSettingName(setting) && setting !== "all") {
+                modifyListOrNumber(setting, value, "special")
+            } else {
+                notify(`The setting '${setting}' doesn't exist`, "warn")
+            }
         } else if ((/^\w+=/).test(part)) {
             s(...splitSettingAndValue(part, "="))
         } else if ((/^\w+:/).test(part)) {
@@ -201,50 +221,76 @@ const set = args => {
         } else if ((/^\w+!.+/).test(part)) {
             const [setting] = part.split("!")
             const values = part.split("!").slice(1).join("!").split("|")
-            const index = values.indexOf(getSetting(setting))
-            s(setting, values[index + 1] || values[0])
+            if (isValidSettingName(setting) && setting !== "all") {
+                const index = values.indexOf(String(getSetting(setting)))
+                s(setting, values[index + 1] || values[0])
+            } else {
+                notify(`The setting '${setting}' doesn't exist`, "warn")
+            }
         } else if (part.endsWith("!")) {
             const setting = part.slice(0, -1)
-            const value = getSetting(setting)
-            const {validOptions} = require("./settings")
-            if (["boolean", "undefined"].includes(typeof value)) {
-                s(setting, String(!value))
-            } else if (validOptions[setting]) {
-                const index = validOptions[setting].indexOf(value)
-                s(setting, validOptions[setting][index + 1]
+            if (isValidSettingName(setting) && setting !== "all") {
+                const value = String(getSetting(setting))
+                const {isEnumSetting, validOptions} = require("./settings")
+                if (["boolean", "undefined"].includes(typeof value)) {
+                    s(setting, String(!value))
+                } else if (isEnumSetting(setting)) {
+                    const index = validOptions[setting].indexOf(value)
+                    s(setting, validOptions[setting][index + 1]
                     || validOptions[setting][0])
+                } else {
+                    notify(
+                        `The setting '${setting}' can not be flipped`, "warn")
+                }
             } else {
-                notify(
-                    `The setting '${setting}' can not be flipped`, "warn")
+                notify(`The setting '${setting}' doesn't exist`, "warn")
             }
         } else if (part.endsWith("&")) {
             const {reset} = require("./settings")
             reset(part.slice(0, -1))
         } else if (part.endsWith("?")) {
-            listSetting(part.slice(0, -1))
-        } else if (typeof getSetting(part) === "boolean") {
+            const settingName = part.slice(0, -1)
+            if (isValidSettingName(settingName)) {
+                listSetting(settingName)
+            } else {
+                notify(`The setting '${settingName}' doesn't exist`, "warn")
+            }
+        } else if (isValidSettingName(part) && part !== "all"
+            && typeof getSetting(part) === "boolean") {
             s(part, "true")
         } else if (part.startsWith("inv")) {
-            const value = getSetting(part.replace("inv", ""))
-            if (typeof value === "boolean") {
-                s(part.replace("inv", ""), String(!value))
+            const settingName = part.replace("inv", "")
+            if (isValidSettingName(settingName) && settingName !== "all") {
+                const value = getSetting(settingName)
+                if (typeof value === "boolean") {
+                    s(part.replace("inv", ""), String(!value))
+                } else {
+                    listSetting(settingName)
+                }
             } else {
-                listSetting(part)
+                notify(`The setting '${settingName}' doesn't exist`, "warn")
             }
         } else if (part.startsWith("no")) {
-            const value = getSetting(part.replace("no", ""))
-            const {listLike, listLikeTilde} = require("./settings")
-            if (typeof value === "boolean") {
-                s(part.replace("no", ""), "false")
-            } else if (listLike.includes(part.replace("no", ""))) {
-                s(part.replace("no", ""), "")
-            } else if (listLikeTilde.includes(part.replace("no", ""))) {
-                s(part.replace("no", ""), "")
+            const settingName = part.replace("no", "")
+            if (isValidSettingName(settingName) && settingName !== "all") {
+                const value = getSetting(settingName)
+                const {listLike, listLikeTilde} = require("./settings")
+                if (typeof value === "boolean") {
+                    s(settingName, "false")
+                } else if (listLike.includes(part.replace("no", ""))) {
+                    s(settingName, "")
+                } else if (listLikeTilde.includes(part.replace("no", ""))) {
+                    s(settingName, "")
+                } else {
+                    listSetting(settingName)
+                }
             } else {
-                listSetting(part)
+                notify(`The setting '${settingName}' doesn't exist`, "warn")
             }
-        } else {
+        } else if (isValidSettingName(part)) {
             listSetting(part)
+        } else {
+            notify(`The setting '${part}' doesn't exist`, "warn")
         }
     }
 }
@@ -1491,11 +1537,20 @@ const restoremark = args => {
     const {restoreMark} = require("./actions")
     const {validOptions} = require("./settings")
     const [key, position] = args
-    if (position && !validOptions.markpositionshifted.includes(position)) {
+    /**
+     * Check if a mark position is valid
+     *
+     * @param {string} pos
+     * @returns {pos is import("./tabs").tabPosition|undefined}
+     */
+    const isValidPosition = pos => pos === undefined
+        || validOptions.markposition.includes(pos)
+    if (isValidPosition(position)) {
+        restoreMark({key, position})
+    } else {
         notify("Invalid mark restore position, must be one of: "
             + `${validOptions.markpositionshifted.join(", ")}`, "warn")
     }
-    restoreMark({key, position})
 }
 
 /**
