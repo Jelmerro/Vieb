@@ -80,6 +80,12 @@ const init = () => {
             document.getElementById("logo")
                 ?.setAttribute("src", appConfig()?.icon ?? "")
         }
+        /** @type {{
+         *   closed?: typeof recentlyClosed,
+         *   pinned?: typeof recentlyClosed,
+         *   tabs?: typeof recentlyClosed,
+         *   id?: number
+         * }} */
         const parsed = readJSON(tabFile)
         if (!erwicMode) {
             if (parsed) {

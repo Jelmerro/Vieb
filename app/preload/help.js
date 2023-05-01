@@ -24,11 +24,13 @@ const {icon} = appConfig() ?? {}
 const modes = "nicsefpvm".split("")
 /** @type {{[mode: string]: {[key: string]: HTMLElement|null}}} */
 let allActionsByKeys = modes.reduce((a, m) => {
+    // @ts-expect-error Creation of keys on empty object is not allowed
     a[m] = {}
     return a
 }, {})
 /** @type {{[mode: string]: {[key: string]: HTMLElement|null}}} */
 let allCommandsByKeys = modes.reduce((a, m) => {
+    // @ts-expect-error Creation of keys on empty object is not allowed
     a[m] = {}
     return a
 }, {})
@@ -114,10 +116,12 @@ const addTextWithLinksToTypes = (baseEl, text) => {
 
 ipcRenderer.on("settings", (_, settings, mappings, uncountActs, rangeComp) => {
     allActionsByKeys = modes.reduce((a, m) => {
+        // @ts-expect-error Creation of keys on empty object is not allowed
         a[m] = {}
         return a
     }, {})
     allCommandsByKeys = modes.reduce((a, m) => {
+        // @ts-expect-error Creation of keys on empty object is not allowed
         a[m] = {}
         return a
     }, {})

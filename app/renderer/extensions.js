@@ -45,11 +45,16 @@ const parseGM = meta => meta.split(/[\r\n]/).filter(line => (/\S+/).test(line)
         key += "s"
     }
     const value = arr.slice(1).join(" ")
+    // @ts-expect-error Creation of keys on empty object is not allowed
     if (obj[key] === undefined) {
+        // @ts-expect-error Creation of keys on empty object is not allowed
         obj[key] = value
+    // @ts-expect-error Creation of keys on empty object is not allowed
     } else if (Array.isArray(obj[key])) {
+        // @ts-expect-error Creation of keys on empty object is not allowed
         obj[key].push(value)
     } else {
+        // @ts-expect-error Creation of keys on empty object is not allowed
         obj[key] = [obj[key], value]
     }
     return obj

@@ -661,7 +661,7 @@ const moveFastUp = () => {
 /**
  * Store a pointer position
  *
- * @param {{key: string, location: {x: number, y: number}, path: string}} args
+ * @param {{key?: string, location?: {x: number, y: number}, path: string}} args
  */
 const storePos = args => {
     const key = args?.key
@@ -709,7 +709,7 @@ const storePos = args => {
 /**
  * Restore a pointer position
  *
- * @param {{key: string, path: string}} args
+ * @param {{key?: string, path?: string}} args
  */
 const restorePos = args => {
     const key = args?.key

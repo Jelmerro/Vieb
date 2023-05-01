@@ -1656,23 +1656,28 @@ const set = (setting, value) => {
         // https://github.com/microsoft/TypeScript/issues/31663
         const {applyLayout} = require("./pagelayout")
         if (typeof allSettings[setting] === "boolean") {
+            // @ts-expect-error #bug in TS since very long
             allSettings[setting] = typeof value !== "number"
                 && ["true", true].includes(value)
         } else if (typeof allSettings[setting] === "number") {
+            // @ts-expect-error #bug in TS since very long
             allSettings[setting] = Number(value)
         } else if (listLike.includes(setting)) {
             // Remove empty and duplicate elements from the comma separated list
             if (typeof value === "string") {
+                // @ts-expect-error #bug in TS since very long
                 allSettings[setting] = Array.from(new Set(value
                     .split(",").map(e => e.trim()).filter(e => e))).join(",")
             }
         } else if (listLikeTilde.includes(setting)) {
             // Remove empty and duplicate elements from the comma separated list
             if (typeof value === "string") {
+                // @ts-expect-error #bug in TS since very long
                 allSettings[setting] = Array.from(new Set(value
                     .split("~").map(e => e.trim()).filter(e => e))).join("~")
             }
         } else {
+            // @ts-expect-error #bug in TS since very long
             allSettings[setting] = value
         }
         if (setting === "mouse") {

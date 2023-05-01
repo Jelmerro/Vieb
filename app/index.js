@@ -797,16 +797,36 @@ const defaultCss = readFile(joinPath(__dirname, `colors/default.css`))
 ipcMain.on("set-redirects", (_, rdr) => {
     redirects = rdr
 })
-ipcMain.on("update-request-headers", (_, headers) => {
+/**
+ * Update the request header setting
+ *
+ * @param {Electron.IpcMainEvent} _
+ * @param {string} headers
+ */
+const updateRequestHeaders = (_, headers) => {
     requestHeaders = headers.split(",").filter(h => h)
-})
+}
+ipcMain.on("update-request-headers", updateRequestHeaders)
 ipcMain.on("open-download", (_, location) => shell.openPath(location))
-ipcMain.on("set-download-settings", (_, settings) => {
+/**
+ * Update download settings
+ *
+ * @param {Electron.IpcMainEvent} _
+ * @param {{
+ *   downloadmethod: string,
+ *   downloadpath: string,
+ *   cleardownloadsonquit: boolean,
+ *   cleardownloadsoncompleted: boolean
+ * }} settings
+ */
+const setDownloadSettings = (_, settings) => {
     if (Object.keys(downloadSettings).length === 0) {
         if (settings.cleardownloadsonquit) {
             deleteFile(dlsFile)
         } else if (isFile(dlsFile)) {
-            downloads = readJSON(dlsFile)?.map(d => {
+            /** @type {typeof downloads} */
+            const downloadsFile = readJSON(dlsFile) ?? []
+            downloads = downloadsFile.map(d => {
                 if (d.state !== "completed") {
                     d.state = "cancelled"
                 }
@@ -820,7 +840,8 @@ ipcMain.on("set-download-settings", (_, settings) => {
     }
     downloadSettings.downloadpath = expandPath(downloadSettings.downloadpath
         || app.getPath("downloads") || "~/Downloads")
-})
+}
+ipcMain.on("set-download-settings", setDownloadSettings)
 ipcMain.on("download-list-request", (e, action, downloadId) => {
     if (action === "removeall") {
         downloads.forEach(download => {
@@ -865,7 +886,13 @@ ipcMain.on("download-list-request", (e, action, downloadId) => {
 ipcMain.on("set-permissions", (_, permissionObject) => {
     permissions = permissionObject
 })
-ipcMain.on("set-spelllang", (_, langs) => {
+/**
+ * Update the list of spell languages to be used
+ *
+ * @param {Electron.IpcMainEvent} _
+ * @param {string} langs
+ */
+const setSpelllangs = (_, langs) => {
     if (!langs) {
         return
     }
@@ -879,12 +906,13 @@ ipcMain.on("set-spelllang", (_, langs) => {
             return null
         }
         return lang
-    }).filter(lang => lang)
+    }).flatMap(lang => lang ?? [])
     sessionList.forEach(ses => {
         session.fromPartition(ses).setSpellCheckerLanguages(parsedLangs)
         session.defaultSession.setSpellCheckerLanguages(parsedLangs)
     })
-})
+}
+ipcMain.on("set-spelllang", setSpelllangs)
 ipcMain.on("update-resource-settings", (_, resources, block, allow) => {
     resourceTypes = [
         ...resources, "mainframe", "subframe", "cspreport", "other"

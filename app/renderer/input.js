@@ -1630,8 +1630,10 @@ const doAction = async(actionName, givenCount = null, key = null) => {
     const funcName = actionName.replace(/^.*\./g, "")
     for (let i = 0; i < actionCount; i++) {
         if (pointer) {
+            // @ts-expect-error funcName is plenty checked before being called
             await POINTER[funcName]({hadModifier, key})
         } else {
+            // @ts-expect-error funcName is plenty checked before being called
             await ACTIONS[funcName]({hadModifier, key})
         }
     }
