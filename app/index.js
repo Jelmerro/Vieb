@@ -1401,9 +1401,12 @@ const permissionHandler = (_, pm, callback, details) => {
         permissionName = "permissionunknown"
         setting = permissions.permissionunknown
     }
-    let settingRule = setting
-    for (const override of ["asked", "blocked", "allowed"]) {
-        const permList = permissions[`permissions${override}`]?.split(",")
+    /** @type {"ask"|"block"|"allow"|null} */
+    let settingRule = null
+    /** @type {("ask"|"block"|"allow")[]} */
+    const permissionOverrideTypes = ["ask", "block", "allow"]
+    for (const override of permissionOverrideTypes) {
+        const permList = permissions[`permissions${override}ed`]?.split(",")
         for (const rule of permList || []) {
             if (!rule.trim() || settingRule) {
                 continue
@@ -1411,8 +1414,7 @@ const permissionHandler = (_, pm, callback, details) => {
             const [match, ...names] = rule.split("~")
             if (names.some(p => permissionName.endsWith(p))) {
                 if (details.requestingUrl?.match(match)) {
-                    /** @ts-expect-error override is always one of setting */
-                    settingRule = override.replace("ed", "")
+                    settingRule = override
                     break
                 }
             }
@@ -1978,7 +1980,8 @@ ipcMain.on("follow-mode-stop", e => {
 })
 /** @type {(import("./renderer/follow").FollowLink & {frameId: string})[]} */
 let allLinks = []
-/** @type {{[frameId: string]: {
+/**
+ * @typedef {{
  *   id?: string
  *   url?: string
  *   x?: Number
@@ -1990,7 +1993,11 @@ let allLinks = []
  *   pagex?: Number
  *   pagey?: Number
  *   parent?: string
- * }}} */
+ *   absX?: Number
+ *   absY?: Number
+ * }} frameDetails
+ */
+/** @type {{[frameId: string]: frameDetails}} */
 const frameInfo = {}
 /**
  * Handle incoming frame details by storing their details by id
@@ -2026,7 +2033,8 @@ const handleFrameDetails = (e, details) => {
     frameInfo[frameId].url = details.url
     details.subframes.forEach(subframe => {
         Object.keys(frameInfo).forEach(id => {
-            if (frameInfo[id].url === subframe.url && id !== frameId) {
+            const url = frameInfo[id].url?.replace(/^about:srcdoc$/g, "") ?? ""
+            if (url === subframe.url && id !== frameId) {
                 frameInfo[id].x = subframe.x
                 frameInfo[id].y = subframe.y
                 frameInfo[id].width = subframe.width
@@ -2122,58 +2130,29 @@ ipcMain.on("follow-response", handleFollowResponse)
  * @param {Electron.WebContents} wc
  * @param {Number} x
  * @param {Number} y
- * @returns {{
- *   id?: string
- *   url?: string
- *   x?: Number
- *   y?: Number
- *   width?: Number
- *   height?: Number
- *   usableWidth?: Number
- *   usableHeight?: Number
- *   pagex?: Number
- *   pagey?: Number
- *   parent?: string
- *   absX: Number
- *   absY: Number
- * }|null}
+ * @returns {(frameDetails & {absY: number, absX: number})|null}
  */
 const findRelevantSubFrame = (wc, x, y) => {
     try {
-        /** @type {{
-         *   id?: string
-         *   url?: string
-         *   x?: Number
-         *   y?: Number
-         *   width?: Number
-         *   height?: Number
-         *   usableWidth?: Number
-         *   usableHeight?: Number
-         *   pagex?: Number
-         *   pagey?: Number
-         *   parent?: string
-         *   absX: Number
-         *   absY: Number
-         * }[]} */
-        // @ts-expect-error absX and absY are added to the frame info in the map
         const absoluteFrames = wc.mainFrame.framesInSubtree.map(f => {
             try {
                 const id = `${f.routingId}-${f.processId}`
                 const info = frameInfo[id]
+                info.absX = info.x ?? 0
+                info.absY = info.y ?? 0
                 if (!info?.parent) {
                     return null
                 }
-                // @ts-expect-error absX will be added to the info
-                info.absX = info.x ?? 0
-                // @ts-expect-error absY will be added to the info
-                info.absY = info.y ?? 0
+                /** @type {frameDetails|null} */
                 let parent = frameInfo[info.parent]
-                while (parent) {
-                    // @ts-expect-error absX will be added to the info
+                while (parent?.id && parent.id !== parent.parent) {
                     info.absX += parent.x ?? 0
-                    // @ts-expect-error absY will be added to the info
                     info.absY += parent.y ?? 0
-                    parent = frameInfo[parent.id ?? ""]
+                    if (parent.parent) {
+                        parent = frameInfo[parent.parent]
+                    } else {
+                        parent = null
+                    }
                 }
                 return info
             } catch (ex) {
@@ -2182,34 +2161,27 @@ const findRelevantSubFrame = (wc, x, y) => {
                 }
                 return null
             }
-        }).filter(f => f)
-        /** @type {{
-         *   id?: string
-         *   url?: string
-         *   x?: Number
-         *   y?: Number
-         *   width?: Number
-         *   height?: Number
-         *   usableWidth?: Number
-         *   usableHeight?: Number
-         *   pagex?: Number
-         *   pagey?: Number
-         *   parent?: string
-         *   absX: Number
-         *   absY: Number
-         * }|null} */
+        })
+        /** @type {frameDetails & {absY: number, absX: number}|null} */
         let relevantFrame = null
         absoluteFrames.forEach(info => {
+            if (!info || !info.absX || !info.absY) {
+                return
+            }
             if (info.absX < x && info.absY < y
                 && info.width !== undefined && info.height !== undefined) {
                 if (info.absX + info.width > x && info.absY + info.height > y) {
                     if (relevantFrame?.width) {
                         if (relevantFrame.width > info.width) {
                             // A smaller frame means a subframe, use it
-                            relevantFrame = info
+                            relevantFrame = {
+                                ...info, "absX": info.absX, "absY": info.absY
+                            }
                         }
                     } else {
-                        relevantFrame = info
+                        relevantFrame = {
+                            ...info, "absX": info.absX, "absY": info.absY
+                        }
                     }
                 }
             }
