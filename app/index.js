@@ -480,15 +480,14 @@ app.on("ready", () => {
         customIcon = joinPath(__dirname, "img/vieb.svg")
     }
     // Init mainWindow
+    /** @type {Electron.BrowserWindowConstructorOptions} */
     const windowData = {
         "closable": false,
         "frame": argWindowFrame,
         "height": 600,
-        "icon": customIcon ?? undefined,
         "show": argDebugMode,
         "title": app.getName(),
         "webPreferences": {
-            "allowpopups": true,
             "contextIsolation": false,
             // Info on nodeIntegrationInSubFrames and nodeIntegrationInWorker:
             // https://github.com/electron/electron/issues/22582
@@ -500,6 +499,9 @@ app.on("ready", () => {
             "webviewTag": true
         },
         "width": 800
+    }
+    if (customIcon) {
+        windowData.icon = customIcon
     }
     mainWindow = new BrowserWindow(windowData)
     mainWindow.removeMenu()
@@ -571,11 +573,11 @@ app.on("ready", () => {
         })
     })
     // Show a dialog for sites requiring Basic HTTP authentication
+    /** @type {Electron.BrowserWindowConstructorOptions} */
     const loginWindowData = {
         "alwaysOnTop": true,
         "frame": false,
         "fullscreenable": false,
-        "icon": customIcon ?? undefined,
         "modal": true,
         "parent": mainWindow,
         "resizable": false,
@@ -584,6 +586,9 @@ app.on("ready", () => {
             "partition": "login",
             "preload": joinPath(__dirname, "popups/login.js")
         }
+    }
+    if (customIcon) {
+        loginWindowData.icon = customIcon
     }
     loginWindow = new BrowserWindow(loginWindowData)
     const loginPage = `file:///${joinPath(__dirname, "pages/loginpopup.html")}`
@@ -598,11 +603,11 @@ app.on("ready", () => {
         mainWindow?.focus()
     })
     // Show a dialog for large notifications
+    /** @type {Electron.BrowserWindowConstructorOptions} */
     const notificationWindowData = {
         "alwaysOnTop": true,
         "frame": false,
         "fullscreenable": false,
-        "icon": customIcon ?? undefined,
         "modal": true,
         "parent": mainWindow,
         "resizable": false,
@@ -611,6 +616,9 @@ app.on("ready", () => {
             "partition": "notification-window",
             "preload": joinPath(__dirname, "popups/notification.js")
         }
+    }
+    if (customIcon) {
+        notificationWindowData.icon = customIcon
     }
     notificationWindow = new BrowserWindow(notificationWindowData)
     const notificationPage = `file:///${joinPath(
@@ -626,11 +634,11 @@ app.on("ready", () => {
         mainWindow?.focus()
     })
     // Show a sync prompt dialog if requested by any of the pages
+    /** @type {Electron.BrowserWindowConstructorOptions} */
     const promptWindowData = {
         "alwaysOnTop": true,
         "frame": false,
         "fullscreenable": false,
-        "icon": customIcon ?? undefined,
         "modal": true,
         "parent": mainWindow,
         "resizable": false,
@@ -639,6 +647,9 @@ app.on("ready", () => {
             "partition": "prompt",
             "preload": joinPath(__dirname, "popups/prompt.js")
         }
+    }
+    if (customIcon) {
+        promptWindowData.icon = customIcon
     }
     promptWindow = new BrowserWindow(promptWindowData)
     const promptPage = `file:///${joinPath(__dirname, "pages/promptpopup.html")}`
@@ -1400,7 +1411,7 @@ const allowedFingerprints = {}
  */
 const permissionHandler = (_, pm, callback, details) => {
     if (!mainWindow) {
-        return
+        return false
     }
     let permission = pm.toLowerCase().replace(/-/g, "").replace("sanitized", "")
     if (permission === "mediakeysystem") {
@@ -1479,7 +1490,16 @@ const permissionHandler = (_, pm, callback, details) => {
             + `':h ${permissionName}', ':h permissionsallowed', ':h permissions`
             + `asked' and ':h permissionsblocked'.\n\npage:\n${url}`
         /** @type {string|undefined} */
-        let checkboxLabel = "Remember for this session"
+        /** @type {import("electron").MessageBoxOptions} */
+        const dialogOptions = {
+            "buttons": ["Allow", "Deny"],
+            "cancelId": 1,
+            "checkboxLabel": "Remember for this session",
+            "defaultId": 0,
+            message,
+            "title": `Allow this page to access '${permission}'?`,
+            "type": "question"
+        }
         if (permission === "openexternal") {
             let exturl = details.externalURL ?? ""
             if (exturl.length > 100) {
@@ -1514,19 +1534,12 @@ const permissionHandler = (_, pm, callback, details) => {
                 + `EXPIRES: ${formatDate(details.cert?.validExpiry)}\n`
                 + `FINGERPRINT: ${details.cert?.fingerprint}\n\n`
                 + "Only allow certificates you have verified and can trust!"
-            checkboxLabel = undefined
+            delete dialogOptions.checkboxLabel
         }
-        dialog.showMessageBox(mainWindow, {
-            "buttons": ["Allow", "Deny"],
-            "cancelId": 1,
-            checkboxLabel,
-            "defaultId": 0,
-            message,
-            "title": `Allow this page to access '${permission}'?`,
-            "type": "question"
-        }).then(e => {
+        dialogOptions.message = message
+        dialog.showMessageBox(mainWindow, dialogOptions).then(e => {
             if (!mainWindow) {
-                return
+                return false
             }
             /** @type {"allow"|"block"|"ask"|"allowfull"} */
             let action = "allow"
@@ -1582,6 +1595,7 @@ const permissionHandler = (_, pm, callback, details) => {
         callback?.(allow)
         return allow
     }
+    return false
 }
 /**
  * Enable the adblocker
@@ -2102,7 +2116,8 @@ const handleFollowResponse = (e, rawLinks) => {
     try {
         frameId = `${e.frameId}-${e.processId}`
     } catch (ex) {
-        return errToMain(ex)
+        errToMain(ex)
+        return
     }
     const info = frameInfo[frameId]
     let frameX = info?.x || 0
@@ -2167,19 +2182,19 @@ const findRelevantSubFrame = (wc, x, y) => {
         const absoluteFrames = wc.mainFrame.framesInSubtree.map(f => {
             try {
                 const id = `${f.routingId}-${f.processId}`
-                const info = frameInfo[id]
+                const info = frameInfo[id] ?? {}
                 info.absX = info.x ?? 0
                 info.absY = info.y ?? 0
                 if (!info?.parent) {
                     return null
                 }
                 /** @type {frameDetails|null} */
-                let parent = frameInfo[info.parent]
+                let parent = frameInfo[info.parent] ?? null
                 while (parent?.id && parent.id !== parent.parent) {
                     info.absX += parent.x ?? 0
                     info.absY += parent.y ?? 0
                     if (parent.parent) {
-                        parent = frameInfo[parent.parent]
+                        parent = frameInfo[parent.parent] ?? null
                     } else {
                         parent = null
                     }

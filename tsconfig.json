@@ -1,12 +1,28 @@
 {
     "compilerOptions": {
         "allowJs": true,
+        "allowUnusedLabels": false,
+        "allowUnreachableCode": false,
         "checkJs": true,
+        "exactOptionalPropertyTypes": true,
         "moduleResolution": "node16",
         "noEmit": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitOverride": true,
+        "noImplicitReturns": true,
+        "noPropertyAccessFromIndexSignature": false,
+        "noUncheckedIndexedAccess": false,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
         "strict": true,
         "target": "ES2022"
     },
-    "exclude": ["./node_modules", "./app/**/*test.js"],
-    "include": ["./app/**/*", "./types.d.ts"]
+    "exclude": [
+        "./node_modules",
+        "./app/**/*test.js"
+    ],
+    "include": [
+        "./app/**/*",
+        "./types.d.ts"
+    ]
 }
