@@ -2145,7 +2145,7 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         for (const word of words.slice().reverse()) {
             wordPosition -= word.length
             if (url.selectionStart !== null
-                && wordPosition > url.selectionStart) {
+                && wordPosition < url.selectionStart) {
                 url.value = `${url.value.substring(0, wordPosition)}${
                     url.value.substring(url.selectionStart)}`
                 url.setSelectionRange(wordPosition, wordPosition)
