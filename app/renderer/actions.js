@@ -764,12 +764,12 @@ const editWithVim = () => {
 
 const downloadLink = () => {
     const {commonAction} = require("./contextmenu")
-    commonAction("link", "download", {"link": currentPage()?.src})
+    commonAction("link", "download", {"link": currentPage()?.src ?? ""})
 }
 
 const openLinkExternal = () => {
     const {commonAction} = require("./contextmenu")
-    commonAction("link", "external", {"link": currentPage()?.src})
+    commonAction("link", "external", {"link": currentPage()?.src ?? ""})
 }
 
 const nextSuggestion = () => {
@@ -1237,9 +1237,12 @@ const menuClose = () => {
 const useEnteredData = () => {
     const {setMode} = require("./modes")
     const url = getUrl()
+    if (!url) {
+        return
+    }
     const {push} = require("./commandhistory")
     if (currentMode() === "command") {
-        const command = url?.value.trim() ?? ""
+        const command = url.value.trim()
         setMode("normal")
         push(command, true)
         const {execute} = require("./command")
@@ -1247,11 +1250,11 @@ const useEnteredData = () => {
     }
     if (currentMode() === "search") {
         searchDirection = potentialNewSearchDirection
-        incrementalSearch({"value": url?.value})
+        incrementalSearch({"value": url.value})
         setMode("normal")
     }
     if (currentMode() === "explore") {
-        const location = url?.value.trim()
+        const location = url.value.trim()
         setMode("normal")
         if (location) {
             const modifiedLoc = searchword(location).url

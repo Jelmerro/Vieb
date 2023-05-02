@@ -35,10 +35,8 @@ const {getSetting, tabForPage, listPages} = require("./common")
 
 const faviconFolder = joinPath(appData(), "favicons")
 const mappingFile = joinPath(faviconFolder, "mappings")
-/** @type {{
- *   redirects?: {[url: string]: string},
- *   [url: string]: string
- * }} */
+// @ts-expect-error while not fully supported in ts, it does work properly
+/** @type {{redirects?: {[url: string]: string}, [url: string]: string }} */
 let mappings = {}
 const sessionStart = new Date()
 let isParsed = false

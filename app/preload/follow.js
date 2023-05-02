@@ -606,6 +606,20 @@ const contextListener = (e, frame = null, extraData = null) => {
             .find(el => el.href?.trim())
         const text = e.composedPath().find(
             el => matchesQuery(el, textlikeInputs))
+        const iframe = [...e.composedPath(), frame].find(
+            /** @returns {el is HTMLIFrameElement} */
+            el => el instanceof HTMLIFrameElement)
+        const selection = (iframe?.contentWindow ?? window).getSelection()
+        let inputVal = ""
+        let inputSel = 0
+        if (text instanceof HTMLInputElement
+            || text instanceof HTMLTextAreaElement) {
+            inputVal = text.value
+            inputSel = text.selectionStart ?? 0
+        } else if (text instanceof HTMLElement) {
+            inputVal = text.textContent ?? ""
+            inputSel = selection?.getRangeAt(0)?.startOffset ?? 0
+        }
         ipcRenderer.send("context-click-info", {
             "audio": audio?.src?.trim(),
             "audioData": {
@@ -618,20 +632,17 @@ const contextListener = (e, frame = null, extraData = null) => {
             backgroundImg,
             "canEdit": !!text,
             extraData,
-            "frame": e.composedPath().find(
-                el => matchesQuery(el, "iframe"))?.src || frame?.src,
+            "frame": iframe?.src,
             "hasElementListener": eventListeners.contextmenu.has(
                 e.composedPath()[0]),
             "hasGlobalListener": !!e.composedPath().find(
                 el => eventListeners.contextmenu.has(el)),
             "img": img?.src?.trim(),
-            "inputSel": text?.selectionStart
-                || text?.getRootNode().getSelection()?.baseOffset,
-            "inputVal": text?.selectionStart && text?.value
-                || text?.getRootNode().getSelection()?.baseNode?.textContent,
+            inputSel,
+            inputVal,
             "link": link?.href?.trim(),
             "svgData": svg && getSvgData(svg),
-            "text": (frame?.contentWindow || window).getSelection()?.toString(),
+            "text": selection?.toString(),
             "video": video?.src?.trim(),
             "videoData": {
                 "controllable": !!videoEl,

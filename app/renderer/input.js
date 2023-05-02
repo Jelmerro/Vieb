@@ -1824,13 +1824,8 @@ const handleKeyboard = async e => {
             const {enterKey} = require("./follow")
             let unshiftedName = String(e.key).toLowerCase()
             if (e.key.toUpperCase() === unshiftedName && hadModifier) {
-                try {
-                    // @ts-expect-error keyboard prop is not present in ts spec
-                    const map = await window.navigator.keyboard.getLayoutMap()
-                    unshiftedName = map.get(e.code) ?? e.key
-                } catch {
-                    // Unsupported keyboard layout, fallback to unshifted key
-                }
+                const map = await window.navigator.keyboard?.getLayoutMap()
+                unshiftedName = map?.get(e.code) ?? unshiftedName
             }
             enterKey(unshiftedName, id, hadModifier)
         }

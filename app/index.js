@@ -1138,9 +1138,10 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 </body></html>`)
             return
         }
+        /** @type {import("highlight.js").HLJSApi|null} */
         let hljs = null
         try {
-            hljs = require("highlight.js")
+            hljs = require("highlight.js").default
         } catch {
             call(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
@@ -1158,7 +1159,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             return
         }
         if (isFile(loc)) {
-            const hl = hljs.highlightAuto(readFile(loc))
+            const hl = hljs.highlightAuto(readFile(loc) ?? "")
             call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
                 <title>${decodeURI(req.url)}</title>
                 </head><body id="sourceviewer">
@@ -1170,7 +1171,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         request.on("response", res => {
             let body = ""
             res.on("end", () => {
-                if (!body) {
+                if (!body || !hljs) {
                     call(`<!DOCTPYE html>\n<html><head>
                         <style>${defaultCss}</style>
                         <title>${decodeURI(req.url)}</title>
@@ -1208,8 +1209,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         }
         /** @type {import("marked").marked|null} */
         let marked = null
-        // #bug https://github.com/highlightjs/highlight.js/issues/3752
-        /** @type {import("highlight.js")|null} */
+        /** @type {import("highlight.js").HLJSApi|null} */
         let hljs = null
         try {
             ({marked} = require("marked"))
@@ -1230,7 +1230,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             return
         }
         try {
-            hljs = require("highlight.js")
+            hljs = require("highlight.js").default
         } catch {
             // Highlight module not present, skipping source highlighting part
         }

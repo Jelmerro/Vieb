@@ -248,6 +248,8 @@ const defaultSettings = {
     "permissionserial": "block",
     /** @type {"block"|"ask"|"allow"} */
     "permissionunknown": "block",
+    /** @type {"block"|"allow"} */
+    "permissionusb": "block",
     /** @type {"domain"|"url"} */
     "pointerposlocalid": "domain",
     /** @type {"casing"|"local"|"global"} */
@@ -485,6 +487,7 @@ const validOptions = {
     "permissionsensors": ["block", "ask", "allow"],
     "permissionserial": ["block", "allow"],
     "permissionunknown": ["block", "ask", "allow"],
+    "permissionusb": ["block", "allow"],
     "pointerposlocalid": ["domain", "url"],
     "pointerpostype": ["casing", "local", "global"],
     "replacespecial": ["always", "special", "newtab", "never"],
@@ -1815,7 +1818,9 @@ const set = (setting, value) => {
             updateWindowTitle()
         }
         updateHelpPage()
+        return true
     }
+    return false
 }
 
 const updateWindowTitle = () => {

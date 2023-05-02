@@ -18,6 +18,14 @@ declare global {
   interface ObjectConstructor {
     keys<T extends {}>(o: T): Keys<T>
   }
+
+  interface Navigator {
+      keyboard?: {
+          getLayoutMap: () => Promise<{
+              get: (code: string) => string|undefined
+          }>
+      }
+  }
 }
 
 export {}

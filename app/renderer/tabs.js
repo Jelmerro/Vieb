@@ -125,8 +125,8 @@ const init = () => {
             const startup = getSetting("startuppages")
             for (const tab of startup.split(",")) {
                 const parts = tab.split("~")
-                const url = parts.shift()
-                const container = parts.shift()
+                const url = parts.shift() ?? ""
+                const container = parts.shift() ?? ""
                 const muted = parts.includes("muted")
                 const pinned = parts.includes("pinned")
                 addTab({container, muted, pinned, "startup": true, url})
@@ -588,7 +588,7 @@ const reopenTab = () => {
         return
     }
     restore.url = stringToUrl(restore.url)
-    if (getSetting("containerkeeponreopen")) {
+    if (getSetting("containerkeeponreopen") && restore.container) {
         restore.session = restore.container
     } else {
         delete restore.container

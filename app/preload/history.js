@@ -265,7 +265,7 @@ const filterList = () => {
     let anyResult = false
     histElements.forEach(hist => {
         if (!(hist instanceof HTMLElement)) {
-            return false
+            return
         }
         const url = hist.querySelector("a")?.getAttribute("href")
         const title = hist.querySelector(".hist-title")?.textContent

@@ -59,26 +59,41 @@ const enableDarkReader = async() => {
     try {
         /** @type {{"dark": 1, "light": 0}} */
         const themeDict = {"dark": 1, "light": 0}
-        darkreader.enable({
-            "brightness": getWebviewSetting("darkreaderbrightness")
-                ?? undefined,
-            "contrast": getWebviewSetting("darkreadercontrast") ?? undefined,
-            "darkSchemeBackgroundColor": getWebviewSetting("darkreaderbg")
-                ?? undefined,
-            "darkSchemeTextColor": getWebviewSetting("darkreaderfg")
-                ?? undefined,
-            "grayscale": getWebviewSetting("darkreadergrayscale")
-                ?? undefined,
-            "lightSchemeBackgroundColor": getWebviewSetting("darkreaderbg")
-                ?? undefined,
-            "lightSchemeTextColor": getWebviewSetting("darkreaderfg")
-                ?? undefined,
-            "mode": themeDict[getWebviewSetting("darkreadermode") ?? "dark"],
-            "sepia": getWebviewSetting("darkreadersepia")
-                ?? undefined,
-            "textStroke": getWebviewSetting("darkreadertextstroke")
-                ?? undefined
-        })
+        /** @type {Partial<import("darkreader").Theme>} */
+        const darkreaderOpts = {}
+        const darkreaderbrightness = getWebviewSetting("darkreaderbrightness")
+        if (darkreaderbrightness) {
+            darkreaderOpts.brightness = darkreaderbrightness
+        }
+        const darkreadercontrast = getWebviewSetting("darkreadercontrast")
+        if (darkreadercontrast) {
+            darkreaderOpts.contrast = darkreadercontrast
+        }
+        const darkreaderbg = getWebviewSetting("darkreaderbg")
+        if (darkreaderbg) {
+            darkreaderOpts.darkSchemeBackgroundColor = darkreaderbg
+            darkreaderOpts.lightSchemeBackgroundColor = darkreaderbg
+        }
+        const darkreaderfg = getWebviewSetting("darkreaderfg")
+        if (darkreaderfg) {
+            darkreaderOpts.darkSchemeTextColor = darkreaderfg
+            darkreaderOpts.lightSchemeTextColor = darkreaderfg
+        }
+        const darkreadergrayscale = getWebviewSetting("darkreadergrayscale")
+        if (darkreadergrayscale) {
+            darkreaderOpts.grayscale = darkreadergrayscale
+        }
+        const darkreadermode = getWebviewSetting("darkreadermode") ?? "dark"
+        darkreaderOpts.mode = themeDict[darkreadermode]
+        const darkreadersepia = getWebviewSetting("darkreadersepia")
+        if (darkreadersepia) {
+            darkreaderOpts.sepia = darkreadersepia
+        }
+        const darkreadertextstroke = getWebviewSetting("darkreadertextstroke")
+        if (darkreadertextstroke) {
+            darkreaderOpts.textStroke = darkreadertextstroke
+        }
+        darkreader.enable(darkreaderOpts)
         const style = await darkreader.exportGeneratedCSS()
         ipcRenderer.sendToHost("custom-style-inject", "darkreader", style)
     } catch (e) {

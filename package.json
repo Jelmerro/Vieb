@@ -46,7 +46,7 @@
     "@cliqz/adblocker-electron-preload": "1.26.5",
     "@mozilla/readability": "0.4.4",
     "darkreader": "4.9.58",
-    "highlight.js": "11.7.0",
+    "highlight.js": "11.8.0",
     "jsdom": "21.1.1",
     "marked": "4.3.0",
     "picomatch": "2.3.1"
