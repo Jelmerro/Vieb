@@ -142,13 +142,13 @@ const defaultSettings = {
     /** @type {"filter"|"exit"|"nothing"} */
     "followfallbackaction": "filter",
     /** @type {("cornertopleft"|"cornertopright"|"cornerbottomright"|
-        "cornerbottomleft"|"outsidetopleft"|"outsidetopcenter"|
-        "outsidetopright"|"outsiderighttop"|"outsiderightcenter"|
-        "outsiderightbottom"|"outsidebottomright"|"outsidebottomcenter"|
-        "outsidebottomleft"|"outsideleftbottom"|"outsideleftcenter"|
-        "outsidelefttop"|"insidetopleft"|"insidetopcenter"|"insidetopright"|
-        "insiderightcenter"|"insidebottomright"|"insidebottomcenter"|
-        "insidebottomleft"|"insideleftcenter"
+     * "cornerbottomleft"|"outsidetopleft"|"outsidetopcenter"|
+     * "outsidetopright"|"outsiderighttop"|"outsiderightcenter"|
+     * "outsiderightbottom"|"outsidebottomright"|"outsidebottomcenter"|
+     * "outsidebottomleft"|"outsideleftbottom"|"outsideleftcenter"|
+     * "outsidelefttop"|"insidetopleft"|"insidetopcenter"|"insidetopright"|
+     * "insiderightcenter"|"insidebottomright"|"insidebottomcenter"|
+     * "insidebottomleft"|"insideleftcenter"
      * )} */
     "followlabelposition": "outsiderighttop",
     "follownewtabswitch": true,
@@ -610,8 +610,7 @@ const init = () => {
 }
 
 /**
- * Check if an option is considered a valid one, only checks at all if an enum
- *
+ * Check if an option is considered a valid one, only checks at all if an enum.
  * @param {keyof typeof validOptions} setting
  * @param {string} value
  */
@@ -634,10 +633,9 @@ const checkOption = (setting, value) => {
 }
 
 /**
- * Check if an option is considered a valid value for a number setting
- *
+ * Check if an option is considered a valid value for a number setting.
  * @param {keyof typeof numberRanges} setting
- * @param {Number} value
+ * @param {number} value
  */
 const checkNumber = (setting, value) => {
     const numberRange = numberRanges[setting]
@@ -650,10 +648,9 @@ const checkNumber = (setting, value) => {
 }
 
 /**
- * Check if other more advanced settings are configured correctly
- *
+ * Check if other more advanced settings are configured correctly.
  * @param {string} setting
- * @param {Number|string|boolean} value
+ * @param {number | string | boolean} value
  */
 const checkOther = (setting, value) => {
     // Special cases
@@ -1231,8 +1228,7 @@ const checkOther = (setting, value) => {
 }
 
 /**
- * Check if the provided suggest order is valid
- *
+ * Check if the provided suggest order is valid.
  * @param {string} value
  */
 const checkSuggestOrder = value => {
@@ -1298,38 +1294,34 @@ const checkSuggestOrder = value => {
 }
 
 /**
- * Check if a setting is of type enum, so it has to validate the valid opts
- *
+ * Check if a setting is of type enum, so it has to validate the valid opts.
  * @param {string} set
  * @returns {set is keyof typeof defaultSettings}
  */
 const isExistingSetting = set => set in defaultSettings
 
 /**
- * Check if a setting is of type enum, so it has to validate the valid opts
- *
+ * Check if a setting is of type enum, so it has to validate the valid opts.
  * @param {string} set
  * @returns {set is keyof typeof validOptions}
  */
 const isEnumSetting = set => set in validOptions
 
 /**
- * Check if a setting is of type number, so it has to validate the ranges
- *
+ * Check if a setting is of type number, so it has to validate the ranges.
  * @param {string} set
  * @returns {set is keyof typeof numberRanges}
  */
 const isNumberSetting = set => set in numberRanges
 
 /**
- * Check if a setting will be valid for a given value
- *
+ * Check if a setting will be valid for a given value.
  * @param {keyof typeof defaultSettings} setting
- * @param {string|Number|boolean} value
+ * @param {string | number | boolean} value
  */
 const isValidSetting = (setting, value) => {
     const expectedType = typeof allSettings[setting]
-    /** @type {string|Number|boolean} */
+    /** @type {string | number | boolean} */
     let parsedValue = String(value)
     if (expectedType === "number" && !isNaN(Number(parsedValue))) {
         parsedValue = Number(value)
@@ -1629,8 +1621,7 @@ const loadFromDisk = (firstRun = true) => {
 }
 
 /**
- * Reset a setting to its default value
- *
+ * Reset a setting to its default value.
  * @param {string} setting
  */
 const reset = setting => {
@@ -1644,10 +1635,9 @@ const reset = setting => {
 }
 
 /**
- * Set the value of a setting, if considered valid, else notify the user
- *
+ * Set the value of a setting, if considered valid, else notify the user.
  * @param {string} setting
- * @param {string|Number|boolean} value
+ * @param {string | number | boolean} value
  */
 const set = (setting, value) => {
     if (!isExistingSetting(setting)) {
@@ -1922,9 +1912,8 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
 })
 
 /**
- * Escape value chars as needed
- *
- * @param {string|Number} value
+ * Escape value chars as needed.
+ * @param {string | number} value
  */
 const escapeValueChars = value => {
     if (typeof value === "number") {
@@ -1940,8 +1929,7 @@ const escapeValueChars = value => {
 }
 
 /**
- * List all current settings, optionally with defaults included
- *
+ * List all current settings, optionally with defaults included.
  * @param {boolean} full
  */
 const listCurrentSettings = (full = false) => {
@@ -1992,8 +1980,7 @@ const listCurrentSettings = (full = false) => {
 }
 
 /**
- * Save the current settings, mappings, custom commands and colorscheme to disk
- *
+ * Save the current settings, mappings, custom commands and colorscheme to disk.
  * @param {boolean} full
  */
 const saveToDisk = full => {
@@ -2029,8 +2016,7 @@ const saveToDisk = full => {
 }
 
 /**
- * Apply custom styling based on the colorscheme
- *
+ * Apply custom styling based on the colorscheme.
  * @param {string} css
  */
 const setCustomStyling = css => {

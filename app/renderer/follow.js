@@ -31,7 +31,7 @@ const {
 const {sendToPageOrSubFrame} = require("../util")
 
 /**
- * @typedef {Object} FollowLink
+ * @typedef {object} FollowLink
  * @property {number} x
  * @property {number} y
  * @property {number} width
@@ -83,8 +83,7 @@ const informPreload = (first = false) => {
 }
 
 /**
- * Start follow mode and open links at the provided location once done
- *
+ * Start follow mode and open links at the provided location once done.
  * @param {"current"|"newtab"|"copylink"|"hor"|"ver"} dest
  */
 const startFollow = (dest = followLinkDestination) => {
@@ -130,7 +129,10 @@ const followChars = () => {
     }
     const setName = getSetting("followchars")
     let allKeys = setName.replace("custom:", "")
-    /** @param {string} set @returns {set is keyof typeof keys} */
+    /**
+     * @param {string} set
+     * @returns {set is keyof typeof keys}
+     */
     const validFollowSet = set => set in keys
     if (validFollowSet(setName)) {
         allKeys = keys[setName]
@@ -139,8 +141,7 @@ const followChars = () => {
 }
 
 /**
- * Generate a unique list of digits for a number based on a custom set of chars
- *
+ * Generate a unique list of digits for a number based on a custom set of chars.
  * @param {number} number
  * @param {number} base
  * @param {number} minLen
@@ -159,8 +160,7 @@ const digitListInCustomBase = (number, base, minLen = 0) => {
 }
 
 /**
- * Translate a number to a unique string using the chars from followchars
- *
+ * Translate a number to a unique string using the chars from followchars.
  * @param {number} number
  * @param {number} minLen
  */
@@ -171,8 +171,7 @@ const numberToKeys = (number, minLen = 0) => {
 }
 
 /**
- * Check if a really similar follow link is in a given list
- *
+ * Check if a really similar follow link is in a given list.
  * @param {(FollowLink|null)[]} list
  * @param {FollowLink|null} link
  */
@@ -181,8 +180,7 @@ const linkInList = (list, link) => list.some(l => l && link && l.x === link.x
     && l.width === link.width && l.url === link.url)
 
 /**
- * Click on a follow link
- *
+ * Click on a follow link.
  * @param {FollowLink} link
  */
 const clickAtLink = async link => {
@@ -266,8 +264,7 @@ const emptyHoverLink = () => {
 }
 
 /**
- * Get a writable DOMRect for any Element
- *
+ * Get a writable DOMRect for any Element.
  * @param {Element} el
  */
 const getWritableDOMRect = el => {
@@ -278,8 +275,7 @@ const getWritableDOMRect = el => {
 }
 
 /**
- * Parse the received links and add them to the follow element to be picked
- *
+ * Parse the received links and add them to the follow element to be picked.
  * @param {(FollowLink|null)[]} receivedLinks
  */
 const parseAndDisplayLinks = receivedLinks => {
@@ -342,8 +338,7 @@ const parseAndDisplayLinks = receivedLinks => {
         }
         // Mouse listener
         /**
-         * Add an onclick listener to mouseup events to click on the links
-         *
+         * Add an onclick listener to mouseup events to click on the links.
          * @param {MouseEvent} e
          */
         const onclickListener = async e => {
@@ -536,8 +531,7 @@ const parseAndDisplayLinks = receivedLinks => {
 const followFiltering = () => alreadyFilteringLinks
 
 /**
- * Enter a follow mode key and narrow down results
- *
+ * Enter a follow mode key and narrow down results.
  * @param {string} code
  * @param {string} id
  * @param {boolean} stayInFollowMode

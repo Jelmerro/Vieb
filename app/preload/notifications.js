@@ -22,8 +22,7 @@ const {formatDate} = require("../util")
 
 window.addEventListener("DOMContentLoaded", () => {
     /**
-     * Show the list of notifications
-     *
+     * Show the list of notifications.
      * @param {Electron.IpcRendererEvent} _
      * @param {import("../util").notificationHistory} notifications
      */

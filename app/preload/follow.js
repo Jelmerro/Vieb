@@ -123,8 +123,7 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
 })
 
 /**
- * Get all follow links parsed, optionally for a specific type
- *
+ * Get all follow links parsed, optionally for a specific type.
  * @param {string[]|null} filter
  * @returns {Promise<({
  *    height: number,
@@ -324,8 +323,7 @@ window.addEventListener("DOMContentLoaded", mainInfoLoop)
 window.addEventListener("resize", mainInfoLoop)
 
 /**
- * Parse an element to a clickable rect if possible
- *
+ * Parse an element to a clickable rect if possible.
  * @param {HTMLElement} element
  * @param {string|null} type
  * @param {DOMRectReadOnly|null} customBounds
@@ -392,11 +390,10 @@ const eventListeners = {}
 
 const realAdd = EventTarget.prototype.addEventListener
 /**
- * Add the regular event listener while also recording its existence in a set
- *
+ * Add the regular event listener while also recording its existence in a set.
  * @param {string} type
  * @param {() => void} listener
- * @param {Object} options
+ * @param {object} options
  */
 EventTarget.prototype.addEventListener = function(type, listener, options) {
     try {
@@ -408,11 +405,10 @@ EventTarget.prototype.addEventListener = function(type, listener, options) {
 }
 const realRemove = EventTarget.prototype.removeEventListener
 /**
- * Remove the regular event listener while also removing its storage from a set
- *
+ * Remove the regular event listener while also removing its storage from a set.
  * @param {string} type
  * @param {() => void} listener
- * @param {Object} options
+ * @param {object} options
  */
 EventTarget.prototype.removeEventListener = function(type, listener, options) {
     try {
@@ -424,8 +420,7 @@ EventTarget.prototype.removeEventListener = function(type, listener, options) {
 }
 
 /**
- * Send mouse click info to renderer via main on click
- *
+ * Send mouse click info to renderer via main on click.
  * @param {MouseEvent} e
  * @param {HTMLIFrameElement|null} frame
  */
@@ -459,8 +454,7 @@ let startX = 0
 let startY = 0
 
 /**
- * Send mouse down info to renderer via main on down
- *
+ * Send mouse down info to renderer via main on down.
  * @param {MouseEvent} e
  * @param {HTMLIFrameElement|null} frame
  */
@@ -489,8 +483,7 @@ window.addEventListener("mousedown", mouseDownListener,
     {"capture": true, "passive": true})
 
 /**
- * Send mouse up info to the renderer via main on up
- *
+ * Send mouse up info to the renderer via main on up.
  * @param {MouseEvent} e
  * @param {HTMLIFrameElement|null} frame
  */
@@ -541,23 +534,21 @@ ipcRenderer.on("replace-input-field", (_, value, position) => {
 })
 
 /**
- * Generate a data image for a given svg image
- *
+ * Generate a data image for a given svg image.
  * @param {SVGElement} el
  */
 const getSvgData = el => `data:image/svg+xml,${encodeURIComponent(el.outerHTML)
     .replace(/'/g, "%27").replace(/"/g, "%22")}`
 
 /**
- * Context menu listener that sends info to renderer via main
- *
+ * Context menu listener that sends info to renderer via main.
  * @param {{
  *   isTrusted: boolean
  *   preventDefault?: () => void
- *   button?: Number
+ *   button?: number
  *   composedPath: () => EventTarget[]
- *   x: Number
- *   y: Number
+ *   x: number
+ *   y: number
  * }} e
  * @param {Element|ShadowRoot|null} frame
  * @param {object|null} extraData
@@ -567,10 +558,16 @@ const contextListener = (e, frame = null, extraData = null) => {
         e.preventDefault?.()
         const paddingInfo = findFrameInfo(frame)
         const img = e.composedPath().find(
-            /** @returns {el is HTMLImageElement} */
+            /**
+             * @param {EventTarget} el
+             * @returns {el is HTMLImageElement}
+             */
             el => el instanceof HTMLImageElement)
         const svg = e.composedPath().find(
-            /** @returns {el is SVGElement} */
+            /**
+             * @param {EventTarget} el
+             * @returns {el is SVGElement}
+             */
             el => el instanceof HTMLImageElement)
         const backgroundImg = e.composedPath().map(el => {
             if (el instanceof Element) {
@@ -583,7 +580,10 @@ const contextListener = (e, frame = null, extraData = null) => {
             return null
         }).find(url => url)
         const videoEl = e.composedPath().find(
-            /** @returns {el is HTMLVideoElement} */
+            /**
+             * @param {EventTarget} el
+             * @returns {el is HTMLVideoElement}
+             */
             el => el instanceof HTMLVideoElement)
         const video = [
             videoEl,
@@ -591,7 +591,10 @@ const contextListener = (e, frame = null, extraData = null) => {
                 el => el.getAttribute("type")?.startsWith("audio"))
         ].find(el => el?.src.trim())
         const audioEl = e.composedPath().find(
-            /** @returns {el is HTMLAudioElement} */
+            /**
+             * @param {EventTarget} el
+             * @returns {el is HTMLAudioElement}
+             */
             el => el instanceof HTMLAudioElement)
         const audio = [
             audioEl,
@@ -601,13 +604,19 @@ const contextListener = (e, frame = null, extraData = null) => {
                 el => el.getAttribute("type")?.startsWith("audio"))
         ].find(el => el?.src.trim())
         const link = e.composedPath().filter(
-            /** @returns {el is HTMLAnchorElement} */
+            /**
+             * @param {EventTarget} el
+             * @returns {el is HTMLAnchorElement}
+             */
             el => el instanceof HTMLAnchorElement)
             .find(el => el.href?.trim())
         const text = e.composedPath().find(
             el => matchesQuery(el, textlikeInputs))
         const iframe = [...e.composedPath(), frame].find(
-            /** @returns {el is HTMLIFrameElement} */
+            /**
+             * @param {EventTarget|null} el
+             * @returns {el is HTMLIFrameElement}
+             */
             el => el instanceof HTMLIFrameElement)
         const selection = (iframe?.contentWindow ?? window).getSelection()
         let inputVal = ""
@@ -732,8 +741,7 @@ ipcRenderer.on("keyboard-type-event", (_, keyOptions) => {
 })
 
 /**
- * Check if an element can be scrolled vertically
- *
+ * Check if an element can be scrolled vertically.
  * @param {Element} el
  */
 const isVertScrollable = el => {
@@ -745,8 +753,7 @@ const isVertScrollable = el => {
         && ["scroll", "auto"].includes(getComputedStyle(el).overflowY)
 }
 /**
- * Check if an element can be scrolled horizontally
- *
+ * Check if an element can be scrolled horizontally.
  * @param {Element} el
  */
 const isHorScrollable = el => {

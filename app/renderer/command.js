@@ -63,8 +63,7 @@ const {
 } = require("./common")
 
 /**
- * List a specific setting, all of them or show the warning regarding name
- *
+ * List a specific setting, all of them or show the warning regarding name.
  * @param {keyof typeof import("./settings").defaultSettings|"all"} setting
  */
 const listSetting = setting => {
@@ -77,8 +76,7 @@ const listSetting = setting => {
 }
 
 /**
- * Split strings based on separator and merge later parts
- *
+ * Split strings based on separator and merge later parts.
  * @param {string} part
  * @param {string} separator
  */
@@ -89,8 +87,7 @@ const splitSettingAndValue = (part, separator) => {
 }
 
 /**
- * Check if a setting name is valid
- *
+ * Check if a setting name is valid.
  * @param {string} name
  * @returns {name is (keyof typeof import("./settings").defaultSettings|"all")}
  */
@@ -100,8 +97,7 @@ const isValidSettingName = name => {
 }
 
 /**
- * Modifiy a list or a number
- *
+ * Modifiy a list or a number.
  * @param {keyof typeof import("./settings").defaultSettings} setting
  * @param {string} value
  * @param {"append"|"remove"|"special"} method
@@ -176,8 +172,7 @@ const modifyListOrNumber = (setting, value, method) => {
 }
 
 /**
- * Use the set command to list or modify any setting
- *
+ * Use the set command to list or modify any setting.
  * @param {string[]} args
  */
 const set = args => {
@@ -299,8 +294,7 @@ const set = args => {
 const sourcedFiles = []
 
 /**
- * Source a specific viebrc file
- *
+ * Source a specific viebrc file.
  * @param {string|null} origin
  * @param {string[]} args
  */
@@ -352,8 +346,7 @@ const source = (origin, args) => {
 }
 
 /**
- * Quit the current split, a range of splits or the browser if not using splits
- *
+ * Quit the current split, a range of splits or the browser if not using splits.
  * @param {string|null} range
  */
 const quit = (range = null) => {
@@ -416,11 +409,11 @@ const quitall = () => {
 
 let currentscheme = "default"
 /**
- * Set the colorscheme by name or log the current one if no name provided
- *
+ * Set the colorscheme by name or log the current one if no name provided.
  * @param {string|null} name
+ * @param {string|null} trailingArgs
  */
-const colorscheme = (name = null, trailingArgs = false) => {
+const colorscheme = (name = null, trailingArgs = null) => {
     if (trailingArgs) {
         notify("The colorscheme command takes a single optional argument",
             "warn")
@@ -461,8 +454,7 @@ const restart = () => {
 }
 
 /**
- * Open the development tools
- *
+ * Open the development tools.
  * @param {string|null} userPosition
  * @param {string|null} trailingArgs
  */
@@ -502,8 +494,7 @@ const openInternalDevTools = () => {
 }
 
 /**
- * Open a special page using commands
- *
+ * Open a special page using commands.
  * @param {string} specialPage
  * @param {boolean} forceNewtab
  * @param {string|null} section
@@ -531,8 +522,7 @@ const openSpecialPage = (specialPage, forceNewtab, section = null) => {
 }
 
 /**
- * Open the help page at a specific section
- *
+ * Open the help page at a specific section.
  * @param {boolean} forceNewtab
  * @param {string|null} section
  * @param {boolean} trailingArgs
@@ -551,8 +541,7 @@ const reloadconfig = () => {
 }
 
 /**
- * Make a hardcopy print of a page, optionally for a range of pages
- *
+ * Make a hardcopy print of a page, optionally for a range of pages.
  * @param {string} range
  */
 const hardcopy = range => {
@@ -569,8 +558,7 @@ const hardcopy = range => {
 }
 
 /**
- * Resolve file arguments to an absolute path with fixed type extension
- *
+ * Resolve file arguments to an absolute path with fixed type extension.
  * @param {string|null} locationArg
  * @param {string} type
  * @param {Electron.WebviewTag|null} customPage
@@ -607,8 +595,7 @@ const resolveFileArg = (locationArg, type, customPage = null) => {
 }
 
 /**
- * Write the html of a page to disk, optionally a range of pages at a custom loc
- *
+ * Write the html of a page to disk, optionally a range of pages at custom loc.
  * @param {string[]} args
  * @param {string} range
  */
@@ -630,10 +617,9 @@ const write = (args, range) => {
 }
 
 /**
- * Write the html of a page to disk based on tab index or current
- *
+ * Write the html of a page to disk based on tab index or current.
  * @param {string|null} customLoc
- * @param {Number|null} tabIdx
+ * @param {number|null} tabIdx
  */
 const writePage = (customLoc = null, tabIdx = null) => {
     /** @type {Electron.WebviewTag|HTMLDivElement|null} */
@@ -657,8 +643,7 @@ const writePage = (customLoc = null, tabIdx = null) => {
 }
 
 /**
- * Translate a screen* command argument to valid dims within view
- *
+ * Translate a screen* command argument to valid dims within view.
  * @param {string} dims
  */
 const translateDimsToRect = dims => {
@@ -690,8 +675,7 @@ const translateDimsToRect = dims => {
 }
 
 /**
- * Copy the current page screen to the clipboard, optionally with custom dims
- *
+ * Copy the current page screen to the clipboard, optionally with custom dims.
  * @param {string[]} args
  */
 const screencopy = args => {
@@ -718,8 +702,7 @@ const screencopy = args => {
 }
 
 /**
- * Write the current page screen a location, optionally with custom dims
- *
+ * Write the current page screen a location, optionally with custom dims.
  * @param {string[]} args
  */
 const screenshot = args => {
@@ -741,8 +724,7 @@ const screenshot = args => {
 }
 
 /**
- * Write the actual page to disk based on dims and location
- *
+ * Write the actual page to disk based on dims and location.
  * @param {string} dims
  * @param {string} location
  */
@@ -761,8 +743,7 @@ const takeScreenshot = (dims, location) => {
 }
 
 /**
- * Make a custom viebrc config based on current settings
- *
+ * Make a custom viebrc config based on current settings.
  * @param {string|null} full
  * @param {boolean} trailingArgs
  */
@@ -787,15 +768,14 @@ const mkviebrc = (full = null, trailingArgs = false) => {
 }
 
 /**
- * Translate a partial range arg to tab index based on mathematical operations
- *
- * @param {Number} start
+ * Translate a partial range arg to tab index based on mathematical operations.
+ * @param {number} start
  * @param {string} rangePart
  */
 const translateRangePosToIdx = (start, rangePart) => {
     const [, plus] = rangePart.split("/").pop()?.split("+") ?? ["", ""]
     const [, minus] = rangePart.split("/").pop()?.split("-") ?? ["", ""]
-    /** @type {(string|Number)[]} */
+    /** @type {(string | number)[]} */
     let [charOrNum] = rangePart.split(/[-+]/g)
     if (rangePart.split("/").length > 2) {
         const [flags] = rangePart.split("/")
@@ -857,8 +837,7 @@ const translateRangePosToIdx = (start, rangePart) => {
 }
 
 /**
- * Get the tab indices for a given range
- *
+ * Get the tab indices for a given range.
  * @param {string} range
  * @param {boolean} silent
  */
@@ -927,8 +906,7 @@ const rangeToTabIdxs = (range, silent = false) => {
 }
 
 /**
- * Get a tab for a given buffer argument
- *
+ * Get a tab for a given buffer argument.
  * @param {string[]} args
  * @param {((tab: HTMLElement) => boolean)|null} filter
  */
@@ -941,9 +919,8 @@ const tabForBufferArg = (args, filter = null) => {
 }
 
 /**
- * Get all tabs for a given buffer argument
- *
- * @param {string[]|[Number]} args
+ * Get all tabs for a given buffer argument.
+ * @param {string[]|[number]} args
  * @param {((tab: HTMLElement) => boolean)|null} filter
  */
 const allTabsForBufferArg = (args, filter = null) => {
@@ -992,8 +969,7 @@ const allTabsForBufferArg = (args, filter = null) => {
     }
     const {getSimpleName, getSimpleUrl} = require("./history")
     /**
-     * Checks if all words appear somewhere in the simple url
-     *
+     * Checks if all words appear somewhere in the simple url.
      * @param {string[]} search
      * @param {string} simpleUrl
      * @param {string} name
@@ -1020,8 +996,7 @@ const allTabsForBufferArg = (args, filter = null) => {
 }
 
 /**
- * Buffer switch command, switch pages based on arguments
- *
+ * Buffer switch command, switch pages based on arguments.
  * @param {string[]} args
  */
 const buffer = args => {
@@ -1039,8 +1014,7 @@ const buffer = args => {
 }
 
 /**
- * Open command, navigate to a url by argument, mostly useful for mappings
- *
+ * Open command, navigate to a url by argument, mostly useful for mappings.
  * @param {string[]} args
  */
 const open = args => {
@@ -1052,8 +1026,7 @@ const open = args => {
 }
 
 /**
- * Suspend a page or a range of pages
- *
+ * Suspend a page or a range of pages.
  * @param {string[]} args
  * @param {string|null} range
  */
@@ -1085,8 +1058,7 @@ const suspend = (args, range = null) => {
 }
 
 /**
- * Hide a page or a range of pages
- *
+ * Hide a page or a range of pages.
  * @param {string[]} args
  * @param {string|null} range
  */
@@ -1116,8 +1088,7 @@ const hide = (args, range = null) => {
 }
 
 /**
- * Mute a page or a range of pages
- *
+ * Mute a page or a range of pages.
  * @param {string[]} args
  * @param {string} range
  */
@@ -1147,8 +1118,7 @@ const setMute = (args, range) => {
 }
 
 /**
- * Toggle mute for a page or a range of pages
- *
+ * Toggle mute for a page or a range of pages.
  * @param {string[]} args
  * @param {string|null} range
  */
@@ -1183,8 +1153,7 @@ const mute = (args, range = null) => {
 }
 
 /**
- * Set the pin state for a tab or a range of tabs
- *
+ * Set the pin state for a tab or a range of tabs.
  * @param {string[]} args
  * @param {string} range
  */
@@ -1218,8 +1187,7 @@ const setPin = (args, range) => {
 
 
 /**
- * Toggle the pin state for a tab or a range of tabs
- *
+ * Toggle the pin state for a tab or a range of tabs.
  * @param {string[]} args
  * @param {string} range
  */
@@ -1268,8 +1236,7 @@ const pin = (args, range) => {
 }
 
 /**
- * Add a split to the page layout
- *
+ * Add a split to the page layout.
  * @param {"hor"|"ver"} method
  * @param {boolean} leftOrAbove
  * @param {string[]} args
@@ -1317,8 +1284,7 @@ const addSplit = (method, leftOrAbove, args, range = null) => {
 }
 
 /**
- * Close a page or a custom one with ranges/arguments
- *
+ * Close a page or a custom one with ranges/arguments.
  * @param {boolean} force
  * @param {string[]} args
  * @param {string} range
@@ -1349,8 +1315,7 @@ const close = (force, args, range) => {
 }
 
 /**
- * Call command, run any mapstring immediately
- *
+ * Call command, run any mapstring immediately.
  * @param {string[]} args
  */
 const callAction = args => {
@@ -1361,8 +1326,7 @@ const callAction = args => {
 }
 
 /**
- * Log command errors
- *
+ * Log command errors.
  * @param {import("child_process").ExecException|null} err
  */
 const logError = err => {
@@ -1430,8 +1394,7 @@ const rclose = (force = false) => {
 }
 
 /**
- * Run custom JS in the page or a range of pages
- *
+ * Run custom JS in the page or a range of pages.
  * @param {string} raw
  * @param {string} range
  */
@@ -1454,8 +1417,7 @@ const runjsinpage = (raw, range) => {
 }
 
 /**
- * Open a new tab optionally with a custom session and url
- *
+ * Open a new tab optionally with a custom session and url.
  * @param {string|null} session
  * @param {string|null} url
  */
@@ -1473,8 +1435,7 @@ const tabnew = (session = null, url = null) => {
 }
 
 /**
- * Make or list marks
- *
+ * Make or list marks.
  * @param {string[]} args
  */
 const marks = args => {
@@ -1521,8 +1482,7 @@ const marks = args => {
 }
 
 /**
- * Restore a mark
- *
+ * Restore a mark.
  * @param {string[]} args
  */
 const restoremark = args => {
@@ -1538,8 +1498,7 @@ const restoremark = args => {
     const {validOptions} = require("./settings")
     const [key, position] = args
     /**
-     * Check if a mark position is valid
-     *
+     * Check if a mark position is valid.
      * @param {string} pos
      * @returns {pos is import("./tabs").tabPosition|undefined}
      */
@@ -1554,8 +1513,7 @@ const restoremark = args => {
 }
 
 /**
- * Delete marks
- *
+ * Delete marks.
  * @param {boolean} all
  * @param {string[]} args
  */
@@ -1582,8 +1540,7 @@ const delmarks = (all, args) => {
 }
 
 /**
- * Set or list scroll positions
- *
+ * Set or list scroll positions.
  * @param {string[]} args
  */
 const scrollpos = args => {
@@ -1665,8 +1622,7 @@ const scrollpos = args => {
 }
 
 /**
- * Restore a scroll position
- *
+ * Restore a scroll position.
  * @param {string[]} args
  */
 const restorescrollpos = args => {
@@ -1685,8 +1641,7 @@ const restorescrollpos = args => {
 }
 
 /**
- * Delete a scroll position
- *
+ * Delete a scroll position.
  * @param {boolean} all
  * @param {string[]} args
  */
@@ -1764,8 +1719,7 @@ const delscrollpos = (all, args) => {
 }
 
 /**
- * Set or list a pointer position
- *
+ * Set or list a pointer position.
  * @param {string[]} args
  */
 const pointerpos = args => {
@@ -1843,8 +1797,7 @@ const pointerpos = args => {
 }
 
 /**
- * Restore the pointer position
- *
+ * Restore the pointer position.
  * @param {string[]} args
  */
 const restorepointerpos = args => {
@@ -1863,8 +1816,7 @@ const restorepointerpos = args => {
 }
 
 /**
- * Delete a pointer position
- *
+ * Delete a pointer position.
  * @param {boolean} all
  * @param {string[]} args
  */
@@ -1942,8 +1894,7 @@ const delpointerpos = (all, args) => {
 }
 
 /**
- * Translate the current page
- *
+ * Translate the current page.
  * @param {string[]} args
  */
 const translatepage = args => {
@@ -1990,8 +1941,7 @@ const translatepage = args => {
 }
 
 /**
- * Clear history based on an interval
- *
+ * Clear history based on an interval.
  * @param {string} type
  * @param {string} interval
  * @param {string|null} trailingArgs
@@ -2248,8 +2198,7 @@ const {mapOrList, unmap, clearmap} = require("./input")
 })
 
 /**
- * Add a new command, or optionally overwrite existing custom commands
- *
+ * Add a new command, or optionally overwrite existing custom commands.
  * @param {boolean} overwrite
  * @param {string[]} args
  */
@@ -2301,8 +2250,7 @@ const addCommand = (overwrite, args) => {
 }
 
 /**
- * Delete a custom command
- *
+ * Delete a custom command.
  * @param {string[]} args
  */
 const deleteCommand = args => {
@@ -2320,8 +2268,7 @@ const deleteCommand = args => {
 }
 
 /**
- * Parse and validate the string to a command
- *
+ * Parse and validate the string to a command.
  * @param {string} commandStr
  */
 const parseAndValidateArgs = commandStr => {
@@ -2371,8 +2318,7 @@ const parseAndValidateArgs = commandStr => {
 }
 
 /**
- * Execute a command
- *
+ * Execute a command.
  * @param {string} com
  * @param {string|null} settingsFile
  */
@@ -2447,8 +2393,7 @@ const execute = (com, settingsFile = null) => {
 }
 
 /**
- * List all commands
- *
+ * List all commands.
  * @param {boolean} includeCustom
  */
 const commandList = (includeCustom = true) => {
@@ -2460,8 +2405,7 @@ const commandList = (includeCustom = true) => {
 }
 
 /**
- * List all custom commands as viebrc statements
- *
+ * List all custom commands as viebrc statements.
  * @param {boolean} full
  */
 const customCommandsAsCommandList = (full = false) => {

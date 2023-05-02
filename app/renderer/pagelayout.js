@@ -30,13 +30,12 @@ const {
 const {propPixels} = require("../util")
 
 /**
- * Get a page layout element by id
- *
+ * Get a page layout element by id.
  * @param {string|null|undefined} id
  */
 const layoutDivById = id => document.querySelector(
     `#pagelayout div[link-id='${id ?? "none"}']`)
-/** @type {{[id: string]: Number}} */
+/** @type {{[id: string]: number}} */
 const timers = {}
 /** @type {string[]} */
 const lastTabIds = []
@@ -47,8 +46,7 @@ let scrollbarHideTimer = null
 let scrollbarHideIgnoreTimer = null
 
 /**
- * Switch to a new view
- *
+ * Switch to a new view.
  * @param {Electron.WebviewTag|HTMLDivElement|null} oldViewOrId
  * @param {Electron.WebviewTag|HTMLDivElement} newView
  */
@@ -70,8 +68,7 @@ const switchView = (oldViewOrId, newView) => {
 }
 
 /**
- * Hide a page from view
- *
+ * Hide a page from view.
  * @param {Electron.WebviewTag|HTMLDivElement} view
  * @param {boolean} close
  */
@@ -137,8 +134,7 @@ const hide = (view, close = false) => {
 }
 
 /**
- * Add a page to the layout
- *
+ * Add a page to the layout.
  * @param {Electron.WebviewTag|HTMLDivElement|string} viewOrId
  * @param {"ver"|"hor"} method
  * @param {boolean} leftOrAbove
@@ -257,8 +253,7 @@ const exchange = () => {
 }
 
 /**
- * Move a split to the top of the layout grid
- *
+ * Move a split to the top of the layout grid.
  * @param {"top"|"left"|"right"|"bottom"} direction
  */
 const toTop = direction => {
@@ -299,8 +294,7 @@ const toTop = direction => {
 }
 
 /**
- * Move the focus to a specific direction
- *
+ * Move the focus to a specific direction.
  * @param {"top"|"left"|"right"|"bottom"} direction
  */
 const moveFocus = direction => {
@@ -347,8 +341,7 @@ const moveFocus = direction => {
 }
 
 /**
- * Resize a specific split: vertical or horizontal, then bigger or smaller
- *
+ * Resize a specific split: vertical or horizontal, then bigger or smaller.
  * @param {"ver"|"hor"} orientation
  * @param {"grow"|"shrink"} change
  */
@@ -468,8 +461,7 @@ const only = () => {
 }
 
 /**
- * Add an id to the last used tab id list
- *
+ * Add an id to the last used tab id list.
  * @param {string|null} id
  */
 const setLastUsedTab = id => {
@@ -587,8 +579,7 @@ const applyLayout = () => {
         }
     })
     /**
-     * Suspend a tab after a timeout, optionally repeating if playing media
-     *
+     * Suspend a tab after a timeout, optionally repeating if playing media.
      * @param {HTMLSpanElement} tab
      * @param {string} linkId
      * @param {number} timeout

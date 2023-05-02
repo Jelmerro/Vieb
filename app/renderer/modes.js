@@ -174,8 +174,7 @@ const init = () => {
 }
 
 /**
- * Set the current mode
- *
+ * Set the current mode.
  * @param {import("./common").Mode} mode
  */
 const setMode = mode => {

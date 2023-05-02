@@ -23,8 +23,7 @@ const {joinPath, formatDate, formatSize, urlToString} = require("../util")
 let lastUpdate = new Date()
 
 /**
- * Send an update to the main thread regarding the download status
- *
+ * Send an update to the main thread regarding the download status.
  * @param {"removeall"|"remove"|"pause"|"resume"|null} action
  * @param {number|null} downloadId
  */
@@ -45,8 +44,7 @@ window.addEventListener("load", () => {
 })
 
 /**
- * Generate the download list based on main info data
- *
+ * Generate the download list based on main info data.
  * @param {Electron.IpcRendererEvent} _
  * @param {string} l
  */
@@ -102,8 +100,7 @@ const generateDownloadList = (_, l) => {
 ipcRenderer.on("download-list", generateDownloadList)
 
 /**
- * Add a download to the list
- *
+ * Add a download to the list.
  * @param {import("../index").downloadItem} download
  * @param {number} id
  */
@@ -194,8 +191,7 @@ const addDownload = (download, id) => {
 }
 
 /**
- * Update a download element with new data
- *
+ * Update a download element with new data.
  * @param {import("../index").downloadItem} download
  * @param {Element} element
  * @param {number} id

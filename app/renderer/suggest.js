@@ -49,8 +49,7 @@ let suggestions = []
 let originalValue = ""
 
 /**
- * Set the url value correctly formatted and update border colors
- *
+ * Set the url value correctly formatted and update border colors.
  * @param {string} url
  */
 const setUrlValue = url => {
@@ -160,8 +159,7 @@ const emptySuggestions = () => {
 }
 
 /**
- * Translate a location to an informative object that can be suggested
- *
+ * Translate a location to an informative object that can be suggested.
  * @param {string} base
  * @param {string} loc
  * @returns {{path: string, title: string, type: "file", url: string}}
@@ -182,8 +180,7 @@ const locationToSuggestion = (base, loc) => {
 }
 
 /**
- * Suggest files based on current path entry
- *
+ * Suggest files based on current path entry.
  * @param {string} loc
  */
 const suggestFiles = loc => {
@@ -214,8 +211,7 @@ const suggestFiles = loc => {
 }
 
 /**
- * Update the explore border colors based on the input type
- *
+ * Update the explore border colors based on the input type.
  * @param {string|null} searchStr
  */
 const updateColors = (searchStr = null) => {
@@ -242,8 +238,7 @@ const updateColors = (searchStr = null) => {
 }
 
 /**
- * Suggest urls, files and searchwords based on the current input and settings
- *
+ * Suggest urls, files and searchwords based on the current input and settings.
  * @param {string} search
  */
 const suggestExplore = search => {
@@ -306,8 +301,7 @@ const suggestExplore = search => {
 }
 
 /**
- * Add a suggestion to the explore mode suggestions
- *
+ * Add a suggestion to the explore mode suggestions.
  * @param {{title: string, type?: string, url: string, icon?: string}} explore
  */
 const addExplore = explore => {
@@ -369,8 +363,7 @@ const addExplore = explore => {
 }
 
 /**
- * Suggest a command based on the current input text
- *
+ * Suggest a command based on the current input text.
  * @param {string} searchStr
  */
 const suggestCommand = searchStr => {
@@ -751,8 +744,7 @@ const suggestCommand = searchStr => {
 }
 
 /**
- * Add a command to the suggestion list
- *
+ * Add a command to the suggestion list.
  * @param {string} command
  * @param {string|null} subtext
  * @param {string|null} url

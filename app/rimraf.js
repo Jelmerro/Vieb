@@ -25,16 +25,14 @@ IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 const fs = require("fs")
 
 /**
- * Check if the exception is a NodeJS Errno Exception
- *
+ * Check if the exception is a NodeJS Errno Exception.
  * @param {any} e
  * @returns {e is NodeJS.ErrnoException}
  */
 const isErrnoException = e => "code" in e
 
 /**
- * Workaround for window EPERM errors, just retry a lot of times till it works
- *
+ * Workaround for window EPERM errors, just retry a lot of times till it works.
  * @param {string} p
  * @param {Error|null} er
  */
@@ -64,8 +62,7 @@ const fixWinEPERMSync = (p, er) => {
 }
 
 /**
- * Remove a location using "rm -rf" rimraf module
- *
+ * Remove a location using "rm -rf" rimraf module.
  * @param {string} p
  */
 const rimrafSync = p => {
@@ -108,8 +105,7 @@ const rimrafSync = p => {
 }
 
 /**
- * Remove a directory sync
- *
+ * Remove a directory sync.
  * @param {string} p
  * @param {Error|null} originalEr
  */

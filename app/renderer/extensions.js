@@ -30,11 +30,9 @@ const {
 const {getSetting} = require("./common")
 
 /**
- * Parse the GM userscript header
- *
+ * Parse the GM userscript header.
  * @param {string} meta
- *
- * @returns {{[string: (string[]|Number|string)]}}
+ * @returns {{[info: string]: (string[]|number|string)}}
  */
 const parseGM = meta => meta.split(/[\r\n]/).filter(line => (/\S+/).test(line)
         && !line.includes("==UserScript==") && !line.includes("==/UserScript==")
@@ -61,8 +59,7 @@ const parseGM = meta => meta.split(/[\r\n]/).filter(line => (/\S+/).test(line)
 }, {})
 
 /**
- * Run a GM script in the page
- *
+ * Run a GM script in the page.
  * @param {Electron.WebviewTag} webview
  * @param {string} rawContents
  */
@@ -222,11 +219,14 @@ const runGMScript = (webview, rawContents) => {
         // No picomatch available, assume scripts should run everywhere
     }
     if (info?.name && scriptLines.length) {
-        if (!info.includes || info.includes.length < 1) {
+        if (!Array.isArray(info.includes)) {
             info.includes = ["*"]
         }
         if (Array.isArray(info.match)) {
             info.includes = [...info.includes, ...info.match]
+        }
+        if (!Array.isArray(info.excludes)) {
+            info.excludes = []
         }
         if (Array.isArray(info["exclude-match"])) {
             info.excludes = [...info.excludes, ...info["exclude-match"]]
@@ -237,7 +237,7 @@ const runGMScript = (webview, rawContents) => {
             included = picomatch.isMatch(
                 webview.src, info.includes, {"bash": true})
             excluded = picomatch.isMatch(
-                webview.src, info.excludes ?? [], {"bash": true})
+                webview.src, info.excludes, {"bash": true})
         }
         if (included && !excluded) {
             const script = preload + scriptLines.join("\n")
@@ -247,8 +247,7 @@ const runGMScript = (webview, rawContents) => {
 }
 
 /**
- * Load all userscripts into the page
- *
+ * Load all userscripts into the page.
  * @param {Electron.WebviewTag} webview
  */
 const loadUserscripts = webview => {

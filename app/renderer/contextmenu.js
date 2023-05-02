@@ -91,8 +91,7 @@ const {
 
 const init = () => {
     /**
-     * Handle context menu info to open the menu with the right details
-     *
+     * Handle context menu info to open the menu with the right details.
      * @param {Event} _
      * @param {webviewData} info
      */
@@ -122,20 +121,22 @@ const init = () => {
 const contextMenu = document.getElementById("context-menu")
 
 /**
- * Open Vieb's internal menu
- *
- * @param {MouseEvent|{path: Element[], x: Number, y: Number}} options
+ * Open Vieb's internal menu.
+ * @param {MouseEvent | {path: Element[], x: number, y: number}} options
  * @param {boolean} force
  */
 const viebMenu = (options, force = false) => {
     if (!contextMenu) {
         return
     }
-    /** @type Element[] */
+    /** @type {Element[]} */
     let pathEls = []
     if (options instanceof MouseEvent) {
         pathEls = options.composedPath().filter(
-            /** @returns {el is Element} */
+            /**
+             * @param {EventTarget} el
+             * @returns {el is Element}
+             */
             el => el instanceof Element)
     } else {
         pathEls = options.path
@@ -306,8 +307,7 @@ const storePointerRightClick = () => {
 }
 
 /**
- * Show the webview menu using custom options
- *
+ * Show the webview menu using custom options.
  * @param {webviewData} options
  * @param {boolean} force
  */
@@ -585,9 +585,8 @@ const webviewMenu = (options, force = false) => {
 }
 
 /**
- * Open the link menu for while in explore mode
- *
- * @param {{link: string, x: Number, y: Number}} options
+ * Open the link menu for while in explore mode.
+ * @param {{link: string, x: number, y: number}} options
  */
 const linkMenu = options => {
     if (!contextMenu) {
@@ -631,9 +630,8 @@ const linkMenu = options => {
 }
 
 /**
- * Open the command menu for while in command mode
- *
- * @param {{command: string, x: Number, y: Number}} options
+ * Open the command menu for while in command mode.
+ * @param {{command: string, x: number, y: number}} options
  */
 const commandMenu = options => {
     if (!contextMenu) {
@@ -695,8 +693,7 @@ const fixAlignmentNearBorders = () => {
 }
 
 /**
- * Create a new menu group with name
- *
+ * Create a new menu group with name.
  * @param {string} name
  */
 const createMenuGroup = name => {
@@ -707,8 +704,7 @@ const createMenuGroup = name => {
 }
 
 /**
- * Create a new menu item
- *
+ * Create a new menu item.
  * @param {{title: string, action: () => void}} options
  */
 const createMenuItem = options => {
@@ -818,8 +814,7 @@ const select = () => {
 }
 
 /**
- * Execute a common link action by name, position and custom options
- *
+ * Execute a common link action by name, position and custom options.
  * @param {contextMenuType} type
  * @param {contextMenuAction} action
  * @param {Partial<webviewData>} options

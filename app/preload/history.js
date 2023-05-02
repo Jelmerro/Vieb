@@ -88,8 +88,7 @@ let currentlyRemoving = false
 // Actually parse the list and use the breakpoints
 
 /**
- * Show the received history in a list
- *
+ * Show the received history in a list.
  * @param {import("../renderer/history").historyItem[]} history
  */
 const receiveHistory = history => {
@@ -137,8 +136,7 @@ const receiveHistory = history => {
     }
 }
 
-/** Add a breakpoint by index at a line number
- *
+/** Add a breakpoint by index at a line number.
  * @param {number} index
  * @param {number} lineNumber
  */
@@ -170,8 +168,7 @@ const addBreakpoint = (index, lineNumber) => {
 }
 
 /**
- * Add a single history entry to the list
- *
+ * Add a single history entry to the list.
  * @param {(
  *   import("../renderer/history").historyItem & {date: Date, line: number}
  * )} hist
@@ -225,8 +222,7 @@ const clearHistory = () => {
 }
 
 /**
- * Clear the history from specific lines by startl index and optionally end
- *
+ * Clear the history from specific lines by startl index and optionally end.
  * @param {number} startStr
  * @param {string|number|null} endStr
  */

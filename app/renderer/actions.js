@@ -57,8 +57,7 @@ let searchDirection = "forward"
 let potentialNewSearchDirection = "forward"
 
 /**
- * Empty the current search by scope
- *
+ * Empty the current search by scope.
  * @param {{scope?: "both"|"local"|"global"}|null} args
  */
 const emptySearch = (args = null) => {
@@ -102,8 +101,7 @@ const nextSearchMatch = () => {
 }
 
 /**
- * Switch to search mode
- *
+ * Switch to search mode.
  * @param {{hadModifier?: boolean}|null} args
  */
 const toSearchMode = (args = null) => {
@@ -154,8 +152,7 @@ const previousSearchMatch = () => {
 }
 
 /**
- * Check if the search should be case sensitive or not
- *
+ * Check if the search should be case sensitive or not.
  * @param {string} search
  */
 const matchCase = search => {
@@ -172,8 +169,7 @@ const resetIncrementalSearch = () => {
 }
 
 /**
- * Search for the string incrementally while typing if enabled, by scope
- *
+ * Search for the string incrementally while typing if enabled, by scope.
  * @param {{value?: string}|null} args
  */
 const incrementalSearch = (args = null) => {
@@ -226,9 +222,8 @@ const increasePageNumber = () => movePageNumber(1)
 const decreasePageNumber = () => movePageNumber(-1)
 
 /**
- * Move the page number based on a movement number
- *
- * @param {Number} movement
+ * Move the page number based on a movement number.
+ * @param {number} movement
  */
 const movePageNumber = movement => modifyUrl("(\\?|&)p(age)?=(\\d+)",
     (_, p1, p2, p3) => {
@@ -243,9 +238,8 @@ const increasePortNumber = () => movePortNumber(1)
 const decreasePortNumber = () => movePortNumber(-1)
 
 /**
- * Move the port number based on a movement number
- *
- * @param {Number} movement
+ * Move the port number based on a movement number.
+ * @param {number} movement
  */
 const movePortNumber = movement => {
     const url = currentPage()?.src || ""
@@ -281,9 +275,8 @@ const increaseFirstNumber = () => moveFirstNumber(1)
 const decreaseFirstNumber = () => moveFirstNumber(-1)
 
 /**
- * Move the first number based on a movement number
- *
- * @param {Number} movement
+ * Move the first number based on a movement number.
+ * @param {number} movement
  */
 const moveFirstNumber = movement => modifyUrl("\\d+", (_, match) => {
     if (Number(match) + movement < 1) {
@@ -298,9 +291,8 @@ const decreaseLastNumber = () => moveLastNumber(-1)
 
 
 /**
- * Move the last number based on a movement number
- *
- * @param {Number} movement
+ * Move the last number based on a movement number.
+ * @param {number} movement
  */
 const moveLastNumber = movement => modifyUrl("(\\d+)(\\D*$)", (_, p1, p2) => {
     if (Number(p1) + movement < 1) {
@@ -324,8 +316,7 @@ const toRootSubdomain = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/?\\/?)("
     + "Z]+.*$)", (_, p, w, __, ___, m) => p + (w || "") + (m || ""))
 
 /**
- * Modify a url based on a source pattern and a replacement function
- *
+ * Modify a url based on a source pattern and a replacement function.
  * @param {string} source
  * @param {(...args: string[]) => string} replacement
  */
@@ -503,8 +494,7 @@ const scrollPageUpHalf = () => currentPage()?.send(
     "action", "scrollPageUpHalf")
 
 /**
- * Refresh the current page or optionally a custom page
- *
+ * Refresh the current page or optionally a custom page.
  * @param {{customPage?: Electron.WebviewTag}|null} args
  */
 const refreshTab = (args = null) => {
@@ -556,8 +546,7 @@ const startFollowCurrentTab = () => {
 }
 
 /**
- * Go back in history for the current page or a custom one
- *
+ * Go back in history for the current page or a custom one.
  * @param {{customPage?: Electron.WebviewTag}|null} args
  */
 const backInHistory = (args = null) => {
@@ -578,8 +567,7 @@ const backInHistory = (args = null) => {
 
 
 /**
- * Go forward in history for the current page or a custom one
- *
+ * Go forward in history for the current page or a custom one.
  * @param {{customPage?: Electron.WebviewTag}|null} args
  */
 const forwardInHistory = (args = null) => {
@@ -657,8 +645,7 @@ const moveTabStart = () => {
 const zoomReset = () => currentPage()?.setZoomLevel(0)
 
 /**
- * Zoom the current page out or do it for a custom page
- *
+ * Zoom the current page out or do it for a custom page.
  * @param {{customPage?: Electron.WebviewTag}|null} args
  */
 const zoomOut = (args = null) => {
@@ -671,8 +658,7 @@ const zoomOut = (args = null) => {
 }
 
 /**
- * Zoom the current page in or do it for a custom page
- *
+ * Zoom the current page in or do it for a custom page.
  * @param {{customPage?: Electron.WebviewTag}|null} args
  */
 const zoomIn = (args = null) => {
@@ -974,9 +960,8 @@ const openFromClipboard = () => {
 }
 
 /**
- * Store a scroll position based on key
- *
- * @param {{key?: string, path?: string, pixels?: Number}|null} args
+ * Store a scroll position based on key.
+ * @param {{key?: string, path?: string, pixels?: number} | null} args
  */
 const storeScrollPos = async(args = null) => {
     const key = args?.key
@@ -1025,8 +1010,7 @@ const storeScrollPos = async(args = null) => {
 }
 
 /**
- * Restore a stored scroll position based on key
- *
+ * Restore a stored scroll position based on key.
  * @param {{key?: string, path?: string}|null} args
  */
 const restoreScrollPos = (args = null) => {
@@ -1057,8 +1041,7 @@ const restoreScrollPos = (args = null) => {
 }
 
 /**
- * Make a new mark based on a key
- *
+ * Make a new mark based on a key.
  * @param {{key?: string, url?: string}|null} args
  */
 const makeMark = (args = null) => {
@@ -1075,8 +1058,7 @@ const makeMark = (args = null) => {
 }
 
 /**
- * Restore a stored mark by key to a position
- *
+ * Restore a stored mark by key to a position.
  * @param {{key?: string, position?: import("./tabs").tabPosition}|null} args
  */
 const restoreMark = (args = null) => {
@@ -1096,8 +1078,7 @@ const restoreMark = (args = null) => {
 }
 
 /**
- * Run a stored macro recording by key
- *
+ * Run a stored macro recording by key.
  * @param {{key?: string}|null} args
  */
 const runRecording = (args = null) => {
@@ -1114,8 +1095,7 @@ const runRecording = (args = null) => {
     }
 }
 
-/** Start a macro recording by key
- *
+/** Start a macro recording by key.
  * @param {{key?: string}|null} args
  */
 const startRecording = (args = null) => {

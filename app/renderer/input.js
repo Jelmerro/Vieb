@@ -649,7 +649,7 @@ let recursiveCounter = 0
 let pressedKeys = ""
 /** @type {typeof defaultBindings} */
 let bindings = JSON.parse(JSON.stringify(defaultBindings))
-/** @type string[] */
+/** @type {string[]} */
 let supportedActions = []
 /** @type {number|null} */
 let timeoutTimer = null
@@ -825,7 +825,7 @@ const init = () => {
             return
         }
         e.preventDefault()
-        /** @type {(ev: MouseEvent) => EventTarget|undefined} ev */
+        /** @type {(ev: MouseEvent) => EventTarget|undefined} */
         const urlOrSuggest = ev => ev.composedPath().find(
             n => matchesQuery(n, "#url, #suggest-dropdown"))
         if (urlOrSuggest(e)) {
@@ -877,7 +877,7 @@ const init = () => {
         if (getMouseConf("leaveinput")) {
             const {followFiltering} = require("./follow")
             const typing = "sec".includes(currentMode()[0]) || followFiltering()
-            /** @type {(ev: MouseEvent) => EventTarget|undefined} ev */
+            /** @type {(ev: MouseEvent) => EventTarget|undefined} */
             const urlOrSuggest = ev => ev.composedPath().find(n => matchesQuery(
                 n, "#url, #suggest-dropdown, #screenshot-highlight"))
             if (typing && !urlOrSuggest(e)) {
@@ -977,8 +977,7 @@ const resetScreenshotDrag = () => setTimeout(() => {
 }, 10)
 
 /**
- * Move the screenshot frame to a new position
- *
+ * Move the screenshot frame to a new position.
  * @param {number} x
  * @param {number} y
  */
@@ -1038,8 +1037,7 @@ const moveScreenshotFrame = (x, y) => {
 }
 
 /**
- * Execute the cut clipboard action on the url
- *
+ * Execute the cut clipboard action on the url.
  * @param {Event|null} event
  */
 const cutInput = (event = null) => {
@@ -1064,8 +1062,7 @@ const cutInput = (event = null) => {
 
 
 /**
- * Execute the copy clipboard action on the url
- *
+ * Execute the copy clipboard action on the url.
  * @param {Event|null} event
  */
 const copyInput = (event = null) => {
@@ -1079,8 +1076,7 @@ const copyInput = (event = null) => {
 }
 
 /**
- * Execute the paste clipboard action on the url
- *
+ * Execute the paste clipboard action on the url.
  * @param {Event|null} event
  */
 const pasteInput = (event = null) => {
@@ -1177,8 +1173,7 @@ const keyNames = [
     {"js": ["Any"], "vim": ["Any"]}
 ]
 /**
- * Convert a keyboard event to a Vieb key name
- *
+ * Convert a keyboard event to a Vieb key name.
  * @param {(KeyboardEvent  & {passedOnFromInsert?: false})|{
  *   altKey: boolean
  *   ctrlKey: boolean,
@@ -1229,8 +1224,7 @@ const toIdentifier = e => {
 }
 
 /**
- * Split the mapstring by key
- *
+ * Split the mapstring by key.
  * @param {string} mapStr
  */
 const splitMapString = mapStr => {
@@ -1259,8 +1253,7 @@ const splitMapString = mapStr => {
 }
 
 /**
- * Get JS (or optionally Electron) name for a Vim mapped key
- *
+ * Get JS (or optionally Electron) name for a Vim mapped key.
  * @param {string} identifier
  * @param {boolean} electronNames
  */
@@ -1273,7 +1266,7 @@ const fromIdentifier = (identifier, electronNames = true) => {
      * altKey?: boolean, alt?: boolean,
      * shiftKey?: boolean, shift?: boolean,
      * }}
-    */
+     */
     const options = {"modifiers": []}
     if (id.startsWith("<") && id.endsWith(">")) {
         id = id.slice(1, -1)
@@ -1445,8 +1438,7 @@ const uncountableActions = [
 
 
 /**
- * Find suitable mappings for a set of keys
- *
+ * Find suitable mappings for a set of keys.
  * @param {string} actionKeys
  * @param {string} mode
  * @param {boolean} future
@@ -1474,15 +1466,13 @@ const findMaps = (actionKeys, mode, future = false) => {
 }
 
 /**
- * Check if there are future actions in the current mode for a set of keys
- *
+ * Check if there are future actions in the current mode for a set of keys.
  * @param {string} keys
  */
 const hasFutureActions = keys => findMaps(keys, currentMode(), true).length
 
 /**
- * Send an input key to the webview
- *
+ * Send an input key to the webview.
  * @param {{
  *   modifiers: string[], bubbles?: boolean,
  *   ctrlKey?: boolean, control?: boolean,
@@ -1517,8 +1507,7 @@ const repeatLastAction = () => {
 }
 
 /**
- * Execute a provided mapstring as if it was pressed
- *
+ * Execute a provided mapstring as if it was pressed.
  * @param {string} mapStr
  * @param {boolean} recursive
  * @param {boolean} initial
@@ -1609,10 +1598,9 @@ const executeMapString = async(mapStr, recursive, initial = false) => {
 }
 
 /**
- * Execute a action by action name, optionally multiple times
- *
+ * Execute a action by action name, optionally multiple times.
  * @param {string} actionName
- * @param {Number|null} givenCount
+ * @param {number | null} givenCount
  * @param {string|null} key
  */
 const doAction = async(actionName, givenCount = null, key = null) => {
@@ -1645,8 +1633,7 @@ const doAction = async(actionName, givenCount = null, key = null) => {
 }
 
 /**
- * Find the right action for a set of keys in the current mode
- *
+ * Find the right action for a set of keys in the current mode.
  * @param {string} keys
  */
 const actionForKeys = keys => {
@@ -1661,8 +1648,7 @@ const actionForKeys = keys => {
 }
 
 /**
- * Handle all keyboard input
- *
+ * Handle all keyboard input.
  * @param {(KeyboardEvent  & {passedOnFromInsert?: false})|{
  *   altKey: boolean
  *   ctrlKey: boolean,
@@ -1835,8 +1821,7 @@ const handleKeyboard = async e => {
 }
 
 /**
- * Check an addition key if using mac and get the right one
- *
+ * Check an addition key if using mac and get the right one.
  * @param {string[]} regular
  * @param {string[]} mac
  * @param {string} key
@@ -1870,8 +1855,7 @@ const updateNavbarScrolling = () => {
 }
 
 /**
- * Type any character into the navbar as if typed
- *
+ * Type any character into the navbar as if typed.
  * @param {string} character
  * @param {boolean} force
  */
@@ -2332,8 +2316,7 @@ const updateKeysOnScreen = () => {
 const listSupportedActions = () => supportedActions
 
 /**
- * Check if mapping has been modified compared to the defaults
- *
+ * Check if mapping has been modified compared to the defaults.
  * @param {string} mode
  * @param {string} mapping
  */
@@ -2354,8 +2337,7 @@ const mappingModified = (mode, mapping) => {
 }
 
 /**
- * List mappings as a list of map commands
- *
+ * List mappings as a list of map commands.
  * @param {string|null} oneMode
  * @param {boolean} includeDefault
  * @param {string[]|null} customKeys
@@ -2394,8 +2376,7 @@ const listMappingsAsCommandList = (
 }
 
 /**
- * List a mapping as if set via a command
- *
+ * List a mapping as if set via a command.
  * @param {string} mode
  * @param {boolean} includeDefault
  * @param {string} rawKey
@@ -2419,8 +2400,7 @@ const listMapping = (mode, includeDefault, rawKey) => {
 }
 
 /**
- * Handle the map command, so either list a mapping or set it
- *
+ * Handle the map command, so either list a mapping or set it.
  * @param {string|null} mode
  * @param {string[]} args
  * @param {boolean} noremap
@@ -2471,8 +2451,7 @@ const mapOrList = (mode, args, noremap = false, includeDefault = false) => {
 }
 
 /**
- * Sanitize any mapstring to the shortest valid version
- *
+ * Sanitize any mapstring to the shortest valid version.
  * @param {string} mapString
  * @param {boolean} allowSpecials
  */
@@ -2559,8 +2538,7 @@ const sanitiseMapString = (mapString, allowSpecials = false) => {
 }
 
 /**
- * Map a single key
- *
+ * Map a single key.
  * @param {string|null} mode
  * @param {string[]} args
  * @param {boolean} noremap
@@ -2583,8 +2561,7 @@ const mapSingle = (mode, args, noremap) => {
 }
 
 /**
- * Unmap a specific key
- *
+ * Unmap a specific key.
  * @param {string|null} mode
  * @param {string[]} args
  */
@@ -2605,8 +2582,7 @@ const unmap = (mode, args) => {
 }
 
 /**
- * Clear all mappings to default or wipe them completely, optionally per mode
- *
+ * Clear all mappings to default or wipe them completely, optionally per mode.
  * @param {string|null} mode
  * @param {boolean} removeDefaults
  */
@@ -2629,8 +2605,7 @@ const clearmap = (mode, removeDefaults = false) => {
 }
 
 /**
- * Start a macro recording by key name
- *
+ * Start a macro recording by key name.
  * @param {string} name
  */
 const startRecording = name => {
@@ -2643,7 +2618,7 @@ const startRecording = name => {
 }
 
 /**
- * Stop the current macro recording
+ * Stop the current macro recording.
  */
 const stopRecording = () => {
     if (!recordingName) {

@@ -31,26 +31,27 @@ const getUrl = () => {
 }
 
 /**
- * List all the open tabs
+ * List all the open tabs.
  */
 const listTabs = () => {
     /** @type {HTMLSpanElement[]} */
-    // @ts-expect-error
+    // @ts-expect-error query selector includes the span tag
     const tabs = [...document.querySelectorAll("#tabs > span[link-id]")]
     return tabs
 }
 
 /**
- * List all the open pages, regular ones are webviews, suspended ones are divs
+ * List all the open pages, regular ones are webviews, suspended ones are divs.
  */
 const listPages = () => {
-    /** @ts-expect-error @type {(Electron.WebviewTag|HTMLDivElement)[]} */
+    /** @type {(Electron.WebviewTag|HTMLDivElement)[]} */
+    // @ts-expect-error pages should always be div or webview
     const pages = [...document.querySelectorAll("#pages > .webview")]
     return pages
 }
 
 /**
- * List all the fake suspended div pages
+ * List all the fake suspended div pages.
  */
 const listFakePages = () => {
     const pages = [...document.querySelectorAll("#pages > .webview")]
@@ -63,16 +64,17 @@ const listFakePages = () => {
 }
 
 /**
- * List all the real unsuspended webview pages
+ * List all the real unsuspended webview pages.
  */
 const listRealPages = () => {
-    /** @ts-expect-error @type {Electron.WebviewTag[]} */
+    /** @type {Electron.WebviewTag[]} */
+    // @ts-expect-error query selector includes the webview tag
     const pages = [...document.querySelectorAll("#pages > webview")]
     return pages
 }
 
 /**
- * Get the current tab
+ * Get the current tab.
  */
 const currentTab = () => {
     /** @type {HTMLSpanElement|null} */
@@ -81,7 +83,7 @@ const currentTab = () => {
 }
 
 /**
- * Get the current page
+ * Get the current page.
  */
 const currentPage = () => {
     /** @type {Electron.WebviewTag|null} */
@@ -91,22 +93,20 @@ const currentPage = () => {
 }
 
 /**
- * Find a page for a given tab
- *
+ * Find a page for a given tab.
  * @param {HTMLSpanElement|null} tab
  */
 const pageForTab = tab => listPages().find(
     e => tab && e.getAttribute("link-id") === tab.getAttribute("link-id"))
 /**
- * Find a tab for a given page
- *
+ * Find a tab for a given page.
  * @param {HTMLDivElement|Electron.WebviewTag|null} page
  */
 const tabForPage = page => listTabs().find(
     e => page && e.getAttribute("link-id") === page.getAttribute("link-id"))
 
 /**
- * The valid modes of Vieb
+ * The valid modes of Vieb.
  * @typedef {("normal"|"insert"|"command"|"search"
  *   |"explore"|"follow"|"pointer"|"visual")} Mode
  */
@@ -124,15 +124,14 @@ const modes = [
 ]
 
 /**
- * Check if a mode is valid
- *
+ * Check if a mode is valid.
  * @param {any} mode
  * @returns {mode is Mode}
  */
 const isValidMode = mode => modes.includes(mode)
 
 /**
- * Get the current mode
+ * Get the current mode.
  */
 const currentMode = () => {
     const mode = document.body.getAttribute("current-mode") ?? "normal"
@@ -143,8 +142,7 @@ const currentMode = () => {
 }
 
 /**
- * Get a setting value by setting name
- *
+ * Get a setting value by setting name.
  * @template {keyof typeof import("./settings").defaultSettings} T
  * @param {T} name
  * @returns {typeof import("./settings").defaultSettings[T]}
@@ -152,8 +150,7 @@ const currentMode = () => {
 const getSetting = name => getStored("settings")[name]
 
 /**
- * Check if a specific mouse feature is enabled
- *
+ * Check if a specific mouse feature is enabled.
  * @param {string} val
  */
 const getMouseConf = val => {
@@ -162,16 +159,14 @@ const getMouseConf = val => {
 }
 
 /**
- * Store a value for later use in session storage
- *
+ * Store a value for later use in session storage.
  * @param {string} set
  * @param {any} val
  */
 const setStored = (set, val) => sessionStorage.setItem(set, JSON.stringify(val))
 
 /**
- * Get a value from the session storage
- *
+ * Get a value from the session storage.
  * @param {string} set
  */
 const getStored = set => {
@@ -183,8 +178,7 @@ const getStored = set => {
 }
 
 /**
- * Get the current gui status value depending on window status
- *
+ * Get the current gui status value depending on window status.
  * @param {"navbar"|"tabbar"} type
  * @returns {"always"|"onupdate"|"oninput"|"never"}
  */
@@ -201,8 +195,7 @@ const getGuiStatus = type => {
 }
 
 /**
- * Update the mouse state to reflect if it's at the top of the page or not
- *
+ * Update the mouse state to reflect if it's at the top of the page or not.
  * @param {boolean} status
  */
 const setTopOfPageWithMouse = status => {
@@ -257,10 +250,9 @@ const updateScreenshotHighlight = (hide = false) => {
 }
 
 /**
- * Update the GUI to briefly show it again if configured
- *
+ * Update the GUI to briefly show it again if configured.
  * @param {"navbar"|"tabbar"} type
-*/
+ */
 const guiRelatedUpdate = type => {
     updateGuiVisibility()
     const timeout = getSetting("guihidetimeout")

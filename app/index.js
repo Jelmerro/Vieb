@@ -145,8 +145,7 @@ There is NO WARRANTY, to the extent permitted by law.
 See the LICENSE file or the GNU website for details.`)
 }
 /**
- * Apply some basic settings to the chromium devtools
- *
+ * Apply some basic settings to the chromium devtools.
  * @param {string} prefFile
  * @param {boolean} undock
  */
@@ -177,8 +176,7 @@ const applyDevtoolsSettings = (prefFile, undock = true) => {
 }
 
 /**
- * Parse the startup arguments
- *
+ * Parse the startup arguments.
  * @param {string[]} argv
  */
 const getArguments = argv => {
@@ -191,8 +189,7 @@ const getArguments = argv => {
     return argv.slice(1)
 }
 /**
- * Check if the provided string argument should be true or false as a boolean
- *
+ * Check if the provided string argument should be true or false as a boolean.
  * @param {string|null} arg
  */
 const isTruthyArg = (arg = null) => {
@@ -419,8 +416,7 @@ let notificationWindow = null
 /** @type {Electron.BrowserWindow|null} */
 let promptWindow = null
 /**
- * Resolve local paths to absolute file protocol paths
- *
+ * Resolve local paths to absolute file protocol paths.
  * @param {(string|{
  *   container?: unknown, url?: unknown, script?: unknown
  * })[]} paths
@@ -659,7 +655,7 @@ app.on("ready", () => {
 // THIS ENDS THE MAIN SETUP, ACTIONS BELOW MUST BE IN MAIN FOR VARIOUS REASONS
 
 // Handle Basic HTTP login attempts
-/** @type {Number[]} */
+/** @type {number[]} */
 const loginAttempts = []
 let fontsize = 14
 let customCSS = ""
@@ -811,8 +807,7 @@ ipcMain.on("set-redirects", (_, rdr) => {
     redirects = rdr
 })
 /**
- * Update the request header setting
- *
+ * Update the request header setting.
  * @param {Electron.IpcMainEvent} _
  * @param {string} headers
  */
@@ -822,8 +817,7 @@ const updateRequestHeaders = (_, headers) => {
 ipcMain.on("update-request-headers", updateRequestHeaders)
 ipcMain.on("open-download", (_, location) => shell.openPath(location))
 /**
- * Update download settings
- *
+ * Update download settings.
  * @param {Electron.IpcMainEvent} _
  * @param {{
  *   downloadmethod: string,
@@ -900,8 +894,7 @@ ipcMain.on("set-permissions", (_, permissionObject) => {
     permissions = permissionObject
 })
 /**
- * Update the list of spell languages to be used
- *
+ * Update the list of spell languages to be used.
  * @param {Electron.IpcMainEvent} _
  * @param {string} langs
  */
@@ -1396,8 +1389,7 @@ const writeDownloadsToFile = () => {
 /** @type {{[domain: string]: string[]}} */
 const allowedFingerprints = {}
 /**
- * Main check if a permission should be allowed or declined
- *
+ * Main check if a permission should be allowed or declined.
  * @param {Electron.WebContents|null} _
  * @param {string} pm
  * @param {null|((_: any) => void)} callback
@@ -1598,8 +1590,7 @@ const permissionHandler = (_, pm, callback, details) => {
     return false
 }
 /**
- * Enable the adblocker
- *
+ * Enable the adblocker either statically, with updates or custom.
  * @param {"static"|"custom"|"update"} type
  */
 const enableAdblocker = type => {
@@ -1716,8 +1707,7 @@ ipcMain.on("adblock-enable", (_, type) => {
 })
 ipcMain.on("adblock-disable", disableAdblocker)
 /**
- * Load a blocklist with extra newline if it has contents
- *
+ * Load a blocklist with extra newline if it has contents.
  * @param {string} file
  */
 const loadBlocklist = file => {
@@ -1893,8 +1883,7 @@ ipcMain.on("insert-mode-blockers", (e, blockedMappings) => {
     e.returnValue = null
 })
 /**
- * Check if an input matches a given key
- *
+ * Check if an input matches a given key.
  * @param {Electron.Input} key
  */
 const currentInputMatches = key => {
@@ -1979,8 +1968,7 @@ ipcMain.on("mouse-location", e => {
 // Subframe/iframe related code to send from renderer to frames and vice versa
 
 /**
- * Send an error to main based on a caught error
- *
+ * Send an error to main based on a caught error.
  * @param {unknown} exception
  */
 const errToMain = exception => {
@@ -2028,36 +2016,35 @@ let allLinks = []
  * @typedef {{
  *   id?: string
  *   url?: string
- *   x?: Number
- *   y?: Number
- *   width?: Number
- *   height?: Number
- *   usableWidth?: Number
- *   usableHeight?: Number
- *   pagex?: Number
- *   pagey?: Number
+ *   x?: number
+ *   y?: number
+ *   width?: number
+ *   height?: number
+ *   usableWidth?: number
+ *   usableHeight?: number
+ *   pagex?: number
+ *   pagey?: number
  *   parent?: string
- *   absX?: Number
- *   absY?: Number
+ *   absX?: number
+ *   absY?: number
  * }} frameDetails
  */
 /** @type {{[frameId: string]: frameDetails}} */
 const frameInfo = {}
 /**
- * Handle incoming frame details by storing their details by id
- *
+ * Handle incoming frame details by storing their details by id.
  * @param {Electron.IpcMainEvent} e
  * @param {{
- *   height: Number
- *   width: Number
+ *   height: number
+ *   width: number
  *   url: string
- *   pagex: Number
- *   pagey: Number
+ *   pagex: number
+ *   pagey: number
  *   subframes: {
- *     height: Number
- *     width: Number
- *     x: Number
- *     y: Number
+ *     height: number
+ *     width: number
+ *     x: number
+ *     y: number
  *     url: string
  *   }[]
  * }} details
@@ -2104,8 +2091,7 @@ const handleFrameDetails = (e, details) => {
 }
 ipcMain.on("frame-details", handleFrameDetails)
 /**
- * Handle a follow mode response
- *
+ * Handle a follow mode response.
  * @param {Electron.IpcMainEvent} e
  * @param {(
  *   import("./renderer/follow").FollowLink & {frameId: string}
@@ -2170,11 +2156,10 @@ const handleFollowResponse = (e, rawLinks) => {
 }
 ipcMain.on("follow-response", handleFollowResponse)
 /**
- * Find the right subframe for a position in webcontents
- *
+ * Find the right subframe for a position in webcontents.
  * @param {Electron.WebContents} wc
- * @param {Number} x
- * @param {Number} y
+ * @param {number} x
+ * @param {number} y
  * @returns {(frameDetails & {absY: number, absX: number})|null}
  */
 const findRelevantSubFrame = (wc, x, y) => {
@@ -2338,17 +2323,16 @@ ipcMain.on("replace-input-field", (_, id, frameId, correction, inputField) => {
     }
 })
 /**
- * Translate a mouse event and send it to the right frame
- *
+ * Translate a mouse event and send it to the right frame.
  * @param {Electron.IpcMainEvent} e
  * @param {{
  *   frame: string
- *   startX: Number
- *   startY: Number
- *   endX: Number
- *   endY: Number
- *   x: Number
- *   y: Number
+ *   startX: number
+ *   startY: number
+ *   endX: number
+ *   endY: number
+ *   x: number
+ *   y: number
  * }|null} clickInfo
  */
 const translateMouseEvent = (e, clickInfo = null) => {

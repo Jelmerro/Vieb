@@ -70,8 +70,7 @@ const init = () => {
 }
 
 /**
- * Update the current mappings and delete unused ones
- *
+ * Update the current mappings and delete unused ones.
  * @param {string|null} currentUrl
  */
 const updateMappings = (currentUrl = null) => {
@@ -119,16 +118,14 @@ const updateMappings = (currentUrl = null) => {
 }
 
 /**
- * Get the path for a given url
- *
+ * Get the path for a given url.
  * @param {string} url
  */
 const urlToPath = url => joinPath(faviconFolder,
     encodeURIComponent(url).replace(/%/g, "_")).slice(0, 256)
 
 /**
- * Show the loading spinner in place of the favicon
- *
+ * Show the loading spinner in place of the favicon.
  * @param {Electron.WebviewTag} webview
  */
 const loading = webview => {
@@ -145,8 +142,7 @@ const loading = webview => {
 }
 
 /**
- * Empty the favicon
- *
+ * Empty the favicon.
  * @param {Electron.WebviewTag} webview
  */
 const empty = webview => {
@@ -168,8 +164,7 @@ const empty = webview => {
 }
 
 /**
- * Show the favicon that was previously set for this site
- *
+ * Show the favicon that was previously set for this site.
  * @param {Electron.WebviewTag} webview
  */
 const show = webview => {
@@ -191,8 +186,7 @@ const show = webview => {
 }
 
 /**
- * Set the favicon path and show it
- *
+ * Set the favicon path and show it.
  * @param {HTMLSpanElement} tab
  * @param {string} loc
  */
@@ -211,8 +205,7 @@ const setPath = (tab, loc) => {
 }
 
 /**
- * Update the favicon as emitted by the webview
- *
+ * Update the favicon as emitted by the webview.
  * @param {Electron.WebviewTag} webview
  * @param {string} favicon
  */
@@ -258,8 +251,7 @@ const update = (webview, favicon) => {
 }
 
 /**
- * Delete a favicon if too old based on timestamp and favicon setting
- *
+ * Delete a favicon if too old based on timestamp and favicon setting.
  * @param {string} loc
  */
 const deleteIfTooOld = loc => {
@@ -290,15 +282,13 @@ const deleteIfTooOld = loc => {
 }
 
 /**
- * Get a redirect
- *
+ * Get a redirect.
  * @param {string} url
  */
 const getRedirect = url => mappings.redirects?.[url] || url
 
 /**
- * Get the url for a given site
- *
+ * Get the url for a given site.
  * @param {string} url
  */
 const forSite = url => {

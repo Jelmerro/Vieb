@@ -136,10 +136,9 @@ const zoomX = () => Math.round(X / (currentPage()?.getZoomFactor() ?? 1))
 const zoomY = () => Math.round(Y / (currentPage()?.getZoomFactor() ?? 1))
 
 /**
- * Move the pointer
- *
- * @param {Number} x
- * @param {Number} y
+ * Move the pointer.
+ * @param {number} x
+ * @param {number} y
  */
 const move = (x, y) => {
     X = x
@@ -148,9 +147,8 @@ const move = (x, y) => {
 }
 
 /**
- * Handle a difference in scroll height
- *
- * @param {Number} diff
+ * Handle a difference in scroll height.
+ * @param {number} diff
  */
 const handleScrollDiffEvent = diff => {
     startY += diff
@@ -199,8 +197,7 @@ const releaseKeys = () => {
 }
 
 /**
- * Store the latest mouse selection
- *
+ * Store the latest mouse selection.
  * @param {typeof lastSelection|null} selection
  */
 const storeMouseSelection = selection => {
@@ -210,9 +207,8 @@ const storeMouseSelection = selection => {
 // ACTIONS
 
 /**
- * Start pointer mode
- *
- * @param {{x?: Number, y?: Number}|null} args
+ * Start pointer mode.
+ * @param {{x?: number, y?: number} | null} args
  */
 const start = (args = null) => {
     X = args?.x || Number(currentPage()?.getAttribute("pointer-x")) || X
@@ -659,8 +655,7 @@ const moveFastUp = () => {
 }
 
 /**
- * Store a pointer position
- *
+ * Store a pointer position.
  * @param {{key?: string, location?: {x: number, y: number}, path: string}} args
  */
 const storePos = args => {
@@ -707,8 +702,7 @@ const storePos = args => {
 }
 
 /**
- * Restore a pointer position
- *
+ * Restore a pointer position.
  * @param {{key?: string, path?: string}} args
  */
 const restorePos = args => {

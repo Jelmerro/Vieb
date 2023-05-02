@@ -83,8 +83,7 @@ const resetPosition = () => {
 }
 
 /**
- * Push a new command to the list, optionally only if done by the user
- *
+ * Push a new command to the list, optionally only if done by the user.
  * @param {string} command
  * @param {boolean} user
  */

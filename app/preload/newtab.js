@@ -21,8 +21,7 @@ const {ipcRenderer} = require("electron")
 const {urlToString} = require("../util")
 
 /**
- * Add a site the the top sites or favorites list
- *
+ * Add a site the the top sites or favorites list.
  * @param {"topsites"|"favorites"} listname
  * @param {{url: string, icon?: string, name: string}} site
  */

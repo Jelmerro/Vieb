@@ -28,22 +28,19 @@ const {
 } = require("../util")
 
 /**
- * Go to the next page if available, optionally in a new tab
- *
+ * Go to the next page if available, optionally in a new tab.
  * @param {boolean} newtab
  */
 const nextPage = newtab => navigateToPage("*[rel=next], .navi-next", newtab)
 
 /**
- * Go to the previous page if available, optionally in a new tab
- *
+ * Go to the previous page if available, optionally in a new tab.
  * @param {boolean} newtab
  */
 const previousPage = newtab => navigateToPage("*[rel=prev], .navi-prev", newtab)
 
 /**
- * Navigate to the next page if available
- *
+ * Navigate to the next page if available.
  * @param {string} selector
  * @param {boolean} newtab
  */
@@ -69,10 +66,9 @@ const blur = () => {
 }
 
 /**
- * Scroll the page x and y pixels
- *
- * @param {Number} x
- * @param {Number} y
+ * Scroll the page x and y pixels.
+ * @param {number} x
+ * @param {number} y
  */
 const scrollBy = (x, y) => {
     if (window.innerHeight === document.documentElement.scrollHeight) {
@@ -83,9 +79,8 @@ const scrollBy = (x, y) => {
 }
 
 /**
- * Scroll the page to a specific percentage
- *
- * @param {Number} perc
+ * Scroll the page to a specific percentage.
+ * @param {number} perc
  */
 const scrollPerc = perc => {
     if (document.documentElement.scrollHeight === window.innerHeight) {
@@ -140,8 +135,7 @@ const exitFullscreen = () => document.exitFullscreen()
 const writeableInputs = {}
 
 /**
- * Set the text of an input to what was edited inside the vimcommand editor
- *
+ * Set the text of an input to what was edited inside the vimcommand editor.
  * @param {string} filename
  * @param {string} text
  */
@@ -155,8 +149,7 @@ const setInputFieldText = (filename, text) => {
 }
 
 /**
- * Write the contents of a specific input to a file
- *
+ * Write the contents of a specific input to a file.
  * @param {string} filename
  */
 const writeInputToFile = filename => {
@@ -175,10 +168,9 @@ const writeInputToFile = filename => {
 const print = () => document.execCommand("print")
 
 /**
- * Toggle video player controls at location x,y
- *
- * @param {Number} x
- * @param {Number} y
+ * Toggle video player controls at location x,y.
+ * @param {number} x
+ * @param {number} y
  */
 const toggleControls = (x, y) => {
     const el = findElementAtPosition(x, y)
@@ -193,10 +185,9 @@ const toggleControls = (x, y) => {
 }
 
 /**
- * Toggle the loop property at location x,y
- *
- * @param {Number} x
- * @param {Number} y
+ * Toggle the loop property at location x,y.
+ * @param {number} x
+ * @param {number} y
  */
 const toggleLoop = (x, y) => {
     const el = findElementAtPosition(x, y)
@@ -210,10 +201,9 @@ const toggleLoop = (x, y) => {
 }
 
 /**
- * Toggle the mute status ate location x,y
- *
- * @param {Number} x
- * @param {Number} y
+ * Toggle the mute status ate location x,y.
+ * @param {number} x
+ * @param {number} y
  */
 const toggleMute = (x, y) => {
     const el = findElementAtPosition(x, y)
@@ -227,10 +217,9 @@ const toggleMute = (x, y) => {
 }
 
 /**
- * Toggle pause at location x,y
- *
- * @param {Number} x
- * @param {Number} y
+ * Toggle pause at location x,y.
+ * @param {number} x
+ * @param {number} y
  */
 const togglePause = (x, y) => {
     const el = findElementAtPosition(x, y)
@@ -244,10 +233,9 @@ const togglePause = (x, y) => {
 }
 
 /**
- * Lower the volume at location x,y
- *
- * @param {Number} x
- * @param {Number} y
+ * Lower the volume at location x,y.
+ * @param {number} x
+ * @param {number} y
  */
 const volumeDown = (x, y) => {
     const el = findElementAtPosition(x, y)
@@ -257,10 +245,9 @@ const volumeDown = (x, y) => {
 }
 
 /**
- * Raise the volume at location x,y
- *
- * @param {Number} x
- * @param {Number} y
+ * Raise the volume at location x,y.
+ * @param {number} x
+ * @param {number} y
  */
 const volumeUp = (x, y) => {
     const el = findElementAtPosition(x, y)
@@ -270,17 +257,15 @@ const volumeUp = (x, y) => {
 }
 
 /**
- * Find the base document at location x,y
- *
- * @param {Number} x
- * @param {Number} y
+ * Find the base document at location x,y.
+ * @param {number} x
+ * @param {number} y
  */
 const documentAtPos = (x, y) => findElementAtPosition(x, y)
     ?.ownerDocument || document
 
 /**
- * Check if a node is a text node
- *
+ * Check if a node is a text node.
  * @param {any} node
  * @returns {node is Text|Comment|CDATASection}
  */
@@ -289,13 +274,12 @@ const isTextNode = node => [
 ].includes(node.nodeType)
 
 /**
- * Calculate the offset in characters for a given position in an element
- *
+ * Calculate the offset in characters for a given position in an element.
  * @param {Node} startNode
- * @param {Number} startX
- * @param {Number} startY
- * @param {Number} x
- * @param {Number} y
+ * @param {number} startX
+ * @param {number} startY
+ * @param {number} x
+ * @param {number} y
  */
 const calculateOffset = (startNode, startX, startY, x, y) => {
     const range = (findElementAtPosition(startX, startY)
@@ -309,16 +293,14 @@ const calculateOffset = (startNode, startX, startY, x, y) => {
     let properNode = startNode
     let offset = 0
     /**
-     * Descend down into a node of the tree
-     *
+     * Descend down into a node of the tree.
      * @param {Node} baseNode
      */
     const descendNodeTree = baseNode => {
         /**
-         * Find a point inside the range
-         *
-         * @param {Number} start
-         * @param {Number} end
+         * Find a point inside the range.
+         * @param {number} start
+         * @param {number} end
          */
         const pointInsideRegion = (start, end) => {
             range.setStart(baseNode, start)
@@ -359,41 +341,36 @@ const calculateOffset = (startNode, startX, startY, x, y) => {
 }
 
 /**
- * Select all at location x,y
- *
- * @param {Number} x
- * @param {Number} y
+ * Select all at location x,y.
+ * @param {number} x
+ * @param {number} y
  */
 const selectionAll = (x, y) => documentAtPos(x, y).execCommand("selectAll")
 /**
- * Cut a selection at location x,y
- *
- * @param {Number} x
- * @param {Number} y
+ * Cut a selection at location x,y.
+ * @param {number} x
+ * @param {number} y
  */
 const selectionCut = (x, y) => documentAtPos(x, y).execCommand("cut")
 /**
- * Paste a selection at location x,y
- *
- * @param {Number} x
- * @param {Number} y
+ * Paste a selection at location x,y.
+ * @param {number} x
+ * @param {number} y
  */
 const selectionPaste = (x, y) => documentAtPos(x, y).execCommand("paste")
 /**
- * Remove the selection from the document at location x,y
- *
- * @param {Number} x
- * @param {Number} y
+ * Remove the selection from the document at location x,y.
+ * @param {number} x
+ * @param {number} y
  */
 const selectionRemove = (x, y) => documentAtPos(x, y).getSelection()
     ?.removeAllRanges()
 /**
- * Make a new selection from start position to end position
- *
- * @param {Number} startX
- * @param {Number} startY
- * @param {Number} endX
- * @param {Number} endY
+ * Make a new selection from start position to end position.
+ * @param {number} startX
+ * @param {number} startY
+ * @param {number} endX
+ * @param {number} endY
  */
 const selectionRequest = (startX, startY, endX, endY) => {
     querySelectorAll("*")
@@ -430,8 +407,7 @@ const selectionRequest = (startX, startY, endX, endY) => {
 }
 
 /**
- * Translate a page based on api name, url, language and api key
- *
+ * Translate a page based on api name, url, language and api key.
  * @param {string} api
  * @param {string} url
  * @param {string} lang

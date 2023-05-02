@@ -94,8 +94,7 @@ const processHash = () => {
 }
 
 /**
- * Add an elements type description text, optionally with links to types
- *
+ * Add an elements type description text, optionally with links to types.
  * @param {Element} baseEl
  * @param {string} text
  */
@@ -115,8 +114,7 @@ const addTextWithLinksToTypes = (baseEl, text) => {
 }
 
 /**
- * Update the setting list with realtime information based on current settings
- *
+ * Update the setting list with realtime information based on current settings.
  * @param {Electron.IpcRendererEvent} _
  * @param {{
  *   name: string,
@@ -332,8 +330,7 @@ window.addEventListener("load", () => {
         mainImg.src = icon
     }
     /**
-     * Create an id label for each section element
-     *
+     * Create an id label for each section element.
      * @param {Element} element
      */
     const createIdLabel = element => {

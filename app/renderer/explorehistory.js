@@ -74,8 +74,7 @@ const resetPosition = () => {
 }
 
 /**
- * Push a new user navigation to the list
- *
+ * Push a new user navigation to the list.
  * @param {string} explore
  */
 const push = explore => {

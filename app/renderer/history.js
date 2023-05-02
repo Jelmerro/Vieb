@@ -47,8 +47,7 @@ const init = () => {
 }
 
 /**
- * Get a simplified url for a given regular url, result is cached for speed
- *
+ * Get a simplified url for a given regular url, result is cached for speed.
  * @param {string} url
  */
 const getSimpleUrl = url => {
@@ -61,8 +60,7 @@ const getSimpleUrl = url => {
 }
 
 /**
- * Get a simplified name for a given regular page title, result is cached
- *
+ * Get a simplified name for a given regular page title, result is cached.
  * @param {string} name
  */
 const getSimpleName = name => {
@@ -75,8 +73,7 @@ const getSimpleName = name => {
 }
 
 /**
- * Check if all search words appear anywhere in a given simple url or page title
- *
+ * Check if all search words appear anywhere in a simple url or page title.
  * @param {string[]} search
  * @param {string} simpleUrl
  * @param {string} name
@@ -85,8 +82,7 @@ const allWordsAnywhere = (search, simpleUrl, name) => search.every(
     w => simpleUrl.includes(w) || getSimpleName(name).includes(w))
 
 /**
- * Suggest history for a specific url input, an order and a maximum amount
- *
+ * Suggest history for a specific url input, an order and a maximum amount.
  * @param {string} searchStr
  * @param {string} order
  * @param {number} count
@@ -149,8 +145,7 @@ const suggestHist = (searchStr, order, count) => {
 }
 
 /**
- * Add a specific url to the history if not excluded
- *
+ * Add a specific url to the history if not excluded.
  * @param {string} url
  */
 const addToHist = url => {
@@ -209,8 +204,7 @@ const writeHistToFile = (now = false) => {
 }
 
 /**
- * Remove old history from before a specific date
- *
+ * Remove old history from before a specific date.
  * @param {Date} date
  */
 const removeOldHistory = date => {
@@ -222,8 +216,7 @@ const removeOldHistory = date => {
 }
 
 /**
- * Remove history newer than a specific date
- *
+ * Remove history newer than a specific date.
  * @param {Date} date
  */
 const removeRecentHistory = date => {
@@ -235,8 +228,7 @@ const removeRecentHistory = date => {
 }
 
 /**
- * Remove history based on a partial url query
- *
+ * Remove history based on a partial url query.
  * @param {string} urlSnippet
  */
 const removeHistoryByPartialUrl = urlSnippet => {
@@ -249,8 +241,7 @@ const removeHistoryByPartialUrl = urlSnippet => {
 }
 
 /**
- * Remove specific entries from the preload from history
- *
+ * Remove specific entries from the preload from history.
  * @param {{date: string, url: string}[]} entries
  */
 const removeFromHistory = entries => {
@@ -274,8 +265,7 @@ const removeFromHistory = entries => {
  */
 
 /**
- * Handle a request from the preload to remove history or just list it
- *
+ * Handle a request from the preload to remove history or just list it.
  * @param {Electron.WebviewTag} webview
  * @param {"range"|null} action
  * @param {{date: string, url: string}[]} entries
@@ -323,15 +313,13 @@ const suggestTopSites = () => {
 }
 
 /**
- * Get the visit count for a given url, will be 0 if not found or never visited
- *
+ * Get the visit count for a given url, will be 0 if not found or never visited.
  * @param {string|null} url
  */
 const visitCount = url => url && groupedHistory[url]?.visits?.length || 0
 
 /**
- * Get the latest title for a page by url
- *
+ * Get the latest title for a page by url.
  * @param {string} originalUrl
  */
 const titleForPage = originalUrl => {
@@ -342,8 +330,7 @@ const titleForPage = originalUrl => {
 }
 
 /**
- * Update the title for a page by url
- *
+ * Update the title for a page by url.
  * @param {string} rawUrl
  * @param {string} rawName
  */

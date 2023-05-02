@@ -60,8 +60,7 @@ try {
     // Hide device labels from the list of media devices by default
     const enumerate = window.navigator.mediaDevices.enumerateDevices
     /**
-     * Get the media devices with or without labels, or throw permission error
-     *
+     * Get the media devices with or without labels, or throw permission error.
      * @param {string} action
      */
     const mediaDeviceList = async action => {
@@ -206,8 +205,7 @@ try {
         }
         try {
             /**
-             * Generate a window selection for all the deskktop sources
-             *
+             * Generate a window selection for all the deskktop sources.
              * @param {Electron.DesktopCapturerSource[]} sources
              */
             const populateSourceToWindow = sources => {
@@ -220,8 +218,7 @@ try {
                 const selectionElem = document.createElement("div")
                 selectionElem.classList.add("desktop-capturer-selection")
                 /**
-                 * Get a data src url from a native image if possible
-                 *
+                 * Get a data src url from a native image if possible.
                  * @param {Electron.NativeImage} icon
                  */
                 const appIcon = icon => {

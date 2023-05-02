@@ -28,7 +28,8 @@ const specialPages = [
     "notifications",
     "version"
 ]
-/** @typedef {{
+/**
+ * @typedef {{
  *   click: {
  *     type: "download-success",
  *     path: string,
@@ -42,7 +43,8 @@ const specialPages = [
 const notificationHistory = []
 let appDataPath = ""
 let homeDirPath = ""
-/** @type {{
+/**
+ * @type {{
  *   appdata: string,
  *   autoplay: string,
  *   downloads: string,
@@ -55,9 +57,10 @@ let homeDirPath = ""
  *   files: string[],
  *   config: string
  *   version: string
- * }|null} */
+ * }|null}
+ */
 let configSettings = null
-/** @type {{element: Element|ShadowRoot, x: Number, y: Number}[]} */
+/** @type {{element: Element|ShadowRoot, x: number, y: number}[]} */
 const framePaddingInfo = []
 const specialChars = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/\s]/gi
 const specialCharsAllowSpaces = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/]/gi
@@ -76,24 +79,21 @@ const dataUris = [
 ]
 
 /**
- * Get the value of any setting
- *
+ * Get the value of any setting.
  * @param {string} val
  */
 const getSetting = val => JSON.parse(
     sessionStorage.getItem("settings") ?? "")?.[val]
 
 /**
- * Check if any string has a valid protocol or dataUri
- *
+ * Check if any string has a valid protocol or dataUri.
  * @param {string} loc
  */
 const hasProtocol = loc => protocolRegex.test(loc)
     || dataUris.some(d => loc.startsWith(`${d}:`))
 
 /**
- * Check if any string is a valid url
- *
+ * Check if any string is a valid url.
  * @param {string} location
  */
 const isUrl = location => {
@@ -127,8 +127,7 @@ const isUrl = location => {
 }
 
 /**
- * Match a searchword and return the word and filled url
- *
+ * Match a searchword and return the word and filled url.
  * @param {string} location
  */
 const searchword = location => {
@@ -159,8 +158,7 @@ const searchword = location => {
 const listNotificationHistory = () => notificationHistory
 
 /**
- * Get the url of a special page given a name and an optional section
- *
+ * Get the url of a special page given a name and an optional section.
  * @param {string} userPage
  * @param {string|null} section
  * @param {boolean} skipExistCheck
@@ -186,8 +184,7 @@ const specialPagePath = (userPage, section = null, skipExistCheck = false) => {
 }
 
 /**
- * Expand a path that is prefixed with ~ to the user's home folder
- *
+ * Expand a path that is prefixed with ~ to the user's home folder.
  * @param {string} loc
  */
 const expandPath = loc => {
@@ -202,8 +199,7 @@ const expandPath = loc => {
 }
 
 /**
- * Translate a string from the explore mode input to a valid url
- *
+ * Translate a string from the explore mode input to a valid url.
  * @param {string} location
  */
 const stringToUrl = location => {
@@ -241,8 +237,7 @@ const stringToUrl = location => {
 }
 
 /**
- * Translate a valid url to the explore mode input representation
- *
+ * Translate a valid url to the explore mode input representation.
  * @param {string} url
  */
 const urlToString = url => {
@@ -272,8 +267,7 @@ const urlToString = url => {
 }
 
 /**
- * Capitalize a string to only have one capital letter at the start
- *
+ * Capitalize a string to only have one capital letter at the start.
  * @param {string} s
  */
 const title = s => {
@@ -287,8 +281,7 @@ const downloadPath = () => expandPath(getSetting("downloadpath")
     || appConfig()?.downloads || "~/Downloads")
 
 /**
- * Template a user agent with value with version and browser info
- *
+ * Template a user agent with value with version and browser info.
  * @param {string} agent
  */
 const userAgentTemplated = agent => {
@@ -336,8 +329,7 @@ const firefoxUseragent = () => {
 }
 
 /**
- * Return the domain name for the provided url
- *
+ * Return the domain name for the provided url.
  * @param {string} url
  */
 const domainName = url => {
@@ -353,8 +345,7 @@ const domainName = url => {
 }
 
 /**
- * Returns true if both urls share the same domain name, else false
- *
+ * Returns true if both urls share the same domain name, else false.
  * @param {string} url1
  * @param {string} url2
  */
@@ -365,8 +356,7 @@ const sameDomain = (url1, url2) => {
 }
 
 /**
- * Format a provided date, unix time or
- *
+ * Format a provided date, unix time or.
  * @param {string|number|Date|null|undefined} dateStringOrNumber
  */
 const formatDate = dateStringOrNumber => {
@@ -381,10 +371,9 @@ const formatDate = dateStringOrNumber => {
 }
 
 /**
- * Store the location of a frame element
- *
+ * Store the location of a frame element.
  * @param {Element|ShadowRoot|null} element
- * @param {{x: Number, y: Number}} location
+ * @param {{x: number, y: number}} location
  */
 const storeFrameInfo = (element, location) => {
     if (!element) {
@@ -399,15 +388,13 @@ const storeFrameInfo = (element, location) => {
 }
 
 /**
- * Find the frame info for a given element if available
- *
+ * Find the frame info for a given element if available.
  * @param {Element|ShadowRoot|null} el
  */
 const findFrameInfo = el => framePaddingInfo.find(i => i.element === el)
 
 /**
- * Get the position of a given element based on bounding rect plus padding
- *
+ * Get the position of a given element based on bounding rect plus padding.
  * @param {Element} frame
  */
 const framePosition = frame => ({
@@ -418,8 +405,7 @@ const framePosition = frame => ({
 })
 
 /**
- * Get a CSS decleration property from an element as a number of pixels
- *
+ * Get a CSS decleration property from an element as a number of pixels.
  * @param {Element|CSSStyleDeclaration} element
  * @param {string} prop
  */
@@ -445,8 +431,7 @@ const propPixels = (element, prop) => {
 }
 
 /**
- * Call an element matches in a safe wrapper as not all elements work
- *
+ * Call an element matches in a safe wrapper as not all elements work.
  * @param {Element|EventTarget|null|undefined} el
  * @param {string} query
  */
@@ -464,13 +449,12 @@ const matchesQuery = (el, query) => {
 }
 
 /**
- * Find the deepest element at a position, including subframes and shadow doms
- *
- * @param {Number} x
- * @param {Number} y
+ * Find the deepest element at a position, including subframes and shadow doms.
+ * @param {number} x
+ * @param {number} y
  * @param {(Document|ShadowRoot)[]} levels
- * @param {Number} px
- * @param {Number} py
+ * @param {number} px
+ * @param {number} py
  * @returns {Element|null}
  */
 const findElementAtPosition = (x, y, levels = [document], px = 0, py = 0) => {
@@ -494,12 +478,11 @@ const findElementAtPosition = (x, y, levels = [document], px = 0, py = 0) => {
 }
 
 /**
- * Queryselector that recursively navigates subframes and shadow doms
- *
+ * Queryselector that recursively navigates subframes and shadow doms.
  * @param {string} sel
  * @param {Document|ShadowRoot|Element} base
- * @param {Number} paddedX
- * @param {Number} paddedY
+ * @param {number} paddedX
+ * @param {number} paddedY
  */
 const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
     if (!base) {
@@ -538,8 +521,7 @@ const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
 }
 
 /**
- * Find the center of a rect within the borders of the visible window
- *
+ * Find the center of a rect within the borders of the visible window.
  * @param {DOMRect} rect
  */
 const correctedCenterAndSizeOfRect = rect => {
@@ -562,8 +544,7 @@ const correctedCenterAndSizeOfRect = rect => {
 }
 
 /**
- * Return the most suitable click area given a list of options if available
- *
+ * Return the most suitable click area given a list of options if available.
  * @param {Element} element
  * @param {DOMRect[]} rects
  */
@@ -629,9 +610,8 @@ const activeElement = () => {
 }
 
 /**
- * Format any number of bytes (<1024 EB) to a value with a nice unit
- *
- * @param {Number} size
+ * Format any number of bytes (<1024 EB) to a value with a nice unit.
+ * @param {number} size
  */
 const formatSize = size => {
     if (size < 1024) {
@@ -642,8 +622,7 @@ const formatSize = size => {
 }
 
 /**
- * Compare two version numbers and return which one is newer
- *
+ * Compare two version numbers and return which one is newer.
  * @param {string} v1Str
  * @param {string} v2Str
  */
@@ -688,8 +667,7 @@ const compareVersions = (v1Str, v2Str) => {
 }
 
 /**
- * Fetch any url with the Node.JS http and https modules
- *
+ * Fetch any url with the Node.JS http and https modules.
  * @param {string} url
  * @param {import("https").RequestOptions} opts
  * @param {string|null} body
@@ -725,8 +703,7 @@ const fetchUrl = (url, opts = {}, body = null) => new Promise((res, rej) => {
 })
 
 /**
- * Fetch any url with the Node.JS http and https modules and parse its JSON
- *
+ * Fetch any url with the Node.JS http and https modules and parse its JSON.
  * @param {string} url
  * @param {import("https").RequestOptions} opts
  * @param {string|null} body
@@ -742,8 +719,7 @@ const fetchJSON = (url, opts = {}, body = null) => new Promise((res, rej) => {
 })
 
 /**
- * Calculate the offset in pixels for each dimension of an element
- *
+ * Calculate the offset in pixels for each dimension of an element.
  * @param {HTMLElement} page
  */
 const pageOffset = page => {
@@ -756,8 +732,7 @@ const pageOffset = page => {
 }
 
 /**
- * Run any system command in the user's preferred shell
- *
+ * Run any system command in the user's preferred shell.
  * @param {string} command
  * @param {(
  *   error: import("child_process").ExecException|null,
@@ -780,8 +755,7 @@ const execCommand = (command, callback) => {
 }
 
 /**
- * Check if the given value is a valid interval value
- *
+ * Check if the given value is a valid interval value.
  * @param {string} value
  * @param {boolean} invertedRangesSupported
  */
@@ -800,8 +774,7 @@ const isValidIntervalValue = (value, invertedRangesSupported = false) => {
 }
 
 /**
- * Convert an interval to a date relative to the current date
- *
+ * Convert an interval to a date relative to the current date.
  * @param {string} value
  */
 const intervalValueToDate = value => {
@@ -837,8 +810,7 @@ const currentPage = () => {
     return page
 }
 /**
- * Send a message to the current page and its frames
- *
+ * Send a message to the current page and its frames.
  * @param {string} channel
  * @param {any[]} args
  */
@@ -848,8 +820,7 @@ const sendToPageOrSubFrame = (channel, ...args) => {
 }
 
 /**
- * Show the user a notification bubble and store it in the history
- *
+ * Show the user a notification bubble and store it in the history.
  * @param {string} message
  * @param {string} type
  * @param {{
@@ -943,7 +914,7 @@ const notify = (message, type = "info", clickAction = false) => {
 }
 
 /**
- * Returns the appdata path (works from both main, renderer and preloads)
+ * Returns the appdata path (works from both main, renderer and preloads).
  */
 const appData = () => {
     if (!appDataPath) {
@@ -959,7 +930,7 @@ const appData = () => {
 }
 
 /**
- * Returns the app configuration settings
+ * Returns the app configuration settings.
  */
 const appConfig = () => {
     if (!configSettings) {
@@ -997,8 +968,7 @@ const appConfig = () => {
 const path = require("path")
 
 /**
- * Convert any url/path to the name and section of a special page if relevant
- *
+ * Convert any url/path to the name and section of a special page if relevant.
  * @param {string} urlPath
  */
 const pathToSpecialPageName = urlPath => {
@@ -1048,29 +1018,25 @@ const pathToSpecialPageName = urlPath => {
 }
 
 /**
- * Join multiple path parts into a single resolved path
- *
+ * Join multiple path parts into a single resolved path.
  * @param {string[]} paths
  */
 const joinPath = (...paths) => path.resolve(path.join(...paths))
 
 /**
- * Return the last part of the path, usually the filename
- *
+ * Return the last part of the path, usually the filename.
  * @param {string} loc
  */
 const basePath = loc => path.basename(loc)
 
 /**
- * Return the directory name of the path
- *
+ * Return the directory name of the path.
  * @param {string} loc
  */
 const dirname = loc => path.dirname(loc)
 
 /**
- * Check if a path is absolute or not
- *
+ * Check if a path is absolute or not.
  * @param {string} loc
  */
 const isAbsolutePath = loc => path.isAbsolute(loc)
@@ -1088,8 +1054,7 @@ const fs = require("fs")
  */
 
 /**
- * Get a setting from the webviewsettings file inside preloads
- *
+ * Get a setting from the webviewsettings file inside preloads.
  * @template {keyof webviewSetting} T
  * @param {T} name
  * @returns {null|webviewSetting[T]}
@@ -1101,8 +1066,7 @@ const getWebviewSetting = name => {
 }
 
 /**
- * Check if a path exists
- *
+ * Check if a path exists.
  * @param {string} loc
  */
 const pathExists = loc => {
@@ -1114,8 +1078,7 @@ const pathExists = loc => {
 }
 
 /**
- * Check if a path is a directory
- *
+ * Check if a path is a directory.
  * @param {string} loc
  */
 const isDir = loc => {
@@ -1127,8 +1090,7 @@ const isDir = loc => {
 }
 
 /**
- * Check if a path is a file
- *
+ * Check if a path is a file.
  * @param {string} loc
  */
 const isFile = loc => {
@@ -1140,8 +1102,7 @@ const isFile = loc => {
 }
 
 /**
- * Read the file contents of a file as a string
- *
+ * Read the file contents of a file as a string.
  * @param {string} loc
  * @returns {string|null}
  */
@@ -1154,8 +1115,7 @@ const readFile = loc => {
 }
 
 /**
- * Read the file contents of a file and parse it as JSON
- *
+ * Read the file contents of a file and parse it as JSON.
  * @param {string} loc
  * @returns {any|null}
  */
@@ -1168,8 +1128,7 @@ const readJSON = loc => {
 }
 
 /**
- * Write data to a file, optionally with success and error notifications
- *
+ * Write data to a file, optionally with success and error notifications.
  * @param {string} loc
  * @param {string|Buffer} data
  * @param {string|null} err
@@ -1191,8 +1150,7 @@ const writeFile = (loc, data, err = null, success = null) => {
 }
 
 /**
- * Append data to a file, optionally with success and error notifications
- *
+ * Append data to a file, optionally with success and error notifications.
  * @param {string} loc
  * @param {string} data
  * @param {string|null} err
@@ -1215,13 +1173,12 @@ const appendFile = (loc, data, err = null, success = null) => {
 
 
 /**
- * Write JSON data to a file, optionally with indentation and notifications
- *
+ * Write JSON data to a file, optionally with indentation and notifications.
  * @param {string} loc
  * @param {any} data
  * @param {string|null} err
  * @param {string|null} success
- * @param {Number|undefined|null} indent
+ * @param {number | undefined | null} indent
  */
 const writeJSON = (loc, data, err = null, success = null, indent = null) => {
     try {
@@ -1239,8 +1196,7 @@ const writeJSON = (loc, data, err = null, success = null, indent = null) => {
 }
 
 /**
- * Delete a file at a location, optinally with error message
- *
+ * Delete a file at a location, optinally with error message.
  * @param {string} loc
  * @param {string|null} err
  */
@@ -1257,8 +1213,7 @@ const deleteFile = (loc, err = null) => {
 }
 
 /**
- * Make a directory at a location, optionally with feedback notifications
- *
+ * Make a directory at a location, optionally with feedback notifications.
  * @param {string} loc
  * @param {string|null} err
  * @param {string|null} success
@@ -1279,8 +1234,7 @@ const makeDir = (loc, err = null, success = null) => {
 }
 
 /**
- * List all files (or only dirs) in a folder (not recursive)
- *
+ * List all files (or only dirs) in a folder (not recursive).
  * @param {string} loc
  * @param {boolean} absolute
  * @param {boolean} dirsOnly
@@ -1301,16 +1255,14 @@ const listDir = (loc, absolute = false, dirsOnly = false) => {
 }
 
 /**
- * Watch a specific file including the polling fallback of 500ms
- *
+ * Watch a specific file including the polling fallback of 500ms.
  * @param {string} file
  * @param {() => void} call
  */
 const watchFile = (file, call) => fs.watchFile(file, {"interval": 500}, call)
 
 /**
- * Get the modified date for a file location
- *
+ * Get the modified date for a file location.
  * @param {string} loc
  */
 const modifiedAt = loc => {
@@ -1322,8 +1274,7 @@ const modifiedAt = loc => {
 }
 
 /**
- * Remove a location using "rm -rf" rimraf module
- *
+ * Remove a location using "rm -rf" rimraf module.
  * @param {string} f
  */
 const rm = f => {

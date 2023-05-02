@@ -59,8 +59,7 @@ const filterList = () => {
 }
 
 /**
- * Convert an electron cookie object to a valid url
- *
+ * Convert an electron cookie object to a valid url.
  * @param {Electron.Cookie} cookie
  */
 const cookieToUrl = cookie => {
@@ -95,8 +94,7 @@ const removeAllCookies = () => {
 
 
 /**
- * Parse the list of cookies and show them
- *
+ * Parse the list of cookies and show them.
  * @param {Electron.Cookie[]} cookies
  */
 const parseList = cookies => {

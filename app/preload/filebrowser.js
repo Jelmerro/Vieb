@@ -31,8 +31,7 @@ h2 {font-size: 2em;margin: 0 0 1em;}
 .error {color: var(--notification-error, #f33);}`
 
 /**
- * Create a dir or file element with onclick handler and return it
- *
+ * Create a dir or file element with onclick handler and return it.
  * @param {"file"|"dir"} type
  * @param {string} loc
  * @param {string|null} customTitle
@@ -49,22 +48,19 @@ const createElement = (type, loc, customTitle = null) => {
 }
 
 /**
- * Convert a location to a clickable url
- *
+ * Convert a location to a clickable url.
  * @param {string} loc
  */
 const toUrl = loc => `file:${loc}`.replace(/^file:\/+/, "file:///")
 
 /**
- * Check if the provided location is the root location of the system
- *
+ * Check if the provided location is the root location of the system.
  * @param {string} loc
  */
 const isRoot = loc => loc === joinPath(loc, "../")
 
 /**
- * Insert the current directory info into the page to explore local files
- *
+ * Insert the current directory info into the page to explore local files.
  * @param {Electron.IpcRendererEvent} _
  * @param {string[]} directories
  * @param {string[]} files

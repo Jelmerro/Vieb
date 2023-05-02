@@ -62,11 +62,11 @@ const {setMode} = require("./modes")
  * @typedef {(
  *   "open"|"newtab"|"copy"|"download"|"split"|"vsplit"|"external"|"search"
  * )} tabPosition
-
+ *
 /** @type {{container: string, muted: boolean, url: string, index: number}[]} */
 let recentlyClosed = []
 let linkId = 0
-/** @type {{[id: string]: Number}} */
+/** @type {{[id: string]: number}} */
 const timeouts = {}
 const tabFile = joinPath(appData(), "tabs")
 const erwicMode = isFile(joinPath(appData(), "erwicmode"))
@@ -247,8 +247,7 @@ const saveTabs = () => {
 }
 
 /**
- * Add a new tab
- *
+ * Add a new tab.
  * @param {{
  *   url?: string,
  *   customIndex?: number,
@@ -456,8 +455,7 @@ const sharedAttributes = [
 ]
 
 /**
- * Suspend a tab
- *
+ * Suspend a tab.
  * @param {HTMLSpanElement} tab
  * @param {boolean} force
  */
@@ -493,8 +491,7 @@ const suspendTab = (tab, force = false) => {
 }
 
 /**
- * Unsuspend a tab
- *
+ * Unsuspend a tab.
  * @param {Electron.WebviewTag|HTMLDivElement} page
  */
 const unsuspendPage = page => {
@@ -611,8 +608,7 @@ const reopenTab = () => {
 }
 
 /**
- * Close a tab by index, optionally force close pinned ones
- *
+ * Close a tab by index, optionally force close pinned ones.
  * @param {number|null} index
  * @param {boolean} force
  */
@@ -698,8 +694,7 @@ const closeTab = (index = null, force = false) => {
 }
 
 /**
- * Switch to a different tab by element or index
- *
+ * Switch to a different tab by element or index.
  * @param {HTMLSpanElement|number} tabOrIndex
  */
 const switchToTab = tabOrIndex => {
@@ -768,8 +763,7 @@ const switchToTab = tabOrIndex => {
 }
 
 /**
- * Update the url in the navbar to reflect the current status
- *
+ * Update the url in the navbar to reflect the current status.
  * @param {Electron.WebviewTag} webview
  * @param {boolean} force
  */
@@ -794,8 +788,7 @@ const updateUrl = (webview, force = false) => {
 }
 
 /**
- * Inject custom styling into the page in a CSP compatible way
- *
+ * Inject custom styling into the page in a CSP compatible way.
  * @param {Electron.WebviewTag} webview
  * @param {string} type
  * @param {string|null} css
@@ -815,8 +808,7 @@ const injectCustomStyleRequest = async(webview, type, css = null) => {
 }
 
 /**
- * Add all permanent listeners to the new webview
- *
+ * Add all permanent listeners to the new webview.
  * @param {Electron.WebviewTag} webview
  */
 const addWebviewListeners = webview => {
@@ -1191,8 +1183,7 @@ const addWebviewListeners = webview => {
 }
 
 /**
- * Recreate a webview to in case of new container name or crash reload
- *
+ * Recreate a webview to in case of new container name or crash reload.
  * @param {Electron.WebviewTag} webview
  */
 const recreateWebview = webview => {
@@ -1207,8 +1198,7 @@ const recreateWebview = webview => {
 }
 
 /**
- * Reset the tab information for a given page
- *
+ * Reset the tab information for a given page.
  * @param {Electron.WebviewTag} webview
  */
 const resetTabInfo = webview => {
@@ -1218,8 +1208,7 @@ const resetTabInfo = webview => {
 }
 
 /**
- * Pick a new useragent for the page if multiple are configured
- *
+ * Pick a new useragent for the page if multiple are configured.
  * @param {Electron.WebviewTag} webview
  */
 const rerollUserAgent = webview => {
@@ -1235,8 +1224,7 @@ const rerollUserAgent = webview => {
 }
 
 /**
- * Navigate the page to a new location, optionally a custom page
- *
+ * Navigate the page to a new location, optionally a custom page.
  * @param {string} location
  * @param {Electron.WebviewTag|null} customPage
  */
