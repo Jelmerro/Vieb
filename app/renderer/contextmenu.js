@@ -134,6 +134,7 @@ const viebMenu = (options, force = false) => {
     if (options instanceof MouseEvent) {
         pathEls = options.composedPath().filter(
             /**
+             * Filter the event targets to only elements.
              * @param {EventTarget} el
              * @returns {el is Element}
              */

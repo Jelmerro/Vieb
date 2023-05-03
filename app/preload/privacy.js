@@ -413,7 +413,10 @@ Object.defineProperty(window.Navigator.prototype,
     "deviceMemory", {"get": (() => 8).bind(null)})
 // Hide graphics card information from the canvas API
 const getParam = window.WebGLRenderingContext.prototype.getParameter
-/** @type {(pname: number) => any} */
+/**
+ * Override the getParameter function to return nothing when asked for GPU info.
+ * @param {number} parameter
+ */
 window.WebGLRenderingContext.prototype.getParameter = function(parameter) {
     if ([37445, 37446].includes(parameter)) {
         return ""
@@ -421,7 +424,10 @@ window.WebGLRenderingContext.prototype.getParameter = function(parameter) {
     return getParam.call(this, parameter)
 }
 const getParam2 = window.WebGL2RenderingContext.prototype.getParameter
-/** @type {(pname: number) => any} */
+/**
+ * Override the getParameter function to return nothing when asked for GPU info.
+ * @param {number} parameter
+ */
 window.WebGL2RenderingContext.prototype.getParameter = function(parameter) {
     if ([37445, 37446].includes(parameter)) {
         return ""

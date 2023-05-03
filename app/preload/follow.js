@@ -559,12 +559,14 @@ const contextListener = (e, frame = null, extraData = null) => {
         const paddingInfo = findFrameInfo(frame)
         const img = e.composedPath().find(
             /**
+             * Find an image element in the list of event targets.
              * @param {EventTarget} el
              * @returns {el is HTMLImageElement}
              */
             el => el instanceof HTMLImageElement)
         const svg = e.composedPath().find(
             /**
+             * Find an svg element in the list of event targets.
              * @param {EventTarget} el
              * @returns {el is SVGElement}
              */
@@ -581,6 +583,7 @@ const contextListener = (e, frame = null, extraData = null) => {
         }).find(url => url)
         const videoEl = e.composedPath().find(
             /**
+             * Find a video element in the list of event targets.
              * @param {EventTarget} el
              * @returns {el is HTMLVideoElement}
              */
@@ -592,6 +595,7 @@ const contextListener = (e, frame = null, extraData = null) => {
         ].find(el => el?.src.trim())
         const audioEl = e.composedPath().find(
             /**
+             * Find an audio element in the list of event targets.
              * @param {EventTarget} el
              * @returns {el is HTMLAudioElement}
              */
@@ -605,6 +609,7 @@ const contextListener = (e, frame = null, extraData = null) => {
         ].find(el => el?.src.trim())
         const link = e.composedPath().filter(
             /**
+             * Find an anchor element in the list of event targets.
              * @param {EventTarget} el
              * @returns {el is HTMLAnchorElement}
              */
@@ -614,6 +619,7 @@ const contextListener = (e, frame = null, extraData = null) => {
             el => matchesQuery(el, textlikeInputs))
         const iframe = [...e.composedPath(), frame].find(
             /**
+             * Find an iframe in the list of event targets.
              * @param {EventTarget|null} el
              * @returns {el is HTMLIFrameElement}
              */

@@ -825,7 +825,10 @@ const init = () => {
             return
         }
         e.preventDefault()
-        /** @type {(ev: MouseEvent) => EventTarget|undefined} */
+        /**
+         * Find the url box or the suggest dropdown in the list of targets.
+         * @param {MouseEvent} ev
+         */
         const urlOrSuggest = ev => ev.composedPath().find(
             n => matchesQuery(n, "#url, #suggest-dropdown"))
         if (urlOrSuggest(e)) {
@@ -877,7 +880,10 @@ const init = () => {
         if (getMouseConf("leaveinput")) {
             const {followFiltering} = require("./follow")
             const typing = "sec".includes(currentMode()[0]) || followFiltering()
-            /** @type {(ev: MouseEvent) => EventTarget|undefined} */
+            /**
+             * Find the url box or the suggest dropdown in the list of targets.
+             * @param {MouseEvent} ev
+             */
             const urlOrSuggest = ev => ev.composedPath().find(n => matchesQuery(
                 n, "#url, #suggest-dropdown, #screenshot-highlight"))
             if (typing && !urlOrSuggest(e)) {

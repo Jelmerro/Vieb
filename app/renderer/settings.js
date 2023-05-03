@@ -134,7 +134,7 @@ const defaultSettings = {
     "favicons": "session",
     "favoritepages": "",
     /** @type {"all"|"alpha"|"alphanum"|"dvorakhome"
-     * |"numbers"|"qwertyhome"|`custom:${string}`} */
+     * |"numbers"|"qwertyhome"|"custom:${string}"} */
     "followchars": "alpha",
     "followelement": "url,onclick,inputs-insert,inputs-click,media,image,other",
     "followelementpointer":

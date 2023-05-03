@@ -69,7 +69,7 @@ module.exports = {
         "jsdoc/no-types": "off",
         "jsdoc/no-undefined-types": "off",
         "jsdoc/require-asterisk-prefix": "error",
-        "jsdoc/require-description": "off",
+        "jsdoc/require-description": "error",
         "jsdoc/require-description-complete-sentence": "error",
         "jsdoc/require-example": "off",
         "jsdoc/require-file-overview": "off",

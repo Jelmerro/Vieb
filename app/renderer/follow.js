@@ -32,13 +32,13 @@ const {sendToPageOrSubFrame} = require("../util")
 
 /**
  * @typedef {object} FollowLink
- * @property {number} x
- * @property {number} y
- * @property {number} width
- * @property {number} height
- * @property {string} text
- * @property {string} type
- * @property {string} url
+ * @property {number} x The x location of the element.
+ * @property {number} y The y location of the element.
+ * @property {number} width The width of the element.
+ * @property {number} height The height of the element.
+ * @property {string} text The textContent of the element, possibly empty.
+ * @property {string} type The type of element.
+ * @property {string} url The href url attribute of the element, possibly empty.
  */
 
 /** @type {FollowLink|null} */
@@ -130,6 +130,7 @@ const followChars = () => {
     const setName = getSetting("followchars")
     let allKeys = setName.replace("custom:", "")
     /**
+     * Check if a provided set name is a built-in one or a custom one.
      * @param {string} set
      * @returns {set is keyof typeof keys}
      */
