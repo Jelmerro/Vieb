@@ -440,8 +440,15 @@ if (window.navigator.userAgent.includes("Firefox")) {
         "buildID", {"get": (() => "20181001000000").bind(null)})
     Object.defineProperty(window.Navigator.prototype,
         "doNotTrack", {"get": (() => "unspecified").bind(null)})
+    let platform = "Linux x86_64"
+    if (process.platform === "win32") {
+        platform = "Win32"
+    }
+    if (process.platform === "darwin") {
+        platform = "MacIntel"
+    }
     Object.defineProperty(window.Navigator.prototype,
-        "oscpu", {"get": (() => String(window.navigator.platform)).bind(null)})
+        "oscpu", {"get": (() => platform).bind(null)})
     Object.defineProperty(window.Navigator.prototype,
         "productSub", {"get": (() => "20100101").bind(null)})
     Object.defineProperty(window.Navigator.prototype,

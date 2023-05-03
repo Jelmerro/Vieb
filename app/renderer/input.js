@@ -677,7 +677,9 @@ const init = () => {
     window.addEventListener("keyup", e => e.preventDefault())
     window.addEventListener("mousedown", e => {
         if (currentMode() === "insert" && getMouseConf("leaveinsert")) {
-            ACTIONS.toNormalMode()
+            if (!e.composedPath().some(n => matchesQuery(n, "#context-menu"))) {
+                ACTIONS.toNormalMode()
+            }
         }
         if (e.button === 3) {
             if (getMouseConf("history")) {

@@ -225,12 +225,12 @@ const set = args => {
         } else if (part.endsWith("!")) {
             const setting = part.slice(0, -1)
             if (isValidSettingName(setting) && setting !== "all") {
-                const value = String(getSetting(setting))
+                const value = getSetting(setting)
                 const {isEnumSetting, validOptions} = require("./settings")
                 if (["boolean", "undefined"].includes(typeof value)) {
                     s(setting, String(!value))
                 } else if (isEnumSetting(setting)) {
-                    const index = validOptions[setting].indexOf(value)
+                    const index = validOptions[setting].indexOf(String(value))
                     s(setting, validOptions[setting][index + 1]
                     || validOptions[setting][0])
                 } else {
