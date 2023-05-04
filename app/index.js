@@ -1720,9 +1720,9 @@ const loadBlocklist = file => {
 
 // Download favicons for websites
 ipcMain.on("download-favicon", (_, options) => {
-    const request = net.request({
-        "session": webContents.fromId(options.webId).session, "url": options.fav
-    })
+    const customSession = webContents.fromId(options.webId)?.session
+        ?? session.defaultSession
+    const request = net.request({"session": customSession, "url": options.fav})
     request.on("response", res => {
         /** @type {Buffer[]} */
         const data = []
@@ -1846,7 +1846,7 @@ ipcMain.on("update-native-theme", (_, newTheme) => {
     nativeTheme.themeSource = newTheme
 })
 ipcMain.handle("save-page", (_, id, loc) => {
-    webContents.fromId(id).savePage(loc, "HTMLComplete")
+    webContents.fromId(id)?.savePage(loc, "HTMLComplete")
 })
 ipcMain.on("hide-window", () => {
     if (!argDebugMode) {
@@ -1856,9 +1856,11 @@ ipcMain.on("hide-window", () => {
 ipcMain.on("add-devtools", (_, pageId, devtoolsId) => {
     const page = webContents.fromId(pageId)
     const devtools = webContents.fromId(devtoolsId)
-    page.setDevToolsWebContents(devtools)
-    page.openDevTools()
-    devtools.executeJavaScript("window.location.reload()")
+    if (page && devtools) {
+        page.setDevToolsWebContents(devtools)
+        page.openDevTools()
+        devtools.executeJavaScript("window.location.reload()")
+    }
 })
 ipcMain.on("open-internal-devtools",
     () => mainWindow?.webContents.openDevTools({"mode": "detach"}))
@@ -1983,7 +1985,7 @@ const errToMain = exception => {
 
 ipcMain.on("follow-mode-start", (_, id, followTypeFilter, switchTo = false) => {
     try {
-        webContents.fromId(id).mainFrame.framesInSubtree.forEach(f => {
+        webContents.fromId(id)?.mainFrame.framesInSubtree.forEach(f => {
             try {
                 f.send("follow-mode-start", followTypeFilter)
             } catch (ex) {
@@ -2223,6 +2225,9 @@ const findRelevantSubFrame = (wc, x, y) => {
 }
 ipcMain.on("action", (_, id, actionName, ...opts) => {
     const wc = webContents.fromId(id)
+    if (!wc) {
+        return
+    }
     if (typeof opts[0] === "number" && typeof opts[1] === "number") {
         const subframe = findRelevantSubFrame(wc, opts[0], opts[1])
         if (subframe) {
@@ -2258,6 +2263,9 @@ ipcMain.on("action", (_, id, actionName, ...opts) => {
 })
 ipcMain.on("contextmenu-data", (_, id, info) => {
     const wc = webContents.fromId(id)
+    if (!wc) {
+        return
+    }
     const subframe = findRelevantSubFrame(wc, info.x, info.y)
     if (subframe) {
         try {
@@ -2280,7 +2288,7 @@ ipcMain.on("contextmenu-data", (_, id, info) => {
 })
 ipcMain.on("contextmenu", (_, id) => {
     try {
-        webContents.fromId(id).mainFrame.framesInSubtree.forEach(
+        webContents.fromId(id)?.mainFrame.framesInSubtree.forEach(
             f => f.send("contextmenu"))
     } catch (ex) {
         errToMain(ex)
@@ -2288,6 +2296,9 @@ ipcMain.on("contextmenu", (_, id) => {
 })
 ipcMain.on("focus-input", (_, id, location = null) => {
     const wc = webContents.fromId(id)
+    if (!wc) {
+        return
+    }
     if (location) {
         const subframe = findRelevantSubFrame(wc, location.x, location.y)
         if (subframe) {
@@ -2309,8 +2320,11 @@ ipcMain.on("focus-input", (_, id, location = null) => {
     wc.send("focus-input", location)
 })
 ipcMain.on("replace-input-field", (_, id, frameId, correction, inputField) => {
+    const wc = webContents.fromId(id)
+    if (!wc) {
+        return
+    }
     try {
-        const wc = webContents.fromId(id)
         if (frameId) {
             const frameRef = wc.mainFrame.framesInSubtree.find(
                 f => frameId === `${f.routingId}-${f.processId}`)
@@ -2414,6 +2428,9 @@ ipcMain.on("send-keyboard-event", (_, id, keyOptions) => {
             delete keyOptions.key
         }
         const wc = webContents.fromId(id)
+        if (!wc) {
+            return
+        }
         wc.sendInputEvent({...keyOptions, "type": "keyDown"})
         if (keyOptions.keyCode.length === 1) {
             wc.sendInputEvent({...keyOptions, "type": "char"})
@@ -2433,6 +2450,9 @@ ipcMain.on("send-input-event", (_, id, inputInfo) => {
     const X = inputInfo.x
     const Y = inputInfo.y
     const wc = webContents.fromId(id)
+    if (!wc) {
+        return
+    }
     const subframe = findRelevantSubFrame(wc, X, Y)
     if (subframe) {
         try {
