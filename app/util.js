@@ -1047,7 +1047,7 @@ const notify = (message, type = "info", clickAction = false) => {
     if (clickAction && clickAction.func) {
         notification.addEventListener("click", () => clickAction.func?.())
     }
-    notificationsElement.appendChild(notification)
+    notificationsElement.append(notification)
     setTimeout(() => notification.remove(),
         getSetting("notificationduration"))
 }

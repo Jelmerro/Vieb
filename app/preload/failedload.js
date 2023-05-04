@@ -39,7 +39,7 @@ ipcRenderer.on("insert-failed-page-info", (_, e, isSSLError) => {
     }
     const styleElement = document.createElement("style")
     styleElement.textContent = styling
-    document.head.appendChild(styleElement)
+    document.head.append(styleElement)
     const mainInfo = document.createElement("main")
     if (isSSLError) {
         const http = err.validatedURL.replace("https://", "http://")
@@ -62,5 +62,5 @@ ipcRenderer.on("insert-failed-page-info", (_, e, isSSLError) => {
             not support the '${err.validatedURL.replace(/:.*$/g, "")}' protocol.
             Finally, please check your internet connection and DNS settings.`
     }
-    document.body.appendChild(mainInfo)
+    document.body.append(mainInfo)
 })

@@ -246,7 +246,7 @@ try {
                     `).join("")}
                 </span>
             </span>`
-                document.body.appendChild(selectionElem)
+                document.body.append(selectionElem)
                 ipcRenderer.sendToHost(
                     "custom-style-inject", "displaycapture", style)
                 const closeButtons = [selectionElem, selectionElem

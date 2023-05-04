@@ -94,16 +94,16 @@ const runGMScript = (webview, rawContents) => {
                 })
             }
             if (parentNode) {
-                parentNode.appendChild(el)
+                parentNode.append(el)
             } else {
-                document.body.appendChild(el)
+                document.body.append(el)
             }
             return el
         },
         "addStyle": css => {
             const el = document.createElement("style")
             el.textContent = css
-            document.head.appendChild(el)
+            document.head.append(el)
             return el
         },
         "addValueChangeListener": () => undefined,

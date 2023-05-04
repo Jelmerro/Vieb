@@ -169,7 +169,7 @@ const init = () => {
             }
             e.preventDefault()
         })
-        modeList?.appendChild(modeEntry)
+        modeList?.append(modeEntry)
     })
 }
 

@@ -696,7 +696,7 @@ const createMenuGroup = name => {
     const item = document.createElement("div")
     item.className = "menu-group"
     item.textContent = name
-    contextMenu?.appendChild(item)
+    contextMenu?.append(item)
 }
 
 /**
@@ -720,7 +720,7 @@ const createMenuItem = options => {
         options.action()
         clear()
     })
-    contextMenu.appendChild(item)
+    contextMenu.append(item)
 }
 
 const active = () => !!contextMenu?.textContent?.trim()

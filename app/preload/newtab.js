@@ -30,16 +30,16 @@ const addSiteToList = (listname, site) => {
     link.href = encodeURI(site.url)
     const icon = document.createElement("img")
     icon.src = site.icon || "../img/empty.png"
-    link.appendChild(icon)
+    link.append(icon)
     const text = document.createElement("div")
     const title = document.createElement("span")
     title.textContent = site.name
-    text.appendChild(title)
+    text.append(title)
     const url = document.createElement("small")
     url.textContent = urlToString(site.url)
-    text.appendChild(url)
-    link.appendChild(text)
-    document.getElementById(listname)?.appendChild(link)
+    text.append(url)
+    link.append(text)
+    document.getElementById(listname)?.append(link)
 }
 
 ipcRenderer.on("insert-new-tab-info", (_, topsites, favorites) => {

@@ -2294,16 +2294,16 @@ const updateKeysOnScreen = () => {
                 "result": bindings[mode][b].mapping
             })).forEach(action => {
                 const singleSuggestion = document.createElement("span")
-                singleSuggestion.appendChild(alreadyDone.cloneNode(true))
+                singleSuggestion.append(alreadyDone.cloneNode(true))
                 const nextKeys = document.createElement("span")
                 nextKeys.textContent = action.next
                 nextKeys.className = "warning"
-                singleSuggestion.appendChild(nextKeys)
+                singleSuggestion.append(nextKeys)
                 const resultAction = document.createElement("span")
                 resultAction.textContent = action.result
                 resultAction.className = "info"
-                singleSuggestion.appendChild(resultAction)
-                mapsuggestElement.appendChild(singleSuggestion)
+                singleSuggestion.append(resultAction)
+                mapsuggestElement.append(singleSuggestion)
             })
         }
     }

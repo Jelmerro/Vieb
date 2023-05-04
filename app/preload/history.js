@@ -194,25 +194,25 @@ const addHistToList = hist => {
         const icon = document.createElement("img")
         icon.src = hist.icon
         icon.className = "favicon"
-        histElement.appendChild(icon)
+        histElement.append(icon)
     }
     const img = document.createElement("img")
     img.src = joinPath(__dirname, "../img/trash.png")
     img.addEventListener("click", () => clearLinesFromHistory(hist.line))
-    histElement.appendChild(img)
+    histElement.append(img)
     const date = document.createElement("span")
     date.textContent = formatDate(hist.date)
     date.setAttribute("iso", hist.date.toISOString())
     date.className = "hist-date"
-    histElement.appendChild(date)
+    histElement.append(date)
     const title = document.createElement("span")
     title.textContent = hist.title
     title.className = "hist-title"
-    histElement.appendChild(title)
+    histElement.append(title)
     const url = document.createElement("a")
     url.textContent = urlToString(hist.url)
     url.setAttribute("href", hist.url)
-    histElement.appendChild(url)
+    histElement.append(url)
     list.insertBefore(histElement, list.firstChild)
 }
 

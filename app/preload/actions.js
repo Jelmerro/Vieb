@@ -460,7 +460,7 @@ const translatepage = async(api, url, lang, apiKey) => {
             } else if (textNode.nodeName === "#text") {
                 subText.textContent = textNode.textContent
             }
-            txtEl.appendChild(subText)
+            txtEl.append(subText)
         }
         if (txtEl.textContent?.trim()) {
             return txtEl
@@ -606,7 +606,7 @@ window.addEventListener("DOMContentLoaded", () => {
         if (!document.getElementById("custom-styling")) {
             const styleElement = document.createElement("style")
             styleElement.id = "custom-styling"
-            document.head.appendChild(styleElement)
+            document.head.append(styleElement)
         }
         const customStyle = document.getElementById("custom-styling")
         if (customStyle) {

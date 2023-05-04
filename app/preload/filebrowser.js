@@ -71,33 +71,33 @@ const insertCurrentDirInfo = (_, directories, files, allowed, folder) => {
     // Styling
     const styleElement = document.createElement("style")
     styleElement.textContent = styling
-    document.head.appendChild(styleElement)
+    document.head.append(styleElement)
     // Main
     const main = document.createElement("main")
     const title = document.createElement("h2")
     title.textContent = folder
-    main.appendChild(title)
+    main.append(title)
     if (!isRoot(folder)) {
-        main.appendChild(createElement("dir", joinPath(folder, "../"), ".."))
+        main.append(createElement("dir", joinPath(folder, "../"), ".."))
     }
     if (!allowed) {
         const error = document.createElement("span")
         error.textContent = "Permission denied"
         error.className = "error"
-        main.appendChild(error)
+        main.append(error)
     } else if (directories.length === 0 && files.length === 0) {
         const error = document.createElement("span")
         error.textContent = "Empty directory"
         error.className = "error"
-        main.appendChild(error)
+        main.append(error)
     } else {
         directories.forEach(dir => {
-            main.appendChild(createElement("dir", dir))
+            main.append(createElement("dir", dir))
         })
         files.forEach(file => {
-            main.appendChild(createElement("file", file))
+            main.append(createElement("file", file))
         })
     }
-    document.body.appendChild(main)
+    document.body.append(main)
 }
 ipcRenderer.on("insert-current-directory-files", insertCurrentDirInfo)
