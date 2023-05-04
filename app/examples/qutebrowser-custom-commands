@@ -12,7 +12,7 @@ set permissionmediadevices=allow
 set permissionmicrophone=ask
 set permissionpersistentstorage=allow
 set redirecttohttp
-set tabclosefocusright
+set tabclosefocus=right
 set tabreopenposition=right
 set windowtitle="%title - %app"
 set mapsuggestposition=bottomleft

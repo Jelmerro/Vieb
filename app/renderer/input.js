@@ -150,8 +150,8 @@ const defaultBindings = {
         "<C-o>": {"mapping": "<backInHistory>"},
         "<C-p>": {"mapping": "<previousTab>"},
         "<C-q>": "<:quit>",
-        "<C-t>": {"mapping": "<:set tabnexttocurrent!>"
-            + "<:tabnew><:set tabnexttocurrent!>"},
+        "<C-t>": {"mapping": "<:set tabnewposition=end>"
+            + "<:tabnew><:set tabnewposition=right>"},
         "<C-u>": {"mapping": "<scrollPageUpHalf>"},
         "<C-w>+": {"mapping": "<increaseHeightSplitWindow>"},
         "<C-w><C-=>": {"mapping": "<distrubuteSpaceSplitWindow>"},

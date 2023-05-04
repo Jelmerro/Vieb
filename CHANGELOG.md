@@ -11,6 +11,18 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Deprecated
+
+- Setting "tabnexttocurrent" boolean in favor of "tabnewposition" enum
+- Setting "tabclosefocusright" boolean in favor of "tabclosefocus" enum
+
+### Versions
+
+- Electron 23.2.0 (unchanged)
+- Chromium 110.0.5481.192 (unchanged)
+
 ## [9.7.0](https://github.com/Jelmerro/Vieb/compare/9.6.0...9.7.0) - 2023-04-02
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/9.6.0...9.7.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/9.7.0)

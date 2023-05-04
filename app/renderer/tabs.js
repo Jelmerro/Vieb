@@ -343,7 +343,7 @@ const addTab = (options = {}) => {
             }
             tabs.insertBefore(tab, nextTab)
         }
-    } else if (getSetting("tabnexttocurrent") && currentTab()) {
+    } else if (getSetting("tabnewposition") === "right" && currentTab()) {
         let nextTab = currentTab().nextSibling
         if (!options.pinned) {
             while (nextTab && nextTab.classList.contains("pinned")) {
@@ -588,7 +588,7 @@ const closeTab = (index = null, force = false) => {
             }
         }
         if (isClosingCurrent) {
-            if (getSetting("tabclosefocusright")) {
+            if (getSetting("tabclosefocus") === "right") {
                 if (oldTabIdx >= listTabs().length) {
                     switchToTab(listTabs().length - 1)
                 } else {

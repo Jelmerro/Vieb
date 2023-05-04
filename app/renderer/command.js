@@ -183,6 +183,60 @@ const set = args => {
             s("notificationforpermissions", "silent")
             continue
         }
+        if (part === "tabclosefocusright") {
+            notify("Using tabclosefocusright is deprecated,"
+                + " use the enum syntax instead: tabclosefocus=right", "warn")
+            const {"set": s} = require("./settings")
+            s("tabclosefocus", "right")
+            continue
+        }
+        if (part === "tabclosefocusright!" || part === "invtabclosefocusright") {
+            notify("Using tabclosefocusright is deprecated,"
+                + " use the enum syntax instead: tabclosefocus=left,"
+                + " this invocation will in the future rotate the options",
+            "warn")
+            const {"set": s} = require("./settings")
+            if (getSetting("tabclosefocus") === "right") {
+                s("tabclosefocus", "left")
+            } else {
+                s("tabclosefocus", "right")
+            }
+            continue
+        }
+        if (part === "notabclosefocusright") {
+            notify("Using tabclosefocusright is deprecated,"
+                + " use the enum syntax instead: tabclosefocus=left", "warn")
+            const {"set": s} = require("./settings")
+            s("tabclosefocus", "left")
+            continue
+        }
+        if (part === "tabnexttocurrent") {
+            notify("Using tabnexttocurrent is deprecated,"
+                + " use the enum syntax instead: tabnewposition=right", "warn")
+            const {"set": s} = require("./settings")
+            s("tabnewposition", "right")
+            continue
+        }
+        if (part === "tabnexttocurrent!" || part === "invtabnexttocurrent") {
+            notify("Using tabnexttocurrent is deprecated,"
+                + " use the enum syntax instead: tabnewposition=end,"
+                + " this invocation will in the future rotate the options",
+            "warn")
+            const {"set": s} = require("./settings")
+            if (getSetting("tabnewposition") === "right") {
+                s("tabnewposition", "end")
+            } else {
+                s("tabnewposition", "right")
+            }
+            continue
+        }
+        if (part === "notabnexttocurrent") {
+            notify("Using tabnexttocurrent is deprecated,"
+                + " use the enum syntax instead: tabnewposition=end", "warn")
+            const {"set": s} = require("./settings")
+            s("tabnewposition", "end")
+            continue
+        }
         /* eslint-enable max-len */
         if (part === "restoretabs") {
             notify("Using restoretabs as a boolean is deprecated,"
