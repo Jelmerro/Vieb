@@ -40,7 +40,7 @@ usage should be similar to other packages of the same type.
 
 The mac apps are not signed, you can sign them yourself with `sudo codesign --force --deep --sign - /Applications/Vieb.app`.
 This step has become [a required step in recent versions](https://developer.apple.com/documentation/macos-release-notes/macos-big-sur-11_0_1-universal-apps-release-notes#Code-Signing).
-For older mac versions you could try [these instructions](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac) for opening the app as is,
+If not sufficient to self-sign it, you could try [these instructions](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac) for opening the app as is,
 which comes down to disabling app store requirements with `sudo spctl --master-disable`.
 If none of these work, you can build the app from source with the [README build instructions](./README.md#building).
 If these instructions do not seem to be followed at all, your issue might be [closed](https://github.com/Jelmerro/Vieb/issues/169),
@@ -69,6 +69,13 @@ and the page itself isn't actually scrollable, so you have to be explicit about 
 You can even map the pointer scroll actions to normal mode if you want to,
 but you will still execute the scrolling at the pointer position.
 This distinction and other differences between the two types of scrolling are explained in `:h scrolling`.
+
+#### How can I stay in the same tab when I ctrl-click or middle-mouse click on a link?
+
+By default you will switch to the new tab when using the mouse to open it.
+This can be changed with the `mousenewtabswitch` setting, see `:help mousenewtabswitch` for details.
+In short, if you want to stay in the same tab when opening a link in a new tab with the mouse, run `:set nomousenewtabswitch`.
+The same behavior is by default enabled in follow mode, please see `:help follownewtabswitch` for details.
 
 #### Why can't I sign in to Google?
 
