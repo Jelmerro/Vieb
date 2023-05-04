@@ -30,7 +30,6 @@ map <C-h> <:history>
 map <C-j> <:downloads>
 map <C-k> <toExploreMode>
 map <C-p> <:hardcopy>
-map <C-q> <:quit>
 map <C-s> <:write>
 map <C-t> <:tabnew><toExploreMode>
 map <C-S> <:screenshot>

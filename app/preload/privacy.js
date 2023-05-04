@@ -18,14 +18,13 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {matchesQuery, readJSON, joinPath, appData} = require("../util")
+const {matchesQuery, getWebviewSetting} = require("../util")
 
 const message = "The page has requested to view a list of all media devices."
     + " You can allow or deny this below, and choose if you want the list to"
     + " include the names (labels) of the media device in the response."
     + " For help and options, see ':h permissionmediadevices', ':h permissions"
     + "allowed', ':h permissionsasked' and ':h permissionsblocked'."
-const settingsFile = joinPath(appData(), "webviewsettings")
 const displayCaptureStyling = `html, body {overflow: hidden !important;}
 .desktop-capturer-selection {
     font-family: sans-serif;font-weight: revert;font-size: 14px;
@@ -60,6 +59,10 @@ const displayCaptureStyling = `html, body {overflow: hidden !important;}
 try {
     // Hide device labels from the list of media devices by default
     const enumerate = window.navigator.mediaDevices.enumerateDevices
+    /**
+     * Get the media devices with or without labels, or throw permission error.
+     * @param {string} action
+     */
     const mediaDeviceList = async action => {
         if (action === "block") {
             throw new DOMException("Permission denied", "NotAllowedError")
@@ -69,32 +72,40 @@ try {
             return devices
         }
         return devices.map(({deviceId, groupId, kind}) => ({
-            deviceId, groupId, kind, "label": ""
+            deviceId,
+            groupId,
+            kind,
+            "label": "",
+            "toJSON": () => ({
+                deviceId, groupId, kind, "label": ""
+            })
         }))
     }
     window.navigator.mediaDevices.enumerateDevices = async() => {
-        let setting = "ask"
-        const settings = readJSON(settingsFile) || {}
-        setting = settings.permissionmediadevices || setting
+        let setting = getWebviewSetting("permissionmediadevices") ?? "ask"
         if (!["block", "ask", "allow", "allowfull"].includes(setting)) {
             setting = "ask"
         }
-        let settingRule = ""
+        /** @type {"block"|"ask"|"allow"|"allowfull"|null} */
+        let settingRule = null
         let url = window.location.href
-        for (const type of ["ask", "block", "allow"]) {
-            const permList = settings[`permissions${type}ed`]?.split(",")
-            for (const r of permList || []) {
+        /** @type {("ask"|"block"|"allow")[]} */
+        const permissionOverrideTypes = ["ask", "block", "allow"]
+        for (const type of permissionOverrideTypes) {
+            const permList = getWebviewSetting(
+                `permissions${type}ed`)?.split(",")
+            for (const r of permList ?? []) {
                 if (!r.trim() || settingRule) {
                     continue
                 }
                 const [match, ...names] = r.split("~")
-                if (names.find(p => p.endsWith("mediadevices"))) {
+                if (names.some(p => p.endsWith("mediadevices"))) {
                     if (url.match(match)) {
                         settingRule = type
                         break
                     }
                 }
-                if (names.find(p => p.endsWith("mediadevicesfull"))) {
+                if (names.some(p => p.endsWith("mediadevicesfull"))) {
                     if (url.match(match) && type === "allow") {
                         settingRule = "allowfull"
                         break
@@ -102,7 +113,7 @@ try {
                 }
             }
         }
-        setting = settingRule || setting
+        setting = settingRule ?? setting
         if (setting === "ask") {
             if (url.length > 100) {
                 url = url.replace(/.{50}/g, "$&\n")
@@ -157,16 +168,18 @@ try {
         resolve, reject
     ) => {
         let setting = "block"
-        const settings = readJSON(settingsFile) || {}
-        setting = settings.permissiondisplaycapture || setting
+        setting = getWebviewSetting("permissiondisplaycapture") || setting
         let settingRule = ""
-        for (const type of ["ask", "block"]) {
-            for (const r of settings[`permissions${type}ed`].split(",")) {
+        /** @type {("ask"|"block"|"allow")[]} */
+        const permissionOverrideTypes = ["ask", "block"]
+        for (const type of permissionOverrideTypes) {
+            for (const r of getWebviewSetting(
+                `permissions${type}ed`)?.split(",") ?? []) {
                 if (!r.trim() || settingRule) {
                     continue
                 }
                 const [match, ...names] = r.split("~")
-                if (names.find(p => p.endsWith("displaycapture"))) {
+                if (names.some(p => p.endsWith("displaycapture"))) {
                     if (window.location.href.match(match)) {
                         settingRule = type
                         break
@@ -191,14 +204,23 @@ try {
             throw new DOMException("Permission denied", "NotAllowedError")
         }
         try {
-            ipcRenderer.invoke("desktop-capturer-sources").then(sources => {
+            /**
+             * Generate a window selection for all the deskktop sources.
+             * @param {Electron.DesktopCapturerSource[]} sources
+             */
+            const populateSourceToWindow = sources => {
                 const style = displayCaptureStyling
-                    .replace(/%FONTSIZE%/g, settings.guifontsize || "14")
-                    .replace(/%FG%/g, settings.fg || "#eee")
-                    .replace(/%BG%/g, settings.bg || "#333")
+                    .replace(/%FONTSIZE%/g, String(
+                        getWebviewSetting("guifontsize")) || "14")
+                    .replace(/%FG%/g, getWebviewSetting("fg") || "#eee")
+                    .replace(/%BG%/g, getWebviewSetting("bg") || "#333")
                     .replace(/%SHADE%/g, "#7777")
                 const selectionElem = document.createElement("div")
-                selectionElem.classList = "desktop-capturer-selection"
+                selectionElem.classList.add("desktop-capturer-selection")
+                /**
+                 * Get a data src url from a native image if possible.
+                 * @param {Electron.NativeImage} icon
+                 */
                 const appIcon = icon => {
                     if (!icon || icon.isEmpty() || icon.getSize().width < 1) {
                         return ""
@@ -230,8 +252,8 @@ try {
                 const closeButtons = [selectionElem, selectionElem
                     .querySelector(".desktop-capturer-selection__close")]
                 closeButtons.forEach(button => {
-                    button.addEventListener("click", e => {
-                        if (e.composedPath().find(el => matchesQuery(el,
+                    button?.addEventListener("click", e => {
+                        if (e.composedPath().some(el => matchesQuery(el,
                             ".desktop-capturer-selection__btn"))) {
                             // Also clicked on a display to share, ignore close
                             return
@@ -262,6 +284,7 @@ try {
                                 .getUserMedia({
                                     "audio": false,
                                     "video": {
+                                        // @ts-expect-error Electron required
                                         "mandatory": {
                                             "chromeMediaSource": "desktop",
                                             "chromeMediaSourceId": id
@@ -276,7 +299,9 @@ try {
                             "custom-style-inject", "displaycapture")
                     })
                 })
-            })
+            }
+            ipcRenderer.invoke("desktop-capturer-sources")
+                .then(populateSourceToWindow)
         } catch (err) {
             reject(err)
         }
@@ -301,29 +326,37 @@ try {
     // No deletion allowed in this context, set to undefined instead
 }
 // HTTPS-only: Always act as if there is no battery and the state never changes
+// @ts-expect-error Not present in HTTP environments nor ts spec
 if (window.BatteryManager) {
+    // @ts-expect-error Not present in HTTP environments nor ts spec
     Object.defineProperty(window.BatteryManager.prototype,
         "level", {"get": () => 1})
+    // @ts-expect-error Not present in HTTP environments nor ts spec
     Object.defineProperty(window.BatteryManager.prototype,
         "charging", {"get": () => true})
+    // @ts-expect-error Not present in HTTP environments nor ts spec
     Object.defineProperty(window.BatteryManager.prototype,
         "chargingTime", {"get": () => 0})
+    // @ts-expect-error Not present in HTTP environments nor ts spec
     Object.defineProperty(window.BatteryManager.prototype,
         "dischargingTime", {"get": () => Infinity})
+    // @ts-expect-error Not present in HTTP environments nor ts spec
     Object.defineProperty(window.BatteryManager.prototype,
         "onchargingchange", {"get": () => null})
+    // @ts-expect-error Not present in HTTP environments nor ts spec
     Object.defineProperty(window.BatteryManager.prototype,
         "onchargingtimechange", {"get": () => null})
+    // @ts-expect-error Not present in HTTP environments nor ts spec
     Object.defineProperty(window.BatteryManager.prototype,
         "ondischargingtimechange", {"get": () => null})
+    // @ts-expect-error Not present in HTTP environments nor ts spec
     Object.defineProperty(window.BatteryManager.prototype,
         "onlevelchange", {"get": () => null})
 }
 // Custom prompt, confirm and alert, based on "dialog*" settings
 // Options: return the default cancel action, show a custom popup or notify
 window.prompt = (title, defaultText = "") => {
-    const settings = readJSON(settingsFile) || {}
-    const promptBehavior = settings.dialogprompt || "notifyblock"
+    const promptBehavior = getWebviewSetting("dialogprompt") ?? "notifyblock"
     if (promptBehavior.includes("notify")) {
         const url = window.location.href
         ipcRenderer.sendToHost("notify",
@@ -335,8 +368,7 @@ window.prompt = (title, defaultText = "") => {
     return null
 }
 window.confirm = text => {
-    const settings = readJSON(settingsFile) || {}
-    const confirmBehavior = settings.dialogconfirm || "notifyblock"
+    const confirmBehavior = getWebviewSetting("dialogconfirm") ?? "notifyblock"
     if (confirmBehavior.includes("notify")) {
         const url = window.location.href
         ipcRenderer.sendToHost("notify",
@@ -356,8 +388,7 @@ window.confirm = text => {
     return confirmBehavior.includes("allow")
 }
 window.alert = text => {
-    const settings = readJSON(settingsFile) || {}
-    const alertBehavior = settings.dialogalert || "notifyblock"
+    const alertBehavior = getWebviewSetting("dialogalert") ?? "notifyblock"
     if (alertBehavior.includes("notify")) {
         const url = window.location.href
         ipcRenderer.sendToHost("notify",
@@ -382,6 +413,10 @@ Object.defineProperty(window.Navigator.prototype,
     "deviceMemory", {"get": (() => 8).bind(null)})
 // Hide graphics card information from the canvas API
 const getParam = window.WebGLRenderingContext.prototype.getParameter
+/**
+ * Override the getParameter function to return nothing when asked for GPU info.
+ * @param {number} parameter
+ */
 window.WebGLRenderingContext.prototype.getParameter = function(parameter) {
     if ([37445, 37446].includes(parameter)) {
         return ""
@@ -389,6 +424,10 @@ window.WebGLRenderingContext.prototype.getParameter = function(parameter) {
     return getParam.call(this, parameter)
 }
 const getParam2 = window.WebGL2RenderingContext.prototype.getParameter
+/**
+ * Override the getParameter function to return nothing when asked for GPU info.
+ * @param {number} parameter
+ */
 window.WebGL2RenderingContext.prototype.getParameter = function(parameter) {
     if ([37445, 37446].includes(parameter)) {
         return ""
@@ -401,8 +440,15 @@ if (window.navigator.userAgent.includes("Firefox")) {
         "buildID", {"get": (() => "20181001000000").bind(null)})
     Object.defineProperty(window.Navigator.prototype,
         "doNotTrack", {"get": (() => "unspecified").bind(null)})
+    let platform = "Linux x86_64"
+    if (process.platform === "win32") {
+        platform = "Win32"
+    }
+    if (process.platform === "darwin") {
+        platform = "MacIntel"
+    }
     Object.defineProperty(window.Navigator.prototype,
-        "oscpu", {"get": (() => String(window.Navigator.platform)).bind(null)})
+        "oscpu", {"get": (() => platform).bind(null)})
     Object.defineProperty(window.Navigator.prototype,
         "productSub", {"get": (() => "20100101").bind(null)})
     Object.defineProperty(window.Navigator.prototype,
@@ -411,13 +457,14 @@ if (window.navigator.userAgent.includes("Firefox")) {
 }
 // Provide a wrapper for window.open with a subset of the regular API
 // Also provide the option to open new tabs by setting the location property
-window.open = (url = null) => {
+window.open = (url = undefined) => {
     if (url) {
         ipcRenderer.sendToHost(
             "url", new URL(url, window.location.href).href)
     }
-    const obj = {}
+    const obj = {...window}
     Object.defineProperty(obj, "location", {"get": (() => "").bind(null),
+        // @ts-expect-error val should be an any here as users can pass anything
         "set": (val => {
             ipcRenderer.sendToHost(
                 "url", new URL(val, window.location.href).href)

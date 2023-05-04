@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2021 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -87,20 +87,32 @@ let currentlyRemoving = false
 
 // Actually parse the list and use the breakpoints
 
+/**
+ * Show the received history in a list.
+ * @param {import("../renderer/history").historyItem[]} history
+ */
 const receiveHistory = history => {
     const scrollPosition = window.scrollY
-    document.getElementById("remove-all").style.display = "none"
-    document.getElementById("breakpoints").textContent = ""
+    const removeAllEl = document.getElementById("remove-all")
+    if (removeAllEl) {
+        removeAllEl.style.display = "none"
+    }
+    const breakpointsEl = document.getElementById("breakpoints")
+    if (breakpointsEl) {
+        breakpointsEl.textContent = ""
+    }
     list = document.createElement("div")
     list.id = "list"
     currentBreakpointIndex = 0
     lineNumberBreakpoint = 0
     let lineNumber = 0
     history.forEach(hist => {
-        hist.date = new Date(hist.date)
-        hist.line = lineNumber
-        addHistToList(hist)
-        document.getElementById("remove-all").style.display = ""
+        addHistToList({
+            ...hist, "date": new Date(hist.date), "line": lineNumber
+        })
+        if (removeAllEl) {
+            removeAllEl.style.display = ""
+        }
         lineNumber += 1
     })
     if (history.length === 0) {
@@ -110,15 +122,24 @@ const receiveHistory = history => {
     } else {
         addBreakpoint(currentBreakpointIndex, lineNumber)
     }
-    document.getElementById("list").parentNode.replaceChild(
-        list, document.getElementById("list"))
+    const listEl = document.getElementById("list")
+    if (listEl) {
+        listEl.parentNode?.replaceChild(list, listEl)
+    }
     if (scrollPosition) {
         window.scrollTo(0, scrollPosition)
     } else if (window.location.hash !== "") {
-        document.querySelector(`a[href='${window.location.hash}']`).click()
+        const el = document.querySelector(`a[href='${window.location.hash}']`)
+        if (el instanceof HTMLAnchorElement) {
+            el.click()
+        }
     }
 }
 
+/** Add a breakpoint by index at a line number.
+ * @param {number} index
+ * @param {number} lineNumber
+ */
 const addBreakpoint = (index, lineNumber) => {
     if (list.textContent === "") {
         return
@@ -128,8 +149,8 @@ const addBreakpoint = (index, lineNumber) => {
     const link = document.createElement("a")
     link.textContent = breakpoint.title
     link.setAttribute("href", `#${breakpoint.link}`)
-    document.getElementById("breakpoints").insertBefore(
-        link, document.getElementById("breakpoints").firstChild)
+    document.getElementById("breakpoints")?.insertBefore(
+        link, document.getElementById("breakpoints")?.firstChild ?? null)
     // Add header to the list
     const h2 = document.createElement("h2")
     h2.setAttribute("id", breakpoint.link)
@@ -146,11 +167,18 @@ const addBreakpoint = (index, lineNumber) => {
     lineNumberBreakpoint = lineNumber + 1
 }
 
+/**
+ * Add a single history entry to the list.
+ * @param {(
+ *   import("../renderer/history").historyItem & {date: Date, line: number}
+ * )} hist
+ */
 const addHistToList = hist => {
     // Shift the breakpoint to the next one
     const previousBreakpoint = currentBreakpointIndex
     let breakpoint = dateBreakpoints[currentBreakpointIndex + 1]
-    while (breakpoint && breakpoint.date.getTime() < hist.date.getTime()) {
+    while (breakpoint
+        && (breakpoint.date?.getTime() ?? 0) < hist.date.getTime()) {
         currentBreakpointIndex += 1
         breakpoint = dateBreakpoints[currentBreakpointIndex + 1]
     }
@@ -160,7 +188,7 @@ const addHistToList = hist => {
     }
     // Finally show the history entry (possibly after new breakpoint)
     const histElement = document.createElement("div")
-    histElement.setAttribute("hist-line", hist.line)
+    histElement.setAttribute("hist-line", `${hist.line}`)
     histElement.className = "hist-entry"
     if (hist.icon) {
         const icon = document.createElement("img")
@@ -190,9 +218,14 @@ const addHistToList = hist => {
 
 const clearHistory = () => {
     const newestElement = document.querySelector("*[hist-line]")
-    clearLinesFromHistory(0, newestElement.getAttribute("hist-line"))
+    clearLinesFromHistory(0, newestElement?.getAttribute("hist-line"))
 }
 
+/**
+ * Clear the history from specific lines by startl index and optionally end.
+ * @param {number} startStr
+ * @param {string|number|null} endStr
+ */
 const clearLinesFromHistory = (startStr, endStr = null) => {
     if (currentlyRemoving) {
         return
@@ -204,43 +237,55 @@ const clearLinesFromHistory = (startStr, endStr = null) => {
         end = start
     }
     const entries = [...document.querySelectorAll("*[hist-line]")].filter(h => {
-        if (!h || h.style.display === "none") {
+        if (!(h instanceof HTMLElement) || h.style.display === "none") {
             return false
         }
         const num = Number(h.getAttribute("hist-line"))
         return num >= start && num <= end
     }).map(h => {
         h.classList.add("marked")
-        const date = h.querySelector(".hist-date").getAttribute("iso")
-        const url = h.querySelector("a").getAttribute("href")
+        const date = h.querySelector(".hist-date")?.getAttribute("iso")
+        const url = h.querySelector("a")?.getAttribute("href")
         return {date, url}
     })
     ipcRenderer.sendToHost("history-list-request", "range", entries)
 }
 
 const filterList = () => {
-    const filter = document.getElementById("filter").value.trim().toLowerCase()
+    const filterEl = document.getElementById("filter")
+    if (!(filterEl instanceof HTMLInputElement)) {
+        return
+    }
+    const filter = filterEl.value.trim().toLowerCase()
     const histElements = [...document.querySelectorAll("*[hist-line]")]
     let anyResult = false
     histElements.forEach(hist => {
-        const url = hist.querySelector("a").getAttribute("href")
-        const title = hist.querySelector(".hist-title").textContent
-        if (url.toLowerCase().includes(filter)) {
+        if (!(hist instanceof HTMLElement)) {
+            return
+        }
+        const url = hist.querySelector("a")?.getAttribute("href")
+        const title = hist.querySelector(".hist-title")?.textContent
+        if (url?.toLowerCase().includes(filter)) {
             hist.style.display = ""
             anyResult = true
-        } else if (title.toLowerCase().includes(filter)) {
+        } else if (title?.toLowerCase().includes(filter)) {
             hist.style.display = ""
             anyResult = true
         } else {
             hist.style.display = "none"
         }
     })
+    const removeAll = document.getElementById("remove-all")
+    const noResults = document.getElementById("no-results")
+    if (!removeAll || !noResults) {
+        return
+    }
     if (!histElements.length || anyResult) {
-        document.getElementById("remove-all").style.display = ""
-        document.getElementById("no-results").style.display = "none"
+        removeAll.style.display = ""
+        noResults.style.display = "none"
     } else {
-        document.getElementById("remove-all").style.display = "none"
-        document.getElementById("no-results").style.display = ""
+        removeAll.style.display = "none"
+        noResults.style.display = ""
     }
 }
 
@@ -251,11 +296,15 @@ window.addEventListener("load", () => {
     removeAll.src = joinPath(__dirname, "../img/trash.png")
     removeAll.addEventListener("click", () => clearHistory())
     document.body.insertBefore(removeAll, document.body.firstChild)
-    document.getElementById("filter").addEventListener("input", filterList)
+    document.getElementById("filter")?.addEventListener("input", filterList)
     ipcRenderer.sendToHost("history-list-request")
 })
 
-ipcRenderer.on("history-list", (_, h) => receiveHistory(JSON.parse(h)))
+ipcRenderer.on("history-list", (_, h) => {
+    /** @type {import("../renderer/history").historyItem[]} */
+    const history = JSON.parse(h)
+    receiveHistory(history)
+})
 
 ipcRenderer.on("history-removal-status", success => {
     [...document.querySelectorAll(".marked")].forEach(m => {

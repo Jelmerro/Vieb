@@ -21,8 +21,17 @@ const {ipcRenderer} = require("electron")
 const {formatDate} = require("../util")
 
 window.addEventListener("DOMContentLoaded", () => {
-    ipcRenderer.on("notification-history", (_, notifications) => {
-        document.getElementById("list").textContent = ""
+    /**
+     * Show the list of notifications.
+     * @param {Electron.IpcRendererEvent} _
+     * @param {import("../util").notificationHistory} notifications
+     */
+    const showNofitications = (_, notifications) => {
+        const listEl = document.getElementById("list")
+        if (!listEl) {
+            return
+        }
+        listEl.textContent = ""
         notifications.forEach(notification => {
             const element = document.createElement("div")
             element.className = "notification"
@@ -30,22 +39,22 @@ window.addEventListener("DOMContentLoaded", () => {
                 element.classList.add("filelocation")
                 element.title = "Click to open"
                 element.addEventListener("click", () => {
-                    ipcRenderer.send("open-download", notification.click.path)
+                    ipcRenderer.send("open-download", notification.click?.path)
                 })
             }
             const date = document.createElement("div")
             date.textContent = formatDate(notification.date)
             date.className = "date"
-            element.appendChild(date)
+            element.append(date)
             const contents = document.createElement("div")
             contents.innerHTML = notification.message
             contents.className = notification.type
-            element.appendChild(contents)
-            document.getElementById("list").appendChild(element)
+            element.append(contents)
+            listEl.append(element)
         })
-        if (document.getElementById("list").textContent === "") {
-            document.getElementById("list").textContent
-                = "There have been no notifications so far"
+        if (listEl.textContent === "") {
+            listEl.textContent = "There have been no notifications so far"
         }
-    })
+    }
+    ipcRenderer.on("notification-history", showNofitications)
 })

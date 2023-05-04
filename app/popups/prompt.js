@@ -21,15 +21,24 @@ const {ipcRenderer} = require("electron")
 
 window.addEventListener("load", () => {
     const input = document.querySelector("input")
+    if (!input) {
+        return
+    }
     ipcRenderer.on("prompt-info", (_, fontsize, customCSS, title, text) => {
-        document.getElementById("info").textContent = title
+        const info = document.getElementById("info")
+        if (info) {
+            info.textContent = title
+        }
         input.focus()
         input.click()
         input.value = text
         input.select()
         document.body.style.fontSize = `${fontsize}px`
-        document.getElementById("custom-styling").textContent = customCSS
-        document.body.style.opacity = 1
+        const customStyle = document.getElementById("custom-styling")
+        if (customStyle) {
+            customStyle.textContent = customCSS
+        }
+        document.body.style.opacity = "1"
     })
     window.addEventListener("keydown", e => {
         if (e.key === "Tab" && !e.altKey) {

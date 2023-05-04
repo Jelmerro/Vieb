@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2022 Jelmer van Arnhem
+* Copyright (C) 2022-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -17,13 +17,23 @@
 */
 "use strict"
 
-const {appData, readJSON, joinPath, fetchJSON} = require("../util")
-const webviewSettingsFile = joinPath(appData(), "webviewsettings")
-const settings = readJSON(webviewSettingsFile)
+const {fetchJSON, getWebviewSetting} = require("../util")
 
 const loadSponsorblock = () => {
+    /** @type {HTMLDivElement[]} */
     let previousBlockEls = []
+    /** @type {number|null} */
     let previousDuration = null
+    /** @type {{
+     *   segment: number[],
+     *   UUID: string,
+     *   category: string,
+     *   videoDuration: number,
+     *   actionType: string,
+     *   locked: number,
+     *   votes: number,
+     *   description: string
+     * }[]} */
     let segments = []
     const vid = document.querySelector("video")
     if (!vid) {
@@ -34,7 +44,9 @@ const loadSponsorblock = () => {
         previousBlockEls = []
         const videoId = window.location.href.replace(/^.*\/watch\?v=/g, "")
         previousDuration = vid.duration
-        const categories = settings.sponsorblockcategories.split(",")
+        const categories = getWebviewSetting("sponsorblockcategories")
+            ?.split(",") ?? ("sponsor~lime,intro~cyan,outro~blue,"
+            + "interaction~red,selfpromo~yellow,music_offtopic").split(",")
         const categoryNames = categories.map(cat => cat.split("~")[0])
         fetchJSON(`https://sponsor.ajay.app/api/skipSegments?videoID=${videoId}`
             + `&categories=${JSON.stringify(categoryNames)}`).then(response => {
@@ -46,10 +58,10 @@ const loadSponsorblock = () => {
                 blockEl.style.position = "absolute"
                 blockEl.style.backgroundColor = categories.find(ca => ca.split(
                     "~")[0] === skip.category)?.split("~")[1] || "lime"
-                blockEl.style.zIndex = 100000000
+                blockEl.style.zIndex = "100000000"
                 blockEl.style.height = "100%"
                 blockEl.style.minHeight = ".5em"
-                progressEl.appendChild(blockEl)
+                progressEl?.append(blockEl)
                 previousBlockEls.push(blockEl)
                 setInterval(() => {
                     const left = skip.segment[0] / vid.duration * 100
@@ -60,7 +72,8 @@ const loadSponsorblock = () => {
             }
         }).catch(err => console.warn(err))
     }
-    if (window.location.href.includes("watch?v=") && settings.sponsorblock) {
+    if (window.location.href.includes("watch?v=")
+        && getWebviewSetting("sponsorblock")) {
         fetchSponsorBlockData()
         vid.addEventListener("durationchange", () => {
             fetchSponsorBlockData()
@@ -84,6 +97,4 @@ const loadSponsorblock = () => {
     }
 }
 
-window.addEventListener("load", () => {
-    loadSponsorblock()
-})
+window.addEventListener("load", loadSponsorblock)

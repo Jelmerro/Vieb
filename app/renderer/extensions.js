@@ -29,6 +29,11 @@ const {
 } = require("../util")
 const {getSetting} = require("./common")
 
+/**
+ * Parse the GM userscript header.
+ * @param {string} meta
+ * @returns {{[info: string]: (string[]|number|string)}}
+ */
 const parseGM = meta => meta.split(/[\r\n]/).filter(line => (/\S+/).test(line)
         && !line.includes("==UserScript==") && !line.includes("==/UserScript==")
 ).reduce((obj, line) => {
@@ -38,16 +43,26 @@ const parseGM = meta => meta.split(/[\r\n]/).filter(line => (/\S+/).test(line)
         key += "s"
     }
     const value = arr.slice(1).join(" ")
+    // @ts-expect-error Creation of keys on empty object is not allowed
     if (obj[key] === undefined) {
+        // @ts-expect-error Creation of keys on empty object is not allowed
         obj[key] = value
+    // @ts-expect-error Creation of keys on empty object is not allowed
     } else if (Array.isArray(obj[key])) {
+        // @ts-expect-error Creation of keys on empty object is not allowed
         obj[key].push(value)
     } else {
+        // @ts-expect-error Creation of keys on empty object is not allowed
         obj[key] = [obj[key], value]
     }
     return obj
 }, {})
 
+/**
+ * Run a GM script in the page.
+ * @param {Electron.WebviewTag} webview
+ * @param {string} rawContents
+ */
 const runGMScript = (webview, rawContents) => {
     const headerLines = []
     const scriptLines = []
@@ -128,14 +143,14 @@ const runGMScript = (webview, rawContents) => {
             "platform": {
                 "arch": "${arch}",
                 "browserName": "vieb",
-                "browserVersion": "${appConfig().version}",
+                "browserVersion": "${appConfig()?.version}",
                 "os": "${os}"
             },
             "script": ${JSON.stringify(info)},
             "scriptHandler": "Vieb",
             "scriptMetaStr": ${JSON.stringify(headerLines.join("\n"))},
             "uuid": "${Math.random}",
-            "version": "${appConfig().version}"
+            "version": "${appConfig()?.version}"
         },
         "listValues": () => new Promise(res => {
             const list = []
@@ -196,6 +211,7 @@ const runGMScript = (webview, rawContents) => {
     const GM_xmlHttpRequest = GM.xmlHttpRequest
     const GM_xmlhttpRequest = GM.xmlHttpRequest
     const unsafeWindow = window`
+    /** @type {import("picomatch")|null} */
     let picomatch = null
     try {
         picomatch = require("picomatch")
@@ -203,11 +219,14 @@ const runGMScript = (webview, rawContents) => {
         // No picomatch available, assume scripts should run everywhere
     }
     if (info?.name && scriptLines.length) {
-        if (!info.includes || info.includes.length < 1) {
+        if (!Array.isArray(info.includes)) {
             info.includes = ["*"]
         }
         if (Array.isArray(info.match)) {
             info.includes = [...info.includes, ...info.match]
+        }
+        if (!Array.isArray(info.excludes)) {
+            info.excludes = []
         }
         if (Array.isArray(info["exclude-match"])) {
             info.excludes = [...info.excludes, ...info["exclude-match"]]
@@ -218,7 +237,7 @@ const runGMScript = (webview, rawContents) => {
             included = picomatch.isMatch(
                 webview.src, info.includes, {"bash": true})
             excluded = picomatch.isMatch(
-                webview.src, info.excludes ?? [], {"bash": true})
+                webview.src, info.excludes, {"bash": true})
         }
         if (included && !excluded) {
             const script = preload + scriptLines.join("\n")
@@ -227,11 +246,15 @@ const runGMScript = (webview, rawContents) => {
     }
 }
 
+/**
+ * Load all userscripts into the page.
+ * @param {Electron.WebviewTag} webview
+ */
 const loadUserscripts = webview => {
     let domain = domainName(webview.src)
     let scope = "page"
     const specialPage = pathToSpecialPageName(webview.src)
-    if (specialPage.name) {
+    if (specialPage?.name) {
         domain = "special"
         scope = "special"
     } else if (webview.src.startsWith("file://")) {

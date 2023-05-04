@@ -24,6 +24,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Argument option to the pin command to force a pinned state, such as `:pin! false`
 - Setting "followlabelposition" to control where the label of follow elements should appear
 - Set command syntax to rotate between a custom set of values, such as `:set example!value1|value2|value3`
+- Setting "permissionusb" to list usb devices (default remains blocked, previously grouped as "unknown")
 
 ### Changed
 
@@ -56,6 +57,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Navigation delay system updating the current page instead of the right one
 - Navigation delay system preventing page navigations for new tabs that are not loading
 - Favicon not showing or spinner still rotating for suspended tabs
+- Insert mode being left if interacting with the page menu
 
 ### Versions
 

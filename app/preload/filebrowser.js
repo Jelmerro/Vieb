@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2021 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,13 @@ h2 {font-size: 2em;margin: 0 0 1em;}
 .file {color: var(--suggestions-url, #bff);}
 .error {color: var(--notification-error, #f33);}`
 
-const createElement = (type, loc, customTitle = "") => {
+/**
+ * Create a dir or file element with onclick handler and return it.
+ * @param {"file"|"dir"} type
+ * @param {string} loc
+ * @param {string|null} customTitle
+ */
+const createElement = (type, loc, customTitle = null) => {
     const element = document.createElement("div")
     element.className = type
     element.textContent = customTitle || basePath(loc)
@@ -41,42 +47,57 @@ const createElement = (type, loc, customTitle = "") => {
     return element
 }
 
+/**
+ * Convert a location to a clickable url.
+ * @param {string} loc
+ */
 const toUrl = loc => `file:${loc}`.replace(/^file:\/+/, "file:///")
 
+/**
+ * Check if the provided location is the root location of the system.
+ * @param {string} loc
+ */
 const isRoot = loc => loc === joinPath(loc, "../")
 
-ipcRenderer.on("insert-current-directory-files",
-    (_, directories, files, allowed, folder) => {
-        // Styling
-        const styleElement = document.createElement("style")
-        styleElement.textContent = styling
-        document.head.appendChild(styleElement)
-        // Main
-        const main = document.createElement("main")
-        const title = document.createElement("h2")
-        title.textContent = folder
-        main.appendChild(title)
-        if (!isRoot(folder)) {
-            main.appendChild(createElement(
-                "dir", joinPath(folder, "../"), ".."))
-        }
-        if (!allowed) {
-            const error = document.createElement("span")
-            error.textContent = "Permission denied"
-            error.className = "error"
-            main.appendChild(error)
-        } else if (directories.length === 0 && files.length === 0) {
-            const error = document.createElement("span")
-            error.textContent = "Empty directory"
-            error.className = "error"
-            main.appendChild(error)
-        } else {
-            directories.forEach(dir => {
-                main.appendChild(createElement("dir", dir))
-            })
-            files.forEach(file => {
-                main.appendChild(createElement("file", file))
-            })
-        }
-        document.body.appendChild(main)
-    })
+/**
+ * Insert the current directory info into the page to explore local files.
+ * @param {Electron.IpcRendererEvent} _
+ * @param {string[]} directories
+ * @param {string[]} files
+ * @param {boolean} allowed
+ * @param {string} folder
+ */
+const insertCurrentDirInfo = (_, directories, files, allowed, folder) => {
+    // Styling
+    const styleElement = document.createElement("style")
+    styleElement.textContent = styling
+    document.head.appendChild(styleElement)
+    // Main
+    const main = document.createElement("main")
+    const title = document.createElement("h2")
+    title.textContent = folder
+    main.appendChild(title)
+    if (!isRoot(folder)) {
+        main.appendChild(createElement("dir", joinPath(folder, "../"), ".."))
+    }
+    if (!allowed) {
+        const error = document.createElement("span")
+        error.textContent = "Permission denied"
+        error.className = "error"
+        main.appendChild(error)
+    } else if (directories.length === 0 && files.length === 0) {
+        const error = document.createElement("span")
+        error.textContent = "Empty directory"
+        error.className = "error"
+        main.appendChild(error)
+    } else {
+        directories.forEach(dir => {
+            main.appendChild(createElement("dir", dir))
+        })
+        files.forEach(file => {
+            main.appendChild(createElement("file", file))
+        })
+    }
+    document.body.appendChild(main)
+}
+ipcRenderer.on("insert-current-directory-files", insertCurrentDirInfo)

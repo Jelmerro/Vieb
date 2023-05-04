@@ -27,15 +27,19 @@ const {
     currentPage,
     currentMode,
     getSetting,
-    listPages,
     setTopOfPageWithMouse,
     getMouseConf,
-    updateScreenshotHighlight
+    updateScreenshotHighlight,
+    getUrl,
+    listRealPages
 } = require("./common")
 
 const ACTIONS = require("./actions")
 const POINTER = require("./pointer")
 
+/** @type {{[mode: string]: {
+ *   [key: string]: {mapping: string, noremap?: boolean}
+ * }}} */
 const defaultBindings = {
     "c": {
         "<C-[>": {"mapping": "<toNormalMode>"},
@@ -152,7 +156,6 @@ const defaultBindings = {
         "<C-n>": {"mapping": "<nextTab>"},
         "<C-o>": {"mapping": "<backInHistory>"},
         "<C-p>": {"mapping": "<previousTab>"},
-        "<C-q>": "<:quit>",
         "<C-t>": {"mapping": "<:set tabnexttocurrent!>"
             + "<:tabnew><:set tabnexttocurrent!>"},
         "<C-u>": {"mapping": "<scrollPageUpHalf>"},
@@ -620,6 +623,7 @@ const globalDefaultMappings = {
     "<C-Y>": {"mapping": "<:downloads>"},
     "<C-k0>": {"mapping": "<zoomReset>"},
     "<C-m>": {"mapping": "<menuOpen>"},
+    "<C-q>": {"mapping": "<:quit>"},
     "<F1>": {"mapping": "<:help>"},
     "<F2>": {"mapping": "<toCommandMode>"},
     "<F3>": {"mapping": "<toSearchMode>"},
@@ -643,19 +647,27 @@ Object.keys(defaultBindings).forEach(mode => {
 let repeatCounter = 0
 let recursiveCounter = 0
 let pressedKeys = ""
-let bindings = {}
+/** @type {typeof defaultBindings} */
+let bindings = JSON.parse(JSON.stringify(defaultBindings))
+/** @type {string[]} */
 let supportedActions = []
+/** @type {number|null} */
 let timeoutTimer = null
 let blockNextInsertKey = false
 let inputHistoryList = [{"index": 0, "value": ""}]
 let inputHistoryIndex = 0
+/** @type {string|null} */
 let lastActionInMapping = null
+/** @type {{mapStr: string, recursive: boolean}|null} */
 let lastExecutedMapstring = null
+/** @type {false|"position"|"size"} */
 let draggingScreenshotFrame = false
 let lastScreenshotX = 0
 let lastScreenshotY = 0
+/** @type {number|null} */
 let suggestionTimer = null
 let hadModifier = false
+/** @type {string|null} */
 let recordingName = null
 let recordingString = ""
 
@@ -665,7 +677,9 @@ const init = () => {
     window.addEventListener("keyup", e => e.preventDefault())
     window.addEventListener("mousedown", e => {
         if (currentMode() === "insert" && getMouseConf("leaveinsert")) {
-            ACTIONS.toNormalMode()
+            if (!e.composedPath().some(n => matchesQuery(n, "#context-menu"))) {
+                ACTIONS.toNormalMode()
+            }
         }
         if (e.button === 3) {
             if (getMouseConf("history")) {
@@ -685,7 +699,7 @@ const init = () => {
             e.preventDefault()
         }
         const selector = "#screenshot-highlight"
-        if (e.composedPath().find(n => matchesQuery(n, selector))) {
+        if (e.composedPath().some(n => matchesQuery(n, selector))) {
             if (getMouseConf("screenshotframe")) {
                 if (e.button === 0) {
                     draggingScreenshotFrame = "position"
@@ -695,7 +709,7 @@ const init = () => {
                 e.preventDefault()
             }
         }
-        if (e.target === document.getElementById("url")) {
+        if (e.target === getUrl()) {
             const {followFiltering} = require("./follow")
             const typing = "sec".includes(currentMode()[0]) || followFiltering()
             if (typing && !getMouseConf("url")) {
@@ -706,7 +720,7 @@ const init = () => {
             }
         }
     })
-    document.getElementById("tabs").addEventListener("dblclick", e => {
+    document.getElementById("tabs")?.addEventListener("dblclick", e => {
         if (getMouseConf("newtab")) {
             const {addTab} = require("./tabs")
             addTab()
@@ -716,17 +730,18 @@ const init = () => {
         ACTIONS.setFocusCorrectly()
     })
     window.addEventListener("wheel", ev => {
-        if (ev.composedPath().find(e => matchesQuery(e, "#tabs"))) {
+        if (ev.composedPath().some(e => matchesQuery(e, "#tabs"))) {
             if (getMouseConf("scrolltabs")) {
                 // Make both directions of scrolling move the tabs horizontally
-                document.getElementById("tabs").scrollBy(
+                document.getElementById("tabs")?.scrollBy(
                     ev.deltaX + ev.deltaY, ev.deltaX + ev.deltaY)
             }
         }
         const overPageElements = "#page-container, #screenshot-highlight"
-        if (ev.composedPath().find(e => matchesQuery(e, overPageElements))) {
-            if (getMouseConf("pageoutsideinsert")) {
-                const {top, left} = pageOffset(currentPage())
+        if (ev.composedPath().some(e => matchesQuery(e, overPageElements))) {
+            const page = currentPage()
+            if (getMouseConf("pageoutsideinsert") && page) {
+                const {top, left} = pageOffset(page)
                 sendToPageOrSubFrame("send-input-event", {
                     "deltaX": -ev.deltaX,
                     "deltaY": -ev.deltaY,
@@ -736,7 +751,7 @@ const init = () => {
                 })
             }
         }
-        if (ev.composedPath().find(e => matchesQuery(e, "#suggest-dropdown"))) {
+        if (ev.composedPath().some(e => matchesQuery(e, "#suggest-dropdown"))) {
             if (!getMouseConf("scrollsuggest")) {
                 ev.preventDefault()
             }
@@ -750,7 +765,7 @@ const init = () => {
             e.preventDefault()
             return
         }
-        if (e.target === document.getElementById("url")) {
+        if (e.target === getUrl()) {
             const {followFiltering} = require("./follow")
             const typing = "sec".includes(currentMode()[0]) || followFiltering()
             if (typing && !getMouseConf("url")) {
@@ -768,8 +783,13 @@ const init = () => {
             e.preventDefault()
         }
         if (e.button === 1 && getMouseConf("closetab")) {
-            const tab = e.composedPath().find(n => listTabs().includes(n))
-            if (tab) {
+            const tab = e.composedPath().find(n => {
+                if (n instanceof HTMLElement) {
+                    return listTabs().includes(n)
+                }
+                return false
+            })
+            if (tab instanceof HTMLElement) {
                 const {closeTab} = require("./tabs")
                 closeTab(listTabs().indexOf(tab))
             }
@@ -782,16 +802,16 @@ const init = () => {
         const {followFiltering} = require("./follow")
         const typing = "sec".includes(currentMode()[0]) || followFiltering()
         if (!typing) {
-            document.getElementById("url").setSelectionRange(0, 0)
-            window.getSelection().removeAllRanges()
+            getUrl()?.setSelectionRange(0, 0)
+            window.getSelection()?.removeAllRanges()
         }
         ACTIONS.setFocusCorrectly()
     })
     window.addEventListener("cut", cutInput)
     window.addEventListener("copy", copyInput)
-    window.addEventListener("copy", pasteInput)
+    window.addEventListener("paste", pasteInput)
     window.addEventListener("click", e => {
-        if (e.composedPath().find(n => matchesQuery(n, "#context-menu"))) {
+        if (e.composedPath().some(n => matchesQuery(n, "#context-menu"))) {
             return
         }
         if (draggingScreenshotFrame && getMouseConf("screenshotframe")) {
@@ -800,10 +820,17 @@ const init = () => {
         }
         const {clear} = require("./contextmenu")
         clear()
+        if (!(e.target instanceof HTMLElement)) {
+            return
+        }
         if (e.target.classList.contains("no-focus-reset")) {
             return
         }
         e.preventDefault()
+        /**
+         * Find the url box or the suggest dropdown in the list of targets.
+         * @param {MouseEvent} ev
+         */
         const urlOrSuggest = ev => ev.composedPath().find(
             n => matchesQuery(n, "#url, #suggest-dropdown"))
         if (urlOrSuggest(e)) {
@@ -817,8 +844,13 @@ const init = () => {
                 ACTIONS.toNormalMode()
             }
         } else if (getMouseConf("switchtab")) {
-            const tab = e.composedPath().find(n => listTabs().includes(n))
-            if (tab) {
+            const tab = e.composedPath().find(n => {
+                if (n instanceof HTMLSpanElement) {
+                    return listTabs().includes(n)
+                }
+                return false
+            })
+            if (tab instanceof HTMLSpanElement) {
                 clear()
                 const {switchToTab} = require("./tabs")
                 switchToTab(tab)
@@ -850,6 +882,10 @@ const init = () => {
         if (getMouseConf("leaveinput")) {
             const {followFiltering} = require("./follow")
             const typing = "sec".includes(currentMode()[0]) || followFiltering()
+            /**
+             * Find the url box or the suggest dropdown in the list of targets.
+             * @param {MouseEvent} ev
+             */
             const urlOrSuggest = ev => ev.composedPath().find(n => matchesQuery(
                 n, "#url, #suggest-dropdown, #screenshot-highlight"))
             if (typing && !urlOrSuggest(e)) {
@@ -872,7 +908,7 @@ const init = () => {
         }
     })
     ipcRenderer.on("zoom-changed", (_, ctxId, direction) => {
-        const page = listPages().find(p => p.getWebContentsId?.() === ctxId)
+        const page = listRealPages().find(p => p.getWebContentsId() === ctxId)
         if (!page || !getMouseConf("scrollzoom")) {
             return
         }
@@ -885,7 +921,7 @@ const init = () => {
     })
     ipcRenderer.on("insert-mode-input-event", (_, input) => {
         if (input.key === "Tab") {
-            currentPage().focus()
+            currentPage()?.focus()
         }
         // Check if fullscreen should be disabled
         if (document.body.classList.contains("fullscreen")) {
@@ -894,7 +930,7 @@ const init = () => {
             const escapeKey = input.key === "Escape" && noMods && !ctrl
             const ctrlBrack = input.key === "[" && noMods && ctrl
             if (escapeKey || ctrlBrack) {
-                currentPage().send("action", "exitFullscreen")
+                currentPage()?.send("action", "exitFullscreen")
                 return
             }
         }
@@ -941,7 +977,6 @@ const init = () => {
     supportedActions = [
         ...Object.keys(ACTIONS), ...Object.keys(POINTER).map(c => `p.${c}`)
     ].filter(m => !unSupportedActions.includes(m))
-    bindings = JSON.parse(JSON.stringify(defaultBindings))
     updateKeysOnScreen()
 }
 
@@ -949,18 +984,23 @@ const resetScreenshotDrag = () => setTimeout(() => {
     draggingScreenshotFrame = false
 }, 10)
 
+/**
+ * Move the screenshot frame to a new position.
+ * @param {number} x
+ * @param {number} y
+ */
 const moveScreenshotFrame = (x, y) => {
     const deltaX = x - lastScreenshotX
     const deltaY = y - lastScreenshotY
     if (getMouseConf("screenshotframe") && draggingScreenshotFrame) {
-        const url = document.getElementById("url")
-        const dims = url.value.split(" ").find(
+        const url = getUrl()
+        const dims = url?.value.split(" ").find(
             arg => arg?.match(/^\d+,\d+,\d+,\d+$/g))
-        if (!currentMode() === "command" || !currentPage()) {
+        if (currentMode() !== "command" || !currentPage()) {
             return
         }
-        const pageHeight = Number(currentPage().style.height.split(/[.px]/g)[0])
-        const pageWidth = Number(currentPage().style.width.split(/[.px]/g)[0])
+        const pageHeight = Number(currentPage()?.style.height.split(/[.px]/g)[0])
+        const pageWidth = Number(currentPage()?.style.width.split(/[.px]/g)[0])
         const rect = {
             "height": Number(dims?.split(",")[1] ?? pageHeight),
             "width": Number(dims?.split(",")[0] ?? pageWidth),
@@ -990,10 +1030,10 @@ const moveScreenshotFrame = (x, y) => {
         if (rect.height === 0 || rect.height > pageHeight - rect.y) {
             rect.height = pageHeight - rect.y
         }
-        if (dims) {
+        if (dims && url) {
             url.value = url.value.replace(/\d+,\d+,\d+,\d+/g, `${rect.width},${
                 rect.height},${rect.x},${rect.y}`)
-        } else {
+        } else if (url) {
             url.value = `${url.value.split(" ").slice(0, -1).join(" ")
             } ${rect.width},${rect.height},${rect.x},${rect.y}`
         }
@@ -1004,26 +1044,38 @@ const moveScreenshotFrame = (x, y) => {
     lastScreenshotY = y
 }
 
+/**
+ * Execute the cut clipboard action on the url.
+ * @param {Event|null} event
+ */
 const cutInput = (event = null) => {
     event?.preventDefault()
-    let selection = document.getSelection().toString()
+    let selection = document.getSelection()?.toString() ?? ""
     if (currentMode() === "explore" && isUrl(selection)) {
         selection = selection.replace(/ /g, "%20")
     }
     const {clipboard} = require("electron")
     clipboard.writeText(selection)
-    const url = document.getElementById("url")
+    const url = getUrl()
+    if (!url) {
+        return
+    }
     const cur = Number(url.selectionStart)
-    url.value = url.value.substr(0, url.selectionStart)
-        + url.value.substr(url.selectionEnd)
+    const end = Number(url.selectionEnd)
+    url.value = url.value.slice(0, cur) + url.value.slice(end)
     url.setSelectionRange(cur, cur)
     requestSuggestUpdate()
     updateNavbarScrolling()
 }
 
+
+/**
+ * Execute the copy clipboard action on the url.
+ * @param {Event|null} event
+ */
 const copyInput = (event = null) => {
     event?.preventDefault()
-    let selection = document.getSelection().toString()
+    let selection = document.getSelection()?.toString() ?? ""
     if (currentMode() === "explore" && isUrl(selection)) {
         selection = selection.replace(/ /g, "%20")
     }
@@ -1031,14 +1083,21 @@ const copyInput = (event = null) => {
     clipboard.writeText(selection)
 }
 
+/**
+ * Execute the paste clipboard action on the url.
+ * @param {Event|null} event
+ */
 const pasteInput = (event = null) => {
     event?.preventDefault()
-    const url = document.getElementById("url")
+    const url = getUrl()
+    if (!url) {
+        return
+    }
     const cur = Number(url.selectionStart)
+    const end = Number(url.selectionEnd)
     const {clipboard} = require("electron")
     const pastedText = clipboard.readText()
-    url.value = url.value.substr(0, url.selectionStart) + pastedText
-        + url.value.substr(url.selectionEnd)
+    url.value = url.value.slice(0, cur) + pastedText + url.value.slice(end)
     url.setSelectionRange(cur + pastedText.length, cur + pastedText.length)
     requestSuggestUpdate()
     updateNavbarScrolling()
@@ -1121,6 +1180,23 @@ const keyNames = [
     // Fictional keys with custom implementation
     {"js": ["Any"], "vim": ["Any"]}
 ]
+/**
+ * Convert a keyboard event to a Vieb key name.
+ * @param {(KeyboardEvent  & {passedOnFromInsert?: false})|{
+ *   altKey: boolean
+ *   ctrlKey: boolean,
+ *   isTrusted: boolean,
+ *   key: string,
+ *   location: string,
+ *   metaKey: boolean,
+ *   passedOnFromInsert: true,
+ *   preventDefault: () => undefined,
+ *   shiftKey: boolean
+ *   isComposing?: boolean
+ *   which?: string
+ *   bubbles?: boolean
+ * }} e
+ */
 const toIdentifier = e => {
     let keyCode = e.key
     if (e.key === "\u0000") {
@@ -1155,6 +1231,10 @@ const toIdentifier = e => {
     return keyCode
 }
 
+/**
+ * Split the mapstring by key.
+ * @param {string} mapStr
+ */
 const splitMapString = mapStr => {
     const maps = []
     let bracketCounter = 0
@@ -1180,9 +1260,21 @@ const splitMapString = mapStr => {
     return {"leftover": temp, maps, "valid": bracketCounter === 0 && !temp}
 }
 
+/**
+ * Get JS (or optionally Electron) name for a Vim mapped key.
+ * @param {string} identifier
+ * @param {boolean} electronNames
+ */
 const fromIdentifier = (identifier, electronNames = true) => {
-    let id = String(identifier) || ""
-    id = splitMapString(id).maps[0] ?? id
+    let id = splitMapString(identifier).maps[0] ?? identifier
+    /** @type {{
+     * modifiers: string[],
+     * ctrlKey?: boolean, control?: boolean,
+     * metaKey?: boolean, meta?: boolean,
+     * altKey?: boolean, alt?: boolean,
+     * shiftKey?: boolean, shift?: boolean,
+     * }}
+     */
     const options = {"modifiers": []}
     if (id.startsWith("<") && id.endsWith(">")) {
         id = id.slice(1, -1)
@@ -1227,7 +1319,7 @@ const fromIdentifier = (identifier, electronNames = true) => {
             }
         })
     }
-    return {...options, "key": id, "keyCode": id}
+    return {...options, "key": id}
 }
 
 // Single use actions that do not need to be called multiple times if counted
@@ -1352,6 +1444,13 @@ const uncountableActions = [
     "p.vsplitText"
 ]
 
+
+/**
+ * Find suitable mappings for a set of keys.
+ * @param {string} actionKeys
+ * @param {string} mode
+ * @param {boolean} future
+ */
 const findMaps = (actionKeys, mode, future = false) => {
     const keys = splitMapString(actionKeys).maps
     return Object.keys(bindings[mode[0]]).filter(m => {
@@ -1374,8 +1473,23 @@ const findMaps = (actionKeys, mode, future = false) => {
         - splitMapString(b).maps.indexOf("<Any>"))
 }
 
+/**
+ * Check if there are future actions in the current mode for a set of keys.
+ * @param {string} keys
+ */
 const hasFutureActions = keys => findMaps(keys, currentMode(), true).length
 
+/**
+ * Send an input key to the webview.
+ * @param {{
+ *   modifiers: string[], bubbles?: boolean,
+ *   ctrlKey?: boolean, control?: boolean,
+ *   metaKey?: boolean, meta?: boolean,
+ *   altKey?: boolean, alt?: boolean,
+ *   shiftKey?: boolean, shift?: boolean,
+ * }} options
+ * @param {string} mapStr
+ */
 const sendKeysToWebview = async(options, mapStr) => {
     if (recordingName) {
         recordingString += mapStr
@@ -1400,7 +1514,13 @@ const repeatLastAction = () => {
     }
 }
 
-const executeMapString = async(mapStr, recursive, initial) => {
+/**
+ * Execute a provided mapstring as if it was pressed.
+ * @param {string} mapStr
+ * @param {boolean} recursive
+ * @param {boolean} initial
+ */
+const executeMapString = async(mapStr, recursive, initial = false) => {
     const actionCallKey = splitMapString(pressedKeys).maps.at(-1)
     if (initial) {
         if (recordingName) {
@@ -1485,7 +1605,13 @@ const executeMapString = async(mapStr, recursive, initial) => {
     }
 }
 
-const doAction = async(actionName, givenCount, key) => {
+/**
+ * Execute a action by action name, optionally multiple times.
+ * @param {string} actionName
+ * @param {number | null} givenCount
+ * @param {string|null} key
+ */
+const doAction = async(actionName, givenCount = null, key = null) => {
     let actionCount = givenCount || 1
     if (uncountableActions.includes(actionName)) {
         if (lastActionInMapping === actionName) {
@@ -1500,8 +1626,10 @@ const doAction = async(actionName, givenCount, key) => {
     const funcName = actionName.replace(/^.*\./g, "")
     for (let i = 0; i < actionCount; i++) {
         if (pointer) {
+            // @ts-expect-error funcName is plenty checked before being called
             await POINTER[funcName]({hadModifier, key})
         } else {
+            // @ts-expect-error funcName is plenty checked before being called
             await ACTIONS[funcName]({hadModifier, key})
         }
     }
@@ -1512,6 +1640,10 @@ const doAction = async(actionName, givenCount, key) => {
     repeatCounter = 0
 }
 
+/**
+ * Find the right action for a set of keys in the current mode.
+ * @param {string} keys
+ */
 const actionForKeys = keys => {
     const {"active": menuActive} = require("./contextmenu")
     const allMenu = findMaps(keys, "menu")
@@ -1523,6 +1655,23 @@ const actionForKeys = keys => {
     return bindings[currentMode()[0]][allCurrent[0]]
 }
 
+/**
+ * Handle all keyboard input.
+ * @param {(KeyboardEvent  & {passedOnFromInsert?: false})|{
+ *   altKey: boolean
+ *   ctrlKey: boolean,
+ *   isTrusted: boolean,
+ *   key: string,
+ *   location: string,
+ *   metaKey: boolean,
+ *   passedOnFromInsert: true,
+ *   preventDefault: () => undefined,
+ *   shiftKey: boolean
+ *   isComposing?: boolean
+ *   which?: string
+ *   bubbles?: boolean
+ * }} e
+ */
 const handleKeyboard = async e => {
     e.preventDefault()
     if (document.body.classList.contains("fullscreen")) {
@@ -1539,15 +1688,15 @@ const handleKeyboard = async e => {
         return
     }
     const id = toIdentifier(e)
-    const matchingMod = getSetting("modifiers").split(",").find(
+    const matchingMod = getSetting("modifiers").split(",").some(
         mod => mod === id || `<${mod}>` === id || id.endsWith(`-${mod}>`))
     if (matchingMod) {
         return
     }
     hadModifier = e.shiftKey || e.ctrlKey
-    clearTimeout(timeoutTimer)
+    window.clearTimeout(timeoutTimer ?? undefined)
     if (getSetting("timeout")) {
-        timeoutTimer = setTimeout(async() => {
+        timeoutTimer = window.setTimeout(async() => {
             const keys = splitMapString(pressedKeys).maps
             if (pressedKeys) {
                 const ac = actionForKeys(pressedKeys)
@@ -1556,7 +1705,7 @@ const handleKeyboard = async e => {
                     if (e.isTrusted) {
                         await executeMapString(ac.mapping, !ac.noremap, true)
                     } else {
-                        await executeMapString(ac.mapping, e.bubbles)
+                        await executeMapString(ac.mapping, e.bubbles ?? false)
                     }
                     return
                 }
@@ -1626,12 +1775,12 @@ const handleKeyboard = async e => {
     const action = actionForKeys(pressedKeys)
     const hasMenuAction = menuActive() && action
     if (!hasFutureActions(pressedKeys) || hasMenuAction) {
-        clearTimeout(timeoutTimer)
+        window.clearTimeout(timeoutTimer ?? undefined)
         if (action && (e.isTrusted || e.bubbles)) {
             if (e.isTrusted) {
                 await executeMapString(action.mapping, !action.noremap, true)
             } else {
-                await executeMapString(action.mapping, e.bubbles)
+                await executeMapString(action.mapping, e.bubbles ?? false)
             }
             return
         }
@@ -1665,16 +1814,12 @@ const handleKeyboard = async e => {
     menuClear()
     updateKeysOnScreen()
     if (currentMode() === "follow") {
-        if (e.type === "keydown") {
+        if (e instanceof KeyboardEvent && e.type === "keydown") {
             const {enterKey} = require("./follow")
             let unshiftedName = String(e.key).toLowerCase()
             if (e.key.toUpperCase() === unshiftedName && hadModifier) {
-                try {
-                    const map = await navigator.keyboard.getLayoutMap()
-                    unshiftedName = map.get(e.code) ?? e.key
-                } catch {
-                    // Unsupported keyboard layout, fallback to unshifted key
-                }
+                const map = await window.navigator.keyboard?.getLayoutMap()
+                unshiftedName = map?.get(e.code) ?? unshiftedName
             }
             enterKey(unshiftedName, id, hadModifier)
         }
@@ -1683,14 +1828,24 @@ const handleKeyboard = async e => {
     ACTIONS.setFocusCorrectly()
 }
 
+/**
+ * Check an addition key if using mac and get the right one.
+ * @param {string[]} regular
+ * @param {string[]} mac
+ * @param {string} key
+ */
 const keyForOs = (regular, mac, key) => regular.includes(key)
     || process.platform === "darwin" && mac.includes(key)
 
 const updateNavbarScrolling = () => {
-    const url = document.getElementById("url")
+    const url = getUrl()
+    if (!url) {
+        return
+    }
     const charWidth = getSetting("guifontsize") * 0.60191
-    const end = url.selectionStart * charWidth - charWidth
-    const start = url.selectionEnd * charWidth - url.clientWidth + charWidth + 2
+    const end = (url.selectionStart ?? 0) * charWidth - charWidth
+    const start = (url.selectionEnd ?? 0) * charWidth
+        - url.clientWidth + charWidth + 2
     if (url.scrollLeft < end && url.scrollLeft > start) {
         return
     }
@@ -1707,6 +1862,11 @@ const updateNavbarScrolling = () => {
     }
 }
 
+/**
+ * Type any character into the navbar as if typed.
+ * @param {string} character
+ * @param {boolean} force
+ */
 const typeCharacterIntoNavbar = (character, force = false) => {
     const id = character.replace(/-k(.+)>/, (_, r) => `-${r}>`)
         .replace(/<k([a-zA-Z]+)>/, (_, r) => `<${r}>`)
@@ -1720,7 +1880,10 @@ const typeCharacterIntoNavbar = (character, force = false) => {
     if (recordingName) {
         recordingString += id
     }
-    const url = document.getElementById("url")
+    const url = getUrl()
+    if (!url) {
+        return
+    }
     if (keyForOs(["<S-Home>", "<C-S-Home>"], ["<M-S-Left>", "<M-S-Up>"], id)) {
         if (url.selectionDirection !== "backward") {
             url.selectionEnd = url.selectionStart
@@ -1753,7 +1916,8 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         } else {
             url.selectionStart = url.selectionEnd
         }
-        if (url.selectionEnd < url.value.length) {
+        if (url.selectionEnd !== null
+            && url.selectionEnd < url.value.length) {
             url.selectionEnd += 1
         }
         url.selectionStart = url.selectionEnd
@@ -1761,13 +1925,16 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         return
     }
     if (id === "<S-Right>") {
-        if (url.selectionStart === url.selectionEnd) {
+        if (url.selectionStart === url.selectionEnd
+            && url.selectionStart !== null && url.selectionEnd !== null) {
             url.setSelectionRange(url.selectionStart, url.selectionEnd + 1)
         } else if (url.selectionDirection !== "backward") {
-            if (url.selectionEnd < url.value.length) {
+            if (url.selectionEnd !== null
+                && url.selectionEnd < url.value.length) {
                 url.selectionEnd += 1
             }
-        } else if (url.selectionStart < url.value.length) {
+        } else if (url.selectionStart !== null
+            && url.selectionStart < url.value.length) {
             url.selectionStart += 1
         }
         updateNavbarScrolling()
@@ -1817,7 +1984,7 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         } else {
             url.selectionStart = url.selectionEnd
         }
-        if (url.selectionStart > 0) {
+        if (url.selectionStart !== null && url.selectionStart > 0) {
             url.selectionStart -= 1
         }
         url.selectionEnd = url.selectionStart
@@ -1825,14 +1992,15 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         return
     }
     if (id === "<S-Left>") {
-        if (url.selectionStart === url.selectionEnd) {
+        if (url.selectionStart === url.selectionEnd
+            && url.selectionStart !== null && url.selectionEnd !== null) {
             url.setSelectionRange(url.selectionStart - 1,
                 url.selectionEnd, "backward")
         } else if (url.selectionDirection === "backward") {
-            if (url.selectionStart > 0) {
+            if (url.selectionStart !== null && url.selectionStart > 0) {
                 url.selectionStart -= 1
             }
-        } else if (url.selectionEnd > 0) {
+        } else if (url.selectionEnd !== null && url.selectionEnd > 0) {
             url.selectionEnd -= 1
         }
         updateNavbarScrolling()
@@ -1861,7 +2029,7 @@ const typeCharacterIntoNavbar = (character, force = false) => {
                 } else if (url.selectionDirection === "backward") {
                     url.setSelectionRange(wordPosition,
                         url.selectionEnd, "backward")
-                } else {
+                } else if (url.selectionStart !== null) {
                     if (wordPosition < url.selectionStart) {
                         url.setSelectionRange(url.selectionStart,
                             url.selectionStart)
@@ -1914,7 +2082,8 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         updateNavbarScrolling()
         return
     }
-    if (url.selectionStart !== url.selectionEnd) {
+    if (url.selectionStart !== url.selectionEnd
+        && url.selectionStart !== null && url.selectionEnd !== null) {
         if (!["<lt>", "<Bar>", "<Bslash>", "<Space>"].includes(id)) {
             if (id.length !== 1) {
                 if (id !== "<Del>" && !id.endsWith("-Del>")) {
@@ -1925,8 +2094,8 @@ const typeCharacterIntoNavbar = (character, force = false) => {
             }
         }
         const cur = Number(url.selectionStart)
-        url.value = url.value.substr(0, url.selectionStart)
-            + url.value.substr(url.selectionEnd)
+        url.value = url.value.substring(0, url.selectionStart)
+            + url.value.substring(url.selectionEnd)
         url.setSelectionRange(cur, cur)
         requestSuggestUpdate()
         updateNavbarScrolling()
@@ -1938,13 +2107,15 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         }
     }
     if (id === "<Del>") {
-        if (url.selectionEnd < url.value.length) {
-            const cur = Number(url.selectionStart)
-            url.value = `${url.value.substr(0, url.selectionStart)}${
-                url.value.substr(url.selectionEnd + 1)}`
-            url.setSelectionRange(cur, cur)
-            requestSuggestUpdate()
-            updateNavbarScrolling()
+        if (url.selectionStart !== null && url.selectionEnd !== null) {
+            if (url.selectionEnd < url.value.length) {
+                const cur = Number(url.selectionStart)
+                url.value = `${url.value.substring(0, url.selectionStart)}${
+                    url.value.substring(url.selectionEnd + 1)}`
+                url.setSelectionRange(cur, cur)
+                requestSuggestUpdate()
+                updateNavbarScrolling()
+            }
         }
         return
     }
@@ -1952,10 +2123,11 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         let wordPosition = 0
         for (const word of words) {
             wordPosition += word.length
-            if (wordPosition > url.selectionStart) {
+            if (url.selectionStart !== null
+                && wordPosition > url.selectionStart) {
                 const cur = Number(url.selectionStart)
-                url.value = `${url.value.substr(0, url.selectionStart)}${
-                    url.value.substr(wordPosition)}`
+                url.value = `${url.value.substring(0, url.selectionStart)}${
+                    url.value.substring(wordPosition)}`
                 url.setSelectionRange(cur, cur)
                 requestSuggestUpdate()
                 updateNavbarScrolling()
@@ -1965,10 +2137,11 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         return
     }
     if (id === "<BS>" || id === "<S-BS>") {
-        if (url.selectionStart > 0) {
+        if (url.selectionStart !== null && url.selectionEnd !== null
+            && url.selectionStart > 0) {
             const cur = Number(url.selectionStart)
-            url.value = `${url.value.substr(0, url.selectionStart - 1)}${
-                url.value.substr(url.selectionEnd)}`
+            url.value = `${url.value.substring(0, url.selectionStart - 1)}${
+                url.value.substring(url.selectionEnd)}`
             url.setSelectionRange(cur - 1, cur - 1)
             requestSuggestUpdate()
             updateNavbarScrolling()
@@ -1979,9 +2152,10 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         let wordPosition = url.value.length
         for (const word of words.slice().reverse()) {
             wordPosition -= word.length
-            if (wordPosition < url.selectionStart) {
-                url.value = `${url.value.substr(0, wordPosition)}${
-                    url.value.substr(url.selectionStart)}`
+            if (url.selectionStart !== null
+                && wordPosition < url.selectionStart) {
+                url.value = `${url.value.substring(0, wordPosition)}${
+                    url.value.substring(url.selectionStart)}`
                 url.setSelectionRange(wordPosition, wordPosition)
                 requestSuggestUpdate()
                 updateNavbarScrolling()
@@ -1992,25 +2166,30 @@ const typeCharacterIntoNavbar = (character, force = false) => {
     }
     const cur = Number(url.selectionStart)
     const text = String(url.value)
-    if (id.length === 1) {
-        url.value = `${url.value.substr(0, url.selectionStart)}${id}${
-            url.value.substr(url.selectionEnd)}`
+    if (id.length === 1
+        && url.selectionStart !== null && url.selectionEnd !== null) {
+        url.value = `${url.value.substring(0, url.selectionStart)}${id}${
+            url.value.substring(url.selectionEnd)}`
     }
-    if (id === "<lt>") {
-        url.value = `${url.value.substr(0, url.selectionStart)}<${
-            url.value.substr(url.selectionEnd)}`
+    if (id === "<lt>"
+        && url.selectionStart !== null && url.selectionEnd !== null) {
+        url.value = `${url.value.substring(0, url.selectionStart)}<${
+            url.value.substring(url.selectionEnd)}`
     }
-    if (id === "<Bar>") {
-        url.value = `${url.value.substr(0, url.selectionStart)}|${
-            url.value.substr(url.selectionEnd)}`
+    if (id === "<Bar>"
+        && url.selectionStart !== null && url.selectionEnd !== null) {
+        url.value = `${url.value.substring(0, url.selectionStart)}|${
+            url.value.substring(url.selectionEnd)}`
     }
-    if (id === "<Bslash>") {
-        url.value = `${url.value.substr(0, url.selectionStart)}\\${
-            url.value.substr(url.selectionEnd)}`
+    if (id === "<Bslash>"
+        && url.selectionStart !== null && url.selectionEnd !== null) {
+        url.value = `${url.value.substring(0, url.selectionStart)}\\${
+            url.value.substring(url.selectionEnd)}`
     }
-    if (id === "<Space>" || id === "<S-Space>") {
-        url.value = `${url.value.substr(0, url.selectionStart)} ${
-            url.value.substr(url.selectionEnd)}`
+    if ((id === "<Space>" || id === "<S-Space>")
+        && url.selectionStart !== null && url.selectionEnd !== null) {
+        url.value = `${url.value.substring(0, url.selectionStart)} ${
+            url.value.substring(url.selectionEnd)}`
     }
     if (text !== url.value) {
         url.setSelectionRange(cur + 1, cur + 1)
@@ -2025,19 +2204,20 @@ const resetInputHistory = () => {
 }
 
 const requestSuggestUpdate = (updateHistory = true) => {
-    const url = document.getElementById("url")
+    const url = getUrl()
     const suggestBounceDelay = getSetting("suggestbouncedelay")
     if (updateHistory) {
         inputHistoryList = inputHistoryList.slice(0, inputHistoryIndex + 1)
         inputHistoryIndex = inputHistoryList.length
-        inputHistoryList.push({"index": url.selectionStart, "value": url.value})
+        const start = Number(url?.selectionStart)
+        inputHistoryList.push({"index": start, "value": url?.value ?? ""})
     }
     if (!suggestionTimer) {
         updateSuggestions()
     }
     if (suggestBounceDelay) {
-        clearTimeout(suggestionTimer)
-        suggestionTimer = setTimeout(() => {
+        window.clearTimeout(suggestionTimer ?? undefined)
+        suggestionTimer = window.setTimeout(() => {
             suggestionTimer = null
             updateSuggestions()
         }, suggestBounceDelay)
@@ -2045,44 +2225,54 @@ const requestSuggestUpdate = (updateHistory = true) => {
 }
 
 const updateSuggestions = () => {
-    const val = document.getElementById("url").value
+    const url = getUrl()
+    if (!url) {
+        return
+    }
     const mode = currentMode()
     if (mode === "explore") {
         const {suggestExplore} = require("./suggest")
-        suggestExplore(val)
+        suggestExplore(url.value)
     } else if (mode === "command") {
         const {suggestCommand} = require("./suggest")
-        suggestCommand(val)
+        suggestCommand(url.value)
     } else if (mode === "search" && getSetting("incsearch")) {
         ACTIONS.incrementalSearch()
     }
 }
 
 const updateKeysOnScreen = () => {
-    document.getElementById("repeat-counter").textContent = repeatCounter
-    document.getElementById("pressed-keys").textContent = pressedKeys
-    document.getElementById("record-name").textContent
-        = `recording @${recordingName}`
+    const repeatCounterEl = document.getElementById("repeat-counter")
+    const pressedKeysEl = document.getElementById("pressed-keys")
+    const recordNameEl = document.getElementById("record-name")
+    if (!repeatCounterEl || !pressedKeysEl || !recordNameEl) {
+        return
+    }
+    repeatCounterEl.textContent = `${repeatCounter}`
+    pressedKeysEl.textContent = pressedKeys
+    recordNameEl.textContent = `recording @${recordingName}`
     if (repeatCounter && getSetting("showcmd")) {
-        document.getElementById("repeat-counter").style.display = "flex"
+        repeatCounterEl.style.display = "flex"
     } else {
-        document.getElementById("repeat-counter").style.display = "none"
+        repeatCounterEl.style.display = "none"
     }
     if (pressedKeys && getSetting("showcmd")) {
-        document.getElementById("pressed-keys").style.display = "flex"
+        pressedKeysEl.style.display = "flex"
     } else {
-        document.getElementById("pressed-keys").style.display = "none"
+        pressedKeysEl.style.display = "none"
     }
     if (recordingName && getSetting("showcmd")) {
-        document.getElementById("record-name").style.display = "flex"
+        recordNameEl.style.display = "flex"
     } else {
-        document.getElementById("record-name").style.display = "none"
+        recordNameEl.style.display = "none"
     }
     const mapsuggestcount = getSetting("mapsuggest")
     const mapsuggestElement = document.getElementById("mapsuggest")
-    mapsuggestElement.style.display = "none"
+    if (mapsuggestElement) {
+        mapsuggestElement.style.display = "none"
+    }
     const {active} = require("./contextmenu")
-    if (mapsuggestcount > 0) {
+    if (mapsuggestcount > 0 && mapsuggestElement) {
         const mapsuggestPosition = getSetting("mapsuggestposition")
         mapsuggestElement.className = mapsuggestPosition
         mapsuggestElement.textContent = ""
@@ -2133,6 +2323,11 @@ const updateKeysOnScreen = () => {
 
 const listSupportedActions = () => supportedActions
 
+/**
+ * Check if mapping has been modified compared to the defaults.
+ * @param {string} mode
+ * @param {string} mapping
+ */
 const mappingModified = (mode, mapping) => {
     const current = bindings[mode][mapping]
     const original = defaultBindings[mode][mapping]
@@ -2149,9 +2344,16 @@ const mappingModified = (mode, mapping) => {
     return true
 }
 
+/**
+ * List mappings as a list of map commands.
+ * @param {string|null} oneMode
+ * @param {boolean} includeDefault
+ * @param {string[]|null} customKeys
+ */
 const listMappingsAsCommandList = (
-    oneMode = false, includeDefault = false, customKeys = null
+    oneMode = null, includeDefault = false, customKeys = null
 ) => {
+    /** @type {string[]} */
     let mappings = []
     let modes = Object.keys(defaultBindings)
     if (oneMode) {
@@ -2167,9 +2369,10 @@ const listMappingsAsCommandList = (
     })
     if (!oneMode) {
         // Mappings that can be added with a global "map" instead of 1 per mode
+        /** @type {string[]} */
         const globalMappings = []
         mappings.filter(m => m.match(/^n(noremap|map|unmap) /g))
-            .filter(m => !modes.find(mode => !mappings.includes(
+            .filter(m => !modes.some(mode => !mappings.includes(
                 `${mode}${m.slice(1)}`)))
             .forEach(m => {
                 globalMappings.push(m.slice(1))
@@ -2180,6 +2383,12 @@ const listMappingsAsCommandList = (
     return mappings.join("\n").replace(/[\r\n]+/g, "\n").trim()
 }
 
+/**
+ * List a mapping as if set via a command.
+ * @param {string} mode
+ * @param {boolean} includeDefault
+ * @param {string} rawKey
+ */
 const listMapping = (mode, includeDefault, rawKey) => {
     const key = sanitiseMapString(rawKey)
     if (!mappingModified(mode, key) && !includeDefault) {
@@ -2198,7 +2407,14 @@ const listMapping = (mode, includeDefault, rawKey) => {
     return ""
 }
 
-const mapOrList = (mode, args, noremap, includeDefault) => {
+/**
+ * Handle the map command, so either list a mapping or set it.
+ * @param {string|null} mode
+ * @param {string[]} args
+ * @param {boolean} noremap
+ * @param {boolean} includeDefault
+ */
+const mapOrList = (mode, args, noremap = false, includeDefault = false) => {
     if (includeDefault && args.length > 1) {
         notify("Mappings are always overwritten, no need for !", "warn")
         return
@@ -2227,7 +2443,7 @@ const mapOrList = (mode, args, noremap, includeDefault) => {
             }
         } else {
             let mappings = listMappingsAsCommandList(
-                false, includeDefault, [args[0]])
+                null, includeDefault, [args[0]])
             mappings = mappings.replace(/[\r\n]+/g, "\n").trim()
             if (mappings) {
                 notify(mappings)
@@ -2242,6 +2458,11 @@ const mapOrList = (mode, args, noremap, includeDefault) => {
     mapSingle(mode, args, noremap)
 }
 
+/**
+ * Sanitize any mapstring to the shortest valid version.
+ * @param {string} mapString
+ * @param {boolean} allowSpecials
+ */
 const sanitiseMapString = (mapString, allowSpecials = false) => {
     const {maps, valid, leftover} = splitMapString(mapString)
     if (!valid) {
@@ -2254,6 +2475,7 @@ const sanitiseMapString = (mapString, allowSpecials = false) => {
             return ">"
         }
         let key = m
+        /** @type {string[]} */
         let modifiers = []
         let knownKey = false
         if (allowSpecials) {
@@ -2287,7 +2509,7 @@ const sanitiseMapString = (mapString, allowSpecials = false) => {
             ;[key] = splitKeys.slice(-1)
         }
         for (const name of keyNames) {
-            if (name.vim.find(vk => vk.toUpperCase() === key.toUpperCase())) {
+            if (name.vim.some(vk => vk.toUpperCase() === key.toUpperCase())) {
                 [key] = name.vim
                 knownKey = true
                 break
@@ -2323,8 +2545,14 @@ const sanitiseMapString = (mapString, allowSpecials = false) => {
     }).join("")
 }
 
+/**
+ * Map a single key.
+ * @param {string|null} mode
+ * @param {string[]} args
+ * @param {boolean} noremap
+ */
 const mapSingle = (mode, args, noremap) => {
-    const mapping = sanitiseMapString(args.shift())
+    const mapping = sanitiseMapString(args.shift() ?? "")
     const actions = sanitiseMapString(args.join(" "), true)
     if (!actions) {
         return
@@ -2340,6 +2568,11 @@ const mapSingle = (mode, args, noremap) => {
     updateHelpPage()
 }
 
+/**
+ * Unmap a specific key.
+ * @param {string|null} mode
+ * @param {string[]} args
+ */
 const unmap = (mode, args) => {
     if (args.length !== 1) {
         notify(`The ${mode}unmap command requires exactly one mapping`, "warn")
@@ -2356,7 +2589,12 @@ const unmap = (mode, args) => {
     updateHelpPage()
 }
 
-const clearmap = (mode, removeDefaults) => {
+/**
+ * Clear all mappings to default or wipe them completely, optionally per mode.
+ * @param {string|null} mode
+ * @param {boolean} removeDefaults
+ */
+const clearmap = (mode, removeDefaults = false) => {
     if (mode) {
         if (removeDefaults) {
             bindings[mode] = {}
@@ -2374,6 +2612,10 @@ const clearmap = (mode, removeDefaults) => {
     updateHelpPage()
 }
 
+/**
+ * Start a macro recording by key name.
+ * @param {string} name
+ */
 const startRecording = name => {
     if (recordingName) {
         notify("Already recording, ignoring record action", "warn")
@@ -2383,6 +2625,9 @@ const startRecording = name => {
     recordingString = ""
 }
 
+/**
+ * Stop the current macro recording.
+ */
 const stopRecording = () => {
     if (!recordingName) {
         return
