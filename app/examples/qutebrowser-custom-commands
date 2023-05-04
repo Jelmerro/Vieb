@@ -12,7 +12,8 @@ set permissionmicrophone=ask
 set permissionpersistentstorage=allow
 set redirecttohttp
 set restoretabs=pinned
-set tabclosefocusright
+set tabclosefocus=right
+set tabreopenposition=right
 set useragent=%firefox
 set windowtitle="%title - %app"
 

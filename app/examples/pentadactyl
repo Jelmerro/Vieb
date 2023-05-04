@@ -27,8 +27,8 @@ nmap b :buffer<Space>
 nmap g0 <:buffer 0>
 nmap g^ <:buffer 0>
 nmap g$ <:buffer -1>
-nmap d <:set tabclosefocusright><:close>
-nmap D <:set notabclosefocusright><:close>
+nmap d <:set tabclosefocus=right><:close>
+nmap D <:set tabclosefocus=left><:close>
 nmap o <toExploreMode>
 nmap O <:tabnew><toExploreMode>
 nmap gP <:tabnew><openFromClipboard><:buffer #>

@@ -308,9 +308,9 @@ const defaultSettings = {
     "suspendonrestore": "regular",
     "suspendplayingtab": false,
     "suspendtimeout": 0,
-    "tabclosefocusright": false,
+    "tabclosefocus": "left",
     "tabcycle": true,
-    "tabnexttocurrent": true,
+    "tabnewposition": "right",
     /** @type {"always"|"background"|"never"} */
     "tabopenmuted": "never",
     /** @type {"hidden"|"scroll"|"wrap"} */
@@ -499,6 +499,8 @@ const validOptions = {
     "searchpointeralignment": ["left", "center", "right"],
     "searchscope": ["global", "local", "inclocal"],
     "suspendonrestore": ["all", "regular", "none"],
+    "tabclosefocus": ["left", "right"],
+    "tabnewposition": ["right", "end"],
     "tabopenmuted": ["always", "background", "never"],
     "taboverflow": ["hidden", "scroll", "wrap"],
     "tabreopenmuted": ["always", "remember", "never"],

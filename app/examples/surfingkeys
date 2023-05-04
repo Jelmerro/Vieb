@@ -23,7 +23,7 @@ set searchwords+=wikipedia~https://en.wikipedia.org/?search=%s
 set searchwords+=stackoverflow~https://stackoverflow.com/search?q=%s
 set searchwords+=github~https://github.com/search?q=%s
 set splitbelow
-set tabclosefocusright
+set tabclosefocus=right
 set tabreopenposition=previous
 set useragent=%firefox
 
