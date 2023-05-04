@@ -11,7 +11,9 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
-## Unreleased
+## [9.7.1](https://github.com/Jelmerro/Vieb/compare/9.7.0...9.7.1) - 2023-05-04
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/9.7.0...9.7.1) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/9.7.1)
 
 ### Deprecated
 
