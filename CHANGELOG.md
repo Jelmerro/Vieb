@@ -26,6 +26,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Set command syntax to rotate between a custom set of values, such as `:set example!value1|value2|value3`
 - Setting "permissionusb" to list usb devices (default remains blocked, previously grouped as "unknown")
 - Types and documentation using JSDoc to most of the source code
+- More position options for opening new tabs using "tabnewposition"
+- More focus positions after closing a tab using "tabclosefocus"
 
 ### Changed
 
@@ -47,6 +49,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Action "openNewTab" in favor of ":tabnew" command
 - Setting "clearhistoryonquit" in favor of "clearhistoryinterval=session"
 - Setting "search" in favor of the functionality identical "searchengine" setting
+- Setting "tabnexttocurrent" in favor of "tabnewposition" enum
+- Setting "tabclosefocusright" in favor of "tabclosefocus" enum
 
 ### Fixed
 

@@ -373,7 +373,9 @@ const addTab = (options = {}) => {
     tab.append(favicon)
     tab.append(statusIcon)
     tab.append(name)
-    if (options.customIndex !== undefined && currentTab()) {
+    const activeTab = currentTab()
+    const tabnewposition = getSetting("tabnewposition")
+    if (options.customIndex !== undefined && activeTab) {
         if (options.customIndex >= listTabs().length) {
             tabs?.append(tab)
         } else {
@@ -386,8 +388,26 @@ const addTab = (options = {}) => {
             }
             tabs?.insertBefore(tab, nextTab)
         }
-    } else if (getSetting("tabnewposition") === "right" && currentTab()) {
-        let nextTab = currentTab()?.nextElementSibling
+    } else if (tabnewposition === "right" && activeTab) {
+        let nextTab = activeTab.nextElementSibling
+        if (!options.pinned) {
+            while (nextTab && nextTab.classList.contains("pinned")) {
+                nextTab = nextTab.nextElementSibling
+            }
+        }
+        tabs?.insertBefore(tab, nextTab ?? null)
+    } else if (tabnewposition === "left" && activeTab) {
+        /** @type {Element|null} */
+        let nextTab = activeTab
+        if (!options.pinned) {
+            while (nextTab && nextTab.classList.contains("pinned")) {
+                nextTab = nextTab.nextElementSibling
+            }
+        }
+        tabs?.insertBefore(tab, nextTab ?? null)
+    } else if (tabnewposition === "start" && activeTab) {
+        /** @type {Element|null} */
+        let nextTab = tabs?.firstElementChild ?? null
         if (!options.pinned) {
             while (nextTab && nextTab.classList.contains("pinned")) {
                 nextTab = nextTab.nextElementSibling
@@ -627,6 +647,7 @@ const closeTab = (index = null, force = false) => {
             return
         }
     }
+    const tabLinkId = tab.getAttribute("link-id")
     const url = urlToString(page.getAttribute("src") || "")
     const oldTabIdx = listTabs().indexOf(tab)
     if (getSetting("keeprecentlyclosed") && url) {
@@ -637,14 +658,14 @@ const closeTab = (index = null, force = false) => {
             url
         })
     }
-    const regularTab = listTabs().find(t => t.getAttribute("devtools-id")
-        === tab?.getAttribute("link-id"))
+    const regularTab = listTabs().find(
+        t => t.getAttribute("devtools-id") === tabLinkId)
     if (regularTab) {
         regularTab.removeAttribute("devtools-id")
     }
     const closedDevtoolsId = tab.getAttribute("devtools-id")
     const {layoutDivById, hide} = require("./pagelayout")
-    const isVisible = layoutDivById(tab.getAttribute("link-id"))
+    const isVisible = layoutDivById(tabLinkId)
     const multiLayout = document.getElementById("pages")
         ?.classList.contains("multiple")
     if (isVisible && multiLayout) {
@@ -679,6 +700,17 @@ const closeTab = (index = null, force = false) => {
                 } else {
                     switchToTab(oldTabIdx)
                 }
+            } else if (getSetting("tabclosefocus") === "previous") {
+                const {getLastTabIds} = require("./pagelayout")
+                const tabs = listTabs()
+                const lastTab = getLastTabIds().map(id => {
+                    const tb = tabs.find(t => t.getAttribute("link-id") === id)
+                    if (tb?.getAttribute("link-id") === tabLinkId) {
+                        return null
+                    }
+                    return tb
+                }).find(t => t) ?? tabs[0]
+                switchToTab(Math.max(tabs.indexOf(lastTab), 0))
             } else if (oldTabIdx === 0) {
                 switchToTab(0)
             } else {
