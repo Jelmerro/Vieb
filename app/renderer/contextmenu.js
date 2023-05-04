@@ -28,7 +28,8 @@ const {
     isUrl,
     propPixels,
     sendToPageOrSubFrame,
-    execCommand
+    execCommand,
+    isElement
 } = require("../util")
 const {
     listTabs,
@@ -132,13 +133,7 @@ const viebMenu = (options, force = false) => {
     /** @type {Element[]} */
     let pathEls = []
     if (options instanceof MouseEvent) {
-        pathEls = options.composedPath().filter(
-            /**
-             * Filter the event targets to only elements.
-             * @param {EventTarget} el
-             * @returns {el is Element}
-             */
-            el => el instanceof Element)
+        pathEls = options.composedPath().filter(isElement)
     } else {
         pathEls = options.path
     }

@@ -24,7 +24,13 @@ const {
     querySelectorAll,
     findFrameInfo,
     findElementAtPosition,
-    fetchJSON
+    fetchJSON,
+    isHTMLAnchorElement,
+    isHTMLElement,
+    isInputOrTextElement,
+    isHTMLVideoElement,
+    isHTMLAudioElement,
+    isElement
 } = require("../util")
 
 /**
@@ -47,7 +53,7 @@ const previousPage = newtab => navigateToPage("*[rel=prev], .navi-prev", newtab)
 const navigateToPage = (selector, newtab) => {
     const paginations = querySelectorAll(selector)
     for (const pagination of paginations) {
-        if (pagination instanceof HTMLAnchorElement && pagination?.href) {
+        if (isHTMLAnchorElement(pagination) && pagination?.href) {
             if (newtab) {
                 ipcRenderer.sendToHost("url", pagination.href)
             } else {
@@ -60,7 +66,7 @@ const navigateToPage = (selector, newtab) => {
 
 const blur = () => {
     const el = activeElement()
-    if (el instanceof HTMLElement) {
+    if (isHTMLElement(el)) {
         el.blur()
     }
 }
@@ -124,7 +130,7 @@ const scrollPageUpHalf = () => scrollBy(0, -window.innerHeight / 2 + 25)
 
 const focusTopLeftCorner = () => {
     const el = document.elementFromPoint(0, 0)
-    if (el instanceof HTMLElement) {
+    if (isHTMLElement(el)) {
         el.focus()
     }
 }
@@ -141,7 +147,7 @@ const writeableInputs = {}
  */
 const setInputFieldText = (filename, text) => {
     const el = writeableInputs[filename]
-    if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+    if (isInputOrTextElement(el)) {
         el.value = text
     } else if (el?.getAttribute("contenteditable") === "true") {
         el.textContent = text
@@ -157,7 +163,7 @@ const writeInputToFile = filename => {
     if (!el) {
         return
     }
-    if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+    if (isInputOrTextElement(el)) {
         writeFile(filename, el.value)
     } else if (el?.getAttribute("contenteditable") === "true") {
         writeFile(filename, el.textContent ?? "")
@@ -174,7 +180,7 @@ const print = () => document.execCommand("print")
  */
 const toggleControls = (x, y) => {
     const el = findElementAtPosition(x, y)
-    if (el instanceof HTMLVideoElement) {
+    if (isHTMLVideoElement(el)) {
         if (el.hasAttribute("controls")
             && el.getAttribute("controls") !== "false") {
             el.removeAttribute("controls")
@@ -191,7 +197,7 @@ const toggleControls = (x, y) => {
  */
 const toggleLoop = (x, y) => {
     const el = findElementAtPosition(x, y)
-    if (el instanceof HTMLAudioElement || el instanceof HTMLVideoElement) {
+    if (isHTMLAudioElement(el) || isHTMLVideoElement(el)) {
         if (el.hasAttribute("loop") && el.getAttribute("loop") !== "false") {
             el.removeAttribute("loop")
         } else {
@@ -207,7 +213,7 @@ const toggleLoop = (x, y) => {
  */
 const toggleMute = (x, y) => {
     const el = findElementAtPosition(x, y)
-    if (el instanceof HTMLAudioElement || el instanceof HTMLVideoElement) {
+    if (isHTMLAudioElement(el) || isHTMLVideoElement(el)) {
         if (el.volume === 0) {
             el.volume = 1
         } else {
@@ -223,7 +229,7 @@ const toggleMute = (x, y) => {
  */
 const togglePause = (x, y) => {
     const el = findElementAtPosition(x, y)
-    if (el instanceof HTMLAudioElement || el instanceof HTMLVideoElement) {
+    if (isHTMLAudioElement(el) || isHTMLVideoElement(el)) {
         if (el.paused) {
             el.play()
         } else {
@@ -239,7 +245,7 @@ const togglePause = (x, y) => {
  */
 const volumeDown = (x, y) => {
     const el = findElementAtPosition(x, y)
-    if (el instanceof HTMLAudioElement || el instanceof HTMLVideoElement) {
+    if (isHTMLAudioElement(el) || isHTMLVideoElement(el)) {
         el.volume = Math.max(0, el.volume - 0.1) || 0
     }
 }
@@ -251,7 +257,7 @@ const volumeDown = (x, y) => {
  */
 const volumeUp = (x, y) => {
     const el = findElementAtPosition(x, y)
-    if (el instanceof HTMLAudioElement || el instanceof HTMLVideoElement) {
+    if (isHTMLAudioElement(el) || isHTMLVideoElement(el)) {
         el.volume = Math.min(1, el.volume + 0.1) || 1
     }
 }
@@ -448,7 +454,7 @@ const translatepage = async(api, url, lang, apiKey) => {
             const subText = document.createElement("p")
             if (["kbd", "code"].includes(textNode.nodeName.toLowerCase())) {
                 // Skip element text
-            } else if (textNode instanceof Element
+            } else if (isElement(textNode)
                 && textNode.textContent === textNode.innerHTML) {
                 subText.textContent = textNode.textContent
             } else if (textNode.nodeName === "#text") {

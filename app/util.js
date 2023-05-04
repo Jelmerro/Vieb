@@ -431,13 +431,152 @@ const propPixels = (element, prop) => {
 }
 
 /**
+ * Check if a node is an element, taking subframes into account.
+ * @param {Node|EventTarget|null|undefined} el
+ * @returns {el is Element}
+ */
+const isElement = el => {
+    if (el instanceof EventTarget && !(el instanceof Element)) {
+        return false
+    }
+    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
+        return false
+    }
+    return el instanceof el.ownerDocument.defaultView.Element
+}
+
+/**
+ * Check if a node is an html element, taking subframes into account.
+ * @param {Node|EventTarget|null|undefined} el
+ * @returns {el is HTMLElement}
+ */
+const isHTMLElement = el => {
+    if (el instanceof EventTarget && !(el instanceof HTMLElement)) {
+        return false
+    }
+    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
+        return false
+    }
+    return el instanceof el.ownerDocument.defaultView.HTMLElement
+}
+
+/**
+ * Check if a node is an iframe element, taking subframes into account.
+ * @param {Node|EventTarget|null|undefined} el
+ * @returns {el is HTMLIFrameElement}
+ */
+const isHTMLIFrameElement = el => {
+    if (el instanceof EventTarget && !(el instanceof HTMLIFrameElement)) {
+        return false
+    }
+    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
+        return false
+    }
+    return el instanceof el.ownerDocument.defaultView.HTMLIFrameElement
+}
+
+/**
+ * Check if a node is an input or textarea, taking subframes into account.
+ * @param {Node|EventTarget|null|undefined} el
+ * @returns {el is HTMLInputElement|HTMLTextAreaElement}
+ */
+const isInputOrTextElement = el => {
+    if (el instanceof EventTarget && (
+        !(el instanceof HTMLInputElement)
+        && !(el instanceof HTMLTextAreaElement)
+    )) {
+        return false
+    }
+    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
+        return false
+    }
+    return el instanceof el.ownerDocument.defaultView.HTMLInputElement
+        || el instanceof el.ownerDocument.defaultView.HTMLTextAreaElement
+}
+
+/**
+ * Check if a node is an anchor element, taking subframes into account.
+ * @param {Node|EventTarget|null|undefined} el
+ * @returns {el is HTMLAnchorElement}
+ */
+const isHTMLAnchorElement = el => {
+    if (el instanceof EventTarget && !(el instanceof HTMLAnchorElement)) {
+        return false
+    }
+    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
+        return false
+    }
+    return el instanceof el.ownerDocument.defaultView.HTMLAnchorElement
+}
+
+/**
+ * Check if a node is an image element, taking subframes into account.
+ * @param {Node|EventTarget|null|undefined} el
+ * @returns {el is HTMLImageElement}
+ */
+const isHTMLImageElement = el => {
+    if (el instanceof EventTarget && !(el instanceof HTMLImageElement)) {
+        return false
+    }
+    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
+        return false
+    }
+    return el instanceof el.ownerDocument.defaultView.HTMLImageElement
+}
+
+/**
+ * Check if a node is an svg element, taking subframes into account.
+ * @param {Node|EventTarget|null|undefined} el
+ * @returns {el is SVGElement}
+ */
+const isSVGElement = el => {
+    if (el instanceof EventTarget && !(el instanceof SVGElement)) {
+        return false
+    }
+    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
+        return false
+    }
+    return el instanceof el.ownerDocument.defaultView.SVGElement
+}
+
+/**
+ * Check if a node is a video element, taking subframes into account.
+ * @param {Node|EventTarget|null|undefined} el
+ * @returns {el is HTMLVideoElement}
+ */
+const isHTMLVideoElement = el => {
+    if (el instanceof EventTarget && !(el instanceof HTMLVideoElement)) {
+        return false
+    }
+    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
+        return false
+    }
+    return el instanceof el.ownerDocument.defaultView.HTMLVideoElement
+}
+
+/**
+ * Check if a node is an audio element, taking subframes into account.
+ * @param {Node|EventTarget|null|undefined} el
+ * @returns {el is HTMLAudioElement}
+ */
+const isHTMLAudioElement = el => {
+    if (el instanceof EventTarget && !(el instanceof HTMLAudioElement)) {
+        return false
+    }
+    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
+        return false
+    }
+    return el instanceof el.ownerDocument.defaultView.HTMLAudioElement
+}
+
+/**
  * Call an element matches in a safe wrapper as not all elements work.
  * @param {Element|EventTarget|null|undefined} el
  * @param {string} query
  */
 const matchesQuery = (el, query) => {
-    if (!(el instanceof Element)) {
-        return
+    if (!isElement(el)) {
+        return false
     }
     try {
         return el?.matches(query) ?? false
@@ -1382,6 +1521,15 @@ module.exports = {
     findFrameInfo,
     framePosition,
     propPixels,
+    isElement,
+    isHTMLElement,
+    isHTMLIFrameElement,
+    isInputOrTextElement,
+    isHTMLAnchorElement,
+    isHTMLImageElement,
+    isSVGElement,
+    isHTMLVideoElement,
+    isHTMLAudioElement,
     matchesQuery,
     findElementAtPosition,
     querySelectorAll,

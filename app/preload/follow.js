@@ -27,7 +27,16 @@ const {
     findClickPosition,
     framePosition,
     activeElement,
-    getWebviewSetting
+    getWebviewSetting,
+    isHTMLElement,
+    isHTMLIFrameElement,
+    isHTMLAnchorElement,
+    isInputOrTextElement,
+    isHTMLImageElement,
+    isElement,
+    isSVGElement,
+    isHTMLVideoElement,
+    isHTMLAudioElement
 } = require("../util")
 
 /** @type {string|null} */
@@ -86,8 +95,8 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
         }
     }
     const focusEl = [el, el?.parentNode, el?.parentNode?.parentNode]
-        .find(e => matchesQuery(e, textlikeInputs))
-    if (!(focusEl instanceof HTMLElement)) {
+        .find(e => matchesQuery(e, textlikeInputs)) ?? el
+    if (!isHTMLElement(focusEl)) {
         return
     }
     ipcRenderer.sendToHost("switch-to-insert")
@@ -102,8 +111,7 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
         && !inputfocusalignment.includes("always")) {
         return
     }
-    if (focusEl instanceof HTMLInputElement
-        || focusEl instanceof HTMLTextAreaElement) {
+    if (isInputOrTextElement(focusEl)) {
         if (inputfocusalignment.includes("end")) {
             const focusLength = focusEl.value.length
             focusEl.setSelectionRange(focusLength, focusLength)
@@ -182,12 +190,12 @@ const getAllFollowLinks = (filter = null) => {
     if (!filter || filter.includes("onclick")) {
         // Elements with some kind of mouse interaction, grouped by click/other
         allEls.filter(el => clickEvents.some(
-            e => el instanceof HTMLElement && el[`on${e}`]
+            e => isHTMLElement(el) && el[`on${e}`]
             || eventListeners[e].has(el))
             || el.getAttribute("jsaction")).forEach(
             el => relevantLinks.push({el, "type": "onclick"}))
         allEls.filter(el => otherEvents.some(
-            e => el instanceof HTMLElement && el[`on${e}`]
+            e => isHTMLElement(el) && el[`on${e}`]
             || eventListeners[e].has(el)))
             .forEach(el => relevantLinks.push({el, "type": "other"}))
     }
@@ -213,7 +221,7 @@ const getAllFollowLinks = (filter = null) => {
                 }
                 return link
             }).filter(link => link.visible).map(link => {
-                if (link.el instanceof HTMLElement) {
+                if (isHTMLElement(link.el)) {
                     return parseElement(link.el, link.type, link.bounds)
                 }
                 return null
@@ -247,7 +255,7 @@ const getAllFollowLinks = (filter = null) => {
 const mainInfoLoop = () => {
     // Listeners for iframes that run on the same host and same process
     const frames = [...querySelectorAll("iframe")].flatMap(f => {
-        if (f instanceof HTMLIFrameElement) {
+        if (isHTMLIFrameElement(f)) {
             return f
         }
         return []
@@ -352,7 +360,7 @@ const parseElement = (element, type = null, customBounds = null) => {
     // The element should be clickable and is returned in a parsed format
     let href = ""
     let typeOverride = null
-    if (element instanceof HTMLAnchorElement) {
+    if (isHTMLAnchorElement(element)) {
         ({href} = element)
         // Set links to the current page as type 'other'
         if (!href) {
@@ -430,7 +438,7 @@ const clickListener = (e, frame = null) => {
         const inputEl = e.composedPath().find(
             el => matchesQuery(el, textlikeInputs))
         let focusEl = null
-        if (inputEl instanceof HTMLElement) {
+        if (isHTMLElement(inputEl)) {
             focusEl = [
                 inputEl,
                 inputEl?.parentElement,
@@ -515,8 +523,7 @@ window.addEventListener("mouseup", mouseUpListener,
 ipcRenderer.on("replace-input-field", (_, value, position) => {
     const input = activeElement()
     if (matchesQuery(input, textlikeInputs)) {
-        if (input instanceof HTMLInputElement
-            || input instanceof HTMLTextAreaElement) {
+        if (isInputOrTextElement(input)) {
             input.value = value
             if (position < input.value.length) {
                 input.setSelectionRange(position, position)
@@ -524,8 +531,8 @@ ipcRenderer.on("replace-input-field", (_, value, position) => {
         } else if (input) {
             input.textContent = value
             const range = document.createRange()
-            range.setStart(input, position)
-            range.setEnd(input, position)
+            range.setStart(input.firstChild ?? input, position)
+            range.setEnd(input.lastChild ?? input, position)
             const select = window.getSelection()
             select?.removeAllRanges()
             select?.addRange(range)
@@ -557,22 +564,10 @@ const contextListener = (e, frame = null, extraData = null) => {
     if (e.isTrusted && !currentFollowStatus && e.button === 2) {
         e.preventDefault?.()
         const paddingInfo = findFrameInfo(frame)
-        const img = e.composedPath().find(
-            /**
-             * Find an image element in the list of event targets.
-             * @param {EventTarget} el
-             * @returns {el is HTMLImageElement}
-             */
-            el => el instanceof HTMLImageElement)
-        const svg = e.composedPath().find(
-            /**
-             * Find an svg element in the list of event targets.
-             * @param {EventTarget} el
-             * @returns {el is SVGElement}
-             */
-            el => el instanceof HTMLImageElement)
+        const img = e.composedPath().find(isHTMLImageElement)
+        const svg = e.composedPath().find(isSVGElement)
         const backgroundImg = e.composedPath().map(el => {
-            if (el instanceof Element) {
+            if (isElement(el)) {
                 const styling = getComputedStyle(el).backgroundImage
                 const url = styling.match(/url\(.*?\)/g)?.[0]
                 if (url) {
@@ -581,25 +576,13 @@ const contextListener = (e, frame = null, extraData = null) => {
             }
             return null
         }).find(url => url)
-        const videoEl = e.composedPath().find(
-            /**
-             * Find a video element in the list of event targets.
-             * @param {EventTarget} el
-             * @returns {el is HTMLVideoElement}
-             */
-            el => el instanceof HTMLVideoElement)
+        const videoEl = e.composedPath().find(isHTMLVideoElement)
         const video = [
             videoEl,
             [...videoEl?.querySelectorAll("source") ?? []].find(
                 el => el.getAttribute("type")?.startsWith("audio"))
         ].find(el => el?.src.trim())
-        const audioEl = e.composedPath().find(
-            /**
-             * Find an audio element in the list of event targets.
-             * @param {EventTarget} el
-             * @returns {el is HTMLAudioElement}
-             */
-            el => el instanceof HTMLAudioElement)
+        const audioEl = e.composedPath().find(isHTMLAudioElement)
         const audio = [
             audioEl,
             [...audioEl?.querySelectorAll("source") ?? []].find(
@@ -607,31 +590,18 @@ const contextListener = (e, frame = null, extraData = null) => {
             [...videoEl?.querySelectorAll("source") ?? []].find(
                 el => el.getAttribute("type")?.startsWith("audio"))
         ].find(el => el?.src.trim())
-        const link = e.composedPath().filter(
-            /**
-             * Find an anchor element in the list of event targets.
-             * @param {EventTarget} el
-             * @returns {el is HTMLAnchorElement}
-             */
-            el => el instanceof HTMLAnchorElement)
+        const link = e.composedPath().filter(isHTMLAnchorElement)
             .find(el => el.href?.trim())
         const text = e.composedPath().find(
             el => matchesQuery(el, textlikeInputs))
-        const iframe = [...e.composedPath(), frame].find(
-            /**
-             * Find an iframe in the list of event targets.
-             * @param {EventTarget|null} el
-             * @returns {el is HTMLIFrameElement}
-             */
-            el => el instanceof HTMLIFrameElement)
+        const iframe = [...e.composedPath(), frame].find(isHTMLIFrameElement)
         const selection = (iframe?.contentWindow ?? window).getSelection()
         let inputVal = ""
         let inputSel = 0
-        if (text instanceof HTMLInputElement
-            || text instanceof HTMLTextAreaElement) {
+        if (isInputOrTextElement(text)) {
             inputVal = text.value
             inputSel = text.selectionStart ?? 0
-        } else if (text instanceof HTMLElement) {
+        } else if (isHTMLElement(text)) {
             inputVal = text.textContent ?? ""
             inputSel = selection?.getRangeAt(0)?.startOffset ?? 0
         }
@@ -676,12 +646,12 @@ const contextListener = (e, frame = null, extraData = null) => {
 ipcRenderer.on("contextmenu-data", (_, request) => {
     const {x, y} = request
     const el = findElementAtPosition(x, y)
-    if (!(el instanceof Element)) {
+    if (!isElement(el)) {
         return
     }
     const els = [el]
     while (els[0].parentNode && els[0].parentNode !== els[1]?.parentNode) {
-        if (els[0].parentNode instanceof Element) {
+        if (isElement(els[0].parentNode)) {
             els.unshift(els[0].parentNode)
         } else {
             break
@@ -694,7 +664,7 @@ ipcRenderer.on("contextmenu-data", (_, request) => {
 })
 ipcRenderer.on("contextmenu", () => {
     const el = activeElement()
-    if (!(el instanceof HTMLElement)) {
+    if (!isHTMLElement(el)) {
         return
     }
     const els = [el]
@@ -704,8 +674,7 @@ ipcRenderer.on("contextmenu", () => {
     }
     let {x} = parsed
     if (getComputedStyle(els[0]).font.includes("monospace")) {
-        if (els[0] instanceof HTMLInputElement
-            || els[0] instanceof HTMLTextAreaElement) {
+        if (isInputOrTextElement(els[0])) {
             x = parsed.x + propPixels(els[0], "font-size")
                 * (els[0].selectionStart ?? 0) * 0.60191 - els[0].scrollLeft
         }
@@ -718,7 +687,7 @@ ipcRenderer.on("contextmenu", () => {
         ({y} = parsed)
     }
     while (els[0].parentNode && els[0].parentNode !== els[1]?.parentNode) {
-        if (els[0].parentElement instanceof Element) {
+        if (isElement(els[0].parentElement)) {
             els.unshift(els[0].parentElement)
         } else {
             break
@@ -736,8 +705,7 @@ ipcRenderer.on("keyboard-type-event", (_, keyOptions) => {
     // See https://github.com/electron/electron/issues/20333
     const input = activeElement()
     if (matchesQuery(input, textlikeInputs) && keyOptions.key.length === 1) {
-        if (input instanceof HTMLInputElement
-            || input instanceof HTMLTextAreaElement) {
+        if (isInputOrTextElement(input)) {
             const cur = Number(input.selectionStart)
             input.value = `${input.value.substring(0, cur)}${keyOptions.key}${
                 input.value.substring(input.selectionEnd ?? cur)}`
@@ -781,7 +749,7 @@ ipcRenderer.on("custom-mouse-event", (_, eventType, mouseOptions) => {
     }
     if (eventType === "click") {
         if (mouseOptions.button === "left") {
-            if (el instanceof HTMLElement) {
+            if (isHTMLElement(el)) {
                 el.click()
             }
             return
@@ -789,7 +757,7 @@ ipcRenderer.on("custom-mouse-event", (_, eventType, mouseOptions) => {
         const {x, y} = mouseOptions
         const els = [el]
         while (els[0].parentNode && els[0].parentNode !== els[1]?.parentNode) {
-            if (els[0].parentNode instanceof Element) {
+            if (isElement(els[0].parentNode)) {
                 els.unshift(els[0].parentNode)
             } else {
                 break
@@ -812,7 +780,7 @@ ipcRenderer.on("custom-mouse-event", (_, eventType, mouseOptions) => {
                 sc.scrollLeft -= mouseOptions.deltaX
                 break
             }
-            if (sc.parentNode instanceof Element) {
+            if (isElement(sc.parentNode)) {
                 sc = sc.parentNode
             } else {
                 break
