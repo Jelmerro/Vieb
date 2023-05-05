@@ -28,6 +28,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Types and documentation using JSDoc to most of the source code
 - More position options for opening new tabs using "tabnewposition"
 - More focus positions after closing a tab using "tabclosefocus"
+- Additional flags for ranges to filter suspended/real pages and audio/silent tabs
 
 ### Changed
 

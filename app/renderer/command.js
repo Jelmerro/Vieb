@@ -781,8 +781,10 @@ const translateRangePosToIdx = (start, rangePart) => {
         const [flags] = rangePart.split("/")
         let search = rangePart.split("/").slice(1, -1).join("/")
         ;[charOrNum] = listTabs().map((t, i) => ({
+            "audio": !!t.getAttribute("media-playing"),
             "idx": i,
-            "name": t?.querySelector("span")?.textContent,
+            "name": t.querySelector("span")?.textContent,
+            "suspended": !!t.getAttribute("suspended"),
             "url": pageForTab(t)?.getAttribute("src")
         })).filter(t => {
             let name = String(t.name)
@@ -791,6 +793,18 @@ const translateRangePosToIdx = (start, rangePart) => {
                 search = search.toLowerCase()
                 name = name.toLowerCase()
                 url = url.toLowerCase()
+            }
+            if (flags.includes("a") && !t.audio) {
+                return false
+            }
+            if (flags.includes("s") && t.audio) {
+                return false
+            }
+            if (flags.includes("z") && !t.suspended) {
+                return false
+            }
+            if (flags.includes("r") && t.suspended) {
+                return false
             }
             if (flags.includes("t") && !flags.includes("u")) {
                 return name.includes(search)
@@ -881,8 +895,10 @@ const rangeToTabIdxs = (range, silent = false) => {
         if (flags.includes("g")) {
             let search = range.split("/").slice(1, -1).join("/")
             return listTabs().map((t, i) => ({
+                "audio": !!t.getAttribute("media-playing"),
                 "idx": i,
-                "name": t?.querySelector("span")?.textContent,
+                "name": t.querySelector("span")?.textContent,
+                "suspended": !!t.getAttribute("suspended"),
                 "url": pageForTab(t)?.getAttribute("src")
             })).filter(t => {
                 let name = String(t.name)
@@ -891,6 +907,18 @@ const rangeToTabIdxs = (range, silent = false) => {
                     search = search.toLowerCase()
                     name = name.toLowerCase()
                     url = url.toLowerCase()
+                }
+                if (flags.includes("a") && !t.audio) {
+                    return false
+                }
+                if (flags.includes("s") && t.audio) {
+                    return false
+                }
+                if (flags.includes("z") && !t.suspended) {
+                    return false
+                }
+                if (flags.includes("r") && t.suspended) {
+                    return false
                 }
                 if (flags.includes("t") && !flags.includes("u")) {
                     return name.includes(search)
