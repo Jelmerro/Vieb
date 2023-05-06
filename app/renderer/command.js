@@ -1370,7 +1370,7 @@ const makedefault = () => {
         return
     }
     ipcRenderer.send("make-default-app")
-    if (process.platform === "linux") {
+    if (process.platform === "linux" || process.platform.includes("bsd")) {
         execCommand(
             "xdg-settings set default-web-browser vieb.desktop", logError)
     } else if (process.platform === "win32") {

@@ -107,8 +107,10 @@ const init = () => {
         storeMouseSelection(null)
     })
     ipcRenderer.on("mouse-selection", (_, selectInfo) => {
-        const {clipboard} = require("electron")
-        clipboard.writeText(selectInfo.text, "selection")
+        if (process.platform === "linux" || process.platform.includes("bsd")) {
+            const {clipboard} = require("electron")
+            clipboard.writeText(selectInfo.text, "selection")
+        }
         if (selectInfo.toinsert) {
             if (getMouseConf("toinsert")) {
                 setMode("insert")

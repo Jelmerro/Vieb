@@ -66,6 +66,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Navigation delay system preventing page navigations for new tabs that are not loading
 - Favicon not showing or spinner still rotating for suspended tabs
 - Insert mode being left if interacting with the page menu
+- System clipboard being used incorrectly on Windows and Mac on selections due to selection clipboard not existing on those systems
 
 ### Versions
 
