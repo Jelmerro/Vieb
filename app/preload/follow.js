@@ -144,7 +144,7 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
  *  }|null)[]>}
  */
 const getAllFollowLinks = (filter = null) => {
-    const allEls = [...querySelectorAll("*")]
+    const allEls = querySelectorAll("*")
     /** @type {{
      *   el: Element, type: string, bounds?: DOMRectReadOnly, visible?: boolean
      * }[]} */
@@ -254,7 +254,7 @@ const getAllFollowLinks = (filter = null) => {
 
 const mainInfoLoop = () => {
     // Listeners for iframes that run on the same host and same process
-    const frames = [...querySelectorAll("iframe")].flatMap(f => {
+    const frames = querySelectorAll("iframe").flatMap(f => {
         if (isHTMLIFrameElement(f)) {
             return f
         }
@@ -327,7 +327,22 @@ ipcRenderer.on("follow-mode-stop", () => {
 })
 
 setInterval(mainInfoLoop, 1000)
-window.addEventListener("DOMContentLoaded", mainInfoLoop)
+window.addEventListener("DOMContentLoaded", () => {
+    mainInfoLoop()
+    const pdfbehavior = getWebviewSetting("pdfbehavior") ?? "block"
+    if (pdfbehavior !== "view") {
+        querySelectorAll("embed").forEach(embed => {
+            if (embed.getAttribute("type") === "application/pdf") {
+                if (pdfbehavior === "download") {
+                    const src = embed.getAttribute("src")?.replace(
+                        /^about:blank/g, "") || window.location.href
+                    ipcRenderer.sendToHost("download", src)
+                }
+                embed.remove()
+            }
+        })
+    }
+})
 window.addEventListener("resize", mainInfoLoop)
 
 /**

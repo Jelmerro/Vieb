@@ -1085,6 +1085,9 @@ const addWebviewListeners = webview => {
         if (e.channel === "url") {
             addTab({"url": e.args[0]})
         }
+        if (e.channel === "download") {
+            currentPage()?.downloadURL(e.args[0])
+        }
         if (e.channel === "back-button") {
             const {backInHistory} = require("./actions")
             backInHistory()

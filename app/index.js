@@ -790,6 +790,8 @@ let redirects = ""
 let blocker = null
 /** @type {{[permission: string]: "allow"|"block"|"ask"|"allowfull"}} */
 let permissions = {}
+/** @type {"view"|"block"|"download"}} */
+let pdfbehavior = "view"
 /** @type {string[]|null} */
 let resourceTypes = null
 /** @type {string[]} */
@@ -926,6 +928,26 @@ ipcMain.on("update-resource-settings", (_, resources, block, allow) => {
     resourcesAllowed = allow
     resourcesBlocked = block
 })
+/**
+ * Block the PDF reader by responding with an empty error on requests.
+ * @param {Electron.ProtocolRequest} _
+ * @param {(response: string|Electron.ProtocolResponse) => void} callback
+ */
+const blockPdf = (_, callback) => {
+    callback({"data": "", "error": -2, "statusCode": 403})
+}
+ipcMain.on("update-pdf-option", (_, newPdfValue) => {
+    pdfbehavior = newPdfValue
+    sessionList.forEach(ses => {
+        if (pdfbehavior === "view") {
+            session.fromPartition(ses).protocol
+                .uninterceptProtocol("chrome-extension")
+        } else {
+            session.fromPartition(ses).protocol
+                .interceptStringProtocol("chrome-extension", blockPdf)
+        }
+    })
+})
 ipcMain.on("create-session", (_, name, adblock, cache) => {
     if (sessionList.includes(name)) {
         return
@@ -947,6 +969,9 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         } else {
             enableAdblocker(adblock)
         }
+    }
+    if (pdfbehavior !== "view") {
+        newSess.protocol.interceptStringProtocol("chrome-extension", blockPdf)
     }
     newSess.webRequest.onBeforeRequest((details, callback) => {
         let url = String(details.url)

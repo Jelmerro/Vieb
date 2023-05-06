@@ -203,6 +203,8 @@ const defaultSettings = {
     "notificationforsystemcommands": "errors",
     /** @type {"bottomright"|"bottomleft"|"topright"|"topleft"} */
     "notificationposition": "bottomright",
+    /** @type {"view"|"block"|"download"} */
+    "pdfbehavior": "download",
     /** @type {"block"|"ask"|"allow"} */
     "permissioncamera": "block",
     /** @type {"block"|"ask"|"allow"} */
@@ -468,6 +470,7 @@ const validOptions = {
     "notificationposition": [
         "bottomright", "bottomleft", "topright", "topleft"
     ],
+    "pdfbehavior": ["view", "block", "download"],
     "permissioncamera": ["block", "ask", "allow"],
     "permissioncertificateerror": ["block", "ask", "allow"],
     "permissionclipboardread": ["block", "ask", "allow"],
@@ -1379,6 +1382,10 @@ const updateNativeTheme = () => {
     ipcRenderer.send("update-native-theme", allSettings.nativetheme)
 }
 
+const updatePdfOption = () => {
+    ipcRenderer.send("update-pdf-option", allSettings.pdfbehavior)
+}
+
 const updateContainerSettings = (full = true) => {
     if (full) {
         for (const page of listPages()) {
@@ -1448,6 +1455,7 @@ const webviewSettings = [
     "guifontsize",
     "guiscrollbar",
     "inputfocusalignment",
+    "pdfbehavior",
     "permissiondisplaycapture",
     "permissionmediadevices",
     "permissionsallowed",
@@ -1621,6 +1629,7 @@ const loadFromDisk = (firstRun = true) => {
     updateMouseSettings()
     updateNativeTheme()
     updateRequestHeaders()
+    updatePdfOption()
     resume()
 }
 
@@ -1734,6 +1743,9 @@ const set = (setting, value) => {
         }
         if (setting === "nativetheme") {
             updateNativeTheme()
+        }
+        if (setting === "pdfbehavior") {
+            updatePdfOption()
         }
         if (setting === "spelllang" || setting === "spell") {
             if (allSettings.spell) {

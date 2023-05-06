@@ -624,6 +624,7 @@ const globalDefaultMappings = {
     "<C-k0>": {"mapping": "<zoomReset>"},
     "<C-m>": {"mapping": "<menuOpen>"},
     "<C-q>": {"mapping": "<:quit>"},
+    "<ContextMenu>": {"mapping": "<menuOpen>"},
     "<F1>": {"mapping": "<:help>"},
     "<F2>": {"mapping": "<toCommandMode>"},
     "<F3>": {"mapping": "<toSearchMode>"},
@@ -1177,6 +1178,7 @@ const keyNames = [
     {"js": ["NumLock"], "vim": ["NumLock"]},
     {"js": ["CapsLock"], "vim": ["CapsLock"]},
     {"js": ["ScrollLock"], "vim": ["ScrollLock"]},
+    {"js": ["ContextMenu"], "vim": ["ContextMenu"]},
     // Fictional keys with custom implementation
     {"js": ["Any"], "vim": ["Any"]}
 ]

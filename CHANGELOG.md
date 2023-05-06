@@ -29,6 +29,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - More position options for opening new tabs using "tabnewposition"
 - More focus positions after closing a tab using "tabclosefocus"
 - Additional flags for ranges to filter suspended/real pages and audio/silent tabs
+- Setting "pdfbehavior" to control what happens with PDF files (default changed from viewing to download)
+- Support for the context menu key with default mapping to opening the menu
 
 ### Changed
 
