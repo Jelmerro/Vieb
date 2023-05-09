@@ -120,6 +120,7 @@
     --helppage-nativetheme-bg-light: #fff;
     --helppage-nativetheme-fg-dark: #666;
     --helppage-nativetheme-bg-dark: #000;
+    --history-current-page-highlight: var(--helppage-h1);
     /* sourceviewer */
     --syntax-fg: var(--fg);
     --syntax-bg: var(--bg);
@@ -398,8 +399,11 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 }
 /* history */
 #historypage #list {display: inline;}
-#historypage #no-results, #historypage #scanning-progress {margin-bottom: 1em;}
-#historypage #breakpoints {display: flex;flex-direction: column;}
+#historypage #scanning-progress {margin-bottom: 1em;}
+#historypage #pages {display: flex;align-items: center;margin-right: auto;overflow: auto;max-width: 100%;}
+#historypage #pages button {border: solid .1em var(--input-unfocused);margin: .2em;padding: 0 .5em;}
+#historypage #perpage {min-width: 12em;width: 20vw;margin: auto 0 auto 1em;}
+#historypage .current {color: var(--history-current-page-highlight);}
 #historypage .hist-entry {background: var(--special-page-element-bg);margin: .7em 0;padding: .35em;border: .1em solid var(--special-page-element-border);}
 #historypage .hist-entry .hist-date {width: auto;color: var(--notification-date);margin-right: 1em;}
 #historypage .hist-entry span {display: inline-block;width: calc(100% - 16em);overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}

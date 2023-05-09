@@ -163,6 +163,7 @@ const defaultSettings = {
     "guiscrollbar": "always",
     /** @type {"always"|"onupdate"|"never"} */
     "guitabbar": "always",
+    "historyperpage": 100,
     "ignorecase": true,
     "incsearch": true,
     /** @type {"rememberstart"|"rememberend"|"alwaysstart"|"alwaysend"} */
@@ -562,6 +563,7 @@ const numberRanges = {
     "darkreadertextstroke": [0, 1],
     "guifontsize": [8, 30],
     "guihidetimeout": [0, 9000000000000000],
+    "historyperpage": [1, 9000000000000000],
     "mapsuggest": [0, 9000000000000000],
     "maxmapdepth": [1, 40],
     "mintabwidth": [0, 9000000000000000],
@@ -1454,6 +1456,7 @@ const webviewSettings = [
     "dialogprompt",
     "guifontsize",
     "guiscrollbar",
+    "historyperpage",
     "inputfocusalignment",
     "pdfbehavior",
     "permissiondisplaycapture",
@@ -1864,7 +1867,7 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
         typeLabel = "Enum"
         allowedValues = validOptions[setting]
     }
-    if (allSettings[setting] === "boolean") {
+    if (typeof allSettings[setting] === "boolean") {
         typeLabel = "Boolean"
         allowedValues = "true,false"
     }

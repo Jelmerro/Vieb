@@ -337,7 +337,6 @@ const parseAndDisplayLinks = receivedLinks => {
         if (!link) {
             return
         }
-        // Mouse listener
         /**
          * Add an onclick listener to mouseup events to click on the links.
          * @param {MouseEvent} e

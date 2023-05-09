@@ -281,8 +281,7 @@ const handleRequest = (webview, action = null, entries = []) => {
         updateMappings()
         return
     }
-    /** @type {historyItem[]}
-     */
+    /** @type {historyItem[]} */
     let history = []
     const {forSite} = require("./favicons")
     Object.keys(groupedHistory).forEach(site => {
@@ -296,8 +295,8 @@ const handleRequest = (webview, action = null, entries = []) => {
             })
         })
     })
-    history = history.sort((a, b) => a.date.getTime() - b.date.getTime())
-    webview.send("history-list", JSON.stringify(history))
+    history = history.sort((a, b) => b.date.getTime() - a.date.getTime())
+    webview.send("history-list", history)
     updateMappings()
 }
 

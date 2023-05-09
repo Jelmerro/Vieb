@@ -26,6 +26,10 @@ declare global {
           }>
       }
   }
+
+  interface Node {
+      cloneNode<T extends Node = Node>(this: T, deep?: boolean): T;
+  }
 }
 
 export {}

@@ -31,6 +31,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Additional flags for ranges to filter suspended/real pages and audio/silent tabs
 - Setting "pdfbehavior" to control what happens with PDF files (default changed from viewing to download)
 - Support for the context menu key with default mapping to opening the menu
+- Setting "historyperpage" to control the amount of history entries to show per page
 
 ### Changed
 
@@ -46,6 +47,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Pin command to better preserve tab order when using ranges
 - JavaScript execution to always allow user interaction APIs
 - Svg and "data:" favicons to be used if present in the list, otherwise still pick the first
+- History page rendering mechanism to support large history files much better using pagination and background rendering
 
 ### Removed
 
@@ -57,7 +59,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Fixed
 
-- Image and svg links not showing since 9.0.0
+- Image and svg follow links not showing since 9.0.0
 - Scrollbar styling not working on pages that block custom CSS
 - Userstyles not working on pages that block custom CSS
 - Display capture styling not working on pages that block custom CSS
