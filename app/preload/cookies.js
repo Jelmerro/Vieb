@@ -92,7 +92,6 @@ const removeAllCookies = () => {
     refreshList()
 }
 
-
 /**
  * Parse the list of cookies and show them.
  * @param {Electron.Cookie[]} cookies

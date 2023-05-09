@@ -1310,7 +1310,6 @@ const appendFile = (loc, data, err = null, success = null) => {
     return false
 }
 
-
 /**
  * Write JSON data to a file, optionally with indentation and notifications.
  * @param {string} loc

@@ -1069,7 +1069,6 @@ const cutInput = (event = null) => {
     updateNavbarScrolling()
 }
 
-
 /**
  * Execute the copy clipboard action on the url.
  * @param {Event|null} event
@@ -1445,7 +1444,6 @@ const uncountableActions = [
     "p.splitText",
     "p.vsplitText"
 ]
-
 
 /**
  * Find suitable mappings for a set of keys.

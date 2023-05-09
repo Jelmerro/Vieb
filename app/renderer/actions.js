@@ -289,7 +289,6 @@ const increaseLastNumber = () => moveLastNumber(1)
 
 const decreaseLastNumber = () => moveLastNumber(-1)
 
-
 /**
  * Move the last number based on a movement number.
  * @param {number} movement
@@ -565,7 +564,6 @@ const backInHistory = (args = null) => {
     }
 }
 
-
 /**
  * Go forward in history for the current page or a custom one.
  * @param {{customPage?: Electron.WebviewTag}|null} args
@@ -614,7 +612,6 @@ const toCommandMode = () => {
 }
 
 const stopLoadingPage = () => currentPage()?.stop()
-
 
 const moveTabForward = () => {
     const {"moveTabForward": move} = require("./tabs")

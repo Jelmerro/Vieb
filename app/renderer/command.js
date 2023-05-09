@@ -1213,7 +1213,6 @@ const setPin = (args, range) => {
     saveTabs()
 }
 
-
 /**
  * Toggle the pin state for a tab or a range of tabs.
  * @param {string[]} args
@@ -1454,7 +1453,7 @@ const tabnew = (session = null, url = null) => {
     /** @type {{url?: string, session?: string}} */
     const options = {}
     if (url?.trim()) {
-        options.url = url
+        options.url = stringToUrl(url)
     }
     if (session?.trim()) {
         options.session = session
