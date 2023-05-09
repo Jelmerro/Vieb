@@ -398,7 +398,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 }
 /* history */
 #historypage #list {display: inline;}
-#historypage #no-results {margin-bottom: 1em;}
+#historypage #no-results, #historypage #scanning-progress {margin-bottom: 1em;}
 #historypage #breakpoints {display: flex;flex-direction: column;}
 #historypage .hist-entry {background: var(--special-page-element-bg);margin: .7em 0;padding: .35em;border: .1em solid var(--special-page-element-border);}
 #historypage .hist-entry .hist-date {width: auto;color: var(--notification-date);margin-right: 1em;}

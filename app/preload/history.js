@@ -40,7 +40,7 @@ const dateBreakpoints = [
         "date": anHourAgo,
         "enabled": true,
         "link": "hour",
-        "title": "Past hour"
+        "title": "Last hour"
     },
     {
         "date": todayStartTime,
@@ -58,7 +58,7 @@ const dateBreakpoints = [
         "date": pastSevenDays,
         "enabled": true,
         "link": "week",
-        "title": "Past 7 days"
+        "title": "Last 7 days"
     },
     {
         "date": thisMonth,
@@ -70,19 +70,16 @@ const dateBreakpoints = [
         "date": pastYear,
         "enabled": true,
         "link": "year",
-        "title": "Past year"
+        "title": "This year"
     },
     {
         "date": null,
         "enabled": true,
         "link": "old",
-        "title": "Older than a year"
+        "title": "Older than this year"
     }
 ].reverse().filter(b => b.enabled)
-let currentBreakpointIndex = 0
-let lineNumberBreakpoint = 0
-let list = document.createElement("div")
-list.id = "list"
+let currentBreakpointIndex = -1
 let currentlyRemoving = false
 
 // Actually parse the list and use the breakpoints
@@ -92,48 +89,45 @@ let currentlyRemoving = false
  * @param {import("../renderer/history").historyItem[]} history
  */
 const receiveHistory = history => {
-    const scrollPosition = window.scrollY
     const removeAllEl = document.getElementById("remove-all")
-    if (removeAllEl) {
-        removeAllEl.style.display = "none"
-    }
+    const list = document.getElementById("list")
+    const scanningProgress = document.getElementById("scanning-progress")
     const breakpointsEl = document.getElementById("breakpoints")
-    if (breakpointsEl) {
-        breakpointsEl.textContent = ""
+    if (!removeAllEl || !list || !scanningProgress || !breakpointsEl) {
+        return
     }
-    list = document.createElement("div")
-    list.id = "list"
-    currentBreakpointIndex = 0
-    lineNumberBreakpoint = 0
-    let lineNumber = 0
-    history.forEach(hist => {
-        addHistToList({
-            ...hist, "date": new Date(hist.date), "line": lineNumber
-        })
-        if (removeAllEl) {
-            removeAllEl.style.display = ""
-        }
-        lineNumber += 1
-    })
+    removeAllEl.style.display = "none"
+    breakpointsEl.textContent = ""
+    list.textContent = ""
+    currentBreakpointIndex = -1
     if (history.length === 0) {
         list.textContent = "No pages have been visited yet"
-    } else if (currentBreakpointIndex >= dateBreakpoints.length) {
-        addBreakpoint(dateBreakpoints.length - 1, lineNumber)
-    } else {
-        addBreakpoint(currentBreakpointIndex, lineNumber)
+        return
     }
-    const listEl = document.getElementById("list")
-    if (listEl) {
-        listEl.parentNode?.replaceChild(list, listEl)
+    removeAllEl.style.display = ""
+    const goal = history.length
+    let lineNumber = 0
+    /**
+     * Add an item to the history list on a timeout based on previous duration.
+     * @param {import("../renderer/history").historyItem} hist
+     */
+    const addHistTimeout = hist => {
+        requestAnimationFrame(() => {
+            addHistToList({
+                ...hist, "date": new Date(hist.date), "line": lineNumber
+            })
+            lineNumber += 1
+            if (goal === lineNumber) {
+                scanningProgress.style.display = "none"
+            } else {
+                scanningProgress.textContent
+                    = `Reading history ${lineNumber}/${goal}, currently going `
+                    + `back to history from ${formatDate(hist.date)}`
+            }
+            addHistTimeout(history[lineNumber])
+        })
     }
-    if (scrollPosition) {
-        window.scrollTo(0, scrollPosition)
-    } else if (window.location.hash !== "") {
-        const el = document.querySelector(`a[href='${window.location.hash}']`)
-        if (el instanceof HTMLAnchorElement) {
-            el.click()
-        }
-    }
+    addHistTimeout(history[lineNumber])
 }
 
 /** Add a breakpoint by index at a line number.
@@ -141,30 +135,34 @@ const receiveHistory = history => {
  * @param {number} lineNumber
  */
 const addBreakpoint = (index, lineNumber) => {
-    if (list.textContent === "") {
-        return
-    }
     const breakpoint = dateBreakpoints[index]
     // Add link to the top of the page
     const link = document.createElement("a")
     link.textContent = breakpoint.title
     link.setAttribute("href", `#${breakpoint.link}`)
-    document.getElementById("breakpoints")?.insertBefore(
-        link, document.getElementById("breakpoints")?.firstChild ?? null)
+    document.getElementById("breakpoints")?.append(link)
+    // Add remove img button to the list
+    const img = document.createElement("img")
+    img.src = joinPath(__dirname, "../img/trash.png")
+    document.getElementById("list")?.append(img)
     // Add header to the list
     const h2 = document.createElement("h2")
     h2.setAttribute("id", breakpoint.link)
     h2.textContent = breakpoint.title
-    list.insertBefore(h2, list.firstChild)
-    const img = document.createElement("img")
-    img.src = joinPath(__dirname, "../img/trash.png")
-    const breakpointNm = Number(lineNumberBreakpoint)
-    const lineNm = Number(lineNumber)
+    document.getElementById("list")?.append(h2)
+    // Add the remove listener to the trash bin button
     img.addEventListener("click", () => {
-        clearLinesFromHistory(breakpointNm, lineNm)
+        let nextBreakpoint = h2.nextElementSibling
+        while (nextBreakpoint) {
+            if (nextBreakpoint.matches("h2,img")) {
+                break
+            }
+            nextBreakpoint = nextBreakpoint.nextElementSibling
+        }
+        const endNumber = Number(nextBreakpoint?.previousElementSibling
+            ?.getAttribute("hist-line")) || Number.MAX_SAFE_INTEGER
+        clearLinesFromHistory(lineNumber, endNumber)
     })
-    list.insertBefore(img, list.firstChild)
-    lineNumberBreakpoint = lineNumber + 1
 }
 
 /**
@@ -175,16 +173,18 @@ const addBreakpoint = (index, lineNumber) => {
  */
 const addHistToList = hist => {
     // Shift the breakpoint to the next one
-    const previousBreakpoint = currentBreakpointIndex
-    let breakpoint = dateBreakpoints[currentBreakpointIndex + 1]
+    let newBreakpointIndex = 0
+    let breakpoint = dateBreakpoints[newBreakpointIndex]
     while (breakpoint
         && (breakpoint.date?.getTime() ?? 0) < hist.date.getTime()) {
-        currentBreakpointIndex += 1
-        breakpoint = dateBreakpoints[currentBreakpointIndex + 1]
+        newBreakpointIndex += 1
+        breakpoint = dateBreakpoints[newBreakpointIndex]
     }
+    newBreakpointIndex -= 1
     // And show only the relevant breakpoint if multiple are skipped
-    if (previousBreakpoint !== currentBreakpointIndex) {
-        addBreakpoint(previousBreakpoint, hist.line - 1)
+    if (newBreakpointIndex !== currentBreakpointIndex) {
+        addBreakpoint(newBreakpointIndex, hist.line - 1)
+        currentBreakpointIndex = newBreakpointIndex
     }
     // Finally show the history entry (possibly after new breakpoint)
     const histElement = document.createElement("div")
@@ -213,7 +213,18 @@ const addHistToList = hist => {
     url.textContent = urlToString(hist.url)
     url.setAttribute("href", hist.url)
     histElement.append(url)
-    list.insertBefore(histElement, list.firstChild)
+    const filterEl = document.getElementById("filter")
+    if (filterEl instanceof HTMLInputElement) {
+        const filter = filterEl.value.trim().toLowerCase()
+        if (hist.url.toLowerCase().includes(filter)) {
+            histElement.style.display = ""
+        } else if (hist.title.toLowerCase().includes(filter)) {
+            histElement.style.display = ""
+        } else {
+            histElement.style.display = "none"
+        }
+    }
+    document.getElementById("list")?.append(histElement)
 }
 
 const clearHistory = () => {
@@ -302,7 +313,7 @@ window.addEventListener("load", () => {
 
 ipcRenderer.on("history-list", (_, h) => {
     /** @type {import("../renderer/history").historyItem[]} */
-    const history = JSON.parse(h)
+    const history = JSON.parse(h).reverse()
     receiveHistory(history)
 })
 
