@@ -498,7 +498,12 @@ const scrollPageUpHalf = () => currentPage()?.send(
  */
 const refreshTab = (args = null) => {
     const page = args?.customPage || currentPage()
-    if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
+    if (page && !page.src.startsWith("devtools://")) {
+        if (page.isCrashed()) {
+            const {recreateWebview} = require("./tabs")
+            recreateWebview(page)
+            return
+        }
         const {rerollUserAgent, resetTabInfo} = require("./tabs")
         rerollUserAgent(page)
         resetTabInfo(page)
@@ -550,7 +555,12 @@ const startFollowCurrentTab = () => {
  */
 const backInHistory = (args = null) => {
     const page = args?.customPage || currentPage()
-    if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
+    if (page && !page.src.startsWith("devtools://")) {
+        if (page.isCrashed()) {
+            const {recreateWebview} = require("./tabs")
+            recreateWebview(page)
+            return
+        }
         if (page?.canGoBack()) {
             const tabTitleEl = tabForPage(page)?.querySelector("span")
             if (tabTitleEl) {
@@ -570,7 +580,12 @@ const backInHistory = (args = null) => {
  */
 const forwardInHistory = (args = null) => {
     const page = args?.customPage || currentPage()
-    if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
+    if (page && !page.src.startsWith("devtools://")) {
+        if (page.isCrashed()) {
+            const {recreateWebview} = require("./tabs")
+            recreateWebview(page)
+            return
+        }
         if (page?.canGoForward()) {
             const tabTitleEl = tabForPage(page)?.querySelector("span")
             if (tabTitleEl) {
@@ -586,7 +601,12 @@ const forwardInHistory = (args = null) => {
 
 const refreshTabWithoutCache = () => {
     const page = currentPage()
-    if (page && !page.isCrashed() && !page.src.startsWith("devtools://")) {
+    if (page && !page.src.startsWith("devtools://")) {
+        if (page.isCrashed()) {
+            const {recreateWebview} = require("./tabs")
+            recreateWebview(page)
+            return
+        }
         const {rerollUserAgent, resetTabInfo} = require("./tabs")
         rerollUserAgent(page)
         resetTabInfo(page)

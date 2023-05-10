@@ -489,6 +489,7 @@ const suspendTab = (tab, force = false) => {
     }
     page.closeDevTools()
     tab.setAttribute("suspended", "suspended")
+    tab.classList.remove("crashed")
     tab.removeAttribute("media-playing")
     const {show} = require("./favicons")
     show(page)
@@ -1338,6 +1339,7 @@ module.exports = {
     moveTabBackward,
     moveTabForward,
     navigateTo,
+    recreateWebview,
     reopenTab,
     rerollUserAgent,
     resetTabInfo,
