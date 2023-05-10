@@ -928,23 +928,16 @@ ipcMain.on("update-resource-settings", (_, resources, block, allow) => {
     resourcesAllowed = allow
     resourcesBlocked = block
 })
-/**
- * Block the PDF reader by responding with an empty error on requests.
- * @param {Electron.ProtocolRequest} _
- * @param {(response: string|Electron.ProtocolResponse) => void} callback
- */
-const blockPdf = (_, callback) => {
-    callback({"data": "", "error": -2, "statusCode": 403})
-}
+const blockPdf = () => new Response("", {"status": 403})
 ipcMain.on("update-pdf-option", (_, newPdfValue) => {
     pdfbehavior = newPdfValue
     sessionList.forEach(ses => {
         if (pdfbehavior === "view") {
             session.fromPartition(ses).protocol
-                .uninterceptProtocol("chrome-extension")
+                .unhandle("chrome-extension")
         } else {
             session.fromPartition(ses).protocol
-                .interceptStringProtocol("chrome-extension", blockPdf)
+                .handle("chrome-extension", blockPdf)
         }
     })
 })
@@ -971,7 +964,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         }
     }
     if (pdfbehavior !== "view") {
-        newSess.protocol.interceptStringProtocol("chrome-extension", blockPdf)
+        newSess.protocol.handle("chrome-extension", blockPdf)
     }
     newSess.webRequest.onBeforeRequest((details, callback) => {
         let url = String(details.url)
@@ -1142,88 +1135,96 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             }
         })
     })
-    newSess.protocol.registerStringProtocol("sourceviewer", (req, call) => {
+    newSess.protocol.handle("sourceviewer", req => {
         let loc = req.url.replace(/sourceviewer:\/?\/?/g, "")
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
         }
         loc = decodeURI(loc)
         if (isDir(loc)) {
-            call(`<!DOCTPYE html>\n<html><head>
+            return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
                 <title>${decodeURI(req.url)}</title>
                 </head><body>Source viewer does not support folders, only files
-                </body></html>`)
-            return
+                </body></html>`
+            ), {"headers": {"content-type": "text/html"}})
         }
         /** @type {import("highlight.js").HLJSApi|null} */
         let hljs = null
         try {
             hljs = require("highlight.js").default
         } catch {
-            call(`<!DOCTPYE html>\n<html><head>
+            return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
                 <title>${decodeURI(req.url)}</title>
                 </head><body>Source viewer module not present, can't view source
-                </body></html>`)
-            return
+                </body></html>`
+            ), {"headers": {"content-type": "text/html"}})
         }
         if (!hljs) {
-            call(`<!DOCTPYE html>\n<html><head>
+            return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
                 <title>${decodeURI(req.url)}</title>
                 </head><body>Source viewer module not present, can't view source
-                </body></html>`)
-            return
+                </body></html>`
+            ), {"headers": {"content-type": "text/html"}})
         }
         if (isFile(loc)) {
             const hl = hljs.highlightAuto(readFile(loc) ?? "")
-            call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
+            return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
+                <style>${defaultCss}</style>
                 <title>${decodeURI(req.url)}</title>
                 </head><body id="sourceviewer">
-                <pre><code>${hl.value}</code></pre></body></html>`)
-            return
+                <pre><code>${hl.value}</code></pre></body></html>`
+            ), {"headers": {"content-type": "text/html"}})
         }
         const url = `https://${loc}`
-        const request = net.request({"partition": name, url})
-        request.on("response", res => {
-            let body = ""
-            res.on("end", () => {
-                if (!body || !hljs) {
-                    call(`<!DOCTPYE html>\n<html><head>
+        return new Promise(resolve => {
+            const request = net.request({"partition": name, url})
+            request.on("response", res => {
+                let body = ""
+                res.on("end", () => {
+                    if (!body || !hljs) {
+                        resolve(new Response(Buffer.from(
+                            `<!DOCTPYE html>\n<html><head>
+                            <style>${defaultCss}</style>
+                            <title>${decodeURI(req.url)}</title>
+                            </head><body>
+                                Source viewer not supported on this webpage
+                            </body></html>`
+                        ), {"headers": {"content-type": "text/html"}}))
+                        return
+                    }
+                    const hl = hljs.highlightAuto(body)
+                    resolve(new Response(Buffer.from(
+                        `<!DOCTPYE html>\n<html><head>
                         <style>${defaultCss}</style>
                         <title>${decodeURI(req.url)}</title>
-                        </head><body>Source viewer not supported on this webpage
-                        </body></html>`)
-                    return
-                }
-                const hl = hljs.highlightAuto(body)
-                call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
-                    <title>${decodeURI(req.url)}</title>
-                    </head><body id="sourceviewer">
-                    <pre><code>${hl.value}</code></pre></body></html>`)
+                        </head><body id="sourceviewer">
+                        <pre><code>${hl.value}</code></pre></body></html>`
+                    ), {"headers": {"content-type": "text/html"}}))
+                })
+                res.on("data", chunk => {
+                    body += chunk
+                })
             })
-            res.on("data", chunk => {
-                body += chunk
-            })
+            request.on("abort", () => new Response(""))
+            request.on("error", () => new Response(""))
+            request.end()
         })
-        request.on("abort", () => call(""))
-        request.on("error", () => call(""))
-        request.end()
     })
-    newSess.protocol.registerStringProtocol("markdownviewer", (req, call) => {
+    newSess.protocol.handle("markdownviewer", req => {
         let loc = req.url.replace(/markdownviewer:\/?\/?/g, "")
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
         }
         loc = decodeURI(loc)
         if (isDir(loc)) {
-            call(`<!DOCTPYE html>\n<html><head>
+            return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
                 <title>${decodeURI(req.url)}</title></head>
                 <body>Markdown viewer does not support folders, only files
-                </body></html>`)
-            return
+                </body></html>`), {"headers": {"content-type": "text/html"}})
         }
         /** @type {import("marked").marked|null} */
         let marked = null
@@ -1232,20 +1233,18 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         try {
             ({marked} = require("marked"))
         } catch {
-            call(`<!DOCTPYE html>\n<html><head>
+            return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
                 <title>${decodeURI(req.url)}</title></head>
                 <body>Markdown viewer module not present, can't view markdown
-                </body></html>`)
-            return
+                </body></html>`), {"headers": {"content-type": "text/html"}})
         }
         if (!marked) {
-            call(`<!DOCTPYE html>\n<html><head>
+            return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
                 <title>${decodeURI(req.url)}</title></head>
                 <body>Markdown viewer module not present, can't view markdown
-                </body></html>`)
-            return
+                </body></html>`), {"headers": {"content-type": "text/html"}})
         }
         try {
             hljs = require("highlight.js").default
@@ -1278,52 +1277,58 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         })
         if (isFile(loc)) {
             const md = marked.parse(readFile(loc) ?? "")
-            call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
+            return new Response(Buffer.from(
+                `<!DOCTPYE html>\n<html><head>
+                <style>${defaultCss}</style>
                 <title>${decodeURI(req.url)}</title>
-                </head><body id="markdownviewer">${md}</body></html>`)
-            return
+                </head><body id="markdownviewer">${md}</body></html>`
+            ), {"headers": {"content-type": "text/html"}})
         }
         const request = net.request({"partition": name, url})
-        request.on("response", res => {
-            let body = ""
-            res.on("end", () => {
-                if (!body) {
-                    call(`<!DOCTPYE html>\n<html><head>
+        return new Promise(resolve => {
+            request.on("response", res => {
+                let body = ""
+                res.on("end", () => {
+                    if (!body || !marked) {
+                        resolve(new Response(Buffer.from(
+                            `<!DOCTPYE html>\n<html><head>
+                            <style>${defaultCss}</style>
+                            <title>${decodeURI(req.url)}</title></head>
+                            <body>Markdown viewer not supported on this webpage
+                            </body></html>`
+                        ), {"headers": {"content-type": "text/html"}}))
+                        return
+                    }
+                    const md = marked.parse(body)
+                    resolve(new Response(Buffer.from(
+                        `<!DOCTPYE html>\n<html><head>
                         <style>${defaultCss}</style>
-                        <title>${decodeURI(req.url)}</title></head>
-                        <body>Markdown viewer not supported on this webpage
-                        </body></html>`)
-                    return
-                }
-                if (!marked) {
-                    return
-                }
-                const md = marked.parse(body)
-                call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
-                    <title>${decodeURI(req.url)}</title>
-                    </head><body id="markdownviewer">${md}</body></html>`)
+                        <title>${decodeURI(req.url)}</title>
+                        </head><body id="markdownviewer">${md}</body></html>`
+                    ), {"headers": {"content-type": "text/html"}}))
+                })
+                res.on("data", chunk => {
+                    body += chunk
+                })
             })
-            res.on("data", chunk => {
-                body += chunk
-            })
+            request.on("abort", () => new Response(""))
+            request.on("error", () => new Response(""))
+            request.end()
         })
-        request.on("abort", () => call(""))
-        request.on("error", () => call(""))
-        request.end()
     })
-    newSess.protocol.registerStringProtocol("readerview", (req, call) => {
+    newSess.protocol.handle("readerview", req => {
         let loc = req.url.replace(/readerview:\/?\/?/g, "")
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
         }
         loc = decodeURI(loc)
         if (isFile(loc) || isDir(loc)) {
-            call(`<!DOCTPYE html>\n<html><head>
+            return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
                 <title>${decodeURI(req.url)}</title>
                 </head><body>Reader view not supported for local resources
-                </body></html>`)
-            return
+                </body></html>`
+            ), {"headers": {"content-type": "text/html"}})
         }
         /** @type {typeof import("@mozilla/readability").Readability|null} */
         let Readability = null
@@ -1333,51 +1338,56 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             ({Readability} = require("@mozilla/readability"))
             ;({JSDOM} = require("jsdom"))
         } catch (e) {
-            call(`<!DOCTPYE html>\n<html><head>
+            return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
                 <title>${decodeURI(req.url)}</title>
                 </head><body>Reader view module not present, can't do readerview
-                </body></html>`)
-            return
+                </body></html>`
+            ), {"headers": {"content-type": "text/html"}})
         }
         if (!Readability || !JSDOM) {
-            call(`<!DOCTPYE html>\n<html><head>
+            return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
                 <title>${decodeURI(req.url)}</title>
                 </head><body>Reader view module not present, can't do readerview
-                </body></html>`)
-            return
+                </body></html>`
+            ), {"headers": {"content-type": "text/html"}})
         }
         const url = `https://${loc}`
         const request = net.request({"partition": name, url})
-        request.on("response", res => {
-            let body = ""
-            res.on("end", () => {
-                if (!body) {
-                    call(`<!DOCTPYE html>\n<html><head>
+        return new Promise(resolve => {
+            request.on("response", res => {
+                let body = ""
+                res.on("end", () => {
+                    if (!body || !JSDOM || !Readability) {
+                        resolve(new Response(Buffer.from(
+                            `<!DOCTPYE html>\n<html><head>
+                            <style>${defaultCss}</style>
+                            <title>${decodeURI(req.url)}</title>
+                            </head><body>
+                                Reader view not supported on this webpage
+                            </body></html>`
+                        ), {"headers": {"content-type": "text/html"}}))
+                        return
+                    }
+                    const dom = new JSDOM(body, {url})
+                    const out = new Readability(
+                        dom.window.document).parse()?.content ?? ""
+                    resolve(new Response(Buffer.from(
+                        `<!DOCTPYE html>\n<html><head>
                         <style>${defaultCss}</style>
                         <title>${decodeURI(req.url)}</title>
-                        </head><body>Reader view not supported on this webpage
-                        </body></html>`)
-                    return
-                }
-                if (!JSDOM || !Readability) {
-                    return
-                }
-                const dom = new JSDOM(body, {url})
-                const out = new Readability(
-                    dom.window.document).parse()?.content ?? ""
-                call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
-                    <title>${decodeURI(req.url)}</title>
-                    </head><body id="readerview">${out}</body></html>`)
+                        </head><body id="readerview">${out}</body></html>`
+                    ), {"headers": {"content-type": "text/html"}}))
+                })
+                res.on("data", chunk => {
+                    body += chunk
+                })
             })
-            res.on("data", chunk => {
-                body += chunk
-            })
+            request.on("abort", () => new Response(""))
+            request.on("error", () => new Response(""))
+            request.end()
         })
-        request.on("abort", () => call(""))
-        request.on("error", () => call(""))
-        request.end()
     })
 })
 const cancellAllDownloads = () => {
