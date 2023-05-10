@@ -2336,7 +2336,7 @@ const mappingModified = (mode, mapping) => {
     }
     if (current && original) {
         if (current.mapping === original.mapping) {
-            if (current.noremap === original.noremap) {
+            if (Boolean(current.noremap) === Boolean(original.noremap)) {
                 return false
             }
         }

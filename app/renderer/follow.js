@@ -55,6 +55,7 @@ const savedOrder = [
 
 const init = () => {
     ipcRenderer.on("follow-response", (_, l) => parseAndDisplayLinks(l))
+    document.addEventListener("mouseleave", () => emptyHoverLink())
 }
 
 const informPreload = (first = false) => {

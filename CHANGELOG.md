@@ -70,6 +70,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Insert mode being left if interacting with the page menu
 - System clipboard being used incorrectly on Windows and Mac on selections due to selection clipboard not existing on those systems
 - Commands "tabnew" and "tabnewcontainer" not converting arguments to a url (preventing searches from working too)
+- Mouse hover remaining on follow element when moving the mouse outside of the window
+- Mappings being listed as modified when they were overwritten by the very same entry using :map
 
 ### Versions
 
