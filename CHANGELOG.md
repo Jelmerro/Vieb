@@ -72,6 +72,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Commands "tabnew" and "tabnewcontainer" not converting arguments to a url (preventing searches from working too)
 - Mouse hover remaining on follow element when moving the mouse outside of the window
 - Mappings being listed as modified when they were overwritten by the very same entry using :map
+- Follow links which vary in height/width compared to parent potentially causing follow highlight to switch between them periodically
 
 ### Versions
 
