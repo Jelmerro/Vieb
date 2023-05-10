@@ -32,6 +32,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "pdfbehavior" to control what happens with PDF files (default changed from viewing to download)
 - Support for the context menu key with default mapping to opening the menu
 - Setting "historyperpage" to control the amount of history entries to show per page
+- Action "pointer.copyTitleAttr" to copy the title attribute of a hovered element
+- Action "pointer.copyPageTitle" to copy the page title of the hovered link if in the history
 
 ### Changed
 

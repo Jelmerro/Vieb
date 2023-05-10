@@ -620,6 +620,8 @@ const contextListener = (e, frame = null, extraData = null) => {
             inputVal = text.textContent ?? ""
             inputSel = selection?.getRangeAt(0)?.startOffset ?? 0
         }
+        const titleAttr = e.composedPath().filter(el => isHTMLElement(el)
+            && el.title).find(isHTMLElement)?.title ?? ""
         ipcRenderer.send("context-click-info", {
             "audio": audio?.src?.trim(),
             "audioData": {
@@ -643,6 +645,7 @@ const contextListener = (e, frame = null, extraData = null) => {
             "link": link?.href?.trim(),
             "svgData": svg && getSvgData(svg),
             "text": selection?.toString(),
+            titleAttr,
             "video": video?.src?.trim(),
             "videoData": {
                 "controllable": !!videoEl,

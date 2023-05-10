@@ -400,6 +400,14 @@ const copyVideo = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "copy", "type": "video", "x": zoomX(), "y": zoomY()
 })
 
+const copyTitleAttr = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "copy", "type": "titleAttr", "x": zoomX(), "y": zoomY()
+})
+
+const copyPageTitle = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "copy", "type": "linkPageTitle", "x": zoomX(), "y": zoomY()
+})
+
 const splitText = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "split", "type": "text", "x": zoomX(), "y": zoomY()
 })
@@ -737,7 +745,9 @@ module.exports = {
     copyImage,
     copyImageBuffer,
     copyLink,
+    copyPageTitle,
     copyText,
+    copyTitleAttr,
     copyVideo,
     downloadAudio,
     downloadFrame,

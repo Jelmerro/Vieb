@@ -45,7 +45,9 @@ const {
 } = require("./common")
 
 /**
- * @typedef {"text"|"img"|"frame"|"video"|"audio"|"link"} contextMenuType
+ * @typedef {(
+ *   "text"|"img"|"frame"|"video"|"audio"|"link"|"titleAttr"|"linkPageTitle"
+ * )} contextMenuType
  * @typedef {(import("./tabs").tabPosition | "copyimage")} contextMenuAction
  * @typedef {{
  *   audio?: string,
@@ -72,6 +74,8 @@ const {
  *   inputSel?: number,
  *   inputVal?: string,
  *   link?: string,
+ *   titleAttr?: string,
+ *   linkPageTitle?: string,
  *   linkData?: {controllable?:  false},
  *   svgData?: string,
  *   text?: string,
@@ -93,7 +97,7 @@ const {
 const init = () => {
     /**
      * Handle context menu info to open the menu with the right details.
-     * @param {Event} _
+     * @param {Electron.IpcRendererEvent} _
      * @param {webviewData} info
      */
     const handleContextMenu = (_, info) => {
@@ -819,6 +823,10 @@ const commonAction = (type, action, options) => {
     let relevantData = options[type]
     if (type === "img") {
         relevantData = options.img || options.backgroundImg || options.svgData
+    }
+    if (type === "linkPageTitle") {
+        const {titleForPage} = require("./history")
+        relevantData = titleForPage(options.link ?? "")
     }
     if (!relevantData) {
         return
