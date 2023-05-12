@@ -541,10 +541,19 @@ const unsuspendPage = page => {
     prefs += "disableDialogs,nodeIntegrationInSubFrames,nodeIntegrationInWorker"
     webview.setAttribute("allowpopups", "true")
     webview.setAttribute("webpreferences", prefs)
-    const sessionName = page.getAttribute("container")
+    const url = page.getAttribute("src") || ""
+    const loc = url.replace(/view-?source:\/?\/?/g, "sourceviewer://")
+    const sessionName = getSetting("containernames").split(",").find(
+        c => loc.match(c.split("~")[0]) && c.split("~")[2] !== "newtab")
+        ?.split("~")[1] ?? page.getAttribute("container")
     ipcRenderer.send("create-session", `persist:${sessionName}`,
         getSetting("adblocker"), getSetting("cache") !== "none")
     webview.setAttribute("partition", `persist:${sessionName}`)
+    guiRelatedUpdate("tabbar")
+    const {updateContainerSettings} = require("./settings")
+    updateContainerSettings(false)
+    const {setLastUsedTab} = require("./pagelayout")
+    setLastUsedTab(page?.getAttribute("link-id") ?? null)
     const currentPageId = Number(page.getAttribute("devtools-for-id") || 0) || 0
     const isDevtoolsTab = !!currentPageId
     if (isDevtoolsTab) {
@@ -552,7 +561,6 @@ const unsuspendPage = page => {
     } else {
         webview.src = specialPagePath("newtab")
     }
-    const url = page.getAttribute("src") || ""
     webview.addEventListener("dom-ready", () => {
         if (!webview.getAttribute("dom-ready")) {
             if (webview.getAttribute("custom-first-load")) {
@@ -1221,13 +1229,17 @@ const addWebviewListeners = webview => {
 /**
  * Recreate a webview to in case of new container name or crash reload.
  * @param {Electron.WebviewTag} webview
+ * @param {string|null} customSrc
  */
-const recreateWebview = webview => {
+const recreateWebview = (webview, customSrc = null) => {
     const tab = tabForPage(webview)
     if (tab) {
         suspendTab(tab, true)
         const suspendedPage = pageForTab(tab)
         if (suspendedPage) {
+            if (customSrc) {
+                suspendedPage.setAttribute("src", customSrc)
+            }
             unsuspendPage(suspendedPage)
         }
     }
@@ -1288,7 +1300,7 @@ const navigateTo = (location, customPage = null) => {
         ?.split("~")[1]
     if (sessionName && sessionName !== webview.getAttribute("container")) {
         webview.setAttribute("container", sessionName)
-        recreateWebview(webview)
+        recreateWebview(webview, loc)
         return
     }
     rerollUserAgent(webview)
