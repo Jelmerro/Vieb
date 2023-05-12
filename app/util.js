@@ -694,7 +694,7 @@ const findClickPosition = (element, rects) => {
         const {
             centerX, centerY, x, y, width, height
         } = correctedCenterAndSizeOfRect(rect)
-        if (!clickable || width >= dims.width && height >= dims.height) {
+        if (!clickable || width * height > dims.width * dims.height) {
             const elAtPos = findElementAtPosition(centerX, centerY)
             if (element === elAtPos || element?.contains(elAtPos)) {
                 clickable = true
@@ -707,7 +707,7 @@ const findClickPosition = (element, rects) => {
             const {
                 centerX, centerY, x, y, width, height
             } = correctedCenterAndSizeOfRect(rect)
-            if (!clickable || width >= dims.width && height >= dims.height) {
+            if (!clickable || width * height > dims.width * dims.height) {
                 const elAtPos = findElementAtPosition(centerX, centerY)
                 if (element === elAtPos || element?.contains(elAtPos)) {
                     clickable = true
