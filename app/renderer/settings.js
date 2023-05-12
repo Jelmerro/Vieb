@@ -141,7 +141,7 @@ const defaultSettings = {
         "url,onclick,inputs-insert,inputs-click,media,image,other",
     /** @type {"filter"|"exit"|"nothing"} */
     "followfallbackaction": "filter",
-    /** @type {("cornertopleft"|"cornertopright"|"cornerbottomright"|
+    /** @type {("center"|"cornertopleft"|"cornertopright"|"cornerbottomright"|
      * "cornerbottomleft"|"outsidetopleft"|"outsidetopcenter"|
      * "outsidetopright"|"outsiderighttop"|"outsiderightcenter"|
      * "outsiderightbottom"|"outsidebottomright"|"outsidebottomcenter"|
@@ -402,6 +402,7 @@ const validOptions = {
     ],
     "followfallbackaction": ["filter", "exit", "nothing"],
     "followlabelposition": [
+        "center",
         "cornertopleft",
         "cornertopright",
         "cornerbottomright",

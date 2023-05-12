@@ -408,6 +408,11 @@ const parseAndDisplayLinks = receivedLinks => {
          *   transform?: string
          * }}} */
         const alignmentDict = {
+            "center": {
+                "left": x + width / 2,
+                "top": y + height / 2,
+                "transform": "translateX(-50%) translateY(-50%)"
+            },
             "cornerbottomleft": {"right": x, "top": y + height},
             "cornerbottomright": {"left": x + width, "top": y + height},
             "cornertopleft": {"bottom": y, "right": x},
