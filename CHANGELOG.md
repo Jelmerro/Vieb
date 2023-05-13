@@ -76,6 +76,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Mappings being listed as modified when they were overwritten by the very same entry using :map
 - Follow links which vary in height/width compared to parent potentially causing follow highlight to switch between them periodically
 - Setting "containernames" not updating listed container immediately and not switching at all for new tabs
+- White background on special pages when reloading them multiple times
 
 ### Versions
 

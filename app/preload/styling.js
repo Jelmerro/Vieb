@@ -134,7 +134,8 @@ const loadThemes = (loadedFully = false) => {
         updateScrollbar()
         return
     }
-    if (loadedFully && !specialPage?.name) {
+    if (loadedFully && !specialPage?.name
+        && !window.location.href.startsWith("chrome")) {
         const htmlBG = getComputedStyle(html).background
         const bodyBG = getComputedStyle(document.body).background
         const htmlBGImg = getComputedStyle(html).backgroundImage
