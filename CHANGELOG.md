@@ -34,6 +34,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "historyperpage" to control the amount of history entries to show per page
 - Action "pointer.copyTitleAttr" to copy the title attribute of a hovered element
 - Action "pointer.copyPageTitle" to copy the page title of the hovered link if in the history
+- Full interface scaling startup flag "--interface-scale", which can be combined with custom font sizes to achieve many different ratios
 
 ### Changed
 
@@ -50,6 +51,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - JavaScript execution to always allow user interaction APIs
 - Svg and "data:" favicons to be used if present in the list, otherwise still pick the first
 - History page rendering mechanism to support large history files much better using pagination and background rendering
+- Setting "guifontsize" now accepts a much wider range of values to accommodate interface scaling
 
 ### Removed
 

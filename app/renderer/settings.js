@@ -562,7 +562,7 @@ const numberRanges = {
     "darkreadergrayscale": [0, 100],
     "darkreadersepia": [0, 100],
     "darkreadertextstroke": [0, 1],
-    "guifontsize": [8, 30],
+    "guifontsize": [1, 300],
     "guihidetimeout": [0, 9000000000000000],
     "historyperpage": [1, 9000000000000000],
     "mapsuggest": [0, 9000000000000000],

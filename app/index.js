@@ -107,6 +107,11 @@ Options:
  --acceleration=<val>    string [HARDWARE/software]: Use hardware acceleration.
                          You can also use the ENV var: 'VIEB_ACCELERATION'.
 
+ --interface-scale=<val> number (1.0): Scale the interface to a custom factor.
+                         Will scale the entire interface including pages,
+                         can be used together with the guifontsize setting.
+                         You can also use the ENV var: 'VIEB_INTERFACE_SCALE'.
+
  --unsafe-multiwin=<val> bool (false): Allow 2+ windows in the same datafolder.
                          This is fundamentally unsafe, but often requested.
                          See the FAQ for more details about multiple windows.
@@ -215,6 +220,8 @@ let argAutoplayMedia = process.env.VIEB_AUTOPLAY_MEDIA?.trim().toLowerCase()
     || "user"
 let argAcceleration = process.env.VIEB_ACCELERATION?.trim().toLowerCase()
     || "hardware"
+let argInterfaceScale = Number(
+    process.env.VIEB_INTERFACE_SCALE?.trim() || 1.0) || 1.0
 let argUnsafeMultiwin = isTruthyArg(process.env.VIEB_UNSAFE_MULTIWIN)
 /** @type {string|null} */
 let customIcon = null
@@ -279,6 +286,8 @@ args.forEach(a => {
             argAutoplayMedia = arg.split("=").slice(1).join("=").toLowerCase()
         } else if (arg.startsWith("--acceleration=")) {
             argAcceleration = arg.split("=").slice(1).join("=").toLowerCase()
+        } else if (arg.startsWith("--interface-scale")) {
+            argInterfaceScale = Number(arg.split("=").slice(1).join("="))
         } else if (arg.startsWith("--unsafe-multiwin=")) {
             argUnsafeMultiwin = isTruthyArg(arg.split("=").slice(1).join("="))
         } else {
@@ -324,6 +333,14 @@ if (argConfigOverride) {
 }
 if (argAcceleration === "software") {
     app.disableHardwareAcceleration()
+}
+if (isNaN(argInterfaceScale) || argInterfaceScale <= 0) {
+    console.warn("The 'interface-scale' argument only accepts positive numbers")
+    printUsage()
+}
+if (argInterfaceScale !== 1) {
+    app.commandLine.appendSwitch(
+        "force-device-scale-factor", `${argInterfaceScale}`)
 }
 // https://github.com/electron/electron/issues/30201
 if (argMediaKeys) {
@@ -501,7 +518,8 @@ app.on("ready", () => {
     }
     mainWindow = new BrowserWindow(windowData)
     mainWindow.removeMenu()
-    mainWindow.setMinimumSize(500, 500)
+    mainWindow.setMinimumSize(Math.min(500 / argInterfaceScale, 500),
+        Math.min(500 / argInterfaceScale, 500))
     mainWindow.on("focus", () => mainWindow?.webContents.send("window-focus"))
     mainWindow.on("blur", () => mainWindow?.webContents.send("window-blur"))
     mainWindow.on("close", e => {
