@@ -1299,16 +1299,17 @@ const loadFromDisk = (firstRun = true) => {
         validOptions.adblocker = ["off"]
     }
     if (firstRun) {
+        if (isFile(joinPath(appData(), "erwicmode"))) {
+            defaultSettings.containernewtab = "s:external"
+            defaultSettings.containerstartuppage = "s:usematching"
+            defaultSettings.permissioncamera = "s:allow"
+            defaultSettings.permissionnotifications = "s:allow"
+            defaultSettings.permissionmediadevices = "s:allowfull"
+            defaultSettings.permissionmicrophone = "s:allow"
+        }
+
         allSettings = JSON.parse(JSON.stringify(defaultSettings))
         sessionStorage.setItem("settings", JSON.stringify(allSettings))
-    }
-    if (isFile(joinPath(appData(), "erwicmode"))) {
-        set("containernewtab", "s:external")
-        set("containerstartuppage", "s:usematching")
-        set("permissioncamera", "allow")
-        set("permissionnotifications", "allow")
-        set("permissionmediadevices", "allowfull")
-        set("permissionmicrophone", "allow")
     }
     for (const conf of files) {
         if (isFile(conf)) {
