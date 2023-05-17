@@ -345,6 +345,7 @@ const defaultErwicSettings = {
     "containernewtab": "s:external",
     "containerstartuppage": "s:usematching",
     "permissioncamera": "allow",
+    "permissiondisplaycapture": "ask",
     "permissionmediadevices": "allowfull",
     "permissionmicrophone": "allow",
     "permissionnotifications": "allow"

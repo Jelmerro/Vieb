@@ -52,6 +52,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Svg and "data:" favicons to be used if present in the list, otherwise still pick the first
 - History page rendering mechanism to support large history files much better using pagination and background rendering
 - Setting "guifontsize" now accepts a much wider range of values to accommodate interface scaling
+- Erwic mode permissions to now ask for displaycapture instead of blocking it (Vieb default is still to block)
 
 ### Removed
 
@@ -79,6 +80,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Follow links which vary in height/width compared to parent potentially causing follow highlight to switch between them periodically
 - Setting "containernames" not updating listed container immediately and not switching at all for new tabs and mouse clicks
 - White background on special pages when reloading them multiple times
+- Erwic settings not being saved with :mkviebrc if similar to regular Vieb defaults
 
 ### Versions
 
