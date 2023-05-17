@@ -341,6 +341,14 @@ const defaultSettings = {
 }
 /** @type {typeof defaultSettings} */
 let allSettings = JSON.parse(JSON.stringify(defaultSettings))
+const defaultErwicSettings = {
+    "containernewtab": "s:external",
+    "containerstartuppage": "s:usematching",
+    "permissioncamera": "allow",
+    "permissionmediadevices": "allowfull",
+    "permissionmicrophone": "allow",
+    "permissionnotifications": "allow"
+}
 const freeText = [
     "downloadpath",
     "externalcommand",
@@ -1604,12 +1612,10 @@ const loadFromDisk = (firstRun = true) => {
         sessionStorage.setItem("settings", JSON.stringify(allSettings))
     }
     if (isFile(joinPath(appData(), "erwicmode"))) {
-        set("containernewtab", "s:external")
-        set("containerstartuppage", "s:usematching")
-        set("permissioncamera", "allow")
-        set("permissionnotifications", "allow")
-        set("permissionmediadevices", "allowfull")
-        set("permissionmicrophone", "allow")
+        const erwicDefaults = JSON.parse(JSON.stringify(defaultErwicSettings))
+        Object.keys(erwicDefaults).forEach(t => {
+            set(t, erwicDefaults[t])
+        })
     }
     for (const conf of files) {
         if (isFile(conf)) {
@@ -1957,6 +1963,13 @@ const listCurrentSettings = (full = false) => {
     const settings = JSON.parse(JSON.stringify(allSettings))
     if (!full) {
         const defaults = JSON.parse(JSON.stringify(defaultSettings))
+        if (isFile(joinPath(appData(), "erwicmode"))) {
+            const erwicDefaults = JSON.parse(
+                JSON.stringify(defaultErwicSettings)
+            )
+            Object.assign(defaults, erwicDefaults)
+        }
+
         Object.keys(settings).forEach(t => {
             if (JSON.stringify(settings[t]) === JSON.stringify(defaults[t])) {
                 delete settings[t]
