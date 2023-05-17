@@ -912,6 +912,9 @@ const addWebviewListeners = webview => {
             tab?.setAttribute("media-playing", `${counter}`)
         }
     })
+    webview.addEventListener("did-start-navigation", e => {
+        checkContainerNames(webview, e.url)
+    })
     webview.addEventListener("did-start-loading", () => {
         const {loading} = require("./favicons")
         loading(webview)
@@ -1061,6 +1064,11 @@ const addWebviewListeners = webview => {
         updateUrl(webview)
     })
     webview.addEventListener("will-navigate", e => {
+        const wasRecreated = checkContainerNames(webview, e.url)
+        if (wasRecreated) {
+            return
+        }
+        rerollUserAgent(webview)
         resetTabInfo(webview)
         const tabTitleEl = tabForPage(webview)?.querySelector("span")
         if (tabTitleEl) {
@@ -1272,6 +1280,24 @@ const rerollUserAgent = webview => {
 }
 
 /**
+ * Check if the contanernames setting is still respected, if not recreate.
+ * @param {Electron.WebviewTag} webview
+ * @param {string} location
+ */
+const checkContainerNames = (webview, location) => {
+    const loc = location.replace(/view-?source:\/?\/?/g, "sourceviewer://")
+    const sessionName = getSetting("containernames").split(",").find(
+        c => loc.match(c.split("~")[0]) && c.split("~")[2] !== "newtab")
+        ?.split("~")[1]
+    if (sessionName && sessionName !== webview.getAttribute("container")) {
+        webview.setAttribute("container", sessionName)
+        recreateWebview(webview, loc)
+        return true
+    }
+    return false
+}
+
+/**
  * Navigate the page to a new location, optionally a custom page.
  * @param {string} location
  * @param {Electron.WebviewTag|null} customPage
@@ -1295,12 +1321,8 @@ const navigateTo = (location, customPage = null) => {
     }
     webview.stop()
     const loc = location.replace(/view-?source:\/?\/?/g, "sourceviewer://")
-    const sessionName = getSetting("containernames").split(",").find(
-        c => loc.match(c.split("~")[0]) && c.split("~")[2] !== "newtab")
-        ?.split("~")[1]
-    if (sessionName && sessionName !== webview.getAttribute("container")) {
-        webview.setAttribute("container", sessionName)
-        recreateWebview(webview, loc)
+    const wasRecreated = checkContainerNames(webview, loc)
+    if (wasRecreated) {
         return
     }
     rerollUserAgent(webview)

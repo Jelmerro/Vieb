@@ -950,12 +950,13 @@ const blockPdf = () => new Response("", {"status": 403})
 ipcMain.on("update-pdf-option", (_, newPdfValue) => {
     pdfbehavior = newPdfValue
     sessionList.forEach(ses => {
+        const {protocol} = session.fromPartition(ses)
         if (pdfbehavior === "view") {
-            session.fromPartition(ses).protocol
-                .unhandle("chrome-extension")
-        } else {
-            session.fromPartition(ses).protocol
-                .handle("chrome-extension", blockPdf)
+            if (protocol.isProtocolHandled("chrome-extension")) {
+                protocol.unhandle("chrome-extension")
+            }
+        } else if (!protocol.isProtocolHandled("chrome-extension")) {
+            protocol.handle("chrome-extension", blockPdf)
         }
     })
 })

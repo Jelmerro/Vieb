@@ -77,7 +77,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Mouse hover remaining on follow element when moving the mouse outside of the window
 - Mappings being listed as modified when they were overwritten by the very same entry using :map
 - Follow links which vary in height/width compared to parent potentially causing follow highlight to switch between them periodically
-- Setting "containernames" not updating listed container immediately and not switching at all for new tabs
+- Setting "containernames" not updating listed container immediately and not switching at all for new tabs and mouse clicks
 - White background on special pages when reloading them multiple times
 
 ### Versions
