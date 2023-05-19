@@ -192,7 +192,7 @@ const defaultSettings = {
     "mousenewtabswitch": true,
     /** @type {"activate"|"onswitch"|"never"} */
     "mousevisualmode": "onswitch",
-    /** @type {"always"|"smallonly"|"never"} */
+    /** @type {"always"|"largeonly"|"smallonly"|"never"} */
     "nativenotification": "never",
     /** @type {"system"|"dark"|"light"} */
     "nativetheme": "system",
@@ -202,6 +202,7 @@ const defaultSettings = {
     "notificationforpermissions": "silent",
     /** @type {"all"|"errors"|"none"} */
     "notificationforsystemcommands": "errors",
+    "notificationlimitsmall": 3,
     /** @type {"bottomright"|"bottomleft"|"topright"|"topleft"} */
     "notificationposition": "bottomright",
     /** @type {"view"|"block"|"download"} */
@@ -472,7 +473,7 @@ const validOptions = {
     "menuvieb": ["both", "navbar", "tabbar", "never"],
     "mousedisabledbehavior": ["nothing", "drag"],
     "mousevisualmode": ["activate", "onswitch", "never"],
-    "nativenotification": ["always", "smallonly", "never"],
+    "nativenotification": ["always", "largeonly", "smallonly", "never"],
     "nativetheme": ["system", "dark", "light"],
     "notificationforpermissions": [
         "all", "allowed", "blocked", "silent", "none"
@@ -578,6 +579,7 @@ const numberRanges = {
     "maxmapdepth": [1, 40],
     "mintabwidth": [0, 9000000000000000],
     "notificationduration": [0, 9000000000000000],
+    "notificationlimitsmall": [0, 9000000000000000],
     "requesttimeout": [0, 9000000000000000],
     "suggestbouncedelay": [0, 10000],
     "suggestcommands": [0, 9000000000000000],

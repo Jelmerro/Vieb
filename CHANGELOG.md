@@ -35,6 +35,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Action "pointer.copyTitleAttr" to copy the title attribute of a hovered element
 - Action "pointer.copyPageTitle" to copy the page title of the hovered link if in the history
 - Full interface scaling startup flag "--interface-scale", which can be combined with custom font sizes to achieve many different ratios
+- Setting "notificationlimitsmall" to control how many newlines should be the limit for small/large notifications
+- Option "largeonly" to the "nativenotification" setting to only show large ones natively
 
 ### Changed
 
@@ -81,6 +83,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "containernames" not updating listed container immediately and not switching at all for new tabs and mouse clicks
 - White background on special pages when reloading them multiple times
 - Erwic settings not being saved with :mkviebrc if similar to regular Vieb defaults
+- Settings "notificationforpermisions" being set to "none" not preventing notifications from being stored
 
 ### Versions
 

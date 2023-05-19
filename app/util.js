@@ -79,8 +79,10 @@ const dataUris = [
 ]
 
 /**
- * Get the value of any setting.
- * @param {string} val
+ * Get a setting value by setting name.
+ * @template {keyof typeof import("./renderer/settings").defaultSettings} T
+ * @param {T} val
+ * @returns {typeof import("./renderer/settings").defaultSettings[T]}
  */
 const getSetting = val => JSON.parse(
     sessionStorage.getItem("settings") ?? "")?.[val]
@@ -996,7 +998,7 @@ const notify = (message, type = "info", clickAction = false) => {
         delete clickInfo.func
     }
     const notifyForPerm = getSetting("notificationforpermissions")
-    if (properType === "permission" && notifyForPerm === "never") {
+    if (properType === "permission" && notifyForPerm === "none") {
         return
     }
     notificationHistory.push({
@@ -1021,9 +1023,12 @@ const notify = (message, type = "info", clickAction = false) => {
         }
     }
     const native = getSetting("nativenotification")
-    const showLong = escapedMessage.split("<br>").length > 3
+    const shortLimitNotify = getSetting("notificationlimitsmall")
+    const showLong = escapedMessage.split("<br>").length > shortLimitNotify
         && properType !== "dialog"
-    if (native === "always" || !showLong && native === "smallonly") {
+    const shortAndSmallNative = !showLong && native === "smallonly"
+    const longAndLargeNative = showLong && native === "largeonly"
+    if (native === "always" || shortAndSmallNative || longAndLargeNative) {
         const n = new Notification(
             `${appConfig()?.name} ${properType}`, {"body": message})
         if (clickAction && clickAction.func) {
