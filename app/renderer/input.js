@@ -910,6 +910,9 @@ const init = () => {
             POINTER.updateElement()
         }
     })
+    window.addEventListener("blur", () => {
+        setTimeout(ACTIONS.setFocusCorrectly, 5)
+    })
     ipcRenderer.on("zoom-changed", (_, ctxId, direction) => {
         const page = listRealPages().find(p => p.getWebContentsId() === ctxId)
         if (!page || !getMouseConf("scrollzoom")) {

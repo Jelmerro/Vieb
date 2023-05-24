@@ -2198,8 +2198,8 @@ const handleFollowResponse = (e, rawLinks) => {
             .framesInSubtree.map(f => {
                 try {
                     return `${f.routingId}-${f.processId}`
-                } catch (ex) {
-                    return errToMain(ex)
+                } catch {
+                    return null
                 }
             }).filter(f => f)
         allLinks = allLinks.filter(l => l.frameId !== frameId
@@ -2241,10 +2241,7 @@ const findRelevantSubFrame = (wc, x, y) => {
                     }
                 }
                 return info
-            } catch (ex) {
-                if (ex instanceof Error) {
-                    mainWindow?.webContents.send("main-error", ex.stack)
-                }
+            } catch {
                 return null
             }
         })

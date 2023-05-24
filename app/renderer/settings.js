@@ -1439,13 +1439,10 @@ const updateContainerSettings = (full = true) => {
 }
 
 const updateDownloadSettings = () => {
-    /** @type {{[setting: string]: boolean}} */
+    /** @type {{[setting: string]: boolean|number|string}} */
     const downloads = {}
     downloadSettings.forEach(setting => {
-        const value = allSettings[setting]
-        if (typeof value === "boolean") {
-            downloads[setting] = value
-        }
+        downloads[setting] = allSettings[setting]
     })
     ipcRenderer.send("set-download-settings", downloads)
 }

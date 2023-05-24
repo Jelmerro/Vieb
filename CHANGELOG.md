@@ -84,6 +84,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - White background on special pages when reloading them multiple times
 - Erwic settings not being saved with :mkviebrc if similar to regular Vieb defaults
 - Settings "notificationforpermisions" being set to "none" not preventing notifications from being stored
+- Keyboard focus being lost when opening pages that do not allow JavaScript to be run
 
 ### Versions
 
