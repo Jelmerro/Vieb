@@ -210,27 +210,32 @@ const saveTabs = () => {
         data.id = listTabs().indexOf(activeTab)
     }
     listTabs().forEach((tab, index) => {
-        const url = urlToString(pageForTab(tab)?.getAttribute("src") ?? "")
+        const url = pageForTab(tab)?.getAttribute("src")
         if (!url || url.startsWith("devtools://")) {
             if (index <= data.id) {
                 data.id -= 1
             }
             return
         }
-        const container = urlToString(pageForTab(tab)
-            ?.getAttribute("container") ?? "")
+        const container = pageForTab(tab)?.getAttribute("container") ?? ""
         const isPinned = tab.classList.contains("pinned")
         if (isPinned && ["all", "pinned"].includes(restoreTabs)) {
             data.pinned.push({
-                container, "muted": !!tab.getAttribute("muted"), url
+                container,
+                "muted": !!tab.getAttribute("muted"),
+                "url": stringToUrl(url)
             })
         } else if (!isPinned && ["all", "regular"].includes(restoreTabs)) {
             data.tabs.push({
-                container, "muted": !!tab.getAttribute("muted"), url
+                container,
+                "muted": !!tab.getAttribute("muted"),
+                "url": stringToUrl(url)
             })
         } else if (keepRecentlyClosed) {
             data.closed.push({
-                container, "muted": !!tab.getAttribute("muted"), url
+                container,
+                "muted": !!tab.getAttribute("muted"),
+                "url": stringToUrl(url)
             })
             if (index <= data.id) {
                 data.id -= 1
@@ -451,8 +456,8 @@ const addTab = (options = {}) => {
         page.setAttribute("muted", "muted")
     }
     pages?.append(page)
-    const suspend = options.lazy
-        || getSetting("suspendbackgroundtab") && !options.switchTo
+    const suspend = (options.lazy ?? getSetting("suspendbackgroundtab"))
+        && !options.switchTo
     tab.setAttribute("suspended", "suspended")
     if (suspend) {
         const {titleForPage} = require("./history")
@@ -657,7 +662,7 @@ const closeTab = (index = null, force = false) => {
         }
     }
     const tabLinkId = tab.getAttribute("link-id")
-    const url = urlToString(page.getAttribute("src") || "")
+    const url = stringToUrl(page.getAttribute("src") || "")
     const oldTabIdx = listTabs().indexOf(tab)
     if (getSetting("keeprecentlyclosed") && url) {
         recentlyClosed.push({

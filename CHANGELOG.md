@@ -85,6 +85,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Erwic settings not being saved with :mkviebrc if similar to regular Vieb defaults
 - Settings "notificationforpermisions" being set to "none" not preventing notifications from being stored
 - Keyboard focus being lost when opening pages that do not allow JavaScript to be run
+- Suspendonrestore value "none" suspending all tabs instead of none
+- Tabs with file paths open not being stored for next startup
 
 ### Versions
 
