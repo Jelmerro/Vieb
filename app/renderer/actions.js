@@ -939,8 +939,11 @@ const getPageUrl = () => {
     return url
 }
 
+/** Get the list of RSS links on the page.
+ * @returns {Promise<string[]|null>}
+ */
 const getPageRSSLinks = async() => {
-    const feedUrls = await currentPage().executeJavaScript(
+    const feedUrls = await currentPage()?.executeJavaScript(
         `Array.from(document.querySelectorAll("link[type]")).map(link => [
             "application/rss+xml",
             "application/atom+xml",
@@ -958,14 +961,13 @@ const getPageRSSLinks = async() => {
             && link.getAttribute("href")).filter(Boolean)`)
     if (feedUrls.length === 0) {
         notify("No RSS feeds found on this page", "warn")
-        return
+        return null
     }
     return feedUrls
 }
 
 const pageRSSLinksList = async() => {
     const feedUrls = await getPageRSSLinks()
-    console.info(feedUrls)
     if (!feedUrls) {
         return
     }
@@ -973,8 +975,11 @@ const pageRSSLinksList = async() => {
     notify(`--- RSS links on the page ---\n${feedsString}`)
 }
 
+/** Copy an RSS link to the clipboard by index.
+ * @param {{key?: string}|null} args
+ */
 const pageRSSLinkToClipboard = async args => {
-    const {key} = args
+    const key = args?.key
     if (!key) {
         return
     }
@@ -982,7 +987,7 @@ const pageRSSLinkToClipboard = async args => {
     if (!feedUrls) {
         return
     }
-    const feedUrl = feedUrls[!isNaN(key) && Number(key) || 0]
+    const feedUrl = feedUrls[!isNaN(Number(key)) && Number(key) || 0] ?? ""
     clipboard.writeText(feedUrl)
     notify(`RSS feed '${feedUrl}' copied to clipboard`, "suc")
 }
