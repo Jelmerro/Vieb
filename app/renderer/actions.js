@@ -939,6 +939,54 @@ const getPageUrl = () => {
     return url
 }
 
+const getPageRSSLinks = async() => {
+    const feedUrls = await currentPage().executeJavaScript(
+        `Array.from(document.querySelectorAll("link[type]")).map(link => [
+            "application/rss+xml",
+            "application/atom+xml",
+            "application/rdf+xml",
+            "application/rss",
+            "application/atom",
+            "application/rdf",
+            "text/rss+xml",
+            "text/atom+xml",
+            "text/rdf+xml",
+            "text/rss",
+            "text/atom",
+            "text/rdf"
+        ].includes(link.getAttribute("type"))
+            && link.getAttribute("href")).filter(Boolean)`)
+    if (feedUrls.length === 0) {
+        notify("No RSS feeds found on this page", "warn")
+        return
+    }
+    return feedUrls
+}
+
+const pageRSSLinksList = async() => {
+    const feedUrls = await getPageRSSLinks()
+    console.info(feedUrls)
+    if (!feedUrls) {
+        return
+    }
+    const feedsString = feedUrls.map((url, i) => `${i} - ${url}`).join("\n")
+    notify(`--- RSS links on the page ---\n${feedsString}`)
+}
+
+const pageRSSLinkToClipboard = async args => {
+    const {key} = args
+    if (!key) {
+        return
+    }
+    const feedUrls = await getPageRSSLinks()
+    if (!feedUrls) {
+        return
+    }
+    const feedUrl = feedUrls[!isNaN(key) && Number(key) || 0]
+    clipboard.writeText(feedUrl)
+    notify(`RSS feed '${feedUrl}' copied to clipboard`, "suc")
+}
+
 const pageToClipboard = () => clipboard.writeText(getPageUrl())
 
 const pageTitleToClipboard = () => {
@@ -1345,6 +1393,8 @@ module.exports = {
     openFromClipboard,
     openLinkExternal,
     openNewTabWithCurrentUrl,
+    pageRSSLinkToClipboard,
+    pageRSSLinksList,
     pageTitleToClipboard,
     pageToClipboard,
     pageToClipboardEmacs,
