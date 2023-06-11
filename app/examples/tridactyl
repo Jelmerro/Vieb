@@ -1,17 +1,14 @@
 " Options
-set useragent=%firefox
 set adblocker=update
-set downloadmethod=confirm
-set mintabwidth=250
-set restoretabs=pinned
-set redirecttohttp
-set noshowcmd
-set noincsearch
-set tabreopenposition=previous
 set closablepinnedtabs
+set downloadmethod=confirm
+set noincsearch
+set mintabwidth=250
+set redirecttohttp
+set restoretabs=pinned
 set searchwords=
 set searchwords+=google~https://www.google.com/search?q=%s
-set searchwords+=googlelucky~"https://www.google.com/search?btnI=I'm+Feeling+Lucky&q=%s"
+set searchwords+="googlelucky~https://www.google.com/search?btnI=I'm+Feeling+Lucky&q=%s"
 set searchwords+=scholar~https://scholar.google.com/scholar?q=%s
 set searchwords+=googleuk~https://www.google.co.uk/search?q=%s
 set searchwords+=bing~https://www.bing.com/search?q=%s
@@ -30,6 +27,9 @@ set searchwords+=osm~https://www.openstreetmap.org/search?query=%s
 set searchwords+=mdn~https://developer.mozilla.org/en-US/search?q=%s
 set searchwords+=gentoo_wiki~https://wiki.gentoo.org/index.php?title=Special:Search&profile=default&fulltext=Search&search=%s
 set searchwords+=qwant~https://www.qwant.com/?q=%s
+set noshowcmd
+set tabreopenposition=previous
+set useragent=%firefox
 
 " Mappings
 nmap o <toExploreMode>
@@ -44,15 +44,11 @@ nmap <lt><lt> <moveTabBackward>
 nmap O <toExploreMode><End>
 nmap gx0 <:lclose>
 nmap gx$ <:rclose>
-nmap <A-p> <:pin>
-nmap <A-m> <:mute>
 nmap x <stopLoadingPage>
 nunmap [
 nunmap ]
 nmap [[ <previousPage>
 nmap ]] <nextPage>
-nmap gu <toParentUrl>
-nmap gU <toRootUrl>
 nmap [c <decreasePageNumber>
 nmap ]c <increasePageNumber>
 nmap zz <zoomReset>

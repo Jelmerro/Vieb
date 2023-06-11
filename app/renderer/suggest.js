@@ -36,21 +36,31 @@ const {
 } = require("../util")
 const {
     listTabs,
-    tabOrPageMatching,
     currentMode,
     getSetting,
     getMouseConf,
-    updateScreenshotHighlight
+    updateScreenshotHighlight,
+    getUrl,
+    pageForTab
 } = require("./common")
 
+/** @type {string[]} */
 let suggestions = []
 let originalValue = ""
 
+/**
+ * Set the url value correctly formatted and update border colors.
+ * @param {string} url
+ */
 const setUrlValue = url => {
+    const urlInput = getUrl()
+    if (!urlInput) {
+        return
+    }
     if (currentMode() === "explore") {
-        document.getElementById("url").value = urlToString(url)
+        urlInput.value = urlToString(url)
     } else {
-        document.getElementById("url").value = url
+        urlInput.value = url
     }
     updateColors()
 }
@@ -58,9 +68,9 @@ const setUrlValue = url => {
 const topOfSection = () => {
     const list = [...document.querySelectorAll("#suggest-dropdown div")]
     const selected = list.find(s => s.classList.contains("selected"))
-    if (selected.previousSibling) {
-        return selected.previousSibling.lastChild.className
-            !== selected.lastChild.className
+    if (selected && selected.previousElementSibling) {
+        return selected.previousElementSibling.lastElementChild?.className
+            !== selected.lastElementChild?.className
     }
     return true
 }
@@ -78,10 +88,12 @@ const previous = () => {
         return
     }
     const selected = list.find(s => s.classList.contains("selected"))
-    let id = list.indexOf(selected)
-    if (!selected) {
-        originalValue = document.getElementById("url").value
-        id = list.length
+    let id = list.length
+    const url = getUrl()
+    if (selected) {
+        id = list.indexOf(selected)
+    } else {
+        originalValue = url?.value ?? ""
     }
     list.forEach(l => {
         l.className = ""
@@ -95,7 +107,7 @@ const previous = () => {
     setUrlValue(suggestions[id - 1])
     const index = suggestions[id - 1].indexOf("%s")
     if (index !== -1) {
-        document.getElementById("url").setSelectionRange(index, index + 2)
+        url?.setSelectionRange(index, index + 2)
     }
 }
 
@@ -112,10 +124,12 @@ const next = () => {
         return
     }
     const selected = list.find(s => s.classList.contains("selected"))
-    let id = list.indexOf(selected)
-    if (!selected) {
-        originalValue = document.getElementById("url").value
-        id = -1
+    let id = -1
+    const url = getUrl()
+    if (selected) {
+        id = list.indexOf(selected)
+    } else {
+        originalValue = url?.value ?? ""
     }
     list.forEach(l => {
         l.className = ""
@@ -129,17 +143,27 @@ const next = () => {
     setUrlValue(suggestions[id + 1])
     const index = suggestions[id + 1].indexOf("%s")
     if (index !== -1) {
-        document.getElementById("url").setSelectionRange(index, index + 2)
+        url?.setSelectionRange(index, index + 2)
     }
 }
 
 const emptySuggestions = () => {
-    document.getElementById("suggest-dropdown").scrollTo(0, 0)
-    document.getElementById("suggest-dropdown").textContent = ""
-    document.getElementById("url").className = ""
+    const suggestDropdown = document.getElementById("suggest-dropdown")
+    const url = getUrl()
+    if (suggestDropdown && url) {
+        suggestDropdown.scrollTo(0, 0)
+        suggestDropdown.textContent = ""
+        url.className = ""
+    }
     suggestions = []
 }
 
+/**
+ * Translate a location to an informative object that can be suggested.
+ * @param {string} base
+ * @param {string} loc
+ * @returns {{path: string, title: string, type: "file", url: string}}
+ */
 const locationToSuggestion = (base, loc) => {
     let absPath = joinPath(base, loc)
     let fullPath = stringToUrl(absPath)
@@ -155,12 +179,19 @@ const locationToSuggestion = (base, loc) => {
     return {"path": absPath, "title": location, "type": "file", "url": fullPath}
 }
 
+/**
+ * Suggest files based on current path entry.
+ * @param {string} loc
+ */
 const suggestFiles = loc => {
     let location = expandPath(loc.replace(/^file:\/+/g, "/"))
     if (process.platform === "win32") {
         location = expandPath(loc.replace(/^file:\/+/g, ""))
     }
     if (isAbsolutePath(location)) {
+        /** @type {{
+         *   path: string, title: string, type: "file", url: string
+         * }[]} */
         let matching = []
         if (dirname(location) !== location) {
             matching = listDir(dirname(location))?.map(
@@ -179,10 +210,14 @@ const suggestFiles = loc => {
     return []
 }
 
-const updateColors = searchStr => {
-    const urlElement = document.getElementById("url")
-    const search = searchStr || urlElement.value
-    if (currentMode() === "explore") {
+/**
+ * Update the explore border colors based on the input type.
+ * @param {string|null} searchStr
+ */
+const updateColors = (searchStr = null) => {
+    const urlElement = getUrl()
+    const search = searchStr || urlElement?.value
+    if (search !== undefined && urlElement && currentMode() === "explore") {
         const local = expandPath(search)
         if (search.trim() === "") {
             urlElement.className = ""
@@ -202,6 +237,10 @@ const updateColors = searchStr => {
     }
 }
 
+/**
+ * Suggest urls, files and searchwords based on the current input and settings.
+ * @param {string} search
+ */
 const suggestExplore = search => {
     emptySuggestions()
     updateColors(search)
@@ -261,6 +300,10 @@ const suggestExplore = search => {
     })
 }
 
+/**
+ * Add a suggestion to the explore mode suggestions.
+ * @param {{title: string, type?: string, url: string, icon?: string}} explore
+ */
 const addExplore = explore => {
     if (suggestions.includes(explore.url)) {
         return
@@ -297,12 +340,12 @@ const addExplore = explore => {
         thumbnail.className = "icon"
         const {forSite} = require("./favicons")
         thumbnail.src = forSite(explore.icon) || explore.icon
-        element.appendChild(thumbnail)
+        element.append(thumbnail)
     }
     const title = document.createElement("span")
     title.className = "title"
     title.textContent = explore.title
-    element.appendChild(title)
+    element.append(title)
     const url = document.createElement("span")
     url.className = "url"
     if (explore.type === "file") {
@@ -312,13 +355,17 @@ const addExplore = explore => {
         url.className = "searchwords"
     }
     url.textContent = urlToString(explore.url)
-    element.appendChild(url)
-    document.getElementById("suggest-dropdown").appendChild(element)
+    element.append(url)
+    document.getElementById("suggest-dropdown")?.append(element)
     setTimeout(() => {
         element.style.pointerEvents = "auto"
     }, 100)
 }
 
+/**
+ * Suggest a command based on the current input text.
+ * @param {string} searchStr
+ */
 const suggestCommand = searchStr => {
     emptySuggestions()
     // Remove all redundant spaces
@@ -329,21 +376,31 @@ const suggestCommand = searchStr => {
         range, valid, confirm, command, args
     } = parseAndValidateArgs(search)
     const urlElement = document.getElementById("url")
-    if (valid) {
-        urlElement.className = ""
-    } else {
-        urlElement.className = "invalid"
+    if (urlElement) {
+        if (valid) {
+            urlElement.className = ""
+        } else {
+            urlElement.className = "invalid"
+        }
     }
     if (!search) {
         // Don't suggest when it's disabled or the search is empty
         return
     }
+    let confirmChar = ""
+    if (confirm) {
+        confirmChar = "!"
+    }
     // List all commands unconditionally
-    const {commandList, customCommandsAsCommandList} = require("./command")
+    const {
+        commandList, customCommandsAsCommandList, rangeToTabIdxs
+    } = require("./command")
     commandList().filter(
         c => c.startsWith(search)).forEach(c => addCommand(c))
+    const {validOptions} = require("./settings")
     // Command: screenshot
-    if ("screenshot".startsWith(command) && !confirm && args.length < 3) {
+    if ("screenshot".startsWith(command)
+        && !range && !confirm && args.length < 3) {
         let [dims] = args
         let [, location] = args
         if (!dims?.match(/^\d+,\d+,\d+,\d+$/g)) {
@@ -356,24 +413,20 @@ const suggestCommand = searchStr => {
             location = location.slice(1, location.length - 1)
         }
         if (!location && !dims) {
-            if (range) {
-                addCommand(`${range}screenshot`)
-            } else {
-                addCommand("screenshot ~")
-                addCommand("screenshot /")
-                if (downloadPath()) {
-                    addCommand(`screenshot ${downloadPath()}`)
-                }
+            addCommand("screenshot ~")
+            addCommand("screenshot /")
+            if (downloadPath()) {
+                addCommand(`screenshot ${downloadPath()}`)
             }
         }
-        if (range && dims) {
-            addCommand(`${range}screenshot${dims}`)
-        } else if (!range && (location || search.endsWith(" "))) {
+        if (location || search.endsWith(" ")) {
             if (!isAbsolutePath(location)) {
                 location = joinPath(downloadPath(), location)
             }
             suggestFiles(location).forEach(l => addCommand(
                 `screenshot${dims} ${l.path}`))
+        } else if (dims) {
+            addCommand(`screenshot${dims}`)
         }
     }
     updateScreenshotHighlight()
@@ -402,24 +455,43 @@ const suggestCommand = searchStr => {
     }
     // Command: write
     if ("write".startsWith(command) && !confirm && args.length < 2) {
-        let location = expandPath(search.replace(/w[a-z]* ?/, "") || "")
+        let location = expandPath(args.join(" "))
         if (location.startsWith("\"") && location.endsWith("\"")) {
             location = location.slice(1, location.length - 1)
         }
-        if (range) {
-            addCommand(`${range}write`)
-        } else if (!location) {
+        if (!location && !range) {
             addCommand("write ~")
             addCommand("write /")
             if (downloadPath()) {
                 addCommand(`write ${downloadPath()}`)
             }
         }
-        if (!range && (location || search.endsWith(" "))) {
+        if (location || search.endsWith(" ") && !range) {
             if (!isAbsolutePath(location)) {
                 location = joinPath(downloadPath(), location)
             }
             suggestFiles(location).forEach(l => addCommand(`write ${l.path}`))
+        }
+        if (range) {
+            addCommand(`${range}write`)
+            const tabs = listTabs()
+            rangeToTabIdxs(range, true).map(num => {
+                const tab = tabs.at(num)
+                if (!tab) {
+                    return null
+                }
+                const index = tabs.indexOf(tab)
+                return {
+                    "command": `${index}write`,
+                    "icon": pageForTab(tab)?.getAttribute("src") ?? "",
+                    "title": tab.querySelector("span")?.textContent ?? "",
+                    "url": pageForTab(tab)?.getAttribute("src") ?? ""
+                }
+            }).forEach(t => {
+                if (t) {
+                    addCommand(t.command, t.title, t.url, t.icon, true)
+                }
+            })
         }
     }
     // Command: mkviebrc
@@ -429,7 +501,6 @@ const suggestCommand = searchStr => {
     // Command: devtools
     if ("devtools".startsWith(command)
     && !confirm && args.length < 2 && !range) {
-        const {validOptions} = require("./settings")
         validOptions.devtoolsposition.forEach(option => {
             if (!args[0] || option.startsWith(args[0])) {
                 addCommand(`devtools ${option}`)
@@ -441,6 +512,7 @@ const suggestCommand = searchStr => {
         if (args.length > 1 || confirm) {
             return
         }
+        /** @type {{[theme: string]: string}} */
         const themes = {}
         listDir(joinPath(__dirname, "../colors/"))?.forEach(p => {
             themes[p.replace(/\.css$/g, "")] = "built-in"
@@ -477,10 +549,6 @@ const suggestCommand = searchStr => {
     }
     // Command: help
     if ("help".startsWith(command) && !range) {
-        let confirmChar = ""
-        if (confirm) {
-            confirmChar = "!"
-        }
         const {
             listSupportedActions, listMappingsAsCommandList
         } = require("./input")
@@ -533,10 +601,10 @@ const suggestCommand = searchStr => {
             ...commandList(false).map(c => `:${c}`),
             ...Object.values(settingsWithDefaults()).map(s => s.name),
             ...listSupportedActions(),
-            ...listMappingsAsCommandList(false, true).split("\n")
+            ...listMappingsAsCommandList(null, true).split("\n")
                 .map(m => m.split(" ")[1])
         ]
-        listMappingsAsCommandList(false, true).split("\n").forEach(map => {
+        listMappingsAsCommandList(null, true).split("\n").forEach(map => {
             const mode = map.split(" ")[0].replace(/(nore)?map$/g, "")
             const [, keys] = map.split(" ")
             if (mode) {
@@ -562,7 +630,6 @@ const suggestCommand = searchStr => {
     // Command: translatepage
     if ("translatepage".startsWith(command)
     && !confirm && args.length < 2 && !range) {
-        const {validOptions} = require("./settings")
         validOptions.translatelang.forEach(option => {
             if (!args[0] || option.startsWith(args[0])) {
                 addCommand(`translatepage ${option}`)
@@ -570,7 +637,7 @@ const suggestCommand = searchStr => {
         })
     }
     // Command: buffer, hide, Vexplore, Sexplore, split, vsplit etc.
-    const bufferCommand = [
+    [
         "buffer",
         "hide",
         "mute",
@@ -581,24 +648,75 @@ const suggestCommand = searchStr => {
         "suspend",
         "vsplit",
         "close"
-    ].find(b => b.startsWith(command))
-    if (bufferCommand && (bufferCommand === "close" || !confirm)) {
-        if (range) {
-            addCommand(`${range}${bufferCommand}`)
-            return
-        }
-        const {allTabsForBufferArg} = require("./command")
-        const tabs = listTabs()
-        allTabsForBufferArg(args).map(b => {
-            const index = tabs.indexOf(b.tab)
-            return {
-                "command": `${bufferCommand} ${index}`,
-                "icon": b.url ?? tabOrPageMatching(b.tab).src,
-                "title": b.title ?? b.tab.querySelector("span").textContent,
-                "url": b.url ?? tabOrPageMatching(b.tab).src
+    ].forEach(bufferCommand => {
+        if (bufferCommand.startsWith(command)) {
+            const acceptsConfirm = ["close", "mute", "pin"]
+            if (!acceptsConfirm.includes(bufferCommand) && confirm) {
+                return
             }
-        }).forEach(t => addCommand(t.command, t.title, t.url, t.icon))
-    }
+            if (range) {
+                if (!confirm || !args.length) {
+                    addCommand(`${range}${bufferCommand}${confirmChar}`)
+                    if (acceptsConfirm.includes(bufferCommand) && !confirm) {
+                        addCommand(`${range}${bufferCommand}!`)
+                    }
+                }
+                let a = ""
+                if (["mute", "pin"].includes(bufferCommand) && confirm) {
+                    addCommand(`${range}${bufferCommand}${confirmChar} true`)
+                    addCommand(`${range}${bufferCommand}${confirmChar} false`)
+                    a = " true"
+                    if (args.join("").trim().startsWith("f")) {
+                        a = " false"
+                    }
+                } else if (args.length) {
+                    return
+                }
+                const tabs = listTabs()
+                rangeToTabIdxs(range, true).map(num => {
+                    const tab = tabs.at(num)
+                    if (!tab) {
+                        return null
+                    }
+                    const index = tabs.indexOf(tab)
+                    return {
+                        "command": `${index}${bufferCommand}${confirmChar}${a}`,
+                        "icon": pageForTab(tab)?.getAttribute("src") ?? "",
+                        "title": tab.querySelector("span")?.textContent ?? "",
+                        "url": pageForTab(tab)?.getAttribute("src") ?? ""
+                    }
+                }).forEach(t => {
+                    if (t) {
+                        addCommand(t.command, t.title, t.url, t.icon, true)
+                    }
+                })
+                return
+            }
+            if (["mute", "pin"].includes(bufferCommand) && confirm) {
+                addCommand(`${bufferCommand}${confirmChar} true`)
+                addCommand(`${bufferCommand}${confirmChar} false`)
+                return
+            }
+            const {allTabsForBufferArg} = require("./command")
+            const tabs = listTabs()
+            allTabsForBufferArg(args).map(b => {
+                if (!b?.tab) {
+                    return null
+                }
+                const index = tabs.indexOf(b.tab)
+                return {
+                    "command": `${bufferCommand}${confirmChar} ${index}`,
+                    "icon": b.url,
+                    "title": b.title,
+                    "url": b.url
+                }
+            }).forEach(t => {
+                if (t) {
+                    addCommand(t.command, t.title, t.url, t.icon)
+                }
+            })
+        }
+    })
     // Command: clear
     if ("clear".startsWith(command) && !range && !confirm && args.length < 3) {
         const argStr = `clear ${search.split(" ").slice(1).join(" ")}`
@@ -625,11 +743,21 @@ const suggestCommand = searchStr => {
     }
 }
 
-const addCommand = (command, subtext = null, url = null, icon = null) => {
+/**
+ * Add a command to the suggestion list.
+ * @param {string} command
+ * @param {string|null} subtext
+ * @param {string|null} url
+ * @param {string|null} icon
+ * @param {boolean} allowDuplicate
+ */
+const addCommand = (
+    command, subtext = null, url = null, icon = null, allowDuplicate = false
+) => {
     if (suggestions.length + 1 > getSetting("suggestcommands")) {
         return
     }
-    if (suggestions.includes(command)) {
+    if (suggestions.includes(command) && !allowDuplicate) {
         return
     }
     suggestions.push(command)
@@ -658,25 +786,25 @@ const addCommand = (command, subtext = null, url = null, icon = null) => {
         thumbnail.className = "icon"
         const {forSite} = require("./favicons")
         thumbnail.src = forSite(icon) || icon
-        element.appendChild(thumbnail)
+        element.append(thumbnail)
     }
     const commandElement = document.createElement("span")
     commandElement.className = "title"
     commandElement.textContent = command
-    element.appendChild(commandElement)
+    element.append(commandElement)
     if (subtext) {
         const subtextElement = document.createElement("span")
         subtextElement.textContent = subtext
         subtextElement.className = "file"
-        element.appendChild(subtextElement)
+        element.append(subtextElement)
     }
     if (url) {
         const urlElement = document.createElement("span")
         urlElement.textContent = urlToString(url)
         urlElement.className = "url"
-        element.appendChild(urlElement)
+        element.append(urlElement)
     }
-    document.getElementById("suggest-dropdown").appendChild(element)
+    document.getElementById("suggest-dropdown")?.append(element)
     setTimeout(() => {
         element.style.pointerEvents = "auto"
     }, 100)

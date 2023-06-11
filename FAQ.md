@@ -40,7 +40,7 @@ usage should be similar to other packages of the same type.
 
 The mac apps are not signed, you can sign them yourself with `sudo codesign --force --deep --sign - /Applications/Vieb.app`.
 This step has become [a required step in recent versions](https://developer.apple.com/documentation/macos-release-notes/macos-big-sur-11_0_1-universal-apps-release-notes#Code-Signing).
-For older mac versions you could try [these instructions](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac) for opening the app as is,
+If not sufficient to self-sign it, you could try [these instructions](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac) for opening the app as is,
 which comes down to disabling app store requirements with `sudo spctl --master-disable`.
 If none of these work, you can build the app from source with the [README build instructions](./README.md#building).
 If these instructions do not seem to be followed at all, your issue might be [closed](https://github.com/Jelmerro/Vieb/issues/169),
@@ -70,6 +70,13 @@ You can even map the pointer scroll actions to normal mode if you want to,
 but you will still execute the scrolling at the pointer position.
 This distinction and other differences between the two types of scrolling are explained in `:h scrolling`.
 
+#### How can I stay in the same tab when I ctrl-click or middle-mouse click on a link?
+
+By default you will switch to the new tab when using the mouse to open it.
+This can be changed with the `mousenewtabswitch` setting, see `:help mousenewtabswitch` for details.
+In short, if you want to stay in the same tab when opening a link in a new tab with the mouse, run `:set nomousenewtabswitch`.
+The same behavior is by default enabled in follow mode, please see `:help follownewtabswitch` for details.
+
 #### Why can't I sign in to Google?
 
 Google block a lot of software that isn't Chrome from accessing their services.
@@ -77,9 +84,9 @@ Just a simple [DDG search](https://duckduckgo.com/?q=browser+or+app+may+not+be+s
 Google own your data and they are the ones to decide who may view it and when, for now they chose to only allow mostly Chrome and sometimes Firefox.
 Below is a list of known workarounds to circumvent this blocking policy, use them at your own risk.
 
-- You can temporarily use `:set useragent=%firefox` within Vieb to mimic Firefox, which Google allow more often
-- Add "Electron" to the useragent setting to make Google aware that you are using a custom Electron browser, which Google condone for now
-- Try again after building up some cookies and tracking data, as Google are more likely to allow the login once they know who you are
+- You can temporarily use `:set useragent=%firefox` within Vieb to mimic Firefox, which Google allow more often.
+- Add "Electron" to the useragent setting to make Google aware that you are using a custom Electron browser, which Google condone for now.
+- Try again after building up some cookies and tracking data, as Google are more likely to allow the login once they know who you are.
 
 There are no other known workarounds to allow the sign-in at this point of time.
 You are encouraged to open PRs to improve this list of workarounds.
@@ -93,7 +100,7 @@ For more info about moving away from Google and why, see [r/degoogle](https://re
 Google own Widevine, the one and only DRM solution for Chromium-based browsers.
 They are in control of approving and verifying the inclusion of Widevine into a (software) project.
 The process is [far from straightforward](https://github.com/electron/electron/issues/12427) and [is blocked for open-source software](https://blog.samuelmaddock.com/posts/google-widevine-blocked-my-browser/).
-For a few years this was also listed on the criticism paragraph on Wikipedia, but [they removed it as unreliably sourced](https://en.wikipedia.org/w/index.php?title=Widevine&oldid=1084600989)
+For a few years this was also listed on the criticism paragraph on Wikipedia, but [they removed it as unreliably sourced](https://en.wikipedia.org/w/index.php?title=Widevine&oldid=1084600989).
 PRs to implement DRM will be rejected on the basis that they need proprietary keys and software to work.
 Issues relating to this topic will be closed, as it's not something Vieb or any other smaller browser can fix, only Google can.
 You, and only you, need to consider if it's worth using services that require DRM and thus Google approved proprietary software.
@@ -110,8 +117,8 @@ This means there are a lot of layers that need updating before blocking works ag
 Since version 8.0.0 the blocking resources and methods are identical to plugins like uBlock Origin,
 and any issues with blocking content you have in Vieb are therefor caused by one of two things:
 
-- Different blocklists and/or different versions of the lists, either update them or add extra ones
-- Issues in the adblocking module that Vieb uses, please report your issues not related to the above [in the relevant repo](https://github.com/ghostery/adblocker)
+- Different blocklists and/or different versions of the lists, either update them or add extra ones.
+- Issues in the adblocking module that Vieb uses, please report your issues not related to the above [in the relevant repo](https://github.com/ghostery/adblocker).
 
 In both cases, Vieb is not directly involved or the reason that you see ads,
 please consider testing various blocklists or opening an issue in the adblocker repo,
@@ -135,8 +142,7 @@ Issues relating to this topic will be closed, as it's not something Vieb or any 
 #### Can I make Vieb my default browser?
 
 Yes, there is a command for that named `:makedefault`.
-For details, see the help page using `:h makedefault` and the
-[defaultapp script directory](https://github.com/Jelmerro/Vieb/tree/master/app/defaultapp).
+For details, see the help page using `:h makedefault` and the [defaultapp script directory](https://github.com/Jelmerro/Vieb/tree/master/app/defaultapp).
 
 #### Why do I need to enter Insert mode to type text?
 
@@ -200,7 +206,7 @@ is supported perfectly by Vieb and is also what powers [Erwic mode](https://gith
 #### Does Vieb automatically update? / How do I update Vieb?
 
 No, Vieb does not automatically update, nor does it check for any of that in the background.
-Vieb will ONLY make requests when opened pages fetch new resources
+Vieb will ONLY make requests when opened pages fetch new resources,
 OR when you specifically ask it to (either via navigation or with custom settings).
 Checking for updates can be done by opening the `:version` page and specifically clicking "Check for updates".
 Alternatively, you can watch the [Github repository](https://github.com/Jelmerro/Vieb)

@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2021 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -20,37 +20,48 @@
 const {ipcRenderer} = require("electron")
 const {urlToString} = require("../util")
 
+/**
+ * Add a site the the top sites or favorites list.
+ * @param {"topsites"|"favorites"} listname
+ * @param {{url: string, icon?: string, name: string}} site
+ */
 const addSiteToList = (listname, site) => {
     const link = document.createElement("a")
     link.href = encodeURI(site.url)
     const icon = document.createElement("img")
     icon.src = site.icon || "../img/empty.png"
-    link.appendChild(icon)
+    link.append(icon)
     const text = document.createElement("div")
     const title = document.createElement("span")
     title.textContent = site.name
-    text.appendChild(title)
+    text.append(title)
     const url = document.createElement("small")
     url.textContent = urlToString(site.url)
-    text.appendChild(url)
-    link.appendChild(text)
-    document.getElementById(listname).appendChild(link)
+    text.append(url)
+    link.append(text)
+    document.getElementById(listname)?.append(link)
 }
 
 ipcRenderer.on("insert-new-tab-info", (_, topsites, favorites) => {
     document.body.style.display = "flex"
-    if (topsites) {
-        document.getElementById("topsites").style.display = "inline-block"
-        if (topsites.length) {
-            document.getElementById("topsites").innerHTML = "<h2>Top sites</h2>"
-            for (const site of topsites) {
-                addSiteToList("topsites", site)
-            }
+    const topsitesEl = document.getElementById("topsites")
+    if (topsites?.length && topsitesEl) {
+        topsitesEl.style.display = "inline-block"
+        const heading = document.createElement("h2")
+        heading.textContent = "Top sites"
+        topsitesEl.textContent = ""
+        topsitesEl.append(heading)
+        for (const site of topsites) {
+            addSiteToList("topsites", site)
         }
     }
-    if (favorites.length) {
-        document.getElementById("favorites").style.display = "inline-block"
-        document.getElementById("favorites").innerHTML = "<h2>Favorites</h2>"
+    const favoritesEl = document.getElementById("favorites")
+    if (favorites?.length && favoritesEl) {
+        favoritesEl.style.display = "inline-block"
+        const heading = document.createElement("h2")
+        heading.textContent = "Favorites"
+        favoritesEl.textContent = ""
+        favoritesEl.append(heading)
         for (const site of favorites) {
             addSiteToList("favorites", site)
         }

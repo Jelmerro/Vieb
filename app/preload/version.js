@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -20,12 +20,16 @@
 const {appConfig, compareVersions} = require("../util")
 
 const apiUrl = "https://api.github.com/repos/Jelmerro/Vieb/releases/latest"
-const {name, icon, version} = appConfig()
+const {name, icon, version} = appConfig() ?? {}
 
 const checkForUpdates = () => {
-    document.querySelector("button").disabled = "disabled"
     const versionCheck = document.getElementById("version-check")
+    const button = document.querySelector("button")
+    if (!versionCheck || !button || !version) {
+        return
+    }
     versionCheck.textContent = "Loading..."
+    button.disabled = true
     const req = new XMLHttpRequest()
     req.onreadystatechange = () => {
         if (req.readyState === 4) {
@@ -51,7 +55,7 @@ const checkForUpdates = () => {
             } else {
                 versionCheck.textContent = "Failed to fetch updates"
             }
-            document.querySelector("button").disabled = false
+            button.disabled = false
         }
     }
     req.open("GET", apiUrl, true)
@@ -59,14 +63,28 @@ const checkForUpdates = () => {
 }
 
 window.addEventListener("load", () => {
-    document.getElementById("name").textContent = name
-    if (icon) {
-        document.querySelector("img").src = icon
+    const nameEl = document.getElementById("name")
+    if (nameEl) {
+        nameEl.textContent = name ?? "Vieb"
     }
-    document.getElementById("version").textContent = version
-    document.querySelector("button").onclick = checkForUpdates
-    document.getElementById("chromium-version")
-        .textContent = process.versions.chrome
-    document.getElementById("electron-version")
-        .textContent = process.versions.electron
+    const imgEl = document.querySelector("img")
+    if (imgEl && icon) {
+        imgEl.src = icon
+    }
+    const versionEl = document.getElementById("version")
+    if (versionEl) {
+        versionEl.textContent = version ?? ""
+    }
+    const buttonEl = document.querySelector("button")
+    if (buttonEl) {
+        buttonEl.addEventListener("click", checkForUpdates)
+    }
+    const chromiumVer = document.getElementById("chromium-version")
+    if (chromiumVer) {
+        chromiumVer.textContent = process.versions.chrome
+    }
+    const electronVer = document.getElementById("electron-version")
+    if (electronVer) {
+        electronVer.textContent = process.versions.electron
+    }
 })

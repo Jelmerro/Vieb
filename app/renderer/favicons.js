@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2021 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -31,10 +31,12 @@ const {
     pathToSpecialPageName,
     stringToUrl
 } = require("../util")
-const {tabOrPageMatching, getSetting} = require("./common")
+const {getSetting, tabForPage, listPages} = require("./common")
 
 const faviconFolder = joinPath(appData(), "favicons")
 const mappingFile = joinPath(faviconFolder, "mappings")
+// @ts-expect-error while not fully supported in ts, it does work properly
+/** @type {{redirects?: {[url: string]: string}, [url: string]: string }} */
 let mappings = {}
 const sessionStart = new Date()
 let isParsed = false
@@ -49,11 +51,16 @@ const init = () => {
     isParsed = true
     const {ipcRenderer} = require("electron")
     ipcRenderer.on("favicon-downloaded", (_, linkId, currentUrl, favicon) => {
-        const webview = document.querySelector(`#pages [link-id='${linkId}']`)
+        const webview = listPages().find(
+            p => p.getAttribute("link-id") === linkId)
         const filename = urlToPath(favicon)
-        if (webview?.src === currentUrl && isFile(filename)) {
-            setPath(tabOrPageMatching(webview), filename)
-            mappings[currentUrl] = favicon
+        if (webview) {
+            const tab = tabForPage(webview)
+            if (tab && webview.getAttribute("src") === currentUrl
+                && isFile(filename)) {
+                setPath(tab, filename)
+                mappings[currentUrl] = favicon
+            }
         }
     })
     ipcRenderer.on("redirect", (_, src, redirect) => {
@@ -62,6 +69,10 @@ const init = () => {
     })
 }
 
+/**
+ * Update the current mappings and delete unused ones.
+ * @param {string|null} currentUrl
+ */
 const updateMappings = (currentUrl = null) => {
     // Don't update the mappings before they are done loading
     if (!isParsed) {
@@ -71,13 +82,13 @@ const updateMappings = (currentUrl = null) => {
     const {visitCount} = require("./history")
     Object.keys(mappings).forEach(m => {
         if (m === "redirects") {
-            Object.keys(mappings.redirects).forEach(r => {
-                const dest = mappings.redirects[r]
+            Object.keys(mappings.redirects ?? {}).forEach(r => {
+                const dest = mappings.redirects?.[r] ?? null
                 if (dest !== currentUrl && visitCount(dest) === 0) {
-                    delete mappings.redirects[r]
+                    delete mappings.redirects?.[r]
                 }
             })
-            if (Object.keys(mappings.redirects).length === 0) {
+            if (Object.keys(mappings.redirects ?? {}).length === 0) {
                 delete mappings.redirects
             }
         } else if (m !== currentUrl && visitCount(m) === 0) {
@@ -85,7 +96,12 @@ const updateMappings = (currentUrl = null) => {
         }
     })
     // Delete unmapped favicon icons from disk
-    const mappedFavicons = Object.values(mappings).map(f => urlToPath(f))
+    const mappedFavicons = Object.values(mappings).flatMap(f => {
+        if (typeof f === "string") {
+            return urlToPath(f)
+        }
+        return []
+    })
     const files = listDir(faviconFolder)
     files?.filter(p => p !== "mappings").map(p => joinPath(faviconFolder, p))
         .forEach(img => {
@@ -101,71 +117,125 @@ const updateMappings = (currentUrl = null) => {
     }
 }
 
+/**
+ * Get the path for a given url.
+ * @param {string} url
+ */
 const urlToPath = url => joinPath(faviconFolder,
     encodeURIComponent(url).replace(/%/g, "_")).slice(0, 256)
 
+/**
+ * Show the loading spinner in place of the favicon.
+ * @param {Electron.WebviewTag} webview
+ */
 const loading = webview => {
-    const tab = tabOrPageMatching(webview)
-    tab.querySelector(".status").style.display = null
-    tab.querySelector(".favicon").style.display = "none"
+    const tab = tabForPage(webview)
+    const status = tab?.querySelector(".status")
+    if (status instanceof HTMLElement) {
+        status.style.display = ""
+    }
+    const favicon = tab?.querySelector(".favicon")
+    if (!(favicon instanceof HTMLImageElement)) {
+        return
+    }
+    favicon.style.display = "none"
 }
 
+/**
+ * Empty the favicon.
+ * @param {Electron.WebviewTag} webview
+ */
 const empty = webview => {
-    const tab = tabOrPageMatching(webview)
-    tab.querySelector(".status").style.display = null
-    tab.querySelector(".favicon").style.display = "none"
+    const tab = tabForPage(webview)
+    const status = tab?.querySelector(".status")
+    if (status instanceof HTMLElement) {
+        status.style.display = ""
+    }
+    const favicon = tab?.querySelector(".favicon")
+    if (!(favicon instanceof HTMLImageElement)) {
+        return
+    }
+    favicon.style.display = "none"
     if (webview.src.startsWith("devtools://")) {
-        tab.querySelector(".favicon").src = viebIcon
+        favicon.src = viebIcon
     } else {
-        tab.querySelector(".favicon").src = "img/empty.png"
+        favicon.src = "img/empty.png"
     }
 }
 
+/**
+ * Show the favicon that was previously set for this site.
+ * @param {Electron.WebviewTag} webview
+ */
 const show = webview => {
-    const tab = tabOrPageMatching(webview)
-    tab.querySelector(".status").style.display = "none"
-    const favicon = tab.querySelector(".favicon")
+    const tab = tabForPage(webview)
+    const status = tab?.querySelector(".status")
+    if (status instanceof HTMLElement) {
+        status.style.display = "none"
+    }
+    const favicon = tab?.querySelector(".favicon")
+    if (!(favicon instanceof HTMLImageElement)) {
+        return
+    }
+    if (favicon.getAttribute("src") === "img/empty.png") {
+        favicon.src = forSite(webview.src) ?? favicon.src
+    }
     if (favicon.getAttribute("src") !== "img/empty.png") {
-        favicon.style.display = null
+        favicon.style.display = ""
     }
 }
 
+/**
+ * Set the favicon path and show it.
+ * @param {HTMLSpanElement} tab
+ * @param {string} loc
+ */
 const setPath = (tab, loc) => {
-    tab.querySelector(".favicon").src = loc
-    if (tab.querySelector(".status").style.display === "none") {
-        tab.querySelector(".favicon").style.display = null
+    const favicon = tab.querySelector(".favicon")
+    if (!(favicon instanceof HTMLImageElement)) {
+        return
+    }
+    favicon.src = loc
+    const status = tab?.querySelector(".status")
+    if (status instanceof HTMLElement) {
+        if (status.style.display === "none") {
+            favicon.style.display = ""
+        }
     }
 }
 
-const update = (webview, urls) => {
+/**
+ * Update the favicon as emitted by the webview.
+ * @param {Electron.WebviewTag} webview
+ * @param {string} favicon
+ */
+const update = (webview, favicon) => {
     if (getSetting("favicons") === "disabled") {
         return
     }
-    const [favicon] = urls
-    if (!favicon) {
-        return
-    }
     if (viebIcon === favicon) {
-        if (!pathToSpecialPageName(webview.src).name) {
+        if (!pathToSpecialPageName(webview.src)?.name) {
             // Don't allow non-special pages to use the built-in favicon
             return
         }
-        if (appConfig().icon) {
-            setPath(tabOrPageMatching(webview), stringToUrl(appConfig().icon))
+        const customIcon = appConfig()?.icon
+        const tab = tabForPage(webview)
+        if (tab && customIcon) {
+            setPath(tab, stringToUrl(customIcon))
             return
         }
     }
     const currentUrl = String(webview.src)
-    const tab = tabOrPageMatching(webview)
+    const tab = tabForPage(webview)
     mappings[currentUrl] = favicon
     updateMappings(currentUrl)
-    if (favicon.startsWith("file:/") || favicon.startsWith("data:")) {
+    if (tab && (favicon.startsWith("file:/") || favicon.startsWith("data:"))) {
         setPath(tab, favicon)
         return
     }
     const filename = urlToPath(favicon)
     deleteIfTooOld(filename)
-    if (isFile(filename)) {
+    if (tab && isFile(filename)) {
         setPath(tab, filename)
         return
     }
@@ -180,6 +250,10 @@ const update = (webview, urls) => {
     })
 }
 
+/**
+ * Delete a favicon if too old based on timestamp and favicon setting.
+ * @param {string} loc
+ */
 const deleteIfTooOld = loc => {
     const setting = getSetting("favicons")
     if (setting === "forever") {
@@ -200,20 +274,29 @@ const deleteIfTooOld = loc => {
     if (isNaN(cutoff)) {
         return
     }
-    const days = (new Date() - modifiedAt(loc)) / 1000 / 60 / 60 / 24
+    const days = (new Date().getTime()
+        - modifiedAt(loc).getTime()) / 1000 / 60 / 60 / 24
     if (days > cutoff) {
         deleteFile(loc)
     }
 }
 
+/**
+ * Get a redirect.
+ * @param {string} url
+ */
 const getRedirect = url => mappings.redirects?.[url] || url
 
+/**
+ * Get the url for a given site.
+ * @param {string} url
+ */
 const forSite = url => {
     if (getSetting("favicons") === "disabled") {
         return ""
     }
     const mapping = mappings[getRedirect(url)]
-    if (mapping) {
+    if (typeof mapping === "string") {
         if (mapping.startsWith("data:")) {
             return mapping
         }
@@ -227,7 +310,7 @@ const forSite = url => {
             return file
         }
     }
-    if (pathToSpecialPageName(url).name) {
+    if (pathToSpecialPageName(url)?.name) {
         return viebIcon
     }
     return ""

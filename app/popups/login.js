@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2020-2022 Jelmer van Arnhem
+* Copyright (C) 2020-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -22,16 +22,28 @@ const {ipcRenderer} = require("electron")
 window.addEventListener("load", () => {
     const username = document.getElementById("username")
     const password = document.getElementById("password")
-    const inputs = [...document.getElementsByTagName("input")]
+    if (!(username instanceof HTMLInputElement)) {
+        return
+    }
+    if (!(password instanceof HTMLInputElement)) {
+        return
+    }
+    const inputs = [username, password]
     ipcRenderer.on("login-information", (_, fontsize, customCSS, title) => {
-        document.getElementById("info").textContent = title
+        const info = document.getElementById("info")
+        if (info) {
+            info.textContent = title
+        }
         username.focus()
         username.click()
         username.value = ""
         password.value = ""
         document.body.style.fontSize = `${fontsize}px`
-        document.getElementById("custom-styling").textContent = customCSS
-        document.body.style.opacity = 1
+        const customStyle = document.getElementById("custom-styling")
+        if (customStyle) {
+            customStyle.textContent = customCSS
+        }
+        document.body.style.opacity = "1"
     })
     window.addEventListener("keydown", e => {
         if (e.key === "Tab" && !e.altKey) {
@@ -59,7 +71,7 @@ window.addEventListener("load", () => {
             }
         })
         input.addEventListener("focusout", e => {
-            if (!inputs.includes(e.relatedTarget)) {
+            if (!(e.relatedTarget instanceof HTMLInputElement)) {
                 input.focus()
                 input.click()
             }

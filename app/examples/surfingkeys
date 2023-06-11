@@ -2,22 +2,16 @@
 set adblocker=update
 set devtoolsposition=split
 set downloadmethod=confirm
-set useragent=%firefox
 set guifontsize=16
+set mapsuggestposition=bottomright
 set mintabwidth=250
-set restoretabs=pinned
 set permissioncamera=ask
-set permissiondisplaycapture=allow
+set permissiondisplaycapture=ask
 set permissionmediadevices=allow
 set permissionmicrophone=ask
 set permissionpersistentstorage=allow
 set redirecttohttp
-set splitbelow
-set tabclosefocus=right
-set tabreopenposition=previous
-set mapsuggestposition=bottomright
-
-" Search Engines
+set restoretabs=pinned
 set searchwords=
 set searchwords+=translate~https://translate.google.com/?sl=auto&tl=en&text=%s
 set searchwords+=duckduckgo~https://duckduckgo.com/?q=%s
@@ -28,6 +22,10 @@ set searchwords+=youtube~https://www.youtube.com/results?search_query=%s
 set searchwords+=wikipedia~https://en.wikipedia.org/?search=%s
 set searchwords+=stackoverflow~https://stackoverflow.com/search?q=%s
 set searchwords+=github~https://github.com/search?q=%s
+set splitbelow
+set tabclosefocus=right
+set tabreopenposition=previous
+set useragent=%firefox
 
 " Mappings
 nmap af <startFollowNewTab>
@@ -56,8 +54,6 @@ nmap zo <zoomOut>
 nmap go <toExploreMode>
 nmap T :buffer<Space>
 nmap t <:tabnew><toExploreMode>
-nmap <A-p> <:pin>
-nmap <A-m> <:mute>
 nmap on <:tabnew>
 nmap x <:close>
 nmap X <reopenTab>
@@ -89,11 +85,8 @@ nmap ss <:tabnew><toExploreMode>stackoverflow <C-v><CR>
 nmap sh <:tabnew><toExploreMode>github <C-v><CR>
 nmap yg <:screenshot>
 nmap ? <:help>
-pmap v <p.startVisualSelect>
-pmap 0 <p.moveLeftMax>
 pmap e <p.moveFastRight>
 vmap v <toNormalMode>
-vmap 0 <p.moveLeftMax>
 vmap e <p.moveFastRight>
 vmap cc <p.copyText><:tabnew><openFromClipboard>
 vmap t <p.copyText><:tabnew><toExploreMode>translate <C-v><CR>

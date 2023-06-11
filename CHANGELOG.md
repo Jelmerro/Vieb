@@ -11,6 +11,88 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## 10.x.x (Unreleased)
+
+### Added
+
+- Blocklist uBlock Origin filters to the default list of blocklists
+- Setting "requestheaders" to append custom headers to any request
+- More default mappings: Firefox/Chromium inspired and mute/pin/internaldevtools mappings
+- Settings "userscriptscope", "userstylescope" and "darkreaderscope" to control which pages scripts, styles and darkreader should run
+- Suggestions for ranges
+- Argument option to the mute command to force a mute state, such as `:mute! true`
+- Argument option to the pin command to force a pinned state, such as `:pin! false`
+- Setting "followlabelposition" to control where the label of follow elements should appear
+- Set command syntax to rotate between a custom set of values, such as `:set example!value1|value2|value3`
+- Setting "permissionusb" to list usb devices (default remains blocked, previously grouped as "unknown")
+- Types and documentation using JSDoc to most of the source code
+- More position options for opening new tabs using "tabnewposition"
+- More focus positions after closing a tab using "tabclosefocus"
+- Additional flags for ranges to filter suspended/real pages and audio/silent tabs
+- Setting "pdfbehavior" to control what happens with PDF files (default changed from viewing to download)
+- Support for the context menu key with default mapping to opening the menu
+- Setting "historyperpage" to control the amount of history entries to show per page
+- Action "pointer.copyTitleAttr" to copy the title attribute of a hovered element
+- Action "pointer.copyPageTitle" to copy the page title of the hovered link if in the history
+- Full interface scaling startup flag "--interface-scale", which can be combined with custom font sizes to achieve many different ratios
+- Setting "notificationlimitsmall" to control how many newlines should be the limit for small/large notifications
+- Option "largeonly" to the "nativenotification" setting to only show large ones natively
+
+### Changed
+
+- Setting "replacespecial" is now by default set to "special"
+- Default mapping `<C-c>` will now copy in normal, pointer and visual mode as well
+- Setting "restoretabs" is now an enum that accepts different options
+- Setting "notificationforpermisions" is now an enum that accepts different options
+- Example configs to not include as much duplication as before
+- Userstyles are now applied even if darkreader fails to apply
+- Mapstring splitting to be more accurate when recursively including < and >
+- Mappings for recording macros to be more in line with Vim, by mapping and unmapping them on start/stop
+- Buffer commands to show all matching commands instead of the first one (especially useful for ranges)
+- Pin command to better preserve tab order when using ranges
+- JavaScript execution to always allow user interaction APIs
+- Svg and "data:" favicons to be used if present in the list, otherwise still pick the first
+- History page rendering mechanism to support large history files much better using pagination and background rendering
+- Setting "guifontsize" now accepts a much wider range of values to accommodate interface scaling
+- Erwic mode permissions to now ask for displaycapture instead of blocking it (Vieb default is still to block)
+
+### Removed
+
+- Action "openNewTab" in favor of ":tabnew" command
+- Setting "clearhistoryonquit" in favor of "clearhistoryinterval=session"
+- Setting "search" in favor of the functionality identical "searchengine" setting
+- Setting "tabnexttocurrent" in favor of "tabnewposition" enum
+- Setting "tabclosefocusright" in favor of "tabclosefocus" enum
+
+### Fixed
+
+- Image and svg follow links not showing since 9.0.0
+- Scrollbar styling not working on pages that block custom CSS
+- Userstyles not working on pages that block custom CSS
+- Display capture styling not working on pages that block custom CSS
+- Index-based ranges not working correctly for some commands
+- Navigation delay system updating the current page instead of the right one
+- Navigation delay system preventing page navigations for new tabs that are not loading
+- Favicon not showing or spinner still rotating for suspended tabs
+- Insert mode being left if interacting with the page menu
+- System clipboard being used incorrectly on Windows and Mac on selections due to selection clipboard not existing on those systems
+- Commands "tabnew" and "tabnewcontainer" not converting arguments to a url (preventing searches from working too)
+- Mouse hover remaining on follow element when moving the mouse outside of the window
+- Mappings being listed as modified when they were overwritten by the very same entry using :map
+- Follow links which vary in height/width compared to parent potentially causing follow highlight to switch between them periodically
+- Setting "containernames" not updating listed container immediately and not switching at all for new tabs and mouse clicks
+- White background on special pages when reloading them multiple times
+- Erwic settings not being saved with :mkviebrc if similar to regular Vieb defaults
+- Settings "notificationforpermisions" being set to "none" not preventing notifications from being stored
+- Keyboard focus being lost when opening pages that do not allow JavaScript to be run
+- Suspendonrestore value "none" suspending all tabs instead of none
+- Tabs with file paths open not being stored for next startup
+
+### Versions
+
+- Electron 25.0.0 (was 23.2.0)
+- Chromium 114.0.5735.106 (was 110.0.5481.192)
+
 ## [9.7.1](https://github.com/Jelmerro/Vieb/compare/9.7.0...9.7.1) - 2023-05-04
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/9.7.0...9.7.1) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/9.7.1)
@@ -65,12 +147,12 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Deprecated
 
-- Setting clearhistoryonquit in favor of clearhistoryinterval=session
+- Setting "clearhistoryonquit" in favor of "clearhistoryinterval=session"
 - Default value for "replacespecial" being "newtab" (will change to "special" in 10.x.x)
-- Setting search in favor of the functionality identical searchengine setting
+- Setting "search" in favor of the functionality identical "searchengine" setting
 - Ctrl-c default mapping for the stopLoadingPage action instead of the new Esc
-- Boolean toggling restoretabs in favor providing a value (toggle commands will stop working in 10.x.x)
-- Boolean toggling notificationforpermisions in favor providing a value (toggle commands will stop working in 10.x.x)
+- Boolean toggling "restoretabs" in favor providing a value (toggle commands will stop working in 10.x.x)
+- Boolean toggling "notificationforpermisions" in favor providing a value (toggle commands will stop working in 10.x.x)
 - Action "openNewTab" in favor of running the ":tabnew" command
 
 ### Fixed

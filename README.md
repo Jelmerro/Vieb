@@ -36,7 +36,7 @@
 - __Set command__ for runtime setting configuration exactly like Vim
 - __Vim-compatible options__: showcmd, timeout, colorscheme, maxmapdepth, spelllang, splitright, smartcase etc.
 - __Container tabs__ with colored grouping, auto-clearing, individual cookies and tab restore from containers
-- __Ad-blocker__ with cosmetic filtering, optional updater, custom lists and uses easylist/easyprivacy by default
+- __Ad-blocker__ with cosmetic filtering, optional updater, custom lists and uses easylist/ublock lists by default
 - __Tabs__ including audio indicator, a toggle for multi-line tabs, pinned tabs, muted tabs and suspended tabs
 - __Offline help documentation__ always available upon pressing __F1__
 - __[And much, much more](https://vieb.dev/features)__

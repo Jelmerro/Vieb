@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -25,29 +25,57 @@ const {
     findFrameInfo,
     findElementAtPosition,
     fetchJSON,
-    matchesQuery
+    isHTMLAnchorElement,
+    isHTMLElement,
+    isInputOrTextElement,
+    isHTMLVideoElement,
+    isHTMLAudioElement,
+    isElement
 } = require("../util")
 
+/**
+ * Go to the next page if available, optionally in a new tab.
+ * @param {boolean} newtab
+ */
 const nextPage = newtab => navigateToPage("*[rel=next], .navi-next", newtab)
 
+/**
+ * Go to the previous page if available, optionally in a new tab.
+ * @param {boolean} newtab
+ */
 const previousPage = newtab => navigateToPage("*[rel=prev], .navi-prev", newtab)
 
+/**
+ * Navigate to the next page if available.
+ * @param {string} selector
+ * @param {boolean} newtab
+ */
 const navigateToPage = (selector, newtab) => {
     const paginations = querySelectorAll(selector)
     for (const pagination of paginations) {
-        if (pagination?.href) {
+        if (isHTMLAnchorElement(pagination) && pagination?.href) {
             if (newtab) {
                 ipcRenderer.sendToHost("url", pagination.href)
             } else {
-                window.location = pagination.href
+                window.location.href = pagination.href
             }
             return
         }
     }
 }
 
-const blur = () => activeElement()?.blur?.()
+const blur = () => {
+    const el = activeElement()
+    if (isHTMLElement(el)) {
+        el.blur()
+    }
+}
 
+/**
+ * Scroll the page x and y pixels.
+ * @param {number} x
+ * @param {number} y
+ */
 const scrollBy = (x, y) => {
     if (window.innerHeight === document.documentElement.scrollHeight) {
         document.body.scrollBy(x, y)
@@ -56,6 +84,10 @@ const scrollBy = (x, y) => {
     }
 }
 
+/**
+ * Scroll the page to a specific percentage.
+ * @param {number} perc
+ */
 const scrollPerc = perc => {
     if (document.documentElement.scrollHeight === window.innerHeight) {
         const scrollHeightMinusScreen = document.body.scrollHeight
@@ -96,39 +128,61 @@ const scrollPageDown = () => scrollBy(0, window.innerHeight - 50)
 
 const scrollPageUpHalf = () => scrollBy(0, -window.innerHeight / 2 + 25)
 
-const focusTopLeftCorner = () => document.elementFromPoint(0, 0).focus()
+const focusTopLeftCorner = () => {
+    const el = document.elementFromPoint(0, 0)
+    if (isHTMLElement(el)) {
+        el.focus()
+    }
+}
 
 const exitFullscreen = () => document.exitFullscreen()
 
+/** @type {{[filename: string]: Element}} */
 const writeableInputs = {}
 
+/**
+ * Set the text of an input to what was edited inside the vimcommand editor.
+ * @param {string} filename
+ * @param {string} text
+ */
 const setInputFieldText = (filename, text) => {
     const el = writeableInputs[filename]
-    if (["input", "textarea"].includes(el.tagName.toLowerCase())) {
+    if (isInputOrTextElement(el)) {
         el.value = text
-    } else if (el.getAttribute("contenteditable") === "true") {
+    } else if (el?.getAttribute("contenteditable") === "true") {
         el.textContent = text
     }
 }
 
+/**
+ * Write the contents of a specific input to a file.
+ * @param {string} filename
+ */
 const writeInputToFile = filename => {
     const el = activeElement()
-    if (el) {
-        if (["input", "textarea"].includes(el.tagName.toLowerCase())) {
-            writeFile(filename, el.value)
-        } else if (el.getAttribute("contenteditable") === "true") {
-            writeFile(filename, el.textContent)
-        }
-        writeableInputs[filename] = el
+    if (!el) {
+        return
     }
+    if (isInputOrTextElement(el)) {
+        writeFile(filename, el.value)
+    } else if (el?.getAttribute("contenteditable") === "true") {
+        writeFile(filename, el.textContent ?? "")
+    }
+    writeableInputs[filename] = el
 }
 
 const print = () => document.execCommand("print")
 
+/**
+ * Toggle video player controls at location x,y.
+ * @param {number} x
+ * @param {number} y
+ */
 const toggleControls = (x, y) => {
     const el = findElementAtPosition(x, y)
-    if (matchesQuery(el, "video")) {
-        if (["", "controls", "true"].includes(el.getAttribute("controls"))) {
+    if (isHTMLVideoElement(el)) {
+        if (el.hasAttribute("controls")
+            && el.getAttribute("controls") !== "false") {
             el.removeAttribute("controls")
         } else {
             el.setAttribute("controls", "controls")
@@ -136,10 +190,15 @@ const toggleControls = (x, y) => {
     }
 }
 
+/**
+ * Toggle the loop property at location x,y.
+ * @param {number} x
+ * @param {number} y
+ */
 const toggleLoop = (x, y) => {
     const el = findElementAtPosition(x, y)
-    if (matchesQuery(el, "audio, video")) {
-        if (["", "loop", "true"].includes(el.getAttribute("loop"))) {
+    if (isHTMLAudioElement(el) || isHTMLVideoElement(el)) {
+        if (el.hasAttribute("loop") && el.getAttribute("loop") !== "false") {
             el.removeAttribute("loop")
         } else {
             el.setAttribute("loop", "loop")
@@ -147,9 +206,14 @@ const toggleLoop = (x, y) => {
     }
 }
 
+/**
+ * Toggle the mute status ate location x,y.
+ * @param {number} x
+ * @param {number} y
+ */
 const toggleMute = (x, y) => {
     const el = findElementAtPosition(x, y)
-    if (matchesQuery(el, "audio, video")) {
+    if (isHTMLAudioElement(el) || isHTMLVideoElement(el)) {
         if (el.volume === 0) {
             el.volume = 1
         } else {
@@ -158,9 +222,14 @@ const toggleMute = (x, y) => {
     }
 }
 
+/**
+ * Toggle pause at location x,y.
+ * @param {number} x
+ * @param {number} y
+ */
 const togglePause = (x, y) => {
     const el = findElementAtPosition(x, y)
-    if (matchesQuery(el, "audio, video")) {
+    if (isHTMLAudioElement(el) || isHTMLVideoElement(el)) {
         if (el.paused) {
             el.play()
         } else {
@@ -169,27 +238,55 @@ const togglePause = (x, y) => {
     }
 }
 
+/**
+ * Lower the volume at location x,y.
+ * @param {number} x
+ * @param {number} y
+ */
 const volumeDown = (x, y) => {
     const el = findElementAtPosition(x, y)
-    if (matchesQuery(el, "audio, video")) {
+    if (isHTMLAudioElement(el) || isHTMLVideoElement(el)) {
         el.volume = Math.max(0, el.volume - 0.1) || 0
     }
 }
 
+/**
+ * Raise the volume at location x,y.
+ * @param {number} x
+ * @param {number} y
+ */
 const volumeUp = (x, y) => {
     const el = findElementAtPosition(x, y)
-    if (matchesQuery(el, "audio, video")) {
+    if (isHTMLAudioElement(el) || isHTMLVideoElement(el)) {
         el.volume = Math.min(1, el.volume + 0.1) || 1
     }
 }
 
+/**
+ * Find the base document at location x,y.
+ * @param {number} x
+ * @param {number} y
+ */
 const documentAtPos = (x, y) => findElementAtPosition(x, y)
     ?.ownerDocument || document
 
+/**
+ * Check if a node is a text node.
+ * @param {any} node
+ * @returns {node is Text|Comment|CDATASection}
+ */
 const isTextNode = node => [
     Node.TEXT_NODE, Node.COMMENT_NODE, Node.CDATA_SECTION_NODE
 ].includes(node.nodeType)
 
+/**
+ * Calculate the offset in characters for a given position in an element.
+ * @param {Node} startNode
+ * @param {number} startX
+ * @param {number} startY
+ * @param {number} x
+ * @param {number} y
+ */
 const calculateOffset = (startNode, startX, startY, x, y) => {
     const range = (findElementAtPosition(startX, startY)
         ?.ownerDocument || document).createRange()
@@ -201,7 +298,16 @@ const calculateOffset = (startNode, startX, startY, x, y) => {
     }
     let properNode = startNode
     let offset = 0
+    /**
+     * Descend down into a node of the tree.
+     * @param {Node} baseNode
+     */
     const descendNodeTree = baseNode => {
+        /**
+         * Find a point inside the range.
+         * @param {number} start
+         * @param {number} end
+         */
         const pointInsideRegion = (start, end) => {
             range.setStart(baseNode, start)
             range.setEnd(baseNode, end)
@@ -240,11 +346,38 @@ const calculateOffset = (startNode, startX, startY, x, y) => {
     return {"node": properNode, offset}
 }
 
+/**
+ * Select all at location x,y.
+ * @param {number} x
+ * @param {number} y
+ */
 const selectionAll = (x, y) => documentAtPos(x, y).execCommand("selectAll")
+/**
+ * Cut a selection at location x,y.
+ * @param {number} x
+ * @param {number} y
+ */
 const selectionCut = (x, y) => documentAtPos(x, y).execCommand("cut")
+/**
+ * Paste a selection at location x,y.
+ * @param {number} x
+ * @param {number} y
+ */
 const selectionPaste = (x, y) => documentAtPos(x, y).execCommand("paste")
+/**
+ * Remove the selection from the document at location x,y.
+ * @param {number} x
+ * @param {number} y
+ */
 const selectionRemove = (x, y) => documentAtPos(x, y).getSelection()
-    .removeAllRanges()
+    ?.removeAllRanges()
+/**
+ * Make a new selection from start position to end position.
+ * @param {number} startX
+ * @param {number} startY
+ * @param {number} endX
+ * @param {number} endY
+ */
 const selectionRequest = (startX, startY, endX, endY) => {
     querySelectorAll("*")
     let startNode = findElementAtPosition(startX, startY)
@@ -256,7 +389,7 @@ const selectionRequest = (startX, startY, endX, endY) => {
     const startResult = calculateOffset(startNode, startX, startY,
         startX - (padding?.x || 0), startY - (padding?.y || 0))
     const endNode = findElementAtPosition(endX, endY)
-    const endResult = calculateOffset(endNode, startX, startY,
+    const endResult = calculateOffset(endNode ?? document.body, startX, startY,
         endX - (padding?.x || 0), endY - (padding?.y || 0))
     const newSelectRange = selectDocument.createRange()
     newSelectRange.setStart(startResult.node, startResult.offset)
@@ -265,32 +398,41 @@ const selectionRequest = (startX, startY, endX, endY) => {
     } else {
         newSelectRange.setEnd(endResult.node, endResult.offset)
     }
-    selectDocument.getSelection().removeAllRanges()
-    selectDocument.getSelection().addRange(newSelectRange)
-    if (!selectDocument.getSelection().toString()) {
+    selectDocument.getSelection()?.removeAllRanges()
+    selectDocument.getSelection()?.addRange(newSelectRange)
+    if (!selectDocument.getSelection()?.toString()) {
         newSelectRange.setStart(endResult.node, endResult.offset)
         if (isTextNode(endResult.node) && endResult.node.length > 1) {
             newSelectRange.setEnd(startResult.node, startResult.offset + 1)
         } else {
             newSelectRange.setEnd(startResult.node, startResult.offset)
         }
-        selectDocument.getSelection().removeAllRanges()
-        selectDocument.getSelection().addRange(newSelectRange)
+        selectDocument.getSelection()?.removeAllRanges()
+        selectDocument.getSelection()?.addRange(newSelectRange)
     }
 }
 
+/**
+ * Translate a page based on api name, url, language and api key.
+ * @param {string} api
+ * @param {string} url
+ * @param {string} lang
+ * @param {string} apiKey
+ */
 const translatepage = async(api, url, lang, apiKey) => {
     [...document.querySelectorAll("rt")].forEach(r => r.remove())
-    ;[...document.querySelectorAll("ruby")].forEach(r => r.parentNode
-        .replaceChild(document.createTextNode(r.textContent), r))
+    ;[...document.querySelectorAll("ruby")].forEach(r => r?.parentNode
+        ?.replaceChild(document.createTextNode(r?.textContent ?? ""), r))
     const tree = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
     let textNodes = []
+    /** @type {TreeWalker|{currentNode: null}} */
     let {currentNode} = tree
     while (currentNode) {
         textNodes.push(currentNode)
         currentNode = tree.nextNode()
     }
-    textNodes = textNodes.filter(n => n.nodeValue?.length > 5)
+    textNodes = textNodes.filter(n => (n.nodeValue?.length ?? 0) > 5)
+    /** @type {Node[]} */
     let baseNodes = []
     textNodes.forEach(n => {
         let base = n.parentNode ?? n
@@ -312,20 +454,21 @@ const translatepage = async(api, url, lang, apiKey) => {
             const subText = document.createElement("p")
             if (["kbd", "code"].includes(textNode.nodeName.toLowerCase())) {
                 // Skip element text
-            } else if (textNode.textContent === textNode.innerHTML) {
+            } else if (isElement(textNode)
+                && textNode.textContent === textNode.innerHTML) {
                 subText.textContent = textNode.textContent
             } else if (textNode.nodeName === "#text") {
                 subText.textContent = textNode.textContent
             }
-            txtEl.appendChild(subText)
+            txtEl.append(subText)
         }
-        if (txtEl.textContent.trim()) {
+        if (txtEl.textContent?.trim()) {
             return txtEl
         }
         baseNodes = baseNodes.filter(b => b !== base)
         return null
     }).filter(el => el)
-    const strings = parsedNodes.map(n => n.innerHTML)
+    const strings = parsedNodes.map(n => n?.innerHTML ?? "")
     if (api === "libretranslate") {
         try {
             const srcResponse = await fetchJSON(`${url}/detect`, {
@@ -454,6 +597,7 @@ const functions = {
     writeInputToFile
 }
 
+// @ts-expect-error too many signatures to realistically type, maybe someday
 ipcRenderer.on("action", (_, name, ...args) => functions[name]?.(...args))
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -462,9 +606,12 @@ window.addEventListener("DOMContentLoaded", () => {
         if (!document.getElementById("custom-styling")) {
             const styleElement = document.createElement("style")
             styleElement.id = "custom-styling"
-            document.head.appendChild(styleElement)
+            document.head.append(styleElement)
         }
-        document.getElementById("custom-styling").textContent = customCSS
-        document.body.style.opacity = 1
+        const customStyle = document.getElementById("custom-styling")
+        if (customStyle) {
+            customStyle.textContent = customCSS
+        }
+        document.body.style.opacity = "1"
     })
 })

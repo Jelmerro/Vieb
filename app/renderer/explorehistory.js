@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2021 Jelmer van Arnhem
+* Copyright (C) 2021-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -17,10 +17,11 @@
 */
 "use strict"
 
-const {currentMode, getSetting} = require("./common")
+const {currentMode, getSetting, getUrl} = require("./common")
 const {joinPath, appData, appendFile, readFile} = require("../util")
 
 const exploreFile = joinPath(appData(), "explorehist")
+/** @type {string[]} */
 let previousSites = []
 let previousIndex = -1
 let originalSite = ""
@@ -34,7 +35,10 @@ const updateNavWithSite = () => {
     if (previousIndex !== -1) {
         exploreText = previousSites[previousIndex]
     }
-    document.getElementById("url").value = exploreText
+    const url = getUrl()
+    if (url) {
+        url.value = exploreText
+    }
     const {suggestExplore} = require("./suggest")
     suggestExplore(exploreText)
 }
@@ -44,7 +48,7 @@ const previous = () => {
         return
     }
     if (previousIndex === -1) {
-        originalSite = document.getElementById("url").value
+        originalSite = getUrl()?.value ?? ""
         previousIndex = previousSites.length - 1
     } else if (previousIndex > 0) {
         previousIndex -= 1
@@ -69,6 +73,10 @@ const resetPosition = () => {
     originalSite = ""
 }
 
+/**
+ * Push a new user navigation to the list.
+ * @param {string} explore
+ */
 const push = explore => {
     const setting = getSetting("explorehist")
     if (setting === "none") {
