@@ -1291,7 +1291,6 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             "langPrefix": "hljs language-",
             "renderer": mdRenderer,
             "silent": true,
-            "smartLists": true,
             "smartypants": true
         })
         if (isFile(loc)) {
