@@ -4,10 +4,10 @@ Frequently Asked Questions
 This document contains a list of frequently asked questions.
 If your question is not listed, you can find support here:
 
-- [Reddit](https://reddit.com/r/vieb) - r/vieb is the official subreddit
+- [Github](https://github.com/Jelmerro/Vieb/discussions) - Github discussions can be used for any question
 - [Matrix](https://matrix.to/#/#vieb:matrix.org) - #vieb is hosted on matrix.org
 - [Telegram](https://t.me/vieb_general) - Chat with other users on Telegram
-- Or make a Github issue if you aren't using any of the above
+- Or make a Github issue if you think it might be a bug
 
 Most general usage information can be found in the help page.
 You can open it with the `F1` key or the `:help` command inside Vieb.
@@ -93,7 +93,7 @@ You are encouraged to open PRs to improve this list of workarounds.
 However, opening issues just to announce that you cannot login to your account will be closed,
 as it's not something Vieb or any other smaller browser can fix, only Google can.
 You, and only you, need to consider if it's worth using services that [can block you any moment](https://www.polygon.com/2021/2/8/22272284/terraria-google-stadia-canceled-developer-locked-out) for [any reason](https://old.reddit.com/r/Android/comments/ai85qf/warn_google_could_suspend_your_account_without/).
-For more info about moving away from Google and why, see [r/degoogle](https://reddit.com/r/degoogle/).
+For more info about moving away from Google and why, see [r/degoogle](https://old.reddit.com/r/degoogle/).
 
 #### Why doesn't DRM work (such as Spotify or Netflix)?
 
@@ -179,7 +179,7 @@ Even if globally allowed, the popup windows can not be interacted with like the 
 No custom code can be ran in them, and you would need to use the mouse to interact with it.
 All new windows are opened in a new tab when using Vieb for these reasons.
 Finally, popups are bad for usability and should no longer be relied upon.
-Also see [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Window/open#usability_issues) for a list of reasons against using popups (or `window.open` in general, which is the JavaScript api for opening custom windows).
+Also see [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Window/open#accessibility) for a list of reasons against using popups (or `window.open` in general, which is the JavaScript api for opening custom windows).
 I encourage users who run into sites still using popups today to get in touch with the site authors about this.
 
 #### Why can't I open multiple browser windows?
@@ -209,9 +209,8 @@ No, Vieb does not automatically update, nor does it check for any of that in the
 Vieb will ONLY make requests when opened pages fetch new resources,
 OR when you specifically ask it to (either via navigation or with custom settings).
 Checking for updates can be done by opening the `:version` page and specifically clicking "Check for updates".
-Alternatively, you can watch the [Github repository](https://github.com/Jelmerro/Vieb)
-or subscribe to the official [Vieb subreddit](https://reddit.com/r/vieb) to be notified of new releases.
-You can also check out the official [Matrix space](https://matrix.to/#/#vieb:matrix.org) and its [announcements chat](https://matrix.to/#/#vieb-announcements:matrix.org),
+Alternatively, you can watch the [Github repository](https://github.com/Jelmerro/Vieb),
+check out the official [Matrix space](https://matrix.to/#/#vieb:matrix.org) and its [announcements chat](https://matrix.to/#/#vieb-announcements:matrix.org),
 or visit the [Telegram announcements](https://t.me/vieb_announcements) and [the general chat on Telegram](https://t.me/vieb_general).
 If you are using Fedora, you can also use my custom Fedora repo, see the main readme for details.
 Lastly, if your system has a [third-party package](https://repology.org/project/vieb/versions), you could use that as well.

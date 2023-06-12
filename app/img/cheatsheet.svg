@@ -70,8 +70,8 @@
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.87681241"
-     inkscape:cx="656.92501"
-     inkscape:cy="699.12332"
+     inkscape:cx="696.27208"
+     inkscape:cy="387.76823"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      width="10px"
@@ -1938,15 +1938,15 @@
        transform="translate(3.9917318,10.834701)"><tspan
          x="626.76935"
          y="319.29251"
-         id="tspan4489"><tspan
+         id="tspan4258"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4487">save 
+           id="tspan4256">save 
 </tspan></tspan><tspan
          x="626.76935"
          y="326.9725"
-         id="tspan4493"><tspan
+         id="tspan4262"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4491">URL</tspan></tspan></text>
+           id="tspan4260">URL</tspan></tspan></text>
     <text
        id="text9514-2-4"
        y="319.29251"
@@ -1956,15 +1956,15 @@
        transform="translate(289.16688,-66.591742)"><tspan
          x="626.76935"
          y="319.29251"
-         id="tspan4497"><tspan
+         id="tspan4266"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4495">restore 
+           id="tspan4264">restore 
 </tspan></tspan><tspan
          x="626.76935"
          y="326.9725"
-         id="tspan4501"><tspan
+         id="tspan4270"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4499">URL</tspan></tspan></text>
+           id="tspan4268">URL</tspan></tspan></text>
     <text
        id="text9514-2-6"
        y="319.29251"
@@ -1974,20 +1974,20 @@
        transform="translate(4.5968886,39.259431)"><tspan
          x="626.76935"
          y="319.29251"
-         id="tspan4505"><tspan
+         id="tspan4274"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4503">save </tspan></tspan><tspan
+           id="tspan4272">save </tspan></tspan><tspan
          x="626.76935"
          y="326.9725"
-         id="tspan4509"><tspan
+         id="tspan4278"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4507">scroll 
+           id="tspan4276">scroll 
 </tspan></tspan><tspan
          x="626.76935"
          y="334.65249"
-         id="tspan4513"><tspan
+         id="tspan4282"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4511">position</tspan></tspan></text>
+           id="tspan4280">position</tspan></tspan></text>
     <text
        id="text9514-2-6-0"
        y="319.29251"
@@ -1997,20 +1997,20 @@
        transform="translate(288.3482,-37.857714)"><tspan
          x="626.76935"
          y="319.29251"
-         id="tspan4517"><tspan
+         id="tspan4286"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4515">restore </tspan></tspan><tspan
+           id="tspan4284">restore </tspan></tspan><tspan
          x="626.76935"
          y="326.9725"
-         id="tspan4521"><tspan
+         id="tspan4290"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4519">scroll 
+           id="tspan4288">scroll 
 </tspan></tspan><tspan
          x="626.76935"
          y="334.65249"
-         id="tspan4525"><tspan
+         id="tspan4294"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4523">position</tspan></tspan></text>
+           id="tspan4292">position</tspan></tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:12.8px;line-height:0%;font-family:TlwgTypewriter;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
@@ -2225,20 +2225,20 @@
        transform="translate(42,4)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan4529"><tspan
+         id="tspan4298"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan4527"> 
+           id="tspan4296"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.07504"
-         id="tspan4533"><tspan
+         id="tspan4302"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4531">follow </tspan></tspan><tspan
+           id="tspan4300">follow </tspan></tspan><tspan
          x="351.18723"
          y="287.75503"
-         id="tspan4537"><tspan
+         id="tspan4306"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4535">mode
+           id="tspan4304">mode
 </tspan></tspan></text>
     <text
        id="text9514-6"
@@ -2913,24 +2913,24 @@
     <flowRoot
        xml:space="preserve"
        id="flowRoot5598"
-       style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
+       style="font-style:normal;font-weight:normal;font-size:12px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
        transform="translate(-454.85157,372.35659)"><flowRegion
          id="flowRegion5600"
          style="font-family:sans-serif;stroke-width:1.06667"><rect
            id="rect5602"
-           width="582.66669"
-           height="61.333332"
+           width="249.03131"
+           height="114.54272"
            x="501.33334"
            y="14.933333"
-           style="font-size:10.6667px;font-family:sans-serif;stroke-width:1.13778" /></flowRegion><flowPara
-         style="font-size:13.8667px;line-height:1.25;font-family:sans-serif;stroke-width:1.06667"
+           style="font-family:sans-serif;stroke-width:1.13778" /></flowRegion><flowPara
+         style="line-height:1.25;font-family:sans-serif;stroke-width:1.06667;font-size:12px"
          id="flowPara1974">Homepage: vieb.dev</flowPara><flowPara
-         style="font-size:13.8667px;line-height:1.25;font-family:sans-serif;stroke-width:1.06667"
+         style="line-height:1.25;font-family:sans-serif;stroke-width:1.06667;font-size:12px"
          id="flowPara2060">Github: github.com/Jelmerro/Vieb</flowPara><flowPara
-         style="font-size:13.8667px;line-height:1.25;font-family:sans-serif;stroke-width:1.06667"
-         id="flowPara6808">Reddit: reddit.com/r/vieb</flowPara><flowPara
-         style="font-size:13.8667px;line-height:1.25;font-family:sans-serif;stroke-width:1.06667"
-         id="flowPara2044" /></flowRoot>
+         style="line-height:1.25;font-family:sans-serif;stroke-width:1.06667;font-size:12px"
+         id="flowPara1575">Matrix: matrix.to/#/#vieb:matrix.org</flowPara><flowPara
+         style="line-height:1.25;font-family:sans-serif;stroke-width:1.06667;font-size:12px"
+         id="flowPara1607">Telegram: t.me/vieb_general</flowPara></flowRoot>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:12.8px;line-height:0%;font-family:TlwgTypewriter;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
@@ -4968,7 +4968,7 @@
        xml:space="preserve"
        id="flowRoot5691-4-9-3-6-6"
        style="font-style:normal;font-weight:normal;font-size:12.8px;line-height:0.01%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.06667"
-       transform="translate(-866.97386,-172.63627)"><flowRegion
+       transform="translate(-866.97386,-170.63627)"><flowRegion
          id="flowRegion5693-9-1-7-3-8"
          style="font-family:sans-serif;stroke-width:1.06667"><rect
            id="rect5695-9-8-7-7-6"
@@ -5226,22 +5226,22 @@
        transform="translate(40.307436,-25.82915)"><tspan
          x="351.18723"
          y="272.2189"
-         id="tspan4541"><tspan
+         id="tspan4310"><tspan
            style="font-size:9.6px;line-height:0.9"
-           id="tspan4539"> 
+           id="tspan4308"> 
 </tspan></tspan><tspan
          x="351.18723"
          y="280.07504"
-         id="tspan4545"><tspan
+         id="tspan4314"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4543">follow in </tspan></tspan><tspan
+           id="tspan4312">follow in </tspan></tspan><tspan
          x="351.18723"
          y="287.75503"
-         id="tspan4551"><tspan
+         id="tspan4320"><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4547">new tab</tspan><tspan
+           id="tspan4316">new tab</tspan><tspan
            style="font-size:8.53333px;line-height:0.9"
-           id="tspan4549">
+           id="tspan4318">
 </tspan></tspan></text>
     <text
        xml:space="preserve"

@@ -12,8 +12,6 @@
 [![Matrix](https://img.shields.io/static/v1?label=matrix&message=space&color=eeeeee&logo=matrix&style=flat-square)](https://matrix.to/#/#vieb:matrix.org)
 [![Matrix](https://img.shields.io/static/v1?label=matrix&message=announcements&color=eeeeee&logo=matrix&style=flat-square)](https://matrix.to/#/#vieb-announcements:matrix.org)
 [![Matrix](https://img.shields.io/static/v1?label=matrix&message=general&color=eeeeee&logo=matrix&style=flat-square)](https://matrix.to/#/#vieb-general:matrix.org)
-
-[![Reddit](https://img.shields.io/reddit/subreddit-subscribers/vieb?style=social)](https://reddit.com/r/vieb)
 [![Telegram](https://img.shields.io/static/v1?label=telegram&message=announcements&color=26A5E4&logo=telegram&style=flat-square)](https://t.me/vieb_announcements)
 [![Telegram](https://img.shields.io/static/v1?label=telegram&message=general&color=26A5E4&logo=telegram&style=flat-square)](https://t.me/vieb_general)
 
