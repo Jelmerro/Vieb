@@ -1,11 +1,17 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Ask a question or show what you made
-    url: https://reddit.com/r/vieb
-    about: Make a new post on the official Vieb subreddit
-  - name: Start a new Q&A thread
+  - name: Show what you made on Github
+    url: https://github.com/Jelmerro/Vieb/discussions/categories/show-and-tell
+    about: Open the show and tell section of Github discussions
+  - name: Start a new Q&A thread on Github
     url: https://github.com/Jelmerro/Vieb/discussions/categories/q-a
-    about: Create a new post on Github discussions in Q&A
-  - name: Share a bright idea with the community
+    about: Open the Q&A section on Github discussions
+  - name: Share a bright idea with the community on Github
     url: https://github.com/Jelmerro/Vieb/discussions/categories/ideas
-    about: Create a new post on Github discussions in Ideas
+    about: Open the Ideas section of Github discussions
+  - name: Chat on Telegram
+    url: https://t.me/vieb_general
+    about: Open the general Telegram chat of Vieb
+  - name: Chat on Matrix
+    url: https://matrix.to/#/#vieb:matrix.org
+    about: Open the matrix space
