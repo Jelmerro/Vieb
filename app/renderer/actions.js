@@ -925,8 +925,8 @@ const toggleFullscreen = () => {
     ipcRenderer.invoke("toggle-fullscreen").then(updateGuiVisibility)
 }
 
-const getPageUrl = () => {
-    let url = currentPage()?.src ?? ""
+const getPageUrl = (customUrl = "") => {
+    let url = customUrl || currentPage()?.src || ""
     if (getSetting("encodeurlcopy") === "spacesonly") {
         url = url.replace(/ /g, "%20")
     } else if (getSetting("encodeurlcopy") === "nospaces") {
@@ -963,7 +963,7 @@ const getPageRSSLinks = async() => {
         notify("No RSS feeds found on this page", "warn")
         return null
     }
-    return feedUrls
+    return feedUrls.slice(0, 10).map(getPageUrl)
 }
 
 const pageRSSLinksList = async() => {
