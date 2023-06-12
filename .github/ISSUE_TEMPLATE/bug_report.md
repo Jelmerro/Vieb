@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a bug report to improve Vieb
+about: Report a bug of something not working correctly in Vieb
 title: ''
 labels: bug
 assignees: ''

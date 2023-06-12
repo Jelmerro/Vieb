@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea for this project
+about: Suggest a new feature to be added to Vieb
 title: ''
 labels: enhancement
 assignees: ''
