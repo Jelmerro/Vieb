@@ -1558,6 +1558,10 @@
         Copy the page title and url of the current page to the clipboard, but formatted as can be pasted in a Markdown document, like so: <span class="command-block">[LINK](TITLE)</span>.
         <h3 id="action.downloadLink">action.downloadLink</h3>
         Downloads the current page link directly as a file. The name will be automatically set, and downloaded files will be stored in <a href="#downloadpath">downloadpath</a>. This is different from the <a href="#:write">:write</a> command, which will try to save the page as a website. To download the link you are hovering with the pointer, see <a href="#pointer.downloadLink">pointer.downloadLink</a>.
+        <h3 id="action.pageRSSLinksList">action.pageRSSLinksList</h3>
+        This action will give a list of RSS feed links found on the current page. Each link will be assigned a number, which can be used with <a href="#action.pageRSSLinkToClipboard">action.pageRSSLinkToClipboard</a> to copy the link by index.
+        <h3 id="action.pageRSSLinkToClipboard">action.pageRSSLinkToClipboard</h3>
+        Copies the page RSS link to the clipboard by index of the last pressed key (should ideally be a number), of the list returned by <a href="#action.pageRSSLinksList">action.pageRSSLinksList</a>. If the last key is not a number, it will return the first RSS feed link found. The links are transformed as configured by <a href="#encodeurlcopy">encodeurlcopy</a>, like other copy actions.
         <h3 id="pointer.copyAudio">pointer.copyAudio</h3>
         Copy the location of the audio element at the pointer position to the system clipboard.
         <h3 id="pointer.copyFrame">pointer.copyFrame</h3>

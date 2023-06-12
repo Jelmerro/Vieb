@@ -37,6 +37,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Full interface scaling startup flag "--interface-scale", which can be combined with custom font sizes to achieve many different ratios
 - Setting "notificationlimitsmall" to control how many newlines should be the limit for small/large notifications
 - Option "largeonly" to the "nativenotification" setting to only show large ones natively
+- Actions "pageRSSLinksList" and "pageRSSLinkToClipboard" to list and copy RSS feed urls found on the page
 
 ### Changed
 
