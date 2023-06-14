@@ -289,9 +289,18 @@ const addTab = (options = {}) => {
         return
     }
     linkId += 1
-    const devtoolsOpen = currentPage()?.isDevToolsOpened()
-    const currentPageId = currentPage()?.getWebContentsId()
-    const currentPageLinkId = currentPage()?.getAttribute("link-id")
+    /** @type {number|null} */
+    let currentPageId = null
+    /** @type {string|null} */
+    let currentPageLinkId = null
+    let devtoolsOpen = false
+    try {
+        devtoolsOpen = currentPage()?.isDevToolsOpened() ?? false
+        currentPageId = currentPage()?.getWebContentsId() ?? null
+        currentPageLinkId = currentPage()?.getAttribute("link-id") ?? null
+    } catch {
+        // Current page not ready, devtools won't be opened
+    }
     let isDevtoolsTab = false
     if (options.devtools && currentPageId && currentPageLinkId) {
         const oldTab = listTabs().find(
