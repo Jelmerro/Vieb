@@ -117,7 +117,7 @@ const printUsage = () => {
     console.info(`Vieb-builder
 
 Generate runnable builds of Vieb for your platform, or other ones.
-This "build.js", "electron-builder.yml" and "webpack.config" are used to build,
+"build.js", "electron-builder.yml" and "webpack.config.js" are used to build,
 as well as the main source code in "app/" and packages from "node_modules/".
 Specific platforms require different software to be installed to build,
 if a platform is giving you issues, try removing it from "electron-builder.yml".

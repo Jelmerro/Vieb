@@ -588,7 +588,7 @@ const unsuspendPage = page => {
                 }
             } else if (url || newtabUrl) {
                 webview.setAttribute("custom-first-load", "true")
-                webview.src = url || stringToUrl(newtabUrl)
+                webview.loadURL(url || stringToUrl(newtabUrl)).catch(() => null)
                 resetTabInfo(webview)
                 if (name) {
                     name.textContent = urlToString(url)
@@ -937,11 +937,12 @@ const addWebviewListeners = webview => {
             || e.errorDescription.includes("_CERT_"))
             && webview.src.startsWith("https://")
         if (isSSLError && getSetting("redirecttohttp")) {
-            webview.src = webview.src.replace("https://", "http://")
+            webview.loadURL(webview.src.replace("https://", "http://"))
+                .catch(() => null)
             return
         }
         if (webview.src !== e.validatedURL) {
-            webview.src = e.validatedURL
+            webview.loadURL(e.validatedURL).catch(() => null)
             const tabTitleEl = tabForPage(webview)?.querySelector("span")
             if (tabTitleEl) {
                 tabTitleEl.textContent = urlToString(e.validatedURL)
@@ -951,7 +952,7 @@ const addWebviewListeners = webview => {
         if (e.validatedURL.startsWith("chrome://")) {
             const page = e.validatedURL.replace(
                 "chrome://", "").replace(/\/$/, "")
-            webview.src = specialPagePath(page)
+            webview.loadURL(specialPagePath(page)).catch(() => null)
             return
         }
         // If the path is a directory, show a list of files instead of an error
@@ -1331,7 +1332,7 @@ const navigateTo = (location, customPage = null) => {
         return
     }
     rerollUserAgent(webview)
-    webview.src = loc
+    webview.loadURL(loc).catch(() => null)
     resetTabInfo(webview)
     const tabTitleEl = currentTab()?.querySelector("span")
     if (tabTitleEl) {
