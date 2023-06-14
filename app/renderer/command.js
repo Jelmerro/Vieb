@@ -403,7 +403,7 @@ const quitall = () => {
         clearLocalStorage()
     }
     const {updateMappings} = require("./favicons")
-    updateMappings()
+    updateMappings({"now": true})
     ipcRenderer.send("destroy-window")
 }
 

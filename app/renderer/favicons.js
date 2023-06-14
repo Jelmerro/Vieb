@@ -40,6 +40,8 @@ const mappingFile = joinPath(faviconFolder, "mappings")
 let mappings = {}
 const sessionStart = new Date()
 let isParsed = false
+/** @type {number|null} */
+let faviconWriteTimeout = 0
 const viebIcon = `file:///${joinPath(
     __dirname, "../img/vieb.svg").replace(/^\/*/g, "")}`
 
@@ -71,11 +73,15 @@ const init = () => {
 
 /**
  * Update the current mappings and delete unused ones.
- * @param {string|null} currentUrl
+ * @param {{currentUrl?: string|null, now?: boolean|null}} arg
  */
-const updateMappings = (currentUrl = null) => {
-    // Don't update the mappings before they are done loading
-    if (!isParsed) {
+const updateMappings = ({currentUrl = null, now = null} = {}) => {
+    // Don't update the mappings before done loading or in rapid succession
+    window.clearTimeout(faviconWriteTimeout ?? undefined)
+    if (!now || !isParsed) {
+        faviconWriteTimeout = window.setTimeout(() => {
+            updateMappings({currentUrl, "now": true})
+        }, 5000)
         return
     }
     // Delete mappings for urls that aren't present in the history
@@ -225,10 +231,10 @@ const update = (webview, favicon) => {
             return
         }
     }
-    const currentUrl = String(webview.src)
+    const currentUrl = webview.src
     const tab = tabForPage(webview)
     mappings[currentUrl] = favicon
-    updateMappings(currentUrl)
+    updateMappings({currentUrl})
     if (tab && (favicon.startsWith("file:/") || favicon.startsWith("data:"))) {
         setPath(tab, favicon)
         return

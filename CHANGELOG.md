@@ -56,6 +56,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - History page rendering mechanism to support large history files much better using pagination and background rendering
 - Setting "guifontsize" now accepts a much wider range of values to accommodate interface scaling
 - Erwic mode permissions to now ask for displaycapture instead of blocking it (Vieb default is still to block)
+- Favicon mapping storage now uses a debounce mechanism similar to browsing history to improve performance
 
 ### Removed
 

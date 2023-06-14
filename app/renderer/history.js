@@ -186,21 +186,21 @@ const addToHist = url => {
 
 const writeHistToFile = (now = false) => {
     window.clearTimeout(histWriteTimeout ?? undefined)
-    if (now) {
-        Object.keys(groupedHistory).forEach(url => {
-            if (visitCount(url) === 0) {
-                delete groupedHistory[url]
-            }
-        })
-        if (Object.keys(groupedHistory).length === 0) {
-            return deleteFile(histFile)
-        }
-        return writeJSON(histFile, groupedHistory)
+    if (!now) {
+        histWriteTimeout = window.setTimeout(() => {
+            writeHistToFile(true)
+        }, 5000)
+        return true
     }
-    histWriteTimeout = window.setTimeout(() => {
-        writeHistToFile(true)
-    }, 5000)
-    return true
+    Object.keys(groupedHistory).forEach(url => {
+        if (visitCount(url) === 0) {
+            delete groupedHistory[url]
+        }
+    })
+    if (Object.keys(groupedHistory).length === 0) {
+        return deleteFile(histFile)
+    }
+    return writeJSON(histFile, groupedHistory)
 }
 
 /**
