@@ -57,6 +57,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "guifontsize" now accepts a much wider range of values to accommodate interface scaling
 - Erwic mode permissions to now ask for displaycapture instead of blocking it (Vieb default is still to block)
 - Favicon mapping storage now uses a debounce mechanism similar to browsing history to improve performance
+- Crashed tabs to allow navigating and reloading by recreating them as a new tab at the same position
 
 ### Removed
 

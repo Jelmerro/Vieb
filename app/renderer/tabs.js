@@ -1324,18 +1324,19 @@ const navigateTo = (location, customPage = null) => {
         return
     }
     const webview = customPage || currentPage()
-    if (!webview || webview.isCrashed() || !location) {
-        return
-    }
-    if (webview.src.startsWith("devtools://")) {
+    if (!webview || !location || webview.src.startsWith("devtools://")) {
         return
     }
     if (!webview.getAttribute("dom-ready") && webview.isLoading()) {
         setTimeout(() => navigateTo(location, webview), 1)
         return
     }
-    webview.stop()
     const loc = location.replace(/view-?source:\/?\/?/g, "sourceviewer://")
+    if (webview.isCrashed()) {
+        recreateWebview(webview, loc)
+        return
+    }
+    webview.stop()
     const wasRecreated = checkContainerNames(webview, loc)
     if (wasRecreated) {
         return
