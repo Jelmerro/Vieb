@@ -11,6 +11,17 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Fixed
+
+- Settings starting with "no" not being able to be listed without "?"
+
+### Versions
+
+- Electron 25.1.1 (unchanged)
+- Chromium 114.0.5735.106 (unchanged)
+
 ## [10.0.0](https://github.com/Jelmerro/Vieb/compare/9.7.1...10.0.0) - 2023-06-15
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/9.7.1...10.0.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/10.0.0)

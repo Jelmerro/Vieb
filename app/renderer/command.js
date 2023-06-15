@@ -279,6 +279,8 @@ const set = args => {
                 } else {
                     listSetting(settingName)
                 }
+            } else if (isValidSettingName(part)) {
+                listSetting(part)
             } else {
                 notify(`The setting '${settingName}' doesn't exist`, "warn")
             }
