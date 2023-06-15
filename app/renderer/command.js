@@ -260,10 +260,13 @@ const set = args => {
                 if (typeof value === "boolean") {
                     s(part.replace("inv", ""), String(!value))
                 } else {
-                    listSetting(settingName)
+                    notify(`The setting '${settingName}' can not be flipped`,
+                        "warn")
                 }
+            } else if (isValidSettingName(part)) {
+                listSetting(part)
             } else {
-                notify(`The setting '${settingName}' doesn't exist`, "warn")
+                notify(`The setting '${part}' doesn't exist`, "warn")
             }
         } else if (part.startsWith("no")) {
             const settingName = part.replace("no", "")
@@ -282,7 +285,7 @@ const set = args => {
             } else if (isValidSettingName(part)) {
                 listSetting(part)
             } else {
-                notify(`The setting '${settingName}' doesn't exist`, "warn")
+                notify(`The setting '${part}' doesn't exist`, "warn")
             }
         } else if (isValidSettingName(part)) {
             listSetting(part)

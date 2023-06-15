@@ -15,7 +15,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Fixed
 
-- Settings starting with "no" not being able to be listed without "?"
+- Settings starting with "no" or "inv" not being able to be listed without "?" nor reporting the correct name
 
 ### Versions
 
