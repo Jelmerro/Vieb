@@ -52,6 +52,7 @@ const {
 } = require("./common")
 
 let lastSearchFull = false
+let currentSearch = ""
 let storedSearch = ""
 let searchDirection = "forward"
 let potentialNewSearchDirection = "forward"
@@ -191,9 +192,13 @@ const incrementalSearch = (args = null) => {
     } else {
         currentTab()?.setAttribute("localsearch", search)
     }
-    if (search === storedSearch) {
-        return nextSearchMatch()
+    if (search === currentSearch) {
+        if (args && search === storedSearch) {
+            nextSearchMatch()
+        }
+        return
     }
+    currentSearch = search
     if (search) {
         pages.forEach(page => {
             page?.stopFindInPage("clearSelection")

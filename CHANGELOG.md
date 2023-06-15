@@ -90,6 +90,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Keyboard focus being lost when opening pages that do not allow JavaScript to be run
 - Suspendonrestore value "none" suspending all tabs instead of none
 - Tabs with file paths open not being stored for next startup
+- Incremental search sometimes moving two entries when searching the same string
 
 ### Versions
 
