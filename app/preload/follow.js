@@ -823,7 +823,7 @@ let justSearched = false
 let searchPos = null
 
 window.addEventListener("scroll", () => {
-    const scrollDiff = scrollHeight - window.scrollY
+    const scrollDiff = window.scrollY - scrollHeight
     startY += scrollDiff
     scrollHeight = window.scrollY
     justScrolled = Number(scrollDiff)
@@ -832,7 +832,15 @@ window.addEventListener("scroll", () => {
     }, 100)
     if (justSearched && searchPos) {
         const {x} = searchPos
-        const y = searchPos.y + scrollDiff * window.devicePixelRatio
+        let {y} = searchPos
+        if (y < 0 && scrollDiff > 0
+            || y > window.innerHeight && scrollDiff < 0) {
+            y += scrollDiff * window.devicePixelRatio
+        }
+        if (y > window.innerHeight && scrollDiff > 0
+            || y < 0 && scrollDiff < 0) {
+            y -= scrollDiff * window.devicePixelRatio
+        }
         ipcRenderer.sendToHost("search-element-location", x, y)
     }
     ipcRenderer.sendToHost("scroll-height-diff", scrollDiff)
@@ -848,7 +856,15 @@ ipcRenderer.on("search-element-location", (_, pos) => {
     } else {
         x += 1
     }
-    const y = pos.y + pos.height / 2 + justScrolled * window.devicePixelRatio
+    let y = pos.y + pos.height / 2
+    if (y < 0 && justScrolled > 0
+        || y > window.innerHeight && justScrolled < 0) {
+        y += justScrolled * window.devicePixelRatio
+    }
+    if (y > window.innerHeight && justScrolled > 0
+        || y < 0 && justScrolled < 0) {
+        y -= justScrolled * window.devicePixelRatio
+    }
     searchPos = {x, y}
     ipcRenderer.sendToHost("search-element-location", x, y)
     justSearched = true

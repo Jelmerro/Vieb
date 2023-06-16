@@ -79,7 +79,6 @@ const emptySearch = (args = null) => {
 const nextSearchMatch = () => {
     const scope = getSetting("searchscope")
     let search = getStored("globalsearch")
-    /** @type {(Electron.WebviewTag|null)[]} */
     let pages = []
     if (scope === "local") {
         search = currentTab()?.getAttribute("localsearch")
