@@ -26,6 +26,7 @@ const {
     findElementAtPosition,
     fetchJSON,
     isHTMLAnchorElement,
+    isHTMLLinkElement,
     isHTMLElement,
     isInputOrTextElement,
     isHTMLVideoElement,
@@ -53,7 +54,8 @@ const previousPage = newtab => navigateToPage("*[rel=prev], .navi-prev", newtab)
 const navigateToPage = (selector, newtab) => {
     const paginations = querySelectorAll(selector)
     for (const pagination of paginations) {
-        if (isHTMLAnchorElement(pagination) && pagination?.href) {
+        if ((isHTMLAnchorElement(pagination) || isHTMLLinkElement(pagination))
+            && pagination?.href) {
             if (newtab) {
                 ipcRenderer.sendToHost("url", pagination.href)
             } else {

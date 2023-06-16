@@ -512,6 +512,21 @@ const isHTMLAnchorElement = el => {
 }
 
 /**
+ * Check if a node is a link element, taking subframes into account.
+ * @param {Node|EventTarget|null|undefined} el
+ * @returns {el is HTMLLinkElement}
+ */
+const isHTMLLinkElement = el => {
+    if (el instanceof EventTarget && !(el instanceof HTMLLinkElement)) {
+        return false
+    }
+    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
+        return false
+    }
+    return el instanceof el.ownerDocument.defaultView.HTMLLinkElement
+}
+
+/**
  * Check if a node is an image element, taking subframes into account.
  * @param {Node|EventTarget|null|undefined} el
  * @returns {el is HTMLImageElement}
@@ -1530,6 +1545,7 @@ module.exports = {
     isHTMLIFrameElement,
     isInputOrTextElement,
     isHTMLAnchorElement,
+    isHTMLLinkElement,
     isHTMLImageElement,
     isSVGElement,
     isHTMLVideoElement,

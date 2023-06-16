@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Settings starting with "no" or "inv" not being able to be listed without "?" nor reporting the correct name
+- Actions "nextPage" and "previousPage" no longer working for link elements
 
 ### Versions
 
