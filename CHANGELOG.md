@@ -19,6 +19,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Actions "nextPage" and "previousPage" no longer working for link elements
 - Pointer scrolling to search results not working correctly due to Electron's inconsistent API
 - Infinite loading issue for unresponsive pages due to loadurl rework
+- Newtab actions for pointer mode not working due to tab still loading
 
 ### Versions
 

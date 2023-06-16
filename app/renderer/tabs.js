@@ -798,6 +798,7 @@ const switchToTab = tabOrIndex => {
         switchView(oldPage, newCurrentPage)
     }
     saveTabs()
+    setMode("normal")
     if (newCurrentPage) {
         unsuspendPage(newCurrentPage)
     }
@@ -805,7 +806,6 @@ const switchToTab = tabOrIndex => {
     if (newCurrentPage && !(newCurrentPage instanceof HTMLDivElement)) {
         updateUrl(newCurrentPage)
     }
-    setMode("normal")
     const hoverEl = document.getElementById("url-hover")
     if (hoverEl) {
         hoverEl.textContent = ""
