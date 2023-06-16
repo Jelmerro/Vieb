@@ -951,7 +951,7 @@ const addWebviewListeners = webview => {
             return
         }
         if (webview.src !== e.validatedURL) {
-            webview.loadURL(e.validatedURL).catch(() => null)
+            webview.setAttribute("src", e.validatedURL)
             const tabTitleEl = tabForPage(webview)?.querySelector("span")
             if (tabTitleEl) {
                 tabTitleEl.textContent = urlToString(e.validatedURL)
