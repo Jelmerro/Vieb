@@ -74,6 +74,16 @@ const listRealPages = () => {
 }
 
 /**
+ * List all the webview pages that have completed the dom setup.
+ */
+const listReadyPages = () => {
+    /** @type {Electron.WebviewTag[]} */
+    // @ts-expect-error query selector includes the webview tag
+    const pages = [...document.querySelectorAll("#pages > webview[dom-ready]")]
+    return pages
+}
+
+/**
  * Get the current tab.
  */
 const currentTab = () => {
@@ -315,6 +325,7 @@ module.exports = {
     guiRelatedUpdate,
     listFakePages,
     listPages,
+    listReadyPages,
     listRealPages,
     listTabs,
     pageForTab,

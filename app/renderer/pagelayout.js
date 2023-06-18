@@ -24,7 +24,8 @@ const {
     tabForPage,
     listFakePages,
     listRealPages,
-    listPages
+    listPages,
+    listReadyPages
 } = require("./common")
 
 const {propPixels} = require("../util")
@@ -637,7 +638,7 @@ const showScrollbar = () => {
     if (scrollbarHideIgnoreTimer) {
         return
     }
-    listRealPages().forEach(p => p.send("show-scrollbar"))
+    listReadyPages().forEach(p => p.send("show-scrollbar"))
 }
 
 const hideScrollbar = () => {
@@ -647,7 +648,7 @@ const hideScrollbar = () => {
     scrollbarHideIgnoreTimer = window.setTimeout(() => {
         scrollbarHideIgnoreTimer = null
     }, 500)
-    listRealPages().forEach(p => p.send("hide-scrollbar"))
+    listReadyPages().forEach(p => p.send("hide-scrollbar"))
 }
 
 const resetScrollbarTimer = (event = "none") => {

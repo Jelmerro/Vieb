@@ -45,7 +45,7 @@ const {
     updateGuiVisibility,
     getMouseConf,
     tabForPage,
-    listRealPages
+    listReadyPages
 } = require("./common")
 
 const mouseFeatures = [
@@ -1507,7 +1507,7 @@ const updatePermissionSettings = () => {
 }
 
 const updateHelpPage = () => {
-    listRealPages().forEach(p => {
+    listReadyPages().forEach(p => {
         const special = pathToSpecialPageName(p.getAttribute("src") ?? "")
         if (special?.name === "help") {
             const {
@@ -1787,7 +1787,7 @@ const set = (setting, value) => {
             updateWebviewSettings()
         }
         if (setting.startsWith("darkreader")) {
-            listRealPages().forEach(p => {
+            listReadyPages().forEach(p => {
                 let scope = "page"
                 const specialPage = pathToSpecialPageName(p.src)
                 if (specialPage?.name) {
@@ -1804,7 +1804,7 @@ const set = (setting, value) => {
             })
         }
         if (setting.startsWith("userstyle")) {
-            listRealPages().forEach(p => {
+            listReadyPages().forEach(p => {
                 let scope = "page"
                 const specialPage = pathToSpecialPageName(p.src)
                 if (specialPage?.name) {
@@ -2062,7 +2062,7 @@ const getCustomStyling = () => customStyling
 const updateCustomStyling = () => {
     document.body.style.fontSize = `${allSettings.guifontsize}px`
     updateWebviewSettings()
-    listRealPages().forEach(p => {
+    listReadyPages().forEach(p => {
         const isSpecialPage = pathToSpecialPageName(p.src)?.name
         const isLocal = p.src.startsWith("file:/")
         const isErrorPage = p.getAttribute("failed-to-load")

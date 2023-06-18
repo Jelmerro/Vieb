@@ -24,7 +24,7 @@ const {
     getSetting,
     getMouseConf,
     tabForPage,
-    listRealPages
+    listReadyPages
 } = require("./common")
 const {
     matchesQuery,
@@ -56,7 +56,7 @@ const init = () => {
         }
         if (clickInfo.webviewId) {
             if (clickInfo.webviewId !== currentPage()?.getWebContentsId()) {
-                const page = listRealPages().find(
+                const page = listReadyPages().find(
                     p => p.getWebContentsId() === clickInfo.webviewId)
                 if (page) {
                     const tab = tabForPage(page)

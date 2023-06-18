@@ -41,7 +41,7 @@ const {
     tabForPage,
     getUrl,
     pageForTab,
-    listRealPages
+    listReadyPages
 } = require("./common")
 
 /**
@@ -103,7 +103,7 @@ const init = () => {
     const handleContextMenu = (_, info) => {
         if (info.webviewId) {
             if (info.webviewId !== currentPage()?.getWebContentsId()) {
-                const page = listRealPages().find(
+                const page = listReadyPages().find(
                     p => p.getWebContentsId() === info.webviewId)
                 if (page) {
                     const {switchToTab} = require("./tabs")

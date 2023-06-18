@@ -54,7 +54,7 @@ const {
     getUrl,
     tabForPage,
     pageForTab,
-    listRealPages
+    listReadyPages
 } = require("./common")
 const {setMode} = require("./modes")
 
@@ -159,14 +159,14 @@ const init = () => {
         })
         ipcRenderer.on("navigate-to", (_, url) => navigateTo(stringToUrl(url)))
         ipcRenderer.on("unresponsive", (_, id) => {
-            listRealPages().forEach(webview => {
+            listReadyPages().forEach(webview => {
                 if (webview.getWebContentsId() === id) {
                     tabForPage(webview)?.classList.add("unresponsive")
                 }
             })
         })
         ipcRenderer.on("responsive", (_, id) => {
-            listRealPages().forEach(webview => {
+            listReadyPages().forEach(webview => {
                 if (webview.getWebContentsId() === id) {
                     tabForPage(webview)?.classList.remove("unresponsive")
                 }
