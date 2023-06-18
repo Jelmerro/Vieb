@@ -869,6 +869,7 @@ const injectCustomStyleRequest = async(webview, type, css = null) => {
 const addWebviewListeners = webview => {
     webview.addEventListener("load-commit", e => {
         if (e.isMainFrame) {
+            rerollUserAgent(webview)
             resetTabInfo(webview)
             const name = tabForPage(webview)?.querySelector("span")
             if (name && !name?.textContent) {
@@ -1083,7 +1084,6 @@ const addWebviewListeners = webview => {
         if (wasRecreated) {
             return
         }
-        rerollUserAgent(webview)
         resetTabInfo(webview)
         const tabTitleEl = tabForPage(webview)?.querySelector("span")
         if (tabTitleEl) {

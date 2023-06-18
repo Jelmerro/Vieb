@@ -21,6 +21,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Infinite loading issue for unresponsive pages due to loadurl rework
 - Newtab actions for pointer mode not working due to tab still loading
 - Errors for ipc calls to webview that are still being created by only sending data to webview with ready dom
+- First navigation issue that requires a second mouse click to navigate by delaying the useragent reroll
 
 ### Versions
 
