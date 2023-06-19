@@ -35,7 +35,8 @@ const {
     sendToPageOrSubFrame,
     isFile,
     isDir,
-    execCommand
+    execCommand,
+    isUrl
 } = require("../util")
 const {
     listTabs,
@@ -968,10 +969,8 @@ const getPageRSSLinks = async() => {
         return null
     }
     return feedUrls.slice(0, 10).map((feed = "") => {
-        // If the feed URL's path is relative, make it absolute.
-        if (feed.startsWith("/")) {
-            const pageOrigin = new URL(getPageUrl()).origin
-            return getPageUrl(`${pageOrigin}${feed}`)
+        if (!isUrl(feed)) {
+            return getPageUrl(`${new URL(getPageUrl()).origin}${feed}`)
         }
         return getPageUrl(feed)
     })
