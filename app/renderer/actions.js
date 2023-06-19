@@ -967,7 +967,14 @@ const getPageRSSLinks = async() => {
         notify("No RSS feeds found on this page", "warn")
         return null
     }
-    return feedUrls.slice(0, 10).map(getPageUrl)
+    return feedUrls.slice(0, 10).map((feed = "") => {
+        // If the feed URL's path is relative, make it absolute.
+        if (feed.startsWith("/")) {
+            const pageOrigin = new URL(getPageUrl()).origin
+            return getPageUrl(`${pageOrigin}${feed}`)
+        }
+        return getPageUrl(feed)
+    })
 }
 
 const pageRSSLinksList = async() => {
