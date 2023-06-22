@@ -1120,6 +1120,10 @@ const addWebviewListeners = webview => {
         if (e.channel === "download") {
             currentPage()?.downloadURL(e.args[0])
         }
+        if (e.channel === "external") {
+            const {commonAction} = require("./contextmenu")
+            commonAction("link", "external", {"link": e.args[0]})
+        }
         if (e.channel === "back-button") {
             const {backInHistory} = require("./actions")
             backInHistory()

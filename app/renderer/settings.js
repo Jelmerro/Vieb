@@ -205,7 +205,7 @@ const defaultSettings = {
     "notificationlimitsmall": 3,
     /** @type {"bottomright"|"bottomleft"|"topright"|"topleft"} */
     "notificationposition": "bottomright",
-    /** @type {"view"|"block"|"download"} */
+    /** @type {"view"|"block"|"download"|"external"} */
     "pdfbehavior": "download",
     /** @type {"block"|"ask"|"allow"} */
     "permissioncamera": "block",
@@ -482,7 +482,7 @@ const validOptions = {
     "notificationposition": [
         "bottomright", "bottomleft", "topright", "topleft"
     ],
-    "pdfbehavior": ["view", "block", "download"],
+    "pdfbehavior": ["view", "block", "download", "external"],
     "permissioncamera": ["block", "ask", "allow"],
     "permissioncertificateerror": ["block", "ask", "allow"],
     "permissionclipboardread": ["block", "ask", "allow"],

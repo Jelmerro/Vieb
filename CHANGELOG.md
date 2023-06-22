@@ -13,6 +13,10 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Option "external" to "pdfbehavior" setting to open the pdf with externalcommand automatically
+
 ### Fixed
 
 - Settings starting with "no" or "inv" not being able to be listed without "?" nor reporting the correct name

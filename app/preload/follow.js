@@ -337,6 +337,10 @@ window.addEventListener("DOMContentLoaded", () => {
                     const src = embed.getAttribute("src")?.replace(
                         /^about:blank/g, "") || window.location.href
                     ipcRenderer.sendToHost("download", src)
+                } else if (pdfbehavior === "external") {
+                    const src = embed.getAttribute("src")?.replace(
+                        /^about:blank/g, "") || window.location.href
+                    ipcRenderer.sendToHost("external", src)
                 }
                 embed.remove()
             }
