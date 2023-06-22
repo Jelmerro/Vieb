@@ -27,6 +27,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Errors for ipc calls to webview that are still being created by only sending data to webview with ready dom
 - First navigation issue that requires a second mouse click to navigate by delaying the useragent reroll
 - Relative feed URLs only returning the path (they are now prefixed with the current url as needed)
+- Firefox version calculation being ahead of time due to delayed Firefox releases
 
 ### Versions
 

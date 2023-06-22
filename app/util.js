@@ -320,8 +320,8 @@ const defaultUseragent = () => {
 
 const firefoxVersion = () => {
     const daysSinceBase = (new Date().getTime()
-        - new Date(2021, 7, 10).getTime()) / 86400000
-    return `${91 + Math.floor(daysSinceBase / 28)}.0`
+        - new Date(2023, 4, 9).getTime()) / 86400000
+    return `${113 + Math.floor(daysSinceBase / 28)}.0`
 }
 
 const firefoxUseragent = () => {
