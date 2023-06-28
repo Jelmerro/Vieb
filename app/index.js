@@ -60,7 +60,7 @@ if (!app.getName().toLowerCase().startsWith("vieb")) {
 const printUsage = (code = 1) => {
     console.info(`Vieb: Vim Inspired Electron Browser
 
-Usage: Vieb [options] <URLs>
+Usage: vieb [options] <URLs>
 
 Options:
  --help                  Print this help and exit.
@@ -358,7 +358,6 @@ rm(joinPath(argDatafolder, "erwicmode"))
 app.setPath("appData", argDatafolder)
 app.setPath("userData", argDatafolder)
 applyDevtoolsSettings(joinPath(argDatafolder, "Preferences"))
-const isLite = app.getName() === "Vieb-lite"
 if (argErwic) {
     argErwic = expandPath(argErwic)
     /** @type {{
@@ -2016,7 +2015,6 @@ ipcMain.on("app-config", e => {
         "autoplay": argAutoplayMedia,
         "downloads": app.getPath("downloads"),
         "icon": customIcon || undefined,
-        "islite": isLite,
         "name": app.getName(),
         "order": argConfigOrder,
         "override": argConfigOverride,

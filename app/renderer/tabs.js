@@ -223,19 +223,19 @@ const saveTabs = () => {
             data.pinned.push({
                 container,
                 "muted": !!tab.getAttribute("muted"),
-                "url": stringToUrl(url)
+                "url": urlToString(url)
             })
         } else if (!isPinned && ["all", "regular"].includes(restoreTabs)) {
             data.tabs.push({
                 container,
                 "muted": !!tab.getAttribute("muted"),
-                "url": stringToUrl(url)
+                "url": urlToString(url)
             })
         } else if (keepRecentlyClosed) {
             data.closed.push({
                 container,
                 "muted": !!tab.getAttribute("muted"),
-                "url": stringToUrl(url)
+                "url": urlToString(url)
             })
             if (index <= data.id) {
                 data.id -= 1

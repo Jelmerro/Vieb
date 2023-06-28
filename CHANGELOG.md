@@ -13,6 +13,12 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Changed
+
+- Stored urls to be of the human readable format to better account for special pages
+- Adblocker to show a notification if enabled but not present for all builds
+- AppImage builds to better handle special pages for changing runtime folder
+
 ### Fixed
 
 - Encoding issues since 10.0.0 in markdownviewer, readerview and sourceviewer

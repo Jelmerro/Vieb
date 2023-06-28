@@ -49,7 +49,6 @@ let homeDirPath = ""
  *   autoplay: string,
  *   downloads: string,
  *   icon?: string,
- *   islite: boolean,
  *   name: string,
  *   order: "none"|"user-only"|"datafolder-only"
  *   |"user-first"|"datafolder-first",
@@ -1172,6 +1171,15 @@ const pathToSpecialPageName = urlPath => {
     }
     if (urlPath === "") {
         return {"name": "newtab", "section": ""}
+    }
+    const appImagePathPattern = RegExp(
+        "^file:///tmp/[.]mount_Vieb-[a-zA-Z0-9]+"
+        + "/resources/app[.]asar/app/pages/")
+    if (urlPath.match(appImagePathPattern)) {
+        return {
+            "name": urlPath.replace(appImagePathPattern, "").replace(/\..+/, ""),
+            "section": ""
+        }
     }
     return null
 }

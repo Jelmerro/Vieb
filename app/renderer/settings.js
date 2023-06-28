@@ -1601,12 +1601,7 @@ const loadFromDisk = (firstRun = true) => {
     const {pause, resume} = require("./commandhistory")
     pause()
     const config = appConfig()
-    const islite = config?.islite ?? false
     const files = config?.files ?? []
-    if (islite) {
-        defaultSettings.adblocker = "off"
-        validOptions.adblocker = ["off"]
-    }
     if (firstRun) {
         allSettings = JSON.parse(JSON.stringify(defaultSettings))
         sessionStorage.setItem("settings", JSON.stringify(allSettings))
