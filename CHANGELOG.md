@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Encoding issues since 10.0.0 in markdownviewer, readerview and sourceviewer
+- Mappings that send keys to insert mode delayed not working since 10.0.0
 
 ### Versions
 

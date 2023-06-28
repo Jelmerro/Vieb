@@ -1115,7 +1115,7 @@ const keyNames = [
     {"js": ["Backspace"], "vim": ["BS"]},
     {
         "electron": "Return",
-        "js": ["Enter"],
+        "js": ["Enter", "\u000d"],
         "vim": ["CR", "NL", "Return", "Enter"]
     },
     {"js": ["|"], "vim": ["Bar"]},
@@ -1126,7 +1126,7 @@ const keyNames = [
     {"js": ["ArrowDown"], "vim": ["Down"]},
     {"js": ["Escape", "Esc"], "vim": ["Esc"]},
     {"js": [" "], "vim": ["Space", " "]},
-    {"js": ["Delete"], "vim": ["Del"]},
+    {"js": ["Delete", "\u0000"], "vim": ["Del"]},
     {"js": ["PrintScreen"], "vim": ["PrintScreen", "PrtScr"]},
     {"js": ["Control"], "vim": ["Ctrl"]},
     {"electron": "ArrowLeft", "js": ["kArrowLeft"], "vim": ["kLeft"]},
@@ -1207,9 +1207,6 @@ const keyNames = [
  */
 const toIdentifier = e => {
     let keyCode = e.key
-    if (e.key === "\u0000") {
-        keyCode = "Delete"
-    }
     if (e.location === KeyboardEvent.DOM_KEY_LOCATION_NUMPAD) {
         keyCode = `k${keyCode}`
     }
@@ -1498,6 +1495,7 @@ const hasFutureActions = keys => findMaps(keys, currentMode(), true).length
  *   metaKey?: boolean, meta?: boolean,
  *   altKey?: boolean, alt?: boolean,
  *   shiftKey?: boolean, shift?: boolean,
+ *   key: string
  * }} options
  * @param {string} mapStr
  */

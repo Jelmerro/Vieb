@@ -2492,21 +2492,19 @@ ipcMain.on("send-keyboard-event", (_, id, keyOptions) => {
     // https://github.com/electron/electron/issues/20333
     // Will eventually just use sendInputEvent in the from renderer directly
     try {
-        // Replace Enter with single char representation to also send char event
-        if (keyOptions.key === "Return") {
-            keyOptions.charCode = 13
-            keyOptions.keyCode = "\u000d"
-            delete keyOptions.key
+        let keyCode = keyOptions.key
+        if (keyCode === "Return") {
+            keyCode = "\u000d"
         }
         const wc = webContents.fromId(id)
         if (!wc) {
             return
         }
-        wc.sendInputEvent({...keyOptions, "type": "keyDown"})
-        if (keyOptions.keyCode.length === 1) {
-            wc.sendInputEvent({...keyOptions, "type": "char"})
+        wc.sendInputEvent({keyCode, "type": "keyDown"})
+        if (keyCode.length === 1) {
+            wc.sendInputEvent({keyCode, "type": "char"})
         }
-        wc.sendInputEvent({...keyOptions, "type": "keyUp"})
+        wc.sendInputEvent({keyCode, "type": "keyUp"})
         wc.mainFrame.framesInSubtree
             .filter(f => f.routingId !== wc.mainFrame.routingId)
             .forEach(f => f.send("keyboard-type-event", keyOptions))
