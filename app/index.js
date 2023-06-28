@@ -1169,7 +1169,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 <title>${decodeURI(req.url)}</title>
                 </head><body>Source viewer does not support folders, only files
                 </body></html>`
-            ), {"headers": {"content-type": "text/html"}})
+            ), {"headers": {"content-type": "text/html; charset=utf-8"}})
         }
         /** @type {import("highlight.js").HLJSApi|null} */
         let hljs = null
@@ -1181,7 +1181,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 <title>${decodeURI(req.url)}</title>
                 </head><body>Source viewer module not present, can't view source
                 </body></html>`
-            ), {"headers": {"content-type": "text/html"}})
+            ), {"headers": {"content-type": "text/html; charset=utf-8"}})
         }
         if (!hljs) {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
@@ -1189,7 +1189,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 <title>${decodeURI(req.url)}</title>
                 </head><body>Source viewer module not present, can't view source
                 </body></html>`
-            ), {"headers": {"content-type": "text/html"}})
+            ), {"headers": {"content-type": "text/html; charset=utf-8"}})
         }
         if (isFile(loc)) {
             const hl = hljs.highlightAuto(readFile(loc) ?? "")
@@ -1198,7 +1198,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 <title>${decodeURI(req.url)}</title>
                 </head><body id="sourceviewer">
                 <pre><code>${hl.value}</code></pre></body></html>`
-            ), {"headers": {"content-type": "text/html"}})
+            ), {"headers": {"content-type": "text/html; charset=utf-8"}})
         }
         const url = `https://${loc}`
         return new Promise(resolve => {
@@ -1214,7 +1214,9 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                             </head><body>
                                 Source viewer not supported on this webpage
                             </body></html>`
-                        ), {"headers": {"content-type": "text/html"}}))
+                        ), {"headers": {
+                            "content-type": "text/html; charset=utf-8"
+                        }}))
                         return
                     }
                     const hl = hljs.highlightAuto(body)
@@ -1224,7 +1226,9 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                         <title>${decodeURI(req.url)}</title>
                         </head><body id="sourceviewer">
                         <pre><code>${hl.value}</code></pre></body></html>`
-                    ), {"headers": {"content-type": "text/html"}}))
+                    ), {"headers": {
+                        "content-type": "text/html; charset=utf-8"
+                    }}))
                 })
                 res.on("data", chunk => {
                     body += chunk
@@ -1246,7 +1250,9 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 <style>${defaultCss}</style>
                 <title>${decodeURI(req.url)}</title></head>
                 <body>Markdown viewer does not support folders, only files
-                </body></html>`), {"headers": {"content-type": "text/html"}})
+                </body></html>`), {"headers": {
+                "content-type": "text/html; charset=utf-8"
+            }})
         }
         /** @type {import("marked").marked|null} */
         let marked = null
@@ -1259,14 +1265,18 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 <style>${defaultCss}</style>
                 <title>${decodeURI(req.url)}</title></head>
                 <body>Markdown viewer module not present, can't view markdown
-                </body></html>`), {"headers": {"content-type": "text/html"}})
+                </body></html>`), {"headers": {
+                "content-type": "text/html; charset=utf-8"
+            }})
         }
         if (!marked) {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
                 <title>${decodeURI(req.url)}</title></head>
                 <body>Markdown viewer module not present, can't view markdown
-                </body></html>`), {"headers": {"content-type": "text/html"}})
+                </body></html>`), {"headers": {
+                "content-type": "text/html; charset=utf-8"
+            }})
         }
         try {
             hljs = require("highlight.js").default
@@ -1303,7 +1313,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 <style>${defaultCss}</style>
                 <title>${decodeURI(req.url)}</title>
                 </head><body id="markdownviewer">${md}</body></html>`
-            ), {"headers": {"content-type": "text/html"}})
+            ), {"headers": {"content-type": "text/html; charset=utf-8"}})
         }
         const request = net.request({"partition": name, url})
         return new Promise(resolve => {
@@ -1317,7 +1327,9 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                             <title>${decodeURI(req.url)}</title></head>
                             <body>Markdown viewer not supported on this webpage
                             </body></html>`
-                        ), {"headers": {"content-type": "text/html"}}))
+                        ), {"headers": {
+                            "content-type": "text/html; charset=utf-8"
+                        }}))
                         return
                     }
                     const md = marked.parse(body)
@@ -1326,7 +1338,9 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                         <style>${defaultCss}</style>
                         <title>${decodeURI(req.url)}</title>
                         </head><body id="markdownviewer">${md}</body></html>`
-                    ), {"headers": {"content-type": "text/html"}}))
+                    ), {"headers": {
+                        "content-type": "text/html; charset=utf-8"
+                    }}))
                 })
                 res.on("data", chunk => {
                     body += chunk
@@ -1349,7 +1363,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 <title>${decodeURI(req.url)}</title>
                 </head><body>Reader view not supported for local resources
                 </body></html>`
-            ), {"headers": {"content-type": "text/html"}})
+            ), {"headers": {"content-type": "text/html; charset=utf-8"}})
         }
         /** @type {typeof import("@mozilla/readability").Readability|null} */
         let Readability = null
@@ -1364,7 +1378,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 <title>${decodeURI(req.url)}</title>
                 </head><body>Reader view module not present, can't do readerview
                 </body></html>`
-            ), {"headers": {"content-type": "text/html"}})
+            ), {"headers": {"content-type": "text/html; charset=utf-8"}})
         }
         if (!Readability || !JSDOM) {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
@@ -1372,7 +1386,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 <title>${decodeURI(req.url)}</title>
                 </head><body>Reader view module not present, can't do readerview
                 </body></html>`
-            ), {"headers": {"content-type": "text/html"}})
+            ), {"headers": {"content-type": "text/html; charset=utf-8"}})
         }
         const url = `https://${loc}`
         const request = net.request({"partition": name, url})
@@ -1388,7 +1402,9 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                             </head><body>
                                 Reader view not supported on this webpage
                             </body></html>`
-                        ), {"headers": {"content-type": "text/html"}}))
+                        ), {"headers": {
+                            "content-type": "text/html; charset=utf-8"
+                        }}))
                         return
                     }
                     const dom = new JSDOM(body, {url})
@@ -1399,7 +1415,9 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                         <style>${defaultCss}</style>
                         <title>${decodeURI(req.url)}</title>
                         </head><body id="readerview">${out}</body></html>`
-                    ), {"headers": {"content-type": "text/html"}}))
+                    ), {"headers": {
+                        "content-type": "text/html; charset=utf-8"
+                    }}))
                 })
                 res.on("data", chunk => {
                     body += chunk
