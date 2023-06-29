@@ -2198,6 +2198,8 @@ const commands = {
     "w": ({args, range}) => write(args, range),
     "write": ({args, range}) => write(args, range)
 }
+/** @type {string[]} */
+const holdUseCommands = ["command"]
 /** @type {{[command: string]: string}} */
 let userCommands = {}
 const {mapOrList, unmap, clearmap} = require("./input")
@@ -2208,6 +2210,7 @@ const {mapOrList, unmap, clearmap} = require("./input")
     commands[`${prefix.trim()}noremap!`] = ({args}) => {
         mapOrList(prefix.trim(), args, true, true)
     }
+    holdUseCommands.push(`${prefix.trim()}map`)
     commands[`${prefix.trim()}map`] = ({args}) => {
         mapOrList(prefix.trim(), args)
     }
@@ -2358,10 +2361,24 @@ const execute = (com, settingsFile = null) => {
     // Remove all redundant spaces
     // Allow commands prefixed with :
     // And return if the command is empty
-    const commandStr = com.replace(/^[\s|:]*/, "").trim().replace(/ +/g, " ")
+    let commandStr = com.replace(/^[\s|:]*/, "").trim().replace(/ +/g, " ")
     if (!commandStr) {
         return
     }
+
+    // Don't "use current" on holdUseCommands, commands like 'command' or 'map'
+    // which will hold <useCurrent... for calling it when it is used
+    // otherwise they will always use the same value at creation
+    if (commandStr.includes("<use")
+        && !holdUseCommands.some(command => commandStr.startsWith(command))) {
+        const {useCurrentUrl, useCurrentOrigin} = require("./actions")
+        // Replace all occurrences of <useCurrent for their values
+        commandStr
+            = commandStr
+                .replace("<useCurrentUrl>", `${useCurrentUrl()}`)
+                .replace("<useCurrentOrigin>", `${useCurrentOrigin()}`)
+    }
+
     const {push} = require("./commandhistory")
     push(commandStr)
     if (commandStr.startsWith("!")) {

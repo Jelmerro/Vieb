@@ -1325,6 +1325,13 @@ const useEnteredData = () => {
     }
 }
 
+const useCurrentUrl = () => getPageUrl()
+
+const useCurrentOrigin = () => {
+    const url = new URL(useCurrentUrl()).origin
+    return url
+}
+
 const nop = () => {
     // Explicit No-op action: does nothing
 }
@@ -1375,6 +1382,7 @@ module.exports = {
     exploreHistoryNext,
     exploreHistoryPrevious,
     forwardInHistory,
+    getPageUrl,
     increaseFirstNumber,
     increaseHeightSplitWindow,
     increaseLastNumber,
@@ -1485,6 +1493,8 @@ module.exports = {
     toggleSourceViewer,
     toggleSourceViewerNewTab,
     topHalfSplitWindow,
+    useCurrentOrigin,
+    useCurrentUrl,
     useEnteredData,
     zoomIn,
     zoomOut,
