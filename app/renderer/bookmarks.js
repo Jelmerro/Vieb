@@ -213,7 +213,14 @@ const matchBookmarksToInput = input => {
 
 
 const deleteBookmark = input => {
-    const selectedBookmarks = matchBookmarksToInput(input)
+    let selectedBookmarks = []
+    if (input.join() === "") {
+        selectedBookmarks = matchBookmarksToInput([`url=${currentPage().src}`])
+    } else {
+        selectedBookmarks = matchBookmarksToInput(input)
+    }
+    notify(`Deleted ${selectedBookmarks.length} bookmarks \
+            that matched the query.`)
     selectedBookmarks.forEach(sb => {
         for (let x = 0; x < bookmarkData.bookmarks.length; x++) {
             if (sb.id === bookmarkData.bookmarks[x].id) {
