@@ -630,8 +630,9 @@ const suggestCommand = searchStr => {
     if (bookmarkCommand && !confirm) {
         const simpleSearch = args.join("")
             .replace(specialChars, "").toLowerCase()
-        const {getAllBookmarks} = require("./bookmarks")
-        const bookmarks = getAllBookmarks()
+        const {getBookmarkData} = require("./bookmarks")
+        const {bookmarks, folders, tags} = getBookmarkData()
+        // List individual bookmarks
         bookmarks.map(b => ({
             "command": `${bookmarkCommand} ${b.name}`,
             "subtext": `${b.title} ${b.url}`,
@@ -639,11 +640,10 @@ const suggestCommand = searchStr => {
         })).filter(b => {
             const bookmarkUrl = b.url.replace(specialChars, "")
                 .toLowerCase()
-            if (bookmarkUrl.includes(simpleSearch)
-                && b.command.startsWith(search)) {
+            if (bookmarkUrl.includes(simpleSearch)) {
                 return true
             }
-            const bookmarkTitle = b.title.replace(specialChars, "")
+            const bookmarkTitle = b.subtext.replace(specialChars, "")
                 .toLowerCase()
             return bookmarkTitle.includes(simpleSearch)
             // Keywords, tags and paths
