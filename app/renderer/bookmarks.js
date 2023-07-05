@@ -25,7 +25,9 @@ const {
     notify,
     isAbsolutePath,
     isFile,
-    appData
+    appData,
+    specialChars,
+    specialCharsAllowSpaces
 } = require("../util")
 const {
     currentPage,
@@ -39,6 +41,7 @@ let bookmarksFile = ""
 const validOptions = [
     "bg",
     "fg",
+    "id",
     "keywords",
     "name",
     "path",
@@ -57,50 +60,28 @@ const setBookmarkSettings = () => {
         bookmarksFile = joinPath(appData(), setFile)
     }
     if (!isFile(bookmarksFile)) {
-        writeJSON(bookmarksFile, {"bookmarks": [], "folders": [], "tags": []})
+        writeJSON(bookmarksFile, {"bookmarks": [],
+            "folders": [],
+            "lastId": 0,
+            "tags": []})
     }
     bookmarkData = readJSON(bookmarksFile)
 }
 
 const addBookmark = input => {
-    const newbookmark = {}
-    // If there's "=" or "~" we parse the input.
-    if (input.join().includes("=") || input.join().includes("~")) {
-        // Retain spaces for multiple word inputs.
-        const options = input.join(" ").split("~")
-        for (let i = 0; i < options.length; i++) {
-            // Get key and value: [0,1]
-            const keyAndValue = options[i].split("=")
-            if (keyAndValue[0] === "keywords" || keyAndValue[0] === "tag") {
-                const tagsOrKeywordList = keyAndValue.slice(1).join("")
-                    .split(",")
-                if (tagsOrKeywordList.length > 0) {
-                    newbookmark[keyAndValue[0]] = tagsOrKeywordList
-                }
-            } else {
-                const allValue = keyAndValue.slice(1).join("")
-                if (allValue?.trim()) {
-                    newbookmark[keyAndValue[0]] = allValue
-                }
-            }
-        }
-    } else {
-        // If there's only text, we take it as name for current page bookmark
-        newbookmark.name = input.join(" ")
-        if (newbookmark.name?.trim()) {
-            // When user doesn't enter anything delete empty string
-            delete newbookmark.name
-        }
-    }
+    const newbookmark = bookmarkObject(input)
     // Fill missing essential data from relevant sources
-    if (!newbookmark.name?.trim()) {
-        newbookmark.name = currentTab().querySelector("span").textContent
-    }
-    if (!newbookmark.title?.trim()) {
-        newbookmark.title = currentTab().querySelector("span").textContent
-    }
-    if (!newbookmark.url?.trim()) {
-        newbookmark.url = currentPage().src
+    // If the url is not custom-set with url=
+    if (newbookmark.url === currentPage().src || !newbookmark.url?.trim()) {
+        if (!newbookmark.name?.trim()) {
+            newbookmark.name = currentTab().querySelector("span").textContent
+        }
+        if (!newbookmark.title?.trim()) {
+            newbookmark.title = currentTab().querySelector("span").textContent
+        }
+        if (!newbookmark.url?.trim()) {
+            newbookmark.url = currentPage().src
+        }
     }
     if (!newbookmark.path?.trim()) {
         newbookmark.path = "/"
@@ -114,10 +95,133 @@ const addBookmark = input => {
 
     if (isBookmarkValid(newbookmark)) {
         bookmarkData.bookmarks.push(newbookmark)
+        bookmarkData.lastId += 1
         writeBookmarksToFile()
         notify(`Bookmark added: ${newbookmark.name.substring(0, 20)}:
                 ${newbookmark.url.substring(0, 40)}`)
     }
+}
+
+const fixBookmarkData = (option, value) => {
+    let correctFormat = ""
+    if (option === "path") {
+        if (!value[0] === "/") {
+            correctFormat = `/${value}`
+        } else {
+            correctFormat = value
+        }
+        correctFormat = correctFormat.replace(/\s/g, "-").replace(/[/]$/, "")
+    } else if (option === "tag") {
+        correctFormat = value.forEach(
+            t => t.replace(specialCharsAllowSpaces, ""))
+    } else if (option === "keywords") {
+        correctFormat = value.forEach(k => k.replace(specialChars, ""))
+    } else if (option === "name") {
+        correctFormat = value.replace(specialCharsAllowSpaces, "")
+    } else {
+        correctFormat = value
+    }
+    return correctFormat
+}
+
+const bookmarkObject = input => {
+    const newbookmark = {}
+    newbookmark.id = bookmarkData.lastId
+    // If there's "=" or "~" we parse the input.
+    if (input.join().includes("=") || input.join().includes("~")) {
+        // Retain spaces for multiple word inputs.
+        const options = input.join(" ").split("~")
+        for (let i = 0; i < options.length; i++) {
+            // Get key and value: [0,1]
+            const keyAndValue = options[i].split("=")
+            if (keyAndValue[0] === "keywords" || keyAndValue[0] === "tag") {
+                const tagsOrKeywordList = keyAndValue[1].split(",")
+                newbookmark[keyAndValue[0]] = tagsOrKeywordList
+            } else {
+                const allValue = keyAndValue.slice(1).join("")
+                if (allValue?.trim()) {
+                    const correctData = fixBookmarkData(keyAndValue[0],
+                        allValue)
+                    newbookmark[keyAndValue[0]] = correctData
+                }
+            }
+        }
+    } else {
+        // If there's only text, we take it as name for current page bookmark
+        newbookmark.name = input.join(" ")
+        if (!newbookmark.name?.trim()) {
+            // When user doesn't enter anything delete empty string
+            delete newbookmark.name
+        }
+    }
+    return newbookmark
+}
+
+const loadBookmark = input => {
+    const selectedBookmarks = matchBookmarksToInput(input)
+    const {navigateTo, addTab} = require("./tabs")
+    if (selectedBookmarks.length === 0) {
+        notify("Could not find bookmark.")
+    } else if (selectedBookmarks.length === 1) {
+        navigateTo(selectedBookmarks[0].url)
+    } else {
+        notify(`Loaded ${selectedBookmarks.length} bookmarks \
+                that matched the query.`)
+        selectedBookmarks.forEach(e => addTab({
+            "url": e.url
+        }))
+    }
+}
+
+const matchBookmarksToInput = input => {
+    const storedBookmarkData = getBookmarkData().bookmarks
+    let selectedBookmarks = []
+    if (validOptions.some(option => input.join().includes(`${option}=`))) {
+        const eachOption = input.join("").split("~")
+        selectedBookmarks = storedBookmarkData.filter(b => {
+            let matches = 0
+            eachOption.forEach(e => {
+                const keyAndValue = e.split("=")
+                if (keyAndValue[0] === "tag" || keyAndValue[0] === "keywords") {
+                    if (b[keyAndValue[0]].includes(keyAndValue[1])) {
+                        matches = 1 + matches
+                    }
+                } else {
+                    if (b[keyAndValue[0]] === keyAndValue[1]) {
+                        matches = 1 + matches
+                    }
+                }
+            })
+            if (matches === eachOption.length) {
+                return true
+            }
+        })
+    } else {
+        const individualBookmark = storedBookmarkData.filter(
+            e => e.name.replace(specialChars) === input.join(" ")
+                .replace(specialChars))
+        const bookmarksSelectedByTag = storedBookmarkData.filter(
+            e => e.tag.find(t => t === input.join(" ")))
+        const bookmarksSelectedByKeyword = storedBookmarkData.filter(
+            e => e.keywords.find(k => k === input.join("")))
+        selectedBookmarks
+            = individualBookmark.concat(bookmarksSelectedByTag)
+                .concat(bookmarksSelectedByKeyword)
+    }
+    return selectedBookmarks
+}
+
+
+const deleteBookmark = input => {
+    const selectedBookmarks = matchBookmarksToInput(input)
+    selectedBookmarks.forEach(sb => {
+        for (let x = 0; x < bookmarkData.bookmarks.length; x++) {
+            if (sb.id === bookmarkData.bookmarks[x].id) {
+                bookmarkData.bookmarks.splice(x, 1)
+            }
+        }
+    })
+    writeBookmarksToFile()
 }
 
 const addTags = tags => {
@@ -149,6 +253,8 @@ const addFolder = path => {
 
 const getAllBookmarks = () => bookmarkData.bookmarks
 
+const getBookmarkData = () => bookmarkData
+
 const writeBookmarksToFile = () => {
     writeJSON(bookmarksFile, bookmarkData)
 }
@@ -157,12 +263,22 @@ const isBookmarkValid = bookmark => {
     let isValid = true
     const badOptions = []
 
+    if (!bookmark.name?.trim()) {
+        isValid = false
+        notify("No name provided for the bookmark")
+    }
+
     // Remove invalid options
     for (const option in bookmark) {
         if (!validOptions.includes(option)) {
             badOptions.push(option)
             delete bookmark[option]
         }
+    }
+    const names = bookmarkData.bookmarks.map(b => b.name)
+    if (names.includes(bookmark.name)) {
+        isValid = false
+        notify(`A bookmark with name: ${bookmark.name} already exists.`)
     }
 
     addTags(bookmark.tag)
@@ -182,6 +298,9 @@ const isBookmarkValid = bookmark => {
 
 module.exports = {
     addBookmark,
+    deleteBookmark,
     getAllBookmarks,
+    getBookmarkData,
+    loadBookmark,
     setBookmarkSettings
 }

@@ -1100,6 +1100,14 @@ const commands = {
         const {addBookmark} = require("./bookmarks")
         addBookmark(args)
     },
+    "bmdel": ({args}) => {
+        const {deleteBookmark} = require("./bookmarks")
+        deleteBookmark(args)
+    },
+    "bmload": ({args}) => {
+        const {loadBookmark} = require("./bookmarks")
+        loadBookmark(args)
+    },
     "bookmarks": () => openSpecialPage("bookmarks"),
     "buffer": ({args}) => buffer(args),
     "call": ({args}) => callAction(args),
