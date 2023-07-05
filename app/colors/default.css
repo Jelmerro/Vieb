@@ -321,6 +321,9 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #downloadspage .misc {display: flex;margin: .5em;flex-direction: column;width: calc(100% - 1em);}
 #downloadspage .filelocation {cursor: pointer;}
 #downloadspage img {cursor: pointer;}
+/* Bookmarks  */
+#bookmarkspage .bm-block {background: var(--special-page-element-bg);margin-bottom: 1em;border: .1em solid var(--special-page-element-border);}
+#bookmarkspage ul {list-style: none;}
 /* extensions */
 #extensionspage img {height: 4em;width: 4em;margin-right: 1em;}
 #extensionspage .extension {display: flex;align-items: center;background: var(--special-page-element-bg);border: .1em solid var(--special-page-element-border);margin: 1em 0;padding: 1em;}

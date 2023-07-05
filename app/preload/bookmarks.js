@@ -18,24 +18,25 @@
 "use strict"
 const {ipcRenderer} = require("electron")
 
+// Create tree structure to keep track of added folders.
+const tree = {
+    "children": [],
+    "folderName": "/",
+    "fullpath": "/"
+}
+
 ipcRenderer.on("bookmark-data-response", (_, bookmarkData) => {
     // Create folder structure
     createFolderStructure(bookmarkData)
 })
 
 window.addEventListener("load", () => {
-    update()
-})
-
-const update = () => {
-    ipcRenderer.sendToHost("bookmark-data-request")
-}
-
-const createFolderStructure = bookmarkData => {
     // Set up the tree structure.
     const treeRootElement = document.createElement("ul")
+    treeRootElement.className = "bm-block"
     const treeRootList = document.createElement("li")
     const treeRootDetails = document.createElement("details")
+    treeRootDetails.open = true
     const treeRootSummary = document.createElement("summary")
     treeRootSummary.textContent = "/"
     const treeRootContent = document.createElement("ul")
@@ -48,13 +49,32 @@ const createFolderStructure = bookmarkData => {
     treeRootElement.appendChild(treeRootList)
 
     document.getElementById("bookmarks").appendChild(treeRootElement)
-    // Create tree structure to keep track of added folders.
-    const tree = {
-        "children": [],
-        "folderName": "/",
-        "fullpath": "/"
+    update()
+})
+
+const update = () => {
+    ipcRenderer.sendToHost("bookmark-data-request")
+}
+
+const addBookmarkToPage = bookmark => {
+    const bookmarkElement = document.createElement("li")
+    const bookmarkDiv = document.createElement("div")
+    const bookmarkLink = document.createElement("a")
+    bookmarkLink.href = bookmark.url
+    if (bookmark.title === bookmark.name) {
+        bookmarkLink.textContent = bookmark.name
+    } else {
+        bookmarkLink.textContent
+            = `${bookmark.name} - ${bookmark.title}`
     }
 
+    bookmarkDiv.appendChild(bookmarkLink)
+    bookmarkElement.appendChild(bookmarkDiv)
+    document.getElementById(bookmark.path)
+        .appendChild(bookmarkElement)
+}
+
+const createFolderStructure = bookmarkData => {
     // Create folder structure in a depth first fashion.
     const {folders} = bookmarkData
     for (let i = 0; i < folders.length; i++) {
@@ -110,18 +130,6 @@ const createFolderStructure = bookmarkData => {
     const {bookmarks} = bookmarkData
     for (let i = 0; i < bookmarks.length; i++) {
         const currentBookmark = bookmarks[i]
-        const bookmarkElement = document.createElement("li")
-        const bookmarkLink = document.createElement("a")
-        bookmarkLink.href = currentBookmark.url
-        if (currentBookmark.title === currentBookmark.name) {
-            bookmarkLink.textContent = currentBookmark.name
-        } else {
-            bookmarkLink.textContent
-                = `${currentBookmark.name} - ${currentBookmark.title}`
-        }
-
-        bookmarkElement.appendChild(bookmarkLink)
-        document.getElementById(currentBookmark.path)
-            .appendChild(bookmarkElement)
+        addBookmarkToPage(currentBookmark)
     }
 }
