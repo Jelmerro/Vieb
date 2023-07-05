@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -33,18 +33,19 @@ const {
     writeJSON,
     pathExists,
     pathToSpecialPageName,
-    firefoxUseragent,
     appConfig,
-    userAgentTemplated
+    userAgentTemplated,
+    isValidIntervalValue
 } = require("../util")
 const {
     listTabs,
     listPages,
     currentTab,
     currentPage,
-    tabOrPageMatching,
     updateGuiVisibility,
-    getMouseConf
+    getMouseConf,
+    tabForPage,
+    listReadyPages
 } = require("./common")
 
 const mouseFeatures = [
@@ -55,16 +56,18 @@ const mouseFeatures = [
     "guiontop",
     "newtab",
     "closetab",
-    "copyselect",
     "menupage",
     "menusuggest",
     "menuvieb",
     "modeselector",
     "movepointer",
+    "notification",
     "follow",
     "toinsert",
     "toexplore",
+    "url",
     "leaveinput",
+    "leaveinsert",
     "suggestselect",
     "scrollsuggest",
     "scrollzoom",
@@ -72,154 +75,297 @@ const mouseFeatures = [
     "screenshotframe"
 ]
 const defaultSettings = {
+    /** @type {"off"|"static"|"update"|"custom"} */
     "adblocker": "static",
     "bookmarksfile": "bookmarks",
+    /** @type {"none"|"clearonquit"|"full"} */
     "cache": "clearonquit",
     "clearcookiesonquit": false,
     "cleardownloadsoncompleted": false,
     "cleardownloadsonquit": false,
-    "clearhistoryonquit": false,
+    "clearhistoryinterval": "none",
     "clearlocalstorageonquit": false,
     "closablepinnedtabs": false,
+    /** @type {"all"|"persistall"|"useronly"|"persistuseronly"|"none"} */
     "commandhist": "persistuseronly",
     "containercolors": "temp\\d+~#ff0",
     "containerkeeponreopen": true,
     "containernames": "",
     "containernewtab": "s:usecurrent",
+    /** @type {"automatic"|"always"|"never"} */
     "containershowname": "automatic",
     "containersplitpage": "s:usecurrent",
     "containerstartuppage": "main",
     "countlimit": 100,
     "darkreader": false,
     "darkreaderbg": "#181a1b",
+    "darkreaderblocklist": "",
     "darkreaderbrightness": 100,
     "darkreadercontrast": 100,
     "darkreaderfg": "#e8e6e3",
     "darkreadergrayscale": 0,
+    /** @type {"dark"|"light"} */
+    "darkreadermode": "dark",
+    "darkreaderscope": "page",
     "darkreadersepia": 0,
     "darkreadertextstroke": 0,
+    /** @type {"window"|"split"|"vsplit"|"tab"} */
     "devtoolsposition": "window",
+    /** @type {"show"|"notifyshow"|"block"|"notifyblock"} */
     "dialogalert": "notifyblock",
+    /** @type {(
+     *   "show"|"notifyshow"|"block"|"notifyblock"|"allow"|"notifyallow"
+     * )} */
     "dialogconfirm": "notifyblock",
+    /** @type {"show"|"notifyshow"|"block"|"notifyblock"} */
     "dialogprompt": "notifyblock",
+    /** @type {"automatic"|"confirm"|"ask"|"block"} */
     "downloadmethod": "automatic",
     "downloadpath": "",
+    /** @type {"keep"|"encode"|"decode"|"spacesonly"|"nospaces"} */
     "encodeurlcopy": "nospaces",
+    /** @type {"keep"|"encode"|"decode"|"spacesonly"|"nospaces"} */
     "encodeurlext": "nospaces",
+    /** @type {"persist"|"session"|"none"} */
     "explorehist": "persist",
     "externalcommand": "",
+    /** @type {(
+     *   "disabled"|"nocache"|"session"|"1day"|"5day"|"30day"|"forever"
+     * )} */
     "favicons": "session",
     "favoritepages": "",
-    "firefoxmode": "never",
+    /** @type {"all"|"alpha"|"alphanum"|"dvorakhome"
+     * |"numbers"|"qwertyhome"|"custom:${string}"} */
     "followchars": "alpha",
     "followelement": "url,onclick,inputs-insert,inputs-click,media,image,other",
     "followelementpointer":
         "url,onclick,inputs-insert,inputs-click,media,image,other",
+    /** @type {"filter"|"exit"|"nothing"} */
     "followfallbackaction": "filter",
+    /** @type {("center"|"cornertopleft"|"cornertopright"|"cornerbottomright"|
+     * "cornerbottomleft"|"outsidetopleft"|"outsidetopcenter"|
+     * "outsidetopright"|"outsiderighttop"|"outsiderightcenter"|
+     * "outsiderightbottom"|"outsidebottomright"|"outsidebottomcenter"|
+     * "outsidebottomleft"|"outsideleftbottom"|"outsideleftcenter"|
+     * "outsidelefttop"|"insidetopleft"|"insidetopcenter"|"insidetopright"|
+     * "insiderightcenter"|"insidebottomright"|"insidebottomcenter"|
+     * "insidebottomleft"|"insideleftcenter"
+     * )} */
+    "followlabelposition": "outsiderighttop",
     "follownewtabswitch": true,
     "guifontsize": 14,
+    /** @type {"always"|"onupdate"|"oninput"|"never"} */
     "guifullscreennavbar": "oninput",
+    /** @type {"always"|"onupdate"|"never"} */
     "guifullscreentabbar": "onupdate",
     "guihidetimeout": 2000,
+    /** @type {"always"|"onupdate"|"oninput"|"never"} */
     "guinavbar": "always",
+    "guiscrollbar": "always",
+    /** @type {"always"|"onupdate"|"never"} */
     "guitabbar": "always",
+    "historyperpage": 100,
     "ignorecase": true,
     "incsearch": true,
+    /** @type {"rememberstart"|"rememberend"|"alwaysstart"|"alwaysend"} */
     "inputfocusalignment": "rememberend",
     "keeprecentlyclosed": true,
     "mapsuggest": 9000000000000000,
+    /** @type {"bottomright"|"bottomleft"|"topright"|"topleft"} */
     "mapsuggestposition": "topright",
+    /** @type {import("./tabs").tabPosition} */
+    "markposition": "newtab",
+    /** @type {import("./tabs").tabPosition | "default"} */
+    "markpositionshifted": "default",
     "maxmapdepth": 10,
+    /** @type {"always"|"globalasneeded"|"elementasneeded"|"never"} */
     "menupage": "elementasneeded",
+    /** @type {"both"|"explore"|"command"|"never"} */
     "menusuggest": "both",
+    /** @type {"both"|"navbar"|"tabbar"|"never"} */
     "menuvieb": "both",
     "mintabwidth": 28,
     "modifiers": "Ctrl,Shift,Alt,Meta,NumLock,CapsLock,ScrollLock",
-    "mouse": mouseFeatures.filter(f => f !== "copyselect").join(","),
+    "mouse": "all",
+    /** @type {"nothing"|"drag"} */
+    "mousedisabledbehavior": "nothing",
     "mousefocus": false,
     "mousenewtabswitch": true,
+    /** @type {"activate"|"onswitch"|"never"} */
     "mousevisualmode": "onswitch",
+    /** @type {"always"|"largeonly"|"smallonly"|"never"} */
     "nativenotification": "never",
+    /** @type {"system"|"dark"|"light"} */
+    "nativetheme": "system",
     "newtaburl": "",
     "notificationduration": 6000,
-    "notificationforpermissions": false,
+    /** @type {"all"|"allowed"|"blocked"|"silent"|"none"} */
+    "notificationforpermissions": "silent",
+    /** @type {"all"|"errors"|"none"} */
     "notificationforsystemcommands": "errors",
+    "notificationlimitsmall": 3,
+    /** @type {"bottomright"|"bottomleft"|"topright"|"topleft"} */
     "notificationposition": "bottomright",
+    /** @type {"view"|"block"|"download"|"external"} */
+    "pdfbehavior": "download",
+    /** @type {"block"|"ask"|"allow"} */
     "permissioncamera": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissioncertificateerror": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionclipboardread": "block",
+    /** @type {"block"|"ask"|"allow"} */
+    "permissionclipboardwrite": "allow",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionclosepage": "allow",
+    /** @type {"block"|"ask"} */
     "permissiondisplaycapture": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionfullscreen": "allow",
+    /** @type {"block"|"ask"|"allow"} */
     "permissiongeolocation": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionhid": "block",
+    /** @type {"block"|"ask"|"allow"|"allowfull"} */
     "permissionmediadevices": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionmicrophone": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionmidi": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionmidisysex": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionnotifications": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionopenexternal": "ask",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionpersistentstorage": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionpointerlock": "block",
     "permissionsallowed": "",
     "permissionsasked": "",
     "permissionsblocked": "",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionscreenwakelock": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionsensors": "block",
+    /** @type {"block"|"allow"} */
     "permissionserial": "block",
+    /** @type {"block"|"ask"|"allow"} */
     "permissionunknown": "block",
+    /** @type {"block"|"allow"} */
+    "permissionusb": "block",
+    /** @type {"domain"|"url"} */
+    "pointerposlocalid": "domain",
+    /** @type {"casing"|"local"|"global"} */
+    "pointerpostype": "casing",
+    "quickmarkpersistence": "scroll,marks,pointer",
     "quitonlasttabclose": false,
     "redirects": "https?://(www\\.)?google\\.com(\\.\\w+)?/amp/s/amp\\.(.*)"
         + "~https://$3",
     "redirecttohttp": false,
+    "reloadtaboncrash": false,
+    /** @type {"always"|"special"|"newtab"|"never"} */
+    "replacespecial": "special",
+    /** @type {"always"|"newtab"|"never"} */
+    "replacestartup": "never",
+    "requestheaders": "",
     "requesttimeout": 20000,
-    "restoretabs": true,
+    "resourcesallowed": "",
+    "resourcesblocked": "",
+    "resourcetypes": "object,script,media,image,"
+        + "stylesheet,font,xhr,ping,websocket",
+    /** @type {"all"|"pinned"|"regular"|"none"} */
+    "restoretabs": "all",
     "restorewindowmaximize": true,
     "restorewindowposition": true,
     "restorewindowsize": true,
-    "search": "https://duckduckgo.com/?kae=d&kav=1&ko=1&q=%s&ia=web",
+    /** @type {"domain"|"url"} */
+    "scrollposlocalid": "domain",
+    /** @type {"casing"|"local"|"global"} */
+    "scrollpostype": "casing",
+    /** @type {"global"|"local"|"both"} */
+    "searchemptyscope": "global",
+    "searchengine": "https://duckduckgo.com/?kae=d&kav=1&ko=1&q=%s&ia=web",
+    /** @type {"left"|"center"|"right"} */
     "searchpointeralignment": "left",
+    /** @type {"global"|"local"|"inclocal"} */
+    "searchscope": "global",
     "searchwords": "",
+    "shell": "",
     "showcmd": true,
     "smartcase": true,
     "spell": true,
     "spelllang": "system",
     "splitbelow": false,
     "splitright": false,
+    "sponsorblock": false,
+    "sponsorblockcategories": "sponsor~lime,intro~cyan,outro~blue,"
+        + "interaction~red,selfpromo~yellow,music_offtopic",
     "startuppages": "",
     "storenewvisits": "pages",
     "suggestbookmarks": "",
+    "suggestbouncedelay": 100,
     "suggestcommands": 9000000000000000,
     "suggestorder": "history,searchword,file",
     "suggesttopsites": 10,
     "suspendbackgroundtab": true,
+    /** @type {"all"|"regular"|"none"} */
     "suspendonrestore": "regular",
     "suspendplayingtab": false,
     "suspendtimeout": 0,
-    "tabclosefocusright": false,
+    /** @type {"left"|"right"|"previous"} */
+    "tabclosefocus": "left",
     "tabcycle": true,
-    "tabnexttocurrent": true,
+    /** @type {"left"|"right"|"start"|"end"} */
+    "tabnewposition": "right",
+    /** @type {"always"|"background"|"never"} */
     "tabopenmuted": "never",
+    /** @type {"hidden"|"scroll"|"wrap"} */
     "taboverflow": "scroll",
+    /** @type {"always"|"remember"|"never"} */
     "tabreopenmuted": "remember",
+    /** @type {"left"|"right"|"previous"} */
     "tabreopenposition": "right",
     "timeout": true,
     "timeoutlen": 2000,
+    /** @type {"auto"|"deepl"|"libretranslate"} */
+    "translateapi": "auto",
+    "translatekey": "",
+    "translatelang": "en-us",
+    "translateurl": "https://api-free.deepl.com/v2/",
     "useragent": "",
+    "userscript": false,
+    "userscriptscope": "page",
+    "userstyle": false,
+    "userstylescope": "page",
     "vimcommand": "gvim",
     "windowtitle": "%app - %title"
 }
-let allSettings = {}
+/** @type {typeof defaultSettings} */
+let allSettings = JSON.parse(JSON.stringify(defaultSettings))
+const defaultErwicSettings = {
+    "containernewtab": "s:external",
+    "containerstartuppage": "s:usematching",
+    "permissioncamera": "allow",
+    "permissiondisplaycapture": "ask",
+    "permissionmediadevices": "allowfull",
+    "permissionmicrophone": "allow",
+    "permissionnotifications": "allow"
+}
 const freeText = [
     "downloadpath",
     "externalcommand",
     "vimcommand",
     "windowtitle",
-    "bookmarksfile"
+    "bookmarksfile",
+    "shell",
+    "translatekey"
 ]
 const listLike = [
     "containercolors",
     "containernames",
+    "darkreaderscope",
     "favoritepages",
     "followelement",
     "followelementpointer",
@@ -228,26 +374,38 @@ const listLike = [
     "permissionsallowed",
     "permissionsasked",
     "permissionsblocked",
+    "quickmarkpersistence",
     "redirects",
-    "search",
+    "requestheaders",
+    "resourcesallowed",
+    "resourcesblocked",
+    "searchengine",
     "searchwords",
     "spelllang",
+    "sponsorblockcategories",
     "startuppages",
     "storenewvisits",
     "suggestbookmarks",
-    "suggestorder"
+    "suggestorder",
+    "resourcetypes",
+    "userscriptscope",
+    "userstylescope"
 ]
 const listLikeTilde = [
-    "useragent"
+    "useragent",
+    "darkreaderblocklist"
 ]
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
     "cache": ["none", "clearonquit", "full"],
     "commandhist": ["all", "persistall", "useronly", "persistuseronly", "none"],
     "containershowname": ["automatic", "always", "never"],
+    "darkreadermode": ["dark", "light"],
     "devtoolsposition": ["window", "split", "vsplit", "tab"],
     "dialogalert": ["show", "notifyshow", "block", "notifyblock"],
-    "dialogconfirm": ["show", "notifyshow", "block", "notifyblock"],
+    "dialogconfirm": [
+        "show", "notifyshow", "block", "notifyblock", "allow", "notifyallow"
+    ],
     "dialogprompt": ["show", "notifyshow", "block", "notifyblock"],
     "downloadmethod": ["automatic", "confirm", "ask", "block"],
     "encodeurlcopy": ["keep", "encode", "decode", "spacesonly", "nospaces"],
@@ -256,28 +414,83 @@ const validOptions = {
     "favicons": [
         "disabled", "nocache", "session", "1day", "5day", "30day", "forever"
     ],
-    "firefoxmode": ["always", "google", "never"],
     "followfallbackaction": ["filter", "exit", "nothing"],
+    "followlabelposition": [
+        "center",
+        "cornertopleft",
+        "cornertopright",
+        "cornerbottomright",
+        "cornerbottomleft",
+        "outsidetopleft",
+        "outsidetopcenter",
+        "outsidetopright",
+        "outsiderighttop",
+        "outsiderightcenter",
+        "outsiderightbottom",
+        "outsidebottomright",
+        "outsidebottomcenter",
+        "outsidebottomleft",
+        "outsideleftbottom",
+        "outsideleftcenter",
+        "outsidelefttop",
+        "insidetopleft",
+        "insidetopcenter",
+        "insidetopright",
+        "insiderightcenter",
+        "insidebottomright",
+        "insidebottomcenter",
+        "insidebottomleft",
+        "insideleftcenter"
+    ],
     "guifullscreennavbar": ["always", "onupdate", "oninput", "never"],
     "guifullscreentabbar": ["always", "onupdate", "never"],
     "guinavbar": ["always", "onupdate", "oninput", "never"],
+    "guiscrollbar": ["always", "onscroll", "onmove", "never"],
     "guitabbar": ["always", "onupdate", "never"],
     "inputfocusalignment": [
         "rememberstart", "rememberend", "alwaysstart", "alwaysend"
     ],
     "mapsuggestposition": ["bottomright", "bottomleft", "topright", "topleft"],
+    "markposition": [
+        "open",
+        "newtab",
+        "copy",
+        "download",
+        "split",
+        "vsplit",
+        "external",
+        "search"
+    ],
+    "markpositionshifted": [
+        "default",
+        "open",
+        "newtab",
+        "copy",
+        "download",
+        "split",
+        "vsplit",
+        "external",
+        "search"
+    ],
     "menupage": ["always", "globalasneeded", "elementasneeded", "never"],
     "menusuggest": ["both", "explore", "command", "never"],
     "menuvieb": ["both", "navbar", "tabbar", "never"],
+    "mousedisabledbehavior": ["nothing", "drag"],
     "mousevisualmode": ["activate", "onswitch", "never"],
-    "nativenotification": ["always", "smallonly", "never"],
+    "nativenotification": ["always", "largeonly", "smallonly", "never"],
+    "nativetheme": ["system", "dark", "light"],
+    "notificationforpermissions": [
+        "all", "allowed", "blocked", "silent", "none"
+    ],
     "notificationforsystemcommands": ["all", "errors", "none"],
     "notificationposition": [
         "bottomright", "bottomleft", "topright", "topleft"
     ],
+    "pdfbehavior": ["view", "block", "download", "external"],
     "permissioncamera": ["block", "ask", "allow"],
     "permissioncertificateerror": ["block", "ask", "allow"],
     "permissionclipboardread": ["block", "ask", "allow"],
+    "permissionclipboardwrite": ["block", "ask", "allow"],
     "permissionclosepage": ["block", "allow"],
     "permissiondisplaycapture": ["block", "ask"],
     "permissionfullscreen": ["block", "ask", "allow"],
@@ -295,33 +508,95 @@ const validOptions = {
     "permissionsensors": ["block", "ask", "allow"],
     "permissionserial": ["block", "allow"],
     "permissionunknown": ["block", "ask", "allow"],
+    "permissionusb": ["block", "allow"],
+    "pointerposlocalid": ["domain", "url"],
+    "pointerpostype": ["casing", "local", "global"],
+    "replacespecial": ["always", "special", "newtab", "never"],
+    "replacestartup": ["always", "newtab", "never"],
+    "restoretabs": ["all", "pinned", "regular", "none"],
+    "scrollposlocalid": ["domain", "url"],
+    "scrollpostype": ["casing", "local", "global"],
+    "searchemptyscope": ["global", "local", "both"],
     "searchpointeralignment": ["left", "center", "right"],
+    "searchscope": ["global", "local", "inclocal"],
     "suspendonrestore": ["all", "regular", "none"],
+    "tabclosefocus": ["left", "right", "previous"],
+    "tabnewposition": ["left", "right", "start", "end"],
     "tabopenmuted": ["always", "background", "never"],
     "taboverflow": ["hidden", "scroll", "wrap"],
     "tabreopenmuted": ["always", "remember", "never"],
-    "tabreopenposition": ["left", "right", "previous"]
+    "tabreopenposition": ["left", "right", "previous"],
+    "translateapi": ["auto", "deepl", "libretranslate"],
+    "translatelang": [
+        "ar",
+        "az",
+        "bg",
+        "cs",
+        "da",
+        "de",
+        "el",
+        "en",
+        "en-gb",
+        "en-us",
+        "eo",
+        "es",
+        "et",
+        "fa",
+        "fi",
+        "fr",
+        "ga",
+        "he",
+        "hi",
+        "hu",
+        "id",
+        "it",
+        "ja",
+        "ko",
+        "lt",
+        "lv",
+        "nl",
+        "pl",
+        "pt",
+        "pt-br",
+        "pt-pt",
+        "ro",
+        "ru",
+        "sk",
+        "sl",
+        "sv",
+        "tr",
+        "uk",
+        "zh"
+    ]
 }
 const numberRanges = {
     "countlimit": [0, 10000],
-    "darkreaderbrightness": [0, 100],
-    "darkreadercontrast": [0, 100],
+    "darkreaderbrightness": [0, 200],
+    "darkreadercontrast": [0, 200],
     "darkreadergrayscale": [0, 100],
     "darkreadersepia": [0, 100],
     "darkreadertextstroke": [0, 1],
-    "guifontsize": [8, 30],
+    "guifontsize": [1, 300],
     "guihidetimeout": [0, 9000000000000000],
+    "historyperpage": [1, 9000000000000000],
     "mapsuggest": [0, 9000000000000000],
     "maxmapdepth": [1, 40],
     "mintabwidth": [0, 9000000000000000],
     "notificationduration": [0, 9000000000000000],
+    "notificationlimitsmall": [0, 9000000000000000],
     "requesttimeout": [0, 9000000000000000],
+    "suggestbouncedelay": [0, 10000],
     "suggestcommands": [0, 9000000000000000],
     "suggesttopsites": [0, 9000000000000000],
     "suspendtimeout": [0, 9000000000000000],
     "timeoutlen": [0, 9000000000000000]
 }
+/** @type {(keyof typeof defaultSettings)[]} */
+const acceptsIntervals = ["clearhistoryinterval"]
+/** @type {(keyof typeof defaultSettings)[]} */
+const acceptsInvertedIntervals = []
 let customStyling = ""
+/** @type {(keyof typeof defaultSettings)[]} */
 const downloadSettings = [
     "downloadmethod",
     "downloadpath",
@@ -331,15 +606,11 @@ const downloadSettings = [
 const containerSettings = [
     "containernewtab", "containersplitpage", "containerstartuppage"
 ]
+/** @type {string[]} */
 let spelllangs = []
 
 const init = () => {
     loadFromDisk()
-    updateDownloadSettings()
-    updateBookmarkSettings()
-    updatePermissionSettings()
-    updateWebviewSettings()
-    updateMouseSettings()
     ipcRenderer.invoke("list-spelllangs").then(langs => {
         spelllangs = langs || []
         spelllangs.push("system")
@@ -350,19 +621,34 @@ const init = () => {
     })
     ipcRenderer.on("set-permission", (_, name, value) => set(name, value))
     ipcRenderer.on("notify", (_, message, type, clickAction) => {
+        if (getMouseConf("notification")) {
+            if (clickAction?.type === "download-success") {
+                clickAction.func = () => ipcRenderer.send(
+                    "open-download", clickAction.path)
+            }
+        }
         notify(message, type, clickAction)
     })
+    ipcRenderer.on("main-error", (_, ex) => console.error(ex))
     ipcRenderer.send("create-session", `persist:main`,
         allSettings.adblocker, allSettings.cache !== "none")
 }
 
+/**
+ * Check if an option is considered a valid one, only checks at all if an enum.
+ * @param {keyof typeof validOptions} setting
+ * @param {string} value
+ */
 const checkOption = (setting, value) => {
     const optionList = JSON.parse(JSON.stringify(validOptions[setting]))
     if (optionList) {
         const valid = optionList.includes(value)
         if (!valid) {
             const lastOption = optionList.pop()
-            const text = `'${optionList.join("', '")}' or '${lastOption}'`
+            let text = `'${optionList.join("', '")}' or '${lastOption}'`
+            if (optionList.length === 0) {
+                text = `'${lastOption}'`
+            }
             notify(`The value of setting '${setting}' can only be one of:`
                 + ` ${text}`, "warn")
         }
@@ -371,6 +657,11 @@ const checkOption = (setting, value) => {
     return false
 }
 
+/**
+ * Check if an option is considered a valid value for a number setting.
+ * @param {keyof typeof numberRanges} setting
+ * @param {number} value
+ */
 const checkNumber = (setting, value) => {
     const numberRange = numberRanges[setting]
     if (numberRange[0] > value || numberRange[1] < value) {
@@ -381,9 +672,29 @@ const checkNumber = (setting, value) => {
     return true
 }
 
+/**
+ * Check if other more advanced settings are configured correctly.
+ * @param {string} setting
+ * @param {number | string | boolean} value
+ */
 const checkOther = (setting, value) => {
     // Special cases
+    if (setting === "clearhistoryinterval") {
+        if (typeof value !== "string") {
+            return false
+        }
+        const valid = ["session", "none"].includes(value)
+            || isValidIntervalValue(value)
+        if (!valid) {
+            notify("clearhistoryinterval can only be set to none, session or "
+                + "a valid interval, such as 1day or 3months", "warn")
+        }
+        return valid
+    }
     if (containerSettings.includes(setting)) {
+        if (typeof value !== "string") {
+            return false
+        }
         const specialNames = ["s:usematching", "s:usecurrent"]
         if (setting !== "containersplitpage") {
             specialNames.push("s:replacematching", "s:replacecurrent")
@@ -411,6 +722,9 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "containercolors") {
+        if (typeof value !== "string") {
+            return false
+        }
         for (const colorMatch of value.split(",").filter(c => c.trim())) {
             if ((colorMatch.match(/~/g) || []).length !== 1) {
                 notify(`Invalid ${setting} entry: ${colorMatch}\n`
@@ -438,14 +752,23 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "containernames") {
+        if (typeof value !== "string") {
+            return false
+        }
         for (const containerMatch of value.split(",").filter(c => c.trim())) {
-            if ((containerMatch.match(/~/g) || []).length !== 1) {
+            if (![1, 2].includes((containerMatch.match(/~/g) || []).length)) {
                 notify(`Invalid ${setting} entry: ${containerMatch}\n`
-                    + "Entries must have exactly one ~ to separate the "
-                    + "name regular expression and container name", "warn")
+                    + "Entries must have one or two ~ to separate the "
+                    + "regular expression, container name and newtab param",
+                "warn")
                 return false
             }
-            const [match, container] = containerMatch.split("~")
+            const [match, container, newtabParam] = containerMatch.split("~")
+            if (newtabParam && newtabParam !== "newtab") {
+                notify(`Invalid containernames newtab param: ${containerMatch}`,
+                    "warn")
+                return false
+            }
             try {
                 RegExp(match)
             } catch {
@@ -465,6 +788,9 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "darkreaderfg" || setting === "darkreaderbg") {
+        if (typeof value !== "string") {
+            return false
+        }
         const {style} = document.createElement("div")
         style.color = "white"
         style.color = value
@@ -474,7 +800,37 @@ const checkOther = (setting, value) => {
             return false
         }
     }
+    if (setting === "darkreaderblocklist") {
+        if (typeof value !== "string") {
+            return false
+        }
+        for (const match of value.split("~").filter(c => c.trim())) {
+            try {
+                RegExp(match)
+            } catch {
+                notify(`Invalid regular expression in ${setting}: ${match}`,
+                    "warn")
+                return false
+            }
+        }
+    }
+    const scopeConf = ["darkreaderscope", "userscriptscope", "userstylescope"]
+    if (scopeConf.includes(setting)) {
+        if (typeof value !== "string") {
+            return false
+        }
+        for (const match of value.split(",").filter(c => c.trim())) {
+            if (!["file", "page", "special"].includes(match)) {
+                notify(`Invalid value '${match}' in ${setting}, `
+                    + "must be one of: file, page or special", "warn")
+                return false
+            }
+        }
+    }
     if (setting === "downloadpath") {
+        if (typeof value !== "string") {
+            return false
+        }
         const expandedPath = expandPath(value)
         if (value && !pathExists(expandedPath)) {
             notify("The download path does not exist", "warn")
@@ -485,7 +841,21 @@ const checkOther = (setting, value) => {
             return false
         }
     }
+    if (setting === "favoritepages") {
+        if (typeof value !== "string") {
+            return false
+        }
+        for (const page of value.split(",").filter(p => p.trim())) {
+            if (!isUrl(page)) {
+                notify(`Invalid URL passed to favoritepages: ${page}`, "warn")
+                return false
+            }
+        }
+    }
     if (setting === "followchars") {
+        if (typeof value !== "string") {
+            return false
+        }
         const ok = [
             "all",
             "alpha",
@@ -513,6 +883,9 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting.startsWith("followelement")) {
+        if (typeof value !== "string") {
+            return false
+        }
         const ok = [
             "url",
             "onclick",
@@ -532,9 +905,13 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "modifiers") {
-        const {"keyNames": valid} = require("./input")
+        if (typeof value !== "string") {
+            return false
+        }
+        const {keyNames} = require("./input")
         for (const name of value.split(",").filter(n => n.trim())) {
-            if (name.length > 1 && !valid.find(key => key.vim.includes(name))) {
+            if (name.length > 1
+                && !keyNames.some(key => key.vim.includes(name))) {
                 notify(`Key name '${name}' is not recognized as a valid key`,
                     "warn")
                 return false
@@ -542,6 +919,9 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "mouse") {
+        if (typeof value !== "string") {
+            return false
+        }
         const invalid = value.split(",").find(
             v => !mouseFeatures.includes(v) && v !== "all")
         if (invalid) {
@@ -550,6 +930,9 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "newtaburl") {
+        if (typeof value !== "string") {
+            return false
+        }
         if (value && !isUrl(stringToUrl(value).replace(/^https?:\/\//g, ""))) {
             notify("The newtaburl value must be a valid url or empty", "warn")
             return false
@@ -559,6 +942,9 @@ const checkOther = (setting, value) => {
         "permissionsallowed", "permissionsasked", "permissionsblocked"
     ]
     if (permissionSettings.includes(setting)) {
+        if (typeof value !== "string") {
+            return false
+        }
         for (const override of value.split(",").filter(o => o.trim())) {
             if ((override.match(/~/g) || []).length === 0) {
                 notify(`Invalid ${setting} entry: ${override}\n`
@@ -579,8 +965,12 @@ const checkOther = (setting, value) => {
                 if (!name.startsWith("permission")) {
                     name = `permission${name}`
                 }
+                if (name === "permissionmediadevicesfull"
+                    && setting.endsWith("allowed")) {
+                    return true
+                }
                 const reservedName = permissionSettings.includes(name)
-                if (reservedName || !allSettings[name]) {
+                if (reservedName || !(name in defaultSettings)) {
                     notify(
                         `Invalid name for a permission: ${name}`, "warn")
                     return false
@@ -606,7 +996,22 @@ const checkOther = (setting, value) => {
             }
         }
     }
+    if (setting === "quickmarkpersistence" && value !== "") {
+        if (typeof value !== "string") {
+            return false
+        }
+        for (const mType of value.split(",").filter(l => l.trim())) {
+            if (!["scroll", "marks", "pointer"].includes(mType)) {
+                notify(`Invalid quickmark type passed to ${setting}: ${mType}`,
+                    "warn")
+                return false
+            }
+        }
+    }
     if (setting === "redirects") {
+        if (typeof value !== "string") {
+            return false
+        }
         for (const redirect of value.split(",").filter(r => r.trim())) {
             if ((redirect.match(/~/g) || []).length !== 1) {
                 notify(`Invalid redirect entry: ${redirect}\n`
@@ -624,23 +1029,67 @@ const checkOther = (setting, value) => {
             }
         }
     }
-    if (setting === "search") {
+    if (["resourcesallowed", "resourcesblocked"].includes(setting)) {
+        if (typeof value !== "string") {
+            return false
+        }
+        for (const override of value.split(",").filter(o => o.trim())) {
+            const [match, ...names] = override.split("~")
+            try {
+                RegExp(match)
+            } catch {
+                notify(
+                    `Invalid regular expression in ${setting}: ${match}`,
+                    "warn")
+                return false
+            }
+            for (const name of names) {
+                const supported = defaultSettings.resourcetypes.split(",")
+                if (!supported.includes(name)) {
+                    notify(`Invalid resource type in ${setting}: ${name}`,
+                        "warn")
+                    return false
+                }
+            }
+        }
+    }
+    if (setting === "resourcetypes" && value !== "") {
+        if (typeof value !== "string") {
+            return false
+        }
+        for (const rsrc of value.split(",").filter(l => l.trim())) {
+            if (!defaultSettings.resourcetypes.split(",").includes(rsrc)) {
+                notify(`Invalid resource type passed to ${setting}: ${rsrc}`,
+                    "warn")
+                return false
+            }
+        }
+    }
+    if (setting === "searchengine") {
+        if (typeof value !== "string") {
+            return false
+        }
         for (let baseUrl of value.split(",").filter(e => e.trim())) {
             baseUrl = baseUrl.replace(/^https?:\/\//g, "")
             if (baseUrl.length === 0 || !baseUrl.includes("%s")) {
-                notify(`Invalid search value: ${baseUrl}\n`
+                notify(`Invalid searchengine value: ${baseUrl}\n`
                         + "Each URL must contain a %s parameter, which will "
                         + "be replaced by the search string", "warn")
                 return false
             }
             if (!isUrl(baseUrl)) {
-                notify("Each URL of the search setting must be a valid url",
+                notify(
+                    "Each URL of the searchengine setting must be a valid url",
                     "warn")
                 return false
             }
         }
     }
     if (setting === "searchwords") {
+        if (typeof value !== "string") {
+            return false
+        }
+        /** @type {string[]} */
         const knownSearchwords = []
         for (const searchword of value.split(",").filter(s => s.trim())) {
             if ((searchword.match(/~/g) || []).length !== 1) {
@@ -674,6 +1123,9 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "spelllang" && value !== "") {
+        if (typeof value !== "string") {
+            return false
+        }
         for (const lang of value.split(",").filter(l => l.trim())) {
             if (spelllangs.length && !spelllangs.includes(lang)) {
                 notify(`Invalid language passed to spelllang: ${lang}`,
@@ -682,18 +1134,50 @@ const checkOther = (setting, value) => {
             }
         }
     }
-    if (setting === "favoritepages") {
-        for (const page of value.split(",").filter(p => p.trim())) {
-            if (!isUrl(page)) {
-                notify(`Invalid URL passed to favoritepages: ${page}`, "warn")
+    if (setting === "sponsorblockcategories") {
+        if (typeof value !== "string") {
+            return false
+        }
+        /** @type {string[]} */
+        const knownCategories = []
+        const allCategories = defaultSettings.sponsorblockcategories
+            .split(",").map(s => s.split("~")[0])
+        for (const catColorPair of value.split(",").filter(c => c.trim())) {
+            if ((catColorPair.match(/~/g) || []).length > 1) {
+                notify(`Invalid ${setting} entry: ${catColorPair}\n`
+                    + "Entries must have zero or one ~ to separate the "
+                    + "category name and color name/hex", "warn")
                 return false
             }
+            const [category, color] = catColorPair.split("~")
+            if (!allCategories.includes(category)) {
+                notify(`Invalid category in ${setting}: ${category}`, "warn")
+                return false
+            }
+            const {style} = document.createElement("div")
+            style.color = "white"
+            style.color = color
+            if (color && style.color === "white" && color !== "white") {
+                notify("Invalid color, must be a valid color name or hex"
+                    + `, not: ${color}`, "warn")
+                return false
+            }
+            if (knownCategories.includes(category)) {
+                notify(`Invalid sponsorblockcategories entry: ${catColorPair}\n`
+                    + `The category ${category} was already defined. `
+                    + "A category must be defined only once", "warn")
+                return false
+            }
+            knownCategories.push(category)
         }
     }
     if (setting === "startuppages") {
+        if (typeof value !== "string") {
+            return false
+        }
         for (const page of value.split(",").filter(p => p.trim())) {
             const parts = page.split("~")
-            const url = parts.shift()
+            const url = parts.shift() ?? ""
             const cname = parts.shift()
             if (!isUrl(url)) {
                 notify(`Invalid URL passed to startuppages: ${url}`, "warn")
@@ -731,8 +1215,16 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "storenewvisits") {
+        if (typeof value !== "string") {
+            return false
+        }
         const valid = [
-            "pages", "files", "special", "sourceviewer", "readerview"
+            "pages",
+            "files",
+            "special",
+            "sourceviewer",
+            "readerview",
+            "markdownviewer"
         ]
         for (const visitType of value.split(",").filter(v => v.trim())) {
             if (!valid.includes(visitType)) {
@@ -743,11 +1235,27 @@ const checkOther = (setting, value) => {
         }
     }
     if (setting === "suggestorder") {
+        if (typeof value !== "string") {
+            return false
+        }
         return checkSuggestOrder(value)
+    }
+    if (setting === "translateurl") {
+        if (typeof value !== "string") {
+            return false
+        }
+        if (!isUrl(stringToUrl(value).replace(/^https?:\/\//g, ""))) {
+            notify("The translateurl value must be a valid url", "warn")
+            return false
+        }
     }
     return true
 }
 
+/**
+ * Check if the provided suggest order is valid.
+ * @param {string} value
+ */
 const checkSuggestOrder = value => {
     for (const suggest of value.split(",").filter(s => s.trim())) {
         const parts = (suggest.match(/~/g) || []).length
@@ -758,7 +1266,7 @@ const checkSuggestOrder = value => {
             return false
         }
         const args = suggest.split("~")
-        const type = args.shift()
+        const type = args.shift() ?? ""
         if (!["history", "file", "searchword"].includes(type)) {
             notify(`Invalid suggestorder type: ${type}\n`
                     + "Suggestion type must be one of: history, file or "
@@ -810,18 +1318,41 @@ const checkSuggestOrder = value => {
     return true
 }
 
+/**
+ * Check if a setting is of type enum, so it has to validate the valid opts.
+ * @param {string} set
+ * @returns {set is keyof typeof defaultSettings}
+ */
+const isExistingSetting = set => set in defaultSettings
+
+/**
+ * Check if a setting is of type enum, so it has to validate the valid opts.
+ * @param {string} set
+ * @returns {set is keyof typeof validOptions}
+ */
+const isEnumSetting = set => set in validOptions
+
+/**
+ * Check if a setting is of type number, so it has to validate the ranges.
+ * @param {string} set
+ * @returns {set is keyof typeof numberRanges}
+ */
+const isNumberSetting = set => set in numberRanges
+
+/**
+ * Check if a setting will be valid for a given value.
+ * @param {keyof typeof defaultSettings} setting
+ * @param {string | number | boolean} value
+ */
 const isValidSetting = (setting, value) => {
-    if (allSettings[setting] === undefined) {
-        notify(`The setting '${setting}' doesn't exist`, "warn")
-        return false
-    }
     const expectedType = typeof allSettings[setting]
+    /** @type {string | number | boolean} */
     let parsedValue = String(value)
     if (expectedType === "number" && !isNaN(Number(parsedValue))) {
         parsedValue = Number(value)
     }
     if (expectedType === "boolean") {
-        if (["true", "false"].includes(parsedValue)) {
+        if (["true", "false"].includes(String(parsedValue))) {
             parsedValue = value === "true"
         }
     }
@@ -831,42 +1362,58 @@ const isValidSetting = (setting, value) => {
             + `'${typeof parsedValue}' instead.`, "warn")
         return false
     }
-    if (validOptions[setting]) {
+    if (isEnumSetting(setting)) {
+        if (typeof parsedValue !== "string") {
+            return false
+        }
         return checkOption(setting, parsedValue)
     }
-    if (numberRanges[setting]) {
+    if (isNumberSetting(setting)) {
+        if (typeof parsedValue !== "number") {
+            return false
+        }
         return checkNumber(setting, parsedValue)
     }
     return checkOther(setting, parsedValue)
 }
 
 const updateMouseSettings = () => {
-    const styledMouseSettings = [
-        "follow",
-        "modeselector",
-        "pageininsert",
-        "pageoutsideinsert",
-        "suggestselect",
-        "switchtab"
-    ]
-    for (const mouseSetting of styledMouseSettings) {
+    for (const mouseSetting of mouseFeatures) {
         if (getMouseConf(mouseSetting)) {
             document.body.classList.add(`mouse-${mouseSetting}`)
         } else {
             document.body.classList.remove(`mouse-${mouseSetting}`)
         }
     }
+    if (allSettings.mousedisabledbehavior === "drag") {
+        document.body.classList.add("mousedisabled-drag")
+    } else {
+        document.body.classList.remove("mousedisabled-drag")
+    }
+}
+
+const updateRequestHeaders = () => {
+    ipcRenderer.send("update-request-headers", allSettings.requestheaders)
+}
+
+const updateNativeTheme = () => {
+    ipcRenderer.send("update-native-theme", allSettings.nativetheme)
+}
+
+const updatePdfOption = () => {
+    ipcRenderer.send("update-pdf-option", allSettings.pdfbehavior)
 }
 
 const updateContainerSettings = (full = true) => {
     if (full) {
         for (const page of listPages()) {
             const color = allSettings.containercolors.split(",").find(
-                c => page.getAttribute("container").match(c.split("~")[0]))
-            if (color) {
-                [, tabOrPageMatching(page).style.color] = color.split("~")
-            } else {
-                tabOrPageMatching(page).style.color = null
+                c => page.getAttribute("container")?.match(c.split("~")[0]))
+            const tab = tabForPage(page)
+            if (tab && color) {
+                [, tab.style.color] = color.split("~")
+            } else if (tab) {
+                tab.style.color = ""
             }
         }
     }
@@ -877,21 +1424,26 @@ const updateContainerSettings = (full = true) => {
     const color = allSettings.containercolors.split(",").find(
         c => container.match(c.split("~")[0]))
     const show = allSettings.containershowname
+    const containerNameEl = document.getElementById("containername")
+    if (!containerNameEl) {
+        return
+    }
     if (container === "main" && show === "automatic" || show === "never") {
-        document.getElementById("containername").style.display = "none"
+        containerNameEl.style.display = "none"
     } else {
-        document.getElementById("containername").textContent = container
+        containerNameEl.textContent = container
         if (color) {
-            [, document.getElementById("containername")
+            [, containerNameEl
                 .style.color] = color.split("~")
         } else {
-            document.getElementById("containername").style.color = null
+            containerNameEl.style.color = ""
         }
-        document.getElementById("containername").style.display = null
+        containerNameEl.style.display = ""
     }
 }
 
 const updateDownloadSettings = () => {
+    /** @type {{[setting: string]: boolean|number|string}} */
     const downloads = {}
     downloadSettings.forEach(setting => {
         downloads[setting] = allSettings[setting]
@@ -904,37 +1456,56 @@ const updateBookmarkSettings = () => {
     setBookmarkSettings()
 }
 
+/** @type {(keyof typeof defaultSettings)[]} */
+const webviewSettings = [
+    "darkreader",
+    "darkreaderbg",
+    "darkreaderblocklist",
+    "darkreaderbrightness",
+    "darkreadercontrast",
+    "darkreaderfg",
+    "darkreadergrayscale",
+    "darkreadermode",
+    "darkreaderscope",
+    "darkreadersepia",
+    "darkreadertextstroke",
+    "dialogalert",
+    "dialogconfirm",
+    "dialogprompt",
+    "guifontsize",
+    "guiscrollbar",
+    "historyperpage",
+    "inputfocusalignment",
+    "pdfbehavior",
+    "permissiondisplaycapture",
+    "permissionmediadevices",
+    "permissionsallowed",
+    "permissionsasked",
+    "permissionsblocked",
+    "searchpointeralignment",
+    "sponsorblock",
+    "sponsorblockcategories",
+    "userstyle",
+    "userstylescope"
+]
+
 const updateWebviewSettings = () => {
-    const webviewSettingsFile = joinPath(
-        appData(), "webviewsettings")
-    writeJSON(webviewSettingsFile, {
+    const webviewSettingsFile = joinPath(appData(), "webviewsettings")
+    /** @type {{[setting: string]: string|number|boolean}} */
+    const data = {
         "bg": getComputedStyle(document.body).getPropertyValue("--bg"),
-        "darkreader": allSettings.darkreader,
-        "darkreaderbg": allSettings.darkreaderbg,
-        "darkreaderbrightness": allSettings.darkreaderbrightness,
-        "darkreadercontrast": allSettings.darkreadercontrast,
-        "darkreaderfg": allSettings.darkreaderfg,
-        "darkreadergrayscale": allSettings.darkreadergrayscale,
-        "darkreadersepia": allSettings.darkreadersepia,
-        "darkreadertextstroke": allSettings.darkreadertextstroke,
-        "dialogalert": allSettings.dialogalert,
-        "dialogconfirm": allSettings.dialogconfirm,
-        "dialogprompt": allSettings.dialogprompt,
         "fg": getComputedStyle(document.body).getPropertyValue("--fg"),
-        "guifontsize": allSettings.guifontsize,
-        "inputfocusalignment": allSettings.inputfocusalignment,
         "linkcolor": getComputedStyle(document.body)
-            .getPropertyValue("--link-color"),
-        "permissiondisplaycapture": allSettings.permissiondisplaycapture,
-        "permissionmediadevices": allSettings.permissionmediadevices,
-        "permissionsallowed": allSettings.permissionsallowed,
-        "permissionsasked": allSettings.permissionsasked,
-        "permissionsblocked": allSettings.permissionsblocked,
-        "searchpointeralignment": allSettings.searchpointeralignment
+            .getPropertyValue("--link-color")
+    }
+    webviewSettings.forEach(setting => {
+        data[setting] = allSettings[setting]
     })
+    writeJSON(webviewSettingsFile, data)
 }
 
 const updatePermissionSettings = () => {
+    /** @type {{[setting: string]: string|number|boolean}} */
     const permissions = {}
     Object.keys(allSettings).forEach(setting => {
         if (setting.startsWith("permission")) {
@@ -945,19 +1516,16 @@ const updatePermissionSettings = () => {
 }
 
 const updateHelpPage = () => {
-    listPages().forEach(p => {
-        if (pathToSpecialPageName(p.src).name === "help") {
+    listReadyPages().forEach(p => {
+        const special = pathToSpecialPageName(p.getAttribute("src") ?? "")
+        if (special?.name === "help") {
             const {
                 listMappingsAsCommandList, uncountableActions
             } = require("./input")
             const {rangeCompatibleCommands} = require("./command")
-            try {
-                p.send("settings", settingsWithDefaults(),
-                    listMappingsAsCommandList(false, true), uncountableActions,
-                    rangeCompatibleCommands)
-            } catch {
-                // Page not ready yet or suspended
-            }
+            p.send("settings", settingsWithDefaults(),
+                listMappingsAsCommandList(null, true), uncountableActions,
+                rangeCompatibleCommands)
         }
     })
 }
@@ -973,7 +1541,7 @@ const suggestionList = () => {
             listOfSuggestions.push(`${setting}!`)
             listOfSuggestions.push(`no${setting}`)
             listOfSuggestions.push(`inv${setting}`)
-        } else if (validOptions[setting]) {
+        } else if (isEnumSetting(setting)) {
             listOfSuggestions.push(`${setting}!`)
             listOfSuggestions.push(`${setting}=`)
             for (const option of validOptions[setting]) {
@@ -982,6 +1550,9 @@ const suggestionList = () => {
         } else {
             listOfSuggestions.push(`${setting}=`)
             listOfSuggestions.push(`${setting}=${defaultSettings[setting]}`)
+        }
+        if (setting === "clearhistoryinterval") {
+            listOfSuggestions.push(`${setting}=session`)
         }
         if (setting === "followchars") {
             listOfSuggestions.push(`${setting}=custom:`)
@@ -1004,6 +1575,22 @@ const suggestionList = () => {
             }
             listOfSuggestions.push(`${setting}=temp%n`)
         }
+        if (acceptsIntervals.includes(setting)) {
+            listOfSuggestions.push(`${setting}=1second`)
+            listOfSuggestions.push(`${setting}=1minute`)
+            listOfSuggestions.push(`${setting}=1hour`)
+            listOfSuggestions.push(`${setting}=1day`)
+            listOfSuggestions.push(`${setting}=1month`)
+            listOfSuggestions.push(`${setting}=1year`)
+        }
+        if (acceptsInvertedIntervals.includes(setting)) {
+            listOfSuggestions.push(`${setting}=last1second`)
+            listOfSuggestions.push(`${setting}=last1minute`)
+            listOfSuggestions.push(`${setting}=last1hour`)
+            listOfSuggestions.push(`${setting}=last1day`)
+            listOfSuggestions.push(`${setting}=last1month`)
+            listOfSuggestions.push(`${setting}=last1year`)
+        }
         const isNumber = typeof defaultSettings[setting] === "number"
         const isFreeText = freeText.includes(setting)
         const isListLike = listLike.includes(setting)
@@ -1022,19 +1609,19 @@ const suggestionList = () => {
 const loadFromDisk = (firstRun = true) => {
     const {pause, resume} = require("./commandhistory")
     pause()
+    const config = appConfig()
+    const files = config?.files ?? []
     if (firstRun) {
         allSettings = JSON.parse(JSON.stringify(defaultSettings))
         sessionStorage.setItem("settings", JSON.stringify(allSettings))
     }
     if (isFile(joinPath(appData(), "erwicmode"))) {
-        set("containernewtab", "s:external")
-        set("containerstartuppage", "s:usematching")
-        set("permissioncamera", "allow")
-        set("permissionnotifications", "allow")
-        set("permissionmediadevices", "allowfull")
-        set("permissionmicrophone", "allow")
+        const erwicDefaults = JSON.parse(JSON.stringify(defaultErwicSettings))
+        Object.keys(erwicDefaults).forEach(t => {
+            set(t, erwicDefaults[t])
+        })
     }
-    for (const conf of appConfig().files) {
+    for (const conf of files) {
         if (isFile(conf)) {
             const parsed = readFile(conf)
             if (!parsed) {
@@ -1055,39 +1642,68 @@ const loadFromDisk = (firstRun = true) => {
     updatePermissionSettings()
     updateWebviewSettings()
     updateMouseSettings()
+    updateNativeTheme()
+    updateRequestHeaders()
+    updatePdfOption()
     resume()
 }
 
+/**
+ * Reset a setting to its default value.
+ * @param {string} setting
+ */
 const reset = setting => {
     if (setting === "all") {
         Object.keys(defaultSettings).forEach(s => set(s, defaultSettings[s]))
-    } else if (allSettings[setting] === undefined) {
-        notify(`The setting '${setting}' doesn't exist`, "warn")
-    } else {
+    } else if (isExistingSetting(setting)) {
         set(setting, defaultSettings[setting])
+    } else {
+        notify(`The setting '${setting}' doesn't exist`, "warn")
     }
 }
 
+/**
+ * Set the value of a setting, if considered valid, else notify the user.
+ * @param {string} setting
+ * @param {string | number | boolean} value
+ */
 const set = (setting, value) => {
+    if (!isExistingSetting(setting)) {
+        notify(`The setting '${setting}' doesn't exist`, "warn")
+        return false
+    }
     if (isValidSetting(setting, value)) {
+        // The ts-expect-error statements are there because of this issue:
+        // https://github.com/microsoft/TypeScript/issues/31663
+        const {applyLayout} = require("./pagelayout")
         if (typeof allSettings[setting] === "boolean") {
-            allSettings[setting] = ["true", true].includes(value)
+            // @ts-expect-error #bug in TS since very long
+            allSettings[setting] = typeof value !== "number"
+                && ["true", true].includes(value)
         } else if (typeof allSettings[setting] === "number") {
+            // @ts-expect-error #bug in TS since very long
             allSettings[setting] = Number(value)
         } else if (listLike.includes(setting)) {
-            // Remove empty and duplicate elements from the comma seperated list
-            allSettings[setting] = Array.from(new Set(
-                value.split(",").map(e => e.trim()).filter(e => e))).join(",")
+            // Remove empty and duplicate elements from the comma separated list
+            if (typeof value === "string") {
+                // @ts-expect-error #bug in TS since very long
+                allSettings[setting] = Array.from(new Set(value
+                    .split(",").map(e => e.trim()).filter(e => e))).join(",")
+            }
         } else if (listLikeTilde.includes(setting)) {
-            // Remove empty and duplicate elements from the comma seperated list
-            allSettings[setting] = Array.from(new Set(
-                value.split("~").map(e => e.trim()).filter(e => e))).join("~")
+            // Remove empty and duplicate elements from the comma separated list
+            if (typeof value === "string") {
+                // @ts-expect-error #bug in TS since very long
+                allSettings[setting] = Array.from(new Set(value
+                    .split("~").map(e => e.trim()).filter(e => e))).join("~")
+            }
         } else {
+            // @ts-expect-error #bug in TS since very long
             allSettings[setting] = value
         }
         if (setting === "mouse") {
             let newval = allSettings.mouse
-            if (!mouseFeatures.find(f => !newval.includes(f))) {
+            if (!mouseFeatures.some(f => !newval.includes(f))) {
                 newval = "all"
             }
             if (newval.split(",").includes("all")) {
@@ -1107,16 +1723,8 @@ const set = (setting, value) => {
         if (setting === "containercolors" || setting === "containershowname") {
             updateContainerSettings()
         }
-        if (setting === "firefoxmode") {
-            if (value === "always") {
-                ipcRenderer.sendSync(
-                    "override-global-useragent", firefoxUseragent())
-            } else {
-                ipcRenderer.sendSync("override-global-useragent", false)
-            }
-        }
         if (setting === "useragent") {
-            if (allSettings.firefoxmode !== "always") {
+            if (typeof value === "string") {
                 ipcRenderer.sendSync("override-global-useragent",
                     userAgentTemplated(value.split("~")[0]))
             }
@@ -1126,6 +1734,14 @@ const set = (setting, value) => {
         }
         if (setting === "guifontsize") {
             updateCustomStyling()
+        }
+        if (setting === "guiscrollbar") {
+            const {showScrollbar, hideScrollbar} = require("./pagelayout")
+            if (value === "always") {
+                showScrollbar()
+            } else {
+                hideScrollbar()
+            }
         }
         if (downloadSettings.includes(setting)) {
             updateDownloadSettings()
@@ -1137,16 +1753,17 @@ const set = (setting, value) => {
             listTabs().forEach(tab => {
                 tab.style.minWidth = `${allSettings.mintabwidth}px`
             })
-            try {
-                currentTab().scrollIntoView({"inline": "center"})
-            } catch {
-                // No tabs present yet
-            }
-            const {applyLayout} = require("./pagelayout")
+            currentTab()?.scrollIntoView({"inline": "center"})
             applyLayout()
         }
-        if (setting === "mouse") {
+        if (setting === "mouse" || setting === "mousedisabledbehavior") {
             updateMouseSettings()
+        }
+        if (setting === "nativetheme") {
+            updateNativeTheme()
+        }
+        if (setting === "pdfbehavior") {
+            updatePdfOption()
         }
         if (setting === "spelllang" || setting === "spell") {
             if (allSettings.spell) {
@@ -1155,51 +1772,59 @@ const set = (setting, value) => {
                 ipcRenderer.send("set-spelllang", "")
             }
         }
+        if (setting === "requestheaders") {
+            updateRequestHeaders()
+        }
+        if (setting.includes("resource")) {
+            ipcRenderer.send("update-resource-settings",
+                allSettings.resourcetypes.trim().split(",").filter(r => r),
+                allSettings.resourcesblocked.trim().split(",").filter(r => r),
+                allSettings.resourcesallowed.trim().split(",").filter(r => r))
+        }
         if (setting === "taboverflow") {
             const tabs = document.getElementById("tabs")
-            tabs.classList.remove("scroll")
-            tabs.classList.remove("wrap")
-            if (value !== "hidden") {
-                tabs.classList.add(value)
+            tabs?.classList.remove("scroll")
+            tabs?.classList.remove("wrap")
+            if (typeof value === "string" && value !== "hidden") {
+                tabs?.classList.add(value)
             }
             currentTab()?.scrollIntoView({"inline": "center"})
-            const {applyLayout} = require("./pagelayout")
             applyLayout()
         }
-        const webviewSettings = [
-            "darkreader",
-            "darkreaderbg",
-            "darkreaderbrightness",
-            "darkreadercontrast",
-            "darkreaderfg",
-            "darkreadergrayscale",
-            "darkreadersepia",
-            "darkreadertextstroke",
-            "dialogalert",
-            "dialogconfirm",
-            "dialogprompt",
-            "guifontsize",
-            "inputfocusalignment",
-            "permissiondisplaycapture",
-            "permissionmediadevices",
-            "permissionsallowed",
-            "permissionsasked",
-            "permissionsblocked",
-            "searchpointeralignment"
-        ]
         if (webviewSettings.includes(setting)) {
             updateWebviewSettings()
         }
         if (setting.startsWith("darkreader")) {
-            listPages().forEach(p => {
-                try {
-                    if (allSettings.darkreader) {
-                        p.send("enable-darkreader")
-                    } else {
-                        p.send("disable-darkreader")
-                    }
-                } catch {
-                    // Page not ready yet or suspended
+            listReadyPages().forEach(p => {
+                let scope = "page"
+                const specialPage = pathToSpecialPageName(p.src)
+                if (specialPage?.name) {
+                    scope = "special"
+                } else if (p.src.startsWith("file://")) {
+                    scope = "file"
+                }
+                const inScope = allSettings.darkreaderscope.includes(scope)
+                if (allSettings.darkreader && inScope) {
+                    p.send("enable-darkreader")
+                } else {
+                    p.send("disable-darkreader")
+                }
+            })
+        }
+        if (setting.startsWith("userstyle")) {
+            listReadyPages().forEach(p => {
+                let scope = "page"
+                const specialPage = pathToSpecialPageName(p.src)
+                if (specialPage?.name) {
+                    scope = "special"
+                } else if (p.src.startsWith("file://")) {
+                    scope = "file"
+                }
+                const inScope = allSettings.userstylescope.includes(scope)
+                if (allSettings.userstyle && inScope) {
+                    p.send("enable-userstyle")
+                } else {
+                    p.send("disable-userstyle")
                 }
             })
         }
@@ -1217,16 +1842,20 @@ const set = (setting, value) => {
             updateWindowTitle()
         }
         updateHelpPage()
+        return true
     }
+    return false
 }
 
 const updateWindowTitle = () => {
-    const {name, version} = appConfig()
-    const title = tabOrPageMatching(currentPage())
-        ?.querySelector("span").textContent || ""
+    const config = appConfig()
+    const name = config?.name ?? ""
+    const version = config?.version ?? ""
+    const title = tabForPage(currentPage())
+        ?.querySelector("span")?.textContent || ""
     let url = currentPage()?.src || ""
     const specialPage = pathToSpecialPageName(url)
-    if (specialPage.name) {
+    if (specialPage?.name) {
         url = `${name.toLowerCase()}://${specialPage.name}`
         if (specialPage.section) {
             url += `#${specialPage.section}`
@@ -1239,24 +1868,28 @@ const updateWindowTitle = () => {
 
 const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     let typeLabel = "String"
+    /** @type {string|string[]} */
     let allowedValues = ""
     if (listLike.includes(setting)) {
-        typeLabel = "Like-like String"
+        typeLabel = "List"
         allowedValues = "Comma-separated list"
     }
     if (listLikeTilde.includes(setting)) {
-        typeLabel = "Like-like String"
+        typeLabel = "List"
         allowedValues = "Tilde-separated list"
     }
-    if (validOptions[setting]) {
-        typeLabel = "Fixed-set String"
+    if (isEnumSetting(setting)) {
+        typeLabel = "Enum"
         allowedValues = validOptions[setting]
     }
     if (typeof allSettings[setting] === "boolean") {
-        typeLabel = "Boolean flag"
+        typeLabel = "Boolean"
         allowedValues = "true,false"
     }
-    if (containerSettings.includes(setting)) {
+    if (setting === "clearhistoryinterval") {
+        allowedValues = "Interval, session or none"
+    }
+    if (containerSettings.includes(setting) || setting === "followchars") {
         allowedValues = "See description"
     }
     if (setting === "darkreaderfg" || setting === "darkreaderbg") {
@@ -1271,12 +1904,24 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     if (setting === "mouse") {
         allowedValues = "'all' or list of features"
     }
-    if (setting === "search") {
+    if (setting === "newtaburl") {
+        allowedValues = "Any URL"
+    }
+    if (setting === "searchengine") {
         allowedValues = "Any URL with %s"
+    }
+    if (setting === "shell") {
+        allowedValues = "Any system shell"
     }
     if (setting === "spelllang") {
         allowedValues = `A list containing any of these supported languages: ${
             spelllangs.join(", ")}`
+    }
+    if (setting === "translatekey") {
+        allowedValues = "API key"
+    }
+    if (setting === "translateurl") {
+        allowedValues = "API endpoint"
     }
     if (setting === "vimcommand") {
         allowedValues = "Any system command"
@@ -1284,7 +1929,7 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     if (setting === "windowtitle") {
         allowedValues = "Any title"
     }
-    if (typeof allSettings[setting] === "number") {
+    if (isNumberSetting(setting)) {
         typeLabel = "Number"
         if (numberRanges[setting]) {
             allowedValues = `from ${
@@ -1300,20 +1945,39 @@ const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
     }
 })
 
+/**
+ * Escape value chars as needed.
+ * @param {string | number} value
+ */
 const escapeValueChars = value => {
-    if (value?.match?.(/(')/g)?.length) {
+    if (typeof value === "number") {
+        return value
+    }
+    if (value.match(/(')/g)?.length) {
         return `"${value}"`
     }
-    if (value?.match?.(/("| )/g)?.length) {
+    if (value.match(/("| )/g)?.length) {
         return `'${value}'`
     }
     return value
 }
 
-const listCurrentSettings = full => {
+/**
+ * List all current settings, optionally with defaults included.
+ * @param {boolean} full
+ */
+const listCurrentSettings = (full = false) => {
+    /** @type {typeof defaultSettings} */
     const settings = JSON.parse(JSON.stringify(allSettings))
     if (!full) {
         const defaults = JSON.parse(JSON.stringify(defaultSettings))
+        if (isFile(joinPath(appData(), "erwicmode"))) {
+            const erwicDefaults = JSON.parse(
+                JSON.stringify(defaultErwicSettings)
+            )
+            Object.assign(defaults, erwicDefaults)
+        }
+
         Object.keys(settings).forEach(t => {
             if (JSON.stringify(settings[t]) === JSON.stringify(defaults[t])) {
                 delete settings[t]
@@ -1331,7 +1995,7 @@ const listCurrentSettings = full => {
             }
             return
         }
-        if (listLike.includes(setting)) {
+        if (listLike.includes(setting) && typeof value === "string") {
             const entries = value.split(",")
             if (entries.length > 1 || value.match(/( |'|")/g)) {
                 setCommands += `${setting}=\n`
@@ -1341,7 +2005,7 @@ const listCurrentSettings = full => {
                 return
             }
         }
-        if (listLikeTilde.includes(setting)) {
+        if (listLikeTilde.includes(setting) && typeof value === "string") {
             const entries = value.split("~")
             if (entries.length > 1 || value.match(/( |'|")/g)) {
                 setCommands += `${setting}=\n`
@@ -1356,6 +2020,10 @@ const listCurrentSettings = full => {
     return setCommands
 }
 
+/**
+ * Save the current settings, mappings, custom commands and colorscheme to disk.
+ * @param {boolean} full
+ */
 const saveToDisk = full => {
     let settingsAsCommands = ""
     const options = listCurrentSettings(full).split("\n").filter(s => s)
@@ -1379,11 +2047,19 @@ const saveToDisk = full => {
         settingsAsCommands += `" Commands\n${commands}\n\n`
     }
     settingsAsCommands += "\" Viebrc generated by Vieb\n\" vim: ft=vim\n"
-    const destFile = appConfig().config
-    writeFile(destFile, settingsAsCommands,
-        `Could not write to '${destFile}'`, `Viebrc saved to '${destFile}'`, 4)
+    const destFile = appConfig()?.config
+    if (destFile) {
+        writeFile(destFile, settingsAsCommands,
+            `Could not write to '${destFile}'`, `Viebrc saved to '${destFile}'`)
+    } else {
+        notify("No config location is known, could not write", "error")
+    }
 }
 
+/**
+ * Apply custom styling based on the colorscheme.
+ * @param {string} css
+ */
 const setCustomStyling = css => {
     customStyling = css
     updateCustomStyling()
@@ -1394,19 +2070,15 @@ const getCustomStyling = () => customStyling
 const updateCustomStyling = () => {
     document.body.style.fontSize = `${allSettings.guifontsize}px`
     updateWebviewSettings()
-    listPages().forEach(p => {
-        const isSpecialPage = pathToSpecialPageName(p.src).name
+    listReadyPages().forEach(p => {
+        const isSpecialPage = pathToSpecialPageName(p.src)?.name
         const isLocal = p.src.startsWith("file:/")
         const isErrorPage = p.getAttribute("failed-to-load")
         const isCustomView = p.src.startsWith("sourceviewer:")
             || p.src.startsWith("readerview:")
+            || p.src.startsWith("markdownviewer:")
         if (isSpecialPage || isLocal || isErrorPage || isCustomView) {
-            try {
-                p.send("set-custom-styling",
-                    allSettings.guifontsize, customStyling)
-            } catch {
-                // Page not ready yet or suspended
-            }
+            p.send("set-custom-styling", allSettings.guifontsize, customStyling)
         }
     })
     const {applyLayout} = require("./pagelayout")
@@ -1416,9 +2088,13 @@ const updateCustomStyling = () => {
 }
 
 module.exports = {
+    defaultSettings,
     freeText,
     getCustomStyling,
     init,
+    isEnumSetting,
+    isExistingSetting,
+    isNumberSetting,
     listCurrentSettings,
     listLike,
     listLikeTilde,

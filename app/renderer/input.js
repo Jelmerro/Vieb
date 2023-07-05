@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 
 const {ipcRenderer} = require("electron")
 const {
-    matchesQuery, notify, specialChars, isUrl, sendToPageOrSubFrame
+    matchesQuery, notify, specialChars, isUrl, sendToPageOrSubFrame, pageOffset
 } = require("../util")
 const {
     listTabs,
@@ -27,38 +27,29 @@ const {
     currentPage,
     currentMode,
     getSetting,
-    listPages,
     setTopOfPageWithMouse,
     getMouseConf,
-    updateScreenshotHighlight
+    updateScreenshotHighlight,
+    getUrl,
+    listReadyPages
 } = require("./common")
 
 const ACTIONS = require("./actions")
 const POINTER = require("./pointer")
 
+/** @type {{[mode: string]: {
+ *   [key: string]: {mapping: string, noremap?: boolean}
+ * }}} */
 const defaultBindings = {
     "c": {
-        "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<toNormalMode>"},
-        "<C-F4>": {"mapping": "<closeTab>"},
-        "<C-F5>": {"mapping": "<refreshTabWithoutCache>"},
         "<C-i>": {"mapping": "<editWithVim>"},
-        "<C-m>": {"mapping": "<menuOpen>"},
         "<C-n>": {"mapping": "<commandHistoryNext>"},
         "<C-p>": {"mapping": "<commandHistoryPrevious>"},
         "<CR>": {"mapping": "<useEnteredData>"},
         "<Down>": {"mapping": "<nextSuggestion>"},
         "<Esc>": {"mapping": "<toNormalMode>"},
-        "<F1>": {"mapping": "<:help>"},
         "<F2>": {"mapping": "<toNormalMode>"},
-        "<F3>": {"mapping": "<toSearchMode>"},
-        "<F4>": {"mapping": "<startFollowCurrentTab>"},
-        "<F5>": {"mapping": "<refreshTab>"},
-        "<F6>": {"mapping": "<toExploreMode>"},
-        "<F7>": {"mapping": "<p.start>"},
-        "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
-        "<F11>": {"mapping": "<toggleFullscreen>"},
-        "<F12>": {"mapping": "<:devtools>"},
         "<S-Tab>": {"mapping": "<prevSuggestion>"},
         "<Tab>": {"mapping": "<nextSuggestion>"},
         "<Up>": {"mapping": "<prevSuggestion>"},
@@ -68,31 +59,18 @@ const defaultBindings = {
         "<kUp>": {"mapping": "<prevSuggestion>"}
     },
     "e": {
-        "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<toNormalMode>"},
         "<C-Down>": {"mapping": "<nextSuggestionSection>"},
-        "<C-F4>": {"mapping": "<closeTab>"},
-        "<C-F5>": {"mapping": "<refreshTabWithoutCache>"},
         "<C-Up>": {"mapping": "<prevSuggestionSection>"},
         "<C-i>": {"mapping": "<editWithVim>"},
         "<C-kDown>": {"mapping": "<nextSuggestionSection>"},
         "<C-kUp>": {"mapping": "<prevSuggestionSection>"},
-        "<C-m>": {"mapping": "<menuOpen>"},
         "<C-n>": {"mapping": "<exploreHistoryNext>"},
         "<C-p>": {"mapping": "<exploreHistoryPrevious>"},
         "<CR>": {"mapping": "<useEnteredData>"},
         "<Down>": {"mapping": "<nextSuggestion>"},
         "<Esc>": {"mapping": "<toNormalMode>"},
-        "<F1>": {"mapping": "<:help>"},
-        "<F2>": {"mapping": "<toCommandMode>"},
-        "<F3>": {"mapping": "<toSearchMode>"},
-        "<F4>": {"mapping": "<startFollowCurrentTab>"},
-        "<F5>": {"mapping": "<refreshTab>"},
         "<F6>": {"mapping": "<toNormalMode>"},
-        "<F7>": {"mapping": "<p.start>"},
-        "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
-        "<F11>": {"mapping": "<toggleFullscreen>"},
-        "<F12>": {"mapping": "<:devtools>"},
         "<PageDown>": {"mapping": "<nextSuggestionSection>"},
         "<PageUp>": {"mapping": "<prevSuggestionSection>"},
         "<S-Tab>": {"mapping": "<prevSuggestion>"},
@@ -106,75 +84,33 @@ const defaultBindings = {
         "<kUp>": {"mapping": "<prevSuggestion>"}
     },
     "f": {
-        "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<stopFollowMode>"},
-        "<C-F4>": {"mapping": "<closeTab>"},
-        "<C-F5>": {"mapping": "<refreshTabWithoutCache>"},
-        "<C-m>": {"mapping": "<menuOpen>"},
         "<Esc>": {"mapping": "<stopFollowMode>"},
-        "<F1>": {"mapping": "<:help>"},
-        "<F2>": {"mapping": "<toCommandMode>"},
-        "<F3>": {"mapping": "<toSearchMode>"},
         "<F4>": {"mapping": "<stopFollowMode>"},
-        "<F5>": {"mapping": "<refreshTab>"},
-        "<F6>": {"mapping": "<toExploreMode>"},
-        "<F7>": {"mapping": "<p.start>"},
-        "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
-        "<F11>": {"mapping": "<toggleFullscreen>"},
-        "<F12>": {"mapping": "<:devtools>"},
-        "<Tab>": {"mapping": "<reorderFollowLinks>"}
+        "<Tab>": {"mapping": "<reorderFollowLinks>"},
+        "`": {"mapping": "<:set followlabelposition!>"}
     },
     "i": {
-        "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<toNormalMode>"},
-        "<C-F4>": {"mapping": "<closeTab>"},
-        "<C-F5>": {"mapping": "<refreshTabWithoutCache>"},
         "<C-i>": {"mapping": "<editWithVim>"},
-        "<C-m>": {"mapping": "<menuOpen>"},
         "<CapsLock>": {"mapping": "<nop>"},
         "<Esc>": {"mapping": "<toNormalMode>"},
-        "<F1>": {"mapping": "<:help>"},
-        "<F2>": {"mapping": "<toCommandMode>"},
-        "<F3>": {"mapping": "<toSearchMode>"},
-        "<F4>": {"mapping": "<startFollowCurrentTab>"},
-        "<F5>": {"mapping": "<refreshTab>"},
-        "<F6>": {"mapping": "<toExploreMode>"},
-        "<F7>": {"mapping": "<p.start>"},
-        "<F8>": {"mapping": "<nop>"},
-        "<F9>": {"mapping": "<nop>"},
-        "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
-        "<F11>": {"mapping": "<toggleFullscreen>"},
-        "<F12>": {"mapping": "<:devtools>"},
         "<NumLock>": {"mapping": "<nop>"},
         "<ScrollLock>": {"mapping": "<nop>"}
     },
     "m": {
         ".": {"mapping": "<repeatLastAction>"},
-        "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<menuClose>"},
         "<C-Down>": {"mapping": "<menuSectionDown>"},
-        "<C-F4>": {"mapping": "<closeTab>"},
-        "<C-F5>": {"mapping": "<refreshTabWithoutCache>"},
         "<C-Up>": {"mapping": "<menuSectionUp>"},
         "<C-kDown>": {"mapping": "<menuSectionDown>"},
         "<C-kUp>": {"mapping": "<menuSectionUp>"},
-        "<C-m>": {"mapping": "<menuOpen>"},
         "<C-n>": {"mapping": "<menuDown>"},
         "<C-p>": {"mapping": "<menuUp>"},
         "<CR>": {"mapping": "<menuSelect>"},
         "<Down>": {"mapping": "<menuDown>"},
         "<End>": {"mapping": "<menuBottom>"},
         "<Esc>": {"mapping": "<menuClose>"},
-        "<F1>": {"mapping": "<:help>"},
-        "<F2>": {"mapping": "<toCommandMode>"},
-        "<F3>": {"mapping": "<toSearchMode>"},
-        "<F4>": {"mapping": "<startFollowCurrentTab>"},
-        "<F5>": {"mapping": "<refreshTab>"},
-        "<F6>": {"mapping": "<toExploreMode>"},
-        "<F7>": {"mapping": "<p.start>"},
-        "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
-        "<F11>": {"mapping": "<toggleFullscreen>"},
-        "<F12>": {"mapping": "<:devtools>"},
         "<Home>": {"mapping": "<menuTop>"},
         "<PageDown>": {"mapping": "<menuSectionDown>"},
         "<PageUp>": {"mapping": "<menuSectionUp>"},
@@ -193,40 +129,35 @@ const defaultBindings = {
         "L": {"mapping": "<menuBottom>"}
     },
     "n": {
+        "\"<Any>": {"mapping": "<restoreMark>"},
         "$": {"mapping": "<scrollRightMax>"},
+        "'<Any>": {"mapping": "<restoreScrollPos>"},
         "+": {"mapping": "<zoomIn>"},
         ".": {"mapping": "<repeatLastAction>"},
         "/": {"mapping": "<toSearchMode>"},
         ":": {"mapping": "<toCommandMode>"},
-        "<A-F4>": {"mapping": "<:quitall>"},
-        "<C-0>": {"mapping": "<zoomReset>"},
-        "<C-F4>": {"mapping": "<closeTab>"},
-        "<C-F5>": {"mapping": "<refreshTabWithoutCache>"},
-        "<C-PageDown>": {"mapping": "<nextTab>"},
-        "<C-PageUp>": {"mapping": "<previousTab>"},
-        "<C-S-PageDown>": {"mapping": "<moveTabForward>"},
-        "<C-S-Tab>": {"mapping": "<previousTab>"},
-        "<C-S-kPageDown>": {"mapping": "<moveTabForward>"},
-        "<C-S-kPageUp>": {"mapping": "<moveTabBackward>"},
-        "<C-Tab>": {"mapping": "<nextTab>"},
+        ";": {"mapping": "<toCommandMode>"},
+        "<BS>": {"mapping": "<emptySearch>"},
+        "<C-[>": {"mapping": "<stopLoadingPage>"},
+        "<C-Left>": {"mapping": "<backInHistory>"},
+        "<C-Right>": {"mapping": "<forwardInHistory>"},
         "<C-a>": {"mapping": "<increasePageNumber>"},
         "<C-b>": {"mapping": "<scrollPageUp>"},
-        "<C-c>": {"mapping": "<stopLoadingPage>"},
+        "<C-c>": {"mapping": "<p.copyText>"},
         "<C-d>": {"mapping": "<scrollPageDownHalf>"},
         "<C-e>": {"mapping": "<scrollDown>"},
         "<C-f>": {"mapping": "<scrollPageDown>"},
         "<C-i>": {"mapping": "<forwardInHistory>"},
         "<C-j>": {"mapping": "<moveTabForward>"},
         "<C-k>": {"mapping": "<moveTabBackward>"},
-        "<C-k0>": {"mapping": "<zoomReset>"},
         "<C-kPageDown>": {"mapping": "<nextTab>"},
         "<C-kPageUp>": {"mapping": "<previousTab>"},
-        "<C-m>": {"mapping": "<menuOpen>"},
+        "<C-l>": {"mapping": "<toExploreMode>"},
         "<C-n>": {"mapping": "<nextTab>"},
         "<C-o>": {"mapping": "<backInHistory>"},
         "<C-p>": {"mapping": "<previousTab>"},
-        "<C-t>": {"mapping": "<:set tabnexttocurrent!>"
-            + "<openNewTab><:set tabnexttocurrent!>"},
+        "<C-t>": {"mapping": "<:set tabnewposition=end>"
+            + "<:tabnew><:set tabnewposition=right>"},
         "<C-u>": {"mapping": "<scrollPageUpHalf>"},
         "<C-w>+": {"mapping": "<increaseHeightSplitWindow>"},
         "<C-w><C-=>": {"mapping": "<distrubuteSpaceSplitWindow>"},
@@ -285,16 +216,7 @@ const defaultBindings = {
         "<CR>": {"mapping": "<clickOnSearch>"},
         "<Down>": {"mapping": "<scrollDown>"},
         "<End>": {"mapping": "<scrollBottom>"},
-        "<F1>": {"mapping": "<:help>"},
-        "<F2>": {"mapping": "<toCommandMode>"},
-        "<F3>": {"mapping": "<toSearchMode>"},
-        "<F4>": {"mapping": "<startFollowCurrentTab>"},
-        "<F5>": {"mapping": "<refreshTab>"},
-        "<F6>": {"mapping": "<toExploreMode>"},
-        "<F7>": {"mapping": "<p.start>"},
-        "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
-        "<F11>": {"mapping": "<toggleFullscreen>"},
-        "<F12>": {"mapping": "<:devtools>"},
+        "<Esc>": {"mapping": "<stopLoadingPage>"},
         "<Home>": {"mapping": "<scrollTop>"},
         "<Left>": {"mapping": "<scrollLeft>"},
         "<PageDown>": {"mapping": "<scrollPageDown>"},
@@ -316,8 +238,10 @@ const defaultBindings = {
         "<kRight>": {"mapping": "<scrollRight>"},
         "<kUp>": {"mapping": "<scrollUp>"},
         "=": {"mapping": "<zoomIn>"},
+        "?": {"mapping": "<toSearchMode>"},
         "@:": {"mapping": "<toCommandMode><commandHistoryPrevious>"
             + "<useEnteredData>"},
+        "@<Any>": {"mapping": "<runRecording>"},
         "[": {"mapping": "<previousPage>"},
         "]": {"mapping": "<nextPage>"},
         "^": {"mapping": "<scrollLeftMax>"},
@@ -333,7 +257,7 @@ const defaultBindings = {
         "BV": {"mapping": "<:Vexplore #>"},
         "BZ": {"mapping": "<:suspend #>"},
         "D": {"mapping": "<downloadLink>"},
-        "E": {"mapping": "<openNewTab><toExploreMode>"},
+        "E": {"mapping": "<:tabnew><toExploreMode>"},
         "F": {"mapping": "<startFollowNewTab>"},
         "G": {"mapping": "<scrollBottom>"},
         "H": {"mapping": "<backInHistory>"},
@@ -341,9 +265,10 @@ const defaultBindings = {
         "J": {"mapping": "<nextTab>"},
         "K": {"mapping": "<previousTab>"},
         "L": {"mapping": "<forwardInHistory>"},
+        "M<Any>": {"mapping": "<makeMark>"},
         "N": {"mapping": "<previousSearchMatch>"},
         "O": {"mapping": "<moveTabEnd>"},
-        "P": {"mapping": "<openNewTab><openFromClipboard>"},
+        "P": {"mapping": "<:tabnew><openFromClipboard>"},
         "R": {"mapping": "<refreshTabWithoutCache>"},
         "S": {"mapping": "<startFollowNewSplit>"},
         "T": {"mapping": "<openNewTabWithCurrentUrl>"},
@@ -357,6 +282,7 @@ const defaultBindings = {
         "g<C-a>": {"mapping": "<increasePortNumber>"},
         "g<C-x>": {"mapping": "<decreasePortNumber>"},
         "gF": {"mapping": "<toggleSourceViewerNewTab>"},
+        "gM": {"mapping": "<toggleMarkdownViewerNewTab>"},
         "gR": {"mapping": "<toggleReaderViewNewTab>"},
         "gS": {"mapping": "<toRootSubdomain>"},
         "gT": {"mapping": "<previousTab>"},
@@ -364,6 +290,7 @@ const defaultBindings = {
         "gf": {"mapping": "<toggleSourceViewer>"},
         "gg": {"mapping": "<scrollTop>"},
         "gi": {"mapping": "<insertAtFirstInput>"},
+        "gm": {"mapping": "<toggleMarkdownViewer>"},
         "gr": {"mapping": "<toggleReaderView>"},
         "gs": {"mapping": "<toParentSubdomain>"},
         "gt": {"mapping": "<nextTab>"},
@@ -374,16 +301,27 @@ const defaultBindings = {
         "j": {"mapping": "<scrollDown>"},
         "k": {"mapping": "<scrollUp>"},
         "l": {"mapping": "<scrollRight>"},
+        "m<Any>": {"mapping": "<storeScrollPos>"},
         "n": {"mapping": "<nextSearchMatch>"},
         "p": {"mapping": "<openFromClipboard>"},
+        "q": {"mapping": "<stopRecording><:nmap q<Any> <:nunmap q<Any>>"
+            + "<:punmap q<Any>><:vunmap q<Any>><startRecording>>"
+            + "<:pmap q<Any> <:nunmap q<Any>><:punmap q<Any>>"
+            + "<:vunmap q<Any>><startRecording>><:vmap q<Any> <:nunmap q<Any>>"
+            + "<:punmap q<Any>><:vunmap q<Any>><startRecording>>"},
+        "q<Any>": {"mapping": "<:nunmap q<Any>><:punmap q<Any>>"
+            + "<:vunmap q<Any>><startRecording>"},
         "r": {"mapping": "<refreshTab>"},
         "s": {"mapping": "<p.moveToMouse>"},
-        "t": {"mapping": "<openNewTab>"},
+        "t": {"mapping": "<:tabnew>"},
         "u": {"mapping": "<reopenTab>"},
         "v": {"mapping": "<p.start>"},
         "w": {"mapping": "<nextTab>"},
         "x": {"mapping": "<openLinkExternal>"},
+        "yR<Any>": {"mapping": "<pageRSSLinkToClipboard>"},
+        "yRL": {"mapping": "<pageRSSLinksList>"},
         "ye": {"mapping": "<pageToClipboardEmacs>"},
+        "yf": {"mapping": "<startFollowCopyLink>"},
         "yh": {"mapping": "<pageToClipboardHTML>"},
         "ym": {"mapping": "<pageToClipboardMarkdown>"},
         "yr": {"mapping": "<pageToClipboardRST>"},
@@ -394,21 +332,22 @@ const defaultBindings = {
         "zL": {"mapping": "<scrollPageRight>"},
         "zh": {"mapping": "<scrollLeft>"},
         "zl": {"mapping": "<scrollRight>"},
+        "zm": {"mapping": "<:mute>"},
         "zp": {"mapping": "<:pin>"}
     },
     "p": {
+        "\"<Any>": {"mapping": "<p.restorePos>"},
         "$": {"mapping": "<p.moveRightMax>"},
+        "'<Any>": {"mapping": "<p.restorePos>"},
         "*": {"mapping": "<p.vsplitLink>"},
         ".": {"mapping": "<repeatLastAction>"},
-        "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<toNormalMode>"},
         "<C-End>": {"mapping": "<p.endOfPage>"},
-        "<C-F4>": {"mapping": "<closeTab>"},
-        "<C-F5>": {"mapping": "<refreshTabWithoutCache>"},
         "<C-Home>": {"mapping": "<p.startOfPage>"},
         "<C-Left>": {"mapping": "<p.moveFastLeft>"},
         "<C-Right>": {"mapping": "<p.moveFastRight>"},
         "<C-b>": {"mapping": "<scrollPageUp>"},
+        "<C-c>": {"mapping": "<p.copyText>"},
         "<C-d>": {"mapping": "<p.moveFastDown>"},
         "<C-f>": {"mapping": "<scrollPageDown>"},
         "<C-h>": {"mapping": "<p.moveSlowLeft>"},
@@ -419,22 +358,12 @@ const defaultBindings = {
         "<C-kLeft>": {"mapping": "<p.moveFastLeft>"},
         "<C-kRight>": {"mapping": "<p.moveFastRight>"},
         "<C-l>": {"mapping": "<p.moveSlowRight>"},
-        "<C-m>": {"mapping": "<menuOpen>"},
         "<C-u>": {"mapping": "<p.moveFastUp>"},
         "<CR>": {"mapping": "<p.leftClick>"},
         "<Down>": {"mapping": "<p.moveDown>"},
         "<End>": {"mapping": "<p.moveRightMax>"},
         "<Esc>": {"mapping": "<toNormalMode>"},
-        "<F1>": {"mapping": "<:help>"},
-        "<F2>": {"mapping": "<toCommandMode>"},
-        "<F3>": {"mapping": "<toSearchMode>"},
-        "<F4>": {"mapping": "<startFollowCurrentTab>"},
-        "<F5>": {"mapping": "<refreshTab>"},
-        "<F6>": {"mapping": "<toExploreMode>"},
         "<F7>": {"mapping": "<toNormalMode>"},
-        "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
-        "<F11>": {"mapping": "<toggleFullscreen>"},
-        "<F12>": {"mapping": "<:devtools>"},
         "<Home>": {"mapping": "<p.moveLeftMax>"},
         "<Left>": {"mapping": "<p.moveLeft>"},
         "<Right>": {"mapping": "<p.moveRight>"},
@@ -453,6 +382,7 @@ const defaultBindings = {
         "<kUp>": {"mapping": "<p.moveUp>"},
         "<lt>": {"mapping": "<p.scrollLeft>"},
         ">": {"mapping": "<p.scrollRight>"},
+        "@<Any>": {"mapping": "<runRecording>"},
         "[": {"mapping": "<p.scrollUp>"},
         "]": {"mapping": "<p.scrollDown>"},
         "^": {"mapping": "<p.moveLeftMax>"},
@@ -491,6 +421,7 @@ const defaultBindings = {
         "Vs": {"mapping": "<p.vsplitLink>"},
         "Vv": {"mapping": "<p.vsplitVideo>"},
         "W": {"mapping": "<p.moveFastRight>"},
+        "a<Any>": {"mapping": "<p.storePos>"},
         "b": {"mapping": "<p.moveFastLeft>"},
         "da": {"mapping": "<p.downloadAudio>"},
         "dd": {"mapping": "<p.downloadLink>"},
@@ -520,6 +451,13 @@ const defaultBindings = {
         "ol": {"mapping": "<p.openLink>"},
         "oo": {"mapping": "<p.openLink>"},
         "ov": {"mapping": "<p.openVideo>"},
+        "q": {"mapping": "<stopRecording><:nmap q<Any> <:nunmap q<Any>>"
+            + "<:punmap q<Any>><:vunmap q<Any>><startRecording>>"
+            + "<:pmap q<Any> <:nunmap q<Any>><:punmap q<Any>>"
+            + "<:vunmap q<Any>><startRecording>><:vmap q<Any> <:nunmap q<Any>>"
+            + "<:punmap q<Any>><:vunmap q<Any>><startRecording>>"},
+        "q<Any>": {"mapping": "<:nunmap q<Any>><:punmap q<Any>>"
+            + "<:vunmap q<Any>><startRecording>"},
         "r": {"mapping": "<p.rightClick>"},
         "s": {"mapping": "<p.moveToMouse>"},
         "ta": {"mapping": "<p.newtabAudio>"},
@@ -537,10 +475,12 @@ const defaultBindings = {
         "xv": {"mapping": "<p.externalVideo>"},
         "xx": {"mapping": "<p.externalLink>"},
         "yI": {"mapping": "<p.copyImageBuffer>"},
+        "yT": {"mapping": "<p.copyPageTitle>"},
         "ya": {"mapping": "<p.copyAudio>"},
         "yf": {"mapping": "<p.copyFrame>"},
         "yi": {"mapping": "<p.copyImage>"},
         "yl": {"mapping": "<p.copyLink>"},
+        "yt": {"mapping": "<p.copyTitleAttr>"},
         "yv": {"mapping": "<p.copyVideo>"},
         "yy": {"mapping": "<p.copyLink>"},
         "zH": {"mapping": "<scrollPageLeft>"},
@@ -549,40 +489,27 @@ const defaultBindings = {
         "zl": {"mapping": "<scrollRight>"}
     },
     "s": {
-        "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<toNormalMode>"},
-        "<C-F4>": {"mapping": "<closeTab>"},
-        "<C-F5>": {"mapping": "<refreshTabWithoutCache>"},
         "<C-i>": {"mapping": "<editWithVim>"},
-        "<C-m>": {"mapping": "<menuOpen>"},
         "<CR>": {"mapping": "<useEnteredData>"},
         "<Esc>": {"mapping": "<toNormalMode>"},
-        "<F1>": {"mapping": "<:help>"},
-        "<F2>": {"mapping": "<toCommandMode>"},
         "<F3>": {"mapping": "<toNormalMode>"},
-        "<F4>": {"mapping": "<startFollowCurrentTab>"},
-        "<F5>": {"mapping": "<refreshTab>"},
-        "<F6>": {"mapping": "<toExploreMode>"},
-        "<F7>": {"mapping": "<p.start>"},
-        "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
-        "<F11>": {"mapping": "<toggleFullscreen>"},
-        "<F12>": {"mapping": "<:devtools>"},
         "<kClear>": {"mapping": "<useEnteredData>"},
         "<kEnter>": {"mapping": "<useEnteredData>"}
     },
     "v": {
+        "\"<Any>": {"mapping": "<p.restorePos>"},
         "$": {"mapping": "<p.moveRightMax>"},
+        "'<Any>": {"mapping": "<p.restorePos>"},
         "*": {"mapping": "<p.searchText><toNormalMode>"},
         ".": {"mapping": "<repeatLastAction>"},
-        "<A-F4>": {"mapping": "<:quitall>"},
         "<C-[>": {"mapping": "<toNormalMode>"},
         "<C-End>": {"mapping": "<p.endOfPage>"},
-        "<C-F4>": {"mapping": "<closeTab>"},
-        "<C-F5>": {"mapping": "<refreshTabWithoutCache>"},
         "<C-Home>": {"mapping": "<p.startOfPage>"},
         "<C-Left>": {"mapping": "<p.moveFastLeft>"},
         "<C-Right>": {"mapping": "<p.moveFastRight>"},
         "<C-b>": {"mapping": "<scrollPageUp>"},
+        "<C-c>": {"mapping": "<p.copyText>"},
         "<C-d>": {"mapping": "<p.moveFastDown>"},
         "<C-f>": {"mapping": "<scrollPageDown>"},
         "<C-h>": {"mapping": "<p.moveSlowLeft>"},
@@ -593,21 +520,11 @@ const defaultBindings = {
         "<C-kLeft>": {"mapping": "<p.moveFastLeft>"},
         "<C-kRight>": {"mapping": "<p.moveFastRight>"},
         "<C-l>": {"mapping": "<p.moveSlowRight>"},
-        "<C-m>": {"mapping": "<menuOpen>"},
         "<C-u>": {"mapping": "<p.moveFastUp>"},
         "<Down>": {"mapping": "<p.moveDown>"},
         "<End>": {"mapping": "<p.moveRightMax>"},
         "<Esc>": {"mapping": "<toNormalMode>"},
-        "<F1>": {"mapping": "<:help>"},
-        "<F2>": {"mapping": "<toCommandMode>"},
-        "<F3>": {"mapping": "<toSearchMode>"},
-        "<F4>": {"mapping": "<startFollowCurrentTab>"},
-        "<F5>": {"mapping": "<refreshTab>"},
-        "<F6>": {"mapping": "<toExploreMode>"},
         "<F7>": {"mapping": "<toNormalMode>"},
-        "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
-        "<F11>": {"mapping": "<toggleFullscreen>"},
-        "<F12>": {"mapping": "<:devtools>"},
         "<Home>": {"mapping": "<p.moveLeftMax>"},
         "<Left>": {"mapping": "<p.moveLeft>"},
         "<Right>": {"mapping": "<p.moveRight>"},
@@ -622,6 +539,7 @@ const defaultBindings = {
         "<kUp>": {"mapping": "<p.moveUp>"},
         "<lt>": {"mapping": "<p.scrollLeft>"},
         ">": {"mapping": "<p.scrollRight>"},
+        "@<Any>": {"mapping": "<runRecording>"},
         "[": {"mapping": "<p.scrollUp>"},
         "]": {"mapping": "<p.scrollDown>"},
         "^": {"mapping": "<p.moveLeftMax>"},
@@ -634,6 +552,7 @@ const defaultBindings = {
         "L": {"mapping": "<p.endOfView>"},
         "M": {"mapping": "<p.centerOfView>"},
         "W": {"mapping": "<p.moveFastRight>"},
+        "a<Any>": {"mapping": "<p.storePos>"},
         "b": {"mapping": "<p.moveFastLeft>"},
         "c": {"mapping": "<toNormalMode><p.start>"},
         "f": {"mapping": "<startFollowCurrentTab>"},
@@ -643,6 +562,13 @@ const defaultBindings = {
         "k": {"mapping": "<p.moveUp>"},
         "l": {"mapping": "<p.moveRight>"},
         "o": {"mapping": "<p.swapPosition>"},
+        "q": {"mapping": "<stopRecording><:nmap q<Any> <:nunmap q<Any>>"
+            + "<:punmap q<Any>><:vunmap q<Any>><startRecording>>"
+            + "<:pmap q<Any> <:nunmap q<Any>><:punmap q<Any>>"
+            + "<:vunmap q<Any>><startRecording>><:vmap q<Any> <:nunmap q<Any>>"
+            + "<:punmap q<Any>><:vunmap q<Any>><startRecording>>"},
+        "q<Any>": {"mapping": "<:nunmap q<Any>><:punmap q<Any>>"
+            + "<:vunmap q<Any>><startRecording>"},
         "r": {"mapping": "<p.rightClick>"},
         "s": {"mapping": "<p.moveToMouse>"},
         "tS": {"mapping": "<p.splitText>"},
@@ -661,34 +587,116 @@ const defaultBindings = {
         "zl": {"mapping": "<scrollRight>"}
     }
 }
+const globalDefaultMappings = {
+    "<A-0>": {"mapping": "<:buffer -1>"},
+    "<A-1>": {"mapping": "<:buffer 0>"},
+    "<A-2>": {"mapping": "<:buffer 1>"},
+    "<A-3>": {"mapping": "<:buffer 2>"},
+    "<A-4>": {"mapping": "<:buffer 3>"},
+    "<A-5>": {"mapping": "<:buffer 4>"},
+    "<A-6>": {"mapping": "<:buffer 5>"},
+    "<A-7>": {"mapping": "<:buffer 6>"},
+    "<A-8>": {"mapping": "<:buffer 7>"},
+    "<A-9>": {"mapping": "<:buffer 8>"},
+    "<A-F4>": {"mapping": "<:quitall>"},
+    "<A-Left>": {"mapping": "<backInHistory>"},
+    "<A-Right>": {"mapping": "<forwardInHistory>"},
+    "<A-m>": {"mapping": "<:mute>"},
+    "<A-p>": {"mapping": "<:pin>"},
+    "<C-+>": {"mapping": "<zoomIn>"},
+    "<C-=>": {"mapping": "<zoomIn>"},
+    "<C-_>": {"mapping": "<zoomOut>"},
+    "<C-->": {"mapping": "<zoomOut>"},
+    "<C-0>": {"mapping": "<zoomReset>"},
+    "<C-F4>": {"mapping": "<:close>"},
+    "<C-F5>": {"mapping": "<refreshTabWithoutCache>"},
+    "<C-H>": {"mapping": "<:history>"},
+    "<C-I>": {"mapping": "<:devtools>"},
+    "<C-J>": {"mapping": "<:downloads>"},
+    "<C-PageDown>": {"mapping": "<nextTab>"},
+    "<C-PageUp>": {"mapping": "<previousTab>"},
+    "<C-S-End>": {"mapping": "<moveTabEnd>"},
+    "<C-S-Home>": {"mapping": "<moveTabStart>"},
+    "<C-S-PageDown>": {"mapping": "<moveTabForward>"},
+    "<C-S-PageUp>": {"mapping": "<moveTabBackward>"},
+    "<C-S-Tab>": {"mapping": "<previousTab>"},
+    "<C-S-kPageDown>": {"mapping": "<moveTabForward>"},
+    "<C-S-kPageUp>": {"mapping": "<moveTabBackward>"},
+    "<C-T>": {"mapping": "<reopenTab>"},
+    "<C-Tab>": {"mapping": "<nextTab>"},
+    "<C-Y>": {"mapping": "<:downloads>"},
+    "<C-k0>": {"mapping": "<zoomReset>"},
+    "<C-m>": {"mapping": "<menuOpen>"},
+    "<C-q>": {"mapping": "<:quit>"},
+    "<ContextMenu>": {"mapping": "<menuOpen>"},
+    "<F1>": {"mapping": "<:help>"},
+    "<F2>": {"mapping": "<toCommandMode>"},
+    "<F3>": {"mapping": "<toSearchMode>"},
+    "<F4>": {"mapping": "<startFollowCurrentTab>"},
+    "<F5>": {"mapping": "<refreshTab>"},
+    "<F6>": {"mapping": "<toExploreMode>"},
+    "<F7>": {"mapping": "<p.start>"},
+    "<F8>": {"mapping": "<:internaldevtools>"},
+    "<F9>": {"mapping": "<nop>"},
+    "<F10>": {"mapping": "<toggleAlwaysOnTop>"},
+    "<F11>": {"mapping": "<toggleFullscreen>"},
+    "<F12>": {"mapping": "<:devtools>"}
+}
+Object.keys(defaultBindings).forEach(mode => {
+    Object.keys(globalDefaultMappings).forEach(key => {
+        if (!defaultBindings[mode][key]) {
+            defaultBindings[mode][key] = globalDefaultMappings[key]
+        }
+    })
+})
 let repeatCounter = 0
 let recursiveCounter = 0
 let pressedKeys = ""
-let bindings = {}
+/** @type {typeof defaultBindings} */
+let bindings = JSON.parse(JSON.stringify(defaultBindings))
+/** @type {string[]} */
 let supportedActions = []
+/** @type {number|null} */
 let timeoutTimer = null
 let blockNextInsertKey = false
-const mapStringSplitter = /(<.*?[^-]>|<.*?->>|.)/g
 let inputHistoryList = [{"index": 0, "value": ""}]
 let inputHistoryIndex = 0
+/** @type {string|null} */
 let lastActionInMapping = null
+/** @type {{mapStr: string, recursive: boolean}|null} */
 let lastExecutedMapstring = null
+/** @type {false|"position"|"size"} */
 let draggingScreenshotFrame = false
-let lastX = 0
-let lastY = 0
+let lastScreenshotX = 0
+let lastScreenshotY = 0
+/** @type {number|null} */
+let suggestionTimer = null
+let hadModifier = false
+/** @type {string|null} */
+let recordingName = null
+let recordingString = ""
 
 const init = () => {
     window.addEventListener("keydown", handleKeyboard)
     window.addEventListener("keypress", e => e.preventDefault())
     window.addEventListener("keyup", e => e.preventDefault())
     window.addEventListener("mousedown", e => {
+        if (currentMode() === "insert" && getMouseConf("leaveinsert")) {
+            if (!e.composedPath().some(n => matchesQuery(n, "#context-menu"))) {
+                ACTIONS.toNormalMode()
+            }
+        }
         if (e.button === 3) {
-            ACTIONS.backInHistory()
+            if (getMouseConf("history")) {
+                ACTIONS.backInHistory()
+            }
             e.preventDefault()
             return
         }
         if (e.button === 4) {
-            ACTIONS.forwardInHistory()
+            if (getMouseConf("history")) {
+                ACTIONS.forwardInHistory()
+            }
             e.preventDefault()
             return
         }
@@ -696,7 +704,7 @@ const init = () => {
             e.preventDefault()
         }
         const selector = "#screenshot-highlight"
-        if (e.composedPath().find(el => matchesQuery(el, selector))) {
+        if (e.composedPath().some(n => matchesQuery(n, selector))) {
             if (getMouseConf("screenshotframe")) {
                 if (e.button === 0) {
                     draggingScreenshotFrame = "position"
@@ -706,8 +714,18 @@ const init = () => {
                 e.preventDefault()
             }
         }
+        if (e.target === getUrl()) {
+            const {followFiltering} = require("./follow")
+            const typing = "sec".includes(currentMode()[0]) || followFiltering()
+            if (typing && !getMouseConf("url")) {
+                e.preventDefault()
+            }
+            if (!typing && !getMouseConf("toexplore")) {
+                e.preventDefault()
+            }
+        }
     })
-    document.getElementById("tabs").addEventListener("dblclick", e => {
+    document.getElementById("tabs")?.addEventListener("dblclick", e => {
         if (getMouseConf("newtab")) {
             const {addTab} = require("./tabs")
             addTab()
@@ -716,15 +734,29 @@ const init = () => {
         }
         ACTIONS.setFocusCorrectly()
     })
-    window.addEventListener("mousewheel", ev => {
-        if (ev.composedPath().find(e => matchesQuery(e, "#tabs"))) {
+    window.addEventListener("wheel", ev => {
+        if (ev.composedPath().some(e => matchesQuery(e, "#tabs"))) {
             if (getMouseConf("scrolltabs")) {
                 // Make both directions of scrolling move the tabs horizontally
-                document.getElementById("tabs").scrollBy(
+                document.getElementById("tabs")?.scrollBy(
                     ev.deltaX + ev.deltaY, ev.deltaX + ev.deltaY)
             }
         }
-        if (ev.composedPath().find(e => matchesQuery(e, "#suggest-dropdown"))) {
+        const overPageElements = "#page-container, #screenshot-highlight"
+        if (ev.composedPath().some(e => matchesQuery(e, overPageElements))) {
+            const page = currentPage()
+            if (getMouseConf("pageoutsideinsert") && page) {
+                const {top, left} = pageOffset(page)
+                sendToPageOrSubFrame("send-input-event", {
+                    "deltaX": -ev.deltaX,
+                    "deltaY": -ev.deltaY,
+                    "type": "scroll",
+                    "x": ev.x - left,
+                    "y": ev.y - top
+                })
+            }
+        }
+        if (ev.composedPath().some(e => matchesQuery(e, "#suggest-dropdown"))) {
             if (!getMouseConf("scrollsuggest")) {
                 ev.preventDefault()
             }
@@ -738,29 +770,53 @@ const init = () => {
             e.preventDefault()
             return
         }
-        if (e.button === 1) {
-            if (e.target === document.getElementById("url")) {
-                if (getMouseConf("toexplore")) {
-                    ACTIONS.toExploreMode()
-                    return
-                }
-            } else if (getMouseConf("closetab")) {
-                const tab = e.composedPath().find(el => listTabs().includes(el))
-                if (tab) {
-                    const {closeTab} = require("./tabs")
-                    closeTab(listTabs().indexOf(tab))
-                }
-                const {clear} = require("./contextmenu")
-                clear()
+        if (e.target === getUrl()) {
+            const {followFiltering} = require("./follow")
+            const typing = "sec".includes(currentMode()[0]) || followFiltering()
+            if (typing && !getMouseConf("url")) {
+                e.preventDefault()
+            } else if (typing && e.button === 1) {
+                setTimeout(() => requestSuggestUpdate(), 1)
             }
+            if (getMouseConf("toexplore")) {
+                if (!typing) {
+                    ACTIONS.toExploreMode()
+                }
+                return
+            }
+        } else {
             e.preventDefault()
         }
+        if (e.button === 1 && getMouseConf("closetab")) {
+            const tab = e.composedPath().find(n => {
+                if (n instanceof HTMLElement) {
+                    return listTabs().includes(n)
+                }
+                return false
+            })
+            if (tab instanceof HTMLElement) {
+                const {closeTab} = require("./tabs")
+                closeTab(listTabs().indexOf(tab))
+            }
+            const {clear} = require("./contextmenu")
+            clear()
+        }
+        ACTIONS.setFocusCorrectly()
+    })
+    window.addEventListener("mouseout", () => {
+        const {followFiltering} = require("./follow")
+        const typing = "sec".includes(currentMode()[0]) || followFiltering()
+        if (!typing) {
+            getUrl()?.setSelectionRange(0, 0)
+            window.getSelection()?.removeAllRanges()
+        }
+        ACTIONS.setFocusCorrectly()
     })
     window.addEventListener("cut", cutInput)
     window.addEventListener("copy", copyInput)
-    window.addEventListener("copy", pasteInput)
+    window.addEventListener("paste", pasteInput)
     window.addEventListener("click", e => {
-        if (e.composedPath().find(el => matchesQuery(el, "#context-menu"))) {
+        if (e.composedPath().some(n => matchesQuery(n, "#context-menu"))) {
             return
         }
         if (draggingScreenshotFrame && getMouseConf("screenshotframe")) {
@@ -769,23 +825,37 @@ const init = () => {
         }
         const {clear} = require("./contextmenu")
         clear()
+        if (!(e.target instanceof HTMLElement)) {
+            return
+        }
         if (e.target.classList.contains("no-focus-reset")) {
             return
         }
         e.preventDefault()
-        if (e.target === document.getElementById("url")) {
-            if (!"sec".includes(currentMode()[0])) {
-                if (getMouseConf("toexplore")) {
-                    ACTIONS.toExploreMode()
-                }
+        /**
+         * Find the url box or the suggest dropdown in the list of targets.
+         * @param {MouseEvent} ev
+         */
+        const urlOrSuggest = ev => ev.composedPath().find(
+            n => matchesQuery(n, "#url, #suggest-dropdown"))
+        if (urlOrSuggest(e)) {
+            const {followFiltering} = require("./follow")
+            const typing = "sec".includes(currentMode()[0]) || followFiltering()
+            if (!typing && getMouseConf("toexplore")) {
+                ACTIONS.toExploreMode()
             }
         } else if ("sec".includes(currentMode()[0])) {
             if (getMouseConf("leaveinput")) {
                 ACTIONS.toNormalMode()
             }
         } else if (getMouseConf("switchtab")) {
-            const tab = e.composedPath().find(el => listTabs().includes(el))
-            if (tab) {
+            const tab = e.composedPath().find(n => {
+                if (n instanceof HTMLSpanElement) {
+                    return listTabs().includes(n)
+                }
+                return false
+            })
+            if (tab instanceof HTMLSpanElement) {
                 clear()
                 const {switchToTab} = require("./tabs")
                 switchToTab(tab)
@@ -799,10 +869,10 @@ const init = () => {
             setTopOfPageWithMouse(getMouseConf("guiontop"))
         }
         if (getSetting("mousefocus")) {
-            document.elementsFromPoint(e.x, e.y).forEach(el => {
-                if (matchesQuery(el, tabSelector)) {
+            document.elementsFromPoint(e.x, e.y).forEach(n => {
+                if (matchesQuery(n, tabSelector)) {
                     const tab = listTabs().find(t => t.getAttribute(
-                        "link-id") === el.getAttribute("link-id"))
+                        "link-id") === n.getAttribute("link-id"))
                     if (tab && currentTab() !== tab) {
                         const {switchToTab} = require("./tabs")
                         switchToTab(tab)
@@ -814,10 +884,24 @@ const init = () => {
     })
     window.addEventListener("contextmenu", e => {
         e.preventDefault()
+        if (getMouseConf("leaveinput")) {
+            const {followFiltering} = require("./follow")
+            const typing = "sec".includes(currentMode()[0]) || followFiltering()
+            /**
+             * Find the url box or the suggest dropdown in the list of targets.
+             * @param {MouseEvent} ev
+             */
+            const urlOrSuggest = ev => ev.composedPath().find(n => matchesQuery(
+                n, "#url, #suggest-dropdown, #screenshot-highlight"))
+            if (typing && !urlOrSuggest(e)) {
+                ACTIONS.toNormalMode()
+            }
+        }
         if (getMouseConf("menuvieb")) {
             const {viebMenu} = require("./contextmenu")
             viebMenu(e)
         }
+        ACTIONS.setFocusCorrectly()
     })
     window.addEventListener("resize", () => {
         const {clear} = require("./contextmenu")
@@ -828,21 +912,24 @@ const init = () => {
             POINTER.updateElement()
         }
     })
+    window.addEventListener("blur", () => {
+        setTimeout(ACTIONS.setFocusCorrectly, 5)
+    })
     ipcRenderer.on("zoom-changed", (_, ctxId, direction) => {
-        const page = listPages().find(p => p.getWebContentsId?.() === ctxId)
+        const page = listReadyPages().find(p => p.getWebContentsId() === ctxId)
         if (!page || !getMouseConf("scrollzoom")) {
             return
         }
         if (direction === "in") {
-            ACTIONS.zoomIn(page)
+            ACTIONS.zoomIn({"customPage": page})
         }
         if (direction === "out") {
-            ACTIONS.zoomOut(page)
+            ACTIONS.zoomOut({"customPage": page})
         }
     })
     ipcRenderer.on("insert-mode-input-event", (_, input) => {
         if (input.key === "Tab") {
-            currentPage().focus()
+            currentPage()?.focus()
         }
         // Check if fullscreen should be disabled
         if (document.body.classList.contains("fullscreen")) {
@@ -851,7 +938,7 @@ const init = () => {
             const escapeKey = input.key === "Escape" && noMods && !ctrl
             const ctrlBrack = input.key === "[" && noMods && ctrl
             if (escapeKey || ctrlBrack) {
-                currentPage().send("action", "exitFullscreen")
+                currentPage()?.send("action", "exitFullscreen")
                 return
             }
         }
@@ -874,13 +961,20 @@ const init = () => {
         })
     })
     ipcRenderer.on("window-close", () => executeMapString("<A-F4>", true, true))
-    ipcRenderer.on("window-focus", () => document.body.classList.add("focus"))
-    ipcRenderer.on("window-blur", () => document.body.classList.remove("focus"))
-    setInterval(() => ACTIONS.setFocusCorrectly(), 500)
+    ipcRenderer.on("window-focus", () => {
+        document.body.classList.add("focus")
+        ACTIONS.setFocusCorrectly()
+    })
+    ipcRenderer.on("window-blur", () => {
+        document.body.classList.remove("focus")
+        ACTIONS.setFocusCorrectly()
+    })
     ACTIONS.setFocusCorrectly()
     const unSupportedActions = [
         "setFocusCorrectly",
         "incrementalSearch",
+        "resetIncrementalSearch",
+        "resetInputHistory",
         "p.init",
         "p.move",
         "p.storeMouseSelection",
@@ -891,7 +985,6 @@ const init = () => {
     supportedActions = [
         ...Object.keys(ACTIONS), ...Object.keys(POINTER).map(c => `p.${c}`)
     ].filter(m => !unSupportedActions.includes(m))
-    bindings = JSON.parse(JSON.stringify(defaultBindings))
     updateKeysOnScreen()
 }
 
@@ -899,21 +992,28 @@ const resetScreenshotDrag = () => setTimeout(() => {
     draggingScreenshotFrame = false
 }, 10)
 
+/**
+ * Move the screenshot frame to a new position.
+ * @param {number} x
+ * @param {number} y
+ */
 const moveScreenshotFrame = (x, y) => {
-    const deltaX = x - lastX
-    const deltaY = y - lastY
+    const deltaX = x - lastScreenshotX
+    const deltaY = y - lastScreenshotY
     if (getMouseConf("screenshotframe") && draggingScreenshotFrame) {
-        const url = document.getElementById("url")
-        const dims = url.value.split(" ").find(
+        const url = getUrl()
+        const dims = url?.value.split(" ").find(
             arg => arg?.match(/^\d+,\d+,\d+,\d+$/g))
-        if (!currentMode() === "command" || !dims || !currentPage()) {
+        if (currentMode() !== "command" || !currentPage()) {
             return
         }
+        const pageHeight = Number(currentPage()?.style.height.split(/[.px]/g)[0])
+        const pageWidth = Number(currentPage()?.style.width.split(/[.px]/g)[0])
         const rect = {
-            "height": Number(dims.split(",")[1]),
-            "width": Number(dims.split(",")[0]),
-            "x": Number(dims.split(",")[2]),
-            "y": Number(dims.split(",")[3])
+            "height": Number(dims?.split(",")[1] ?? pageHeight),
+            "width": Number(dims?.split(",")[0] ?? pageWidth),
+            "x": Number(dims?.split(",")[2] ?? 0),
+            "y": Number(dims?.split(",")[3] ?? 0)
         }
         if (draggingScreenshotFrame === "position") {
             rect.x += deltaX
@@ -926,35 +1026,63 @@ const moveScreenshotFrame = (x, y) => {
             rect.width = Math.round(Math.max(rect.width, 1))
             rect.height = Math.round(Math.max(rect.height, 1))
         }
-        url.value = url.value.replace(/\d+,\d+,\d+,\d+/g, `${rect.width},${
-            rect.height},${rect.x},${rect.y}`)
+        if (rect.x > pageWidth) {
+            rect.x = pageWidth
+        }
+        if (rect.y > pageHeight) {
+            rect.y = pageHeight
+        }
+        if (rect.width === 0 || rect.width > pageWidth - rect.x) {
+            rect.width = pageWidth - rect.x
+        }
+        if (rect.height === 0 || rect.height > pageHeight - rect.y) {
+            rect.height = pageHeight - rect.y
+        }
+        if (dims && url) {
+            url.value = url.value.replace(/\d+,\d+,\d+,\d+/g, `${rect.width},${
+                rect.height},${rect.x},${rect.y}`)
+        } else if (url) {
+            url.value = `${url.value.split(" ").slice(0, -1).join(" ")
+            } ${rect.width},${rect.height},${rect.x},${rect.y}`
+        }
         updateScreenshotHighlight()
-        updateSuggestions()
+        requestSuggestUpdate()
     }
-    lastX = x
-    lastY = y
+    lastScreenshotX = x
+    lastScreenshotY = y
 }
 
+/**
+ * Execute the cut clipboard action on the url.
+ * @param {Event|null} event
+ */
 const cutInput = (event = null) => {
     event?.preventDefault()
-    let selection = document.getSelection().toString()
+    let selection = document.getSelection()?.toString() ?? ""
     if (currentMode() === "explore" && isUrl(selection)) {
         selection = selection.replace(/ /g, "%20")
     }
     const {clipboard} = require("electron")
     clipboard.writeText(selection)
-    const url = document.getElementById("url")
+    const url = getUrl()
+    if (!url) {
+        return
+    }
     const cur = Number(url.selectionStart)
-    url.value = url.value.substr(0, url.selectionStart)
-        + url.value.substr(url.selectionEnd)
+    const end = Number(url.selectionEnd)
+    url.value = url.value.slice(0, cur) + url.value.slice(end)
     url.setSelectionRange(cur, cur)
-    updateSuggestions()
+    requestSuggestUpdate()
     updateNavbarScrolling()
 }
 
+/**
+ * Execute the copy clipboard action on the url.
+ * @param {Event|null} event
+ */
 const copyInput = (event = null) => {
     event?.preventDefault()
-    let selection = document.getSelection().toString()
+    let selection = document.getSelection()?.toString() ?? ""
     if (currentMode() === "explore" && isUrl(selection)) {
         selection = selection.replace(/ /g, "%20")
     }
@@ -962,16 +1090,23 @@ const copyInput = (event = null) => {
     clipboard.writeText(selection)
 }
 
+/**
+ * Execute the paste clipboard action on the url.
+ * @param {Event|null} event
+ */
 const pasteInput = (event = null) => {
     event?.preventDefault()
-    const url = document.getElementById("url")
+    const url = getUrl()
+    if (!url) {
+        return
+    }
     const cur = Number(url.selectionStart)
+    const end = Number(url.selectionEnd)
     const {clipboard} = require("electron")
     const pastedText = clipboard.readText()
-    url.value = url.value.substr(0, url.selectionStart) + pastedText
-        + url.value.substr(url.selectionEnd)
+    url.value = url.value.slice(0, cur) + pastedText + url.value.slice(end)
     url.setSelectionRange(cur + pastedText.length, cur + pastedText.length)
-    updateSuggestions()
+    requestSuggestUpdate()
     updateNavbarScrolling()
 }
 
@@ -980,7 +1115,7 @@ const keyNames = [
     {"js": ["Backspace"], "vim": ["BS"]},
     {
         "electron": "Return",
-        "js": ["Enter"],
+        "js": ["Enter", "\u000d"],
         "vim": ["CR", "NL", "Return", "Enter"]
     },
     {"js": ["|"], "vim": ["Bar"]},
@@ -991,7 +1126,7 @@ const keyNames = [
     {"js": ["ArrowDown"], "vim": ["Down"]},
     {"js": ["Escape", "Esc"], "vim": ["Esc"]},
     {"js": [" "], "vim": ["Space", " "]},
-    {"js": ["Delete"], "vim": ["Del"]},
+    {"js": ["Delete", "\u0000"], "vim": ["Del"]},
     {"js": ["PrintScreen"], "vim": ["PrintScreen", "PrtScr"]},
     {"js": ["Control"], "vim": ["Ctrl"]},
     {"electron": "ArrowLeft", "js": ["kArrowLeft"], "vim": ["kLeft"]},
@@ -1048,13 +1183,30 @@ const keyNames = [
     {"js": ["Pause"], "vim": ["Pause"]},
     {"js": ["NumLock"], "vim": ["NumLock"]},
     {"js": ["CapsLock"], "vim": ["CapsLock"]},
-    {"js": ["ScrollLock"], "vim": ["ScrollLock"]}
+    {"js": ["ScrollLock"], "vim": ["ScrollLock"]},
+    {"js": ["ContextMenu"], "vim": ["ContextMenu"]},
+    // Fictional keys with custom implementation
+    {"js": ["Any"], "vim": ["Any"]}
 ]
+/**
+ * Convert a keyboard event to a Vieb key name.
+ * @param {(KeyboardEvent  & {passedOnFromInsert?: false})|{
+ *   altKey: boolean
+ *   ctrlKey: boolean,
+ *   isTrusted: boolean,
+ *   key: string,
+ *   location: string,
+ *   metaKey: boolean,
+ *   passedOnFromInsert: true,
+ *   preventDefault: () => undefined,
+ *   shiftKey: boolean
+ *   isComposing?: boolean
+ *   which?: string
+ *   bubbles?: boolean
+ * }} e
+ */
 const toIdentifier = e => {
     let keyCode = e.key
-    if (e.key === "\u0000") {
-        keyCode = "Delete"
-    }
     if (e.location === KeyboardEvent.DOM_KEY_LOCATION_NUMPAD) {
         keyCode = `k${keyCode}`
     }
@@ -1084,9 +1236,50 @@ const toIdentifier = e => {
     return keyCode
 }
 
+/**
+ * Split the mapstring by key.
+ * @param {string} mapStr
+ */
+const splitMapString = mapStr => {
+    const maps = []
+    let bracketCounter = 0
+    let temp = ""
+    for (const char of mapStr.split("")) {
+        if (char === "<") {
+            bracketCounter += 1
+        }
+        if (char === ">") {
+            const isKey = temp.startsWith("<") && !temp.startsWith("<:")
+            const isNotMinus = temp.endsWith("-") && !temp.endsWith("--")
+            if ((!isKey || !isNotMinus) && bracketCounter > 0) {
+                bracketCounter -= 1
+            }
+        }
+        if (bracketCounter) {
+            temp += char
+        } else {
+            maps.push(temp + char)
+            temp = ""
+        }
+    }
+    return {"leftover": temp, maps, "valid": bracketCounter === 0 && !temp}
+}
+
+/**
+ * Get JS (or optionally Electron) name for a Vim mapped key.
+ * @param {string} identifier
+ * @param {boolean} electronNames
+ */
 const fromIdentifier = (identifier, electronNames = true) => {
-    let id = String(identifier) || ""
-    id = id.split(mapStringSplitter).filter(m => m)[0] || id
+    let id = splitMapString(identifier).maps[0] ?? identifier
+    /** @type {{
+     * modifiers: string[],
+     * ctrlKey?: boolean, control?: boolean,
+     * metaKey?: boolean, meta?: boolean,
+     * altKey?: boolean, alt?: boolean,
+     * shiftKey?: boolean, shift?: boolean,
+     * }}
+     */
     const options = {"modifiers": []}
     if (id.startsWith("<") && id.endsWith(">")) {
         id = id.slice(1, -1)
@@ -1131,7 +1324,7 @@ const fromIdentifier = (identifier, electronNames = true) => {
             }
         })
     }
-    return {...options, "key": id, "keyCode": id}
+    return {...options, "key": id}
 }
 
 // Single use actions that do not need to be called multiple times if counted
@@ -1139,12 +1332,11 @@ const uncountableActions = [
     "emptySearch",
     "clickOnSearch",
     "toExploreMode",
+    "startFollowCopyLink",
     "startFollowCurrentTab",
     "startFollowNewTab",
     "startFollowNewSplit",
     "startFollowNewVerSplit",
-    "scrollTop",
-    "scrollBottom",
     "scrollRightMax",
     "scrollLeftMax",
     "insertAtFirstInput",
@@ -1173,6 +1365,8 @@ const uncountableActions = [
     "toFirstSplitWindow",
     "toLastSplitWindow",
     "distrubuteSpaceSplitWindow",
+    "pageRSSLinkToClipboard",
+    "pageRSSLinksList",
     "pageToClipboard",
     "pageTitleToClipboard",
     "pageToClipboardEmacs",
@@ -1184,6 +1378,12 @@ const uncountableActions = [
     "downloadLink",
     "toggleAlwaysOnTop",
     "toggleFullscreen",
+    "makeMark",
+    "restoreMark",
+    "storeScrollPos",
+    "restoreScrollPos",
+    "startRecording",
+    "stopRecording",
     "menuOpen",
     "menuTop",
     "menuBottom",
@@ -1203,6 +1403,8 @@ const uncountableActions = [
     "p.endOfPage",
     "p.moveRightMax",
     "p.moveLeftMax",
+    "p.storePos",
+    "p.restorePos",
     "p.openAudio",
     "p.openFrame",
     "p.openImage",
@@ -1229,6 +1431,8 @@ const uncountableActions = [
     "p.copyImage",
     "p.copyVideo",
     "p.copyLink",
+    "p.copyTitleAttr",
+    "p.copyPageTitle",
     "p.splitAudio",
     "p.splitFrame",
     "p.splitImage",
@@ -1249,10 +1453,56 @@ const uncountableActions = [
     "p.vsplitText"
 ]
 
-const hasFutureActionsBasedOnKeys = keys => Object.keys(bindings[
-    currentMode()[0]]).find(map => map.startsWith(keys) && map !== keys)
+/**
+ * Find suitable mappings for a set of keys.
+ * @param {string} actionKeys
+ * @param {string} mode
+ * @param {boolean} future
+ */
+const findMaps = (actionKeys, mode, future = false) => {
+    const keys = splitMapString(actionKeys).maps
+    return Object.keys(bindings[mode[0]]).filter(m => {
+        const mapKeys = splitMapString(m).maps
+        if (future && mapKeys.length <= keys.length) {
+            return false
+        }
+        if (!future && mapKeys.length !== keys.length) {
+            return false
+        }
+        let keyCount = 0
+        for (const key of keys) {
+            if (key !== mapKeys[keyCount] && mapKeys[keyCount] !== "<Any>") {
+                return false
+            }
+            keyCount += 1
+        }
+        return true
+    }).sort((a, b) => splitMapString(a).maps.indexOf("<Any>")
+        - splitMapString(b).maps.indexOf("<Any>"))
+}
 
+/**
+ * Check if there are future actions in the current mode for a set of keys.
+ * @param {string} keys
+ */
+const hasFutureActions = keys => findMaps(keys, currentMode(), true).length
+
+/**
+ * Send an input key to the webview.
+ * @param {{
+ *   modifiers: string[], bubbles?: boolean,
+ *   ctrlKey?: boolean, control?: boolean,
+ *   metaKey?: boolean, meta?: boolean,
+ *   altKey?: boolean, alt?: boolean,
+ *   shiftKey?: boolean, shift?: boolean,
+ *   key: string
+ * }} options
+ * @param {string} mapStr
+ */
 const sendKeysToWebview = async(options, mapStr) => {
+    if (recordingName) {
+        recordingString += mapStr
+    }
     blockNextInsertKey = true
     sendToPageOrSubFrame("send-keyboard-event", options)
     if (options.bubbles) {
@@ -1273,32 +1523,51 @@ const repeatLastAction = () => {
     }
 }
 
-const executeMapString = async(mapStr, recursive, initial) => {
+/**
+ * Execute a provided mapstring as if it was pressed.
+ * @param {string} mapStr
+ * @param {boolean} recursive
+ * @param {boolean} initial
+ */
+const executeMapString = async(mapStr, recursive, initial = false) => {
+    const actionCallKey = splitMapString(pressedKeys).maps.at(-1)
     if (initial) {
+        if (recordingName) {
+            if (repeatCounter > 1) {
+                recordingString += repeatCounter
+            }
+            recordingString += mapStr
+        }
         if (!mapStr.includes("<repeatLastAction>")) {
             lastExecutedMapstring = {mapStr, recursive}
         }
         recursiveCounter = 0
-        if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
+        if (!hasFutureActions(pressedKeys)) {
             pressedKeys = ""
         }
     }
     recursiveCounter += 1
-    const repeater = Number(repeatCounter) || 1
+    let repeater = Number(repeatCounter) || 1
+    if (initial && repeatCounter) {
+        if (["<scrollBottom>", "<scrollTop>"].includes(mapStr)) {
+            currentPage()?.send("action", "scrollPerc", repeatCounter)
+            repeater = 0
+        }
+    }
     repeatCounter = 0
     updateKeysOnScreen()
     for (let i = 0; i < repeater; i++) {
         if (recursiveCounter > getSetting("maxmapdepth")) {
             break
         }
-        for (const key of mapStr.split(mapStringSplitter).filter(m => m)) {
+        for (const key of splitMapString(mapStr).maps) {
             if (recursiveCounter > getSetting("maxmapdepth")) {
                 break
             }
             if (supportedActions.includes(key.replace(/(^<|>$)/g, ""))) {
                 const count = Number(repeatCounter)
                 repeatCounter = 0
-                await doAction(key.replace(/(^<|>$)/g, ""), count)
+                await doAction(key.replace(/(^<|>$)/g, ""), count, actionCallKey)
                 await new Promise(r => {
                     setTimeout(r, 3)
                 })
@@ -1329,6 +1598,9 @@ const executeMapString = async(mapStr, recursive, initial) => {
                 setTimeout(r, 3)
             })
         }
+        await new Promise(r => {
+            setTimeout(r, 3)
+        })
     }
     if (initial) {
         setTimeout(() => {
@@ -1342,7 +1614,13 @@ const executeMapString = async(mapStr, recursive, initial) => {
     }
 }
 
-const doAction = async(actionName, givenCount) => {
+/**
+ * Execute a action by action name, optionally multiple times.
+ * @param {string} actionName
+ * @param {number | null} givenCount
+ * @param {string|null} key
+ */
+const doAction = async(actionName, givenCount = null, key = null) => {
     let actionCount = givenCount || 1
     if (uncountableActions.includes(actionName)) {
         if (lastActionInMapping === actionName) {
@@ -1357,9 +1635,11 @@ const doAction = async(actionName, givenCount) => {
     const funcName = actionName.replace(/^.*\./g, "")
     for (let i = 0; i < actionCount; i++) {
         if (pointer) {
-            await POINTER[funcName]()
+            // @ts-expect-error funcName is plenty checked before being called
+            await POINTER[funcName]({hadModifier, key})
         } else {
-            await ACTIONS[funcName]()
+            // @ts-expect-error funcName is plenty checked before being called
+            await ACTIONS[funcName]({hadModifier, key})
         }
     }
     if (!funcName.startsWith("menu") && funcName !== "nop") {
@@ -1369,15 +1649,38 @@ const doAction = async(actionName, givenCount) => {
     repeatCounter = 0
 }
 
+/**
+ * Find the right action for a set of keys in the current mode.
+ * @param {string} keys
+ */
 const actionForKeys = keys => {
     const {"active": menuActive} = require("./contextmenu")
-    const menuAction = bindings.m[keys]
+    const allMenu = findMaps(keys, "menu")
+    const menuAction = bindings.m[allMenu[0]]
     if (menuActive() && menuAction) {
         return menuAction
     }
-    return bindings[currentMode()[0]][keys]
+    const allCurrent = findMaps(keys, currentMode())
+    return bindings[currentMode()[0]][allCurrent[0]]
 }
 
+/**
+ * Handle all keyboard input.
+ * @param {(KeyboardEvent  & {passedOnFromInsert?: false})|{
+ *   altKey: boolean
+ *   ctrlKey: boolean,
+ *   isTrusted: boolean,
+ *   key: string,
+ *   location: string,
+ *   metaKey: boolean,
+ *   passedOnFromInsert: true,
+ *   preventDefault: () => undefined,
+ *   shiftKey: boolean
+ *   isComposing?: boolean
+ *   which?: string
+ *   bubbles?: boolean
+ * }} e
+ */
 const handleKeyboard = async e => {
     e.preventDefault()
     if (document.body.classList.contains("fullscreen")) {
@@ -1394,27 +1697,29 @@ const handleKeyboard = async e => {
         return
     }
     const id = toIdentifier(e)
-    const matchingMod = getSetting("modifiers").split(",").find(
+    const matchingMod = getSetting("modifiers").split(",").some(
         mod => mod === id || `<${mod}>` === id || id.endsWith(`-${mod}>`))
     if (matchingMod) {
         return
     }
-    clearTimeout(timeoutTimer)
+    hadModifier = e.shiftKey || e.ctrlKey
+    window.clearTimeout(timeoutTimer ?? undefined)
     if (getSetting("timeout")) {
-        timeoutTimer = setTimeout(async() => {
+        timeoutTimer = window.setTimeout(async() => {
+            const keys = splitMapString(pressedKeys).maps
             if (pressedKeys) {
                 const ac = actionForKeys(pressedKeys)
+                pressedKeys = ""
                 if (ac && (e.isTrusted || e.bubbles)) {
                     if (e.isTrusted) {
                         await executeMapString(ac.mapping, !ac.noremap, true)
                     } else {
-                        await executeMapString(ac.mapping, e.bubbles)
+                        await executeMapString(ac.mapping, e.bubbles ?? false)
                     }
                     return
                 }
                 menuClear()
             }
-            const keys = pressedKeys.split(mapStringSplitter).filter(m => m)
             if (currentMode() === "insert") {
                 ipcRenderer.sendSync("insert-mode-blockers", "pass")
                 for (const key of keys) {
@@ -1423,7 +1728,6 @@ const handleKeyboard = async e => {
                 }
                 blockNextInsertKey = false
                 repeatCounter = 0
-                pressedKeys = ""
                 updateKeysOnScreen()
                 return
             }
@@ -1434,14 +1738,13 @@ const handleKeyboard = async e => {
                 })
             }
             repeatCounter = 0
-            pressedKeys = ""
             updateKeysOnScreen()
         }, getSetting("timeoutlen"))
     }
     const {"active": menuActive, "clear": menuClear} = require("./contextmenu")
     if ("npv".includes(currentMode()[0]) || menuActive()) {
         const keyNumber = Number(id.replace(/^<k(\d)>/g, (_, digit) => digit))
-        const noFutureActions = !hasFutureActionsBasedOnKeys(pressedKeys + id)
+        const noFutureActions = !hasFutureActions(pressedKeys + id)
         const shouldCount = !actionForKeys(pressedKeys + id) || repeatCounter
         if (!isNaN(keyNumber) && noFutureActions && shouldCount) {
             repeatCounter = Number(String(repeatCounter) + keyNumber)
@@ -1462,38 +1765,39 @@ const handleKeyboard = async e => {
     } else {
         repeatCounter = 0
     }
-    if (!hasFutureActionsBasedOnKeys(pressedKeys)) {
+    if (!hasFutureActions(pressedKeys)) {
         pressedKeys = ""
     }
-    if (hasFutureActionsBasedOnKeys(pressedKeys + id)) {
+    if (hasFutureActions(pressedKeys + id)) {
         pressedKeys += id
     } else {
         const action = actionForKeys(pressedKeys)
         const existingMapping = actionForKeys(pressedKeys + id)
         if (action && !existingMapping) {
             if (!["<Esc>", "<C-[>"].includes(id)) {
+                pressedKeys = ""
                 await executeMapString(action.mapping, !action.noremap, true)
             }
-            pressedKeys = ""
         }
         pressedKeys += id
     }
     const action = actionForKeys(pressedKeys)
     const hasMenuAction = menuActive() && action
-    if (!hasFutureActionsBasedOnKeys(pressedKeys) || hasMenuAction) {
-        clearTimeout(timeoutTimer)
+    if (!hasFutureActions(pressedKeys) || hasMenuAction) {
+        window.clearTimeout(timeoutTimer ?? undefined)
         if (action && (e.isTrusted || e.bubbles)) {
             if (e.isTrusted) {
                 await executeMapString(action.mapping, !action.noremap, true)
             } else {
-                await executeMapString(action.mapping, e.bubbles)
+                await executeMapString(action.mapping, e.bubbles ?? false)
             }
             return
         }
         menuClear()
-        let keys = pressedKeys.split(mapStringSplitter).filter(m => m)
+        let keys = splitMapString(pressedKeys).maps
+        pressedKeys = ""
         if (keys.length > 1) {
-            if (!hasFutureActionsBasedOnKeys(keys.slice(0, -1).join(""))) {
+            if (!hasFutureActions(keys.slice(0, -1).join(""))) {
                 keys = keys.slice(0, -1)
             }
             if (currentMode() === "insert") {
@@ -1504,7 +1808,6 @@ const handleKeyboard = async e => {
                 }
                 blockNextInsertKey = false
                 repeatCounter = 0
-                pressedKeys = ""
                 updateKeysOnScreen()
                 return
             }
@@ -1516,35 +1819,42 @@ const handleKeyboard = async e => {
             })
         }
         repeatCounter = 0
-        pressedKeys = ""
     }
     menuClear()
     updateKeysOnScreen()
     if (currentMode() === "follow") {
-        if (e.type === "keydown") {
+        if (e instanceof KeyboardEvent && e.type === "keydown") {
             const {enterKey} = require("./follow")
-            let unshiftedName = String(e.key)
-            try {
-                const map = await navigator.keyboard.getLayoutMap()
-                unshiftedName = map.get(e.code)
-            } catch {
-                // Unsupported keyboard layout, fallback to unshifted key
+            let unshiftedName = String(e.key).toLowerCase()
+            if (e.key.toUpperCase() === unshiftedName && hadModifier) {
+                const map = await window.navigator.keyboard?.getLayoutMap()
+                unshiftedName = map?.get(e.code) ?? unshiftedName
             }
-            enterKey(unshiftedName || e.key, id, e.shiftKey || e.ctrlKey)
+            enterKey(unshiftedName, id, hadModifier)
         }
         return
     }
     ACTIONS.setFocusCorrectly()
 }
 
+/**
+ * Check an addition key if using mac and get the right one.
+ * @param {string[]} regular
+ * @param {string[]} mac
+ * @param {string} key
+ */
 const keyForOs = (regular, mac, key) => regular.includes(key)
     || process.platform === "darwin" && mac.includes(key)
 
 const updateNavbarScrolling = () => {
-    const url = document.getElementById("url")
+    const url = getUrl()
+    if (!url) {
+        return
+    }
     const charWidth = getSetting("guifontsize") * 0.60191
-    const end = url.selectionStart * charWidth - charWidth
-    const start = url.selectionEnd * charWidth - url.clientWidth + charWidth + 2
+    const end = (url.selectionStart ?? 0) * charWidth - charWidth
+    const start = (url.selectionEnd ?? 0) * charWidth
+        - url.clientWidth + charWidth + 2
     if (url.scrollLeft < end && url.scrollLeft > start) {
         return
     }
@@ -1561,6 +1871,11 @@ const updateNavbarScrolling = () => {
     }
 }
 
+/**
+ * Type any character into the navbar as if typed.
+ * @param {string} character
+ * @param {boolean} force
+ */
 const typeCharacterIntoNavbar = (character, force = false) => {
     const id = character.replace(/-k(.+)>/, (_, r) => `-${r}>`)
         .replace(/<k([a-zA-Z]+)>/, (_, r) => `<${r}>`)
@@ -1571,7 +1886,13 @@ const typeCharacterIntoNavbar = (character, force = false) => {
     if (!"ces".includes(currentMode()[0]) && !force) {
         return
     }
-    const url = document.getElementById("url")
+    if (recordingName) {
+        recordingString += id
+    }
+    const url = getUrl()
+    if (!url) {
+        return
+    }
     if (keyForOs(["<S-Home>", "<C-S-Home>"], ["<M-S-Left>", "<M-S-Up>"], id)) {
         if (url.selectionDirection !== "backward") {
             url.selectionEnd = url.selectionStart
@@ -1604,7 +1925,8 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         } else {
             url.selectionStart = url.selectionEnd
         }
-        if (url.selectionEnd < url.value.length) {
+        if (url.selectionEnd !== null
+            && url.selectionEnd < url.value.length) {
             url.selectionEnd += 1
         }
         url.selectionStart = url.selectionEnd
@@ -1612,13 +1934,16 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         return
     }
     if (id === "<S-Right>") {
-        if (url.selectionStart === url.selectionEnd) {
+        if (url.selectionStart === url.selectionEnd
+            && url.selectionStart !== null && url.selectionEnd !== null) {
             url.setSelectionRange(url.selectionStart, url.selectionEnd + 1)
         } else if (url.selectionDirection !== "backward") {
-            if (url.selectionEnd < url.value.length) {
+            if (url.selectionEnd !== null
+                && url.selectionEnd < url.value.length) {
                 url.selectionEnd += 1
             }
-        } else if (url.selectionStart < url.value.length) {
+        } else if (url.selectionStart !== null
+            && url.selectionStart < url.value.length) {
             url.selectionStart += 1
         }
         updateNavbarScrolling()
@@ -1668,7 +1993,7 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         } else {
             url.selectionStart = url.selectionEnd
         }
-        if (url.selectionStart > 0) {
+        if (url.selectionStart !== null && url.selectionStart > 0) {
             url.selectionStart -= 1
         }
         url.selectionEnd = url.selectionStart
@@ -1676,14 +2001,15 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         return
     }
     if (id === "<S-Left>") {
-        if (url.selectionStart === url.selectionEnd) {
+        if (url.selectionStart === url.selectionEnd
+            && url.selectionStart !== null && url.selectionEnd !== null) {
             url.setSelectionRange(url.selectionStart - 1,
                 url.selectionEnd, "backward")
         } else if (url.selectionDirection === "backward") {
-            if (url.selectionStart > 0) {
+            if (url.selectionStart !== null && url.selectionStart > 0) {
                 url.selectionStart -= 1
             }
-        } else if (url.selectionEnd > 0) {
+        } else if (url.selectionEnd !== null && url.selectionEnd > 0) {
             url.selectionEnd -= 1
         }
         updateNavbarScrolling()
@@ -1712,7 +2038,7 @@ const typeCharacterIntoNavbar = (character, force = false) => {
                 } else if (url.selectionDirection === "backward") {
                     url.setSelectionRange(wordPosition,
                         url.selectionEnd, "backward")
-                } else {
+                } else if (url.selectionStart !== null) {
                     if (wordPosition < url.selectionStart) {
                         url.setSelectionRange(url.selectionStart,
                             url.selectionStart)
@@ -1749,7 +2075,7 @@ const typeCharacterIntoNavbar = (character, force = false) => {
             const histEntry = inputHistoryList[inputHistoryIndex]
             url.value = histEntry.value
             url.setSelectionRange(histEntry.index, histEntry.index)
-            updateSuggestions(false)
+            requestSuggestUpdate(false)
         }
         updateNavbarScrolling()
         return
@@ -1760,12 +2086,13 @@ const typeCharacterIntoNavbar = (character, force = false) => {
             const histEntry = inputHistoryList[inputHistoryIndex]
             url.value = histEntry.value
             url.setSelectionRange(histEntry.index, histEntry.index)
-            updateSuggestions(false)
+            requestSuggestUpdate(false)
         }
         updateNavbarScrolling()
         return
     }
-    if (url.selectionStart !== url.selectionEnd) {
+    if (url.selectionStart !== url.selectionEnd
+        && url.selectionStart !== null && url.selectionEnd !== null) {
         if (!["<lt>", "<Bar>", "<Bslash>", "<Space>"].includes(id)) {
             if (id.length !== 1) {
                 if (id !== "<Del>" && !id.endsWith("-Del>")) {
@@ -1776,10 +2103,10 @@ const typeCharacterIntoNavbar = (character, force = false) => {
             }
         }
         const cur = Number(url.selectionStart)
-        url.value = url.value.substr(0, url.selectionStart)
-            + url.value.substr(url.selectionEnd)
+        url.value = url.value.substring(0, url.selectionStart)
+            + url.value.substring(url.selectionEnd)
         url.setSelectionRange(cur, cur)
-        updateSuggestions()
+        requestSuggestUpdate()
         updateNavbarScrolling()
         if (id === "<Del>" || id.endsWith("-Del>")) {
             return
@@ -1789,13 +2116,15 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         }
     }
     if (id === "<Del>") {
-        if (url.selectionEnd < url.value.length) {
-            const cur = Number(url.selectionStart)
-            url.value = `${url.value.substr(0, url.selectionStart)}${
-                url.value.substr(url.selectionEnd + 1)}`
-            url.setSelectionRange(cur, cur)
-            updateSuggestions()
-            updateNavbarScrolling()
+        if (url.selectionStart !== null && url.selectionEnd !== null) {
+            if (url.selectionEnd < url.value.length) {
+                const cur = Number(url.selectionStart)
+                url.value = `${url.value.substring(0, url.selectionStart)}${
+                    url.value.substring(url.selectionEnd + 1)}`
+                url.setSelectionRange(cur, cur)
+                requestSuggestUpdate()
+                updateNavbarScrolling()
+            }
         }
         return
     }
@@ -1803,12 +2132,13 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         let wordPosition = 0
         for (const word of words) {
             wordPosition += word.length
-            if (wordPosition > url.selectionStart) {
+            if (url.selectionStart !== null
+                && wordPosition > url.selectionStart) {
                 const cur = Number(url.selectionStart)
-                url.value = `${url.value.substr(0, url.selectionStart)}${
-                    url.value.substr(wordPosition)}`
+                url.value = `${url.value.substring(0, url.selectionStart)}${
+                    url.value.substring(wordPosition)}`
                 url.setSelectionRange(cur, cur)
-                updateSuggestions()
+                requestSuggestUpdate()
                 updateNavbarScrolling()
                 return
             }
@@ -1816,12 +2146,13 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         return
     }
     if (id === "<BS>" || id === "<S-BS>") {
-        if (url.selectionStart > 0) {
+        if (url.selectionStart !== null && url.selectionEnd !== null
+            && url.selectionStart > 0) {
             const cur = Number(url.selectionStart)
-            url.value = `${url.value.substr(0, url.selectionStart - 1)}${
-                url.value.substr(url.selectionEnd)}`
+            url.value = `${url.value.substring(0, url.selectionStart - 1)}${
+                url.value.substring(url.selectionEnd)}`
             url.setSelectionRange(cur - 1, cur - 1)
-            updateSuggestions()
+            requestSuggestUpdate()
             updateNavbarScrolling()
         }
         return
@@ -1830,11 +2161,12 @@ const typeCharacterIntoNavbar = (character, force = false) => {
         let wordPosition = url.value.length
         for (const word of words.slice().reverse()) {
             wordPosition -= word.length
-            if (wordPosition < url.selectionStart) {
-                url.value = `${url.value.substr(0, wordPosition)}${
-                    url.value.substr(url.selectionStart)}`
+            if (url.selectionStart !== null
+                && wordPosition < url.selectionStart) {
+                url.value = `${url.value.substring(0, wordPosition)}${
+                    url.value.substring(url.selectionStart)}`
                 url.setSelectionRange(wordPosition, wordPosition)
-                updateSuggestions()
+                requestSuggestUpdate()
                 updateNavbarScrolling()
                 return
             }
@@ -1843,29 +2175,34 @@ const typeCharacterIntoNavbar = (character, force = false) => {
     }
     const cur = Number(url.selectionStart)
     const text = String(url.value)
-    if (id.length === 1) {
-        url.value = `${url.value.substr(0, url.selectionStart)}${id}${
-            url.value.substr(url.selectionEnd)}`
+    if (id.length === 1
+        && url.selectionStart !== null && url.selectionEnd !== null) {
+        url.value = `${url.value.substring(0, url.selectionStart)}${id}${
+            url.value.substring(url.selectionEnd)}`
     }
-    if (id === "<lt>") {
-        url.value = `${url.value.substr(0, url.selectionStart)}<${
-            url.value.substr(url.selectionEnd)}`
+    if (id === "<lt>"
+        && url.selectionStart !== null && url.selectionEnd !== null) {
+        url.value = `${url.value.substring(0, url.selectionStart)}<${
+            url.value.substring(url.selectionEnd)}`
     }
-    if (id === "<Bar>") {
-        url.value = `${url.value.substr(0, url.selectionStart)}|${
-            url.value.substr(url.selectionEnd)}`
+    if (id === "<Bar>"
+        && url.selectionStart !== null && url.selectionEnd !== null) {
+        url.value = `${url.value.substring(0, url.selectionStart)}|${
+            url.value.substring(url.selectionEnd)}`
     }
-    if (id === "<Bslash>") {
-        url.value = `${url.value.substr(0, url.selectionStart)}\\${
-            url.value.substr(url.selectionEnd)}`
+    if (id === "<Bslash>"
+        && url.selectionStart !== null && url.selectionEnd !== null) {
+        url.value = `${url.value.substring(0, url.selectionStart)}\\${
+            url.value.substring(url.selectionEnd)}`
     }
-    if (id === "<Space>" || id === "<S-Space>") {
-        url.value = `${url.value.substr(0, url.selectionStart)} ${
-            url.value.substr(url.selectionEnd)}`
+    if ((id === "<Space>" || id === "<S-Space>")
+        && url.selectionStart !== null && url.selectionEnd !== null) {
+        url.value = `${url.value.substring(0, url.selectionStart)} ${
+            url.value.substring(url.selectionEnd)}`
     }
     if (text !== url.value) {
         url.setSelectionRange(cur + 1, cur + 1)
-        updateSuggestions()
+        requestSuggestUpdate()
         updateNavbarScrolling()
     }
 }
@@ -1875,45 +2212,79 @@ const resetInputHistory = () => {
     inputHistoryIndex = 0
 }
 
-const updateSuggestions = (updateHistory = true) => {
-    const url = document.getElementById("url")
+const requestSuggestUpdate = (updateHistory = true) => {
+    const url = getUrl()
+    const suggestBounceDelay = getSetting("suggestbouncedelay")
     if (updateHistory) {
         inputHistoryList = inputHistoryList.slice(0, inputHistoryIndex + 1)
         inputHistoryIndex = inputHistoryList.length
-        inputHistoryList.push({"index": url.selectionStart, "value": url.value})
+        const start = Number(url?.selectionStart)
+        inputHistoryList.push({"index": start, "value": url?.value ?? ""})
     }
-    if (currentMode() === "explore") {
+    if (!suggestionTimer) {
+        updateSuggestions()
+    }
+    if (suggestBounceDelay) {
+        window.clearTimeout(suggestionTimer ?? undefined)
+        suggestionTimer = window.setTimeout(() => {
+            suggestionTimer = null
+            updateSuggestions()
+        }, suggestBounceDelay)
+    }
+}
+
+const updateSuggestions = () => {
+    const url = getUrl()
+    if (!url) {
+        return
+    }
+    const mode = currentMode()
+    if (mode === "explore") {
         const {suggestExplore} = require("./suggest")
         suggestExplore(url.value)
-    } else if (currentMode() === "command") {
+    } else if (mode === "command") {
         const {suggestCommand} = require("./suggest")
         suggestCommand(url.value)
-    } else if (currentMode() === "search" && getSetting("incsearch")) {
+    } else if (mode === "search" && getSetting("incsearch")) {
         ACTIONS.incrementalSearch()
     }
 }
 
 const updateKeysOnScreen = () => {
-    document.getElementById("repeat-counter").textContent = repeatCounter
-    document.getElementById("pressed-keys").textContent = pressedKeys
+    const repeatCounterEl = document.getElementById("repeat-counter")
+    const pressedKeysEl = document.getElementById("pressed-keys")
+    const recordNameEl = document.getElementById("record-name")
+    if (!repeatCounterEl || !pressedKeysEl || !recordNameEl) {
+        return
+    }
+    repeatCounterEl.textContent = `${repeatCounter}`
+    pressedKeysEl.textContent = pressedKeys
+    recordNameEl.textContent = `recording @${recordingName}`
     if (repeatCounter && getSetting("showcmd")) {
-        document.getElementById("repeat-counter").style.display = "flex"
+        repeatCounterEl.style.display = "flex"
     } else {
-        document.getElementById("repeat-counter").style.display = "none"
+        repeatCounterEl.style.display = "none"
     }
     if (pressedKeys && getSetting("showcmd")) {
-        document.getElementById("pressed-keys").style.display = "flex"
+        pressedKeysEl.style.display = "flex"
     } else {
-        document.getElementById("pressed-keys").style.display = "none"
+        pressedKeysEl.style.display = "none"
+    }
+    if (recordingName && getSetting("showcmd")) {
+        recordNameEl.style.display = "flex"
+    } else {
+        recordNameEl.style.display = "none"
     }
     const mapsuggestcount = getSetting("mapsuggest")
     const mapsuggestElement = document.getElementById("mapsuggest")
-    mapsuggestElement.style.display = "none"
+    if (mapsuggestElement) {
+        mapsuggestElement.style.display = "none"
+    }
     const {active} = require("./contextmenu")
-    if (mapsuggestcount > 0) {
+    if (mapsuggestcount > 0 && mapsuggestElement) {
         const mapsuggestPosition = getSetting("mapsuggestposition")
         mapsuggestElement.className = mapsuggestPosition
-        mapsuggestElement.innerHTML = ""
+        mapsuggestElement.textContent = ""
         if (pressedKeys) {
             const [mode] = currentMode()
             const alreadyDone = document.createElement("span")
@@ -1932,16 +2303,16 @@ const updateKeysOnScreen = () => {
                 "result": bindings[mode][b].mapping
             })).forEach(action => {
                 const singleSuggestion = document.createElement("span")
-                singleSuggestion.appendChild(alreadyDone.cloneNode(true))
+                singleSuggestion.append(alreadyDone.cloneNode(true))
                 const nextKeys = document.createElement("span")
                 nextKeys.textContent = action.next
                 nextKeys.className = "warning"
-                singleSuggestion.appendChild(nextKeys)
+                singleSuggestion.append(nextKeys)
                 const resultAction = document.createElement("span")
                 resultAction.textContent = action.result
                 resultAction.className = "info"
-                singleSuggestion.appendChild(resultAction)
-                mapsuggestElement.appendChild(singleSuggestion)
+                singleSuggestion.append(resultAction)
+                mapsuggestElement.append(singleSuggestion)
             })
         }
     }
@@ -1955,12 +2326,17 @@ const updateKeysOnScreen = () => {
             Object.keys(bindings.m)).concat("0123456789".split(""))
     }
     ipcRenderer.send("insert-mode-blockers",
-        blockedKeys.map(key => fromIdentifier(key.split(
-            mapStringSplitter).filter(m => m)[0], false)))
+        blockedKeys.map(key => fromIdentifier(
+            splitMapString(key).maps[0], false)))
 }
 
 const listSupportedActions = () => supportedActions
 
+/**
+ * Check if mapping has been modified compared to the defaults.
+ * @param {string} mode
+ * @param {string} mapping
+ */
 const mappingModified = (mode, mapping) => {
     const current = bindings[mode][mapping]
     const original = defaultBindings[mode][mapping]
@@ -1969,7 +2345,7 @@ const mappingModified = (mode, mapping) => {
     }
     if (current && original) {
         if (current.mapping === original.mapping) {
-            if (current.noremap === original.noremap) {
+            if (Boolean(current.noremap) === Boolean(original.noremap)) {
                 return false
             }
         }
@@ -1977,24 +2353,35 @@ const mappingModified = (mode, mapping) => {
     return true
 }
 
-const listMappingsAsCommandList = (oneMode = false, includeDefault = false) => {
+/**
+ * List mappings as a list of map commands.
+ * @param {string|null} oneMode
+ * @param {boolean} includeDefault
+ * @param {string[]|null} customKeys
+ */
+const listMappingsAsCommandList = (
+    oneMode = null, includeDefault = false, customKeys = null
+) => {
+    /** @type {string[]} */
     let mappings = []
     let modes = Object.keys(defaultBindings)
     if (oneMode) {
         modes = [oneMode]
     }
     modes.forEach(bindMode => {
-        const keys = [...new Set(Object.keys(defaultBindings[bindMode])
-            .concat(Object.keys(bindings[bindMode])))]
+        const keys = customKeys
+            ?? [...new Set(Object.keys(defaultBindings[bindMode])
+                .concat(Object.keys(bindings[bindMode])))]
         for (const key of keys) {
-            mappings.push(listMapping(bindMode, key, includeDefault))
+            mappings.push(listMapping(bindMode, includeDefault, key))
         }
     })
     if (!oneMode) {
         // Mappings that can be added with a global "map" instead of 1 per mode
+        /** @type {string[]} */
         const globalMappings = []
         mappings.filter(m => m.match(/^n(noremap|map|unmap) /g))
-            .filter(m => !modes.find(mode => !mappings.includes(
+            .filter(m => !modes.some(mode => !mappings.includes(
                 `${mode}${m.slice(1)}`)))
             .forEach(m => {
                 globalMappings.push(m.slice(1))
@@ -2005,7 +2392,13 @@ const listMappingsAsCommandList = (oneMode = false, includeDefault = false) => {
     return mappings.join("\n").replace(/[\r\n]+/g, "\n").trim()
 }
 
-const listMapping = (mode, rawKey, includeDefault) => {
+/**
+ * List a mapping as if set via a command.
+ * @param {string} mode
+ * @param {boolean} includeDefault
+ * @param {string} rawKey
+ */
+const listMapping = (mode, includeDefault, rawKey) => {
     const key = sanitiseMapString(rawKey)
     if (!mappingModified(mode, key) && !includeDefault) {
         return ""
@@ -2023,7 +2416,14 @@ const listMapping = (mode, rawKey, includeDefault) => {
     return ""
 }
 
-const mapOrList = (mode, args, noremap, includeDefault) => {
+/**
+ * Handle the map command, so either list a mapping or set it.
+ * @param {string|null} mode
+ * @param {string[]} args
+ * @param {boolean} noremap
+ * @param {boolean} includeDefault
+ */
+const mapOrList = (mode, args, noremap = false, includeDefault = false) => {
     if (includeDefault && args.length > 1) {
         notify("Mappings are always overwritten, no need for !", "warn")
         return
@@ -2041,7 +2441,8 @@ const mapOrList = (mode, args, noremap, includeDefault) => {
     }
     if (args.length === 1) {
         if (mode) {
-            const mapping = listMapping(mode, args[0], includeDefault).trim()
+            const mapping = listMappingsAsCommandList(
+                mode, includeDefault, [args[0]]).trim()
             if (mapping) {
                 notify(mapping)
             } else if (includeDefault) {
@@ -2050,10 +2451,8 @@ const mapOrList = (mode, args, noremap, includeDefault) => {
                 notify("No custom mapping found for this sequence")
             }
         } else {
-            let mappings = ""
-            Object.keys(bindings).forEach(m => {
-                mappings += `${listMapping(m, args[0], includeDefault)}\n`
-            })
+            let mappings = listMappingsAsCommandList(
+                null, includeDefault, [args[0]])
             mappings = mappings.replace(/[\r\n]+/g, "\n").trim()
             if (mappings) {
                 notify(mappings)
@@ -2068,12 +2467,24 @@ const mapOrList = (mode, args, noremap, includeDefault) => {
     mapSingle(mode, args, noremap)
 }
 
-const sanitiseMapString = (mapString, allowSpecials = false) => mapString
-    .split(mapStringSplitter).filter(m => m).map(m => {
+/**
+ * Sanitize any mapstring to the shortest valid version.
+ * @param {string} mapString
+ * @param {boolean} allowSpecials
+ */
+const sanitiseMapString = (mapString, allowSpecials = false) => {
+    const {maps, valid, leftover} = splitMapString(mapString)
+    if (!valid) {
+        notify(
+            `Unmatched < > in mapping '${mapString}': ${leftover}`, "warn")
+        return ""
+    }
+    return maps.map(m => {
         if (m === ">") {
             return ">"
         }
         let key = m
+        /** @type {string[]} */
         let modifiers = []
         let knownKey = false
         if (allowSpecials) {
@@ -2107,7 +2518,7 @@ const sanitiseMapString = (mapString, allowSpecials = false) => mapString
             ;[key] = splitKeys.slice(-1)
         }
         for (const name of keyNames) {
-            if (name.vim.find(vk => vk.toUpperCase() === key.toUpperCase())) {
+            if (name.vim.some(vk => vk.toUpperCase() === key.toUpperCase())) {
                 [key] = name.vim
                 knownKey = true
                 break
@@ -2141,9 +2552,16 @@ const sanitiseMapString = (mapString, allowSpecials = false) => mapString
         }
         return key
     }).join("")
+}
 
+/**
+ * Map a single key.
+ * @param {string|null} mode
+ * @param {string[]} args
+ * @param {boolean} noremap
+ */
 const mapSingle = (mode, args, noremap) => {
-    const mapping = sanitiseMapString(args.shift())
+    const mapping = sanitiseMapString(args.shift() ?? "")
     const actions = sanitiseMapString(args.join(" "), true)
     if (!actions) {
         return
@@ -2159,6 +2577,11 @@ const mapSingle = (mode, args, noremap) => {
     updateHelpPage()
 }
 
+/**
+ * Unmap a specific key.
+ * @param {string|null} mode
+ * @param {string[]} args
+ */
 const unmap = (mode, args) => {
     if (args.length !== 1) {
         notify(`The ${mode}unmap command requires exactly one mapping`, "warn")
@@ -2175,7 +2598,12 @@ const unmap = (mode, args) => {
     updateHelpPage()
 }
 
-const clearmap = (mode, removeDefaults) => {
+/**
+ * Clear all mappings to default or wipe them completely, optionally per mode.
+ * @param {string|null} mode
+ * @param {boolean} removeDefaults
+ */
+const clearmap = (mode, removeDefaults = false) => {
     if (mode) {
         if (removeDefaults) {
             bindings[mode] = {}
@@ -2193,6 +2621,44 @@ const clearmap = (mode, removeDefaults) => {
     updateHelpPage()
 }
 
+/**
+ * Start a macro recording by key name.
+ * @param {string} name
+ */
+const startRecording = name => {
+    if (recordingName) {
+        notify("Already recording, ignoring record action", "warn")
+        return
+    }
+    recordingName = name
+    recordingString = ""
+}
+
+/**
+ * Stop the current macro recording.
+ */
+const stopRecording = () => {
+    if (!recordingName) {
+        return
+    }
+    let stoppedRecording = false
+    const record = {
+        "name": recordingName,
+        "string": splitMapString(recordingString).maps.filter(k => {
+            if (k === "<stopRecording>" || stoppedRecording) {
+                stoppedRecording = true
+                return false
+            }
+            return k !== "<startRecording>"
+        }).join("")
+    }
+    recordingName = null
+    if (!record.string) {
+        return
+    }
+    return record
+}
+
 module.exports = {
     clearmap,
     copyInput,
@@ -2206,12 +2672,14 @@ module.exports = {
     moveScreenshotFrame,
     pasteInput,
     repeatLastAction,
+    requestSuggestUpdate,
     resetInputHistory,
     resetScreenshotDrag,
     sanitiseMapString,
+    startRecording,
+    stopRecording,
     typeCharacterIntoNavbar,
     uncountableActions,
     unmap,
-    updateKeysOnScreen,
-    updateSuggestions
+    updateKeysOnScreen
 }

@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -23,17 +23,44 @@ const specialPages = [
     "bookmarks",
     "cookies",
     "downloads",
-    "extensions",
     "help",
     "history",
     "newtab",
     "notifications",
     "version"
 ]
+/**
+ * @typedef {{
+ *   click: {
+ *     type: "download-success",
+ *     path: string,
+ *   }|null
+ *   date: Date,
+ *   message: string,
+ *   type: string
+ * }[]} notificationHistory
+ */
+/** @type {notificationHistory} */
 const notificationHistory = []
 let appDataPath = ""
 let homeDirPath = ""
-let configSettings = ""
+/**
+ * @type {{
+ *   appdata: string,
+ *   autoplay: string,
+ *   downloads: string,
+ *   icon?: string,
+ *   name: string,
+ *   order: "none"|"user-only"|"datafolder-only"
+ *   |"user-first"|"datafolder-first",
+ *   override: string,
+ *   files: string[],
+ *   config: string
+ *   version: string
+ * }|null}
+ */
+let configSettings = null
+/** @type {{element: Element|ShadowRoot, x: number, y: number}[]} */
 const framePaddingInfo = []
 const specialChars = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/\s]/gi
 const specialCharsAllowSpaces = /[：”；’、。！`~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/]/gi
@@ -47,13 +74,30 @@ const dataUris = [
     "viewsource",
     "sourceviewer",
     "readerview",
+    "markdownviewer",
     "ws"
 ]
-const getSetting = val => JSON.parse(sessionStorage.getItem("settings"))?.[val]
 
+/**
+ * Get a setting value by setting name.
+ * @template {keyof typeof import("./renderer/settings").defaultSettings} T
+ * @param {T} val
+ * @returns {typeof import("./renderer/settings").defaultSettings[T]}
+ */
+const getSetting = val => JSON.parse(
+    sessionStorage.getItem("settings") ?? "")?.[val]
+
+/**
+ * Check if any string has a valid protocol or dataUri.
+ * @param {string} loc
+ */
 const hasProtocol = loc => protocolRegex.test(loc)
-    || dataUris.find(d => loc.startsWith(`${d}:`))
+    || dataUris.some(d => loc.startsWith(`${d}:`))
 
+/**
+ * Check if any string is a valid url.
+ * @param {string} location
+ */
 const isUrl = location => {
     if (hasProtocol(location)) {
         try {
@@ -84,12 +128,16 @@ const isUrl = location => {
     return true
 }
 
+/**
+ * Match a searchword and return the word and filled url.
+ * @param {string} location
+ */
 const searchword = location => {
     for (const mapping of getSetting("searchwords").split(",")) {
         const [word, url] = mapping.split("~")
         if (word && url) {
             const q = location.replace(`${word} `, "")
-            if (q && location.startsWith(`${word} `)) {
+            if (q && location.replace(/^\s/g, "").startsWith(`${word} `)) {
                 const queries = q.split(",")
                 let urlString = url
                 let counter = 1
@@ -111,13 +159,23 @@ const searchword = location => {
 
 const listNotificationHistory = () => notificationHistory
 
+/**
+ * Get the url of a special page given a name and an optional section.
+ * @param {string} userPage
+ * @param {string|null} section
+ * @param {boolean} skipExistCheck
+ */
 const specialPagePath = (userPage, section = null, skipExistCheck = false) => {
     let page = userPage
     if (!specialPages.includes(userPage) && !skipExistCheck) {
         page = "help"
     }
-    const url = joinPath(__dirname, `./pages/${page}.html`)
+    let url = joinPath(__dirname, `./pages/${page}.html`)
         .replace(/\\/g, "/").replace(/^\/*/g, "")
+    if (isDir(joinPath(__dirname, "../pages"))) {
+        url = joinPath(__dirname, `../pages/${page}.html`)
+            .replace(/\\/g, "/").replace(/^\/*/g, "")
+    }
     if (section) {
         if (section.startsWith("#")) {
             return `file:///${url}${section}`
@@ -127,6 +185,10 @@ const specialPagePath = (userPage, section = null, skipExistCheck = false) => {
     return `file:///${url}`
 }
 
+/**
+ * Expand a path that is prefixed with ~ to the user's home folder.
+ * @param {string} loc
+ */
 const expandPath = loc => {
     if (loc.startsWith("~")) {
         if (!homeDirPath) {
@@ -138,10 +200,14 @@ const expandPath = loc => {
     return loc
 }
 
+/**
+ * Translate a string from the explore mode input to a valid url.
+ * @param {string} location
+ */
 const stringToUrl = location => {
     let url = String(location)
     const specialPage = pathToSpecialPageName(url)
-    if (specialPage.name) {
+    if (specialPage?.name) {
         return specialPagePath(specialPage.name, specialPage.section)
     }
     let fileName = url.replace(/^file:\/+/, "/")
@@ -154,7 +220,7 @@ const stringToUrl = location => {
         url = `file:/${escapedPath}`.replace(/^file:\/+/, "file:///")
     }
     if (!isUrl(url)) {
-        const engines = getSetting("search").split(",")
+        const engines = getSetting("searchengine").split(",")
         const engine = engines.at(Math.random() * engines.length)
         if (!engine) {
             return ""
@@ -172,13 +238,14 @@ const stringToUrl = location => {
     return encodeURI(url)
 }
 
+/**
+ * Translate a valid url to the explore mode input representation.
+ * @param {string} url
+ */
 const urlToString = url => {
     const special = pathToSpecialPageName(url)
-    if (special.name === "newtab") {
-        return ""
-    }
-    if (special.name) {
-        let specialUrl = `${appConfig().name.toLowerCase()}://${special.name}`
+    if (special?.name) {
+        let specialUrl = `${appConfig()?.name.toLowerCase()}://${special.name}`
         if (special.section) {
             specialUrl += `#${special.section}`
         }
@@ -201,6 +268,10 @@ const urlToString = url => {
     return url
 }
 
+/**
+ * Capitalize a string to only have one capital letter at the start.
+ * @param {string} s
+ */
 const title = s => {
     if (!s || !s[0]) {
         return ""
@@ -209,8 +280,12 @@ const title = s => {
 }
 
 const downloadPath = () => expandPath(getSetting("downloadpath")
-    || appConfig().downloads || "~/Downloads")
+    || appConfig()?.downloads || "~/Downloads")
 
+/**
+ * Template a user agent with value with version and browser info.
+ * @param {string} agent
+ */
 const userAgentTemplated = agent => {
     if (!agent) {
         return ""
@@ -244,8 +319,9 @@ const defaultUseragent = () => {
 }
 
 const firefoxVersion = () => {
-    const daysSinceBase = (new Date() - new Date(2021, 7, 10)) / 86400000
-    return `${91 + Math.floor(daysSinceBase / 28)}.0`
+    const daysSinceBase = (new Date().getTime()
+        - new Date(2023, 4, 9).getTime()) / 86400000
+    return `${113 + Math.floor(daysSinceBase / 28)}.0`
 }
 
 const firefoxUseragent = () => {
@@ -254,6 +330,10 @@ const firefoxUseragent = () => {
     return `Mozilla/5.0 (${sys}; rv:${ver}) Gecko/20100101 Firefox/${ver}`
 }
 
+/**
+ * Return the domain name for the provided url.
+ * @param {string} url
+ */
 const domainName = url => {
     try {
         const {host} = new URL(url)
@@ -266,19 +346,25 @@ const domainName = url => {
     }
 }
 
+/**
+ * Returns true if both urls share the same domain name, else false.
+ * @param {string} url1
+ * @param {string} url2
+ */
 const sameDomain = (url1, url2) => {
     const domain1 = domainName(url1)
     const domain2 = domainName(url2)
     return domain1 && domain2 && domain1 === domain2
 }
 
+/**
+ * Format a provided date, unix time or.
+ * @param {string|number|Date|null|undefined} dateStringOrNumber
+ */
 const formatDate = dateStringOrNumber => {
-    let date = dateStringOrNumber
-    if (typeof date === "number") {
+    let date = new Date(dateStringOrNumber ?? "")
+    if (typeof dateStringOrNumber === "number") {
         date = new Date(dateStringOrNumber * 1000)
-    }
-    if (typeof date === "string") {
-        date = new Date(dateStringOrNumber)
     }
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")
     }-${String(date.getDate()).padStart(2, "0")} ${String(date.getHours())
@@ -286,29 +372,52 @@ const formatDate = dateStringOrNumber => {
         String(date.getSeconds()).padStart(2, "0")}`
 }
 
-const storeFrameInfo = (element, options) => {
+/**
+ * Store the location of a frame element.
+ * @param {Element|ShadowRoot|null} element
+ * @param {{x: number, y: number}} location
+ */
+const storeFrameInfo = (element, location) => {
     if (!element) {
         return
     }
     const info = framePaddingInfo.find(i => i.element === element)
     if (info) {
-        Object.assign(info, options)
+        Object.assign(info, location)
     } else {
-        framePaddingInfo.push({element, ...options})
+        framePaddingInfo.push({element, ...location})
     }
 }
 
+/**
+ * Find the frame info for a given element if available.
+ * @param {Element|ShadowRoot|null} el
+ */
 const findFrameInfo = el => framePaddingInfo.find(i => i.element === el)
 
+/**
+ * Get the position of a given element based on bounding rect plus padding.
+ * @param {Element} frame
+ */
 const framePosition = frame => ({
-    "x": frame.getBoundingClientRect().x + propPixels(frame, "paddingLeft")
-        + propPixels(frame, "borderLeftWidth"),
-    "y": frame.getBoundingClientRect().y + propPixels(frame, "paddingTop")
-        + propPixels(frame, "borderTopWidth")
+    "x": frame.getBoundingClientRect().x + propPixels(frame, "padding-left")
+        + propPixels(frame, "border-left-width"),
+    "y": frame.getBoundingClientRect().y + propPixels(frame, "padding-top")
+        + propPixels(frame, "border-top-width")
 })
 
+/**
+ * Get a CSS decleration property from an element as a number of pixels.
+ * @param {Element|CSSStyleDeclaration} element
+ * @param {string} prop
+ */
 const propPixels = (element, prop) => {
-    const value = element[prop] || getComputedStyle(element)[prop]
+    let value = ""
+    if (element instanceof CSSStyleDeclaration) {
+        value = element.getPropertyValue(prop)
+    } else {
+        value = getComputedStyle(element).getPropertyValue(prop)
+    }
     if (typeof value === "number") {
         return value
     }
@@ -323,9 +432,171 @@ const propPixels = (element, prop) => {
     return Number(value) || 0
 }
 
+/**
+ * Check if a node is an element, taking subframes into account.
+ * @param {Node|EventTarget|null|undefined} el
+ * @returns {el is Element}
+ */
+const isElement = el => {
+    if (el instanceof EventTarget && !(el instanceof Element)) {
+        return false
+    }
+    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
+        return false
+    }
+    return el instanceof el.ownerDocument.defaultView.Element
+}
+
+/**
+ * Check if a node is an html element, taking subframes into account.
+ * @param {Node|EventTarget|null|undefined} el
+ * @returns {el is HTMLElement}
+ */
+const isHTMLElement = el => {
+    if (el instanceof EventTarget && !(el instanceof HTMLElement)) {
+        return false
+    }
+    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
+        return false
+    }
+    return el instanceof el.ownerDocument.defaultView.HTMLElement
+}
+
+/**
+ * Check if a node is an iframe element, taking subframes into account.
+ * @param {Node|EventTarget|null|undefined} el
+ * @returns {el is HTMLIFrameElement}
+ */
+const isHTMLIFrameElement = el => {
+    if (el instanceof EventTarget && !(el instanceof HTMLIFrameElement)) {
+        return false
+    }
+    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
+        return false
+    }
+    return el instanceof el.ownerDocument.defaultView.HTMLIFrameElement
+}
+
+/**
+ * Check if a node is an input or textarea, taking subframes into account.
+ * @param {Node|EventTarget|null|undefined} el
+ * @returns {el is HTMLInputElement|HTMLTextAreaElement}
+ */
+const isInputOrTextElement = el => {
+    if (el instanceof EventTarget && (
+        !(el instanceof HTMLInputElement)
+        && !(el instanceof HTMLTextAreaElement)
+    )) {
+        return false
+    }
+    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
+        return false
+    }
+    return el instanceof el.ownerDocument.defaultView.HTMLInputElement
+        || el instanceof el.ownerDocument.defaultView.HTMLTextAreaElement
+}
+
+/**
+ * Check if a node is an anchor element, taking subframes into account.
+ * @param {Node|EventTarget|null|undefined} el
+ * @returns {el is HTMLAnchorElement}
+ */
+const isHTMLAnchorElement = el => {
+    if (el instanceof EventTarget && !(el instanceof HTMLAnchorElement)) {
+        return false
+    }
+    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
+        return false
+    }
+    return el instanceof el.ownerDocument.defaultView.HTMLAnchorElement
+}
+
+/**
+ * Check if a node is a link element, taking subframes into account.
+ * @param {Node|EventTarget|null|undefined} el
+ * @returns {el is HTMLLinkElement}
+ */
+const isHTMLLinkElement = el => {
+    if (el instanceof EventTarget && !(el instanceof HTMLLinkElement)) {
+        return false
+    }
+    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
+        return false
+    }
+    return el instanceof el.ownerDocument.defaultView.HTMLLinkElement
+}
+
+/**
+ * Check if a node is an image element, taking subframes into account.
+ * @param {Node|EventTarget|null|undefined} el
+ * @returns {el is HTMLImageElement}
+ */
+const isHTMLImageElement = el => {
+    if (el instanceof EventTarget && !(el instanceof HTMLImageElement)) {
+        return false
+    }
+    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
+        return false
+    }
+    return el instanceof el.ownerDocument.defaultView.HTMLImageElement
+}
+
+/**
+ * Check if a node is an svg element, taking subframes into account.
+ * @param {Node|EventTarget|null|undefined} el
+ * @returns {el is SVGElement}
+ */
+const isSVGElement = el => {
+    if (el instanceof EventTarget && !(el instanceof SVGElement)) {
+        return false
+    }
+    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
+        return false
+    }
+    return el instanceof el.ownerDocument.defaultView.SVGElement
+}
+
+/**
+ * Check if a node is a video element, taking subframes into account.
+ * @param {Node|EventTarget|null|undefined} el
+ * @returns {el is HTMLVideoElement}
+ */
+const isHTMLVideoElement = el => {
+    if (el instanceof EventTarget && !(el instanceof HTMLVideoElement)) {
+        return false
+    }
+    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
+        return false
+    }
+    return el instanceof el.ownerDocument.defaultView.HTMLVideoElement
+}
+
+/**
+ * Check if a node is an audio element, taking subframes into account.
+ * @param {Node|EventTarget|null|undefined} el
+ * @returns {el is HTMLAudioElement}
+ */
+const isHTMLAudioElement = el => {
+    if (el instanceof EventTarget && !(el instanceof HTMLAudioElement)) {
+        return false
+    }
+    if (!el || !el.ownerDocument || !el.ownerDocument.defaultView) {
+        return false
+    }
+    return el instanceof el.ownerDocument.defaultView.HTMLAudioElement
+}
+
+/**
+ * Call an element matches in a safe wrapper as not all elements work.
+ * @param {Element|EventTarget|null|undefined} el
+ * @param {string} query
+ */
 const matchesQuery = (el, query) => {
+    if (!isElement(el)) {
+        return false
+    }
     try {
-        return el.matches(query)
+        return el?.matches(query) ?? false
     } catch {
         // Not all elements with the 'matches' attribute have it as a function
         // Therefore we just try to call it as one, and return false otherwise
@@ -333,36 +604,53 @@ const matchesQuery = (el, query) => {
     }
 }
 
+/**
+ * Find the deepest element at a position, including subframes and shadow doms.
+ * @param {number} x
+ * @param {number} y
+ * @param {(Document|ShadowRoot)[]} levels
+ * @param {number} px
+ * @param {number} py
+ * @returns {Element|null}
+ */
 const findElementAtPosition = (x, y, levels = [document], px = 0, py = 0) => {
     // Find out which element is located at a given position.
     // Will look inside subframes recursively at the corrected position.
-    const elementAtPos = levels?.[0]?.elementFromPoint(x - px, y - py)
-    if (levels.includes(elementAtPos?.shadowRoot || elementAtPos)) {
-        return elementAtPos
+    const elAtPos = levels?.[0]?.elementFromPoint(x - px, y - py)
+    if (elAtPos?.shadowRoot && levels.includes(elAtPos.shadowRoot)) {
+        return elAtPos
     }
-    if (matchesQuery(elementAtPos, "iframe")) {
-        const frameInfo = findFrameInfo(elementAtPos) || {}
+    if (elAtPos instanceof HTMLIFrameElement && elAtPos.contentDocument) {
+        const frameInfo = findFrameInfo(elAtPos)
         return findElementAtPosition(x, y,
-            [elementAtPos.contentDocument, ...levels], frameInfo.x, frameInfo.y)
+            [elAtPos.contentDocument, ...levels], frameInfo?.x, frameInfo?.y)
     }
-    if (elementAtPos?.shadowRoot) {
-        const frameInfo = findFrameInfo(elementAtPos.shadowRoot) || {}
+    if (elAtPos?.shadowRoot) {
+        const frameInfo = findFrameInfo(elAtPos.shadowRoot)
         return findElementAtPosition(x, y,
-            [elementAtPos.shadowRoot, ...levels], frameInfo.x, frameInfo.y)
+            [elAtPos.shadowRoot, ...levels], frameInfo?.x, frameInfo?.y)
     }
-    return elementAtPos
+    return elAtPos
 }
 
+/**
+ * Queryselector that recursively navigates subframes and shadow doms.
+ * @param {string} sel
+ * @param {Document|ShadowRoot|Element} base
+ * @param {number} paddedX
+ * @param {number} paddedY
+ */
 const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
     if (!base) {
         return []
     }
+    /** @type {Element[]} */
     let elements = []
     if (base === document) {
         elements = Array.from(base.querySelectorAll(sel) || [])
     }
     Array.from(base.querySelectorAll("*") || [])
-        .filter(el => el.shadowRoot || matchesQuery(el, "iframe"))
+        .filter(el => el.shadowRoot || el instanceof HTMLIFrameElement)
         .forEach(el => {
             let location = {"x": paddedX, "y": paddedY}
             if (!el.shadowRoot) {
@@ -370,41 +658,78 @@ const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
                 location = {"x": frameX + paddedX, "y": frameY + paddedY}
             }
             storeFrameInfo(el?.shadowRoot || el, location)
-            const extra = Array.from((el.contentDocument || el.shadowRoot)
-                ?.querySelectorAll(sel) || [])
-            extra.forEach(e => storeFrameInfo(e, location))
-            elements = elements.concat([...extra, ...querySelectorAll(sel,
-                el.contentDocument || el.shadowRoot,
-                location.x, location.y)])
+            if (el instanceof HTMLIFrameElement && el.contentDocument) {
+                const extra = Array.from(el.contentDocument
+                    .querySelectorAll(sel) || [])
+                extra.forEach(e => storeFrameInfo(e, location))
+                elements = elements.concat([...extra, ...querySelectorAll(sel,
+                    el.contentDocument, location.x, location.y)])
+            }
+            if (el.shadowRoot) {
+                const extra = Array.from(el.shadowRoot
+                    .querySelectorAll(sel) || [])
+                extra.forEach(e => storeFrameInfo(e, location))
+                elements = elements.concat([...extra, ...querySelectorAll(sel,
+                    el.shadowRoot, location.x, location.y)])
+            }
         })
     return elements
 }
 
+/**
+ * Find the center of a rect within the borders of the visible window.
+ * @param {DOMRect} rect
+ */
+const correctedCenterAndSizeOfRect = rect => {
+    let {x, y} = rect
+    x = x || rect.left
+    y = y || rect.top
+    let width = Math.min(rect.width, window.innerWidth - x)
+    if (x < 0) {
+        width += x
+        x = 0
+    }
+    let height = Math.min(rect.height, window.innerHeight - y)
+    if (y < 0) {
+        height += y
+        y = 0
+    }
+    const centerX = x + width / 2
+    const centerY = y + height / 2
+    return {centerX, centerY, height, width, x, y}
+}
+
+/**
+ * Return the most suitable click area given a list of options if available.
+ * @param {Element} element
+ * @param {DOMRect[]} rects
+ */
 const findClickPosition = (element, rects) => {
-    let dims = {}
+    let dims = {"height": 0, "width": 0, "x": 0, "y": 0}
     let clickable = false
-    // Check if the center of the bounding rect is actually clickable,
-    // For every possible rect of the element and it's sub images.
     for (const rect of rects) {
-        let {x, y} = rect
-        let width = Math.min(rect.width, window.innerWidth - x)
-        if (x < 0) {
-            width += x
-            x = 0
-        }
-        let height = Math.min(rect.height, window.innerHeight - y)
-        if (y < 0) {
-            height += y
-            y = 0
-        }
-        const rectX = x + width / 2
-        const rectY = y + height / 2
-        // Update the region if it's larger or the first region found
-        if (width > dims.width || height > dims.height || !clickable) {
-            const elementAtPos = findElementAtPosition(rectX, rectY)
-            if (element === elementAtPos || element?.contains(elementAtPos)) {
+        const {
+            centerX, centerY, x, y, width, height
+        } = correctedCenterAndSizeOfRect(rect)
+        if (!clickable || width * height > dims.width * dims.height) {
+            const elAtPos = findElementAtPosition(centerX, centerY)
+            if (element === elAtPos || element?.contains(elAtPos)) {
                 clickable = true
                 dims = {height, width, x, y}
+            }
+        }
+    }
+    if (!clickable) {
+        for (const rect of [...element.getClientRects()]) {
+            const {
+                centerX, centerY, x, y, width, height
+            } = correctedCenterAndSizeOfRect(rect)
+            if (!clickable || width * height > dims.width * dims.height) {
+                const elAtPos = findElementAtPosition(centerX, centerY)
+                if (element === elAtPos || element?.contains(elAtPos)) {
+                    clickable = true
+                    dims = {height, width, x, y}
+                }
             }
         }
     }
@@ -416,27 +741,34 @@ const activeElement = () => {
         return document.activeElement.shadowRoot.activeElement
     }
     if (document.activeElement !== document.body) {
-        if (!matchesQuery(document.activeElement, "iframe")) {
+        if (!(document.activeElement instanceof HTMLIFrameElement)) {
             return document.activeElement
         }
     }
     return querySelectorAll("iframe").map(frame => {
+        if (!(frame instanceof HTMLIFrameElement)) {
+            return null
+        }
         const doc = frame.contentDocument
         if (!doc) {
-            return false
+            return null
         }
         if (doc.activeElement?.shadowRoot?.activeElement) {
             return doc.activeElement.shadowRoot.activeElement
         }
         if (doc.body !== doc.activeElement) {
-            if (!matchesQuery(doc.activeElement, "iframe")) {
+            if (!(document.activeElement instanceof HTMLIFrameElement)) {
                 return doc.activeElement
             }
         }
-        return false
+        return null
     }).find(el => el)
 }
 
+/**
+ * Format any number of bytes (<1024 EB) to a value with a nice unit.
+ * @param {number} size
+ */
 const formatSize = size => {
     if (size < 1024) {
         return `${size} B`
@@ -445,6 +777,11 @@ const formatSize = size => {
     return `${(size / 1024 ** exp).toFixed(2)} ${"KMGTPE"[exp - 1]}B`
 }
 
+/**
+ * Compare two version numbers and return which one is newer.
+ * @param {string} v1Str
+ * @param {string} v2Str
+ */
 const compareVersions = (v1Str, v2Str) => {
     const v1 = v1Str.replace(/^v/g, "").trim()
     const v2 = v2Str.replace(/^v/g, "").trim()
@@ -457,8 +794,9 @@ const compareVersions = (v1Str, v2Str) => {
     if (v1num === v2num) {
         if (v1ext && v2ext) {
             // Do a simple comparison of named pre releases
+            /** @type {{[ext: string]: number|undefined}} */
             const suffixMap = {"alpha": 2, "beta": 3, "dev": 1, "prerelease": 4}
-            const v1suffix = suffixMap[v1ext] || 0
+            const v1suffix = suffixMap[v1ext] ?? 0
             const v2suffix = suffixMap[v2ext] || 0
             if (v1suffix > v2suffix) {
                 return "newer"
@@ -484,76 +822,169 @@ const compareVersions = (v1Str, v2Str) => {
     return "unknown"
 }
 
-const extractZip = (args, cb) => {
-    // Path is constructed manually due to the many electron-builder bugs:
-    // https://github.com/electron-userland/electron-builder/issues/5662
-    // https://github.com/electron-userland/electron-builder/issues/5625
-    // https://github.com/electron-userland/electron-builder/issues/5706
-    // https://github.com/electron-userland/electron-builder/issues/5617
-    // It seems that modules not used in the main process are dropped on build,
-    // so we explicitly tell electron-builder to add them extracted.
-    // This way we can call the right tool ourselves without importing it.
-    let loc = joinPath(__dirname, "../node_modules/7zip-bin/")
-    if (process.platform === "darwin") {
-        loc = joinPath(loc, "mac", process.arch, "7za")
-    } else if (process.platform === "win32") {
-        loc = joinPath(loc, "win", process.arch, "7za.exe")
+/**
+ * Fetch any url with the Node.JS http and https modules.
+ * @param {string} url
+ * @param {import("https").RequestOptions} opts
+ * @param {string|null} body
+ */
+const fetchUrl = (url, opts = {}, body = null) => new Promise((res, rej) => {
+    let requestModule = null
+    if (url.startsWith("https://")) {
+        requestModule = require("https")
+    } else if (url.startsWith("http://")) {
+        requestModule = require("http")
     } else {
-        loc = joinPath(loc, "linux", process.arch, "7za")
+        rej("invalid protocol")
+        return
     }
-    const {spawn} = require("child_process")
-    spawn(loc, args).on("exit", cb)
+    const request = requestModule.request(url, opts, response => {
+        let data = ""
+        response.on("data", chunk => {
+            data += chunk.toString()
+        })
+        response.on("end", () => {
+            try {
+                res(data)
+            } catch (err) {
+                rej({data, err})
+            }
+        })
+    })
+    request.on("error", err => rej(err))
+    if (body) {
+        request.write(body)
+    }
+    request.end()
+})
+
+/**
+ * Fetch any url with the Node.JS http and https modules and parse its JSON.
+ * @param {string} url
+ * @param {import("https").RequestOptions} opts
+ * @param {string|null} body
+ */
+const fetchJSON = (url, opts = {}, body = null) => new Promise((res, rej) => {
+    fetchUrl(url, opts, body).then(data => {
+        try {
+            res(JSON.parse(data))
+        } catch {
+            rej({data, "err": "Response is not valid JSON"})
+        }
+    }).catch(rej)
+})
+
+/**
+ * Calculate the offset in pixels for each dimension of an element.
+ * @param {HTMLElement} page
+ */
+const pageOffset = page => {
+    const border = propPixels(page, "border-width")
+    const top = Math.round(propPixels(page.style, "top") + border)
+    const left = Math.round(propPixels(page.style, "left") + border)
+    const bottom = Math.round(top + propPixels(page.style, "height") + border)
+    const right = Math.round(left + propPixels(page.style, "width") + border)
+    return {bottom, left, right, top}
+}
+
+/**
+ * Run any system command in the user's preferred shell.
+ * @param {string} command
+ * @param {(
+ *   error: import("child_process").ExecException|null,
+ *   stdout: string|Buffer,
+ *   stderr: string|Buffer
+ * ) => void} callback
+ */
+const execCommand = (command, callback) => {
+    let shell = null
+    if (process.platform === "win32") {
+        shell = process.env.ComSpec || shell
+    }
+    shell = process.env.SHELL || shell
+    shell = getSetting("shell") || shell
+    const {exec} = require("child_process")
+    if (shell) {
+        return exec(command, {shell}, callback)
+    }
+    return exec(command, callback)
+}
+
+/**
+ * Check if the given value is a valid interval value.
+ * @param {string} value
+ * @param {boolean} invertedRangesSupported
+ */
+const isValidIntervalValue = (value, invertedRangesSupported = false) => {
+    const validUnits = ["second", "minute", "hour", "day", "month", "year"]
+    for (const unit of validUnits) {
+        if (value.endsWith(unit) || value.endsWith(`${unit}s`)) {
+            const number = value.replace(RegExp(`${unit}s?$`), "")
+            if (invertedRangesSupported) {
+                return !!number.replace(/^last/g, "").match(/^\d+$/g)
+            }
+            return !!number.match(/^\d+$/g)
+        }
+    }
+    return false
+}
+
+/**
+ * Convert an interval to a date relative to the current date.
+ * @param {string} value
+ */
+const intervalValueToDate = value => {
+    const date = new Date()
+    if (value.includes("second")) {
+        date.setSeconds(date.getSeconds() - Number(value.replace(/[a-z]/g, "")))
+    }
+    if (value.includes("minute")) {
+        date.setMinutes(date.getMinutes() - Number(value.replace(/[a-z]/g, "")))
+    }
+    if (value.includes("hour")) {
+        date.setHours(date.getHours() - Number(value.replace(/[a-z]/g, "")))
+    }
+    if (value.includes("day")) {
+        date.setDate(date.getDate() - Number(value.replace(/[a-z]/g, "")))
+    }
+    if (value.includes("month")) {
+        date.setMonth(date.getMonth() - Number(value.replace(/[a-z]/g, "")))
+    }
+    if (value.includes("year")) {
+        date.setFullYear(date.getFullYear()
+            - Number(value.replace(/[a-z]/g, "")))
+    }
+    return date
 }
 
 // IPC UTIL
 
+const currentPage = () => {
+    /** @type {Electron.WebviewTag|null} */
+    // @ts-expect-error current page id is always set to webview
+    const page = document.getElementById("current-page")
+    return page
+}
+/**
+ * Send a message to the current page and its frames.
+ * @param {string} channel
+ * @param {any[]} args
+ */
 const sendToPageOrSubFrame = (channel, ...args) => {
     const {ipcRenderer} = require("electron")
-    ipcRenderer.send(channel, document.getElementById("current-page")
-        ?.getWebContentsId(), ...args)
+    ipcRenderer.send(channel, currentPage()?.getWebContentsId(), ...args)
 }
 
-const globDelete = folder => {
-    // Request is send back to the main process due to electron-builder bugs:
-    // https://github.com/electron-userland/electron-builder/issues/5662
-    // https://github.com/electron-userland/electron-builder/issues/5625
-    // https://github.com/electron-userland/electron-builder/issues/5706
-    // https://github.com/electron-userland/electron-builder/issues/5617
-    // It seems that modules not used in the main process are dropped on build.
-    const {ipcRenderer} = require("electron")
-    ipcRenderer.sendSync("rimraf", joinPath(appData(), folder))
-}
-
-const clearTempContainers = () => {
-    globDelete("Partitions/temp*")
-    globDelete("erwicmode")
-}
-
-const clearCache = () => {
-    globDelete("**/*Cache/")
-    globDelete("**/File System/")
-    globDelete("**/MANIFEST")
-    globDelete("**/Service Worker/")
-    globDelete("**/VideoDecodeStats/")
-    globDelete("**/blob_storage/")
-    globDelete("**/databases/")
-    globDelete("*.log")
-    globDelete("**/.org.chromium.Chromium.*")
-    globDelete("vimformedits/")
-    globDelete("webviewsettings")
-}
-
-const clearCookies = () => {
-    globDelete("**/Cookies*")
-    globDelete("**/QuotaManager*")
-}
-
-const clearLocalStorage = () => {
-    globDelete("**/IndexedDB/")
-    globDelete("**/*Storage/")
-    globDelete("**/*.ldb")
-}
-
+/**
+ * Show the user a notification bubble and store it in the history.
+ * @param {string} message
+ * @param {string} type
+ * @param {{
+ *   type: "download-success",
+ *   path: string,
+ *   func?: () => void
+ * }|false} clickAction
+ */
 const notify = (message, type = "info", clickAction = false) => {
     if (getSetting("notificationduration") === 0) {
         return
@@ -571,30 +1002,52 @@ const notify = (message, type = "info", clickAction = false) => {
     if (type.startsWith("err")) {
         properType = "error"
     }
+    if (type.startsWith("dial")) {
+        properType = "dialog"
+    }
     const escapedMessage = message.replace(/>/g, "&gt;").replace(/</g, "&lt;")
         .replace(/\n/g, "<br>")
+    let clickInfo = null
+    if (clickAction) {
+        clickInfo = {...clickAction}
+        delete clickInfo.func
+    }
+    const notifyForPerm = getSetting("notificationforpermissions")
+    if (properType === "permission" && notifyForPerm === "none") {
+        return
+    }
     notificationHistory.push({
-        "click": clickAction,
+        "click": clickInfo,
         "date": new Date(),
         "message": escapedMessage,
         "type": properType
     })
     if (properType === "permission") {
-        if (!getSetting("notificationforpermissions")) {
+        if (notifyForPerm === "silent") {
             return
+        }
+        if (notifyForPerm === "allowed") {
+            if (!message.replace(/'.*?'/g, "").includes("allowed")) {
+                return
+            }
+        }
+        if (notifyForPerm === "blocked") {
+            if (!message.replace(/'.*?'/g, "").includes("blocked")) {
+                return
+            }
         }
     }
     const native = getSetting("nativenotification")
-    const showLong = properType !== "permission"
-        && (escapedMessage.split("<br>").length > 5 || message.length > 200)
-    if (native === "always" || !showLong && native === "smallonly") {
+    const shortLimitNotify = getSetting("notificationlimitsmall")
+    const showLong = escapedMessage.split("<br>").length > shortLimitNotify
+        && properType !== "dialog"
+    const shortAndSmallNative = !showLong && native === "smallonly"
+    const longAndLargeNative = showLong && native === "largeonly"
+    if (native === "always" || shortAndSmallNative || longAndLargeNative) {
         const n = new Notification(
-            `${appConfig().name} ${properType}`, {"body": message})
-        n.onclick = () => {
-            if (clickAction?.type === "download-success") {
-                const {ipcRenderer} = require("electron")
-                ipcRenderer.send("open-download", clickAction.path)
-            }
+            `${appConfig()?.name} ${properType}`, {"body": message})
+        if (clickAction && clickAction.func) {
+            n.onclick = () => clickAction.func?.()
         }
         return
     }
@@ -604,21 +1057,24 @@ const notify = (message, type = "info", clickAction = false) => {
         return
     }
     const notificationsElement = document.getElementById("notifications")
+    if (!notificationsElement) {
+        return
+    }
     notificationsElement.className = getSetting("notificationposition")
     const notification = document.createElement("span")
     notification.className = properType
     notification.innerHTML = escapedMessage
-    if (clickAction?.type === "download-success") {
-        notification.addEventListener("click", () => {
-            const {ipcRenderer} = require("electron")
-            ipcRenderer.send("open-download", clickAction.path)
-        })
+    if (clickAction && clickAction.func) {
+        notification.addEventListener("click", () => clickAction.func?.())
     }
-    notificationsElement.appendChild(notification)
+    notificationsElement.append(notification)
     setTimeout(() => notification.remove(),
         getSetting("notificationduration"))
 }
 
+/**
+ * Returns the appdata path (works from both main, renderer and preloads).
+ */
 const appData = () => {
     if (!appDataPath) {
         try {
@@ -627,15 +1083,21 @@ const appData = () => {
         } catch {
             // Not in main thread
         }
-        appDataPath = appConfig().appdata
+        appDataPath = appConfig()?.appdata ?? ""
     }
     return appDataPath
 }
 
+/**
+ * Returns the app configuration settings.
+ */
 const appConfig = () => {
     if (!configSettings) {
         const {ipcRenderer} = require("electron")
         configSettings = ipcRenderer.sendSync("app-config")
+        if (!configSettings) {
+            return null
+        }
         let files = [configSettings.override]
         const datafolderConfig = joinPath(appData(), "viebrc")
         const userFirstConfig = expandPath("~/.vieb/viebrc")
@@ -664,8 +1126,12 @@ const appConfig = () => {
 
 const path = require("path")
 
+/**
+ * Convert any url/path to the name and section of a special page if relevant.
+ * @param {string} urlPath
+ */
 const pathToSpecialPageName = urlPath => {
-    const appName = appConfig().name.toLowerCase()
+    const appName = appConfig()?.name.toLowerCase() ?? ""
     if (urlPath?.startsWith?.(`${appName}://`)) {
         const parts = urlPath.replace(`${appName}://`, "").split("#")
         let [name] = parts
@@ -707,33 +1173,70 @@ const pathToSpecialPageName = urlPath => {
     if (urlPath === "") {
         return {"name": "newtab", "section": ""}
     }
-    return {"name": "", "section": ""}
-}
-
-const unpacked = {}
-const resolveUnpacked = loc => {
-    if (!unpacked[loc]) {
-        unpacked[loc] = loc
-        const newloc = loc.replace(/app\.asar([\\/])/, "app.asar.unpacked$1")
-        if (isFile(newloc)) {
-            unpacked[loc] = newloc
+    const appImagePathPattern = RegExp(
+        "^file:///tmp/[.]mount_Vieb-[a-zA-Z0-9]+"
+        + "/resources/app[.]asar/app/pages/")
+    if (urlPath.match(appImagePathPattern)) {
+        return {
+            "name": urlPath.replace(appImagePathPattern, "").replace(/\..+/, ""),
+            "section": ""
         }
     }
-    return unpacked[loc]
+    return null
 }
 
-const joinPath = (...args) => resolveUnpacked(path.resolve(path.join(...args)))
+/**
+ * Join multiple path parts into a single resolved path.
+ * @param {string[]} paths
+ */
+const joinPath = (...paths) => path.resolve(path.join(...paths))
 
-const basePath = (...args) => path.basename(...args)
+/**
+ * Return the last part of the path, usually the filename.
+ * @param {string} loc
+ */
+const basePath = loc => path.basename(loc)
 
-const dirname = (...args) => path.dirname(...args)
+/**
+ * Return the directory name of the path.
+ * @param {string} loc
+ */
+const dirname = loc => path.dirname(loc)
 
-const isAbsolutePath = (...args) => path.isAbsolute(...args)
+/**
+ * Check if a path is absolute or not.
+ * @param {string} loc
+ */
+const isAbsolutePath = loc => path.isAbsolute(loc)
 
 // FILESYSTEM UTIL
 
 const fs = require("fs")
 
+/**
+ * @typedef {(typeof import("./renderer/settings").defaultSettings & {
+ *   "fg": string
+ *   "bg": string
+ *   "linkcolor": string
+ * })} webviewSetting
+ */
+
+/**
+ * Get a setting from the webviewsettings file inside preloads.
+ * @template {keyof webviewSetting} T
+ * @param {T} name
+ * @returns {null|webviewSetting[T]}
+ */
+const getWebviewSetting = name => {
+    const webviewSettingsFile = joinPath(appData(), "webviewsettings")
+    const settings = readJSON(webviewSettingsFile) ?? {}
+    return settings[name] ?? null
+}
+
+/**
+ * Check if a path exists.
+ * @param {string} loc
+ */
 const pathExists = loc => {
     try {
         return fs.existsSync(loc)
@@ -742,6 +1245,10 @@ const pathExists = loc => {
     }
 }
 
+/**
+ * Check if a path is a directory.
+ * @param {string} loc
+ */
 const isDir = loc => {
     try {
         return fs.statSync(loc).isDirectory()
@@ -750,6 +1257,10 @@ const isDir = loc => {
     }
 }
 
+/**
+ * Check if a path is a file.
+ * @param {string} loc
+ */
 const isFile = loc => {
     try {
         return fs.statSync(loc).isFile()
@@ -758,6 +1269,11 @@ const isFile = loc => {
     }
 }
 
+/**
+ * Read the file contents of a file as a string.
+ * @param {string} loc
+ * @returns {string|null}
+ */
 const readFile = loc => {
     try {
         return fs.readFileSync(loc).toString()
@@ -766,6 +1282,11 @@ const readFile = loc => {
     }
 }
 
+/**
+ * Read the file contents of a file and parse it as JSON.
+ * @param {string} loc
+ * @returns {any|null}
+ */
 const readJSON = loc => {
     try {
         return JSON.parse(fs.readFileSync(loc).toString())
@@ -774,6 +1295,13 @@ const readJSON = loc => {
     }
 }
 
+/**
+ * Write data to a file, optionally with success and error notifications.
+ * @param {string} loc
+ * @param {string|Buffer} data
+ * @param {string|null} err
+ * @param {string|null} success
+ */
 const writeFile = (loc, data, err = null, success = null) => {
     try {
         fs.writeFileSync(loc, data)
@@ -789,6 +1317,13 @@ const writeFile = (loc, data, err = null, success = null) => {
     return false
 }
 
+/**
+ * Append data to a file, optionally with success and error notifications.
+ * @param {string} loc
+ * @param {string} data
+ * @param {string|null} err
+ * @param {string|null} success
+ */
 const appendFile = (loc, data, err = null, success = null) => {
     try {
         fs.appendFileSync(loc, data)
@@ -804,9 +1339,17 @@ const appendFile = (loc, data, err = null, success = null) => {
     return false
 }
 
+/**
+ * Write JSON data to a file, optionally with indentation and notifications.
+ * @param {string} loc
+ * @param {any} data
+ * @param {string|null} err
+ * @param {string|null} success
+ * @param {number | undefined | null} indent
+ */
 const writeJSON = (loc, data, err = null, success = null, indent = null) => {
     try {
-        fs.writeFileSync(loc, JSON.stringify(data, null, indent))
+        fs.writeFileSync(loc, JSON.stringify(data, null, indent ?? undefined))
         if (success) {
             notify(success)
         }
@@ -819,6 +1362,11 @@ const writeJSON = (loc, data, err = null, success = null, indent = null) => {
     return false
 }
 
+/**
+ * Delete a file at a location, optinally with error message.
+ * @param {string} loc
+ * @param {string|null} err
+ */
 const deleteFile = (loc, err = null) => {
     try {
         fs.unlinkSync(loc)
@@ -831,6 +1379,12 @@ const deleteFile = (loc, err = null) => {
     return false
 }
 
+/**
+ * Make a directory at a location, optionally with feedback notifications.
+ * @param {string} loc
+ * @param {string|null} err
+ * @param {string|null} success
+ */
 const makeDir = (loc, err = null, success = null) => {
     try {
         fs.mkdirSync(loc, {"recursive": true})
@@ -846,6 +1400,12 @@ const makeDir = (loc, err = null, success = null) => {
     return false
 }
 
+/**
+ * List all files (or only dirs) in a folder (not recursive).
+ * @param {string} loc
+ * @param {boolean} absolute
+ * @param {boolean} dirsOnly
+ */
 const listDir = (loc, absolute = false, dirsOnly = false) => {
     try {
         let files = fs.readdirSync(loc)
@@ -861,13 +1421,105 @@ const listDir = (loc, absolute = false, dirsOnly = false) => {
     }
 }
 
-const watchFile = (...args) => fs.watchFile(...args)
+/**
+ * Watch a specific file including the polling fallback of 500ms.
+ * @param {string} file
+ * @param {() => void} call
+ */
+const watchFile = (file, call) => fs.watchFile(file, {"interval": 500}, call)
 
+/**
+ * Get the modified date for a file location.
+ * @param {string} loc
+ */
 const modifiedAt = loc => {
     try {
         return fs.statSync(loc).mtime
     } catch {
-        return 0
+        return new Date("1970-01-01")
+    }
+}
+
+/**
+ * Remove a location using "rm -rf" rimraf module.
+ * @param {string} f
+ */
+const rm = f => {
+    const rimraf = require("./rimraf")
+    try {
+        rimraf(f)
+    } catch {
+        // Windows permission errors
+    }
+}
+
+const clearTempContainers = () => {
+    const partitionDir = joinPath(appData(), "Partitions")
+    listDir(partitionDir, false, true)?.filter(part => part.startsWith("temp"))
+        .map(part => joinPath(partitionDir, part)).forEach(part => rm(part))
+    rm(joinPath(appData(), "erwicmode"))
+}
+
+const clearCache = () => {
+    const partitionDir = joinPath(appData(), "Partitions")
+    const partitions = [appData(), ...listDir(partitionDir, true, true) || []]
+    /** @type {string[]} */
+    let subNodes = []
+    partitions.forEach(part => subNodes.push(...listDir(part) || []))
+    subNodes = Array.from(new Set(subNodes).values())
+    partitions.forEach(part => rm(joinPath(part, "File System")))
+    partitions.forEach(part => rm(joinPath(part, "MANIFEST")))
+    partitions.forEach(part => rm(joinPath(part, "Service Worker")))
+    partitions.forEach(part => rm(joinPath(part, "VideoDecodeStats")))
+    partitions.forEach(part => rm(joinPath(part, "blob_storage")))
+    partitions.forEach(part => rm(joinPath(part, "databases")))
+    for (const part of partitions) {
+        for (const node of subNodes.filter(n => n.endsWith("Cache"))) {
+            rm(joinPath(part, node))
+        }
+        for (const node of subNodes.filter(n => n.endsWith(".log"))) {
+            rm(joinPath(part, node))
+        }
+        for (const node of subNodes.filter(n => n.startsWith(".org.chrom"))) {
+            rm(joinPath(part, node))
+        }
+    }
+    rm(joinPath(appData(), "vimformedits"))
+    rm(joinPath(appData(), "webviewsettings"))
+}
+
+const clearCookies = () => {
+    const partitionDir = joinPath(appData(), "Partitions")
+    const partitions = [appData(), ...listDir(partitionDir, true, true) || []]
+    /** @type {string[]} */
+    let subNodes = []
+    partitions.forEach(part => subNodes.push(...listDir(part) || []))
+    subNodes = Array.from(new Set(subNodes).values())
+    for (const part of partitions) {
+        for (const node of subNodes.filter(n => n.startsWith("Cookies"))) {
+            rm(joinPath(part, node))
+        }
+        for (const node of subNodes.filter(n => n.startsWith("QuotaManager"))) {
+            rm(joinPath(part, node))
+        }
+    }
+}
+
+const clearLocalStorage = () => {
+    const partitionDir = joinPath(appData(), "Partitions")
+    const partitions = [appData(), ...listDir(partitionDir, true, true) || []]
+    /** @type {string[]} */
+    let subNodes = []
+    partitions.forEach(part => subNodes.push(...listDir(part) || []))
+    subNodes = Array.from(new Set(subNodes).values())
+    partitions.forEach(part => rm(joinPath(part, "IndexedDB")))
+    for (const part of partitions) {
+        for (const node of subNodes.filter(n => n.endsWith("Storage"))) {
+            rm(joinPath(part, node))
+        }
+        for (const node of subNodes.filter(n => n.endsWith(".ldb"))) {
+            rm(joinPath(part, node))
+        }
     }
 }
 
@@ -897,6 +1549,16 @@ module.exports = {
     findFrameInfo,
     framePosition,
     propPixels,
+    isElement,
+    isHTMLElement,
+    isHTMLIFrameElement,
+    isInputOrTextElement,
+    isHTMLAnchorElement,
+    isHTMLLinkElement,
+    isHTMLImageElement,
+    isSVGElement,
+    isHTMLVideoElement,
+    isHTMLAudioElement,
     matchesQuery,
     findElementAtPosition,
     querySelectorAll,
@@ -904,14 +1566,14 @@ module.exports = {
     activeElement,
     formatSize,
     compareVersions,
-    extractZip,
+    fetchUrl,
+    fetchJSON,
+    pageOffset,
+    execCommand,
+    isValidIntervalValue,
+    intervalValueToDate,
     // IPC UTIL
     sendToPageOrSubFrame,
-    globDelete,
-    clearTempContainers,
-    clearCache,
-    clearCookies,
-    clearLocalStorage,
     notify,
     appData,
     appConfig,
@@ -922,6 +1584,7 @@ module.exports = {
     dirname,
     isAbsolutePath,
     // FILESYSTEM UTIL
+    getWebviewSetting,
     pathExists,
     isDir,
     isFile,
@@ -934,5 +1597,10 @@ module.exports = {
     makeDir,
     listDir,
     watchFile,
-    modifiedAt
+    modifiedAt,
+    rm,
+    clearTempContainers,
+    clearCache,
+    clearCookies,
+    clearLocalStorage
 }

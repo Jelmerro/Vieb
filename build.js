@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2021 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -17,20 +17,205 @@
 */
 "use strict"
 
-const builder = require("electron-builder")
-const rimraf = require("rimraf").sync
-const builds = {}
+const {rmSync, readdir, unlinkSync} = require("fs")
+const defaultConfig = {"config": {
+    "files": [
+        "app/**/*.html",
+        "app/**/*.css",
+        "app/blocklists/resources",
+        "app/blocklists/*.txt",
+        "app/blocklists/list.json",
+        "app/defaultapp/windows.bat",
+        "app/examples/*",
+        "app/img/*.*",
+        "!app/img/cheatsheet.svg",
+        "app/popups/*.js",
+        {"from": "build/main/", "to": "app/"},
+        {"from": "app/index.html", "to": "app/index.html"},
+        {"from": "build/renderer/", "to": "app/renderer/"},
+        {"from": "build/preload/", "to": "app/preload/"},
+        "!node_modules",
+        "node_modules/@cliqz/adblocker-electron-preload/dist/preload.cjs.js"
+    ]
+}}
 
-rimraf("dist/")
-process.argv.slice(1).forEach(a => {
-    if (a === "--linux") {
-        builds.linux = []
+const releases = {
+    "debug": {
+        "description": "Build debug releases, which do not use webpack.\n"
+            + "This makes debugging much easier, as scripts are not minified.",
+        "ebuilder": {
+            "extraMetadata": {
+                "name": "vieb-debug",
+                "productName": "Vieb-debug"
+            },
+            "files": {
+                "filter": ["app/**/*.js", "!app/**/*.test.js"]
+                    .concat(defaultConfig.config.files.filter(
+                        f => typeof f !== "object"
+                        && !f.includes("node_modules")
+                        && !f.includes("popups")))
+            },
+            "linux": {
+                "executableName": "vieb-debug"
+            },
+            "productName": "Vieb-debug"
+        },
+        "webpack": false
+    },
+    "lite": {
+        "description": "Build lite releases, which exclude locales & "
+            + "node_modules.\nThese releases are thus lighter and smaller.\n"
+            + "This does mean some features are not included.",
+        "ebuilder": {
+            "afterPack": context => {
+                const localeDir = `${context.appOutDir}/locales/`
+                readdir(localeDir, (_err, files) => {
+                    files?.filter(f => !f.match(/en-US\.pak/))
+                        .forEach(f => unlinkSync(localeDir + f))
+                })
+            },
+            "extraMetadata": {
+                "name": "vieb-lite",
+                "productName": "Vieb-lite"
+            },
+            "files": defaultConfig.config.files.filter(f => {
+                if (typeof f === "object") {
+                    return true
+                }
+                return !f.includes("blocklists") && !f.includes("@cliqz")
+            }),
+            "linux": {
+                "executableName": "vieb-lite"
+            },
+            "productName": "Vieb-lite"
+        },
+        "webpack": {
+            "externals": [require("webpack-node-externals")()]
+        }
+    },
+    "regular": {
+        "description": "Build the default main Vieb release. Default type."
     }
-    if (a === "--win") {
-        builds.win = []
+}
+
+const releaseNames = Object.keys(releases)
+rmSync("build/", {"force": true, "recursive": true})
+rmSync("dist/", {"force": true, "recursive": true})
+const printUsage = () => {
+    let buildOptionList = releaseNames
+        .map(r => {
+            const desc = releases[r].description?.replace(
+                /\n/g, "\n                  ") || `Also build ${r} releases.`
+            return ` --${r.padEnd(14)} ${desc}`
+        })
+        .join("\n\n")
+    buildOptionList += `\n\n${releaseNames.map(r => ` --${`${r}-only`.padEnd(14)
+    } ONLY build ${r} releases, no others.`).join("\n\n")}`
+    if (buildOptionList.trim()) {
+        buildOptionList = `\n\n${buildOptionList}\n`
     }
-    if (a === "--mac") {
-        builds.mac = []
+    console.info(`Vieb-builder
+
+Generate runnable builds of Vieb for your platform, or other ones.
+"build.js", "electron-builder.yml" and "webpack.config.js" are used to build,
+as well as the main source code in "app/" and packages from "node_modules/".
+Specific platforms require different software to be installed to build,
+if a platform is giving you issues, try removing it from "electron-builder.yml".
+By default, regular builds are generated for your platform (win, mac or linux),
+but you can override this and other things by passing options.
+
+Usage: node build [options]
+
+General options:
+ --help           Show this help and exit.
+
+Platform options:
+ --all            Build for all three major platforms.
+
+ --win            Only build for Windows.
+
+ --linux          Only build for (all) Linux distributions.
+                  You can comment out platforms in "electron-builder.yml".
+
+ --mac            Only build for Mac.
+
+Release options:
+ --all-types      Build all release types from this list.${buildOptionList}
+Later options take priority over earlier ones.
+See main program for license and other info.`)
+    process.exit(0)
+}
+let selectedReleases = ["regular"]
+for (const a of process.argv.slice(2)) {
+    if (a === "--help") {
+        printUsage()
+    } else if (a === "--all") {
+        defaultConfig.linux = []
+        defaultConfig.win = []
+        defaultConfig.mac = []
+    } else if (a === "--all-types") {
+        selectedReleases = Object.keys(releases)
+    } else if (a === "--linux") {
+        defaultConfig.linux = []
+    } else if (a === "--win") {
+        defaultConfig.win = []
+    } else if (a === "--mac") {
+        defaultConfig.mac = []
+    } else {
+        const name = a.replace(/^--/, "")
+        const onlyName = name.replace(/-only$/, "")
+        if (releaseNames.includes(name)) {
+            selectedReleases.push(name)
+        } else if (releaseNames.includes(onlyName)) {
+            selectedReleases = [onlyName]
+        } else {
+            console.warn(`Invalid arg: ${a}, see --help for usage`)
+            process.exit(1)
+        }
     }
+}
+const mergeWPConfig = overrides => {
+    const mergedConfig = require("./webpack.config")
+    return [{...mergedConfig[0], ...overrides}]
+}
+const mergeEBConfig = overrides => {
+    const mergedConfig = JSON.parse(JSON.stringify(defaultConfig))
+    mergedConfig.config.afterPack = defaultConfig.config.afterPack
+    return {...mergedConfig, "config": {...mergedConfig.config, ...overrides}}
+}
+const webpackBuild = overrides => new Promise((res, rej) => {
+    const webpack = require("webpack")
+    webpack(mergeWPConfig(overrides)).run((webpackErr, stats) => {
+        console.info(stats.toString({"colors": true}))
+        if (webpackErr || stats.hasErrors()) {
+            return rej(webpackErr)
+        }
+        res()
+    })
 })
-builder.build(builds).then(e => console.info(e)).catch(e => console.error(e))
+const generateBuild = async release => {
+    rmSync("build/", {"force": true, "recursive": true})
+    if (release.webpack !== false) {
+        await webpackBuild(release.webpack || {})
+    }
+    if (release.ebuilder === false) {
+        return
+    }
+    try {
+        const builder = require("electron-builder")
+        const res = await builder.build(mergeEBConfig(release.ebuilder || {}))
+        console.info(res)
+    } finally {
+        rmSync("build/", {"force": true, "recursive": true})
+    }
+}
+;(async() => {
+    const platforms = Object.keys(defaultConfig).filter(p => p !== "config")
+    console.info("\n  Vieb-builder\n"
+        + `  - Platform: ${platforms.join(", ") || process.platform}\n`
+        + `  - Releases: ${selectedReleases.join(", ")}`)
+    for (const buildType of selectedReleases) {
+        console.info(`\n  = Building ${buildType} release =\n`)
+        await generateBuild(releases[buildType])
+    }
+})()

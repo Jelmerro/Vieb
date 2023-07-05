@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -32,24 +32,26 @@ kbd {background: var(--code-bg, #111);
 ipcRenderer.on("insert-failed-page-info", (_, e, isSSLError) => {
     const err = JSON.parse(e)
     try {
-        document.body.innerHTML = ""
-        document.head.innerHTML = ""
+        document.body.textContent = ""
+        document.head.textContent = ""
     } catch {
         // Try clearing the existing left over page elements
     }
     const styleElement = document.createElement("style")
     styleElement.textContent = styling
-    document.head.appendChild(styleElement)
+    document.head.append(styleElement)
     const mainInfo = document.createElement("main")
     if (isSSLError) {
         const http = err.validatedURL.replace("https://", "http://")
         mainInfo.innerHTML += `<h2>Unreachable page</h2>
             The page could not be loaded successfully.
             The following error occurred:<br><h3>${err.errorDescription}</h3>
-            You can enable automatic HTTP redirects with this command:
-            <kbd>set redirecttohttp</kbd><br>
+            You can enable automatic HTTP redirects with
+            <kbd>:set redirecttohttp</kbd>.<br>
             Alternatively, you can choose to go there just once via this HTTP
-            link: <a href=${http}>${http}</a>`
+            link: <a href=${http}>${http}</a><br>
+            Finally, you can control what to do with invalid certificates
+            by changing <kbd>permissioncertificateerror</kbd>.`
     } else {
         mainInfo.innerHTML += `<h2>Unreachable page</h2>
             The page could not be loaded successfully.
@@ -60,5 +62,5 @@ ipcRenderer.on("insert-failed-page-info", (_, e, isSSLError) => {
             not support the '${err.validatedURL.replace(/:.*$/g, "")}' protocol.
             Finally, please check your internet connection and DNS settings.`
     }
-    document.body.appendChild(mainInfo)
+    document.body.append(mainInfo)
 })

@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -27,12 +27,10 @@ const {
     screen,
     session,
     shell,
-    webContents
+    webContents,
+    nativeTheme
 } = require("electron")
-const {ElectronBlocker} = require("@cliqz/adblocker-electron")
-const isSvg = require("is-svg")
 const {
-    title,
     specialChars,
     writeJSON,
     readJSON,
@@ -48,39 +46,32 @@ const {
     dirname,
     basePath,
     formatSize,
-    extractZip,
     isAbsolutePath,
     formatDate,
     domainName,
-    defaultUseragent
+    defaultUseragent,
+    rm
 } = require("./util")
-const hljs = require("highlight.js")
-const {JSDOM} = require("jsdom")
-const {Readability} = require("@mozilla/readability")
-const {"sync": rimrafSync} = require("rimraf")
-const rimraf = pattern => {
-    try {
-        rimrafSync(pattern)
-    } catch {
-        // Permission errors
-    }
-}
 
 const version = process.env.npm_package_version || app.getVersion()
+if (!app.getName().toLowerCase().startsWith("vieb")) {
+    app.setName("Vieb")
+}
 const printUsage = (code = 1) => {
     console.info(`Vieb: Vim Inspired Electron Browser
 
-Usage: Vieb [options] <URLs>
+Usage: vieb [options] <URLs>
 
 Options:
  --help                  Print this help and exit.
 
  --version               Print program info with versions and exit.
 
- --debug                 Open with Chromium and Electron debugging tools.
+ --devtools              Open with Chromium and Electron debugging tools.
                          They can also be opened later with ':internaldevtools'.
 
  --datafolder=<dir>      Store ALL Vieb data in this folder.
+                         See ':h datafolder' for usage and details.
                          You can also use the ENV var: 'VIEB_DATAFOLDER'.
 
  --erwic=<file>          file: Location of the JSON file to configure Erwic.
@@ -116,6 +107,16 @@ Options:
  --acceleration=<val>    string [HARDWARE/software]: Use hardware acceleration.
                          You can also use the ENV var: 'VIEB_ACCELERATION'.
 
+ --interface-scale=<val> number (1.0): Scale the interface to a custom factor.
+                         Will scale the entire interface including pages,
+                         can be used together with the guifontsize setting.
+                         You can also use the ENV var: 'VIEB_INTERFACE_SCALE'.
+
+ --unsafe-multiwin=<val> bool (false): Allow 2+ windows in the same datafolder.
+                         This is fundamentally unsafe, but often requested.
+                         See the FAQ for more details about multiple windows.
+                         You can also use the ENV var: 'VIEB_UNSAFE_MULTIWIN'.
+
 These command-line arguments will overwrite values set by the listed ENV vars.
 Command-line startup arguments are parsed as follows by Vieb:
 - Args listed above are used by Vieb only and will be checked for validity
@@ -131,7 +132,7 @@ https://peter.sh/experiments/chromium-command-line-switches/
 }
 const printVersion = () => {
     console.info(`Vieb: Vim Inspired Electron Browser
-This is version ${version} of Vieb.
+This is version ${version} of ${app.getName()}.
 Vieb is based on Electron and inspired by Vim.
 It can be used to browse the web entirely with the keyboard.
 This release uses Electron ${process.versions.electron} and Chromium ${
@@ -148,7 +149,12 @@ This is free software; you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 See the LICENSE file or the GNU website for details.`)
 }
-const applyDevtoolsSettings = prefFile => {
+/**
+ * Apply some basic settings to the chromium devtools.
+ * @param {string} prefFile
+ * @param {boolean} undock
+ */
+const applyDevtoolsSettings = (prefFile, undock = true) => {
     makeDir(dirname(prefFile))
     const preferences = readJSON(prefFile) || {}
     preferences.electron = preferences.electron || {}
@@ -158,6 +164,11 @@ const applyDevtoolsSettings = prefFile => {
     // Disable source maps as they leak internal structure to the webserver
     preferences.electron.devtools.preferences.cssSourceMapsEnabled = false
     preferences.electron.devtools.preferences.jsSourceMapsEnabled = false
+    // Undock main process devtools to prevent window size issues
+    if (undock) {
+        preferences.electron.devtools.preferences.
+            currentDockState = `"undocked"`
+    }
     // Disable release notes, most are not relevant for Vieb
     preferences.electron.devtools.preferences["help.show-release-note"] = false
     // Show timestamps in the console
@@ -169,7 +180,10 @@ const applyDevtoolsSettings = prefFile => {
     writeJSON(prefFile, preferences)
 }
 
-// Parse arguments
+/**
+ * Parse the startup arguments.
+ * @param {string[]} argv
+ */
 const getArguments = argv => {
     const execFile = basePath(argv[0])
     if (execFile === "electron" || process.defaultApp && execFile !== "vieb") {
@@ -179,11 +193,16 @@ const getArguments = argv => {
     // The array argv is ["vieb", ...args]
     return argv.slice(1)
 }
-const isTruthyArg = arg => {
+/**
+ * Check if the provided string argument should be true or false as a boolean.
+ * @param {string|null} arg
+ */
+const isTruthyArg = (arg = null) => {
     const argStr = String(arg).trim().toLowerCase()
     return Number(argStr) > 0 || ["y", "yes", "true", "on"].includes(argStr)
 }
 const args = getArguments(process.argv)
+/** @type {(string|{container?: unknown, url?: unknown, script?: unknown})[]} */
 const urls = []
 let argDebugMode = false
 let argDatafolder = process.env.VIEB_DATAFOLDER?.trim()
@@ -201,6 +220,10 @@ let argAutoplayMedia = process.env.VIEB_AUTOPLAY_MEDIA?.trim().toLowerCase()
     || "user"
 let argAcceleration = process.env.VIEB_ACCELERATION?.trim().toLowerCase()
     || "hardware"
+let argInterfaceScale = Number(
+    process.env.VIEB_INTERFACE_SCALE?.trim() || 1.0) || 1.0
+let argUnsafeMultiwin = isTruthyArg(process.env.VIEB_UNSAFE_MULTIWIN)
+/** @type {string|null} */
 let customIcon = null
 args.forEach(a => {
     const arg = a.trim()
@@ -209,7 +232,7 @@ args.forEach(a => {
             printUsage(0)
         } else if (arg === "--version") {
             printVersion()
-        } else if (arg === "--debug") {
+        } else if (arg === "--devtools") {
             argDebugMode = true
         } else if (arg === "--datafolder") {
             console.warn("The 'datafolder' argument requires a value such as:"
@@ -243,6 +266,10 @@ args.forEach(a => {
             console.warn("The 'acceleration' argument requires a value such as:"
                 + "\n --acceleration=hardware\n")
             printUsage()
+        } else if (arg === "--unsafe-multiwin") {
+            console.warn("The 'unsafe-multiwin' argument requires a value "
+                + "such as:\n --unsafe-multiwin=false\n")
+            printUsage()
         } else if (arg.startsWith("--datafolder=")) {
             argDatafolder = arg.split("=").slice(1).join("=")
         } else if (arg.startsWith("--erwic=")) {
@@ -259,6 +286,10 @@ args.forEach(a => {
             argAutoplayMedia = arg.split("=").slice(1).join("=").toLowerCase()
         } else if (arg.startsWith("--acceleration=")) {
             argAcceleration = arg.split("=").slice(1).join("=").toLowerCase()
+        } else if (arg.startsWith("--interface-scale")) {
+            argInterfaceScale = Number(arg.split("=").slice(1).join("="))
+        } else if (arg.startsWith("--unsafe-multiwin=")) {
+            argUnsafeMultiwin = isTruthyArg(arg.split("=").slice(1).join("="))
         } else {
             console.warn(`Arg '${arg}' will be passed to Chromium`)
             app.commandLine.appendArgument(arg)
@@ -300,44 +331,61 @@ if (argConfigOverride) {
         printUsage()
     }
 }
-// Fix segfault when opening Twitter:
-// https://github.com/electron/electron/issues/25469
-// https://github.com/electron/electron/issues/30201
-app.commandLine.appendSwitch("disable-features",
-    "CrossOriginOpenerPolicy,UserAgentClientHint")
 if (argAcceleration === "software") {
     app.disableHardwareAcceleration()
 }
-if (!argMediaKeys) {
-    app.commandLine.appendSwitch("disable-features",
-        "CrossOriginOpenerPolicy,HardwareMediaKeyHandling,UserAgentClientHint")
+if (isNaN(argInterfaceScale) || argInterfaceScale <= 0) {
+    console.warn("The 'interface-scale' argument only accepts positive numbers")
+    printUsage()
 }
-rimraf("Partitions/temp*")
-rimraf("erwicmode")
-app.setName("Vieb")
+if (argInterfaceScale !== 1) {
+    app.commandLine.appendSwitch(
+        "force-device-scale-factor", `${argInterfaceScale}`)
+}
+// https://github.com/electron/electron/issues/30201
+if (argMediaKeys) {
+    app.commandLine.appendSwitch("disable-features", "UserAgentClientHint")
+} else {
+    app.commandLine.appendSwitch("disable-features",
+        "HardwareMediaKeyHandling,UserAgentClientHint")
+}
+app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer")
 argDatafolder = `${joinPath(expandPath(argDatafolder.trim()))}/`
+const partitionDir = joinPath(argDatafolder, "Partitions")
+listDir(partitionDir, false, true)?.filter(part => part.startsWith("temp"))
+    .map(part => joinPath(partitionDir, part)).forEach(part => rm(part))
+rm(joinPath(argDatafolder, "erwicmode"))
 app.setPath("appData", argDatafolder)
 app.setPath("userData", argDatafolder)
 applyDevtoolsSettings(joinPath(argDatafolder, "Preferences"))
 if (argErwic) {
     argErwic = expandPath(argErwic)
+    /** @type {{
+     *   name?: unknown, icon?: unknown, apps: {
+     *     container?: unknown, script?: unknown, url?: unknown
+     *   }[]
+     * }} */
     const config = readJSON(argErwic)
     if (!config) {
         console.warn("Erwic config file could not be read\n")
         printUsage()
     }
-    if (config.name) {
-        app.setName(title(config.name))
+    if (typeof config.name === "string") {
+        app.setName(config.name)
     }
-    if (config.icon) {
+    if (typeof config.icon === "string") {
         config.icon = expandPath(config.icon)
-        if (config.icon !== joinPath(config.icon)) {
-            config.icon = joinPath(dirname(argErwic), config.icon)
+        if (typeof config.icon === "string") {
+            if (config.icon !== joinPath(config.icon)) {
+                config.icon = joinPath(dirname(argErwic), config.icon)
+            }
+            if (typeof config.icon !== "string" || !isFile(config.icon)) {
+                config.icon = null
+            }
+            if (typeof config.icon === "string") {
+                customIcon = config.icon
+            }
         }
-        if (!isFile(config.icon)) {
-            config.icon = null
-        }
-        customIcon = config.icon
     }
     writeFile(joinPath(argDatafolder, "erwicmode"), "")
     if (!Array.isArray(config.apps)) {
@@ -345,6 +393,9 @@ if (argErwic) {
         printUsage()
     }
     config.apps = config.apps.map(a => {
+        if (typeof a.url !== "string" || typeof a.container !== "string") {
+            return null
+        }
         const simpleContainerName = a.container.replace(/_/g, "")
         if (simpleContainerName.match(specialChars)) {
             console.warn("Container names are not allowed to have "
@@ -353,14 +404,16 @@ if (argErwic) {
         }
         if (typeof a.script === "string") {
             a.script = expandPath(a.script)
-            if (a.script !== joinPath(a.script)) {
-                a.script = joinPath(dirname(argErwic), a.script)
+            if (typeof a.script === "string") {
+                if (a.script !== joinPath(a.script)) {
+                    a.script = joinPath(dirname(argErwic), a.script)
+                }
             }
         } else {
             a.script = null
         }
         return a
-    }).filter(a => typeof a.container === "string" && typeof a.url === "string")
+    }).flatMap(a => a ?? [])
     if (config.apps.length === 0) {
         console.warn("Erwic config file requires at least one app to be added")
         console.warn("Each app must have a 'container' name and a 'url'\n")
@@ -370,12 +423,31 @@ if (argErwic) {
 }
 
 // When the app is ready to start, open the main window
+/** @type {Electron.BrowserWindow|null} */
 let mainWindow = null
+/** @type {Electron.BrowserWindow|null} */
 let loginWindow = null
+/** @type {Electron.BrowserWindow|null} */
 let notificationWindow = null
+/** @type {Electron.BrowserWindow|null} */
 let promptWindow = null
+/**
+ * Resolve local paths to absolute file protocol paths.
+ * @param {(string|{
+ *   container?: unknown, url?: unknown, script?: unknown
+ * })[]} paths
+ * @param {string|null} cwd
+ */
 const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
-    const url = u.url || u
+    let url = ""
+    if (typeof u === "string") {
+        url = String(u)
+    } else if (typeof u === "object") {
+        url = String(u.url)
+    }
+    if (!url) {
+        return null
+    }
     let fileLocation = expandPath(url.replace(/^file:\/+/g, "/"))
     if (process.platform === "win32") {
         fileLocation = expandPath(url.replace(/^file:\/+/g, ""))
@@ -389,42 +461,49 @@ const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
     if (url.startsWith("-")) {
         return null
     }
-    return {...u, url}
+    if (typeof u === "object") {
+        return {...u, url}
+    }
+    return {url}
 }).filter(u => u)
 app.on("ready", () => {
     app.userAgentFallback = defaultUseragent()
-    if (app.requestSingleInstanceLock()) {
-        app.on("second-instance", (_, newArgs, cwd) => {
-            if (mainWindow.isMinimized()) {
-                mainWindow.restore()
-            }
-            mainWindow.focus()
-            mainWindow.webContents.send("urls", resolveLocalPaths(
-                getArguments(newArgs), cwd))
-        })
-    } else {
-        console.info(`Sending urls to existing instance in ${argDatafolder}`)
-        app.exit(0)
+    if (!argUnsafeMultiwin) {
+        if (app.requestSingleInstanceLock({"argv": args})) {
+            app.on("second-instance", (_, newArgs, cwd, extra) => {
+                if (!mainWindow) {
+                    return
+                }
+                if (mainWindow.isMinimized()) {
+                    mainWindow.restore()
+                }
+                mainWindow.focus()
+                mainWindow.webContents.send("urls", resolveLocalPaths(
+                    // @ts-expect-error argv might be there, if so use it
+                    extra?.argv || getArguments(newArgs), cwd))
+            })
+        } else {
+            console.info(`Sending urls to existing instance ${argDatafolder}`)
+            app.exit(0)
+        }
     }
-    app.on("open-file", (_, url) => mainWindow.webContents.send("urls",
+    app.on("open-file", (_, url) => mainWindow?.webContents.send("urls",
         resolveLocalPaths([url])))
-    app.on("open-url", (_, url) => mainWindow.webContents.send("urls",
+    app.on("open-url", (_, url) => mainWindow?.webContents.send("urls",
         resolveLocalPaths([url])))
     if (!app.isPackaged && !customIcon) {
         customIcon = joinPath(__dirname, "img/vieb.svg")
     }
     // Init mainWindow
+    /** @type {Electron.BrowserWindowConstructorOptions} */
     const windowData = {
         "closable": false,
         "frame": argWindowFrame,
         "height": 600,
-        "icon": customIcon,
         "show": argDebugMode,
         "title": app.getName(),
         "webPreferences": {
-            "allowpopups": true,
             "contextIsolation": false,
-            "disableBlinkFeatures": "Auxclick",
             // Info on nodeIntegrationInSubFrames and nodeIntegrationInWorker:
             // https://github.com/electron/electron/issues/22582
             // https://github.com/electron/electron/issues/28620
@@ -436,41 +515,49 @@ app.on("ready", () => {
         },
         "width": 800
     }
+    if (customIcon) {
+        windowData.icon = customIcon
+    }
     mainWindow = new BrowserWindow(windowData)
     mainWindow.removeMenu()
-    mainWindow.setMinimumSize(500, 500)
-    mainWindow.on("focus", () => mainWindow.webContents.send("window-focus"))
-    mainWindow.on("blur", () => mainWindow.webContents.send("window-blur"))
+    mainWindow.setMinimumSize(Math.min(500 / argInterfaceScale, 500),
+        Math.min(500 / argInterfaceScale, 500))
+    mainWindow.on("focus", () => mainWindow?.webContents.send("window-focus"))
+    mainWindow.on("blur", () => mainWindow?.webContents.send("window-blur"))
     mainWindow.on("close", e => {
         e.preventDefault()
-        mainWindow.webContents.send("window-close")
+        mainWindow?.webContents.send("window-close")
     })
     mainWindow.on("closed", () => app.exit(0))
     // Load app and send urls when ready
     mainWindow.loadURL(`file://${joinPath(__dirname, "index.html")}`)
     mainWindow.webContents.once("did-finish-load", () => {
-        mainWindow.webContents.on("new-window", e => e.preventDefault())
-        mainWindow.webContents.on("will-navigate", e => e.preventDefault())
-        mainWindow.webContents.on("will-redirect", e => e.preventDefault())
+        mainWindow?.webContents.setWindowOpenHandler(() => ({"action": "deny"}))
+        mainWindow?.webContents.on("will-navigate", e => e.preventDefault())
+        mainWindow?.webContents.on("will-redirect", e => e.preventDefault())
         if (argDebugMode) {
-            mainWindow.webContents.openDevTools({"mode": "detach"})
+            mainWindow?.webContents.openDevTools({"mode": "detach"})
         }
-        mainWindow.webContents.send("urls", resolveLocalPaths(urls))
+        mainWindow?.webContents.send("urls", resolveLocalPaths(urls))
     })
     mainWindow.webContents.on("will-attach-webview", (_, prefs) => {
-        delete prefs.preloadURL
         prefs.preload = joinPath(__dirname, "preload/index.js")
         prefs.sandbox = false
         prefs.contextIsolation = false
     })
     mainWindow.webContents.on("did-attach-webview", (_, contents) => {
-        let navigationUrl = null
+        contents.on("will-prevent-unload", e => e.preventDefault())
+        contents.on("unresponsive", () => mainWindow?.webContents.send(
+            "unresponsive", contents.id))
+        contents.on("responsive", () => mainWindow?.webContents.send(
+            "responsive", contents.id))
+        let navigationUrl = ""
         contents.on("did-start-navigation", (__, url) => {
             navigationUrl = url
         })
         contents.on("did-redirect-navigation", (__, url) => {
             if (navigationUrl !== url) {
-                mainWindow.webContents.send("redirect", navigationUrl, url)
+                mainWindow?.webContents.send("redirect", navigationUrl, url)
             }
         })
         contents.setWebRTCIPHandlingPolicy("default_public_interface_only")
@@ -478,15 +565,13 @@ app.on("ready", () => {
             if (blockedInsertMappings === "pass") {
                 return
             }
-            if (blockedInsertMappings === "all") {
-                e.preventDefault()
-            } else if (currentInputMatches(input)) {
+            if (currentInputMatches(input)) {
                 e.preventDefault()
             }
-            mainWindow.webContents.send("insert-mode-input-event", input)
+            mainWindow?.webContents.send("insert-mode-input-event", input)
         })
         contents.on("zoom-changed", (__, dir) => {
-            mainWindow.webContents.send("zoom-changed", contents.id, dir)
+            mainWindow?.webContents.send("zoom-changed", contents.id, dir)
         })
         contents.on("certificate-error", (e, url, err, cert, fn) => {
             e.preventDefault()
@@ -496,56 +581,60 @@ app.on("ready", () => {
         })
         contents.setWindowOpenHandler(e => {
             if (e.disposition === "foreground-tab") {
-                mainWindow.webContents.send("navigate-to", e.url)
+                mainWindow?.webContents.send("navigate-to", e.url)
             } else {
-                mainWindow.webContents.send("new-tab", e.url)
+                mainWindow?.webContents.send("new-tab", e.url)
             }
             return {"action": "deny"}
         })
     })
     // Show a dialog for sites requiring Basic HTTP authentication
+    /** @type {Electron.BrowserWindowConstructorOptions} */
     const loginWindowData = {
         "alwaysOnTop": true,
         "frame": false,
         "fullscreenable": false,
-        "icon": customIcon,
         "modal": true,
         "parent": mainWindow,
         "resizable": false,
         "show": false,
         "webPreferences": {
-            "disableBlinkFeatures": "Auxclick",
             "partition": "login",
-            "preload": joinPath(__dirname, "preload/loginpopup.js")
+            "preload": joinPath(__dirname, "popups/login.js")
         }
+    }
+    if (customIcon) {
+        loginWindowData.icon = customIcon
     }
     loginWindow = new BrowserWindow(loginWindowData)
     const loginPage = `file:///${joinPath(__dirname, "pages/loginpopup.html")}`
     loginWindow.loadURL(loginPage)
     loginWindow.on("close", e => {
         e.preventDefault()
-        loginWindow.hide()
-        mainWindow.focus()
+        loginWindow?.hide()
+        mainWindow?.focus()
     })
     ipcMain.on("hide-login-window", () => {
-        loginWindow.hide()
-        mainWindow.focus()
+        loginWindow?.hide()
+        mainWindow?.focus()
     })
     // Show a dialog for large notifications
+    /** @type {Electron.BrowserWindowConstructorOptions} */
     const notificationWindowData = {
         "alwaysOnTop": true,
         "frame": false,
         "fullscreenable": false,
-        "icon": customIcon,
         "modal": true,
         "parent": mainWindow,
         "resizable": false,
         "show": false,
         "webPreferences": {
-            "disableBlinkFeatures": "Auxclick",
             "partition": "notification-window",
-            "preload": joinPath(__dirname, "preload/notificationpopup.js")
+            "preload": joinPath(__dirname, "popups/notification.js")
         }
+    }
+    if (customIcon) {
+        notificationWindowData.icon = customIcon
     }
     notificationWindow = new BrowserWindow(notificationWindowData)
     const notificationPage = `file:///${joinPath(
@@ -553,28 +642,30 @@ app.on("ready", () => {
     notificationWindow.loadURL(notificationPage)
     notificationWindow.on("close", e => {
         e.preventDefault()
-        notificationWindow.hide()
-        mainWindow.focus()
+        notificationWindow?.hide()
+        mainWindow?.focus()
     })
     ipcMain.on("hide-notification-window", () => {
-        notificationWindow.hide()
-        mainWindow.focus()
+        notificationWindow?.hide()
+        mainWindow?.focus()
     })
     // Show a sync prompt dialog if requested by any of the pages
+    /** @type {Electron.BrowserWindowConstructorOptions} */
     const promptWindowData = {
         "alwaysOnTop": true,
         "frame": false,
         "fullscreenable": false,
-        "icon": customIcon,
         "modal": true,
         "parent": mainWindow,
         "resizable": false,
         "show": false,
         "webPreferences": {
-            "disableBlinkFeatures": "Auxclick",
             "partition": "prompt",
-            "preload": joinPath(__dirname, "preload/promptpopup.js")
+            "preload": joinPath(__dirname, "popups/prompt.js")
         }
+    }
+    if (customIcon) {
+        promptWindowData.icon = customIcon
     }
     promptWindow = new BrowserWindow(promptWindowData)
     const promptPage = `file:///${joinPath(__dirname, "pages/promptpopup.html")}`
@@ -584,6 +675,7 @@ app.on("ready", () => {
 // THIS ENDS THE MAIN SETUP, ACTIONS BELOW MUST BE IN MAIN FOR VARIOUS REASONS
 
 // Handle Basic HTTP login attempts
+/** @type {number[]} */
 const loginAttempts = []
 let fontsize = 14
 let customCSS = ""
@@ -592,7 +684,7 @@ ipcMain.on("set-custom-styling", (_, newFontSize, newCSS) => {
     customCSS = newCSS
 })
 app.on("login", (e, contents, _, auth, callback) => {
-    if (loginWindow.isVisible()) {
+    if (!mainWindow || !loginWindow || loginWindow.isVisible()) {
         return
     }
     if (loginAttempts.includes(contents.id)) {
@@ -613,8 +705,8 @@ app.on("login", (e, contents, _, auth, callback) => {
     ipcMain.once("login-credentials", (__, credentials) => {
         try {
             callback(credentials[0], credentials[1])
-            loginWindow.hide()
-            mainWindow.focus()
+            loginWindow?.hide()
+            mainWindow?.focus()
         } catch {
             // Window is already being closed
         }
@@ -635,6 +727,9 @@ app.on("login", (e, contents, _, auth, callback) => {
 
 // Show a scrollable notification popup for long notifications
 ipcMain.on("show-notification", (_, escapedMessage, properType) => {
+    if (!mainWindow || !notificationWindow) {
+        return
+    }
     const bounds = mainWindow.getBounds()
     const width = Math.round(bounds.width * 0.9)
     let height = Math.round(bounds.height * 0.9)
@@ -651,7 +746,10 @@ ipcMain.on("show-notification", (_, escapedMessage, properType) => {
 })
 
 // Handle prompts in sync from within the webviews
-ipcMain.on("show-prompt-dialog", (e, text) => {
+ipcMain.on("show-prompt-dialog", (e, title, defaultText) => {
+    if (!mainWindow || !promptWindow) {
+        return
+    }
     ipcMain.removeAllListeners("prompt-response")
     ipcMain.removeAllListeners("hide-prompt-window")
     promptWindow.removeAllListeners("close")
@@ -665,45 +763,99 @@ ipcMain.on("show-prompt-dialog", (e, text) => {
     promptWindow.resizable = false
     promptWindow.show()
     promptWindow.focus()
-    promptWindow.webContents.send("prompt-info", fontsize, customCSS, text)
+    promptWindow.webContents.send(
+        "prompt-info", fontsize, customCSS, title, defaultText)
     ipcMain.on("prompt-response", (_, response) => {
-        promptWindow.hide()
-        mainWindow.focus()
+        promptWindow?.hide()
+        mainWindow?.focus()
         e.returnValue = response
     })
     ipcMain.on("hide-prompt-window", () => {
-        promptWindow.hide()
-        mainWindow.focus()
+        promptWindow?.hide()
+        mainWindow?.focus()
         e.returnValue = null
     })
     promptWindow.on("close", ev => {
         ev.preventDefault()
-        promptWindow.hide()
-        mainWindow.focus()
+        promptWindow?.hide()
+        mainWindow?.focus()
         e.returnValue = null
     })
 })
 
 // Create and manage sessions, mostly downloads, adblocker and permissions
 const dlsFile = joinPath(app.getPath("appData"), "dls")
-let downloadSettings = {}
+/** @type {{
+ *   downloadmethod?: string,
+ *   downloadpath: string,
+ *   cleardownloadsonquit?: boolean,
+ *   cleardownloadsoncompleted?: boolean
+ * }} */
+let downloadSettings = {"downloadpath": app.getPath("downloads")}
+/** @typedef {{
+ *   current: number,
+ *   date: Date,
+ *   file: string,
+ *   name: string,
+ *   item: Electron.DownloadItem
+ *   state: string,
+ *   total: number
+ *   url: string
+ * }} downloadItem
+ */
+/** @type {downloadItem[]} */
 let downloads = []
 let redirects = ""
+/** @type {import("@cliqz/adblocker-electron").ElectronBlocker|null} */
 let blocker = null
+/** @type {{[permission: string]: "allow"|"block"|"ask"|"allowfull"}} */
 let permissions = {}
+/** @type {"view"|"block"|"download"}} */
+let pdfbehavior = "view"
+/** @type {string[]|null} */
+let resourceTypes = null
+/** @type {string[]} */
+let resourcesAllowed = []
+/** @type {string[]} */
+let resourcesBlocked = []
+/** @type {string[]} */
+let requestHeaders = []
+/** @type {string[]} */
 const sessionList = []
-const adblockerPreload = require.resolve("@cliqz/adblocker-electron-preload")
+const adblockerPreload = joinPath(__dirname,
+    "../node_modules/@cliqz/adblocker-electron-preload/dist/preload.cjs.js")
 const defaultCss = readFile(joinPath(__dirname, `colors/default.css`))
 ipcMain.on("set-redirects", (_, rdr) => {
     redirects = rdr
 })
+/**
+ * Update the request header setting.
+ * @param {Electron.IpcMainEvent} _
+ * @param {string} headers
+ */
+const updateRequestHeaders = (_, headers) => {
+    requestHeaders = headers.split(",").filter(h => h)
+}
+ipcMain.on("update-request-headers", updateRequestHeaders)
 ipcMain.on("open-download", (_, location) => shell.openPath(location))
-ipcMain.on("set-download-settings", (_, settings) => {
+/**
+ * Update download settings.
+ * @param {Electron.IpcMainEvent} _
+ * @param {{
+ *   downloadmethod: string,
+ *   downloadpath: string,
+ *   cleardownloadsonquit: boolean,
+ *   cleardownloadsoncompleted: boolean
+ * }} settings
+ */
+const setDownloadSettings = (_, settings) => {
     if (Object.keys(downloadSettings).length === 0) {
         if (settings.cleardownloadsonquit) {
             deleteFile(dlsFile)
         } else if (isFile(dlsFile)) {
-            downloads = readJSON(dlsFile)?.map(d => {
+            /** @type {downloadItem[]} */
+            const downloadsFile = readJSON(dlsFile) ?? []
+            downloads = downloadsFile.map(d => {
                 if (d.state !== "completed") {
                     d.state = "cancelled"
                 }
@@ -717,7 +869,8 @@ ipcMain.on("set-download-settings", (_, settings) => {
     }
     downloadSettings.downloadpath = expandPath(downloadSettings.downloadpath
         || app.getPath("downloads") || "~/Downloads")
-})
+}
+ipcMain.on("set-download-settings", setDownloadSettings)
 ipcMain.on("download-list-request", (e, action, downloadId) => {
     if (action === "removeall") {
         downloads.forEach(download => {
@@ -762,7 +915,12 @@ ipcMain.on("download-list-request", (e, action, downloadId) => {
 ipcMain.on("set-permissions", (_, permissionObject) => {
     permissions = permissionObject
 })
-ipcMain.on("set-spelllang", (_, langs) => {
+/**
+ * Update the list of spell languages to be used.
+ * @param {Electron.IpcMainEvent} _
+ * @param {string} langs
+ */
+const setSpelllangs = (_, langs) => {
     if (!langs) {
         return
     }
@@ -776,27 +934,48 @@ ipcMain.on("set-spelllang", (_, langs) => {
             return null
         }
         return lang
-    }).filter(lang => lang)
+    }).flatMap(lang => lang ?? [])
     sessionList.forEach(ses => {
         session.fromPartition(ses).setSpellCheckerLanguages(parsedLangs)
         session.defaultSession.setSpellCheckerLanguages(parsedLangs)
+    })
+}
+ipcMain.on("set-spelllang", setSpelllangs)
+ipcMain.on("update-resource-settings", (_, resources, block, allow) => {
+    resourceTypes = [
+        ...resources, "mainframe", "subframe", "cspreport", "other"
+    ]
+    resourcesAllowed = allow
+    resourcesBlocked = block
+})
+const blockPdf = () => new Response("", {"status": 403})
+ipcMain.on("update-pdf-option", (_, newPdfValue) => {
+    pdfbehavior = newPdfValue
+    sessionList.forEach(ses => {
+        const {protocol} = session.fromPartition(ses)
+        if (pdfbehavior === "view") {
+            if (protocol.isProtocolHandled("chrome-extension")) {
+                protocol.unhandle("chrome-extension")
+            }
+        } else if (!protocol.isProtocolHandled("chrome-extension")) {
+            protocol.handle("chrome-extension", blockPdf)
+        }
     })
 })
 ipcMain.on("create-session", (_, name, adblock, cache) => {
     if (sessionList.includes(name)) {
         return
     }
-    const partitionDir = joinPath(app.getPath("appData"), "Partitions")
     const sessionDir = joinPath(partitionDir, encodeURIComponent(
         name.split(":")[1] || name))
-    applyDevtoolsSettings(joinPath(sessionDir, "Preferences"))
-    const newSession = session.fromPartition(name, {cache})
-    newSession.setPermissionRequestHandler(permissionHandler)
-    newSession.setPermissionCheckHandler(() => true)
-    newSession.setDevicePermissionHandler(
+    applyDevtoolsSettings(joinPath(sessionDir, "Preferences"), false)
+    const newSess = session.fromPartition(name, {cache})
+    newSess.setPermissionRequestHandler(permissionHandler)
+    newSess.setPermissionCheckHandler(() => true)
+    newSess.setDevicePermissionHandler(
         details => permissionHandler(null, details.deviceType, null, {
             ...details, "requestingUrl": details.origin
-        }))
+        }) ?? false)
     sessionList.push(name)
     if (adblock !== "off") {
         if (blocker) {
@@ -805,10 +984,10 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             enableAdblocker(adblock)
         }
     }
-    listDir(joinPath(argDatafolder, "extensions"), true, true)?.forEach(loc => {
-        newSession.loadExtension(loc, {"allowFileAccess": true})
-    })
-    newSession.webRequest.onBeforeRequest((details, callback) => {
+    if (pdfbehavior !== "view") {
+        newSess.protocol.handle("chrome-extension", blockPdf)
+    }
+    newSess.webRequest.onBeforeRequest((details, callback) => {
         let url = String(details.url)
         redirects.split(",").forEach(r => {
             if (r.trim()) {
@@ -819,19 +998,60 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         if (details.url !== url) {
             return callback({"cancel": false, "redirectURL": url})
         }
+        if (resourceTypes && (url.startsWith("http") || url.startsWith("ws"))) {
+            let allow = null
+            for (const r of resourcesBlocked) {
+                const [match, ...names] = r.split("~")
+                if (!names?.length || names.includes(details.resourceType)) {
+                    if (url.match(match) || details.frame?.url.match(match)) {
+                        allow = false
+                        break
+                    }
+                }
+            }
+            for (const r of resourcesAllowed) {
+                const [match, ...names] = r.split("~")
+                if (!names?.length || names.includes(details.resourceType)) {
+                    if (url.match(match) || details.frame?.url.match(match)) {
+                        allow = true
+                        break
+                    }
+                }
+            }
+            if (typeof allow === "boolean") {
+                if (!["mainFrame", "subFrame", "cspReport", "other"]
+                    .includes(details.resourceType)) {
+                    return callback({"cancel": !allow})
+                }
+            }
+            if (!resourceTypes.includes(details.resourceType.toLowerCase())) {
+                return callback({"cancel": true})
+            }
+        }
         if (!blocker) {
             return callback({"cancel": false})
         }
         blocker.onBeforeRequest(details, callback)
     })
-    newSession.webRequest.onHeadersReceived((details, callback) => {
+    newSess.webRequest.onHeadersReceived((details, callback) => {
         if (!blocker) {
             return callback({"cancel": false})
         }
         blocker.onHeadersReceived(details, callback)
     })
-    newSession.on("will-download", (e, item) => {
-        if (downloadSettings.downloadmethod === "block") {
+    newSess.webRequest.onBeforeSendHeaders((details, callback) => {
+        const headers = details.requestHeaders
+        for (const head of requestHeaders) {
+            if (head.includes("~")) {
+                headers[head.split("~")[0]] = head.split("~").slice(1).join("~")
+            } else {
+                delete headers[head]
+            }
+        }
+        return callback({"cancel": false, "requestHeaders": headers})
+    })
+    newSess.on("will-download", (e, item) => {
+        if (downloadSettings.downloadmethod === "block" || !mainWindow) {
             e.preventDefault()
             return
         }
@@ -926,103 +1146,286 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 info.state = "cancelled"
             }
             if (info.state === "completed") {
-                mainWindow.webContents.send("notify",
+                mainWindow?.webContents.send("notify",
                     `Download finished:\n${info.name}`, "success", {
                         "path": info.file, "type": "download-success"
                     })
             } else {
-                mainWindow.webContents.send("notify",
+                mainWindow?.webContents.send("notify",
                     `Download failed:\n${info.name}`, "warn")
             }
         })
     })
-    newSession.protocol.registerStringProtocol("sourceviewer", (req, call) => {
+    newSess.protocol.handle("sourceviewer", req => {
         let loc = req.url.replace(/sourceviewer:\/?\/?/g, "")
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
         }
+        loc = decodeURI(loc)
         if (isDir(loc)) {
-            call(`<!DOCTPYE html>\n<html><head>
+            return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
-                <title>${encodeURI(req.url)}</title>
+                <title>${decodeURI(req.url)}</title>
                 </head><body>Source viewer does not support folders, only files
-                </body></html>`)
-            return
+                </body></html>`
+            ), {"headers": {"content-type": "text/html; charset=utf-8"}})
+        }
+        /** @type {import("highlight.js").HLJSApi|null} */
+        let hljs = null
+        try {
+            hljs = require("highlight.js").default
+        } catch {
+            return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
+                <style>${defaultCss}</style>
+                <title>${decodeURI(req.url)}</title>
+                </head><body>Source viewer module not present, can't view source
+                </body></html>`
+            ), {"headers": {"content-type": "text/html; charset=utf-8"}})
+        }
+        if (!hljs) {
+            return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
+                <style>${defaultCss}</style>
+                <title>${decodeURI(req.url)}</title>
+                </head><body>Source viewer module not present, can't view source
+                </body></html>`
+            ), {"headers": {"content-type": "text/html; charset=utf-8"}})
         }
         if (isFile(loc)) {
-            const hl = hljs.highlightAuto(readFile(loc))
-            call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
-                <title>${encodeURI(req.url)}</title>
+            const hl = hljs.highlightAuto(readFile(loc) ?? "")
+            return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
+                <style>${defaultCss}</style>
+                <title>${decodeURI(req.url)}</title>
                 </head><body id="sourceviewer">
-                <pre><code>${hl.value}</code></pre></body></html>`)
-            return
+                <pre><code>${hl.value}</code></pre></body></html>`
+            ), {"headers": {"content-type": "text/html; charset=utf-8"}})
         }
         const url = `https://${loc}`
-        const request = net.request({"partition": name, url})
-        request.on("response", res => {
-            let body = ""
-            res.on("end", () => {
-                if (!body) {
-                    call(`<!DOCTPYE html>\n<html><head>
+        return new Promise(resolve => {
+            const request = net.request({"partition": name, url})
+            request.on("response", res => {
+                let body = ""
+                res.on("end", () => {
+                    if (!body || !hljs) {
+                        resolve(new Response(Buffer.from(
+                            `<!DOCTPYE html>\n<html><head>
+                            <style>${defaultCss}</style>
+                            <title>${decodeURI(req.url)}</title>
+                            </head><body>
+                                Source viewer not supported on this webpage
+                            </body></html>`
+                        ), {"headers": {
+                            "content-type": "text/html; charset=utf-8"
+                        }}))
+                        return
+                    }
+                    const hl = hljs.highlightAuto(body)
+                    resolve(new Response(Buffer.from(
+                        `<!DOCTPYE html>\n<html><head>
                         <style>${defaultCss}</style>
-                        <title>${encodeURI(req.url)}</title>
-                        </head><body>Source viewer not supported on this wegpage
-                        </body></html>`)
-                    return
-                }
-                const hl = hljs.highlightAuto(body)
-                call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
-                    <title>${encodeURI(req.url)}</title>
-                    </head><body id="sourceviewer">
-                    <pre><code>${hl.value}</code></pre></body></html>`)
+                        <title>${decodeURI(req.url)}</title>
+                        </head><body id="sourceviewer">
+                        <pre><code>${hl.value}</code></pre></body></html>`
+                    ), {"headers": {
+                        "content-type": "text/html; charset=utf-8"
+                    }}))
+                })
+                res.on("data", chunk => {
+                    body += chunk
+                })
             })
-            res.on("data", chunk => {
-                body += chunk
-            })
+            request.on("abort", () => new Response(""))
+            request.on("error", () => new Response(""))
+            request.end()
         })
-        request.on("abort", () => call(""))
-        request.on("error", () => call(""))
-        request.end()
     })
-    newSession.protocol.registerStringProtocol("readerview", (req, call) => {
+    newSess.protocol.handle("markdownviewer", req => {
+        let loc = req.url.replace(/markdownviewer:\/?\/?/g, "")
+        if (process.platform !== "win32" && !loc.startsWith("/")) {
+            loc = `/${loc}`
+        }
+        loc = decodeURI(loc)
+        if (isDir(loc)) {
+            return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
+                <style>${defaultCss}</style>
+                <title>${decodeURI(req.url)}</title></head>
+                <body>Markdown viewer does not support folders, only files
+                </body></html>`), {"headers": {
+                "content-type": "text/html; charset=utf-8"
+            }})
+        }
+        /** @type {import("marked").marked|null} */
+        let marked = null
+        /** @type {import("highlight.js").HLJSApi|null} */
+        let hljs = null
+        try {
+            ({marked} = require("marked"))
+        } catch {
+            return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
+                <style>${defaultCss}</style>
+                <title>${decodeURI(req.url)}</title></head>
+                <body>Markdown viewer module not present, can't view markdown
+                </body></html>`), {"headers": {
+                "content-type": "text/html; charset=utf-8"
+            }})
+        }
+        if (!marked) {
+            return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
+                <style>${defaultCss}</style>
+                <title>${decodeURI(req.url)}</title></head>
+                <body>Markdown viewer module not present, can't view markdown
+                </body></html>`), {"headers": {
+                "content-type": "text/html; charset=utf-8"
+            }})
+        }
+        try {
+            hljs = require("highlight.js").default
+        } catch {
+            // Highlight module not present, skipping source highlighting part
+        }
+        let url = `https://${loc}`
+        if (isFile(loc)) {
+            url = `file://${loc}`
+        }
+        const mdRenderer = new marked.Renderer()
+        const urlFolder = dirname(url)
+        mdRenderer.html = text => text.replace(
+            / src="\./g, ` src="${urlFolder}/`)
+            .replace(/ src="([A-Za-z0-9])]/g, ` src="${urlFolder}/$1`)
+        marked.setOptions({
+            "baseUrl": url,
+            "highlight": (code, lang) => {
+                let language = lang
+                if (!hljs?.getLanguage(lang)) {
+                    language = "plaintext"
+                }
+                return hljs?.highlight(code, {language}).value || code
+            },
+            "langPrefix": "hljs language-",
+            "renderer": mdRenderer,
+            "silent": true,
+            "smartypants": true
+        })
+        if (isFile(loc)) {
+            const md = marked.parse(readFile(loc) ?? "")
+            return new Response(Buffer.from(
+                `<!DOCTPYE html>\n<html><head>
+                <style>${defaultCss}</style>
+                <title>${decodeURI(req.url)}</title>
+                </head><body id="markdownviewer">${md}</body></html>`
+            ), {"headers": {"content-type": "text/html; charset=utf-8"}})
+        }
+        const request = net.request({"partition": name, url})
+        return new Promise(resolve => {
+            request.on("response", res => {
+                let body = ""
+                res.on("end", () => {
+                    if (!body || !marked) {
+                        resolve(new Response(Buffer.from(
+                            `<!DOCTPYE html>\n<html><head>
+                            <style>${defaultCss}</style>
+                            <title>${decodeURI(req.url)}</title></head>
+                            <body>Markdown viewer not supported on this webpage
+                            </body></html>`
+                        ), {"headers": {
+                            "content-type": "text/html; charset=utf-8"
+                        }}))
+                        return
+                    }
+                    const md = marked.parse(body)
+                    resolve(new Response(Buffer.from(
+                        `<!DOCTPYE html>\n<html><head>
+                        <style>${defaultCss}</style>
+                        <title>${decodeURI(req.url)}</title>
+                        </head><body id="markdownviewer">${md}</body></html>`
+                    ), {"headers": {
+                        "content-type": "text/html; charset=utf-8"
+                    }}))
+                })
+                res.on("data", chunk => {
+                    body += chunk
+                })
+            })
+            request.on("abort", () => new Response(""))
+            request.on("error", () => new Response(""))
+            request.end()
+        })
+    })
+    newSess.protocol.handle("readerview", req => {
         let loc = req.url.replace(/readerview:\/?\/?/g, "")
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
         }
+        loc = decodeURI(loc)
         if (isFile(loc) || isDir(loc)) {
-            call(`<!DOCTPYE html>\n<html><head>
+            return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
-                <title>${encodeURI(req.url)}</title>
+                <title>${decodeURI(req.url)}</title>
                 </head><body>Reader view not supported for local resources
-                </body></html>`)
-            return
+                </body></html>`
+            ), {"headers": {"content-type": "text/html; charset=utf-8"}})
+        }
+        /** @type {typeof import("@mozilla/readability").Readability|null} */
+        let Readability = null
+        /** @type {typeof import("jsdom").JSDOM|null} */
+        let JSDOM = null
+        try {
+            ({Readability} = require("@mozilla/readability"))
+            ;({JSDOM} = require("jsdom"))
+        } catch (e) {
+            return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
+                <style>${defaultCss}</style>
+                <title>${decodeURI(req.url)}</title>
+                </head><body>Reader view module not present, can't do readerview
+                </body></html>`
+            ), {"headers": {"content-type": "text/html; charset=utf-8"}})
+        }
+        if (!Readability || !JSDOM) {
+            return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
+                <style>${defaultCss}</style>
+                <title>${decodeURI(req.url)}</title>
+                </head><body>Reader view module not present, can't do readerview
+                </body></html>`
+            ), {"headers": {"content-type": "text/html; charset=utf-8"}})
         }
         const url = `https://${loc}`
         const request = net.request({"partition": name, url})
-        request.on("response", res => {
-            let body = ""
-            res.on("end", () => {
-                if (!body) {
-                    call(`<!DOCTPYE html>\n<html><head>
+        return new Promise(resolve => {
+            request.on("response", res => {
+                let body = ""
+                res.on("end", () => {
+                    if (!body || !JSDOM || !Readability) {
+                        resolve(new Response(Buffer.from(
+                            `<!DOCTPYE html>\n<html><head>
+                            <style>${defaultCss}</style>
+                            <title>${decodeURI(req.url)}</title>
+                            </head><body>
+                                Reader view not supported on this webpage
+                            </body></html>`
+                        ), {"headers": {
+                            "content-type": "text/html; charset=utf-8"
+                        }}))
+                        return
+                    }
+                    const dom = new JSDOM(body, {url})
+                    const out = new Readability(
+                        dom.window.document).parse()?.content ?? ""
+                    resolve(new Response(Buffer.from(
+                        `<!DOCTPYE html>\n<html><head>
                         <style>${defaultCss}</style>
-                        <title>${encodeURI(req.url)}</title>
-                        </head><body>Reader view not supported for this website
-                        </body></html>`)
-                    return
-                }
-                const dom = new JSDOM(body, {url})
-                const out = new Readability(dom.window.document).parse().content
-                call(`<!DOCTPYE html>\n<html><head><style>${defaultCss}</style>
-                    <title>${encodeURI(req.url)}</title>
-                    </head><body id="readerview">${out}</body></html>`)
+                        <title>${decodeURI(req.url)}</title>
+                        </head><body id="readerview">${out}</body></html>`
+                    ), {"headers": {
+                        "content-type": "text/html; charset=utf-8"
+                    }}))
+                })
+                res.on("data", chunk => {
+                    body += chunk
+                })
             })
-            res.on("data", chunk => {
-                body += chunk
-            })
+            request.on("abort", () => new Response(""))
+            request.on("error", () => new Response(""))
+            request.end()
         })
-        request.on("abort", () => call(""))
-        request.on("error", () => call(""))
-        request.end()
     })
 })
 const cancellAllDownloads = () => {
@@ -1056,9 +1459,26 @@ const writeDownloadsToFile = () => {
         writeJSON(dlsFile, downloads)
     }
 }
+/** @type {{[domain: string]: string[]}} */
 const allowedFingerprints = {}
-const permissionHandler = (_, perm, callback, details) => {
-    let permission = perm.toLowerCase().replace(/-/g, "")
+/**
+ * Main check if a permission should be allowed or declined.
+ * @param {Electron.WebContents|null} _
+ * @param {string} pm
+ * @param {null|((_: any) => void)} callback
+ * @param {{
+ *   mediaTypes?: string[],
+ *   externalURL?: string,
+ *   requestingUrl?: string
+ *   cert?: Electron.Certificate
+ *   error?: string
+ * }} details
+ */
+const permissionHandler = (_, pm, callback, details) => {
+    if (!mainWindow) {
+        return false
+    }
+    let permission = pm.toLowerCase().replace(/-/g, "").replace("sanitized", "")
     if (permission === "mediakeysystem") {
         // Block any access to DRM, there is no Electron support for it anyway
         callback?.(false)
@@ -1069,15 +1489,17 @@ const permissionHandler = (_, perm, callback, details) => {
             permission = "camera"
         } else if (details.mediaTypes?.includes("audio")) {
             permission = "microphone"
-        } else {
+        } else if (details.mediaTypes) {
             permission = "displaycapture"
+        } else {
+            permission = "mediadevices"
         }
     }
     let permissionName = `permission${permission}`
     if (permission === "openexternal" && details.externalURL) {
         if (details.externalURL.startsWith(`${app.getName().toLowerCase()}:`)) {
             mainWindow.webContents.send("navigate-to", details.externalURL)
-            return
+            return false
         }
     }
     let setting = permissions[permissionName]
@@ -1085,24 +1507,29 @@ const permissionHandler = (_, perm, callback, details) => {
         permissionName = "permissionunknown"
         setting = permissions.permissionunknown
     }
-    let settingRule = ""
-    for (const override of ["asked", "blocked", "allowed"]) {
-        const permList = permissions[`permissions${override}`]?.split(",")
+    /** @type {"ask"|"block"|"allow"|null} */
+    let settingRule = null
+    /** @type {("ask"|"block"|"allow")[]} */
+    const permissionOverrideTypes = ["ask", "block", "allow"]
+    for (const override of permissionOverrideTypes) {
+        const permList = permissions[`permissions${override}ed`]?.split(",")
         for (const rule of permList || []) {
             if (!rule.trim() || settingRule) {
                 continue
             }
             const [match, ...names] = rule.split("~")
-            if (names.find(p => permissionName.endsWith(p))) {
-                if (details.requestingUrl.match(match)) {
-                    settingRule = override.replace("ed", "")
+            if (names.some(p => permissionName.endsWith(p))) {
+                if (details.requestingUrl?.match(match)) {
+                    settingRule = override
+                    break
                 }
             }
         }
     }
-    const domain = domainName(details.requestingUrl)
+    const domain = domainName(details.requestingUrl ?? "") ?? ""
     if (permission === "certificateerror") {
-        if (allowedFingerprints[domain]?.includes(details.cert.fingerprint)) {
+        if (allowedFingerprints[domain]
+            ?.includes(details.cert?.fingerprint ?? "")) {
             mainWindow.webContents.send("notify",
                 `Automatic domain caching rule for '${permission}' activated `
                 + `at '${details.requestingUrl}' which was allowed, because `
@@ -1114,7 +1541,7 @@ const permissionHandler = (_, perm, callback, details) => {
     }
     setting = settingRule || setting
     if (setting === "ask") {
-        let url = details.requestingUrl
+        let url = details.requestingUrl ?? ""
         if (url.length > 100) {
             url = url.replace(/.{50}/g, "$&\n")
         }
@@ -1127,9 +1554,19 @@ const permissionHandler = (_, perm, callback, details) => {
             + "sites ask for this permission. For help and more options, see "
             + `':h ${permissionName}', ':h permissionsallowed', ':h permissions`
             + `asked' and ':h permissionsblocked'.\n\npage:\n${url}`
-        let checkboxLabel = "Remember for this session"
+        /** @type {string|undefined} */
+        /** @type {import("electron").MessageBoxOptions} */
+        const dialogOptions = {
+            "buttons": ["Allow", "Deny"],
+            "cancelId": 1,
+            "checkboxLabel": "Remember for this session",
+            "defaultId": 0,
+            message,
+            "title": `Allow this page to access '${permission}'?`,
+            "type": "question"
+        }
         if (permission === "openexternal") {
-            let exturl = details.externalURL
+            let exturl = details.externalURL ?? ""
             if (exturl.length > 100) {
                 exturl = exturl.replace(/.{50}/g, "$&\n")
             }
@@ -1150,29 +1587,26 @@ const permissionHandler = (_, perm, callback, details) => {
                 + "this after reviewing the certificate details. Because of the"
                 + " nature of certificates, any allowed certs will keep being "
                 + "trusted per domain until you restart Vieb. Changing the "
-                + "permission setting afterwards won't change this behavior."
+                + "permission setting afterwards won't change this behavior. "
                 + "So while you can deny the same certificate multiple times, "
                 + "you only need to allow it once to be able to keep using it."
                 + ` For help and more options, see ':h ${permissionName}'.`
                 + `\n\npage: ${url}\ndomain: ${domain}\n\n`
-                + `ISSUER: ${details.cert.issuerName}\n`
-                + `SELF-SIGNED: ${!details.cert.issuerCert}\n`
-                + `SUBJECT: ${details.cert.subjectName}\n`
-                + `STARTS: ${formatDate(details.cert.validStart)}\n`
-                + `EXPIRES: ${formatDate(details.cert.validExpiry)}\n`
-                + `FINGERPRINT: ${details.cert.fingerprint}\n\n`
+                + `ISSUER: ${details.cert?.issuerName}\n`
+                + `SELF-SIGNED: ${!details.cert?.issuerCert}\n`
+                + `SUBJECT: ${details.cert?.subjectName}\n`
+                + `STARTS: ${formatDate(details.cert?.validStart)}\n`
+                + `EXPIRES: ${formatDate(details.cert?.validExpiry)}\n`
+                + `FINGERPRINT: ${details.cert?.fingerprint}\n\n`
                 + "Only allow certificates you have verified and can trust!"
-            checkboxLabel = undefined
+            delete dialogOptions.checkboxLabel
         }
-        dialog.showMessageBox(mainWindow, {
-            "buttons": ["Allow", "Deny"],
-            "cancelId": 1,
-            checkboxLabel,
-            "defaultId": 0,
-            message,
-            "title": `Allow this page to access '${permission}'?`,
-            "type": "question"
-        }).then(e => {
+        dialogOptions.message = message
+        dialog.showMessageBox(mainWindow, dialogOptions).then(e => {
+            if (!mainWindow) {
+                return false
+            }
+            /** @type {"allow"|"block"|"ask"|"allowfull"} */
             let action = "allow"
             if (e.response !== 0) {
                 action = "block"
@@ -1198,7 +1632,8 @@ const permissionHandler = (_, perm, callback, details) => {
                 if (!allowedFingerprints[domain]) {
                     allowedFingerprints[domain] = []
                 }
-                allowedFingerprints[domain].push(details.cert.fingerprint)
+                allowedFingerprints[domain].push(
+                    details.cert?.fingerprint ?? "")
             }
             callback?.(allow)
             return allow
@@ -1220,40 +1655,49 @@ const permissionHandler = (_, perm, callback, details) => {
             if (!allowedFingerprints[domain]) {
                 allowedFingerprints[domain] = []
             }
-            allowedFingerprints[domain].push(details.cert.fingerprint)
+            allowedFingerprints[domain].push(details.cert?.fingerprint ?? "")
         }
         callback?.(allow)
         return allow
     }
+    return false
 }
-const blocklistDir = joinPath(app.getPath("appData"), "blocklists")
-const defaultBlocklists = {
-    "easylist": "https://easylist.to/easylist/easylist.txt",
-    "easyprivacy": "https://easylist.to/easylist/easyprivacy.txt"
-}
+/**
+ * Enable the adblocker either statically, with updates or custom.
+ * @param {"static"|"custom"|"update"} type
+ */
 const enableAdblocker = type => {
+    const blocklistDir = joinPath(app.getPath("appData"), "blocklists")
+    const blocklists = readJSON(joinPath(
+        __dirname, "blocklists/list.json")) || {}
     makeDir(blocklistDir)
     // Copy the default and included blocklists to the appdata folder
     if (type !== "custom") {
-        for (const name of Object.keys(defaultBlocklists)) {
-            const list = joinPath(__dirname, `./blocklists/${name}.txt`)
-            writeFile(joinPath(blocklistDir, `${name}.txt`), readFile(list))
+        for (const name of Object.keys(blocklists)) {
+            const list = joinPath(__dirname, `blocklists/${name}.txt`)
+            writeFile(joinPath(blocklistDir, `${name}.txt`),
+                readFile(list) ?? "")
         }
     }
-    // And update default blocklists to the latest version if enabled
+    // And update all blocklists to the latest version if enabled
     if (type === "update") {
-        for (const list of Object.keys(defaultBlocklists)) {
-            mainWindow.webContents.send("notify",
+        const extraLists = readJSON(joinPath(blocklistDir, "list.json")) || {}
+        const allBlocklists = {...blocklists, ...extraLists}
+        for (const list of Object.keys(allBlocklists)) {
+            const url = allBlocklists[list]
+            if (!url) {
+                continue
+            }
+            mainWindow?.webContents.send("notify",
                 `Updating ${list} to the latest version`)
             session.fromPartition("persist:main")
-            const request = net.request(
-                {"partition": "persist:main", "url": defaultBlocklists[list]})
+            const request = net.request({"partition": "persist:main", url})
             request.on("response", res => {
                 let body = ""
                 res.on("end", () => {
                     writeFile(joinPath(blocklistDir, `${list}.txt`), body)
                     reloadAdblocker()
-                    mainWindow.webContents.send("notify",
+                    mainWindow?.webContents.send("notify",
                         `Updated and reloaded the latest ${list} successfully`,
                         "suc")
                 })
@@ -1261,9 +1705,9 @@ const enableAdblocker = type => {
                     body += chunk
                 })
             })
-            request.on("abort", e => mainWindow.webContents.send("notify",
-                `Failed to update ${list}:\n${e.message}`, "err"))
-            request.on("error", e => mainWindow.webContents.send("notify",
+            request.on("abort", () => mainWindow?.webContents.send("notify",
+                `Failed to update ${list}: Request aborted`, "err"))
+            request.on("error", e => mainWindow?.webContents.send("notify",
                 `Failed to update ${list}:\n${e.message}`, "err"))
             request.end()
         }
@@ -1287,29 +1731,46 @@ const reloadAdblocker = () => {
             }
         })
     }
+    let ElectronBlocker = null
+    try {
+        ({ElectronBlocker} = require("@cliqz/adblocker-electron"))
+    } catch {
+        // Adblocker module not present, skipping initialization
+    }
+    if (!ElectronBlocker || !isFile(adblockerPreload)) {
+        mainWindow?.webContents.send("notify",
+            "Adblocker module not present, ads will not be blocked!", "err")
+        return
+    }
     blocker = ElectronBlocker.parse(filters)
     const resources = readFile(joinPath(__dirname, `./blocklists/resources`))
-    blocker.updateResources(resources, `${resources.length}`)
-    ipcMain.on("get-cosmetic-filters", blocker.onGetCosmeticFilters)
-    ipcMain.on("is-mutation-observer-enabled",
-        blocker.onIsMutationObserverEnabled)
+    if (resources) {
+        blocker.updateResources(resources, `${resources.length}`)
+    }
     sessionList.forEach(part => {
         const ses = session.fromPartition(part)
         ses.setPreloads(ses.getPreloads().concat([adblockerPreload]))
     })
+    ipcMain.on("get-cosmetic-filters-first", blocker.onGetCosmeticFiltersFirst)
+    ipcMain.on("get-cosmetic-filters", blocker.onGetCosmeticFiltersUpdated)
+    ipcMain.on("is-mutation-observer-enabled",
+        blocker.onIsMutationObserverEnabled)
 }
 const disableAdblocker = () => {
     if (!blocker) {
         return
     }
-    ipcMain.removeListener("get-cosmetic-filters", blocker.onGetCosmeticFilters)
-    ipcMain.removeListener("is-mutation-observer-enabled",
-        blocker.onIsMutationObserverEnabled)
-    blocker = null
     sessionList.forEach(part => {
         const ses = session.fromPartition(part)
         ses.setPreloads(ses.getPreloads().filter(p => p !== adblockerPreload))
     })
+    ipcMain.removeListener("get-cosmetic-filters-first",
+        blocker.onGetCosmeticFiltersFirst)
+    ipcMain.removeListener("get-cosmetic-filters",
+        blocker.onGetCosmeticFiltersUpdated)
+    ipcMain.removeListener("is-mutation-observer-enabled",
+        blocker.onIsMutationObserverEnabled)
+    blocker = null
 }
 ipcMain.on("adblock-enable", (_, type) => {
     if (sessionList.length > 0) {
@@ -1318,6 +1779,10 @@ ipcMain.on("adblock-enable", (_, type) => {
     }
 })
 ipcMain.on("adblock-disable", disableAdblocker)
+/**
+ * Load a blocklist with extra newline if it has contents.
+ * @param {string} file
+ */
 const loadBlocklist = file => {
     const contents = readFile(file)
     if (contents) {
@@ -1326,106 +1791,13 @@ const loadBlocklist = file => {
     return ""
 }
 
-// Manage installed browser extensions
-ipcMain.on("install-extension", (_, url, extension, extType) => {
-    const zipLoc = joinPath(argDatafolder, "extensions", extension)
-    if (isDir(`${zipLoc}/`)) {
-        mainWindow.webContents.send("notify",
-            `Extension already installed: ${extension}`)
-        return
-    }
-    makeDir(`${zipLoc}/`)
-    mainWindow.webContents.send("notify",
-        `Installing ${extType} extension: ${extension}`)
-    const request = net.request({"partition": "persist:main", url})
-    request.on("response", res => {
-        const data = []
-        res.on("end", () => {
-            if (res.statusCode !== 200) {
-                mainWindow.webContents.send("notify",
-                    `Failed to install extension due to network error`, "err")
-                console.warn(res)
-                return
-            }
-            const file = Buffer.concat(data)
-            writeFile(`${zipLoc}.${extType}`, file)
-            extractZip([
-                "x", "-aoa", "-tzip", `${zipLoc}.${extType}`, `-o${zipLoc}/`
-            ], () => {
-                rimraf(`${zipLoc}/_metadata/`)
-                sessionList.forEach(ses => {
-                    session.fromPartition(ses).loadExtension(zipLoc, {
-                        "allowFileAccess": true
-                    }).then(() => {
-                        if (sessionList.indexOf(ses) === 0) {
-                            mainWindow.webContents.send("notify",
-                                `Extension successfully installed`, "suc")
-                        }
-                    }).catch(e => {
-                        if (sessionList.indexOf(ses) === 0) {
-                            mainWindow.webContents.send("notify",
-                                `Failed to install extension, unsupported type`,
-                                "err")
-                            console.warn(e)
-                            rimraf(`${zipLoc}*`)
-                        }
-                    })
-                })
-            })
-        })
-        res.on("data", chunk => {
-            data.push(Buffer.from(chunk, "binary"))
-        })
-    })
-    request.on("abort", e => {
-        mainWindow.webContents.send("notify",
-            `Failed to install extension due to network error`, "err")
-        console.warn(e)
-        rimraf(`${zipLoc}*`)
-    })
-    request.on("error", e => {
-        mainWindow.webContents.send("notify",
-            `Failed to install extension due to network error`, "err")
-        console.warn(e)
-        rimraf(`${zipLoc}*`)
-    })
-    request.end()
-})
-ipcMain.on("list-extensions", e => {
-    e.returnValue = session.fromPartition("persist:main").getAllExtensions()
-        .map(ex => ({
-            "icon": ex.manifest.icons?.[Object.keys(ex.manifest.icons).pop()],
-            "id": ex.id,
-            "name": ex.name,
-            "path": ex.path,
-            "version": ex.version
-        }))
-})
-ipcMain.on("remove-extension", (_, extensionId) => {
-    const extLoc = joinPath(argDatafolder, `extensions/${extensionId}`)
-    const extension = session.fromPartition("persist:main").getAllExtensions()
-        .find(ext => ext.path.replace(/(\/|\\)$/g, "").endsWith(extensionId))
-    if (isDir(`${extLoc}/`) && extension) {
-        mainWindow.webContents.send("notify",
-            `Removing extension: ${extensionId}`)
-        sessionList.forEach(ses => {
-            session.fromPartition(ses).removeExtension(extension.id)
-        })
-        rimraf(`${extLoc}*`)
-        mainWindow.webContents.send("notify",
-            `Extension successfully removed`, "suc")
-    } else {
-        mainWindow.webContents.send("notify", "Could not find extension with "
-            + `id: ${extensionId}`, "warn")
-    }
-})
-
 // Download favicons for websites
 ipcMain.on("download-favicon", (_, options) => {
-    const request = net.request({
-        "session": webContents.fromId(options.webId).session, "url": options.fav
-    })
+    const customSession = webContents.fromId(options.webId)?.session
+        ?? session.defaultSession
+    const request = net.request({"session": customSession, "url": options.fav})
     request.on("response", res => {
+        /** @type {Buffer[]} */
         const data = []
         res.on("end", () => {
             if (res.statusCode !== 200) {
@@ -1433,18 +1805,20 @@ ipcMain.on("download-favicon", (_, options) => {
                 return
             }
             const file = Buffer.concat(data)
-            if (isSvg(file)) {
+            const knownExts = [".png", ".ico", ".jpg", ".svg"]
+            const hasExtension = knownExts.some(ex => options.fav.endsWith(ex))
+            if (!hasExtension && (/<\/svg>/).test(file.toString())) {
                 writeFile(`${options.location}.svg`, file)
-                mainWindow.webContents.send("favicon-downloaded",
+                mainWindow?.webContents.send("favicon-downloaded",
                     options.linkId, options.url, `${options.fav}.svg`)
             } else {
                 writeFile(options.location, file)
-                mainWindow.webContents.send("favicon-downloaded",
+                mainWindow?.webContents.send("favicon-downloaded",
                     options.linkId, options.url, options.fav)
             }
         })
         res.on("data", chunk => {
-            data.push(Buffer.from(chunk, "binary"))
+            data.push(Buffer.from(chunk))
         })
     })
     request.on("abort", () => {
@@ -1459,6 +1833,9 @@ ipcMain.on("download-favicon", (_, options) => {
 // Window state save and restore
 const windowStateFile = joinPath(app.getPath("appData"), "windowstate")
 ipcMain.on("window-state-init", (_, restorePos, restoreSize, restoreMax) => {
+    if (!mainWindow) {
+        return
+    }
     const bounds = {}
     const parsed = readJSON(windowStateFile)
     if (parsed) {
@@ -1515,77 +1892,107 @@ ipcMain.on("window-state-init", (_, restorePos, restoreSize, restoreMax) => {
     })
 })
 const saveWindowState = (maximizeOnly = false) => {
-    let state = readJSON(windowStateFile) || {}
-    if (!maximizeOnly && !mainWindow.isMaximized()) {
-        const newBounds = mainWindow.getBounds()
-        const currentScreen = screen.getDisplayMatching(newBounds).workArea
-        const sameW = newBounds.width === currentScreen.width
-        const sameH = newBounds.height === currentScreen.height
-        const halfW = newBounds.width === currentScreen.width / 2
-        const halfH = newBounds.height === currentScreen.height / 2
-        const halfX = newBounds.x === currentScreen.x / 2
-        const halfY = newBounds.y === currentScreen.y / 2
-        if (!sameW && !sameH && !halfW && !halfH && !halfX && !halfY) {
-            state = newBounds
+    try {
+        let state = readJSON(windowStateFile) || {}
+        if (!maximizeOnly && mainWindow && !mainWindow.isMaximized()) {
+            const newBounds = mainWindow.getBounds()
+            const currentScreen = screen.getDisplayMatching(newBounds).workArea
+            const sameW = newBounds.width === currentScreen.width
+            const sameH = newBounds.height === currentScreen.height
+            const halfW = newBounds.width === currentScreen.width / 2
+            const halfH = newBounds.height === currentScreen.height / 2
+            const halfX = newBounds.x === currentScreen.x / 2
+            const halfY = newBounds.y === currentScreen.y / 2
+            if (!sameW && !sameH && !halfW && !halfH && !halfX && !halfY) {
+                state = newBounds
+            }
         }
+        state.maximized = mainWindow?.isMaximized()
+        writeJSON(windowStateFile, state)
+    } catch {
+        // Window already destroyed
     }
-    state.maximized = mainWindow.isMaximized()
-    writeJSON(windowStateFile, state)
 }
 
 // Miscellaneous tasks
+ipcMain.on("update-native-theme", (_, newTheme) => {
+    nativeTheme.themeSource = newTheme
+})
 ipcMain.handle("save-page", (_, id, loc) => {
-    webContents.fromId(id).savePage(loc, "HTMLComplete")
+    webContents.fromId(id)?.savePage(loc, "HTMLComplete")
 })
 ipcMain.on("hide-window", () => {
     if (!argDebugMode) {
-        mainWindow.hide()
+        mainWindow?.hide()
     }
 })
 ipcMain.on("add-devtools", (_, pageId, devtoolsId) => {
     const page = webContents.fromId(pageId)
     const devtools = webContents.fromId(devtoolsId)
-    page.setDevToolsWebContents(devtools)
-    page.openDevTools()
-    devtools.executeJavaScript("window.location.reload()")
+    if (page && devtools) {
+        page.setDevToolsWebContents(devtools)
+        page.openDevTools()
+        devtools.executeJavaScript("window.location.reload()")
+    }
 })
 ipcMain.on("open-internal-devtools",
-    () => mainWindow.webContents.openDevTools({"mode": "detach"}))
+    () => mainWindow?.webContents.openDevTools({"mode": "detach"}))
 ipcMain.on("destroy-window", () => {
     cancellAllDownloads()
-    mainWindow.destroy()
+    mainWindow?.destroy()
 })
 ipcMain.handle("list-spelllangs",
     () => session.defaultSession.availableSpellCheckerLanguages)
 ipcMain.handle("toggle-always-on-top", () => {
-    mainWindow.setAlwaysOnTop(!mainWindow.isAlwaysOnTop())
+    mainWindow?.setAlwaysOnTop(!mainWindow?.isAlwaysOnTop())
 })
 ipcMain.handle("toggle-fullscreen", () => {
-    mainWindow.fullScreen = !mainWindow.fullScreen
+    if (mainWindow) {
+        mainWindow.fullScreen = !mainWindow.fullScreen
+    }
 })
+/** @type {Electron.Input[]|"pass"|"all"} */
 let blockedInsertMappings = []
 ipcMain.on("insert-mode-blockers", (e, blockedMappings) => {
     blockedInsertMappings = blockedMappings
     e.returnValue = null
 })
-const currentInputMatches = input => blockedInsertMappings.find(mapping => {
-    if (!!mapping.alt === input.alt && !!mapping.control === input.control) {
-        if (!!mapping.meta === input.meta && !!mapping.shift === input.shift) {
-            if (input.location === 3) {
-                return mapping.key === `k${input.key}`
-            }
-            return mapping.key === input.key
-        }
+/**
+ * Check if an input matches a given key.
+ * @param {Electron.Input} key
+ */
+const currentInputMatches = key => {
+    if (blockedInsertMappings === "pass" || blockedInsertMappings === "all") {
+        return true
     }
-    return false
-})
+    return blockedInsertMappings.some(mapping => {
+        if (!!mapping.alt === key.alt && !!mapping.control === key.control) {
+            if (!!mapping.meta === key.meta && !!mapping.shift === key.shift) {
+                if (key.location === 3) {
+                    return mapping.key === `k${key.key}`
+                }
+                return mapping.key === key.key
+            }
+        }
+        return false
+    })
+}
 ipcMain.on("set-window-title", (_, t) => {
-    mainWindow.title = t
+    if (mainWindow) {
+        mainWindow.title = t
+    }
 })
-ipcMain.handle("show-message-dialog", (_, options) => dialog.showMessageBox(
-    mainWindow, options))
+ipcMain.handle("show-message-dialog", (_, options) => {
+    if (mainWindow) {
+        dialog.showMessageBox(mainWindow, options)
+    }
+})
 ipcMain.on("sync-message-dialog", (e, options) => {
-    e.returnValue = dialog.showMessageBoxSync(mainWindow, options)
+    if (mainWindow) {
+        e.returnValue = dialog.showMessageBoxSync(mainWindow, options)
+    } else {
+        e.returnValue = null
+    }
 })
 ipcMain.handle("list-cookies", e => e.sender.session.cookies.get({}))
 ipcMain.handle("remove-cookie",
@@ -1602,9 +2009,6 @@ ipcMain.on("override-global-useragent", (e, globalUseragent) => {
     app.userAgentFallback = globalUseragent || defaultUseragent()
     e.returnValue = null
 })
-ipcMain.on("rimraf", (e, folder) => {
-    e.returnValue = rimraf(folder)
-})
 ipcMain.on("app-config", e => {
     e.returnValue = {
         "appdata": app.getPath("appData"),
@@ -1618,36 +2022,115 @@ ipcMain.on("app-config", e => {
     }
 })
 ipcMain.on("is-fullscreen", e => {
-    e.returnValue = mainWindow.fullScreen
+    e.returnValue = mainWindow?.fullScreen ?? false
 })
 ipcMain.on("relaunch", () => app.relaunch())
 ipcMain.on("mouse-location", e => {
-    const windowBounds = mainWindow.getBounds()
-    const mousePos = screen.getCursorScreenPoint()
-    const x = mousePos.x - windowBounds.x
-    const y = mousePos.y - windowBounds.y
-    if (x < windowBounds.width && y < windowBounds.height) {
-        e.returnValue = {x, y}
-        return
+    const windowBounds = mainWindow?.getBounds()
+    if (windowBounds) {
+        const mousePos = screen.getCursorScreenPoint()
+        const x = mousePos.x - windowBounds.x
+        const y = mousePos.y - windowBounds.y
+        if (x < windowBounds.width && y < windowBounds.height) {
+            e.returnValue = {x, y}
+            return
+        }
     }
     e.returnValue = null
 })
 
 // Subframe/iframe related code to send from renderer to frames and vice versa
-ipcMain.on("follow-mode-start", (_, id, switchTo = false) => {
-    webContents.fromId(id).mainFrame.framesInSubtree.forEach(
-        f => f.send("follow-mode-start"))
-    if (switchTo) {
-        allLinks = []
+
+/**
+ * Send an error to main based on a caught error.
+ * @param {unknown} exception
+ */
+const errToMain = exception => {
+    if (exception instanceof Error && exception.stack) {
+        mainWindow?.webContents.send("main-error", exception.stack)
+    }
+    if (typeof exception === "string") {
+        mainWindow?.webContents.send("main-error", exception)
+    }
+    return null
+}
+
+ipcMain.on("follow-mode-start", (_, id, followTypeFilter, switchTo = false) => {
+    try {
+        webContents.fromId(id)?.mainFrame.framesInSubtree.forEach(f => {
+            try {
+                f.send("follow-mode-start", followTypeFilter)
+            } catch (ex) {
+                errToMain(ex)
+            }
+        })
+        if (switchTo) {
+            allLinks = []
+        }
+    } catch (ex) {
+        errToMain(ex)
     }
 })
 ipcMain.on("follow-mode-stop", e => {
-    e.sender.mainFrame.framesInSubtree.forEach(f => f.send("follow-mode-stop"))
+    try {
+        e.sender.mainFrame.framesInSubtree.forEach(f => {
+            try {
+                f.send("follow-mode-stop")
+            } catch (ex) {
+                errToMain(ex)
+            }
+        })
+    } catch (ex) {
+        errToMain(ex)
+    }
 })
+/** @type {(import("./renderer/follow").FollowLink & {frameId: string})[]} */
 let allLinks = []
+/**
+ * @typedef {{
+ *   id?: string
+ *   url?: string
+ *   x?: number
+ *   y?: number
+ *   width?: number
+ *   height?: number
+ *   usableWidth?: number
+ *   usableHeight?: number
+ *   pagex?: number
+ *   pagey?: number
+ *   parent?: string
+ *   absX?: number
+ *   absY?: number
+ * }} frameDetails
+ */
+/** @type {{[frameId: string]: frameDetails}} */
 const frameInfo = {}
-ipcMain.on("frame-details", (e, details) => {
-    const frameId = `${e.frameId}-${e.processId}`
+/**
+ * Handle incoming frame details by storing their details by id.
+ * @param {Electron.IpcMainEvent} e
+ * @param {{
+ *   height: number
+ *   width: number
+ *   url: string
+ *   pagex: number
+ *   pagey: number
+ *   subframes: {
+ *     height: number
+ *     width: number
+ *     x: number
+ *     y: number
+ *     url: string
+ *   }[]
+ * }} details
+ */
+const handleFrameDetails = (e, details) => {
+    let frameId = ""
+    try {
+        frameId = `${e.frameId}-${e.processId}`
+    } catch (ex) {
+        errToMain(ex)
+        return
+    }
     if (!frameInfo[frameId]) {
         frameInfo[frameId] = {}
     }
@@ -1655,7 +2138,8 @@ ipcMain.on("frame-details", (e, details) => {
     frameInfo[frameId].url = details.url
     details.subframes.forEach(subframe => {
         Object.keys(frameInfo).forEach(id => {
-            if (frameInfo[id].url === subframe.url && id !== frameId) {
+            const url = frameInfo[id].url?.replace(/^about:srcdoc$/g, "") ?? ""
+            if (url === subframe.url && id !== frameId) {
                 frameInfo[id].x = subframe.x
                 frameInfo[id].y = subframe.y
                 frameInfo[id].width = subframe.width
@@ -1663,12 +2147,14 @@ ipcMain.on("frame-details", (e, details) => {
                 frameInfo[id].usableWidth = subframe.width
                 const overflowW = subframe.x + subframe.width - details.width
                 if (overflowW > 0) {
-                    frameInfo[id].usableWidth -= overflowW
+                    frameInfo[id].usableWidth = (frameInfo[id].usableWidth
+                        ?? 0) - overflowW
                 }
                 frameInfo[id].usableHeight = subframe.height
                 const overflowH = subframe.y + subframe.height - details.height
                 if (overflowH > 0) {
-                    frameInfo[id].usableHeight -= overflowH
+                    frameInfo[id].usableHeight = (frameInfo[id].usableHeight
+                        ?? 0) - overflowH
                 }
                 frameInfo[id].pagex = details.pagex
                 frameInfo[id].pagey = details.pagey
@@ -1676,9 +2162,23 @@ ipcMain.on("frame-details", (e, details) => {
             }
         })
     })
-})
-ipcMain.on("follow-response", (e, rawLinks) => {
-    const frameId = `${e.frameId}-${e.processId}`
+}
+ipcMain.on("frame-details", handleFrameDetails)
+/**
+ * Handle a follow mode response.
+ * @param {Electron.IpcMainEvent} e
+ * @param {(
+ *   import("./renderer/follow").FollowLink & {frameId: string}
+ * )[]} rawLinks
+ */
+const handleFollowResponse = (e, rawLinks) => {
+    let frameId = ""
+    try {
+        frameId = `${e.frameId}-${e.processId}`
+    } catch (ex) {
+        errToMain(ex)
+        return
+    }
     const info = frameInfo[frameId]
     let frameX = info?.x || 0
     let frameY = info?.y || 0
@@ -1711,100 +2211,178 @@ ipcMain.on("follow-response", (e, rawLinks) => {
         return l.yInFrame < l.frameUsableHeight
             && l.xInFrame < l.frameUsableWidth
     })
-    const allFramesIds = mainWindow.webContents.mainFrame
-        .framesInSubtree.map(f => `${f.routingId}-${f.processId}`)
-    allLinks = allLinks.filter(l => l.frameId !== frameId
-        && allFramesIds.includes(l.frameId))
-    allLinks = allLinks.concat(frameLinks)
-    mainWindow.webContents.send("follow-response", allLinks)
-})
+    try {
+        const allFramesIds = mainWindow?.webContents.mainFrame
+            .framesInSubtree.map(f => {
+                try {
+                    return `${f.routingId}-${f.processId}`
+                } catch {
+                    return null
+                }
+            }).filter(f => f)
+        allLinks = allLinks.filter(l => l.frameId !== frameId
+            && allFramesIds?.includes(l.frameId))
+        allLinks = allLinks.concat(frameLinks)
+        mainWindow?.webContents.send("follow-response", allLinks)
+    } catch (ex) {
+        errToMain(ex)
+    }
+}
+ipcMain.on("follow-response", handleFollowResponse)
+/**
+ * Find the right subframe for a position in webcontents.
+ * @param {Electron.WebContents} wc
+ * @param {number} x
+ * @param {number} y
+ * @returns {(frameDetails & {absY: number, absX: number})|null}
+ */
 const findRelevantSubFrame = (wc, x, y) => {
-    const absoluteFrames = wc.mainFrame.framesInSubtree.map(f => {
-        const id = `${f.routingId}-${f.processId}`
-        const info = frameInfo[id]
-        if (!info?.parent) {
-            return null
-        }
-        info.absX = info.x
-        info.absY = info.y
-        let parent = frameInfo[info.parent]
-        while (parent) {
-            info.absX += parent.x || 0
-            info.absY += parent.y || 0
-            parent = frameInfo[parent]
-        }
-        return info
-    }).filter(f => f)
-    let relevantFrame = null
-    absoluteFrames.forEach(info => {
-        if (info.absX < x && info.absY < y) {
-            if (info.absX + info.width > x && info.absY + info.height > y) {
-                if (relevantFrame) {
-                    if (relevantFrame.width > info.width) {
-                        // A smaller frame means a subframe, use that instead
-                        relevantFrame = info
+    try {
+        const absoluteFrames = wc.mainFrame.framesInSubtree.map(f => {
+            try {
+                const id = `${f.routingId}-${f.processId}`
+                const info = frameInfo[id] ?? {}
+                info.absX = info.x ?? 0
+                info.absY = info.y ?? 0
+                if (!info?.parent) {
+                    return null
+                }
+                /** @type {frameDetails|null} */
+                let parent = frameInfo[info.parent] ?? null
+                while (parent?.id && parent.id !== parent.parent) {
+                    info.absX += parent.x ?? 0
+                    info.absY += parent.y ?? 0
+                    if (parent.parent) {
+                        parent = frameInfo[parent.parent] ?? null
+                    } else {
+                        parent = null
                     }
-                } else {
-                    relevantFrame = info
+                }
+                return info
+            } catch {
+                return null
+            }
+        })
+        /** @type {frameDetails & {absY: number, absX: number}|null} */
+        let relevantFrame = null
+        absoluteFrames.forEach(info => {
+            if (!info || !info.absX || !info.absY) {
+                return
+            }
+            if (info.absX < x && info.absY < y
+                && info.width !== undefined && info.height !== undefined) {
+                if (info.absX + info.width > x && info.absY + info.height > y) {
+                    if (relevantFrame?.width) {
+                        if (relevantFrame.width > info.width) {
+                            // A smaller frame means a subframe, use it
+                            relevantFrame = {
+                                ...info, "absX": info.absX, "absY": info.absY
+                            }
+                        }
+                    } else {
+                        relevantFrame = {
+                            ...info, "absX": info.absX, "absY": info.absY
+                        }
+                    }
                 }
             }
-        }
-    })
-    return relevantFrame
+        })
+        return relevantFrame
+    } catch (ex) {
+        return errToMain(ex)
+    }
 }
 ipcMain.on("action", (_, id, actionName, ...opts) => {
     const wc = webContents.fromId(id)
+    if (!wc) {
+        return
+    }
     if (typeof opts[0] === "number" && typeof opts[1] === "number") {
         const subframe = findRelevantSubFrame(wc, opts[0], opts[1])
         if (subframe) {
-            const frameRef = wc.mainFrame.framesInSubtree.find(f => {
-                const frameId = `${f.routingId}-${f.processId}`
-                return frameId === subframe.id
-            })
-            if (actionName === "selectionRequest") {
-                frameRef.send("action", actionName,
-                    opts[0] - subframe.absX, opts[1] - subframe.absY,
-                    opts[2] - subframe.absX, opts[3] - subframe.absY)
+            try {
+                const frameRef = wc.mainFrame.framesInSubtree.find(f => {
+                    const frameId = `${f.routingId}-${f.processId}`
+                    return frameId === subframe.id
+                })
+                if (actionName === "selectionRequest") {
+                    frameRef?.send("action", actionName,
+                        opts[0] - subframe.absX, opts[1] - subframe.absY,
+                        opts[2] - subframe.absX, opts[3] - subframe.absY)
+                }
+                frameRef?.send("action", actionName, opts[0] - subframe.absX,
+                    opts[1] - subframe.absY, ...opts.slice(2))
+            } catch (ex) {
+                errToMain(ex)
             }
-            frameRef.send("action", actionName, opts[0] - subframe.absX,
-                opts[1] - subframe.absY, ...opts.slice(2))
             return
         }
     }
-    wc.mainFrame.framesInSubtree.forEach(
-        f => f.send("action", actionName, ...opts))
+    try {
+        wc.mainFrame.framesInSubtree.forEach(f => {
+            try {
+                f.send("action", actionName, ...opts)
+            } catch (ex) {
+                errToMain(ex)
+            }
+        })
+    } catch (ex) {
+        errToMain(ex)
+    }
 })
 ipcMain.on("contextmenu-data", (_, id, info) => {
     const wc = webContents.fromId(id)
+    if (!wc) {
+        return
+    }
     const subframe = findRelevantSubFrame(wc, info.x, info.y)
     if (subframe) {
-        const frameRef = wc.mainFrame.framesInSubtree.find(f => {
-            const frameId = `${f.routingId}-${f.processId}`
-            return frameId === subframe.id
-        })
-        frameRef.send("contextmenu-data", {
-            ...info, "x": info.x - subframe.absX, "y": info.y - subframe.absY
-        })
-    } else {
-        wc.send("contextmenu-data", info)
-    }
-})
-ipcMain.on("contextmenu", (_, id) => {
-    webContents.fromId(id).mainFrame.framesInSubtree.forEach(
-        f => f.send("contextmenu"))
-})
-ipcMain.on("focus-input", (_, id, location = null) => {
-    const wc = webContents.fromId(id)
-    if (location) {
-        const subframe = findRelevantSubFrame(wc, location.x, location.y)
-        if (subframe) {
+        try {
             const frameRef = wc.mainFrame.framesInSubtree.find(f => {
                 const frameId = `${f.routingId}-${f.processId}`
                 return frameId === subframe.id
             })
-            frameRef.send("focus-input", {
-                "x": location.x - subframe.absX, "y": location.y - subframe.absY
+            frameRef?.send("contextmenu-data", {
+                ...info,
+                "frameId": `${frameRef.routingId}-${frameRef.processId}`,
+                "x": info.x - subframe.absX,
+                "y": info.y - subframe.absY
             })
+        } catch (ex) {
+            errToMain(ex)
+        }
+        return
+    }
+    wc.send("contextmenu-data", info)
+})
+ipcMain.on("contextmenu", (_, id) => {
+    try {
+        webContents.fromId(id)?.mainFrame.framesInSubtree.forEach(
+            f => f.send("contextmenu"))
+    } catch (ex) {
+        errToMain(ex)
+    }
+})
+ipcMain.on("focus-input", (_, id, location = null) => {
+    const wc = webContents.fromId(id)
+    if (!wc) {
+        return
+    }
+    if (location) {
+        const subframe = findRelevantSubFrame(wc, location.x, location.y)
+        if (subframe) {
+            try {
+                const frameRef = wc.mainFrame.framesInSubtree.find(f => {
+                    const frameId = `${f.routingId}-${f.processId}`
+                    return frameId === subframe.id
+                })
+                frameRef?.send("focus-input", {
+                    "x": location.x - subframe.absX,
+                    "y": location.y - subframe.absY
+                })
+            } catch (ex) {
+                errToMain(ex)
+            }
             return
         }
     }
@@ -1812,40 +2390,76 @@ ipcMain.on("focus-input", (_, id, location = null) => {
 })
 ipcMain.on("replace-input-field", (_, id, frameId, correction, inputField) => {
     const wc = webContents.fromId(id)
-    if (frameId) {
-        const frameRef = wc.mainFrame.framesInSubtree.find(
-            f => frameId === `${f.routingId}-${f.processId}`)
-        frameRef.send("replace-input-field", correction, inputField)
+    if (!wc) {
         return
     }
-    wc.send("replace-input-field", correction, inputField)
+    try {
+        if (frameId) {
+            const frameRef = wc.mainFrame.framesInSubtree.find(
+                f => frameId === `${f.routingId}-${f.processId}`)
+            frameRef?.send("replace-input-field", correction, inputField)
+            return
+        }
+        wc.send("replace-input-field", correction, inputField)
+    } catch (ex) {
+        errToMain(ex)
+    }
 })
-const translateMouseEvent = (e, clickInfo) => {
-    const frameId = `${e.frameId}-${e.processId}`
+/**
+ * Translate a mouse event and send it to the right frame.
+ * @param {Electron.IpcMainEvent} e
+ * @param {{
+ *   frame: string
+ *   startX: number
+ *   startY: number
+ *   endX: number
+ *   endY: number
+ *   x: number
+ *   y: number
+ * }|null} clickInfo
+ */
+const translateMouseEvent = (e, clickInfo = null) => {
+    let frameId = ""
+    try {
+        frameId = `${e.frameId}-${e.processId}`
+    } catch (ex) {
+        return errToMain(ex)
+    }
     const info = frameInfo[frameId]
-    let frameX = info?.x || 0
-    let frameY = info?.y || 0
+    let frameX = info?.x ?? 0
+    let frameY = info?.y ?? 0
     let parent = info?.parent
     let parentId = frameId
     while (parent) {
         const parentInfo = frameInfo[parent]
-        frameX += parentInfo?.x || 0
-        frameY += parentInfo?.y || 0
+        frameX += parentInfo?.x ?? 0
+        frameY += parentInfo?.y ?? 0
         parent = parentInfo?.parent
         parentId = parentInfo?.id || frameId
     }
-    let frameUrl = clickInfo.frame
+    let frameUrl = clickInfo?.frame ?? ""
     if (info?.x && info?.url) {
         frameUrl = info.url
     }
-    const webviewId = webContents.getAllWebContents().find(wc => {
-        const wcId = `${wc.mainFrame.routingId}-${wc.mainFrame.processId}`
-        return wcId === parentId
-    })?.id
+    /** @type {number|null} */
+    let webviewId = null
+    try {
+        webviewId = webContents.getAllWebContents().find(wc => {
+            try {
+                const wcId = `${
+                    wc.mainFrame.routingId}-${wc.mainFrame.processId}`
+                return wcId === parentId
+            } catch {
+                return false
+            }
+        })?.id ?? null
+    } catch (ex) {
+        errToMain(ex)
+    }
     return {
         ...clickInfo,
-        "endX": clickInfo?.endX + frameX || null,
-        "endY": clickInfo?.endY + frameY || null,
+        "endX": (clickInfo?.endX ?? 0) + frameX || null,
+        "endY": (clickInfo?.endY ?? 0) + frameY || null,
         "frame": frameUrl,
         "frameAbsX": frameX,
         "frameAbsY": frameY,
@@ -1854,36 +2468,47 @@ const translateMouseEvent = (e, clickInfo) => {
         "frameWidth": info?.width,
         "frameX": info?.x,
         "frameY": info?.y,
-        "startX": clickInfo?.startX + frameX || null,
-        "startY": clickInfo?.startY + frameY || null,
+        "startX": (clickInfo?.startX ?? 0) + frameX || null,
+        "startY": (clickInfo?.startY ?? 0) + frameY || null,
         webviewId,
-        "x": clickInfo.x + frameX,
-        "xInFrame": clickInfo.x,
-        "y": clickInfo.y + frameY,
-        "yInFrame": clickInfo.y
+        "x": (clickInfo?.x ?? 0) + frameX,
+        "xInFrame": clickInfo?.x ?? 0,
+        "y": (clickInfo?.y ?? 0) + frameY,
+        "yInFrame": clickInfo?.y ?? 0
     }
 }
-ipcMain.on("mouse-selection", (e, clickInfo) => mainWindow.webContents.send(
+ipcMain.on("mouse-selection", (e, clickInfo) => mainWindow?.webContents.send(
     "mouse-selection", translateMouseEvent(e, clickInfo)))
-ipcMain.on("mouse-down-location", (e, clickInfo) => mainWindow.webContents.send(
-    "mouse-down-location", translateMouseEvent(e, clickInfo)))
-ipcMain.on("mouse-click-info", (e, clickInfo) => mainWindow.webContents.send(
+ipcMain.on("mouse-down-location", (e, clickInfo) => mainWindow?.webContents
+    .send("mouse-down-location", translateMouseEvent(e, clickInfo)))
+ipcMain.on("mouse-click-info", (e, clickInfo) => mainWindow?.webContents.send(
     "mouse-click-info", translateMouseEvent(e, clickInfo)))
-ipcMain.on("context-click-info", (e, clickInfo) => mainWindow.webContents.send(
+ipcMain.on("context-click-info", (e, clickInfo) => mainWindow?.webContents.send(
     "context-click-info", translateMouseEvent(e, clickInfo)))
 ipcMain.on("send-keyboard-event", (_, id, keyOptions) => {
     // Temporary code as a last resort workaround for:
     // https://github.com/electron/electron/issues/20333
     // Will eventually just use sendInputEvent in the from renderer directly
-    const wc = webContents.fromId(id)
-    wc.sendInputEvent({...keyOptions, "type": "keyDown"})
-    if (keyOptions.keyCode.length === 1) {
-        wc.sendInputEvent({...keyOptions, "type": "char"})
+    try {
+        let keyCode = keyOptions.key
+        if (keyCode === "Return") {
+            keyCode = "\u000d"
+        }
+        const wc = webContents.fromId(id)
+        if (!wc) {
+            return
+        }
+        wc.sendInputEvent({keyCode, "type": "keyDown"})
+        if (keyCode.length === 1) {
+            wc.sendInputEvent({keyCode, "type": "char"})
+        }
+        wc.sendInputEvent({keyCode, "type": "keyUp"})
+        wc.mainFrame.framesInSubtree
+            .filter(f => f.routingId !== wc.mainFrame.routingId)
+            .forEach(f => f.send("keyboard-type-event", keyOptions))
+    } catch (ex) {
+        errToMain(ex)
     }
-    wc.sendInputEvent({...keyOptions, "type": "keyUp"})
-    wc.mainFrame.framesInSubtree
-        .filter(f => f.routingId !== wc.mainFrame.routingId)
-        .forEach(f => f.send("keyboard-type-event", keyOptions))
 })
 ipcMain.on("send-input-event", (_, id, inputInfo) => {
     // Temporary code as a last resort workaround for:
@@ -1892,37 +2517,44 @@ ipcMain.on("send-input-event", (_, id, inputInfo) => {
     const X = inputInfo.x
     const Y = inputInfo.y
     const wc = webContents.fromId(id)
+    if (!wc) {
+        return
+    }
     const subframe = findRelevantSubFrame(wc, X, Y)
     if (subframe) {
-        const frameRef = wc.mainFrame.framesInSubtree.find(f => {
-            const frameId = `${f.routingId}-${f.processId}`
-            return frameId === subframe.id
-        })
-        if (inputInfo.type === "scroll") {
-            frameRef.send("custom-mouse-event", "mousewheel", {
-                "deltaX": inputInfo.deltaX || 0,
-                "deltaY": inputInfo.deltaY || 0,
-                "x": X - subframe.absX,
-                "y": Y - subframe.absY
+        try {
+            const frameRef = wc.mainFrame.framesInSubtree.find(f => {
+                const frameId = `${f.routingId}-${f.processId}`
+                return frameId === subframe.id
             })
-            return
-        }
-        if (inputInfo.type === "click") {
-            frameRef.send("custom-mouse-event", "click", {
-                "button": inputInfo.button || "left",
-                "x": X - subframe.absX,
-                "y": Y - subframe.absY
-            })
-            return
-        }
-        if (inputInfo.type === "leave") {
-            frameRef.send("custom-mouse-event", "mouseleave", {
-                "x": X - subframe.absX, "y": Y - subframe.absY
-            })
-        } else {
-            frameRef.send("custom-mouse-event", "mouseenter", {
-                "x": X - subframe.absX, "y": Y - subframe.absY
-            })
+            if (inputInfo.type === "scroll") {
+                frameRef?.send("custom-mouse-event", "mousewheel", {
+                    "deltaX": inputInfo.deltaX || 0,
+                    "deltaY": inputInfo.deltaY || 0,
+                    "x": X - subframe.absX,
+                    "y": Y - subframe.absY
+                })
+                return
+            }
+            if (inputInfo.type === "click") {
+                frameRef?.send("custom-mouse-event", "click", {
+                    "button": inputInfo.button || "left",
+                    "x": X - subframe.absX,
+                    "y": Y - subframe.absY
+                })
+                return
+            }
+            if (inputInfo.type === "leave") {
+                frameRef?.send("custom-mouse-event", "mouseleave", {
+                    "x": X - subframe.absX, "y": Y - subframe.absY
+                })
+            } else {
+                frameRef?.send("custom-mouse-event", "mouseenter", {
+                    "x": X - subframe.absX, "y": Y - subframe.absY
+                })
+            }
+        } catch (ex) {
+            errToMain(ex)
         }
         return
     }

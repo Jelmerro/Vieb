@@ -5,6 +5,7 @@ linux:
   executableName: vieb
   category: Network;WebBrowser;
   maintainer: Jelmer van Arnhem
+  publish:
   target:
     - target: AppImage
       arch:
@@ -32,9 +33,16 @@ linux:
 rpm:
   fpm:
     - --rpm-rpmbuild-define=_build_id_links none
+    - --after-upgrade=./after-install.sh
+  afterInstall: ./after-install.sh
+deb:
+  fpm:
+    - --after-upgrade=./after-install.sh
+  afterInstall: ./after-install.sh
 mac:
   category: public.app-category.navigation
   icon: app/img/icons
+  publish:
   target:
     - target: zip
       arch:
@@ -43,6 +51,7 @@ mac:
 win:
   icon: app/img/icons/512x512.png
   legalTrademarks: Copyright @ Jelmer van Arnhem | Licensed as free software (GPL-3.0 or later)
+  publish:
   target:
     - target: nsis
       arch:
@@ -58,20 +67,6 @@ nsis:
   differentialPackage: false
   oneClick: false
   license: LICENSE
-files:
-  filter:
-    - "app/**/*.js"
-    - "!app/**/*.test.js"
-    - "app/**/*.html"
-    - "app/**/*.css"
-    - "app/blocklists/resources"
-    - "app/blocklists/*.txt"
-    - "app/defaultapp/windows.bat"
-    - "app/examples/*"
-    - "app/img/*.*"
-asarUnpack:
-  - "**/node_modules/7zip-bin/**/*"
-  - "**/app/examples/*"
 fileAssociations:
   - name: HyperText Markup File
     ext: html

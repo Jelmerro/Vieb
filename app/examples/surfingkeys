@@ -2,22 +2,16 @@
 set adblocker=update
 set devtoolsposition=split
 set downloadmethod=confirm
-set firefoxmode=always
 set guifontsize=16
+set mapsuggestposition=bottomright
 set mintabwidth=250
-set norestoretabs
 set permissioncamera=ask
-set permissiondisplaycapture=allow
+set permissiondisplaycapture=ask
 set permissionmediadevices=allow
 set permissionmicrophone=ask
 set permissionpersistentstorage=allow
 set redirecttohttp
-set splitbelow
-set tabclosefocusright
-set tabreopenposition=previous
-set mapsuggestposition=bottomright
-
-" Search Engines
+set restoretabs=pinned
 set searchwords=
 set searchwords+=translate~https://translate.google.com/?sl=auto&tl=en&text=%s
 set searchwords+=duckduckgo~https://duckduckgo.com/?q=%s
@@ -28,6 +22,10 @@ set searchwords+=youtube~https://www.youtube.com/results?search_query=%s
 set searchwords+=wikipedia~https://en.wikipedia.org/?search=%s
 set searchwords+=stackoverflow~https://stackoverflow.com/search?q=%s
 set searchwords+=github~https://github.com/search?q=%s
+set splitbelow
+set tabclosefocus=right
+set tabreopenposition=previous
+set useragent=%firefox
 
 " Mappings
 nmap af <startFollowNewTab>
@@ -55,10 +53,8 @@ nmap zi <zoomIn>
 nmap zo <zoomOut>
 nmap go <toExploreMode>
 nmap T :buffer<Space>
-nmap t <openNewTab><toExploreMode>
-nmap <A-p> <:pin>
-nmap <A-m> <:mute>
-nmap on <openNewTab>
+nmap t <:tabnew><toExploreMode>
+nmap on <:tabnew>
 nmap x <:close>
 nmap X <reopenTab>
 nmap <lt><lt> <moveTabBackward>
@@ -66,37 +62,34 @@ nmap >> <moveTabForward>
 nmap <C-6> <:buffer #>
 nmap S <backInHistory>
 nmap D <forwardInHistory>
-nmap cc <openNewTab><openFromClipboard>
+nmap cc <:tabnew><openFromClipboard>
 nunmap [
 nunmap ]
 nmap [[ <previousPage>
 nmap ]] <nextPage>
-nmap ob <openNewTab><toExploreMode>baidu<Space>
-nmap og <openNewTab><toExploreMode>google<Space>
-nmap od <openNewTab><toExploreMode>duckduckgo<Space>
-nmap ow <openNewTab><toExploreMode>bing<Space>
-nmap oy <openNewTab><toExploreMode>youtube<Space>
-nmap oe <openNewTab><toExploreMode>wikipedia<Space>
-nmap os <openNewTab><toExploreMode>stackoverflow<Space>
-nmap oh <openNewTab><toExploreMode>github<Space>
-nmap sb <openNewTab><toExploreMode>baidu <C-v><CR>
-nmap sg <openNewTab><toExploreMode>google <C-v><CR>
-nmap sd <openNewTab><toExploreMode>duckduckgo <C-v><CR>
-nmap sw <openNewTab><toExploreMode>bing <C-v><CR>
-nmap sy <openNewTab><toExploreMode>youtube <C-v><CR>
-nmap se <openNewTab><toExploreMode>wikipedia <C-v><CR>
-nmap ss <openNewTab><toExploreMode>stackoverflow <C-v><CR>
-nmap sh <openNewTab><toExploreMode>github <C-v><CR>
+nmap ob <:tabnew><toExploreMode>baidu<Space>
+nmap og <:tabnew><toExploreMode>google<Space>
+nmap od <:tabnew><toExploreMode>duckduckgo<Space>
+nmap ow <:tabnew><toExploreMode>bing<Space>
+nmap oy <:tabnew><toExploreMode>youtube<Space>
+nmap oe <:tabnew><toExploreMode>wikipedia<Space>
+nmap os <:tabnew><toExploreMode>stackoverflow<Space>
+nmap oh <:tabnew><toExploreMode>github<Space>
+nmap sb <:tabnew><toExploreMode>baidu <C-v><CR>
+nmap sg <:tabnew><toExploreMode>google <C-v><CR>
+nmap sd <:tabnew><toExploreMode>duckduckgo <C-v><CR>
+nmap sw <:tabnew><toExploreMode>bing <C-v><CR>
+nmap sy <:tabnew><toExploreMode>youtube <C-v><CR>
+nmap se <:tabnew><toExploreMode>wikipedia <C-v><CR>
+nmap ss <:tabnew><toExploreMode>stackoverflow <C-v><CR>
+nmap sh <:tabnew><toExploreMode>github <C-v><CR>
 nmap yg <:screenshot>
 nmap ? <:help>
-pmap v <p.startVisualSelect>
-pmap 0 <p.moveLeftMax>
 pmap e <p.moveFastRight>
 vmap v <toNormalMode>
-vmap 0 <p.moveLeftMax>
 vmap e <p.moveFastRight>
-vmap cc <p.copyText><openNewTab><openFromClipboard>
-vmap t <p.copyText><openNewTab><toExploreMode>translate <C-v><CR>
+vmap cc <p.copyText><:tabnew><openFromClipboard>
+vmap t <p.copyText><:tabnew><toExploreMode>translate <C-v><CR>
 imap <C-e> <End>
 imap <C-f> <Home>
 imap <C-u> <S-Home><BS>

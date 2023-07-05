@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -22,27 +22,37 @@ const {
     currentMode,
     guiRelatedUpdate,
     getMouseConf,
-    updateScreenshotHighlight
+    updateScreenshotHighlight,
+    getUrl
 } = require("./common")
 
 // Sort order determines the appearance in the mode list
 /* eslint-disable sort-keys/sort-keys-fix */
+/** @type {{[K in import("./common").Mode]: {
+ *   onLeave?: (newMode: string) => void, onEnter?: () => void
+ * }}} */
 const modes = {
     "normal": {},
     "insert": {
         "onLeave": newMode => {
-            if (currentPage().getAttribute("dom-ready")) {
-                currentPage().send("action", "blur")
+            if (currentPage()?.getAttribute("dom-ready")) {
+                currentPage()?.send("action", "blur")
             }
             if (newMode !== "pointer" && !getMouseConf("pageoutsideinsert")) {
-                document.getElementById("url-hover").textContent = ""
-                document.getElementById("url-hover").style.display = "none"
+                const hoverEl = document.getElementById("url-hover")
+                if (hoverEl) {
+                    hoverEl.textContent = ""
+                    hoverEl.style.display = "none"
+                }
             }
         }
     },
     "command": {
         "onEnter": () => {
-            document.getElementById("url").value = ""
+            const url = getUrl()
+            if (url) {
+                url.value = ""
+            }
             const {resetPosition} = require("./commandhistory")
             resetPosition()
             const {resetScreenshotDrag, resetInputHistory} = require("./input")
@@ -50,32 +60,52 @@ const modes = {
             resetScreenshotDrag()
         },
         "onLeave": () => {
+            const url = getUrl()
             const {emptySuggestions} = require("./suggest")
             emptySuggestions()
             updateScreenshotHighlight(true)
             const {resetScreenshotDrag} = require("./input")
             resetScreenshotDrag()
+            url?.setSelectionRange(0, 0)
+            window.getSelection()?.removeAllRanges()
         }
     },
     "search": {
         "onEnter": () => {
             const {resetInputHistory} = require("./input")
             resetInputHistory()
+        },
+        "onLeave": () => {
+            const url = getUrl()
+            const {resetIncrementalSearch} = require("./actions")
+            resetIncrementalSearch()
+            url?.setSelectionRange(0, 0)
+            window.getSelection()?.removeAllRanges()
         }
     },
     "explore": {
         "onEnter": () => {
+            const url = getUrl()
             const {updateUrl} = require("./tabs")
-            updateUrl(currentPage(), true)
-            document.getElementById("url").select()
+            const page = currentPage()
+            if (page) {
+                updateUrl(page, true)
+            }
             const {resetPosition} = require("./explorehistory")
             resetPosition()
-            const {resetInputHistory} = require("./input")
+            const {resetInputHistory, requestSuggestUpdate} = require("./input")
             resetInputHistory()
+            requestSuggestUpdate()
+            if (!document.getSelection()?.toString() && url) {
+                url.select()
+            }
         },
         "onLeave": () => {
+            const url = getUrl()
             const {emptySuggestions} = require("./suggest")
             emptySuggestions()
+            url?.setSelectionRange(0, 0)
+            window.getSelection()?.removeAllRanges()
         }
     },
     "follow": {
@@ -95,7 +125,10 @@ const modes = {
                 releaseKeys()
             }
             if (newMode !== "insert" && !getMouseConf("pageoutsideinsert")) {
-                document.getElementById("url-hover").style.display = "none"
+                const hoverEl = document.getElementById("url-hover")
+                if (hoverEl) {
+                    hoverEl.style.display = "none"
+                }
             }
         }
     },
@@ -136,22 +169,30 @@ const init = () => {
             }
             e.preventDefault()
         })
-        modeList.appendChild(modeEntry)
+        modeList?.append(modeEntry)
     })
 }
 
-const setMode = m => {
-    const mode = m.trim().toLowerCase()
-    if (!modes[mode] || currentMode() === mode || !currentPage()) {
+/**
+ * Set the current mode.
+ * @param {import("./common").Mode} mode
+ */
+const setMode = mode => {
+    const page = currentPage()
+    if (!modes[mode] || currentMode() === mode || !page) {
         return
     }
-    if (modes[currentMode()].onLeave) {
-        modes[currentMode()].onLeave(mode)
+    if (page.getAttribute("dom-ready")) {
+        if (page.isCrashed() && "fipv".includes(mode[0])) {
+            return
+        }
     }
-    if (modes[mode].onEnter) {
-        modes[mode].onEnter(currentMode())
+    modes[currentMode()].onLeave?.(mode)
+    modes[mode]?.onEnter?.()
+    const modeEl = document.getElementById("mode")
+    if (modeEl) {
+        modeEl.textContent = mode
     }
-    document.getElementById("mode").textContent = mode
     document.body.setAttribute("current-mode", mode)
     guiRelatedUpdate("navbar")
     const {setFocusCorrectly} = require("./actions")

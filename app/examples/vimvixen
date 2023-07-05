@@ -2,23 +2,16 @@
 set adblocker=update
 set devtoolsposition=split
 set downloadmethod=confirm
-set firefoxmode=always
 set guifontsize=16
 set mintabwidth=250
-set norestoretabs
 set permissioncamera=ask
 set permissiondisplaycapture=ask
 set permissionmediadevices=allow
 set permissionmicrophone=ask
 set permissionpersistentstorage=allow
 set redirecttohttp
-set splitbelow
-set tabreopenposition=previous
-set notimeout
-set suggestorder=searchword,history
-
-" Search Engines
-set search=https://google.com/search?q=%s
+set restoretabs=pinned
+set searchengine=https://google.com/search?q=%s
 set searchwords=
 set searchwords+=google~https://google.com/search?q=%s
 set searchwords+=yahoo~https://search.yahoo.com/search?p=%s
@@ -26,14 +19,19 @@ set searchwords+=bing~https://www.bing.com/search?q=%s
 set searchwords+=duckduckgo~https://duckduckgo.com/?q=%s
 set searchwords+=twitter~https://twitter.com/search?q=%s
 set searchwords+=wikipedia~https://en.wikipedia.org/w/index.php?search=%s
+set splitbelow
+set suggestorder=searchword,history
+set tabreopenposition=previous
+set notimeout
+set useragent=%firefox
 
 " Mappings
 nmap o <toExploreMode><BS>
 nmap O <toExploreMode>
-nmap t <openNewTab><toExploreMode>
+nmap t <:tabnew><toExploreMode>
 nmap b :buffer<Space>
-nmap d <:set tabclosefocusright><:close>
-nmap D <:set notabclosefocusright><:close>
+nmap d <:set tabclosefocus=right><:close>
+nmap D <:set tabclosefocus=left><:close>
 nmap !d <:close!>
 nunmap x
 nmap x$ <:rclose>

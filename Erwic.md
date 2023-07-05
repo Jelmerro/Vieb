@@ -27,7 +27,8 @@ Links that you request to open in a new tab will be opened with your default web
 Links that you request to open using the start arguments will open in a new tab,
 using the container name that is used by the existing tab with the same domain.
 The container name of the currently opened tab will be used for the new tab if no matching domains are found.
-Finally, permissions for microphone, notifications, media devices and camera are now allowed by default.
+Finally, permissions for microphone, notifications, media devices and camera are now allowed by default,
+while the displaycapture permission is set to ask instead of block.
 These are only changes to the default Erwic setting values compared to regular Vieb,
 and if desired, these differences can be changed (back) with the viebrc in the datafolder or with `:set`.
 
@@ -65,7 +66,7 @@ The path of the icon and scripts can be relative to the config file or absolute.
 Custom icons aren't very reliable in Electron especially on Linux,
 so please check their issue tracker first if things don't work out.
 Apps can also share the same container name to use the same data location for multiple pages.
-If the container name of an app starts with "temp", all of it's browsing data will be deleted on quit.
+If the container name of an app starts with "temp", all of its browsing data will be deleted on quit.
 
 ## Electron apps
 

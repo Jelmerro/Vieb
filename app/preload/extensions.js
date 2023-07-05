@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2021 Jelmer van Arnhem
+* Copyright (C) 2022-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -17,50 +17,84 @@
 */
 "use strict"
 
-const {ipcRenderer} = require("electron")
-const {joinPath} = require("../util")
+const {fetchJSON, getWebviewSetting} = require("../util")
 
-const listExtension = ext => {
-    const container = document.createElement("div")
-    container.className = "extension"
-    if (ext.icon) {
-        const img = document.createElement("img")
-        img.src = joinPath(ext.path, ext.icon)
-        container.appendChild(img)
+const loadSponsorblock = () => {
+    /** @type {HTMLDivElement[]} */
+    let previousBlockEls = []
+    /** @type {number|null} */
+    let previousDuration = null
+    /** @type {{
+     *   segment: number[],
+     *   UUID: string,
+     *   category: string,
+     *   videoDuration: number,
+     *   actionType: string,
+     *   locked: number,
+     *   votes: number,
+     *   description: string
+     * }[]} */
+    let segments = []
+    const vid = document.querySelector("video")
+    if (!vid) {
+        return
     }
-    const textNodes = document.createElement("div")
-    textNodes.className = "fullwidth"
-    const title = document.createElement("div")
-    title.textContent = ext.name
-    title.className = "title"
-    textNodes.appendChild(title)
-    const version = document.createElement("div")
-    version.textContent = `Version: ${ext.version}`
-    textNodes.appendChild(version)
-    const id = document.createElement("div")
-    id.textContent = `ID: ${ext.path.replace(/^.*(\/|\\)/g, "")}`
-    textNodes.appendChild(id)
-    container.appendChild(textNodes)
-    const removeIcon = document.createElement("img")
-    removeIcon.src = joinPath(__dirname, "../img/trash.png")
-    removeIcon.addEventListener("click", () => {
-        ipcRenderer.send("remove-extension", ext.path.replace(
-            /^.*(\/|\\)/g, ""))
-        window.location.reload()
-    })
-    container.appendChild(removeIcon)
-    document.getElementById("list").appendChild(container)
+    const fetchSponsorBlockData = () => {
+        previousBlockEls.forEach(el => el.remove())
+        previousBlockEls = []
+        const videoId = window.location.href.replace(/^.*\/watch\?v=/g, "")
+        previousDuration = vid.duration
+        const categories = getWebviewSetting("sponsorblockcategories")
+            ?.split(",") ?? ("sponsor~lime,intro~cyan,outro~blue,"
+            + "interaction~red,selfpromo~yellow,music_offtopic").split(",")
+        const categoryNames = categories.map(cat => cat.split("~")[0])
+        fetchJSON(`https://sponsor.ajay.app/api/skipSegments?videoID=${videoId}`
+            + `&categories=${JSON.stringify(categoryNames)}`).then(response => {
+            const progressEl = document.querySelector(
+                ".vjs-progress-holder, .ytp-progress-bar")
+            segments = response
+            for (const skip of segments) {
+                const blockEl = document.createElement("div")
+                blockEl.style.position = "absolute"
+                blockEl.style.backgroundColor = categories.find(ca => ca.split(
+                    "~")[0] === skip.category)?.split("~")[1] || "lime"
+                blockEl.style.zIndex = "100000000"
+                blockEl.style.height = "100%"
+                blockEl.style.minHeight = ".5em"
+                progressEl?.append(blockEl)
+                previousBlockEls.push(blockEl)
+                setInterval(() => {
+                    const left = skip.segment[0] / vid.duration * 100
+                    const right = skip.segment[1] / vid.duration * 100
+                    blockEl.style.left = `${left}%`
+                    blockEl.style.width = `${right - left}%`
+                }, 1000)
+            }
+        }).catch(err => console.warn(err))
+    }
+    if (window.location.href.includes("watch?v=")
+        && getWebviewSetting("sponsorblock")) {
+        fetchSponsorBlockData()
+        vid.addEventListener("durationchange", () => {
+            fetchSponsorBlockData()
+        })
+        vid.addEventListener("timeupdate", () => {
+            const current = vid.currentTime
+            if (!current || !vid.duration) {
+                return
+            }
+            if (vid.duration !== previousDuration) {
+                fetchSponsorBlockData()
+                return
+            }
+            for (const skip of segments) {
+                const [start, end] = skip.segment
+                if (current > start && current < end) {
+                    vid.currentTime = end
+                }
+            }
+        })
+    }
 }
 
-const refreshList = () => {
-    const list = ipcRenderer.sendSync("list-extensions")
-    if (list.length) {
-        document.getElementById("list").textContent = ""
-        list.forEach(listExtension)
-    } else {
-        document.getElementById("list").textContent
-            = "No extensions currently installed"
-    }
-}
-
-window.addEventListener("DOMContentLoaded", () => refreshList())
+window.addEventListener("load", loadSponsorblock)

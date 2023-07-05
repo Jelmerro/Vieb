@@ -2,21 +2,21 @@
 set adblocker=update
 set devtoolsposition=split
 set downloadmethod=confirm
-set firefoxmode=always
 set guifontsize=16
 set mintabwidth=250
-set norestoretabs
 set permissioncamera=ask
 set permissiondisplaycapture=ask
 set permissionmediadevices=allow
 set permissionmicrophone=ask
 set permissionpersistentstorage=allow
 set redirecttohttp
-set splitbelow
-set tabclosefocusright
-set tabreopenposition=previous
+set restoretabs=pinned
 set noshowcmd
+set splitbelow
+set tabclosefocus=right
+set tabreopenposition=previous
 set notimeout
+set useragent=%firefox
 
 " Mappings
 nmap d <scrollDown>
@@ -73,8 +73,8 @@ nmap fF <:set follownewtabswitch><startFollowNewTab>
 nmap fb <:set nofollownewtabswitch><startFollowCurrentTab>
 nmap fi <insertAtFirstInput>
 nmap yf <openFromClipboard>
-nmap yF <:set follownewtabswitch><openNewTab><openFromClipboard>
-nmap yb <:set nofollownewtabswitch><openNewTab><openFromClipboard>
+nmap yF <:set follownewtabswitch><:tabnew><openFromClipboard>
+nmap yb <:set nofollownewtabswitch><:tabnew><openFromClipboard>
 nmap <A-;> <toInsertMode>
 
 imap <A-x> <toNormalMode>

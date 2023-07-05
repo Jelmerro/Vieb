@@ -2,65 +2,42 @@
 set adblocker=update
 set devtoolsposition=split
 set downloadmethod=confirm
-set firefoxmode=always
 set followchars=numbers
 set guifontsize=16
-set norestoretabs
+set mapsuggestposition=bottomleft
 set permissioncamera=ask
 set permissiondisplaycapture=ask
 set permissionmediadevices=allow
 set permissionmicrophone=ask
 set permissionpersistentstorage=allow
 set redirecttohttp
-set tabclosefocusright
+set restoretabs=pinned
+set tabclosefocus=right
 set tabreopenposition=right
+set useragent=%firefox
 set windowtitle="%title - %app"
-set mapsuggestposition=bottomleft
 
 " Custom Commands
-command! scroll_up <scrollUp>
-command! scroll_down <scrollDown>
-command! scroll_left <scrollLeft>
-command! scroll_left_ <p.scrollLeft>
-command! scroll_right_ <p.scrollRight>
-command! scroll_right <scrollRight>
-command! scroll-page_0_-1 <scrollPageUp>
-command! scroll-page_0_1 <scrollPageDown>
-command! scroll-to-perc_0 <scrollTop>
-command! scroll-to-perc <scrollBottom>
-command! tab-prev <previousTab>
-command! tab-next <nextTab>
-command! reload_--force <refreshTabWithoutCache>
 command! set_ <:help>
 command! download <:write>
-command! undo <reopenTab>
 command! navigate_prev <previousPage>
 command! navigate_prev_--tab <previousPageNewTab>
 command! navigate_next <nextPage>
 command! navigate_next_--tab <nextPageNewTab>
-command! navigate_up <toParentUrl>
 command! navigate_up_--tab <openNewTabWithCurrentUrl><CR><toParentUrl>
 command! tab-focus_1 <:b 0>
 command! tab-focus_-1 <:b -1>
-command! tab-focus_2 <:b 1>
-command! tab-focus_3 <:b 2>
-command! tab-focus_4 <:b 3>
-command! tab-focus_5 <:b 4>
-command! tab-focus_6 <:b 5>
-command! tab-focus_7 <:b 6>
-command! tab-focus_8 <:b 7>
 command! tab-focus_last <:buffer #>
-command! open_--tab <openNewTab>
-command! open_--tab_--_{clipboard} <openNewTab><openFromClipboard>
+command! open_--tab <:tabnew>
+command! open_--tab_--_{clipboard} <:tabnew><openFromClipboard>
 command! tab-clone <openNewTabWithCurrentUrl><CR>
 command! tab-move_+ <moveTabForward>
 command! tab-move_- <moveTabBackward>
 command! tab-only <:lclose><:rclose>
 command! zoom <zoomReset>
 command! tab-pin <:pin>
-command! tab-mute <:mute>
 command! stop <stopLoadingPage>
-command! set-cmd-text_--space_open_--tab <openNewTab><toExploreMode>
+command! set-cmd-text_--space_open_--tab <:tabnew><toExploreMode>
 command! set-cmd-text_--space_open <toExploreMode><BS>
 command! set-cmd-text_open_{urlpretty} <toExploreMode><End>
 command! set-cmd-text_--space_tab-select <toCommandMode>buffer<Space>
@@ -69,8 +46,6 @@ command! open_--_{clipboard} <openFromClipboard>
 command! set-cmd-text_--space_bind <toCommandMode>map<Space>
 command! set-cmd-text_--space_set <toCommandMode>set<Space>
 command! edit-text <editWithVim>
-command! completion-item-focus_prev <prevSuggestion>
-command! completion-item-focus_next <nextSuggestion>
 command! rl-beginning-of-line <Home>
 command! rl-end-of-line <End>
 command! rl-forward-word <C-Right>
@@ -93,28 +68,13 @@ command! selection-toggle <p.start>
 command! selection-drop <toNormalMode><p.start><p.startVisualSelect>
 
 " Mappings
-nmap <Up> <:scroll_up>
-nmap <Down> <:scroll_down>
-nmap <Left> <:scroll_left>
-nmap <Right> <:scroll_right>
-nmap <PageUp> <:scroll-page_0_-1>
-nmap <PageDown> <:scroll-page_0_1>
-nmap <Home> <:scroll-to-perc_0>
-nmap <End> <:scroll-to-perc>
 nmap wi <:devtools>
-nmap <C-I> <:devtools>
-nmap <C-PageUp> <:tab-prev>
-nmap <C-S-Tab> <:tab-prev>
-nmap <C-PageDown> <:tab-next>
-nmap <C-F5> <:reload_--force>
 nmap Sh <:history>
 nmap Ss <:set_>
 nmap <C-A-p> <:print>
-nmap <C-q> <:quit>
 nmap <C-W> <:quit>
 nmap ZQ <:quit>
 nmap gd <:download>
-nmap <C-T> <:undo>
 nunmap [
 nunmap ]
 nunmap {
@@ -123,20 +83,10 @@ nmap [[ <:navigate_prev>
 nmap ]] <:navigate_next>
 nmap {{ <:navigate_prev_--tab>
 nmap }} <:navigate_next_--tab>
-nmap gu <:navigate_up>
 nmap gU <:navigate_up_--tab>
-nmap <A-1> <:tab-focus_1>
 nmap g0 <:tab-focus_1>
 nmap g^ <:tab-focus_1>
 nmap g$ <:tab-focus_-1>
-nmap <A-2> <:tab-focus_2>
-nmap <A-3> <:tab-focus_3>
-nmap <A-4> <:tab-focus_4>
-nmap <A-5> <:tab-focus_5>
-nmap <A-6> <:tab-focus_6>
-nmap <A-7> <:tab-focus_7>
-nmap <A-8> <:tab-focus_8>
-nmap <A-9> <:tab-focus_-1>
 nmap <C-^> <:tab-focus_last>
 nmap <C-Tab> <:tab-focus_last>
 nmap ga <:open_--tab>
@@ -151,7 +101,6 @@ nmap <C-S-PageDown> <:tab-move_->
 nmap co <:tab-only>
 nmap = <:zoom>
 nmap <C-p> <:tab-pin>
-nmap <A-m> <:tab-mute>
 nmap <C-s> <:stop>
 nmap o <:set-cmd-text_--space_open>
 nmap go <:set-cmd-text_open_{urlpretty}>
@@ -165,8 +114,6 @@ nmap ss <:set-cmd-text_--space_set>
 
 imap <C-e> <:edit-text>
 
-cmap <Up> <:completion-item-focus_prev>
-cmap <Down> <:completion-item-focus_next>
 cmap <C-a> <:rl-beginning-of-line>
 cmap <C-e> <:rl-end-of-line>
 cmap <A-f> <:rl-forward-word>

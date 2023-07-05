@@ -12,12 +12,8 @@
 [![Matrix](https://img.shields.io/static/v1?label=matrix&message=space&color=eeeeee&logo=matrix&style=flat-square)](https://matrix.to/#/#vieb:matrix.org)
 [![Matrix](https://img.shields.io/static/v1?label=matrix&message=announcements&color=eeeeee&logo=matrix&style=flat-square)](https://matrix.to/#/#vieb-announcements:matrix.org)
 [![Matrix](https://img.shields.io/static/v1?label=matrix&message=general&color=eeeeee&logo=matrix&style=flat-square)](https://matrix.to/#/#vieb-general:matrix.org)
-[![Matrix](https://img.shields.io/static/v1?label=matrix&message=offtopic&color=eeeeee&logo=matrix&style=flat-square)](https://matrix.to/#/#vieb-offtopic:matrix.org)
-
-[![Reddit](https://img.shields.io/reddit/subreddit-subscribers/vieb?style=social)](https://reddit.com/r/vieb)
 [![Telegram](https://img.shields.io/static/v1?label=telegram&message=announcements&color=26A5E4&logo=telegram&style=flat-square)](https://t.me/vieb_announcements)
 [![Telegram](https://img.shields.io/static/v1?label=telegram&message=general&color=26A5E4&logo=telegram&style=flat-square)](https://t.me/vieb_general)
-[![Telegram](https://img.shields.io/static/v1?label=telegram&message=offtopic&color=26A5E4&logo=telegram&style=flat-square)](https://t.me/vieb_offtopic)
 
 ### Vieb is the Vim Inspired Electron Browser
 
@@ -25,41 +21,13 @@
 
 *Vieb is pronounced like "deep" with a "v" and rhymes with sheep*
 
-# Features
-
-- __Free__, open source, fast and secure
-- __Local first__ adblocking, auto-complete, AMP protection, custom redirects and more, all without web requests
-- __Privacy__ with strict permission system, navigator overrides, firefox mode, custom WebRTC policy and more
-- __Accessible__ with custom themes, full interface & fontsize scaling, page zooming, spellcheck and mouse support
-- __Security settings__ with permissions, cache usage, cookie management, (auto-)download settings and more
-- __Window splitting__ with buffer, split, Vexplore and Ctrl-w bindings, for multi-window browsing
-- __Map commands__ for completely custom keyboard sequences, keystrokes, commands and actions
-- __Viebrc__ config file for all custom/Vim/Vieb commands to configure settings permanently
-- __Set command__ for runtime setting configuration exactly like Vim
-- __Vim-compatible options__: showcmd, timeout, colorscheme, maxmapdepth, spelllang, splitright, smartcase etc.
-- __Container tabs__ with colored grouping, auto-clearing, individual cookies and tab restore from containers
-- __Ad-blocker__ with cosmetic filtering, optional updater, custom lists and uses easylist/easyprivacy by default
-- __Tabs__ including audio indicator, a toggle for multi-line tabs, pinned tabs, muted tabs and suspended tabs
-- __Offline help documentation__ always available upon pressing __F1__
-- __[And much, much more](https://vieb.dev/features)__
-
 [![screenshot](https://vieb.dev/img/1.png)](https://vieb.dev/screenshots)
 
-#### [More screenshots](https://vieb.dev/screenshots)
-
-## Erwic
-
-With the "erwic" startup option, you can "Easily Run Websites In Containers".
-The purpose of this option is similar to programs such as Franz, Ferdi or Rambox.
-It can also replace other Electron-based desktop apps such as Slack or Discord.
-These instances of Vieb can run separately from your existing Vieb.
-See [Erwic.md](Erwic.md) for usage and details.
+#### Please see [vieb.dev](https://vieb.dev) for [features](https://vieb.dev/features), more [screenshots](https://vieb.dev/screenshots) and the [cheatsheet](https://vieb.dev/cheatsheet)
 
 # Download
 
-There are many ways to download and install Vieb.
-Besides running from source or making your own builds,
-these are the main sources to download Vieb.
+These are the main sources to download Vieb.
 For startup help, see the [frequently asked questions](FAQ.md).
 
 ### [Vieb.dev](https://vieb.dev/download)
@@ -71,49 +39,56 @@ The official Vieb website, where you can download the latest stable release for 
 The same releases that are offered on [vieb.dev](https://vieb.dev/download),
 but with release notes and previous versions listed.
 
-#### Third-party
+### Fedora
+
+I host a custom DNF repository that you can use for Vieb instead of downloading from [vieb.dev](https://vieb.dev/download) or Github.
+
+```bash
+sudo dnf config-manager --add-repo https://jelmerro.nl/fedora/jelmerro.repo
+sudo dnf install vieb
+```
+
+### Third-party
 
 These releases are made by users just like you for their favorite system.
 Third-party releases might be outdated (in red) or customized compared to official builds,
 but they are probably the simplest way to get started if your system is listed.
 
-[![Third-party releases table](https://repology.org/badge/vertical-allrepos/vieb.svg?minversion=8.0.0)](https://repology.org/project/vieb/versions)
+[![Third-party releases table](https://repology.org/badge/vertical-allrepos/vieb.svg?minversion=10.1.0&exclude_unsupported=1)](https://repology.org/project/vieb/versions)
 
-# Cheatsheet
+### Erwic
 
-Quickly get an overview of the default mappings and basic usage.
-
-[![cheatsheet](app/img/cheatsheet.png)](https://vieb.dev/cheatsheet)
+With the "erwic" startup option, you can "Easily Run Websites In Containers".
+The purpose of this option is similar to programs such as Franz, Ferdi or Rambox.
+It can also replace other Electron-based desktop apps such as Slack or Discord.
+These instances of Vieb can run separately from your existing Vieb.
+See [Erwic.md](Erwic.md) for usage and details.
 
 # Contribute
 
-You can help by reporting issues and suggesting new features on the [Github issue tracker](https://github.com/Jelmerro/Vieb/issues).
-Another way to help is by supporting Jelmerro on [ko-fi](https://ko-fi.com/Jelmerro) or [github](https://github.com/sponsors/Jelmerro).
+You can support my work on [ko-fi](https://ko-fi.com/Jelmerro) or [Github sponsors](https://github.com/sponsors/Jelmerro).
 Donating is completely optional because Vieb will always be free and open source.
+Another way to help is to report issues or suggest new features,
+either via [Github discussions](https://github.com/Jelmerro/Vieb/discussions) or [Github issues](https://github.com/Jelmerro/Vieb/issues).
 If you know how to write Electron applications, you can also help by writing code.
 Check the ['help wanted' issues](https://github.com/Jelmerro/Vieb/issues?q=is%3Aissue+is%3Aopen+label%3A"help+wanted") for suggestions on what to work on.
-Please try to follow these guidelines while working on Vieb:
-
-- Use Vim to edit :)
-- Follow the included eslint style guide
-- Use editorconfig for indentation
-
-For an example vimrc that is configured to use these tools, you can check out my personal [vimrc](https://github.com/Jelmerro/vimrc).
+Please try to follow the linter styling when developing, see `npm run lint`.
+For an example vimrc that can auto-format based on the included linters,
+you can check out my personal [vimrc](https://github.com/Jelmerro/vimrc).
 
 # Building
 
 To create your own builds or run Vieb from source, you need to install [Node.js](https://nodejs.org).
-The next step is to clone the repository or download the source code.
-After downloading, make sure you are in the cloned/extracted Vieb folder and run:
-
-```bash
-npm ci
-npm start
-```
-
-If this runs Vieb as expected, you can generate builds for your platform with `npm run build`.
-To see the full list of run and build options, simply execute `npm run`.
-The entire configuration for what to build is stored in the `electron-builder.yml` config file.
+The next step is to clone the repository or download the source code,
+which can be done with the green "Code" button at the top of the page.
+After downloading, make sure you are in the cloned/extracted Vieb folder,
+then run `npm ci` to install the dependencies, you only need to do so once.
+You can now run Vieb from this folder from source with `npm start`.
+If you want to use a local datafolder to run Vieb, use `npm run dev`.
+You can do `git pull` and then another `npm ci` to update if you cloned the repo,
+or you can repeat these steps in a new folder if you downloaded a zip.
+Finally, you can generate builds for your platform with `node build`,
+or execute `node build --help` to see the full list of options.
 
 # License
 

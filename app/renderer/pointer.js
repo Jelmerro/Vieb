@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -22,11 +22,21 @@ const {
     currentPage,
     currentMode,
     getSetting,
-    tabOrPageMatching,
     getMouseConf,
-    listPages
+    tabForPage,
+    listReadyPages
 } = require("./common")
-const {matchesQuery, propPixels, sendToPageOrSubFrame} = require("../util")
+const {
+    matchesQuery,
+    sendToPageOrSubFrame,
+    appData,
+    joinPath,
+    readJSON,
+    writeJSON,
+    urlToString,
+    domainName,
+    pageOffset
+} = require("../util")
 
 let X = 0
 let Y = 0
@@ -34,19 +44,26 @@ let startX = 0
 let startY = 0
 let listenForScroll = false
 let lastSelection = {"endX": 0, "endY": 0, "startX": 0, "startY": 0}
+/** @type {typeof lastSelection|null} */
 let mouseSelection = null
 let skipNextClick = false
 
 const init = () => {
     const {setMode} = require("./modes")
     ipcRenderer.on("mouse-down-location", (_, clickInfo) => {
+        if ("ces".includes(currentMode()[0]) && getMouseConf("leaveinput")) {
+            setMode("normal")
+        }
         if (clickInfo.webviewId) {
-            if (clickInfo.webviewId !== currentPage().getWebContentsId()) {
-                const page = listPages().find(
-                    p => p.getWebContentsId?.() === clickInfo.webviewId)
+            if (clickInfo.webviewId !== currentPage()?.getWebContentsId()) {
+                const page = listReadyPages().find(
+                    p => p.getWebContentsId() === clickInfo.webviewId)
                 if (page) {
-                    const {switchToTab} = require("./tabs")
-                    switchToTab(tabOrPageMatching(page))
+                    const tab = tabForPage(page)
+                    if (tab) {
+                        const {switchToTab} = require("./tabs")
+                        switchToTab(tab)
+                    }
                 }
             }
         }
@@ -58,12 +75,14 @@ const init = () => {
                     "selectionRemove", zoomX(), zoomY())
             }
             if (getMouseConf("movepointer")) {
-                move(clickInfo.x * currentPage().getZoomFactor(),
-                    clickInfo.y * currentPage().getZoomFactor())
+                const factor = currentPage()?.getZoomFactor() ?? 1
+                move(clickInfo.x * factor, clickInfo.y * factor)
             } else {
                 updateElement()
             }
         }
+        const {setFocusCorrectly} = require("./actions")
+        setFocusCorrectly()
     })
     ipcRenderer.on("mouse-click-info", (_, clickInfo) => {
         if (skipNextClick) {
@@ -82,17 +101,15 @@ const init = () => {
             if (getMouseConf("leaveinput")) {
                 setMode("normal")
             }
-        } else {
-            const {setFocusCorrectly} = require("./actions")
-            setFocusCorrectly()
         }
+        const {setFocusCorrectly} = require("./actions")
+        setFocusCorrectly()
         storeMouseSelection(null)
     })
     ipcRenderer.on("mouse-selection", (_, selectInfo) => {
-        const switchToVisual = getSetting("mousevisualmode")
-        if (getMouseConf("copyselect")) {
+        if (process.platform === "linux" || process.platform.includes("bsd")) {
             const {clipboard} = require("electron")
-            clipboard.writeText(selectInfo.text)
+            clipboard.writeText(selectInfo.text, "selection")
         }
         if (selectInfo.toinsert) {
             if (getMouseConf("toinsert")) {
@@ -100,13 +117,15 @@ const init = () => {
             }
             return
         }
+        const switchToVisual = getSetting("mousevisualmode")
         if (switchToVisual !== "never" || currentMode() === "visual") {
             skipNextClick = true
+            const factor = currentPage()?.getZoomFactor() ?? 1
             storeMouseSelection({
-                "endX": selectInfo.endX * currentPage().getZoomFactor(),
-                "endY": selectInfo.endY * currentPage().getZoomFactor(),
-                "startX": selectInfo.startX * currentPage().getZoomFactor(),
-                "startY": selectInfo.startY * currentPage().getZoomFactor()
+                "endX": selectInfo.endX * factor,
+                "endY": selectInfo.endY * factor,
+                "startX": selectInfo.startX * factor,
+                "startY": selectInfo.startY * factor
             })
             if (switchToVisual === "activate") {
                 startVisualSelect()
@@ -114,16 +133,25 @@ const init = () => {
         }
     })
 }
-const zoomX = () => Math.round(X / currentPage().getZoomFactor())
+const zoomX = () => Math.round(X / (currentPage()?.getZoomFactor() ?? 1))
 
-const zoomY = () => Math.round(Y / currentPage().getZoomFactor())
+const zoomY = () => Math.round(Y / (currentPage()?.getZoomFactor() ?? 1))
 
+/**
+ * Move the pointer.
+ * @param {number} x
+ * @param {number} y
+ */
 const move = (x, y) => {
     X = x
     Y = y
     updateElement()
 }
 
+/**
+ * Handle a difference in scroll height.
+ * @param {number} diff
+ */
 const handleScrollDiffEvent = diff => {
     startY += diff
     if (listenForScroll) {
@@ -133,31 +161,26 @@ const handleScrollDiffEvent = diff => {
     }
 }
 
-const offset = () => {
-    const page = currentPage()
-    const border = propPixels(page, "borderWidth")
-    const top = Math.round(propPixels(page.style, "top") + border)
-    const left = Math.round(propPixels(page.style, "left") + border)
-    const bottom = Math.round(top + propPixels(page.style, "height") + border)
-    const right = Math.round(left + propPixels(page.style, "width") + border)
-    return {bottom, left, right, top}
-}
-
 const updateElement = () => {
-    const {top, left, bottom, right} = offset()
+    const pointerEl = document.getElementById("pointer")
+    const page = currentPage()
+    if (!pointerEl || !page) {
+        return
+    }
+    const {top, left, bottom, right} = pageOffset(page)
     X = Math.max(0, Math.min(X, right - left - getSetting("guifontsize") * 1.4))
     Y = Math.max(0, Math.min(Y, bottom - top - getSetting("guifontsize")))
-    document.getElementById("pointer").style.left = `${X + left}px`
-    document.getElementById("pointer").style.top = `${Y + top}px`
-    currentPage().setAttribute("pointer-x", X)
-    currentPage().setAttribute("pointer-y", Y)
+    pointerEl.style.left = `${X + left}px`
+    pointerEl.style.top = `${Y + top}px`
+    currentPage()?.setAttribute("pointer-x", `${X}`)
+    currentPage()?.setAttribute("pointer-y", `${Y}`)
     if (currentMode() === "pointer") {
         sendToPageOrSubFrame("send-input-event",
             {"type": "hover", "x": X, "y": Y})
     }
     if (currentMode() === "visual") {
         lastSelection = {"endX": X, "endY": Y, startX, startY}
-        const factor = currentPage().getZoomFactor()
+        const factor = currentPage()?.getZoomFactor() ?? 1
         sendToPageOrSubFrame("action", "selectionRequest",
             Math.round(startX / factor), Math.round(startY / factor),
             zoomX(), zoomY())
@@ -175,15 +198,23 @@ const releaseKeys = () => {
     mouseSelection = null
 }
 
+/**
+ * Store the latest mouse selection.
+ * @param {typeof lastSelection|null} selection
+ */
 const storeMouseSelection = selection => {
     mouseSelection = selection
 }
 
 // ACTIONS
 
-const start = (customX = null, customY = null) => {
-    X = customX || Number(currentPage().getAttribute("pointer-x")) || X
-    Y = customY || Number(currentPage().getAttribute("pointer-y")) || Y
+/**
+ * Start pointer mode.
+ * @param {{x?: number, y?: number} | null} args
+ */
+const start = (args = null) => {
+    X = args?.x || Number(currentPage()?.getAttribute("pointer-x")) || X
+    Y = args?.y || Number(currentPage()?.getAttribute("pointer-y")) || Y
     const {setMode} = require("./modes")
     setMode("pointer")
     sendToPageOrSubFrame("send-input-event", {"type": "hover", "x": X, "y": Y})
@@ -194,18 +225,23 @@ const moveToMouse = () => {
     const mousePos = ipcRenderer.sendSync("mouse-location")
     if (mousePos) {
         [...document.elementsFromPoint(mousePos.x, mousePos.y)].forEach(el => {
-            if (matchesQuery(el, "webview[link-id]")) {
+            if (el instanceof HTMLElement
+                && matchesQuery(el, "webview[link-id]")) {
                 if (el !== currentPage() || currentMode() !== "visual") {
                     const {switchToTab} = require("./tabs")
-                    switchToTab(tabOrPageMatching(el))
+                    // @ts-expect-error el is checked to be a webview above
+                    switchToTab(tabForPage(el))
                 }
-                const pagePos = offset()
+                const pagePos = pageOffset(el)
                 if (currentMode() === "visual") {
                     X = mousePos.x - pagePos.left
                     Y = mousePos.y - pagePos.top
                     updateElement()
                 } else {
-                    start(mousePos.x - pagePos.left, mousePos.y - pagePos.top)
+                    start({
+                        "x": mousePos.x - pagePos.left,
+                        "y": mousePos.y - pagePos.top
+                    })
                 }
             }
         })
@@ -364,6 +400,14 @@ const copyVideo = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "copy", "type": "video", "x": zoomX(), "y": zoomY()
 })
 
+const copyTitleAttr = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "copy", "type": "titleAttr", "x": zoomX(), "y": zoomY()
+})
+
+const copyPageTitle = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "copy", "type": "linkPageTitle", "x": zoomX(), "y": zoomY()
+})
+
 const splitText = () => sendToPageOrSubFrame("contextmenu-data", {
     "action": "split", "type": "text", "x": zoomX(), "y": zoomY()
 })
@@ -411,8 +455,11 @@ const toggleMediaControls = () => sendToPageOrSubFrame(
     "action", "toggleControls", X, Y)
 
 const inspectElement = () => {
-    const {top, left} = offset()
-    currentPage().inspectElement(Math.round(X + left), Math.round(Y + top))
+    const page = currentPage()
+    if (page) {
+        const {top, left} = pageOffset(page)
+        page.inspectElement(Math.round(X + left), Math.round(Y + top))
+    }
 }
 
 const leftClick = () => {
@@ -437,12 +484,16 @@ const moveLeft = () => {
 }
 
 const insertAtPosition = () => {
-    const factor = currentPage().getZoomFactor()
+    const factor = currentPage()?.getZoomFactor() ?? 1
     sendToPageOrSubFrame("focus-input", {"x": X * factor, "y": Y * factor})
 }
 
 const moveDown = () => {
-    const {bottom, top} = offset()
+    const page = currentPage()
+    if (!page) {
+        return
+    }
+    const {bottom, top} = pageOffset(page)
     if (Y === bottom - top - getSetting("guifontsize")) {
         const {"scrollDown": scroll} = require("./actions")
         scroll()
@@ -476,6 +527,11 @@ const rightClick = () => {
     storePointerRightClick()
 }
 
+const openMenu = () => {
+    sendToPageOrSubFrame("contextmenu-data",
+        {"force": true, "x": zoomX(), "y": zoomY()})
+}
+
 const startVisualSelect = () => {
     if (mouseSelection && getSetting("mousevisualmode") !== "never") {
         restoreSelection()
@@ -501,7 +557,11 @@ const moveFastRight = () => {
 }
 
 const centerOfView = () => {
-    const {top, bottom} = offset()
+    const page = currentPage()
+    if (!page) {
+        return
+    }
+    const {top, bottom} = pageOffset(page)
     Y = (bottom - top) / 2
     updateElement()
 }
@@ -578,7 +638,11 @@ const moveLeftMax = () => {
 }
 
 const moveFastDown = () => {
-    const {bottom, top} = offset()
+    const page = currentPage()
+    if (!page) {
+        return
+    }
+    const {bottom, top} = pageOffset(page)
     if (Y === bottom - top - getSetting("guifontsize")) {
         const {"scrollDown": scroll} = require("./actions")
         scroll()
@@ -600,6 +664,80 @@ const moveFastUp = () => {
     updateElement()
 }
 
+/**
+ * Store a pointer position.
+ * @param {{key?: string, location?: {x: number, y: number}, path: string}} args
+ */
+const storePos = args => {
+    const key = args?.key
+    if (!key) {
+        return
+    }
+    let posType = getSetting("pointerpostype")
+    if (posType !== "local" && posType !== "global") {
+        posType = "global"
+        if (key !== key.toUpperCase()) {
+            posType = "local"
+        }
+    }
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    if (!qm.pointer) {
+        qm.pointer = {"global": {}, "local": {}}
+    }
+    if (args?.path === "global") {
+        posType = "global"
+    }
+    if (posType === "local") {
+        let path = ""
+        const pointerPosId = getSetting("pointerposlocalid")
+        if (pointerPosId === "domain") {
+            path = domainName(urlToString(currentPage()?.src ?? ""))
+                || domainName(currentPage()?.src ?? "") || ""
+        }
+        if (pointerPosId === "url" || !path) {
+            path = urlToString(currentPage()?.src ?? "")
+                || currentPage()?.src || ""
+        }
+        path = args?.path ?? path
+        if (!qm.pointer.local[path]) {
+            qm.pointer.local[path] = {}
+        }
+        qm.pointer.local[path][key] = args?.location
+            ?? {"x": Math.round(X), "y": Math.round(Y)}
+    } else {
+        qm.pointer.global[key] = args?.location
+            ?? {"x": Math.round(X), "y": Math.round(Y)}
+    }
+    writeJSON(joinPath(appData(), "quickmarks"), qm)
+}
+
+/**
+ * Restore a pointer position.
+ * @param {{key?: string, path?: string}} args
+ */
+const restorePos = args => {
+    const key = args?.key
+    if (!key) {
+        return
+    }
+
+    const pointerPosId = getSetting("pointerposlocalid")
+    let path = ""
+    if (pointerPosId === "domain") {
+        path = domainName(urlToString(currentPage()?.src ?? ""))
+            || domainName(currentPage()?.src ?? "") || ""
+    }
+    if (pointerPosId === "url" || !path) {
+        path = urlToString(currentPage()?.src ?? "") || currentPage()?.src || ""
+    }
+    path = args?.path ?? path
+    const qm = readJSON(joinPath(appData(), "quickmarks"))
+    const pos = qm?.pointer?.local?.[path]?.[key] ?? qm?.pointer?.global?.[key]
+    if (pos) {
+        move(pos.x, pos.y)
+    }
+}
+
 module.exports = {
     centerOfView,
     copyAudio,
@@ -607,7 +745,9 @@ module.exports = {
     copyImage,
     copyImageBuffer,
     copyLink,
+    copyPageTitle,
     copyText,
+    copyTitleAttr,
     copyVideo,
     downloadAudio,
     downloadFrame,
@@ -656,9 +796,11 @@ module.exports = {
     openFrame,
     openImage,
     openLink,
+    openMenu,
     openText,
     openVideo,
     releaseKeys,
+    restorePos,
     restoreSelection,
     rightClick,
     scrollDown,
@@ -677,6 +819,7 @@ module.exports = {
     startOfView,
     startVisualSelect,
     storeMouseSelection,
+    storePos,
     swapPosition,
     toggleMediaControls,
     toggleMediaLoop,

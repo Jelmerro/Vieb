@@ -1,54 +1,34 @@
 " Options
 set adblocker=update
 set downloadmethod=confirm
-set mintabwidth=250
-set norestoretabs
 set nofollownewtabswitch
+set mintabwidth=250
 set redirecttohttp
-set tabreopenposition=previous
-set search=https://google.com/search?q=%s
+set restoretabs=pinned
+set searchengine=https://google.com/search?q=%s
 set searchwords=w~https://www.wikipedia.org/w/index.php?title=Special:Search&search=%s
+set tabreopenposition=previous
 
 " Mappings
-nmap i <toInsertMode>
 nmap v <p.start><p.startVisualSelect>
-nmap gi <insertAtFirstInput>
-nmap f <startFollowCurrentTab>
-nmap F <startFollowNewTab>
-nmap / <toSearchMode>
-nmap n <nextSearchMatch>
-nmap N <previousSearchMatch>
-nmap gg <scrollTop>
-nmap G <scrollBottom>
 nmap d <scrollPageDownHalf>
 nmap u <scrollPageUpHalf>
-nmap p <openFromClipboard>
-nmap P <openNewTab><openFromClipboard>
-nmap gu <toParentUrl>
-nmap gU <toRootUrl>
-nmap yf <p.start><startFollowCurrentTab>
 nunmap [
 nunmap ]
 nmap [[ <previousPage>
 nmap ]] <nextPage>
-nmap v <p.start><p.startVisualSelect>
 nmap o <toExploreMode>
-nmap O <openNewTab><toExploreMode>
+nmap O <:tabnew><toExploreMode>
 nmap T <toCommandMode>buffer<Space>
-nmap g0 <:buffer
-nmap g$ <:buffer
+nmap g0 <:buffer 0>
+nmap g$ <:buffer -1>
 nmap J <previousTab>
 nmap K <nextTab>
 nmap ^ <:buffer #>
 nmap ge <toExploreMode><End>
-nmap gE <openNewTab><toExploreMode>
+nmap gE <:tabnew><toExploreMode>
 nmap x <:close>
 nmap X <reopenTab>
-nmap H <backInHistory>
-nmap L <forwardInHistory>
-nmap <A-p> <:pin>
-nmap <A-m> <:mute>
-nmap t <openNewTab>
 nmap yt <openNewTabWithCurrentUrl><CR>
 nmap <lt><lt> <moveTabBackward>
 nmap >> <moveTabForward>

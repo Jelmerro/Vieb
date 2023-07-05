@@ -501,9 +501,9 @@ test(`Expand path to resolve homedir and downloads`, () => {
 })
 
 test(`Firefox version should increment by date`, () => {
-    const firstMockDate = new Date("2021-03-26")
-    const secondMockDate = new Date("2021-08-26")
-    const thirdMockDate = new Date("2022-03-15")
+    const firstMockDate = new Date("2023-06-05")
+    const secondMockDate = new Date("2023-06-06")
+    const thirdMockDate = new Date("2023-07-04")
     const sys = UTIL.userAgentPlatform()
     global.Date = class extends Date {
         constructor(...date) {
@@ -513,7 +513,7 @@ test(`Firefox version should increment by date`, () => {
             return firstMockDate
         }
     }
-    let ver = 86
+    let ver = 113
     expect(UTIL.firefoxUseragent()).toBe(
         `Mozilla/5.0 (${sys}; rv:${ver}.0) Gecko/20100101 Firefox/${ver}.0`)
     global.Date = class extends Date {
@@ -524,7 +524,7 @@ test(`Firefox version should increment by date`, () => {
             return secondMockDate
         }
     }
-    ver = 91
+    ver = 114
     expect(UTIL.firefoxUseragent()).toBe(
         `Mozilla/5.0 (${sys}; rv:${ver}.0) Gecko/20100101 Firefox/${ver}.0`)
     global.Date = class extends Date {
@@ -535,7 +535,7 @@ test(`Firefox version should increment by date`, () => {
             return thirdMockDate
         }
     }
-    ver = 98
+    ver = 115
     expect(UTIL.firefoxUseragent()).toBe(
         `Mozilla/5.0 (${sys}; rv:${ver}.0) Gecko/20100101 Firefox/${ver}.0`)
 })

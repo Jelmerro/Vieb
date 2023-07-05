@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -42,35 +42,71 @@ const {
     appConfig,
     stringToUrl,
     formatDate,
-    propPixels
+    propPixels,
+    readJSON,
+    writeJSON,
+    domainName,
+    urlToString,
+    isUrl,
+    execCommand,
+    intervalValueToDate,
+    isValidIntervalValue
 } = require("../util")
 const {
-    listTabs, listPages, currentTab, currentPage, tabOrPageMatching, getSetting
+    listTabs,
+    currentTab,
+    currentPage,
+    getSetting,
+    pageForTab,
+    tabForPage,
+    listRealPages
 } = require("./common")
 
+/**
+ * List a specific setting, all of them or show the warning regarding name.
+ * @param {keyof typeof import("./settings").defaultSettings|"all"} setting
+ */
 const listSetting = setting => {
     if (setting === "all") {
         const {listCurrentSettings} = require("./settings")
         notify(`--- Options ---\n${listCurrentSettings(true)}`)
         return
     }
-    const value = getSetting(setting)
-    if (value === undefined) {
-        notify(`The setting '${setting}' doesn't exist`, "warn")
-    } else {
-        notify(`The setting '${setting}' has the value '${value}'`)
-    }
+    notify(`The setting '${setting}' has the value '${getSetting(setting)}'`)
 }
 
-const splitSettingAndValue = (part, seperator) => {
-    const [setting] = part.split(seperator)
-    const value = part.split(seperator).slice(1).join(seperator)
+/**
+ * Split strings based on separator and merge later parts.
+ * @param {string} part
+ * @param {string} separator
+ */
+const splitSettingAndValue = (part, separator) => {
+    const [setting] = part.split(separator)
+    const value = part.split(separator).slice(1).join(separator)
     return [setting, value]
 }
 
+/**
+ * Check if a setting name is valid.
+ * @param {string} name
+ * @returns {name is (keyof typeof import("./settings").defaultSettings|"all")}
+ */
+const isValidSettingName = name => {
+    const {isExistingSetting} = require("./settings")
+    return name === "all" || isExistingSetting(name)
+}
+
+/**
+ * Modifiy a list or a number.
+ * @param {keyof typeof import("./settings").defaultSettings} setting
+ * @param {string} value
+ * @param {"append"|"remove"|"special"} method
+ */
 const modifyListOrNumber = (setting, value, method) => {
-    const isNumber = typeof getSetting(setting) === "number"
-    const {freeText, listLike, listLikeTilde, set} = require("./settings")
+    const {
+        freeText, listLike, listLikeTilde, set, isNumberSetting
+    } = require("./settings")
+    const isNumber = isNumberSetting(setting)
     const isFreeText = freeText.includes(setting)
     const isListLike = listLike.includes(setting)
     const isListLikeTilde = listLikeTilde.includes(setting)
@@ -95,20 +131,20 @@ const modifyListOrNumber = (setting, value, method) => {
     }
     if (method === "remove") {
         if (isListLike) {
-            let current = getSetting(setting).split(",")
+            let current = String(getSetting(setting)).split(",")
             if (setting === "mouse" && current?.[0] === "all") {
                 const {mouseFeatures} = require("./settings")
                 current = mouseFeatures
             }
-            const newValue = current.filter(e => e && e !== value).join(",")
+            let newValue = current.filter(e => e && e !== value).join(",")
+            if (newValue === current.join(",")) {
+                newValue = current.filter(
+                    e => e.split("~")[0] !== value.split("~")[0]).join(",")
+            }
             set(setting, newValue)
         }
         if (isListLikeTilde) {
-            let current = getSetting(setting).split("~")
-            if (setting === "mouse" && current?.[0] === "all") {
-                const {mouseFeatures} = require("./settings")
-                current = mouseFeatures
-            }
+            const current = String(getSetting(setting)).split("~")
             const newValue = current.filter(e => e && e !== value).join("~")
             set(setting, newValue)
         }
@@ -116,7 +152,7 @@ const modifyListOrNumber = (setting, value, method) => {
             set(setting, getSetting(setting) - Number(value))
         }
         if (isFreeText) {
-            set(setting, getSetting(setting).replace(value, ""))
+            set(setting, String(getSetting(setting)).replace(value, ""))
         }
     }
     if (method === "special") {
@@ -135,6 +171,10 @@ const modifyListOrNumber = (setting, value, method) => {
     }
 }
 
+/**
+ * Use the set command to list or modify any setting.
+ * @param {string[]} args
+ */
 const set = args => {
     if (args.length === 0) {
         const {listCurrentSettings} = require("./settings")
@@ -146,73 +186,123 @@ const set = args => {
         }
         return
     }
+    const {"set": s} = require("./settings")
     for (const part of args) {
         if ((/^\w+\+=/).test(part)) {
-            modifyListOrNumber(...splitSettingAndValue(part, "+="), "append")
+            const [setting, value] = splitSettingAndValue(part, "+=")
+            if (isValidSettingName(setting) && setting !== "all") {
+                modifyListOrNumber(setting, value, "append")
+            } else {
+                notify(`The setting '${setting}' doesn't exist`, "warn")
+            }
         } else if ((/^\w+-=/).test(part)) {
-            modifyListOrNumber(...splitSettingAndValue(part, "-="), "remove")
+            const [setting, value] = splitSettingAndValue(part, "-=")
+            if (isValidSettingName(setting) && setting !== "all") {
+                modifyListOrNumber(setting, value, "remove")
+            } else {
+                notify(`The setting '${setting}' doesn't exist`, "warn")
+            }
         } else if ((/^\w+\^=/).test(part)) {
-            modifyListOrNumber(...splitSettingAndValue(part, "^="), "special")
+            const [setting, value] = splitSettingAndValue(part, "^=")
+            if (isValidSettingName(setting) && setting !== "all") {
+                modifyListOrNumber(setting, value, "special")
+            } else {
+                notify(`The setting '${setting}' doesn't exist`, "warn")
+            }
         } else if ((/^\w+=/).test(part)) {
-            const {"set": s} = require("./settings")
             s(...splitSettingAndValue(part, "="))
         } else if ((/^\w+:/).test(part)) {
-            const {"set": s} = require("./settings")
             s(...splitSettingAndValue(part, ":"))
-        } else if (part.includes("=") || part.includes(":")) {
-            notify(
-                `The setting '${part.replace(/[+-^:=].*/, "")}' contains `
-                + "invalid characters", "warn")
+        } else if ((/^\w+!.+/).test(part)) {
+            const [setting] = part.split("!")
+            const values = part.split("!").slice(1).join("!").split("|")
+            if (isValidSettingName(setting) && setting !== "all") {
+                const index = values.indexOf(String(getSetting(setting)))
+                s(setting, values[index + 1] || values[0])
+            } else {
+                notify(`The setting '${setting}' doesn't exist`, "warn")
+            }
+        } else if (part.endsWith("!")) {
+            const setting = part.slice(0, -1)
+            if (isValidSettingName(setting) && setting !== "all") {
+                const value = getSetting(setting)
+                const {isEnumSetting, validOptions} = require("./settings")
+                if (["boolean", "undefined"].includes(typeof value)) {
+                    s(setting, String(!value))
+                } else if (isEnumSetting(setting)) {
+                    const index = validOptions[setting].indexOf(String(value))
+                    s(setting, validOptions[setting][index + 1]
+                    || validOptions[setting][0])
+                } else {
+                    notify(
+                        `The setting '${setting}' can not be flipped`, "warn")
+                }
+            } else {
+                notify(`The setting '${setting}' doesn't exist`, "warn")
+            }
         } else if (part.endsWith("&")) {
             const {reset} = require("./settings")
             reset(part.slice(0, -1))
-        } else if (part.endsWith("!")) {
-            const setting = part.slice(0, -1)
-            const value = getSetting(setting)
-            const {"set": s, validOptions} = require("./settings")
-            if (["boolean", "undefined"].includes(typeof value)) {
-                s(setting, String(!value))
-            } else if (validOptions[setting]) {
-                const index = validOptions[setting].indexOf(value)
-                s(setting, validOptions[setting][index + 1]
-                    || validOptions[setting][0])
-            } else {
-                notify(
-                    `The setting '${setting}' can not be flipped`, "warn")
-            }
         } else if (part.endsWith("?")) {
-            listSetting(part.slice(0, -1))
-        } else if (typeof getSetting(part) === "boolean") {
-            const {"set": s} = require("./settings")
+            const settingName = part.slice(0, -1)
+            if (isValidSettingName(settingName)) {
+                listSetting(settingName)
+            } else {
+                notify(`The setting '${settingName}' doesn't exist`, "warn")
+            }
+        } else if (isValidSettingName(part) && part !== "all"
+            && typeof getSetting(part) === "boolean") {
             s(part, "true")
         } else if (part.startsWith("inv")) {
-            const value = getSetting(part.replace("inv", ""))
-            if (typeof value === "boolean") {
-                const {"set": s} = require("./settings")
-                s(part.replace("inv", ""), String(!value))
-            } else {
+            const settingName = part.replace("inv", "")
+            if (isValidSettingName(settingName) && settingName !== "all") {
+                const value = getSetting(settingName)
+                if (typeof value === "boolean") {
+                    s(part.replace("inv", ""), String(!value))
+                } else {
+                    notify(`The setting '${settingName}' can not be flipped`,
+                        "warn")
+                }
+            } else if (isValidSettingName(part)) {
                 listSetting(part)
+            } else {
+                notify(`The setting '${part}' doesn't exist`, "warn")
             }
         } else if (part.startsWith("no")) {
-            const value = getSetting(part.replace("no", ""))
-            const {"set": s, listLike, listLikeTilde} = require("./settings")
-            if (typeof value === "boolean") {
-                s(part.replace("no", ""), "false")
-            } else if (listLike.includes(part.replace("no", ""))) {
-                s(part.replace("no", ""), "")
-            } else if (listLikeTilde.includes(part.replace("no", ""))) {
-                s(part.replace("no", ""), "")
-            } else {
+            const settingName = part.replace("no", "")
+            if (isValidSettingName(settingName) && settingName !== "all") {
+                const value = getSetting(settingName)
+                const {listLike, listLikeTilde} = require("./settings")
+                if (typeof value === "boolean") {
+                    s(settingName, "false")
+                } else if (listLike.includes(part.replace("no", ""))) {
+                    s(settingName, "")
+                } else if (listLikeTilde.includes(part.replace("no", ""))) {
+                    s(settingName, "")
+                } else {
+                    listSetting(settingName)
+                }
+            } else if (isValidSettingName(part)) {
                 listSetting(part)
+            } else {
+                notify(`The setting '${part}' doesn't exist`, "warn")
             }
-        } else {
+        } else if (isValidSettingName(part)) {
             listSetting(part)
+        } else {
+            notify(`The setting '${part}' doesn't exist`, "warn")
         }
     }
 }
 
+/** @type {string[]} */
 const sourcedFiles = []
 
+/**
+ * Source a specific viebrc file.
+ * @param {string|null} origin
+ * @param {string[]} args
+ */
 const source = (origin, args) => {
     if (args.length !== 1) {
         notify("Source requires exactly argument representing the filename",
@@ -234,7 +324,9 @@ const source = (origin, args) => {
         notify("Recursive sourcing of files is not supported", "err")
         return
     }
-    if ([appConfig().override, appConfig().files].includes(absFile)) {
+    if ([
+        appConfig()?.override, ...appConfig()?.files ?? []
+    ].includes(absFile)) {
         notify("It's not possible to source a file that is loaded on startup",
             "err")
         return
@@ -258,9 +350,17 @@ const source = (origin, args) => {
     }
 }
 
-const quit = () => {
-    if (document.getElementById("tabs").classList.contains("multiple")) {
-        const {closeTab} = require("./tabs")
+/**
+ * Quit the current split, a range of splits or the browser if not using splits.
+ * @param {string|null} range
+ */
+const quit = (range = null) => {
+    const {closeTab} = require("./tabs")
+    if (range) {
+        rangeToTabIdxs(range).forEach(t => closeTab(t))
+        return
+    }
+    if (document.getElementById("tabs")?.classList.contains("multiple")) {
         closeTab()
     } else {
         quitall()
@@ -269,15 +369,34 @@ const quit = () => {
 
 const quitall = () => {
     ipcRenderer.send("hide-window")
-    if (getSetting("clearhistoryonquit")) {
-        deleteFile(joinPath(appData(), "hist"))
+    const keepQuickmarkNames = getSetting("quickmarkpersistence").split(",")
+    const clearMark = ["scroll", "marks", "pointer"]
+        .filter(t => !keepQuickmarkNames.includes(t))
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    for (const markType of clearMark) {
+        delete qm[markType]
+    }
+    if (Object.keys(qm).length > 0) {
+        writeJSON(joinPath(appData(), "quickmarks"), qm)
     } else {
+        deleteFile(joinPath(appData(), "quickmarks"))
+    }
+    const clearHistory = getSetting("clearhistoryinterval")
+    if (clearHistory === "session") {
+        deleteFile(joinPath(appData(), "hist"))
+    } else if (clearHistory === "none") {
         const {writeHistToFile} = require("./history")
         writeHistToFile(true)
+    } else {
+        const {removeOldHistory} = require("./history")
+        removeOldHistory(intervalValueToDate(clearHistory))
     }
     const {saveTabs} = require("./tabs")
     saveTabs()
-    document.getElementById("pages").innerHTML = ""
+    const pagesContainer = document.getElementById("pages")
+    if (pagesContainer) {
+        pagesContainer.textContent = ""
+    }
     clearTempContainers()
     if (getSetting("cache") !== "full") {
         clearCache()
@@ -289,12 +408,17 @@ const quitall = () => {
         clearLocalStorage()
     }
     const {updateMappings} = require("./favicons")
-    updateMappings()
+    updateMappings({"now": true})
     ipcRenderer.send("destroy-window")
 }
 
 let currentscheme = "default"
-const colorscheme = (name = null, trailingArgs = false) => {
+/**
+ * Set the colorscheme by name or log the current one if no name provided.
+ * @param {string|null} name
+ * @param {string|null} trailingArgs
+ */
+const colorscheme = (name = null, trailingArgs = null) => {
     if (trailingArgs) {
         notify("The colorscheme command takes a single optional argument",
             "warn")
@@ -319,7 +443,10 @@ const colorscheme = (name = null, trailingArgs = false) => {
     if (name === "default") {
         css = ""
     }
-    document.getElementById("custom-styling").textContent = css
+    const customStyleEl = document.getElementById("custom-styling")
+    if (customStyleEl) {
+        customStyleEl.textContent = css
+    }
     ipcRenderer.send("set-custom-styling", getSetting("guifontsize"), css)
     const {setCustomStyling} = require("./settings")
     setCustomStyling(css)
@@ -331,30 +458,36 @@ const restart = () => {
     quitall()
 }
 
-const openDevTools = (userPosition = null, trailingArgs = false) => {
+/**
+ * Open the development tools.
+ * @param {string|null} userPosition
+ * @param {string|null} trailingArgs
+ */
+const openDevTools = (userPosition = null, trailingArgs = null) => {
     if (trailingArgs) {
         notify("The devtools command takes a single optional argument",
             "warn")
         return
     }
     const position = userPosition || getSetting("devtoolsposition")
+    const {addTab} = require("./tabs")
+    const {add} = require("./pagelayout")
     if (position === "window") {
         currentPage()?.openDevTools()
     } else if (position === "tab") {
-        const {addTab} = require("./tabs")
         addTab({"devtools": true})
     } else if (position === "vsplit") {
-        const {addTab} = require("./tabs")
-        const id = currentTab().getAttribute("link-id")
-        addTab({"devtools": true})
-        const {add} = require("./pagelayout")
-        add(id, "hor", getSetting("splitright"))
+        const id = currentTab()?.getAttribute("link-id")
+        if (id) {
+            addTab({"devtools": true})
+            add(id, "hor", getSetting("splitright"))
+        }
     } else if (position === "split") {
-        const {addTab} = require("./tabs")
-        const id = currentTab().getAttribute("link-id")
-        addTab({"devtools": true})
-        const {add} = require("./pagelayout")
-        add(id, "ver", getSetting("splitbelow"))
+        const id = currentTab()?.getAttribute("link-id")
+        if (id) {
+            addTab({"devtools": true})
+            add(id, "ver", getSetting("splitbelow"))
+        }
     } else {
         notify("Invalid devtools position specified, must be one of: "
             + "window, vsplit, split or tab", "warn")
@@ -365,27 +498,46 @@ const openInternalDevTools = () => {
     ipcRenderer.send("open-internal-devtools")
 }
 
-const openSpecialPage = (specialPage, section = null) => {
-    // Open the url in the current or new tab, depending on currently open page
-    const pageUrl = specialPagePath(specialPage, section)
-    const isNewtab = pathToSpecialPageName(currentPage()?.src).name === "newtab"
-        || currentPage()?.src.replace(/\/+$/g, "")
+/**
+ * Open a special page using commands.
+ * @param {string} specialPage
+ * @param {boolean} forceNewtab
+ * @param {string|null} section
+ */
+const openSpecialPage = (specialPage, forceNewtab, section = null) => {
+    const newSpecialUrl = specialPagePath(specialPage, section)
+    const url = currentPage()?.src
+    const currentSpecial = pathToSpecialPageName(url ?? "")?.name
+    const isNewtab = currentSpecial === "newtab"
+        || (url?.replace(/\/+$/g, "") ?? "")
         === stringToUrl(getSetting("newtaburl")).replace(/\/+$/g, "")
-    if (currentPage() && !currentPage().isLoading() && isNewtab) {
-        const {navigateTo} = require("./tabs")
-        navigateTo(pageUrl)
+    const replaceSpecial = getSetting("replacespecial")
+    const {navigateTo, addTab} = require("./tabs")
+    if (replaceSpecial === "never" || forceNewtab || !currentPage()) {
+        addTab({"url": newSpecialUrl})
+    } else if (replaceSpecial === "always") {
+        navigateTo(newSpecialUrl)
+    } else if (replaceSpecial === "special" && (currentSpecial || isNewtab)) {
+        navigateTo(newSpecialUrl)
+    } else if (currentSpecial === "newtab" && isNewtab) {
+        navigateTo(newSpecialUrl)
     } else {
-        const {addTab} = require("./tabs")
-        addTab({"url": pageUrl})
+        addTab({"url": newSpecialUrl})
     }
 }
 
-const help = (section = null, trailingArgs = false) => {
+/**
+ * Open the help page at a specific section.
+ * @param {boolean} forceNewtab
+ * @param {string|null} section
+ * @param {boolean} trailingArgs
+ */
+const help = (forceNewtab, section = null, trailingArgs = false) => {
     if (trailingArgs) {
         notify("The help command takes a single optional argument", "warn")
         return
     }
-    openSpecialPage("help", section)
+    openSpecialPage("help", forceNewtab, section)
 }
 
 const reloadconfig = () => {
@@ -393,19 +545,33 @@ const reloadconfig = () => {
     loadFromDisk(false)
 }
 
+/**
+ * Make a hardcopy print of a page, optionally for a range of pages.
+ * @param {string} range
+ */
 const hardcopy = range => {
     if (range) {
-        rangeToTabIdxs(range).forEach(t => tabOrPageMatching(listTabs()[t])
-            .send("action", "print"))
+        rangeToTabIdxs(range).forEach(t => {
+            const page = pageForTab(listTabs()[t])
+            if (!(page instanceof HTMLDivElement)) {
+                page?.send("action", "print")
+            }
+        })
         return
     }
     currentPage()?.send("action", "print")
 }
 
+/**
+ * Resolve file arguments to an absolute path with fixed type extension.
+ * @param {string|null} locationArg
+ * @param {string} type
+ * @param {Electron.WebviewTag|null} customPage
+ */
 const resolveFileArg = (locationArg, type, customPage = null) => {
     const page = customPage || currentPage()
-    const tab = tabOrPageMatching(page)
-    const name = `${tab.querySelector("span").textContent.replace(
+    const tab = tabForPage(page)
+    const name = `${tab?.querySelector("span")?.textContent?.replace(
         specialCharsAllowSpaces, "").trim()}_${formatDate(new Date())
         .replace(/:/g, "-")}`.replace(/\s/g, "_")
     let loc = joinPath(downloadPath(), name)
@@ -433,6 +599,11 @@ const resolveFileArg = (locationArg, type, customPage = null) => {
     return loc
 }
 
+/**
+ * Write the html of a page to disk, optionally a range of pages at custom loc.
+ * @param {string[]} args
+ * @param {string} range
+ */
 const write = (args, range) => {
     if (args.length > 1) {
         notify("The write command takes only a single optional argument:\n"
@@ -450,12 +621,18 @@ const write = (args, range) => {
     writePage(args[0])
 }
 
-const writePage = (customLoc, tabIdx) => {
+/**
+ * Write the html of a page to disk based on tab index or current.
+ * @param {string|null} customLoc
+ * @param {number|null} tabIdx
+ */
+const writePage = (customLoc = null, tabIdx = null) => {
+    /** @type {Electron.WebviewTag|HTMLDivElement|null} */
     let page = currentPage()
     if (tabIdx !== null) {
-        page = tabOrPageMatching(listTabs()[tabIdx])
+        page = pageForTab(listTabs()[tabIdx]) ?? null
     }
-    if (!page?.getWebContentsId) {
+    if (!page || page instanceof HTMLDivElement) {
         return
     }
     const loc = resolveFileArg(customLoc, "html", page)
@@ -470,9 +647,14 @@ const writePage = (customLoc, tabIdx) => {
     })
 }
 
+/**
+ * Translate a screen* command argument to valid dims within view.
+ * @param {string} dims
+ */
 const translateDimsToRect = dims => {
-    if (!dims) {
-        return undefined
+    const page = currentPage()
+    if (!dims || !page) {
+        return
     }
     const rect = {
         "height": Number(dims.split(",")[1]),
@@ -480,8 +662,8 @@ const translateDimsToRect = dims => {
         "x": Number(dims.split(",")[2]),
         "y": Number(dims.split(",")[3])
     }
-    const pageWidth = propPixels(currentPage().style, "width")
-    const pageHeight = propPixels(currentPage().style, "height")
+    const pageWidth = propPixels(page.style, "width")
+    const pageHeight = propPixels(page.style, "height")
     if (rect.x > pageWidth) {
         rect.x = pageWidth
     }
@@ -497,6 +679,10 @@ const translateDimsToRect = dims => {
     return rect
 }
 
+/**
+ * Copy the current page screen to the clipboard, optionally with custom dims.
+ * @param {string[]} args
+ */
 const screencopy = args => {
     if (args.length > 1) {
         notify("The screencopy command only accepts optional dimensions",
@@ -513,13 +699,17 @@ const screencopy = args => {
     }
     const rect = translateDimsToRect(args[0])
     setTimeout(() => {
-        currentPage().capturePage(rect).then(img => {
+        currentPage()?.capturePage(rect).then(img => {
             const {nativeImage, clipboard} = require("electron")
             clipboard.writeImage(nativeImage.createFromBuffer(img.toPNG()))
         })
     }, 20)
 }
 
+/**
+ * Write the current page screen a location, optionally with custom dims.
+ * @param {string[]} args
+ */
 const screenshot = args => {
     if (args.length > 2) {
         notify("The screenshot command takes only two optional arguments:\nthe "
@@ -538,28 +728,31 @@ const screenshot = args => {
     takeScreenshot(dims, location)
 }
 
-const takeScreenshot = (dims, location, tabIdx = null) => {
-    let page = currentPage()
-    if (tabIdx !== null) {
-        page = tabOrPageMatching(listTabs()[tabIdx])
-    }
-    if (!page?.capturePage) {
-        return
-    }
+/**
+ * Write the actual page to disk based on dims and location.
+ * @param {string} dims
+ * @param {string} location
+ */
+const takeScreenshot = (dims, location) => {
     const rect = translateDimsToRect(dims)
-    const loc = resolveFileArg(location, "png", page)
+    const loc = resolveFileArg(location, "png", currentPage())
     if (!loc) {
         return
     }
     setTimeout(() => {
-        page.capturePage(rect).then(img => {
+        currentPage()?.capturePage(rect).then(img => {
             writeFile(loc, img.toPNG(), "Something went wrong saving the image",
                 `Screenshot saved at ${loc}`)
         })
     }, 20)
 }
 
-const mkviebrc = (full = false, trailingArgs = false) => {
+/**
+ * Make a custom viebrc config based on current settings.
+ * @param {string|null} full
+ * @param {boolean} trailingArgs
+ */
+const mkviebrc = (full = null, trailingArgs = false) => {
     if (trailingArgs) {
         notify(
             "The mkviebrc command takes a single optional argument", "warn")
@@ -579,17 +772,25 @@ const mkviebrc = (full = false, trailingArgs = false) => {
     saveToDisk(exportAll)
 }
 
+/**
+ * Translate a partial range arg to tab index based on mathematical operations.
+ * @param {number} start
+ * @param {string} rangePart
+ */
 const translateRangePosToIdx = (start, rangePart) => {
-    const [, plus] = rangePart.split("/").pop().split("+")
-    const [, minus] = rangePart.split("/").pop().split("-")
+    const [, plus] = rangePart.split("/").pop()?.split("+") ?? ["", ""]
+    const [, minus] = rangePart.split("/").pop()?.split("-") ?? ["", ""]
+    /** @type {(string | number)[]} */
     let [charOrNum] = rangePart.split(/[-+]/g)
     if (rangePart.split("/").length > 2) {
         const [flags] = rangePart.split("/")
         let search = rangePart.split("/").slice(1, -1).join("/")
         ;[charOrNum] = listTabs().map((t, i) => ({
+            "audio": !!t.getAttribute("media-playing"),
             "idx": i,
-            "name": t.querySelector("span").textContent,
-            "url": tabOrPageMatching(t).src
+            "name": t.querySelector("span")?.textContent,
+            "suspended": !!t.getAttribute("suspended"),
+            "url": pageForTab(t)?.getAttribute("src")
         })).filter(t => {
             let name = String(t.name)
             let url = String(t.url)
@@ -597,6 +798,18 @@ const translateRangePosToIdx = (start, rangePart) => {
                 search = search.toLowerCase()
                 name = name.toLowerCase()
                 url = url.toLowerCase()
+            }
+            if (flags.includes("a") && !t.audio) {
+                return false
+            }
+            if (flags.includes("s") && t.audio) {
+                return false
+            }
+            if (flags.includes("z") && !t.suspended) {
+                return false
+            }
+            if (flags.includes("r") && t.suspended) {
+                return false
             }
             if (flags.includes("t") && !flags.includes("u")) {
                 return name.includes(search)
@@ -614,8 +827,13 @@ const translateRangePosToIdx = (start, rangePart) => {
     if (charOrNum === "^") {
         number = 0
     }
+    let currentTabIdx = 0
+    const tab = currentTab()
+    if (tab) {
+        currentTabIdx = listTabs().indexOf(tab)
+    }
     if (charOrNum === ".") {
-        number = listTabs().indexOf(currentTab())
+        number = currentTabIdx
     }
     if (charOrNum === "$") {
         number = listTabs().length - 1
@@ -624,42 +842,55 @@ const translateRangePosToIdx = (start, rangePart) => {
         if (charOrNum || rangePart.split("/").length > 2) {
             number += Number(plus)
         } else {
-            number = listTabs().indexOf(currentTab()) + Number(plus)
+            number = currentTabIdx + Number(plus)
         }
     }
     if (minus) {
         if (charOrNum || rangePart.split("/").length > 2) {
             number -= Number(minus)
         } else {
-            number = listTabs().indexOf(currentTab()) - Number(minus)
+            number = currentTabIdx - Number(minus)
         }
     }
     return number
 }
 
-const rangeToTabIdxs = range => {
+/**
+ * Get the tab indices for a given range.
+ * @param {string} range
+ * @param {boolean} silent
+ */
+const rangeToTabIdxs = (range, silent = false) => {
     if (range === "%") {
         return listTabs().map((_, i) => i)
     }
     if (range.includes(",")) {
         const [start, end, tooManyArgs] = range.split(",")
         if (tooManyArgs !== undefined) {
-            notify("Too many commas in range, at most 1 is allowed", "warn")
+            if (!silent) {
+                notify("Too many commas in range, at most 1 is allowed", "warn")
+            }
             return []
         }
         if (start.match(/^.*g.*\/.*\/[-+]?\d?$/) || end.match(/^.*g.*\/.*\/[-+]?\d?$/)) {
-            notify("Can't combine global search with 2 indexes, either supply"
-                + " two indexes/searches OR use a global search", "warn")
+            if (!silent) {
+                notify("Can't combine global search with 2 indexes, either supp"
+                    + "ly two indexes/searches OR use a global search", "warn")
+            }
             return []
         }
         const startPos = translateRangePosToIdx(0, start)
         if (isNaN(startPos)) {
-            notify(`Range section '${start}' is not a valid range`, "warn")
+            if (!silent) {
+                notify(`Range section '${start}' is not a valid range`, "warn")
+            }
             return []
         }
         const endPos = translateRangePosToIdx(startPos, end)
         if (isNaN(endPos)) {
-            notify(`Range section '${end}' is not a valid range`, "warn")
+            if (!silent) {
+                notify(`Range section '${end}' is not a valid range`, "warn")
+            }
             return []
         }
         return listTabs().map((_, i) => i).slice(startPos, endPos + 1)
@@ -669,9 +900,11 @@ const rangeToTabIdxs = range => {
         if (flags.includes("g")) {
             let search = range.split("/").slice(1, -1).join("/")
             return listTabs().map((t, i) => ({
+                "audio": !!t.getAttribute("media-playing"),
                 "idx": i,
-                "name": t.querySelector("span").textContent,
-                "url": tabOrPageMatching(t).src
+                "name": t.querySelector("span")?.textContent,
+                "suspended": !!t.getAttribute("suspended"),
+                "url": pageForTab(t)?.getAttribute("src")
             })).filter(t => {
                 let name = String(t.name)
                 let url = String(t.url)
@@ -679,6 +912,18 @@ const rangeToTabIdxs = range => {
                     search = search.toLowerCase()
                     name = name.toLowerCase()
                     url = url.toLowerCase()
+                }
+                if (flags.includes("a") && !t.audio) {
+                    return false
+                }
+                if (flags.includes("s") && t.audio) {
+                    return false
+                }
+                if (flags.includes("z") && !t.suspended) {
+                    return false
+                }
+                if (flags.includes("r") && t.suspended) {
+                    return false
                 }
                 if (flags.includes("t") && !flags.includes("u")) {
                     return name.includes(search)
@@ -690,41 +935,103 @@ const rangeToTabIdxs = range => {
             }).map(t => t.idx)
         }
     }
-    return [translateRangePosToIdx(0, range, true)]
+    return [translateRangePosToIdx(0, range)]
 }
 
+/**
+ * Get a tab for a given buffer argument.
+ * @param {string[]} args
+ * @param {((tab: HTMLElement) => boolean)|null} filter
+ */
 const tabForBufferArg = (args, filter = null) => {
+    const tabs = allTabsForBufferArg(args, filter)
+    if (tabs[0]) {
+        return tabs[0].tab ?? null
+    }
+    return null
+}
+
+/**
+ * Get all tabs for a given buffer argument.
+ * @param {string[]|[number]} args
+ * @param {((tab: HTMLElement) => boolean)|null} filter
+ */
+const allTabsForBufferArg = (args, filter = null) => {
     if (args.length === 1 || typeof args === "number") {
         let number = Number(args[0] || args)
         if (!isNaN(number)) {
             const tabs = listTabs()
             if (number >= tabs.length) {
-                return tabs.pop()
+                const tab = tabs.pop()
+                if (tab) {
+                    return [{
+                        tab,
+                        "title": tab.querySelector("span")?.textContent ?? "",
+                        "url": pageForTab(tab)?.getAttribute("src") ?? ""
+                    }]
+                }
             }
             if (number < 0) {
                 number += tabs.length
             }
-            return tabs[number] || tabs[0]
+            const tab = tabs[number] ?? tabs[0]
+            return [{
+                tab,
+                "title": tab.querySelector("span")?.textContent ?? "",
+                "url": pageForTab(tab)?.getAttribute("src") ?? ""
+            }]
         }
         if ((args[0] || args) === "#") {
-            const {getLastTabId} = require("./pagelayout")
-            return document.querySelector(
-                `#tabs span[link-id='${getLastTabId()}']`) || listTabs()[0]
+            const {getLastTabIds} = require("./pagelayout")
+            const currentTabIdx = currentTab()?.getAttribute("link-id")
+            const tabs = listTabs()
+            const lastTab = getLastTabIds().map(id => {
+                const tab = tabs.find(t => t.getAttribute("link-id") === id)
+                if (tab?.getAttribute("link-id") === currentTabIdx) {
+                    return null
+                }
+                return tab
+            }).find(t => t) ?? currentTab()
+            const tab = lastTab ?? listTabs()[0]
+            return [{
+                tab,
+                "title": tab.querySelector("span")?.textContent ?? "",
+                "url": pageForTab(tab)?.getAttribute("src") ?? ""
+            }]
         }
     }
-    const simpleSearch = args.join("").replace(specialChars, "").toLowerCase()
-    return listTabs().filter(t => !filter || filter(t)).find(t => {
-        const simpleTabUrl = tabOrPageMatching(t).src
-            .replace(specialChars, "").toLowerCase()
-        if (simpleTabUrl.includes(simpleSearch)) {
-            return true
+    const {getSimpleName, getSimpleUrl} = require("./history")
+    /**
+     * Checks if all words appear somewhere in the simple url.
+     * @param {string[]} search
+     * @param {string} simpleUrl
+     * @param {string} name
+     */
+    const allWordsAnywhere = (search, simpleUrl, name) => search.every(
+        w => simpleUrl.includes(w) || getSimpleName(name).includes(w))
+    const simpleSearch = args.join(" ").split(specialChars).filter(w => w)
+    return listTabs().filter(t => !filter || filter(t)).map(t => {
+        const url = pageForTab(t)?.getAttribute("src") ?? ""
+        const simpleUrl = getSimpleUrl(url)
+        const name = t.querySelector("span")?.textContent ?? ""
+        let relevance = 1
+        if (simpleSearch.every(w => simpleUrl.includes(w))) {
+            relevance = 5
         }
-        const simpleTitle = t.querySelector("span").textContent
-            .replace(specialChars, "").toLowerCase()
-        return simpleTitle.includes(simpleSearch)
-    })
+        if (url.toLowerCase().includes(args.join(""))) {
+            relevance *= 10
+        }
+        if (relevance > 1 || allWordsAnywhere(simpleSearch, simpleUrl, name)) {
+            return {"tab": t, "title": name, "top": relevance, url}
+        }
+        return null
+    }).filter(h => h).sort((a, b) => (b?.top ?? 0) - (a?.top ?? 0))
 }
 
+/**
+ * Buffer switch command, switch pages based on arguments.
+ * @param {string[]} args
+ */
 const buffer = args => {
     if (args.length === 0) {
         return
@@ -739,6 +1046,10 @@ const buffer = args => {
     }
 }
 
+/**
+ * Open command, navigate to a url by argument, mostly useful for mappings.
+ * @param {string[]} args
+ */
 const open = args => {
     if (args.length === 0) {
         return
@@ -747,13 +1058,18 @@ const open = args => {
     navigateTo(stringToUrl(args.join(" ")))
 }
 
-const suspend = (args, range) => {
+/**
+ * Suspend a page or a range of pages.
+ * @param {string[]} args
+ * @param {string|null} range
+ */
+const suspend = (args, range = null) => {
     if (range && args.length) {
-        notify("Range cannot be combined with providing arguments", "warn")
+        notify("Range cannot be combined with searching", "warn")
         return
     }
     if (range) {
-        rangeToTabIdxs(range).forEach(t => suspend(t))
+        rangeToTabIdxs(range).forEach(t => suspend([`${t}`]))
         return
     }
     let tab = null
@@ -774,13 +1090,18 @@ const suspend = (args, range) => {
     }
 }
 
-const hide = (args, range) => {
+/**
+ * Hide a page or a range of pages.
+ * @param {string[]} args
+ * @param {string|null} range
+ */
+const hide = (args, range = null) => {
     if (range && args.length) {
-        notify("Range cannot be combined with providing arguments", "warn")
+        notify("Range cannot be combined with searching", "warn")
         return
     }
     if (range) {
-        rangeToTabIdxs(range).forEach(t => hide(t))
+        rangeToTabIdxs(range).forEach(t => hide([`${t}`]))
         return
     }
     let tab = null
@@ -792,20 +1113,55 @@ const hide = (args, range) => {
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
             const {"hide": h} = require("./pagelayout")
-            h(tabOrPageMatching(tab))
+            h(pageForTab(tab))
         } else {
             notify("Only visible pages can be hidden", "warn")
         }
     }
 }
 
-const mute = (args, range) => {
+/**
+ * Mute a page or a range of pages.
+ * @param {string[]} args
+ * @param {string} range
+ */
+const setMute = (args, range) => {
+    if (args.length !== 1 || !["true", "false"].includes(args[0])) {
+        notify("Command mute! requires a single boolean argument", "warn")
+        return
+    }
+    let targets = [currentTab()]
+    if (range) {
+        const tabs = listTabs()
+        targets = rangeToTabIdxs(range).map(id => tabs[id])
+    }
+    targets.forEach(tab => {
+        if (args[0] === "true") {
+            tab?.setAttribute("muted", "muted")
+        } else {
+            tab?.removeAttribute("muted")
+        }
+        const page = pageForTab(tab)
+        if (page && !(page instanceof HTMLDivElement)) {
+            page.setAudioMuted(!!tab?.getAttribute("muted"))
+        }
+    })
+    const {saveTabs} = require("./tabs")
+    saveTabs()
+}
+
+/**
+ * Toggle mute for a page or a range of pages.
+ * @param {string[]} args
+ * @param {string|null} range
+ */
+const mute = (args, range = null) => {
     if (range && args.length) {
-        notify("Range cannot be combined with providing arguments", "warn")
+        notify("Range cannot be combined with searching", "warn")
         return
     }
     if (range) {
-        rangeToTabIdxs(range).forEach(t => mute(t))
+        rangeToTabIdxs(range).forEach(t => mute([`${t}`]))
         return
     }
     let tab = currentTab()
@@ -821,54 +1177,119 @@ const mute = (args, range) => {
     } else {
         tab.setAttribute("muted", "muted")
     }
-    tabOrPageMatching(tab).setAudioMuted(!!tab.getAttribute("muted"))
+    const page = pageForTab(tab)
+    if (page && !(page instanceof HTMLDivElement)) {
+        page.setAudioMuted(!!tab.getAttribute("muted"))
+    }
     const {saveTabs} = require("./tabs")
     saveTabs()
 }
 
+/**
+ * Set the pin state for a tab or a range of tabs.
+ * @param {string[]} args
+ * @param {string} range
+ */
+const setPin = (args, range) => {
+    if (args.length !== 1 || !["true", "false"].includes(args[0])) {
+        notify("Command pin! requires a single boolean argument", "warn")
+        return
+    }
+    let targets = [currentTab()]
+    const tabs = listTabs()
+    if (range) {
+        targets = rangeToTabIdxs(range).map(id => tabs[id])
+    }
+    const firstUnpinned = tabs.find(t => !t.classList.contains("pinned"))
+    targets.forEach(tab => {
+        const tabContainer = document.getElementById("tabs")
+        if (args[0] === "true") {
+            if (tab && !tab.classList.contains("pinned")) {
+                tabContainer?.insertBefore(tab,
+                    tabs.find(t => !t.classList.contains("pinned")) ?? null)
+                tab.classList.add("pinned")
+            }
+        } else if (tab && tab?.classList.contains("pinned")) {
+            tabContainer?.insertBefore(tab, firstUnpinned ?? null)
+            tab.classList.remove("pinned")
+        }
+    })
+    const {saveTabs} = require("./tabs")
+    saveTabs()
+}
+
+/**
+ * Toggle the pin state for a tab or a range of tabs.
+ * @param {string[]} args
+ * @param {string} range
+ */
 const pin = (args, range) => {
     if (range && args.length) {
-        notify("Range cannot be combined with providing arguments", "warn")
+        notify("Range cannot be combined with searching", "warn")
         return
     }
     if (range) {
-        rangeToTabIdxs(range).forEach(t => pin(t))
+        const tabs = listTabs()
+        const tabContainer = document.getElementById("tabs")
+        const firstUnpinned = tabs.find(t => !t.classList.contains("pinned"))
+        rangeToTabIdxs(range).map(id => tabs[id]).forEach(target => {
+            if (target.classList.contains("pinned")) {
+                tabContainer?.insertBefore(target, firstUnpinned ?? null)
+                target.classList.remove("pinned")
+            } else {
+                tabContainer?.insertBefore(target,
+                    tabs.find(t => !t.classList.contains("pinned")) ?? null)
+                target.classList.add("pinned")
+            }
+        })
         return
     }
     let tab = currentTab()
     if (args.length > 0) {
-        tab = tabForBufferArg(args)
+        tab = tabForBufferArg(args, t => !t.getAttribute("suspended"))
     }
     if (!tab) {
         notify("Can't find matching page, no tabs (un)pinned", "warn")
         return
     }
     const tabContainer = document.getElementById("tabs")
+    const tabs = listTabs()
+    const firstUnpinned = tabs.find(t => !t.classList.contains("pinned"))
     if (tab.classList.contains("pinned")) {
-        tabContainer.insertBefore(tab, listTabs().find(
-            t => !t.classList.contains("pinned")))
+        tabContainer?.insertBefore(tab, firstUnpinned ?? null)
         tab.classList.remove("pinned")
     } else {
+        tabContainer?.insertBefore(tab,
+            tabs.find(t => !t.classList.contains("pinned")) ?? null)
         tab.classList.add("pinned")
-        tabContainer.insertBefore(tab, listTabs().find(
-            t => !t.classList.contains("pinned")))
     }
     const {saveTabs} = require("./tabs")
     saveTabs()
 }
 
-const addSplit = (method, leftOrAbove, args, range) => {
+/**
+ * Add a split to the page layout.
+ * @param {"hor"|"ver"} method
+ * @param {boolean} leftOrAbove
+ * @param {string[]} args
+ * @param {string|null} range
+ */
+const addSplit = (method, leftOrAbove, args, range = null) => {
     if (range && args.length) {
-        notify("Range cannot be combined with providing arguments", "warn")
+        notify("Range cannot be combined with searching", "warn")
         return
     }
     if (range) {
-        rangeToTabIdxs(range).forEach(t => addSplit(method, leftOrAbove, t))
+        rangeToTabIdxs(range).forEach(
+            t => addSplit(method, leftOrAbove, [`${t}`]))
         return
     }
     const {addTab, switchToTab} = require("./tabs")
     const {add} = require("./pagelayout")
-    const id = currentTab().getAttribute("link-id")
+    const id = currentTab()?.getAttribute("link-id")
+    if (!id) {
+        return
+    }
     if (args.length === 0) {
         addTab({"container": getSetting("containersplitpage")})
         add(id, method, !leftOrAbove)
@@ -879,8 +1300,11 @@ const addSplit = (method, leftOrAbove, args, range) => {
         if (tab.classList.contains("visible-tab")) {
             notify("Page is already visible", "warn")
         } else {
-            add(tabOrPageMatching(tab), method, leftOrAbove)
-            switchToTab(tab)
+            const page = pageForTab(tab)
+            if (page) {
+                add(page, method, leftOrAbove)
+                switchToTab(tab)
+            }
         }
     } else {
         addTab({
@@ -891,14 +1315,23 @@ const addSplit = (method, leftOrAbove, args, range) => {
     }
 }
 
+/**
+ * Close a page or a custom one with ranges/arguments.
+ * @param {boolean} force
+ * @param {string[]} args
+ * @param {string} range
+ */
 const close = (force, args, range) => {
     if (range && args.length) {
-        notify("Range cannot be combined with providing arguments", "warn")
+        notify("Range cannot be combined with searching", "warn")
         return
     }
     const {closeTab} = require("./tabs")
     if (range) {
-        rangeToTabIdxs(range).forEach(t => close(force, t))
+        const tabs = listTabs()
+        rangeToTabIdxs(range).map(id => tabs[id]).forEach(target => {
+            closeTab(listTabs().indexOf(target), force)
+        })
         return
     }
     if (args.length === 0) {
@@ -913,6 +1346,10 @@ const close = (force, args, range) => {
     notify("Can't find matching page, no tabs closed", "warn")
 }
 
+/**
+ * Call command, run any mapstring immediately.
+ * @param {string[]} args
+ */
 const callAction = args => {
     setTimeout(() => {
         const {executeMapString, sanitiseMapString} = require("./input")
@@ -920,6 +1357,10 @@ const callAction = args => {
     }, 5)
 }
 
+/**
+ * Log command errors.
+ * @param {import("child_process").ExecException|null} err
+ */
 const logError = err => {
     if (err?.message) {
         notify(`Script to set Vieb as the default browser failed:\n${
@@ -933,15 +1374,17 @@ const makedefault = () => {
         return
     }
     ipcRenderer.send("make-default-app")
-    const {exec} = require("child_process")
-    if (process.platform === "linux") {
-        exec("xdg-settings set default-web-browser vieb.desktop", logError)
+    if (process.platform === "linux" || process.platform.includes("bsd")) {
+        execCommand(
+            "xdg-settings set default-web-browser vieb.desktop", logError)
     } else if (process.platform === "win32") {
         const scriptContents = readFile(joinPath(
             __dirname, "../defaultapp/windows.bat"))
         const tempFile = joinPath(appData(), "defaultapp.bat")
-        writeFile(tempFile, scriptContents)
-        exec(`Powershell Start ${tempFile} -ArgumentList `
+        if (scriptContents) {
+            writeFile(tempFile, scriptContents)
+        }
+        execCommand(`Powershell Start ${tempFile} -ArgumentList `
             + `"""${process.execPath}""" -Verb Runas`, logError)
     } else if (process.platform === "darwin") {
         // Electron API should be enough to show a popup for default app request
@@ -951,65 +1394,27 @@ const makedefault = () => {
     }
 }
 
-const extensionsCommand = args => {
-    if (!args[0]) {
-        openSpecialPage("extensions")
+const lclose = (force = false) => {
+    const tab = currentTab()
+    if (!tab) {
         return
     }
-    if (args[0] === "install") {
-        if (args[1]) {
-            notify("Extension install command takes no arguments", "warn")
-            return
-        }
-        const version = navigator.userAgent.replace(
-            /.*Chrome\//g, "").replace(/ .*/g, "")
-        const extension = currentPage()?.src.replace(/.*\//g, "")
-        if (extension && (/^[A-z0-9]{32}$/).test(extension)) {
-            const url = `https://clients2.google.com/service/update2/crx?`
-            + `response=redirect&prodversion=${version}&acceptformat=crx2,crx3`
-            + `&x=id%3D${extension}%26uc`
-            ipcRenderer.send("install-extension", url, extension, "crx")
-        } else {
-            currentPage()?.send("action", "installFirefoxExtension")
-        }
-    } else if (args[0] === "list") {
-        if (args[1]) {
-            notify("Extension list command takes no arguments", "warn")
-            return
-        }
-        let list = ipcRenderer.sendSync("list-extensions")
-        list = list.map(ext => `${ext.name}: ${ext.version}`).join("\n")
-        if (list.length) {
-            notify(`Installed extensions: \n${list}`)
-        } else {
-            notify(`No extensions currently installed`)
-        }
-    } else if (args[0] === "remove") {
-        if (!args[1] || args[2]) {
-            notify("Removing an extension requires exactly one argument:\n"
-                + "The id of an extension", "warn")
-            return
-        }
-        ipcRenderer.send("remove-extension", args[1])
-    } else {
-        notify("Unknown argument to the extensions command, must be:\n"
-            + "install, list or remove", "warn")
-    }
-}
-
-const lclose = (force = false) => {
-    let index = listTabs().indexOf(currentTab())
+    let index = listTabs().indexOf(tab)
     // Loop is reversed to close as many tabs as possible on the left,
     // without getting stuck trying to close pinned tabs at index 0.
     for (let i = index - 1; i >= 0; i--) {
-        index = listTabs().indexOf(currentTab())
+        index = listTabs().indexOf(tab)
         const {closeTab} = require("./tabs")
         closeTab(index - 1, force)
     }
 }
 
 const rclose = (force = false) => {
-    const index = listTabs().indexOf(currentTab())
+    const tab = currentTab()
+    if (!tab) {
+        return
+    }
+    const index = listTabs().indexOf(tab)
     let count = listTabs().length
     // Loop is reversed to close as many tabs as possible on the right,
     // without trying to close a potentially pinned tab right of current.
@@ -1020,6 +1425,11 @@ const rclose = (force = false) => {
     }
 }
 
+/**
+ * Run custom JS in the page or a range of pages.
+ * @param {string} raw
+ * @param {string} range
+ */
 const runjsinpage = (raw, range) => {
     let javascript = raw.split(" ").slice(1).join(" ")
     const filePath = expandPath(javascript)
@@ -1028,23 +1438,585 @@ const runjsinpage = (raw, range) => {
     }
     if (range) {
         rangeToTabIdxs(range).forEach(tabId => {
-            tabOrPageMatching(listTabs()[tabId]).executeJavaScript(javascript)
+            const page = pageForTab(listTabs()[tabId])
+            if (page && !(page instanceof HTMLDivElement)) {
+                page.executeJavaScript(javascript, true)
+            }
         })
     } else {
-        currentPage().executeJavaScript(javascript)
+        currentPage()?.executeJavaScript(javascript, true)
     }
 }
 
+/**
+ * Open a new tab optionally with a custom session and url.
+ * @param {string|null} session
+ * @param {string|null} url
+ */
 const tabnew = (session = null, url = null) => {
     const {addTab} = require("./tabs")
+    /** @type {{url?: string, session?: string}} */
     const options = {}
     if (url?.trim()) {
-        options.url = url
+        options.url = stringToUrl(url)
     }
     if (session?.trim()) {
         options.session = session
     }
     addTab(options)
+}
+
+/**
+ * Make or list marks.
+ * @param {string[]} args
+ */
+const marks = args => {
+    if (args.length > 2) {
+        notify("Command marks only accepts a maxmimum of two args", "warn")
+        return
+    }
+    if (args.length === 2) {
+        const {makeMark} = require("./actions")
+        if (isUrl(args[1])) {
+            makeMark({"key": args[0], "url": args[1]})
+        } else {
+            notify(`Mark url must be a valid url: ${args[1]}`, "warn")
+        }
+        return
+    }
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    const relevantMarks = []
+    const longest = Object.keys(qm.marks ?? {}).reduce((prev, curr) => {
+        if (curr.length > prev) {
+            return curr.length
+        }
+        return prev
+    }, 0) + 1
+    if (args.length === 0) {
+        for (const key of Object.keys(qm.marks ?? {})) {
+            relevantMarks.push(`${key.padEnd(longest)}${qm.marks[key]}`)
+        }
+    } else {
+        const [key] = args
+        if (qm.marks?.[key] !== undefined) {
+            relevantMarks.push(`${key.padEnd(longest)}${qm.marks[key]}`)
+        }
+    }
+    if (relevantMarks.length === 0) {
+        if (args.length && Object.keys(qm.marks ?? {}).length) {
+            notify("No marks found for current keys", "warn")
+        } else {
+            notify("No marks found", "warn")
+        }
+    } else {
+        notify(relevantMarks.join("\n"))
+    }
+}
+
+/**
+ * Restore a mark.
+ * @param {string[]} args
+ */
+const restoremark = args => {
+    if (args.length > 2) {
+        notify("Command restoremark only accepts up to two args", "warn")
+        return
+    }
+    if (args.length === 0) {
+        notify("Command restoremark requires at least one key argument", "warn")
+        return
+    }
+    const {restoreMark} = require("./actions")
+    const {validOptions} = require("./settings")
+    const [key, position] = args
+    /**
+     * Check if a mark position is valid.
+     * @param {string} pos
+     * @returns {pos is import("./tabs").tabPosition|undefined}
+     */
+    const isValidPosition = pos => pos === undefined
+        || validOptions.markposition.includes(pos)
+    if (isValidPosition(position)) {
+        restoreMark({key, position})
+    } else {
+        notify("Invalid mark restore position, must be one of: "
+            + `${validOptions.markpositionshifted.join(", ")}`, "warn")
+    }
+}
+
+/**
+ * Delete marks.
+ * @param {boolean} all
+ * @param {string[]} args
+ */
+const delmarks = (all, args) => {
+    if (all && args.length) {
+        notify("Command takes no arguments: delmarks!", "warn")
+        return
+    }
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    if (all) {
+        qm.marks = {}
+        writeJSON(joinPath(appData(), "quickmarks"), qm)
+        return
+    }
+    if (args.length !== 1) {
+        notify("Command delmarks only accepts a single keyname", "warn")
+        return
+    }
+    const [key] = args
+    if (qm.marks?.[key] !== undefined) {
+        delete qm.marks[key]
+    }
+    writeJSON(joinPath(appData(), "quickmarks"), qm)
+}
+
+/**
+ * Set or list scroll positions.
+ * @param {string[]} args
+ */
+const scrollpos = args => {
+    if (args.length > 3) {
+        notify("Command scrollpos only accepts a maxmimum of three args",
+            "warn")
+        return
+    }
+    if (args.length === 2 || args.length === 3) {
+        const {storeScrollPos} = require("./actions")
+        const [key, pathOrPixels, pixelsOrPath] = args
+        let pixels = Number(pathOrPixels)
+        let path = pixelsOrPath
+        if (pixels !== undefined) {
+            if (isNaN(pixels)) {
+                pixels = Number(pixelsOrPath)
+                path = pathOrPixels
+            }
+            if (isNaN(pixels)) {
+                notify("Command scrollpos requires at least one pixels "
+                    + "arg after the key", "warn")
+                return
+            }
+        }
+        if (pixels !== undefined) {
+            pixels = Number(pixels)
+        }
+        storeScrollPos({key, path, pixels})
+        return
+    }
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    if (!qm.scroll) {
+        qm.scroll = {"global": {}, "local": {}}
+    }
+    const relevantPos = []
+    const longest = [
+        ...Object.keys(qm.scroll.global),
+        ...Object.values(qm.scroll.local).reduce(
+            (prev, curr) => prev.concat(Object.keys(curr)), [])
+    ].reduce((prev, curr) => {
+        if (curr.length > prev) {
+            return curr.length
+        }
+        return prev
+    }, 0) + 1
+    if (args.length === 0) {
+        for (const key of Object.keys(qm.scroll.global)) {
+            relevantPos.push(`${key.padEnd(longest)}${qm.scroll.global[key]}`)
+        }
+        for (const domain of Object.keys(qm.scroll.local)) {
+            for (const key of Object.keys(qm.scroll.local[domain])) {
+                relevantPos.push(`${key.padEnd(longest)}${
+                    String(qm.scroll.local[domain][key]).padEnd(7)}${domain}`)
+            }
+        }
+    } else {
+        const [key] = args
+        if (qm.scroll.global[key] !== undefined) {
+            relevantPos.push(`${key.padEnd(longest)}${qm.scroll.global[key]}`)
+        }
+        for (const domain of Object.keys(qm.scroll.local)) {
+            if (qm.scroll.local[domain][key] !== undefined) {
+                relevantPos.push(`${key.padEnd(longest)}${
+                    String(qm.scroll.local[domain][key]).padEnd(7)}${domain}`)
+            }
+        }
+    }
+    if (relevantPos.length === 0) {
+        const notEmpty = Object.keys(qm.scroll.global).length
+            || Object.keys(qm.scroll.local).length
+        if (args.length && notEmpty) {
+            notify("No scroll positions found for current keys", "warn")
+        } else {
+            notify("No scroll positions found", "warn")
+        }
+    } else {
+        notify(relevantPos.join("\n"))
+    }
+}
+
+/**
+ * Restore a scroll position.
+ * @param {string[]} args
+ */
+const restorescrollpos = args => {
+    if (args.length > 2) {
+        notify("Command restorescrollpos only accepts up to two args", "warn")
+        return
+    }
+    if (args.length === 0) {
+        notify("Command restorescrollpos requires at least one key argument",
+            "warn")
+        return
+    }
+    const {restoreScrollPos} = require("./actions")
+    const [key, path] = args
+    restoreScrollPos({key, path})
+}
+
+/**
+ * Delete a scroll position.
+ * @param {boolean} all
+ * @param {string[]} args
+ */
+const delscrollpos = (all, args) => {
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    if (!qm.scroll) {
+        qm.scroll = {"global": {}, "local": {}}
+    }
+    const scrollPosId = getSetting("scrollposlocalid")
+    let path = ""
+    if (scrollPosId === "domain") {
+        path = domainName(urlToString(currentPage()?.src ?? ""))
+            || domainName(currentPage()?.src ?? "") || ""
+    }
+    if (scrollPosId === "url" || !path) {
+        path = urlToString(currentPage()?.src ?? "") || currentPage()?.src || ""
+    }
+    if (all) {
+        if (args.length > 1) {
+            notify("Command delscrollpos! only accepts a single path", "warn")
+            return
+        }
+        if (args[0] === "*") {
+            delete qm.scroll
+        } else if (args[0] === "global") {
+            delete qm.scroll.global
+        } else if (args[0] === "local") {
+            delete qm.scroll.local
+        } else if (args[0]) {
+            if (qm.scroll.local[args[0]]) {
+                delete qm.scroll.local[args[0]]
+            }
+        } else {
+            delete qm.scroll.local[path]
+        }
+        writeJSON(joinPath(appData(), "quickmarks"), qm)
+        return
+    }
+    if (args.length === 0) {
+        notify("Command delscrollpos requires at least the key", "warn")
+        return
+    }
+    if (args.length > 2) {
+        notify("Command delscrollpos only accepts a key and an optional path",
+            "warn")
+        return
+    }
+    if (args[1]) {
+        [, path] = args
+    }
+    if (path === "*") {
+        for (const localPath of Object.keys(qm.scroll.local)) {
+            if (qm.scroll.local[localPath]?.[args[0]] !== undefined) {
+                delete qm.scroll.local[localPath][args[0]]
+            }
+            if (Object.keys(qm.scroll.local[localPath]).length === 0) {
+                delete qm.scroll.local[localPath]
+            }
+        }
+    } else if (qm.scroll.local[path]?.[args[0]] !== undefined) {
+        delete qm.scroll.local[path][args[0]]
+        if (Object.keys(qm.scroll.local[path]).length === 0) {
+            delete qm.scroll.local[path]
+        }
+    }
+    if (qm.scroll.global[args[0]] !== undefined) {
+        delete qm.scroll.global[args[0]]
+    }
+    if (Object.keys(qm.scroll.local).length === 0) {
+        if (Object.keys(qm.scroll.global).length === 0) {
+            delete qm.scroll
+        }
+    }
+    writeJSON(joinPath(appData(), "quickmarks"), qm)
+}
+
+/**
+ * Set or list a pointer position.
+ * @param {string[]} args
+ */
+const pointerpos = args => {
+    if (args.length > 4) {
+        notify("Command pointerpos only accepts a maxmimum of three args",
+            "warn")
+        return
+    }
+    if (args.length > 1) {
+        const {storePos} = require("./pointer")
+        const [key, x, y, path] = args
+        const location = {"x": Number(x), "y": Number(y)}
+        if (isNaN(location.x) || isNaN(location.y)) {
+            notify("Command pointerpos requires the x and y "
+                + "location after the key", "warn")
+            return
+        }
+        storePos({key, location, path})
+        return
+    }
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    if (!qm.pointer) {
+        qm.pointer = {"global": {}, "local": {}}
+    }
+    const relevantPos = []
+    const longest = [
+        ...Object.keys(qm.pointer.global),
+        ...Object.values(qm.pointer.local).reduce(
+            (prev, curr) => prev.concat(Object.keys(curr)), [])
+    ].reduce((prev, curr) => {
+        if (curr.length > prev) {
+            return curr.length
+        }
+        return prev
+    }, 0) + 1
+    if (args.length === 0) {
+        for (const key of Object.keys(qm.pointer.global)) {
+            const {x, y} = qm.pointer.global[key]
+            relevantPos.push(`${key.padEnd(longest)}${String(x).padEnd(7)}${
+                String(y).padEnd(7)}`)
+        }
+        for (const domain of Object.keys(qm.pointer.local)) {
+            for (const key of Object.keys(qm.pointer.local[domain])) {
+                const {x, y} = qm.pointer.local[domain][key]
+                relevantPos.push(`${key.padEnd(longest)}${String(x).padEnd(7)}${
+                    String(y).padEnd(7)}${domain}`)
+            }
+        }
+    } else {
+        const [key] = args
+        if (qm.pointer.global[key] !== undefined) {
+            const {x, y} = qm.pointer.global[key]
+            relevantPos.push(`${key.padEnd(longest)}${String(x).padEnd(7)}${
+                String(y).padEnd(7)}`)
+        }
+        for (const domain of Object.keys(qm.pointer.local)) {
+            if (qm.pointer.local[domain][key] !== undefined) {
+                const {x, y} = qm.pointer.local[domain][key]
+                relevantPos.push(`${key.padEnd(longest)}${String(x).padEnd(7)}${
+                    String(y).padEnd(7)}${domain}`)
+            }
+        }
+    }
+    if (relevantPos.length === 0) {
+        const notEmpty = Object.keys(qm.pointer.global).length
+            || Object.keys(qm.pointer.local).length
+        if (args.length && notEmpty) {
+            notify("No pointer positions found for current keys", "warn")
+        } else {
+            notify("No pointer positions found", "warn")
+        }
+    } else {
+        notify(relevantPos.join("\n"))
+    }
+}
+
+/**
+ * Restore the pointer position.
+ * @param {string[]} args
+ */
+const restorepointerpos = args => {
+    if (args.length > 2) {
+        notify("Command restorepointerpos only accepts up to two args", "warn")
+        return
+    }
+    if (args.length === 0) {
+        notify("Command restorepointerpos requires at least one key argument",
+            "warn")
+        return
+    }
+    const {restorePos} = require("./pointer")
+    const [key, path] = args
+    restorePos({key, path})
+}
+
+/**
+ * Delete a pointer position.
+ * @param {boolean} all
+ * @param {string[]} args
+ */
+const delpointerpos = (all, args) => {
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    if (!qm.pointer) {
+        qm.pointer = {"global": {}, "local": {}}
+    }
+    const pointerPosId = getSetting("pointerposlocalid")
+    let path = ""
+    if (pointerPosId === "domain") {
+        path = domainName(urlToString(currentPage()?.src ?? ""))
+            || domainName(currentPage()?.src ?? "") || ""
+    }
+    if (pointerPosId === "url" || !path) {
+        path = urlToString(currentPage()?.src ?? "") || currentPage()?.src || ""
+    }
+    if (all) {
+        if (args.length > 1) {
+            notify("Command delpointerpos! only accepts a single path", "warn")
+            return
+        }
+        if (args[0] === "*") {
+            delete qm.pointer
+        } else if (args[0] === "global") {
+            delete qm.pointer.global
+        } else if (args[0] === "local") {
+            delete qm.pointer.local
+        } else if (args[0]) {
+            if (qm.pointer.local[args[0]]) {
+                delete qm.pointer.local[args[0]]
+            }
+        } else {
+            delete qm.pointer.local[path]
+        }
+        writeJSON(joinPath(appData(), "quickmarks"), qm)
+        return
+    }
+    if (args.length === 0) {
+        notify("Command delpointerpos requires at least the key", "warn")
+        return
+    }
+    if (args.length > 2) {
+        notify("Command delpointerpos only accepts a key and an optional path",
+            "warn")
+        return
+    }
+    if (args[1]) {
+        [, path] = args
+    }
+    if (path === "*") {
+        for (const localPath of Object.keys(qm.pointer.local)) {
+            if (qm.pointer.local[localPath]?.[args[0]] !== undefined) {
+                delete qm.pointer.local[localPath][args[0]]
+            }
+            if (Object.keys(qm.pointer.local[localPath]).length === 0) {
+                delete qm.pointer.local[localPath]
+            }
+        }
+    } else if (qm.pointer.local[path]?.[args[0]] !== undefined) {
+        delete qm.pointer.local[path][args[0]]
+        if (Object.keys(qm.pointer.local[path]).length === 0) {
+            delete qm.pointer.local[path]
+        }
+    }
+    if (qm.pointer.global[args[0]] !== undefined) {
+        delete qm.pointer.global[args[0]]
+    }
+    if (Object.keys(qm.pointer.local).length === 0) {
+        if (Object.keys(qm.pointer.global).length === 0) {
+            delete qm.pointer
+        }
+    }
+    writeJSON(joinPath(appData(), "quickmarks"), qm)
+}
+
+/**
+ * Translate the current page.
+ * @param {string[]} args
+ */
+const translatepage = args => {
+    if (args.length > 1) {
+        notify("Command translatepage only accepts a single optional language",
+            "warn")
+        return
+    }
+    const url = getSetting("translateurl").replace(/\/*$/g, "")
+    let api = getSetting("translateapi")
+    if (api === "auto") {
+        if (url.includes("deepl.com")) {
+            api = "deepl"
+        } else {
+            api = "libretranslate"
+        }
+    }
+    const apiKey = getSetting("translatekey").trim()
+    if ((api === "deepl" || url.includes("libretranslate.com")) && !apiKey) {
+        notify("API key not set, see ':h translatekey' for help", "warn")
+        return
+    }
+    const {validOptions} = require("./settings")
+    let [lang] = args
+    if (lang && !validOptions.translatelang.includes(lang.toLowerCase())) {
+        notify("Invalid language supplied, see ':h translatelang' for help",
+            "warn")
+        return
+    }
+    lang = lang?.toLowerCase() ?? getSetting("translatelang")
+    if (api === "libretranslate" && lang.startsWith("en")) {
+        lang = "en"
+    }
+    if (api === "libretranslate" && lang.startsWith("pt")) {
+        lang = "pt"
+    }
+    if (api === "deepl" && lang === "en") {
+        lang = "en-us"
+    }
+    if (api === "deepl" && lang === "pt") {
+        lang = "pt-pt"
+    }
+    currentPage()?.send("action", "translatepage", api, url, lang, apiKey)
+}
+
+/**
+ * Clear history based on an interval.
+ * @param {string} type
+ * @param {string} interval
+ * @param {string|null} trailingArgs
+ */
+const clear = (type, interval, trailingArgs = null) => {
+    if (trailingArgs) {
+        notify("The clear command takes at most two arguments: "
+            + "a type and optionally an interval", "warn")
+        return
+    }
+    if (!type) {
+        notify("The clear command requires a type argument to clear", "warn")
+        return
+    }
+    if (!interval) {
+        notify("The clear command interval is required", "warn")
+        return
+    }
+    if (!["history"].includes(type)) {
+        notify("The clear command type must be one of: "
+            + "history", "warn")
+        return
+    }
+    if (type === "history") {
+        const {removeOldHistory} = require("./history")
+        if (isValidIntervalValue(interval, true)) {
+            if (interval.startsWith("last")) {
+                const {removeRecentHistory} = require("./history")
+                removeRecentHistory(intervalValueToDate(
+                    interval.replace(/^last/g, "")))
+            } else {
+                removeOldHistory(intervalValueToDate(interval))
+            }
+        } else if (interval === "all") {
+            removeOldHistory(new Date())
+        } else if (isUrl(interval)) {
+            const {removeHistoryByPartialUrl} = require("./history")
+            removeHistoryByPartialUrl(interval)
+        } else {
+            notify("The clear command interval must be all, a valid url or a "
+                + "valid interval, such as 1day, or inverted like last3hours")
+        }
+    }
 }
 
 const noEscapeCommands = ["command", "delcommand"]
@@ -1089,6 +2061,11 @@ const noArgumentComands = [
     "rclose",
     "only"
 ]
+/** @type {{
+ *   [command: string]: (props: {
+ *     args: string[], range: string, raw: string
+ *   }) => void
+ * }} */
 const commands = {
     "Sexplore": ({args, range}) => addSplit(
         "ver", !getSetting("splitbelow"), args, range),
@@ -1111,6 +2088,7 @@ const commands = {
     "bookmarks": () => openSpecialPage("bookmarks"),
     "buffer": ({args}) => buffer(args),
     "call": ({args}) => callAction(args),
+    "clear": ({args}) => clear(args[0], args[1], args[2]),
     "close": ({args, range}) => close(false, args, range),
     "close!": ({args, range}) => close(true, args, range),
     "colorscheme": ({args}) => colorscheme(...args),
@@ -1119,33 +2097,41 @@ const commands = {
     },
     "command": ({args}) => addCommand(false, args),
     "command!": ({args}) => addCommand(true, args),
-    "cookies": () => openSpecialPage("cookies"),
-    "d": () => openSpecialPage("downloads"),
+    "cookies": () => openSpecialPage("cookies", false),
+    "cookies!": () => openSpecialPage("cookies", true),
+    "d": () => openSpecialPage("downloads", false),
+    "d!": () => openSpecialPage("downloads", true),
     "delcommand": ({args}) => deleteCommand(args),
+    "delmarks": ({args}) => delmarks(false, args),
+    "delmarks!": ({args}) => delmarks(true, args),
+    "delpointerpos": ({args}) => delpointerpos(false, args),
+    "delpointerpos!": ({args}) => delpointerpos(true, args),
+    "delscrollpos": ({args}) => delscrollpos(false, args),
+    "delscrollpos!": ({args}) => delscrollpos(true, args),
     "devtools": ({args}) => openDevTools(...args),
-    "downloads": () => openSpecialPage("downloads"),
-    "extensions": ({args}) => extensionsCommand(args),
-    "h": ({args}) => help(...args),
+    "downloads": () => openSpecialPage("downloads", false),
+    "downloads!": () => openSpecialPage("downloads", true),
+    "h": ({args}) => help(false, ...args),
+    "h!": ({args}) => help(true, ...args),
     "hardcopy": ({range}) => hardcopy(range),
-    "help": ({args}) => help(...args),
+    "help": ({args}) => help(false, ...args),
+    "help!": ({args}) => help(true, ...args),
     "hide": ({args, range}) => hide(args, range),
-    "history": () => openSpecialPage("history"),
+    "history": () => openSpecialPage("history", false),
+    "history!": () => openSpecialPage("history", true),
     "internaldevtools": openInternalDevTools,
     "lclose": () => lclose(),
     "lclose!": () => lclose(true),
     makedefault,
+    "marks": ({args}) => marks(args),
     "mkviebrc": ({args}) => mkviebrc(...args),
     "mute": ({args, range}) => mute(args, range),
+    "mute!": ({args, range}) => setMute(args, range),
     "nohlsearch": () => {
-        listPages().forEach(page => {
-            try {
-                page.stopFindInPage("clearSelection")
-            } catch {
-                // Page unavailable or suspended
-            }
-        })
+        listRealPages().forEach(page => page.stopFindInPage("clearSelection"))
     },
-    "notifications": () => openSpecialPage("notifications"),
+    "notifications": () => openSpecialPage("notifications", false),
+    "notifications!": () => openSpecialPage("notifications", true),
     "o": ({args}) => open(args),
     "only": () => {
         const {only} = require("./pagelayout")
@@ -1153,6 +2139,8 @@ const commands = {
     },
     "open": ({args}) => open(args),
     "pin": ({args, range}) => pin(args, range),
+    "pin!": ({args, range}) => setPin(args, range),
+    "pointerpos": ({args}) => pointerpos(args),
     "print": ({range}) => hardcopy(range),
     "q": ({range}) => quit(range),
     "qa": quitall,
@@ -1162,19 +2150,23 @@ const commands = {
     "rclose!": () => rclose(true),
     reloadconfig,
     restart,
+    "restoremark": ({args}) => restoremark(args),
+    "restorepointerpos": ({args}) => restorepointerpos(args),
+    "restorescrollpos": ({args}) => restorescrollpos(args),
     "runjsinpage": ({raw, range}) => runjsinpage(raw, range),
     "s": ({args}) => set(args),
     "screencopy": ({args}) => screencopy(args),
     "screenshot": ({args}) => screenshot(args),
     "scriptnames": ({args}) => {
         if (args?.length) {
-            notify(`Command takes no arguments: scriptnames`, "warn")
+            notify("Command takes no arguments: scriptnames", "warn")
             return
         }
-        notify(appConfig().files.map((f, i) => `${i + 1}: ${f}`).join("\n"))
+        notify(appConfig()?.files.map(
+            (f, i) => `${i + 1}: ${f}`).join("\n") ?? "")
     },
     "scriptnames!": ({args}) => {
-        const scripts = [...appConfig().files, ...sourcedFiles]
+        const scripts = [...appConfig()?.files ?? [], ...sourcedFiles]
         if (args.length === 0) {
             notify(scripts.map((f, i) => `${i + 1}: ${f}`).join("\n"))
         } else if (args.length === 1) {
@@ -1190,8 +2182,7 @@ const commands = {
                     "warn")
                 return
             }
-            const {exec} = require("child_process")
-            exec(`${getSetting("vimcommand")} "${script}"`, err => {
+            execCommand(`${getSetting("vimcommand")} "${script}"`, err => {
                 if (err) {
                     notify("Command to edit files with vim failed, "
                         + "please update the 'vimcommand' setting", "err")
@@ -1202,6 +2193,7 @@ const commands = {
                 "warn")
         }
     },
+    "scrollpos": ({args}) => scrollpos(args),
     "set": ({args}) => set(args),
     "source": ({args}) => source(null, args),
     "split": ({args, range}) => addSplit(
@@ -1210,13 +2202,17 @@ const commands = {
     "tabnew": ({raw}) => tabnew(null, raw.split(" ").slice(1).join(" ")),
     "tabnewcontainer": ({raw}) => tabnew(raw.split(" ")[1],
         raw.split(" ").slice(2).join(" ")),
-    "v": () => openSpecialPage("version"),
-    "version": () => openSpecialPage("version"),
+    "translatepage": ({args}) => translatepage(args),
+    "v": () => openSpecialPage("version", false),
+    "v!": () => openSpecialPage("version", true),
+    "version": () => openSpecialPage("version", false),
+    "version!": () => openSpecialPage("version", true),
     "vsplit": ({args, range}) => addSplit(
         "hor", !getSetting("splitright"), args, range),
     "w": ({args, range}) => write(args, range),
     "write": ({args, range}) => write(args, range)
 }
+/** @type {{[command: string]: string}} */
 let userCommands = {}
 const {mapOrList, unmap, clearmap} = require("./input")
 " nicsefpvm".split("").forEach(prefix => {
@@ -1247,6 +2243,11 @@ const {mapOrList, unmap, clearmap} = require("./input")
     }
 })
 
+/**
+ * Add a new command, or optionally overwrite existing custom commands.
+ * @param {boolean} overwrite
+ * @param {string[]} args
+ */
 const addCommand = (overwrite, args) => {
     if (overwrite && args.length < 2) {
         notify("Can't combine ! with reading a value", "warn")
@@ -1294,6 +2295,10 @@ const addCommand = (overwrite, args) => {
     userCommands[command] = sanitiseMapString(params.join(" "), true)
 }
 
+/**
+ * Delete a custom command.
+ * @param {string[]} args
+ */
 const deleteCommand = args => {
     if (args.length !== 1) {
         notify(
@@ -1308,6 +2313,10 @@ const deleteCommand = args => {
     }
 }
 
+/**
+ * Parse and validate the string to a command.
+ * @param {string} commandStr
+ */
 const parseAndValidateArgs = commandStr => {
     const argsString = commandStr.split(" ").slice(1).join(" ")
     let [command] = commandStr.split(" ")
@@ -1354,6 +2363,11 @@ const parseAndValidateArgs = commandStr => {
     }
 }
 
+/**
+ * Execute a command.
+ * @param {string} com
+ * @param {string|null} settingsFile
+ */
 const execute = (com, settingsFile = null) => {
     // Remove all redundant spaces
     // Allow commands prefixed with :
@@ -1366,13 +2380,13 @@ const execute = (com, settingsFile = null) => {
     push(commandStr)
     if (commandStr.startsWith("!")) {
         if (commandStr !== "!") {
-            const {exec} = require("child_process")
-            exec(commandStr.replace("!", ""), (err, stdout) => {
+            execCommand(commandStr.replace("!", ""), (err, stdout) => {
                 const reportExit = getSetting("notificationforsystemcommands")
                 if (err && reportExit !== "none") {
                     notify(`${err}`, "err")
                 } else if (reportExit === "all") {
-                    notify(stdout || "Command exitted successfully!", "suc")
+                    notify(stdout.toString()
+                        || "Command exitted successfully!", "suc")
                 }
             })
         }
@@ -1424,6 +2438,10 @@ const execute = (com, settingsFile = null) => {
     }
 }
 
+/**
+ * List all commands.
+ * @param {boolean} includeCustom
+ */
 const commandList = (includeCustom = true) => {
     if (includeCustom) {
         return Object.keys(commands).filter(c => c.length > 2)
@@ -1432,7 +2450,11 @@ const commandList = (includeCustom = true) => {
     return Object.keys(commands).filter(c => c.length > 2)
 }
 
-const customCommandsAsCommandList = full => {
+/**
+ * List all custom commands as viebrc statements.
+ * @param {boolean} full
+ */
+const customCommandsAsCommandList = (full = false) => {
     let commandString = Object.keys(userCommands).map(
         command => `command ${command} ${userCommands[command]}`).join("\n")
     if (full || currentscheme !== "default") {
@@ -1442,10 +2464,12 @@ const customCommandsAsCommandList = full => {
 }
 
 module.exports = {
+    allTabsForBufferArg,
     commandList,
     customCommandsAsCommandList,
     execute,
     openSpecialPage,
     parseAndValidateArgs,
-    rangeCompatibleCommands
+    rangeCompatibleCommands,
+    rangeToTabIdxs
 }

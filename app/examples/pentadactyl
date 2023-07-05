@@ -2,46 +2,38 @@
 set adblocker=update
 set devtoolsposition=split
 set downloadmethod=confirm
-set firefoxmode=always
 set guifontsize=16
 set mintabwidth=250
-set norestoretabs
 set permissioncamera=ask
 set permissiondisplaycapture=ask
 set permissionmediadevices=allow
 set permissionmicrophone=ask
 set permissionpersistentstorage=allow
 set redirecttohttp
+set restoretabs=pinned
+set searchwords=google~https://www.google.com/search?hl=en&q=%s
 set splitbelow
 set tabreopenposition=previous
-
-" Search Engines
-set searchwords=
-set searchwords+=google~https://www.google.com/search?hl=en&q=%s
+set useragent=%firefox
 
 " Mappings
 nunmap [
 nunmap ]
 nmap [[ <previousPage>
 nmap ]] <nextPage>
-nmap <A-Right> <forwardInHistory>
-nmap <A-Left> <backInHistory>
 nmap <C-6> <:buffer #>
 nmap <C-^> <:buffer #>
 nmap b :buffer<Space>
 nmap g0 <:buffer 0>
 nmap g^ <:buffer 0>
 nmap g$ <:buffer -1>
-nmap d <:set tabclosefocusright><:close>
-nmap D <:set notabclosefocusright><:close>
+nmap d <:set tabclosefocus=right><:close>
+nmap D <:set tabclosefocus=left><:close>
 nmap o <toExploreMode>
-nmap O <openNewTab><toExploreMode>
-nmap p <openFromClipboard>
-nmap P <openNewTab><openFromClipboard>
-nmap gP <openNewTab><openFromClipboard><:buffer #>
+nmap O <:tabnew><toExploreMode>
+nmap gP <:tabnew><openFromClipboard><:buffer #>
 nmap s <toExploreMode>google<Space>
-nmap S <openNewTab><toExploreMode>google<Space>
-nmap T <openNewTabWithCurrentURL>
+nmap S <:tabnew><toExploreMode>google<Space>
 nmap <S-Space> <scrollPageUp>
 nmap <Space> <scrollPageDown>
 nmap zZ <zoomReset>
@@ -89,7 +81,6 @@ vmap Y <p.copyText>
 vmap <Return> <p.moveDown>
 vmap <Space> <p.moveRight>
 vmap <BS> <p.moveLeft>
-vmap 0 <p.moveLeftMax>
 vmap e <p.moveFastRight>
 vmap E <p.moveFastRight>
 

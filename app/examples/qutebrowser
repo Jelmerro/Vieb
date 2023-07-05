@@ -2,44 +2,29 @@
 set adblocker=update
 set devtoolsposition=split
 set downloadmethod=confirm
-set firefoxmode=always
 set followchars=numbers
 set guifontsize=16
-set norestoretabs
+set mapsuggestposition=bottomleft
 set permissioncamera=ask
 set permissiondisplaycapture=ask
 set permissionmediadevices=allow
 set permissionmicrophone=ask
 set permissionpersistentstorage=allow
 set redirecttohttp
-set tabclosefocusright
+set restoretabs=pinned
+set tabclosefocus=right
 set tabreopenposition=right
+set useragent=%firefox
 set windowtitle="%title - %app"
-set mapsuggestposition=bottomleft
 
 " Mappings
-nmap <Up> <scrollUp>
-nmap <Down> <scrollDown>
-nmap <Left> <scrollLeft>
-nmap <Right> <scrollRight>
-nmap <PageUp> <scrollPageUp>
-nmap <PageDown> <scrollPageDown>
-nmap <Home> <scrollTop>
-nmap <End> <scrollBottom>
 nmap wi <:devtools>
-nmap <C-I> <:devtools>
-nmap <C-PageUp> <previousTab>
-nmap <C-S-Tab> <previousTab>
-nmap <C-PageDown> <nextTab>
-nmap <C-F5> <refreshTabWithoutCache>
 nmap Sh <:history>
 nmap Ss <:help>
 nmap <C-A-p> <:print>
-nmap <C-q> <:quit>
 nmap <C-W> <:quit>
 nmap ZQ <:quit>
 nmap gd <:write>
-nmap <C-T> <reopenTab>
 nunmap [
 nunmap ]
 nunmap {
@@ -48,23 +33,13 @@ nmap [[ <previousPage>
 nmap ]] <nextPage>
 nmap {{ <previousPageNewTab>
 nmap }} <nextPageNewTab>
-nmap gu <toParentUrl>
 nmap gU <openNewTabWithCurrentUrl><CR><toParentUrl>
-nmap <A-1> <:b 0>
 nmap g0 <:b 0>
 nmap g^ <:b -1>
 nmap g$ <:b -1>
-nmap <A-2> <:b 1>
-nmap <A-3> <:b 2>
-nmap <A-4> <:b 3>
-nmap <A-5> <:b 4>
-nmap <A-6> <:b 5>
-nmap <A-7> <:b 6>
-nmap <A-8> <:b 7>
-nmap <A-9> <:b 8>
 nmap <C-^> <:buffer #>
 nmap <C-Tab> <:buffer #>
-nmap ga <openNewTab>
+nmap ga <:tabnew>
 nmap gC <openNewTabWithCurrentUrl><CR>
 nmap gJ <moveTabForward>
 nmap gK <moveTabBackward>
@@ -76,22 +51,19 @@ nmap <C-S-PageDown> <moveTabBackward>
 nmap co <:lclose><:rclose>
 nmap = <zoomReset>
 nmap <C-p> <:pin>
-nmap <A-m> <:mute>
 nmap <C-s> <stopLoadingPage>
 nmap o <toExploreMode><BS>
 nmap go <toExploreMode><End>
 nmap gt <toCommandMode>buffer<Space>
-nmap O <openNewTab><toExploreMode>
+nmap O <:tabnew><toExploreMode>
 nunmap p
 nmap pp <openFromClipboard>
-nmap Pp <openNewTab><openFromClipboard>
+nmap Pp <:tabnew><openFromClipboard>
 nmap sk <toCommandMode>map<Space>
 nmap ss <toCommandMode>set<Space>
 
 imap <C-e> <editWithVim>
 
-cmap <Up> <prevSuggestion>
-cmap <Down> <nextSuggestion>
 cmap <C-a> <Home>
 cmap <C-e> <End>
 cmap <A-f> <C-Right>

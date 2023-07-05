@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -27,14 +27,21 @@ const {
     findClickPosition,
     framePosition,
     activeElement,
-    readJSON,
-    joinPath,
-    appData
+    getWebviewSetting,
+    isHTMLElement,
+    isHTMLIFrameElement,
+    isHTMLAnchorElement,
+    isInputOrTextElement,
+    isHTMLImageElement,
+    isElement,
+    isSVGElement,
+    isHTMLVideoElement,
+    isHTMLAudioElement
 } = require("../util")
-const settingsFile = joinPath(appData(), "webviewsettings")
 
-let inFollowMode = false
-const clickableInputs = [
+/** @type {string|null} */
+let currentFollowStatus = null
+const clickInputs = [
     "button",
     "input[type=\"button\"]",
     "input[type=\"radio\"]",
@@ -59,16 +66,20 @@ const textlikeInputs = [
     "textarea",
     "select"
 ].join(",")
+/** @type {("click"|"mousedown"|"mouseup")[]} */
 const clickEvents = ["click", "mousedown", "mouseup"]
+/** @type {(
+ *   "mouseenter"|"mouseleave"|"mousemove"|"mouseout"|"mouseover"|"contextmenu"
+ * )[]} */
 const otherEvents = [
     "mouseenter",
     "mouseleave",
     "mousemove",
     "mouseout",
     "mouseover",
-    "contextmenu",
-    "auxclick"
+    "contextmenu"
 ]
+/** @type {Element[]} */
 const previouslyFocussedElements = []
 
 ipcRenderer.on("focus-input", async(_, follow = null) => {
@@ -76,258 +87,308 @@ ipcRenderer.on("focus-input", async(_, follow = null) => {
     if (follow) {
         el = findElementAtPosition(follow.x, follow.y)
     } else {
-        const input = getAllFollowLinks().find(l => l.type === "inputs-insert")
+        const allLinks = await getAllFollowLinks(["input"])
+        const input = allLinks.find(l => l?.type === "inputs-insert")
         if (input) {
             el = findElementAtPosition(
                 input.x + input.width / 2, input.y + input.height / 2)
         }
     }
     const focusEl = [el, el?.parentNode, el?.parentNode?.parentNode]
-        .find(e => e?.click && e?.focus)
-    if (!focusEl) {
+        .find(e => matchesQuery(e, textlikeInputs)) ?? el
+    if (!isHTMLElement(focusEl)) {
         return
     }
     ipcRenderer.sendToHost("switch-to-insert")
     await new Promise(r => {
         setTimeout(r, 3)
     })
-    const inputfocusalignment = readJSON(settingsFile)?.inputfocusalignment
-        || "rememberend"
+    const inputfocusalignment = getWebviewSetting("inputfocusalignment")
+        ?? "rememberend"
     focusEl.click()
     focusEl.focus()
-    const focusLength = focusEl.value?.length || focusEl.textContent.length
-    if (focusLength > 0 && focusEl.setSelectionRange) {
-        if (!previouslyFocussedElements.includes(focusEl)
-            || inputfocusalignment.includes("always")) {
-            if (inputfocusalignment.includes("end")) {
-                focusEl.setSelectionRange(focusLength, focusLength)
-            } else {
-                focusEl.setSelectionRange(0, 0)
-            }
-            previouslyFocussedElements.push(focusEl)
+    if (previouslyFocussedElements.includes(focusEl)
+        && !inputfocusalignment.includes("always")) {
+        return
+    }
+    if (isInputOrTextElement(focusEl)) {
+        if (inputfocusalignment.includes("end")) {
+            const focusLength = focusEl.value.length
+            focusEl.setSelectionRange(focusLength, focusLength)
+        } else {
+            focusEl.setSelectionRange(0, 0)
+        }
+    } else {
+        const selection = window.getSelection()
+        selection?.selectAllChildren(focusEl)
+        if (inputfocusalignment.includes("end")) {
+            selection?.collapseToEnd()
+        } else {
+            selection?.collapseToStart()
         }
     }
+    previouslyFocussedElements.push(focusEl)
 })
 
-const getLinkFollows = allLinks => {
-    // A tags with href as the link, can be opened in new tab or current tab
-    querySelectorAll("a").forEach(e => {
-        const baseLink = parseElement(e, "url")
-        if (baseLink) {
-            allLinks.push(baseLink)
-        } else {
-            // Try sub-elements instead, for example if the link is not
-            // visible or `display: none`, but a sub-element is absolutely
-            // positioned somewhere else.
-            allLinks.push(...Array.from(e?.querySelectorAll("*") || [])
-                .map(c => parseElement(c, "url")).filter(l => l))
-        }
-    })
-}
-
-const getInputFollows = allLinks => {
-    // Input tags such as checkboxes, can be clicked but have no text input
-    const inputs = [...querySelectorAll(clickableInputs)]
-    inputs.push(...[...querySelectorAll("input")].map(
-        e => e.closest("label")).filter(e => e && !inputs.includes(e)))
-    inputs.forEach(element => {
-        let type = "inputs-click"
-        if (element.tagName.toLowerCase() === "label") {
-            const labelFor = element.getAttribute("for")
-            if (labelFor) {
-                try {
-                    const forEl = element.closest(`#${labelFor}`)
-                    if (matchesQuery(forEl, textlikeInputs)) {
-                        type = "inputs-insert"
-                    }
-                } catch {
-                    // Invalid label, not a valid selector, assuming click input
-                }
-            } else if (element.querySelector(textlikeInputs)) {
-                type = "inputs-insert"
-            }
-        }
-        const clickable = parseElement(element, type)
-        if (clickable) {
-            allLinks.push(clickable)
-        }
-    })
-    // Input tags such as email and text, can have text inserted
-    allLinks.push(
-        ...allElementsBySelector("inputs-insert", textlikeInputs))
-}
-
-const getOtherFollows = allLinks => {
-    // Elements with some kind of mouse interaction, grouped by click and other
-    const addElementToList = (element, type) => {
-        const clickable = parseElement(element, type)
-        if (clickable) {
-            allLinks.push(clickable)
-        }
+/**
+ * Get all follow links parsed, optionally for a specific type.
+ * @param {string[]|null} filter
+ * @returns {Promise<({
+ *    height: number,
+ *    text: string,
+ *    type: string,
+ *    url: string,
+ *    width: number,
+ *    x: number,
+ *    y: number
+ *  }|null)[]>}
+ */
+const getAllFollowLinks = (filter = null) => {
+    const allEls = querySelectorAll("*")
+    /** @type {{
+     *   el: Element, type: string, bounds?: DOMRectReadOnly, visible?: boolean
+     * }[]} */
+    const relevantLinks = []
+    if (!filter || filter.includes("url")) {
+        // A tags with href as the link, can be opened in new tab or current tab
+        allEls.filter(el => matchesQuery(el, "a")).forEach(
+            el => relevantLinks.push({el, "type": "url"}))
     }
-    const allElements = [...querySelectorAll("*")]
-    allElements.filter(
-        el => clickEvents.find(e => el[`on${e}`] || eventListeners[e].has(el))
-        || el.getAttribute("jsaction")).forEach(
-        element => addElementToList(element, "onclick"))
-    allElements.filter(el => otherEvents.find(e => el[`on${e}`]
+    if (!filter || filter.some(f => f.startsWith("input"))) {
+        // Input tags such as checkboxes, can be clicked but have no text input
+        const inputs = allEls.filter(el => matchesQuery(el, clickInputs))
+        inputs.push(...allEls.filter(el => matchesQuery(el, "input"))
+            .map(e => e.closest("label")).flatMap(e => {
+                if (e && !inputs.includes(e)) {
+                    return e
+                }
+                return []
+            }))
+        inputs.forEach(el => {
+            let type = "inputs-click"
+            if (el.tagName.toLowerCase() === "label") {
+                const labelFor = el.getAttribute("for")
+                if (labelFor) {
+                    try {
+                        const forEl = el.closest(`#${labelFor}`)
+                        if (matchesQuery(forEl, textlikeInputs)) {
+                            type = "inputs-insert"
+                        }
+                    } catch {
+                        // Invalid label, not a valid selector, assuming click
+                    }
+                } else if (el.querySelector(textlikeInputs)) {
+                    type = "inputs-insert"
+                }
+            }
+            relevantLinks.push({el, type})
+        })
+        // Input tags such as email and text, can have text inserted
+        allEls.filter(el => matchesQuery(el, textlikeInputs)).forEach(
+            el => relevantLinks.push({el, "type": "inputs-insert"}))
+    }
+    if (!filter || filter.includes("onclick")) {
+        // Elements with some kind of mouse interaction, grouped by click/other
+        allEls.filter(el => clickEvents.some(
+            e => isHTMLElement(el) && el[`on${e}`]
+            || eventListeners[e].has(el))
+            || el.getAttribute("jsaction")).forEach(
+            el => relevantLinks.push({el, "type": "onclick"}))
+        allEls.filter(el => otherEvents.some(
+            e => isHTMLElement(el) && el[`on${e}`]
             || eventListeners[e].has(el)))
-        .forEach(element => addElementToList(element, "other"))
-    // Get media elements, including images
-    allLinks.push(...allElementsBySelector("media", "video,audio"))
-    allLinks.push(...allElementsBySelector("image", "img,svg"))
-    allElements.filter(el => getComputedStyle(el).backgroundImage !== "none")
-        .forEach(element => addElementToList(element, "image"))
-}
-
-const getAllFollowLinks = () => {
-    const allLinks = []
-    getLinkFollows(allLinks)
-    getInputFollows(allLinks)
-    getOtherFollows(allLinks)
-    // Ordered by the position on the page from the top
-    // Uncategorised mouse events are less relevant and are moved to the end
-    return allLinks.sort((el1, el2) => {
-        if (el1.type === "other") {
-            return 10000
+            .forEach(el => relevantLinks.push({el, "type": "other"}))
+    }
+    if (!filter || filter.includes("media")) {
+        // Get media elements, such as videos or music players
+        allEls.filter(el => matchesQuery(el, "video,audio"))
+            .forEach(el => relevantLinks.push({el, "type": "media"}))
+    }
+    if (!filter || filter.includes("image")) {
+        // Get any images or background images
+        allEls.filter(el => matchesQuery(el, "img,svg"))
+            .forEach(el => relevantLinks.push({el, "type": "image"}))
+        allEls.filter(el => getComputedStyle(el).backgroundImage !== "none")
+            .forEach(el => relevantLinks.push({el, "type": "image"}))
+    }
+    return new Promise(res => {
+        const observer = new IntersectionObserver(entries => {
+            const parsedEls = relevantLinks.map(link => {
+                const entry = entries.find(e => e.target === link.el)
+                if (entry) {
+                    link.bounds = entry.boundingClientRect
+                    link.visible = entry.intersectionRatio > 0.01
+                }
+                return link
+            }).filter(link => link.visible).map(link => {
+                if (isHTMLElement(link.el)) {
+                    return parseElement(link.el, link.type, link.bounds)
+                }
+                return null
+            }).filter(el => el).sort((el1, el2) => {
+                if (!el1 || !el2) {
+                    return 0
+                }
+                if (el1.type === "other") {
+                    return 10000
+                }
+                return Math.floor(el1.y) - Math.floor(el2.y) || el1.x - el2.x
+            })
+            res(parsedEls)
+            observer.disconnect()
+        })
+        let observingSomething = false
+        relevantLinks.forEach(link => {
+            try {
+                observer.observe(link.el)
+                observingSomething = true
+            } catch (e) {
+                console.warn(e)
+            }
+        })
+        if (!observingSomething) {
+            res([])
         }
-        return Math.floor(el1.y) - Math.floor(el2.y) || el1.x - el2.x
     })
 }
 
 const mainInfoLoop = () => {
-    if (inFollowMode) {
-        ipcRenderer.send("follow-response", getAllFollowLinks())
-    }
     // Listeners for iframes that run on the same host and same process
-    [...querySelectorAll("iframe")].forEach(f => {
+    const frames = querySelectorAll("iframe").flatMap(f => {
+        if (isHTMLIFrameElement(f)) {
+            return f
+        }
+        return []
+    })
+    frames.forEach(f => {
         try {
-            f.contentDocument.onclick = e => clickListener(e, f)
-            f.contentDocument.oncontextmenu = e => contextListener(e, f)
-            f.contentDocument.onmousedown = e => mouseDownListener(e, f)
-            f.contentDocument.onmouseup = e => mouseUpListener(e, f)
+            if (f.contentDocument) {
+                f.contentDocument.onclick = e => clickListener(e, f)
+                f.contentDocument.oncontextmenu = e => contextListener(e, f)
+                f.contentDocument.onmousedown = e => mouseDownListener(e, f)
+                f.contentDocument.onmouseup = e => mouseUpListener(e, f)
+            }
         } catch {
             // Not an issue, will be retried shortly, we also can't do much else
         }
     })
     // Send details to main for iframes that run in a separate process
+    if (!document.body) {
+        return
+    }
     ipcRenderer.send("frame-details", {
         "height": window.innerHeight,
         "pagex": window.scrollX,
         "pagey": window.scrollY,
-        "scrollHeight": document.body.scrollHeight,
-        "scrollWidth": document.body.scrollWidth,
-        "subframes": [...querySelectorAll("iframe") || []].map(f => ({
-            "bounds": JSON.stringify(f.getBoundingClientRect()),
-            "height": f.getBoundingClientRect().height || f.clientHeight,
-            "url": f.src,
-            "width": f.getBoundingClientRect().width || f.clientWidth,
-            "x": framePosition(f).x,
-            "y": framePosition(f).y
-        })),
+        "subframes": frames.map(f => {
+            const bounds = f.getBoundingClientRect()
+            const framePos = framePosition(f)
+            for (const frame of frames) {
+                try {
+                    if (frame.contentDocument?.contains(f)) {
+                        const parentPos = framePosition(frame)
+                        framePos.x += parentPos.x
+                        framePos.y += parentPos.y
+                    }
+                } catch {
+                    // Not allowed to access inside document, probably no parent
+                }
+            }
+            return {
+                "height": bounds.height || f.clientHeight,
+                "url": f.src,
+                "width": bounds.width || f.clientWidth,
+                "x": framePos.x,
+                "y": framePos.y
+            }
+        }),
         "url": window.location.href,
         "width": window.innerWidth
     })
 }
 
-ipcRenderer.on("follow-mode-start", () => {
-    if (!inFollowMode) {
-        inFollowMode = true
-        mainInfoLoop()
+const followLoop = async() => {
+    if (currentFollowStatus) {
+        const links = await getAllFollowLinks(currentFollowStatus.split(","))
+        ipcRenderer.send("follow-response", links)
+        setTimeout(() => followLoop(), 100)
+    }
+}
+
+ipcRenderer.on("follow-mode-start", (_, newFollowFilter) => {
+    if (currentFollowStatus !== newFollowFilter) {
+        currentFollowStatus = newFollowFilter
+        followLoop()
     }
 })
 
 ipcRenderer.on("follow-mode-stop", () => {
-    inFollowMode = false
+    currentFollowStatus = null
 })
 
-// Send the page once every second in case of transitions or animations
-// Could be done with an observer, but that drastically slows down on big pages
 setInterval(mainInfoLoop, 1000)
-window.addEventListener("DOMContentLoaded", mainInfoLoop)
-window.addEventListener("resize", mainInfoLoop)
-
-const pseudoElementRects = element => {
-    const base = element.getBoundingClientRect()
-    const rects = []
-    for (const pseudoType of ["before", "after"]) {
-        const pseudo = getComputedStyle(element, `::${pseudoType}`)
-        const width = propPixels(pseudo, "width")
-        const height = propPixels(pseudo, "height")
-        if (height && width) {
-            const pseudoDims = JSON.parse(JSON.stringify(base))
-            const top = propPixels(pseudo, "top")
-            const left = propPixels(pseudo, "left")
-            const marginTop = propPixels(pseudo, "marginTop")
-            const marginLeft = propPixels(pseudo, "marginLeft")
-            pseudoDims.width = width
-            pseudoDims.height = height
-            pseudoDims.x += left + marginLeft
-            pseudoDims.y += top + marginTop
-            rects.push(pseudoDims)
-        }
-    }
-    return rects
-}
-
-const rectOutsideWindow = r => r.bottom < 0 || r.top > window.innerHeight
-    || r.right < 0 || r.left > window.innerWidth
-
-const parseElement = (element, type) => {
-    // The body shouldn't be considered clickable on it's own,
-    // Even if listeners are added to it.
-    // Also checks if the element actually has rects.
-    const excluded = [document.body, document.documentElement]
-    if (!element.getClientRects || excluded.includes(element)) {
-        return null
-    }
-    // First (quickly) check that element is visible at all
-    const boundingRect = element.getBoundingClientRect()
-    if (rectOutsideWindow(boundingRect)) {
-        return null
-    }
-    if (getComputedStyle(element).visibility === "hidden") {
-        return null
-    }
-    // Make a list of all possible bounding rects for the element
-    let rects = [boundingRect, ...element.getClientRects()]
-    for (const sub of Array.from(element?.querySelectorAll("img, svg") || [])) {
-        rects = rects.concat([
-            sub.getBoundingClientRect(), ...sub.getClientRects()
-        ])
-    }
-    rects = rects.concat(pseudoElementRects(element))
-    const paddingInfo = findFrameInfo(element)
-    if (paddingInfo) {
-        rects = rects.map(r => {
-            r.x += paddingInfo.x
-            r.y += paddingInfo.y
-            return r
+window.addEventListener("DOMContentLoaded", () => {
+    mainInfoLoop()
+    const pdfbehavior = getWebviewSetting("pdfbehavior") ?? "block"
+    if (pdfbehavior !== "view") {
+        querySelectorAll("embed").forEach(embed => {
+            if (embed.getAttribute("type") === "application/pdf") {
+                if (pdfbehavior === "download") {
+                    const src = embed.getAttribute("src")?.replace(
+                        /^about:blank/g, "") || window.location.href
+                    ipcRenderer.sendToHost("download", src)
+                } else if (pdfbehavior === "external") {
+                    const src = embed.getAttribute("src")?.replace(
+                        /^about:blank/g, "") || window.location.href
+                    ipcRenderer.sendToHost("external", src)
+                }
+                embed.remove()
+            }
         })
     }
-    // Find a clickable area and position for the given element
+})
+window.addEventListener("resize", mainInfoLoop)
+
+/**
+ * Parse an element to a clickable rect if possible.
+ * @param {HTMLElement} element
+ * @param {string|null} type
+ * @param {DOMRectReadOnly|null} customBounds
+ */
+const parseElement = (element, type = null, customBounds = null) => {
+    const excluded = [document.body, document.documentElement]
+    if (excluded.includes(element)) {
+        return null
+    }
+    const boundingBox = JSON.parse(JSON.stringify(
+        customBounds || element.getBoundingClientRect()))
+    const paddingInfo = findFrameInfo(element)
+    if (paddingInfo) {
+        boundingBox.left += paddingInfo.x
+        boundingBox.top += paddingInfo.y
+    }
+    // Find a clickable area and position for the given element and bounds
+    const subImages = [...element.querySelectorAll("img,svg")]
+    const rects = [
+        boundingBox, ...subImages.map(img => img.getBoundingClientRect())
+    ]
     const {dims, clickable} = findClickPosition(element, rects)
-    // Return null if any of the checks below fail
-    // - Not detected as clickable in the above loop
-    // - Too small to properly click on using a regular browser
-    const tooSmall = dims.width <= 2 || dims.height <= 2
-    // - The element isn't actually visible on the user's current window
-    const outsideWindow = rectOutsideWindow(dims)
-    if (!clickable || tooSmall || outsideWindow) {
+    if (!clickable) {
         return null
     }
     // The element should be clickable and is returned in a parsed format
-    let href = String(element.href || "")
-    let typeOverride = false
-    if (type === "url") {
+    let href = ""
+    let typeOverride = null
+    if (isHTMLAnchorElement(element)) {
+        ({href} = element)
         // Set links to the current page as type 'other'
-        if (!element.href) {
+        if (!href) {
             typeOverride = "other"
-        } else if (element.href === window.location.href) {
+        } else if (href === window.location.href) {
             typeOverride = "other"
-        } else if (element.href === `${window.location.href}#`) {
+        } else if (href === `${window.location.href}#`) {
             typeOverride = "other"
-        } else if (element.href?.startsWith?.("javascript:")) {
+        } else if (href?.startsWith?.("javascript:")) {
             typeOverride = "other"
         }
         // Empty the href for links that require a specific data method to open
@@ -340,7 +401,7 @@ const parseElement = (element, type) => {
     return {
         "height": dims.height,
         "text": element.textContent?.slice(0, 10000) || "",
-        "type": typeOverride || type,
+        "type": typeOverride ?? type ?? "none",
         "url": href,
         "width": dims.width,
         "x": dims.x,
@@ -348,15 +409,19 @@ const parseElement = (element, type) => {
     }
 }
 
-const allElementsBySelector = (type, select) => [...querySelectorAll(select)]
-    .map(element => parseElement(element, type)).filter(e => e)
-
+/** @type {{[type: string]: WeakSet<EventTarget>}} */
 const eventListeners = {}
 ;[...clickEvents, ...otherEvents].forEach(e => {
     eventListeners[e] = new WeakSet()
 })
 
 const realAdd = EventTarget.prototype.addEventListener
+/**
+ * Add the regular event listener while also recording its existence in a set.
+ * @param {string} type
+ * @param {() => void} listener
+ * @param {object} options
+ */
 EventTarget.prototype.addEventListener = function(type, listener, options) {
     try {
         realAdd.apply(this, [type, listener, options])
@@ -366,6 +431,12 @@ EventTarget.prototype.addEventListener = function(type, listener, options) {
     }
 }
 const realRemove = EventTarget.prototype.removeEventListener
+/**
+ * Remove the regular event listener while also removing its storage from a set.
+ * @param {string} type
+ * @param {() => void} listener
+ * @param {object} options
+ */
 EventTarget.prototype.removeEventListener = function(type, listener, options) {
     try {
         realRemove.apply(this, [type, listener, options])
@@ -375,14 +446,24 @@ EventTarget.prototype.removeEventListener = function(type, listener, options) {
     }
 }
 
+/**
+ * Send mouse click info to renderer via main on click.
+ * @param {MouseEvent} e
+ * @param {HTMLIFrameElement|null} frame
+ */
 const clickListener = (e, frame = null) => {
     if (e.isTrusted) {
         const paddingInfo = findFrameInfo(frame)
         const inputEl = e.composedPath().find(
             el => matchesQuery(el, textlikeInputs))
-        const focusEl = [
-            inputEl, inputEl?.parentNode, inputEl?.parentNode?.parentNode
-        ].find(el => el?.click && el?.focus)
+        let focusEl = null
+        if (isHTMLElement(inputEl)) {
+            focusEl = [
+                inputEl,
+                inputEl?.parentElement,
+                inputEl?.parentElement?.parentElement
+            ].find(el => el?.click && el?.focus)
+        }
         if (focusEl) {
             previouslyFocussedElements.push(focusEl)
         }
@@ -398,6 +479,12 @@ window.addEventListener("click", clickListener,
 
 let startX = 0
 let startY = 0
+
+/**
+ * Send mouse down info to renderer via main on down.
+ * @param {MouseEvent} e
+ * @param {HTMLIFrameElement|null} frame
+ */
 const mouseDownListener = (e, frame = null) => {
     if (e.button === 3) {
         ipcRenderer.sendToHost("back-button")
@@ -409,7 +496,7 @@ const mouseDownListener = (e, frame = null) => {
         e.preventDefault()
         return
     }
-    if (e.composedPath().find(el => matchesQuery(el, "select, option"))) {
+    if (e.composedPath().some(el => matchesQuery(el, "select, option"))) {
         clickListener(e, frame)
     }
     const paddingInfo = findFrameInfo(frame)
@@ -421,6 +508,12 @@ const mouseDownListener = (e, frame = null) => {
 }
 window.addEventListener("mousedown", mouseDownListener,
     {"capture": true, "passive": true})
+
+/**
+ * Send mouse up info to the renderer via main on up.
+ * @param {MouseEvent} e
+ * @param {HTMLIFrameElement|null} frame
+ */
 const mouseUpListener = (e, frame = null) => {
     const paddingInfo = findFrameInfo(frame)
     const endX = e.clientX + (paddingInfo?.x || 0)
@@ -429,7 +522,7 @@ const mouseUpListener = (e, frame = null) => {
     const diffY = Math.abs(endY - startY)
     ipcRenderer.sendToHost("mouse-up")
     if (endX > 0 && endY > 0 && (diffX > 3 || diffY > 3)) {
-        const text = (frame?.contentWindow || window).getSelection().toString()
+        const text = (frame?.contentWindow || window).getSelection()?.toString()
         if (text) {
             ipcRenderer.send("mouse-selection", {
                 endX,
@@ -437,7 +530,7 @@ const mouseUpListener = (e, frame = null) => {
                 startX,
                 startY,
                 text,
-                "toinsert": !!e.composedPath().find(
+                "toinsert": e.composedPath().some(
                     el => matchesQuery(el, textlikeInputs))
             })
         }
@@ -449,96 +542,121 @@ window.addEventListener("mouseup", mouseUpListener,
 ipcRenderer.on("replace-input-field", (_, value, position) => {
     const input = activeElement()
     if (matchesQuery(input, textlikeInputs)) {
-        if (typeof input.value === "string" && input.setSelectionRange) {
+        if (isInputOrTextElement(input)) {
             input.value = value
             if (position < input.value.length) {
                 input.setSelectionRange(position, position)
             }
-        } else {
-            const select = input.getRootNode().getSelection()
-            select.baseNode.textContent = value
+        } else if (input) {
+            input.textContent = value
             const range = document.createRange()
-            range.setStart(select.baseNode, position)
-            range.setEnd(select.baseNode, position)
-            select.removeAllRanges()
-            select.addRange(range)
+            range.setStart(input.firstChild ?? input, position)
+            range.setEnd(input.lastChild ?? input, position)
+            const select = window.getSelection()
+            select?.removeAllRanges()
+            select?.addRange(range)
         }
     }
 })
 
+/**
+ * Generate a data image for a given svg image.
+ * @param {SVGElement} el
+ */
 const getSvgData = el => `data:image/svg+xml,${encodeURIComponent(el.outerHTML)
     .replace(/'/g, "%27").replace(/"/g, "%22")}`
 
+/**
+ * Context menu listener that sends info to renderer via main.
+ * @param {{
+ *   isTrusted: boolean
+ *   preventDefault?: () => void
+ *   button?: number
+ *   composedPath: () => EventTarget[]
+ *   x: number
+ *   y: number
+ * }} e
+ * @param {Element|ShadowRoot|null} frame
+ * @param {object|null} extraData
+ */
 const contextListener = (e, frame = null, extraData = null) => {
-    if (e.isTrusted && !inFollowMode && e.button === 2) {
+    if (e.isTrusted && !currentFollowStatus && e.button === 2) {
         e.preventDefault?.()
         const paddingInfo = findFrameInfo(frame)
-        const img = e.composedPath().find(el => ["svg", "img"]
-            .includes(el.tagName?.toLowerCase()))
+        const img = e.composedPath().find(isHTMLImageElement)
+        const svg = e.composedPath().find(isSVGElement)
         const backgroundImg = e.composedPath().map(el => {
-            try {
+            if (isElement(el)) {
                 const styling = getComputedStyle(el).backgroundImage
                 const url = styling.match(/url\(.*?\)/g)?.[0]
                 if (url) {
                     return url?.slice(5, -2)
                 }
-            } catch {
-                // Window and top-level nodes don't support getComputedStyle
             }
             return null
         }).find(url => url)
-        const videoEl = e.composedPath().find(
-            el => el.tagName?.toLowerCase() === "video")
+        const videoEl = e.composedPath().find(isHTMLVideoElement)
         const video = [
             videoEl,
-            videoEl?.querySelector("source[type^=video]")
+            [...videoEl?.querySelectorAll("source") ?? []].find(
+                el => el.getAttribute("type")?.startsWith("audio"))
         ].find(el => el?.src.trim())
-        const audioEl = e.composedPath().find(
-            el => el.tagName?.toLowerCase() === "audio")
+        const audioEl = e.composedPath().find(isHTMLAudioElement)
         const audio = [
             audioEl,
-            audioEl?.querySelector("source[type^=audio]"),
-            videoEl?.querySelector("source[type^=audio]")
+            [...audioEl?.querySelectorAll("source") ?? []].find(
+                el => el.getAttribute("type")?.startsWith("audio")),
+            [...videoEl?.querySelectorAll("source") ?? []].find(
+                el => el.getAttribute("type")?.startsWith("audio"))
         ].find(el => el?.src.trim())
-        const link = e.composedPath().find(
-            el => el.tagName?.toLowerCase() === "a" && el.href?.trim())
+        const link = e.composedPath().filter(isHTMLAnchorElement)
+            .find(el => el.href?.trim())
         const text = e.composedPath().find(
             el => matchesQuery(el, textlikeInputs))
+        const iframe = [...e.composedPath(), frame].find(isHTMLIFrameElement)
+        const selection = (iframe?.contentWindow ?? window).getSelection()
+        let inputVal = ""
+        let inputSel = 0
+        if (isInputOrTextElement(text)) {
+            inputVal = text.value
+            inputSel = text.selectionStart ?? 0
+        } else if (isHTMLElement(text)) {
+            inputVal = text.textContent ?? ""
+            inputSel = selection?.getRangeAt(0)?.startOffset ?? 0
+        }
+        const titleAttr = e.composedPath().filter(el => isHTMLElement(el)
+            && el.title).find(isHTMLElement)?.title ?? ""
         ipcRenderer.send("context-click-info", {
             "audio": audio?.src?.trim(),
             "audioData": {
                 "controllable": !!audioEl,
                 "loop": ["", "loop", "true"].includes(
-                    audioEl?.getAttribute("loop")),
+                    audioEl?.getAttribute("loop") ?? "false"),
                 "muted": audioEl?.volume === 0,
                 "paused": audioEl?.paused
             },
             backgroundImg,
             "canEdit": !!text,
             extraData,
-            "frame": e.composedPath().find(
-                el => matchesQuery(el, "iframe"))?.src || frame?.src,
+            "frame": iframe?.src,
             "hasElementListener": eventListeners.contextmenu.has(
-                e.composedPath()[0])
-                || eventListeners.auxclick.has(e.composedPath()[0]),
+                e.composedPath()[0]),
             "hasGlobalListener": !!e.composedPath().find(
-                el => eventListeners.contextmenu.has(el)
-                || eventListeners.auxclick.has(el)),
+                el => eventListeners.contextmenu.has(el)),
             "img": img?.src?.trim(),
-            "inputSel": text?.selectionStart
-                || text?.getRootNode().getSelection()?.baseOffset,
-            "inputVal": text?.selectionStart && text?.value
-                || text?.getRootNode().getSelection()?.baseNode?.textContent,
+            inputSel,
+            inputVal,
             "link": link?.href?.trim(),
-            "svgData": img && getSvgData(img),
-            "text": (frame?.contentWindow || window).getSelection().toString(),
+            "svgData": svg && getSvgData(svg),
+            "text": selection?.toString(),
+            titleAttr,
             "video": video?.src?.trim(),
             "videoData": {
                 "controllable": !!videoEl,
                 "controls": ["", "controls", "true"].includes(
-                    videoEl?.getAttribute("controls")),
+                    videoEl?.getAttribute("controls") ?? "false"),
                 "loop": ["", "loop", "true"].includes(
-                    videoEl?.getAttribute("loop")),
+                    videoEl?.getAttribute("loop") ?? "false"),
                 "muted": videoEl?.volume === 0,
                 "paused": videoEl?.paused
             },
@@ -549,25 +667,39 @@ const contextListener = (e, frame = null, extraData = null) => {
 }
 ipcRenderer.on("contextmenu-data", (_, request) => {
     const {x, y} = request
-    const els = [findElementAtPosition(x, y)]
+    const el = findElementAtPosition(x, y)
+    if (!isElement(el)) {
+        return
+    }
+    const els = [el]
     while (els[0].parentNode && els[0].parentNode !== els[1]?.parentNode) {
-        els.unshift(els[0].parentNode)
+        if (isElement(els[0].parentNode)) {
+            els.unshift(els[0].parentNode)
+        } else {
+            break
+        }
     }
     els.reverse()
     contextListener({
         "button": 2, "composedPath": () => els, "isTrusted": true, x, y
     }, findFrameInfo(els[0])?.element, request)
 })
-ipcRenderer.on("contextmenu", (_, extraData = null) => {
-    const els = [activeElement()]
+ipcRenderer.on("contextmenu", () => {
+    const el = activeElement()
+    if (!isHTMLElement(el)) {
+        return
+    }
+    const els = [el]
     const parsed = parseElement(els[0])
     if (!parsed || ["iframe", "body"].includes(els[0].tagName.toLowerCase())) {
         return
     }
     let {x} = parsed
     if (getComputedStyle(els[0]).font.includes("monospace")) {
-        x = parsed.x + propPixels(els[0], "fontSize")
-            * els[0].selectionStart * 0.60191 - els[0].scrollLeft
+        if (isInputOrTextElement(els[0])) {
+            x = parsed.x + propPixels(els[0], "font-size")
+                * (els[0].selectionStart ?? 0) * 0.60191 - els[0].scrollLeft
+        }
     }
     let y = parsed.y + parsed.height
     if (x > window.innerWidth || isNaN(x) || x === 0) {
@@ -577,39 +709,52 @@ ipcRenderer.on("contextmenu", (_, extraData = null) => {
         ({y} = parsed)
     }
     while (els[0].parentNode && els[0].parentNode !== els[1]?.parentNode) {
-        els.unshift(els[0].parentNode)
+        if (isElement(els[0].parentElement)) {
+            els.unshift(els[0].parentElement)
+        } else {
+            break
+        }
     }
     els.reverse()
     contextListener({
         "button": 2, "composedPath": () => els, "isTrusted": true, x, y
-    }, findFrameInfo(els[0])?.element, extraData)
+    }, findFrameInfo(els[0])?.element, {"force": true})
 })
-window.addEventListener("auxclick", contextListener)
+window.addEventListener("contextmenu", contextListener)
 ipcRenderer.on("keyboard-type-event", (_, keyOptions) => {
     // This is a last resort attempt to press a key in an iframe,
     // but ideally this code shouldn't exist and only use sendInputEvent.
     // See https://github.com/electron/electron/issues/20333
     const input = activeElement()
     if (matchesQuery(input, textlikeInputs) && keyOptions.key.length === 1) {
-        if (typeof input.value === "string" && input.setSelectionRange) {
+        if (isInputOrTextElement(input)) {
             const cur = Number(input.selectionStart)
-            input.value = `${input.value.substr(0, cur)}${keyOptions.key}${
-                input.value.substr(input.selectionEnd)}`
+            input.value = `${input.value.substring(0, cur)}${keyOptions.key}${
+                input.value.substring(input.selectionEnd ?? cur)}`
             input.setSelectionRange(cur + 1, cur + 1)
         }
     }
 })
+
+/**
+ * Check if an element can be scrolled vertically.
+ * @param {Element} el
+ */
 const isVertScrollable = el => {
     const scrollEl = document.scrollingElement
-    if ([scrollEl, scrollEl.parseElement].includes(el)) {
+    if ([scrollEl, scrollEl?.parentElement].includes(el)) {
         return el.scrollHeight > el.clientHeight
     }
     return el.scrollHeight > el.clientHeight
         && ["scroll", "auto"].includes(getComputedStyle(el).overflowY)
 }
+/**
+ * Check if an element can be scrolled horizontally.
+ * @param {Element} el
+ */
 const isHorScrollable = el => {
     const scrollEl = document.scrollingElement
-    if ([scrollEl, scrollEl.parseElement].includes(el)) {
+    if ([scrollEl, scrollEl?.parentElement].includes(el)) {
         return el.scrollWidth > el.clientWidth
     }
     return el.scrollWidth > el.clientWidth
@@ -621,15 +766,24 @@ ipcRenderer.on("custom-mouse-event", (_, eventType, mouseOptions) => {
     // See https://github.com/electron/electron/issues/20333
     // The code below is also fairly useless when it comes to hovering elements.
     const el = findElementAtPosition(mouseOptions.x, mouseOptions.y)
+    if (!el) {
+        return
+    }
     if (eventType === "click") {
         if (mouseOptions.button === "left") {
-            el.click()
+            if (isHTMLElement(el)) {
+                el.click()
+            }
             return
         }
         const {x, y} = mouseOptions
-        const els = [findElementAtPosition(x, y)]
+        const els = [el]
         while (els[0].parentNode && els[0].parentNode !== els[1]?.parentNode) {
-            els.unshift(els[0].parentNode)
+            if (isElement(els[0].parentNode)) {
+                els.unshift(els[0].parentNode)
+            } else {
+                break
+            }
         }
         els.reverse()
         contextListener({
@@ -648,7 +802,11 @@ ipcRenderer.on("custom-mouse-event", (_, eventType, mouseOptions) => {
                 sc.scrollLeft -= mouseOptions.deltaX
                 break
             }
-            sc = sc.parentNode
+            if (isElement(sc.parentNode)) {
+                sc = sc.parentNode
+            } else {
+                break
+            }
         }
     }
     const event = new MouseEvent(eventType, {
@@ -662,25 +820,31 @@ ipcRenderer.on("custom-mouse-event", (_, eventType, mouseOptions) => {
     el.dispatchEvent(event)
 })
 
-let searchElement = null
 let scrollHeight = 0
 let justScrolled = 0
 let justSearched = false
-let searchPos = {}
+/** @type {{x: number, y: number}|null} */
+let searchPos = null
 
 window.addEventListener("scroll", () => {
-    const scrollDiff = scrollHeight - window.scrollY
+    const scrollDiff = window.scrollY - scrollHeight
     startY += scrollDiff
     scrollHeight = window.scrollY
     justScrolled = Number(scrollDiff)
     setTimeout(() => {
         justScrolled = 0
     }, 100)
-    if (justSearched) {
+    if (justSearched && searchPos) {
         const {x} = searchPos
-        const y = searchPos.y + scrollDiff * window.devicePixelRatio
-        searchElement = findElementAtPosition(x / window.devicePixelRatio,
-            y / window.devicePixelRatio)
+        let {y} = searchPos
+        if (y < 0 && scrollDiff > 0
+            || y > window.innerHeight && scrollDiff < 0) {
+            y += scrollDiff * window.devicePixelRatio
+        }
+        if (y > window.innerHeight && scrollDiff > 0
+            || y < 0 && scrollDiff < 0) {
+            y -= scrollDiff * window.devicePixelRatio
+        }
         ipcRenderer.sendToHost("search-element-location", x, y)
     }
     ipcRenderer.sendToHost("scroll-height-diff", scrollDiff)
@@ -688,7 +852,7 @@ window.addEventListener("scroll", () => {
 
 ipcRenderer.on("search-element-location", (_, pos) => {
     let {x} = pos
-    const alignment = readJSON(settingsFile)?.searchpointeralignment
+    const alignment = getWebviewSetting("searchpointeralignment")
     if (alignment === "center") {
         x += pos.width / 2
     } else if (alignment === "right") {
@@ -696,18 +860,22 @@ ipcRenderer.on("search-element-location", (_, pos) => {
     } else {
         x += 1
     }
-    const y = pos.y + pos.height / 2 + justScrolled * window.devicePixelRatio
+    let y = pos.y + pos.height / 2
+    if (y < 0 && justScrolled > 0
+        || y > window.innerHeight && justScrolled < 0) {
+        y += justScrolled * window.devicePixelRatio
+    }
+    if (y > window.innerHeight && justScrolled > 0
+        || y < 0 && justScrolled < 0) {
+        y -= justScrolled * window.devicePixelRatio
+    }
     searchPos = {x, y}
-    searchElement = findElementAtPosition(x / window.devicePixelRatio,
-        y / window.devicePixelRatio)
     ipcRenderer.sendToHost("search-element-location", x, y)
     justSearched = true
     setTimeout(() => {
         justSearched = false
     }, 100)
 })
-
-ipcRenderer.on("search-element-click", () => searchElement?.click())
 
 window.addEventListener("mousemove", e => {
     ipcRenderer.sendToHost("mousemove", e.clientX, e.clientY)

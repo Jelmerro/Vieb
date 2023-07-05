@@ -1,53 +1,30 @@
 " Options
 set adblocker=update
 set downloadmethod=confirm
-set mintabwidth=250
-set norestoretabs
 set nofollownewtabswitch
+set mintabwidth=250
 set redirecttohttp
-set tabreopenposition=previous
-set search=https://google.com/search?q=%s
+set restoretabs=pinned
+set searchengine=https://google.com/search?q=%s
 set searchwords=w~https://www.wikipedia.org/w/index.php?title=Special:Search&search=%s
+set tabreopenposition=previous
 
 " Custom Commands
-command! enterInsertMode <toInsertMode>
 command! enterVisualMode <p.start><p.startVisualSelect>
-command! focusInput <insertAtFirstInput>
-command! LinkHints.activateMode <startFollowCurrentTab>
-command! LinkHints.activateModeToOpenInNewTab <startFollowNewTab>
-command! LinkHints.activateModeToOpenInNewForegroundTab <startFollowNewTab>
-command! enterFindMode <toSearchMode>
-command! performFind <nextSearchMatch>
-command! performBackwardsFind <previousSearchMatch>
-command! scrollToTop <scrollTop>
-command! scrollToBottom <scrollBottom>
-command! scrollFullPageDown <scrollPageDown>
-command! scrollFullPageUp <scrollPageUp>
 command! scrollPageDown <scrollPageDownHalf>
 command! scrollPageUp <scrollPageUpHalf>
-command! openCopiedUrlInCurrentTab <openFromClipboard>
-command! openCopiedUrlInNewTab <openNewTab><openFromClipboard>
-command! goUp <toParentUrl>
-command! goToRoot <toRootUrl>
-command! LinkHints.activateModeToCopyLinkUrl <p.start><startFollowCurrentTab>
 command! goPrevious <previousPage>
 command! goNext <nextPage>
-command! enterVisualMode <p.start><p.startVisualSelect>
 command! Vomnibar.activate <toExploreMode>
-command! Vomnibar.activateInNewTab <openNewTab><toExploreMode>
+command! Vomnibar.activateInNewTab <:tabnew><toExploreMode>
 command! Vomnibar.activateTabSelection <toCommandMode>buffer<Space>
 command! firstTab <:buffer 0>
 command! lastTab <:buffer -1>
 command! visitPreviousTab <:buffer #>
 command! Vomnibar.activateEditUrl <toExploreMode><End>
-command! Vomnibar.activateEditUrlInNewTab <openNewTab><toExploreMode>
+command! Vomnibar.activateEditUrlInNewTab <:tabnew><toExploreMode>
 command! removeTab <:close>
 command! restoreTab <reopenTab>
-command! goBack <backInHistory>
-command! goForward <forwardInHistory>
-command! togglePinTab <:pin>
-command! toggleMuteTab <:mute>
-command! createTab <openNewTab>
 command! duplicateTab <openNewTabWithCurrentUrl><CR>
 command! moveTabLeft <moveTabBackward>
 command! moveTabRight <moveTabForward>
@@ -58,28 +35,13 @@ command! closeTabsOnRight <:rclose>
 command! closeOtherTabs <:rclose><:lclose>
 
 " Mappings
-nmap i <:enterInsertMode>
 nmap v <:enterVisualMode>
-nmap gi <:focusInput>
-nmap f <:LinkHints.activateMode>
-nmap F <:LinkHints.activateModeToOpenInNewForegroundTab>
-nmap / <:enterFindMode>
-nmap n <:performFind>
-nmap N <:performBackwardsFind>
-nmap gg <:scrollToTop>
-nmap G <:scrollToBottom>
 nmap d <:scrollPageDown>
 nmap u <:scrollPageUp>
-nmap p <:openCopiedUrlInCurrentTab>
-nmap P <:openCopiedUrlInNewTab>
-nmap gu <:goUp>
-nmap gU <:goToRoot>
-nmap yf <:LinkHints.activateModeToCopyLinkUrl>
 nunmap [
 nunmap ]
 nmap [[ <:goPrevious>
 nmap ]] <:goNext>
-nmap v <:enterVisualMode>
 nmap o <:Vomnibar.activate>
 nmap O <:Vomnibar.activateInNewTab>
 nmap T <:Vomnibar.activateTabSelection>
@@ -92,11 +54,6 @@ nmap ge <:Vomnibar.activateEditUrl>
 nmap gE <:Vomnibar.activateEditUrlInNewTab>
 nmap x <:removeTab>
 nmap X <:restoreTab>
-nmap H <:goBack>
-nmap L <:goForward>
-nmap <A-p> <:togglePinTab>
-nmap <A-m> <:toggleMuteTab>
-nmap t <:createTab>
 nmap yt <:duplicateTab>
 nmap <lt><lt> <:moveTabLeft>
 nmap >> <:moveTabRight>

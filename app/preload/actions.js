@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -24,102 +24,167 @@ const {
     querySelectorAll,
     findFrameInfo,
     findElementAtPosition,
-    matchesQuery
+    fetchJSON,
+    isHTMLAnchorElement,
+    isHTMLLinkElement,
+    isHTMLElement,
+    isInputOrTextElement,
+    isHTMLVideoElement,
+    isHTMLAudioElement,
+    isElement
 } = require("../util")
 
+/**
+ * Go to the next page if available, optionally in a new tab.
+ * @param {boolean} newtab
+ */
 const nextPage = newtab => navigateToPage("*[rel=next], .navi-next", newtab)
 
+/**
+ * Go to the previous page if available, optionally in a new tab.
+ * @param {boolean} newtab
+ */
 const previousPage = newtab => navigateToPage("*[rel=prev], .navi-prev", newtab)
 
+/**
+ * Navigate to the next page if available.
+ * @param {string} selector
+ * @param {boolean} newtab
+ */
 const navigateToPage = (selector, newtab) => {
     const paginations = querySelectorAll(selector)
     for (const pagination of paginations) {
-        if (pagination?.href) {
+        if ((isHTMLAnchorElement(pagination) || isHTMLLinkElement(pagination))
+            && pagination?.href) {
             if (newtab) {
                 ipcRenderer.sendToHost("url", pagination.href)
             } else {
-                window.location = pagination.href
+                window.location.href = pagination.href
             }
             return
         }
     }
 }
 
-const blur = () => activeElement()?.blur?.()
+const blur = () => {
+    const el = activeElement()
+    if (isHTMLElement(el)) {
+        el.blur()
+    }
+}
 
-const scrollTop = () => window.scrollBy(0, -window.innerHeight - 1000000000)
+/**
+ * Scroll the page x and y pixels.
+ * @param {number} x
+ * @param {number} y
+ */
+const scrollBy = (x, y) => {
+    if (window.innerHeight === document.documentElement.scrollHeight) {
+        document.body.scrollBy(x, y)
+    } else {
+        window.scrollBy(x, y)
+    }
+}
 
-const scrollLeft = () => window.scrollBy(-100, 0)
+/**
+ * Scroll the page to a specific percentage.
+ * @param {number} perc
+ */
+const scrollPerc = perc => {
+    if (document.documentElement.scrollHeight === window.innerHeight) {
+        const scrollHeightMinusScreen = document.body.scrollHeight
+            - window.innerHeight
+        document.body.scrollTo(0, scrollHeightMinusScreen * perc / 100)
+    } else {
+        const scrollHeightMinusScreen = document.documentElement.scrollHeight
+            - window.innerHeight
+        window.scrollTo(0, scrollHeightMinusScreen * perc / 100)
+    }
+}
 
-const scrollDown = () => window.scrollBy(0, 100)
+const scrollTop = () => scrollBy(0, -window.innerHeight - 1000000000)
 
-const scrollUp = () => window.scrollBy(0, -100)
+const scrollLeft = () => scrollBy(-100, 0)
 
-const scrollRight = () => window.scrollBy(100, 0)
+const scrollDown = () => scrollBy(0, 100)
 
-const scrollBottom = () => window.scrollBy(0, window.innerHeight + 1000000000)
+const scrollUp = () => scrollBy(0, -100)
 
-const scrollLeftMax = () => window.scrollBy(-window.innerWidth - 1000000000, 0)
+const scrollRight = () => scrollBy(100, 0)
 
-const scrollRightMax = () => window.scrollBy(window.innerWidth + 1000000000, 0)
+const scrollBottom = () => scrollBy(0, window.innerHeight + 1000000000)
 
-const scrollPageRight = () => window.scrollBy(window.innerWidth - 50, 0)
+const scrollLeftMax = () => scrollBy(-window.innerWidth - 1000000000, 0)
 
-const scrollPageLeft = () => window.scrollBy(-window.innerWidth + 50, 0)
+const scrollRightMax = () => scrollBy(window.innerWidth + 1000000000, 0)
 
-const scrollPageUp = () => window.scrollBy(0, -window.innerHeight + 50)
+const scrollPageRight = () => scrollBy(window.innerWidth - 50, 0)
 
-const scrollPageDownHalf = () => window.scrollBy(0, window.innerHeight / 2 - 25)
+const scrollPageLeft = () => scrollBy(-window.innerWidth + 50, 0)
 
-const scrollPageDown = () => window.scrollBy(0, window.innerHeight - 50)
+const scrollPageUp = () => scrollBy(0, -window.innerHeight + 50)
 
-const scrollPageUpHalf = () => window.scrollBy(0, -window.innerHeight / 2 + 25)
+const scrollPageDownHalf = () => scrollBy(0, window.innerHeight / 2 - 25)
 
-const focusTopLeftCorner = () => document.elementFromPoint(0, 0).focus()
+const scrollPageDown = () => scrollBy(0, window.innerHeight - 50)
+
+const scrollPageUpHalf = () => scrollBy(0, -window.innerHeight / 2 + 25)
+
+const focusTopLeftCorner = () => {
+    const el = document.elementFromPoint(0, 0)
+    if (isHTMLElement(el)) {
+        el.focus()
+    }
+}
 
 const exitFullscreen = () => document.exitFullscreen()
 
+/** @type {{[filename: string]: Element}} */
 const writeableInputs = {}
 
+/**
+ * Set the text of an input to what was edited inside the vimcommand editor.
+ * @param {string} filename
+ * @param {string} text
+ */
 const setInputFieldText = (filename, text) => {
     const el = writeableInputs[filename]
-    if (["input", "textarea"].includes(el.tagName.toLowerCase())) {
+    if (isInputOrTextElement(el)) {
         el.value = text
-    } else if (el.getAttribute("contenteditable") === "true") {
+    } else if (el?.getAttribute("contenteditable") === "true") {
         el.textContent = text
     }
 }
 
+/**
+ * Write the contents of a specific input to a file.
+ * @param {string} filename
+ */
 const writeInputToFile = filename => {
     const el = activeElement()
-    if (el) {
-        if (["input", "textarea"].includes(el.tagName.toLowerCase())) {
-            writeFile(filename, el.value)
-        } else if (el.getAttribute("contenteditable") === "true") {
-            writeFile(filename, el.textContent)
-        }
-        writeableInputs[filename] = el
+    if (!el) {
+        return
     }
+    if (isInputOrTextElement(el)) {
+        writeFile(filename, el.value)
+    } else if (el?.getAttribute("contenteditable") === "true") {
+        writeFile(filename, el.textContent ?? "")
+    }
+    writeableInputs[filename] = el
 }
 
 const print = () => document.execCommand("print")
 
-const installFirefoxExtension = () => {
-    const link = Array.from(document.querySelectorAll("a") || []).find(
-        a => a.href?.endsWith(".xpi"))?.href
-    const extension = link?.replace(/.*\/(\d{7,10}).*/g, "$1")
-    if (link && extension) {
-        ipcRenderer.send("install-extension", link, extension, "xpi")
-    } else {
-        ipcRenderer.sendToHost("notify",
-            "No extensions found on this page", "warn")
-    }
-}
-
+/**
+ * Toggle video player controls at location x,y.
+ * @param {number} x
+ * @param {number} y
+ */
 const toggleControls = (x, y) => {
     const el = findElementAtPosition(x, y)
-    if (matchesQuery(el, "video")) {
-        if (["", "controls", "true"].includes(el.getAttribute("controls"))) {
+    if (isHTMLVideoElement(el)) {
+        if (el.hasAttribute("controls")
+            && el.getAttribute("controls") !== "false") {
             el.removeAttribute("controls")
         } else {
             el.setAttribute("controls", "controls")
@@ -127,10 +192,15 @@ const toggleControls = (x, y) => {
     }
 }
 
+/**
+ * Toggle the loop property at location x,y.
+ * @param {number} x
+ * @param {number} y
+ */
 const toggleLoop = (x, y) => {
     const el = findElementAtPosition(x, y)
-    if (matchesQuery(el, "audio, video")) {
-        if (["", "loop", "true"].includes(el.getAttribute("loop"))) {
+    if (isHTMLAudioElement(el) || isHTMLVideoElement(el)) {
+        if (el.hasAttribute("loop") && el.getAttribute("loop") !== "false") {
             el.removeAttribute("loop")
         } else {
             el.setAttribute("loop", "loop")
@@ -138,9 +208,14 @@ const toggleLoop = (x, y) => {
     }
 }
 
+/**
+ * Toggle the mute status ate location x,y.
+ * @param {number} x
+ * @param {number} y
+ */
 const toggleMute = (x, y) => {
     const el = findElementAtPosition(x, y)
-    if (matchesQuery(el, "audio, video")) {
+    if (isHTMLAudioElement(el) || isHTMLVideoElement(el)) {
         if (el.volume === 0) {
             el.volume = 1
         } else {
@@ -149,9 +224,14 @@ const toggleMute = (x, y) => {
     }
 }
 
+/**
+ * Toggle pause at location x,y.
+ * @param {number} x
+ * @param {number} y
+ */
 const togglePause = (x, y) => {
     const el = findElementAtPosition(x, y)
-    if (matchesQuery(el, "audio, video")) {
+    if (isHTMLAudioElement(el) || isHTMLVideoElement(el)) {
         if (el.paused) {
             el.play()
         } else {
@@ -160,27 +240,55 @@ const togglePause = (x, y) => {
     }
 }
 
+/**
+ * Lower the volume at location x,y.
+ * @param {number} x
+ * @param {number} y
+ */
 const volumeDown = (x, y) => {
     const el = findElementAtPosition(x, y)
-    if (matchesQuery(el, "audio, video")) {
+    if (isHTMLAudioElement(el) || isHTMLVideoElement(el)) {
         el.volume = Math.max(0, el.volume - 0.1) || 0
     }
 }
 
+/**
+ * Raise the volume at location x,y.
+ * @param {number} x
+ * @param {number} y
+ */
 const volumeUp = (x, y) => {
     const el = findElementAtPosition(x, y)
-    if (matchesQuery(el, "audio, video")) {
+    if (isHTMLAudioElement(el) || isHTMLVideoElement(el)) {
         el.volume = Math.min(1, el.volume + 0.1) || 1
     }
 }
 
+/**
+ * Find the base document at location x,y.
+ * @param {number} x
+ * @param {number} y
+ */
 const documentAtPos = (x, y) => findElementAtPosition(x, y)
     ?.ownerDocument || document
 
+/**
+ * Check if a node is a text node.
+ * @param {any} node
+ * @returns {node is Text|Comment|CDATASection}
+ */
 const isTextNode = node => [
     Node.TEXT_NODE, Node.COMMENT_NODE, Node.CDATA_SECTION_NODE
 ].includes(node.nodeType)
 
+/**
+ * Calculate the offset in characters for a given position in an element.
+ * @param {Node} startNode
+ * @param {number} startX
+ * @param {number} startY
+ * @param {number} x
+ * @param {number} y
+ */
 const calculateOffset = (startNode, startX, startY, x, y) => {
     const range = (findElementAtPosition(startX, startY)
         ?.ownerDocument || document).createRange()
@@ -192,7 +300,16 @@ const calculateOffset = (startNode, startX, startY, x, y) => {
     }
     let properNode = startNode
     let offset = 0
+    /**
+     * Descend down into a node of the tree.
+     * @param {Node} baseNode
+     */
     const descendNodeTree = baseNode => {
+        /**
+         * Find a point inside the range.
+         * @param {number} start
+         * @param {number} end
+         */
         const pointInsideRegion = (start, end) => {
             range.setStart(baseNode, start)
             range.setEnd(baseNode, end)
@@ -231,11 +348,38 @@ const calculateOffset = (startNode, startX, startY, x, y) => {
     return {"node": properNode, offset}
 }
 
+/**
+ * Select all at location x,y.
+ * @param {number} x
+ * @param {number} y
+ */
 const selectionAll = (x, y) => documentAtPos(x, y).execCommand("selectAll")
+/**
+ * Cut a selection at location x,y.
+ * @param {number} x
+ * @param {number} y
+ */
 const selectionCut = (x, y) => documentAtPos(x, y).execCommand("cut")
+/**
+ * Paste a selection at location x,y.
+ * @param {number} x
+ * @param {number} y
+ */
 const selectionPaste = (x, y) => documentAtPos(x, y).execCommand("paste")
+/**
+ * Remove the selection from the document at location x,y.
+ * @param {number} x
+ * @param {number} y
+ */
 const selectionRemove = (x, y) => documentAtPos(x, y).getSelection()
-    .removeAllRanges()
+    ?.removeAllRanges()
+/**
+ * Make a new selection from start position to end position.
+ * @param {number} startX
+ * @param {number} startY
+ * @param {number} endX
+ * @param {number} endY
+ */
 const selectionRequest = (startX, startY, endX, endY) => {
     querySelectorAll("*")
     let startNode = findElementAtPosition(startX, startY)
@@ -247,7 +391,7 @@ const selectionRequest = (startX, startY, endX, endY) => {
     const startResult = calculateOffset(startNode, startX, startY,
         startX - (padding?.x || 0), startY - (padding?.y || 0))
     const endNode = findElementAtPosition(endX, endY)
-    const endResult = calculateOffset(endNode, startX, startY,
+    const endResult = calculateOffset(endNode ?? document.body, startX, startY,
         endX - (padding?.x || 0), endY - (padding?.y || 0))
     const newSelectRange = selectDocument.createRange()
     newSelectRange.setStart(startResult.node, startResult.offset)
@@ -256,17 +400,164 @@ const selectionRequest = (startX, startY, endX, endY) => {
     } else {
         newSelectRange.setEnd(endResult.node, endResult.offset)
     }
-    selectDocument.getSelection().removeAllRanges()
-    selectDocument.getSelection().addRange(newSelectRange)
-    if (!selectDocument.getSelection().toString()) {
+    selectDocument.getSelection()?.removeAllRanges()
+    selectDocument.getSelection()?.addRange(newSelectRange)
+    if (!selectDocument.getSelection()?.toString()) {
         newSelectRange.setStart(endResult.node, endResult.offset)
         if (isTextNode(endResult.node) && endResult.node.length > 1) {
             newSelectRange.setEnd(startResult.node, startResult.offset + 1)
         } else {
             newSelectRange.setEnd(startResult.node, startResult.offset)
         }
-        selectDocument.getSelection().removeAllRanges()
-        selectDocument.getSelection().addRange(newSelectRange)
+        selectDocument.getSelection()?.removeAllRanges()
+        selectDocument.getSelection()?.addRange(newSelectRange)
+    }
+}
+
+/**
+ * Translate a page based on api name, url, language and api key.
+ * @param {string} api
+ * @param {string} url
+ * @param {string} lang
+ * @param {string} apiKey
+ */
+const translatepage = async(api, url, lang, apiKey) => {
+    [...document.querySelectorAll("rt")].forEach(r => r.remove())
+    ;[...document.querySelectorAll("ruby")].forEach(r => r?.parentNode
+        ?.replaceChild(document.createTextNode(r?.textContent ?? ""), r))
+    const tree = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+    let textNodes = []
+    /** @type {TreeWalker|{currentNode: null}} */
+    let {currentNode} = tree
+    while (currentNode) {
+        textNodes.push(currentNode)
+        currentNode = tree.nextNode()
+    }
+    textNodes = textNodes.filter(n => (n.nodeValue?.length ?? 0) > 5)
+    /** @type {Node[]} */
+    let baseNodes = []
+    textNodes.forEach(n => {
+        let base = n.parentNode ?? n
+        if (n.childNodes.length === 1
+            && n.childNodes[0].nodeName === "#text" && n.parentNode) {
+            base = n.parentNode
+        }
+        if (["kbd", "style", "script"].includes(base.nodeName.toLowerCase())) {
+            return
+        }
+        if (baseNodes.includes(base) || base === document.body) {
+            return
+        }
+        baseNodes.push(base)
+    })
+    const parsedNodes = baseNodes.map(base => {
+        const txtEl = document.createElement("p")
+        for (const textNode of base.childNodes) {
+            const subText = document.createElement("p")
+            if (["kbd", "code"].includes(textNode.nodeName.toLowerCase())) {
+                // Skip element text
+            } else if (isElement(textNode)
+                && textNode.textContent === textNode.innerHTML) {
+                subText.textContent = textNode.textContent
+            } else if (textNode.nodeName === "#text") {
+                subText.textContent = textNode.textContent
+            }
+            txtEl.append(subText)
+        }
+        if (txtEl.textContent?.trim()) {
+            return txtEl
+        }
+        baseNodes = baseNodes.filter(b => b !== base)
+        return null
+    }).filter(el => el)
+    const strings = parsedNodes.map(n => n?.innerHTML ?? "")
+    if (api === "libretranslate") {
+        try {
+            const srcResponse = await fetchJSON(`${url}/detect`, {
+                "headers": {"Content-Type": "application/json"},
+                "method": "POST"
+            }, JSON.stringify({
+                "api_key": apiKey,
+                "q": strings
+            }))
+            if (srcResponse.error) {
+                return ipcRenderer.sendToHost("notify",
+                    `Error from LibreTranslate: ${srcResponse.error}`, "err")
+            }
+            const response = await fetchJSON(`${url}/translate`, {
+                "headers": {"Content-Type": "application/json"},
+                "method": "POST"
+            }, JSON.stringify({
+                "api_key": apiKey,
+                "format": "html",
+                "q": strings,
+                "source": srcResponse[0]?.language,
+                "target": lang
+            }))
+            if (response.error) {
+                return ipcRenderer.sendToHost("notify",
+                    `Error from LibreTranslate: ${response.error}`, "err")
+            }
+            if (response.translatedText) {
+                baseNodes.forEach((node, index) => {
+                    const text = response.translatedText[index]
+                    if (!text) {
+                        return
+                    }
+                    const resEl = document.createElement("div")
+                    resEl.innerHTML = text
+                    ;[...node.childNodes].forEach((txtEl, txtIndex) => {
+                        const txt = resEl.childNodes[txtIndex]?.textContent
+                        if (txt) {
+                            txtEl.textContent = txt
+                        }
+                    })
+                })
+            }
+        } catch (e) {
+            ipcRenderer.sendToHost("notify",
+                "Failed to connect to LibreTranslate, see console", "err")
+            console.warn(e)
+        }
+        return
+    }
+    try {
+        const response = await fetchJSON(`${url}/translate`, {
+            "headers": {
+                "Authorization": `DeepL-Auth-Key ${apiKey}`,
+                "Content-Type": "application/json"
+            },
+            "method": "POST"
+        }, JSON.stringify({
+            "split_sentences": "nonewlines",
+            "tag_handling": "html",
+            "target_lang": lang,
+            "text": strings
+        }))
+        if (response.message) {
+            return ipcRenderer.sendToHost("notify",
+                `Error from Deepl: ${response.message}`, "err")
+        }
+        if (response.translations) {
+            baseNodes.forEach((node, index) => {
+                const text = response.translations[index]?.text
+                if (!text) {
+                    return
+                }
+                const resEl = document.createElement("div")
+                resEl.innerHTML = text
+                ;[...node.childNodes].forEach((txtEl, txtIndex) => {
+                    const txt = resEl.childNodes[txtIndex]?.textContent
+                    if (txt) {
+                        txtEl.textContent = txt
+                    }
+                })
+            })
+        }
+    } catch (e) {
+        ipcRenderer.sendToHost("notify",
+            "Failed to connect to Deepl for translation, see console", "err")
+        console.warn(e)
     }
 }
 
@@ -274,7 +565,6 @@ const functions = {
     blur,
     exitFullscreen,
     focusTopLeftCorner,
-    installFirefoxExtension,
     nextPage,
     previousPage,
     print,
@@ -288,6 +578,7 @@ const functions = {
     scrollPageRight,
     scrollPageUp,
     scrollPageUpHalf,
+    scrollPerc,
     scrollRight,
     scrollRightMax,
     scrollTop,
@@ -302,11 +593,13 @@ const functions = {
     toggleLoop,
     toggleMute,
     togglePause,
+    translatepage,
     volumeDown,
     volumeUp,
     writeInputToFile
 }
 
+// @ts-expect-error too many signatures to realistically type, maybe someday
 ipcRenderer.on("action", (_, name, ...args) => functions[name]?.(...args))
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -315,9 +608,12 @@ window.addEventListener("DOMContentLoaded", () => {
         if (!document.getElementById("custom-styling")) {
             const styleElement = document.createElement("style")
             styleElement.id = "custom-styling"
-            document.head.appendChild(styleElement)
+            document.head.append(styleElement)
         }
-        document.getElementById("custom-styling").textContent = customCSS
-        document.body.style.opacity = 1
+        const customStyle = document.getElementById("custom-styling")
+        if (customStyle) {
+            customStyle.textContent = customCSS
+        }
+        document.body.style.opacity = "1"
     })
 })

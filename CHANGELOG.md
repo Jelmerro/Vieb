@@ -5,7 +5,7 @@ This document aims to represent all notable changes to Vieb.
 
 Vieb is a Vim Inspired Electron Browser made by Jelmer van Arnhem and contributors,
 and can be copied under the terms of the GPL-3.0 or later versions.
-See the README.md or LICENSE file for more info and details about Vieb and it's license.
+See the README.md or LICENSE file for more info and details about Vieb and its license.
 Links in the changelog are part of [github.com/Jelmerro/Vieb](https://github.com/Jelmerro/Vieb).
 The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the most important changes per release,
 but the list below contains much more technical details.
@@ -13,24 +13,511 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Changed
+
+- Stored urls to be of the human readable format to better account for special pages
+- Adblocker to show a notification if enabled but not present for all builds
+- AppImage builds to better handle special pages for changing runtime folder
+
+### Fixed
+
+- Encoding issues since 10.0.0 in markdownviewer, readerview and sourceviewer
+- Mappings that send keys to insert mode delayed not working since 10.0.0
+
+### Versions
+
+- Electron 25.2.0 (unchanged)
+- Chromium 114.0.5735.134 (unchanged)
+
+## [10.1.0](https://github.com/Jelmerro/Vieb/compare/10.0.0...10.1.0) - 2023-06-22
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/10.0.0...10.1.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/10.1.0)
+
+### Added
+
+- Option "external" to "pdfbehavior" setting to open the pdf with externalcommand automatically
+
+### Fixed
+
+- Settings starting with "no" or "inv" not being able to be listed without "?" nor reporting the correct name
+- Actions "nextPage" and "previousPage" no longer working for link elements
+- Pointer scrolling to search results not working correctly due to Electron's inconsistent API
+- Infinite loading issue for unresponsive pages due to loadurl rework
+- Newtab actions for pointer mode not working due to tab still loading
+- Errors for ipc calls to webview that are still being created by only sending data to webview with ready dom
+- First navigation issue that requires a second mouse click to navigate by delaying the useragent reroll
+- Relative feed URLs only returning the path (they are now prefixed with the current url as needed)
+- Firefox version calculation being ahead of time due to delayed Firefox releases
+
+### Versions
+
+- Electron 25.2.0 (was 25.1.1)
+- Chromium 114.0.5735.134 (was 114.0.5735.106)
+
+## [10.0.0](https://github.com/Jelmerro/Vieb/compare/9.7.1...10.0.0) - 2023-06-15
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/9.7.1...10.0.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/10.0.0)
+
+### Added
+
+- Blocklist uBlock Origin filters to the default list of blocklists
+- Setting "requestheaders" to append custom headers to any request
+- More default mappings: Firefox/Chromium inspired and mute/pin/internaldevtools mappings
+- Settings "userscriptscope", "userstylescope" and "darkreaderscope" to control which pages scripts, styles and darkreader should run
+- Suggestions for ranges
+- Argument option to the mute command to force a mute state, such as `:mute! true`
+- Argument option to the pin command to force a pinned state, such as `:pin! false`
+- Setting "followlabelposition" to control where the label of follow elements should appear
+- Set command syntax to rotate between a custom set of values, such as `:set example!value1|value2|value3`
+- Setting "permissionusb" to list usb devices (default remains blocked, previously grouped as "unknown")
+- Types and documentation using JSDoc to most of the source code
+- More position options for opening new tabs using "tabnewposition"
+- More focus positions after closing a tab using "tabclosefocus"
+- Additional flags for ranges to filter suspended/real pages and audio/silent tabs
+- Setting "pdfbehavior" to control what happens with PDF files (default changed from viewing to download)
+- Support for the context menu key with default mapping to opening the menu
+- Setting "historyperpage" to control the amount of history entries to show per page
+- Action "pointer.copyTitleAttr" to copy the title attribute of a hovered element
+- Action "pointer.copyPageTitle" to copy the page title of the hovered link if in the history
+- Full interface scaling startup flag "--interface-scale", which can be combined with custom font sizes to achieve many different ratios
+- Setting "notificationlimitsmall" to control how many newlines should be the limit for small/large notifications
+- Option "largeonly" to the "nativenotification" setting to only show large ones natively
+- Actions "pageRSSLinksList" and "pageRSSLinkToClipboard" to list and copy RSS feed urls found on the page
+
+### Changed
+
+- Setting "replacespecial" is now by default set to "special"
+- Default mapping `<C-c>` will now copy in normal, pointer and visual mode as well
+- Setting "restoretabs" is now an enum that accepts different options
+- Setting "notificationforpermisions" is now an enum that accepts different options
+- Example configs to not include as much duplication as before
+- Userstyles are now applied even if darkreader fails to apply
+- Mapstring splitting to be more accurate when recursively including < and >
+- Mappings for recording macros to be more in line with Vim, by mapping and unmapping them on start/stop
+- Buffer commands to show all matching commands instead of the first one (especially useful for ranges)
+- Pin command to better preserve tab order when using ranges
+- JavaScript execution to always allow user interaction APIs
+- Svg and "data:" favicons to be used if present in the list, otherwise still pick the first
+- History page rendering mechanism to support large history files much better using pagination and background rendering
+- Setting "guifontsize" now accepts a much wider range of values to accommodate interface scaling
+- Erwic mode permissions to now ask for displaycapture instead of blocking it (Vieb default is still to block)
+- Favicon mapping storage now uses a debounce mechanism similar to browsing history to improve performance
+- Crashed tabs to allow navigating and reloading by recreating them as a new tab at the same position
+
+### Removed
+
+- Action "openNewTab" in favor of ":tabnew" command
+- Setting "clearhistoryonquit" in favor of "clearhistoryinterval=session"
+- Setting "search" in favor of the functionality identical "searchengine" setting
+- Setting "tabnexttocurrent" in favor of "tabnewposition" enum
+- Setting "tabclosefocusright" in favor of "tabclosefocus" enum
+
+### Fixed
+
+- Image and svg follow links not showing since 9.0.0
+- Scrollbar styling not working on pages that block custom CSS
+- Userstyles not working on pages that block custom CSS
+- Display capture styling not working on pages that block custom CSS
+- Index-based ranges not working correctly for some commands
+- Navigation delay system updating the current page instead of the right one
+- Navigation delay system preventing page navigations for new tabs that are not loading
+- Favicon not showing or spinner still rotating for suspended tabs
+- Insert mode being left if interacting with the page menu
+- System clipboard being used incorrectly on Windows and Mac on selections due to selection clipboard not existing on those systems
+- Commands "tabnew" and "tabnewcontainer" not converting arguments to a url (preventing searches from working too)
+- Mouse hover remaining on follow element when moving the mouse outside of the window
+- Mappings being listed as modified when they were overwritten by the very same entry using :map
+- Follow links which vary in height/width compared to parent potentially causing follow highlight to switch between them periodically
+- Setting "containernames" not updating listed container immediately and not switching at all for new tabs and mouse clicks
+- White background on special pages when reloading them multiple times
+- Erwic settings not being saved with :mkviebrc if similar to regular Vieb defaults
+- Settings "notificationforpermisions" being set to "none" not preventing notifications from being stored
+- Keyboard focus being lost when opening pages that do not allow JavaScript to be run
+- Suspendonrestore value "none" suspending all tabs instead of none
+- Tabs with file paths open not being stored for next startup
+- Incremental search sometimes moving two entries when searching the same string
+
+### Versions
+
+- Electron 25.1.1 (was 23.2.0)
+- Chromium 114.0.5735.106 (was 110.0.5481.192)
+
+## [9.7.1](https://github.com/Jelmerro/Vieb/compare/9.7.0...9.7.1) - 2023-05-04
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/9.7.0...9.7.1) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/9.7.1)
+
+### Deprecated
+
+- Setting "tabnexttocurrent" boolean in favor of "tabnewposition" enum
+- Setting "tabclosefocusright" boolean in favor of "tabclosefocus" enum
+
+### Versions
+
+- Electron 23.2.0 (unchanged)
+- Chromium 110.0.5481.192 (unchanged)
+
+## [9.7.0](https://github.com/Jelmerro/Vieb/compare/9.6.0...9.7.0) - 2023-04-02
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/9.6.0...9.7.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/9.7.0)
+
+### Added
+
+- Command "clear" to wipe browsing data based on intervals or partial urls (currently only history)
+- Setting "clearhistoryinterval" to more finely control the deletion of history on quit by interval
+- Option "url" to the list of mouse features to control interaction with the input box while already typing (default on)
+- Option "leaveinsert" to the list of mouse features to control if clicking outside the page should leave insert mode (default on)
+- Option "notification" to the list of mouse features to control if clicking the download notification should open the file (default on)
+- Setting "mousedisabledbehavior" to control if elements with no enabled mouse interaction should optionally drag the window (nothing by default)
+- Setting "guiscrollbar" to control if and when the scrollbar should appear on pages (default remains always on)
+- Documentation for all modes by mode name instead of just the action name (also means better sorted actions)
+- More values to "dialogconfirm" to automatically allow the confirm dialog without needing to show it
+- More default mappings that are similar to Firefox/Chromium
+- Favicon icons to the buffer command suggestions for better recognition
+- Actions "startRecording", "stopRecording" and "runRecording" to record key presses and later execute them (macros/records in Vim)
+
+### Changed
+
+- Resetting focus now happens on every user interaction instead of on a timer
+- Url can now be selected from outside explore mode directly (and keep the selection if switching to explore mode)
+- History storage is now slightly faster by only wiping empty entries on write
+- Settings now have links to documentation about the type of value they can contain
+- Naming scheme of setting types is now more streamlined and better documented
+- Searchword urls are now filled in with the resolved url in the suggestions while you type
+- Seachwords will now also activate if prefixed with spaces
+- Filetype suggestions coming from history are now correctly colored in history color instead of file suggest color
+- Default theme now shows the default cursor instead of the text cursor on the url box if interaction is disabled
+- Locales are now included in regular releases but still excluded from lite builds (see `build.js`)
+- All mouse features now have a "mouse-something" className added to the body if enabled to allow more customization in colorschemes
+- Action "menuOpen" will now keep working even if the settings are set to never, this does not affect regular right clicks
+- Userstyles are now also applied when the DOM is ready, not just when the page is fully loaded
+- Commands "screencopy" and "screenshot" will show the screen highlight even without entering all 4 dimension values
+- Single key mapping commands now also combine different modes into one map command if all modes have the same mapping
+- Buffer commands now search for matches the same way as explore mode, as do the suggestions
+
+### Deprecated
+
+- Setting "clearhistoryonquit" in favor of "clearhistoryinterval=session"
+- Default value for "replacespecial" being "newtab" (will change to "special" in 10.x.x)
+- Setting "search" in favor of the functionality identical "searchengine" setting
+- Ctrl-c default mapping for the stopLoadingPage action instead of the new Esc
+- Boolean toggling "restoretabs" in favor providing a value (toggle commands will stop working in 10.x.x)
+- Boolean toggling "notificationforpermisions" in favor providing a value (toggle commands will stop working in 10.x.x)
+- Action "openNewTab" in favor of running the ":tabnew" command
+
+### Fixed
+
+- Vieb right click menu not working due to removed .path in events
+- Follow filtering being cancelled when interacting with the navbar using the mouse
+- Explore mode history not storing the first change in the Ctrl-z/Ctrl-y history
+- Middle mouse paste not updating explore mode's Ctrl-z/Ctrl-y history
+- Self closing tabs not being cleaned up correctly due to Electron devtools close call being unsafe
+- Text selection still briefly being visible outside explore mode when toexplore mouse feature is disabled
+- Websocket connections being blocked when setting custom resourcetypes due to casing error
+- Mousefeature history always being on even if not in the list of enabled features
+- Mode selector not being as big as it should be and therefor closing the dropdown occasionally
+- Sites without a div and without proper background not getting the default white background
+- Pointer mode help commands going to the action if they have the same name
+- Ctrl-F4 to close tab default mapping not working
+- Default text value for prompt dialogs not being used
+- Iframe position not being shifted correctly for iframes inside a same origin iframe
+
+### Versions
+
+- Electron 23.2.0 (was 23.1.1)
+- Chromium 110.0.5481.192 (was 110.0.5481.104)
+
+## [9.6.0](https://github.com/Jelmerro/Vieb/compare/9.5.1...9.6.0) - 2023-02-23
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/9.5.1...9.6.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/9.6.0)
+
+### Changed
+
+- Mouse setting "copyselect" is no longer available/needed for copying text by selecting, as it wasn't blocked correctly anyway
+- Mouse selections will now copy to the selection clipboard, instead of the default one, and at all times
+
+### Fixed
+
+- Userscript domain name not working at all by using an internal url instead of the page url
+- Explore, command and search mode not being exited when dragging the mouse
+
+### Versions
+
+- Electron 23.1.1 (was 22.0.3)
+- Chromium 110.0.5481.104 (was 108.0.5359.179)
+
+## [9.5.1](https://github.com/Jelmerro/Vieb/compare/9.5.0...9.5.1) - 2023-01-20
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/9.5.0...9.5.1) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/9.5.1)
+
+### Changed
+
+- COOP is now enabled again as the old workaround for Twitter navigations is no longer needed
+- SharedArrayBuffer is now enabled to make web workers more useful and faster
+- Attempting to navigate a page that isn't ready for navigation will now wait until it's ready
+
+### Fixed
+
+- CORS issues when using darkreader
+- Exception in devtools when using newtaburl
+- Middle-mouse pasting not working in command and search mode as it would switch to explore mode incorrectly
+
+### Versions
+
+- Electron 22.0.3 (was 22.0.0)
+- Chromium 108.0.5359.179 (was 108.0.5359.62)
+
+## [9.5.0](https://github.com/Jelmerro/Vieb/compare/9.4.0...9.5.0) - 2022-12-14
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/9.4.0...9.5.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/9.5.0)
+
+### Added
+
+- Startup argument "--unsafe-multiwin" to have multiple windows in the same datafolder and skip the single instance safety check
+- Command "translatepage" to translate the page using Deepl API or LibreTranslate
+- Settings "translateapi", "translatekey", "translatelang" and "translateurl" to customize translation settings for ":translatepage"
+- Setting "permissionclipboardwrite", as clipboard writing was recently moved to a permission by Electron (default remains allowed)
+- Settings "replacespecial" and "replacestartup" to control when new pages should re-use/replace the current tab
+
+### Changed
+
+- Rpm and deb releases are now symlinked in /usr/bin correctly on updates after this one
+- Confirm char "!" for special page commands now opens them in a new tab regardless of the new "replacespecial" setting
+
+### Fixed
+
+- Recursive key mappings not working correctly when the timeout is reached and there are also multi-key mappings
+- Cache errors/corruption on Windows upon restart after clearing/disabling cache
+- Setting externalcommand is now actually used for opening new tabs externally (fallback remains the default browser)
+- Exception popup on Linux when quitting if using window frame borders
+- Valid urls without protocol not always being recognized as a startup argument
+
+### Versions
+
+- Electron 22.0.0 (was 22.0.0-beta.5)
+- Chromium 108.0.5359.62 (was 108.0.5359.40)
+
+## [9.4.0](https://github.com/Jelmerro/Vieb/compare/9.3.0...9.4.0) - 2022-11-16
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/9.3.0...9.4.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/9.4.0)
+
+### Added
+
+- Percentage based scrolling when using "gg" or "G" with a count, similar to Vim
+- Action "startFollowCopyLink" for copying links of selected elements in follow mode
+- Setting "darkreadermode" to switch between light and dark schemes/modes for darkreader
+- Settings "resourcetypes", "resourcesallowed" and "resourcesblocked" to control allowed/blocked resource types
+- Setting "shell" to control the shell to use for system commands
+- Live indicator of current theme preference to the nativetheme help documentation
+
+### Changed
+
+- Maximum values of darkreader brightness and contrast settings from 100 to 200 percent
+- Buffer-like command suggestions to be in sync with actual behavior
+- Buffer-like command suggestions to include the page url
+- Check if the entire body is scrollable instead of the window for global scroll actions and scrollpos
+- Prevent navigation to invalid urls to make sure a page can always be interacted with
+- Shell now reads "$SHELL" instead of defaulting to "/bin/sh" for system commands
+
+### Fixed
+
+- Action "openNewTabWithCurrentUrl" not working at all in last release due to unsafe check
+- Duplicate downloads due to page restart workaround (which is now fixed by Electron)
+
+### Versions
+
+- Electron 22.0.0-beta.5 (was 21.1.0)
+- Chromium 108.0.5359.40 (was 106.0.5249.91)
+
+## [9.3.0](https://github.com/Jelmerro/Vieb/compare/9.2.1...9.3.0) - 2022-10-10
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/9.2.1...9.3.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/9.3.0)
+
+### Added
+
+- Setting "reloadtaboncrash" to automatically recreate a crash tab with the last known url
+- Indicator for unresponsive tabs in the form of a small red border on the left of the unresponsive tab
+- Setting "userscript" to run custom JavaScript on pages, optionally using the GreaseMonkey API
+
+### Changed
+
+- Modifiers/shifted keys for searching, marks and follow mode now work more reliable
+- Tabs will no longer refuse to navigate when there is a beforeunload listener that calls preventDefault
+- When the current tab is crashed, you can no longer enter irrelevant modes in it
+
+### Fixed
+
+- Initial tab load issues on some devices for specific pages
+- Split state not being kept when switching container name based on containernames setting
+- Multiple useragents being set sometimes causing duplicate page loads
+- BatteryManager errors for insecure pages, since it's an HTTPS-only API
+- Follow mode and other main process calls not succeeding when there are crashed tabs present
+
+### Versions
+
+- Electron 21.1.0 (was 21.0.1)
+- Chromium 106.0.5249.91 (was 106.0.5249.61)
+
+## [9.2.1](https://github.com/Jelmerro/Vieb/compare/9.2.0...9.2.1) - 2022-10-04
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/9.2.0...9.2.1) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/9.2.1)
+
+### Changed
+
+- Enter key will now also send keypress events when executed by a mapping
+- Pick first matching rule from permission allow, block or ask lists
+- Permission allow list can now include labels for mediadevices using "mediadevicesfull"
+
+### Fixed
+
+- Media device requests being mislabeled as display capture permission requests in some cases
+
+### Versions
+
+- Electron 21.0.1 (was 21.0.0)
+- Chromium 106.0.5249.61 (was 106.0.5249.51)
+
+## [9.2.0](https://github.com/Jelmerro/Vieb/compare/9.1.0...9.2.0) - 2022-09-28
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/9.1.0...9.2.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/9.2.0)
+
+### Added
+
+- New themes: light-compact, paper-compact and paper
+- Backwards searching if search is started with a shifted key (by default `?`)
+
+### Changed
+
+- Pinned and mute state are now remembered for tabs affected by "containernames" container switching
+- Pinned tabs will now be correctly reopened by "containernames" container switching
+- Mouse scrolling on Vieb elements will now scroll the underlying page if the "pageoutsideinsert" mouse feature is on (default)
+- Search will now find the next match if searching for the same string again
+- Default blocklist urls to use adblockplus instead of easylist due to fetch issues
+
+### Fixed
+
+- Follow mode borders showing over labels
+- Follow mode mouse hover appearing when not needed
+- Backwards searching not working in previous release due to typo
+- Special characters not working in custom viewers (markdown, reader and source)
+
+### Versions
+
+- Electron 21.0.0 (was 20.1.1)
+- Chromium 106.0.5249.51 (was 104.0.5112.10)
+
+## [9.1.0](https://github.com/Jelmerro/Vieb/compare/9.0.0...9.1.0) - 2022-09-07
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/9.0.0...9.1.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/9.1.0)
+
+### Added
+
+- Settings "searchscope" and "searchemptyscope" to make local tab-specific searches
+- Default mapping for emptySearch using `Backspace`
+
+### Changed
+
+- Adblocker can now update custom blocklists by adding a "list.json" file to the blocklists folder
+- Failed load error page to include certificate permission setting if related to cert errors
+
+### Fixed
+
+- Preload path of adblocker not being correct for all builds
+- All remaining runtime error popups related to subframe access issues (they are now shown in the console)
+- Erwic datafolder not resolving "~" correctly
+- Fixed atob issues by updating to an Electron release with a correct implementation
+
+### Versions
+
+- Electron 20.1.1 (was 20.0.2)
+- Chromium 104.0.5112.102 (was 104.0.5112.81)
+
+## [9.0.0](https://github.com/Jelmerro/Vieb/compare/8.1.0...9.0.0) - 2022-08-14
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/8.1.0...9.0.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/9.0.0)
+
+### Added
+
+- Special type of notification for dialog inform notifications, which can be colored separately
+- Setting "suggestbouncedelay" to control the debounce delay of suggestions, to handle fast typing better
+- Setting "darkreaderblocklist" to block specific sites (regular expressions) from using darkreader, even if enabled
+- Setting "userstyle" to toggle loading of custom CSS files into the page, either globally or per-domain
+- Actions "toggleMarkdownViewer" and "toggleMarkdownViewerNewTab" to toggle the new theme supported "markdownviewer"
+- Setting "nativetheme" to control the theme to report to pages, used by the "prefers-color-scheme" CSS rule
+- Quickmarks to store and reload scroll positions, pointer positions and page urls quickly
+- Commands "marks", "restoremark", "delmarks", "pointerpos", "restorepointerpos", "delpointerpos", "scrollpos", "restorescrollpos" and "delscrollpos" to list and delete quickmarks
+- Settings "quickmarkpersistence", "pointerpostype", "pointerposlocalid", "scrollpostype", "scrollposlocalid", "markposition" and "markpositionshifted" to control quickmarks
+- Actions "storeScrollPos", "restoreScrollPos", "p.storePos", "p.restorePos", "makeMark" and "restoreMark" to add and load quickmarks
+- Webpack compilation to the released builds, for better tree-shaking and minified code
+- Separate "lite" build/release that does not have any dependency packages installed
+
+### Changed
+
+- Only show notification popup for notifications with lots of newlines
+- Examples are now downloaded as blobs instead of files to allow them to be bundled in the asar file for releases
+- Startup argument "--debug" is now called "--devtools" to avoid nodejs argument conflict
+- Give "storenewvisits" a new option for "markdownviewer"
+- Logic for staying in follow mode after selecting something is now more consistent in remembering the previous mode
+- Main process devtools are now always undocked to prevent window size issues
+- Follow mode logic to use the much faster async IntersectionObserver instead of sync API
+- Follow mode logic to be faster if fewer element types are queried
+- Use Electron's clickOnSearch implementation in favor of Vieb's custom one
+- Setting "containernames" now also works for current tab navigation, unless you tell it not to with the "~newtab" suffix
+- Use regex to detect SVG favicons instead of relying on "is-svg" dependency
+- Use nodejs filesystem API instead of relying on "rimraf" dependency
+- All runtime dependencies are now loaded safely, and will show a message when missing (this makes ALL dependencies optional)
+- Custom icon and name are now shown on the version page as well
+- Only include en-US locale in builds to decrease build size significantly
+- Invalid or missing chrome:// pages are now redirected to their Vieb counterpart (if it exists) or the help page
+
+### Removed
+
+- Extension support, see [this Github issue](https://github.com/Jelmerro/Vieb/issues/385) to learn more
+- Setting "firefoxmode" in favor of setting the "useragent" setting to a Firefox useragent
+
+### Fixed
+
+- Suspended tabs sometimes failing to wake up correctly
+- Commands :rclose and :lclose not working correctly when there are suspended tabs
+- Race condition in opening new tabs with urls that would sometimes unsuspend them twice
+- White background on some pages that load page styling async and in reloaded iframes
+- Error popup from the main thread regarding discarded frames
+- White background on pages with dark color-scheme preference and no custom styling
+
+### Versions
+
+- Electron 20.0.2 (was 19.0.6)
+- Chromium 104.0.5112.81 (was 102.0.5005.115)
+
+## [8.1.0](https://github.com/Jelmerro/Vieb/compare/8.0.0...8.1.0) - 2022-06-29
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/8.0.0...8.1.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/8.1.0)
+
 ### Added
 
 - Darkreader with many settings like "darkreader" and "darkreadercontrast" to toggle and control darkreader theming
+- Sponsorblock with settings "sponsorblock" "sponsorblockcategories" to toggle and control blocking
 
 ### Changed
 
 - Reduced the amount of mouse movement events while inside pointer mode, greatly reducing CPU usage
 - Setting "useragent" is now separated by tildes `~` instead of commas `,` as to allow commas to appear in useragents
+- Settings with `,` separator with each entry having a `~` separator can now be removed with just the part before the first `~`
+- Explore mode suggestion logic should now be faster after first search by caching page titles
+
+### Deprecated
+
+- Extension support, see [this Github issue](https://github.com/Jelmerro/Vieb/issues/385) to learn more
 
 ### Fixed
 
 - Compact layout overflowing below the visible window, now uses grid layout
 - Shifted space and backspace not working in navbar as a regular space/backspace
+- DOM issue when trying to send iframe details before DOM is ready
 
 ### Versions
 
-- Electron 19.0.4 (was 19.0.3)
-- Chromium 102.0.5005.63 (unchanged)
+- Electron 19.0.6 (was 19.0.3)
+- Chromium 102.0.5005.115 (was 102.0.5005.63)
 
 ## [8.0.0](https://github.com/Jelmerro/Vieb/compare/7.2.0...8.0.0) - 2022-06-08
 
@@ -206,7 +693,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Removed
 
 - Longtime workaround for electron-builder to manually create the mac zips (they are now valid zip archives instead of being broken)
-- Compatibility linter plugin compat, as it's no longer needed due to widespread release of newer node verions
+- Compatibility linter plugin compat, as it's no longer needed due to widespread release of newer node versions
 
 ### Fixed
 
@@ -264,7 +751,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Make special mouse button dragging resize the screenshot frame by changing the width and height instead of position arguments
-- Examples with custom commands are now in a separate example file that isn't used by default, due to it's explicit and non-native nature
+- Examples with custom commands are now in a separate example file that isn't used by default, due to its explicit and non-native nature
 
 ### Fixed
 
@@ -751,7 +1238,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Command "mute" to toggle the audio playback status of a tab (either mute or unmute)
-- Setting "respectsitecontextmenu" to toggle if Vieb should show it's menu on websites that already provide one
+- Setting "respectsitecontextmenu" to toggle if Vieb should show its menu on websites that already provide one
 - Setting "suspendonrestore" to restore tabs lazily (loading tabs only once they're visible)
 - Setting "suspendtimeout" to automatically suspend background tabs after a delay
 - Command "suspend" to manually suspend any background tab right now
@@ -973,17 +1460,6 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Make use of system fonts as much as possible: "DejaVu Sans Mono" -> "Courier" -> "monospace", in that order
 - Visual appearance of Vieb: logo is now smaller, everything is now styled with colorschemes and popups are more in line with other elements
 
-### Fixed
-
-- Typo in the "storenewvisits" setting (there will be no automatic migration from the name with a typo to the correct one)
-- Pointer not updating the location when bringing back the GUI while in fullscreen
-- Permission for media devices sometimes being detected as a microphone permission
-- Mouse back/forward buttons being ignored when the mouse setting is enabled
-- Shift being ignored when pressing named keys that can be pressed with and without Shift such as "Space"
-- Border of split pages moving the page slightly when switching (border is now always there but in gray)
-- Updating the adblocker files when Vieb is installed on a read-only file system
-- Favicons being accepted even though the HTTP status code was an error (such as 404)
-
 ### Deprecated
 
 - Old tabs file format (3.x.x releases will migrate to the new format, 2.x.x releases will not read the 3.x.x format)
@@ -997,6 +1473,14 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Fixed
 
+- Typo in the "storenewvisits" setting (there will be no automatic migration from the name with a typo to the correct one)
+- Pointer not updating the location when bringing back the GUI while in fullscreen
+- Permission for media devices sometimes being detected as a microphone permission
+- Mouse back/forward buttons being ignored when the mouse setting is enabled
+- Shift being ignored when pressing named keys that can be pressed with and without Shift such as "Space"
+- Border of split pages moving the page slightly when switching (border is now always there but in gray)
+- Updating the adblocker files when Vieb is installed on a read-only file system
+- Favicons being accepted even though the HTTP status code was an error (such as 404)
 - Abort error for aborting page loads in the debug console (using --debug)
 - Don't keep closed pages in memory while the 'keeprecentlyclosed' setting is off
 
@@ -1081,7 +1565,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Improve the follow mode speed by reusing DOM calls and only using an interval (no more page observers)
 - Disable the remote module entirely
-- Load the preload from the main process and prevent changes to it's location
+- Load the preload from the main process and prevent changes to its location
 
 ### Fixed
 
@@ -1242,7 +1726,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Changed
 
-- Update to the http basic login system to work with the new electron version
+- Update to the http basic login system to work with the new Electron version
 - Open the login dialog in the center of the Vieb browser window
 - Running the last command again no longer adds a duplicate to the command history
 - Improved url detection as a result of testing the function properly
@@ -1588,7 +2072,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Default duckduckgo search engine to use a dark theme
 - Improved CLI startup arguments for packaged apps
 - Split the preload into multiple separate preloads
-- Improved electron builder configuration (separate file with much better settings)
+- Improved electron-builder configuration (separate file with much better settings)
 - Vieb is now a single window application (single-instance): when already open, new urls will be opened as tabs
 - Disable follow mode for iframes again due to a couple of issues with it
 

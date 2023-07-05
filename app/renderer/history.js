@@ -1,6 +1,6 @@
 /*
 * Vieb - Vim Inspired Electron Browser
-* Copyright (C) 2019-2022 Jelmer van Arnhem
+* Copyright (C) 2019-2023 Jelmer van Arnhem
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -33,14 +33,60 @@ const {
 const {getSetting} = require("./common")
 
 const histFile = joinPath(appData(), "hist")
+/** @type {{[url: string]: string}} */
 const simpleUrls = {}
+/** @type {{[url: string]: string}} */
+const simpleTitles = {}
+/** @type {number|null} */
 let histWriteTimeout = null
+/** @type {{[url: string]: {visits: string[], title: string}}} */
 let groupedHistory = {}
 
 const init = () => {
     groupedHistory = readJSON(histFile) || {}
 }
 
+/**
+ * Get a simplified url for a given regular url, result is cached for speed.
+ * @param {string} url
+ */
+const getSimpleUrl = url => {
+    let simpleUrl = simpleUrls[url]
+    if (simpleUrl === undefined) {
+        simpleUrl = urlToString(url).replace(specialChars, "").toLowerCase()
+        simpleUrls[url] = simpleUrl
+    }
+    return simpleUrl
+}
+
+/**
+ * Get a simplified name for a given regular page title, result is cached.
+ * @param {string} name
+ */
+const getSimpleName = name => {
+    let simpleTitle = simpleTitles[name]
+    if (simpleTitle === undefined) {
+        simpleTitle = name.replace(specialChars, "").toLowerCase()
+        simpleTitles[name] = simpleTitle
+    }
+    return simpleTitle
+}
+
+/**
+ * Check if all search words appear anywhere in a simple url or page title.
+ * @param {string[]} search
+ * @param {string} simpleUrl
+ * @param {string} name
+ */
+const allWordsAnywhere = (search, simpleUrl, name) => search.every(
+    w => simpleUrl.includes(w) || getSimpleName(name).includes(w))
+
+/**
+ * Suggest history for a specific url input, an order and a maximum amount.
+ * @param {string} searchStr
+ * @param {string} order
+ * @param {number} count
+ */
 const suggestHist = (searchStr, order, count) => {
     // Simplify the search to a list of words, or an ordered list of words,
     // ordered matches take priority over unordered matches only.
@@ -55,11 +101,8 @@ const suggestHist = (searchStr, order, count) => {
         if (!groupedHistory[url]) {
             return null
         }
-        let simpleUrl = simpleUrls[url]
-        if (simpleUrl === undefined) {
-            simpleUrl = urlToString(url).replace(specialChars, "").toLowerCase()
-            simpleUrls[url] = simpleUrl
-        }
+        const simpleUrl = getSimpleUrl(url)
+        const name = groupedHistory[url].title
         let relevance = 1
         if (simpleSearch.every(w => simpleUrl.includes(w))) {
             relevance = 5
@@ -67,22 +110,17 @@ const suggestHist = (searchStr, order, count) => {
         if (url.toLowerCase().includes(search)) {
             relevance *= 10
         }
-        const allWordsInTitleOrUrl = () => {
-            const simpleTitle = groupedHistory[url].title.replace(
-                specialChars, "").toLowerCase()
-            return simpleSearch.every(
-                w => simpleTitle.includes(w) || simpleUrl.includes(w))
-        }
-        if (relevance > 1 || allWordsInTitleOrUrl()) {
+        if (relevance > 1 || allWordsAnywhere(simpleSearch, simpleUrl, name)) {
             return {
+                "icon": url,
                 "last": new Date(groupedHistory[url]?.visits?.slice(-1)[0]),
-                "title": groupedHistory[url].title,
+                "title": name,
                 "top": relevance * visitCount(url),
                 url
             }
         }
         return null
-    }).filter(h => h)
+    }).flatMap(h => h ?? [])
     if (order === "alpha") {
         entries.sort((a, b) => {
             const first = a.url.replace(/^\w+:\/\/(www\.)?/g, "")
@@ -97,23 +135,25 @@ const suggestHist = (searchStr, order, count) => {
         })
     }
     if (order === "date") {
-        entries.sort((a, b) => b.last - a.last)
+        entries.sort((a, b) => b.last.getTime() - a.last.getTime())
     }
     if (order === "relevance") {
         entries.sort((a, b) => b.top - a.top)
     }
     const {addExplore} = require("./suggest")
-    const {forSite} = require("./favicons")
-    entries.slice(0, count).forEach(h => addExplore(
-        {...h, "icon": forSite(h.url)}))
+    entries.slice(0, count).forEach(addExplore)
 }
 
+/**
+ * Add a specific url to the history if not excluded.
+ * @param {string} url
+ */
 const addToHist = url => {
     if (url.startsWith("devtools://")) {
         return
     }
     const saveTypes = getSetting("storenewvisits").split(",")
-    if (pathToSpecialPageName(url).name) {
+    if (pathToSpecialPageName(url)?.name) {
         if (!saveTypes.includes("special")) {
             return
         }
@@ -129,6 +169,10 @@ const addToHist = url => {
         if (!saveTypes.includes("readerview")) {
             return
         }
+    } else if (url.startsWith("markdownviewer:")) {
+        if (!saveTypes.includes("markdownviewer")) {
+            return
+        }
     } else if (!saveTypes.includes("pages")) {
         return
     }
@@ -141,39 +185,92 @@ const addToHist = url => {
 }
 
 const writeHistToFile = (now = false) => {
-    if (Object.keys(groupedHistory).length === 0) {
-        deleteFile(histFile)
-        return
+    window.clearTimeout(histWriteTimeout ?? undefined)
+    if (!now) {
+        histWriteTimeout = window.setTimeout(() => {
+            writeHistToFile(true)
+        }, 5000)
+        return true
     }
     Object.keys(groupedHistory).forEach(url => {
         if (visitCount(url) === 0) {
             delete groupedHistory[url]
         }
     })
-    clearTimeout(histWriteTimeout)
-    if (now) {
-        return writeJSON(histFile, groupedHistory)
+    if (Object.keys(groupedHistory).length === 0) {
+        return deleteFile(histFile)
     }
-    histWriteTimeout = setTimeout(() => {
-        writeHistToFile(true)
-    }, 5000)
+    return writeJSON(histFile, groupedHistory)
 }
 
+/**
+ * Remove old history from before a specific date.
+ * @param {Date} date
+ */
+const removeOldHistory = date => {
+    Object.keys(groupedHistory).forEach(url => {
+        groupedHistory[url].visits = groupedHistory[url].visits
+            .filter(d => new Date(d) > date)
+    })
+    return writeHistToFile(true)
+}
+
+/**
+ * Remove history newer than a specific date.
+ * @param {Date} date
+ */
+const removeRecentHistory = date => {
+    Object.keys(groupedHistory).forEach(url => {
+        groupedHistory[url].visits = groupedHistory[url].visits
+            .filter(d => new Date(d) < date)
+    })
+    return writeHistToFile(true)
+}
+
+/**
+ * Remove history based on a partial url query.
+ * @param {string} urlSnippet
+ */
+const removeHistoryByPartialUrl = urlSnippet => {
+    Object.keys(groupedHistory).forEach(url => {
+        if (url.includes(urlSnippet)) {
+            groupedHistory[url].visits = []
+        }
+    })
+    return writeHistToFile(true)
+}
+
+/**
+ * Remove specific entries from the preload from history.
+ * @param {{date: string, url: string}[]} entries
+ */
 const removeFromHistory = entries => {
     entries.forEach(entry => {
         const {url} = entry
         if (groupedHistory[url]) {
             groupedHistory[url].visits = groupedHistory[url].visits
                 .filter(d => d !== entry.date)
-            if (visitCount(url) === 0) {
-                delete groupedHistory[url]
-            }
         }
     })
     return writeHistToFile(true)
 }
 
-const handleRequest = (webview, action = "", entries = []) => {
+/** @typedef {{
+ *   date: Date,
+ *   icon: string,
+ *   title: string,
+ *   url: string,
+ *   visits: number
+ * }} historyItem
+ */
+
+/**
+ * Handle a request from the preload to remove history or just list it.
+ * @param {Electron.WebviewTag} webview
+ * @param {"range"|null} action
+ * @param {{date: string, url: string}[]} entries
+ */
+const handleRequest = (webview, action = null, entries = []) => {
     const {updateMappings} = require("./favicons")
     if (action) {
         let success = false
@@ -184,6 +281,7 @@ const handleRequest = (webview, action = "", entries = []) => {
         updateMappings()
         return
     }
+    /** @type {historyItem[]} */
     let history = []
     const {forSite} = require("./favicons")
     Object.keys(groupedHistory).forEach(site => {
@@ -197,8 +295,8 @@ const handleRequest = (webview, action = "", entries = []) => {
             })
         })
     })
-    history = history.sort((a, b) => a.date.getTime() - b.date.getTime())
-    webview.send("history-list", JSON.stringify(history))
+    history = history.sort((a, b) => b.date.getTime() - a.date.getTime())
+    webview.send("history-list", history)
     updateMappings()
 }
 
@@ -213,17 +311,34 @@ const suggestTopSites = () => {
         }))
 }
 
-const visitCount = url => groupedHistory[url]?.visits?.length || 0
+/**
+ * Get the visit count for a given url, will be 0 if not found or never visited.
+ * @param {string|null} url
+ */
+const visitCount = url => url && groupedHistory[url]?.visits?.length || 0
 
+/**
+ * Get the latest title for a page by url.
+ * @param {string} originalUrl
+ */
 const titleForPage = originalUrl => {
     const {getRedirect} = require("./favicons")
     const url = getRedirect(originalUrl)
-    return groupedHistory[url]?.title || title(pathToSpecialPageName(url).name)
+    return groupedHistory[url]?.title || title(
+        pathToSpecialPageName(url)?.name ?? "")
 }
 
+/**
+ * Update the title for a page by url.
+ * @param {string} rawUrl
+ * @param {string} rawName
+ */
 const updateTitle = (rawUrl, rawName) => {
     const url = rawUrl.replace(/\t/g, "")
     const name = rawName.replace(/\t/g, "")
+    if (!groupedHistory[url]) {
+        addToHist(url)
+    }
     if (groupedHistory[url]) {
         if (groupedHistory[url].title === name) {
             return
@@ -232,16 +347,19 @@ const updateTitle = (rawUrl, rawName) => {
             return
         }
         groupedHistory[url].title = name
-    } else {
-        groupedHistory[url] = {"title": name, "visits": []}
     }
     writeHistToFile()
 }
 
 module.exports = {
     addToHist,
+    getSimpleName,
+    getSimpleUrl,
     handleRequest,
     init,
+    removeHistoryByPartialUrl,
+    removeOldHistory,
+    removeRecentHistory,
     suggestHist,
     suggestTopSites,
     titleForPage,

@@ -1,17 +1,14 @@
 " Options
-set firefoxmode=always
 set adblocker=update
-set downloadmethod=confirm
-set mintabwidth=250
-set norestoretabs
-set redirecttohttp
-set noshowcmd
-set noincsearch
-set tabreopenposition=previous
 set closablepinnedtabs
+set downloadmethod=confirm
+set noincsearch
+set mintabwidth=250
+set redirecttohttp
+set restoretabs=pinned
 set searchwords=
 set searchwords+=google~https://www.google.com/search?q=%s
-set searchwords+=googlelucky~"https://www.google.com/search?btnI=I'm+Feeling+Lucky&q=%s"
+set searchwords+="googlelucky~https://www.google.com/search?btnI=I'm+Feeling+Lucky&q=%s"
 set searchwords+=scholar~https://scholar.google.com/scholar?q=%s
 set searchwords+=googleuk~https://www.google.co.uk/search?q=%s
 set searchwords+=bing~https://www.bing.com/search?q=%s
@@ -30,6 +27,9 @@ set searchwords+=osm~https://www.openstreetmap.org/search?query=%s
 set searchwords+=mdn~https://developer.mozilla.org/en-US/search?q=%s
 set searchwords+=gentoo_wiki~https://wiki.gentoo.org/index.php?title=Special:Search&profile=default&fulltext=Search&search=%s
 set searchwords+=qwant~https://www.qwant.com/?q=%s
+set noshowcmd
+set tabreopenposition=previous
+set useragent=%firefox
 
 " Custom Commands
 command! fillcmdline_open <toExploreMode>
@@ -43,14 +43,11 @@ command! tabmove_-1 <moveTabBackward>
 command! current_url_open <toExploreMode><End>
 command! tabclosealltoleft <:lclose>
 command! tabclosealltoright <:rclose>
-command! mute_toggle <:mute>
 command! stop <stopLoadingPage>
 command! urlincrement_-1 <decreasePageNumber>
 command! urlincrement_1 <increasePageNumber>
 command! followpage_prev <previousPage>
 command! followpage_next <nextPage>
-command! urlparent <toParentUrl>
-command! urlroot <toRootUrl>
 command! zoom_1 <zoomReset>
 command! zoom_0.1_true <zoomIn>
 command! zoom_-0.1_true <zoomOut>
@@ -74,15 +71,11 @@ nmap <lt><lt> <:tabmove_-1>
 nmap O <:current_url_open>
 nmap gx0 <:tabclosealltoleft>
 nmap gx$ <:tabclosealltoright>
-nmap <A-p> <:pin>
-nmap <A-m> <:mute_toggle>
 nmap x <:stop>
 nunmap [
 nunmap ]
 nmap [[ <:followpage_prev>
 nmap ]] <:followpage_next>
-nmap gu <:urlparent>
-nmap gU <:urlroot>
 nmap [c <:urlincrement_-1>
 nmap ]c <:urlincrement_1>
 nmap zz <:zoom_1>
