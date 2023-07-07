@@ -38,7 +38,7 @@ const {
 let bookmarkData = {}
 let bookmarksFile = ""
 
-const validOptions = [
+const validBookmarkOptions = [
     "bg",
     "fg",
     "id",
@@ -176,23 +176,23 @@ const loadBookmark = input => {
 const matchBookmarksToInput = input => {
     const storedBookmarkData = getBookmarkData().bookmarks
     let selectedBookmarks = []
-    if (validOptions.some(option => input.join().includes(`${option}=`))) {
+    if (validBookmarkOptions.some(option => input.join().includes(`${option}=`))) {
         const eachOption = input.join("").split("~")
         selectedBookmarks = storedBookmarkData.filter(b => {
-            let matches = 0
+            let matchedOptions = 0
             eachOption.forEach(e => {
                 const keyAndValue = e.split("=")
                 if (keyAndValue[0] === "tag" || keyAndValue[0] === "keywords") {
                     if (b[keyAndValue[0]].includes(keyAndValue[1])) {
-                        matches = 1 + matches
+                        matchedOptions += 1
                     }
                 } else {
                     if (b[keyAndValue[0]] === keyAndValue[1]) {
-                        matches = 1 + matches
+                        matchedOptions += 1
                     }
                 }
             })
-            if (matches === eachOption.length) {
+            if (matchedOptions === eachOption.length) {
                 return true
             }
         })
@@ -258,8 +258,6 @@ const addFolder = path => {
     }
 }
 
-const getAllBookmarks = () => bookmarkData.bookmarks
-
 const getBookmarkData = () => bookmarkData
 
 const writeBookmarksToFile = () => {
@@ -277,7 +275,7 @@ const isBookmarkValid = bookmark => {
 
     // Remove invalid options
     for (const option in bookmark) {
-        if (!validOptions.includes(option)) {
+        if (!validBookmarkOptions.includes(option)) {
             badOptions.push(option)
             delete bookmark[option]
         }
@@ -306,7 +304,6 @@ const isBookmarkValid = bookmark => {
 module.exports = {
     addBookmark,
     deleteBookmark,
-    getAllBookmarks,
     getBookmarkData,
     loadBookmark,
     setBookmarkSettings
