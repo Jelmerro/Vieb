@@ -306,5 +306,6 @@ module.exports = {
     deleteBookmark,
     getBookmarkData,
     loadBookmark,
-    setBookmarkSettings
+    setBookmarkSettings,
+    validBookmarkOptions
 }

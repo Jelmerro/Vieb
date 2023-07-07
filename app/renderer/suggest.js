@@ -741,32 +741,68 @@ const suggestCommand = searchStr => {
             }
         }
     }
-    const bookmarkCommand = [
+    [
         "bmload",
         "bmdel"
-    ].find(b => b.startsWith(command))
-    if (bookmarkCommand && !confirm) {
-        const simpleSearch = args.join("")
-            .replace(specialChars, "").toLowerCase()
-        const {getBookmarkData} = require("./bookmarks")
-        const {bookmarks, folders, tags} = getBookmarkData()
-        // List individual bookmarks
-        bookmarks.map(b => ({
-            "command": `${bookmarkCommand} ${b.name}`,
-            "subtext": `${b.title} ${b.url}`,
-            "url": b.url
-        })).filter(b => {
-            const bookmarkUrl = b.url.replace(specialChars, "")
-                .toLowerCase()
-            if (bookmarkUrl.includes(simpleSearch)) {
-                return true
+    ].forEach(
+        bmCommand => {
+            if (bmCommand.startsWith(command) && !confirm) {
+                const {getBookmarkData,
+                    validBookmarkOptions} = require("./bookmarks")
+                const bmData = getBookmarkData()
+
+                // Specific option mode
+                if (validBookmarkOptions.some(opt => args.join()
+                    .includes(`${opt}=`))) {
+                    const currentOptions = args.join().split("~")
+                    const [suggestingOption] = currentOptions.slice(-1)
+                    const keyAndValue = suggestingOption.split("=")
+                    const completeCommand =
+                          `${bmCommand} \
+                            ${args.join().split("=").slice(0, -1).join()}=`
+
+                    if (keyAndValue[0] === "tag") {
+                        bmData.tags.forEach(t => {
+                            if (t.id.startsWith(keyAndValue[1])) {
+                                addCommand(completeCommand + t.id)
+                            }
+                        })
+                    } else if (keyAndValue[0] === "path") {
+                        bmData.folders.forEach(f => {
+                            if (f.path.startsWith(keyAndValue[1])) {
+                                addCommand(completeCommand + f.path)
+                            }
+                        })
+                    } else {
+                        bmData.bookmarks.forEach(b => {
+                            if (b[keyAndValue[0]].startsWith(keyAndValue[1])) {
+                                addCommand(
+                                    `${completeCommand} ${b[keyAndValue[0]]}`)
+                            }
+                        })
+                    }
+                } else {
+                    // Select by name, url or title.
+                    const {specialChars} = require("../util")
+                    const simpleSearch = args.join("")
+                        .replace(specialChars, "").toLowerCase()
+                    bmData.bookmarks.map(bmd => ({
+                        "command": `${bmCommand} ${bmd.name}`,
+                        "subtext": `${bmd.title} ${bmd.url}`
+                    })).filter(b => {
+                        const test = b.command.replace(specialChars, "")
+                            .toLowerCase()
+                        const bmTitle = b.subtext.replace(specialChars, "")
+                            .toLowerCase()
+                        if (test.includes(simpleSearch)) {
+                            return true
+                        }
+                        return bmTitle.includes(simpleSearch)
+                    }).forEach(e => addCommand(e.command, e.subtext))
+                }
             }
-            const bookmarkTitle = b.subtext.replace(specialChars, "")
-                .toLowerCase()
-            return bookmarkTitle.includes(simpleSearch)
-            // Keywords, tags and paths
-        }).forEach(b => addCommand(b.command, b.subtext))
-    }
+        }
+    )
 }
 
 /**
