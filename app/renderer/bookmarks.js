@@ -184,7 +184,14 @@ const matchBookmarksToInput = input => {
             eachOption.forEach(e => {
                 const [key, value] = e.split("=")
                 if (key === "tag" || key === "keywords") {
-                    if (b[key].includes(value)) {
+                    const eachValue = value.split(",")
+                    let matchedValues = 0
+                    eachValue.forEach(v => {
+                        if (b[key].includes(v)) {
+                            matchedValues += 1
+                        }
+                    })
+                    if (eachValue.length === matchedValues) {
                         matchedOptions += 1
                     }
                 }
