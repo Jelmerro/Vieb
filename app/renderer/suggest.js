@@ -762,9 +762,20 @@ const suggestCommand = searchStr => {
                             ${args.join().split("=").slice(0, -1).join()}=`
 
                     if (key === "tag") {
+                        const enteredTags = value.split(",")
+                        const suggestingTag = enteredTags.pop()
                         bmData.tags.forEach(t => {
-                            if (t.id.startsWith(value)) {
-                                addCommand(completeCommand + t.id)
+                            if (t.id.startsWith(suggestingTag)) {
+                                let tagString = ""
+                                if (enteredTags.length > 0) {
+                                    enteredTags.forEach(e => {
+                                        tagString = tagString.concat(`${e},`)
+                                    })
+                                }
+                                if (!enteredTags.includes(t.id)) {
+                                    addCommand(
+                                        completeCommand + tagString + t.id)
+                                }
                             }
                         })
                     } else if (key === "path") {
