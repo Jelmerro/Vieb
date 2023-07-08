@@ -756,28 +756,28 @@ const suggestCommand = searchStr => {
                     .includes(`${opt}=`))) {
                     const currentOptions = args.join().split("~")
                     const [suggestingOption] = currentOptions.slice(-1)
-                    const keyAndValue = suggestingOption.split("=")
-                    const completeCommand =
-                          `${bmCommand} \
+                    const [key, value] = suggestingOption.split("=")
+                    const completeCommand
+                          = `${bmCommand} \
                             ${args.join().split("=").slice(0, -1).join()}=`
 
-                    if (keyAndValue[0] === "tag") {
+                    if (key === "tag") {
                         bmData.tags.forEach(t => {
-                            if (t.id.startsWith(keyAndValue[1])) {
+                            if (t.id.startsWith(value)) {
                                 addCommand(completeCommand + t.id)
                             }
                         })
-                    } else if (keyAndValue[0] === "path") {
+                    } else if (key === "path") {
                         bmData.folders.forEach(f => {
-                            if (f.path.startsWith(keyAndValue[1])) {
+                            if (f.path.startsWith(value)) {
                                 addCommand(completeCommand + f.path)
                             }
                         })
                     } else {
                         bmData.bookmarks.forEach(b => {
-                            if (b[keyAndValue[0]].startsWith(keyAndValue[1])) {
+                            if (b[key].startsWith(value)) {
                                 addCommand(
-                                    `${completeCommand} ${b[keyAndValue[0]]}`)
+                                    `${completeCommand} ${b[key]}`)
                             }
                         })
                     }
