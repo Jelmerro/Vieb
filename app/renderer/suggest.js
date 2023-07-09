@@ -756,28 +756,61 @@ const suggestCommand = searchStr => {
                     .includes(`${opt}=`))) {
                     const currentOptions = args.join().split("~")
                     const [suggestingOption] = currentOptions.slice(-1)
-                    const keyAndValue = suggestingOption.split("=")
-                    const completeCommand =
-                          `${bmCommand} \
-                            ${args.join().split("=").slice(0, -1).join()}=`
+                    const [key, value] = suggestingOption.split("=")
+                    const completeCommand = `${bmCommand} ${args.join()
+                        .split("=").slice(0, -1).join()}=`
 
-                    if (keyAndValue[0] === "tag") {
+                    if (key === "tag") {
+                        const enteredTags = value.split(",")
+                        const suggestingTag = enteredTags.pop()
                         bmData.tags.forEach(t => {
-                            if (t.id.startsWith(keyAndValue[1])) {
-                                addCommand(completeCommand + t.id)
+                            if (t.id.startsWith(suggestingTag)) {
+                                let tagString = ""
+                                if (enteredTags.length > 0) {
+                                    enteredTags.forEach(e => {
+                                        tagString = tagString.concat(`${e},`)
+                                    })
+                                }
+                                if (!enteredTags.includes(t.id)) {
+                                    addCommand(
+                                        completeCommand + tagString + t.id)
+                                }
                             }
                         })
-                    } else if (keyAndValue[0] === "path") {
+                    } else if (key === "path") {
                         bmData.folders.forEach(f => {
-                            if (f.path.startsWith(keyAndValue[1])) {
+                            if (f.path.startsWith(value)) {
                                 addCommand(completeCommand + f.path)
+                            }
+                        })
+                    } else if (key === "keywords") {
+                        const enteredKeywords = value.split(",")
+                        const suggestingKeyword = enteredKeywords.pop()
+                        bmData.bookmarks.forEach(b => {
+                            if (b.keywords.join().includes(suggestingKeyword)) {
+                                b.keywords.forEach(k => {
+                                    let keywordString = ""
+                                    if (enteredKeywords.length > 0) {
+                                        enteredKeywords.forEach(e => {
+                                            keywordString = keywordString
+                                                .concat(`${e},`)
+                                        })
+                                    }
+                                    if (!enteredKeywords.includes(k)
+                                        && enteredKeywords
+                                            .every(k => b.keywords.includes(k))
+                                        && k.startsWith(suggestingKeyword)) {
+                                        addCommand(
+                                            completeCommand + keywordString + k)
+                                    }
+                                })
                             }
                         })
                     } else {
                         bmData.bookmarks.forEach(b => {
-                            if (b[keyAndValue[0]].startsWith(keyAndValue[1])) {
+                            if (b[key].startsWith(value)) {
                                 addCommand(
-                                    `${completeCommand} ${b[keyAndValue[0]]}`)
+                                    `${completeCommand} ${b[key]}`)
                             }
                         })
                     }

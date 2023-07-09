@@ -97,7 +97,7 @@ const addBookmark = input => {
         bookmarkData.bookmarks.push(newbookmark)
         bookmarkData.lastId += 1
         writeBookmarksToFile()
-        notify(`Bookmark added: ${newbookmark.name.substring(0, 20)}:
+        notify(`Bookmark added: ${newbookmark.name.substring(0, 20)}:\
                 ${newbookmark.url.substring(0, 40)}`)
     }
 }
@@ -133,16 +133,16 @@ const bookmarkObject = input => {
         const options = input.join(" ").split("~")
         for (let i = 0; i < options.length; i++) {
             // Get key and value: [0,1]
-            const keyAndValue = options[i].split("=")
-            if (keyAndValue[0] === "keywords" || keyAndValue[0] === "tag") {
-                const tagsOrKeywordList = keyAndValue[1].split(",")
-                newbookmark[keyAndValue[0]] = tagsOrKeywordList
+            const [key, value] = options[i].split("=")
+            if (key === "keywords" || key === "tag") {
+                const tagsOrKeywordList = value.split(",")
+                newbookmark[key] = tagsOrKeywordList
             } else {
-                const allValue = keyAndValue.slice(1).join("")
+                const allValue = options[i].split("=").slice(1).join("")
                 if (allValue?.trim()) {
-                    const correctData = fixBookmarkData(keyAndValue[0],
+                    const correctData = fixBookmarkData(key,
                         allValue)
-                    newbookmark[keyAndValue[0]] = correctData
+                    newbookmark[key] = correctData
                 }
             }
         }
@@ -176,25 +176,33 @@ const loadBookmark = input => {
 const matchBookmarksToInput = input => {
     const storedBookmarkData = getBookmarkData().bookmarks
     let selectedBookmarks = []
-    if (validBookmarkOptions.some(option => input.join().includes(`${option}=`))) {
+    if (validBookmarkOptions.some(option => input.join()
+        .includes(`${option}=`))) {
         const eachOption = input.join("").split("~")
         selectedBookmarks = storedBookmarkData.filter(b => {
             let matchedOptions = 0
             eachOption.forEach(e => {
-                const keyAndValue = e.split("=")
-                if (keyAndValue[0] === "tag" || keyAndValue[0] === "keywords") {
-                    if (b[keyAndValue[0]].includes(keyAndValue[1])) {
+                const [key, value] = e.split("=")
+                if (key === "tag" || key === "keywords") {
+                    const eachValue = value.split(",")
+                    let matchedValues = 0
+                    eachValue.forEach(v => {
+                        if (b[key].includes(v)) {
+                            matchedValues += 1
+                        }
+                    })
+                    if (eachValue.length === matchedValues) {
                         matchedOptions += 1
                     }
-                } else {
-                    if (b[keyAndValue[0]] === keyAndValue[1]) {
-                        matchedOptions += 1
-                    }
+                }
+                if (b[key] === value) {
+                    matchedOptions += 1
                 }
             })
             if (matchedOptions === eachOption.length) {
                 return true
             }
+            return false
         })
     } else {
         const individualBookmark = storedBookmarkData.filter(
