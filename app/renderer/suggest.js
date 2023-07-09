@@ -784,6 +784,29 @@ const suggestCommand = searchStr => {
                                 addCommand(completeCommand + f.path)
                             }
                         })
+                    } else if (key === "keywords") {
+                        const enteredKeywords = value.split(",")
+                        const suggestingKeyword = enteredKeywords.pop()
+                        bmData.bookmarks.forEach(b => {
+                            if (b.keywords.join().includes(suggestingKeyword)) {
+                                b.keywords.forEach(k => {
+                                    let keywordString = ""
+                                    if (enteredKeywords.length > 0) {
+                                        enteredKeywords.forEach(e => {
+                                            keywordString = keywordString
+                                                .concat(`${e},`)
+                                        })
+                                    }
+                                    if (!enteredKeywords.includes(k)
+                                        && enteredKeywords
+                                            .every(k => b.keywords.includes(k))
+                                        && k.startsWith(suggestingKeyword)) {
+                                        addCommand(
+                                            completeCommand + keywordString + k)
+                                    }
+                                })
+                            }
+                        })
                     } else {
                         bmData.bookmarks.forEach(b => {
                             if (b[key].startsWith(value)) {
