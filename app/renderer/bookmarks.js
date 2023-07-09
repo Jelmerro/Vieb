@@ -187,7 +187,11 @@ const matchBookmarksToInput = input => {
                     const eachValue = value.split(",")
                     let matchedValues = 0
                     eachValue.forEach(v => {
-                        if (b[key].includes(v)) {
+                        if (v.startsWith("!")) {
+                            if (!b[key].includes(v.substring(1))) {
+                                matchedValues += 1
+                            }
+                        } else if (b[key].includes(v)) {
                             matchedValues += 1
                         }
                     })

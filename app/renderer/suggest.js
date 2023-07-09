@@ -763,8 +763,13 @@ const suggestCommand = searchStr => {
                     if (key === "tag") {
                         const enteredTags = value.split(",")
                         const suggestingTag = enteredTags.pop()
+                        let bang = ""
+                        if (suggestingTag?.startsWith("!")) {
+                            bang = "!"
+                        }
                         bmData.tags.forEach(t => {
-                            if (t.id.startsWith(suggestingTag)) {
+                            if (t.id.startsWith(suggestingTag
+                                .replace("!", ""))) {
                                 let tagString = ""
                                 if (enteredTags.length > 0) {
                                     enteredTags.forEach(e => {
@@ -773,7 +778,8 @@ const suggestCommand = searchStr => {
                                 }
                                 if (!enteredTags.includes(t.id)) {
                                     addCommand(
-                                        completeCommand + tagString + t.id)
+                                        completeCommand + tagString
+                                            + bang + t.id)
                                 }
                             }
                         })
@@ -798,7 +804,8 @@ const suggestCommand = searchStr => {
                                     }
                                     if (!enteredKeywords.includes(k)
                                         && enteredKeywords
-                                            .every(k => b.keywords.includes(k))
+                                            .every(kw => b.keywords
+                                                .includes(kw))
                                         && k.startsWith(suggestingKeyword)) {
                                         addCommand(
                                             completeCommand + keywordString + k)
