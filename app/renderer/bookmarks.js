@@ -97,7 +97,7 @@ const addBookmark = input => {
         bookmarkData.bookmarks.push(newbookmark)
         bookmarkData.lastId += 1
         writeBookmarksToFile()
-        notify(`Bookmark added: ${newbookmark.name.substring(0, 20)}:
+        notify(`Bookmark added: ${newbookmark.name.substring(0, 20)}:\
                 ${newbookmark.url.substring(0, 40)}`)
     }
 }

@@ -757,9 +757,8 @@ const suggestCommand = searchStr => {
                     const currentOptions = args.join().split("~")
                     const [suggestingOption] = currentOptions.slice(-1)
                     const [key, value] = suggestingOption.split("=")
-                    const completeCommand
-                          = `${bmCommand} \
-                            ${args.join().split("=").slice(0, -1).join()}=`
+                    const completeCommand = `${bmCommand} ${args.join()
+                        .split("=").slice(0, -1).join()}=`
 
                     if (key === "tag") {
                         const enteredTags = value.split(",")
