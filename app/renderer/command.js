@@ -2352,15 +2352,17 @@ const parseAndValidateArgs = commandStr => {
     }
 }
 
-const useCurrentUrl = () => {
+const getPageTitle
+    = () => currentTab()?.querySelector("span")?.textContent ?? ""
+
+const getPageUrlClass = () => {
     const {getPageUrl} = require("./actions")
-    return getPageUrl()
+    return new URL(getPageUrl())
 }
 
-const useCurrentOrigin = () => {
-    const url = new URL(useCurrentUrl()).origin
-    return url
-}
+const getPageOrigin = () => getPageUrlClass().origin
+
+const getPageDomain = () => getPageUrlClass().host
 
 /**
  * Execute a command.
@@ -2381,11 +2383,14 @@ const execute = (com, settingsFile = null) => {
     // otherwise they will always use the same value at creation
     if (commandStr.includes("<use")
         && !holdUseCommands.some(command => commandStr.startsWith(command))) {
+        const {getPageUrl} = require("./actions")
         // Replace all occurrences of <useCurrent for their values
         commandStr
             = commandStr
-                .replace("<useCurrentUrl>", `${useCurrentUrl()}`)
-                .replace("<useCurrentOrigin>", `${useCurrentOrigin()}`)
+                .replace("<useCurrentUrl>", `${getPageUrl()}`)
+                .replace("<useCurrentOrigin>", `${getPageOrigin()}`)
+                .replace("<useCurrentTitle>", `${getPageTitle()}`)
+                .replace("<useCurrentDomain>", `${getPageDomain()}`)
     }
 
     const {push} = require("./commandhistory")
@@ -2480,6 +2485,7 @@ module.exports = {
     commandList,
     customCommandsAsCommandList,
     execute,
+    getPageTitle,
     openSpecialPage,
     parseAndValidateArgs,
     rangeCompatibleCommands,

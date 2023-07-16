@@ -1005,7 +1005,8 @@ const pageRSSLinkToClipboard = async args => {
 const pageToClipboard = () => clipboard.writeText(getPageUrl())
 
 const pageTitleToClipboard = () => {
-    clipboard.writeText(currentTab()?.querySelector("span")?.textContent ?? "")
+    const {getPageTitle} = require("./command")
+    clipboard.writeText(getPageTitle())
 }
 
 const pageToClipboardHTML = () => {
