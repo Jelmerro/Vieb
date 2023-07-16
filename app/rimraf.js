@@ -35,7 +35,7 @@ const isErrnoException = e => "code" in e
  * Workaround for window EPERM errors, just retry a lot of times till it works.
  * @param {string} p
  * @param {Error|null} er
- * @throws {Error}
+ * @throws {Error} Filesystem error.
  */
 const fixWinEPERMSync = (p, er) => {
     try {
@@ -65,7 +65,7 @@ const fixWinEPERMSync = (p, er) => {
 /**
  * Remove a location using "rm -rf" rimraf module.
  * @param {string} p
- * @throws {Error}
+ * @throws {Error} Filesystem error.
  */
 const rimrafSync = p => {
     let st = null
@@ -110,7 +110,7 @@ const rimrafSync = p => {
  * Remove a directory sync.
  * @param {string} p
  * @param {Error|null} originalEr
- * @throws {Error}
+ * @throws {Error} Filesystem error.
  */
 const rmdirSync = (p, originalEr) => {
     try {

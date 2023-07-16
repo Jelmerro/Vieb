@@ -11,7 +11,9 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
-## Unreleased
+## [10.1.1](https://github.com/Jelmerro/Vieb/compare/10.1.0...10.1.1) - 2023-07-11
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/10.1.0...10.1.1) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/10.1.1)
 
 ### Changed
 
@@ -23,6 +25,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Encoding issues since 10.0.0 in markdownviewer, readerview and sourceviewer
 - Mappings that send keys to insert mode delayed not working since 10.0.0
+- Potential circular reference to parent iframes resulting in freezes
 
 ### Versions
 

@@ -2183,7 +2183,10 @@ const handleFollowResponse = (e, rawLinks) => {
     let frameX = info?.x || 0
     let frameY = info?.y || 0
     let parent = info?.parent
-    while (parent) {
+    /** @type {string[]} */
+    const pastParentList = []
+    while (parent && !pastParentList.includes(parent)) {
+        pastParentList.push(parent)
         const parentInfo = frameInfo[parent]
         frameX += parentInfo?.x || 0
         frameY += parentInfo?.y || 0
@@ -2249,7 +2252,10 @@ const findRelevantSubFrame = (wc, x, y) => {
                 }
                 /** @type {frameDetails|null} */
                 let parent = frameInfo[info.parent] ?? null
-                while (parent?.id && parent.id !== parent.parent) {
+                /** @type {string[]} */
+                const pastParentList = []
+                while (parent?.id && !pastParentList.includes(parent?.id)) {
+                    pastParentList.push(parent.id)
                     info.absX += parent.x ?? 0
                     info.absY += parent.y ?? 0
                     if (parent.parent) {
@@ -2430,7 +2436,10 @@ const translateMouseEvent = (e, clickInfo = null) => {
     let frameY = info?.y ?? 0
     let parent = info?.parent
     let parentId = frameId
-    while (parent) {
+    /** @type {string[]} */
+    const pastParentList = []
+    while (parent && !pastParentList.includes(parent)) {
+        pastParentList.push(parent)
         const parentInfo = frameInfo[parent]
         frameX += parentInfo?.x ?? 0
         frameY += parentInfo?.y ?? 0
