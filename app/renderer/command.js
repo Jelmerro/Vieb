@@ -2352,6 +2352,16 @@ const parseAndValidateArgs = commandStr => {
     }
 }
 
+const useCurrentUrl = () => {
+    const {getPageUrl} = require("./actions")
+    return getPageUrl()
+}
+
+const useCurrentOrigin = () => {
+    const url = new URL(useCurrentUrl()).origin
+    return url
+}
+
 /**
  * Execute a command.
  * @param {string} com
@@ -2371,7 +2381,6 @@ const execute = (com, settingsFile = null) => {
     // otherwise they will always use the same value at creation
     if (commandStr.includes("<use")
         && !holdUseCommands.some(command => commandStr.startsWith(command))) {
-        const {useCurrentUrl, useCurrentOrigin} = require("./actions")
         // Replace all occurrences of <useCurrent for their values
         commandStr
             = commandStr
