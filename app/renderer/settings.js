@@ -225,6 +225,8 @@ const defaultSettings = {
     "permissiongeolocation": "block",
     /** @type {"block"|"ask"|"allow"} */
     "permissionhid": "block",
+    /** @type {"block"|"ask"|"allow"} */
+    "permissionidledetection": "block",
     /** @type {"block"|"ask"|"allow"|"allowfull"} */
     "permissionmediadevices": "block",
     /** @type {"block"|"ask"|"allow"} */
@@ -254,6 +256,8 @@ const defaultSettings = {
     "permissionunknown": "block",
     /** @type {"block"|"allow"} */
     "permissionusb": "block",
+    /** @type {"block"|"ask"|"allow"} */
+    "permissionwindowmanagement": "block",
     /** @type {"domain"|"url"} */
     "pointerposlocalid": "domain",
     /** @type {"casing"|"local"|"global"} */
@@ -492,6 +496,7 @@ const validOptions = {
     "permissionfullscreen": ["block", "ask", "allow"],
     "permissiongeolocation": ["block", "ask", "allow"],
     "permissionhid": ["block", "allow"],
+    "permissionidledetection": ["block", "ask", "allow"],
     "permissionmediadevices": ["block", "ask", "allow", "allowfull"],
     "permissionmicrophone": ["block", "ask", "allow"],
     "permissionmidi": ["block", "ask", "allow"],
@@ -505,6 +510,7 @@ const validOptions = {
     "permissionserial": ["block", "allow"],
     "permissionunknown": ["block", "ask", "allow"],
     "permissionusb": ["block", "allow"],
+    "permissionwindowmanagement": ["block", "ask", "allow"],
     "pointerposlocalid": ["domain", "url"],
     "pointerpostype": ["casing", "local", "global"],
     "replacespecial": ["always", "special", "newtab", "never"],
@@ -974,6 +980,12 @@ const checkOther = (setting, value) => {
                 if (setting.endsWith("asked") && name.endsWith("hid")) {
                     notify(
                         "HID permission can't be asked, "
+                        + "only allowed or blocked", "warn")
+                    return false
+                }
+                if (setting.endsWith("asked") && name.endsWith("usb")) {
+                    notify(
+                        "USB device permission can't be asked, "
                         + "only allowed or blocked", "warn")
                     return false
                 }

@@ -13,9 +13,16 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Setting "permissionidledetection" to control access to the Idle Detection API, default remains blocked
+- Setting "permissionwindowmanagement" to control access to the list of screens and their position, default remains blocked
+
 ### Fixed
 
 - Overflow wrap not splitting words as needed for download title
+- Permission check via navigator.permission.query always being allowed, it now uses the permission to correctly inform sites
+- USB permission not being blocked in the permissionsasked setting
 
 ### Versions
 
