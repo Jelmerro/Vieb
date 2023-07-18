@@ -11,6 +11,17 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Fixed
+
+- Overflow wrap not splitting words as needed for download title
+
+### Versions
+
+- Electron 25.2.0 (unchanged)
+- Chromium 114.0.5735.134 (unchanged)
+
 ## [10.1.1](https://github.com/Jelmerro/Vieb/compare/10.1.0...10.1.1) - 2023-07-11
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/10.1.0...10.1.1) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/10.1.1)

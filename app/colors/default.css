@@ -343,7 +343,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #cookiespage .remove {height: 1em;width: 1em;margin: auto 0;cursor: pointer;}
 /* downloads */
 #downloadspage .download {background: var(--special-page-element-bg);margin-bottom: 1em;border: .1em solid var(--special-page-element-border);}
-#downloadspage .title {margin: .4em;font-size: 1.5em;width: calc(100% - 4em);cursor: pointer;}
+#downloadspage .title {margin: .4em;font-size: 1.5em;width: calc(100% - 4em);cursor: pointer;overflow-wrap: anywhere;}
 #downloadspage progress {-webkit-appearance: none;appearance: none;width: calc(100% - 1em);margin: .5em;}
 #downloadspage progress::-webkit-progress-value {background: var(--download-progress-fg);}
 #downloadspage progress::-webkit-progress-bar {background: var(--download-progress-bg);}
