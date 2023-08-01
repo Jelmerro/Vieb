@@ -624,7 +624,7 @@ const write = (args, range) => {
 /**
  * Write the html of a page to disk based on tab index or current.
  * When the page contains browser viewable files, allows you to write the file
- * with a custom location
+ * with a custom location.
  * @param {string|null} customLoc
  * @param {number|null} tabIdx
  */
