@@ -792,6 +792,7 @@ const dlsFile = joinPath(app.getPath("appData"), "dls")
  *   cleardownloadsoncompleted?: boolean
  * }} */
 let downloadSettings = {"downloadpath": app.getPath("downloads")}
+let currentDownloadPath = ""
 /** @typedef {{
  *   current: number,
  *   date: Date,
@@ -836,6 +837,9 @@ ipcMain.on("set-redirects", (_, rdr) => {
 const updateRequestHeaders = (_, headers) => {
     requestHeaders = headers.split(",").filter(h => h)
 }
+ipcMain.on("update-current-download-path", (_, path) => {
+    currentDownloadPath = path
+})
 ipcMain.on("update-request-headers", updateRequestHeaders)
 ipcMain.on("open-download", (_, location) => shell.openPath(location))
 /**
@@ -1051,12 +1055,25 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         return callback({"cancel": false, "requestHeaders": headers})
     })
     newSess.on("will-download", (e, item) => {
-        if (downloadSettings.downloadmethod === "block" || !mainWindow) {
+        if ((downloadSettings.downloadmethod === "block"
+             && !currentDownloadPath) || !mainWindow) {
             e.preventDefault()
             return
         }
-        const filename = item.getFilename()
-        let save = joinPath(downloadSettings.downloadpath, filename)
+        let filename = item.getFilename()
+        let save = ""
+        let customPath = ""
+        if (currentDownloadPath) {
+            const pathComponents = currentDownloadPath.split("/")
+            const customFilename = pathComponents.at(-1)
+            if (customFilename) {
+                filename = customFilename
+            }
+            customPath = pathComponents.slice(0, -1).join("/")
+            save = joinPath(customPath, filename)
+        } else {
+            save = joinPath(downloadSettings.downloadpath, filename)
+        }
         let duplicateNumber = 0
         let newFilename = item.getFilename()
         while (isFile(save)) {
@@ -1071,9 +1088,13 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 newFilename = `${filename.substring(0, extStart)} (${
                     duplicateNumber}).${filename.substring(extStart + 1)}`
             }
-            save = joinPath(downloadSettings.downloadpath, newFilename)
+            if (customPath) {
+                save = joinPath(customPath, newFilename)
+            } else {
+                save = joinPath(downloadSettings.downloadpath, newFilename)
+            }
         }
-        if (downloadSettings.downloadmethod !== "ask") {
+        if (downloadSettings.downloadmethod !== "ask" || currentDownloadPath) {
             item.setSavePath(save)
         }
         if (downloadSettings.downloadmethod === "confirm") {
@@ -1108,6 +1129,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 return
             }
         }
+        currentDownloadPath = ""
         const info = {
             "current": 0,
             "date": new Date(),

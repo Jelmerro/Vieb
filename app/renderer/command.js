@@ -623,12 +623,34 @@ const write = (args, range) => {
 
 /**
  * Write the html of a page to disk based on tab index or current.
+ * When the page contains browser viewable files, allows you to write the file
+ * with a custom location
  * @param {string|null} customLoc
  * @param {number|null} tabIdx
  */
 const writePage = (customLoc = null, tabIdx = null) => {
     /** @type {Electron.WebviewTag|HTMLDivElement|null} */
+    const downloadableFileTypes
+          = [
+              ".png",
+              ".jpg",
+              ".jpeg",
+              ".gif",
+              ".webp",
+              ".bmp",
+              ".ogg",
+              ".mp3",
+              ".wav",
+              ".mp4",
+              ".pdf",
+              ".webm"
+          ]
     let page = currentPage()
+    if (downloadableFileTypes.some(type => page.getURL().endsWith(type))) {
+        ipcRenderer.send("update-current-download-path", customLoc)
+        currentPage()?.downloadURL(stringToUrl(page.getURL()))
+        return
+    }
     if (tabIdx !== null) {
         page = pageForTab(listTabs()[tabIdx]) ?? null
     }
