@@ -975,9 +975,12 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     applyDevtoolsSettings(joinPath(sessionDir, "Preferences"), false)
     const newSess = session.fromPartition(name, {cache})
     newSess.setPermissionRequestHandler(permissionHandler)
-    newSess.setPermissionCheckHandler(() => true)
+    newSess.setPermissionCheckHandler(
+        (__, pm, url, details) => permissionHandler(null, pm, null, {
+            ...details, "requestingUrl": details.requestingUrl ?? url
+        }))
     newSess.setDevicePermissionHandler(
-        details => permissionHandler(null, details.deviceType, null, {
+        details => permissionHandler(null, details.deviceType, () => null, {
             ...details, "requestingUrl": details.origin
         }) ?? false)
     sessionList.push(name)
@@ -1500,7 +1503,7 @@ const permissionHandler = (_, pm, callback, details) => {
     if (!mainWindow) {
         return false
     }
-    let permission = pm.toLowerCase().replace(/-/g, "").replace("sanitized", "")
+    let permission = pm.toLowerCase().replace("sanitized", "").replace(/-/g, "")
     if (permission === "mediakeysystem") {
         // Block any access to DRM, there is no Electron support for it anyway
         callback?.(false)
@@ -1548,6 +1551,10 @@ const permissionHandler = (_, pm, callback, details) => {
             }
         }
     }
+    setting = settingRule || setting
+    if (!callback) {
+        return setting !== "block"
+    }
     const domain = domainName(details.requestingUrl ?? "") ?? ""
     if (permission === "certificateerror") {
         if (allowedFingerprints[domain]
@@ -1557,11 +1564,10 @@ const permissionHandler = (_, pm, callback, details) => {
                 + `at '${details.requestingUrl}' which was allowed, because `
                 + `this same certificate was allowed before on this domain`,
                 "perm")
-            callback?.(true)
+            callback(true)
             return true
         }
     }
-    setting = settingRule || setting
     if (setting === "ask") {
         let url = details.requestingUrl ?? ""
         if (url.length > 100) {
@@ -1657,7 +1663,7 @@ const permissionHandler = (_, pm, callback, details) => {
                 allowedFingerprints[domain].push(
                     details.cert?.fingerprint ?? "")
             }
-            callback?.(allow)
+            callback(allow)
             return allow
         })
     } else {
@@ -1679,7 +1685,7 @@ const permissionHandler = (_, pm, callback, details) => {
             }
             allowedFingerprints[domain].push(details.cert?.fingerprint ?? "")
         }
-        callback?.(allow)
+        callback(allow)
         return allow
     }
     return false
@@ -2205,7 +2211,10 @@ const handleFollowResponse = (e, rawLinks) => {
     let frameX = info?.x || 0
     let frameY = info?.y || 0
     let parent = info?.parent
-    while (parent) {
+    /** @type {string[]} */
+    const pastParentList = []
+    while (parent && !pastParentList.includes(parent)) {
+        pastParentList.push(parent)
         const parentInfo = frameInfo[parent]
         frameX += parentInfo?.x || 0
         frameY += parentInfo?.y || 0
@@ -2271,7 +2280,10 @@ const findRelevantSubFrame = (wc, x, y) => {
                 }
                 /** @type {frameDetails|null} */
                 let parent = frameInfo[info.parent] ?? null
-                while (parent?.id && parent.id !== parent.parent) {
+                /** @type {string[]} */
+                const pastParentList = []
+                while (parent?.id && !pastParentList.includes(parent?.id)) {
+                    pastParentList.push(parent.id)
                     info.absX += parent.x ?? 0
                     info.absY += parent.y ?? 0
                     if (parent.parent) {
@@ -2452,7 +2464,10 @@ const translateMouseEvent = (e, clickInfo = null) => {
     let frameY = info?.y ?? 0
     let parent = info?.parent
     let parentId = frameId
-    while (parent) {
+    /** @type {string[]} */
+    const pastParentList = []
+    while (parent && !pastParentList.includes(parent)) {
+        pastParentList.push(parent)
         const parentInfo = frameInfo[parent]
         frameX += parentInfo?.x ?? 0
         frameY += parentInfo?.y ?? 0

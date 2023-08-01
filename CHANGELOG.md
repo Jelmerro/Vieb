@@ -13,6 +13,26 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Setting "permissionidledetection" to control access to the Idle Detection API, default remains blocked
+- Setting "permissionwindowmanagement" to control access to the list of screens and their position, default remains blocked
+
+### Fixed
+
+- Overflow wrap not splitting words as needed for download title
+- Permission check via navigator.permission.query always being allowed, it now uses the permission to correctly inform sites
+- USB permission not being blocked in the permissionsasked setting
+
+### Versions
+
+- Electron 25.3.0 (was 25.2.0)
+- Chromium 114.0.5735.199 (was 114.0.5735.134)
+
+## [10.1.1](https://github.com/Jelmerro/Vieb/compare/10.1.0...10.1.1) - 2023-07-11
+
+[code diff](https://github.com/Jelmerro/Vieb/compare/10.1.0...10.1.1) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/10.1.1)
+
 ### Changed
 
 - Stored urls to be of the human readable format to better account for special pages
@@ -23,6 +43,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Encoding issues since 10.0.0 in markdownviewer, readerview and sourceviewer
 - Mappings that send keys to insert mode delayed not working since 10.0.0
+- Potential circular reference to parent iframes resulting in freezes
 
 ### Versions
 
