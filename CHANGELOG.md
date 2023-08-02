@@ -11,6 +11,24 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Added
+
+- Setting "permissionidledetection" to control access to the Idle Detection API, default remains blocked
+- Setting "permissionwindowmanagement" to control access to the list of screens and their position, default remains blocked
+
+### Fixed
+
+- Overflow wrap not splitting words as needed for download title
+- Permission check via navigator.permission.query always being allowed, it now uses the permission to correctly inform sites
+- USB permission not being blocked in the permissionsasked setting
+
+### Versions
+
+- Electron 25.3.0 (was 25.2.0)
+- Chromium 114.0.5735.199 (was 114.0.5735.134)
+
 ## [10.1.1](https://github.com/Jelmerro/Vieb/compare/10.1.0...10.1.1) - 2023-07-11
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/10.1.0...10.1.1) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/10.1.1)
