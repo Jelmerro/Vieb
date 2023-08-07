@@ -5,6 +5,7 @@
         "allowUnreachableCode": false,
         "checkJs": true,
         "exactOptionalPropertyTypes": true,
+        "module": "CommonJS",
         "moduleResolution": "node16",
         "noEmit": true,
         "noFallthroughCasesInSwitch": true,

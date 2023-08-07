@@ -1241,7 +1241,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             request.end()
         })
     })
-    newSess.protocol.handle("markdownviewer", req => {
+    newSess.protocol.handle("markdownviewer", async req => {
         let loc = req.url.replace(/markdownviewer:\/?\/?/g, "")
         if (process.platform !== "win32" && !loc.startsWith("/")) {
             loc = `/${loc}`
@@ -1256,12 +1256,15 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 "content-type": "text/html; charset=utf-8"
             }})
         }
+        // @ts-expect-error marked is an mjs module so it needs an async import,
+        // but this seems impossible to do in a type definition, so here we are.
         /** @type {import("marked").marked|null} */
         let marked = null
         /** @type {import("highlight.js").HLJSApi|null} */
         let hljs = null
         try {
-            ({marked} = require("marked"))
+            // ({marked} = require("marked"))
+            ({marked} = await import("marked"))
         } catch {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style>${defaultCss}</style>
@@ -1297,8 +1300,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         marked.setOptions({
             "baseUrl": url,
             "highlight": (code, lang) => {
-                let language = lang
-                if (!hljs?.getLanguage(lang)) {
+                let language = lang ?? "plaintext"
+                if (!hljs?.getLanguage(language)) {
                     language = "plaintext"
                 }
                 return hljs?.highlight(code, {language}).value || code
