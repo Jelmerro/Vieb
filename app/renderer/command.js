@@ -2198,6 +2198,8 @@ const commands = {
     "w": ({args, range}) => write(args, range),
     "write": ({args, range}) => write(args, range)
 }
+/** @type {string[]} */
+const holdUseCommands = ["command"]
 /** @type {{[command: string]: string}} */
 let userCommands = {}
 const {mapOrList, unmap, clearmap} = require("./input")
@@ -2208,6 +2210,7 @@ const {mapOrList, unmap, clearmap} = require("./input")
     commands[`${prefix.trim()}noremap!`] = ({args}) => {
         mapOrList(prefix.trim(), args, true, true)
     }
+    holdUseCommands.push(`${prefix.trim()}map`)
     commands[`${prefix.trim()}map`] = ({args}) => {
         mapOrList(prefix.trim(), args)
     }
@@ -2349,6 +2352,18 @@ const parseAndValidateArgs = commandStr => {
     }
 }
 
+const getPageTitle
+    = () => currentTab()?.querySelector("span")?.textContent ?? ""
+
+const getPageUrlClass = () => {
+    const {getPageUrl} = require("./actions")
+    return new URL(getPageUrl())
+}
+
+const getPageOrigin = () => getPageUrlClass().origin
+
+const getPageDomain = () => getPageUrlClass().host
+
 /**
  * Execute a command.
  * @param {string} com
@@ -2358,10 +2373,26 @@ const execute = (com, settingsFile = null) => {
     // Remove all redundant spaces
     // Allow commands prefixed with :
     // And return if the command is empty
-    const commandStr = com.replace(/^[\s|:]*/, "").trim().replace(/ +/g, " ")
+    let commandStr = com.replace(/^[\s|:]*/, "").trim().replace(/ +/g, " ")
     if (!commandStr) {
         return
     }
+
+    // Don't "use current" on holdUseCommands, commands like 'command' or 'map'
+    // which will hold <useCurrent... for calling it when it is used
+    // otherwise they will always use the same value at creation
+    if (commandStr.includes("<use")
+        && !holdUseCommands.some(command => commandStr.startsWith(command))) {
+        const {getPageUrl} = require("./actions")
+        // Replace all occurrences of <useCurrent for their values
+        commandStr
+            = commandStr
+                .replace("<useCurrentUrl>", `${getPageUrl()}`)
+                .replace("<useCurrentOrigin>", `${getPageOrigin()}`)
+                .replace("<useCurrentTitle>", `${getPageTitle()}`)
+                .replace("<useCurrentDomain>", `${getPageDomain()}`)
+    }
+
     const {push} = require("./commandhistory")
     push(commandStr)
     if (commandStr.startsWith("!")) {
@@ -2454,6 +2485,7 @@ module.exports = {
     commandList,
     customCommandsAsCommandList,
     execute,
+    getPageTitle,
     openSpecialPage,
     parseAndValidateArgs,
     rangeCompatibleCommands,
