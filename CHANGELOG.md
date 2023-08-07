@@ -17,6 +17,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Setting "permissionidledetection" to control access to the Idle Detection API, default remains blocked
 - Setting "permissionwindowmanagement" to control access to the list of screens and their position, default remains blocked
+- Use urls and titles in a command with `<useCurrentUrl>`, `<useCurrentOrigin>`, `<useCurrentTitle>` and `<useCurrentDomain>`
 
 ### Fixed
 

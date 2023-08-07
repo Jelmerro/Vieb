@@ -434,7 +434,14 @@
         </ul>
         The command to add custom commands is simply named "command". Without arguments, it will lists all previously added custom commands. With one argument, it will list one specific command and its actions. With two or more arguments, it will add a new command, where the first argument is the command name and all other arguments are the mapping. To overwrite commands that you have already defined before, append a "!" at the end of the command.
         <h3 id="use">Use</h3>
-        You can also extend commands with values from the current page, like the URL or title. Here are a few examples of what commands can be achieved with this:
+        You can also extend commands with values from the current page, like the URL or title. The following use templates are available:
+        <ul>
+            <li><span class="command-block">&lt;useCurrentUrl&gt;</span> - Use the current page url in a command</li>
+            <li><span class="command-block">&lt;useCurrentOrigin&gt;</span> - Use the current page origin (domain + protocol) in a command</li>
+            <li><span class="command-block">&lt;useCurrentTitle&gt;</span> - Use the current page title in a command</li>
+            <li><span class="command-block">&lt;useCurrentDomain&gt;</span> - Use the current domain in a command</li>
+        </ul>
+        Here are a few examples of what commands can be achieved with this:
         <ul>
             <li><span class="command-block">:command allowscript &lt;:set resourcesallowed+=&lt;useCurrentUrl&gt;~script&gt;&lt;refreshTab&gt;</span> - Enable javascript for the current page if browsing without the script tag on resourcetypes</li>
             <li><span class="command-block">:command favoritepage &lt;:set favoritepages+=&lt;useCurrentUrl&gt;&gt;</span> - Add the current page to the favoritepages list</li>

@@ -566,6 +566,7 @@ const suggestCommand = searchStr => {
             "<>",
             "any",
             "customcommands",
+            "use",
             "splits",
             "lastusedtab",
             "quickmarks",

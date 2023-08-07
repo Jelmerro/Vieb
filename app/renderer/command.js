@@ -2352,8 +2352,8 @@ const parseAndValidateArgs = commandStr => {
     }
 }
 
-const getPageTitle
-    = () => currentTab()?.querySelector("span")?.textContent ?? ""
+const getPageTitle = () => currentTab()?.querySelector("span")
+    ?.textContent ?? ""
 
 const getPageUrlClass = () => {
     const {getPageUrl} = require("./actions")
@@ -2377,7 +2377,6 @@ const execute = (com, settingsFile = null) => {
     if (!commandStr) {
         return
     }
-
     // Don't "use current" on holdUseCommands, commands like 'command' or 'map'
     // which will hold <useCurrent... for calling it when it is used
     // otherwise they will always use the same value at creation
@@ -2385,14 +2384,11 @@ const execute = (com, settingsFile = null) => {
         && !holdUseCommands.some(command => commandStr.startsWith(command))) {
         const {getPageUrl} = require("./actions")
         // Replace all occurrences of <useCurrent for their values
-        commandStr
-            = commandStr
-                .replace("<useCurrentUrl>", `${getPageUrl()}`)
-                .replace("<useCurrentOrigin>", `${getPageOrigin()}`)
-                .replace("<useCurrentTitle>", `${getPageTitle()}`)
-                .replace("<useCurrentDomain>", `${getPageDomain()}`)
+        commandStr = commandStr.replace("<useCurrentUrl>", `${getPageUrl()}`)
+            .replace("<useCurrentOrigin>", `${getPageOrigin()}`)
+            .replace("<useCurrentTitle>", `${getPageTitle()}`)
+            .replace("<useCurrentDomain>", `${getPageDomain()}`)
     }
-
     const {push} = require("./commandhistory")
     push(commandStr)
     if (commandStr.startsWith("!")) {
