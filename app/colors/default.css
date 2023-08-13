@@ -471,6 +471,10 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #markdownviewer {margin: auto;max-width: 65em;padding: 2vw;color: var(--fg);background: var(--bg);}
 #markdownviewer img {max-width: 100%;}
 #markdownviewer a {color: var(--link-color);}
+#markdownviewer .toc {position: fixed;min-width: 10em;width: auto;max-width: 60vw;right: 2em;top: 2em;background: var(--bg);border: solid 1px var(--fg);padding: 1em;}
+#markdownviewer .toc summary {display: block;}
+#markdownviewer .toc summary h1 {display: list-item;margin: 0;}
+#markdownviewer .toc ul {padding-inline-start: .8em;}
 
 
 /*
