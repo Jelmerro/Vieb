@@ -30,6 +30,8 @@ window.addEventListener("load", () => {
     toc.append(summary, baseUl)
     const lists = [baseUl]
     const currentDepth = () => Number(lists.at(-1)?.getAttribute("depth"))
+    /** @type {string[]} */
+    const headingNames = []
     for (const heading of headings) {
         const depth = Number(heading.tagName[1])
         while (currentDepth() > depth && lists.length > 1) {
@@ -42,7 +44,19 @@ window.addEventListener("load", () => {
             lists.push(list)
         }
         const listItem = document.createElement("li")
-        listItem.textContent = heading.textContent
+        const baseHeadingId = heading.textContent
+            ?.replace(/\s+/g, "_").replace(/[\u{0080}-\u{FFFF}]/gu, "") ?? ""
+        let headingId = baseHeadingId
+        let duplicateHeadingCounter = 2
+        while (headingNames.includes(headingId)) {
+            headingId = `${baseHeadingId}${duplicateHeadingCounter}`
+            duplicateHeadingCounter += 1
+        }
+        const listLink = document.createElement("a")
+        listLink.href = `#${headingId}`
+        listLink.textContent = heading.textContent
+        heading.id = headingId
+        listItem.append(listLink)
         lists.at(-1)?.append(listItem)
     }
     document.body.append(toc)
