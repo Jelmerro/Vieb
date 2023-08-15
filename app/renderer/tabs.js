@@ -900,10 +900,8 @@ const addDefaultStylingToWebviewIfNeeded = (webview, force = false) => {
             return
         }
     }
-    const defaultCss = readFile(joinPath(__dirname, "../colors/default.css"))
-    webview.send("insert-default-css", defaultCss)
     const {getCustomStyling} = require("./settings")
-    webview.send("set-custom-styling", getSetting("guifontsize"),
+    webview.send("add-colorscheme-styling", getSetting("guifontsize"),
         getCustomStyling())
 }
 

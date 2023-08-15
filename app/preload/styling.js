@@ -201,8 +201,18 @@ ipcRenderer.on("hide-scrollbar", () => hideScrollbar())
 loadThemes()
 window.addEventListener("DOMContentLoaded", () => loadThemes())
 window.addEventListener("load", () => loadThemes(true))
-ipcRenderer.on("set-custom-styling", (_, fontsize, customCSS) => {
-    document.body.style.fontSize = `${fontsize}px`
+ipcRenderer.on("add-colorscheme-styling", (_, fontsize, custom) => {
+    const linkedCss = document.querySelector(`link[href$="colors/default.css"]`)
+    if (!linkedCss && !document.getElementById("default-styling")) {
+        const styleElement = document.createElement("style")
+        styleElement.id = "default-styling"
+        document.head.append(styleElement)
+    }
+    const defaultStyle = document.querySelector("style#default-styling")
+    if (defaultStyle) {
+        defaultStyle.textContent = readFile(joinPath(
+            __dirname, "../colors/default.css"))
+    }
     if (!document.getElementById("custom-styling")) {
         const styleElement = document.createElement("style")
         styleElement.id = "custom-styling"
@@ -210,22 +220,8 @@ ipcRenderer.on("set-custom-styling", (_, fontsize, customCSS) => {
     }
     const customStyle = document.getElementById("custom-styling")
     if (customStyle) {
-        customStyle.textContent = customCSS
+        customStyle.textContent = custom
     }
+    document.body.style.fontSize = `${fontsize}px`
     document.body.style.opacity = "1"
-})
-ipcRenderer.on("insert-default-css", (_, defaultCss) => {
-    const linkedCss = document.querySelector(`link[href$="colors/default.css"]`)
-    if (linkedCss) {
-        return
-    }
-    if (!document.getElementById("default-styling")) {
-        const styleElement = document.createElement("style")
-        styleElement.id = "default-styling"
-        document.head.append(styleElement)
-    }
-    const customStyle = document.querySelector("style#default-styling")
-    if (customStyle) {
-        customStyle.textContent = defaultCss
-    }
 })
