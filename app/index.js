@@ -1964,6 +1964,10 @@ ipcMain.on("destroy-window", () => {
     cancellAllDownloads()
     mainWindow?.destroy()
 })
+ipcMain.handle("run-isolated-js-head-check", (_, id) => webContents.fromId(id)
+    ?.executeJavaScriptInIsolatedWorld(999, [{
+        "code": "document.head.innerText"
+    }]))
 ipcMain.handle("list-spelllangs",
     () => session.defaultSession.availableSpellCheckerLanguages)
 ipcMain.handle("toggle-always-on-top", () => {

@@ -510,7 +510,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #failedload h3 {font-size: 1.2em;margin: 1em 0;}
 
 /*
- * FAILEDLOAD
+ * FILEBROWSER
 */
 #filebrowser {display: flex;background: var(--bg);color: var(--fg);line-height: 1.5;height: 100vh;width: 100vw;}
 #filebrowser main {margin: 3em auto;width: 50vw;min-width: 300px;padding: 3em;background-color: var(--filebrowser-main-bg);overflow: visible;text-overflow: ellipsis;height: fit-content;}

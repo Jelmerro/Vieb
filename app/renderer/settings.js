@@ -2069,18 +2069,8 @@ const getCustomStyling = () => customStyling
 const updateCustomStyling = () => {
     document.body.style.fontSize = `${allSettings.guifontsize}px`
     updateWebviewSettings()
-    listReadyPages().forEach(p => {
-        const isSpecialPage = pathToSpecialPageName(p.src)?.name
-        const isLocal = p.src.startsWith("file:/")
-        const isErrorPage = p.getAttribute("failed-to-load")
-        const isCustomView = p.src.startsWith("sourceviewer:")
-            || p.src.startsWith("readerview:")
-            || p.src.startsWith("markdownviewer:")
-        if (isSpecialPage || isLocal || isErrorPage || isCustomView) {
-            const {addDefaultStylingToWebview} = require("./tabs")
-            addDefaultStylingToWebview(p)
-        }
-    })
+    const {addDefaultStylingToWebviewIfNeeded} = require("./tabs")
+    listReadyPages().forEach(p => addDefaultStylingToWebviewIfNeeded(p))
     const {applyLayout} = require("./pagelayout")
     applyLayout()
     ipcRenderer.send("set-custom-styling",
