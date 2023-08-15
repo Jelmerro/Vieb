@@ -863,11 +863,11 @@ const injectCustomStyleRequest = async(webview, type, css = null) => {
 }
 
 /**
- * Add all styling including the default to the error page and the filebrowser.
+ * Add all css styles (including the default if needed) to the provided webview.
  * @param {Electron.WebviewTag} webview
  * @param {boolean} force
  */
-const addDefaultStylingToWebviewIfNeeded = (webview, force = false) => {
+const addColorschemeStylingToWebview = (webview, force = false) => {
     const isSpecialPage = pathToSpecialPageName(webview.src)?.name
     const isLocal = webview.src.startsWith("file:/")
     const isErrorPage = webview.getAttribute("failed-to-load")
@@ -1008,7 +1008,7 @@ const addWebviewListeners = webview => {
             webview.loadURL(specialPagePath(page)).catch(() => null)
             return
         }
-        addDefaultStylingToWebviewIfNeeded(webview, true)
+        addColorschemeStylingToWebview(webview, true)
         // If the path is a directory, show a list of files instead of an error
         if (e.errorDescription === "ERR_FILE_NOT_FOUND") {
             // Any number of slashes after file is fine
@@ -1045,7 +1045,7 @@ const addWebviewListeners = webview => {
         const isCustomView = webview.src.startsWith("sourceviewer:")
             || webview.src.startsWith("readerview")
             || webview.src.startsWith("markdownviewer")
-        addDefaultStylingToWebviewIfNeeded(webview)
+        addColorschemeStylingToWebview(webview)
         if (specialPageName === "help") {
             const {
                 listMappingsAsCommandList, uncountableActions
@@ -1423,7 +1423,7 @@ const moveTabBackward = () => {
 }
 
 module.exports = {
-    addDefaultStylingToWebviewIfNeeded,
+    addColorschemeStylingToWebview,
     addTab,
     closeTab,
     init,

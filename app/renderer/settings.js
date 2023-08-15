@@ -2069,8 +2069,8 @@ const getCustomStyling = () => customStyling
 const updateCustomStyling = () => {
     document.body.style.fontSize = `${allSettings.guifontsize}px`
     updateWebviewSettings()
-    const {addDefaultStylingToWebviewIfNeeded} = require("./tabs")
-    listReadyPages().forEach(p => addDefaultStylingToWebviewIfNeeded(p))
+    const {addColorschemeStylingToWebview} = require("./tabs")
+    listReadyPages().forEach(p => addColorschemeStylingToWebview(p))
     const {applyLayout} = require("./pagelayout")
     applyLayout()
     ipcRenderer.send("set-custom-styling",
