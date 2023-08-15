@@ -138,6 +138,10 @@
     --syntax-markup-addition-bg: #041;
     --syntax-markup-deletion-fg: #fdd;
     --syntax-markup-deletion-bg: #600;
+    /* failedload */
+    --failedload-main-bg: var(--tab-background);
+    /* filebrowser */
+    --filebrowser-main-bg: var(--failedload-main-bg);
 }
 
 
@@ -495,3 +499,23 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 .hljs-strong {color: var(--syntax-markup-emphasis);font-weight: bold;}
 .hljs-addition {color: var(--syntax-markup-addition-fg);background-color: var(--syntax-markup-addition-bg);}
 .hljs-deletion {color: var(--syntax-markup-deletion-fg);background-color: var(--syntax-markup-deletion-bg);}
+
+/*
+ * FAILEDLOAD
+*/
+#failedload {display: flex;background: var(--bg);color: var(--fg);line-height: 2;height: 100vh;width: 100vw;}
+#failedload main {margin: auto;width: 50vw;min-width: 300px;padding: 3em;background-color: var(--failedload-main-bg);overflow: hidden;text-overflow: ellipsis;}
+#failedload a {color: var(--link-color);}
+#failedload h2 {font-size: 2em;margin: 0 0 .5em;}
+#failedload h3 {font-size: 1.2em;margin: 1em 0;}
+
+/*
+ * FILEBROWSER
+*/
+#filebrowser {display: flex;background: var(--bg);color: var(--fg);line-height: 1.5;height: 100vh;width: 100vw;}
+#filebrowser main {margin: 3em auto;width: 50vw;min-width: 300px;padding: 3em;background-color: var(--filebrowser-main-bg);overflow: visible;text-overflow: ellipsis;height: fit-content;}
+#filebrowser h2 {font-size: 2em;margin: 0 0 1em;}
+#filebrowser .dir, #filebrowser .file {margin: .7em;cursor: pointer;}
+#filebrowser .dir {font-weight: bold;color: var(--suggestions-file, #ffb);}
+#filebrowser .file {color: var(--suggestions-url, #bff);}
+#filebrowser .error {color: var(--notification-error, #f33);}

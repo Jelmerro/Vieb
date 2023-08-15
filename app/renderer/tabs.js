@@ -863,6 +863,49 @@ const injectCustomStyleRequest = async(webview, type, css = null) => {
 }
 
 /**
+ * Add all styling including the default to the error page and the filebrowser.
+ * @param {Electron.WebviewTag} webview
+ * @param {boolean} force
+ */
+const addDefaultStylingToWebviewIfNeeded = (webview, force = false) => {
+    const isSpecialPage = pathToSpecialPageName(webview.src)?.name
+    const isLocal = webview.src.startsWith("file:/")
+    const isErrorPage = webview.getAttribute("failed-to-load")
+    const isCustomView = webview.src.startsWith("sourceviewer:")
+        || webview.src.startsWith("readerview:")
+        || webview.src.startsWith("markdownviewer:")
+    if (!isSpecialPage && !isLocal && !isErrorPage && !isCustomView) {
+        // This check is also present in preload/styling.js,
+        // but on pages where JS is disabled (chrome built-in) that won't load.
+        webview.executeJavaScript("document.head.innerText").catch(() => {
+            ipcRenderer.invoke("run-isolated-js-head-check",
+                webview.getWebContentsId()).then(result => {
+                if (result === "") {
+                    const bg = getComputedStyle(document.body)
+                        .getPropertyValue("--bg")
+                    const fg = getComputedStyle(document.body)
+                        .getPropertyValue("--fg")
+                    const linkcolor = getComputedStyle(document.body)
+                        .getPropertyValue("--link-color")
+                    const style = `html {
+                        color: ${fg || "#eee"};
+                        background: ${bg || "#333"};
+                        font-size: ${getSetting("guifontsize") || 14}px;
+                    } a {color: ${linkcolor || "#0cf"};}`
+                    injectCustomStyleRequest(webview, "theme", style)
+                }
+            })
+        })
+        if (!force) {
+            return
+        }
+    }
+    const {getCustomStyling} = require("./settings")
+    webview.send("add-colorscheme-styling", getSetting("guifontsize"),
+        getCustomStyling())
+}
+
+/**
  * Add all permanent listeners to the new webview.
  * @param {Electron.WebviewTag} webview
  */
@@ -947,7 +990,7 @@ const addWebviewListeners = webview => {
             || e.errorDescription.includes("_CERT_"))
             && webview.src.startsWith("https://")
         if (isSSLError && getSetting("redirecttohttp")) {
-            webview.loadURL(webview.src.replace("https://", "http://"))
+            webview.loadURL(webview.src.replace(/^https?:\/\//g, "http://"))
                 .catch(() => null)
             return
         }
@@ -965,6 +1008,7 @@ const addWebviewListeners = webview => {
             webview.loadURL(specialPagePath(page)).catch(() => null)
             return
         }
+        addDefaultStylingToWebviewIfNeeded(webview, true)
         // If the path is a directory, show a list of files instead of an error
         if (e.errorDescription === "ERR_FILE_NOT_FOUND") {
             // Any number of slashes after file is fine
@@ -990,9 +1034,6 @@ const addWebviewListeners = webview => {
         }
         webview.send("insert-failed-page-info", JSON.stringify(e), isSSLError)
         webview.setAttribute("failed-to-load", "true")
-        const {getCustomStyling} = require("./settings")
-        webview.send("set-custom-styling", getSetting("guifontsize"),
-            getCustomStyling())
     })
     webview.addEventListener("did-stop-loading", () => {
         const {show} = require("./favicons")
@@ -1001,15 +1042,10 @@ const addWebviewListeners = webview => {
         window.clearTimeout(timeouts[webview.getAttribute("link-id") ?? ""])
         const specialPageName = pathToSpecialPageName(webview.src)?.name
         const isLocal = webview.src.startsWith("file:/")
-        const isErrorPage = webview.getAttribute("failed-to-load")
         const isCustomView = webview.src.startsWith("sourceviewer:")
             || webview.src.startsWith("readerview")
             || webview.src.startsWith("markdownviewer")
-        if (specialPageName || isLocal || isErrorPage || isCustomView) {
-            const {getCustomStyling} = require("./settings")
-            webview.send("set-custom-styling", getSetting("guifontsize"),
-                getCustomStyling())
-        }
+        addDefaultStylingToWebviewIfNeeded(webview)
         if (specialPageName === "help") {
             const {
                 listMappingsAsCommandList, uncountableActions
@@ -1387,6 +1423,7 @@ const moveTabBackward = () => {
 }
 
 module.exports = {
+    addDefaultStylingToWebviewIfNeeded,
     addTab,
     closeTab,
     init,

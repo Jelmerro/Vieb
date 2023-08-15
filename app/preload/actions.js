@@ -601,19 +601,3 @@ const functions = {
 
 // @ts-expect-error too many signatures to realistically type, maybe someday
 ipcRenderer.on("action", (_, name, ...args) => functions[name]?.(...args))
-
-window.addEventListener("DOMContentLoaded", () => {
-    ipcRenderer.on("set-custom-styling", (_, fontsize, customCSS) => {
-        document.body.style.fontSize = `${fontsize}px`
-        if (!document.getElementById("custom-styling")) {
-            const styleElement = document.createElement("style")
-            styleElement.id = "custom-styling"
-            document.head.append(styleElement)
-        }
-        const customStyle = document.getElementById("custom-styling")
-        if (customStyle) {
-            customStyle.textContent = customCSS
-        }
-        document.body.style.opacity = "1"
-    })
-})

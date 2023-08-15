@@ -19,30 +19,13 @@
 
 const {ipcRenderer} = require("electron")
 
-const styling = `body {display: flex;color: var(--fg, #eee);
-    font: 14px monospace;line-height: 2;margin: 0;height: 100vh;width: 100vw;}
-main {margin: auto;width: 50vw;background: #7772;padding: 3em;
-    min-width: 300px;overflow: hidden;text-overflow: ellipsis;}
-h2 {font-size: 2em;margin: 0 0 .5em;}
-h3 {font-size: 1.2em;margin: 1em 0;font-weight: bold;}
-a {color: var(--link-color, #0cf);}
-kbd {background: var(--code-bg, #111);
-    color: var(--code-fg, #fff);padding: .1em;}`
-
 ipcRenderer.on("insert-failed-page-info", (_, e, isSSLError) => {
+    document.body.textContent = ""
+    document.body.id = "failedload"
     const err = JSON.parse(e)
-    try {
-        document.body.textContent = ""
-        document.head.textContent = ""
-    } catch {
-        // Try clearing the existing left over page elements
-    }
-    const styleElement = document.createElement("style")
-    styleElement.textContent = styling
-    document.head.append(styleElement)
     const mainInfo = document.createElement("main")
     if (isSSLError) {
-        const http = err.validatedURL.replace("https://", "http://")
+        const http = err.validatedURL.replace(/^https?:\/\//g, "http://")
         mainInfo.innerHTML += `<h2>Unreachable page</h2>
             The page could not be loaded successfully.
             The following error occurred:<br><h3>${err.errorDescription}</h3>

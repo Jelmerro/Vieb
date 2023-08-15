@@ -22,11 +22,16 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Use urls and titles in a command with `<useCurrentUrl>`, `<useCurrentOrigin>`, `<useCurrentTitle>` and `<useCurrentDomain>`
 - Table of contents to markdownviewer
 
+### Changed
+
+- Failedload and filebrowser pages are now styled with themes like other special pages
+
 ### Fixed
 
 - Overflow wrap not splitting words as needed for download title
 - Permission check via navigator.permission.query always being allowed, it now uses the permission to correctly inform sites
 - USB permission not being blocked in the permissionsasked setting
+- Simple text pages that disable JavaScript blocking the colors and fontsize being applied
 
 ### Versions
 
