@@ -11,6 +11,26 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Added
+
+- Table of contents to markdownviewer
+
+### Changed
+
+- Failedload and filebrowser pages are now styled with themes like other special pages
+
+### Fixed
+
+- Simple text pages that disable JavaScript blocking the colors and fontsize being applied
+- Actions "toParentSubdomain" and toRootSubdomain" not working with dashes in the domain name
+
+### Versions
+
+- Electron 26.0.0 (was 25.4.0)
+- Chromium 116.0.5845.82 (was 114.0.5735.248)
+
 ## [10.2.0](https://github.com/Jelmerro/Vieb/compare/10.1.1...10.2.0) - 2023-08-09
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/10.1.1...10.2.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/10.2.0)
@@ -20,19 +40,12 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting "permissionidledetection" to control access to the Idle Detection API, default remains blocked
 - Setting "permissionwindowmanagement" to control access to the list of screens and their position, default remains blocked
 - Use urls and titles in a command with `<useCurrentUrl>`, `<useCurrentOrigin>`, `<useCurrentTitle>` and `<useCurrentDomain>`
-- Table of contents to markdownviewer
-
-### Changed
-
-- Failedload and filebrowser pages are now styled with themes like other special pages
 
 ### Fixed
 
 - Overflow wrap not splitting words as needed for download title
 - Permission check via navigator.permission.query always being allowed, it now uses the permission to correctly inform sites
 - USB permission not being blocked in the permissionsasked setting
-- Simple text pages that disable JavaScript blocking the colors and fontsize being applied
-- Actions "toParentSubdomain" and toRootSubdomain" not working with dashes in the domain name
 
 ### Versions
 
