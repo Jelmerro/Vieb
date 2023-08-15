@@ -20,16 +20,6 @@
 const {ipcRenderer} = require("electron")
 const {joinPath, basePath} = require("../util")
 
-const styling = `body {color: var(--fg, #eee);display: flex;
-    font: 14px monospace;line-height: 1.5;margin: 0;}
-main {margin: 3em auto;width: 50vw;background: #7772;min-width: 300px;
-    padding: 3em;overflow: visible;text-overflow: ellipsis;height: fit-content;}
-h2 {font-size: 2em;margin: 0 0 1em;}
-.dir, .file {margin: .7em;cursor: pointer;}
-.dir {font-weight: bold;color: var(--suggestions-file, #ffb);}
-.file {color: var(--suggestions-url, #bff);}
-.error {color: var(--notification-error, #f33);}`
-
 /**
  * Create a dir or file element with onclick handler and return it.
  * @param {"file"|"dir"} type
@@ -68,11 +58,8 @@ const isRoot = loc => loc === joinPath(loc, "../")
  * @param {string} folder
  */
 const insertCurrentDirInfo = (_, directories, files, allowed, folder) => {
-    // Styling
-    const styleElement = document.createElement("style")
-    styleElement.textContent = styling
-    document.head.append(styleElement)
-    // Main
+    document.body.textContent = ""
+    document.body.id = "filebrowser"
     const main = document.createElement("main")
     const title = document.createElement("h2")
     title.textContent = folder

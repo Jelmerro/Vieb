@@ -433,8 +433,7 @@ const colorscheme = (name = null, trailingArgs = null) => {
         css = readFile(joinPath(appData(), `colors/${name}.css`))
     }
     if (!css) {
-        css = readFile(joinPath(__dirname,
-            "../colors", `${name}.css`))
+        css = readFile(joinPath(__dirname, `../colors/${name}.css`))
     }
     if (!css) {
         notify(`Cannot find colorscheme '${name}'`, "warn")
@@ -450,6 +449,10 @@ const colorscheme = (name = null, trailingArgs = null) => {
     ipcRenderer.send("set-custom-styling", getSetting("guifontsize"), css)
     const {setCustomStyling} = require("./settings")
     setCustomStyling(css)
+    listRealPages().forEach(page => {
+        const {addDefaultStylingToWebview} = require("./tabs")
+        addDefaultStylingToWebview(page)
+    })
     currentscheme = name
 }
 

@@ -863,6 +863,19 @@ const injectCustomStyleRequest = async(webview, type, css = null) => {
 }
 
 /**
+ * Add all styling including the default to the error page and the filebrowser.
+ * @param {Electron.WebviewTag} webview
+ */
+const addDefaultStylingToWebview = webview => {
+    const defaultCss = readFile(joinPath(
+        __dirname, "../colors/default.css"))
+    webview.send("insert-default-css", defaultCss)
+    const {getCustomStyling} = require("./settings")
+    webview.send("set-custom-styling", getSetting("guifontsize"),
+        getCustomStyling())
+}
+
+/**
  * Add all permanent listeners to the new webview.
  * @param {Electron.WebviewTag} webview
  */
@@ -947,7 +960,7 @@ const addWebviewListeners = webview => {
             || e.errorDescription.includes("_CERT_"))
             && webview.src.startsWith("https://")
         if (isSSLError && getSetting("redirecttohttp")) {
-            webview.loadURL(webview.src.replace("https://", "http://"))
+            webview.loadURL(webview.src.replace(/^https?:\/\//g, "http://"))
                 .catch(() => null)
             return
         }
@@ -965,6 +978,7 @@ const addWebviewListeners = webview => {
             webview.loadURL(specialPagePath(page)).catch(() => null)
             return
         }
+        addDefaultStylingToWebview(webview)
         // If the path is a directory, show a list of files instead of an error
         if (e.errorDescription === "ERR_FILE_NOT_FOUND") {
             // Any number of slashes after file is fine
@@ -990,9 +1004,6 @@ const addWebviewListeners = webview => {
         }
         webview.send("insert-failed-page-info", JSON.stringify(e), isSSLError)
         webview.setAttribute("failed-to-load", "true")
-        const {getCustomStyling} = require("./settings")
-        webview.send("set-custom-styling", getSetting("guifontsize"),
-            getCustomStyling())
     })
     webview.addEventListener("did-stop-loading", () => {
         const {show} = require("./favicons")
@@ -1005,7 +1016,9 @@ const addWebviewListeners = webview => {
         const isCustomView = webview.src.startsWith("sourceviewer:")
             || webview.src.startsWith("readerview")
             || webview.src.startsWith("markdownviewer")
-        if (specialPageName || isLocal || isErrorPage || isCustomView) {
+        if (isLocal || isErrorPage) {
+            addDefaultStylingToWebview(webview)
+        } else if (specialPageName || isCustomView) {
             const {getCustomStyling} = require("./settings")
             webview.send("set-custom-styling", getSetting("guifontsize"),
                 getCustomStyling())
@@ -1387,6 +1400,7 @@ const moveTabBackward = () => {
 }
 
 module.exports = {
+    addDefaultStylingToWebview,
     addTab,
     closeTab,
     init,

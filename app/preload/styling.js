@@ -201,3 +201,27 @@ ipcRenderer.on("hide-scrollbar", () => hideScrollbar())
 loadThemes()
 window.addEventListener("DOMContentLoaded", () => loadThemes())
 window.addEventListener("load", () => loadThemes(true))
+ipcRenderer.on("set-custom-styling", (_, fontsize, customCSS) => {
+    document.body.style.fontSize = `${fontsize}px`
+    if (!document.getElementById("custom-styling")) {
+        const styleElement = document.createElement("style")
+        styleElement.id = "custom-styling"
+        document.head.append(styleElement)
+    }
+    const customStyle = document.getElementById("custom-styling")
+    if (customStyle) {
+        customStyle.textContent = customCSS
+    }
+    document.body.style.opacity = "1"
+})
+ipcRenderer.on("insert-default-css", (_, defaultCss) => {
+    if (!document.getElementById("default-styling")) {
+        const styleElement = document.createElement("style")
+        styleElement.id = "default-styling"
+        document.head.append(styleElement)
+    }
+    const customStyle = document.getElementById("default-styling")
+    if (customStyle) {
+        customStyle.textContent = defaultCss
+    }
+})
