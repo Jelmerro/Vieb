@@ -215,12 +215,16 @@ ipcRenderer.on("set-custom-styling", (_, fontsize, customCSS) => {
     document.body.style.opacity = "1"
 })
 ipcRenderer.on("insert-default-css", (_, defaultCss) => {
+    const linkedCss = document.querySelector(`link[href$="colors/default.css"]`)
+    if (linkedCss) {
+        return
+    }
     if (!document.getElementById("default-styling")) {
         const styleElement = document.createElement("style")
         styleElement.id = "default-styling"
         document.head.append(styleElement)
     }
-    const customStyle = document.getElementById("default-styling")
+    const customStyle = document.querySelector("style#default-styling")
     if (customStyle) {
         customStyle.textContent = defaultCss
     }

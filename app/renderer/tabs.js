@@ -1016,12 +1016,8 @@ const addWebviewListeners = webview => {
         const isCustomView = webview.src.startsWith("sourceviewer:")
             || webview.src.startsWith("readerview")
             || webview.src.startsWith("markdownviewer")
-        if (isLocal || isErrorPage) {
+        if (specialPageName || isLocal || isErrorPage || isCustomView) {
             addDefaultStylingToWebview(webview)
-        } else if (specialPageName || isCustomView) {
-            const {getCustomStyling} = require("./settings")
-            webview.send("set-custom-styling", getSetting("guifontsize"),
-                getCustomStyling())
         }
         if (specialPageName === "help") {
             const {

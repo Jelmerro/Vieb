@@ -442,17 +442,18 @@ const colorscheme = (name = null, trailingArgs = null) => {
     if (name === "default") {
         css = ""
     }
-    const customStyleEl = document.getElementById("custom-styling")
-    if (customStyleEl) {
-        customStyleEl.textContent = css
+    if (!document.getElementById("custom-styling")) {
+        const styleElement = document.createElement("style")
+        styleElement.id = "custom-styling"
+        document.head.append(styleElement)
+    }
+    const customStyle = document.getElementById("custom-styling")
+    if (customStyle) {
+        customStyle.textContent = css
     }
     ipcRenderer.send("set-custom-styling", getSetting("guifontsize"), css)
     const {setCustomStyling} = require("./settings")
     setCustomStyling(css)
-    listRealPages().forEach(page => {
-        const {addDefaultStylingToWebview} = require("./tabs")
-        addDefaultStylingToWebview(page)
-    })
     currentscheme = name
 }
 

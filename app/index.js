@@ -824,7 +824,7 @@ let requestHeaders = []
 const sessionList = []
 const adblockerPreload = joinPath(__dirname,
     "../node_modules/@cliqz/adblocker-electron-preload/dist/preload.cjs.js")
-const defaultCss = readFile(joinPath(__dirname, `colors/default.css`))
+const defaultCSS = readFile(joinPath(__dirname, `colors/default.css`))
 ipcMain.on("set-redirects", (_, rdr) => {
     redirects = rdr
 })
@@ -1167,7 +1167,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         loc = decodeURI(loc)
         if (isDir(loc)) {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
-                <style>${defaultCss}</style>
+                <style id="default-styling">${defaultCSS}</style>
+                <style id="custom-styling">${customCSS}</style>
                 <title>${decodeURI(req.url)}</title>
                 </head><body>Source viewer does not support folders, only files
                 </body></html>`
@@ -1179,7 +1180,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             hljs = require("highlight.js").default
         } catch {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
-                <style>${defaultCss}</style>
+                <style id="default-styling">${defaultCSS}</style>
+                <style id="custom-styling">${customCSS}</style>
                 <title>${decodeURI(req.url)}</title>
                 </head><body>Source viewer module not present, can't view source
                 </body></html>`
@@ -1187,7 +1189,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         }
         if (!hljs) {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
-                <style>${defaultCss}</style>
+                <style id="default-styling">${defaultCSS}</style>
+                <style id="custom-styling">${customCSS}</style>
                 <title>${decodeURI(req.url)}</title>
                 </head><body>Source viewer module not present, can't view source
                 </body></html>`
@@ -1196,7 +1199,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         if (isFile(loc)) {
             const hl = hljs.highlightAuto(readFile(loc) ?? "")
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
-                <style>${defaultCss}</style>
+                <style id="default-styling">${defaultCSS}</style>
+                <style id="custom-styling">${customCSS}</style>
                 <title>${decodeURI(req.url)}</title>
                 </head><body id="sourceviewer">
                 <pre><code>${hl.value}</code></pre></body></html>`
@@ -1211,7 +1215,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                     if (!body || !hljs) {
                         resolve(new Response(Buffer.from(
                             `<!DOCTPYE html>\n<html><head>
-                            <style>${defaultCss}</style>
+                            <style id="default-styling">${defaultCSS}</style>
+                            <style id="custom-styling">${customCSS}</style>
                             <title>${decodeURI(req.url)}</title>
                             </head><body>
                                 Source viewer not supported on this webpage
@@ -1224,7 +1229,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                     const hl = hljs.highlightAuto(body)
                     resolve(new Response(Buffer.from(
                         `<!DOCTPYE html>\n<html><head>
-                        <style>${defaultCss}</style>
+                        <style id="default-styling">${defaultCSS}</style>
+                        <style id="custom-styling">${customCSS}</style>
                         <title>${decodeURI(req.url)}</title>
                         </head><body id="sourceviewer">
                         <pre><code>${hl.value}</code></pre></body></html>`
@@ -1249,7 +1255,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         loc = decodeURI(loc)
         if (isDir(loc)) {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
-                <style>${defaultCss}</style>
+                <style id="default-styling">${defaultCSS}</style>
+                <style id="custom-styling">${customCSS}</style>
                 <title>${decodeURI(req.url)}</title></head>
                 <body>Markdown viewer does not support folders, only files
                 </body></html>`), {"headers": {
@@ -1264,7 +1271,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             ({marked} = require("marked"))
         } catch {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
-                <style>${defaultCss}</style>
+                <style id="default-styling">${defaultCSS}</style>
+                <style id="custom-styling">${customCSS}</style>
                 <title>${decodeURI(req.url)}</title></head>
                 <body>Markdown viewer module not present, can't view markdown
                 </body></html>`), {"headers": {
@@ -1273,7 +1281,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         }
         if (!marked) {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
-                <style>${defaultCss}</style>
+                <style id="default-styling">${defaultCSS}</style>
+                <style id="custom-styling">${customCSS}</style>
                 <title>${decodeURI(req.url)}</title></head>
                 <body>Markdown viewer module not present, can't view markdown
                 </body></html>`), {"headers": {
@@ -1312,7 +1321,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             const md = marked.parse(readFile(loc) ?? "")
             return new Response(Buffer.from(
                 `<!DOCTPYE html>\n<html><head>
-                <style>${defaultCss}</style>
+                <style id="default-styling">${defaultCSS}</style>
+                <style id="custom-styling">${customCSS}</style>
                 <title>${decodeURI(req.url)}</title>
                 </head><body id="markdownviewer">${md}</body></html>`
             ), {"headers": {"content-type": "text/html; charset=utf-8"}})
@@ -1325,7 +1335,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                     if (!body || !marked) {
                         resolve(new Response(Buffer.from(
                             `<!DOCTPYE html>\n<html><head>
-                            <style>${defaultCss}</style>
+                            <style id="default-styling">${defaultCSS}</style>
+                            <style id="custom-styling">${customCSS}</style>
                             <title>${decodeURI(req.url)}</title></head>
                             <body>Markdown viewer not supported on this webpage
                             </body></html>`
@@ -1337,7 +1348,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                     const md = marked.parse(body)
                     resolve(new Response(Buffer.from(
                         `<!DOCTPYE html>\n<html><head>
-                        <style>${defaultCss}</style>
+                        <style id="default-styling">${defaultCSS}</style>
+                        <style id="custom-styling">${customCSS}</style>
                         <title>${decodeURI(req.url)}</title>
                         </head><body id="markdownviewer">${md}</body></html>`
                     ), {"headers": {
@@ -1361,7 +1373,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         loc = decodeURI(loc)
         if (isFile(loc) || isDir(loc)) {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
-                <style>${defaultCss}</style>
+                <style id="default-styling">${defaultCSS}</style>
+                <style id="custom-styling">${customCSS}</style>
                 <title>${decodeURI(req.url)}</title>
                 </head><body>Reader view not supported for local resources
                 </body></html>`
@@ -1376,7 +1389,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             ;({JSDOM} = require("jsdom"))
         } catch (e) {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
-                <style>${defaultCss}</style>
+                <style id="default-styling">${defaultCSS}</style>
+                <style id="custom-styling">${customCSS}</style>
                 <title>${decodeURI(req.url)}</title>
                 </head><body>Reader view module not present, can't do readerview
                 </body></html>`
@@ -1384,7 +1398,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         }
         if (!Readability || !JSDOM) {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
-                <style>${defaultCss}</style>
+                <style id="default-styling">${defaultCSS}</style>
+                <style id="custom-styling">${customCSS}</style>
                 <title>${decodeURI(req.url)}</title>
                 </head><body>Reader view module not present, can't do readerview
                 </body></html>`
@@ -1399,7 +1414,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                     if (!body || !JSDOM || !Readability) {
                         resolve(new Response(Buffer.from(
                             `<!DOCTPYE html>\n<html><head>
-                            <style>${defaultCss}</style>
+                            <style id="default-styling">${defaultCSS}</style>
+                            <style id="custom-styling">${customCSS}</style>
                             <title>${decodeURI(req.url)}</title>
                             </head><body>
                                 Reader view not supported on this webpage
@@ -1414,7 +1430,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                         dom.window.document).parse()?.content ?? ""
                     resolve(new Response(Buffer.from(
                         `<!DOCTPYE html>\n<html><head>
-                        <style>${defaultCss}</style>
+                        <style id="default-styling">${defaultCSS}</style>
+                        <style id="custom-styling">${customCSS}</style>
                         <title>${decodeURI(req.url)}</title>
                         </head><body id="readerview">${out}</body></html>`
                     ), {"headers": {

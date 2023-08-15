@@ -34,6 +34,11 @@ window.addEventListener("load", () => {
         input.value = text
         input.select()
         document.body.style.fontSize = `${fontsize}px`
+        if (!document.getElementById("custom-styling")) {
+            const styleElement = document.createElement("style")
+            styleElement.id = "custom-styling"
+            document.head.append(styleElement)
+        }
         const customStyle = document.getElementById("custom-styling")
         if (customStyle) {
             customStyle.textContent = customCSS

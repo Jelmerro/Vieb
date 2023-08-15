@@ -2077,7 +2077,8 @@ const updateCustomStyling = () => {
             || p.src.startsWith("readerview:")
             || p.src.startsWith("markdownviewer:")
         if (isSpecialPage || isLocal || isErrorPage || isCustomView) {
-            p.send("set-custom-styling", allSettings.guifontsize, customStyling)
+            const {addDefaultStylingToWebview} = require("./tabs")
+            addDefaultStylingToWebview(p)
         }
     })
     const {applyLayout} = require("./pagelayout")
