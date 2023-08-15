@@ -311,13 +311,13 @@ const toParentUrl = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/?\\/?.*?\\/)"
 const toRootUrl = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/?\\/?.*?\\/)"
     + "(.*$)", (_, domain) => domain)
 
-const toParentSubdomain = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/?\\/?)("
-    + "www\\.)?([a-zA-Z\\d]*?\\.)((?:[a-zA-Z\\d]*?\\.)*)([a-zA-Z\\d]*?\\.[a-zA-"
-    + "Z]+.*$)", (_, p, w, __, s, m) => p + (w || "") + (s || "") + (m || ""))
+const toParentSubdomain = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/?\\/?)(www\\."
+    + ")?([a-zA-Z\\d-]*?\\.)((?:[a-zA-Z\\d-]*?\\.)*)([a-zA-Z\\d-]*?\\.[a-zA-Z]+"
+    + ".*$)", (_, p, w, __, s, m) => p + (w || "") + (s || "") + (m || ""))
 
-const toRootSubdomain = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/?\\/?)("
-    + "www\\.)?([a-zA-Z\\d]*?\\.)((?:[a-zA-Z\\d]*?\\.)*)([a-zA-Z\\d]*?\\.[a-zA-"
-    + "Z]+.*$)", (_, p, w, __, ___, m) => p + (w || "") + (m || ""))
+const toRootSubdomain = () => modifyUrl("(^[a-z][a-zA-Z\\d]+:\\/?\\/?)(www\\."
+    + ")?([a-zA-Z\\d-]*?\\.)((?:[a-zA-Z\\d-]*?\\.)*)([a-zA-Z\\d-]*?\\.[a-zA-Z]+"
+    + ".*$)", (_, p, w, __, ___, m) => p + (w || "") + (m || ""))
 
 /**
  * Modify a url based on a source pattern and a replacement function.

@@ -32,6 +32,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Permission check via navigator.permission.query always being allowed, it now uses the permission to correctly inform sites
 - USB permission not being blocked in the permissionsasked setting
 - Simple text pages that disable JavaScript blocking the colors and fontsize being applied
+- Actions "toParentSubdomain" and toRootSubdomain" not working with dashes in the domain name
 
 ### Versions
 
