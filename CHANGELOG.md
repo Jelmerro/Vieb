@@ -25,6 +25,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Simple text pages that disable JavaScript blocking the colors and fontsize being applied
 - Actions "toParentSubdomain" and toRootSubdomain" not working with dashes in the domain name
+- Media device query being denied if done via the allow list with `mediadevicesfull`
 
 ### Versions
 

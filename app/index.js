@@ -1544,6 +1544,14 @@ const permissionHandler = (_, pm, callback, details) => {
                     break
                 }
             }
+            if (permissionName.includes("mediadevices")) {
+                if (names.some(p => p.endsWith("mediadevicesfull"))) {
+                    if (details.requestingUrl?.match(match)) {
+                        settingRule = "allow"
+                        break
+                    }
+                }
+            }
         }
     }
     setting = settingRule || setting
