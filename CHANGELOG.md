@@ -20,12 +20,14 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Changed
 
 - Failedload and filebrowser pages are now styled with themes like other special pages
+- Undo/redo navbar logic to prevent duplicate entries in the edit history
 
 ### Fixed
 
 - Simple text pages that disable JavaScript blocking the colors and fontsize being applied
 - Actions "toParentSubdomain" and toRootSubdomain" not working with dashes in the domain name
 - Media device query being denied if done via the allow list with `mediadevicesfull`
+- Navbar selection being cleared when dragging outside of the navbar
 
 ### Versions
 

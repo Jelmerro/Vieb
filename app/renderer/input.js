@@ -762,6 +762,28 @@ const init = () => {
             }
         }
     }, {"passive": false})
+    window.addEventListener("drop", e => {
+        const {followFiltering} = require("./follow")
+        const typing = "sec".includes(currentMode()[0]) || followFiltering()
+        if (e.target === getUrl()) {
+            if (typing) {
+                if (getMouseConf("url")) {
+                    setTimeout(() => requestSuggestUpdate(), 1)
+                } else {
+                    e.preventDefault()
+                }
+            }
+            if (getMouseConf("toexplore") && !typing) {
+                ACTIONS.toExploreMode()
+            }
+        } else {
+            if (!typing) {
+                getUrl()?.setSelectionRange(0, 0)
+                window.getSelection()?.removeAllRanges()
+            }
+            e.preventDefault()
+        }
+    })
     window.addEventListener("mouseup", e => {
         if (draggingScreenshotFrame) {
             setTimeout(() => {
@@ -770,13 +792,15 @@ const init = () => {
             e.preventDefault()
             return
         }
+        const {followFiltering} = require("./follow")
+        const typing = "sec".includes(currentMode()[0]) || followFiltering()
         if (e.target === getUrl()) {
-            const {followFiltering} = require("./follow")
-            const typing = "sec".includes(currentMode()[0]) || followFiltering()
-            if (typing && !getMouseConf("url")) {
-                e.preventDefault()
-            } else if (typing && e.button === 1) {
-                setTimeout(() => requestSuggestUpdate(), 1)
+            if (typing) {
+                if (getMouseConf("url")) {
+                    setTimeout(() => requestSuggestUpdate(), 1)
+                } else {
+                    e.preventDefault()
+                }
             }
             if (getMouseConf("toexplore")) {
                 if (!typing) {
@@ -785,6 +809,10 @@ const init = () => {
                 return
             }
         } else {
+            if (!typing) {
+                getUrl()?.setSelectionRange(0, 0)
+                window.getSelection()?.removeAllRanges()
+            }
             e.preventDefault()
         }
         if (e.button === 1 && getMouseConf("closetab")) {
@@ -800,15 +828,6 @@ const init = () => {
             }
             const {clear} = require("./contextmenu")
             clear()
-        }
-        ACTIONS.setFocusCorrectly()
-    })
-    window.addEventListener("mouseout", () => {
-        const {followFiltering} = require("./follow")
-        const typing = "sec".includes(currentMode()[0]) || followFiltering()
-        if (!typing) {
-            getUrl()?.setSelectionRange(0, 0)
-            window.getSelection()?.removeAllRanges()
         }
         ACTIONS.setFocusCorrectly()
     })
@@ -2216,10 +2235,12 @@ const requestSuggestUpdate = (updateHistory = true) => {
     const url = getUrl()
     const suggestBounceDelay = getSetting("suggestbouncedelay")
     if (updateHistory) {
-        inputHistoryList = inputHistoryList.slice(0, inputHistoryIndex + 1)
-        inputHistoryIndex = inputHistoryList.length
-        const start = Number(url?.selectionStart)
-        inputHistoryList.push({"index": start, "value": url?.value ?? ""})
+        if (url?.value !== inputHistoryList[inputHistoryIndex]?.value) {
+            inputHistoryList = inputHistoryList.slice(0, inputHistoryIndex + 1)
+            inputHistoryIndex = inputHistoryList.length
+            const start = Number(url?.selectionStart)
+            inputHistoryList.push({"index": start, "value": url?.value ?? ""})
+        }
     }
     if (!suggestionTimer) {
         updateSuggestions()
