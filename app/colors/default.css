@@ -475,10 +475,10 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #markdownviewer {margin: auto;max-width: 65em;padding: 2vw;color: var(--fg);background: var(--bg);}
 #markdownviewer img {max-width: 100%;}
 #markdownviewer a {color: var(--link-color);}
-#markdownviewer .toc {position: fixed;min-width: 10em;width: auto;max-width: 60vw;right: 2em;top: 2em;background: var(--bg);border: solid 1px var(--fg);padding: 1em;}
-#markdownviewer .toc summary {display: block;cursor: pointer;}
-#markdownviewer .toc summary h1 {display: list-item;margin: 0;}
-#markdownviewer .toc ul {padding-inline-start: .8em;}
+#markdownviewer .toc, #helppage .toc {position: fixed;min-width: 10em;width: auto;max-width: 60vw;right: 2em;top: 2em;background: var(--bg);border: solid 1px var(--fg);padding: 0;max-height: 90vh;overflow: auto;line-height: 1;}
+#markdownviewer .toc summary, #helppage .toc summary {display: block;cursor: pointer;padding: 1em;}
+#markdownviewer .toc summary h1, #helppage .toc summary h1 {display: list-item;margin: 0;font-size: 2em;color: var(--fg);}
+#markdownviewer .toc ul, #helppage .toc ul {padding-inline-start: .8em;}
 
 
 /*

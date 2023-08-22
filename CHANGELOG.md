@@ -15,7 +15,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Added
 
-- Table of contents to markdownviewer
+- Table of contents to markdownviewer and help page (will be made optional before release)
 
 ### Changed
 

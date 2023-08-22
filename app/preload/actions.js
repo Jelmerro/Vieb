@@ -561,6 +561,54 @@ const translatepage = async(api, url, lang, apiKey) => {
     }
 }
 
+const showTOC = () => {
+    if (document.querySelector("details.toc")) {
+        return
+    }
+    const headings = [...document.querySelectorAll("h1,h2,h3,h4,h5,h6")]
+    const toc = document.createElement("details")
+    toc.classList.add("toc")
+    const summary = document.createElement("summary")
+    const title = document.createElement("h1")
+    title.textContent = "TOC"
+    summary.append(title)
+    const baseUl = document.createElement("ul")
+    baseUl.setAttribute("depth", "1")
+    toc.append(summary, baseUl)
+    const lists = [baseUl]
+    const currentDepth = () => Number(lists.at(-1)?.getAttribute("depth"))
+    /** @type {string[]} */
+    const headingNames = []
+    for (const heading of headings) {
+        const depth = Number(heading.tagName[1])
+        while (currentDepth() > depth && lists.length > 1) {
+            lists.pop()
+        }
+        while (currentDepth() < depth) {
+            const list = document.createElement("ul")
+            list.setAttribute("depth", String(currentDepth() + 1))
+            lists.at(-1)?.append(list)
+            lists.push(list)
+        }
+        const listItem = document.createElement("li")
+        const baseHeadingId = heading.id || heading.textContent
+            ?.replace(/\s+/g, "_").replace(/[\u{0080}-\u{FFFF}]/gu, "") || ""
+        let headingId = baseHeadingId
+        let duplicateHeadingCounter = 2
+        while (headingNames.includes(headingId)) {
+            headingId = `${baseHeadingId}${duplicateHeadingCounter}`
+            duplicateHeadingCounter += 1
+        }
+        const listLink = document.createElement("a")
+        listLink.href = `#${headingId}`
+        listLink.textContent = heading.textContent
+        heading.id = headingId
+        listItem.append(listLink)
+        lists.at(-1)?.append(listItem)
+    }
+    document.body.append(toc)
+}
+
 const functions = {
     blur,
     exitFullscreen,
@@ -589,6 +637,7 @@ const functions = {
     selectionRemove,
     selectionRequest,
     setInputFieldText,
+    showTOC,
     toggleControls,
     toggleLoop,
     toggleMute,

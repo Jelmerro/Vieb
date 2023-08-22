@@ -39,7 +39,8 @@ const {
     listNotificationHistory,
     propPixels,
     userAgentTemplated,
-    deleteFile
+    deleteFile,
+    sendToPageOrSubFrame
 } = require("../util")
 const {
     listTabs,
@@ -1043,9 +1044,12 @@ const addWebviewListeners = webview => {
         const specialPageName = pathToSpecialPageName(webview.src)?.name
         const isLocal = webview.src.startsWith("file:/")
         const isCustomView = webview.src.startsWith("sourceviewer:")
-            || webview.src.startsWith("readerview")
-            || webview.src.startsWith("markdownviewer")
+            || webview.src.startsWith("readerview:")
+            || webview.src.startsWith("markdownviewer:")
         addColorschemeStylingToWebview(webview)
+        if (webview.src.startsWith("markdownviewer:")) {
+            sendToPageOrSubFrame("action", "showTOC")
+        }
         if (specialPageName === "help") {
             const {
                 listMappingsAsCommandList, uncountableActions
@@ -1055,6 +1059,7 @@ const addWebviewListeners = webview => {
             webview.send("settings", settingsWithDefaults(),
                 listMappingsAsCommandList(null, true), uncountableActions,
                 rangeCompatibleCommands)
+            sendToPageOrSubFrame("action", "showTOC")
         }
         if (specialPageName === "notifications") {
             webview.send("notification-history", listNotificationHistory())
@@ -1091,8 +1096,8 @@ const addWebviewListeners = webview => {
     })
     webview.addEventListener("page-title-updated", e => {
         const isCustomView = webview.src.startsWith("sourceviewer:")
-            || webview.src.startsWith("readerview")
-            || webview.src.startsWith("markdownviewer")
+            || webview.src.startsWith("readerview:")
+            || webview.src.startsWith("markdownviewer:")
         if (hasProtocol(e.title) && !isCustomView) {
             return
         }
