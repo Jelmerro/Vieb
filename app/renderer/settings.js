@@ -389,12 +389,13 @@ const listLike = [
     "storenewvisits",
     "suggestorder",
     "resourcetypes",
+    "tocpages",
     "userscriptscope",
     "userstylescope"
 ]
 const listLikeTilde = [
-    "useragent",
-    "darkreaderblocklist"
+    "darkreaderblocklist",
+    "useragent"
 ]
 const validOptions = {
     "adblocker": ["off", "static", "update", "custom"],
@@ -1248,6 +1249,20 @@ const checkOther = (setting, value) => {
             return false
         }
         return checkSuggestOrder(value)
+    }
+    if (setting === "tocpages") {
+        if (typeof value !== "string") {
+            return false
+        }
+        for (const match of value.split(",").filter(c => c.trim())) {
+            try {
+                RegExp(match)
+            } catch {
+                notify(`Invalid regular expression in ${setting}: ${match}`,
+                    "warn")
+                return false
+            }
+        }
     }
     if (setting === "translateurl") {
         if (typeof value !== "string") {
