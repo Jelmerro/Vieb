@@ -1923,6 +1923,7 @@ ipcMain.on("window-state-init", (_, restorePos, restoreSize, restoreMax) => {
     })
 })
 const saveWindowState = (maximizeOnly = false) => {
+    mainWindow?.webContents?.send("window-update-gui")
     try {
         let state = readJSON(windowStateFile) || {}
         if (!maximizeOnly && mainWindow && !mainWindow.isMaximized()) {
@@ -2057,7 +2058,18 @@ ipcMain.on("app-config", e => {
     }
 })
 ipcMain.on("is-fullscreen", e => {
-    e.returnValue = mainWindow?.fullScreen ?? false
+    if (!mainWindow) {
+        e.returnValue = false
+        return
+    }
+    const windowBounds = mainWindow.getBounds()
+    const screenBounds = screen.getDisplayMatching(windowBounds).bounds
+    const osFullscreen = screenBounds.x === windowBounds.x
+        && screenBounds.y === windowBounds.y
+        && screenBounds.width === windowBounds.width
+        && screenBounds.height === windowBounds.height
+        && !mainWindow.isMaximized()
+    e.returnValue = mainWindow.fullScreen || osFullscreen
 })
 ipcMain.on("relaunch", () => app.relaunch())
 ipcMain.on("mouse-location", e => {

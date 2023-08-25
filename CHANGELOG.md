@@ -23,6 +23,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Failedload and filebrowser pages are now styled with themes like other special pages
 - Undo/redo navbar logic to prevent duplicate entries in the edit history
 - Commands to list the name and arguments of failing commands more often
+- Fullscreen to also toggle when the window is made fullscreen via Linux specific OS fullscreen features
 
 ### Fixed
 

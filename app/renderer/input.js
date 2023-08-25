@@ -31,7 +31,8 @@ const {
     getMouseConf,
     updateScreenshotHighlight,
     getUrl,
-    listReadyPages
+    listReadyPages,
+    updateGuiVisibility
 } = require("./common")
 
 const ACTIONS = require("./actions")
@@ -989,6 +990,7 @@ const init = () => {
         document.body.classList.remove("focus")
         ACTIONS.setFocusCorrectly()
     })
+    ipcRenderer.on("window-update-gui", () => updateGuiVisibility())
     ACTIONS.setFocusCorrectly()
     const unSupportedActions = [
         "setFocusCorrectly",
