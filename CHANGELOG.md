@@ -30,6 +30,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Actions "toParentSubdomain" and toRootSubdomain" not working with dashes in the domain name
 - Media device query being denied if done via the allow list with `mediadevicesfull`
 - Navbar selection being cleared when dragging outside of the navbar
+- Media indicator not showing in numberedtabs colorscheme
 
 ### Versions
 
