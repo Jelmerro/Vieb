@@ -493,8 +493,8 @@ const openDevTools = (userPosition = null, trailingArgs = null) => {
             add(id, "ver", getSetting("splitbelow"))
         }
     } else {
-        notify("Invalid devtools position specified, must be one of: "
-            + "window, vsplit, split or tab", "warn")
+        notify(`Invalid devtools position '${position}' specified, must be one`
+            + " of: window, vsplit, split or tab", "warn")
     }
 }
 
@@ -1543,7 +1543,7 @@ const restoremark = args => {
     if (isValidPosition(position)) {
         restoreMark({key, position})
     } else {
-        notify("Invalid mark restore position, must be one of: "
+        notify(`Invalid mark restore ${position}' position, must be one of: `
             + `${validOptions.markpositionshifted.join(", ")}`, "warn")
     }
 }
@@ -1956,8 +1956,8 @@ const translatepage = args => {
     const {validOptions} = require("./settings")
     let [lang] = args
     if (lang && !validOptions.translatelang.includes(lang.toLowerCase())) {
-        notify("Invalid language supplied, see ':h translatelang' for help",
-            "warn")
+        notify(`Invalid language '${lang}' supplied, `
+            + "see ':h translatelang' for help", "warn")
         return
     }
     lang = lang?.toLowerCase() ?? getSetting("translatelang")
@@ -2162,14 +2162,14 @@ const commands = {
         } else if (args.length === 1) {
             const number = Number(args[0])
             if (isNaN(number)) {
-                notify("Scriptnames argument must be a number for a script",
+                notify("Scriptnames! argument must be a number for a script",
                     "warn")
                 return
             }
             const script = scripts[number - 1]
             if (!script) {
-                notify("No script found with that index, see ':scriptnames!'",
-                    "warn")
+                notify(`No script found with index '${number}'`
+                    + ", see ':scriptnames!'", "warn")
                 return
             }
             execCommand(`${getSetting("vimcommand")} "${script}"`, err => {
@@ -2280,8 +2280,8 @@ const addCommand = (overwrite, args) => {
         return
     }
     if (!overwrite && userCommands[command]) {
-        notify(
-            "Duplicate custom command definition (add ! to overwrite)", "warn")
+        notify(`Duplicate custom command definition (add ! to overwrite): ${
+            command}`, "warn")
         return
     }
     const {sanitiseMapString} = require("./input")
@@ -2436,7 +2436,7 @@ const execute = (com, settingsFile = null) => {
             if (confirm) {
                 command += "!"
                 if (!commands[command]) {
-                    notify("No ! allowed", "warn")
+                    notify(`No ! allowed for: ${command.slice(0, -1)}`, "warn")
                     return
                 }
             }
