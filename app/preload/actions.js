@@ -31,7 +31,9 @@ const {
     isInputOrTextElement,
     isHTMLVideoElement,
     isHTMLAudioElement,
-    isElement
+    isElement,
+    readFile,
+    joinPath
 } = require("../util")
 
 /**
@@ -563,14 +565,20 @@ const translatepage = async(api, url, lang, apiKey) => {
 
 const randomTOCId = `vieb-toc-${Math.random()}`
 
-const showTOC = () => {
+/**
+ * Show the table of contents in a shadowroot with custom styling applied.
+ * @param {string} customStyling
+ * @param {number} fontsize
+ * @param {boolean} opened
+ */
+const showTOC = (customStyling, fontsize, opened = false) => {
     if (document.getElementById(randomTOCId)) {
         return
     }
     const headings = [...document.querySelectorAll("h1,h2,h3,h4,h5,h6")]
     const toc = document.createElement("details")
-    toc.id = randomTOCId
-    toc.classList.add("toc")
+    toc.id = "toc"
+    toc.open = opened
     const summary = document.createElement("summary")
     const title = document.createElement("h1")
     title.textContent = "TOC"
@@ -609,16 +617,54 @@ const showTOC = () => {
         listItem.append(listLink)
         lists.at(-1)?.append(listItem)
     }
-    document.body.append(toc)
+    const tocContainer = document.createElement("div")
+    tocContainer.style.position = "fixed"
+    tocContainer.style.top = "0"
+    tocContainer.style.left = "0"
+    tocContainer.style.right = "0"
+    tocContainer.style.bottom = "0"
+    tocContainer.style.width = "100vw"
+    tocContainer.style.height = "100vh"
+    tocContainer.style.pointerEvents = "none"
+    tocContainer.style.zIndex = "999999999"
+    tocContainer.id = randomTOCId
+    const tocShadow = tocContainer.attachShadow({"mode": "open"})
+    const defaultStylesheet = document.createElement("style")
+    defaultStylesheet.textContent = (readFile(joinPath(
+        __dirname, "../colors/default.css")) ?? "").replace(":root", ":host")
+    const customStylesheet = document.createElement("style")
+    customStylesheet.textContent = customStyling.replace(":root", ":host")
+    customStylesheet.textContent += `\n#toc {font-size: ${fontsize}px;}`
+    tocShadow.append(defaultStylesheet, customStylesheet, toc)
+    document.body.append(tocContainer)
 }
 
 const hideTOC = () => document.getElementById(randomTOCId)?.remove()
 
-const toggleTOC = () => {
+/**
+ * Toggle the table of contents in a shadowroot with custom styling applied.
+ * @param {string} customStyling
+ * @param {number} fontsize
+ */
+const toggleTOC = (customStyling, fontsize) => {
     if (document.getElementById(randomTOCId)) {
         hideTOC()
     } else {
-        showTOC()
+        showTOC(customStyling, fontsize)
+    }
+}
+
+/**
+ * Rerender the table of contents in a shadowroot with the new custom styling.
+ * @param {string} customStyling
+ * @param {number} fontsize
+ */
+const rerenderTOC = (customStyling, fontsize) => {
+    const existingTOC = document.getElementById(randomTOCId)
+    if (existingTOC) {
+        hideTOC()
+        showTOC(customStyling, fontsize,
+            existingTOC.shadowRoot?.querySelector("details")?.open)
     }
 }
 
@@ -630,6 +676,7 @@ const functions = {
     nextPage,
     previousPage,
     print,
+    rerenderTOC,
     scrollBottom,
     scrollDown,
     scrollLeft,

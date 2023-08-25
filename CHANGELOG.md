@@ -15,7 +15,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Added
 
-- Table of contents to markdownviewer and help page (will be made optional before release)
+- Table of contents that can be triggered for pages via `tocpages` or using the `<showTOC>`, `<toggleTOC>` and `<hideTOC>` actions
 - Default ozone-platform-hint=auto flag to Linux releases with a desktop file to improve Wayland support
 
 ### Changed

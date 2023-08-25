@@ -875,6 +875,10 @@ const addColorschemeStylingToWebview = (webview, force = false) => {
     const isCustomView = webview.src.startsWith("sourceviewer:")
         || webview.src.startsWith("readerview:")
         || webview.src.startsWith("markdownviewer:")
+    const {getCustomStyling} = require("./settings")
+    const customStyling = getCustomStyling()
+    const fontsize = getSetting("guifontsize")
+    webview.send("action", "rerenderTOC", customStyling, fontsize)
     if (!isSpecialPage && !isLocal && !isErrorPage && !isCustomView) {
         // This check is also present in preload/styling.js,
         // but on pages where JS is disabled (chrome built-in) that won't load.
@@ -891,7 +895,7 @@ const addColorschemeStylingToWebview = (webview, force = false) => {
                     const style = `html {
                         color: ${fg || "#eee"};
                         background: ${bg || "#333"};
-                        font-size: ${getSetting("guifontsize") || 14}px;
+                        font-size: ${fontsize}px;
                     } a {color: ${linkcolor || "#0cf"};}`
                     injectCustomStyleRequest(webview, "theme", style)
                 }
@@ -901,9 +905,8 @@ const addColorschemeStylingToWebview = (webview, force = false) => {
             return
         }
     }
-    const {getCustomStyling} = require("./settings")
     webview.send("add-colorscheme-styling", getSetting("guifontsize"),
-        getCustomStyling())
+        customStyling)
 }
 
 /**
@@ -1063,7 +1066,10 @@ const addWebviewListeners = webview => {
         const tocPages = getSetting("tocpages").split(",")
         const readableUrl = urlToString(webview.src)
         if (tocPages.some(t => readableUrl.match(t) || webview.src.match(t))) {
-            sendToPageOrSubFrame("action", "showTOC")
+            const {getCustomStyling} = require("./settings")
+            const fontsize = getSetting("guifontsize")
+            sendToPageOrSubFrame("action", "showTOC",
+                getCustomStyling(), fontsize)
         }
         saveTabs()
         const name = tabForPage(webview)?.querySelector("span")

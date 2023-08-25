@@ -1295,11 +1295,19 @@ const menuClose = () => {
     clear()
 }
 
-const showTOC = () => sendToPageOrSubFrame("action", "showTOC")
+const showTOC = () => {
+    const {getCustomStyling} = require("./settings")
+    const fontsize = getSetting("guifontsize")
+    sendToPageOrSubFrame("action", "showTOC", getCustomStyling(), fontsize)
+}
 
 const hideTOC = () => sendToPageOrSubFrame("action", "hideTOC")
 
-const toggleTOC = () => sendToPageOrSubFrame("action", "toggleTOC")
+const toggleTOC = () => {
+    const {getCustomStyling} = require("./settings")
+    const fontsize = getSetting("guifontsize")
+    sendToPageOrSubFrame("action", "toggleTOC", getCustomStyling(), fontsize)
+}
 
 const useEnteredData = () => {
     const {setMode} = require("./modes")

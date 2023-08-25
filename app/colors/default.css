@@ -475,10 +475,6 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #markdownviewer {margin: auto;max-width: 65em;padding: 2vw;color: var(--fg);background: var(--bg);}
 #markdownviewer img {max-width: 100%;}
 #markdownviewer a {color: var(--link-color);}
-#markdownviewer .toc, #helppage .toc {position: fixed;min-width: 10em;width: auto;max-width: 60vw;right: 2em;top: 2em;background: var(--bg);border: solid 1px var(--fg);padding: 0;max-height: 90vh;overflow: auto;line-height: 1;}
-#markdownviewer .toc summary, #helppage .toc summary {display: block;cursor: pointer;padding: 1em;}
-#markdownviewer .toc summary h1, #helppage .toc summary h1 {display: list-item;margin: 0;font-size: 2em;color: var(--fg);}
-#markdownviewer .toc ul, #helppage .toc ul {padding-inline-start: .8em;}
 
 
 /*
@@ -519,3 +515,13 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #filebrowser .dir {font-weight: bold;color: var(--suggestions-file, #ffb);}
 #filebrowser .file {color: var(--suggestions-url, #bff);}
 #filebrowser .error {color: var(--notification-error, #f33);}
+
+
+/*
+ * TOC
+*/
+#toc {position: fixed;min-width: 10em;width: auto;max-width: 60vw;right: 2em;top: 2em;color: var(--fg);background: var(--bg);border: solid 1px var(--fg);padding: 0;max-height: 90vh;overflow: auto;line-height: 1;pointer-events: all;}
+#toc summary {display: block;cursor: pointer;padding: 1em;}
+#toc summary h1 {display: list-item;margin: 0;font-size: 2em;color: var(--fg);}
+#toc ul {padding-inline-start: 1.8em;padding-inline-end: .5em;}
+#toc a {color: var(--link-color);}
