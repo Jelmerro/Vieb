@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Added
 
 - Table of contents to markdownviewer and help page (will be made optional before release)
+- Default ozone-platform-hint=auto flag to Linux releases with a desktop file to improve Wayland support
 
 ### Changed
 

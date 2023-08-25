@@ -6,6 +6,8 @@ linux:
   category: Network;WebBrowser;
   maintainer: Jelmer van Arnhem
   publish:
+  executableArgs:
+    - --ozone-platform-hint=auto
   target:
     - target: AppImage
       arch:
