@@ -1047,9 +1047,6 @@ const addWebviewListeners = webview => {
             || webview.src.startsWith("readerview:")
             || webview.src.startsWith("markdownviewer:")
         addColorschemeStylingToWebview(webview)
-        if (webview.src.startsWith("markdownviewer:")) {
-            sendToPageOrSubFrame("action", "showTOC")
-        }
         if (specialPageName === "help") {
             const {
                 listMappingsAsCommandList, uncountableActions
@@ -1059,10 +1056,14 @@ const addWebviewListeners = webview => {
             webview.send("settings", settingsWithDefaults(),
                 listMappingsAsCommandList(null, true), uncountableActions,
                 rangeCompatibleCommands)
-            sendToPageOrSubFrame("action", "showTOC")
         }
         if (specialPageName === "notifications") {
             webview.send("notification-history", listNotificationHistory())
+        }
+        const tocPages = getSetting("tocpages").split(",")
+        const readableUrl = urlToString(webview.src)
+        if (tocPages.some(t => readableUrl.match(t) || webview.src.match(t))) {
+            sendToPageOrSubFrame("action", "showTOC")
         }
         saveTabs()
         const name = tabForPage(webview)?.querySelector("span")
@@ -1073,7 +1074,7 @@ const addWebviewListeners = webview => {
         addToHist(webview.src)
         const existing = titleForPage(webview.src)
         if (isLocal && !specialPageName && name) {
-            name.textContent = urlToString(webview.src)
+            name.textContent = readableUrl
         } else if (name && hasProtocol(name.textContent ?? "")
             && existing && !isCustomView) {
             name.textContent = existing

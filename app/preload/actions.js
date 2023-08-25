@@ -561,12 +561,15 @@ const translatepage = async(api, url, lang, apiKey) => {
     }
 }
 
+const randomTOCId = `vieb-toc-${Math.random()}`
+
 const showTOC = () => {
-    if (document.querySelector("details.toc")) {
+    if (document.getElementById(randomTOCId)) {
         return
     }
     const headings = [...document.querySelectorAll("h1,h2,h3,h4,h5,h6")]
     const toc = document.createElement("details")
+    toc.id = randomTOCId
     toc.classList.add("toc")
     const summary = document.createElement("summary")
     const title = document.createElement("h1")
@@ -609,10 +612,21 @@ const showTOC = () => {
     document.body.append(toc)
 }
 
+const hideTOC = () => document.getElementById(randomTOCId)?.remove()
+
+const toggleTOC = () => {
+    if (document.getElementById(randomTOCId)) {
+        hideTOC()
+    } else {
+        showTOC()
+    }
+}
+
 const functions = {
     blur,
     exitFullscreen,
     focusTopLeftCorner,
+    hideTOC,
     nextPage,
     previousPage,
     print,
@@ -642,6 +656,7 @@ const functions = {
     toggleLoop,
     toggleMute,
     togglePause,
+    toggleTOC,
     translatepage,
     volumeDown,
     volumeUp,

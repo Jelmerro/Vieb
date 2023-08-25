@@ -1295,6 +1295,12 @@ const menuClose = () => {
     clear()
 }
 
+const showTOC = () => sendToPageOrSubFrame("action", "showTOC")
+
+const hideTOC = () => sendToPageOrSubFrame("action", "hideTOC")
+
+const toggleTOC = () => sendToPageOrSubFrame("action", "toggleTOC")
+
 const useEnteredData = () => {
     const {setMode} = require("./modes")
     const url = getUrl()
@@ -1377,6 +1383,7 @@ module.exports = {
     exploreHistoryPrevious,
     forwardInHistory,
     getPageUrl,
+    hideTOC,
     increaseFirstNumber,
     increaseHeightSplitWindow,
     increaseLastNumber,
@@ -1451,6 +1458,7 @@ module.exports = {
     scrollTop,
     scrollUp,
     setFocusCorrectly,
+    showTOC,
     startFollowCopyLink,
     startFollowCurrentTab,
     startFollowNewSplit,
@@ -1486,6 +1494,7 @@ module.exports = {
     toggleReaderViewNewTab,
     toggleSourceViewer,
     toggleSourceViewerNewTab,
+    toggleTOC,
     topHalfSplitWindow,
     useEnteredData,
     zoomIn,

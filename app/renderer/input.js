@@ -287,6 +287,7 @@ const defaultBindings = {
         "gS": {"mapping": "<toRootSubdomain>"},
         "gT": {"mapping": "<previousTab>"},
         "gU": {"mapping": "<toRootUrl>"},
+        "gc": {"mapping": "<toggleTOC>"},
         "gf": {"mapping": "<toggleSourceViewer>"},
         "gg": {"mapping": "<scrollTop>"},
         "gi": {"mapping": "<insertAtFirstInput>"},

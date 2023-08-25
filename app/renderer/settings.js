@@ -331,6 +331,7 @@ const defaultSettings = {
     "tabreopenposition": "right",
     "timeout": true,
     "timeoutlen": 2000,
+    "tocpages": "",
     /** @type {"auto"|"deepl"|"libretranslate"} */
     "translateapi": "auto",
     "translatekey": "",
