@@ -485,6 +485,8 @@ test("sameDomain function should match urls that have the same domain", () => {
     expect(UTIL.sameDomain(
         "https://localhost/", "http://test.localhost")).toBe(false)
     expect(UTIL.sameDomain(
+        "https://localhost:8080/", "http://localhost:3000/test")).toBe(true)
+    expect(UTIL.sameDomain(
         "https://127.0.0.1/", "http://10.0.0.1")).toBe(false)
 })
 

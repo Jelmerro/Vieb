@@ -335,11 +335,11 @@ const firefoxUseragent = () => {
  */
 const domainName = url => {
     try {
-        const {host} = new URL(url)
-        if (host.endsWith("localhost") || host.match(/^(\d|\.)+$/)) {
-            return host
+        const {hostname} = new URL(url)
+        if (hostname.endsWith("localhost") || hostname.match(/^(\d|\.)+$/)) {
+            return hostname
         }
-        return host.replace(/(?:[a-zA-Z0-9]+\.)+(\w+\.\w+)/, "$1")
+        return hostname.replace(/(?:[a-zA-Z0-9]+\.)+(\w+\.\w+)/, "$1")
     } catch {
         return null
     }

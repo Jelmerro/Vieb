@@ -33,6 +33,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Media device query being denied if done via the allow list with `mediadevicesfull`
 - Navbar selection being cleared when dragging outside of the navbar
 - Media indicator not showing in numberedtabs colorscheme
+- Domain name function not removing port number resulting in wrong paths for `userstyle` and `userscript` if viewing a page with custom port number
 
 ### Versions
 
