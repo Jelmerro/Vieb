@@ -17,6 +17,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Table of contents that can be triggered for pages via `tocpages` or using the `<showTOC>`, `<toggleTOC>` and `<hideTOC>` actions
 - Default ozone-platform-hint=auto flag to Linux releases with a desktop file to improve Wayland support
+- Command `unmap!` to remove multiple mappings by using `<Any>` as a wildcard
 
 ### Changed
 

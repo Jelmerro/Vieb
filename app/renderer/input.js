@@ -2587,7 +2587,7 @@ const sanitiseMapString = (mapString, allowSpecials = false) => {
 const mapSingle = (mode, args, noremap) => {
     const mapping = sanitiseMapString(args.shift() ?? "")
     const actions = sanitiseMapString(args.join(" "), true)
-    if (!actions) {
+    if (!mapping || !actions) {
         return
     }
     if (mode) {
@@ -2605,19 +2605,36 @@ const mapSingle = (mode, args, noremap) => {
  * Unmap a specific key.
  * @param {string|null} mode
  * @param {string[]} args
+ * @param {boolean} anyAsWildcard
  */
-const unmap = (mode, args) => {
+const unmap = (mode, args, anyAsWildcard) => {
     if (args.length !== 1) {
         notify(`The ${mode}unmap command requires exactly one mapping`, "warn")
         return
     }
-    if (mode) {
-        delete bindings[mode][sanitiseMapString(args[0])]
-    } else {
-        Object.keys(bindings).forEach(bindMode => {
-            delete bindings[bindMode][sanitiseMapString(args[0])]
-        })
+    const mapStr = sanitiseMapString(args[0])
+    if (!mapStr) {
+        return
     }
+    const keys = splitMapString(mapStr).maps
+    Object.keys(bindings).forEach(bindMode => {
+        if (mode && mode !== bindMode) {
+            return
+        }
+        if (anyAsWildcard) {
+            Object.keys(bindings[bindMode]).forEach(map => {
+                const mapKeys = splitMapString(map).maps
+                const sameKeys = mapKeys.every((key, index) => key
+                    === keys[index] || keys[index] === "<Any>")
+                const sameKeyLen = mapKeys.length === keys.length
+                if (sameKeys && sameKeyLen) {
+                    delete bindings[bindMode][map]
+                }
+            })
+        } else {
+            delete bindings[bindMode][mapStr]
+        }
+    })
     const {updateHelpPage} = require("./settings")
     updateHelpPage()
 }

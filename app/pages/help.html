@@ -326,7 +326,7 @@
             <li><span class="command-block">:noremap</span> - List all custom mappings for every mode</li>
             <li><span class="command-block">:noremap!</span> - List every single mapping currently available for all modes</li>
             <li><span class="command-block">:noremap j</span> - List the mappings for the <kbd>j</kbd> key in all modes</li>
-            <li><span class="command-block">:noremap! &lt;d&gt;</span> - List the mappings for <kbd>d</kbd> in all modes including defaults</li>
+            <li><span class="command-block">:noremap! d</span> - List the mappings for <kbd>d</kbd> in all modes including defaults</li>
             <li><span class="command-block">:noremap &lt;C-Y&gt; &lt;toCommandMode&gt;downloads&lt;useEnteredData&gt;</span> - Make Ctrl-Shift-y open the downloads</li>
             <li><span class="command-block">:noremap &lt;C-h&gt; &lt;:history&gt;</span> - Make Ctrl-h open the history page</li>
             <li><span class="command-block">:noremap &lt;C-T&gt; &lt;reopenTab&gt;</span> - Make Ctrl-Shift-t reopen the previously closed tab</li>
@@ -338,8 +338,11 @@
             <li><span class="command-block">:unmap &lt;F1&gt;</span> - Remove the mapping of the F1 key for all modes</li>
             <li><span class="command-block">:unmap &lt;C-c&gt;</span> - Remove the mapping of the Ctrl-c combination for all modes</li>
             <li><span class="command-block">:unmap &lt;C-w&gt;&lt;C-r&gt;</span> - Remove this mapping for all modes: Ctrl-w followed by Ctrl-r</li>
+            <li><span class="command-block">:unmap t&lt;Any&gt;</span> - Remove the single mapping t and then any key literally</li>
+            <li><span class="command-block">:unmap! t&lt;Any&gt;</span> - Remove all mappings that start with t and then have a single key after it (any is used as a wildcard)</li>
+            <li><span class="command-block">:unmap! &lt;Any&gt;</span> - Remove all single key mappings (any is used as a wildcard)</li>
         </ul>
-        The unmap command is to remove a mapping and disable the effects of invoking those keys. For example, to disable <kbd>F1</kbd> from opening the help page, without mapping it to something else: <span class="command-block">:unmap &lt;F1&gt;</span>. The unmap command always takes a single argument.
+        The unmap command is to remove a mapping and disable the effects of invoking those keys. For example, to disable <kbd>F1</kbd> from opening the help page, without mapping it to something else: <span class="command-block">:unmap &lt;F1&gt;</span>. The unmap command always takes a single argument. Without the confirm ! added, the Any key is used the same as when mapping it, meaning it will only remove mappings that are actually using Any in them. If you do add the ! confirmation, you will use Any as a wildcard, meaning that it will not only remove exact mappings, but all mappings that would be the same if the Any you use would be the key of that mapping, meaning you can delete a lot of mappings of once with this, as long as they use the same amount of keys. The mode specific unmap commands can also be confirmed and will work the same but only for one mode.
         <h3 id=":mapclear">:mapclear</h3>
         <ul>
             <li><span class="command-block">:mapclear</span> - Remove all custom mappings for all modes</li>

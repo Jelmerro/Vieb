@@ -2224,9 +2224,13 @@ const {mapOrList, unmap, clearmap} = require("./input")
     }
     noEscapeCommands.push(`${prefix.trim()}noremap`)
     commands[`${prefix.trim()}unmap`] = ({args}) => {
-        unmap(prefix.trim(), args)
+        unmap(prefix.trim(), args, false)
     }
     noEscapeCommands.push(`${prefix.trim()}unmap`)
+    commands[`${prefix.trim()}unmap!`] = ({args}) => {
+        unmap(prefix.trim(), args, true)
+    }
+    noEscapeCommands.push(`${prefix.trim()}unmap!`)
     commands[`${prefix.trim()}mapclear`] = () => {
         clearmap(prefix.trim())
     }
