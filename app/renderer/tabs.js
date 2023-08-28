@@ -1063,7 +1063,7 @@ const addWebviewListeners = webview => {
         if (specialPageName === "notifications") {
             webview.send("notification-history", listNotificationHistory())
         }
-        const tocPages = getSetting("tocpages").split(",")
+        const tocPages = getSetting("tocpages").split(",").filter(t => t)
         const readableUrl = urlToString(webview.src)
         if (tocPages.some(t => readableUrl.match(t) || webview.src.match(t))) {
             const {getCustomStyling} = require("./settings")
