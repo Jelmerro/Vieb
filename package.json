@@ -1,7 +1,7 @@
 {
   "name": "vieb",
   "productName": "Vieb",
-  "version": "10.3.0",
+  "version": "10.3.1-dev",
   "description": "Vim Inspired Electron Browser",
   "main": "app/index.js",
   "scripts": {
@@ -29,10 +29,10 @@
   "license": "GPL-3.0-or-later",
   "devDependencies": {
     "@types/picomatch": "2.3.0",
-    "electron": "27.0.0-alpha.3",
+    "electron": "27.0.0-alpha.5",
     "electron-builder": "24.6.3",
     "eslint": "8.48.0",
-    "eslint-plugin-jsdoc": "46.5.0",
+    "eslint-plugin-jsdoc": "46.5.1",
     "eslint-plugin-sort-keys": "2.3.5",
     "jest": "29.6.4",
     "jest-environment-jsdom": "29.6.4",

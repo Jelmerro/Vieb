@@ -11,6 +11,17 @@ The [releases page](https://github.com/Jelmerro/Vieb/releases) also contains the
 but the list below contains much more technical details.
 The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+### Fixed
+
+- Rare error popup on quit on some Linux desktop environments
+
+### Versions
+
+- Electron 27.0.0-alpha.5 (was 27.0.0-alpha.3)
+- Chromium 118.0.5949.0 (unchanged)
+
 ## [10.3.0](https://github.com/Jelmerro/Vieb/compare/10.2.0...10.3.0) - 2023-08-28
 
 [code diff](https://github.com/Jelmerro/Vieb/compare/10.2.0...10.3.0) - [released builds](https://github.com/Jelmerro/Vieb/releases/tag/10.3.0)

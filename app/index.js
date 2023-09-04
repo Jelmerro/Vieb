@@ -1923,8 +1923,8 @@ ipcMain.on("window-state-init", (_, restorePos, restoreSize, restoreMax) => {
     })
 })
 const saveWindowState = (maximizeOnly = false) => {
-    mainWindow?.webContents?.send("window-update-gui")
     try {
+        mainWindow?.webContents?.send("window-update-gui")
         let state = readJSON(windowStateFile) || {}
         if (!maximizeOnly && mainWindow && !mainWindow.isMaximized()) {
             const newBounds = mainWindow.getBounds()
