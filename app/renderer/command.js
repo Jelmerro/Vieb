@@ -590,6 +590,10 @@ const resolveFileArg = (locationArg, type, customPage = null) => {
         }
         if (locationArg.endsWith("/") || locationArg.endsWith("\\")) {
             file = joinPath(`${file}${pathSep}`, name)
+        } else {
+            const pathComponents = file.split("/")
+            file = joinPath(`${pathComponents.slice(0, -1)
+                .join("/")}${pathSep}`, pathComponents.pop())
         }
         if (!isDir(dirname(file))) {
             notify(`Folder '${dirname(file)}' does not exist!`, "warn")
@@ -627,12 +631,42 @@ const write = (args, range) => {
 
 /**
  * Write the html of a page to disk based on tab index or current.
+ * When the page contains browser viewable files, allows you to write the file
+ * with a custom location.
  * @param {string|null} customLoc
  * @param {number|null} tabIdx
  */
 const writePage = (customLoc = null, tabIdx = null) => {
     /** @type {Electron.WebviewTag|HTMLDivElement|null} */
+    const downloadableFileTypes
+          = [
+              "png",
+              "jpg",
+              "jpeg",
+              "gif",
+              "webp",
+              "bmp",
+              "ogg",
+              "mp3",
+              "wav",
+              "mp4",
+              "pdf",
+              "webm"
+          ]
     let page = currentPage()
+    let checkedTypes = 0
+    if (downloadableFileTypes.some(type => {
+        checkedTypes += 1
+        return page.getURL().endsWith(`.${type}`)
+    })) {
+        const loc = resolveFileArg(customLoc,
+            downloadableFileTypes[checkedTypes - 1])
+        if (loc) {
+            ipcRenderer.send("update-current-download-path", loc)
+            currentPage()?.downloadURL(stringToUrl(page.getURL()))
+        }
+        return
+    }
     if (tabIdx !== null) {
         page = pageForTab(listTabs()[tabIdx]) ?? null
     }
