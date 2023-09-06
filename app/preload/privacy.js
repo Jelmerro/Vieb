@@ -56,10 +56,10 @@ const displayCaptureStyling = `html, body {overflow: hidden !important;}
 .desktop-capturer-selection__btn:hover, .desktop-capturer-selection__btn:focus {
     background: %FG%;color: %BG%;
 }`
-
 try {
     // Hide device labels from the list of media devices by default
     const enumerate = window.navigator.mediaDevices.enumerateDevices
+
     /**
      * Get the media devices with or without labels, or throw permission error.
      * @param {string} action
@@ -82,6 +82,7 @@ try {
             })
         }))
     }
+
     window.navigator.mediaDevices.enumerateDevices = async() => {
         let setting = getWebviewSetting("permissionmediadevices") ?? "ask"
         if (!["block", "ask", "allow", "allowfull"].includes(setting)) {
@@ -218,6 +219,7 @@ try {
                     .replace(/%SHADE%/g, "#7777")
                 const selectionElem = document.createElement("div")
                 selectionElem.classList.add("desktop-capturer-selection")
+
                 /**
                  * Get a data src url from a native image if possible.
                  * @param {Electron.NativeImage} icon
@@ -228,6 +230,7 @@ try {
                     }
                     return icon.toDataURL()
                 }
+
                 selectionElem.innerHTML = `
             <span class="desktop-capturer-selection__scroller">
                 <span class="desktop-capturer-selection__close">X</span>
@@ -301,6 +304,7 @@ try {
                     })
                 })
             }
+
             ipcRenderer.invoke("desktop-capturer-sources")
                 .then(populateSourceToWindow)
         } catch (err) {

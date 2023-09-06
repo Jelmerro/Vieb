@@ -67,7 +67,6 @@ ipcRenderer.on("insert-new-tab-info", (_, topsites, favorites) => {
         }
     }
 })
-
 window.addEventListener("load", () => {
     ipcRenderer.sendToHost("new-tab-info-request")
 })

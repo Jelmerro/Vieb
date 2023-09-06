@@ -56,5 +56,6 @@ window.addEventListener("DOMContentLoaded", () => {
             listEl.textContent = "There have been no notifications so far"
         }
     }
+
     ipcRenderer.on("notification-history", showNofitications)
 })

@@ -33,6 +33,7 @@ const {
     getWebviewSetting
 } = require("../util")
 const specialPage = pathToSpecialPageName(window.location.href)
+
 const applyThemeStyling = () => {
     const style = `html {
         color: ${getWebviewSetting("fg") || "#eee"};
@@ -41,6 +42,7 @@ const applyThemeStyling = () => {
     } a {color: ${getWebviewSetting("linkcolor") || "#0cf"};}`
     ipcRenderer.sendToHost("custom-style-inject", "theme", style)
 }
+
 const enableDarkReader = async() => {
     disableDarkReader()
     let darkreader = null
@@ -100,6 +102,7 @@ const enableDarkReader = async() => {
         console.error("Darkreader failed to apply:", e)
     }
 }
+
 const disableDarkReader = () => {
     try {
         const darkreader = require("darkreader")
@@ -109,15 +112,18 @@ const disableDarkReader = () => {
         // Already disabled or never loaded
     }
 }
+
 const hideScrollbar = () => {
     const style = "::-webkit-scrollbar {display: none !important;}"
     ipcRenderer.sendToHost("custom-style-inject", "scrollbar", style)
 }
+
 const updateScrollbar = () => {
     if (getWebviewSetting("guiscrollbar") !== "always") {
         hideScrollbar()
     }
 }
+
 const loadThemes = (loadedFully = false) => {
     const html = document.querySelector("html")
     if (!html) {
@@ -190,6 +196,7 @@ const loadThemes = (loadedFully = false) => {
     }
     updateScrollbar()
 }
+
 ipcRenderer.on("enable-darkreader", () => loadThemes(true))
 ipcRenderer.on("enable-userstyle", () => loadThemes(true))
 ipcRenderer.on("disable-darkreader", () => disableDarkReader())

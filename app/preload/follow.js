@@ -81,7 +81,6 @@ const otherEvents = [
 ]
 /** @type {Element[]} */
 const previouslyFocussedElements = []
-
 ipcRenderer.on("focus-input", async(_, follow = null) => {
     let el = null
     if (follow) {
@@ -321,11 +320,9 @@ ipcRenderer.on("follow-mode-start", (_, newFollowFilter) => {
         followLoop()
     }
 })
-
 ipcRenderer.on("follow-mode-stop", () => {
     currentFollowStatus = null
 })
-
 setInterval(mainInfoLoop, 1000)
 window.addEventListener("DOMContentLoaded", () => {
     mainInfoLoop()
@@ -414,7 +411,6 @@ const eventListeners = {}
 ;[...clickEvents, ...otherEvents].forEach(e => {
     eventListeners[e] = new WeakSet()
 })
-
 const realAdd = EventTarget.prototype.addEventListener
 /**
  * Add the regular event listener while also recording its existence in a set.
@@ -474,9 +470,9 @@ const clickListener = (e, frame = null) => {
         })
     }
 }
+
 window.addEventListener("click", clickListener,
     {"capture": true, "passive": true})
-
 let startX = 0
 let startY = 0
 
@@ -506,6 +502,7 @@ const mouseDownListener = (e, frame = null) => {
         "x": e.x + (paddingInfo?.x || 0), "y": e.y + (paddingInfo?.y || 0)
     })
 }
+
 window.addEventListener("mousedown", mouseDownListener,
     {"capture": true, "passive": true})
 
@@ -536,9 +533,9 @@ const mouseUpListener = (e, frame = null) => {
         }
     }
 }
+
 window.addEventListener("mouseup", mouseUpListener,
     {"capture": true, "passive": true})
-
 ipcRenderer.on("replace-input-field", (_, value, position) => {
     const input = activeElement()
     if (matchesQuery(input, textlikeInputs)) {
@@ -665,6 +662,7 @@ const contextListener = (e, frame = null, extraData = null) => {
         })
     }
 }
+
 ipcRenderer.on("contextmenu-data", (_, request) => {
     const {x, y} = request
     const el = findElementAtPosition(x, y)
@@ -748,6 +746,7 @@ const isVertScrollable = el => {
     return el.scrollHeight > el.clientHeight
         && ["scroll", "auto"].includes(getComputedStyle(el).overflowY)
 }
+
 /**
  * Check if an element can be scrolled horizontally.
  * @param {Element} el
@@ -760,6 +759,7 @@ const isHorScrollable = el => {
     return el.scrollWidth > el.clientWidth
         && ["scroll", "auto"].includes(getComputedStyle(el).overflowX)
 }
+
 ipcRenderer.on("custom-mouse-event", (_, eventType, mouseOptions) => {
     // This is a last resort attempt to press a mouse event in an iframe,
     // but ideally this code shouldn't exist and only use sendInputEvent.
@@ -819,13 +819,11 @@ ipcRenderer.on("custom-mouse-event", (_, eventType, mouseOptions) => {
     })
     el.dispatchEvent(event)
 })
-
 let scrollHeight = 0
 let justScrolled = 0
 let justSearched = false
 /** @type {{x: number, y: number}|null} */
 let searchPos = null
-
 window.addEventListener("scroll", () => {
     const scrollDiff = window.scrollY - scrollHeight
     startY += scrollDiff
@@ -849,7 +847,6 @@ window.addEventListener("scroll", () => {
     }
     ipcRenderer.sendToHost("scroll-height-diff", scrollDiff)
 })
-
 ipcRenderer.on("search-element-location", (_, pos) => {
     let {x} = pos
     const alignment = getWebviewSetting("searchpointeralignment")
@@ -876,7 +873,6 @@ ipcRenderer.on("search-element-location", (_, pos) => {
         justSearched = false
     }, 100)
 })
-
 window.addEventListener("mousemove", e => {
     ipcRenderer.sendToHost("mousemove", e.clientX, e.clientY)
 })

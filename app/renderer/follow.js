@@ -130,12 +130,14 @@ const followChars = () => {
     }
     const setName = getSetting("followchars")
     let allKeys = setName.replace("custom:", "")
+
     /**
      * Check if a provided set name is a built-in one or a custom one.
      * @param {string} set
      * @returns {set is keyof typeof keys}
      */
     const validFollowSet = set => set in keys
+
     if (validFollowSet(setName)) {
         allKeys = keys[setName]
     }
@@ -338,6 +340,7 @@ const parseAndDisplayLinks = receivedLinks => {
         if (!link) {
             return
         }
+
         /**
          * Add an onclick listener to mouseup events to click on the links.
          * @param {MouseEvent} e
@@ -366,6 +369,7 @@ const parseAndDisplayLinks = receivedLinks => {
                 }
             }
         }
+
         // Show a border around the link
         const borderElement = document.createElement("span")
         borderElement.className = `follow-${link.type}-border`

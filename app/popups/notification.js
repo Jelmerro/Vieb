@@ -20,6 +20,7 @@
 const {ipcRenderer} = require("electron")
 
 let fontsize = 14
+
 const fixScrollHeight = () => {
     const notification = document.getElementById("notification")
     if (!notification) {
@@ -28,6 +29,7 @@ const fixScrollHeight = () => {
     notification.scrollTop = Math.round(
         notification.scrollTop / fontsize) * fontsize
 }
+
 ipcRenderer.on("notification-details", (_, message, fs, customCSS, lvl) => {
     const notification = document.getElementById("notification")
     if (!notification) {

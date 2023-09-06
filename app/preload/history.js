@@ -125,6 +125,7 @@ const receiveHistory = history => {
     removeAllEl.style.display = ""
     const goal = history.length - 1
     let lineNumber = 0
+
     /**
      * Add an item to the history list on a timeout based on previous duration.
      * @param {import("../renderer/history").historyItem} hist
@@ -151,6 +152,7 @@ const receiveHistory = history => {
             addHistTimeout(history[lineNumber])
         }, 0)
     }
+
     addHistTimeout(history[lineNumber])
 }
 
@@ -254,9 +256,7 @@ window.addEventListener("load", () => {
     })
     ipcRenderer.sendToHost("history-list-request")
 })
-
 ipcRenderer.on("history-list", (_, h) => receiveHistory(h))
-
 ipcRenderer.on("history-removal-status", success => {
     [...virtualList.querySelectorAll(".marked")].forEach(m => {
         if (success) {

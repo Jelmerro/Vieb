@@ -964,6 +964,7 @@ const currentPage = () => {
     const page = document.getElementById("current-page")
     return page
 }
+
 /**
  * Send a message to the current page and its frames.
  * @param {string} channel

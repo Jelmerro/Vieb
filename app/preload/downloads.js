@@ -97,6 +97,7 @@ const generateDownloadList = (_, l) => {
     }
     lastUpdate = new Date()
 }
+
 ipcRenderer.on("download-list", generateDownloadList)
 
 /**

@@ -39,6 +39,7 @@ const loadSponsorblock = () => {
     if (!vid) {
         return
     }
+
     const fetchSponsorBlockData = () => {
         previousBlockEls.forEach(el => el.remove())
         previousBlockEls = []
@@ -72,6 +73,7 @@ const loadSponsorblock = () => {
             }
         }).catch(err => console.warn(err))
     }
+
     if (window.location.href.includes("watch?v=")
         && getWebviewSetting("sponsorblock")) {
         fetchSponsorBlockData()

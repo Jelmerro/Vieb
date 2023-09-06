@@ -16,6 +16,7 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 "use strict"
+
 let topOfPageWithMouse = false
 /** @type {number|null} */
 let navbarGuiTimer = null
@@ -108,6 +109,7 @@ const currentPage = () => {
  */
 const pageForTab = tab => listPages().find(
     e => tab && e.getAttribute("link-id") === tab.getAttribute("link-id"))
+
 /**
  * Find a tab for a given page.
  * @param {HTMLDivElement|Electron.WebviewTag|null} page

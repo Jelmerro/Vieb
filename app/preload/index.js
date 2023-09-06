@@ -21,7 +21,6 @@
 require("./actions")
 // Always load follow mode JavaScript
 require("./follow")
-
 const {pathToSpecialPageName} = require("../util")
 const specialPage = pathToSpecialPageName(window.location.href)
 const skipProtocols = ["sourceviewer:", "readerview:", "markdownviewer:"]
@@ -38,6 +37,5 @@ if (specialPage?.name) {
     // Load optional plugins and extensions
     require("./extensions")
 }
-
 // Load the custom styling such as colors, fontsizes and darkreader
 require("./styling")

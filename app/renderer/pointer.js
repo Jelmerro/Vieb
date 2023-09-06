@@ -133,6 +133,7 @@ const init = () => {
         }
     })
 }
+
 const zoomX = () => Math.round(X / (currentPage()?.getZoomFactor() ?? 1))
 
 const zoomY = () => Math.round(Y / (currentPage()?.getZoomFactor() ?? 1))
@@ -720,7 +721,6 @@ const restorePos = args => {
     if (!key) {
         return
     }
-
     const pointerPosId = getSetting("pointerposlocalid")
     let path = ""
     if (pointerPosId === "domain") {

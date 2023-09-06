@@ -34,7 +34,6 @@ const {
     listReadyPages,
     updateGuiVisibility
 } = require("./common")
-
 const ACTIONS = require("./actions")
 const POINTER = require("./pointer")
 
@@ -853,12 +852,14 @@ const init = () => {
             return
         }
         e.preventDefault()
+
         /**
          * Find the url box or the suggest dropdown in the list of targets.
          * @param {MouseEvent} ev
          */
         const urlOrSuggest = ev => ev.composedPath().find(
             n => matchesQuery(n, "#url, #suggest-dropdown"))
+
         if (urlOrSuggest(e)) {
             const {followFiltering} = require("./follow")
             const typing = "sec".includes(currentMode()[0]) || followFiltering()
@@ -908,12 +909,14 @@ const init = () => {
         if (getMouseConf("leaveinput")) {
             const {followFiltering} = require("./follow")
             const typing = "sec".includes(currentMode()[0]) || followFiltering()
+
             /**
              * Find the url box or the suggest dropdown in the list of targets.
              * @param {MouseEvent} ev
              */
             const urlOrSuggest = ev => ev.composedPath().find(n => matchesQuery(
                 n, "#url, #suggest-dropdown, #screenshot-highlight"))
+
             if (typing && !urlOrSuggest(e)) {
                 ACTIONS.toNormalMode()
             }
@@ -1210,6 +1213,7 @@ const keyNames = [
     // Fictional keys with custom implementation
     {"js": ["Any"], "vim": ["Any"]}
 ]
+
 /**
  * Convert a keyboard event to a Vieb key name.
  * @param {(KeyboardEvent  & {passedOnFromInsert?: false})|{

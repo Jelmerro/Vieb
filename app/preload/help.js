@@ -20,7 +20,6 @@
 const {ipcRenderer} = require("electron")
 const {joinPath, title, readFile, appConfig} = require("../util")
 const {icon} = appConfig() ?? {}
-
 const modes = "nicsefpvm".split("")
 /** @type {{[mode: string]: {[key: string]: HTMLElement|null}}} */
 let allActionsByKeys = modes.reduce((a, m) => {
@@ -288,10 +287,9 @@ const updateSettingsList = (_, settings, mappings, uncountActs, rangeComp) => {
         processHash()
     }
 }
+
 ipcRenderer.on("settings", updateSettingsList)
-
 window.addEventListener("hashchange", processHash)
-
 window.addEventListener("DOMContentLoaded", () => {
     const examples = [
         "chromium",
@@ -323,12 +321,12 @@ window.addEventListener("DOMContentLoaded", () => {
         document.querySelector(".example-buttons")?.append(button)
     }
 })
-
 window.addEventListener("load", () => {
     const mainImg = document.querySelector("img")
     if (icon && mainImg) {
         mainImg.src = icon
     }
+
     /**
      * Create an id label for each section element.
      * @param {Element} element
@@ -351,6 +349,7 @@ window.addEventListener("load", () => {
         section.append(label)
         document.querySelector("main")?.replaceChild(section, element)
     }
+
     // After loading, this will display the section id as a link
     const sections = [...document.querySelectorAll("#helppage *[id]")]
     sections.forEach(section => createIdLabel(section))

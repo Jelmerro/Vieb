@@ -87,4 +87,5 @@ const insertCurrentDirInfo = (_, directories, files, allowed, folder) => {
     }
     document.body.append(main)
 }
+
 ipcRenderer.on("insert-current-directory-files", insertCurrentDirInfo)

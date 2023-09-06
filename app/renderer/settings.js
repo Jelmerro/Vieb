@@ -1992,7 +1992,6 @@ const listCurrentSettings = (full = false) => {
             )
             Object.assign(defaults, erwicDefaults)
         }
-
         Object.keys(settings).forEach(t => {
             if (JSON.stringify(settings[t]) === JSON.stringify(defaults[t])) {
                 delete settings[t]

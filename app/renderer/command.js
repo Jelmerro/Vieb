@@ -413,6 +413,7 @@ const quitall = () => {
 }
 
 let currentscheme = "default"
+
 /**
  * Set the colorscheme by name or log the current one if no name provided.
  * @param {string|null} name
@@ -1013,6 +1014,7 @@ const allTabsForBufferArg = (args, filter = null) => {
      */
     const allWordsAnywhere = (search, simpleUrl, name) => search.every(
         w => simpleUrl.includes(w) || getSimpleName(name).includes(w))
+
     const simpleSearch = args.join(" ").split(specialChars).filter(w => w)
     return listTabs().filter(t => !filter || filter(t)).map(t => {
         const url = pageForTab(t)?.getAttribute("src") ?? ""
@@ -1533,6 +1535,7 @@ const restoremark = args => {
     const {restoreMark} = require("./actions")
     const {validOptions} = require("./settings")
     const [key, position] = args
+
     /**
      * Check if a mark position is valid.
      * @param {string} pos
@@ -1540,6 +1543,7 @@ const restoremark = args => {
      */
     const isValidPosition = pos => pos === undefined
         || validOptions.markposition.includes(pos)
+
     if (isValidPosition(position)) {
         restoreMark({key, position})
     } else {

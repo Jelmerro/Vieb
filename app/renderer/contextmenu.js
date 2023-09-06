@@ -120,6 +120,7 @@ const init = () => {
             webviewMenu(info, info?.extraData?.force)
         }
     }
+
     ipcRenderer.on("context-click-info", handleContextMenu)
 }
 

@@ -302,6 +302,7 @@ const calculateOffset = (startNode, startX, startY, x, y) => {
     }
     let properNode = startNode
     let offset = 0
+
     /**
      * Descend down into a node of the tree.
      * @param {Node} baseNode
@@ -318,6 +319,7 @@ const calculateOffset = (startNode, startX, startY, x, y) => {
             return [...range.getClientRects()].find(rect => x >= rect.left
                 && y >= rect.top && x <= rect.right && y <= rect.bottom)
         }
+
         let left = 0
         let right = 0
         if (isTextNode(baseNode)) {
@@ -345,6 +347,7 @@ const calculateOffset = (startNode, startX, startY, x, y) => {
         }
         descendNodeTree(baseNode.childNodes[left])
     }
+
     descendNodeTree(startNode)
     range.detach()
     return {"node": properNode, offset}
@@ -356,18 +359,21 @@ const calculateOffset = (startNode, startX, startY, x, y) => {
  * @param {number} y
  */
 const selectionAll = (x, y) => documentAtPos(x, y).execCommand("selectAll")
+
 /**
  * Cut a selection at location x,y.
  * @param {number} x
  * @param {number} y
  */
 const selectionCut = (x, y) => documentAtPos(x, y).execCommand("cut")
+
 /**
  * Paste a selection at location x,y.
  * @param {number} x
  * @param {number} y
  */
 const selectionPaste = (x, y) => documentAtPos(x, y).execCommand("paste")
+
 /**
  * Remove the selection from the document at location x,y.
  * @param {number} x
@@ -375,6 +381,7 @@ const selectionPaste = (x, y) => documentAtPos(x, y).execCommand("paste")
  */
 const selectionRemove = (x, y) => documentAtPos(x, y).getSelection()
     ?.removeAllRanges()
+
 /**
  * Make a new selection from start position to end position.
  * @param {number} startX
@@ -587,7 +594,9 @@ const showTOC = (customStyling, fontsize, opened = false) => {
     baseUl.setAttribute("depth", "1")
     toc.append(summary, baseUl)
     const lists = [baseUl]
+
     const currentDepth = () => Number(lists.at(-1)?.getAttribute("depth"))
+
     /** @type {string[]} */
     const headingNames = []
     for (const heading of headings) {
@@ -709,6 +718,5 @@ const functions = {
     volumeUp,
     writeInputToFile
 }
-
 // @ts-expect-error too many signatures to realistically type, maybe someday
 ipcRenderer.on("action", (_, name, ...args) => functions[name]?.(...args))

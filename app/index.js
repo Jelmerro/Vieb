@@ -57,6 +57,7 @@ const version = process.env.npm_package_version || app.getVersion()
 if (!app.getName().toLowerCase().startsWith("vieb")) {
     app.setName("Vieb")
 }
+
 const printUsage = (code = 1) => {
     console.info(`Vieb: Vim Inspired Electron Browser
 
@@ -130,6 +131,7 @@ https://peter.sh/experiments/chromium-command-line-switches/
     printLicense()
     app.exit(code)
 }
+
 const printVersion = () => {
     console.info(`Vieb: Vim Inspired Electron Browser
 This is version ${version} of ${app.getName()}.
@@ -140,6 +142,7 @@ This release uses Electron ${process.versions.electron} and Chromium ${
     printLicense()
     app.exit(0)
 }
+
 const printLicense = () => {
     console.info(`Vieb is created by Jelmer van Arnhem and contributors.
 Website: https://vieb.dev OR https://github.com/Jelmerro/Vieb
@@ -149,6 +152,7 @@ This is free software; you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 See the LICENSE file or the GNU website for details.`)
 }
+
 /**
  * Apply some basic settings to the chromium devtools.
  * @param {string} prefFile
@@ -192,6 +196,7 @@ const getArguments = argv => {
     // The array argv is ["vieb", ...args]
     return argv.slice(1)
 }
+
 /**
  * Check if the provided string argument should be true or false as a boolean.
  * @param {string|null} arg
@@ -200,6 +205,7 @@ const isTruthyArg = (arg = null) => {
     const argStr = String(arg).trim().toLowerCase()
     return Number(argStr) > 0 || ["y", "yes", "true", "on"].includes(argStr)
 }
+
 const args = getArguments(process.argv)
 /** @type {(string|{container?: unknown, url?: unknown, script?: unknown})[]} */
 const urls = []
@@ -420,7 +426,6 @@ if (argErwic) {
     }
     urls.push(...config.apps)
 }
-
 // When the app is ready to start, open the main window
 /** @type {Electron.BrowserWindow|null} */
 let mainWindow = null
@@ -430,6 +435,7 @@ let loginWindow = null
 let notificationWindow = null
 /** @type {Electron.BrowserWindow|null} */
 let promptWindow = null
+
 /**
  * Resolve local paths to absolute file protocol paths.
  * @param {(string|{
@@ -465,6 +471,7 @@ const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
     }
     return {url}
 }).filter(u => u)
+
 app.on("ready", () => {
     app.userAgentFallback = defaultUseragent()
     if (!argUnsafeMultiwin) {
@@ -670,9 +677,6 @@ app.on("ready", () => {
     const promptPage = `file:///${joinPath(__dirname, "pages/promptpopup.html")}`
     promptWindow.loadURL(promptPage)
 })
-
-// THIS ENDS THE MAIN SETUP, ACTIONS BELOW MUST BE IN MAIN FOR VARIOUS REASONS
-
 // Handle Basic HTTP login attempts
 /** @type {number[]} */
 const loginAttempts = []
@@ -723,7 +727,6 @@ app.on("login", (e, contents, _, auth, callback) => {
     loginWindow.webContents.send("login-information",
         fontsize, customCSS, `${auth.host}: ${auth.realm}`)
 })
-
 // Show a scrollable notification popup for long notifications
 ipcMain.on("show-notification", (_, escapedMessage, properType) => {
     if (!mainWindow || !notificationWindow) {
@@ -743,7 +746,6 @@ ipcMain.on("show-notification", (_, escapedMessage, properType) => {
     notificationWindow.show()
     notificationWindow.focus()
 })
-
 // Handle prompts in sync from within the webviews
 ipcMain.on("show-prompt-dialog", (e, title, defaultText) => {
     if (!mainWindow || !promptWindow) {
@@ -781,7 +783,6 @@ ipcMain.on("show-prompt-dialog", (e, title, defaultText) => {
         e.returnValue = null
     })
 })
-
 // Create and manage sessions, mostly downloads, adblocker and permissions
 const dlsFile = joinPath(app.getPath("appData"), "dls")
 /** @type {{
@@ -827,6 +828,7 @@ const defaultCSS = readFile(joinPath(__dirname, `colors/default.css`))
 ipcMain.on("set-redirects", (_, rdr) => {
     redirects = rdr
 })
+
 /**
  * Update the request header setting.
  * @param {Electron.IpcMainEvent} _
@@ -835,8 +837,10 @@ ipcMain.on("set-redirects", (_, rdr) => {
 const updateRequestHeaders = (_, headers) => {
     requestHeaders = headers.split(",").filter(h => h)
 }
+
 ipcMain.on("update-request-headers", updateRequestHeaders)
 ipcMain.on("open-download", (_, location) => shell.openPath(location))
+
 /**
  * Update download settings.
  * @param {Electron.IpcMainEvent} _
@@ -869,6 +873,7 @@ const setDownloadSettings = (_, settings) => {
     downloadSettings.downloadpath = expandPath(downloadSettings.downloadpath
         || app.getPath("downloads") || "~/Downloads")
 }
+
 ipcMain.on("set-download-settings", setDownloadSettings)
 ipcMain.on("download-list-request", (e, action, downloadId) => {
     if (action === "removeall") {
@@ -914,6 +919,7 @@ ipcMain.on("download-list-request", (e, action, downloadId) => {
 ipcMain.on("set-permissions", (_, permissionObject) => {
     permissions = permissionObject
 })
+
 /**
  * Update the list of spell languages to be used.
  * @param {Electron.IpcMainEvent} _
@@ -939,6 +945,7 @@ const setSpelllangs = (_, langs) => {
         session.defaultSession.setSpellCheckerLanguages(parsedLangs)
     })
 }
+
 ipcMain.on("set-spelllang", setSpelllangs)
 ipcMain.on("update-resource-settings", (_, resources, block, allow) => {
     resourceTypes = [
@@ -947,7 +954,9 @@ ipcMain.on("update-resource-settings", (_, resources, block, allow) => {
     resourcesAllowed = allow
     resourcesBlocked = block
 })
+
 const blockPdf = () => new Response("", {"status": 403})
+
 ipcMain.on("update-pdf-option", (_, newPdfValue) => {
     pdfbehavior = newPdfValue
     sessionList.forEach(ses => {
@@ -1447,6 +1456,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         })
     })
 })
+
 const cancellAllDownloads = () => {
     downloads.forEach(download => {
         try {
@@ -1460,6 +1470,7 @@ const cancellAllDownloads = () => {
     })
     writeDownloadsToFile()
 }
+
 const writeDownloadsToFile = () => {
     downloads.forEach(d => {
         // Update downloads that are stuck on waiting to start,
@@ -1478,8 +1489,10 @@ const writeDownloadsToFile = () => {
         writeJSON(dlsFile, downloads)
     }
 }
+
 /** @type {{[domain: string]: string[]}} */
 const allowedFingerprints = {}
+
 /**
  * Main check if a permission should be allowed or declined.
  * @param {Electron.WebContents|null} _
@@ -1692,6 +1705,7 @@ const permissionHandler = (_, pm, callback, details) => {
     }
     return false
 }
+
 /**
  * Enable the adblocker either statically, with updates or custom.
  * @param {"static"|"custom"|"update"} type
@@ -1745,6 +1759,7 @@ const enableAdblocker = type => {
         reloadAdblocker()
     }
 }
+
 const reloadAdblocker = () => {
     if (blocker) {
         disableAdblocker()
@@ -1786,6 +1801,7 @@ const reloadAdblocker = () => {
     ipcMain.on("is-mutation-observer-enabled",
         blocker.onIsMutationObserverEnabled)
 }
+
 const disableAdblocker = () => {
     if (!blocker) {
         return
@@ -1802,6 +1818,7 @@ const disableAdblocker = () => {
         blocker.onIsMutationObserverEnabled)
     blocker = null
 }
+
 ipcMain.on("adblock-enable", (_, type) => {
     if (sessionList.length > 0) {
         // Only listen to enable calls after initial init has already happened
@@ -1809,6 +1826,7 @@ ipcMain.on("adblock-enable", (_, type) => {
     }
 })
 ipcMain.on("adblock-disable", disableAdblocker)
+
 /**
  * Load a blocklist with extra newline if it has contents.
  * @param {string} file
@@ -1859,7 +1877,6 @@ ipcMain.on("download-favicon", (_, options) => {
     })
     request.end()
 })
-
 // Window state save and restore
 const windowStateFile = joinPath(app.getPath("appData"), "windowstate")
 ipcMain.on("window-state-init", (_, restorePos, restoreSize, restoreMax) => {
@@ -1921,6 +1938,7 @@ ipcMain.on("window-state-init", (_, restorePos, restoreSize, restoreMax) => {
         }, 30)
     })
 })
+
 const saveWindowState = (maximizeOnly = false) => {
     try {
         mainWindow?.webContents?.send("window-update-gui")
@@ -1992,6 +2010,7 @@ ipcMain.on("insert-mode-blockers", (e, blockedMappings) => {
     blockedInsertMappings = blockedMappings
     e.returnValue = null
 })
+
 /**
  * Check if an input matches a given key.
  * @param {Electron.Input} key
@@ -2012,6 +2031,7 @@ const currentInputMatches = key => {
         return false
     })
 }
+
 ipcMain.on("set-window-title", (_, t) => {
     if (mainWindow) {
         mainWindow.title = t
@@ -2151,6 +2171,7 @@ let allLinks = []
  */
 /** @type {{[frameId: string]: frameDetails}} */
 const frameInfo = {}
+
 /**
  * Handle incoming frame details by storing their details by id.
  * @param {Electron.IpcMainEvent} e
@@ -2209,7 +2230,9 @@ const handleFrameDetails = (e, details) => {
         })
     })
 }
+
 ipcMain.on("frame-details", handleFrameDetails)
+
 /**
  * Handle a follow mode response.
  * @param {Electron.IpcMainEvent} e
@@ -2277,7 +2300,9 @@ const handleFollowResponse = (e, rawLinks) => {
         errToMain(ex)
     }
 }
+
 ipcMain.on("follow-response", handleFollowResponse)
+
 /**
  * Find the right subframe for a position in webcontents.
  * @param {Electron.WebContents} wc
@@ -2344,6 +2369,7 @@ const findRelevantSubFrame = (wc, x, y) => {
         return errToMain(ex)
     }
 }
+
 ipcMain.on("action", (_, id, actionName, ...opts) => {
     const wc = webContents.fromId(id)
     if (!wc) {
@@ -2457,6 +2483,7 @@ ipcMain.on("replace-input-field", (_, id, frameId, correction, inputField) => {
         errToMain(ex)
     }
 })
+
 /**
  * Translate a mouse event and send it to the right frame.
  * @param {Electron.IpcMainEvent} e
@@ -2532,6 +2559,7 @@ const translateMouseEvent = (e, clickInfo = null) => {
         "yInFrame": clickInfo?.y ?? 0
     }
 }
+
 ipcMain.on("mouse-selection", (e, clickInfo) => mainWindow?.webContents.send(
     "mouse-selection", translateMouseEvent(e, clickInfo)))
 ipcMain.on("mouse-down-location", (e, clickInfo) => mainWindow?.webContents

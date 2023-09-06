@@ -27,7 +27,6 @@ const {
     listPages,
     listReadyPages
 } = require("./common")
-
 const {propPixels} = require("../util")
 
 /**
@@ -36,6 +35,7 @@ const {propPixels} = require("../util")
  */
 const layoutDivById = id => document.querySelector(
     `#pagelayout div[link-id='${id ?? "none"}']`)
+
 /** @type {{[id: string]: number}} */
 const timers = {}
 /** @type {string[]} */
@@ -579,6 +579,7 @@ const applyLayout = () => {
             page.classList.remove("visible-page")
         }
     })
+
     /**
      * Suspend a tab after a timeout, optionally repeating if playing media.
      * @param {HTMLSpanElement} tab
@@ -597,6 +598,7 @@ const applyLayout = () => {
                 () => susCall(tab, linkId, timeout), timeout)
         }
     }
+
     const timeout = getSetting("suspendtimeout")
     listTabs().forEach(tab => {
         const linkId = tab.getAttribute("link-id") ?? ""
