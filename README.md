@@ -89,6 +89,7 @@ You can do `git pull` and then another `npm ci` to update if you cloned the repo
 or you can repeat these steps in a new folder if you downloaded a zip.
 Finally, you can generate builds for your platform with `node build`,
 or execute `node build --help` to see the full list of options.
+The selected builds will be created inside of the `dist` folder.
 
 # License
 
