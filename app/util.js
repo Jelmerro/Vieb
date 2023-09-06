@@ -681,8 +681,8 @@ const querySelectorAll = (sel, base = document, paddedX = 0, paddedY = 0) => {
  */
 const correctedCenterAndSizeOfRect = rect => {
     let {x, y} = rect
-    x = x || rect.left
-    y = y || rect.top
+    x ||= rect.left
+    y ||= rect.top
     let width = Math.min(rect.width, window.innerWidth - x)
     if (x < 0) {
         width += x
@@ -834,7 +834,7 @@ const fetchUrl = (url, opts = {}, body = null) => new Promise((res, rej) => {
     } else if (url.startsWith("http://")) {
         requestModule = require("http")
     } else {
-        rej("invalid protocol")
+        rej(new Error("invalid protocol"))
         return
     }
     const request = requestModule.request(url, opts, response => {
@@ -846,7 +846,7 @@ const fetchUrl = (url, opts = {}, body = null) => new Promise((res, rej) => {
             try {
                 res(data)
             } catch (err) {
-                rej({data, err})
+                rej(new Error(`${err}: ${data}`))
             }
         })
     })
@@ -868,7 +868,7 @@ const fetchJSON = (url, opts = {}, body = null) => new Promise((res, rej) => {
         try {
             res(JSON.parse(data))
         } catch {
-            rej({data, "err": "Response is not valid JSON"})
+            rej(new Error(`Response is not valid JSON: ${data}`))
         }
     }).catch(rej)
 })

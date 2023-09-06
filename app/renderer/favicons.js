@@ -66,7 +66,7 @@ const init = () => {
         }
     })
     ipcRenderer.on("redirect", (_, src, redirect) => {
-        mappings.redirects = mappings.redirects || {}
+        mappings.redirects ||= {}
         mappings.redirects[src] = redirect
     })
 }

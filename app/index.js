@@ -157,10 +157,9 @@ See the LICENSE file or the GNU website for details.`)
 const applyDevtoolsSettings = (prefFile, undock = true) => {
     makeDir(dirname(prefFile))
     const preferences = readJSON(prefFile) || {}
-    preferences.electron = preferences.electron || {}
-    preferences.electron.devtools = preferences.electron.devtools || {}
-    preferences.electron.devtools.preferences
-        = preferences.electron.devtools.preferences || {}
+    preferences.electron ||= {}
+    preferences.electron.devtools ||= {}
+    preferences.electron.devtools.preferences ||= {}
     // Disable source maps as they leak internal structure to the webserver
     preferences.electron.devtools.preferences.cssSourceMapsEnabled = false
     preferences.electron.devtools.preferences.jsSourceMapsEnabled = false

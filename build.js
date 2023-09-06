@@ -38,7 +38,6 @@ const defaultConfig = {"config": {
         "node_modules/@cliqz/adblocker-electron-preload/dist/preload.cjs.js"
     ]
 }}
-
 const releases = {
     "debug": {
         "description": "Build debug releases, which do not use webpack.\n"
@@ -67,6 +66,10 @@ const releases = {
             + "node_modules.\nThese releases are thus lighter and smaller.\n"
             + "This does mean some features are not included.",
         "ebuilder": {
+            /**
+             * Remove all locales except English US from the lite release.
+             * @param {import("electron-builder").AfterPackContext} context
+             */
             "afterPack": context => {
                 const localeDir = `${context.appOutDir}/locales/`
                 readdir(localeDir, (_err, files) => {
@@ -97,10 +100,10 @@ const releases = {
         "description": "Build the default main Vieb release. Default type."
     }
 }
-
 const releaseNames = Object.keys(releases)
 rmSync("build/", {"force": true, "recursive": true})
 rmSync("dist/", {"force": true, "recursive": true})
+
 const printUsage = () => {
     let buildOptionList = releaseNames
         .map(r => {
@@ -145,6 +148,7 @@ Later options take priority over earlier ones.
 See main program for license and other info.`)
     process.exit(0)
 }
+
 let selectedReleases = ["regular"]
 for (const a of process.argv.slice(2)) {
     if (a === "--help") {
@@ -174,15 +178,18 @@ for (const a of process.argv.slice(2)) {
         }
     }
 }
+
 const mergeWPConfig = overrides => {
     const mergedConfig = require("./webpack.config")
     return [{...mergedConfig[0], ...overrides}]
 }
+
 const mergeEBConfig = overrides => {
     const mergedConfig = JSON.parse(JSON.stringify(defaultConfig))
     mergedConfig.config.afterPack = defaultConfig.config.afterPack
     return {...mergedConfig, "config": {...mergedConfig.config, ...overrides}}
 }
+
 const webpackBuild = overrides => new Promise((res, rej) => {
     const webpack = require("webpack")
     webpack(mergeWPConfig(overrides)).run((webpackErr, stats) => {
@@ -193,6 +200,7 @@ const webpackBuild = overrides => new Promise((res, rej) => {
         res()
     })
 })
+
 const generateBuild = async release => {
     rmSync("build/", {"force": true, "recursive": true})
     if (release.webpack !== false) {
@@ -209,6 +217,7 @@ const generateBuild = async release => {
         rmSync("build/", {"force": true, "recursive": true})
     }
 }
+
 ;(async() => {
     const platforms = Object.keys(defaultConfig).filter(p => p !== "config")
     console.info("\n  Vieb-builder\n"

@@ -16,6 +16,7 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 /* global describe test expect */
+/* eslint-disable padding-lines/statements */
 "use strict"
 
 const path = require("path")
