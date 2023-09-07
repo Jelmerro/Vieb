@@ -418,6 +418,7 @@ Object.defineProperty(window.Navigator.prototype,
     "deviceMemory", {"get": (() => 8).bind(null)})
 // Hide graphics card information from the canvas API
 const getParam = window.WebGLRenderingContext.prototype.getParameter
+/* eslint-disable no-restricted-syntax */
 /**
  * Override the getParameter function to return nothing when asked for GPU info.
  * @param {number} parameter
@@ -439,6 +440,7 @@ window.WebGL2RenderingContext.prototype.getParameter = function(parameter) {
     }
     return getParam2.call(this, parameter)
 }
+/* eslint-enable no-restricted-syntax */
 // If using a Firefox useragent, also modify the Firefox navigator properties
 if (window.navigator.userAgent.includes("Firefox")) {
     Object.defineProperty(window.Navigator.prototype,
@@ -460,19 +462,47 @@ if (window.navigator.userAgent.includes("Firefox")) {
         "vendor", {"get": (() => "").bind(null)})
     Object.defineProperty(window, "chrome", {})
 }
-// Provide a wrapper for window.open with a subset of the regular API
-// Also provide the option to open new tabs by setting the location property
-window.open = (url = undefined) => {
+
+/**
+ * Open a url if it is provided and not empty.
+ * @param {string|URL|undefined} url
+ */
+const openUrlIfPresent = url => {
     if (url) {
         ipcRenderer.sendToHost(
             "url", new URL(url, window.location.href).href)
     }
+}
+
+/**
+ * Provide a wrapper for window.open with a subset of the regular API.
+ * Also provide the option to open new tabs by setting the location property.
+ * @param {string|URL|undefined} url
+ */
+window.open = (url = undefined) => {
+    openUrlIfPresent(url)
     const obj = {...window}
-    Object.defineProperty(obj, "location", {"get": (() => "").bind(null),
-        // @ts-expect-error val should be an any here as users can pass anything
-        "set": (val => {
-            ipcRenderer.sendToHost(
-                "url", new URL(val, window.location.href).href)
-        }).bind(null)})
+    Object.defineProperty(obj, "location", {
+        "get": (() => {
+            const locationMock = new URL(url ?? "", window.location.href)
+            Object.defineProperty(locationMock, "ancestorOrigins", {
+                "get": (() => []).bind(null)
+            })
+            Object.defineProperty(locationMock, "assign", {
+                // @ts-expect-error val will be an any as users can pass any
+                "get": (() => val => openUrlIfPresent(val)).bind(null)
+            })
+            Object.defineProperty(locationMock, "replace", {
+                // @ts-expect-error val will be an any as users can pass any
+                "get": (() => val => openUrlIfPresent(val)).bind(null)
+            })
+            Object.defineProperty(locationMock, "reload", {
+                "get": (() => () => undefined).bind(null)
+            })
+            return locationMock
+        }).bind(null),
+        // @ts-expect-error val will be an any as users can pass any
+        "set": (val => openUrlIfPresent(val)).bind(null)
+    })
     return obj
 }

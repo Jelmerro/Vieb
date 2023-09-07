@@ -16,6 +16,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 ### Fixed
 
 - Rare error popup on quit on some Linux desktop environments
+- Location mock not being accurate leading to broken functionality on Gitlab and other sites
 
 ### Versions
 

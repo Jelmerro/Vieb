@@ -406,6 +406,7 @@ const parseElement = (element, type = null, customBounds = null) => {
     }
 }
 
+/* eslint-disable no-restricted-syntax */
 /** @type {{[type: string]: WeakSet<EventTarget>}} */
 const eventListeners = {}
 ;[...clickEvents, ...otherEvents].forEach(e => {
@@ -441,6 +442,7 @@ EventTarget.prototype.removeEventListener = function(type, listener, options) {
         // This is a bug in the underlying website
     }
 }
+/* eslint-enable no-restricted-syntax */
 
 /**
  * Send mouse click info to renderer via main on click.
