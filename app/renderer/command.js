@@ -2080,6 +2080,20 @@ const commands = {
     "Vexplore": ({args, range}) => addSplit(
         "hor", !getSetting("splitright"), args, range),
     "b": ({args}) => buffer(args),
+    "bm": () => openSpecialPage("bookmarks"),
+    "bmadd": ({args}) => {
+        const {addBookmark} = require("./bookmarks")
+        addBookmark(args)
+    },
+    "bmdel": ({args}) => {
+        const {deleteBookmark} = require("./bookmarks")
+        deleteBookmark(args)
+    },
+    "bmload": ({args}) => {
+        const {loadBookmark} = require("./bookmarks")
+        loadBookmark(args)
+    },
+    "bookmarks": () => openSpecialPage("bookmarks"),
     "buffer": ({args}) => buffer(args),
     "call": ({args}) => callAction(args),
     "clear": ({args}) => clear(args[0], args[1], args[2]),

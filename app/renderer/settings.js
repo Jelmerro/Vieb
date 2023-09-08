@@ -77,6 +77,7 @@ const mouseFeatures = [
 const defaultSettings = {
     /** @type {"off"|"static"|"update"|"custom"} */
     "adblocker": "static",
+    "bookmarksfile": "bookmarks",
     /** @type {"none"|"clearonquit"|"full"} */
     "cache": "clearonquit",
     "clearcookiesonquit": false,
@@ -307,6 +308,7 @@ const defaultSettings = {
         + "interaction~red,selfpromo~yellow,music_offtopic",
     "startuppages": "",
     "storenewvisits": "pages",
+    "suggestbookmarks": "",
     "suggestbouncedelay": 100,
     "suggestcommands": 9000000000000000,
     "suggestorder": "history,searchword,file",
@@ -359,10 +361,11 @@ const defaultErwicSettings = {
 const freeText = [
     "downloadpath",
     "externalcommand",
-    "shell",
-    "translatekey",
     "vimcommand",
-    "windowtitle"
+    "windowtitle",
+    "bookmarksfile",
+    "shell",
+    "translatekey"
 ]
 const listLike = [
     "containercolors",
@@ -387,6 +390,7 @@ const listLike = [
     "sponsorblockcategories",
     "startuppages",
     "storenewvisits",
+    "suggestbookmarks",
     "suggestorder",
     "resourcetypes",
     "tocpages",
@@ -1475,6 +1479,11 @@ const updateDownloadSettings = () => {
     ipcRenderer.send("set-download-settings", downloads)
 }
 
+const updateBookmarkSettings = () => {
+    const {setBookmarkSettings} = require("./bookmarks")
+    setBookmarkSettings()
+}
+
 /** @type {(keyof typeof defaultSettings)[]} */
 const webviewSettings = [
     "darkreader",
@@ -1657,6 +1666,7 @@ const loadFromDisk = (firstRun = true) => {
     }
     updateContainerSettings()
     updateDownloadSettings()
+    updateBookmarkSettings()
     updatePermissionSettings()
     updateWebviewSettings()
     updateMouseSettings()
@@ -1746,6 +1756,9 @@ const set = (setting, value) => {
                 ipcRenderer.sendSync("override-global-useragent",
                     userAgentTemplated(value.split("~")[0]))
             }
+        }
+        if (setting === "bookmarksfile") {
+            updateBookmarkSettings()
         }
         if (setting === "guifontsize") {
             updateCustomStyling()
