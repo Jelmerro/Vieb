@@ -18,7 +18,7 @@
 "use strict"
 
 const {ipcRenderer} = require("electron")
-const {joinPath, basePath} = require("../util")
+const {joinPath, basePath, dirname} = require("../util")
 
 /**
  * Convert a location to a clickable url.
@@ -28,7 +28,7 @@ const toUrl = loc => `file:${loc}`.replace(/^file:\/+/, "file:///")
 
 /**
  * Create a dir or file element with onclick handler and return it.
- * @param {"file"|"dir"} type
+ * @param {"file"|"dir"|"breadcrumb"} type
  * @param {string} loc
  * @param {string|null} customTitle
  */
@@ -36,7 +36,7 @@ const createElement = (type, loc, customTitle = null) => {
     const element = document.createElement("div")
     element.className = type
     element.textContent = customTitle || basePath(loc)
-    if (type === "dir") {
+    if (type !== "file") {
         element.textContent += "/"
     }
     /** Navigate to the clicked file using the url syntax. */
@@ -63,7 +63,15 @@ const insertCurrentDirInfo = (_, directories, files, allowed, folder) => {
     document.body.id = "filebrowser"
     const main = document.createElement("main")
     const title = document.createElement("h2")
-    title.textContent = folder
+    let breadcrumb = folder
+    let counter = 0
+    while (!isRoot(breadcrumb) || counter > 1000) {
+        const dir = basePath(breadcrumb)
+        title.prepend(createElement("breadcrumb", breadcrumb, dir))
+        breadcrumb = dirname(breadcrumb)
+        counter += 1
+    }
+    title.prepend(createElement("breadcrumb", breadcrumb, basePath(breadcrumb)))
     main.append(title)
     if (!isRoot(folder)) {
         main.append(createElement("dir", joinPath(folder, "../"), ".."))

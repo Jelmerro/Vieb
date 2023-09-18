@@ -13,6 +13,11 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Clickable headers to the filebrowser to go up multiple directories at once
+- Extra CSS color variables names for filebrowser, still using the same default colors
+
 ### Changed
 
 - Eslint rules to be more strict with better jsdoc and types
@@ -23,6 +28,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Rare error popup on quit on some Linux desktop environments
 - Location mock not being accurate leading to broken functionality on Gitlab and other sites
 - Command "tabnewcontainer" not opening with the right name if using "containernewtab=s:external"
+- Extra horizontal scrollbar on failedload and filebrowser pages since last release
 
 ### Versions
 

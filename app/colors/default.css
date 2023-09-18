@@ -142,6 +142,10 @@
     --failedload-main-bg: var(--tab-background);
     /* filebrowser */
     --filebrowser-main-bg: var(--failedload-main-bg);
+    --filebrowser-dir: var(--suggestions-file);
+    --filebrowser-file: var(--suggestions-url);
+    --filebrowser-breadcrumb: var(--suggestions-url);
+    --filebrowser-error: var(--notification-error);
 }
 
 
@@ -499,7 +503,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 /*
  * FAILEDLOAD
 */
-#failedload {display: flex;background: var(--bg);color: var(--fg);line-height: 2;height: 100vh;width: 100vw;}
+#failedload {display: flex;background: var(--bg);color: var(--fg);line-height: 2;height: 100vh;width: 100%;}
 #failedload main {margin: auto;width: 50vw;min-width: 300px;padding: 3em;background-color: var(--failedload-main-bg);overflow: hidden;text-overflow: ellipsis;}
 #failedload a {color: var(--link-color);}
 #failedload h2 {font-size: 2em;margin: 0 0 .5em;}
@@ -508,13 +512,13 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 /*
  * FILEBROWSER
 */
-#filebrowser {display: flex;background: var(--bg);color: var(--fg);line-height: 1.5;height: 100vh;width: 100vw;}
+#filebrowser {display: flex;background: var(--bg);color: var(--fg);line-height: 1.5;height: 100vh;width: 100%;}
 #filebrowser main {margin: 3em auto;width: 50vw;min-width: 300px;padding: 3em;background-color: var(--filebrowser-main-bg);overflow: visible;text-overflow: ellipsis;height: fit-content;}
-#filebrowser h2 {font-size: 2em;margin: 0 0 1em;}
-#filebrowser .dir, #filebrowser .file {margin: .7em;cursor: pointer;}
-#filebrowser .dir {font-weight: bold;color: var(--suggestions-file, #ffb);}
-#filebrowser .file {color: var(--suggestions-url, #bff);}
-#filebrowser .error {color: var(--notification-error, #f33);}
+#filebrowser h2 {font-size: 2em;margin: 0 0 1em;display: flex;}
+#filebrowser .dir {font-weight: bold;color: var(--filebrowser-dir);cursor: pointer;margin: .7em;}
+#filebrowser .file {color: var(--filebrowser-file);cursor: pointer;margin: .7em;}
+#filebrowser .breadcrumb {color: var(--filebrowser-breadcrumb);cursor: pointer;}
+#filebrowser .error {color: var(--filebrowser-error);}
 
 
 /*
