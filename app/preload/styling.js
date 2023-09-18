@@ -34,6 +34,7 @@ const {
 } = require("../util")
 const specialPage = pathToSpecialPageName(window.location.href)
 
+/** Apply the current theme styling from the parent process. */
 const applyThemeStyling = () => {
     const style = `html {
         color: ${getWebviewSetting("fg") || "#eee"};
@@ -43,6 +44,18 @@ const applyThemeStyling = () => {
     ipcRenderer.sendToHost("custom-style-inject", "theme", style)
 }
 
+/** Disable the darkreader custom theme. */
+const disableDarkReader = () => {
+    try {
+        const darkreader = require("darkreader")
+        darkreader.disable()
+        ipcRenderer.sendToHost("custom-style-inject", "darkreader")
+    } catch {
+        // Already disabled or never loaded
+    }
+}
+
+/** Enable the darkreader custom theme. */
 const enableDarkReader = async() => {
     disableDarkReader()
     let darkreader = null
@@ -103,27 +116,23 @@ const enableDarkReader = async() => {
     }
 }
 
-const disableDarkReader = () => {
-    try {
-        const darkreader = require("darkreader")
-        darkreader.disable()
-        ipcRenderer.sendToHost("custom-style-inject", "darkreader")
-    } catch {
-        // Already disabled or never loaded
-    }
-}
-
+/** Hide all scrollbars on the page. */
 const hideScrollbar = () => {
     const style = "::-webkit-scrollbar {display: none !important;}"
     ipcRenderer.sendToHost("custom-style-inject", "scrollbar", style)
 }
 
+/** Hide the scrollbar if not configured to always show. */
 const updateScrollbar = () => {
     if (getWebviewSetting("guiscrollbar") !== "always") {
         hideScrollbar()
     }
 }
 
+/**
+ * General check for applying all custom styling, will do more once loaded.
+ * @param {boolean} loadedFully
+ */
 const loadThemes = (loadedFully = false) => {
     const html = document.querySelector("html")
     if (!html) {

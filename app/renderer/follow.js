@@ -26,9 +26,9 @@ const {
     setStored,
     getStored,
     getMouseConf,
-    getUrl
+    getUrl,
+    sendToPageOrSubFrame
 } = require("./common")
-const {sendToPageOrSubFrame} = require("../util")
 
 /**
  * @typedef {object} FollowLink
@@ -53,11 +53,10 @@ const savedOrder = [
     "image", "media", "url", "onclick", "inputs-click", "inputs-insert"
 ]
 
-const init = () => {
-    ipcRenderer.on("follow-response", (_, l) => parseAndDisplayLinks(l))
-    document.addEventListener("mouseleave", () => emptyHoverLink())
-}
-
+/**
+ * Inform preloads on interval that follow mode is on, keeps working on reload.
+ * @param {boolean} first
+ */
 const informPreload = (first = false) => {
     let elemTypesToFollow = getSetting("followelement")
     if (["pointer", "visual"].includes(getStored("modebeforefollow"))) {
@@ -107,6 +106,7 @@ const startFollow = (dest = followLinkDestination) => {
     followEl.style.display = "flex"
 }
 
+/** Cancel follow mode mode by clearing the links and stopping the loop. */
 const cancelFollow = () => {
     alreadyFollowing = false
     alreadyFilteringLinks = false
@@ -119,6 +119,7 @@ const cancelFollow = () => {
     ipcRenderer.send("follow-mode-stop")
 }
 
+/** Return the current list of characters that should be used for following. */
 const followChars = () => {
     const keys = {
         "all": "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`-=[]\\;',./",
@@ -229,11 +230,7 @@ const clickAtLink = async link => {
     }
 }
 
-const reorderDisplayedLinks = () => {
-    savedOrder.push(savedOrder.shift() ?? "")
-    applyIndexedOrder()
-}
-
+/** Apply the new order of links after changing them through rotation. */
 const applyIndexedOrder = () => {
     savedOrder.forEach((type, index) => {
         [...document.querySelectorAll(`.follow-${type}`)].forEach(e => {
@@ -259,6 +256,13 @@ const applyIndexedOrder = () => {
     })
 }
 
+/** Rotate the display order of follow links by type. */
+const reorderDisplayedLinks = () => {
+    savedOrder.push(savedOrder.shift() ?? "")
+    applyIndexedOrder()
+}
+
+/** Hide and clear the current hover link. */
 const emptyHoverLink = () => {
     hoverLink = null
     if (alreadyFollowing) {
@@ -538,6 +542,7 @@ const parseAndDisplayLinks = receivedLinks => {
     applyIndexedOrder()
 }
 
+/** Returns true if the follow links have been filtered via typing. */
 const followFiltering = () => alreadyFilteringLinks
 
 /**
@@ -654,6 +659,12 @@ const enterKey = async(code, id, stayInFollowMode) => {
             }
         }
     }
+}
+
+/** Listen for mouse leave to clear hover and follow responses from preload. */
+const init = () => {
+    ipcRenderer.on("follow-response", (_, l) => parseAndDisplayLinks(l))
+    document.addEventListener("mouseleave", () => emptyHoverLink())
 }
 
 module.exports = {

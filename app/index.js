@@ -58,6 +58,21 @@ if (!app.getName().toLowerCase().startsWith("vieb")) {
     app.setName("Vieb")
 }
 
+/** Print the license information to the console. */
+const printLicense = () => {
+    console.info(`Vieb is created by Jelmer van Arnhem and contributors.
+Website: https://vieb.dev OR https://github.com/Jelmerro/Vieb
+
+License: GNU GPL version 3 or later versions <http://gnu.org/licenses/gpl.html>
+This is free software; you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+See the LICENSE file or the GNU website for details.`)
+}
+
+/**
+ * Print the help information and usage, then exit with provided code.
+ * @param {number} code - The exit code of the application.
+ */
 const printUsage = (code = 1) => {
     console.info(`Vieb: Vim Inspired Electron Browser
 
@@ -132,6 +147,7 @@ https://peter.sh/experiments/chromium-command-line-switches/
     app.exit(code)
 }
 
+/** Print version information and exit the app with exit code 0. */
 const printVersion = () => {
     console.info(`Vieb: Vim Inspired Electron Browser
 This is version ${version} of ${app.getName()}.
@@ -141,16 +157,6 @@ This release uses Electron ${process.versions.electron} and Chromium ${
     process.versions.chrome}`)
     printLicense()
     app.exit(0)
-}
-
-const printLicense = () => {
-    console.info(`Vieb is created by Jelmer van Arnhem and contributors.
-Website: https://vieb.dev OR https://github.com/Jelmerro/Vieb
-
-License: GNU GPL version 3 or later versions <http://gnu.org/licenses/gpl.html>
-This is free software; you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.
-See the LICENSE file or the GNU website for details.`)
 }
 
 /**
@@ -165,19 +171,20 @@ const applyDevtoolsSettings = (prefFile, undock = true) => {
     preferences.electron.devtools ||= {}
     preferences.electron.devtools.preferences ||= {}
     // Disable source maps as they leak internal structure to the webserver
-    preferences.electron.devtools.preferences.cssSourceMapsEnabled = false
-    preferences.electron.devtools.preferences.jsSourceMapsEnabled = false
+    preferences.electron.devtools.preferences.cssSourceMapsEnabled = "false"
+    preferences.electron.devtools.preferences.jsSourceMapsEnabled = "false"
     // Undock main process devtools to prevent window size issues
     if (undock) {
         preferences.electron.devtools.preferences.
             currentDockState = `"undocked"`
     }
     // Disable release notes, most are not relevant for Vieb
-    preferences.electron.devtools.preferences["help.show-release-note"] = false
+    preferences.electron.devtools.preferences[
+        "help.show-release-note"] = "false"
     // Show timestamps in the console
-    preferences.electron.devtools.preferences.consoleTimestampsEnabled = true
+    preferences.electron.devtools.preferences.consoleTimestampsEnabled = "true"
     // Disable the paused overlay which prevents interaction with other pages
-    preferences.electron.devtools.preferences.disablePausedStateOverlay = true
+    preferences.electron.devtools.preferences.disablePausedStateOverlay = "true"
     // Enable dark theme
     preferences.electron.devtools.preferences.uiTheme = `"dark"`
     writeJSON(prefFile, preferences)
@@ -209,6 +216,8 @@ const isTruthyArg = (arg = null) => {
 const args = getArguments(process.argv)
 /** @type {(string|{container?: unknown, url?: unknown, script?: unknown})[]} */
 const urls = []
+/** @type {Electron.Input[]|"pass"|"all"} */
+let blockedInsertMappings = []
 let argDebugMode = false
 let argDatafolder = process.env.VIEB_DATAFOLDER?.trim()
     || joinPath(app.getPath("appData"), "Vieb")
@@ -437,6 +446,27 @@ let notificationWindow = null
 let promptWindow = null
 
 /**
+ * Check if an input matches a given key.
+ * @param {Electron.Input} key
+ */
+const currentInputMatches = key => {
+    if (blockedInsertMappings === "pass" || blockedInsertMappings === "all") {
+        return true
+    }
+    return blockedInsertMappings.some(mapping => {
+        if (!!mapping.alt === key.alt && !!mapping.control === key.control) {
+            if (!!mapping.meta === key.meta && !!mapping.shift === key.shift) {
+                if (key.location === 3) {
+                    return mapping.key === `k${key.key}`
+                }
+                return mapping.key === key.key
+            }
+        }
+        return false
+    })
+}
+
+/**
  * Resolve local paths to absolute file protocol paths.
  * @param {(string|{
  *   container?: unknown, url?: unknown, script?: unknown
@@ -471,6 +501,224 @@ const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
     }
     return {url}
 }).filter(u => u)
+
+/** @type {{[domain: string]: string[]}} */
+const allowedFingerprints = {}
+/** @type {{[permission: string]: "allow"|"block"|"ask"|"allowfull"}} */
+let permissions = {}
+
+/**
+ * Main check if a permission should be allowed or declined.
+ * @param {Electron.WebContents|null} _
+ * @param {string} pm
+ * @param {null|((_: any) => void)} callback
+ * @param {{
+ *   mediaTypes?: string[],
+ *   externalURL?: string,
+ *   requestingUrl?: string
+ *   cert?: Electron.Certificate
+ *   error?: string
+ * }} details
+ */
+const permissionHandler = (_, pm, callback, details) => {
+    if (!mainWindow) {
+        return false
+    }
+    let permission = pm.toLowerCase().replace("sanitized", "").replace(/-/g, "")
+    if (permission === "mediakeysystem") {
+        // Block any access to DRM, there is no Electron support for it anyway
+        callback?.(false)
+        return false
+    }
+    if (permission === "media") {
+        if (details.mediaTypes?.includes("video")) {
+            permission = "camera"
+        } else if (details.mediaTypes?.includes("audio")) {
+            permission = "microphone"
+        } else if (details.mediaTypes) {
+            permission = "displaycapture"
+        } else {
+            permission = "mediadevices"
+        }
+    }
+    let permissionName = `permission${permission}`
+    if (permission === "openexternal" && details.externalURL) {
+        if (details.externalURL.startsWith(`${app.getName().toLowerCase()}:`)) {
+            mainWindow.webContents.send("navigate-to", details.externalURL)
+            return false
+        }
+    }
+    let setting = permissions[permissionName]
+    if (!setting) {
+        permissionName = "permissionunknown"
+        setting = permissions.permissionunknown
+    }
+    /** @type {"ask"|"block"|"allow"|null} */
+    let settingRule = null
+    /** @type {("ask"|"block"|"allow")[]} */
+    const permissionOverrideTypes = ["ask", "block", "allow"]
+    for (const override of permissionOverrideTypes) {
+        const permList = permissions[`permissions${override}ed`]?.split(",")
+        for (const rule of permList || []) {
+            if (!rule.trim() || settingRule) {
+                continue
+            }
+            const [match, ...names] = rule.split("~")
+            if (names.some(p => permissionName.endsWith(p))) {
+                if (details.requestingUrl?.match(match)) {
+                    settingRule = override
+                    break
+                }
+            }
+            if (permissionName.includes("mediadevices")) {
+                if (names.some(p => p.endsWith("mediadevicesfull"))) {
+                    if (details.requestingUrl?.match(match)) {
+                        settingRule = "allow"
+                        break
+                    }
+                }
+            }
+        }
+    }
+    setting = settingRule || setting
+    if (!callback) {
+        return setting !== "block"
+    }
+    const domain = domainName(details.requestingUrl ?? "") ?? ""
+    if (permission === "certificateerror") {
+        if (allowedFingerprints[domain]
+            ?.includes(details.cert?.fingerprint ?? "")) {
+            mainWindow.webContents.send("notify",
+                `Automatic domain caching rule for '${permission}' activated `
+                + `at '${details.requestingUrl}' which was allowed, because `
+                + `this same certificate was allowed before on this domain`,
+                "perm")
+            callback(true)
+            return true
+        }
+    }
+    if (setting === "ask") {
+        let url = details.requestingUrl ?? ""
+        if (url.length > 100) {
+            url = url.replace(/.{50}/g, "$&\n")
+        }
+        if (url.length > 1000) {
+            url = `${url.split("").slice(0, 1000).join("")}...`
+        }
+        let message = "The page has requested access to the permission "
+            + `'${permission}'. You can allow or deny this below, and choose if`
+            + " you want to make this the default for the current session when "
+            + "sites ask for this permission. For help and more options, see "
+            + `':h ${permissionName}', ':h permissionsallowed', ':h permissions`
+            + `asked' and ':h permissionsblocked'.\n\npage:\n${url}`
+        /** @type {string|undefined} */
+        /** @type {import("electron").MessageBoxOptions} */
+        const dialogOptions = {
+            "buttons": ["Allow", "Deny"],
+            "cancelId": 1,
+            "checkboxLabel": "Remember for this session",
+            "defaultId": 0,
+            message,
+            "title": `Allow this page to access '${permission}'?`,
+            "type": "question"
+        }
+        if (permission === "openexternal") {
+            let exturl = details.externalURL ?? ""
+            if (exturl.length > 100) {
+                exturl = exturl.replace(/.{50}/g, "$&\n")
+            }
+            if (exturl.length > 1000) {
+                exturl = `${exturl.split("").slice(0, 1000).join("")}...`
+            }
+            message = "The page has requested to open an external application."
+                + " You can allow or deny this below, and choose if you want to"
+                + " make this the default for the current session when sites "
+                + "ask to open urls in external programs. For help and more "
+                + "options, see ':h permissionopenexternal', ':h permissionsall"
+                + "owed', ':h permissionsasked' and ':h permissionsblocked'."
+                + `\n\npage:\n${url}\n\nexternal:\n${exturl}`
+        }
+        if (permission === "certificateerror") {
+            message = "The page has a certificate error listed below. You can "
+                + "choose if you still want to continue visiting. Please do "
+                + "this after reviewing the certificate details. Because of the"
+                + " nature of certificates, any allowed certs will keep being "
+                + "trusted per domain until you restart Vieb. Changing the "
+                + "permission setting afterwards won't change this behavior. "
+                + "So while you can deny the same certificate multiple times, "
+                + "you only need to allow it once to be able to keep using it."
+                + ` For help and more options, see ':h ${permissionName}'.`
+                + `\n\npage: ${url}\ndomain: ${domain}\n\n`
+                + `ISSUER: ${details.cert?.issuerName}\n`
+                + `SELF-SIGNED: ${!details.cert?.issuerCert}\n`
+                + `SUBJECT: ${details.cert?.subjectName}\n`
+                + `STARTS: ${formatDate(details.cert?.validStart)}\n`
+                + `EXPIRES: ${formatDate(details.cert?.validExpiry)}\n`
+                + `FINGERPRINT: ${details.cert?.fingerprint}\n\n`
+                + "Only allow certificates you have verified and can trust!"
+            delete dialogOptions.checkboxLabel
+        }
+        dialogOptions.message = message
+        dialog.showMessageBox(mainWindow, dialogOptions).then(e => {
+            if (!mainWindow) {
+                return false
+            }
+            /** @type {"allow"|"block"|"ask"|"allowfull"} */
+            let action = "allow"
+            if (e.response !== 0) {
+                action = "block"
+            }
+            if (settingRule) {
+                mainWindow.webContents.send("notify",
+                    `Ask rule for '${permission}' activated at '`
+                    + `${details.requestingUrl}' which was ${action}ed by user`,
+                    "perm")
+            } else {
+                mainWindow.webContents.send("notify",
+                    `Manually ${action}ed '${permission}' at `
+                    + `'${details.requestingUrl}'`, "perm")
+            }
+            const allow = action === "allow"
+            const canSave = !allow || permission !== "displaycapture"
+            if (e.checkboxChecked && canSave) {
+                mainWindow.webContents.send(
+                    "set-permission", permissionName, action)
+                permissions[permissionName] = action
+            }
+            if (permission === "certificateerror" && allow) {
+                if (!allowedFingerprints[domain]) {
+                    allowedFingerprints[domain] = []
+                }
+                allowedFingerprints[domain].push(
+                    details.cert?.fingerprint ?? "")
+            }
+            callback(allow)
+            return allow
+        })
+    } else {
+        if (settingRule) {
+            mainWindow.webContents.send("notify",
+                `Automatic rule for '${permission}' activated at `
+                + `'${details.requestingUrl}' which was ${setting}ed`,
+                "perm")
+        } else {
+            mainWindow.webContents.send("notify",
+                `Globally ${setting}ed '${permission}' at `
+                + `'${details.requestingUrl}' based on '${permissionName}'`,
+                "perm")
+        }
+        const allow = setting === "allow"
+        if (permission === "certificateerror" && allow) {
+            if (!allowedFingerprints[domain]) {
+                allowedFingerprints[domain] = []
+            }
+            allowedFingerprints[domain].push(details.cert?.fingerprint ?? "")
+        }
+        callback(allow)
+        return allow
+    }
+    return false
+}
 
 app.on("ready", () => {
     app.userAgentFallback = defaultUseragent()
@@ -808,8 +1056,6 @@ let downloads = []
 let redirects = ""
 /** @type {import("@cliqz/adblocker-electron").ElectronBlocker|null} */
 let blocker = null
-/** @type {{[permission: string]: "allow"|"block"|"ask"|"allowfull"}} */
-let permissions = {}
 /** @type {"view"|"block"|"download"}} */
 let pdfbehavior = "view"
 /** @type {string[]|null} */
@@ -872,6 +1118,26 @@ const setDownloadSettings = (_, settings) => {
     }
     downloadSettings.downloadpath = expandPath(downloadSettings.downloadpath
         || app.getPath("downloads") || "~/Downloads")
+}
+
+/** Write the download info to disk if downloads should be stored after quit. */
+const writeDownloadsToFile = () => {
+    downloads.forEach(d => {
+        // Update downloads that are stuck on waiting to start,
+        // but have already been destroyed by electron.
+        try {
+            d.item.getFilename()
+        } catch {
+            if (d.state === "waiting_to_start") {
+                d.state = "completed"
+            }
+        }
+    })
+    if (downloadSettings.cleardownloadsonquit || downloads.length === 0) {
+        deleteFile(dlsFile)
+    } else {
+        writeJSON(dlsFile, downloads)
+    }
 }
 
 ipcMain.on("set-download-settings", setDownloadSettings)
@@ -955,8 +1221,143 @@ ipcMain.on("update-resource-settings", (_, resources, block, allow) => {
     resourcesBlocked = block
 })
 
+/** Generate a 403 forbidden response to block the PDF viewer entirely. */
 const blockPdf = () => new Response("", {"status": 403})
 
+/**
+ * Load a blocklist with extra newline if it has contents.
+ * @param {string} file
+ */
+const loadBlocklist = file => {
+    const contents = readFile(file)
+    if (contents) {
+        return `${contents}\n`
+    }
+    return ""
+}
+
+/** Disable the adblocker completely. */
+const disableAdblocker = () => {
+    if (!blocker) {
+        return
+    }
+    sessionList.forEach(part => {
+        const ses = session.fromPartition(part)
+        ses.setPreloads(ses.getPreloads().filter(p => p !== adblockerPreload))
+    })
+    ipcMain.removeListener("get-cosmetic-filters-first",
+        blocker.onGetCosmeticFiltersFirst)
+    ipcMain.removeListener("get-cosmetic-filters",
+        blocker.onGetCosmeticFiltersUpdated)
+    ipcMain.removeListener("is-mutation-observer-enabled",
+        blocker.onIsMutationObserverEnabled)
+    blocker = null
+}
+
+/** Reload the adblocker optionally including the default lists. */
+const reloadAdblocker = () => {
+    if (blocker) {
+        disableAdblocker()
+    }
+    const blocklistsFolders = [
+        joinPath(app.getPath("appData"), "blocklists"),
+        expandPath("~/.vieb/blocklists")
+    ]
+    let filters = ""
+    for (const blocklistsFolder of blocklistsFolders) {
+        listDir(blocklistsFolder, true)?.forEach(file => {
+            if (file.endsWith(".txt")) {
+                filters += loadBlocklist(file)
+            }
+        })
+    }
+    let ElectronBlocker = null
+    try {
+        ({ElectronBlocker} = require("@cliqz/adblocker-electron"))
+    } catch {
+        // Adblocker module not present, skipping initialization
+    }
+    if (!ElectronBlocker || !isFile(adblockerPreload)) {
+        mainWindow?.webContents.send("notify",
+            "Adblocker module not present, ads will not be blocked!", "err")
+        return
+    }
+    blocker = ElectronBlocker.parse(filters)
+    const resources = readFile(joinPath(__dirname, `./blocklists/resources`))
+    if (resources) {
+        blocker.updateResources(resources, `${resources.length}`)
+    }
+    sessionList.forEach(part => {
+        const ses = session.fromPartition(part)
+        ses.setPreloads(ses.getPreloads().concat([adblockerPreload]))
+    })
+    ipcMain.on("get-cosmetic-filters-first", blocker.onGetCosmeticFiltersFirst)
+    ipcMain.on("get-cosmetic-filters", blocker.onGetCosmeticFiltersUpdated)
+    ipcMain.on("is-mutation-observer-enabled",
+        blocker.onIsMutationObserverEnabled)
+}
+
+/**
+ * Enable the adblocker either statically, with updates or custom.
+ * @param {"static"|"custom"|"update"} type
+ */
+const enableAdblocker = type => {
+    const blocklistDir = joinPath(app.getPath("appData"), "blocklists")
+    const blocklists = readJSON(joinPath(
+        __dirname, "blocklists/list.json")) || {}
+    makeDir(blocklistDir)
+    // Copy the default and included blocklists to the appdata folder
+    if (type !== "custom") {
+        for (const name of Object.keys(blocklists)) {
+            const list = joinPath(__dirname, `blocklists/${name}.txt`)
+            writeFile(joinPath(blocklistDir, `${name}.txt`),
+                readFile(list) ?? "")
+        }
+    }
+    // And update all blocklists to the latest version if enabled
+    if (type === "update") {
+        const extraLists = readJSON(joinPath(blocklistDir, "list.json")) || {}
+        const allBlocklists = {...blocklists, ...extraLists}
+        for (const list of Object.keys(allBlocklists)) {
+            const url = allBlocklists[list]
+            if (!url) {
+                continue
+            }
+            mainWindow?.webContents.send("notify",
+                `Updating ${list} to the latest version`)
+            session.fromPartition("persist:main")
+            const request = net.request({"partition": "persist:main", url})
+            request.on("response", res => {
+                let body = ""
+                res.on("end", () => {
+                    writeFile(joinPath(blocklistDir, `${list}.txt`), body)
+                    reloadAdblocker()
+                    mainWindow?.webContents.send("notify",
+                        `Updated and reloaded the latest ${list} successfully`,
+                        "suc")
+                })
+                res.on("data", chunk => {
+                    body += chunk
+                })
+            })
+            request.on("abort", () => mainWindow?.webContents.send("notify",
+                `Failed to update ${list}: Request aborted`, "err"))
+            request.on("error", e => mainWindow?.webContents.send("notify",
+                `Failed to update ${list}:\n${e.message}`, "err"))
+            request.end()
+        }
+    } else {
+        reloadAdblocker()
+    }
+}
+
+ipcMain.on("adblock-enable", (_, type) => {
+    if (sessionList.length > 0) {
+        // Only listen to enable calls after initial init has already happened
+        enableAdblocker(type)
+    }
+})
+ipcMain.on("adblock-disable", disableAdblocker)
 ipcMain.on("update-pdf-option", (_, newPdfValue) => {
     pdfbehavior = newPdfValue
     sessionList.forEach(ses => {
@@ -1308,11 +1709,20 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         }
         const mdRenderer = new marked.Renderer()
         const urlFolder = dirname(url)
+        /**
+         * Resolve relative paths to the dirname/base path of the url.
+         * @param {string} text
+         */
         mdRenderer.html = text => text.replace(
             / src="\./g, ` src="${urlFolder}/`)
             .replace(/ src="([A-Za-z0-9])]/g, ` src="${urlFolder}/$1`)
         marked.setOptions({
             "baseUrl": url,
+            /**
+             * Highlight the code using highlight.js in the right language.
+             * @param {string} code
+             * @param {string|undefined} lang
+             */
             "highlight": (code, lang) => {
                 let language = lang ?? "plaintext"
                 if (!hljs?.getLanguage(language)) {
@@ -1457,6 +1867,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
     })
 })
 
+/** Cancel all downloads immediately. */
 const cancellAllDownloads = () => {
     downloads.forEach(download => {
         try {
@@ -1471,375 +1882,6 @@ const cancellAllDownloads = () => {
     writeDownloadsToFile()
 }
 
-const writeDownloadsToFile = () => {
-    downloads.forEach(d => {
-        // Update downloads that are stuck on waiting to start,
-        // but have already been destroyed by electron.
-        try {
-            d.item.getFilename()
-        } catch {
-            if (d.state === "waiting_to_start") {
-                d.state = "completed"
-            }
-        }
-    })
-    if (downloadSettings.cleardownloadsonquit || downloads.length === 0) {
-        deleteFile(dlsFile)
-    } else {
-        writeJSON(dlsFile, downloads)
-    }
-}
-
-/** @type {{[domain: string]: string[]}} */
-const allowedFingerprints = {}
-
-/**
- * Main check if a permission should be allowed or declined.
- * @param {Electron.WebContents|null} _
- * @param {string} pm
- * @param {null|((_: any) => void)} callback
- * @param {{
- *   mediaTypes?: string[],
- *   externalURL?: string,
- *   requestingUrl?: string
- *   cert?: Electron.Certificate
- *   error?: string
- * }} details
- */
-const permissionHandler = (_, pm, callback, details) => {
-    if (!mainWindow) {
-        return false
-    }
-    let permission = pm.toLowerCase().replace("sanitized", "").replace(/-/g, "")
-    if (permission === "mediakeysystem") {
-        // Block any access to DRM, there is no Electron support for it anyway
-        callback?.(false)
-        return false
-    }
-    if (permission === "media") {
-        if (details.mediaTypes?.includes("video")) {
-            permission = "camera"
-        } else if (details.mediaTypes?.includes("audio")) {
-            permission = "microphone"
-        } else if (details.mediaTypes) {
-            permission = "displaycapture"
-        } else {
-            permission = "mediadevices"
-        }
-    }
-    let permissionName = `permission${permission}`
-    if (permission === "openexternal" && details.externalURL) {
-        if (details.externalURL.startsWith(`${app.getName().toLowerCase()}:`)) {
-            mainWindow.webContents.send("navigate-to", details.externalURL)
-            return false
-        }
-    }
-    let setting = permissions[permissionName]
-    if (!setting) {
-        permissionName = "permissionunknown"
-        setting = permissions.permissionunknown
-    }
-    /** @type {"ask"|"block"|"allow"|null} */
-    let settingRule = null
-    /** @type {("ask"|"block"|"allow")[]} */
-    const permissionOverrideTypes = ["ask", "block", "allow"]
-    for (const override of permissionOverrideTypes) {
-        const permList = permissions[`permissions${override}ed`]?.split(",")
-        for (const rule of permList || []) {
-            if (!rule.trim() || settingRule) {
-                continue
-            }
-            const [match, ...names] = rule.split("~")
-            if (names.some(p => permissionName.endsWith(p))) {
-                if (details.requestingUrl?.match(match)) {
-                    settingRule = override
-                    break
-                }
-            }
-            if (permissionName.includes("mediadevices")) {
-                if (names.some(p => p.endsWith("mediadevicesfull"))) {
-                    if (details.requestingUrl?.match(match)) {
-                        settingRule = "allow"
-                        break
-                    }
-                }
-            }
-        }
-    }
-    setting = settingRule || setting
-    if (!callback) {
-        return setting !== "block"
-    }
-    const domain = domainName(details.requestingUrl ?? "") ?? ""
-    if (permission === "certificateerror") {
-        if (allowedFingerprints[domain]
-            ?.includes(details.cert?.fingerprint ?? "")) {
-            mainWindow.webContents.send("notify",
-                `Automatic domain caching rule for '${permission}' activated `
-                + `at '${details.requestingUrl}' which was allowed, because `
-                + `this same certificate was allowed before on this domain`,
-                "perm")
-            callback(true)
-            return true
-        }
-    }
-    if (setting === "ask") {
-        let url = details.requestingUrl ?? ""
-        if (url.length > 100) {
-            url = url.replace(/.{50}/g, "$&\n")
-        }
-        if (url.length > 1000) {
-            url = `${url.split("").slice(0, 1000).join("")}...`
-        }
-        let message = "The page has requested access to the permission "
-            + `'${permission}'. You can allow or deny this below, and choose if`
-            + " you want to make this the default for the current session when "
-            + "sites ask for this permission. For help and more options, see "
-            + `':h ${permissionName}', ':h permissionsallowed', ':h permissions`
-            + `asked' and ':h permissionsblocked'.\n\npage:\n${url}`
-        /** @type {string|undefined} */
-        /** @type {import("electron").MessageBoxOptions} */
-        const dialogOptions = {
-            "buttons": ["Allow", "Deny"],
-            "cancelId": 1,
-            "checkboxLabel": "Remember for this session",
-            "defaultId": 0,
-            message,
-            "title": `Allow this page to access '${permission}'?`,
-            "type": "question"
-        }
-        if (permission === "openexternal") {
-            let exturl = details.externalURL ?? ""
-            if (exturl.length > 100) {
-                exturl = exturl.replace(/.{50}/g, "$&\n")
-            }
-            if (exturl.length > 1000) {
-                exturl = `${exturl.split("").slice(0, 1000).join("")}...`
-            }
-            message = "The page has requested to open an external application."
-                + " You can allow or deny this below, and choose if you want to"
-                + " make this the default for the current session when sites "
-                + "ask to open urls in external programs. For help and more "
-                + "options, see ':h permissionopenexternal', ':h permissionsall"
-                + "owed', ':h permissionsasked' and ':h permissionsblocked'."
-                + `\n\npage:\n${url}\n\nexternal:\n${exturl}`
-        }
-        if (permission === "certificateerror") {
-            message = "The page has a certificate error listed below. You can "
-                + "choose if you still want to continue visiting. Please do "
-                + "this after reviewing the certificate details. Because of the"
-                + " nature of certificates, any allowed certs will keep being "
-                + "trusted per domain until you restart Vieb. Changing the "
-                + "permission setting afterwards won't change this behavior. "
-                + "So while you can deny the same certificate multiple times, "
-                + "you only need to allow it once to be able to keep using it."
-                + ` For help and more options, see ':h ${permissionName}'.`
-                + `\n\npage: ${url}\ndomain: ${domain}\n\n`
-                + `ISSUER: ${details.cert?.issuerName}\n`
-                + `SELF-SIGNED: ${!details.cert?.issuerCert}\n`
-                + `SUBJECT: ${details.cert?.subjectName}\n`
-                + `STARTS: ${formatDate(details.cert?.validStart)}\n`
-                + `EXPIRES: ${formatDate(details.cert?.validExpiry)}\n`
-                + `FINGERPRINT: ${details.cert?.fingerprint}\n\n`
-                + "Only allow certificates you have verified and can trust!"
-            delete dialogOptions.checkboxLabel
-        }
-        dialogOptions.message = message
-        dialog.showMessageBox(mainWindow, dialogOptions).then(e => {
-            if (!mainWindow) {
-                return false
-            }
-            /** @type {"allow"|"block"|"ask"|"allowfull"} */
-            let action = "allow"
-            if (e.response !== 0) {
-                action = "block"
-            }
-            if (settingRule) {
-                mainWindow.webContents.send("notify",
-                    `Ask rule for '${permission}' activated at '`
-                    + `${details.requestingUrl}' which was ${action}ed by user`,
-                    "perm")
-            } else {
-                mainWindow.webContents.send("notify",
-                    `Manually ${action}ed '${permission}' at `
-                    + `'${details.requestingUrl}'`, "perm")
-            }
-            const allow = action === "allow"
-            const canSave = !allow || permission !== "displaycapture"
-            if (e.checkboxChecked && canSave) {
-                mainWindow.webContents.send(
-                    "set-permission", permissionName, action)
-                permissions[permissionName] = action
-            }
-            if (permission === "certificateerror" && allow) {
-                if (!allowedFingerprints[domain]) {
-                    allowedFingerprints[domain] = []
-                }
-                allowedFingerprints[domain].push(
-                    details.cert?.fingerprint ?? "")
-            }
-            callback(allow)
-            return allow
-        })
-    } else {
-        if (settingRule) {
-            mainWindow.webContents.send("notify",
-                `Automatic rule for '${permission}' activated at `
-                + `'${details.requestingUrl}' which was ${setting}ed`,
-                "perm")
-        } else {
-            mainWindow.webContents.send("notify",
-                `Globally ${setting}ed '${permission}' at `
-                + `'${details.requestingUrl}' based on '${permissionName}'`,
-                "perm")
-        }
-        const allow = setting === "allow"
-        if (permission === "certificateerror" && allow) {
-            if (!allowedFingerprints[domain]) {
-                allowedFingerprints[domain] = []
-            }
-            allowedFingerprints[domain].push(details.cert?.fingerprint ?? "")
-        }
-        callback(allow)
-        return allow
-    }
-    return false
-}
-
-/**
- * Enable the adblocker either statically, with updates or custom.
- * @param {"static"|"custom"|"update"} type
- */
-const enableAdblocker = type => {
-    const blocklistDir = joinPath(app.getPath("appData"), "blocklists")
-    const blocklists = readJSON(joinPath(
-        __dirname, "blocklists/list.json")) || {}
-    makeDir(blocklistDir)
-    // Copy the default and included blocklists to the appdata folder
-    if (type !== "custom") {
-        for (const name of Object.keys(blocklists)) {
-            const list = joinPath(__dirname, `blocklists/${name}.txt`)
-            writeFile(joinPath(blocklistDir, `${name}.txt`),
-                readFile(list) ?? "")
-        }
-    }
-    // And update all blocklists to the latest version if enabled
-    if (type === "update") {
-        const extraLists = readJSON(joinPath(blocklistDir, "list.json")) || {}
-        const allBlocklists = {...blocklists, ...extraLists}
-        for (const list of Object.keys(allBlocklists)) {
-            const url = allBlocklists[list]
-            if (!url) {
-                continue
-            }
-            mainWindow?.webContents.send("notify",
-                `Updating ${list} to the latest version`)
-            session.fromPartition("persist:main")
-            const request = net.request({"partition": "persist:main", url})
-            request.on("response", res => {
-                let body = ""
-                res.on("end", () => {
-                    writeFile(joinPath(blocklistDir, `${list}.txt`), body)
-                    reloadAdblocker()
-                    mainWindow?.webContents.send("notify",
-                        `Updated and reloaded the latest ${list} successfully`,
-                        "suc")
-                })
-                res.on("data", chunk => {
-                    body += chunk
-                })
-            })
-            request.on("abort", () => mainWindow?.webContents.send("notify",
-                `Failed to update ${list}: Request aborted`, "err"))
-            request.on("error", e => mainWindow?.webContents.send("notify",
-                `Failed to update ${list}:\n${e.message}`, "err"))
-            request.end()
-        }
-    } else {
-        reloadAdblocker()
-    }
-}
-
-const reloadAdblocker = () => {
-    if (blocker) {
-        disableAdblocker()
-    }
-    const blocklistsFolders = [
-        joinPath(app.getPath("appData"), "blocklists"),
-        expandPath("~/.vieb/blocklists")
-    ]
-    let filters = ""
-    for (const blocklistsFolder of blocklistsFolders) {
-        listDir(blocklistsFolder, true)?.forEach(file => {
-            if (file.endsWith(".txt")) {
-                filters += loadBlocklist(file)
-            }
-        })
-    }
-    let ElectronBlocker = null
-    try {
-        ({ElectronBlocker} = require("@cliqz/adblocker-electron"))
-    } catch {
-        // Adblocker module not present, skipping initialization
-    }
-    if (!ElectronBlocker || !isFile(adblockerPreload)) {
-        mainWindow?.webContents.send("notify",
-            "Adblocker module not present, ads will not be blocked!", "err")
-        return
-    }
-    blocker = ElectronBlocker.parse(filters)
-    const resources = readFile(joinPath(__dirname, `./blocklists/resources`))
-    if (resources) {
-        blocker.updateResources(resources, `${resources.length}`)
-    }
-    sessionList.forEach(part => {
-        const ses = session.fromPartition(part)
-        ses.setPreloads(ses.getPreloads().concat([adblockerPreload]))
-    })
-    ipcMain.on("get-cosmetic-filters-first", blocker.onGetCosmeticFiltersFirst)
-    ipcMain.on("get-cosmetic-filters", blocker.onGetCosmeticFiltersUpdated)
-    ipcMain.on("is-mutation-observer-enabled",
-        blocker.onIsMutationObserverEnabled)
-}
-
-const disableAdblocker = () => {
-    if (!blocker) {
-        return
-    }
-    sessionList.forEach(part => {
-        const ses = session.fromPartition(part)
-        ses.setPreloads(ses.getPreloads().filter(p => p !== adblockerPreload))
-    })
-    ipcMain.removeListener("get-cosmetic-filters-first",
-        blocker.onGetCosmeticFiltersFirst)
-    ipcMain.removeListener("get-cosmetic-filters",
-        blocker.onGetCosmeticFiltersUpdated)
-    ipcMain.removeListener("is-mutation-observer-enabled",
-        blocker.onIsMutationObserverEnabled)
-    blocker = null
-}
-
-ipcMain.on("adblock-enable", (_, type) => {
-    if (sessionList.length > 0) {
-        // Only listen to enable calls after initial init has already happened
-        enableAdblocker(type)
-    }
-})
-ipcMain.on("adblock-disable", disableAdblocker)
-
-/**
- * Load a blocklist with extra newline if it has contents.
- * @param {string} file
- */
-const loadBlocklist = file => {
-    const contents = readFile(file)
-    if (contents) {
-        return `${contents}\n`
-    }
-    return ""
-}
-
-// Download favicons for websites
 ipcMain.on("download-favicon", (_, options) => {
     const customSession = webContents.fromId(options.webId)?.session
         ?? session.defaultSession
@@ -1877,8 +1919,36 @@ ipcMain.on("download-favicon", (_, options) => {
     })
     request.end()
 })
-// Window state save and restore
 const windowStateFile = joinPath(app.getPath("appData"), "windowstate")
+
+/**
+ * Save the current window state, optionally just the maximization state.
+ * @param {boolean} maximizeOnly
+ */
+const saveWindowState = (maximizeOnly = false) => {
+    try {
+        mainWindow?.webContents?.send("window-update-gui")
+        let state = readJSON(windowStateFile) || {}
+        if (!maximizeOnly && mainWindow && !mainWindow.isMaximized()) {
+            const newBounds = mainWindow.getBounds()
+            const currentScreen = screen.getDisplayMatching(newBounds).workArea
+            const sameW = newBounds.width === currentScreen.width
+            const sameH = newBounds.height === currentScreen.height
+            const halfW = newBounds.width === currentScreen.width / 2
+            const halfH = newBounds.height === currentScreen.height / 2
+            const halfX = newBounds.x === currentScreen.x / 2
+            const halfY = newBounds.y === currentScreen.y / 2
+            if (!sameW && !sameH && !halfW && !halfH && !halfX && !halfY) {
+                state = newBounds
+            }
+        }
+        state.maximized = mainWindow?.isMaximized()
+        writeJSON(windowStateFile, state)
+    } catch {
+        // Window already destroyed
+    }
+}
+
 ipcMain.on("window-state-init", (_, restorePos, restoreSize, restoreMax) => {
     if (!mainWindow) {
         return
@@ -1938,32 +2008,6 @@ ipcMain.on("window-state-init", (_, restorePos, restoreSize, restoreMax) => {
         }, 30)
     })
 })
-
-const saveWindowState = (maximizeOnly = false) => {
-    try {
-        mainWindow?.webContents?.send("window-update-gui")
-        let state = readJSON(windowStateFile) || {}
-        if (!maximizeOnly && mainWindow && !mainWindow.isMaximized()) {
-            const newBounds = mainWindow.getBounds()
-            const currentScreen = screen.getDisplayMatching(newBounds).workArea
-            const sameW = newBounds.width === currentScreen.width
-            const sameH = newBounds.height === currentScreen.height
-            const halfW = newBounds.width === currentScreen.width / 2
-            const halfH = newBounds.height === currentScreen.height / 2
-            const halfX = newBounds.x === currentScreen.x / 2
-            const halfY = newBounds.y === currentScreen.y / 2
-            if (!sameW && !sameH && !halfW && !halfH && !halfX && !halfY) {
-                state = newBounds
-            }
-        }
-        state.maximized = mainWindow?.isMaximized()
-        writeJSON(windowStateFile, state)
-    } catch {
-        // Window already destroyed
-    }
-}
-
-// Miscellaneous tasks
 ipcMain.on("update-native-theme", (_, newTheme) => {
     nativeTheme.themeSource = newTheme
 })
@@ -2004,34 +2048,10 @@ ipcMain.handle("toggle-fullscreen", () => {
         mainWindow.fullScreen = !mainWindow.fullScreen
     }
 })
-/** @type {Electron.Input[]|"pass"|"all"} */
-let blockedInsertMappings = []
 ipcMain.on("insert-mode-blockers", (e, blockedMappings) => {
     blockedInsertMappings = blockedMappings
     e.returnValue = null
 })
-
-/**
- * Check if an input matches a given key.
- * @param {Electron.Input} key
- */
-const currentInputMatches = key => {
-    if (blockedInsertMappings === "pass" || blockedInsertMappings === "all") {
-        return true
-    }
-    return blockedInsertMappings.some(mapping => {
-        if (!!mapping.alt === key.alt && !!mapping.control === key.control) {
-            if (!!mapping.meta === key.meta && !!mapping.shift === key.shift) {
-                if (key.location === 3) {
-                    return mapping.key === `k${key.key}`
-                }
-                return mapping.key === key.key
-            }
-        }
-        return false
-    })
-}
-
 ipcMain.on("set-window-title", (_, t) => {
     if (mainWindow) {
         mainWindow.title = t
@@ -2121,6 +2141,27 @@ const errToMain = exception => {
     return null
 }
 
+/** @type {(import("./renderer/follow").FollowLink & {frameId: string})[]} */
+let allLinks = []
+/**
+ * @typedef {{
+ *   id?: string
+ *   url?: string
+ *   x?: number
+ *   y?: number
+ *   width?: number
+ *   height?: number
+ *   usableWidth?: number
+ *   usableHeight?: number
+ *   pagex?: number
+ *   pagey?: number
+ *   parent?: string
+ *   absX?: number
+ *   absY?: number
+ * }} frameDetails
+ */
+/** @type {{[frameId: string]: frameDetails}} */
+const frameInfo = {}
 ipcMain.on("follow-mode-start", (_, id, followTypeFilter, switchTo = false) => {
     try {
         webContents.fromId(id)?.mainFrame.framesInSubtree.forEach(f => {
@@ -2150,27 +2191,6 @@ ipcMain.on("follow-mode-stop", e => {
         errToMain(ex)
     }
 })
-/** @type {(import("./renderer/follow").FollowLink & {frameId: string})[]} */
-let allLinks = []
-/**
- * @typedef {{
- *   id?: string
- *   url?: string
- *   x?: number
- *   y?: number
- *   width?: number
- *   height?: number
- *   usableWidth?: number
- *   usableHeight?: number
- *   pagex?: number
- *   pagey?: number
- *   parent?: string
- *   absX?: number
- *   absY?: number
- * }} frameDetails
- */
-/** @type {{[frameId: string]: frameDetails}} */
-const frameInfo = {}
 
 /**
  * Handle incoming frame details by storing their details by id.

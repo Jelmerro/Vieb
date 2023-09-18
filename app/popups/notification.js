@@ -21,6 +21,7 @@ const {ipcRenderer} = require("electron")
 
 let fontsize = 14
 
+/** Align the scroll height to a multiple of fontsizes. */
 const fixScrollHeight = () => {
     const notification = document.getElementById("notification")
     if (!notification) {

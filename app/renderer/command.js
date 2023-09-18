@@ -345,436 +345,10 @@ const source = (origin, args) => {
     }
     for (const line of parsed.split("\n")) {
         if (line && !line.trim().startsWith("\"")) {
+            /* eslint-disable-next-line no-use-before-define */
             execute(line, absFile)
         }
     }
-}
-
-/**
- * Quit the current split, a range of splits or the browser if not using splits.
- * @param {string|null} range
- */
-const quit = (range = null) => {
-    const {closeTab} = require("./tabs")
-    if (range) {
-        rangeToTabIdxs(range).forEach(t => closeTab(t))
-        return
-    }
-    if (document.getElementById("tabs")?.classList.contains("multiple")) {
-        closeTab()
-    } else {
-        quitall()
-    }
-}
-
-const quitall = () => {
-    ipcRenderer.send("hide-window")
-    const keepQuickmarkNames = getSetting("quickmarkpersistence").split(",")
-    const clearMark = ["scroll", "marks", "pointer"]
-        .filter(t => !keepQuickmarkNames.includes(t))
-    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
-    for (const markType of clearMark) {
-        delete qm[markType]
-    }
-    if (Object.keys(qm).length > 0) {
-        writeJSON(joinPath(appData(), "quickmarks"), qm)
-    } else {
-        deleteFile(joinPath(appData(), "quickmarks"))
-    }
-    const clearHistory = getSetting("clearhistoryinterval")
-    if (clearHistory === "session") {
-        deleteFile(joinPath(appData(), "hist"))
-    } else if (clearHistory === "none") {
-        const {writeHistToFile} = require("./history")
-        writeHistToFile(true)
-    } else {
-        const {removeOldHistory} = require("./history")
-        removeOldHistory(intervalValueToDate(clearHistory))
-    }
-    const {saveTabs} = require("./tabs")
-    saveTabs()
-    const pagesContainer = document.getElementById("pages")
-    if (pagesContainer) {
-        pagesContainer.textContent = ""
-    }
-    clearTempContainers()
-    if (getSetting("cache") !== "full") {
-        clearCache()
-    }
-    if (getSetting("clearcookiesonquit")) {
-        clearCookies()
-    }
-    if (getSetting("clearlocalstorageonquit")) {
-        clearLocalStorage()
-    }
-    const {updateMappings} = require("./favicons")
-    updateMappings({"now": true})
-    ipcRenderer.send("destroy-window")
-}
-
-let currentscheme = "default"
-
-/**
- * Set the colorscheme by name or log the current one if no name provided.
- * @param {string|null} name
- * @param {string|null} trailingArgs
- */
-const colorscheme = (name = null, trailingArgs = null) => {
-    if (trailingArgs) {
-        notify("The colorscheme command takes a single optional argument",
-            "warn")
-        return
-    }
-    if (!name) {
-        notify(currentscheme)
-        return
-    }
-    let css = readFile(expandPath(`~/.vieb/colors/${name}.css`))
-    if (!css) {
-        css = readFile(joinPath(appData(), `colors/${name}.css`))
-    }
-    if (!css) {
-        css = readFile(joinPath(__dirname, `../colors/${name}.css`))
-    }
-    if (!css) {
-        notify(`Cannot find colorscheme '${name}'`, "warn")
-        return
-    }
-    if (name === "default") {
-        css = ""
-    }
-    if (!document.getElementById("custom-styling")) {
-        const styleElement = document.createElement("style")
-        styleElement.id = "custom-styling"
-        document.head.append(styleElement)
-    }
-    const customStyle = document.getElementById("custom-styling")
-    if (customStyle) {
-        customStyle.textContent = css
-    }
-    ipcRenderer.send("set-custom-styling", getSetting("guifontsize"), css)
-    const {setCustomStyling} = require("./settings")
-    setCustomStyling(css)
-    currentscheme = name
-}
-
-const restart = () => {
-    ipcRenderer.send("relaunch")
-    quitall()
-}
-
-/**
- * Open the development tools.
- * @param {string|null} userPosition
- * @param {string|null} trailingArgs
- */
-const openDevTools = (userPosition = null, trailingArgs = null) => {
-    if (trailingArgs) {
-        notify("The devtools command takes a single optional argument",
-            "warn")
-        return
-    }
-    const position = userPosition || getSetting("devtoolsposition")
-    const {addTab} = require("./tabs")
-    const {add} = require("./pagelayout")
-    if (position === "window") {
-        currentPage()?.openDevTools()
-    } else if (position === "tab") {
-        addTab({"devtools": true})
-    } else if (position === "vsplit") {
-        const id = currentTab()?.getAttribute("link-id")
-        if (id) {
-            addTab({"devtools": true})
-            add(id, "hor", getSetting("splitright"))
-        }
-    } else if (position === "split") {
-        const id = currentTab()?.getAttribute("link-id")
-        if (id) {
-            addTab({"devtools": true})
-            add(id, "ver", getSetting("splitbelow"))
-        }
-    } else {
-        notify(`Invalid devtools position '${position}' specified, must be one`
-            + " of: window, vsplit, split or tab", "warn")
-    }
-}
-
-const openInternalDevTools = () => {
-    ipcRenderer.send("open-internal-devtools")
-}
-
-/**
- * Open a special page using commands.
- * @param {string} specialPage
- * @param {boolean} forceNewtab
- * @param {string|null} section
- */
-const openSpecialPage = (specialPage, forceNewtab, section = null) => {
-    const newSpecialUrl = specialPagePath(specialPage, section)
-    const url = currentPage()?.src
-    const currentSpecial = pathToSpecialPageName(url ?? "")?.name
-    const isNewtab = currentSpecial === "newtab"
-        || (url?.replace(/\/+$/g, "") ?? "")
-        === stringToUrl(getSetting("newtaburl")).replace(/\/+$/g, "")
-    const replaceSpecial = getSetting("replacespecial")
-    const {navigateTo, addTab} = require("./tabs")
-    if (replaceSpecial === "never" || forceNewtab || !currentPage()) {
-        addTab({"url": newSpecialUrl})
-    } else if (replaceSpecial === "always") {
-        navigateTo(newSpecialUrl)
-    } else if (replaceSpecial === "special" && (currentSpecial || isNewtab)) {
-        navigateTo(newSpecialUrl)
-    } else if (currentSpecial === "newtab" && isNewtab) {
-        navigateTo(newSpecialUrl)
-    } else {
-        addTab({"url": newSpecialUrl})
-    }
-}
-
-/**
- * Open the help page at a specific section.
- * @param {boolean} forceNewtab
- * @param {string|null} section
- * @param {boolean} trailingArgs
- */
-const help = (forceNewtab, section = null, trailingArgs = false) => {
-    if (trailingArgs) {
-        notify("The help command takes a single optional argument", "warn")
-        return
-    }
-    openSpecialPage("help", forceNewtab, section)
-}
-
-const reloadconfig = () => {
-    const {loadFromDisk} = require("./settings")
-    loadFromDisk(false)
-}
-
-/**
- * Make a hardcopy print of a page, optionally for a range of pages.
- * @param {string} range
- */
-const hardcopy = range => {
-    if (range) {
-        rangeToTabIdxs(range).forEach(t => {
-            const page = pageForTab(listTabs()[t])
-            if (!(page instanceof HTMLDivElement)) {
-                page?.send("action", "print")
-            }
-        })
-        return
-    }
-    currentPage()?.send("action", "print")
-}
-
-/**
- * Resolve file arguments to an absolute path with fixed type extension.
- * @param {string|null} locationArg
- * @param {string} type
- * @param {Electron.WebviewTag|null} customPage
- */
-const resolveFileArg = (locationArg, type, customPage = null) => {
-    const page = customPage || currentPage()
-    const tab = tabForPage(page)
-    const name = `${tab?.querySelector("span")?.textContent?.replace(
-        specialCharsAllowSpaces, "").trim()}_${formatDate(new Date())
-        .replace(/:/g, "-")}`.replace(/\s/g, "_")
-    let loc = joinPath(downloadPath(), name)
-    if (locationArg) {
-        let file = expandPath(locationArg)
-        if (!isAbsolutePath(file)) {
-            file = joinPath(downloadPath(), file)
-        }
-        let pathSep = "/"
-        if (process.platform === "win32") {
-            pathSep = "\\"
-        }
-        if (locationArg.endsWith("/") || locationArg.endsWith("\\")) {
-            file = joinPath(`${file}${pathSep}`, name)
-        }
-        if (!isDir(dirname(file))) {
-            notify(`Folder '${dirname(file)}' does not exist!`, "warn")
-            return
-        }
-        loc = file
-    }
-    if (!loc.endsWith(`.${type}`)) {
-        loc += `.${type}`
-    }
-    return loc
-}
-
-/**
- * Write the html of a page to disk, optionally a range of pages at custom loc.
- * @param {string[]} args
- * @param {string} range
- */
-const write = (args, range) => {
-    if (args.length > 1) {
-        notify("The write command takes only a single optional argument:\n"
-            + "the location where to write the page", "warn")
-        return
-    }
-    if (range && args[0]) {
-        notify("Range cannot be combined with a custom location", "warn")
-        return
-    }
-    if (range) {
-        rangeToTabIdxs(range).forEach(t => writePage(null, t))
-        return
-    }
-    writePage(args[0])
-}
-
-/**
- * Write the html of a page to disk based on tab index or current.
- * @param {string|null} customLoc
- * @param {number|null} tabIdx
- */
-const writePage = (customLoc = null, tabIdx = null) => {
-    /** @type {Electron.WebviewTag|HTMLDivElement|null} */
-    let page = currentPage()
-    if (tabIdx !== null) {
-        page = pageForTab(listTabs()[tabIdx]) ?? null
-    }
-    if (!page || page instanceof HTMLDivElement) {
-        return
-    }
-    const loc = resolveFileArg(customLoc, "html", page)
-    if (!loc) {
-        return
-    }
-    const webContentsId = page.getWebContentsId()
-    ipcRenderer.invoke("save-page", webContentsId, loc).then(() => {
-        notify(`Page saved at '${loc}'`)
-    }).catch(err => {
-        notify(`Could not save the page:\n${err}`, "err")
-    })
-}
-
-/**
- * Translate a screen* command argument to valid dims within view.
- * @param {string} dims
- */
-const translateDimsToRect = dims => {
-    const page = currentPage()
-    if (!dims || !page) {
-        return
-    }
-    const rect = {
-        "height": Number(dims.split(",")[1]),
-        "width": Number(dims.split(",")[0]),
-        "x": Number(dims.split(",")[2]),
-        "y": Number(dims.split(",")[3])
-    }
-    const pageWidth = propPixels(page.style, "width")
-    const pageHeight = propPixels(page.style, "height")
-    if (rect.x > pageWidth) {
-        rect.x = pageWidth
-    }
-    if (rect.y > pageHeight) {
-        rect.y = pageHeight
-    }
-    if (rect.width === 0 || rect.width > pageWidth - rect.x) {
-        rect.width = pageWidth - rect.x
-    }
-    if (rect.height === 0 || rect.height > pageHeight - rect.y) {
-        rect.height = pageHeight - rect.y
-    }
-    return rect
-}
-
-/**
- * Copy the current page screen to the clipboard, optionally with custom dims.
- * @param {string[]} args
- */
-const screencopy = args => {
-    if (args.length > 1) {
-        notify("The screencopy command only accepts optional dimensions",
-            "warn")
-        return
-    }
-    if (args[0] && !args[0].match(/^\d+,\d+,\d+,\d+$/g)) {
-        notify("Dimensions must match 'width,height,x,y' with round numbers",
-            "warn")
-        return
-    }
-    if (!currentPage()) {
-        return
-    }
-    const rect = translateDimsToRect(args[0])
-    setTimeout(() => {
-        currentPage()?.capturePage(rect).then(img => {
-            const {nativeImage, clipboard} = require("electron")
-            clipboard.writeImage(nativeImage.createFromBuffer(img.toPNG()))
-        })
-    }, 20)
-}
-
-/**
- * Write the current page screen a location, optionally with custom dims.
- * @param {string[]} args
- */
-const screenshot = args => {
-    if (args.length > 2) {
-        notify("The screenshot command takes only two optional arguments:\nthe "
-            + "location where to write the image and the dimensions", "warn")
-        return
-    }
-    let [dims, location] = args
-    if (!dims?.match(/^\d+,\d+,\d+,\d+$/g)) {
-        [location, dims] = args
-    }
-    if (dims && !dims.match(/^\d+,\d+,\d+,\d+$/g)) {
-        notify("Dimensions must match 'width,height,x,y' with round numbers",
-            "warn")
-        return
-    }
-    takeScreenshot(dims, location)
-}
-
-/**
- * Write the actual page to disk based on dims and location.
- * @param {string} dims
- * @param {string} location
- */
-const takeScreenshot = (dims, location) => {
-    const rect = translateDimsToRect(dims)
-    const loc = resolveFileArg(location, "png", currentPage())
-    if (!loc) {
-        return
-    }
-    setTimeout(() => {
-        currentPage()?.capturePage(rect).then(img => {
-            writeFile(loc, img.toPNG(), "Something went wrong saving the image",
-                `Screenshot saved at ${loc}`)
-        })
-    }, 20)
-}
-
-/**
- * Make a custom viebrc config based on current settings.
- * @param {string|null} full
- * @param {boolean} trailingArgs
- */
-const mkviebrc = (full = null, trailingArgs = false) => {
-    if (trailingArgs) {
-        notify(
-            "The mkviebrc command takes a single optional argument", "warn")
-        return
-    }
-    let exportAll = false
-    if (full) {
-        if (full === "full") {
-            exportAll = true
-        } else {
-            notify(
-                "The only optional argument supported is: 'full'", "warn")
-            return
-        }
-    }
-    const {saveToDisk} = require("./settings")
-    saveToDisk(exportAll)
 }
 
 /**
@@ -944,19 +518,6 @@ const rangeToTabIdxs = (range, silent = false) => {
 }
 
 /**
- * Get a tab for a given buffer argument.
- * @param {string[]} args
- * @param {((tab: HTMLElement) => boolean)|null} filter
- */
-const tabForBufferArg = (args, filter = null) => {
-    const tabs = allTabsForBufferArg(args, filter)
-    if (tabs[0]) {
-        return tabs[0].tab ?? null
-    }
-    return null
-}
-
-/**
  * Get all tabs for a given buffer argument.
  * @param {string[]|[number]} args
  * @param {((tab: HTMLElement) => boolean)|null} filter
@@ -1032,6 +593,450 @@ const allTabsForBufferArg = (args, filter = null) => {
         }
         return null
     }).filter(h => h).sort((a, b) => (b?.top ?? 0) - (a?.top ?? 0))
+}
+
+/**
+ * Get a tab for a given buffer argument.
+ * @param {string[]} args
+ * @param {((tab: HTMLElement) => boolean)|null} filter
+ */
+const tabForBufferArg = (args, filter = null) => {
+    const tabs = allTabsForBufferArg(args, filter)
+    if (tabs[0]) {
+        return tabs[0].tab ?? null
+    }
+    return null
+}
+
+/** Quit the entire app entirely, including all quit settings and cleanup. */
+const quitall = () => {
+    ipcRenderer.send("hide-window")
+    const keepQuickmarkNames = getSetting("quickmarkpersistence").split(",")
+    const clearMark = ["scroll", "marks", "pointer"]
+        .filter(t => !keepQuickmarkNames.includes(t))
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    for (const markType of clearMark) {
+        delete qm[markType]
+    }
+    if (Object.keys(qm).length > 0) {
+        writeJSON(joinPath(appData(), "quickmarks"), qm)
+    } else {
+        deleteFile(joinPath(appData(), "quickmarks"))
+    }
+    const clearHistory = getSetting("clearhistoryinterval")
+    if (clearHistory === "session") {
+        deleteFile(joinPath(appData(), "hist"))
+    } else if (clearHistory === "none") {
+        const {writeHistToFile} = require("./history")
+        writeHistToFile(true)
+    } else {
+        const {removeOldHistory} = require("./history")
+        removeOldHistory(intervalValueToDate(clearHistory))
+    }
+    const {saveTabs} = require("./tabs")
+    saveTabs()
+    const pagesContainer = document.getElementById("pages")
+    if (pagesContainer) {
+        pagesContainer.textContent = ""
+    }
+    clearTempContainers()
+    if (getSetting("cache") !== "full") {
+        clearCache()
+    }
+    if (getSetting("clearcookiesonquit")) {
+        clearCookies()
+    }
+    if (getSetting("clearlocalstorageonquit")) {
+        clearLocalStorage()
+    }
+    const {updateMappings} = require("./favicons")
+    updateMappings({"now": true})
+    ipcRenderer.send("destroy-window")
+}
+
+/**
+ * Quit the current split, a range of splits or the browser if not using splits.
+ * @param {string|null} range
+ */
+const quit = (range = null) => {
+    const {closeTab} = require("./tabs")
+    if (range) {
+        rangeToTabIdxs(range).forEach(t => closeTab(t))
+        return
+    }
+    if (document.getElementById("tabs")?.classList.contains("multiple")) {
+        closeTab()
+    } else {
+        quitall()
+    }
+}
+
+let currentscheme = "default"
+
+/**
+ * Set the colorscheme by name or log the current one if no name provided.
+ * @param {string|null} name
+ * @param {string|null} trailingArgs
+ */
+const colorscheme = (name = null, trailingArgs = null) => {
+    if (trailingArgs) {
+        notify("The colorscheme command takes a single optional argument",
+            "warn")
+        return
+    }
+    if (!name) {
+        notify(currentscheme)
+        return
+    }
+    let css = readFile(expandPath(`~/.vieb/colors/${name}.css`))
+    if (!css) {
+        css = readFile(joinPath(appData(), `colors/${name}.css`))
+    }
+    if (!css) {
+        css = readFile(joinPath(__dirname, `../colors/${name}.css`))
+    }
+    if (!css) {
+        notify(`Cannot find colorscheme '${name}'`, "warn")
+        return
+    }
+    if (name === "default") {
+        css = ""
+    }
+    if (!document.getElementById("custom-styling")) {
+        const styleElement = document.createElement("style")
+        styleElement.id = "custom-styling"
+        document.head.append(styleElement)
+    }
+    const customStyle = document.getElementById("custom-styling")
+    if (customStyle) {
+        customStyle.textContent = css
+    }
+    ipcRenderer.send("set-custom-styling", getSetting("guifontsize"), css)
+    const {setCustomStyling} = require("./settings")
+    setCustomStyling(css)
+    currentscheme = name
+}
+
+/** Quit then reopen the app. */
+const restart = () => {
+    ipcRenderer.send("relaunch")
+    quitall()
+}
+
+/**
+ * Open the development tools.
+ * @param {string|null} userPosition
+ * @param {string|null} trailingArgs
+ */
+const openDevTools = (userPosition = null, trailingArgs = null) => {
+    if (trailingArgs) {
+        notify("The devtools command takes a single optional argument",
+            "warn")
+        return
+    }
+    const position = userPosition || getSetting("devtoolsposition")
+    const {addTab} = require("./tabs")
+    const {add} = require("./pagelayout")
+    if (position === "window") {
+        currentPage()?.openDevTools()
+    } else if (position === "tab") {
+        addTab({"devtools": true})
+    } else if (position === "vsplit") {
+        const id = currentTab()?.getAttribute("link-id")
+        if (id) {
+            addTab({"devtools": true})
+            add(id, "hor", getSetting("splitright"))
+        }
+    } else if (position === "split") {
+        const id = currentTab()?.getAttribute("link-id")
+        if (id) {
+            addTab({"devtools": true})
+            add(id, "ver", getSetting("splitbelow"))
+        }
+    } else {
+        notify(`Invalid devtools position '${position}' specified, must be one`
+            + " of: window, vsplit, split or tab", "warn")
+    }
+}
+
+/** Open the internal devtools of the app, not the webview one. */
+const openInternalDevTools = () => {
+    ipcRenderer.send("open-internal-devtools")
+}
+
+/**
+ * Open a special page using commands.
+ * @param {string} specialPage
+ * @param {boolean} forceNewtab
+ * @param {string|null} section
+ */
+const openSpecialPage = (specialPage, forceNewtab, section = null) => {
+    const newSpecialUrl = specialPagePath(specialPage, section)
+    const url = currentPage()?.src
+    const currentSpecial = pathToSpecialPageName(url ?? "")?.name
+    const isNewtab = currentSpecial === "newtab"
+        || (url?.replace(/\/+$/g, "") ?? "")
+        === stringToUrl(getSetting("newtaburl")).replace(/\/+$/g, "")
+    const replaceSpecial = getSetting("replacespecial")
+    const {navigateTo, addTab} = require("./tabs")
+    if (replaceSpecial === "never" || forceNewtab || !currentPage()) {
+        addTab({"url": newSpecialUrl})
+    } else if (replaceSpecial === "always") {
+        navigateTo(newSpecialUrl)
+    } else if (replaceSpecial === "special" && (currentSpecial || isNewtab)) {
+        navigateTo(newSpecialUrl)
+    } else if (currentSpecial === "newtab" && isNewtab) {
+        navigateTo(newSpecialUrl)
+    } else {
+        addTab({"url": newSpecialUrl})
+    }
+}
+
+/**
+ * Open the help page at a specific section.
+ * @param {boolean} forceNewtab
+ * @param {string|null} section
+ * @param {boolean} trailingArgs
+ */
+const help = (forceNewtab, section = null, trailingArgs = false) => {
+    if (trailingArgs) {
+        notify("The help command takes a single optional argument", "warn")
+        return
+    }
+    openSpecialPage("help", forceNewtab, section)
+}
+
+/** Source the startup configs again to reload the config. */
+const reloadconfig = () => {
+    const {loadFromDisk} = require("./settings")
+    loadFromDisk(false)
+}
+
+/**
+ * Make a hardcopy print of a page, optionally for a range of pages.
+ * @param {string} range
+ */
+const hardcopy = range => {
+    if (range) {
+        rangeToTabIdxs(range).forEach(t => {
+            const page = pageForTab(listTabs()[t])
+            if (!(page instanceof HTMLDivElement)) {
+                page?.send("action", "print")
+            }
+        })
+        return
+    }
+    currentPage()?.send("action", "print")
+}
+
+/**
+ * Resolve file arguments to an absolute path with fixed type extension.
+ * @param {string|null} locationArg
+ * @param {string} type
+ * @param {Electron.WebviewTag|null} customPage
+ */
+const resolveFileArg = (locationArg, type, customPage = null) => {
+    const page = customPage || currentPage()
+    const tab = tabForPage(page)
+    const name = `${tab?.querySelector("span")?.textContent?.replace(
+        specialCharsAllowSpaces, "").trim()}_${formatDate(new Date())
+        .replace(/:/g, "-")}`.replace(/\s/g, "_")
+    let loc = joinPath(downloadPath(), name)
+    if (locationArg) {
+        let file = expandPath(locationArg)
+        if (!isAbsolutePath(file)) {
+            file = joinPath(downloadPath(), file)
+        }
+        let pathSep = "/"
+        if (process.platform === "win32") {
+            pathSep = "\\"
+        }
+        if (locationArg.endsWith("/") || locationArg.endsWith("\\")) {
+            file = joinPath(`${file}${pathSep}`, name)
+        }
+        if (!isDir(dirname(file))) {
+            notify(`Folder '${dirname(file)}' does not exist!`, "warn")
+            return
+        }
+        loc = file
+    }
+    if (!loc.endsWith(`.${type}`)) {
+        loc += `.${type}`
+    }
+    return loc
+}
+
+/**
+ * Write the html of a page to disk based on tab index or current.
+ * @param {string|null} customLoc
+ * @param {number|null} tabIdx
+ */
+const writePage = (customLoc = null, tabIdx = null) => {
+    /** @type {Electron.WebviewTag|HTMLDivElement|null} */
+    let page = currentPage()
+    if (tabIdx !== null) {
+        page = pageForTab(listTabs()[tabIdx]) ?? null
+    }
+    if (!page || page instanceof HTMLDivElement) {
+        return
+    }
+    const loc = resolveFileArg(customLoc, "html", page)
+    if (!loc) {
+        return
+    }
+    const webContentsId = page.getWebContentsId()
+    ipcRenderer.invoke("save-page", webContentsId, loc).then(() => {
+        notify(`Page saved at '${loc}'`)
+    }).catch(err => {
+        notify(`Could not save the page:\n${err}`, "err")
+    })
+}
+
+/**
+ * Write the html of a page to disk, optionally a range of pages at custom loc.
+ * @param {string[]} args
+ * @param {string} range
+ */
+const write = (args, range) => {
+    if (args.length > 1) {
+        notify("The write command takes only a single optional argument:\n"
+            + "the location where to write the page", "warn")
+        return
+    }
+    if (range && args[0]) {
+        notify("Range cannot be combined with a custom location", "warn")
+        return
+    }
+    if (range) {
+        rangeToTabIdxs(range).forEach(t => writePage(null, t))
+        return
+    }
+    writePage(args[0])
+}
+
+/**
+ * Translate a screen* command argument to valid dims within view.
+ * @param {string} dims
+ */
+const translateDimsToRect = dims => {
+    const page = currentPage()
+    if (!dims || !page) {
+        return
+    }
+    const rect = {
+        "height": Number(dims.split(",")[1]),
+        "width": Number(dims.split(",")[0]),
+        "x": Number(dims.split(",")[2]),
+        "y": Number(dims.split(",")[3])
+    }
+    const pageWidth = propPixels(page.style, "width")
+    const pageHeight = propPixels(page.style, "height")
+    if (rect.x > pageWidth) {
+        rect.x = pageWidth
+    }
+    if (rect.y > pageHeight) {
+        rect.y = pageHeight
+    }
+    if (rect.width === 0 || rect.width > pageWidth - rect.x) {
+        rect.width = pageWidth - rect.x
+    }
+    if (rect.height === 0 || rect.height > pageHeight - rect.y) {
+        rect.height = pageHeight - rect.y
+    }
+    return rect
+}
+
+/**
+ * Copy the current page screen to the clipboard, optionally with custom dims.
+ * @param {string[]} args
+ */
+const screencopy = args => {
+    if (args.length > 1) {
+        notify("The screencopy command only accepts optional dimensions",
+            "warn")
+        return
+    }
+    if (args[0] && !args[0].match(/^\d+,\d+,\d+,\d+$/g)) {
+        notify("Dimensions must match 'width,height,x,y' with round numbers",
+            "warn")
+        return
+    }
+    if (!currentPage()) {
+        return
+    }
+    const rect = translateDimsToRect(args[0])
+    setTimeout(() => {
+        currentPage()?.capturePage(rect).then(img => {
+            const {nativeImage, clipboard} = require("electron")
+            clipboard.writeImage(nativeImage.createFromBuffer(img.toPNG()))
+        })
+    }, 20)
+}
+
+/**
+ * Write the actual page to disk based on dims and location.
+ * @param {string} dims
+ * @param {string} location
+ */
+const takeScreenshot = (dims, location) => {
+    const rect = translateDimsToRect(dims)
+    const loc = resolveFileArg(location, "png", currentPage())
+    if (!loc) {
+        return
+    }
+    setTimeout(() => {
+        currentPage()?.capturePage(rect).then(img => {
+            writeFile(loc, img.toPNG(), "Something went wrong saving the image",
+                `Screenshot saved at ${loc}`)
+        })
+    }, 20)
+}
+
+/**
+ * Write the current page screen a location, optionally with custom dims.
+ * @param {string[]} args
+ */
+const screenshot = args => {
+    if (args.length > 2) {
+        notify("The screenshot command takes only two optional arguments:\nthe "
+            + "location where to write the image and the dimensions", "warn")
+        return
+    }
+    let [dims, location] = args
+    if (!dims?.match(/^\d+,\d+,\d+,\d+$/g)) {
+        [location, dims] = args
+    }
+    if (dims && !dims.match(/^\d+,\d+,\d+,\d+$/g)) {
+        notify("Dimensions must match 'width,height,x,y' with round numbers",
+            "warn")
+        return
+    }
+    takeScreenshot(dims, location)
+}
+
+/**
+ * Make a custom viebrc config based on current settings.
+ * @param {string|null} full
+ * @param {boolean} trailingArgs
+ */
+const mkviebrc = (full = null, trailingArgs = false) => {
+    if (trailingArgs) {
+        notify(
+            "The mkviebrc command takes a single optional argument", "warn")
+        return
+    }
+    let exportAll = false
+    if (full) {
+        if (full === "full") {
+            exportAll = true
+        } else {
+            notify(
+                "The only optional argument supported is: 'full'", "warn")
+            return
+        }
+    }
+    const {saveToDisk} = require("./settings")
+    saveToDisk(exportAll)
 }
 
 /**
@@ -1374,6 +1379,7 @@ const logError = err => {
     }
 }
 
+/** Make Vieb the default browser of the operating system if possible. */
 const makedefault = () => {
     if (process.execPath.endsWith("electron")) {
         notify("Command only works for installed versions of Vieb", "err")
@@ -1400,6 +1406,10 @@ const makedefault = () => {
     }
 }
 
+/**
+ * Close all tabs to the left of the current one, optionally including pinned.
+ * @param {boolean} force
+ */
 const lclose = (force = false) => {
     const tab = currentTab()
     if (!tab) {
@@ -1415,6 +1425,10 @@ const lclose = (force = false) => {
     }
 }
 
+/**
+ * Close all tabs to the right of the current one, optionally including pinned.
+ * @param {boolean} force
+ */
 const rclose = (force = false) => {
     const tab = currentTab()
     if (!tab) {
@@ -2069,6 +2083,9 @@ const noArgumentComands = [
     "rclose",
     "only"
 ]
+/** @type {{[command: string]: string}} */
+let userCommands = {}
+/* eslint-disable jsdoc/require-jsdoc */
 /** @type {{
  *   [command: string]: (props: {
  *     args: string[], range: string, raw: string
@@ -2089,12 +2106,15 @@ const commands = {
     "comclear": () => {
         userCommands = {}
     },
+    /* eslint-disable-next-line no-use-before-define */
     "command": ({args}) => addCommand(false, args),
+    /* eslint-disable-next-line no-use-before-define */
     "command!": ({args}) => addCommand(true, args),
     "cookies": () => openSpecialPage("cookies", false),
     "cookies!": () => openSpecialPage("cookies", true),
     "d": () => openSpecialPage("downloads", false),
     "d!": () => openSpecialPage("downloads", true),
+    /* eslint-disable-next-line no-use-before-define */
     "delcommand": ({args}) => deleteCommand(args),
     "delmarks": ({args}) => delmarks(false, args),
     "delmarks!": ({args}) => delmarks(true, args),
@@ -2208,8 +2228,6 @@ const commands = {
 }
 /** @type {string[]} */
 const holdUseCommands = ["command"]
-/** @type {{[command: string]: string}} */
-let userCommands = {}
 const {mapOrList, unmap, clearmap} = require("./input")
 " nicsefpvm".split("").forEach(prefix => {
     commands[`${prefix.trim()}map!`] = ({args}) => {
@@ -2243,6 +2261,7 @@ const {mapOrList, unmap, clearmap} = require("./input")
         clearmap(prefix.trim(), true)
     }
 })
+/* eslint-enable jsdoc/require-jsdoc */
 
 /**
  * Add a new command, or optionally overwrite existing custom commands.
@@ -2364,16 +2383,20 @@ const parseAndValidateArgs = commandStr => {
     }
 }
 
+/** Return the page title or an empty string. */
 const getPageTitle = () => currentTab()?.querySelector("span")
     ?.textContent ?? ""
 
+/** Return the page url as a URL object. */
 const getPageUrlClass = () => {
     const {getPageUrl} = require("./actions")
     return new URL(getPageUrl())
 }
 
+/** Return the current page url origin. */
 const getPageOrigin = () => getPageUrlClass().origin
 
+/** Return the current page url domain. */
 const getPageDomain = () => getPageUrlClass().host
 
 /**

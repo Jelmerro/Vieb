@@ -23,6 +23,7 @@ let navbarGuiTimer = null
 /** @type {number|null} */
 let tabbarGuiTimer = null
 
+/** Get the current url input element if available. */
 const getUrl = () => {
     const url = document.getElementById("url")
     if (url instanceof HTMLInputElement) {
@@ -104,6 +105,16 @@ const currentPage = () => {
 }
 
 /**
+ * Send a message to the current page and its frames.
+ * @param {string} channel
+ * @param {any[]} args
+ */
+const sendToPageOrSubFrame = (channel, ...args) => {
+    const {ipcRenderer} = require("electron")
+    ipcRenderer.send(channel, currentPage()?.getWebContentsId(), ...args)
+}
+
+/**
  * Find a page for a given tab.
  * @param {HTMLSpanElement|null} tab
  */
@@ -154,6 +165,18 @@ const currentMode = () => {
 }
 
 /**
+ * Get a value from the session storage.
+ * @param {string} set
+ */
+const getStored = set => {
+    try {
+        return JSON.parse(sessionStorage.getItem(set) ?? "")
+    } catch {
+        return ""
+    }
+}
+
+/**
  * Get a setting value by setting name.
  * @template {keyof typeof import("./settings").defaultSettings} T
  * @param {T} name
@@ -178,18 +201,6 @@ const getMouseConf = val => {
 const setStored = (set, val) => sessionStorage.setItem(set, JSON.stringify(val))
 
 /**
- * Get a value from the session storage.
- * @param {string} set
- */
-const getStored = set => {
-    try {
-        return JSON.parse(sessionStorage.getItem(set) ?? "")
-    } catch {
-        return ""
-    }
-}
-
-/**
  * Get the current gui status value depending on window status.
  * @param {"navbar"|"tabbar"} type
  * @returns {"always"|"onupdate"|"oninput"|"never"}
@@ -206,6 +217,33 @@ const getGuiStatus = type => {
     return setting
 }
 
+/** Update the GUI visibility based on navbar and tabbar settings. */
+const updateGuiVisibility = () => {
+    const navbar = getGuiStatus("navbar")
+    const tabbar = getGuiStatus("tabbar")
+    if (!navbarGuiTimer) {
+        const notTyping = !"ces".includes(currentMode()[0])
+        if (navbar === "never" || navbar !== "always" && notTyping) {
+            document.body.classList.add("navigationhidden")
+        } else {
+            document.body.classList.remove("navigationhidden")
+        }
+    }
+    if (!tabbarGuiTimer) {
+        if (tabbar === "always") {
+            document.body.classList.remove("tabshidden")
+        } else {
+            document.body.classList.add("tabshidden")
+        }
+    }
+    const {applyLayout} = require("./pagelayout")
+    applyLayout()
+    if (currentMode() === "pointer") {
+        const {updateElement} = require("./pointer")
+        updateElement()
+    }
+}
+
 /**
  * Update the mouse state to reflect if it's at the top of the page or not.
  * @param {boolean} status
@@ -217,6 +255,10 @@ const setTopOfPageWithMouse = status => {
     }
 }
 
+/**
+ * Update the screenshot highlight visibility and position, or hide it.
+ * @param {boolean} hide
+ */
 const updateScreenshotHighlight = (hide = false) => {
     const url = getUrl()
     const dims = url?.value.split(" ").find(
@@ -290,32 +332,6 @@ const guiRelatedUpdate = type => {
     }
 }
 
-const updateGuiVisibility = () => {
-    const navbar = getGuiStatus("navbar")
-    const tabbar = getGuiStatus("tabbar")
-    if (!navbarGuiTimer) {
-        const notTyping = !"ces".includes(currentMode()[0])
-        if (navbar === "never" || navbar !== "always" && notTyping) {
-            document.body.classList.add("navigationhidden")
-        } else {
-            document.body.classList.remove("navigationhidden")
-        }
-    }
-    if (!tabbarGuiTimer) {
-        if (tabbar === "always") {
-            document.body.classList.remove("tabshidden")
-        } else {
-            document.body.classList.add("tabshidden")
-        }
-    }
-    const {applyLayout} = require("./pagelayout")
-    applyLayout()
-    if (currentMode() === "pointer") {
-        const {updateElement} = require("./pointer")
-        updateElement()
-    }
-}
-
 module.exports = {
     currentMode,
     currentPage,
@@ -331,6 +347,7 @@ module.exports = {
     listRealPages,
     listTabs,
     pageForTab,
+    sendToPageOrSubFrame,
     setStored,
     setTopOfPageWithMouse,
     tabForPage,

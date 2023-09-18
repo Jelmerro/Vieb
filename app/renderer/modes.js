@@ -29,11 +29,15 @@ const {
 // Sort order determines the appearance in the mode list
 /* eslint-disable sort-keys/sort-keys-fix */
 /** @type {{[K in import("./common").Mode]: {
- *   onLeave?: (newMode: string) => void, onEnter?: () => void
+ *   onLeave?: (newMode: import("./common").Mode) => void, onEnter?: () => void
  * }}} */
 const modes = {
     "normal": {},
     "insert": {
+        /**
+         * When leaving insert mode, all page elements should be unfocused.
+         * @param {import("./common").Mode} newMode
+         */
         "onLeave": newMode => {
             if (currentPage()?.getAttribute("dom-ready")) {
                 currentPage()?.send("action", "blur")
@@ -48,6 +52,7 @@ const modes = {
         }
     },
     "command": {
+        /** Clear the url value and restart the command history. */
         "onEnter": () => {
             const url = getUrl()
             if (url) {
@@ -59,6 +64,7 @@ const modes = {
             resetInputHistory()
             resetScreenshotDrag()
         },
+        /** Restore url value then hide suggestions, selection and highlight. */
         "onLeave": () => {
             const url = getUrl()
             const {emptySuggestions} = require("./suggest")
@@ -71,10 +77,12 @@ const modes = {
         }
     },
     "search": {
+        /** Restart the search history. */
         "onEnter": () => {
             const {resetInputHistory} = require("./input")
             resetInputHistory()
         },
+        /** Clear any temporary searches and remove selection. */
         "onLeave": () => {
             const url = getUrl()
             const {resetIncrementalSearch} = require("./actions")
@@ -84,6 +92,7 @@ const modes = {
         }
     },
     "explore": {
+        /** Select the url value and restart explore history. */
         "onEnter": () => {
             const url = getUrl()
             const {updateUrl} = require("./tabs")
@@ -100,6 +109,7 @@ const modes = {
                 url.select()
             }
         },
+        /** Show the current url again and clear suggestions. */
         "onLeave": () => {
             const url = getUrl()
             const {emptySuggestions} = require("./suggest")
@@ -109,6 +119,10 @@ const modes = {
         }
     },
     "follow": {
+        /**
+         * Stop running the follow mode parts then release keys if needed.
+         * @param {import("./common").Mode} newMode
+         */
         "onLeave": newMode => {
             const {cancelFollow} = require("./follow")
             cancelFollow()
@@ -119,6 +133,10 @@ const modes = {
         }
     },
     "pointer": {
+        /**
+         * Hide url hover and release keys if needed.
+         * @param {import("./common").Mode} newMode
+         */
         "onLeave": newMode => {
             if (!["visual", "follow"].includes(newMode)) {
                 const {releaseKeys} = require("./pointer")
@@ -133,6 +151,10 @@ const modes = {
         }
     },
     "visual": {
+        /**
+         * Release keys if needed.
+         * @param {import("./common").Mode} newMode
+         */
         "onLeave": newMode => {
             if (!["pointer", "follow"].includes(newMode)) {
                 const {releaseKeys} = require("./pointer")
@@ -142,6 +164,33 @@ const modes = {
     }
 }
 
+/**
+ * Set the current mode.
+ * @param {import("./common").Mode} mode
+ */
+const setMode = mode => {
+    const page = currentPage()
+    if (!modes[mode] || currentMode() === mode || !page) {
+        return
+    }
+    if (page.getAttribute("dom-ready")) {
+        if (page.isCrashed() && "fipv".includes(mode[0])) {
+            return
+        }
+    }
+    modes[currentMode()].onLeave?.(mode)
+    modes[mode]?.onEnter?.()
+    const modeEl = document.getElementById("mode")
+    if (modeEl) {
+        modeEl.textContent = mode
+    }
+    document.body.setAttribute("current-mode", mode)
+    guiRelatedUpdate("navbar")
+    const {setFocusCorrectly} = require("./actions")
+    setFocusCorrectly()
+}
+
+/** Generate the mode suggestions dropdown with click actions. */
 const init = () => {
     const modeList = document.getElementById("mode-suggestions")
     Object.keys(modes).forEach(mode => {
@@ -171,32 +220,6 @@ const init = () => {
         })
         modeList?.append(modeEntry)
     })
-}
-
-/**
- * Set the current mode.
- * @param {import("./common").Mode} mode
- */
-const setMode = mode => {
-    const page = currentPage()
-    if (!modes[mode] || currentMode() === mode || !page) {
-        return
-    }
-    if (page.getAttribute("dom-ready")) {
-        if (page.isCrashed() && "fipv".includes(mode[0])) {
-            return
-        }
-    }
-    modes[currentMode()].onLeave?.(mode)
-    modes[mode]?.onEnter?.()
-    const modeEl = document.getElementById("mode")
-    if (modeEl) {
-        modeEl.textContent = mode
-    }
-    document.body.setAttribute("current-mode", mode)
-    guiRelatedUpdate("navbar")
-    const {setFocusCorrectly} = require("./actions")
-    setFocusCorrectly()
 }
 
 module.exports = {init, setMode}

@@ -33,6 +33,46 @@ const fs = require("fs")
 const isErrnoException = e => "code" in e
 
 /**
+ * Remove a directory sync.
+ * @param {string} p
+ * @param {Error|null} originalEr
+ * @throws {Error} Filesystem error.
+ */
+const rmdirSync = (p, originalEr) => {
+    try {
+        fs.rmdirSync(p)
+    } catch (er) {
+        if (isErrnoException(er) && er.code === "ENOENT") {
+            return
+        }
+        if (isErrnoException(er) && er.code === "ENOTDIR") {
+            throw originalEr
+        }
+        if (isErrnoException(er)
+            && ["ENOTEMPTY", "EEXIST", "EPERM"].includes(er.code ?? "")) {
+            const {join} = require("path")
+            /* eslint-disable-next-line no-use-before-define */
+            fs.readdirSync(p).forEach(f => rimrafSync(join(p, f)))
+            let retries = 1
+            if (process.platform === "win32") {
+                retries = 100
+            }
+            let i = 0
+            /* eslint-disable-next-line no-unreachable-loop */
+            while (i < retries) {
+                try {
+                    return fs.rmSync(p, {
+                        "maxRetries": retries, "recursive": true
+                    })
+                } finally {
+                    i += 1
+                }
+            }
+        }
+    }
+}
+
+/**
  * Workaround for window EPERM errors, just retry a lot of times till it works.
  * @param {string} p
  * @param {Error|null} er
@@ -106,45 +146,5 @@ const rimrafSync = p => {
         }
     }
 }
-
-/**
- * Remove a directory sync.
- * @param {string} p
- * @param {Error|null} originalEr
- * @throws {Error} Filesystem error.
- */
-const rmdirSync = (p, originalEr) => {
-    try {
-        fs.rmdirSync(p)
-    } catch (er) {
-        if (isErrnoException(er) && er.code === "ENOENT") {
-            return
-        }
-        if (isErrnoException(er) && er.code === "ENOTDIR") {
-            throw originalEr
-        }
-        if (isErrnoException(er)
-            && ["ENOTEMPTY", "EEXIST", "EPERM"].includes(er.code ?? "")) {
-            const {join} = require("path")
-            fs.readdirSync(p).forEach(f => rimrafSync(join(p, f)))
-            let retries = 1
-            if (process.platform === "win32") {
-                retries = 100
-            }
-            let i = 0
-            /* eslint-disable-next-line no-unreachable-loop */
-            while (i < retries) {
-                try {
-                    return fs.rmSync(p, {
-                        "maxRetries": retries, "recursive": true
-                    })
-                } finally {
-                    i += 1
-                }
-            }
-        }
-    }
-}
-
 
 module.exports = rimrafSync

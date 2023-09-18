@@ -34,6 +34,7 @@ let allCommandsByKeys = modes.reduce((a, m) => {
     return a
 }, {})
 
+/** Process the current page hash and jump to the right section if found. */
 const processHash = () => {
     const ids = [...document.querySelectorAll("[id]")].map(e => e.id)
     const hash = decodeURIComponent(window.location.hash).trim()

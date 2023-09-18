@@ -21,6 +21,12 @@ const {ipcRenderer} = require("electron")
 const {joinPath, basePath} = require("../util")
 
 /**
+ * Convert a location to a clickable url.
+ * @param {string} loc
+ */
+const toUrl = loc => `file:${loc}`.replace(/^file:\/+/, "file:///")
+
+/**
  * Create a dir or file element with onclick handler and return it.
  * @param {"file"|"dir"} type
  * @param {string} loc
@@ -33,15 +39,10 @@ const createElement = (type, loc, customTitle = null) => {
     if (type === "dir") {
         element.textContent += "/"
     }
+    /** Navigate to the clicked file using the url syntax. */
     element.onclick = () => ipcRenderer.sendToHost("navigate-to", toUrl(loc))
     return element
 }
-
-/**
- * Convert a location to a clickable url.
- * @param {string} loc
- */
-const toUrl = loc => `file:${loc}`.replace(/^file:\/+/, "file:///")
 
 /**
  * Check if the provided location is the root location of the system.

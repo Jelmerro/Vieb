@@ -44,63 +44,6 @@ window.addEventListener("load", () => {
 })
 
 /**
- * Generate the download list based on main info data.
- * @param {Electron.IpcRendererEvent} _
- * @param {string} l
- */
-const generateDownloadList = (_, l) => {
-    /** @type {import("../index").downloadItem[]} */
-    const list = JSON.parse(l)
-    // List
-    if (list.length === 0) {
-        const listEl = document.getElementById("list")
-        if (listEl) {
-            listEl.textContent = "Nothing has been downloaded yet"
-        }
-        const removeAll = document.getElementById("remove-all")
-        if (removeAll) {
-            removeAll.style.display = "none"
-        }
-        return
-    }
-    const listOnPage = [...document.querySelectorAll("#list .download")]
-    if (listOnPage.length === 0) {
-        const listEl = document.getElementById("list")
-        if (listEl) {
-            listEl.textContent = ""
-        }
-        const removeAll = document.getElementById("remove-all")
-        if (removeAll) {
-            removeAll.style.display = ""
-        }
-    }
-    if (listOnPage.length > list.length) {
-        for (let i = 0; i < listOnPage.length; i++) {
-            if (list[i]) {
-                updateDownload(list[i], listOnPage[i], i)
-            } else {
-                try {
-                    document.querySelectorAll("#list .download")[i].remove()
-                } catch {
-                    // List might be shorter the second time this is called
-                }
-            }
-        }
-    } else {
-        for (let i = 0; i < list.length; i++) {
-            if (listOnPage[i]) {
-                updateDownload(list[i], listOnPage[i], i)
-            } else {
-                addDownload(list[i], i)
-            }
-        }
-    }
-    lastUpdate = new Date()
-}
-
-ipcRenderer.on("download-list", generateDownloadList)
-
-/**
  * Add a download to the list.
  * @param {import("../index").downloadItem} download
  * @param {number} id
@@ -124,9 +67,6 @@ const addDownload = (download, id) => {
     title.title = "Click to open"
     title.textContent = download.name
     title.className = "title"
-    title.addEventListener("click", () => {
-        ipcRenderer.send("open-download", file.textContent)
-    })
     element.append(title)
     // Progress
     const progress = document.createElement("progress")
@@ -171,6 +111,9 @@ const addDownload = (download, id) => {
     file.title = "Click to open"
     file.className = "filelocation"
     file.textContent = download.file
+    title.addEventListener("click", () => {
+        ipcRenderer.send("open-download", file.textContent)
+    })
     file.addEventListener("click", () => {
         ipcRenderer.send("open-download", file.textContent)
     })
@@ -291,3 +234,60 @@ const updateDownload = (download, element, id) => {
         state.textContent = download.state
     }
 }
+
+/**
+ * Generate the download list based on main info data.
+ * @param {Electron.IpcRendererEvent} _
+ * @param {string} l
+ */
+const generateDownloadList = (_, l) => {
+    /** @type {import("../index").downloadItem[]} */
+    const list = JSON.parse(l)
+    // List
+    if (list.length === 0) {
+        const listEl = document.getElementById("list")
+        if (listEl) {
+            listEl.textContent = "Nothing has been downloaded yet"
+        }
+        const removeAll = document.getElementById("remove-all")
+        if (removeAll) {
+            removeAll.style.display = "none"
+        }
+        return
+    }
+    const listOnPage = [...document.querySelectorAll("#list .download")]
+    if (listOnPage.length === 0) {
+        const listEl = document.getElementById("list")
+        if (listEl) {
+            listEl.textContent = ""
+        }
+        const removeAll = document.getElementById("remove-all")
+        if (removeAll) {
+            removeAll.style.display = ""
+        }
+    }
+    if (listOnPage.length > list.length) {
+        for (let i = 0; i < listOnPage.length; i++) {
+            if (list[i]) {
+                updateDownload(list[i], listOnPage[i], i)
+            } else {
+                try {
+                    document.querySelectorAll("#list .download")[i].remove()
+                } catch {
+                    // List might be shorter the second time this is called
+                }
+            }
+        }
+    } else {
+        for (let i = 0; i < list.length; i++) {
+            if (listOnPage[i]) {
+                updateDownload(list[i], listOnPage[i], i)
+            } else {
+                addDownload(list[i], i)
+            }
+        }
+    }
+    lastUpdate = new Date()
+}
+
+ipcRenderer.on("download-list", generateDownloadList)

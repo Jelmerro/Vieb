@@ -49,6 +49,33 @@ let suggestions = []
 let originalValue = ""
 
 /**
+ * Update the explore border colors based on the input type.
+ * @param {string|null} searchStr
+ */
+const updateColors = (searchStr = null) => {
+    const urlElement = getUrl()
+    const search = searchStr || urlElement?.value
+    if (search !== undefined && urlElement && currentMode() === "explore") {
+        const local = expandPath(search)
+        if (search.trim() === "") {
+            urlElement.className = ""
+        } else if (document.querySelector("#suggest-dropdown div.selected")) {
+            urlElement.className = "suggest"
+        } else if (search.startsWith("file://")) {
+            urlElement.className = "file"
+        } else if (isUrl(search.trim())) {
+            urlElement.className = "url"
+        } else if (isAbsolutePath(local) && pathExists(local)) {
+            urlElement.className = "file"
+        } else if (searchword(search.trim()).word) {
+            urlElement.className = "searchwords"
+        } else {
+            urlElement.className = "search"
+        }
+    }
+}
+
+/**
  * Set the url value correctly formatted and update border colors.
  * @param {string} url
  */
@@ -65,6 +92,7 @@ const setUrlValue = url => {
     updateColors()
 }
 
+/** Check if the currently selected suggestion is the very first one (yet). */
 const topOfSection = () => {
     const list = [...document.querySelectorAll("#suggest-dropdown div")]
     const selected = list.find(s => s.classList.contains("selected"))
@@ -75,13 +103,7 @@ const topOfSection = () => {
     return true
 }
 
-const previousSection = () => {
-    previous()
-    while (!topOfSection()) {
-        previous()
-    }
-}
-
+/** Select the previous suggestion from the list. */
 const previous = () => {
     const list = [...document.querySelectorAll("#suggest-dropdown div")]
     if (list.length === 0) {
@@ -111,13 +133,15 @@ const previous = () => {
     }
 }
 
-const nextSection = () => {
-    next()
+/** Go the previous section in the suggestion list. */
+const previousSection = () => {
+    previous()
     while (!topOfSection()) {
-        next()
+        previous()
     }
 }
 
+/** Select the next suggestion from the list. */
 const next = () => {
     const list = [...document.querySelectorAll("#suggest-dropdown div")]
     if (list.length === 0) {
@@ -147,6 +171,15 @@ const next = () => {
     }
 }
 
+/** Go the next section in the suggestion list. */
+const nextSection = () => {
+    next()
+    while (!topOfSection()) {
+        next()
+    }
+}
+
+/** Remove all suggestions and empty the list. */
 const emptySuggestions = () => {
     const suggestDropdown = document.getElementById("suggest-dropdown")
     const url = getUrl()
@@ -211,30 +244,65 @@ const suggestFiles = loc => {
 }
 
 /**
- * Update the explore border colors based on the input type.
- * @param {string|null} searchStr
+ * Add a suggestion to the explore mode suggestions.
+ * @param {{title: string, type?: string, url: string, icon?: string}} explore
  */
-const updateColors = (searchStr = null) => {
-    const urlElement = getUrl()
-    const search = searchStr || urlElement?.value
-    if (search !== undefined && urlElement && currentMode() === "explore") {
-        const local = expandPath(search)
-        if (search.trim() === "") {
-            urlElement.className = ""
-        } else if (document.querySelector("#suggest-dropdown div.selected")) {
-            urlElement.className = "suggest"
-        } else if (search.startsWith("file://")) {
-            urlElement.className = "file"
-        } else if (isUrl(search.trim())) {
-            urlElement.className = "url"
-        } else if (isAbsolutePath(local) && pathExists(local)) {
-            urlElement.className = "file"
-        } else if (searchword(search.trim()).word) {
-            urlElement.className = "searchwords"
-        } else {
-            urlElement.className = "search"
-        }
+const addExplore = explore => {
+    if (suggestions.includes(explore.url)) {
+        return
     }
+    suggestions.push(explore.url)
+    const element = document.createElement("div")
+    element.className = "no-focus-reset"
+    element.addEventListener("mouseup", e => {
+        if (e.button === 2) {
+            if (getMouseConf("suggestselect")) {
+                if (["both", "explore"].includes(getSetting("menusuggest"))) {
+                    const {linkMenu} = require("./contextmenu")
+                    linkMenu({"link": explore.url, "x": e.x, "y": e.y})
+                }
+            }
+        } else if (getMouseConf("menusuggest")) {
+            const {setMode} = require("./modes")
+            setMode("normal")
+            const {clear} = require("./contextmenu")
+            clear()
+            if (e.button === 0) {
+                const {navigateTo} = require("./tabs")
+                navigateTo(explore.url)
+            }
+            if (e.button === 1) {
+                const {addTab} = require("./tabs")
+                addTab({"url": explore.url})
+            }
+        }
+        e.preventDefault()
+    })
+    if (explore.icon && getSetting("favicons") !== "disabled") {
+        const thumbnail = document.createElement("img")
+        thumbnail.className = "icon"
+        const {forSite} = require("./favicons")
+        thumbnail.src = forSite(explore.icon) || explore.icon
+        element.append(thumbnail)
+    }
+    const title = document.createElement("span")
+    title.className = "title"
+    title.textContent = explore.title
+    element.append(title)
+    const url = document.createElement("span")
+    url.className = "url"
+    if (explore.type === "file") {
+        url.className = "file"
+    }
+    if (explore.type === "searchword") {
+        url.className = "searchwords"
+    }
+    url.textContent = urlToString(explore.url)
+    element.append(url)
+    document.getElementById("suggest-dropdown")?.append(element)
+    setTimeout(() => {
+        element.style.pointerEvents = "auto"
+    }, 100)
 }
 
 /**
@@ -301,61 +369,66 @@ const suggestExplore = search => {
 }
 
 /**
- * Add a suggestion to the explore mode suggestions.
- * @param {{title: string, type?: string, url: string, icon?: string}} explore
+ * Add a command to the suggestion list.
+ * @param {string} command
+ * @param {string|null} subtext
+ * @param {string|null} url
+ * @param {string|null} icon
+ * @param {boolean} allowDuplicate
  */
-const addExplore = explore => {
-    if (suggestions.includes(explore.url)) {
+const addCommand = (
+    command, subtext = null, url = null, icon = null, allowDuplicate = false
+) => {
+    if (suggestions.length + 1 > getSetting("suggestcommands")) {
         return
     }
-    suggestions.push(explore.url)
+    if (suggestions.includes(command) && !allowDuplicate) {
+        return
+    }
+    suggestions.push(command)
     const element = document.createElement("div")
     element.className = "no-focus-reset"
     element.addEventListener("mouseup", e => {
         if (e.button === 2) {
             if (getMouseConf("suggestselect")) {
-                if (["both", "explore"].includes(getSetting("menusuggest"))) {
-                    const {linkMenu} = require("./contextmenu")
-                    linkMenu({"link": explore.url, "x": e.x, "y": e.y})
+                if (["both", "command"].includes(getSetting("menusuggest"))) {
+                    const {commandMenu} = require("./contextmenu")
+                    commandMenu({command, "x": e.x, "y": e.y})
                 }
             }
         } else if (getMouseConf("menusuggest")) {
             const {setMode} = require("./modes")
             setMode("normal")
+            const {execute} = require("./command")
+            execute(command)
             const {clear} = require("./contextmenu")
             clear()
-            if (e.button === 0) {
-                const {navigateTo} = require("./tabs")
-                navigateTo(explore.url)
-            }
-            if (e.button === 1) {
-                const {addTab} = require("./tabs")
-                addTab({"url": explore.url})
-            }
         }
         e.preventDefault()
     })
-    if (explore.icon && getSetting("favicons") !== "disabled") {
+    if (icon && getSetting("favicons") !== "disabled") {
         const thumbnail = document.createElement("img")
         thumbnail.className = "icon"
         const {forSite} = require("./favicons")
-        thumbnail.src = forSite(explore.icon) || explore.icon
+        thumbnail.src = forSite(icon) || icon
         element.append(thumbnail)
     }
-    const title = document.createElement("span")
-    title.className = "title"
-    title.textContent = explore.title
-    element.append(title)
-    const url = document.createElement("span")
-    url.className = "url"
-    if (explore.type === "file") {
-        url.className = "file"
+    const commandElement = document.createElement("span")
+    commandElement.className = "title"
+    commandElement.textContent = command
+    element.append(commandElement)
+    if (subtext) {
+        const subtextElement = document.createElement("span")
+        subtextElement.textContent = subtext
+        subtextElement.className = "file"
+        element.append(subtextElement)
     }
-    if (explore.type === "searchword") {
-        url.className = "searchwords"
+    if (url) {
+        const urlElement = document.createElement("span")
+        urlElement.textContent = urlToString(url)
+        urlElement.className = "url"
+        element.append(urlElement)
     }
-    url.textContent = urlToString(explore.url)
-    element.append(url)
     document.getElementById("suggest-dropdown")?.append(element)
     setTimeout(() => {
         element.style.pointerEvents = "auto"
@@ -742,73 +815,6 @@ const suggestCommand = searchStr => {
             }
         }
     }
-}
-
-/**
- * Add a command to the suggestion list.
- * @param {string} command
- * @param {string|null} subtext
- * @param {string|null} url
- * @param {string|null} icon
- * @param {boolean} allowDuplicate
- */
-const addCommand = (
-    command, subtext = null, url = null, icon = null, allowDuplicate = false
-) => {
-    if (suggestions.length + 1 > getSetting("suggestcommands")) {
-        return
-    }
-    if (suggestions.includes(command) && !allowDuplicate) {
-        return
-    }
-    suggestions.push(command)
-    const element = document.createElement("div")
-    element.className = "no-focus-reset"
-    element.addEventListener("mouseup", e => {
-        if (e.button === 2) {
-            if (getMouseConf("suggestselect")) {
-                if (["both", "command"].includes(getSetting("menusuggest"))) {
-                    const {commandMenu} = require("./contextmenu")
-                    commandMenu({command, "x": e.x, "y": e.y})
-                }
-            }
-        } else if (getMouseConf("menusuggest")) {
-            const {setMode} = require("./modes")
-            setMode("normal")
-            const {execute} = require("./command")
-            execute(command)
-            const {clear} = require("./contextmenu")
-            clear()
-        }
-        e.preventDefault()
-    })
-    if (icon && getSetting("favicons") !== "disabled") {
-        const thumbnail = document.createElement("img")
-        thumbnail.className = "icon"
-        const {forSite} = require("./favicons")
-        thumbnail.src = forSite(icon) || icon
-        element.append(thumbnail)
-    }
-    const commandElement = document.createElement("span")
-    commandElement.className = "title"
-    commandElement.textContent = command
-    element.append(commandElement)
-    if (subtext) {
-        const subtextElement = document.createElement("span")
-        subtextElement.textContent = subtext
-        subtextElement.className = "file"
-        element.append(subtextElement)
-    }
-    if (url) {
-        const urlElement = document.createElement("span")
-        urlElement.textContent = urlToString(url)
-        urlElement.className = "url"
-        element.append(urlElement)
-    }
-    document.getElementById("suggest-dropdown")?.append(element)
-    setTimeout(() => {
-        element.style.pointerEvents = "auto"
-    }, 100)
 }
 
 module.exports = {

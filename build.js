@@ -38,6 +38,12 @@ const defaultConfig = {"config": {
         "node_modules/@cliqz/adblocker-electron-preload/dist/preload.cjs.js"
     ]
 }}
+/** @typedef {{
+ *   description: string,
+ *   ebuilder?: import("electron-builder").CliOptions,
+ *   webpack?: import("webpack").Configuration
+ * }} ReleaseConfig
+/** @type {{[key: string]: ReleaseConfig}} */
 const releases = {
     "debug": {
         "description": "Build debug releases, which do not use webpack.\n"
@@ -104,6 +110,7 @@ const releaseNames = Object.keys(releases)
 rmSync("build/", {"force": true, "recursive": true})
 rmSync("dist/", {"force": true, "recursive": true})
 
+/** Print the usage of the build script and exit. */
 const printUsage = () => {
     let buildOptionList = releaseNames
         .map(r => {
@@ -179,17 +186,30 @@ for (const a of process.argv.slice(2)) {
     }
 }
 
+/**
+ * Merge the default webpack config with the custom options.
+ * @param {import("webpack").Configuration} overrides
+ */
 const mergeWPConfig = overrides => {
     const mergedConfig = require("./webpack.config")
     return [{...mergedConfig[0], ...overrides}]
 }
 
+/**
+ * Merge the default Electron builder config with custom options.
+ * @param {import("electron-builder").CliOptions} overrides
+ * @returns {import("electron-builder").CliOptions}
+ */
 const mergeEBConfig = overrides => {
     const mergedConfig = JSON.parse(JSON.stringify(defaultConfig))
     mergedConfig.config.afterPack = defaultConfig.config.afterPack
     return {...mergedConfig, "config": {...mergedConfig.config, ...overrides}}
 }
 
+/**
+ * Run a webpack build based on the combination of main and provided configs.
+ * @param {import("webpack").Configuration} overrides
+ */
 const webpackBuild = overrides => new Promise((res, rej) => {
     const webpack = require("webpack")
     webpack(mergeWPConfig(overrides)).run((webpackErr, stats) => {
@@ -201,6 +221,10 @@ const webpackBuild = overrides => new Promise((res, rej) => {
     })
 })
 
+/**
+ * Generate a build for a specific release.
+ * @param {ReleaseConfig} release
+ */
 const generateBuild = async release => {
     rmSync("build/", {"force": true, "recursive": true})
     if (release.webpack !== false) {

@@ -20,6 +20,7 @@
 const {ipcRenderer} = require("electron")
 const {joinPath} = require("../util")
 
+/** Filter the cookie list based on the search query in the input box. */
 const filterList = () => {
     const filterEl = document.getElementById("filter")
     let filter = ""
@@ -73,30 +74,12 @@ const cookieToUrl = cookie => {
     return url + cookie.domain + cookie.path
 }
 
-const removeAllCookies = () => {
-    const cookieElements = [...document.getElementsByClassName("cookie")]
-    const removeAll = document.getElementById("remove-all")
-    if (removeAll) {
-        removeAll.style.display = "none"
-    }
-    cookieElements.forEach(async cookie => {
-        if (!(cookie instanceof HTMLElement)) {
-            return
-        }
-        if (cookie.style.display !== "none") {
-            await ipcRenderer.invoke("remove-cookie",
-                cookie.getAttribute("cookie-url"),
-                cookie.getAttribute("cookie-name"))
-        }
-    })
-    refreshList()
-}
-
-/**
- * Parse the list of cookies and show them.
- * @param {Electron.Cookie[]} cookies
- */
-const parseList = cookies => {
+/** Parse the list of cookies and show them. */
+const refreshList = async() => {
+    /** @type {Electron.Cookie[]} */
+    const cookieList = await ipcRenderer.invoke("list-cookies")
+    const cookies = cookieList.sort((a, b) => (a.domain?.replace(/\W/, "")
+        ?? "").localeCompare(b.domain?.replace(/\W/, "") ?? ""))
     const listEl = document.getElementById("list")
     if (listEl) {
         listEl.textContent = ""
@@ -133,11 +116,24 @@ const parseList = cookies => {
     filterList()
 }
 
-const refreshList = async() => {
-    /** @type {Electron.Cookie[]} */
-    const cookieList = await ipcRenderer.invoke("list-cookies")
-    parseList(cookieList.sort((a, b) => (a.domain?.replace(/\W/, "") ?? "")
-        .localeCompare(b.domain?.replace(/\W/, "") ?? "")))
+/** Remove all cookies either based on filter or completely. */
+const removeAllCookies = () => {
+    const cookieElements = [...document.getElementsByClassName("cookie")]
+    const removeAll = document.getElementById("remove-all")
+    if (removeAll) {
+        removeAll.style.display = "none"
+    }
+    cookieElements.forEach(async cookie => {
+        if (!(cookie instanceof HTMLElement)) {
+            return
+        }
+        if (cookie.style.display !== "none") {
+            await ipcRenderer.invoke("remove-cookie",
+                cookie.getAttribute("cookie-url"),
+                cookie.getAttribute("cookie-name"))
+        }
+    })
+    refreshList()
 }
 
 window.addEventListener("load", () => {

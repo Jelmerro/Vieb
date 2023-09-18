@@ -24,11 +24,11 @@ const {
     getSetting,
     getMouseConf,
     tabForPage,
-    listReadyPages
+    listReadyPages,
+    sendToPageOrSubFrame
 } = require("./common")
 const {
     matchesQuery,
-    sendToPageOrSubFrame,
     appData,
     joinPath,
     readJSON,
@@ -48,6 +48,699 @@ let lastSelection = {"endX": 0, "endY": 0, "startX": 0, "startY": 0}
 let mouseSelection = null
 let skipNextClick = false
 
+/** Return the x position taking zoom into account. */
+const zoomX = () => Math.round(X / (currentPage()?.getZoomFactor() ?? 1))
+
+/** Return the y position taking zoom into account. */
+const zoomY = () => Math.round(Y / (currentPage()?.getZoomFactor() ?? 1))
+
+/** Update the pointer position to respect bounds and send the new hover. */
+const updateElement = () => {
+    const pointerEl = document.getElementById("pointer")
+    const page = currentPage()
+    if (!pointerEl || !page) {
+        return
+    }
+    const {top, left, bottom, right} = pageOffset(page)
+    X = Math.max(0, Math.min(X, right - left - getSetting("guifontsize") * 1.4))
+    Y = Math.max(0, Math.min(Y, bottom - top - getSetting("guifontsize")))
+    pointerEl.style.left = `${X + left}px`
+    pointerEl.style.top = `${Y + top}px`
+    currentPage()?.setAttribute("pointer-x", `${X}`)
+    currentPage()?.setAttribute("pointer-y", `${Y}`)
+    if (currentMode() === "pointer") {
+        sendToPageOrSubFrame("send-input-event",
+            {"type": "hover", "x": X, "y": Y})
+    }
+    if (currentMode() === "visual") {
+        lastSelection = {"endX": X, "endY": Y, startX, startY}
+        const factor = currentPage()?.getZoomFactor() ?? 1
+        sendToPageOrSubFrame("action", "selectionRequest",
+            Math.round(startX / factor), Math.round(startY / factor),
+            zoomX(), zoomY())
+    }
+}
+
+/**
+ * Move the pointer.
+ * @param {number} x
+ * @param {number} y
+ */
+const move = (x, y) => {
+    X = x
+    Y = y
+    updateElement()
+}
+
+/**
+ * Handle a difference in scroll height.
+ * @param {number} diff
+ */
+const handleScrollDiffEvent = diff => {
+    startY += diff
+    if (listenForScroll) {
+        Y += diff
+        updateElement()
+        listenForScroll = false
+    }
+}
+
+/** Remove the hover and selection from the page. */
+const releaseKeys = () => {
+    try {
+        sendToPageOrSubFrame("send-input-event",
+            {"type": "leave", "x": X, "y": Y})
+        sendToPageOrSubFrame("action", "selectionRemove", zoomX(), zoomY())
+    } catch {
+        // Can't release keys, probably because of opening a new tab
+    }
+    mouseSelection = null
+}
+
+/**
+ * Store the latest mouse selection.
+ * @param {typeof lastSelection|null} selection
+ */
+const storeMouseSelection = selection => {
+    mouseSelection = selection
+}
+
+// ACTIONS
+
+/**
+ * Start pointer mode.
+ * @param {{x?: number, y?: number} | null} args
+ */
+const start = (args = null) => {
+    X = args?.x || Number(currentPage()?.getAttribute("pointer-x")) || X
+    Y = args?.y || Number(currentPage()?.getAttribute("pointer-y")) || Y
+    const {setMode} = require("./modes")
+    setMode("pointer")
+    sendToPageOrSubFrame("send-input-event", {"type": "hover", "x": X, "y": Y})
+    updateElement()
+}
+
+/** Move the pointer to the current mouse position. */
+const moveToMouse = () => {
+    const mousePos = ipcRenderer.sendSync("mouse-location")
+    if (mousePos) {
+        [...document.elementsFromPoint(mousePos.x, mousePos.y)].forEach(el => {
+            if (el instanceof HTMLElement
+                && matchesQuery(el, "webview[link-id]")) {
+                if (el !== currentPage() || currentMode() !== "visual") {
+                    const {switchToTab} = require("./tabs")
+                    // @ts-expect-error el is checked to be a webview above
+                    switchToTab(tabForPage(el))
+                }
+                const pagePos = pageOffset(el)
+                if (currentMode() === "visual") {
+                    X = mousePos.x - pagePos.left
+                    Y = mousePos.y - pagePos.top
+                    updateElement()
+                } else {
+                    start({
+                        "x": mousePos.x - pagePos.left,
+                        "y": mousePos.y - pagePos.top
+                    })
+                }
+            }
+        })
+    }
+}
+
+/** Restore the previous visual mode selection. */
+const restoreSelection = () => {
+    ({"endX": X, "endY": Y, startX, startY} = mouseSelection || lastSelection)
+    mouseSelection = null
+    const {setMode} = require("./modes")
+    setMode("visual")
+    updateElement()
+}
+
+/** Open the audio src in a new split. */
+const splitAudio = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "split", "type": "audio", "x": zoomX(), "y": zoomY()
+})
+
+/** Open the frame src in a new split. */
+const splitFrame = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "split", "type": "frame", "x": zoomX(), "y": zoomY()
+})
+
+/** Open the hover link src in a new split. */
+const splitLink = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "split", "type": "link", "x": zoomX(), "y": zoomY()
+})
+
+/** Open the image src in a new split. */
+const splitImage = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "split", "type": "img", "x": zoomX(), "y": zoomY()
+})
+
+/** Open the video src in a new split. */
+const splitVideo = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "split", "type": "video", "x": zoomX(), "y": zoomY()
+})
+
+/** Open the audio src in a new vertical split. */
+const vsplitAudio = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "vsplit", "type": "audio", "x": zoomX(), "y": zoomY()
+})
+
+/** Open the frame src in a new vertical split. */
+const vsplitFrame = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "vsplit", "type": "frame", "x": zoomX(), "y": zoomY()
+})
+
+/** Open the hover link in a new vertical split. */
+const vsplitLink = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "vsplit", "type": "link", "x": zoomX(), "y": zoomY()
+})
+
+/** Open the image src in a new vertical split. */
+const vsplitImage = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "vsplit", "type": "img", "x": zoomX(), "y": zoomY()
+})
+
+/** Open the video src in a new vertical split. */
+const vsplitVideo = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "vsplit", "type": "video", "x": zoomX(), "y": zoomY()
+})
+
+/** Download the audio src. */
+const downloadAudio = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "download", "type": "audio", "x": zoomX(), "y": zoomY()
+})
+
+/** Download the frame src. */
+const downloadFrame = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "download", "type": "frame", "x": zoomX(), "y": zoomY()
+})
+
+/** Download the hover link. */
+const downloadLink = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "download", "type": "link", "x": zoomX(), "y": zoomY()
+})
+
+/** Download the image src. */
+const downloadImage = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "download", "type": "img", "x": zoomX(), "y": zoomY()
+})
+
+/** Download the video src. */
+const downloadVideo = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "download", "type": "video", "x": zoomX(), "y": zoomY()
+})
+
+/** Open the audio src in a new tab. */
+const newtabAudio = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "newtab", "type": "audio", "x": zoomX(), "y": zoomY()
+})
+
+/** Open the frame src in a new tab. */
+const newtabFrame = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "newtab", "type": "frame", "x": zoomX(), "y": zoomY()
+})
+
+/** Open the hover link in a new tab. */
+const newtabLink = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "newtab", "type": "link", "x": zoomX(), "y": zoomY()
+})
+
+/** Open the image src in a new tab. */
+const newtabImage = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "newtab", "type": "img", "x": zoomX(), "y": zoomY()
+})
+
+/** Open the video src in a new tab. */
+const newtabVideo = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "newtab", "type": "video", "x": zoomX(), "y": zoomY()
+})
+
+/** Navigate to the audio src. */
+const openAudio = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "open", "type": "audio", "x": zoomX(), "y": zoomY()
+})
+
+/** Navigate to the frame src. */
+const openFrame = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "open", "type": "frame", "x": zoomX(), "y": zoomY()
+})
+
+/** Navigate to the hover link. */
+const openLink = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "open", "type": "link", "x": zoomX(), "y": zoomY()
+})
+
+/** Navigate to the image src. */
+const openImage = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "open", "type": "img", "x": zoomX(), "y": zoomY()
+})
+
+/** Navigate to the video src. */
+const openVideo = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "open", "type": "video", "x": zoomX(), "y": zoomY()
+})
+
+/** Open the audio src in an external program. */
+const externalAudio = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "external", "type": "audio", "x": zoomX(), "y": zoomY()
+})
+
+/** Open the frame src in an external program. */
+const externalFrame = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "external", "type": "frame", "x": zoomX(), "y": zoomY()
+})
+
+/** Open the hover link in an external program. */
+const externalLink = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "external", "type": "link", "x": zoomX(), "y": zoomY()
+})
+
+/** Open the image src in an external program. */
+const externalImage = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "external", "type": "img", "x": zoomX(), "y": zoomY()
+})
+
+/** Open the video src in an external program. */
+const externalVideo = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "external", "type": "video", "x": zoomX(), "y": zoomY()
+})
+
+/** Copy the audio src to the clipboard. */
+const copyAudio = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "copy", "type": "audio", "x": zoomX(), "y": zoomY()
+})
+
+/** Copy the frame src to the clipboard. */
+const copyFrame = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "copy", "type": "frame", "x": zoomX(), "y": zoomY()
+})
+
+/** Copy the hover link to the clipboard. */
+const copyLink = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "copy", "type": "link", "x": zoomX(), "y": zoomY()
+})
+
+/** Copy the image buffer data to the clipboard. */
+const copyImageBuffer = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "copyimage", "type": "img", "x": zoomX(), "y": zoomY()
+})
+
+/** Copy the image src to the clipboard. */
+const copyImage = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "copy", "type": "img", "x": zoomX(), "y": zoomY()
+})
+
+/** Copy the video src to the clipboard. */
+const copyVideo = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "copy", "type": "video", "x": zoomX(), "y": zoomY()
+})
+
+/** Copy the title attribute to the clipboard. */
+const copyTitleAttr = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "copy", "type": "titleAttr", "x": zoomX(), "y": zoomY()
+})
+
+/** Copy the page title to the clipboard. */
+const copyPageTitle = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "copy", "type": "linkPageTitle", "x": zoomX(), "y": zoomY()
+})
+
+/** Open the selected text in a new split. */
+const splitText = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "split", "type": "text", "x": zoomX(), "y": zoomY()
+})
+
+/** Open the selected text in a new vertical split. */
+const vsplitText = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "vsplit", "type": "text", "x": zoomX(), "y": zoomY()
+})
+
+/** Download the selected text as if a link. */
+const downloadText = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "download", "type": "text", "x": zoomX(), "y": zoomY()
+})
+
+/** Open the selected text in a new tab (either as search or url). */
+const newtabText = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "newtab", "type": "text", "x": zoomX(), "y": zoomY()
+})
+
+/** Navigate to the selected text (either as search or url). */
+const openText = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "open", "type": "text", "x": zoomX(), "y": zoomY()
+})
+
+/** Open the selected text in an external program. */
+const externalText = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "external", "type": "text", "x": zoomX(), "y": zoomY()
+})
+
+/** Copy the selected text to the clipboard. */
+const copyText = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "copy", "type": "text", "x": zoomX(), "y": zoomY()
+})
+
+/** Search the page for the selected text. */
+const searchText = () => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "search", "type": "text", "x": zoomX(), "y": zoomY()
+})
+
+/** Toggle media playback for the hovered audio/video element. */
+const toggleMediaPlay = () => sendToPageOrSubFrame(
+    "action", "togglePause", X, Y)
+
+/** Lower the volume for the hovered audio/video element. */
+const mediaDown = () => sendToPageOrSubFrame("action", "volumeDown", X, Y)
+
+/** Incease the volume for the hovered audio/video element. */
+const mediaUp = () => sendToPageOrSubFrame("action", "volumeUp", X, Y)
+
+/** Toggle the mute state for the hovered audio/video element. */
+const toggleMediaMute = () => sendToPageOrSubFrame("action", "toggleMute", X, Y)
+
+/** Toggle the loop state for the hovered audio/video element. */
+const toggleMediaLoop = () => sendToPageOrSubFrame("action", "toggleLoop", X, Y)
+
+/** Toggle the native controls for the hovered audio/video element. */
+const toggleMediaControls = () => sendToPageOrSubFrame(
+    "action", "toggleControls", X, Y)
+
+/** Inspect the hovered element in the devtools (opens if needed). */
+const inspectElement = () => {
+    const page = currentPage()
+    if (page) {
+        const {top, left} = pageOffset(page)
+        page.inspectElement(Math.round(X + left), Math.round(Y + top))
+    }
+}
+
+/** Left click on the current hovered element. */
+const leftClick = () => {
+    sendToPageOrSubFrame("send-input-event", {"type": "click", "x": X, "y": Y})
+}
+
+/** Move the pointer to the top of the page including scrolling. */
+const startOfPage = () => {
+    const {scrollTop} = require("./actions")
+    scrollTop()
+    Y = 0
+    updateElement()
+}
+
+/** Move the pointer 100px left. */
+const moveFastLeft = () => {
+    X -= 100
+    updateElement()
+}
+
+/** Move the pointer 10px left. */
+const moveLeft = () => {
+    X -= 10
+    updateElement()
+}
+
+/** Focus an input at the pointer position (goes to insert mode if found). */
+const insertAtPosition = () => {
+    const factor = currentPage()?.getZoomFactor() ?? 1
+    sendToPageOrSubFrame("focus-input", {"x": X * factor, "y": Y * factor})
+}
+
+/** Move the pointer 10px down, scrolling the page as needed. */
+const moveDown = () => {
+    const page = currentPage()
+    if (!page) {
+        return
+    }
+    const {bottom, top} = pageOffset(page)
+    if (Y === bottom - top - getSetting("guifontsize")) {
+        const {"scrollDown": scroll} = require("./actions")
+        scroll()
+        listenForScroll = true
+    } else {
+        Y += 10
+    }
+    updateElement()
+}
+
+/** Move the pointer 10px up, scrolling the page as needed. */
+const moveUp = () => {
+    if (Y === 0) {
+        const {"scrollUp": scroll} = require("./actions")
+        scroll()
+        listenForScroll = true
+    } else {
+        Y -= 10
+    }
+    updateElement()
+}
+
+/** Move the pointer 10px right. */
+const moveRight = () => {
+    X += 10
+    updateElement()
+}
+
+/** Right click on the current hover element. */
+const rightClick = () => {
+    sendToPageOrSubFrame("send-input-event",
+        {"button": "right", "type": "click", "x": X, "y": Y})
+    const {storePointerRightClick} = require("./contextmenu")
+    storePointerRightClick()
+}
+
+/** Open the page menu if as if right-clicked and enabled. */
+const openMenu = () => {
+    sendToPageOrSubFrame("contextmenu-data",
+        {"force": true, "x": zoomX(), "y": zoomY()})
+}
+
+/** Switch to visual mode and store start location. */
+const startVisualSelect = () => {
+    if (mouseSelection && getSetting("mousevisualmode") !== "never") {
+        restoreSelection()
+    } else {
+        const {setMode} = require("./modes")
+        setMode("visual")
+        startX = Number(X)
+        startY = Number(Y)
+    }
+}
+
+/** Swap the current start location and the pointer while in visual mode. */
+const swapPosition = () => {
+    if (currentMode() === "visual") {
+        [startX, X] = [X, startX]
+        ;[startY, Y] = [Y, startY]
+        updateElement()
+    }
+}
+
+/** Move the pointer 100px right. */
+const moveFastRight = () => {
+    X += 100
+    updateElement()
+}
+
+/** Move the pointer to the center of the view vertically. */
+const centerOfView = () => {
+    const page = currentPage()
+    if (!page) {
+        return
+    }
+    const {top, bottom} = pageOffset(page)
+    Y = (bottom - top) / 2
+    updateElement()
+}
+
+/** Scroll 100px down at the current hover element. */
+const scrollDown = () => {
+    sendToPageOrSubFrame("send-input-event",
+        {"deltaY": -100, "type": "scroll", "x": X, "y": Y})
+    updateElement()
+}
+
+/** Scroll 100px up at the current hover element. */
+const scrollUp = () => {
+    sendToPageOrSubFrame("send-input-event",
+        {"deltaY": 100, "type": "scroll", "x": X, "y": Y})
+    updateElement()
+}
+
+/** Scroll 100px left at the current hover element. */
+const scrollLeft = () => {
+    sendToPageOrSubFrame("send-input-event",
+        {"deltaX": 100, "type": "scroll", "x": X, "y": Y})
+    updateElement()
+}
+
+/** Scroll 100px right at the current hover element. */
+const scrollRight = () => {
+    sendToPageOrSubFrame("send-input-event",
+        {"deltaX": -100, "type": "scroll", "x": X, "y": Y})
+    updateElement()
+}
+
+/** Move the pointer to the top of the view. */
+const startOfView = () => {
+    Y = 0
+    updateElement()
+}
+
+/** Move the pointer 1px left. */
+const moveSlowLeft = () => {
+    X -= 1
+    updateElement()
+}
+
+/** Move the pointer 1px down. */
+const moveSlowDown = () => {
+    Y += 1
+    updateElement()
+}
+
+/** Move the pointer 1px up. */
+const moveSlowUp = () => {
+    Y -= 1
+    updateElement()
+}
+
+/** Move the pointer 1px right. */
+const moveSlowRight = () => {
+    X += 1
+    updateElement()
+}
+
+/** Move the pointer to the end of the view. */
+const endOfView = () => {
+    Y = window.innerHeight
+    updateElement()
+}
+
+/** Move the pointer to the end of the page with scrolling. */
+const endOfPage = () => {
+    const {scrollBottom} = require("./actions")
+    scrollBottom()
+    Y = window.innerHeight
+    updateElement()
+}
+
+/** Move the pointer to the right of the view. */
+const moveRightMax = () => {
+    X = window.innerWidth
+    updateElement()
+}
+
+/** Move the pointer to the left of the view. */
+const moveLeftMax = () => {
+    X = 0
+    updateElement()
+}
+
+/** Move the pointer 100px down, scrolling the page as needed. */
+const moveFastDown = () => {
+    const page = currentPage()
+    if (!page) {
+        return
+    }
+    const {bottom, top} = pageOffset(page)
+    if (Y === bottom - top - getSetting("guifontsize")) {
+        const {"scrollDown": scroll} = require("./actions")
+        scroll()
+        listenForScroll = true
+    } else {
+        Y += 100
+    }
+    updateElement()
+}
+
+/** Move the pointer 100px up, scrolling the page as needed. */
+const moveFastUp = () => {
+    if (Y === 0) {
+        const {"scrollUp": scroll} = require("./actions")
+        scroll()
+        listenForScroll = true
+    } else {
+        Y -= 100
+    }
+    updateElement()
+}
+
+/**
+ * Store a pointer position.
+ * @param {{key?: string, location?: {x: number, y: number}, path: string}} args
+ */
+const storePos = args => {
+    const key = args?.key
+    if (!key) {
+        return
+    }
+    let posType = getSetting("pointerpostype")
+    if (posType !== "local" && posType !== "global") {
+        posType = "global"
+        if (key !== key.toUpperCase()) {
+            posType = "local"
+        }
+    }
+    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
+    if (!qm.pointer) {
+        qm.pointer = {"global": {}, "local": {}}
+    }
+    if (args?.path === "global") {
+        posType = "global"
+    }
+    if (posType === "local") {
+        let path = ""
+        const pointerPosId = getSetting("pointerposlocalid")
+        if (pointerPosId === "domain") {
+            path = domainName(urlToString(currentPage()?.src ?? ""))
+                || domainName(currentPage()?.src ?? "") || ""
+        }
+        if (pointerPosId === "url" || !path) {
+            path = urlToString(currentPage()?.src ?? "")
+                || currentPage()?.src || ""
+        }
+        path = args?.path ?? path
+        if (!qm.pointer.local[path]) {
+            qm.pointer.local[path] = {}
+        }
+        qm.pointer.local[path][key] = args?.location
+            ?? {"x": Math.round(X), "y": Math.round(Y)}
+    } else {
+        qm.pointer.global[key] = args?.location
+            ?? {"x": Math.round(X), "y": Math.round(Y)}
+    }
+    writeJSON(joinPath(appData(), "quickmarks"), qm)
+}
+
+/**
+ * Restore a pointer position.
+ * @param {{key?: string, path?: string}} args
+ */
+const restorePos = args => {
+    const key = args?.key
+    if (!key) {
+        return
+    }
+    const pointerPosId = getSetting("pointerposlocalid")
+    let path = ""
+    if (pointerPosId === "domain") {
+        path = domainName(urlToString(currentPage()?.src ?? ""))
+            || domainName(currentPage()?.src ?? "") || ""
+    }
+    if (pointerPosId === "url" || !path) {
+        path = urlToString(currentPage()?.src ?? "") || currentPage()?.src || ""
+    }
+    path = args?.path ?? path
+    const qm = readJSON(joinPath(appData(), "quickmarks"))
+    const pos = qm?.pointer?.local?.[path]?.[key] ?? qm?.pointer?.global?.[key]
+    if (pos) {
+        move(pos.x, pos.y)
+    }
+}
+
+/** Register mouse event listeners for context and click info. */
 const init = () => {
     const {setMode} = require("./modes")
     ipcRenderer.on("mouse-down-location", (_, clickInfo) => {
@@ -132,610 +825,6 @@ const init = () => {
             }
         }
     })
-}
-
-const zoomX = () => Math.round(X / (currentPage()?.getZoomFactor() ?? 1))
-
-const zoomY = () => Math.round(Y / (currentPage()?.getZoomFactor() ?? 1))
-
-/**
- * Move the pointer.
- * @param {number} x
- * @param {number} y
- */
-const move = (x, y) => {
-    X = x
-    Y = y
-    updateElement()
-}
-
-/**
- * Handle a difference in scroll height.
- * @param {number} diff
- */
-const handleScrollDiffEvent = diff => {
-    startY += diff
-    if (listenForScroll) {
-        Y += diff
-        updateElement()
-        listenForScroll = false
-    }
-}
-
-const updateElement = () => {
-    const pointerEl = document.getElementById("pointer")
-    const page = currentPage()
-    if (!pointerEl || !page) {
-        return
-    }
-    const {top, left, bottom, right} = pageOffset(page)
-    X = Math.max(0, Math.min(X, right - left - getSetting("guifontsize") * 1.4))
-    Y = Math.max(0, Math.min(Y, bottom - top - getSetting("guifontsize")))
-    pointerEl.style.left = `${X + left}px`
-    pointerEl.style.top = `${Y + top}px`
-    currentPage()?.setAttribute("pointer-x", `${X}`)
-    currentPage()?.setAttribute("pointer-y", `${Y}`)
-    if (currentMode() === "pointer") {
-        sendToPageOrSubFrame("send-input-event",
-            {"type": "hover", "x": X, "y": Y})
-    }
-    if (currentMode() === "visual") {
-        lastSelection = {"endX": X, "endY": Y, startX, startY}
-        const factor = currentPage()?.getZoomFactor() ?? 1
-        sendToPageOrSubFrame("action", "selectionRequest",
-            Math.round(startX / factor), Math.round(startY / factor),
-            zoomX(), zoomY())
-    }
-}
-
-const releaseKeys = () => {
-    try {
-        sendToPageOrSubFrame("send-input-event",
-            {"type": "leave", "x": X, "y": Y})
-        sendToPageOrSubFrame("action", "selectionRemove", zoomX(), zoomY())
-    } catch {
-        // Can't release keys, probably because of opening a new tab
-    }
-    mouseSelection = null
-}
-
-/**
- * Store the latest mouse selection.
- * @param {typeof lastSelection|null} selection
- */
-const storeMouseSelection = selection => {
-    mouseSelection = selection
-}
-
-// ACTIONS
-
-/**
- * Start pointer mode.
- * @param {{x?: number, y?: number} | null} args
- */
-const start = (args = null) => {
-    X = args?.x || Number(currentPage()?.getAttribute("pointer-x")) || X
-    Y = args?.y || Number(currentPage()?.getAttribute("pointer-y")) || Y
-    const {setMode} = require("./modes")
-    setMode("pointer")
-    sendToPageOrSubFrame("send-input-event", {"type": "hover", "x": X, "y": Y})
-    updateElement()
-}
-
-const moveToMouse = () => {
-    const mousePos = ipcRenderer.sendSync("mouse-location")
-    if (mousePos) {
-        [...document.elementsFromPoint(mousePos.x, mousePos.y)].forEach(el => {
-            if (el instanceof HTMLElement
-                && matchesQuery(el, "webview[link-id]")) {
-                if (el !== currentPage() || currentMode() !== "visual") {
-                    const {switchToTab} = require("./tabs")
-                    // @ts-expect-error el is checked to be a webview above
-                    switchToTab(tabForPage(el))
-                }
-                const pagePos = pageOffset(el)
-                if (currentMode() === "visual") {
-                    X = mousePos.x - pagePos.left
-                    Y = mousePos.y - pagePos.top
-                    updateElement()
-                } else {
-                    start({
-                        "x": mousePos.x - pagePos.left,
-                        "y": mousePos.y - pagePos.top
-                    })
-                }
-            }
-        })
-    }
-}
-
-const restoreSelection = () => {
-    ({"endX": X, "endY": Y, startX, startY} = mouseSelection || lastSelection)
-    mouseSelection = null
-    const {setMode} = require("./modes")
-    setMode("visual")
-    updateElement()
-}
-
-const splitAudio = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "split", "type": "audio", "x": zoomX(), "y": zoomY()
-})
-
-const splitFrame = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "split", "type": "frame", "x": zoomX(), "y": zoomY()
-})
-
-const splitLink = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "split", "type": "link", "x": zoomX(), "y": zoomY()
-})
-
-const splitImage = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "split", "type": "img", "x": zoomX(), "y": zoomY()
-})
-
-const splitVideo = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "split", "type": "video", "x": zoomX(), "y": zoomY()
-})
-
-const vsplitAudio = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "vsplit", "type": "audio", "x": zoomX(), "y": zoomY()
-})
-
-const vsplitFrame = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "vsplit", "type": "frame", "x": zoomX(), "y": zoomY()
-})
-
-const vsplitLink = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "vsplit", "type": "link", "x": zoomX(), "y": zoomY()
-})
-
-const vsplitImage = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "vsplit", "type": "img", "x": zoomX(), "y": zoomY()
-})
-
-const vsplitVideo = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "vsplit", "type": "video", "x": zoomX(), "y": zoomY()
-})
-
-const downloadAudio = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "download", "type": "audio", "x": zoomX(), "y": zoomY()
-})
-
-const downloadFrame = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "download", "type": "frame", "x": zoomX(), "y": zoomY()
-})
-
-const downloadLink = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "download", "type": "link", "x": zoomX(), "y": zoomY()
-})
-
-const downloadImage = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "download", "type": "img", "x": zoomX(), "y": zoomY()
-})
-
-const downloadVideo = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "download", "type": "video", "x": zoomX(), "y": zoomY()
-})
-
-const newtabAudio = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "newtab", "type": "audio", "x": zoomX(), "y": zoomY()
-})
-
-const newtabFrame = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "newtab", "type": "frame", "x": zoomX(), "y": zoomY()
-})
-
-const newtabLink = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "newtab", "type": "link", "x": zoomX(), "y": zoomY()
-})
-
-const newtabImage = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "newtab", "type": "img", "x": zoomX(), "y": zoomY()
-})
-
-const newtabVideo = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "newtab", "type": "video", "x": zoomX(), "y": zoomY()
-})
-
-const openAudio = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "open", "type": "audio", "x": zoomX(), "y": zoomY()
-})
-
-const openFrame = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "open", "type": "frame", "x": zoomX(), "y": zoomY()
-})
-
-const openLink = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "open", "type": "link", "x": zoomX(), "y": zoomY()
-})
-
-const openImage = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "open", "type": "img", "x": zoomX(), "y": zoomY()
-})
-
-const openVideo = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "open", "type": "video", "x": zoomX(), "y": zoomY()
-})
-
-const externalAudio = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "external", "type": "audio", "x": zoomX(), "y": zoomY()
-})
-
-const externalFrame = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "external", "type": "frame", "x": zoomX(), "y": zoomY()
-})
-
-const externalLink = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "external", "type": "link", "x": zoomX(), "y": zoomY()
-})
-
-const externalImage = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "external", "type": "img", "x": zoomX(), "y": zoomY()
-})
-
-const externalVideo = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "external", "type": "video", "x": zoomX(), "y": zoomY()
-})
-
-const copyAudio = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "copy", "type": "audio", "x": zoomX(), "y": zoomY()
-})
-
-const copyFrame = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "copy", "type": "frame", "x": zoomX(), "y": zoomY()
-})
-
-const copyLink = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "copy", "type": "link", "x": zoomX(), "y": zoomY()
-})
-
-const copyImageBuffer = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "copyimage", "type": "img", "x": zoomX(), "y": zoomY()
-})
-
-const copyImage = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "copy", "type": "img", "x": zoomX(), "y": zoomY()
-})
-
-const copyVideo = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "copy", "type": "video", "x": zoomX(), "y": zoomY()
-})
-
-const copyTitleAttr = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "copy", "type": "titleAttr", "x": zoomX(), "y": zoomY()
-})
-
-const copyPageTitle = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "copy", "type": "linkPageTitle", "x": zoomX(), "y": zoomY()
-})
-
-const splitText = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "split", "type": "text", "x": zoomX(), "y": zoomY()
-})
-
-const vsplitText = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "vsplit", "type": "text", "x": zoomX(), "y": zoomY()
-})
-
-const downloadText = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "download", "type": "text", "x": zoomX(), "y": zoomY()
-})
-
-const newtabText = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "newtab", "type": "text", "x": zoomX(), "y": zoomY()
-})
-
-const openText = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "open", "type": "text", "x": zoomX(), "y": zoomY()
-})
-
-const externalText = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "external", "type": "text", "x": zoomX(), "y": zoomY()
-})
-
-const copyText = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "copy", "type": "text", "x": zoomX(), "y": zoomY()
-})
-
-const searchText = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "search", "type": "text", "x": zoomX(), "y": zoomY()
-})
-
-const toggleMediaPlay = () => sendToPageOrSubFrame(
-    "action", "togglePause", X, Y)
-
-const mediaDown = () => sendToPageOrSubFrame("action", "volumeDown", X, Y)
-
-const mediaUp = () => sendToPageOrSubFrame("action", "volumeUp", X, Y)
-
-const toggleMediaMute = () => sendToPageOrSubFrame("action", "toggleMute", X, Y)
-
-const toggleMediaLoop = () => sendToPageOrSubFrame("action", "toggleLoop", X, Y)
-
-const toggleMediaControls = () => sendToPageOrSubFrame(
-    "action", "toggleControls", X, Y)
-
-const inspectElement = () => {
-    const page = currentPage()
-    if (page) {
-        const {top, left} = pageOffset(page)
-        page.inspectElement(Math.round(X + left), Math.round(Y + top))
-    }
-}
-
-const leftClick = () => {
-    sendToPageOrSubFrame("send-input-event", {"type": "click", "x": X, "y": Y})
-}
-
-const startOfPage = () => {
-    const {scrollTop} = require("./actions")
-    scrollTop()
-    Y = 0
-    updateElement()
-}
-
-const moveFastLeft = () => {
-    X -= 100
-    updateElement()
-}
-
-const moveLeft = () => {
-    X -= 10
-    updateElement()
-}
-
-const insertAtPosition = () => {
-    const factor = currentPage()?.getZoomFactor() ?? 1
-    sendToPageOrSubFrame("focus-input", {"x": X * factor, "y": Y * factor})
-}
-
-const moveDown = () => {
-    const page = currentPage()
-    if (!page) {
-        return
-    }
-    const {bottom, top} = pageOffset(page)
-    if (Y === bottom - top - getSetting("guifontsize")) {
-        const {"scrollDown": scroll} = require("./actions")
-        scroll()
-        listenForScroll = true
-    } else {
-        Y += 10
-    }
-    updateElement()
-}
-
-const moveUp = () => {
-    if (Y === 0) {
-        const {"scrollUp": scroll} = require("./actions")
-        scroll()
-        listenForScroll = true
-    } else {
-        Y -= 10
-    }
-    updateElement()
-}
-
-const moveRight = () => {
-    X += 10
-    updateElement()
-}
-
-const rightClick = () => {
-    sendToPageOrSubFrame("send-input-event",
-        {"button": "right", "type": "click", "x": X, "y": Y})
-    const {storePointerRightClick} = require("./contextmenu")
-    storePointerRightClick()
-}
-
-const openMenu = () => {
-    sendToPageOrSubFrame("contextmenu-data",
-        {"force": true, "x": zoomX(), "y": zoomY()})
-}
-
-const startVisualSelect = () => {
-    if (mouseSelection && getSetting("mousevisualmode") !== "never") {
-        restoreSelection()
-    } else {
-        const {setMode} = require("./modes")
-        setMode("visual")
-        startX = Number(X)
-        startY = Number(Y)
-    }
-}
-
-const swapPosition = () => {
-    if (currentMode() === "visual") {
-        [startX, X] = [X, startX]
-        ;[startY, Y] = [Y, startY]
-        updateElement()
-    }
-}
-
-const moveFastRight = () => {
-    X += 100
-    updateElement()
-}
-
-const centerOfView = () => {
-    const page = currentPage()
-    if (!page) {
-        return
-    }
-    const {top, bottom} = pageOffset(page)
-    Y = (bottom - top) / 2
-    updateElement()
-}
-
-const scrollDown = () => {
-    sendToPageOrSubFrame("send-input-event",
-        {"deltaY": -100, "type": "scroll", "x": X, "y": Y})
-    updateElement()
-}
-
-const scrollUp = () => {
-    sendToPageOrSubFrame("send-input-event",
-        {"deltaY": 100, "type": "scroll", "x": X, "y": Y})
-    updateElement()
-}
-
-const scrollLeft = () => {
-    sendToPageOrSubFrame("send-input-event",
-        {"deltaX": 100, "type": "scroll", "x": X, "y": Y})
-    updateElement()
-}
-
-const scrollRight = () => {
-    sendToPageOrSubFrame("send-input-event",
-        {"deltaX": -100, "type": "scroll", "x": X, "y": Y})
-    updateElement()
-}
-
-const startOfView = () => {
-    Y = 0
-    updateElement()
-}
-
-const moveSlowLeft = () => {
-    X -= 1
-    updateElement()
-}
-
-const moveSlowDown = () => {
-    Y += 1
-    updateElement()
-}
-
-const moveSlowUp = () => {
-    Y -= 1
-    updateElement()
-}
-
-const moveSlowRight = () => {
-    X += 1
-    updateElement()
-}
-
-const endOfView = () => {
-    Y = window.innerHeight
-    updateElement()
-}
-
-const endOfPage = () => {
-    const {scrollBottom} = require("./actions")
-    scrollBottom()
-    Y = window.innerHeight
-    updateElement()
-}
-
-const moveRightMax = () => {
-    X = window.innerWidth
-    updateElement()
-}
-
-const moveLeftMax = () => {
-    X = 0
-    updateElement()
-}
-
-const moveFastDown = () => {
-    const page = currentPage()
-    if (!page) {
-        return
-    }
-    const {bottom, top} = pageOffset(page)
-    if (Y === bottom - top - getSetting("guifontsize")) {
-        const {"scrollDown": scroll} = require("./actions")
-        scroll()
-        listenForScroll = true
-    } else {
-        Y += 100
-    }
-    updateElement()
-}
-
-const moveFastUp = () => {
-    if (Y === 0) {
-        const {"scrollUp": scroll} = require("./actions")
-        scroll()
-        listenForScroll = true
-    } else {
-        Y -= 100
-    }
-    updateElement()
-}
-
-/**
- * Store a pointer position.
- * @param {{key?: string, location?: {x: number, y: number}, path: string}} args
- */
-const storePos = args => {
-    const key = args?.key
-    if (!key) {
-        return
-    }
-    let posType = getSetting("pointerpostype")
-    if (posType !== "local" && posType !== "global") {
-        posType = "global"
-        if (key !== key.toUpperCase()) {
-            posType = "local"
-        }
-    }
-    const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
-    if (!qm.pointer) {
-        qm.pointer = {"global": {}, "local": {}}
-    }
-    if (args?.path === "global") {
-        posType = "global"
-    }
-    if (posType === "local") {
-        let path = ""
-        const pointerPosId = getSetting("pointerposlocalid")
-        if (pointerPosId === "domain") {
-            path = domainName(urlToString(currentPage()?.src ?? ""))
-                || domainName(currentPage()?.src ?? "") || ""
-        }
-        if (pointerPosId === "url" || !path) {
-            path = urlToString(currentPage()?.src ?? "")
-                || currentPage()?.src || ""
-        }
-        path = args?.path ?? path
-        if (!qm.pointer.local[path]) {
-            qm.pointer.local[path] = {}
-        }
-        qm.pointer.local[path][key] = args?.location
-            ?? {"x": Math.round(X), "y": Math.round(Y)}
-    } else {
-        qm.pointer.global[key] = args?.location
-            ?? {"x": Math.round(X), "y": Math.round(Y)}
-    }
-    writeJSON(joinPath(appData(), "quickmarks"), qm)
-}
-
-/**
- * Restore a pointer position.
- * @param {{key?: string, path?: string}} args
- */
-const restorePos = args => {
-    const key = args?.key
-    if (!key) {
-        return
-    }
-    const pointerPosId = getSetting("pointerposlocalid")
-    let path = ""
-    if (pointerPosId === "domain") {
-        path = domainName(urlToString(currentPage()?.src ?? ""))
-            || domainName(currentPage()?.src ?? "") || ""
-    }
-    if (pointerPosId === "url" || !path) {
-        path = urlToString(currentPage()?.src ?? "") || currentPage()?.src || ""
-    }
-    path = args?.path ?? path
-    const qm = readJSON(joinPath(appData(), "quickmarks"))
-    const pos = qm?.pointer?.local?.[path]?.[key] ?? qm?.pointer?.global?.[key]
-    if (pos) {
-        move(pos.x, pos.y)
-    }
 }
 
 module.exports = {

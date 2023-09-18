@@ -106,6 +106,41 @@ const updateCurrentView = (user = true) => {
 }
 
 /**
+ * Add a single history entry to the list.
+ * @param {(
+ *   import("../renderer/history").historyItem
+ * )} hist
+ */
+const addHistToList = hist => {
+    const histElement = document.createElement("div")
+    histElement.className = "hist-entry"
+    if (hist.icon) {
+        const icon = document.createElement("img")
+        icon.src = hist.icon
+        icon.className = "favicon"
+        histElement.append(icon)
+    }
+    const img = document.createElement("img")
+    img.classList.add("trash")
+    img.src = joinPath(__dirname, "../img/trash.png")
+    histElement.append(img)
+    const date = document.createElement("span")
+    date.textContent = formatDate(hist.date)
+    date.setAttribute("iso", hist.date.toISOString())
+    date.className = "hist-date"
+    histElement.append(date)
+    const title = document.createElement("span")
+    title.textContent = hist.title
+    title.className = "hist-title"
+    histElement.append(title)
+    const url = document.createElement("a")
+    url.textContent = urlToString(hist.url)
+    url.setAttribute("href", hist.url)
+    histElement.append(url)
+    virtualList?.append(histElement)
+}
+
+/**
  * Show the received history in a list.
  * @param {import("../renderer/history").historyItem[]} history
  */
@@ -154,41 +189,6 @@ const receiveHistory = history => {
     }
 
     addHistTimeout(history[lineNumber])
-}
-
-/**
- * Add a single history entry to the list.
- * @param {(
- *   import("../renderer/history").historyItem
- * )} hist
- */
-const addHistToList = hist => {
-    const histElement = document.createElement("div")
-    histElement.className = "hist-entry"
-    if (hist.icon) {
-        const icon = document.createElement("img")
-        icon.src = hist.icon
-        icon.className = "favicon"
-        histElement.append(icon)
-    }
-    const img = document.createElement("img")
-    img.classList.add("trash")
-    img.src = joinPath(__dirname, "../img/trash.png")
-    histElement.append(img)
-    const date = document.createElement("span")
-    date.textContent = formatDate(hist.date)
-    date.setAttribute("iso", hist.date.toISOString())
-    date.className = "hist-date"
-    histElement.append(date)
-    const title = document.createElement("span")
-    title.textContent = hist.title
-    title.className = "hist-title"
-    histElement.append(title)
-    const url = document.createElement("a")
-    url.textContent = urlToString(hist.url)
-    url.setAttribute("href", hist.url)
-    histElement.append(url)
-    virtualList?.append(histElement)
 }
 
 /**

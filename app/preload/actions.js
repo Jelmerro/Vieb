@@ -37,18 +37,6 @@ const {
 } = require("../util")
 
 /**
- * Go to the next page if available, optionally in a new tab.
- * @param {boolean} newtab
- */
-const nextPage = newtab => navigateToPage("*[rel=next], .navi-next", newtab)
-
-/**
- * Go to the previous page if available, optionally in a new tab.
- * @param {boolean} newtab
- */
-const previousPage = newtab => navigateToPage("*[rel=prev], .navi-prev", newtab)
-
-/**
  * Navigate to the next page if available.
  * @param {string} selector
  * @param {boolean} newtab
@@ -68,6 +56,19 @@ const navigateToPage = (selector, newtab) => {
     }
 }
 
+/**
+ * Go to the next page if available, optionally in a new tab.
+ * @param {boolean} newtab
+ */
+const nextPage = newtab => navigateToPage("*[rel=next], .navi-next", newtab)
+
+/**
+ * Go to the previous page if available, optionally in a new tab.
+ * @param {boolean} newtab
+ */
+const previousPage = newtab => navigateToPage("*[rel=prev], .navi-prev", newtab)
+
+/** Unfocus the currently active element. */
 const blur = () => {
     const el = activeElement()
     if (isHTMLElement(el)) {
@@ -104,34 +105,49 @@ const scrollPerc = perc => {
     }
 }
 
+/** Scroll to the top of the page. */
 const scrollTop = () => scrollBy(0, -window.innerHeight - 1000000000)
 
+/** Scroll 100px left. */
 const scrollLeft = () => scrollBy(-100, 0)
 
+/** Scroll 100px down. */
 const scrollDown = () => scrollBy(0, 100)
 
+/** Scroll 100px up. */
 const scrollUp = () => scrollBy(0, -100)
 
+/** Scroll 100px right. */
 const scrollRight = () => scrollBy(100, 0)
 
+/** Scroll to the bottom of the page. */
 const scrollBottom = () => scrollBy(0, window.innerHeight + 1000000000)
 
+/** Scroll to the left of the page. */
 const scrollLeftMax = () => scrollBy(-window.innerWidth - 1000000000, 0)
 
+/** Scroll to the right of the page. */
 const scrollRightMax = () => scrollBy(window.innerWidth + 1000000000, 0)
 
+/** Scroll one page to the right. */
 const scrollPageRight = () => scrollBy(window.innerWidth - 50, 0)
 
+/** Scroll one page to the left. */
 const scrollPageLeft = () => scrollBy(-window.innerWidth + 50, 0)
 
+/** Scroll one page up. */
 const scrollPageUp = () => scrollBy(0, -window.innerHeight + 50)
 
+/** Scroll half of a page down. */
 const scrollPageDownHalf = () => scrollBy(0, window.innerHeight / 2 - 25)
 
+/** Scroll one page down. */
 const scrollPageDown = () => scrollBy(0, window.innerHeight - 50)
 
+/** Scroll half of a page up. */
 const scrollPageUpHalf = () => scrollBy(0, -window.innerHeight / 2 + 25)
 
+/** Bring focus to the topleft, to focus the page but no specific element. */
 const focusTopLeftCorner = () => {
     const el = document.elementFromPoint(0, 0)
     if (isHTMLElement(el)) {
@@ -139,6 +155,7 @@ const focusTopLeftCorner = () => {
     }
 }
 
+/** Exit the page fullscreen state. */
 const exitFullscreen = () => document.exitFullscreen()
 
 /** @type {{[filename: string]: Element}} */
@@ -175,6 +192,7 @@ const writeInputToFile = filename => {
     writeableInputs[filename] = el
 }
 
+/** Print the page. */
 const print = () => document.execCommand("print")
 
 /**
@@ -595,6 +613,7 @@ const showTOC = (customStyling, fontsize, opened = false) => {
     toc.append(summary, baseUl)
     const lists = [baseUl]
 
+    /** Returns the current taversing depth of the toc. */
     const currentDepth = () => Number(lists.at(-1)?.getAttribute("depth"))
 
     /** @type {string[]} */
@@ -648,6 +667,7 @@ const showTOC = (customStyling, fontsize, opened = false) => {
     document.body.append(tocContainer)
 }
 
+/** Hide the table of contents from view by removing it entirely. */
 const hideTOC = () => document.getElementById(randomTOCId)?.remove()
 
 /**

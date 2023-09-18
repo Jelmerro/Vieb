@@ -77,12 +77,14 @@ try {
             groupId,
             kind,
             "label": "",
+            /** Add the toJSON method of the MediaDeviceInfo. */
             "toJSON": () => ({
                 deviceId, groupId, kind, "label": ""
             })
         }))
     }
 
+    /** Override the device list based on permission settings. */
     window.navigator.mediaDevices.enumerateDevices = async() => {
         let setting = getWebviewSetting("permissionmediadevices") ?? "ask"
         if (!["block", "ask", "allow", "allowfull"].includes(setting)) {
@@ -165,7 +167,7 @@ try {
         }
         return mediaDeviceList(setting)
     }
-    // Enable screensharing functionality linked to permissiondisplaycapture
+    /** Enable screensharing feature linked to permissiondisplaycapture. */
     window.navigator.mediaDevices.getDisplayMedia = () => new Promise((
         resolve, reject
     ) => {
@@ -331,6 +333,7 @@ try {
     // No deletion allowed in this context, set to undefined instead
 }
 // HTTPS-only: Always act as if there is no battery and the state never changes
+/* eslint-disable jsdoc/require-jsdoc */
 // @ts-expect-error Not present in HTTP environments nor ts spec
 if (window.BatteryManager) {
     // @ts-expect-error Not present in HTTP environments nor ts spec
@@ -358,8 +361,14 @@ if (window.BatteryManager) {
     Object.defineProperty(window.BatteryManager.prototype,
         "onlevelchange", {"get": () => null})
 }
+/* eslint-enable jsdoc/require-jsdoc */
 // Custom prompt, confirm and alert, based on "dialog*" settings
 // Options: return the default cancel action, show a custom popup or notify
+/**
+ * Show a custom prompt, a notification, both or neither based on dialogprompt.
+ * @param {string|undefined} title
+ * @param {string} defaultText
+ */
 window.prompt = (title, defaultText = "") => {
     const promptBehavior = getWebviewSetting("dialogprompt") ?? "notifyblock"
     if (promptBehavior.includes("notify")) {
@@ -372,6 +381,10 @@ window.prompt = (title, defaultText = "") => {
     }
     return null
 }
+/**
+ * Show a confirm, a notification, both or neither based on dialogconfirm.
+ * @param {string|undefined} text
+ */
 window.confirm = text => {
     const confirmBehavior = getWebviewSetting("dialogconfirm") ?? "notifyblock"
     if (confirmBehavior.includes("notify")) {
@@ -392,6 +405,10 @@ window.confirm = text => {
     }
     return confirmBehavior.includes("allow")
 }
+/**
+ * Show an alert, a notification, both or neither based on dialogalert.
+ * @param {string|undefined} text
+ */
 window.alert = text => {
     const alertBehavior = getWebviewSetting("dialogalert") ?? "notifyblock"
     if (alertBehavior.includes("notify")) {

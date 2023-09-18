@@ -22,6 +22,7 @@ const {appConfig, compareVersions} = require("../util")
 const apiUrl = "https://api.github.com/repos/Jelmerro/Vieb/releases/latest"
 const {name, icon, version} = appConfig() ?? {}
 
+/** Check for updates to Vieb on button click via Github. */
 const checkForUpdates = () => {
     const versionCheck = document.getElementById("version-check")
     const button = document.querySelector("button")
@@ -31,6 +32,7 @@ const checkForUpdates = () => {
     versionCheck.textContent = "Loading..."
     button.disabled = true
     const req = new XMLHttpRequest()
+    /** Compare the current version to the latest Github version and report. */
     req.onreadystatechange = () => {
         if (req.readyState === 4) {
             if (req.status === 200) {

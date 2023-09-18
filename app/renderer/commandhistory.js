@@ -27,18 +27,22 @@ let previousIndex = -1
 let originalCommand = ""
 let storeCommands = false
 
+/** Load the command hist of the previous session if stored. */
 const init = () => {
     previousCommands = readFile(commandsFile)?.split("\n").filter(s => s) || []
 }
 
+/** Pause the collection of commands to the history. */
 const pause = () => {
     storeCommands = false
 }
 
+/** Resume the collection of new commands into the history. */
 const resume = () => {
     storeCommands = true
 }
 
+/** Show the right entry based on new index set by previous or next. */
 const updateNavWithHistory = () => {
     let commandText = originalCommand
     if (previousIndex !== -1) {
@@ -52,6 +56,7 @@ const updateNavWithHistory = () => {
     suggestCommand(commandText)
 }
 
+/** Go to the previous item in the command history. */
 const previous = () => {
     if (currentMode() !== "command") {
         return
@@ -65,6 +70,7 @@ const previous = () => {
     updateNavWithHistory()
 }
 
+/** Go to the next item in the command history. */
 const next = () => {
     if (currentMode() !== "command" || previousIndex === -1) {
         return
@@ -77,6 +83,7 @@ const next = () => {
     updateNavWithHistory()
 }
 
+/** Reset the position info for the command history. */
 const resetPosition = () => {
     previousIndex = -1
     originalCommand = ""

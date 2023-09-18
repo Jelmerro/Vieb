@@ -42,6 +42,7 @@ let histWriteTimeout = null
 /** @type {{[url: string]: {visits: string[], title: string}}} */
 let groupedHistory = {}
 
+/** Load the history file from disk to memory. */
 const init = () => {
     groupedHistory = readJSON(histFile) || {}
 }
@@ -80,6 +81,12 @@ const getSimpleName = name => {
  */
 const allWordsAnywhere = (search, simpleUrl, name) => search.every(
     w => simpleUrl.includes(w) || getSimpleName(name).includes(w))
+
+/**
+ * Get the visit count for a given url, will be 0 if not found or never visited.
+ * @param {string|null} url
+ */
+const visitCount = url => url && groupedHistory[url]?.visits?.length || 0
 
 /**
  * Suggest history for a specific url input, an order and a maximum amount.
@@ -145,6 +152,29 @@ const suggestHist = (searchStr, order, count) => {
 }
 
 /**
+ * Write the history to disk with a debounce mechanism, optionally now instead.
+ * @param {boolean} now
+ */
+const writeHistToFile = (now = false) => {
+    window.clearTimeout(histWriteTimeout ?? undefined)
+    if (!now) {
+        histWriteTimeout = window.setTimeout(() => {
+            writeHistToFile(true)
+        }, 5000)
+        return true
+    }
+    Object.keys(groupedHistory).forEach(url => {
+        if (visitCount(url) === 0) {
+            delete groupedHistory[url]
+        }
+    })
+    if (Object.keys(groupedHistory).length === 0) {
+        return deleteFile(histFile)
+    }
+    return writeJSON(histFile, groupedHistory)
+}
+
+/**
  * Add a specific url to the history if not excluded.
  * @param {string} url
  */
@@ -182,25 +212,6 @@ const addToHist = url => {
     }
     groupedHistory[url].visits.push(date)
     writeHistToFile()
-}
-
-const writeHistToFile = (now = false) => {
-    window.clearTimeout(histWriteTimeout ?? undefined)
-    if (!now) {
-        histWriteTimeout = window.setTimeout(() => {
-            writeHistToFile(true)
-        }, 5000)
-        return true
-    }
-    Object.keys(groupedHistory).forEach(url => {
-        if (visitCount(url) === 0) {
-            delete groupedHistory[url]
-        }
-    })
-    if (Object.keys(groupedHistory).length === 0) {
-        return deleteFile(histFile)
-    }
-    return writeJSON(histFile, groupedHistory)
 }
 
 /**
@@ -300,6 +311,7 @@ const handleRequest = (webview, action = null, entries = []) => {
     updateMappings()
 }
 
+/** Return a list of top sites by visit count, depending on suggesttopsites. */
 const suggestTopSites = () => {
     const {forSite} = require("./favicons")
     return Object.keys(groupedHistory).filter(g => groupedHistory[g])
@@ -310,12 +322,6 @@ const suggestTopSites = () => {
             "url": urlToString(site)
         }))
 }
-
-/**
- * Get the visit count for a given url, will be 0 if not found or never visited.
- * @param {string|null} url
- */
-const visitCount = url => url && groupedHistory[url]?.visits?.length || 0
 
 /**
  * Get the latest title for a page by url.

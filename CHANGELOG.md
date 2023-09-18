@@ -13,10 +13,16 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Changed
+
+- Eslint rules to be more strict with better jsdoc and types
+- Url modification functions for subdomain and parent urls to be more accurate
+
 ### Fixed
 
 - Rare error popup on quit on some Linux desktop environments
 - Location mock not being accurate leading to broken functionality on Gitlab and other sites
+- Command "tabnewcontainer" not opening with the right name if using "containernewtab=s:external"
 
 ### Versions
 

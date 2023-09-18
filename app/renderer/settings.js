@@ -613,31 +613,6 @@ const containerSettings = [
 /** @type {string[]} */
 let spelllangs = []
 
-const init = () => {
-    loadFromDisk()
-    ipcRenderer.invoke("list-spelllangs").then(langs => {
-        spelllangs = langs || []
-        spelllangs.push("system")
-        if (!isValidSetting("spelllang", allSettings.spelllang)) {
-            set("spelllang", "system")
-        }
-        ipcRenderer.send("set-spelllang", allSettings.spelllang)
-    })
-    ipcRenderer.on("set-permission", (_, name, value) => set(name, value))
-    ipcRenderer.on("notify", (_, message, type, clickAction) => {
-        if (getMouseConf("notification")) {
-            if (clickAction?.type === "download-success") {
-                clickAction.func = () => ipcRenderer.send(
-                    "open-download", clickAction.path)
-            }
-        }
-        notify(message, type, clickAction)
-    })
-    ipcRenderer.on("main-error", (_, ex) => console.error(ex))
-    ipcRenderer.send("create-session", `persist:main`,
-        allSettings.adblocker, allSettings.cache !== "none")
-}
-
 /**
  * Check if an option is considered a valid one, only checks at all if an enum.
  * @param {keyof typeof validOptions} setting
@@ -672,6 +647,72 @@ const checkNumber = (setting, value) => {
         notify(`The value of setting '${setting}' must be between `
             + `${numberRange[0]} and ${numberRange[1]}`, "warn")
         return false
+    }
+    return true
+}
+
+/**
+ * Check if the provided suggest order is valid.
+ * @param {string} value
+ */
+const checkSuggestOrder = value => {
+    for (const suggest of value.split(",").filter(s => s.trim())) {
+        const parts = (suggest.match(/~/g) || []).length
+        if (parts > 2) {
+            notify(`Invalid suggestorder entry: ${suggest}\n`
+                    + "Entries must have at most two ~ to separate the type "
+                    + "from the count and the order (both optional)", "warn")
+            return false
+        }
+        const args = suggest.split("~")
+        const type = args.shift() ?? ""
+        if (!["history", "file", "searchword"].includes(type)) {
+            notify(`Invalid suggestorder type: ${type}\n`
+                    + "Suggestion type must be one of: history, file or "
+                    + "searchword", "warn")
+            return false
+        }
+        let hasHadCount = false
+        let hasHadOrder = false
+        for (const arg of args) {
+            if (!arg) {
+                notify("Configuration for suggestorder after the type can "
+                        + "not be empty", "warn")
+                return false
+            }
+            const potentialCount = Number(arg)
+            if (potentialCount > 0 && potentialCount <= 9000000000000000) {
+                if (hasHadCount) {
+                    notify("Count configuration for a suggestorder entry "
+                            + "can only be set once per entry", "warn")
+                    return false
+                }
+                hasHadCount = true
+                continue
+            }
+            const validOrders = []
+            if (type === "history") {
+                validOrders.push("alpha", "relevance", "date")
+            }
+            if (type === "file") {
+                validOrders.push("alpha")
+            }
+            if (type === "searchword") {
+                validOrders.push("alpha", "setting")
+            }
+            if (validOrders.includes(arg)) {
+                if (hasHadOrder) {
+                    notify("Order configuration for a suggestorder entry "
+                            + "can only be set once per entry", "warn")
+                    return false
+                }
+                hasHadOrder = true
+                continue
+            }
+            notify(`Order configuration is invalid, supported orders for ${
+                type} suggestions are: ${validOrders.join(", ")}`, "warn")
+            return false
+        }
     }
     return true
 }
@@ -1277,72 +1318,6 @@ const checkOther = (setting, value) => {
 }
 
 /**
- * Check if the provided suggest order is valid.
- * @param {string} value
- */
-const checkSuggestOrder = value => {
-    for (const suggest of value.split(",").filter(s => s.trim())) {
-        const parts = (suggest.match(/~/g) || []).length
-        if (parts > 2) {
-            notify(`Invalid suggestorder entry: ${suggest}\n`
-                    + "Entries must have at most two ~ to separate the type "
-                    + "from the count and the order (both optional)", "warn")
-            return false
-        }
-        const args = suggest.split("~")
-        const type = args.shift() ?? ""
-        if (!["history", "file", "searchword"].includes(type)) {
-            notify(`Invalid suggestorder type: ${type}\n`
-                    + "Suggestion type must be one of: history, file or "
-                    + "searchword", "warn")
-            return false
-        }
-        let hasHadCount = false
-        let hasHadOrder = false
-        for (const arg of args) {
-            if (!arg) {
-                notify("Configuration for suggestorder after the type can "
-                        + "not be empty", "warn")
-                return false
-            }
-            const potentialCount = Number(arg)
-            if (potentialCount > 0 && potentialCount <= 9000000000000000) {
-                if (hasHadCount) {
-                    notify("Count configuration for a suggestorder entry "
-                            + "can only be set once per entry", "warn")
-                    return false
-                }
-                hasHadCount = true
-                continue
-            }
-            const validOrders = []
-            if (type === "history") {
-                validOrders.push("alpha", "relevance", "date")
-            }
-            if (type === "file") {
-                validOrders.push("alpha")
-            }
-            if (type === "searchword") {
-                validOrders.push("alpha", "setting")
-            }
-            if (validOrders.includes(arg)) {
-                if (hasHadOrder) {
-                    notify("Order configuration for a suggestorder entry "
-                            + "can only be set once per entry", "warn")
-                    return false
-                }
-                hasHadOrder = true
-                continue
-            }
-            notify(`Order configuration is invalid, supported orders for ${
-                type} suggestions are: ${validOrders.join(", ")}`, "warn")
-            return false
-        }
-    }
-    return true
-}
-
-/**
  * Check if a setting is of type enum, so it has to validate the valid opts.
  * @param {string} set
  * @returns {set is keyof typeof defaultSettings}
@@ -1401,6 +1376,7 @@ const isValidSetting = (setting, value) => {
     return checkOther(setting, parsedValue)
 }
 
+/** Update the mouse related settings on the local DOM body for CSS rules. */
 const updateMouseSettings = () => {
     for (const mouseSetting of mouseFeatures) {
         if (getMouseConf(mouseSetting)) {
@@ -1416,18 +1392,25 @@ const updateMouseSettings = () => {
     }
 }
 
+/** Update the request headers setting in the main thread. */
 const updateRequestHeaders = () => {
     ipcRenderer.send("update-request-headers", allSettings.requestheaders)
 }
 
+/** Update the native theme in the main thread. */
 const updateNativeTheme = () => {
     ipcRenderer.send("update-native-theme", allSettings.nativetheme)
 }
 
+/** Update the PDF behavior setting in the main thread. */
 const updatePdfOption = () => {
     ipcRenderer.send("update-pdf-option", allSettings.pdfbehavior)
 }
 
+/**
+ * Update container related settings on change and update labels/colors.
+ * @param {boolean} full
+ */
 const updateContainerSettings = (full = true) => {
     if (full) {
         for (const page of listPages()) {
@@ -1466,6 +1449,7 @@ const updateContainerSettings = (full = true) => {
     }
 }
 
+/** Update download related settings in the main thread on change. */
 const updateDownloadSettings = () => {
     /** @type {{[setting: string]: boolean|number|string}} */
     const downloads = {}
@@ -1508,6 +1492,7 @@ const webviewSettings = [
     "userstylescope"
 ]
 
+/** Update the settings in the webviewsettings file that are used there. */
 const updateWebviewSettings = () => {
     const webviewSettingsFile = joinPath(appData(), "webviewsettings")
     /** @type {{[setting: string]: string|number|boolean}} */
@@ -1523,6 +1508,7 @@ const updateWebviewSettings = () => {
     writeJSON(webviewSettingsFile, data)
 }
 
+/** Update the permissions in the main thread on change. */
 const updatePermissionSettings = () => {
     /** @type {{[setting: string]: string|number|boolean}} */
     const permissions = {}
@@ -1534,23 +1520,10 @@ const updatePermissionSettings = () => {
     ipcRenderer.send("set-permissions", permissions)
 }
 
-const updateHelpPage = () => {
-    listReadyPages().forEach(p => {
-        const special = pathToSpecialPageName(p.getAttribute("src") ?? "")
-        if (special?.name === "help") {
-            const {
-                listMappingsAsCommandList, uncountableActions
-            } = require("./input")
-            const {rangeCompatibleCommands} = require("./command")
-            p.send("settings", settingsWithDefaults(),
-                listMappingsAsCommandList(null, true), uncountableActions,
-                rangeCompatibleCommands)
-        }
-    })
-}
-
+/** Return the list of all setting names. */
 const listSettingsAsArray = () => Object.keys(defaultSettings)
 
+/** Return the list of suggestions for all settings. */
 const suggestionList = () => {
     const listOfSuggestions = ["all", ...listSettingsAsArray()]
     listOfSuggestions.push("all&")
@@ -1625,59 +1598,144 @@ const suggestionList = () => {
     return listOfSuggestions
 }
 
-const loadFromDisk = (firstRun = true) => {
-    const {pause, resume} = require("./commandhistory")
-    pause()
+/** Update the window title using the windowtitle setting and app config. */
+const updateWindowTitle = () => {
     const config = appConfig()
-    const files = config?.files ?? []
-    if (firstRun) {
-        allSettings = JSON.parse(JSON.stringify(defaultSettings))
-        sessionStorage.setItem("settings", JSON.stringify(allSettings))
-    }
-    if (isFile(joinPath(appData(), "erwicmode"))) {
-        const erwicDefaults = JSON.parse(JSON.stringify(defaultErwicSettings))
-        Object.keys(erwicDefaults).forEach(t => {
-            set(t, erwicDefaults[t])
-        })
-    }
-    for (const conf of files) {
-        if (isFile(conf)) {
-            const parsed = readFile(conf)
-            if (!parsed) {
-                notify(`Read error for config file located at '${conf}'`, "err")
-                continue
-            }
-            for (const line of parsed.split("\n").filter(l => l.trim())) {
-                if (!line.trim().startsWith("\"")) {
-                    const {execute} = require("./command")
-                    execute(line, conf)
-                }
-            }
+    const name = config?.name ?? ""
+    const version = config?.version ?? ""
+    const title = tabForPage(currentPage())
+        ?.querySelector("span")?.textContent || ""
+    let url = currentPage()?.src || ""
+    const specialPage = pathToSpecialPageName(url)
+    if (specialPage?.name) {
+        url = `${name.toLowerCase()}://${specialPage.name}`
+        if (specialPage.section) {
+            url += `#${specialPage.section}`
         }
     }
-    updateContainerSettings()
-    updateDownloadSettings()
-    updatePermissionSettings()
+    ipcRenderer.send("set-window-title", allSettings.windowtitle
+        .replace(/%app/g, name).replace(/%title/g, title)
+        .replace(/%url/g, url).replace(/%version/g, version))
+}
+
+/** Get the custom styling CSS lines. */
+const getCustomStyling = () => customStyling
+
+/** Update the custom styling in the webview using colorscheme and fontsize. */
+const updateCustomStyling = () => {
+    document.body.style.fontSize = `${allSettings.guifontsize}px`
     updateWebviewSettings()
-    updateMouseSettings()
-    updateNativeTheme()
-    updateRequestHeaders()
-    updatePdfOption()
-    resume()
+    const {addColorschemeStylingToWebview} = require("./tabs")
+    listReadyPages().forEach(p => addColorschemeStylingToWebview(p))
+    const {applyLayout} = require("./pagelayout")
+    applyLayout()
+    ipcRenderer.send("set-custom-styling",
+        allSettings.guifontsize, customStyling)
 }
 
 /**
- * Reset a setting to its default value.
- * @param {string} setting
+ * Apply custom styling based on the colorscheme.
+ * @param {string} css
  */
-const reset = setting => {
-    if (setting === "all") {
-        Object.keys(defaultSettings).forEach(s => set(s, defaultSettings[s]))
-    } else if (isExistingSetting(setting)) {
-        set(setting, defaultSettings[setting])
-    } else {
-        notify(`The setting '${setting}' doesn't exist`, "warn")
+const setCustomStyling = css => {
+    customStyling = css
+    updateCustomStyling()
+}
+
+/** Return a list of all settings with default, type and allowed values. */
+const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
+    let typeLabel = "String"
+    /** @type {string|string[]} */
+    let allowedValues = ""
+    if (listLike.includes(setting)) {
+        typeLabel = "List"
+        allowedValues = "Comma-separated list"
     }
+    if (listLikeTilde.includes(setting)) {
+        typeLabel = "List"
+        allowedValues = "Tilde-separated list"
+    }
+    if (isEnumSetting(setting)) {
+        typeLabel = "Enum"
+        allowedValues = validOptions[setting]
+    }
+    if (typeof allSettings[setting] === "boolean") {
+        typeLabel = "Boolean"
+        allowedValues = "true,false"
+    }
+    if (setting === "clearhistoryinterval") {
+        allowedValues = "Interval, session or none"
+    }
+    if (containerSettings.includes(setting) || setting === "followchars") {
+        allowedValues = "See description"
+    }
+    if (setting === "darkreaderfg" || setting === "darkreaderbg") {
+        allowedValues = "Any valid CSS color"
+    }
+    if (setting === "downloadpath") {
+        allowedValues = "Any directory on disk or empty"
+    }
+    if (setting === "externalcommand") {
+        allowedValues = "Any system command"
+    }
+    if (setting === "mouse") {
+        allowedValues = "'all' or list of features"
+    }
+    if (setting === "newtaburl") {
+        allowedValues = "Any URL"
+    }
+    if (setting === "searchengine") {
+        allowedValues = "Any URL with %s"
+    }
+    if (setting === "shell") {
+        allowedValues = "Any system shell"
+    }
+    if (setting === "spelllang") {
+        allowedValues = `A list containing any of these supported languages: ${
+            spelllangs.join(", ")}`
+    }
+    if (setting === "translatekey") {
+        allowedValues = "API key"
+    }
+    if (setting === "translateurl") {
+        allowedValues = "API endpoint"
+    }
+    if (setting === "vimcommand") {
+        allowedValues = "Any system command"
+    }
+    if (setting === "windowtitle") {
+        allowedValues = "Any title"
+    }
+    if (isNumberSetting(setting)) {
+        typeLabel = "Number"
+        if (numberRanges[setting]) {
+            allowedValues = `from ${
+                numberRanges[setting][0]} to ${numberRanges[setting][1]}`
+        }
+    }
+    return {
+        allowedValues,
+        "current": allSettings[setting],
+        "default": defaultSettings[setting],
+        "name": setting,
+        typeLabel
+    }
+})
+
+/** Update the help page with updated settings, mapping and commands. */
+const updateHelpPage = () => {
+    listReadyPages().forEach(p => {
+        const special = pathToSpecialPageName(p.getAttribute("src") ?? "")
+        if (special?.name === "help") {
+            const {
+                listMappingsAsCommandList, uncountableActions
+            } = require("./input")
+            const {rangeCompatibleCommands} = require("./command")
+            p.send("settings", settingsWithDefaults(),
+                listMappingsAsCommandList(null, true), uncountableActions,
+                rangeCompatibleCommands)
+        }
+    })
 }
 
 /**
@@ -1862,103 +1920,64 @@ const set = (setting, value) => {
     return false
 }
 
-const updateWindowTitle = () => {
+/**
+ * Load the settings from disk, either as a first run or regular.
+ * @param {boolean} firstRun
+ */
+const loadFromDisk = (firstRun = true) => {
+    const {pause, resume} = require("./commandhistory")
+    pause()
     const config = appConfig()
-    const name = config?.name ?? ""
-    const version = config?.version ?? ""
-    const title = tabForPage(currentPage())
-        ?.querySelector("span")?.textContent || ""
-    let url = currentPage()?.src || ""
-    const specialPage = pathToSpecialPageName(url)
-    if (specialPage?.name) {
-        url = `${name.toLowerCase()}://${specialPage.name}`
-        if (specialPage.section) {
-            url += `#${specialPage.section}`
+    const files = config?.files ?? []
+    if (firstRun) {
+        allSettings = JSON.parse(JSON.stringify(defaultSettings))
+        sessionStorage.setItem("settings", JSON.stringify(allSettings))
+    }
+    if (isFile(joinPath(appData(), "erwicmode"))) {
+        const erwicDefaults = JSON.parse(JSON.stringify(defaultErwicSettings))
+        Object.keys(erwicDefaults).forEach(t => {
+            set(t, erwicDefaults[t])
+        })
+    }
+    for (const conf of files) {
+        if (isFile(conf)) {
+            const parsed = readFile(conf)
+            if (!parsed) {
+                notify(`Read error for config file located at '${conf}'`, "err")
+                continue
+            }
+            for (const line of parsed.split("\n").filter(l => l.trim())) {
+                if (!line.trim().startsWith("\"")) {
+                    const {execute} = require("./command")
+                    execute(line, conf)
+                }
+            }
         }
     }
-    ipcRenderer.send("set-window-title", allSettings.windowtitle
-        .replace(/%app/g, name).replace(/%title/g, title)
-        .replace(/%url/g, url).replace(/%version/g, version))
+    updateContainerSettings()
+    updateDownloadSettings()
+    updatePermissionSettings()
+    updateWebviewSettings()
+    updateMouseSettings()
+    updateNativeTheme()
+    updateRequestHeaders()
+    updatePdfOption()
+    resume()
 }
 
-const settingsWithDefaults = () => Object.keys(allSettings).map(setting => {
-    let typeLabel = "String"
-    /** @type {string|string[]} */
-    let allowedValues = ""
-    if (listLike.includes(setting)) {
-        typeLabel = "List"
-        allowedValues = "Comma-separated list"
+/**
+ * Reset a setting to its default value.
+ * @param {string} setting
+ */
+const reset = setting => {
+    if (setting === "all") {
+        Object.keys(defaultSettings).forEach(s => set(s, defaultSettings[s]))
+    } else if (isExistingSetting(setting)) {
+        set(setting, defaultSettings[setting])
+    } else {
+        notify(`The setting '${setting}' doesn't exist`, "warn")
     }
-    if (listLikeTilde.includes(setting)) {
-        typeLabel = "List"
-        allowedValues = "Tilde-separated list"
-    }
-    if (isEnumSetting(setting)) {
-        typeLabel = "Enum"
-        allowedValues = validOptions[setting]
-    }
-    if (typeof allSettings[setting] === "boolean") {
-        typeLabel = "Boolean"
-        allowedValues = "true,false"
-    }
-    if (setting === "clearhistoryinterval") {
-        allowedValues = "Interval, session or none"
-    }
-    if (containerSettings.includes(setting) || setting === "followchars") {
-        allowedValues = "See description"
-    }
-    if (setting === "darkreaderfg" || setting === "darkreaderbg") {
-        allowedValues = "Any valid CSS color"
-    }
-    if (setting === "downloadpath") {
-        allowedValues = "Any directory on disk or empty"
-    }
-    if (setting === "externalcommand") {
-        allowedValues = "Any system command"
-    }
-    if (setting === "mouse") {
-        allowedValues = "'all' or list of features"
-    }
-    if (setting === "newtaburl") {
-        allowedValues = "Any URL"
-    }
-    if (setting === "searchengine") {
-        allowedValues = "Any URL with %s"
-    }
-    if (setting === "shell") {
-        allowedValues = "Any system shell"
-    }
-    if (setting === "spelllang") {
-        allowedValues = `A list containing any of these supported languages: ${
-            spelllangs.join(", ")}`
-    }
-    if (setting === "translatekey") {
-        allowedValues = "API key"
-    }
-    if (setting === "translateurl") {
-        allowedValues = "API endpoint"
-    }
-    if (setting === "vimcommand") {
-        allowedValues = "Any system command"
-    }
-    if (setting === "windowtitle") {
-        allowedValues = "Any title"
-    }
-    if (isNumberSetting(setting)) {
-        typeLabel = "Number"
-        if (numberRanges[setting]) {
-            allowedValues = `from ${
-                numberRanges[setting][0]} to ${numberRanges[setting][1]}`
-        }
-    }
-    return {
-        allowedValues,
-        "current": allSettings[setting],
-        "default": defaultSettings[setting],
-        "name": setting,
-        typeLabel
-    }
-})
+}
 
 /**
  * Escape value chars as needed.
@@ -2070,26 +2089,31 @@ const saveToDisk = full => {
     }
 }
 
-/**
- * Apply custom styling based on the colorscheme.
- * @param {string} css
- */
-const setCustomStyling = css => {
-    customStyling = css
-    updateCustomStyling()
-}
-
-const getCustomStyling = () => customStyling
-
-const updateCustomStyling = () => {
-    document.body.style.fontSize = `${allSettings.guifontsize}px`
-    updateWebviewSettings()
-    const {addColorschemeStylingToWebview} = require("./tabs")
-    listReadyPages().forEach(p => addColorschemeStylingToWebview(p))
-    const {applyLayout} = require("./pagelayout")
-    applyLayout()
-    ipcRenderer.send("set-custom-styling",
-        allSettings.guifontsize, customStyling)
+/** Load the settings from disk and prepare setting-related listeners. */
+const init = () => {
+    loadFromDisk()
+    ipcRenderer.invoke("list-spelllangs").then(langs => {
+        spelllangs = langs || []
+        spelllangs.push("system")
+        if (!isValidSetting("spelllang", allSettings.spelllang)) {
+            set("spelllang", "system")
+        }
+        ipcRenderer.send("set-spelllang", allSettings.spelllang)
+    })
+    ipcRenderer.on("set-permission", (_, name, value) => set(name, value))
+    ipcRenderer.on("notify", (_, message, type, clickAction) => {
+        if (getMouseConf("notification")) {
+            if (clickAction?.type === "download-success") {
+                /** If a download function is provided, add the right action. */
+                clickAction.func = () => ipcRenderer.send(
+                    "open-download", clickAction.path)
+            }
+        }
+        notify(message, type, clickAction)
+    })
+    ipcRenderer.on("main-error", (_, ex) => console.error(ex))
+    ipcRenderer.send("create-session", `persist:main`,
+        allSettings.adblocker, allSettings.cache !== "none")
 }
 
 module.exports = {

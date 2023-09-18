@@ -39,8 +39,7 @@ const {
     listNotificationHistory,
     propPixels,
     userAgentTemplated,
-    deleteFile,
-    sendToPageOrSubFrame
+    deleteFile
 } = require("../util")
 const {
     listTabs,
@@ -55,7 +54,8 @@ const {
     getUrl,
     tabForPage,
     pageForTab,
-    listReadyPages
+    listReadyPages,
+    sendToPageOrSubFrame
 } = require("./common")
 const {setMode} = require("./modes")
 
@@ -74,123 +74,176 @@ const erwicMode = isFile(joinPath(appData(), "erwicmode"))
 let justSearched = false
 /** @type {{[id: number]: {[type: string]: string}}} */
 const existingInjections = {}
+const sharedAttributes = [
+    "link-id", "container", "class", "id", "style", "muted", "user-script-file"
+]
 
-const init = () => {
-    window.addEventListener("load", () => {
-        if (appConfig()?.icon) {
-            document.getElementById("logo")
-                ?.setAttribute("src", appConfig()?.icon ?? "")
+/**
+ * Update the url in the navbar to reflect the current status.
+ * @param {Electron.WebviewTag} webview
+ * @param {boolean} force
+ */
+const updateUrl = (webview, force = false) => {
+    const url = currentPage()?.src
+    if (webview !== currentPage() || typeof url === "undefined") {
+        return
+    }
+    const {updateWindowTitle} = require("./settings")
+    updateWindowTitle()
+    if (!force && "secf".includes(currentMode()[0])) {
+        return
+    }
+    let niceUrl = urlToString(url)
+    if (niceUrl === `${appConfig()?.name.toLowerCase()}://newtab`) {
+        niceUrl = ""
+    }
+    const urlInput = getUrl()
+    if (urlInput) {
+        urlInput.value = niceUrl
+    }
+}
+
+/**
+ * Reset the tab information for a given page.
+ * @param {Electron.WebviewTag} webview
+ */
+const resetTabInfo = webview => {
+    webview.removeAttribute("failed-to-load")
+    const {empty} = require("./favicons")
+    empty(webview)
+}
+
+/**
+ * Pick a new useragent for the page if multiple are configured.
+ * @param {Electron.WebviewTag} webview
+ */
+const rerollUserAgent = webview => {
+    const customUA = getSetting("useragent")
+    if (customUA) {
+        const agents = customUA.split("~")
+        const agent = userAgentTemplated(
+            agents.at(Math.random() * agents.length) ?? "")
+        webview.setUserAgent(agent)
+    } else {
+        webview.setUserAgent("")
+    }
+}
+
+/**
+ * Suspend a tab.
+ * @param {HTMLSpanElement} tab
+ * @param {boolean} force
+ */
+const suspendTab = (tab, force = false) => {
+    const page = pageForTab(tab)
+    if (!page || page instanceof HTMLDivElement) {
+        return
+    }
+    if (tab.classList.contains("visible-tab") && !force) {
+        return
+    }
+    page.closeDevTools()
+    tab.setAttribute("suspended", "suspended")
+    tab.classList.remove("crashed")
+    tab.removeAttribute("media-playing")
+    const {show} = require("./favicons")
+    show(page)
+    const placeholder = document.createElement("div")
+    placeholder.classList.add("webview")
+    sharedAttributes.forEach(attr => {
+        const attrValue = page.getAttribute(attr)
+        if (attrValue) {
+            placeholder.setAttribute(attr, attrValue)
         }
-        /** @type {{
-         *   closed?: typeof recentlyClosed,
-         *   pinned?: typeof recentlyClosed,
-         *   tabs?: typeof recentlyClosed,
-         *   id?: number
-         * }} */
-        const parsed = readJSON(tabFile)
-        if (!erwicMode) {
-            if (parsed) {
-                const s = getSetting("suspendonrestore")
-                const restoreTabs = getSetting("restoretabs")
-                const keepRecentlyClosed = getSetting("keeprecentlyclosed")
-                if (Array.isArray(parsed.closed) && keepRecentlyClosed) {
-                    recentlyClosed = parsed.closed
-                }
-                if (Array.isArray(parsed.pinned)) {
-                    if (restoreTabs === "all" || restoreTabs === "pinned") {
-                        parsed.pinned.forEach(t => addTab({
-                            ...t,
-                            "lazy": s === "all",
-                            "pinned": true,
-                            "switchTo": false
-                        }))
-                    } else if (keepRecentlyClosed) {
-                        recentlyClosed.push(...parsed.pinned)
-                    }
-                }
-                if (Array.isArray(parsed.tabs)) {
-                    if (restoreTabs === "all" || restoreTabs === "regular") {
-                        parsed.tabs.forEach(t => addTab({
-                            ...t,
-                            "lazy": s === "all" || s === "regular",
-                            "switchTo": false
-                        }))
-                    } else if (keepRecentlyClosed) {
-                        recentlyClosed.push(...parsed.tabs)
-                    }
-                }
-                if (listTabs().length !== 0) {
-                    switchToTab(parsed.id || 0)
-                }
-            }
-            const startup = getSetting("startuppages")
-            for (const tab of startup.split(",")) {
-                const parts = tab.split("~")
-                const url = parts.shift() ?? ""
-                const container = parts.shift() ?? ""
-                const muted = parts.includes("muted")
-                const pinned = parts.includes("pinned")
-                addTab({container, muted, pinned, "startup": true, url})
-            }
+    })
+    placeholder.setAttribute("src", page.src)
+    page.replaceWith(placeholder)
+    const closedDevtoolsId = tab.getAttribute("devtools-id")
+    listTabs().forEach(t => {
+        if (closedDevtoolsId === t.getAttribute("link-id")) {
+            /* eslint-disable-next-line no-use-before-define */
+            closeTab(listTabs().indexOf(t))
         }
-        ipcRenderer.on("urls", (_, pages) => {
-            for (const page of pages) {
-                const replaceStartup = getSetting("replacestartup")
-                if (replaceStartup !== "never") {
-                    try {
-                        const url = currentPage()?.src ?? ""
-                        const specialName = pathToSpecialPageName(url)?.name
-                        const isNewtab = specialName === "newtab"
-                            || url.replace(/\/+$/g, "") === stringToUrl(
-                                getSetting("newtaburl")).replace(/\/+$/g, "")
-                        if (isNewtab || replaceStartup === "always") {
-                            navigateTo(stringToUrl(page?.url || page))
-                            continue
-                        }
-                    } catch {
-                        // No tabs yet
-                    }
-                }
-                if (typeof page === "string") {
-                    addTab({"startup": true, "url": stringToUrl(page)})
-                } else {
-                    addTab({...page, "startup": true})
-                }
-            }
-        })
-        ipcRenderer.on("navigate-to", (_, url) => navigateTo(stringToUrl(url)))
-        ipcRenderer.on("unresponsive", (_, id) => {
-            listReadyPages().forEach(webview => {
-                if (webview.getWebContentsId() === id) {
-                    tabForPage(webview)?.classList.add("unresponsive")
-                }
-            })
-        })
-        ipcRenderer.on("responsive", (_, id) => {
-            listReadyPages().forEach(webview => {
-                if (webview.getWebContentsId() === id) {
-                    tabForPage(webview)?.classList.remove("unresponsive")
-                }
-            })
-        })
-        ipcRenderer.on("new-tab", (_, url) => addTab({
-            "switchTo": getSetting("mousenewtabswitch"), "url": stringToUrl(url)
-        }))
-        if (listTabs().length === 0 && !erwicMode) {
-            if (parsed) {
-                addTab()
-            } else {
-                // The very first startup with this datafolder, show help page
-                addTab({"url": specialPagePath("help")})
-            }
-        }
-        ipcRenderer.send("window-state-init",
-            getSetting("restorewindowposition"),
-            getSetting("restorewindowsize"),
-            getSetting("restorewindowmaximize"))
     })
 }
 
+/**
+ * Recreate a webview to in case of new container name or crash reload.
+ * @param {Electron.WebviewTag} webview
+ * @param {string|null} customSrc
+ */
+const recreateWebview = (webview, customSrc = null) => {
+    const tab = tabForPage(webview)
+    if (tab) {
+        suspendTab(tab, true)
+        const suspendedPage = pageForTab(tab)
+        if (suspendedPage) {
+            if (customSrc) {
+                suspendedPage.setAttribute("src", customSrc)
+            }
+            /* eslint-disable-next-line no-use-before-define */
+            unsuspendPage(suspendedPage)
+        }
+    }
+}
+
+/**
+ * Check if the contanernames setting is still respected, if not recreate.
+ * @param {Electron.WebviewTag} webview
+ * @param {string} location
+ */
+const checkContainerNames = (webview, location) => {
+    const loc = location.replace(/view-?source:\/?\/?/g, "sourceviewer://")
+    const sessionName = getSetting("containernames").split(",").find(
+        c => loc.match(c.split("~")[0]) && c.split("~")[2] !== "newtab")
+        ?.split("~")[1]
+    if (sessionName && sessionName !== webview.getAttribute("container")) {
+        webview.setAttribute("container", sessionName)
+        recreateWebview(webview, loc)
+        return true
+    }
+    return false
+}
+
+/**
+ * Navigate the page to a new location, optionally a custom page.
+ * @param {string} location
+ * @param {Electron.WebviewTag|null} customPage
+ */
+const navigateTo = (location, customPage = null) => {
+    try {
+        new URL(location)
+    } catch {
+        return
+    }
+    const webview = customPage || currentPage()
+    if (!webview || !location || webview.src.startsWith("devtools://")) {
+        return
+    }
+    if (!webview.getAttribute("dom-ready") && webview.isLoading()) {
+        setTimeout(() => navigateTo(location, webview), 1)
+        return
+    }
+    const loc = location.replace(/view-?source:\/?\/?/g, "sourceviewer://")
+    if (webview.isCrashed()) {
+        recreateWebview(webview, loc)
+        return
+    }
+    webview.stop()
+    const wasRecreated = checkContainerNames(webview, loc)
+    if (wasRecreated) {
+        return
+    }
+    rerollUserAgent(webview)
+    webview.loadURL(loc).catch(() => null)
+    resetTabInfo(webview)
+    const tabTitleEl = currentTab()?.querySelector("span")
+    if (tabTitleEl) {
+        tabTitleEl.textContent = urlToString(loc)
+    }
+}
+
+/** Save the current and closed tabs to disk if configured to do so. */
 const saveTabs = () => {
     /** @type {{
      *   closed: {
@@ -252,366 +305,7 @@ const saveTabs = () => {
     writeJSON(tabFile, data, "Failed to write current tabs to disk")
 }
 
-/**
- * Add a new tab.
- * @param {{
- *   url?: string,
- *   customIndex?: number,
- *   switchTo?: boolean,
- *   pinned?: boolean,
- *   container?: string,
- *   session?: string,
- *   devtools?: boolean,
- *   lazy?: boolean,
- *   script?: string,
- *   muted?: boolean,
- *   startup?: boolean,
- * }} options
- */
-const addTab = (options = {}) => {
-    // Recognized options for opening a new tab are as follows:
-    // url, customIndex, switchTo, pinned, session (override of container)
-    // container (suggestion), devtools, lazy, script, muted, startup
-    // Defaults for these options vary depending on app state and user settings
-    if (options.url) {
-        try {
-            new URL(options.url)
-        } catch {
-            return
-        }
-    }
-    if (options.switchTo === undefined) {
-        options.switchTo = true
-    }
-    if (options.url?.startsWith("devtools://")) {
-        return
-    }
-    if (options.url?.startsWith("about:blank") || options.url === "") {
-        return
-    }
-    linkId += 1
-    /** @type {number|null} */
-    let currentPageId = null
-    /** @type {string|null} */
-    let currentPageLinkId = null
-    let devtoolsOpen = false
-    try {
-        devtoolsOpen = currentPage()?.isDevToolsOpened() ?? false
-        currentPageId = currentPage()?.getWebContentsId() ?? null
-        currentPageLinkId = currentPage()?.getAttribute("link-id") ?? null
-    } catch {
-        // Current page not ready, devtools won't be opened
-    }
-    let isDevtoolsTab = false
-    if (options.devtools && currentPageId && currentPageLinkId) {
-        const oldTab = listTabs().find(
-            t => t.getAttribute("link-id") === currentPageLinkId)
-        if (oldTab?.getAttribute("devtools-id") || devtoolsOpen) {
-            return
-        }
-        oldTab?.setAttribute("devtools-id", `${linkId}`)
-        isDevtoolsTab = true
-    }
-    let sessionName = getSetting("containernewtab")
-    if (options.container) {
-        sessionName = options.container
-    } else if (options.startup) {
-        sessionName = getSetting("containerstartuppage")
-    }
-    if (sessionName === "s:external" && options.url) {
-        const isSpecialPage = pathToSpecialPageName(options.url)?.name
-        if (isSpecialPage) {
-            sessionName = "main"
-        } else {
-            if ((/^https?:\/\//).test(options.url)) {
-                if (getSetting("externalcommand").trim()) {
-                    const {commonAction} = require("./contextmenu")
-                    commonAction("link", "external", {"link": options.url})
-                } else {
-                    const {shell} = require("electron")
-                    shell.openExternal(options.url)
-                }
-            }
-            return
-        }
-    }
-    if (sessionName === "s:replacematching" && options.url) {
-        const match = listPages().find(p => sameDomain(
-            p.getAttribute("src") ?? "", options.url ?? ""))
-        if (match) {
-            const tab = tabForPage(match)
-            if (tab) {
-                switchToTab(tab)
-            }
-        }
-    }
-    if (sessionName.startsWith("s:replace")) {
-        if (options.url) {
-            navigateTo(options.url)
-        }
-        return
-    }
-    if (sessionName === "s:usematching" && options.url) {
-        const match = listPages().find(p => sameDomain(
-            p.getAttribute("src") ?? "", options.url ?? ""))
-        if (match) {
-            sessionName = match.getAttribute("container") ?? sessionName
-        }
-    }
-    if (sessionName.startsWith("s:use")) {
-        sessionName = currentPage()?.getAttribute("container") || "main"
-    }
-    if (options.session) {
-        sessionName = options.session
-    } else if (options.url) {
-        sessionName = getSetting("containernames").split(",").find(
-            c => options.url?.match(c.split("~")[0]))?.split("~")[1]
-            || sessionName
-    }
-    sessionName = sessionName.replace("%n", `${linkId}`)
-    const tabs = document.getElementById("tabs")
-    const pages = document.getElementById("pages")
-    const tab = document.createElement("span")
-    const favicon = document.createElement("img")
-    const statusIcon = document.createElement("img")
-    const name = document.createElement("span")
-    if (options.pinned) {
-        tab.classList.add("pinned")
-    }
-    tab.style.minWidth = `${getSetting("mintabwidth")}px`
-    favicon.src = "img/empty.png"
-    favicon.className = "favicon"
-    statusIcon.src = "img/spinner.gif"
-    statusIcon.className = "status"
-    statusIcon.style.display = "none"
-    name.textContent = "Newtab"
-    tab.append(favicon)
-    tab.append(statusIcon)
-    tab.append(name)
-    const activeTab = currentTab()
-    const tabnewposition = getSetting("tabnewposition")
-    if (options.customIndex !== undefined && activeTab) {
-        if (options.customIndex >= listTabs().length) {
-            tabs?.append(tab)
-        } else {
-            /** @type {Element|null} */
-            let nextTab = listTabs()[options.customIndex]
-            if (!options.pinned) {
-                while (nextTab && nextTab.classList.contains("pinned")) {
-                    nextTab = nextTab.nextElementSibling
-                }
-            }
-            tabs?.insertBefore(tab, nextTab)
-        }
-    } else if (tabnewposition === "right" && activeTab) {
-        let nextTab = activeTab.nextElementSibling
-        if (!options.pinned) {
-            while (nextTab && nextTab.classList.contains("pinned")) {
-                nextTab = nextTab.nextElementSibling
-            }
-        }
-        tabs?.insertBefore(tab, nextTab ?? null)
-    } else if (tabnewposition === "left" && activeTab) {
-        /** @type {Element|null} */
-        let nextTab = activeTab
-        if (!options.pinned) {
-            while (nextTab && nextTab.classList.contains("pinned")) {
-                nextTab = nextTab.nextElementSibling
-            }
-        }
-        tabs?.insertBefore(tab, nextTab ?? null)
-    } else if (tabnewposition === "start" && activeTab) {
-        /** @type {Element|null} */
-        let nextTab = tabs?.firstElementChild ?? null
-        if (!options.pinned) {
-            while (nextTab && nextTab.classList.contains("pinned")) {
-                nextTab = nextTab.nextElementSibling
-            }
-        }
-        tabs?.insertBefore(tab, nextTab ?? null)
-    } else {
-        tabs?.append(tab)
-    }
-    tab.setAttribute("link-id", `${linkId}`)
-    const color = getSetting("containercolors").split(",").find(
-        c => sessionName.match(c.split("~")[0]))
-    if (color) {
-        [, tab.style.color] = color.split("~")
-    }
-    const page = document.createElement("div")
-    if (options.script) {
-        page.setAttribute("user-script-file", options.script)
-    }
-    page.classList.add("webview")
-    page.setAttribute("link-id", `${linkId}`)
-    const url = stringToUrl(options.url || "")
-        .replace(/view-?source:\/?\/?/g, "sourceviewer://")
-    if (options.url) {
-        page.setAttribute("src", url)
-    }
-    page.setAttribute("container", sessionName)
-    if (isDevtoolsTab) {
-        page.setAttribute("devtools-for-id", `${currentPageId}`)
-    }
-    let {muted} = options
-    if (options.startup) {
-        muted = getSetting("tabreopenmuted") === "always"
-            || getSetting("tabreopenmuted") === "remember" && muted
-    } else if (muted === undefined || muted === null) {
-        muted = getSetting("tabopenmuted") === "always"
-            || getSetting("tabopenmuted") === "background" && !options.switchTo
-    }
-    if (muted) {
-        tab.setAttribute("muted", "muted")
-        page.setAttribute("muted", "muted")
-    }
-    pages?.append(page)
-    const suspend = (options.lazy ?? getSetting("suspendbackgroundtab"))
-        && !options.switchTo
-    tab.setAttribute("suspended", "suspended")
-    if (suspend) {
-        const {titleForPage} = require("./history")
-        name.textContent = titleForPage(url) || url
-        const {forSite} = require("./favicons")
-        favicon.src = forSite(url) || favicon.src
-    } else if (!options.switchTo) {
-        unsuspendPage(page)
-    }
-    if (options.switchTo) {
-        switchToTab(tab)
-    } else {
-        const {applyLayout} = require("./pagelayout")
-        applyLayout()
-    }
-}
-
-const sharedAttributes = [
-    "link-id", "container", "class", "id", "style", "muted", "user-script-file"
-]
-
-/**
- * Suspend a tab.
- * @param {HTMLSpanElement} tab
- * @param {boolean} force
- */
-const suspendTab = (tab, force = false) => {
-    const page = pageForTab(tab)
-    if (!page || page instanceof HTMLDivElement) {
-        return
-    }
-    if (tab.classList.contains("visible-tab") && !force) {
-        return
-    }
-    page.closeDevTools()
-    tab.setAttribute("suspended", "suspended")
-    tab.classList.remove("crashed")
-    tab.removeAttribute("media-playing")
-    const {show} = require("./favicons")
-    show(page)
-    const placeholder = document.createElement("div")
-    placeholder.classList.add("webview")
-    sharedAttributes.forEach(attr => {
-        const attrValue = page.getAttribute(attr)
-        if (attrValue) {
-            placeholder.setAttribute(attr, attrValue)
-        }
-    })
-    placeholder.setAttribute("src", page.src)
-    page.replaceWith(placeholder)
-    const closedDevtoolsId = tab.getAttribute("devtools-id")
-    listTabs().forEach(t => {
-        if (closedDevtoolsId === t.getAttribute("link-id")) {
-            closeTab(listTabs().indexOf(t))
-        }
-    })
-}
-
-/**
- * Unsuspend a tab.
- * @param {Electron.WebviewTag|HTMLDivElement} page
- */
-const unsuspendPage = page => {
-    if (page.tagName?.toLowerCase() === "webview") {
-        return
-    }
-    const tab = tabForPage(page)
-    if (!tab?.getAttribute("suspended")) {
-        return
-    }
-    tab.removeAttribute("suspended")
-    const webview = document.createElement("webview")
-    sharedAttributes.forEach(attr => {
-        const attrValue = page.getAttribute(attr)
-        if (attrValue) {
-            webview.setAttribute(attr, attrValue)
-        }
-    })
-    let prefs = "spellcheck=true,transparent=true,backgroundColor=#33333300,"
-    if (appConfig()?.autoplay === "user") {
-        prefs += "autoplayPolicy=document-user-activation-required,"
-    }
-    // Info on nodeIntegrationInSubFrames and nodeIntegrationInWorker:
-    // https://github.com/electron/electron/issues/22582
-    // https://github.com/electron/electron/issues/28620
-    prefs += "disableDialogs,nodeIntegrationInSubFrames,nodeIntegrationInWorker"
-    webview.setAttribute("allowpopups", "true")
-    webview.setAttribute("webpreferences", prefs)
-    const url = page.getAttribute("src") || ""
-    const loc = url.replace(/view-?source:\/?\/?/g, "sourceviewer://")
-    const sessionName = getSetting("containernames").split(",").find(
-        c => loc.match(c.split("~")[0]) && c.split("~")[2] !== "newtab")
-        ?.split("~")[1] ?? page.getAttribute("container")
-    ipcRenderer.send("create-session", `persist:${sessionName}`,
-        getSetting("adblocker"), getSetting("cache") !== "none")
-    webview.setAttribute("partition", `persist:${sessionName}`)
-    guiRelatedUpdate("tabbar")
-    const {updateContainerSettings} = require("./settings")
-    updateContainerSettings(false)
-    const {setLastUsedTab} = require("./pagelayout")
-    setLastUsedTab(page?.getAttribute("link-id") ?? null)
-    const currentPageId = Number(page.getAttribute("devtools-for-id") || 0) || 0
-    const isDevtoolsTab = !!currentPageId
-    if (isDevtoolsTab) {
-        webview.src = "about:blank"
-    } else {
-        webview.src = specialPagePath("newtab")
-    }
-    webview.addEventListener("dom-ready", () => {
-        if (!webview.getAttribute("dom-ready")) {
-            if (webview.getAttribute("custom-first-load")) {
-                webview.clearHistory()
-                webview.removeAttribute("custom-first-load")
-                webview.setAttribute("dom-ready", "true")
-                return
-            }
-            const name = tab.querySelector("span")
-            if (tab.getAttribute("muted")) {
-                webview.setAudioMuted(true)
-            }
-            addWebviewListeners(webview)
-            const newtabUrl = getSetting("newtaburl")
-            if (isDevtoolsTab) {
-                ipcRenderer.send("add-devtools",
-                    currentPageId, webview.getWebContentsId())
-                if (name) {
-                    name.textContent = "Devtools"
-                }
-            } else if (url || newtabUrl) {
-                webview.setAttribute("custom-first-load", "true")
-                webview.loadURL(url || stringToUrl(newtabUrl)).catch(() => null)
-                resetTabInfo(webview)
-                if (name) {
-                    name.textContent = urlToString(url)
-                }
-                return
-            }
-            webview.clearHistory()
-            webview.setAttribute("dom-ready", "true")
-        }
-    })
-    page.replaceWith(webview)
-}
-
+/** Reopen the last closed tab and switch to it. */
 const reopenTab = () => {
     if (recentlyClosed.length === 0 || listTabs().length === 0) {
         return
@@ -648,7 +342,78 @@ const reopenTab = () => {
     const rememberMuted = getSetting("tabreopenmuted")
     restore.muted = rememberMuted === "always"
         || rememberMuted === "remember" && restore.muted
+    /* eslint-disable-next-line no-use-before-define */
     addTab(restore)
+}
+
+/**
+ * Switch to a different tab by element or index.
+ * @param {HTMLSpanElement|number} tabOrIndex
+ */
+const switchToTab = tabOrIndex => {
+    if (document.body.classList.contains("fullscreen")) {
+        currentPage()?.send("action", "exitFullscreen")
+    }
+    const tabs = listTabs()
+    let tab = tabOrIndex
+    if (typeof tabOrIndex === "number") {
+        let index = tabOrIndex
+        while (index < 0) {
+            if (getSetting("tabcycle")) {
+                index = tabs.length + index
+            } else {
+                index = 0
+            }
+        }
+        while (tabs.length <= index) {
+            if (getSetting("tabcycle")) {
+                index -= tabs.length
+            } else {
+                index = tabs.length - 1
+            }
+        }
+        tab = tabs[index]
+    }
+    if (!(tab instanceof HTMLSpanElement)) {
+        return
+    }
+    const oldPage = currentPage()
+    tabs.forEach(t => {
+        t.id = ""
+    })
+    listPages().forEach(p => {
+        p.id = ""
+    })
+    tab.id = "current-tab"
+    /** @type {Electron.WebviewTag|HTMLDivElement|null|undefined} */
+    let newCurrentPage = pageForTab(tab)
+    if (newCurrentPage) {
+        newCurrentPage.id = "current-page"
+    }
+    tab.scrollIntoView({"block": "center", "inline": "center"})
+    const {switchView, setLastUsedTab} = require("./pagelayout")
+    if (newCurrentPage) {
+        switchView(oldPage, newCurrentPage)
+    }
+    saveTabs()
+    setMode("normal")
+    if (newCurrentPage) {
+        /* eslint-disable-next-line no-use-before-define */
+        unsuspendPage(newCurrentPage)
+    }
+    newCurrentPage = currentPage()
+    if (newCurrentPage && !(newCurrentPage instanceof HTMLDivElement)) {
+        updateUrl(newCurrentPage)
+    }
+    const hoverEl = document.getElementById("url-hover")
+    if (hoverEl) {
+        hoverEl.textContent = ""
+        hoverEl.style.display = "none"
+    }
+    guiRelatedUpdate("tabbar")
+    const {updateContainerSettings} = require("./settings")
+    updateContainerSettings(false)
+    setLastUsedTab(oldPage?.getAttribute("link-id") ?? null)
 }
 
 /**
@@ -712,8 +477,10 @@ const closeTab = (index = null, force = false) => {
                 return
             }
             if (getSetting("containernewtab").startsWith("s:")) {
+                /* eslint-disable-next-line no-use-before-define */
                 addTab({"container": "main"})
             } else {
+                /* eslint-disable-next-line no-use-before-define */
                 addTab()
             }
         }
@@ -747,100 +514,6 @@ const closeTab = (index = null, force = false) => {
             closeTab(listTabs().indexOf(t))
         }
     })
-}
-
-/**
- * Switch to a different tab by element or index.
- * @param {HTMLSpanElement|number} tabOrIndex
- */
-const switchToTab = tabOrIndex => {
-    if (document.body.classList.contains("fullscreen")) {
-        currentPage()?.send("action", "exitFullscreen")
-    }
-    const tabs = listTabs()
-    let tab = tabOrIndex
-    if (typeof tabOrIndex === "number") {
-        let index = tabOrIndex
-        while (index < 0) {
-            if (getSetting("tabcycle")) {
-                index = tabs.length + index
-            } else {
-                index = 0
-            }
-        }
-        while (tabs.length <= index) {
-            if (getSetting("tabcycle")) {
-                index -= tabs.length
-            } else {
-                index = tabs.length - 1
-            }
-        }
-        tab = tabs[index]
-    }
-    if (!(tab instanceof HTMLSpanElement)) {
-        return
-    }
-    const oldPage = currentPage()
-    tabs.forEach(t => {
-        t.id = ""
-    })
-    listPages().forEach(p => {
-        p.id = ""
-    })
-    tab.id = "current-tab"
-    /** @type {Electron.WebviewTag|HTMLDivElement|null|undefined} */
-    let newCurrentPage = pageForTab(tab)
-    if (newCurrentPage) {
-        newCurrentPage.id = "current-page"
-    }
-    tab.scrollIntoView({"block": "center", "inline": "center"})
-    const {switchView, setLastUsedTab} = require("./pagelayout")
-    if (newCurrentPage) {
-        switchView(oldPage, newCurrentPage)
-    }
-    saveTabs()
-    setMode("normal")
-    if (newCurrentPage) {
-        unsuspendPage(newCurrentPage)
-    }
-    newCurrentPage = currentPage()
-    if (newCurrentPage && !(newCurrentPage instanceof HTMLDivElement)) {
-        updateUrl(newCurrentPage)
-    }
-    const hoverEl = document.getElementById("url-hover")
-    if (hoverEl) {
-        hoverEl.textContent = ""
-        hoverEl.style.display = "none"
-    }
-    guiRelatedUpdate("tabbar")
-    const {updateContainerSettings} = require("./settings")
-    updateContainerSettings(false)
-    setLastUsedTab(oldPage?.getAttribute("link-id") ?? null)
-}
-
-/**
- * Update the url in the navbar to reflect the current status.
- * @param {Electron.WebviewTag} webview
- * @param {boolean} force
- */
-const updateUrl = (webview, force = false) => {
-    const url = currentPage()?.src
-    if (webview !== currentPage() || typeof url === "undefined") {
-        return
-    }
-    const {updateWindowTitle} = require("./settings")
-    updateWindowTitle()
-    if (!force && "secf".includes(currentMode()[0])) {
-        return
-    }
-    let niceUrl = urlToString(url)
-    if (niceUrl === `${appConfig()?.name.toLowerCase()}://newtab`) {
-        niceUrl = ""
-    }
-    const urlInput = getUrl()
-    if (urlInput) {
-        urlInput.value = niceUrl
-    }
 }
 
 /**
@@ -1163,6 +836,7 @@ const addWebviewListeners = webview => {
             notify(e.args[0], e.args[1], e.args[2])
         }
         if (e.channel === "url") {
+            /* eslint-disable-next-line no-use-before-define */
             addTab({"url": e.args[0]})
         }
         if (e.channel === "download") {
@@ -1294,6 +968,7 @@ const addWebviewListeners = webview => {
             hoverEl.style.display = "none"
         }
     })
+    /** Focus the webview on blur when inside insert mode. */
     webview.onblur = () => {
         if (currentMode() === "insert") {
             webview.focus()
@@ -1302,106 +977,442 @@ const addWebviewListeners = webview => {
 }
 
 /**
- * Recreate a webview to in case of new container name or crash reload.
- * @param {Electron.WebviewTag} webview
- * @param {string|null} customSrc
+ * Unsuspend a tab.
+ * @param {Electron.WebviewTag|HTMLDivElement} page
  */
-const recreateWebview = (webview, customSrc = null) => {
-    const tab = tabForPage(webview)
-    if (tab) {
-        suspendTab(tab, true)
-        const suspendedPage = pageForTab(tab)
-        if (suspendedPage) {
-            if (customSrc) {
-                suspendedPage.setAttribute("src", customSrc)
-            }
-            unsuspendPage(suspendedPage)
+const unsuspendPage = page => {
+    if (page.tagName?.toLowerCase() === "webview") {
+        return
+    }
+    const tab = tabForPage(page)
+    if (!tab?.getAttribute("suspended")) {
+        return
+    }
+    tab.removeAttribute("suspended")
+    const webview = document.createElement("webview")
+    sharedAttributes.forEach(attr => {
+        const attrValue = page.getAttribute(attr)
+        if (attrValue) {
+            webview.setAttribute(attr, attrValue)
         }
+    })
+    let prefs = "spellcheck=true,transparent=true,backgroundColor=#33333300,"
+    if (appConfig()?.autoplay === "user") {
+        prefs += "autoplayPolicy=document-user-activation-required,"
     }
-}
-
-/**
- * Reset the tab information for a given page.
- * @param {Electron.WebviewTag} webview
- */
-const resetTabInfo = webview => {
-    webview.removeAttribute("failed-to-load")
-    const {empty} = require("./favicons")
-    empty(webview)
-}
-
-/**
- * Pick a new useragent for the page if multiple are configured.
- * @param {Electron.WebviewTag} webview
- */
-const rerollUserAgent = webview => {
-    const customUA = getSetting("useragent")
-    if (customUA) {
-        const agents = customUA.split("~")
-        const agent = userAgentTemplated(
-            agents.at(Math.random() * agents.length) ?? "")
-        webview.setUserAgent(agent)
-    } else {
-        webview.setUserAgent("")
-    }
-}
-
-/**
- * Check if the contanernames setting is still respected, if not recreate.
- * @param {Electron.WebviewTag} webview
- * @param {string} location
- */
-const checkContainerNames = (webview, location) => {
-    const loc = location.replace(/view-?source:\/?\/?/g, "sourceviewer://")
+    // Info on nodeIntegrationInSubFrames and nodeIntegrationInWorker:
+    // https://github.com/electron/electron/issues/22582
+    // https://github.com/electron/electron/issues/28620
+    prefs += "disableDialogs,nodeIntegrationInSubFrames,nodeIntegrationInWorker"
+    webview.setAttribute("allowpopups", "true")
+    webview.setAttribute("webpreferences", prefs)
+    const url = page.getAttribute("src") || ""
+    const loc = url.replace(/view-?source:\/?\/?/g, "sourceviewer://")
     const sessionName = getSetting("containernames").split(",").find(
         c => loc.match(c.split("~")[0]) && c.split("~")[2] !== "newtab")
-        ?.split("~")[1]
-    if (sessionName && sessionName !== webview.getAttribute("container")) {
-        webview.setAttribute("container", sessionName)
-        recreateWebview(webview, loc)
-        return true
+        ?.split("~")[1] ?? page.getAttribute("container")
+    ipcRenderer.send("create-session", `persist:${sessionName}`,
+        getSetting("adblocker"), getSetting("cache") !== "none")
+    webview.setAttribute("partition", `persist:${sessionName}`)
+    guiRelatedUpdate("tabbar")
+    const {updateContainerSettings} = require("./settings")
+    updateContainerSettings(false)
+    const {setLastUsedTab} = require("./pagelayout")
+    setLastUsedTab(page?.getAttribute("link-id") ?? null)
+    const currentPageId = Number(page.getAttribute("devtools-for-id") || 0) || 0
+    const isDevtoolsTab = !!currentPageId
+    if (isDevtoolsTab) {
+        webview.src = "about:blank"
+    } else {
+        webview.src = specialPagePath("newtab")
     }
-    return false
+    webview.addEventListener("dom-ready", () => {
+        if (!webview.getAttribute("dom-ready")) {
+            if (webview.getAttribute("custom-first-load")) {
+                webview.clearHistory()
+                webview.removeAttribute("custom-first-load")
+                webview.setAttribute("dom-ready", "true")
+                return
+            }
+            const name = tab.querySelector("span")
+            if (tab.getAttribute("muted")) {
+                webview.setAudioMuted(true)
+            }
+            addWebviewListeners(webview)
+            const newtabUrl = getSetting("newtaburl")
+            if (isDevtoolsTab) {
+                ipcRenderer.send("add-devtools",
+                    currentPageId, webview.getWebContentsId())
+                if (name) {
+                    name.textContent = "Devtools"
+                }
+            } else if (url || newtabUrl) {
+                webview.setAttribute("custom-first-load", "true")
+                webview.loadURL(url || stringToUrl(newtabUrl)).catch(() => null)
+                resetTabInfo(webview)
+                if (name) {
+                    name.textContent = urlToString(url)
+                }
+                return
+            }
+            webview.clearHistory()
+            webview.setAttribute("dom-ready", "true")
+        }
+    })
+    page.replaceWith(webview)
 }
 
 /**
- * Navigate the page to a new location, optionally a custom page.
- * @param {string} location
- * @param {Electron.WebviewTag|null} customPage
+ * Add a new tab.
+ * @param {{
+ *   url?: string,
+ *   customIndex?: number,
+ *   switchTo?: boolean,
+ *   pinned?: boolean,
+ *   container?: string,
+ *   session?: string,
+ *   devtools?: boolean,
+ *   lazy?: boolean,
+ *   script?: string,
+ *   muted?: boolean,
+ *   startup?: boolean,
+ * }} options
  */
-const navigateTo = (location, customPage = null) => {
+const addTab = (options = {}) => {
+    // Recognized options for opening a new tab are as follows:
+    // url, customIndex, switchTo, pinned, session (override of container)
+    // container (suggestion), devtools, lazy, script, muted, startup
+    // Defaults for these options vary depending on app state and user settings
+    if (options.url) {
+        try {
+            new URL(options.url)
+        } catch {
+            return
+        }
+    }
+    if (options.switchTo === undefined) {
+        options.switchTo = true
+    }
+    if (options.url?.startsWith("devtools://")) {
+        return
+    }
+    if (options.url?.startsWith("about:blank") || options.url === "") {
+        return
+    }
+    linkId += 1
+    /** @type {number|null} */
+    let currentPageId = null
+    /** @type {string|null} */
+    let currentPageLinkId = null
+    let devtoolsOpen = false
     try {
-        new URL(location)
+        devtoolsOpen = currentPage()?.isDevToolsOpened() ?? false
+        currentPageId = currentPage()?.getWebContentsId() ?? null
+        currentPageLinkId = currentPage()?.getAttribute("link-id") ?? null
     } catch {
+        // Current page not ready, devtools won't be opened
+    }
+    let isDevtoolsTab = false
+    if (options.devtools && currentPageId && currentPageLinkId) {
+        const oldTab = listTabs().find(
+            t => t.getAttribute("link-id") === currentPageLinkId)
+        if (oldTab?.getAttribute("devtools-id") || devtoolsOpen) {
+            return
+        }
+        oldTab?.setAttribute("devtools-id", `${linkId}`)
+        isDevtoolsTab = true
+    }
+    let sessionName = getSetting("containernewtab")
+    if (options.container) {
+        sessionName = options.container
+    } else if (options.startup) {
+        sessionName = getSetting("containerstartuppage")
+    }
+    if (sessionName === "s:external" && options.url && !options.session) {
+        const isSpecialPage = pathToSpecialPageName(options.url)?.name
+        if (isSpecialPage) {
+            sessionName = "main"
+        } else {
+            if ((/^https?:\/\//).test(options.url)) {
+                if (getSetting("externalcommand").trim()) {
+                    const {commonAction} = require("./contextmenu")
+                    commonAction("link", "external", {"link": options.url})
+                } else {
+                    const {shell} = require("electron")
+                    shell.openExternal(options.url)
+                }
+            }
+            return
+        }
+    }
+    if (sessionName === "s:replacematching" && options.url) {
+        const match = listPages().find(p => sameDomain(
+            p.getAttribute("src") ?? "", options.url ?? ""))
+        if (match) {
+            const tab = tabForPage(match)
+            if (tab) {
+                switchToTab(tab)
+            }
+        }
+    }
+    if (sessionName.startsWith("s:replace") && !options.session) {
+        if (options.url) {
+            navigateTo(options.url)
+        }
         return
     }
-    const webview = customPage || currentPage()
-    if (!webview || !location || webview.src.startsWith("devtools://")) {
-        return
+    if (sessionName === "s:usematching" && options.url) {
+        const match = listPages().find(p => sameDomain(
+            p.getAttribute("src") ?? "", options.url ?? ""))
+        if (match) {
+            sessionName = match.getAttribute("container") ?? sessionName
+        }
     }
-    if (!webview.getAttribute("dom-ready") && webview.isLoading()) {
-        setTimeout(() => navigateTo(location, webview), 1)
-        return
+    if (sessionName.startsWith("s:")) {
+        sessionName = currentPage()?.getAttribute("container") || "main"
     }
-    const loc = location.replace(/view-?source:\/?\/?/g, "sourceviewer://")
-    if (webview.isCrashed()) {
-        recreateWebview(webview, loc)
-        return
+    if (options.session) {
+        sessionName = options.session
+    } else if (options.url) {
+        sessionName = getSetting("containernames").split(",").find(
+            c => options.url?.match(c.split("~")[0]))?.split("~")[1]
+            || sessionName
     }
-    webview.stop()
-    const wasRecreated = checkContainerNames(webview, loc)
-    if (wasRecreated) {
-        return
+    sessionName = sessionName.replace("%n", `${linkId}`)
+    const tabs = document.getElementById("tabs")
+    const pages = document.getElementById("pages")
+    const tab = document.createElement("span")
+    const favicon = document.createElement("img")
+    const statusIcon = document.createElement("img")
+    const name = document.createElement("span")
+    if (options.pinned) {
+        tab.classList.add("pinned")
     }
-    rerollUserAgent(webview)
-    webview.loadURL(loc).catch(() => null)
-    resetTabInfo(webview)
-    const tabTitleEl = currentTab()?.querySelector("span")
-    if (tabTitleEl) {
-        tabTitleEl.textContent = urlToString(loc)
+    tab.style.minWidth = `${getSetting("mintabwidth")}px`
+    favicon.src = "img/empty.png"
+    favicon.className = "favicon"
+    statusIcon.src = "img/spinner.gif"
+    statusIcon.className = "status"
+    statusIcon.style.display = "none"
+    name.textContent = "Newtab"
+    tab.append(favicon)
+    tab.append(statusIcon)
+    tab.append(name)
+    const activeTab = currentTab()
+    const tabnewposition = getSetting("tabnewposition")
+    if (options.customIndex !== undefined && activeTab) {
+        if (options.customIndex >= listTabs().length) {
+            tabs?.append(tab)
+        } else {
+            /** @type {Element|null} */
+            let nextTab = listTabs()[options.customIndex]
+            if (!options.pinned) {
+                while (nextTab && nextTab.classList.contains("pinned")) {
+                    nextTab = nextTab.nextElementSibling
+                }
+            }
+            tabs?.insertBefore(tab, nextTab)
+        }
+    } else if (tabnewposition === "right" && activeTab) {
+        let nextTab = activeTab.nextElementSibling
+        if (!options.pinned) {
+            while (nextTab && nextTab.classList.contains("pinned")) {
+                nextTab = nextTab.nextElementSibling
+            }
+        }
+        tabs?.insertBefore(tab, nextTab ?? null)
+    } else if (tabnewposition === "left" && activeTab) {
+        /** @type {Element|null} */
+        let nextTab = activeTab
+        if (!options.pinned) {
+            while (nextTab && nextTab.classList.contains("pinned")) {
+                nextTab = nextTab.nextElementSibling
+            }
+        }
+        tabs?.insertBefore(tab, nextTab ?? null)
+    } else if (tabnewposition === "start" && activeTab) {
+        /** @type {Element|null} */
+        let nextTab = tabs?.firstElementChild ?? null
+        if (!options.pinned) {
+            while (nextTab && nextTab.classList.contains("pinned")) {
+                nextTab = nextTab.nextElementSibling
+            }
+        }
+        tabs?.insertBefore(tab, nextTab ?? null)
+    } else {
+        tabs?.append(tab)
+    }
+    tab.setAttribute("link-id", `${linkId}`)
+    const color = getSetting("containercolors").split(",").find(
+        c => sessionName.match(c.split("~")[0]))
+    if (color) {
+        [, tab.style.color] = color.split("~")
+    }
+    const page = document.createElement("div")
+    if (options.script) {
+        page.setAttribute("user-script-file", options.script)
+    }
+    page.classList.add("webview")
+    page.setAttribute("link-id", `${linkId}`)
+    const url = stringToUrl(options.url || "")
+        .replace(/view-?source:\/?\/?/g, "sourceviewer://")
+    if (options.url) {
+        page.setAttribute("src", url)
+    }
+    page.setAttribute("container", sessionName)
+    if (isDevtoolsTab) {
+        page.setAttribute("devtools-for-id", `${currentPageId}`)
+    }
+    let {muted} = options
+    if (options.startup) {
+        muted = getSetting("tabreopenmuted") === "always"
+            || getSetting("tabreopenmuted") === "remember" && muted
+    } else if (muted === undefined || muted === null) {
+        muted = getSetting("tabopenmuted") === "always"
+            || getSetting("tabopenmuted") === "background" && !options.switchTo
+    }
+    if (muted) {
+        tab.setAttribute("muted", "muted")
+        page.setAttribute("muted", "muted")
+    }
+    pages?.append(page)
+    const suspend = (options.lazy ?? getSetting("suspendbackgroundtab"))
+        && !options.switchTo
+    tab.setAttribute("suspended", "suspended")
+    if (suspend) {
+        const {titleForPage} = require("./history")
+        name.textContent = titleForPage(url) || url
+        const {forSite} = require("./favicons")
+        favicon.src = forSite(url) || favicon.src
+    } else if (!options.switchTo) {
+        unsuspendPage(page)
+    }
+    if (options.switchTo) {
+        switchToTab(tab)
+    } else {
+        const {applyLayout} = require("./pagelayout")
+        applyLayout()
     }
 }
 
+/** Load the tabs from disk and from startup args. */
+const init = () => {
+    window.addEventListener("load", () => {
+        if (appConfig()?.icon) {
+            document.getElementById("logo")
+                ?.setAttribute("src", appConfig()?.icon ?? "")
+        }
+        /** @type {{
+         *   closed?: typeof recentlyClosed,
+         *   pinned?: typeof recentlyClosed,
+         *   tabs?: typeof recentlyClosed,
+         *   id?: number
+         * }} */
+        const parsed = readJSON(tabFile)
+        if (!erwicMode) {
+            if (parsed) {
+                const s = getSetting("suspendonrestore")
+                const restoreTabs = getSetting("restoretabs")
+                const keepRecentlyClosed = getSetting("keeprecentlyclosed")
+                if (Array.isArray(parsed.closed) && keepRecentlyClosed) {
+                    recentlyClosed = parsed.closed
+                }
+                if (Array.isArray(parsed.pinned)) {
+                    if (restoreTabs === "all" || restoreTabs === "pinned") {
+                        parsed.pinned.forEach(t => addTab({
+                            ...t,
+                            "lazy": s === "all",
+                            "pinned": true,
+                            "switchTo": false
+                        }))
+                    } else if (keepRecentlyClosed) {
+                        recentlyClosed.push(...parsed.pinned)
+                    }
+                }
+                if (Array.isArray(parsed.tabs)) {
+                    if (restoreTabs === "all" || restoreTabs === "regular") {
+                        parsed.tabs.forEach(t => addTab({
+                            ...t,
+                            "lazy": s === "all" || s === "regular",
+                            "switchTo": false
+                        }))
+                    } else if (keepRecentlyClosed) {
+                        recentlyClosed.push(...parsed.tabs)
+                    }
+                }
+                if (listTabs().length !== 0) {
+                    switchToTab(parsed.id || 0)
+                }
+            }
+            const startup = getSetting("startuppages")
+            for (const tab of startup.split(",")) {
+                const parts = tab.split("~")
+                const url = parts.shift() ?? ""
+                const container = parts.shift() ?? ""
+                const muted = parts.includes("muted")
+                const pinned = parts.includes("pinned")
+                addTab({container, muted, pinned, "startup": true, url})
+            }
+        }
+        ipcRenderer.on("urls", (_, pages) => {
+            for (const page of pages) {
+                const replaceStartup = getSetting("replacestartup")
+                if (replaceStartup !== "never") {
+                    try {
+                        const url = currentPage()?.src ?? ""
+                        const specialName = pathToSpecialPageName(url)?.name
+                        const isNewtab = specialName === "newtab"
+                            || url.replace(/\/+$/g, "") === stringToUrl(
+                                getSetting("newtaburl")).replace(/\/+$/g, "")
+                        if (isNewtab || replaceStartup === "always") {
+                            navigateTo(stringToUrl(page?.url || page))
+                            continue
+                        }
+                    } catch {
+                        // No tabs yet
+                    }
+                }
+                if (typeof page === "string") {
+                    addTab({"startup": true, "url": stringToUrl(page)})
+                } else {
+                    addTab({...page, "startup": true})
+                }
+            }
+        })
+        ipcRenderer.on("navigate-to", (_, url) => navigateTo(stringToUrl(url)))
+        ipcRenderer.on("unresponsive", (_, id) => {
+            listReadyPages().forEach(webview => {
+                if (webview.getWebContentsId() === id) {
+                    tabForPage(webview)?.classList.add("unresponsive")
+                }
+            })
+        })
+        ipcRenderer.on("responsive", (_, id) => {
+            listReadyPages().forEach(webview => {
+                if (webview.getWebContentsId() === id) {
+                    tabForPage(webview)?.classList.remove("unresponsive")
+                }
+            })
+        })
+        ipcRenderer.on("new-tab", (_, url) => addTab({
+            "switchTo": getSetting("mousenewtabswitch"), "url": stringToUrl(url)
+        }))
+        if (listTabs().length === 0 && !erwicMode) {
+            if (parsed) {
+                addTab()
+            } else {
+                // The very first startup with this datafolder, show help page
+                addTab({"url": specialPagePath("help")})
+            }
+        }
+        ipcRenderer.send("window-state-init",
+            getSetting("restorewindowposition"),
+            getSetting("restorewindowsize"),
+            getSetting("restorewindowmaximize"))
+    })
+}
+
+/** Move the tab forward in the tab bar. */
 const moveTabForward = () => {
     const tabs = document.getElementById("tabs")
     const tab = currentTab()
@@ -1418,6 +1429,7 @@ const moveTabForward = () => {
     return true
 }
 
+/** Move the tab backward in the tab bar. */
 const moveTabBackward = () => {
     const tabs = document.getElementById("tabs")
     const tab = currentTab()

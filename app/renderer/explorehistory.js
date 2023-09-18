@@ -26,10 +26,12 @@ let previousSites = []
 let previousIndex = -1
 let originalSite = ""
 
+/** Load the explore hist of the previous session if stored. */
 const init = () => {
     previousSites = readFile(exploreFile)?.split("\n").filter(s => s) || []
 }
 
+/** Show the right entry based on new index set by previous or next. */
 const updateNavWithSite = () => {
     let exploreText = originalSite
     if (previousIndex !== -1) {
@@ -43,6 +45,7 @@ const updateNavWithSite = () => {
     suggestExplore(exploreText)
 }
 
+/** Go to the previous item in the explore history. */
 const previous = () => {
     if (currentMode() !== "explore") {
         return
@@ -56,6 +59,7 @@ const previous = () => {
     updateNavWithSite()
 }
 
+/** Go to the next item in the explore history, or back to typed text. */
 const next = () => {
     if (currentMode() !== "explore" || previousIndex === -1) {
         return
@@ -68,6 +72,7 @@ const next = () => {
     updateNavWithSite()
 }
 
+/** Reset the position info for the explore history. */
 const resetPosition = () => {
     previousIndex = -1
     originalSite = ""

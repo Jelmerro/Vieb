@@ -156,33 +156,8 @@ const searchword = location => {
     return {"url": location, "word": null}
 }
 
+/** Return the notification history. */
 const listNotificationHistory = () => notificationHistory
-
-/**
- * Get the url of a special page given a name and an optional section.
- * @param {string} userPage
- * @param {string|null} section
- * @param {boolean} skipExistCheck
- */
-const specialPagePath = (userPage, section = null, skipExistCheck = false) => {
-    let page = userPage
-    if (!specialPages.includes(userPage) && !skipExistCheck) {
-        page = "help"
-    }
-    let url = joinPath(__dirname, `./pages/${page}.html`)
-        .replace(/\\/g, "/").replace(/^\/*/g, "")
-    if (isDir(joinPath(__dirname, "../pages"))) {
-        url = joinPath(__dirname, `../pages/${page}.html`)
-            .replace(/\\/g, "/").replace(/^\/*/g, "")
-    }
-    if (section) {
-        if (section.startsWith("#")) {
-            return `file:///${url}${section}`
-        }
-        return `file:///${url}#${section}`
-    }
-    return `file:///${url}`
-}
 
 /**
  * Expand a path that is prefixed with ~ to the user's home folder.
@@ -200,74 +175,6 @@ const expandPath = loc => {
 }
 
 /**
- * Translate a string from the explore mode input to a valid url.
- * @param {string} location
- */
-const stringToUrl = location => {
-    let url = String(location)
-    const specialPage = pathToSpecialPageName(url)
-    if (specialPage?.name) {
-        return specialPagePath(specialPage.name, specialPage.section)
-    }
-    let fileName = url.replace(/^file:\/+/, "/")
-    if (process.platform === "win32") {
-        fileName = url.replace(/^file:\/+/, "")
-    }
-    const local = expandPath(fileName)
-    if (isDir(local) || isFile(local)) {
-        const escapedPath = local.replace(/\?/g, "%3F").replace(/#/g, "%23")
-        url = `file:/${escapedPath}`.replace(/^file:\/+/, "file:///")
-    }
-    if (!isUrl(url)) {
-        const engines = getSetting("searchengine").split(",")
-        const engine = engines.at(Math.random() * engines.length)
-        if (!engine) {
-            return ""
-        }
-        url = engine.replace(/%s/g, encodeURIComponent(location))
-    }
-    if (!hasProtocol(url)) {
-        url = `https://${url}`
-    }
-    try {
-        return new URL(url).href
-    } catch {
-        // Can't be re-encoded
-    }
-    return encodeURI(url)
-}
-
-/**
- * Translate a valid url to the explore mode input representation.
- * @param {string} url
- */
-const urlToString = url => {
-    const special = pathToSpecialPageName(url)
-    if (special?.name) {
-        let specialUrl = `${appConfig()?.name.toLowerCase()}://${special.name}`
-        if (special.section) {
-            specialUrl += `#${special.section}`
-        }
-        return specialUrl
-    }
-    try {
-        const decoded = decodeURI(url)
-        let fileName = decoded.replace(/^file:\/+/, "/")
-        if (process.platform === "win32") {
-            fileName = decoded.replace(/^file:\/+/, "")
-        }
-        fileName = fileName.replace(/%23/g, "#").replace(/%3F/g, "?")
-        if (isDir(fileName) || isFile(fileName)) {
-            return fileName
-        }
-        return decoded
-    } catch {
-        // Invalid url
-    }
-    return url
-}
-
-/**
  * Capitalize a string to only have one capital letter at the start.
  * @param {string} s
  */
@@ -278,8 +185,39 @@ const title = s => {
     return `${s[0].toUpperCase()}${s.slice(1).toLowerCase()}`
 }
 
-const downloadPath = () => expandPath(getSetting("downloadpath")
-    || appConfig()?.downloads || "~/Downloads")
+/** Return per operating system the result of navigator.platform. */
+const userAgentPlatform = () => {
+    let platform = "X11; Linux x86_64"
+    if (process.platform === "win32") {
+        platform = "Window NT 10.0; Win64; x64"
+    }
+    if (process.platform === "darwin") {
+        platform = "Macintosh; Intel Mac OS X 10_15_7"
+    }
+    return platform
+}
+
+/** Return the default navigator.userAgent. */
+const defaultUseragent = () => {
+    const [version] = process.versions.chrome.split(".")
+    const sys = userAgentPlatform()
+    return `Mozilla/5.0 (${sys}) AppleWebKit/537.36 (KHTML, like Gecko) `
+        + `Chrome/${version}.0.0.0 Safari/537.36`
+}
+
+/** Calculate the current Firefox version based on date & release schedule. */
+const firefoxVersion = () => {
+    const daysSinceBase = (new Date().getTime()
+        - new Date(2023, 4, 9).getTime()) / 86400000
+    return `${113 + Math.floor(daysSinceBase / 28)}.0`
+}
+
+/** Return the Firefox navigator.userAgent. */
+const firefoxUseragent = () => {
+    const ver = firefoxVersion()
+    const sys = userAgentPlatform()
+    return `Mozilla/5.0 (${sys}; rv:${ver}) Gecko/20100101 Firefox/${ver}`
+}
 
 /**
  * Template a user agent with value with version and browser info.
@@ -297,36 +235,6 @@ const userAgentTemplated = agent => {
         .replace(/%version/g, version)
         .replace(/%firefox/g, firefoxUseragent())
         .replace(/%default/g, defaultUseragent())
-}
-
-const userAgentPlatform = () => {
-    let platform = "X11; Linux x86_64"
-    if (process.platform === "win32") {
-        platform = "Window NT 10.0; Win64; x64"
-    }
-    if (process.platform === "darwin") {
-        platform = "Macintosh; Intel Mac OS X 10_15_7"
-    }
-    return platform
-}
-
-const defaultUseragent = () => {
-    const [version] = process.versions.chrome.split(".")
-    const sys = userAgentPlatform()
-    return `Mozilla/5.0 (${sys}) AppleWebKit/537.36 (KHTML, like Gecko) `
-        + `Chrome/${version}.0.0.0 Safari/537.36`
-}
-
-const firefoxVersion = () => {
-    const daysSinceBase = (new Date().getTime()
-        - new Date(2023, 4, 9).getTime()) / 86400000
-    return `${113 + Math.floor(daysSinceBase / 28)}.0`
-}
-
-const firefoxUseragent = () => {
-    const ver = firefoxVersion()
-    const sys = userAgentPlatform()
-    return `Mozilla/5.0 (${sys}; rv:${ver}) Gecko/20100101 Firefox/${ver}`
 }
 
 /**
@@ -395,17 +303,6 @@ const storeFrameInfo = (element, location) => {
 const findFrameInfo = el => framePaddingInfo.find(i => i.element === el)
 
 /**
- * Get the position of a given element based on bounding rect plus padding.
- * @param {Element} frame
- */
-const framePosition = frame => ({
-    "x": frame.getBoundingClientRect().x + propPixels(frame, "padding-left")
-        + propPixels(frame, "border-left-width"),
-    "y": frame.getBoundingClientRect().y + propPixels(frame, "padding-top")
-        + propPixels(frame, "border-top-width")
-})
-
-/**
  * Get a CSS decleration property from an element as a number of pixels.
  * @param {Element|CSSStyleDeclaration} element
  * @param {string} prop
@@ -430,6 +327,17 @@ const propPixels = (element, prop) => {
     }
     return Number(value) || 0
 }
+
+/**
+ * Get the position of a given element based on bounding rect plus padding.
+ * @param {Element} frame
+ */
+const framePosition = frame => ({
+    "x": frame.getBoundingClientRect().x + propPixels(frame, "padding-left")
+        + propPixels(frame, "border-left-width"),
+    "y": frame.getBoundingClientRect().y + propPixels(frame, "padding-top")
+        + propPixels(frame, "border-top-width")
+})
 
 /**
  * Check if a node is an element, taking subframes into account.
@@ -735,6 +643,7 @@ const findClickPosition = (element, rects) => {
     return {clickable, dims}
 }
 
+/** Find the current active element, also inside shadow dom or subframes. */
 const activeElement = () => {
     if (document.activeElement?.shadowRoot?.activeElement) {
         return document.activeElement.shadowRoot.activeElement
@@ -956,23 +865,64 @@ const intervalValueToDate = value => {
     return date
 }
 
-// IPC UTIL
+// PATH UTIL
 
-const currentPage = () => {
-    /** @type {Electron.WebviewTag|null} */
-    // @ts-expect-error current page id is always set to webview
-    const page = document.getElementById("current-page")
-    return page
+const path = require("path")
+
+/**
+ * Join multiple path parts into a single resolved path.
+ * @param {string[]} paths
+ */
+const joinPath = (...paths) => path.resolve(path.join(...paths))
+
+/**
+ * Returns the app configuration settings.
+ */
+const appConfig = () => {
+    if (!configSettings) {
+        const {ipcRenderer} = require("electron")
+        configSettings = ipcRenderer.sendSync("app-config")
+        if (!configSettings) {
+            return null
+        }
+        let files = [configSettings.override]
+        const datafolderConfig = joinPath(configSettings.appdata, "viebrc")
+        const userFirstConfig = expandPath("~/.vieb/viebrc")
+        const userGlobalConfig = expandPath("~/.viebrc")
+        if (!configSettings.override) {
+            if (configSettings.order === "user-only") {
+                files = [userGlobalConfig, userFirstConfig]
+            }
+            if (configSettings.order === "datafolder-only") {
+                files = [datafolderConfig]
+            }
+            if (configSettings.order === "user-first") {
+                files = [userGlobalConfig, userFirstConfig, datafolderConfig]
+            }
+            if (configSettings.order === "datafolder-first") {
+                files = [datafolderConfig, userFirstConfig, userGlobalConfig]
+            }
+        }
+        configSettings.files = files
+        configSettings.config = configSettings.override || datafolderConfig
+    }
+    return configSettings
 }
 
 /**
- * Send a message to the current page and its frames.
- * @param {string} channel
- * @param {any[]} args
+ * Returns the appdata path (works from both main, renderer and preloads).
  */
-const sendToPageOrSubFrame = (channel, ...args) => {
-    const {ipcRenderer} = require("electron")
-    ipcRenderer.send(channel, currentPage()?.getWebContentsId(), ...args)
+const appData = () => {
+    if (!appDataPath) {
+        try {
+            const {app} = require("electron")
+            return app.getPath("appData")
+        } catch {
+            // Not in main thread
+        }
+        appDataPath = appConfig()?.appdata ?? ""
+    }
+    return appDataPath
 }
 
 /**
@@ -1047,6 +997,7 @@ const notify = (message, type = "info", clickAction = false) => {
         const n = new Notification(
             `${appConfig()?.name} ${properType}`, {"body": message})
         if (clickAction && clickAction.func) {
+            /** Assin the onclick of the notification. */
             n.onclick = () => clickAction.func?.()
         }
         return
@@ -1072,124 +1023,9 @@ const notify = (message, type = "info", clickAction = false) => {
         getSetting("notificationduration"))
 }
 
-/**
- * Returns the appdata path (works from both main, renderer and preloads).
- */
-const appData = () => {
-    if (!appDataPath) {
-        try {
-            const {app} = require("electron")
-            return app.getPath("appData")
-        } catch {
-            // Not in main thread
-        }
-        appDataPath = appConfig()?.appdata ?? ""
-    }
-    return appDataPath
-}
-
-/**
- * Returns the app configuration settings.
- */
-const appConfig = () => {
-    if (!configSettings) {
-        const {ipcRenderer} = require("electron")
-        configSettings = ipcRenderer.sendSync("app-config")
-        if (!configSettings) {
-            return null
-        }
-        let files = [configSettings.override]
-        const datafolderConfig = joinPath(appData(), "viebrc")
-        const userFirstConfig = expandPath("~/.vieb/viebrc")
-        const userGlobalConfig = expandPath("~/.viebrc")
-        if (!configSettings.override) {
-            if (configSettings.order === "user-only") {
-                files = [userGlobalConfig, userFirstConfig]
-            }
-            if (configSettings.order === "datafolder-only") {
-                files = [datafolderConfig]
-            }
-            if (configSettings.order === "user-first") {
-                files = [userGlobalConfig, userFirstConfig, datafolderConfig]
-            }
-            if (configSettings.order === "datafolder-first") {
-                files = [datafolderConfig, userFirstConfig, userGlobalConfig]
-            }
-        }
-        configSettings.files = files
-        configSettings.config = configSettings.override || datafolderConfig
-    }
-    return configSettings
-}
-
-// PATH UTIL
-
-const path = require("path")
-
-/**
- * Convert any url/path to the name and section of a special page if relevant.
- * @param {string} urlPath
- */
-const pathToSpecialPageName = urlPath => {
-    const appName = appConfig()?.name.toLowerCase() ?? ""
-    if (urlPath?.startsWith?.(`${appName}://`)) {
-        const parts = urlPath.replace(`${appName}://`, "").split("#")
-        let [name] = parts
-        if (!specialPages.includes(name)) {
-            name = "help"
-        }
-        return {
-            name, "section": decodeURIComponent(parts.slice(1).join("#") || "")
-        }
-    }
-    if (urlPath?.startsWith?.("file://")) {
-        for (const page of specialPages) {
-            const specialPage = specialPagePath(page).replace(/^file:\/+/g, "")
-            const normalizedUrl = path.posix.normalize(
-                urlPath.replace(/^file:\/+/g, ""))
-            if (normalizedUrl.startsWith(specialPage)) {
-                return {
-                    "name": page,
-                    "section": decodeURIComponent(
-                        urlPath.split("#").slice(1).join("#"))
-                }
-            }
-            try {
-                const decodedPath = decodeURI(urlPath)
-                const decodedNormalizedUrl = path.posix.normalize(
-                    decodedPath.replace(/^file:\/+/g, ""))
-                if (decodedNormalizedUrl.startsWith(specialPage)) {
-                    return {
-                        "name": page,
-                        "section": decodeURIComponent(
-                            urlPath.split("#").slice(1).join("#"))
-                    }
-                }
-            } catch {
-                // Invalid url
-            }
-        }
-    }
-    if (urlPath === "") {
-        return {"name": "newtab", "section": ""}
-    }
-    const appImagePathPattern = RegExp(
-        "^file:///tmp/[.]mount_Vieb-[a-zA-Z0-9]+"
-        + "/resources/app[.]asar/app/pages/")
-    if (urlPath.match(appImagePathPattern)) {
-        return {
-            "name": urlPath.replace(appImagePathPattern, "").replace(/\..+/, ""),
-            "section": ""
-        }
-    }
-    return null
-}
-
-/**
- * Join multiple path parts into a single resolved path.
- * @param {string[]} paths
- */
-const joinPath = (...paths) => path.resolve(path.join(...paths))
+/** Return the location of the downloads, either via setting or OS default. */
+const downloadPath = () => expandPath(getSetting("downloadpath")
+    || appConfig()?.downloads || "~/Downloads")
 
 /**
  * Return the last part of the path, usually the filename.
@@ -1212,6 +1048,19 @@ const isAbsolutePath = loc => path.isAbsolute(loc)
 // FILESYSTEM UTIL
 
 const fs = require("fs")
+
+/**
+ * Read the file contents of a file and parse it as JSON.
+ * @param {string} loc
+ * @returns {any|null}
+ */
+const readJSON = loc => {
+    try {
+        return JSON.parse(fs.readFileSync(loc).toString())
+    } catch {
+        return null
+    }
+}
 
 /**
  * @typedef {(typeof import("./renderer/settings").defaultSettings & {
@@ -1277,19 +1126,6 @@ const isFile = loc => {
 const readFile = loc => {
     try {
         return fs.readFileSync(loc).toString()
-    } catch {
-        return null
-    }
-}
-
-/**
- * Read the file contents of a file and parse it as JSON.
- * @param {string} loc
- * @returns {any|null}
- */
-const readJSON = loc => {
-    try {
-        return JSON.parse(fs.readFileSync(loc).toString())
     } catch {
         return null
     }
@@ -1453,6 +1289,160 @@ const rm = f => {
     }
 }
 
+/**
+ * Get the url of a special page given a name and an optional section.
+ * @param {string} userPage
+ * @param {string|null} section
+ * @param {boolean} skipExistCheck
+ */
+const specialPagePath = (userPage, section = null, skipExistCheck = false) => {
+    let page = userPage
+    if (!specialPages.includes(userPage) && !skipExistCheck) {
+        page = "help"
+    }
+    let url = joinPath(__dirname, `./pages/${page}.html`)
+        .replace(/\\/g, "/").replace(/^\/*/g, "")
+    if (isDir(joinPath(__dirname, "../pages"))) {
+        url = joinPath(__dirname, `../pages/${page}.html`)
+            .replace(/\\/g, "/").replace(/^\/*/g, "")
+    }
+    if (section) {
+        if (section.startsWith("#")) {
+            return `file:///${url}${section}`
+        }
+        return `file:///${url}#${section}`
+    }
+    return `file:///${url}`
+}
+
+/**
+ * Convert any url/path to the name and section of a special page if relevant.
+ * @param {string} urlPath
+ */
+const pathToSpecialPageName = urlPath => {
+    const appName = appConfig()?.name.toLowerCase() ?? ""
+    if (urlPath?.startsWith?.(`${appName}://`)) {
+        const parts = urlPath.replace(`${appName}://`, "").split("#")
+        let [name] = parts
+        if (!specialPages.includes(name)) {
+            name = "help"
+        }
+        return {
+            name, "section": decodeURIComponent(parts.slice(1).join("#") || "")
+        }
+    }
+    if (urlPath?.startsWith?.("file://")) {
+        for (const page of specialPages) {
+            const specialPage = specialPagePath(page).replace(/^file:\/+/g, "")
+            const normalizedUrl = path.posix.normalize(
+                urlPath.replace(/^file:\/+/g, ""))
+            if (normalizedUrl.startsWith(specialPage)) {
+                return {
+                    "name": page,
+                    "section": decodeURIComponent(
+                        urlPath.split("#").slice(1).join("#"))
+                }
+            }
+            try {
+                const decodedPath = decodeURI(urlPath)
+                const decodedNormalizedUrl = path.posix.normalize(
+                    decodedPath.replace(/^file:\/+/g, ""))
+                if (decodedNormalizedUrl.startsWith(specialPage)) {
+                    return {
+                        "name": page,
+                        "section": decodeURIComponent(
+                            urlPath.split("#").slice(1).join("#"))
+                    }
+                }
+            } catch {
+                // Invalid url
+            }
+        }
+    }
+    if (urlPath === "") {
+        return {"name": "newtab", "section": ""}
+    }
+    const appImagePathPattern = RegExp(
+        "^file:///tmp/[.]mount_Vieb-[a-zA-Z0-9]+"
+        + "/resources/app[.]asar/app/pages/")
+    if (urlPath.match(appImagePathPattern)) {
+        return {
+            "name": urlPath.replace(appImagePathPattern, "").replace(/\..+/, ""),
+            "section": ""
+        }
+    }
+    return null
+}
+
+/**
+ * Translate a string from the explore mode input to a valid url.
+ * @param {string} location
+ */
+const stringToUrl = location => {
+    let url = String(location)
+    const specialPage = pathToSpecialPageName(url)
+    if (specialPage?.name) {
+        return specialPagePath(specialPage.name, specialPage.section)
+    }
+    let fileName = url.replace(/^file:\/+/, "/")
+    if (process.platform === "win32") {
+        fileName = url.replace(/^file:\/+/, "")
+    }
+    const local = expandPath(fileName)
+    if (isDir(local) || isFile(local)) {
+        const escapedPath = local.replace(/\?/g, "%3F").replace(/#/g, "%23")
+        url = `file:/${escapedPath}`.replace(/^file:\/+/, "file:///")
+    }
+    if (!isUrl(url)) {
+        const engines = getSetting("searchengine").split(",")
+        const engine = engines.at(Math.random() * engines.length)
+        if (!engine) {
+            return ""
+        }
+        url = engine.replace(/%s/g, encodeURIComponent(location))
+    }
+    if (!hasProtocol(url)) {
+        url = `https://${url}`
+    }
+    try {
+        return new URL(url).href
+    } catch {
+        // Can't be re-encoded
+    }
+    return encodeURI(url)
+}
+
+/**
+ * Translate a valid url to the explore mode input representation.
+ * @param {string} url
+ */
+const urlToString = url => {
+    const special = pathToSpecialPageName(url)
+    if (special?.name) {
+        let specialUrl = `${appConfig()?.name.toLowerCase()}://${special.name}`
+        if (special.section) {
+            specialUrl += `#${special.section}`
+        }
+        return specialUrl
+    }
+    try {
+        const decoded = decodeURI(url)
+        let fileName = decoded.replace(/^file:\/+/, "/")
+        if (process.platform === "win32") {
+            fileName = decoded.replace(/^file:\/+/, "")
+        }
+        fileName = fileName.replace(/%23/g, "#").replace(/%3F/g, "?")
+        if (isDir(fileName) || isFile(fileName)) {
+            return fileName
+        }
+        return decoded
+    } catch {
+        // Invalid url
+    }
+    return url
+}
+
+/** Clear all temporary containers (those that start with temp) from disk. */
 const clearTempContainers = () => {
     const partitionDir = joinPath(appData(), "Partitions")
     listDir(partitionDir, false, true)?.filter(part => part.startsWith("temp"))
@@ -1460,6 +1450,7 @@ const clearTempContainers = () => {
     rm(joinPath(appData(), "erwicmode"))
 }
 
+/** Clear the Chromium and Electron cache dirs plus the Vieb cache files. */
 const clearCache = () => {
     const partitionDir = joinPath(appData(), "Partitions")
     const partitions = [appData(), ...listDir(partitionDir, true, true) || []]
@@ -1488,6 +1479,7 @@ const clearCache = () => {
     rm(joinPath(appData(), "webviewsettings"))
 }
 
+/** Claer all cookies, including those inside partition dirs. */
 const clearCookies = () => {
     const partitionDir = joinPath(appData(), "Partitions")
     const partitions = [appData(), ...listDir(partitionDir, true, true) || []]
@@ -1505,6 +1497,7 @@ const clearCookies = () => {
     }
 }
 
+/** Claer all localstorage, including that inside partition dirs. */
 const clearLocalStorage = () => {
     const partitionDir = joinPath(appData(), "Partitions")
     const partitions = [appData(), ...listDir(partitionDir, true, true) || []]
@@ -1532,12 +1525,8 @@ module.exports = {
     isUrl,
     searchword,
     listNotificationHistory,
-    specialPagePath,
     expandPath,
-    stringToUrl,
-    urlToString,
     title,
-    downloadPath,
     userAgentTemplated,
     userAgentPlatform,
     defaultUseragent,
@@ -1572,14 +1561,12 @@ module.exports = {
     execCommand,
     isValidIntervalValue,
     intervalValueToDate,
-    // IPC UTIL
-    sendToPageOrSubFrame,
-    notify,
-    appData,
-    appConfig,
     // PATH UTIL
-    pathToSpecialPageName,
     joinPath,
+    appConfig,
+    appData,
+    notify,
+    downloadPath,
     basePath,
     dirname,
     isAbsolutePath,
@@ -1599,6 +1586,10 @@ module.exports = {
     watchFile,
     modifiedAt,
     rm,
+    pathToSpecialPageName,
+    specialPagePath,
+    stringToUrl,
+    urlToString,
     clearTempContainers,
     clearCache,
     clearCookies,

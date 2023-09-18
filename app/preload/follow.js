@@ -81,53 +81,71 @@ const otherEvents = [
 ]
 /** @type {Element[]} */
 const previouslyFocussedElements = []
-ipcRenderer.on("focus-input", async(_, follow = null) => {
-    let el = null
-    if (follow) {
-        el = findElementAtPosition(follow.x, follow.y)
-    } else {
-        const allLinks = await getAllFollowLinks(["input"])
-        const input = allLinks.find(l => l?.type === "inputs-insert")
-        if (input) {
-            el = findElementAtPosition(
-                input.x + input.width / 2, input.y + input.height / 2)
-        }
-    }
-    const focusEl = [el, el?.parentNode, el?.parentNode?.parentNode]
-        .find(e => matchesQuery(e, textlikeInputs)) ?? el
-    if (!isHTMLElement(focusEl)) {
-        return
-    }
-    ipcRenderer.sendToHost("switch-to-insert")
-    await new Promise(r => {
-        setTimeout(r, 3)
-    })
-    const inputfocusalignment = getWebviewSetting("inputfocusalignment")
-        ?? "rememberend"
-    focusEl.click()
-    focusEl.focus()
-    if (previouslyFocussedElements.includes(focusEl)
-        && !inputfocusalignment.includes("always")) {
-        return
-    }
-    if (isInputOrTextElement(focusEl)) {
-        if (inputfocusalignment.includes("end")) {
-            const focusLength = focusEl.value.length
-            focusEl.setSelectionRange(focusLength, focusLength)
-        } else {
-            focusEl.setSelectionRange(0, 0)
-        }
-    } else {
-        const selection = window.getSelection()
-        selection?.selectAllChildren(focusEl)
-        if (inputfocusalignment.includes("end")) {
-            selection?.collapseToEnd()
-        } else {
-            selection?.collapseToStart()
-        }
-    }
-    previouslyFocussedElements.push(focusEl)
+/** @type {{[type: string]: WeakSet<EventTarget>}} */
+const eventListeners = {}
+;[...clickEvents, ...otherEvents].forEach(e => {
+    eventListeners[e] = new WeakSet()
 })
+
+/**
+ * Parse an element to a clickable rect if possible.
+ * @param {HTMLElement} element
+ * @param {string|null} type
+ * @param {DOMRectReadOnly|null} customBounds
+ */
+const parseElement = (element, type = null, customBounds = null) => {
+    const excluded = [document.body, document.documentElement]
+    if (excluded.includes(element)) {
+        return null
+    }
+    const boundingBox = JSON.parse(JSON.stringify(
+        customBounds || element.getBoundingClientRect()))
+    const paddingInfo = findFrameInfo(element)
+    if (paddingInfo) {
+        boundingBox.left += paddingInfo.x
+        boundingBox.top += paddingInfo.y
+    }
+    // Find a clickable area and position for the given element and bounds
+    const subImages = [...element.querySelectorAll("img,svg")]
+    const rects = [
+        boundingBox, ...subImages.map(img => img.getBoundingClientRect())
+    ]
+    const {dims, clickable} = findClickPosition(element, rects)
+    if (!clickable) {
+        return null
+    }
+    // The element should be clickable and is returned in a parsed format
+    let href = ""
+    let typeOverride = null
+    if (isHTMLAnchorElement(element)) {
+        ({href} = element)
+        // Set links to the current page as type 'other'
+        if (!href) {
+            typeOverride = "other"
+        } else if (href === window.location.href) {
+            typeOverride = "other"
+        } else if (href === `${window.location.href}#`) {
+            typeOverride = "other"
+        } else if (href?.startsWith?.("javascript:")) {
+            typeOverride = "other"
+        }
+        // Empty the href for links that require a specific data method to open
+        // These will use clicks instead of direct navigation to work correctly
+        const dataMethod = element.getAttribute("data-method")?.toLowerCase()
+        if (dataMethod && dataMethod !== "get") {
+            href = ""
+        }
+    }
+    return {
+        "height": dims.height,
+        "text": element.textContent?.slice(0, 10000) || "",
+        "type": typeOverride ?? type ?? "none",
+        "url": href,
+        "width": dims.width,
+        "x": dims.x,
+        "y": dims.y
+    }
+}
 
 /**
  * Get all follow links parsed, optionally for a specific type.
@@ -251,167 +269,54 @@ const getAllFollowLinks = (filter = null) => {
     })
 }
 
-const mainInfoLoop = () => {
-    // Listeners for iframes that run on the same host and same process
-    const frames = querySelectorAll("iframe").flatMap(f => {
-        if (isHTMLIFrameElement(f)) {
-            return f
+ipcRenderer.on("focus-input", async(_, follow = null) => {
+    let el = null
+    if (follow) {
+        el = findElementAtPosition(follow.x, follow.y)
+    } else {
+        const allLinks = await getAllFollowLinks(["input"])
+        const input = allLinks.find(l => l?.type === "inputs-insert")
+        if (input) {
+            el = findElementAtPosition(
+                input.x + input.width / 2, input.y + input.height / 2)
         }
-        return []
-    })
-    frames.forEach(f => {
-        try {
-            if (f.contentDocument) {
-                f.contentDocument.onclick = e => clickListener(e, f)
-                f.contentDocument.oncontextmenu = e => contextListener(e, f)
-                f.contentDocument.onmousedown = e => mouseDownListener(e, f)
-                f.contentDocument.onmouseup = e => mouseUpListener(e, f)
-            }
-        } catch {
-            // Not an issue, will be retried shortly, we also can't do much else
-        }
-    })
-    // Send details to main for iframes that run in a separate process
-    if (!document.body) {
+    }
+    const focusEl = [el, el?.parentNode, el?.parentNode?.parentNode]
+        .find(e => matchesQuery(e, textlikeInputs)) ?? el
+    if (!isHTMLElement(focusEl)) {
         return
     }
-    ipcRenderer.send("frame-details", {
-        "height": window.innerHeight,
-        "pagex": window.scrollX,
-        "pagey": window.scrollY,
-        "subframes": frames.map(f => {
-            const bounds = f.getBoundingClientRect()
-            const framePos = framePosition(f)
-            for (const frame of frames) {
-                try {
-                    if (frame.contentDocument?.contains(f)) {
-                        const parentPos = framePosition(frame)
-                        framePos.x += parentPos.x
-                        framePos.y += parentPos.y
-                    }
-                } catch {
-                    // Not allowed to access inside document, probably no parent
-                }
-            }
-            return {
-                "height": bounds.height || f.clientHeight,
-                "url": f.src,
-                "width": bounds.width || f.clientWidth,
-                "x": framePos.x,
-                "y": framePos.y
-            }
-        }),
-        "url": window.location.href,
-        "width": window.innerWidth
+    ipcRenderer.sendToHost("switch-to-insert")
+    await new Promise(r => {
+        setTimeout(r, 3)
     })
-}
-
-const followLoop = async() => {
-    if (currentFollowStatus) {
-        const links = await getAllFollowLinks(currentFollowStatus.split(","))
-        ipcRenderer.send("follow-response", links)
-        setTimeout(() => followLoop(), 100)
+    const inputfocusalignment = getWebviewSetting("inputfocusalignment")
+        ?? "rememberend"
+    focusEl.click()
+    focusEl.focus()
+    if (previouslyFocussedElements.includes(focusEl)
+        && !inputfocusalignment.includes("always")) {
+        return
     }
-}
-
-ipcRenderer.on("follow-mode-start", (_, newFollowFilter) => {
-    if (currentFollowStatus !== newFollowFilter) {
-        currentFollowStatus = newFollowFilter
-        followLoop()
-    }
-})
-ipcRenderer.on("follow-mode-stop", () => {
-    currentFollowStatus = null
-})
-setInterval(mainInfoLoop, 1000)
-window.addEventListener("DOMContentLoaded", () => {
-    mainInfoLoop()
-    const pdfbehavior = getWebviewSetting("pdfbehavior") ?? "block"
-    if (pdfbehavior !== "view") {
-        querySelectorAll("embed").forEach(embed => {
-            if (embed.getAttribute("type") === "application/pdf") {
-                if (pdfbehavior === "download") {
-                    const src = embed.getAttribute("src")?.replace(
-                        /^about:blank/g, "") || window.location.href
-                    ipcRenderer.sendToHost("download", src)
-                } else if (pdfbehavior === "external") {
-                    const src = embed.getAttribute("src")?.replace(
-                        /^about:blank/g, "") || window.location.href
-                    ipcRenderer.sendToHost("external", src)
-                }
-                embed.remove()
-            }
-        })
-    }
-})
-window.addEventListener("resize", mainInfoLoop)
-
-/**
- * Parse an element to a clickable rect if possible.
- * @param {HTMLElement} element
- * @param {string|null} type
- * @param {DOMRectReadOnly|null} customBounds
- */
-const parseElement = (element, type = null, customBounds = null) => {
-    const excluded = [document.body, document.documentElement]
-    if (excluded.includes(element)) {
-        return null
-    }
-    const boundingBox = JSON.parse(JSON.stringify(
-        customBounds || element.getBoundingClientRect()))
-    const paddingInfo = findFrameInfo(element)
-    if (paddingInfo) {
-        boundingBox.left += paddingInfo.x
-        boundingBox.top += paddingInfo.y
-    }
-    // Find a clickable area and position for the given element and bounds
-    const subImages = [...element.querySelectorAll("img,svg")]
-    const rects = [
-        boundingBox, ...subImages.map(img => img.getBoundingClientRect())
-    ]
-    const {dims, clickable} = findClickPosition(element, rects)
-    if (!clickable) {
-        return null
-    }
-    // The element should be clickable and is returned in a parsed format
-    let href = ""
-    let typeOverride = null
-    if (isHTMLAnchorElement(element)) {
-        ({href} = element)
-        // Set links to the current page as type 'other'
-        if (!href) {
-            typeOverride = "other"
-        } else if (href === window.location.href) {
-            typeOverride = "other"
-        } else if (href === `${window.location.href}#`) {
-            typeOverride = "other"
-        } else if (href?.startsWith?.("javascript:")) {
-            typeOverride = "other"
+    if (isInputOrTextElement(focusEl)) {
+        if (inputfocusalignment.includes("end")) {
+            const focusLength = focusEl.value.length
+            focusEl.setSelectionRange(focusLength, focusLength)
+        } else {
+            focusEl.setSelectionRange(0, 0)
         }
-        // Empty the href for links that require a specific data method to open
-        // These will use clicks instead of direct navigation to work correctly
-        const dataMethod = element.getAttribute("data-method")?.toLowerCase()
-        if (dataMethod && dataMethod !== "get") {
-            href = ""
+    } else {
+        const selection = window.getSelection()
+        selection?.selectAllChildren(focusEl)
+        if (inputfocusalignment.includes("end")) {
+            selection?.collapseToEnd()
+        } else {
+            selection?.collapseToStart()
         }
     }
-    return {
-        "height": dims.height,
-        "text": element.textContent?.slice(0, 10000) || "",
-        "type": typeOverride ?? type ?? "none",
-        "url": href,
-        "width": dims.width,
-        "x": dims.x,
-        "y": dims.y
-    }
-}
-
+    previouslyFocussedElements.push(focusEl)
+})
 /* eslint-disable no-restricted-syntax */
-/** @type {{[type: string]: WeakSet<EventTarget>}} */
-const eventListeners = {}
-;[...clickEvents, ...otherEvents].forEach(e => {
-    eventListeners[e] = new WeakSet()
-})
 const realAdd = EventTarget.prototype.addEventListener
 /**
  * Add the regular event listener while also recording its existence in a set.
@@ -681,7 +586,12 @@ ipcRenderer.on("contextmenu-data", (_, request) => {
     }
     els.reverse()
     contextListener({
-        "button": 2, "composedPath": () => els, "isTrusted": true, x, y
+        "button": 2,
+        /** Return all elements at that location for the composedPath method. */
+        "composedPath": () => els,
+        "isTrusted": true,
+        x,
+        y
     }, findFrameInfo(els[0])?.element, request)
 })
 ipcRenderer.on("contextmenu", () => {
@@ -717,7 +627,12 @@ ipcRenderer.on("contextmenu", () => {
     }
     els.reverse()
     contextListener({
-        "button": 2, "composedPath": () => els, "isTrusted": true, x, y
+        "button": 2,
+        /** Return all elements at that location for the composedPath method. */
+        "composedPath": () => els,
+        "isTrusted": true,
+        x,
+        y
     }, findFrameInfo(els[0])?.element, {"force": true})
 })
 window.addEventListener("contextmenu", contextListener)
@@ -789,7 +704,12 @@ ipcRenderer.on("custom-mouse-event", (_, eventType, mouseOptions) => {
         }
         els.reverse()
         contextListener({
-            "button": 2, "composedPath": () => els, "isTrusted": true, x, y
+            "button": 2,
+            /** Return all elements at that location for composedPath. */
+            "composedPath": () => els,
+            "isTrusted": true,
+            x,
+            y
         }, findFrameInfo(els[0])?.element)
         return
     }
@@ -878,3 +798,116 @@ ipcRenderer.on("search-element-location", (_, pos) => {
 window.addEventListener("mousemove", e => {
     ipcRenderer.sendToHost("mousemove", e.clientX, e.clientY)
 })
+
+/** The main info loop that populates the subframe data in the main thread. */
+const mainInfoLoop = () => {
+    // Listeners for iframes that run on the same host and same process
+    const frames = querySelectorAll("iframe").flatMap(f => {
+        if (isHTMLIFrameElement(f)) {
+            return f
+        }
+        return []
+    })
+    frames.forEach(f => {
+        try {
+            if (f.contentDocument) {
+                /**
+                 * Handle click listener inside the frame, if allowed.
+                 * @param {MouseEvent} e
+                 */
+                f.contentDocument.onclick = e => clickListener(e, f)
+                /**
+                 * Handle contextmenu listener inside the frame, if allowed.
+                 * @param {MouseEvent} e
+                 */
+                f.contentDocument.oncontextmenu = e => contextListener(e, f)
+                /**
+                 * Handle mousedown listener inside the frame, if allowed.
+                 * @param {MouseEvent} e
+                 */
+                f.contentDocument.onmousedown = e => mouseDownListener(e, f)
+                /**
+                 * Handle mouseup listener inside the frame, if allowed.
+                 * @param {MouseEvent} e
+                 */
+                f.contentDocument.onmouseup = e => mouseUpListener(e, f)
+            }
+        } catch {
+            // Not an issue, will be retried shortly, we also can't do much else
+        }
+    })
+    // Send details to main for iframes that run in a separate process
+    if (!document.body) {
+        return
+    }
+    ipcRenderer.send("frame-details", {
+        "height": window.innerHeight,
+        "pagex": window.scrollX,
+        "pagey": window.scrollY,
+        "subframes": frames.map(f => {
+            const bounds = f.getBoundingClientRect()
+            const framePos = framePosition(f)
+            for (const frame of frames) {
+                try {
+                    if (frame.contentDocument?.contains(f)) {
+                        const parentPos = framePosition(frame)
+                        framePos.x += parentPos.x
+                        framePos.y += parentPos.y
+                    }
+                } catch {
+                    // Not allowed to access inside document, probably no parent
+                }
+            }
+            return {
+                "height": bounds.height || f.clientHeight,
+                "url": f.src,
+                "width": bounds.width || f.clientWidth,
+                "x": framePos.x,
+                "y": framePos.y
+            }
+        }),
+        "url": window.location.href,
+        "width": window.innerWidth
+    })
+}
+
+/** If following, send the follow elements with a 100ms pause between them. */
+const followLoop = async() => {
+    if (currentFollowStatus) {
+        const links = await getAllFollowLinks(currentFollowStatus.split(","))
+        ipcRenderer.send("follow-response", links)
+        setTimeout(() => followLoop(), 100)
+    }
+}
+
+ipcRenderer.on("follow-mode-start", (_, newFollowFilter) => {
+    if (currentFollowStatus !== newFollowFilter) {
+        currentFollowStatus = newFollowFilter
+        followLoop()
+    }
+})
+ipcRenderer.on("follow-mode-stop", () => {
+    currentFollowStatus = null
+})
+setInterval(mainInfoLoop, 1000)
+window.addEventListener("DOMContentLoaded", () => {
+    mainInfoLoop()
+    const pdfbehavior = getWebviewSetting("pdfbehavior") ?? "block"
+    if (pdfbehavior !== "view") {
+        querySelectorAll("embed").forEach(embed => {
+            if (embed.getAttribute("type") === "application/pdf") {
+                if (pdfbehavior === "download") {
+                    const src = embed.getAttribute("src")?.replace(
+                        /^about:blank/g, "") || window.location.href
+                    ipcRenderer.sendToHost("download", src)
+                } else if (pdfbehavior === "external") {
+                    const src = embed.getAttribute("src")?.replace(
+                        /^about:blank/g, "") || window.location.href
+                    ipcRenderer.sendToHost("external", src)
+                }
+                embed.remove()
+            }
+        })
+    }
+})
+window.addEventListener("resize", mainInfoLoop)

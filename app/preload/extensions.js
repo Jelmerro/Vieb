@@ -19,6 +19,7 @@
 
 const {fetchJSON, getWebviewSetting} = require("../util")
 
+/** If enabled via settings, cut out sponsored Youtube video segments. */
 const loadSponsorblock = () => {
     /** @type {HTMLDivElement[]} */
     let previousBlockEls = []
@@ -40,6 +41,7 @@ const loadSponsorblock = () => {
         return
     }
 
+    /** Fetch the sponsorblock data from the api. */
     const fetchSponsorBlockData = () => {
         previousBlockEls.forEach(el => el.remove())
         previousBlockEls = []
