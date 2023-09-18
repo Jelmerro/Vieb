@@ -20,7 +20,7 @@ import subprocess
 import re
 
 overrides = {
-    "electron": "alpha"
+    "electron": "beta"
 }
 
 
@@ -35,6 +35,9 @@ def main():
         package = json.load(f)
     for dep_type in ["devDependencies", "dependencies"]:
         for dep, version in package.get(dep_type, {}).items():
+            if version.startswith("github:"):
+                print(f"- updating {dep} to the latest git version")
+                continue
             info = subprocess.run(
                 ["npm", "dist-tags", dep], stdout=subprocess.PIPE, check=True)
             info = info.stdout.decode()

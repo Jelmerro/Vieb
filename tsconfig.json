@@ -24,6 +24,6 @@
     ],
     "include": [
         "./app/**/*",
-        "./types.d.ts"
+        "./types/*.d.ts"
     ]
 }

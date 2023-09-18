@@ -1596,15 +1596,6 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 </body></html>`
             ), {"headers": {"content-type": "text/html; charset=utf-8"}})
         }
-        if (!hljs) {
-            return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
-                <style id="default-styling">${defaultCSS}</style>
-                <style id="custom-styling">${customCSS}</style>
-                <title>${decodeURI(req.url)}</title>
-                </head><body>Source viewer module not present, can't view source
-                </body></html>`
-            ), {"headers": {"content-type": "text/html; charset=utf-8"}})
-        }
         if (isFile(loc)) {
             const hl = hljs.highlightAuto(readFile(loc) ?? "")
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
@@ -1672,12 +1663,10 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 "content-type": "text/html; charset=utf-8"
             }})
         }
-        /** @type {import("marked").marked|null} */
-        let marked = null
-        /** @type {import("highlight.js").HLJSApi|null} */
-        let hljs = null
+        /** @type {typeof import("marked").Marked|null} */
+        let Marked = null
         try {
-            ({marked} = require("marked"))
+            ({Marked} = require("marked"))
         } catch {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style id="default-styling">${defaultCSS}</style>
@@ -1687,27 +1676,34 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                 </body></html>`), {"headers": {
                 "content-type": "text/html; charset=utf-8"
             }})
-        }
-        if (!marked) {
-            return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
-                <style id="default-styling">${defaultCSS}</style>
-                <style id="custom-styling">${customCSS}</style>
-                <title>${decodeURI(req.url)}</title></head>
-                <body>Markdown viewer module not present, can't view markdown
-                </body></html>`), {"headers": {
-                "content-type": "text/html; charset=utf-8"
-            }})
-        }
-        try {
-            hljs = require("highlight.js").default
-        } catch {
-            // Highlight module not present, skipping source highlighting part
         }
         let url = `https://${loc}`
         if (isFile(loc)) {
             url = `file://${loc}`
         }
-        const mdRenderer = new marked.Renderer()
+        let markedObj = new Marked()
+        try {
+            const hljs = require("highlight.js").default
+            const {markedHighlight} = require("marked-highlight")
+            markedObj = new Marked(markedHighlight({
+                /**
+                 * Highlight the code using highlight.js in the right language.
+                 * @param {string} code
+                 * @param {string|undefined} lang
+                 */
+                "highlight": (code, lang) => {
+                    let language = lang ?? "plaintext"
+                    if (!hljs.getLanguage(language)) {
+                        language = "plaintext"
+                    }
+                    return hljs.highlight(code, {language}).value || code
+                },
+                "langPrefix": "hljs language-"
+            }))
+        } catch {
+            // Highlight.js integration is optional.
+        }
+        const mdRenderer = new markedObj.Renderer()
         const urlFolder = dirname(url)
         /**
          * Resolve relative paths to the dirname/base path of the url.
@@ -1716,27 +1712,15 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
         mdRenderer.html = text => text.replace(
             / src="\./g, ` src="${urlFolder}/`)
             .replace(/ src="([A-Za-z0-9])]/g, ` src="${urlFolder}/$1`)
-        marked.setOptions({
-            "baseUrl": url,
-            /**
-             * Highlight the code using highlight.js in the right language.
-             * @param {string} code
-             * @param {string|undefined} lang
-             */
-            "highlight": (code, lang) => {
-                let language = lang ?? "plaintext"
-                if (!hljs?.getLanguage(language)) {
-                    language = "plaintext"
-                }
-                return hljs?.highlight(code, {language}).value || code
-            },
-            "langPrefix": "hljs language-",
-            "renderer": mdRenderer,
-            "silent": true,
-            "smartypants": true
-        })
+        markedObj.setOptions({"renderer": mdRenderer, "silent": true})
+        try {
+            const {baseUrl} = require("marked-base-url")
+            markedObj.use(baseUrl(url))
+        } catch {
+            // Base url handling is optional.
+        }
         if (isFile(loc)) {
-            const md = marked.parse(readFile(loc) ?? "")
+            const md = markedObj.parse(readFile(loc) ?? "")
             return new Response(Buffer.from(
                 `<!DOCTPYE html>\n<html><head>
                 <style id="default-styling">${defaultCSS}</style>
@@ -1750,7 +1734,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             request.on("response", res => {
                 let body = ""
                 res.on("end", () => {
-                    if (!body || !marked) {
+                    if (!body || !markedObj) {
                         resolve(new Response(Buffer.from(
                             `<!DOCTPYE html>\n<html><head>
                             <style id="default-styling">${defaultCSS}</style>
@@ -1763,7 +1747,7 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                         }}))
                         return
                     }
-                    const md = marked.parse(body)
+                    const md = markedObj.parse(body)
                     resolve(new Response(Buffer.from(
                         `<!DOCTPYE html>\n<html><head>
                         <style id="default-styling">${defaultCSS}</style>
@@ -1806,15 +1790,6 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             ({Readability} = require("@mozilla/readability"))
             ;({JSDOM} = require("jsdom"))
         } catch (e) {
-            return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
-                <style id="default-styling">${defaultCSS}</style>
-                <style id="custom-styling">${customCSS}</style>
-                <title>${decodeURI(req.url)}</title>
-                </head><body>Reader view module not present, can't do readerview
-                </body></html>`
-            ), {"headers": {"content-type": "text/html; charset=utf-8"}})
-        }
-        if (!Readability || !JSDOM) {
             return new Response(Buffer.from(`<!DOCTPYE html>\n<html><head>
                 <style id="default-styling">${defaultCSS}</style>
                 <style id="custom-styling">${customCSS}</style>
