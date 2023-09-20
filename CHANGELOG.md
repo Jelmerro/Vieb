@@ -29,6 +29,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Location mock not being accurate leading to broken functionality on Gitlab and other sites
 - Command "tabnewcontainer" not opening with the right name if using "containernewtab=s:external"
 - Extra horizontal scrollbar on failedload and filebrowser pages since last release
+- Some selections with email addresses being encoded as if a url on copy
+- Setting explorehist not working since 10.0.0 due to incorrect import
 
 ### Versions
 

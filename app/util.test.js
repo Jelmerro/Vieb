@@ -178,6 +178,26 @@ describe("Check isUrl", () => {
             "valid": true
         },
         {
+            "reason": "Spaces in hostname are not valid",
+            "url": "hello%20example.com",
+            "valid": false
+        },
+        {
+            "reason": "Spaces in username are not valid",
+            "url": "hello%20world@example.com",
+            "valid": false
+        },
+        {
+            "reason": "Spaces in hostname are never valid even with protocol",
+            "url": "https://hello%20example.com",
+            "valid": false
+        },
+        {
+            "reason": "Spaces in username are never valid even with protocol",
+            "url": "https://hello%20world@example.com",
+            "valid": false
+        },
+        {
             "reason": "Starting dashes are not allowed",
             "url": "-brokendash.com",
             "valid": false

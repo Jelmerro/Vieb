@@ -100,7 +100,8 @@ const hasProtocol = loc => protocolRegex.test(loc)
 const isUrl = location => {
     if (hasProtocol(location)) {
         try {
-            return !new URL(location).host.includes("%20")
+            const url = new URL(location)
+            return !url.host.includes("%20") && !url.username.includes("%20")
         } catch {
             return false
         }
@@ -108,6 +109,9 @@ const isUrl = location => {
     let url = null
     try {
         url = new URL(`https://${location}`)
+        if (url.host.includes("%20") || url.username.includes("%20")) {
+            return false
+        }
     } catch {
         return false
     }
@@ -261,7 +265,7 @@ const domainName = url => {
 const sameDomain = (url1, url2) => {
     const domain1 = domainName(url1)
     const domain2 = domainName(url2)
-    return domain1 && domain2 && domain1 === domain2
+    return domain1 && domain2 && domain1 === domain2 && true || false
 }
 
 /**

@@ -1540,13 +1540,11 @@ const useEnteredData = () => {
     if (!url) {
         return
     }
-    const {push} = require("./commandhistory")
     if (currentMode() === "command") {
         const command = url.value.trim()
         setMode("normal")
-        push(command, true)
         const {execute} = require("./command")
-        execute(command)
+        execute(command, null, true)
     }
     if (currentMode() === "search") {
         searchDirection = potentialNewSearchDirection
@@ -1558,6 +1556,7 @@ const useEnteredData = () => {
         setMode("normal")
         if (location) {
             const modifiedLoc = searchword(location).url
+            const {push} = require("./explorehistory")
             push(urlToString(modifiedLoc))
             const {navigateTo} = require("./tabs")
             navigateTo(stringToUrl(modifiedLoc))

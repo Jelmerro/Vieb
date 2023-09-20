@@ -94,7 +94,7 @@ const resetPosition = () => {
  * @param {string} command
  * @param {boolean} user
  */
-const push = (command, user = false) => {
+const push = (command, user) => {
     const setting = getSetting("commandhist")
     if (!storeCommands || setting === "none") {
         return

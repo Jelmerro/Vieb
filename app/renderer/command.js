@@ -2403,8 +2403,9 @@ const getPageDomain = () => getPageUrlClass().host
  * Execute a command.
  * @param {string} com
  * @param {string|null} settingsFile
+ * @param {boolean} user
  */
-const execute = (com, settingsFile = null) => {
+const execute = (com, settingsFile = null, user = false) => {
     // Remove all redundant spaces
     // Allow commands prefixed with :
     // And return if the command is empty
@@ -2425,7 +2426,7 @@ const execute = (com, settingsFile = null) => {
             .replace("<useCurrentDomain>", `${getPageDomain()}`)
     }
     const {push} = require("./commandhistory")
-    push(commandStr)
+    push(commandStr, user)
     if (commandStr.startsWith("!")) {
         if (commandStr !== "!") {
             execCommand(commandStr.replace("!", ""), (err, stdout) => {
