@@ -15,13 +15,24 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/* global describe test expect */
 /* eslint-disable padding-lines/statements, jsdoc/require-jsdoc */
 "use strict"
+
+const storageOfSession = {}
+
+global.sessionStorage = {
+    "getItem": key => storageOfSession[key],
+    "removeItem": key => delete storageOfSession[key],
+    "setItem": (key, value) => {
+        storageOfSession[key] = value
+    }
+}
 
 const path = require("path")
 const {homedir} = require("os")
 const UTIL = require("./util")
+const assert = require("assert")
+const {describe, test} = require("node:test")
 
 describe("Check isUrl", () => {
     const urlTests = [
@@ -256,7 +267,7 @@ describe("Check isUrl", () => {
     ]
     urlTests.forEach(urlTest => {
         test(`Testing "${urlTest.url}": ${urlTest.reason}`, () => {
-            expect(UTIL.isUrl(urlTest.url)).toBe(urlTest.valid)
+            assert.strictEqual(UTIL.isUrl(urlTest.url), urlTest.valid)
         })
     })
 })
@@ -295,8 +306,9 @@ describe("Special pages", () => {
     specialPagesToFilenames.forEach(specialPageTest => {
         test(`Testing "${specialPageTest.arguments}":
     ${specialPageTest.reason}`, () => {
-            expect(UTIL.specialPagePath(...specialPageTest.arguments))
-                .toBe(specialPageTest.response)
+            assert.strictEqual(
+                UTIL.specialPagePath(...specialPageTest.arguments),
+                specialPageTest.response)
         })
     })
 })
@@ -395,7 +407,7 @@ describe("Versions", () => {
     ]
     versions.forEach(v => {
         test(`Testing '${v.ref}' vs '${v.new}': ${v.reason}`, () => {
-            expect(UTIL.compareVersions(v.new, v.ref)).toBe(v.result)
+            assert.strictEqual(UTIL.compareVersions(v.new, v.ref), v.result)
         })
     })
 })
@@ -413,114 +425,126 @@ test("Filesystem helpers should work as expected", () => {
         // Probably does not exist
     }
     // Test simple path checks, make a dir and try to make files at the same loc
-    expect(UTIL.pathExists(file)).toBe(false)
-    expect(UTIL.isFile(file)).toBe(false)
-    expect(UTIL.isDir(file)).toBe(false)
-    expect(UTIL.listDir(file)).toBe(null)
-    expect(UTIL.makeDir(file)).toBe(true)
-    expect(UTIL.listDir(file)).toEqual([])
-    expect(UTIL.isFile(file)).toBe(false)
-    expect(UTIL.isDir(file)).toBe(true)
-    expect(UTIL.pathExists(file)).toBe(true)
-    expect(UTIL.writeJSON(file, {"test": "test"}, null, null, 4)).toBe(false)
-    expect(UTIL.writeFile(file, "test", null, null, 4)).toBe(false)
-    expect(UTIL.appendFile(file, "hello")).toBe(false)
+    assert.strictEqual(UTIL.pathExists(file), false)
+    assert.strictEqual(UTIL.isFile(file), false)
+    assert.strictEqual(UTIL.isDir(file), false)
+    assert.strictEqual(UTIL.listDir(file), null)
+    assert.strictEqual(UTIL.makeDir(file), true)
+    assert.strictEqual(UTIL.listDir(file).length, 0)
+    assert.strictEqual(UTIL.isFile(file), false)
+    assert.strictEqual(UTIL.isDir(file), true)
+    assert.strictEqual(UTIL.pathExists(file), true)
+    assert.strictEqual(
+        UTIL.writeJSON(file, {"test": "test"}, null, null, 4), false)
+    assert.strictEqual(UTIL.writeFile(file, "test", null, null, 4), false)
+    assert.strictEqual(UTIL.appendFile(file, "hello"), false)
     // Remove dir, write file to same location and read it again
     try {
         rmdirSync(file)
     } catch {
         // If this fails, the next expect statement will error out
     }
-    expect(UTIL.isDir(file)).toBe(false)
-    expect(UTIL.pathExists(file)).toBe(false)
-    expect(UTIL.writeJSON(file, {"test": "test"}, null, null, 4)).toBe(true)
-    expect(UTIL.readJSON(file)).toMatchObject({"test": "test"})
-    expect(UTIL.readFile(file)).toBe(`{\n    "test": "test"\n}`)
-    expect(UTIL.appendFile(file, "hello")).toBe(true)
-    expect(UTIL.readJSON(file)).toBe(null)
-    expect(UTIL.readFile(file)).toBe(`{\n    "test": "test"\n}hello`)
-    expect(UTIL.writeFile(file, "test", null, null, 4)).toBe(true)
-    expect(UTIL.readJSON(file)).toBe(null)
-    expect(UTIL.readFile(file)).toBe("test")
-    expect(UTIL.isFile(file)).toBe(true)
-    expect(UTIL.isDir(file)).toBe(false)
-    expect(UTIL.pathExists(file)).toBe(true)
-    expect(UTIL.makeDir(file)).toBe(false)
+    assert.strictEqual(UTIL.isDir(file), false)
+    assert.strictEqual(UTIL.pathExists(file), false)
+    assert.strictEqual(
+        UTIL.writeJSON(file, {"test": "test"}, null, null, 4), true)
+    const output = UTIL.readJSON(file)
+    assert.strictEqual(Object.keys(output).length, 1)
+    assert.strictEqual(Object.keys(output)[0], "test")
+    assert.strictEqual(output.test, "test")
+    assert.strictEqual(UTIL.readFile(file), `{\n    "test": "test"\n}`)
+    assert.strictEqual(UTIL.appendFile(file, "hello"), true)
+    assert.strictEqual(UTIL.readJSON(file), null)
+    assert.strictEqual(UTIL.readFile(file), `{\n    "test": "test"\n}hello`)
+    assert.strictEqual(UTIL.writeFile(file, "test", null, null, 4), true)
+    assert.strictEqual(UTIL.readJSON(file), null)
+    assert.strictEqual(UTIL.readFile(file), "test")
+    assert.strictEqual(UTIL.isFile(file), true)
+    assert.strictEqual(UTIL.isDir(file), false)
+    assert.strictEqual(UTIL.pathExists(file), true)
+    assert.strictEqual(UTIL.makeDir(file), false)
     // Delete file and confirm simple checks succeed
     UTIL.deleteFile(file)
-    expect(UTIL.isFile(file)).toBe(false)
-    expect(UTIL.readFile(file)).toBe(null)
-    expect(UTIL.isDir(file)).toBe(false)
-    expect(UTIL.pathExists(file)).toBe(false)
-    expect(UTIL.listDir(UTIL.joinPath(__dirname, "./img"), false, true))
-        .toEqual(["icons"])
-    expect(UTIL.listDir(UTIL.joinPath(__dirname, "./img"), true, true))
-        .toEqual([UTIL.joinPath(__dirname, "img", "icons")])
-    expect(UTIL.dirname("/home/test/")).toBe(dirname("/home/test/"))
-    expect(UTIL.basePath("/home/test/")).toBe(basename("/home/test/"))
-    expect(UTIL.isAbsolutePath("/home/test/")).toBe(isAbsolute("/home/test/"))
+    assert.strictEqual(UTIL.isFile(file), false)
+    assert.strictEqual(UTIL.readFile(file), null)
+    assert.strictEqual(UTIL.isDir(file), false)
+    assert.strictEqual(UTIL.pathExists(file), false)
+    let fileList = UTIL.listDir(
+        UTIL.joinPath(__dirname, "./img"), false, true)
+    assert.strictEqual(fileList.length, 1)
+    assert.strictEqual(fileList[0], "icons")
+    fileList = UTIL.listDir(UTIL.joinPath(__dirname, "./img"), true, true)
+    assert.strictEqual(fileList.length, 1)
+    assert.strictEqual(fileList[0], UTIL.joinPath(__dirname, "img", "icons"))
+    assert.strictEqual(UTIL.dirname("/home/test/"), dirname("/home/test/"))
+    assert.strictEqual(UTIL.basePath("/home/test/"), basename("/home/test/"))
+    assert.strictEqual(
+        UTIL.isAbsolutePath("/home/test/"), isAbsolute("/home/test/"))
 })
 
 test("Title function should capitalize first char and lowercase others", () => {
-    expect(UTIL.title("teSt")).toBe("Test")
-    expect(UTIL.title("a")).toBe("A")
-    expect(UTIL.title("")).toBe("")
-    expect(UTIL.title(undefined)).toBe("")
-    expect(UTIL.title("multiple WORDS")).toBe("Multiple words")
+    assert.strictEqual(UTIL.title("teSt"), "Test")
+    assert.strictEqual(UTIL.title("a"), "A")
+    assert.strictEqual(UTIL.title(""), "")
+    assert.strictEqual(UTIL.title(undefined), "")
+    assert.strictEqual(UTIL.title("multiple WORDS"), "Multiple words")
 })
 
 test("formatSize helper to show file sizes in human readable form", () => {
-    expect(UTIL.formatSize(45)).toBe("45 B")
-    expect(UTIL.formatSize(45345237)).toBe("43.24 MB")
-    expect(UTIL.formatSize(92445237293)).toBe("86.10 GB")
+    assert.strictEqual(UTIL.formatSize(45), "45 B")
+    assert.strictEqual(UTIL.formatSize(45345237), "43.24 MB")
+    assert.strictEqual(UTIL.formatSize(92445237293), "86.10 GB")
 })
 
 test("formatDate helper to show dates in proper standard format", () => {
-    expect(new Date().getTimezoneOffset()).toBe(0)
-    expect(UTIL.formatDate("03-03-2021")).toBe("2021-03-03 00:00:00")
-    expect(UTIL.formatDate("12/24/2021 4:15 PM")).toBe("2021-12-24 16:15:00")
-    expect(UTIL.formatDate(0)).toBe("1970-01-01 00:00:00")
-    expect(UTIL.formatDate(1630281600)).toBe("2021-08-30 00:00:00")
-    expect(UTIL.formatDate(new Date("2021-04-04"))).toBe("2021-04-04 00:00:00")
+    process.env.TZ = "UTC"
+    assert.strictEqual(new Date().getTimezoneOffset(), 0)
+    assert.strictEqual(UTIL.formatDate("03-03-2021"), "2021-03-03 00:00:00")
+    assert.strictEqual(
+        UTIL.formatDate("12/24/2021 4:15 PM"), "2021-12-24 16:15:00")
+    assert.strictEqual(UTIL.formatDate(0), "1970-01-01 00:00:00")
+    assert.strictEqual(UTIL.formatDate(1630281600), "2021-08-30 00:00:00")
+    assert.strictEqual(
+        UTIL.formatDate(new Date("2021-04-04")), "2021-04-04 00:00:00")
 })
 
 test("sameDomain function should match urls that have the same domain", () => {
     // Basics
-    expect(UTIL.sameDomain(
-        "https://duckduckgo.com", "https://google.com/")).toBe(false)
-    expect(UTIL.sameDomain(
-        "https://google.com", "https://google.com/")).toBe(true)
-    expect(UTIL.sameDomain(null, null)).toBeFalsy()
+    assert.strictEqual(UTIL.sameDomain(
+        "https://duckduckgo.com", "https://google.com/"), false)
+    assert.strictEqual(UTIL.sameDomain(
+        "https://google.com", "https://google.com/"), true)
+    assert.strictEqual(UTIL.sameDomain(null, null), false)
     // Strip subdomains, path, search, hash and query
-    expect(UTIL.sameDomain(
-        "https://google.com/test", "http://www.google.com/search")).toBe(true)
-    expect(UTIL.sameDomain(
-        "https://www.accounts.google.com/", "http://google.com?q=0")).toBe(true)
-    expect(UTIL.sameDomain(
-        "https://new.accounts.google.com/", "http://www.google.com")).toBe(true)
-    expect(UTIL.sameDomain(
-        "https://test.test.com/", "http://test.google.com")).toBe(false)
+    assert.strictEqual(UTIL.sameDomain(
+        "https://google.com/test", "http://www.google.com/search"), true)
+    assert.strictEqual(UTIL.sameDomain(
+        "https://www.accounts.google.com/", "http://google.com?q=0"), true)
+    assert.strictEqual(UTIL.sameDomain(
+        "https://new.accounts.google.com/", "http://www.google.com"), true)
+    assert.strictEqual(UTIL.sameDomain(
+        "https://test.test.com/", "http://test.google.com"), false)
     // Localhost and IPs will not be stripped of subdomains
-    expect(UTIL.sameDomain(
-        "https://localhost/", "http://localhost#extra")).toBe(true)
-    expect(UTIL.sameDomain(
-        "https://localhost/", "http://test.localhost")).toBe(false)
-    expect(UTIL.sameDomain(
-        "https://localhost:8080/", "http://localhost:3000/test")).toBe(true)
-    expect(UTIL.sameDomain(
-        "https://127.0.0.1/", "http://10.0.0.1")).toBe(false)
+    assert.strictEqual(UTIL.sameDomain(
+        "https://localhost/", "http://localhost#extra"), true)
+    assert.strictEqual(UTIL.sameDomain(
+        "https://localhost/", "http://test.localhost"), false)
+    assert.strictEqual(UTIL.sameDomain(
+        "https://localhost:8080/", "http://localhost:3000/test"), true)
+    assert.strictEqual(UTIL.sameDomain(
+        "https://127.0.0.1/", "http://10.0.0.1"), false)
 })
 
 test(`Expand path to resolve homedir and downloads`, () => {
     sessionStorage.setItem("settings", JSON.stringify({
         "downloadpath": `~${path.sep}Downloads${path.sep}`
     }))
-    expect(UTIL.downloadPath()).toBe(
+    assert.strictEqual(UTIL.downloadPath(),
         `${homedir()}${path.sep}Downloads${path.sep}`)
     sessionStorage.setItem("settings", JSON.stringify({
         "downloadpath": `Downloads${path.sep}`
     }))
-    expect(UTIL.downloadPath()).toBe(`Downloads${path.sep}`)
+    assert.strictEqual(UTIL.downloadPath(), `Downloads${path.sep}`)
 })
 
 test(`Firefox version should increment by date`, () => {
@@ -537,7 +561,7 @@ test(`Firefox version should increment by date`, () => {
         }
     }
     let ver = 113
-    expect(UTIL.firefoxUseragent()).toBe(
+    assert.strictEqual(UTIL.firefoxUseragent(),
         `Mozilla/5.0 (${sys}; rv:${ver}.0) Gecko/20100101 Firefox/${ver}.0`)
     global.Date = class extends Date {
         constructor(...date) {
@@ -548,7 +572,7 @@ test(`Firefox version should increment by date`, () => {
         }
     }
     ver = 114
-    expect(UTIL.firefoxUseragent()).toBe(
+    assert.strictEqual(UTIL.firefoxUseragent(),
         `Mozilla/5.0 (${sys}; rv:${ver}.0) Gecko/20100101 Firefox/${ver}.0`)
     global.Date = class extends Date {
         constructor(...date) {
@@ -559,6 +583,6 @@ test(`Firefox version should increment by date`, () => {
         }
     }
     ver = 115
-    expect(UTIL.firefoxUseragent()).toBe(
+    assert.strictEqual(UTIL.firefoxUseragent(),
         `Mozilla/5.0 (${sys}; rv:${ver}.0) Gecko/20100101 Firefox/${ver}.0`)
 })
