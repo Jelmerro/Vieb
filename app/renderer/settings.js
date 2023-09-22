@@ -2136,7 +2136,6 @@ module.exports = {
     settingsWithDefaults,
     suggestionList,
     updateContainerSettings,
-    updateCustomStyling,
     updateHelpPage,
     updateWindowTitle,
     validOptions
