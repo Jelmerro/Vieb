@@ -529,3 +529,4 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #toc summary h1 {display: list-item;margin: 0;font-size: 2em;color: var(--fg);}
 #toc ul {padding-inline-start: 1.8em;padding-inline-end: .5em;}
 #toc a {color: var(--link-color);}
+#toc > a {display: block;padding: 0 1.8em;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}

@@ -610,8 +610,13 @@ const showTOC = (customStyling, fontsize, opened = false) => {
     summary.append(title)
     const baseUl = document.createElement("ul")
     baseUl.setAttribute("depth", "1")
-    toc.append(summary, baseUl)
     const lists = [baseUl]
+    const topLink = document.createElement("a")
+    const topUrl = new URL(window.location.href)
+    topUrl.hash = ""
+    topLink.href = topUrl.href
+    topLink.textContent = "TOP"
+    toc.append(summary, topLink, baseUl)
 
     /** Returns the current taversing depth of the toc. */
     const currentDepth = () => Number(lists.at(-1)?.getAttribute("depth"))
@@ -634,7 +639,8 @@ const showTOC = (customStyling, fontsize, opened = false) => {
             ?.replace(/\s+/g, "_").replace(/[\u{0080}-\u{FFFF}]/gu, "") || ""
         let headingId = baseHeadingId
         let duplicateHeadingCounter = 2
-        while (headingNames.includes(headingId)) {
+        while (headingNames.includes(headingId)
+            || document.getElementById(headingId)) {
             headingId = `${baseHeadingId}${duplicateHeadingCounter}`
             duplicateHeadingCounter += 1
         }
