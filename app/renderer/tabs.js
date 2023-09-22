@@ -612,7 +612,10 @@ const addWebviewListeners = webview => {
             }
         }
     })
-    webview.addEventListener("crashed", () => {
+    webview.addEventListener("render-process-gone", e => {
+        if (e.details.reason === "clean-exit") {
+            return
+        }
         if (getSetting("reloadtaboncrash")) {
             recreateWebview(webview)
         } else {
