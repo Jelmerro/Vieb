@@ -406,13 +406,16 @@ if (argInterfaceScale !== 1) {
         "force-device-scale-factor", `${argInterfaceScale}`)
 }
 if (isNaN(argExecuteDur) || argExecuteDur < 0) {
-    console.warn(
-        "The 'execute-dur' argument only accepts positive numbers\n")
+    console.warn("The 'execute-dur' argument only accepts positive numbers\n")
     printUsage()
 }
 if (isNaN(argExecuteCount) || argExecuteCount < 0) {
+    console.warn("The 'execute-count' argument only accepts positive numbers\n")
+    printUsage()
+}
+if (argExecuteDur === 0 && argExecuteCount === 0) {
     console.warn(
-        "The 'execute-count' argument only accepts positive numbers\n")
+        "The 'execute-dur' and 'execute-count' arguments cannot both be zero\n")
     printUsage()
 }
 if (urls.length && argExecute) {
