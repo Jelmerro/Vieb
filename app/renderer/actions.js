@@ -893,10 +893,10 @@ const editWithVim = () => {
             command = execCommand(commandStr, (err, stdout) => {
                 const reportExit = getSetting("notificationforsystemcommands")
                 if (err && reportExit !== "none") {
-                    notify(`${err}`, "err")
+                    notify(`${err}`, {"type": "err"})
                 } else if (reportExit === "all") {
                     notify(stdout.toString()
-                        || "Command exitted successfully!", "suc")
+                        || "Command exitted successfully!", {"type": "suc"})
                 }
             })
         }
@@ -1167,7 +1167,7 @@ const getPageRSSLinks = async() => {
         ].includes(link.getAttribute("type"))
             && link.getAttribute("href")).filter(Boolean)`)
     if (feedUrls.length === 0) {
-        notify("No RSS feeds found on this page", "warn")
+        notify("No RSS feeds found on this page", {"type": "warn"})
         return null
     }
     return feedUrls.slice(0, 10).map((feed = "") => {
@@ -1202,7 +1202,7 @@ const pageRSSLinkToClipboard = async args => {
     }
     const feedUrl = feedUrls[!isNaN(Number(key)) && Number(key) || 0] ?? ""
     clipboard.writeText(feedUrl)
-    notify(`RSS feed '${feedUrl}' copied to clipboard`, "suc")
+    notify(`RSS feed '${feedUrl}' copied to clipboard`, {"type": "suc"})
 }
 
 /** Copy the current page url to the system clipboard. */
@@ -1544,7 +1544,7 @@ const useEnteredData = () => {
         const command = url.value.trim()
         setMode("normal")
         const {execute} = require("./command")
-        execute(command, null, true)
+        execute(command, {"src": "user"})
     }
     if (currentMode() === "search") {
         searchDirection = potentialNewSearchDirection

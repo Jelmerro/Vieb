@@ -350,7 +350,8 @@ const commonAction = (type, action, options) => {
         const ext = getSetting("externalcommand")
         if (!ext.trim()) {
             notify("No command set to open links externally, "
-                + "please update the 'externalcommand' setting", "warn")
+                + "please update the 'externalcommand' setting",
+            {"type": "warn"})
             return
         }
         if (relevantData) {
@@ -367,10 +368,10 @@ const commonAction = (type, action, options) => {
             execCommand(`${ext} "${extData}"`, (err, stdout) => {
                 const reportExit = getSetting("notificationforsystemcommands")
                 if (err && reportExit !== "none") {
-                    notify(`${err}`, "err")
+                    notify(`${err}`, {"type": "err"})
                 } else if (reportExit === "all") {
                     notify(stdout.toString()
-                        || "Command exitted successfully!", "suc")
+                        || "Command exitted successfully!", {"type": "suc"})
                 }
             })
         }

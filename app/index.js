@@ -50,7 +50,8 @@ const {
     formatDate,
     domainName,
     defaultUseragent,
-    rm
+    rm,
+    watchFile
 } = require("./util")
 
 const version = process.env.npm_package_version || app.getVersion()
@@ -94,6 +95,16 @@ Options:
                          Open a fixed set of pages in a separate instance.
                          See 'Erwic.md' or ':h erwic' for usage and details.
                          You can also use the ENV var: 'VIEB_ERWIC'.
+
+ --execute=<command>     command: A command to run inside the existing instance.
+                         If Vieb is running inside this datafolder,
+                         this command will be run inside that Vieb instance,
+                         and the result of the command is returned in the shell.
+                         This can for example be used to get the current url,
+                         to change settings, to add mappings or to press keys,
+                         inside the existing Vieb running in this datafolder.
+                         If no datafolder is provided via ENV or argument,
+                         the default datafolder is used to execute the command.
 
  --config-order=<val>    string [USER-FIRST/user-only/
                            datafolder-first/datafolder-only/none]:
@@ -222,6 +233,7 @@ let argDebugMode = false
 let argDatafolder = process.env.VIEB_DATAFOLDER?.trim()
     || joinPath(app.getPath("appData"), "Vieb")
 let argErwic = process.env.VIEB_ERWIC?.trim() || ""
+let argExecute = ""
 let argWindowFrame = isTruthyArg(process.env.VIEB_WINDOW_FRAME)
 let argConfigOrder = process.env.VIEB_CONFIG_ORDER?.trim().toLowerCase()
     || "user-first"
@@ -256,6 +268,10 @@ args.forEach(a => {
             console.warn("The 'erwic' argument requires a value such as:"
                 + " --erwic=~/.config/Erwic/\n")
             printUsage()
+        } else if (arg === "--execute") {
+            console.warn("The 'execute' argument requires a value such as:"
+                + " --execute=\"echo <useCurrentUrl>\"\n")
+            printUsage()
         } else if (arg === "--config-order") {
             console.warn("The 'config-order' argument requires a value such as:"
                 + " --config-order=user-first\n")
@@ -288,6 +304,8 @@ args.forEach(a => {
             argDatafolder = arg.split("=").slice(1).join("=")
         } else if (arg.startsWith("--erwic=")) {
             argErwic = arg.split("=").slice(1).join("=")
+        } else if (arg.startsWith("--execute=")) {
+            argExecute = arg.split("=").slice(1).join("=")
         } else if (arg.startsWith("--config-order=")) {
             argConfigOrder = arg.split("=").slice(1).join("=")
         } else if (arg.startsWith("--config-file=")) {
@@ -349,12 +367,18 @@ if (argAcceleration === "software") {
     app.disableHardwareAcceleration()
 }
 if (isNaN(argInterfaceScale) || argInterfaceScale <= 0) {
-    console.warn("The 'interface-scale' argument only accepts positive numbers")
+    console.warn(
+        "The 'interface-scale' argument only accepts positive numbers\n")
     printUsage()
 }
 if (argInterfaceScale !== 1) {
     app.commandLine.appendSwitch(
         "force-device-scale-factor", `${argInterfaceScale}`)
+}
+if (urls.length && argExecute) {
+    console.warn(
+        "The 'execute' argument cannot be combined with opening urls\n")
+    printUsage()
 }
 // https://github.com/electron/electron/issues/30201
 if (argMediaKeys) {
@@ -723,7 +747,17 @@ const permissionHandler = (_, pm, callback, details) => {
 app.on("ready", () => {
     app.userAgentFallback = defaultUseragent()
     if (!argUnsafeMultiwin) {
-        if (app.requestSingleInstanceLock({"argv": args})) {
+        /** @type {{argv?: string[], command?: string}} */
+        let secondInstanceArgs = {"argv": args}
+        if (argExecute) {
+            secondInstanceArgs = {"command": argExecute}
+        }
+        if (app.requestSingleInstanceLock(secondInstanceArgs)) {
+            if (argExecute) {
+                console.info("Execute arg only works if Vieb is "
+                    + "already running in this datafolder.")
+                app.exit(1)
+            }
             app.on("second-instance", (_, newArgs, cwd, extra) => {
                 if (!mainWindow) {
                     return
@@ -732,14 +766,25 @@ app.on("ready", () => {
                     mainWindow.restore()
                 }
                 mainWindow.focus()
+                // @ts-expect-error command might be there, if so use it
+                mainWindow.webContents.send("execute-command", extra?.command)
                 mainWindow.webContents.send("urls", resolveLocalPaths(
                     // @ts-expect-error argv might be there, if so use it
                     extra?.argv || getArguments(newArgs), cwd))
             })
-        } else {
+        } else if (!argExecute) {
             console.info(`Sending urls to existing instance ${argDatafolder}`)
             app.exit(0)
         }
+    }
+    if (argExecute) {
+        const loc = joinPath(app.getPath("appData"), ".tmp-execute-output")
+        watchFile(loc, () => {
+            console.info(readFile(loc))
+            deleteFile(loc)
+            process.exit(0)
+        })
+        return
     }
     app.on("open-file", (_, url) => mainWindow?.webContents.send("urls",
         resolveLocalPaths([url])))

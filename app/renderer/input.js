@@ -2066,8 +2066,8 @@ const mappingModified = (mode, mapping) => {
 const sanitiseMapString = (mapString, allowSpecials = false) => {
     const {maps, valid, leftover} = splitMapString(mapString)
     if (!valid) {
-        notify(
-            `Unmatched < > in mapping '${mapString}': ${leftover}`, "warn")
+        notify(`Unmatched < > in mapping '${mapString}': ${leftover}`,
+            {"type": "warn"})
         return ""
     }
     return maps.map(m => {
@@ -2116,8 +2116,8 @@ const sanitiseMapString = (mapString, allowSpecials = false) => {
             }
         }
         if (!knownKey && key.length > 1) {
-            notify(
-                `Unsupported key in mapping which was skipped: ${key}`, "warn")
+            notify(`Unsupported key in mapping which was skipped: ${key}`,
+                {"type": "warn"})
             return ""
         }
         if (!key) {
@@ -2240,7 +2240,8 @@ const mapSingle = (mode, args, noremap) => {
  */
 const mapOrList = (mode, args, noremap = false, includeDefault = false) => {
     if (includeDefault && args.length > 1) {
-        notify("Mappings are always overwritten, no need for !", "warn")
+        notify("Mappings are always overwritten, no need for !",
+            {"type": "warn"})
         return
     }
     if (args.length === 0) {
@@ -2290,7 +2291,8 @@ const mapOrList = (mode, args, noremap = false, includeDefault = false) => {
  */
 const unmap = (mode, args, anyAsWildcard) => {
     if (args.length !== 1) {
-        notify(`The ${mode}unmap command requires exactly one mapping`, "warn")
+        notify(`The ${mode}unmap command requires exactly one mapping`,
+            {"type": "warn"})
         return
     }
     const mapStr = sanitiseMapString(args[0])
@@ -2349,7 +2351,7 @@ const clearmap = (mode, removeDefaults = false) => {
  */
 const startRecording = name => {
     if (recordingName) {
-        notify("Already recording, ignoring record action", "warn")
+        notify("Already recording, ignoring record action", {"type": "warn"})
         return
     }
     recordingName = name
@@ -2698,6 +2700,10 @@ const init = () => {
     ipcRenderer.on("window-blur", () => {
         document.body.classList.remove("focus")
         ACTIONS.setFocusCorrectly()
+    })
+    ipcRenderer.on("execute-command", (_, command) => {
+        const {execute} = require("./command")
+        execute(command, {"src": "execute"})
     })
     ipcRenderer.on("window-update-gui", () => updateGuiVisibility())
     ACTIONS.setFocusCorrectly()

@@ -629,7 +629,7 @@ const checkOption = (setting, value) => {
                 text = `'${lastOption}'`
             }
             notify(`The value of setting '${setting}' can only be one of:`
-                + ` ${text}`, "warn")
+                + ` ${text}`, {"type": "warn"})
         }
         return valid
     }
@@ -645,7 +645,7 @@ const checkNumber = (setting, value) => {
     const numberRange = numberRanges[setting]
     if (numberRange[0] > value || numberRange[1] < value) {
         notify(`The value of setting '${setting}' must be between `
-            + `${numberRange[0]} and ${numberRange[1]}`, "warn")
+            + `${numberRange[0]} and ${numberRange[1]}`, {"type": "warn"})
         return false
     }
     return true
@@ -659,9 +659,11 @@ const checkSuggestOrder = value => {
     for (const suggest of value.split(",").filter(s => s.trim())) {
         const parts = (suggest.match(/~/g) || []).length
         if (parts > 2) {
-            notify(`Invalid suggestorder entry: ${suggest}\n`
-                    + "Entries must have at most two ~ to separate the type "
-                    + "from the count and the order (both optional)", "warn")
+            notify(
+                `Invalid suggestorder entry: ${suggest}\n`
+                + "Entries must have at most two ~ to separate the type "
+                + "from the count and the order (both optional)",
+                {"type": "warn"})
             return false
         }
         const args = suggest.split("~")
@@ -669,7 +671,7 @@ const checkSuggestOrder = value => {
         if (!["history", "file", "searchword"].includes(type)) {
             notify(`Invalid suggestorder type: ${type}\n`
                     + "Suggestion type must be one of: history, file or "
-                    + "searchword", "warn")
+                    + "searchword", {"type": "warn"})
             return false
         }
         let hasHadCount = false
@@ -677,14 +679,15 @@ const checkSuggestOrder = value => {
         for (const arg of args) {
             if (!arg) {
                 notify("Configuration for suggestorder after the type can "
-                        + "not be empty", "warn")
+                        + "not be empty", {"type": "warn"})
                 return false
             }
             const potentialCount = Number(arg)
             if (potentialCount > 0 && potentialCount <= 9000000000000000) {
                 if (hasHadCount) {
-                    notify("Count configuration for a suggestorder entry "
-                            + "can only be set once per entry", "warn")
+                    notify(
+                        "Count configuration for a suggestorder entry "
+                        + "can only be set once per entry", {"type": "warn"})
                     return false
                 }
                 hasHadCount = true
@@ -702,15 +705,18 @@ const checkSuggestOrder = value => {
             }
             if (validOrders.includes(arg)) {
                 if (hasHadOrder) {
-                    notify("Order configuration for a suggestorder entry "
-                            + "can only be set once per entry", "warn")
+                    notify(
+                        "Order configuration for a suggestorder entry "
+                        + "can only be set once per entry", {"type": "warn"})
                     return false
                 }
                 hasHadOrder = true
                 continue
             }
-            notify(`Order configuration is invalid, supported orders for ${
-                type} suggestions are: ${validOrders.join(", ")}`, "warn")
+            notify(
+                `Order configuration is invalid, supported orders for ${
+                    type} suggestions are: ${validOrders.join(", ")}`,
+                {"type": "warn"})
             return false
         }
     }
@@ -732,7 +738,7 @@ const checkOther = (setting, value) => {
             || isValidIntervalValue(value)
         if (!valid) {
             notify("clearhistoryinterval can only be set to none, session or "
-                + "a valid interval, such as 1day or 3months", "warn")
+                + "a valid interval, such as 1day or 3months", {"type": "warn"})
         }
         return valid
     }
@@ -755,14 +761,15 @@ const checkOther = (setting, value) => {
             const text = `'${specialNames.join("', '")}' or '${lastName}'`
             notify(
                 `Special container name for '${setting}' can only be one of:`
-                + ` ${text}`, "warn")
+                + ` ${text}`, {"type": "warn"})
             return false
         }
         const simpleValue = value.replace("%n", "valid").replace(/_/g, "")
         if (simpleValue.match(specialChars)) {
             notify(
                 "No special characters besides underscores are allowed in the "
-                + `name of a container, invalid ${setting}: ${value}`, "warn")
+                + `name of a container, invalid ${setting}: ${value}`,
+                {"type": "warn"})
             return false
         }
     }
@@ -774,7 +781,8 @@ const checkOther = (setting, value) => {
             if ((colorMatch.match(/~/g) || []).length !== 1) {
                 notify(`Invalid ${setting} entry: ${colorMatch}\n`
                     + "Entries must have exactly one ~ to separate the "
-                    + "name regular expression and color name/hex", "warn")
+                    + "name regular expression and color name/hex",
+                {"type": "warn"})
                 return false
             }
             const [match, color] = colorMatch.split("~")
@@ -783,7 +791,7 @@ const checkOther = (setting, value) => {
             } catch {
                 notify(
                     `Invalid regular expression in containercolors: ${match}`,
-                    "warn")
+                    {"type": "warn"})
                 return false
             }
             const {style} = document.createElement("div")
@@ -791,7 +799,7 @@ const checkOther = (setting, value) => {
             style.color = color
             if (style.color === "white" && color !== "white" || !color) {
                 notify("Invalid color, must be a valid color name or hex"
-                    + `, not: ${color}`, "warn")
+                    + `, not: ${color}`, {"type": "warn"})
                 return false
             }
         }
@@ -805,13 +813,13 @@ const checkOther = (setting, value) => {
                 notify(`Invalid ${setting} entry: ${containerMatch}\n`
                     + "Entries must have one or two ~ to separate the "
                     + "regular expression, container name and newtab param",
-                "warn")
+                {"type": "warn"})
                 return false
             }
             const [match, container, newtabParam] = containerMatch.split("~")
             if (newtabParam && newtabParam !== "newtab") {
                 notify(`Invalid containernames newtab param: ${containerMatch}`,
-                    "warn")
+                    {"type": "warn"})
                 return false
             }
             try {
@@ -819,7 +827,7 @@ const checkOther = (setting, value) => {
             } catch {
                 notify(
                     `Invalid regular expression in containernames: ${match}`,
-                    "warn")
+                    {"type": "warn"})
                 return false
             }
             const simpleValue = container.replace("%n", "valid").replace(/_/g, "")
@@ -827,7 +835,7 @@ const checkOther = (setting, value) => {
                 notify(
                     "No special characters besides underscores are allowed in "
                     + `the name of a container, invalid ${setting}: ${value}`,
-                    "warn")
+                    {"type": "warn"})
                 return false
             }
         }
@@ -841,7 +849,7 @@ const checkOther = (setting, value) => {
         style.color = value
         if (style.color === "white" && value !== "white" || !value) {
             notify("Invalid color, must be a valid color name or hex"
-                    + `, not: ${value}`, "warn")
+                    + `, not: ${value}`, {"type": "warn"})
             return false
         }
     }
@@ -854,7 +862,7 @@ const checkOther = (setting, value) => {
                 RegExp(match)
             } catch {
                 notify(`Invalid regular expression in ${setting}: ${match}`,
-                    "warn")
+                    {"type": "warn"})
                 return false
             }
         }
@@ -867,7 +875,7 @@ const checkOther = (setting, value) => {
         for (const match of value.split(",").filter(c => c.trim())) {
             if (!["file", "page", "special"].includes(match)) {
                 notify(`Invalid value '${match}' in ${setting}, `
-                    + "must be one of: file, page or special", "warn")
+                    + "must be one of: file, page or special", {"type": "warn"})
                 return false
             }
         }
@@ -878,11 +886,11 @@ const checkOther = (setting, value) => {
         }
         const expandedPath = expandPath(value)
         if (value && !pathExists(expandedPath)) {
-            notify("The download path does not exist", "warn")
+            notify("The download path does not exist", {"type": "warn"})
             return false
         }
         if (value && !isDir(expandedPath)) {
-            notify("The download path is not a directory", "warn")
+            notify("The download path is not a directory", {"type": "warn"})
             return false
         }
     }
@@ -892,7 +900,8 @@ const checkOther = (setting, value) => {
         }
         for (const page of value.split(",").filter(p => p.trim())) {
             if (!isUrl(page)) {
-                notify(`Invalid URL passed to favoritepages: ${page}`, "warn")
+                notify(`Invalid URL passed to favoritepages: ${page}`,
+                    {"type": "warn"})
                 return false
             }
         }
@@ -911,18 +920,21 @@ const checkOther = (setting, value) => {
         ]
         if (!ok.includes(value) && !value.startsWith("custom:")) {
             notify(`Invalid value: ${value}, `
-               + `must be any of: alpha, alphanum, dvorakhome, numbers,
-                  qwertyhome, or a custom list starting with 'custom:'`, "warn")
+               + "must be any of: alpha, alphanum, dvorakhome, numbers, "
+               + `qwertyhome, or a custom list starting with 'custom:'`,
+            {"type": "warn"})
             return false
         }
         if (value.startsWith("custom:")) {
             const chars = value.replace("custom:", "").split("")
             if (chars.length < 2) {
-                notify("A minimum of two characters is required", "warn")
+                notify("A minimum of two characters is required",
+                    {"type": "warn"})
                 return
             }
             if (new Set(chars).size < chars.length) {
-                notify("All characters must be unique, no duplicates", "warn")
+                notify("All characters must be unique, no duplicates",
+                    {"type": "warn"})
                 return
             }
         }
@@ -944,7 +956,7 @@ const checkOther = (setting, value) => {
             if (!ok.includes(element)) {
                 notify(`Invalid element type passed: ${element}, `
                    + `must be any combination of: url, onclick,
-                      inputs-insert, inputs-click or other`, "warn")
+                      inputs-insert, inputs-click or other`, {"type": "warn"})
                 return false
             }
         }
@@ -958,7 +970,7 @@ const checkOther = (setting, value) => {
             if (name.length > 1
                 && !keyNames.some(key => key.vim.includes(name))) {
                 notify(`Key name '${name}' is not recognized as a valid key`,
-                    "warn")
+                    {"type": "warn"})
                 return false
             }
         }
@@ -970,7 +982,8 @@ const checkOther = (setting, value) => {
         const invalid = value.split(",").find(
             v => !mouseFeatures.includes(v) && v !== "all")
         if (invalid) {
-            notify(`Feature '${invalid}' is not a valid mouse feature`, "warn")
+            notify(`Feature '${invalid}' is not a valid mouse feature`,
+                {"type": "warn"})
             return false
         }
     }
@@ -979,7 +992,8 @@ const checkOther = (setting, value) => {
             return false
         }
         if (value && !isUrl(stringToUrl(value).replace(/^https?:\/\//g, ""))) {
-            notify("The newtaburl value must be a valid url or empty", "warn")
+            notify("The newtaburl value must be a valid url or empty",
+                {"type": "warn"})
             return false
         }
     }
@@ -994,7 +1008,8 @@ const checkOther = (setting, value) => {
             if ((override.match(/~/g) || []).length === 0) {
                 notify(`Invalid ${setting} entry: ${override}\n`
                     + "Entries must have at least one ~ to separate the "
-                    + "domain regular expression and permission names", "warn")
+                    + "domain regular expression and permission names",
+                {"type": "warn"})
                 return false
             }
             const [match, ...names] = override.split("~")
@@ -1003,7 +1018,7 @@ const checkOther = (setting, value) => {
             } catch {
                 notify(
                     `Invalid regular expression in permission: ${match}`,
-                    "warn")
+                    {"type": "warn"})
                 return false
             }
             for (let name of names) {
@@ -1017,31 +1032,32 @@ const checkOther = (setting, value) => {
                 const reservedName = permissionSettings.includes(name)
                 if (reservedName || !(name in defaultSettings)) {
                     notify(
-                        `Invalid name for a permission: ${name}`, "warn")
+                        `Invalid name for a permission: ${name}`,
+                        {"type": "warn"})
                     return false
                 }
                 if (setting.endsWith("asked") && name.endsWith("hid")) {
                     notify(
                         "HID permission can't be asked, "
-                        + "only allowed or blocked", "warn")
+                        + "only allowed or blocked", {"type": "warn"})
                     return false
                 }
                 if (setting.endsWith("asked") && name.endsWith("usb")) {
                     notify(
                         "USB device permission can't be asked, "
-                        + "only allowed or blocked", "warn")
+                        + "only allowed or blocked", {"type": "warn"})
                     return false
                 }
                 if (setting.endsWith("asked") && name.endsWith("serial")) {
                     notify(
                         "Serial device permission can't be asked, "
-                        + "only allowed or blocked", "warn")
+                        + "only allowed or blocked", {"type": "warn"})
                     return false
                 }
                 if (setting.endsWith("allowed") && name.endsWith("capture")) {
                     notify(
                         "Display capture permission can't be allowed, "
-                        + "only asked or blocked", "warn")
+                        + "only asked or blocked", {"type": "warn"})
                     return false
                 }
             }
@@ -1054,7 +1070,7 @@ const checkOther = (setting, value) => {
         for (const mType of value.split(",").filter(l => l.trim())) {
             if (!["scroll", "marks", "pointer"].includes(mType)) {
                 notify(`Invalid quickmark type passed to ${setting}: ${mType}`,
-                    "warn")
+                    {"type": "warn"})
                 return false
             }
         }
@@ -1067,15 +1083,16 @@ const checkOther = (setting, value) => {
             if ((redirect.match(/~/g) || []).length !== 1) {
                 notify(`Invalid redirect entry: ${redirect}\n`
                     + "Entries must have exactly one ~ to separate the "
-                    + "regular expression from the replacement", "warn")
+                    + "regular expression from the replacement",
+                {"type": "warn"})
                 return false
             }
             const [match] = redirect.split("~")
             try {
                 RegExp(match)
             } catch {
-                notify(
-                    `Invalid regular expression in redirect: ${match}`, "warn")
+                notify(`Invalid regular expression in redirect: ${match}`,
+                    {"type": "warn"})
                 return false
             }
         }
@@ -1089,16 +1106,15 @@ const checkOther = (setting, value) => {
             try {
                 RegExp(match)
             } catch {
-                notify(
-                    `Invalid regular expression in ${setting}: ${match}`,
-                    "warn")
+                notify(`Invalid regular expression in ${setting}: ${match}`,
+                    {"type": "warn"})
                 return false
             }
             for (const name of names) {
                 const supported = defaultSettings.resourcetypes.split(",")
                 if (!supported.includes(name)) {
                     notify(`Invalid resource type in ${setting}: ${name}`,
-                        "warn")
+                        {"type": "warn"})
                     return false
                 }
             }
@@ -1111,7 +1127,7 @@ const checkOther = (setting, value) => {
         for (const rsrc of value.split(",").filter(l => l.trim())) {
             if (!defaultSettings.resourcetypes.split(",").includes(rsrc)) {
                 notify(`Invalid resource type passed to ${setting}: ${rsrc}`,
-                    "warn")
+                    {"type": "warn"})
                 return false
             }
         }
@@ -1125,13 +1141,13 @@ const checkOther = (setting, value) => {
             if (baseUrl.length === 0 || !baseUrl.includes("%s")) {
                 notify(`Invalid searchengine value: ${baseUrl}\n`
                         + "Each URL must contain a %s parameter, which will "
-                        + "be replaced by the search string", "warn")
+                        + "be replaced by the search string", {"type": "warn"})
                 return false
             }
             if (!isUrl(baseUrl)) {
                 notify(
                     "Each URL of the searchengine setting must be a valid url",
-                    "warn")
+                    {"type": "warn"})
                 return false
             }
         }
@@ -1146,7 +1162,7 @@ const checkOther = (setting, value) => {
             if ((searchword.match(/~/g) || []).length !== 1) {
                 notify(`Invalid searchwords entry: ${searchword}\n`
                     + "Entries must have exactly one ~ to separate the "
-                    + "searchword from the URL", "warn")
+                    + "searchword from the URL", {"type": "warn"})
                 return false
             }
             const [keyword, url] = searchword.split("~")
@@ -1154,20 +1170,21 @@ const checkOther = (setting, value) => {
             if (keyword.length === 0 || simpleKeyword.match(specialChars)) {
                 notify(`Invalid searchwords entry: ${searchword}\n`
                     + "Searchwords before the ~ must not contain any special "
-                    + "characters besides underscores", "warn")
+                    + "characters besides underscores", {"type": "warn"})
                 return false
             }
             if (url.length === 0 || !url.includes("%s")) {
                 notify(`Invalid searchwords entry: ${searchword}\n`
                     + "URLs for searchwords must exist and must "
                     + "contain a %s parameter, which will be "
-                    + "replaced by the search string", "warn")
+                    + "replaced by the search string", {"type": "warn"})
                 return false
             }
             if (knownSearchwords.includes(keyword)) {
                 notify(`Invalid searchwords entry: ${searchword}\n`
                     + `The searchword ${keyword} was already defined. `
-                    + "A searchword must be defined only once", "warn")
+                    + "A searchword must be defined only once",
+                {"type": "warn"})
                 return false
             }
             knownSearchwords.push(keyword)
@@ -1180,7 +1197,7 @@ const checkOther = (setting, value) => {
         for (const lang of value.split(",").filter(l => l.trim())) {
             if (spelllangs.length && !spelllangs.includes(lang)) {
                 notify(`Invalid language passed to spelllang: ${lang}`,
-                    "warn")
+                    {"type": "warn"})
                 return false
             }
         }
@@ -1197,12 +1214,13 @@ const checkOther = (setting, value) => {
             if ((catColorPair.match(/~/g) || []).length > 1) {
                 notify(`Invalid ${setting} entry: ${catColorPair}\n`
                     + "Entries must have zero or one ~ to separate the "
-                    + "category name and color name/hex", "warn")
+                    + "category name and color name/hex", {"type": "warn"})
                 return false
             }
             const [category, color] = catColorPair.split("~")
             if (!allCategories.includes(category)) {
-                notify(`Invalid category in ${setting}: ${category}`, "warn")
+                notify(`Invalid category in ${setting}: ${category}`,
+                    {"type": "warn"})
                 return false
             }
             const {style} = document.createElement("div")
@@ -1210,13 +1228,13 @@ const checkOther = (setting, value) => {
             style.color = color
             if (color && style.color === "white" && color !== "white") {
                 notify("Invalid color, must be a valid color name or hex"
-                    + `, not: ${color}`, "warn")
+                    + `, not: ${color}`, {"type": "warn"})
                 return false
             }
             if (knownCategories.includes(category)) {
                 notify(`Invalid sponsorblockcategories entry: ${catColorPair}\n`
                     + `The category ${category} was already defined. `
-                    + "A category must be defined only once", "warn")
+                    + "A category must be defined only once", {"type": "warn"})
                 return false
             }
             knownCategories.push(category)
@@ -1231,7 +1249,8 @@ const checkOther = (setting, value) => {
             const url = parts.shift() ?? ""
             const cname = parts.shift()
             if (!isUrl(url)) {
-                notify(`Invalid URL passed to startuppages: ${url}`, "warn")
+                notify(`Invalid URL passed to startuppages: ${url}`,
+                    {"type": "warn"})
                 return false
             }
             if (cname) {
@@ -1245,22 +1264,25 @@ const checkOther = (setting, value) => {
                 if (!specials.includes(cname) && simple.match(specialChars)) {
                     notify("No special characters besides underscores are "
                         + "allowed in the name of a container, invalid "
-                        + `${setting}: ${cname}`, "warn")
+                        + `${setting}: ${cname}`, {"type": "warn"})
                     return false
                 }
             }
             if (parts.length > 2) {
-                notify("Too many options given to startuppages entry", "warn")
+                notify("Too many options given to startuppages entry",
+                    {"type": "warn"})
                 return false
             }
             if (parts[0] && parts[0] !== "muted" && parts[0] !== "pinned") {
                 notify(`Invalid option '${parts[0]}' given to startuppages, `
-                    + "only 'muted' and 'pinned' are accepted", "warn")
+                    + "only 'muted' and 'pinned' are accepted",
+                {"type": "warn"})
                 return false
             }
             if (parts[1] && parts[1] !== "muted" && parts[1] !== "pinned") {
                 notify(`Invalid option '${parts[1]}' given to startuppages, `
-                    + "only 'muted' and 'pinned' are accepted", "warn")
+                    + "only 'muted' and 'pinned' are accepted",
+                {"type": "warn"})
                 return false
             }
         }
@@ -1280,7 +1302,7 @@ const checkOther = (setting, value) => {
         for (const visitType of value.split(",").filter(v => v.trim())) {
             if (!valid.includes(visitType)) {
                 notify(`Invalid type of history passed: ${visitType}, `
-                    + `must be one of: ${valid.join(", ")}`, "warn")
+                    + `must be one of: ${valid.join(", ")}`, {"type": "warn"})
                 return false
             }
         }
@@ -1300,7 +1322,7 @@ const checkOther = (setting, value) => {
                 RegExp(match)
             } catch {
                 notify(`Invalid regular expression in ${setting}: ${match}`,
-                    "warn")
+                    {"type": "warn"})
                 return false
             }
         }
@@ -1310,7 +1332,8 @@ const checkOther = (setting, value) => {
             return false
         }
         if (!isUrl(stringToUrl(value).replace(/^https?:\/\//g, ""))) {
-            notify("The translateurl value must be a valid url", "warn")
+            notify("The translateurl value must be a valid url",
+                {"type": "warn"})
             return false
         }
     }
@@ -1358,7 +1381,7 @@ const isValidSetting = (setting, value) => {
     if (expectedType !== typeof parsedValue) {
         notify(`The value of setting '${setting}' is of an incorrect `
             + `type, expected '${expectedType}' but got `
-            + `'${typeof parsedValue}' instead.`, "warn")
+            + `'${typeof parsedValue}' instead.`, {"type": "warn"})
         return false
     }
     if (isEnumSetting(setting)) {
@@ -1745,7 +1768,7 @@ const updateHelpPage = () => {
  */
 const set = (setting, value) => {
     if (!isExistingSetting(setting)) {
-        notify(`The setting '${setting}' doesn't exist`, "warn")
+        notify(`The setting '${setting}' doesn't exist`, {"type": "warn"})
         return false
     }
     if (isValidSetting(setting, value)) {
@@ -1943,13 +1966,14 @@ const loadFromDisk = (firstRun = true) => {
         if (isFile(conf)) {
             const parsed = readFile(conf)
             if (!parsed) {
-                notify(`Read error for config file located at '${conf}'`, "err")
+                notify(`Read error for config file located at '${conf}'`,
+                    {"type": "err"})
                 continue
             }
             for (const line of parsed.split("\n").filter(l => l.trim())) {
                 if (!line.trim().startsWith("\"")) {
                     const {execute} = require("./command")
-                    execute(line, conf)
+                    execute(line, {"settingsFile": conf, "src": "source"})
                 }
             }
         }
@@ -1975,7 +1999,7 @@ const reset = setting => {
     } else if (isExistingSetting(setting)) {
         set(setting, defaultSettings[setting])
     } else {
-        notify(`The setting '${setting}' doesn't exist`, "warn")
+        notify(`The setting '${setting}' doesn't exist`, {"type": "warn"})
     }
 }
 
@@ -2085,7 +2109,8 @@ const saveToDisk = full => {
         writeFile(destFile, settingsAsCommands,
             `Could not write to '${destFile}'`, `Viebrc saved to '${destFile}'`)
     } else {
-        notify("No config location is known, could not write", "error")
+        notify("No config location is known, could not write",
+            {"type": "error"})
     }
 }
 
@@ -2109,7 +2134,7 @@ const init = () => {
                     "open-download", clickAction.path)
             }
         }
-        notify(message, type, clickAction)
+        notify(message, {"action": clickAction, type})
     })
     ipcRenderer.on("main-error", (_, ex) => console.error(ex))
     ipcRenderer.send("create-session", `persist:main`,

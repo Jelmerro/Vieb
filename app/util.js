@@ -932,38 +932,45 @@ const appData = () => {
 /**
  * Show the user a notification bubble and store it in the history.
  * @param {string} message
- * @param {string} type
  * @param {{
- *   type: "download-success",
- *   path: string,
- *   func?: () => void
- * }|false} clickAction
+ *   action?: {
+ *     type: "download-success",
+ *     path: string,
+ *     func?: () => void
+ *   }|false,
+ *   type?: string,
+ *   src?: "execute"|"user"|"source"|"other"
+ * }} opts
  */
-const notify = (message, type = "info", clickAction = false) => {
+const notify = (message, opts = {}) => {
+    if (opts.src === "execute") {
+        const {writeFileSync} = require("fs")
+        writeFileSync(joinPath(appData(), ".tmp-execute-output"), message)
+    }
     if (getSetting("notificationduration") === 0) {
         return
     }
     let properType = "info"
-    if (type.startsWith("perm")) {
+    if (opts.type?.startsWith("perm")) {
         properType = "permission"
     }
-    if (type.startsWith("suc")) {
+    if (opts.type?.startsWith("suc")) {
         properType = "success"
     }
-    if (type.startsWith("warn")) {
+    if (opts.type?.startsWith("warn")) {
         properType = "warning"
     }
-    if (type.startsWith("err")) {
+    if (opts.type?.startsWith("err")) {
         properType = "error"
     }
-    if (type.startsWith("dial")) {
+    if (opts.type?.startsWith("dial")) {
         properType = "dialog"
     }
     const escapedMessage = message.replace(/>/g, "&gt;").replace(/</g, "&lt;")
         .replace(/\n/g, "<br>")
     let clickInfo = null
-    if (clickAction) {
-        clickInfo = {...clickAction}
+    if (opts?.action) {
+        clickInfo = {...opts.action}
         delete clickInfo.func
     }
     const notifyForPerm = getSetting("notificationforpermissions")
@@ -1000,9 +1007,10 @@ const notify = (message, type = "info", clickAction = false) => {
     if (native === "always" || shortAndSmallNative || longAndLargeNative) {
         const n = new Notification(
             `${appConfig()?.name} ${properType}`, {"body": message})
-        if (clickAction && clickAction.func) {
+        if (opts?.action && opts?.action?.func) {
             /** Assin the onclick of the notification. */
-            n.onclick = () => clickAction.func?.()
+            // @ts-expect-error Func type could be undefined according to TS...
+            n.onclick = () => opts?.action?.func?.()
         }
         return
     }
@@ -1019,8 +1027,9 @@ const notify = (message, type = "info", clickAction = false) => {
     const notification = document.createElement("span")
     notification.className = properType
     notification.innerHTML = escapedMessage
-    if (clickAction && clickAction.func) {
-        notification.addEventListener("click", () => clickAction.func?.())
+    if (opts.action && opts.action.func) {
+        // @ts-expect-error Func type could be undefined according to TS...
+        notification.addEventListener("click", () => opts.action?.func?.())
     }
     notificationsElement.append(notification)
     setTimeout(() => notification.remove(),
@@ -1151,7 +1160,7 @@ const writeFile = (loc, data, err = null, success = null) => {
         return true
     } catch {
         if (err) {
-            notify(err, "err")
+            notify(err, {"type": "err"})
         }
     }
     return false
@@ -1173,7 +1182,7 @@ const appendFile = (loc, data, err = null, success = null) => {
         return true
     } catch {
         if (err) {
-            notify(err, "err")
+            notify(err, {"type": "err"})
         }
     }
     return false
@@ -1196,7 +1205,7 @@ const writeJSON = (loc, data, err = null, success = null, indent = null) => {
         return true
     } catch {
         if (err) {
-            notify(err, "err")
+            notify(err, {"type": "err"})
         }
     }
     return false
@@ -1213,7 +1222,7 @@ const deleteFile = (loc, err = null) => {
         return true
     } catch {
         if (err) {
-            notify(err, "warn")
+            notify(err, {"type": "warn"})
         }
     }
     return false
@@ -1234,7 +1243,7 @@ const makeDir = (loc, err = null, success = null) => {
         return true
     } catch {
         if (err) {
-            notify(err, "err")
+            notify(err, {"type": "err"})
         }
     }
     return false

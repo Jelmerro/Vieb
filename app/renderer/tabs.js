@@ -836,7 +836,7 @@ const addWebviewListeners = webview => {
     webview.addEventListener("ipc-message", e => {
         const {resetScrollbarTimer} = require("./pagelayout")
         if (e.channel === "notify") {
-            notify(e.args[0], e.args[1], e.args[2])
+            notify(e.args[0], {"action": e.args[2], "type": e.args[1]})
         }
         if (e.channel === "url") {
             /* eslint-disable-next-line no-use-before-define */
