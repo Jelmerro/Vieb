@@ -616,7 +616,7 @@ const permissionHandler = (_, pm, callback, details) => {
                 `Automatic domain caching rule for '${permission}' activated `
                 + `at '${details.requestingUrl}' which was allowed, because `
                 + `this same certificate was allowed before on this domain`,
-                "perm")
+                {"src": "user", "type": "perm"})
             callback(true)
             return true
         }
@@ -696,11 +696,12 @@ const permissionHandler = (_, pm, callback, details) => {
                 mainWindow.webContents.send("notify",
                     `Ask rule for '${permission}' activated at '`
                     + `${details.requestingUrl}' which was ${action}ed by user`,
-                    "perm")
+                    {"src": "user", "type": "perm"})
             } else {
                 mainWindow.webContents.send("notify",
                     `Manually ${action}ed '${permission}' at `
-                    + `'${details.requestingUrl}'`, "perm")
+                    + `'${details.requestingUrl}'`,
+                    {"src": "user", "type": "perm"})
             }
             const allow = action === "allow"
             const canSave = !allow || permission !== "displaycapture"
@@ -724,12 +725,12 @@ const permissionHandler = (_, pm, callback, details) => {
             mainWindow.webContents.send("notify",
                 `Automatic rule for '${permission}' activated at `
                 + `'${details.requestingUrl}' which was ${setting}ed`,
-                "perm")
+                {"src": "user", "type": "perm"})
         } else {
             mainWindow.webContents.send("notify",
                 `Globally ${setting}ed '${permission}' at `
                 + `'${details.requestingUrl}' based on '${permissionName}'`,
-                "perm")
+                {"src": "user", "type": "perm"})
         }
         const allow = setting === "allow"
         if (permission === "certificateerror" && allow) {
@@ -746,6 +747,8 @@ const permissionHandler = (_, pm, callback, details) => {
 
 app.on("ready", () => {
     app.userAgentFallback = defaultUseragent()
+    const executeOut = joinPath(app.getPath("appData"), ".tmp-execute-output")
+    deleteFile(executeOut)
     if (!argUnsafeMultiwin) {
         /** @type {{argv?: string[], command?: string}} */
         let secondInstanceArgs = {"argv": args}
@@ -762,12 +765,17 @@ app.on("ready", () => {
                 if (!mainWindow) {
                     return
                 }
+                // @ts-expect-error command might be there, if so use it
+                if (extra?.command) {
+                    mainWindow.webContents.send(
+                        // @ts-expect-error command might be there, if so use it
+                        "execute-command", extra?.command)
+                    return
+                }
                 if (mainWindow.isMinimized()) {
                     mainWindow.restore()
                 }
                 mainWindow.focus()
-                // @ts-expect-error command might be there, if so use it
-                mainWindow.webContents.send("execute-command", extra?.command)
                 mainWindow.webContents.send("urls", resolveLocalPaths(
                     // @ts-expect-error argv might be there, if so use it
                     extra?.argv || getArguments(newArgs), cwd))
@@ -778,11 +786,12 @@ app.on("ready", () => {
         }
     }
     if (argExecute) {
-        const loc = joinPath(app.getPath("appData"), ".tmp-execute-output")
-        watchFile(loc, () => {
-            console.info(readFile(loc))
-            deleteFile(loc)
-            process.exit(0)
+        watchFile(executeOut, info => {
+            if (info.blksize > 0 || info.size > 0) {
+                console.info(readFile(executeOut))
+                deleteFile(executeOut)
+                process.exit(0)
+            }
         })
         return
     }
@@ -1324,7 +1333,8 @@ const reloadAdblocker = () => {
     }
     if (!ElectronBlocker || !isFile(adblockerPreload)) {
         mainWindow?.webContents.send("notify",
-            "Adblocker module not present, ads will not be blocked!", "err")
+            "Adblocker module not present, ads will not be blocked!",
+            {"src": "user", "type": "err"})
         return
     }
     blocker = ElectronBlocker.parse(filters)
@@ -1369,7 +1379,8 @@ const enableAdblocker = type => {
                 continue
             }
             mainWindow?.webContents.send("notify",
-                `Updating ${list} to the latest version`)
+                `Updating ${list} to the latest version`,
+                {"src": "user"})
             session.fromPartition("persist:main")
             const request = net.request({"partition": "persist:main", url})
             request.on("response", res => {
@@ -1379,16 +1390,18 @@ const enableAdblocker = type => {
                     reloadAdblocker()
                     mainWindow?.webContents.send("notify",
                         `Updated and reloaded the latest ${list} successfully`,
-                        "suc")
+                        {"src": "user", "type": "suc"})
                 })
                 res.on("data", chunk => {
                     body += chunk
                 })
             })
             request.on("abort", () => mainWindow?.webContents.send("notify",
-                `Failed to update ${list}: Request aborted`, "err"))
+                `Failed to update ${list}: Request aborted`,
+                {"src": "user", "type": "err"}))
             request.on("error", e => mainWindow?.webContents.send("notify",
-                `Failed to update ${list}:\n${e.message}`, "err"))
+                `Failed to update ${list}:\n${e.message}`,
+                {"src": "user", "type": "err"}))
             request.end()
         }
     } else {
@@ -1576,7 +1589,8 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             "url": item.getURL()
         }
         downloads.push(info)
-        mainWindow.webContents.send("notify", `Download started:\n${info.name}`)
+        mainWindow.webContents.send("notify",
+            `Download started:\n${info.name}`, {"src": "user"})
         item.on("updated", (__, state) => {
             try {
                 info.current = item.getReceivedBytes()
@@ -1604,12 +1618,16 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             }
             if (info.state === "completed") {
                 mainWindow?.webContents.send("notify",
-                    `Download finished:\n${info.name}`, "success", {
-                        "path": info.file, "type": "download-success"
+                    `Download finished:\n${info.name}`, {
+                        "action": {
+                            "path": info.file, "type": "download-success"
+                        },
+                        "src": "user"
                     })
             } else {
                 mainWindow?.webContents.send("notify",
-                    `Download failed:\n${info.name}`, "warn")
+                    `Download failed:\n${info.name}`,
+                    {"src": "user", "type": "warn"})
             }
         })
     })

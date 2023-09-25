@@ -35,8 +35,7 @@ const {getSetting, tabForPage, listPages} = require("./common")
 
 const faviconFolder = joinPath(appData(), "favicons")
 const mappingFile = joinPath(faviconFolder, "mappings")
-// @ts-expect-error while not fully supported in ts, it does work properly
-/** @type {{redirects?: {[url: string]: string}, [url: string]: string }} */
+/** @type {{redirects?: {[url: string]: string}} & {[url: string]: string }} */
 let mappings = {}
 const sessionStart = new Date()
 let isParsed = false
@@ -100,7 +99,7 @@ const updateMappings = ({currentUrl = null, now = null} = {}) => {
     if (Object.keys(mappings).length === 0) {
         deleteFile(mappingFile)
     } else {
-        writeJSON(mappingFile, mappings, null, null, 4)
+        writeJSON(mappingFile, mappings, {"indent": 4})
     }
 }
 

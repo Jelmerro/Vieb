@@ -63,7 +63,8 @@ const enableDarkReader = async() => {
         darkreader = require("darkreader")
     } catch {
         ipcRenderer.sendToHost("notify",
-            "Darkreader module not present, can't show dark pages", "err")
+            "Darkreader module not present, can't show dark pages",
+            {"src": "user", "type": "err"})
         return
     }
     darkreader.setFetchMethod(url => new Promise(res => {

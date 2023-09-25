@@ -939,10 +939,10 @@ const appData = () => {
  *     func?: () => void
  *   }|false,
  *   type?: string,
- *   src?: "execute"|"user"|"source"|"other"
+ *   src: import("./renderer/common").RunSource
  * }} opts
  */
-const notify = (message, opts = {}) => {
+const notify = (message, opts) => {
     if (opts.src === "execute") {
         const {writeFileSync} = require("fs")
         writeFileSync(joinPath(appData(), ".tmp-execute-output"), message)
@@ -1148,19 +1148,22 @@ const readFile = loc => {
  * Write data to a file, optionally with success and error notifications.
  * @param {string} loc
  * @param {string|Buffer} data
- * @param {string|null} err
- * @param {string|null} success
+ * @param {{
+ *   err?: string,
+ *   success?: string,
+ *   src: import("./renderer/common").RunSource
+ * }} opts
  */
-const writeFile = (loc, data, err = null, success = null) => {
+const writeFile = (loc, data, opts = {"src": "other"}) => {
     try {
         fs.writeFileSync(loc, data)
-        if (success) {
-            notify(success)
+        if (opts.success) {
+            notify(opts.success, {"src": opts.src})
         }
         return true
     } catch {
-        if (err) {
-            notify(err, {"type": "err"})
+        if (opts.err) {
+            notify(opts.err, {"src": opts.src, "type": "err"})
         }
     }
     return false
@@ -1170,19 +1173,22 @@ const writeFile = (loc, data, err = null, success = null) => {
  * Append data to a file, optionally with success and error notifications.
  * @param {string} loc
  * @param {string} data
- * @param {string|null} err
- * @param {string|null} success
+ * @param {{
+ *   err?: string,
+ *   success?: string,
+ *   src: import("./renderer/common").RunSource
+ * }} opts
  */
-const appendFile = (loc, data, err = null, success = null) => {
+const appendFile = (loc, data, opts = {"src": "other"}) => {
     try {
         fs.appendFileSync(loc, data)
-        if (success) {
-            notify(success)
+        if (opts.success) {
+            notify(opts.success, {"src": opts.src})
         }
         return true
     } catch {
-        if (err) {
-            notify(err, {"type": "err"})
+        if (opts.err) {
+            notify(opts.err, {"src": opts.src, "type": "err"})
         }
     }
     return false
@@ -1192,20 +1198,23 @@ const appendFile = (loc, data, err = null, success = null) => {
  * Write JSON data to a file, optionally with indentation and notifications.
  * @param {string} loc
  * @param {any} data
- * @param {string|null} err
- * @param {string|null} success
- * @param {number | undefined | null} indent
+ * @param {{
+ *   err?: string,
+ *   success?: string,
+ *   src: import("./renderer/common").RunSource
+ *   indent?: number|undefined
+ * }|{indent: number}} opts
  */
-const writeJSON = (loc, data, err = null, success = null, indent = null) => {
+const writeJSON = (loc, data, opts = {"src": "other"}) => {
     try {
-        fs.writeFileSync(loc, JSON.stringify(data, null, indent ?? undefined))
-        if (success) {
-            notify(success)
+        fs.writeFileSync(loc, JSON.stringify(data, null, opts.indent))
+        if ("success" in opts) {
+            notify(opts.success, {"src": opts.src})
         }
         return true
     } catch {
-        if (err) {
-            notify(err, {"type": "err"})
+        if ("err" in opts) {
+            notify(opts.err, {"src": opts.src, "type": "err"})
         }
     }
     return false
@@ -1214,15 +1223,18 @@ const writeJSON = (loc, data, err = null, success = null, indent = null) => {
 /**
  * Delete a file at a location, optinally with error message.
  * @param {string} loc
- * @param {string|null} err
+ * @param {{
+ *   err?: string,
+ *   src: import("./renderer/common").RunSource
+ * }} opts
  */
-const deleteFile = (loc, err = null) => {
+const deleteFile = (loc, opts = {"src": "other"}) => {
     try {
         fs.unlinkSync(loc)
         return true
     } catch {
-        if (err) {
-            notify(err, {"type": "warn"})
+        if (opts.err) {
+            notify(opts.err, {"src": opts.src, "type": "warn"})
         }
     }
     return false
@@ -1231,19 +1243,22 @@ const deleteFile = (loc, err = null) => {
 /**
  * Make a directory at a location, optionally with feedback notifications.
  * @param {string} loc
- * @param {string|null} err
- * @param {string|null} success
+ * @param {{
+ *   err?: string,
+ *   success?: string,
+ *   src: import("./renderer/common").RunSource
+ * }} opts
  */
-const makeDir = (loc, err = null, success = null) => {
+const makeDir = (loc, opts = {"src": "other"}) => {
     try {
         fs.mkdirSync(loc, {"recursive": true})
-        if (success) {
-            notify(success)
+        if (opts.success) {
+            notify(opts.success, {"src": opts.src})
         }
         return true
     } catch {
-        if (err) {
-            notify(err, {"type": "err"})
+        if (opts.err) {
+            notify(opts.err, {"src": opts.src, "type": "err"})
         }
     }
     return false
@@ -1273,7 +1288,7 @@ const listDir = (loc, absolute = false, dirsOnly = false) => {
 /**
  * Watch a specific file including the polling fallback of 500ms.
  * @param {string} file
- * @param {() => void} call
+ * @param {(info: import("fs").Stats, oldInfo: import("fs").Stats) => void} call
  */
 const watchFile = (file, call) => fs.watchFile(file, {"interval": 500}, call)
 

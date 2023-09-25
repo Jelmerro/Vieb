@@ -302,7 +302,9 @@ const saveTabs = () => {
     // Only keep the 100 most recently closed tabs,
     // more is probably never needed but would keep increasing the file size.
     data.closed = data.closed.slice(-100)
-    writeJSON(tabFile, data, "Failed to write current tabs to disk")
+    writeJSON(tabFile, data, {
+        "err": "Failed to write current tabs to disk", "src": "other"
+    })
 }
 
 /** Reopen the last closed tab and switch to it. */
@@ -733,7 +735,8 @@ const addWebviewListeners = webview => {
             const {settingsWithDefaults} = require("./settings")
             const {rangeCompatibleCommands} = require("./command")
             webview.send("settings", settingsWithDefaults(),
-                listMappingsAsCommandList(null, true), uncountableActions,
+                listMappingsAsCommandList("other", null, true),
+                uncountableActions,
                 rangeCompatibleCommands)
         }
         if (specialPageName === "notifications") {
@@ -836,7 +839,7 @@ const addWebviewListeners = webview => {
     webview.addEventListener("ipc-message", e => {
         const {resetScrollbarTimer} = require("./pagelayout")
         if (e.channel === "notify") {
-            notify(e.args[0], {"action": e.args[2], "type": e.args[1]})
+            notify(e.args[0], e.args[1])
         }
         if (e.channel === "url") {
             /* eslint-disable-next-line no-use-before-define */
@@ -851,11 +854,11 @@ const addWebviewListeners = webview => {
         }
         if (e.channel === "back-button") {
             const {backInHistory} = require("./actions")
-            backInHistory()
+            backInHistory({"src": "user"})
         }
         if (e.channel === "forward-button") {
             const {forwardInHistory} = require("./actions")
-            forwardInHistory()
+            forwardInHistory({"src": "user"})
         }
         if (e.channel === "mouse-up") {
             const {resetScreenshotDrag} = require("./input")

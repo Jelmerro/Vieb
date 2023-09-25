@@ -475,7 +475,7 @@ const viebMenu = (options, force = false) => {
                     }
                     const {pasteInput} = require("./input")
                     pasteInput()
-                    useEnteredData()
+                    useEnteredData({})
                 },
                 "title": "Paste & go"
             })
@@ -534,14 +534,18 @@ const viebMenu = (options, force = false) => {
             if (!page.src.startsWith("devtools://") && page?.canGoBack()) {
                 createMenuItem({
                     /** Menu item: Previous. */
-                    "action": () => backInHistory({"customPage": page}),
+                    "action": () => {
+                        backInHistory({"customPage": page})
+                    },
                     "title": "Previous"
                 })
             }
             if (!page.src.startsWith("devtools://") && page?.canGoForward()) {
                 createMenuItem({
                     /** Menu item: Next. */
-                    "action": () => forwardInHistory({"customPage": page}),
+                    "action": () => {
+                        forwardInHistory({"customPage": page})
+                    },
                     "title": "Next"
                 })
             }
@@ -698,18 +702,18 @@ const webviewMenu = (options, force = false) => {
     contextMenu.style.left = `${Math.round(options.x * zoom + webviewX)}px`
     createMenuItem({
         /** Menu item: Refresh tab. */
-        "action": () => refreshTab(), "title": "Refresh"
+        "action": () => refreshTab({}), "title": "Refresh"
     })
     if (!page.src.startsWith("devtools://") && page?.canGoBack()) {
         createMenuItem({
             /** Menu item: Back in history. */
-            "action": () => backInHistory(), "title": "Previous"
+            "action": () => backInHistory({}), "title": "Previous"
         })
     }
     if (!page.src.startsWith("devtools://") && page?.canGoForward()) {
         createMenuItem({
             /** Menu item: Forward in history. */
-            "action": () => forwardInHistory(), "title": "Next"
+            "action": () => forwardInHistory({}), "title": "Next"
         })
     }
     createMenuItem({

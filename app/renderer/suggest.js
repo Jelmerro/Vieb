@@ -548,7 +548,7 @@ const suggestCommand = searchStr => {
         if (range) {
             addCommand(`${range}write`)
             const tabs = listTabs()
-            rangeToTabIdxs(range, true).map(num => {
+            rangeToTabIdxs("user", range, true).map(num => {
                 const tab = tabs.at(num)
                 if (!tab) {
                     return null
@@ -675,20 +675,21 @@ const suggestCommand = searchStr => {
             ...commandList(false).map(c => `:${c}`),
             ...Object.values(settingsWithDefaults()).map(s => s.name),
             ...listSupportedActions(),
-            ...listMappingsAsCommandList(null, true).split("\n")
+            ...listMappingsAsCommandList("user", null, true).split("\n")
                 .map(m => m.split(" ")[1])
         ]
-        listMappingsAsCommandList(null, true).split("\n").forEach(map => {
-            const mode = map.split(" ")[0].replace(/(nore)?map$/g, "")
-            const [, keys] = map.split(" ")
-            if (mode) {
-                sections.push(`${mode}_${keys}`)
-            } else {
-                "nicsefpvm".split("").forEach(m => {
-                    sections.push(`${m}_${keys}`)
-                })
-            }
-        })
+        listMappingsAsCommandList("user", null, true).split("\n")
+            .forEach(map => {
+                const mode = map.split(" ")[0].replace(/(nore)?map$/g, "")
+                const [, keys] = map.split(" ")
+                if (mode) {
+                    sections.push(`${mode}_${keys}`)
+                } else {
+                    "nicsefpvm".split("").forEach(m => {
+                        sections.push(`${m}_${keys}`)
+                    })
+                }
+            })
         const simpleSearch = args.join(" ").replace(/^#?:?/, "")
             .replace(/!$/, "").replace(/-/g, "").toLowerCase().trim()
             .replace(/^a\w*\./, "").replace(/^p\w*\./, "p.")
@@ -747,7 +748,7 @@ const suggestCommand = searchStr => {
                     return
                 }
                 const tabs = listTabs()
-                rangeToTabIdxs(range, true).map(num => {
+                rangeToTabIdxs("user", range, true).map(num => {
                     const tab = tabs.at(num)
                     if (!tab) {
                         return null

@@ -86,7 +86,7 @@ const modes = {
         "onLeave": () => {
             const url = getUrl()
             const {resetIncrementalSearch} = require("./actions")
-            resetIncrementalSearch()
+            resetIncrementalSearch({"src": "user"})
             url?.setSelectionRange(0, 0)
             window.getSelection()?.removeAllRanges()
         }
@@ -206,7 +206,7 @@ const init = () => {
                 startFollow("current")
             } else if (mode === "search") {
                 const {toSearchMode} = require("./actions")
-                toSearchMode()
+                toSearchMode({"src": "user"})
             } else if (mode === "pointer") {
                 const {start} = require("./pointer")
                 start()

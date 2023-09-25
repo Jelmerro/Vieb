@@ -17,6 +17,14 @@
 */
 "use strict"
 
+/** @typedef {{
+ *   key?: string,
+ *   src: import("./common").RunSource,
+ *   hadModifier?: boolean,
+ *   customPage?: Electron.WebviewTag
+ * }} ActionParam
+ */
+
 const {ipcRenderer, clipboard} = require("electron")
 const {
     urlToString,
@@ -60,10 +68,10 @@ let potentialNewSearchDirection = "forward"
 
 /**
  * Empty the current search by scope.
- * @param {{scope?: "both"|"local"|"global"}|null} args
+ * @param {ActionParam & {scope?: "both"|"local"|"global"}} args
  */
-const emptySearch = (args = null) => {
-    const scope = args?.scope || getSetting("searchemptyscope")
+const emptySearch = args => {
+    const scope = args.scope || getSetting("searchemptyscope")
     /** @type {(Electron.WebviewTag|null)[]} */
     let pages = []
     if (["both", "local"].includes(scope)) {
@@ -115,9 +123,9 @@ const nextSearchMatch = () => {
 
 /**
  * Switch to search mode.
- * @param {{hadModifier?: boolean}|null} args
+ * @param {ActionParam} args
  */
-const toSearchMode = (args = null) => {
+const toSearchMode = args => {
     const {setMode} = require("./modes")
     setMode("search")
     let search = getStored("globalsearch")
@@ -126,7 +134,7 @@ const toSearchMode = (args = null) => {
             || getStored("globalsearch")
     }
     storedSearch = search
-    if (args?.hadModifier) {
+    if (args.hadModifier) {
         potentialNewSearchDirection = "backward"
     } else {
         potentialNewSearchDirection = "forward"
@@ -165,18 +173,21 @@ const previousSearchMatch = () => {
     }
 }
 
-/** Reset the incremental search match. */
-const resetIncrementalSearch = () => {
+/**
+ * Reset the incremental search match.
+ * @param {ActionParam} args
+ * */
+const resetIncrementalSearch = args => {
     if (getSetting("searchscope") === "inclocal" && !lastSearchFull) {
-        emptySearch({"scope": "local"})
+        emptySearch({"scope": "local", "src": args?.src ?? "other"})
     }
 }
 
 /**
  * Search for the string incrementally while typing if enabled, by scope.
- * @param {{value?: string}|null} args
+ * @param {ActionParam&{value?: string}|null} args
  */
-const incrementalSearch = (args = null) => {
+const incrementalSearch = args => {
     let scope = getSetting("searchscope")
     if (scope === "inclocal") {
         lastSearchFull = Boolean(args?.value)
@@ -210,7 +221,7 @@ const incrementalSearch = (args = null) => {
             }
         })
     } else {
-        emptySearch({scope})
+        emptySearch({scope, "src": args?.src ?? "other"})
     }
 }
 
@@ -627,9 +638,9 @@ const scrollPageUpHalf = () => currentPage()?.send(
 
 /**
  * Refresh the current page or optionally a custom page.
- * @param {{customPage?: Electron.WebviewTag}|null} args
+ * @param {ActionParam} args
  */
-const refreshTab = (args = null) => {
+const refreshTab = args => {
     const page = args?.customPage || currentPage()
     if (page && !page.src.startsWith("devtools://")) {
         if (page.isCrashed()) {
@@ -682,9 +693,9 @@ const startFollowCurrentTab = () => {
 
 /**
  * Go back in history for the current page or a custom one.
- * @param {{customPage?: Electron.WebviewTag}|null} args
+ * @param {ActionParam} args
  */
-const backInHistory = (args = null) => {
+const backInHistory = args => {
     const page = args?.customPage || currentPage()
     if (page && !page.src.startsWith("devtools://")) {
         if (page.isCrashed()) {
@@ -707,10 +718,10 @@ const backInHistory = (args = null) => {
 
 /**
  * Go forward in history for the current page or a custom one.
- * @param {{customPage?: Electron.WebviewTag}|null} args
+ * @param {ActionParam} args
  */
-const forwardInHistory = (args = null) => {
-    const page = args?.customPage || currentPage()
+const forwardInHistory = args => {
+    const page = args.customPage || currentPage()
     if (page && !page.src.startsWith("devtools://")) {
         if (page.isCrashed()) {
             const {recreateWebview} = require("./tabs")
@@ -803,10 +814,10 @@ const zoomReset = () => currentPage()?.setZoomLevel(0)
 
 /**
  * Zoom the current page out or do it for a custom page.
- * @param {{customPage?: Electron.WebviewTag}|null} args
+ * @param {ActionParam} args
  */
-const zoomOut = (args = null) => {
-    const page = args?.customPage || currentPage()
+const zoomOut = args => {
+    const page = args.customPage || currentPage()
     let level = (page?.getZoomLevel() ?? 0) - 1
     if (level < -7) {
         level = -7
@@ -816,10 +827,10 @@ const zoomOut = (args = null) => {
 
 /**
  * Zoom the current page in or do it for a custom page.
- * @param {{customPage?: Electron.WebviewTag}|null} args
+ * @param {ActionParam} args
  */
-const zoomIn = (args = null) => {
-    const page = args?.customPage || currentPage()
+const zoomIn = args => {
+    const page = args.customPage || currentPage()
     let level = (page?.getZoomLevel() ?? 0) + 1
     if (level > 7) {
         level = 7
@@ -849,8 +860,11 @@ const repeatLastAction = () => {
     repeat()
 }
 
-/** Edit the current insert mode input or navbar mode text. */
-const editWithVim = () => {
+/**
+ * Edit the current insert mode input or navbar mode text.
+ * @param {ActionParam} args
+ * */
+const editWithVim = args => {
     const page = currentPage()
     if (!page) {
         return
@@ -893,10 +907,11 @@ const editWithVim = () => {
             command = execCommand(commandStr, (err, stdout) => {
                 const reportExit = getSetting("notificationforsystemcommands")
                 if (err && reportExit !== "none") {
-                    notify(`${err}`, {"type": "err"})
+                    notify(`${err}`,
+                        {"src": args.src, "type": "err"})
                 } else if (reportExit === "all") {
-                    notify(stdout.toString()
-                        || "Command exitted successfully!", {"type": "suc"})
+                    notify(stdout.toString() || "Command exitted successfully!",
+                        {"src": args.src, "type": "suc"})
                 }
             })
         }
@@ -1147,9 +1162,10 @@ const getPageUrl = (customUrl = "") => {
 }
 
 /** Get the list of RSS links on the page.
+ * @param {ActionParam} args
  * @returns {Promise<string[]|null>}
  */
-const getPageRSSLinks = async() => {
+const getPageRSSLinks = async args => {
     const feedUrls = await currentPage()?.executeJavaScript(
         `Array.from(document.querySelectorAll("link[type]")).map(link => [
             "application/rss+xml",
@@ -1167,7 +1183,8 @@ const getPageRSSLinks = async() => {
         ].includes(link.getAttribute("type"))
             && link.getAttribute("href")).filter(Boolean)`)
     if (feedUrls.length === 0) {
-        notify("No RSS feeds found on this page", {"type": "warn"})
+        notify("No RSS feeds found on this page",
+            {"src": args.src, "type": "warn"})
         return null
     }
     return feedUrls.slice(0, 10).map((feed = "") => {
@@ -1178,31 +1195,36 @@ const getPageRSSLinks = async() => {
     })
 }
 
-/** Notify with the list of RSS links on the current page. */
-const pageRSSLinksList = async() => {
-    const feedUrls = await getPageRSSLinks()
+/**
+ * Notify with the list of RSS links on the current page.
+ * @param {ActionParam} args
+ * */
+const pageRSSLinksList = async args => {
+    const feedUrls = await getPageRSSLinks(args)
     if (!feedUrls) {
         return
     }
     const feedsString = feedUrls.map((url, i) => `${i} - ${url}`).join("\n")
-    notify(`--- RSS links on the page ---\n${feedsString}`)
+    notify(`--- RSS links on the page ---\n${feedsString}`,
+        {"src": args.src, "type": "warn"})
 }
 
 /** Copy an RSS link to the clipboard by index.
- * @param {{key?: string}|null} args
+ * @param {ActionParam} args
  */
 const pageRSSLinkToClipboard = async args => {
-    const key = args?.key
+    const {key} = args
     if (!key) {
         return
     }
-    const feedUrls = await getPageRSSLinks()
+    const feedUrls = await getPageRSSLinks(args)
     if (!feedUrls) {
         return
     }
     const feedUrl = feedUrls[!isNaN(Number(key)) && Number(key) || 0] ?? ""
     clipboard.writeText(feedUrl)
-    notify(`RSS feed '${feedUrl}' copied to clipboard`, {"type": "suc"})
+    notify(`RSS feed '${feedUrl}' copied to clipboard`,
+        {"src": args.src, "type": "suc"})
 }
 
 /** Copy the current page url to the system clipboard. */
@@ -1252,10 +1274,10 @@ const openFromClipboard = () => {
 
 /**
  * Store a scroll position based on key.
- * @param {{key?: string, path?: string, pixels?: number} | null} args
+ * @param {ActionParam&{path?: string, pixels?: number}} args
  */
-const storeScrollPos = async(args = null) => {
-    const key = args?.key
+const storeScrollPos = async args => {
+    const {key} = args
     if (!key) {
         return
     }
@@ -1275,7 +1297,7 @@ const storeScrollPos = async(args = null) => {
         pixels = await currentPage()?.executeJavaScript(
             "document.body.scrollTop")
     }
-    if (args?.path === "global") {
+    if (args.path === "global") {
         scrollType = "global"
     }
     if (scrollType === "local") {
@@ -1289,23 +1311,23 @@ const storeScrollPos = async(args = null) => {
             path = urlToString(currentPage()?.src ?? "")
                 || currentPage()?.src || ""
         }
-        path = args?.path ?? path
+        path = args.path ?? path
         if (!qm.scroll.local[path]) {
             qm.scroll.local[path] = {}
         }
-        qm.scroll.local[path][key] = args?.pixels ?? pixels
+        qm.scroll.local[path][key] = args.pixels ?? pixels
     } else {
-        qm.scroll.global[key] = args?.pixels ?? pixels
+        qm.scroll.global[key] = args.pixels ?? pixels
     }
     writeJSON(joinPath(appData(), "quickmarks"), qm)
 }
 
 /**
  * Restore a stored scroll position based on key.
- * @param {{key?: string, path?: string}|null} args
+ * @param {ActionParam&{path?: string}} args
  */
-const restoreScrollPos = (args = null) => {
-    const key = args?.key
+const restoreScrollPos = args => {
+    const {key} = args
     if (!key) {
         return
     }
@@ -1318,7 +1340,7 @@ const restoreScrollPos = (args = null) => {
     if (scrollPosId === "url" || !path) {
         path = urlToString(currentPage()?.src ?? "") || currentPage()?.src || ""
     }
-    path = args?.path ?? path
+    path = args.path ?? path
     const qm = readJSON(joinPath(appData(), "quickmarks"))
     const pixels = qm?.scroll?.local?.[path]?.[key] ?? qm?.scroll?.global?.[key]
     if (pixels !== undefined) {
@@ -1333,10 +1355,10 @@ const restoreScrollPos = (args = null) => {
 
 /**
  * Make a new mark based on a key.
- * @param {{key?: string, url?: string}|null} args
+ * @param {ActionParam&{url?: string}} args
  */
-const makeMark = (args = null) => {
-    const key = args?.key
+const makeMark = args => {
+    const {key} = args
     if (!key) {
         return
     }
@@ -1344,16 +1366,16 @@ const makeMark = (args = null) => {
     if (!qm.marks) {
         qm.marks = {}
     }
-    qm.marks[key] = urlToString(args?.url ?? currentPage()?.src ?? "")
+    qm.marks[key] = urlToString(args.url ?? currentPage()?.src ?? "")
     writeJSON(joinPath(appData(), "quickmarks"), qm)
 }
 
 /**
  * Restore a stored mark by key to a position.
- * @param {{key?: string, position?: import("./tabs").tabPosition}|null} args
+ * @param {ActionParam&{position?: import("./tabs").tabPosition}} args
  */
-const restoreMark = (args = null) => {
-    const key = args?.key
+const restoreMark = args => {
+    const {key} = args
     if (!key) {
         return
     }
@@ -1364,16 +1386,16 @@ const restoreMark = (args = null) => {
     if (key === key.toUpperCase() && shiftedPosition !== "default") {
         position = shiftedPosition
     }
-    position = args?.position ?? position
+    position = args.position ?? position
     commonAction("link", position, {"link": qm?.marks?.[key]})
 }
 
 /**
  * Run a stored macro recording by key.
- * @param {{key?: string}|null} args
+ * @param {ActionParam} args
  */
-const runRecording = (args = null) => {
-    const key = args?.key
+const runRecording = args => {
+    const {key} = args
     if (!key) {
         return
     }
@@ -1381,21 +1403,22 @@ const runRecording = (args = null) => {
     if (recording) {
         setTimeout(() => {
             const {executeMapString, sanitiseMapString} = require("./input")
-            executeMapString(sanitiseMapString(recording, true), true, true)
+            executeMapString(sanitiseMapString(args.src, recording, true),
+                true, {"initial": true, "src": args.src})
         }, 5)
     }
 }
 
 /** Start a macro recording by key.
- * @param {{key?: string}|null} args
+ * @param {ActionParam} args
  */
-const startRecording = (args = null) => {
-    const key = args?.key
+const startRecording = args => {
+    const {key} = args
     if (!key) {
         return
     }
     const {"startRecording": start} = require("./input")
-    start(key)
+    start(key, args.src)
 }
 
 /** Stop the current macro recording if active. */
@@ -1533,8 +1556,11 @@ const toggleTOC = () => {
     sendToPageOrSubFrame("action", "toggleTOC", getCustomStyling(), fontsize)
 }
 
-/** Use the navbar entered data to either navigate, search or run commands. */
-const useEnteredData = () => {
+/**
+ * Use the navbar entered data to either navigate, search or run commands.
+ * @param {ActionParam} args
+ * */
+const useEnteredData = args => {
     const {setMode} = require("./modes")
     const url = getUrl()
     if (!url) {
@@ -1548,7 +1574,7 @@ const useEnteredData = () => {
     }
     if (currentMode() === "search") {
         searchDirection = potentialNewSearchDirection
-        incrementalSearch({"value": url.value})
+        incrementalSearch({"src": args.src, "value": url.value})
         setMode("normal")
     }
     if (currentMode() === "explore") {

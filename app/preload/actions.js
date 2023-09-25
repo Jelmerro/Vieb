@@ -509,7 +509,8 @@ const translatepage = async(api, url, lang, apiKey) => {
             }))
             if (srcResponse.error) {
                 return ipcRenderer.sendToHost("notify",
-                    `Error from LibreTranslate: ${srcResponse.error}`, "err")
+                    `Error from LibreTranslate: ${srcResponse.error}`,
+                    {"src": "user", "type": "err"})
             }
             const response = await fetchJSON(`${url}/translate`, {
                 "headers": {"Content-Type": "application/json"},
@@ -523,7 +524,8 @@ const translatepage = async(api, url, lang, apiKey) => {
             }))
             if (response.error) {
                 return ipcRenderer.sendToHost("notify",
-                    `Error from LibreTranslate: ${response.error}`, "err")
+                    `Error from LibreTranslate: ${response.error}`,
+                    {"src": "user", "type": "err"})
             }
             if (response.translatedText) {
                 baseNodes.forEach((node, index) => {
@@ -543,7 +545,8 @@ const translatepage = async(api, url, lang, apiKey) => {
             }
         } catch (e) {
             ipcRenderer.sendToHost("notify",
-                "Failed to connect to LibreTranslate, see console", "err")
+                "Failed to connect to LibreTranslate, see console",
+                {"src": "user", "type": "err"})
             console.warn(e)
         }
         return
@@ -563,7 +566,8 @@ const translatepage = async(api, url, lang, apiKey) => {
         }))
         if (response.message) {
             return ipcRenderer.sendToHost("notify",
-                `Error from Deepl: ${response.message}`, "err")
+                `Error from Deepl: ${response.message}`,
+                {"src": "user", "type": "err"})
         }
         if (response.translations) {
             baseNodes.forEach((node, index) => {
@@ -583,7 +587,8 @@ const translatepage = async(api, url, lang, apiKey) => {
         }
     } catch (e) {
         ipcRenderer.sendToHost("notify",
-            "Failed to connect to Deepl for translation, see console", "err")
+            "Failed to connect to Deepl for translation, see console",
+            {"src": "user", "type": "err"})
         console.warn(e)
     }
 }
