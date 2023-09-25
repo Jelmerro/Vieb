@@ -298,6 +298,15 @@ args.forEach(a => {
             console.warn("The 'execute' argument requires a value such as:"
                 + " --execute=\"echo <useCurrentUrl>\"\n")
             printUsage()
+        } else if (arg === "--execute-dur") {
+            console.warn("The 'execute-dur' argument requires a value such as:"
+                + " --execute-dur=5000\n")
+            printUsage()
+        } else if (arg === "--execute-count") {
+            console.warn(
+                "The 'execute-count' argument requires a value such as:"
+                + " --execute-count=1\n")
+            printUsage()
         } else if (arg === "--config-order") {
             console.warn("The 'config-order' argument requires a value such as:"
                 + " --config-order=user-first\n")
