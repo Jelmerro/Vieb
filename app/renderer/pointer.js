@@ -177,234 +177,556 @@ const restoreSelection = () => {
     updateElement()
 }
 
-/** Open the audio src in a new split. */
-const splitAudio = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "split", "type": "audio", "x": zoomX(), "y": zoomY()
+/**
+ * Open the audio src in a new split.
+ * @param {import("./actions").ActionParam} args
+ */
+const splitAudio = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "split",
+    "src": args.src,
+    "type": "audio",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Open the frame src in a new split. */
-const splitFrame = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "split", "type": "frame", "x": zoomX(), "y": zoomY()
+/**
+ * Open the frame src in a new split.
+ * @param {import("./actions").ActionParam} args
+ */
+const splitFrame = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "split",
+    "src": args.src,
+    "type": "frame",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Open the hover link src in a new split. */
-const splitLink = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "split", "type": "link", "x": zoomX(), "y": zoomY()
+/**
+ * Open the hover link src in a new split.
+ * @param {import("./actions").ActionParam} args
+ */
+const splitLink = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "split",
+    "src": args.src,
+    "type": "link",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Open the image src in a new split. */
-const splitImage = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "split", "type": "img", "x": zoomX(), "y": zoomY()
+/**
+ * Open the image src in a new split.
+ * @param {import("./actions").ActionParam} args
+ */
+const splitImage = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "split",
+    "src": args.src,
+    "type": "img",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Open the video src in a new split. */
-const splitVideo = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "split", "type": "video", "x": zoomX(), "y": zoomY()
+/**
+ * Open the video src in a new split.
+ * @param {import("./actions").ActionParam} args
+ */
+const splitVideo = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "split",
+    "src": args.src,
+    "type": "video",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Open the audio src in a new vertical split. */
-const vsplitAudio = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "vsplit", "type": "audio", "x": zoomX(), "y": zoomY()
+/**
+ * Open the audio src in a new vertical split.
+ * @param {import("./actions").ActionParam} args
+ */
+const vsplitAudio = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "vsplit",
+    "src": args.src,
+    "type": "audio",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Open the frame src in a new vertical split. */
-const vsplitFrame = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "vsplit", "type": "frame", "x": zoomX(), "y": zoomY()
+/**
+ * Open the frame src in a new vertical split.
+ * @param {import("./actions").ActionParam} args
+ */
+const vsplitFrame = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "vsplit",
+    "src": args.src,
+    "type": "frame",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Open the hover link in a new vertical split. */
-const vsplitLink = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "vsplit", "type": "link", "x": zoomX(), "y": zoomY()
+/**
+ * Open the hover link in a new vertical split.
+ * @param {import("./actions").ActionParam} args
+ */
+const vsplitLink = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "vsplit",
+    "src": args.src,
+    "type": "link",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Open the image src in a new vertical split. */
-const vsplitImage = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "vsplit", "type": "img", "x": zoomX(), "y": zoomY()
+/**
+ * Open the image src in a new vertical split.
+ * @param {import("./actions").ActionParam} args
+ */
+const vsplitImage = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "vsplit",
+    "src": args.src,
+    "type": "img",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Open the video src in a new vertical split. */
-const vsplitVideo = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "vsplit", "type": "video", "x": zoomX(), "y": zoomY()
+/**
+ * Open the video src in a new vertical split.
+ * @param {import("./actions").ActionParam} args
+ */
+const vsplitVideo = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "vsplit",
+    "src": args.src,
+    "type": "video",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Download the audio src. */
-const downloadAudio = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "download", "type": "audio", "x": zoomX(), "y": zoomY()
+/**
+ * Download the audio src.
+ * @param {import("./actions").ActionParam} args
+ */
+const downloadAudio = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "download",
+    "src": args.src,
+    "type": "audio",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Download the frame src. */
-const downloadFrame = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "download", "type": "frame", "x": zoomX(), "y": zoomY()
+/**
+ * Download the frame src.
+ * @param {import("./actions").ActionParam} args
+ */
+const downloadFrame = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "download",
+    "src": args.src,
+    "type": "frame",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Download the hover link. */
-const downloadLink = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "download", "type": "link", "x": zoomX(), "y": zoomY()
+/**
+ * Download the hover link.
+ * @param {import("./actions").ActionParam} args
+ */
+const downloadLink = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "download",
+    "src": args.src,
+    "type": "link",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Download the image src. */
-const downloadImage = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "download", "type": "img", "x": zoomX(), "y": zoomY()
+/**
+ * Download the image src.
+ * @param {import("./actions").ActionParam} args
+ */
+const downloadImage = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "download",
+    "src": args.src,
+    "type": "img",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Download the video src. */
-const downloadVideo = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "download", "type": "video", "x": zoomX(), "y": zoomY()
+/**
+ * Download the video src.
+ * @param {import("./actions").ActionParam} args
+ */
+const downloadVideo = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "download",
+    "src": args.src,
+    "type": "video",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Open the audio src in a new tab. */
-const newtabAudio = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "newtab", "type": "audio", "x": zoomX(), "y": zoomY()
+/**
+ * Open the audio src in a new tab.
+ * @param {import("./actions").ActionParam} args
+ */
+const newtabAudio = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "newtab",
+    "src": args.src,
+    "type": "audio",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Open the frame src in a new tab. */
-const newtabFrame = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "newtab", "type": "frame", "x": zoomX(), "y": zoomY()
+/**
+ * Open the frame src in a new tab.
+ * @param {import("./actions").ActionParam} args
+ */
+const newtabFrame = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "newtab",
+    "src": args.src,
+    "type": "frame",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Open the hover link in a new tab. */
-const newtabLink = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "newtab", "type": "link", "x": zoomX(), "y": zoomY()
+/**
+ * Open the hover link in a new tab.
+ * @param {import("./actions").ActionParam} args
+ */
+const newtabLink = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "newtab",
+    "src": args.src,
+    "type": "link",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Open the image src in a new tab. */
-const newtabImage = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "newtab", "type": "img", "x": zoomX(), "y": zoomY()
+/**
+ * Open the image src in a new tab.
+ * @param {import("./actions").ActionParam} args
+ */
+const newtabImage = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "newtab",
+    "src": args.src,
+    "type": "img",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Open the video src in a new tab. */
-const newtabVideo = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "newtab", "type": "video", "x": zoomX(), "y": zoomY()
+/**
+ * Open the video src in a new tab.
+ * @param {import("./actions").ActionParam} args
+ */
+const newtabVideo = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "newtab",
+    "src": args.src,
+    "type": "video",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Navigate to the audio src. */
-const openAudio = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "open", "type": "audio", "x": zoomX(), "y": zoomY()
+/**
+ * Navigate to the audio src.
+ * @param {import("./actions").ActionParam} args
+ */
+const openAudio = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "open",
+    "src": args.src,
+    "type": "audio",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Navigate to the frame src. */
-const openFrame = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "open", "type": "frame", "x": zoomX(), "y": zoomY()
+/**
+ * Navigate to the frame src.
+ * @param {import("./actions").ActionParam} args
+ */
+const openFrame = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "open",
+    "src": args.src,
+    "type": "frame",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Navigate to the hover link. */
-const openLink = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "open", "type": "link", "x": zoomX(), "y": zoomY()
+/**
+ * Navigate to the hover link.
+ * @param {import("./actions").ActionParam} args
+ */
+const openLink = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "open",
+    "src": args.src,
+    "type": "link",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Navigate to the image src. */
-const openImage = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "open", "type": "img", "x": zoomX(), "y": zoomY()
+/**
+ * Navigate to the image src.
+ * @param {import("./actions").ActionParam} args
+ */
+const openImage = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "open",
+    "src": args.src,
+    "type": "img",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Navigate to the video src. */
-const openVideo = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "open", "type": "video", "x": zoomX(), "y": zoomY()
+/**
+ * Navigate to the video src.
+ * @param {import("./actions").ActionParam} args
+ */
+const openVideo = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "open",
+    "src": args.src,
+    "type": "video",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Open the audio src in an external program. */
-const externalAudio = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "external", "type": "audio", "x": zoomX(), "y": zoomY()
+/**
+ * Open the audio src in an external program.
+ * @param {import("./actions").ActionParam} args
+ */
+const externalAudio = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "external",
+    "src": args.src,
+    "type": "audio",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Open the frame src in an external program. */
-const externalFrame = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "external", "type": "frame", "x": zoomX(), "y": zoomY()
+/**
+ * Open the frame src in an external program.
+ * @param {import("./actions").ActionParam} args
+ */
+const externalFrame = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "external",
+    "src": args.src,
+    "type": "frame",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Open the hover link in an external program. */
-const externalLink = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "external", "type": "link", "x": zoomX(), "y": zoomY()
+/**
+ * Open the hover link in an external program.
+ * @param {import("./actions").ActionParam} args
+ */
+const externalLink = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "external",
+    "src": args.src,
+    "type": "link",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Open the image src in an external program. */
-const externalImage = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "external", "type": "img", "x": zoomX(), "y": zoomY()
+/**
+ * Open the image src in an external program.
+ * @param {import("./actions").ActionParam} args
+ */
+const externalImage = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "external",
+    "src": args.src,
+    "type": "img",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Open the video src in an external program. */
-const externalVideo = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "external", "type": "video", "x": zoomX(), "y": zoomY()
+/**
+ * Open the video src in an external program.
+ * @param {import("./actions").ActionParam} args
+ */
+const externalVideo = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "external",
+    "src": args.src,
+    "type": "video",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Copy the audio src to the clipboard. */
-const copyAudio = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "copy", "type": "audio", "x": zoomX(), "y": zoomY()
+/**
+ * Copy the audio src to the clipboard.
+ * @param {import("./actions").ActionParam} args
+ */
+const copyAudio = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "copy",
+    "src": args.src,
+    "type": "audio",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Copy the frame src to the clipboard. */
-const copyFrame = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "copy", "type": "frame", "x": zoomX(), "y": zoomY()
+/**
+ * Copy the frame src to the clipboard.
+ * @param {import("./actions").ActionParam} args
+ */
+const copyFrame = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "copy",
+    "src": args.src,
+    "type": "frame",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Copy the hover link to the clipboard. */
-const copyLink = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "copy", "type": "link", "x": zoomX(), "y": zoomY()
+/**
+ * Copy the hover link to the clipboard.
+ * @param {import("./actions").ActionParam} args
+ */
+const copyLink = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "copy",
+    "src": args.src,
+    "type": "link",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Copy the image buffer data to the clipboard. */
-const copyImageBuffer = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "copyimage", "type": "img", "x": zoomX(), "y": zoomY()
+/**
+ * Copy the image buffer data to the clipboard.
+ * @param {import("./actions").ActionParam} args
+ */
+const copyImageBuffer = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "copyimage",
+    "src": args.src,
+    "type": "img",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Copy the image src to the clipboard. */
-const copyImage = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "copy", "type": "img", "x": zoomX(), "y": zoomY()
+/**
+ * Copy the image src to the clipboard.
+ * @param {import("./actions").ActionParam} args
+ */
+const copyImage = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "copy",
+    "src": args.src,
+    "type": "img",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Copy the video src to the clipboard. */
-const copyVideo = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "copy", "type": "video", "x": zoomX(), "y": zoomY()
+/**
+ * Copy the video src to the clipboard.
+ * @param {import("./actions").ActionParam} args
+ */
+const copyVideo = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "copy",
+    "src": args.src,
+    "type": "video",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Copy the title attribute to the clipboard. */
-const copyTitleAttr = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "copy", "type": "titleAttr", "x": zoomX(), "y": zoomY()
+/**
+ * Copy the title attribute to the clipboard.
+ * @param {import("./actions").ActionParam} args
+ */
+const copyTitleAttr = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "copy",
+    "src": args.src,
+    "type": "titleAttr",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Copy the page title to the clipboard. */
-const copyPageTitle = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "copy", "type": "linkPageTitle", "x": zoomX(), "y": zoomY()
+/**
+ * Copy the page title to the clipboard.
+ * @param {import("./actions").ActionParam} args
+ */
+const copyPageTitle = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "copy",
+    "src": args.src,
+    "type": "linkPageTitle",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Open the selected text in a new split. */
-const splitText = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "split", "type": "text", "x": zoomX(), "y": zoomY()
+/**
+ * Open the selected text in a new split.
+ * @param {import("./actions").ActionParam} args
+ */
+const splitText = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "split",
+    "src": args.src,
+    "type": "text",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Open the selected text in a new vertical split. */
-const vsplitText = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "vsplit", "type": "text", "x": zoomX(), "y": zoomY()
+/**
+ * Open the selected text in a new vertical split.
+ * @param {import("./actions").ActionParam} args
+ */
+const vsplitText = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "vsplit",
+    "src": args.src,
+    "type": "text",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Download the selected text as if a link. */
-const downloadText = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "download", "type": "text", "x": zoomX(), "y": zoomY()
+/**
+ * Download the selected text as if a link.
+ * @param {import("./actions").ActionParam} args
+ */
+const downloadText = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "download",
+    "src": args.src,
+    "type": "text",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Open the selected text in a new tab (either as search or url). */
-const newtabText = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "newtab", "type": "text", "x": zoomX(), "y": zoomY()
+/**
+ * Open the selected text in a new tab (either as search or url).
+ * @param {import("./actions").ActionParam} args
+ */
+const newtabText = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "newtab",
+    "src": args.src,
+    "type": "text",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Navigate to the selected text (either as search or url). */
-const openText = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "open", "type": "text", "x": zoomX(), "y": zoomY()
+/**
+ * Navigate to the selected text (either as search or url).
+ * @param {import("./actions").ActionParam} args
+ */
+const openText = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "open",
+    "src": args.src,
+    "type": "text",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Open the selected text in an external program. */
-const externalText = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "external", "type": "text", "x": zoomX(), "y": zoomY()
+/**
+ * Open the selected text in an external program.
+ * @param {import("./actions").ActionParam} args
+ */
+const externalText = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "external",
+    "src": args.src,
+    "type": "text",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Copy the selected text to the clipboard. */
-const copyText = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "copy", "type": "text", "x": zoomX(), "y": zoomY()
+/**
+ * Copy the selected text to the clipboard.
+ * @param {import("./actions").ActionParam} args
+ */
+const copyText = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "copy",
+    "src": args.src,
+    "type": "text",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
-/** Search the page for the selected text. */
-const searchText = () => sendToPageOrSubFrame("contextmenu-data", {
-    "action": "search", "type": "text", "x": zoomX(), "y": zoomY()
+/**
+ * Search the page for the selected text.
+ * @param {import("./actions").ActionParam} args
+ */
+const searchText = args => sendToPageOrSubFrame("contextmenu-data", {
+    "action": "search",
+    "src": args.src,
+    "type": "text",
+    "x": zoomX(),
+    "y": zoomY()
 })
 
 /** Toggle media playback for the hovered audio/video element. */
@@ -510,10 +832,13 @@ const rightClick = () => {
     storePointerRightClick()
 }
 
-/** Open the page menu if as if right-clicked and enabled. */
-const openMenu = () => {
+/**
+ * Open the page menu if as if right-clicked and enabled.
+ * @param {import("./actions").ActionParam} args
+ */
+const openMenu = args => {
     sendToPageOrSubFrame("contextmenu-data",
-        {"force": true, "x": zoomX(), "y": zoomY()})
+        {"force": true, "src": args.src, "x": zoomX(), "y": zoomY()})
 }
 
 /** Switch to visual mode and store start location. */

@@ -1487,13 +1487,21 @@ const updateContainerSettings = (full = true) => {
     }
 }
 
-/** Update download related settings in the main thread on change. */
-const updateDownloadSettings = () => {
+/**
+ * Update download related settings in the main thread on change.
+ * @param {boolean} fromExecute
+ */
+const updateDownloadSettings = (fromExecute = false) => {
     /** @type {{[setting: string]: boolean|number|string}} */
     const downloads = {}
     downloadSettings.forEach(setting => {
         downloads[setting] = allSettings[setting]
     })
+    if (fromExecute) {
+        downloads.src = "execute"
+    } else {
+        downloads.src = "user"
+    }
     ipcRenderer.send("set-download-settings", downloads)
 }
 
@@ -2188,6 +2196,7 @@ module.exports = {
     settingsWithDefaults,
     suggestionList,
     updateContainerSettings,
+    updateDownloadSettings,
     updateHelpPage,
     updateWindowTitle,
     validOptions

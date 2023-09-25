@@ -1091,7 +1091,8 @@ const dlsFile = joinPath(app.getPath("appData"), "dls")
  *   downloadmethod?: string,
  *   downloadpath: string,
  *   cleardownloadsonquit?: boolean,
- *   cleardownloadsoncompleted?: boolean
+ *   cleardownloadsoncompleted?: boolean,
+ *   src?: import("./renderer/common").RunSource
  * }} */
 let downloadSettings = {"downloadpath": app.getPath("downloads")}
 /** @typedef {{
@@ -1101,7 +1102,7 @@ let downloadSettings = {"downloadpath": app.getPath("downloads")}
  *   name: string,
  *   item: Electron.DownloadItem
  *   state: string,
- *   total: number
+ *   total: number,
  *   url: string
  * }} downloadItem
  */
@@ -1148,7 +1149,8 @@ ipcMain.on("open-download", (_, location) => shell.openPath(location))
  *   downloadmethod: string,
  *   downloadpath: string,
  *   cleardownloadsonquit: boolean,
- *   cleardownloadsoncompleted: boolean
+ *   cleardownloadsoncompleted: boolean,
+ *   src: import("./renderer/common").RunSource
  * }} settings
  */
 const setDownloadSettings = (_, settings) => {
@@ -1589,8 +1591,12 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             "url": item.getURL()
         }
         downloads.push(info)
+        const downloadSrc = downloadSettings.src
+        if (downloadSrc === "execute") {
+            downloadSettings.src = "user"
+        }
         mainWindow.webContents.send("notify",
-            `Download started:\n${info.name}`, {"src": "user"})
+            `Download started:\n${info.name}`, {"src": downloadSrc})
         item.on("updated", (__, state) => {
             try {
                 info.current = item.getReceivedBytes()
@@ -1622,12 +1628,12 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
                         "action": {
                             "path": info.file, "type": "download-success"
                         },
-                        "src": "user"
+                        "src": downloadSrc
                     })
             } else {
                 mainWindow?.webContents.send("notify",
                     `Download failed:\n${info.name}`,
-                    {"src": "user", "type": "warn"})
+                    {"src": downloadSrc, "type": "warn"})
             }
         })
     })

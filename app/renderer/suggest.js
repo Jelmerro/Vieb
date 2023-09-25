@@ -269,11 +269,11 @@ const addExplore = explore => {
             clear()
             if (e.button === 0) {
                 const {navigateTo} = require("./tabs")
-                navigateTo(explore.url)
+                navigateTo("user", explore.url)
             }
             if (e.button === 1) {
                 const {addTab} = require("./tabs")
-                addTab({"url": explore.url})
+                addTab({"src": "user", "url": explore.url})
             }
         }
         e.preventDefault()

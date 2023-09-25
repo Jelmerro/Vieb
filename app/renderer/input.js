@@ -1522,7 +1522,7 @@ const executeMapString = async(mapStr, recursive, opts) => {
 /**
  * Repeat the last run action.
  * @param {import("./common").RunSource} src
- * */
+ */
 const repeatLastAction = src => {
     if (lastExecutedMapstring) {
         executeMapString(lastExecutedMapstring.mapStr,
@@ -2058,7 +2058,7 @@ const handleKeyboard = async e => {
                 const map = await window.navigator.keyboard?.getLayoutMap()
                 unshiftedName = map?.get(e.code) ?? unshiftedName
             }
-            enterKey(unshiftedName, id, hadModifier)
+            enterKey(src, unshiftedName, id, hadModifier)
         }
         return
     }
@@ -2479,7 +2479,7 @@ const init = () => {
     document.getElementById("tabs")?.addEventListener("dblclick", e => {
         if (getMouseConf("newtab")) {
             const {addTab} = require("./tabs")
-            addTab()
+            addTab({"src": "user"})
         } else {
             e.preventDefault()
         }
@@ -2575,7 +2575,7 @@ const init = () => {
             })
             if (tab instanceof HTMLElement) {
                 const {closeTab} = require("./tabs")
-                closeTab(listTabs().indexOf(tab))
+                closeTab("user", listTabs().indexOf(tab))
             }
             const {clear} = require("./contextmenu")
             clear()

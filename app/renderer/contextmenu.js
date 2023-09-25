@@ -311,9 +311,9 @@ const commonAction = (src, type, action, options) => {
     }
     if (action === "open") {
         const {navigateTo} = require("./tabs")
-        navigateTo(stringToUrl(relevantData))
+        navigateTo(src, stringToUrl(relevantData))
     } else if (action === "newtab") {
-        addTab({"url": stringToUrl(relevantData)})
+        addTab({src, "url": stringToUrl(relevantData)})
     } else if (action === "copy") {
         let urlData = relevantData
         if (isUrl(relevantData)) {
@@ -329,12 +329,21 @@ const commonAction = (src, type, action, options) => {
         }
         clipboard.writeText(urlData)
     } else if (action === "download") {
-        currentPage()?.downloadURL(stringToUrl(relevantData))
+        if (src === "execute") {
+            const {updateDownloadSettings} = require("./settings")
+            updateDownloadSettings(true)
+            setTimeout(() => {
+                currentPage()?.downloadURL(stringToUrl(relevantData ?? ""))
+            }, 100)
+        } else {
+            currentPage()?.downloadURL(stringToUrl(relevantData))
+        }
     } else if (action === "split") {
         const currentTabId = currentTab()?.getAttribute("link-id")
         if (currentTab() && currentTabId) {
             addTab({
                 "container": getSetting("containersplitpage"),
+                src,
                 "url": relevantData
             })
             add(currentTabId, "ver", getSetting("splitbelow"))
@@ -344,6 +353,7 @@ const commonAction = (src, type, action, options) => {
         if (currentTab() && currentTabId) {
             addTab({
                 "container": getSetting("containersplitpage"),
+                src,
                 "url": relevantData
             })
             add(currentTabId, "hor", getSetting("splitright"))
@@ -522,7 +532,7 @@ const viebMenu = (src, options, force = false) => {
                     if (isSuspended) {
                         unsuspendPage(page)
                     } else {
-                        suspendTab(tab)
+                        suspendTab(src, tab)
                     }
                 },
                 "title": suspendTitle
@@ -561,20 +571,28 @@ const viebMenu = (src, options, force = false) => {
         })
         createMenuItem({
             /** Menu item: Close tab. */
-            "action": () => closeTab(listTabs().indexOf(tab), true),
+            "action": () => closeTab(src, listTabs().indexOf(tab), true),
             "title": "Close"
         })
         createMenuGroup("General")
-        createMenuItem({"action": addTab, "title": "Newtab"})
         createMenuItem({
-            /** Menu item: split horizontal. */
+            /** Menu item: Add tab. */
+            "action": () => addTab({src}),
+            "title": "Newtab"
+        })
+        createMenuItem({
+            /** Menu item: Split horizontal. */
             "action": () => execute("split", {src}), "title": "Split"
         })
         createMenuItem({
-            /** Menu item: split vertical. */
+            /** Menu item: Split vertical. */
             "action": () => execute("vsplit", {src}), "title": "Vsplit"
         })
-        createMenuItem({"action": reopenTab, "title": "Reopen"})
+        createMenuItem({
+            /** Menu item: Reopen tab. */
+            "action": () => reopenTab(src),
+            "title": "Reopen"
+        })
         fixAlignmentNearBorders()
     }
 }
@@ -594,11 +612,11 @@ const linkMenu = (src, options) => {
     const {addTab, navigateTo} = require("./tabs")
     createMenuItem({
         /** Menu item: Navigate to link. */
-        "action": () => navigateTo(options.link), "title": "Navigate"
+        "action": () => navigateTo(src, options.link), "title": "Navigate"
     })
     createMenuItem({
         /** Menu item: Link in new tab. */
-        "action": () => addTab({"url": options.link}), "title": "Newtab"
+        "action": () => addTab({src, "url": options.link}), "title": "Newtab"
     })
     createMenuItem({
         /** Menu item: Link to clipboard. */
@@ -610,7 +628,17 @@ const linkMenu = (src, options) => {
     })
     createMenuItem({
         /** Menu item: Link download. */
-        "action": () => currentPage()?.downloadURL(options.link),
+        "action": () => {
+            if (src === "execute") {
+                const {updateDownloadSettings} = require("./settings")
+                updateDownloadSettings(true)
+                setTimeout(() => {
+                    currentPage()?.downloadURL(options.link)
+                }, 100)
+            } else {
+                currentPage()?.downloadURL(options.link)
+            }
+        },
         "title": "Download"
     })
     createMenuItem({

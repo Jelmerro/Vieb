@@ -686,11 +686,11 @@ const quitall = () => {
 const quit = (src, range) => {
     const {closeTab} = require("./tabs")
     if (range) {
-        rangeToTabIdxs(src, range).forEach(t => closeTab(t))
+        rangeToTabIdxs(src, range).forEach(t => closeTab(src, t))
         return
     }
     if (document.getElementById("tabs")?.classList.contains("multiple")) {
-        closeTab()
+        closeTab(src)
     } else {
         quitall()
     }
@@ -767,17 +767,17 @@ const openDevTools = (src, userPosition = null, trailingArgs = null) => {
     if (position === "window") {
         currentPage()?.openDevTools()
     } else if (position === "tab") {
-        addTab({"devtools": true})
+        addTab({"devtools": true, src})
     } else if (position === "vsplit") {
         const id = currentTab()?.getAttribute("link-id")
         if (id) {
-            addTab({"devtools": true})
+            addTab({"devtools": true, src})
             add(id, "hor", getSetting("splitright"))
         }
     } else if (position === "split") {
         const id = currentTab()?.getAttribute("link-id")
         if (id) {
-            addTab({"devtools": true})
+            addTab({"devtools": true, src})
             add(id, "ver", getSetting("splitbelow"))
         }
     } else {
@@ -793,11 +793,12 @@ const openInternalDevTools = () => {
 
 /**
  * Open a special page using commands.
+ * @param {import("./common").RunSource} src
  * @param {string} specialPage
  * @param {boolean} forceNewtab
  * @param {string|null} section
  */
-const openSpecialPage = (specialPage, forceNewtab, section = null) => {
+const openSpecialPage = (src, specialPage, forceNewtab, section = null) => {
     const newSpecialUrl = specialPagePath(specialPage, section)
     const url = currentPage()?.src
     const currentSpecial = pathToSpecialPageName(url ?? "")?.name
@@ -807,15 +808,15 @@ const openSpecialPage = (specialPage, forceNewtab, section = null) => {
     const replaceSpecial = getSetting("replacespecial")
     const {navigateTo, addTab} = require("./tabs")
     if (replaceSpecial === "never" || forceNewtab || !currentPage()) {
-        addTab({"url": newSpecialUrl})
+        addTab({src, "url": newSpecialUrl})
     } else if (replaceSpecial === "always") {
-        navigateTo(newSpecialUrl)
+        navigateTo(src, newSpecialUrl)
     } else if (replaceSpecial === "special" && (currentSpecial || isNewtab)) {
-        navigateTo(newSpecialUrl)
+        navigateTo(src, newSpecialUrl)
     } else if (currentSpecial === "newtab" && isNewtab) {
-        navigateTo(newSpecialUrl)
+        navigateTo(src, newSpecialUrl)
     } else {
-        addTab({"url": newSpecialUrl})
+        addTab({src, "url": newSpecialUrl})
     }
 }
 
@@ -832,7 +833,7 @@ const help = (src, forceNewtab, section = null, trailingArgs = false) => {
             {src, "type": "warn"})
         return
     }
-    openSpecialPage("help", forceNewtab, section)
+    openSpecialPage(src, "help", forceNewtab, section)
 }
 
 /** Source the startup configs again to reload the config. */
@@ -1086,9 +1087,10 @@ const mkviebrc = (src, full = null, trailingArgs = false) => {
 
 /**
  * Buffer switch command, switch pages based on arguments.
+ * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const buffer = args => {
+const buffer = (src, args) => {
     if (args.length === 0) {
         return
     }
@@ -1098,20 +1100,21 @@ const buffer = args => {
         switchToTab(tab)
     } else {
         const {navigateTo} = require("./tabs")
-        navigateTo(stringToUrl(args.join(" ")))
+        navigateTo(src, stringToUrl(args.join(" ")))
     }
 }
 
 /**
  * Open command, navigate to a url by argument, mostly useful for mappings.
+ * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const open = args => {
+const open = (src, args) => {
     if (args.length === 0) {
         return
     }
     const {navigateTo} = require("./tabs")
-    navigateTo(stringToUrl(args.join(" ")))
+    navigateTo(src, stringToUrl(args.join(" ")))
 }
 
 /**
@@ -1143,7 +1146,7 @@ const suspend = (src, args, range = null) => {
                 {src, "type": "warn"})
         } else {
             const {suspendTab} = require("./tabs")
-            suspendTab(tab)
+            suspendTab(src, tab)
         }
     }
 }
@@ -1359,7 +1362,7 @@ const addSplit = (src, method, leftOrAbove, args, range = null) => {
         return
     }
     if (args.length === 0) {
-        addTab({"container": getSetting("containersplitpage")})
+        addTab({"container": getSetting("containersplitpage"), src})
         add(id, method, !leftOrAbove)
         return
     }
@@ -1377,6 +1380,7 @@ const addSplit = (src, method, leftOrAbove, args, range = null) => {
     } else {
         addTab({
             "container": getSetting("containersplitpage"),
+            src,
             "url": stringToUrl(args.join(" "))
         })
         add(id, method, !leftOrAbove)
@@ -1399,17 +1403,17 @@ const close = (src, force, args, range) => {
     if (range) {
         const tabs = listTabs()
         rangeToTabIdxs(src, range).map(id => tabs[id]).forEach(target => {
-            closeTab(listTabs().indexOf(target), force)
+            closeTab(src, listTabs().indexOf(target), force)
         })
         return
     }
     if (args.length === 0) {
-        closeTab(null, force)
+        closeTab(src, null, force)
         return
     }
     const tab = tabForBufferArg(args)
     if (tab) {
-        closeTab(listTabs().indexOf(tab), force)
+        closeTab(src, listTabs().indexOf(tab), force)
         return
     }
     notify("Can't find matching page, no tabs closed", {src, "type": "warn"})
@@ -1432,7 +1436,7 @@ const callAction = (args, src) => {
 /**
  * Make Vieb the default browser of the operating system if possible.
  * @param {import("./common").RunSource} src
- * */
+ */
 const makedefault = src => {
     if (process.execPath.endsWith("electron")) {
         notify("Command only works for installed versions of Vieb",
@@ -1475,9 +1479,10 @@ const makedefault = src => {
 
 /**
  * Close all tabs to the left of the current one, optionally including pinned.
+ * @param {import("./common").RunSource} src
  * @param {boolean} force
  */
-const lclose = (force = false) => {
+const lclose = (src, force = false) => {
     const tab = currentTab()
     if (!tab) {
         return
@@ -1488,15 +1493,16 @@ const lclose = (force = false) => {
     for (let i = index - 1; i >= 0; i--) {
         index = listTabs().indexOf(tab)
         const {closeTab} = require("./tabs")
-        closeTab(index - 1, force)
+        closeTab(src, index - 1, force)
     }
 }
 
 /**
  * Close all tabs to the right of the current one, optionally including pinned.
+ * @param {import("./common").RunSource} src
  * @param {boolean} force
  */
-const rclose = (force = false) => {
+const rclose = (src, force = false) => {
     const tab = currentTab()
     if (!tab) {
         return
@@ -1508,7 +1514,7 @@ const rclose = (force = false) => {
     for (let i = count - 1; i > index; i--) {
         count = listTabs().length
         const {closeTab} = require("./tabs")
-        closeTab(count - 1, force)
+        closeTab(src, count - 1, force)
     }
 }
 
@@ -1538,13 +1544,17 @@ const runjsinpage = (src, raw, range) => {
 
 /**
  * Open a new tab optionally with a custom session and url.
+ * @param {import("./common").RunSource} src
  * @param {string|null} session
  * @param {string|null} url
  */
-const tabnew = (session = null, url = null) => {
+const tabnew = (src, session = null, url = null) => {
     const {addTab} = require("./tabs")
-    /** @type {{url?: string, session?: string}} */
-    const options = {}
+    /** @type {{
+     *   url?: string, session?: string, src: import("./common").RunSource
+     * }}
+     */
+    const options = {src}
     if (url?.trim()) {
         options.url = stringToUrl(url)
     }
@@ -2195,8 +2205,8 @@ const commands = {
         src, "ver", !getSetting("splitbelow"), args, range),
     "Vexplore": ({src, args, range}) => addSplit(
         src, "hor", !getSetting("splitright"), args, range),
-    "b": ({args}) => buffer(args),
-    "buffer": ({args}) => buffer(args),
+    "b": ({src, args}) => buffer(src, args),
+    "buffer": ({src, args}) => buffer(src, args),
     "call": ({args, src}) => callAction(args, src),
     "clear": ({src, args}) => clear(src, args[0], args[1], args[2]),
     "close": ({src, args, range}) => close(src, false, args, range),
@@ -2209,10 +2219,10 @@ const commands = {
     "command": ({src, args}) => addCommand(src, false, args),
     /* eslint-disable-next-line no-use-before-define */
     "command!": ({src, args}) => addCommand(src, true, args),
-    "cookies": () => openSpecialPage("cookies", false),
-    "cookies!": () => openSpecialPage("cookies", true),
-    "d": () => openSpecialPage("downloads", false),
-    "d!": () => openSpecialPage("downloads", true),
+    "cookies": ({src}) => openSpecialPage(src, "cookies", false),
+    "cookies!": ({src}) => openSpecialPage(src, "cookies", true),
+    "d": ({src}) => openSpecialPage(src, "downloads", false),
+    "d!": ({src}) => openSpecialPage(src, "downloads", true),
     /* eslint-disable-next-line no-use-before-define */
     "delcommand": ({src, args}) => deleteCommand(src, args),
     "delmarks": ({src, args}) => delmarks(src, false, args),
@@ -2222,8 +2232,8 @@ const commands = {
     "delscrollpos": ({src, args}) => delscrollpos(src, false, args),
     "delscrollpos!": ({src, args}) => delscrollpos(src, true, args),
     "devtools": ({src, args}) => openDevTools(src, ...args),
-    "downloads": () => openSpecialPage("downloads", false),
-    "downloads!": () => openSpecialPage("downloads", true),
+    "downloads": ({src}) => openSpecialPage(src, "downloads", false),
+    "downloads!": ({src}) => openSpecialPage(src, "downloads", true),
     "echo": ({args, src}) => notify(args.join(" "), {src}),
     "h": ({src, args}) => help(src, false, ...args),
     "h!": ({src, args}) => help(src, true, ...args),
@@ -2231,11 +2241,11 @@ const commands = {
     "help": ({src, args}) => help(src, false, ...args),
     "help!": ({src, args}) => help(src, true, ...args),
     "hide": ({src, args, range}) => hide(src, args, range),
-    "history": () => openSpecialPage("history", false),
-    "history!": () => openSpecialPage("history", true),
+    "history": ({src}) => openSpecialPage(src, "history", false),
+    "history!": ({src}) => openSpecialPage(src, "history", true),
     "internaldevtools": openInternalDevTools,
-    "lclose": () => lclose(),
-    "lclose!": () => lclose(true),
+    "lclose": ({src}) => lclose(src),
+    "lclose!": ({src}) => lclose(src, true),
     "makedefault": ({src}) => makedefault(src),
     "marks": ({src, args}) => marks(src, args),
     "mkviebrc": ({src, args}) => mkviebrc(src, ...args),
@@ -2244,14 +2254,14 @@ const commands = {
     "nohlsearch": () => {
         listRealPages().forEach(page => page.stopFindInPage("clearSelection"))
     },
-    "notifications": () => openSpecialPage("notifications", false),
-    "notifications!": () => openSpecialPage("notifications", true),
-    "o": ({args}) => open(args),
+    "notifications": ({src}) => openSpecialPage(src, "notifications", false),
+    "notifications!": ({src}) => openSpecialPage(src, "notifications", true),
+    "o": ({src, args}) => open(src, args),
     "only": () => {
         const {only} = require("./pagelayout")
         only()
     },
-    "open": ({args}) => open(args),
+    "open": ({src, args}) => open(src, args),
     "pin": ({src, args, range}) => pin(src, args, range),
     "pin!": ({src, args, range}) => setPin(src, args, range),
     "pointerpos": ({src, args}) => pointerpos(src, args),
@@ -2260,8 +2270,8 @@ const commands = {
     "qa": quitall,
     "quit": ({src, range}) => quit(src, range),
     quitall,
-    "rclose": () => rclose(),
-    "rclose!": () => rclose(true),
+    "rclose": ({src}) => rclose(src),
+    "rclose!": ({src}) => rclose(src, true),
     reloadconfig,
     restart,
     "restoremark": ({src, args}) => restoremark(src, args),
@@ -2315,14 +2325,15 @@ const commands = {
     "split": ({src, args, range}) => addSplit(
         src, "ver", !getSetting("splitbelow"), args, range),
     "suspend": ({src, args, range}) => suspend(src, args, range),
-    "tabnew": ({raw}) => tabnew(null, raw.split(" ").slice(1).join(" ")),
-    "tabnewcontainer": ({raw}) => tabnew(raw.split(" ")[1],
+    "tabnew": ({src, raw}) => tabnew(
+        src, null, raw.split(" ").slice(1).join(" ")),
+    "tabnewcontainer": ({src, raw}) => tabnew(src, raw.split(" ")[1],
         raw.split(" ").slice(2).join(" ")),
     "translatepage": ({src, args}) => translatepage(src, args),
-    "v": () => openSpecialPage("version", false),
-    "v!": () => openSpecialPage("version", true),
-    "version": () => openSpecialPage("version", false),
-    "version!": () => openSpecialPage("version", true),
+    "v": ({src}) => openSpecialPage(src, "version", false),
+    "v!": ({src}) => openSpecialPage(src, "version", true),
+    "version": ({src}) => openSpecialPage(src, "version", false),
+    "version!": ({src}) => openSpecialPage(src, "version", true),
     "vsplit": ({src, args, range}) => addSplit(
         src, "hor", !getSetting("splitright"), args, range),
     "w": ({src, args, range}) => write(src, args, range),

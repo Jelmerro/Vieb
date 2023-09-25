@@ -176,7 +176,7 @@ const previousSearchMatch = () => {
 /**
  * Reset the incremental search match.
  * @param {ActionParam} args
- * */
+ */
 const resetIncrementalSearch = args => {
     if (getSetting("searchscope") === "inclocal" && !lastSearchFull) {
         emptySearch({"scope": "local", "src": args?.src ?? "other"})
@@ -243,63 +243,76 @@ const previousPageNewTab = () => sendToPageOrSubFrame(
 
 /**
  * Modify a url based on a source pattern and a replacement function.
+ * @param {import("./common").RunSource} src
  * @param {string} source
  * @param {(...args: string[]) => string} replacement
  */
-const modifyUrl = (source, replacement) => {
+const modifyUrl = (src, source, replacement) => {
     const url = currentPage()?.src || ""
     const next = url.replace(RegExp(source), replacement)
     if (next !== url) {
         const {navigateTo} = require("./tabs")
-        navigateTo(next)
+        navigateTo(src, next)
     }
 }
 
 /**
  * Move the first number based on a movement number.
+ * @param {import("./common").RunSource} src
  * @param {number} movement
  */
-const moveFirstNumber = movement => modifyUrl("\\d+", (_, match) => {
-    if (Number(match) + movement < 1) {
-        return "1"
-    }
-    return `${Number(match) + movement}`
-})
+const moveFirstNumber = (src, movement) => modifyUrl(
+    src, "\\d+", (_, match) => {
+        if (Number(match) + movement < 1) {
+            return "1"
+        }
+        return `${Number(match) + movement}`
+    })
 
 /**
  * Move the last number based on a movement number.
+ * @param {import("./common").RunSource} src
  * @param {number} movement
  */
-const moveLastNumber = movement => modifyUrl("(\\d+)(\\D*$)", (_, p1, p2) => {
-    if (Number(p1) + movement < 1) {
-        return `1${p2}`
-    }
-    return `${Number(p1) + movement}${p2}`
-})
+const moveLastNumber = (src, movement) => modifyUrl(
+    src, "(\\d+)(\\D*$)", (_, p1, p2) => {
+        if (Number(p1) + movement < 1) {
+            return `1${p2}`
+        }
+        return `${Number(p1) + movement}${p2}`
+    })
 
 /**
  * Move the page number based on a movement number.
+ * @param {import("./common").RunSource} src
  * @param {number} movement
  */
-const movePageNumber = movement => modifyUrl("(\\?|&)p(age)?=(\\d+)",
-    (_, p1, p2, p3) => {
+const movePageNumber = (src, movement) => modifyUrl(
+    src, "(\\?|&)p(age)?=(\\d+)", (_, p1, p2, p3) => {
         if (Number(p3) + movement < 1) {
             return `${p1}p${p2}=1`
         }
         return `${p1}p${p2}=${Number(p3) + movement}`
     })
 
-/** Navigate to the next page as found in the url with `page=` or `p=`. */
-const increasePageNumber = () => movePageNumber(1)
+/**
+ * Navigate to the next page as found in the url with `page=` or `p=`.
+ * @param {ActionParam} args
+ */
+const increasePageNumber = args => movePageNumber(args.src, 1)
 
-/** Navigate to the previous page as found in the url with `page=` or `p=`. */
-const decreasePageNumber = () => movePageNumber(-1)
+/**
+ * Navigate to the previous page as found in the url with `page=` or `p=`.
+ * @param {ActionParam} args
+ */
+const decreasePageNumber = args => movePageNumber(args.src, -1)
 
 /**
  * Move the port number based on a movement number.
+ * @param {import("./common").RunSource} src
  * @param {number} movement
  */
-const movePortNumber = movement => {
+const movePortNumber = (src, movement) => {
     const url = currentPage()?.src || ""
     const loc = document.createElement("a")
     loc.href = url
@@ -311,7 +324,7 @@ const movePortNumber = movement => {
         port = 443
     }
     if (port) {
-        modifyUrl("(^[a-zA-Z\\d]+:\\/\\/[.a-zA-Z\\d-]+)(:\\d+)?(.*$)",
+        modifyUrl(src, "(^[a-zA-Z\\d]+:\\/\\/[.a-zA-Z\\d-]+)(:\\d+)?(.*$)",
             (_, domain, _port, rest) => {
                 if (isNaN(port)) {
                     return `${domain}${rest}`
@@ -328,26 +341,47 @@ const movePortNumber = movement => {
     }
 }
 
-/** Increase the port number by one based on port standards. */
-const increasePortNumber = () => movePortNumber(1)
+/**
+ * Increase the port number by one based on port standards.
+ * @param {ActionParam} args
+ */
+const increasePortNumber = args => movePortNumber(args.src, 1)
 
-/** Decrease the port number by one based on port standards. */
-const decreasePortNumber = () => movePortNumber(-1)
+/**
+ * Decrease the port number by one based on port standards.
+ * @param {ActionParam} args
+ */
+const decreasePortNumber = args => movePortNumber(args.src, -1)
 
-/** Increase to the very first number in the url. */
-const increaseFirstNumber = () => moveFirstNumber(1)
+/**
+ * Increase to the very first number in the url.
+ * @param {ActionParam} args
+ */
+const increaseFirstNumber = args => moveFirstNumber(args.src, 1)
 
-/** Decrease to the very first number in the url. */
-const decreaseFirstNumber = () => moveFirstNumber(-1)
+/**
+ * Decrease to the very first number in the url.
+ * @param {ActionParam} args
+ */
+const decreaseFirstNumber = args => moveFirstNumber(args.src, -1)
 
-/** Increase to the very last number in the url. */
-const increaseLastNumber = () => moveLastNumber(1)
+/**
+ * Increase to the very last number in the url.
+ * @param {ActionParam} args
+ */
+const increaseLastNumber = args => moveLastNumber(args.src, 1)
 
-/** Decrease to the very last number in the url. */
-const decreaseLastNumber = () => moveLastNumber(-1)
+/**
+ * Decrease to the very last number in the url.
+ * @param {ActionParam} args
+ */
+const decreaseLastNumber = args => moveLastNumber(args.src, -1)
 
-/** Go to root domain, by removing most subdomains, repeats to remove www. */
-const toRootSubdomain = () => {
+/**
+ * Go to root domain, by removing most subdomains, repeats to remove www.
+ * @param {ActionParam} args
+ */
+const toRootSubdomain = args => {
     const url = currentPage()?.src
     if (!url) {
         return
@@ -372,12 +406,15 @@ const toRootSubdomain = () => {
     }
     if (originalUrl !== urlObj.href) {
         const {navigateTo} = require("./tabs")
-        navigateTo(urlObj.href)
+        navigateTo(args.src, urlObj.href)
     }
 }
 
-/** Go to the parent domain, by removing 1 subdomain until there are none. */
-const toParentSubdomain = () => {
+/**
+ * Go to the parent domain, by removing 1 subdomain until there are none.
+ * @param {ActionParam} args
+ */
+const toParentSubdomain = args => {
     const url = currentPage()?.src
     if (!url) {
         return
@@ -394,12 +431,15 @@ const toParentSubdomain = () => {
     urlObj.hostname = domainNames.slice(1).join(".")
     if (originalUrl !== urlObj.href) {
         const {navigateTo} = require("./tabs")
-        navigateTo(urlObj.href)
+        navigateTo(args.src, urlObj.href)
     }
 }
 
-/** Go to the root url by removing the entire path, the search and the hash. */
-const toRootUrl = () => {
+/**
+ * Go to the root url by removing the entire path, the search and the hash.
+ * @param {ActionParam} args
+ */
+const toRootUrl = args => {
     const url = currentPage()?.src
     if (!url) {
         return
@@ -411,12 +451,15 @@ const toRootUrl = () => {
     urlObj.hash = ""
     if (originalUrl !== urlObj.href) {
         const {navigateTo} = require("./tabs")
-        navigateTo(urlObj.href)
+        navigateTo(args.src, urlObj.href)
     }
 }
 
-/** Go to the parent url by removing the path part, the search and the hash. */
-const toParentUrl = () => {
+/**
+ * Go to the parent url by removing the path part, the search and the hash.
+ * @param {ActionParam} args
+ */
+const toParentUrl = args => {
     const url = currentPage()?.src
     if (!url) {
         return
@@ -429,7 +472,7 @@ const toParentUrl = () => {
     urlObj.hash = ""
     if (originalUrl !== urlObj.href) {
         const {navigateTo} = require("./tabs")
-        navigateTo(urlObj.href)
+        navigateTo(args.src, urlObj.href)
     }
 }
 
@@ -451,8 +494,11 @@ const nextTab = () => {
     }
 }
 
-/** Toggle the sourceviewer in the current tab. */
-const toggleSourceViewer = () => {
+/**
+ * Toggle the sourceviewer in the current tab.
+ * @param {ActionParam} args
+ */
+const toggleSourceViewer = args => {
     const {navigateTo} = require("./tabs")
     const page = currentPage()
     if (page && page.src.startsWith("sourceviewer:")) {
@@ -462,19 +508,20 @@ const toggleSourceViewer = () => {
             loc = `/${loc}`
         }
         if (isFile(loc) || isDir(loc)) {
-            navigateTo(`file://${loc}`)
+            navigateTo(args.src, `file://${loc}`)
             return
         }
-        navigateTo(`https://${src}`)
+        navigateTo(args.src, `https://${src}`)
     } else if (page) {
-        navigateTo(page.src.replace(/^.+?:\/?\/?/g, "sourceviewer:"))
+        navigateTo(args.src, page.src.replace(/^.+?:\/?\/?/g, "sourceviewer:"))
     }
 }
 
 /**
  * Open the sourceviewer in a new tab or go back to the page in the current.
+ * @param {ActionParam} args
  */
-const toggleSourceViewerNewTab = () => {
+const toggleSourceViewerNewTab = args => {
     const {navigateTo, addTab} = require("./tabs")
     const page = currentPage()
     if (page && page.src.startsWith("sourceviewer:")) {
@@ -484,17 +531,23 @@ const toggleSourceViewerNewTab = () => {
             loc = `/${loc}`
         }
         if (isFile(loc) || isDir(loc)) {
-            navigateTo(`file://${loc}`)
+            navigateTo(args.src, `file://${loc}`)
             return
         }
-        navigateTo(`https://${src}`)
+        navigateTo(args.src, `https://${src}`)
     } else if (page) {
-        addTab({"url": page.src.replace(/^.+?:\/?\/?/g, "sourceviewer:")})
+        addTab({
+            "src": args.src,
+            "url": page.src.replace(/^.+?:\/?\/?/g, "sourceviewer:")
+        })
     }
 }
 
-/** Toggle the readerviewer in the current tab. */
-const toggleReaderView = () => {
+/**
+ * Toggle the readerviewer in the current tab.
+ * @param {ActionParam} args
+ */
+const toggleReaderView = args => {
     const {navigateTo} = require("./tabs")
     const page = currentPage()
     if (page && page.src.startsWith("readerview:")) {
@@ -504,19 +557,20 @@ const toggleReaderView = () => {
             loc = `/${loc}`
         }
         if (isFile(loc) || isDir(loc)) {
-            navigateTo(`file://${loc}`)
+            navigateTo(args.src, `file://${loc}`)
             return
         }
-        navigateTo(`https://${src}`)
+        navigateTo(args.src, `https://${src}`)
     } else if (page) {
-        navigateTo(page.src.replace(/^.+?:\/?\/?/g, "readerview:"))
+        navigateTo(args.src, page.src.replace(/^.+?:\/?\/?/g, "readerview:"))
     }
 }
 
 /**
  * Open the readerview in a new tab or go back to the page in the current.
+ * @param {ActionParam} args
  */
-const toggleReaderViewNewTab = () => {
+const toggleReaderViewNewTab = args => {
     const {navigateTo, addTab} = require("./tabs")
     const page = currentPage()
     if (page && page.src.startsWith("readerview:")) {
@@ -526,17 +580,23 @@ const toggleReaderViewNewTab = () => {
             loc = `/${loc}`
         }
         if (isFile(loc) || isDir(loc)) {
-            navigateTo(`file://${loc}`)
+            navigateTo(args.src, `file://${loc}`)
             return
         }
-        navigateTo(`https://${src}`)
+        navigateTo(args.src, `https://${src}`)
     } else if (page) {
-        addTab({"url": page.src.replace(/^.+?:\/?\/?/g, "readerview:")})
+        addTab({
+            "src": args.src,
+            "url": page.src.replace(/^.+?:\/?\/?/g, "readerview:")
+        })
     }
 }
 
-/** Toggle the markdownviewer in the current tab. */
-const toggleMarkdownViewer = () => {
+/**
+ * Toggle the markdownviewer in the current tab.
+ * @param {ActionParam} args
+ */
+const toggleMarkdownViewer = args => {
     const {navigateTo} = require("./tabs")
     const page = currentPage()
     if (page && page.src.startsWith("markdownviewer:")) {
@@ -546,19 +606,21 @@ const toggleMarkdownViewer = () => {
             loc = `/${loc}`
         }
         if (isFile(loc) || isDir(loc)) {
-            navigateTo(`file://${loc}`)
+            navigateTo(args.src, `file://${loc}`)
             return
         }
-        navigateTo(`https://${src}`)
+        navigateTo(args.src, `https://${src}`)
     } else if (page) {
-        navigateTo(page.src.replace(/^.+?:\/?\/?/g, "markdownviewer:"))
+        navigateTo(args.src,
+            page.src.replace(/^.+?:\/?\/?/g, "markdownviewer:"))
     }
 }
 
 /**
  * Open the markdownviewer in a new tab or go back to the page in the current.
+ * @param {ActionParam} args
  */
-const toggleMarkdownViewerNewTab = () => {
+const toggleMarkdownViewerNewTab = args => {
     const {navigateTo, addTab} = require("./tabs")
     const page = currentPage()
     if (page && page.src.startsWith("markdownviewer:")) {
@@ -568,12 +630,15 @@ const toggleMarkdownViewerNewTab = () => {
             loc = `/${loc}`
         }
         if (isFile(loc) || isDir(loc)) {
-            navigateTo(`file://${loc}`)
+            navigateTo(args.src, `file://${loc}`)
             return
         }
-        navigateTo(`https://${src}`)
+        navigateTo(args.src, `https://${src}`)
     } else if (page) {
-        addTab({"url": page.src.replace(/^.+?:\/?\/?/g, "markdownviewer:")})
+        addTab({
+            "src": args.src,
+            "url": page.src.replace(/^.+?:\/?\/?/g, "markdownviewer:")
+        })
     }
 }
 
@@ -645,7 +710,7 @@ const refreshTab = args => {
     if (page && !page.src.startsWith("devtools://")) {
         if (page.isCrashed()) {
             const {recreateWebview} = require("./tabs")
-            recreateWebview(page)
+            recreateWebview(args.src, page)
             return
         }
         const {rerollUserAgent, resetTabInfo} = require("./tabs")
@@ -700,7 +765,7 @@ const backInHistory = args => {
     if (page && !page.src.startsWith("devtools://")) {
         if (page.isCrashed()) {
             const {recreateWebview} = require("./tabs")
-            recreateWebview(page)
+            recreateWebview(args.src, page)
             return
         }
         if (page?.canGoBack()) {
@@ -725,7 +790,7 @@ const forwardInHistory = args => {
     if (page && !page.src.startsWith("devtools://")) {
         if (page.isCrashed()) {
             const {recreateWebview} = require("./tabs")
-            recreateWebview(page)
+            recreateWebview(args.src, page)
             return
         }
         if (page?.canGoForward()) {
@@ -741,13 +806,16 @@ const forwardInHistory = args => {
     }
 }
 
-/** Refresh the curren tab without using cache. */
-const refreshTabWithoutCache = () => {
+/**
+ * Refresh the curren tab without using cache.
+ * @param {ActionParam} args
+ */
+const refreshTabWithoutCache = args => {
     const page = currentPage()
     if (page && !page.src.startsWith("devtools://")) {
         if (page.isCrashed()) {
             const {recreateWebview} = require("./tabs")
-            recreateWebview(page)
+            recreateWebview(args.src, page)
             return
         }
         const {rerollUserAgent, resetTabInfo} = require("./tabs")
@@ -757,11 +825,14 @@ const refreshTabWithoutCache = () => {
     }
 }
 
-/** Open a new tab, switch to explore mode and have the current url ready. */
-const openNewTabWithCurrentUrl = () => {
+/**
+ * Open a new tab, switch to explore mode and have the current url ready.
+ * @param {ActionParam} args
+ */
+const openNewTabWithCurrentUrl = args => {
     const url = currentPage()?.src || ""
     const {addTab} = require("./tabs")
-    addTab()
+    addTab({"src": args.src})
     const {setMode} = require("./modes")
     setMode("explore")
     const urlEl = getUrl()
@@ -863,7 +934,7 @@ const repeatLastAction = () => {
 /**
  * Edit the current insert mode input or navbar mode text.
  * @param {ActionParam} args
- * */
+ */
 const editWithVim = args => {
     const page = currentPage()
     if (!page) {
@@ -927,7 +998,7 @@ const editWithVim = args => {
 /**
  * Download the current page link to disk.
  * @param {ActionParam} args
- * */
+ */
 const downloadLink = args => {
     const {commonAction} = require("./contextmenu")
     commonAction(args.src, "link", "download",
@@ -937,7 +1008,7 @@ const downloadLink = args => {
 /**
  * Open the current page link in an external application as per setting.
  * @param {ActionParam} args
- * */
+ */
 const openLinkExternal = args => {
     const {commonAction} = require("./contextmenu")
     commonAction(args.src, "link", "external",
@@ -1206,7 +1277,7 @@ const getPageRSSLinks = async args => {
 /**
  * Notify with the list of RSS links on the current page.
  * @param {ActionParam} args
- * */
+ */
 const pageRSSLinksList = async args => {
     const feedUrls = await getPageRSSLinks(args)
     if (!feedUrls) {
@@ -1272,11 +1343,14 @@ const pageToClipboardEmacs = () => {
     clipboard.writeText(`[[${url}][${title}]]`)
 }
 
-/** Open the link currently in the system clipboard in the current tab. */
-const openFromClipboard = () => {
+/**
+ * Open the link currently in the system clipboard in the current tab.
+ * @param {ActionParam} args
+ */
+const openFromClipboard = args => {
     if (clipboard.readText().trim()) {
         const {navigateTo} = require("./tabs")
-        navigateTo(stringToUrl(clipboard.readText()))
+        navigateTo(args.src, stringToUrl(clipboard.readText()))
     }
 }
 
@@ -1450,7 +1524,7 @@ const reorderFollowLinks = () => {
 /**
  * Open the menu, either for system elements or the current insert element.
  * @param {ActionParam} args
- * */
+ */
 const menuOpen = args => {
     const {viebMenu} = require("./contextmenu")
     if (currentMode() === "normal") {
@@ -1498,7 +1572,7 @@ const menuOpen = args => {
         }
     } else {
         const {openMenu} = require("./pointer")
-        openMenu()
+        openMenu(args)
     }
 }
 
@@ -1570,7 +1644,7 @@ const toggleTOC = () => {
 /**
  * Use the navbar entered data to either navigate, search or run commands.
  * @param {ActionParam} args
- * */
+ */
 const useEnteredData = args => {
     const {setMode} = require("./modes")
     const url = getUrl()
@@ -1596,7 +1670,7 @@ const useEnteredData = args => {
             const {push} = require("./explorehistory")
             push(urlToString(modifiedLoc))
             const {navigateTo} = require("./tabs")
-            navigateTo(stringToUrl(modifiedLoc))
+            navigateTo(args.src, stringToUrl(modifiedLoc))
         }
     }
 }

@@ -187,8 +187,9 @@ const linkInList = (list, link) => list.some(l => l && link && l.x === link.x
 /**
  * Click on a follow link.
  * @param {FollowLink} link
+ * @param {import("./common").RunSource} src
  */
-const clickAtLink = async link => {
+const clickAtLink = async(link, src = "user") => {
     const factor = currentPage()?.getZoomFactor() ?? 1
     const {setMode} = require("./modes")
     if (["pointer", "visual"].includes(getStored("modebeforefollow"))) {
@@ -204,7 +205,7 @@ const clickAtLink = async link => {
     const {isUrl} = require("../util")
     if (link.url && link.type === "url" && isUrl(link.url)) {
         const {navigateTo} = require("./tabs")
-        navigateTo(link.url)
+        navigateTo(src, link.url)
         return
     }
     setMode("insert")
@@ -359,6 +360,7 @@ const parseAndDisplayLinks = receivedLinks => {
                 setMode(getStored("modebeforefollow"))
                 const {addTab} = require("./tabs")
                 addTab({
+                    "src": "user",
                     "switchTo": getSetting("mousenewtabswitch"),
                     "url": link.url
                 })
@@ -547,11 +549,12 @@ const followFiltering = () => alreadyFilteringLinks
 
 /**
  * Enter a follow mode key and narrow down results.
+ * @param {import("./common").RunSource} src
  * @param {string} code
  * @param {string} id
  * @param {boolean} stayInFollowMode
  */
-const enterKey = async(code, id, stayInFollowMode) => {
+const enterKey = async(src, code, id, stayInFollowMode) => {
     alreadyFollowing = true
     /** @type {HTMLSpanElement[]} */
     // @ts-expect-error query selector only selects span elements
@@ -628,6 +631,7 @@ const enterKey = async(code, id, stayInFollowMode) => {
             const {addTab} = require("./tabs")
             if (followLinkDestination === "newtab") {
                 addTab({
+                    src,
                     "switchTo": !stayInFollowMode
                         && getSetting("follownewtabswitch"),
                     "url": link.url
@@ -638,6 +642,7 @@ const enterKey = async(code, id, stayInFollowMode) => {
                 const currentTabId = currentTab()?.getAttribute("link-id")
                 addTab({
                     "container": getSetting("containersplitpage"),
+                    src,
                     "url": link.url
                 })
                 const {add} = require("./pagelayout")
@@ -651,7 +656,7 @@ const enterKey = async(code, id, stayInFollowMode) => {
             }
             return
         }
-        await clickAtLink(link)
+        await clickAtLink(link, src)
         if (link.type !== "inputs-insert" || stayInFollowMode) {
             setMode(getStored("modebeforefollow"))
             if (stayInFollowMode) {
