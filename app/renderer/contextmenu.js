@@ -63,8 +63,9 @@ const {
  *     type?: contextMenuType,
  *     action?: contextMenuAction,
  *     force?: boolean,
- *     x?: number
- *     y?: number
+ *     x?: number,
+ *     y?: number,
+ *     src?: import("./common").RunSource
  *   },
  *   frame?: string,
  *   frameData?: {controllable?: false},
@@ -90,7 +91,7 @@ const {
  *   x: number,
  *   y: number,
  *   frameId: string|null,
- *   webviewId: number|null,
+ *   webviewId: number|null
  * }} webviewData
  */
 
@@ -272,11 +273,12 @@ const select = () => {
 
 /**
  * Execute a common link action by name, position and custom options.
+ * @param {import("./common").RunSource} src
  * @param {contextMenuType} type
  * @param {contextMenuAction} action
  * @param {Partial<webviewData>} options
  */
-const commonAction = (type, action, options) => {
+const commonAction = (src, type, action, options) => {
     let relevantData = options[type]
     if (type === "img") {
         relevantData = options.img || options.backgroundImg || options.svgData
@@ -351,7 +353,7 @@ const commonAction = (type, action, options) => {
         if (!ext.trim()) {
             notify("No command set to open links externally, "
                 + "please update the 'externalcommand' setting",
-            {"type": "warn"})
+            {src, "type": "warn"})
             return
         }
         if (relevantData) {
@@ -368,25 +370,26 @@ const commonAction = (type, action, options) => {
             execCommand(`${ext} "${extData}"`, (err, stdout) => {
                 const reportExit = getSetting("notificationforsystemcommands")
                 if (err && reportExit !== "none") {
-                    notify(`${err}`, {"type": "err"})
+                    notify(`${err}`, {src, "type": "err"})
                 } else if (reportExit === "all") {
-                    notify(stdout.toString()
-                        || "Command exitted successfully!", {"type": "suc"})
+                    notify(stdout.toString() || "Command exitted successfully!",
+                        {src, "type": "suc"})
                 }
             })
         }
     } else if (action === "search") {
         const {incrementalSearch} = require("./actions")
-        incrementalSearch({"value": relevantData})
+        incrementalSearch({src, "value": relevantData})
     }
 }
 
 /**
  * Open Vieb's internal menu.
+ * @param {import("./common").RunSource} src
  * @param {MouseEvent | {path: Element[], x: number, y: number}} options
  * @param {boolean} force
  */
-const viebMenu = (options, force = false) => {
+const viebMenu = (src, options, force = false) => {
     if (!contextMenu) {
         return
     }
@@ -423,7 +426,7 @@ const viebMenu = (options, force = false) => {
             if ("sec".includes(currentMode()[0])) {
                 createMenuItem({
                     /** Menu item: Go to url. */
-                    "action": () => useEnteredData(), "title": "Go"
+                    "action": () => useEnteredData({src}), "title": "Go"
                 })
             }
         }
@@ -475,7 +478,7 @@ const viebMenu = (options, force = false) => {
                     }
                     const {pasteInput} = require("./input")
                     pasteInput()
-                    useEnteredData({})
+                    useEnteredData({src})
                 },
                 "title": "Paste & go"
             })
@@ -503,7 +506,7 @@ const viebMenu = (options, force = false) => {
         }
         createMenuItem({
             /** Menu item: Pin. */
-            "action": () => execute(`pin ${listTabs().indexOf(tab)}`),
+            "action": () => execute(`pin ${listTabs().indexOf(tab)}`, {src}),
             "title": pinTitle
         })
         const isSuspended = page?.tagName?.toLowerCase() !== "webview"
@@ -528,14 +531,14 @@ const viebMenu = (options, force = false) => {
         if (!(page instanceof HTMLDivElement)) {
             createMenuItem({
                 /** Menu item: Refresh tab. */
-                "action": () => refreshTab({"customPage": page}),
+                "action": () => refreshTab({"customPage": page, src}),
                 "title": "Refresh"
             })
             if (!page.src.startsWith("devtools://") && page?.canGoBack()) {
                 createMenuItem({
                     /** Menu item: Previous. */
                     "action": () => {
-                        backInHistory({"customPage": page})
+                        backInHistory({"customPage": page, src})
                     },
                     "title": "Previous"
                 })
@@ -544,7 +547,7 @@ const viebMenu = (options, force = false) => {
                 createMenuItem({
                     /** Menu item: Next. */
                     "action": () => {
-                        forwardInHistory({"customPage": page})
+                        forwardInHistory({"customPage": page, src})
                     },
                     "title": "Next"
                 })
@@ -565,11 +568,11 @@ const viebMenu = (options, force = false) => {
         createMenuItem({"action": addTab, "title": "Newtab"})
         createMenuItem({
             /** Menu item: split horizontal. */
-            "action": () => execute("split"), "title": "Split"
+            "action": () => execute("split", {src}), "title": "Split"
         })
         createMenuItem({
             /** Menu item: split vertical. */
-            "action": () => execute("vsplit"), "title": "Vsplit"
+            "action": () => execute("vsplit", {src}), "title": "Vsplit"
         })
         createMenuItem({"action": reopenTab, "title": "Reopen"})
         fixAlignmentNearBorders()
@@ -578,9 +581,10 @@ const viebMenu = (options, force = false) => {
 
 /**
  * Open the link menu for while in explore mode.
+ * @param {import("./common").RunSource} src
  * @param {{link: string, x: number, y: number}} options
  */
-const linkMenu = options => {
+const linkMenu = (src, options) => {
     if (!contextMenu) {
         return
     }
@@ -611,18 +615,20 @@ const linkMenu = options => {
     })
     createMenuItem({
         /** Menu item: Open link externally. */
-        "action": () => commonAction("link", "external",
+        "action": () => commonAction(src, "link", "external",
             {"link": options.link}),
         "title": "External"
     })
     createMenuItem({
         /** Menu item: Open link in split. */
-        "action": () => commonAction("link", "split", {"link": options.link}),
+        "action": () => commonAction(
+            src, "link", "split", {"link": options.link}),
         "title": "Split"
     })
     createMenuItem({
         /** Menu item: Open link in vertical split. */
-        "action": () => commonAction("link", "vsplit", {"link": options.link}),
+        "action": () => commonAction(
+            src, "link", "vsplit", {"link": options.link}),
         "title": "Vsplit"
     })
     fixAlignmentNearBorders()
@@ -630,9 +636,10 @@ const linkMenu = options => {
 
 /**
  * Open the command menu for while in command mode.
+ * @param {import("./common").RunSource} src
  * @param {{command: string, x: number, y: number}} options
  */
-const commandMenu = options => {
+const commandMenu = (src, options) => {
     if (!contextMenu) {
         return
     }
@@ -645,7 +652,7 @@ const commandMenu = options => {
             const {setMode} = require("./modes")
             setMode("normal")
             const {execute} = require("./command")
-            execute(options.command)
+            execute(options.command, {src})
         },
         "title": "Execute"
     })
@@ -662,10 +669,11 @@ const commandMenu = options => {
 
 /**
  * Show the webview menu using custom options.
+ * @param {import("./common").RunSource} src
  * @param {webviewData} options
  * @param {boolean} force
  */
-const webviewMenu = (options, force = false) => {
+const webviewMenu = (src, options, force = false) => {
     clear()
     if (!contextMenu) {
         return
@@ -702,25 +710,25 @@ const webviewMenu = (options, force = false) => {
     contextMenu.style.left = `${Math.round(options.x * zoom + webviewX)}px`
     createMenuItem({
         /** Menu item: Refresh tab. */
-        "action": () => refreshTab({}), "title": "Refresh"
+        "action": () => refreshTab({src}), "title": "Refresh"
     })
     if (!page.src.startsWith("devtools://") && page?.canGoBack()) {
         createMenuItem({
             /** Menu item: Back in history. */
-            "action": () => backInHistory({}), "title": "Previous"
+            "action": () => backInHistory({src}), "title": "Previous"
         })
     }
     if (!page.src.startsWith("devtools://") && page?.canGoForward()) {
         createMenuItem({
             /** Menu item: Forward in history. */
-            "action": () => forwardInHistory({}), "title": "Next"
+            "action": () => forwardInHistory({src}), "title": "Next"
         })
     }
     createMenuItem({
         /** Menu item: Save the page to disk. */
         "action": () => {
             const {execute} = require("./command")
-            execute("write")
+            execute("write", {src})
         },
         "title": "Save page"
     })
@@ -776,27 +784,27 @@ const webviewMenu = (options, force = false) => {
     if (options.text) {
         createMenuItem({
             /** Menu item: Navigate to the link or search the text. */
-            "action": () => commonAction("text", "open", options),
+            "action": () => commonAction(src, "text", "open", options),
             "title": "Navigate"
         })
         createMenuItem({
             /** Menu item: Open the link or search the text in newtab. */
-            "action": () => commonAction("text", "newtab", options),
+            "action": () => commonAction(src, "text", "newtab", options),
             "title": "Newtab"
         })
         createMenuItem({
             /** Menu item: Search the page for the selection. */
-            "action": () => commonAction("text", "search", options),
+            "action": () => commonAction(src, "text", "search", options),
             "title": "Search/find"
         })
         createMenuItem({
             /** Menu item: Split the selection as a link or a search. */
-            "action": () => commonAction("text", "split", options),
+            "action": () => commonAction(src, "text", "split", options),
             "title": "Split"
         })
         createMenuItem({
             /** Menu item: Vsplit the selection as a link or a search. */
-            "action": () => commonAction("text", "vsplit", options),
+            "action": () => commonAction(src, "text", "vsplit", options),
             "title": "Vsplit"
         })
         if (options.canEdit) {
@@ -809,7 +817,7 @@ const webviewMenu = (options, force = false) => {
         }
         createMenuItem({
             /** Menu item: Copy the selection. */
-            "action": () => commonAction("text", "copy", options),
+            "action": () => commonAction(src, "text", "copy", options),
             "title": "Copy"
         })
     }
@@ -824,12 +832,12 @@ const webviewMenu = (options, force = false) => {
     if (options.text) {
         createMenuItem({
             /** Menu item: Download the selected text as if a link. */
-            "action": () => commonAction("text", "download", options),
+            "action": () => commonAction(src, "text", "download", options),
             "title": "Download"
         })
         createMenuItem({
             /** Menu item: Open the selected text externally. */
-            "action": () => commonAction("text", "external", options),
+            "action": () => commonAction(src, "text", "external", options),
             "title": "With external"
         })
     }
@@ -837,42 +845,42 @@ const webviewMenu = (options, force = false) => {
         createMenuGroup("Image")
         createMenuItem({
             /** Menu item: Navigate to an image. */
-            "action": () => commonAction("img", "open", options),
+            "action": () => commonAction(src, "img", "open", options),
             "title": "Navigate"
         })
         createMenuItem({
             /** Menu item: Open the image in a new tab. */
-            "action": () => commonAction("img", "newtab", options),
+            "action": () => commonAction(src, "img", "newtab", options),
             "title": "Newtab"
         })
         createMenuItem({
             /** Menu item: Copy the image link to clipboard. */
-            "action": () => commonAction("img", "copy", options),
+            "action": () => commonAction(src, "img", "copy", options),
             "title": "Copy link"
         })
         createMenuItem({
             /** Menu item: Copy the image data to clipboard as a buffer. */
-            "action": () => commonAction("img", "copyimage", options),
+            "action": () => commonAction(src, "img", "copyimage", options),
             "title": "Copy image"
         })
         createMenuItem({
             /** Menu item: Download the image to disk. */
-            "action": () => commonAction("img", "download", options),
+            "action": () => commonAction(src, "img", "download", options),
             "title": "Download"
         })
         createMenuItem({
             /** Menu item: Open the image link externally. */
-            "action": () => commonAction("img", "external", options),
+            "action": () => commonAction(src, "img", "external", options),
             "title": "External"
         })
         createMenuItem({
             /** Menu item: Open the image link in a horizontal split. */
-            "action": () => commonAction("img", "split", options),
+            "action": () => commonAction(src, "img", "split", options),
             "title": "Split"
         })
         createMenuItem({
             /** Menu item: Open the image link in a vertical split. */
-            "action": () => commonAction("img", "vsplit", options),
+            "action": () => commonAction(src, "img", "vsplit", options),
             "title": "Vsplit"
         })
     }
@@ -885,37 +893,37 @@ const webviewMenu = (options, force = false) => {
         if (options[type]) {
             createMenuItem({
                 /** Menu item: Navigate to some media. */
-                "action": () => commonAction(type, "open", options),
+                "action": () => commonAction(src, type, "open", options),
                 "title": "Navigate"
             })
             createMenuItem({
                 /** Menu item: Open the media in a new tab. */
-                "action": () => commonAction(type, "newtab", options),
+                "action": () => commonAction(src, type, "newtab", options),
                 "title": "Newtab"
             })
             createMenuItem({
                 /** Menu item: Copy the media link to clipboard. */
-                "action": () => commonAction(type, "copy", options),
+                "action": () => commonAction(src, type, "copy", options),
                 "title": "Copy link"
             })
             createMenuItem({
                 /** Menu item: Download the media(/link) to disk. */
-                "action": () => commonAction(type, "download", options),
+                "action": () => commonAction(src, type, "download", options),
                 "title": "Download"
             })
             createMenuItem({
                 /** Menu item: Open the media link externally. */
-                "action": () => commonAction(type, "external", options),
+                "action": () => commonAction(src, type, "external", options),
                 "title": "External"
             })
             createMenuItem({
                 /** Menu item: Open the media link in a horizontal split. */
-                "action": () => commonAction(type, "split", options),
+                "action": () => commonAction(src, type, "split", options),
                 "title": "Split"
             })
             createMenuItem({
                 /** Menu item: Open the media link in a vertical split. */
-                "action": () => commonAction(type, "vsplit", options),
+                "action": () => commonAction(src, type, "vsplit", options),
                 "title": "Vsplit"
             })
         }
@@ -1004,9 +1012,11 @@ const init = () => {
             }
         }
         if (info.extraData?.type && info.extraData?.action) {
-            commonAction(info.extraData.type, info.extraData.action, info)
+            commonAction(info.extraData.src ?? "user", info.extraData.type,
+                info.extraData.action, info)
         } else {
-            webviewMenu(info, info?.extraData?.force)
+            webviewMenu(info.extraData?.src ?? "user",
+                info, info?.extraData?.force)
         }
     }
 

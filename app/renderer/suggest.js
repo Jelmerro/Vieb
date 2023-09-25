@@ -259,7 +259,7 @@ const addExplore = explore => {
             if (getMouseConf("suggestselect")) {
                 if (["both", "explore"].includes(getSetting("menusuggest"))) {
                     const {linkMenu} = require("./contextmenu")
-                    linkMenu({"link": explore.url, "x": e.x, "y": e.y})
+                    linkMenu("user", {"link": explore.url, "x": e.x, "y": e.y})
                 }
             }
         } else if (getMouseConf("menusuggest")) {
@@ -393,7 +393,7 @@ const addCommand = (
             if (getMouseConf("suggestselect")) {
                 if (["both", "command"].includes(getSetting("menusuggest"))) {
                     const {commandMenu} = require("./contextmenu")
-                    commandMenu({command, "x": e.x, "y": e.y})
+                    commandMenu("user", {command, "x": e.x, "y": e.y})
                 }
             }
         } else if (getMouseConf("menusuggest")) {

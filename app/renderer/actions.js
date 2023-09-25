@@ -924,16 +924,24 @@ const editWithVim = args => {
     }
 }
 
-/** Download the current page link to disk. */
-const downloadLink = () => {
+/**
+ * Download the current page link to disk.
+ * @param {ActionParam} args
+ * */
+const downloadLink = args => {
     const {commonAction} = require("./contextmenu")
-    commonAction("link", "download", {"link": currentPage()?.src ?? ""})
+    commonAction(args.src, "link", "download",
+        {"link": currentPage()?.src ?? ""})
 }
 
-/** Open the current page link in an external application as per setting. */
-const openLinkExternal = () => {
+/**
+ * Open the current page link in an external application as per setting.
+ * @param {ActionParam} args
+ * */
+const openLinkExternal = args => {
     const {commonAction} = require("./contextmenu")
-    commonAction("link", "external", {"link": currentPage()?.src ?? ""})
+    commonAction(args.src, "link", "external",
+        {"link": currentPage()?.src ?? ""})
 }
 
 /** Completely reset any focus issues there could be in the app. */
@@ -1387,7 +1395,7 @@ const restoreMark = args => {
         position = shiftedPosition
     }
     position = args.position ?? position
-    commonAction("link", position, {"link": qm?.marks?.[key]})
+    commonAction(args.src, "link", position, {"link": qm?.marks?.[key]})
 }
 
 /**
@@ -1439,15 +1447,18 @@ const reorderFollowLinks = () => {
     reorderDisplayedLinks()
 }
 
-/** Open the menu, either for system elements or the current insert element. */
-const menuOpen = () => {
+/**
+ * Open the menu, either for system elements or the current insert element.
+ * @param {ActionParam} args
+ * */
+const menuOpen = args => {
     const {viebMenu} = require("./contextmenu")
     if (currentMode() === "normal") {
         const tab = currentTab()
         const bounds = tab?.getBoundingClientRect()
         const tabs = document.getElementById("tabs")
         if (tab && bounds && tabs) {
-            viebMenu({
+            viebMenu(args.src, {
                 "path": [tab, tabs],
                 "x": bounds.x,
                 "y": bounds.y + bounds.height
@@ -1460,14 +1471,14 @@ const menuOpen = () => {
         let bounds = selected?.getBoundingClientRect()
         if (currentMode() === "command" && selected && bounds) {
             const {commandMenu} = require("./contextmenu")
-            commandMenu({
+            commandMenu(args.src, {
                 "command": selected.querySelector("span")?.textContent ?? "",
                 "x": bounds.x,
                 "y": bounds.y + bounds.height
             })
         } else if (currentMode() === "explore" && selected && bounds) {
             const {linkMenu} = require("./contextmenu")
-            linkMenu({
+            linkMenu(args.src, {
                 "link": selected.querySelector(".url")?.textContent ?? "",
                 "x": bounds.x,
                 "y": bounds.y + bounds.height
@@ -1477,7 +1488,7 @@ const menuOpen = () => {
             bounds = url?.getBoundingClientRect()
             if (url && bounds) {
                 const charWidth = getSetting("guifontsize") * 0.60191
-                viebMenu({
+                viebMenu(args.src, {
                     "path": [url],
                     "x": bounds.x + charWidth
                         * (url.selectionStart ?? 0) - url.scrollLeft,

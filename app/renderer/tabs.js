@@ -850,7 +850,7 @@ const addWebviewListeners = webview => {
         }
         if (e.channel === "external") {
             const {commonAction} = require("./contextmenu")
-            commonAction("link", "external", {"link": e.args[0]})
+            commonAction("other", "link", "external", {"link": e.args[0]})
         }
         if (e.channel === "back-button") {
             const {backInHistory} = require("./actions")
@@ -1082,6 +1082,7 @@ const unsuspendPage = page => {
  *   script?: string,
  *   muted?: boolean,
  *   startup?: boolean,
+ *   src?: import("./common").RunSource
  * }} options
  */
 const addTab = (options = {}) => {
@@ -1142,7 +1143,9 @@ const addTab = (options = {}) => {
             if ((/^https?:\/\//).test(options.url)) {
                 if (getSetting("externalcommand").trim()) {
                     const {commonAction} = require("./contextmenu")
-                    commonAction("link", "external", {"link": options.url})
+                    commonAction(
+                        options.src ?? "user",
+                        "link", "external", {"link": options.url})
                 } else {
                     const {shell} = require("electron")
                     shell.openExternal(options.url)

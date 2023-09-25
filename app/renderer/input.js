@@ -2673,7 +2673,7 @@ const init = () => {
         }
         if (getMouseConf("menuvieb")) {
             const {viebMenu} = require("./contextmenu")
-            viebMenu(e)
+            viebMenu("user", e)
         }
         ACTIONS.setFocusCorrectly()
     })
