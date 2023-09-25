@@ -105,6 +105,30 @@ Options:
                          inside the existing Vieb running in this datafolder.
                          If no datafolder is provided via ENV or argument,
                          the default datafolder is used to execute the command.
+                         It will wait for the first notification and return,
+                         or exit after 5 seconds of no related notifications.
+                         This can be changed with one of the following args:
+                         --execute-dur for seconds or --execute-count for count.
+                         If either the configured duration or count is reached,
+                         the execute will return with the notification results.
+
+ --execute-dur=<val>     number (5000): Milliseconds before stopping execute.
+                         By default, after 5 seconds the --execute call is quit,
+                         possibly without any value, as to prevent blocking.
+                         You can either increase this timeout/duration here,
+                         or disable it entirely by setting it to 0,
+                         meaning the only exit option is via notification count.
+                         You can also use the ENV var: 'VIEB_EXECUTE_DUR'.
+
+ --execute-count=<val>   number (1): The number of messages to read before exit.
+                         The --execute flag will exit after 1 message,
+                         unless this flag is used to increase the limit.
+                         Setting high values likely means it will never return,
+                         Results are not printed while they are processed,
+                         but printed in one go once all notifications are done.
+                         You can disable the count exit by setting it to 0,
+                         meaning the execute duration is the only exit option.
+                         You can also use the ENV var: 'VIEB_EXECUTE_COUNT'.
 
  --config-order=<val>    string [USER-FIRST/user-only/
                            datafolder-first/datafolder-only/none]:
@@ -234,6 +258,8 @@ let argDatafolder = process.env.VIEB_DATAFOLDER?.trim()
     || joinPath(app.getPath("appData"), "Vieb")
 let argErwic = process.env.VIEB_ERWIC?.trim() || ""
 let argExecute = ""
+let argExecuteDur = Number(process.env.VIEB_EXECUTE_DUR?.trim() || 5000) || 5000
+let argExecuteCount = Number(process.env.VIEB_EXECUTE_COUNT?.trim() || 1) || 1
 let argWindowFrame = isTruthyArg(process.env.VIEB_WINDOW_FRAME)
 let argConfigOrder = process.env.VIEB_CONFIG_ORDER?.trim().toLowerCase()
     || "user-first"
@@ -306,6 +332,10 @@ args.forEach(a => {
             argErwic = arg.split("=").slice(1).join("=")
         } else if (arg.startsWith("--execute=")) {
             argExecute = arg.split("=").slice(1).join("=")
+        } else if (arg.startsWith("--execute-dur=")) {
+            argExecuteDur = Number(arg.split("=").slice(1).join("="))
+        } else if (arg.startsWith("--execute-count=")) {
+            argExecuteCount = Number(arg.split("=").slice(1).join("="))
         } else if (arg.startsWith("--config-order=")) {
             argConfigOrder = arg.split("=").slice(1).join("=")
         } else if (arg.startsWith("--config-file=")) {
@@ -374,6 +404,16 @@ if (isNaN(argInterfaceScale) || argInterfaceScale <= 0) {
 if (argInterfaceScale !== 1) {
     app.commandLine.appendSwitch(
         "force-device-scale-factor", `${argInterfaceScale}`)
+}
+if (isNaN(argExecuteDur) || argExecuteDur < 0) {
+    console.warn(
+        "The 'execute-dur' argument only accepts positive numbers\n")
+    printUsage()
+}
+if (isNaN(argExecuteCount) || argExecuteCount < 0) {
+    console.warn(
+        "The 'execute-count' argument only accepts positive numbers\n")
+    printUsage()
 }
 if (urls.length && argExecute) {
     console.warn(
@@ -786,11 +826,33 @@ app.on("ready", () => {
         }
     }
     if (argExecute) {
-        watchFile(executeOut, info => {
-            if (info.blksize > 0 || info.size > 0) {
-                console.info(readFile(executeOut))
+        if (argExecuteDur) {
+            setTimeout(() => {
+                const fileContents = readFile(executeOut)
+                const parts = fileContents?.split("\t\t\t") ?? []
+                if (parts.at(-1) === "") {
+                    parts.pop()
+                }
+                if (fileContents !== null && parts.length) {
+                    console.info(parts.join("\n"))
+                }
                 deleteFile(executeOut)
                 process.exit(0)
+            }, argExecuteDur)
+        }
+        watchFile(executeOut, info => {
+            if (info.blksize > 0 || info.size > 0) {
+                const fileContents = readFile(executeOut)
+                const parts = fileContents?.split("\t\t\t") ?? []
+                if (parts.at(-1) === "") {
+                    parts.pop()
+                }
+                if (fileContents !== null && argExecuteCount
+                    && parts.length >= argExecuteCount) {
+                    console.info(parts.join("\n"))
+                    deleteFile(executeOut)
+                    process.exit(0)
+                }
             }
         })
         return

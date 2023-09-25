@@ -944,8 +944,9 @@ const appData = () => {
  */
 const notify = (message, opts) => {
     if (opts.src === "execute") {
-        const {writeFileSync} = require("fs")
-        writeFileSync(joinPath(appData(), ".tmp-execute-output"), message)
+        const {appendFileSync} = require("fs")
+        appendFileSync(
+            joinPath(appData(), ".tmp-execute-output"), `${message}\t\t\t`)
     }
     if (getSetting("notificationduration") === 0) {
         return
