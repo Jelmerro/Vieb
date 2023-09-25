@@ -237,7 +237,7 @@ let argExecute = ""
 let argWindowFrame = isTruthyArg(process.env.VIEB_WINDOW_FRAME)
 let argConfigOrder = process.env.VIEB_CONFIG_ORDER?.trim().toLowerCase()
     || "user-first"
-let argConfigOverride = process.env.VIEB_CONFIG_FILE?.trim().toLowerCase() || ""
+let argConfigOverride = process.env.VIEB_CONFIG_FILE?.trim() || ""
 let argMediaKeys = isTruthyArg(process.env.VIEB_MEDIA_KEYS)
 if (!process.env.VIEB_MEDIA_KEYS) {
     argMediaKeys = true

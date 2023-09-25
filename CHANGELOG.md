@@ -18,6 +18,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Clickable headers to the filebrowser to go up multiple directories at once
 - Extra CSS color variables names for filebrowser, still using the same default colors
 - Entry "top" in the toc to go back to the top of the page
+- Argument "--execute" to run arbitrary runtime commands from the CLI and get its output
 
 ### Changed
 
@@ -33,6 +34,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Some selections with email addresses being encoded as if a url on copy
 - Setting explorehist not working since 10.0.0 due to incorrect import
 - Potential duplicate ids in toc generation if a page already has the generated id
+- Config file read from ENV VIEB_CONFIG_FILE always being changed to lowercase
 
 ### Versions
 
