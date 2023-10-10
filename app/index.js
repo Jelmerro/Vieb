@@ -185,8 +185,12 @@ const applyDevtoolsSettings = (prefFile, undock = true) => {
     preferences.electron.devtools.preferences.consoleTimestampsEnabled = "true"
     // Disable the paused overlay which prevents interaction with other pages
     preferences.electron.devtools.preferences.disablePausedStateOverlay = "true"
-    // Enable dark theme
-    preferences.electron.devtools.preferences.uiTheme = `"dark"`
+    // Style the devtools based on the system theme
+    let theme = `"light"`
+    if (nativeTheme.shouldUseDarkColors) {
+        theme = `"dark"`
+    }
+    preferences.electron.devtools.preferences.uiTheme = theme
     writeJSON(prefFile, preferences)
 }
 

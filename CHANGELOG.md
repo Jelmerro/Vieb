@@ -23,6 +23,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 - Eslint rules to be more strict with better jsdoc and types
 - Url modification functions for subdomain and parent urls to be more accurate
+- Setting nativetheme to change the devtool theme accordingly for new sessions
 
 ### Fixed
 
@@ -33,6 +34,8 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Some selections with email addresses being encoded as if a url on copy
 - Setting explorehist not working since 10.0.0 due to incorrect import
 - Potential duplicate ids in toc generation if a page already has the generated id
+- Chrome pages not being styled directly when changing colorscheme
+- Pages without div or main incorrectly using colorscheme instead of a white background
 
 ### Versions
 
