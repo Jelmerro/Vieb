@@ -153,8 +153,8 @@
  * GLOBAL
 */
 html {margin: 0;padding: 0;}
-body {color: var(--fg);font: 14px "DejaVu Sans Mono", "Courier", monospace;padding: 0;margin: 0;opacity: 0;}
-#app {height: 100vh;width: 100vw;overflow: hidden;user-select: none;display: flex;flex-direction: column;background: var(--bg);opacity: 1;line-height: 1.3em;}
+body {color: var(--fg);background: var(--bg);font: 14px "DejaVu Sans Mono", "Courier", monospace;padding: 0;margin: 0;opacity: 0;}
+#app {height: 100vh;width: 100vw;overflow: hidden;user-select: none;display: flex;flex-direction: column;opacity: 1;line-height: 1.3em;}
 body:not(#app) input {background: transparent;color: var(--fg);font: inherit;width: 100%;border: .1em solid var(--input-unfocused);padding: .2em;margin-bottom: 1em;box-sizing: border-box;outline: none;height: 2em;}
 body:not(#app) input:focus {border: .1em solid var(--input-focused);}
 body:not(#app) kbd {background: var(--code-bg);color: var(--code-fg);padding: .1em;overflow-wrap: anywhere;}
@@ -397,8 +397,8 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 #helppage .example-buttons button {font-size: 1em;margin: .5em 2em;padding: .5em 2em;background: transparent;cursor: pointer;}
 #helppage .nowrap, #helppage .nowrap.command-block {white-space: nowrap;}
 #helppage .nativetheme {display: none;}
-#helppage .nativetheme.light {color: var(--helppage-nativetheme-fg-light);background-color: var(--helppage-nativetheme-bg-light);}
-#helppage .nativetheme.dark {color: var(--helppage-nativetheme-fg-dark);background-color: var(--helppage-nativetheme-bg-dark);}
+#helppage .nativetheme.light {color: var(--helppage-nativetheme-fg-light);background: var(--helppage-nativetheme-bg-light);}
+#helppage .nativetheme.dark {color: var(--helppage-nativetheme-fg-dark);background: var(--helppage-nativetheme-bg-dark);}
 @media (prefers-color-scheme: light) {
     #helppage .nativetheme.light {display: inline-block;}
 }
@@ -455,7 +455,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 /*
  * POPUPS
 */
-.popup {box-sizing: border-box;height: 100vh;width: 100vw;overflow: hidden;user-select: none;background: var(--bg);color: var(--fg);border: .1em solid var(--notification-border);}
+.popup {box-sizing: border-box;height: 100vh;width: 100vw;overflow: hidden;user-select: none;border: .1em solid var(--notification-border);}
 /* login */
 #loginpopup {padding: 1em;}
 #loginpopup * {pointer-events: none;}
@@ -468,7 +468,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 /*
  * READERVIEW
 */
-#readerview {margin: auto;max-width: 65em;padding: 2vw;color: var(--fg);background: var(--bg);}
+#readerview {margin: auto;max-width: 65em;padding: 2vw;}
 #readerview img {max-width: 100%;}
 #readerview a {color: var(--link-color);}
 
@@ -476,7 +476,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 /*
  * MARKDOWNVIEWER
 */
-#markdownviewer {margin: auto;max-width: 65em;padding: 2vw;color: var(--fg);background: var(--bg);}
+#markdownviewer {margin: auto;max-width: 65em;padding: 2vw;}
 #markdownviewer img {max-width: 100%;}
 #markdownviewer a {color: var(--link-color);}
 
@@ -497,14 +497,14 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 .hljs-bullet {color: var(--syntax-markup-list);}
 .hljs-emphasis {color: var(--syntax-markup-emphasis);font-style: italic;}
 .hljs-strong {color: var(--syntax-markup-emphasis);font-weight: bold;}
-.hljs-addition {color: var(--syntax-markup-addition-fg);background-color: var(--syntax-markup-addition-bg);}
-.hljs-deletion {color: var(--syntax-markup-deletion-fg);background-color: var(--syntax-markup-deletion-bg);}
+.hljs-addition {color: var(--syntax-markup-addition-fg);background: var(--syntax-markup-addition-bg);}
+.hljs-deletion {color: var(--syntax-markup-deletion-fg);background: var(--syntax-markup-deletion-bg);}
 
 /*
  * FAILEDLOAD
 */
-#failedload {display: flex;background: var(--bg);color: var(--fg);line-height: 2;height: 100vh;width: 100%;}
-#failedload main {margin: auto;width: 50vw;min-width: 300px;padding: 3em;background-color: var(--failedload-main-bg);overflow: hidden;text-overflow: ellipsis;}
+#failedload {display: flex;line-height: 2;height: 100vh;width: 100%;}
+#failedload main {margin: auto;width: 50vw;min-width: 300px;padding: 3em;background: var(--failedload-main-bg);overflow: hidden;text-overflow: ellipsis;}
 #failedload a {color: var(--link-color);}
 #failedload h2 {font-size: 2em;margin: 0 0 .5em;}
 #failedload h3 {font-size: 1.2em;margin: 1em 0;}
@@ -512,8 +512,8 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 /*
  * FILEBROWSER
 */
-#filebrowser {display: flex;background: var(--bg);color: var(--fg);line-height: 1.5;height: 100vh;width: 100%;}
-#filebrowser main {margin: 3em auto;width: 50vw;min-width: 300px;padding: 3em;background-color: var(--filebrowser-main-bg);overflow: visible;text-overflow: ellipsis;height: fit-content;}
+#filebrowser {display: flex;line-height: 1.5;height: 100vh;width: 100%;}
+#filebrowser main {margin: 3em auto;width: 50vw;min-width: 300px;padding: 3em;background: var(--filebrowser-main-bg);overflow: visible;text-overflow: ellipsis;height: fit-content;}
 #filebrowser h2 {font-size: 2em;margin: 0 0 1em;display: flex;}
 #filebrowser .dir {font-weight: bold;color: var(--filebrowser-dir);cursor: pointer;margin: .7em;}
 #filebrowser .file {color: var(--filebrowser-file);cursor: pointer;margin: .7em;}
@@ -524,7 +524,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 /*
  * TOC
 */
-#toc {position: fixed;min-width: 10em;width: auto;max-width: 60vw;right: 2em;top: 2em;color: var(--fg);background: var(--bg);border: solid 1px var(--fg);padding: 0;max-height: 90vh;overflow: auto;line-height: 1;pointer-events: all;}
+#toc {position: fixed;min-width: 10em;width: auto;max-width: 60vw;right: 2em;top: 2em;border: solid 1px var(--fg);padding: 0;max-height: 90vh;overflow: auto;line-height: 1;pointer-events: all;}
 #toc summary {display: block;cursor: pointer;padding: 1em;}
 #toc summary h1 {display: list-item;margin: 0;font-size: 2em;color: var(--fg);}
 #toc ul {padding-inline-start: 1.8em;padding-inline-end: .5em;}

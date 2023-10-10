@@ -19,11 +19,13 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Extra CSS color variables names for filebrowser, still using the same default colors
 - Entry "top" in the toc to go back to the top of the page
 - Argument "--execute" to run arbitrary runtime commands from the CLI and get its output
+- Option "allowkind" to setting "permissionmediadevices" to only list the device type/kind without labels or ids
 
 ### Changed
 
 - Eslint rules to be more strict with better jsdoc and types
 - Url modification functions for subdomain and parent urls to be more accurate
+- Setting nativetheme to change the devtool theme accordingly for new sessions
 
 ### Fixed
 
@@ -35,6 +37,9 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Setting explorehist not working since 10.0.0 due to incorrect import
 - Potential duplicate ids in toc generation if a page already has the generated id
 - Config file read from ENV VIEB_CONFIG_FILE always being changed to lowercase
+- Chrome pages not being styled directly when changing colorscheme
+- Pages without div or main incorrectly using colorscheme instead of a white background
+- Permission mediadevices throwing an error instead of returning an empty list for blocking media device list
 
 ### Versions
 

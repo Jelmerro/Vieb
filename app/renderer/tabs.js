@@ -566,7 +566,9 @@ const addColorschemeStylingToWebview = (webview, force = false) => {
     if (!isSpecialPage && !isLocal && !isErrorPage && !isCustomView) {
         // This check is also present in preload/styling.js,
         // but on pages where JS is disabled (chrome built-in) that won't load.
-        webview.executeJavaScript("document.head.innerText").catch(() => {
+        webview.executeJavaScript("document.head.innerText").then(() => {
+            webview.send("reload-basic-theme-styling")
+        }).catch(() => {
             ipcRenderer.invoke("run-isolated-js-head-check",
                 webview.getWebContentsId()).then(result => {
                 if (result === "") {

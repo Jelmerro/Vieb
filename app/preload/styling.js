@@ -150,8 +150,7 @@ const loadThemes = (loadedFully = false) => {
         updateScrollbar()
         return
     }
-    if (loadedFully && !specialPage?.name
-        && !window.location.href.startsWith("chrome")) {
+    if (loadedFully && !specialPage?.name) {
         const htmlBG = getComputedStyle(html).background
         const bodyBG = getComputedStyle(document.body).background
         const htmlBGImg = getComputedStyle(html).backgroundImage
@@ -159,16 +158,21 @@ const loadThemes = (loadedFully = false) => {
         const unset = "rgba(0, 0, 0, 0)"
         const darkPage = document.querySelector(
             "head meta[name='color-scheme'][content~='dark']")
-        const noXMLButHasEl = !document.querySelector("style#xml-viewer-style")
-            && (document.querySelector("div") || document.querySelector("main"))
+        const noXMLOrSpecial = !document.querySelector("style#xml-viewer-style")
+            && !window.location.href.startsWith("chrome://")
+            && !window.location.href.startsWith("sourceviewer:")
+            && !window.location.href.startsWith("readerview:")
+            && !window.location.href.startsWith("markdownviewer:")
         if (htmlBG.includes(unset) && bodyBG.includes(unset) && !darkPage) {
             if (htmlBGImg === "none" && bodyBGImg === "none") {
-                if (noXMLButHasEl) {
+                if (noXMLOrSpecial) {
                     html.style.background = "white"
                 } else {
                     applyThemeStyling()
                 }
             }
+        } else if (window.location.href.startsWith("chrome://")) {
+            applyThemeStyling()
         }
     }
     let domain = domainName(window.location.href)
@@ -218,6 +222,7 @@ ipcRenderer.on("hide-scrollbar", () => hideScrollbar())
 loadThemes()
 window.addEventListener("DOMContentLoaded", () => loadThemes())
 window.addEventListener("load", () => loadThemes(true))
+ipcRenderer.on("reload-basic-theme-styling", () => loadThemes(true))
 ipcRenderer.on("add-colorscheme-styling", (_, fontsize, custom) => {
     const linkedCss = document.querySelector(`link[href$="colors/default.css"]`)
     if (!linkedCss && !document.getElementById("default-styling")) {

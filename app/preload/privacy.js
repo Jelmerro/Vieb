@@ -66,11 +66,23 @@ try {
      */
     const mediaDeviceList = async action => {
         if (action === "block") {
-            throw new DOMException("Permission denied", "NotAllowedError")
+            return []
         }
         const devices = await enumerate.call(window.navigator.mediaDevices)
         if (action === "allowfull") {
             return devices
+        }
+        if (action === "allowkind") {
+            return devices.map(({kind}) => ({
+                "deviceId": "",
+                "groupId": "",
+                kind,
+                "label": "",
+                /** Add the toJSON method of the MediaDeviceInfo. */
+                "toJSON": () => ({
+                    "deviceId": "", "groupId": "", kind, "label": ""
+                })
+            }))
         }
         return devices.map(({deviceId, groupId, kind}) => ({
             deviceId,
@@ -87,10 +99,11 @@ try {
     /** Override the device list based on permission settings. */
     window.navigator.mediaDevices.enumerateDevices = async() => {
         let setting = getWebviewSetting("permissionmediadevices") ?? "ask"
-        if (!["block", "ask", "allow", "allowfull"].includes(setting)) {
+        const valid = ["block", "ask", "allow", "allowkind", "allowfull"]
+        if (!valid.includes(setting)) {
             setting = "ask"
         }
-        /** @type {"block"|"ask"|"allow"|"allowfull"|null} */
+        /** @type {"block"|"ask"|"allow"|"allowkind"|"allowfull"|null} */
         let settingRule = null
         let url = window.location.href
         /** @type {("ask"|"block"|"allow")[]} */
@@ -112,6 +125,12 @@ try {
                 if (names.some(p => p.endsWith("mediadevicesfull"))) {
                     if (url.match(match) && type === "allow") {
                         settingRule = "allowfull"
+                        break
+                    }
+                }
+                if (names.some(p => p.endsWith("mediadeviceskind"))) {
+                    if (url.match(match) && type === "allow") {
+                        settingRule = "allowkind"
                         break
                     }
                 }
