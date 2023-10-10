@@ -227,7 +227,7 @@ const defaultSettings = {
     "permissionhid": "block",
     /** @type {"block"|"ask"|"allow"} */
     "permissionidledetection": "block",
-    /** @type {"block"|"ask"|"allow"|"allowfull"} */
+    /** @type {"block"|"ask"|"allow"|"allowkind"|"allowfull"} */
     "permissionmediadevices": "block",
     /** @type {"block"|"ask"|"allow"} */
     "permissionmicrophone": "block",
@@ -499,7 +499,9 @@ const validOptions = {
     "permissiongeolocation": ["block", "ask", "allow"],
     "permissionhid": ["block", "allow"],
     "permissionidledetection": ["block", "ask", "allow"],
-    "permissionmediadevices": ["block", "ask", "allow", "allowfull"],
+    "permissionmediadevices": [
+        "block", "ask", "allow", "allowkind", "allowfull"
+    ],
     "permissionmicrophone": ["block", "ask", "allow"],
     "permissionmidi": ["block", "ask", "allow"],
     "permissionmidisysex": ["block", "ask", "allow"],
@@ -1009,6 +1011,10 @@ const checkOther = (setting, value) => {
             for (let name of names) {
                 if (!name.startsWith("permission")) {
                     name = `permission${name}`
+                }
+                if (name === "permissionmediadeviceskind"
+                    && setting.endsWith("allowed")) {
+                    return true
                 }
                 if (name === "permissionmediadevicesfull"
                     && setting.endsWith("allowed")) {

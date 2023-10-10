@@ -18,6 +18,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Clickable headers to the filebrowser to go up multiple directories at once
 - Extra CSS color variables names for filebrowser, still using the same default colors
 - Entry "top" in the toc to go back to the top of the page
+- Option "allowkind" to setting "permissionmediadevices" to only list the device type/kind without labels or ids
 
 ### Changed
 
@@ -36,6 +37,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Potential duplicate ids in toc generation if a page already has the generated id
 - Chrome pages not being styled directly when changing colorscheme
 - Pages without div or main incorrectly using colorscheme instead of a white background
+- Permission mediadevices throwing an error instead of returning an empty list for blocking media device list
 
 ### Versions
 

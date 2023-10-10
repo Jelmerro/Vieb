@@ -508,7 +508,9 @@ const resolveLocalPaths = (paths, cwd = null) => paths.filter(u => u).map(u => {
 
 /** @type {{[domain: string]: string[]}} */
 const allowedFingerprints = {}
-/** @type {{[permission: string]: "allow"|"block"|"ask"|"allowfull"}} */
+/** @type {{
+ *   [permission: string]: "allow"|"block"|"ask"|"allowkind"|"allowfull"
+ * }} */
 let permissions = {}
 
 /**
@@ -575,8 +577,12 @@ const permissionHandler = (_, pm, callback, details) => {
                 }
             }
             if (permissionName.includes("mediadevices")) {
-                if (names.some(p => p.endsWith("mediadevicesfull"))) {
-                    if (details.requestingUrl?.match(match)) {
+                if (details.requestingUrl?.match(match)) {
+                    if (names.some(p => p.endsWith("mediadeviceskind"))) {
+                        settingRule = "allow"
+                        break
+                    }
+                    if (names.some(p => p.endsWith("mediadevicesfull"))) {
                         settingRule = "allow"
                         break
                     }
@@ -667,7 +673,7 @@ const permissionHandler = (_, pm, callback, details) => {
             if (!mainWindow) {
                 return false
             }
-            /** @type {"allow"|"block"|"ask"|"allowfull"} */
+            /** @type {"allow"|"block"|"ask"|"allowkind"|"allowfull"} */
             let action = "allow"
             if (e.response !== 0) {
                 action = "block"
