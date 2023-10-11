@@ -22,6 +22,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Option "allowkind" to setting "permissionmediadevices" to only list the device type/kind without labels or ids
 - The devtools theme is now based on system theme or startup arg/env
 - Startup flag "--devtools-theme" and ENV var VIEB_DEVTOOLS_THEME to control devtools theme
+- Command "buffers" to list all the open tabs as "index: url"
 
 ### Changed
 

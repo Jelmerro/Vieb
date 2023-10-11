@@ -1107,6 +1107,18 @@ const buffer = (src, args) => {
 }
 
 /**
+ * List all the buffers currently opened by tab index.
+ * @param {import("./common").RunSource} src
+ */
+const buffers = src => notify(listTabs().map((tab, index) => {
+    const page = pageForTab(tab)
+    if (!page) {
+        return `${index}: `
+    }
+    return `${index}: ${urlToString(page.getAttribute("src") ?? "")}`
+}).join("\n"), {src})
+
+/**
  * Open command, navigate to a url by argument, mostly useful for mappings.
  * @param {import("./common").RunSource} src
  * @param {string[]} args
@@ -2192,7 +2204,8 @@ const noArgumentComands = [
     "nohlsearch",
     "lclose",
     "rclose",
-    "only"
+    "only",
+    "buffers"
 ]
 /** @type {{[command: string]: string}} */
 let userCommands = {}
@@ -2212,6 +2225,7 @@ const commands = {
         src, "hor", !getSetting("splitright"), args, range),
     "b": ({src, args}) => buffer(src, args),
     "buffer": ({src, args}) => buffer(src, args),
+    "buffers": ({src}) => buffers(src),
     "call": ({args, src}) => callAction(args, src),
     "clear": ({src, args}) => clear(src, args[0], args[1], args[2]),
     "close": ({src, args, range}) => close(src, false, args, range),
