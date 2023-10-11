@@ -87,6 +87,11 @@ Options:
  --devtools              Open with Chromium and Electron debugging tools.
                          They can also be opened later with ':internaldevtools'.
 
+ --devtools-theme=<val>  string [SYSTEM/dark/light]: Control the devtools theme.
+                         By default, the devtools will be themed by the OS,
+                         either dark or light, but you can override it.
+                         You can also use the ENV var: 'VIEB_DEVTOOLS_THEME'.
+
  --datafolder=<dir>      Store ALL Vieb data in this folder.
                          See ':h datafolder' for usage and details.
                          You can also use the ENV var: 'VIEB_DATAFOLDER'.
@@ -111,6 +116,12 @@ Options:
                          --execute-dur for seconds or --execute-count for count.
                          If either the configured duration or count is reached,
                          the execute will return with the notification results.
+                         If running from a script and parsing the output,
+                         you probably want to strip the error logging like so:
+                         $ vieb --execute="echo <useCurrentUrl>" 2>/dev/null
+                         Or if running with NPM, you need to disable that too:
+                         $ npm run --silent dev -- --execute=":test" 2>/dev/null
+                         On Windows you can replace /dev/null with nul instead.
 
  --execute-dur=<val>     number (5000): Milliseconds before stopping execute.
                          By default, after 5 seconds the --execute call is quit,
@@ -195,41 +206,6 @@ This release uses Electron ${process.versions.electron} and Chromium ${
 }
 
 /**
- * Apply some basic settings to the chromium devtools.
- * @param {string} prefFile
- * @param {boolean} undock
- */
-const applyDevtoolsSettings = (prefFile, undock = true) => {
-    makeDir(dirname(prefFile))
-    const preferences = readJSON(prefFile) || {}
-    preferences.electron ||= {}
-    preferences.electron.devtools ||= {}
-    preferences.electron.devtools.preferences ||= {}
-    // Disable source maps as they leak internal structure to the webserver
-    preferences.electron.devtools.preferences.cssSourceMapsEnabled = "false"
-    preferences.electron.devtools.preferences.jsSourceMapsEnabled = "false"
-    // Undock main process devtools to prevent window size issues
-    if (undock) {
-        preferences.electron.devtools.preferences.
-            currentDockState = `"undocked"`
-    }
-    // Disable release notes, most are not relevant for Vieb
-    preferences.electron.devtools.preferences[
-        "help.show-release-note"] = "false"
-    // Show timestamps in the console
-    preferences.electron.devtools.preferences.consoleTimestampsEnabled = "true"
-    // Disable the paused overlay which prevents interaction with other pages
-    preferences.electron.devtools.preferences.disablePausedStateOverlay = "true"
-    // Style the devtools based on the system theme
-    let theme = `"light"`
-    if (nativeTheme.shouldUseDarkColors) {
-        theme = `"dark"`
-    }
-    preferences.electron.devtools.preferences.uiTheme = theme
-    writeJSON(prefFile, preferences)
-}
-
-/**
  * Parse the startup arguments.
  * @param {string[]} argv
  */
@@ -278,6 +254,8 @@ let argAcceleration = process.env.VIEB_ACCELERATION?.trim().toLowerCase()
     || "hardware"
 let argInterfaceScale = Number(
     process.env.VIEB_INTERFACE_SCALE?.trim() || 1.0) || 1.0
+let argDevtoolsTheme = process.env.VIEB_DEVTOOLS_THEME?.trim().toLowerCase()
+    || "system"
 let argUnsafeMultiwin = isTruthyArg(process.env.VIEB_UNSAFE_MULTIWIN)
 /** @type {string|null} */
 let customIcon = null
@@ -363,6 +341,8 @@ args.forEach(a => {
             argAcceleration = arg.split("=").slice(1).join("=").toLowerCase()
         } else if (arg.startsWith("--interface-scale")) {
             argInterfaceScale = Number(arg.split("=").slice(1).join("="))
+        } else if (arg.startsWith("--devtools-theme=")) {
+            argDevtoolsTheme = arg.split("=").slice(1).join("=").toLowerCase()
         } else if (arg.startsWith("--unsafe-multiwin=")) {
             argUnsafeMultiwin = isTruthyArg(arg.split("=").slice(1).join("="))
         } else {
@@ -381,6 +361,13 @@ if (argAutoplayMedia !== "user" && argAutoplayMedia !== "always") {
 if (argAcceleration !== "hardware" && argAcceleration !== "software") {
     console.warn("The 'acceleration' argument only accepts:\n"
         + "'hardware' or 'software'\n")
+    printUsage()
+}
+const validThemeColors = ["system", "dark", "light"]
+if (!validThemeColors.includes(argDevtoolsTheme)) {
+    console.warn(`The 'devtools-theme' argument only accepts:\n${
+        validThemeColors.slice(0, -1).map(c => `'${c}'`).join(", ")} or '${
+        validThemeColors.slice(-1)[0]}'\n`)
     printUsage()
 }
 if (!argDatafolder.trim()) {
@@ -436,6 +423,45 @@ if (urls.length && argExecute) {
         "The 'execute' argument cannot be combined with opening urls\n")
     printUsage()
 }
+
+/**
+ * Apply some basic settings to the chromium devtools.
+ * @param {string} prefFile
+ * @param {boolean} undock
+ */
+const applyDevtoolsSettings = (prefFile, undock = true) => {
+    makeDir(dirname(prefFile))
+    const preferences = readJSON(prefFile) || {}
+    preferences.electron ||= {}
+    preferences.electron.devtools ||= {}
+    preferences.electron.devtools.preferences ||= {}
+    // Disable source maps as they leak internal structure to the webserver
+    preferences.electron.devtools.preferences.cssSourceMapsEnabled = "false"
+    preferences.electron.devtools.preferences.jsSourceMapsEnabled = "false"
+    // Undock main process devtools to prevent window size issues
+    if (undock) {
+        preferences.electron.devtools.preferences.
+            currentDockState = `"undocked"`
+    }
+    // Disable release notes, most are not relevant for Vieb
+    preferences.electron.devtools.preferences[
+        "help.show-release-note"] = "false"
+    // Show timestamps in the console
+    preferences.electron.devtools.preferences.consoleTimestampsEnabled = "true"
+    // Disable the paused overlay which prevents interaction with other pages
+    preferences.electron.devtools.preferences.disablePausedStateOverlay = "true"
+    // Style the devtools based on the system theme
+    let theme = `"dark"`
+    if (argDevtoolsTheme === "light") {
+        theme = `"light"`
+    }
+    if (argDevtoolsTheme === "system" && !nativeTheme.shouldUseDarkColors) {
+        theme = `"light"`
+    }
+    preferences.electron.devtools.preferences.uiTheme = theme
+    writeJSON(prefFile, preferences)
+}
+
 // https://github.com/electron/electron/issues/30201
 if (argMediaKeys) {
     app.commandLine.appendSwitch("disable-features", "UserAgentClientHint")

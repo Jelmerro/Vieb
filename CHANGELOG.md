@@ -20,12 +20,14 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Entry "top" in the toc to go back to the top of the page
 - Argument "--execute" to run arbitrary runtime commands from the CLI and get its output
 - Option "allowkind" to setting "permissionmediadevices" to only list the device type/kind without labels or ids
+- The devtools theme is now based on system theme or startup arg/env
+- Startup flag "--devtools-theme" and ENV var VIEB_DEVTOOLS_THEME to control devtools theme
 
 ### Changed
 
 - Eslint rules to be more strict with better jsdoc and types
 - Url modification functions for subdomain and parent urls to be more accurate
-- Setting nativetheme to change the devtool theme accordingly for new sessions
+- Devtools theme to be in system colors instead of dark by default
 
 ### Fixed
 
