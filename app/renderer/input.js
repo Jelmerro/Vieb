@@ -1336,10 +1336,10 @@ const updateKeysOnScreen = () => {
  * @param {string} keys
  */
 const actionForKeys = keys => {
-    const {"active": menuActive} = require("./contextmenu")
+    const {active} = require("./contextmenu")
     const allMenu = findMaps(keys, "menu")
     const menuAction = bindings.m[allMenu[0]]
-    if (menuActive() && menuAction) {
+    if (active() && menuAction) {
         return menuAction
     }
     const allCurrent = findMaps(keys, currentMode())
@@ -1922,7 +1922,7 @@ const handleKeyboard = async e => {
     const src = keyboardEventSource
     hadModifier = e.shiftKey || e.ctrlKey
     window.clearTimeout(timeoutTimer ?? undefined)
-    const {"active": menuActive, "clear": menuClear} = require("./contextmenu")
+    const {active, clear} = require("./contextmenu")
     if (getSetting("timeout")) {
         timeoutTimer = window.setTimeout(async() => {
             const keys = splitMapString(pressedKeys).maps
@@ -1941,7 +1941,7 @@ const handleKeyboard = async e => {
                     }
                     return
                 }
-                menuClear()
+                clear()
             }
             if (currentMode() === "insert") {
                 ipcRenderer.sendSync("insert-mode-blockers", "pass")
@@ -1964,7 +1964,7 @@ const handleKeyboard = async e => {
             updateKeysOnScreen()
         }, getSetting("timeoutlen"))
     }
-    if ("npv".includes(currentMode()[0]) || menuActive()) {
+    if ("npv".includes(currentMode()[0]) || active()) {
         const keyNumber = Number(id.replace(/^<k(\d)>/g, (_, digit) => digit))
         const noFutureActions = !hasFutureActions(pressedKeys + id)
         const shouldCount = !actionForKeys(pressedKeys + id) || repeatCounter
@@ -2006,7 +2006,7 @@ const handleKeyboard = async e => {
         pressedKeys += id
     }
     const action = actionForKeys(pressedKeys)
-    const hasMenuAction = menuActive() && action
+    const hasMenuAction = active() && action
     if (!hasFutureActions(pressedKeys) || hasMenuAction) {
         window.clearTimeout(timeoutTimer ?? undefined)
         if (action && (e.isTrusted || e.bubbles)) {
@@ -2021,7 +2021,7 @@ const handleKeyboard = async e => {
             }
             return
         }
-        menuClear()
+        clear()
         let keys = splitMapString(pressedKeys).maps
         pressedKeys = ""
         if (keys.length > 1) {
@@ -2048,7 +2048,7 @@ const handleKeyboard = async e => {
         }
         repeatCounter = 0
     }
-    menuClear()
+    clear()
     updateKeysOnScreen()
     if (currentMode() === "follow") {
         if (e instanceof KeyboardEvent && e.type === "keydown") {

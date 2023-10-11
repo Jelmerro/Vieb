@@ -181,7 +181,7 @@ const modifyListOrNumber = (src, setting, value, method) => {
  * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const set = (src, args) => {
+const setCommand = (src, args) => {
     if (args.length === 0) {
         const {listCurrentSettings} = require("./settings")
         const allChanges = listCurrentSettings()
@@ -193,7 +193,7 @@ const set = (src, args) => {
         }
         return
     }
-    const {"set": s} = require("./settings")
+    const {set} = require("./settings")
     for (const part of args) {
         if ((/^\w+\+=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "+=")
@@ -220,15 +220,17 @@ const set = (src, args) => {
                     {src, "type": "warn"})
             }
         } else if ((/^\w+=/).test(part)) {
-            s(...splitSettingAndValue(part, "="))
+            const [setting, value] = splitSettingAndValue(part, "=")
+            set(src, setting, value)
         } else if ((/^\w+:/).test(part)) {
-            s(...splitSettingAndValue(part, ":"))
+            const [setting, value] = splitSettingAndValue(part, ":")
+            set(src, setting, value)
         } else if ((/^\w+!.+/).test(part)) {
             const [setting] = part.split("!")
             const values = part.split("!").slice(1).join("!").split("|")
             if (isValidSettingName(setting) && setting !== "all") {
                 const index = values.indexOf(String(getSetting(setting)))
-                s(setting, values[index + 1] || values[0])
+                set(src, setting, values[index + 1] || values[0])
             } else {
                 notify(`The setting '${setting}' doesn't exist`,
                     {src, "type": "warn"})
@@ -239,11 +241,11 @@ const set = (src, args) => {
                 const value = getSetting(setting)
                 const {isEnumSetting, validOptions} = require("./settings")
                 if (["boolean", "undefined"].includes(typeof value)) {
-                    s(setting, String(!value))
+                    set(src, setting, String(!value))
                 } else if (isEnumSetting(setting)) {
                     const index = validOptions[setting].indexOf(String(value))
-                    s(setting, validOptions[setting][index + 1]
-                    || validOptions[setting][0])
+                    set(src, setting, validOptions[setting][index + 1]
+                        || validOptions[setting][0])
                 } else {
                     notify(
                         `The setting '${setting}' can not be flipped`,
@@ -266,13 +268,13 @@ const set = (src, args) => {
             }
         } else if (isValidSettingName(part) && part !== "all"
             && typeof getSetting(part) === "boolean") {
-            s(part, "true")
+            set(src, part, "true")
         } else if (part.startsWith("inv")) {
             const settingName = part.replace("inv", "")
             if (isValidSettingName(settingName) && settingName !== "all") {
                 const value = getSetting(settingName)
                 if (typeof value === "boolean") {
-                    s(part.replace("inv", ""), String(!value))
+                    set(src, part.replace("inv", ""), String(!value))
                 } else {
                     notify(`The setting '${settingName}' can not be flipped`,
                         {src, "type": "warn"})
@@ -289,11 +291,11 @@ const set = (src, args) => {
                 const value = getSetting(settingName)
                 const {listLike, listLikeTilde} = require("./settings")
                 if (typeof value === "boolean") {
-                    s(settingName, "false")
+                    set(src, settingName, "false")
                 } else if (listLike.includes(part.replace("no", ""))) {
-                    s(settingName, "")
+                    set(src, settingName, "")
                 } else if (listLikeTilde.includes(part.replace("no", ""))) {
-                    s(settingName, "")
+                    set(src, settingName, "")
                 } else {
                     listSetting(src, settingName)
                 }
@@ -1157,13 +1159,13 @@ const suspend = (src, args, range = null) => {
  * @param {string[]} args
  * @param {string|null} range
  */
-const hide = (src, args, range = null) => {
+const hideCommand = (src, args, range = null) => {
     if (range && args.length) {
         notify("Range cannot be combined with searching", {src, "type": "warn"})
         return
     }
     if (range) {
-        rangeToTabIdxs(src, range).forEach(t => hide(src, [`${t}`]))
+        rangeToTabIdxs(src, range).forEach(t => hideCommand(src, [`${t}`]))
         return
     }
     let tab = null
@@ -1174,8 +1176,11 @@ const hide = (src, args, range = null) => {
     }
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
-            const {"hide": h} = require("./pagelayout")
-            h(pageForTab(tab))
+            const {hide} = require("./pagelayout")
+            const page = pageForTab(tab)
+            if (page) {
+                hide(page)
+            }
         } else {
             notify("Only visible pages can be hidden", {src, "type": "warn"})
         }
@@ -2240,7 +2245,7 @@ const commands = {
     "hardcopy": ({src, range}) => hardcopy(src, range),
     "help": ({src, args}) => help(src, false, ...args),
     "help!": ({src, args}) => help(src, true, ...args),
-    "hide": ({src, args, range}) => hide(src, args, range),
+    "hide": ({src, args, range}) => hideCommand(src, args, range),
     "history": ({src}) => openSpecialPage(src, "history", false),
     "history!": ({src}) => openSpecialPage(src, "history", true),
     "internaldevtools": openInternalDevTools,
@@ -2278,7 +2283,7 @@ const commands = {
     "restorepointerpos": ({src, args}) => restorepointerpos(src, args),
     "restorescrollpos": ({src, args}) => restorescrollpos(src, args),
     "runjsinpage": ({src, raw, range}) => runjsinpage(src, raw, range),
-    "s": ({src, args}) => set(src, args),
+    "s": ({src, args}) => setCommand(src, args),
     "screencopy": ({src, args}) => screencopy(src, args),
     "screenshot": ({src, args}) => screenshot(src, args),
     "scriptnames": ({args, src}) => {
@@ -2320,7 +2325,7 @@ const commands = {
         }
     },
     "scrollpos": ({src, args}) => scrollpos(src, args),
-    "set": ({src, args}) => set(src, args),
+    "set": ({src, args}) => setCommand(src, args),
     "source": ({src, args}) => source(src, null, args),
     "split": ({src, args, range}) => addSplit(
         src, "ver", !getSetting("splitbelow"), args, range),
