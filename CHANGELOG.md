@@ -42,6 +42,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Chrome pages not being styled directly when changing colorscheme
 - Pages without div or main incorrectly using colorscheme instead of a white background
 - Permission mediadevices throwing an error instead of returning an empty list for blocking media device list
+- Colorscheme verticaltabs breaking the history page layout due to duplicate ids
 
 ### Versions
 

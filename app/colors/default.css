@@ -408,6 +408,7 @@ body:not(#app) ::placeholder {color: var(--placeholder-text);}
 /* history */
 #historypage #list {display: inline;}
 #historypage #scanning-progress {margin-bottom: 1em;}
+#historypage #hist-container {display: flex;}
 #historypage #pages {display: flex;align-items: center;margin-right: auto;overflow: auto;max-width: 100%;}
 #historypage #pages button {border: solid .1em var(--input-unfocused);margin: .2em;padding: 0 .5em;}
 #historypage #perpage {min-width: 12em;width: 20vw;margin: auto 0 auto 1em;}
