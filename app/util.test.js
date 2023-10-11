@@ -435,8 +435,8 @@ test("Filesystem helpers should work as expected", () => {
     assert.strictEqual(UTIL.isDir(file), true)
     assert.strictEqual(UTIL.pathExists(file), true)
     assert.strictEqual(
-        UTIL.writeJSON(file, {"test": "test"}, null, null, 4), false)
-    assert.strictEqual(UTIL.writeFile(file, "test", null, null, 4), false)
+        UTIL.writeJSON(file, {"test": "test"}, {"indent": 4}), false)
+    assert.strictEqual(UTIL.writeFile(file, "test"), false)
     assert.strictEqual(UTIL.appendFile(file, "hello"), false)
     // Remove dir, write file to same location and read it again
     try {
@@ -447,7 +447,7 @@ test("Filesystem helpers should work as expected", () => {
     assert.strictEqual(UTIL.isDir(file), false)
     assert.strictEqual(UTIL.pathExists(file), false)
     assert.strictEqual(
-        UTIL.writeJSON(file, {"test": "test"}, null, null, 4), true)
+        UTIL.writeJSON(file, {"test": "test"}, {"indent": 4}), true)
     const output = UTIL.readJSON(file)
     assert.strictEqual(Object.keys(output).length, 1)
     assert.strictEqual(Object.keys(output)[0], "test")
@@ -456,7 +456,7 @@ test("Filesystem helpers should work as expected", () => {
     assert.strictEqual(UTIL.appendFile(file, "hello"), true)
     assert.strictEqual(UTIL.readJSON(file), null)
     assert.strictEqual(UTIL.readFile(file), `{\n    "test": "test"\n}hello`)
-    assert.strictEqual(UTIL.writeFile(file, "test", null, null, 4), true)
+    assert.strictEqual(UTIL.writeFile(file, "test"), true)
     assert.strictEqual(UTIL.readJSON(file), null)
     assert.strictEqual(UTIL.readFile(file), "test")
     assert.strictEqual(UTIL.isFile(file), true)

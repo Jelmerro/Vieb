@@ -18,13 +18,16 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Clickable headers to the filebrowser to go up multiple directories at once
 - Extra CSS color variables names for filebrowser, still using the same default colors
 - Entry "top" in the toc to go back to the top of the page
+- Argument "--execute" to run arbitrary runtime commands from the CLI and get its output
 - Option "allowkind" to setting "permissionmediadevices" to only list the device type/kind without labels or ids
+- The devtools theme is now based on system theme or startup arg/env
+- Startup flag "--devtools-theme" and ENV var VIEB_DEVTOOLS_THEME to control devtools theme
 
 ### Changed
 
 - Eslint rules to be more strict with better jsdoc and types
 - Url modification functions for subdomain and parent urls to be more accurate
-- Setting nativetheme to change the devtool theme accordingly for new sessions
+- Devtools theme to be in system colors instead of dark by default
 
 ### Fixed
 
@@ -35,14 +38,16 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Some selections with email addresses being encoded as if a url on copy
 - Setting explorehist not working since 10.0.0 due to incorrect import
 - Potential duplicate ids in toc generation if a page already has the generated id
+- Config file read from ENV VIEB_CONFIG_FILE always being changed to lowercase
 - Chrome pages not being styled directly when changing colorscheme
 - Pages without div or main incorrectly using colorscheme instead of a white background
 - Permission mediadevices throwing an error instead of returning an empty list for blocking media device list
+- Colorscheme verticaltabs breaking the history page layout due to duplicate ids
 
 ### Versions
 
-- Electron 27.0.0-beta.3 (was 27.0.0-alpha.3)
-- Chromium 118.0.5993.5 (was 118.0.5949.0)
+- Electron 27.0.0 (was 27.0.0-alpha.3)
+- Chromium 118.0.5993.54 (was 118.0.5949.0)
 
 ## [10.3.0](https://github.com/Jelmerro/Vieb/compare/10.2.0...10.3.0) - 2023-08-28
 

@@ -654,6 +654,8 @@ Object.keys(defaultBindings).forEach(mode => {
 let repeatCounter = 0
 let recursiveCounter = 0
 let pressedKeys = ""
+/** @type {import("./common").RunSource} */
+let keyboardEventSource = "user"
 /** @type {typeof defaultBindings} */
 let bindings = JSON.parse(JSON.stringify(defaultBindings))
 /** @type {string[]} */
@@ -677,6 +679,209 @@ let hadModifier = false
 /** @type {string|null} */
 let recordingName = null
 let recordingString = ""
+const keyNames = [
+    {"js": ["<"], "vim": ["lt"]},
+    {"js": ["Backspace"], "vim": ["BS"]},
+    {
+        "electron": "Return",
+        "js": ["Enter", "\u000d"],
+        "vim": ["CR", "NL", "Return", "Enter"]
+    },
+    {"js": ["|"], "vim": ["Bar"]},
+    {"js": ["\\"], "vim": ["Bslash"]},
+    {"js": ["ArrowLeft"], "vim": ["Left"]},
+    {"js": ["ArrowRight"], "vim": ["Right"]},
+    {"js": ["ArrowUp"], "vim": ["Up"]},
+    {"js": ["ArrowDown"], "vim": ["Down"]},
+    {"js": ["Escape", "Esc"], "vim": ["Esc"]},
+    {"js": [" "], "vim": ["Space", " "]},
+    {"js": ["Delete", "\u0000"], "vim": ["Del"]},
+    {"js": ["PrintScreen"], "vim": ["PrintScreen", "PrtScr"]},
+    {"js": ["Control"], "vim": ["Ctrl"]},
+    {"electron": "ArrowLeft", "js": ["kArrowLeft"], "vim": ["kLeft"]},
+    {"electron": "ArrowRight", "js": ["kArrowRight"], "vim": ["kRight"]},
+    {"electron": "ArrowUp", "js": ["kArrowUp"], "vim": ["kUp"]},
+    {"electron": "ArrowDown", "js": ["kArrowDown"], "vim": ["kDown"]},
+    {"electron": "numadd", "js": ["k+", "kPlus"], "vim": ["kPlus"]},
+    {"electron": "numsub", "js": ["k-", "kMinus"], "vim": ["kMinus"]},
+    {"electron": "nummult", "js": ["k*", "kMultiply"], "vim": ["kMultiply"]},
+    {"electron": "numdiv", "js": ["k/", "kDivide"], "vim": ["kDivide"]},
+    {"electron": "numdec", "js": ["k.", "kPoint"], "vim": ["kPoint"]},
+    {"electron": "num0", "js": ["k0"], "vim": ["k0"]},
+    {"electron": "num1", "js": ["k1"], "vim": ["k1"]},
+    {"electron": "num2", "js": ["k2"], "vim": ["k2"]},
+    {"electron": "num3", "js": ["k3"], "vim": ["k3"]},
+    {"electron": "num4", "js": ["k4"], "vim": ["k4"]},
+    {"electron": "num5", "js": ["k5"], "vim": ["k5"]},
+    {"electron": "num6", "js": ["k6"], "vim": ["k6"]},
+    {"electron": "num7", "js": ["k7"], "vim": ["k7"]},
+    {"electron": "num8", "js": ["k8"], "vim": ["k8"]},
+    {"electron": "num9", "js": ["k9"], "vim": ["k9"]},
+    {"electron": "Delete", "js": ["kDelete"], "vim": ["kDel"]},
+    {"electron": "Clear", "js": ["kClear"], "vim": ["kClear"]},
+    {"electron": "Home", "js": ["kHome"], "vim": ["kHome"]},
+    {"electron": "End", "js": ["kEnd"], "vim": ["kEnd"]},
+    {"electron": "PageUp", "js": ["kPageUp"], "vim": ["kPageUp"]},
+    {"electron": "PageDown", "js": ["kPageDown"], "vim": ["kPageDown"]},
+    {"electron": "Return", "js": ["kEnter"], "vim": ["kEnter"]},
+    {"electron": "Insert", "js": ["kInsert"], "vim": ["kInsert"]},
+    // Keys with the same names, which are listed here to detect incorrect names
+    // Note: some of these are not present in Vim and use the JavaScript name
+    {"js": ["Shift"], "vim": ["Shift"]},
+    {"js": ["Alt"], "vim": ["Alt"]},
+    {"js": ["Meta"], "vim": ["Meta"]},
+    {"js": ["F1"], "vim": ["F1"]},
+    {"js": ["F2"], "vim": ["F2"]},
+    {"js": ["F3"], "vim": ["F3"]},
+    {"js": ["F4"], "vim": ["F4"]},
+    {"js": ["F5"], "vim": ["F5"]},
+    {"js": ["F6"], "vim": ["F6"]},
+    {"js": ["F7"], "vim": ["F7"]},
+    {"js": ["F8"], "vim": ["F8"]},
+    {"js": ["F9"], "vim": ["F9"]},
+    {"js": ["F10"], "vim": ["F10"]},
+    {"js": ["F11"], "vim": ["F11"]},
+    {"js": ["F12"], "vim": ["F12"]},
+    {"js": ["Tab"], "vim": ["Tab"]},
+    {"js": ["Insert"], "vim": ["Insert"]},
+    {"js": ["Home"], "vim": ["Home"]},
+    {"js": ["PageUp"], "vim": ["PageUp"]},
+    {"js": ["End"], "vim": ["End"]},
+    {"js": ["PageDown"], "vim": ["PageDown"]},
+    {"js": ["Help"], "vim": ["Help"]},
+    {"js": ["Pause"], "vim": ["Pause"]},
+    {"js": ["NumLock"], "vim": ["NumLock"]},
+    {"js": ["CapsLock"], "vim": ["CapsLock"]},
+    {"js": ["ScrollLock"], "vim": ["ScrollLock"]},
+    {"js": ["ContextMenu"], "vim": ["ContextMenu"]},
+    // Fictional keys with custom implementation
+    {"js": ["Any"], "vim": ["Any"]}
+]
+// Single use actions that do not need to be called multiple times if counted
+const uncountableActions = [
+    "emptySearch",
+    "clickOnSearch",
+    "toExploreMode",
+    "startFollowCopyLink",
+    "startFollowCurrentTab",
+    "startFollowNewTab",
+    "startFollowNewSplit",
+    "startFollowNewVerSplit",
+    "scrollRightMax",
+    "scrollLeftMax",
+    "insertAtFirstInput",
+    "toInsertMode",
+    "refreshTab",
+    "refreshTabWithoutCache",
+    "moveTabEnd",
+    "moveTabStart",
+    "nextPage",
+    "previousPage",
+    "nextPageNewTab",
+    "previousPageNewTab",
+    "toRootUrl",
+    "toSearchMode",
+    "openNewTabWithCurrentUrl",
+    "toCommandMode",
+    "stopLoadingPage",
+    "zoomReset",
+    "toNormalMode",
+    "stopFollowMode",
+    "editWithVim",
+    "leftHalfSplitWindow",
+    "bottomHalfSplitWindow",
+    "topHalfSplitWindow",
+    "rightHalfSplitWindow",
+    "toFirstSplitWindow",
+    "toLastSplitWindow",
+    "distrubuteSpaceSplitWindow",
+    "pageRSSLinkToClipboard",
+    "pageRSSLinksList",
+    "pageToClipboard",
+    "pageTitleToClipboard",
+    "pageToClipboardEmacs",
+    "pageToClipboardHTML",
+    "pageToClipboardMarkdown",
+    "pageToClipboardRST",
+    "openFromClipboard",
+    "openLinkExternal",
+    "downloadLink",
+    "toggleAlwaysOnTop",
+    "toggleFullscreen",
+    "makeMark",
+    "restoreMark",
+    "storeScrollPos",
+    "restoreScrollPos",
+    "startRecording",
+    "stopRecording",
+    "menuOpen",
+    "menuTop",
+    "menuBottom",
+    "menuSelect",
+    "menuClose",
+    "useEnteredData",
+    "nop",
+    "p.start",
+    "p.moveToMouse",
+    "p.startVisualSelect",
+    "p.inspectElement",
+    "p.startOfPage",
+    "p.insertAtPosition",
+    "p.centerOfView",
+    "p.startOfView",
+    "p.endOfView",
+    "p.endOfPage",
+    "p.moveRightMax",
+    "p.moveLeftMax",
+    "p.storePos",
+    "p.restorePos",
+    "p.openAudio",
+    "p.openFrame",
+    "p.openImage",
+    "p.openVideo",
+    "p.openLink",
+    "p.downloadAudio",
+    "p.downloadFrame",
+    "p.downloadImage",
+    "p.downloadVideo",
+    "p.downloadLink",
+    "p.newtabAudio",
+    "p.newtabFrame",
+    "p.newtabImage",
+    "p.newtabVideo",
+    "p.newtabLink",
+    "p.externalAudio",
+    "p.externalFrame",
+    "p.externalImage",
+    "p.externalVideo",
+    "p.externalLink",
+    "p.copyImageBuffer",
+    "p.copyAudio",
+    "p.copyFrame",
+    "p.copyImage",
+    "p.copyVideo",
+    "p.copyLink",
+    "p.copyTitleAttr",
+    "p.copyPageTitle",
+    "p.splitAudio",
+    "p.splitFrame",
+    "p.splitImage",
+    "p.splitVideo",
+    "p.splitLink",
+    "p.vsplitAudio",
+    "p.vsplitFrame",
+    "p.vsplitImage",
+    "p.vsplitVideo",
+    "p.vsplitLink",
+    "p.openText",
+    "p.downloadText",
+    "p.newtabText",
+    "p.externalText",
+    "p.copyText",
+    "p.searchText",
+    "p.splitText",
+    "p.vsplitText"
+]
 
 /** Reset the screenshot drag state after a small timeout. */
 const resetScreenshotDrag = () => setTimeout(() => {
@@ -697,7 +902,7 @@ const updateSuggestions = () => {
         const {suggestCommand} = require("./suggest")
         suggestCommand(url.value)
     } else if (mode === "search" && getSetting("incsearch")) {
-        ACTIONS.incrementalSearch()
+        ACTIONS.incrementalSearch({"src": "other"})
     }
 }
 
@@ -872,85 +1077,6 @@ const pasteInput = (event = null) => {
     updateNavbarScrolling()
 }
 
-const keyNames = [
-    {"js": ["<"], "vim": ["lt"]},
-    {"js": ["Backspace"], "vim": ["BS"]},
-    {
-        "electron": "Return",
-        "js": ["Enter", "\u000d"],
-        "vim": ["CR", "NL", "Return", "Enter"]
-    },
-    {"js": ["|"], "vim": ["Bar"]},
-    {"js": ["\\"], "vim": ["Bslash"]},
-    {"js": ["ArrowLeft"], "vim": ["Left"]},
-    {"js": ["ArrowRight"], "vim": ["Right"]},
-    {"js": ["ArrowUp"], "vim": ["Up"]},
-    {"js": ["ArrowDown"], "vim": ["Down"]},
-    {"js": ["Escape", "Esc"], "vim": ["Esc"]},
-    {"js": [" "], "vim": ["Space", " "]},
-    {"js": ["Delete", "\u0000"], "vim": ["Del"]},
-    {"js": ["PrintScreen"], "vim": ["PrintScreen", "PrtScr"]},
-    {"js": ["Control"], "vim": ["Ctrl"]},
-    {"electron": "ArrowLeft", "js": ["kArrowLeft"], "vim": ["kLeft"]},
-    {"electron": "ArrowRight", "js": ["kArrowRight"], "vim": ["kRight"]},
-    {"electron": "ArrowUp", "js": ["kArrowUp"], "vim": ["kUp"]},
-    {"electron": "ArrowDown", "js": ["kArrowDown"], "vim": ["kDown"]},
-    {"electron": "numadd", "js": ["k+", "kPlus"], "vim": ["kPlus"]},
-    {"electron": "numsub", "js": ["k-", "kMinus"], "vim": ["kMinus"]},
-    {"electron": "nummult", "js": ["k*", "kMultiply"], "vim": ["kMultiply"]},
-    {"electron": "numdiv", "js": ["k/", "kDivide"], "vim": ["kDivide"]},
-    {"electron": "numdec", "js": ["k.", "kPoint"], "vim": ["kPoint"]},
-    {"electron": "num0", "js": ["k0"], "vim": ["k0"]},
-    {"electron": "num1", "js": ["k1"], "vim": ["k1"]},
-    {"electron": "num2", "js": ["k2"], "vim": ["k2"]},
-    {"electron": "num3", "js": ["k3"], "vim": ["k3"]},
-    {"electron": "num4", "js": ["k4"], "vim": ["k4"]},
-    {"electron": "num5", "js": ["k5"], "vim": ["k5"]},
-    {"electron": "num6", "js": ["k6"], "vim": ["k6"]},
-    {"electron": "num7", "js": ["k7"], "vim": ["k7"]},
-    {"electron": "num8", "js": ["k8"], "vim": ["k8"]},
-    {"electron": "num9", "js": ["k9"], "vim": ["k9"]},
-    {"electron": "Delete", "js": ["kDelete"], "vim": ["kDel"]},
-    {"electron": "Clear", "js": ["kClear"], "vim": ["kClear"]},
-    {"electron": "Home", "js": ["kHome"], "vim": ["kHome"]},
-    {"electron": "End", "js": ["kEnd"], "vim": ["kEnd"]},
-    {"electron": "PageUp", "js": ["kPageUp"], "vim": ["kPageUp"]},
-    {"electron": "PageDown", "js": ["kPageDown"], "vim": ["kPageDown"]},
-    {"electron": "Return", "js": ["kEnter"], "vim": ["kEnter"]},
-    {"electron": "Insert", "js": ["kInsert"], "vim": ["kInsert"]},
-    // Keys with the same names, which are listed here to detect incorrect names
-    // Note: some of these are not present in Vim and use the JavaScript name
-    {"js": ["Shift"], "vim": ["Shift"]},
-    {"js": ["Alt"], "vim": ["Alt"]},
-    {"js": ["Meta"], "vim": ["Meta"]},
-    {"js": ["F1"], "vim": ["F1"]},
-    {"js": ["F2"], "vim": ["F2"]},
-    {"js": ["F3"], "vim": ["F3"]},
-    {"js": ["F4"], "vim": ["F4"]},
-    {"js": ["F5"], "vim": ["F5"]},
-    {"js": ["F6"], "vim": ["F6"]},
-    {"js": ["F7"], "vim": ["F7"]},
-    {"js": ["F8"], "vim": ["F8"]},
-    {"js": ["F9"], "vim": ["F9"]},
-    {"js": ["F10"], "vim": ["F10"]},
-    {"js": ["F11"], "vim": ["F11"]},
-    {"js": ["F12"], "vim": ["F12"]},
-    {"js": ["Tab"], "vim": ["Tab"]},
-    {"js": ["Insert"], "vim": ["Insert"]},
-    {"js": ["Home"], "vim": ["Home"]},
-    {"js": ["PageUp"], "vim": ["PageUp"]},
-    {"js": ["End"], "vim": ["End"]},
-    {"js": ["PageDown"], "vim": ["PageDown"]},
-    {"js": ["Help"], "vim": ["Help"]},
-    {"js": ["Pause"], "vim": ["Pause"]},
-    {"js": ["NumLock"], "vim": ["NumLock"]},
-    {"js": ["CapsLock"], "vim": ["CapsLock"]},
-    {"js": ["ScrollLock"], "vim": ["ScrollLock"]},
-    {"js": ["ContextMenu"], "vim": ["ContextMenu"]},
-    // Fictional keys with custom implementation
-    {"js": ["Any"], "vim": ["Any"]}
-]
-
 /**
  * Convert a keyboard event to a Vieb key name.
  * @param {(KeyboardEvent  & {passedOnFromInsert?: false})|{
@@ -1090,132 +1216,6 @@ const fromIdentifier = (identifier, electronNames = true) => {
     return {...options, "key": id}
 }
 
-// Single use actions that do not need to be called multiple times if counted
-const uncountableActions = [
-    "emptySearch",
-    "clickOnSearch",
-    "toExploreMode",
-    "startFollowCopyLink",
-    "startFollowCurrentTab",
-    "startFollowNewTab",
-    "startFollowNewSplit",
-    "startFollowNewVerSplit",
-    "scrollRightMax",
-    "scrollLeftMax",
-    "insertAtFirstInput",
-    "toInsertMode",
-    "refreshTab",
-    "refreshTabWithoutCache",
-    "moveTabEnd",
-    "moveTabStart",
-    "nextPage",
-    "previousPage",
-    "nextPageNewTab",
-    "previousPageNewTab",
-    "toRootUrl",
-    "toSearchMode",
-    "openNewTabWithCurrentUrl",
-    "toCommandMode",
-    "stopLoadingPage",
-    "zoomReset",
-    "toNormalMode",
-    "stopFollowMode",
-    "editWithVim",
-    "leftHalfSplitWindow",
-    "bottomHalfSplitWindow",
-    "topHalfSplitWindow",
-    "rightHalfSplitWindow",
-    "toFirstSplitWindow",
-    "toLastSplitWindow",
-    "distrubuteSpaceSplitWindow",
-    "pageRSSLinkToClipboard",
-    "pageRSSLinksList",
-    "pageToClipboard",
-    "pageTitleToClipboard",
-    "pageToClipboardEmacs",
-    "pageToClipboardHTML",
-    "pageToClipboardMarkdown",
-    "pageToClipboardRST",
-    "openFromClipboard",
-    "openLinkExternal",
-    "downloadLink",
-    "toggleAlwaysOnTop",
-    "toggleFullscreen",
-    "makeMark",
-    "restoreMark",
-    "storeScrollPos",
-    "restoreScrollPos",
-    "startRecording",
-    "stopRecording",
-    "menuOpen",
-    "menuTop",
-    "menuBottom",
-    "menuSelect",
-    "menuClose",
-    "useEnteredData",
-    "nop",
-    "p.start",
-    "p.moveToMouse",
-    "p.startVisualSelect",
-    "p.inspectElement",
-    "p.startOfPage",
-    "p.insertAtPosition",
-    "p.centerOfView",
-    "p.startOfView",
-    "p.endOfView",
-    "p.endOfPage",
-    "p.moveRightMax",
-    "p.moveLeftMax",
-    "p.storePos",
-    "p.restorePos",
-    "p.openAudio",
-    "p.openFrame",
-    "p.openImage",
-    "p.openVideo",
-    "p.openLink",
-    "p.downloadAudio",
-    "p.downloadFrame",
-    "p.downloadImage",
-    "p.downloadVideo",
-    "p.downloadLink",
-    "p.newtabAudio",
-    "p.newtabFrame",
-    "p.newtabImage",
-    "p.newtabVideo",
-    "p.newtabLink",
-    "p.externalAudio",
-    "p.externalFrame",
-    "p.externalImage",
-    "p.externalVideo",
-    "p.externalLink",
-    "p.copyImageBuffer",
-    "p.copyAudio",
-    "p.copyFrame",
-    "p.copyImage",
-    "p.copyVideo",
-    "p.copyLink",
-    "p.copyTitleAttr",
-    "p.copyPageTitle",
-    "p.splitAudio",
-    "p.splitFrame",
-    "p.splitImage",
-    "p.splitVideo",
-    "p.splitLink",
-    "p.vsplitAudio",
-    "p.vsplitFrame",
-    "p.vsplitImage",
-    "p.vsplitVideo",
-    "p.vsplitLink",
-    "p.openText",
-    "p.downloadText",
-    "p.newtabText",
-    "p.externalText",
-    "p.copyText",
-    "p.searchText",
-    "p.splitText",
-    "p.vsplitText"
-]
-
 /**
  * Find suitable mappings for a set of keys.
  * @param {string} actionKeys
@@ -1336,10 +1336,10 @@ const updateKeysOnScreen = () => {
  * @param {string} keys
  */
 const actionForKeys = keys => {
-    const {"active": menuActive} = require("./contextmenu")
+    const {active} = require("./contextmenu")
     const allMenu = findMaps(keys, "menu")
     const menuAction = bindings.m[allMenu[0]]
-    if (menuActive() && menuAction) {
+    if (active() && menuAction) {
         return menuAction
     }
     const allCurrent = findMaps(keys, currentMode())
@@ -1357,8 +1357,9 @@ const actionForKeys = keys => {
  *   key: string
  * }} options
  * @param {string} mapStr
+ * @param {import("./common").RunSource} src
  */
-const sendKeysToWebview = async(options, mapStr) => {
+const sendKeysToWebview = async(options, mapStr, src) => {
     if (recordingName) {
         recordingString += mapStr
     }
@@ -1368,7 +1369,7 @@ const sendKeysToWebview = async(options, mapStr) => {
         const action = actionForKeys(mapStr)
         if (action) {
             /* eslint-disable-next-line no-use-before-define */
-            await executeMapString(action.mapping, !action.noremap)
+            await executeMapString(action.mapping, !action.noremap, {src})
         }
     }
     await new Promise(r => {
@@ -1379,11 +1380,14 @@ const sendKeysToWebview = async(options, mapStr) => {
 /**
  * Execute a action by action name, optionally multiple times.
  * @param {string} actionName
- * @param {number | null} givenCount
- * @param {string|null} key
+ * @param {{
+ *   givenCount?: number,
+ *   key?: string|undefined,
+ *   src: import("./common").RunSource
+ * }} opts
  */
-const doAction = async(actionName, givenCount = null, key = null) => {
-    let actionCount = givenCount || 1
+const doAction = async(actionName, opts) => {
+    let actionCount = opts.givenCount || 1
     if (uncountableActions.includes(actionName)) {
         if (lastActionInMapping === actionName) {
             repeatCounter = 0
@@ -1398,10 +1402,14 @@ const doAction = async(actionName, givenCount = null, key = null) => {
     for (let i = 0; i < actionCount; i++) {
         if (pointer) {
             // @ts-expect-error funcName is plenty checked before being called
-            await POINTER[funcName]({hadModifier, key})
+            await POINTER[funcName]({
+                hadModifier, "key": opts.key, "src": opts.src
+            })
         } else {
             // @ts-expect-error funcName is plenty checked before being called
-            await ACTIONS[funcName]({hadModifier, key})
+            await ACTIONS[funcName]({
+                hadModifier, "key": opts.key, "src": opts.src
+            })
         }
     }
     if (!funcName.startsWith("menu") && funcName !== "nop") {
@@ -1415,11 +1423,15 @@ const doAction = async(actionName, givenCount = null, key = null) => {
  * Execute a provided mapstring as if it was pressed.
  * @param {string} mapStr
  * @param {boolean} recursive
- * @param {boolean} initial
+ * @param {{
+ *   initial?: boolean,
+ *   src: import("./common").RunSource
+ * }} opts
  */
-const executeMapString = async(mapStr, recursive, initial = false) => {
+const executeMapString = async(mapStr, recursive, opts) => {
     const actionCallKey = splitMapString(pressedKeys).maps.at(-1)
-    if (initial) {
+    if (opts.initial) {
+        keyboardEventSource = opts.src
         if (recordingName) {
             if (repeatCounter > 1) {
                 recordingString += repeatCounter
@@ -1436,7 +1448,7 @@ const executeMapString = async(mapStr, recursive, initial = false) => {
     }
     recursiveCounter += 1
     let repeater = Number(repeatCounter) || 1
-    if (initial && repeatCounter) {
+    if (opts.initial && repeatCounter) {
         if (["<scrollBottom>", "<scrollTop>"].includes(mapStr)) {
             currentPage()?.send("action", "scrollPerc", repeatCounter)
             repeater = 0
@@ -1455,14 +1467,16 @@ const executeMapString = async(mapStr, recursive, initial = false) => {
             if (supportedActions.includes(key.replace(/(^<|>$)/g, ""))) {
                 const count = Number(repeatCounter)
                 repeatCounter = 0
-                await doAction(key.replace(/(^<|>$)/g, ""), count, actionCallKey)
+                await doAction(key.replace(/(^<|>$)/g, ""), {
+                    "givenCount": count, "key": actionCallKey, "src": opts.src
+                })
                 await new Promise(r => {
                     setTimeout(r, 3)
                 })
                 continue
             } else if (key.startsWith("<:")) {
                 const {execute} = require("./command")
-                execute(key.replace(/^<:|>$/g, ""))
+                execute(key.replace(/^<:|>$/g, ""), {"src": opts.src})
                 lastActionInMapping = null
                 await new Promise(r => {
                     setTimeout(r, 3)
@@ -1474,10 +1488,12 @@ const executeMapString = async(mapStr, recursive, initial = false) => {
                 if (!options.bubbles) {
                     ipcRenderer.sendSync("insert-mode-blockers", "pass")
                 }
-                await sendKeysToWebview(options, key)
+                await sendKeysToWebview(options, key, opts.src)
             } else {
                 const options = {
-                    ...fromIdentifier(key, false), "bubbles": recursive
+                    ...fromIdentifier(key, false),
+                    "bubbles": recursive,
+                    "testprop": "JIPPIE!"
                 }
                 window.dispatchEvent(new KeyboardEvent("keydown", options))
             }
@@ -1490,11 +1506,12 @@ const executeMapString = async(mapStr, recursive, initial = false) => {
             setTimeout(r, 3)
         })
     }
-    if (initial) {
+    if (opts.initial) {
         setTimeout(() => {
             blockNextInsertKey = false
         }, 100)
         recursiveCounter = 0
+        keyboardEventSource = "user"
         repeatCounter = 0
         pressedKeys = ""
         lastActionInMapping = null
@@ -1502,11 +1519,14 @@ const executeMapString = async(mapStr, recursive, initial = false) => {
     }
 }
 
-/** Repeat the last run action. */
-const repeatLastAction = () => {
+/**
+ * Repeat the last run action.
+ * @param {import("./common").RunSource} src
+ */
+const repeatLastAction = src => {
     if (lastExecutedMapstring) {
         executeMapString(lastExecutedMapstring.mapStr,
-            lastExecutedMapstring.recursive, true)
+            lastExecutedMapstring.recursive, {"initial": true, src})
     }
 }
 
@@ -1899,9 +1919,10 @@ const handleKeyboard = async e => {
     if (matchingMod) {
         return
     }
+    const src = keyboardEventSource
     hadModifier = e.shiftKey || e.ctrlKey
     window.clearTimeout(timeoutTimer ?? undefined)
-    const {"active": menuActive, "clear": menuClear} = require("./contextmenu")
+    const {active, clear} = require("./contextmenu")
     if (getSetting("timeout")) {
         timeoutTimer = window.setTimeout(async() => {
             const keys = splitMapString(pressedKeys).maps
@@ -1910,19 +1931,23 @@ const handleKeyboard = async e => {
                 pressedKeys = ""
                 if (ac && (e.isTrusted || e.bubbles)) {
                     if (e.isTrusted) {
-                        await executeMapString(ac.mapping, !ac.noremap, true)
+                        await executeMapString(ac.mapping, !ac.noremap, {
+                            "initial": true, src
+                        })
                     } else {
-                        await executeMapString(ac.mapping, e.bubbles ?? false)
+                        await executeMapString(ac.mapping, e.bubbles ?? false, {
+                            src
+                        })
                     }
                     return
                 }
-                menuClear()
+                clear()
             }
             if (currentMode() === "insert") {
                 ipcRenderer.sendSync("insert-mode-blockers", "pass")
                 for (const key of keys) {
                     const options = {...fromIdentifier(key), "bubbles": false}
-                    await sendKeysToWebview(options, key)
+                    await sendKeysToWebview(options, key, src)
                 }
                 blockNextInsertKey = false
                 repeatCounter = 0
@@ -1939,7 +1964,7 @@ const handleKeyboard = async e => {
             updateKeysOnScreen()
         }, getSetting("timeoutlen"))
     }
-    if ("npv".includes(currentMode()[0]) || menuActive()) {
+    if ("npv".includes(currentMode()[0]) || active()) {
         const keyNumber = Number(id.replace(/^<k(\d)>/g, (_, digit) => digit))
         const noFutureActions = !hasFutureActions(pressedKeys + id)
         const shouldCount = !actionForKeys(pressedKeys + id) || repeatCounter
@@ -1973,24 +1998,30 @@ const handleKeyboard = async e => {
         if (action && !existingMapping) {
             if (!["<Esc>", "<C-[>"].includes(id)) {
                 pressedKeys = ""
-                await executeMapString(action.mapping, !action.noremap, true)
+                await executeMapString(action.mapping, !action.noremap, {
+                    "initial": true, src
+                })
             }
         }
         pressedKeys += id
     }
     const action = actionForKeys(pressedKeys)
-    const hasMenuAction = menuActive() && action
+    const hasMenuAction = active() && action
     if (!hasFutureActions(pressedKeys) || hasMenuAction) {
         window.clearTimeout(timeoutTimer ?? undefined)
         if (action && (e.isTrusted || e.bubbles)) {
             if (e.isTrusted) {
-                await executeMapString(action.mapping, !action.noremap, true)
+                await executeMapString(action.mapping, !action.noremap, {
+                    "initial": true, src
+                })
             } else {
-                await executeMapString(action.mapping, e.bubbles ?? false)
+                await executeMapString(action.mapping, e.bubbles ?? false, {
+                    src
+                })
             }
             return
         }
-        menuClear()
+        clear()
         let keys = splitMapString(pressedKeys).maps
         pressedKeys = ""
         if (keys.length > 1) {
@@ -2001,7 +2032,7 @@ const handleKeyboard = async e => {
                 ipcRenderer.sendSync("insert-mode-blockers", "pass")
                 for (const key of keys) {
                     const options = {...fromIdentifier(key), "bubbles": false}
-                    await sendKeysToWebview(options, key)
+                    await sendKeysToWebview(options, key, src)
                 }
                 blockNextInsertKey = false
                 repeatCounter = 0
@@ -2017,7 +2048,7 @@ const handleKeyboard = async e => {
         }
         repeatCounter = 0
     }
-    menuClear()
+    clear()
     updateKeysOnScreen()
     if (currentMode() === "follow") {
         if (e instanceof KeyboardEvent && e.type === "keydown") {
@@ -2027,7 +2058,7 @@ const handleKeyboard = async e => {
                 const map = await window.navigator.keyboard?.getLayoutMap()
                 unshiftedName = map?.get(e.code) ?? unshiftedName
             }
-            enterKey(unshiftedName, id, hadModifier)
+            enterKey(src, unshiftedName, id, hadModifier)
         }
         return
     }
@@ -2060,14 +2091,15 @@ const mappingModified = (mode, mapping) => {
 
 /**
  * Sanitize any mapstring to the shortest valid version.
+ * @param {import("./common").RunSource} src
  * @param {string} mapString
  * @param {boolean} allowSpecials
  */
-const sanitiseMapString = (mapString, allowSpecials = false) => {
+const sanitiseMapString = (src, mapString, allowSpecials = false) => {
     const {maps, valid, leftover} = splitMapString(mapString)
     if (!valid) {
-        notify(
-            `Unmatched < > in mapping '${mapString}': ${leftover}`, "warn")
+        notify(`Unmatched < > in mapping '${mapString}': ${leftover}`,
+            {src, "type": "warn"})
         return ""
     }
     return maps.map(m => {
@@ -2116,8 +2148,8 @@ const sanitiseMapString = (mapString, allowSpecials = false) => {
             }
         }
         if (!knownKey && key.length > 1) {
-            notify(
-                `Unsupported key in mapping which was skipped: ${key}`, "warn")
+            notify(`Unsupported key in mapping which was skipped: ${key}`,
+                {src, "type": "warn"})
             return ""
         }
         if (!key) {
@@ -2147,12 +2179,13 @@ const sanitiseMapString = (mapString, allowSpecials = false) => {
 
 /**
  * List a mapping as if set via a command.
+ * @param {import("./common").RunSource} src
  * @param {string} mode
  * @param {boolean} includeDefault
  * @param {string} rawKey
  */
-const listMapping = (mode, includeDefault, rawKey) => {
-    const key = sanitiseMapString(rawKey)
+const listMapping = (src, mode, includeDefault, rawKey) => {
+    const key = sanitiseMapString(src, rawKey)
     if (!mappingModified(mode, key) && !includeDefault) {
         return ""
     }
@@ -2171,12 +2204,13 @@ const listMapping = (mode, includeDefault, rawKey) => {
 
 /**
  * List mappings as a list of map commands.
+ * @param {import("./common").RunSource} src
  * @param {string|null} oneMode
  * @param {boolean} includeDefault
  * @param {string[]|null} customKeys
  */
 const listMappingsAsCommandList = (
-    oneMode = null, includeDefault = false, customKeys = null
+    src, oneMode = null, includeDefault = false, customKeys = null
 ) => {
     /** @type {string[]} */
     let mappings = []
@@ -2189,7 +2223,7 @@ const listMappingsAsCommandList = (
             ?? [...new Set(Object.keys(defaultBindings[bindMode])
                 .concat(Object.keys(bindings[bindMode])))]
         for (const key of keys) {
-            mappings.push(listMapping(bindMode, includeDefault, key))
+            mappings.push(listMapping(src, bindMode, includeDefault, key))
         }
     })
     if (!oneMode) {
@@ -2210,13 +2244,14 @@ const listMappingsAsCommandList = (
 
 /**
  * Map a single key.
+ * @param {import("./common").RunSource} src
  * @param {string|null} mode
  * @param {string[]} args
  * @param {boolean} noremap
  */
-const mapSingle = (mode, args, noremap) => {
-    const mapping = sanitiseMapString(args.shift() ?? "")
-    const actions = sanitiseMapString(args.join(" "), true)
+const mapSingle = (src, mode, args, noremap) => {
+    const mapping = sanitiseMapString(src, args.shift() ?? "")
+    const actions = sanitiseMapString(src, args.join(" "), true)
     if (!mapping || !actions) {
         return
     }
@@ -2228,72 +2263,78 @@ const mapSingle = (mode, args, noremap) => {
         })
     }
     const {updateHelpPage} = require("./settings")
-    updateHelpPage()
+    updateHelpPage(src)
 }
 
 /**
  * Handle the map command, so either list a mapping or set it.
+ * @param {import("./common").RunSource} src
  * @param {string|null} mode
  * @param {string[]} args
  * @param {boolean} noremap
  * @param {boolean} includeDefault
  */
-const mapOrList = (mode, args, noremap = false, includeDefault = false) => {
+const mapOrList = (
+    src, mode, args, noremap = false, includeDefault = false
+) => {
     if (includeDefault && args.length > 1) {
-        notify("Mappings are always overwritten, no need for !", "warn")
+        notify("Mappings are always overwritten, no need for !",
+            {src, "type": "warn"})
         return
     }
     if (args.length === 0) {
-        const mappings = listMappingsAsCommandList(mode, includeDefault)
+        const mappings = listMappingsAsCommandList(src, mode, includeDefault)
         if (mappings) {
-            notify(mappings)
+            notify(mappings, {src})
         } else if (includeDefault) {
-            notify("No mappings found")
+            notify("No mappings found", {src})
         } else {
-            notify("No custom mappings found")
+            notify("No custom mappings found", {src})
         }
         return
     }
     if (args.length === 1) {
         if (mode) {
             const mapping = listMappingsAsCommandList(
-                mode, includeDefault, [args[0]]).trim()
+                src, mode, includeDefault, [args[0]]).trim()
             if (mapping) {
-                notify(mapping)
+                notify(mapping, {src})
             } else if (includeDefault) {
-                notify("No mapping found for this sequence")
+                notify("No mapping found for this sequence", {src})
             } else {
-                notify("No custom mapping found for this sequence")
+                notify("No custom mapping found for this sequence", {src})
             }
         } else {
             let mappings = listMappingsAsCommandList(
-                null, includeDefault, [args[0]])
+                src, null, includeDefault, [args[0]])
             mappings = mappings.replace(/[\r\n]+/g, "\n").trim()
             if (mappings) {
-                notify(mappings)
+                notify(mappings, {src})
             } else if (includeDefault) {
-                notify("No mapping found for this sequence")
+                notify("No mapping found for this sequence", {src})
             } else {
-                notify("No custom mapping found for this sequence")
+                notify("No custom mapping found for this sequence", {src})
             }
         }
         return
     }
-    mapSingle(mode, args, noremap)
+    mapSingle(src, mode, args, noremap)
 }
 
 /**
  * Unmap a specific key.
+ * @param {import("./common").RunSource} src
  * @param {string|null} mode
  * @param {string[]} args
  * @param {boolean} anyAsWildcard
  */
-const unmap = (mode, args, anyAsWildcard) => {
+const unmap = (src, mode, args, anyAsWildcard) => {
     if (args.length !== 1) {
-        notify(`The ${mode}unmap command requires exactly one mapping`, "warn")
+        notify(`The ${mode}unmap command requires exactly one mapping`,
+            {src, "type": "warn"})
         return
     }
-    const mapStr = sanitiseMapString(args[0])
+    const mapStr = sanitiseMapString(src, args[0])
     if (!mapStr) {
         return
     }
@@ -2317,15 +2358,16 @@ const unmap = (mode, args, anyAsWildcard) => {
         }
     })
     const {updateHelpPage} = require("./settings")
-    updateHelpPage()
+    updateHelpPage(src)
 }
 
 /**
  * Clear all mappings to default or wipe them completely, optionally per mode.
+ * @param {import("./common").RunSource} src
  * @param {string|null} mode
  * @param {boolean} removeDefaults
  */
-const clearmap = (mode, removeDefaults = false) => {
+const clearmap = (src, mode, removeDefaults = false) => {
     if (mode) {
         if (removeDefaults) {
             bindings[mode] = {}
@@ -2340,16 +2382,19 @@ const clearmap = (mode, removeDefaults = false) => {
         bindings = JSON.parse(JSON.stringify(defaultBindings))
     }
     const {updateHelpPage} = require("./settings")
-    updateHelpPage()
+    updateHelpPage(src)
 }
 
 /**
  * Start a macro recording by key name.
  * @param {string} name
+ * @param {import("./common").RunSource} src
  */
-const startRecording = name => {
+const startRecording = (name, src) => {
     if (recordingName) {
-        notify("Already recording, ignoring record action", "warn")
+        notify("Already recording, ignoring record action", {
+            src, "type": "warn"
+        })
         return
     }
     recordingName = name
@@ -2394,14 +2439,14 @@ const init = () => {
         }
         if (e.button === 3) {
             if (getMouseConf("history")) {
-                ACTIONS.backInHistory()
+                ACTIONS.backInHistory({"src": "user"})
             }
             e.preventDefault()
             return
         }
         if (e.button === 4) {
             if (getMouseConf("history")) {
-                ACTIONS.forwardInHistory()
+                ACTIONS.forwardInHistory({"src": "user"})
             }
             e.preventDefault()
             return
@@ -2434,7 +2479,7 @@ const init = () => {
     document.getElementById("tabs")?.addEventListener("dblclick", e => {
         if (getMouseConf("newtab")) {
             const {addTab} = require("./tabs")
-            addTab()
+            addTab({"src": "user"})
         } else {
             e.preventDefault()
         }
@@ -2530,7 +2575,7 @@ const init = () => {
             })
             if (tab instanceof HTMLElement) {
                 const {closeTab} = require("./tabs")
-                closeTab(listTabs().indexOf(tab))
+                closeTab("user", listTabs().indexOf(tab))
             }
             const {clear} = require("./contextmenu")
             clear()
@@ -2628,7 +2673,7 @@ const init = () => {
         }
         if (getMouseConf("menuvieb")) {
             const {viebMenu} = require("./contextmenu")
-            viebMenu(e)
+            viebMenu("user", e)
         }
         ACTIONS.setFocusCorrectly()
     })
@@ -2650,10 +2695,10 @@ const init = () => {
             return
         }
         if (direction === "in") {
-            ACTIONS.zoomIn({"customPage": page})
+            ACTIONS.zoomIn({"customPage": page, "src": "user"})
         }
         if (direction === "out") {
-            ACTIONS.zoomOut({"customPage": page})
+            ACTIONS.zoomOut({"customPage": page, "src": "user"})
         }
     })
     ipcRenderer.on("insert-mode-input-event", (_, input) => {
@@ -2690,7 +2735,9 @@ const init = () => {
             "shiftKey": input.shift
         })
     })
-    ipcRenderer.on("window-close", () => executeMapString("<A-F4>", true, true))
+    ipcRenderer.on("window-close", () => executeMapString("<A-F4>", true, {
+        "initial": true, "src": "user"
+    }))
     ipcRenderer.on("window-focus", () => {
         document.body.classList.add("focus")
         ACTIONS.setFocusCorrectly()
@@ -2698,6 +2745,10 @@ const init = () => {
     ipcRenderer.on("window-blur", () => {
         document.body.classList.remove("focus")
         ACTIONS.setFocusCorrectly()
+    })
+    ipcRenderer.on("execute-command", (_, command) => {
+        const {execute} = require("./command")
+        execute(command, {"src": "execute"})
     })
     ipcRenderer.on("window-update-gui", () => updateGuiVisibility())
     ACTIONS.setFocusCorrectly()

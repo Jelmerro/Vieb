@@ -17,6 +17,8 @@
 */
 "use strict"
 
+/** @typedef {"execute"|"user"|"source"|"other"} RunSource */
+
 let topOfPageWithMouse = false
 /** @type {number|null} */
 let navbarGuiTimer = null

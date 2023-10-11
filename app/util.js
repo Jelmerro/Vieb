@@ -932,38 +932,46 @@ const appData = () => {
 /**
  * Show the user a notification bubble and store it in the history.
  * @param {string} message
- * @param {string} type
  * @param {{
- *   type: "download-success",
- *   path: string,
- *   func?: () => void
- * }|false} clickAction
+ *   action?: {
+ *     type: "download-success",
+ *     path: string,
+ *     func?: () => void
+ *   }|false,
+ *   type?: string,
+ *   src: import("./renderer/common").RunSource
+ * }} opts
  */
-const notify = (message, type = "info", clickAction = false) => {
+const notify = (message, opts) => {
+    if (opts.src === "execute") {
+        const {appendFileSync} = require("fs")
+        appendFileSync(
+            joinPath(appData(), ".tmp-execute-output"), `${message}\t\t\t`)
+    }
     if (getSetting("notificationduration") === 0) {
         return
     }
     let properType = "info"
-    if (type.startsWith("perm")) {
+    if (opts.type?.startsWith("perm")) {
         properType = "permission"
     }
-    if (type.startsWith("suc")) {
+    if (opts.type?.startsWith("suc")) {
         properType = "success"
     }
-    if (type.startsWith("warn")) {
+    if (opts.type?.startsWith("warn")) {
         properType = "warning"
     }
-    if (type.startsWith("err")) {
+    if (opts.type?.startsWith("err")) {
         properType = "error"
     }
-    if (type.startsWith("dial")) {
+    if (opts.type?.startsWith("dial")) {
         properType = "dialog"
     }
     const escapedMessage = message.replace(/>/g, "&gt;").replace(/</g, "&lt;")
         .replace(/\n/g, "<br>")
     let clickInfo = null
-    if (clickAction) {
-        clickInfo = {...clickAction}
+    if (opts?.action) {
+        clickInfo = {...opts.action}
         delete clickInfo.func
     }
     const notifyForPerm = getSetting("notificationforpermissions")
@@ -1000,9 +1008,10 @@ const notify = (message, type = "info", clickAction = false) => {
     if (native === "always" || shortAndSmallNative || longAndLargeNative) {
         const n = new Notification(
             `${appConfig()?.name} ${properType}`, {"body": message})
-        if (clickAction && clickAction.func) {
+        if (opts?.action && opts?.action?.func) {
             /** Assin the onclick of the notification. */
-            n.onclick = () => clickAction.func?.()
+            // @ts-expect-error Func type could be undefined according to TS...
+            n.onclick = () => opts?.action?.func?.()
         }
         return
     }
@@ -1019,8 +1028,9 @@ const notify = (message, type = "info", clickAction = false) => {
     const notification = document.createElement("span")
     notification.className = properType
     notification.innerHTML = escapedMessage
-    if (clickAction && clickAction.func) {
-        notification.addEventListener("click", () => clickAction.func?.())
+    if (opts.action && opts.action.func) {
+        // @ts-expect-error Func type could be undefined according to TS...
+        notification.addEventListener("click", () => opts.action?.func?.())
     }
     notificationsElement.append(notification)
     setTimeout(() => notification.remove(),
@@ -1139,19 +1149,22 @@ const readFile = loc => {
  * Write data to a file, optionally with success and error notifications.
  * @param {string} loc
  * @param {string|Buffer} data
- * @param {string|null} err
- * @param {string|null} success
+ * @param {{
+ *   err?: string,
+ *   success?: string,
+ *   src: import("./renderer/common").RunSource
+ * }} opts
  */
-const writeFile = (loc, data, err = null, success = null) => {
+const writeFile = (loc, data, opts = {"src": "other"}) => {
     try {
         fs.writeFileSync(loc, data)
-        if (success) {
-            notify(success)
+        if (opts.success) {
+            notify(opts.success, {"src": opts.src})
         }
         return true
     } catch {
-        if (err) {
-            notify(err, "err")
+        if (opts.err) {
+            notify(opts.err, {"src": opts.src, "type": "err"})
         }
     }
     return false
@@ -1161,19 +1174,22 @@ const writeFile = (loc, data, err = null, success = null) => {
  * Append data to a file, optionally with success and error notifications.
  * @param {string} loc
  * @param {string} data
- * @param {string|null} err
- * @param {string|null} success
+ * @param {{
+ *   err?: string,
+ *   success?: string,
+ *   src: import("./renderer/common").RunSource
+ * }} opts
  */
-const appendFile = (loc, data, err = null, success = null) => {
+const appendFile = (loc, data, opts = {"src": "other"}) => {
     try {
         fs.appendFileSync(loc, data)
-        if (success) {
-            notify(success)
+        if (opts.success) {
+            notify(opts.success, {"src": opts.src})
         }
         return true
     } catch {
-        if (err) {
-            notify(err, "err")
+        if (opts.err) {
+            notify(opts.err, {"src": opts.src, "type": "err"})
         }
     }
     return false
@@ -1183,20 +1199,23 @@ const appendFile = (loc, data, err = null, success = null) => {
  * Write JSON data to a file, optionally with indentation and notifications.
  * @param {string} loc
  * @param {any} data
- * @param {string|null} err
- * @param {string|null} success
- * @param {number | undefined | null} indent
+ * @param {{
+ *   err?: string,
+ *   success?: string,
+ *   src: import("./renderer/common").RunSource
+ *   indent?: number|undefined
+ * }|{indent: number}} opts
  */
-const writeJSON = (loc, data, err = null, success = null, indent = null) => {
+const writeJSON = (loc, data, opts = {"src": "other"}) => {
     try {
-        fs.writeFileSync(loc, JSON.stringify(data, null, indent ?? undefined))
-        if (success) {
-            notify(success)
+        fs.writeFileSync(loc, JSON.stringify(data, null, opts.indent))
+        if ("success" in opts) {
+            notify(opts.success, {"src": opts.src})
         }
         return true
     } catch {
-        if (err) {
-            notify(err, "err")
+        if ("err" in opts) {
+            notify(opts.err, {"src": opts.src, "type": "err"})
         }
     }
     return false
@@ -1205,15 +1224,18 @@ const writeJSON = (loc, data, err = null, success = null, indent = null) => {
 /**
  * Delete a file at a location, optinally with error message.
  * @param {string} loc
- * @param {string|null} err
+ * @param {{
+ *   err?: string,
+ *   src: import("./renderer/common").RunSource
+ * }} opts
  */
-const deleteFile = (loc, err = null) => {
+const deleteFile = (loc, opts = {"src": "other"}) => {
     try {
         fs.unlinkSync(loc)
         return true
     } catch {
-        if (err) {
-            notify(err, "warn")
+        if (opts.err) {
+            notify(opts.err, {"src": opts.src, "type": "warn"})
         }
     }
     return false
@@ -1222,19 +1244,22 @@ const deleteFile = (loc, err = null) => {
 /**
  * Make a directory at a location, optionally with feedback notifications.
  * @param {string} loc
- * @param {string|null} err
- * @param {string|null} success
+ * @param {{
+ *   err?: string,
+ *   success?: string,
+ *   src: import("./renderer/common").RunSource
+ * }} opts
  */
-const makeDir = (loc, err = null, success = null) => {
+const makeDir = (loc, opts = {"src": "other"}) => {
     try {
         fs.mkdirSync(loc, {"recursive": true})
-        if (success) {
-            notify(success)
+        if (opts.success) {
+            notify(opts.success, {"src": opts.src})
         }
         return true
     } catch {
-        if (err) {
-            notify(err, "err")
+        if (opts.err) {
+            notify(opts.err, {"src": opts.src, "type": "err"})
         }
     }
     return false
@@ -1264,7 +1289,7 @@ const listDir = (loc, absolute = false, dirsOnly = false) => {
 /**
  * Watch a specific file including the polling fallback of 500ms.
  * @param {string} file
- * @param {() => void} call
+ * @param {(info: import("fs").Stats, oldInfo: import("fs").Stats) => void} call
  */
 const watchFile = (file, call) => fs.watchFile(file, {"interval": 500}, call)
 

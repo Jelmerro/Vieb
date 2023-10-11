@@ -145,7 +145,7 @@ const applyLayout = () => {
         if (shouldSuspend) {
             delete timers[linkId]
             const {suspendTab} = require("./tabs")
-            suspendTab(tab)
+            suspendTab("other", tab)
         } else {
             timers[linkId] = window.setTimeout(
                 () => susCall(tab, linkId, timeout), timeout)

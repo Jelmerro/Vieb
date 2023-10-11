@@ -17,6 +17,14 @@
 */
 "use strict"
 
+/** @typedef {{
+ *   key?: string,
+ *   src: import("./common").RunSource,
+ *   hadModifier?: boolean,
+ *   customPage?: Electron.WebviewTag
+ * }} ActionParam
+ */
+
 const {ipcRenderer, clipboard} = require("electron")
 const {
     urlToString,
@@ -60,10 +68,10 @@ let potentialNewSearchDirection = "forward"
 
 /**
  * Empty the current search by scope.
- * @param {{scope?: "both"|"local"|"global"}|null} args
+ * @param {ActionParam & {scope?: "both"|"local"|"global"}} args
  */
-const emptySearch = (args = null) => {
-    const scope = args?.scope || getSetting("searchemptyscope")
+const emptySearch = args => {
+    const scope = args.scope || getSetting("searchemptyscope")
     /** @type {(Electron.WebviewTag|null)[]} */
     let pages = []
     if (["both", "local"].includes(scope)) {
@@ -115,9 +123,9 @@ const nextSearchMatch = () => {
 
 /**
  * Switch to search mode.
- * @param {{hadModifier?: boolean}|null} args
+ * @param {ActionParam} args
  */
-const toSearchMode = (args = null) => {
+const toSearchMode = args => {
     const {setMode} = require("./modes")
     setMode("search")
     let search = getStored("globalsearch")
@@ -126,7 +134,7 @@ const toSearchMode = (args = null) => {
             || getStored("globalsearch")
     }
     storedSearch = search
-    if (args?.hadModifier) {
+    if (args.hadModifier) {
         potentialNewSearchDirection = "backward"
     } else {
         potentialNewSearchDirection = "forward"
@@ -165,18 +173,21 @@ const previousSearchMatch = () => {
     }
 }
 
-/** Reset the incremental search match. */
-const resetIncrementalSearch = () => {
+/**
+ * Reset the incremental search match.
+ * @param {ActionParam} args
+ */
+const resetIncrementalSearch = args => {
     if (getSetting("searchscope") === "inclocal" && !lastSearchFull) {
-        emptySearch({"scope": "local"})
+        emptySearch({"scope": "local", "src": args?.src ?? "other"})
     }
 }
 
 /**
  * Search for the string incrementally while typing if enabled, by scope.
- * @param {{value?: string}|null} args
+ * @param {ActionParam&{value?: string}|null} args
  */
-const incrementalSearch = (args = null) => {
+const incrementalSearch = args => {
     let scope = getSetting("searchscope")
     if (scope === "inclocal") {
         lastSearchFull = Boolean(args?.value)
@@ -210,7 +221,7 @@ const incrementalSearch = (args = null) => {
             }
         })
     } else {
-        emptySearch({scope})
+        emptySearch({scope, "src": args?.src ?? "other"})
     }
 }
 
@@ -232,63 +243,76 @@ const previousPageNewTab = () => sendToPageOrSubFrame(
 
 /**
  * Modify a url based on a source pattern and a replacement function.
+ * @param {import("./common").RunSource} src
  * @param {string} source
  * @param {(...args: string[]) => string} replacement
  */
-const modifyUrl = (source, replacement) => {
+const modifyUrl = (src, source, replacement) => {
     const url = currentPage()?.src || ""
     const next = url.replace(RegExp(source), replacement)
     if (next !== url) {
         const {navigateTo} = require("./tabs")
-        navigateTo(next)
+        navigateTo(src, next)
     }
 }
 
 /**
  * Move the first number based on a movement number.
+ * @param {import("./common").RunSource} src
  * @param {number} movement
  */
-const moveFirstNumber = movement => modifyUrl("\\d+", (_, match) => {
-    if (Number(match) + movement < 1) {
-        return "1"
-    }
-    return `${Number(match) + movement}`
-})
+const moveFirstNumber = (src, movement) => modifyUrl(
+    src, "\\d+", (_, match) => {
+        if (Number(match) + movement < 1) {
+            return "1"
+        }
+        return `${Number(match) + movement}`
+    })
 
 /**
  * Move the last number based on a movement number.
+ * @param {import("./common").RunSource} src
  * @param {number} movement
  */
-const moveLastNumber = movement => modifyUrl("(\\d+)(\\D*$)", (_, p1, p2) => {
-    if (Number(p1) + movement < 1) {
-        return `1${p2}`
-    }
-    return `${Number(p1) + movement}${p2}`
-})
+const moveLastNumber = (src, movement) => modifyUrl(
+    src, "(\\d+)(\\D*$)", (_, p1, p2) => {
+        if (Number(p1) + movement < 1) {
+            return `1${p2}`
+        }
+        return `${Number(p1) + movement}${p2}`
+    })
 
 /**
  * Move the page number based on a movement number.
+ * @param {import("./common").RunSource} src
  * @param {number} movement
  */
-const movePageNumber = movement => modifyUrl("(\\?|&)p(age)?=(\\d+)",
-    (_, p1, p2, p3) => {
+const movePageNumber = (src, movement) => modifyUrl(
+    src, "(\\?|&)p(age)?=(\\d+)", (_, p1, p2, p3) => {
         if (Number(p3) + movement < 1) {
             return `${p1}p${p2}=1`
         }
         return `${p1}p${p2}=${Number(p3) + movement}`
     })
 
-/** Navigate to the next page as found in the url with `page=` or `p=`. */
-const increasePageNumber = () => movePageNumber(1)
+/**
+ * Navigate to the next page as found in the url with `page=` or `p=`.
+ * @param {ActionParam} args
+ */
+const increasePageNumber = args => movePageNumber(args.src, 1)
 
-/** Navigate to the previous page as found in the url with `page=` or `p=`. */
-const decreasePageNumber = () => movePageNumber(-1)
+/**
+ * Navigate to the previous page as found in the url with `page=` or `p=`.
+ * @param {ActionParam} args
+ */
+const decreasePageNumber = args => movePageNumber(args.src, -1)
 
 /**
  * Move the port number based on a movement number.
+ * @param {import("./common").RunSource} src
  * @param {number} movement
  */
-const movePortNumber = movement => {
+const movePortNumber = (src, movement) => {
     const url = currentPage()?.src || ""
     const loc = document.createElement("a")
     loc.href = url
@@ -300,7 +324,7 @@ const movePortNumber = movement => {
         port = 443
     }
     if (port) {
-        modifyUrl("(^[a-zA-Z\\d]+:\\/\\/[.a-zA-Z\\d-]+)(:\\d+)?(.*$)",
+        modifyUrl(src, "(^[a-zA-Z\\d]+:\\/\\/[.a-zA-Z\\d-]+)(:\\d+)?(.*$)",
             (_, domain, _port, rest) => {
                 if (isNaN(port)) {
                     return `${domain}${rest}`
@@ -317,26 +341,47 @@ const movePortNumber = movement => {
     }
 }
 
-/** Increase the port number by one based on port standards. */
-const increasePortNumber = () => movePortNumber(1)
+/**
+ * Increase the port number by one based on port standards.
+ * @param {ActionParam} args
+ */
+const increasePortNumber = args => movePortNumber(args.src, 1)
 
-/** Decrease the port number by one based on port standards. */
-const decreasePortNumber = () => movePortNumber(-1)
+/**
+ * Decrease the port number by one based on port standards.
+ * @param {ActionParam} args
+ */
+const decreasePortNumber = args => movePortNumber(args.src, -1)
 
-/** Increase to the very first number in the url. */
-const increaseFirstNumber = () => moveFirstNumber(1)
+/**
+ * Increase to the very first number in the url.
+ * @param {ActionParam} args
+ */
+const increaseFirstNumber = args => moveFirstNumber(args.src, 1)
 
-/** Decrease to the very first number in the url. */
-const decreaseFirstNumber = () => moveFirstNumber(-1)
+/**
+ * Decrease to the very first number in the url.
+ * @param {ActionParam} args
+ */
+const decreaseFirstNumber = args => moveFirstNumber(args.src, -1)
 
-/** Increase to the very last number in the url. */
-const increaseLastNumber = () => moveLastNumber(1)
+/**
+ * Increase to the very last number in the url.
+ * @param {ActionParam} args
+ */
+const increaseLastNumber = args => moveLastNumber(args.src, 1)
 
-/** Decrease to the very last number in the url. */
-const decreaseLastNumber = () => moveLastNumber(-1)
+/**
+ * Decrease to the very last number in the url.
+ * @param {ActionParam} args
+ */
+const decreaseLastNumber = args => moveLastNumber(args.src, -1)
 
-/** Go to root domain, by removing most subdomains, repeats to remove www. */
-const toRootSubdomain = () => {
+/**
+ * Go to root domain, by removing most subdomains, repeats to remove www.
+ * @param {ActionParam} args
+ */
+const toRootSubdomain = args => {
     const url = currentPage()?.src
     if (!url) {
         return
@@ -361,12 +406,15 @@ const toRootSubdomain = () => {
     }
     if (originalUrl !== urlObj.href) {
         const {navigateTo} = require("./tabs")
-        navigateTo(urlObj.href)
+        navigateTo(args.src, urlObj.href)
     }
 }
 
-/** Go to the parent domain, by removing 1 subdomain until there are none. */
-const toParentSubdomain = () => {
+/**
+ * Go to the parent domain, by removing 1 subdomain until there are none.
+ * @param {ActionParam} args
+ */
+const toParentSubdomain = args => {
     const url = currentPage()?.src
     if (!url) {
         return
@@ -383,12 +431,15 @@ const toParentSubdomain = () => {
     urlObj.hostname = domainNames.slice(1).join(".")
     if (originalUrl !== urlObj.href) {
         const {navigateTo} = require("./tabs")
-        navigateTo(urlObj.href)
+        navigateTo(args.src, urlObj.href)
     }
 }
 
-/** Go to the root url by removing the entire path, the search and the hash. */
-const toRootUrl = () => {
+/**
+ * Go to the root url by removing the entire path, the search and the hash.
+ * @param {ActionParam} args
+ */
+const toRootUrl = args => {
     const url = currentPage()?.src
     if (!url) {
         return
@@ -400,12 +451,15 @@ const toRootUrl = () => {
     urlObj.hash = ""
     if (originalUrl !== urlObj.href) {
         const {navigateTo} = require("./tabs")
-        navigateTo(urlObj.href)
+        navigateTo(args.src, urlObj.href)
     }
 }
 
-/** Go to the parent url by removing the path part, the search and the hash. */
-const toParentUrl = () => {
+/**
+ * Go to the parent url by removing the path part, the search and the hash.
+ * @param {ActionParam} args
+ */
+const toParentUrl = args => {
     const url = currentPage()?.src
     if (!url) {
         return
@@ -418,7 +472,7 @@ const toParentUrl = () => {
     urlObj.hash = ""
     if (originalUrl !== urlObj.href) {
         const {navigateTo} = require("./tabs")
-        navigateTo(urlObj.href)
+        navigateTo(args.src, urlObj.href)
     }
 }
 
@@ -440,8 +494,11 @@ const nextTab = () => {
     }
 }
 
-/** Toggle the sourceviewer in the current tab. */
-const toggleSourceViewer = () => {
+/**
+ * Toggle the sourceviewer in the current tab.
+ * @param {ActionParam} args
+ */
+const toggleSourceViewer = args => {
     const {navigateTo} = require("./tabs")
     const page = currentPage()
     if (page && page.src.startsWith("sourceviewer:")) {
@@ -451,19 +508,20 @@ const toggleSourceViewer = () => {
             loc = `/${loc}`
         }
         if (isFile(loc) || isDir(loc)) {
-            navigateTo(`file://${loc}`)
+            navigateTo(args.src, `file://${loc}`)
             return
         }
-        navigateTo(`https://${src}`)
+        navigateTo(args.src, `https://${src}`)
     } else if (page) {
-        navigateTo(page.src.replace(/^.+?:\/?\/?/g, "sourceviewer:"))
+        navigateTo(args.src, page.src.replace(/^.+?:\/?\/?/g, "sourceviewer:"))
     }
 }
 
 /**
  * Open the sourceviewer in a new tab or go back to the page in the current.
+ * @param {ActionParam} args
  */
-const toggleSourceViewerNewTab = () => {
+const toggleSourceViewerNewTab = args => {
     const {navigateTo, addTab} = require("./tabs")
     const page = currentPage()
     if (page && page.src.startsWith("sourceviewer:")) {
@@ -473,17 +531,23 @@ const toggleSourceViewerNewTab = () => {
             loc = `/${loc}`
         }
         if (isFile(loc) || isDir(loc)) {
-            navigateTo(`file://${loc}`)
+            navigateTo(args.src, `file://${loc}`)
             return
         }
-        navigateTo(`https://${src}`)
+        navigateTo(args.src, `https://${src}`)
     } else if (page) {
-        addTab({"url": page.src.replace(/^.+?:\/?\/?/g, "sourceviewer:")})
+        addTab({
+            "src": args.src,
+            "url": page.src.replace(/^.+?:\/?\/?/g, "sourceviewer:")
+        })
     }
 }
 
-/** Toggle the readerviewer in the current tab. */
-const toggleReaderView = () => {
+/**
+ * Toggle the readerviewer in the current tab.
+ * @param {ActionParam} args
+ */
+const toggleReaderView = args => {
     const {navigateTo} = require("./tabs")
     const page = currentPage()
     if (page && page.src.startsWith("readerview:")) {
@@ -493,19 +557,20 @@ const toggleReaderView = () => {
             loc = `/${loc}`
         }
         if (isFile(loc) || isDir(loc)) {
-            navigateTo(`file://${loc}`)
+            navigateTo(args.src, `file://${loc}`)
             return
         }
-        navigateTo(`https://${src}`)
+        navigateTo(args.src, `https://${src}`)
     } else if (page) {
-        navigateTo(page.src.replace(/^.+?:\/?\/?/g, "readerview:"))
+        navigateTo(args.src, page.src.replace(/^.+?:\/?\/?/g, "readerview:"))
     }
 }
 
 /**
  * Open the readerview in a new tab or go back to the page in the current.
+ * @param {ActionParam} args
  */
-const toggleReaderViewNewTab = () => {
+const toggleReaderViewNewTab = args => {
     const {navigateTo, addTab} = require("./tabs")
     const page = currentPage()
     if (page && page.src.startsWith("readerview:")) {
@@ -515,17 +580,23 @@ const toggleReaderViewNewTab = () => {
             loc = `/${loc}`
         }
         if (isFile(loc) || isDir(loc)) {
-            navigateTo(`file://${loc}`)
+            navigateTo(args.src, `file://${loc}`)
             return
         }
-        navigateTo(`https://${src}`)
+        navigateTo(args.src, `https://${src}`)
     } else if (page) {
-        addTab({"url": page.src.replace(/^.+?:\/?\/?/g, "readerview:")})
+        addTab({
+            "src": args.src,
+            "url": page.src.replace(/^.+?:\/?\/?/g, "readerview:")
+        })
     }
 }
 
-/** Toggle the markdownviewer in the current tab. */
-const toggleMarkdownViewer = () => {
+/**
+ * Toggle the markdownviewer in the current tab.
+ * @param {ActionParam} args
+ */
+const toggleMarkdownViewer = args => {
     const {navigateTo} = require("./tabs")
     const page = currentPage()
     if (page && page.src.startsWith("markdownviewer:")) {
@@ -535,19 +606,21 @@ const toggleMarkdownViewer = () => {
             loc = `/${loc}`
         }
         if (isFile(loc) || isDir(loc)) {
-            navigateTo(`file://${loc}`)
+            navigateTo(args.src, `file://${loc}`)
             return
         }
-        navigateTo(`https://${src}`)
+        navigateTo(args.src, `https://${src}`)
     } else if (page) {
-        navigateTo(page.src.replace(/^.+?:\/?\/?/g, "markdownviewer:"))
+        navigateTo(args.src,
+            page.src.replace(/^.+?:\/?\/?/g, "markdownviewer:"))
     }
 }
 
 /**
  * Open the markdownviewer in a new tab or go back to the page in the current.
+ * @param {ActionParam} args
  */
-const toggleMarkdownViewerNewTab = () => {
+const toggleMarkdownViewerNewTab = args => {
     const {navigateTo, addTab} = require("./tabs")
     const page = currentPage()
     if (page && page.src.startsWith("markdownviewer:")) {
@@ -557,12 +630,15 @@ const toggleMarkdownViewerNewTab = () => {
             loc = `/${loc}`
         }
         if (isFile(loc) || isDir(loc)) {
-            navigateTo(`file://${loc}`)
+            navigateTo(args.src, `file://${loc}`)
             return
         }
-        navigateTo(`https://${src}`)
+        navigateTo(args.src, `https://${src}`)
     } else if (page) {
-        addTab({"url": page.src.replace(/^.+?:\/?\/?/g, "markdownviewer:")})
+        addTab({
+            "src": args.src,
+            "url": page.src.replace(/^.+?:\/?\/?/g, "markdownviewer:")
+        })
     }
 }
 
@@ -627,14 +703,14 @@ const scrollPageUpHalf = () => currentPage()?.send(
 
 /**
  * Refresh the current page or optionally a custom page.
- * @param {{customPage?: Electron.WebviewTag}|null} args
+ * @param {ActionParam} args
  */
-const refreshTab = (args = null) => {
+const refreshTab = args => {
     const page = args?.customPage || currentPage()
     if (page && !page.src.startsWith("devtools://")) {
         if (page.isCrashed()) {
             const {recreateWebview} = require("./tabs")
-            recreateWebview(page)
+            recreateWebview(args.src, page)
             return
         }
         const {rerollUserAgent, resetTabInfo} = require("./tabs")
@@ -682,14 +758,14 @@ const startFollowCurrentTab = () => {
 
 /**
  * Go back in history for the current page or a custom one.
- * @param {{customPage?: Electron.WebviewTag}|null} args
+ * @param {ActionParam} args
  */
-const backInHistory = (args = null) => {
+const backInHistory = args => {
     const page = args?.customPage || currentPage()
     if (page && !page.src.startsWith("devtools://")) {
         if (page.isCrashed()) {
             const {recreateWebview} = require("./tabs")
-            recreateWebview(page)
+            recreateWebview(args.src, page)
             return
         }
         if (page?.canGoBack()) {
@@ -707,14 +783,14 @@ const backInHistory = (args = null) => {
 
 /**
  * Go forward in history for the current page or a custom one.
- * @param {{customPage?: Electron.WebviewTag}|null} args
+ * @param {ActionParam} args
  */
-const forwardInHistory = (args = null) => {
-    const page = args?.customPage || currentPage()
+const forwardInHistory = args => {
+    const page = args.customPage || currentPage()
     if (page && !page.src.startsWith("devtools://")) {
         if (page.isCrashed()) {
             const {recreateWebview} = require("./tabs")
-            recreateWebview(page)
+            recreateWebview(args.src, page)
             return
         }
         if (page?.canGoForward()) {
@@ -730,13 +806,16 @@ const forwardInHistory = (args = null) => {
     }
 }
 
-/** Refresh the curren tab without using cache. */
-const refreshTabWithoutCache = () => {
+/**
+ * Refresh the curren tab without using cache.
+ * @param {ActionParam} args
+ */
+const refreshTabWithoutCache = args => {
     const page = currentPage()
     if (page && !page.src.startsWith("devtools://")) {
         if (page.isCrashed()) {
             const {recreateWebview} = require("./tabs")
-            recreateWebview(page)
+            recreateWebview(args.src, page)
             return
         }
         const {rerollUserAgent, resetTabInfo} = require("./tabs")
@@ -746,11 +825,14 @@ const refreshTabWithoutCache = () => {
     }
 }
 
-/** Open a new tab, switch to explore mode and have the current url ready. */
-const openNewTabWithCurrentUrl = () => {
+/**
+ * Open a new tab, switch to explore mode and have the current url ready.
+ * @param {ActionParam} args
+ */
+const openNewTabWithCurrentUrl = args => {
     const url = currentPage()?.src || ""
     const {addTab} = require("./tabs")
-    addTab()
+    addTab({"src": args.src})
     const {setMode} = require("./modes")
     setMode("explore")
     const urlEl = getUrl()
@@ -803,10 +885,10 @@ const zoomReset = () => currentPage()?.setZoomLevel(0)
 
 /**
  * Zoom the current page out or do it for a custom page.
- * @param {{customPage?: Electron.WebviewTag}|null} args
+ * @param {ActionParam} args
  */
-const zoomOut = (args = null) => {
-    const page = args?.customPage || currentPage()
+const zoomOut = args => {
+    const page = args.customPage || currentPage()
     let level = (page?.getZoomLevel() ?? 0) - 1
     if (level < -7) {
         level = -7
@@ -816,10 +898,10 @@ const zoomOut = (args = null) => {
 
 /**
  * Zoom the current page in or do it for a custom page.
- * @param {{customPage?: Electron.WebviewTag}|null} args
+ * @param {ActionParam} args
  */
-const zoomIn = (args = null) => {
-    const page = args?.customPage || currentPage()
+const zoomIn = args => {
+    const page = args.customPage || currentPage()
     let level = (page?.getZoomLevel() ?? 0) + 1
     if (level > 7) {
         level = 7
@@ -849,8 +931,11 @@ const repeatLastAction = () => {
     repeat()
 }
 
-/** Edit the current insert mode input or navbar mode text. */
-const editWithVim = () => {
+/**
+ * Edit the current insert mode input or navbar mode text.
+ * @param {ActionParam} args
+ */
+const editWithVim = args => {
     const page = currentPage()
     if (!page) {
         return
@@ -893,10 +978,11 @@ const editWithVim = () => {
             command = execCommand(commandStr, (err, stdout) => {
                 const reportExit = getSetting("notificationforsystemcommands")
                 if (err && reportExit !== "none") {
-                    notify(`${err}`, "err")
+                    notify(`${err}`,
+                        {"src": args.src, "type": "err"})
                 } else if (reportExit === "all") {
-                    notify(stdout.toString()
-                        || "Command exitted successfully!", "suc")
+                    notify(stdout.toString() || "Command exitted successfully!",
+                        {"src": args.src, "type": "suc"})
                 }
             })
         }
@@ -909,16 +995,24 @@ const editWithVim = () => {
     }
 }
 
-/** Download the current page link to disk. */
-const downloadLink = () => {
+/**
+ * Download the current page link to disk.
+ * @param {ActionParam} args
+ */
+const downloadLink = args => {
     const {commonAction} = require("./contextmenu")
-    commonAction("link", "download", {"link": currentPage()?.src ?? ""})
+    commonAction(args.src, "link", "download",
+        {"link": currentPage()?.src ?? ""})
 }
 
-/** Open the current page link in an external application as per setting. */
-const openLinkExternal = () => {
+/**
+ * Open the current page link in an external application as per setting.
+ * @param {ActionParam} args
+ */
+const openLinkExternal = args => {
     const {commonAction} = require("./contextmenu")
-    commonAction("link", "external", {"link": currentPage()?.src ?? ""})
+    commonAction(args.src, "link", "external",
+        {"link": currentPage()?.src ?? ""})
 }
 
 /** Completely reset any focus issues there could be in the app. */
@@ -1147,9 +1241,10 @@ const getPageUrl = (customUrl = "") => {
 }
 
 /** Get the list of RSS links on the page.
+ * @param {ActionParam} args
  * @returns {Promise<string[]|null>}
  */
-const getPageRSSLinks = async() => {
+const getPageRSSLinks = async args => {
     const feedUrls = await currentPage()?.executeJavaScript(
         `Array.from(document.querySelectorAll("link[type]")).map(link => [
             "application/rss+xml",
@@ -1167,7 +1262,8 @@ const getPageRSSLinks = async() => {
         ].includes(link.getAttribute("type"))
             && link.getAttribute("href")).filter(Boolean)`)
     if (feedUrls.length === 0) {
-        notify("No RSS feeds found on this page", "warn")
+        notify("No RSS feeds found on this page",
+            {"src": args.src, "type": "warn"})
         return null
     }
     return feedUrls.slice(0, 10).map((feed = "") => {
@@ -1178,31 +1274,36 @@ const getPageRSSLinks = async() => {
     })
 }
 
-/** Notify with the list of RSS links on the current page. */
-const pageRSSLinksList = async() => {
-    const feedUrls = await getPageRSSLinks()
+/**
+ * Notify with the list of RSS links on the current page.
+ * @param {ActionParam} args
+ */
+const pageRSSLinksList = async args => {
+    const feedUrls = await getPageRSSLinks(args)
     if (!feedUrls) {
         return
     }
     const feedsString = feedUrls.map((url, i) => `${i} - ${url}`).join("\n")
-    notify(`--- RSS links on the page ---\n${feedsString}`)
+    notify(`--- RSS links on the page ---\n${feedsString}`,
+        {"src": args.src, "type": "warn"})
 }
 
 /** Copy an RSS link to the clipboard by index.
- * @param {{key?: string}|null} args
+ * @param {ActionParam} args
  */
 const pageRSSLinkToClipboard = async args => {
-    const key = args?.key
+    const {key} = args
     if (!key) {
         return
     }
-    const feedUrls = await getPageRSSLinks()
+    const feedUrls = await getPageRSSLinks(args)
     if (!feedUrls) {
         return
     }
     const feedUrl = feedUrls[!isNaN(Number(key)) && Number(key) || 0] ?? ""
     clipboard.writeText(feedUrl)
-    notify(`RSS feed '${feedUrl}' copied to clipboard`, "suc")
+    notify(`RSS feed '${feedUrl}' copied to clipboard`,
+        {"src": args.src, "type": "suc"})
 }
 
 /** Copy the current page url to the system clipboard. */
@@ -1242,20 +1343,23 @@ const pageToClipboardEmacs = () => {
     clipboard.writeText(`[[${url}][${title}]]`)
 }
 
-/** Open the link currently in the system clipboard in the current tab. */
-const openFromClipboard = () => {
+/**
+ * Open the link currently in the system clipboard in the current tab.
+ * @param {ActionParam} args
+ */
+const openFromClipboard = args => {
     if (clipboard.readText().trim()) {
         const {navigateTo} = require("./tabs")
-        navigateTo(stringToUrl(clipboard.readText()))
+        navigateTo(args.src, stringToUrl(clipboard.readText()))
     }
 }
 
 /**
  * Store a scroll position based on key.
- * @param {{key?: string, path?: string, pixels?: number} | null} args
+ * @param {ActionParam&{path?: string, pixels?: number}} args
  */
-const storeScrollPos = async(args = null) => {
-    const key = args?.key
+const storeScrollPos = async args => {
+    const {key} = args
     if (!key) {
         return
     }
@@ -1275,7 +1379,7 @@ const storeScrollPos = async(args = null) => {
         pixels = await currentPage()?.executeJavaScript(
             "document.body.scrollTop")
     }
-    if (args?.path === "global") {
+    if (args.path === "global") {
         scrollType = "global"
     }
     if (scrollType === "local") {
@@ -1289,23 +1393,23 @@ const storeScrollPos = async(args = null) => {
             path = urlToString(currentPage()?.src ?? "")
                 || currentPage()?.src || ""
         }
-        path = args?.path ?? path
+        path = args.path ?? path
         if (!qm.scroll.local[path]) {
             qm.scroll.local[path] = {}
         }
-        qm.scroll.local[path][key] = args?.pixels ?? pixels
+        qm.scroll.local[path][key] = args.pixels ?? pixels
     } else {
-        qm.scroll.global[key] = args?.pixels ?? pixels
+        qm.scroll.global[key] = args.pixels ?? pixels
     }
     writeJSON(joinPath(appData(), "quickmarks"), qm)
 }
 
 /**
  * Restore a stored scroll position based on key.
- * @param {{key?: string, path?: string}|null} args
+ * @param {ActionParam&{path?: string}} args
  */
-const restoreScrollPos = (args = null) => {
-    const key = args?.key
+const restoreScrollPos = args => {
+    const {key} = args
     if (!key) {
         return
     }
@@ -1318,7 +1422,7 @@ const restoreScrollPos = (args = null) => {
     if (scrollPosId === "url" || !path) {
         path = urlToString(currentPage()?.src ?? "") || currentPage()?.src || ""
     }
-    path = args?.path ?? path
+    path = args.path ?? path
     const qm = readJSON(joinPath(appData(), "quickmarks"))
     const pixels = qm?.scroll?.local?.[path]?.[key] ?? qm?.scroll?.global?.[key]
     if (pixels !== undefined) {
@@ -1333,10 +1437,10 @@ const restoreScrollPos = (args = null) => {
 
 /**
  * Make a new mark based on a key.
- * @param {{key?: string, url?: string}|null} args
+ * @param {ActionParam&{url?: string}} args
  */
-const makeMark = (args = null) => {
-    const key = args?.key
+const makeMark = args => {
+    const {key} = args
     if (!key) {
         return
     }
@@ -1344,16 +1448,16 @@ const makeMark = (args = null) => {
     if (!qm.marks) {
         qm.marks = {}
     }
-    qm.marks[key] = urlToString(args?.url ?? currentPage()?.src ?? "")
+    qm.marks[key] = urlToString(args.url ?? currentPage()?.src ?? "")
     writeJSON(joinPath(appData(), "quickmarks"), qm)
 }
 
 /**
  * Restore a stored mark by key to a position.
- * @param {{key?: string, position?: import("./tabs").tabPosition}|null} args
+ * @param {ActionParam&{position?: import("./tabs").tabPosition}} args
  */
-const restoreMark = (args = null) => {
-    const key = args?.key
+const restoreMark = args => {
+    const {key} = args
     if (!key) {
         return
     }
@@ -1364,16 +1468,16 @@ const restoreMark = (args = null) => {
     if (key === key.toUpperCase() && shiftedPosition !== "default") {
         position = shiftedPosition
     }
-    position = args?.position ?? position
-    commonAction("link", position, {"link": qm?.marks?.[key]})
+    position = args.position ?? position
+    commonAction(args.src, "link", position, {"link": qm?.marks?.[key]})
 }
 
 /**
  * Run a stored macro recording by key.
- * @param {{key?: string}|null} args
+ * @param {ActionParam} args
  */
-const runRecording = (args = null) => {
-    const key = args?.key
+const runRecording = args => {
+    const {key} = args
     if (!key) {
         return
     }
@@ -1381,21 +1485,22 @@ const runRecording = (args = null) => {
     if (recording) {
         setTimeout(() => {
             const {executeMapString, sanitiseMapString} = require("./input")
-            executeMapString(sanitiseMapString(recording, true), true, true)
+            executeMapString(sanitiseMapString(args.src, recording, true),
+                true, {"initial": true, "src": args.src})
         }, 5)
     }
 }
 
 /** Start a macro recording by key.
- * @param {{key?: string}|null} args
+ * @param {ActionParam} args
  */
-const startRecording = (args = null) => {
-    const key = args?.key
+const startRecording = args => {
+    const {key} = args
     if (!key) {
         return
     }
     const {"startRecording": start} = require("./input")
-    start(key)
+    start(key, args.src)
 }
 
 /** Stop the current macro recording if active. */
@@ -1416,15 +1521,18 @@ const reorderFollowLinks = () => {
     reorderDisplayedLinks()
 }
 
-/** Open the menu, either for system elements or the current insert element. */
-const menuOpen = () => {
+/**
+ * Open the menu, either for system elements or the current insert element.
+ * @param {ActionParam} args
+ */
+const menuOpen = args => {
     const {viebMenu} = require("./contextmenu")
     if (currentMode() === "normal") {
         const tab = currentTab()
         const bounds = tab?.getBoundingClientRect()
         const tabs = document.getElementById("tabs")
         if (tab && bounds && tabs) {
-            viebMenu({
+            viebMenu(args.src, {
                 "path": [tab, tabs],
                 "x": bounds.x,
                 "y": bounds.y + bounds.height
@@ -1437,14 +1545,14 @@ const menuOpen = () => {
         let bounds = selected?.getBoundingClientRect()
         if (currentMode() === "command" && selected && bounds) {
             const {commandMenu} = require("./contextmenu")
-            commandMenu({
+            commandMenu(args.src, {
                 "command": selected.querySelector("span")?.textContent ?? "",
                 "x": bounds.x,
                 "y": bounds.y + bounds.height
             })
         } else if (currentMode() === "explore" && selected && bounds) {
             const {linkMenu} = require("./contextmenu")
-            linkMenu({
+            linkMenu(args.src, {
                 "link": selected.querySelector(".url")?.textContent ?? "",
                 "x": bounds.x,
                 "y": bounds.y + bounds.height
@@ -1454,7 +1562,7 @@ const menuOpen = () => {
             bounds = url?.getBoundingClientRect()
             if (url && bounds) {
                 const charWidth = getSetting("guifontsize") * 0.60191
-                viebMenu({
+                viebMenu(args.src, {
                     "path": [url],
                     "x": bounds.x + charWidth
                         * (url.selectionStart ?? 0) - url.scrollLeft,
@@ -1464,7 +1572,7 @@ const menuOpen = () => {
         }
     } else {
         const {openMenu} = require("./pointer")
-        openMenu()
+        openMenu(args)
     }
 }
 
@@ -1533,8 +1641,11 @@ const toggleTOC = () => {
     sendToPageOrSubFrame("action", "toggleTOC", getCustomStyling(), fontsize)
 }
 
-/** Use the navbar entered data to either navigate, search or run commands. */
-const useEnteredData = () => {
+/**
+ * Use the navbar entered data to either navigate, search or run commands.
+ * @param {ActionParam} args
+ */
+const useEnteredData = args => {
     const {setMode} = require("./modes")
     const url = getUrl()
     if (!url) {
@@ -1544,11 +1655,11 @@ const useEnteredData = () => {
         const command = url.value.trim()
         setMode("normal")
         const {execute} = require("./command")
-        execute(command, null, true)
+        execute(command, {"src": "user"})
     }
     if (currentMode() === "search") {
         searchDirection = potentialNewSearchDirection
-        incrementalSearch({"value": url.value})
+        incrementalSearch({"src": args.src, "value": url.value})
         setMode("normal")
     }
     if (currentMode() === "explore") {
@@ -1559,7 +1670,7 @@ const useEnteredData = () => {
             const {push} = require("./explorehistory")
             push(urlToString(modifiedLoc))
             const {navigateTo} = require("./tabs")
-            navigateTo(stringToUrl(modifiedLoc))
+            navigateTo(args.src, stringToUrl(modifiedLoc))
         }
     }
 }

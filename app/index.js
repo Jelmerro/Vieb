@@ -50,7 +50,8 @@ const {
     formatDate,
     domainName,
     defaultUseragent,
-    rm
+    rm,
+    watchFile
 } = require("./util")
 
 const version = process.env.npm_package_version || app.getVersion()
@@ -86,6 +87,11 @@ Options:
  --devtools              Open with Chromium and Electron debugging tools.
                          They can also be opened later with ':internaldevtools'.
 
+ --devtools-theme=<val>  string [SYSTEM/dark/light]: Control the devtools theme.
+                         By default, the devtools will be themed by the OS,
+                         either dark or light, but you can override it.
+                         You can also use the ENV var: 'VIEB_DEVTOOLS_THEME'.
+
  --datafolder=<dir>      Store ALL Vieb data in this folder.
                          See ':h datafolder' for usage and details.
                          You can also use the ENV var: 'VIEB_DATAFOLDER'.
@@ -94,6 +100,46 @@ Options:
                          Open a fixed set of pages in a separate instance.
                          See 'Erwic.md' or ':h erwic' for usage and details.
                          You can also use the ENV var: 'VIEB_ERWIC'.
+
+ --execute=<command>     command: A command to run inside the existing instance.
+                         If Vieb is running inside this datafolder,
+                         this command will be run inside that Vieb instance,
+                         and the result of the command is returned in the shell.
+                         This can for example be used to get the current url,
+                         to change settings, to add mappings or to press keys,
+                         inside the existing Vieb running in this datafolder.
+                         If no datafolder is provided via ENV or argument,
+                         the default datafolder is used to execute the command.
+                         It will wait for the first notification and return,
+                         or exit after 5 seconds of no related notifications.
+                         This can be changed with one of the following args:
+                         --execute-dur for seconds or --execute-count for count.
+                         If either the configured duration or count is reached,
+                         the execute will return with the notification results.
+                         If running from a script and parsing the output,
+                         you probably want to strip the error logging like so:
+                         $ vieb --execute="echo <useCurrentUrl>" 2>/dev/null
+                         Or if running with NPM, you need to disable that too:
+                         $ npm run --silent dev -- --execute=":test" 2>/dev/null
+                         On Windows you can replace /dev/null with nul instead.
+
+ --execute-dur=<val>     number (5000): Milliseconds before stopping execute.
+                         By default, after 5 seconds the --execute call is quit,
+                         possibly without any value, as to prevent blocking.
+                         You can either increase this timeout/duration here,
+                         or disable it entirely by setting it to 0,
+                         meaning the only exit option is via notification count.
+                         You can also use the ENV var: 'VIEB_EXECUTE_DUR'.
+
+ --execute-count=<val>   number (1): The number of messages to read before exit.
+                         The --execute flag will exit after 1 message,
+                         unless this flag is used to increase the limit.
+                         Setting high values likely means it will never return,
+                         Results are not printed while they are processed,
+                         but printed in one go once all notifications are done.
+                         You can disable the count exit by setting it to 0,
+                         meaning the execute duration is the only exit option.
+                         You can also use the ENV var: 'VIEB_EXECUTE_COUNT'.
 
  --config-order=<val>    string [USER-FIRST/user-only/
                            datafolder-first/datafolder-only/none]:
@@ -160,41 +206,6 @@ This release uses Electron ${process.versions.electron} and Chromium ${
 }
 
 /**
- * Apply some basic settings to the chromium devtools.
- * @param {string} prefFile
- * @param {boolean} undock
- */
-const applyDevtoolsSettings = (prefFile, undock = true) => {
-    makeDir(dirname(prefFile))
-    const preferences = readJSON(prefFile) || {}
-    preferences.electron ||= {}
-    preferences.electron.devtools ||= {}
-    preferences.electron.devtools.preferences ||= {}
-    // Disable source maps as they leak internal structure to the webserver
-    preferences.electron.devtools.preferences.cssSourceMapsEnabled = "false"
-    preferences.electron.devtools.preferences.jsSourceMapsEnabled = "false"
-    // Undock main process devtools to prevent window size issues
-    if (undock) {
-        preferences.electron.devtools.preferences.
-            currentDockState = `"undocked"`
-    }
-    // Disable release notes, most are not relevant for Vieb
-    preferences.electron.devtools.preferences[
-        "help.show-release-note"] = "false"
-    // Show timestamps in the console
-    preferences.electron.devtools.preferences.consoleTimestampsEnabled = "true"
-    // Disable the paused overlay which prevents interaction with other pages
-    preferences.electron.devtools.preferences.disablePausedStateOverlay = "true"
-    // Style the devtools based on the system theme
-    let theme = `"light"`
-    if (nativeTheme.shouldUseDarkColors) {
-        theme = `"dark"`
-    }
-    preferences.electron.devtools.preferences.uiTheme = theme
-    writeJSON(prefFile, preferences)
-}
-
-/**
  * Parse the startup arguments.
  * @param {string[]} argv
  */
@@ -226,10 +237,13 @@ let argDebugMode = false
 let argDatafolder = process.env.VIEB_DATAFOLDER?.trim()
     || joinPath(app.getPath("appData"), "Vieb")
 let argErwic = process.env.VIEB_ERWIC?.trim() || ""
+let argExecute = ""
+let argExecuteDur = Number(process.env.VIEB_EXECUTE_DUR?.trim() || 5000) || 5000
+let argExecuteCount = Number(process.env.VIEB_EXECUTE_COUNT?.trim() || 1) || 1
 let argWindowFrame = isTruthyArg(process.env.VIEB_WINDOW_FRAME)
 let argConfigOrder = process.env.VIEB_CONFIG_ORDER?.trim().toLowerCase()
     || "user-first"
-let argConfigOverride = process.env.VIEB_CONFIG_FILE?.trim().toLowerCase() || ""
+let argConfigOverride = process.env.VIEB_CONFIG_FILE?.trim() || ""
 let argMediaKeys = isTruthyArg(process.env.VIEB_MEDIA_KEYS)
 if (!process.env.VIEB_MEDIA_KEYS) {
     argMediaKeys = true
@@ -240,6 +254,8 @@ let argAcceleration = process.env.VIEB_ACCELERATION?.trim().toLowerCase()
     || "hardware"
 let argInterfaceScale = Number(
     process.env.VIEB_INTERFACE_SCALE?.trim() || 1.0) || 1.0
+let argDevtoolsTheme = process.env.VIEB_DEVTOOLS_THEME?.trim().toLowerCase()
+    || "system"
 let argUnsafeMultiwin = isTruthyArg(process.env.VIEB_UNSAFE_MULTIWIN)
 /** @type {string|null} */
 let customIcon = null
@@ -259,6 +275,19 @@ args.forEach(a => {
         } else if (arg === "--erwic") {
             console.warn("The 'erwic' argument requires a value such as:"
                 + " --erwic=~/.config/Erwic/\n")
+            printUsage()
+        } else if (arg === "--execute") {
+            console.warn("The 'execute' argument requires a value such as:"
+                + " --execute=\"echo <useCurrentUrl>\"\n")
+            printUsage()
+        } else if (arg === "--execute-dur") {
+            console.warn("The 'execute-dur' argument requires a value such as:"
+                + " --execute-dur=5000\n")
+            printUsage()
+        } else if (arg === "--execute-count") {
+            console.warn(
+                "The 'execute-count' argument requires a value such as:"
+                + " --execute-count=1\n")
             printUsage()
         } else if (arg === "--config-order") {
             console.warn("The 'config-order' argument requires a value such as:"
@@ -292,6 +321,12 @@ args.forEach(a => {
             argDatafolder = arg.split("=").slice(1).join("=")
         } else if (arg.startsWith("--erwic=")) {
             argErwic = arg.split("=").slice(1).join("=")
+        } else if (arg.startsWith("--execute=")) {
+            argExecute = arg.split("=").slice(1).join("=")
+        } else if (arg.startsWith("--execute-dur=")) {
+            argExecuteDur = Number(arg.split("=").slice(1).join("="))
+        } else if (arg.startsWith("--execute-count=")) {
+            argExecuteCount = Number(arg.split("=").slice(1).join("="))
         } else if (arg.startsWith("--config-order=")) {
             argConfigOrder = arg.split("=").slice(1).join("=")
         } else if (arg.startsWith("--config-file=")) {
@@ -306,6 +341,8 @@ args.forEach(a => {
             argAcceleration = arg.split("=").slice(1).join("=").toLowerCase()
         } else if (arg.startsWith("--interface-scale")) {
             argInterfaceScale = Number(arg.split("=").slice(1).join("="))
+        } else if (arg.startsWith("--devtools-theme=")) {
+            argDevtoolsTheme = arg.split("=").slice(1).join("=").toLowerCase()
         } else if (arg.startsWith("--unsafe-multiwin=")) {
             argUnsafeMultiwin = isTruthyArg(arg.split("=").slice(1).join("="))
         } else {
@@ -324,6 +361,13 @@ if (argAutoplayMedia !== "user" && argAutoplayMedia !== "always") {
 if (argAcceleration !== "hardware" && argAcceleration !== "software") {
     console.warn("The 'acceleration' argument only accepts:\n"
         + "'hardware' or 'software'\n")
+    printUsage()
+}
+const validThemeColors = ["system", "dark", "light"]
+if (!validThemeColors.includes(argDevtoolsTheme)) {
+    console.warn(`The 'devtools-theme' argument only accepts:\n${
+        validThemeColors.slice(0, -1).map(c => `'${c}'`).join(", ")} or '${
+        validThemeColors.slice(-1)[0]}'\n`)
     printUsage()
 }
 if (!argDatafolder.trim()) {
@@ -353,13 +397,71 @@ if (argAcceleration === "software") {
     app.disableHardwareAcceleration()
 }
 if (isNaN(argInterfaceScale) || argInterfaceScale <= 0) {
-    console.warn("The 'interface-scale' argument only accepts positive numbers")
+    console.warn(
+        "The 'interface-scale' argument only accepts positive numbers\n")
     printUsage()
 }
 if (argInterfaceScale !== 1) {
     app.commandLine.appendSwitch(
         "force-device-scale-factor", `${argInterfaceScale}`)
 }
+if (isNaN(argExecuteDur) || argExecuteDur < 0) {
+    console.warn("The 'execute-dur' argument only accepts positive numbers\n")
+    printUsage()
+}
+if (isNaN(argExecuteCount) || argExecuteCount < 0) {
+    console.warn("The 'execute-count' argument only accepts positive numbers\n")
+    printUsage()
+}
+if (argExecuteDur === 0 && argExecuteCount === 0) {
+    console.warn(
+        "The 'execute-dur' and 'execute-count' arguments cannot both be zero\n")
+    printUsage()
+}
+if (urls.length && argExecute) {
+    console.warn(
+        "The 'execute' argument cannot be combined with opening urls\n")
+    printUsage()
+}
+
+/**
+ * Apply some basic settings to the chromium devtools.
+ * @param {string} prefFile
+ * @param {boolean} undock
+ */
+const applyDevtoolsSettings = (prefFile, undock = true) => {
+    makeDir(dirname(prefFile))
+    const preferences = readJSON(prefFile) || {}
+    preferences.electron ||= {}
+    preferences.electron.devtools ||= {}
+    preferences.electron.devtools.preferences ||= {}
+    // Disable source maps as they leak internal structure to the webserver
+    preferences.electron.devtools.preferences.cssSourceMapsEnabled = "false"
+    preferences.electron.devtools.preferences.jsSourceMapsEnabled = "false"
+    // Undock main process devtools to prevent window size issues
+    if (undock) {
+        preferences.electron.devtools.preferences.
+            currentDockState = `"undocked"`
+    }
+    // Disable release notes, most are not relevant for Vieb
+    preferences.electron.devtools.preferences[
+        "help.show-release-note"] = "false"
+    // Show timestamps in the console
+    preferences.electron.devtools.preferences.consoleTimestampsEnabled = "true"
+    // Disable the paused overlay which prevents interaction with other pages
+    preferences.electron.devtools.preferences.disablePausedStateOverlay = "true"
+    // Style the devtools based on the system theme
+    let theme = `"dark"`
+    if (argDevtoolsTheme === "light") {
+        theme = `"light"`
+    }
+    if (argDevtoolsTheme === "system" && !nativeTheme.shouldUseDarkColors) {
+        theme = `"light"`
+    }
+    preferences.electron.devtools.preferences.uiTheme = theme
+    writeJSON(prefFile, preferences)
+}
+
 // https://github.com/electron/electron/issues/30201
 if (argMediaKeys) {
     app.commandLine.appendSwitch("disable-features", "UserAgentClientHint")
@@ -602,7 +704,7 @@ const permissionHandler = (_, pm, callback, details) => {
                 `Automatic domain caching rule for '${permission}' activated `
                 + `at '${details.requestingUrl}' which was allowed, because `
                 + `this same certificate was allowed before on this domain`,
-                "perm")
+                {"src": "user", "type": "perm"})
             callback(true)
             return true
         }
@@ -682,11 +784,12 @@ const permissionHandler = (_, pm, callback, details) => {
                 mainWindow.webContents.send("notify",
                     `Ask rule for '${permission}' activated at '`
                     + `${details.requestingUrl}' which was ${action}ed by user`,
-                    "perm")
+                    {"src": "user", "type": "perm"})
             } else {
                 mainWindow.webContents.send("notify",
                     `Manually ${action}ed '${permission}' at `
-                    + `'${details.requestingUrl}'`, "perm")
+                    + `'${details.requestingUrl}'`,
+                    {"src": "user", "type": "perm"})
             }
             const allow = action === "allow"
             const canSave = !allow || permission !== "displaycapture"
@@ -710,12 +813,12 @@ const permissionHandler = (_, pm, callback, details) => {
             mainWindow.webContents.send("notify",
                 `Automatic rule for '${permission}' activated at `
                 + `'${details.requestingUrl}' which was ${setting}ed`,
-                "perm")
+                {"src": "user", "type": "perm"})
         } else {
             mainWindow.webContents.send("notify",
                 `Globally ${setting}ed '${permission}' at `
                 + `'${details.requestingUrl}' based on '${permissionName}'`,
-                "perm")
+                {"src": "user", "type": "perm"})
         }
         const allow = setting === "allow"
         if (permission === "certificateerror" && allow) {
@@ -732,10 +835,29 @@ const permissionHandler = (_, pm, callback, details) => {
 
 app.on("ready", () => {
     app.userAgentFallback = defaultUseragent()
+    const executeOut = joinPath(app.getPath("appData"), ".tmp-execute-output")
+    deleteFile(executeOut)
     if (!argUnsafeMultiwin) {
-        if (app.requestSingleInstanceLock({"argv": args})) {
+        /** @type {{argv?: string[], command?: string}} */
+        let secondInstanceArgs = {"argv": args}
+        if (argExecute) {
+            secondInstanceArgs = {"command": argExecute}
+        }
+        if (app.requestSingleInstanceLock(secondInstanceArgs)) {
+            if (argExecute) {
+                console.info("Execute arg only works if Vieb is "
+                    + "already running in this datafolder.")
+                app.exit(1)
+            }
             app.on("second-instance", (_, newArgs, cwd, extra) => {
                 if (!mainWindow) {
+                    return
+                }
+                // @ts-expect-error command might be there, if so use it
+                if (extra?.command) {
+                    mainWindow.webContents.send(
+                        // @ts-expect-error command might be there, if so use it
+                        "execute-command", extra?.command)
                     return
                 }
                 if (mainWindow.isMinimized()) {
@@ -746,10 +868,42 @@ app.on("ready", () => {
                     // @ts-expect-error argv might be there, if so use it
                     extra?.argv || getArguments(newArgs), cwd))
             })
-        } else {
+        } else if (!argExecute) {
             console.info(`Sending urls to existing instance ${argDatafolder}`)
             app.exit(0)
         }
+    }
+    if (argExecute) {
+        if (argExecuteDur) {
+            setTimeout(() => {
+                const fileContents = readFile(executeOut)
+                const parts = fileContents?.split("\t\t\t") ?? []
+                if (parts.at(-1) === "") {
+                    parts.pop()
+                }
+                if (fileContents !== null && parts.length) {
+                    console.info(parts.join("\n"))
+                }
+                deleteFile(executeOut)
+                process.exit(0)
+            }, argExecuteDur)
+        }
+        watchFile(executeOut, info => {
+            if (info.blksize > 0 || info.size > 0) {
+                const fileContents = readFile(executeOut)
+                const parts = fileContents?.split("\t\t\t") ?? []
+                if (parts.at(-1) === "") {
+                    parts.pop()
+                }
+                if (fileContents !== null && argExecuteCount
+                    && parts.length >= argExecuteCount) {
+                    console.info(parts.join("\n"))
+                    deleteFile(executeOut)
+                    process.exit(0)
+                }
+            }
+        })
+        return
     }
     app.on("open-file", (_, url) => mainWindow?.webContents.send("urls",
         resolveLocalPaths([url])))
@@ -1047,7 +1201,8 @@ const dlsFile = joinPath(app.getPath("appData"), "dls")
  *   downloadmethod?: string,
  *   downloadpath: string,
  *   cleardownloadsonquit?: boolean,
- *   cleardownloadsoncompleted?: boolean
+ *   cleardownloadsoncompleted?: boolean,
+ *   src?: import("./renderer/common").RunSource
  * }} */
 let downloadSettings = {"downloadpath": app.getPath("downloads")}
 /** @typedef {{
@@ -1057,7 +1212,7 @@ let downloadSettings = {"downloadpath": app.getPath("downloads")}
  *   name: string,
  *   item: Electron.DownloadItem
  *   state: string,
- *   total: number
+ *   total: number,
  *   url: string
  * }} downloadItem
  */
@@ -1104,7 +1259,8 @@ ipcMain.on("open-download", (_, location) => shell.openPath(location))
  *   downloadmethod: string,
  *   downloadpath: string,
  *   cleardownloadsonquit: boolean,
- *   cleardownloadsoncompleted: boolean
+ *   cleardownloadsoncompleted: boolean,
+ *   src: import("./renderer/common").RunSource
  * }} settings
  */
 const setDownloadSettings = (_, settings) => {
@@ -1289,7 +1445,8 @@ const reloadAdblocker = () => {
     }
     if (!ElectronBlocker || !isFile(adblockerPreload)) {
         mainWindow?.webContents.send("notify",
-            "Adblocker module not present, ads will not be blocked!", "err")
+            "Adblocker module not present, ads will not be blocked!",
+            {"src": "user", "type": "err"})
         return
     }
     blocker = ElectronBlocker.parse(filters)
@@ -1334,7 +1491,8 @@ const enableAdblocker = type => {
                 continue
             }
             mainWindow?.webContents.send("notify",
-                `Updating ${list} to the latest version`)
+                `Updating ${list} to the latest version`,
+                {"src": "user"})
             session.fromPartition("persist:main")
             const request = net.request({"partition": "persist:main", url})
             request.on("response", res => {
@@ -1344,16 +1502,18 @@ const enableAdblocker = type => {
                     reloadAdblocker()
                     mainWindow?.webContents.send("notify",
                         `Updated and reloaded the latest ${list} successfully`,
-                        "suc")
+                        {"src": "user", "type": "suc"})
                 })
                 res.on("data", chunk => {
                     body += chunk
                 })
             })
             request.on("abort", () => mainWindow?.webContents.send("notify",
-                `Failed to update ${list}: Request aborted`, "err"))
+                `Failed to update ${list}: Request aborted`,
+                {"src": "user", "type": "err"}))
             request.on("error", e => mainWindow?.webContents.send("notify",
-                `Failed to update ${list}:\n${e.message}`, "err"))
+                `Failed to update ${list}:\n${e.message}`,
+                {"src": "user", "type": "err"}))
             request.end()
         }
     } else {
@@ -1541,7 +1701,12 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             "url": item.getURL()
         }
         downloads.push(info)
-        mainWindow.webContents.send("notify", `Download started:\n${info.name}`)
+        const downloadSrc = downloadSettings.src
+        if (downloadSrc === "execute") {
+            downloadSettings.src = "user"
+        }
+        mainWindow.webContents.send("notify",
+            `Download started:\n${info.name}`, {"src": downloadSrc})
         item.on("updated", (__, state) => {
             try {
                 info.current = item.getReceivedBytes()
@@ -1569,12 +1734,16 @@ ipcMain.on("create-session", (_, name, adblock, cache) => {
             }
             if (info.state === "completed") {
                 mainWindow?.webContents.send("notify",
-                    `Download finished:\n${info.name}`, "success", {
-                        "path": info.file, "type": "download-success"
+                    `Download finished:\n${info.name}`, {
+                        "action": {
+                            "path": info.file, "type": "download-success"
+                        },
+                        "src": downloadSrc
                     })
             } else {
                 mainWindow?.webContents.send("notify",
-                    `Download failed:\n${info.name}`, "warn")
+                    `Download failed:\n${info.name}`,
+                    {"src": downloadSrc, "type": "warn"})
             }
         })
     })

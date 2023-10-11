@@ -64,15 +64,18 @@ const {
 
 /**
  * List a specific setting, all of them or show the warning regarding name.
+ * @param {import("./common").RunSource} src
  * @param {keyof typeof import("./settings").defaultSettings|"all"} setting
  */
-const listSetting = setting => {
+const listSetting = (src, setting) => {
     if (setting === "all") {
         const {listCurrentSettings} = require("./settings")
-        notify(`--- Options ---\n${listCurrentSettings(true)}`)
+        notify(`--- Options ---\n${listCurrentSettings(true)}`, {src})
         return
     }
-    notify(`The setting '${setting}' has the value '${getSetting(setting)}'`)
+    notify(`The setting '${setting}' has the value '${getSetting(setting)}'`, {
+        src
+    })
 }
 
 /**
@@ -98,11 +101,12 @@ const isValidSettingName = name => {
 
 /**
  * Modifiy a list or a number.
+ * @param {import("./common").RunSource} src
  * @param {keyof typeof import("./settings").defaultSettings} setting
  * @param {string} value
  * @param {"append"|"remove"|"special"} method
  */
-const modifyListOrNumber = (setting, value, method) => {
+const modifyListOrNumber = (src, setting, value, method) => {
     const {
         freeText, listLike, listLikeTilde, set, isNumberSetting
     } = require("./settings")
@@ -112,21 +116,22 @@ const modifyListOrNumber = (setting, value, method) => {
     const isListLikeTilde = listLikeTilde.includes(setting)
     if (!isNumber && !isFreeText && !isListLike && !listLikeTilde) {
         notify(
-            `Can't modify '${setting}' as if it were a number or list`, "warn")
+            `Can't modify '${setting}' as if it were a number or list`,
+            {src, "type": "warn"})
         return
     }
     if (method === "append") {
         if (isListLike) {
-            set(setting, `${getSetting(setting)},${value}`)
+            set(src, setting, `${getSetting(setting)},${value}`)
         }
         if (isListLikeTilde) {
-            set(setting, `${getSetting(setting)}~${value}`)
+            set(src, setting, `${getSetting(setting)}~${value}`)
         }
         if (isNumber) {
-            set(setting, getSetting(setting) + Number(value))
+            set(src, setting, getSetting(setting) + Number(value))
         }
         if (isFreeText) {
-            set(setting, getSetting(setting) + value)
+            set(src, setting, getSetting(setting) + value)
         }
     }
     if (method === "remove") {
@@ -141,86 +146,94 @@ const modifyListOrNumber = (setting, value, method) => {
                 newValue = current.filter(
                     e => e.split("~")[0] !== value.split("~")[0]).join(",")
             }
-            set(setting, newValue)
+            set(src, setting, newValue)
         }
         if (isListLikeTilde) {
             const current = String(getSetting(setting)).split("~")
             const newValue = current.filter(e => e && e !== value).join("~")
-            set(setting, newValue)
+            set(src, setting, newValue)
         }
         if (isNumber) {
-            set(setting, getSetting(setting) - Number(value))
+            set(src, setting, getSetting(setting) - Number(value))
         }
         if (isFreeText) {
-            set(setting, String(getSetting(setting)).replace(value, ""))
+            set(src, setting, String(getSetting(setting)).replace(value, ""))
         }
     }
     if (method === "special") {
         if (isListLike) {
-            set(setting, `${value},${getSetting(setting)}`)
+            set(src, setting, `${value},${getSetting(setting)}`)
         }
         if (isListLikeTilde) {
-            set(setting, `${value}~${getSetting(setting)}`)
+            set(src, setting, `${value}~${getSetting(setting)}`)
         }
         if (isNumber) {
-            set(setting, getSetting(setting) * Number(value))
+            set(src, setting, getSetting(setting) * Number(value))
         }
         if (isFreeText) {
-            set(setting, value + getSetting(setting))
+            set(src, setting, value + getSetting(setting))
         }
     }
 }
 
 /**
  * Use the set command to list or modify any setting.
+ * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const set = args => {
+const setCommand = (src, args) => {
     if (args.length === 0) {
         const {listCurrentSettings} = require("./settings")
         const allChanges = listCurrentSettings()
         if (allChanges) {
-            notify(`--- Options ---\n${allChanges}`)
+            notify(`--- Options ---\n${allChanges}`, {src})
         } else {
-            notify("No settings have been changed compared to the default")
+            notify("No settings have been changed compared to the default",
+                {src})
         }
         return
     }
-    const {"set": s} = require("./settings")
+    const {set} = require("./settings")
     for (const part of args) {
         if ((/^\w+\+=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "+=")
             if (isValidSettingName(setting) && setting !== "all") {
-                modifyListOrNumber(setting, value, "append")
+                modifyListOrNumber(src, setting, value, "append")
             } else {
-                notify(`The setting '${setting}' doesn't exist`, "warn")
+                notify(`The setting '${setting}' doesn't exist`,
+                    {src, "type": "warn"})
             }
         } else if ((/^\w+-=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "-=")
             if (isValidSettingName(setting) && setting !== "all") {
-                modifyListOrNumber(setting, value, "remove")
+                modifyListOrNumber(src, setting, value, "remove")
             } else {
-                notify(`The setting '${setting}' doesn't exist`, "warn")
+                notify(`The setting '${setting}' doesn't exist`,
+                    {src, "type": "warn"})
             }
         } else if ((/^\w+\^=/).test(part)) {
             const [setting, value] = splitSettingAndValue(part, "^=")
             if (isValidSettingName(setting) && setting !== "all") {
-                modifyListOrNumber(setting, value, "special")
+                modifyListOrNumber(src, setting, value, "special")
             } else {
-                notify(`The setting '${setting}' doesn't exist`, "warn")
+                notify(`The setting '${setting}' doesn't exist`,
+                    {src, "type": "warn"})
             }
         } else if ((/^\w+=/).test(part)) {
-            s(...splitSettingAndValue(part, "="))
+            const [setting, value] = splitSettingAndValue(part, "=")
+            set(src, setting, value)
         } else if ((/^\w+:/).test(part)) {
-            s(...splitSettingAndValue(part, ":"))
+            const [setting, value] = splitSettingAndValue(part, ":")
+            set(src, setting, value)
         } else if ((/^\w+!.+/).test(part)) {
             const [setting] = part.split("!")
             const values = part.split("!").slice(1).join("!").split("|")
             if (isValidSettingName(setting) && setting !== "all") {
                 const index = values.indexOf(String(getSetting(setting)))
-                s(setting, values[index + 1] || values[0])
+                set(src, setting, values[index + 1] || values[0])
             } else {
-                notify(`The setting '${setting}' doesn't exist`, "warn")
+                notify(`The setting '${setting}' doesn't exist`,
+                    {src, "type": "warn"})
             }
         } else if (part.endsWith("!")) {
             const setting = part.slice(0, -1)
@@ -228,45 +241,49 @@ const set = args => {
                 const value = getSetting(setting)
                 const {isEnumSetting, validOptions} = require("./settings")
                 if (["boolean", "undefined"].includes(typeof value)) {
-                    s(setting, String(!value))
+                    set(src, setting, String(!value))
                 } else if (isEnumSetting(setting)) {
                     const index = validOptions[setting].indexOf(String(value))
-                    s(setting, validOptions[setting][index + 1]
-                    || validOptions[setting][0])
+                    set(src, setting, validOptions[setting][index + 1]
+                        || validOptions[setting][0])
                 } else {
                     notify(
-                        `The setting '${setting}' can not be flipped`, "warn")
+                        `The setting '${setting}' can not be flipped`,
+                        {src, "type": "warn"})
                 }
             } else {
-                notify(`The setting '${setting}' doesn't exist`, "warn")
+                notify(`The setting '${setting}' doesn't exist`,
+                    {src, "type": "warn"})
             }
         } else if (part.endsWith("&")) {
             const {reset} = require("./settings")
-            reset(part.slice(0, -1))
+            reset(src, part.slice(0, -1))
         } else if (part.endsWith("?")) {
             const settingName = part.slice(0, -1)
             if (isValidSettingName(settingName)) {
-                listSetting(settingName)
+                listSetting(src, settingName)
             } else {
-                notify(`The setting '${settingName}' doesn't exist`, "warn")
+                notify(`The setting '${settingName}' doesn't exist`,
+                    {src, "type": "warn"})
             }
         } else if (isValidSettingName(part) && part !== "all"
             && typeof getSetting(part) === "boolean") {
-            s(part, "true")
+            set(src, part, "true")
         } else if (part.startsWith("inv")) {
             const settingName = part.replace("inv", "")
             if (isValidSettingName(settingName) && settingName !== "all") {
                 const value = getSetting(settingName)
                 if (typeof value === "boolean") {
-                    s(part.replace("inv", ""), String(!value))
+                    set(src, part.replace("inv", ""), String(!value))
                 } else {
                     notify(`The setting '${settingName}' can not be flipped`,
-                        "warn")
+                        {src, "type": "warn"})
                 }
             } else if (isValidSettingName(part)) {
-                listSetting(part)
+                listSetting(src, part)
             } else {
-                notify(`The setting '${part}' doesn't exist`, "warn")
+                notify(`The setting '${part}' doesn't exist`,
+                    {src, "type": "warn"})
             }
         } else if (part.startsWith("no")) {
             const settingName = part.replace("no", "")
@@ -274,23 +291,24 @@ const set = args => {
                 const value = getSetting(settingName)
                 const {listLike, listLikeTilde} = require("./settings")
                 if (typeof value === "boolean") {
-                    s(settingName, "false")
+                    set(src, settingName, "false")
                 } else if (listLike.includes(part.replace("no", ""))) {
-                    s(settingName, "")
+                    set(src, settingName, "")
                 } else if (listLikeTilde.includes(part.replace("no", ""))) {
-                    s(settingName, "")
+                    set(src, settingName, "")
                 } else {
-                    listSetting(settingName)
+                    listSetting(src, settingName)
                 }
             } else if (isValidSettingName(part)) {
-                listSetting(part)
+                listSetting(src, part)
             } else {
-                notify(`The setting '${part}' doesn't exist`, "warn")
+                notify(`The setting '${part}' doesn't exist`,
+                    {src, "type": "warn"})
             }
         } else if (isValidSettingName(part)) {
-            listSetting(part)
+            listSetting(src, part)
         } else {
-            notify(`The setting '${part}' doesn't exist`, "warn")
+            notify(`The setting '${part}' doesn't exist`, {src, "type": "warn"})
         }
     }
 }
@@ -300,13 +318,14 @@ const sourcedFiles = []
 
 /**
  * Source a specific viebrc file.
+ * @param {import("./common").RunSource} src
  * @param {string|null} origin
  * @param {string[]} args
  */
-const source = (origin, args) => {
+const source = (src, origin, args) => {
     if (args.length !== 1) {
         notify("Source requires exactly argument representing the filename",
-            "warn")
+            {src, "type": "warn"})
         return
     }
     let [absFile] = args
@@ -316,28 +335,30 @@ const source = (origin, args) => {
             absFile = joinPath(dirname(origin), absFile)
         } else {
             notify("Filename must be absolute when sourcing files at runtime",
-                "err")
+                {src, "type": "err"})
             return
         }
     }
     if (absFile === origin) {
-        notify("Recursive sourcing of files is not supported", "err")
+        notify("Recursive sourcing of files is not supported",
+            {src, "type": "err"})
         return
     }
     if ([
         appConfig()?.override, ...appConfig()?.files ?? []
     ].includes(absFile)) {
         notify("It's not possible to source a file that is loaded on startup",
-            "err")
+            {src, "type": "err"})
         return
     }
     if (!isFile(absFile)) {
-        notify("Specified file could not be found", "err")
+        notify("Specified file could not be found", {src, "type": "err"})
         return
     }
     const parsed = readFile(absFile)
     if (!parsed) {
-        notify(`Read error for config file located at '${absFile}'`, "err")
+        notify(`Read error for config file located at '${absFile}'`,
+            {src, "type": "err"})
         return
     }
     if (origin) {
@@ -346,7 +367,7 @@ const source = (origin, args) => {
     for (const line of parsed.split("\n")) {
         if (line && !line.trim().startsWith("\"")) {
             /* eslint-disable-next-line no-use-before-define */
-            execute(line, absFile)
+            execute(line, {"settingsFile": absFile, "src": "source"})
         }
     }
 }
@@ -436,10 +457,11 @@ const translateRangePosToIdx = (start, rangePart) => {
 
 /**
  * Get the tab indices for a given range.
+ * @param {import("./common").RunSource} src
  * @param {string} range
  * @param {boolean} silent
  */
-const rangeToTabIdxs = (range, silent = false) => {
+const rangeToTabIdxs = (src, range, silent = false) => {
     if (range === "%") {
         return listTabs().map((_, i) => i)
     }
@@ -447,28 +469,32 @@ const rangeToTabIdxs = (range, silent = false) => {
         const [start, end, tooManyArgs] = range.split(",")
         if (tooManyArgs !== undefined) {
             if (!silent) {
-                notify("Too many commas in range, at most 1 is allowed", "warn")
+                notify("Too many commas in range, at most 1 is allowed",
+                    {src, "type": "warn"})
             }
             return []
         }
         if (start.match(/^.*g.*\/.*\/[-+]?\d?$/) || end.match(/^.*g.*\/.*\/[-+]?\d?$/)) {
             if (!silent) {
                 notify("Can't combine global search with 2 indexes, either supp"
-                    + "ly two indexes/searches OR use a global search", "warn")
+                    + "ly two indexes/searches OR use a global search",
+                {src, "type": "warn"})
             }
             return []
         }
         const startPos = translateRangePosToIdx(0, start)
         if (isNaN(startPos)) {
             if (!silent) {
-                notify(`Range section '${start}' is not a valid range`, "warn")
+                notify(`Range section '${start}' is not a valid range`,
+                    {src, "type": "warn"})
             }
             return []
         }
         const endPos = translateRangePosToIdx(startPos, end)
         if (isNaN(endPos)) {
             if (!silent) {
-                notify(`Range section '${end}' is not a valid range`, "warn")
+                notify(`Range section '${end}' is not a valid range`,
+                    {src, "type": "warn"})
             }
             return []
         }
@@ -656,16 +682,17 @@ const quitall = () => {
 
 /**
  * Quit the current split, a range of splits or the browser if not using splits.
- * @param {string|null} range
+ * @param {import("./common").RunSource} src
+ * @param {string} range
  */
-const quit = (range = null) => {
+const quit = (src, range) => {
     const {closeTab} = require("./tabs")
     if (range) {
-        rangeToTabIdxs(range).forEach(t => closeTab(t))
+        rangeToTabIdxs(src, range).forEach(t => closeTab(src, t))
         return
     }
     if (document.getElementById("tabs")?.classList.contains("multiple")) {
-        closeTab()
+        closeTab(src)
     } else {
         quitall()
     }
@@ -675,17 +702,18 @@ let currentscheme = "default"
 
 /**
  * Set the colorscheme by name or log the current one if no name provided.
+ * @param {import("./common").RunSource} src
  * @param {string|null} name
  * @param {string|null} trailingArgs
  */
-const colorscheme = (name = null, trailingArgs = null) => {
+const colorscheme = (src, name = null, trailingArgs = null) => {
     if (trailingArgs) {
         notify("The colorscheme command takes a single optional argument",
-            "warn")
+            {src, "type": "warn"})
         return
     }
     if (!name) {
-        notify(currentscheme)
+        notify(currentscheme, {src})
         return
     }
     let css = readFile(expandPath(`~/.vieb/colors/${name}.css`))
@@ -696,7 +724,7 @@ const colorscheme = (name = null, trailingArgs = null) => {
         css = readFile(joinPath(__dirname, `../colors/${name}.css`))
     }
     if (!css) {
-        notify(`Cannot find colorscheme '${name}'`, "warn")
+        notify(`Cannot find colorscheme '${name}'`, {src, "type": "warn"})
         return
     }
     if (name === "default") {
@@ -725,13 +753,14 @@ const restart = () => {
 
 /**
  * Open the development tools.
+ * @param {import("./common").RunSource} src
  * @param {string|null} userPosition
  * @param {string|null} trailingArgs
  */
-const openDevTools = (userPosition = null, trailingArgs = null) => {
+const openDevTools = (src, userPosition = null, trailingArgs = null) => {
     if (trailingArgs) {
         notify("The devtools command takes a single optional argument",
-            "warn")
+            {src, "type": "warn"})
         return
     }
     const position = userPosition || getSetting("devtoolsposition")
@@ -740,22 +769,22 @@ const openDevTools = (userPosition = null, trailingArgs = null) => {
     if (position === "window") {
         currentPage()?.openDevTools()
     } else if (position === "tab") {
-        addTab({"devtools": true})
+        addTab({"devtools": true, src})
     } else if (position === "vsplit") {
         const id = currentTab()?.getAttribute("link-id")
         if (id) {
-            addTab({"devtools": true})
+            addTab({"devtools": true, src})
             add(id, "hor", getSetting("splitright"))
         }
     } else if (position === "split") {
         const id = currentTab()?.getAttribute("link-id")
         if (id) {
-            addTab({"devtools": true})
+            addTab({"devtools": true, src})
             add(id, "ver", getSetting("splitbelow"))
         }
     } else {
         notify(`Invalid devtools position '${position}' specified, must be one`
-            + " of: window, vsplit, split or tab", "warn")
+            + " of: window, vsplit, split or tab", {src, "type": "warn"})
     }
 }
 
@@ -766,11 +795,12 @@ const openInternalDevTools = () => {
 
 /**
  * Open a special page using commands.
+ * @param {import("./common").RunSource} src
  * @param {string} specialPage
  * @param {boolean} forceNewtab
  * @param {string|null} section
  */
-const openSpecialPage = (specialPage, forceNewtab, section = null) => {
+const openSpecialPage = (src, specialPage, forceNewtab, section = null) => {
     const newSpecialUrl = specialPagePath(specialPage, section)
     const url = currentPage()?.src
     const currentSpecial = pathToSpecialPageName(url ?? "")?.name
@@ -780,30 +810,32 @@ const openSpecialPage = (specialPage, forceNewtab, section = null) => {
     const replaceSpecial = getSetting("replacespecial")
     const {navigateTo, addTab} = require("./tabs")
     if (replaceSpecial === "never" || forceNewtab || !currentPage()) {
-        addTab({"url": newSpecialUrl})
+        addTab({src, "url": newSpecialUrl})
     } else if (replaceSpecial === "always") {
-        navigateTo(newSpecialUrl)
+        navigateTo(src, newSpecialUrl)
     } else if (replaceSpecial === "special" && (currentSpecial || isNewtab)) {
-        navigateTo(newSpecialUrl)
+        navigateTo(src, newSpecialUrl)
     } else if (currentSpecial === "newtab" && isNewtab) {
-        navigateTo(newSpecialUrl)
+        navigateTo(src, newSpecialUrl)
     } else {
-        addTab({"url": newSpecialUrl})
+        addTab({src, "url": newSpecialUrl})
     }
 }
 
 /**
  * Open the help page at a specific section.
+ * @param {import("./common").RunSource} src
  * @param {boolean} forceNewtab
  * @param {string|null} section
  * @param {boolean} trailingArgs
  */
-const help = (forceNewtab, section = null, trailingArgs = false) => {
+const help = (src, forceNewtab, section = null, trailingArgs = false) => {
     if (trailingArgs) {
-        notify("The help command takes a single optional argument", "warn")
+        notify("The help command takes a single optional argument",
+            {src, "type": "warn"})
         return
     }
-    openSpecialPage("help", forceNewtab, section)
+    openSpecialPage(src, "help", forceNewtab, section)
 }
 
 /** Source the startup configs again to reload the config. */
@@ -814,11 +846,12 @@ const reloadconfig = () => {
 
 /**
  * Make a hardcopy print of a page, optionally for a range of pages.
+ * @param {import("./common").RunSource} src
  * @param {string} range
  */
-const hardcopy = range => {
+const hardcopy = (src, range) => {
     if (range) {
-        rangeToTabIdxs(range).forEach(t => {
+        rangeToTabIdxs(src, range).forEach(t => {
             const page = pageForTab(listTabs()[t])
             if (!(page instanceof HTMLDivElement)) {
                 page?.send("action", "print")
@@ -831,11 +864,12 @@ const hardcopy = range => {
 
 /**
  * Resolve file arguments to an absolute path with fixed type extension.
+ * @param {import("./common").RunSource} src
  * @param {string|null} locationArg
  * @param {string} type
  * @param {Electron.WebviewTag|null} customPage
  */
-const resolveFileArg = (locationArg, type, customPage = null) => {
+const resolveFileArg = (src, locationArg, type, customPage = null) => {
     const page = customPage || currentPage()
     const tab = tabForPage(page)
     const name = `${tab?.querySelector("span")?.textContent?.replace(
@@ -855,7 +889,8 @@ const resolveFileArg = (locationArg, type, customPage = null) => {
             file = joinPath(`${file}${pathSep}`, name)
         }
         if (!isDir(dirname(file))) {
-            notify(`Folder '${dirname(file)}' does not exist!`, "warn")
+            notify(`Folder '${dirname(file)}' does not exist!`,
+                {src, "type": "warn"})
             return
         }
         loc = file
@@ -868,10 +903,11 @@ const resolveFileArg = (locationArg, type, customPage = null) => {
 
 /**
  * Write the html of a page to disk based on tab index or current.
+ * @param {import("./common").RunSource} src
  * @param {string|null} customLoc
  * @param {number|null} tabIdx
  */
-const writePage = (customLoc = null, tabIdx = null) => {
+const writePage = (src, customLoc = null, tabIdx = null) => {
     /** @type {Electron.WebviewTag|HTMLDivElement|null} */
     let page = currentPage()
     if (tabIdx !== null) {
@@ -880,38 +916,40 @@ const writePage = (customLoc = null, tabIdx = null) => {
     if (!page || page instanceof HTMLDivElement) {
         return
     }
-    const loc = resolveFileArg(customLoc, "html", page)
+    const loc = resolveFileArg(src, customLoc, "html", page)
     if (!loc) {
         return
     }
     const webContentsId = page.getWebContentsId()
     ipcRenderer.invoke("save-page", webContentsId, loc).then(() => {
-        notify(`Page saved at '${loc}'`)
+        notify(`Page saved at '${loc}'`, {src})
     }).catch(err => {
-        notify(`Could not save the page:\n${err}`, "err")
+        notify(`Could not save the page:\n${err}`, {src, "type": "err"})
     })
 }
 
 /**
  * Write the html of a page to disk, optionally a range of pages at custom loc.
+ * @param {import("./common").RunSource} src
  * @param {string[]} args
  * @param {string} range
  */
-const write = (args, range) => {
+const write = (src, args, range) => {
     if (args.length > 1) {
         notify("The write command takes only a single optional argument:\n"
-            + "the location where to write the page", "warn")
+            + "the location where to write the page", {src, "type": "warn"})
         return
     }
     if (range && args[0]) {
-        notify("Range cannot be combined with a custom location", "warn")
+        notify("Range cannot be combined with a custom location",
+            {src, "type": "warn"})
         return
     }
     if (range) {
-        rangeToTabIdxs(range).forEach(t => writePage(null, t))
+        rangeToTabIdxs(src, range).forEach(t => writePage(src, null, t))
         return
     }
-    writePage(args[0])
+    writePage(src, args[0])
 }
 
 /**
@@ -948,17 +986,18 @@ const translateDimsToRect = dims => {
 
 /**
  * Copy the current page screen to the clipboard, optionally with custom dims.
+ * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const screencopy = args => {
+const screencopy = (src, args) => {
     if (args.length > 1) {
         notify("The screencopy command only accepts optional dimensions",
-            "warn")
+            {src, "type": "warn"})
         return
     }
     if (args[0] && !args[0].match(/^\d+,\d+,\d+,\d+$/g)) {
         notify("Dimensions must match 'width,height,x,y' with round numbers",
-            "warn")
+            {src, "type": "warn"})
         return
     }
     if (!currentPage()) {
@@ -975,31 +1014,37 @@ const screencopy = args => {
 
 /**
  * Write the actual page to disk based on dims and location.
+ * @param {import("./common").RunSource} src
  * @param {string} dims
  * @param {string} location
  */
-const takeScreenshot = (dims, location) => {
+const takeScreenshot = (src, dims, location) => {
     const rect = translateDimsToRect(dims)
-    const loc = resolveFileArg(location, "png", currentPage())
+    const loc = resolveFileArg(src, location, "png", currentPage())
     if (!loc) {
         return
     }
     setTimeout(() => {
         currentPage()?.capturePage(rect).then(img => {
-            writeFile(loc, img.toPNG(), "Something went wrong saving the image",
-                `Screenshot saved at ${loc}`)
+            writeFile(loc, img.toPNG(), {
+                "err": "Something went wrong saving the image",
+                src,
+                "success": `Screenshot saved at ${loc}`
+            })
         })
     }, 20)
 }
 
 /**
  * Write the current page screen a location, optionally with custom dims.
+ * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const screenshot = args => {
+const screenshot = (src, args) => {
     if (args.length > 2) {
         notify("The screenshot command takes only two optional arguments:\nthe "
-            + "location where to write the image and the dimensions", "warn")
+            + "location where to write the image and the dimensions",
+        {src, "type": "warn"})
         return
     }
     let [dims, location] = args
@@ -1008,21 +1053,23 @@ const screenshot = args => {
     }
     if (dims && !dims.match(/^\d+,\d+,\d+,\d+$/g)) {
         notify("Dimensions must match 'width,height,x,y' with round numbers",
-            "warn")
+            {src, "type": "warn"})
         return
     }
-    takeScreenshot(dims, location)
+    takeScreenshot(src, dims, location)
 }
 
 /**
  * Make a custom viebrc config based on current settings.
+ * @param {import("./common").RunSource} src
  * @param {string|null} full
  * @param {boolean} trailingArgs
  */
-const mkviebrc = (full = null, trailingArgs = false) => {
+const mkviebrc = (src, full = null, trailingArgs = false) => {
     if (trailingArgs) {
         notify(
-            "The mkviebrc command takes a single optional argument", "warn")
+            "The mkviebrc command takes a single optional argument",
+            {src, "type": "warn"})
         return
     }
     let exportAll = false
@@ -1031,19 +1078,21 @@ const mkviebrc = (full = null, trailingArgs = false) => {
             exportAll = true
         } else {
             notify(
-                "The only optional argument supported is: 'full'", "warn")
+                "The only optional argument supported is: 'full'",
+                {src, "type": "warn"})
             return
         }
     }
     const {saveToDisk} = require("./settings")
-    saveToDisk(exportAll)
+    saveToDisk(src, exportAll)
 }
 
 /**
  * Buffer switch command, switch pages based on arguments.
+ * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const buffer = args => {
+const buffer = (src, args) => {
     if (args.length === 0) {
         return
     }
@@ -1053,34 +1102,36 @@ const buffer = args => {
         switchToTab(tab)
     } else {
         const {navigateTo} = require("./tabs")
-        navigateTo(stringToUrl(args.join(" ")))
+        navigateTo(src, stringToUrl(args.join(" ")))
     }
 }
 
 /**
  * Open command, navigate to a url by argument, mostly useful for mappings.
+ * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const open = args => {
+const open = (src, args) => {
     if (args.length === 0) {
         return
     }
     const {navigateTo} = require("./tabs")
-    navigateTo(stringToUrl(args.join(" ")))
+    navigateTo(src, stringToUrl(args.join(" ")))
 }
 
 /**
  * Suspend a page or a range of pages.
+ * @param {import("./common").RunSource} src
  * @param {string[]} args
  * @param {string|null} range
  */
-const suspend = (args, range = null) => {
+const suspend = (src, args, range = null) => {
     if (range && args.length) {
-        notify("Range cannot be combined with searching", "warn")
+        notify("Range cannot be combined with searching", {src, "type": "warn"})
         return
     }
     if (range) {
-        rangeToTabIdxs(range).forEach(t => suspend([`${t}`]))
+        rangeToTabIdxs(src, range).forEach(t => suspend(src, [`${t}`]))
         return
     }
     let tab = null
@@ -1093,26 +1144,28 @@ const suspend = (args, range = null) => {
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
             notify(
-                "Only tabs not currently visible can be suspended", "warn")
+                "Only tabs not currently visible can be suspended",
+                {src, "type": "warn"})
         } else {
             const {suspendTab} = require("./tabs")
-            suspendTab(tab)
+            suspendTab(src, tab)
         }
     }
 }
 
 /**
  * Hide a page or a range of pages.
+ * @param {import("./common").RunSource} src
  * @param {string[]} args
  * @param {string|null} range
  */
-const hide = (args, range = null) => {
+const hideCommand = (src, args, range = null) => {
     if (range && args.length) {
-        notify("Range cannot be combined with searching", "warn")
+        notify("Range cannot be combined with searching", {src, "type": "warn"})
         return
     }
     if (range) {
-        rangeToTabIdxs(range).forEach(t => hide([`${t}`]))
+        rangeToTabIdxs(src, range).forEach(t => hideCommand(src, [`${t}`]))
         return
     }
     let tab = null
@@ -1123,28 +1176,33 @@ const hide = (args, range = null) => {
     }
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
-            const {"hide": h} = require("./pagelayout")
-            h(pageForTab(tab))
+            const {hide} = require("./pagelayout")
+            const page = pageForTab(tab)
+            if (page) {
+                hide(page)
+            }
         } else {
-            notify("Only visible pages can be hidden", "warn")
+            notify("Only visible pages can be hidden", {src, "type": "warn"})
         }
     }
 }
 
 /**
  * Mute a page or a range of pages.
+ * @param {import("./common").RunSource} src
  * @param {string[]} args
  * @param {string} range
  */
-const setMute = (args, range) => {
+const setMute = (src, args, range) => {
     if (args.length !== 1 || !["true", "false"].includes(args[0])) {
-        notify("Command mute! requires a single boolean argument", "warn")
+        notify("Command mute! requires a single boolean argument",
+            {src, "type": "warn"})
         return
     }
     let targets = [currentTab()]
     if (range) {
         const tabs = listTabs()
-        targets = rangeToTabIdxs(range).map(id => tabs[id])
+        targets = rangeToTabIdxs(src, range).map(id => tabs[id])
     }
     targets.forEach(tab => {
         if (args[0] === "true") {
@@ -1163,16 +1221,17 @@ const setMute = (args, range) => {
 
 /**
  * Toggle mute for a page or a range of pages.
+ * @param {import("./common").RunSource} src
  * @param {string[]} args
  * @param {string|null} range
  */
-const mute = (args, range = null) => {
+const mute = (src, args, range = null) => {
     if (range && args.length) {
-        notify("Range cannot be combined with searching", "warn")
+        notify("Range cannot be combined with searching", {src, "type": "warn"})
         return
     }
     if (range) {
-        rangeToTabIdxs(range).forEach(t => mute([`${t}`]))
+        rangeToTabIdxs(src, range).forEach(t => mute(src, [`${t}`]))
         return
     }
     let tab = currentTab()
@@ -1180,7 +1239,8 @@ const mute = (args, range = null) => {
         tab = tabForBufferArg(args)
     }
     if (!tab) {
-        notify("Can't find matching page, no tabs (un)muted", "warn")
+        notify("Can't find matching page, no tabs (un)muted",
+            {src, "type": "warn"})
         return
     }
     if (tab.getAttribute("muted")) {
@@ -1198,18 +1258,20 @@ const mute = (args, range = null) => {
 
 /**
  * Set the pin state for a tab or a range of tabs.
+ * @param {import("./common").RunSource} src
  * @param {string[]} args
  * @param {string} range
  */
-const setPin = (args, range) => {
+const setPin = (src, args, range) => {
     if (args.length !== 1 || !["true", "false"].includes(args[0])) {
-        notify("Command pin! requires a single boolean argument", "warn")
+        notify("Command pin! requires a single boolean argument",
+            {src, "type": "warn"})
         return
     }
     let targets = [currentTab()]
     const tabs = listTabs()
     if (range) {
-        targets = rangeToTabIdxs(range).map(id => tabs[id])
+        targets = rangeToTabIdxs(src, range).map(id => tabs[id])
     }
     const firstUnpinned = tabs.find(t => !t.classList.contains("pinned"))
     targets.forEach(tab => {
@@ -1231,19 +1293,20 @@ const setPin = (args, range) => {
 
 /**
  * Toggle the pin state for a tab or a range of tabs.
+ * @param {import("./common").RunSource} src
  * @param {string[]} args
  * @param {string} range
  */
-const pin = (args, range) => {
+const pin = (src, args, range) => {
     if (range && args.length) {
-        notify("Range cannot be combined with searching", "warn")
+        notify("Range cannot be combined with searching", {src, "type": "warn"})
         return
     }
     if (range) {
         const tabs = listTabs()
         const tabContainer = document.getElementById("tabs")
         const firstUnpinned = tabs.find(t => !t.classList.contains("pinned"))
-        rangeToTabIdxs(range).map(id => tabs[id]).forEach(target => {
+        rangeToTabIdxs(src, range).map(id => tabs[id]).forEach(target => {
             if (target.classList.contains("pinned")) {
                 tabContainer?.insertBefore(target, firstUnpinned ?? null)
                 target.classList.remove("pinned")
@@ -1260,7 +1323,8 @@ const pin = (args, range) => {
         tab = tabForBufferArg(args, t => !t.getAttribute("suspended"))
     }
     if (!tab) {
-        notify("Can't find matching page, no tabs (un)pinned", "warn")
+        notify("Can't find matching page, no tabs (un)pinned",
+            {src, "type": "warn"})
         return
     }
     const tabContainer = document.getElementById("tabs")
@@ -1280,19 +1344,20 @@ const pin = (args, range) => {
 
 /**
  * Add a split to the page layout.
+ * @param {import("./common").RunSource} src
  * @param {"hor"|"ver"} method
  * @param {boolean} leftOrAbove
  * @param {string[]} args
  * @param {string|null} range
  */
-const addSplit = (method, leftOrAbove, args, range = null) => {
+const addSplit = (src, method, leftOrAbove, args, range = null) => {
     if (range && args.length) {
-        notify("Range cannot be combined with searching", "warn")
+        notify("Range cannot be combined with searching", {src, "type": "warn"})
         return
     }
     if (range) {
-        rangeToTabIdxs(range).forEach(
-            t => addSplit(method, leftOrAbove, [`${t}`]))
+        rangeToTabIdxs(src, range).forEach(
+            t => addSplit(src, method, leftOrAbove, [`${t}`]))
         return
     }
     const {addTab, switchToTab} = require("./tabs")
@@ -1302,14 +1367,14 @@ const addSplit = (method, leftOrAbove, args, range = null) => {
         return
     }
     if (args.length === 0) {
-        addTab({"container": getSetting("containersplitpage")})
+        addTab({"container": getSetting("containersplitpage"), src})
         add(id, method, !leftOrAbove)
         return
     }
     const tab = tabForBufferArg(args, t => !t.classList.contains("visible-tab"))
     if (tab) {
         if (tab.classList.contains("visible-tab")) {
-            notify("Page is already visible", "warn")
+            notify("Page is already visible", {src, "type": "warn"})
         } else {
             const page = pageForTab(tab)
             if (page) {
@@ -1320,6 +1385,7 @@ const addSplit = (method, leftOrAbove, args, range = null) => {
     } else {
         addTab({
             "container": getSetting("containersplitpage"),
+            src,
             "url": stringToUrl(args.join(" "))
         })
         add(id, method, !leftOrAbove)
@@ -1328,67 +1394,70 @@ const addSplit = (method, leftOrAbove, args, range = null) => {
 
 /**
  * Close a page or a custom one with ranges/arguments.
+ * @param {import("./common").RunSource} src
  * @param {boolean} force
  * @param {string[]} args
  * @param {string} range
  */
-const close = (force, args, range) => {
+const close = (src, force, args, range) => {
     if (range && args.length) {
-        notify("Range cannot be combined with searching", "warn")
+        notify("Range cannot be combined with searching", {src, "type": "warn"})
         return
     }
     const {closeTab} = require("./tabs")
     if (range) {
         const tabs = listTabs()
-        rangeToTabIdxs(range).map(id => tabs[id]).forEach(target => {
-            closeTab(listTabs().indexOf(target), force)
+        rangeToTabIdxs(src, range).map(id => tabs[id]).forEach(target => {
+            closeTab(src, listTabs().indexOf(target), force)
         })
         return
     }
     if (args.length === 0) {
-        closeTab(null, force)
+        closeTab(src, null, force)
         return
     }
     const tab = tabForBufferArg(args)
     if (tab) {
-        closeTab(listTabs().indexOf(tab), force)
+        closeTab(src, listTabs().indexOf(tab), force)
         return
     }
-    notify("Can't find matching page, no tabs closed", "warn")
+    notify("Can't find matching page, no tabs closed", {src, "type": "warn"})
 }
 
 /**
  * Call command, run any mapstring immediately.
  * @param {string[]} args
+ * @param {import("./common").RunSource} src
  */
-const callAction = args => {
+const callAction = (args, src) => {
     setTimeout(() => {
         const {executeMapString, sanitiseMapString} = require("./input")
-        executeMapString(sanitiseMapString(args.join(" "), true), true, true)
+        executeMapString(sanitiseMapString(src, args.join(" "), true), true, {
+            "initial": true, src
+        })
     }, 5)
 }
 
 /**
- * Log command errors.
- * @param {import("child_process").ExecException|null} err
+ * Make Vieb the default browser of the operating system if possible.
+ * @param {import("./common").RunSource} src
  */
-const logError = err => {
-    if (err?.message) {
-        notify(`Script to set Vieb as the default browser failed:\n${
-            err.message}`, "err")
-    }
-}
-
-/** Make Vieb the default browser of the operating system if possible. */
-const makedefault = () => {
+const makedefault = src => {
     if (process.execPath.endsWith("electron")) {
-        notify("Command only works for installed versions of Vieb", "err")
+        notify("Command only works for installed versions of Vieb",
+            {src, "type": "err"})
         return
     }
     ipcRenderer.send("make-default-app")
     if (process.platform === "linux" || process.platform.includes("bsd")) {
         execCommand(
-            "xdg-settings set default-web-browser vieb.desktop", logError)
+            "xdg-settings set default-web-browser vieb.desktop", err => {
+                if (err?.message) {
+                    notify(
+                        "Script to set Vieb as the default browser failed:"
+                        + `\n${err.message}`, {src, "type": "err"})
+                }
+            })
     } else if (process.platform === "win32") {
         const scriptContents = readFile(joinPath(
             __dirname, "../defaultapp/windows.bat"))
@@ -1397,20 +1466,28 @@ const makedefault = () => {
             writeFile(tempFile, scriptContents)
         }
         execCommand(`Powershell Start ${tempFile} -ArgumentList `
-            + `"""${process.execPath}""" -Verb Runas`, logError)
+            + `"""${process.execPath}""" -Verb Runas`, err => {
+            if (err?.message) {
+                notify(
+                    "Script to set Vieb as the default browser failed:"
+                        + `\n${err.message}`, {src, "type": "err"})
+            }
+        })
     } else if (process.platform === "darwin") {
         // Electron API should be enough to show a popup for default app request
     } else {
         notify("If you didn't get a notification to set Vieb as your defau"
-            + "lt browser, this command does not work for this OS.", "warn")
+            + "lt browser, this command does not work for this OS.",
+        {src, "type": "warn"})
     }
 }
 
 /**
  * Close all tabs to the left of the current one, optionally including pinned.
+ * @param {import("./common").RunSource} src
  * @param {boolean} force
  */
-const lclose = (force = false) => {
+const lclose = (src, force = false) => {
     const tab = currentTab()
     if (!tab) {
         return
@@ -1421,15 +1498,16 @@ const lclose = (force = false) => {
     for (let i = index - 1; i >= 0; i--) {
         index = listTabs().indexOf(tab)
         const {closeTab} = require("./tabs")
-        closeTab(index - 1, force)
+        closeTab(src, index - 1, force)
     }
 }
 
 /**
  * Close all tabs to the right of the current one, optionally including pinned.
+ * @param {import("./common").RunSource} src
  * @param {boolean} force
  */
-const rclose = (force = false) => {
+const rclose = (src, force = false) => {
     const tab = currentTab()
     if (!tab) {
         return
@@ -1441,23 +1519,24 @@ const rclose = (force = false) => {
     for (let i = count - 1; i > index; i--) {
         count = listTabs().length
         const {closeTab} = require("./tabs")
-        closeTab(count - 1, force)
+        closeTab(src, count - 1, force)
     }
 }
 
 /**
  * Run custom JS in the page or a range of pages.
+ * @param {import("./common").RunSource} src
  * @param {string} raw
  * @param {string} range
  */
-const runjsinpage = (raw, range) => {
+const runjsinpage = (src, raw, range) => {
     let javascript = raw.split(" ").slice(1).join(" ")
     const filePath = expandPath(javascript)
     if (isAbsolutePath(filePath)) {
         javascript = readFile(filePath) || javascript
     }
     if (range) {
-        rangeToTabIdxs(range).forEach(tabId => {
+        rangeToTabIdxs(src, range).forEach(tabId => {
             const page = pageForTab(listTabs()[tabId])
             if (page && !(page instanceof HTMLDivElement)) {
                 page.executeJavaScript(javascript, true)
@@ -1470,13 +1549,17 @@ const runjsinpage = (raw, range) => {
 
 /**
  * Open a new tab optionally with a custom session and url.
+ * @param {import("./common").RunSource} src
  * @param {string|null} session
  * @param {string|null} url
  */
-const tabnew = (session = null, url = null) => {
+const tabnew = (src, session = null, url = null) => {
     const {addTab} = require("./tabs")
-    /** @type {{url?: string, session?: string}} */
-    const options = {}
+    /** @type {{
+     *   url?: string, session?: string, src: import("./common").RunSource
+     * }}
+     */
+    const options = {src}
     if (url?.trim()) {
         options.url = stringToUrl(url)
     }
@@ -1488,19 +1571,22 @@ const tabnew = (session = null, url = null) => {
 
 /**
  * Make or list marks.
+ * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const marks = args => {
+const marks = (src, args) => {
     if (args.length > 2) {
-        notify("Command marks only accepts a maxmimum of two args", "warn")
+        notify("Command marks only accepts a maxmimum of two args",
+            {src, "type": "warn"})
         return
     }
     if (args.length === 2) {
         const {makeMark} = require("./actions")
         if (isUrl(args[1])) {
-            makeMark({"key": args[0], "url": args[1]})
+            makeMark({"key": args[0], src, "url": args[1]})
         } else {
-            notify(`Mark url must be a valid url: ${args[1]}`, "warn")
+            notify(`Mark url must be a valid url: ${args[1]}`,
+                {src, "type": "warn"})
         }
         return
     }
@@ -1524,26 +1610,29 @@ const marks = args => {
     }
     if (relevantMarks.length === 0) {
         if (args.length && Object.keys(qm.marks ?? {}).length) {
-            notify("No marks found for current keys", "warn")
+            notify("No marks found for current keys", {src, "type": "warn"})
         } else {
-            notify("No marks found", "warn")
+            notify("No marks found", {src, "type": "warn"})
         }
     } else {
-        notify(relevantMarks.join("\n"))
+        notify(relevantMarks.join("\n"), {src})
     }
 }
 
 /**
  * Restore a mark.
+ * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const restoremark = args => {
+const restoremark = (src, args) => {
     if (args.length > 2) {
-        notify("Command restoremark only accepts up to two args", "warn")
+        notify("Command restoremark only accepts up to two args",
+            {src, "type": "warn"})
         return
     }
     if (args.length === 0) {
-        notify("Command restoremark requires at least one key argument", "warn")
+        notify("Command restoremark requires at least one key argument",
+            {src, "type": "warn"})
         return
     }
     const {restoreMark} = require("./actions")
@@ -1559,21 +1648,23 @@ const restoremark = args => {
         || validOptions.markposition.includes(pos)
 
     if (isValidPosition(position)) {
-        restoreMark({key, position})
+        restoreMark({key, position, src})
     } else {
         notify(`Invalid mark restore ${position}' position, must be one of: `
-            + `${validOptions.markpositionshifted.join(", ")}`, "warn")
+            + `${validOptions.markpositionshifted.join(", ")}`,
+        {src, "type": "warn"})
     }
 }
 
 /**
  * Delete marks.
+ * @param {import("./common").RunSource} src
  * @param {boolean} all
  * @param {string[]} args
  */
-const delmarks = (all, args) => {
+const delmarks = (src, all, args) => {
     if (all && args.length) {
-        notify("Command takes no arguments: delmarks!", "warn")
+        notify("Command takes no arguments: delmarks!", {src, "type": "warn"})
         return
     }
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
@@ -1583,7 +1674,8 @@ const delmarks = (all, args) => {
         return
     }
     if (args.length !== 1) {
-        notify("Command delmarks only accepts a single keyname", "warn")
+        notify("Command delmarks only accepts a single keyname",
+            {src, "type": "warn"})
         return
     }
     const [key] = args
@@ -1595,12 +1687,13 @@ const delmarks = (all, args) => {
 
 /**
  * Set or list scroll positions.
+ * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const scrollpos = args => {
+const scrollpos = (src, args) => {
     if (args.length > 3) {
         notify("Command scrollpos only accepts a maxmimum of three args",
-            "warn")
+            {src, "type": "warn"})
         return
     }
     if (args.length === 2 || args.length === 3) {
@@ -1615,14 +1708,14 @@ const scrollpos = args => {
             }
             if (isNaN(pixels)) {
                 notify("Command scrollpos requires at least one pixels "
-                    + "arg after the key", "warn")
+                    + "arg after the key", {src, "type": "warn"})
                 return
             }
         }
         if (pixels !== undefined) {
             pixels = Number(pixels)
         }
-        storeScrollPos({key, path, pixels})
+        storeScrollPos({key, path, pixels, src})
         return
     }
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
@@ -1666,40 +1759,44 @@ const scrollpos = args => {
         const notEmpty = Object.keys(qm.scroll.global).length
             || Object.keys(qm.scroll.local).length
         if (args.length && notEmpty) {
-            notify("No scroll positions found for current keys", "warn")
+            notify("No scroll positions found for current keys",
+                {src, "type": "warn"})
         } else {
-            notify("No scroll positions found", "warn")
+            notify("No scroll positions found", {src, "type": "warn"})
         }
     } else {
-        notify(relevantPos.join("\n"))
+        notify(relevantPos.join("\n"), {src})
     }
 }
 
 /**
  * Restore a scroll position.
+ * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const restorescrollpos = args => {
+const restorescrollpos = (src, args) => {
     if (args.length > 2) {
-        notify("Command restorescrollpos only accepts up to two args", "warn")
+        notify("Command restorescrollpos only accepts up to two args",
+            {src, "type": "warn"})
         return
     }
     if (args.length === 0) {
         notify("Command restorescrollpos requires at least one key argument",
-            "warn")
+            {src, "type": "warn"})
         return
     }
     const {restoreScrollPos} = require("./actions")
     const [key, path] = args
-    restoreScrollPos({key, path})
+    restoreScrollPos({key, path, src})
 }
 
 /**
  * Delete a scroll position.
+ * @param {import("./common").RunSource} src
  * @param {boolean} all
  * @param {string[]} args
  */
-const delscrollpos = (all, args) => {
+const delscrollpos = (src, all, args) => {
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
     if (!qm.scroll) {
         qm.scroll = {"global": {}, "local": {}}
@@ -1715,7 +1812,8 @@ const delscrollpos = (all, args) => {
     }
     if (all) {
         if (args.length > 1) {
-            notify("Command delscrollpos! only accepts a single path", "warn")
+            notify("Command delscrollpos! only accepts a single path",
+                {src, "type": "warn"})
             return
         }
         if (args[0] === "*") {
@@ -1735,12 +1833,13 @@ const delscrollpos = (all, args) => {
         return
     }
     if (args.length === 0) {
-        notify("Command delscrollpos requires at least the key", "warn")
+        notify("Command delscrollpos requires at least the key",
+            {src, "type": "warn"})
         return
     }
     if (args.length > 2) {
         notify("Command delscrollpos only accepts a key and an optional path",
-            "warn")
+            {src, "type": "warn"})
         return
     }
     if (args[1]) {
@@ -1774,12 +1873,13 @@ const delscrollpos = (all, args) => {
 
 /**
  * Set or list a pointer position.
+ * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const pointerpos = args => {
+const pointerpos = (src, args) => {
     if (args.length > 4) {
         notify("Command pointerpos only accepts a maxmimum of three args",
-            "warn")
+            {src, "type": "warn"})
         return
     }
     if (args.length > 1) {
@@ -1788,7 +1888,7 @@ const pointerpos = args => {
         const location = {"x": Number(x), "y": Number(y)}
         if (isNaN(location.x) || isNaN(location.y)) {
             notify("Command pointerpos requires the x and y "
-                + "location after the key", "warn")
+                + "location after the key", {src, "type": "warn"})
             return
         }
         storePos({key, location, path})
@@ -1841,27 +1941,30 @@ const pointerpos = args => {
         const notEmpty = Object.keys(qm.pointer.global).length
             || Object.keys(qm.pointer.local).length
         if (args.length && notEmpty) {
-            notify("No pointer positions found for current keys", "warn")
+            notify("No pointer positions found for current keys",
+                {src, "type": "warn"})
         } else {
-            notify("No pointer positions found", "warn")
+            notify("No pointer positions found", {src, "type": "warn"})
         }
     } else {
-        notify(relevantPos.join("\n"))
+        notify(relevantPos.join("\n"), {src})
     }
 }
 
 /**
  * Restore the pointer position.
+ * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const restorepointerpos = args => {
+const restorepointerpos = (src, args) => {
     if (args.length > 2) {
-        notify("Command restorepointerpos only accepts up to two args", "warn")
+        notify("Command restorepointerpos only accepts up to two args",
+            {src, "type": "warn"})
         return
     }
     if (args.length === 0) {
         notify("Command restorepointerpos requires at least one key argument",
-            "warn")
+            {src, "type": "warn"})
         return
     }
     const {restorePos} = require("./pointer")
@@ -1871,10 +1974,11 @@ const restorepointerpos = args => {
 
 /**
  * Delete a pointer position.
+ * @param {import("./common").RunSource} src
  * @param {boolean} all
  * @param {string[]} args
  */
-const delpointerpos = (all, args) => {
+const delpointerpos = (src, all, args) => {
     const qm = readJSON(joinPath(appData(), "quickmarks")) ?? {}
     if (!qm.pointer) {
         qm.pointer = {"global": {}, "local": {}}
@@ -1890,7 +1994,8 @@ const delpointerpos = (all, args) => {
     }
     if (all) {
         if (args.length > 1) {
-            notify("Command delpointerpos! only accepts a single path", "warn")
+            notify("Command delpointerpos! only accepts a single path",
+                {src, "type": "warn"})
             return
         }
         if (args[0] === "*") {
@@ -1910,12 +2015,13 @@ const delpointerpos = (all, args) => {
         return
     }
     if (args.length === 0) {
-        notify("Command delpointerpos requires at least the key", "warn")
+        notify("Command delpointerpos requires at least the key",
+            {src, "type": "warn"})
         return
     }
     if (args.length > 2) {
         notify("Command delpointerpos only accepts a key and an optional path",
-            "warn")
+            {src, "type": "warn"})
         return
     }
     if (args[1]) {
@@ -1949,12 +2055,13 @@ const delpointerpos = (all, args) => {
 
 /**
  * Translate the current page.
+ * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const translatepage = args => {
+const translatepage = (src, args) => {
     if (args.length > 1) {
         notify("Command translatepage only accepts a single optional language",
-            "warn")
+            {src, "type": "warn"})
         return
     }
     const url = getSetting("translateurl").replace(/\/*$/g, "")
@@ -1968,14 +2075,15 @@ const translatepage = args => {
     }
     const apiKey = getSetting("translatekey").trim()
     if ((api === "deepl" || url.includes("libretranslate.com")) && !apiKey) {
-        notify("API key not set, see ':h translatekey' for help", "warn")
+        notify("API key not set, see ':h translatekey' for help",
+            {src, "type": "warn"})
         return
     }
     const {validOptions} = require("./settings")
     let [lang] = args
     if (lang && !validOptions.translatelang.includes(lang.toLowerCase())) {
         notify(`Invalid language '${lang}' supplied, `
-            + "see ':h translatelang' for help", "warn")
+            + "see ':h translatelang' for help", {src, "type": "warn"})
         return
     }
     lang = lang?.toLowerCase() ?? getSetting("translatelang")
@@ -1996,27 +2104,29 @@ const translatepage = args => {
 
 /**
  * Clear history based on an interval.
+ * @param {import("./common").RunSource} src
  * @param {string} type
  * @param {string} interval
  * @param {string|null} trailingArgs
  */
-const clear = (type, interval, trailingArgs = null) => {
+const clear = (src, type, interval, trailingArgs = null) => {
     if (trailingArgs) {
         notify("The clear command takes at most two arguments: "
-            + "a type and optionally an interval", "warn")
+            + "a type and optionally an interval", {src, "type": "warn"})
         return
     }
     if (!type) {
-        notify("The clear command requires a type argument to clear", "warn")
+        notify("The clear command requires a type argument to clear",
+            {src, "type": "warn"})
         return
     }
     if (!interval) {
-        notify("The clear command interval is required", "warn")
+        notify("The clear command interval is required", {src, "type": "warn"})
         return
     }
     if (!["history"].includes(type)) {
         notify("The clear command type must be one of: "
-            + "history", "warn")
+            + "history", {src, "type": "warn"})
         return
     }
     if (type === "history") {
@@ -2036,7 +2146,8 @@ const clear = (type, interval, trailingArgs = null) => {
             removeHistoryByPartialUrl(interval)
         } else {
             notify("The clear command interval must be all, a valid url or a "
-                + "valid interval, such as 1day, or inverted like last3hours")
+                + "valid interval, such as 1day, or inverted like last3hours",
+            {src})
         }
     }
 }
@@ -2088,248 +2199,260 @@ let userCommands = {}
 /* eslint-disable jsdoc/require-jsdoc */
 /** @type {{
  *   [command: string]: (props: {
- *     args: string[], range: string, raw: string
+ *     args: string[],
+ *     range: string,
+ *     raw: string,
+ *     src: import("./common").RunSource
  *   }) => void
  * }} */
 const commands = {
-    "Sexplore": ({args, range}) => addSplit(
-        "ver", !getSetting("splitbelow"), args, range),
-    "Vexplore": ({args, range}) => addSplit(
-        "hor", !getSetting("splitright"), args, range),
-    "b": ({args}) => buffer(args),
-    "buffer": ({args}) => buffer(args),
-    "call": ({args}) => callAction(args),
-    "clear": ({args}) => clear(args[0], args[1], args[2]),
-    "close": ({args, range}) => close(false, args, range),
-    "close!": ({args, range}) => close(true, args, range),
-    "colorscheme": ({args}) => colorscheme(...args),
+    "Sexplore": ({src, args, range}) => addSplit(
+        src, "ver", !getSetting("splitbelow"), args, range),
+    "Vexplore": ({src, args, range}) => addSplit(
+        src, "hor", !getSetting("splitright"), args, range),
+    "b": ({src, args}) => buffer(src, args),
+    "buffer": ({src, args}) => buffer(src, args),
+    "call": ({args, src}) => callAction(args, src),
+    "clear": ({src, args}) => clear(src, args[0], args[1], args[2]),
+    "close": ({src, args, range}) => close(src, false, args, range),
+    "close!": ({src, args, range}) => close(src, true, args, range),
+    "colorscheme": ({src, args}) => colorscheme(src, ...args),
     "comclear": () => {
         userCommands = {}
     },
     /* eslint-disable-next-line no-use-before-define */
-    "command": ({args}) => addCommand(false, args),
+    "command": ({src, args}) => addCommand(src, false, args),
     /* eslint-disable-next-line no-use-before-define */
-    "command!": ({args}) => addCommand(true, args),
-    "cookies": () => openSpecialPage("cookies", false),
-    "cookies!": () => openSpecialPage("cookies", true),
-    "d": () => openSpecialPage("downloads", false),
-    "d!": () => openSpecialPage("downloads", true),
+    "command!": ({src, args}) => addCommand(src, true, args),
+    "cookies": ({src}) => openSpecialPage(src, "cookies", false),
+    "cookies!": ({src}) => openSpecialPage(src, "cookies", true),
+    "d": ({src}) => openSpecialPage(src, "downloads", false),
+    "d!": ({src}) => openSpecialPage(src, "downloads", true),
     /* eslint-disable-next-line no-use-before-define */
-    "delcommand": ({args}) => deleteCommand(args),
-    "delmarks": ({args}) => delmarks(false, args),
-    "delmarks!": ({args}) => delmarks(true, args),
-    "delpointerpos": ({args}) => delpointerpos(false, args),
-    "delpointerpos!": ({args}) => delpointerpos(true, args),
-    "delscrollpos": ({args}) => delscrollpos(false, args),
-    "delscrollpos!": ({args}) => delscrollpos(true, args),
-    "devtools": ({args}) => openDevTools(...args),
-    "downloads": () => openSpecialPage("downloads", false),
-    "downloads!": () => openSpecialPage("downloads", true),
-    "h": ({args}) => help(false, ...args),
-    "h!": ({args}) => help(true, ...args),
-    "hardcopy": ({range}) => hardcopy(range),
-    "help": ({args}) => help(false, ...args),
-    "help!": ({args}) => help(true, ...args),
-    "hide": ({args, range}) => hide(args, range),
-    "history": () => openSpecialPage("history", false),
-    "history!": () => openSpecialPage("history", true),
+    "delcommand": ({src, args}) => deleteCommand(src, args),
+    "delmarks": ({src, args}) => delmarks(src, false, args),
+    "delmarks!": ({src, args}) => delmarks(src, true, args),
+    "delpointerpos": ({src, args}) => delpointerpos(src, false, args),
+    "delpointerpos!": ({src, args}) => delpointerpos(src, true, args),
+    "delscrollpos": ({src, args}) => delscrollpos(src, false, args),
+    "delscrollpos!": ({src, args}) => delscrollpos(src, true, args),
+    "devtools": ({src, args}) => openDevTools(src, ...args),
+    "downloads": ({src}) => openSpecialPage(src, "downloads", false),
+    "downloads!": ({src}) => openSpecialPage(src, "downloads", true),
+    "echo": ({args, src}) => notify(args.join(" "), {src}),
+    "h": ({src, args}) => help(src, false, ...args),
+    "h!": ({src, args}) => help(src, true, ...args),
+    "hardcopy": ({src, range}) => hardcopy(src, range),
+    "help": ({src, args}) => help(src, false, ...args),
+    "help!": ({src, args}) => help(src, true, ...args),
+    "hide": ({src, args, range}) => hideCommand(src, args, range),
+    "history": ({src}) => openSpecialPage(src, "history", false),
+    "history!": ({src}) => openSpecialPage(src, "history", true),
     "internaldevtools": openInternalDevTools,
-    "lclose": () => lclose(),
-    "lclose!": () => lclose(true),
-    makedefault,
-    "marks": ({args}) => marks(args),
-    "mkviebrc": ({args}) => mkviebrc(...args),
-    "mute": ({args, range}) => mute(args, range),
-    "mute!": ({args, range}) => setMute(args, range),
+    "lclose": ({src}) => lclose(src),
+    "lclose!": ({src}) => lclose(src, true),
+    "makedefault": ({src}) => makedefault(src),
+    "marks": ({src, args}) => marks(src, args),
+    "mkviebrc": ({src, args}) => mkviebrc(src, ...args),
+    "mute": ({src, args, range}) => mute(src, args, range),
+    "mute!": ({src, args, range}) => setMute(src, args, range),
     "nohlsearch": () => {
         listRealPages().forEach(page => page.stopFindInPage("clearSelection"))
     },
-    "notifications": () => openSpecialPage("notifications", false),
-    "notifications!": () => openSpecialPage("notifications", true),
-    "o": ({args}) => open(args),
+    "notifications": ({src}) => openSpecialPage(src, "notifications", false),
+    "notifications!": ({src}) => openSpecialPage(src, "notifications", true),
+    "o": ({src, args}) => open(src, args),
     "only": () => {
         const {only} = require("./pagelayout")
         only()
     },
-    "open": ({args}) => open(args),
-    "pin": ({args, range}) => pin(args, range),
-    "pin!": ({args, range}) => setPin(args, range),
-    "pointerpos": ({args}) => pointerpos(args),
-    "print": ({range}) => hardcopy(range),
-    "q": ({range}) => quit(range),
+    "open": ({src, args}) => open(src, args),
+    "pin": ({src, args, range}) => pin(src, args, range),
+    "pin!": ({src, args, range}) => setPin(src, args, range),
+    "pointerpos": ({src, args}) => pointerpos(src, args),
+    "print": ({src, range}) => hardcopy(src, range),
+    "q": ({src, range}) => quit(src, range),
     "qa": quitall,
-    "quit": ({range}) => quit(range),
+    "quit": ({src, range}) => quit(src, range),
     quitall,
-    "rclose": () => rclose(),
-    "rclose!": () => rclose(true),
+    "rclose": ({src}) => rclose(src),
+    "rclose!": ({src}) => rclose(src, true),
     reloadconfig,
     restart,
-    "restoremark": ({args}) => restoremark(args),
-    "restorepointerpos": ({args}) => restorepointerpos(args),
-    "restorescrollpos": ({args}) => restorescrollpos(args),
-    "runjsinpage": ({raw, range}) => runjsinpage(raw, range),
-    "s": ({args}) => set(args),
-    "screencopy": ({args}) => screencopy(args),
-    "screenshot": ({args}) => screenshot(args),
-    "scriptnames": ({args}) => {
+    "restoremark": ({src, args}) => restoremark(src, args),
+    "restorepointerpos": ({src, args}) => restorepointerpos(src, args),
+    "restorescrollpos": ({src, args}) => restorescrollpos(src, args),
+    "runjsinpage": ({src, raw, range}) => runjsinpage(src, raw, range),
+    "s": ({src, args}) => setCommand(src, args),
+    "screencopy": ({src, args}) => screencopy(src, args),
+    "screenshot": ({src, args}) => screenshot(src, args),
+    "scriptnames": ({args, src}) => {
         if (args?.length) {
-            notify("Command takes no arguments: scriptnames", "warn")
+            notify("Command takes no arguments: scriptnames",
+                {src, "type": "warn"})
             return
         }
         notify(appConfig()?.files.map(
-            (f, i) => `${i + 1}: ${f}`).join("\n") ?? "")
+            (f, i) => `${i + 1}: ${f}`).join("\n") ?? "", {src})
     },
-    "scriptnames!": ({args}) => {
+    "scriptnames!": ({args, src}) => {
         const scripts = [...appConfig()?.files ?? [], ...sourcedFiles]
         if (args.length === 0) {
-            notify(scripts.map((f, i) => `${i + 1}: ${f}`).join("\n"))
+            notify(scripts.map((f, i) => `${i + 1}: ${f}`).join("\n"), {src})
         } else if (args.length === 1) {
             const number = Number(args[0])
             if (isNaN(number)) {
                 notify("Scriptnames! argument must be a number for a script",
-                    "warn")
+                    {src, "type": "warn"})
                 return
             }
             const script = scripts[number - 1]
             if (!script) {
                 notify(`No script found with index '${number}'`
-                    + ", see ':scriptnames!'", "warn")
+                    + ", see ':scriptnames!'", {src, "type": "warn"})
                 return
             }
             execCommand(`${getSetting("vimcommand")} "${script}"`, err => {
                 if (err) {
                     notify("Command to edit files with vim failed, "
-                        + "please update the 'vimcommand' setting", "err")
+                        + "please update the 'vimcommand' setting",
+                    {src, "type": "err"})
                 }
             })
         } else {
             notify("Scriptnames with the ! added takes one optional argument",
-                "warn")
+                {src, "type": "warn"})
         }
     },
-    "scrollpos": ({args}) => scrollpos(args),
-    "set": ({args}) => set(args),
-    "source": ({args}) => source(null, args),
-    "split": ({args, range}) => addSplit(
-        "ver", !getSetting("splitbelow"), args, range),
-    "suspend": ({args, range}) => suspend(args, range),
-    "tabnew": ({raw}) => tabnew(null, raw.split(" ").slice(1).join(" ")),
-    "tabnewcontainer": ({raw}) => tabnew(raw.split(" ")[1],
+    "scrollpos": ({src, args}) => scrollpos(src, args),
+    "set": ({src, args}) => setCommand(src, args),
+    "source": ({src, args}) => source(src, null, args),
+    "split": ({src, args, range}) => addSplit(
+        src, "ver", !getSetting("splitbelow"), args, range),
+    "suspend": ({src, args, range}) => suspend(src, args, range),
+    "tabnew": ({src, raw}) => tabnew(
+        src, null, raw.split(" ").slice(1).join(" ")),
+    "tabnewcontainer": ({src, raw}) => tabnew(src, raw.split(" ")[1],
         raw.split(" ").slice(2).join(" ")),
-    "translatepage": ({args}) => translatepage(args),
-    "v": () => openSpecialPage("version", false),
-    "v!": () => openSpecialPage("version", true),
-    "version": () => openSpecialPage("version", false),
-    "version!": () => openSpecialPage("version", true),
-    "vsplit": ({args, range}) => addSplit(
-        "hor", !getSetting("splitright"), args, range),
-    "w": ({args, range}) => write(args, range),
-    "write": ({args, range}) => write(args, range)
+    "translatepage": ({src, args}) => translatepage(src, args),
+    "v": ({src}) => openSpecialPage(src, "version", false),
+    "v!": ({src}) => openSpecialPage(src, "version", true),
+    "version": ({src}) => openSpecialPage(src, "version", false),
+    "version!": ({src}) => openSpecialPage(src, "version", true),
+    "vsplit": ({src, args, range}) => addSplit(
+        src, "hor", !getSetting("splitright"), args, range),
+    "w": ({src, args, range}) => write(src, args, range),
+    "write": ({src, args, range}) => write(src, args, range)
 }
 /** @type {string[]} */
 const holdUseCommands = ["command"]
 const {mapOrList, unmap, clearmap} = require("./input")
 " nicsefpvm".split("").forEach(prefix => {
-    commands[`${prefix.trim()}map!`] = ({args}) => {
-        mapOrList(prefix.trim(), args, false, true)
+    commands[`${prefix.trim()}map!`] = ({src, args}) => {
+        mapOrList(src, prefix.trim(), args, false, true)
     }
-    commands[`${prefix.trim()}noremap!`] = ({args}) => {
-        mapOrList(prefix.trim(), args, true, true)
+    commands[`${prefix.trim()}noremap!`] = ({src, args}) => {
+        mapOrList(src, prefix.trim(), args, true, true)
     }
     holdUseCommands.push(`${prefix.trim()}map`)
-    commands[`${prefix.trim()}map`] = ({args}) => {
-        mapOrList(prefix.trim(), args)
+    commands[`${prefix.trim()}map`] = ({src, args}) => {
+        mapOrList(src, prefix.trim(), args)
     }
     noEscapeCommands.push(`${prefix.trim()}map`)
-    commands[`${prefix.trim()}noremap`] = ({args}) => {
-        mapOrList(prefix.trim(), args, true)
+    commands[`${prefix.trim()}noremap`] = ({src, args}) => {
+        mapOrList(src, prefix.trim(), args, true)
     }
     noEscapeCommands.push(`${prefix.trim()}noremap`)
-    commands[`${prefix.trim()}unmap`] = ({args}) => {
-        unmap(prefix.trim(), args, false)
+    commands[`${prefix.trim()}unmap`] = ({src, args}) => {
+        unmap(src, prefix.trim(), args, false)
     }
     noEscapeCommands.push(`${prefix.trim()}unmap`)
-    commands[`${prefix.trim()}unmap!`] = ({args}) => {
-        unmap(prefix.trim(), args, true)
+    commands[`${prefix.trim()}unmap!`] = ({src, args}) => {
+        unmap(src, prefix.trim(), args, true)
     }
     noEscapeCommands.push(`${prefix.trim()}unmap!`)
-    commands[`${prefix.trim()}mapclear`] = () => {
-        clearmap(prefix.trim())
+    commands[`${prefix.trim()}mapclear`] = ({src}) => {
+        clearmap(src, prefix.trim())
     }
     noArgumentComands.push(`${prefix.trim()}mapclear`)
-    commands[`${prefix.trim()}mapclear!`] = () => {
-        clearmap(prefix.trim(), true)
+    commands[`${prefix.trim()}mapclear!`] = ({src}) => {
+        clearmap(src, prefix.trim(), true)
     }
 })
 /* eslint-enable jsdoc/require-jsdoc */
 
 /**
  * Add a new command, or optionally overwrite existing custom commands.
+ * @param {import("./common").RunSource} src
  * @param {boolean} overwrite
  * @param {string[]} args
  */
-const addCommand = (overwrite, args) => {
+const addCommand = (src, overwrite, args) => {
     if (overwrite && args.length < 2) {
-        notify("Can't combine ! with reading a value", "warn")
+        notify("Can't combine ! with reading a value", {src, "type": "warn"})
         return
     }
     if (args.length === 0) {
         const commandString = Object.keys(userCommands).map(
             c => `${c} => ${userCommands[c]}`).join("\n").trim()
         if (commandString) {
-            notify(`--- User defined commands ---\n${commandString}`)
+            notify(`--- User defined commands ---\n${commandString}`, {src})
         } else {
-            notify("There are no user defined commands")
+            notify("There are no user defined commands", {src})
         }
         return
     }
     const command = args[0].replace(/^[:'" ]*/, "")
     if (command.includes("/") || command.includes("\\")) {
-        notify("Command name cannot contain any slashes", "warn")
+        notify("Command name cannot contain any slashes", {src, "type": "warn"})
         return
     }
     if (command[0]?.match(specialChars) || command[0]?.match(/\d+/g)) {
         notify("Command name cannot start with a number or special character",
-            "warn")
+            {src, "type": "warn"})
         return
     }
     const params = args.slice(1)
     if (commands[command]) {
-        notify(`Command can not be a built-in command: ${command}`, "warn")
+        notify(`Command can not be a built-in command: ${command}`,
+            {src, "type": "warn"})
         return
     }
     if (params.length === 0) {
         if (userCommands[command]) {
-            notify(`${command} => ${userCommands[command]}`)
+            notify(`${command} => ${userCommands[command]}`, {src})
         } else {
-            notify(`Not an editor command: ${command}`, "warn")
+            notify(`Not an editor command: ${command}`, {src, "type": "warn"})
         }
         return
     }
     if (!overwrite && userCommands[command]) {
         notify(`Duplicate custom command definition (add ! to overwrite): ${
-            command}`, "warn")
+            command}`, {src, "type": "warn"})
         return
     }
     const {sanitiseMapString} = require("./input")
-    userCommands[command] = sanitiseMapString(params.join(" "), true)
+    userCommands[command] = sanitiseMapString(src, params.join(" "), true)
 }
 
 /**
  * Delete a custom command.
+ * @param {import("./common").RunSource} src
  * @param {string[]} args
  */
-const deleteCommand = args => {
+const deleteCommand = (src, args) => {
     if (args.length !== 1) {
         notify(
-            "Exactly one command name is required for delcommand", "warn")
+            "Exactly one command name is required for delcommand",
+            {src, "type": "warn"})
         return
     }
     const command = args[0].replace(/^[:'" ]*/, "")
     if (userCommands[command]) {
         delete userCommands[args[0]]
     } else {
-        notify(`No such user defined command: ${command}`, "warn")
+        notify(`No such user defined command: ${command}`,
+            {src, "type": "warn"})
     }
 }
 
@@ -2402,10 +2525,12 @@ const getPageDomain = () => getPageUrlClass().host
 /**
  * Execute a command.
  * @param {string} com
- * @param {string|null} settingsFile
- * @param {boolean} user
+ * @param {{
+ *   settingsFile?: string|null,
+ *   src?: import("./common").RunSource
+ * }} opts
  */
-const execute = (com, settingsFile = null, user = false) => {
+const execute = (com, opts = {}) => {
     // Remove all redundant spaces
     // Allow commands prefixed with :
     // And return if the command is empty
@@ -2413,6 +2538,7 @@ const execute = (com, settingsFile = null, user = false) => {
     if (!commandStr) {
         return
     }
+    const src = opts.src ?? "other"
     // Don't "use current" on holdUseCommands, commands like 'command' or 'map'
     // which will hold <useCurrent... for calling it when it is used
     // otherwise they will always use the same value at creation
@@ -2426,16 +2552,16 @@ const execute = (com, settingsFile = null, user = false) => {
             .replace("<useCurrentDomain>", `${getPageDomain()}`)
     }
     const {push} = require("./commandhistory")
-    push(commandStr, user)
+    push(commandStr, src === "user")
     if (commandStr.startsWith("!")) {
         if (commandStr !== "!") {
             execCommand(commandStr.replace("!", ""), (err, stdout) => {
                 const reportExit = getSetting("notificationforsystemcommands")
                 if (err && reportExit !== "none") {
-                    notify(`${err}`, "err")
+                    notify(`${err}`, {src, "type": "err"})
                 } else if (reportExit === "all") {
-                    notify(stdout.toString()
-                        || "Command exitted successfully!", "suc")
+                    notify(stdout.toString() || "Command exitted successfully!",
+                        {src, "type": "suc"})
                 }
             })
         }
@@ -2447,7 +2573,7 @@ const execute = (com, settingsFile = null, user = false) => {
     if (!valid) {
         notify(
             "Command could not be executed, unmatched quotes or backslash:"
-            + `\n${commandStr}`, "warn")
+            + `\n${commandStr}`, {src, "type": "warn"})
         return
     }
     const matches = Object.keys(commands).concat(Object.keys(userCommands))
@@ -2456,34 +2582,40 @@ const execute = (com, settingsFile = null, user = false) => {
         if (matches.length === 1) {
             [command] = matches
         }
-        if (command === "source" && settingsFile) {
-            source(settingsFile, args)
+        if (command === "source" && opts.settingsFile) {
+            source(src, opts.settingsFile, args)
         } else if (noArgumentComands.includes(command) && args.length > 0) {
-            notify(`Command takes no arguments: ${command}`, "warn")
+            notify(`Command takes no arguments: ${command}`,
+                {src, "type": "warn"})
         } else if (commands[command]) {
             if (!rangeCompatibleCommands.includes(command) && range) {
-                notify(`Command does not accept a range: ${command}`, "warn")
+                notify(`Command does not accept a range: ${command}`,
+                    {src, "type": "warn"})
                 return
             }
             if (confirm) {
                 command += "!"
                 if (!commands[command]) {
-                    notify(`No ! allowed for: ${command.slice(0, -1)}`, "warn")
+                    notify(`No ! allowed for: ${command.slice(0, -1)}`,
+                        {src, "type": "warn"})
                     return
                 }
             }
-            commands[command]({args, range, "raw": com})
+            commands[command]({args, range, "raw": com, src})
         } else {
             setTimeout(() => {
                 const {executeMapString} = require("./input")
-                executeMapString(userCommands[command], true, true)
+                executeMapString(userCommands[command], true,
+                    {"initial": true, src})
             }, 5)
         }
     } else if (matches.length > 1) {
         notify(
-            `Command is ambiguous, please be more specific: ${command}`, "warn")
+            `Command is ambiguous, please be more specific: ${command}`,
+            {src, "type": "warn"})
     } else {
-        notify(`Not an editor command: ${command}`, "warn")
+        notify(`Not an editor command: ${command}`,
+            {src, "type": "warn"})
     }
 }
 

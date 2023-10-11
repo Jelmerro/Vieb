@@ -154,7 +154,8 @@ try {
                 if (ask.checkboxChecked) {
                     ipcRenderer.sendToHost("notify",
                         `Manually allowfulled 'mediadevices' at `
-                            + `'${window.location.href}'`, "perm")
+                            + `'${window.location.href}'`,
+                        {"src": "user", "type": "perm"})
                     return mediaDeviceList("allowfull")
                 }
                 setting = "allow"
@@ -166,23 +167,27 @@ try {
                 ipcRenderer.sendToHost("notify",
                     `Ask rule for 'mediadevices' activated at '`
                         + `${window.location.href}' which was `
-                        + `${setting}ed by user`, "perm")
+                        + `${setting}ed by user`,
+                    {"src": "user", "type": "perm"})
             } else {
                 ipcRenderer.sendToHost("notify",
                     `Manually ${setting}ed 'mediadevices' at `
-                        + `'${window.location.href}'`, "perm")
+                        + `'${window.location.href}'`,
+                    {"src": "user", "type": "perm"})
             }
             return mediaDeviceList(setting)
         }
         if (settingRule) {
             ipcRenderer.sendToHost("notify",
                 `Automatic rule for 'mediadevices' activated at '${
-                    window.location.href}' which was ${setting}ed`, "perm")
+                    window.location.href}' which was ${setting}ed`,
+                {"src": "user", "type": "perm"})
         } else {
             ipcRenderer.sendToHost("notify",
                 `Globally ${setting}ed 'mediadevices' at `
                     + `'${window.location.href}' based on `
-                    + "'permissionmediadevices'", "perm")
+                    + "'permissionmediadevices'",
+                {"src": "user", "type": "perm"})
         }
         return mediaDeviceList(setting)
     }
@@ -217,12 +222,14 @@ try {
             if (settingRule) {
                 ipcRenderer.sendToHost("notify",
                     `Automatic rule for 'displaycapture' activated at '`
-                + `${window.location.href}' which was blocked`, "perm")
+                    + `${window.location.href}' which was blocked`,
+                    {"src": "user", "type": "perm"})
             } else {
                 ipcRenderer.sendToHost("notify",
                     `Globally blocked 'displaycapture' at `
-                + `'${window.location.href}' based on 'permission`
-                + "displaycapture'", "perm")
+                    + `'${window.location.href}' based on 'permission`
+                    + "displaycapture'",
+                    {"src": "user", "type": "perm"})
             }
             throw new DOMException("Permission denied", "NotAllowedError")
         }
@@ -289,12 +296,14 @@ try {
                         if (settingRule) {
                             ipcRenderer.sendToHost("notify",
                                 `Ask rule for 'displaycapture' activated at '`
-                            + `${window.location.href}' which was `
-                            + `blocked by user`, "perm")
+                                + `${window.location.href}' which was `
+                                + `blocked by user`,
+                                {"src": "user", "type": "perm"})
                         } else {
                             ipcRenderer.sendToHost("notify",
                                 `Manually blocked 'displaycapture' at `
-                            + `'${window.location.href}'`, "perm")
+                                + `'${window.location.href}'`,
+                                {"src": "user", "type": "perm"})
                         }
                         throw new DOMException(
                             "Permission denied", "NotAllowedError")
@@ -393,7 +402,8 @@ window.prompt = (title, defaultText = "") => {
     if (promptBehavior.includes("notify")) {
         const url = window.location.href
         ipcRenderer.sendToHost("notify",
-            `Page ${url} wanted to show a prompt dialog: ${title}`, "dial")
+            `Page ${url} wanted to show a prompt dialog: ${title}`,
+            {"src": "user", "type": "dial"})
     }
     if (promptBehavior.includes("show")) {
         return ipcRenderer.sendSync("show-prompt-dialog", title, defaultText)
@@ -409,7 +419,8 @@ window.confirm = text => {
     if (confirmBehavior.includes("notify")) {
         const url = window.location.href
         ipcRenderer.sendToHost("notify",
-            `Page ${url} wanted to show a confirm dialog: ${text}`, "dial")
+            `Page ${url} wanted to show a confirm dialog: ${text}`,
+            {"src": "user", "type": "dial"})
     }
     if (confirmBehavior.includes("show")) {
         const button = ipcRenderer.sendSync("sync-message-dialog", {
@@ -433,7 +444,8 @@ window.alert = text => {
     if (alertBehavior.includes("notify")) {
         const url = window.location.href
         ipcRenderer.sendToHost("notify",
-            `Page ${url} wanted to show an alert dialog: ${text}`, "dial")
+            `Page ${url} wanted to show an alert dialog: ${text}`,
+            {"src": "user", "type": "dial"})
     }
     if (alertBehavior.includes("show")) {
         ipcRenderer.sendSync("sync-message-dialog", {
