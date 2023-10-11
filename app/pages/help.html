@@ -451,6 +451,12 @@
             <li><span class="command-block">:command mpv &lt;:!mpv "&lt;useCurrentUrl&gt;"&gt;</span> - Start playing the video in the current url on the mpv player</li>
             <li><span class="command-block">:command savepage &lt;:!echo "'&lt;useCurrentUrl&gt; # &lt;useCurrentTitle&gt;' | tee $HOME/pages"&gt;</span> - Saves the current page in a custom file in the format "https://example.com # Example Page Title" for later</li>
         </ul>
+        <h3 id=":echo">:echo</h3>
+        <ul>
+            <li><span class="command-block">:echo example</span> - Show a notification with the text "example"</li>
+            <li><span class="command-block">:echo &lt;useCurrentUrl&gt;</span> - Show a notification with the current page url as its text</li>
+        </ul>
+        This simple command will show a notification for whatever is added as an argument, including the <a href="#use">use</a> values. It is especially useful when combined with the "--execute" startup flag, that lets you run commands from the CLI in currently opened Vieb instances.
         <h3 id=":delcommand">:delcommand</h3>
         <ul>
             <li><span class="command-block">:delcommand clickonmenu</span> - Remove the clickonmenu custom command</li>
