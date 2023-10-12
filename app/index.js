@@ -87,9 +87,9 @@ Options:
  --devtools              Open with Chromium and Electron debugging tools.
                          They can also be opened later with ':internaldevtools'.
 
- --devtools-theme=<val>  string [SYSTEM/dark/light]: Control the devtools theme.
-                         By default, the devtools will be themed by the OS,
-                         either dark or light, but you can override it.
+ --devtools-theme=<val>  string [DARK/light]: Control the devtools theme.
+                         By default, the devtools will be themed dark like Vieb,
+                         since the default is dark and the OS is unreliable.
                          You can also use the ENV var: 'VIEB_DEVTOOLS_THEME'.
 
  --datafolder=<dir>      Store ALL Vieb data in this folder.
@@ -255,7 +255,7 @@ let argAcceleration = process.env.VIEB_ACCELERATION?.trim().toLowerCase()
 let argInterfaceScale = Number(
     process.env.VIEB_INTERFACE_SCALE?.trim() || 1.0) || 1.0
 let argDevtoolsTheme = process.env.VIEB_DEVTOOLS_THEME?.trim().toLowerCase()
-    || "system"
+    || "dark"
 let argUnsafeMultiwin = isTruthyArg(process.env.VIEB_UNSAFE_MULTIWIN)
 /** @type {string|null} */
 let customIcon = null
@@ -363,11 +363,9 @@ if (argAcceleration !== "hardware" && argAcceleration !== "software") {
         + "'hardware' or 'software'\n")
     printUsage()
 }
-const validThemeColors = ["system", "dark", "light"]
-if (!validThemeColors.includes(argDevtoolsTheme)) {
-    console.warn(`The 'devtools-theme' argument only accepts:\n${
-        validThemeColors.slice(0, -1).map(c => `'${c}'`).join(", ")} or '${
-        validThemeColors.slice(-1)[0]}'\n`)
+if (argDevtoolsTheme !== "dark" && argDevtoolsTheme !== "light") {
+    console.warn("The 'devtools-theme' argument only accepts:\n"
+        + "'dark' or 'light'\n")
     printUsage()
 }
 if (!argDatafolder.trim()) {
@@ -453,9 +451,6 @@ const applyDevtoolsSettings = (prefFile, undock = true) => {
     // Style the devtools based on the system theme
     let theme = `"dark"`
     if (argDevtoolsTheme === "light") {
-        theme = `"light"`
-    }
-    if (argDevtoolsTheme === "system" && !nativeTheme.shouldUseDarkColors) {
         theme = `"light"`
     }
     preferences.electron.devtools.preferences.uiTheme = theme
