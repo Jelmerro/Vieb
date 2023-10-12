@@ -548,7 +548,7 @@ const suggestCommand = searchStr => {
         if (range) {
             addCommand(`${range}write`)
             const tabs = listTabs()
-            rangeToTabIdxs("user", range, true).map(num => {
+            rangeToTabIdxs("user", range, true).tabs.map(num => {
                 const tab = tabs.at(num)
                 if (!tab) {
                     return null
@@ -748,7 +748,7 @@ const suggestCommand = searchStr => {
                     return
                 }
                 const tabs = listTabs()
-                rangeToTabIdxs("user", range, true).map(num => {
+                rangeToTabIdxs("user", range, true).tabs.map(num => {
                     const tab = tabs.at(num)
                     if (!tab) {
                         return null

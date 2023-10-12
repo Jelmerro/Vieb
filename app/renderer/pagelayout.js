@@ -140,8 +140,18 @@ const applyLayout = () => {
      * @param {number} timeout
      */
     const susCall = (tab, linkId, timeout) => {
-        const shouldSuspend = getSetting("suspendplayingtab")
-            || !tab.hasAttribute("media-playing")
+        const index = listTabs().indexOf(tab)
+        let shouldSuspend = true
+        getSetting("suspendtimeoutignore").split(",").forEach(ignore => {
+            const {rangeToTabIdxs} = require("./command")
+            if (rangeToTabIdxs("other", ignore).tabs.includes(index)) {
+                shouldSuspend = false
+            }
+        })
+        if (getSetting("suspendtimeoutignore") === "ga//") {
+            shouldSuspend = getSetting("suspendplayingtab")
+                || !tab.hasAttribute("media-playing")
+        }
         if (shouldSuspend) {
             delete timers[linkId]
             const {suspendTab} = require("./tabs")

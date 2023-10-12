@@ -373,54 +373,83 @@ const source = (src, origin, args) => {
 }
 
 /**
+ * Translate a search based range to a list of tab idxs.
+ * @param {import("./common").RunSource} src
+ * @param {string} range
+ * @param {boolean} silent
+ */
+const translateSearchRangeToIdx = (src, range, silent) => {
+    const [flags] = range.split("/")
+    const allFlags = "giaszrtupn".split("")
+    if (!flags.split("").every(f => allFlags.includes(f))) {
+        if (!silent) {
+            notify(`Range '${range}' contains invalid flags`,
+                {src, "type": "warn"})
+        }
+        return {"tabs": [], "valid": false}
+    }
+    let search = range.split("/").slice(1, -1).join("/")
+    const ids = listTabs().map((t, i) => ({
+        "audio": !!t.getAttribute("media-playing"),
+        "idx": i,
+        "name": t.querySelector("span")?.textContent,
+        "pinned": t.classList.contains("pinned"),
+        "suspended": !!t.getAttribute("suspended"),
+        "url": pageForTab(t)?.getAttribute("src")
+    })).filter(t => {
+        let name = String(t.name)
+        let url = String(t.url)
+        if (flags.includes("i")) {
+            search = search.toLowerCase()
+            name = name.toLowerCase()
+            url = url.toLowerCase()
+        }
+        if (flags.includes("a") && !t.audio) {
+            return false
+        }
+        if (flags.includes("s") && t.audio) {
+            return false
+        }
+        if (flags.includes("z") && !t.suspended) {
+            return false
+        }
+        if (flags.includes("r") && t.suspended) {
+            return false
+        }
+        if (flags.includes("p") && !t.pinned) {
+            return false
+        }
+        if (flags.includes("n") && t.pinned) {
+            return false
+        }
+        if (flags.includes("t") && !flags.includes("u")) {
+            return name.includes(search)
+        }
+        if (flags.includes("u") && !flags.includes("t")) {
+            return url.includes(search)
+        }
+        return name.includes(search) || url.includes(search)
+    }).map(t => t.idx)
+    return {"tabs": ids, "valid": true}
+}
+
+/**
  * Translate a partial range arg to tab index based on mathematical operations.
+ * @param {import("./common").RunSource} src
  * @param {number} start
  * @param {string} rangePart
+ * @param {boolean} silent
  */
-const translateRangePosToIdx = (start, rangePart) => {
+const translateRangePosToIdx = (src, start, rangePart, silent) => {
     const [, plus] = rangePart.split("/").pop()?.split("+") ?? ["", ""]
     const [, minus] = rangePart.split("/").pop()?.split("-") ?? ["", ""]
     /** @type {(string | number)[]} */
     let [charOrNum] = rangePart.split(/[-+]/g)
     if (rangePart.split("/").length > 2) {
-        const [flags] = rangePart.split("/")
-        let search = rangePart.split("/").slice(1, -1).join("/")
-        ;[charOrNum] = listTabs().map((t, i) => ({
-            "audio": !!t.getAttribute("media-playing"),
-            "idx": i,
-            "name": t.querySelector("span")?.textContent,
-            "suspended": !!t.getAttribute("suspended"),
-            "url": pageForTab(t)?.getAttribute("src")
-        })).filter(t => {
-            let name = String(t.name)
-            let url = String(t.url)
-            if (flags.includes("i")) {
-                search = search.toLowerCase()
-                name = name.toLowerCase()
-                url = url.toLowerCase()
-            }
-            if (flags.includes("a") && !t.audio) {
-                return false
-            }
-            if (flags.includes("s") && t.audio) {
-                return false
-            }
-            if (flags.includes("z") && !t.suspended) {
-                return false
-            }
-            if (flags.includes("r") && t.suspended) {
-                return false
-            }
-            if (flags.includes("t") && !flags.includes("u")) {
-                return name.includes(search)
-            }
-            if (flags.includes("u") && !flags.includes("t")) {
-                return url.includes(search)
-            }
-            return name.includes(search) || url.includes(search)
-        }).map(t => t.idx).filter(i => i >= start)
-        if (charOrNum === undefined) {
-            return listTabs().length + 10
+        const searchResult = translateSearchRangeToIdx(src, rangePart, silent)
+        ;[charOrNum] = searchResult.tabs.filter(i => i >= start)
+        if (typeof charOrNum !== "number" || !searchResult.valid) {
+            return {"num": NaN, "valid": searchResult.valid}
         }
     }
     let number = Number(charOrNum)
@@ -452,7 +481,12 @@ const translateRangePosToIdx = (start, rangePart) => {
             number = currentTabIdx - Number(minus)
         }
     }
-    return number
+    const valid = !isNaN(number)
+    if (!valid && !silent) {
+        notify(`Range '${rangePart}' invalid, must have indices or a search`,
+            {src, "type": "warn"})
+    }
+    return {"num": number, valid}
 }
 
 /**
@@ -463,7 +497,7 @@ const translateRangePosToIdx = (start, rangePart) => {
  */
 const rangeToTabIdxs = (src, range, silent = false) => {
     if (range === "%") {
-        return listTabs().map((_, i) => i)
+        return {"tabs": listTabs().map((_, i) => i), "valid": true}
     }
     if (range.includes(",")) {
         const [start, end, tooManyArgs] = range.split(",")
@@ -472,7 +506,7 @@ const rangeToTabIdxs = (src, range, silent = false) => {
                 notify("Too many commas in range, at most 1 is allowed",
                     {src, "type": "warn"})
             }
-            return []
+            return {"tabs": [], "valid": false}
         }
         if (start.match(/^.*g.*\/.*\/[-+]?\d?$/) || end.match(/^.*g.*\/.*\/[-+]?\d?$/)) {
             if (!silent) {
@@ -480,67 +514,41 @@ const rangeToTabIdxs = (src, range, silent = false) => {
                     + "ly two indexes/searches OR use a global search",
                 {src, "type": "warn"})
             }
-            return []
+            return {"tabs": [], "valid": false}
         }
-        const startPos = translateRangePosToIdx(0, start)
-        if (isNaN(startPos)) {
+        const startPos = translateRangePosToIdx(src, 0, start, silent)
+        if (!startPos.valid) {
             if (!silent) {
                 notify(`Range section '${start}' is not a valid range`,
                     {src, "type": "warn"})
             }
-            return []
+            return {"tabs": [], "valid": false}
         }
-        const endPos = translateRangePosToIdx(startPos, end)
-        if (isNaN(endPos)) {
+        const endPos = translateRangePosToIdx(src, startPos.num, end, silent)
+        if (!endPos.valid) {
             if (!silent) {
                 notify(`Range section '${end}' is not a valid range`,
                     {src, "type": "warn"})
             }
-            return []
+            return {"tabs": [], "valid": false}
         }
-        return listTabs().map((_, i) => i).slice(startPos, endPos + 1)
+        return {
+            "tabs": listTabs().map((_, i) => i).slice(
+                startPos.num, endPos.num + 1),
+            "valid": true
+        }
     }
     if (range.split("/").length > 2) {
-        const [flags] = range.split("/")
+        const flags = range.split("/")[0].split("")
         if (flags.includes("g")) {
-            let search = range.split("/").slice(1, -1).join("/")
-            return listTabs().map((t, i) => ({
-                "audio": !!t.getAttribute("media-playing"),
-                "idx": i,
-                "name": t.querySelector("span")?.textContent,
-                "suspended": !!t.getAttribute("suspended"),
-                "url": pageForTab(t)?.getAttribute("src")
-            })).filter(t => {
-                let name = String(t.name)
-                let url = String(t.url)
-                if (flags.includes("i")) {
-                    search = search.toLowerCase()
-                    name = name.toLowerCase()
-                    url = url.toLowerCase()
-                }
-                if (flags.includes("a") && !t.audio) {
-                    return false
-                }
-                if (flags.includes("s") && t.audio) {
-                    return false
-                }
-                if (flags.includes("z") && !t.suspended) {
-                    return false
-                }
-                if (flags.includes("r") && t.suspended) {
-                    return false
-                }
-                if (flags.includes("t") && !flags.includes("u")) {
-                    return name.includes(search)
-                }
-                if (flags.includes("u") && !flags.includes("t")) {
-                    return url.includes(search)
-                }
-                return name.includes(search) || url.includes(search)
-            }).map(t => t.idx)
+            return translateSearchRangeToIdx(src, range, silent)
         }
     }
-    return [translateRangePosToIdx(0, range)]
+    const result = translateRangePosToIdx(src, 0, range, silent)
+    if (result.valid) {
+        return {"tabs": [result.num], "valid": true}
+    }
+    return {"tabs": [], "valid": false}
 }
 
 /**
@@ -688,7 +696,7 @@ const quitall = () => {
 const quit = (src, range) => {
     const {closeTab} = require("./tabs")
     if (range) {
-        rangeToTabIdxs(src, range).forEach(t => closeTab(src, t))
+        rangeToTabIdxs(src, range).tabs.forEach(t => closeTab(src, t))
         return
     }
     if (document.getElementById("tabs")?.classList.contains("multiple")) {
@@ -851,7 +859,7 @@ const reloadconfig = () => {
  */
 const hardcopy = (src, range) => {
     if (range) {
-        rangeToTabIdxs(src, range).forEach(t => {
+        rangeToTabIdxs(src, range).tabs.forEach(t => {
             const page = pageForTab(listTabs()[t])
             if (!(page instanceof HTMLDivElement)) {
                 page?.send("action", "print")
@@ -946,7 +954,7 @@ const write = (src, args, range) => {
         return
     }
     if (range) {
-        rangeToTabIdxs(src, range).forEach(t => writePage(src, null, t))
+        rangeToTabIdxs(src, range).tabs.forEach(t => writePage(src, null, t))
         return
     }
     writePage(src, args[0])
@@ -1143,7 +1151,7 @@ const suspend = (src, args, range = null) => {
         return
     }
     if (range) {
-        rangeToTabIdxs(src, range).forEach(t => suspend(src, [`${t}`]))
+        rangeToTabIdxs(src, range).tabs.forEach(t => suspend(src, [`${t}`]))
         return
     }
     let tab = null
@@ -1177,7 +1185,7 @@ const hideCommand = (src, args, range = null) => {
         return
     }
     if (range) {
-        rangeToTabIdxs(src, range).forEach(t => hideCommand(src, [`${t}`]))
+        rangeToTabIdxs(src, range).tabs.forEach(t => hideCommand(src, [`${t}`]))
         return
     }
     let tab = null
@@ -1214,7 +1222,7 @@ const setMute = (src, args, range) => {
     let targets = [currentTab()]
     if (range) {
         const tabs = listTabs()
-        targets = rangeToTabIdxs(src, range).map(id => tabs[id])
+        targets = rangeToTabIdxs(src, range).tabs.map(id => tabs[id])
     }
     targets.forEach(tab => {
         if (args[0] === "true") {
@@ -1243,7 +1251,7 @@ const mute = (src, args, range = null) => {
         return
     }
     if (range) {
-        rangeToTabIdxs(src, range).forEach(t => mute(src, [`${t}`]))
+        rangeToTabIdxs(src, range).tabs.forEach(t => mute(src, [`${t}`]))
         return
     }
     let tab = currentTab()
@@ -1283,7 +1291,7 @@ const setPin = (src, args, range) => {
     let targets = [currentTab()]
     const tabs = listTabs()
     if (range) {
-        targets = rangeToTabIdxs(src, range).map(id => tabs[id])
+        targets = rangeToTabIdxs(src, range).tabs.map(id => tabs[id])
     }
     const firstUnpinned = tabs.find(t => !t.classList.contains("pinned"))
     targets.forEach(tab => {
@@ -1318,7 +1326,7 @@ const pin = (src, args, range) => {
         const tabs = listTabs()
         const tabContainer = document.getElementById("tabs")
         const firstUnpinned = tabs.find(t => !t.classList.contains("pinned"))
-        rangeToTabIdxs(src, range).map(id => tabs[id]).forEach(target => {
+        rangeToTabIdxs(src, range).tabs.map(id => tabs[id]).forEach(target => {
             if (target.classList.contains("pinned")) {
                 tabContainer?.insertBefore(target, firstUnpinned ?? null)
                 target.classList.remove("pinned")
@@ -1368,7 +1376,7 @@ const addSplit = (src, method, leftOrAbove, args, range = null) => {
         return
     }
     if (range) {
-        rangeToTabIdxs(src, range).forEach(
+        rangeToTabIdxs(src, range).tabs.forEach(
             t => addSplit(src, method, leftOrAbove, [`${t}`]))
         return
     }
@@ -1419,7 +1427,7 @@ const close = (src, force, args, range) => {
     const {closeTab} = require("./tabs")
     if (range) {
         const tabs = listTabs()
-        rangeToTabIdxs(src, range).map(id => tabs[id]).forEach(target => {
+        rangeToTabIdxs(src, range).tabs.map(id => tabs[id]).forEach(target => {
             closeTab(src, listTabs().indexOf(target), force)
         })
         return
@@ -1548,7 +1556,7 @@ const runjsinpage = (src, raw, range) => {
         javascript = readFile(filePath) || javascript
     }
     if (range) {
-        rangeToTabIdxs(src, range).forEach(tabId => {
+        rangeToTabIdxs(src, range).tabs.forEach(tabId => {
             const page = pageForTab(listTabs()[tabId])
             if (page && !(page instanceof HTMLDivElement)) {
                 page.executeJavaScript(javascript, true)

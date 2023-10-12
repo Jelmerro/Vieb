@@ -13,6 +13,14 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- Setting "suspendtimeoutignore" to specify ranges to exclude from the "suspendtimeout" setting
+
+### Deprecated
+
+- Setting "suspendplayingtab" in favor of using "suspendtimeoutignore" with the right range
+
 ### Fixed
 
 - Table of contents background being transparent

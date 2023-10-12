@@ -316,6 +316,7 @@ const defaultSettings = {
     "suspendonrestore": "regular",
     "suspendplayingtab": false,
     "suspendtimeout": 0,
+    "suspendtimeoutignore": "ga//",
     /** @type {"left"|"right"|"previous"} */
     "tabclosefocus": "left",
     "tabcycle": true,
@@ -388,6 +389,7 @@ const listLike = [
     "startuppages",
     "storenewvisits",
     "suggestorder",
+    "suspendtimeoutignore",
     "resourcetypes",
     "tocpages",
     "userscriptscope",
@@ -1333,6 +1335,17 @@ const checkOther = (src, setting, value) => {
         }
         return checkSuggestOrder(src, value)
     }
+    if (setting === "suspendtimeoutignore") {
+        if (typeof value !== "string") {
+            return false
+        }
+        for (const ignore of value.split(",")) {
+            const {rangeToTabIdxs} = require("./command")
+            if (!rangeToTabIdxs(src, ignore).valid) {
+                return false
+            }
+        }
+    }
     if (setting === "tocpages") {
         if (typeof value !== "string") {
             return false
@@ -1962,6 +1975,11 @@ const set = (src, setting, value) => {
         }
         if (setting === "redirects") {
             ipcRenderer.send("set-redirects", allSettings.redirects)
+        }
+        if (setting === "suspendplayingtab") {
+            notify("DEPRECATION: suspendplayingtab will be replaced with "
+                + "suspendtimeoutignore in 11.0.0 onward.",
+            {src, "type": "warn"})
         }
         if (setting === "suspendtimeout") {
             const {restartSuspendTimeouts} = require("./pagelayout")
