@@ -2620,7 +2620,8 @@ const init = () => {
             if (getMouseConf("leaveinput")) {
                 ACTIONS.toNormalMode()
             }
-        } else if (getMouseConf("switchtab")) {
+        }
+        if (getMouseConf("switchtab")) {
             const tab = e.composedPath().find(n => {
                 if (n instanceof HTMLSpanElement) {
                     return listTabs().includes(n)

@@ -29,6 +29,7 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 - Eslint rules to be more strict with better jsdoc and types
 - Url modification functions for subdomain and parent urls to be more accurate
 - Devtools theme to be in system colors instead of dark by default
+- Clicks on tabs while inside navbar modes to switch tab instead of only going to normal mode
 
 ### Fixed
 
