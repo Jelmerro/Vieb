@@ -73,6 +73,32 @@ const listSetting = (src, setting) => {
         notify(`--- Options ---\n${listCurrentSettings(true)}`, {src})
         return
     }
+    if (setting === "dialogconfirm") {
+        notify("DEPRECATION: dialogconfirm default value will be changed, "
+            + "making 'notifyallow' the new default from 11.0.0 onward.",
+        {src, "type": "warn"})
+    }
+    if (setting === "nativetheme" && getSetting("nativetheme") === "system") {
+        notify("DEPRECATION: nativetheme value 'system' will be removed, "
+            + "making 'dark' the new default from 11.0.0 onward.",
+        {src, "type": "warn"})
+    }
+    if (setting === "permissionmediadevices"
+        && getSetting("permissionmediadevices") === "ask") {
+        notify("DEPRECATION: permissionmediadevices value 'ask' "
+            + "will be removed from 11.0.0 onward.",
+        {src, "type": "warn"})
+    }
+    if (setting === "suspendplayingtab") {
+        notify("DEPRECATION: suspendplayingtab will be replaced with "
+            + "suspendtimeoutignore in 11.0.0 onward.",
+        {src, "type": "warn"})
+    }
+    if (setting === "tocpages") {
+        notify("DEPRECATION: tocpages default value will be changed, "
+            + "making 'vieb://help' the new default in 11.0.0 onward.",
+        {src, "type": "warn"})
+    }
     notify(`The setting '${setting}' has the value '${getSetting(setting)}'`, {
         src
     })

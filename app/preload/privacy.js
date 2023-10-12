@@ -98,10 +98,10 @@ try {
 
     /** Override the device list based on permission settings. */
     window.navigator.mediaDevices.enumerateDevices = async() => {
-        let setting = getWebviewSetting("permissionmediadevices") ?? "ask"
+        let setting = getWebviewSetting("permissionmediadevices") ?? "block"
         const valid = ["block", "ask", "allow", "allowkind", "allowfull"]
         if (!valid.includes(setting)) {
-            setting = "ask"
+            setting = "block"
         }
         /** @type {"block"|"ask"|"allow"|"allowkind"|"allowfull"|null} */
         let settingRule = null
@@ -138,6 +138,10 @@ try {
         }
         setting = settingRule ?? setting
         if (setting === "ask") {
+            ipcRenderer.sendToHost("notify",
+                "DEPRECATION: permissionmediadevices value 'ask' "
+                + "will be removed from 11.0.0 onward.",
+                {"src": "user", "type": "warn"})
             if (url.length > 100) {
                 url = url.replace(/.{50}/g, "$&\n")
             }

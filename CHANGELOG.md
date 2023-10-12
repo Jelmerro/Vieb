@@ -19,7 +19,11 @@ The releases of Vieb aim to follow [semantic versioning](https://semver.org).
 
 ### Deprecated
 
-- Setting "suspendplayingtab" in favor of using "suspendtimeoutignore" with the right range
+- Setting "suspendplayingtab" (will be removed in 11.x.x) in favor of using "suspendtimeoutignore" with the right range
+- Default value for "dialogconfirm" being "notifyblock" (will change to "notifyallow" in 11.x.x)
+- Default value for "nativetheme" being "system" (will change to "dark" in 11.x.x, "system" will be removed)
+- Default value for "tocpages" being "" (will change to "vieb://help" in 11.x.x)
+- Option "ask" for "permissionmediadevices" (will be removed in 11.x.x)
 
 ### Fixed
 

@@ -1072,6 +1072,11 @@ const checkOther = (src, setting, value) => {
                         + "only allowed or blocked", {src, "type": "warn"})
                     return false
                 }
+                if (setting.endsWith("asked") && name.endsWith("ediadevices")) {
+                    notify("DEPRECATION: permissionmediadevices value 'ask' "
+                        + "will be removed from 11.0.0 onward.",
+                    {src, "type": "warn"})
+                }
                 if (setting.endsWith("allowed") && name.endsWith("capture")) {
                     notify(
                         "Display capture permission can't be allowed, "
@@ -1868,6 +1873,11 @@ const set = (src, setting, value) => {
         if (setting === "containercolors" || setting === "containershowname") {
             updateContainerSettings()
         }
+        if (setting === "dialogconfirm") {
+            notify("DEPRECATION: dialogconfirm default value will be changed, "
+                + "making 'notifyallow' the new default from 11.0.0 onward.",
+            {src, "type": "warn"})
+        }
         if (setting === "useragent") {
             if (typeof value === "string") {
                 ipcRenderer.sendSync("override-global-useragent",
@@ -1902,6 +1912,9 @@ const set = (src, setting, value) => {
             updateMouseSettings()
         }
         if (setting === "nativetheme") {
+            notify("DEPRECATION: nativetheme value 'system' will be removed, "
+                + "making 'dark' the new default from 11.0.0 onward.",
+            {src, "type": "warn"})
             updateNativeTheme()
         }
         if (setting === "pdfbehavior") {
@@ -1973,6 +1986,11 @@ const set = (src, setting, value) => {
         if (setting.startsWith("permission")) {
             updatePermissionSettings()
         }
+        if (setting === "permissionmediadevices" && value === "ask") {
+            notify("DEPRECATION: permissionmediadevices value 'ask' "
+                + "will be removed from 11.0.0 onward.",
+            {src, "type": "warn"})
+        }
         if (setting === "redirects") {
             ipcRenderer.send("set-redirects", allSettings.redirects)
         }
@@ -1984,6 +2002,11 @@ const set = (src, setting, value) => {
         if (setting === "suspendtimeout") {
             const {restartSuspendTimeouts} = require("./pagelayout")
             restartSuspendTimeouts()
+        }
+        if (setting === "tocpages") {
+            notify("DEPRECATION: tocpages default value will be changed, "
+                + "making 'vieb://help' the new default in 11.0.0 onward.",
+            {src, "type": "warn"})
         }
         if (setting === "windowtitle") {
             updateWindowTitle()
