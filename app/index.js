@@ -88,8 +88,7 @@ Options:
                          They can also be opened later with ':internaldevtools'.
 
  --devtools-theme=<val>  string [DARK/light]: Control the devtools theme.
-                         By default, the devtools will be themed dark like Vieb,
-                         since the default is dark and the OS is unreliable.
+                         By default, the devtools will be themed dark like Vieb.
                          You can also use the ENV var: 'VIEB_DEVTOOLS_THEME'.
 
  --datafolder=<dir>      Store ALL Vieb data in this folder.
