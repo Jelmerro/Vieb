@@ -21,11 +21,6 @@
 const {ipcRenderer} = require("electron")
 const {matchesQuery, getWebviewSetting} = require("../util")
 
-const message = "The page has requested to view a list of all media devices."
-    + " You can allow or deny this below, and choose if you want the list to"
-    + " include the names (labels) of the media device in the response."
-    + " For help and options, see ':h permissionmediadevices', ':h permissions"
-    + "allowed', ':h permissionsasked' and ':h permissionsblocked'."
 const displayCaptureStyling = `html, body {overflow: hidden !important;}
 .desktop-capturer-selection {
     font-family: sans-serif;font-weight: revert;font-size: 14px;
@@ -97,17 +92,17 @@ try {
     }
 
     /** Override the device list based on permission settings. */
-    window.navigator.mediaDevices.enumerateDevices = async() => {
+    window.navigator.mediaDevices.enumerateDevices = () => {
         let setting = getWebviewSetting("permissionmediadevices") ?? "block"
-        const valid = ["block", "ask", "allow", "allowkind", "allowfull"]
+        const valid = ["block", "allow", "allowkind", "allowfull"]
         if (!valid.includes(setting)) {
             setting = "block"
         }
-        /** @type {"block"|"ask"|"allow"|"allowkind"|"allowfull"|null} */
+        /** @type {"block"|"allow"|"allowkind"|"allowfull"|null} */
         let settingRule = null
-        let url = window.location.href
-        /** @type {("ask"|"block"|"allow")[]} */
-        const permissionOverrideTypes = ["ask", "block", "allow"]
+        const url = window.location.href
+        /** @type {("block"|"allow")[]} */
+        const permissionOverrideTypes = ["block", "allow"]
         for (const type of permissionOverrideTypes) {
             const permList = getWebviewSetting(
                 `permissions${type}ed`)
@@ -137,50 +132,6 @@ try {
             }
         }
         setting = settingRule ?? setting
-        if (setting === "ask") {
-            ipcRenderer.sendToHost("notify",
-                "DEPRECATION: permissionmediadevices value 'ask' "
-                + "will be removed from 11.0.0 onward.",
-                {"src": "user", "type": "warn"})
-            if (url.length > 100) {
-                url = url.replace(/.{50}/g, "$&\n")
-            }
-            const ask = await ipcRenderer.invoke("show-message-dialog", {
-                "buttons": ["Allow", "Deny"],
-                "cancelId": 1,
-                "checkboxLabel": "Include media device name labels",
-                "defaultId": 0,
-                "message": `${message}\n\npage:\n${url}`,
-                "title": "Allow this page to access 'mediadevices'?",
-                "type": "question"
-            })
-            if (ask.response === 0) {
-                if (ask.checkboxChecked) {
-                    ipcRenderer.sendToHost("notify",
-                        `Manually allowfulled 'mediadevices' at `
-                            + `'${window.location.href}'`,
-                        {"src": "user", "type": "perm"})
-                    return mediaDeviceList("allowfull")
-                }
-                setting = "allow"
-            }
-            if (ask.response === 1) {
-                setting = "block"
-            }
-            if (settingRule) {
-                ipcRenderer.sendToHost("notify",
-                    `Ask rule for 'mediadevices' activated at '`
-                        + `${window.location.href}' which was `
-                        + `${setting}ed by user`,
-                    {"src": "user", "type": "perm"})
-            } else {
-                ipcRenderer.sendToHost("notify",
-                    `Manually ${setting}ed 'mediadevices' at `
-                        + `'${window.location.href}'`,
-                    {"src": "user", "type": "perm"})
-            }
-            return mediaDeviceList(setting)
-        }
         if (settingRule) {
             ipcRenderer.sendToHost("notify",
                 `Automatic rule for 'mediadevices' activated at '${

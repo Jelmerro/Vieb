@@ -118,7 +118,7 @@ const defaultSettings = {
     /** @type {(
      *   "show"|"notifyshow"|"block"|"notifyblock"|"allow"|"notifyallow"
      * )} */
-    "dialogconfirm": "notifyblock",
+    "dialogconfirm": "notifyallow",
     /** @type {"show"|"notifyshow"|"block"|"notifyblock"} */
     "dialogprompt": "notifyblock",
     /** @type {"automatic"|"confirm"|"ask"|"block"} */
@@ -214,8 +214,8 @@ const defaultSettings = {
     "mousevisualmode": "onswitch",
     /** @type {"always"|"largeonly"|"smallonly"|"never"} */
     "nativenotification": "never",
-    /** @type {"system"|"dark"|"light"} */
-    "nativetheme": "system",
+    /** @type {"dark"|"light"} */
+    "nativetheme": "dark",
     "newtaburl": "",
     "notificationduration": 6000,
     /** @type {"all"|"allowed"|"blocked"|"silent"|"none"} */
@@ -247,7 +247,7 @@ const defaultSettings = {
     "permissionhid": "block",
     /** @type {"block"|"ask"|"allow"} */
     "permissionidledetection": "block",
-    /** @type {"block"|"ask"|"allow"|"allowkind"|"allowfull"} */
+    /** @type {"block"|"allow"|"allowkind"|"allowfull"} */
     "permissionmediadevices": "block",
     /** @type {"block"|"ask"|"allow"} */
     "permissionmicrophone": "block",
@@ -360,9 +360,8 @@ const defaultSettings = {
     "suspendbackgroundtab": true,
     /** @type {"all"|"regular"|"none"} */
     "suspendonrestore": "regular",
-    "suspendplayingtab": false,
     "suspendtimeout": 0,
-    "suspendtimeoutignore": ["ga//"],
+    "suspendtimeoutignore": ["ga//", "gp//"],
     /** @type {"left"|"right"|"previous"} */
     "tabclosefocus": "left",
     "tabcycle": true,
@@ -379,7 +378,7 @@ const defaultSettings = {
     "timeout": true,
     "timeoutlen": 2000,
     /** @type {string[]} */
-    "tocpages": [],
+    "tocpages": ["vieb://help"],
     /** @type {"auto"|"deepl"|"libretranslate"} */
     "translateapi": "auto",
     "translatekey": "",
@@ -1114,9 +1113,10 @@ const checkOther = (src, setting, value) => {
                     return false
                 }
                 if (setting.endsWith("asked") && name.endsWith("ediadevices")) {
-                    notify("DEPRECATION: permissionmediadevices value 'ask' "
-                        + "will be removed from 11.0.0 onward.",
-                    {src, "type": "warn"})
+                    notify(
+                        "Mediadevices permission can't be asked, "
+                        + "only allowed or blocked", {src, "type": "warn"})
+                    return false
                 }
                 if (setting.endsWith("allowed") && name.endsWith("capture")) {
                     notify(
@@ -2049,11 +2049,6 @@ const set = (src, setting, value) => {
         if (setting === "containercolors" || setting === "containershowname") {
             updateContainerSettings()
         }
-        if (setting === "dialogconfirm") {
-            notify("DEPRECATION: dialogconfirm default value will be changed, "
-                + "making 'notifyallow' the new default from 11.0.0 onward.",
-            {src, "type": "warn"})
-        }
         if (setting === "useragent") {
             if (typeof value === "string") {
                 ipcRenderer.sendSync("override-global-useragent",
@@ -2088,9 +2083,6 @@ const set = (src, setting, value) => {
             updateMouseSettings()
         }
         if (setting === "nativetheme") {
-            notify("DEPRECATION: nativetheme value 'system' will be removed, "
-                + "making 'dark' the new default from 11.0.0 onward.",
-            {src, "type": "warn"})
             updateNativeTheme()
         }
         if (setting === "pdfbehavior") {
@@ -2162,27 +2154,12 @@ const set = (src, setting, value) => {
         if (setting.startsWith("permission")) {
             updatePermissionSettings()
         }
-        if (setting === "permissionmediadevices" && value === "ask") {
-            notify("DEPRECATION: permissionmediadevices value 'ask' "
-                + "will be removed from 11.0.0 onward.",
-            {src, "type": "warn"})
-        }
         if (setting === "redirects") {
             ipcRenderer.send("set-redirects", allSettings.redirects)
-        }
-        if (setting === "suspendplayingtab") {
-            notify("DEPRECATION: suspendplayingtab will be replaced with "
-                + "suspendtimeoutignore in 11.0.0 onward.",
-            {src, "type": "warn"})
         }
         if (setting === "suspendtimeout") {
             const {restartSuspendTimeouts} = require("./pagelayout")
             restartSuspendTimeouts()
-        }
-        if (setting === "tocpages") {
-            notify("DEPRECATION: tocpages default value will be changed, "
-                + "making 'vieb://help' the new default in 11.0.0 onward.",
-            {src, "type": "warn"})
         }
         if (setting === "windowtitle") {
             updateWindowTitle()

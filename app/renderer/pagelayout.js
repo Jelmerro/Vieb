@@ -148,10 +148,6 @@ const applyLayout = () => {
                 shouldSuspend = false
             }
         })
-        if (JSON.stringify(getSetting("suspendtimeoutignore")) === `["ga//"]`) {
-            shouldSuspend = getSetting("suspendplayingtab")
-                || !tab.hasAttribute("media-playing")
-        }
         if (shouldSuspend) {
             delete timers[linkId]
             const {suspendTab} = require("./tabs")
